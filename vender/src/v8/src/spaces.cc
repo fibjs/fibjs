@@ -4,11 +4,11 @@
 
 #include "src/v8.h"
 
+#include "src/base/platform/platform.h"
 #include "src/full-codegen.h"
 #include "src/macro-assembler.h"
 #include "src/mark-compact.h"
 #include "src/msan.h"
-#include "src/platform.h"
 
 namespace v8 {
 namespace internal {
@@ -18,6 +18,9 @@ namespace internal {
 // HeapObjectIterator
 
 HeapObjectIterator::HeapObjectIterator(PagedSpace* space) {
+  // Check that we actually can iterate this space.
+  ASSERT(space->is_iterable());
+
   // You can't actually iterate over the anchor page.  It is not a real page,
   // just an anchor for the double linked page list.  Initialize as if we have
   // reached the end of the anchor page, then the first iteration will move on
@@ -32,6 +35,9 @@ HeapObjectIterator::HeapObjectIterator(PagedSpace* space) {
 
 HeapObjectIterator::HeapObjectIterator(PagedSpace* space,
                                        HeapObjectCallback size_func) {
+  // Check that we actually can iterate this space.
+  ASSERT(space->is_iterable());
+
   // You can't actually iterate over the anchor page.  It is not a real page,
   // just an anchor for the double linked page list.  Initialize the current
   // address and end as NULL, then the first iteration will move on
@@ -66,9 +72,6 @@ void HeapObjectIterator::Initialize(PagedSpace* space,
                                     Address cur, Address end,
                                     HeapObjectIterator::PageMode mode,
                                     HeapObjectCallback size_f) {
-  // Check that we actually can iterate this space.
-  ASSERT(!space->was_swept_conservatively());
-
   space_ = space;
   cur_addr_ = cur;
   cur_end_ = end;
@@ -126,7 +129,7 @@ bool CodeRange::SetUp(size_t requested) {
   }
 
   ASSERT(!kRequiresCodeRange || requested <= kMaximalCodeRangeSize);
-  code_range_ = new VirtualMemory(requested);
+  code_range_ = new base::VirtualMemory(requested);
   CHECK(code_range_ != NULL);
   if (!code_range_->IsReserved()) {
     delete code_range_;
@@ -301,7 +304,8 @@ void MemoryAllocator::TearDown() {
 bool MemoryAllocator::CommitMemory(Address base,
                                    size_t size,
                                    Executability executable) {
-  if (!VirtualMemory::CommitRegion(base, size, executable == EXECUTABLE)) {
+  if (!base::VirtualMemory::CommitRegion(base, size,
+                                         executable == EXECUTABLE)) {
     return false;
   }
   UpdateAllocatedSpaceLimits(base, base + size);
@@ -309,7 +313,7 @@ bool MemoryAllocator::CommitMemory(Address base,
 }
 
 
-void MemoryAllocator::FreeMemory(VirtualMemory* reservation,
+void MemoryAllocator::FreeMemory(base::VirtualMemory* reservation,
                                  Executability executable) {
   // TODO(gc) make code_range part of memory allocator?
   ASSERT(reservation->IsReserved());
@@ -355,7 +359,7 @@ void MemoryAllocator::FreeMemory(Address base,
     ASSERT(executable == NOT_EXECUTABLE ||
            isolate_->code_range() == NULL ||
            !isolate_->code_range()->valid());
-    bool result = VirtualMemory::ReleaseRegion(base, size);
+    bool result = base::VirtualMemory::ReleaseRegion(base, size);
     USE(result);
     ASSERT(result);
   }
@@ -364,8 +368,8 @@ void MemoryAllocator::FreeMemory(Address base,
 
 Address MemoryAllocator::ReserveAlignedMemory(size_t size,
                                               size_t alignment,
-                                              VirtualMemory* controller) {
-  VirtualMemory reservation(size, alignment);
+                                              base::VirtualMemory* controller) {
+  base::VirtualMemory reservation(size, alignment);
 
   if (!reservation.IsReserved()) return NULL;
   size_ += reservation.size();
@@ -376,13 +380,11 @@ Address MemoryAllocator::ReserveAlignedMemory(size_t size,
 }
 
 
-Address MemoryAllocator::AllocateAlignedMemory(size_t reserve_size,
-                                               size_t commit_size,
-                                               size_t alignment,
-                                               Executability executable,
-                                               VirtualMemory* controller) {
+Address MemoryAllocator::AllocateAlignedMemory(
+    size_t reserve_size, size_t commit_size, size_t alignment,
+    Executability executable, base::VirtualMemory* controller) {
   ASSERT(commit_size <= reserve_size);
-  VirtualMemory reservation;
+  base::VirtualMemory reservation;
   Address base = ReserveAlignedMemory(reserve_size, alignment, &reservation);
   if (base == NULL) return NULL;
 
@@ -511,9 +513,10 @@ bool MemoryChunk::CommitArea(size_t requested) {
   size_t guard_size = IsFlagSet(IS_EXECUTABLE) ?
                       MemoryAllocator::CodePageGuardSize() : 0;
   size_t header_size = area_start() - address() - guard_size;
-  size_t commit_size = RoundUp(header_size + requested, OS::CommitPageSize());
+  size_t commit_size =
+      RoundUp(header_size + requested, base::OS::CommitPageSize());
   size_t committed_size = RoundUp(header_size + (area_end() - area_start()),
-                                  OS::CommitPageSize());
+                                  base::OS::CommitPageSize());
 
   if (commit_size > committed_size) {
     // Commit size should be less or equal than the reserved size.
@@ -587,7 +590,7 @@ MemoryChunk* MemoryAllocator::AllocateChunk(intptr_t reserve_area_size,
   size_t chunk_size;
   Heap* heap = isolate_->heap();
   Address base = NULL;
-  VirtualMemory reservation;
+  base::VirtualMemory reservation;
   Address area_start = NULL;
   Address area_end = NULL;
 
@@ -623,7 +626,7 @@ MemoryChunk* MemoryAllocator::AllocateChunk(intptr_t reserve_area_size,
 
   if (executable == EXECUTABLE) {
     chunk_size = RoundUp(CodePageAreaStartOffset() + reserve_area_size,
-                         OS::CommitPageSize()) + CodePageGuardSize();
+                         base::OS::CommitPageSize()) + CodePageGuardSize();
 
     // Check executable memory limit.
     if (size_executable_ + chunk_size > capacity_executable_) {
@@ -635,7 +638,7 @@ MemoryChunk* MemoryAllocator::AllocateChunk(intptr_t reserve_area_size,
 
     // Size of header (not executable) plus area (executable).
     size_t commit_size = RoundUp(CodePageGuardStartOffset() + commit_area_size,
-                                 OS::CommitPageSize());
+                                 base::OS::CommitPageSize());
     // Allocate executable memory either from code range or from the
     // OS.
     if (isolate_->code_range() != NULL && isolate_->code_range()->valid()) {
@@ -668,9 +671,9 @@ MemoryChunk* MemoryAllocator::AllocateChunk(intptr_t reserve_area_size,
     area_end = area_start + commit_area_size;
   } else {
     chunk_size = RoundUp(MemoryChunk::kObjectStartOffset + reserve_area_size,
-                         OS::CommitPageSize());
+                         base::OS::CommitPageSize());
     size_t commit_size = RoundUp(MemoryChunk::kObjectStartOffset +
-                                 commit_area_size, OS::CommitPageSize());
+                                 commit_area_size, base::OS::CommitPageSize());
     base = AllocateAlignedMemory(chunk_size,
                                  commit_size,
                                  MemoryChunk::kAlignment,
@@ -757,7 +760,7 @@ void MemoryAllocator::Free(MemoryChunk* chunk) {
   delete chunk->slots_buffer();
   delete chunk->skip_list();
 
-  VirtualMemory* reservation = chunk->reserved_memory();
+  base::VirtualMemory* reservation = chunk->reserved_memory();
   if (reservation->IsReserved()) {
     FreeMemory(reservation, chunk->executable());
   } else {
@@ -783,7 +786,7 @@ bool MemoryAllocator::CommitBlock(Address start,
 
 
 bool MemoryAllocator::UncommitBlock(Address start, size_t size) {
-  if (!VirtualMemory::UncommitRegion(start, size)) return false;
+  if (!base::VirtualMemory::UncommitRegion(start, size)) return false;
   isolate_->counters()->memory_allocated()->Decrement(static_cast<int>(size));
   return true;
 }
@@ -856,12 +859,12 @@ void MemoryAllocator::ReportStatistics() {
 int MemoryAllocator::CodePageGuardStartOffset() {
   // We are guarding code pages: the first OS page after the header
   // will be protected as non-writable.
-  return RoundUp(Page::kObjectStartOffset, OS::CommitPageSize());
+  return RoundUp(Page::kObjectStartOffset, base::OS::CommitPageSize());
 }
 
 
 int MemoryAllocator::CodePageGuardSize() {
-  return static_cast<int>(OS::CommitPageSize());
+  return static_cast<int>(base::OS::CommitPageSize());
 }
 
 
@@ -875,11 +878,11 @@ int MemoryAllocator::CodePageAreaStartOffset() {
 int MemoryAllocator::CodePageAreaEndOffset() {
   // We are guarding code pages: the last OS page will be protected as
   // non-writable.
-  return Page::kPageSize - static_cast<int>(OS::CommitPageSize());
+  return Page::kPageSize - static_cast<int>(base::OS::CommitPageSize());
 }
 
 
-bool MemoryAllocator::CommitExecutableMemory(VirtualMemory* vm,
+bool MemoryAllocator::CommitExecutableMemory(base::VirtualMemory* vm,
                                              Address start,
                                              size_t commit_size,
                                              size_t reserved_size) {
@@ -935,7 +938,8 @@ PagedSpace::PagedSpace(Heap* heap,
                        Executability executable)
     : Space(heap, id, executable),
       free_list_(this),
-      was_swept_conservatively_(false),
+      is_iterable_(true),
+      is_swept_concurrently_(false),
       unswept_free_bytes_(0),
       end_of_unswept_pages_(NULL) {
   if (id == CODE_SPACE) {
@@ -977,7 +981,7 @@ void PagedSpace::TearDown() {
 
 
 size_t PagedSpace::CommittedPhysicalMemory() {
-  if (!VirtualMemory::HasLazyCommits()) return CommittedMemory();
+  if (!base::VirtualMemory::HasLazyCommits()) return CommittedMemory();
   MemoryChunk::UpdateHighWaterMark(allocation_info_.top());
   size_t size = 0;
   PageIterator it(this);
@@ -1046,7 +1050,7 @@ intptr_t PagedSpace::SizeOfFirstPage() {
   int size = 0;
   switch (identity()) {
     case OLD_POINTER_SPACE:
-      size = 96 * kPointerSize * KB;
+      size = 112 * kPointerSize * KB;
       break;
     case OLD_DATA_SPACE:
       size = 192 * KB;
@@ -1157,7 +1161,7 @@ void PagedSpace::Print() { }
 #ifdef VERIFY_HEAP
 void PagedSpace::Verify(ObjectVisitor* visitor) {
   // We can only iterate over the pages if they were swept precisely.
-  if (was_swept_conservatively_) return;
+  if (!is_iterable_) return;
 
   bool allocation_pointer_found_in_space =
       (allocation_info_.top() == allocation_info_.limit());
@@ -1587,7 +1591,7 @@ bool SemiSpace::GrowTo(int new_capacity) {
 
   size_t delta = new_capacity - capacity_;
 
-  ASSERT(IsAligned(delta, OS::AllocateAlignment()));
+  ASSERT(IsAligned(delta, base::OS::AllocateAlignment()));
   if (!heap()->isolate()->memory_allocator()->CommitBlock(
       start_ + capacity_, delta, executable())) {
     return false;
@@ -1617,7 +1621,7 @@ bool SemiSpace::ShrinkTo(int new_capacity) {
   ASSERT(new_capacity < capacity_);
   if (is_committed()) {
     size_t delta = capacity_ - new_capacity;
-    ASSERT(IsAligned(delta, OS::AllocateAlignment()));
+    ASSERT(IsAligned(delta, base::OS::AllocateAlignment()));
 
     MemoryAllocator* allocator = heap()->isolate()->memory_allocator();
     if (!allocator->UncommitBlock(start_ + new_capacity, delta)) {
@@ -1983,7 +1987,7 @@ void NewSpace::RecordPromotion(HeapObject* obj) {
 
 
 size_t NewSpace::CommittedPhysicalMemory() {
-  if (!VirtualMemory::HasLazyCommits()) return CommittedMemory();
+  if (!base::VirtualMemory::HasLazyCommits()) return CommittedMemory();
   MemoryChunk::UpdateHighWaterMark(allocation_info_.top());
   size_t size = to_space_.CommittedPhysicalMemory();
   if (from_space_.is_committed()) {
@@ -2075,8 +2079,8 @@ intptr_t FreeListCategory::Concatenate(FreeListCategory* category) {
     // This is safe (not going to deadlock) since Concatenate operations
     // are never performed on the same free lists at the same time in
     // reverse order.
-    LockGuard<Mutex> target_lock_guard(mutex());
-    LockGuard<Mutex> source_lock_guard(category->mutex());
+    base::LockGuard<base::Mutex> target_lock_guard(mutex());
+    base::LockGuard<base::Mutex> source_lock_guard(category->mutex());
     ASSERT(category->end_ != NULL);
     free_bytes = category->available();
     if (end_ == NULL) {
@@ -2546,8 +2550,8 @@ void PagedSpace::PrepareForMarkCompact() {
 
 
 intptr_t PagedSpace::SizeOfObjects() {
-  ASSERT(heap()->mark_compact_collector()->IsConcurrentSweepingInProgress() ||
-         (unswept_free_bytes_ == 0));
+  ASSERT(heap()->mark_compact_collector()->
+      IsConcurrentSweepingInProgress(this) || (unswept_free_bytes_ == 0));
   return Size() - unswept_free_bytes_ - (limit() - top());
 }
 
@@ -2577,12 +2581,28 @@ void PagedSpace::EvictEvacuationCandidatesFromFreeLists() {
 }
 
 
+HeapObject* PagedSpace::WaitForSweeperThreadsAndRetryAllocation(
+    int size_in_bytes) {
+  MarkCompactCollector* collector = heap()->mark_compact_collector();
+
+  // If sweeper threads are still running, wait for them.
+  if (collector->IsConcurrentSweepingInProgress(this)) {
+    collector->WaitUntilSweepingCompleted();
+
+    // After waiting for the sweeper threads, there may be new free-list
+    // entries.
+    return free_list_.Allocate(size_in_bytes);
+  }
+  return NULL;
+}
+
+
 HeapObject* PagedSpace::SlowAllocateRaw(int size_in_bytes) {
   // Allocation in this space has failed.
 
   // If sweeper threads are active, try to re-fill the free-lists.
   MarkCompactCollector* collector = heap()->mark_compact_collector();
-  if (collector->IsConcurrentSweepingInProgress()) {
+  if (collector->IsConcurrentSweepingInProgress(this)) {
     collector->RefillFreeList(this);
 
     // Retry the free list allocation.
@@ -2593,19 +2613,12 @@ HeapObject* PagedSpace::SlowAllocateRaw(int size_in_bytes) {
   // Free list allocation failed and there is no next page.  Fail if we have
   // hit the old generation size limit that should cause a garbage
   // collection.
-  if (!heap()->always_allocate() &&
-      heap()->OldGenerationAllocationLimitReached()) {
-    // If sweeper threads are active, wait for them at that point.
-     if (collector->IsConcurrentSweepingInProgress()) {
-       collector->WaitUntilSweepingCompleted();
-
-       // After waiting for the sweeper threads, there may be new free-list
-       // entries.
-       HeapObject* object = free_list_.Allocate(size_in_bytes);
-       if (object != NULL) return object;
-     }
-
-    return NULL;
+  if (!heap()->always_allocate()
+      && heap()->OldGenerationAllocationLimitReached()) {
+    // If sweeper threads are active, wait for them at that point and steal
+    // elements form their free-lists.
+    HeapObject* object = WaitForSweeperThreadsAndRetryAllocation(size_in_bytes);
+    if (object != NULL) return object;
   }
 
   // Try to expand the space and allocate in the new next page.
@@ -2614,8 +2627,10 @@ HeapObject* PagedSpace::SlowAllocateRaw(int size_in_bytes) {
     return free_list_.Allocate(size_in_bytes);
   }
 
-  // Finally, fail.
-  return NULL;
+  // If sweeper threads are active, wait for them at that point and steal
+  // elements form their free-lists. Allocation may still fail their which
+  // would indicate that there is not enough memory for the given allocation.
+  return WaitForSweeperThreadsAndRetryAllocation(size_in_bytes);
 }
 
 
@@ -2751,7 +2766,7 @@ void PagedSpace::ReportStatistics() {
              ", available: %" V8_PTR_PREFIX "d, %%%d\n",
          Capacity(), Waste(), Available(), pct);
 
-  if (was_swept_conservatively_) return;
+  if (!is_iterable_) return;
   ClearHistograms(heap()->isolate());
   HeapObjectIterator obj_it(this);
   for (HeapObject* obj = obj_it.Next(); obj != NULL; obj = obj_it.Next())
@@ -2914,7 +2929,7 @@ AllocationResult LargeObjectSpace::AllocateRaw(int object_size,
 
 
 size_t LargeObjectSpace::CommittedPhysicalMemory() {
-  if (!VirtualMemory::HasLazyCommits()) return CommittedMemory();
+  if (!base::VirtualMemory::HasLazyCommits()) return CommittedMemory();
   size_t size = 0;
   LargePage* current = first_page_;
   while (current != NULL) {
@@ -3071,9 +3086,10 @@ void LargeObjectSpace::Verify() {
 
 #ifdef DEBUG
 void LargeObjectSpace::Print() {
+  OFStream os(stdout);
   LargeObjectIterator it(this);
   for (HeapObject* obj = it.Next(); obj != NULL; obj = it.Next()) {
-    obj->Print();
+    obj->Print(os);
   }
 }
 

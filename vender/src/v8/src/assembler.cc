@@ -36,10 +36,11 @@
 
 #include <cmath>
 #include "src/api.h"
+#include "src/base/cpu.h"
 #include "src/base/lazy-instance.h"
+#include "src/base/platform/platform.h"
 #include "src/builtins.h"
 #include "src/counters.h"
-#include "src/cpu.h"
 #include "src/cpu-profiler.h"
 #include "src/debug.h"
 #include "src/deoptimizer.h"
@@ -47,7 +48,6 @@
 #include "src/ic.h"
 #include "src/isolate-inl.h"
 #include "src/jsregexp.h"
-#include "src/platform.h"
 #include "src/regexp-macro-assembler.h"
 #include "src/regexp-stack.h"
 #include "src/runtime.h"
@@ -66,6 +66,8 @@
 #include "src/arm/assembler-arm-inl.h"  // NOLINT
 #elif V8_TARGET_ARCH_MIPS
 #include "src/mips/assembler-mips-inl.h"  // NOLINT
+#elif V8_TARGET_ARCH_MIPS64
+#include "src/mips64/assembler-mips64-inl.h"  // NOLINT
 #elif V8_TARGET_ARCH_X87
 #include "src/x87/assembler-x87-inl.h"  // NOLINT
 #else
@@ -84,6 +86,8 @@
 #include "src/arm/regexp-macro-assembler-arm.h"  // NOLINT
 #elif V8_TARGET_ARCH_MIPS
 #include "src/mips/regexp-macro-assembler-mips.h"  // NOLINT
+#elif V8_TARGET_ARCH_MIPS64
+#include "src/mips64/regexp-macro-assembler-mips64.h"  // NOLINT
 #elif V8_TARGET_ARCH_X87
 #include "src/x87/regexp-macro-assembler-x87.h"  // NOLINT
 #else  // Unknown architecture.
@@ -98,16 +102,16 @@ namespace internal {
 // Common double constants.
 
 struct DoubleConstant BASE_EMBEDDED {
-  double min_int;
-  double one_half;
-  double minus_one_half;
-  double minus_zero;
-  double zero;
-  double uint8_max_value;
-  double negative_infinity;
-  double canonical_non_hole_nan;
-  double the_hole_nan;
-  double uint32_bias;
+double min_int;
+double one_half;
+double minus_one_half;
+double minus_zero;
+double zero;
+double uint8_max_value;
+double negative_infinity;
+double canonical_non_hole_nan;
+double the_hole_nan;
+double uint32_bias;
 };
 
 static DoubleConstant double_constants;
@@ -115,7 +119,7 @@ static DoubleConstant double_constants;
 const char* const RelocInfo::kFillerCommentString = "DEOPTIMIZATION PADDING";
 
 static bool math_exp_data_initialized = false;
-static Mutex* math_exp_data_mutex = NULL;
+static base::Mutex* math_exp_data_mutex = NULL;
 static double* math_exp_constants_array = NULL;
 static double* math_exp_log_table_array = NULL;
 
@@ -813,39 +817,36 @@ const char* RelocInfo::RelocModeName(RelocInfo::Mode rmode) {
 }
 
 
-void RelocInfo::Print(Isolate* isolate, FILE* out) {
-  PrintF(out, "%p  %s", pc_, RelocModeName(rmode_));
+void RelocInfo::Print(Isolate* isolate, OStream& os) {  // NOLINT
+  os << pc_ << "  " << RelocModeName(rmode_);
   if (IsComment(rmode_)) {
-    PrintF(out, "  (%s)", reinterpret_cast<char*>(data_));
+    os << "  (" << reinterpret_cast<char*>(data_) << ")";
   } else if (rmode_ == EMBEDDED_OBJECT) {
-    PrintF(out, "  (");
-    target_object()->ShortPrint(out);
-    PrintF(out, ")");
+    os << "  (" << Brief(target_object()) << ")";
   } else if (rmode_ == EXTERNAL_REFERENCE) {
     ExternalReferenceEncoder ref_encoder(isolate);
-    PrintF(out, " (%s)  (%p)",
-           ref_encoder.NameOfAddress(target_reference()),
-           target_reference());
+    os << " (" << ref_encoder.NameOfAddress(target_reference()) << ")  ("
+       << target_reference() << ")";
   } else if (IsCodeTarget(rmode_)) {
     Code* code = Code::GetCodeFromTargetAddress(target_address());
-    PrintF(out, " (%s)  (%p)", Code::Kind2String(code->kind()),
-           target_address());
+    os << " (" << Code::Kind2String(code->kind()) << ")  (" << target_address()
+       << ")";
     if (rmode_ == CODE_TARGET_WITH_ID) {
-      PrintF(out, " (id=%d)", static_cast<int>(data_));
+      os << " (id=" << static_cast<int>(data_) << ")";
     }
   } else if (IsPosition(rmode_)) {
-    PrintF(out, "  (%" V8_PTR_PREFIX "d)", data());
+    os << "  (" << data() << ")";
   } else if (IsRuntimeEntry(rmode_) &&
              isolate->deoptimizer_data() != NULL) {
     // Depotimization bailouts are stored as runtime entries.
     int id = Deoptimizer::GetDeoptimizationId(
         isolate, target_address(), Deoptimizer::EAGER);
     if (id != Deoptimizer::kNotDeoptimizationEntry) {
-      PrintF(out, "  (deoptimization bailout %d)", id);
+      os << "  (deoptimization bailout " << id << ")";
     }
   }
 
-  PrintF(out, "\n");
+  os << "\n";
 }
 #endif  // ENABLE_DISASSEMBLER
 
@@ -907,13 +908,13 @@ void ExternalReference::SetUp() {
   double_constants.minus_zero = -0.0;
   double_constants.uint8_max_value = 255;
   double_constants.zero = 0.0;
-  double_constants.canonical_non_hole_nan = OS::nan_value();
+  double_constants.canonical_non_hole_nan = base::OS::nan_value();
   double_constants.the_hole_nan = BitCast<double>(kHoleNanInt64);
   double_constants.negative_infinity = -V8_INFINITY;
   double_constants.uint32_bias =
     static_cast<double>(static_cast<uint32_t>(0xFFFFFFFF)) + 1;
 
-  math_exp_data_mutex = new Mutex();
+  math_exp_data_mutex = new base::Mutex();
 }
 
 
@@ -921,7 +922,7 @@ void ExternalReference::InitializeMathExpData() {
   // Early return?
   if (math_exp_data_initialized) return;
 
-  LockGuard<Mutex> lock_guard(math_exp_data_mutex);
+  base::LockGuard<base::Mutex> lock_guard(math_exp_data_mutex);
   if (!math_exp_data_initialized) {
     // If this is changed, generated code must be adapted too.
     const int kTableSizeBits = 11;
@@ -1031,7 +1032,8 @@ ExternalReference ExternalReference::
 
 
 ExternalReference ExternalReference::flush_icache_function(Isolate* isolate) {
-  return ExternalReference(Redirect(isolate, FUNCTION_ADDR(CPU::FlushICache)));
+  return ExternalReference(
+      Redirect(isolate, FUNCTION_ADDR(CpuFeatures::FlushICache)));
 }
 
 
@@ -1342,6 +1344,8 @@ ExternalReference ExternalReference::re_check_stack_guard_state(
   function = FUNCTION_ADDR(RegExpMacroAssemblerARM::CheckStackGuardState);
 #elif V8_TARGET_ARCH_MIPS
   function = FUNCTION_ADDR(RegExpMacroAssemblerMIPS::CheckStackGuardState);
+#elif V8_TARGET_ARCH_MIPS64
+  function = FUNCTION_ADDR(RegExpMacroAssemblerMIPS::CheckStackGuardState);
 #elif V8_TARGET_ARCH_X87
   function = FUNCTION_ADDR(RegExpMacroAssemblerX87::CheckStackGuardState);
 #else
@@ -1506,7 +1510,7 @@ double power_double_double(double x, double y) {
   // The checks for special cases can be dropped in ia32 because it has already
   // been done in generated code before bailing out here.
   if (std::isnan(y) || ((x == 1 || x == -1) && std::isinf(y))) {
-    return OS::nan_value();
+    return base::OS::nan_value();
   }
   return std::pow(x, y);
 }

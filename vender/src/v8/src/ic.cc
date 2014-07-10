@@ -17,7 +17,6 @@
 namespace v8 {
 namespace internal {
 
-#ifdef DEBUG
 char IC::TransitionMarkFromState(IC::State state) {
   switch (state) {
     case UNINITIALIZED: return '0';
@@ -48,25 +47,43 @@ const char* GetTransitionMarkModifier(KeyedAccessStoreMode mode) {
 }
 
 
-void IC::TraceIC(const char* type,
-                 Handle<Object> name) {
+#ifdef DEBUG
+
+#define TRACE_GENERIC_IC(isolate, type, reason)                \
+  do {                                                         \
+    if (FLAG_trace_ic) {                                       \
+      PrintF("[%s patching generic stub in ", type);           \
+      JavaScriptFrame::PrintTop(isolate, stdout, false, true); \
+      PrintF(" (%s)]\n", reason);                              \
+    }                                                          \
+  } while (false)
+
+#else
+
+#define TRACE_GENERIC_IC(isolate, type, reason)
+
+#endif  // DEBUG
+
+void IC::TraceIC(const char* type, Handle<Object> name) {
   if (FLAG_trace_ic) {
     Code* new_target = raw_target();
     State new_state = new_target->ic_state();
     PrintF("[%s%s in ", new_target->is_keyed_stub() ? "Keyed" : "", type);
-    StackFrameIterator it(isolate());
-    while (it.frame()->fp() != this->fp()) it.Advance();
-    StackFrame* raw_frame = it.frame();
-    if (raw_frame->is_internal()) {
-      Code* apply_builtin = isolate()->builtins()->builtin(
-          Builtins::kFunctionApply);
-      if (raw_frame->unchecked_code() == apply_builtin) {
-        PrintF("apply from ");
-        it.Advance();
-        raw_frame = it.frame();
-      }
+
+    // TODO(jkummerow): Add support for "apply". The logic is roughly:
+    // marker = [fp_ + kMarkerOffset];
+    // if marker is smi and marker.value == INTERNAL and
+    //     the frame's code == builtin(Builtins::kFunctionApply):
+    // then print "apply from" and advance one frame
+
+    Object* maybe_function =
+        Memory::Object_at(fp_ + JavaScriptFrameConstants::kFunctionOffset);
+    if (maybe_function->IsJSFunction()) {
+      JSFunction* function = JSFunction::cast(maybe_function);
+      JavaScriptFrame::PrintFunctionAndOffset(function, function->code(), pc(),
+                                              stdout, true);
     }
-    JavaScriptFrame::PrintTop(isolate(), stdout, false, true);
+
     ExtraICState extra_state = new_target->extra_ic_state();
     const char* modifier = "";
     if (new_target->kind() == Code::KEYED_STORE_IC) {
@@ -77,26 +94,18 @@ void IC::TraceIC(const char* type,
            TransitionMarkFromState(state()),
            TransitionMarkFromState(new_state),
            modifier);
-    name->Print();
+#ifdef OBJECT_PRINT
+    OFStream os(stdout);
+    name->Print(os);
+#else
+    name->ShortPrint(stdout);
+#endif
     PrintF("]\n");
   }
 }
 
-#define TRACE_GENERIC_IC(isolate, type, reason)                 \
-  do {                                                          \
-    if (FLAG_trace_ic) {                                        \
-      PrintF("[%s patching generic stub in ", type);            \
-      JavaScriptFrame::PrintTop(isolate, stdout, false, true);  \
-      PrintF(" (%s)]\n", reason);                               \
-    }                                                           \
-  } while (false)
+#define TRACE_IC(type, name) TraceIC(type, name)
 
-#else
-#define TRACE_GENERIC_IC(isolate, type, reason)
-#endif  // DEBUG
-
-#define TRACE_IC(type, name)             \
-  ASSERT((TraceIC(type, name), true))
 
 IC::IC(FrameDepth depth, Isolate* isolate)
     : isolate_(isolate),
@@ -448,7 +457,7 @@ void IC::InvalidateMaps(Code* stub) {
       it.rinfo()->set_target_object(undefined, SKIP_WRITE_BARRIER);
     }
   }
-  CPU::FlushICache(stub->instruction_start(), stub->instruction_size());
+  CpuFeatures::FlushICache(stub->instruction_start(), stub->instruction_size());
 }
 
 
@@ -598,9 +607,11 @@ MaybeHandle<Object> LoadIC::Load(Handle<Object> object, Handle<String> name) {
       } else if (state() == PREMONOMORPHIC) {
         FunctionPrototypeStub function_prototype_stub(isolate(), kind());
         stub = function_prototype_stub.GetCode();
-      } else if (state() != MEGAMORPHIC) {
+      } else if (!FLAG_compiled_keyed_generic_loads && state() != MEGAMORPHIC) {
         ASSERT(state() != GENERIC);
         stub = megamorphic_stub();
+      } else if (FLAG_compiled_keyed_generic_loads && state() != GENERIC) {
+        stub = generic_stub();
       }
       if (!stub.is_null()) {
         set_target(*stub);
@@ -615,7 +626,11 @@ MaybeHandle<Object> LoadIC::Load(Handle<Object> object, Handle<String> name) {
   uint32_t index;
   if (kind() == Code::KEYED_LOAD_IC && name->AsArrayIndex(&index)) {
     // Rewrite to the generic keyed load stub.
-    if (FLAG_use_ic) set_target(*generic_stub());
+    if (FLAG_use_ic) {
+      set_target(*generic_stub());
+      TRACE_IC("LoadIC", name);
+      TRACE_GENERIC_IC(isolate(), "LoadIC", "name as array index");
+    }
     Handle<Object> result;
     ASSIGN_RETURN_ON_EXCEPTION(
         isolate(),
@@ -821,6 +836,10 @@ void IC::PatchCache(Handle<HeapType> type,
         if (UpdatePolymorphicIC(type, name, code)) break;
         CopyICToMegamorphicCache(name);
       }
+      if (FLAG_compiled_keyed_generic_loads && (kind() == Code::LOAD_IC)) {
+        set_target(*generic_stub());
+        break;
+      }
       set_target(*megamorphic_stub());
       // Fall through.
     case MEGAMORPHIC:
@@ -849,6 +868,11 @@ Handle<Code> LoadIC::pre_monomorphic_stub(Isolate* isolate,
 
 Handle<Code> LoadIC::megamorphic_stub() {
   return isolate()->stub_cache()->ComputeLoad(MEGAMORPHIC, extra_ic_state());
+}
+
+
+Handle<Code> LoadIC::generic_stub() const {
+  return KeyedLoadGenericElementStub(isolate()).GetCode();
 }
 
 
@@ -1345,11 +1369,10 @@ MaybeHandle<Object> StoreIC::Store(Handle<Object> object,
 }
 
 
-void CallIC::State::Print(StringStream* stream) const {
-  stream->Add("(args(%d), ",
-              argc_);
-  stream->Add("%s, ",
-              call_type_ == CallIC::METHOD ? "METHOD" : "FUNCTION");
+OStream& operator<<(OStream& os, const CallIC::State& s) {
+  return os << "(args(" << s.arg_count() << "), "
+            << (s.call_type() == CallIC::METHOD ? "METHOD" : "FUNCTION")
+            << ", ";
 }
 
 
@@ -1852,7 +1875,7 @@ bool CallIC::DoCustomHandler(Handle<Object> receiver,
 
   // Are we the array function?
   Handle<JSFunction> array_function = Handle<JSFunction>(
-      isolate()->context()->native_context()->array_function(), isolate());
+      isolate()->native_context()->array_function());
   if (array_function.is_identical_to(Handle<JSFunction>::cast(function))) {
     // Alter the slot.
     Handle<AllocationSite> new_site = isolate()->factory()->NewAllocationSite();
@@ -2463,18 +2486,20 @@ Type* BinaryOpIC::State::GetResultType(Zone* zone) const {
 }
 
 
-void BinaryOpIC::State::Print(StringStream* stream) const {
-  stream->Add("(%s", Token::Name(op_));
-  if (mode_ == OVERWRITE_LEFT) stream->Add("_ReuseLeft");
-  else if (mode_ == OVERWRITE_RIGHT) stream->Add("_ReuseRight");
-  if (CouldCreateAllocationMementos()) stream->Add("_CreateAllocationMementos");
-  stream->Add(":%s*", KindToString(left_kind_));
-  if (fixed_right_arg_.has_value) {
-    stream->Add("%d", fixed_right_arg_.value);
+OStream& operator<<(OStream& os, const BinaryOpIC::State& s) {
+  os << "(" << Token::Name(s.op_);
+  if (s.mode_ == OVERWRITE_LEFT)
+    os << "_ReuseLeft";
+  else if (s.mode_ == OVERWRITE_RIGHT)
+    os << "_ReuseRight";
+  if (s.CouldCreateAllocationMementos()) os << "_CreateAllocationMementos";
+  os << ":" << BinaryOpIC::State::KindToString(s.left_kind_) << "*";
+  if (s.fixed_right_arg_.has_value) {
+    os << s.fixed_right_arg_.value;
   } else {
-    stream->Add("%s", KindToString(right_kind_));
+    os << BinaryOpIC::State::KindToString(s.right_kind_);
   }
-  stream->Add("->%s)", KindToString(result_kind_));
+  return os << "->" << BinaryOpIC::State::KindToString(s.result_kind_) << ")";
 }
 
 
@@ -2648,21 +2673,14 @@ MaybeHandle<Object> BinaryOpIC::Transition(
   set_target(*target);
 
   if (FLAG_trace_ic) {
-    char buffer[150];
-    NoAllocationStringAllocator allocator(
-        buffer, static_cast<unsigned>(sizeof(buffer)));
-    StringStream stream(&allocator);
-    stream.Add("[BinaryOpIC");
-    old_state.Print(&stream);
-    stream.Add(" => ");
-    state.Print(&stream);
-    stream.Add(" @ %p <- ", static_cast<void*>(*target));
-    stream.OutputToStdOut();
+    OFStream os(stdout);
+    os << "[BinaryOpIC" << old_state << " => " << state << " @ "
+       << static_cast<void*>(*target) << " <- ";
     JavaScriptFrame::PrintTop(isolate(), stdout, false, true);
     if (!allocation_site.is_null()) {
-      PrintF(" using allocation site %p", static_cast<void*>(*allocation_site));
+      os << " using allocation site " << static_cast<void*>(*allocation_site);
     }
-    PrintF("]\n");
+    os << "]" << endl;
   }
 
   // Patch the inlined smi code as necessary.

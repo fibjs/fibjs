@@ -25,6 +25,11 @@
 #include "src/zone.h"
 
 namespace v8 {
+
+namespace base {
+class RandomNumberGenerator;
+}
+
 namespace internal {
 
 class Bootstrapper;
@@ -53,9 +58,7 @@ class HTracer;
 class InlineRuntimeFunctionsTable;
 class InnerPointerToCodeCache;
 class MaterializedObjectStore;
-class NoAllocationStringAllocator;
 class CodeAgingHelper;
-class RandomNumberGenerator;
 class RegExpStack;
 class SaveContext;
 class StringTracker;
@@ -78,7 +81,8 @@ class Debugger;
 
 #if !defined(__arm__) && V8_TARGET_ARCH_ARM || \
     !defined(__aarch64__) && V8_TARGET_ARCH_ARM64 || \
-    !defined(__mips__) && V8_TARGET_ARCH_MIPS
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS || \
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS64
 class Redirection;
 class Simulator;
 #endif
@@ -290,7 +294,8 @@ class ThreadLocalTop BASE_EMBEDDED {
 
 #if V8_TARGET_ARCH_ARM && !defined(__arm__) || \
     V8_TARGET_ARCH_ARM64 && !defined(__aarch64__) || \
-    V8_TARGET_ARCH_MIPS && !defined(__mips__)
+    V8_TARGET_ARCH_MIPS && !defined(__mips__) || \
+    V8_TARGET_ARCH_MIPS64 && !defined(__mips__)
 
 #define ISOLATE_INIT_SIMULATOR_LIST(V)                                         \
   V(bool, simulator_initialized, false)                                        \
@@ -389,7 +394,8 @@ class Isolate {
           thread_state_(NULL),
 #if !defined(__arm__) && V8_TARGET_ARCH_ARM || \
     !defined(__aarch64__) && V8_TARGET_ARCH_ARM64 || \
-    !defined(__mips__) && V8_TARGET_ARCH_MIPS
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS || \
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS64
           simulator_(NULL),
 #endif
           next_(NULL),
@@ -403,7 +409,8 @@ class Isolate {
 
 #if !defined(__arm__) && V8_TARGET_ARCH_ARM || \
     !defined(__aarch64__) && V8_TARGET_ARCH_ARM64 || \
-    !defined(__mips__) && V8_TARGET_ARCH_MIPS
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS || \
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS64
     FIELD_ACCESSOR(Simulator*, simulator)
 #endif
 
@@ -419,7 +426,8 @@ class Isolate {
 
 #if !defined(__arm__) && V8_TARGET_ARCH_ARM || \
     !defined(__aarch64__) && V8_TARGET_ARCH_ARM64 || \
-    !defined(__mips__) && V8_TARGET_ARCH_MIPS
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS || \
+    !defined(__mips__) && V8_TARGET_ARCH_MIPS64
     Simulator* simulator_;
 #endif
 
@@ -444,20 +452,31 @@ class Isolate {
   // Returns the PerIsolateThreadData for the current thread (or NULL if one is
   // not currently set).
   static PerIsolateThreadData* CurrentPerIsolateThreadData() {
+    EnsureInitialized();
     return reinterpret_cast<PerIsolateThreadData*>(
-        Thread::GetThreadLocal(per_isolate_thread_data_key_));
+        base::Thread::GetThreadLocal(per_isolate_thread_data_key_));
   }
 
   // Returns the isolate inside which the current thread is running.
   INLINE(static Isolate* Current()) {
+    EnsureInitialized();
     Isolate* isolate = reinterpret_cast<Isolate*>(
-        Thread::GetExistingThreadLocal(isolate_key_));
+        base::Thread::GetExistingThreadLocal(isolate_key_));
     ASSERT(isolate != NULL);
     return isolate;
   }
 
   INLINE(static Isolate* UncheckedCurrent()) {
-    return reinterpret_cast<Isolate*>(Thread::GetThreadLocal(isolate_key_));
+    EnsureInitialized();
+    return reinterpret_cast<Isolate*>(
+        base::Thread::GetThreadLocal(isolate_key_));
+  }
+
+  // Like UncheckedCurrent, but skips the check that |isolate_key_| was
+  // initialized. Callers have to ensure that themselves.
+  INLINE(static Isolate* UnsafeCurrent()) {
+    return reinterpret_cast<Isolate*>(
+        base::Thread::GetThreadLocal(isolate_key_));
   }
 
   // Usually called by Init(), but can be called early e.g. to allow
@@ -481,13 +500,6 @@ class Isolate {
 
   static void GlobalTearDown();
 
-  static void SetCrashIfDefaultIsolateInitialized();
-  // Ensures that process-wide resources and the default isolate have been
-  // allocated. It is only necessary to call this method in rare cases, for
-  // example if you are using V8 from within the body of a static initializer.
-  // Safe to call multiple times.
-  static void EnsureDefaultIsolate();
-
   // Find the PerThread for this particular (isolate, thread) combination
   // If one does not yet exist, return null.
   PerIsolateThreadData* FindPerThreadDataForThisThread();
@@ -499,19 +511,21 @@ class Isolate {
   // Returns the key used to store the pointer to the current isolate.
   // Used internally for V8 threads that do not execute JavaScript but still
   // are part of the domain of an isolate (like the context switcher).
-  static Thread::LocalStorageKey isolate_key() {
+  static base::Thread::LocalStorageKey isolate_key() {
+    EnsureInitialized();
     return isolate_key_;
   }
 
   // Returns the key used to store process-wide thread IDs.
-  static Thread::LocalStorageKey thread_id_key() {
+  static base::Thread::LocalStorageKey thread_id_key() {
+    EnsureInitialized();
     return thread_id_key_;
   }
 
-  static Thread::LocalStorageKey per_isolate_thread_data_key();
+  static base::Thread::LocalStorageKey per_isolate_thread_data_key();
 
   // Mutex for serializing access to break control structures.
-  RecursiveMutex* break_access() { return &break_access_; }
+  base::RecursiveMutex* break_access() { return &break_access_; }
 
   Address get_address_from_id(AddressId id);
 
@@ -643,7 +657,7 @@ class Isolate {
   }
 
   // Returns the global proxy object of the current context.
-  Object* global_proxy() {
+  JSObject* global_proxy() {
     return context()->global_proxy();
   }
 
@@ -697,11 +711,11 @@ class Isolate {
   Handle<JSArray> CaptureCurrentStackTrace(
       int frame_limit,
       StackTrace::StackTraceOptions options);
-
-  Handle<JSArray> CaptureSimpleStackTrace(Handle<JSObject> error_object,
-                                          Handle<Object> caller,
-                                          int limit);
+  Handle<Object> CaptureSimpleStackTrace(Handle<JSObject> error_object,
+                                         Handle<Object> caller);
   void CaptureAndSetDetailedStackTrace(Handle<JSObject> error_object);
+  void CaptureAndSetSimpleStackTrace(Handle<JSObject> error_object,
+                                     Handle<Object> caller);
 
   // Returns if the top context may access the given global object. If
   // the result is false, the pending exception is guaranteed to be
@@ -810,10 +824,10 @@ class Isolate {
 
 #define NATIVE_CONTEXT_FIELD_ACCESSOR(index, type, name)            \
   Handle<type> name() {                                             \
-    return Handle<type>(context()->native_context()->name(), this); \
+    return Handle<type>(native_context()->name(), this);            \
   }                                                                 \
   bool is_##name(type* value) {                                     \
-    return context()->native_context()->is_##name(value);           \
+    return native_context()->is_##name(value);                      \
   }
   NATIVE_CONTEXT_FIELDS(NATIVE_CONTEXT_FIELD_ACCESSOR)
 #undef NATIVE_CONTEXT_FIELD_ACCESSOR
@@ -979,7 +993,7 @@ class Isolate {
   bool initialized_from_snapshot() { return initialized_from_snapshot_; }
 
   double time_millis_since_init() {
-    return OS::TimeCurrentMillis() - time_millis_at_init_;
+    return base::OS::TimeCurrentMillis() - time_millis_at_init_;
   }
 
   DateCache* date_cache() {
@@ -1058,7 +1072,7 @@ class Isolate {
 
   void* stress_deopt_count_address() { return &stress_deopt_count_; }
 
-  inline RandomNumberGenerator* random_number_generator();
+  inline base::RandomNumberGenerator* random_number_generator();
 
   // Given an address occupied by a live code object, return that object.
   Object* FindCodeObject(Address a);
@@ -1085,6 +1099,8 @@ class Isolate {
   void CountUsage(v8::Isolate::UseCounterFeature feature);
 
  private:
+  static void EnsureInitialized();
+
   Isolate();
 
   friend struct GlobalState;
@@ -1144,11 +1160,11 @@ class Isolate {
   };
 
   // This mutex protects highest_thread_id_ and thread_data_table_.
-  static Mutex process_wide_mutex_;
+  static base::LazyMutex process_wide_mutex_;
 
-  static Thread::LocalStorageKey per_isolate_thread_data_key_;
-  static Thread::LocalStorageKey isolate_key_;
-  static Thread::LocalStorageKey thread_id_key_;
+  static base::Thread::LocalStorageKey per_isolate_thread_data_key_;
+  static base::Thread::LocalStorageKey isolate_key_;
+  static base::Thread::LocalStorageKey thread_id_key_;
   static ThreadDataTable* thread_data_table_;
 
   // A global counter for all generated Isolates, might overflow.
@@ -1202,7 +1218,7 @@ class Isolate {
   CompilationCache* compilation_cache_;
   Counters* counters_;
   CodeRange* code_range_;
-  RecursiveMutex break_access_;
+  base::RecursiveMutex break_access_;
   base::Atomic32 debugger_initialized_;
   Logger* logger_;
   StackGuard stack_guard_;
@@ -1244,7 +1260,7 @@ class Isolate {
   unibrow::Mapping<unibrow::Ecma262Canonicalize> interp_canonicalize_mapping_;
   CodeStubInterfaceDescriptor* code_stub_interface_descriptors_;
   CallInterfaceDescriptor* call_descriptors_;
-  RandomNumberGenerator* random_number_generator_;
+  base::RandomNumberGenerator* random_number_generator_;
 
   // Whether the isolate has been created for snapshotting.
   bool serializer_enabled_;
@@ -1403,7 +1419,7 @@ class StackLimitCheck BASE_EMBEDDED {
   // Use this to check for stack-overflows in C++ code.
   inline bool HasOverflowed() const {
     StackGuard* stack_guard = isolate_->stack_guard();
-    return reinterpret_cast<uintptr_t>(this) < stack_guard->real_climit();
+    return GetCurrentStackPosition() < stack_guard->real_climit();
   }
 
   // Use this to check for stack-overflow when entering runtime from JS code.
@@ -1420,22 +1436,29 @@ class StackLimitCheck BASE_EMBEDDED {
 // account.
 class PostponeInterruptsScope BASE_EMBEDDED {
  public:
-  explicit PostponeInterruptsScope(Isolate* isolate)
-      : stack_guard_(isolate->stack_guard()), isolate_(isolate) {
-    ExecutionAccess access(isolate_);
-    stack_guard_->thread_local_.postpone_interrupts_nesting_++;
-    stack_guard_->DisableInterrupts();
+  PostponeInterruptsScope(Isolate* isolate,
+                          int intercept_mask = StackGuard::ALL_INTERRUPTS)
+      : stack_guard_(isolate->stack_guard()),
+        intercept_mask_(intercept_mask),
+        intercepted_flags_(0) {
+    stack_guard_->PushPostponeInterruptsScope(this);
   }
 
   ~PostponeInterruptsScope() {
-    ExecutionAccess access(isolate_);
-    if (--stack_guard_->thread_local_.postpone_interrupts_nesting_ == 0) {
-      stack_guard_->EnableInterrupts();
-    }
+    stack_guard_->PopPostponeInterruptsScope();
   }
+
+  // Find the bottom-most scope that intercepts this interrupt.
+  // Return whether the interrupt has been intercepted.
+  bool Intercept(StackGuard::InterruptFlag flag);
+
  private:
   StackGuard* stack_guard_;
-  Isolate* isolate_;
+  int intercept_mask_;
+  int intercepted_flags_;
+  PostponeInterruptsScope* prev_;
+
+  friend class StackGuard;
 };
 
 
@@ -1452,7 +1475,7 @@ class CodeTracer V8_FINAL : public Malloced {
     if (FLAG_redirect_code_traces_to == NULL) {
       SNPrintF(filename_,
                "code-%d-%d.asm",
-               OS::GetCurrentProcessId(),
+               base::OS::GetCurrentProcessId(),
                isolate_id);
     } else {
       StrNCpy(filename_, FLAG_redirect_code_traces_to, filename_.length());
@@ -1478,7 +1501,7 @@ class CodeTracer V8_FINAL : public Malloced {
     }
 
     if (file_ == NULL) {
-      file_ = OS::FOpen(filename_.start(), "a");
+      file_ = base::OS::FOpen(filename_.start(), "a");
     }
 
     scope_depth_++;

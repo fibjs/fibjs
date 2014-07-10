@@ -202,6 +202,18 @@ class MacroAssembler : public Assembler {
   static bool IsImmMovz(uint64_t imm, unsigned reg_size);
   static unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size);
 
+  // Try to move an immediate into the destination register in a single
+  // instruction. Returns true for success, and updates the contents of dst.
+  // Returns false, otherwise.
+  bool TryOneInstrMoveImmediate(const Register& dst, int64_t imm);
+
+  // Move an immediate into register dst, and return an Operand object for use
+  // with a subsequent instruction that accepts a shift. The value moved into
+  // dst is not necessarily equal to imm; it may have had a shifting operation
+  // applied to it that will be subsequently undone by the shift applied in the
+  // Operand.
+  Operand MoveImmediateForShiftedOp(const Register& dst, int64_t imm);
+
   // Conditional macros.
   inline void Ccmp(const Register& rn,
                    const Operand& operand,
@@ -531,6 +543,7 @@ class MacroAssembler : public Assembler {
             const CPURegister& src6 = NoReg, const CPURegister& src7 = NoReg);
   void Pop(const CPURegister& dst0, const CPURegister& dst1 = NoReg,
            const CPURegister& dst2 = NoReg, const CPURegister& dst3 = NoReg);
+  void Push(const Register& src0, const FPRegister& src1);
 
   // Alternative forms of Push and Pop, taking a RegList or CPURegList that
   // specifies the registers that are to be pushed or popped. Higher-numbered
@@ -1371,7 +1384,8 @@ class MacroAssembler : public Assembler {
                           Register scratch1,
                           Register scratch2,
                           CPURegister value = NoFPReg,
-                          CPURegister heap_number_map = NoReg);
+                          CPURegister heap_number_map = NoReg,
+                          MutableMode mode = IMMUTABLE);
 
   // ---------------------------------------------------------------------------
   // Support functions.

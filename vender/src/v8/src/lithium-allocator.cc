@@ -18,6 +18,8 @@
 #include "src/arm/lithium-arm.h"  // NOLINT
 #elif V8_TARGET_ARCH_MIPS
 #include "src/mips/lithium-mips.h"  // NOLINT
+#elif V8_TARGET_ARCH_MIPS64
+#include "src/mips64/lithium-mips64.h"  // NOLINT
 #elif V8_TARGET_ARCH_X87
 #include "src/x87/lithium-x87.h"  // NOLINT
 #else
@@ -1618,7 +1620,7 @@ void LAllocator::TraceAlloc(const char* msg, ...) {
   if (FLAG_trace_alloc) {
     va_list arguments;
     va_start(arguments, msg);
-    OS::VPrint(msg, arguments);
+    base::OS::VPrint(msg, arguments);
     va_end(arguments);
   }
 }
@@ -2192,7 +2194,7 @@ LAllocatorPhase::~LAllocatorPhase() {
   if (FLAG_hydrogen_stats) {
     unsigned size = allocator_->zone()->allocation_size() -
                     allocator_zone_start_allocation_size_;
-    isolate()->GetHStatistics()->SaveTiming(name(), TimeDelta(), size);
+    isolate()->GetHStatistics()->SaveTiming(name(), base::TimeDelta(), size);
   }
 
   if (ShouldProduceTraceOutput()) {

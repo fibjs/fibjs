@@ -6,7 +6,7 @@
 #define V8_ARM64_ASSEMBLER_ARM64_INL_H_
 
 #include "src/arm64/assembler-arm64.h"
-#include "src/cpu.h"
+#include "src/assembler.h"
 #include "src/debug.h"
 
 
@@ -430,12 +430,16 @@ unsigned Operand::shift_amount() const {
 
 
 Operand Operand::UntagSmi(Register smi) {
+  STATIC_ASSERT(kXRegSizeInBits == static_cast<unsigned>(kSmiShift +
+                                                         kSmiValueSize));
   ASSERT(smi.Is64Bits());
   return Operand(smi, ASR, kSmiShift);
 }
 
 
 Operand Operand::UntagSmiAndScale(Register smi, int scale) {
+  STATIC_ASSERT(kXRegSizeInBits == static_cast<unsigned>(kSmiShift +
+                                                         kSmiValueSize));
   ASSERT(smi.Is64Bits());
   ASSERT((scale >= 0) && (scale <= (64 - kSmiValueSize)));
   if (scale > kSmiShift) {
@@ -652,7 +656,7 @@ void Assembler::set_target_address_at(Address pc,
   Memory::Address_at(target_pointer_address_at(pc)) = target;
   // Intuitively, we would think it is necessary to always flush the
   // instruction cache after patching a target address in the code as follows:
-  //   CPU::FlushICache(pc, sizeof(target));
+  //   CpuFeatures::FlushICache(pc, sizeof(target));
   // However, on ARM, an instruction is actually patched in the case of
   // embedded constants of the form:
   // ldr   ip, [pc, #...]

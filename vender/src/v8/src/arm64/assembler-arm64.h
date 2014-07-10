@@ -11,7 +11,6 @@
 
 #include "src/arm64/instructions-arm64.h"
 #include "src/assembler.h"
-#include "src/cpu.h"
 #include "src/globals.h"
 #include "src/serialize.h"
 #include "src/utils.h"
@@ -2284,16 +2283,13 @@ class PatchingAssembler : public Assembler {
     ASSERT(IsConstPoolEmpty());
     // Flush the Instruction cache.
     size_t length = buffer_size_ - kGap;
-    CPU::FlushICache(buffer_, length);
+    CpuFeatures::FlushICache(buffer_, length);
   }
 
-  static const int kMovInt64NInstrs = 4;
-  void MovInt64(const Register& rd, int64_t imm);
-
   // See definition of PatchAdrFar() for details.
-  static const int kAdrFarPatchableNNops = kMovInt64NInstrs - 1;
-  static const int kAdrFarPatchableNInstrs = kAdrFarPatchableNNops + 3;
-  void PatchAdrFar(Instruction* target);
+  static const int kAdrFarPatchableNNops = 2;
+  static const int kAdrFarPatchableNInstrs = kAdrFarPatchableNNops + 2;
+  void PatchAdrFar(ptrdiff_t target_offset);
 };
 
 

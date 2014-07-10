@@ -6,13 +6,13 @@
 
 #include "src/api.h"
 #include "src/ast.h"
+#include "src/base/platform/platform.h"
 #include "src/bootstrapper.h"
 #include "src/char-predicates-inl.h"
 #include "src/codegen.h"
 #include "src/compiler.h"
 #include "src/messages.h"
 #include "src/parser.h"
-#include "src/platform.h"
 #include "src/preparser.h"
 #include "src/runtime.h"
 #include "src/scanner-character-streams.h"
@@ -182,7 +182,7 @@ void RegExpBuilder::AddQuantifierToAtom(
 }
 
 
-ScriptData* ScriptData::New(const char* data, int length) {
+ScriptData* ScriptData::New(const char* data, int length, bool owns_store) {
   // The length is obviously invalid.
   if (length % sizeof(unsigned) != 0) {
     return NULL;
@@ -190,7 +190,8 @@ ScriptData* ScriptData::New(const char* data, int length) {
 
   int deserialized_data_length = length / sizeof(unsigned);
   unsigned* deserialized_data;
-  bool owns_store = reinterpret_cast<intptr_t>(data) % sizeof(unsigned) != 0;
+  owns_store =
+      owns_store || reinterpret_cast<intptr_t>(data) % sizeof(unsigned) != 0;
   if (owns_store) {
     // Copy the data to align it.
     deserialized_data = i::NewArray<unsigned>(deserialized_data_length);
@@ -783,6 +784,10 @@ Parser::Parser(CompilationInfo* info)
   set_allow_generators(FLAG_harmony_generators);
   set_allow_for_of(FLAG_harmony_iteration);
   set_allow_harmony_numeric_literals(FLAG_harmony_numeric_literals);
+  for (int feature = 0; feature < v8::Isolate::kUseCounterFeatureCount;
+       ++feature) {
+    use_counts_[feature] = 0;
+  }
 }
 
 
@@ -792,7 +797,7 @@ FunctionLiteral* Parser::ParseProgram() {
   HistogramTimerScope timer_scope(isolate()->counters()->parse(), true);
   Handle<String> source(String::cast(script_->source()));
   isolate()->counters()->total_parse_size()->Increment(source->length());
-  ElapsedTimer timer;
+  base::ElapsedTimer timer;
   if (FLAG_trace_parse) {
     timer.Start();
   }
@@ -854,7 +859,7 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
   FunctionLiteral* result = NULL;
   { Scope* scope = NewScope(scope_, GLOBAL_SCOPE);
     info->SetGlobalScope(scope);
-    if (!info->context().is_null()) {
+    if (!info->context().is_null() && !info->context()->IsNativeContext()) {
       scope = Scope::DeserializeScopeChain(*info->context(), scope, zone());
       // The Scope is backed up by ScopeInfo (which is in the V8 heap); this
       // means the Parser cannot operate independent of the V8 heap. Tell the
@@ -891,6 +896,9 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
     bool ok = true;
     int beg_pos = scanner()->location().beg_pos;
     ParseSourceElements(body, Token::EOS, info->is_eval(), true, &ok);
+
+    HandleSourceURLComments();
+
     if (ok && strict_mode() == STRICT) {
       CheckOctalLiteral(beg_pos, scanner()->location().end_pos, &ok);
     }
@@ -947,7 +955,7 @@ FunctionLiteral* Parser::ParseLazy() {
   HistogramTimerScope timer_scope(isolate()->counters()->parse_lazy());
   Handle<String> source(String::cast(script_->source()));
   isolate()->counters()->total_parse_size()->Increment(source->length());
-  ElapsedTimer timer;
+  base::ElapsedTimer timer;
   if (FLAG_trace_parse) {
     timer.Start();
   }
@@ -1087,11 +1095,13 @@ void* Parser::ParseSourceElements(ZoneList<Statement*>* processor,
       if ((e_stat = stat->AsExpressionStatement()) != NULL &&
           (literal = e_stat->expression()->AsLiteral()) != NULL &&
           literal->raw_value()->IsString()) {
-        // Check "use strict" directive (ES5 14.1).
+        // Check "use strict" directive (ES5 14.1) and "use asm" directive. Only
+        // one can be present.
         if (strict_mode() == SLOPPY &&
             literal->raw_value()->AsString() ==
                 ast_value_factory_->use_strict_string() &&
-            token_loc.end_pos - token_loc.beg_pos == 12) {
+            token_loc.end_pos - token_loc.beg_pos ==
+                ast_value_factory_->use_strict_string()->length() + 2) {
           // TODO(mstarzinger): Global strict eval calls, need their own scope
           // as specified in ES5 10.4.2(3). The correct fix would be to always
           // add this scope in DoParseProgram(), but that requires adaptations
@@ -1108,6 +1118,13 @@ void* Parser::ParseSourceElements(ZoneList<Statement*>* processor,
           scope_->SetStrictMode(STRICT);
           // "use strict" is the only directive for now.
           directive_prologue = false;
+        } else if (literal->raw_value()->AsString() ==
+                       ast_value_factory_->use_asm_string() &&
+                   token_loc.end_pos - token_loc.beg_pos ==
+                       ast_value_factory_->use_asm_string()->length() + 2) {
+          // Store the usage count; The actual use counter on the isolate is
+          // incremented after parsing is done.
+          ++use_counts_[v8::Isolate::kUseAsm];
         }
       } else {
         // End of the directive prologue.
@@ -1692,15 +1709,14 @@ void Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
       // Declare the name.
       var = declaration_scope->DeclareLocal(
           name, mode, declaration->initialization(), proxy->interface());
-    } else if ((mode != VAR || var->mode() != VAR) &&
-               (!declaration_scope->is_global_scope() ||
-                IsLexicalVariableMode(mode) ||
-                IsLexicalVariableMode(var->mode()))) {
+    } else if (IsLexicalVariableMode(mode) || IsLexicalVariableMode(var->mode())
+               || ((mode == CONST_LEGACY || var->mode() == CONST_LEGACY) &&
+                   !declaration_scope->is_global_scope())) {
       // The name was declared in this scope before; check for conflicting
       // re-declarations. We have a conflict if either of the declarations is
       // not a var (in the global scope, we also have to ignore legacy const for
       // compatibility). There is similar code in runtime.cc in the Declare
-      // functions. The function CheckNonConflictingScope checks for conflicting
+      // functions. The function CheckConflictingVarDeclarations checks for
       // var and let bindings from different scopes whereas this is a check for
       // conflicting declarations within the same scope. This check also covers
       // the special case
@@ -1883,11 +1899,12 @@ Statement* Parser::ParseFunctionDeclaration(
   // Even if we're not at the top-level of the global or a function
   // scope, we treat it as such and introduce the function with its
   // initial value upon entering the corresponding scope.
-  // In extended mode, a function behaves as a lexical binding, except in the
-  // global scope.
+  // In ES6, a function behaves as a lexical binding, except in the
+  // global scope, or the initial scope of eval or another function.
   VariableMode mode =
-      allow_harmony_scoping() &&
-      strict_mode() == STRICT && !scope_->is_global_scope() ? LET : VAR;
+      allow_harmony_scoping() && strict_mode() == STRICT &&
+      !(scope_->is_global_scope() || scope_->is_eval_scope() ||
+          scope_->is_function_scope()) ? LET : VAR;
   VariableProxy* proxy = NewUnresolved(name, mode, Interface::NewValue());
   Declaration* declaration =
       factory()->NewFunctionDeclaration(proxy, mode, fun, scope_, pos);
@@ -2196,9 +2213,8 @@ Block* Parser::ParseVariableDeclarations(
     // executed.
     //
     // Executing the variable declaration statement will always
-    // guarantee to give the global object a "local" variable; a
-    // variable defined in the global object and not in any
-    // prototype. This way, global variable declarations can shadow
+    // guarantee to give the global object an own property.
+    // This way, global variable declarations can shadow
     // properties in the prototype chain, but only after the variable
     // declaration statement has been executed. This is important in
     // browsers where the global object (window) has lots of
@@ -2985,7 +3001,7 @@ Statement* Parser::DesugarLetBindingsInForStatement(
   }
 
   // Make statement: if (flag == 1) { flag = 0; } else { next; }.
-  {
+  if (next) {
     Expression* compare = NULL;
     // Make compare expresion: flag == 1.
     {
@@ -3010,7 +3026,7 @@ Statement* Parser::DesugarLetBindingsInForStatement(
 
 
   // Make statement: if (cond) { } else { break; }.
-  {
+  if (cond) {
     Statement* empty = factory()->NewEmptyStatement(RelocInfo::kNoPosition);
     BreakableStatement* t = LookupBreakTarget(NULL, CHECK_OK);
     Statement* stop = factory()->NewBreakStatement(t, RelocInfo::kNoPosition);
@@ -3232,11 +3248,31 @@ Statement* Parser::ParseForStatement(ZoneList<const AstRawString*>* labels,
     scope_ = saved_scope;
     for_scope->set_end_position(scanner()->location().end_pos);
   } else {
-    loop->Initialize(init, cond, next, body);
-    result = loop;
     scope_ = saved_scope;
     for_scope->set_end_position(scanner()->location().end_pos);
-    for_scope->FinalizeBlockScope();
+    for_scope = for_scope->FinalizeBlockScope();
+    if (for_scope) {
+      // Rewrite a for statement of the form
+      //   for (const x = i; c; n) b
+      //
+      // into
+      //
+      //   {
+      //     const x = i;
+      //     for (; c; n) b
+      //   }
+      ASSERT(init != NULL);
+      Block* block =
+          factory()->NewBlock(NULL, 2, false, RelocInfo::kNoPosition);
+      block->AddStatement(init, zone());
+      block->AddStatement(loop, zone());
+      block->set_scope(for_scope);
+      loop->Initialize(NULL, cond, next, body);
+      result = block;
+    } else {
+      loop->Initialize(init, cond, next, body);
+      result = loop;
+    }
   }
   return result;
 }
@@ -3540,10 +3576,10 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
     }
     ast_properties = *factory()->visitor()->ast_properties();
     dont_optimize_reason = factory()->visitor()->dont_optimize_reason();
-  }
 
-  if (allow_harmony_scoping() && strict_mode() == STRICT) {
-    CheckConflictingVarDeclarations(scope, CHECK_OK);
+    if (allow_harmony_scoping() && strict_mode() == STRICT) {
+      CheckConflictingVarDeclarations(scope, CHECK_OK);
+    }
   }
 
   FunctionLiteral::IsGeneratorFlag generator = is_generator
@@ -3869,6 +3905,19 @@ void Parser::RegisterTargetUse(Label* target, Target* stop) {
 }
 
 
+void Parser::HandleSourceURLComments() {
+  if (scanner_.source_url()->length() > 0) {
+    Handle<String> source_url = scanner_.source_url()->Internalize(isolate());
+    info_->script()->set_source_url(*source_url);
+  }
+  if (scanner_.source_mapping_url()->length() > 0) {
+    Handle<String> source_mapping_url =
+        scanner_.source_mapping_url()->Internalize(isolate());
+    info_->script()->set_source_mapping_url(*source_mapping_url);
+  }
+}
+
+
 void Parser::ThrowPendingError() {
   ASSERT(ast_value_factory_->IsInternalized());
   if (has_pending_error_) {
@@ -3895,6 +3944,16 @@ void Parser::ThrowPendingError() {
         ? factory->NewReferenceError(pending_error_message_, array)
         : factory->NewSyntaxError(pending_error_message_, array);
     isolate()->Throw(*result, &location);
+  }
+}
+
+
+void Parser::InternalizeUseCounts() {
+  for (int feature = 0; feature < v8::Isolate::kUseCounterFeatureCount;
+       ++feature) {
+    for (int i = 0; i < use_counts_[feature]; ++i) {
+      isolate()->CountUsage(v8::Isolate::UseCounterFeature(feature));
+    }
   }
 }
 
@@ -4818,20 +4877,7 @@ bool Parser::Parse() {
     }
   } else {
     SetCachedData(info()->cached_data(), info()->cached_data_mode());
-    if (info()->cached_data_mode() == CONSUME_CACHED_DATA &&
-        (*info()->cached_data())->has_error()) {
-      ScriptData* cached_data = *(info()->cached_data());
-      Scanner::Location loc = cached_data->MessageLocation();
-      const char* message = cached_data->BuildMessage();
-      const char* arg = cached_data->BuildArg();
-      ParserTraits::ReportMessageAt(loc, message, arg,
-                                    cached_data->IsReferenceError());
-      DeleteArray(message);
-      DeleteArray(arg);
-      ASSERT(info()->isolate()->has_pending_exception());
-    } else {
-      result = ParseProgram();
-    }
+    result = ParseProgram();
   }
   info()->SetFunction(result);
   ASSERT(ast_value_factory_->IsInternalized());
@@ -4840,6 +4886,9 @@ bool Parser::Parse() {
     info()->SetAstValueFactory(ast_value_factory_);
   }
   ast_value_factory_ = NULL;
+
+  InternalizeUseCounts();
+
   return (result != NULL);
 }
 

@@ -66,6 +66,7 @@ class AssemblerBase: public Malloced {
   void set_emit_debug_code(bool value) { emit_debug_code_ = value; }
 
   bool serializer_enabled() const { return serializer_enabled_; }
+  void enable_serializer() { serializer_enabled_ = true; }
 
   bool predictable_code_size() const { return predictable_code_size_; }
   void set_predictable_code_size(bool value) { predictable_code_size_ = value; }
@@ -188,6 +189,9 @@ class CpuFeatures : public AllStatic {
 
   static void PrintTarget();
   static void PrintFeatures();
+
+  // Flush instruction cache.
+  static void FlushICache(void* start, size_t size);
 
  private:
   // Platform-dependent implementation.
@@ -571,7 +575,7 @@ class RelocInfo {
 #ifdef ENABLE_DISASSEMBLER
   // Printing
   static const char* RelocModeName(Mode rmode);
-  void Print(Isolate* isolate, FILE* out);
+  void Print(Isolate* isolate, OStream& os);  // NOLINT
 #endif  // ENABLE_DISASSEMBLER
 #ifdef VERIFY_HEAP
   void Verify(Isolate* isolate);

@@ -5,7 +5,8 @@
 #ifndef V8_ELEMENTS_KIND_H_
 #define V8_ELEMENTS_KIND_H_
 
-#include "src/v8checks.h"
+#include "src/checks.h"
+#include "src/ostreams.h"
 
 namespace v8 {
 namespace internal {
@@ -74,7 +75,6 @@ const int kFastElementsKindPackedToHoley =
 int ElementsKindToShiftSize(ElementsKind elements_kind);
 int GetDefaultHeaderSizeForElementsKind(ElementsKind elements_kind);
 const char* ElementsKindToString(ElementsKind kind);
-void PrintElementsKind(FILE* out, ElementsKind kind);
 
 ElementsKind GetInitialFastElementsKind();
 

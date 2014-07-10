@@ -353,7 +353,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
   // performance of the hydrogen-based compiler.
   bool should_recompile = !info()->shared_info()->has_deoptimization_support();
   if (should_recompile || FLAG_hydrogen_stats) {
-    ElapsedTimer timer;
+    base::ElapsedTimer timer;
     if (FLAG_hydrogen_stats) {
       timer.Start();
     }
@@ -580,8 +580,7 @@ static void UpdateSharedFunctionInfo(CompilationInfo* info) {
 
   // Check the function has compiled code.
   ASSERT(shared->is_compiled());
-  shared->set_dont_optimize_reason(lit->dont_optimize_reason());
-  shared->set_dont_inline(lit->flags()->Contains(kDontInline));
+  shared->set_bailout_reason(lit->dont_optimize_reason());
   shared->set_ast_node_count(lit->ast_node_count());
   shared->set_strict_mode(lit->strict_mode());
 }
@@ -613,8 +612,7 @@ static void SetFunctionInfo(Handle<SharedFunctionInfo> function_info,
   function_info->set_has_duplicate_parameters(lit->has_duplicate_parameters());
   function_info->set_ast_node_count(lit->ast_node_count());
   function_info->set_is_function(lit->is_function());
-  function_info->set_dont_optimize_reason(lit->dont_optimize_reason());
-  function_info->set_dont_inline(lit->flags()->Contains(kDontInline));
+  function_info->set_bailout_reason(lit->dont_optimize_reason());
   function_info->set_dont_cache(lit->flags()->Contains(kDontCache));
   function_info->set_is_generator(lit->is_generator());
 }
@@ -935,9 +933,11 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
     cached_data = NULL;
   } else if (cached_data_mode == PRODUCE_CACHED_DATA) {
     ASSERT(cached_data && !*cached_data);
+    ASSERT(extension == NULL);
   } else {
     ASSERT(cached_data_mode == CONSUME_CACHED_DATA);
     ASSERT(cached_data && *cached_data);
+    ASSERT(extension == NULL);
   }
   Isolate* isolate = source->GetIsolate();
   int source_length = source->length();
@@ -953,6 +953,11 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
     maybe_result = compilation_cache->LookupScript(
         source, script_name, line_offset, column_offset,
         is_shared_cross_origin, context);
+    if (maybe_result.is_null() && FLAG_serialize_toplevel &&
+        cached_data_mode == CONSUME_CACHED_DATA) {
+      Object* des = CodeSerializer::Deserialize(isolate, *cached_data);
+      return handle(SharedFunctionInfo::cast(des), isolate);
+    }
   }
 
   if (!maybe_result.ToHandle(&result)) {
@@ -973,17 +978,24 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
     // Compile the function and add it to the cache.
     CompilationInfoWithZone info(script);
     info.MarkAsGlobal();
-    info.SetExtension(extension);
     info.SetCachedData(cached_data, cached_data_mode);
+    info.SetExtension(extension);
     info.SetContext(context);
+    if (FLAG_serialize_toplevel && cached_data_mode == PRODUCE_CACHED_DATA) {
+      info.PrepareForSerializing();
+    }
     if (FLAG_use_strict) info.SetStrictMode(STRICT);
+
     result = CompileToplevel(&info);
     if (extension == NULL && !result.is_null() && !result->dont_cache()) {
       compilation_cache->PutScript(source, context, result);
+      if (FLAG_serialize_toplevel && cached_data_mode == PRODUCE_CACHED_DATA) {
+        *cached_data = CodeSerializer::Serialize(result);
+      }
     }
     if (result.is_null()) isolate->ReportPendingMessages();
   } else if (result->ic_age() != isolate->heap()->global_ic_age()) {
-      result->ResetForNewContext(isolate->heap()->global_ic_age());
+    result->ResetForNewContext(isolate->heap()->global_ic_age());
   }
   return result;
 }
@@ -1315,7 +1327,7 @@ bool CompilationPhase::ShouldProduceTraceOutput() const {
       : (FLAG_trace_hydrogen &&
          info()->closure()->PassesFilter(FLAG_trace_hydrogen_filter));
   return (tracing_on &&
-      OS::StrChr(const_cast<char*>(FLAG_trace_phase), name_[0]) != NULL);
+      base::OS::StrChr(const_cast<char*>(FLAG_trace_phase), name_[0]) != NULL);
 }
 
 } }  // namespace v8::internal

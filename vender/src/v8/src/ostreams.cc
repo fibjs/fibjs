@@ -6,7 +6,7 @@
 
 #include "src/ostreams.h"
 
-#if V8_CC_MSVC
+#if V8_OS_WIN
 #define snprintf sprintf_s
 #endif
 
@@ -158,4 +158,13 @@ OFStream& OFStream::flush() {
   return *this;
 }
 
+
+OStream& operator<<(OStream& os, const AsUC16& c) {
+  char buf[10];
+  const char* format = (0x20 <= c.value && c.value <= 0x7F)
+                           ? "%c"
+                           : (c.value <= 0xff) ? "\\x%02x" : "\\u%04x";
+  snprintf(buf, sizeof(buf), format, c.value);
+  return os << buf;
+}
 } }  // namespace v8::internal

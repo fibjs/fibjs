@@ -7,9 +7,9 @@
 
 #include "include/v8.h"
 #include "src/allocation.h"
+#include "src/base/platform/elapsed-timer.h"
 #include "src/globals.h"
 #include "src/objects.h"
-#include "src/platform/elapsed-timer.h"
 
 namespace v8 {
 namespace internal {
@@ -143,6 +143,9 @@ class StatsCounter {
     return loc;
   }
 
+  // Reset the cached internal pointer.
+  void Reset() { lookup_done_ = false; }
+
  protected:
   // Returns the cached address of this counter location.
   int* GetPtr() {
@@ -241,11 +244,11 @@ class HistogramTimer : public Histogram {
 
   // TODO(bmeurer): Remove this when HistogramTimerScope is fixed.
 #ifdef DEBUG
-  ElapsedTimer* timer() { return &timer_; }
+  base::ElapsedTimer* timer() { return &timer_; }
 #endif
 
  private:
-  ElapsedTimer timer_;
+  base::ElapsedTimer timer_;
 };
 
 // Helper class for scoping a HistogramTimer.
@@ -629,6 +632,7 @@ class Counters {
     stats_counter_count
   };
 
+  void ResetCounters();
   void ResetHistograms();
 
  private:

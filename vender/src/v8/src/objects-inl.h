@@ -165,6 +165,7 @@ bool Object::IsHeapObject() const {
 
 
 TYPE_CHECKER(HeapNumber, HEAP_NUMBER_TYPE)
+TYPE_CHECKER(MutableHeapNumber, MUTABLE_HEAP_NUMBER_TYPE)
 TYPE_CHECKER(Symbol, SYMBOL_TYPE)
 
 
@@ -277,10 +278,27 @@ Handle<Object> Object::NewStorageFor(Isolate* isolate,
     return handle(Smi::FromInt(0), isolate);
   }
   if (!representation.IsDouble()) return object;
+  double value;
   if (object->IsUninitialized()) {
-    return isolate->factory()->NewHeapNumber(0);
+    value = 0;
+  } else if (object->IsMutableHeapNumber()) {
+    value = HeapNumber::cast(*object)->value();
+  } else {
+    value = object->Number();
   }
-  return isolate->factory()->NewHeapNumber(object->Number());
+  return isolate->factory()->NewHeapNumber(value, MUTABLE);
+}
+
+
+Handle<Object> Object::WrapForRead(Isolate* isolate,
+                                   Handle<Object> object,
+                                   Representation representation) {
+  ASSERT(!object->IsUninitialized());
+  if (!representation.IsDouble()) {
+    ASSERT(object->FitsRepresentation(representation));
+    return object;
+  }
+  return isolate->factory()->NewHeapNumber(HeapNumber::cast(*object)->value());
 }
 
 
@@ -1462,6 +1480,22 @@ int HeapObject::Size() {
 }
 
 
+bool HeapObject::ContainsPointers() {
+  InstanceType type = map()->instance_type();
+  if (type <= LAST_NAME_TYPE) {
+    if (type == SYMBOL_TYPE) {
+      return true;
+    }
+    ASSERT(type < FIRST_NONSTRING_TYPE);
+    // There are four string representations: sequential strings, external
+    // strings, cons strings, and sliced strings.
+    // Only the latter two contain non-map-word pointers to heap objects.
+    return ((type & kIsIndirectStringMask) == kIsIndirectStringTag);
+  }
+  return (type > LAST_DATA_TYPE);
+}
+
+
 void HeapObject::IteratePointers(ObjectVisitor* v, int start, int end) {
   v->VisitPointers(reinterpret_cast<Object**>(FIELD_ADDR(this, start)),
                    reinterpret_cast<Object**>(FIELD_ADDR(this, end)));
@@ -2183,9 +2217,9 @@ inline double FixedDoubleArray::hole_nan_as_double() {
 
 
 inline double FixedDoubleArray::canonical_not_the_hole_nan_as_double() {
-  ASSERT(BitCast<uint64_t>(OS::nan_value()) != kHoleNanInt64);
-  ASSERT((BitCast<uint64_t>(OS::nan_value()) >> 32) != kHoleNanUpper32);
-  return OS::nan_value();
+  ASSERT(BitCast<uint64_t>(base::OS::nan_value()) != kHoleNanInt64);
+  ASSERT((BitCast<uint64_t>(base::OS::nan_value()) >> 32) != kHoleNanUpper32);
+  return base::OS::nan_value();
 }
 
 
@@ -2247,6 +2281,84 @@ double* FixedDoubleArray::data_start() {
 void FixedDoubleArray::FillWithHoles(int from, int to) {
   for (int i = from; i < to; i++) {
     set_the_hole(i);
+  }
+}
+
+
+void ConstantPoolArray::NumberOfEntries::increment(Type type) {
+  ASSERT(type < NUMBER_OF_TYPES);
+  element_counts_[type]++;
+}
+
+
+int ConstantPoolArray::NumberOfEntries::equals(
+    const ConstantPoolArray::NumberOfEntries& other) const {
+  for (int i = 0; i < NUMBER_OF_TYPES; i++) {
+    if (element_counts_[i] != other.element_counts_[i]) return false;
+  }
+  return true;
+}
+
+
+bool ConstantPoolArray::NumberOfEntries::is_empty() const {
+  return total_count() == 0;
+}
+
+
+int ConstantPoolArray::NumberOfEntries::count_of(Type type) const {
+  ASSERT(type < NUMBER_OF_TYPES);
+  return element_counts_[type];
+}
+
+
+int ConstantPoolArray::NumberOfEntries::base_of(Type type) const {
+  int base = 0;
+  ASSERT(type < NUMBER_OF_TYPES);
+  for (int i = 0; i < type; i++) {
+    base += element_counts_[i];
+  }
+  return base;
+}
+
+
+int ConstantPoolArray::NumberOfEntries::total_count() const {
+  int count = 0;
+  for (int i = 0; i < NUMBER_OF_TYPES; i++) {
+    count += element_counts_[i];
+  }
+  return count;
+}
+
+
+int ConstantPoolArray::NumberOfEntries::are_in_range(int min, int max) const {
+  for (int i = FIRST_TYPE; i < NUMBER_OF_TYPES; i++) {
+    if (element_counts_[i] < min || element_counts_[i] > max) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+int ConstantPoolArray::Iterator::next_index() {
+  ASSERT(!is_finished());
+  int ret = next_index_++;
+  update_section();
+  return ret;
+}
+
+
+bool ConstantPoolArray::Iterator::is_finished() {
+  return next_index_ > array_->last_index(type_, final_section_);
+}
+
+
+void ConstantPoolArray::Iterator::update_section() {
+  if (next_index_ > array_->last_index(type_, current_section_) &&
+      current_section_ != final_section_) {
+    ASSERT(final_section_ == EXTENDED_SECTION);
+    current_section_ = EXTENDED_SECTION;
+    next_index_ = array_->first_index(type_, EXTENDED_SECTION);
   }
 }
 
@@ -2350,6 +2462,15 @@ int ConstantPoolArray::number_of_entries(Type type, LayoutSection section) {
 }
 
 
+bool ConstantPoolArray::offset_is_type(int offset, Type type) {
+  return (offset >= OffsetOfElementAt(first_index(type, SMALL_SECTION)) &&
+          offset <= OffsetOfElementAt(last_index(type, SMALL_SECTION))) ||
+         (is_extended_layout() &&
+          offset >= OffsetOfElementAt(first_index(type, EXTENDED_SECTION)) &&
+          offset <= OffsetOfElementAt(last_index(type, EXTENDED_SECTION)));
+}
+
+
 ConstantPoolArray::Type ConstantPoolArray::get_type(int index) {
   LayoutSection section;
   if (is_extended_layout() && index >= first_extended_section_index()) {
@@ -2440,6 +2561,43 @@ void ConstantPoolArray::set(int index, int32_t value) {
 }
 
 
+void ConstantPoolArray::set_at_offset(int offset, int32_t value) {
+  ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(offset_is_type(offset, INT32));
+  WRITE_INT32_FIELD(this, offset, value);
+}
+
+
+void ConstantPoolArray::set_at_offset(int offset, int64_t value) {
+  ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(offset_is_type(offset, INT64));
+  WRITE_INT64_FIELD(this, offset, value);
+}
+
+
+void ConstantPoolArray::set_at_offset(int offset, double value) {
+  ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(offset_is_type(offset, INT64));
+  WRITE_DOUBLE_FIELD(this, offset, value);
+}
+
+
+void ConstantPoolArray::set_at_offset(int offset, Address value) {
+  ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(offset_is_type(offset, CODE_PTR));
+  WRITE_FIELD(this, offset, reinterpret_cast<Object*>(value));
+  WRITE_BARRIER(GetHeap(), this, offset, reinterpret_cast<Object*>(value));
+}
+
+
+void ConstantPoolArray::set_at_offset(int offset, Object* value) {
+  ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(offset_is_type(offset, HEAP_PTR));
+  WRITE_FIELD(this, offset, value);
+  WRITE_BARRIER(GetHeap(), this, offset, value);
+}
+
+
 void ConstantPoolArray::Init(const NumberOfEntries& small) {
   uint32_t small_layout_1 =
       Int64CountField::encode(small.count_of(INT64)) |
@@ -2503,29 +2661,6 @@ int ConstantPoolArray::length() {
               number_of_entries(INT32, EXTENDED_SECTION);
   }
   return length;
-}
-
-
-int ConstantPoolArray::Iterator::next_index() {
-  ASSERT(!is_finished());
-  int ret = next_index_++;
-  update_section();
-  return ret;
-}
-
-
-bool ConstantPoolArray::Iterator::is_finished() {
-  return next_index_ > array_->last_index(type_, final_section_);
-}
-
-
-void ConstantPoolArray::Iterator::update_section() {
-  if (next_index_ > array_->last_index(type_, current_section_) &&
-      current_section_ != final_section_) {
-    ASSERT(final_section_ == EXTENDED_SECTION);
-    current_section_ = EXTENDED_SECTION;
-    next_index_ = array_->first_index(type_, EXTENDED_SECTION);
-  }
 }
 
 
@@ -3079,7 +3214,6 @@ CAST_ACCESSOR(FixedTypedArrayBase)
 CAST_ACCESSOR(Foreign)
 CAST_ACCESSOR(FreeSpace)
 CAST_ACCESSOR(GlobalObject)
-CAST_ACCESSOR(HeapNumber)
 CAST_ACCESSOR(HeapObject)
 CAST_ACCESSOR(JSArray)
 CAST_ACCESSOR(JSArrayBuffer)
@@ -3952,11 +4086,11 @@ int32_t Int32ArrayTraits::defaultValue() { return 0; }
 
 
 float Float32ArrayTraits::defaultValue() {
-  return static_cast<float>(OS::nan_value());
+  return static_cast<float>(base::OS::nan_value());
 }
 
 
-double Float64ArrayTraits::defaultValue() { return OS::nan_value(); }
+double Float64ArrayTraits::defaultValue() { return base::OS::nan_value(); }
 
 
 template <class Traits>
@@ -4551,6 +4685,11 @@ void Code::set_raw_kind_specific_flags2(int value) {
 inline bool Code::is_crankshafted() {
   return IsCrankshaftedField::decode(
       READ_UINT32_FIELD(this, kKindSpecificFlags2Offset));
+}
+
+
+inline bool Code::is_hydrogen_stub() {
+  return is_crankshafted() && kind() != OPTIMIZED_FUNCTION;
 }
 
 
@@ -5151,7 +5290,7 @@ ACCESSORS(JSFunction, next_function_link, Object, kNextFunctionLinkOffset)
 ACCESSORS(GlobalObject, builtins, JSBuiltinsObject, kBuiltinsOffset)
 ACCESSORS(GlobalObject, native_context, Context, kNativeContextOffset)
 ACCESSORS(GlobalObject, global_context, Context, kGlobalContextOffset)
-ACCESSORS(GlobalObject, global_receiver, JSObject, kGlobalReceiverOffset)
+ACCESSORS(GlobalObject, global_proxy, JSObject, kGlobalProxyOffset)
 
 ACCESSORS(JSGlobalProxy, native_context, Object, kNativeContextOffset)
 ACCESSORS(JSGlobalProxy, hash, Object, kHashOffset)
@@ -5246,6 +5385,8 @@ ACCESSORS_TO_SMI(Script, eval_from_instructions_offset,
                  kEvalFrominstructionsOffsetOffset)
 ACCESSORS_TO_SMI(Script, flags, kFlagsOffset)
 BOOL_ACCESSORS(Script, flags, is_shared_cross_origin, kIsSharedCrossOriginBit)
+ACCESSORS(Script, source_url, Object, kSourceUrlOffset)
+ACCESSORS(Script, source_mapping_url, Object, kSourceMappingUrlOffset)
 
 Script::CompilationType Script::compilation_type() {
   return BooleanBit::get(flags(), kCompilationTypeBit) ?
@@ -5447,7 +5588,6 @@ BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints,
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, bound, kBoundFunction)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_anonymous, kIsAnonymous)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_function, kIsFunction)
-BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_inline, kDontInline)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_cache, kDontCache)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_flush, kDontFlush)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_generator, kIsGenerator)
@@ -5477,7 +5617,7 @@ void SharedFunctionInfo::DontAdaptArguments() {
 }
 
 
-int SharedFunctionInfo::start_position() {
+int SharedFunctionInfo::start_position() const {
   return start_position_and_type() >> kStartPositionShift;
 }
 
@@ -5639,12 +5779,19 @@ bool JSFunction::IsBuiltin() {
 }
 
 
-bool JSFunction::IsNative() {
+bool JSFunction::IsFromNativeScript() {
   Object* script = shared()->script();
   bool native = script->IsScript() &&
                 Script::cast(script)->type()->value() == Script::TYPE_NATIVE;
   ASSERT(!IsBuiltin() || native);  // All builtins are also native.
   return native;
+}
+
+
+bool JSFunction::IsFromExtensionScript() {
+  Object* script = shared()->script();
+  return script->IsScript() &&
+         Script::cast(script)->type()->value() == Script::TYPE_EXTENSION;
 }
 
 
@@ -5737,6 +5884,11 @@ void JSFunction::ReplaceCode(Code* code) {
 
 Context* JSFunction::context() {
   return Context::cast(READ_FIELD(this, kContextOffset));
+}
+
+
+JSObject* JSFunction::global_proxy() {
+  return context()->global_proxy();
 }
 
 
@@ -5880,8 +6032,7 @@ void JSProxy::InitializeBody(int object_size, Object* value) {
 }
 
 
-ACCESSORS(JSSet, table, Object, kTableOffset)
-ACCESSORS(JSMap, table, Object, kTableOffset)
+ACCESSORS(JSCollection, table, Object, kTableOffset)
 
 
 #define ORDERED_HASH_TABLE_ITERATOR_ACCESSORS(name, type, offset)    \
@@ -5943,6 +6094,18 @@ ACCESSORS(JSModule, scope_info, ScopeInfo, kScopeInfoOffset)
 
 
 ACCESSORS(JSValue, value, Object, kValueOffset)
+
+
+HeapNumber* HeapNumber::cast(Object* object) {
+  SLOW_ASSERT(object->IsHeapNumber() || object->IsMutableHeapNumber());
+  return reinterpret_cast<HeapNumber*>(object);
+}
+
+
+const HeapNumber* HeapNumber::cast(const Object* object) {
+  SLOW_ASSERT(object->IsHeapNumber() || object->IsMutableHeapNumber());
+  return reinterpret_cast<const HeapNumber*>(object);
+}
 
 
 ACCESSORS(JSDate, value, Object, kValueOffset)
@@ -6482,7 +6645,7 @@ PropertyAttributes JSReceiver::GetElementAttribute(Handle<JSReceiver> object,
 
 
 bool JSGlobalObject::IsDetached() {
-  return JSGlobalProxy::cast(global_receiver())->IsDetachedFrom(this);
+  return JSGlobalProxy::cast(global_proxy())->IsDetachedFrom(this);
 }
 
 

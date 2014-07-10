@@ -1727,26 +1727,15 @@ void JSEntryStub::GenerateBody(MacroAssembler* masm, bool is_construct) {
 
 void FunctionPrototypeStub::Generate(MacroAssembler* masm) {
   Label miss;
-  Register receiver;
+  Register receiver = LoadIC::ReceiverRegister();
+  Register name = LoadIC::NameRegister();
+
+  ASSERT(kind() == Code::LOAD_IC ||
+         kind() == Code::KEYED_LOAD_IC);
+
   if (kind() == Code::KEYED_LOAD_IC) {
-    // ----------- S t a t e -------------
-    //  -- lr    : return address
-    //  -- x1    : receiver
-    //  -- x0    : key
-    // -----------------------------------
-    Register key = x0;
-    receiver = x1;
-    __ Cmp(key, Operand(isolate()->factory()->prototype_string()));
+    __ Cmp(name, Operand(isolate()->factory()->prototype_string()));
     __ B(ne, &miss);
-  } else {
-    ASSERT(kind() == Code::LOAD_IC);
-    // ----------- S t a t e -------------
-    //  -- lr    : return address
-    //  -- x2    : name
-    //  -- x0    : receiver
-    //  -- sp[0] : receiver
-    // -----------------------------------
-    receiver = x0;
   }
 
   StubCompiler::GenerateLoadFunctionPrototype(masm, receiver, x10, x11, &miss);
@@ -1999,9 +1988,8 @@ void ArgumentsAccessStub::GenerateNewSloppySlow(MacroAssembler* masm) {
   Register caller_fp = x10;
   __ Ldr(caller_fp, MemOperand(fp, StandardFrameConstants::kCallerFPOffset));
   // Load and untag the context.
-  STATIC_ASSERT((kSmiShift / kBitsPerByte) == 4);
-  __ Ldr(w11, MemOperand(caller_fp, StandardFrameConstants::kContextOffset +
-                         (kSmiShift / kBitsPerByte)));
+  __ Ldr(w11, UntagSmiMemOperand(caller_fp,
+                                 StandardFrameConstants::kContextOffset));
   __ Cmp(w11, StackFrame::ARGUMENTS_ADAPTOR);
   __ B(ne, &runtime);
 
@@ -2114,41 +2102,42 @@ void ArgumentsAccessStub::GenerateNewSloppyFast(MacroAssembler* masm) {
 
   // Get the arguments boilerplate from the current (global) context.
 
-  //   x0   alloc_obj     pointer to allocated objects (param map, backing
-  //                      store, arguments)
-  //   x1   mapped_params number of mapped parameters, min(params, args)
-  //   x2   arg_count     number of function arguments
-  //   x3   arg_count_smi number of function arguments (smi)
-  //   x4   function      function pointer
-  //   x7   param_count   number of function parameters
-  //   x11  args_offset   offset to args (or aliased args) boilerplate (uninit)
-  //   x14  recv_arg      pointer to receiver arguments
+  //   x0   alloc_obj       pointer to allocated objects (param map, backing
+  //                        store, arguments)
+  //   x1   mapped_params   number of mapped parameters, min(params, args)
+  //   x2   arg_count       number of function arguments
+  //   x3   arg_count_smi   number of function arguments (smi)
+  //   x4   function        function pointer
+  //   x7   param_count     number of function parameters
+  //   x11  sloppy_args_map offset to args (or aliased args) map (uninit)
+  //   x14  recv_arg        pointer to receiver arguments
 
   Register global_object = x10;
   Register global_ctx = x10;
-  Register args_offset = x11;
-  Register aliased_args_offset = x10;
+  Register sloppy_args_map = x11;
+  Register aliased_args_map = x10;
   __ Ldr(global_object, GlobalObjectMemOperand());
   __ Ldr(global_ctx, FieldMemOperand(global_object,
                                      GlobalObject::kNativeContextOffset));
 
-  __ Ldr(args_offset,
-         ContextMemOperand(global_ctx,
-                           Context::SLOPPY_ARGUMENTS_BOILERPLATE_INDEX));
-  __ Ldr(aliased_args_offset,
-         ContextMemOperand(global_ctx,
-                           Context::ALIASED_ARGUMENTS_BOILERPLATE_INDEX));
+  __ Ldr(sloppy_args_map,
+         ContextMemOperand(global_ctx, Context::SLOPPY_ARGUMENTS_MAP_INDEX));
+  __ Ldr(aliased_args_map,
+         ContextMemOperand(global_ctx, Context::ALIASED_ARGUMENTS_MAP_INDEX));
   __ Cmp(mapped_params, 0);
-  __ CmovX(args_offset, aliased_args_offset, ne);
+  __ CmovX(sloppy_args_map, aliased_args_map, ne);
 
   // Copy the JS object part.
-  __ CopyFields(alloc_obj, args_offset, CPURegList(x10, x12, x13),
-                JSObject::kHeaderSize / kPointerSize);
+  __ Str(sloppy_args_map, FieldMemOperand(alloc_obj, JSObject::kMapOffset));
+  __ LoadRoot(x10, Heap::kEmptyFixedArrayRootIndex);
+  __ Str(x10, FieldMemOperand(alloc_obj, JSObject::kPropertiesOffset));
+  __ Str(x10, FieldMemOperand(alloc_obj, JSObject::kElementsOffset));
 
   // Set up the callee in-object property.
   STATIC_ASSERT(Heap::kArgumentsCalleeIndex == 1);
   const int kCalleeOffset = JSObject::kHeaderSize +
                             Heap::kArgumentsCalleeIndex * kPointerSize;
+  __ AssertNotSmi(function);
   __ Str(function, FieldMemOperand(alloc_obj, kCalleeOffset));
 
   // Use the length and set that as an in-object property.
@@ -2349,25 +2338,24 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
   // Get the arguments boilerplate from the current (native) context.
   Register global_object = x10;
   Register global_ctx = x10;
-  Register args_offset = x4;
+  Register strict_args_map = x4;
   __ Ldr(global_object, GlobalObjectMemOperand());
   __ Ldr(global_ctx, FieldMemOperand(global_object,
                                      GlobalObject::kNativeContextOffset));
-  __ Ldr(args_offset,
-         ContextMemOperand(global_ctx,
-                           Context::STRICT_ARGUMENTS_BOILERPLATE_INDEX));
+  __ Ldr(strict_args_map,
+         ContextMemOperand(global_ctx, Context::STRICT_ARGUMENTS_MAP_INDEX));
 
   //   x0   alloc_obj         pointer to allocated objects: parameter array and
   //                          arguments object
   //   x1   param_count_smi   number of parameters passed to function (smi)
   //   x2   params            pointer to parameters
   //   x3   function          function pointer
-  //   x4   args_offset       offset to arguments boilerplate
+  //   x4   strict_args_map   offset to arguments map
   //   x13  param_count       number of parameters passed to function
-
-  // Copy the JS object part.
-  __ CopyFields(alloc_obj, args_offset, CPURegList(x5, x6, x7),
-                JSObject::kHeaderSize / kPointerSize);
+  __ Str(strict_args_map, FieldMemOperand(alloc_obj, JSObject::kMapOffset));
+  __ LoadRoot(x5, Heap::kEmptyFixedArrayRootIndex);
+  __ Str(x5, FieldMemOperand(alloc_obj, JSObject::kPropertiesOffset));
+  __ Str(x5, FieldMemOperand(alloc_obj, JSObject::kElementsOffset));
 
   // Set the smi-tagged length as an in-object property.
   STATIC_ASSERT(Heap::kArgumentsLengthIndex == 0);
@@ -2849,8 +2837,8 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
   // Store the smi values in the last match info.
   __ SmiTag(x10, current_offset);
   // Clearing the 32 bottom bits gives us a Smi.
-  STATIC_ASSERT(kSmiShift == 32);
-  __ And(x11, current_offset, ~kWRegMask);
+  STATIC_ASSERT(kSmiTag == 0);
+  __ Bic(x11, current_offset, kSmiShiftMask);
   __ Stp(x10,
          x11,
          MemOperand(last_match_offsets, kXRegSize * 2, PostIndex));
@@ -3489,8 +3477,7 @@ void StringCharFromCodeGenerator::GenerateFast(MacroAssembler* masm) {
 
   __ LoadRoot(result_, Heap::kSingleCharacterStringCacheRootIndex);
   // At this point code register contains smi tagged ASCII char code.
-  STATIC_ASSERT(kSmiShift > kPointerSizeLog2);
-  __ Add(result_, result_, Operand(code_, LSR, kSmiShift - kPointerSizeLog2));
+  __ Add(result_, result_, Operand::UntagSmiAndScale(code_, kPointerSizeLog2));
   __ Ldr(result_, FieldMemOperand(result_, FixedArray::kHeaderSize));
   __ JumpIfRoot(result_, Heap::kUndefinedValueRootIndex, &slow_case_);
   __ Bind(&exit_);
@@ -3859,7 +3846,7 @@ void StringHelper::GenerateHashInit(MacroAssembler* masm,
   // hash = character + (character << 10);
   __ LoadRoot(hash, Heap::kHashSeedRootIndex);
   // Untag smi seed and add the character.
-  __ Add(hash, character, Operand(hash, LSR, kSmiShift));
+  __ Add(hash, character, Operand::UntagSmi(hash));
 
   // Compute hashes modulo 2^32 using a 32-bit W register.
   Register hash_w = hash.W();

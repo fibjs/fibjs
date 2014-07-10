@@ -6,9 +6,9 @@
 #define V8_STORE_BUFFER_H_
 
 #include "src/allocation.h"
-#include "src/checks.h"
+#include "src/base/logging.h"
+#include "src/base/platform/platform.h"
 #include "src/globals.h"
-#include "src/platform.h"
 
 namespace v8 {
 namespace internal {
@@ -18,11 +18,6 @@ class PagedSpace;
 class StoreBuffer;
 
 typedef void (*ObjectSlotCallback)(HeapObject** from, HeapObject* to);
-
-typedef void (StoreBuffer::*RegionCallback)(Address start,
-                                            Address end,
-                                            ObjectSlotCallback slot_callback,
-                                            bool clear_maps);
 
 // Used to implement the write barrier by collecting addresses of pointers
 // between spaces.
@@ -68,13 +63,13 @@ class StoreBuffer {
   static const int kStoreBufferOverflowBit = 1 << (14 + kPointerSizeLog2);
   static const int kStoreBufferSize = kStoreBufferOverflowBit;
   static const int kStoreBufferLength = kStoreBufferSize / sizeof(Address);
-  static const int kOldStoreBufferLength = kStoreBufferLength * 16;
+  static const int kOldRegularStoreBufferLength = kStoreBufferLength * 16;
   static const int kHashSetLengthLog2 = 12;
   static const int kHashSetLength = 1 << kHashSetLengthLog2;
 
   void Compact();
 
-  void GCPrologue();
+  void GCPrologue(bool allow_overflow);
   void GCEpilogue();
 
   Object*** Limit() { return reinterpret_cast<Object***>(old_limit_); }
@@ -118,12 +113,27 @@ class StoreBuffer {
   Address* old_start_;
   Address* old_limit_;
   Address* old_top_;
+
+  // The regular limit specifies how big the store buffer may become during
+  // mutator execution or while scavenging.
+  Address* old_regular_limit_;
+
+  // The reserved limit is bigger then the regular limit. It should be the size
+  // of a semi-space to avoid new scan-on-scavenge during new space evacuation
+  // after sweeping in a full garbage collection.
   Address* old_reserved_limit_;
-  VirtualMemory* old_virtual_memory_;
+
+  base::VirtualMemory* old_virtual_memory_;
+  int old_store_buffer_length_;
 
   bool old_buffer_is_sorted_;
   bool old_buffer_is_filtered_;
-  bool during_gc_;
+
+  // If allow_overflow_ is set, we allow the store buffer to grow until
+  // old_reserved_limit_. But we will shrink the store buffer in the epilogue to
+  // stay within the old_regular_limit_.
+  bool allow_overflow_;
+
   // The garbage collector iterates over many pointers to new space that are not
   // handled by the store buffer.  This flag indicates whether the pointers
   // found by the callbacks should be added to the store buffer or not.
@@ -131,7 +141,7 @@ class StoreBuffer {
   StoreBufferCallback callback_;
   bool may_move_store_buffer_entries_;
 
-  VirtualMemory* virtual_memory_;
+  base::VirtualMemory* virtual_memory_;
 
   // Two hash sets used for filtering.
   // If address is in the hash set then it is guaranteed to be in the
@@ -146,6 +156,14 @@ class StoreBuffer {
   void Uniq();
   void ExemptPopularPages(int prime_sample_step, int threshold);
 
+  enum ExemptPopularPagesMode {
+    ENSURE_SPACE,
+    SHRINK_TO_REGULAR_SIZE
+  };
+
+  template <ExemptPopularPagesMode mode>
+  void IterativelyExemptPopularPages(intptr_t space_needed);
+
   // Set the map field of the object to NULL if contains a map.
   inline void ClearDeadObject(HeapObject *object);
 
@@ -155,29 +173,6 @@ class StoreBuffer {
                                       Address end,
                                       ObjectSlotCallback slot_callback,
                                       bool clear_maps);
-
-  // For each region of pointers on a page in use from an old space call
-  // visit_pointer_region callback.
-  // If either visit_pointer_region or callback can cause an allocation
-  // in old space and changes in allocation watermark then
-  // can_preallocate_during_iteration should be set to true.
-  void IteratePointersOnPage(
-      PagedSpace* space,
-      Page* page,
-      RegionCallback region_callback,
-      ObjectSlotCallback slot_callback);
-
-  void FindPointersToNewSpaceInMaps(
-    Address start,
-    Address end,
-    ObjectSlotCallback slot_callback,
-    bool clear_maps);
-
-  void FindPointersToNewSpaceInMapsRegion(
-    Address start,
-    Address end,
-    ObjectSlotCallback slot_callback,
-    bool clear_maps);
 
   void IteratePointersInStoreBuffer(ObjectSlotCallback slot_callback,
                                     bool clear_maps);

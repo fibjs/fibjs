@@ -4,9 +4,9 @@
 
 #include "src/v8.h"
 
+#include "src/base/platform/platform.h"
 #include "src/counters.h"
 #include "src/isolate.h"
-#include "src/platform.h"
 
 namespace v8 {
 namespace internal {
@@ -105,6 +105,38 @@ Counters::Counters(Isolate* isolate) {
     size_of_CODE_AGE_##name##_ = \
         StatsCounter(isolate, "c:" "V8.SizeOf_CODE_AGE-" #name);
     CODE_AGE_LIST_COMPLETE(SC)
+#undef SC
+}
+
+
+void Counters::ResetCounters() {
+#define SC(name, caption) name##_.Reset();
+  STATS_COUNTER_LIST_1(SC)
+  STATS_COUNTER_LIST_2(SC)
+#undef SC
+
+#define SC(name)              \
+  count_of_##name##_.Reset(); \
+  size_of_##name##_.Reset();
+  INSTANCE_TYPE_LIST(SC)
+#undef SC
+
+#define SC(name)                        \
+  count_of_CODE_TYPE_##name##_.Reset(); \
+  size_of_CODE_TYPE_##name##_.Reset();
+  CODE_KIND_LIST(SC)
+#undef SC
+
+#define SC(name)                          \
+  count_of_FIXED_ARRAY_##name##_.Reset(); \
+  size_of_FIXED_ARRAY_##name##_.Reset();
+  FIXED_ARRAY_SUB_INSTANCE_TYPE_LIST(SC)
+#undef SC
+
+#define SC(name)                       \
+  count_of_CODE_AGE_##name##_.Reset(); \
+  size_of_CODE_AGE_##name##_.Reset();
+  CODE_AGE_LIST_COMPLETE(SC)
 #undef SC
 }
 

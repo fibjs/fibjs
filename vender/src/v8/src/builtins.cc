@@ -643,8 +643,8 @@ BUILTIN(ArraySlice) {
     } else {
       // Array.slice(arguments, ...) is quite a common idiom (notably more
       // than 50% of invocations in Web apps).  Treat it in C++ as well.
-      Map* arguments_map = isolate->context()->native_context()->
-          sloppy_arguments_boilerplate()->map();
+      Map* arguments_map =
+          isolate->context()->native_context()->sloppy_arguments_map();
 
       bool is_arguments_object_with_fast_elements =
           receiver->IsJSObject() &&
@@ -1166,9 +1166,7 @@ MUST_USE_RESULT static Object* HandleApiCallHelper(
   if (shared->strict_mode() == SLOPPY && !shared->native()) {
     Object* recv = args[0];
     ASSERT(!recv->IsNull());
-    if (recv->IsUndefined()) {
-      args[0] = function->context()->global_object()->global_receiver();
-    }
+    if (recv->IsUndefined()) args[0] = function->global_proxy();
   }
 
   Object* raw_holder = TypeCheck(heap, args.length(), &args[0], *fun_data);
@@ -1642,9 +1640,10 @@ void Builtins::SetUp(Isolate* isolate, bool create_heap_objects) {
 #ifdef ENABLE_DISASSEMBLER
       if (FLAG_print_builtin_code) {
         CodeTracer::Scope trace_scope(isolate->GetCodeTracer());
-        PrintF(trace_scope.file(), "Builtin: %s\n", functions[i].s_name);
-        code->Disassemble(functions[i].s_name, trace_scope.file());
-        PrintF(trace_scope.file(), "\n");
+        OFStream os(trace_scope.file());
+        os << "Builtin: " << functions[i].s_name << "\n";
+        code->Disassemble(functions[i].s_name, os);
+        os << "\n";
       }
 #endif
     } else {

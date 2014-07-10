@@ -4,8 +4,8 @@
 
 
 #include "src/snapshot-source-sink.h"
-#include "src/checks.h"
 
+#include "src/base/logging.h"
 #include "src/handles-inl.h"
 #include "src/serialize.h"  // for SerializerDeserializer::nop() in AtEOF()
 
@@ -89,6 +89,12 @@ bool SnapshotByteSource::GetBlob(const byte** data, int* number_of_bytes) {
     Advance(length_ - position_);  // proceed until end.
     return false;
   }
+}
+
+
+void DebugSnapshotSink::Put(int byte, const char* description) {
+  PrintF("%24s: %x\n", description, byte);
+  sink_->Put(byte, description);
 }
 
 }  // namespace v8::internal

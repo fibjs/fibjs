@@ -208,7 +208,7 @@ static void VerifyEvacuation(PagedSpace* space) {
   // TODO(hpayer): Bring back VerifyEvacuation for parallel-concurrently
   // swept pages.
   if ((FLAG_concurrent_sweeping || FLAG_parallel_sweeping) &&
-      space->was_swept_conservatively()) return;
+      !space->is_iterable()) return;
   PageIterator it(space);
 
   while (it.has_next()) {
@@ -292,6 +292,7 @@ class VerifyNativeContextSeparationVisitor: public ObjectVisitor {
           case CODE_TYPE:
           case FIXED_DOUBLE_ARRAY_TYPE:
           case HEAP_NUMBER_TYPE:
+          case MUTABLE_HEAP_NUMBER_TYPE:
           case INTERCEPTOR_INFO_TYPE:
           case ODDBALL_TYPE:
           case SCRIPT_TYPE:
@@ -613,7 +614,8 @@ bool MarkCompactCollector::IsSweepingCompleted() {
     }
   }
   if (FLAG_job_based_sweeping) {
-    if (!pending_sweeper_jobs_semaphore_.WaitFor(TimeDelta::FromSeconds(0))) {
+    if (!pending_sweeper_jobs_semaphore_.WaitFor(
+            base::TimeDelta::FromSeconds(0))) {
       return false;
     }
     pending_sweeper_jobs_semaphore_.Signal();
@@ -646,8 +648,9 @@ bool MarkCompactCollector::AreSweeperThreadsActivated() {
 }
 
 
-bool MarkCompactCollector::IsConcurrentSweepingInProgress() {
-  return sweeping_pending_;
+bool MarkCompactCollector::IsConcurrentSweepingInProgress(PagedSpace* space) {
+  return (space == NULL || space->is_swept_concurrently()) &&
+      sweeping_pending_;
 }
 
 
@@ -2043,7 +2046,7 @@ int MarkCompactCollector::DiscoverAndEvacuateBlackObjectsOnPage(
 static void DiscoverGreyObjectsInSpace(Heap* heap,
                                        MarkingDeque* marking_deque,
                                        PagedSpace* space) {
-  if (!space->was_swept_conservatively()) {
+  if (space->is_iterable()) {
     HeapObjectIterator it(space);
     DiscoverGreyObjectsWithIterator(heap, marking_deque, &it);
   } else {
@@ -3239,7 +3242,7 @@ static void SweepPrecisely(PagedSpace* space,
 
   double start_time = 0.0;
   if (FLAG_print_cumulative_gc_stat) {
-    start_time = OS::TimeCurrentMillis();
+    start_time = base::OS::TimeCurrentMillis();
   }
 
   p->MarkSweptPrecisely();
@@ -3308,7 +3311,7 @@ static void SweepPrecisely(PagedSpace* space,
   }
   p->ResetLiveBytes();
   if (FLAG_print_cumulative_gc_stat) {
-    space->heap()->AddSweepingTime(OS::TimeCurrentMillis() - start_time);
+    space->heap()->AddSweepingTime(base::OS::TimeCurrentMillis() - start_time);
   }
 }
 
@@ -4077,9 +4080,8 @@ void MarkCompactCollector::SweepInParallel(PagedSpace* space) {
 
 
 void MarkCompactCollector::SweepSpace(PagedSpace* space, SweeperType sweeper) {
-  space->set_was_swept_conservatively(sweeper == CONSERVATIVE ||
-                                      sweeper == PARALLEL_CONSERVATIVE ||
-                                      sweeper == CONCURRENT_CONSERVATIVE);
+  space->set_is_iterable(sweeper == PRECISE);
+  space->set_is_swept_concurrently(sweeper == CONCURRENT_CONSERVATIVE);
   space->ClearStats();
 
   // We defensively initialize end_of_unswept_pages_ here with the first page
@@ -4144,12 +4146,23 @@ void MarkCompactCollector::SweepSpace(PagedSpace* space, SweeperType sweeper) {
           pages_swept++;
           parallel_sweeping_active = true;
         } else {
-          if (FLAG_gc_verbose) {
-            PrintF("Sweeping 0x%" V8PRIxPTR " conservatively in parallel.\n",
-                   reinterpret_cast<intptr_t>(p));
+          if (p->scan_on_scavenge()) {
+            SweepPrecisely<SWEEP_ONLY, IGNORE_SKIP_LIST, IGNORE_FREE_SPACE>(
+                space, p, NULL);
+            pages_swept++;
+            if (FLAG_gc_verbose) {
+              PrintF("Sweeping 0x%" V8PRIxPTR
+                  " scan on scavenge page precisely.\n",
+                  reinterpret_cast<intptr_t>(p));
+            }
+          } else {
+            if (FLAG_gc_verbose) {
+              PrintF("Sweeping 0x%" V8PRIxPTR " conservatively in parallel.\n",
+                  reinterpret_cast<intptr_t>(p));
+            }
+            p->set_parallel_sweeping(MemoryChunk::PARALLEL_SWEEPING_PENDING);
+            space->IncreaseUnsweptFreeBytes(p);
           }
-          p->set_parallel_sweeping(MemoryChunk::PARALLEL_SWEEPING_PENDING);
-          space->IncreaseUnsweptFreeBytes(p);
         }
         space->set_end_of_unswept_pages(p);
         break;

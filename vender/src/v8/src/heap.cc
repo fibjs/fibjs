@@ -7,6 +7,7 @@
 #include "src/accessors.h"
 #include "src/api.h"
 #include "src/base/once.h"
+#include "src/base/utils/random-number-generator.h"
 #include "src/bootstrapper.h"
 #include "src/codegen.h"
 #include "src/compilation-cache.h"
@@ -27,7 +28,6 @@
 #include "src/snapshot.h"
 #include "src/store-buffer.h"
 #include "src/utils.h"
-#include "src/utils/random-number-generator.h"
 #include "src/v8threads.h"
 #include "src/vm-state-inl.h"
 
@@ -38,6 +38,10 @@
 #if V8_TARGET_ARCH_MIPS && !V8_INTERPRETED_REGEXP
 #include "src/regexp-macro-assembler.h"  // NOLINT
 #include "src/mips/regexp-macro-assembler-mips.h"  // NOLINT
+#endif
+#if V8_TARGET_ARCH_MIPS64 && !V8_INTERPRETED_REGEXP
+#include "src/regexp-macro-assembler.h"
+#include "src/mips64/regexp-macro-assembler-mips64.h"
 #endif
 
 namespace v8 {
@@ -404,7 +408,7 @@ void Heap::ReportStatisticsAfterGC() {
 }
 
 
-void Heap::GarbageCollectionPrologue() {
+void Heap::GarbageCollectionPrologue(GarbageCollector collector) {
   {  AllowHeapAllocation for_the_first_part_of_prologue;
     ClearJSFunctionResultCaches();
     gc_count_++;
@@ -435,7 +439,7 @@ void Heap::GarbageCollectionPrologue() {
   ReportStatisticsBeforeGC();
 #endif  // DEBUG
 
-  store_buffer()->GCPrologue();
+  store_buffer()->GCPrologue(collector == MARK_COMPACTOR);
 
   if (isolate()->concurrent_osr_enabled()) {
     isolate()->optimizing_compiler_thread()->AgeBufferedOsrJobs();
@@ -833,7 +837,7 @@ bool Heap::CollectGarbage(GarbageCollector collector,
   { GCTracer tracer(this, gc_reason, collector_reason);
     ASSERT(AllowHeapAllocation::IsAllowed());
     DisallowHeapAllocation no_allocation_during_gc;
-    GarbageCollectionPrologue();
+    GarbageCollectionPrologue(collector);
     // The GC count was incremented in the prologue.  Tell the tracer about
     // it.
     tracer.set_gc_count(gc_count_);
@@ -1297,7 +1301,7 @@ static void VerifyNonPointerSpacePointers(Heap* heap) {
 
   // The old data space was normally swept conservatively so that the iterator
   // doesn't work, so we normally skip the next bit.
-  if (!heap->old_data_space()->was_swept_conservatively()) {
+  if (heap->old_data_space()->is_iterable()) {
     HeapObjectIterator data_it(heap->old_data_space());
     for (HeapObject* object = data_it.Next();
          object != NULL; object = data_it.Next())
@@ -1950,6 +1954,19 @@ class ScavengingVisitor : public StaticVisitorBase {
                                    HeapObject* source,
                                    HeapObject* target,
                                    int size)) {
+    // If we migrate into to-space, then the to-space top pointer should be
+    // right after the target object. Incorporate double alignment
+    // over-allocation.
+    ASSERT(!heap->InToSpace(target) ||
+        target->address() + size == heap->new_space()->top() ||
+        target->address() + size + kPointerSize == heap->new_space()->top());
+
+    // Make sure that we do not overwrite the promotion queue which is at
+    // the end of to-space.
+    ASSERT(!heap->InToSpace(target) ||
+        heap->promotion_queue()->IsBelowPromotionQueue(
+            heap->new_space()->top()));
+
     // Copy the content of source to target.
     heap->CopyBlock(target->address(), source->address(), size);
 
@@ -1992,13 +2009,17 @@ class ScavengingVisitor : public StaticVisitorBase {
         target = EnsureDoubleAligned(heap, target, allocation_size);
       }
 
+      // Order is important here: Set the promotion limit before migrating
+      // the object. Otherwise we may end up overwriting promotion queue
+      // entries when we migrate the object.
+      heap->promotion_queue()->SetNewLimit(heap->new_space()->top());
+
       // Order is important: slot might be inside of the target if target
       // was allocated over a dead object and slot comes from the store
       // buffer.
       *slot = target;
       MigrateObject(heap, object, target, object_size);
 
-      heap->promotion_queue()->SetNewLimit(heap->new_space()->top());
       heap->IncrementSemiSpaceCopiedObjectSize(object_size);
       return true;
     }
@@ -2524,6 +2545,8 @@ bool Heap::CreateInitialMaps() {
 
     ALLOCATE_VARSIZE_MAP(FIXED_ARRAY_TYPE, scope_info)
     ALLOCATE_MAP(HEAP_NUMBER_TYPE, HeapNumber::kSize, heap_number)
+    ALLOCATE_MAP(
+        MUTABLE_HEAP_NUMBER_TYPE, HeapNumber::kSize, mutable_heap_number)
     ALLOCATE_MAP(SYMBOL_TYPE, Symbol::kSize, symbol)
     ALLOCATE_MAP(FOREIGN_TYPE, Foreign::kSize, foreign)
 
@@ -2648,6 +2671,7 @@ bool Heap::CreateInitialMaps() {
 
 
 AllocationResult Heap::AllocateHeapNumber(double value,
+                                          MutableMode mode,
                                           PretenureFlag pretenure) {
   // Statically ensure that it is safe to allocate heap numbers in paged
   // spaces.
@@ -2661,7 +2685,8 @@ AllocationResult Heap::AllocateHeapNumber(double value,
     if (!allocation.To(&result)) return allocation;
   }
 
-  result->set_map_no_write_barrier(heap_number_map());
+  Map* map = mode == MUTABLE ? mutable_heap_number_map() : heap_number_map();
+  HeapObject::cast(result)->set_map_no_write_barrier(map);
   HeapNumber::cast(result)->set_value(value);
   return result;
 }
@@ -2767,12 +2792,13 @@ void Heap::CreateInitialObjects() {
   HandleScope scope(isolate());
   Factory* factory = isolate()->factory();
 
-  // The -0 value must be set before NumberFromDouble works.
-  set_minus_zero_value(*factory->NewHeapNumber(-0.0, TENURED));
+  // The -0 value must be set before NewNumber works.
+  set_minus_zero_value(*factory->NewHeapNumber(-0.0, IMMUTABLE, TENURED));
   ASSERT(std::signbit(minus_zero_value()->Number()) != 0);
 
-  set_nan_value(*factory->NewHeapNumber(OS::nan_value(), TENURED));
-  set_infinity_value(*factory->NewHeapNumber(V8_INFINITY, TENURED));
+  set_nan_value(
+      *factory->NewHeapNumber(base::OS::nan_value(), IMMUTABLE, TENURED));
+  set_infinity_value(*factory->NewHeapNumber(V8_INFINITY, IMMUTABLE, TENURED));
 
   // The hole has not been created yet, but we want to put something
   // predictable in the gaps in the string table, so lets make that Smi zero.
@@ -2913,6 +2939,8 @@ void Heap::CreateInitialObjects() {
   set_uninitialized_symbol(*factory->NewPrivateSymbol());
   set_megamorphic_symbol(*factory->NewPrivateSymbol());
   set_observed_symbol(*factory->NewPrivateSymbol());
+  set_stack_trace_symbol(*factory->NewPrivateSymbol());
+  set_detailed_stack_trace_symbol(*factory->NewPrivateSymbol());
 
   Handle<SeededNumberDictionary> slow_element_dictionary =
       SeededNumberDictionary::New(isolate(), 0, TENURED);
@@ -3542,58 +3570,6 @@ AllocationResult Heap::Allocate(Map* map, AllocationSpace space,
     InitializeAllocationMemento(alloc_memento, allocation_site);
   }
   return result;
-}
-
-
-AllocationResult Heap::AllocateArgumentsObject(Object* callee, int length) {
-  // To get fast allocation and map sharing for arguments objects we
-  // allocate them based on an arguments boilerplate.
-
-  JSObject* boilerplate;
-  int arguments_object_size;
-  bool strict_mode_callee = callee->IsJSFunction() &&
-      JSFunction::cast(callee)->shared()->strict_mode() == STRICT;
-  if (strict_mode_callee) {
-    boilerplate =
-        isolate()->context()->native_context()->strict_arguments_boilerplate();
-    arguments_object_size = kStrictArgumentsObjectSize;
-  } else {
-    boilerplate =
-        isolate()->context()->native_context()->sloppy_arguments_boilerplate();
-    arguments_object_size = kSloppyArgumentsObjectSize;
-  }
-
-  // Check that the size of the boilerplate matches our
-  // expectations. The ArgumentsAccessStub::GenerateNewObject relies
-  // on the size being a known constant.
-  ASSERT(arguments_object_size == boilerplate->map()->instance_size());
-
-  // Do the allocation.
-  HeapObject* result;
-  { AllocationResult allocation =
-        AllocateRaw(arguments_object_size, NEW_SPACE, OLD_POINTER_SPACE);
-    if (!allocation.To(&result)) return allocation;
-  }
-
-  // Copy the content. The arguments boilerplate doesn't have any
-  // fields that point to new space so it's safe to skip the write
-  // barrier here.
-  CopyBlock(result->address(), boilerplate->address(), JSObject::kHeaderSize);
-
-  // Set the length property.
-  JSObject* js_obj = JSObject::cast(result);
-  js_obj->InObjectPropertyAtPut(
-      kArgumentsLengthIndex, Smi::FromInt(length), SKIP_WRITE_BARRIER);
-  // Set the callee property for sloppy mode arguments object only.
-  if (!strict_mode_callee) {
-    js_obj->InObjectPropertyAtPut(kArgumentsCalleeIndex, callee);
-  }
-
-  // Check the state of the object
-  ASSERT(js_obj->HasFastProperties());
-  ASSERT(js_obj->HasFastObjectElements());
-
-  return js_obj;
 }
 
 
@@ -4242,8 +4218,8 @@ STRUCT_LIST(MAKE_CASE)
 
 
 bool Heap::IsHeapIterable() {
-  return (!old_pointer_space()->was_swept_conservatively() &&
-          !old_data_space()->was_swept_conservatively() &&
+  return (old_pointer_space()->is_iterable() &&
+          old_data_space()->is_iterable() &&
           new_space_top_after_last_gc_ == new_space()->top());
 }
 
@@ -5022,7 +4998,7 @@ void Heap::RecordStats(HeapStats* stats, bool take_snapshot) {
   *stats->memory_allocator_capacity =
       isolate()->memory_allocator()->Size() +
       isolate()->memory_allocator()->Available();
-  *stats->os_error = OS::GetLastError();
+  *stats->os_error = base::OS::GetLastError();
       isolate()->memory_allocator()->Available();
   if (take_snapshot) {
     HeapIterator iterator(this);
@@ -5929,17 +5905,17 @@ void PathTracer::UnmarkRecursively(Object** p, UnmarkVisitor* unmark_visitor) {
 
 void PathTracer::ProcessResults() {
   if (found_target_) {
-    PrintF("=====================================\n");
-    PrintF("====        Path to object       ====\n");
-    PrintF("=====================================\n\n");
+    OFStream os(stdout);
+    os << "=====================================\n"
+       << "====        Path to object       ====\n"
+       << "=====================================\n\n";
 
     ASSERT(!object_stack_.is_empty());
     for (int i = 0; i < object_stack_.length(); i++) {
-      if (i > 0) PrintF("\n     |\n     |\n     V\n\n");
-      Object* obj = object_stack_[i];
-      obj->Print();
+      if (i > 0) os << "\n     |\n     |\n     V\n\n";
+      object_stack_[i]->Print(os);
     }
-    PrintF("=====================================\n");
+    os << "=====================================\n";
   }
 }
 
@@ -6002,7 +5978,7 @@ GCTracer::GCTracer(Heap* heap,
       gc_reason_(gc_reason),
       collector_reason_(collector_reason) {
   if (!FLAG_trace_gc && !FLAG_print_cumulative_gc_stat) return;
-  start_time_ = OS::TimeCurrentMillis();
+  start_time_ = base::OS::TimeCurrentMillis();
   start_object_size_ = heap_->SizeOfObjects();
   start_memory_size_ = heap_->isolate()->memory_allocator()->Size();
 
@@ -6036,7 +6012,7 @@ GCTracer::~GCTracer() {
   bool first_gc = (heap_->last_gc_end_timestamp_ == 0);
 
   heap_->alive_after_last_gc_ = heap_->SizeOfObjects();
-  heap_->last_gc_end_timestamp_ = OS::TimeCurrentMillis();
+  heap_->last_gc_end_timestamp_ = base::OS::TimeCurrentMillis();
 
   double time = heap_->last_gc_end_timestamp_ - start_time_;
 
@@ -6383,11 +6359,12 @@ void Heap::ClearObjectStats(bool clear_last_time_stats) {
 }
 
 
-static LazyMutex checkpoint_object_stats_mutex = LAZY_MUTEX_INITIALIZER;
+static base::LazyMutex checkpoint_object_stats_mutex = LAZY_MUTEX_INITIALIZER;
 
 
 void Heap::CheckpointObjectStats() {
-  LockGuard<Mutex> lock_guard(checkpoint_object_stats_mutex.Pointer());
+  base::LockGuard<base::Mutex> lock_guard(
+      checkpoint_object_stats_mutex.Pointer());
   Counters* counters = isolate()->counters();
 #define ADJUST_LAST_TIME_OBJECT_COUNT(name)                                    \
   counters->count_of_##name()->Increment(                                      \

@@ -22,7 +22,7 @@
 
 namespace v8
 {
-namespace internal
+namespace base
 {
 
 class OS
@@ -157,7 +157,7 @@ public:
 
     virtual void Run()
     {
-        now = v8::internal::OS::TimeCurrentMillis();
+        now = v8::base::OS::TimeCurrentMillis();
 
         while (1)
         {
@@ -166,7 +166,7 @@ public:
 
             wait();
 
-            now = v8::internal::OS::TimeCurrentMillis();
+            now = v8::base::OS::TimeCurrentMillis();
 
             while (1)
             {

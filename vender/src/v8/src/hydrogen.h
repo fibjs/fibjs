@@ -214,6 +214,9 @@ class HBasicBlock V8_FINAL : public ZoneObject {
 };
 
 
+OStream& operator<<(OStream& os, const HBasicBlock& b);
+
+
 class HPredecessorIterator V8_FINAL BASE_EMBEDDED {
  public:
   explicit HPredecessorIterator(HBasicBlock* block)
@@ -698,9 +701,6 @@ class HEnvironment V8_FINAL : public ZoneObject {
     return i >= parameter_count() && i < parameter_count() + specials_count();
   }
 
-  void PrintTo(StringStream* stream);
-  void PrintToStd();
-
   Zone* zone() const { return zone_; }
 
  private:
@@ -740,6 +740,9 @@ class HEnvironment V8_FINAL : public ZoneObject {
   BailoutId ast_id_;
   Zone* zone_;
 };
+
+
+OStream& operator<<(OStream& os, const HEnvironment& env);
 
 
 class HOptimizedGraphBuilder;
@@ -1311,10 +1314,11 @@ class HGraphBuilder {
 
   template <class BitFieldClass>
   HValue* BuildDecodeField(HValue* encoded_field) {
-    HValue* shifted_field = AddUncasted<HShr>(encoded_field,
-        Add<HConstant>(static_cast<int>(BitFieldClass::kShift)));
     HValue* mask_value = Add<HConstant>(static_cast<int>(BitFieldClass::kMask));
-    return AddUncasted<HBitwise>(Token::BIT_AND, shifted_field, mask_value);
+    HValue* masked_field =
+        AddUncasted<HBitwise>(Token::BIT_AND, encoded_field, mask_value);
+    return AddUncasted<HShr>(masked_field,
+        Add<HConstant>(static_cast<int>(BitFieldClass::kShift)));
   }
 
   HValue* BuildGetElementsKind(HValue* object);
@@ -1471,6 +1475,9 @@ class HGraphBuilder {
 
   class IfBuilder V8_FINAL {
    public:
+    // If using this constructor, Initialize() must be called explicitly!
+    IfBuilder();
+
     explicit IfBuilder(HGraphBuilder* builder);
     IfBuilder(HGraphBuilder* builder,
               HIfContinuation* continuation);
@@ -1478,6 +1485,8 @@ class HGraphBuilder {
     ~IfBuilder() {
       if (!finished_) End();
     }
+
+    void Initialize(HGraphBuilder* builder);
 
     template<class Condition>
     Condition* If(HValue *p) {
@@ -1621,9 +1630,14 @@ class HGraphBuilder {
     void Return(HValue* value);
 
    private:
+    void InitializeDontCreateBlocks(HGraphBuilder* builder);
+
     HControlInstruction* AddCompare(HControlInstruction* compare);
 
-    HGraphBuilder* builder() const { return builder_; }
+    HGraphBuilder* builder() const {
+      ASSERT(builder_ != NULL);  // Have you called "Initialize"?
+      return builder_;
+    }
 
     void AddMergeAtJoinBlock(bool deopt);
 
@@ -1668,9 +1682,11 @@ class HGraphBuilder {
       kPreIncrement,
       kPostIncrement,
       kPreDecrement,
-      kPostDecrement
+      kPostDecrement,
+      kWhileTrue
     };
 
+    explicit LoopBuilder(HGraphBuilder* builder);  // while (true) {...}
     LoopBuilder(HGraphBuilder* builder,
                 HValue* context,
                 Direction direction);
@@ -1688,11 +1704,15 @@ class HGraphBuilder {
         HValue* terminating,
         Token::Value token);
 
+    void BeginBody(int drop_count);
+
     void Break();
 
     void EndBody();
 
    private:
+    void Initialize(HGraphBuilder* builder, HValue* context,
+                    Direction direction, HValue* increment_amount);
     Zone* zone() { return builder_->zone(); }
 
     HGraphBuilder* builder_;
@@ -1913,13 +1933,6 @@ class HGraphBuilder {
 
  private:
   HGraphBuilder();
-
-  HValue* BuildUncheckedDictionaryElementLoadHelper(
-      HValue* elements,
-      HValue* key,
-      HValue* hash,
-      HValue* mask,
-      int current_probe);
 
   template <class I>
   I* AddInstructionTyped(I* instr) {
@@ -2753,29 +2766,29 @@ class HStatistics V8_FINAL: public Malloced {
 
   void Initialize(CompilationInfo* info);
   void Print();
-  void SaveTiming(const char* name, TimeDelta time, unsigned size);
+  void SaveTiming(const char* name, base::TimeDelta time, unsigned size);
 
-  void IncrementFullCodeGen(TimeDelta full_code_gen) {
+  void IncrementFullCodeGen(base::TimeDelta full_code_gen) {
     full_code_gen_ += full_code_gen;
   }
 
-  void IncrementSubtotals(TimeDelta create_graph,
-                          TimeDelta optimize_graph,
-                          TimeDelta generate_code) {
+  void IncrementSubtotals(base::TimeDelta create_graph,
+                          base::TimeDelta optimize_graph,
+                          base::TimeDelta generate_code) {
     create_graph_ += create_graph;
     optimize_graph_ += optimize_graph;
     generate_code_ += generate_code;
   }
 
  private:
-  List<TimeDelta> times_;
+  List<base::TimeDelta> times_;
   List<const char*> names_;
   List<unsigned> sizes_;
-  TimeDelta create_graph_;
-  TimeDelta optimize_graph_;
-  TimeDelta generate_code_;
+  base::TimeDelta create_graph_;
+  base::TimeDelta optimize_graph_;
+  base::TimeDelta generate_code_;
   unsigned total_size_;
-  TimeDelta full_code_gen_;
+  base::TimeDelta full_code_gen_;
   double source_size_;
 };
 
@@ -2804,7 +2817,7 @@ class HTracer V8_FINAL : public Malloced {
     if (FLAG_trace_hydrogen_file == NULL) {
       SNPrintF(filename_,
                "hydrogen-%d-%d.cfg",
-               OS::GetCurrentProcessId(),
+               base::OS::GetCurrentProcessId(),
                isolate_id);
     } else {
       StrNCpy(filename_, FLAG_trace_hydrogen_file, filename_.length());

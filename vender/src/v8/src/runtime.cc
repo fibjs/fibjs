@@ -11,12 +11,13 @@
 #include "src/allocation-site-scopes.h"
 #include "src/api.h"
 #include "src/arguments.h"
+#include "src/base/cpu.h"
+#include "src/base/platform/platform.h"
 #include "src/bootstrapper.h"
 #include "src/codegen.h"
 #include "src/compilation-cache.h"
 #include "src/compiler.h"
 #include "src/conversions.h"
-#include "src/cpu.h"
 #include "src/cpu-profiler.h"
 #include "src/date.h"
 #include "src/dateparser-inl.h"
@@ -33,7 +34,6 @@
 #include "src/liveedit.h"
 #include "src/misc-intrinsics.h"
 #include "src/parser.h"
-#include "src/platform.h"
 #include "src/runtime.h"
 #include "src/runtime-profiler.h"
 #include "src/scopeinfo.h"
@@ -251,9 +251,6 @@ MUST_USE_RESULT static MaybeHandle<Object> CreateObjectLiteralBoilerplate(
     JSObject::NormalizeProperties(
         boilerplate, KEEP_INOBJECT_PROPERTIES, length / 2);
   }
-  Object::ValueType value_type = should_normalize
-      ? Object::FORCE_TAGGED : Object::OPTIMAL_REPRESENTATION;
-
   // TODO(verwaest): Support tracking representations in the boilerplate.
   for (int index = 0; index < length; index +=2) {
     Handle<Object> key(constant_properties->get(index+0), isolate);
@@ -273,27 +270,20 @@ MUST_USE_RESULT static MaybeHandle<Object> CreateObjectLiteralBoilerplate(
     if (key->IsInternalizedString()) {
       if (Handle<String>::cast(key)->AsArrayIndex(&element_index)) {
         // Array index as string (uint32).
-        if (value->IsUninitialized()) {
-          maybe_result = value;
-        } else {
-          maybe_result = JSObject::SetOwnElement(
-              boilerplate, element_index, value, SLOPPY);
-        }
+        if (value->IsUninitialized()) value = handle(Smi::FromInt(0), isolate);
+        maybe_result =
+            JSObject::SetOwnElement(boilerplate, element_index, value, SLOPPY);
       } else {
         Handle<String> name(String::cast(*key));
         ASSERT(!name->AsArrayIndex(&element_index));
         maybe_result = JSObject::SetOwnPropertyIgnoreAttributes(
-            boilerplate, name, value, NONE,
-            value_type, mode);
+            boilerplate, name, value, NONE, mode);
       }
     } else if (key->ToArrayIndex(&element_index)) {
       // Array index (uint32).
-      if (value->IsUninitialized()) {
-        maybe_result = value;
-      } else {
-        maybe_result = JSObject::SetOwnElement(
-            boilerplate, element_index, value, SLOPPY);
-      }
+      if (value->IsUninitialized()) value = handle(Smi::FromInt(0), isolate);
+      maybe_result =
+          JSObject::SetOwnElement(boilerplate, element_index, value, SLOPPY);
     } else {
       // Non-uint32 number.
       ASSERT(key->IsNumber());
@@ -303,8 +293,7 @@ MUST_USE_RESULT static MaybeHandle<Object> CreateObjectLiteralBoilerplate(
       const char* str = DoubleToCString(num, buffer);
       Handle<String> name = isolate->factory()->NewStringFromAsciiChecked(str);
       maybe_result = JSObject::SetOwnPropertyIgnoreAttributes(
-          boilerplate, name, value, NONE,
-          value_type, mode);
+          boilerplate, name, value, NONE, mode);
     }
     // If setting the property on the boilerplate throws an
     // exception, the exception is converted to an empty handle in
@@ -573,8 +562,8 @@ static MaybeHandle<JSObject> CreateArrayLiteralImpl(Isolate* isolate,
   AllocationSiteUsageContext usage_context(isolate, site, enable_mementos);
   usage_context.EnterNewScope();
   JSObject::DeepCopyHints hints = (flags & ArrayLiteral::kShallowElements) == 0
-      ? JSObject::kNoHints
-      : JSObject::kObjectIsShallowArray;
+                                      ? JSObject::kNoHints
+                                      : JSObject::kObjectIsShallow;
   MaybeHandle<JSObject> copy = JSObject::DeepCopy(boilerplate, &usage_context,
                                                   hints);
   usage_context.ExitScope(site, boilerplate);
@@ -1548,7 +1537,7 @@ RUNTIME_FUNCTION(Runtime_SetAdd) {
   Handle<OrderedHashSet> table(OrderedHashSet::cast(holder->table()));
   table = OrderedHashSet::Add(table, key);
   holder->set_table(*table);
-  return isolate->heap()->undefined_value();
+  return *holder;
 }
 
 
@@ -1686,7 +1675,7 @@ RUNTIME_FUNCTION(Runtime_MapSet) {
   Handle<OrderedHashMap> table(OrderedHashMap::cast(holder->table()));
   Handle<OrderedHashMap> new_table = OrderedHashMap::Put(table, key, value);
   holder->set_table(*new_table);
-  return isolate->heap()->undefined_value();
+  return *holder;
 }
 
 
@@ -1800,7 +1789,7 @@ RUNTIME_FUNCTION(Runtime_WeakCollectionSet) {
   RUNTIME_ASSERT(table->IsKey(*key));
   Handle<ObjectHashTable> new_table = ObjectHashTable::Put(table, key, value);
   weak_collection->set_table(*new_table);
-  return isolate->heap()->undefined_value();
+  return *weak_collection;
 }
 
 
@@ -2117,8 +2106,7 @@ static Object* ThrowRedeclarationError(Isolate* isolate, Handle<String> name) {
 RUNTIME_FUNCTION(Runtime_DeclareGlobals) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 3);
-  Handle<GlobalObject> global = Handle<GlobalObject>(
-      isolate->context()->global_object());
+  Handle<GlobalObject> global(isolate->global_object());
 
   CONVERT_ARG_HANDLE_CHECKED(Context, context, 0);
   CONVERT_ARG_HANDLE_CHECKED(FixedArray, pairs, 1);
@@ -2396,10 +2384,7 @@ RUNTIME_FUNCTION(Runtime_InitializeConstGlobal) {
   if (!lookup.IsFound()) {
     HandleScope handle_scope(isolate);
     Handle<GlobalObject> global(isolate->context()->global_object());
-    RETURN_FAILURE_ON_EXCEPTION(
-        isolate,
-        JSObject::SetOwnPropertyIgnoreAttributes(global, name, value,
-                                                 attributes));
+    JSObject::AddProperty(global, name, value, attributes);
     return *value;
   }
 
@@ -2743,9 +2728,7 @@ RUNTIME_FUNCTION(Runtime_GetDefaultReceiver) {
   // Returns undefined for strict or native functions, or
   // the associated global receiver for "normal" functions.
 
-  Context* native_context =
-      function->context()->global_object()->native_context();
-  return native_context->global_object()->global_receiver();
+  return function->global_proxy();
 }
 
 
@@ -5100,7 +5083,6 @@ RUNTIME_FUNCTION(Runtime_DefineDataPropertyUnchecked) {
         isolate, result,
         JSObject::SetOwnPropertyIgnoreAttributes(
             js_object, name, obj_value, attr,
-            Object::OPTIMAL_REPRESENTATION,
             ALLOW_AS_CONSTANT,
             JSReceiver::PERFORM_EXTENSIBILITY_CHECK,
             JSReceiver::MAY_BE_STORE_FROM_KEYED,
@@ -5256,9 +5238,8 @@ MaybeHandle<Object> Runtime::DefineObjectProperty(
     } else {
       if (name->IsString()) name = String::Flatten(Handle<String>::cast(name));
       return JSObject::SetOwnPropertyIgnoreAttributes(
-          js_object, name, value, attr, Object::OPTIMAL_REPRESENTATION,
-          ALLOW_AS_CONSTANT, JSReceiver::PERFORM_EXTENSIBILITY_CHECK,
-          store_from_keyed);
+          js_object, name, value, attr, ALLOW_AS_CONSTANT,
+          JSReceiver::PERFORM_EXTENSIBILITY_CHECK, store_from_keyed);
     }
   }
 
@@ -5273,9 +5254,8 @@ MaybeHandle<Object> Runtime::DefineObjectProperty(
                                 SLOPPY, false, DEFINE_PROPERTY);
   } else {
     return JSObject::SetOwnPropertyIgnoreAttributes(
-        js_object, name, value, attr, Object::OPTIMAL_REPRESENTATION,
-        ALLOW_AS_CONSTANT, JSReceiver::PERFORM_EXTENSIBILITY_CHECK,
-        store_from_keyed);
+        js_object, name, value, attr, ALLOW_AS_CONSTANT,
+        JSReceiver::PERFORM_EXTENSIBILITY_CHECK, store_from_keyed);
   }
 }
 
@@ -5343,15 +5323,62 @@ RUNTIME_FUNCTION(Runtime_AddProperty) {
       static_cast<PropertyAttributes>(unchecked_attributes);
 
 #ifdef DEBUG
+  bool duplicate;
+  uint32_t index = 0;
+  if (key->IsName() || !key->ToArrayIndex(&index)) {
+    if (key->IsNumber()) {
+      ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, key,
+                                         Execution::ToString(isolate, key));
+    }
+    LookupIterator it(object, Handle<Name>::cast(key),
+                      LookupIterator::CHECK_OWN_REAL);
+    JSReceiver::GetPropertyAttributes(&it);
+    duplicate = it.IsFound();
+  } else {
+    duplicate = JSReceiver::HasOwnElement(object, index);
+  }
+  RUNTIME_ASSERT(!duplicate);
+#endif
+
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, result,
+      Runtime::DefineObjectProperty(object, key, value, attributes));
+  return *result;
+}
+
+
+RUNTIME_FUNCTION(Runtime_AddPropertyForTemplate) {
+  HandleScope scope(isolate);
+  RUNTIME_ASSERT(args.length() == 4);
+
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
+  CONVERT_ARG_HANDLE_CHECKED(Object, key, 1);
+  CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
+  CONVERT_SMI_ARG_CHECKED(unchecked_attributes, 3);
+  RUNTIME_ASSERT(
+      (unchecked_attributes & ~(READ_ONLY | DONT_ENUM | DONT_DELETE)) == 0);
+  // Compute attributes.
+  PropertyAttributes attributes =
+      static_cast<PropertyAttributes>(unchecked_attributes);
+
+#ifdef DEBUG
+  bool duplicate;
   if (key->IsName()) {
     LookupIterator it(object, Handle<Name>::cast(key),
                       LookupIterator::CHECK_OWN_REAL);
     JSReceiver::GetPropertyAttributes(&it);
-    RUNTIME_ASSERT(!it.IsFound());
+    duplicate = it.IsFound();
   } else {
     uint32_t index = 0;
     RUNTIME_ASSERT(key->ToArrayIndex(&index));
-    RUNTIME_ASSERT(!JSReceiver::HasOwnElement(object, index));
+    duplicate = JSReceiver::HasOwnElement(object, index);
+  }
+  if (duplicate) {
+    Handle<Object> args[1] = { key };
+    Handle<Object> error = isolate->factory()->NewTypeError(
+        "duplicate_template_property", HandleVector(args, 1));
+    return isolate->Throw(*error);
   }
 #endif
 
@@ -5526,6 +5553,24 @@ RUNTIME_FUNCTION(Runtime_DebugPromiseHandleEpilogue) {
   ASSERT(args.length() == 0);
   SealHandleScope shs(isolate);
   isolate->debug()->PromiseHandleEpilogue();
+  return isolate->heap()->undefined_value();
+}
+
+
+RUNTIME_FUNCTION(Runtime_DebugPromiseEvent) {
+  ASSERT(args.length() == 1);
+  HandleScope scope(isolate);
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, data, 0);
+  isolate->debug()->OnPromiseEvent(data);
+  return isolate->heap()->undefined_value();
+}
+
+
+RUNTIME_FUNCTION(Runtime_DebugAsyncTaskEvent) {
+  ASSERT(args.length() == 1);
+  HandleScope scope(isolate);
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, data, 0);
+  isolate->debug()->OnAsyncTaskEvent(data);
   return isolate->heap()->undefined_value();
 }
 
@@ -6279,8 +6324,8 @@ RUNTIME_FUNCTION(Runtime_StringParseFloat) {
   CONVERT_ARG_HANDLE_CHECKED(String, subject, 0);
 
   subject = String::Flatten(subject);
-  double value = StringToDouble(
-      isolate->unicode_cache(), *subject, ALLOW_TRAILING_JUNK, OS::nan_value());
+  double value = StringToDouble(isolate->unicode_cache(), *subject,
+                                ALLOW_TRAILING_JUNK, base::OS::nan_value());
 
   return *isolate->factory()->NewNumber(value);
 }
@@ -8124,8 +8169,8 @@ RUNTIME_FUNCTION(Runtime_FunctionBindArguments) {
       static_cast<PropertyAttributes>(DONT_DELETE | DONT_ENUM | READ_ONLY);
   RETURN_FAILURE_ON_EXCEPTION(
       isolate,
-      JSObject::SetOwnPropertyIgnoreAttributes(bound_function, length_string,
-                                               new_length, attr));
+      JSObject::SetOwnPropertyIgnoreAttributes(
+          bound_function, length_string, new_length, attr));
   return *bound_function;
 }
 
@@ -8229,7 +8274,7 @@ static Object* Runtime_NewObjectHelper(Isolate* isolate,
       // instead of a new JSFunction object. This way, errors are
       // reported the same way whether or not 'Function' is called
       // using 'new'.
-      return isolate->context()->global_proxy();
+      return isolate->global_proxy();
     }
   }
 
@@ -8555,7 +8600,7 @@ RUNTIME_FUNCTION(Runtime_GetOptimizationStatus) {
       sync_with_compiler_thread) {
     while (function->IsInOptimizationQueue()) {
       isolate->optimizing_compiler_thread()->InstallOptimizedFunctions();
-      OS::Sleep(50);
+      base::OS::Sleep(50);
     }
   }
   if (FLAG_always_opt) {
@@ -8903,7 +8948,7 @@ RUNTIME_FUNCTION(Runtime_PushWithContext) {
     // A smi sentinel indicates a context nested inside global code rather
     // than some function.  There is a canonical empty function that can be
     // gotten from the native context.
-    function = handle(isolate->context()->native_context()->closure());
+    function = handle(isolate->native_context()->closure());
   } else {
     function = args.at<JSFunction>(1);
   }
@@ -8926,7 +8971,7 @@ RUNTIME_FUNCTION(Runtime_PushCatchContext) {
     // A smi sentinel indicates a context nested inside global code rather
     // than some function.  There is a canonical empty function that can be
     // gotten from the native context.
-    function = handle(isolate->context()->native_context()->closure());
+    function = handle(isolate->native_context()->closure());
   } else {
     function = args.at<JSFunction>(2);
   }
@@ -8947,7 +8992,7 @@ RUNTIME_FUNCTION(Runtime_PushBlockContext) {
     // A smi sentinel indicates a context nested inside global code rather
     // than some function.  There is a canonical empty function that can be
     // gotten from the native context.
-    function = handle(isolate->context()->native_context()->closure());
+    function = handle(isolate->native_context()->closure());
   } else {
     function = args.at<JSFunction>(1);
   }
@@ -9493,28 +9538,28 @@ RUNTIME_FUNCTION(Runtime_DebugPrint) {
   SealHandleScope shs(isolate);
   ASSERT(args.length() == 1);
 
+  OFStream os(stdout);
 #ifdef DEBUG
   if (args[0]->IsString()) {
     // If we have a string, assume it's a code "marker"
     // and print some interesting cpu debugging info.
     JavaScriptFrameIterator it(isolate);
     JavaScriptFrame* frame = it.frame();
-    PrintF("fp = %p, sp = %p, caller_sp = %p: ",
-           frame->fp(), frame->sp(), frame->caller_sp());
+    os << "fp = " << frame->fp() << ", sp = " << frame->sp()
+       << ", caller_sp = " << frame->caller_sp() << ": ";
   } else {
-    PrintF("DebugPrint: ");
+    os << "DebugPrint: ";
   }
-  args[0]->Print();
+  args[0]->Print(os);
   if (args[0]->IsHeapObject()) {
-    PrintF("\n");
-    HeapObject::cast(args[0])->map()->Print();
+    os << "\n";
+    HeapObject::cast(args[0])->map()->Print(os);
   }
 #else
   // ShortPrint is available in release mode. Print is not.
-  args[0]->ShortPrint();
+  os << Brief(args[0]);
 #endif
-  PrintF("\n");
-  Flush();
+  os << endl;
 
   return args[0];  // return TOS
 }
@@ -9542,7 +9587,7 @@ RUNTIME_FUNCTION(Runtime_DateCurrentTime) {
     millis = 1388534400000.0;  // Jan 1 2014 00:00:00 GMT+0000
     millis += std::floor(isolate->heap()->synthetic_time());
   } else {
-    millis = std::floor(OS::TimeCurrentMillis());
+    millis = std::floor(base::OS::TimeCurrentMillis());
   }
   return *isolate->factory()->NewNumber(millis);
 }
@@ -9633,12 +9678,12 @@ RUNTIME_FUNCTION(Runtime_DateCacheVersion) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_GlobalReceiver) {
+RUNTIME_FUNCTION(Runtime_GlobalProxy) {
   SealHandleScope shs(isolate);
   ASSERT(args.length() == 1);
   CONVERT_ARG_CHECKED(Object, global, 0);
   if (!global->IsJSGlobalObject()) return isolate->heap()->null_value();
-  return JSGlobalObject::cast(global)->global_receiver();
+  return JSGlobalObject::cast(global)->global_proxy();
 }
 
 
@@ -9745,7 +9790,7 @@ RUNTIME_FUNCTION(Runtime_CompileString) {
   CONVERT_BOOLEAN_ARG_CHECKED(function_literal_only, 1);
 
   // Extract native context.
-  Handle<Context> context(isolate->context()->native_context());
+  Handle<Context> context(isolate->native_context());
 
   // Filter cross security context calls.
   if (!TokensMatchForCompileString(isolate)) {
@@ -11348,8 +11393,7 @@ RUNTIME_FUNCTION(Runtime_GetFrameDetails) {
     // native context.
     it.Advance();
     if (receiver->IsUndefined()) {
-      Context* context = function->context();
-      receiver = handle(context->global_object()->global_receiver());
+      receiver = handle(function->global_proxy());
     } else {
       ASSERT(!receiver->IsNull());
       Context* context = Context::cast(it.frame()->context());
@@ -12062,22 +12106,23 @@ class ScopeIterator {
 #ifdef DEBUG
   // Debug print of the content of the current scope.
   void DebugPrint() {
+    OFStream os(stdout);
     ASSERT(!failed_);
     switch (Type()) {
       case ScopeIterator::ScopeTypeGlobal:
-        PrintF("Global:\n");
-        CurrentContext()->Print();
+        os << "Global:\n";
+        CurrentContext()->Print(os);
         break;
 
       case ScopeIterator::ScopeTypeLocal: {
-        PrintF("Local:\n");
+        os << "Local:\n";
         function_->shared()->scope_info()->Print();
         if (!CurrentContext().is_null()) {
-          CurrentContext()->Print();
+          CurrentContext()->Print(os);
           if (CurrentContext()->has_extension()) {
             Handle<Object> extension(CurrentContext()->extension(), isolate_);
             if (extension->IsJSContextExtensionObject()) {
-              extension->Print();
+              extension->Print(os);
             }
           }
         }
@@ -12085,23 +12130,23 @@ class ScopeIterator {
       }
 
       case ScopeIterator::ScopeTypeWith:
-        PrintF("With:\n");
-        CurrentContext()->extension()->Print();
+        os << "With:\n";
+        CurrentContext()->extension()->Print(os);
         break;
 
       case ScopeIterator::ScopeTypeCatch:
-        PrintF("Catch:\n");
-        CurrentContext()->extension()->Print();
-        CurrentContext()->get(Context::THROWN_OBJECT_INDEX)->Print();
+        os << "Catch:\n";
+        CurrentContext()->extension()->Print(os);
+        CurrentContext()->get(Context::THROWN_OBJECT_INDEX)->Print(os);
         break;
 
       case ScopeIterator::ScopeTypeClosure:
-        PrintF("Closure:\n");
-        CurrentContext()->Print();
+        os << "Closure:\n";
+        CurrentContext()->Print(os);
         if (CurrentContext()->has_extension()) {
           Handle<Object> extension(CurrentContext()->extension(), isolate_);
           if (extension->IsJSContextExtensionObject()) {
-            extension->Print();
+            extension->Print(os);
           }
         }
         break;
@@ -12920,7 +12965,7 @@ RUNTIME_FUNCTION(Runtime_DebugEvaluateGlobal) {
   // Get the native context now set to the top context from before the
   // debugger was invoked.
   Handle<Context> context = isolate->native_context();
-  Handle<Object> receiver = isolate->global_object();
+  Handle<JSObject> receiver(context->global_proxy());
   Handle<Object> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, result,
@@ -13045,10 +13090,8 @@ RUNTIME_FUNCTION(Runtime_DebugReferencedBy) {
 
 
   // Get the constructor function for context extension and arguments array.
-  Handle<JSObject> arguments_boilerplate(
-      isolate->context()->native_context()->sloppy_arguments_boilerplate());
   Handle<JSFunction> arguments_function(
-      JSFunction::cast(arguments_boilerplate->map()->constructor()));
+      JSFunction::cast(isolate->sloppy_arguments_map()->constructor()));
 
   // Get the number of referencing objects.
   int count;
@@ -13075,8 +13118,7 @@ RUNTIME_FUNCTION(Runtime_DebugReferencedBy) {
   }
 
   // Return result as JS array.
-  Handle<JSFunction> constructor(
-      isolate->context()->native_context()->array_function());
+  Handle<JSFunction> constructor = isolate->array_function();
 
   Handle<JSObject> result = isolate->factory()->NewJSObject(constructor);
   JSArray::SetContent(Handle<JSArray>::cast(result), instances);
@@ -13158,8 +13200,7 @@ RUNTIME_FUNCTION(Runtime_DebugConstructedBy) {
   }
 
   // Return result as JS array.
-  Handle<JSFunction> array_function(
-      isolate->context()->native_context()->array_function());
+  Handle<JSFunction> array_function = isolate->array_function();
   Handle<JSObject> result = isolate->factory()->NewJSObject(array_function);
   JSArray::SetContent(Handle<JSArray>::cast(result), instances);
   return *result;
@@ -13198,7 +13239,7 @@ RUNTIME_FUNCTION(Runtime_DebugSetScriptSource) {
 RUNTIME_FUNCTION(Runtime_SystemBreak) {
   SealHandleScope shs(isolate);
   ASSERT(args.length() == 0);
-  OS::DebugBreak();
+  base::OS::DebugBreak();
   return isolate->heap()->undefined_value();
 }
 
@@ -13212,7 +13253,9 @@ RUNTIME_FUNCTION(Runtime_DebugDisassembleFunction) {
   if (!Compiler::EnsureCompiled(func, KEEP_EXCEPTION)) {
     return isolate->heap()->exception();
   }
-  func->code()->PrintLn();
+  OFStream os(stdout);
+  func->code()->Print(os);
+  os << endl;
 #endif  // DEBUG
   return isolate->heap()->undefined_value();
 }
@@ -13227,7 +13270,9 @@ RUNTIME_FUNCTION(Runtime_DebugDisassembleConstructor) {
   if (!Compiler::EnsureCompiled(func, KEEP_EXCEPTION)) {
     return isolate->heap()->exception();
   }
-  func->shared()->construct_stub()->PrintLn();
+  OFStream os(stdout);
+  func->shared()->construct_stub()->Print(os);
+  os << endl;
 #endif  // DEBUG
   return isolate->heap()->undefined_value();
 }
@@ -13460,6 +13505,7 @@ RUNTIME_FUNCTION(Runtime_LiveEditCheckAndDropActivations) {
   CONVERT_ARG_HANDLE_CHECKED(JSArray, shared_array, 0);
   CONVERT_BOOLEAN_ARG_CHECKED(do_drop, 1);
   RUNTIME_ASSERT(shared_array->length()->IsSmi());
+  RUNTIME_ASSERT(shared_array->HasFastElements())
   int array_length = Smi::cast(shared_array->length())->value();
   for (int i = 0; i < array_length; i++) {
     Handle<Object> element =
@@ -13572,14 +13618,14 @@ RUNTIME_FUNCTION(Runtime_ExecuteInDebugContext) {
   if (without_debugger) {
     maybe_result = Execution::Call(isolate,
                                    function,
-                                   isolate->global_object(),
+                                   handle(function->global_proxy()),
                                    0,
                                    NULL);
   } else {
     DebugScope debug_scope(isolate->debug());
     maybe_result = Execution::Call(isolate,
                                    function,
-                                   isolate->global_object(),
+                                   handle(function->global_proxy()),
                                    0,
                                    NULL);
   }
@@ -13800,18 +13846,10 @@ RUNTIME_FUNCTION(Runtime_GetLanguageTagVariants) {
     }
 
     Handle<JSObject> result = factory->NewJSObject(isolate->object_function());
-    RETURN_FAILURE_ON_EXCEPTION(isolate,
-        JSObject::SetOwnPropertyIgnoreAttributes(
-            result,
-            maximized,
-            factory->NewStringFromAsciiChecked(base_max_locale),
-            NONE));
-    RETURN_FAILURE_ON_EXCEPTION(isolate,
-        JSObject::SetOwnPropertyIgnoreAttributes(
-            result,
-            base,
-            factory->NewStringFromAsciiChecked(base_locale),
-            NONE));
+    Handle<String> value = factory->NewStringFromAsciiChecked(base_max_locale);
+    JSObject::AddProperty(result, maximized, value, NONE);
+    value = factory->NewStringFromAsciiChecked(base_locale);
+    JSObject::AddProperty(result, base, value, NONE);
     output->set(i, *result);
   }
 
@@ -13928,12 +13966,10 @@ RUNTIME_FUNCTION(Runtime_CreateDateTimeFormat) {
 
   local_object->SetInternalField(0, reinterpret_cast<Smi*>(date_format));
 
-  RETURN_FAILURE_ON_EXCEPTION(isolate,
-      JSObject::SetOwnPropertyIgnoreAttributes(
-          local_object,
-          isolate->factory()->NewStringFromStaticAscii("dateFormat"),
-          isolate->factory()->NewStringFromStaticAscii("valid"),
-          NONE));
+  Factory* factory = isolate->factory();
+  Handle<String> key = factory->NewStringFromStaticAscii("dateFormat");
+  Handle<String> value = factory->NewStringFromStaticAscii("valid");
+  JSObject::AddProperty(local_object, key, value, NONE);
 
   // Make object handle weak so we can delete the data format once GC kicks in.
   Handle<Object> wrapper = isolate->global_handles()->Create(*local_object);
@@ -14027,12 +14063,10 @@ RUNTIME_FUNCTION(Runtime_CreateNumberFormat) {
 
   local_object->SetInternalField(0, reinterpret_cast<Smi*>(number_format));
 
-  RETURN_FAILURE_ON_EXCEPTION(isolate,
-      JSObject::SetOwnPropertyIgnoreAttributes(
-          local_object,
-          isolate->factory()->NewStringFromStaticAscii("numberFormat"),
-          isolate->factory()->NewStringFromStaticAscii("valid"),
-          NONE));
+  Factory* factory = isolate->factory();
+  Handle<String> key = factory->NewStringFromStaticAscii("numberFormat");
+  Handle<String> value = factory->NewStringFromStaticAscii("valid");
+  JSObject::AddProperty(local_object, key, value, NONE);
 
   Handle<Object> wrapper = isolate->global_handles()->Create(*local_object);
   GlobalHandles::MakeWeak(wrapper.location(),
@@ -14135,12 +14169,10 @@ RUNTIME_FUNCTION(Runtime_CreateCollator) {
 
   local_object->SetInternalField(0, reinterpret_cast<Smi*>(collator));
 
-  RETURN_FAILURE_ON_EXCEPTION(isolate,
-      JSObject::SetOwnPropertyIgnoreAttributes(
-          local_object,
-          isolate->factory()->NewStringFromStaticAscii("collator"),
-          isolate->factory()->NewStringFromStaticAscii("valid"),
-          NONE));
+  Factory* factory = isolate->factory();
+  Handle<String> key = factory->NewStringFromStaticAscii("collator");
+  Handle<String> value = factory->NewStringFromStaticAscii("valid");
+  JSObject::AddProperty(local_object, key, value, NONE);
 
   Handle<Object> wrapper = isolate->global_handles()->Create(*local_object);
   GlobalHandles::MakeWeak(wrapper.location(),
@@ -14241,12 +14273,10 @@ RUNTIME_FUNCTION(Runtime_CreateBreakIterator) {
   // Make sure that the pointer to adopted text is NULL.
   local_object->SetInternalField(1, reinterpret_cast<Smi*>(NULL));
 
-  RETURN_FAILURE_ON_EXCEPTION(isolate,
-      JSObject::SetOwnPropertyIgnoreAttributes(
-          local_object,
-          isolate->factory()->NewStringFromStaticAscii("breakIterator"),
-          isolate->factory()->NewStringFromStaticAscii("valid"),
-          NONE));
+  Factory* factory = isolate->factory();
+  Handle<String> key = factory->NewStringFromStaticAscii("breakIterator");
+  Handle<String> value = factory->NewStringFromStaticAscii("valid");
+  JSObject::AddProperty(local_object, key, value, NONE);
 
   // Make object handle weak so we can delete the break iterator once GC kicks
   // in.
@@ -14419,30 +14449,17 @@ RUNTIME_FUNCTION(Runtime_GetScript) {
 // native code offset.
 RUNTIME_FUNCTION(Runtime_CollectStackTrace) {
   HandleScope scope(isolate);
-  ASSERT(args.length() == 3);
+  ASSERT(args.length() == 2);
   CONVERT_ARG_HANDLE_CHECKED(JSObject, error_object, 0);
   CONVERT_ARG_HANDLE_CHECKED(Object, caller, 1);
-  CONVERT_NUMBER_CHECKED(int32_t, limit, Int32, args[2]);
 
-  // Optionally capture a more detailed stack trace for the message.
-  isolate->CaptureAndSetDetailedStackTrace(error_object);
-  // Capture a simple stack trace for the stack property.
-  return *isolate->CaptureSimpleStackTrace(error_object, caller, limit);
-}
-
-
-// Retrieve the stack trace.  This is the raw stack trace that yet has to
-// be formatted.  Since we only need this once, clear it afterwards.
-RUNTIME_FUNCTION(Runtime_GetAndClearOverflowedStackTrace) {
-  HandleScope scope(isolate);
-  ASSERT(args.length() == 1);
-  CONVERT_ARG_HANDLE_CHECKED(JSObject, error_object, 0);
-  Handle<String> key = isolate->factory()->hidden_stack_trace_string();
-  Handle<Object> result(error_object->GetHiddenProperty(key), isolate);
-  if (result->IsTheHole()) return isolate->heap()->undefined_value();
-  RUNTIME_ASSERT(result->IsJSArray() || result->IsUndefined());
-  JSObject::DeleteHiddenProperty(error_object, key);
-  return *result;
+  if (!isolate->bootstrapper()->IsActive()) {
+    // Optionally capture a more detailed stack trace for the message.
+    isolate->CaptureAndSetDetailedStackTrace(error_object);
+    // Capture a simple stack trace for the stack property.
+    isolate->CaptureAndSetSimpleStackTrace(error_object, caller);
+  }
+  return isolate->heap()->undefined_value();
 }
 
 
@@ -14463,9 +14480,9 @@ RUNTIME_FUNCTION(Runtime_Abort) {
   CONVERT_SMI_ARG_CHECKED(message_id, 0);
   const char* message = GetBailoutReason(
       static_cast<BailoutReason>(message_id));
-  OS::PrintError("abort: %s\n", message);
+  base::OS::PrintError("abort: %s\n", message);
   isolate->PrintStack(stderr);
-  OS::Abort();
+  base::OS::Abort();
   UNREACHABLE();
   return NULL;
 }
@@ -14475,9 +14492,9 @@ RUNTIME_FUNCTION(Runtime_AbortJS) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 1);
   CONVERT_ARG_HANDLE_CHECKED(String, message, 0);
-  OS::PrintError("abort: %s\n", message->ToCString().get());
+  base::OS::PrintError("abort: %s\n", message->ToCString().get());
   isolate->PrintStack(stderr);
-  OS::Abort();
+  base::OS::Abort();
   UNREACHABLE();
   return NULL;
 }
@@ -14515,8 +14532,8 @@ RUNTIME_FUNCTION(Runtime_LoadMutableDouble) {
                    object->properties()->length());
   }
   Handle<Object> raw_value(object->RawFastPropertyAt(field_index), isolate);
-  RUNTIME_ASSERT(raw_value->IsNumber() || raw_value->IsUninitialized());
-  return *Object::NewStorageFor(isolate, raw_value, Representation::Double());
+  RUNTIME_ASSERT(raw_value->IsMutableHeapNumber());
+  return *Object::WrapForRead(isolate, raw_value, Representation::Double());
 }
 
 
@@ -14584,8 +14601,7 @@ RUNTIME_FUNCTION(Runtime_GetFromCache) {
     Handle<JSFunction> factory(JSFunction::cast(
           cache_handle->get(JSFunctionResultCache::kFactoryIndex)));
     // TODO(antonm): consider passing a receiver when constructing a cache.
-    Handle<Object> receiver(isolate->native_context()->global_object(),
-                            isolate);
+    Handle<JSObject> receiver(isolate->global_proxy());
     // This handle is nor shared, nor used later, so it's safe.
     Handle<Object> argv[] = { key_handle };
     ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
@@ -14836,8 +14852,7 @@ RUNTIME_FUNCTION(Runtime_ObserverObjectAndRecordHaveSameOrigin) {
   CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 1);
   CONVERT_ARG_HANDLE_CHECKED(JSObject, record, 2);
 
-  Handle<Context> observer_context(observer->context()->native_context(),
-      isolate);
+  Handle<Context> observer_context(observer->context()->native_context());
   Handle<Context> object_context(object->GetCreationContext());
   Handle<Context> record_context(record->GetCreationContext());
 

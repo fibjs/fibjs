@@ -12,7 +12,7 @@
 
 namespace v8
 {
-namespace internal
+namespace base
 {
 
 class OS
@@ -66,7 +66,7 @@ public:
 
     void now()
     {
-        d = v8::internal::OS::TimeCurrentMillis();
+        d = v8::base::OS::TimeCurrentMillis();
     }
 
     void create(int Y, int M, int D, int h, int m, int s, int ms);

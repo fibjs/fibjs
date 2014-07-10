@@ -133,7 +133,7 @@ void FullCodeGenerator::Generate() {
     __ b(ne, &ok);
 
     __ ldr(r2, GlobalObjectOperand());
-    __ ldr(r2, FieldMemOperand(r2, GlobalObject::kGlobalReceiverOffset));
+    __ ldr(r2, FieldMemOperand(r2, GlobalObject::kGlobalProxyOffset));
 
     __ str(r2, MemOperand(sp, receiver_offset));
 
@@ -346,13 +346,27 @@ void FullCodeGenerator::EmitProfilingCounterDecrement(int delta) {
 }
 
 
+static const int kProfileCounterResetSequenceLength = 5 * Assembler::kInstrSize;
+
+
 void FullCodeGenerator::EmitProfilingCounterReset() {
+  Assembler::BlockConstPoolScope block_const_pool(masm_);
+  PredictableCodeSizeScope predictable_code_size_scope(
+      masm_, kProfileCounterResetSequenceLength);
+  Label start;
+  __ bind(&start);
   int reset_value = FLAG_interrupt_budget;
   if (info_->is_debug()) {
     // Detect debug break requests as soon as possible.
     reset_value = FLAG_interrupt_budget >> 4;
   }
   __ mov(r2, Operand(profiling_counter_));
+  // The mov instruction above can be either 1, 2 or 3 instructions depending
+  // upon whether it is an extended constant pool - insert nop to compensate.
+  ASSERT(masm_->InstructionsGeneratedSince(&start) <= 3);
+  while (masm_->InstructionsGeneratedSince(&start) != 3) {
+    __ nop();
+  }
   __ mov(r3, Operand(Smi::FromInt(reset_value)));
   __ str(r3, FieldMemOperand(r2, Cell::kValueOffset));
 }
@@ -1694,9 +1708,9 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
         VisitForStackValue(key);
         VisitForStackValue(value);
         if (property->emit_store()) {
-          __ mov(r0, Operand(Smi::FromInt(NONE)));  // PropertyAttributes
+          __ mov(r0, Operand(Smi::FromInt(SLOPPY)));  // PropertyAttributes
           __ push(r0);
-          __ CallRuntime(Runtime::kAddProperty, 4);
+          __ CallRuntime(Runtime::kSetProperty, 4);
         } else {
           __ Drop(3);
         }
@@ -1857,9 +1871,9 @@ void FullCodeGenerator::VisitAssignment(Assignment* expr) {
       break;
     case NAMED_PROPERTY:
       if (expr->is_compound()) {
-        // We need the receiver both on the stack and in the accumulator.
-        VisitForAccumulatorValue(property->obj());
-        __ push(result_register());
+        // We need the receiver both on the stack and in the register.
+        VisitForStackValue(property->obj());
+        __ ldr(LoadIC::ReceiverRegister(), MemOperand(sp, 0));
       } else {
         VisitForStackValue(property->obj());
       }
@@ -1867,9 +1881,9 @@ void FullCodeGenerator::VisitAssignment(Assignment* expr) {
     case KEYED_PROPERTY:
       if (expr->is_compound()) {
         VisitForStackValue(property->obj());
-        VisitForAccumulatorValue(property->key());
-        __ ldr(r1, MemOperand(sp, 0));
-        __ push(r0);
+        VisitForStackValue(property->key());
+        __ ldr(LoadIC::ReceiverRegister(), MemOperand(sp, 1 * kPointerSize));
+        __ ldr(LoadIC::NameRegister(), MemOperand(sp, 0));
       } else {
         VisitForStackValue(property->obj());
         VisitForStackValue(property->key());
@@ -2008,6 +2022,9 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       Label l_catch, l_try, l_suspend, l_continuation, l_resume;
       Label l_next, l_call, l_loop;
+      Register load_receiver = LoadIC::ReceiverRegister();
+      Register load_name = LoadIC::NameRegister();
+
       // Initial send value is undefined.
       __ LoadRoot(r0, Heap::kUndefinedValueRootIndex);
       __ b(&l_next);
@@ -2015,9 +2032,9 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       // catch (e) { receiver = iter; f = 'throw'; arg = e; goto l_call; }
       __ bind(&l_catch);
       handler_table()->set(expr->index(), Smi::FromInt(l_catch.pos()));
-      __ LoadRoot(r2, Heap::kthrow_stringRootIndex);  // "throw"
-      __ ldr(r3, MemOperand(sp, 1 * kPointerSize));   // iter
-      __ Push(r2, r3, r0);                            // "throw", iter, except
+      __ LoadRoot(load_name, Heap::kthrow_stringRootIndex);  // "throw"
+      __ ldr(r3, MemOperand(sp, 1 * kPointerSize));          // iter
+      __ Push(load_name, r3, r0);                       // "throw", iter, except
       __ jmp(&l_call);
 
       // try { received = %yield result }
@@ -2051,19 +2068,15 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       // receiver = iter; f = 'next'; arg = received;
       __ bind(&l_next);
-      Register keyedload_receiver = KeyedLoadIC::ReceiverRegister();
-      Register keyedload_name = KeyedLoadIC::NameRegister();
-      ASSERT(keyedload_receiver.is(r1));
-      ASSERT(keyedload_name.is(r0));
 
-      __ LoadRoot(r2, Heap::knext_stringRootIndex);    // "next"
-      __ ldr(r3, MemOperand(sp, 1 * kPointerSize));    // iter
-      __ Push(r2, r3, r0);                             // "next", iter, received
+      __ LoadRoot(load_name, Heap::knext_stringRootIndex);  // "next"
+      __ ldr(r3, MemOperand(sp, 1 * kPointerSize));         // iter
+      __ Push(load_name, r3, r0);                      // "next", iter, received
 
       // result = receiver[f](arg);
       __ bind(&l_call);
-      __ ldr(keyedload_receiver, MemOperand(sp, kPointerSize));
-      __ ldr(keyedload_name, MemOperand(sp, 2 * kPointerSize));
+      __ ldr(load_receiver, MemOperand(sp, kPointerSize));
+      __ ldr(load_name, MemOperand(sp, 2 * kPointerSize));
       Handle<Code> ic = isolate()->builtins()->KeyedLoadIC_Initialize();
       CallIC(ic, TypeFeedbackId::None());
       __ mov(r1, r0);
@@ -2076,10 +2089,7 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       // if (!result.done) goto l_try;
       __ bind(&l_loop);
-      Register load_receiver = LoadIC::ReceiverRegister();
-      Register load_name = LoadIC::NameRegister();
-      ASSERT(load_receiver.is(r0));
-      ASSERT(load_name.is(r2));
+      __ Move(load_receiver, r0);
 
       __ push(load_receiver);                               // save result
       __ LoadRoot(load_name, Heap::kdone_stringRootIndex);  // "done"
@@ -2563,15 +2573,15 @@ void FullCodeGenerator::VisitProperty(Property* expr) {
 
   if (key->IsPropertyName()) {
     VisitForAccumulatorValue(expr->obj());
-    ASSERT(r0.is(LoadIC::ReceiverRegister()));
+    __ Move(LoadIC::ReceiverRegister(), r0);
     EmitNamedPropertyLoad(expr);
     PrepareForBailoutForId(expr->LoadId(), TOS_REG);
     context()->Plug(r0);
   } else {
     VisitForStackValue(expr->obj());
     VisitForAccumulatorValue(expr->key());
-    ASSERT(r0.is(KeyedLoadIC::NameRegister()));
-    __ pop(KeyedLoadIC::ReceiverRegister());
+    __ Move(LoadIC::NameRegister(), r0);
+    __ pop(LoadIC::ReceiverRegister());
     EmitKeyedPropertyLoad(expr);
     context()->Plug(r0);
   }
@@ -2626,13 +2636,13 @@ void FullCodeGenerator::EmitKeyedCallWithLoadIC(Call* expr,
                                                 Expression* key) {
   // Load the key.
   VisitForAccumulatorValue(key);
-  ASSERT(r0.is(KeyedLoadIC::NameRegister()));
 
   Expression* callee = expr->expression();
 
   // Load the function from the receiver.
   ASSERT(callee->IsProperty());
-  __ ldr(KeyedLoadIC::ReceiverRegister(), MemOperand(sp, 0));
+  __ ldr(LoadIC::ReceiverRegister(), MemOperand(sp, 0));
+  __ Move(LoadIC::NameRegister(), r0);
   EmitKeyedPropertyLoad(callee->AsProperty());
   PrepareForBailoutForId(callee->AsProperty()->LoadId(), TOS_REG);
 
@@ -4045,12 +4055,12 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
 
   if (expr->is_jsruntime()) {
     // Push the builtins object as the receiver.
-    __ ldr(r0, GlobalObjectOperand());
-    __ ldr(r0, FieldMemOperand(r0, GlobalObject::kBuiltinsOffset));
-    __ push(r0);
+    Register receiver = LoadIC::ReceiverRegister();
+    __ ldr(receiver, GlobalObjectOperand());
+    __ ldr(receiver, FieldMemOperand(receiver, GlobalObject::kBuiltinsOffset));
+    __ push(receiver);
 
     // Load the function from the receiver.
-    ASSERT(r0.is(LoadIC::ReceiverRegister()));
     __ mov(LoadIC::NameRegister(), Operand(expr->name()));
     CallLoadIC(NOT_CONTEXTUAL, expr->CallRuntimeFeedbackId());
 
@@ -4228,17 +4238,15 @@ void FullCodeGenerator::VisitCountOperation(CountOperation* expr) {
       __ push(ip);
     }
     if (assign_type == NAMED_PROPERTY) {
-      // Put the object both on the stack and in the accumulator.
-      VisitForAccumulatorValue(prop->obj());
-      ASSERT(r0.is(LoadIC::ReceiverRegister()));
-      __ push(LoadIC::ReceiverRegister());
+      // Put the object both on the stack and in the register.
+      VisitForStackValue(prop->obj());
+      __ ldr(LoadIC::ReceiverRegister(), MemOperand(sp, 0));
       EmitNamedPropertyLoad(prop);
     } else {
       VisitForStackValue(prop->obj());
-      VisitForAccumulatorValue(prop->key());
-      ASSERT(r0.is(KeyedLoadIC::NameRegister()));
-      __ ldr(KeyedLoadIC::ReceiverRegister(), MemOperand(sp, 0));
-      __ push(KeyedLoadIC::NameRegister());
+      VisitForStackValue(prop->key());
+      __ ldr(LoadIC::ReceiverRegister(), MemOperand(sp, 1 * kPointerSize));
+      __ ldr(LoadIC::NameRegister(), MemOperand(sp, 0));
       EmitKeyedPropertyLoad(prop);
     }
   }
@@ -4753,10 +4761,18 @@ static Address GetInterruptImmediateLoadAddress(Address pc) {
   Address load_address = pc - 2 * Assembler::kInstrSize;
   if (!FLAG_enable_ool_constant_pool) {
     ASSERT(Assembler::IsLdrPcImmediateOffset(Memory::int32_at(load_address)));
+  } else if (Assembler::IsLdrPpRegOffset(Memory::int32_at(load_address))) {
+    // This is an extended constant pool lookup.
+    load_address -= 2 * Assembler::kInstrSize;
+    ASSERT(Assembler::IsMovW(Memory::int32_at(load_address)));
+    ASSERT(Assembler::IsMovT(
+        Memory::int32_at(load_address + Assembler::kInstrSize)));
   } else if (Assembler::IsMovT(Memory::int32_at(load_address))) {
+    // This is a movw_movt immediate load.
     load_address -= Assembler::kInstrSize;
     ASSERT(Assembler::IsMovW(Memory::int32_at(load_address)));
   } else {
+    // This is a small constant pool lookup.
     ASSERT(Assembler::IsLdrPpImmediateOffset(Memory::int32_at(load_address)));
   }
   return load_address;
@@ -4776,14 +4792,19 @@ void BackEdgeTable::PatchAt(Code* unoptimized_code,
       //  <decrement profiling counter>
       //   bpl ok
       //   ; load interrupt stub address into ip - either of:
-      //   ldr ip, [pc/pp, <constant pool offset>]  |   movw ip, <immed low>
-      //                                            |   movt ip, <immed high>
+      //   ; <small cp load>      |  <extended cp load> |  <immediate load>
+      //   ldr ip, [pc/pp, #imm]  |   movw ip, #imm     |   movw ip, #imm
+      //                          |   movt ip, #imm>    |   movw ip, #imm
+      //                          |   ldr  ip, [pp, ip]
       //   blx ip
+      //  <reset profiling counter>
       //  ok-label
 
-      // Calculate branch offet to the ok-label - this is the difference between
-      // the branch address and |pc| (which points at <blx ip>) plus one instr.
-      int branch_offset = pc + Assembler::kInstrSize - branch_address;
+      // Calculate branch offset to the ok-label - this is the difference
+      // between the branch address and |pc| (which points at <blx ip>) plus
+      // kProfileCounterResetSequence instructions
+      int branch_offset = pc - Instruction::kPCReadOffset - branch_address +
+                          kProfileCounterResetSequenceLength;
       patcher.masm()->b(branch_offset, pl);
       break;
     }
@@ -4792,9 +4813,12 @@ void BackEdgeTable::PatchAt(Code* unoptimized_code,
       //  <decrement profiling counter>
       //   mov r0, r0 (NOP)
       //   ; load on-stack replacement address into ip - either of:
-      //   ldr ip, [pc/pp, <constant pool offset>]  |   movw ip, <immed low>
-      //                                            |   movt ip, <immed high>
+      //   ; <small cp load>      |  <extended cp load> |  <immediate load>
+      //   ldr ip, [pc/pp, #imm]  |   movw ip, #imm     |   movw ip, #imm
+      //                          |   movt ip, #imm>    |   movw ip, #imm
+      //                          |   ldr  ip, [pp, ip]
       //   blx ip
+      //  <reset profiling counter>
       //  ok-label
       patcher.masm()->nop();
       break;

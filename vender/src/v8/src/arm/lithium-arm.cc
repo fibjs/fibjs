@@ -319,8 +319,9 @@ void LAccessArgumentsAt::PrintDataTo(StringStream* stream) {
 
 void LStoreNamedField::PrintDataTo(StringStream* stream) {
   object()->PrintTo(stream);
-  hydrogen()->access().PrintTo(stream);
-  stream->Add(" <- ");
+  OStringStream os;
+  os << hydrogen()->access() << " <- ";
+  stream->Add(os.c_str());
   value()->PrintTo(stream);
 }
 
@@ -2201,8 +2202,8 @@ LInstruction* LChunkBuilder::DoLoadKeyed(HLoadKeyed* instr) {
 
 LInstruction* LChunkBuilder::DoLoadKeyedGeneric(HLoadKeyedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
-  LOperand* object = UseFixed(instr->object(), KeyedLoadIC::ReceiverRegister());
-  LOperand* key = UseFixed(instr->key(), KeyedLoadIC::NameRegister());
+  LOperand* object = UseFixed(instr->object(), LoadIC::ReceiverRegister());
+  LOperand* key = UseFixed(instr->key(), LoadIC::NameRegister());
 
   LInstruction* result =
       DefineFixed(new(zone()) LLoadKeyedGeneric(context, object, key), r0);

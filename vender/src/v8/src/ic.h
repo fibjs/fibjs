@@ -170,11 +170,8 @@ class IC {
 
   bool is_target_set() { return target_set_; }
 
-#ifdef DEBUG
   char TransitionMarkFromState(IC::State state);
-
   void TraceIC(const char* type, Handle<Object> name);
-#endif
 
   MaybeHandle<Object> TypeError(const char* type,
                                 Handle<Object> object,
@@ -354,8 +351,6 @@ class CallIC: public IC {
 
     bool CallAsMethod() const { return call_type_ == METHOD; }
 
-    void Print(StringStream* stream) const;
-
    private:
     class ArgcBits: public BitField<int, 0, Code::kArgumentsBits> {};
     class CallTypeBits: public BitField<CallType, Code::kArgumentsBits, 1> {};
@@ -390,6 +385,9 @@ class CallIC: public IC {
   static void Clear(Isolate* isolate, Address address, Code* target,
                     ConstantPoolArray* constant_pool);
 };
+
+
+OStream& operator<<(OStream& os, const CallIC::State& s);
 
 
 class LoadIC: public IC {
@@ -466,6 +464,7 @@ class LoadIC: public IC {
   }
 
   virtual Handle<Code> megamorphic_stub();
+  virtual Handle<Code> generic_stub() const;
 
   // Update the inline cache and the global stub cache based on the
   // lookup result.
@@ -505,9 +504,6 @@ class KeyedLoadIC: public LoadIC {
       : LoadIC(depth, isolate) {
     ASSERT(target()->is_keyed_load_stub());
   }
-
-  static const Register ReceiverRegister();
-  static const Register NameRegister();
 
   MUST_USE_RESULT MaybeHandle<Object> Load(Handle<Object> object,
                                            Handle<Object> key);
@@ -865,8 +861,6 @@ class BinaryOpIC: public IC {
     }
     Type* GetResultType(Zone* zone) const;
 
-    void Print(StringStream* stream) const;
-
     void Update(Handle<Object> left,
                 Handle<Object> right,
                 Handle<Object> result);
@@ -874,6 +868,8 @@ class BinaryOpIC: public IC {
     Isolate* isolate() const { return isolate_; }
 
    private:
+    friend OStream& operator<<(OStream& os, const BinaryOpIC::State& s);
+
     enum Kind { NONE, SMI, INT32, NUMBER, STRING, GENERIC };
 
     Kind UpdateKind(Handle<Object> object, Kind kind) const;
@@ -913,6 +909,9 @@ class BinaryOpIC: public IC {
                                  Handle<Object> left,
                                  Handle<Object> right) V8_WARN_UNUSED_RESULT;
 };
+
+
+OStream& operator<<(OStream& os, const BinaryOpIC::State& s);
 
 
 class CompareIC: public IC {

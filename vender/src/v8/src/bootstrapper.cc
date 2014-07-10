@@ -148,8 +148,8 @@ void Bootstrapper::TearDown() {
 class Genesis BASE_EMBEDDED {
  public:
   Genesis(Isolate* isolate,
-          Handle<Object> global_object,
-          v8::Handle<v8::ObjectTemplate> global_template,
+          MaybeHandle<JSGlobalProxy> maybe_global_proxy,
+          v8::Handle<v8::ObjectTemplate> global_proxy_template,
           v8::ExtensionConfiguration* extensions);
   ~Genesis() { }
 
@@ -183,20 +183,20 @@ class Genesis BASE_EMBEDDED {
   // we have to used the deserialized ones that are linked together with the
   // rest of the context snapshot.
   Handle<JSGlobalProxy> CreateNewGlobals(
-      v8::Handle<v8::ObjectTemplate> global_template,
-      Handle<Object> global_object,
-      Handle<GlobalObject>* global_proxy_out);
+      v8::Handle<v8::ObjectTemplate> global_proxy_template,
+      MaybeHandle<JSGlobalProxy> maybe_global_proxy,
+      Handle<GlobalObject>* global_object_out);
   // Hooks the given global proxy into the context.  If the context was created
   // by deserialization then this will unhook the global proxy that was
   // deserialized, leaving the GC to pick it up.
-  void HookUpGlobalProxy(Handle<GlobalObject> inner_global,
+  void HookUpGlobalProxy(Handle<GlobalObject> global_object,
                          Handle<JSGlobalProxy> global_proxy);
-  // Similarly, we want to use the inner global that has been created by the
-  // templates passed through the API.  The inner global from the snapshot is
-  // detached from the other objects in the snapshot.
-  void HookUpInnerGlobal(Handle<GlobalObject> inner_global);
+  // Similarly, we want to use the global that has been created by the templates
+  // passed through the API.  The global from the snapshot is detached from the
+  // other objects in the snapshot.
+  void HookUpGlobalObject(Handle<GlobalObject> global_object);
   // New context initialization.  Used for creating a context from scratch.
-  void InitializeGlobal(Handle<GlobalObject> inner_global,
+  void InitializeGlobal(Handle<GlobalObject> global_object,
                         Handle<JSFunction> empty_function);
   void InitializeExperimentalGlobal();
   // Installs the contents of the native .js files on the global objects.
@@ -253,7 +253,8 @@ class Genesis BASE_EMBEDDED {
   bool InstallJSBuiltins(Handle<JSBuiltinsObject> builtins);
   bool ConfigureApiObject(Handle<JSObject> object,
                           Handle<ObjectTemplateInfo> object_template);
-  bool ConfigureGlobalObjects(v8::Handle<v8::ObjectTemplate> global_template);
+  bool ConfigureGlobalObjects(
+      v8::Handle<v8::ObjectTemplate> global_proxy_template);
 
   // Migrates all properties from the 'from' object to the 'to'
   // object and overrides the prototype in 'to' with the one from
@@ -327,11 +328,12 @@ void Bootstrapper::Iterate(ObjectVisitor* v) {
 
 
 Handle<Context> Bootstrapper::CreateEnvironment(
-    Handle<Object> global_object,
-    v8::Handle<v8::ObjectTemplate> global_template,
+    MaybeHandle<JSGlobalProxy> maybe_global_proxy,
+    v8::Handle<v8::ObjectTemplate> global_proxy_template,
     v8::ExtensionConfiguration* extensions) {
   HandleScope scope(isolate_);
-  Genesis genesis(isolate_, global_object, global_template, extensions);
+  Genesis genesis(
+      isolate_, maybe_global_proxy, global_proxy_template, extensions);
   Handle<Context> env = genesis.result();
   if (env.is_null() || !InstallExtensions(env, extensions)) {
     return Handle<Context>();
@@ -379,8 +381,7 @@ static Handle<JSFunction> InstallFunction(Handle<JSObject> target,
   } else {
     attributes = DONT_ENUM;
   }
-  JSObject::SetOwnPropertyIgnoreAttributes(
-      target, internalized_name, function, attributes).Check();
+  JSObject::AddProperty(target, internalized_name, function, attributes);
   if (target->IsJSGlobalObject()) {
     function->shared()->set_instance_class_name(*internalized_name);
   }
@@ -730,73 +731,75 @@ void Genesis::CreateRoots() {
 
 
 Handle<JSGlobalProxy> Genesis::CreateNewGlobals(
-    v8::Handle<v8::ObjectTemplate> global_template,
-    Handle<Object> global_object,
-    Handle<GlobalObject>* inner_global_out) {
-  // The argument global_template aka data is an ObjectTemplateInfo.
+    v8::Handle<v8::ObjectTemplate> global_proxy_template,
+    MaybeHandle<JSGlobalProxy> maybe_global_proxy,
+    Handle<GlobalObject>* global_object_out) {
+  // The argument global_proxy_template aka data is an ObjectTemplateInfo.
   // It has a constructor pointer that points at global_constructor which is a
   // FunctionTemplateInfo.
-  // The global_constructor is used to create or reinitialize the global_proxy.
-  // The global_constructor also has a prototype_template pointer that points at
-  // js_global_template which is an ObjectTemplateInfo.
+  // The global_proxy_constructor is used to create or reinitialize the
+  // global_proxy. The global_proxy_constructor also has a prototype_template
+  // pointer that points at js_global_object_template which is an
+  // ObjectTemplateInfo.
   // That in turn has a constructor pointer that points at
-  // js_global_constructor which is a FunctionTemplateInfo.
-  // js_global_constructor is used to make js_global_function
-  // js_global_function is used to make the new inner_global.
+  // js_global_object_constructor which is a FunctionTemplateInfo.
+  // js_global_object_constructor is used to make js_global_object_function
+  // js_global_object_function is used to make the new global_object.
   //
   // --- G l o b a l ---
-  // Step 1: Create a fresh inner JSGlobalObject.
-  Handle<JSFunction> js_global_function;
-  Handle<ObjectTemplateInfo> js_global_template;
-  if (!global_template.IsEmpty()) {
-    // Get prototype template of the global_template.
+  // Step 1: Create a fresh JSGlobalObject.
+  Handle<JSFunction> js_global_object_function;
+  Handle<ObjectTemplateInfo> js_global_object_template;
+  if (!global_proxy_template.IsEmpty()) {
+    // Get prototype template of the global_proxy_template.
     Handle<ObjectTemplateInfo> data =
-        v8::Utils::OpenHandle(*global_template);
+        v8::Utils::OpenHandle(*global_proxy_template);
     Handle<FunctionTemplateInfo> global_constructor =
         Handle<FunctionTemplateInfo>(
             FunctionTemplateInfo::cast(data->constructor()));
     Handle<Object> proto_template(global_constructor->prototype_template(),
                                   isolate());
     if (!proto_template->IsUndefined()) {
-      js_global_template =
+      js_global_object_template =
           Handle<ObjectTemplateInfo>::cast(proto_template);
     }
   }
 
-  if (js_global_template.is_null()) {
+  if (js_global_object_template.is_null()) {
     Handle<String> name = Handle<String>(heap()->empty_string());
     Handle<Code> code = Handle<Code>(isolate()->builtins()->builtin(
         Builtins::kIllegal));
-    js_global_function = factory()->NewFunction(
-        name, code, JS_GLOBAL_OBJECT_TYPE, JSGlobalObject::kSize);
-    // Change the constructor property of the prototype of the
-    // hidden global function to refer to the Object function.
     Handle<JSObject> prototype =
-        Handle<JSObject>(
-            JSObject::cast(js_global_function->instance_prototype()));
-    JSObject::SetOwnPropertyIgnoreAttributes(
-        prototype, factory()->constructor_string(),
-        isolate()->object_function(), NONE).Check();
+        factory()->NewFunctionPrototype(isolate()->object_function());
+    js_global_object_function = factory()->NewFunction(
+        name, code, prototype, JS_GLOBAL_OBJECT_TYPE, JSGlobalObject::kSize);
+#ifdef DEBUG
+    LookupIterator it(prototype, factory()->constructor_string(),
+                      LookupIterator::CHECK_OWN_REAL);
+    Handle<Object> value = JSReceiver::GetProperty(&it).ToHandleChecked();
+    ASSERT(it.IsFound());
+    ASSERT_EQ(*isolate()->object_function(), *value);
+#endif
   } else {
-    Handle<FunctionTemplateInfo> js_global_constructor(
-        FunctionTemplateInfo::cast(js_global_template->constructor()));
-    js_global_function =
-        factory()->CreateApiFunction(js_global_constructor,
+    Handle<FunctionTemplateInfo> js_global_object_constructor(
+        FunctionTemplateInfo::cast(js_global_object_template->constructor()));
+    js_global_object_function =
+        factory()->CreateApiFunction(js_global_object_constructor,
                                      factory()->the_hole_value(),
-                                     factory()->InnerGlobalObject);
+                                     factory()->GlobalObjectType);
   }
 
-  js_global_function->initial_map()->set_is_hidden_prototype();
-  js_global_function->initial_map()->set_dictionary_map(true);
-  Handle<GlobalObject> inner_global =
-      factory()->NewGlobalObject(js_global_function);
-  if (inner_global_out != NULL) {
-    *inner_global_out = inner_global;
+  js_global_object_function->initial_map()->set_is_hidden_prototype();
+  js_global_object_function->initial_map()->set_dictionary_map(true);
+  Handle<GlobalObject> global_object =
+      factory()->NewGlobalObject(js_global_object_function);
+  if (global_object_out != NULL) {
+    *global_object_out = global_object;
   }
 
   // Step 2: create or re-initialize the global proxy object.
   Handle<JSFunction> global_proxy_function;
-  if (global_template.IsEmpty()) {
+  if (global_proxy_template.IsEmpty()) {
     Handle<String> name = Handle<String>(heap()->empty_string());
     Handle<Code> code = Handle<Code>(isolate()->builtins()->builtin(
         Builtins::kIllegal));
@@ -804,13 +807,13 @@ Handle<JSGlobalProxy> Genesis::CreateNewGlobals(
         name, code, JS_GLOBAL_PROXY_TYPE, JSGlobalProxy::kSize);
   } else {
     Handle<ObjectTemplateInfo> data =
-        v8::Utils::OpenHandle(*global_template);
+        v8::Utils::OpenHandle(*global_proxy_template);
     Handle<FunctionTemplateInfo> global_constructor(
             FunctionTemplateInfo::cast(data->constructor()));
     global_proxy_function =
         factory()->CreateApiFunction(global_constructor,
                                      factory()->the_hole_value(),
-                                     factory()->OuterGlobalObject);
+                                     factory()->GlobalProxyType);
   }
 
   Handle<String> global_name = factory()->InternalizeOneByteString(
@@ -822,9 +825,7 @@ Handle<JSGlobalProxy> Genesis::CreateNewGlobals(
   // Return the global proxy.
 
   Handle<JSGlobalProxy> global_proxy;
-  if (global_object.location() != NULL) {
-    ASSERT(global_object->IsJSGlobalProxy());
-    global_proxy = Handle<JSGlobalProxy>::cast(global_object);
+  if (maybe_global_proxy.ToHandle(&global_proxy)) {
     factory()->ReinitializeJSGlobalProxy(global_proxy, global_proxy_function);
   } else {
     global_proxy = Handle<JSGlobalProxy>::cast(
@@ -835,63 +836,61 @@ Handle<JSGlobalProxy> Genesis::CreateNewGlobals(
 }
 
 
-void Genesis::HookUpGlobalProxy(Handle<GlobalObject> inner_global,
+void Genesis::HookUpGlobalProxy(Handle<GlobalObject> global_object,
                                 Handle<JSGlobalProxy> global_proxy) {
   // Set the native context for the global object.
-  inner_global->set_native_context(*native_context());
-  inner_global->set_global_context(*native_context());
-  inner_global->set_global_receiver(*global_proxy);
+  global_object->set_native_context(*native_context());
+  global_object->set_global_context(*native_context());
+  global_object->set_global_proxy(*global_proxy);
   global_proxy->set_native_context(*native_context());
   native_context()->set_global_proxy(*global_proxy);
 }
 
 
-void Genesis::HookUpInnerGlobal(Handle<GlobalObject> inner_global) {
-  Handle<GlobalObject> inner_global_from_snapshot(
+void Genesis::HookUpGlobalObject(Handle<GlobalObject> global_object) {
+  Handle<GlobalObject> global_object_from_snapshot(
       GlobalObject::cast(native_context()->extension()));
   Handle<JSBuiltinsObject> builtins_global(native_context()->builtins());
-  native_context()->set_extension(*inner_global);
-  native_context()->set_global_object(*inner_global);
-  native_context()->set_security_token(*inner_global);
+  native_context()->set_extension(*global_object);
+  native_context()->set_global_object(*global_object);
+  native_context()->set_security_token(*global_object);
   static const PropertyAttributes attributes =
       static_cast<PropertyAttributes>(READ_ONLY | DONT_DELETE);
   Runtime::DefineObjectProperty(builtins_global,
                                 factory()->InternalizeOneByteString(
                                     STATIC_ASCII_VECTOR("global")),
-                                inner_global,
+                                global_object,
                                 attributes).Assert();
   // Set up the reference from the global object to the builtins object.
-  JSGlobalObject::cast(*inner_global)->set_builtins(*builtins_global);
-  TransferNamedProperties(inner_global_from_snapshot, inner_global);
-  TransferIndexedProperties(inner_global_from_snapshot, inner_global);
+  JSGlobalObject::cast(*global_object)->set_builtins(*builtins_global);
+  TransferNamedProperties(global_object_from_snapshot, global_object);
+  TransferIndexedProperties(global_object_from_snapshot, global_object);
 }
 
 
 // This is only called if we are not using snapshots.  The equivalent
-// work in the snapshot case is done in HookUpInnerGlobal.
-void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
+// work in the snapshot case is done in HookUpGlobalObject.
+void Genesis::InitializeGlobal(Handle<GlobalObject> global_object,
                                Handle<JSFunction> empty_function) {
   // --- N a t i v e   C o n t e x t ---
   // Use the empty function as closure (no scope info).
   native_context()->set_closure(*empty_function);
   native_context()->set_previous(NULL);
   // Set extension and global object.
-  native_context()->set_extension(*inner_global);
-  native_context()->set_global_object(*inner_global);
-  // Security setup: Set the security token of the global object to
-  // its the inner global. This makes the security check between two
-  // different contexts fail by default even in case of global
-  // object reinitialization.
-  native_context()->set_security_token(*inner_global);
+  native_context()->set_extension(*global_object);
+  native_context()->set_global_object(*global_object);
+  // Security setup: Set the security token of the native context to the global
+  // object. This makes the security check between two different contexts fail
+  // by default even in case of global object reinitialization.
+  native_context()->set_security_token(*global_object);
 
-  Isolate* isolate = inner_global->GetIsolate();
+  Isolate* isolate = global_object->GetIsolate();
   Factory* factory = isolate->factory();
   Heap* heap = isolate->heap();
 
   Handle<String> object_name = factory->Object_string();
-  JSObject::SetOwnPropertyIgnoreAttributes(
-      inner_global, object_name,
-      isolate->object_function(), DONT_ENUM).Check();
+  JSObject::AddProperty(
+      global_object, object_name, isolate->object_function(), DONT_ENUM);
 
   Handle<JSObject> global(native_context()->global_object());
 
@@ -1090,8 +1089,7 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
     cons->SetInstanceClassName(*name);
     Handle<JSObject> json_object = factory->NewJSObject(cons, TENURED);
     ASSERT(json_object->IsJSObject());
-    JSObject::SetOwnPropertyIgnoreAttributes(
-        global, name, json_object, DONT_ENUM).Check();
+    JSObject::AddProperty(global, name, json_object, DONT_ENUM);
     native_context()->set_json_object(*json_object);
   }
 
@@ -1136,80 +1134,57 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
   InstallFunction(global, "WeakSet", JS_WEAK_SET_TYPE, JSWeakSet::kSize,
                   isolate->initial_object_prototype(), Builtins::kIllegal);
 
-  {  // --- arguments_boilerplate_
+  {  // --- sloppy arguments map
     // Make sure we can recognize argument objects at runtime.
     // This is done by introducing an anonymous function with
     // class_name equals 'Arguments'.
     Handle<String> arguments_string = factory->InternalizeOneByteString(
         STATIC_ASCII_VECTOR("Arguments"));
     Handle<Code> code(isolate->builtins()->builtin(Builtins::kIllegal));
-
     Handle<JSFunction> function = factory->NewFunctionWithoutPrototype(
         arguments_string, code);
-    ASSERT(!function->has_initial_map());
     function->shared()->set_instance_class_name(*arguments_string);
-    function->shared()->set_expected_nof_properties(2);
-    function->set_prototype_or_initial_map(
-        native_context()->object_function()->prototype());
-    Handle<JSObject> result = factory->NewJSObject(function);
 
-    native_context()->set_sloppy_arguments_boilerplate(*result);
-    // Note: length must be added as the first property and
-    //       callee must be added as the second property.
-    JSObject::SetOwnPropertyIgnoreAttributes(
-        result, factory->length_string(),
-        factory->undefined_value(), DONT_ENUM,
-        Object::FORCE_TAGGED, FORCE_FIELD).Check();
-    JSObject::SetOwnPropertyIgnoreAttributes(
-        result, factory->callee_string(),
-        factory->undefined_value(), DONT_ENUM,
-        Object::FORCE_TAGGED, FORCE_FIELD).Check();
+    Handle<Map> map =
+        factory->NewMap(JS_OBJECT_TYPE, Heap::kSloppyArgumentsObjectSize);
+    // Create the descriptor array for the arguments object.
+    Map::EnsureDescriptorSlack(map, 2);
 
-#ifdef DEBUG
-    LookupResult lookup(isolate);
-    result->LookupOwn(factory->callee_string(), &lookup);
-    ASSERT(lookup.IsField());
-    ASSERT(lookup.GetFieldIndex().property_index() ==
-           Heap::kArgumentsCalleeIndex);
+    {  // length
+      FieldDescriptor d(factory->length_string(), Heap::kArgumentsLengthIndex,
+                        DONT_ENUM, Representation::Tagged());
+      map->AppendDescriptor(&d);
+    }
+    {  // callee
+      FieldDescriptor d(factory->callee_string(), Heap::kArgumentsCalleeIndex,
+                        DONT_ENUM, Representation::Tagged());
+      map->AppendDescriptor(&d);
+    }
 
-    result->LookupOwn(factory->length_string(), &lookup);
-    ASSERT(lookup.IsField());
-    ASSERT(lookup.GetFieldIndex().property_index() ==
-           Heap::kArgumentsLengthIndex);
+    map->set_function_with_prototype(true);
+    map->set_prototype(native_context()->object_function()->prototype());
+    map->set_pre_allocated_property_fields(2);
+    map->set_inobject_properties(2);
+    native_context()->set_sloppy_arguments_map(*map);
 
-    ASSERT(result->map()->inobject_properties() > Heap::kArgumentsCalleeIndex);
-    ASSERT(result->map()->inobject_properties() > Heap::kArgumentsLengthIndex);
+    ASSERT(!function->has_initial_map());
+    function->set_initial_map(*map);
+    map->set_constructor(*function);
 
-    // Check the state of the object.
-    ASSERT(result->HasFastProperties());
-    ASSERT(result->HasFastObjectElements());
-#endif
+    ASSERT(map->inobject_properties() > Heap::kArgumentsCalleeIndex);
+    ASSERT(map->inobject_properties() > Heap::kArgumentsLengthIndex);
+    ASSERT(!map->is_dictionary_map());
+    ASSERT(IsFastObjectElementsKind(map->elements_kind()));
   }
 
-  {  // --- aliased_arguments_boilerplate_
-    // Set up a well-formed parameter map to make assertions happy.
-    Handle<FixedArray> elements = factory->NewFixedArray(2);
-    elements->set_map(heap->sloppy_arguments_elements_map());
-    Handle<FixedArray> array;
-    array = factory->NewFixedArray(0);
-    elements->set(0, *array);
-    array = factory->NewFixedArray(0);
-    elements->set(1, *array);
-
-    Handle<Map> old_map(
-        native_context()->sloppy_arguments_boilerplate()->map());
-    Handle<Map> new_map = Map::Copy(old_map);
-    new_map->set_pre_allocated_property_fields(2);
-    Handle<JSObject> result = factory->NewJSObjectFromMap(new_map);
-    // Set elements kind after allocating the object because
-    // NewJSObjectFromMap assumes a fast elements map.
-    new_map->set_elements_kind(SLOPPY_ARGUMENTS_ELEMENTS);
-    result->set_elements(*elements);
-    ASSERT(result->HasSloppyArgumentsElements());
-    native_context()->set_aliased_arguments_boilerplate(*result);
+  {  // --- aliased arguments map
+    Handle<Map> map = Map::Copy(isolate->sloppy_arguments_map());
+    map->set_elements_kind(SLOPPY_ARGUMENTS_ELEMENTS);
+    ASSERT_EQ(2, map->pre_allocated_property_fields());
+    native_context()->set_aliased_arguments_map(*map);
   }
 
-  {  // --- strict mode arguments boilerplate
+  {  // --- strict mode arguments map
     const PropertyAttributes attributes =
       static_cast<PropertyAttributes>(DONT_ENUM | DONT_DELETE | READ_ONLY);
 
@@ -1232,20 +1207,16 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
     Map::EnsureDescriptorSlack(map, 3);
 
     {  // length
-      FieldDescriptor d(
-          factory->length_string(), 0, DONT_ENUM, Representation::Tagged());
+      FieldDescriptor d(factory->length_string(), Heap::kArgumentsLengthIndex,
+                        DONT_ENUM, Representation::Tagged());
       map->AppendDescriptor(&d);
     }
     {  // callee
-      CallbacksDescriptor d(factory->callee_string(),
-                            callee,
-                            attributes);
+      CallbacksDescriptor d(factory->callee_string(), callee, attributes);
       map->AppendDescriptor(&d);
     }
     {  // caller
-      CallbacksDescriptor d(factory->caller_string(),
-                            caller,
-                            attributes);
+      CallbacksDescriptor d(factory->caller_string(), caller, attributes);
       map->AppendDescriptor(&d);
     }
 
@@ -1256,30 +1227,13 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
 
     // Copy constructor from the sloppy arguments boilerplate.
     map->set_constructor(
-      native_context()->sloppy_arguments_boilerplate()->map()->constructor());
+        native_context()->sloppy_arguments_map()->constructor());
 
-    // Allocate the arguments boilerplate object.
-    Handle<JSObject> result = factory->NewJSObjectFromMap(map);
-    native_context()->set_strict_arguments_boilerplate(*result);
+    native_context()->set_strict_arguments_map(*map);
 
-    // Add length property only for strict mode boilerplate.
-    JSObject::SetOwnPropertyIgnoreAttributes(
-        result, factory->length_string(),
-        factory->undefined_value(), DONT_ENUM).Check();
-
-#ifdef DEBUG
-    LookupResult lookup(isolate);
-    result->LookupOwn(factory->length_string(), &lookup);
-    ASSERT(lookup.IsField());
-    ASSERT(lookup.GetFieldIndex().property_index() ==
-           Heap::kArgumentsLengthIndex);
-
-    ASSERT(result->map()->inobject_properties() > Heap::kArgumentsLengthIndex);
-
-    // Check the state of the object.
-    ASSERT(result->HasFastProperties());
-    ASSERT(result->HasFastObjectElements());
-#endif
+    ASSERT(map->inobject_properties() > Heap::kArgumentsLengthIndex);
+    ASSERT(!map->is_dictionary_map());
+    ASSERT(IsFastObjectElementsKind(map->elements_kind()));
   }
 
   {  // --- context extension
@@ -1723,8 +1677,7 @@ bool Genesis::InstallNatives() {
   builtins->set_builtins(*builtins);
   builtins->set_native_context(*native_context());
   builtins->set_global_context(*native_context());
-  builtins->set_global_receiver(*builtins);
-  builtins->set_global_receiver(native_context()->global_proxy());
+  builtins->set_global_proxy(native_context()->global_proxy());
 
 
   // Set up the 'global' properties of the builtins object. The
@@ -1736,12 +1689,10 @@ bool Genesis::InstallNatives() {
   Handle<String> global_string =
       factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("global"));
   Handle<Object> global_obj(native_context()->global_object(), isolate());
-  JSObject::SetOwnPropertyIgnoreAttributes(
-      builtins, global_string, global_obj, attributes).Check();
+  JSObject::AddProperty(builtins, global_string, global_obj, attributes);
   Handle<String> builtins_string =
       factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("builtins"));
-  JSObject::SetOwnPropertyIgnoreAttributes(
-      builtins, builtins_string, builtins, attributes).Check();
+  JSObject::AddProperty(builtins, builtins_string, builtins, attributes);
 
   // Set up the reference from the global object to the builtins object.
   JSGlobalObject::cast(native_context()->global_object())->
@@ -1769,7 +1720,7 @@ bool Genesis::InstallNatives() {
     native_context()->set_script_function(*script_fun);
 
     Handle<Map> script_map = Handle<Map>(script_fun->initial_map());
-    Map::EnsureDescriptorSlack(script_map, 13);
+    Map::EnsureDescriptorSlack(script_map, 14);
 
     PropertyAttributes attribs =
         static_cast<PropertyAttributes>(DONT_ENUM | DONT_DELETE | READ_ONLY);
@@ -1876,6 +1827,23 @@ bool Genesis::InstallNatives() {
       script_map->AppendDescriptor(&d);
     }
 
+    Handle<AccessorInfo> script_source_url =
+        Accessors::ScriptSourceUrlInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_source_url->name())),
+                            script_source_url, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+    Handle<AccessorInfo> script_source_mapping_url =
+        Accessors::ScriptSourceMappingUrlInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(
+          Handle<Name>(Name::cast(script_source_mapping_url->name())),
+          script_source_mapping_url, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
     // Allocate the empty script.
     Handle<Script> script = factory()->NewScript(factory()->empty_string());
     script->set_type(Smi::FromInt(Script::TYPE_NATIVE));
@@ -1939,7 +1907,7 @@ bool Genesis::InstallNatives() {
   { Handle<String> key = factory()->function_class_string();
     Handle<JSFunction> function =
         Handle<JSFunction>::cast(Object::GetProperty(
-            isolate()->global_object(), key).ToHandleChecked());
+            handle(native_context()->global_object()), key).ToHandleChecked());
     Handle<JSObject> proto =
         Handle<JSObject>(JSObject::cast(function->instance_prototype()));
 
@@ -2182,34 +2150,39 @@ bool Bootstrapper::InstallExtensions(Handle<Context> native_context,
 
 bool Genesis::InstallSpecialObjects(Handle<Context> native_context) {
   Isolate* isolate = native_context->GetIsolate();
+  // Don't install extensions into the snapshot.
+  if (isolate->serializer_enabled()) return true;
+
   Factory* factory = isolate->factory();
   HandleScope scope(isolate);
   Handle<JSGlobalObject> global(JSGlobalObject::cast(
       native_context->global_object()));
+
+  Handle<JSObject> Error = Handle<JSObject>::cast(
+      Object::GetProperty(isolate, global, "Error").ToHandleChecked());
+  Handle<String> name =
+      factory->InternalizeOneByteString(STATIC_ASCII_VECTOR("stackTraceLimit"));
+  Handle<Smi> stack_trace_limit(Smi::FromInt(FLAG_stack_trace_limit), isolate);
+  JSObject::AddProperty(Error, name, stack_trace_limit, NONE);
+
   // Expose the natives in global if a name for it is specified.
   if (FLAG_expose_natives_as != NULL && strlen(FLAG_expose_natives_as) != 0) {
     Handle<String> natives =
         factory->InternalizeUtf8String(FLAG_expose_natives_as);
-    RETURN_ON_EXCEPTION_VALUE(
-        isolate,
-        JSObject::SetOwnPropertyIgnoreAttributes(
-            global, natives, Handle<JSObject>(global->builtins()), DONT_ENUM),
-        false);
+    JSObject::AddProperty(global, natives, handle(global->builtins()),
+                          DONT_ENUM);
   }
 
-  Handle<Object> Error = Object::GetProperty(
-      isolate, global, "Error").ToHandleChecked();
-  if (Error->IsJSObject()) {
-    Handle<String> name = factory->InternalizeOneByteString(
-        STATIC_ASCII_VECTOR("stackTraceLimit"));
-    Handle<Smi> stack_trace_limit(
-        Smi::FromInt(FLAG_stack_trace_limit), isolate);
-    RETURN_ON_EXCEPTION_VALUE(
-        isolate,
-        JSObject::SetOwnPropertyIgnoreAttributes(
-            Handle<JSObject>::cast(Error), name, stack_trace_limit, NONE),
-        false);
-  }
+  // Expose the stack trace symbol to native JS.
+  RETURN_ON_EXCEPTION_VALUE(
+      isolate,
+      JSObject::SetOwnPropertyIgnoreAttributes(
+          handle(native_context->builtins(), isolate),
+          factory->InternalizeOneByteString(
+              STATIC_ASCII_VECTOR("stack_trace_symbol")),
+          factory->stack_trace_symbol(),
+          NONE),
+      false);
 
   // Expose the debug global object in global if a name for it is specified.
   if (FLAG_expose_debug_as != NULL && strlen(FLAG_expose_debug_as) != 0) {
@@ -2225,11 +2198,7 @@ bool Genesis::InstallSpecialObjects(Handle<Context> native_context) {
     Handle<String> debug_string =
         factory->InternalizeUtf8String(FLAG_expose_debug_as);
     Handle<Object> global_proxy(debug_context->global_proxy(), isolate);
-    RETURN_ON_EXCEPTION_VALUE(
-        isolate,
-        JSObject::SetOwnPropertyIgnoreAttributes(
-            global, debug_string, global_proxy, DONT_ENUM),
-        false);
+    JSObject::AddProperty(global, debug_string, global_proxy, DONT_ENUM);
   }
   return true;
 }
@@ -2361,8 +2330,8 @@ bool Genesis::InstallExtension(Isolate* isolate,
     // When an error is thrown during bootstrapping we automatically print
     // the line number at which this happened to the console in the isolate
     // error throwing functionality.
-    OS::PrintError("Error installing extension '%s'.\n",
-                   current->extension()->name());
+    base::OS::PrintError("Error installing extension '%s'.\n",
+                         current->extension()->name());
     isolate->clear_pending_exception();
   }
   extension_states->set_state(current, INSTALLED);
@@ -2392,26 +2361,26 @@ bool Genesis::ConfigureGlobalObjects(
     v8::Handle<v8::ObjectTemplate> global_proxy_template) {
   Handle<JSObject> global_proxy(
       JSObject::cast(native_context()->global_proxy()));
-  Handle<JSObject> inner_global(
+  Handle<JSObject> global_object(
       JSObject::cast(native_context()->global_object()));
 
   if (!global_proxy_template.IsEmpty()) {
     // Configure the global proxy object.
-    Handle<ObjectTemplateInfo> proxy_data =
+    Handle<ObjectTemplateInfo> global_proxy_data =
         v8::Utils::OpenHandle(*global_proxy_template);
-    if (!ConfigureApiObject(global_proxy, proxy_data)) return false;
+    if (!ConfigureApiObject(global_proxy, global_proxy_data)) return false;
 
-    // Configure the inner global object.
+    // Configure the global object.
     Handle<FunctionTemplateInfo> proxy_constructor(
-        FunctionTemplateInfo::cast(proxy_data->constructor()));
+        FunctionTemplateInfo::cast(global_proxy_data->constructor()));
     if (!proxy_constructor->prototype_template()->IsUndefined()) {
-      Handle<ObjectTemplateInfo> inner_data(
+      Handle<ObjectTemplateInfo> global_object_data(
           ObjectTemplateInfo::cast(proxy_constructor->prototype_template()));
-      if (!ConfigureApiObject(inner_global, inner_data)) return false;
+      if (!ConfigureApiObject(global_object, global_object_data)) return false;
     }
   }
 
-  SetObjectPrototype(global_proxy, inner_global);
+  SetObjectPrototype(global_proxy, global_object);
 
   native_context()->set_initial_array_prototype(
       JSArray::cast(native_context()->array_function()->prototype()));
@@ -2421,7 +2390,7 @@ bool Genesis::ConfigureGlobalObjects(
 
 
 bool Genesis::ConfigureApiObject(Handle<JSObject> object,
-    Handle<ObjectTemplateInfo> object_template) {
+                                 Handle<ObjectTemplateInfo> object_template) {
   ASSERT(!object_template.is_null());
   ASSERT(FunctionTemplateInfo::cast(object_template->constructor())
              ->IsTemplateFor(object->map()));;
@@ -2454,16 +2423,14 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
           ASSERT(!descs->GetDetails(i).representation().IsDouble());
           Handle<Object> value = Handle<Object>(from->RawFastPropertyAt(index),
                                                 isolate());
-          JSObject::SetOwnPropertyIgnoreAttributes(
-              to, key, value, details.attributes()).Check();
+          JSObject::AddProperty(to, key, value, details.attributes());
           break;
         }
         case CONSTANT: {
           HandleScope inner(isolate());
           Handle<Name> key = Handle<Name>(descs->GetKey(i));
           Handle<Object> constant(descs->GetConstant(i), isolate());
-          JSObject::SetOwnPropertyIgnoreAttributes(
-              to, key, constant, details.attributes()).Check();
+          JSObject::AddProperty(to, key, constant, details.attributes());
           break;
         }
         case CALLBACKS: {
@@ -2513,8 +2480,7 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
                                  isolate());
         }
         PropertyDetails details = properties->DetailsAt(i);
-        JSObject::SetOwnPropertyIgnoreAttributes(
-            to, key, value, details.attributes()).Check();
+        JSObject::AddProperty(to, key, value, details.attributes());
       }
     }
   }
@@ -2582,8 +2548,8 @@ class NoTrackDoubleFieldsForSerializerScope {
 
 
 Genesis::Genesis(Isolate* isolate,
-                 Handle<Object> global_object,
-                 v8::Handle<v8::ObjectTemplate> global_template,
+                 MaybeHandle<JSGlobalProxy> maybe_global_proxy,
+                 v8::Handle<v8::ObjectTemplate> global_proxy_template,
                  v8::ExtensionConfiguration* extensions)
     : isolate_(isolate),
       active_(isolate->bootstrapper()) {
@@ -2614,35 +2580,33 @@ Genesis::Genesis(Isolate* isolate,
     AddToWeakNativeContextList(*native_context());
     isolate->set_context(*native_context());
     isolate->counters()->contexts_created_by_snapshot()->Increment();
-    Handle<GlobalObject> inner_global;
-    Handle<JSGlobalProxy> global_proxy =
-        CreateNewGlobals(global_template,
-                         global_object,
-                         &inner_global);
+    Handle<GlobalObject> global_object;
+    Handle<JSGlobalProxy> global_proxy = CreateNewGlobals(
+        global_proxy_template, maybe_global_proxy, &global_object);
 
-    HookUpGlobalProxy(inner_global, global_proxy);
-    HookUpInnerGlobal(inner_global);
-    native_context()->builtins()->set_global_receiver(
+    HookUpGlobalProxy(global_object, global_proxy);
+    HookUpGlobalObject(global_object);
+    native_context()->builtins()->set_global_proxy(
         native_context()->global_proxy());
 
-    if (!ConfigureGlobalObjects(global_template)) return;
+    if (!ConfigureGlobalObjects(global_proxy_template)) return;
   } else {
     // We get here if there was no context snapshot.
     CreateRoots();
     Handle<JSFunction> empty_function = CreateEmptyFunction(isolate);
     CreateStrictModeFunctionMaps(empty_function);
-    Handle<GlobalObject> inner_global;
-    Handle<JSGlobalProxy> global_proxy =
-        CreateNewGlobals(global_template, global_object, &inner_global);
-    HookUpGlobalProxy(inner_global, global_proxy);
-    InitializeGlobal(inner_global, empty_function);
+    Handle<GlobalObject> global_object;
+    Handle<JSGlobalProxy> global_proxy = CreateNewGlobals(
+        global_proxy_template, maybe_global_proxy, &global_object);
+    HookUpGlobalProxy(global_object, global_proxy);
+    InitializeGlobal(global_object, empty_function);
     InstallJSFunctionResultCaches();
     InitializeNormalizedMapCaches();
     if (!InstallNatives()) return;
 
     MakeFunctionInstancePrototypeWritable();
 
-    if (!ConfigureGlobalObjects(global_template)) return;
+    if (!ConfigureGlobalObjects(global_proxy_template)) return;
     isolate->counters()->contexts_created_from_scratch()->Increment();
   }
 

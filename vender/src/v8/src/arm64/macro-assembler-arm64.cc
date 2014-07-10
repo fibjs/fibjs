@@ -64,16 +64,22 @@ void MacroAssembler::LogicalMacro(const Register& rd,
   } else if (operand.IsImmediate()) {
     int64_t immediate = operand.ImmediateValue();
     unsigned reg_size = rd.SizeInBits();
-    ASSERT(rd.Is64Bits() || is_uint32(immediate));
 
     // If the operation is NOT, invert the operation and immediate.
     if ((op & NOT) == NOT) {
       op = static_cast<LogicalOp>(op & ~NOT);
       immediate = ~immediate;
-      if (rd.Is32Bits()) {
-        immediate &= kWRegMask;
-      }
     }
+
+    // Ignore the top 32 bits of an immediate if we're moving to a W register.
+    if (rd.Is32Bits()) {
+      // Check that the top 32 bits are consistent.
+      ASSERT(((immediate >> kWRegSizeInBits) == 0) ||
+             ((immediate >> kWRegSizeInBits) == -1));
+      immediate &= kWRegMask;
+    }
+
+    ASSERT(rd.Is64Bits() || is_uint32(immediate));
 
     // Special cases for all set or all clear immediates.
     if (immediate == 0) {
@@ -118,15 +124,15 @@ void MacroAssembler::LogicalMacro(const Register& rd,
     } else {
       // Immediate can't be encoded: synthesize using move immediate.
       Register temp = temps.AcquireSameSizeAs(rn);
-      Mov(temp, immediate);
+      Operand imm_operand = MoveImmediateForShiftedOp(temp, immediate);
       if (rd.Is(csp)) {
         // If rd is the stack pointer we cannot use it as the destination
         // register so we use the temp register as an intermediate again.
-        Logical(temp, rn, temp, op);
+        Logical(temp, rn, imm_operand, op);
         Mov(csp, temp);
         AssertStackConsistency();
       } else {
-        Logical(rd, rn, temp, op);
+        Logical(rd, rn, imm_operand, op);
       }
     }
 
@@ -172,20 +178,11 @@ void MacroAssembler::Mov(const Register& rd, uint64_t imm) {
   // applying move-keep operations to move-zero and move-inverted initial
   // values.
 
-  unsigned reg_size = rd.SizeInBits();
-  unsigned n, imm_s, imm_r;
-  if (IsImmMovz(imm, reg_size) && !rd.IsSP()) {
-    // Immediate can be represented in a move zero instruction. Movz can't
-    // write to the stack pointer.
-    movz(rd, imm);
-  } else if (IsImmMovn(imm, reg_size) && !rd.IsSP()) {
-    // Immediate can be represented in a move inverted instruction. Movn can't
-    // write to the stack pointer.
-    movn(rd, rd.Is64Bits() ? ~imm : (~imm & kWRegMask));
-  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
-    // Immediate can be represented in a logical orr instruction.
-    LogicalImmediate(rd, AppropriateZeroRegFor(rd), n, imm_s, imm_r, ORR);
-  } else {
+  // Try to move the immediate in one instruction, and if that fails, switch to
+  // using multiple instructions.
+  if (!TryOneInstrMoveImmediate(rd, imm)) {
+    unsigned reg_size = rd.SizeInBits();
+
     // Generic immediate case. Imm will be represented by
     //   [imm3, imm2, imm1, imm0], where each imm is 16 bits.
     // A move-zero or move-inverted is generated for the first non-zero or
@@ -413,6 +410,66 @@ void MacroAssembler::Csel(const Register& rd,
 }
 
 
+bool MacroAssembler::TryOneInstrMoveImmediate(const Register& dst,
+                                              int64_t imm) {
+  unsigned n, imm_s, imm_r;
+  int reg_size = dst.SizeInBits();
+  if (IsImmMovz(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move zero instruction. Movz can't write
+    // to the stack pointer.
+    movz(dst, imm);
+    return true;
+  } else if (IsImmMovn(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move not instruction. Movn can't write
+    // to the stack pointer.
+    movn(dst, dst.Is64Bits() ? ~imm : (~imm & kWRegMask));
+    return true;
+  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
+    // Immediate can be represented in a logical orr instruction.
+    LogicalImmediate(dst, AppropriateZeroRegFor(dst), n, imm_s, imm_r, ORR);
+    return true;
+  }
+  return false;
+}
+
+
+Operand MacroAssembler::MoveImmediateForShiftedOp(const Register& dst,
+                                                  int64_t imm) {
+  int reg_size = dst.SizeInBits();
+
+  // Encode the immediate in a single move instruction, if possible.
+  if (TryOneInstrMoveImmediate(dst, imm)) {
+    // The move was successful; nothing to do here.
+  } else {
+    // Pre-shift the immediate to the least-significant bits of the register.
+    int shift_low = CountTrailingZeros(imm, reg_size);
+    int64_t imm_low = imm >> shift_low;
+
+    // Pre-shift the immediate to the most-significant bits of the register. We
+    // insert set bits in the least-significant bits, as this creates a
+    // different immediate that may be encodable using movn or orr-immediate.
+    // If this new immediate is encodable, the set bits will be eliminated by
+    // the post shift on the following instruction.
+    int shift_high = CountLeadingZeros(imm, reg_size);
+    int64_t imm_high = (imm << shift_high) | ((1 << shift_high) - 1);
+
+    if (TryOneInstrMoveImmediate(dst, imm_low)) {
+      // The new immediate has been moved into the destination's low bits:
+      // return a new leftward-shifting operand.
+      return Operand(dst, LSL, shift_low);
+    } else if (TryOneInstrMoveImmediate(dst, imm_high)) {
+      // The new immediate has been moved into the destination's high bits:
+      // return a new rightward-shifting operand.
+      return Operand(dst, LSR, shift_high);
+    } else {
+      // Use the generic move operation to set up the immediate.
+      Mov(dst, imm);
+    }
+  }
+  return Operand(dst);
+}
+
+
 void MacroAssembler::AddSubMacro(const Register& rd,
                                  const Register& rn,
                                  const Operand& operand,
@@ -435,8 +492,14 @@ void MacroAssembler::AddSubMacro(const Register& rd,
              (operand.IsShiftedRegister() && (operand.shift() == ROR))) {
     UseScratchRegisterScope temps(this);
     Register temp = temps.AcquireSameSizeAs(rn);
-    Mov(temp, operand);
-    AddSub(rd, rn, temp, S, op);
+    if (operand.IsImmediate()) {
+      Operand imm_operand =
+          MoveImmediateForShiftedOp(temp, operand.ImmediateValue());
+      AddSub(rd, rn, imm_operand, S, op);
+    } else {
+      Mov(temp, operand);
+      AddSub(rd, rn, temp, S, op);
+    }
   } else {
     AddSub(rd, rn, operand, S, op);
   }
@@ -607,10 +670,6 @@ void MacroAssembler::Adr(const Register& rd, Label* label, AdrHint hint) {
   }
 
   ASSERT(hint == kAdrFar);
-  UseScratchRegisterScope temps(this);
-  Register scratch = temps.AcquireX();
-  ASSERT(!AreAliased(rd, scratch));
-
   if (label->is_bound()) {
     int label_offset = label->pos() - pc_offset();
     if (Instruction::IsValidPCRelOffset(label_offset)) {
@@ -622,6 +681,9 @@ void MacroAssembler::Adr(const Register& rd, Label* label, AdrHint hint) {
       Add(rd, rd, label_offset - min_adr_offset);
     }
   } else {
+    UseScratchRegisterScope temps(this);
+    Register scratch = temps.AcquireX();
+
     InstructionAccurateScope scope(
         this, PatchingAssembler::kAdrFarPatchableNInstrs);
     adr(rd, label);
@@ -629,7 +691,6 @@ void MacroAssembler::Adr(const Register& rd, Label* label, AdrHint hint) {
       nop(ADR_FAR_NOP);
     }
     movz(scratch, 0);
-    add(rd, rd, scratch);
   }
 }
 
@@ -809,6 +870,17 @@ void MacroAssembler::Pop(const CPURegister& dst0, const CPURegister& dst1,
 
   PopHelper(count, size, dst0, dst1, dst2, dst3);
   PopPostamble(count, size);
+}
+
+
+void MacroAssembler::Push(const Register& src0, const FPRegister& src1) {
+  int size = src0.SizeInBytes() + src1.SizeInBytes();
+
+  PushPreamble(size);
+  // Reserve room for src0 and push src1.
+  str(src1, MemOperand(StackPointer(), -size, PreIndex));
+  // Fill the gap with src0.
+  str(src0, MemOperand(StackPointer(), src1.SizeInBytes()));
 }
 
 
@@ -1898,7 +1970,7 @@ int MacroAssembler::ActivationFrameAlignment() {
   // environment.
   // Note: This will break if we ever start generating snapshots on one ARM
   // platform for another ARM platform with a different alignment.
-  return OS::ActivationFrameAlignment();
+  return base::OS::ActivationFrameAlignment();
 #else  // V8_HOST_ARCH_ARM64
   // If we are using the simulator then we should always align to the expected
   // alignment. As the simulator is used to generate snapshots we do not know
@@ -2915,8 +2987,7 @@ void MacroAssembler::TruncateDoubleToI(Register result,
   TryConvertDoubleToInt64(result, double_input, &done);
 
   // If we fell through then inline version didn't succeed - call stub instead.
-  Push(lr);
-  Push(double_input);  // Put input on stack.
+  Push(lr, double_input);
 
   DoubleToIStub stub(isolate(),
                      jssp,
@@ -3560,7 +3631,8 @@ void MacroAssembler::AllocateHeapNumber(Register result,
                                         Register scratch1,
                                         Register scratch2,
                                         CPURegister value,
-                                        CPURegister heap_number_map) {
+                                        CPURegister heap_number_map,
+                                        MutableMode mode) {
   ASSERT(!value.IsValid() || value.Is64Bits());
   UseScratchRegisterScope temps(this);
 
@@ -3568,6 +3640,10 @@ void MacroAssembler::AllocateHeapNumber(Register result,
   // object.
   Allocate(HeapNumber::kSize, result, scratch1, scratch2, gc_required,
            NO_ALLOCATION_FLAGS);
+
+  Heap::RootListIndex map_index = mode == MUTABLE
+      ? Heap::kMutableHeapNumberMapRootIndex
+      : Heap::kHeapNumberMapRootIndex;
 
   // Prepare the heap number map.
   if (!heap_number_map.IsValid()) {
@@ -3578,7 +3654,7 @@ void MacroAssembler::AllocateHeapNumber(Register result,
     } else {
       heap_number_map = scratch1;
     }
-    LoadRoot(heap_number_map, Heap::kHeapNumberMapRootIndex);
+    LoadRoot(heap_number_map, map_index);
   }
   if (emit_debug_code()) {
     Register map;
@@ -3588,7 +3664,7 @@ void MacroAssembler::AllocateHeapNumber(Register result,
     } else {
       map = Register(heap_number_map);
     }
-    AssertRegisterIsRoot(map, Heap::kHeapNumberMapRootIndex);
+    AssertRegisterIsRoot(map, map_index);
   }
 
   // Store the heap number map and the value in the allocated object.

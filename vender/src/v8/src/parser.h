@@ -72,7 +72,7 @@ class ScriptData {
   // The created ScriptData won't take ownership of the data. If the alignment
   // is not correct, this will copy the data (and the created ScriptData will
   // take ownership of the copy).
-  static ScriptData* New(const char* data, int length);
+  static ScriptData* New(const char* data, int length, bool owns_store = false);
 
   virtual ~ScriptData();
   virtual int Length();
@@ -796,7 +796,11 @@ class Parser : public ParserBase<ParserTraits> {
       const AstRawString* function_name, int pos, Variable* fvar,
       Token::Value fvar_init_op, bool is_generator, bool* ok);
 
+  void HandleSourceURLComments();
+
   void ThrowPendingError();
+
+  void InternalizeUseCounts();
 
   Isolate* isolate_;
 
@@ -818,6 +822,8 @@ class Parser : public ParserBase<ParserTraits> {
   const AstRawString* pending_error_arg_;
   const char* pending_error_char_arg_;
   bool pending_error_is_reference_error_;
+
+  int use_counts_[v8::Isolate::kUseCounterFeatureCount];
 };
 
 

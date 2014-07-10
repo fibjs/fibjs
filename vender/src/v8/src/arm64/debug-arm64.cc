@@ -171,7 +171,8 @@ static void Generate_DebugBreakCallHelper(MacroAssembler* masm,
       //  jssp[8]: 0x00000000 (SMI tag & padding)
       //  jssp[4]: reg[31:0]
       //  jssp[0]: 0x00000000 (SMI tag & padding)
-      STATIC_ASSERT((kSmiTag == 0) && (kSmiShift == 32));
+      STATIC_ASSERT(kSmiTag == 0);
+      STATIC_ASSERT(static_cast<unsigned>(kSmiShift) == kWRegSizeInBits);
     }
 
     if (object_regs != 0) {
@@ -257,9 +258,7 @@ void DebugCodegen::GenerateStoreICDebugBreak(MacroAssembler* masm) {
 
 void DebugCodegen::GenerateKeyedLoadICDebugBreak(MacroAssembler* masm) {
   // Calling convention for keyed IC load (from ic-arm.cc).
-  Register receiver = KeyedLoadIC::ReceiverRegister();
-  Register name = KeyedLoadIC::NameRegister();
-  Generate_DebugBreakCallHelper(masm, receiver.Bit() | name.Bit(), 0, x10);
+  GenerateLoadICDebugBreak(masm);
 }
 
 

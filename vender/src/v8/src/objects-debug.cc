@@ -54,6 +54,7 @@ void HeapObject::HeapObjectVerify() {
       Map::cast(this)->MapVerify();
       break;
     case HEAP_NUMBER_TYPE:
+    case MUTABLE_HEAP_NUMBER_TYPE:
       HeapNumber::cast(this)->HeapNumberVerify();
       break;
     case FIXED_ARRAY_TYPE:
@@ -205,7 +206,7 @@ void Symbol::SymbolVerify() {
 
 
 void HeapNumber::HeapNumberVerify() {
-  CHECK(IsHeapNumber());
+  CHECK(IsHeapNumber() || IsMutableHeapNumber());
 }
 
 
@@ -263,7 +264,7 @@ void JSObject::JSObjectVerify() {
         Representation r = descriptors->GetDetails(i).representation();
         FieldIndex index = FieldIndex::ForDescriptor(map(), i);
         Object* value = RawFastPropertyAt(index);
-        if (r.IsDouble()) ASSERT(value->IsHeapNumber());
+        if (r.IsDouble()) ASSERT(value->IsMutableHeapNumber());
         if (value->IsUninitialized()) continue;
         if (r.IsSmi()) ASSERT(value->IsSmi());
         if (r.IsHeapObject()) ASSERT(value->IsHeapObject());
@@ -1139,13 +1140,15 @@ bool DescriptorArray::IsSortedNoDuplicates(int valid_entries) {
   for (int i = 0; i < number_of_descriptors(); i++) {
     Name* key = GetSortedKey(i);
     if (key == current_key) {
-      PrintDescriptors();
+      OFStream os(stdout);
+      PrintDescriptors(os);
       return false;
     }
     current_key = key;
     uint32_t hash = GetSortedKey(i)->Hash();
     if (hash < current) {
-      PrintDescriptors();
+      OFStream os(stdout);
+      PrintDescriptors(os);
       return false;
     }
     current = hash;
@@ -1161,13 +1164,15 @@ bool TransitionArray::IsSortedNoDuplicates(int valid_entries) {
   for (int i = 0; i < number_of_transitions(); i++) {
     Name* key = GetSortedKey(i);
     if (key == current_key) {
-      PrintTransitions();
+      OFStream os(stdout);
+      PrintTransitions(os);
       return false;
     }
     current_key = key;
     uint32_t hash = GetSortedKey(i)->Hash();
     if (hash < current) {
-      PrintTransitions();
+      OFStream os(stdout);
+      PrintTransitions(os);
       return false;
     }
     current = hash;

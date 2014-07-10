@@ -5,44 +5,61 @@ V8_PATH=~/Downloads/source/js/v8
 cp $V8_PATH/include/*.h include/
 cp $V8_PATH/include/*.h ../../include/v8/
 
+rm src/*.h
+rm src/*.cc
 cp $V8_PATH/src/*.h src/
 cp $V8_PATH/src/*.cc src/
 
+rm src/base/*.h
+rm src/base/*.cc
 cp $V8_PATH/src/base/*.h src/base/
 cp $V8_PATH/src/base/*.cc src/base/
+
+cp $V8_PATH/src/base/platform/elapsed-timer.h src/base/platform/
+cp $V8_PATH/src/base/platform/time* src/base/platform/
+cp $V8_PATH/src/base/platform/platform* src/base/platform/
+
+rm src/base/utils/*.h
+rm src/base/utils/*.cc
+cp $V8_PATH/src/base/utils/*.h src/base/utils/
+cp $V8_PATH/src/base/utils/*.cc src/base/utils/
 
 cp $V8_PATH/out/ia32.release/obj/gen/libraries.cc src/
 cp $V8_PATH/out/ia32.release/obj/gen/trig-table.cc src/
 cp $V8_PATH/out/ia32.release/obj/gen/experimental-libraries.cc src/
 
+rm src/arm/*.h
+rm src/arm/*.cc
 cp $V8_PATH/src/arm/*.h src/arm/
 cp $V8_PATH/src/arm/*.cc src/arm/
 
+rm src/arm64/*.h
+rm src/arm64/*.cc
 cp $V8_PATH/src/arm64/*.h src/arm64/
 cp $V8_PATH/src/arm64/*.cc src/arm64/
 
+rm src/ia32/*.h
+rm src/ia32/*.cc
 cp $V8_PATH/src/ia32/*.h src/ia32/
 cp $V8_PATH/src/ia32/*.cc src/ia32/
 
+rm src/x64/*.h
+rm src/x64/*.cc
 cp $V8_PATH/src/x64/*.h src/x64/
 cp $V8_PATH/src/x64/*.cc src/x64/
 
+rm src/extensions/*.h
+rm src/extensions/*.cc
 cp $V8_PATH/src/extensions/*.h src/extensions/
 cp $V8_PATH/src/extensions/*.cc src/extensions/
 
+rm src/libplatform/*.h
+rm src/libplatform/*.cc
 cp $V8_PATH/src/libplatform/*.h src/libplatform/
 cp $V8_PATH/src/libplatform/*.cc src/libplatform/
-
-cp $V8_PATH/src/libplatform/*.h src/libplatform/
-cp $V8_PATH/src/libplatform/*.cc src/libplatform/
-
-cp $V8_PATH/src/platform/elapsed-timer.h src/platform/
-cp $V8_PATH/src/platform/time* src/platform/
 
 cp $V8_PATH/src/third_party/valgrind/valgrind.h src/third_party/valgrind/
-
-cp $V8_PATH/src/utils/*.h src/utils/
-cp $V8_PATH/src/utils/*.cc src/utils/
+cp $V8_PATH/src/third_party/kernel/tools/perf/util/jitdump.h src/third_party/kernel/tools/perf/util/
 
 rm src/d8*
 rm src/i18n.*
@@ -50,6 +67,6 @@ rm src/natives-external.cc
 rm src/snapshot-external.cc
 rm src/mksnapshot.cc
 rm src/v8dll-main.cc
-rm src/platform-cygwin.cc
+rm src/base/platform/platform-cygwin.cc
 
 patch -p0 --no-backup-if-mismatch < v8.patch

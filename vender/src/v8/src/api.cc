@@ -13,6 +13,9 @@
 #include "include/v8-profiler.h"
 #include "include/v8-testing.h"
 #include "src/assert-scope.h"
+#include "src/base/platform/platform.h"
+#include "src/base/platform/time.h"
+#include "src/base/utils/random-number-generator.h"
 #include "src/bootstrapper.h"
 #include "src/code-stubs.h"
 #include "src/compiler.h"
@@ -30,8 +33,6 @@
 #include "src/messages.h"
 #include "src/natives.h"
 #include "src/parser.h"
-#include "src/platform.h"
-#include "src/platform/time.h"
 #include "src/profile-generator-inl.h"
 #include "src/property.h"
 #include "src/property-details.h"
@@ -41,7 +42,6 @@
 #include "src/simulator.h"
 #include "src/snapshot.h"
 #include "src/unicode-inl.h"
-#include "src/utils/random-number-generator.h"
 #include "src/v8threads.h"
 #include "src/version.h"
 #include "src/vm-state-inl.h"
@@ -174,9 +174,9 @@ void Utils::ReportApiFailure(const char* location, const char* message) {
   i::Isolate* isolate = i::Isolate::Current();
   FatalErrorCallback callback = isolate->exception_behavior();
   if (callback == NULL) {
-    i::OS::PrintError("\n#\n# Fatal error in %s\n# %s\n#\n\n",
-                      location, message);
-    i::OS::Abort();
+    base::OS::PrintError("\n#\n# Fatal error in %s\n# %s\n#\n\n", location,
+                         message);
+    base::OS::Abort();
   } else {
     callback(location, message);
   }
@@ -370,14 +370,14 @@ void V8::SetSnapshotDataBlob(StartupData* snapshot_blob) {
 
 
 void V8::SetFatalErrorHandler(FatalErrorCallback that) {
-  i::Isolate* isolate = i::Isolate::UncheckedCurrent();
+  i::Isolate* isolate = i::Isolate::Current();
   isolate->set_exception_behavior(that);
 }
 
 
 void V8::SetAllowCodeGenerationFromStringsCallback(
     AllowCodeGenerationFromStringsCallback callback) {
-  i::Isolate* isolate = i::Isolate::UncheckedCurrent();
+  i::Isolate* isolate = i::Isolate::Current();
   isolate->set_allow_code_gen_callback(callback);
 }
 
@@ -1633,6 +1633,38 @@ Handle<Value> UnboundScript::GetScriptName() {
 }
 
 
+Handle<Value> UnboundScript::GetSourceURL() {
+  i::Handle<i::SharedFunctionInfo> obj =
+      i::Handle<i::SharedFunctionInfo>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
+  ON_BAILOUT(isolate, "v8::UnboundScript::GetSourceURL()",
+             return Handle<String>());
+  LOG_API(isolate, "UnboundScript::GetSourceURL");
+  if (obj->script()->IsScript()) {
+    i::Object* url = i::Script::cast(obj->script())->source_url();
+    return Utils::ToLocal(i::Handle<i::Object>(url, isolate));
+  } else {
+    return Handle<String>();
+  }
+}
+
+
+Handle<Value> UnboundScript::GetSourceMappingURL() {
+  i::Handle<i::SharedFunctionInfo> obj =
+      i::Handle<i::SharedFunctionInfo>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
+  ON_BAILOUT(isolate, "v8::UnboundScript::GetSourceMappingURL()",
+             return Handle<String>());
+  LOG_API(isolate, "UnboundScript::GetSourceMappingURL");
+  if (obj->script()->IsScript()) {
+    i::Object* url = i::Script::cast(obj->script())->source_mapping_url();
+    return Utils::ToLocal(i::Handle<i::Object>(url, isolate));
+  } else {
+    return Handle<String>();
+  }
+}
+
+
 Local<Value> Script::Run() {
   i::Handle<i::Object> obj = Utils::OpenHandle(this, true);
   // If execution is terminating, Compile(..)->Run() requires this
@@ -1647,8 +1679,7 @@ Local<Value> Script::Run() {
   i::HandleScope scope(isolate);
   i::Handle<i::JSFunction> fun = i::Handle<i::JSFunction>::cast(obj);
   EXCEPTION_PREAMBLE(isolate);
-  i::Handle<i::Object> receiver(
-      isolate->context()->global_proxy(), isolate);
+  i::Handle<i::Object> receiver(isolate->global_proxy(), isolate);
   i::Handle<i::Object> result;
   has_pending_exception = !i::Execution::Call(
       isolate, fun, receiver, 0, NULL).ToHandle(&result);
@@ -1817,19 +1848,10 @@ v8::TryCatch::TryCatch()
       rethrow_(false),
       has_terminated_(false) {
   Reset();
-  js_stack_comparable_address_ = this;
-#ifdef V8_USE_ADDRESS_SANITIZER
-  void* asan_fake_stack_handle = __asan_get_current_fake_stack();
-  if (asan_fake_stack_handle != NULL) {
-    js_stack_comparable_address_ = __asan_addr_is_in_fake_stack(
-        asan_fake_stack_handle, js_stack_comparable_address_, NULL, NULL);
-    CHECK(js_stack_comparable_address_ != NULL);
-  }
-#endif
   // Special handling for simulators which have a separate JS stack.
-  js_stack_comparable_address_ = reinterpret_cast<void*>(
-      v8::internal::SimulatorStack::RegisterCTryCatch(
-          reinterpret_cast<uintptr_t>(js_stack_comparable_address_)));
+  js_stack_comparable_address_ =
+      reinterpret_cast<void*>(v8::internal::SimulatorStack::RegisterCTryCatch(
+          GetCurrentStackPosition()));
   isolate_->RegisterTryCatchHandler(this);
 }
 
@@ -1976,7 +1998,9 @@ ScriptOrigin Message::GetScriptOrigin() const {
   v8::ScriptOrigin origin(
       Utils::ToLocal(scriptName),
       v8::Integer::New(v8_isolate, script->line_offset()->value()),
-      v8::Integer::New(v8_isolate, script->column_offset()->value()));
+      v8::Integer::New(v8_isolate, script->column_offset()->value()),
+      Handle<Boolean>(),
+      v8::Integer::New(v8_isolate, script->id()->value()));
   return origin;
 }
 
@@ -2823,7 +2847,7 @@ double Value::NumberValue() const {
     EXCEPTION_PREAMBLE(isolate);
     has_pending_exception = !i::Execution::ToNumber(
         isolate, obj).ToHandle(&num);
-    EXCEPTION_BAILOUT_CHECK(isolate, i::OS::nan_value());
+    EXCEPTION_BAILOUT_CHECK(isolate, base::OS::nan_value());
   }
   return num->Number();
 }
@@ -3171,6 +3195,26 @@ PropertyAttribute v8::Object::GetPropertyAttributes(v8::Handle<Value> key) {
       i::JSReceiver::GetPropertyAttributes(self, key_name);
   if (result == ABSENT) return static_cast<PropertyAttribute>(NONE);
   return static_cast<PropertyAttribute>(result);
+}
+
+
+Local<Value> v8::Object::GetOwnPropertyDescriptor(Local<String> key) {
+  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  ON_BAILOUT(isolate, "v8::Object::GetOwnPropertyDescriptor()",
+             return Local<Value>());
+  ENTER_V8(isolate);
+  i::Handle<i::JSObject> obj = Utils::OpenHandle(this);
+  i::Handle<i::Name> key_name = Utils::OpenHandle(*key);
+  i::Handle<i::Object> args[] = { obj, key_name };
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> result;
+  has_pending_exception = !CallV8HeapFunction(
+      "ObjectGetOwnPropertyDescriptor",
+      isolate->factory()->undefined_value(),
+      ARRAY_SIZE(args),
+      args).ToHandle(&result);
+  EXCEPTION_BAILOUT_CHECK(isolate, Local<Value>());
+  return Utils::ToLocal(result);
 }
 
 
@@ -4932,20 +4976,12 @@ static void* ExternalValue(i::Object* obj) {
 
 
 void v8::V8::InitializePlatform(Platform* platform) {
-#ifdef V8_USE_DEFAULT_PLATFORM
-  FATAL("Can't override v8::Platform when using default implementation");
-#else
   i::V8::InitializePlatform(platform);
-#endif
 }
 
 
 void v8::V8::ShutdownPlatform() {
-#ifdef V8_USE_DEFAULT_PLATFORM
-  FATAL("Can't override v8::Platform when using default implementation");
-#else
   i::V8::ShutdownPlatform();
-#endif
 }
 
 
@@ -4959,7 +4995,7 @@ bool v8::V8::Initialize() {
 
 
 void v8::V8::SetEntropySource(EntropySource entropy_source) {
-  i::RandomNumberGenerator::SetEntropySource(entropy_source);
+  base::RandomNumberGenerator::SetEntropySource(entropy_source);
 }
 
 
@@ -5105,7 +5141,7 @@ static i::Handle<i::Context> CreateEnvironment(
     i::Isolate* isolate,
     v8::ExtensionConfiguration* extensions,
     v8::Handle<ObjectTemplate> global_template,
-    v8::Handle<Value> global_object) {
+    v8::Handle<Value> maybe_global_proxy) {
   i::Handle<i::Context> env;
 
   // Enter V8 via an ENTER_V8 scope.
@@ -5143,11 +5179,14 @@ static i::Handle<i::Context> CreateEnvironment(
       }
     }
 
+    i::Handle<i::Object> proxy = Utils::OpenHandle(*maybe_global_proxy, true);
+    i::MaybeHandle<i::JSGlobalProxy> maybe_proxy;
+    if (!proxy.is_null()) {
+      maybe_proxy = i::Handle<i::JSGlobalProxy>::cast(proxy);
+    }
     // Create the environment.
     env = isolate->bootstrapper()->CreateEnvironment(
-        Utils::OpenHandle(*global_object, true),
-        proxy_template,
-        extensions);
+        maybe_proxy, proxy_template, extensions);
 
     // Restore the access check info on the global template.
     if (!global_template.IsEmpty()) {
@@ -5669,7 +5708,7 @@ Local<v8::Value> v8::Date::New(Isolate* isolate, double time) {
   LOG_API(i_isolate, "Date::New");
   if (std::isnan(time)) {
     // Introduce only canonical NaN value into the VM, to avoid signaling NaNs.
-    time = i::OS::nan_value();
+    time = base::OS::nan_value();
   }
   ENTER_V8(i_isolate);
   EXCEPTION_PREAMBLE(i_isolate);
@@ -5826,8 +5865,7 @@ bool Value::IsPromise() const {
   i::Handle<i::Object> b;
   has_pending_exception = !i::Execution::Call(
       isolate,
-      handle(
-          isolate->context()->global_object()->native_context()->is_promise()),
+      isolate->is_promise(),
       isolate->factory()->undefined_value(),
       ARRAY_SIZE(argv), argv,
       false).ToHandle(&b);
@@ -5844,8 +5882,7 @@ Local<Promise::Resolver> Promise::Resolver::New(Isolate* v8_isolate) {
   i::Handle<i::Object> result;
   has_pending_exception = !i::Execution::Call(
       isolate,
-      handle(isolate->context()->global_object()->native_context()->
-             promise_create()),
+      isolate->promise_create(),
       isolate->factory()->undefined_value(),
       0, NULL,
       false).ToHandle(&result);
@@ -5869,8 +5906,7 @@ void Promise::Resolver::Resolve(Handle<Value> value) {
   i::Handle<i::Object> argv[] = { promise, Utils::OpenHandle(*value) };
   has_pending_exception = i::Execution::Call(
       isolate,
-      handle(isolate->context()->global_object()->native_context()->
-             promise_resolve()),
+      isolate->promise_resolve(),
       isolate->factory()->undefined_value(),
       ARRAY_SIZE(argv), argv,
       false).is_null();
@@ -5887,8 +5923,7 @@ void Promise::Resolver::Reject(Handle<Value> value) {
   i::Handle<i::Object> argv[] = { promise, Utils::OpenHandle(*value) };
   has_pending_exception = i::Execution::Call(
       isolate,
-      handle(isolate->context()->global_object()->native_context()->
-             promise_reject()),
+      isolate->promise_reject(),
       isolate->factory()->undefined_value(),
       ARRAY_SIZE(argv), argv,
       false).is_null();
@@ -5906,8 +5941,7 @@ Local<Promise> Promise::Chain(Handle<Function> handler) {
   i::Handle<i::Object> result;
   has_pending_exception = !i::Execution::Call(
       isolate,
-      handle(isolate->context()->global_object()->native_context()->
-             promise_chain()),
+      isolate->promise_chain(),
       promise,
       ARRAY_SIZE(argv), argv,
       false).ToHandle(&result);
@@ -5926,8 +5960,7 @@ Local<Promise> Promise::Catch(Handle<Function> handler) {
   i::Handle<i::Object> result;
   has_pending_exception = !i::Execution::Call(
       isolate,
-      handle(isolate->context()->global_object()->native_context()->
-             promise_catch()),
+      isolate->promise_catch(),
       promise,
       ARRAY_SIZE(argv), argv,
       false).ToHandle(&result);
@@ -5946,8 +5979,7 @@ Local<Promise> Promise::Then(Handle<Function> handler) {
   i::Handle<i::Object> result;
   has_pending_exception = !i::Execution::Call(
       isolate,
-      handle(isolate->context()->global_object()->native_context()->
-             promise_then()),
+      isolate->promise_then(),
       promise,
       ARRAY_SIZE(argv), argv,
       false).ToHandle(&result);
@@ -6239,7 +6271,7 @@ Local<Number> v8::Number::New(Isolate* isolate, double value) {
   ASSERT(internal_isolate->IsInitialized());
   if (std::isnan(value)) {
     // Introduce only canonical NaN value into the VM, to avoid signaling NaNs.
-    value = i::OS::nan_value();
+    value = base::OS::nan_value();
   }
   ENTER_V8(internal_isolate);
   i::Handle<i::Object> result = internal_isolate->factory()->NewNumber(value);
@@ -6319,32 +6351,6 @@ void V8::SetCaptureStackTraceForUncaughtExceptions(
 }
 
 
-void V8::SetCounterFunction(CounterLookupCallback callback) {
-  i::Isolate* isolate = i::Isolate::UncheckedCurrent();
-  // TODO(svenpanne) The Isolate should really be a parameter.
-  if (isolate == NULL) return;
-  isolate->stats_table()->SetCounterFunction(callback);
-}
-
-
-void V8::SetCreateHistogramFunction(CreateHistogramCallback callback) {
-  i::Isolate* isolate = i::Isolate::UncheckedCurrent();
-  // TODO(svenpanne) The Isolate should really be a parameter.
-  if (isolate == NULL) return;
-  isolate->stats_table()->SetCreateHistogramFunction(callback);
-  isolate->InitializeLoggingAndCounters();
-  isolate->counters()->ResetHistograms();
-}
-
-
-void V8::SetAddHistogramSampleFunction(AddHistogramSampleCallback callback) {
-  i::Isolate* isolate = i::Isolate::UncheckedCurrent();
-  // TODO(svenpanne) The Isolate should really be a parameter.
-  if (isolate == NULL) return;
-  isolate->stats_table()->
-      SetAddHistogramSampleFunction(callback);
-}
-
 void V8::SetFailedAccessCheckCallbackFunction(
     FailedAccessCheckCallback callback) {
   i::Isolate* isolate = i::Isolate::Current();
@@ -6382,7 +6388,7 @@ v8::Local<v8::Context> Isolate::GetCurrentContext() {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
   i::Context* context = isolate->context();
   if (context == NULL) return Local<Context>();
-  i::Context* native_context = context->global_object()->native_context();
+  i::Context* native_context = context->native_context();
   if (native_context == NULL) return Local<Context>();
   return Utils::ToLocal(i::Handle<i::Context>(native_context));
 }
@@ -6572,7 +6578,7 @@ void Isolate::RequestGarbageCollectionForTesting(GarbageCollectionType type) {
 
 
 Isolate* Isolate::GetCurrent() {
-  i::Isolate* isolate = i::Isolate::UncheckedCurrent();
+  i::Isolate* isolate = i::Isolate::Current();
   return reinterpret_cast<Isolate*>(isolate);
 }
 
@@ -6735,6 +6741,30 @@ bool Isolate::WillAutorunMicrotasks() const {
 
 void Isolate::SetUseCounterCallback(UseCounterCallback callback) {
   reinterpret_cast<i::Isolate*>(this)->SetUseCounterCallback(callback);
+}
+
+
+void Isolate::SetCounterFunction(CounterLookupCallback callback) {
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+  isolate->stats_table()->SetCounterFunction(callback);
+  isolate->InitializeLoggingAndCounters();
+  isolate->counters()->ResetCounters();
+}
+
+
+void Isolate::SetCreateHistogramFunction(CreateHistogramCallback callback) {
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+  isolate->stats_table()->SetCreateHistogramFunction(callback);
+  isolate->InitializeLoggingAndCounters();
+  isolate->counters()->ResetHistograms();
+}
+
+
+void Isolate::SetAddHistogramSampleFunction(
+    AddHistogramSampleCallback callback) {
+  reinterpret_cast<i::Isolate*>(this)
+      ->stats_table()
+      ->SetAddHistogramSampleFunction(callback);
 }
 
 
@@ -7095,19 +7125,20 @@ const CpuProfileNode* CpuProfile::GetSample(int index) const {
 
 int64_t CpuProfile::GetSampleTimestamp(int index) const {
   const i::CpuProfile* profile = reinterpret_cast<const i::CpuProfile*>(this);
-  return (profile->sample_timestamp(index) - i::TimeTicks()).InMicroseconds();
+  return (profile->sample_timestamp(index) - base::TimeTicks())
+      .InMicroseconds();
 }
 
 
 int64_t CpuProfile::GetStartTime() const {
   const i::CpuProfile* profile = reinterpret_cast<const i::CpuProfile*>(this);
-  return (profile->start_time() - i::TimeTicks()).InMicroseconds();
+  return (profile->start_time() - base::TimeTicks()).InMicroseconds();
 }
 
 
 int64_t CpuProfile::GetEndTime() const {
   const i::CpuProfile* profile = reinterpret_cast<const i::CpuProfile*>(this);
-  return (profile->end_time() - i::TimeTicks()).InMicroseconds();
+  return (profile->end_time() - base::TimeTicks()).InMicroseconds();
 }
 
 
@@ -7119,7 +7150,7 @@ int CpuProfile::GetSamplesCount() const {
 void CpuProfiler::SetSamplingInterval(int us) {
   ASSERT(us >= 0);
   return reinterpret_cast<i::CpuProfiler*>(this)->set_sampling_interval(
-      i::TimeDelta::FromMicroseconds(us));
+      base::TimeDelta::FromMicroseconds(us));
 }
 
 

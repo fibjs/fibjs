@@ -6,6 +6,7 @@
 
 #include "src/assembler.h"
 #include "src/base/once.h"
+#include "src/base/platform/platform.h"
 #include "src/bootstrapper.h"
 #include "src/debug.h"
 #include "src/deoptimizer.h"
@@ -14,12 +15,8 @@
 #include "src/heap-profiler.h"
 #include "src/hydrogen.h"
 #include "src/isolate.h"
-#ifdef V8_USE_DEFAULT_PLATFORM
-#include "src/libplatform/default-platform.h"
-#endif
 #include "src/lithium-allocator.h"
 #include "src/objects.h"
-#include "src/platform.h"
 #include "src/runtime-profiler.h"
 #include "src/sampler.h"
 #include "src/serialize.h"
@@ -41,13 +38,6 @@ bool V8::Initialize(Deserializer* des) {
   if (isolate->IsDead()) return false;
   if (isolate->IsInitialized()) return true;
 
-#ifdef V8_USE_DEFAULT_PLATFORM
-  DefaultPlatform* platform = static_cast<DefaultPlatform*>(platform_);
-  platform->SetThreadPoolSize(isolate->max_available_threads());
-  // We currently only start the threads early, if we know that we'll use them.
-  if (FLAG_job_based_sweeping) platform->EnsureInitialized();
-#endif
-
   return isolate->Init(des);
 }
 
@@ -61,12 +51,6 @@ void V8::TearDown() {
   Isolate::GlobalTearDown();
 
   Sampler::TearDown();
-
-#ifdef V8_USE_DEFAULT_PLATFORM
-  DefaultPlatform* platform = static_cast<DefaultPlatform*>(platform_);
-  platform_ = NULL;
-  delete platform;
-#endif
 }
 
 
@@ -90,11 +74,8 @@ void V8::InitializeOncePerProcessImpl() {
     FLAG_max_semi_space_size = 1;
   }
 
-  OS::Initialize(FLAG_random_seed, FLAG_hard_abort, FLAG_gc_fake_mmap);
+  base::OS::Initialize(FLAG_random_seed, FLAG_hard_abort, FLAG_gc_fake_mmap);
 
-#ifdef V8_USE_DEFAULT_PLATFORM
-  platform_ = new DefaultPlatform;
-#endif
   Sampler::SetUp();
   CpuFeatures::Probe(false);
   init_memcopy_functions();

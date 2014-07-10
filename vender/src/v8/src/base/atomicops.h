@@ -25,7 +25,7 @@
 #ifndef V8_BASE_ATOMICOPS_H_
 #define V8_BASE_ATOMICOPS_H_
 
-#include "include/v8.h"
+#include "include/v8stdint.h"
 #include "src/base/build_config.h"
 
 #if defined(_WIN32) && defined(V8_HOST_ARCH_64_BIT)
@@ -148,6 +148,8 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 #include "src/base/atomicops_internals_x86_gcc.h"
 #elif defined(__GNUC__) && V8_HOST_ARCH_MIPS
 #include "src/base/atomicops_internals_mips_gcc.h"
+#elif defined(__GNUC__) && V8_HOST_ARCH_MIPS64
+#include "src/base/atomicops_internals_mips64_gcc.h"
 #else
 #error "Atomic operations are not supported on your platform"
 #endif

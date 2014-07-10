@@ -137,7 +137,7 @@ bool LCodeGen::GeneratePrologue() {
       __ j(not_equal, &ok, Label::kNear);
 
       __ movp(rcx, GlobalObjectOperand());
-      __ movp(rcx, FieldOperand(rcx, GlobalObject::kGlobalReceiverOffset));
+      __ movp(rcx, FieldOperand(rcx, GlobalObject::kGlobalProxyOffset));
 
       __ movp(args.GetReceiverOperand(), rcx);
 
@@ -3286,8 +3286,8 @@ Operand LCodeGen::BuildFastArrayOperand(
 
 void LCodeGen::DoLoadKeyedGeneric(LLoadKeyedGeneric* instr) {
   ASSERT(ToRegister(instr->context()).is(rsi));
-  ASSERT(ToRegister(instr->object()).is(KeyedLoadIC::ReceiverRegister()));
-  ASSERT(ToRegister(instr->key()).is(KeyedLoadIC::NameRegister()));
+  ASSERT(ToRegister(instr->object()).is(LoadIC::ReceiverRegister()));
+  ASSERT(ToRegister(instr->key()).is(LoadIC::NameRegister()));
 
   Handle<Code> ic = isolate()->builtins()->KeyedLoadIC_Initialize();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
@@ -3392,8 +3392,7 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   __ movp(receiver,
           Operand(receiver,
                   Context::SlotOffset(Context::GLOBAL_OBJECT_INDEX)));
-  __ movp(receiver,
-          FieldOperand(receiver, GlobalObject::kGlobalReceiverOffset));
+  __ movp(receiver, FieldOperand(receiver, GlobalObject::kGlobalProxyOffset));
 
   __ bind(&receiver_ok);
 }

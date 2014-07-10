@@ -301,6 +301,8 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
   CodeGenerator::MakeCodePrologue(info, "full");
   const int kInitialBufferSize = 4 * KB;
   MacroAssembler masm(info->isolate(), NULL, kInitialBufferSize);
+  if (info->will_serialize()) masm.enable_serializer();
+
 #ifdef ENABLE_GDB_JIT_INTERFACE
   masm.positions_recorder()->StartGDBJITLineInfoRecording();
 #endif

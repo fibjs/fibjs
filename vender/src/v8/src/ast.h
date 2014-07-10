@@ -15,6 +15,7 @@
 #include "src/isolate.h"
 #include "src/jsregexp.h"
 #include "src/list-inl.h"
+#include "src/ostreams.h"
 #include "src/runtime.h"
 #include "src/small-pointer-list.h"
 #include "src/smart-pointers.h"
@@ -149,7 +150,6 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
 
 
 enum AstPropertiesFlag {
-  kDontInline,
   kDontSelfOptimize,
   kDontSoftInline,
   kDontCache
@@ -2529,7 +2529,7 @@ class RegExpTree : public ZoneObject {
   // expression.
   virtual Interval CaptureRegisters() { return Interval::Empty(); }
   virtual void AppendToText(RegExpText* text, Zone* zone);
-  SmartArrayPointer<const char> ToString(Zone* zone);
+  OStream& Print(OStream& os, Zone* zone);  // NOLINT
 #define MAKE_ASTYPE(Name)                                                  \
   virtual RegExp##Name* As##Name();                                        \
   virtual bool Is##Name();
@@ -3369,6 +3369,7 @@ class AstNodeFactory V8_FINAL BASE_EMBEDDED {
                   Expression* expression,
                   Yield::Kind yield_kind,
                   int pos) {
+    if (!expression) expression = NewUndefinedLiteral(pos);
     Yield* yield = new(zone_) Yield(
         zone_, generator_object, expression, yield_kind, pos);
     VISIT_AND_RETURN(Yield, yield)

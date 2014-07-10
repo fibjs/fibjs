@@ -52,6 +52,8 @@
 #include "src/arm/lithium-codegen-arm.h"  // NOLINT
 #elif V8_TARGET_ARCH_MIPS
 #include "src/mips/lithium-codegen-mips.h"  // NOLINT
+#elif V8_TARGET_ARCH_MIPS64
+#include "src/mips64/lithium-codegen-mips64.h"  // NOLINT
 #elif V8_TARGET_ARCH_X87
 #include "src/x87/lithium-codegen-x87.h"  // NOLINT
 #else
@@ -745,48 +747,46 @@ bool HGraph::IsStandardConstant(HConstant* constant) {
 }
 
 
+HGraphBuilder::IfBuilder::IfBuilder() : builder_(NULL), needs_compare_(true) {}
+
+
 HGraphBuilder::IfBuilder::IfBuilder(HGraphBuilder* builder)
-    : builder_(builder),
-      finished_(false),
-      did_then_(false),
-      did_else_(false),
-      did_else_if_(false),
-      did_and_(false),
-      did_or_(false),
-      captured_(false),
-      needs_compare_(true),
-      pending_merge_block_(false),
-      split_edge_merge_block_(NULL),
-      merge_at_join_blocks_(NULL),
-      normal_merge_at_join_block_count_(0),
-      deopt_merge_at_join_block_count_(0) {
-  HEnvironment* env = builder->environment();
-  first_true_block_ = builder->CreateBasicBlock(env->Copy());
-  first_false_block_ = builder->CreateBasicBlock(env->Copy());
+    : needs_compare_(true) {
+  Initialize(builder);
 }
 
 
-HGraphBuilder::IfBuilder::IfBuilder(
-    HGraphBuilder* builder,
-    HIfContinuation* continuation)
-    : builder_(builder),
-      finished_(false),
-      did_then_(false),
-      did_else_(false),
-      did_else_if_(false),
-      did_and_(false),
-      did_or_(false),
-      captured_(false),
-      needs_compare_(false),
-      pending_merge_block_(false),
-      first_true_block_(NULL),
-      first_false_block_(NULL),
-      split_edge_merge_block_(NULL),
-      merge_at_join_blocks_(NULL),
-      normal_merge_at_join_block_count_(0),
-      deopt_merge_at_join_block_count_(0) {
-  continuation->Continue(&first_true_block_,
-                         &first_false_block_);
+HGraphBuilder::IfBuilder::IfBuilder(HGraphBuilder* builder,
+                                    HIfContinuation* continuation)
+    : needs_compare_(false), first_true_block_(NULL), first_false_block_(NULL) {
+  InitializeDontCreateBlocks(builder);
+  continuation->Continue(&first_true_block_, &first_false_block_);
+}
+
+
+void HGraphBuilder::IfBuilder::InitializeDontCreateBlocks(
+    HGraphBuilder* builder) {
+  builder_ = builder;
+  finished_ = false;
+  did_then_ = false;
+  did_else_ = false;
+  did_else_if_ = false;
+  did_and_ = false;
+  did_or_ = false;
+  captured_ = false;
+  pending_merge_block_ = false;
+  split_edge_merge_block_ = NULL;
+  merge_at_join_blocks_ = NULL;
+  normal_merge_at_join_block_count_ = 0;
+  deopt_merge_at_join_block_count_ = 0;
+}
+
+
+void HGraphBuilder::IfBuilder::Initialize(HGraphBuilder* builder) {
+  InitializeDontCreateBlocks(builder);
+  HEnvironment* env = builder->environment();
+  first_true_block_ = builder->CreateBasicBlock(env->Copy());
+  first_false_block_ = builder->CreateBasicBlock(env->Copy());
 }
 
 
@@ -802,14 +802,13 @@ HControlInstruction* HGraphBuilder::IfBuilder::AddCompare(
     did_or_ = false;
     pending_merge_block_ = false;
     split_edge_merge_block_ = NULL;
-    HEnvironment* env = builder_->environment();
-    first_true_block_ = builder_->CreateBasicBlock(env->Copy());
-    first_false_block_ = builder_->CreateBasicBlock(env->Copy());
+    HEnvironment* env = builder()->environment();
+    first_true_block_ = builder()->CreateBasicBlock(env->Copy());
+    first_false_block_ = builder()->CreateBasicBlock(env->Copy());
   }
   if (split_edge_merge_block_ != NULL) {
     HEnvironment* env = first_false_block_->last_environment();
-    HBasicBlock* split_edge =
-        builder_->CreateBasicBlock(env->Copy());
+    HBasicBlock* split_edge = builder()->CreateBasicBlock(env->Copy());
     if (did_or_) {
       compare->SetSuccessorAt(0, split_edge);
       compare->SetSuccessorAt(1, first_false_block_);
@@ -817,12 +816,12 @@ HControlInstruction* HGraphBuilder::IfBuilder::AddCompare(
       compare->SetSuccessorAt(0, first_true_block_);
       compare->SetSuccessorAt(1, split_edge);
     }
-    builder_->GotoNoSimulate(split_edge, split_edge_merge_block_);
+    builder()->GotoNoSimulate(split_edge, split_edge_merge_block_);
   } else {
     compare->SetSuccessorAt(0, first_true_block_);
     compare->SetSuccessorAt(1, first_false_block_);
   }
-  builder_->FinishCurrentBlock(compare);
+  builder()->FinishCurrentBlock(compare);
   needs_compare_ = false;
   return compare;
 }
@@ -834,13 +833,12 @@ void HGraphBuilder::IfBuilder::Or() {
   did_or_ = true;
   HEnvironment* env = first_false_block_->last_environment();
   if (split_edge_merge_block_ == NULL) {
-    split_edge_merge_block_ =
-        builder_->CreateBasicBlock(env->Copy());
-    builder_->GotoNoSimulate(first_true_block_, split_edge_merge_block_);
+    split_edge_merge_block_ = builder()->CreateBasicBlock(env->Copy());
+    builder()->GotoNoSimulate(first_true_block_, split_edge_merge_block_);
     first_true_block_ = split_edge_merge_block_;
   }
-  builder_->set_current_block(first_false_block_);
-  first_false_block_ = builder_->CreateBasicBlock(env->Copy());
+  builder()->set_current_block(first_false_block_);
+  first_false_block_ = builder()->CreateBasicBlock(env->Copy());
 }
 
 
@@ -850,12 +848,12 @@ void HGraphBuilder::IfBuilder::And() {
   did_and_ = true;
   HEnvironment* env = first_false_block_->last_environment();
   if (split_edge_merge_block_ == NULL) {
-    split_edge_merge_block_ = builder_->CreateBasicBlock(env->Copy());
-    builder_->GotoNoSimulate(first_false_block_, split_edge_merge_block_);
+    split_edge_merge_block_ = builder()->CreateBasicBlock(env->Copy());
+    builder()->GotoNoSimulate(first_false_block_, split_edge_merge_block_);
     first_false_block_ = split_edge_merge_block_;
   }
-  builder_->set_current_block(first_true_block_);
-  first_true_block_ = builder_->CreateBasicBlock(env->Copy());
+  builder()->set_current_block(first_true_block_);
+  first_true_block_ = builder()->CreateBasicBlock(env->Copy());
 }
 
 
@@ -872,7 +870,7 @@ void HGraphBuilder::IfBuilder::CaptureContinuation(
   ASSERT(false_block != NULL);
   continuation->Capture(true_block, false_block);
   captured_ = true;
-  builder_->set_current_block(NULL);
+  builder()->set_current_block(NULL);
   End();
 }
 
@@ -887,11 +885,11 @@ void HGraphBuilder::IfBuilder::JoinContinuation(HIfContinuation* continuation) {
   merge_at_join_blocks_ = NULL;
   if (true_block != NULL && !true_block->IsFinished()) {
     ASSERT(continuation->IsTrueReachable());
-    builder_->GotoNoSimulate(true_block, continuation->true_branch());
+    builder()->GotoNoSimulate(true_block, continuation->true_branch());
   }
   if (false_block != NULL && !false_block->IsFinished()) {
     ASSERT(continuation->IsFalseReachable());
-    builder_->GotoNoSimulate(false_block, continuation->false_branch());
+    builder()->GotoNoSimulate(false_block, continuation->false_branch());
   }
   captured_ = true;
   End();
@@ -907,14 +905,14 @@ void HGraphBuilder::IfBuilder::Then() {
     // branch. However, we must pretend that the "then" branch is reachable,
     // so that the graph builder visits it and sees any live range extending
     // constructs within it.
-    HConstant* constant_false = builder_->graph()->GetConstantFalse();
+    HConstant* constant_false = builder()->graph()->GetConstantFalse();
     ToBooleanStub::Types boolean_type = ToBooleanStub::Types();
     boolean_type.Add(ToBooleanStub::BOOLEAN);
     HBranch* branch = builder()->New<HBranch>(
         constant_false, boolean_type, first_true_block_, first_false_block_);
-    builder_->FinishCurrentBlock(branch);
+    builder()->FinishCurrentBlock(branch);
   }
-  builder_->set_current_block(first_true_block_);
+  builder()->set_current_block(first_true_block_);
   pending_merge_block_ = true;
 }
 
@@ -924,7 +922,7 @@ void HGraphBuilder::IfBuilder::Else() {
   ASSERT(!captured_);
   ASSERT(!finished_);
   AddMergeAtJoinBlock(false);
-  builder_->set_current_block(first_false_block_);
+  builder()->set_current_block(first_false_block_);
   pending_merge_block_ = true;
   did_else_ = true;
 }
@@ -932,26 +930,25 @@ void HGraphBuilder::IfBuilder::Else() {
 
 void HGraphBuilder::IfBuilder::Deopt(const char* reason) {
   ASSERT(did_then_);
-  builder_->Add<HDeoptimize>(reason, Deoptimizer::EAGER);
+  builder()->Add<HDeoptimize>(reason, Deoptimizer::EAGER);
   AddMergeAtJoinBlock(true);
 }
 
 
 void HGraphBuilder::IfBuilder::Return(HValue* value) {
-  HValue* parameter_count = builder_->graph()->GetConstantMinus1();
-  builder_->FinishExitCurrentBlock(
-      builder_->New<HReturn>(value, parameter_count));
+  HValue* parameter_count = builder()->graph()->GetConstantMinus1();
+  builder()->FinishExitCurrentBlock(
+      builder()->New<HReturn>(value, parameter_count));
   AddMergeAtJoinBlock(false);
 }
 
 
 void HGraphBuilder::IfBuilder::AddMergeAtJoinBlock(bool deopt) {
   if (!pending_merge_block_) return;
-  HBasicBlock* block = builder_->current_block();
+  HBasicBlock* block = builder()->current_block();
   ASSERT(block == NULL || !block->IsFinished());
-  MergeAtJoinBlock* record =
-      new(builder_->zone()) MergeAtJoinBlock(block, deopt,
-                                             merge_at_join_blocks_);
+  MergeAtJoinBlock* record = new (builder()->zone())
+      MergeAtJoinBlock(block, deopt, merge_at_join_blocks_);
   merge_at_join_blocks_ = record;
   if (block != NULL) {
     ASSERT(block->end() == NULL);
@@ -961,7 +958,7 @@ void HGraphBuilder::IfBuilder::AddMergeAtJoinBlock(bool deopt) {
       deopt_merge_at_join_block_count_++;
     }
   }
-  builder_->set_current_block(NULL);
+  builder()->set_current_block(NULL);
   pending_merge_block_ = false;
 }
 
@@ -1003,8 +1000,8 @@ void HGraphBuilder::IfBuilder::End() {
   int total_merged_blocks = normal_merge_at_join_block_count_ +
     deopt_merge_at_join_block_count_;
   ASSERT(total_merged_blocks >= 1);
-  HBasicBlock* merge_block = total_merged_blocks == 1
-      ? NULL : builder_->graph()->CreateBasicBlock();
+  HBasicBlock* merge_block =
+      total_merged_blocks == 1 ? NULL : builder()->graph()->CreateBasicBlock();
 
   // Merge non-deopt blocks first to ensure environment has right size for
   // padding.
@@ -1015,10 +1012,10 @@ void HGraphBuilder::IfBuilder::End() {
       // if, then just set it as the current block and continue rather then
       // creating an unnecessary merge block.
       if (total_merged_blocks == 1) {
-        builder_->set_current_block(current->block_);
+        builder()->set_current_block(current->block_);
         return;
       }
-      builder_->GotoNoSimulate(current->block_, merge_block);
+      builder()->GotoNoSimulate(current->block_, merge_block);
     }
     current = current->next_;
   }
@@ -1027,44 +1024,48 @@ void HGraphBuilder::IfBuilder::End() {
   current = merge_at_join_blocks_;
   while (current != NULL) {
     if (current->deopt_ && current->block_ != NULL) {
-      current->block_->FinishExit(
-          HAbnormalExit::New(builder_->zone(), NULL),
-          HSourcePosition::Unknown());
+      current->block_->FinishExit(HAbnormalExit::New(builder()->zone(), NULL),
+                                  HSourcePosition::Unknown());
     }
     current = current->next_;
   }
-  builder_->set_current_block(merge_block);
+  builder()->set_current_block(merge_block);
 }
 
 
-HGraphBuilder::LoopBuilder::LoopBuilder(HGraphBuilder* builder,
-                                        HValue* context,
-                                        LoopBuilder::Direction direction)
-    : builder_(builder),
-      context_(context),
-      direction_(direction),
-      finished_(false) {
-  header_block_ = builder->CreateLoopHeaderBlock();
-  body_block_ = NULL;
-  exit_block_ = NULL;
-  exit_trampoline_block_ = NULL;
-  increment_amount_ = builder_->graph()->GetConstant1();
+HGraphBuilder::LoopBuilder::LoopBuilder(HGraphBuilder* builder) {
+  Initialize(builder, NULL, kWhileTrue, NULL);
 }
 
 
-HGraphBuilder::LoopBuilder::LoopBuilder(HGraphBuilder* builder,
-                                        HValue* context,
+HGraphBuilder::LoopBuilder::LoopBuilder(HGraphBuilder* builder, HValue* context,
+                                        LoopBuilder::Direction direction) {
+  Initialize(builder, context, direction, builder->graph()->GetConstant1());
+}
+
+
+HGraphBuilder::LoopBuilder::LoopBuilder(HGraphBuilder* builder, HValue* context,
                                         LoopBuilder::Direction direction,
-                                        HValue* increment_amount)
-    : builder_(builder),
-      context_(context),
-      direction_(direction),
-      finished_(false) {
+                                        HValue* increment_amount) {
+  Initialize(builder, context, direction, increment_amount);
+  increment_amount_ = increment_amount;
+}
+
+
+void HGraphBuilder::LoopBuilder::Initialize(HGraphBuilder* builder,
+                                            HValue* context,
+                                            Direction direction,
+                                            HValue* increment_amount) {
+  builder_ = builder;
+  context_ = context;
+  direction_ = direction;
+  increment_amount_ = increment_amount;
+
+  finished_ = false;
   header_block_ = builder->CreateLoopHeaderBlock();
   body_block_ = NULL;
   exit_block_ = NULL;
   exit_trampoline_block_ = NULL;
-  increment_amount_ = increment_amount;
 }
 
 
@@ -1072,6 +1073,7 @@ HValue* HGraphBuilder::LoopBuilder::BeginBody(
     HValue* initial,
     HValue* terminating,
     Token::Value token) {
+  ASSERT(direction_ != kWhileTrue);
   HEnvironment* env = builder_->environment();
   phi_ = header_block_->AddNewPhi(env->values()->length());
   phi_->AddInput(initial);
@@ -1108,12 +1110,26 @@ HValue* HGraphBuilder::LoopBuilder::BeginBody(
 }
 
 
+void HGraphBuilder::LoopBuilder::BeginBody(int drop_count) {
+  ASSERT(direction_ == kWhileTrue);
+  HEnvironment* env = builder_->environment();
+  builder_->GotoNoSimulate(header_block_);
+  builder_->set_current_block(header_block_);
+  env->Drop(drop_count);
+}
+
+
 void HGraphBuilder::LoopBuilder::Break() {
   if (exit_trampoline_block_ == NULL) {
     // Its the first time we saw a break.
-    HEnvironment* env = exit_block_->last_environment()->Copy();
-    exit_trampoline_block_ = builder_->CreateBasicBlock(env);
-    builder_->GotoNoSimulate(exit_block_, exit_trampoline_block_);
+    if (direction_ == kWhileTrue) {
+      HEnvironment* env = builder_->environment()->Copy();
+      exit_trampoline_block_ = builder_->CreateBasicBlock(env);
+    } else {
+      HEnvironment* env = exit_block_->last_environment()->Copy();
+      exit_trampoline_block_ = builder_->CreateBasicBlock(env);
+      builder_->GotoNoSimulate(exit_block_, exit_trampoline_block_);
+    }
   }
 
   builder_->GotoNoSimulate(exit_trampoline_block_);
@@ -1134,8 +1150,11 @@ void HGraphBuilder::LoopBuilder::EndBody() {
     builder_->AddInstruction(increment_);
   }
 
-  // Push the new increment value on the expression stack to merge into the phi.
-  builder_->environment()->Push(increment_);
+  if (direction_ != kWhileTrue) {
+    // Push the new increment value on the expression stack to merge into
+    // the phi.
+    builder_->environment()->Push(increment_);
+  }
   HBasicBlock* last_block = builder_->current_block();
   builder_->GotoNoSimulate(last_block, header_block_);
   header_block_->loop_information()->RegisterBackEdge(last_block);
@@ -1431,7 +1450,8 @@ void HGraphBuilder::BuildJSObjectCheck(HValue* receiver,
                                              mask);
   HValue* sub_result = AddUncasted<HSub>(and_result,
                                          Add<HConstant>(JS_OBJECT_TYPE));
-  Add<HBoundsCheck>(sub_result, Add<HConstant>(0x100 - JS_OBJECT_TYPE));
+  Add<HBoundsCheck>(sub_result,
+                    Add<HConstant>(LAST_JS_OBJECT_TYPE + 1 - JS_OBJECT_TYPE));
 }
 
 
@@ -1507,8 +1527,8 @@ void HGraphBuilder::BuildKeyedIndexCheck(HValue* key,
         }
         string_index_if.Else();
         {
-          // Key is a non-index String, check for uniqueness/internalization. If
-          // it's not, deopt.
+          // Key is a non-index String, check for uniqueness/internalization.
+          // If it's not internalized yet, internalize it now.
           HValue* not_internalized_bit = AddUncasted<HBitwise>(
               Token::BIT_AND,
               instance_type,
@@ -1608,84 +1628,6 @@ HValue* HGraphBuilder::BuildKeyedLookupCacheHash(HValue* object,
 }
 
 
-HValue* HGraphBuilder::BuildUncheckedDictionaryElementLoadHelper(
-    HValue* elements,
-    HValue* key,
-    HValue* hash,
-    HValue* mask,
-    int current_probe) {
-  if (current_probe == kNumberDictionaryProbes) {
-    return NULL;
-  }
-
-  int32_t offset = SeededNumberDictionary::GetProbeOffset(current_probe);
-  HValue* raw_index = (current_probe == 0)
-      ? hash
-      : AddUncasted<HAdd>(hash, Add<HConstant>(offset));
-  raw_index = AddUncasted<HBitwise>(Token::BIT_AND, raw_index, mask);
-  int32_t entry_size = SeededNumberDictionary::kEntrySize;
-  raw_index = AddUncasted<HMul>(raw_index, Add<HConstant>(entry_size));
-  raw_index->ClearFlag(HValue::kCanOverflow);
-
-  int32_t base_offset = SeededNumberDictionary::kElementsStartIndex;
-  HValue* key_index = AddUncasted<HAdd>(raw_index, Add<HConstant>(base_offset));
-  key_index->ClearFlag(HValue::kCanOverflow);
-
-  HValue* candidate_key = Add<HLoadKeyed>(elements, key_index,
-                                          static_cast<HValue*>(NULL),
-                                          FAST_ELEMENTS);
-
-  IfBuilder key_compare(this);
-  key_compare.IfNot<HCompareObjectEqAndBranch>(key, candidate_key);
-  key_compare.Then();
-  {
-    // Key at the current probe doesn't match, try at the next probe.
-    HValue* result = BuildUncheckedDictionaryElementLoadHelper(
-        elements, key, hash, mask, current_probe + 1);
-    if (result == NULL) {
-      key_compare.Deopt("probes exhausted in keyed load dictionary lookup");
-      result = graph()->GetConstantUndefined();
-    } else {
-      Push(result);
-    }
-  }
-  key_compare.Else();
-  {
-    // Key at current probe matches. Details must be zero, otherwise the
-    // dictionary element requires special handling.
-    HValue* details_index = AddUncasted<HAdd>(
-        raw_index, Add<HConstant>(base_offset + 2));
-    details_index->ClearFlag(HValue::kCanOverflow);
-
-    HValue* details = Add<HLoadKeyed>(elements, details_index,
-                                      static_cast<HValue*>(NULL),
-                                      FAST_ELEMENTS);
-    IfBuilder details_compare(this);
-    details_compare.If<HCompareNumericAndBranch>(details,
-                                                 graph()->GetConstant0(),
-                                                 Token::NE);
-    details_compare.ThenDeopt("keyed load dictionary element not fast case");
-
-    details_compare.Else();
-    {
-      // Key matches and details are zero --> fast case. Load and return the
-      // value.
-      HValue* result_index = AddUncasted<HAdd>(
-          raw_index, Add<HConstant>(base_offset + 1));
-      result_index->ClearFlag(HValue::kCanOverflow);
-
-      Push(Add<HLoadKeyed>(elements, result_index,
-                           static_cast<HValue*>(NULL),
-                           FAST_ELEMENTS));
-    }
-    details_compare.End();
-  }
-  key_compare.End();
-
-  return Pop();
-}
-
-
 HValue* HGraphBuilder::BuildElementIndexHash(HValue* index) {
   int32_t seed_value = static_cast<uint32_t>(isolate()->heap()->HashSeed());
   HValue* seed = Add<HConstant>(seed_value);
@@ -1733,8 +1675,129 @@ HValue* HGraphBuilder::BuildUncheckedDictionaryElementLoad(HValue* receiver,
   mask->ChangeRepresentation(Representation::Integer32());
   mask->ClearFlag(HValue::kCanOverflow);
 
-  return BuildUncheckedDictionaryElementLoadHelper(elements, key,
-                                                   hash, mask, 0);
+  HValue* entry = hash;
+  HValue* count = graph()->GetConstant1();
+  Push(entry);
+  Push(count);
+
+  HIfContinuation return_or_loop_continuation(graph()->CreateBasicBlock(),
+                                              graph()->CreateBasicBlock());
+  HIfContinuation found_key_match_continuation(graph()->CreateBasicBlock(),
+                                               graph()->CreateBasicBlock());
+  LoopBuilder probe_loop(this);
+  probe_loop.BeginBody(2);  // Drop entry, count from last environment to
+                            // appease live range building without simulates.
+
+  count = Pop();
+  entry = Pop();
+  entry = AddUncasted<HBitwise>(Token::BIT_AND, entry, mask);
+  int entry_size = SeededNumberDictionary::kEntrySize;
+  HValue* base_index = AddUncasted<HMul>(entry, Add<HConstant>(entry_size));
+  base_index->ClearFlag(HValue::kCanOverflow);
+  int start_offset = SeededNumberDictionary::kElementsStartIndex;
+  HValue* key_index =
+      AddUncasted<HAdd>(base_index, Add<HConstant>(start_offset));
+  key_index->ClearFlag(HValue::kCanOverflow);
+
+  HValue* candidate_key = Add<HLoadKeyed>(
+      elements, key_index, static_cast<HValue*>(NULL), FAST_ELEMENTS);
+  IfBuilder if_undefined(this);
+  if_undefined.If<HCompareObjectEqAndBranch>(candidate_key,
+                                             graph()->GetConstantUndefined());
+  if_undefined.Then();
+  {
+    // element == undefined means "not found". Call the runtime.
+    // TODO(jkummerow): walk the prototype chain instead.
+    Add<HPushArguments>(receiver, key);
+    Push(Add<HCallRuntime>(isolate()->factory()->empty_string(),
+                           Runtime::FunctionForId(Runtime::kKeyedGetProperty),
+                           2));
+  }
+  if_undefined.Else();
+  {
+    IfBuilder if_match(this);
+    if_match.If<HCompareObjectEqAndBranch>(candidate_key, key);
+    if_match.Then();
+    if_match.Else();
+
+    // Update non-internalized string in the dictionary with internalized key?
+    IfBuilder if_update_with_internalized(this);
+    HValue* smi_check =
+        if_update_with_internalized.IfNot<HIsSmiAndBranch>(candidate_key);
+    if_update_with_internalized.And();
+    HValue* map = AddLoadMap(candidate_key, smi_check);
+    HValue* instance_type = Add<HLoadNamedField>(
+        map, static_cast<HValue*>(NULL), HObjectAccess::ForMapInstanceType());
+    HValue* not_internalized_bit = AddUncasted<HBitwise>(
+        Token::BIT_AND, instance_type,
+        Add<HConstant>(static_cast<int>(kIsNotInternalizedMask)));
+    if_update_with_internalized.If<HCompareNumericAndBranch>(
+        not_internalized_bit, graph()->GetConstant0(), Token::NE);
+    if_update_with_internalized.And();
+    if_update_with_internalized.IfNot<HCompareObjectEqAndBranch>(
+        candidate_key, graph()->GetConstantHole());
+    if_update_with_internalized.AndIf<HStringCompareAndBranch>(candidate_key,
+                                                               key, Token::EQ);
+    if_update_with_internalized.Then();
+    // Replace a key that is a non-internalized string by the equivalent
+    // internalized string for faster further lookups.
+    Add<HStoreKeyed>(elements, key_index, key, FAST_ELEMENTS);
+    if_update_with_internalized.Else();
+
+    if_update_with_internalized.JoinContinuation(&found_key_match_continuation);
+    if_match.JoinContinuation(&found_key_match_continuation);
+
+    IfBuilder found_key_match(this, &found_key_match_continuation);
+    found_key_match.Then();
+    // Key at current probe matches. Relevant bits in the |details| field must
+    // be zero, otherwise the dictionary element requires special handling.
+    HValue* details_index =
+        AddUncasted<HAdd>(base_index, Add<HConstant>(start_offset + 2));
+    details_index->ClearFlag(HValue::kCanOverflow);
+    HValue* details = Add<HLoadKeyed>(
+        elements, details_index, static_cast<HValue*>(NULL), FAST_ELEMENTS);
+    int details_mask = PropertyDetails::TypeField::kMask |
+                       PropertyDetails::DeletedField::kMask;
+    details = AddUncasted<HBitwise>(Token::BIT_AND, details,
+                                    Add<HConstant>(details_mask));
+    IfBuilder details_compare(this);
+    details_compare.If<HCompareNumericAndBranch>(
+        details, graph()->GetConstant0(), Token::EQ);
+    details_compare.Then();
+    HValue* result_index =
+        AddUncasted<HAdd>(base_index, Add<HConstant>(start_offset + 1));
+    result_index->ClearFlag(HValue::kCanOverflow);
+    Push(Add<HLoadKeyed>(elements, result_index, static_cast<HValue*>(NULL),
+                         FAST_ELEMENTS));
+    details_compare.Else();
+    Add<HPushArguments>(receiver, key);
+    Push(Add<HCallRuntime>(isolate()->factory()->empty_string(),
+                           Runtime::FunctionForId(Runtime::kKeyedGetProperty),
+                           2));
+    details_compare.End();
+
+    found_key_match.Else();
+    found_key_match.JoinContinuation(&return_or_loop_continuation);
+  }
+  if_undefined.JoinContinuation(&return_or_loop_continuation);
+
+  IfBuilder return_or_loop(this, &return_or_loop_continuation);
+  return_or_loop.Then();
+  probe_loop.Break();
+
+  return_or_loop.Else();
+  entry = AddUncasted<HAdd>(entry, count);
+  entry->ClearFlag(HValue::kCanOverflow);
+  count = AddUncasted<HAdd>(count, graph()->GetConstant1());
+  count->ClearFlag(HValue::kCanOverflow);
+  Push(entry);
+  Push(count);
+
+  probe_loop.EndBody();
+
+  return_or_loop.End();
+
+  return Pop();
 }
 
 
@@ -2683,7 +2746,7 @@ HValue* HGraphBuilder::BuildGrowElementsCapacity(HValue* object,
                                                  HValue* new_capacity) {
   Add<HBoundsCheck>(new_capacity, Add<HConstant>(
           (Page::kMaxRegularHeapObjectSize - FixedArray::kHeaderSize) >>
-          ElementsKindToShiftSize(kind)));
+          ElementsKindToShiftSize(new_kind)));
 
   HValue* new_elements = BuildAllocateElementsAndInitializeElementsHeader(
       new_kind, new_capacity);
@@ -3340,6 +3403,11 @@ void HBasicBlock::FinishExit(HControlInstruction* instruction,
 }
 
 
+OStream& operator<<(OStream& os, const HBasicBlock& b) {
+  return os << "B" << b.block_id();
+}
+
+
 HGraph::HGraph(CompilationInfo* info)
     : isolate_(info->isolate()),
       next_block_id_(0),
@@ -3414,13 +3482,10 @@ int HGraph::TraceInlinedFunction(
     if (!shared->script()->IsUndefined()) {
       Handle<Script> script(Script::cast(shared->script()));
       if (!script->source()->IsUndefined()) {
-        CodeTracer::Scope tracing_scope(isolate()->GetCodeTracer());
-        PrintF(tracing_scope.file(),
-               "--- FUNCTION SOURCE (%s) id{%d,%d} ---\n",
-               shared->DebugName()->ToCString().get(),
-               info()->optimization_id(),
-               id);
-
+        CodeTracer::Scope tracing_scopex(isolate()->GetCodeTracer());
+        OFStream os(tracing_scopex.file());
+        os << "--- FUNCTION SOURCE (" << shared->DebugName()->ToCString().get()
+           << ") id{" << info()->optimization_id() << "," << id << "} ---\n";
         {
           ConsStringIteratorOp op;
           StringCharacterStream stream(String::cast(script->source()),
@@ -3432,12 +3497,12 @@ int HGraph::TraceInlinedFunction(
               shared->end_position() - shared->start_position() + 1;
           for (int i = 0; i < source_len; i++) {
             if (stream.HasMore()) {
-              PrintF(tracing_scope.file(), "%c", stream.GetNext());
+              os << AsUC16(stream.GetNext());
             }
           }
         }
 
-        PrintF(tracing_scope.file(), "\n--- END ---\n");
+        os << "\n--- END ---\n";
       }
     }
   }
@@ -3446,13 +3511,10 @@ int HGraph::TraceInlinedFunction(
 
   if (inline_id != 0) {
     CodeTracer::Scope tracing_scope(isolate()->GetCodeTracer());
-    PrintF(tracing_scope.file(), "INLINE (%s) id{%d,%d} AS %d AT ",
-           shared->DebugName()->ToCString().get(),
-           info()->optimization_id(),
-           id,
-           inline_id);
-    position.PrintTo(tracing_scope.file());
-    PrintF(tracing_scope.file(), "\n");
+    OFStream os(tracing_scope.file());
+    os << "INLINE (" << shared->DebugName()->ToCString().get() << ") id{"
+       << info()->optimization_id() << "," << id << "} AS " << inline_id
+       << " AT " << position << endl;
   }
 
   return inline_id;
@@ -5781,8 +5843,9 @@ HInstruction* HOptimizedGraphBuilder::BuildStoreNamedField(
       HInstruction* heap_number = Add<HAllocate>(heap_number_size,
           HType::HeapObject(),
           NOT_TENURED,
-          HEAP_NUMBER_TYPE);
-      AddStoreMapConstant(heap_number, isolate()->factory()->heap_number_map());
+          MUTABLE_HEAP_NUMBER_TYPE);
+      AddStoreMapConstant(
+          heap_number, isolate()->factory()->mutable_heap_number_map());
       Add<HStoreNamedField>(heap_number, HObjectAccess::ForHeapNumberValue(),
                             value);
       instr = New<HStoreNamedField>(checked_object->ActualValue(),
@@ -7576,7 +7639,7 @@ int HOptimizedGraphBuilder::InliningAstSize(Handle<JSFunction> target) {
     TraceInline(target, caller, "target not inlineable");
     return kNotInlinable;
   }
-  if (target_shared->dont_inline()) {
+  if (target_shared->DisableOptimizationReason() != kNoReason) {
     TraceInline(target, caller, "target contains unsupported syntax [early]");
     return kNotInlinable;
   }
@@ -7663,8 +7726,7 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
     TraceInline(target, caller, "target AST is too large [late]");
     return false;
   }
-  AstProperties::Flags* flags(function->flags());
-  if (flags->Contains(kDontInline) || function->dont_optimize()) {
+  if (function->dont_optimize()) {
     TraceInline(target, caller, "target contains unsupported syntax [late]");
     return false;
   }
@@ -8442,9 +8504,7 @@ bool HOptimizedGraphBuilder::TryInlineApiCall(Handle<JSFunction> function,
     // as it maybe dropped on deserialization.
     CHECK(!isolate()->serializer_enabled());
     ASSERT_EQ(0, receiver_maps->length());
-    receiver_maps->Add(handle(
-        function->context()->global_object()->global_receiver()->map()),
-        zone());
+    receiver_maps->Add(handle(function->global_proxy()->map()), zone());
   }
   CallOptimization::HolderLookup holder_lookup =
       CallOptimization::kHolderNotFound;
@@ -8629,9 +8689,8 @@ HValue* HOptimizedGraphBuilder::ImplicitReceiverFor(HValue* function,
     // Cannot embed a direct reference to the global proxy
     // as is it dropped on deserialization.
     CHECK(!isolate()->serializer_enabled());
-    Handle<JSObject> global_receiver(
-        target->context()->global_object()->global_receiver());
-    return Add<HConstant>(global_receiver);
+    Handle<JSObject> global_proxy(target->context()->global_proxy());
+    return Add<HConstant>(global_proxy);
   }
   return graph()->GetConstantUndefined();
 }
@@ -9955,7 +10014,7 @@ HInstruction* HOptimizedGraphBuilder::BuildStringCharCodeAt(
       int32_t i = c_index->NumberValueAsInteger32();
       Handle<String> s = c_string->StringValue();
       if (i < 0 || i >= s->length()) {
-        return New<HConstant>(OS::nan_value());
+        return New<HConstant>(base::OS::nan_value());
       }
       return New<HConstant>(s->Get(i));
     }
@@ -10954,11 +11013,14 @@ void HOptimizedGraphBuilder::BuildEmitInObjectProperties(
         // 2) we can just use the mode of the parent object for pretenuring
         HInstruction* double_box =
             Add<HAllocate>(heap_number_constant, HType::HeapObject(),
-                pretenure_flag, HEAP_NUMBER_TYPE);
+                pretenure_flag, MUTABLE_HEAP_NUMBER_TYPE);
         AddStoreMapConstant(double_box,
-            isolate()->factory()->heap_number_map());
-        Add<HStoreNamedField>(double_box, HObjectAccess::ForHeapNumberValue(),
-                              Add<HConstant>(value));
+            isolate()->factory()->mutable_heap_number_map());
+        // Unwrap the mutable heap number from the boilerplate.
+        HValue* double_value =
+            Add<HConstant>(Handle<HeapNumber>::cast(value)->value());
+        Add<HStoreNamedField>(
+            double_box, HObjectAccess::ForHeapNumberValue(), double_value);
         value_instruction = double_box;
       } else if (representation.IsSmi()) {
         value_instruction = value->IsUninitialized()
@@ -12014,32 +12076,24 @@ HEnvironment* HEnvironment::CopyForInlining(
 }
 
 
-void HEnvironment::PrintTo(StringStream* stream) {
-  for (int i = 0; i < length(); i++) {
-    if (i == 0) stream->Add("parameters\n");
-    if (i == parameter_count()) stream->Add("specials\n");
-    if (i == parameter_count() + specials_count()) stream->Add("locals\n");
-    if (i == parameter_count() + specials_count() + local_count()) {
-      stream->Add("expressions\n");
+OStream& operator<<(OStream& os, const HEnvironment& env) {
+  for (int i = 0; i < env.length(); i++) {
+    if (i == 0) os << "parameters\n";
+    if (i == env.parameter_count()) os << "specials\n";
+    if (i == env.parameter_count() + env.specials_count()) os << "locals\n";
+    if (i == env.parameter_count() + env.specials_count() + env.local_count()) {
+      os << "expressions\n";
     }
-    HValue* val = values_.at(i);
-    stream->Add("%d: ", i);
+    HValue* val = env.values()->at(i);
+    os << i << ": ";
     if (val != NULL) {
-      val->PrintNameTo(stream);
+      os << val;
     } else {
-      stream->Add("NULL");
+      os << "NULL";
     }
-    stream->Add("\n");
+    os << "\n";
   }
-  PrintF("\n");
-}
-
-
-void HEnvironment::PrintToStd() {
-  HeapStringAllocator string_allocator;
-  StringStream trace(&string_allocator);
-  PrintTo(&trace);
-  PrintF("%s", trace.ToCString().get());
+  return os << "\n";
 }
 
 
@@ -12057,7 +12111,8 @@ void HTracer::TraceCompilation(CompilationInfo* info) {
     PrintStringProperty("name", CodeStub::MajorName(major_key, false));
     PrintStringProperty("method", "stub");
   }
-  PrintLongProperty("date", static_cast<int64_t>(OS::TimeCurrentMillis()));
+  PrintLongProperty("date",
+                    static_cast<int64_t>(base::OS::TimeCurrentMillis()));
 }
 
 
@@ -12153,11 +12208,9 @@ void HTracer::Trace(const char* name, HGraph* graph, LChunk* chunk) {
       for (int j = 0; j < total; ++j) {
         HPhi* phi = current->phis()->at(j);
         PrintIndent();
-        trace_.Add("%d ", phi->merged_index());
-        phi->PrintNameTo(&trace_);
-        trace_.Add(" ");
-        phi->PrintTo(&trace_);
-        trace_.Add("\n");
+        OStringStream os;
+        os << phi->merged_index() << " " << NameOf(phi) << " " << *phi << "\n";
+        trace_.Add(os.c_str());
       }
     }
 
@@ -12167,21 +12220,18 @@ void HTracer::Trace(const char* name, HGraph* graph, LChunk* chunk) {
         HInstruction* instruction = it.Current();
         int uses = instruction->UseCount();
         PrintIndent();
-        trace_.Add("0 %d ", uses);
-        instruction->PrintNameTo(&trace_);
-        trace_.Add(" ");
-        instruction->PrintTo(&trace_);
+        OStringStream os;
+        os << "0 " << uses << " " << NameOf(instruction) << " " << *instruction;
         if (FLAG_hydrogen_track_positions &&
             instruction->has_position() &&
             instruction->position().raw() != 0) {
           const HSourcePosition pos = instruction->position();
-          trace_.Add(" pos:");
-          if (pos.inlining_id() != 0) {
-            trace_.Add("%d_", pos.inlining_id());
-          }
-          trace_.Add("%d", pos.position());
+          os << " pos:";
+          if (pos.inlining_id() != 0) os << pos.inlining_id() << "_";
+          os << pos.position();
         }
-        trace_.Add(" <|@\n");
+        os << " <|@\n";
+        trace_.Add(os.c_str());
       }
     }
 
@@ -12199,10 +12249,9 @@ void HTracer::Trace(const char* name, HGraph* graph, LChunk* chunk) {
             trace_.Add("%d ",
                        LifetimePosition::FromInstructionIndex(i).Value());
             linstr->PrintTo(&trace_);
-            trace_.Add(" [hir:");
-            linstr->hydrogen_value()->PrintNameTo(&trace_);
-            trace_.Add("]");
-            trace_.Add(" <|@\n");
+            OStringStream os;
+            os << " [hir:" << NameOf(linstr->hydrogen_value()) << "] <|@\n";
+            trace_.Add(os.c_str());
           }
         }
       }
@@ -12304,7 +12353,7 @@ void HStatistics::Initialize(CompilationInfo* info) {
 
 void HStatistics::Print() {
   PrintF("Timing results:\n");
-  TimeDelta sum;
+  base::TimeDelta sum;
   for (int i = 0; i < times_.length(); ++i) {
     sum += times_[i];
   }
@@ -12322,7 +12371,7 @@ void HStatistics::Print() {
 
   PrintF("----------------------------------------"
          "---------------------------------------\n");
-  TimeDelta total = create_graph_ + optimize_graph_ + generate_code_;
+  base::TimeDelta total = create_graph_ + optimize_graph_ + generate_code_;
   PrintF("%32s %8.3f ms / %4.1f %% \n",
          "Create graph",
          create_graph_.InMillisecondsF(),
@@ -12355,7 +12404,8 @@ void HStatistics::Print() {
 }
 
 
-void HStatistics::SaveTiming(const char* name, TimeDelta time, unsigned size) {
+void HStatistics::SaveTiming(const char* name, base::TimeDelta time,
+                             unsigned size) {
   total_size_ += size;
   for (int i = 0; i < names_.length(); ++i) {
     if (strcmp(names_[i], name) == 0) {
