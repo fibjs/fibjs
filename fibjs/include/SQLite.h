@@ -24,7 +24,13 @@ public:
 
     ~SQLite()
     {
-        ac_close();
+        if (exlib::Service::hasService())
+            ac_close();
+        else
+        {
+            asyncEvent ac;
+            close(&ac);
+        }
     }
 
 public:
