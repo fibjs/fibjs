@@ -173,7 +173,7 @@ result_t console_base::timeEnd(const char *label)
     std::string strBuffer;
     char numStr[64];
 
-    sprintf(numStr, "%.3g", t / 1000.0);
+    sprintf(numStr, "%.10g", t / 1000.0);
 
     strBuffer.append(label);
     strBuffer.append(": ", 2);
