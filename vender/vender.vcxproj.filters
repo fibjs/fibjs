@@ -1185,7 +1185,7 @@
     <ClCompile Include="src\leveldb\util\histogram.cc">
       <Filter>Source Files\leveldb\util</Filter>
     </ClCompile>
-    <ClCompile Include="src\leveldb\util\logging.cc">
+    <ClCompile Include="src\leveldb\util\db_logging.cc">
       <Filter>Source Files\leveldb\util</Filter>
     </ClCompile>
     <ClCompile Include="src\leveldb\util\options.cc">
