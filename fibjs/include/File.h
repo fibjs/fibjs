@@ -20,8 +20,16 @@ public:
 
     ~File()
     {
-        asyncEvent ac;
-        close(&ac);
+        if (m_fd != -1)
+        {
+            if (exlib::Service::hasService())
+                ac_close();
+            else
+            {
+                asyncEvent ac;
+                close(&ac);
+            }
+        }
     }
 
 public:

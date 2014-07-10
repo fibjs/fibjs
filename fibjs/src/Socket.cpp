@@ -29,8 +29,16 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 
 Socket::~Socket()
 {
-    asyncEvent ac;
-    close(&ac);
+    if (m_sock != INVALID_SOCKET)
+    {
+        if (exlib::Service::hasService())
+            ac_close();
+        else
+        {
+            asyncEvent ac;
+            close(&ac);
+        }
+    }
 }
 
 #ifdef _WIN32
@@ -39,8 +47,16 @@ extern HANDLE s_hIocp;
 
 result_t Socket::create(int32_t family, int32_t type)
 {
-    asyncEvent ac;
-    close(&ac);
+    if (m_sock != INVALID_SOCKET)
+    {
+        if (exlib::Service::hasService())
+            ac_close();
+        else
+        {
+            asyncEvent ac;
+            close(&ac);
+        }
+    }
 
     m_family = family;
     m_type = type;
