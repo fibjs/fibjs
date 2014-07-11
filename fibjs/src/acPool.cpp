@@ -18,11 +18,13 @@ static class _acThread: public exlib::OSThread
 public:
     _acThread()
     {
-        int32_t cpus;
-        if (os_base::CPUs(cpus) < 3)
+        int32_t cpus = 0;
+
+        os_base::CPUs(cpus);
+        if (cpus < 3)
             cpus = 3;
 
-        s_threads = cpus * 2;
+        s_threads = cpus;
 
         for (int i = 0; i < s_threads; i++)
         {
@@ -43,7 +45,7 @@ public:
 
         while (1)
         {
-            if (exlib::atom_inc(&s_idleThreads) > s_threads * 2)
+            if (exlib::atom_inc(&s_idleThreads) > s_threads * 3)
             {
                 exlib::atom_dec(&s_idleThreads);
                 break;
@@ -71,7 +73,7 @@ public:
         {
             if (s_idleThreads < s_threads)
             {
-                if (++s_idleCount > 50)
+                if (++s_idleCount > 5)
                 {
                     s_idleCount = 0;
 
