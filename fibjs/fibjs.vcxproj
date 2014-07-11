@@ -70,6 +70,7 @@
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\JSHandler.cpp" />
     <ClCompile Include="src\JsonRpcHandler.cpp" />
+    <ClCompile Include="src\LevelDB.cpp" />
     <ClCompile Include="src\List.cpp" />
     <ClCompile Include="src\Lock.cpp" />
     <ClCompile Include="src\LruCache.cpp" />
@@ -210,6 +211,7 @@
     <ClInclude Include="include\ifs\HttpUploadData.h" />
     <ClInclude Include="include\ifs\Image.h" />
     <ClInclude Include="include\ifs\io.h" />
+    <ClInclude Include="include\ifs\LevelDB.h" />
     <ClInclude Include="include\ifs\List.h" />
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\LruCache.h" />
@@ -266,6 +268,7 @@
     <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\JSHandler.h" />
     <ClInclude Include="include\JsonRpcHandler.h" />
+    <ClInclude Include="include\LevelDB.h" />
     <ClInclude Include="include\List.h" />
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\LruCache.h" />

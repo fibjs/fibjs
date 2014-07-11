@@ -52,6 +52,19 @@ result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal, exl
         return 0;
     }
 
+    if (!qstrcmp(connString, "leveldb:", 8))
+    {
+        obj_ptr<LevelDB_base> db;
+        result_t hr;
+
+        hr = openLevelDB(connString, db, ac);
+        if (hr < 0)
+            return hr;
+
+        retVal = db;
+        return 0;
+    }
+
     return CALL_E_INVALIDARG;
 }
 

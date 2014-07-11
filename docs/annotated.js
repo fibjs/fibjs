@@ -40,6 +40,7 @@ var annotated =
     [ "HttpUploadData", "d0/d3c/classHttpUploadData.html", "d0/d3c/classHttpUploadData" ],
     [ "Image", "d8/d00/classImage.html", "d8/d00/classImage" ],
     [ "io", "d9/da1/classio.html", "d9/da1/classio" ],
+    [ "LevelDB", "d8/d3e/classLevelDB.html", "d8/d3e/classLevelDB" ],
     [ "List", "d6/da9/classList.html", "d6/da9/classList" ],
     [ "Lock", "d6/d83/classLock.html", "d6/d83/classLock" ],
     [ "LruCache", "de/d0f/classLruCache.html", "de/d0f/classLruCache" ],

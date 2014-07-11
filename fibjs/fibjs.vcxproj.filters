@@ -357,6 +357,9 @@
     <ClCompile Include="src\console_file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\LevelDB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -885,6 +888,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\X509Req.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\LevelDB.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\LevelDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -115,7 +115,8 @@ $(document).ready(function(){initNavTree('de/d5f/classdb.html','../../');});
 <div class="dynheader">
 类 db 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d1/dc0/classdb__inherit__graph.svg" width="142" height="286"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d1/dc0/classdb__inherit__graph.svg" width="142" height="299"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
@@ -132,6 +133,9 @@ $(document).ready(function(){initNavTree('de/d5f/classdb.html','../../');});
 <tr class="memitem:a29551281115a5042ad34b3d361dddc51"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d6/d3d/classMongoDB.html">MongoDB</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d5f/classdb.html#a29551281115a5042ad34b3d361dddc51">openMongoDB</a> (String connString) async</td></tr>
 <tr class="memdesc:a29551281115a5042ad34b3d361dddc51"><td class="mdescLeft">&#160;</td><td class="mdescRight">打开一个 mongodb 数据库  <a href="#a29551281115a5042ad34b3d361dddc51">更多...</a><br /></td></tr>
 <tr class="separator:a29551281115a5042ad34b3d361dddc51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af39786855964f572f8d9e34a115bdaf6"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d8/d3e/classLevelDB.html">LevelDB</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d5f/classdb.html#af39786855964f572f8d9e34a115bdaf6">openLevelDB</a> (String connString) async</td></tr>
+<tr class="memdesc:af39786855964f572f8d9e34a115bdaf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">打开一个 leveldb 数据库  <a href="#af39786855964f572f8d9e34a115bdaf6">更多...</a><br /></td></tr>
+<tr class="separator:af39786855964f572f8d9e34a115bdaf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34aceab3cf280744a6293fd472a6cbcc"><td class="memItemLeft" align="right" valign="top">static String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d5f/classdb.html#a34aceab3cf280744a6293fd472a6cbcc">format</a> (String sql,...)</td></tr>
 <tr class="memdesc:a34aceab3cf280744a6293fd472a6cbcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">格式化一个 sql 命令，并返回格式化结果  <a href="#a34aceab3cf280744a6293fd472a6cbcc">更多...</a><br /></td></tr>
 <tr class="separator:a34aceab3cf280744a6293fd472a6cbcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -271,6 +275,39 @@ $(document).ready(function(){initNavTree('de/d5f/classdb.html','../../');});
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">connString</td><td>数据库描述 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回数据库连接对象 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af39786855964f572f8d9e34a115bdaf6"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="../../d8/d3e/classLevelDB.html">LevelDB</a> db::openLevelDB </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>connString</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>打开一个 leveldb 数据库 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connString</td><td>数据库描述，如：level:test.db 或者 test.db </td></tr>
   </table>
   </dd>
 </dl>

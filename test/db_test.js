@@ -99,6 +99,73 @@ describe("db", function() {
 	xdescribe("mysql", function() {
 		_test('mysql://root@localhost/test');
 	});
+
+
+	describe("leveldb", function() {
+		after(function() {
+			fs.readdir("testdb").forEach(function(s) {
+				if (s.name != "." && s.name != "..")
+					fs.unlink("testdb/" + s.name);
+			});
+
+			fs.rmdir("testdb");
+		});
+
+		it('open/close', function() {
+			var ldb = db.openLevelDB("testdb");
+			ldb.close();
+		});
+
+		it('put/get', function() {
+			var b = new Buffer("bbbbb");
+			var ldb = db.openLevelDB("testdb");
+			ldb.put("test", b);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+			ldb.close();
+		});
+
+		it('binary Key', function() {
+			var b = new Buffer("bbbbb1");
+			var ldb = db.openLevelDB("testdb");
+			ldb.put(new Buffer("test1"), b);
+			assert.equal(ldb.get(new Buffer("test1")).toString(), "bbbbb1");
+			ldb.close();
+		});
+
+		it('batch', function() {
+			var data = {
+				"aaa": new Buffer("aaa value"),
+				"bbb": new Buffer("bbb value"),
+				"ccc": new Buffer("ccc value"),
+				"ddd": new Buffer("ddd value")
+			};
+
+			var ldb = db.openLevelDB("testdb");
+			ldb.put(data);
+			assert.equal(ldb.get("aaa").toString(), "aaa value");
+			assert.equal(ldb.get("bbb").toString(), "bbb value");
+			assert.equal(ldb.get("ccc").toString(), "ccc value");
+			assert.equal(ldb.get("ddd").toString(), "ddd value");
+			ldb.close();
+		});
+
+		it('remove/has', function() {
+			var b = new Buffer("bbbbb");
+			var ldb = db.openLevelDB("testdb");
+			assert.isNull(ldb.get("not_exists"));
+			assert.isFalse(ldb.has("not_exists"));
+			ldb.put("not_exists", b);
+			assert.isTrue(ldb.has("not_exists"));
+			ldb.remove("not_exists");
+			assert.isFalse(ldb.has("not_exists"));
+
+			ldb.put("not_exists", b);
+			assert.isTrue(ldb.has(new Buffer("not_exists")));
+			ldb.remove(new Buffer("not_exists"));
+			assert.isFalse(ldb.has("not_exists"));
+			ldb.close();
+		});
+	});
 });
 
-// test.run(console.DEBUG);
+//test.run(console.DEBUG);

@@ -4,7 +4,7 @@
 <area shape="rect" id="node4" href="$d6/df8/classconsole.html" title="控制台访问对象 " alt="" coords="296,200,390,753"/>
 <area shape="rect" id="node5" href="$d2/dd1/classcoroutine.html" title="并发控制模块 " alt="" coords="414,367,528,587"/>
 <area shape="rect" id="node6" href="$d8/d48/classcrypto.html" title="加密算法模块 " alt="" coords="552,267,721,687"/>
-<area shape="rect" id="node7" href="$de/d5f/classdb.html" title="数据库访问模块 " alt="" coords="744,400,875,553"/>
+<area shape="rect" id="node7" href="$de/d5f/classdb.html" title="数据库访问模块 " alt="" coords="744,393,875,560"/>
 <area shape="rect" id="node8" href="$d0/d52/classencoding.html" title="编码与解码模块，用于处理不同的数据编码格式与二进制之间的转换 引用方式： " alt="" coords="898,340,1076,613"/>
 <area shape="rect" id="node9" href="$dc/d2f/classfs.html" title="文件系统处理模块 " alt="" coords="1100,333,1239,620"/>
 <area shape="rect" id="node10" href="$de/d65/classFunction.html" title="Function 模块不可直接引用，仅用于实现对 javascript Function 对象的扩展 " alt="" coords="1263,440,1335,513"/>

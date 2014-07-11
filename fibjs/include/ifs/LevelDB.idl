@@ -1,0 +1,65 @@
+
+/*! @brief LevelDB 数据库对象
+
+ 用以创建和管理字典对象，创建方法：
+ @code
+ var db = require("db");
+ var test = new db.openLevelDB("test.db");
+ @endcode
+ */
+class LevelDB : object
+{
+    /*! @brief 检查数据库内是否存在指定键值的数据
+     @param key 指定要检查的键值
+     @return 返回键值是否存在
+     */
+    Boolean has(Buffer key) async;
+
+    /*! @brief 检查数据库内是否存在指定键值的数据
+     @param key 指定要检查的键值
+     @return 返回键值是否存在
+     */
+    Boolean has(String key) async;
+
+    /*! @brief 查询指定键值的值
+     @param key 指定要查询的键值
+     @return 返回键值所对应的值，若不存在，则返回 null
+     */
+    Buffer get(Buffer key) async;
+
+    /*! @brief 查询指定键值的值
+     @param key 指定要查询的键值
+     @return 返回键值所对应的值，若不存在，则返回 null
+     */
+    Buffer get(String key) async;
+
+    /*! @brief 设定一个键值数据，键值不存在则插入一条新数据
+     @param map 指定要设定的键值数据字典
+     */
+    put(Object map);
+
+    /*! @brief 设定一个键值数据，键值不存在则插入新数据
+     @param key 指定要设定的键值
+     @param value 指定要设定的数据
+     */
+    put(Buffer key, Buffer value) async;
+
+    /*! @brief 设定一个键值数据，键值不存在则插入新数据
+     @param key 指定要设定的键值
+     @param value 指定要设定的数据
+     */
+    put(String key, Buffer value) async;
+
+    /*! @brief 删除指定键值的全部值
+     @param key 指定要删除的键值
+     */
+    remove(Buffer key) async;
+
+    /*! @brief 删除指定键值的全部值
+     @param key 指定要删除的键值
+     */
+    remove(String key) async;
+
+    /*! @brief 关闭当前数据库连接 */
+    close() async;
+};
