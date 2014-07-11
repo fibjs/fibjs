@@ -18,6 +18,8 @@
 #include <tiffvers.h>
 #include <mongo/mongo.h>
 #include <polarssl/version.h>
+#include <snappy.h>
+#include <leveldb/db.h>
 
 namespace fibjs
 {
@@ -324,6 +326,7 @@ result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
 
     {
         v8::Local<v8::Object> vender = v8::Object::New(isolate);
+        char str[64];
 
         retVal->Set(v8::String::NewFromUtf8(isolate, "vender"), vender);
 
@@ -332,12 +335,16 @@ result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
         vender->Set(v8::String::NewFromUtf8(isolate, "gd"), v8::String::NewFromUtf8(isolate, GD_VERSION_STRING));
         vender->Set(v8::String::NewFromUtf8(isolate, "jpeg"), v8::String::NewFromUtf8(isolate,
                     STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
+        sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
+        vender->Set(v8::String::NewFromUtf8(isolate, "leveldb"), v8::String::NewFromUtf8(isolate,  str));
         vender->Set(v8::String::NewFromUtf8(isolate, "mongo"), v8::String::NewFromUtf8(isolate,
                     STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
         vender->Set(v8::String::NewFromUtf8(isolate, "pcre"), v8::String::NewFromUtf8(isolate,
                     STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
         vender->Set(v8::String::NewFromUtf8(isolate, "png"), v8::String::NewFromUtf8(isolate, PNG_LIBPNG_VER_STRING));
         vender->Set(v8::String::NewFromUtf8(isolate, "polarssl"), v8::String::NewFromUtf8(isolate, POLARSSL_VERSION_STRING));
+        vender->Set(v8::String::NewFromUtf8(isolate, "snappy"),
+                    v8::String::NewFromUtf8(isolate,  STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL)));
         vender->Set(v8::String::NewFromUtf8(isolate, "sqlite"), v8::String::NewFromUtf8(isolate, SQLITE_VERSION));
         vender->Set(v8::String::NewFromUtf8(isolate, "tiff"), v8::String::NewFromUtf8(isolate, TIFFLIB_VERSION_STR));
         vender->Set(v8::String::NewFromUtf8(isolate, "uuid"), v8::String::NewFromUtf8(isolate, "1.6.2"));
