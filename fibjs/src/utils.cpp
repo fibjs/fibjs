@@ -53,9 +53,18 @@ std::string json_format(v8::Local<v8::Value> obj)
     std::string strBuffer;
     std::string s;
 
+    if (obj->IsUndefined())
+        return "undefined";
+
+    if (obj->IsFunction())
+        return "[Function]";
+
     result_t hr = encoding_base::jsonEncode(obj, s);
     if (hr < 0)
         return "[Circular]";
+
+    if (!qstrcmp(s.c_str(), "undefined"))
+        return "[Object]";
 
     p = s.c_str();
     while ((ch = *p++) != 0)

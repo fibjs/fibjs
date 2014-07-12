@@ -143,6 +143,10 @@ describe('util', function() {
 				assert.equal(util.format('%j', o), '[Circular]');
 			})();
 		});
+
+		it("Function", function() {
+			assert.equal(util.format('%j', function() {}), '[Function]');
+		});
 	});
 
 	describe('Stats', function() {
