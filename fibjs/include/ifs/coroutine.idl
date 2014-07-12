@@ -58,4 +58,10 @@ class coroutine : module
      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
      */
     static sleep(Integer ms = 0) async;
+
+    /*! @brief 是否强制使用单用户模式，缺省为 False
+
+     单用户模式下，非必须的异步操作会在 js 线程阻塞执行，可消除异步消息传送导致的额外负载，从而提高运算速度，但是会阻塞其他所有 Fiber 的运行。可用于并发要求低的计算密集型应用。
+     */
+    static Boolean singleUserMode;
 };

@@ -338,7 +338,7 @@ public:
 result_t zlib_base::deflate(Buffer_base *data, int32_t level,
                             obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return def(level).process(data, retVal);
@@ -365,7 +365,7 @@ result_t zlib_base::deflateTo(Stream_base *src, Stream_base *stm, int32_t level,
 result_t zlib_base::inflate(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                             exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return inf().process(data, retVal);
@@ -392,7 +392,7 @@ result_t zlib_base::inflateTo(Stream_base *src, Stream_base *stm,
 result_t zlib_base::gzip(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return gz().process(data, retVal);
@@ -419,7 +419,7 @@ result_t zlib_base::gzipTo(Stream_base *src, Stream_base *stm,
 result_t zlib_base::gunzip(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                            exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return gunz().process(data, retVal);

@@ -41,7 +41,7 @@ result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
     if (size < 128 || size > 8192)
         return Runtime::setError("Invalid key size");
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     int ret;
@@ -63,7 +63,7 @@ result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
 
 result_t PKey::genEcKey(const char *curve, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     const ecp_curve_info *curve_info;
@@ -337,7 +337,7 @@ result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
 result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                        exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     int ret;
@@ -363,7 +363,7 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
 result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                        exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     result_t hr;
@@ -399,7 +399,7 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
 result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                     exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     result_t hr;
@@ -436,7 +436,7 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
 result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
                       exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     int ret;

@@ -31,7 +31,7 @@ void Image::setExtMemory(int add)
 result_t gd_base::create(int32_t width, int32_t height, int32_t color,
                          obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     obj_ptr<Image> img = new Image();
@@ -46,7 +46,7 @@ result_t gd_base::create(int32_t width, int32_t height, int32_t color,
 result_t gd_base::load(Buffer_base *data, obj_ptr<Image_base> &retVal,
                        exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     obj_ptr<Image> img = new Image();
@@ -160,7 +160,7 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
         obj_ptr<Image_base> &m_retVal;
     };
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return (new asyncLoad(fname, retVal, ac))->post(0);
@@ -411,7 +411,7 @@ result_t Image::getData(int32_t format, int32_t quality,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     int size = 0;
@@ -567,7 +567,7 @@ result_t Image::save(const char *fname, int32_t format, int32_t quality,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return (new asyncSave(this, fname, format, quality, ac))->post(0);
@@ -1072,7 +1072,7 @@ result_t Image::colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent *ac)
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     gdImageColorReplace(m_image, src, dst);
@@ -1085,7 +1085,7 @@ result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     obj_ptr<Image> dst;
@@ -1107,7 +1107,7 @@ result_t Image::clone(obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     int32_t w = gdImageSX(m_image);
@@ -1122,7 +1122,7 @@ result_t Image::resample(int32_t width, int32_t height,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     obj_ptr<Image> dst;
@@ -1144,7 +1144,7 @@ result_t Image::flip(int32_t dir, exlib::AsyncEvent *ac)
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     if (dir == gd_base::_HORIZONTAL)
@@ -1205,7 +1205,7 @@ result_t Image::rotate(int32_t dir, exlib::AsyncEvent *ac)
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return rotate(dir);
@@ -1216,7 +1216,7 @@ result_t Image::convert(int32_t color, exlib::AsyncEvent *ac)
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     if (color != gd_base::_TRUECOLOR && color != gd_base::_PALETTE)
@@ -1263,7 +1263,7 @@ result_t Image::copy(Image_base *source, int32_t dstX, int32_t dstY,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     Image *src = (Image *) source;
@@ -1281,7 +1281,7 @@ result_t Image::copyMerge(Image_base *source, int32_t dstX, int32_t dstY,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     Image *src = (Image *) source;
@@ -1300,7 +1300,7 @@ result_t Image::copyMergeGray(Image_base *source, int32_t dstX, int32_t dstY,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     Image *src = (Image *) source;
@@ -1319,7 +1319,7 @@ result_t Image::copyResized(Image_base *source, int32_t dstX, int32_t dstY,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     Image *src = (Image *) source;
@@ -1338,7 +1338,7 @@ result_t Image::copyResampled(Image_base *source, int32_t dstX, int32_t dstY,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     Image *src = (Image *) source;
@@ -1357,7 +1357,7 @@ result_t Image::copyRotated(Image_base *source, double dstX, double dstY,
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     Image *src = (Image *) source;

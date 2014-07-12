@@ -104,6 +104,7 @@ $(document).ready(function(){initNavTree('d2/dd1/classcoroutine.html','../../');
 <div class="header">
   <div class="summary">
 <a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="#pub-static-attribs">静态 Public 属性</a> &#124;
 <a href="../../da/db9/classcoroutine-members.html">所有成员列表</a>  </div>
   <div class="headertitle">
 <div class="title">coroutine类 参考</div>  </div>
@@ -115,7 +116,7 @@ $(document).ready(function(){initNavTree('d2/dd1/classcoroutine.html','../../');
 <div class="dynheader">
 类 coroutine 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../da/db8/classcoroutine__inherit__graph.svg" width="126" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../da/db8/classcoroutine__inherit__graph.svg" width="140" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
@@ -156,6 +157,12 @@ $(document).ready(function(){initNavTree('d2/dd1/classcoroutine.html','../../');
 <tr class="memitem:a33b697ae989607c6a860676f8f30a0c9"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/dd1/classcoroutine.html#a33b697ae989607c6a860676f8f30a0c9">sleep</a> (Integer ms=0) async</td></tr>
 <tr class="memdesc:a33b697ae989607c6a860676f8f30a0c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">暂停当前纤程指定的时间  <a href="#a33b697ae989607c6a860676f8f30a0c9">更多...</a><br /></td></tr>
 <tr class="separator:a33b697ae989607c6a860676f8f30a0c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+静态 Public 属性</h2></td></tr>
+<tr class="memitem:af105dc75a226575e7b8e6c2e2312c1b2"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/dd1/classcoroutine.html#af105dc75a226575e7b8e6c2e2312c1b2">singleUserMode</a></td></tr>
+<tr class="memdesc:af105dc75a226575e7b8e6c2e2312c1b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否强制使用单用户模式，缺省为 False  <a href="#af105dc75a226575e7b8e6c2e2312c1b2">更多...</a><br /></td></tr>
+<tr class="separator:af105dc75a226575e7b8e6c2e2312c1b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>并发控制模块 </p>
@@ -520,6 +527,30 @@ $(document).ready(function(){initNavTree('d2/dd1/classcoroutine.html','../../');
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a class="anchor" id="af105dc75a226575e7b8e6c2e2312c1b2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean coroutine::singleUserMode</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>是否强制使用单用户模式，缺省为 False </p>
+<p>单用户模式下，非必须的异步操作会在 js 线程阻塞执行，可消除异步消息传送导致的额外负载，从而提高运算速度，但是会阻塞其他所有 <a class="el" href="../../d1/d42/classFiber.html" title="纤程操作对象，此对象不可直接创建 ">Fiber</a> 的运行。可用于并发要求低的计算密集型应用。 </p>
 
 </div>
 </div>

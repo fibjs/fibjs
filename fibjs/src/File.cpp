@@ -28,7 +28,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (m_fd == -1)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string strBuf;
@@ -96,7 +96,7 @@ result_t File::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
     if (m_fd == -1)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string strBuf;
@@ -169,7 +169,7 @@ result_t File::write(Buffer_base *data, exlib::AsyncEvent *ac)
     if (m_fd == -1)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string strBuf;
@@ -189,7 +189,7 @@ result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
 
 result_t File::open(const char *fname, const char *flags, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
 #ifdef _WIN32
@@ -245,7 +245,7 @@ result_t File::stat(obj_ptr<Stat_base> &retVal, exlib::AsyncEvent *ac)
     if (m_fd == -1)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     struct stat64 st;
@@ -338,7 +338,7 @@ result_t File::flush(exlib::AsyncEvent *ac)
     if (m_fd == -1)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     //    fflush(m_file);
@@ -357,7 +357,7 @@ result_t File::close(exlib::AsyncEvent *ac)
 {
     if (m_fd != -1)
     {
-        if (!ac)
+        if (switchToAsync(ac))
             return CALL_E_NOSYNC;
 
         if (m_pipe)
@@ -377,7 +377,7 @@ result_t File::truncate(int64_t bytes, exlib::AsyncEvent *ac)
     if (m_fd == -1)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     if (ftruncate64(m_fd, bytes) < 0)
@@ -391,7 +391,7 @@ result_t File::chmod(int32_t mode, exlib::AsyncEvent *ac)
 #ifdef _WIN32
     return CALL_E_INVALID_CALL;
 #else
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     if (::fchmod(m_fd, mode))

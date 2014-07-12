@@ -17,7 +17,7 @@ namespace fibjs
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
                                   exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     time_t t;
@@ -52,7 +52,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
 result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
                                         exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     int i, ret;

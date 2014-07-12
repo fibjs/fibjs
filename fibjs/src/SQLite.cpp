@@ -20,7 +20,7 @@ namespace fibjs
 result_t db_base::openSQLite(const char *connString,
                              obj_ptr<SQLite_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     result_t hr;
@@ -55,11 +55,11 @@ result_t SQLite::open(const char *file)
 
 result_t SQLite::close(exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
     if (!m_db)
         return CALL_E_INVALID_CALL;
+
+    if (switchToAsync(ac))
+        return CALL_E_NOSYNC;
 
     sqlite3_close(m_db);
     m_db = NULL;
@@ -69,7 +69,10 @@ result_t SQLite::close(exlib::AsyncEvent *ac)
 
 result_t SQLite::begin(exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (!m_db)
+        return CALL_E_INVALID_CALL;
+
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     obj_ptr<DBResult_base> retVal;
@@ -78,7 +81,10 @@ result_t SQLite::begin(exlib::AsyncEvent *ac)
 
 result_t SQLite::commit(exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (!m_db)
+        return CALL_E_INVALID_CALL;
+
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     obj_ptr<DBResult_base> retVal;
@@ -87,7 +93,10 @@ result_t SQLite::commit(exlib::AsyncEvent *ac)
 
 result_t SQLite::rollback(exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (!m_db)
+        return CALL_E_INVALID_CALL;
+
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     obj_ptr<DBResult_base> retVal;
@@ -238,7 +247,10 @@ result_t SQLite::execute(const char *sql, int sLen,
 
 result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (!m_db)
+        return CALL_E_INVALID_CALL;
+
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     return execute(sql, (int) qstrlen(sql), retVal);
@@ -293,11 +305,11 @@ result_t SQLite::set_timeout(int32_t newVal)
 
 result_t SQLite::backup(const char *fileName, exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
     if (!m_db)
         return CALL_E_INVALID_CALL;
+
+    if (!ac)
+        return CALL_E_NOSYNC;
 
     int rc;
     struct sqlite3 *db2 = NULL;

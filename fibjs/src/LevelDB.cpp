@@ -15,7 +15,7 @@ namespace fibjs
 result_t db_base::openLevelDB(const char *connString,
                               obj_ptr<LevelDB_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     result_t hr;
@@ -49,7 +49,7 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string key1;
@@ -77,7 +77,7 @@ result_t LevelDB::has(const char *key, bool &retVal, exlib::AsyncEvent *ac)
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     leveldb::Slice sKey = key;
@@ -102,7 +102,7 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::Asy
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string key1;
@@ -127,7 +127,7 @@ result_t LevelDB::get(const char *key, obj_ptr<Buffer_base> &retVal, exlib::Asyn
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     leveldb::Slice sKey = key;
@@ -146,7 +146,7 @@ result_t LevelDB::get(const char *key, obj_ptr<Buffer_base> &retVal, exlib::Asyn
 
 result_t LevelDB::_commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac)
 {
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     leveldb::Status s = m_db->Write(leveldb::WriteOptions(), batch);
@@ -195,7 +195,7 @@ result_t LevelDB::put(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *a
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string key1;
@@ -219,7 +219,7 @@ result_t LevelDB::put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string value1;
@@ -240,7 +240,7 @@ result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     std::string key1;
@@ -261,7 +261,7 @@ result_t LevelDB::remove(const char *key, exlib::AsyncEvent *ac)
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     leveldb::Slice sKey = key;
@@ -279,7 +279,7 @@ result_t LevelDB::close(exlib::AsyncEvent *ac)
     if (!m_db)
         return 0;
 
-    if (!ac)
+    if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
     if (m_db)

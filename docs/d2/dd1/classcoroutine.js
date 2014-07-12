@@ -11,5 +11,6 @@ var classcoroutine =
     [ "parallel", "d2/dd1/classcoroutine.html#ab144e97cefa69d763e76db023becc624", null ],
     [ "parallel", "d2/dd1/classcoroutine.html#aff48cfd6c77937aa2f5065a139192c93", null ],
     [ "current", "d2/dd1/classcoroutine.html#ae2d278991596f4170f2be18ae8d71454", null ],
-    [ "sleep", "d2/dd1/classcoroutine.html#a33b697ae989607c6a860676f8f30a0c9", null ]
+    [ "sleep", "d2/dd1/classcoroutine.html#a33b697ae989607c6a860676f8f30a0c9", null ],
+    [ "singleUserMode", "d2/dd1/classcoroutine.html#af105dc75a226575e7b8e6c2e2312c1b2", null ]
 ];

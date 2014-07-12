@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"d5/df6/classhash.html#a97717b785cf7bdb90d7e134be8eefba4":[4,0,28,44],
 "d5/df6/classhash.html#a9910a7f0744d47299013d60592b53f22":[4,0,28,2],
 "d5/df6/classhash.html#a9fa379cb0df932c120a6797f45b651e5":[4,0,28,43],
 "d5/df6/classhash.html#ab327172bb61d3e5bf4875195eaa0eb31":[4,0,28,27],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "d7/d43/classChain.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,5,6],
 "d7/d43/classChain.html#af901258552a23961893c5bd6f18ce681":[4,0,5,3],
 "d7/d56/classQueue.html":[4,0,62],
-"d7/d56/classQueue.html#a01107ca7cd53af62fb9ed599054c8843":[4,0,62,0],
-"d7/d56/classQueue.html#a0b29d2db0a4fa1114fa4278416d41644":[4,0,62,2]
+"d7/d56/classQueue.html#a01107ca7cd53af62fb9ed599054c8843":[4,0,62,0]
 };
