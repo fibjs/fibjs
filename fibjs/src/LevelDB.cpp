@@ -292,8 +292,12 @@ result_t LevelDB::begin(obj_ptr<LevelDB_base> &retVal)
 
 result_t LevelDB::commit()
 {
+    if (!db() || !m_batch)
+        return CALL_E_INVALID_CALL;
+
     result_t hr = ac__commit(m_batch);
     close(NULL);
+
     return hr;
 }
 
