@@ -115,7 +115,8 @@ $(document).ready(function(){initNavTree('d8/d3e/classLevelDB.html','../../');})
 <div class="dynheader">
 类 LevelDB 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d5/d55/classLevelDB__inherit__graph.svg" width="100" height="366"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d5/d55/classLevelDB__inherit__graph.svg" width="100" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -147,8 +148,14 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a0c4a8914187d12234892bb6e1b7d8e2b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#a0c4a8914187d12234892bb6e1b7d8e2b">remove</a> (String key) async</td></tr>
 <tr class="memdesc:a0c4a8914187d12234892bb6e1b7d8e2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">删除指定键值的全部值  <a href="#a0c4a8914187d12234892bb6e1b7d8e2b">更多...</a><br /></td></tr>
 <tr class="separator:a0c4a8914187d12234892bb6e1b7d8e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3fab8d3decb8054f9124b070672105f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/d3e/classLevelDB.html">LevelDB</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f">begin</a> ()</td></tr>
+<tr class="memdesc:aa3fab8d3decb8054f9124b070672105f"><td class="mdescLeft">&#160;</td><td class="mdescRight">在当前数据库上开启一个事务  <a href="#aa3fab8d3decb8054f9124b070672105f">更多...</a><br /></td></tr>
+<tr class="separator:aa3fab8d3decb8054f9124b070672105f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7d98e0ce00ca52d838a1b31d9d323ba"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#ad7d98e0ce00ca52d838a1b31d9d323ba">commit</a> ()</td></tr>
+<tr class="memdesc:ad7d98e0ce00ca52d838a1b31d9d323ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">提交当前事务  <a href="#ad7d98e0ce00ca52d838a1b31d9d323ba">更多...</a><br /></td></tr>
+<tr class="separator:ad7d98e0ce00ca52d838a1b31d9d323ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab757e7bc24ac6020559062e30e0f2b46"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#ab757e7bc24ac6020559062e30e0f2b46">close</a> () async</td></tr>
-<tr class="memdesc:ab757e7bc24ac6020559062e30e0f2b46"><td class="mdescLeft">&#160;</td><td class="mdescRight">关闭当前数据库连接  <a href="#ab757e7bc24ac6020559062e30e0f2b46">更多...</a><br /></td></tr>
+<tr class="memdesc:ab757e7bc24ac6020559062e30e0f2b46"><td class="mdescLeft">&#160;</td><td class="mdescRight">关闭当前数据库连接或事务  <a href="#ab757e7bc24ac6020559062e30e0f2b46">更多...</a><br /></td></tr>
 <tr class="separator:ab757e7bc24ac6020559062e30e0f2b46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b88dbc459449d2280338e5b702a68b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a6b88dbc459449d2280338e5b702a68b4">dispose</a> ()</td></tr>
 <tr class="memdesc:a6b88dbc459449d2280338e5b702a68b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">强制回收对象，调用此方法后，对象资源将立即释放  <a href="#a6b88dbc459449d2280338e5b702a68b4">更多...</a><br /></td></tr>
@@ -410,6 +417,41 @@ Public 成员函数</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="aa3fab8d3decb8054f9124b070672105f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d8/d3e/classLevelDB.html">LevelDB</a> LevelDB::begin </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>在当前数据库上开启一个事务 </p>
+<dl class="section return"><dt>返回</dt><dd>返回一个开启的事务对象 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad7d98e0ce00ca52d838a1b31d9d323ba"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LevelDB::commit </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>提交当前事务 </p>
+
+</div>
+</div>
 <a class="anchor" id="ab757e7bc24ac6020559062e30e0f2b46"></a>
 <div class="memitem">
 <div class="memproto">
@@ -423,7 +465,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>关闭当前数据库连接 </p>
+<p>关闭当前数据库连接或事务 </p>
 
 </div>
 </div>

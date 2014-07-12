@@ -426,27 +426,29 @@
 <!-- Node23 -->
 <g id="node23" class="node"><title>Node23</title>
 <g id="a_node23"><a xlink:href="../../d8/d3e/classLevelDB.html" target="_top" xlink:title="LevelDB 数据库对象 ">
-<polygon fill="white" stroke="black" points="1466.4,-381.5 1466.4,-525.5 1531.02,-525.5 1531.02,-381.5 1466.4,-381.5"/>
-<text text-anchor="middle" x="1498.71" y="-513.5" font-family="Helvetica,sans-Serif" font-size="10.00">LevelDB</text>
-<polyline fill="none" stroke="black" points="1466.4,-507.5 1531.02,-507.5 "/>
-<text text-anchor="middle" x="1498.71" y="-495.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="1466.4,-489.5 1531.02,-489.5 "/>
+<polygon fill="white" stroke="black" points="1466.4,-371.5 1466.4,-535.5 1531.02,-535.5 1531.02,-371.5 1466.4,-371.5"/>
+<text text-anchor="middle" x="1498.71" y="-523.5" font-family="Helvetica,sans-Serif" font-size="10.00">LevelDB</text>
+<polyline fill="none" stroke="black" points="1466.4,-517.5 1531.02,-517.5 "/>
+<text text-anchor="middle" x="1498.71" y="-505.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="1466.4,-499.5 1531.02,-499.5 "/>
+<text text-anchor="start" x="1474.4" y="-487.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
 <text text-anchor="start" x="1474.4" y="-477.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
-<text text-anchor="start" x="1474.4" y="-467.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
+<text text-anchor="start" x="1474.4" y="-467.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
 <text text-anchor="start" x="1474.4" y="-457.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
-<text text-anchor="start" x="1474.4" y="-447.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<text text-anchor="start" x="1474.4" y="-447.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
 <text text-anchor="start" x="1474.4" y="-437.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
 <text text-anchor="start" x="1474.4" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
-<text text-anchor="start" x="1474.4" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
+<text text-anchor="start" x="1474.4" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
 <text text-anchor="start" x="1474.4" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="1474.4" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="1474.4" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
+<text text-anchor="start" x="1474.4" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ begin()</text>
+<text text-anchor="start" x="1474.4" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ commit()</text>
+<text text-anchor="start" x="1474.4" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node23 -->
 <g id="edge22" class="edge"><title>Node1&#45;&gt;Node23</title>
-<path fill="none" stroke="midnightblue" d="M2017.32,-843.48C1904.46,-842.466 1605.93,-833.339 1539.71,-766 1478.23,-703.48 1477.8,-596.653 1485.98,-525.814"/>
+<path fill="none" stroke="midnightblue" d="M2017.32,-843.48C1904.46,-842.466 1605.93,-833.339 1539.71,-766 1481,-706.3 1477.96,-606.199 1484.93,-535.611"/>
 <polygon fill="none" stroke="midnightblue" points="2017.31,-846.98 2027.33,-843.552 2017.36,-839.98 2017.31,-846.98"/>
 </g>
 <!-- Node24 -->

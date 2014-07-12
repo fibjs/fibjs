@@ -31,6 +31,8 @@ public:
 	virtual result_t put(const char* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
 	virtual result_t remove(Buffer_base* key, exlib::AsyncEvent* ac) = 0;
 	virtual result_t remove(const char* key, exlib::AsyncEvent* ac) = 0;
+	virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
+	virtual result_t commit() = 0;
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(LevelDB_base);
@@ -40,6 +42,8 @@ public:
 	static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -68,13 +72,15 @@ namespace fibjs
 			{"get", s_get},
 			{"put", s_put},
 			{"remove", s_remove},
+			{"begin", s_begin},
+			{"commit", s_commit},
 			{"close", s_close}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"LevelDB", NULL, 
-			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -163,6 +169,28 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->ac_remove(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void LevelDB_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<LevelDB_base> vr;
+
+		METHOD_INSTANCE(LevelDB_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->begin(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void LevelDB_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(LevelDB_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->commit();
 
 		METHOD_VOID();
 	}

@@ -60,6 +60,13 @@ class LevelDB : object
      */
     remove(String key) async;
 
-    /*! @brief 关闭当前数据库连接 */
+    /*! @brief 在当前数据库上开启一个事务
+     @return 返回一个开启的事务对象 */
+    LevelDB begin();
+
+    /*! @brief 提交当前事务 */
+    commit();
+
+    /*! @brief 关闭当前数据库连接或事务 */
     close() async;
 };

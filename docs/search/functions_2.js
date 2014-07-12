@@ -22,7 +22,7 @@ var searchData=
   ['colorresolvealpha',['colorResolveAlpha',['../d8/d00/classImage.html#ab86e50beb02597d0ca86e8dfef49b3b2',1,'Image::colorResolveAlpha(Integer red, Integer green, Integer blue, Number alpha)'],['../d8/d00/classImage.html#aeb55718a5fe65ed0e1e906c0e0d494c9',1,'Image::colorResolveAlpha(Integer color)']]],
   ['combine',['combine',['../dc/d8a/classpath.html#a3d61d07eb72f122b18f74d930df2730f',1,'path']]],
   ['command',['command',['../d5/d6b/classSmtp.html#a8856c5ea86c3aa98d799ae76134970f5',1,'Smtp']]],
-  ['commit',['commit',['../d6/d91/classDbConnection.html#a1cfd7776b7f7b4a34e216f33b4df823b',1,'DbConnection']]],
+  ['commit',['commit',['../d6/d91/classDbConnection.html#a1cfd7776b7f7b4a34e216f33b4df823b',1,'DbConnection::commit()'],['../d8/d3e/classLevelDB.html#ad7d98e0ce00ca52d838a1b31d9d323ba',1,'LevelDB::commit()']]],
   ['compile',['compile',['../de/de2/classre.html#a210fb1ffc2d442367932ea0f831e59e1',1,'re']]],
   ['concat',['concat',['../d6/da9/classList.html#ac4827e4196f21ea4b20ac15a55a62aa3',1,'List']]],
   ['condition',['Condition',['../d2/dd1/classcoroutine.html#a463e4db5114bdce2a92a95e17bb94750',1,'coroutine']]],

@@ -20,13 +20,18 @@ class LevelDB: public LevelDB_base
     FIBER_FREE();
 
 public:
-    LevelDB() : m_db(NULL)
+    LevelDB() : m_db(NULL), m_batch(NULL)
     {
     }
 
     ~LevelDB()
     {
-        if (m_db)
+        if (m_batch)
+        {
+            asyncEvent ac;
+            close(&ac);
+        }
+        else if (m_db)
         {
             if (exlib::Service::hasService())
                 ac_close();
@@ -49,6 +54,8 @@ public:
     virtual result_t put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac);
     virtual result_t remove(Buffer_base *key, exlib::AsyncEvent *ac);
     virtual result_t remove(const char *key, exlib::AsyncEvent *ac);
+    virtual result_t begin(obj_ptr<LevelDB_base> &retVal);
+    virtual result_t commit();
     virtual result_t close(exlib::AsyncEvent *ac);
 
 public:
@@ -57,9 +64,39 @@ public:
 private:
     result_t _commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac);
     ASYNC_MEMBER1(LevelDB, _commit, leveldb::WriteBatch *);
+    leveldb::DB *db()
+    {
+        if (m_base)
+            return m_base->m_db;
+        return m_db;
+    }
+
+    leveldb::Status Put(const leveldb::Slice &key, const leveldb::Slice &value)
+    {
+        if (m_batch)
+        {
+            m_batch->Put(key, value);
+            return leveldb::Status::OK();
+        }
+
+        return m_db->Put(leveldb::WriteOptions(), key, value);
+    }
+
+    leveldb::Status Delete(const leveldb::Slice &key)
+    {
+        if (m_batch)
+        {
+            m_batch->Delete(key);
+            return leveldb::Status::OK();
+        }
+
+        return m_db->Delete(leveldb::WriteOptions(), key);
+    }
 
 private:
     leveldb::DB *m_db;
+    obj_ptr<LevelDB> m_base;
+    leveldb::WriteBatch *m_batch;
 };
 
 } /* namespace fibjs */

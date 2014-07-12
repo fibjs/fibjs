@@ -17,7 +17,7 @@ var searchData=
   ['been',['been',['../dd/d7a/classExpect.html#a14299251d029a0cfc8bcef53c98c47f9',1,'Expect']]],
   ['before',['before',['../de/d01/classtest.html#af0cd25d326c6fbed1eca286abb4df915',1,'test']]],
   ['beforeeach',['beforeEach',['../de/d01/classtest.html#a934439b75ffe6517612b37f8f64a7d0e',1,'test']]],
-  ['begin',['begin',['../d6/d91/classDbConnection.html#aa6d68c3a518d46207b42d7f638b07a1e',1,'DbConnection']]],
+  ['begin',['begin',['../d6/d91/classDbConnection.html#aa6d68c3a518d46207b42d7f638b07a1e',1,'DbConnection::begin()'],['../d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f',1,'LevelDB::begin()']]],
   ['below',['below',['../dd/d7a/classExpect.html#ac7340f0a34d0826759759fa575c0da6f',1,'Expect']]],
   ['best_5fcompression',['BEST_COMPRESSION',['../d8/d09/classzlib.html#aa616c6868879479fa20e68a042fd0497',1,'zlib']]],
   ['best_5fspeed',['BEST_SPEED',['../d8/d09/classzlib.html#ac1fa5896622f3a54952bda03eb7d3acd',1,'zlib']]],

@@ -132,7 +132,7 @@ describe("db", function() {
 			ldb.close();
 		});
 
-		it('batch', function() {
+		it('batch put', function() {
 			var data = {
 				"aaa": new Buffer("aaa value"),
 				"bbb": new Buffer("bbb value"),
@@ -165,6 +165,47 @@ describe("db", function() {
 			assert.isFalse(ldb.has("not_exists"));
 			ldb.close();
 		});
+
+		it('begin/commit', function() {
+			var b = new Buffer("bbbbb");
+			var c = new Buffer("ccccc");
+			var ldb = db.openLevelDB("testdb");
+
+			ldb.put("test", b);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			var tr = ldb.begin();
+
+			tr.put("test", c);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			tr.commit();
+
+			assert.equal(ldb.get("test").toString(), "ccccc");
+
+			ldb.close();
+		});
+
+		it('begin/close', function() {
+			var b = new Buffer("bbbbb");
+			var c = new Buffer("ccccc");
+			var ldb = db.openLevelDB("testdb");
+
+			ldb.put("test", b);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			var tr = ldb.begin();
+
+			tr.put("test", c);
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			tr.close();
+
+			assert.equal(ldb.get("test").toString(), "bbbbb");
+
+			ldb.close();
+		});
+
 	});
 });
 
