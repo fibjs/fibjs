@@ -318,6 +318,11 @@ public:
         return m_v;
     }
 
+    std::string toString() const
+    {
+        return std::string(m_v, tmp->length());
+    }
+
 private:
     v8::String::Utf8Value *tmp;
     const char *m_v;
@@ -342,7 +347,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, std::string &n, bool bS
     if (hr < 0)
         return hr;
 
-    n = str;
+    n = str.toString();
     return 0;
 }
 
