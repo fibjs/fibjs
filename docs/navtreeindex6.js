@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"functions_func.html":[4,2,1],
 "functions_func.html":[4,2,1,0],
 "functions_func_b.html":[4,2,1,1],
 "functions_func_c.html":[4,2,1,2],
@@ -69,8 +70,8 @@ var NAVTREEINDEX6 =
 "functions_x.html":[4,2,0,23],
 "functions_z.html":[4,2,0,24],
 "hierarchy.html":[4,1],
-"index.html":[0],
 "index.html":[],
+"index.html":[0],
 "index.html#install_sec":[0,1],
 "index.html#install_step1":[0,1,0],
 "index.html#install_step2":[0,1,1],

@@ -426,31 +426,32 @@
 <!-- Node23 -->
 <g id="node23" class="node"><title>Node23</title>
 <g id="a_node23"><a xlink:href="../../d8/d3e/classLevelDB.html" target="_top" xlink:title="LevelDB 数据库对象 ">
-<polygon fill="white" stroke="black" points="1466.17,-361.5 1466.17,-545.5 1535.25,-545.5 1535.25,-361.5 1466.17,-361.5"/>
-<text text-anchor="middle" x="1500.71" y="-533.5" font-family="Helvetica,sans-Serif" font-size="10.00">LevelDB</text>
-<polyline fill="none" stroke="black" points="1466.17,-527.5 1535.25,-527.5 "/>
-<text text-anchor="middle" x="1500.71" y="-515.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="1466.17,-509.5 1535.25,-509.5 "/>
-<text text-anchor="start" x="1474.17" y="-497.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
-<text text-anchor="start" x="1474.17" y="-487.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
-<text text-anchor="start" x="1474.17" y="-477.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
-<text text-anchor="start" x="1474.17" y="-467.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
-<text text-anchor="start" x="1474.17" y="-457.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
-<text text-anchor="start" x="1474.17" y="-447.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
-<text text-anchor="start" x="1474.17" y="-437.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
-<text text-anchor="start" x="1474.17" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="1474.17" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="1474.17" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forEach()</text>
-<text text-anchor="start" x="1474.17" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ between()</text>
-<text text-anchor="start" x="1474.17" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ begin()</text>
-<text text-anchor="start" x="1474.17" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ commit()</text>
-<text text-anchor="start" x="1474.17" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
+<polygon fill="white" stroke="black" points="1466.17,-356.5 1466.17,-550.5 1535.25,-550.5 1535.25,-356.5 1466.17,-356.5"/>
+<text text-anchor="middle" x="1500.71" y="-538.5" font-family="Helvetica,sans-Serif" font-size="10.00">LevelDB</text>
+<polyline fill="none" stroke="black" points="1466.17,-532.5 1535.25,-532.5 "/>
+<text text-anchor="middle" x="1500.71" y="-520.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="1466.17,-514.5 1535.25,-514.5 "/>
+<text text-anchor="start" x="1474.17" y="-502.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
+<text text-anchor="start" x="1474.17" y="-492.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
+<text text-anchor="start" x="1474.17" y="-482.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<text text-anchor="start" x="1474.17" y="-472.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<text text-anchor="start" x="1474.17" y="-462.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
+<text text-anchor="start" x="1474.17" y="-452.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
+<text text-anchor="start" x="1474.17" y="-442.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
+<text text-anchor="start" x="1474.17" y="-432.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
+<text text-anchor="start" x="1474.17" y="-422.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
+<text text-anchor="start" x="1474.17" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
+<text text-anchor="start" x="1474.17" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forEach()</text>
+<text text-anchor="start" x="1474.17" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ between()</text>
+<text text-anchor="start" x="1474.17" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ begin()</text>
+<text text-anchor="start" x="1474.17" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ commit()</text>
+<text text-anchor="start" x="1474.17" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node23 -->
 <g id="edge22" class="edge"><title>Node1&#45;&gt;Node23</title>
-<path fill="none" stroke="midnightblue" d="M2021.34,-843.456C1908.54,-842.386 1610.14,-833.13 1543.71,-766 1487.45,-709.151 1481.5,-615.355 1486.7,-545.516"/>
+<path fill="none" stroke="midnightblue" d="M2021.34,-843.456C1908.54,-842.386 1610.14,-833.13 1543.71,-766 1488.8,-710.509 1481.82,-619.815 1486.35,-550.562"/>
 <polygon fill="none" stroke="midnightblue" points="2021.32,-846.956 2031.35,-843.534 2021.38,-839.956 2021.32,-846.956"/>
 </g>
 <!-- Node24 -->
