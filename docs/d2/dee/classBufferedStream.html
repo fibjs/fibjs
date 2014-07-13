@@ -116,7 +116,8 @@ $(document).ready(function(){initNavTree('d2/dee/classBufferedStream.html','../.
 <div class="dynheader">
 类 BufferedStream 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/df1/classBufferedStream__inherit__graph.svg" width="146" height="527"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/df1/classBufferedStream__inherit__graph.svg" width="146" height="540"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -178,6 +179,9 @@ Public 属性</h2></td></tr>
 <tr class="memitem:adc842e860f92cdb58347758fcf2532af"><td class="memItemLeft" align="right" valign="top">readonly <a class="el" href="../../dc/de8/classStream.html">Stream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/dee/classBufferedStream.html#adc842e860f92cdb58347758fcf2532af">stream</a></td></tr>
 <tr class="memdesc:adc842e860f92cdb58347758fcf2532af"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询创建缓存对象时的流对象  <a href="#adc842e860f92cdb58347758fcf2532af">更多...</a><br /></td></tr>
 <tr class="separator:adc842e860f92cdb58347758fcf2532af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d617075c9b6ea5124a0e132ab31b3c5"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/dee/classBufferedStream.html#a3d617075c9b6ea5124a0e132ab31b3c5">charset</a></td></tr>
+<tr class="memdesc:a3d617075c9b6ea5124a0e132ab31b3c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询和设置当前对象处理文本时的字符集，缺省为 utf-8  <a href="#a3d617075c9b6ea5124a0e132ab31b3c5">更多...</a><br /></td></tr>
+<tr class="separator:a3d617075c9b6ea5124a0e132ab31b3c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adaa9b52ec60c27e739b762a26b3f0a8d"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/dee/classBufferedStream.html#adaa9b52ec60c27e739b762a26b3f0a8d">EOL</a></td></tr>
 <tr class="memdesc:adaa9b52ec60c27e739b762a26b3f0a8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询和设置行结尾标识，缺省时，posix:"\n"；windows:"\r\n"  <a href="#adaa9b52ec60c27e739b762a26b3f0a8d">更多...</a><br /></td></tr>
 <tr class="separator:adaa9b52ec60c27e739b762a26b3f0a8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -228,7 +232,7 @@ Public 属性</h2></td></tr>
 <p>读取指定字符的文本 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">size</td><td>指定读取的文本字符个数，以 utf8 编码字节数为准 </td></tr>
+    <tr><td class="paramname">size</td><td>指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准 </td></tr>
   </table>
   </dd>
 </dl>
@@ -675,6 +679,20 @@ Public 属性</h2></td></tr>
 </div><div class="memdoc">
 
 <p>查询创建缓存对象时的流对象 </p>
+
+</div>
+</div>
+<a class="anchor" id="a3d617075c9b6ea5124a0e132ab31b3c5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">String BufferedStream::charset</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>查询和设置当前对象处理文本时的字符集，缺省为 utf-8 </p>
 
 </div>
 </div>

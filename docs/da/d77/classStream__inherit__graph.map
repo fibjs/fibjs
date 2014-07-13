@@ -1,5 +1,5 @@
 <map id="Stream" name="Stream">
-<area shape="rect" id="node3" href="$d2/dee/classBufferedStream.html" title="缓存读取对象 " alt="" coords="5,361,140,555"/>
+<area shape="rect" id="node3" href="$d2/dee/classBufferedStream.html" title="缓存读取对象 " alt="" coords="5,355,140,561"/>
 <area shape="rect" id="node4" href="$db/d67/classSeekableStream.html" title="可移动当前指针的流对象接口 " alt="" coords="165,388,285,528"/>
 <area shape="rect" id="node7" href="$d4/d33/classSocket.html" title="网络套接口对象 " alt="" coords="308,328,432,588"/>
 <area shape="rect" id="node8" href="$d7/d3f/classSslSocket.html" title="ssl 网络套接口对象 " alt="" coords="456,388,557,528"/>

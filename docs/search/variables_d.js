@@ -9,7 +9,7 @@ var searchData=
   ['not',['not',['../dd/d7a/classExpect.html#aa18a68b7a171f5e222cb7da0f7978414',1,'Expect']]],
   ['notafter',['notAfter',['../d1/d66/classX509Cert.html#a8c518c812c19ad64004aae98665e6fe4',1,'X509Cert']]],
   ['notbefore',['notBefore',['../d1/d66/classX509Cert.html#af70b6fa809fa67627311a5fbede1364d',1,'X509Cert']]],
-  ['notice',['NOTICE',['../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e',1,'console::NOTICE()'],['../df/d0e/classTextColor.html#a9b7bce159ed5ec43137063a20a9e0e16',1,'TextColor::notice()']]],
+  ['notice',['notice',['../df/d0e/classTextColor.html#a9b7bce159ed5ec43137063a20a9e0e16',1,'TextColor::notice()'],['../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e',1,'console::NOTICE()']]],
   ['notset',['NOTSET',['../d6/df8/classconsole.html#a4835a70d20c127694e4e4e557c2ed16b',1,'console']]],
   ['null',['null',['../dd/d7a/classExpect.html#a748b25298cfcd7b14ae225fd293e078d',1,'Expect']]],
   ['number',['number',['../dd/d7a/classExpect.html#a72b6c7f69edf1e014f932f44cc2c44d0',1,'Expect']]]

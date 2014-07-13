@@ -211,6 +211,7 @@ var NAVTREEINDEX0 =
 "d2/dee/classBufferedStream.html#a0329abc9685c9a618a5d5ec75bc0bf23":[4,0,4,8],
 "d2/dee/classBufferedStream.html#a048aa0f487763f8007493a16b261c00b":[4,0,4,1],
 "d2/dee/classBufferedStream.html#a1908f48d53d0d379add7dde836f71938":[4,0,4,5],
+"d2/dee/classBufferedStream.html#a3d617075c9b6ea5124a0e132ab31b3c5":[4,0,4,18],
 "d2/dee/classBufferedStream.html#a3e772d8b52548a59a1308e3eac07c027":[4,0,4,2],
 "d2/dee/classBufferedStream.html#a4da24e0d02dc1725ae42545689588e52":[4,0,4,7],
 "d2/dee/classBufferedStream.html#a52b486b973a47fb3fc79668a9742360f":[4,0,4,11],
@@ -225,7 +226,7 @@ var NAVTREEINDEX0 =
 "d2/dee/classBufferedStream.html#ab2c46249f028cc1dfdade4fe74ccc8de":[4,0,4,4],
 "d2/dee/classBufferedStream.html#ac61f07a7d6c5471293371086af3186bd":[4,0,4,14],
 "d2/dee/classBufferedStream.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,4,15],
-"d2/dee/classBufferedStream.html#adaa9b52ec60c27e739b762a26b3f0a8d":[4,0,4,18],
+"d2/dee/classBufferedStream.html#adaa9b52ec60c27e739b762a26b3f0a8d":[4,0,4,19],
 "d2/dee/classBufferedStream.html#adc842e860f92cdb58347758fcf2532af":[4,0,4,17],
 "d3/d2d/classcollection.html":[4,0,7],
 "d3/d2d/classcollection.html#a45b6053d1d1063f010b12cb7f5a77c99":[4,0,7,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "d3/d75/classnet.html#ad4fdfbcf4cec520964c559a52a69c2f7":[4,0,54,13],
 "d3/da8/classMySQL.html":[4,0,53],
 "d3/da8/classMySQL.html#a0f8cde8557dcc248e5c1064791355845":[4,0,53,5],
-"d3/da8/classMySQL.html#a1cfd7776b7f7b4a34e216f33b4df823b":[4,0,53,3],
-"d3/da8/classMySQL.html#a4f19b7fb871da01a3133649c27797a83":[4,0,53,1]
+"d3/da8/classMySQL.html#a1cfd7776b7f7b4a34e216f33b4df823b":[4,0,53,3]
 };

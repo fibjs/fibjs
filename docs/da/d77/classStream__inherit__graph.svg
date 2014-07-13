@@ -24,27 +24,28 @@
 <!-- Node3 -->
 <g id="node3" class="node"><title>Node3</title>
 <g id="a_node3"><a xlink:href="../../d2/dee/classBufferedStream.html" target="_top" xlink:title="缓存读取对象 ">
-<polygon fill="white" stroke="black" points="0,-146.5 0,-290.5 101.137,-290.5 101.137,-146.5 0,-146.5"/>
-<text text-anchor="middle" x="50.5684" y="-278.5" font-family="Helvetica,sans-Serif" font-size="10.00">BufferedStream</text>
-<polyline fill="none" stroke="black" points="0,-272.5 101.137,-272.5 "/>
-<text text-anchor="start" x="8" y="-260.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stream</text>
-<text text-anchor="start" x="8" y="-250.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ EOL</text>
-<polyline fill="none" stroke="black" points="0,-244.5 101.137,-244.5 "/>
-<text text-anchor="start" x="8" y="-232.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ BufferedStream()</text>
-<text text-anchor="start" x="8" y="-222.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readText()</text>
-<text text-anchor="start" x="8" y="-212.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readLine()</text>
-<text text-anchor="start" x="8" y="-202.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readLines()</text>
-<text text-anchor="start" x="8" y="-192.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readUntil()</text>
-<text text-anchor="start" x="8" y="-182.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readPacket()</text>
-<text text-anchor="start" x="8" y="-172.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ writeText()</text>
-<text text-anchor="start" x="8" y="-162.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ writeLine()</text>
-<text text-anchor="start" x="8" y="-152.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ writePacket()</text>
+<polygon fill="white" stroke="black" points="0,-141.5 0,-295.5 101.137,-295.5 101.137,-141.5 0,-141.5"/>
+<text text-anchor="middle" x="50.5684" y="-283.5" font-family="Helvetica,sans-Serif" font-size="10.00">BufferedStream</text>
+<polyline fill="none" stroke="black" points="0,-277.5 101.137,-277.5 "/>
+<text text-anchor="start" x="8" y="-265.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stream</text>
+<text text-anchor="start" x="8" y="-255.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ charset</text>
+<text text-anchor="start" x="8" y="-245.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ EOL</text>
+<polyline fill="none" stroke="black" points="0,-239.5 101.137,-239.5 "/>
+<text text-anchor="start" x="8" y="-227.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ BufferedStream()</text>
+<text text-anchor="start" x="8" y="-217.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readText()</text>
+<text text-anchor="start" x="8" y="-207.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readLine()</text>
+<text text-anchor="start" x="8" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readLines()</text>
+<text text-anchor="start" x="8" y="-187.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readUntil()</text>
+<text text-anchor="start" x="8" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readPacket()</text>
+<text text-anchor="start" x="8" y="-167.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ writeText()</text>
+<text text-anchor="start" x="8" y="-157.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ writeLine()</text>
+<text text-anchor="start" x="8" y="-147.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ writePacket()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge"><title>Node1&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M178.054,-369.868C156.41,-355.974 130.25,-337.029 110.568,-316 103.356,-308.294 96.5381,-299.595 90.2642,-290.653"/>
+<path fill="none" stroke="midnightblue" d="M178.054,-369.868C156.41,-355.974 130.25,-337.029 110.568,-316 104.772,-309.807 99.2296,-302.971 94.02,-295.884"/>
 <polygon fill="none" stroke="midnightblue" points="176.386,-372.954 186.714,-375.316 180.113,-367.029 176.386,-372.954"/>
 </g>
 <!-- Node4 -->

@@ -1,5 +1,6 @@
 var NAVTREEINDEX5 =
 {
+"dd/d7a/classExpect.html#ae56ec0fe55dba24bb29e995412f23aa9":[4,0,19,32],
 "dd/d7a/classExpect.html#ae571863f76141c66bb65cbead44c4459":[4,0,19,4],
 "dd/d7a/classExpect.html#ae73ba4fcdf0a8c2610bc2c1bbab6f358":[4,0,19,8],
 "dd/d7a/classExpect.html#af1a9af111c7d75aea76bae7a8127c55e":[4,0,19,25],
@@ -241,13 +242,12 @@ var NAVTREEINDEX5 =
 "df/d93/classSQLite.html#ac61f07a7d6c5471293371086af3186bd":[4,0,72,9],
 "df/d93/classSQLite.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,72,10],
 "df/d93/classSQLite.html#ae6d31f438b2c274f32aade526f92da2f":[4,0,72,7],
-"functions.html":[4,2,0,0],
 "functions.html":[4,2,0],
+"functions.html":[4,2,0,0],
 "functions_b.html":[4,2,0,1],
 "functions_c.html":[4,2,0,2],
 "functions_d.html":[4,2,0,3],
 "functions_e.html":[4,2,0,4],
 "functions_f.html":[4,2,0,5],
-"functions_func.html":[4,2,1,0],
 "functions_func.html":[4,2,1]
 };

@@ -18,5 +18,6 @@ var classBufferedStream =
     [ "toJSON", "d2/dee/classBufferedStream.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
     [ "ValueOf", "d2/dee/classBufferedStream.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
     [ "stream", "d2/dee/classBufferedStream.html#adc842e860f92cdb58347758fcf2532af", null ],
+    [ "charset", "d2/dee/classBufferedStream.html#a3d617075c9b6ea5124a0e132ab31b3c5", null ],
     [ "EOL", "d2/dee/classBufferedStream.html#adaa9b52ec60c27e739b762a26b3f0a8d", null ]
 ];
