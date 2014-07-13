@@ -21,6 +21,7 @@ var searchData=
   ['below',['below',['../dd/d7a/classExpect.html#ac7340f0a34d0826759759fa575c0da6f',1,'Expect']]],
   ['best_5fcompression',['BEST_COMPRESSION',['../d8/d09/classzlib.html#aa616c6868879479fa20e68a042fd0497',1,'zlib']]],
   ['best_5fspeed',['BEST_SPEED',['../d8/d09/classzlib.html#ac1fa5896622f3a54952bda03eb7d3acd',1,'zlib']]],
+  ['between',['between',['../d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5',1,'LevelDB']]],
   ['bind',['bind',['../d4/d33/classSocket.html#a26a688b72c8b742d830a1d89e2a7a984',1,'Socket::bind(Integer port, Boolean allowIPv4=true)'],['../d4/d33/classSocket.html#aea619a73174482ad558c95dc8d9a1fc4',1,'Socket::bind(String addr, Integer port, Boolean allowIPv4=true)']]],
   ['blockqueue',['BlockQueue',['../d7/d38/classBlockQueue.html',1,'BlockQueue'],['../d7/d38/classBlockQueue.html#a9f7669dc7635bfed46b5364e8f3a932a',1,'BlockQueue::BlockQueue()'],['../d2/dd1/classcoroutine.html#a2fd7cfd64b935905126e5719afb3965c',1,'coroutine::BlockQueue()']]],
   ['blocksize',['blockSize',['../d6/d2e/classCipher.html#a0424c17e6db89678a25684610537d2cd',1,'Cipher']]],

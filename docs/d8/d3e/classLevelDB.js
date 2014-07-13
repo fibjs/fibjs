@@ -9,6 +9,8 @@ var classLevelDB =
     [ "put", "d8/d3e/classLevelDB.html#a38bfcee0a7aad2fbf9543d71a10a7103", null ],
     [ "remove", "d8/d3e/classLevelDB.html#ab1f78e521fec46db732413be435d37ce", null ],
     [ "remove", "d8/d3e/classLevelDB.html#a0c4a8914187d12234892bb6e1b7d8e2b", null ],
+    [ "forEach", "d8/d3e/classLevelDB.html#ae9f6c2e0b6bfabd58e4e0bd6ed94163c", null ],
+    [ "between", "d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5", null ],
     [ "begin", "d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f", null ],
     [ "commit", "d8/d3e/classLevelDB.html#ad7d98e0ce00ca52d838a1b31d9d323ba", null ],
     [ "close", "d8/d3e/classLevelDB.html#ab757e7bc24ac6020559062e30e0f2b46", null ],

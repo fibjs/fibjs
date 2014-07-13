@@ -54,6 +54,8 @@ public:
     virtual result_t put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac);
     virtual result_t remove(Buffer_base *key, exlib::AsyncEvent *ac);
     virtual result_t remove(const char *key, exlib::AsyncEvent *ac);
+    virtual result_t forEach(v8::Local<v8::Function> func);
+    virtual result_t between(v8::Local<v8::Value> from, v8::Local<v8::Value> to, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base> &retVal);
     virtual result_t commit();
     virtual result_t close(exlib::AsyncEvent *ac);
@@ -64,6 +66,7 @@ public:
 private:
     result_t _commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac);
     ASYNC_MEMBER1(LevelDB, _commit, leveldb::WriteBatch *);
+
     leveldb::DB *db()
     {
         if (m_base)
@@ -92,6 +95,54 @@ private:
 
         return m_db->Delete(leveldb::WriteOptions(), key);
     }
+
+#define ITER_BLOCK_SIZE     32
+
+    class Iter
+    {
+    public:
+        Iter(leveldb::DB *db) : m_count(0), m_first(true), m_end(false)
+        {
+            m_it = db->NewIterator(leveldb::ReadOptions());
+        }
+
+        ~Iter()
+        {
+            delete m_it;
+        }
+
+        result_t _iter(exlib::AsyncEvent *ac);
+        ASYNC_MEMBER0(LevelDB::Iter, _iter);
+
+        result_t iter(v8::Local<v8::Function> func);
+
+        static result_t getKey(v8::Local<v8::Value> v, std::string &out)
+        {
+            obj_ptr<Buffer_base> bKey = Buffer_base::getInstance(v);
+            if (bKey)
+                return bKey->toString(out);
+
+            return GetArgumentValue(v, out);
+        }
+
+        result_t getKey(v8::Local<v8::Value> from, v8::Local<v8::Value> to)
+        {
+            result_t hr;
+
+            hr = getKey(from, m_from);
+            if (hr < 0)return hr;
+
+            return getKey(to, m_to);
+        }
+
+    public:
+        obj_ptr<Buffer_base> m_kvs[ITER_BLOCK_SIZE * 2];
+        leveldb::Iterator *m_it;
+        int32_t m_count;
+        bool m_first;
+        bool m_end;
+        std::string m_from, m_to;
+    };
 
 private:
     leveldb::DB *m_db;

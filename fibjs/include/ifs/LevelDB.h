@@ -31,6 +31,8 @@ public:
 	virtual result_t put(const char* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
 	virtual result_t remove(Buffer_base* key, exlib::AsyncEvent* ac) = 0;
 	virtual result_t remove(const char* key, exlib::AsyncEvent* ac) = 0;
+	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
+	virtual result_t between(v8::Local<v8::Value> from, v8::Local<v8::Value> to, v8::Local<v8::Function> func) = 0;
 	virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
 	virtual result_t commit() = 0;
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
@@ -42,6 +44,8 @@ public:
 	static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_between(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +76,8 @@ namespace fibjs
 			{"get", s_get},
 			{"put", s_put},
 			{"remove", s_remove},
+			{"forEach", s_forEach},
+			{"between", s_between},
 			{"begin", s_begin},
 			{"commit", s_commit},
 			{"close", s_close}
@@ -80,7 +86,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"LevelDB", NULL, 
-			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			9, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -169,6 +175,32 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->ac_remove(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(LevelDB_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Function>, 0);
+
+		hr = pInst->forEach(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void LevelDB_base::s_between(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(LevelDB_base);
+		METHOD_ENTER(3, 3);
+
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
+		ARG(v8::Local<v8::Function>, 2);
+
+		hr = pInst->between(v0, v1, v2);
 
 		METHOD_VOID();
 	}

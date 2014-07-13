@@ -115,7 +115,7 @@ $(document).ready(function(){initNavTree('d8/d3e/classLevelDB.html','../../');})
 <div class="dynheader">
 类 LevelDB 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d5/d55/classLevelDB__inherit__graph.svg" width="100" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d5/d55/classLevelDB__inherit__graph.svg" width="103" height="419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 </div>
 <table class="memberdecls">
@@ -148,6 +148,12 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a0c4a8914187d12234892bb6e1b7d8e2b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#a0c4a8914187d12234892bb6e1b7d8e2b">remove</a> (String key) async</td></tr>
 <tr class="memdesc:a0c4a8914187d12234892bb6e1b7d8e2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">删除指定键值的全部值  <a href="#a0c4a8914187d12234892bb6e1b7d8e2b">更多...</a><br /></td></tr>
 <tr class="separator:a0c4a8914187d12234892bb6e1b7d8e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9f6c2e0b6bfabd58e4e0bd6ed94163c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#ae9f6c2e0b6bfabd58e4e0bd6ed94163c">forEach</a> (<a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:ae9f6c2e0b6bfabd58e4e0bd6ed94163c"><td class="mdescLeft">&#160;</td><td class="mdescRight">枚举数据库中所有的键值对  <a href="#ae9f6c2e0b6bfabd58e4e0bd6ed94163c">更多...</a><br /></td></tr>
+<tr class="separator:ae9f6c2e0b6bfabd58e4e0bd6ed94163c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28d17205bd5d3516354c2a651875aab5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5">between</a> (Value from, Value to, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:a28d17205bd5d3516354c2a651875aab5"><td class="mdescLeft">&#160;</td><td class="mdescRight">枚举数据库中键值在 from 和 to 之间的键值对  <a href="#a28d17205bd5d3516354c2a651875aab5">更多...</a><br /></td></tr>
+<tr class="separator:a28d17205bd5d3516354c2a651875aab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3fab8d3decb8054f9124b070672105f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/d3e/classLevelDB.html">LevelDB</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f">begin</a> ()</td></tr>
 <tr class="memdesc:aa3fab8d3decb8054f9124b070672105f"><td class="mdescLeft">&#160;</td><td class="mdescRight">在当前数据库上开启一个事务  <a href="#aa3fab8d3decb8054f9124b070672105f">更多...</a><br /></td></tr>
 <tr class="separator:aa3fab8d3decb8054f9124b070672105f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -415,6 +421,86 @@ Public 成员函数</h2></td></tr>
   </dd>
 </dl>
 
+</div>
+</div>
+<a class="anchor" id="ae9f6c2e0b6bfabd58e4e0bd6ed94163c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LevelDB::forEach </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../de/d65/classFunction.html">Function</a>&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>枚举数据库中所有的键值对 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">func</td><td>枚举回调函数</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>回调函数有两个参数，key 和 value：</p>
+<div class="fragment"><div class="line">var db = require(<span class="stringliteral">&quot;db&quot;</span>);</div>
+<div class="line">var test = <span class="keyword">new</span> db.openLevelDB(<span class="stringliteral">&quot;test.db&quot;</span>);</div>
+<div class="line"></div>
+<div class="line">test.forEach(<span class="keyword">function</span>(key, value){</div>
+<div class="line">   ...</div>
+<div class="line">});</div>
+</div><!-- fragment --> 
+</div>
+</div>
+<a class="anchor" id="a28d17205bd5d3516354c2a651875aab5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LevelDB::between </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>from</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>to</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../de/d65/classFunction.html">Function</a>&#160;</td>
+          <td class="paramname"><em>func</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>枚举数据库中键值在 from 和 to 之间的键值对 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">from</td><td>枚举的最小键值，枚举时包含此键值，键值允许为字符串或者二进制 <a class="el" href="../../d0/d11/classBuffer.html" title="二进制数据缓存对象，用于 io 读写的数据处理 ">Buffer</a> </td></tr>
+    <tr><td class="paramname">to</td><td>枚举的最大键值，枚举时不包含此键值，键值允许为字符串或者二进制 <a class="el" href="../../d0/d11/classBuffer.html" title="二进制数据缓存对象，用于 io 读写的数据处理 ">Buffer</a> </td></tr>
+    <tr><td class="paramname">func</td><td>枚举回调函数</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>回调函数有两个参数，key 和 value：</p>
+<div class="fragment"><div class="line">var db = require(<span class="stringliteral">&quot;db&quot;</span>);</div>
+<div class="line">var test = <span class="keyword">new</span> db.openLevelDB(<span class="stringliteral">&quot;test.db&quot;</span>);</div>
+<div class="line"></div>
+<div class="line">test.between(<span class="stringliteral">&quot;aaa&quot;</span>, <span class="stringliteral">&quot;bbb&quot;</span>, <span class="keyword">function</span>(key, value){</div>
+<div class="line">   ...</div>
+<div class="line">});</div>
+</div><!-- fragment --> 
 </div>
 </div>
 <a class="anchor" id="aa3fab8d3decb8054f9124b070672105f"></a>

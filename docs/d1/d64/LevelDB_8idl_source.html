@@ -120,12 +120,18 @@ $(document).ready(function(){initNavTree('d1/d64/LevelDB_8idl_source.html','../.
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <span class="keyword">remove</span>(String key) async;</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html">LevelDB</a> <a class="code" href="../../d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f">begin</a>();</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html#ad7d98e0ce00ca52d838a1b31d9d323ba">commit</a>();</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html#ab757e7bc24ac6020559062e30e0f2b46">close</a>() async;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;};</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html#ae9f6c2e0b6bfabd58e4e0bd6ed94163c">forEach</a>(<a class="code" href="../../de/d65/classFunction.html">Function</a> func);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5">between</a>(Value from, Value to, <a class="code" href="../../de/d65/classFunction.html">Function</a> func);</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html">LevelDB</a> <a class="code" href="../../d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f">begin</a>();</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html#ad7d98e0ce00ca52d838a1b31d9d323ba">commit</a>();</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    <a class="code" href="../../d8/d3e/classLevelDB.html#ab757e7bc24ac6020559062e30e0f2b46">close</a>() async;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;};</div>
+<div class="ttc" id="classFunction_html"><div class="ttname"><a href="../../de/d65/classFunction.html">Function</a></div><div class="ttdoc">Function 模块不可直接引用，仅用于实现对 javascript Function 对象的扩展 </div><div class="ttdef"><b>Definition:</b> Function.idl:3</div></div>
+<div class="ttc" id="classLevelDB_html_ae9f6c2e0b6bfabd58e4e0bd6ed94163c"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html#ae9f6c2e0b6bfabd58e4e0bd6ed94163c">LevelDB::forEach</a></div><div class="ttdeci">forEach(Function func)</div><div class="ttdoc">枚举数据库中所有的键值对 </div></div>
 <div class="ttc" id="classLevelDB_html_ad7d98e0ce00ca52d838a1b31d9d323ba"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html#ad7d98e0ce00ca52d838a1b31d9d323ba">LevelDB::commit</a></div><div class="ttdeci">commit()</div><div class="ttdoc">提交当前事务 </div></div>
 <div class="ttc" id="classLevelDB_html_a2043fdd267642f5f52f09577064e45be"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html#a2043fdd267642f5f52f09577064e45be">LevelDB::put</a></div><div class="ttdeci">put(Object map)</div><div class="ttdoc">设定一个键值数据，键值不存在则插入一条新数据 </div></div>
 <div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
@@ -133,6 +139,7 @@ $(document).ready(function(){initNavTree('d1/d64/LevelDB_8idl_source.html','../.
 <div class="ttc" id="classLevelDB_html"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html">LevelDB</a></div><div class="ttdoc">LevelDB 数据库对象 </div><div class="ttdef"><b>Definition:</b> LevelDB.idl:10</div></div>
 <div class="ttc" id="classLevelDB_html_ab757e7bc24ac6020559062e30e0f2b46"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html#ab757e7bc24ac6020559062e30e0f2b46">LevelDB::close</a></div><div class="ttdeci">close() async</div><div class="ttdoc">关闭当前数据库连接或事务 </div></div>
 <div class="ttc" id="classLevelDB_html_a9592329ae5e30e313a40637d34171a11"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html#a9592329ae5e30e313a40637d34171a11">LevelDB::has</a></div><div class="ttdeci">Boolean has(Buffer key) async</div><div class="ttdoc">检查数据库内是否存在指定键值的数据 </div></div>
+<div class="ttc" id="classLevelDB_html_a28d17205bd5d3516354c2a651875aab5"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5">LevelDB::between</a></div><div class="ttdeci">between(Value from, Value to, Function func)</div><div class="ttdoc">枚举数据库中键值在 from 和 to 之间的键值对 </div></div>
 <div class="ttc" id="classLevelDB_html_aa3fab8d3decb8054f9124b070672105f"><div class="ttname"><a href="../../d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f">LevelDB::begin</a></div><div class="ttdeci">LevelDB begin()</div><div class="ttdoc">在当前数据库上开启一个事务 </div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

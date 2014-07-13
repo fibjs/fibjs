@@ -55,10 +55,8 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
     std::string key1;
     key->toString(key1);
 
-    leveldb::Slice sKey = key1;
-
     std::string value;
-    leveldb::Status s = db()->Get(leveldb::ReadOptions(), sKey, &value);
+    leveldb::Status s = db()->Get(leveldb::ReadOptions(), key1, &value);
     if (s.IsNotFound())
     {
         retVal = false;
@@ -80,10 +78,8 @@ result_t LevelDB::has(const char *key, bool &retVal, exlib::AsyncEvent *ac)
     if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
-    leveldb::Slice sKey = key;
-
     std::string value;
-    leveldb::Status s = db()->Get(leveldb::ReadOptions(), sKey, &value);
+    leveldb::Status s = db()->Get(leveldb::ReadOptions(), key, &value);
     if (s.IsNotFound())
     {
         retVal = false;
@@ -108,10 +104,8 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::Asy
     std::string key1;
     key->toString(key1);
 
-    leveldb::Slice sKey = key1;
-
     std::string value;
-    leveldb::Status s = db()->Get(leveldb::ReadOptions(), sKey, &value);
+    leveldb::Status s = db()->Get(leveldb::ReadOptions(), key1, &value);
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
     else if (!s.ok())
@@ -130,10 +124,8 @@ result_t LevelDB::get(const char *key, obj_ptr<Buffer_base> &retVal, exlib::Asyn
     if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
-    leveldb::Slice sKey = key;
-
     std::string value;
-    leveldb::Status s = db()->Get(leveldb::ReadOptions(), sKey, &value);
+    leveldb::Status s = db()->Get(leveldb::ReadOptions(), key, &value);
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
     else if (!s.ok())
@@ -182,10 +174,7 @@ result_t LevelDB::put(v8::Local<v8::Object> map)
         std::string value1;
         buf->toString(value1);
 
-        leveldb::Slice sKey = key;
-        leveldb::Slice sValue = value1;
-
-        batch_->Put(sKey, sValue);
+        batch_->Put(key, value1);
     }
 
     if (m_batch)
@@ -208,10 +197,7 @@ result_t LevelDB::put(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *a
     std::string value1;
     value->toString(value1);
 
-    leveldb::Slice sKey = key1;
-    leveldb::Slice sValue = value1;
-
-    leveldb::Status s = Put(sKey, sValue);
+    leveldb::Status s = Put(key1, value1);
     if (!s.ok())
         return Runtime::setError(s.ToString());
 
@@ -229,10 +215,7 @@ result_t LevelDB::put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac
     std::string value1;
     value->toString(value1);
 
-    leveldb::Slice sKey = key;
-    leveldb::Slice sValue = value1;
-
-    leveldb::Status s = Put(sKey, sValue);
+    leveldb::Status s = Put(key, value1);
     if (!s.ok())
         return Runtime::setError(s.ToString());
 
@@ -250,10 +233,8 @@ result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
     std::string key1;
     key->toString(key1);
 
-    leveldb::Slice sKey = key1;
-
     std::string value;
-    leveldb::Status s = Delete(sKey);
+    leveldb::Status s = Delete(key1);
     if (!s.ok())
         return Runtime::setError(s.ToString());
 
@@ -268,14 +249,116 @@ result_t LevelDB::remove(const char *key, exlib::AsyncEvent *ac)
     if (switchToAsync(ac))
         return CALL_E_NOSYNC;
 
-    leveldb::Slice sKey = key;
-
-    std::string value;
-    leveldb::Status s = Delete(sKey);
+    leveldb::Status s = Delete(key);
     if (!s.ok())
         return Runtime::setError(s.ToString());
 
     return 0;
+}
+
+result_t LevelDB::Iter::_iter(exlib::AsyncEvent *ac)
+{
+    m_count = 0;
+
+    if (m_first)
+    {
+        if (m_from.empty())
+            m_it->SeekToFirst();
+        else
+            m_it->Seek(m_from);
+
+        m_first = false;
+
+        if (!m_it->Valid())
+        {
+            m_end = true;
+            return 0;
+        }
+    }
+
+    while (m_count < ITER_BLOCK_SIZE)
+    {
+        leveldb::Slice key = m_it->key();
+        if (!m_to.empty() && key.compare(m_to) >= 0)
+        {
+            m_end = true;
+            break;
+        }
+
+        m_kvs[m_count * 2] = new Buffer(key.ToString());
+        m_kvs[m_count * 2 + 1] = new Buffer(m_it->value().ToString());
+
+        m_count ++;
+
+        m_it->Next();
+        if (!m_it->Valid())
+        {
+            m_end = true;
+            break;
+        }
+    }
+
+    return 0;
+}
+
+result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
+{
+    result_t hr;
+    int32_t i;
+
+    do
+    {
+        hr = ac__iter();
+        if (hr < 0)
+            return hr;
+
+        for (i = 0; i < m_count; i ++)
+        {
+            v8::Local<v8::Value> args[2] =
+            {
+                m_kvs[i * 2]->wrap(), m_kvs[i * 2 + 1]->wrap()
+            };
+
+            m_kvs[i * 2].Release();
+            m_kvs[i * 2 + 1].Release();
+
+            v8::Local<v8::Value> v = func->Call(func, 2, args);
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            if (v->BooleanValue())
+            {
+                m_end = true;
+                break;
+            }
+        }
+    }
+    while (!m_end);
+
+    return 0;
+}
+
+result_t LevelDB::forEach(v8::Local<v8::Function> func)
+{
+    if (!db())
+        return CALL_E_INVALID_CALL;
+
+    return Iter(db()).iter(func);
+}
+
+result_t LevelDB::between(v8::Local<v8::Value> from,
+                          v8::Local<v8::Value> to, v8::Local<v8::Function> func)
+{
+    if (!db())
+        return CALL_E_INVALID_CALL;
+
+    Iter it(db());
+
+    result_t hr = it.getKey(from, to);
+    if (hr < 0)
+        return hr;
+
+    return it.iter(func);
 }
 
 result_t LevelDB::begin(obj_ptr<LevelDB_base> &retVal)

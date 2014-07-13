@@ -12,6 +12,7 @@ var searchData=
   ['beforeeach',['beforeEach',['../de/d01/classtest.html#a934439b75ffe6517612b37f8f64a7d0e',1,'test']]],
   ['begin',['begin',['../d6/d91/classDbConnection.html#aa6d68c3a518d46207b42d7f638b07a1e',1,'DbConnection::begin()'],['../d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f',1,'LevelDB::begin()']]],
   ['below',['below',['../dd/d7a/classExpect.html#ac7340f0a34d0826759759fa575c0da6f',1,'Expect']]],
+  ['between',['between',['../d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5',1,'LevelDB']]],
   ['bind',['bind',['../d4/d33/classSocket.html#a26a688b72c8b742d830a1d89e2a7a984',1,'Socket::bind(Integer port, Boolean allowIPv4=true)'],['../d4/d33/classSocket.html#aea619a73174482ad558c95dc8d9a1fc4',1,'Socket::bind(String addr, Integer port, Boolean allowIPv4=true)']]],
   ['blockqueue',['BlockQueue',['../d7/d38/classBlockQueue.html#a9f7669dc7635bfed46b5364e8f3a932a',1,'BlockQueue::BlockQueue()'],['../d2/dd1/classcoroutine.html#a2fd7cfd64b935905126e5719afb3965c',1,'coroutine::BlockQueue()']]],
   ['bsondecode',['bsonDecode',['../d0/d52/classencoding.html#a17c2e82897b90e8fab350c667f077d1a',1,'encoding']]],
