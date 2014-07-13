@@ -360,6 +360,9 @@
     <ClCompile Include="src\LevelDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\encoding_iconv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -894,6 +897,9 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\LevelDB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\encoding_iconv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

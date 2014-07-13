@@ -43,6 +43,7 @@
     <ClCompile Include="src\Digest.cpp" />
     <ClCompile Include="src\encoding.cpp" />
     <ClCompile Include="src\encoding_bson.cpp" />
+    <ClCompile Include="src\encoding_iconv.cpp" />
     <ClCompile Include="src\Event.cpp" />
     <ClCompile Include="src\Expect.cpp" />
     <ClCompile Include="src\Fiber.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="include\DBRow.h" />
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\encoding_bson.h" />
+    <ClInclude Include="include\encoding_iconv.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\Expect.h" />
     <ClInclude Include="include\Fiber.h" />

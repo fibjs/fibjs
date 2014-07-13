@@ -5,27 +5,8 @@
  *      Author: lion
  */
 
-#include <osconfig.h>
-
-#ifdef _WIN32
-#include <win_iconv.h>
-#else
-
-#include "config.h"
-
-#ifdef HAVE_ICONV_H
-#include <iconv.h>
-#else
-#include <stddef.h>
-#endif
-
-#include <dlfcn.h>
-
-#endif
-
 #include "ifs/encoding.h"
-#include "Buffer.h"
-#include "utf8.h"
+#include "encoding_iconv.h"
 #include "Url.h"
 
 namespace fibjs
@@ -220,161 +201,16 @@ result_t encoding_base::hexDecode(const char *data,
     return 0;
 }
 
-#ifdef _WIN32
-
-#define _iconv_open iconv_open
-#define _iconv_close iconv_close
-#define _iconv iconv
-
-inline void init_iconv()
-{
-}
-
-#elif !defined(FreeBSD)
-
-#define _iconv_open iconv_open
-#define _iconv_close iconv_close
-#define _iconv ((size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))&iconv)
-
-inline void init_iconv()
-{
-}
-
-#else
-
-#ifndef HAVE_ICONV_H
-
-typedef void *iconv_t;
-
-iconv_t iconv_open(const char *tocode, const char *fromcode)
-{
-    return (iconv_t) - 1;
-}
-
-int iconv_close(iconv_t cd)
-{
-    return 0;
-}
-
-size_t iconv(iconv_t cd, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
-{
-    return 0;
-}
-
-#endif
-
-static size_t (*_iconv)(iconv_t, const char **, size_t *, char **, size_t *);
-static iconv_t (*_iconv_open)(const char *, const char *);
-static int (*_iconv_close)(iconv_t);
-
-inline void init_iconv()
-{
-    static bool _init = false;
-
-    if (!_init)
-    {
-        _init = true;
-
-        void *handle = dlopen("libiconv.so", RTLD_LAZY);
-
-        if (handle)
-        {
-            _iconv = (size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))dlsym(handle, "iconv");
-            if (!_iconv)
-                _iconv = (size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))dlsym(handle, "libiconv");
-
-            _iconv_open = (iconv_t (*)(const char *, const char *))dlsym(handle, "iconv_open");
-            if (!_iconv_open)
-                _iconv_open = (iconv_t (*)(const char *, const char *))dlsym(handle, "libiconv_open");
-
-            _iconv_close = (int (*)(iconv_t))dlsym(handle, "iconv_close");
-            if (!_iconv_close)
-                _iconv_close = (int (*)(iconv_t))dlsym(handle, "libiconv_close");
-        }
-
-        if (!_iconv || !_iconv_open || !_iconv_close)
-        {
-            _iconv = (size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))iconv;
-            _iconv_open = iconv_open;
-            _iconv_close = iconv_close;
-        }
-    }
-}
-
-#endif
-
 result_t encoding_base::iconvEncode(const char *charset, const char *data,
                                     obj_ptr<Buffer_base> &retVal)
 {
-    init_iconv();
-
-    std::string strBuf;
-
-    if (!qstricmp(charset, "utf8") || !qstricmp(charset, "utf-8"))
-        strBuf = data;
-    else
-    {
-        iconv_t cd = _iconv_open(charset, "utf-8");
-        if (cd == (iconv_t)(-1))
-            return Runtime::setError("Unknown charset.");
-
-        size_t sz = qstrlen(data);
-
-        strBuf.resize(sz * 2);
-        char *output_buf = &strBuf[0];
-        size_t output_size = strBuf.length();
-
-        size_t n = _iconv(cd, &data, &sz, &output_buf, &output_size);
-        _iconv_close(cd);
-
-        if (n == (size_t) - 1)
-            return Runtime::setError("convert error.");
-
-        strBuf.resize(strBuf.length() - output_size);
-    }
-
-    retVal = new Buffer(strBuf);
-
-    return 0;
+    return encoding_iconv(charset).encode(data, retVal);
 }
 
 result_t encoding_base::iconvDecode(const char *charset, Buffer_base *data,
                                     std::string &retVal)
 {
-    init_iconv();
-
-    if (!qstricmp(charset, "utf8") || !qstricmp(charset, "utf-8"))
-        data->toString(retVal);
-    else
-    {
-        std::string strData;
-        std::string strBuf;
-
-        data->toString(strData);
-
-        iconv_t cd = _iconv_open("utf-8", charset);
-        if (cd == (iconv_t)(-1))
-            return Runtime::setError("Unknown charset.");
-
-        size_t sz = strData.length();
-        const char *ptr = strData.c_str();
-
-        strBuf.resize(sz * 2);
-        char *output_buf = &strBuf[0];
-        size_t output_size = strBuf.length();
-
-        size_t n = _iconv(cd, &ptr, &sz, &output_buf, &output_size);
-        _iconv_close(cd);
-
-        if (n == (size_t) - 1)
-            return Runtime::setError("convert error.");
-
-        strBuf.resize(strBuf.length() - output_size);
-
-        retVal = strBuf;
-    }
-
-    return 0;
+    return encoding_iconv(charset).decode(data, retVal);
 }
 
 result_t encoding_base::jsstr(const char *str, std::string &retVal)
