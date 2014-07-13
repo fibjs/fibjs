@@ -14,7 +14,7 @@ class BufferedStream : Stream
     BufferedStream(Stream stm);
 
     /*! @brief 读取指定字符的文本
-     @param size 指定读取的文本字符个数，以 utf8 编码字节数为准
+     @param size 指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准
      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      */
     String readText(Integer size) async;
@@ -61,6 +61,9 @@ class BufferedStream : Stream
 
     /*! @brief 查询创建缓存对象时的流对象 */
     readonly Stream stream;
+
+    /*! @brief 查询和设置当前对象处理文本时的字符集，缺省为 utf-8 */
+    String charset;
 
     /*! @brief 查询和设置行结尾标识，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"   */
     String EOL;

@@ -7,6 +7,7 @@
 
 #include "ifs/BufferedStream.h"
 #include "StringBuffer.h"
+#include "encoding_iconv.h"
 
 #ifndef BUFFEREDSTREAM_H_
 #define BUFFEREDSTREAM_H_
@@ -41,11 +42,13 @@ public:
     virtual result_t readLine(int32_t maxlen, std::string &retVal, exlib::AsyncEvent *ac);
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array> &retVal);
     virtual result_t readUntil(const char *mk, int32_t maxlen, std::string &retVal, exlib::AsyncEvent *ac);
-    virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
+    virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
     virtual result_t writeText(const char *txt, exlib::AsyncEvent *ac);
     virtual result_t writeLine(const char *txt, exlib::AsyncEvent *ac);
-    virtual result_t writePacket(Buffer_base* data, exlib::AsyncEvent* ac);
+    virtual result_t writePacket(Buffer_base *data, exlib::AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
+    virtual result_t get_charset(std::string &retVal);
+    virtual result_t set_charset(const char *newVal);
     virtual result_t get_EOL(std::string &retVal);
     virtual result_t set_EOL(const char *newVal);
 
@@ -72,6 +75,7 @@ public:
     int m_temp;
     std::string m_eol;
     StringBuffer m_strbuf;
+    encoding_iconv m_iconv;
 };
 
 } /* namespace fibjs */

@@ -189,7 +189,9 @@ result_t BufferedStream::readText(int32_t size, std::string &retVal,
 
             if (streamEnd || size == (int) pThis->m_strbuf.size())
             {
-                retVal = pThis->m_strbuf.str();
+                result_t hr = pThis->m_iconv.decode(pThis->m_strbuf.str(), retVal);
+                if (hr < 0)
+                    return hr;
 
                 if (retVal.length() == 0)
                     return CALL_RETURN_NULL;
@@ -322,7 +324,9 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
 
             if (streamEnd || (pThis->m_temp == mklen))
             {
-                retVal = pThis->m_strbuf.str();
+                result_t hr = pThis->m_iconv.decode(pThis->m_strbuf.str(), retVal);
+                if (hr < 0)
+                    return hr;
 
                 if (pThis->m_temp == mklen)
                 {
@@ -482,7 +486,12 @@ result_t BufferedStream::writeText(const char *txt, exlib::AsyncEvent *ac)
     if (!ac)
         return CALL_E_NOSYNC;
 
-    std::string strBuf = txt;
+    std::string strBuf;
+
+    result_t hr = m_iconv.encode(txt, strBuf);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<Buffer_base> data = new Buffer(strBuf);
     return write(data, ac);
 }
@@ -492,7 +501,12 @@ result_t BufferedStream::writeLine(const char *txt, exlib::AsyncEvent *ac)
     if (!ac)
         return CALL_E_NOSYNC;
 
-    std::string strBuf = txt;
+    std::string strBuf;
+
+    result_t hr = m_iconv.encode(txt, strBuf);
+    if (hr < 0)
+        return hr;
+
     strBuf.append(m_eol);
     obj_ptr<Buffer_base> data = new Buffer(strBuf);
     return write(data, ac);
@@ -520,6 +534,18 @@ result_t BufferedStream::writePacket(Buffer_base *data, exlib::AsyncEvent *ac)
 result_t BufferedStream::get_stream(obj_ptr<Stream_base> &retVal)
 {
     retVal = m_stm;
+    return 0;
+}
+
+result_t BufferedStream::get_charset(std::string &retVal)
+{
+    retVal = m_iconv.charset();
+    return 0;
+}
+
+result_t BufferedStream::set_charset(const char *newVal)
+{
+    m_iconv.open(newVal);
     return 0;
 }
 

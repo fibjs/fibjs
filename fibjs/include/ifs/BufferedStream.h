@@ -34,6 +34,8 @@ public:
 	virtual result_t writeLine(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writePacket(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
+	virtual result_t get_charset(std::string& retVal) = 0;
+	virtual result_t set_charset(const char* newVal) = 0;
 	virtual result_t get_EOL(std::string& retVal) = 0;
 	virtual result_t set_EOL(const char* newVal) = 0;
 
@@ -50,6 +52,8 @@ public:
 	static void s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writePacket(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
@@ -86,13 +90,14 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"stream", s_get_stream, block_set},
+			{"charset", s_get_charset, s_set_charset},
 			{"EOL", s_get_EOL, s_set_EOL}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"BufferedStream", s__new, 
-			8, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			8, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -110,6 +115,29 @@ namespace fibjs
 		hr = pInst->get_stream(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void BufferedStream_base::s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(BufferedStream_base);
+
+		hr = pInst->get_charset(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void BufferedStream_base::s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(BufferedStream_base);
+
+		PROPERTY_VAL(arg_string);
+		hr = pInst->set_charset(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline void BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)

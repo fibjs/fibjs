@@ -168,6 +168,35 @@ describe("buffered stream", function() {
 
 		f.close();
 	});
+
+	it("charset", function() {
+		fs.unlink("test0000");
+
+		f = fs.open("test0000", "w+");
+		var r = new io.BufferedStream(f);
+		r.EOL = '\r\n';
+
+		assert.equal(r.charset, "utf-8");
+
+		f.write(new Buffer("哈哈哈\r\n"));
+		f.rewind();
+		assert.equal(r.readLine(), "哈哈哈");
+
+		r.charset = "gbk";
+
+		f.rewind();
+		f.truncate(0);
+		r.writeText("嘿嘿嘿");
+		r.writeLine("哈哈哈");
+		f.rewind();
+		assert.equal(f.readAll().toString("gbk"), "嘿嘿嘿哈哈哈\r\n");
+
+		f.rewind();
+		assert.equal(r.readText(6), "嘿嘿嘿");
+		assert.equal(r.readLine(), "哈哈哈");
+
+		f.close();
+	});
 });
 
 //test.run(console.DEBUG);

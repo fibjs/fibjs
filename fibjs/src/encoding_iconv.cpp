@@ -118,6 +118,8 @@ encoding_iconv::encoding_iconv(const char *charset) :
     init_iconv();
     if (charset)
         m_charset = charset;
+    else
+        m_charset = "utf-8";
 }
 
 encoding_iconv::~encoding_iconv()
@@ -146,12 +148,10 @@ void encoding_iconv::open(const char *charset)
     m_charset = charset;
 }
 
-result_t encoding_iconv::encode(const char *data, obj_ptr<Buffer_base> &retVal)
+result_t encoding_iconv::encode(const char *data, std::string &retVal)
 {
-    std::string strBuf;
-
     if (!qstricmp(m_charset.c_str(), "utf8") || !qstricmp(m_charset.c_str(), "utf-8"))
-        strBuf = data;
+        retVal = data;
     else
     {
         if (!m_iconv_en)
@@ -163,19 +163,64 @@ result_t encoding_iconv::encode(const char *data, obj_ptr<Buffer_base> &retVal)
 
         size_t sz = qstrlen(data);
 
-        strBuf.resize(sz * 2);
-        char *output_buf = &strBuf[0];
-        size_t output_size = strBuf.length();
+        retVal.resize(sz * 2);
+        char *output_buf = &retVal[0];
+        size_t output_size = retVal.length();
 
         size_t n = _iconv(m_iconv_en, &data, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
             return Runtime::setError("convert error.");
 
-        strBuf.resize(strBuf.length() - output_size);
+        retVal.resize(retVal.length() - output_size);
     }
 
+    return 0;
+}
+
+result_t encoding_iconv::encode(const char *data, obj_ptr<Buffer_base> &retVal)
+{
+    std::string strBuf;
+
+    result_t hr = encode(data, strBuf);
+    if (hr < 0)
+        return hr;
+
     retVal = new Buffer(strBuf);
+
+    return 0;
+}
+
+result_t encoding_iconv::decode(const std::string &data, std::string &retVal)
+{
+    if (!qstricmp(m_charset.c_str(), "utf8") || !qstricmp(m_charset.c_str(), "utf-8"))
+        retVal = data;
+    else
+    {
+        if (!m_iconv_de)
+        {
+            m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
+            if (m_iconv_de == (iconv_t)(-1))
+                return Runtime::setError("Unknown charset.");
+        }
+
+        size_t sz = data.length();
+        const char *ptr = data.c_str();
+        std::string strBuf;
+
+        strBuf.resize(sz * 2);
+        char *output_buf = &strBuf[0];
+        size_t output_size = strBuf.length();
+
+        size_t n = _iconv(m_iconv_de, &ptr, &sz, &output_buf, &output_size);
+
+        if (n == (size_t) - 1)
+            return Runtime::setError("convert error.");
+
+        strBuf.resize(strBuf.length() - output_size);
+
+        retVal = strBuf;
+    }
 
     return 0;
 }
