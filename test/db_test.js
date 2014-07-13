@@ -102,13 +102,17 @@ describe("db", function() {
 
 
 	describe("leveldb", function() {
-		function clear_db() {
-			fs.readdir("testdb").forEach(function(s) {
-				if (s.name != "." && s.name != "..")
-					fs.unlink("testdb/" + s.name);
-			});
+		after(clear_db);
 
-			fs.rmdir("testdb");
+		function clear_db() {
+			try {
+				fs.readdir("testdb").forEach(function(s) {
+					if (s.name != "." && s.name != "..")
+						fs.unlink("testdb/" + s.name);
+				});
+
+				fs.rmdir("testdb");
+			} catch (e) {};
 		}
 
 		it('open/close', function() {
@@ -167,6 +171,28 @@ describe("db", function() {
 			assert.isTrue(ldb.has(new Buffer("not_exists")));
 			ldb.remove(new Buffer("not_exists"));
 			assert.isFalse(ldb.has("not_exists"));
+			ldb.close();
+			clear_db();
+		});
+
+		it('batch remove', function() {
+			var data = {
+				"aaa": new Buffer("aaa value"),
+				"bbb": new Buffer("bbb value"),
+				"ccc": new Buffer("ccc value"),
+				"ddd": new Buffer("ddd value")
+			};
+
+			var ldb = db.openLevelDB("testdb");
+			ldb.put(data);
+
+			ldb.remove(["bbb", "ddd"]);
+
+			assert.equal(ldb.get("aaa").toString(), "aaa value");
+			assert.isNull(ldb.get("bbb"));
+			assert.equal(ldb.get("ccc").toString(), "ccc value");
+			assert.isNull(ldb.get("ddd"));
+
 			ldb.close();
 			clear_db();
 		});

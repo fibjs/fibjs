@@ -33,7 +33,7 @@ class LevelDB : object
      */
     Buffer get(String key) async;
 
-    /*! @brief 设定一个键值数据，键值不存在则插入一条新数据
+    /*! @brief 设定一组键值数据，键值不存在则插入新数据
      @param map 指定要设定的键值数据字典
      */
     put(Object map);
@@ -49,6 +49,11 @@ class LevelDB : object
      @param value 指定要设定的数据
      */
     put(String key, Buffer value) async;
+
+    /*! @brief 删除一组指定键值的值
+     @param keys 指定要设定的键值数组
+     */
+    remove(Array keys);
 
     /*! @brief 删除指定键值的全部值
      @param key 指定要删除的键值

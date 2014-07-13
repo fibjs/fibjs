@@ -222,6 +222,34 @@ result_t LevelDB::put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac
     return 0;
 }
 
+result_t LevelDB::remove(v8::Local<v8::Array> keys)
+{
+    if (!db())
+        return CALL_E_INVALID_CALL;
+
+    leveldb::WriteBatch batch;
+    leveldb::WriteBatch *batch_ = m_batch ? m_batch : &batch;
+
+    int len = keys->Length();
+    int i;
+    result_t hr;
+
+    for (i = 0; i < len; i++)
+    {
+        std::string key;
+        hr = getKey(keys->Get(i), key);
+        if (hr < 0)
+            return hr;
+
+        batch_->Delete(key);
+    }
+
+    if (m_batch)
+        return 0;
+
+    return ac__commit(&batch);
+}
+
 result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
 {
     if (!db())

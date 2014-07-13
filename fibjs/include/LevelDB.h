@@ -52,6 +52,7 @@ public:
     virtual result_t put(v8::Local<v8::Object> map);
     virtual result_t put(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *ac);
     virtual result_t put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac);
+    virtual result_t remove(v8::Local<v8::Array> keys);
     virtual result_t remove(Buffer_base *key, exlib::AsyncEvent *ac);
     virtual result_t remove(const char *key, exlib::AsyncEvent *ac);
     virtual result_t forEach(v8::Local<v8::Function> func);
@@ -62,6 +63,15 @@ public:
 
 public:
     result_t open(const char *connString);
+
+    static result_t getKey(v8::Local<v8::Value> v, std::string &out)
+    {
+        obj_ptr<Buffer_base> bKey = Buffer_base::getInstance(v);
+        if (bKey)
+            return bKey->toString(out);
+
+        return GetArgumentValue(v, out);
+    }
 
 private:
     result_t _commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac);
@@ -116,23 +126,14 @@ private:
 
         result_t iter(v8::Local<v8::Function> func);
 
-        static result_t getKey(v8::Local<v8::Value> v, std::string &out)
-        {
-            obj_ptr<Buffer_base> bKey = Buffer_base::getInstance(v);
-            if (bKey)
-                return bKey->toString(out);
-
-            return GetArgumentValue(v, out);
-        }
-
         result_t getKey(v8::Local<v8::Value> from, v8::Local<v8::Value> to)
         {
             result_t hr;
 
-            hr = getKey(from, m_from);
+            hr = LevelDB::getKey(from, m_from);
             if (hr < 0)return hr;
 
-            return getKey(to, m_to);
+            return LevelDB::getKey(to, m_to);
         }
 
     public:

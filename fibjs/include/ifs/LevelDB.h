@@ -29,6 +29,7 @@ public:
 	virtual result_t put(v8::Local<v8::Object> map) = 0;
 	virtual result_t put(Buffer_base* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
 	virtual result_t put(const char* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
+	virtual result_t remove(v8::Local<v8::Array> keys) = 0;
 	virtual result_t remove(Buffer_base* key, exlib::AsyncEvent* ac) = 0;
 	virtual result_t remove(const char* key, exlib::AsyncEvent* ac) = 0;
 	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
@@ -165,6 +166,12 @@ namespace fibjs
 	{
 		METHOD_INSTANCE(LevelDB_base);
 		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->remove(v0);
+
+		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
