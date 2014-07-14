@@ -37,6 +37,34 @@ public:
     virtual result_t write(v8::Local<v8::Array> datas);
     virtual result_t write(Buffer_base *data);
     virtual result_t write(const char *str, const char *codec);
+    virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readUInt16BE(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readUInt32LE(int32_t offset, bool noAssert, int64_t &retVal);
+    virtual result_t readUInt32BE(int32_t offset, bool noAssert, int64_t &retVal);
+    virtual result_t readInt8(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readInt16LE(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readInt16BE(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readInt32LE(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readInt32BE(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readFloatLE(int32_t offset, bool noAssert, double &retVal);
+    virtual result_t readFloatBE(int32_t offset, bool noAssert, double &retVal);
+    virtual result_t readDoubleLE(int32_t offset, bool noAssert, double &retVal);
+    virtual result_t readDoubleBE(int32_t offset, bool noAssert, double &retVal);
+    virtual result_t writeUInt8(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeUInt16LE(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeUInt16BE(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeUInt32LE(int64_t value, int32_t offset, bool noAssert);
+    virtual result_t writeUInt32BE(int64_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt8(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt16LE(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert);
+    virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert);
+    virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert);
+    virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal);
     virtual result_t hex(std::string &retVal);
     virtual result_t base64(std::string &retVal);
@@ -44,6 +72,10 @@ public:
     virtual result_t toString(std::string &retVal);
 
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
+
+private:
+    result_t readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le);
+    result_t writeNumber(int32_t offset, const char *buf, int32_t size, bool noAssert, bool le);
 
 private:
     std::string m_data;
