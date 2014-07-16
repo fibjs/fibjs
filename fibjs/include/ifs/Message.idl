@@ -42,4 +42,7 @@ class Message: object
 
     /*! @brief 查询消息 readFrom 时的流对象 */
     readonly Stream stream;
+
+    /*! @brief 获取响应消息对象*/
+    readonly Message response;
 };

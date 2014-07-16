@@ -282,6 +282,11 @@ result_t HttpResponse::get_stream(obj_ptr<Stream_base> &retVal)
     return m_message.get_stream(retVal);
 }
 
+result_t HttpResponse::get_response(obj_ptr<Message_base> &retVal)
+{
+    return CALL_E_INVALID_CALL;
+}
+
 result_t HttpResponse::get_status(int32_t &retVal)
 {
     retVal = m_status;

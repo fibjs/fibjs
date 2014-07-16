@@ -32,6 +32,7 @@ public:
     virtual result_t sendTo(Stream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
+    virtual result_t get_response(obj_ptr<Message_base> &retVal);
 
 public:
     class _msg
@@ -85,8 +86,15 @@ public:
         obj_ptr<SeekableStream_base> m_body;
     };
 
+public:
+    Message(bool bRep = false) : m_bRep(bRep)
+    {
+    }
+
 private:
     _msg m_message;
+    obj_ptr<Message_base> m_response;
+    bool m_bRep;
 };
 
 } /* namespace fibjs */

@@ -58,6 +58,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             m_stmBuffered = new BufferedStream(stm);
             m_msg = new PacketMessage(pThis->m_maxSize);
+            m_msg->get_response(m_rep);
 
             set(read);
         }
@@ -88,7 +89,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
             pThis->set(end);
-            return pThis->m_msg->sendTo(pThis->m_stm, pThis);
+            return pThis->m_rep->sendTo(pThis->m_stm, pThis);
         }
 
         static int end(asyncState *pState, int n)
@@ -121,7 +122,8 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<PacketHandler> m_pThis;
         obj_ptr<Stream_base> m_stm;
         obj_ptr<BufferedStream_base> m_stmBuffered;
-        obj_ptr<PacketMessage_base> m_msg;
+        obj_ptr<Message_base> m_msg;
+        obj_ptr<Message_base> m_rep;
     };
 
     if (!ac)

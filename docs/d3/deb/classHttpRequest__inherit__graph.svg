@@ -11,13 +11,12 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-612 111.992,-612 111.992,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node"><title>Node1</title>
-<polygon fill="#bfbfbf" stroke="black" points="10.564,-0.5 10.564,-114.5 97.4282,-114.5 97.4282,-0.5 10.564,-0.5"/>
-<text text-anchor="middle" x="53.9961" y="-102.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpRequest</text>
-<polyline fill="none" stroke="black" points="10.564,-96.5 97.4282,-96.5 "/>
-<text text-anchor="start" x="18.564" y="-84.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ method</text>
-<text text-anchor="start" x="18.564" y="-74.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ address</text>
-<text text-anchor="start" x="18.564" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ queryString</text>
-<text text-anchor="start" x="18.564" y="-54.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ response</text>
+<polygon fill="#bfbfbf" stroke="black" points="10.564,-0.5 10.564,-104.5 97.4282,-104.5 97.4282,-0.5 10.564,-0.5"/>
+<text text-anchor="middle" x="53.9961" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpRequest</text>
+<polyline fill="none" stroke="black" points="10.564,-86.5 97.4282,-86.5 "/>
+<text text-anchor="start" x="18.564" y="-74.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ method</text>
+<text text-anchor="start" x="18.564" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ address</text>
+<text text-anchor="start" x="18.564" y="-54.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ queryString</text>
 <text text-anchor="start" x="18.564" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ cookie</text>
 <text text-anchor="start" x="18.564" y="-34.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ form</text>
 <text text-anchor="start" x="18.564" y="-24.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ query</text>
@@ -27,35 +26,35 @@
 <!-- Node2 -->
 <g id="node2" class="node"><title>Node2</title>
 <g id="a_node2"><a xlink:href="../../dd/d77/classHttpMessage.html" target="_top" xlink:title="http 基础消息对象 ">
-<polygon fill="white" stroke="black" points="0,-151.5 0,-315.5 107.992,-315.5 107.992,-151.5 0,-151.5"/>
-<text text-anchor="middle" x="53.9961" y="-303.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpMessage</text>
-<polyline fill="none" stroke="black" points="0,-297.5 107.992,-297.5 "/>
-<text text-anchor="start" x="8" y="-285.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ protocol</text>
-<text text-anchor="start" x="8" y="-275.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ headers</text>
-<text text-anchor="start" x="8" y="-265.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keepAlive</text>
-<text text-anchor="start" x="8" y="-255.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxHeadersCount</text>
-<text text-anchor="start" x="8" y="-245.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxUploadSize</text>
-<polyline fill="none" stroke="black" points="0,-239.5 107.992,-239.5 "/>
-<text text-anchor="start" x="8" y="-227.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ hasHeader()</text>
-<text text-anchor="start" x="8" y="-217.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ firstHeader()</text>
-<text text-anchor="start" x="8" y="-207.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ allHeader()</text>
-<text text-anchor="start" x="8" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ addHeader()</text>
+<polygon fill="white" stroke="black" points="0,-141.5 0,-305.5 107.992,-305.5 107.992,-141.5 0,-141.5"/>
+<text text-anchor="middle" x="53.9961" y="-293.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpMessage</text>
+<polyline fill="none" stroke="black" points="0,-287.5 107.992,-287.5 "/>
+<text text-anchor="start" x="8" y="-275.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ protocol</text>
+<text text-anchor="start" x="8" y="-265.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ headers</text>
+<text text-anchor="start" x="8" y="-255.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keepAlive</text>
+<text text-anchor="start" x="8" y="-245.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxHeadersCount</text>
+<text text-anchor="start" x="8" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxUploadSize</text>
+<polyline fill="none" stroke="black" points="0,-229.5 107.992,-229.5 "/>
+<text text-anchor="start" x="8" y="-217.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ hasHeader()</text>
+<text text-anchor="start" x="8" y="-207.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ firstHeader()</text>
+<text text-anchor="start" x="8" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ allHeader()</text>
 <text text-anchor="start" x="8" y="-187.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ addHeader()</text>
-<text text-anchor="start" x="8" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setHeader()</text>
+<text text-anchor="start" x="8" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ addHeader()</text>
 <text text-anchor="start" x="8" y="-167.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setHeader()</text>
-<text text-anchor="start" x="8" y="-157.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ removeHeader()</text>
+<text text-anchor="start" x="8" y="-157.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setHeader()</text>
+<text text-anchor="start" x="8" y="-147.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ removeHeader()</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node1 -->
 <g id="edge1" class="edge"><title>Node2&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M53.9961,-141.168C53.9961,-132.148 53.9961,-123.19 53.9961,-114.683"/>
-<polygon fill="none" stroke="midnightblue" points="50.4962,-141.358 53.9961,-151.358 57.4962,-141.358 50.4962,-141.358"/>
+<path fill="none" stroke="midnightblue" d="M53.9961,-131.18C53.9961,-122.09 53.9961,-113.107 53.9961,-104.653"/>
+<polygon fill="none" stroke="midnightblue" points="50.4962,-131.465 53.9961,-141.465 57.4962,-131.465 50.4962,-131.465"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node"><title>Node3</title>
 <g id="a_node3"><a xlink:href="../../d6/d28/classMessage.html" target="_top" xlink:title="基础消息对象 ">
-<polygon fill="white" stroke="black" points="16.6846,-352.5 16.6846,-486.5 91.3076,-486.5 91.3076,-352.5 16.6846,-352.5"/>
+<polygon fill="white" stroke="black" points="16.6846,-342.5 16.6846,-486.5 91.3076,-486.5 91.3076,-342.5 16.6846,-342.5"/>
 <text text-anchor="middle" x="53.9961" y="-474.5" font-family="Helvetica,sans-Serif" font-size="10.00">Message</text>
 <polyline fill="none" stroke="black" points="16.6846,-468.5 91.3076,-468.5 "/>
 <text text-anchor="start" x="24.6846" y="-456.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ value</text>
@@ -64,18 +63,19 @@
 <text text-anchor="start" x="24.6846" y="-426.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ body</text>
 <text text-anchor="start" x="24.6846" y="-416.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ length</text>
 <text text-anchor="start" x="24.6846" y="-406.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stream</text>
-<polyline fill="none" stroke="black" points="16.6846,-400.5 91.3076,-400.5 "/>
-<text text-anchor="start" x="24.6846" y="-388.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Message()</text>
-<text text-anchor="start" x="24.6846" y="-378.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ clear()</text>
-<text text-anchor="start" x="24.6846" y="-368.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sendTo()</text>
-<text text-anchor="start" x="24.6846" y="-358.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readFrom()</text>
+<text text-anchor="start" x="24.6846" y="-396.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ response</text>
+<polyline fill="none" stroke="black" points="16.6846,-390.5 91.3076,-390.5 "/>
+<text text-anchor="start" x="24.6846" y="-378.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Message()</text>
+<text text-anchor="start" x="24.6846" y="-368.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ clear()</text>
+<text text-anchor="start" x="24.6846" y="-358.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sendTo()</text>
+<text text-anchor="start" x="24.6846" y="-348.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readFrom()</text>
 </a>
 </g>
 </g>
 <!-- Node3&#45;&gt;Node2 -->
 <g id="edge2" class="edge"><title>Node3&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M53.9961,-342.207C53.9961,-333.489 53.9961,-324.577 53.9961,-315.798"/>
-<polygon fill="none" stroke="midnightblue" points="50.4962,-342.332 53.9961,-352.332 57.4962,-342.332 50.4962,-342.332"/>
+<path fill="none" stroke="midnightblue" d="M53.9961,-332.144C53.9961,-323.404 53.9961,-314.51 53.9961,-305.77"/>
+<polygon fill="none" stroke="midnightblue" points="50.4962,-332.316 53.9961,-342.317 57.4962,-332.317 50.4962,-332.316"/>
 </g>
 <!-- Node4 -->
 <g id="node4" class="node"><title>Node4</title>
@@ -94,8 +94,8 @@
 </g>
 <!-- Node4&#45;&gt;Node3 -->
 <g id="edge3" class="edge"><title>Node4&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M53.9961,-513.005C53.9961,-504.416 53.9961,-495.401 53.9961,-486.509"/>
-<polygon fill="none" stroke="midnightblue" points="50.4962,-513.235 53.9961,-523.235 57.4962,-513.235 50.4962,-513.235"/>
+<path fill="none" stroke="midnightblue" d="M53.9961,-513.237C53.9961,-504.701 53.9961,-495.712 53.9961,-486.785"/>
+<polygon fill="none" stroke="midnightblue" points="50.4962,-513.391 53.9961,-523.391 57.4962,-513.391 50.4962,-513.391"/>
 </g>
 </g>
 </svg>

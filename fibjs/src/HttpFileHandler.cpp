@@ -116,7 +116,9 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                     exlib::AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_req(req), m_gzip(false)
         {
-            req->get_response(m_rep);
+            obj_ptr<Message_base> m;
+            req->get_response(m);
+            m_rep = (HttpResponse_base *)(Message_base *)m;
 
             Variant hdr;
 

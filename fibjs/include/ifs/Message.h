@@ -39,6 +39,7 @@ public:
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
+	virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(Message_base);
 
@@ -57,6 +58,7 @@ public:
 	static void s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
 	ASYNC_MEMBER1(Message_base, sendTo, Stream_base*);
@@ -88,13 +90,14 @@ namespace fibjs
 			{"result", s_get_result, s_set_result},
 			{"body", s_get_body, s_set_body},
 			{"length", s_get_length, block_set},
-			{"stream", s_get_stream, block_set}
+			{"stream", s_get_stream, block_set},
+			{"response", s_get_response, block_set}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Message", s__new, 
-			3, s_method, 0, NULL, 6, s_property, NULL, NULL,
+			3, s_method, 0, NULL, 7, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -214,6 +217,18 @@ namespace fibjs
 		PROPERTY_INSTANCE(Message_base);
 
 		hr = pInst->get_stream(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Message_base::s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<Message_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Message_base);
+
+		hr = pInst->get_response(vr);
 
 		METHOD_RETURN();
 	}

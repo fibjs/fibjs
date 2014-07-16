@@ -156,7 +156,8 @@ result_t HttpRequest::clear()
     m_address.assign("/", 1);
     m_queryString.clear();
 
-    m_response->clear();
+    if (m_response)
+        m_response->clear();
 
     m_cookie.Release();
     m_query.Release();
@@ -304,8 +305,11 @@ result_t HttpRequest::set_queryString(const char *newVal)
     return 0;
 }
 
-result_t HttpRequest::get_response(obj_ptr<HttpResponse_base> &retVal)
+result_t HttpRequest::get_response(obj_ptr<Message_base> &retVal)
 {
+    if (!m_response)
+        m_response = new HttpResponse();
+
     retVal = m_response;
     return 0;
 }

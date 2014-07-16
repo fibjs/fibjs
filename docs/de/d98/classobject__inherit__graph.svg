@@ -583,26 +583,27 @@
 <!-- Node28 -->
 <g id="node28" class="node"><title>Node28</title>
 <g id="a_node28"><a xlink:href="../../d6/d28/classMessage.html" target="_top" xlink:title="基础消息对象 ">
-<polygon fill="white" stroke="red" points="1954.4,-386.5 1954.4,-520.5 2029.02,-520.5 2029.02,-386.5 1954.4,-386.5"/>
-<text text-anchor="middle" x="1991.71" y="-508.5" font-family="Helvetica,sans-Serif" font-size="10.00">Message</text>
-<polyline fill="none" stroke="red" points="1954.4,-502.5 2029.02,-502.5 "/>
-<text text-anchor="start" x="1962.4" y="-490.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ value</text>
-<text text-anchor="start" x="1962.4" y="-480.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ params</text>
-<text text-anchor="start" x="1962.4" y="-470.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ result</text>
-<text text-anchor="start" x="1962.4" y="-460.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ body</text>
-<text text-anchor="start" x="1962.4" y="-450.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ length</text>
-<text text-anchor="start" x="1962.4" y="-440.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stream</text>
-<polyline fill="none" stroke="red" points="1954.4,-434.5 2029.02,-434.5 "/>
-<text text-anchor="start" x="1962.4" y="-422.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Message()</text>
-<text text-anchor="start" x="1962.4" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ clear()</text>
-<text text-anchor="start" x="1962.4" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sendTo()</text>
-<text text-anchor="start" x="1962.4" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readFrom()</text>
+<polygon fill="white" stroke="red" points="1954.4,-381.5 1954.4,-525.5 2029.02,-525.5 2029.02,-381.5 1954.4,-381.5"/>
+<text text-anchor="middle" x="1991.71" y="-513.5" font-family="Helvetica,sans-Serif" font-size="10.00">Message</text>
+<polyline fill="none" stroke="red" points="1954.4,-507.5 2029.02,-507.5 "/>
+<text text-anchor="start" x="1962.4" y="-495.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ value</text>
+<text text-anchor="start" x="1962.4" y="-485.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ params</text>
+<text text-anchor="start" x="1962.4" y="-475.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ result</text>
+<text text-anchor="start" x="1962.4" y="-465.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ body</text>
+<text text-anchor="start" x="1962.4" y="-455.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ length</text>
+<text text-anchor="start" x="1962.4" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stream</text>
+<text text-anchor="start" x="1962.4" y="-435.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ response</text>
+<polyline fill="none" stroke="red" points="1954.4,-429.5 2029.02,-429.5 "/>
+<text text-anchor="start" x="1962.4" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Message()</text>
+<text text-anchor="start" x="1962.4" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ clear()</text>
+<text text-anchor="start" x="1962.4" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sendTo()</text>
+<text text-anchor="start" x="1962.4" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readFrom()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node28 -->
 <g id="edge27" class="edge"><title>Node1&#45;&gt;Node28</title>
-<path fill="none" stroke="midnightblue" d="M2055.39,-796.433C2048.94,-786.836 2042.98,-776.46 2038.71,-766 2005.93,-685.748 1995.73,-585.462 1992.71,-520.713"/>
+<path fill="none" stroke="midnightblue" d="M2055.39,-796.433C2048.94,-786.836 2042.98,-776.46 2038.71,-766 2006.76,-687.774 1996.26,-590.511 1992.95,-525.682"/>
 <polygon fill="none" stroke="midnightblue" points="2052.54,-798.471 2061.15,-804.649 2058.27,-794.452 2052.54,-798.471"/>
 </g>
 <!-- Node29 -->

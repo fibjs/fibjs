@@ -69,7 +69,10 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             m_stmBuffered->set_EOL("\r\n");
 
             m_req = new HttpRequest();
-            m_req->get_response(m_rep);
+
+            obj_ptr<Message_base> m;
+            m_req->get_response(m);
+            m_rep = (HttpResponse_base *)(Message_base *)m;
 
             m_req->set_maxHeadersCount(pThis->m_maxHeadersCount);
             m_req->set_maxUploadSize(pThis->m_maxUploadSize);

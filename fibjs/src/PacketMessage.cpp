@@ -65,6 +65,10 @@ result_t PacketMessage::get_length(int64_t &retVal)
 result_t PacketMessage::clear()
 {
     m_message.clear();
+
+    if (m_response)
+        m_response->clear();
+
     return 0;
 }
 
@@ -193,6 +197,18 @@ result_t PacketMessage::get_stream(obj_ptr<Stream_base> &retVal)
         return CALL_RETURN_NULL;
 
     retVal = m_stm;
+    return 0;
+}
+
+result_t PacketMessage::get_response(obj_ptr<Message_base> &retVal)
+{
+    if (m_bRep)
+        return CALL_E_INVALID_CALL;
+
+    if (!m_response)
+        m_response = new PacketMessage(m_maxSize, true);
+
+    retVal = m_response;
     return 0;
 }
 

@@ -19,7 +19,6 @@ var classHttpRequest =
     [ "method", "d5/d1b/classHttpRequest.html#a2d133650f24c6ba2407c8c541bdf2f22", null ],
     [ "address", "d5/d1b/classHttpRequest.html#af2376806cefea583924ddd0f42b0762e", null ],
     [ "queryString", "d5/d1b/classHttpRequest.html#a8a4ba832c2405354f31158e293a48a01", null ],
-    [ "response", "d5/d1b/classHttpRequest.html#aac83331072158243ff0e42c62039ae6a", null ],
     [ "cookie", "d5/d1b/classHttpRequest.html#afb0f722363cf1f24b88d68d690c542b1", null ],
     [ "form", "d5/d1b/classHttpRequest.html#a9009b8fbfdd8d254587ff33e4f2e1fec", null ],
     [ "query", "d5/d1b/classHttpRequest.html#a9662b6e67a68367d1ad806d5ff3e6af8", null ],
@@ -33,5 +32,6 @@ var classHttpRequest =
     [ "result", "d5/d1b/classHttpRequest.html#aff37dc807536324e1b576ffec75770b0", null ],
     [ "body", "d5/d1b/classHttpRequest.html#a102e4b9b4a800bf24fd01a66df49b489", null ],
     [ "length", "d5/d1b/classHttpRequest.html#a26e77ec52998a43c1b97fd4b7229283c", null ],
-    [ "stream", "d5/d1b/classHttpRequest.html#a9b19686184c56df8c1fca416751a71b3", null ]
+    [ "stream", "d5/d1b/classHttpRequest.html#a9b19686184c56df8c1fca416751a71b3", null ],
+    [ "response", "d5/d1b/classHttpRequest.html#a78167fa1a78f782d15ea7122333eb53d", null ]
 ];

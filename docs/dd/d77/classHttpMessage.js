@@ -25,5 +25,6 @@ var classHttpMessage =
     [ "result", "dd/d77/classHttpMessage.html#aff37dc807536324e1b576ffec75770b0", null ],
     [ "body", "dd/d77/classHttpMessage.html#a102e4b9b4a800bf24fd01a66df49b489", null ],
     [ "length", "dd/d77/classHttpMessage.html#a26e77ec52998a43c1b97fd4b7229283c", null ],
-    [ "stream", "dd/d77/classHttpMessage.html#a9b19686184c56df8c1fca416751a71b3", null ]
+    [ "stream", "dd/d77/classHttpMessage.html#a9b19686184c56df8c1fca416751a71b3", null ],
+    [ "response", "dd/d77/classHttpMessage.html#a78167fa1a78f782d15ea7122333eb53d", null ]
 ];

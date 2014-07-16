@@ -40,6 +40,7 @@ public:
     virtual result_t sendTo(Stream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
+    virtual result_t get_response(obj_ptr<Message_base> &retVal);
 
 public:
     // HttpMessage_base

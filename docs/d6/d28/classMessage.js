@@ -13,5 +13,6 @@ var classMessage =
     [ "result", "d6/d28/classMessage.html#aff37dc807536324e1b576ffec75770b0", null ],
     [ "body", "d6/d28/classMessage.html#a102e4b9b4a800bf24fd01a66df49b489", null ],
     [ "length", "d6/d28/classMessage.html#a26e77ec52998a43c1b97fd4b7229283c", null ],
-    [ "stream", "d6/d28/classMessage.html#a9b19686184c56df8c1fca416751a71b3", null ]
+    [ "stream", "d6/d28/classMessage.html#a9b19686184c56df8c1fca416751a71b3", null ],
+    [ "response", "d6/d28/classMessage.html#a78167fa1a78f782d15ea7122333eb53d", null ]
 ];

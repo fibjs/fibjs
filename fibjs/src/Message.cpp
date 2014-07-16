@@ -160,4 +160,16 @@ result_t Message::get_stream(obj_ptr<Stream_base> &retVal)
     return CALL_E_INVALID_CALL;
 }
 
+result_t Message::get_response(obj_ptr<Message_base> &retVal)
+{
+    if (m_bRep)
+        return CALL_E_INVALID_CALL;
+
+    if (!m_response)
+        m_response = new Message(true);
+
+    retVal = m_response;
+    return 0;
+}
+
 } /* namespace fibjs */

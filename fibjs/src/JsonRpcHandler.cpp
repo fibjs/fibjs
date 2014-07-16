@@ -117,7 +117,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         hr = mq_base::ac_invoke(hdlr1, v);
 
     v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate, "id",
-                                   v8::String::kNormalString, 2);
+                                  v8::String::kNormalString, 2);
     jsval = o->Get(strId);
 
     o = v8::Object::New(isolate);
@@ -179,17 +179,17 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (hr < 0)
         return hr;
 
-    if (htreq)
-    {
-        obj_ptr<HttpResponse_base> htrep;
 
-        htreq->get_response(htrep);
-        htrep->set_body(body);
-        htrep->setHeader("Content-Type",
-                         bFormReq ? "text/html" : "application/json");
-    }
-    else
-        msg->set_body(body);
+    obj_ptr<Message_base> rep;
+    hr = msg->get_response(rep);
+    if (hr < 0)
+        return hr;
+
+    rep->set_body(body);
+
+    if (htreq)
+        ((HttpMessage_base *)(Message_base *)rep)->setHeader("Content-Type",
+                bFormReq ? "text/html" : "application/json");
 
     return CALL_RETURN_NULL;
 }

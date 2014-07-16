@@ -1,5 +1,7 @@
 var NAVTREEINDEX4 =
 {
+"d8/d4c/classHttpResponse.html#ad4a8dc64a0be31e60e98c671bc630203":[4,0,34,12],
+"d8/d4c/classHttpResponse.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,34,15],
 "d8/d4c/classHttpResponse.html#aedc41fa258d4d5cf91d2f850dd49ece4":[4,0,34,19],
 "d8/d4c/classHttpResponse.html#aff37dc807536324e1b576ffec75770b0":[4,0,34,25],
 "d8/d4d/classSslServer.html":[4,0,75],
@@ -224,6 +226,7 @@ var NAVTREEINDEX4 =
 "dd/d77/classHttpMessage.html#a5db3f91a4a32b70e2fcbd188d8a452c9":[4,0,32,1],
 "dd/d77/classHttpMessage.html#a6650a9dcb99102b5e70cf1e3fa034cb9":[4,0,32,18],
 "dd/d77/classHttpMessage.html#a6b88dbc459449d2280338e5b702a68b4":[4,0,32,11],
+"dd/d77/classHttpMessage.html#a78167fa1a78f782d15ea7122333eb53d":[4,0,32,26],
 "dd/d77/classHttpMessage.html#a7c8a4dcbe3777feec747c1fe1cefb88e":[4,0,32,3],
 "dd/d77/classHttpMessage.html#a8c456b35a88228f954974592e9b5c5ab":[4,0,32,9],
 "dd/d77/classHttpMessage.html#a8ed24470ab5214955c70bb108209f9d4":[4,0,32,8],
@@ -246,8 +249,5 @@ var NAVTREEINDEX4 =
 "dd/d7a/classExpect.html#a14299251d029a0cfc8bcef53c98c47f9":[4,0,19,19],
 "dd/d7a/classExpect.html#a26edc025931583875ab49d56077d59bd":[4,0,19,27],
 "dd/d7a/classExpect.html#a3035232cdf5cd2c9c9773219aed627b1":[4,0,19,29],
-"dd/d7a/classExpect.html#a35480010d927aa457b70359fa41d4b33":[4,0,19,21],
-"dd/d7a/classExpect.html#a359caa66686e380b8cad24a84911a25c":[4,0,19,10],
-"dd/d7a/classExpect.html#a477561addec2b0d9feb3ed003a622aa4":[4,0,19,22],
-"dd/d7a/classExpect.html#a4e211fec62704ffb2e78c235732157e6":[4,0,19,17]
+"dd/d7a/classExpect.html#a35480010d927aa457b70359fa41d4b33":[4,0,19,21]
 };
