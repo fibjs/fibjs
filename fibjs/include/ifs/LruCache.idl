@@ -28,7 +28,7 @@ class LruCache : object
 
     /*! @brief 查询指定键值的值
      @param name 指定要查询的键值
-     @return 返回键值所对应的值，若不存在，则返回 null
+     @return 返回键值所对应的值，若不存在，则返回 undefined
      */
     Value get(String name);
 
