@@ -277,30 +277,29 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 #ifndef _WIN32
     if (_readline && _add_history)
     {
-        char *line;
+        char *line = _readline(msg);
 
-        if ((line = _readline(msg)) != NULL)
+        if (!line)
+            return LastError();
+
+        if (*line)
         {
-            if (*line)
-            {
-                _add_history(line);
-                retVal = line;
-            }
-            free(line);
+            _add_history(line);
+            retVal = line;
         }
+        free(line);
     }
     else
 #endif
     {
-        char *line;
-
         s_std.out(msg);
+        char *line = read_line();
 
-        if ((line = read_line()) != NULL)
-        {
-            retVal = line;
-            free(line);
-        }
+        if (!line)
+            return LastError();
+
+        retVal = line;
+        free(line);
     }
 
     return 0;
