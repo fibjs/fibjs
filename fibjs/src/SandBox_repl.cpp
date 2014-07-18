@@ -47,6 +47,7 @@ result_t SandBox::repl()
 
 result_t SandBox::Context::repl()
 {
+    result_t hr;
     std::string buf;
     v8::Local<v8::Value> v, v1;
     v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, "repl",
@@ -72,7 +73,10 @@ result_t SandBox::Context::repl()
         }
 
         std::string line;
-        console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
+        hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
+        if (hr < 0)
+            return hr;
+
         if (line.empty())
             continue;
 
