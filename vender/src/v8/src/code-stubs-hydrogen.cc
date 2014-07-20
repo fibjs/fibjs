@@ -39,14 +39,15 @@ class CodeStubGraphBuilderBase : public HGraphBuilder {
         info_(stub, isolate),
         context_(NULL) {
     descriptor_ = stub->GetInterfaceDescriptor();
-    parameters_.Reset(new HParameter*[descriptor_->register_param_count()]);
+    int parameter_count = descriptor_->GetEnvironmentParameterCount();
+    parameters_.Reset(new HParameter*[parameter_count]);
   }
   virtual bool BuildGraph();
 
  protected:
   virtual HValue* BuildCodeStub() = 0;
   HParameter* GetParameter(int parameter) {
-    ASSERT(parameter < descriptor_->register_param_count());
+    ASSERT(parameter < descriptor_->GetEnvironmentParameterCount());
     return parameters_[parameter];
   }
   HValue* GetArgumentsLength() {
@@ -116,7 +117,7 @@ bool CodeStubGraphBuilderBase::BuildGraph() {
     isolate()->GetHTracer()->TraceCompilation(&info_);
   }
 
-  int param_count = descriptor_->register_param_count();
+  int param_count = descriptor_->GetEnvironmentParameterCount();
   HEnvironment* start_environment = graph()->start_environment();
   HBasicBlock* next_block = CreateBasicBlock(start_environment);
   Goto(next_block);
@@ -126,11 +127,12 @@ bool CodeStubGraphBuilderBase::BuildGraph() {
   bool runtime_stack_params = descriptor_->stack_parameter_count().is_valid();
   HInstruction* stack_parameter_count = NULL;
   for (int i = 0; i < param_count; ++i) {
-    Representation r = descriptor_->GetRegisterParameterRepresentation(i);
-    HParameter* param = Add<HParameter>(i, HParameter::REGISTER_PARAMETER, r);
+    Representation r = descriptor_->GetEnvironmentParameterRepresentation(i);
+    HParameter* param = Add<HParameter>(i,
+                                        HParameter::REGISTER_PARAMETER, r);
     start_environment->Bind(i, param);
     parameters_[i] = param;
-    if (descriptor_->IsParameterCountRegister(i)) {
+    if (descriptor_->IsEnvironmentParameterCountRegister(i)) {
       param->set_type(HType::Smi());
       stack_parameter_count = param;
       arguments_length_ = stack_parameter_count;
@@ -251,7 +253,7 @@ static Handle<Code> DoGenerateCode(Stub* stub) {
       static_cast<HydrogenCodeStub*>(stub)->MajorKey();
   CodeStubInterfaceDescriptor* descriptor =
       isolate->code_stub_interface_descriptor(major_key);
-  if (!descriptor->initialized()) {
+  if (!descriptor->IsInitialized()) {
     stub->InitializeInterfaceDescriptor(descriptor);
   }
 
@@ -603,7 +605,9 @@ Handle<Code> StringLengthStub::GenerateCode() {
 template <>
 HValue* CodeStubGraphBuilder<KeyedStoreFastElementStub>::BuildCodeStub() {
   BuildUncheckedMonomorphicElementAccess(
-      GetParameter(0), GetParameter(1), GetParameter(2),
+      GetParameter(StoreIC::kReceiverIndex),
+      GetParameter(StoreIC::kNameIndex),
+      GetParameter(StoreIC::kValueIndex),
       casted_stub()->is_js_array(), casted_stub()->elements_kind(),
       STORE, NEVER_RETURN_HOLE, casted_stub()->store_mode());
 
@@ -1028,7 +1032,7 @@ HValue* CodeStubGraphBuilder<StoreGlobalStub>::BuildCodeInitializedStub() {
   Handle<PropertyCell> placeholder_cell =
       isolate()->factory()->NewPropertyCell(placeholer_value);
 
-  HParameter* value = GetParameter(2);
+  HParameter* value = GetParameter(StoreIC::kValueIndex);
 
   if (stub->check_global()) {
     // Check that the map of the global has not changed: use a placeholder map
@@ -1075,10 +1079,10 @@ Handle<Code> StoreGlobalStub::GenerateCode() {
 
 template<>
 HValue* CodeStubGraphBuilder<ElementsTransitionAndStoreStub>::BuildCodeStub() {
-  HValue* value = GetParameter(0);
-  HValue* map = GetParameter(1);
-  HValue* key = GetParameter(2);
-  HValue* object = GetParameter(3);
+  HValue* value = GetParameter(ElementsTransitionAndStoreStub::kValueIndex);
+  HValue* map = GetParameter(ElementsTransitionAndStoreStub::kMapIndex);
+  HValue* key = GetParameter(ElementsTransitionAndStoreStub::kKeyIndex);
+  HValue* object = GetParameter(ElementsTransitionAndStoreStub::kObjectIndex);
 
   if (FLAG_trace_elements_transitions) {
     // Tracing elements transitions is the job of the runtime.

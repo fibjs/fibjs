@@ -1085,7 +1085,7 @@ LInstruction* LChunkBuilder::DoCallJSFunction(
 
 LInstruction* LChunkBuilder::DoCallWithDescriptor(
     HCallWithDescriptor* instr) {
-  const CallInterfaceDescriptor* descriptor = instr->descriptor();
+  const InterfaceDescriptor* descriptor = instr->descriptor();
 
   LOperand* target = UseRegisterOrConstantAtStart(instr->target());
   ZoneList<LOperand*> ops(instr->OperandCount(), zone());
@@ -2257,9 +2257,9 @@ LInstruction* LChunkBuilder::DoStoreKeyed(HStoreKeyed* instr) {
 
 LInstruction* LChunkBuilder::DoStoreKeyedGeneric(HStoreKeyedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
-  LOperand* obj = UseFixed(instr->object(), r2);
-  LOperand* key = UseFixed(instr->key(), r1);
-  LOperand* val = UseFixed(instr->value(), r0);
+  LOperand* obj = UseFixed(instr->object(), KeyedStoreIC::ReceiverRegister());
+  LOperand* key = UseFixed(instr->key(), KeyedStoreIC::NameRegister());
+  LOperand* val = UseFixed(instr->value(), KeyedStoreIC::ValueRegister());
 
   ASSERT(instr->object()->representation().IsTagged());
   ASSERT(instr->key()->representation().IsTagged());
@@ -2333,8 +2333,8 @@ LInstruction* LChunkBuilder::DoStoreNamedField(HStoreNamedField* instr) {
 
 LInstruction* LChunkBuilder::DoStoreNamedGeneric(HStoreNamedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
-  LOperand* obj = UseFixed(instr->object(), r1);
-  LOperand* val = UseFixed(instr->value(), r0);
+  LOperand* obj = UseFixed(instr->object(), StoreIC::ReceiverRegister());
+  LOperand* val = UseFixed(instr->value(), StoreIC::ValueRegister());
 
   LInstruction* result = new(zone()) LStoreNamedGeneric(context, obj, val);
   return MarkAsCall(result, instr);
@@ -2413,7 +2413,7 @@ LInstruction* LChunkBuilder::DoParameter(HParameter* instr) {
     CodeStubInterfaceDescriptor* descriptor =
         info()->code_stub()->GetInterfaceDescriptor();
     int index = static_cast<int>(instr->index());
-    Register reg = descriptor->GetParameterRegister(index);
+    Register reg = descriptor->GetEnvironmentParameterRegister(index);
     return DefineFixed(result, reg);
   }
 }

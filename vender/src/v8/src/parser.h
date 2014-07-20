@@ -59,72 +59,38 @@ class FunctionEntry BASE_EMBEDDED {
 };
 
 
-class ScriptData {
+// Wrapper around ScriptData to provide parser-specific functionality.
+class ParseData {
  public:
-  explicit ScriptData(Vector<unsigned> store)
-      : store_(store),
-        owns_store_(true) { }
-
-  ScriptData(Vector<unsigned> store, bool owns_store)
-      : store_(store),
-        owns_store_(owns_store) { }
-
-  // The created ScriptData won't take ownership of the data. If the alignment
-  // is not correct, this will copy the data (and the created ScriptData will
-  // take ownership of the copy).
-  static ScriptData* New(const char* data, int length, bool owns_store = false);
-
-  virtual ~ScriptData();
-  virtual int Length();
-  virtual const char* Data();
-  virtual bool HasError();
-
-  void Initialize();
-  void ReadNextSymbolPosition();
-
-  FunctionEntry GetFunctionEntry(int start);
-  int GetSymbolIdentifier();
-  bool SanityCheck();
-
-  Scanner::Location MessageLocation() const;
-  bool IsReferenceError() const;
-  const char* BuildMessage() const;
-  const char* BuildArg() const;
-
-  int function_count() {
-    int functions_size =
-        static_cast<int>(store_[PreparseDataConstants::kFunctionsSizeOffset]);
-    if (functions_size < 0) return 0;
-    if (functions_size % FunctionEntry::kSize != 0) return 0;
-    return functions_size / FunctionEntry::kSize;
+  explicit ParseData(ScriptData* script_data) : script_data_(script_data) {
+    CHECK(IsAligned(script_data->length(), sizeof(unsigned)));
+    CHECK(IsSane());
   }
-  // The following functions should only be called if SanityCheck has
-  // returned true.
-  bool has_error() { return store_[PreparseDataConstants::kHasErrorOffset]; }
-  unsigned magic() { return store_[PreparseDataConstants::kMagicOffset]; }
-  unsigned version() { return store_[PreparseDataConstants::kVersionOffset]; }
+  void Initialize();
+  FunctionEntry GetFunctionEntry(int start);
+  int FunctionCount();
+
+  bool HasError();
+
+  unsigned* Data() {  // Writable data as unsigned int array.
+    return reinterpret_cast<unsigned*>(const_cast<byte*>(script_data_->data()));
+  }
 
  private:
-  // Disable copying and assigning; because of owns_store they won't be correct.
-  ScriptData(const ScriptData&);
-  ScriptData& operator=(const ScriptData&);
+  bool IsSane();
+  unsigned Magic();
+  unsigned Version();
+  int FunctionsSize();
+  int Length() const {
+    // Script data length is already checked to be a multiple of unsigned size.
+    return script_data_->length() / sizeof(unsigned);
+  }
 
-  friend class v8::ScriptCompiler;
-  Vector<unsigned> store_;
-  unsigned char* symbol_data_;
-  unsigned char* symbol_data_end_;
+  ScriptData* script_data_;
   int function_index_;
-  bool owns_store_;
 
-  unsigned Read(int position) const;
-  unsigned* ReadAddress(int position) const;
-  // Reads a number from the current symbols
-  int ReadNumber(byte** source);
-
-  // Read strings written by ParserRecorder::WriteString.
-  static const char* ReadString(unsigned* start, int* chars);
+  DISALLOW_COPY_AND_ASSIGN(ParseData);
 };
-
 
 // ----------------------------------------------------------------------------
 // REGEXP PARSING
@@ -385,8 +351,12 @@ class ParserTraits {
 
     // Used by FunctionState and BlockState.
     typedef v8::internal::Scope Scope;
+    typedef v8::internal::Scope* ScopePtr;
     typedef Variable GeneratorVariable;
     typedef v8::internal::Zone Zone;
+
+    typedef v8::internal::AstProperties AstProperties;
+    typedef Vector<VariableProxy*> ParameterIdentifierVector;
 
     // Return types for traversing functions.
     typedef const AstRawString* Identifier;
@@ -422,6 +392,7 @@ class ParserTraits {
 
   // Helper functions for recursive descent.
   bool IsEvalOrArguments(const AstRawString* identifier) const;
+  V8_INLINE bool IsFutureStrictReserved(const AstRawString* identifier) const;
 
   // Returns true if the expression is of type "this.foo".
   static bool IsThisProperty(Expression* expression);
@@ -535,13 +506,18 @@ class ParserTraits {
   static Expression* EmptyExpression() {
     return NULL;
   }
+  static Expression* EmptyArrowParamList() { return NULL; }
   static Literal* EmptyLiteral() {
     return NULL;
   }
+
   // Used in error return values.
   static ZoneList<Expression*>* NullExpressionList() {
     return NULL;
   }
+
+  // Non-NULL empty string.
+  V8_INLINE const AstRawString* EmptyIdentifierString();
 
   // Odd-ball literal creators.
   Literal* GetLiteralTheHole(int position,
@@ -571,6 +547,13 @@ class ParserTraits {
   ZoneList<v8::internal::Statement*>* NewStatementList(int size, Zone* zone) {
     return new(zone) ZoneList<v8::internal::Statement*>(size, zone);
   }
+  V8_INLINE Scope* NewScope(Scope* parent_scope, ScopeType scope_type);
+
+  // Utility functions
+  int DeclareArrowParametersFromExpression(Expression* expression, Scope* scope,
+                                           Scanner::Location* dupe_loc,
+                                           bool* ok);
+  V8_INLINE AstValueFactory* ast_value_factory();
 
   // Temporary glue; these functions will move to ParserBase.
   Expression* ParseV8Intrinsic(bool* ok);
@@ -583,6 +566,14 @@ class ParserTraits {
       FunctionLiteral::FunctionType type,
       FunctionLiteral::ArityRestriction arity_restriction,
       bool* ok);
+  V8_INLINE void SkipLazyFunctionBody(const AstRawString* name,
+                                      int* materialized_literal_count,
+                                      int* expected_property_count, bool* ok);
+  V8_INLINE ZoneList<Statement*>* ParseEagerFunctionBody(
+      const AstRawString* name, int pos, Variable* fvar,
+      Token::Value fvar_init_op, bool is_generator, bool* ok);
+  V8_INLINE void CheckConflictingVarDeclarations(v8::internal::Scope* scope,
+                                                 bool* ok);
 
  private:
   Parser* parser_;
@@ -595,6 +586,8 @@ class Parser : public ParserBase<ParserTraits> {
   ~Parser() {
     delete reusable_preparser_;
     reusable_preparser_ = NULL;
+    delete cached_parse_data_;
+    cached_parse_data_ = NULL;
   }
 
   // Parses the source code represented by the compilation info and sets its
@@ -646,23 +639,12 @@ class Parser : public ParserBase<ParserTraits> {
   FunctionLiteral* DoParseProgram(CompilationInfo* info,
                                   Handle<String> source);
 
-  // Report syntax error
-  void ReportInvalidCachedData(const AstRawString* name, bool* ok);
-
-  void SetCachedData(ScriptData** data,
-                     CachedDataMode cached_data_mode) {
-    cached_data_mode_ = cached_data_mode;
-    if (cached_data_mode == NO_CACHED_DATA) {
-      cached_data_ = NULL;
-    } else {
-      ASSERT(data != NULL);
-      cached_data_ = data;
-    }
-  }
+  void SetCachedData();
 
   bool inside_with() const { return scope_->inside_with(); }
-  ScriptData** cached_data() const { return cached_data_; }
-  CachedDataMode cached_data_mode() const { return cached_data_mode_; }
+  ScriptCompiler::CompileOptions compile_options() const {
+    return info_->compile_options();
+  }
   Scope* DeclarationScope(VariableMode mode) {
     return IsLexicalVariableMode(mode)
         ? scope_ : scope_->DeclarationScope();
@@ -809,8 +791,7 @@ class Parser : public ParserBase<ParserTraits> {
   PreParser* reusable_preparser_;
   Scope* original_scope_;  // for ES5 function declarations in sloppy eval
   Target* target_stack_;  // for break, continue statements
-  ScriptData** cached_data_;
-  CachedDataMode cached_data_mode_;
+  ParseData* cached_parse_data_;
   AstValueFactory* ast_value_factory_;
 
   CompilationInfo* info_;
@@ -825,6 +806,50 @@ class Parser : public ParserBase<ParserTraits> {
 
   int use_counts_[v8::Isolate::kUseCounterFeatureCount];
 };
+
+
+bool ParserTraits::IsFutureStrictReserved(
+    const AstRawString* identifier) const {
+  return identifier->IsOneByteEqualTo("yield") ||
+         parser_->scanner()->IdentifierIsFutureStrictReserved(identifier);
+}
+
+
+Scope* ParserTraits::NewScope(Scope* parent_scope, ScopeType scope_type) {
+  return parser_->NewScope(parent_scope, scope_type);
+}
+
+
+const AstRawString* ParserTraits::EmptyIdentifierString() {
+  return parser_->ast_value_factory_->empty_string();
+}
+
+
+void ParserTraits::SkipLazyFunctionBody(const AstRawString* function_name,
+                                        int* materialized_literal_count,
+                                        int* expected_property_count,
+                                        bool* ok) {
+  return parser_->SkipLazyFunctionBody(
+      function_name, materialized_literal_count, expected_property_count, ok);
+}
+
+
+ZoneList<Statement*>* ParserTraits::ParseEagerFunctionBody(
+    const AstRawString* name, int pos, Variable* fvar,
+    Token::Value fvar_init_op, bool is_generator, bool* ok) {
+  return parser_->ParseEagerFunctionBody(name, pos, fvar, fvar_init_op,
+                                         is_generator, ok);
+}
+
+void ParserTraits::CheckConflictingVarDeclarations(v8::internal::Scope* scope,
+                                                   bool* ok) {
+  parser_->CheckConflictingVarDeclarations(scope, ok);
+}
+
+
+AstValueFactory* ParserTraits::ast_value_factory() {
+  return parser_->ast_value_factory_;
+}
 
 
 // Support for handling complex values (array and object literals) that

@@ -34,6 +34,7 @@
 #include "src/liveedit.h"
 #include "src/misc-intrinsics.h"
 #include "src/parser.h"
+#include "src/prototype.h"
 #include "src/runtime.h"
 #include "src/runtime-profiler.h"
 #include "src/scopeinfo.h"
@@ -335,9 +336,6 @@ MUST_USE_RESULT static MaybeHandle<Object> TransitionElements(
 }
 
 
-static const int kSmiLiteralMinimumLength = 1024;
-
-
 MaybeHandle<Object> Runtime::CreateArrayLiteralBoilerplate(
     Isolate* isolate,
     Handle<FixedArray> literals,
@@ -368,7 +366,6 @@ MaybeHandle<Object> Runtime::CreateArrayLiteralBoilerplate(
 
   Handle<FixedArrayBase> copied_elements_values;
   if (IsFastDoubleElementsKind(constant_elements_kind)) {
-    ASSERT(FLAG_smi_only_arrays);
     copied_elements_values = isolate->factory()->CopyFixedDoubleArray(
         Handle<FixedDoubleArray>::cast(constant_elements_values));
   } else {
@@ -408,20 +405,6 @@ MaybeHandle<Object> Runtime::CreateArrayLiteralBoilerplate(
   }
   object->set_elements(*copied_elements_values);
   object->set_length(Smi::FromInt(copied_elements_values->length()));
-
-  //  Ensure that the boilerplate object has FAST_*_ELEMENTS, unless the flag is
-  //  on or the object is larger than the threshold.
-  if (!FLAG_smi_only_arrays &&
-      constant_elements_values->length() < kSmiLiteralMinimumLength) {
-    ElementsKind elements_kind = object->GetElementsKind();
-    if (!IsFastObjectElementsKind(elements_kind)) {
-      if (IsFastHoleyElementsKind(elements_kind)) {
-        TransitionElements(object, FAST_HOLEY_ELEMENTS, isolate).Check();
-      } else {
-        TransitionElements(object, FAST_ELEMENTS, isolate).Check();
-      }
-    }
-  }
 
   JSObject::ValidateElements(object);
   return object;
@@ -640,8 +623,8 @@ RUNTIME_FUNCTION(Runtime_CreateGlobalPrivateSymbol) {
     ASSERT(symbol->IsUndefined());
     symbol = isolate->factory()->NewPrivateSymbol();
     Handle<Symbol>::cast(symbol)->set_name(*name);
-    JSObject::SetProperty(Handle<JSObject>::cast(privates),
-                          name, symbol, NONE, STRICT).Assert();
+    JSObject::SetProperty(Handle<JSObject>::cast(privates), name, symbol,
+                          STRICT).Assert();
   }
   return *symbol;
 }
@@ -1808,31 +1791,37 @@ RUNTIME_FUNCTION(Runtime_GetPrototype) {
   CONVERT_ARG_HANDLE_CHECKED(Object, obj, 0);
   // We don't expect access checks to be needed on JSProxy objects.
   ASSERT(!obj->IsAccessCheckNeeded() || obj->IsJSObject());
+  PrototypeIterator iter(isolate, obj, PrototypeIterator::START_AT_RECEIVER);
   do {
-    if (obj->IsAccessCheckNeeded() &&
-        !isolate->MayNamedAccess(Handle<JSObject>::cast(obj),
-                                 isolate->factory()->proto_string(),
-                                 v8::ACCESS_GET)) {
-      isolate->ReportFailedAccessCheck(Handle<JSObject>::cast(obj),
-                                       v8::ACCESS_GET);
+    if (PrototypeIterator::GetCurrent(iter)->IsAccessCheckNeeded() &&
+        !isolate->MayNamedAccess(
+            Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter)),
+            isolate->factory()->proto_string(), v8::ACCESS_GET)) {
+      isolate->ReportFailedAccessCheck(
+          Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter)),
+          v8::ACCESS_GET);
       RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
       return isolate->heap()->undefined_value();
     }
-    obj = Object::GetPrototype(isolate, obj);
-  } while (obj->IsJSObject() &&
-           JSObject::cast(*obj)->map()->is_hidden_prototype());
-  return *obj;
+    iter.AdvanceIgnoringProxies();
+    if (PrototypeIterator::GetCurrent(iter)->IsJSProxy()) {
+      return *PrototypeIterator::GetCurrent(iter);
+    }
+  } while (!iter.IsAtEnd(PrototypeIterator::END_AT_NON_HIDDEN));
+  return *PrototypeIterator::GetCurrent(iter);
 }
 
 
 static inline Handle<Object> GetPrototypeSkipHiddenPrototypes(
     Isolate* isolate, Handle<Object> receiver) {
-  Handle<Object> current = Object::GetPrototype(isolate, receiver);
-  while (current->IsJSObject() &&
-         JSObject::cast(*current)->map()->is_hidden_prototype()) {
-    current = Object::GetPrototype(isolate, current);
+  PrototypeIterator iter(isolate, receiver);
+  while (!iter.IsAtEnd(PrototypeIterator::END_AT_NON_HIDDEN)) {
+    if (PrototypeIterator::GetCurrent(iter)->IsJSProxy()) {
+      return PrototypeIterator::GetCurrent(iter);
+    }
+    iter.Advance();
   }
-  return current;
+  return PrototypeIterator::GetCurrent(iter);
 }
 
 
@@ -1877,11 +1866,11 @@ RUNTIME_FUNCTION(Runtime_IsInPrototypeChain) {
   // See ECMA-262, section 15.3.5.3, page 88 (steps 5 - 8).
   CONVERT_ARG_HANDLE_CHECKED(Object, O, 0);
   CONVERT_ARG_HANDLE_CHECKED(Object, V, 1);
+  PrototypeIterator iter(isolate, V, PrototypeIterator::START_AT_RECEIVER);
   while (true) {
-    Handle<Object> prototype = Object::GetPrototype(isolate, V);
-    if (prototype->IsNull()) return isolate->heap()->false_value();
-    if (*O == *prototype) return isolate->heap()->true_value();
-    V = prototype;
+    iter.AdvanceIgnoringProxies();
+    if (iter.IsAtEnd()) return isolate->heap()->false_value();
+    if (iter.IsAtEnd(O)) return isolate->heap()->true_value();
   }
 }
 
@@ -2005,10 +1994,10 @@ RUNTIME_FUNCTION(Runtime_IsExtensible) {
   ASSERT(args.length() == 1);
   CONVERT_ARG_CHECKED(JSObject, obj, 0);
   if (obj->IsJSGlobalProxy()) {
-    Object* proto = obj->GetPrototype();
-    if (proto->IsNull()) return isolate->heap()->false_value();
-    ASSERT(proto->IsJSGlobalObject());
-    obj = JSObject::cast(proto);
+    PrototypeIterator iter(isolate, obj);
+    if (iter.IsAtEnd()) return isolate->heap()->false_value();
+    ASSERT(iter.GetCurrent()->IsJSGlobalObject());
+    obj = JSObject::cast(iter.GetCurrent());
   }
   return isolate->heap()->ToBoolean(obj->map()->is_extensible());
 }
@@ -2103,6 +2092,50 @@ static Object* ThrowRedeclarationError(Isolate* isolate, Handle<String> name) {
 }
 
 
+// May throw a RedeclarationError.
+static Object* DeclareGlobals(Isolate* isolate, Handle<GlobalObject> global,
+                              Handle<String> name, Handle<Object> value,
+                              PropertyAttributes attr, bool is_var,
+                              bool is_const, bool is_function) {
+  // Do the lookup own properties only, see ES5 erratum.
+  LookupIterator it(global, name, LookupIterator::CHECK_HIDDEN);
+  PropertyAttributes old_attributes = JSReceiver::GetPropertyAttributes(&it);
+
+  if (old_attributes != ABSENT) {
+    // The name was declared before; check for conflicting re-declarations.
+    if (is_const) return ThrowRedeclarationError(isolate, name);
+
+    // Skip var re-declarations.
+    if (is_var) return isolate->heap()->undefined_value();
+
+    ASSERT(is_function);
+    if ((old_attributes & DONT_DELETE) != 0) {
+      // Only allow reconfiguring globals to functions in user code (no
+      // natives, which are marked as read-only).
+      ASSERT((attr & READ_ONLY) == 0);
+
+      // Check whether we can reconfigure the existing property into a
+      // function.
+      PropertyDetails old_details = it.property_details();
+      // TODO(verwaest): CALLBACKS invalidly includes ExecutableAccessInfo,
+      // which are actually data properties, not accessor properties.
+      if (old_details.IsReadOnly() || old_details.IsDontEnum() ||
+          old_details.type() == CALLBACKS) {
+        return ThrowRedeclarationError(isolate, name);
+      }
+      // If the existing property is not configurable, keep its attributes. Do
+      attr = old_attributes;
+    }
+  }
+
+  // Define or redefine own property.
+  RETURN_FAILURE_ON_EXCEPTION(isolate, JSObject::SetOwnPropertyIgnoreAttributes(
+                                           global, name, value, attr));
+
+  return isolate->heap()->undefined_value();
+}
+
+
 RUNTIME_FUNCTION(Runtime_DeclareGlobals) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 3);
@@ -2117,181 +2150,42 @@ RUNTIME_FUNCTION(Runtime_DeclareGlobals) {
   for (int i = 0; i < length; i += 2) {
     HandleScope scope(isolate);
     Handle<String> name(String::cast(pairs->get(i)));
-    Handle<Object> value(pairs->get(i + 1), isolate);
+    Handle<Object> initial_value(pairs->get(i + 1), isolate);
 
     // We have to declare a global const property. To capture we only
     // assign to it when evaluating the assignment for "const x =
     // <expr>" the initial value is the hole.
-    bool is_var = value->IsUndefined();
-    bool is_const = value->IsTheHole();
-    bool is_function = value->IsSharedFunctionInfo();
+    bool is_var = initial_value->IsUndefined();
+    bool is_const = initial_value->IsTheHole();
+    bool is_function = initial_value->IsSharedFunctionInfo();
     ASSERT(is_var + is_const + is_function == 1);
 
-    if (is_var || is_const) {
-      // Lookup the property in the global object, and don't set the
-      // value of the variable if the property is already there.
-      // Do the lookup own properties only, see ES5 erratum.
-      LookupResult lookup(isolate);
-      global->LookupOwn(name, &lookup, true);
-      if (lookup.IsFound()) {
-        // We found an existing property. Unless it was an interceptor
-        // that claims the property is absent, skip this declaration.
-        if (!lookup.IsInterceptor()) continue;
-        if (JSReceiver::GetPropertyAttributes(global, name) != ABSENT) continue;
-        // Fall-through and introduce the absent property by using
-        // SetProperty.
-      }
-    } else if (is_function) {
+    Handle<Object> value;
+    if (is_function) {
       // Copy the function and update its context. Use it as value.
       Handle<SharedFunctionInfo> shared =
-          Handle<SharedFunctionInfo>::cast(value);
+          Handle<SharedFunctionInfo>::cast(initial_value);
       Handle<JSFunction> function =
-          isolate->factory()->NewFunctionFromSharedFunctionInfo(
-              shared, context, TENURED);
+          isolate->factory()->NewFunctionFromSharedFunctionInfo(shared, context,
+                                                                TENURED);
       value = function;
+    } else {
+      value = isolate->factory()->undefined_value();
     }
-
-    LookupResult lookup(isolate);
-    global->LookupOwn(name, &lookup, true);
 
     // Compute the property attributes. According to ECMA-262,
     // the property must be non-configurable except in eval.
-    int attr = NONE;
-    bool is_eval = DeclareGlobalsEvalFlag::decode(flags);
-    if (!is_eval) {
-      attr |= DONT_DELETE;
-    }
     bool is_native = DeclareGlobalsNativeFlag::decode(flags);
-    if (is_const || (is_native && is_function)) {
-      attr |= READ_ONLY;
-    }
+    bool is_eval = DeclareGlobalsEvalFlag::decode(flags);
+    int attr = NONE;
+    if (is_const) attr |= READ_ONLY;
+    if (is_function && is_native) attr |= READ_ONLY;
+    if (!is_const && !is_eval) attr |= DONT_DELETE;
 
-    StrictMode strict_mode = DeclareGlobalsStrictMode::decode(flags);
-
-    if (!lookup.IsFound() || is_function) {
-      // If the own property exists, check that we can reconfigure it
-      // as required for function declarations.
-      if (lookup.IsFound() && lookup.IsDontDelete()) {
-        if (lookup.IsReadOnly() || lookup.IsDontEnum() ||
-            lookup.IsPropertyCallbacks()) {
-          return ThrowRedeclarationError(isolate, name);
-        }
-        // If the existing property is not configurable, keep its attributes.
-        attr = lookup.GetAttributes();
-      }
-      // Define or redefine own property.
-      RETURN_FAILURE_ON_EXCEPTION(isolate,
-          JSObject::SetOwnPropertyIgnoreAttributes(
-              global, name, value, static_cast<PropertyAttributes>(attr)));
-    } else {
-      // Do a [[Put]] on the existing (own) property.
-      RETURN_FAILURE_ON_EXCEPTION(
-          isolate,
-          JSObject::SetProperty(
-              global, name, value, static_cast<PropertyAttributes>(attr),
-              strict_mode));
-    }
-  }
-
-  ASSERT(!isolate->has_pending_exception());
-  return isolate->heap()->undefined_value();
-}
-
-
-RUNTIME_FUNCTION(Runtime_DeclareContextSlot) {
-  HandleScope scope(isolate);
-  ASSERT(args.length() == 4);
-
-  // Declarations are always made in a function or native context.  In the
-  // case of eval code, the context passed is the context of the caller,
-  // which may be some nested context and not the declaration context.
-  CONVERT_ARG_HANDLE_CHECKED(Context, context_arg, 0);
-  Handle<Context> context(context_arg->declaration_context());
-  CONVERT_ARG_HANDLE_CHECKED(String, name, 1);
-  CONVERT_SMI_ARG_CHECKED(mode_arg, 2);
-  PropertyAttributes mode = static_cast<PropertyAttributes>(mode_arg);
-  RUNTIME_ASSERT(mode == READ_ONLY || mode == NONE);
-  CONVERT_ARG_HANDLE_CHECKED(Object, initial_value, 3);
-
-  int index;
-  PropertyAttributes attributes;
-  ContextLookupFlags flags = DONT_FOLLOW_CHAINS;
-  BindingFlags binding_flags;
-  Handle<Object> holder =
-      context->Lookup(name, flags, &index, &attributes, &binding_flags);
-
-  if (attributes != ABSENT) {
-    // The name was declared before; check for conflicting re-declarations.
-    // Note: this is actually inconsistent with what happens for globals (where
-    // we silently ignore such declarations).
-    if (((attributes & READ_ONLY) != 0) || (mode == READ_ONLY)) {
-      // Functions are not read-only.
-      ASSERT(mode != READ_ONLY || initial_value->IsTheHole());
-      return ThrowRedeclarationError(isolate, name);
-    }
-
-    // Initialize it if necessary.
-    if (*initial_value != NULL) {
-      if (index >= 0) {
-        ASSERT(holder.is_identical_to(context));
-        if (((attributes & READ_ONLY) == 0) ||
-            context->get(index)->IsTheHole()) {
-          context->set(index, *initial_value);
-        }
-      } else {
-        // Slow case: The property is in the context extension object of a
-        // function context or the global object of a native context.
-        Handle<JSObject> object = Handle<JSObject>::cast(holder);
-        RETURN_FAILURE_ON_EXCEPTION(
-            isolate,
-            JSReceiver::SetProperty(object, name, initial_value, mode, SLOPPY));
-      }
-    }
-
-  } else {
-    // The property is not in the function context. It needs to be
-    // "declared" in the function context's extension context or as a
-    // property of the the global object.
-    Handle<JSObject> object;
-    if (context->has_extension()) {
-      object = Handle<JSObject>(JSObject::cast(context->extension()));
-    } else {
-      // Context extension objects are allocated lazily.
-      ASSERT(context->IsFunctionContext());
-      object = isolate->factory()->NewJSObject(
-          isolate->context_extension_function());
-      context->set_extension(*object);
-    }
-    ASSERT(*object != NULL);
-
-    // Declare the property by setting it to the initial value if provided,
-    // or undefined, and use the correct mode (e.g. READ_ONLY attribute for
-    // constant declarations).
-    ASSERT(!JSReceiver::HasOwnProperty(object, name));
-    Handle<Object> value(isolate->heap()->undefined_value(), isolate);
-    if (*initial_value != NULL) value = initial_value;
-    // Declaring a const context slot is a conflicting declaration if
-    // there is a callback with that name in a prototype. It is
-    // allowed to introduce const variables in
-    // JSContextExtensionObjects. They are treated specially in
-    // SetProperty and no setters are invoked for those since they are
-    // not real JSObjects.
-    if (initial_value->IsTheHole() &&
-        !object->IsJSContextExtensionObject()) {
-      LookupResult lookup(isolate);
-      object->Lookup(name, &lookup);
-      if (lookup.IsPropertyCallbacks()) {
-        return ThrowRedeclarationError(isolate, name);
-      }
-    }
-    if (object->IsJSGlobalObject()) {
-      // Define own property on the global object.
-      RETURN_FAILURE_ON_EXCEPTION(isolate,
-         JSObject::SetOwnPropertyIgnoreAttributes(object, name, value, mode));
-    } else {
-      RETURN_FAILURE_ON_EXCEPTION(isolate,
-         JSReceiver::SetProperty(object, name, value, mode, SLOPPY));
-    }
+    Object* result = DeclareGlobals(isolate, global, name, value,
+                                    static_cast<PropertyAttributes>(attr),
+                                    is_var, is_const, is_function);
+    if (isolate->has_pending_exception()) return result;
   }
 
   return isolate->heap()->undefined_value();
@@ -2306,60 +2200,23 @@ RUNTIME_FUNCTION(Runtime_InitializeVarGlobal) {
 
   // Determine if we need to assign to the variable if it already
   // exists (based on the number of arguments).
-  RUNTIME_ASSERT(args.length() == 2 || args.length() == 3);
-  bool assign = args.length() == 3;
+  RUNTIME_ASSERT(args.length() == 3);
 
   CONVERT_ARG_HANDLE_CHECKED(String, name, 0);
   CONVERT_STRICT_MODE_ARG_CHECKED(strict_mode, 1);
+  CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
 
-  // According to ECMA-262, section 12.2, page 62, the property must
-  // not be deletable.
-  PropertyAttributes attributes = DONT_DELETE;
-
-  // Lookup the property as own on the global object. If it isn't
-  // there, there is a property with this name in the prototype chain.
-  // We follow Safari and Firefox behavior and only set the property
-  // if there is an explicit initialization value that we have
-  // to assign to the property.
-  // Note that objects can have hidden prototypes, so we need to traverse
-  // the whole chain of hidden prototypes to do an 'own' lookup.
-  LookupResult lookup(isolate);
-  isolate->context()->global_object()->LookupOwn(name, &lookup, true);
-  if (lookup.IsInterceptor()) {
-    Handle<JSObject> holder(lookup.holder());
-    PropertyAttributes intercepted =
-        JSReceiver::GetPropertyAttributes(holder, name);
-    if (intercepted != ABSENT && (intercepted & READ_ONLY) == 0) {
-      // Found an interceptor that's not read only.
-      if (assign) {
-        CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
-        Handle<Object> result;
-        ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-            isolate, result,
-            JSObject::SetPropertyForResult(
-                holder, &lookup, name, value, attributes, strict_mode));
-        return *result;
-      } else {
-        return isolate->heap()->undefined_value();
-      }
-    }
-  }
-
-  if (assign) {
-    CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
-    Handle<GlobalObject> global(isolate->context()->global_object());
-    Handle<Object> result;
-    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-        isolate, result,
-        JSReceiver::SetProperty(global, name, value, attributes, strict_mode));
-    return *result;
-  }
-  return isolate->heap()->undefined_value();
+  Handle<GlobalObject> global(isolate->context()->global_object());
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, result,
+      JSReceiver::SetProperty(global, name, value, strict_mode));
+  return *result;
 }
 
 
 RUNTIME_FUNCTION(Runtime_InitializeConstGlobal) {
-  SealHandleScope shs(isolate);
+  HandleScope handle_scope(isolate);
   // All constants are declared with an initial value. The name
   // of the constant is the first argument and the initial value
   // is the second.
@@ -2367,71 +2224,112 @@ RUNTIME_FUNCTION(Runtime_InitializeConstGlobal) {
   CONVERT_ARG_HANDLE_CHECKED(String, name, 0);
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 1);
 
-  // Get the current global object from top.
-  GlobalObject* global = isolate->context()->global_object();
+  Handle<GlobalObject> global = isolate->global_object();
 
-  // According to ECMA-262, section 12.2, page 62, the property must
-  // not be deletable. Since it's a const, it must be READ_ONLY too.
-  PropertyAttributes attributes =
+  // Lookup the property as own on the global object.
+  LookupIterator it(global, name, LookupIterator::CHECK_HIDDEN);
+  PropertyAttributes old_attributes = JSReceiver::GetPropertyAttributes(&it);
+
+  PropertyAttributes attr =
       static_cast<PropertyAttributes>(DONT_DELETE | READ_ONLY);
-
-  // Lookup the property as own on the global object. If it isn't
-  // there, we add the property and take special precautions to always
-  // add it even in case of callbacks in the prototype chain (this rules
-  // out using SetProperty). We use SetOwnPropertyIgnoreAttributes instead
-  LookupResult lookup(isolate);
-  global->LookupOwn(name, &lookup);
-  if (!lookup.IsFound()) {
-    HandleScope handle_scope(isolate);
-    Handle<GlobalObject> global(isolate->context()->global_object());
-    JSObject::AddProperty(global, name, value, attributes);
-    return *value;
-  }
-
-  if (!lookup.IsReadOnly()) {
-    // Restore global object from context (in case of GC) and continue
-    // with setting the value.
-    HandleScope handle_scope(isolate);
-    Handle<GlobalObject> global(isolate->context()->global_object());
-
-    // BUG 1213575: Handle the case where we have to set a read-only
-    // property through an interceptor and only do it if it's
-    // uninitialized, e.g. the hole. Nirk...
-    // Passing sloppy mode because the property is writable.
-    RETURN_FAILURE_ON_EXCEPTION(
-        isolate,
-        JSReceiver::SetProperty(global, name, value, attributes, SLOPPY));
-    return *value;
-  }
-
-  // Set the value, but only if we're assigning the initial value to a
-  // constant. For now, we determine this by checking if the
-  // current value is the hole.
-  // Strict mode handling not needed (const is disallowed in strict mode).
-  if (lookup.IsField()) {
-    FixedArray* properties = global->properties();
-    int index = lookup.GetFieldIndex().outobject_array_index();
-    if (properties->get(index)->IsTheHole() || !lookup.IsReadOnly()) {
-      properties->set(index, *value);
+  // Set the value if the property is either missing, or the property attributes
+  // allow setting the value without invoking an accessor.
+  if (it.IsFound()) {
+    // Ignore if we can't reconfigure the value.
+    if ((old_attributes & DONT_DELETE) != 0) {
+      if ((old_attributes & READ_ONLY) != 0 ||
+          it.property_kind() == LookupIterator::ACCESSOR) {
+        return *value;
+      }
+      attr = static_cast<PropertyAttributes>(old_attributes | READ_ONLY);
     }
-  } else if (lookup.IsNormal()) {
-    if (global->GetNormalizedProperty(&lookup)->IsTheHole() ||
-        !lookup.IsReadOnly()) {
-      HandleScope scope(isolate);
-      JSObject::SetNormalizedProperty(Handle<JSObject>(global), &lookup, value);
-    }
-  } else {
-    // Ignore re-initialization of constants that have already been
-    // assigned a constant value.
-    ASSERT(lookup.IsReadOnly() && lookup.IsConstant());
   }
 
-  // Use the set value as the result of the operation.
+  RETURN_FAILURE_ON_EXCEPTION(isolate, JSObject::SetOwnPropertyIgnoreAttributes(
+                                           global, name, value, attr));
+
   return *value;
 }
 
 
-RUNTIME_FUNCTION(Runtime_InitializeConstContextSlot) {
+RUNTIME_FUNCTION(Runtime_DeclareLookupSlot) {
+  HandleScope scope(isolate);
+  ASSERT(args.length() == 4);
+
+  // Declarations are always made in a function, native, or global context. In
+  // the case of eval code, the context passed is the context of the caller,
+  // which may be some nested context and not the declaration context.
+  CONVERT_ARG_HANDLE_CHECKED(Context, context_arg, 0);
+  Handle<Context> context(context_arg->declaration_context());
+  CONVERT_ARG_HANDLE_CHECKED(String, name, 1);
+  CONVERT_SMI_ARG_CHECKED(attr_arg, 2);
+  PropertyAttributes attr = static_cast<PropertyAttributes>(attr_arg);
+  RUNTIME_ASSERT(attr == READ_ONLY || attr == NONE);
+  CONVERT_ARG_HANDLE_CHECKED(Object, initial_value, 3);
+
+  // TODO(verwaest): Unify the encoding indicating "var" with DeclareGlobals.
+  bool is_var = *initial_value == NULL;
+  bool is_const = initial_value->IsTheHole();
+  bool is_function = initial_value->IsJSFunction();
+  ASSERT(is_var + is_const + is_function == 1);
+
+  int index;
+  PropertyAttributes attributes;
+  ContextLookupFlags flags = DONT_FOLLOW_CHAINS;
+  BindingFlags binding_flags;
+  Handle<Object> holder =
+      context->Lookup(name, flags, &index, &attributes, &binding_flags);
+
+  Handle<JSObject> object;
+  Handle<Object> value =
+      is_function ? initial_value
+                  : Handle<Object>::cast(isolate->factory()->undefined_value());
+
+  // TODO(verwaest): This case should probably not be covered by this function,
+  // but by DeclareGlobals instead.
+  if ((attributes != ABSENT && holder->IsJSGlobalObject()) ||
+      (context_arg->has_extension() &&
+       context_arg->extension()->IsJSGlobalObject())) {
+    return DeclareGlobals(isolate, Handle<JSGlobalObject>::cast(holder), name,
+                          value, attr, is_var, is_const, is_function);
+  }
+
+  if (attributes != ABSENT) {
+    // The name was declared before; check for conflicting re-declarations.
+    if (is_const || (attributes & READ_ONLY) != 0) {
+      return ThrowRedeclarationError(isolate, name);
+    }
+
+    // Skip var re-declarations.
+    if (is_var) return isolate->heap()->undefined_value();
+
+    ASSERT(is_function);
+    if (index >= 0) {
+      ASSERT(holder.is_identical_to(context));
+      context->set(index, *initial_value);
+      return isolate->heap()->undefined_value();
+    }
+
+    object = Handle<JSObject>::cast(holder);
+
+  } else if (context->has_extension()) {
+    object = handle(JSObject::cast(context->extension()));
+    ASSERT(object->IsJSContextExtensionObject() || object->IsJSGlobalObject());
+  } else {
+    ASSERT(context->IsFunctionContext());
+    object =
+        isolate->factory()->NewJSObject(isolate->context_extension_function());
+    context->set_extension(*object);
+  }
+
+  RETURN_FAILURE_ON_EXCEPTION(isolate, JSObject::SetOwnPropertyIgnoreAttributes(
+                                           object, name, value, attr));
+
+  return isolate->heap()->undefined_value();
+}
+
+
+RUNTIME_FUNCTION(Runtime_InitializeLegacyConstLookupSlot) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 3);
 
@@ -2444,85 +2342,55 @@ RUNTIME_FUNCTION(Runtime_InitializeConstContextSlot) {
 
   int index;
   PropertyAttributes attributes;
-  ContextLookupFlags flags = FOLLOW_CHAINS;
+  ContextLookupFlags flags = DONT_FOLLOW_CHAINS;
   BindingFlags binding_flags;
   Handle<Object> holder =
       context->Lookup(name, flags, &index, &attributes, &binding_flags);
 
   if (index >= 0) {
     ASSERT(holder->IsContext());
-    // Property was found in a context.  Perform the assignment if we
-    // found some non-constant or an uninitialized constant.
+    // Property was found in a context.  Perform the assignment if the constant
+    // was uninitialized.
     Handle<Context> context = Handle<Context>::cast(holder);
-    if ((attributes & READ_ONLY) == 0 || context->get(index)->IsTheHole()) {
-      context->set(index, *value);
-    }
+    ASSERT((attributes & READ_ONLY) != 0);
+    if (context->get(index)->IsTheHole()) context->set(index, *value);
     return *value;
   }
 
-  // The property could not be found, we introduce it as a property of the
-  // global object.
+  PropertyAttributes attr =
+      static_cast<PropertyAttributes>(DONT_DELETE | READ_ONLY);
+
+  // Strict mode handling not needed (legacy const is disallowed in strict
+  // mode).
+
+  // The declared const was configurable, and may have been deleted in the
+  // meanwhile. If so, re-introduce the variable in the context extension.
+  ASSERT(context_arg->has_extension());
   if (attributes == ABSENT) {
-    Handle<JSObject> global = Handle<JSObject>(
-        isolate->context()->global_object());
-    // Strict mode not needed (const disallowed in strict mode).
-    RETURN_FAILURE_ON_EXCEPTION(
-        isolate,
-        JSReceiver::SetProperty(global, name, value, NONE, SLOPPY));
-    return *value;
-  }
-
-  // The property was present in some function's context extension object,
-  // as a property on the subject of a with, or as a property of the global
-  // object.
-  //
-  // In most situations, eval-introduced consts should still be present in
-  // the context extension object.  However, because declaration and
-  // initialization are separate, the property might have been deleted
-  // before we reach the initialization point.
-  //
-  // Example:
-  //
-  //    function f() { eval("delete x; const x;"); }
-  //
-  // In that case, the initialization behaves like a normal assignment.
-  Handle<JSObject> object = Handle<JSObject>::cast(holder);
-
-  if (*object == context->extension()) {
-    // This is the property that was introduced by the const declaration.
-    // Set it if it hasn't been set before.  NOTE: We cannot use
-    // GetProperty() to get the current value as it 'unholes' the value.
-    LookupResult lookup(isolate);
-    object->LookupOwnRealNamedProperty(name, &lookup);
-    ASSERT(lookup.IsFound());  // the property was declared
-    ASSERT(lookup.IsReadOnly());  // and it was declared as read-only
-
-    if (lookup.IsField()) {
-      FixedArray* properties = object->properties();
-      FieldIndex index = lookup.GetFieldIndex();
-      ASSERT(!index.is_inobject());
-      if (properties->get(index.outobject_array_index())->IsTheHole()) {
-        properties->set(index.outobject_array_index(), *value);
-      }
-    } else if (lookup.IsNormal()) {
-      if (object->GetNormalizedProperty(&lookup)->IsTheHole()) {
-        JSObject::SetNormalizedProperty(object, &lookup, value);
-      }
-    } else {
-      // We should not reach here. Any real, named property should be
-      // either a field or a dictionary slot.
-      UNREACHABLE();
-    }
+    holder = handle(context_arg->extension(), isolate);
   } else {
-    // The property was found on some other object.  Set it if it is not a
-    // read-only property.
-    if ((attributes & READ_ONLY) == 0) {
-      // Strict mode not needed (const disallowed in strict mode).
-      RETURN_FAILURE_ON_EXCEPTION(
-          isolate,
-          JSReceiver::SetProperty(object, name, value, attributes, SLOPPY));
+    // For JSContextExtensionObjects, the initializer can be run multiple times
+    // if in a for loop: for (var i = 0; i < 2; i++) { const x = i; }. Only the
+    // first assignment should go through. For JSGlobalObjects, additionally any
+    // code can run in between that modifies the declared property.
+    ASSERT(holder->IsJSGlobalObject() || holder->IsJSContextExtensionObject());
+
+    LookupIterator it(holder, name, LookupIterator::CHECK_HIDDEN);
+    PropertyAttributes old_attributes = JSReceiver::GetPropertyAttributes(&it);
+
+    // Ignore if we can't reconfigure the value.
+    if ((old_attributes & DONT_DELETE) != 0) {
+      if ((old_attributes & READ_ONLY) != 0 ||
+          it.property_kind() == LookupIterator::ACCESSOR) {
+        return *value;
+      }
+      attr = static_cast<PropertyAttributes>(old_attributes | READ_ONLY);
     }
   }
+
+  RETURN_FAILURE_ON_EXCEPTION(
+      isolate, JSObject::SetOwnPropertyIgnoreAttributes(
+                   Handle<JSObject>::cast(holder), name, value, attr));
 
   return *value;
 }
@@ -2664,7 +2532,7 @@ static void InstallBuiltin(Isolate* isolate,
   Handle<JSFunction> optimized =
       isolate->factory()->NewFunctionWithoutPrototype(key, code);
   optimized->shared()->DontAdaptArguments();
-  JSReceiver::SetProperty(holder, key, optimized, NONE, STRICT).Assert();
+  JSObject::AddProperty(holder, key, optimized, NONE);
 }
 
 
@@ -4803,8 +4671,9 @@ MaybeHandle<Object> Runtime::GetElementOrCharAt(Isolate* isolate,
 
   Handle<Object> result;
   if (object->IsString() || object->IsNumber() || object->IsBoolean()) {
-    Handle<Object> proto(object->GetPrototype(isolate), isolate);
-    return Object::GetElement(isolate, proto, index);
+    PrototypeIterator iter(isolate, object);
+    return Object::GetElement(isolate, PrototypeIterator::GetCurrent(iter),
+                              index);
   } else {
     return Object::GetElement(isolate, object, index);
   }
@@ -4918,11 +4787,8 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
         int index = keyed_lookup_cache->Lookup(receiver_map, key);
         if (index != -1) {
           // Doubles are not cached, so raw read the value.
-          Object* value = receiver->RawFastPropertyAt(
+          return receiver->RawFastPropertyAt(
               FieldIndex::ForKeyedLookupCacheIndex(*receiver_map, index));
-          return value->IsTheHole()
-              ? isolate->heap()->undefined_value()
-              : value;
         }
         // Lookup cache miss.  Perform lookup and update the cache if
         // appropriate.
@@ -4950,10 +4816,10 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
           if (!receiver->IsGlobalObject()) return value;
           value = PropertyCell::cast(value)->value();
           if (!value->IsTheHole()) return value;
-          // If value is the hole do the general lookup.
+          // If value is the hole (meaning, absent) do the general lookup.
         }
       }
-    } else if (FLAG_smi_only_arrays && key_obj->IsSmi()) {
+    } else if (key_obj->IsSmi()) {
       // JSObject without a name key. If the key is a Smi, check for a
       // definite out-of-bounds access to elements, which is a strong indicator
       // that subsequent accesses will also call the runtime. Proactively
@@ -5058,16 +4924,15 @@ RUNTIME_FUNCTION(Runtime_DefineDataPropertyUnchecked) {
   // Take special care when attributes are different and there is already
   // a property. For simplicity we normalize the property which enables us
   // to not worry about changing the instance_descriptor and creating a new
-  // map. The current version of SetObjectProperty does not handle attributes
-  // correctly in the case where a property is a field and is reset with
-  // new attributes.
+  // map.
   if (lookup.IsFound() &&
       (attr != lookup.GetAttributes() || lookup.IsPropertyCallbacks())) {
     // New attributes - normalize to avoid writing to instance descriptor
     if (js_object->IsJSGlobalProxy()) {
       // Since the result is a property, the prototype will exist so
       // we don't have to check for null.
-      js_object = Handle<JSObject>(JSObject::cast(js_object->GetPrototype()));
+      PrototypeIterator iter(isolate, js_object);
+      js_object = Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
     }
 
     if (attr != lookup.GetAttributes() ||
@@ -5114,8 +4979,7 @@ MaybeHandle<Object> Runtime::SetObjectProperty(Isolate* isolate,
                                                Handle<Object> object,
                                                Handle<Object> key,
                                                Handle<Object> value,
-                                               StrictMode strict_mode,
-                                               PropertyAttributes attrs) {
+                                               StrictMode strict_mode) {
   if (object->IsUndefined() || object->IsNull()) {
     Handle<Object> args[2] = { key, object };
     Handle<Object> error =
@@ -5134,7 +4998,7 @@ MaybeHandle<Object> Runtime::SetObjectProperty(Isolate* isolate,
     }
     Handle<Name> name = Handle<Name>::cast(name_object);
     return JSReceiver::SetProperty(Handle<JSProxy>::cast(object), name, value,
-                                   attrs, strict_mode);
+                                   strict_mode);
   }
 
   // If the object isn't a JavaScript object, we ignore the store.
@@ -5166,7 +5030,7 @@ MaybeHandle<Object> Runtime::SetObjectProperty(Isolate* isolate,
     }
 
     MaybeHandle<Object> result = JSObject::SetElement(
-        js_object, index, value, attrs, strict_mode, true, SET_PROPERTY);
+        js_object, index, value, NONE, strict_mode, true, SET_PROPERTY);
     JSObject::ValidateElements(js_object);
 
     return result.is_null() ? result : value;
@@ -5181,12 +5045,11 @@ MaybeHandle<Object> Runtime::SetObjectProperty(Isolate* isolate,
               isolate, value, Execution::ToNumber(isolate, value), Object);
         }
       }
-      return JSObject::SetElement(js_object, index, value, attrs,
-                                  strict_mode, true, SET_PROPERTY);
+      return JSObject::SetElement(js_object, index, value, NONE, strict_mode,
+                                  true, SET_PROPERTY);
     } else {
       if (name->IsString()) name = String::Flatten(Handle<String>::cast(name));
-      return JSReceiver::SetProperty(
-          js_object, name, value, attrs, strict_mode);
+      return JSReceiver::SetProperty(js_object, name, value, strict_mode);
     }
   }
 
@@ -5197,10 +5060,10 @@ MaybeHandle<Object> Runtime::SetObjectProperty(Isolate* isolate,
   Handle<String> name = Handle<String>::cast(converted);
 
   if (name->AsArrayIndex(&index)) {
-    return JSObject::SetElement(js_object, index, value, attrs,
-                                strict_mode, true, SET_PROPERTY);
+    return JSObject::SetElement(js_object, index, value, NONE, strict_mode,
+                                true, SET_PROPERTY);
   } else {
-    return JSReceiver::SetProperty(js_object, name, value, attrs, strict_mode);
+    return JSReceiver::SetProperty(js_object, name, value, strict_mode);
   }
 }
 
@@ -5308,12 +5171,12 @@ RUNTIME_FUNCTION(Runtime_SetHiddenProperty) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_AddProperty) {
+RUNTIME_FUNCTION(Runtime_AddNamedProperty) {
   HandleScope scope(isolate);
   RUNTIME_ASSERT(args.length() == 4);
 
   CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
-  CONVERT_ARG_HANDLE_CHECKED(Object, key, 1);
+  CONVERT_ARG_HANDLE_CHECKED(Name, key, 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
   CONVERT_SMI_ARG_CHECKED(unchecked_attributes, 3);
   RUNTIME_ASSERT(
@@ -5323,27 +5186,17 @@ RUNTIME_FUNCTION(Runtime_AddProperty) {
       static_cast<PropertyAttributes>(unchecked_attributes);
 
 #ifdef DEBUG
-  bool duplicate;
   uint32_t index = 0;
-  if (key->IsName() || !key->ToArrayIndex(&index)) {
-    if (key->IsNumber()) {
-      ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, key,
-                                         Execution::ToString(isolate, key));
-    }
-    LookupIterator it(object, Handle<Name>::cast(key),
-                      LookupIterator::CHECK_OWN_REAL);
-    JSReceiver::GetPropertyAttributes(&it);
-    duplicate = it.IsFound();
-  } else {
-    duplicate = JSReceiver::HasOwnElement(object, index);
-  }
-  RUNTIME_ASSERT(!duplicate);
+  ASSERT(!key->ToArrayIndex(&index));
+  LookupIterator it(object, key, LookupIterator::CHECK_OWN_REAL);
+  JSReceiver::GetPropertyAttributes(&it);
+  RUNTIME_ASSERT(!it.IsFound());
 #endif
 
   Handle<Object> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, result,
-      Runtime::DefineObjectProperty(object, key, value, attributes));
+      JSObject::SetOwnPropertyIgnoreAttributes(object, key, value, attributes));
   return *result;
 }
 
@@ -5600,12 +5453,16 @@ static Object* HasOwnPropertyImplementation(Isolate* isolate,
   // Handle hidden prototypes.  If there's a hidden prototype above this thing
   // then we have to check it for properties, because they are supposed to
   // look like they are on this object.
-  Handle<Object> proto(object->GetPrototype(), isolate);
-  if (proto->IsJSObject() &&
-      Handle<JSObject>::cast(proto)->map()->is_hidden_prototype()) {
-    return HasOwnPropertyImplementation(isolate,
-                                        Handle<JSObject>::cast(proto),
-                                        key);
+  PrototypeIterator iter(isolate, object);
+  if (!iter.IsAtEnd() &&
+      Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter))
+          ->map()
+          ->is_hidden_prototype()) {
+    // TODO(verwaest): The recursion is not necessary for keys that are array
+    // indicies. Removing this.
+    return HasOwnPropertyImplementation(
+        isolate, Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter)),
+        key);
   }
   RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
   return isolate->heap()->false_value();
@@ -5743,11 +5600,9 @@ RUNTIME_FUNCTION(Runtime_GetPropertyNamesFast) {
 // is prototype for.
 static int OwnPrototypeChainLength(JSObject* obj) {
   int count = 1;
-  Object* proto = obj->GetPrototype();
-  while (proto->IsJSObject() &&
-         JSObject::cast(proto)->map()->is_hidden_prototype()) {
+  for (PrototypeIterator iter(obj->GetIsolate(), obj);
+       !iter.IsAtEnd(PrototypeIterator::END_AT_NON_HIDDEN); iter.Advance()) {
     count++;
-    proto = JSObject::cast(proto)->GetPrototype();
   }
   return count;
 }
@@ -5777,7 +5632,8 @@ RUNTIME_FUNCTION(Runtime_GetOwnPropertyNames) {
       RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
       return *isolate->factory()->NewJSArray(0);
     }
-    obj = Handle<JSObject>(JSObject::cast(obj->GetPrototype()));
+    PrototypeIterator iter(isolate, obj);
+    obj = Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
   }
 
   // Find the number of objects making up this.
@@ -5786,22 +5642,26 @@ RUNTIME_FUNCTION(Runtime_GetOwnPropertyNames) {
   // Find the number of own properties for each of the objects.
   ScopedVector<int> own_property_count(length);
   int total_property_count = 0;
-  Handle<JSObject> jsproto = obj;
-  for (int i = 0; i < length; i++) {
-    // Only collect names if access is permitted.
-    if (jsproto->IsAccessCheckNeeded() &&
-        !isolate->MayNamedAccess(
-            jsproto, isolate->factory()->undefined_value(), v8::ACCESS_KEYS)) {
-      isolate->ReportFailedAccessCheck(jsproto, v8::ACCESS_KEYS);
-      RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
-      return *isolate->factory()->NewJSArray(0);
-    }
-    int n;
-    n = jsproto->NumberOfOwnProperties(filter);
-    own_property_count[i] = n;
-    total_property_count += n;
-    if (i < length - 1) {
-      jsproto = Handle<JSObject>(JSObject::cast(jsproto->GetPrototype()));
+  {
+    PrototypeIterator iter(isolate, obj, PrototypeIterator::START_AT_RECEIVER);
+    for (int i = 0; i < length; i++) {
+      ASSERT(!iter.IsAtEnd());
+      Handle<JSObject> jsproto =
+          Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
+      // Only collect names if access is permitted.
+      if (jsproto->IsAccessCheckNeeded() &&
+          !isolate->MayNamedAccess(jsproto,
+                                   isolate->factory()->undefined_value(),
+                                   v8::ACCESS_KEYS)) {
+        isolate->ReportFailedAccessCheck(jsproto, v8::ACCESS_KEYS);
+        RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
+        return *isolate->factory()->NewJSArray(0);
+      }
+      int n;
+      n = jsproto->NumberOfOwnProperties(filter);
+      own_property_count[i] = n;
+      total_property_count += n;
+      iter.Advance();
     }
   }
 
@@ -5810,39 +5670,41 @@ RUNTIME_FUNCTION(Runtime_GetOwnPropertyNames) {
       isolate->factory()->NewFixedArray(total_property_count);
 
   // Get the property names.
-  jsproto = obj;
   int next_copy_index = 0;
   int hidden_strings = 0;
-  for (int i = 0; i < length; i++) {
-    jsproto->GetOwnPropertyNames(*names, next_copy_index, filter);
-    if (i > 0) {
-      // Names from hidden prototypes may already have been added
-      // for inherited function template instances. Count the duplicates
-      // and stub them out; the final copy pass at the end ignores holes.
-      for (int j = next_copy_index;
-           j < next_copy_index + own_property_count[i];
-           j++) {
-        Object* name_from_hidden_proto = names->get(j);
-        for (int k = 0; k < next_copy_index; k++) {
-          if (names->get(k) != isolate->heap()->hidden_string()) {
-            Object* name = names->get(k);
-            if (name_from_hidden_proto == name) {
-              names->set(j, isolate->heap()->hidden_string());
-              hidden_strings++;
-              break;
+  {
+    PrototypeIterator iter(isolate, obj, PrototypeIterator::START_AT_RECEIVER);
+    for (int i = 0; i < length; i++) {
+      ASSERT(!iter.IsAtEnd());
+      Handle<JSObject> jsproto =
+          Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
+      jsproto->GetOwnPropertyNames(*names, next_copy_index, filter);
+      if (i > 0) {
+        // Names from hidden prototypes may already have been added
+        // for inherited function template instances. Count the duplicates
+        // and stub them out; the final copy pass at the end ignores holes.
+        for (int j = next_copy_index;
+             j < next_copy_index + own_property_count[i]; j++) {
+          Object* name_from_hidden_proto = names->get(j);
+          for (int k = 0; k < next_copy_index; k++) {
+            if (names->get(k) != isolate->heap()->hidden_string()) {
+              Object* name = names->get(k);
+              if (name_from_hidden_proto == name) {
+                names->set(j, isolate->heap()->hidden_string());
+                hidden_strings++;
+                break;
+              }
             }
           }
         }
       }
-    }
-    next_copy_index += own_property_count[i];
+      next_copy_index += own_property_count[i];
 
-    // Hidden properties only show up if the filter does not skip strings.
-    if ((filter & STRING) == 0 && JSObject::HasHiddenProperties(jsproto)) {
-      hidden_strings++;
-    }
-    if (i < length - 1) {
-      jsproto = Handle<JSObject>(JSObject::cast(jsproto->GetPrototype()));
+      // Hidden properties only show up if the filter does not skip strings.
+      if ((filter & STRING) == 0 && JSObject::HasHiddenProperties(jsproto)) {
+        hidden_strings++;
+      }
+      iter.Advance();
     }
   }
 
@@ -5953,10 +5815,10 @@ RUNTIME_FUNCTION(Runtime_OwnKeys) {
       return *isolate->factory()->NewJSArray(0);
     }
 
-    Handle<Object> proto(object->GetPrototype(), isolate);
+    PrototypeIterator iter(isolate, object);
     // If proxy is detached we simply return an empty array.
-    if (proto->IsNull()) return *isolate->factory()->NewJSArray(0);
-    object = Handle<JSObject>::cast(proto);
+    if (iter.IsAtEnd()) return *isolate->factory()->NewJSArray(0);
+    object = Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
   }
 
   Handle<FixedArray> contents;
@@ -7009,9 +6871,12 @@ RUNTIME_FUNCTION(Runtime_NumberImul) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 2);
 
-  CONVERT_NUMBER_CHECKED(int32_t, x, Int32, args[0]);
-  CONVERT_NUMBER_CHECKED(int32_t, y, Int32, args[1]);
-  return *isolate->factory()->NewNumberFromInt(x * y);
+  // We rely on implementation-defined behavior below, but at least not on
+  // undefined behavior.
+  CONVERT_NUMBER_CHECKED(uint32_t, x, Int32, args[0]);
+  CONVERT_NUMBER_CHECKED(uint32_t, y, Int32, args[1]);
+  int32_t product = static_cast<int32_t>(x * y);
+  return *isolate->factory()->NewNumberFromInt(product);
 }
 
 
@@ -9081,7 +8946,8 @@ RUNTIME_FUNCTION(Runtime_DeclareModules) {
         case MODULE: {
           Object* referenced_context = Context::cast(host_context)->get(index);
           Handle<JSModule> value(Context::cast(referenced_context)->module());
-          JSReceiver::SetProperty(module, name, value, FROZEN, STRICT).Assert();
+          JSObject::SetOwnPropertyIgnoreAttributes(module, name, value, FROZEN)
+              .Assert();
           break;
         }
         case INTERNAL:
@@ -9101,7 +8967,7 @@ RUNTIME_FUNCTION(Runtime_DeclareModules) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_DeleteContextSlot) {
+RUNTIME_FUNCTION(Runtime_DeleteLookupSlot) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 2);
 
@@ -9214,9 +9080,8 @@ static Object* ComputeReceiverForNonGlobal(Isolate* isolate,
 }
 
 
-static ObjectPair LoadContextSlotHelper(Arguments args,
-                                        Isolate* isolate,
-                                        bool throw_error) {
+static ObjectPair LoadLookupSlotHelper(Arguments args, Isolate* isolate,
+                                       bool throw_error) {
   HandleScope scope(isolate);
   ASSERT_EQ(2, args.length());
 
@@ -9312,17 +9177,17 @@ static ObjectPair LoadContextSlotHelper(Arguments args,
 }
 
 
-RUNTIME_FUNCTION_RETURN_PAIR(Runtime_LoadContextSlot) {
-  return LoadContextSlotHelper(args, isolate, true);
+RUNTIME_FUNCTION_RETURN_PAIR(Runtime_LoadLookupSlot) {
+  return LoadLookupSlotHelper(args, isolate, true);
 }
 
 
-RUNTIME_FUNCTION_RETURN_PAIR(Runtime_LoadContextSlotNoReferenceError) {
-  return LoadContextSlotHelper(args, isolate, false);
+RUNTIME_FUNCTION_RETURN_PAIR(Runtime_LoadLookupSlotNoReferenceError) {
+  return LoadLookupSlotHelper(args, isolate, false);
 }
 
 
-RUNTIME_FUNCTION(Runtime_StoreContextSlot) {
+RUNTIME_FUNCTION(Runtime_StoreLookupSlot) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 4);
 
@@ -9340,22 +9205,13 @@ RUNTIME_FUNCTION(Runtime_StoreContextSlot) {
                                           &index,
                                           &attributes,
                                           &binding_flags);
+  // In case of JSProxy, an exception might have been thrown.
   if (isolate->has_pending_exception()) return isolate->heap()->exception();
 
+  // The property was found in a context slot.
   if (index >= 0) {
-    // The property was found in a context slot.
-    Handle<Context> context = Handle<Context>::cast(holder);
-    if (binding_flags == MUTABLE_CHECK_INITIALIZED &&
-        context->get(index)->IsTheHole()) {
-      Handle<Object> error =
-          isolate->factory()->NewReferenceError("not_defined",
-                                                HandleVector(&name, 1));
-      return isolate->Throw(*error);
-    }
-    // Ignore if read_only variable.
     if ((attributes & READ_ONLY) == 0) {
-      // Context is a fixed array and set cannot fail.
-      context->set(index, *value);
+      Handle<Context>::cast(holder)->set(index, *value);
     } else if (strict_mode == STRICT) {
       // Setting read only property in strict mode.
       Handle<Object> error =
@@ -9370,39 +9226,22 @@ RUNTIME_FUNCTION(Runtime_StoreContextSlot) {
   // context extension object, a property of the subject of a with, or a
   // property of the global object.
   Handle<JSReceiver> object;
-
-  if (!holder.is_null()) {
+  if (attributes != ABSENT) {
     // The property exists on the holder.
     object = Handle<JSReceiver>::cast(holder);
-  } else {
-    // The property was not found.
-    ASSERT(attributes == ABSENT);
-
-    if (strict_mode == STRICT) {
-      // Throw in strict mode (assignment to undefined variable).
-      Handle<Object> error =
-          isolate->factory()->NewReferenceError(
-              "not_defined", HandleVector(&name, 1));
-      return isolate->Throw(*error);
-    }
-    // In sloppy mode, the property is added to the global object.
-    attributes = NONE;
-    object = Handle<JSReceiver>(isolate->context()->global_object());
-  }
-
-  // Set the property if it's not read only or doesn't yet exist.
-  if ((attributes & READ_ONLY) == 0 ||
-      (JSReceiver::GetOwnPropertyAttributes(object, name) == ABSENT)) {
-    RETURN_FAILURE_ON_EXCEPTION(
-        isolate,
-        JSReceiver::SetProperty(object, name, value, NONE, strict_mode));
-  } else if (strict_mode == STRICT && (attributes & READ_ONLY) != 0) {
-    // Setting read only property in strict mode.
-    Handle<Object> error =
-      isolate->factory()->NewTypeError(
-          "strict_cannot_assign", HandleVector(&name, 1));
+  } else if (strict_mode == STRICT) {
+    // If absent in strict mode: throw.
+    Handle<Object> error = isolate->factory()->NewReferenceError(
+        "not_defined", HandleVector(&name, 1));
     return isolate->Throw(*error);
+  } else {
+    // If absent in sloppy mode: add the property to the global object.
+    object = Handle<JSReceiver>(context->global_object());
   }
+
+  RETURN_FAILURE_ON_EXCEPTION(
+      isolate, JSReceiver::SetProperty(object, name, value, strict_mode));
+
   return *value;
 }
 
@@ -10252,11 +10091,13 @@ static void CollectElementIndices(Handle<JSObject> object,
     }
   }
 
-  Handle<Object> prototype(object->GetPrototype(), isolate);
-  if (prototype->IsJSObject()) {
+  PrototypeIterator iter(isolate, object);
+  if (!iter.IsAtEnd()) {
     // The prototype will usually have no inherited element indices,
     // but we have to check.
-    CollectElementIndices(Handle<JSObject>::cast(prototype), range, indices);
+    CollectElementIndices(
+        Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter)), range,
+        indices);
   }
 }
 
@@ -10685,15 +10526,18 @@ RUNTIME_FUNCTION(Runtime_GetArrayKeys) {
   CONVERT_NUMBER_CHECKED(uint32_t, length, Uint32, args[1]);
   if (array->elements()->IsDictionary()) {
     Handle<FixedArray> keys = isolate->factory()->empty_fixed_array();
-    for (Handle<Object> p = array;
-         !p->IsNull();
-         p = Handle<Object>(p->GetPrototype(isolate), isolate)) {
-      if (p->IsJSProxy() || JSObject::cast(*p)->HasIndexedInterceptor()) {
+    for (PrototypeIterator iter(isolate, array,
+                                PrototypeIterator::START_AT_RECEIVER);
+         !iter.IsAtEnd(); iter.Advance()) {
+      if (PrototypeIterator::GetCurrent(iter)->IsJSProxy() ||
+          JSObject::cast(*PrototypeIterator::GetCurrent(iter))
+              ->HasIndexedInterceptor()) {
         // Bail out if we find a proxy or interceptor, likely not worth
         // collecting keys in that case.
         return *isolate->factory()->NewNumberFromUint(length);
       }
-      Handle<JSObject> current = Handle<JSObject>::cast(p);
+      Handle<JSObject> current =
+          Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
       Handle<FixedArray> current_keys =
           isolate->factory()->NewFixedArray(current->NumberOfOwnElements(NONE));
       current->GetOwnElementKeys(*current_keys, NONE);
@@ -10787,14 +10631,12 @@ static Handle<Object> DebugLookupResultValue(Isolate* isolate,
   if  (!result->IsFound()) return value;
   switch (result->type()) {
     case NORMAL:
-      value = JSObject::GetNormalizedProperty(
-          handle(result->holder(), isolate), result);
-      break;
+      return JSObject::GetNormalizedProperty(handle(result->holder(), isolate),
+                                             result);
     case FIELD:
-      value = JSObject::FastPropertyAt(handle(result->holder(), isolate),
-                                       result->representation(),
-                                       result->GetFieldIndex());
-      break;
+      return JSObject::FastPropertyAt(handle(result->holder(), isolate),
+                                      result->representation(),
+                                      result->GetFieldIndex());
     case CONSTANT:
       return handle(result->GetConstant(), isolate);
     case CALLBACKS: {
@@ -10819,9 +10661,7 @@ static Handle<Object> DebugLookupResultValue(Isolate* isolate,
       UNREACHABLE();
       break;
   }
-  ASSERT(!value->IsTheHole() || result->IsReadOnly());
-  return value->IsTheHole()
-      ? Handle<Object>::cast(isolate->factory()->undefined_value()) : value;
+  return value;
 }
 
 
@@ -10875,8 +10715,11 @@ RUNTIME_FUNCTION(Runtime_DebugGetPropertyDetails) {
   int length = OwnPrototypeChainLength(*obj);
 
   // Try own lookup on each of the objects.
-  Handle<JSObject> jsproto = obj;
+  PrototypeIterator iter(isolate, obj, PrototypeIterator::START_AT_RECEIVER);
   for (int i = 0; i < length; i++) {
+    ASSERT(!iter.IsAtEnd());
+    Handle<JSObject> jsproto =
+        Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
     LookupResult result(isolate);
     jsproto->LookupOwn(name, &result);
     if (result.IsFound()) {
@@ -10911,9 +10754,7 @@ RUNTIME_FUNCTION(Runtime_DebugGetPropertyDetails) {
 
       return *isolate->factory()->NewJSArrayWithElements(details);
     }
-    if (i < length - 1) {
-      jsproto = Handle<JSObject>(JSObject::cast(jsproto->GetPrototype()));
-    }
+    iter.Advance();
   }
 
   return isolate->heap()->undefined_value();
@@ -12856,7 +12697,9 @@ static MaybeHandle<Object> DebugEvaluate(Isolate* isolate,
   // Skip the global proxy as it has no properties and always delegates to the
   // real global object.
   if (result->IsJSGlobalProxy()) {
-    result = Handle<JSObject>(JSObject::cast(result->GetPrototype(isolate)));
+    PrototypeIterator iter(isolate, result);
+    // TODO(verwaest): This will crash when the global proxy is detached.
+    result = Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
   }
 
   // Clear the oneshot breakpoints so that the debugger does not step further.
@@ -13032,17 +12875,12 @@ static int DebugReferencedBy(HeapIterator* iterator,
         // Check instance filter if supplied. This is normally used to avoid
         // references from mirror objects (see Runtime_IsInPrototypeChain).
         if (!instance_filter->IsUndefined()) {
-          Object* V = obj;
-          while (true) {
-            Object* prototype = V->GetPrototype(isolate);
-            if (prototype->IsNull()) {
-              break;
-            }
-            if (instance_filter == prototype) {
+          for (PrototypeIterator iter(isolate, obj); !iter.IsAtEnd();
+               iter.Advance()) {
+            if (iter.GetCurrent() == instance_filter) {
               obj = NULL;  // Don't add this object.
               break;
             }
-            V = prototype;
           }
         }
 

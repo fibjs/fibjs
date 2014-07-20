@@ -543,19 +543,6 @@ MaybeHandle<String> Factory::NewConsString(Handle<String> left,
 }
 
 
-Handle<String> Factory::NewFlatConcatString(Handle<String> first,
-                                            Handle<String> second) {
-  int total_length = first->length() + second->length();
-  if (first->IsOneByteRepresentation() && second->IsOneByteRepresentation()) {
-    return ConcatStringContent<uint8_t>(
-        NewRawOneByteString(total_length).ToHandleChecked(), first, second);
-  } else {
-    return ConcatStringContent<uc16>(
-        NewRawTwoByteString(total_length).ToHandleChecked(), first, second);
-  }
-}
-
-
 Handle<String> Factory::NewProperSubString(Handle<String> str,
                                            int begin,
                                            int end) {
@@ -2098,11 +2085,9 @@ Handle<JSObject> Factory::NewArgumentsObject(Handle<JSFunction> callee,
   ASSERT(!isolate()->has_pending_exception());
   Handle<JSObject> result = NewJSObjectFromMap(map);
   Handle<Smi> value(Smi::FromInt(length), isolate());
-  JSReceiver::SetProperty(result, length_string(), value, NONE, STRICT)
-      .Assert();
+  JSReceiver::SetProperty(result, length_string(), value, STRICT).Assert();
   if (!strict_mode_callee) {
-    JSReceiver::SetProperty(result, callee_string(), callee, NONE, STRICT)
-        .Assert();
+    JSReceiver::SetProperty(result, callee_string(), callee, STRICT).Assert();
   }
   return result;
 }

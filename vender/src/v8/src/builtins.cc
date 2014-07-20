@@ -14,6 +14,7 @@
 #include "src/heap-profiler.h"
 #include "src/ic-inl.h"
 #include "src/mark-compact.h"
+#include "src/prototype.h"
 #include "src/stub-cache.h"
 #include "src/vm-state-inl.h"
 
@@ -253,12 +254,15 @@ static bool ArrayPrototypeHasNoElements(Heap* heap,
   // fields.
   if (array_proto->elements() != heap->empty_fixed_array()) return false;
   // Object.prototype
-  Object* proto = array_proto->GetPrototype();
-  if (proto == heap->null_value()) return false;
-  array_proto = JSObject::cast(proto);
+  PrototypeIterator iter(heap->isolate(), array_proto);
+  if (iter.IsAtEnd()) {
+    return false;
+  }
+  array_proto = JSObject::cast(iter.GetCurrent());
   if (array_proto != native_context->initial_object_prototype()) return false;
   if (array_proto->elements() != heap->empty_fixed_array()) return false;
-  return array_proto->GetPrototype()->IsNull();
+  iter.Advance();
+  return iter.IsAtEnd();
 }
 
 
@@ -331,7 +335,8 @@ static inline bool IsJSArrayFastElementMovingAllowed(Heap* heap,
   Context* native_context = heap->isolate()->context()->native_context();
   JSObject* array_proto =
       JSObject::cast(native_context->array_function()->prototype());
-  return receiver->GetPrototype() == array_proto &&
+  PrototypeIterator iter(heap->isolate(), receiver);
+  return iter.GetCurrent() == array_proto &&
          ArrayPrototypeHasNoElements(heap, native_context, array_proto);
 }
 
@@ -999,9 +1004,9 @@ BUILTIN(ArrayConcat) {
     bool is_holey = false;
     for (int i = 0; i < n_arguments; i++) {
       Object* arg = args[i];
-      if (!arg->IsJSArray() ||
-          !JSArray::cast(arg)->HasFastElements() ||
-          JSArray::cast(arg)->GetPrototype() != array_proto) {
+      PrototypeIterator iter(isolate, arg);
+      if (!arg->IsJSArray() || !JSArray::cast(arg)->HasFastElements() ||
+          iter.GetCurrent() != array_proto) {
         AllowHeapAllocation allow_allocation;
         return CallJsBuiltin(isolate, "ArrayConcatJS", args);
       }
@@ -1091,11 +1096,12 @@ BUILTIN(GeneratorPoisonPill) {
 static inline Object* FindHidden(Heap* heap,
                                  Object* object,
                                  FunctionTemplateInfo* type) {
-  if (type->IsTemplateFor(object)) return object;
-  Object* proto = object->GetPrototype(heap->isolate());
-  if (proto->IsJSObject() &&
-      JSObject::cast(proto)->map()->is_hidden_prototype()) {
-    return FindHidden(heap, proto, type);
+  for (PrototypeIterator iter(heap->isolate(), object,
+                              PrototypeIterator::START_AT_RECEIVER);
+       !iter.IsAtEnd(PrototypeIterator::END_AT_NON_HIDDEN); iter.Advance()) {
+    if (type->IsTemplateFor(iter.GetCurrent())) {
+      return iter.GetCurrent();
+    }
   }
   return heap->null_value();
 }
@@ -1635,8 +1641,8 @@ void Builtins::SetUp(Isolate* isolate, bool create_heap_objects) {
       // Log the event and add the code to the builtins array.
       PROFILE(isolate,
               CodeCreateEvent(Logger::BUILTIN_TAG, *code, functions[i].s_name));
-      GDBJIT(AddCode(GDBJITInterface::BUILTIN, functions[i].s_name, *code));
       builtins_[i] = *code;
+      if (code->kind() == Code::BUILTIN) code->set_builtin_index(i);
 #ifdef ENABLE_DISASSEMBLER
       if (FLAG_print_builtin_code) {
         CodeTracer::Scope trace_scope(isolate->GetCodeTracer());

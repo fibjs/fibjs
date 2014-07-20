@@ -536,7 +536,7 @@ void IncrementalMarking::Start(CompactionFlag flag) {
 
   ResetStepCounters();
 
-  if (!heap_->mark_compact_collector()->IsConcurrentSweepingInProgress()) {
+  if (!heap_->mark_compact_collector()->sweeping_in_progress()) {
     StartMarking(flag);
   } else {
     if (FLAG_trace_incremental_marking) {
@@ -662,7 +662,6 @@ void IncrementalMarking::UpdateMarkingDequeAfterScavenge() {
 
   steps_took_since_last_gc_ = 0;
   steps_count_since_last_gc_ = 0;
-  longest_step_ = 0.0;
 }
 
 
@@ -883,11 +882,11 @@ void IncrementalMarking::Step(intptr_t allocated_bytes,
   }
 
   if (state_ == SWEEPING) {
-    if (heap_->mark_compact_collector()->IsConcurrentSweepingInProgress() &&
+    if (heap_->mark_compact_collector()->sweeping_in_progress() &&
         heap_->mark_compact_collector()->IsSweepingCompleted()) {
-      heap_->mark_compact_collector()->WaitUntilSweepingCompleted();
+      heap_->mark_compact_collector()->EnsureSweepingCompleted();
     }
-    if (!heap_->mark_compact_collector()->IsConcurrentSweepingInProgress()) {
+    if (!heap_->mark_compact_collector()->sweeping_in_progress()) {
       bytes_scanned_ = 0;
       StartMarking(PREVENT_COMPACTION);
     }

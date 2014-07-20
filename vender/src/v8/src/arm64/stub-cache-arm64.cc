@@ -177,7 +177,7 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
   __ Add(scratch, scratch, extra);
   __ Eor(scratch, scratch, flags);
   // We shift out the last two bits because they are not part of the hash.
-  __ Ubfx(scratch, scratch, kHeapObjectTagSize,
+  __ Ubfx(scratch, scratch, kCacheIndexShift,
           CountTrailingZeros(kPrimaryTableSize, 64));
 
   // Probe the primary table.
@@ -185,8 +185,8 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
       scratch, extra, extra2, extra3);
 
   // Primary miss: Compute hash for secondary table.
-  __ Sub(scratch, scratch, Operand(name, LSR, kHeapObjectTagSize));
-  __ Add(scratch, scratch, flags >> kHeapObjectTagSize);
+  __ Sub(scratch, scratch, Operand(name, LSR, kCacheIndexShift));
+  __ Add(scratch, scratch, flags >> kCacheIndexShift);
   __ And(scratch, scratch, kSecondaryTableSize - 1);
 
   // Probe the secondary table.
@@ -823,13 +823,14 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
       reg = holder_reg;  // From now on the object will be in holder_reg.
       __ Ldr(reg, FieldMemOperand(scratch1, Map::kPrototypeOffset));
     } else {
-      bool need_map = (depth != 1 || check == CHECK_ALL_MAPS) ||
-                      heap()->InNewSpace(*prototype);
-      Register map_reg = NoReg;
-      if (need_map) {
-        map_reg = scratch1;
-        __ Ldr(map_reg, FieldMemOperand(reg, HeapObject::kMapOffset));
-      }
+      // Two possible reasons for loading the prototype from the map:
+      // (1) Can't store references to new space in code.
+      // (2) Handler is shared for all receivers with the same prototype
+      //     map (but not necessarily the same prototype instance).
+      bool load_prototype_from_map =
+          heap()->InNewSpace(*prototype) || depth == 1;
+      Register map_reg = scratch1;
+      __ Ldr(map_reg, FieldMemOperand(reg, HeapObject::kMapOffset));
 
       if (depth != 1 || check == CHECK_ALL_MAPS) {
         __ CheckMap(map_reg, current_map, miss, DONT_DO_SMI_CHECK);
@@ -849,12 +850,9 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
 
       reg = holder_reg;  // From now on the object will be in holder_reg.
 
-      if (heap()->InNewSpace(*prototype)) {
-        // The prototype is in new space; we cannot store a reference to it
-        // in the code.  Load it from the map.
+      if (load_prototype_from_map) {
         __ Ldr(reg, FieldMemOperand(map_reg, Map::kPrototypeOffset));
       } else {
-        // The prototype is in old space; load it directly.
         __ Mov(reg, Operand(prototype));
       }
     }
@@ -1262,20 +1260,25 @@ Register* KeyedLoadStubCompiler::registers() {
 
 
 Register StoreStubCompiler::value() {
-  return x0;
+  return StoreIC::ValueRegister();
 }
 
 
 Register* StoreStubCompiler::registers() {
   // receiver, value, scratch1, scratch2, scratch3.
-  static Register registers[] = { x1, x2, x3, x4, x5 };
+  Register receiver = StoreIC::ReceiverRegister();
+  Register name = StoreIC::NameRegister();
+  static Register registers[] = { receiver, name, x3, x4, x5 };
   return registers;
 }
 
 
 Register* KeyedStoreStubCompiler::registers() {
-  // receiver, name, scratch1, scratch2, scratch3.
-  static Register registers[] = { x2, x1, x3, x4, x5 };
+  // receiver, name, scratch1/map, scratch2, scratch3.
+  Register receiver = KeyedStoreIC::ReceiverRegister();
+  Register name = KeyedStoreIC::NameRegister();
+  Register map = KeyedStoreIC::MapRegister();
+  static Register registers[] = { receiver, name, map, x4, x5 };
   return registers;
 }
 
@@ -1366,7 +1369,10 @@ Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
   Label* smi_target = IncludesNumberType(types) ? &number_case : &miss;
   __ JumpIfSmi(receiver(), smi_target);
 
+  // Polymorphic keyed stores may use the map register
   Register map_reg = scratch1();
+  ASSERT(kind() != Code::KEYED_STORE_IC ||
+         map_reg.is(KeyedStoreIC::MapRegister()));
   __ Ldr(map_reg, FieldMemOperand(receiver(), HeapObject::kMapOffset));
   int receiver_count = types->length();
   int number_of_handled_maps = 0;

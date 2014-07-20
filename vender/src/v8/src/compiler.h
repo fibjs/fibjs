@@ -13,7 +13,6 @@ namespace v8 {
 namespace internal {
 
 class AstValueFactory;
-class ScriptData;
 class HydrogenCodeStub;
 
 // ParseRestriction is used to restrict the set of valid statements in a
@@ -23,17 +22,41 @@ enum ParseRestriction {
   ONLY_SINGLE_FUNCTION_LITERAL  // Only a single FunctionLiteral expression.
 };
 
-enum CachedDataMode {
-  NO_CACHED_DATA,
-  CONSUME_CACHED_DATA,
-  PRODUCE_CACHED_DATA
-};
-
 struct OffsetRange {
   OffsetRange(int from, int to) : from(from), to(to) {}
   int from;
   int to;
 };
+
+
+class ScriptData {
+ public:
+  ScriptData(const byte* data, int length);
+  ~ScriptData() {
+    if (owns_data_) DeleteArray(data_);
+  }
+
+  const byte* data() const { return data_; }
+  int length() const { return length_; }
+
+  void AcquireDataOwnership() {
+    ASSERT(!owns_data_);
+    owns_data_ = true;
+  }
+
+  void ReleaseDataOwnership() {
+    ASSERT(owns_data_);
+    owns_data_ = false;
+  }
+
+ private:
+  bool owns_data_;
+  const byte* data_;
+  int length_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScriptData);
+};
+
 
 // CompilationInfo encapsulates some information known at compile time.  It
 // is constructed based on the resources available at compile-time.
@@ -61,8 +84,8 @@ class CompilationInfo {
   HydrogenCodeStub* code_stub() const {return code_stub_; }
   v8::Extension* extension() const { return extension_; }
   ScriptData** cached_data() const { return cached_data_; }
-  CachedDataMode cached_data_mode() const {
-    return cached_data_mode_;
+  ScriptCompiler::CompileOptions compile_options() const {
+    return compile_options_;
   }
   Handle<Context> context() const { return context_; }
   BailoutId osr_ast_id() const { return osr_ast_id_; }
@@ -198,9 +221,9 @@ class CompilationInfo {
     extension_ = extension;
   }
   void SetCachedData(ScriptData** cached_data,
-                     CachedDataMode cached_data_mode) {
-    cached_data_mode_ = cached_data_mode;
-    if (cached_data_mode == NO_CACHED_DATA) {
+                     ScriptCompiler::CompileOptions compile_options) {
+    compile_options_ = compile_options;
+    if (compile_options == ScriptCompiler::kNoCompileOptions) {
       cached_data_ = NULL;
     } else {
       ASSERT(!is_lazy());
@@ -432,7 +455,7 @@ class CompilationInfo {
   // Fields possibly needed for eager compilation, NULL by default.
   v8::Extension* extension_;
   ScriptData** cached_data_;
-  CachedDataMode cached_data_mode_;
+  ScriptCompiler::CompileOptions compile_options_;
 
   // The context of the caller for eval code, and the global context for a
   // global script. Will be a null handle otherwise.
@@ -663,15 +686,10 @@ class Compiler : public AllStatic {
 
   // Compile a String source within a context.
   static Handle<SharedFunctionInfo> CompileScript(
-      Handle<String> source,
-      Handle<Object> script_name,
-      int line_offset,
-      int column_offset,
-      bool is_shared_cross_origin,
-      Handle<Context> context,
-      v8::Extension* extension,
-      ScriptData** cached_data,
-      CachedDataMode cached_data_mode,
+      Handle<String> source, Handle<Object> script_name, int line_offset,
+      int column_offset, bool is_shared_cross_origin, Handle<Context> context,
+      v8::Extension* extension, ScriptData** cached_data,
+      ScriptCompiler::CompileOptions compile_options,
       NativesFlag is_natives_code);
 
   // Create a shared function info object (the code may be lazily compiled).
@@ -721,7 +739,6 @@ class CompilationPhase BASE_EMBEDDED {
 
   DISALLOW_COPY_AND_ASSIGN(CompilationPhase);
 };
-
 
 } }  // namespace v8::internal
 

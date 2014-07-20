@@ -738,12 +738,9 @@ bool Debug::CompileDebuggerScript(Isolate* isolate, int index) {
 
   // Compile the script.
   Handle<SharedFunctionInfo> function_info;
-  function_info = Compiler::CompileScript(source_code,
-                                          script_name, 0, 0,
-                                          false,
-                                          context,
-                                          NULL, NULL, NO_CACHED_DATA,
-                                          NATIVES_CODE);
+  function_info = Compiler::CompileScript(
+      source_code, script_name, 0, 0, false, context, NULL, NULL,
+      ScriptCompiler::kNoCompileOptions, NATIVES_CODE);
 
   // Silently ignore stack overflows during compilation.
   if (function_info.is_null()) {
@@ -826,9 +823,7 @@ bool Debug::Load() {
   Handle<JSBuiltinsObject> builtin =
       Handle<JSBuiltinsObject>(global->builtins(), isolate_);
   RETURN_ON_EXCEPTION_VALUE(
-      isolate_,
-      JSReceiver::SetProperty(global, key, builtin, NONE, SLOPPY),
-      false);
+      isolate_, JSReceiver::SetProperty(global, key, builtin, SLOPPY), false);
 
   // Compile the JavaScript for the debugger in the debugger context.
   bool caught_exception =
@@ -1552,7 +1547,7 @@ void Debug::PrepareStep(StepAction step_action,
     if (is_load_or_store) {
       // Remember source position and frame to handle step in getter/setter. If
       // there is a custom getter/setter it will be handled in
-      // Object::Get/SetPropertyWithCallback, otherwise the step action will be
+      // Object::Get/SetPropertyWithAccessor, otherwise the step action will be
       // propagated on the next Debug::Break.
       thread_local_.last_statement_position_ =
           debug_info->code()->SourceStatementPosition(frame->pc());
@@ -2454,12 +2449,10 @@ void Debug::ClearMirrorCache() {
   JSObject::SetProperty(global,
       factory->NewStringFromAsciiChecked("next_handle_"),
       handle(Smi::FromInt(0), isolate_),
-      NONE,
       SLOPPY).Check();
   JSObject::SetProperty(global,
       factory->NewStringFromAsciiChecked("mirror_cache_"),
       factory->NewJSArray(0, FAST_ELEMENTS),
-      NONE,
       SLOPPY).Check();
 }
 

@@ -22,21 +22,10 @@ void LookupIterator::Next() {
 Handle<JSReceiver> LookupIterator::GetRoot() const {
   Handle<Object> receiver = GetReceiver();
   if (receiver->IsJSReceiver()) return Handle<JSReceiver>::cast(receiver);
-  Context* native_context = isolate_->context()->native_context();
-  JSFunction* function;
-  if (receiver->IsNumber()) {
-    function = native_context->number_function();
-  } else if (receiver->IsString()) {
-    function = native_context->string_function();
-  } else if (receiver->IsSymbol()) {
-    function = native_context->symbol_function();
-  } else if (receiver->IsBoolean()) {
-    function = native_context->boolean_function();
-  } else {
-    UNREACHABLE();
-    function = NULL;
-  }
-  return handle(JSReceiver::cast(function->instance_prototype()));
+  Handle<Object> root =
+      handle(receiver->GetRootMap(isolate_)->prototype(), isolate_);
+  CHECK(!root->IsNull());
+  return Handle<JSReceiver>::cast(root);
 }
 
 
@@ -125,10 +114,9 @@ bool LookupIterator::HasProperty() {
     if (number_ == NameDictionary::kNotFound) return false;
 
     property_details_ = GetHolder()->property_dictionary()->DetailsAt(number_);
-    // Holes in dictionary cells are absent values unless marked as read-only.
+    // Holes in dictionary cells are absent values.
     if (holder->IsGlobalObject() &&
-        (property_details_.IsDeleted() ||
-         (!property_details_.IsReadOnly() && FetchValue()->IsTheHole()))) {
+        (property_details_.IsDeleted() || FetchValue()->IsTheHole())) {
       return false;
     }
   } else {
@@ -153,6 +141,78 @@ bool LookupIterator::HasProperty() {
 
   has_property_ = true;
   return true;
+}
+
+
+void LookupIterator::PrepareForDataProperty(Handle<Object> value) {
+  ASSERT(has_property_);
+  ASSERT(HolderIsReceiver());
+  if (property_encoding_ == DICTIONARY) return;
+  holder_map_ = Map::PrepareForDataProperty(holder_map_, number_, value);
+  JSObject::MigrateToMap(GetHolder(), holder_map_);
+  // Reload property information.
+  if (holder_map_->is_dictionary_map()) {
+    property_encoding_ = DICTIONARY;
+  } else {
+    property_encoding_ = DESCRIPTOR;
+  }
+  CHECK(HasProperty());
+}
+
+
+void LookupIterator::TransitionToDataProperty(
+    Handle<Object> value, PropertyAttributes attributes,
+    Object::StoreFromKeyed store_mode) {
+  ASSERT(!has_property_ || !HolderIsReceiver());
+
+  // Can only be called when the receiver is a JSObject. JSProxy has to be
+  // handled via a trap. Adding properties to primitive values is not
+  // observable.
+  Handle<JSObject> receiver = Handle<JSObject>::cast(GetReceiver());
+
+  // Properties have to be added to context extension objects through
+  // SetOwnPropertyIgnoreAttributes.
+  ASSERT(!receiver->IsJSContextExtensionObject());
+
+  if (receiver->IsJSGlobalProxy()) {
+    PrototypeIterator iter(isolate(), receiver);
+    receiver =
+        Handle<JSGlobalObject>::cast(PrototypeIterator::GetCurrent(iter));
+  }
+
+  maybe_holder_ = receiver;
+  holder_map_ = Map::TransitionToDataProperty(handle(receiver->map()), name_,
+                                              value, attributes, store_mode);
+  JSObject::MigrateToMap(receiver, holder_map_);
+
+  // Reload the information.
+  state_ = NOT_FOUND;
+  configuration_ = CHECK_OWN_REAL;
+  state_ = LookupInHolder();
+  ASSERT(IsFound());
+  HasProperty();
+}
+
+
+bool LookupIterator::HolderIsReceiver() const {
+  ASSERT(has_property_ || state_ == INTERCEPTOR || state_ == JSPROXY);
+  DisallowHeapAllocation no_gc;
+  Handle<Object> receiver = GetReceiver();
+  if (!receiver->IsJSReceiver()) return false;
+  Object* current = *receiver;
+  JSReceiver* holder = *maybe_holder_.ToHandleChecked();
+  // JSProxy do not occur as hidden prototypes.
+  if (current->IsJSProxy()) {
+    return JSReceiver::cast(current) == holder;
+  }
+  PrototypeIterator iter(isolate(), current,
+                         PrototypeIterator::START_AT_RECEIVER);
+  do {
+    if (JSReceiver::cast(iter.GetCurrent()) == holder) return true;
+    ASSERT(!current->IsJSProxy());
+    iter.Advance();
+  } while (!iter.IsAtEnd(PrototypeIterator::END_AT_NON_HIDDEN));
+  return false;
 }
 
 
@@ -189,12 +249,33 @@ Handle<Object> LookupIterator::GetDataValue() const {
   ASSERT(has_property_);
   ASSERT_EQ(DATA, property_kind_);
   Handle<Object> value = FetchValue();
-  if (value->IsTheHole()) {
-    ASSERT(property_details_.IsReadOnly());
-    return factory()->undefined_value();
-  }
   return value;
 }
 
 
+void LookupIterator::WriteDataValue(Handle<Object> value) {
+  ASSERT(is_guaranteed_to_have_holder());
+  ASSERT(has_property_);
+  if (property_encoding_ == DICTIONARY) {
+    Handle<JSObject> holder = GetHolder();
+    NameDictionary* property_dictionary = holder->property_dictionary();
+    if (holder->IsGlobalObject()) {
+      Handle<PropertyCell> cell(
+          PropertyCell::cast(property_dictionary->ValueAt(number_)));
+      PropertyCell::SetValueInferType(cell, value);
+    } else {
+      property_dictionary->ValueAtPut(number_, *value);
+    }
+  } else if (property_details_.type() == v8::internal::FIELD) {
+    GetHolder()->WriteToField(number_, *value);
+  } else {
+    ASSERT_EQ(v8::internal::CONSTANT, property_details_.type());
+  }
+}
+
+
+void LookupIterator::InternalizeName() {
+  if (name_->IsUniqueName()) return;
+  name_ = factory()->InternalizeString(Handle<String>::cast(name_));
+}
 } }  // namespace v8::internal

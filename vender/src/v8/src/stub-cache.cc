@@ -33,13 +33,13 @@ void StubCache::Initialize() {
 }
 
 
-Code* StubCache::Set(Name* name, Map* map, Code* code) {
-  // Get the flags from the code.
-  Code::Flags flags = Code::RemoveTypeFromFlags(code->flags());
+static Code::Flags CommonStubCacheChecks(Name* name, Map* map,
+                                         Code::Flags flags, Heap* heap) {
+  flags = Code::RemoveTypeAndHolderFromFlags(flags);
 
   // Validate that the name does not move on scavenge, and that we
   // can use identity checks instead of structural equality checks.
-  ASSERT(!heap()->InNewSpace(name));
+  ASSERT(!heap->InNewSpace(name));
   ASSERT(name->IsUniqueName());
 
   // The state bits are not important to the hash function because
@@ -49,8 +49,16 @@ Code* StubCache::Set(Name* name, Map* map, Code* code) {
   ASSERT(Code::ExtractICStateFromFlags(flags) == MONOMORPHIC);
   STATIC_ASSERT((Code::ICStateField::kMask & 1) == 1);
 
-  // Make sure that the code type is not included in the hash.
+  // Make sure that the code type and cache holder are not included in the hash.
   ASSERT(Code::ExtractTypeFromFlags(flags) == 0);
+  ASSERT(Code::ExtractCacheHolderFromFlags(flags) == 0);
+
+  return flags;
+}
+
+
+Code* StubCache::Set(Name* name, Map* map, Code* code) {
+  Code::Flags flags = CommonStubCacheChecks(name, map, code->flags(), heap());
 
   // Compute the primary entry.
   int primary_offset = PrimaryOffset(name, flags, map);
@@ -61,7 +69,8 @@ Code* StubCache::Set(Name* name, Map* map, Code* code) {
   // secondary cache before overwriting it.
   if (old_code != isolate_->builtins()->builtin(Builtins::kIllegal)) {
     Map* old_map = primary->map;
-    Code::Flags old_flags = Code::RemoveTypeFromFlags(old_code->flags());
+    Code::Flags old_flags =
+        Code::RemoveTypeAndHolderFromFlags(old_code->flags());
     int seed = PrimaryOffset(primary->key, old_flags, old_map);
     int secondary_offset = SecondaryOffset(primary->key, old_flags, seed);
     Entry* secondary = entry(secondary_, secondary_offset);
@@ -77,11 +86,25 @@ Code* StubCache::Set(Name* name, Map* map, Code* code) {
 }
 
 
-Handle<Code> StubCache::FindIC(Handle<Name> name,
-                               Handle<Map> stub_holder,
-                               Code::Kind kind,
-                               ExtraICState extra_state,
-                               InlineCacheHolderFlag cache_holder) {
+Code* StubCache::Get(Name* name, Map* map, Code::Flags flags) {
+  flags = CommonStubCacheChecks(name, map, flags, heap());
+  int primary_offset = PrimaryOffset(name, flags, map);
+  Entry* primary = entry(primary_, primary_offset);
+  if (primary->key == name && primary->map == map) {
+    return primary->value;
+  }
+  int secondary_offset = SecondaryOffset(name, flags, primary_offset);
+  Entry* secondary = entry(secondary_, secondary_offset);
+  if (secondary->key == name && secondary->map == map) {
+    return secondary->value;
+  }
+  return NULL;
+}
+
+
+Handle<Code> StubCache::FindIC(Handle<Name> name, Handle<Map> stub_holder,
+                               Code::Kind kind, ExtraICState extra_state,
+                               CacheHolderFlag cache_holder) {
   Code::Flags flags = Code::ComputeMonomorphicFlags(
       kind, extra_state, cache_holder);
   Handle<Object> probe(stub_holder->FindInCodeCache(*name, flags), isolate_);
@@ -90,10 +113,9 @@ Handle<Code> StubCache::FindIC(Handle<Name> name,
 }
 
 
-Handle<Code> StubCache::FindHandler(Handle<Name> name,
-                                    Handle<Map> stub_holder,
+Handle<Code> StubCache::FindHandler(Handle<Name> name, Handle<Map> stub_holder,
                                     Code::Kind kind,
-                                    InlineCacheHolderFlag cache_holder,
+                                    CacheHolderFlag cache_holder,
                                     Code::StubType type) {
   Code::Flags flags = Code::ComputeHandlerFlags(kind, type, cache_holder);
 
@@ -109,16 +131,15 @@ Handle<Code> StubCache::ComputeMonomorphicIC(
     Handle<HeapType> type,
     Handle<Code> handler,
     ExtraICState extra_ic_state) {
-  InlineCacheHolderFlag flag = IC::GetCodeCacheFlag(*type);
+  CacheHolderFlag flag;
+  Handle<Map> stub_holder = IC::GetICCacheHolder(*type, isolate(), &flag);
 
-  Handle<Map> stub_holder;
   Handle<Code> ic;
   // There are multiple string maps that all use the same prototype. That
   // prototype cannot hold multiple handlers, one for each of the string maps,
   // for a single name. Hence, turn off caching of the IC.
   bool can_be_cached = !type->Is(HeapType::String());
   if (can_be_cached) {
-    stub_holder = IC::GetCodeCacheHolder(flag, *type, isolate());
     ic = FindIC(name, stub_holder, kind, extra_ic_state, flag);
     if (!ic.is_null()) return ic;
   }
@@ -147,36 +168,45 @@ Handle<Code> StubCache::ComputeMonomorphicIC(
 
 Handle<Code> StubCache::ComputeLoadNonexistent(Handle<Name> name,
                                                Handle<HeapType> type) {
-  InlineCacheHolderFlag flag = IC::GetCodeCacheFlag(*type);
-  Handle<Map> stub_holder = IC::GetCodeCacheHolder(flag, *type, isolate());
+  Handle<Map> receiver_map = IC::TypeToMap(*type, isolate());
+  if (receiver_map->prototype()->IsNull()) {
+    // TODO(jkummerow/verwaest): If there is no prototype and the property
+    // is nonexistent, introduce a builtin to handle this (fast properties
+    // -> return undefined, dictionary properties -> do negative lookup).
+    return Handle<Code>();
+  }
+  CacheHolderFlag flag;
+  Handle<Map> stub_holder_map =
+      IC::GetHandlerCacheHolder(*type, false, isolate(), &flag);
+
   // If no dictionary mode objects are present in the prototype chain, the load
   // nonexistent IC stub can be shared for all names for a given map and we use
   // the empty string for the map cache in that case. If there are dictionary
   // mode objects involved, we need to do negative lookups in the stub and
   // therefore the stub will be specific to the name.
-  Handle<Map> current_map = stub_holder;
-  Handle<Name> cache_name = current_map->is_dictionary_map()
-      ? name : Handle<Name>::cast(isolate()->factory()->nonexistent_symbol());
-  Handle<Object> next(current_map->prototype(), isolate());
-  Handle<JSObject> last = Handle<JSObject>::null();
-  while (!next->IsNull()) {
-    last = Handle<JSObject>::cast(next);
-    next = handle(current_map->prototype(), isolate());
-    current_map = handle(Handle<HeapObject>::cast(next)->map());
+  Handle<Name> cache_name =
+      receiver_map->is_dictionary_map()
+          ? name
+          : Handle<Name>::cast(isolate()->factory()->nonexistent_symbol());
+  Handle<Map> current_map = stub_holder_map;
+  Handle<JSObject> last(JSObject::cast(receiver_map->prototype()));
+  while (true) {
     if (current_map->is_dictionary_map()) cache_name = name;
+    if (current_map->prototype()->IsNull()) break;
+    last = handle(JSObject::cast(current_map->prototype()));
+    current_map = handle(last->map());
   }
-
   // Compile the stub that is either shared for all names or
   // name specific if there are global objects involved.
-  Handle<Code> handler = FindHandler(
-      cache_name, stub_holder, Code::LOAD_IC, flag, Code::FAST);
+  Handle<Code> handler =
+      FindHandler(cache_name, stub_holder_map, Code::LOAD_IC, flag, Code::FAST);
   if (!handler.is_null()) {
     return handler;
   }
 
   LoadStubCompiler compiler(isolate_, kNoExtraICState, flag);
   handler = compiler.CompileLoadNonexistent(type, last, cache_name);
-  Map::UpdateCodeCache(stub_holder, cache_name, handler);
+  Map::UpdateCodeCache(stub_holder_map, cache_name, handler);
   return handler;
 }
 
@@ -203,8 +233,8 @@ Handle<Code> StubCache::ComputeKeyedStoreElement(
     KeyedAccessStoreMode store_mode) {
   ExtraICState extra_state =
       KeyedStoreIC::ComputeExtraICState(strict_mode, store_mode);
-  Code::Flags flags = Code::ComputeMonomorphicFlags(
-      Code::KEYED_STORE_IC, extra_state);
+  Code::Flags flags =
+      Code::ComputeMonomorphicFlags(Code::KEYED_STORE_IC, extra_state);
 
   ASSERT(store_mode == STANDARD_STORE ||
          store_mode == STORE_AND_GROW_NO_TRANSITION ||
@@ -579,12 +609,10 @@ RUNTIME_FUNCTION(StoreInterceptorProperty) {
   Handle<Name> name = args.at<Name>(1);
   Handle<Object> value = args.at<Object>(2);
   ASSERT(receiver->HasNamedInterceptor());
-  PropertyAttributes attr = NONE;
   Handle<Object> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, result,
-      JSObject::SetPropertyWithInterceptor(
-          receiver, name, value, attr, ic.strict_mode()));
+      JSObject::SetProperty(receiver, name, value, ic.strict_mode()));
   return *result;
 }
 
@@ -607,7 +635,6 @@ Handle<Code> StubCompiler::CompileLoadInitialize(Code::Flags flags) {
   Handle<Code> code = GetCodeWithFlags(flags, "CompileLoadInitialize");
   PROFILE(isolate(),
           CodeCreateEvent(Logger::LOAD_INITIALIZE_TAG, *code, 0));
-  GDBJIT(AddCode(GDBJITInterface::LOAD_IC, *code));
   return code;
 }
 
@@ -617,7 +644,6 @@ Handle<Code> StubCompiler::CompileLoadPreMonomorphic(Code::Flags flags) {
   Handle<Code> code = GetCodeWithFlags(flags, "CompileLoadPreMonomorphic");
   PROFILE(isolate(),
           CodeCreateEvent(Logger::LOAD_PREMONOMORPHIC_TAG, *code, 0));
-  GDBJIT(AddCode(GDBJITInterface::LOAD_IC, *code));
   return code;
 }
 
@@ -627,7 +653,6 @@ Handle<Code> StubCompiler::CompileLoadMegamorphic(Code::Flags flags) {
   Handle<Code> code = GetCodeWithFlags(flags, "CompileLoadMegamorphic");
   PROFILE(isolate(),
           CodeCreateEvent(Logger::LOAD_MEGAMORPHIC_TAG, *code, 0));
-  GDBJIT(AddCode(GDBJITInterface::LOAD_IC, *code));
   return code;
 }
 
@@ -637,7 +662,6 @@ Handle<Code> StubCompiler::CompileStoreInitialize(Code::Flags flags) {
   Handle<Code> code = GetCodeWithFlags(flags, "CompileStoreInitialize");
   PROFILE(isolate(),
           CodeCreateEvent(Logger::STORE_INITIALIZE_TAG, *code, 0));
-  GDBJIT(AddCode(GDBJITInterface::STORE_IC, *code));
   return code;
 }
 
@@ -647,7 +671,6 @@ Handle<Code> StubCompiler::CompileStorePreMonomorphic(Code::Flags flags) {
   Handle<Code> code = GetCodeWithFlags(flags, "CompileStorePreMonomorphic");
   PROFILE(isolate(),
           CodeCreateEvent(Logger::STORE_PREMONOMORPHIC_TAG, *code, 0));
-  GDBJIT(AddCode(GDBJITInterface::STORE_IC, *code));
   return code;
 }
 
@@ -659,7 +682,6 @@ Handle<Code> StubCompiler::CompileStoreGeneric(Code::Flags flags) {
   Handle<Code> code = GetCodeWithFlags(flags, "CompileStoreGeneric");
   PROFILE(isolate(),
           CodeCreateEvent(Logger::STORE_GENERIC_TAG, *code, 0));
-  GDBJIT(AddCode(GDBJITInterface::STORE_IC, *code));
   return code;
 }
 
@@ -669,7 +691,6 @@ Handle<Code> StubCompiler::CompileStoreMegamorphic(Code::Flags flags) {
   Handle<Code> code = GetCodeWithFlags(flags, "CompileStoreMegamorphic");
   PROFILE(isolate(),
           CodeCreateEvent(Logger::STORE_MEGAMORPHIC_TAG, *code, 0));
-  GDBJIT(AddCode(GDBJITInterface::STORE_IC, *code));
   return code;
 }
 
@@ -709,8 +730,9 @@ void StubCompiler::LookupPostInterceptor(Handle<JSObject> holder,
                                          LookupResult* lookup) {
   holder->LookupOwnRealNamedProperty(name, lookup);
   if (lookup->IsFound()) return;
-  if (holder->GetPrototype()->IsNull()) return;
-  holder->GetPrototype()->Lookup(name, lookup);
+  PrototypeIterator iter(holder->GetIsolate(), holder);
+  if (iter.IsAtEnd()) return;
+  PrototypeIterator::GetCurrent(iter)->Lookup(name, lookup);
 }
 
 
@@ -980,17 +1002,18 @@ Handle<Code> StoreStubCompiler::CompileStoreTransition(
   __ CheckMapDeprecated(transition, scratch1(), &miss);
 
   // Check that we are allowed to write this.
-  if (object->GetPrototype()->IsJSObject()) {
+  PrototypeIterator iter(object->GetIsolate(), object);
+  if (!iter.IsAtEnd()) {
     Handle<JSObject> holder;
     // holder == object indicates that no property was found.
     if (lookup->holder() != *object) {
       holder = Handle<JSObject>(lookup->holder());
     } else {
       // Find the top object.
-      holder = object;
       do {
-        holder = Handle<JSObject>(JSObject::cast(holder->GetPrototype()));
-      } while (holder->GetPrototype()->IsJSObject());
+        holder = Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
+        iter.Advance();
+      } while (!iter.IsAtEnd());
     }
 
     Register holder_reg = HandlerFrontendHeader(
@@ -1166,23 +1189,6 @@ void StubCompiler::TailCallBuiltin(MacroAssembler* masm, Builtins::Name name) {
 }
 
 
-void BaseLoadStoreStubCompiler::JitEvent(Handle<Name> name, Handle<Code> code) {
-#ifdef ENABLE_GDB_JIT_INTERFACE
-  GDBJITInterface::CodeTag tag;
-  if (kind_ == Code::LOAD_IC) {
-    tag = GDBJITInterface::LOAD_IC;
-  } else if (kind_ == Code::KEYED_LOAD_IC) {
-    tag = GDBJITInterface::KEYED_LOAD_IC;
-  } else if (kind_ == Code::STORE_IC) {
-    tag = GDBJITInterface::STORE_IC;
-  } else {
-    tag = GDBJITInterface::KEYED_STORE_IC;
-  }
-  GDBJIT(AddCode(tag, *name, *code));
-#endif
-}
-
-
 void BaseLoadStoreStubCompiler::InitializeRegisters() {
   if (kind_ == Code::LOAD_IC) {
     registers_ = LoadStubCompiler::registers();
@@ -1204,7 +1210,6 @@ Handle<Code> BaseLoadStoreStubCompiler::GetICCode(Code::Kind kind,
   Handle<Code> code = GetCodeWithFlags(flags, name);
   IC::RegisterWeakMapDependency(code);
   PROFILE(isolate(), CodeCreateEvent(log_kind(code), *code, *name));
-  JitEvent(name, code);
   return code;
 }
 
@@ -1216,7 +1221,6 @@ Handle<Code> BaseLoadStoreStubCompiler::GetCode(Code::Kind kind,
   Code::Flags flags = Code::ComputeHandlerFlags(kind, type, cache_holder_);
   Handle<Code> code = GetCodeWithFlags(flags, name);
   PROFILE(isolate(), CodeCreateEvent(log_kind(code), *code, *name));
-  JitEvent(name, code);
   return code;
 }
 

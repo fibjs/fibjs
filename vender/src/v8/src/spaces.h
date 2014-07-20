@@ -450,18 +450,17 @@ class MemoryChunk {
   intptr_t GetFlags() { return flags_; }
 
 
-  // PARALLEL_SWEEPING_DONE - The page state when sweeping is complete or
-  // sweeping must not be performed on that page.
-  // PARALLEL_SWEEPING_FINALIZE - A sweeper thread is done sweeping this
-  // page and will not touch the page memory anymore.
-  // PARALLEL_SWEEPING_IN_PROGRESS - This page is currently swept by a
-  // sweeper thread.
-  // PARALLEL_SWEEPING_PENDING - This page is ready for parallel sweeping.
+  // SWEEPING_DONE - The page state when sweeping is complete or sweeping must
+  // not be performed on that page.
+  // SWEEPING_FINALIZE - A sweeper thread is done sweeping this page and will
+  // not touch the page memory anymore.
+  // SWEEPING_IN_PROGRESS - This page is currently swept by a sweeper thread.
+  // SWEEPING_PENDING - This page is ready for parallel sweeping.
   enum ParallelSweepingState {
-    PARALLEL_SWEEPING_DONE,
-    PARALLEL_SWEEPING_FINALIZE,
-    PARALLEL_SWEEPING_IN_PROGRESS,
-    PARALLEL_SWEEPING_PENDING
+    SWEEPING_DONE,
+    SWEEPING_FINALIZE,
+    SWEEPING_IN_PROGRESS,
+    SWEEPING_PENDING
   };
 
   ParallelSweepingState parallel_sweeping() {
@@ -475,8 +474,8 @@ class MemoryChunk {
 
   bool TryParallelSweeping() {
     return base::Acquire_CompareAndSwap(
-               &parallel_sweeping_, PARALLEL_SWEEPING_PENDING,
-               PARALLEL_SWEEPING_IN_PROGRESS) == PARALLEL_SWEEPING_PENDING;
+        &parallel_sweeping_, SWEEPING_PENDING, SWEEPING_IN_PROGRESS) ==
+            SWEEPING_PENDING;
   }
 
   // Manage live byte count (count of bytes known to be live,
@@ -1457,9 +1456,8 @@ class AllocationStats BASE_EMBEDDED {
 
   // Waste free bytes (available -> waste).
   void WasteBytes(int size_in_bytes) {
-    size_ -= size_in_bytes;
+    ASSERT(size_in_bytes >= 0);
     waste_ += size_in_bytes;
-    ASSERT(size_ >= 0);
   }
 
  private:
@@ -1618,6 +1616,21 @@ class FreeList {
   // i.e., its contents will be destroyed.  The start address should be word
   // aligned, and the size should be a non-zero multiple of the word size.
   int Free(Address start, int size_in_bytes);
+
+  // This method returns how much memory can be allocated after freeing
+  // maximum_freed memory.
+  static inline int GuaranteedAllocatable(int maximum_freed) {
+    if (maximum_freed < kSmallListMin) {
+      return 0;
+    } else if (maximum_freed <= kSmallListMax) {
+      return kSmallAllocationMax;
+    } else if (maximum_freed <= kMediumListMax) {
+      return kMediumAllocationMax;
+    } else if (maximum_freed <= kLargeListMax) {
+      return kLargeAllocationMax;
+    }
+    return maximum_freed;
+  }
 
   // Allocate a block of size 'size_in_bytes' from the free list.  The block
   // is unitialized.  A failure is returned if no block is available.  The
@@ -1842,7 +1855,8 @@ class PagedSpace : public Space {
   // no attempt to add area to free list is made.
   int Free(Address start, int size_in_bytes) {
     int wasted = free_list_.Free(start, size_in_bytes);
-    accounting_stats_.DeallocateBytes(size_in_bytes - wasted);
+    accounting_stats_.DeallocateBytes(size_in_bytes);
+    accounting_stats_.WasteBytes(wasted);
     return size_in_bytes - wasted;
   }
 
@@ -1902,11 +1916,8 @@ class PagedSpace : public Space {
   static void ResetCodeStatistics(Isolate* isolate);
 #endif
 
-  bool is_iterable() { return is_iterable_; }
-  void set_is_iterable(bool b) { is_iterable_ = b; }
-
-  bool is_swept_concurrently() { return is_swept_concurrently_; }
-  void set_is_swept_concurrently(bool b) { is_swept_concurrently_ = b; }
+  bool swept_precisely() { return swept_precisely_; }
+  void set_swept_precisely(bool b) { swept_precisely_ = b; }
 
   // Evacuation candidates are swept by evacuator.  Needs to return a valid
   // result before _and_ after evacuation has finished.
@@ -1990,10 +2001,7 @@ class PagedSpace : public Space {
   AllocationInfo allocation_info_;
 
   // This space was swept precisely, hence it is iterable.
-  bool is_iterable_;
-
-  // This space is currently swept by sweeper threads.
-  bool is_swept_concurrently_;
+  bool swept_precisely_;
 
   // The number of free bytes which could be reclaimed by advancing the
   // concurrent sweeper threads.  This is only an estimation because concurrent
@@ -2014,8 +2022,11 @@ class PagedSpace : public Space {
   // address denoted by top in allocation_info_.
   inline HeapObject* AllocateLinearly(int size_in_bytes);
 
-  MUST_USE_RESULT HeapObject*
-      WaitForSweeperThreadsAndRetryAllocation(int size_in_bytes);
+  // If sweeping is still in progress try to sweep unswept pages. If that is
+  // not successful, wait for the sweeper threads and re-try free-list
+  // allocation.
+  MUST_USE_RESULT HeapObject* WaitForSweeperThreadsAndRetryAllocation(
+      int size_in_bytes);
 
   // Slow path of AllocateRaw.  This function is space-dependent.
   MUST_USE_RESULT HeapObject* SlowAllocateRaw(int size_in_bytes);

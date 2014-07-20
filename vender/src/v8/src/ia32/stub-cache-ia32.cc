@@ -205,10 +205,10 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
   __ xor_(offset, flags);
   // We mask out the last two bits because they are not part of the hash and
   // they are always 01 for maps.  Also in the two 'and' instructions below.
-  __ and_(offset, (kPrimaryTableSize - 1) << kHeapObjectTagSize);
+  __ and_(offset, (kPrimaryTableSize - 1) << kCacheIndexShift);
   // ProbeTable expects the offset to be pointer scaled, which it is, because
   // the heap object tag size is 2 and the pointer size log 2 is also 2.
-  ASSERT(kHeapObjectTagSize == kPointerSizeLog2);
+  ASSERT(kCacheIndexShift == kPointerSizeLog2);
 
   // Probe the primary table.
   ProbeTable(isolate(), masm, flags, kPrimary, name, receiver, offset, extra);
@@ -217,10 +217,10 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
   __ mov(offset, FieldOperand(name, Name::kHashFieldOffset));
   __ add(offset, FieldOperand(receiver, HeapObject::kMapOffset));
   __ xor_(offset, flags);
-  __ and_(offset, (kPrimaryTableSize - 1) << kHeapObjectTagSize);
+  __ and_(offset, (kPrimaryTableSize - 1) << kCacheIndexShift);
   __ sub(offset, name);
   __ add(offset, Immediate(flags));
-  __ and_(offset, (kSecondaryTableSize - 1) << kHeapObjectTagSize);
+  __ and_(offset, (kSecondaryTableSize - 1) << kCacheIndexShift);
 
   // Probe the secondary table.
   ProbeTable(
@@ -823,6 +823,11 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
       __ mov(reg, FieldOperand(scratch1, Map::kPrototypeOffset));
     } else {
       bool in_new_space = heap()->InNewSpace(*prototype);
+      // Two possible reasons for loading the prototype from the map:
+      // (1) Can't store references to new space in code.
+      // (2) Handler is shared for all receivers with the same prototype
+      //     map (but not necessarily the same prototype instance).
+      bool load_prototype_from_map = in_new_space || depth == 1;
       if (depth != 1 || check == CHECK_ALL_MAPS) {
         __ CheckMap(reg, current_map, miss, DONT_DO_SMI_CHECK);
       }
@@ -838,19 +843,16 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
             scratch2, miss);
       }
 
-      if (in_new_space) {
+      if (load_prototype_from_map) {
         // Save the map in scratch1 for later.
         __ mov(scratch1, FieldOperand(reg, HeapObject::kMapOffset));
       }
 
       reg = holder_reg;  // From now on the object will be in holder_reg.
 
-      if (in_new_space) {
-        // The prototype is in new space; we cannot store a reference to it
-        // in the code.  Load it from the map.
+      if (load_prototype_from_map) {
         __ mov(reg, FieldOperand(scratch1, Map::kPrototypeOffset));
       } else {
-        // The prototype is in old space; load it directly.
         __ mov(reg, prototype);
       }
     }
@@ -1300,20 +1302,25 @@ Register* KeyedLoadStubCompiler::registers() {
 
 
 Register StoreStubCompiler::value() {
-  return eax;
+  return StoreIC::ValueRegister();
 }
 
 
 Register* StoreStubCompiler::registers() {
   // receiver, name, scratch1, scratch2, scratch3.
-  static Register registers[] = { edx, ecx, ebx, edi, no_reg };
+  Register receiver = StoreIC::ReceiverRegister();
+  Register name = StoreIC::NameRegister();
+  static Register registers[] = { receiver, name, ebx, edi, no_reg };
   return registers;
 }
 
 
 Register* KeyedStoreStubCompiler::registers() {
-  // receiver, name, scratch1, scratch2, scratch3.
-  static Register registers[] = { edx, ecx, ebx, edi, no_reg };
+  // receiver, name, scratch1/map, scratch2, scratch3.
+  Register receiver = KeyedStoreIC::ReceiverRegister();
+  Register name = KeyedStoreIC::NameRegister();
+  Register map = KeyedStoreIC::MapRegister();
+  static Register registers[] = { receiver, name, map, edi, no_reg };
   return registers;
 }
 
@@ -1414,7 +1421,10 @@ Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
   Label* smi_target = IncludesNumberType(types) ? &number_case : &miss;
   __ JumpIfSmi(receiver(), smi_target);
 
+  // Polymorphic keyed stores may use the map register
   Register map_reg = scratch1();
+  ASSERT(kind() != Code::KEYED_STORE_IC ||
+         map_reg.is(KeyedStoreIC::MapRegister()));
   __ mov(map_reg, FieldOperand(receiver(), HeapObject::kMapOffset));
   int receiver_count = types->length();
   int number_of_handled_maps = 0;

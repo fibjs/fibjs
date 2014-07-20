@@ -21,6 +21,7 @@
 #include "src/lithium-allocator.h"
 #include "src/log.h"
 #include "src/messages.h"
+#include "src/prototype.h"
 #include "src/regexp-stack.h"
 #include "src/runtime-profiler.h"
 #include "src/sampler.h"
@@ -423,8 +424,7 @@ void Isolate::CaptureAndSetDetailedStackTrace(Handle<JSObject> error_object) {
     Handle<JSArray> stack_trace = CaptureCurrentStackTrace(
         stack_trace_for_uncaught_exceptions_frame_limit_,
         stack_trace_for_uncaught_exceptions_options_);
-    JSObject::SetProperty(
-        error_object, key, stack_trace, NONE, STRICT).Assert();
+    JSObject::SetProperty(error_object, key, stack_trace, STRICT).Assert();
   }
 }
 
@@ -434,7 +434,7 @@ void Isolate::CaptureAndSetSimpleStackTrace(Handle<JSObject> error_object,
   // Capture stack trace for simple stack trace string formatting.
   Handle<Name> key = factory()->stack_trace_symbol();
   Handle<Object> stack_trace = CaptureSimpleStackTrace(error_object, caller);
-  JSObject::SetProperty(error_object, key, stack_trace, NONE, STRICT).Assert();
+  JSObject::SetProperty(error_object, key, stack_trace, STRICT).Assert();
 }
 
 
@@ -888,6 +888,15 @@ void Isolate::RestorePendingMessageFromTryCatch(v8::TryCatch* handler) {
 }
 
 
+void Isolate::CancelScheduledExceptionFromTryCatch(v8::TryCatch* handler) {
+  ASSERT(has_scheduled_exception());
+  if (scheduled_exception() == handler->exception_) {
+    ASSERT(scheduled_exception() != heap()->termination_exception());
+    clear_scheduled_exception();
+  }
+}
+
+
 Object* Isolate::PromoteScheduledException() {
   Object* thrown = scheduled_exception();
   clear_scheduled_exception();
@@ -982,10 +991,10 @@ bool Isolate::IsErrorObject(Handle<Object> obj) {
       js_builtins_object(), error_key).ToHandleChecked();
 
   DisallowHeapAllocation no_gc;
-  for (Object* prototype = *obj; !prototype->IsNull();
-       prototype = prototype->GetPrototype(this)) {
-    if (!prototype->IsJSObject()) return false;
-    if (JSObject::cast(prototype)->map()->constructor() ==
+  for (PrototypeIterator iter(this, *obj, PrototypeIterator::START_AT_RECEIVER);
+       !iter.IsAtEnd(); iter.Advance()) {
+    if (iter.GetCurrent()->IsJSProxy()) return false;
+    if (JSObject::cast(iter.GetCurrent())->map()->constructor() ==
         *error_constructor) {
       return true;
     }
@@ -1191,8 +1200,7 @@ void Isolate::ReportPendingMessages() {
   bool can_clear_message = PropagatePendingExceptionToExternalTryCatch();
 
   HandleScope scope(this);
-  if (thread_local_top_.pending_exception_ ==
-          heap()->termination_exception()) {
+  if (thread_local_top_.pending_exception_ == heap()->termination_exception()) {
     // Do nothing: if needed, the exception has been already propagated to
     // v8::TryCatch.
   } else {
@@ -1558,8 +1566,8 @@ void Isolate::Deinit() {
     sweeper_thread_ = NULL;
 
     if (FLAG_job_based_sweeping &&
-        heap_.mark_compact_collector()->IsConcurrentSweepingInProgress()) {
-      heap_.mark_compact_collector()->WaitUntilSweepingCompleted();
+        heap_.mark_compact_collector()->sweeping_in_progress()) {
+      heap_.mark_compact_collector()->EnsureSweepingCompleted();
     }
 
     if (FLAG_hydrogen_stats) GetHStatistics()->Print();
@@ -1739,8 +1747,7 @@ bool Isolate::PropagatePendingExceptionToExternalTryCatch() {
   }
 
   thread_local_top_.external_caught_exception_ = true;
-  if (thread_local_top_.pending_exception_ ==
-             heap()->termination_exception()) {
+  if (thread_local_top_.pending_exception_ == heap()->termination_exception()) {
     try_catch_handler()->can_continue_ = false;
     try_catch_handler()->has_terminated_ = true;
     try_catch_handler()->exception_ = heap()->null_value();
@@ -1878,9 +1885,9 @@ bool Isolate::Init(Deserializer* des) {
   builtins_.SetUp(this, create_heap_objects);
 
   if (FLAG_log_internal_timer_events) {
-    set_event_logger(Logger::LogInternalEvents);
+    set_event_logger(Logger::DefaultTimerEventsLogger);
   } else {
-    set_event_logger(Logger::EmptyLogInternalEvents);
+    set_event_logger(Logger::EmptyTimerEventsLogger);
   }
 
   // Set default value if not yet set.
@@ -2156,13 +2163,16 @@ bool Isolate::IsFastArrayConstructorPrototypeChainIntact() {
 
   // Check that the object prototype hasn't been altered WRT empty elements.
   JSObject* initial_object_proto = JSObject::cast(*initial_object_prototype());
-  Object* root_array_map_proto = initial_array_proto->GetPrototype();
-  if (root_array_map_proto != initial_object_proto) return false;
+  PrototypeIterator iter(this, initial_array_proto);
+  if (iter.IsAtEnd() || iter.GetCurrent() != initial_object_proto) {
+    return false;
+  }
   if (initial_object_proto->elements() != heap()->empty_fixed_array()) {
     return false;
   }
 
-  return initial_object_proto->GetPrototype()->IsNull();
+  iter.Advance();
+  return iter.IsAtEnd();
 }
 
 
@@ -2206,7 +2216,7 @@ Handle<JSObject> Isolate::GetSymbolRegistry() {
       Handle<String> name = factory()->InternalizeUtf8String(nested[i]);
       Handle<JSObject> obj = factory()->NewJSObjectFromMap(map);
       JSObject::NormalizeProperties(obj, KEEP_INOBJECT_PROPERTIES, 8);
-      JSObject::SetProperty(registry, name, obj, NONE, STRICT).Assert();
+      JSObject::SetProperty(registry, name, obj, STRICT).Assert();
     }
   }
   return Handle<JSObject>::cast(factory()->symbol_registry());

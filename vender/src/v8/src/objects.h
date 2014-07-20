@@ -619,15 +619,20 @@ const uint32_t kShortExternalStringTag = 0x10;
 
 
 // A ConsString with an empty string as the right side is a candidate
-// for being shortcut by the garbage collector unless it is internalized.
-// It's not common to have non-flat internalized strings, so we do not
-// shortcut them thereby avoiding turning internalized strings into strings.
-// See heap.cc and mark-compact.cc.
+// for being shortcut by the garbage collector. We don't allocate any
+// non-flat internalized strings, so we do not shortcut them thereby
+// avoiding turning internalized strings into strings. The bit-masks
+// below contain the internalized bit as additional safety.
+// See heap.cc, mark-compact.cc and objects-visiting.cc.
 const uint32_t kShortcutTypeMask =
     kIsNotStringMask |
     kIsNotInternalizedMask |
     kStringRepresentationMask;
 const uint32_t kShortcutTypeTag = kConsStringTag | kNotInternalizedTag;
+
+static inline bool IsShortcutCandidate(int type) {
+  return ((type & kShortcutTypeMask) == kShortcutTypeTag);
+}
 
 
 enum InstanceType {
@@ -717,7 +722,6 @@ enum InstanceType {
   FIXED_UINT8_CLAMPED_ARRAY_TYPE,  // LAST_FIXED_TYPED_ARRAY_TYPE
 
   FIXED_DOUBLE_ARRAY_TYPE,
-  CONSTANT_POOL_ARRAY_TYPE,
   FILLER_TYPE,  // LAST_DATA_TYPE
 
   // Structs.
@@ -744,6 +748,7 @@ enum InstanceType {
   BREAK_POINT_INFO_TYPE,
 
   FIXED_ARRAY_TYPE,
+  CONSTANT_POOL_ARRAY_TYPE,
   SHARED_FUNCTION_INFO_TYPE,
 
   // All the following types are subtypes of JSReceiver, which corresponds to
@@ -1370,6 +1375,13 @@ class Object {
   HEAP_OBJECT_TYPE_LIST(IS_TYPE_FUNCTION_DECL)
 #undef IS_TYPE_FUNCTION_DECL
 
+  // A non-keyed store is of the form a.x = foo or a["x"] = foo whereas
+  // a keyed store is of the form a[expression] = foo.
+  enum StoreFromKeyed {
+    MAY_BE_STORE_FROM_KEYED,
+    CERTAINLY_NOT_STORE_FROM_KEYED
+  };
+
   INLINE(bool IsFixedArrayBase() const);
   INLINE(bool IsExternal() const);
   INLINE(bool IsAccessorInfo() const);
@@ -1471,6 +1483,16 @@ class Object {
   void Lookup(Handle<Name> name, LookupResult* result);
 
   MUST_USE_RESULT static MaybeHandle<Object> GetProperty(LookupIterator* it);
+  MUST_USE_RESULT static MaybeHandle<Object> SetProperty(
+      LookupIterator* it, Handle<Object> value, StrictMode strict_mode,
+      StoreFromKeyed store_mode);
+  MUST_USE_RESULT static MaybeHandle<Object> WriteToReadOnlyProperty(
+      LookupIterator* it, Handle<Object> value, StrictMode strict_mode);
+  MUST_USE_RESULT static MaybeHandle<Object> SetDataProperty(
+      LookupIterator* it, Handle<Object> value);
+  MUST_USE_RESULT static MaybeHandle<Object> AddDataProperty(
+      LookupIterator* it, Handle<Object> value, PropertyAttributes attributes,
+      StrictMode strict_mode, StoreFromKeyed store_mode);
   MUST_USE_RESULT static inline MaybeHandle<Object> GetPropertyOrElement(
       Handle<Object> object,
       Handle<Name> key);
@@ -1487,12 +1509,9 @@ class Object {
       Handle<Name> name,
       Handle<JSObject> holder,
       Handle<Object> structure);
-  MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithCallback(
-      Handle<Object> receiver,
-      Handle<Name> name,
-      Handle<Object> value,
-      Handle<JSObject> holder,
-      Handle<Object> structure,
+  MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithAccessor(
+      Handle<Object> receiver, Handle<Name> name, Handle<Object> value,
+      Handle<JSObject> holder, Handle<Object> structure,
       StrictMode strict_mode);
 
   MUST_USE_RESULT static MaybeHandle<Object> GetPropertyWithDefinedGetter(
@@ -1513,10 +1532,6 @@ class Object {
       Handle<Object> object,
       Handle<Object> receiver,
       uint32_t index);
-
-  // Return the object's prototype (might be Heap::null_value()).
-  Object* GetPrototype(Isolate* isolate);
-  static Handle<Object> GetPrototype(Isolate* isolate, Handle<Object> object);
 
   // Returns the permanent hash code associated with this object. May return
   // undefined if not yet created.
@@ -1574,6 +1589,12 @@ class Object {
 #endif
 
  private:
+  friend class LookupIterator;
+  friend class PrototypeIterator;
+
+  // Return the map of the root of object's prototype chain.
+  Map* GetRootMap(Isolate* isolate);
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(Object);
 };
 
@@ -1718,10 +1739,6 @@ class HeapObject: public Object {
 
   // Returns the heap object's size in bytes
   inline int Size();
-
-  // Returns true if this heap object contains only references to other
-  // heap objects.
-  inline bool ContainsPointers();
 
   // Given a heap object's map pointer, returns the heap size in bytes
   // Useful when the map pointer field is used for other purposes.
@@ -1915,13 +1932,6 @@ class JSReceiver: public HeapObject {
     FORCE_DELETION
   };
 
-  // A non-keyed store is of the form a.x = foo or a["x"] = foo whereas
-  // a keyed store is of the form a[expression] = foo.
-  enum StoreFromKeyed {
-    MAY_BE_STORE_FROM_KEYED,
-    CERTAINLY_NOT_STORE_FROM_KEYED
-  };
-
   // Internal properties (e.g. the hidden properties dictionary) might
   // be added even though the receiver is non-extensible.
   enum ExtensibilityCheck {
@@ -1936,7 +1946,6 @@ class JSReceiver: public HeapObject {
       Handle<JSReceiver> object,
       Handle<Name> key,
       Handle<Object> value,
-      PropertyAttributes attributes,
       StrictMode strict_mode,
       StoreFromKeyed store_mode = MAY_BE_STORE_FROM_KEYED);
   MUST_USE_RESULT static MaybeHandle<Object> SetElement(
@@ -1987,9 +1996,6 @@ class JSReceiver: public HeapObject {
       Handle<JSReceiver> object,
       uint32_t index);
 
-  // Return the object's prototype (might be Heap::null_value()).
-  inline Object* GetPrototype() const;
-
   // Return the constructor function (may be Heap::null_value()).
   inline Object* GetConstructor();
 
@@ -2022,7 +2028,6 @@ class JSReceiver: public HeapObject {
       LookupResult* result,
       Handle<Name> key,
       Handle<Object> value,
-      PropertyAttributes attributes,
       StrictMode strict_mode,
       StoreFromKeyed store_from_keyed);
 
@@ -2138,20 +2143,7 @@ class JSObject: public JSReceiver {
                                                    uint32_t limit);
 
   MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithInterceptor(
-      Handle<JSObject> object,
-      Handle<Name> name,
-      Handle<Object> value,
-      PropertyAttributes attributes,
-      StrictMode strict_mode);
-
-  MUST_USE_RESULT static MaybeHandle<Object> SetPropertyForResult(
-      Handle<JSObject> object,
-      LookupResult* result,
-      Handle<Name> name,
-      Handle<Object> value,
-      PropertyAttributes attributes,
-      StrictMode strict_mode,
-      StoreFromKeyed store_mode = MAY_BE_STORE_FROM_KEYED);
+      LookupIterator* it, Handle<Object> value);
 
   // SetLocalPropertyIgnoreAttributes converts callbacks to fields. We need to
   // grant an exemption to ExecutableAccessor callbacks in some cases.
@@ -2577,12 +2569,6 @@ class JSObject: public JSReceiver {
 
   Object* SlowReverseLookup(Object* value);
 
-  // Maximal number of fast properties for the JSObject. Used to
-  // restrict the number of map transitions to avoid an explosion in
-  // the number of maps for objects used as dictionaries.
-  inline bool TooManyFastProperties(
-      StoreFromKeyed store_mode = MAY_BE_STORE_FROM_KEYED);
-
   // Maximal number of elements (numbered 0 .. kMaxElementCount - 1).
   // Also maximal value of JSArray's length property.
   static const uint32_t kMaxElementCount = 0xffffffffu;
@@ -2610,8 +2596,6 @@ class JSObject: public JSReceiver {
   // "global.Object" and not to arbitrary other JSObject maps.
   static const int kInitialGlobalObjectUnusedPropertiesCount = 4;
 
-  static const int kFastPropertiesSoftLimit = 12;
-  static const int kMaxFastProperties = 128;
   static const int kMaxInstanceSize = 255 * kPointerSize;
   // When extending the backing storage for property values, we increase
   // its size by more than the 1 entry necessary, so sequentially adding fields
@@ -2738,23 +2722,6 @@ class JSObject: public JSReceiver {
       StrictMode strict_mode,
       bool check_prototype = true);
 
-  // Searches the prototype chain for property 'name'. If it is found and
-  // has a setter, invoke it and set '*done' to true. If it is found and is
-  // read-only, reject and set '*done' to true. Otherwise, set '*done' to
-  // false. Can throw and return an empty handle with '*done==true'.
-  MUST_USE_RESULT static MaybeHandle<Object> SetPropertyViaPrototypes(
-      Handle<JSObject> object,
-      Handle<Name> name,
-      Handle<Object> value,
-      PropertyAttributes attributes,
-      StrictMode strict_mode,
-      bool* done);
-  MUST_USE_RESULT static MaybeHandle<Object> SetPropertyPostInterceptor(
-      Handle<JSObject> object,
-      Handle<Name> name,
-      Handle<Object> value,
-      PropertyAttributes attributes,
-      StrictMode strict_mode);
   MUST_USE_RESULT static MaybeHandle<Object> SetPropertyUsingTransition(
       Handle<JSObject> object,
       LookupResult* lookup,
@@ -2762,12 +2729,7 @@ class JSObject: public JSReceiver {
       Handle<Object> value,
       PropertyAttributes attributes);
   MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithFailedAccessCheck(
-      Handle<JSObject> object,
-      LookupResult* result,
-      Handle<Name> name,
-      Handle<Object> value,
-      bool check_prototype,
-      StrictMode strict_mode);
+      LookupIterator* it, Handle<Object> value, StrictMode strict_mode);
 
   // Add a property to an object.
   MUST_USE_RESULT static MaybeHandle<Object> AddPropertyInternal(
@@ -3457,6 +3419,8 @@ class DescriptorArray: public FixedArray {
   void SetEnumCache(FixedArray* bridge_storage,
                     FixedArray* new_cache,
                     Object* new_index_cache);
+
+  bool CanHoldValue(int descriptor, Object* value);
 
   // Accessors for fetching instance descriptor at descriptor number.
   inline Name* GetKey(int descriptor_number);
@@ -5611,6 +5575,10 @@ class Code: public HeapObject {
   inline int profiler_ticks();
   inline void set_profiler_ticks(int ticks);
 
+  // [builtin_index]: For BUILTIN kind, tells which builtin index it has.
+  inline int builtin_index();
+  inline void set_builtin_index(int id);
+
   // [stack_slots]: For kind OPTIMIZED_FUNCTION, the number of stack slots
   // reserved in the code prologue.
   inline unsigned stack_slots();
@@ -5666,6 +5634,9 @@ class Code: public HeapObject {
   // enough handlers can be found.
   bool FindHandlers(CodeHandleList* code_list, int length = -1);
 
+  // Find the handler for |map|.
+  MaybeHandle<Code> FindHandlerForMap(Map* map);
+
   // Find the first name in an IC stub.
   Name* FindFirstName();
 
@@ -5687,30 +5658,26 @@ class Code: public HeapObject {
 
   // Flags operations.
   static inline Flags ComputeFlags(
-      Kind kind,
-      InlineCacheState ic_state = UNINITIALIZED,
-      ExtraICState extra_ic_state = kNoExtraICState,
-      StubType type = NORMAL,
-      InlineCacheHolderFlag holder = OWN_MAP);
+      Kind kind, InlineCacheState ic_state = UNINITIALIZED,
+      ExtraICState extra_ic_state = kNoExtraICState, StubType type = NORMAL,
+      CacheHolderFlag holder = kCacheOnReceiver);
 
   static inline Flags ComputeMonomorphicFlags(
-      Kind kind,
-      ExtraICState extra_ic_state = kNoExtraICState,
-      InlineCacheHolderFlag holder = OWN_MAP,
-      StubType type = NORMAL);
+      Kind kind, ExtraICState extra_ic_state = kNoExtraICState,
+      CacheHolderFlag holder = kCacheOnReceiver, StubType type = NORMAL);
 
   static inline Flags ComputeHandlerFlags(
-      Kind handler_kind,
-      StubType type = NORMAL,
-      InlineCacheHolderFlag holder = OWN_MAP);
+      Kind handler_kind, StubType type = NORMAL,
+      CacheHolderFlag holder = kCacheOnReceiver);
 
   static inline InlineCacheState ExtractICStateFromFlags(Flags flags);
   static inline StubType ExtractTypeFromFlags(Flags flags);
+  static inline CacheHolderFlag ExtractCacheHolderFromFlags(Flags flags);
   static inline Kind ExtractKindFromFlags(Flags flags);
-  static inline InlineCacheHolderFlag ExtractCacheHolderFromFlags(Flags flags);
   static inline ExtraICState ExtractExtraICStateFromFlags(Flags flags);
 
   static inline Flags RemoveTypeFromFlags(Flags flags);
+  static inline Flags RemoveTypeAndHolderFromFlags(Flags flags);
 
   // Convert a target address into a code object.
   static inline Code* GetCodeFromTargetAddress(Address address);
@@ -5876,7 +5843,7 @@ class Code: public HeapObject {
   // Flags layout.  BitField<type, shift, size>.
   class ICStateField: public BitField<InlineCacheState, 0, 3> {};
   class TypeField: public BitField<StubType, 3, 1> {};
-  class CacheHolderField: public BitField<InlineCacheHolderFlag, 5, 1> {};
+  class CacheHolderField : public BitField<CacheHolderFlag, 4, 2> {};
   class KindField: public BitField<Kind, 6, 4> {};
   // TODO(bmeurer): Bit 10 is available for free use. :-)
   class ExtraICStateField: public BitField<ExtraICState, 11,
@@ -6336,6 +6303,10 @@ class Map: public HeapObject {
       StoreMode store_mode,
       const char* reason);
 
+  static Handle<Map> PrepareForDataProperty(Handle<Map> old_map,
+                                            int descriptor_number,
+                                            Handle<Object> value);
+
   static Handle<Map> Normalize(Handle<Map> map, PropertyNormalizationMode mode);
 
   // Returns the constructor name (the name (possibly, inferred name) of the
@@ -6528,6 +6499,15 @@ class Map: public HeapObject {
   static Handle<Map> CopyForObserved(Handle<Map> map);
 
   static Handle<Map> CopyForFreeze(Handle<Map> map);
+  // Maximal number of fast properties. Used to restrict the number of map
+  // transitions to avoid an explosion in the number of maps for objects used as
+  // dictionaries.
+  inline bool TooManyFastProperties(StoreFromKeyed store_mode);
+  static Handle<Map> TransitionToDataProperty(Handle<Map> map,
+                                              Handle<Name> name,
+                                              Handle<Object> value,
+                                              PropertyAttributes attributes,
+                                              StoreFromKeyed store_mode);
 
   inline void AppendDescriptor(Descriptor* desc);
 
@@ -6836,6 +6816,9 @@ class Map: public HeapObject {
                                             Handle<Object> prototype,
                                             Handle<Map> target_map);
 
+  static const int kFastPropertiesSoftLimit = 12;
+  static const int kMaxFastProperties = 128;
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(Map);
 };
 
@@ -7018,27 +7001,28 @@ class Script: public Struct {
 //
 // Installation of ids for the selected builtin functions is handled
 // by the bootstrapper.
-#define FUNCTIONS_WITH_ID_LIST(V)                     \
-  V(Array.prototype, indexOf, ArrayIndexOf)           \
-  V(Array.prototype, lastIndexOf, ArrayLastIndexOf)   \
-  V(Array.prototype, push, ArrayPush)                 \
-  V(Array.prototype, pop, ArrayPop)                   \
-  V(Array.prototype, shift, ArrayShift)               \
-  V(Function.prototype, apply, FunctionApply)         \
-  V(String.prototype, charCodeAt, StringCharCodeAt)   \
-  V(String.prototype, charAt, StringCharAt)           \
-  V(String, fromCharCode, StringFromCharCode)         \
-  V(Math, floor, MathFloor)                           \
-  V(Math, round, MathRound)                           \
-  V(Math, ceil, MathCeil)                             \
-  V(Math, abs, MathAbs)                               \
-  V(Math, log, MathLog)                               \
-  V(Math, exp, MathExp)                               \
-  V(Math, sqrt, MathSqrt)                             \
-  V(Math, pow, MathPow)                               \
-  V(Math, max, MathMax)                               \
-  V(Math, min, MathMin)                               \
-  V(Math, imul, MathImul)
+#define FUNCTIONS_WITH_ID_LIST(V)                   \
+  V(Array.prototype, indexOf, ArrayIndexOf)         \
+  V(Array.prototype, lastIndexOf, ArrayLastIndexOf) \
+  V(Array.prototype, push, ArrayPush)               \
+  V(Array.prototype, pop, ArrayPop)                 \
+  V(Array.prototype, shift, ArrayShift)             \
+  V(Function.prototype, apply, FunctionApply)       \
+  V(String.prototype, charCodeAt, StringCharCodeAt) \
+  V(String.prototype, charAt, StringCharAt)         \
+  V(String, fromCharCode, StringFromCharCode)       \
+  V(Math, floor, MathFloor)                         \
+  V(Math, round, MathRound)                         \
+  V(Math, ceil, MathCeil)                           \
+  V(Math, abs, MathAbs)                             \
+  V(Math, log, MathLog)                             \
+  V(Math, exp, MathExp)                             \
+  V(Math, sqrt, MathSqrt)                           \
+  V(Math, pow, MathPow)                             \
+  V(Math, max, MathMax)                             \
+  V(Math, min, MathMin)                             \
+  V(Math, imul, MathImul)                           \
+  V(Math, clz32, MathClz32)
 
 enum BuiltinFunctionId {
   kArrayCode,
@@ -7048,9 +7032,7 @@ enum BuiltinFunctionId {
 #undef DECLARE_FUNCTION_ID
   // Fake id for a special case of Math.pow. Note, it continues the
   // list of math functions.
-  kMathPowHalf,
-  // Installed only on --harmony-maths.
-  kMathClz32
+  kMathPowHalf
 };
 
 
@@ -8857,6 +8839,19 @@ class StringHasher {
 };
 
 
+class IteratingStringHasher : public StringHasher {
+ public:
+  static inline uint32_t Hash(String* string, uint32_t seed);
+  inline void VisitOneByteString(const uint8_t* chars, int length);
+  inline void VisitTwoByteString(const uint16_t* chars, int length);
+
+ private:
+  inline IteratingStringHasher(int len, uint32_t seed)
+      : StringHasher(len, seed) {}
+  DISALLOW_COPY_AND_ASSIGN(IteratingStringHasher);
+};
+
+
 // The characteristics of a string are stored in its map.  Retrieving these
 // few bits of information is moderately expensive, involving two memory
 // loads where the second is dependent on the first.  To improve efficiency
@@ -9336,6 +9331,7 @@ class String: public Name {
 
  private:
   friend class Name;
+  friend class StringTableInsertionKey;
 
   static Handle<String> SlowFlatten(Handle<ConsString> cons,
                                     PretenureFlag tenure);
@@ -9957,13 +9953,8 @@ class JSProxy: public JSReceiver {
   // otherwise set it to false.
   MUST_USE_RESULT
   static MaybeHandle<Object> SetPropertyViaPrototypesWithHandler(
-      Handle<JSProxy> proxy,
-      Handle<JSReceiver> receiver,
-      Handle<Name> name,
-      Handle<Object> value,
-      PropertyAttributes attributes,
-      StrictMode strict_mode,
-      bool* done);
+      Handle<JSProxy> proxy, Handle<Object> receiver, Handle<Name> name,
+      Handle<Object> value, StrictMode strict_mode, bool* done);
 
   static PropertyAttributes GetPropertyAttributesWithHandler(
       Handle<JSProxy> proxy,
@@ -9973,6 +9964,9 @@ class JSProxy: public JSReceiver {
       Handle<JSProxy> proxy,
       Handle<JSReceiver> receiver,
       uint32_t index);
+  MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithHandler(
+      Handle<JSProxy> proxy, Handle<Object> receiver, Handle<Name> name,
+      Handle<Object> value, StrictMode strict_mode);
 
   // Turn the proxy into an (empty) JSObject.
   static void Fix(Handle<JSProxy> proxy);
@@ -10012,13 +10006,6 @@ class JSProxy: public JSReceiver {
  private:
   friend class JSReceiver;
 
-  MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithHandler(
-      Handle<JSProxy> proxy,
-      Handle<JSReceiver> receiver,
-      Handle<Name> name,
-      Handle<Object> value,
-      PropertyAttributes attributes,
-      StrictMode strict_mode);
   MUST_USE_RESULT static inline MaybeHandle<Object> SetElementWithHandler(
       Handle<JSProxy> proxy,
       Handle<JSReceiver> receiver,

@@ -24,13 +24,13 @@ static void ProbeTable(Isolate* isolate,
                        Register receiver,
                        Register name,
                        // The offset is scaled by 4, based on
-                       // kHeapObjectTagSize, which is two bits
+                       // kCacheIndexShift, which is two bits
                        Register offset) {
   // We need to scale up the pointer by 2 when the offset is scaled by less
   // than the pointer size.
   ASSERT(kPointerSize == kInt64Size
-      ? kPointerSizeLog2 == kHeapObjectTagSize + 1
-      : kPointerSizeLog2 == kHeapObjectTagSize);
+      ? kPointerSizeLog2 == StubCache::kCacheIndexShift + 1
+      : kPointerSizeLog2 == StubCache::kCacheIndexShift);
   ScaleFactor scale_factor = kPointerSize == kInt64Size ? times_2 : times_1;
 
   ASSERT_EQ(3 * kPointerSize, sizeof(StubCache::Entry));
@@ -175,7 +175,7 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
   __ xorp(scratch, Immediate(flags));
   // We mask out the last two bits because they are not part of the hash and
   // they are always 01 for maps.  Also in the two 'and' instructions below.
-  __ andp(scratch, Immediate((kPrimaryTableSize - 1) << kHeapObjectTagSize));
+  __ andp(scratch, Immediate((kPrimaryTableSize - 1) << kCacheIndexShift));
 
   // Probe the primary table.
   ProbeTable(isolate, masm, flags, kPrimary, receiver, name, scratch);
@@ -184,10 +184,10 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
   __ movl(scratch, FieldOperand(name, Name::kHashFieldOffset));
   __ addl(scratch, FieldOperand(receiver, HeapObject::kMapOffset));
   __ xorp(scratch, Immediate(flags));
-  __ andp(scratch, Immediate((kPrimaryTableSize - 1) << kHeapObjectTagSize));
+  __ andp(scratch, Immediate((kPrimaryTableSize - 1) << kCacheIndexShift));
   __ subl(scratch, name);
   __ addl(scratch, Immediate(flags));
-  __ andp(scratch, Immediate((kSecondaryTableSize - 1) << kHeapObjectTagSize));
+  __ andp(scratch, Immediate((kSecondaryTableSize - 1) << kCacheIndexShift));
 
   // Probe the secondary table.
   ProbeTable(isolate, masm, flags, kSecondary, receiver, name, scratch);
@@ -775,7 +775,12 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
       __ movp(reg, FieldOperand(scratch1, Map::kPrototypeOffset));
     } else {
       bool in_new_space = heap()->InNewSpace(*prototype);
-      if (in_new_space) {
+      // Two possible reasons for loading the prototype from the map:
+      // (1) Can't store references to new space in code.
+      // (2) Handler is shared for all receivers with the same prototype
+      //     map (but not necessarily the same prototype instance).
+      bool load_prototype_from_map = in_new_space || depth == 1;
+      if (load_prototype_from_map) {
         // Save the map in scratch1 for later.
         __ movp(scratch1, FieldOperand(reg, HeapObject::kMapOffset));
       }
@@ -795,12 +800,9 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
       }
       reg = holder_reg;  // From now on the object will be in holder_reg.
 
-      if (in_new_space) {
-        // The prototype is in new space; we cannot store a reference to it
-        // in the code.  Load it from the map.
+      if (load_prototype_from_map) {
         __ movp(reg, FieldOperand(scratch1, Map::kPrototypeOffset));
       } else {
-        // The prototype is in old space; load it directly.
         __ Move(reg, prototype);
       }
     }
@@ -1239,20 +1241,25 @@ Register* KeyedLoadStubCompiler::registers() {
 
 
 Register StoreStubCompiler::value() {
-  return rax;
+  return StoreIC::ValueRegister();
 }
 
 
 Register* StoreStubCompiler::registers() {
   // receiver, name, scratch1, scratch2, scratch3.
-  static Register registers[] = { rdx, rcx, rbx, rdi, r8 };
+  Register receiver = KeyedStoreIC::ReceiverRegister();
+  Register name = KeyedStoreIC::NameRegister();
+  static Register registers[] = { receiver, name, rbx, rdi, r8 };
   return registers;
 }
 
 
 Register* KeyedStoreStubCompiler::registers() {
-  // receiver, name, scratch1, scratch2, scratch3.
-  static Register registers[] = { rdx, rcx, rbx, rdi, r8 };
+  // receiver, name, scratch1/map, scratch2, scratch3.
+  Register receiver = KeyedStoreIC::ReceiverRegister();
+  Register name = KeyedStoreIC::NameRegister();
+  Register map = KeyedStoreIC::MapRegister();
+  static Register registers[] = { receiver, name, map, rdi, r8 };
   return registers;
 }
 
@@ -1357,7 +1364,10 @@ Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
   Label* smi_target = IncludesNumberType(types) ? &number_case : &miss;
   __ JumpIfSmi(receiver(), smi_target);
 
+  // Polymorphic keyed stores may use the map register
   Register map_reg = scratch1();
+  ASSERT(kind() != Code::KEYED_STORE_IC ||
+         map_reg.is(KeyedStoreIC::MapRegister()));
   __ movp(map_reg, FieldOperand(receiver(), HeapObject::kMapOffset));
   int receiver_count = types->length();
   int number_of_handled_maps = 0;

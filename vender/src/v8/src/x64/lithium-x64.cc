@@ -1104,7 +1104,7 @@ LInstruction* LChunkBuilder::DoCallJSFunction(
 
 LInstruction* LChunkBuilder::DoCallWithDescriptor(
     HCallWithDescriptor* instr) {
-  const CallInterfaceDescriptor* descriptor = instr->descriptor();
+  const InterfaceDescriptor* descriptor = instr->descriptor();
 
   LOperand* target = UseRegisterOrConstantAtStart(instr->target());
   ZoneList<LOperand*> ops(instr->OperandCount(), zone());
@@ -2272,9 +2272,10 @@ LInstruction* LChunkBuilder::DoStoreKeyed(HStoreKeyed* instr) {
 
 LInstruction* LChunkBuilder::DoStoreKeyedGeneric(HStoreKeyedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), rsi);
-  LOperand* object = UseFixed(instr->object(), rdx);
-  LOperand* key = UseFixed(instr->key(), rcx);
-  LOperand* value = UseFixed(instr->value(), rax);
+  LOperand* object = UseFixed(instr->object(),
+                              KeyedStoreIC::ReceiverRegister());
+  LOperand* key = UseFixed(instr->key(), KeyedStoreIC::NameRegister());
+  LOperand* value = UseFixed(instr->value(), KeyedStoreIC::ValueRegister());
 
   ASSERT(instr->object()->representation().IsTagged());
   ASSERT(instr->key()->representation().IsTagged());
@@ -2369,8 +2370,8 @@ LInstruction* LChunkBuilder::DoStoreNamedField(HStoreNamedField* instr) {
 
 LInstruction* LChunkBuilder::DoStoreNamedGeneric(HStoreNamedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), rsi);
-  LOperand* object = UseFixed(instr->object(), rdx);
-  LOperand* value = UseFixed(instr->value(), rax);
+  LOperand* object = UseFixed(instr->object(), StoreIC::ReceiverRegister());
+  LOperand* value = UseFixed(instr->value(), StoreIC::ValueRegister());
 
   LStoreNamedGeneric* result =
       new(zone()) LStoreNamedGeneric(context, object, value);
@@ -2450,7 +2451,7 @@ LInstruction* LChunkBuilder::DoParameter(HParameter* instr) {
     CodeStubInterfaceDescriptor* descriptor =
         info()->code_stub()->GetInterfaceDescriptor();
     int index = static_cast<int>(instr->index());
-    Register reg = descriptor->GetParameterRegister(index);
+    Register reg = descriptor->GetEnvironmentParameterRegister(index);
     return DefineFixed(result, reg);
   }
 }

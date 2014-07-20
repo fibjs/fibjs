@@ -18,7 +18,6 @@ typedef bool (*IsAliveFunction)(HeapObject* obj, int* size, int* offset);
 
 // Forward declarations.
 class CodeFlusher;
-class GCTracer;
 class MarkCompactCollector;
 class MarkingVisitor;
 class RootMarkingVisitor;
@@ -528,7 +527,7 @@ class MarkCompactCollector {
 
   // Prepares for GC by resetting relocation info in old and map spaces and
   // choosing spaces to compact.
-  void Prepare(GCTracer* tracer);
+  void Prepare();
 
   // Performs a global garbage collection.
   void CollectGarbage();
@@ -541,10 +540,6 @@ class MarkCompactCollector {
   bool StartCompaction(CompactionMode mode);
 
   void AbortCompaction();
-
-  // During a full GC, there is a stack-allocated GCTracer that is used for
-  // bookkeeping information.  Return a pointer to that tracer.
-  GCTracer* tracer() { return tracer_; }
 
 #ifdef DEBUG
   // Checks whether performing mark-compact collection.
@@ -570,14 +565,15 @@ class MarkCompactCollector {
   void EnableCodeFlushing(bool enable);
 
   enum SweeperType {
-    CONSERVATIVE,
     PARALLEL_CONSERVATIVE,
     CONCURRENT_CONSERVATIVE,
+    PARALLEL_PRECISE,
+    CONCURRENT_PRECISE,
     PRECISE
   };
 
   enum SweepingParallelism {
-    SWEEP_SEQUENTIALLY,
+    SWEEP_ON_MAIN_THREAD,
     SWEEP_IN_PARALLEL
   };
 
@@ -590,9 +586,9 @@ class MarkCompactCollector {
 #endif
 
   // Sweep a single page from the given space conservatively.
-  // Return a number of reclaimed bytes.
+  // Returns the size of the biggest continuous freed memory chunk in bytes.
   template<SweepingParallelism type>
-  static intptr_t SweepConservatively(PagedSpace* space,
+  static int SweepConservatively(PagedSpace* space,
                                       FreeList* free_list,
                                       Page* p);
 
@@ -659,21 +655,25 @@ class MarkCompactCollector {
 
   MarkingParity marking_parity() { return marking_parity_; }
 
-  // Concurrent and parallel sweeping support.
-  void SweepInParallel(PagedSpace* space);
+  // Concurrent and parallel sweeping support. If required_freed_bytes was set
+  // to a value larger than 0, then sweeping returns after a block of at least
+  // required_freed_bytes was freed. If required_freed_bytes was set to zero
+  // then the whole given space is swept.
+  int SweepInParallel(PagedSpace* space, int required_freed_bytes);
 
-  void WaitUntilSweepingCompleted();
+  void EnsureSweepingCompleted();
 
+  // If sweeper threads are not active this method will return true. If
+  // this is a latency issue we should be smarter here. Otherwise, it will
+  // return true if the sweeper threads are done processing the pages.
   bool IsSweepingCompleted();
 
   void RefillFreeList(PagedSpace* space);
 
   bool AreSweeperThreadsActivated();
 
-  // If a paged space is passed in, this method checks if the given space is
-  // swept concurrently. Otherwise, this method checks if concurrent sweeping
-  // is in progress right now on any space.
-  bool IsConcurrentSweepingInProgress(PagedSpace* space = NULL);
+  // Checks if sweeping is in progress right now on any space.
+  bool sweeping_in_progress() { return sweeping_in_progress_; }
 
   void set_sequential_sweeping(bool sequential_sweeping) {
     sequential_sweeping_ = sequential_sweeping;
@@ -736,15 +736,11 @@ class MarkCompactCollector {
   bool was_marked_incrementally_;
 
   // True if concurrent or parallel sweeping is currently in progress.
-  bool sweeping_pending_;
+  bool sweeping_in_progress_;
 
   base::Semaphore pending_sweeper_jobs_semaphore_;
 
   bool sequential_sweeping_;
-
-  // A pointer to the current stack-allocated GC tracer object during a full
-  // collection (NULL before and after).
-  GCTracer* tracer_;
 
   SlotsBufferAllocator slots_buffer_allocator_;
 

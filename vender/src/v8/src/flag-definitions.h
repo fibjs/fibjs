@@ -164,7 +164,7 @@ DEFINE_BOOL(harmony_numeric_literals, false,
             "enable harmony numeric literals (0o77, 0b11)")
 DEFINE_BOOL(harmony_strings, false, "enable harmony string")
 DEFINE_BOOL(harmony_arrays, false, "enable harmony arrays")
-DEFINE_BOOL(harmony_maths, false, "enable harmony math functions")
+DEFINE_BOOL(harmony_arrow_functions, false, "enable harmony arrow functions")
 DEFINE_BOOL(harmony, false, "enable all harmony features (except typeof)")
 
 DEFINE_IMPLICATION(harmony, harmony_scoping)
@@ -176,19 +176,17 @@ DEFINE_IMPLICATION(harmony, harmony_iteration)
 DEFINE_IMPLICATION(harmony, harmony_numeric_literals)
 DEFINE_IMPLICATION(harmony, harmony_strings)
 DEFINE_IMPLICATION(harmony, harmony_arrays)
+DEFINE_IMPLICATION(harmony, harmony_arrow_functions)
 DEFINE_IMPLICATION(harmony_modules, harmony_scoping)
 DEFINE_IMPLICATION(harmony_collections, harmony_symbols)
 DEFINE_IMPLICATION(harmony_generators, harmony_symbols)
 DEFINE_IMPLICATION(harmony_iteration, harmony_symbols)
 
 DEFINE_IMPLICATION(harmony, es_staging)
-DEFINE_IMPLICATION(es_staging, harmony_maths)
 DEFINE_IMPLICATION(es_staging, harmony_symbols)
 DEFINE_IMPLICATION(es_staging, harmony_collections)
 
 // Flags for experimental implementation features.
-DEFINE_BOOL(packed_arrays, true, "optimizes arrays that have no holes")
-DEFINE_BOOL(smi_only_arrays, true, "tracks arrays with only smi values")
 DEFINE_BOOL(compiled_keyed_dictionary_loads, true,
             "use optimizing compiler to generate keyed dictionary load stubs")
 DEFINE_BOOL(compiled_keyed_generic_loads, false,
@@ -456,9 +454,9 @@ DEFINE_BOOL(enable_liveedit, true, "enable liveedit experimental feature")
 DEFINE_BOOL(hard_abort, true, "abort by crashing")
 
 // execution.cc
-// Slightly less than 1MB on 64-bit, since Windows' default stack size for
+// Slightly less than 1MB, since Windows' default stack size for
 // the main execution thread is 1MB for both 32 and 64-bit.
-DEFINE_INT(stack_size, kPointerSize * 123,
+DEFINE_INT(stack_size, 984,
            "default size of stack region v8 is allowed to use (in kBytes)")
 
 // frames.cc
@@ -518,6 +516,7 @@ DEFINE_BOOL(trace_incremental_marking, false,
             "trace progress of the incremental marking")
 DEFINE_BOOL(track_gc_object_stats, false,
             "track object counts and memory usage")
+DEFINE_BOOL(always_precise_sweeping, false, "always sweep precisely")
 DEFINE_BOOL(parallel_sweeping, false, "enable parallel sweeping")
 DEFINE_BOOL(concurrent_sweeping, true, "enable concurrent sweeping")
 DEFINE_INT(sweeper_threads, 0,

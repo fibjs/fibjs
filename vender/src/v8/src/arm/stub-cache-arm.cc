@@ -202,10 +202,10 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
   uint32_t mask = kPrimaryTableSize - 1;
   // We shift out the last two bits because they are not part of the hash and
   // they are always 01 for maps.
-  __ mov(scratch, Operand(scratch, LSR, kHeapObjectTagSize));
+  __ mov(scratch, Operand(scratch, LSR, kCacheIndexShift));
   // Mask down the eor argument to the minimum to keep the immediate
   // ARM-encodable.
-  __ eor(scratch, scratch, Operand((flags >> kHeapObjectTagSize) & mask));
+  __ eor(scratch, scratch, Operand((flags >> kCacheIndexShift) & mask));
   // Prefer and_ to ubfx here because ubfx takes 2 cycles.
   __ and_(scratch, scratch, Operand(mask));
 
@@ -222,9 +222,9 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
              extra3);
 
   // Primary miss: Compute hash for secondary probe.
-  __ sub(scratch, scratch, Operand(name, LSR, kHeapObjectTagSize));
+  __ sub(scratch, scratch, Operand(name, LSR, kCacheIndexShift));
   uint32_t mask2 = kSecondaryTableSize - 1;
-  __ add(scratch, scratch, Operand((flags >> kHeapObjectTagSize) & mask2));
+  __ add(scratch, scratch, Operand((flags >> kCacheIndexShift) & mask2));
   __ and_(scratch, scratch, Operand(mask2));
 
   // Probe the secondary table.
@@ -893,12 +893,15 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
 
       reg = holder_reg;  // From now on the object will be in holder_reg.
 
-      if (heap()->InNewSpace(*prototype)) {
-        // The prototype is in new space; we cannot store a reference to it
-        // in the code.  Load it from the map.
+      // Two possible reasons for loading the prototype from the map:
+      // (1) Can't store references to new space in code.
+      // (2) Handler is shared for all receivers with the same prototype
+      //     map (but not necessarily the same prototype instance).
+      bool load_prototype_from_map =
+          heap()->InNewSpace(*prototype) || depth == 1;
+      if (load_prototype_from_map) {
         __ ldr(reg, FieldMemOperand(map_reg, Map::kPrototypeOffset));
       } else {
-        // The prototype is in old space; load it directly.
         __ mov(reg, Operand(prototype));
       }
     }
@@ -1280,20 +1283,25 @@ Register* KeyedLoadStubCompiler::registers() {
 
 
 Register StoreStubCompiler::value() {
-  return r0;
+  return StoreIC::ValueRegister();
 }
 
 
 Register* StoreStubCompiler::registers() {
   // receiver, name, scratch1, scratch2, scratch3.
-  static Register registers[] = { r1, r2, r3, r4, r5 };
+  Register receiver = StoreIC::ReceiverRegister();
+  Register name = StoreIC::NameRegister();
+  static Register registers[] = { receiver, name, r3, r4, r5 };
   return registers;
 }
 
 
 Register* KeyedStoreStubCompiler::registers() {
-  // receiver, name, scratch1, scratch2, scratch3.
-  static Register registers[] = { r2, r1, r3, r4, r5 };
+  // receiver, name, scratch1/map, scratch2, scratch3.
+  Register receiver = KeyedStoreIC::ReceiverRegister();
+  Register name = KeyedStoreIC::NameRegister();
+  Register map = KeyedStoreIC::MapRegister();
+  static Register registers[] = { receiver, name, map, r4, r5 };
   return registers;
 }
 
@@ -1393,7 +1401,10 @@ Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
   Label* smi_target = IncludesNumberType(types) ? &number_case : &miss;
   __ JumpIfSmi(receiver(), smi_target);
 
+  // Polymorphic keyed stores may use the map register
   Register map_reg = scratch1();
+  ASSERT(kind() != Code::KEYED_STORE_IC ||
+         map_reg.is(KeyedStoreIC::MapRegister()));
 
   int receiver_count = types->length();
   int number_of_handled_maps = 0;

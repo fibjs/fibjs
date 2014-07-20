@@ -1164,8 +1164,8 @@ void V8HeapExplorer::ExtractJSObjectReferences(
   ExtractPropertyReferences(js_obj, entry);
   ExtractElementReferences(js_obj, entry);
   ExtractInternalReferences(js_obj, entry);
-  SetPropertyReference(
-      obj, entry, heap_->proto_string(), js_obj->GetPrototype());
+  PrototypeIterator iter(heap_->isolate(), js_obj);
+  SetPropertyReference(obj, entry, heap_->proto_string(), iter.GetCurrent());
   if (obj->IsJSFunction()) {
     JSFunction* js_fun = JSFunction::cast(js_obj);
     Object* proto_or_map = js_fun->prototype_or_initial_map();
@@ -2600,12 +2600,12 @@ bool HeapSnapshotGenerator::GenerateSnapshot() {
 
 #ifdef VERIFY_HEAP
   Heap* debug_heap = heap_;
-  CHECK(debug_heap->old_data_space()->is_iterable());
-  CHECK(debug_heap->old_pointer_space()->is_iterable());
-  CHECK(debug_heap->code_space()->is_iterable());
-  CHECK(debug_heap->cell_space()->is_iterable());
-  CHECK(debug_heap->property_cell_space()->is_iterable());
-  CHECK(debug_heap->map_space()->is_iterable());
+  CHECK(debug_heap->old_data_space()->swept_precisely());
+  CHECK(debug_heap->old_pointer_space()->swept_precisely());
+  CHECK(debug_heap->code_space()->swept_precisely());
+  CHECK(debug_heap->cell_space()->swept_precisely());
+  CHECK(debug_heap->property_cell_space()->swept_precisely());
+  CHECK(debug_heap->map_space()->swept_precisely());
 #endif
 
 #ifdef VERIFY_HEAP
