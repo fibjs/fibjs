@@ -20,8 +20,13 @@ public:
     LruCache(int32_t size, int32_t timeout) :
         m_size(size), m_timeout(timeout)
     {
+        m_begin_lru = m_datas.end();
+        m_end_lru = m_datas.end();
+
         m_begin = m_datas.end();
         m_end = m_datas.end();
+
+        m_checkTime.now();
     }
 
 public:
@@ -54,10 +59,20 @@ private:
             return *(std::map<std::string, _linkedNode>::iterator *) &m_next;
         }
 
+        std::map<std::string, _linkedNode>::iterator &last1()
+        {
+            return *(std::map<std::string, _linkedNode>::iterator *) &m_last1;
+        }
+
+        std::map<std::string, _linkedNode>::iterator &next1()
+        {
+            return *(std::map<std::string, _linkedNode>::iterator *) &m_next1;
+        }
+
     public:
         VariantEx value;
-        date_t update;
-        std::map<std::string, int>::iterator m_last, m_next;
+        date_t insert;
+        std::map<std::string, int>::iterator m_last, m_next, m_last1, m_next1;
     };
 
     void remove(std::map<std::string, _linkedNode>::iterator it)
@@ -68,34 +83,128 @@ private:
         if (last != m_datas.end())
             last->second.next() = next;
         else
-            m_begin = next;
+            m_begin_lru = next;
 
         if (next != m_datas.end())
             next->second.last() = last;
         else
-            m_end = last;
+            m_end_lru = last;
+
+        if (m_timeout > 0)
+        {
+            std::map<std::string, _linkedNode>::iterator &last1 = it->second.last1();
+            std::map<std::string, _linkedNode>::iterator &next1 = it->second.next1();
+
+            if (last1 != m_datas.end())
+                last1->second.next1() = next1;
+            else
+                m_begin = next1;
+
+            if (next1 != m_datas.end())
+                next1->second.last1() = last1;
+            else
+                m_end = last1;
+        }
+
+        m_datas.erase(it);
     }
 
     void insert(std::map<std::string, _linkedNode>::iterator it)
     {
-        it->second.next() = m_begin;
+        it->second.next() = m_begin_lru;
         it->second.last() = m_datas.end();
 
-        if (m_begin != m_datas.end())
-            m_begin->second.last() = it;
+        if (m_begin_lru != m_datas.end())
+            m_begin_lru->second.last() = it;
         else
-            m_end = it;
+            m_end_lru = it;
 
-        m_begin = it;
+        m_begin_lru = it;
+
+        if (m_timeout > 0)
+        {
+            it->second.next1() = m_begin;
+            it->second.last1() = m_datas.end();
+
+            if (m_begin != m_datas.end())
+                m_begin->second.last1() = it;
+            else
+                m_end = it;
+
+            m_begin = it;
+        }
+    }
+
+    void update(std::map<std::string, _linkedNode>::iterator it)
+    {
+        if (m_begin_lru != it)
+        {
+            std::map<std::string, _linkedNode>::iterator &last = it->second.last();
+            std::map<std::string, _linkedNode>::iterator &next = it->second.next();
+
+            if (last != m_datas.end())
+                last->second.next() = next;
+            else
+                m_begin_lru = next;
+
+            if (next != m_datas.end())
+                next->second.last() = last;
+            else
+                m_end_lru = last;
+
+            it->second.next() = m_begin_lru;
+            it->second.last() = m_datas.end();
+
+            if (m_begin_lru != m_datas.end())
+                m_begin_lru->second.last() = it;
+            else
+                m_end_lru = it;
+
+            m_begin_lru = it;
+        }
+    }
+
+    void update_time(std::map<std::string, _linkedNode>::iterator it)
+    {
+        if (m_timeout > 0 && m_begin != it)
+        {
+            std::map<std::string, _linkedNode>::iterator &last1 = it->second.last1();
+            std::map<std::string, _linkedNode>::iterator &next1 = it->second.next1();
+
+            if (last1 != m_datas.end())
+                last1->second.next1() = next1;
+            else
+                m_begin = next1;
+
+            if (next1 != m_datas.end())
+                next1->second.last1() = last1;
+            else
+                m_end = last1;
+
+            it->second.next1() = m_begin;
+            it->second.last1() = m_datas.end();
+
+            if (m_begin != m_datas.end())
+                m_begin->second.last1() = it;
+            else
+                m_end = it;
+
+            m_begin = it;
+        }
     }
 
     void cleanup();
 
     std::map<std::string, _linkedNode> m_datas;
+    std::map<std::string, _linkedNode>::iterator m_begin_lru;
+    std::map<std::string, _linkedNode>::iterator m_end_lru;
+
     std::map<std::string, _linkedNode>::iterator m_begin;
     std::map<std::string, _linkedNode>::iterator m_end;
+
     int32_t m_size;
     int32_t m_timeout;
+    date_t m_checkTime;
 };
 
 } /* namespace fibjs */

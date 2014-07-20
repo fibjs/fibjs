@@ -20,28 +20,21 @@ result_t LruCache_base::_new(int32_t size, int32_t timeout,
 void LruCache::cleanup()
 {
     std::map<std::string, _linkedNode>::iterator it;
-    date_t t;
-
-    t.now();
 
     if (m_timeout > 0)
     {
-        while (((it = m_end) != m_datas.end())
-                && (t.diff(it->second.update) > m_timeout))
-        {
+        date_t t;
+        t.now();
+
+        while ((it = m_end) != m_datas.end() &&
+                t.diff(it->second.insert) > m_timeout)
             remove(it);
-            m_datas.erase(it);
-        }
     }
 
     if (m_size > 0)
     {
         while ((int32_t) m_datas.size() > m_size)
-        {
-            it = m_end;
-            remove(it);
-            m_datas.erase(it);
-        }
+            remove(m_end_lru);
     }
 }
 
@@ -56,6 +49,10 @@ result_t LruCache::get_size(int32_t &retVal)
 result_t LruCache::clear()
 {
     m_datas.clear();
+
+    m_begin_lru = m_datas.end();
+    m_end_lru = m_datas.end();
+
     m_begin = m_datas.end();
     m_end = m_datas.end();
 
@@ -79,14 +76,8 @@ result_t LruCache::get(const char *name, v8::Local<v8::Value> &retVal)
     if (find == m_datas.end())
         return 0;
 
-    if (m_begin != find)
-    {
-        remove(find);
-        insert(find);
-    }
-
+    update(find);
     retVal = find->second.value;
-    find->second.update.now();
 
     return 0;
 }
@@ -97,14 +88,12 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 
     if (find != m_datas.end())
     {
-        if (m_begin != find)
-        {
-            remove(find);
-            insert(find);
-        }
+        update(find);
+        update_time(find);
 
+        if (m_timeout > 0)
+            find->second.insert.now();
         find->second.value = value;
-        find->second.update.now();
     }
 
     cleanup();
@@ -127,15 +116,13 @@ result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
     }
     else
     {
-        if (m_begin != find)
-        {
-            remove(find);
-            insert(find);
-        }
+        update(find);
+        update_time(find);
     }
 
+    if (m_timeout > 0)
+        find->second.insert.now();
     find->second.value = value;
-    find->second.update.now();
 
     cleanup();
 
@@ -173,7 +160,7 @@ result_t LruCache::remove(const char *name)
         return 0;
 
     remove(find);
-    m_datas.erase(find);
+    cleanup();
 
     return 0;
 }
@@ -190,7 +177,7 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     cleanup();
 
-    std::map<std::string, _linkedNode>::iterator it = m_begin;
+    std::map<std::string, _linkedNode>::iterator it = m_begin_lru;
     v8::Local<v8::Object> obj = v8::Object::New(isolate);
 
     while (it != m_datas.end())
