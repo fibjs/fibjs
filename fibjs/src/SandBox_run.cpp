@@ -95,9 +95,9 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         v8::Local<v8::Function> def =
             v8::FunctionTemplate::New(isolate, _define)->GetFunction();
 
-        def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
+        def->ToObject()->ForceSet(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
                              v8::ReadOnly);
-        context.glob->Set(strDefine, def, v8::ReadOnly);
+        context.glob->ForceSet(strDefine, def, v8::ReadOnly);
 
         exports = v8::Object::New(isolate);
 
@@ -106,13 +106,13 @@ result_t SandBox::addScript(const char *srcname, const char *script,
 
         // init module
         mod->Set(strExports, exports);
-        mod->Set(strRequire, context.glob->Get(strRequire), v8::ReadOnly);
+        mod->ForceSet(strRequire, context.glob->Get(strRequire), v8::ReadOnly);
 
         InstallModule(id, exports);
 
         // attach to global
-        context.glob->Set(strModule, mod, v8::ReadOnly);
-        context.glob->Set(strExports, exports, v8::ReadOnly);
+        context.glob->ForceSet(strModule, mod, v8::ReadOnly);
+        context.glob->ForceSet(strExports, exports, v8::ReadOnly);
 
         std::string sname = name();
         if (!sname.empty())
@@ -144,8 +144,8 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         }
 
         // attach again
-        context.glob->Set(strModule, mod, v8::ReadOnly);
-        context.glob->Set(strExports, exports, v8::ReadOnly);
+        context.glob->ForceSet(strModule, mod, v8::ReadOnly);
+        context.glob->ForceSet(strExports, exports, v8::ReadOnly);
 
         // use module.exports as result value
         v8::Local<v8::Value> v = mod->Get(strExports);

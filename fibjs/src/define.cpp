@@ -159,11 +159,11 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
 
         // init module properties
         modDef->Set(strExports, exports);
-        modDef->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
+        modDef->ForceSet(strRequire, glob->Get(strRequire), v8::ReadOnly);
 
         v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, id.c_str(),
                                           v8::String::kNormalString, (int) id.length());
-        modDef->Set(strId, strFname, v8::ReadOnly);
+        modDef->ForceSet(strId, strFname, v8::ReadOnly);
 
         // add to modules
         InstallModule(id, exports);

@@ -193,13 +193,13 @@ public:
 
         for (i = 0; i < m_cd.mc; i++)
             if (!is_skip(m_cd.cms[i].name, skips))
-                o->Set(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
+                o->ForceSet(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
                        v8::FunctionTemplate::New(isolate, m_cd.cms[i].invoker)->GetFunction(),
                        v8::ReadOnly);
 
         for (i = 0; i < m_cd.oc; i++)
             if (!is_skip(m_cd.cos[i].name, skips))
-                o->Set(v8::String::NewFromUtf8(isolate, m_cd.cos[i].name),
+                o->ForceSet(v8::String::NewFromUtf8(isolate, m_cd.cos[i].name),
                        v8::Local<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
                        v8::ReadOnly);
 
