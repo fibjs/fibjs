@@ -6,6 +6,7 @@
  */
 
 #include "ifs/LruCache.h"
+#include "ifs/Event.h"
 #include "map"
 
 #ifndef LRUCACHE_H_
@@ -39,6 +40,7 @@ public:
     virtual result_t clear();
     virtual result_t has(const char *name, bool &retVal);
     virtual result_t get(const char *name, v8::Local<v8::Value> &retVal);
+    virtual result_t get(const char *name, v8::Local<v8::Function> updater, v8::Local<v8::Value> &retVal);
     virtual result_t set(const char *name, v8::Local<v8::Value> value);
     virtual result_t put(const char *name, v8::Local<v8::Value> value);
     virtual result_t put(v8::Local<v8::Object> map);
@@ -72,6 +74,7 @@ private:
     public:
         VariantEx value;
         date_t insert;
+        obj_ptr<Event_base> m_event;
         std::map<std::string, int>::iterator m_last, m_next, m_last1, m_next1;
     };
 

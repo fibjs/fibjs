@@ -25,6 +25,7 @@ public:
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
 	virtual result_t get(const char* name, v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t get(const char* name, v8::Local<v8::Function> updater, v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t set(const char* name, v8::Local<v8::Value> value) = 0;
 	virtual result_t put(const char* name, v8::Local<v8::Value> value) = 0;
 	virtual result_t put(v8::Local<v8::Object> map) = 0;
@@ -138,6 +139,13 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->get(v0, vr);
+
+		METHOD_OVER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(v8::Local<v8::Function>, 1);
+
+		hr = pInst->get(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

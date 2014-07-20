@@ -351,6 +351,45 @@ describe('util', function() {
 				"e": 700
 			});
 		});
+
+		it("updater", function() {
+			var call_num = 0;
+
+			function updater(name) {
+				coroutine.sleep(30);
+				call_num++;
+				return name + "_value";
+			}
+			c = new util.LruCache(3);
+
+			assert.equal(c.get("a", updater), "a_value");
+			assert.equal(call_num, 1);
+
+			(function() {
+				c.get("b", updater);
+			}).start();
+			coroutine.sleep(1);
+			assert.equal(c.get("b"), "b_value");
+			assert.equal(call_num, 2);
+
+			function test_c() {
+				c.get("c", updater);
+			}
+
+			test_c.start();
+			test_c.start();
+			test_c.start();
+			coroutine.sleep(1);
+			assert.equal(c.get("c"), "c_value");
+			assert.equal(call_num, 3);
+
+			assert.throws(function() {
+				c.get("d", function() {
+					throw "some error";
+				})
+			});
+
+		});
 	});
 });
 

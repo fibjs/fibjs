@@ -6,6 +6,7 @@
  */
 
 #include <LruCache.h>
+#include <Event.h>
 
 namespace fibjs
 {
@@ -69,12 +70,73 @@ result_t LruCache::has(const char *name, bool &retVal)
 
 result_t LruCache::get(const char *name, v8::Local<v8::Value> &retVal)
 {
+    return get(name, v8::Local<v8::Function>(), retVal);
+}
+
+result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
+                       v8::Local<v8::Value> &retVal)
+{
+    std::map<std::string, _linkedNode>::iterator find;
+
     cleanup();
 
-    std::map<std::string, _linkedNode>::iterator find = m_datas.find(name);
+    while (true)
+    {
+        find  = m_datas.find(name);
 
-    if (find == m_datas.end())
-        return 0;
+        if (find == m_datas.end())
+        {
+            if (!updater.IsEmpty())
+            {
+                static _linkedNode newNode;
+
+                m_datas.insert(std::pair<std::string, _linkedNode>(name, newNode));
+                find = m_datas.find(name);
+
+                insert(find);
+
+                if (m_timeout > 0)
+                    find->second.insert.now();
+
+                obj_ptr<Event_base> e = new Event();
+                find->second.m_event = e;
+
+                v8::Handle<v8::Value> n = v8::String::NewFromUtf8(isolate, name);
+                v8::Local<v8::Value> v = updater->Call(wrap(), 1, &n);
+
+                e->set();
+
+                find = m_datas.find(name);
+                if (!v.IsEmpty())
+                {
+                    if (find != m_datas.end())
+                    {
+                        find->second.value = v;
+                        if (find->second.m_event == e)
+                            find->second.m_event.Release();
+                    }
+                }
+                else
+                {
+                    if (find != m_datas.end() && find->second.m_event == e)
+                        remove(find);
+                    return CALL_E_JAVASCRIPT;
+                }
+
+                retVal = v;
+            }
+
+            return 0;
+        }
+
+        if (find->second.m_event)
+        {
+            obj_ptr<Event_base> e = find->second.m_event;
+            e->wait();
+        }
+        else
+            break;
+    }
 
     update(find);
     retVal = find->second.value;
@@ -160,7 +222,6 @@ result_t LruCache::remove(const char *name)
         return 0;
 
     remove(find);
-    cleanup();
 
     return 0;
 }
