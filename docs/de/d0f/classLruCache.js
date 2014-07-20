@@ -4,6 +4,7 @@ var classLruCache =
     [ "clear", "de/d0f/classLruCache.html#a712f2067f0af560e382de4e5a8df6759", null ],
     [ "has", "de/d0f/classLruCache.html#a1f47f0c7f03ead1191f99b340edc0576", null ],
     [ "get", "de/d0f/classLruCache.html#a1ce4671eff7a52fb7dd6be130180447f", null ],
+    [ "get", "de/d0f/classLruCache.html#aec228b06124cd2b23c58256101cbaba5", null ],
     [ "set", "de/d0f/classLruCache.html#aac47180244d82cfa49c6cbfc3c6ae93a", null ],
     [ "put", "de/d0f/classLruCache.html#a35dd33c18d9de9c510a0971b32eab49e", null ],
     [ "put", "de/d0f/classLruCache.html#a465c1810f15a128978e0d419be5efa75", null ],

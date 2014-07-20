@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"df/d6b/classUrl.html#adb97976e1e9083bfe92fd95555dfda36":[4,0,84,16],
 "df/d6b/classUrl.html#ae614e05676af551facac7901448f87d3":[4,0,84,21],
 "df/d6b/classUrl.html#aec1f5c08b7c5046e838286600f2e955a":[4,0,84,1],
 "df/d84/classglobal.html":[4,0,25],
@@ -25,8 +26,8 @@ var NAVTREEINDEX6 =
 "df/d93/classSQLite.html#ac61f07a7d6c5471293371086af3186bd":[4,0,72,9],
 "df/d93/classSQLite.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,72,10],
 "df/d93/classSQLite.html#ae6d31f438b2c274f32aade526f92da2f":[4,0,72,7],
-"functions.html":[4,2,0,0],
 "functions.html":[4,2,0],
+"functions.html":[4,2,0,0],
 "functions_b.html":[4,2,0,1],
 "functions_c.html":[4,2,0,2],
 "functions_d.html":[4,2,0,3],

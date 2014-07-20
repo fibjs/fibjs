@@ -116,7 +116,8 @@ $(document).ready(function(){initNavTree('de/d0f/classLruCache.html','../../');}
 <div class="dynheader">
 类 LruCache 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../dd/d16/classLruCache__inherit__graph.svg" width="111" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../dd/d16/classLruCache__inherit__graph.svg" width="111" height="366"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -133,6 +134,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a1ce4671eff7a52fb7dd6be130180447f"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a1ce4671eff7a52fb7dd6be130180447f">get</a> (String name)</td></tr>
 <tr class="memdesc:a1ce4671eff7a52fb7dd6be130180447f"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询指定键值的值  <a href="#a1ce4671eff7a52fb7dd6be130180447f">更多...</a><br /></td></tr>
 <tr class="separator:a1ce4671eff7a52fb7dd6be130180447f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec228b06124cd2b23c58256101cbaba5"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#aec228b06124cd2b23c58256101cbaba5">get</a> (String name, <a class="el" href="../../de/d65/classFunction.html">Function</a> updater)</td></tr>
+<tr class="memdesc:aec228b06124cd2b23c58256101cbaba5"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询指定键值的值，若不存在或过期，则调用回调函数更新数据  <a href="#aec228b06124cd2b23c58256101cbaba5">更多...</a><br /></td></tr>
+<tr class="separator:aec228b06124cd2b23c58256101cbaba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac47180244d82cfa49c6cbfc3c6ae93a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#aac47180244d82cfa49c6cbfc3c6ae93a">set</a> (String name, Value value)</td></tr>
 <tr class="memdesc:aac47180244d82cfa49c6cbfc3c6ae93a"><td class="mdescLeft">&#160;</td><td class="mdescRight">修改一个键值数据，键值不存在则不作任何操作  <a href="#aac47180244d82cfa49c6cbfc3c6ae93a">更多...</a><br /></td></tr>
 <tr class="separator:aac47180244d82cfa49c6cbfc3c6ae93a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -272,6 +276,42 @@ Public 属性</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>返回键值所对应的值，若不存在，则返回 undefined </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aec228b06124cd2b23c58256101cbaba5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Value LruCache::get </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../de/d65/classFunction.html">Function</a>&#160;</td>
+          <td class="paramname"><em>updater</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>查询指定键值的值，若不存在或过期，则调用回调函数更新数据 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要查询的键值 </td></tr>
+    <tr><td class="paramname">updater</td><td>指定更新函数 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回键值所对应的值 </dd></dl>
 
 </div>
 </div>

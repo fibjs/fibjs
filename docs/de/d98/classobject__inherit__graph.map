@@ -16,7 +16,7 @@
 <area shape="rect" id="node23" href="$d8/d3e/classLevelDB.html" title="LevelDB 数据库对象 " alt="" coords="2000,453,2092,713"/>
 <area shape="rect" id="node24" href="$d6/da9/classList.html" title="Variant 数组对象，一般用以返回一组 Variant 数据 " alt="" coords="2116,467,2206,700"/>
 <area shape="rect" id="node25" href="$d6/d83/classLock.html" title="纤程锁对象 " alt="" coords="2230,533,2316,633"/>
-<area shape="rect" id="node26" href="$de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 " alt="" coords="2339,493,2439,673"/>
+<area shape="rect" id="node26" href="$de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 " alt="" coords="2339,487,2439,680"/>
 <area shape="rect" id="node27" href="$d7/db0/classMap.html" title="字典对象 " alt="" coords="2463,493,2587,673"/>
 <area shape="rect" id="node28" href="$d6/d28/classMessage.html" title="基础消息对象 " alt="" coords="2611,487,2711,680"/>
 <area shape="rect" id="node29" href="$d2/d07/classMongoCollection.html" title="mongodb 数据库数据集对象 " alt="" coords="2735,433,2861,733"/>

@@ -112,16 +112,19 @@ $(document).ready(function(){initNavTree('d5/d37/LruCache_8idl_source.html','../
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    Value <span class="keyword">get</span>(String name);</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <a class="code" href="../../de/d0f/classLruCache.html#aac47180244d82cfa49c6cbfc3c6ae93a">set</a>(String name, Value value);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <a class="code" href="../../de/d0f/classLruCache.html#a35dd33c18d9de9c510a0971b32eab49e">put</a>(String name, Value value);</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <a class="code" href="../../de/d0f/classLruCache.html#a35dd33c18d9de9c510a0971b32eab49e">put</a>(Object map);</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    <span class="keyword">remove</span>(String name);</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    Boolean <a class="code" href="../../de/d0f/classLruCache.html#a9bbd359547d2f97c9945cbae947cd053">isEmpty</a>();</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;};</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    Value <span class="keyword">get</span>(String name, <a class="code" href="../../de/d65/classFunction.html">Function</a> updater);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <a class="code" href="../../de/d0f/classLruCache.html#aac47180244d82cfa49c6cbfc3c6ae93a">set</a>(String name, Value value);</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <a class="code" href="../../de/d0f/classLruCache.html#a35dd33c18d9de9c510a0971b32eab49e">put</a>(String name, Value value);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <a class="code" href="../../de/d0f/classLruCache.html#a35dd33c18d9de9c510a0971b32eab49e">put</a>(Object map);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="keyword">remove</span>(String name);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    Boolean <a class="code" href="../../de/d0f/classLruCache.html#a9bbd359547d2f97c9945cbae947cd053">isEmpty</a>();</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;};</div>
+<div class="ttc" id="classFunction_html"><div class="ttname"><a href="../../de/d65/classFunction.html">Function</a></div><div class="ttdoc">Function 模块不可直接引用，仅用于实现对 javascript Function 对象的扩展 </div><div class="ttdef"><b>Definition:</b> Function.idl:3</div></div>
 <div class="ttc" id="classLruCache_html_aee1e7aea2978a02636cb4314bdb11420"><div class="ttname"><a href="../../de/d0f/classLruCache.html#aee1e7aea2978a02636cb4314bdb11420">LruCache::size</a></div><div class="ttdeci">readonly Integer size</div><div class="ttdoc">查询容器内数值个数 </div><div class="ttdef"><b>Definition:</b> LruCache.idl:18</div></div>
 <div class="ttc" id="classLruCache_html_a35dd33c18d9de9c510a0971b32eab49e"><div class="ttname"><a href="../../de/d0f/classLruCache.html#a35dd33c18d9de9c510a0971b32eab49e">LruCache::put</a></div><div class="ttdeci">put(String name, Value value)</div><div class="ttdoc">设定一个键值数据，键值不存在则插入一条新数据 </div></div>
 <div class="ttc" id="classLruCache_html_a6fce7c256bb93ea2a366e4258cb2a39f"><div class="ttname"><a href="../../de/d0f/classLruCache.html#a6fce7c256bb93ea2a366e4258cb2a39f">LruCache::LruCache</a></div><div class="ttdeci">LruCache(Integer size, Integer timeout=0)</div><div class="ttdoc">LruCache 对象构造函数 </div></div>
