@@ -40,6 +40,7 @@ result_t db_base::openSQLite(const char *connString,
 
 result_t SQLite::open(const char *file)
 {
+    sqlite3_enable_shared_cache(1);
     if (sqlite3_open_v2(file, &m_db, SQLITE_OPEN_FLAGS, 0))
     {
         result_t hr = Runtime::setError(sqlite3_errmsg(m_db));
