@@ -128,9 +128,7 @@ void JSFiber::callFunction1(v8::Local<v8::Function> func,
     retVal = func->Call(wrap(), argCount, args);
     if (try_catch.HasCaught())
     {
-        v8::Local<v8::Value> err = try_catch.Exception();
         m_error = true;
-
         ReportException(try_catch, 0);
     }
 }
