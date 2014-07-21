@@ -245,7 +245,7 @@ void file_logger::write(item *pn)
                 m_file.Release();
 
             m_size += outBuffer.length();
-            if (m_size >= m_split_size)
+            if (m_split_size && m_size >= m_split_size)
                 m_file.Release();
         }
     }
