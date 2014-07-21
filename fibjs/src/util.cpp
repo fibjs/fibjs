@@ -76,7 +76,7 @@ std::string getResultMessage(result_t hr)
         std::string s = Runtime::errMessage();
 
         if (s.length() > 0)
-            return fmtString(-hr, s);
+            return s;
     }
 
     if (hr > CALL_E_MIN && hr < CALL_E_MAX)
