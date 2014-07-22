@@ -101,6 +101,9 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
+            if (n == CALL_RETURN_NULL)
+                return pThis->done(CALL_RETURN_NULL);
+
             pThis->m_pThis->m_stats->inc(HTTP_TOTAL);
             pThis->m_pThis->m_stats->inc(HTTP_REQUEST);
             pThis->m_pThis->m_stats->inc(HTTP_PENDDING);

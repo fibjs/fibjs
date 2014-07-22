@@ -214,6 +214,10 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
         static int command(asyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
+
+            if (n == CALL_RETURN_NULL)
+                return pThis->done(CALL_RETURN_NULL);
+
             _parser p(pThis->m_strLine);
             result_t hr;
 
