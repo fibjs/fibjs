@@ -29,19 +29,22 @@ public:
         {
             m_d.now();
 
-            v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                    isolate, 1, v8::StackTrace::kOverview);
-
-            if (stackTrace->GetFrameCount() > 0)
+            if (exlib::Service::hasService())
             {
-                char numStr[64];
-                v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
-                v8::String::Utf8Value filename(f->GetScriptName());
+                v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+                        isolate, 1, v8::StackTrace::kOverview);
 
-                m_source.append(*filename);
+                if (stackTrace->GetFrameCount() > 0)
+                {
+                    char numStr[64];
+                    v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
+                    v8::String::Utf8Value filename(f->GetScriptName());
 
-                sprintf(numStr, ":%d", f->GetLineNumber());
-                m_source.append(numStr);
+                    m_source.append(*filename);
+
+                    sprintf(numStr, ":%d", f->GetLineNumber());
+                    m_source.append(numStr);
+                }
             }
         }
 
