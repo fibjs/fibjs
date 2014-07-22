@@ -186,7 +186,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         virtual void invoke()
         {
             if (m_hr == CALL_E_EXCEPTION)
-                CHECK_ERROR(Runtime::setError(m_message));
+                Runtime::setError(m_message);
             post(m_hr);
         }
 
