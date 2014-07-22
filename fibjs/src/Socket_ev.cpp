@@ -225,7 +225,7 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
             if (n == SOCKET_ERROR)
             {
                 int nError = errno;
-                return (nError == EINPROGRESS) ? CALL_E_PENDDING : -nError;
+                return CHECK_ERROR((nError == EINPROGRESS) ? CALL_E_PENDDING : -nError);
             }
 
             return 0;
@@ -294,7 +294,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
             if (c == INVALID_SOCKET)
             {
                 int nError = errno;
-                return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
+                return CHECK_ERROR((nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError);
             }
 
             fcntl(c, F_SETFL, fcntl(c, F_GETFL, 0) | O_NONBLOCK);
@@ -354,8 +354,8 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                     if (nError == ECONNRESET)
                         n = 0;
                     else
-                        return (nError == EWOULDBLOCK) ?
-                               CALL_E_PENDDING : -nError;
+                        return CHECK_ERROR((nError == EWOULDBLOCK) ?
+                               CALL_E_PENDDING : -nError);
                 }
 
                 if (n == 0)
@@ -423,7 +423,7 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
                 if (n == SOCKET_ERROR)
                 {
                     int nError = errno;
-                    return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
+                    return CHECK_ERROR((nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError);
                 }
 
                 m_sz -= n;

@@ -166,7 +166,7 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = WSAGetLastError();
-            return (nError == WSA_IO_PENDING) ? CALL_E_PENDDING : -nError;
+            return CHECK_ERROR((nError == WSA_IO_PENDING) ? CALL_E_PENDDING : -nError);
         }
 
         virtual void ready(DWORD dwBytes, int nError)
@@ -249,7 +249,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
-            return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
+            return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
         }
 
         virtual void ready(DWORD dwBytes, int nError)
@@ -315,7 +315,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
             if (nError == ERROR_NETNAME_DELETED)
                 return CALL_RETURN_NULL;
 
-            return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
+            return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
         }
 
         virtual void ready(DWORD dwBytes, int nError)
@@ -389,7 +389,7 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
-            return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
+            return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
         }
 
         virtual void ready(DWORD dwBytes, int nError)
