@@ -112,17 +112,21 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             m_pThis->m_stats->inc(PACKET_ERROR);
 
             if (is(send))
+            {
+                m_pThis->m_stats->dec(PACKET_PENDDING);
                 asyncLog(console_base::_ERROR, "PacketHandler: " + getResultMessage(v));
+            }
 
             if (is(end))
                 m_pThis->m_stats->dec(PACKET_PENDDING);
-            else if (is(invoke))
+
+            if (is(invoke))
             {
                 m_pThis->m_stats->inc(PACKET_TOTAL);
                 m_pThis->m_stats->inc(PACKET_REQUEST);
             }
 
-            return v;
+            return done(0);
         }
 
     private:
