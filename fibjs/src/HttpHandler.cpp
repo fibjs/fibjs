@@ -13,6 +13,7 @@
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "ifs/zlib.h"
+#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -306,6 +307,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (is(send))
             {
+                asyncLog(console_base::_ERROR, "HttpHandler: " + getResultMessage(v));
                 m_rep->set_status(500);
                 return 0;
             }
@@ -337,7 +339,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
@@ -349,7 +351,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     }
 
     if (stm == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
 }
@@ -387,7 +389,7 @@ result_t HttpHandler::get_maxHeadersCount(int32_t &retVal)
 result_t HttpHandler::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxHeadersCount = newVal;
     return 0;
@@ -402,7 +404,7 @@ result_t HttpHandler::get_maxUploadSize(int32_t &retVal)
 result_t HttpHandler::set_maxUploadSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxUploadSize = newVal;
     return 0;

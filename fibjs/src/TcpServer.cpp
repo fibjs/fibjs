@@ -8,6 +8,7 @@
 #include "TcpServer.h"
 #include "ifs/mq.h"
 #include "JSHandler.h"
+#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -114,6 +115,7 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
 
         virtual int error(int v)
         {
+            asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
             set(close);
             return 0;
         }
@@ -160,10 +162,10 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_running)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     m_running = true;
 
     return (new asyncAccept(this, ac))->post(0);
@@ -189,7 +191,7 @@ result_t TcpServer::asyncRun()
     };
 
     if (m_running)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     s_acPool.put(new asyncCall(this));
     return 0;
