@@ -632,38 +632,29 @@ inline bool isUrlSlash(char ch)
     return ch == '/';
 }
 
-class _step_checker
+void asyncLog(int priority, std::string msg);
+
+inline result_t _error_checker(result_t hr, const char *file, int line)
 {
-public:
-    static _step_checker &g()
+    if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_PENDDING)
     {
-        static _step_checker sc;
-        return sc;
+        std::string str = file;
+        char tmp[64];
+
+        sprintf(tmp, ":%d ", line);
+        str.append(tmp);
+
+        asyncLog(3, str + getResultMessage(hr));
     }
 
-    void chk(int32_t n, const char *file, int line)
-    {
-        int32_t n1 = exlib::atom_inc(&m_step);
-        if (n1 != n)
-            printf("[%s:%d]: %d, %d\n", file, line, n, n1);
-    }
+    return hr;
+}
 
-    void rst()
-    {
-        m_step = 0;
-    }
-
-private:
-    _step_checker() :
-        m_step(0)
-    {
-    }
-
-    int32_t m_step;
-};
-
-#define STEP_CHECK(n) _step_checker::g().chk((n), __FILE__, __LINE__)
-#define STEP_RESET() _step_checker::g().rst()
+#ifndef NDEBUG
+#define CHECK_ERROR(hr) _error_checker((hr), __FILE__, __LINE__)
+#else
+#define CHECK_ERROR(hr) (hr)
+#endif
 
 void flushLog();
 

@@ -27,7 +27,6 @@ private:
 };
 
 extern BlockedAsyncQueue s_acPool;
-void asyncLog(int priority, std::string msg);
 
 class AsyncCall: public asyncEvent
 {
