@@ -10,6 +10,7 @@
 #include "PacketMessage.h"
 #include "BufferedStream.h"
 #include "JSHandler.h"
+#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -76,6 +77,9 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
+            if (n == CALL_RETURN_NULL)
+                return pThis->done(CALL_RETURN_NULL);
+
             pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
             pThis->m_pThis->m_stats->inc(PACKET_REQUEST);
             pThis->m_pThis->m_stats->inc(PACKET_PENDDING);
@@ -107,6 +111,9 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             m_pThis->m_stats->inc(PACKET_ERROR);
 
+            if (is(send))
+                asyncLog(console_base::_ERROR, "PacketHandler: " + getResultMessage(v));
+
             if (is(end))
                 m_pThis->m_stats->dec(PACKET_PENDDING);
             else if (is(invoke))
@@ -127,7 +134,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
@@ -139,7 +146,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     }
 
     if (stm == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
 }
@@ -153,7 +160,7 @@ result_t PacketHandler::get_maxSize(int32_t &retVal)
 result_t PacketHandler::set_maxSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxSize = newVal;
     return 0;

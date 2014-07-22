@@ -129,7 +129,7 @@ result_t PacketMessage::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSendTo(this, stm, ac))->post(0);
 }
@@ -162,7 +162,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (n == CALL_RETURN_NULL)
-                return CALL_E_INVALID_CALL;
+                return pThis->done(CALL_RETURN_NULL);
 
             pThis->set(body_end);
             return pThis->m_body->write(pThis->m_buffer, pThis);
@@ -184,7 +184,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     stm->get_stream(m_stm);
 
@@ -203,7 +203,7 @@ result_t PacketMessage::get_stream(obj_ptr<Stream_base> &retVal)
 result_t PacketMessage::get_response(obj_ptr<Message_base> &retVal)
 {
     if (m_bRep)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!m_response)
         m_response = new PacketMessage(m_maxSize, true);
@@ -221,7 +221,7 @@ result_t PacketMessage::get_maxSize(int32_t &retVal)
 result_t PacketMessage::set_maxSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxSize = newVal;
     return 0;
