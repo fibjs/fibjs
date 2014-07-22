@@ -420,7 +420,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
                 bUpload = true;
             else if (qstricmp(strType.c_str(),
                               "application/x-www-form-urlencoded", 33))
-                return CHECK_ERROR(Runtime::setError("HttpRequest: unknown form format."));
+                return CHECK_ERROR(Runtime::setError("HttpRequest: unknown form format: " + strType));
 
             obj_ptr<Buffer_base> buf;
             obj_ptr<SeekableStream_base> _body;
