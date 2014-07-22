@@ -63,7 +63,7 @@ public:
                 && strLine[3] == ' ')
         {
             if (strLine[0] == '5')
-                return Runtime::setError(strLine);
+                return CHECK_ERROR(Runtime::setError(strLine));
 
             return pThis->recv_ok();
         }
@@ -117,13 +117,13 @@ result_t Smtp::connect(const char *host, int32_t port, int32_t family,
                        exlib::AsyncEvent *ac)
 {
     if (m_sock)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
 
@@ -141,10 +141,10 @@ result_t Smtp::command(const char *cmd, const char *arg, std::string &retVal,
                        exlib::AsyncEvent *ac)
 {
     if (!m_sock)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSmtp(this, retVal, ac))->command(cmd, arg);
 }
@@ -152,10 +152,10 @@ result_t Smtp::command(const char *cmd, const char *arg, std::string &retVal,
 result_t Smtp::command(const char *cmd, const char *arg, exlib::AsyncEvent *ac)
 {
     if (!m_sock)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSmtp(this, ac))->command(cmd, arg);
 }
@@ -239,10 +239,10 @@ result_t Smtp::login(const char *username, const char *password,
     };
 
     if (!m_sock)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncLogin(this, username, password, ac))->post(0);
 }
@@ -310,10 +310,10 @@ result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
     };
 
     if (!m_sock)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncData(this, txt, ac))->post(0);
 }
@@ -321,10 +321,10 @@ result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
 result_t Smtp::quit(exlib::AsyncEvent *ac)
 {
     if (!m_sock)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     asyncSmtp *pSmtp = new asyncSmtp(this, ac);
 

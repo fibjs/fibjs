@@ -60,7 +60,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
                 pThis->m_buffer.Release();
 
                 if (pThis->m_contentLength != (int) pThis->m_body.length())
-                    return Runtime::setError("body is not complate.");
+                    return CHECK_ERROR(Runtime::setError("body is not complate."));
             }
 
             sz1 = pThis->m_pThis->size();
@@ -105,7 +105,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
             asyncSendTo *pThis = (asyncSendTo *) pState;
 
             if (pThis->m_contentLength != pThis->m_copySize)
-                return Runtime::setError("body is not complate.");
+                return CHECK_ERROR(Runtime::setError("body is not complate."));
 
             return pThis->done();
         }
@@ -123,7 +123,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSendTo(this, stm, strCommand, ac))->post(0);
 }
@@ -164,7 +164,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
                     if ((pThis->m_contentLength < 0)
                             || (pThis->m_contentLength
                                 > pThis->m_pThis->m_maxUploadSize))
-                        return Runtime::setError("body is too huge.");
+                        return CHECK_ERROR(Runtime::setError("body is too huge."));
                 }
                 else if (!qstricmp(pThis->m_strLine.c_str(),
                                    "transfer-encoding:", 18))
@@ -174,7 +174,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
 
                     p.skipSpace();
                     if (qstricmp(p.now(), "chunked"))
-                        return Runtime::setError("unknown transfer-encoding.");
+                        return CHECK_ERROR(Runtime::setError("unknown transfer-encoding."));
 
                     pThis->m_bChunked = true;
                 }
@@ -186,7 +186,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
 
                     pThis->m_headCount++;
                     if (pThis->m_headCount > pThis->m_pThis->m_maxHeadersCount)
-                        return Runtime::setError("too many headers.");
+                        return CHECK_ERROR(Runtime::setError("too many headers."));
                 }
 
                 return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
@@ -196,7 +196,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
             if (pThis->m_bChunked)
             {
                 if (pThis->m_contentLength)
-                    return CALL_E_INVALID_DATA;
+                    return CHECK_ERROR(CALL_E_INVALID_DATA);
 
                 pThis->m_pThis->get_body(pThis->m_body);
                 return chunk_head(pState, n);
@@ -219,7 +219,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (pThis->m_contentLength != pThis->m_copySize)
-                return Runtime::setError("body is not complate.");
+                return CHECK_ERROR(Runtime::setError("body is not complate."));
 
             pThis->m_body->rewind();
 
@@ -245,7 +245,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
             p.skipSpace();
 
             if (!qisxdigit(p.get()))
-                return Runtime::setError("bad chunk size.");
+                return CHECK_ERROR(Runtime::setError("bad chunk size."));
 
             if (p.get() != '0')
             {
@@ -295,7 +295,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     stm->get_stream(m_stm);
 
@@ -319,7 +319,7 @@ result_t HttpMessage::addHeader(std::string &strLine)
     p.skipWord(':');
     p2 = p.pos;
     if (0 == p2 || !p.want(':'))
-        return Runtime::setError("bad header: " + strLine);
+        return CHECK_ERROR(Runtime::setError("bad header: " + strLine));
 
     p.skipSpace();
     addHeader(p.string, p2, p.now(), p.left());
@@ -420,7 +420,7 @@ result_t HttpMessage::set_protocol(const char *newVal)
 {
     if (qstrcmp(newVal, "HTTP/", 5) || !qisdigit(newVal[5]) || newVal[6] != '.'
             || !qisdigit(newVal[7]) || newVal[8])
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     m_keepAlive = ((newVal[5] - '0') * 10 + newVal[7] - '0') > 10;
 
@@ -455,7 +455,7 @@ result_t HttpMessage::get_maxHeadersCount(int32_t &retVal)
 result_t HttpMessage::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxHeadersCount = newVal;
     return 0;
@@ -470,7 +470,7 @@ result_t HttpMessage::get_maxUploadSize(int32_t &retVal)
 result_t HttpMessage::set_maxUploadSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CALL_E_OUTRANGE;
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxUploadSize = newVal;
     return 0;

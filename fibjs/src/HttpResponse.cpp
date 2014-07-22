@@ -208,7 +208,7 @@ public:
 result_t HttpResponse::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     int pos = shortcut[m_status / 100 - 1] + m_status % 100;
     std::string strCommand;
@@ -252,7 +252,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
                     || !qisdigit(pThis->m_strLine[11])
                     || (pThis->m_strLine.length() > 12
                         && qisdigit(pThis->m_strLine[12])))
-                return Runtime::setError("bad protocol: " + pThis->m_strLine);
+                return CHECK_ERROR(Runtime::setError("bad protocol: " + pThis->m_strLine));
 
             pThis->m_pThis->set_status(atoi(pThis->m_strLine.c_str() + 8));
             pThis->m_strLine.resize(8);
@@ -272,7 +272,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncReadFrom(this, stm, ac))->post(0);
 }
@@ -284,7 +284,7 @@ result_t HttpResponse::get_stream(obj_ptr<Stream_base> &retVal)
 
 result_t HttpResponse::get_response(obj_ptr<Message_base> &retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t HttpResponse::get_status(int32_t &retVal)

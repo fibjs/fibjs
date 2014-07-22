@@ -33,7 +33,7 @@ public:
         std::stringstream outBuf;
 
         if (init() != Z_OK)
-            return CALL_E_OVERFLOW;
+            return CHECK_ERROR(CALL_E_OVERFLOW);
 
         data->toString(strBuf);
 
@@ -48,7 +48,7 @@ public:
             if (put() != Z_OK)
             {
                 end();
-                return CALL_E_INVALID_DATA;
+                return CHECK_ERROR(CALL_E_INVALID_DATA);
             }
 
             outBuf.write((const char *) out, CHUNK - strm.avail_out);
@@ -89,7 +89,7 @@ public:
                 pThis->m_pThis->strm.next_out = pThis->out;
 
                 if (pThis->m_pThis->put() != Z_OK)
-                    return CALL_E_INVALID_DATA;
+                    return CHECK_ERROR(CALL_E_INVALID_DATA);
 
                 pThis->m_buffer = new Buffer(
                     std::string((const char *) pThis->out,
@@ -112,7 +112,7 @@ public:
         };
 
         if (init() != Z_OK)
-            return CALL_E_OVERFLOW;
+            return CHECK_ERROR(CALL_E_OVERFLOW);
 
         std::string strBuf;
 
@@ -176,7 +176,7 @@ public:
                 pThis->m_pThis->strm.next_out = pThis->out;
 
                 if (pThis->m_pThis->put() != Z_OK)
-                    return CALL_E_INVALID_DATA;
+                    return CHECK_ERROR(CALL_E_INVALID_DATA);
 
                 pThis->m_buffer = new Buffer(
                     std::string((const char *) pThis->out,
@@ -224,7 +224,7 @@ public:
         };
 
         if (init() != Z_OK)
-            return CALL_E_OVERFLOW;
+            return CHECK_ERROR(CALL_E_OVERFLOW);
 
         return (new asyncProcess(this, src, stm, ac))->post(0);
     }
@@ -339,7 +339,7 @@ result_t zlib_base::deflate(Buffer_base *data, int32_t level,
                             obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return def(level).process(data, retVal);
 }
@@ -348,7 +348,7 @@ result_t zlib_base::deflateTo(Buffer_base *data, Stream_base *stm,
                               int32_t level, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return def(level).process(data, stm, ac);
 }
@@ -357,7 +357,7 @@ result_t zlib_base::deflateTo(Stream_base *src, Stream_base *stm, int32_t level,
                               exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return def(level).process(src, stm, ac);
 }
@@ -366,7 +366,7 @@ result_t zlib_base::inflate(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                             exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return inf().process(data, retVal);
 }
@@ -375,7 +375,7 @@ result_t zlib_base::inflateTo(Buffer_base *data, Stream_base *stm,
                               exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return inf().process(data, stm, ac);
 }
@@ -384,7 +384,7 @@ result_t zlib_base::inflateTo(Stream_base *src, Stream_base *stm,
                               exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return inf().process(src, stm, ac);
 }
@@ -393,7 +393,7 @@ result_t zlib_base::gzip(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gz().process(data, retVal);
 }
@@ -402,7 +402,7 @@ result_t zlib_base::gzipTo(Buffer_base *data, Stream_base *stm,
                            exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gz().process(data, stm, ac);
 }
@@ -411,7 +411,7 @@ result_t zlib_base::gzipTo(Stream_base *src, Stream_base *stm,
                            exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gz().process(src, stm, ac);
 }
@@ -420,7 +420,7 @@ result_t zlib_base::gunzip(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                            exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gunz().process(data, retVal);
 }
@@ -429,7 +429,7 @@ result_t zlib_base::gunzipTo(Buffer_base *data, Stream_base *stm,
                              exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gunz().process(data, stm, ac);
 }
@@ -438,7 +438,7 @@ result_t zlib_base::gunzipTo(Stream_base *src, Stream_base *stm,
                              exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gunz().process(src, stm, ac);
 }

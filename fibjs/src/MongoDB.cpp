@@ -140,9 +140,9 @@ result_t MongoDB::error()
     if (m_conn.err == MONGO_IO_ERROR)
         hr = m_conn.errcode;
     else if (m_conn.err > 0 && m_conn.err <= MONGO_WRITE_CONCERN_INVALID)
-        hr = Runtime::setError(s_msgs[m_conn.err]);
+        hr = CHECK_ERROR(Runtime::setError(s_msgs[m_conn.err]));
     else if (m_conn.lasterrcode != 0)
-        hr = Runtime::setError(m_conn.lasterrstr);
+        hr = CHECK_ERROR(Runtime::setError(m_conn.lasterrstr));
 
     mongo_clear_errors(&m_conn);
     return hr;
@@ -152,7 +152,7 @@ result_t db_base::openMongoDB(const char *connString,
                               obj_ptr<MongoDB_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (qstrcmp(connString, "mongodb:", 8))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<MongoDB> db = new MongoDB();
     result_t hr = db->open(connString);

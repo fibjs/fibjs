@@ -69,7 +69,7 @@ private:
                     pThis->m_ret == POLARSSL_ERR_NET_WANT_WRITE)
                 return 0;
 
-            return _ssl::setError(pThis->m_ret);
+            return CHECK_ERROR(_ssl::setError(pThis->m_ret));
         }
 
         static int send(asyncState *pState, int n)

@@ -120,7 +120,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
                 {
                     if (find != m_datas.end() && find->second.m_event == e)
                         remove(find);
-                    return CALL_E_JAVASCRIPT;
+                    return CHECK_ERROR(CALL_E_JAVASCRIPT);
                 }
 
                 retVal = v;

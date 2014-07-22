@@ -203,7 +203,7 @@ result_t encodeObject(bson *bb, v8::Local<v8::Value> element)
     if (!encodeObject(bb, NULL, element, true))
     {
         bson_destroy(bb);
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
     }
     bson_finish(bb);
 

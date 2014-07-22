@@ -36,7 +36,7 @@ public:
         if (hdlr->IsString() || hdlr->IsStringObject() ||
                 hdlr->IsNumberObject() || hdlr->IsRegExp() ||
                 (!hdlr->IsFunction() && !hdlr->IsObject()))
-            return CALL_E_BADVARTYPE;
+            return CHECK_ERROR(CALL_E_BADVARTYPE);
 
         retVal = Handler_base::getInstance(hdlr);
         if (retVal)

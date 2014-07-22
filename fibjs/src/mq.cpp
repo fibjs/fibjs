@@ -58,7 +58,7 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncInvoke(hdlr, v, ac))->post(0);
 }

@@ -153,7 +153,7 @@ result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal,
                             exlib::AsyncEvent *ac)
 {
     if (qstrcmp(connString, "mysql:", 6))
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<Url> u = new Url();
 
@@ -182,13 +182,13 @@ result_t mysql::connect(const char *host, int port, const char *username,
                         const char *password, const char *dbName)
 {
     if (m_conn)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     m_conn = UMConnection_Create(&capi);
     if (!UMConnection_Connect(m_conn, host, port, username, password, dbName,
                               NULL, MCS_utf8mb4_bin))
     {
-        result_t hr = error();
+        result_t hr = CHECK_ERROR(error());
 
         UMConnection_Destroy(m_conn);
         m_conn = NULL;
@@ -241,11 +241,11 @@ result_t mysql::execute(const char *sql, int sLen,
                         obj_ptr<DBResult_base> &retVal)
 {
     if (!m_conn)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     DBResult *res = (DBResult *) UMConnection_Query(m_conn, sql, sLen, this);
     if (!res)
-        return error();
+        return CHECK_ERROR(error());
 
     retVal = res;
     res->Unref();
@@ -280,7 +280,7 @@ result_t mysql::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value
 result_t mysql::get_rxBufferSize(int32_t &retVal)
 {
     if (!m_conn)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = UMConnection_GetRxBufferSize(m_conn);
     return 0;
@@ -289,7 +289,7 @@ result_t mysql::get_rxBufferSize(int32_t &retVal)
 result_t mysql::set_rxBufferSize(int32_t newVal)
 {
     if (!m_conn)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     UMConnection_SetRxBufferSize(m_conn, newVal);
     return 0;
@@ -298,7 +298,7 @@ result_t mysql::set_rxBufferSize(int32_t newVal)
 result_t mysql::get_txBufferSize(int32_t &retVal)
 {
     if (!m_conn)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = UMConnection_GetTxBufferSize(m_conn);
     return 0;
@@ -307,7 +307,7 @@ result_t mysql::get_txBufferSize(int32_t &retVal)
 result_t mysql::set_txBufferSize(int32_t newVal)
 {
     if (!m_conn)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     UMConnection_SetTxBufferSize(m_conn, newVal);
     return 0;

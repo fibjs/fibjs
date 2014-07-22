@@ -135,7 +135,7 @@ result_t HttpCollection::add(const char *name, Variant value)
     std::string s;
 
     if (!value.toString(s))
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     m_names[m_count] = name;
     m_values[m_count] = s;
@@ -160,7 +160,7 @@ result_t HttpCollection::set(const char *name, Variant value)
             std::string s;
 
             if (!value.toString(s))
-                return CALL_E_BADVARTYPE;
+                return CHECK_ERROR(CALL_E_BADVARTYPE);
 
             m_values[i] = s;
             bFound = true;

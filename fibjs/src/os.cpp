@@ -20,7 +20,7 @@ result_t os_base::get_hostname(std::string &retVal)
     char s[255];
 
     if (gethostname(s, 255) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = s;
     return 0;
@@ -64,7 +64,7 @@ result_t os_base::dateAdd(date_t d, int32_t num, const char *part, date_t &retVa
         retVal.add(num, date_t::_MINUTE);
     else if (!qstrcmp(part, "second"))
         retVal.add(num, date_t::_SECOND);
-    else return CALL_E_INVALIDARG;
+    else return CHECK_ERROR(CALL_E_INVALIDARG);
 
     return 0;
 }

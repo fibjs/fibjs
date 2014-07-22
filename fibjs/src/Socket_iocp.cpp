@@ -158,12 +158,12 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
                                     &guidConnectEx, sizeof(guidConnectEx),
                                     &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
                                     NULL))
-                    return SocketError();
+                    return CHECK_ERROR(SocketError());
             }
 
             if (ConnectEx(m_s, (sockaddr *) &m_ai, (int) m_ai.size(), NULL, 0,
                           NULL, this))
-                return CALL_E_PENDDING;
+                return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = WSAGetLastError();
             return (nError == WSA_IO_PENDING) ? CALL_E_PENDDING : -nError;
@@ -184,10 +184,10 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
     inetAddr addr_info;
@@ -202,7 +202,7 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
             return hr;
 
         if (addr_info.addr(strAddr.c_str()) < 0)
-            return CALL_E_INVALIDARG;
+            return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
     if (!m_bBind)
@@ -213,7 +213,7 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
     }
 
     (new asyncConnect(m_sock, addr_info, ac))->proc();
-    return CALL_E_PENDDING;
+    return CHECK_ERROR(CALL_E_PENDDING);
 }
 
 result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
@@ -241,12 +241,12 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
                         == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
                                     &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
                                     sizeof(AcceptEx), &dwBytes, NULL, NULL))
-                    return SocketError();
+                    return CHECK_ERROR(SocketError());
             }
 
             if (AcceptEx(m_sListen, m_s, &m_Buf, 0, sizeof(inetAddr) + 16,
                          sizeof(inetAddr) + 16, NULL, this))
-                return CALL_E_PENDDING;
+                return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
             return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
@@ -270,10 +270,10 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Socket> s = new Socket();
     result_t hr = s->create(m_family, m_type);
@@ -286,7 +286,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
     s.Release();
 
     pa->proc();
-    return CALL_E_PENDDING;
+    return CHECK_ERROR(CALL_E_PENDDING);
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
@@ -308,7 +308,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
             if (ReadFile((HANDLE) m_s, &m_buf[m_pos],
                          (DWORD) m_buf.length() - m_pos, NULL, this))
-                return CALL_E_PENDDING;
+                return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
 
@@ -359,13 +359,13 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     (new asyncRecv(m_sock, bytes, retVal, ac, bRead))->proc();
-    return CALL_E_PENDDING;
+    return CHECK_ERROR(CALL_E_PENDDING);
 }
 
 result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
@@ -386,7 +386,7 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
             int nError;
 
             if (WriteFile((HANDLE) m_s, (LPCSTR) m_p, m_sz, NULL, this))
-                return CALL_E_PENDDING;
+                return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
             return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
@@ -416,13 +416,13 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     (new asyncSend(m_sock, data, ac))->proc();
-    return CALL_E_PENDDING;
+    return CHECK_ERROR(CALL_E_PENDDING);
 }
 
 }

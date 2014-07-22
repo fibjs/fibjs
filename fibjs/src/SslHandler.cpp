@@ -118,11 +118,11 @@ result_t SslHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
 }

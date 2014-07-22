@@ -66,20 +66,20 @@ result_t Socket::create(int32_t family, int32_t type)
     else if (family == net_base::_AF_INET6)
         family = AF_INET6;
     else
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (type == net_base::_SOCK_STREAM)
         type = SOCK_STREAM;
     else if (type == net_base::_SOCK_DGRAM)
         type = SOCK_DGRAM;
     else
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
 #ifdef _WIN32
 
     m_sock = WSASocket(family, type, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (m_sock == INVALID_SOCKET)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     CreateIoCompletionPort((HANDLE) m_sock, s_hIocp, 0, 0);
 
@@ -87,7 +87,7 @@ result_t Socket::create(int32_t family, int32_t type)
 
     m_sock = socket(family, type, 0);
     if (m_sock == INVALID_SOCKET)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     fcntl(m_sock, F_SETFL, fcntl(m_sock, F_GETFL, 0) | O_NONBLOCK);
     fcntl(m_sock, F_SETFD, FD_CLOEXEC);
@@ -120,7 +120,7 @@ result_t Socket::copyTo(Stream_base *stm, int64_t bytes,
                         int64_t &retVal, exlib::AsyncEvent *ac)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return copyStream(this, stm, bytes, retVal, ac);
 }
@@ -131,7 +131,7 @@ result_t Socket::close(exlib::AsyncEvent *ac)
         return 0;
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_sock != INVALID_SOCKET)
         ::closesocket(m_sock);
@@ -144,7 +144,7 @@ result_t Socket::close(exlib::AsyncEvent *ac)
 result_t Socket::get_family(int32_t &retVal)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_family;
 
@@ -154,7 +154,7 @@ result_t Socket::get_family(int32_t &retVal)
 result_t Socket::get_type(int32_t &retVal)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_type;
 
@@ -164,13 +164,13 @@ result_t Socket::get_type(int32_t &retVal)
 result_t Socket::get_remoteAddress(std::string &retVal)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getpeername(m_sock, (sockaddr *) &addr_info, &sz) == SOCKET_ERROR)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     retVal = addr_info.str();
 
@@ -180,13 +180,13 @@ result_t Socket::get_remoteAddress(std::string &retVal)
 result_t Socket::get_remotePort(int32_t &retVal)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getpeername(m_sock, (sockaddr *) &addr_info, &sz) == SOCKET_ERROR)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     retVal = ntohs(addr_info.port());
 
@@ -196,13 +196,13 @@ result_t Socket::get_remotePort(int32_t &retVal)
 result_t Socket::get_localAddress(std::string &retVal)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getsockname(m_sock, (sockaddr *) &addr_info, &sz) == SOCKET_ERROR)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     retVal = addr_info.str();
 
@@ -212,13 +212,13 @@ result_t Socket::get_localAddress(std::string &retVal)
 result_t Socket::get_localPort(int32_t &retVal)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getsockname(m_sock, (sockaddr *) &addr_info, &sz) == SOCKET_ERROR)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     retVal = ntohs(addr_info.port());
 
@@ -228,14 +228,14 @@ result_t Socket::get_localPort(int32_t &retVal)
 result_t Socket::bind(const char *addr, int32_t port, bool allowIPv4)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     inetAddr addr_info;
 
     addr_info.init(m_family);
     addr_info.setPort(port);
     if (addr_info.addr(addr) < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int on = 1;
 #ifndef _WIN32
@@ -253,7 +253,7 @@ result_t Socket::bind(const char *addr, int32_t port, bool allowIPv4)
 
     if (::bind(m_sock, (struct sockaddr *) &addr_info,
                addr_info.size()) == SOCKET_ERROR)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
 #ifdef _WIN32
     m_bBind = TRUE;
@@ -270,10 +270,10 @@ result_t Socket::bind(int32_t port, bool allowIPv4)
 result_t Socket::listen(int32_t backlog)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (::listen(m_sock, backlog) == SOCKET_ERROR)
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     return 0;
 }
@@ -287,7 +287,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base> &retVal)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return 0;
 }
@@ -296,7 +296,7 @@ result_t Socket::sendto(Buffer_base *data, const char *host,
                         int32_t port)
 {
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return 0;
 }

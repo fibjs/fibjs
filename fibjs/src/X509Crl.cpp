@@ -39,7 +39,7 @@ result_t X509Crl::load(Buffer_base *derCrl)
     ret = x509_crl_parse(&m_crl, (const unsigned char *)crl.c_str(),
                          crl.length());
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -51,7 +51,7 @@ result_t X509Crl::load(const char *pemCrl)
     ret = x509_crl_parse(&m_crl, (const unsigned char *)pemCrl,
                          qstrlen(pemCrl));
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -69,7 +69,7 @@ result_t X509Crl::loadFile(const char *filename)
     ret = x509_crl_parse(&m_crl, (const unsigned char *)data.c_str(),
                          data.length());
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -95,7 +95,7 @@ result_t X509Crl::dump(v8::Local<v8::Array> &retVal)
                                    pCrl->raw.p, pCrl->raw.len,
                                    (unsigned char *)&buf[0], buf.length(), &olen);
             if (ret != 0)
-                return _ssl::setError(ret);
+                return CHECK_ERROR(_ssl::setError(ret));
 
             retVal->Set(n ++, v8::String::NewFromUtf8(isolate, buf.c_str(),
                         v8::String::kNormalString, (int) olen - 1));

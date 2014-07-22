@@ -48,7 +48,7 @@ result_t os_base::uptime(double &retVal)
     static int which[] = { CTL_KERN, KERN_BOOTTIME };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     now = ::time(NULL);
 
@@ -65,7 +65,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
     int which[] = { CTL_VM, VM_LOADAVG };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     avg[0] = (double) info.ldavg[0] / info.fscale;
     avg[1] = (double) info.ldavg[1] / info.fscale;
@@ -86,7 +86,7 @@ result_t os_base::totalmem(int64_t &retVal)
     size_t size = sizeof(info);
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = info;
 
@@ -100,7 +100,7 @@ result_t os_base::freemem(int64_t &retVal)
 
     if (sysctlbyname("vm.stats.vm.v_free_count", &freecount, &size, NULL, 0)
             == -1)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = (int64_t) freecount * sysconf(_SC_PAGESIZE);
 
@@ -122,7 +122,7 @@ result_t os_base::CPUs(int32_t &retVal)
 
     size = sizeof(numcpus);
     if (sysctlbyname("hw.ncpu", &numcpus, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = cpus = numcpus;
 
@@ -146,35 +146,35 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     size = sizeof(model);
     if (sysctlbyname("hw.model", &model, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     size = sizeof(numcpus);
     if (sysctlbyname("hw.ncpu", &numcpus, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     size = sizeof(cpuspeed);
     if (sysctlbyname("hw.clockrate", &cpuspeed, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     size = sizeof(maxcpus);
 #ifdef __DragonFly__
     if (sysctlbyname("hw.ncpu", &maxcpus, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 #else
     if (sysctlbyname("kern.smp.maxcpus", &maxcpus, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 #endif
 
     size = maxcpus * CPUSTATES * sizeof(long);
 
     cp_times = (long int *) malloc(size);
     if (cp_times == NULL)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     if (sysctlbyname("kern.cp_times", cp_times, &size, NULL, 0) < 0)
     {
         free(cp_times);
-        return LastError();
+        return CHECK_ERROR(LastError());
     }
 
     for (i = 0; i < numcpus; i++)
@@ -235,7 +235,7 @@ result_t os_base::get_execPath(std::string &retVal)
 #endif
 
     if (sysctl(mib, 4, exeName, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = exeName;
     return 0;
@@ -270,19 +270,19 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     }
 
     if (!_kvm_open || !_kvm_getprocs || !_kvm_close)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     pid = getpid();
 
     kd = _kvm_open(NULL, _PATH_DEVNULL, NULL, O_RDONLY, "kvm_open");
     if (kd == NULL)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     kinfo = _kvm_getprocs(kd, KERN_PROC_PID, pid, &nprocs);
     if (kinfo == NULL)
     {
         _kvm_close(kd);
-        return LastError();
+        return CHECK_ERROR(LastError());
     }
 
 #ifdef __DragonFly__

@@ -26,10 +26,10 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                     exlib::AsyncEvent *ac)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string strBuf;
 
@@ -41,14 +41,14 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         {
             int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
             if (p < 0)
-                return LastError();
+                return CHECK_ERROR(LastError());
 
             int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
             if (sz < 0)
-                return LastError();
+                return CHECK_ERROR(LastError());
 
             if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-                return LastError();
+                return CHECK_ERROR(LastError());
 
             sz -= p;
 
@@ -69,7 +69,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         {
             int n = (int) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return LastError();
+                return CHECK_ERROR(LastError());
             if (n == 0)
                 break;
 
@@ -94,24 +94,24 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 result_t File::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string strBuf;
 
     int32_t bytes;
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
     if (sz < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     sz -= p;
 
@@ -127,7 +127,7 @@ result_t File::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
         {
             int n = (int) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return LastError();
+                return CHECK_ERROR(LastError());
             if (n == 0)
                 break;
 
@@ -149,13 +149,13 @@ result_t File::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
 result_t File::Write(const char *p, int sz)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     while (sz)
     {
         int n = (int) ::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
         if (n < 0)
-            return LastError();
+            return CHECK_ERROR(LastError());
 
         sz -= n;
         p += n;
@@ -167,10 +167,10 @@ result_t File::Write(const char *p, int sz)
 result_t File::write(Buffer_base *data, exlib::AsyncEvent *ac)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string strBuf;
     data->toString(strBuf);
@@ -182,7 +182,7 @@ result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
                       exlib::AsyncEvent *ac)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return copyStream(this, stm, bytes, retVal, ac);
 }
@@ -190,7 +190,7 @@ result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
 result_t File::open(const char *fname, const char *flags, exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
 #ifdef _WIN32
     int _flags = _O_BINARY;
@@ -219,11 +219,11 @@ result_t File::open(const char *fname, const char *flags, exlib::AsyncEvent *ac)
     m_fd = ::open(fname, _flags, 0666);
 #endif
     if (m_fd < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
 #ifndef _WIN32
     if (::fcntl(m_fd, F_SETFD, FD_CLOEXEC))
-        return LastError();
+        return CHECK_ERROR(LastError());
 #endif
 
     name = fname;
@@ -234,7 +234,7 @@ result_t File::open(const char *fname, const char *flags, exlib::AsyncEvent *ac)
 result_t File::get_name(std::string &retVal)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = name;
     return 0;
@@ -243,10 +243,10 @@ result_t File::get_name(std::string &retVal)
 result_t File::stat(obj_ptr<Stat_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     struct stat64 st;
     fstat64(m_fd, &st);
@@ -261,18 +261,18 @@ result_t File::stat(obj_ptr<Stat_base> &retVal, exlib::AsyncEvent *ac)
 result_t File::size(int64_t &retVal)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
     if (sz < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = sz;
     return 0;
@@ -281,18 +281,18 @@ result_t File::size(int64_t &retVal)
 result_t File::eof(bool &retVal)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
     if (sz < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = sz == p;
 
@@ -302,10 +302,10 @@ result_t File::eof(bool &retVal)
 result_t File::seek(int64_t offset, int32_t whence)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (_lseeki64(m_fd, offset, whence) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     return 0;
 }
@@ -313,11 +313,11 @@ result_t File::seek(int64_t offset, int32_t whence)
 result_t File::tell(int64_t &retVal)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = _lseeki64(m_fd, 0, SEEK_CUR);
     if (retVal < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     return 0;
 }
@@ -325,10 +325,10 @@ result_t File::tell(int64_t &retVal)
 result_t File::rewind()
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     return 0;
 }
@@ -336,15 +336,15 @@ result_t File::rewind()
 result_t File::flush(exlib::AsyncEvent *ac)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     //    fflush(m_file);
 
     //    if (ferror(m_file))
-    //        return LastError();
+    //        return CHECK_ERROR(LastError());
 
     return 0;
 }
@@ -358,7 +358,7 @@ result_t File::close(exlib::AsyncEvent *ac)
     if (m_fd != -1)
     {
         if (switchToAsync(ac))
-            return CALL_E_NOSYNC;
+            return CHECK_ERROR(CALL_E_NOSYNC);
 
         if (m_pipe)
             pclose(m_pipe);
@@ -375,13 +375,13 @@ result_t File::close(exlib::AsyncEvent *ac)
 result_t File::truncate(int64_t bytes, exlib::AsyncEvent *ac)
 {
     if (m_fd == -1)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (ftruncate64(m_fd, bytes) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     return 0;
 }
@@ -389,13 +389,13 @@ result_t File::truncate(int64_t bytes, exlib::AsyncEvent *ac)
 result_t File::chmod(int32_t mode, exlib::AsyncEvent *ac)
 {
 #ifdef _WIN32
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 #else
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::fchmod(m_fd, mode))
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     return 0;
 #endif

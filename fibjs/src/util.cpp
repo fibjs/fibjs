@@ -68,7 +68,9 @@ std::string getResultMessage(result_t hr)
         // CALL_E_RETURN_TYPE
         "Invalid return type.",
         // CALL_E_EXCEPTION
-        "Exception occurred."
+        "Exception occurred.",
+        // CALL_E_JAVASCRIPT
+        "Javascript error."
     };
 
     if (hr == CALL_E_EXCEPTION)
@@ -212,7 +214,7 @@ result_t throwSyntaxError(v8::TryCatch &try_catch)
         return Runtime::setError(strError);
     }
 
-    return CALL_E_JAVASCRIPT;
+    return CHECK_ERROR(CALL_E_JAVASCRIPT);
 }
 
 void ReportException(v8::TryCatch &try_catch, result_t hr)

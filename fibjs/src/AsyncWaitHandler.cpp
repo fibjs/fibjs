@@ -14,19 +14,19 @@ result_t AsyncWaitHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                   exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_as = new asyncWaiter(ac);
     m_ac.post(0);
 
-    return CALL_E_PENDDING;
+    return CHECK_ERROR(CALL_E_PENDDING);
 }
 
 result_t AsyncWaitHandler::end()
 {
     m_ac.wait();
     if (!m_as)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     s_acPool.put(m_as);
     m_as = NULL;

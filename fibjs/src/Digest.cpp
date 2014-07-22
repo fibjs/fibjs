@@ -40,7 +40,7 @@ Digest::~Digest()
 result_t Digest::update(Buffer_base *data)
 {
     if (m_iAlgo < 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     std::string str;
     data->toString(str);
@@ -58,7 +58,7 @@ result_t Digest::update(Buffer_base *data)
 result_t Digest::update(const char *text)
 {
     if (m_iAlgo < 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (m_bMac)
         md_hmac_update(&m_ctx, (const unsigned char *) text,
@@ -73,7 +73,7 @@ result_t Digest::update(const char *text)
 result_t Digest::digest(obj_ptr<Buffer_base> &retVal)
 {
     if (m_iAlgo < 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     std::string strBuf;
 
@@ -96,7 +96,7 @@ result_t Digest::digest(Buffer_base *data,
                         obj_ptr<Buffer_base> &retVal)
 {
     if (m_iAlgo < 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     update(data);
     return digest(retVal);
@@ -105,7 +105,7 @@ result_t Digest::digest(Buffer_base *data,
 result_t Digest::digest(const char *text, obj_ptr<Buffer_base> &retVal)
 {
     if (m_iAlgo < 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     update(text);
     return digest(retVal);
@@ -114,7 +114,7 @@ result_t Digest::digest(const char *text, obj_ptr<Buffer_base> &retVal)
 result_t Digest::get_size(int32_t &retVal)
 {
     if (m_iAlgo < 0)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = md_get_size(m_ctx.md_info);
     return 0;

@@ -36,7 +36,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     int ovector[RE_SIZE];
 
     if (msg == NULL)
-        return CALL_E_BADVARTYPE;
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     std::string value;
 
@@ -103,7 +103,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         }
     }
 
-    return Runtime::setError("unknown routing.");
+    return CHECK_ERROR(Runtime::setError("unknown routing."));
 }
 
 result_t Routing::append(const char *pattern, Handler_base *hdlr)
@@ -121,14 +121,14 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
         char buf[1024];
 
         sprintf(buf, "Compilation failed at offset %d: %s.", erroffset, error);
-        return Runtime::setError(buf);
+        return CHECK_ERROR(Runtime::setError(buf));
     }
 
     extra = pcre_study(re, PCRE_STUDY_JIT_COMPILE, &error);
     if (extra == NULL)
     {
         pcre_free(re);
-        return Runtime::setError(error);
+        return CHECK_ERROR(Runtime::setError(error));
     }
 
     obj_ptr<rule> r = new rule(re, extra, hdlr);

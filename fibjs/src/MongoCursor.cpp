@@ -68,7 +68,7 @@ result_t MongoCursor::hint(v8::Local<v8::Object> opts,
 result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base> &retVal)
 {
     if (m_bInit)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     mongo_cursor_set_limit(&m_cursor, size);
     retVal = this;
@@ -121,7 +121,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
         v8::Local<v8::Value> v = func->Call(o1, 1, &a);
 
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return CHECK_ERROR(CALL_E_JAVASCRIPT);
     }
 
     return hr < 0 ? hr : 0;
@@ -142,7 +142,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
         v8::Local<v8::Value> v = func->Call(o1, 1, &a);
 
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
         as->Set(n, v);
         n++;
@@ -200,7 +200,7 @@ result_t MongoCursor::size(int32_t &retVal)
 result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal)
 {
     if (m_bInit)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     mongo_cursor_set_skip(&m_cursor, num);
     retVal = this;
@@ -218,7 +218,7 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Local<v8::Value> opts,
                                   obj_ptr<MongoCursor_base> &retVal)
 {
     if (m_bInit)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     ensureSpecial();
     v8::Local<v8::Object>::New(isolate, m_query)->Set(v8::String::NewFromUtf8(isolate, name), opts);

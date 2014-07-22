@@ -45,13 +45,13 @@ result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
     v8::Local<v8::Context> ctx = isolate->GetCallingContext();
 
     if (ctx.IsEmpty())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     v8::Local<v8::Value> v = ctx->Global()->GetHiddenValue(
                                  v8::String::NewFromUtf8(isolate, "_mods"));
 
     if (v.IsEmpty() || !v->IsObject())
-        return CALL_E_INTERNAL;
+        return CHECK_ERROR(CALL_E_INTERNAL);
 
     retVal = new SandBox(v->ToObject());
     return 0;

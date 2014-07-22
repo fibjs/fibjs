@@ -15,10 +15,10 @@ result_t net_base::resolve(const char *name, int32_t family,
                            std::string &retVal, exlib::AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     inetAddr addr_info;
 
@@ -34,7 +34,7 @@ result_t net_base::resolve(const char *name, int32_t family,
     hints.ai_protocol = IPPROTO_TCP;
 
     if (getaddrinfo(name, NULL, &hints, &result))
-        return SocketError();
+        return CHECK_ERROR(SocketError());
 
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next)
         if (ptr->ai_family == addr_info.addr4.sin_family)
@@ -75,10 +75,10 @@ result_t net_base::connect(const char *host, int32_t port, int32_t family,
                            obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
 
@@ -93,10 +93,10 @@ result_t net_base::openSmtp(const char *host, int32_t port, int32_t family,
                             obj_ptr<Smtp_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
 

@@ -23,7 +23,7 @@ void *create()
     if (hr < 0)
     {
         s->Unref();
-        Runtime::setError(hr);
+        CHECK_ERROR(Runtime::setError(hr));
         return NULL;
     }
 
@@ -46,14 +46,14 @@ int connect(void *sock, const char *host, int port)
 {
     if (!sock)
     {
-        Runtime::setError(CALL_E_INVALID_CALL);
+        CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL));
         return 0;
     }
 
     result_t hr = ((Socket *) sock)->ac_connect(host, port);
     if (hr < 0)
     {
-        Runtime::setError(hr);
+        CHECK_ERROR(Runtime::setError(hr));
         return 0;
     }
 
@@ -78,7 +78,7 @@ int recv(void *sock, void *buffer, int cbBuffer)
 {
     if (!sock)
     {
-        Runtime::setError(CALL_E_INVALID_CALL);
+        CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL));
         return -1;
     }
 
@@ -87,7 +87,7 @@ int recv(void *sock, void *buffer, int cbBuffer)
     result_t hr = ((Socket *) sock)->ac_recv(cbBuffer, retVal);
     if (hr < 0)
     {
-        Runtime::setError(hr);
+        CHECK_ERROR(Runtime::setError(hr));
         return -1;
     }
 
@@ -106,7 +106,7 @@ int read(void *sock, void *buffer, int cbBuffer)
 {
     if (!sock)
     {
-        Runtime::setError(CALL_E_INVALID_CALL);
+        CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL));
         return -1;
     }
 
@@ -118,7 +118,7 @@ int read(void *sock, void *buffer, int cbBuffer)
     result_t hr = ((Socket *) sock)->ac_read(cbBuffer, retVal);
     if (hr < 0)
     {
-        Runtime::setError(hr);
+        CHECK_ERROR(Runtime::setError(hr));
         return -1;
     }
 
@@ -139,7 +139,7 @@ int send(void *sock, const void *buffer, int cbBuffer)
 {
     if (!sock)
     {
-        Runtime::setError(CALL_E_INVALID_CALL);
+        CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL));
         return -1;
     }
 
@@ -154,7 +154,7 @@ int send(void *sock, const void *buffer, int cbBuffer)
     result_t hr = ((Socket *) sock)->ac_send(buf);
     if (hr < 0)
     {
-        Runtime::setError(hr);
+        CHECK_ERROR(Runtime::setError(hr));
         return -1;
     }
 

@@ -51,7 +51,7 @@ result_t os_base::get_version(std::string &retVal)
     char release[256];
 
     if (GetVersionEx(&info) == 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     sprintf(release, "%d.%d.%d", static_cast<int>(info.dwMajorVersion),
             static_cast<int>(info.dwMinorVersion), static_cast<int>(info.dwBuildNumber));
@@ -86,7 +86,7 @@ result_t os_base::uptime(double &retVal)
             break;
         }
         else if (result != ERROR_MORE_DATA)
-            return LastError();
+            return CHECK_ERROR(LastError());
 
         free(malloced_buffer);
 
@@ -99,7 +99,7 @@ result_t os_base::uptime(double &retVal)
 
         buffer = malloced_buffer = (BYTE *) malloc(buffer_size);
         if (malloced_buffer == NULL)
-            return LastError();
+            return CHECK_ERROR(LastError());
     }
 
     if (data_size < sizeof(*data_block))
@@ -156,10 +156,10 @@ result_t os_base::uptime(double &retVal)
 
     /* If we get here, the uptime value was not found. */
     free(malloced_buffer);
-    return LastError();
+    return CHECK_ERROR(LastError());
 
 internalError: free(malloced_buffer);
-    return LastError();
+    return CHECK_ERROR(LastError());
 }
 
 result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
@@ -180,7 +180,7 @@ result_t os_base::totalmem(int64_t &retVal)
     memory_status.dwLength = sizeof(memory_status);
 
     if (!GlobalMemoryStatusEx(&memory_status))
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = memory_status.ullTotalPhys;
     return 0;
@@ -192,7 +192,7 @@ result_t os_base::freemem(int64_t &retVal)
     memory_status.dwLength = sizeof(memory_status);
 
     if (!GlobalMemoryStatusEx(&memory_status))
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = memory_status.ullAvailPhys;
     return 0;
@@ -234,7 +234,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
                                         GetModuleHandle("ntdll"), "NtQuerySystemInformation");
 
     if (pNtQuerySystemInformation == NULL)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     GetSystemInfo(&system_info);
     cpu_count = system_info.dwNumberOfProcessors;
@@ -242,7 +242,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     sppi_size = sizeof(*sppi) * cpu_count;
     sppi = (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION *) malloc(sppi_size);
     if (!sppi)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     r = pNtQuerySystemInformation(SystemProcessorPerformanceInformation, sppi,
                                   sppi_size, &result_size);
@@ -329,15 +329,15 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
 
     if (GetAdaptersAddresses(AF_UNSPEC, 0, NULL, NULL, &size)
             != ERROR_BUFFER_OVERFLOW)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     adapter_addresses = (IP_ADAPTER_ADDRESSES *) malloc(size);
     if (!adapter_addresses)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     if (GetAdaptersAddresses(AF_UNSPEC, 0, NULL, adapter_addresses, &size)
             != ERROR_SUCCESS)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = v8::Object::New(isolate);
 
@@ -401,7 +401,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     current_process = GetCurrentProcess();
 
     if (!GetProcessMemoryInfo(current_process, &pmc, sizeof(pmc)))
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     rss = pmc.WorkingSetSize;
 

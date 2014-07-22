@@ -16,7 +16,7 @@ result_t db_base::openLevelDB(const char *connString,
                               obj_ptr<LevelDB_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
 
@@ -39,7 +39,7 @@ result_t LevelDB::open(const char *connString)
     options.create_if_missing = true;
     leveldb::Status s = leveldb::DB::Open(options, connString, &m_db);
     if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     return 0;
 }
@@ -47,10 +47,10 @@ result_t LevelDB::open(const char *connString)
 result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string key1;
     key->toString(key1);
@@ -63,7 +63,7 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
         return 0;
     }
     else if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     retVal = true;
 
@@ -73,10 +73,10 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
 result_t LevelDB::has(const char *key, bool &retVal, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(), key, &value);
@@ -86,7 +86,7 @@ result_t LevelDB::has(const char *key, bool &retVal, exlib::AsyncEvent *ac)
         return 0;
     }
     else if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     retVal = true;
 
@@ -96,10 +96,10 @@ result_t LevelDB::has(const char *key, bool &retVal, exlib::AsyncEvent *ac)
 result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string key1;
     key->toString(key1);
@@ -109,7 +109,7 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::Asy
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
     else if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     retVal = new Buffer(value);
 
@@ -119,17 +119,17 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::Asy
 result_t LevelDB::get(const char *key, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(), key, &value);
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
     else if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     retVal = new Buffer(value);
 
@@ -139,11 +139,11 @@ result_t LevelDB::get(const char *key, obj_ptr<Buffer_base> &retVal, exlib::Asyn
 result_t LevelDB::_commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     leveldb::Status s = db()->Write(leveldb::WriteOptions(), batch);
     if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     return 0;
 }
@@ -151,7 +151,7 @@ result_t LevelDB::_commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac)
 result_t LevelDB::put(v8::Local<v8::Object> map)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     leveldb::WriteBatch batch;
     leveldb::WriteBatch *batch_ = m_batch ? m_batch : &batch;
@@ -169,7 +169,7 @@ result_t LevelDB::put(v8::Local<v8::Object> map)
         obj_ptr<Buffer_base> buf = Buffer_base::getInstance(map->Get(k));
 
         if (!buf)
-            return CALL_E_TYPEMISMATCH;
+            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
 
         std::string value1;
         buf->toString(value1);
@@ -186,10 +186,10 @@ result_t LevelDB::put(v8::Local<v8::Object> map)
 result_t LevelDB::put(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string key1;
     key->toString(key1);
@@ -199,7 +199,7 @@ result_t LevelDB::put(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *a
 
     leveldb::Status s = Put(key1, value1);
     if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     return 0;
 }
@@ -207,17 +207,17 @@ result_t LevelDB::put(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *a
 result_t LevelDB::put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string value1;
     value->toString(value1);
 
     leveldb::Status s = Put(key, value1);
     if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     return 0;
 }
@@ -225,7 +225,7 @@ result_t LevelDB::put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac
 result_t LevelDB::remove(v8::Local<v8::Array> keys)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     leveldb::WriteBatch batch;
     leveldb::WriteBatch *batch_ = m_batch ? m_batch : &batch;
@@ -253,10 +253,10 @@ result_t LevelDB::remove(v8::Local<v8::Array> keys)
 result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string key1;
     key->toString(key1);
@@ -264,7 +264,7 @@ result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
     std::string value;
     leveldb::Status s = Delete(key1);
     if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     return 0;
 }
@@ -272,14 +272,14 @@ result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
 result_t LevelDB::remove(const char *key, exlib::AsyncEvent *ac)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     leveldb::Status s = Delete(key);
     if (!s.ok())
-        return Runtime::setError(s.ToString());
+        return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     return 0;
 }
@@ -352,7 +352,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
 
             v8::Local<v8::Value> v = func->Call(func, 2, args);
             if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
             if (v->BooleanValue())
             {
@@ -369,7 +369,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
 result_t LevelDB::forEach(v8::Local<v8::Function> func)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return Iter(db()).iter(func);
 }
@@ -378,7 +378,7 @@ result_t LevelDB::between(v8::Local<v8::Value> from,
                           v8::Local<v8::Value> to, v8::Local<v8::Function> func)
 {
     if (!db())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     Iter it(db());
 
@@ -404,7 +404,7 @@ result_t LevelDB::begin(obj_ptr<LevelDB_base> &retVal)
 result_t LevelDB::commit()
 {
     if (!db() || !m_batch)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     result_t hr = ac__commit(m_batch);
     close(NULL);
@@ -429,7 +429,7 @@ result_t LevelDB::close(exlib::AsyncEvent *ac)
         return 0;
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     delete m_db;
     m_db = NULL;

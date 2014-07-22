@@ -56,7 +56,7 @@ public:
     {
         _case *now = s_now;
         if (!s_now)
-            return CALL_E_INVALID_CALL;
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         s_now = new _case(name);
         now->m_subs.append(s_now);
@@ -67,7 +67,7 @@ public:
     {
         _case *now = s_now;
         if (!now || s_now == s_root)
-            return CALL_E_INVALID_CALL;
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         _case *p = new _case(name);
         p->m_block.Reset(isolate, block);
@@ -81,7 +81,7 @@ public:
     {
         _case *now = s_now;
         if (!s_now)
-            return CALL_E_INVALID_CALL;
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         QuickArray<v8::Persistent<v8::Function> > &fa = now->m_hooks[type];
         size_t sz = fa.size();
@@ -98,7 +98,7 @@ public:
             return 0;
 
         if (s_now != s_root)
-            return CALL_E_INVALID_CALL;
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         s_now = NULL;
 
@@ -452,7 +452,7 @@ result_t test_base::setup(int32_t mode)
                            v8::ReadOnly);
         }
         else
-            return CALL_E_INVALIDARG;
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         glob->ForceSet(v8::String::NewFromUtf8(isolate, "expect"),
                        v8::FunctionTemplate::New(isolate, s_expect)->GetFunction(),

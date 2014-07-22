@@ -39,10 +39,10 @@ void PKey::clear()
 result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
 {
     if (size < 128 || size > 8192)
-        return Runtime::setError("Invalid key size");
+        return CHECK_ERROR(Runtime::setError("Invalid key size"));
 
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     int ret;
 
@@ -50,13 +50,13 @@ result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
 
     ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_RSA));
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     ret = rsa_gen_key(pk_rsa(m_key), ctr_drbg_random, &g_ssl.ctr_drbg,
                       size, 65537);
 
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -64,12 +64,12 @@ result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
 result_t PKey::genEcKey(const char *curve, exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     const ecp_curve_info *curve_info;
     curve_info = ecp_curve_info_from_name(curve);
     if (curve_info == NULL)
-        return Runtime::setError("Unknown curve");
+        return CHECK_ERROR(Runtime::setError("Unknown curve"));
 
     int ret;
 
@@ -77,13 +77,13 @@ result_t PKey::genEcKey(const char *curve, exlib::AsyncEvent *ac)
 
     ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     ret = ecp_gen_key(curve_info->grp_id, pk_ec(m_key),
                       ctr_drbg_random, &g_ssl.ctr_drbg);
 
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -105,7 +105,7 @@ result_t PKey::isPrivate(bool &retVal)
         return 0;
     }
 
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
@@ -130,7 +130,7 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
 
         ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_RSA));
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         rsa_context *rsa1 = pk_rsa(pk1->m_key);
 
@@ -140,11 +140,11 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
 
         ret = mpi_copy(&rsa1->N, &rsa->N);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ret = mpi_copy(&rsa1->E, &rsa->E);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         retVal = pk1;
 
@@ -159,24 +159,24 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
 
         ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ecp_keypair *ecp1 = pk_ec(pk1->m_key);
 
         ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ret = ecp_copy(&ecp1->Q, &ecp->Q);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         retVal = pk1;
 
         return 0;
     }
 
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t PKey::copy(const pk_context &key)
@@ -190,13 +190,13 @@ result_t PKey::copy(const pk_context &key)
 
         ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_RSA));
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         rsa_context *rsa1 = pk_rsa(m_key);
 
         ret = rsa_copy(rsa1, rsa);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         return 0;
     }
@@ -207,26 +207,26 @@ result_t PKey::copy(const pk_context &key)
 
         ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ecp_keypair *ecp1 = pk_ec(m_key);
 
         ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ret = mpi_copy(&ecp1->d, &ecp->d);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ret = ecp_copy(&ecp1->Q, &ecp->Q);
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         return 0;
     }
 
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t PKey::clone(obj_ptr<PKey_base> &retVal)
@@ -259,7 +259,7 @@ result_t PKey::importKey(Buffer_base *DerKey, const char *password)
         ret = pk_parse_public_key(&m_key, (unsigned char *)key.c_str(), key.length());
 
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -278,7 +278,7 @@ result_t PKey::importKey(const char *pemKey, const char *password)
         ret = pk_parse_public_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey));
 
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -301,7 +301,7 @@ result_t PKey::exportPem(std::string &retVal)
     else
         ret = pk_write_pubkey_pem(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     buf.resize(qstrlen(buf.c_str()));
     retVal = buf;
@@ -327,7 +327,7 @@ result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
     else
         ret = pk_write_pubkey_der(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret < 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     retVal = new Buffer(buf.substr(buf.length() - ret));
 
@@ -338,7 +338,7 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                        exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     int ret;
     std::string str;
@@ -352,7 +352,7 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                      (unsigned char *)&output[0], &olen, output.length(),
                      ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     output.resize(olen);
     retVal = new Buffer(output);
@@ -364,7 +364,7 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                        exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
     bool priv;
@@ -374,7 +374,7 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return hr;
 
     if (!priv)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
     std::string str;
@@ -388,7 +388,7 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                      (unsigned char *)&output[0], &olen, output.length(),
                      ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     output.resize(olen);
     retVal = new Buffer(output);
@@ -400,7 +400,7 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                     exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
     bool priv;
@@ -410,7 +410,7 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return hr;
 
     if (!priv)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
     std::string str;
@@ -425,7 +425,7 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                   (unsigned char *)&output[0], &olen,
                   ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     output.resize(olen);
     retVal = new Buffer(output);
@@ -437,7 +437,7 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
                       exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     int ret;
     std::string str;
@@ -457,7 +457,7 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
     }
 
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     retVal = true;
 

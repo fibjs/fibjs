@@ -105,7 +105,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                 return 0;
             }
 
-            return CALL_E_PENDDING;
+            return CHECK_ERROR(CALL_E_PENDDING);
         }
 
         virtual result_t process(bool streamEnd)
@@ -143,7 +143,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         return hr;
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
@@ -199,7 +199,7 @@ result_t BufferedStream::readText(int32_t size, std::string &retVal,
                 return 0;
             }
 
-            return CALL_E_PENDDING;
+            return CHECK_ERROR(CALL_E_PENDDING);
         }
 
         virtual result_t process(bool streamEnd)
@@ -217,7 +217,7 @@ result_t BufferedStream::readText(int32_t size, std::string &retVal,
         return hr;
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRead(this, size, retVal, ac))->post(0);
 }
@@ -318,7 +318,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
             if (maxlen > 0
                     && ((int) pThis->m_strbuf.size() + (pos - pThis->m_pos)
                         > maxlen + mklen))
-                return CALL_E_INVALID_DATA;
+                return CHECK_ERROR(CALL_E_INVALID_DATA);
 
             pThis->append(pos - pThis->m_pos);
 
@@ -340,7 +340,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
                        CALL_RETURN_NULL : 0;
             }
 
-            return CALL_E_PENDDING;
+            return CHECK_ERROR(CALL_E_PENDDING);
         }
 
         virtual result_t process(bool streamEnd)
@@ -359,7 +359,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
         return hr;
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRead(this, mk, maxlen, retVal, ac))->post(0);
 }
@@ -390,7 +390,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                     n3 ++;
 
                 if (n2 + n3 > sizeof(int32_t))
-                    return CALL_E_INVALID_DATA;
+                    return CHECK_ERROR(CALL_E_INVALID_DATA);
 
                 if (n3 == n1)
                 {
@@ -401,7 +401,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                     }
 
                     pThis->append(n3);
-                    return CALL_E_PENDDING;
+                    return CHECK_ERROR(CALL_E_PENDDING);
                 }
 
                 n3 ++;
@@ -433,7 +433,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
             if (limit > 0 && pThis->m_temp > limit)
             {
                 pThis->m_temp = 0;
-                return CALL_E_INVALID_DATA;
+                return CHECK_ERROR(CALL_E_INVALID_DATA);
             }
 
             int bytes = pThis->m_temp;
@@ -458,7 +458,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                 return CALL_RETURN_NULL;
             }
 
-            return CALL_E_PENDDING;
+            return CHECK_ERROR(CALL_E_PENDDING);
         }
 
         virtual result_t process(bool streamEnd)
@@ -476,7 +476,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
         return hr;
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncReadPacket(this, limit, retVal, ac))->post(0);
 }
@@ -484,7 +484,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
 result_t BufferedStream::writeText(const char *txt, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string strBuf;
 
@@ -499,7 +499,7 @@ result_t BufferedStream::writeText(const char *txt, exlib::AsyncEvent *ac)
 result_t BufferedStream::writeLine(const char *txt, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string strBuf;
 
@@ -515,7 +515,7 @@ result_t BufferedStream::writeLine(const char *txt, exlib::AsyncEvent *ac)
 result_t BufferedStream::writePacket(Buffer_base *data, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string strBuf;
     std::string strData;
@@ -562,7 +562,7 @@ result_t BufferedStream::set_EOL(const char *newVal)
     else if (newVal[1] == '\0' && (newVal[0] == '\r' || newVal[0] == '\n'))
         m_eol.assign(newVal, 1);
     else
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     return 0;
 }

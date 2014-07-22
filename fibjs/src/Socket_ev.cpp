@@ -252,10 +252,10 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     inetAddr addr_info;
 
@@ -269,7 +269,7 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
             return hr;
 
         if (addr_info.addr(strAddr.c_str()) < 0)
-            return CALL_E_INVALIDARG;
+            return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
     return (new asyncConnect(m_sock, addr_info, ac))->call();
@@ -320,10 +320,10 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncAccept(m_sock, retVal, ac))->call();
 }
@@ -394,10 +394,10 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRecv(m_sock, bytes, retVal, ac, bRead))->call();
 }
@@ -453,10 +453,10 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
     };
 
     if (m_sock == INVALID_SOCKET)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSend(m_sock, data, ac))->call();
 }

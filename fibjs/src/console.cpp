@@ -271,7 +271,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     if (!ac)
     {
         flushLog();
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
 #ifndef _WIN32
@@ -280,7 +280,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
         char *line = _readline(msg);
 
         if (!line)
-            return LastError();
+            return CHECK_ERROR(LastError());
 
         if (*line)
         {
@@ -296,7 +296,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
         char *line = read_line();
 
         if (!line)
-            return LastError();
+            return CHECK_ERROR(LastError());
 
         retVal = line;
         free(line);

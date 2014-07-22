@@ -49,7 +49,7 @@ result_t Stat::getStat(const char *path)
 {
     struct stat64 st;
     if (::stat64(path, &st))
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     fill(path, st);
 

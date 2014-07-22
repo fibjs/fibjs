@@ -84,7 +84,7 @@ result_t Stats::set_key(int n, v8::Local<v8::Value> key)
     v8::String::Utf8Value str(key);
     const char *p = *str;
     if (p == NULL)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     set_key(n, p);
 
@@ -107,7 +107,7 @@ result_t Stats::inc(const char *key)
     int i = find(key);
 
     if (i < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     inc(i);
 
@@ -119,7 +119,7 @@ result_t Stats::dec(const char *key)
     int i = find(key);
 
     if (i < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     dec(i);
 
@@ -131,7 +131,7 @@ result_t Stats::add(const char *key, int32_t value)
     int i = find(key);
 
     if (i < 0)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     add(i, value);
 

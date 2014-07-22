@@ -46,7 +46,7 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
     char ip[INET6_ADDRSTRLEN];
 
     if (getifaddrs(&addrs) != 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = v8::Object::New(isolate);
 

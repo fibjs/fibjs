@@ -194,7 +194,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
         v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, strId.c_str());
         retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
         if (!IsEmpty(retVal))
         {
@@ -245,7 +245,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
             if (!IsEmpty(main))
             {
                 if (!main->IsString() && !main->IsStringObject())
-                    return Runtime::setError("Invalid package.json");
+                    return CHECK_ERROR(Runtime::setError("Invalid package.json"));
                 fname = strId + PATH_SLASH;
                 fname += *v8::String::Utf8Value(main);
 

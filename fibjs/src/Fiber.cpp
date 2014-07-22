@@ -59,7 +59,7 @@ public:
 
     result_t get_caller(obj_ptr<Fiber_base> &retVal)
     {
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 } s_null;

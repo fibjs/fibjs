@@ -67,7 +67,7 @@ X509Cert::~X509Cert()
 result_t X509Cert::load(Buffer_base *derCert)
 {
     if (m_root)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
 
@@ -77,7 +77,7 @@ result_t X509Cert::load(Buffer_base *derCert)
     ret = x509_crt_parse_der(&m_crt, (const unsigned char *)crt.c_str(),
                              crt.length());
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -85,13 +85,13 @@ result_t X509Cert::load(Buffer_base *derCert)
 result_t X509Cert::load(const x509_crt *crt)
 {
     if (m_root)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
 
     ret = x509_crt_parse_der(&m_crt, crt->raw.p, crt->raw.len);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -99,7 +99,7 @@ result_t X509Cert::load(const x509_crt *crt)
 result_t X509Cert::load(const char *txtCert)
 {
     if (m_root)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
 
@@ -108,7 +108,7 @@ result_t X509Cert::load(const char *txtCert)
         ret = x509_crt_parse(&m_crt, (const unsigned char *)txtCert,
                              qstrlen(txtCert));
         if (ret != 0)
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
 
         return 0;
     }
@@ -209,14 +209,14 @@ result_t X509Cert::load(const char *txtCert)
                                      (const unsigned char *)cka_value.c_str(),
                                      cka_value.length());
             if (ret != 0)
-                return _ssl::setError(ret);
+                return CHECK_ERROR(_ssl::setError(ret));
 
             is_loaded = true;
         }
     }
 
     if (!is_loaded)
-        return _ssl::setError(POLARSSL_ERR_X509_INVALID_FORMAT);
+        return CHECK_ERROR(_ssl::setError(POLARSSL_ERR_X509_INVALID_FORMAT));
 
     return 0;
 }
@@ -224,7 +224,7 @@ result_t X509Cert::load(const char *txtCert)
 result_t X509Cert::loadFile(const char *filename)
 {
     if (m_root)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     result_t hr;
     std::string data;
@@ -241,7 +241,7 @@ result_t X509Cert::loadFile(const char *filename)
     ret = x509_crt_parse_der(&m_crt, (const unsigned char *)data.c_str(),
                              data.length());
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -259,7 +259,7 @@ result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, exlib::AsyncEvent *
         return 0;
     }
     else if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     retVal = true;
     return 0;
@@ -271,7 +271,7 @@ result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, exlib::AsyncEvent *
 result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
 {
     if (m_root)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = v8::Array::New(isolate);
 
@@ -289,7 +289,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
                                    pCert->raw.p, pCert->raw.len,
                                    (unsigned char *)&buf[0], buf.length(), &olen);
             if (ret != 0)
-                return _ssl::setError(ret);
+                return CHECK_ERROR(_ssl::setError(ret));
 
             retVal->Set(n ++, v8::String::NewFromUtf8(isolate, buf.c_str(),
                         v8::String::kNormalString, (int) olen - 1));
@@ -303,7 +303,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
 result_t X509Cert::clear()
 {
     if (m_root)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     x509_crt_free(&m_crt);
     x509_crt_init(&m_crt);
@@ -328,7 +328,7 @@ result_t X509Cert::get_version(int32_t &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = crt->version;
     return 0;
@@ -338,7 +338,7 @@ result_t X509Cert::get_serial(std::string &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
     mpi serial;
@@ -346,7 +346,7 @@ result_t X509Cert::get_serial(std::string &retVal)
     mpi_init(&serial);
     ret = mpi_read_binary(&serial, crt->serial.p, crt->serial.len);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     retVal.resize(8192);
     size_t sz = retVal.length();
@@ -354,7 +354,7 @@ result_t X509Cert::get_serial(std::string &retVal)
     ret = mpi_write_string(&serial, 10, &retVal[0], &sz);
     mpi_free(&serial);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     retVal.resize(sz - 1);
 
@@ -365,7 +365,7 @@ result_t X509Cert::get_issuer(std::string &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
     std::string buf;
@@ -374,7 +374,7 @@ result_t X509Cert::get_issuer(std::string &retVal)
 
     ret = x509_dn_gets(&buf[0], buf.length(), &crt->issuer);
     if (ret < 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     buf.resize(ret);
     retVal = buf;
@@ -386,7 +386,7 @@ result_t X509Cert::get_subject(std::string &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int ret;
     std::string buf;
@@ -395,7 +395,7 @@ result_t X509Cert::get_subject(std::string &retVal)
 
     ret = x509_dn_gets(&buf[0], buf.length(), &crt->subject);
     if (ret < 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     buf.resize(ret);
     retVal = buf;
@@ -407,7 +407,7 @@ result_t X509Cert::get_notBefore(date_t &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal.create(crt->valid_from.year, crt->valid_from.mon,
                   crt->valid_from.day,  crt->valid_from.hour,
@@ -420,7 +420,7 @@ result_t X509Cert::get_notAfter(date_t &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal.create(crt->valid_to.year, crt->valid_to.mon,
                   crt->valid_to.day,  crt->valid_to.hour,
@@ -433,7 +433,7 @@ result_t X509Cert::get_ca(bool &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = crt->ca_istrue != 0;
     return 0;
@@ -443,7 +443,7 @@ result_t X509Cert::get_pathlen(int32_t &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = crt->max_pathlen;
     return 0;
@@ -453,7 +453,7 @@ result_t X509Cert::get_usage(std::string &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int key_usage = crt->key_usage;
 
@@ -476,7 +476,7 @@ result_t X509Cert::get_type(std::string &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int cert_type = crt->ns_cert_type;
 
@@ -499,7 +499,7 @@ result_t X509Cert::get_publicKey(obj_ptr<PKey_base> &retVal)
 {
     x509_crt *crt = get_crt();
     if (!crt)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<PKey> pk1 = new PKey();
     result_t hr;

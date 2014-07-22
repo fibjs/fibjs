@@ -55,7 +55,7 @@ result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base> &retVal,
 result_t MemoryStream::CloneStream::write(Buffer_base *data,
         exlib::AsyncEvent *ac)
 {
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t MemoryStream::CloneStream::close(exlib::AsyncEvent *ac)
@@ -93,7 +93,7 @@ result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
     else if (whence == fs_base::_SEEK_END)
         m_pos = (int) offset + (int) m_buffer.length();
     else
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (m_pos < 0)
         m_pos = 0;
@@ -123,7 +123,7 @@ result_t MemoryStream::CloneStream::size(int64_t &retVal)
 
 result_t MemoryStream::CloneStream::setTime(date_t d)
 {
-    return CALL_E_INVALID_CALL;
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t MemoryStream::CloneStream::clone(obj_ptr<MemoryStream_base> &retVal)

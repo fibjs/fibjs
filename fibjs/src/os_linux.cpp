@@ -31,13 +31,13 @@ result_t os_base::uptime(double &retVal)
 
     void *handle = dlopen ("librt.so", RTLD_LAZY);
     if (!handle)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     fngettime = (int (*)(clockid_t, struct timespec *))dlsym(handle, "clock_gettime");
     if (!fngettime)
     {
         dlclose(handle);
-        return LastError();
+        return CHECK_ERROR(LastError());
     }
 
     if (no_clock_boottime)
@@ -53,7 +53,7 @@ retry: r = fngettime(CLOCK_MONOTONIC, &now);
     dlclose(handle);
 
     if (r)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = now.tv_sec;
     retVal += (double)now.tv_nsec / 1000000000.0;
@@ -68,7 +68,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
     struct sysinfo info;
 
     if (sysinfo(&info) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     avg[0] = (double) info.loads[0] / 65536.0;
     avg[1] = (double) info.loads[1] / 65536.0;
@@ -118,7 +118,7 @@ result_t os_base::CPUs(int32_t &retVal)
         retVal = cpus = numcpus;
     }
     else
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     return 0;
 }
@@ -223,7 +223,7 @@ result_t os_base::get_execPath(std::string &retVal)
     {   0};
 
     if (readlink("/proc/self/exe", exeName, linksize) == -1)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = exeName;
     return 0;
@@ -245,7 +245,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
     f = fopen("/proc/self/stat", "r");
     if (!f)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     /* PID */
     if (fscanf(f, "%d ", &itmp) == 0)

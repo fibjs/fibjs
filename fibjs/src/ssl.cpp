@@ -38,7 +38,7 @@ result_t ssl_base::get_verification(int32_t &retVal)
 result_t ssl_base::set_verification(int32_t newVal)
 {
     if (newVal < ssl_base::_VERIFY_NONE || newVal > ssl_base::_VERIFY_REQUIRED)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     g_ssl.m_authmode = newVal;
     return 0;

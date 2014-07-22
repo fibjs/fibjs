@@ -53,11 +53,11 @@ result_t file_logger::config(v8::Local<v8::Object> o)
             int32_t i;
 
             if (l > 4 || l < 2)
-                return Runtime::setError("Unknown split mode.");
+                return CHECK_ERROR(Runtime::setError("Unknown split mode."));
 
             for (i = 0; i < l - 1; i ++)
                 if (!qisdigit(split[i]))
-                    return Runtime::setError("Unknown split mode.");
+                    return CHECK_ERROR(Runtime::setError("Unknown split mode."));
                 else
                     m_split_size = m_split_size * 10 + split[i] - '0';
 
@@ -68,7 +68,7 @@ result_t file_logger::config(v8::Local<v8::Object> o)
             else if (split[i] == 'g')
                 m_split_size <<= 30;
             else
-                return Runtime::setError("Unknown split mode.");
+                return CHECK_ERROR(Runtime::setError("Unknown split mode."));
         }
     }
     else if (hr != CALL_E_PARAMNOTOPTIONAL)
@@ -82,10 +82,10 @@ result_t file_logger::config(v8::Local<v8::Object> o)
     else
     {
         if (m_split_size == 0 && m_split_mode == 0)
-            return Runtime::setError("Missing split mode.");
+            return CHECK_ERROR(Runtime::setError("Missing split mode."));
 
         if (m_count < 2 || m_count > MAX_COUNT)
-            return Runtime::setError("Count must between 2 to 128.");
+            return CHECK_ERROR(Runtime::setError("Count must between 2 to 128."));
     }
 
     return 0;

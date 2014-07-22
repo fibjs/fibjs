@@ -316,7 +316,7 @@ result_t doDefine(v8::Local<v8::Object> &mod)
 
                         v = func->Call(func, n, deps.data());
                         if (v.IsEmpty())
-                            return CALL_E_JAVASCRIPT;
+                            return CHECK_ERROR(CALL_E_JAVASCRIPT);
                     }
 
                     // use the result as exports if the factory return something

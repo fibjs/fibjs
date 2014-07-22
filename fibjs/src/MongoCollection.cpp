@@ -189,7 +189,7 @@ result_t MongoCollection::runCommand(const char *cmd,
     if (!appendObject(&bbq, arg))
     {
         bson_destroy(&bbq);
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
     }
     bson_finish(&bbq);
 
@@ -235,7 +235,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
         v8::Local<v8::Value> v = keys->Get(k);
 
         if (!k->IsNumber() && !k->IsNumberObject())
-            return CALL_E_INVALIDARG;
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::String::Utf8Value sk(k);
         v8::String::Utf8Value sv(v);

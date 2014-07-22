@@ -19,7 +19,7 @@ result_t Queue_base::_new(int32_t size, obj_ptr<Queue_base> &retVal)
 result_t Queue::add(v8::Local<v8::Value> e, bool &retVal)
 {
     if ((int)m_list.size() == m_size)
-        return CALL_E_OVERFLOW;
+        return CHECK_ERROR(Runtime::setError("Queue: queue is full."));
 
     m_list.push_back(e);
     retVal = true;
@@ -44,7 +44,7 @@ result_t Queue::offer(v8::Local<v8::Value> e, bool &retVal)
 result_t Queue::remove(v8::Local<v8::Value> &retVal)
 {
     if (m_list.size() == 0)
-        return CALL_E_EMPTY;
+        return CHECK_ERROR(CALL_E_EMPTY);
 
     retVal = *m_list.begin();
     m_list.pop_front();
@@ -64,7 +64,7 @@ result_t Queue::poll(v8::Local<v8::Value> &retVal)
 result_t Queue::element(v8::Local<v8::Value> &retVal)
 {
     if (m_list.size() == 0)
-        return CALL_E_EMPTY;
+        return CHECK_ERROR(CALL_E_EMPTY);
 
     retVal = *m_list.begin();
 

@@ -47,7 +47,7 @@ result_t makeUUID(int32_t vers, int32_t ns, const char *name,
                   obj_ptr<uuidValue_base> &retVal)
 {
     if (ns < uuid_base::_DNS || ns > uuid_base::_X509)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<uuidVar> id = new uuidVar();
 

@@ -26,7 +26,7 @@ result_t os_base::uptime(double &retVal)
     { CTL_KERN, KERN_BOOTTIME };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     now = ::time(NULL);
 
@@ -45,7 +45,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
     { CTL_VM, VM_LOADAVG };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     avg[0] = (double) info.ldavg[0] / info.fscale;
     avg[1] = (double) info.ldavg[1] / info.fscale;
@@ -67,7 +67,7 @@ result_t os_base::totalmem(int64_t &retVal)
     size_t size = sizeof(info);
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = info;
 
@@ -81,7 +81,7 @@ result_t os_base::freemem(int64_t &retVal)
 
     if (host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t) & info,
                         &count) != KERN_SUCCESS)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = info.free_count * sysconf(_SC_PAGESIZE);
     return 0;
@@ -103,7 +103,7 @@ result_t os_base::CPUs(int32_t &retVal)
     if (host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numcpus,
                             reinterpret_cast<processor_info_array_t *>(&info),
                             &count) != KERN_SUCCESS)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     vm_deallocate(mach_task_self(), (vm_address_t) info, count);
 
@@ -126,11 +126,11 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     size = sizeof(model);
     if (sysctlbyname("hw.model", &model, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     size = sizeof(cpuspeed);
     if (sysctlbyname("hw.cpufrequency", &cpuspeed, &size, NULL, 0) < 0)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     natural_t numcpus;
     mach_msg_type_number_t count;
@@ -138,7 +138,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     if (host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numcpus,
                             reinterpret_cast<processor_info_array_t *>(&info),
                             &count) != KERN_SUCCESS)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     retVal = v8::Array::New(isolate, numcpus);
     for (unsigned int i = 0; i < numcpus; i++)
@@ -188,7 +188,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
     if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t) &t_info,
                   &t_info_count) != KERN_SUCCESS)
-        return LastError();
+        return CHECK_ERROR(LastError());
 
     rss = t_info.resident_size;
 

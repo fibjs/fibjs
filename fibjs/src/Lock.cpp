@@ -39,7 +39,7 @@ result_t Lock::acquire(bool blocking, bool &retVal)
 result_t Lock::release()
 {
     if (!m_lock.owned())
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     m_lock.unlock();
 

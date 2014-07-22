@@ -49,11 +49,11 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
 
                 obj_ptr<X509Cert_base> crt = X509Cert_base::getInstance(o->Get(sCrt));
                 if (!crt)
-                    return CALL_E_INVALIDARG;
+                    return CHECK_ERROR(CALL_E_INVALIDARG);
 
                 obj_ptr<PKey_base> key = PKey_base::getInstance(o->Get(sKey));
                 if (!key)
-                    return CALL_E_INVALIDARG;
+                    return CHECK_ERROR(CALL_E_INVALIDARG);
 
 
                 result_t hr = ss->setCert(crt, key);
@@ -61,7 +61,7 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
                     return hr;
             }
             else
-                return CALL_E_INVALIDARG;
+                return CHECK_ERROR(CALL_E_INVALIDARG);
 
         }
     }
@@ -97,12 +97,12 @@ result_t SslSocket::setCert(X509Cert_base *crt, PKey_base *key)
         return hr;
 
     if (!priv)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int ret = ssl_set_own_cert(&m_ssl, &((X509Cert *)crt)->m_crt,
                                &((PKey *)key)->m_key);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     m_crts.push_back(crt);
     m_keys.push_back(key);
@@ -203,10 +203,10 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     };
 
     if (!m_s)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
@@ -245,10 +245,10 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
     };
 
     if (!m_s)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncWrite(this, data, ac))->post(0);
 }
@@ -271,10 +271,10 @@ result_t SslSocket::close(exlib::AsyncEvent *ac)
     };
 
     if (!m_s)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncClose(this, ac))->post(0);
 }
@@ -294,7 +294,7 @@ result_t SslSocket::get_verification(int32_t &retVal)
 result_t SslSocket::set_verification(int32_t newVal)
 {
     if (newVal < ssl_base::_VERIFY_NONE || newVal > ssl_base::_VERIFY_REQUIRED)
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     ssl_set_authmode(&m_ssl, newVal);
     return 0;
@@ -362,10 +362,10 @@ result_t SslSocket::connect(Stream_base *s, const char *server_name,
                             int32_t &retVal, exlib::AsyncEvent *ac)
 {
     if (m_s)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_s = s;
 
@@ -386,10 +386,10 @@ result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
                            exlib::AsyncEvent *ac)
 {
     if (m_s)
-        return CALL_E_INVALID_CALL;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SslSocket> ss = new SslSocket();
     retVal = ss;

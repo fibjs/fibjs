@@ -100,7 +100,7 @@ result_t List::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 result_t List::array::_indexed_getter(uint32_t index, Variant &retVal)
 {
     if (index >= m_array.size())
-        return CALL_E_BADINDEX;
+        return CHECK_ERROR(CALL_E_BADINDEX);
 
     retVal = m_array[index];
 
@@ -110,7 +110,7 @@ result_t List::array::_indexed_getter(uint32_t index, Variant &retVal)
 result_t List::array::_indexed_setter(uint32_t index, Variant newVal)
 {
     if (index >= m_array.size())
-        return CALL_E_BADINDEX;
+        return CHECK_ERROR(CALL_E_BADINDEX);
 
     m_array[index] = newVal;
 
@@ -210,7 +210,7 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
                 a->push(arr->Get(i1));
         }
         else
-            return CALL_E_INVALIDARG;
+            return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
     retVal = a;
@@ -238,7 +238,7 @@ result_t List::array::every(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
         if (!r->BooleanValue())
         {
@@ -265,7 +265,7 @@ result_t List::array::filter(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
         if (r->BooleanValue())
             a->push(m_array[i]);
@@ -287,7 +287,7 @@ result_t List::array::forEach(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return CHECK_ERROR(CALL_E_JAVASCRIPT);
     }
 
     return 0;
@@ -307,7 +307,7 @@ result_t List::array::map(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
         a->push(r);
     }

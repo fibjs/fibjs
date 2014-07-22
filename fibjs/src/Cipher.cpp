@@ -86,9 +86,9 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
                            Buffer_base *iv, obj_ptr<Cipher_base> &retVal)
 {
     if (provider < crypto_base::_AES || provider > crypto_base::_ARC4)
-        return Runtime::setError("Invalid provider");
+        return CHECK_ERROR(Runtime::setError("Invalid provider"));
     if (mode < crypto_base::_STREAM || mode > crypto_base::_GCM)
-        return Runtime::setError("Invalid mode");
+        return CHECK_ERROR(Runtime::setError("Invalid mode"));
 
     std::string strKey;
     const cipher_info_t *info = NULL;
@@ -97,7 +97,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
     size_t keylen = strKey.length();
 
     if (keylen == 0)
-        return Runtime::setError("Invalid key size");
+        return CHECK_ERROR(Runtime::setError("Invalid key size"));
 
     if (keylen == 16 && provider == crypto_base::_DES_EDE3)
     {
@@ -110,12 +110,12 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
         {
             info = s_sizes[provider - crypto_base::_AES][i].cis[mode - crypto_base::_STREAM];
             if (info == NULL)
-                return Runtime::setError("Invalid mode");
+                return CHECK_ERROR(Runtime::setError("Invalid mode"));
             break;
         }
 
     if (info == NULL)
-        return Runtime::setError("Invalid key size");
+        return CHECK_ERROR(Runtime::setError("Invalid key size"));
 
     obj_ptr<Cipher> ci = new Cipher(info);
 
@@ -177,7 +177,7 @@ result_t Cipher::init(std::string &key, std::string &iv)
                                        m_iv.length()))
     {
         m_iv.resize(0);
-        return Runtime::setError("Invalid iv size");
+        return CHECK_ERROR(Runtime::setError("Invalid iv size"));
     }
 
     return 0;
@@ -211,7 +211,7 @@ result_t Cipher::paddingMode(int32_t mode)
 {
     int ret = cipher_set_padding_mode(&m_ctx, (cipher_padding_t)mode);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
@@ -224,11 +224,11 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
     ret = cipher_setkey(&m_ctx, (unsigned char *)m_key.c_str(), (int)m_key.length() * 8,
                         operation);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     ret = cipher_reset(&m_ctx);
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     std::string input;
     std::string output;
@@ -249,7 +249,7 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
         if (ret != 0)
         {
             reset();
-            return _ssl::setError(ret);
+            return CHECK_ERROR(_ssl::setError(ret));
         }
 
         output.append((const char *)buffer, olen);
@@ -259,7 +259,7 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
     reset();
 
     if (ret != 0)
-        return _ssl::setError(ret);
+        return CHECK_ERROR(_ssl::setError(ret));
 
     output.append((const char *)buffer, olen);
     retVal = new Buffer(output);
@@ -271,7 +271,7 @@ result_t Cipher::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return process(POLARSSL_ENCRYPT, data, retVal);
 }
@@ -280,7 +280,7 @@ result_t Cipher::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return process(POLARSSL_DECRYPT, data, retVal);
 }

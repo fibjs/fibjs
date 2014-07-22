@@ -72,7 +72,7 @@ result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
     };
 
     if (!ac)
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncCopy(from, to, bytes, retVal, ac))->post(0);
 }

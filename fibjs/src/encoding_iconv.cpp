@@ -158,7 +158,7 @@ result_t encoding_iconv::encode(const char *data, std::string &retVal)
         {
             m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
             if (m_iconv_en == (iconv_t)(-1))
-                return Runtime::setError("Unknown charset.");
+                return CHECK_ERROR(Runtime::setError("Unknown charset."));
         }
 
         size_t sz = qstrlen(data);
@@ -170,7 +170,7 @@ result_t encoding_iconv::encode(const char *data, std::string &retVal)
         size_t n = _iconv(m_iconv_en, &data, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
-            return Runtime::setError("convert error.");
+            return CHECK_ERROR(Runtime::setError("convert error."));
 
         retVal.resize(retVal.length() - output_size);
     }
@@ -201,7 +201,7 @@ result_t encoding_iconv::decode(const std::string &data, std::string &retVal)
         {
             m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
             if (m_iconv_de == (iconv_t)(-1))
-                return Runtime::setError("Unknown charset.");
+                return CHECK_ERROR(Runtime::setError("Unknown charset."));
         }
 
         size_t sz = data.length();
@@ -215,7 +215,7 @@ result_t encoding_iconv::decode(const std::string &data, std::string &retVal)
         size_t n = _iconv(m_iconv_de, &ptr, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
-            return Runtime::setError("convert error.");
+            return CHECK_ERROR(Runtime::setError("convert error."));
 
         strBuf.resize(strBuf.length() - output_size);
 
@@ -235,7 +235,7 @@ result_t encoding_iconv::decode(Buffer_base *data, std::string &retVal)
         {
             m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
             if (m_iconv_de == (iconv_t)(-1))
-                return Runtime::setError("Unknown charset.");
+                return CHECK_ERROR(Runtime::setError("Unknown charset."));
         }
 
         std::string strData;
@@ -253,7 +253,7 @@ result_t encoding_iconv::decode(Buffer_base *data, std::string &retVal)
         size_t n = _iconv(m_iconv_de, &ptr, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
-            return Runtime::setError("convert error.");
+            return CHECK_ERROR(Runtime::setError("convert error."));
 
         strBuf.resize(strBuf.length() - output_size);
 

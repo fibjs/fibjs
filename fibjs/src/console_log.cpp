@@ -80,7 +80,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
     for (n = 0; s_logs[n]; n ++);
 
     if (n >= MAX_LOGGER)
-        return Runtime::setError("Too many items.");
+        return CHECK_ERROR(Runtime::setError("Too many items."));
 
     v8::Local<v8::Value> type;
     v8::Local<v8::Object> o;
@@ -97,14 +97,14 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
                                                v8::String::kNormalString, 4));
 
         if (IsEmpty(type))
-            return Runtime::setError("Missing log type.");
+            return CHECK_ERROR(Runtime::setError("Missing log type."));
     }
     else
-        return CALL_E_INVALIDARG;
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::String::Utf8Value s(type);
     if (!*s)
-        return Runtime::setError("Unknown log type.");
+        return CHECK_ERROR(Runtime::setError("Unknown log type."));
 
     obj_ptr<logger> lgr;
 
@@ -119,7 +119,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
     else if (!qstrcmp(*s, "file"))
         lgr = new file_logger();
     else
-        return Runtime::setError("Unknown log type.");
+        return CHECK_ERROR(Runtime::setError("Unknown log type."));
 
     if (lgr)
     {
