@@ -71,7 +71,7 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
             bson_destroy (&bbs[i]);
 
         if (result != MONGO_OK)
-            return m_db->error();
+            return CHECK_ERROR(m_db->error());
     }
 
     return 0;
@@ -90,7 +90,7 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
     bson_destroy(&bb);
 
     if (result != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     return 0;
 }
@@ -139,7 +139,7 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
     bson_destroy(&bbd);
 
     if (result != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     return 0;
 }
@@ -168,7 +168,7 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
     bson_destroy(&bbq);
 
     if (result != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     return 0;
 }

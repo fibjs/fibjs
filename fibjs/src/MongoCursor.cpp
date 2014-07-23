@@ -172,7 +172,7 @@ result_t MongoCursor::hasNext(bool &retVal)
 
     retVal = m_state == CUR_DATA;
 
-    return m_db->error();
+    return CHECK_ERROR(m_db->error());
 }
 
 result_t MongoCursor::next(v8::Local<v8::Object> &retVal)

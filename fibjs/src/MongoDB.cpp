@@ -140,9 +140,9 @@ result_t MongoDB::error()
     if (m_conn.err == MONGO_IO_ERROR)
         hr = m_conn.errcode;
     else if (m_conn.err > 0 && m_conn.err <= MONGO_WRITE_CONCERN_INVALID)
-        hr = CHECK_ERROR(Runtime::setError(s_msgs[m_conn.err]));
+        hr = Runtime::setError(s_msgs[m_conn.err]);
     else if (m_conn.lasterrcode != 0)
-        hr = CHECK_ERROR(Runtime::setError(m_conn.lasterrstr));
+        hr = Runtime::setError(m_conn.lasterrstr);
 
     mongo_clear_errors(&m_conn);
     return hr;
@@ -212,7 +212,7 @@ result_t MongoDB::open(const char *connString)
     }
 
     if (result != MONGO_OK)
-        return error();
+        return CHECK_ERROR(error());
 
     if (!u->m_pathname.empty())
         m_ns = u->m_pathname.substr(1);
@@ -220,7 +220,7 @@ result_t MongoDB::open(const char *connString)
     if (!u->m_username.empty())
         if (mongo_cmd_authenticate(&m_conn, m_ns.c_str(), u->m_username.c_str(),
                                    u->m_password.c_str()) != MONGO_OK)
-            return error();
+            return CHECK_ERROR(error());
 
     return 0;
 }
@@ -251,7 +251,7 @@ result_t MongoDB::run_command(bson *command, v8::Local<v8::Object> &retVal)
     if (mongo_run_command(&m_conn, m_ns.c_str(), command, &out) != MONGO_OK)
     {
         bson_destroy(command);
-        return error();
+        return CHECK_ERROR(error());
     }
 
     retVal = decodeObject(&out);

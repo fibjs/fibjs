@@ -15,13 +15,13 @@ namespace fibjs
 result_t GridFS::retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal)
 {
     if (check_fs() != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     gridfile f;
 
     if (gridfs_find_filename(&m_fs, name, &f) != MONGO_OK)
     {
-        result_t hr = m_db->error();
+        result_t hr = CHECK_ERROR(m_db->error());
         if (hr < 0)
             return hr;
 
@@ -37,7 +37,7 @@ result_t GridFS::retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal)
         if (gridfile_read_buffer(&f, &strBuf[0], len) != len)
         {
             gridfile_destroy(&f);
-            return m_db->error();
+            return CHECK_ERROR(m_db->error());
         }
     }
 
@@ -51,7 +51,7 @@ result_t GridFS::retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal)
 result_t GridFS::store(const char *name, Stream_base *src)
 {
     if (check_fs() != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     result_t hr;
     gridfile f;
@@ -79,7 +79,7 @@ result_t GridFS::store(const char *name, Stream_base *src)
     }
 
     if (gridfile_writer_done(&f) != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     return 0;
 }
@@ -87,7 +87,7 @@ result_t GridFS::store(const char *name, Stream_base *src)
 result_t GridFS::store(const char *name, Buffer_base *data)
 {
     if (check_fs() != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     gridfile f;
 
@@ -99,7 +99,7 @@ result_t GridFS::store(const char *name, Buffer_base *data)
     gridfile_write_buffer(&f, strBuf.c_str(), strBuf.length());
 
     if (gridfile_writer_done(&f) != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     return 0;
 }
@@ -107,13 +107,13 @@ result_t GridFS::store(const char *name, Buffer_base *data)
 result_t GridFS::exists(const char *name, bool &retVal)
 {
     if (check_fs() != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     gridfile f;
 
     if (gridfs_find_filename(&m_fs, name, &f) != MONGO_OK)
     {
-        result_t hr = m_db->error();
+        result_t hr = CHECK_ERROR(m_db->error());
         if (hr < 0)
             return hr;
 
@@ -130,7 +130,7 @@ result_t GridFS::exists(const char *name, bool &retVal)
 result_t GridFS::remove(const char *name)
 {
     if (check_fs() != MONGO_OK)
-        return m_db->error();
+        return CHECK_ERROR(m_db->error());
 
     gridfs_remove_filename(&m_fs, name);
     return 0;
