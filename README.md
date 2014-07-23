@@ -12,6 +12,8 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 
 官方交流社区: http://baoz.me/fibjs
 
+ps: 请无视编译中出现的大量警告错误，那些基本上都是第三方代码库的警告，恕不消除了。
+
 ## Install
 
 ### on linux/freebsd/osx:
