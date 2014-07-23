@@ -168,6 +168,9 @@ public:
             if (!qstrcmp(name, m_cd.cps[i].name))
                 return true;
 
+        if (m_cd.base)
+            return m_cd.base->has(name);
+
         return false;
     }
 
