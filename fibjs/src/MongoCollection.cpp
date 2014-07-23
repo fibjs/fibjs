@@ -234,7 +234,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
         v8::Local<v8::Value> k = ks->Get(i);
         v8::Local<v8::Value> v = keys->Get(k);
 
-        if (!k->IsNumber() && !k->IsNumberObject())
+        if (!v->IsNumber() && !v->IsNumberObject())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::String::Utf8Value sk(k);
