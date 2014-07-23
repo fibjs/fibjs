@@ -53,6 +53,7 @@ int mongo_env_socket_connect(mongo *conn, const char *host, int port)
         return MONGO_ERROR;
     }
 
+    conn->connected = 1;
     return MONGO_OK;
 }
 
@@ -64,6 +65,7 @@ int mongo_env_sock_init(void)
 int mongo_env_close_socket(void *socket)
 {
     fibjs::socket::close(socket);
+    fibjs::socket::destroy(socket);
     return 0;
 }
 
