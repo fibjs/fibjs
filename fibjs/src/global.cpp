@@ -41,7 +41,7 @@ result_t global_base::repl()
     if (!ctx.IsEmpty())
     {
         v8::Context::Scope context_scope(ctx);
-        SandBox::Context::repl();
+        return SandBox::Context::repl();
     }
 
     return 0;
