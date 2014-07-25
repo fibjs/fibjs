@@ -126,7 +126,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 m_pThis->m_stats->inc(PACKET_REQUEST);
             }
 
-            return done(0);
+            return done(CALL_RETURN_NULL);
         }
 
     private:

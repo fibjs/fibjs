@@ -328,7 +328,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             }
 
             m_pThis->m_stats->dec(HTTP_PENDDING);
-            return done(0);
+            return done(CALL_RETURN_NULL);
         }
 
     private:
