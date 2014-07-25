@@ -252,9 +252,9 @@ std::string traceInfo()
 
         sprintf(numStr, "%d", f->GetLineNumber());
         strBuffer.append(numStr);
+        strBuffer.append(":", 1);
         sprintf(numStr, "%d", f->GetColumn());
         strBuffer.append(numStr);
-        strBuffer.append(":", 1);
 
         if (**funname)
             strBuffer.append(")", 1);
