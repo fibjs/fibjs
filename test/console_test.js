@@ -172,6 +172,10 @@ describe("console", function() {
 
 		console.reset();
 	});
+
+	it("fix: eval scriptname crash", function() {
+		eval('console.log("Rock Lee")');
+	})
 });
 
 //test.run(console.DEBUG);

@@ -40,7 +40,10 @@ public:
                     v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
                     v8::String::Utf8Value filename(f->GetScriptName());
 
-                    m_source.append(*filename);
+                    if (*filename)
+                        m_source.append(*filename);
+                    else
+                        m_source.append("[eval]");
 
                     sprintf(numStr, ":%d", f->GetLineNumber());
                     m_source.append(numStr);
