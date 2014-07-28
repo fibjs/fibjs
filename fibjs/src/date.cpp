@@ -711,6 +711,30 @@ void date_t::add(int num, int part)
     }
 }
 
+void date_t::fix(int part)
+{
+    if (isnan(d))
+        return;
+
+    if (part == _SECOND)
+        d = ((int64_t)d / 1000) * 1000;
+    else if (part == _MINUTE)
+        d = ((int64_t)d / (60 * 1000)) * 60 * 1000;
+    else if (part == _HOUR)
+        d = ((int64_t)d / (60 * 60 * 1000)) * 60 * 60 * 1000;
+    else if (part == _DAY)
+        d = ((int64_t)d / (60 * 60 * 24 * 1000)) * 60 * 60 * 24 * 1000;
+    else
+    {
+        _date_split ds(d);
+
+        if (part == _MONTH)
+            create(ds.wYear, ds.wMonth + 1, 1, 0, 0, 0, 0);
+        else if (part == _YEAR)
+            create(ds.wYear, 1, 1, 0, 0, 0, 0);
+    }
+}
+
 void date_t::toLocal()
 {
     d = (double) Runtime::now().m_pDateCache->ToLocal((int64_t) d);

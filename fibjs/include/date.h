@@ -105,6 +105,7 @@ public:
     }
 
     void add(int num, int part = _SECOND);
+    void fix(int part = _SECOND);
 
     void toLocal();
     void toUTC();
