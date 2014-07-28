@@ -247,8 +247,13 @@ std::string traceInfo()
             strBuffer.append(" (", 2);
         }
 
-        strBuffer.append(*filename);
-        strBuffer.append(":", 1);
+        if (*filename)
+        {
+            strBuffer.append(*filename);
+            strBuffer.append(":", 1);
+        }
+        else
+            strBuffer.append("[eval]:", 7);
 
         sprintf(numStr, "%d", f->GetLineNumber());
         strBuffer.append(numStr);

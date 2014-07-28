@@ -65,7 +65,7 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
-//    v8::LocalScope handle_scope(isolate);
+    //    v8::LocalScope handle_scope(isolate);
 
     v8::Local<v8::Object> glob = isolate->GetCallingContext()->Global();
 
@@ -162,7 +162,7 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
         modDef->ForceSet(strRequire, glob->Get(strRequire), v8::ReadOnly);
 
         v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, id.c_str(),
-                                          v8::String::kNormalString, (int) id.length());
+                                         v8::String::kNormalString, (int) id.length());
         modDef->ForceSet(strId, strFname, v8::ReadOnly);
 
         // add to modules
@@ -170,7 +170,7 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 
     v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(isolate, 1,
-                                            v8::StackTrace::kOverview);
+                                           v8::StackTrace::kOverview);
     std::stringstream strBuffer;
 
     v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
@@ -183,8 +183,12 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
     if (**funname)
         strBuffer << *funname << " (";
 
-    strBuffer << *filename << ':' << f->GetLineNumber() << ':'
-              << f->GetColumn();
+    if (*filename)
+        strBuffer << *filename << ':' << f->GetLineNumber() << ':'
+                  << f->GetColumn();
+    else
+        strBuffer << "[eval]:" << f->GetLineNumber() << ':'
+                  << f->GetColumn();
 
     if (**funname)
         strBuffer << ')';
