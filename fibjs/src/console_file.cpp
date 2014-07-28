@@ -42,11 +42,11 @@ result_t file_logger::config(v8::Local<v8::Object> o)
     if (hr >= 0)
     {
         if (!qstrcmp(split.c_str(), "day"))
-            m_split_mode =  24 * 60 * 60 * 1000;
+            m_split_mode =  date_t::_DAY;
         else if (!qstrcmp(split.c_str(), "hour"))
-            m_split_mode =  60 * 60 * 1000;
+            m_split_mode =  date_t::_HOUR;
         else if (!qstrcmp(split.c_str(), "minute"))
-            m_split_mode =  60 * 1000;
+            m_split_mode =  date_t::_MINUTE;
         else
         {
             int32_t l = (int32_t)split.length();
@@ -158,7 +158,7 @@ result_t file_logger::initFile()
         date_t d;
 
         d.now();
-        if (d.diff(m_date) >= m_split_mode)
+        if (d.diff(m_date) >= 0)
             m_file.Release();
     }
 
@@ -175,8 +175,12 @@ result_t file_logger::initFile()
             std::string tm;
 
             m_date.now();
+            if (m_split_mode)
+                m_date.fix(m_split_mode);
             m_date.stamp(tm);
             name.append(tm);
+            if (m_split_mode)
+                m_date.add(1, m_split_mode);
 
             if (m_count <= MAX_COUNT)
                 clearFile();
@@ -250,7 +254,7 @@ void file_logger::write(item *pn)
         }
     }
 
-    Sleep(200);
+    Sleep(20);
 }
 
 }
