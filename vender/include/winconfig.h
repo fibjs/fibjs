@@ -170,6 +170,10 @@
 #undef min
 #undef max
 
+#ifndef ssize_t
+typedef long ssize_t;
+#endif
+
 #include <errno.h>
 
 #define strtok_r strtok_s

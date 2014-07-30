@@ -491,17 +491,7 @@ int32_t fetch_and_add(volatile int32_t* operand, int incr)
          : "memory");
    return result;
 #else
-    volatile int32_t result;
-    _asm
-    {
-        mov eax, operand; //eax = v;
-       mov ebx, incr; // ebx = i;
-        mov ecx, 0x0; // ecx = 0;
-        lock xadd dword ptr [eax], ecx; 
-       lock xadd dword ptr [eax], ebx; 
-        mov result, ecx; // result = ebx;        
-     }
-     return result;    
+    return InterlockedExchangeAdd(operand, incr);
 #endif
 }
 
