@@ -145,6 +145,12 @@
     <Filter Include="Source Files\v8\src\third_party\kernel\tools\perf\util">
       <UniqueIdentifier>{ef5d0da9-0d27-42ed-899b-21cad5a712f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\zookeeper">
+      <UniqueIdentifier>{06758e00-090f-4a33-8f98-1e753ece7d36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\zookeeper\hashtable">
+      <UniqueIdentifier>{078ed119-1c40-4e7c-b84b-fb68baa0dbde}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1691,6 +1697,36 @@
     </ClCompile>
     <ClCompile Include="src\v8\src\zone.cc">
       <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\mt_adaptor.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\recordio.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\st_adaptor.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\winport.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\zk_hashtable.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\zk_log.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\zookeeper.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\zookeeper.jute.c">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\hashtable\hashtable.c">
+      <Filter>Source Files\zookeeper\hashtable</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zookeeper\hashtable\hashtable_itr.c">
+      <Filter>Source Files\zookeeper\hashtable</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3328,6 +3364,51 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\third_party\kernel\tools\perf\util\jitdump.h">
       <Filter>Source Files\v8\src\third_party\kernel\tools\perf\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\proto.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\recordio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\winconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\winstdint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zookeeper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zookeeper.jute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zookeeper_log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zookeeper_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zookeeper\config.h">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zookeeper\winport.h">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zookeeper\zk_adaptor.h">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zookeeper\zk_hashtable.h">
+      <Filter>Source Files\zookeeper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zookeeper\hashtable\hashtable.h">
+      <Filter>Source Files\zookeeper\hashtable</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zookeeper\hashtable\hashtable_itr.h">
+      <Filter>Source Files\zookeeper\hashtable</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zookeeper\hashtable\hashtable_private.h">
+      <Filter>Source Files\zookeeper\hashtable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

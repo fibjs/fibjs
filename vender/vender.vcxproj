@@ -534,6 +534,16 @@
     <ClCompile Include="src\zlib\trees.c" />
     <ClCompile Include="src\zlib\uncompr.c" />
     <ClCompile Include="src\zlib\zutil.c" />
+    <ClCompile Include="src\zookeeper\hashtable\hashtable.c" />
+    <ClCompile Include="src\zookeeper\hashtable\hashtable_itr.c" />
+    <ClCompile Include="src\zookeeper\mt_adaptor.c" />
+    <ClCompile Include="src\zookeeper\recordio.c" />
+    <ClCompile Include="src\zookeeper\st_adaptor.c" />
+    <ClCompile Include="src\zookeeper\winport.c" />
+    <ClCompile Include="src\zookeeper\zk_hashtable.c" />
+    <ClCompile Include="src\zookeeper\zk_log.c" />
+    <ClCompile Include="src\zookeeper\zookeeper.c" />
+    <ClCompile Include="src\zookeeper\zookeeper.jute.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ev++.h" />
@@ -644,6 +654,8 @@
     <ClInclude Include="include\polarssl\x509_crt.h" />
     <ClInclude Include="include\polarssl\x509_csr.h" />
     <ClInclude Include="include\polarssl\xtea.h" />
+    <ClInclude Include="include\proto.h" />
+    <ClInclude Include="include\recordio.h" />
     <ClInclude Include="include\snappy-stubs-public.h" />
     <ClInclude Include="include\snappy.h" />
     <ClInclude Include="include\sqlite3.h" />
@@ -661,9 +673,15 @@
     <ClInclude Include="include\v8\v8.h" />
     <ClInclude Include="include\v8\v8config.h" />
     <ClInclude Include="include\v8\v8stdint.h" />
+    <ClInclude Include="include\winconfig.h" />
+    <ClInclude Include="include\winstdint.h" />
     <ClInclude Include="include\win_iconv.h" />
     <ClInclude Include="include\zconf.h" />
     <ClInclude Include="include\zlib.h" />
+    <ClInclude Include="include\zookeeper.h" />
+    <ClInclude Include="include\zookeeper.jute.h" />
+    <ClInclude Include="include\zookeeper_log.h" />
+    <ClInclude Include="include\zookeeper_version.h" />
     <ClInclude Include="src\ev\config.h" />
     <ClInclude Include="src\ev\ev_vars.h" />
     <ClInclude Include="src\ev\ev_wrap.h" />
@@ -1081,6 +1099,13 @@
     <ClInclude Include="src\zlib\zconf.h" />
     <ClInclude Include="src\zlib\zlib.h" />
     <ClInclude Include="src\zlib\zutil.h" />
+    <ClInclude Include="src\zookeeper\config.h" />
+    <ClInclude Include="src\zookeeper\hashtable\hashtable.h" />
+    <ClInclude Include="src\zookeeper\hashtable\hashtable_itr.h" />
+    <ClInclude Include="src\zookeeper\hashtable\hashtable_private.h" />
+    <ClInclude Include="src\zookeeper\winport.h" />
+    <ClInclude Include="src\zookeeper\zk_adaptor.h" />
+    <ClInclude Include="src\zookeeper\zk_hashtable.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="src\exlib\fiber\fb_switch.asm">
