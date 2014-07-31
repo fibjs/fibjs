@@ -116,7 +116,8 @@ $(document).ready(function(){initNavTree('d4/d82/classprocess.html','../../');})
 <div class="dynheader">
 类 process 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d1/d66/classprocess__inherit__graph.svg" width="139" height="259"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d1/d66/classprocess__inherit__graph.svg" width="139" height="272"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
@@ -130,9 +131,12 @@ $(document).ready(function(){initNavTree('d4/d82/classprocess.html','../../');})
 <tr class="memitem:a8ba452b49b82fff2709f27929faa57cf"><td class="memItemLeft" align="right" valign="top">static Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d82/classprocess.html#a8ba452b49b82fff2709f27929faa57cf">system</a> (String cmd) async</td></tr>
 <tr class="memdesc:a8ba452b49b82fff2709f27929faa57cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">运行指定的命令行，并返回运行结果  <a href="#a8ba452b49b82fff2709f27929faa57cf">更多...</a><br /></td></tr>
 <tr class="separator:a8ba452b49b82fff2709f27929faa57cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9ba4f9b47239736c5b1c4155f09e9da"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d2/dee/classBufferedStream.html">BufferedStream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d82/classprocess.html#af9ba4f9b47239736c5b1c4155f09e9da">exec</a> (String cmd) async</td></tr>
-<tr class="memdesc:af9ba4f9b47239736c5b1c4155f09e9da"><td class="mdescLeft">&#160;</td><td class="mdescRight">运行指定的命令行，并访问命令的输出结果  <a href="#af9ba4f9b47239736c5b1c4155f09e9da">更多...</a><br /></td></tr>
-<tr class="separator:af9ba4f9b47239736c5b1c4155f09e9da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e735cf6ef80add2b54705216745e662"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d2/dee/classBufferedStream.html">BufferedStream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d82/classprocess.html#a9e735cf6ef80add2b54705216745e662">popen</a> (String cmd) async</td></tr>
+<tr class="memdesc:a9e735cf6ef80add2b54705216745e662"><td class="mdescLeft">&#160;</td><td class="mdescRight">运行指定的命令行，并访问命令的输出结果  <a href="#a9e735cf6ef80add2b54705216745e662">更多...</a><br /></td></tr>
+<tr class="separator:a9e735cf6ef80add2b54705216745e662"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bf5e6a0915841de911f1f4e8142e67c"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d82/classprocess.html#a8bf5e6a0915841de911f1f4e8142e67c">exec</a> (String cmd)</td></tr>
+<tr class="memdesc:a8bf5e6a0915841de911f1f4e8142e67c"><td class="mdescLeft">&#160;</td><td class="mdescRight">运行指定的命令行，并立即返回  <a href="#a8bf5e6a0915841de911f1f4e8142e67c">更多...</a><br /></td></tr>
+<tr class="separator:a8bf5e6a0915841de911f1f4e8142e67c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 静态 Public 属性</h2></td></tr>
@@ -248,7 +252,7 @@ $(document).ready(function(){initNavTree('d4/d82/classprocess.html','../../');})
 
 </div>
 </div>
-<a class="anchor" id="af9ba4f9b47239736c5b1c4155f09e9da"></a>
+<a class="anchor" id="a9e735cf6ef80add2b54705216745e662"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -256,7 +260,7 @@ $(document).ready(function(){initNavTree('d4/d82/classprocess.html','../../');})
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="../../d2/dee/classBufferedStream.html">BufferedStream</a> process::exec </td>
+          <td class="memname">static <a class="el" href="../../d2/dee/classBufferedStream.html">BufferedStream</a> process::popen </td>
           <td>(</td>
           <td class="paramtype">String&#160;</td>
           <td class="paramname"><em>cmd</em></td><td>)</td>
@@ -278,6 +282,38 @@ $(document).ready(function(){initNavTree('d4/d82/classprocess.html','../../');})
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>返回包含运行结果的文件对象 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a8bf5e6a0915841de911f1f4e8142e67c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static process::exec </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>cmd</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>运行指定的命令行，并立即返回 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cmd</td><td>指定运行的命令行 </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

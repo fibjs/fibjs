@@ -620,22 +620,23 @@
 <!-- Node20 -->
 <g id="node20" class="node"><title>Node20</title>
 <g id="a_node20"><a xlink:href="../../d4/d82/classprocess.html" target="_top" xlink:title="进程处理模块，用以管理当前进程的资源 ">
-<polygon fill="white" stroke="black" points="2009.15,-215.5 2009.15,-309.5 2105.45,-309.5 2105.45,-215.5 2009.15,-215.5"/>
-<text text-anchor="middle" x="2057.3" y="-297.5" font-family="Helvetica,sans-Serif" font-size="10.00">process</text>
-<polyline fill="none" stroke="black" points="2009.15,-291.5 2105.45,-291.5 "/>
-<text text-anchor="start" x="2017.15" y="-279.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ argv</text>
-<text text-anchor="start" x="2017.15" y="-269.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ execPath</text>
-<polyline fill="none" stroke="black" points="2009.15,-263.5 2105.45,-263.5 "/>
-<text text-anchor="start" x="2017.15" y="-251.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exit()</text>
-<text text-anchor="start" x="2017.15" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ memoryUsage()</text>
-<text text-anchor="start" x="2017.15" y="-231.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ system()</text>
-<text text-anchor="start" x="2017.15" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exec()</text>
+<polygon fill="white" stroke="black" points="2009.15,-210.5 2009.15,-314.5 2105.45,-314.5 2105.45,-210.5 2009.15,-210.5"/>
+<text text-anchor="middle" x="2057.3" y="-302.5" font-family="Helvetica,sans-Serif" font-size="10.00">process</text>
+<polyline fill="none" stroke="black" points="2009.15,-296.5 2105.45,-296.5 "/>
+<text text-anchor="start" x="2017.15" y="-284.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ argv</text>
+<text text-anchor="start" x="2017.15" y="-274.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ execPath</text>
+<polyline fill="none" stroke="black" points="2009.15,-268.5 2105.45,-268.5 "/>
+<text text-anchor="start" x="2017.15" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exit()</text>
+<text text-anchor="start" x="2017.15" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ memoryUsage()</text>
+<text text-anchor="start" x="2017.15" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ system()</text>
+<text text-anchor="start" x="2017.15" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ popen()</text>
+<text text-anchor="start" x="2017.15" y="-216.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exec()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node20 -->
 <g id="edge19" class="edge"><title>Node1&#45;&gt;Node20</title>
-<path fill="none" stroke="midnightblue" d="M1526.92,-585.537C1635.66,-579.059 1965.27,-556.94 2000.3,-525 2060.21,-470.369 2064.93,-368.714 2061.86,-309.525"/>
+<path fill="none" stroke="midnightblue" d="M1526.92,-585.537C1635.66,-579.059 1965.27,-556.94 2000.3,-525 2058.5,-471.935 2064.61,-374.501 2062.11,-314.715"/>
 <polygon fill="none" stroke="midnightblue" points="1526.58,-582.05 1516.81,-586.132 1526.99,-589.038 1526.58,-582.05"/>
 </g>
 <!-- Node21 -->
