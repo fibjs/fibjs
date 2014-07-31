@@ -101,6 +101,8 @@ describe('util', function() {
 			assert.equal(util.format(true), 'true');
 			assert.equal(util.format(false), 'false');
 			assert.equal(util.format('test'), 'test');
+			assert.equal(util.format(Infinity), 'Infinity');
+			assert.equal(util.format(new Number("aaa")), 'NaN');
 
 			// CHECKME this is for console.log() compatibility - but is it *right*?
 			assert.equal(util.format('foo', 'bar', 'baz'), 'foo bar baz');

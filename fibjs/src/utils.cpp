@@ -59,6 +59,9 @@ std::string json_format(v8::Local<v8::Value> obj)
     if (obj->IsFunction())
         return "[Function]";
 
+    if (obj->IsNumber() || obj->IsNumberObject())
+        return *v8::String::Utf8Value(obj->ToNumber());
+
     result_t hr = encoding_base::jsonEncode(obj, s);
     if (hr < 0)
         return "[Circular]";
