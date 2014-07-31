@@ -7,13 +7,13 @@ var cmd;
 var bs;
 var s;
 
-describe('fiber', function() {
+describe('process', function() {
 	it("execPath", function() {
 		cmd = process.execPath + ' exec_test.js';
 	});
 
-	it("exec", function() {
-		bs = process.exec(cmd);
+	it("popen", function() {
+		bs = process.popen(cmd);
 	});
 
 	it("stdout", function() {
@@ -32,6 +32,12 @@ describe('fiber', function() {
 
 	it("system", function() {
 		assert.equal(process.system(cmd), 100);
+	});
+
+	it("exec", function() {
+		var t1 = new Date().getTime();
+		process.exec(cmd);
+		assert.lessThan(new Date().getTime() - t1, 100);
 	});
 
 	it("memoryUsage", function() {

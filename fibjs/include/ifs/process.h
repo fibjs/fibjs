@@ -29,7 +29,8 @@ public:
 	static result_t exit(int32_t code);
 	static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 	static result_t system(const char* cmd, int32_t& retVal, exlib::AsyncEvent* ac);
-	static result_t exec(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t exec(const char* cmd);
 
 	DECLARE_CLASSINFO(process_base);
 
@@ -39,11 +40,12 @@ public:
 	static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_system(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_popen(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exec(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE2(process_base, system, const char*, int32_t);
-	ASYNC_STATICVALUE2(process_base, exec, const char*, obj_ptr<BufferedStream_base>);
+	ASYNC_STATICVALUE2(process_base, popen, const char*, obj_ptr<BufferedStream_base>);
 };
 
 }
@@ -59,6 +61,7 @@ namespace fibjs
 			{"exit", s_exit, true},
 			{"memoryUsage", s_memoryUsage, true},
 			{"system", s_system, true},
+			{"popen", s_popen, true},
 			{"exec", s_exec, true}
 		};
 
@@ -71,7 +74,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"process", NULL, 
-			4, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -136,7 +139,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void process_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void process_base::s_popen(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -144,9 +147,20 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = ac_exec(v0, vr);
+		hr = ac_popen(v0, vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void process_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = exec(v0);
+
+		METHOD_VOID();
 	}
 
 }

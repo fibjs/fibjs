@@ -74,8 +74,8 @@ result_t process_base::system(const char *cmd, int32_t &retVal,
     return 0;
 }
 
-result_t process_base::exec(const char *cmd,
-                            obj_ptr<BufferedStream_base> &retVal, exlib::AsyncEvent *ac)
+result_t process_base::popen(const char *cmd,
+                             obj_ptr<BufferedStream_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (switchToAsync(ac))
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -83,7 +83,7 @@ result_t process_base::exec(const char *cmd,
 #ifdef _WIN32
     FILE *pPipe = _wpopen(UTF8_W(cmd), L"r");
 #else
-    FILE *pPipe = popen(cmd, "r");
+    FILE *pPipe = ::popen(cmd, "r");
 #endif
 
     if (pPipe == NULL)
@@ -92,6 +92,31 @@ result_t process_base::exec(const char *cmd,
     retVal = new BufferedStream(new File(pPipe));
     retVal->set_EOL("\n");
 
+    return 0;
+}
+
+result_t process_base::exec(const char *cmd)
+{
+#ifdef _WIN32
+    PROCESS_INFORMATION pi;
+    STARTUPINFOW si;
+
+    ZeroMemory(&si, sizeof(STARTUPINFO));
+    si.cb = sizeof(STARTUPINFO);
+
+    std::wstring wstr(L"cmd /C ");
+    wstr.append(utf8to16String(cmd));
+
+    CreateProcessW(NULL, &wstr[0], NULL, NULL, 0, 0, NULL, NULL, &si, &pi);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+#else
+    if (fork() == 0)
+    {
+        execl("/bin/sh", "sh", "-c", cmd, (char *)0);
+        _exit(127);
+    }
+#endif
     return 0;
 }
 
