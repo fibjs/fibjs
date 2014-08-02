@@ -615,9 +615,8 @@ const AstRawString* ParserTraits::GetNextSymbol(Scanner* scanner) {
 
 
 Expression* ParserTraits::ThisExpression(
-    Scope* scope,
-    AstNodeFactory<AstConstructionVisitor>* factory) {
-  return factory->NewVariableProxy(scope->receiver());
+    Scope* scope, AstNodeFactory<AstConstructionVisitor>* factory, int pos) {
+  return factory->NewVariableProxy(scope->receiver(), pos);
 }
 
 
@@ -854,19 +853,13 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
     ast_value_factory_->Internalize(isolate());
     if (ok) {
       result = factory()->NewFunctionLiteral(
-          ast_value_factory_->empty_string(),
-          ast_value_factory_,
-          scope_,
-          body,
+          ast_value_factory_->empty_string(), ast_value_factory_, scope_, body,
           function_state.materialized_literal_count(),
           function_state.expected_property_count(),
-          function_state.handler_count(),
-          0,
+          function_state.handler_count(), 0,
           FunctionLiteral::kNoDuplicateParameters,
-          FunctionLiteral::ANONYMOUS_EXPRESSION,
-          FunctionLiteral::kGlobalOrEval,
-          FunctionLiteral::kNotParenthesized,
-          FunctionLiteral::kNotGenerator,
+          FunctionLiteral::ANONYMOUS_EXPRESSION, FunctionLiteral::kGlobalOrEval,
+          FunctionLiteral::kNotParenthesized, FunctionLiteral::kNormalFunction,
           0);
       result->set_ast_properties(factory()->visitor()->ast_properties());
       result->set_dont_optimize_reason(
@@ -956,15 +949,21 @@ FunctionLiteral* Parser::ParseLazy(Utf16CharacterStream* source) {
               ? FunctionLiteral::ANONYMOUS_EXPRESSION
               : FunctionLiteral::NAMED_EXPRESSION)
         : FunctionLiteral::DECLARATION;
+    bool is_generator = shared_info->is_generator();
     bool ok = true;
-    result = ParseFunctionLiteral(raw_name,
-                                  Scanner::Location::invalid(),
-                                  false,  // Strict mode name already checked.
-                                  shared_info->is_generator(),
-                                  RelocInfo::kNoPosition,
-                                  function_type,
-                                  FunctionLiteral::NORMAL_ARITY,
-                                  &ok);
+
+    if (shared_info->is_arrow()) {
+      ASSERT(!is_generator);
+      Expression* expression = ParseExpression(false, &ok);
+      ASSERT(expression->IsFunctionLiteral());
+      result = expression->AsFunctionLiteral();
+    } else {
+      result = ParseFunctionLiteral(raw_name, Scanner::Location::invalid(),
+                                    false,  // Strict mode name already checked.
+                                    is_generator, RelocInfo::kNoPosition,
+                                    function_type,
+                                    FunctionLiteral::NORMAL_ARITY, &ok);
+    }
     // Make sure the results agree.
     ASSERT(ok == (result != NULL));
   }
@@ -1443,6 +1442,19 @@ Statement* Parser::ParseExportDeclaration(bool* ok) {
       return NULL;
   }
 
+  // Every export of a module may be assigned.
+  for (int i = 0; i < names.length(); ++i) {
+    Variable* var = scope_->Lookup(names[i]);
+    if (var == NULL) {
+      // TODO(sigurds) This is an export that has no definition yet,
+      // not clear what to do in this case.
+      continue;
+    }
+    if (!IsImmutableVariableMode(var->mode())) {
+      var->set_maybe_assigned();
+    }
+  }
+
   // Extract declared names into export declarations and interface.
   Interface* interface = scope_->interface();
   for (int i = 0; i < names.length(); ++i) {
@@ -1656,8 +1668,9 @@ void Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
         : declaration_scope->LookupLocal(name);
     if (var == NULL) {
       // Declare the name.
-      var = declaration_scope->DeclareLocal(
-          name, mode, declaration->initialization(), proxy->interface());
+      var = declaration_scope->DeclareLocal(name, mode,
+                                            declaration->initialization(),
+                                            kNotAssigned, proxy->interface());
     } else if (IsLexicalVariableMode(mode) || IsLexicalVariableMode(var->mode())
                || ((mode == CONST_LEGACY || var->mode() == CONST_LEGACY) &&
                    !declaration_scope->is_global_scope())) {
@@ -1712,18 +1725,19 @@ void Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
     // For global const variables we bind the proxy to a variable.
     ASSERT(resolve);  // should be set by all callers
     Variable::Kind kind = Variable::NORMAL;
-    var = new(zone()) Variable(
-        declaration_scope, name, mode, true, kind,
-        kNeedsInitialization, proxy->interface());
+    var = new (zone())
+        Variable(declaration_scope, name, mode, true, kind,
+                 kNeedsInitialization, kNotAssigned, proxy->interface());
   } else if (declaration_scope->is_eval_scope() &&
              declaration_scope->strict_mode() == SLOPPY) {
     // For variable declarations in a sloppy eval scope the proxy is bound
     // to a lookup variable to force a dynamic declaration using the
     // DeclareLookupSlot runtime function.
     Variable::Kind kind = Variable::NORMAL;
-    var = new(zone()) Variable(
-        declaration_scope, name, mode, true, kind,
-        declaration->initialization(), proxy->interface());
+    // TODO(sigurds) figure out if kNotAssigned is OK here
+    var = new (zone()) Variable(declaration_scope, name, mode, true, kind,
+                                declaration->initialization(), kNotAssigned,
+                                proxy->interface());
     var->AllocateTo(Variable::LOOKUP, -1);
     resolve = true;
   }
@@ -2626,9 +2640,7 @@ TryStatement* Parser::ParseTryStatement(bool* ok) {
     Target target(&this->target_stack_, &catch_collector);
     VariableMode mode =
         allow_harmony_scoping() && strict_mode() == STRICT ? LET : VAR;
-    catch_variable =
-        catch_scope->DeclareLocal(name, mode, kCreatedInitialized);
-
+    catch_variable = catch_scope->DeclareLocal(name, mode, kCreatedInitialized);
     BlockState block_state(&scope_, catch_scope);
     catch_block = ParseBlock(NULL, CHECK_OK);
 
@@ -2750,37 +2762,26 @@ void Parser::InitializeForEachStatement(ForEachStatement* stmt,
   ForOfStatement* for_of = stmt->AsForOfStatement();
 
   if (for_of != NULL) {
-    Variable* iterable = scope_->DeclarationScope()->NewTemporary(
-        ast_value_factory_->dot_iterable_string());
     Variable* iterator = scope_->DeclarationScope()->NewTemporary(
         ast_value_factory_->dot_iterator_string());
     Variable* result = scope_->DeclarationScope()->NewTemporary(
         ast_value_factory_->dot_result_string());
 
-    Expression* assign_iterable;
     Expression* assign_iterator;
     Expression* next_result;
     Expression* result_done;
     Expression* assign_each;
 
-    // var iterable = subject;
+    // var iterator = subject[Symbol.iterator]();
     {
-      Expression* iterable_proxy = factory()->NewVariableProxy(iterable);
-      assign_iterable = factory()->NewAssignment(
-          Token::ASSIGN, iterable_proxy, subject, subject->position());
-    }
-
-    // var iterator = iterable[Symbol.iterator]();
-    {
-      Expression* iterable_proxy = factory()->NewVariableProxy(iterable);
       Expression* iterator_symbol_literal =
           factory()->NewSymbolLiteral("symbolIterator", RelocInfo::kNoPosition);
       // FIXME(wingo): Unhappily, it will be a common error that the RHS of a
       // for-of doesn't have a Symbol.iterator property.  We should do better
       // than informing the user that "undefined is not a function".
       int pos = subject->position();
-      Expression* iterator_property = factory()->NewProperty(
-          iterable_proxy, iterator_symbol_literal, pos);
+      Expression* iterator_property =
+          factory()->NewProperty(subject, iterator_symbol_literal, pos);
       ZoneList<Expression*>* iterator_arguments =
           new(zone()) ZoneList<Expression*>(0, zone());
       Expression* iterator_call = factory()->NewCall(
@@ -2827,7 +2828,6 @@ void Parser::InitializeForEachStatement(ForEachStatement* stmt,
     }
 
     for_of->Initialize(each, subject, body,
-                       assign_iterable,
                        assign_iterator,
                        next_result,
                        result_done,
@@ -3467,7 +3467,12 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
         dupe_error_loc = scanner()->location();
       }
 
-      scope_->DeclareParameter(param_name, VAR);
+      Variable* var = scope_->DeclareParameter(param_name, VAR);
+      // TODO(sigurds) Mark every parameter as maybe assigned. This is a
+      // conservative approximation necessary to account for parameters
+      // that are assigned via the arguments array.
+      var->set_maybe_assigned();
+
       num_parameters++;
       if (num_parameters > Code::kMaxArguments) {
         ReportMessage("too_many_parameters");
@@ -3498,9 +3503,10 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
           allow_harmony_scoping() && strict_mode() == STRICT
               ? CONST : CONST_LEGACY;
       ASSERT(function_name != NULL);
-      fvar = new(zone()) Variable(scope_,
-         function_name, fvar_mode, true /* is valid LHS */,
-         Variable::NORMAL, kCreatedInitialized, Interface::NewConst());
+      fvar = new (zone())
+          Variable(scope_, function_name, fvar_mode, true /* is valid LHS */,
+                   Variable::NORMAL, kCreatedInitialized, kNotAssigned,
+                   Interface::NewConst());
       VariableProxy* proxy = factory()->NewVariableProxy(fvar);
       VariableDeclaration* fvar_declaration = factory()->NewVariableDeclaration(
           proxy, fvar_mode, scope_, RelocInfo::kNoPosition);
@@ -3577,24 +3583,14 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
     }
   }
 
-  FunctionLiteral::IsGeneratorFlag generator = is_generator
-      ? FunctionLiteral::kIsGenerator
-      : FunctionLiteral::kNotGenerator;
-  FunctionLiteral* function_literal =
-      factory()->NewFunctionLiteral(function_name,
-                                    ast_value_factory_,
-                                    scope,
-                                    body,
-                                    materialized_literal_count,
-                                    expected_property_count,
-                                    handler_count,
-                                    num_parameters,
-                                    duplicate_parameters,
-                                    function_type,
-                                    FunctionLiteral::kIsFunction,
-                                    parenthesized,
-                                    generator,
-                                    pos);
+  FunctionLiteral::KindFlag kind = is_generator
+                                       ? FunctionLiteral::kGeneratorFunction
+                                       : FunctionLiteral::kNormalFunction;
+  FunctionLiteral* function_literal = factory()->NewFunctionLiteral(
+      function_name, ast_value_factory_, scope, body,
+      materialized_literal_count, expected_property_count, handler_count,
+      num_parameters, duplicate_parameters, function_type,
+      FunctionLiteral::kIsFunction, parenthesized, kind, pos);
   function_literal->set_function_token_position(function_token_pos);
   function_literal->set_ast_properties(&ast_properties);
   function_literal->set_dont_optimize_reason(dont_optimize_reason);

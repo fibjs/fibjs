@@ -43,6 +43,31 @@ rm src/ia32/*.cc
 cp $V8_PATH/src/ia32/*.h src/ia32/
 cp $V8_PATH/src/ia32/*.cc src/ia32/
 
+rm src/compiler/*.h
+rm src/compiler/*.cc
+cp $V8_PATH/src/compiler/*.h src/compiler/
+cp $V8_PATH/src/compiler/*.cc src/compiler/
+
+rm src/compiler/arm/*.h
+rm src/compiler/arm/*.cc
+cp $V8_PATH/src/compiler/arm/*.h src/compiler/arm/
+cp $V8_PATH/src/compiler/arm/*.cc src/compiler/arm/
+
+rm src/compiler/arm64/*.h
+rm src/compiler/arm64/*.cc
+cp $V8_PATH/src/compiler/arm64/*.h src/compiler/arm64/
+cp $V8_PATH/src/compiler/arm64/*.cc src/compiler/arm64/
+
+rm src/compiler/ia32/*.h
+rm src/compiler/ia32/*.cc
+cp $V8_PATH/src/compiler/ia32/*.h src/compiler/ia32/
+cp $V8_PATH/src/compiler/ia32/*.cc src/compiler/ia32/
+
+rm src/compiler/x64/*.h
+rm src/compiler/x64/*.cc
+cp $V8_PATH/src/compiler/x64/*.h src/compiler/x64/
+cp $V8_PATH/src/compiler/x64/*.cc src/compiler/x64/
+
 rm src/x64/*.h
 rm src/x64/*.cc
 cp $V8_PATH/src/x64/*.h src/x64/

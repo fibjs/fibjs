@@ -9,6 +9,7 @@
 #include "src/jsregexp.h"
 #include "src/macro-assembler.h"
 #include "src/objects-visiting.h"
+#include "src/ostreams.h"
 
 namespace v8 {
 namespace internal {
@@ -639,6 +640,8 @@ void Code::CodeVerify() {
       last_gc_pc = it.rinfo()->pc();
     }
   }
+  CHECK(raw_type_feedback_info() == Smi::FromInt(0) ||
+        raw_type_feedback_info()->IsSmi() == IsCodeStubOrIC());
 }
 
 

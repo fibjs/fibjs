@@ -10,6 +10,7 @@
 #include "src/allocation.h"
 #include "src/assert-scope.h"
 #include "src/counters.h"
+#include "src/gc-tracer.h"
 #include "src/globals.h"
 #include "src/incremental-marking.h"
 #include "src/list.h"
@@ -78,33 +79,24 @@ namespace internal {
   V(Map, sliced_string_map, SlicedStringMap)                                   \
   V(Map, sliced_ascii_string_map, SlicedAsciiStringMap)                        \
   V(Map, external_string_map, ExternalStringMap)                               \
-  V(Map,                                                                       \
-    external_string_with_one_byte_data_map,                                    \
+  V(Map, external_string_with_one_byte_data_map,                               \
     ExternalStringWithOneByteDataMap)                                          \
   V(Map, external_ascii_string_map, ExternalAsciiStringMap)                    \
   V(Map, short_external_string_map, ShortExternalStringMap)                    \
-  V(Map,                                                                       \
-    short_external_string_with_one_byte_data_map,                              \
+  V(Map, short_external_string_with_one_byte_data_map,                         \
     ShortExternalStringWithOneByteDataMap)                                     \
   V(Map, internalized_string_map, InternalizedStringMap)                       \
   V(Map, ascii_internalized_string_map, AsciiInternalizedStringMap)            \
-  V(Map,                                                                       \
-    external_internalized_string_map,                                          \
-    ExternalInternalizedStringMap)                                             \
-  V(Map,                                                                       \
-    external_internalized_string_with_one_byte_data_map,                       \
+  V(Map, external_internalized_string_map, ExternalInternalizedStringMap)      \
+  V(Map, external_internalized_string_with_one_byte_data_map,                  \
     ExternalInternalizedStringWithOneByteDataMap)                              \
-  V(Map,                                                                       \
-    external_ascii_internalized_string_map,                                    \
+  V(Map, external_ascii_internalized_string_map,                               \
     ExternalAsciiInternalizedStringMap)                                        \
-  V(Map,                                                                       \
-    short_external_internalized_string_map,                                    \
+  V(Map, short_external_internalized_string_map,                               \
     ShortExternalInternalizedStringMap)                                        \
-  V(Map,                                                                       \
-    short_external_internalized_string_with_one_byte_data_map,                 \
+  V(Map, short_external_internalized_string_with_one_byte_data_map,            \
     ShortExternalInternalizedStringWithOneByteDataMap)                         \
-  V(Map,                                                                       \
-    short_external_ascii_internalized_string_map,                              \
+  V(Map, short_external_ascii_internalized_string_map,                         \
     ShortExternalAsciiInternalizedStringMap)                                   \
   V(Map, short_external_ascii_string_map, ShortExternalAsciiStringMap)         \
   V(Map, undetectable_string_map, UndetectableStringMap)                       \
@@ -118,20 +110,16 @@ namespace internal {
   V(Map, external_float32_array_map, ExternalFloat32ArrayMap)                  \
   V(Map, external_float64_array_map, ExternalFloat64ArrayMap)                  \
   V(Map, external_uint8_clamped_array_map, ExternalUint8ClampedArrayMap)       \
-  V(ExternalArray, empty_external_int8_array,                                  \
-      EmptyExternalInt8Array)                                                  \
-  V(ExternalArray, empty_external_uint8_array,                                 \
-      EmptyExternalUint8Array)                                                 \
+  V(ExternalArray, empty_external_int8_array, EmptyExternalInt8Array)          \
+  V(ExternalArray, empty_external_uint8_array, EmptyExternalUint8Array)        \
   V(ExternalArray, empty_external_int16_array, EmptyExternalInt16Array)        \
-  V(ExternalArray, empty_external_uint16_array,                                \
-      EmptyExternalUint16Array)                                                \
+  V(ExternalArray, empty_external_uint16_array, EmptyExternalUint16Array)      \
   V(ExternalArray, empty_external_int32_array, EmptyExternalInt32Array)        \
-  V(ExternalArray, empty_external_uint32_array,                                \
-      EmptyExternalUint32Array)                                                \
+  V(ExternalArray, empty_external_uint32_array, EmptyExternalUint32Array)      \
   V(ExternalArray, empty_external_float32_array, EmptyExternalFloat32Array)    \
   V(ExternalArray, empty_external_float64_array, EmptyExternalFloat64Array)    \
   V(ExternalArray, empty_external_uint8_clamped_array,                         \
-      EmptyExternalUint8ClampedArray)                                          \
+    EmptyExternalUint8ClampedArray)                                            \
   V(Map, fixed_uint8_array_map, FixedUint8ArrayMap)                            \
   V(Map, fixed_int8_array_map, FixedInt8ArrayMap)                              \
   V(Map, fixed_uint16_array_map, FixedUint16ArrayMap)                          \
@@ -150,7 +138,7 @@ namespace internal {
   V(FixedTypedArrayBase, empty_fixed_float32_array, EmptyFixedFloat32Array)    \
   V(FixedTypedArrayBase, empty_fixed_float64_array, EmptyFixedFloat64Array)    \
   V(FixedTypedArrayBase, empty_fixed_uint8_clamped_array,                      \
-      EmptyFixedUint8ClampedArray)                                             \
+    EmptyFixedUint8ClampedArray)                                               \
   V(Map, sloppy_arguments_elements_map, SloppyArgumentsElementsMap)            \
   V(Map, function_context_map, FunctionContextMap)                             \
   V(Map, catch_context_map, CatchContextMap)                                   \
@@ -190,12 +178,13 @@ namespace internal {
   V(Symbol, nonexistent_symbol, NonExistentSymbol)                             \
   V(Symbol, elements_transition_symbol, ElementsTransitionSymbol)              \
   V(SeededNumberDictionary, empty_slow_element_dictionary,                     \
-      EmptySlowElementDictionary)                                              \
+    EmptySlowElementDictionary)                                                \
   V(Symbol, observed_symbol, ObservedSymbol)                                   \
   V(Symbol, uninitialized_symbol, UninitializedSymbol)                         \
   V(Symbol, megamorphic_symbol, MegamorphicSymbol)                             \
   V(Symbol, stack_trace_symbol, StackTraceSymbol)                              \
   V(Symbol, detailed_stack_trace_symbol, DetailedStackTraceSymbol)             \
+  V(Symbol, normal_ic_symbol, NormalICSymbol)                                  \
   V(FixedArray, materialized_objects, MaterializedObjects)                     \
   V(FixedArray, allocation_sites_scratchpad, AllocationSitesScratchpad)        \
   V(FixedArray, microtask_queue, MicrotaskQueue)
@@ -266,96 +255,94 @@ namespace internal {
   V(foreign_map)                          \
   V(neander_map)
 
-#define INTERNALIZED_STRING_LIST(V)                                      \
-  V(Array_string, "Array")                                               \
-  V(Object_string, "Object")                                             \
-  V(proto_string, "__proto__")                                           \
-  V(arguments_string, "arguments")                                       \
-  V(Arguments_string, "Arguments")                                       \
-  V(call_string, "call")                                                 \
-  V(apply_string, "apply")                                               \
-  V(caller_string, "caller")                                             \
-  V(boolean_string, "boolean")                                           \
-  V(Boolean_string, "Boolean")                                           \
-  V(callee_string, "callee")                                             \
-  V(constructor_string, "constructor")                                   \
-  V(dot_result_string, ".result")                                        \
-  V(dot_for_string, ".for.")                                             \
-  V(eval_string, "eval")                                                 \
-  V(empty_string, "")                                                    \
-  V(function_string, "function")                                         \
-  V(length_string, "length")                                             \
-  V(name_string, "name")                                                 \
-  V(null_string, "null")                                                 \
-  V(number_string, "number")                                             \
-  V(Number_string, "Number")                                             \
-  V(nan_string, "NaN")                                                   \
-  V(RegExp_string, "RegExp")                                             \
-  V(source_string, "source")                                             \
-  V(source_url_string, "source_url")                                     \
-  V(source_mapping_url_string, "source_mapping_url")                     \
-  V(global_string, "global")                                             \
-  V(ignore_case_string, "ignoreCase")                                    \
-  V(multiline_string, "multiline")                                       \
-  V(input_string, "input")                                               \
-  V(index_string, "index")                                               \
-  V(last_index_string, "lastIndex")                                      \
-  V(object_string, "object")                                             \
-  V(literals_string, "literals")                                         \
-  V(prototype_string, "prototype")                                       \
-  V(string_string, "string")                                             \
-  V(String_string, "String")                                             \
-  V(symbol_string, "symbol")                                             \
-  V(Symbol_string, "Symbol")                                             \
-  V(for_string, "for")                                                   \
-  V(for_api_string, "for_api")                                           \
-  V(for_intern_string, "for_intern")                                     \
-  V(private_api_string, "private_api")                                   \
-  V(private_intern_string, "private_intern")                             \
-  V(Date_string, "Date")                                                 \
-  V(to_string_string, "toString")                                        \
-  V(char_at_string, "CharAt")                                            \
-  V(undefined_string, "undefined")                                       \
-  V(value_of_string, "valueOf")                                          \
-  V(stack_string, "stack")                                               \
-  V(toJSON_string, "toJSON")                                             \
-  V(InitializeVarGlobal_string, "InitializeVarGlobal")                   \
-  V(InitializeConstGlobal_string, "InitializeConstGlobal")               \
-  V(KeyedLoadElementMonomorphic_string,                                  \
-    "KeyedLoadElementMonomorphic")                                       \
-  V(KeyedStoreElementMonomorphic_string,                                 \
-    "KeyedStoreElementMonomorphic")                                      \
-  V(stack_overflow_string, "kStackOverflowBoilerplate")                  \
-  V(illegal_access_string, "illegal access")                             \
-  V(get_string, "get")                                                   \
-  V(set_string, "set")                                                   \
-  V(map_field_string, "%map")                                            \
-  V(elements_field_string, "%elements")                                  \
-  V(length_field_string, "%length")                                      \
-  V(cell_value_string, "%cell_value")                                    \
-  V(function_class_string, "Function")                                   \
-  V(illegal_argument_string, "illegal argument")                         \
-  V(space_string, " ")                                                   \
-  V(exec_string, "exec")                                                 \
-  V(zero_string, "0")                                                    \
-  V(global_eval_string, "GlobalEval")                                    \
-  V(identity_hash_string, "v8::IdentityHash")                            \
-  V(closure_string, "(closure)")                                         \
-  V(dot_string, ".")                                                     \
-  V(compare_ic_string, "==")                                             \
-  V(strict_compare_ic_string, "===")                                     \
-  V(infinity_string, "Infinity")                                         \
-  V(minus_infinity_string, "-Infinity")                                  \
-  V(query_colon_string, "(?:)")                                          \
-  V(Generator_string, "Generator")                                       \
-  V(throw_string, "throw")                                               \
-  V(done_string, "done")                                                 \
-  V(value_string, "value")                                               \
-  V(next_string, "next")                                                 \
-  V(byte_length_string, "byteLength")                                    \
-  V(byte_offset_string, "byteOffset")                                    \
-  V(buffer_string, "buffer")                                             \
-  V(intl_initialized_marker_string, "v8::intl_initialized_marker")       \
+#define INTERNALIZED_STRING_LIST(V)                                \
+  V(Array_string, "Array")                                         \
+  V(Object_string, "Object")                                       \
+  V(proto_string, "__proto__")                                     \
+  V(arguments_string, "arguments")                                 \
+  V(Arguments_string, "Arguments")                                 \
+  V(call_string, "call")                                           \
+  V(apply_string, "apply")                                         \
+  V(caller_string, "caller")                                       \
+  V(boolean_string, "boolean")                                     \
+  V(Boolean_string, "Boolean")                                     \
+  V(callee_string, "callee")                                       \
+  V(constructor_string, "constructor")                             \
+  V(dot_result_string, ".result")                                  \
+  V(dot_for_string, ".for.")                                       \
+  V(eval_string, "eval")                                           \
+  V(empty_string, "")                                              \
+  V(function_string, "function")                                   \
+  V(length_string, "length")                                       \
+  V(name_string, "name")                                           \
+  V(null_string, "null")                                           \
+  V(number_string, "number")                                       \
+  V(Number_string, "Number")                                       \
+  V(nan_string, "NaN")                                             \
+  V(RegExp_string, "RegExp")                                       \
+  V(source_string, "source")                                       \
+  V(source_url_string, "source_url")                               \
+  V(source_mapping_url_string, "source_mapping_url")               \
+  V(global_string, "global")                                       \
+  V(ignore_case_string, "ignoreCase")                              \
+  V(multiline_string, "multiline")                                 \
+  V(input_string, "input")                                         \
+  V(index_string, "index")                                         \
+  V(last_index_string, "lastIndex")                                \
+  V(object_string, "object")                                       \
+  V(literals_string, "literals")                                   \
+  V(prototype_string, "prototype")                                 \
+  V(string_string, "string")                                       \
+  V(String_string, "String")                                       \
+  V(symbol_string, "symbol")                                       \
+  V(Symbol_string, "Symbol")                                       \
+  V(for_string, "for")                                             \
+  V(for_api_string, "for_api")                                     \
+  V(for_intern_string, "for_intern")                               \
+  V(private_api_string, "private_api")                             \
+  V(private_intern_string, "private_intern")                       \
+  V(Date_string, "Date")                                           \
+  V(to_string_string, "toString")                                  \
+  V(char_at_string, "CharAt")                                      \
+  V(undefined_string, "undefined")                                 \
+  V(value_of_string, "valueOf")                                    \
+  V(stack_string, "stack")                                         \
+  V(toJSON_string, "toJSON")                                       \
+  V(InitializeVarGlobal_string, "InitializeVarGlobal")             \
+  V(InitializeConstGlobal_string, "InitializeConstGlobal")         \
+  V(KeyedLoadMonomorphic_string, "KeyedLoadMonomorphic")           \
+  V(KeyedStoreMonomorphic_string, "KeyedStoreMonomorphic")         \
+  V(stack_overflow_string, "kStackOverflowBoilerplate")            \
+  V(illegal_access_string, "illegal access")                       \
+  V(get_string, "get")                                             \
+  V(set_string, "set")                                             \
+  V(map_field_string, "%map")                                      \
+  V(elements_field_string, "%elements")                            \
+  V(length_field_string, "%length")                                \
+  V(cell_value_string, "%cell_value")                              \
+  V(function_class_string, "Function")                             \
+  V(illegal_argument_string, "illegal argument")                   \
+  V(space_string, " ")                                             \
+  V(exec_string, "exec")                                           \
+  V(zero_string, "0")                                              \
+  V(global_eval_string, "GlobalEval")                              \
+  V(identity_hash_string, "v8::IdentityHash")                      \
+  V(closure_string, "(closure)")                                   \
+  V(dot_string, ".")                                               \
+  V(compare_ic_string, "==")                                       \
+  V(strict_compare_ic_string, "===")                               \
+  V(infinity_string, "Infinity")                                   \
+  V(minus_infinity_string, "-Infinity")                            \
+  V(query_colon_string, "(?:)")                                    \
+  V(Generator_string, "Generator")                                 \
+  V(throw_string, "throw")                                         \
+  V(done_string, "done")                                           \
+  V(value_string, "value")                                         \
+  V(next_string, "next")                                           \
+  V(byte_length_string, "byteLength")                              \
+  V(byte_offset_string, "byteOffset")                              \
+  V(buffer_string, "buffer")                                       \
+  V(intl_initialized_marker_string, "v8::intl_initialized_marker") \
   V(intl_impl_object_string, "v8::intl_object")
 
 // Forward declarations.
@@ -545,126 +532,6 @@ class ExternalStringTable {
 enum ArrayStorageAllocationMode {
   DONT_INITIALIZE_ARRAY_ELEMENTS,
   INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE
-};
-
-
-// GCTracer collects and prints ONE line after each garbage collector
-// invocation IFF --trace_gc is used.
-
-class GCTracer BASE_EMBEDDED {
- public:
-  class Scope BASE_EMBEDDED {
-   public:
-    enum ScopeId {
-      EXTERNAL,
-      MC_MARK,
-      MC_SWEEP,
-      MC_SWEEP_NEWSPACE,
-      MC_SWEEP_OLDSPACE,
-      MC_SWEEP_CODE,
-      MC_SWEEP_CELL,
-      MC_SWEEP_MAP,
-      MC_EVACUATE_PAGES,
-      MC_UPDATE_NEW_TO_NEW_POINTERS,
-      MC_UPDATE_ROOT_TO_NEW_POINTERS,
-      MC_UPDATE_OLD_TO_NEW_POINTERS,
-      MC_UPDATE_POINTERS_TO_EVACUATED,
-      MC_UPDATE_POINTERS_BETWEEN_EVACUATED,
-      MC_UPDATE_MISC_POINTERS,
-      MC_WEAKCOLLECTION_PROCESS,
-      MC_WEAKCOLLECTION_CLEAR,
-      MC_FLUSH_CODE,
-      NUMBER_OF_SCOPES
-    };
-
-    Scope(GCTracer* tracer, ScopeId scope)
-        : tracer_(tracer),
-        scope_(scope) {
-      start_time_ = base::OS::TimeCurrentMillis();
-    }
-
-    ~Scope() {
-      ASSERT(scope_ < NUMBER_OF_SCOPES);  // scope_ is unsigned.
-      tracer_->scopes_[scope_] += base::OS::TimeCurrentMillis() - start_time_;
-    }
-
-   private:
-    GCTracer* tracer_;
-    ScopeId scope_;
-    double start_time_;
-
-    DISALLOW_COPY_AND_ASSIGN(Scope);
-  };
-
-  explicit GCTracer(Heap* heap);
-
-  // Start collecting data.
-  void start(GarbageCollector collector,
-             const char* gc_reason,
-             const char* collector_reason);
-
-  // Stop collecting data and print results.
-  void stop();
-
- private:
-  // Returns a string matching the collector.
-  const char* CollectorString() const;
-
-  // Print one detailed trace line in name=value format.
-  void PrintNVP() const;
-
-  // Print one trace line.
-  void Print() const;
-
-  // Timestamp set in the constructor.
-  double start_time_;
-
-  // Timestamp set in the destructor.
-  double end_time_;
-
-  // Size of objects in heap set in constructor.
-  intptr_t start_object_size_;
-
-  // Size of objects in heap set in destructor.
-  intptr_t end_object_size_;
-
-  // Size of memory allocated from OS set in constructor.
-  intptr_t start_memory_size_;
-
-  // Size of memory allocated from OS set in destructor.
-  intptr_t end_memory_size_;
-
-  // Type of collector.
-  GarbageCollector collector_;
-
-  // Amounts of time spent in different scopes during GC.
-  double scopes_[Scope::NUMBER_OF_SCOPES];
-
-  // Total amount of space either wasted or contained in one of free lists
-  // before the current GC.
-  intptr_t in_free_list_or_wasted_before_gc_;
-
-  // Difference between space used in the heap at the beginning of the current
-  // collection and the end of the previous collection.
-  intptr_t allocated_since_last_gc_;
-
-  // Amount of time spent in mutator that is time elapsed between end of the
-  // previous collection and the beginning of the current one.
-  double spent_in_mutator_;
-
-  // Incremental marking steps counters.
-  int steps_count_;
-  double steps_took_;
-  double longest_step_;
-  int steps_count_since_last_gc_;
-  double steps_took_since_last_gc_;
-
-  Heap* heap_;
-
-  const char* gc_reason_;
-  const char* collector_reason_;
-
-  DISALLOW_COPY_AND_ASSIGN(GCTracer);
 };
 
 
@@ -1204,14 +1071,13 @@ class Heap {
 
   // The executable size has to be a multiple of Page::kPageSize.
   // Sizes are in MB.
-  static const int kMaxExecutableSizeLowMemoryDevice =
-      128 * kPointerMultiplier;
+  static const int kMaxExecutableSizeLowMemoryDevice = 96 * kPointerMultiplier;
   static const int kMaxExecutableSizeMediumMemoryDevice =
-      256 * kPointerMultiplier;
+      192 * kPointerMultiplier;
   static const int kMaxExecutableSizeHighMemoryDevice =
-      512 * kPointerMultiplier;
+      256 * kPointerMultiplier;
   static const int kMaxExecutableSizeHugeMemoryDevice =
-      700 * kPointerMultiplier;
+      256 * kPointerMultiplier;
 
   intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size,
                                         int freed_global_handles);
@@ -1368,10 +1234,8 @@ class Heap {
   }
 
   // Update GC statistics that are tracked on the Heap.
-  void UpdateGCStatistics(double start_time,
-                          double end_time,
-                          double spent_in_mutator,
-                          double marking_time);
+  void UpdateCumulativeGCStatistics(double duration, double spent_in_mutator,
+                                    double marking_time);
 
   // Returns maximum GC pause.
   double get_max_gc_pause() { return max_gc_pause_; }
@@ -1381,24 +1245,6 @@ class Heap {
 
   // Returns minimal interval between two subsequent collections.
   double get_min_in_mutator() { return min_in_mutator_; }
-
-  // TODO(hpayer): remove, should be handled by GCTracer
-  void AddMarkingTime(double marking_time) {
-    marking_time_ += marking_time;
-  }
-
-  double marking_time() const {
-    return marking_time_;
-  }
-
-  // TODO(hpayer): remove, should be handled by GCTracer
-  void AddSweepingTime(double sweeping_time) {
-    sweeping_time_ += sweeping_time;
-  }
-
-  double sweeping_time() const {
-    return sweeping_time_;
-  }
 
   MarkCompactCollector* mark_compact_collector() {
     return &mark_compact_collector_;
@@ -2199,9 +2045,6 @@ class Heap {
     return heap_size_mb / kMbPerMs;
   }
 
-  // Returns true if no more GC work is left.
-  bool IdleGlobalGC();
-
   void AdvanceIdleIncrementalMarking(intptr_t step_size);
 
   void ClearObjectStats(bool clear_last_time_stats = false);
@@ -2240,11 +2083,6 @@ class Heap {
 
   // Minimal interval between two subsequent collections.
   double min_in_mutator_;
-
-  // Size of objects alive after last GC.
-  intptr_t alive_after_last_gc_;
-
-  double last_gc_end_timestamp_;
 
   // Cumulative GC time spent in marking
   double marking_time_;

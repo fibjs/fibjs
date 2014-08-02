@@ -98,12 +98,9 @@ static void ProbeTable(Isolate* isolate,
 }
 
 
-void StubCompiler::GenerateDictionaryNegativeLookup(MacroAssembler* masm,
-                                                    Label* miss_label,
-                                                    Register receiver,
-                                                    Handle<Name> name,
-                                                    Register scratch0,
-                                                    Register scratch1) {
+void PropertyHandlerCompiler::GenerateDictionaryNegativeLookup(
+    MacroAssembler* masm, Label* miss_label, Register receiver,
+    Handle<Name> name, Register scratch0, Register scratch1) {
   ASSERT(name->IsUniqueName());
   ASSERT(!receiver.is(scratch0));
   Counters* counters = masm->isolate()->counters();
@@ -247,30 +244,8 @@ void StubCache::GenerateProbe(MacroAssembler* masm,
 }
 
 
-void StubCompiler::GenerateLoadGlobalFunctionPrototype(MacroAssembler* masm,
-                                                       int index,
-                                                       Register prototype) {
-  // Load the global or builtins object from the current context.
-  __ ldr(prototype,
-         MemOperand(cp, Context::SlotOffset(Context::GLOBAL_OBJECT_INDEX)));
-  // Load the native context from the global or builtins object.
-  __ ldr(prototype,
-         FieldMemOperand(prototype, GlobalObject::kNativeContextOffset));
-  // Load the function from the native context.
-  __ ldr(prototype, MemOperand(prototype, Context::SlotOffset(index)));
-  // Load the initial map.  The global functions all have initial maps.
-  __ ldr(prototype,
-         FieldMemOperand(prototype, JSFunction::kPrototypeOrInitialMapOffset));
-  // Load the prototype from the initial map.
-  __ ldr(prototype, FieldMemOperand(prototype, Map::kPrototypeOffset));
-}
-
-
-void StubCompiler::GenerateDirectLoadGlobalFunctionPrototype(
-    MacroAssembler* masm,
-    int index,
-    Register prototype,
-    Label* miss) {
+void NamedLoadHandlerCompiler::GenerateDirectLoadGlobalFunctionPrototype(
+    MacroAssembler* masm, int index, Register prototype, Label* miss) {
   Isolate* isolate = masm->isolate();
   // Get the global function with the given index.
   Handle<JSFunction> function(
@@ -293,46 +268,9 @@ void StubCompiler::GenerateDirectLoadGlobalFunctionPrototype(
 }
 
 
-void StubCompiler::GenerateFastPropertyLoad(MacroAssembler* masm,
-                                            Register dst,
-                                            Register src,
-                                            bool inobject,
-                                            int index,
-                                            Representation representation) {
-  ASSERT(!representation.IsDouble());
-  int offset = index * kPointerSize;
-  if (!inobject) {
-    // Calculate the offset into the properties array.
-    offset = offset + FixedArray::kHeaderSize;
-    __ ldr(dst, FieldMemOperand(src, JSObject::kPropertiesOffset));
-    src = dst;
-  }
-  __ ldr(dst, FieldMemOperand(src, offset));
-}
-
-
-void StubCompiler::GenerateLoadArrayLength(MacroAssembler* masm,
-                                           Register receiver,
-                                           Register scratch,
-                                           Label* miss_label) {
-  // Check that the receiver isn't a smi.
-  __ JumpIfSmi(receiver, miss_label);
-
-  // Check that the object is a JS array.
-  __ CompareObjectType(receiver, scratch, scratch, JS_ARRAY_TYPE);
-  __ b(ne, miss_label);
-
-  // Load length directly from the JS array.
-  __ ldr(r0, FieldMemOperand(receiver, JSArray::kLengthOffset));
-  __ Ret();
-}
-
-
-void StubCompiler::GenerateLoadFunctionPrototype(MacroAssembler* masm,
-                                                 Register receiver,
-                                                 Register scratch1,
-                                                 Register scratch2,
-                                                 Label* miss_label) {
+void NamedLoadHandlerCompiler::GenerateLoadFunctionPrototype(
+    MacroAssembler* masm, Register receiver, Register scratch1,
+    Register scratch2, Label* miss_label) {
   __ TryGetFunctionPrototype(receiver, scratch1, scratch2, miss_label);
   __ mov(r0, scratch1);
   __ Ret();
@@ -342,11 +280,9 @@ void StubCompiler::GenerateLoadFunctionPrototype(MacroAssembler* masm,
 // Generate code to check that a global property cell is empty. Create
 // the property cell at compilation time if no cell exists for the
 // property.
-void StubCompiler::GenerateCheckPropertyCell(MacroAssembler* masm,
-                                             Handle<JSGlobalObject> global,
-                                             Handle<Name> name,
-                                             Register scratch,
-                                             Label* miss) {
+void PropertyHandlerCompiler::GenerateCheckPropertyCell(
+    MacroAssembler* masm, Handle<JSGlobalObject> global, Handle<Name> name,
+    Register scratch, Label* miss) {
   Handle<Cell> cell = JSGlobalObject::EnsurePropertyCell(global, name);
   ASSERT(cell->value()->IsTheHole());
   __ mov(scratch, Operand(cell));
@@ -357,12 +293,9 @@ void StubCompiler::GenerateCheckPropertyCell(MacroAssembler* masm,
 }
 
 
-void StoreStubCompiler::GenerateNegativeHolderLookup(
-    MacroAssembler* masm,
-    Handle<JSObject> holder,
-    Register holder_reg,
-    Handle<Name> name,
-    Label* miss) {
+void NamedStoreHandlerCompiler::GenerateNegativeHolderLookup(
+    MacroAssembler* masm, Handle<JSObject> holder, Register holder_reg,
+    Handle<Name> name, Label* miss) {
   if (holder->IsJSGlobalObject()) {
     GenerateCheckPropertyCell(
         masm, Handle<JSGlobalObject>::cast(holder), name, scratch1(), miss);
@@ -377,19 +310,11 @@ void StoreStubCompiler::GenerateNegativeHolderLookup(
 // When leaving generated code after success, the receiver_reg and name_reg
 // may be clobbered.  Upon branch to miss_label, the receiver and name
 // registers have their original values.
-void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
-                                                Handle<JSObject> object,
-                                                LookupResult* lookup,
-                                                Handle<Map> transition,
-                                                Handle<Name> name,
-                                                Register receiver_reg,
-                                                Register storage_reg,
-                                                Register value_reg,
-                                                Register scratch1,
-                                                Register scratch2,
-                                                Register scratch3,
-                                                Label* miss_label,
-                                                Label* slow) {
+void NamedStoreHandlerCompiler::GenerateStoreTransition(
+    MacroAssembler* masm, LookupResult* lookup, Handle<Map> transition,
+    Handle<Name> name, Register receiver_reg, Register storage_reg,
+    Register value_reg, Register scratch1, Register scratch2, Register scratch3,
+    Label* miss_label, Label* slow) {
   // r0 : value
   Label exit;
 
@@ -445,13 +370,12 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
     __ vstr(d0, FieldMemOperand(storage_reg, HeapNumber::kValueOffset));
   }
 
-  // Stub never generated for non-global objects that require access
-  // checks.
-  ASSERT(object->IsJSGlobalProxy() || !object->IsAccessCheckNeeded());
+  // Stub never generated for objects that require access checks.
+  ASSERT(!transition->is_access_check_needed());
 
   // Perform map transition for the receiver if necessary.
   if (details.type() == FIELD &&
-      object->map()->unused_property_fields() == 0) {
+      Map::cast(transition->GetBackPointer())->unused_property_fields() == 0) {
     // The properties must be extended before we can store the value.
     // We jump to a runtime call that extends the properties array.
     __ push(receiver_reg);
@@ -491,14 +415,14 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
   // Adjust for the number of properties stored in the object. Even in the
   // face of a transition we can use the old map here because the size of the
   // object and the number of in-object properties is not going to change.
-  index -= object->map()->inobject_properties();
+  index -= transition->inobject_properties();
 
   // TODO(verwaest): Share this code as a code stub.
   SmiCheck smi_check = representation.IsTagged()
       ? INLINE_SMI_CHECK : OMIT_SMI_CHECK;
   if (index < 0) {
     // Set the property straight into the object.
-    int offset = object->map()->instance_size() + (index * kPointerSize);
+    int offset = transition->instance_size() + (index * kPointerSize);
     if (representation.IsDouble()) {
       __ str(storage_reg, FieldMemOperand(receiver_reg, offset));
     } else {
@@ -558,15 +482,10 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
 // When leaving generated code after success, the receiver_reg and name_reg
 // may be clobbered.  Upon branch to miss_label, the receiver and name
 // registers have their original values.
-void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
-                                           Handle<JSObject> object,
-                                           LookupResult* lookup,
-                                           Register receiver_reg,
-                                           Register name_reg,
-                                           Register value_reg,
-                                           Register scratch1,
-                                           Register scratch2,
-                                           Label* miss_label) {
+void NamedStoreHandlerCompiler::GenerateStoreField(
+    MacroAssembler* masm, Handle<JSObject> object, LookupResult* lookup,
+    Register receiver_reg, Register name_reg, Register value_reg,
+    Register scratch1, Register scratch2, Label* miss_label) {
   // r0 : value
   Label exit;
 
@@ -684,9 +603,9 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
 }
 
 
-void StoreStubCompiler::GenerateRestoreName(MacroAssembler* masm,
-                                            Label* label,
-                                            Handle<Name> name) {
+void NamedStoreHandlerCompiler::GenerateRestoreName(MacroAssembler* masm,
+                                                    Label* label,
+                                                    Handle<Name> name) {
   if (!label->is_unused()) {
     __ bind(label);
     __ mov(this->name(), Operand(name));
@@ -699,11 +618,11 @@ static void PushInterceptorArguments(MacroAssembler* masm,
                                      Register holder,
                                      Register name,
                                      Handle<JSObject> holder_obj) {
-  STATIC_ASSERT(StubCache::kInterceptorArgsNameIndex == 0);
-  STATIC_ASSERT(StubCache::kInterceptorArgsInfoIndex == 1);
-  STATIC_ASSERT(StubCache::kInterceptorArgsThisIndex == 2);
-  STATIC_ASSERT(StubCache::kInterceptorArgsHolderIndex == 3);
-  STATIC_ASSERT(StubCache::kInterceptorArgsLength == 4);
+  STATIC_ASSERT(NamedLoadHandlerCompiler::kInterceptorArgsNameIndex == 0);
+  STATIC_ASSERT(NamedLoadHandlerCompiler::kInterceptorArgsInfoIndex == 1);
+  STATIC_ASSERT(NamedLoadHandlerCompiler::kInterceptorArgsThisIndex == 2);
+  STATIC_ASSERT(NamedLoadHandlerCompiler::kInterceptorArgsHolderIndex == 3);
+  STATIC_ASSERT(NamedLoadHandlerCompiler::kInterceptorArgsLength == 4);
   __ push(name);
   Handle<InterceptorInfo> interceptor(holder_obj->GetNamedInterceptor());
   ASSERT(!masm->isolate()->heap()->InNewSpace(*interceptor));
@@ -723,21 +642,16 @@ static void CompileCallLoadPropertyWithInterceptor(
     Handle<JSObject> holder_obj,
     IC::UtilityId id) {
   PushInterceptorArguments(masm, receiver, holder, name, holder_obj);
-  __ CallExternalReference(
-      ExternalReference(IC_Utility(id), masm->isolate()),
-      StubCache::kInterceptorArgsLength);
+  __ CallExternalReference(ExternalReference(IC_Utility(id), masm->isolate()),
+                           NamedLoadHandlerCompiler::kInterceptorArgsLength);
 }
 
 
 // Generate call to api function.
-void StubCompiler::GenerateFastApiCall(MacroAssembler* masm,
-                                       const CallOptimization& optimization,
-                                       Handle<Map> receiver_map,
-                                       Register receiver,
-                                       Register scratch_in,
-                                       bool is_store,
-                                       int argc,
-                                       Register* values) {
+void PropertyHandlerCompiler::GenerateFastApiCall(
+    MacroAssembler* masm, const CallOptimization& optimization,
+    Handle<Map> receiver_map, Register receiver, Register scratch_in,
+    bool is_store, int argc, Register* values) {
   ASSERT(!receiver.is(scratch_in));
   __ push(receiver);
   // Write the arguments to stack frame.
@@ -807,7 +721,8 @@ void StubCompiler::GenerateFastApiCall(MacroAssembler* masm,
 }
 
 
-void StubCompiler::GenerateTailCall(MacroAssembler* masm, Handle<Code> code) {
+void PropertyAccessCompiler::GenerateTailCall(MacroAssembler* masm,
+                                              Handle<Code> code) {
   __ Jump(code, RelocInfo::CODE_TARGET);
 }
 
@@ -816,16 +731,11 @@ void StubCompiler::GenerateTailCall(MacroAssembler* masm, Handle<Code> code) {
 #define __ ACCESS_MASM(masm())
 
 
-Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
-                                       Register object_reg,
-                                       Handle<JSObject> holder,
-                                       Register holder_reg,
-                                       Register scratch1,
-                                       Register scratch2,
-                                       Handle<Name> name,
-                                       Label* miss,
-                                       PrototypeCheckType check) {
-  Handle<Map> receiver_map(IC::TypeToMap(*type, isolate()));
+Register PropertyHandlerCompiler::CheckPrototypes(
+    Register object_reg, Register holder_reg, Register scratch1,
+    Register scratch2, Handle<Name> name, Label* miss,
+    PrototypeCheckType check) {
+  Handle<Map> receiver_map(IC::TypeToMap(*type(), isolate()));
 
   // Make sure there's no overlap between holder and object registers.
   ASSERT(!scratch1.is(object_reg) && !scratch1.is(holder_reg));
@@ -837,12 +747,12 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
   int depth = 0;
 
   Handle<JSObject> current = Handle<JSObject>::null();
-  if (type->IsConstant()) {
-    current = Handle<JSObject>::cast(type->AsConstant()->Value());
+  if (type()->IsConstant()) {
+    current = Handle<JSObject>::cast(type()->AsConstant()->Value());
   }
   Handle<JSObject> prototype = Handle<JSObject>::null();
   Handle<Map> current_map = receiver_map;
-  Handle<Map> holder_map(holder->map());
+  Handle<Map> holder_map(holder()->map());
   // Traverse the prototype chain and check the maps in the prototype chain for
   // fast and global objects or do negative lookup for normal objects.
   while (!current_map.is_identical_to(holder_map)) {
@@ -931,7 +841,7 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
 }
 
 
-void LoadStubCompiler::HandlerFrontendFooter(Handle<Name> name, Label* miss) {
+void NamedLoadHandlerCompiler::FrontendFooter(Handle<Name> name, Label* miss) {
   if (!miss->is_unused()) {
     Label success;
     __ b(&success);
@@ -942,7 +852,7 @@ void LoadStubCompiler::HandlerFrontendFooter(Handle<Name> name, Label* miss) {
 }
 
 
-void StoreStubCompiler::HandlerFrontendFooter(Handle<Name> name, Label* miss) {
+void NamedStoreHandlerCompiler::FrontendFooter(Handle<Name> name, Label* miss) {
   if (!miss->is_unused()) {
     Label success;
     __ b(&success);
@@ -953,17 +863,15 @@ void StoreStubCompiler::HandlerFrontendFooter(Handle<Name> name, Label* miss) {
 }
 
 
-Register LoadStubCompiler::CallbackHandlerFrontend(
-    Handle<HeapType> type,
-    Register object_reg,
-    Handle<JSObject> holder,
-    Handle<Name> name,
-    Handle<Object> callback) {
+Register NamedLoadHandlerCompiler::CallbackFrontend(Register object_reg,
+                                                    Handle<Name> name,
+                                                    Handle<Object> callback) {
   Label miss;
 
-  Register reg = HandlerFrontendHeader(type, object_reg, holder, name, &miss);
+  Register reg = FrontendHeader(object_reg, name, &miss);
 
-  if (!holder->HasFastProperties() && !holder->IsJSGlobalObject()) {
+  if (!holder()->HasFastProperties()) {
+    ASSERT(!holder()->IsGlobalObject());
     ASSERT(!reg.is(scratch2()));
     ASSERT(!reg.is(scratch3()));
     ASSERT(!reg.is(scratch4()));
@@ -994,36 +902,28 @@ Register LoadStubCompiler::CallbackHandlerFrontend(
     __ b(ne, &miss);
   }
 
-  HandlerFrontendFooter(name, &miss);
+  FrontendFooter(name, &miss);
   return reg;
 }
 
 
-void LoadStubCompiler::GenerateLoadField(Register reg,
-                                         Handle<JSObject> holder,
-                                         FieldIndex field,
-                                         Representation representation) {
+void NamedLoadHandlerCompiler::GenerateLoadField(
+    Register reg, FieldIndex field, Representation representation) {
   if (!reg.is(receiver())) __ mov(receiver(), reg);
-  if (kind() == Code::LOAD_IC) {
-    LoadFieldStub stub(isolate(), field);
-    GenerateTailCall(masm(), stub.GetCode());
-  } else {
-    KeyedLoadFieldStub stub(isolate(), field);
-    GenerateTailCall(masm(), stub.GetCode());
-  }
+  LoadFieldStub stub(isolate(), field);
+  GenerateTailCall(masm(), stub.GetCode());
 }
 
 
-void LoadStubCompiler::GenerateLoadConstant(Handle<Object> value) {
+void NamedLoadHandlerCompiler::GenerateLoadConstant(Handle<Object> value) {
   // Return the constant value.
   __ Move(r0, value);
   __ Ret();
 }
 
 
-void LoadStubCompiler::GenerateLoadCallback(
-    Register reg,
-    Handle<ExecutableAccessorInfo> callback) {
+void NamedLoadHandlerCompiler::GenerateLoadCallback(
+    Register reg, Handle<ExecutableAccessorInfo> callback) {
   // Build AccessorInfo::args_ list on the stack and push property name below
   // the exit frame to make GC aware of them and store pointers to them.
   STATIC_ASSERT(PropertyCallbackArguments::kHolderIndex == 0);
@@ -1068,14 +968,11 @@ void LoadStubCompiler::GenerateLoadCallback(
 }
 
 
-void LoadStubCompiler::GenerateLoadInterceptor(
-    Register holder_reg,
-    Handle<Object> object,
-    Handle<JSObject> interceptor_holder,
-    LookupResult* lookup,
-    Handle<Name> name) {
-  ASSERT(interceptor_holder->HasNamedInterceptor());
-  ASSERT(!interceptor_holder->GetNamedInterceptor()->getter()->IsUndefined());
+void NamedLoadHandlerCompiler::GenerateLoadInterceptor(Register holder_reg,
+                                                       LookupResult* lookup,
+                                                       Handle<Name> name) {
+  ASSERT(holder()->HasNamedInterceptor());
+  ASSERT(!holder()->GetNamedInterceptor()->getter()->IsUndefined());
 
   // So far the most popular follow ups for interceptor loads are FIELD
   // and CALLBACKS, so inline only them, other cases may be added
@@ -1086,10 +983,12 @@ void LoadStubCompiler::GenerateLoadInterceptor(
       compile_followup_inline = true;
     } else if (lookup->type() == CALLBACKS &&
                lookup->GetCallbackObject()->IsExecutableAccessorInfo()) {
-      ExecutableAccessorInfo* callback =
-          ExecutableAccessorInfo::cast(lookup->GetCallbackObject());
-      compile_followup_inline = callback->getter() != NULL &&
-          callback->IsCompatibleReceiver(*object);
+      Handle<ExecutableAccessorInfo> callback(
+          ExecutableAccessorInfo::cast(lookup->GetCallbackObject()));
+      compile_followup_inline =
+          callback->getter() != NULL &&
+          ExecutableAccessorInfo::IsCompatibleReceiverType(isolate(), callback,
+                                                           type());
     }
   }
 
@@ -1103,7 +1002,7 @@ void LoadStubCompiler::GenerateLoadInterceptor(
     // the holder and it is needed should the interceptor return without any
     // result. The CALLBACKS case needs the receiver to be passed into C++ code,
     // the FIELD case might cause a miss during the prototype check.
-    bool must_perfrom_prototype_check = *interceptor_holder != lookup->holder();
+    bool must_perfrom_prototype_check = *holder() != lookup->holder();
     bool must_preserve_receiver_reg = !receiver().is(holder_reg) &&
         (lookup->type() == CALLBACKS || must_perfrom_prototype_check);
 
@@ -1120,7 +1019,7 @@ void LoadStubCompiler::GenerateLoadInterceptor(
       // interceptor's holder has been compiled before (see a caller
       // of this method.)
       CompileCallLoadPropertyWithInterceptor(
-          masm(), receiver(), holder_reg, this->name(), interceptor_holder,
+          masm(), receiver(), holder_reg, this->name(), holder(),
           IC::kLoadPropertyWithInterceptorOnly);
 
       // Check if interceptor provided a value for property.  If it's
@@ -1141,31 +1040,26 @@ void LoadStubCompiler::GenerateLoadInterceptor(
       // Leave the internal frame.
     }
 
-    GenerateLoadPostInterceptor(holder_reg, interceptor_holder, name, lookup);
+    GenerateLoadPostInterceptor(holder_reg, name, lookup);
   } else {  // !compile_followup_inline
     // Call the runtime system to load the interceptor.
     // Check that the maps haven't changed.
-    PushInterceptorArguments(masm(), receiver(), holder_reg,
-                             this->name(), interceptor_holder);
+    PushInterceptorArguments(masm(), receiver(), holder_reg, this->name(),
+                             holder());
 
     ExternalReference ref =
         ExternalReference(IC_Utility(IC::kLoadPropertyWithInterceptor),
                           isolate());
-    __ TailCallExternalReference(ref, StubCache::kInterceptorArgsLength, 1);
+    __ TailCallExternalReference(
+        ref, NamedLoadHandlerCompiler::kInterceptorArgsLength, 1);
   }
 }
 
 
-Handle<Code> StoreStubCompiler::CompileStoreCallback(
-    Handle<JSObject> object,
-    Handle<JSObject> holder,
-    Handle<Name> name,
+Handle<Code> NamedStoreHandlerCompiler::CompileStoreCallback(
+    Handle<JSObject> object, Handle<Name> name,
     Handle<ExecutableAccessorInfo> callback) {
-  Register holder_reg = HandlerFrontend(
-      IC::CurrentTypeOf(object, isolate()), receiver(), holder, name);
-
-  // Stub never generated for non-global objects that require access checks.
-  ASSERT(holder->IsJSGlobalProxy() || !holder->IsAccessCheckNeeded());
+  Register holder_reg = Frontend(receiver(), name);
 
   __ push(receiver());  // receiver
   __ push(holder_reg);
@@ -1188,10 +1082,8 @@ Handle<Code> StoreStubCompiler::CompileStoreCallback(
 #define __ ACCESS_MASM(masm)
 
 
-void StoreStubCompiler::GenerateStoreViaSetter(
-    MacroAssembler* masm,
-    Handle<HeapType> type,
-    Register receiver,
+void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
+    MacroAssembler* masm, Handle<HeapType> type, Register receiver,
     Handle<JSFunction> setter) {
   // ----------- S t a t e -------------
   //  -- lr    : return address
@@ -1234,14 +1126,13 @@ void StoreStubCompiler::GenerateStoreViaSetter(
 #define __ ACCESS_MASM(masm())
 
 
-Handle<Code> StoreStubCompiler::CompileStoreInterceptor(
-    Handle<JSObject> object,
+Handle<Code> NamedStoreHandlerCompiler::CompileStoreInterceptor(
     Handle<Name> name) {
   __ Push(receiver(), this->name(), value());
 
   // Do tail-call to the runtime system.
-  ExternalReference store_ic_property =
-      ExternalReference(IC_Utility(IC::kStoreInterceptorProperty), isolate());
+  ExternalReference store_ic_property = ExternalReference(
+      IC_Utility(IC::kStorePropertyWithInterceptor), isolate());
   __ TailCallExternalReference(store_ic_property, 3, 1);
 
   // Return the generated code.
@@ -1249,10 +1140,9 @@ Handle<Code> StoreStubCompiler::CompileStoreInterceptor(
 }
 
 
-Handle<Code> LoadStubCompiler::CompileLoadNonexistent(Handle<HeapType> type,
-                                                      Handle<JSObject> last,
-                                                      Handle<Name> name) {
-  NonexistentHandlerFrontend(type, last, name);
+Handle<Code> NamedLoadHandlerCompiler::CompileLoadNonexistent(
+    Handle<Name> name) {
+  NonexistentFrontend(name);
 
   // Return undefined if maps of the full prototype chain are still the
   // same and no global property with this name contains a value.
@@ -1264,7 +1154,7 @@ Handle<Code> LoadStubCompiler::CompileLoadNonexistent(Handle<HeapType> type,
 }
 
 
-Register* LoadStubCompiler::registers() {
+Register* PropertyAccessCompiler::load_calling_convention() {
   // receiver, name, scratch1, scratch2, scratch3, scratch4.
   Register receiver = LoadIC::ReceiverRegister();
   Register name = LoadIC::NameRegister();
@@ -1273,47 +1163,26 @@ Register* LoadStubCompiler::registers() {
 }
 
 
-Register* KeyedLoadStubCompiler::registers() {
-  // receiver, name, scratch1, scratch2, scratch3, scratch4.
-  Register receiver = LoadIC::ReceiverRegister();
-  Register name = LoadIC::NameRegister();
-  static Register registers[] = { receiver, name, r3, r0, r4, r5 };
-  return registers;
-}
-
-
-Register StoreStubCompiler::value() {
-  return StoreIC::ValueRegister();
-}
-
-
-Register* StoreStubCompiler::registers() {
+Register* PropertyAccessCompiler::store_calling_convention() {
   // receiver, name, scratch1, scratch2, scratch3.
   Register receiver = StoreIC::ReceiverRegister();
   Register name = StoreIC::NameRegister();
+  ASSERT(r3.is(KeyedStoreIC::MapRegister()));
   static Register registers[] = { receiver, name, r3, r4, r5 };
   return registers;
 }
 
 
-Register* KeyedStoreStubCompiler::registers() {
-  // receiver, name, scratch1/map, scratch2, scratch3.
-  Register receiver = KeyedStoreIC::ReceiverRegister();
-  Register name = KeyedStoreIC::NameRegister();
-  Register map = KeyedStoreIC::MapRegister();
-  static Register registers[] = { receiver, name, map, r4, r5 };
-  return registers;
-}
+Register NamedStoreHandlerCompiler::value() { return StoreIC::ValueRegister(); }
 
 
 #undef __
 #define __ ACCESS_MASM(masm)
 
 
-void LoadStubCompiler::GenerateLoadViaGetter(MacroAssembler* masm,
-                                             Handle<HeapType> type,
-                                             Register receiver,
-                                             Handle<JSFunction> getter) {
+void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
+    MacroAssembler* masm, Handle<HeapType> type, Register receiver,
+    Handle<JSFunction> getter) {
   // ----------- S t a t e -------------
   //  -- r0    : receiver
   //  -- r2    : name
@@ -1351,50 +1220,51 @@ void LoadStubCompiler::GenerateLoadViaGetter(MacroAssembler* masm,
 #define __ ACCESS_MASM(masm())
 
 
-Handle<Code> LoadStubCompiler::CompileLoadGlobal(
-    Handle<HeapType> type,
-    Handle<GlobalObject> global,
-    Handle<PropertyCell> cell,
-    Handle<Name> name,
-    bool is_dont_delete) {
+Handle<Code> NamedLoadHandlerCompiler::CompileLoadGlobal(
+    Handle<PropertyCell> cell, Handle<Name> name, bool is_dont_delete) {
   Label miss;
-  HandlerFrontendHeader(type, receiver(), global, name, &miss);
+  FrontendHeader(receiver(), name, &miss);
 
   // Get the value from the cell.
-  __ mov(r3, Operand(cell));
-  __ ldr(r4, FieldMemOperand(r3, Cell::kValueOffset));
+  Register result = StoreIC::ValueRegister();
+  __ mov(result, Operand(cell));
+  __ ldr(result, FieldMemOperand(result, Cell::kValueOffset));
 
   // Check for deleted property if property can actually be deleted.
   if (!is_dont_delete) {
     __ LoadRoot(ip, Heap::kTheHoleValueRootIndex);
-    __ cmp(r4, ip);
+    __ cmp(result, ip);
     __ b(eq, &miss);
   }
 
   Counters* counters = isolate()->counters();
   __ IncrementCounter(counters->named_load_global_stub(), 1, r1, r3);
-  __ mov(r0, r4);
   __ Ret();
 
-  HandlerFrontendFooter(name, &miss);
+  FrontendFooter(name, &miss);
 
   // Return the generated code.
   return GetCode(kind(), Code::NORMAL, name);
 }
 
 
-Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
-    TypeHandleList* types,
-    CodeHandleList* handlers,
-    Handle<Name> name,
-    Code::StubType type,
-    IcCheckType check) {
+Handle<Code> PropertyICCompiler::CompilePolymorphic(TypeHandleList* types,
+                                                    CodeHandleList* handlers,
+                                                    Handle<Name> name,
+                                                    Code::StubType type,
+                                                    IcCheckType check) {
   Label miss;
 
   if (check == PROPERTY &&
       (kind() == Code::KEYED_LOAD_IC || kind() == Code::KEYED_STORE_IC)) {
-    __ cmp(this->name(), Operand(name));
-    __ b(ne, &miss);
+    // In case we are compiling an IC for dictionary loads and stores, just
+    // check whether the name is unique.
+    if (name.is_identical_to(isolate()->factory()->normal_ic_symbol())) {
+      __ JumpIfNotUniqueName(this->name(), &miss);
+    } else {
+      __ cmp(this->name(), Operand(name));
+      __ b(ne, &miss);
+    }
   }
 
   Label number_case;
@@ -1431,11 +1301,11 @@ Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
   // Return the generated code.
   InlineCacheState state =
       number_of_handled_maps > 1 ? POLYMORPHIC : MONOMORPHIC;
-  return GetICCode(kind(), type, name, state);
+  return GetCode(kind(), type, name, state);
 }
 
 
-void StoreStubCompiler::GenerateStoreArrayLength() {
+void NamedStoreHandlerCompiler::GenerateStoreArrayLength() {
   // Prepare tail call to StoreIC_ArrayLength.
   __ Push(receiver(), value());
 
@@ -1446,9 +1316,8 @@ void StoreStubCompiler::GenerateStoreArrayLength() {
 }
 
 
-Handle<Code> KeyedStoreStubCompiler::CompileStorePolymorphic(
-    MapHandleList* receiver_maps,
-    CodeHandleList* handler_stubs,
+Handle<Code> PropertyICCompiler::CompileKeyedStorePolymorphic(
+    MapHandleList* receiver_maps, CodeHandleList* handler_stubs,
     MapHandleList* transitioned_maps) {
   Label miss;
   __ JumpIfSmi(receiver(), &miss);
@@ -1473,8 +1342,7 @@ Handle<Code> KeyedStoreStubCompiler::CompileStorePolymorphic(
   TailCallBuiltin(masm(), MissBuiltin(kind()));
 
   // Return the generated code.
-  return GetICCode(
-      kind(), Code::NORMAL, factory()->empty_string(), POLYMORPHIC);
+  return GetCode(kind(), Code::NORMAL, factory()->empty_string(), POLYMORPHIC);
 }
 
 
@@ -1482,7 +1350,7 @@ Handle<Code> KeyedStoreStubCompiler::CompileStorePolymorphic(
 #define __ ACCESS_MASM(masm)
 
 
-void KeyedLoadStubCompiler::GenerateLoadDictionaryElement(
+void ElementHandlerCompiler::GenerateLoadDictionaryElement(
     MacroAssembler* masm) {
   // The return address is in lr.
   Label slow, miss;

@@ -731,10 +731,19 @@ bool Object::IsDeoptimizationInputData() const {
   // the entry size.
   int length = FixedArray::cast(this)->length();
   if (length == 0) return true;
+  if (length < DeoptimizationInputData::kFirstDeoptEntryIndex) return false;
 
-  length -= DeoptimizationInputData::kFirstDeoptEntryIndex;
-  return length >= 0 &&
-      length % DeoptimizationInputData::kDeoptEntrySize == 0;
+  FixedArray* self = FixedArray::cast(const_cast<Object*>(this));
+  int deopt_count =
+      Smi::cast(self->get(DeoptimizationInputData::kDeoptEntryCountIndex))
+          ->value();
+  int patch_count =
+      Smi::cast(
+          self->get(
+              DeoptimizationInputData::kReturnAddressPatchEntryCountIndex))
+          ->value();
+
+  return length == DeoptimizationInputData::LengthFor(deopt_count, patch_count);
 }
 
 
@@ -1082,6 +1091,12 @@ bool Object::IsNaN() const {
 }
 
 
+bool Object::IsMinusZero() const {
+  return this->IsHeapNumber() &&
+         i::IsMinusZero(HeapNumber::cast(this)->value());
+}
+
+
 MaybeHandle<Smi> Object::ToSmi(Isolate* isolate, Handle<Object> object) {
   if (object->IsSmi()) return Handle<Smi>::cast(object);
   if (object->IsHeapNumber()) {
@@ -1166,7 +1181,8 @@ MaybeHandle<Object> JSProxy::SetElementWithHandler(Handle<JSProxy> proxy,
 }
 
 
-bool JSProxy::HasElementWithHandler(Handle<JSProxy> proxy, uint32_t index) {
+Maybe<bool> JSProxy::HasElementWithHandler(Handle<JSProxy> proxy,
+                                           uint32_t index) {
   Isolate* isolate = proxy->GetIsolate();
   Handle<String> name = isolate->factory()->Uint32ToString(index);
   return HasPropertyWithHandler(proxy, name);
@@ -1477,6 +1493,24 @@ Address HeapObject::address() {
 
 int HeapObject::Size() {
   return SizeFromMap(map());
+}
+
+
+bool HeapObject::MayContainNewSpacePointers() {
+  InstanceType type = map()->instance_type();
+  if (type <= LAST_NAME_TYPE) {
+    if (type == SYMBOL_TYPE) {
+      return true;
+    }
+    ASSERT(type < FIRST_NONSTRING_TYPE);
+    // There are four string representations: sequential strings, external
+    // strings, cons strings, and sliced strings.
+    // Only the latter two contain non-map-word pointers to heap objects.
+    return ((type & kIsIndirectStringMask) == kIsIndirectStringTag);
+  }
+  // The ConstantPoolArray contains heap pointers, but not new space pointers.
+  if (type == CONSTANT_POOL_ARRAY_TYPE) return false;
+  return (type > LAST_DATA_TYPE);
 }
 
 
@@ -2521,6 +2555,7 @@ void ConstantPoolArray::set(int index, Address value) {
 
 void ConstantPoolArray::set(int index, Object* value) {
   ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(!GetHeap()->InNewSpace(value));
   ASSERT(get_type(index) == HEAP_PTR);
   WRITE_FIELD(this, OffsetOfElementAt(index), value);
   WRITE_BARRIER(GetHeap(), this, OffsetOfElementAt(index), value);
@@ -2565,6 +2600,7 @@ void ConstantPoolArray::set_at_offset(int offset, Address value) {
 
 void ConstantPoolArray::set_at_offset(int offset, Object* value) {
   ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(!GetHeap()->InNewSpace(value));
   ASSERT(offset_is_type(offset, HEAP_PTR));
   WRITE_FIELD(this, offset, value);
   WRITE_BARRIER(GetHeap(), this, offset, value);
@@ -4621,6 +4657,15 @@ Code::Kind Code::kind() {
 }
 
 
+bool Code::IsCodeStubOrIC() {
+  return kind() == STUB || kind() == HANDLER || kind() == LOAD_IC ||
+         kind() == KEYED_LOAD_IC || kind() == CALL_IC || kind() == STORE_IC ||
+         kind() == KEYED_STORE_IC || kind() == BINARY_OP_IC ||
+         kind() == COMPARE_IC || kind() == COMPARE_NIL_IC ||
+         kind() == TO_BOOLEAN_IC;
+}
+
+
 InlineCacheState Code::ic_state() {
   InlineCacheState result = ExtractICStateFromFlags(flags());
   // Only allow uninitialized or debugger states for non-IC code
@@ -4673,34 +4718,18 @@ inline void Code::set_is_crankshafted(bool value) {
 }
 
 
-int Code::major_key() {
-  ASSERT(has_major_key());
-  return StubMajorKeyField::decode(
-      READ_UINT32_FIELD(this, kKindSpecificFlags2Offset));
+inline bool Code::is_turbofanned() {
+  ASSERT(kind() == OPTIMIZED_FUNCTION || kind() == STUB);
+  return IsTurbofannedField::decode(
+      READ_UINT32_FIELD(this, kKindSpecificFlags1Offset));
 }
 
 
-void Code::set_major_key(int major) {
-  ASSERT(has_major_key());
-  ASSERT(0 <= major && major < 256);
-  int previous = READ_UINT32_FIELD(this, kKindSpecificFlags2Offset);
-  int updated = StubMajorKeyField::update(previous, major);
-  WRITE_UINT32_FIELD(this, kKindSpecificFlags2Offset, updated);
-}
-
-
-bool Code::has_major_key() {
-  return kind() == STUB ||
-      kind() == HANDLER ||
-      kind() == BINARY_OP_IC ||
-      kind() == COMPARE_IC ||
-      kind() == COMPARE_NIL_IC ||
-      kind() == LOAD_IC ||
-      kind() == KEYED_LOAD_IC ||
-      kind() == STORE_IC ||
-      kind() == CALL_IC ||
-      kind() == KEYED_STORE_IC ||
-      kind() == TO_BOOLEAN_IC;
+inline void Code::set_is_turbofanned(bool value) {
+  ASSERT(kind() == OPTIMIZED_FUNCTION || kind() == STUB);
+  int previous = READ_UINT32_FIELD(this, kKindSpecificFlags1Offset);
+  int updated = IsTurbofannedField::update(previous, value);
+  WRITE_UINT32_FIELD(this, kKindSpecificFlags1Offset, updated);
 }
 
 
@@ -5579,6 +5608,7 @@ BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_function, kIsFunction)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_cache, kDontCache)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_flush, kDontFlush)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_generator, kIsGenerator)
+BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_arrow, kIsArrow)
 
 ACCESSORS(CodeCache, default_cache, FixedArray, kDefaultCacheOffset)
 ACCESSORS(CodeCache, normal_type_cache, Object, kNormalTypeCacheOffset)
@@ -6129,7 +6159,7 @@ void Code::WipeOutHeader() {
   WRITE_FIELD(this, kHandlerTableOffset, NULL);
   WRITE_FIELD(this, kDeoptimizationDataOffset, NULL);
   WRITE_FIELD(this, kConstantPoolOffset, NULL);
-  // Do not wipe out e.g. a minor key.
+  // Do not wipe out major/minor keys on a code stub or IC
   if (!READ_FIELD(this, kTypeFeedbackInfoOffset)->IsSmi()) {
     WRITE_FIELD(this, kTypeFeedbackInfoOffset, NULL);
   }
@@ -6150,24 +6180,16 @@ void Code::set_type_feedback_info(Object* value, WriteBarrierMode mode) {
 }
 
 
-int Code::stub_info() {
-  ASSERT(kind() == COMPARE_IC || kind() == COMPARE_NIL_IC ||
-         kind() == BINARY_OP_IC || kind() == LOAD_IC || kind() == CALL_IC);
-  return Smi::cast(raw_type_feedback_info())->value();
+uint32_t Code::stub_key() {
+  ASSERT(IsCodeStubOrIC());
+  Smi* smi_key = Smi::cast(raw_type_feedback_info());
+  return static_cast<uint32_t>(smi_key->value());
 }
 
 
-void Code::set_stub_info(int value) {
-  ASSERT(kind() == COMPARE_IC ||
-         kind() == COMPARE_NIL_IC ||
-         kind() == BINARY_OP_IC ||
-         kind() == STUB ||
-         kind() == LOAD_IC ||
-         kind() == CALL_IC ||
-         kind() == KEYED_LOAD_IC ||
-         kind() == STORE_IC ||
-         kind() == KEYED_STORE_IC);
-  set_raw_type_feedback_info(Smi::FromInt(value));
+void Code::set_stub_key(uint32_t key) {
+  ASSERT(IsCodeStubOrIC());
+  set_raw_type_feedback_info(Smi::FromInt(key));
 }
 
 
@@ -6610,32 +6632,63 @@ bool String::AsArrayIndex(uint32_t* index) {
 }
 
 
+void String::SetForwardedInternalizedString(String* canonical) {
+  ASSERT(IsInternalizedString());
+  ASSERT(HasHashCode());
+  if (canonical == this) return;  // No need to forward.
+  ASSERT(SlowEquals(canonical));
+  ASSERT(canonical->IsInternalizedString());
+  ASSERT(canonical->HasHashCode());
+  WRITE_FIELD(this, kHashFieldOffset, canonical);
+  // Setting the hash field to a tagged value sets the LSB, causing the hash
+  // code to be interpreted as uninitialized.  We use this fact to recognize
+  // that we have a forwarded string.
+  ASSERT(!HasHashCode());
+}
+
+
+String* String::GetForwardedInternalizedString() {
+  ASSERT(IsInternalizedString());
+  if (HasHashCode()) return this;
+  String* canonical = String::cast(READ_FIELD(this, kHashFieldOffset));
+  ASSERT(canonical->IsInternalizedString());
+  ASSERT(SlowEquals(canonical));
+  ASSERT(canonical->HasHashCode());
+  return canonical;
+}
+
+
 Object* JSReceiver::GetConstructor() {
   return map()->constructor();
 }
 
 
-bool JSReceiver::HasProperty(Handle<JSReceiver> object,
-                             Handle<Name> name) {
+Maybe<bool> JSReceiver::HasProperty(Handle<JSReceiver> object,
+                                    Handle<Name> name) {
   if (object->IsJSProxy()) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasPropertyWithHandler(proxy, name);
   }
-  return GetPropertyAttributes(object, name) != ABSENT;
+  Maybe<PropertyAttributes> result = GetPropertyAttributes(object, name);
+  if (!result.has_value) return Maybe<bool>();
+  return maybe(result.value != ABSENT);
 }
 
 
-bool JSReceiver::HasOwnProperty(Handle<JSReceiver> object, Handle<Name> name) {
+Maybe<bool> JSReceiver::HasOwnProperty(Handle<JSReceiver> object,
+                                       Handle<Name> name) {
   if (object->IsJSProxy()) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasPropertyWithHandler(proxy, name);
   }
-  return GetOwnPropertyAttributes(object, name) != ABSENT;
+  Maybe<PropertyAttributes> result = GetOwnPropertyAttributes(object, name);
+  if (!result.has_value) return Maybe<bool>();
+  return maybe(result.value != ABSENT);
 }
 
 
-PropertyAttributes JSReceiver::GetPropertyAttributes(Handle<JSReceiver> object,
-                                                     Handle<Name> key) {
+Maybe<PropertyAttributes> JSReceiver::GetPropertyAttributes(
+    Handle<JSReceiver> object, Handle<Name> key) {
   uint32_t index;
   if (object->IsJSObject() && key->AsArrayIndex(&index)) {
     return GetElementAttribute(object, index);
@@ -6645,8 +6698,8 @@ PropertyAttributes JSReceiver::GetPropertyAttributes(Handle<JSReceiver> object,
 }
 
 
-PropertyAttributes JSReceiver::GetElementAttribute(Handle<JSReceiver> object,
-                                                   uint32_t index) {
+Maybe<PropertyAttributes> JSReceiver::GetElementAttribute(
+    Handle<JSReceiver> object, uint32_t index) {
   if (object->IsJSProxy()) {
     return JSProxy::GetElementAttributeWithHandler(
         Handle<JSProxy>::cast(object), object, index);
@@ -6682,27 +6735,32 @@ Object* JSReceiver::GetIdentityHash() {
 }
 
 
-bool JSReceiver::HasElement(Handle<JSReceiver> object, uint32_t index) {
+Maybe<bool> JSReceiver::HasElement(Handle<JSReceiver> object, uint32_t index) {
   if (object->IsJSProxy()) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasElementWithHandler(proxy, index);
   }
-  return JSObject::GetElementAttributeWithReceiver(
-      Handle<JSObject>::cast(object), object, index, true) != ABSENT;
+  Maybe<PropertyAttributes> result = JSObject::GetElementAttributeWithReceiver(
+      Handle<JSObject>::cast(object), object, index, true);
+  if (!result.has_value) return Maybe<bool>();
+  return maybe(result.value != ABSENT);
 }
 
 
-bool JSReceiver::HasOwnElement(Handle<JSReceiver> object, uint32_t index) {
+Maybe<bool> JSReceiver::HasOwnElement(Handle<JSReceiver> object,
+                                      uint32_t index) {
   if (object->IsJSProxy()) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasElementWithHandler(proxy, index);
   }
-  return JSObject::GetElementAttributeWithReceiver(
-      Handle<JSObject>::cast(object), object, index, false) != ABSENT;
+  Maybe<PropertyAttributes> result = JSObject::GetElementAttributeWithReceiver(
+      Handle<JSObject>::cast(object), object, index, false);
+  if (!result.has_value) return Maybe<bool>();
+  return maybe(result.value != ABSENT);
 }
 
 
-PropertyAttributes JSReceiver::GetOwnElementAttribute(
+Maybe<PropertyAttributes> JSReceiver::GetOwnElementAttribute(
     Handle<JSReceiver> object, uint32_t index) {
   if (object->IsJSProxy()) {
     return JSProxy::GetElementAttributeWithHandler(
@@ -6744,9 +6802,10 @@ void AccessorInfo::set_property_attributes(PropertyAttributes attributes) {
 
 
 bool AccessorInfo::IsCompatibleReceiver(Object* receiver) {
-  Object* function_template = expected_receiver_type();
-  if (!function_template->IsFunctionTemplateInfo()) return true;
-  return FunctionTemplateInfo::cast(function_template)->IsTemplateFor(receiver);
+  if (!HasExpectedReceiverType()) return true;
+  if (!receiver->IsJSObject()) return false;
+  return FunctionTemplateInfo::cast(expected_receiver_type())
+      ->IsTemplateFor(JSObject::cast(receiver)->map());
 }
 
 

@@ -6,10 +6,9 @@
 
 #if V8_TARGET_ARCH_ARM
 
-#include "src/arm/lithium-arm.h"
 #include "src/arm/lithium-codegen-arm.h"
 #include "src/hydrogen-osr.h"
-#include "src/lithium-allocator-inl.h"
+#include "src/lithium-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -1112,14 +1111,24 @@ LInstruction* LChunkBuilder::DoInvokeFunction(HInvokeFunction* instr) {
 
 LInstruction* LChunkBuilder::DoUnaryMathOperation(HUnaryMathOperation* instr) {
   switch (instr->op()) {
-    case kMathFloor: return DoMathFloor(instr);
-    case kMathRound: return DoMathRound(instr);
-    case kMathAbs: return DoMathAbs(instr);
-    case kMathLog: return DoMathLog(instr);
-    case kMathExp: return DoMathExp(instr);
-    case kMathSqrt: return DoMathSqrt(instr);
-    case kMathPowHalf: return DoMathPowHalf(instr);
-    case kMathClz32: return DoMathClz32(instr);
+    case kMathFloor:
+      return DoMathFloor(instr);
+    case kMathRound:
+      return DoMathRound(instr);
+    case kMathFround:
+      return DoMathFround(instr);
+    case kMathAbs:
+      return DoMathAbs(instr);
+    case kMathLog:
+      return DoMathLog(instr);
+    case kMathExp:
+      return DoMathExp(instr);
+    case kMathSqrt:
+      return DoMathSqrt(instr);
+    case kMathPowHalf:
+      return DoMathPowHalf(instr);
+    case kMathClz32:
+      return DoMathClz32(instr);
     default:
       UNREACHABLE();
       return NULL;
@@ -1139,6 +1148,13 @@ LInstruction* LChunkBuilder::DoMathRound(HUnaryMathOperation* instr) {
   LOperand* temp = TempDoubleRegister();
   LMathRound* result = new(zone()) LMathRound(input, temp);
   return AssignEnvironment(DefineAsRegister(result));
+}
+
+
+LInstruction* LChunkBuilder::DoMathFround(HUnaryMathOperation* instr) {
+  LOperand* input = UseRegister(instr->value());
+  LMathFround* result = new (zone()) LMathFround(input);
+  return DefineAsRegister(result);
 }
 
 
@@ -2089,8 +2105,12 @@ LInstruction* LChunkBuilder::DoLoadGlobalGeneric(HLoadGlobalGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   LOperand* global_object = UseFixed(instr->global_object(),
                                      LoadIC::ReceiverRegister());
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    vector = FixedTemp(LoadIC::VectorRegister());
+  }
   LLoadGlobalGeneric* result =
-      new(zone()) LLoadGlobalGeneric(context, global_object);
+      new(zone()) LLoadGlobalGeneric(context, global_object, vector);
   return MarkAsCall(DefineFixed(result, r0), instr);
 }
 
@@ -2143,8 +2163,13 @@ LInstruction* LChunkBuilder::DoLoadNamedField(HLoadNamedField* instr) {
 LInstruction* LChunkBuilder::DoLoadNamedGeneric(HLoadNamedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   LOperand* object = UseFixed(instr->object(), LoadIC::ReceiverRegister());
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    vector = FixedTemp(LoadIC::VectorRegister());
+  }
+
   LInstruction* result =
-      DefineFixed(new(zone()) LLoadNamedGeneric(context, object), r0);
+      DefineFixed(new(zone()) LLoadNamedGeneric(context, object, vector), r0);
   return MarkAsCall(result, instr);
 }
 
@@ -2204,9 +2229,14 @@ LInstruction* LChunkBuilder::DoLoadKeyedGeneric(HLoadKeyedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   LOperand* object = UseFixed(instr->object(), LoadIC::ReceiverRegister());
   LOperand* key = UseFixed(instr->key(), LoadIC::NameRegister());
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    vector = FixedTemp(LoadIC::VectorRegister());
+  }
 
   LInstruction* result =
-      DefineFixed(new(zone()) LLoadKeyedGeneric(context, object, key), r0);
+      DefineFixed(new(zone()) LLoadKeyedGeneric(context, object, key, vector),
+                  r0);
   return MarkAsCall(result, instr);
 }
 

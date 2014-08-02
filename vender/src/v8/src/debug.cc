@@ -373,7 +373,7 @@ bool BreakLocationIterator::IsStepInLocation(Isolate* isolate) {
     Address target = original_rinfo()->target_address();
     Handle<Code> target_code(Code::GetCodeFromTargetAddress(target));
     if (target_code->kind() == Code::STUB) {
-      return target_code->major_key() == CodeStub::CallFunction;
+      return CodeStub::GetMajorKey(*target_code) == CodeStub::CallFunction;
     }
     return target_code->is_call_stub();
   }
@@ -398,7 +398,8 @@ void BreakLocationIterator::PrepareStepIn(Isolate* isolate) {
   }
   bool is_call_function_stub =
       (maybe_call_function_stub->kind() == Code::STUB &&
-       maybe_call_function_stub->major_key() == CodeStub::CallFunction);
+       CodeStub::GetMajorKey(*maybe_call_function_stub) ==
+           CodeStub::CallFunction);
 
   // Step in through construct call requires no changes to the running code.
   // Step in through getters/setters should already be prepared as well
@@ -475,7 +476,7 @@ static Handle<Code> DebugBreakForIC(Handle<Code> code, RelocInfo::Mode mode) {
     }
   }
   if (code->kind() == Code::STUB) {
-    ASSERT(code->major_key() == CodeStub::CallFunction);
+    ASSERT(CodeStub::GetMajorKey(*code) == CodeStub::CallFunction);
     return isolate->builtins()->CallFunctionStub_DebugBreak();
   }
 
@@ -621,7 +622,14 @@ void ScriptCache::Add(Handle<Script> script) {
   HashMap::Entry* entry =
       HashMap::Lookup(reinterpret_cast<void*>(id), Hash(id), true);
   if (entry->value != NULL) {
-    ASSERT(*script == *reinterpret_cast<Script**>(entry->value));
+#ifdef DEBUG
+    // The code deserializer may introduce duplicate Script objects.
+    // Assert that the Script objects with the same id have the same name.
+    Handle<Script> found(reinterpret_cast<Script**>(entry->value));
+    ASSERT(script->id() == found->id());
+    ASSERT(!script->name()->IsString() ||
+           String::cast(script->name())->Equals(String::cast(found->name())));
+#endif
     return;
   }
   // Globalize the script object, make it weak and use the location of the
@@ -823,7 +831,7 @@ bool Debug::Load() {
   Handle<JSBuiltinsObject> builtin =
       Handle<JSBuiltinsObject>(global->builtins(), isolate_);
   RETURN_ON_EXCEPTION_VALUE(
-      isolate_, JSReceiver::SetProperty(global, key, builtin, SLOPPY), false);
+      isolate_, Object::SetProperty(global, key, builtin, SLOPPY), false);
 
   // Compile the JavaScript for the debugger in the debugger context.
   bool caught_exception =
@@ -1419,7 +1427,8 @@ void Debug::PrepareStep(StepAction step_action,
             Code::GetCodeFromTargetAddress(original_target);
       }
       if ((maybe_call_function_stub->kind() == Code::STUB &&
-           maybe_call_function_stub->major_key() == CodeStub::CallFunction) ||
+           CodeStub::GetMajorKey(maybe_call_function_stub) ==
+               CodeStub::CallFunction) ||
           maybe_call_function_stub->kind() == Code::CALL_IC) {
         // Save reference to the code as we may need it to find out arguments
         // count for 'step in' later.
@@ -1480,17 +1489,7 @@ void Debug::PrepareStep(StepAction step_action,
       bool is_call_ic = call_function_stub->kind() == Code::CALL_IC;
 
       // Find out number of arguments from the stub minor key.
-      // Reverse lookup required as the minor key cannot be retrieved
-      // from the code object.
-      Handle<Object> obj(
-          isolate_->heap()->code_stubs()->SlowReverseLookup(
-              *call_function_stub),
-          isolate_);
-      ASSERT(!obj.is_null());
-      ASSERT(!(*obj)->IsUndefined());
-      ASSERT(obj->IsSmi());
-      // Get the STUB key and extract major and minor key.
-      uint32_t key = Smi::cast(*obj)->value();
+      uint32_t key = call_function_stub->stub_key();
       // Argc in the stub is the number of arguments passed - not the
       // expected arguments of the called function.
       int call_function_arg_count = is_call_ic
@@ -1499,7 +1498,8 @@ void Debug::PrepareStep(StepAction step_action,
               CodeStub::MinorKeyFromKey(key));
 
       ASSERT(is_call_ic ||
-             call_function_stub->major_key() == CodeStub::MajorKeyFromKey(key));
+             CodeStub::GetMajorKey(*call_function_stub) ==
+                 CodeStub::MajorKeyFromKey(key));
 
       // Find target function on the expression stack.
       // Expression stack looks like this (top to bottom):
@@ -1888,6 +1888,11 @@ static void RedirectActivationsToRecompiledCodeOnThread(
              new_code->instruction_size(),
              reinterpret_cast<intptr_t>(frame->pc()),
              reinterpret_cast<intptr_t>(new_pc));
+    }
+
+    if (FLAG_enable_ool_constant_pool) {
+      // Update constant pool pointer for new code.
+      frame->set_constant_pool(new_code->constant_pool());
     }
 
     // Patch the return address to return into the code with

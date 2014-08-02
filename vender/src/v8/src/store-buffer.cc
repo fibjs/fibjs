@@ -505,8 +505,35 @@ void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback,
               }
             }
           } else {
-            FindPointersToNewSpaceInRegion(
-                start, end, slot_callback, clear_maps);
+            if (!page->SweepingCompleted()) {
+              heap_->mark_compact_collector()->SweepInParallel(page, owner);
+              if (!page->SweepingCompleted()) {
+                // We were not able to sweep that page, i.e., a concurrent
+                // sweeper thread currently owns this page.
+                // TODO(hpayer): This may introduce a huge pause here. We
+                // just care about finish sweeping of the scan on scavenge page.
+                heap_->mark_compact_collector()->EnsureSweepingCompleted();
+              }
+            }
+            // TODO(hpayer): remove the special casing and merge map and pointer
+            // space handling as soon as we removed conservative sweeping.
+            CHECK(page->owner() == heap_->old_pointer_space());
+            if (heap_->old_pointer_space()->swept_precisely()) {
+              HeapObjectIterator iterator(page, NULL);
+              for (HeapObject* heap_object = iterator.Next();
+                   heap_object != NULL; heap_object = iterator.Next()) {
+                // We iterate over objects that contain new space pointers only.
+                if (heap_object->MayContainNewSpacePointers()) {
+                  FindPointersToNewSpaceInRegion(
+                      heap_object->address() + HeapObject::kHeaderSize,
+                      heap_object->address() + heap_object->Size(),
+                      slot_callback, clear_maps);
+                }
+              }
+            } else {
+              FindPointersToNewSpaceInRegion(start, end, slot_callback,
+                                             clear_maps);
+            }
           }
         }
       }

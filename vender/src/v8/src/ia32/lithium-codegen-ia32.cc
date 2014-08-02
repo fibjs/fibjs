@@ -902,7 +902,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   int length = deoptimizations_.length();
   if (length == 0) return;
   Handle<DeoptimizationInputData> data =
-      DeoptimizationInputData::New(isolate(), length, TENURED);
+      DeoptimizationInputData::New(isolate(), length, 0, TENURED);
 
   Handle<ByteArray> translations =
       translations_.CreateByteArray(isolate()->factory());
@@ -2836,6 +2836,15 @@ void LCodeGen::DoLoadGlobalGeneric(LLoadGlobalGeneric* instr) {
   ASSERT(ToRegister(instr->result()).is(eax));
 
   __ mov(LoadIC::NameRegister(), instr->name());
+  if (FLAG_vector_ics) {
+    Register vector = ToRegister(instr->temp_vector());
+    ASSERT(vector.is(LoadIC::VectorRegister()));
+    __ mov(vector, instr->hydrogen()->feedback_vector());
+    // No need to allocate this register.
+    ASSERT(LoadIC::SlotRegister().is(eax));
+    __ mov(LoadIC::SlotRegister(),
+           Immediate(Smi::FromInt(instr->hydrogen()->slot())));
+  }
   ContextualMode mode = instr->for_typeof() ? NOT_CONTEXTUAL : CONTEXTUAL;
   Handle<Code> ic = LoadIC::initialize_stub(isolate(), mode);
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
@@ -2970,6 +2979,15 @@ void LCodeGen::DoLoadNamedGeneric(LLoadNamedGeneric* instr) {
   ASSERT(ToRegister(instr->result()).is(eax));
 
   __ mov(LoadIC::NameRegister(), instr->name());
+  if (FLAG_vector_ics) {
+    Register vector = ToRegister(instr->temp_vector());
+    ASSERT(vector.is(LoadIC::VectorRegister()));
+    __ mov(vector, instr->hydrogen()->feedback_vector());
+    // No need to allocate this register.
+    ASSERT(LoadIC::SlotRegister().is(eax));
+    __ mov(LoadIC::SlotRegister(),
+           Immediate(Smi::FromInt(instr->hydrogen()->slot())));
+  }
   Handle<Code> ic = LoadIC::initialize_stub(isolate(), NOT_CONTEXTUAL);
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
@@ -2979,16 +2997,6 @@ void LCodeGen::DoLoadFunctionPrototype(LLoadFunctionPrototype* instr) {
   Register function = ToRegister(instr->function());
   Register temp = ToRegister(instr->temp());
   Register result = ToRegister(instr->result());
-
-  // Check that the function really is a function.
-  __ CmpObjectType(function, JS_FUNCTION_TYPE, result);
-  DeoptimizeIf(not_equal, instr->environment());
-
-  // Check whether the function has an instance prototype.
-  Label non_instance;
-  __ test_b(FieldOperand(result, Map::kBitFieldOffset),
-            1 << Map::kHasNonInstancePrototype);
-  __ j(not_zero, &non_instance, Label::kNear);
 
   // Get the prototype or initial map from the function.
   __ mov(result,
@@ -3005,12 +3013,6 @@ void LCodeGen::DoLoadFunctionPrototype(LLoadFunctionPrototype* instr) {
 
   // Get the prototype from the initial map.
   __ mov(result, FieldOperand(result, Map::kPrototypeOffset));
-  __ jmp(&done, Label::kNear);
-
-  // Non-instance prototype: Fetch prototype from constructor field
-  // in the function's map.
-  __ bind(&non_instance);
-  __ mov(result, FieldOperand(result, Map::kConstructorOffset));
 
   // All done.
   __ bind(&done);
@@ -3209,6 +3211,16 @@ void LCodeGen::DoLoadKeyedGeneric(LLoadKeyedGeneric* instr) {
   ASSERT(ToRegister(instr->context()).is(esi));
   ASSERT(ToRegister(instr->object()).is(LoadIC::ReceiverRegister()));
   ASSERT(ToRegister(instr->key()).is(LoadIC::NameRegister()));
+
+  if (FLAG_vector_ics) {
+    Register vector = ToRegister(instr->temp_vector());
+    ASSERT(vector.is(LoadIC::VectorRegister()));
+    __ mov(vector, instr->hydrogen()->feedback_vector());
+    // No need to allocate this register.
+    ASSERT(LoadIC::SlotRegister().is(eax));
+    __ mov(LoadIC::SlotRegister(),
+           Immediate(Smi::FromInt(instr->hydrogen()->slot())));
+  }
 
   Handle<Code> ic = isolate()->builtins()->KeyedLoadIC_Initialize();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
@@ -3709,6 +3721,14 @@ void LCodeGen::DoMathRound(LMathRound* instr) {
   }
   __ Move(output_reg, Immediate(0));
   __ bind(&done);
+}
+
+
+void LCodeGen::DoMathFround(LMathFround* instr) {
+  XMMRegister input_reg = ToDoubleRegister(instr->value());
+  XMMRegister output_reg = ToDoubleRegister(instr->result());
+  __ cvtsd2ss(output_reg, input_reg);
+  __ cvtss2sd(output_reg, output_reg);
 }
 
 
@@ -5320,11 +5340,6 @@ Condition LCodeGen::EmitTypeofIs(LTypeofIsAndBranch* instr, Register input) {
     __ cmp(input, factory()->false_value());
     final_branch_condition = equal;
 
-  } else if (FLAG_harmony_typeof &&
-             String::Equals(type_name, factory()->null_string())) {
-    __ cmp(input, factory()->null_value());
-    final_branch_condition = equal;
-
   } else if (String::Equals(type_name, factory()->undefined_string())) {
     __ cmp(input, factory()->undefined_value());
     __ j(equal, true_label, true_distance);
@@ -5345,10 +5360,8 @@ Condition LCodeGen::EmitTypeofIs(LTypeofIsAndBranch* instr, Register input) {
 
   } else if (String::Equals(type_name, factory()->object_string())) {
     __ JumpIfSmi(input, false_label, false_distance);
-    if (!FLAG_harmony_typeof) {
-      __ cmp(input, factory()->null_value());
-      __ j(equal, true_label, true_distance);
-    }
+    __ cmp(input, factory()->null_value());
+    __ j(equal, true_label, true_distance);
     __ CmpObjectType(input, FIRST_NONCALLABLE_SPEC_OBJECT_TYPE, input);
     __ j(below, false_label, false_distance);
     __ CmpInstanceType(input, LAST_NONCALLABLE_SPEC_OBJECT_TYPE);

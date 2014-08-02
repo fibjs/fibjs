@@ -10,74 +10,73 @@
 #include "src/codegen.h"
 #include "src/globals.h"
 #include "src/macro-assembler.h"
+#include "src/ostreams.h"
 
 namespace v8 {
 namespace internal {
 
 // List of code stubs used on all platforms.
-#define CODE_STUB_LIST_ALL_PLATFORMS(V)  \
-  V(CallFunction)                        \
-  V(CallConstruct)                       \
-  V(BinaryOpIC)                          \
-  V(BinaryOpICWithAllocationSite)        \
-  V(BinaryOpWithAllocationSite)          \
-  V(StringAdd)                           \
-  V(SubString)                           \
-  V(StringCompare)                       \
-  V(Compare)                             \
-  V(CompareIC)                           \
-  V(CompareNilIC)                        \
-  V(MathPow)                             \
-  V(CallIC)                              \
-  V(CallIC_Array)                        \
-  V(FunctionPrototype)                   \
-  V(RecordWrite)                         \
-  V(StoreBufferOverflow)                 \
-  V(RegExpExec)                          \
-  V(Instanceof)                          \
-  V(ConvertToDouble)                     \
-  V(WriteInt32ToHeapNumber)              \
-  V(StackCheck)                          \
-  V(Interrupt)                           \
-  V(FastNewClosure)                      \
-  V(FastNewContext)                      \
-  V(FastCloneShallowArray)               \
-  V(FastCloneShallowObject)              \
-  V(CreateAllocationSite)                \
-  V(ToBoolean)                           \
-  V(ToNumber)                            \
-  V(ArgumentsAccess)                     \
-  V(RegExpConstructResult)               \
-  V(NumberToString)                      \
-  V(DoubleToI)                           \
-  V(CEntry)                              \
-  V(JSEntry)                             \
-  V(KeyedLoadElement)                    \
-  V(KeyedLoadGeneric)                    \
-  V(ArrayNoArgumentConstructor)          \
-  V(ArraySingleArgumentConstructor)      \
-  V(ArrayNArgumentsConstructor)          \
-  V(InternalArrayNoArgumentConstructor)  \
-  V(InternalArraySingleArgumentConstructor)      \
-  V(InternalArrayNArgumentsConstructor)  \
-  V(KeyedStoreElement)                   \
-  V(DebuggerStatement)                   \
-  V(NameDictionaryLookup)                \
-  V(ElementsTransitionAndStore)          \
-  V(TransitionElementsKind)              \
-  V(StoreArrayLiteralElement)            \
-  V(StubFailureTrampoline)               \
-  V(ArrayConstructor)                    \
-  V(InternalArrayConstructor)            \
-  V(ProfileEntryHook)                    \
-  V(StoreGlobal)                         \
-  V(CallApiFunction)                     \
-  V(CallApiGetter)                       \
-  /* IC Handler stubs */                 \
-  V(LoadField)                           \
-  V(KeyedLoadField)                      \
-  V(StringLength)                        \
-  V(KeyedStringLength)
+#define CODE_STUB_LIST_ALL_PLATFORMS(V)     \
+  V(CallFunction)                           \
+  V(CallConstruct)                          \
+  V(BinaryOpIC)                             \
+  V(BinaryOpICWithAllocationSite)           \
+  V(BinaryOpWithAllocationSite)             \
+  V(StringAdd)                              \
+  V(SubString)                              \
+  V(StringCompare)                          \
+  V(Compare)                                \
+  V(CompareIC)                              \
+  V(CompareNilIC)                           \
+  V(MathPow)                                \
+  V(CallIC)                                 \
+  V(CallIC_Array)                           \
+  V(FunctionPrototype)                      \
+  V(RecordWrite)                            \
+  V(StoreBufferOverflow)                    \
+  V(RegExpExec)                             \
+  V(Instanceof)                             \
+  V(ConvertToDouble)                        \
+  V(WriteInt32ToHeapNumber)                 \
+  V(StackCheck)                             \
+  V(Interrupt)                              \
+  V(FastNewClosure)                         \
+  V(FastNewContext)                         \
+  V(FastCloneShallowArray)                  \
+  V(FastCloneShallowObject)                 \
+  V(CreateAllocationSite)                   \
+  V(ToBoolean)                              \
+  V(ToNumber)                               \
+  V(ArgumentsAccess)                        \
+  V(RegExpConstructResult)                  \
+  V(NumberToString)                         \
+  V(DoubleToI)                              \
+  V(CEntry)                                 \
+  V(JSEntry)                                \
+  V(LoadElement)                            \
+  V(KeyedLoadGeneric)                       \
+  V(ArrayNoArgumentConstructor)             \
+  V(ArraySingleArgumentConstructor)         \
+  V(ArrayNArgumentsConstructor)             \
+  V(InternalArrayNoArgumentConstructor)     \
+  V(InternalArraySingleArgumentConstructor) \
+  V(InternalArrayNArgumentsConstructor)     \
+  V(StoreElement)                           \
+  V(DebuggerStatement)                      \
+  V(NameDictionaryLookup)                   \
+  V(ElementsTransitionAndStore)             \
+  V(TransitionElementsKind)                 \
+  V(StoreArrayLiteralElement)               \
+  V(StubFailureTrampoline)                  \
+  V(ArrayConstructor)                       \
+  V(InternalArrayConstructor)               \
+  V(ProfileEntryHook)                       \
+  V(StoreGlobal)                            \
+  V(CallApiFunction)                        \
+  V(CallApiGetter)                          \
+  /* IC Handler stubs */                    \
+  V(LoadField)                              \
+  V(StringLength)
 
 // List of code stubs only used on ARM 32 bits platforms.
 #if V8_TARGET_ARCH_ARM
@@ -154,8 +153,10 @@ class CodeStub BASE_EMBEDDED {
 
   // Gets the major key from a code object that is a code stub or binary op IC.
   static Major GetMajorKey(Code* code_stub) {
-    return static_cast<Major>(code_stub->major_key());
+    return MajorKeyFromKey(code_stub->stub_key());
   }
+
+  static uint32_t NoCacheKey() { return MajorKeyBits::encode(NoCache); }
 
   static const char* MajorName(Major major_key, bool allow_unknown_keys);
 
@@ -207,6 +208,12 @@ class CodeStub BASE_EMBEDDED {
   virtual void PrintBaseName(OStream& os) const;    // NOLINT
   virtual void PrintState(OStream& os) const { ; }  // NOLINT
 
+  // Computes the key based on major and minor.
+  uint32_t GetKey() {
+    ASSERT(static_cast<int>(MajorKey()) < NUMBER_OF_IDS);
+    return MinorKeyBits::encode(MinorKey()) | MajorKeyBits::encode(MajorKey());
+  }
+
  private:
   // Perform bookkeeping required after code generation when stub code is
   // initially generated.
@@ -234,13 +241,6 @@ class CodeStub BASE_EMBEDDED {
 
   // If a stub uses a special cache override this.
   virtual bool UseSpecialCache() { return false; }
-
-  // Computes the key based on major and minor.
-  uint32_t GetKey() {
-    ASSERT(static_cast<int>(MajorKey()) < NUMBER_OF_IDS);
-    return MinorKeyBits::encode(MinorKey()) |
-           MajorKeyBits::encode(MajorKey());
-  }
 
   STATIC_ASSERT(NUMBER_OF_IDS < (1 << kStubMajorKeyBits));
   class MajorKeyBits: public BitField<uint32_t, 0, kStubMajorKeyBits> {};
@@ -349,13 +349,13 @@ class CodeStubInterfaceDescriptor: public InterfaceDescriptor {
  public:
   CodeStubInterfaceDescriptor();
 
-  void Initialize(int register_parameter_count, Register* registers,
-                  Address deoptimization_handler = NULL,
+  void Initialize(CodeStub::Major major, int register_parameter_count,
+                  Register* registers, Address deoptimization_handler = NULL,
                   Representation* register_param_representations = NULL,
                   int hint_stack_parameter_count = -1,
                   StubFunctionMode function_mode = NOT_JS_FUNCTION_STUB_MODE);
-  void Initialize(int register_parameter_count, Register* registers,
-                  Register stack_parameter_count,
+  void Initialize(CodeStub::Major major, int register_parameter_count,
+                  Register* registers, Register stack_parameter_count,
                   Address deoptimization_handler = NULL,
                   Representation* register_param_representations = NULL,
                   int hint_stack_parameter_count = -1,
@@ -395,6 +395,7 @@ class CodeStubInterfaceDescriptor: public InterfaceDescriptor {
   Register stack_parameter_count() const { return stack_parameter_count_; }
   StubFunctionMode function_mode() const { return function_mode_; }
   Address deoptimization_handler() const { return deoptimization_handler_; }
+  CodeStub::Major MajorKey() const { return major_; }
 
  private:
   Register stack_parameter_count_;
@@ -408,6 +409,7 @@ class CodeStubInterfaceDescriptor: public InterfaceDescriptor {
 
   ExternalReference miss_handler_;
   bool has_miss_handler_;
+  CodeStub::Major major_;
 };
 
 
@@ -744,6 +746,9 @@ class InstanceofStub: public PlatformCodeStub {
 
   void Generate(MacroAssembler* masm);
 
+  virtual void InitializeInterfaceDescriptor(
+      CodeStubInterfaceDescriptor* descriptor);
+
  private:
   Major MajorKey() const { return Instanceof; }
   int MinorKey() const { return static_cast<int>(flags_); }
@@ -830,15 +835,10 @@ class ICStub: public PlatformCodeStub {
   virtual Code::Kind GetCodeKind() const { return kind_; }
   virtual InlineCacheState GetICState() { return MONOMORPHIC; }
 
-  bool Describes(Code* code) {
-    return GetMajorKey(code) == MajorKey() && code->stub_info() == MinorKey();
-  }
+  bool Describes(Code* code) { return code->stub_key() == GetKey(); }
 
  protected:
   class KindBits: public BitField<Code::Kind, 0, 4> {};
-  virtual void FinishCode(Handle<Code> code) {
-    code->set_stub_info(MinorKey());
-  }
   Code::Kind kind() const { return kind_; }
 
   virtual int MinorKey() const { return KindBits::encode(kind_); }
@@ -903,14 +903,17 @@ class CallIC_ArrayStub: public CallICStub {
 };
 
 
-class FunctionPrototypeStub: public ICStub {
+// TODO(verwaest): Translate to hydrogen code stub.
+class FunctionPrototypeStub : public PlatformCodeStub {
  public:
-  FunctionPrototypeStub(Isolate* isolate, Code::Kind kind)
-      : ICStub(isolate, kind) { }
+  explicit FunctionPrototypeStub(Isolate* isolate)
+      : PlatformCodeStub(isolate) {}
   virtual void Generate(MacroAssembler* masm);
+  virtual Code::Kind GetCodeKind() const { return Code::HANDLER; }
 
  private:
   virtual CodeStub::Major MajorKey() const { return FunctionPrototype; }
+  virtual int MinorKey() const { return 0; }
 };
 
 
@@ -1030,19 +1033,6 @@ class StringLengthStub: public HandlerStub {
 };
 
 
-class KeyedStringLengthStub: public StringLengthStub {
- public:
-  explicit KeyedStringLengthStub(Isolate* isolate) : StringLengthStub(isolate) {
-    Initialize(Code::KEYED_LOAD_IC);
-  }
-  virtual void InitializeInterfaceDescriptor(
-      CodeStubInterfaceDescriptor* descriptor) V8_OVERRIDE;
-
- private:
-  virtual CodeStub::Major MajorKey() const { return KeyedStringLength; }
-};
-
-
 class StoreGlobalStub : public HandlerStub {
  public:
   StoreGlobalStub(Isolate* isolate, bool is_constant, bool check_global)
@@ -1146,27 +1136,13 @@ class CallApiGetterStub : public PlatformCodeStub {
 };
 
 
-class KeyedLoadFieldStub: public LoadFieldStub {
- public:
-  KeyedLoadFieldStub(Isolate* isolate, FieldIndex index)
-      : LoadFieldStub(isolate, index) {
-    Initialize(Code::KEYED_LOAD_IC);
-  }
-
-  virtual void InitializeInterfaceDescriptor(
-      CodeStubInterfaceDescriptor* descriptor) V8_OVERRIDE;
-
- private:
-  virtual CodeStub::Major MajorKey() const { return KeyedLoadField; }
-};
-
-
 class BinaryOpICStub : public HydrogenCodeStub {
  public:
-  BinaryOpICStub(Isolate* isolate, Token::Value op, OverwriteMode mode)
+  BinaryOpICStub(Isolate* isolate, Token::Value op,
+                 OverwriteMode mode = NO_OVERWRITE)
       : HydrogenCodeStub(isolate, UNINITIALIZED), state_(isolate, op, mode) {}
 
-  BinaryOpICStub(Isolate* isolate, const BinaryOpIC::State& state)
+  explicit BinaryOpICStub(Isolate* isolate, const BinaryOpIC::State& state)
       : HydrogenCodeStub(isolate), state_(state) {}
 
   static void GenerateAheadOfTime(Isolate* isolate);
@@ -1366,11 +1342,9 @@ class ICCompareStub: public PlatformCodeStub {
 
   void set_known_map(Handle<Map> map) { known_map_ = map; }
 
-  static void DecodeMinorKey(int minor_key,
-                             CompareIC::State* left_state,
-                             CompareIC::State* right_state,
-                             CompareIC::State* handler_state,
-                             Token::Value* op);
+  static void DecodeKey(uint32_t stub_key, CompareIC::State* left_state,
+                        CompareIC::State* right_state,
+                        CompareIC::State* handler_state, Token::Value* op);
 
   virtual InlineCacheState GetICState();
 
@@ -1379,10 +1353,6 @@ class ICCompareStub: public PlatformCodeStub {
   class LeftStateField: public BitField<int, 3, 4> { };
   class RightStateField: public BitField<int, 7, 4> { };
   class HandlerStateField: public BitField<int, 11, 4> { };
-
-  virtual void FinishCode(Handle<Code> code) {
-    code->set_stub_info(MinorKey());
-  }
 
   virtual CodeStub::Major MajorKey() const { return CompareIC; }
   virtual int MinorKey() const;
@@ -1647,13 +1617,18 @@ class RegExpConstructResultStub V8_FINAL : public HydrogenCodeStub {
 class CallFunctionStub: public PlatformCodeStub {
  public:
   CallFunctionStub(Isolate* isolate, int argc, CallFunctionFlags flags)
-      : PlatformCodeStub(isolate), argc_(argc), flags_(flags) { }
+      : PlatformCodeStub(isolate), argc_(argc), flags_(flags) {
+    ASSERT(argc <= Code::kMaxArguments);
+  }
 
   void Generate(MacroAssembler* masm);
 
   static int ExtractArgcFromMinorKey(int minor_key) {
     return ArgcBits::decode(minor_key);
   }
+
+  virtual void InitializeInterfaceDescriptor(
+      CodeStubInterfaceDescriptor* descriptor);
 
  private:
   int argc_;
@@ -1663,7 +1638,9 @@ class CallFunctionStub: public PlatformCodeStub {
 
   // Minor key encoding in 32 bits with Bitfield <Type, shift, size>.
   class FlagBits: public BitField<CallFunctionFlags, 0, 2> {};
-  class ArgcBits: public BitField<unsigned, 2, 32 - 2> {};
+  class ArgcBits : public BitField<unsigned, 2, Code::kArgumentsBits> {};
+
+  STATIC_ASSERT(Code::kArgumentsBits + 2 <= kStubMinorKeyBits);
 
   Major MajorKey() const { return CallFunction; }
   int MinorKey() const {
@@ -1691,6 +1668,9 @@ class CallConstructStub: public PlatformCodeStub {
   virtual void FinishCode(Handle<Code> code) {
     code->set_has_function_cache(RecordCallTarget());
   }
+
+  virtual void InitializeInterfaceDescriptor(
+      CodeStubInterfaceDescriptor* descriptor);
 
  private:
   CallConstructorFlags flags_;
@@ -1880,9 +1860,9 @@ class StringCharAtGenerator {
 };
 
 
-class KeyedLoadDictionaryElementStub : public HydrogenCodeStub {
+class LoadDictionaryElementStub : public HydrogenCodeStub {
  public:
-  explicit KeyedLoadDictionaryElementStub(Isolate* isolate)
+  explicit LoadDictionaryElementStub(Isolate* isolate)
       : HydrogenCodeStub(isolate) {}
 
   virtual Handle<Code> GenerateCode() V8_OVERRIDE;
@@ -1891,32 +1871,31 @@ class KeyedLoadDictionaryElementStub : public HydrogenCodeStub {
       CodeStubInterfaceDescriptor* descriptor) V8_OVERRIDE;
 
  private:
-  Major MajorKey() const { return KeyedLoadElement; }
+  Major MajorKey() const { return LoadElement; }
   int NotMissMinorKey() const { return DICTIONARY_ELEMENTS; }
 
-  DISALLOW_COPY_AND_ASSIGN(KeyedLoadDictionaryElementStub);
+  DISALLOW_COPY_AND_ASSIGN(LoadDictionaryElementStub);
 };
 
 
-class KeyedLoadDictionaryElementPlatformStub : public PlatformCodeStub {
+class LoadDictionaryElementPlatformStub : public PlatformCodeStub {
  public:
-  explicit KeyedLoadDictionaryElementPlatformStub(Isolate* isolate)
+  explicit LoadDictionaryElementPlatformStub(Isolate* isolate)
       : PlatformCodeStub(isolate) {}
 
   void Generate(MacroAssembler* masm);
 
  private:
-  Major MajorKey() const { return KeyedLoadElement; }
+  Major MajorKey() const { return LoadElement; }
   int MinorKey() const { return DICTIONARY_ELEMENTS; }
 
-  DISALLOW_COPY_AND_ASSIGN(KeyedLoadDictionaryElementPlatformStub);
+  DISALLOW_COPY_AND_ASSIGN(LoadDictionaryElementPlatformStub);
 };
 
 
-class KeyedLoadGenericElementStub : public HydrogenCodeStub {
+class KeyedLoadGenericStub : public HydrogenCodeStub {
  public:
-  explicit KeyedLoadGenericElementStub(Isolate *isolate)
-      : HydrogenCodeStub(isolate) {}
+  explicit KeyedLoadGenericStub(Isolate* isolate) : HydrogenCodeStub(isolate) {}
 
   virtual Handle<Code> GenerateCode() V8_OVERRIDE;
 
@@ -1932,7 +1911,7 @@ class KeyedLoadGenericElementStub : public HydrogenCodeStub {
   Major MajorKey() const { return KeyedLoadGeneric; }
   int NotMissMinorKey() const { return 0; }
 
-  DISALLOW_COPY_AND_ASSIGN(KeyedLoadGenericElementStub);
+  DISALLOW_COPY_AND_ASSIGN(KeyedLoadGenericStub);
 };
 
 
@@ -2003,11 +1982,10 @@ class DoubleToIStub : public PlatformCodeStub {
 };
 
 
-class KeyedLoadFastElementStub : public HydrogenCodeStub {
+class LoadFastElementStub : public HydrogenCodeStub {
  public:
-  KeyedLoadFastElementStub(Isolate* isolate,
-                           bool is_js_array,
-                           ElementsKind elements_kind)
+  LoadFastElementStub(Isolate* isolate, bool is_js_array,
+                      ElementsKind elements_kind)
       : HydrogenCodeStub(isolate) {
     bit_field_ = ElementsKindBits::encode(elements_kind) |
         IsJSArrayBits::encode(is_js_array);
@@ -2031,19 +2009,17 @@ class KeyedLoadFastElementStub : public HydrogenCodeStub {
   class IsJSArrayBits: public BitField<bool, 8, 1> {};
   uint32_t bit_field_;
 
-  Major MajorKey() const { return KeyedLoadElement; }
+  Major MajorKey() const { return LoadElement; }
   int NotMissMinorKey() const { return bit_field_; }
 
-  DISALLOW_COPY_AND_ASSIGN(KeyedLoadFastElementStub);
+  DISALLOW_COPY_AND_ASSIGN(LoadFastElementStub);
 };
 
 
-class KeyedStoreFastElementStub : public HydrogenCodeStub {
+class StoreFastElementStub : public HydrogenCodeStub {
  public:
-  KeyedStoreFastElementStub(Isolate* isolate,
-                            bool is_js_array,
-                            ElementsKind elements_kind,
-                            KeyedAccessStoreMode mode)
+  StoreFastElementStub(Isolate* isolate, bool is_js_array,
+                       ElementsKind elements_kind, KeyedAccessStoreMode mode)
       : HydrogenCodeStub(isolate) {
     bit_field_ = ElementsKindBits::encode(elements_kind) |
         IsJSArrayBits::encode(is_js_array) |
@@ -2073,10 +2049,10 @@ class KeyedStoreFastElementStub : public HydrogenCodeStub {
   class IsJSArrayBits: public BitField<bool,                12, 1> {};
   uint32_t bit_field_;
 
-  Major MajorKey() const { return KeyedStoreElement; }
+  Major MajorKey() const { return StoreElement; }
   int NotMissMinorKey() const { return bit_field_; }
 
-  DISALLOW_COPY_AND_ASSIGN(KeyedStoreFastElementStub);
+  DISALLOW_COPY_AND_ASSIGN(StoreFastElementStub);
 };
 
 
@@ -2324,18 +2300,16 @@ class InternalArrayNArgumentsConstructorStub : public
 };
 
 
-class KeyedStoreElementStub : public PlatformCodeStub {
+class StoreElementStub : public PlatformCodeStub {
  public:
-  KeyedStoreElementStub(Isolate* isolate,
-                        bool is_js_array,
-                        ElementsKind elements_kind,
-                        KeyedAccessStoreMode store_mode)
+  StoreElementStub(Isolate* isolate, bool is_js_array,
+                   ElementsKind elements_kind, KeyedAccessStoreMode store_mode)
       : PlatformCodeStub(isolate),
         is_js_array_(is_js_array),
         elements_kind_(elements_kind),
-        store_mode_(store_mode) { }
+        store_mode_(store_mode) {}
 
-  Major MajorKey() const { return KeyedStoreElement; }
+  Major MajorKey() const { return StoreElement; }
   int MinorKey() const {
     return ElementsKindBits::encode(elements_kind_) |
         IsJSArrayBits::encode(is_js_array_) |
@@ -2353,7 +2327,7 @@ class KeyedStoreElementStub : public PlatformCodeStub {
   ElementsKind elements_kind_;
   KeyedAccessStoreMode store_mode_;
 
-  DISALLOW_COPY_AND_ASSIGN(KeyedStoreElementStub);
+  DISALLOW_COPY_AND_ASSIGN(StoreElementStub);
 };
 
 

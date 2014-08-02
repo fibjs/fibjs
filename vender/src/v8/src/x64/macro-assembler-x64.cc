@@ -405,10 +405,6 @@ void MacroAssembler::RecordWriteForMap(Register object,
   // Compute the address.
   leap(dst, FieldOperand(object, HeapObject::kMapOffset));
 
-  // Count number of write barriers in generated code.
-  isolate()->counters()->write_barriers_static()->Increment();
-  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
-
   // First, check if a write barrier is even needed. The tests below
   // catch stores of smis and stores into the young generation.
   Label done;
@@ -429,6 +425,10 @@ void MacroAssembler::RecordWriteForMap(Register object,
   CallStub(&stub);
 
   bind(&done);
+
+  // Count number of write barriers in generated code.
+  isolate()->counters()->write_barriers_static()->Increment();
+  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
 
   // Clobber clobbered registers when running with the debug-code flag
   // turned on to provoke errors.
@@ -465,10 +465,6 @@ void MacroAssembler::RecordWrite(
     bind(&ok);
   }
 
-  // Count number of write barriers in generated code.
-  isolate()->counters()->write_barriers_static()->Increment();
-  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
-
   // First, check if a write barrier is even needed. The tests below
   // catch stores of smis and stores into the young generation.
   Label done;
@@ -499,6 +495,10 @@ void MacroAssembler::RecordWrite(
   CallStub(&stub);
 
   bind(&done);
+
+  // Count number of write barriers in generated code.
+  isolate()->counters()->write_barriers_static()->Increment();
+  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
 
   // Clobber clobbered registers when running with the debug-code flag
   // turned on to provoke errors.
@@ -3745,15 +3745,16 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
                                              Register result,
                                              Label* miss,
                                              bool miss_on_bound_function) {
-  // Check that the receiver isn't a smi.
-  testl(function, Immediate(kSmiTagMask));
-  j(zero, miss);
-
-  // Check that the function really is a function.
-  CmpObjectType(function, JS_FUNCTION_TYPE, result);
-  j(not_equal, miss);
-
+  Label non_instance;
   if (miss_on_bound_function) {
+    // Check that the receiver isn't a smi.
+    testl(function, Immediate(kSmiTagMask));
+    j(zero, miss);
+
+    // Check that the function really is a function.
+    CmpObjectType(function, JS_FUNCTION_TYPE, result);
+    j(not_equal, miss);
+
     movp(kScratchRegister,
          FieldOperand(function, JSFunction::kSharedFunctionInfoOffset));
     // It's not smi-tagged (stored in the top half of a smi-tagged 8-byte
@@ -3762,13 +3763,12 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
         SharedFunctionInfo::kCompilerHintsOffset,
         SharedFunctionInfo::kBoundFunction);
     j(not_zero, miss);
-  }
 
-  // Make sure that the function has an instance prototype.
-  Label non_instance;
-  testb(FieldOperand(result, Map::kBitFieldOffset),
-        Immediate(1 << Map::kHasNonInstancePrototype));
-  j(not_zero, &non_instance, Label::kNear);
+    // Make sure that the function has an instance prototype.
+    testb(FieldOperand(result, Map::kBitFieldOffset),
+          Immediate(1 << Map::kHasNonInstancePrototype));
+    j(not_zero, &non_instance, Label::kNear);
+  }
 
   // Get the prototype or initial map from the function.
   movp(result,
@@ -3787,12 +3787,15 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
 
   // Get the prototype from the initial map.
   movp(result, FieldOperand(result, Map::kPrototypeOffset));
-  jmp(&done, Label::kNear);
 
-  // Non-instance prototype: Fetch prototype from constructor field
-  // in initial map.
-  bind(&non_instance);
-  movp(result, FieldOperand(result, Map::kConstructorOffset));
+  if (miss_on_bound_function) {
+    jmp(&done, Label::kNear);
+
+    // Non-instance prototype: Fetch prototype from constructor field
+    // in initial map.
+    bind(&non_instance);
+    movp(result, FieldOperand(result, Map::kConstructorOffset));
+  }
 
   // All done.
   bind(&done);
@@ -4244,7 +4247,7 @@ void MacroAssembler::CheckAccessGlobalProxy(Register holder_reg,
 
 
 // Compute the hash code from the untagged key.  This must be kept in sync with
-// ComputeIntegerHash in utils.h and KeyedLoadGenericElementStub in
+// ComputeIntegerHash in utils.h and KeyedLoadGenericStub in
 // code-stub-hydrogen.cc
 void MacroAssembler::GetNumberHash(Register r0, Register scratch) {
   // First of all we assign the hash seed to scratch.

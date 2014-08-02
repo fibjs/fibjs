@@ -53,17 +53,17 @@ Heap::Heap()
       amount_of_external_allocated_memory_at_last_global_gc_(0),
       isolate_(NULL),
       code_range_size_(0),
-// semispace_size_ should be a power of 2 and old_generation_size_ should be
-// a multiple of Page::kPageSize.
+      // semispace_size_ should be a power of 2 and old_generation_size_ should
+      // be a multiple of Page::kPageSize.
       reserved_semispace_size_(8 * (kPointerSize / 4) * MB),
-      max_semi_space_size_(8 * (kPointerSize / 4)  * MB),
+      max_semi_space_size_(8 * (kPointerSize / 4) * MB),
       initial_semispace_size_(Page::kPageSize),
       max_old_generation_size_(700ul * (kPointerSize / 4) * MB),
       max_executable_size_(256ul * (kPointerSize / 4) * MB),
-// Variables set based on semispace_size_ and old_generation_size_ in
-// ConfigureHeap.
-// Will be 4 * reserved_semispace_size_ to ensure that young
-// generation can be aligned to its size.
+      // Variables set based on semispace_size_ and old_generation_size_ in
+      // ConfigureHeap.
+      // Will be 4 * reserved_semispace_size_ to ensure that young
+      // generation can be aligned to its size.
       maximum_committed_(0),
       survived_since_last_expansion_(0),
       sweep_generation_(0),
@@ -113,8 +113,6 @@ Heap::Heap()
       total_gc_time_ms_(0.0),
       max_alive_after_gc_(0),
       min_in_mutator_(kMaxInt),
-      alive_after_last_gc_(0),
-      last_gc_end_timestamp_(base::OS::TimeCurrentMillis()),
       marking_time_(0.0),
       sweeping_time_(0.0),
       mark_compact_collector_(this),
@@ -840,7 +838,8 @@ bool Heap::CollectGarbage(GarbageCollector collector,
 
   bool next_gc_likely_to_collect_more = false;
 
-  { tracer()->start(collector, gc_reason, collector_reason);
+  {
+    tracer()->Start(collector, gc_reason, collector_reason);
     ASSERT(AllowHeapAllocation::IsAllowed());
     DisallowHeapAllocation no_allocation_during_gc;
     GarbageCollectionPrologue();
@@ -854,7 +853,7 @@ bool Heap::CollectGarbage(GarbageCollector collector,
     }
 
     GarbageCollectionEpilogue();
-    tracer()->stop();
+    tracer()->Stop();
   }
 
   // Start incremental marking for the next cycle. The heap snapshot
@@ -2925,14 +2924,15 @@ void Heap::CreateInitialObjects() {
   // Number of queued microtasks stored in Isolate::pending_microtask_count().
   set_microtask_queue(empty_fixed_array());
 
-  set_frozen_symbol(*factory->NewPrivateSymbol());
-  set_nonexistent_symbol(*factory->NewPrivateSymbol());
+  set_detailed_stack_trace_symbol(*factory->NewPrivateSymbol());
   set_elements_transition_symbol(*factory->NewPrivateSymbol());
-  set_uninitialized_symbol(*factory->NewPrivateSymbol());
+  set_frozen_symbol(*factory->NewPrivateSymbol());
   set_megamorphic_symbol(*factory->NewPrivateSymbol());
+  set_nonexistent_symbol(*factory->NewPrivateSymbol());
+  set_normal_ic_symbol(*factory->NewPrivateSymbol());
   set_observed_symbol(*factory->NewPrivateSymbol());
   set_stack_trace_symbol(*factory->NewPrivateSymbol());
-  set_detailed_stack_trace_symbol(*factory->NewPrivateSymbol());
+  set_uninitialized_symbol(*factory->NewPrivateSymbol());
 
   Handle<SeededNumberDictionary> slow_element_dictionary =
       SeededNumberDictionary::New(isolate(), 0, TENURED);
@@ -3303,8 +3303,7 @@ bool Heap::CanMoveObjectStart(HeapObject* object) {
   // for concurrent sweeping. The WasSwept predicate for concurrently swept
   // pages is set after sweeping all pages.
   return (!is_in_old_pointer_space && !is_in_old_data_space) ||
-         page->WasSwept() ||
-         (page->parallel_sweeping() <= MemoryChunk::SWEEPING_FINALIZE);
+         page->WasSwept() || page->SweepingCompleted();
 }
 
 
@@ -4208,6 +4207,8 @@ STRUCT_LIST(MAKE_CASE)
 
 
 bool Heap::IsHeapIterable() {
+  // TODO(hpayer): This function is not correct. Allocation folding in old
+  // space breaks the iterability.
   return (old_pointer_space()->swept_precisely() &&
           old_data_space()->swept_precisely() &&
           new_space_top_after_last_gc_ == new_space()->top());
@@ -4219,14 +4220,14 @@ void Heap::MakeHeapIterable() {
   if (!IsHeapIterable()) {
     CollectAllGarbage(kMakeHeapIterableMask, "Heap::MakeHeapIterable");
   }
+  if (mark_compact_collector()->sweeping_in_progress()) {
+    mark_compact_collector()->EnsureSweepingCompleted();
+  }
   ASSERT(IsHeapIterable());
 }
 
 
 void Heap::AdvanceIdleIncrementalMarking(intptr_t step_size) {
-  HistogramTimerScope idle_notification_scope(
-      isolate_->counters()->gc_incremental_marking());
-
   incremental_marking()->Step(step_size,
                               IncrementalMarking::NO_GC_VIA_STACK_GUARD);
 
@@ -4250,6 +4251,9 @@ void Heap::AdvanceIdleIncrementalMarking(intptr_t step_size) {
 
 
 bool Heap::IdleNotification(int hint) {
+  // If incremental marking is off, we do not perform idle notification.
+  if (!FLAG_incremental_marking) return true;
+
   // Hints greater than this value indicate that
   // the embedder is requesting a lot of GC work.
   const int kMaxHint = 1000;
@@ -4263,6 +4267,7 @@ bool Heap::IdleNotification(int hint) {
   intptr_t step_size =
       size_factor * IncrementalMarking::kAllocatedThreshold;
 
+  isolate()->counters()->gc_idle_time_allotted_in_ms()->AddSample(hint);
   HistogramTimerScope idle_notification_scope(
       isolate_->counters()->gc_idle_notification());
 
@@ -4283,10 +4288,6 @@ bool Heap::IdleNotification(int hint) {
     // on subsequent idle notifications.
     StartIdleRound();
     return false;
-  }
-
-  if (!FLAG_incremental_marking || isolate_->serializer_enabled()) {
-    return IdleGlobalGC();
   }
 
   // By doing small chunks of GC work in each IdleNotification,
@@ -4340,66 +4341,6 @@ bool Heap::IdleNotification(int hint) {
   }
 
   return false;
-}
-
-
-bool Heap::IdleGlobalGC() {
-  static const int kIdlesBeforeScavenge = 4;
-  static const int kIdlesBeforeMarkSweep = 7;
-  static const int kIdlesBeforeMarkCompact = 8;
-  static const int kMaxIdleCount = kIdlesBeforeMarkCompact + 1;
-  static const unsigned int kGCsBetweenCleanup = 4;
-
-  if (!last_idle_notification_gc_count_init_) {
-    last_idle_notification_gc_count_ = gc_count_;
-    last_idle_notification_gc_count_init_ = true;
-  }
-
-  bool uncommit = true;
-  bool finished = false;
-
-  // Reset the number of idle notifications received when a number of
-  // GCs have taken place. This allows another round of cleanup based
-  // on idle notifications if enough work has been carried out to
-  // provoke a number of garbage collections.
-  if (gc_count_ - last_idle_notification_gc_count_ < kGCsBetweenCleanup) {
-    number_idle_notifications_ =
-        Min(number_idle_notifications_ + 1, kMaxIdleCount);
-  } else {
-    number_idle_notifications_ = 0;
-    last_idle_notification_gc_count_ = gc_count_;
-  }
-
-  if (number_idle_notifications_ == kIdlesBeforeScavenge) {
-    CollectGarbage(NEW_SPACE, "idle notification");
-    new_space_.Shrink();
-    last_idle_notification_gc_count_ = gc_count_;
-  } else if (number_idle_notifications_ == kIdlesBeforeMarkSweep) {
-    // Before doing the mark-sweep collections we clear the
-    // compilation cache to avoid hanging on to source code and
-    // generated code for cached functions.
-    isolate_->compilation_cache()->Clear();
-
-    CollectAllGarbage(kReduceMemoryFootprintMask, "idle notification");
-    new_space_.Shrink();
-    last_idle_notification_gc_count_ = gc_count_;
-
-  } else if (number_idle_notifications_ == kIdlesBeforeMarkCompact) {
-    CollectAllGarbage(kReduceMemoryFootprintMask, "idle notification");
-    new_space_.Shrink();
-    last_idle_notification_gc_count_ = gc_count_;
-    number_idle_notifications_ = 0;
-    finished = true;
-  } else if (number_idle_notifications_ > kIdlesBeforeMarkCompact) {
-    // If we have received more than kIdlesBeforeMarkCompact idle
-    // notifications we do not perform any cleanup because we don't
-    // expect to gain much by doing so.
-    finished = true;
-  }
-
-  if (uncommit) UncommitFromSpace();
-
-  return finished;
 }
 
 
@@ -5265,8 +5206,8 @@ void Heap::TearDown() {
     PrintF("min_in_mutator=%.1f ", get_min_in_mutator());
     PrintF("max_alive_after_gc=%" V8_PTR_PREFIX "d ",
            get_max_alive_after_gc());
-    PrintF("total_marking_time=%.1f ", marking_time());
-    PrintF("total_sweeping_time=%.1f ", sweeping_time());
+    PrintF("total_marking_time=%.1f ", tracer_.cumulative_sweeping_duration());
+    PrintF("total_sweeping_time=%.1f ", tracer_.cumulative_sweeping_duration());
     PrintF("\n\n");
   }
 
@@ -5950,239 +5891,19 @@ void Heap::TracePathToGlobal() {
 #endif
 
 
-static intptr_t CountTotalHolesSize(Heap* heap) {
-  intptr_t holes_size = 0;
-  OldSpaces spaces(heap);
-  for (OldSpace* space = spaces.next();
-       space != NULL;
-       space = spaces.next()) {
-    holes_size += space->Waste() + space->Available();
-  }
-  return holes_size;
-}
-
-
-void Heap::UpdateGCStatistics(double start_time,
-                              double end_time,
-                              double spent_in_mutator,
-                              double marking_time) {
-  double duration = end_time - start_time;
-  alive_after_last_gc_ = SizeOfObjects();
-  last_gc_end_timestamp_ = end_time;
-
+void Heap::UpdateCumulativeGCStatistics(double duration,
+                                        double spent_in_mutator,
+                                        double marking_time) {
   if (FLAG_print_cumulative_gc_stat) {
     total_gc_time_ms_ += duration;
     max_gc_pause_ = Max(max_gc_pause_, duration);
-    max_alive_after_gc_ = Max(max_alive_after_gc_, alive_after_last_gc_);
+    max_alive_after_gc_ = Max(max_alive_after_gc_, SizeOfObjects());
     min_in_mutator_ = Min(min_in_mutator_, spent_in_mutator);
   } else if (FLAG_trace_gc_verbose) {
     total_gc_time_ms_ += duration;
   }
 
   marking_time_ += marking_time;
-}
-
-
-GCTracer::GCTracer(Heap* heap)
-    : start_time_(0.0),
-      end_time_(0.0),
-      start_object_size_(0),
-      end_object_size_(0),
-      start_memory_size_(0),
-      end_memory_size_(0),
-      in_free_list_or_wasted_before_gc_(0),
-      allocated_since_last_gc_(0),
-      spent_in_mutator_(0),
-      steps_count_(0),
-      steps_took_(0.0),
-      longest_step_(0.0),
-      steps_count_since_last_gc_(0),
-      steps_took_since_last_gc_(0.0),
-      heap_(heap),
-      gc_reason_(NULL),
-      collector_reason_(NULL) {
-  for (int i = 0; i < Scope::NUMBER_OF_SCOPES; i++) {
-    scopes_[i] = 0;
-  }
-}
-
-
-void GCTracer::start(GarbageCollector collector,
-                      const char* gc_reason,
-                      const char* collector_reason) {
-  if (!FLAG_trace_gc && !FLAG_print_cumulative_gc_stat) return;
-
-  collector_ = collector;
-  gc_reason_ = gc_reason;
-  collector_reason_ = collector_reason;
-
-  start_time_ = base::OS::TimeCurrentMillis();
-  start_object_size_ = heap_->SizeOfObjects();
-  start_memory_size_ = heap_->isolate()->memory_allocator()->Size();
-
-  for (int i = 0; i < Scope::NUMBER_OF_SCOPES; i++) {
-    scopes_[i] = 0;
-  }
-
-  in_free_list_or_wasted_before_gc_ = CountTotalHolesSize(heap_);
-
-  allocated_since_last_gc_ =
-      heap_->SizeOfObjects() - heap_->alive_after_last_gc_;
-
-  spent_in_mutator_ = Max(start_time_ - heap_->last_gc_end_timestamp_, 0.0);
-
-  steps_count_ = heap_->incremental_marking()->steps_count();
-  steps_took_ = heap_->incremental_marking()->steps_took();
-  longest_step_ = heap_->incremental_marking()->longest_step();
-  steps_count_since_last_gc_ =
-      heap_->incremental_marking()->steps_count_since_last_gc();
-  steps_took_since_last_gc_ =
-      heap_->incremental_marking()->steps_took_since_last_gc();
-}
-
-
-void GCTracer::stop() {
-  if (!FLAG_trace_gc && !FLAG_print_cumulative_gc_stat) return;
-
-  end_time_ = base::OS::TimeCurrentMillis();
-  end_object_size_ = heap_->SizeOfObjects();
-  end_memory_size_ = heap_->isolate()->memory_allocator()->Size();
-
-  heap_->UpdateGCStatistics(start_time_,
-                            end_time_,
-                            spent_in_mutator_,
-                            scopes_[Scope::MC_MARK]);
-
-  if (collector_ == SCAVENGER && FLAG_trace_gc_ignore_scavenger) return;
-
-  if (FLAG_trace_gc) {
-    if (FLAG_trace_gc_nvp)
-      PrintNVP();
-    else
-      Print();
-
-    heap_->PrintShortHeapStatistics();
-  }
-}
-
-
-void GCTracer::Print() const {
-  PrintPID("%8.0f ms: ", heap_->isolate()->time_millis_since_init());
-
-  PrintF("%s %.1f (%.1f) -> %.1f (%.1f) MB, ",
-         CollectorString(),
-         static_cast<double>(start_object_size_) / MB,
-         static_cast<double>(start_memory_size_) / MB,
-         static_cast<double>(end_object_size_) / MB,
-         static_cast<double>(end_memory_size_) / MB);
-
-  int external_time = static_cast<int>(scopes_[Scope::EXTERNAL]);
-  if (external_time > 0) PrintF("%d / ", external_time);
-
-  PrintF("%.1f ms", end_time_ - start_time_);
-  if (steps_count_ > 0) {
-    if (collector_ == SCAVENGER) {
-      PrintF(" (+ %.1f ms in %d steps since last GC)",
-             steps_took_since_last_gc_,
-             steps_count_since_last_gc_);
-    } else {
-      PrintF(" (+ %.1f ms in %d steps since start of marking, "
-             "biggest step %.1f ms)",
-             steps_took_,
-             steps_count_,
-             longest_step_);
-    }
-  }
-
-  if (gc_reason_ != NULL) {
-    PrintF(" [%s]", gc_reason_);
-  }
-
-  if (collector_reason_ != NULL) {
-    PrintF(" [%s]", collector_reason_);
-  }
-
-  PrintF(".\n");
-}
-
-
-void GCTracer::PrintNVP() const {
-  PrintPID("%8.0f ms: ", heap_->isolate()->time_millis_since_init());
-
-  PrintF("pause=%.1f ", end_time_ - start_time_);
-  PrintF("mutator=%.1f ", spent_in_mutator_);
-  PrintF("gc=");
-  switch (collector_) {
-    case SCAVENGER:
-      PrintF("s");
-      break;
-    case MARK_COMPACTOR:
-      PrintF("ms");
-      break;
-    default:
-      UNREACHABLE();
-  }
-  PrintF(" ");
-
-  PrintF("external=%.1f ", scopes_[Scope::EXTERNAL]);
-  PrintF("mark=%.1f ", scopes_[Scope::MC_MARK]);
-  PrintF("sweep=%.2f ", scopes_[Scope::MC_SWEEP]);
-  PrintF("sweepns=%.2f ", scopes_[Scope::MC_SWEEP_NEWSPACE]);
-  PrintF("sweepos=%.2f ", scopes_[Scope::MC_SWEEP_OLDSPACE]);
-  PrintF("sweepcode=%.2f ", scopes_[Scope::MC_SWEEP_CODE]);
-  PrintF("sweepcell=%.2f ", scopes_[Scope::MC_SWEEP_CELL]);
-  PrintF("sweepmap=%.2f ", scopes_[Scope::MC_SWEEP_MAP]);
-  PrintF("evacuate=%.1f ", scopes_[Scope::MC_EVACUATE_PAGES]);
-  PrintF("new_new=%.1f ", scopes_[Scope::MC_UPDATE_NEW_TO_NEW_POINTERS]);
-  PrintF("root_new=%.1f ", scopes_[Scope::MC_UPDATE_ROOT_TO_NEW_POINTERS]);
-  PrintF("old_new=%.1f ", scopes_[Scope::MC_UPDATE_OLD_TO_NEW_POINTERS]);
-  PrintF("compaction_ptrs=%.1f ",
-         scopes_[Scope::MC_UPDATE_POINTERS_TO_EVACUATED]);
-  PrintF("intracompaction_ptrs=%.1f ",
-         scopes_[Scope::MC_UPDATE_POINTERS_BETWEEN_EVACUATED]);
-  PrintF("misc_compaction=%.1f ", scopes_[Scope::MC_UPDATE_MISC_POINTERS]);
-  PrintF("weakcollection_process=%.1f ",
-         scopes_[Scope::MC_WEAKCOLLECTION_PROCESS]);
-  PrintF("weakcollection_clear=%.1f ",
-         scopes_[Scope::MC_WEAKCOLLECTION_CLEAR]);
-
-  PrintF("total_size_before=%" V8_PTR_PREFIX "d ", start_object_size_);
-  PrintF("total_size_after=%" V8_PTR_PREFIX "d ", end_object_size_);
-  PrintF("holes_size_before=%" V8_PTR_PREFIX "d ",
-         in_free_list_or_wasted_before_gc_);
-  PrintF("holes_size_after=%" V8_PTR_PREFIX "d ", CountTotalHolesSize(heap_));
-
-  PrintF("allocated=%" V8_PTR_PREFIX "d ", allocated_since_last_gc_);
-  PrintF("promoted=%" V8_PTR_PREFIX "d ", heap_->promoted_objects_size_);
-  PrintF("semi_space_copied=%" V8_PTR_PREFIX "d ",
-         heap_->semi_space_copied_object_size_);
-  PrintF("nodes_died_in_new=%d ", heap_->nodes_died_in_new_space_);
-  PrintF("nodes_copied_in_new=%d ", heap_->nodes_copied_in_new_space_);
-  PrintF("nodes_promoted=%d ", heap_->nodes_promoted_);
-  PrintF("promotion_rate=%.1f%% ", heap_->promotion_rate_);
-  PrintF("semi_space_copy_rate=%.1f%% ", heap_->semi_space_copied_rate_);
-
-  if (collector_ == SCAVENGER) {
-    PrintF("stepscount=%d ", steps_count_since_last_gc_);
-    PrintF("stepstook=%.1f ", steps_took_since_last_gc_);
-  } else {
-    PrintF("stepscount=%d ", steps_count_);
-    PrintF("stepstook=%.1f ", steps_took_);
-    PrintF("longeststep=%.1f ", longest_step_);
-  }
-
-  PrintF("\n");
-}
-
-
-const char* GCTracer::CollectorString() const {
-  switch (collector_) {
-    case SCAVENGER:
-      return "Scavenge";
-    case MARK_COMPACTOR:
-      return "Mark-sweep";
-  }
-  return "Unknown GC";
 }
 
 

@@ -254,7 +254,7 @@ void MacroAssembler::Mls(Register dst, Register src1, Register src2,
     CpuFeatureScope scope(this, MLS);
     mls(dst, src1, src2, srcA, cond);
   } else {
-    ASSERT(!dst.is(srcA));
+    ASSERT(!srcA.is(ip));
     mul(ip, src1, src2, LeaveCC, cond);
     sub(dst, srcA, ip, LeaveCC, cond);
   }
@@ -521,10 +521,6 @@ void MacroAssembler::RecordWriteForMap(Register object,
     return;
   }
 
-  // Count number of write barriers in generated code.
-  isolate()->counters()->write_barriers_static()->Increment();
-  // TODO(mstarzinger): Dynamic counter missing.
-
   if (emit_debug_code()) {
     ldr(ip, FieldMemOperand(object, HeapObject::kMapOffset));
     cmp(ip, map);
@@ -565,6 +561,10 @@ void MacroAssembler::RecordWriteForMap(Register object,
 
   bind(&done);
 
+  // Count number of write barriers in generated code.
+  isolate()->counters()->write_barriers_static()->Increment();
+  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1, ip, dst);
+
   // Clobber clobbered registers when running with the debug-code flag
   // turned on to provoke errors.
   if (emit_debug_code()) {
@@ -597,10 +597,6 @@ void MacroAssembler::RecordWrite(
       !FLAG_incremental_marking) {
     return;
   }
-
-  // Count number of write barriers in generated code.
-  isolate()->counters()->write_barriers_static()->Increment();
-  // TODO(mstarzinger): Dynamic counter missing.
 
   // First, check if a write barrier is even needed. The tests below
   // catch stores of smis and stores into the young generation.
@@ -635,6 +631,11 @@ void MacroAssembler::RecordWrite(
   }
 
   bind(&done);
+
+  // Count number of write barriers in generated code.
+  isolate()->counters()->write_barriers_static()->Increment();
+  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1, ip,
+                   value);
 
   // Clobber clobbered registers when running with the debug-code flag
   // turned on to provoke errors.
@@ -724,39 +725,6 @@ void MacroAssembler::PopSafepointRegisters() {
   const int num_unsaved = kNumSafepointRegisters - kNumSafepointSavedRegisters;
   ldm(ia_w, sp, kSafepointSavedRegisters);
   add(sp, sp, Operand(num_unsaved * kPointerSize));
-}
-
-
-void MacroAssembler::PushSafepointRegistersAndDoubles() {
-  // Number of d-regs not known at snapshot time.
-  ASSERT(!serializer_enabled());
-  PushSafepointRegisters();
-  // Only save allocatable registers.
-  ASSERT(kScratchDoubleReg.is(d15) && kDoubleRegZero.is(d14));
-  ASSERT(DwVfpRegister::NumReservedRegisters() == 2);
-  if (CpuFeatures::IsSupported(VFP32DREGS)) {
-    vstm(db_w, sp, d16, d31);
-  }
-  vstm(db_w, sp, d0, d13);
-}
-
-
-void MacroAssembler::PopSafepointRegistersAndDoubles() {
-  // Number of d-regs not known at snapshot time.
-  ASSERT(!serializer_enabled());
-  // Only save allocatable registers.
-  ASSERT(kScratchDoubleReg.is(d15) && kDoubleRegZero.is(d14));
-  ASSERT(DwVfpRegister::NumReservedRegisters() == 2);
-  vldm(ia_w, sp, d0, d13);
-  if (CpuFeatures::IsSupported(VFP32DREGS)) {
-    vldm(ia_w, sp, d16, d31);
-  }
-  PopSafepointRegisters();
-}
-
-void MacroAssembler::StoreToSafepointRegistersAndDoublesSlot(Register src,
-                                                             Register dst) {
-  str(src, SafepointRegistersAndDoublesSlot(dst));
 }
 
 
@@ -1637,7 +1605,7 @@ void MacroAssembler::CheckAccessGlobalProxy(Register holder_reg,
 
 
 // Compute the hash code from the untagged key.  This must be kept in sync with
-// ComputeIntegerHash in utils.h and KeyedLoadGenericElementStub in
+// ComputeIntegerHash in utils.h and KeyedLoadGenericStub in
 // code-stub-hydrogen.cc
 void MacroAssembler::GetNumberHash(Register t0, Register scratch) {
   // First of all we assign the hash seed to scratch.
@@ -2316,14 +2284,15 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
                                              Register scratch,
                                              Label* miss,
                                              bool miss_on_bound_function) {
-  // Check that the receiver isn't a smi.
-  JumpIfSmi(function, miss);
-
-  // Check that the function really is a function.  Load map into result reg.
-  CompareObjectType(function, result, scratch, JS_FUNCTION_TYPE);
-  b(ne, miss);
-
+  Label non_instance;
   if (miss_on_bound_function) {
+    // Check that the receiver isn't a smi.
+    JumpIfSmi(function, miss);
+
+    // Check that the function really is a function.  Load map into result reg.
+    CompareObjectType(function, result, scratch, JS_FUNCTION_TYPE);
+    b(ne, miss);
+
     ldr(scratch,
         FieldMemOperand(function, JSFunction::kSharedFunctionInfoOffset));
     ldr(scratch,
@@ -2331,13 +2300,12 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
     tst(scratch,
         Operand(Smi::FromInt(1 << SharedFunctionInfo::kBoundFunction)));
     b(ne, miss);
-  }
 
-  // Make sure that the function has an instance prototype.
-  Label non_instance;
-  ldrb(scratch, FieldMemOperand(result, Map::kBitFieldOffset));
-  tst(scratch, Operand(1 << Map::kHasNonInstancePrototype));
-  b(ne, &non_instance);
+    // Make sure that the function has an instance prototype.
+    ldrb(scratch, FieldMemOperand(result, Map::kBitFieldOffset));
+    tst(scratch, Operand(1 << Map::kHasNonInstancePrototype));
+    b(ne, &non_instance);
+  }
 
   // Get the prototype or initial map from the function.
   ldr(result,
@@ -2357,12 +2325,15 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
 
   // Get the prototype from the initial map.
   ldr(result, FieldMemOperand(result, Map::kPrototypeOffset));
-  jmp(&done);
 
-  // Non-instance prototype: Fetch prototype from constructor field
-  // in initial map.
-  bind(&non_instance);
-  ldr(result, FieldMemOperand(result, Map::kConstructorOffset));
+  if (miss_on_bound_function) {
+    jmp(&done);
+
+    // Non-instance prototype: Fetch prototype from constructor field
+    // in initial map.
+    bind(&non_instance);
+    ldr(result, FieldMemOperand(result, Map::kConstructorOffset));
+  }
 
   // All done.
   bind(&done);

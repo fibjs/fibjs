@@ -106,15 +106,18 @@ Handle<Object> Context::Lookup(Handle<String> name,
       // Context extension objects needs to behave as if they have no
       // prototype.  So even if we want to follow prototype chains, we need
       // to only do a local lookup for context extension objects.
+      Maybe<PropertyAttributes> maybe;
       if ((flags & FOLLOW_PROTOTYPE_CHAIN) == 0 ||
           object->IsJSContextExtensionObject()) {
-        *attributes = JSReceiver::GetOwnPropertyAttributes(object, name);
+        maybe = JSReceiver::GetOwnPropertyAttributes(object, name);
       } else {
-        *attributes = JSReceiver::GetPropertyAttributes(object, name);
+        maybe = JSReceiver::GetPropertyAttributes(object, name);
       }
-      if (isolate->has_pending_exception()) return Handle<Object>();
+      if (!maybe.has_value) return Handle<Object>();
+      ASSERT(!isolate->has_pending_exception());
+      *attributes = maybe.value;
 
-      if (*attributes != ABSENT) {
+      if (maybe.value != ABSENT) {
         if (FLAG_trace_contexts) {
           PrintF("=> found property in context object %p\n",
                  reinterpret_cast<void*>(*object));
@@ -137,8 +140,11 @@ Handle<Object> Context::Lookup(Handle<String> name,
       }
       VariableMode mode;
       InitializationFlag init_flag;
-      int slot_index =
-          ScopeInfo::ContextSlotIndex(scope_info, name, &mode, &init_flag);
+      // TODO(sigurds) Figure out whether maybe_assigned_flag should
+      // be used to compute binding_flags.
+      MaybeAssignedFlag maybe_assigned_flag;
+      int slot_index = ScopeInfo::ContextSlotIndex(
+          scope_info, name, &mode, &init_flag, &maybe_assigned_flag);
       ASSERT(slot_index < 0 || slot_index >= MIN_CONTEXT_SLOTS);
       if (slot_index >= 0) {
         if (FLAG_trace_contexts) {

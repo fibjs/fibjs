@@ -150,7 +150,6 @@ struct MaybeBoolFlag {
 DEFINE_BOOL(use_strict, false, "enforce strict mode")
 DEFINE_BOOL(es_staging, false, "enable upcoming ES6+ features")
 
-DEFINE_BOOL(harmony_typeof, false, "enable harmony semantics for typeof")
 DEFINE_BOOL(harmony_scoping, false, "enable harmony block scoping")
 DEFINE_BOOL(harmony_modules, false,
             "enable harmony modules (implies block scoping)")
@@ -165,14 +164,13 @@ DEFINE_BOOL(harmony_numeric_literals, false,
 DEFINE_BOOL(harmony_strings, false, "enable harmony string")
 DEFINE_BOOL(harmony_arrays, false, "enable harmony arrays")
 DEFINE_BOOL(harmony_arrow_functions, false, "enable harmony arrow functions")
-DEFINE_BOOL(harmony, false, "enable all harmony features (except typeof)")
+DEFINE_BOOL(harmony, false, "enable all harmony features")
 
 DEFINE_IMPLICATION(harmony, harmony_scoping)
 DEFINE_IMPLICATION(harmony, harmony_modules)
 DEFINE_IMPLICATION(harmony, harmony_proxies)
 DEFINE_IMPLICATION(harmony, harmony_collections)
 DEFINE_IMPLICATION(harmony, harmony_generators)
-DEFINE_IMPLICATION(harmony, harmony_iteration)
 DEFINE_IMPLICATION(harmony, harmony_numeric_literals)
 DEFINE_IMPLICATION(harmony, harmony_strings)
 DEFINE_IMPLICATION(harmony, harmony_arrays)
@@ -185,6 +183,7 @@ DEFINE_IMPLICATION(harmony_iteration, harmony_symbols)
 DEFINE_IMPLICATION(harmony, es_staging)
 DEFINE_IMPLICATION(es_staging, harmony_symbols)
 DEFINE_IMPLICATION(es_staging, harmony_collections)
+DEFINE_IMPLICATION(es_staging, harmony_iteration)
 
 // Flags for experimental implementation features.
 DEFINE_BOOL(compiled_keyed_dictionary_loads, true,
@@ -213,6 +212,7 @@ DEFINE_BOOL(track_field_types, true, "track field types")
 DEFINE_IMPLICATION(track_field_types, track_fields)
 DEFINE_IMPLICATION(track_field_types, track_heap_object_fields)
 DEFINE_BOOL(smi_binop, true, "support smi representation in binary operations")
+DEFINE_BOOL(vector_ics, false, "support vector-based ics")
 
 // Flags for optimization types.
 DEFINE_BOOL(optimize_for_size, false,
@@ -332,6 +332,20 @@ DEFINE_IMPLICATION(concurrent_osr, concurrent_recompilation)
 DEFINE_BOOL(omit_map_checks_for_leaf_maps, true,
             "do not emit check maps for constant values that have a leaf map, "
             "deoptimize the optimized code if the layout of the maps changes.")
+
+// Flags for TurboFan.
+DEFINE_STRING(turbo_filter, "~", "optimization filter for TurboFan compiler")
+DEFINE_BOOL(trace_turbo, false, "trace generated TurboFan IR")
+DEFINE_BOOL(trace_turbo_types, true, "trace generated TurboFan types")
+DEFINE_BOOL(trace_turbo_scheduler, false, "trace generated TurboFan scheduler")
+DEFINE_BOOL(turbo_verify, false, "verify TurboFan graphs at each phase")
+DEFINE_BOOL(turbo_stats, false, "print TurboFan statistics")
+DEFINE_BOOL(turbo_types, false, "use typed lowering in TurboFan")
+DEFINE_BOOL(turbo_source_positions, false,
+            "track source code positions when building TurboFan IR")
+DEFINE_BOOL(context_specialization, true,
+            "enable context specialization in TurboFan")
+DEFINE_BOOL(turbo_deoptimization, false, "enable deoptimization in TurboFan")
 
 DEFINE_INT(typed_array_max_size_in_heap, 64,
            "threshold for in-heap typed array")
@@ -516,7 +530,7 @@ DEFINE_BOOL(trace_incremental_marking, false,
             "trace progress of the incremental marking")
 DEFINE_BOOL(track_gc_object_stats, false,
             "track object counts and memory usage")
-DEFINE_BOOL(always_precise_sweeping, false, "always sweep precisely")
+DEFINE_BOOL(always_precise_sweeping, true, "always sweep precisely")
 DEFINE_BOOL(parallel_sweeping, false, "enable parallel sweeping")
 DEFINE_BOOL(concurrent_sweeping, true, "enable concurrent sweeping")
 DEFINE_INT(sweeper_threads, 0,
@@ -726,6 +740,10 @@ DEFINE_BOOL(verify_native_context_separation, false,
             "verify that code holds on to at most one native context after GC")
 DEFINE_BOOL(print_handles, false, "report handles after GC")
 DEFINE_BOOL(print_global_handles, false, "report global handles after GC")
+
+// TurboFan debug-only flags.
+DEFINE_BOOL(print_turbo_replay, false,
+            "print C++ code to recreate TurboFan graphs")
 
 // interface.cc
 DEFINE_BOOL(print_interfaces, false, "print interfaces")

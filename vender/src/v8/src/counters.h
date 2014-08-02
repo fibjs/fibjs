@@ -291,6 +291,9 @@ class HistogramTimerScope BASE_EMBEDDED {
 #endif
 };
 
+#define HISTOGRAM_RANGE_LIST(HR) \
+  /* Generic range histograms */ \
+  HR(gc_idle_time_allotted_in_ms, V8.GCIdleTimeAllottedInMS, 0, 10000, 101)
 
 #define HISTOGRAM_TIMER_LIST(HT)                             \
   /* Garbage collection timers. */                           \
@@ -299,6 +302,7 @@ class HistogramTimerScope BASE_EMBEDDED {
   HT(gc_context, V8.GCContext) /* GC context cleanup time */ \
   HT(gc_idle_notification, V8.GCIdleNotification)            \
   HT(gc_incremental_marking, V8.GCIncrementalMarking)        \
+  HT(gc_low_memory_notification, V8.GCLowMemoryNotification) \
   /* Parsing timers. */                                      \
   HT(parse, V8.Parse)                                        \
   HT(parse_lazy, V8.ParseLazy)                               \
@@ -551,6 +555,11 @@ class HistogramTimerScope BASE_EMBEDDED {
 // This file contains all the v8 counters that are in use.
 class Counters {
  public:
+#define HR(name, caption, min, max, num_buckets) \
+  Histogram* name() { return &name##_; }
+  HISTOGRAM_RANGE_LIST(HR)
+#undef HR
+
 #define HT(name, caption) \
   HistogramTimer* name() { return &name##_; }
   HISTOGRAM_TIMER_LIST(HT)
@@ -638,6 +647,10 @@ class Counters {
   void ResetHistograms();
 
  private:
+#define HR(name, caption, min, max, num_buckets) Histogram name##_;
+  HISTOGRAM_RANGE_LIST(HR)
+#undef HR
+
 #define HT(name, caption) \
   HistogramTimer name##_;
   HISTOGRAM_TIMER_LIST(HT)

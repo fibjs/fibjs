@@ -106,14 +106,17 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
 
 // Macros for MaybeHandle.
 
-#define RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, T)  \
-  do {                                                       \
-    Isolate* __isolate__ = (isolate);                        \
-    if (__isolate__->has_scheduled_exception()) {            \
-      __isolate__->PromoteScheduledException();              \
-      return MaybeHandle<T>();                               \
-    }                                                        \
+#define RETURN_VALUE_IF_SCHEDULED_EXCEPTION(isolate, value) \
+  do {                                                      \
+    Isolate* __isolate__ = (isolate);                       \
+    if (__isolate__->has_scheduled_exception()) {           \
+      __isolate__->PromoteScheduledException();             \
+      return value;                                         \
+    }                                                       \
   } while (false)
+
+#define RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, T) \
+  RETURN_VALUE_IF_SCHEDULED_EXCEPTION(isolate, MaybeHandle<T>())
 
 #define ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, value)  \
   do {                                                               \
@@ -360,6 +363,7 @@ typedef List<HeapObject*> DebugObjectCache;
   V(int, pending_microtask_count, 0)                                           \
   V(bool, autorun_microtasks, true)                                            \
   V(HStatistics*, hstatistics, NULL)                                           \
+  V(HStatistics*, tstatistics, NULL)                                           \
   V(HTracer*, htracer, NULL)                                                   \
   V(CodeTracer*, code_tracer, NULL)                                            \
   V(bool, fp_stubs_generated, false)                                           \
@@ -1064,6 +1068,7 @@ class Isolate {
   int id() const { return static_cast<int>(id_); }
 
   HStatistics* GetHStatistics();
+  HStatistics* GetTStatistics();
   HTracer* GetHTracer();
   CodeTracer* GetCodeTracer();
 

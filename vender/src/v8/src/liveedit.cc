@@ -885,12 +885,12 @@ MaybeHandle<JSArray> LiveEdit::GatherCompileInfo(Handle<Script> script,
       Handle<Smi> end_pos(Smi::FromInt(message_location.end_pos()), isolate);
       Handle<JSObject> script_obj =
           Script::GetWrapper(message_location.script());
-      JSReceiver::SetProperty(rethrow_exception, start_pos_key, start_pos,
-                              SLOPPY).Assert();
-      JSReceiver::SetProperty(rethrow_exception, end_pos_key, end_pos, SLOPPY)
+      Object::SetProperty(rethrow_exception, start_pos_key, start_pos, SLOPPY)
           .Assert();
-      JSReceiver::SetProperty(rethrow_exception, script_obj_key, script_obj,
-                              SLOPPY).Assert();
+      Object::SetProperty(rethrow_exception, end_pos_key, end_pos, SLOPPY)
+          .Assert();
+      Object::SetProperty(rethrow_exception, script_obj_key, script_obj, SLOPPY)
+          .Assert();
     }
   }
 
@@ -1638,7 +1638,7 @@ static const char* DropFrames(Vector<StackFrame*> frames,
              isolate->builtins()->builtin(Builtins::kReturn_DebugBreak)) {
     *mode = LiveEdit::FRAME_DROPPED_IN_RETURN_CALL;
   } else if (pre_top_frame_code->kind() == Code::STUB &&
-      pre_top_frame_code->major_key() == CodeStub::CEntry) {
+             CodeStub::GetMajorKey(pre_top_frame_code) == CodeStub::CEntry) {
     // Entry from our unit tests on 'debugger' statement.
     // It's fine, we support this case.
     *mode = LiveEdit::FRAME_DROPPED_IN_DIRECT_CALL;

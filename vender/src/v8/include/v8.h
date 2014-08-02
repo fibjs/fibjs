@@ -895,6 +895,13 @@ struct Maybe {
 };
 
 
+// Convenience wrapper.
+template <class T>
+inline Maybe<T> maybe(T t) {
+  return Maybe<T>(t);
+}
+
+
 // --- Special objects ---
 
 
@@ -4459,6 +4466,34 @@ class V8_EXPORT Isolate {
   void SetCreateHistogramFunction(CreateHistogramCallback);
   void SetAddHistogramSampleFunction(AddHistogramSampleCallback);
 
+  /**
+   * Optional notification that the embedder is idle.
+   * V8 uses the notification to reduce memory footprint.
+   * This call can be used repeatedly if the embedder remains idle.
+   * Returns true if the embedder should stop calling IdleNotification
+   * until real work has been done.  This indicates that V8 has done
+   * as much cleanup as it will be able to do.
+   *
+   * The idle_time_in_ms argument specifies the time V8 has to do reduce
+   * the memory footprint. There is no guarantee that the actual work will be
+   * done within the time limit.
+   */
+  bool IdleNotification(int idle_time_in_ms);
+
+  /**
+   * Optional notification that the system is running low on memory.
+   * V8 uses these notifications to attempt to free memory.
+   */
+  void LowMemoryNotification();
+
+  /**
+   * Optional notification that a context has been disposed. V8 uses
+   * these notifications to guide the GC heuristic. Returns the number
+   * of context disposals - including this one - since the last time
+   * V8 had a chance to clean up.
+   */
+  int ContextDisposedNotification();
+
  private:
   template<class K, class V, class Traits> friend class PersistentValueMap;
 
@@ -4957,34 +4992,6 @@ class V8_EXPORT V8 {
    */
   static void VisitHandlesForPartialDependence(
       Isolate* isolate, PersistentHandleVisitor* visitor);
-
-  /**
-   * Optional notification that the embedder is idle.
-   * V8 uses the notification to reduce memory footprint.
-   * This call can be used repeatedly if the embedder remains idle.
-   * Returns true if the embedder should stop calling IdleNotification
-   * until real work has been done.  This indicates that V8 has done
-   * as much cleanup as it will be able to do.
-   *
-   * The hint argument specifies the amount of work to be done in the function
-   * on scale from 1 to 1000. There is no guarantee that the actual work will
-   * match the hint.
-   */
-  static bool IdleNotification(int hint = 1000);
-
-  /**
-   * Optional notification that the system is running low on memory.
-   * V8 uses these notifications to attempt to free memory.
-   */
-  static void LowMemoryNotification();
-
-  /**
-   * Optional notification that a context has been disposed. V8 uses
-   * these notifications to guide the GC heuristic. Returns the number
-   * of context disposals - including this one - since the last time
-   * V8 had a chance to clean up.
-   */
-  static int ContextDisposedNotification();
 
   /**
    * Initialize the ICU library bundled with V8. The embedder should only
@@ -5589,7 +5596,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 76;
+  static const int kContextEmbedderDataIndex = 95;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -5607,7 +5614,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 163;
+  static const int kEmptyStringRootIndex = 164;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.

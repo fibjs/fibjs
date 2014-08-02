@@ -508,10 +508,6 @@ void MacroAssembler::RecordWriteForMap(
   // Compute the address.
   lea(address, FieldOperand(object, HeapObject::kMapOffset));
 
-  // Count number of write barriers in generated code.
-  isolate()->counters()->write_barriers_static()->Increment();
-  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
-
   // A single check of the map's pages interesting flag suffices, since it is
   // only set during incremental collection, and then it's also guaranteed that
   // the from object's page's interesting flag is also set.  This optimization
@@ -528,6 +524,10 @@ void MacroAssembler::RecordWriteForMap(
   CallStub(&stub);
 
   bind(&done);
+
+  // Count number of write barriers in generated code.
+  isolate()->counters()->write_barriers_static()->Increment();
+  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
 
   // Clobber clobbered input registers when running with the debug-code flag
   // turned on to provoke errors.
@@ -565,10 +565,6 @@ void MacroAssembler::RecordWrite(
     bind(&ok);
   }
 
-  // Count number of write barriers in generated code.
-  isolate()->counters()->write_barriers_static()->Increment();
-  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
-
   // First, check if a write barrier is even needed. The tests below
   // catch stores of Smis and stores into young gen.
   Label done;
@@ -598,6 +594,10 @@ void MacroAssembler::RecordWrite(
   CallStub(&stub);
 
   bind(&done);
+
+  // Count number of write barriers in generated code.
+  isolate()->counters()->write_barriers_static()->Increment();
+  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
 
   // Clobber clobbered registers when running with the debug-code flag
   // turned on to provoke errors.
@@ -1280,7 +1280,7 @@ void MacroAssembler::CheckAccessGlobalProxy(Register holder_reg,
 
 
 // Compute the hash code from the untagged key.  This must be kept in sync with
-// ComputeIntegerHash in utils.h and KeyedLoadGenericElementStub in
+// ComputeIntegerHash in utils.h and KeyedLoadGenericStub in
 // code-stub-hydrogen.cc
 //
 // Note: r0 will contain hash code
@@ -1976,27 +1976,27 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
                                              Register scratch,
                                              Label* miss,
                                              bool miss_on_bound_function) {
-  // Check that the receiver isn't a smi.
-  JumpIfSmi(function, miss);
-
-  // Check that the function really is a function.
-  CmpObjectType(function, JS_FUNCTION_TYPE, result);
-  j(not_equal, miss);
-
+  Label non_instance;
   if (miss_on_bound_function) {
+    // Check that the receiver isn't a smi.
+    JumpIfSmi(function, miss);
+
+    // Check that the function really is a function.
+    CmpObjectType(function, JS_FUNCTION_TYPE, result);
+    j(not_equal, miss);
+
     // If a bound function, go to miss label.
     mov(scratch,
         FieldOperand(function, JSFunction::kSharedFunctionInfoOffset));
     BooleanBitTest(scratch, SharedFunctionInfo::kCompilerHintsOffset,
                    SharedFunctionInfo::kBoundFunction);
     j(not_zero, miss);
-  }
 
-  // Make sure that the function has an instance prototype.
-  Label non_instance;
-  movzx_b(scratch, FieldOperand(result, Map::kBitFieldOffset));
-  test(scratch, Immediate(1 << Map::kHasNonInstancePrototype));
-  j(not_zero, &non_instance);
+    // Make sure that the function has an instance prototype.
+    movzx_b(scratch, FieldOperand(result, Map::kBitFieldOffset));
+    test(scratch, Immediate(1 << Map::kHasNonInstancePrototype));
+    j(not_zero, &non_instance);
+  }
 
   // Get the prototype or initial map from the function.
   mov(result,
@@ -2015,12 +2015,15 @@ void MacroAssembler::TryGetFunctionPrototype(Register function,
 
   // Get the prototype from the initial map.
   mov(result, FieldOperand(result, Map::kPrototypeOffset));
-  jmp(&done);
 
-  // Non-instance prototype: Fetch prototype from constructor field
-  // in initial map.
-  bind(&non_instance);
-  mov(result, FieldOperand(result, Map::kConstructorOffset));
+  if (miss_on_bound_function) {
+    jmp(&done);
+
+    // Non-instance prototype: Fetch prototype from constructor field
+    // in initial map.
+    bind(&non_instance);
+    mov(result, FieldOperand(result, Map::kConstructorOffset));
+  }
 
   // All done.
   bind(&done);

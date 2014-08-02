@@ -6,14 +6,12 @@
 
 #if V8_TARGET_ARCH_ARM64
 
-#include "src/arm64/lithium-arm64.h"
 #include "src/arm64/lithium-codegen-arm64.h"
 #include "src/hydrogen-osr.h"
-#include "src/lithium-allocator-inl.h"
+#include "src/lithium-inl.h"
 
 namespace v8 {
 namespace internal {
-
 
 #define DEFINE_COMPILE(type)                            \
   void L##type::CompileToNative(LCodeGen* generator) {  \
@@ -550,6 +548,13 @@ LOperand* LPlatformChunk::GetNextSpillSlot(RegisterKind kind) {
     ASSERT(kind == GENERAL_REGISTERS);
     return LStackSlot::Create(index, zone());
   }
+}
+
+
+LOperand* LChunkBuilder::FixedTemp(Register reg) {
+  LUnallocated* operand = ToUnallocated(reg);
+  ASSERT(operand->HasFixedPolicy());
+  return operand;
 }
 
 
@@ -1662,8 +1667,13 @@ LInstruction* LChunkBuilder::DoLoadGlobalGeneric(HLoadGlobalGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   LOperand* global_object = UseFixed(instr->global_object(),
                                      LoadIC::ReceiverRegister());
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    vector = FixedTemp(LoadIC::VectorRegister());
+  }
+
   LLoadGlobalGeneric* result =
-      new(zone()) LLoadGlobalGeneric(context, global_object);
+      new(zone()) LLoadGlobalGeneric(context, global_object, vector);
   return MarkAsCall(DefineFixed(result, x0), instr);
 }
 
@@ -1719,9 +1729,14 @@ LInstruction* LChunkBuilder::DoLoadKeyedGeneric(HLoadKeyedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   LOperand* object = UseFixed(instr->object(), LoadIC::ReceiverRegister());
   LOperand* key = UseFixed(instr->key(), LoadIC::NameRegister());
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    vector = FixedTemp(LoadIC::VectorRegister());
+  }
 
   LInstruction* result =
-      DefineFixed(new(zone()) LLoadKeyedGeneric(context, object, key), x0);
+      DefineFixed(new(zone()) LLoadKeyedGeneric(context, object, key, vector),
+                  x0);
   return MarkAsCall(result, instr);
 }
 
@@ -1735,8 +1750,13 @@ LInstruction* LChunkBuilder::DoLoadNamedField(HLoadNamedField* instr) {
 LInstruction* LChunkBuilder::DoLoadNamedGeneric(HLoadNamedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   LOperand* object = UseFixed(instr->object(), LoadIC::ReceiverRegister());
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    vector = FixedTemp(LoadIC::VectorRegister());
+  }
+
   LInstruction* result =
-      DefineFixed(new(zone()) LLoadNamedGeneric(context, object), x0);
+      DefineFixed(new(zone()) LLoadNamedGeneric(context, object, vector), x0);
   return MarkAsCall(result, instr);
 }
 
@@ -2627,6 +2647,12 @@ LInstruction* LChunkBuilder::DoUnaryMathOperation(HUnaryMathOperation* instr) {
         LMathRoundD* result = new(zone()) LMathRoundD(input);
         return DefineAsRegister(result);
       }
+    }
+    case kMathFround: {
+      ASSERT(instr->value()->representation().IsDouble());
+      LOperand* input = UseRegister(instr->value());
+      LMathFround* result = new (zone()) LMathFround(input);
+      return DefineAsRegister(result);
     }
     case kMathSqrt: {
       ASSERT(instr->representation().IsDouble());

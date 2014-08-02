@@ -515,25 +515,21 @@ void KeyedLoadIC::GenerateMiss(MacroAssembler* masm) {
 const Register LoadIC::ReceiverRegister() { return x1; }
 const Register LoadIC::NameRegister() { return x2; }
 
+const Register LoadIC::SlotRegister() {
+  ASSERT(FLAG_vector_ics);
+  return x0;
+}
+
+
+const Register LoadIC::VectorRegister() {
+  ASSERT(FLAG_vector_ics);
+  return x3;
+}
+
 
 const Register StoreIC::ReceiverRegister() { return x1; }
 const Register StoreIC::NameRegister() { return x2; }
 const Register StoreIC::ValueRegister() { return x0; }
-
-
-const Register KeyedStoreIC::ReceiverRegister() {
-  return StoreIC::ReceiverRegister();
-}
-
-
-const Register KeyedStoreIC::NameRegister() {
-  return StoreIC::NameRegister();
-}
-
-
-const Register KeyedStoreIC::ValueRegister() {
-  return StoreIC::ValueRegister();
-}
 
 
 const Register KeyedStoreIC::MapRegister() {
@@ -804,10 +800,9 @@ void KeyedLoadIC::GenerateIndexedInterceptor(MacroAssembler* masm) {
   // Everything is fine, call runtime.
   __ Push(receiver, key);
   __ TailCallExternalReference(
-      ExternalReference(IC_Utility(kKeyedLoadPropertyWithInterceptor),
+      ExternalReference(IC_Utility(kLoadElementWithInterceptor),
                         masm->isolate()),
-      2,
-      1);
+      2, 1);
 
   __ Bind(&slow);
   GenerateMiss(masm);

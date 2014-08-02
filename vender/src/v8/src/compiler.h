@@ -63,6 +63,7 @@ class ScriptData {
 class CompilationInfo {
  public:
   CompilationInfo(Handle<JSFunction> closure, Zone* zone);
+  CompilationInfo(Isolate* isolate, Zone* zone);
   virtual ~CompilationInfo();
 
   Isolate* isolate() const {
@@ -184,7 +185,6 @@ class CompilationInfo {
   }
 
   void PrepareForSerializing() {
-    ASSERT(!is_lazy());
     flags_ |= PrepareForSerializing::encode(true);
   }
 
@@ -392,7 +392,6 @@ class CompilationInfo {
   void Initialize(Isolate* isolate, Mode mode, Zone* zone);
 
   void SetMode(Mode mode) {
-    ASSERT(isolate()->use_crankshaft());
     mode_ = mode;
   }
 
@@ -693,8 +692,9 @@ class Compiler : public AllStatic {
       NativesFlag is_natives_code);
 
   // Create a shared function info object (the code may be lazily compiled).
-  static Handle<SharedFunctionInfo> BuildFunctionInfo(FunctionLiteral* node,
-                                                      Handle<Script> script);
+  static Handle<SharedFunctionInfo> BuildFunctionInfo(
+      FunctionLiteral* node, Handle<Script> script,
+      CompilationInfo* outer = NULL);
 
   enum ConcurrencyMode { NOT_CONCURRENT, CONCURRENT };
 

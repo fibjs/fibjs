@@ -151,6 +151,21 @@
     <Filter Include="Source Files\zookeeper\hashtable">
       <UniqueIdentifier>{078ed119-1c40-4e7c-b84b-fb68baa0dbde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\v8\src\compiler">
+      <UniqueIdentifier>{198c327e-27b8-4bc2-866c-f308205af66e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\v8\src\compiler\arm">
+      <UniqueIdentifier>{9d995753-e9d9-4e4e-ba4d-b39f723ec614}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\v8\src\compiler\arm64">
+      <UniqueIdentifier>{c25a1b9d-dab7-48ab-b16c-9fe30ee486cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\v8\src\compiler\ia32">
+      <UniqueIdentifier>{a7ecc38b-f578-447c-85a0-7cf7e2c8e24a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\v8\src\compiler\x64">
+      <UniqueIdentifier>{8210fe33-f4ca-4129-a299-a6b8ee5b84a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1727,6 +1742,135 @@
     </ClCompile>
     <ClCompile Include="src\zookeeper\hashtable\hashtable_itr.c">
       <Filter>Source Files\zookeeper\hashtable</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\ast-graph-builder.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\code-generator.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\control-builders.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\gap-resolver.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\graph.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\graph-builder.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\graph-reducer.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\graph-replay.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\graph-visualizer.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\instruction.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\instruction-selector.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\js-context-specialization.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\js-generic-lowering.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\js-graph.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\js-typed-lowering.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\linkage.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\lowering-builder.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\machine-operator-reducer.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\node.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\node-cache.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\pipeline.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\raw-machine-assembler.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\register-allocator.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\schedule.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\scheduler.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\simplified-lowering.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\source-position.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\structured-machine-assembler.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\typer.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\verifier.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\arm\code-generator-arm.cc">
+      <Filter>Source Files\v8\src\compiler\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\arm\instruction-selector-arm.cc">
+      <Filter>Source Files\v8\src\compiler\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\arm\linkage-arm.cc">
+      <Filter>Source Files\v8\src\compiler\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\arm64\code-generator-arm64.cc">
+      <Filter>Source Files\v8\src\compiler\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\arm64\instruction-selector-arm64.cc">
+      <Filter>Source Files\v8\src\compiler\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\arm64\linkage-arm64.cc">
+      <Filter>Source Files\v8\src\compiler\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\ia32\code-generator-ia32.cc">
+      <Filter>Source Files\v8\src\compiler\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\ia32\instruction-selector-ia32.cc">
+      <Filter>Source Files\v8\src\compiler\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\ia32\linkage-ia32.cc">
+      <Filter>Source Files\v8\src\compiler\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\x64\code-generator-x64.cc">
+      <Filter>Source Files\v8\src\compiler\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\x64\instruction-selector-x64.cc">
+      <Filter>Source Files\v8\src\compiler\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\x64\linkage-x64.cc">
+      <Filter>Source Files\v8\src\compiler\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\gc-tracer.cc">
+      <Filter>Source Files\v8\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3409,6 +3553,204 @@
     </ClInclude>
     <ClInclude Include="src\zookeeper\hashtable\hashtable_private.h">
       <Filter>Source Files\zookeeper\hashtable</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\ast-graph-builder.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\code-generator.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\code-generator-impl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\common-node-cache.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\common-operator.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\control-builders.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\frame.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\gap-resolver.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\generic-algorithm.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\generic-algorithm-inl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\generic-graph.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\generic-node.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\generic-node-inl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\graph.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\graph-builder.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\graph-inl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\graph-reducer.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\graph-replay.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\graph-visualizer.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\instruction.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\instruction-codes.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\instruction-selector.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\instruction-selector-impl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\js-context-specialization.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\js-generic-lowering.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\js-graph.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\js-operator.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\js-typed-lowering.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\linkage.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\linkage-impl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\lowering-builder.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\machine-node-factory.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\machine-operator.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\machine-operator-reducer.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\node.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\node-aux-data.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\node-aux-data-inl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\node-cache.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\node-matchers.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\node-properties.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\node-properties-inl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\opcodes.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\operator.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\operator-properties.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\operator-properties-inl.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\phi-reducer.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\pipeline.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\raw-machine-assembler.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\register-allocator.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\representation-change.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\schedule.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\scheduler.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\simplified-lowering.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\simplified-node-factory.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\simplified-operator.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\source-position.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\structured-machine-assembler.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\typer.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\verifier.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\arm\instruction-codes-arm.h">
+      <Filter>Source Files\v8\src\compiler\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\arm64\instruction-codes-arm64.h">
+      <Filter>Source Files\v8\src\compiler\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\ia32\instruction-codes-ia32.h">
+      <Filter>Source Files\v8\src\compiler\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\x64\instruction-codes-x64.h">
+      <Filter>Source Files\v8\src\compiler\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\gc-tracer.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\lithium-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\prototype.h">
+      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

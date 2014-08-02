@@ -638,7 +638,11 @@ static inline AccessCheckInfo* GetAccessCheckInfo(Isolate* isolate,
 
 void Isolate::ReportFailedAccessCheck(Handle<JSObject> receiver,
                                       v8::AccessType type) {
-  if (!thread_local_top()->failed_access_check_callback_) return;
+  if (!thread_local_top()->failed_access_check_callback_) {
+    Handle<String> message = factory()->InternalizeUtf8String("no access");
+    ScheduleThrow(*factory()->NewTypeError(message));
+    return;
+  }
 
   ASSERT(receiver->IsAccessCheckNeeded());
   ASSERT(context());
@@ -1570,7 +1574,8 @@ void Isolate::Deinit() {
       heap_.mark_compact_collector()->EnsureSweepingCompleted();
     }
 
-    if (FLAG_hydrogen_stats) GetHStatistics()->Print();
+    if (FLAG_turbo_stats) GetTStatistics()->Print("TurboFan");
+    if (FLAG_hydrogen_stats) GetHStatistics()->Print("Hydrogen");
 
     if (FLAG_print_deopt_stress) {
       PrintF(stdout, "=== Stress deopt counter: %u\n", stress_deopt_count_);
@@ -2000,7 +2005,7 @@ bool Isolate::Init(Deserializer* des) {
     NumberToStringStub::InstallDescriptors(this);
     StringAddStub::InstallDescriptors(this);
     RegExpConstructResultStub::InstallDescriptors(this);
-    KeyedLoadGenericElementStub::InstallDescriptors(this);
+    KeyedLoadGenericStub::InstallDescriptors(this);
   }
 
   CallDescriptors::InitializeForIsolate(this);
@@ -2113,6 +2118,12 @@ void Isolate::UnlinkDeferredHandles(DeferredHandles* deferred) {
 HStatistics* Isolate::GetHStatistics() {
   if (hstatistics() == NULL) set_hstatistics(new HStatistics());
   return hstatistics();
+}
+
+
+HStatistics* Isolate::GetTStatistics() {
+  if (tstatistics() == NULL) set_tstatistics(new HStatistics());
+  return tstatistics();
 }
 
 

@@ -12,8 +12,8 @@
 #include "src/conversions.h"
 #include "src/data-flow.h"
 #include "src/deoptimizer.h"
+#include "src/feedback-slots.h"
 #include "src/hydrogen-types.h"
-#include "src/ostreams.h"
 #include "src/small-pointer-list.h"
 #include "src/unique.h"
 #include "src/utils.h"
@@ -34,6 +34,7 @@ class HStoreNamedField;
 class HValue;
 class LInstruction;
 class LChunkBuilder;
+class OStream;
 
 #define HYDROGEN_ABSTRACT_INSTRUCTION_LIST(V)  \
   V(ArithmeticBinaryOperation)                 \
@@ -450,7 +451,7 @@ class HSourcePosition {
   typedef BitField<int, 0, 9> InliningIdField;
 
   // Offset from the start of the inlined function.
-  typedef BitField<int, 9, 22> PositionField;
+  typedef BitField<int, 9, 23> PositionField;
 
   // On HPositionInfo can use this constructor.
   explicit HSourcePosition(int value) : value_(value) { }
@@ -2605,6 +2606,7 @@ class HUnaryMathOperation V8_FINAL : public HTemplateInstruction<2> {
       switch (op_) {
         case kMathFloor:
         case kMathRound:
+        case kMathFround:
         case kMathSqrt:
         case kMathPowHalf:
         case kMathLog:
@@ -2671,6 +2673,7 @@ class HUnaryMathOperation V8_FINAL : public HTemplateInstruction<2> {
         // is tagged, and not when it is an unboxed double or unboxed integer.
         SetChangesFlag(kNewSpacePromotion);
         break;
+      case kMathFround:
       case kMathLog:
       case kMathExp:
       case kMathSqrt:
@@ -5433,6 +5436,17 @@ class HLoadGlobalGeneric V8_FINAL : public HTemplateInstruction<2> {
   HValue* global_object() { return OperandAt(1); }
   Handle<String> name() const { return name_; }
   bool for_typeof() const { return for_typeof_; }
+  int slot() const {
+    ASSERT(FLAG_vector_ics &&
+           slot_ != FeedbackSlotInterface::kInvalidFeedbackSlot);
+    return slot_;
+  }
+  Handle<FixedArray> feedback_vector() const { return feedback_vector_; }
+  void SetVectorAndSlot(Handle<FixedArray> vector, int slot) {
+    ASSERT(FLAG_vector_ics);
+    feedback_vector_ = vector;
+    slot_ = slot;
+  }
 
   virtual OStream& PrintDataTo(OStream& os) const V8_OVERRIDE;  // NOLINT
 
@@ -5445,7 +5459,8 @@ class HLoadGlobalGeneric V8_FINAL : public HTemplateInstruction<2> {
  private:
   HLoadGlobalGeneric(HValue* context, HValue* global_object,
                      Handle<String> name, bool for_typeof)
-      : name_(name), for_typeof_(for_typeof) {
+      : name_(name), for_typeof_(for_typeof),
+        slot_(FeedbackSlotInterface::kInvalidFeedbackSlot) {
     SetOperandAt(0, context);
     SetOperandAt(1, global_object);
     set_representation(Representation::Tagged());
@@ -5454,6 +5469,8 @@ class HLoadGlobalGeneric V8_FINAL : public HTemplateInstruction<2> {
 
   Handle<String> name_;
   bool for_typeof_;
+  Handle<FixedArray> feedback_vector_;
+  int slot_;
 };
 
 
@@ -6422,6 +6439,18 @@ class HLoadNamedGeneric V8_FINAL : public HTemplateInstruction<2> {
   HValue* object() const { return OperandAt(1); }
   Handle<Object> name() const { return name_; }
 
+  int slot() const {
+    ASSERT(FLAG_vector_ics &&
+           slot_ != FeedbackSlotInterface::kInvalidFeedbackSlot);
+    return slot_;
+  }
+  Handle<FixedArray> feedback_vector() const { return feedback_vector_; }
+  void SetVectorAndSlot(Handle<FixedArray> vector, int slot) {
+    ASSERT(FLAG_vector_ics);
+    feedback_vector_ = vector;
+    slot_ = slot;
+  }
+
   virtual Representation RequiredInputRepresentation(int index) V8_OVERRIDE {
     return Representation::Tagged();
   }
@@ -6432,7 +6461,8 @@ class HLoadNamedGeneric V8_FINAL : public HTemplateInstruction<2> {
 
  private:
   HLoadNamedGeneric(HValue* context, HValue* object, Handle<Object> name)
-      : name_(name) {
+      : name_(name),
+        slot_(FeedbackSlotInterface::kInvalidFeedbackSlot) {
     SetOperandAt(0, context);
     SetOperandAt(1, object);
     set_representation(Representation::Tagged());
@@ -6440,6 +6470,8 @@ class HLoadNamedGeneric V8_FINAL : public HTemplateInstruction<2> {
   }
 
   Handle<Object> name_;
+  Handle<FixedArray> feedback_vector_;
+  int slot_;
 };
 
 
@@ -6685,6 +6717,17 @@ class HLoadKeyedGeneric V8_FINAL : public HTemplateInstruction<3> {
   HValue* object() const { return OperandAt(0); }
   HValue* key() const { return OperandAt(1); }
   HValue* context() const { return OperandAt(2); }
+  int slot() const {
+    ASSERT(FLAG_vector_ics &&
+           slot_ != FeedbackSlotInterface::kInvalidFeedbackSlot);
+    return slot_;
+  }
+  Handle<FixedArray> feedback_vector() const { return feedback_vector_; }
+  void SetVectorAndSlot(Handle<FixedArray> vector, int slot) {
+    ASSERT(FLAG_vector_ics);
+    feedback_vector_ = vector;
+    slot_ = slot;
+  }
 
   virtual OStream& PrintDataTo(OStream& os) const V8_OVERRIDE;  // NOLINT
 
@@ -6698,13 +6741,17 @@ class HLoadKeyedGeneric V8_FINAL : public HTemplateInstruction<3> {
   DECLARE_CONCRETE_INSTRUCTION(LoadKeyedGeneric)
 
  private:
-  HLoadKeyedGeneric(HValue* context, HValue* obj, HValue* key) {
+  HLoadKeyedGeneric(HValue* context, HValue* obj, HValue* key)
+      : slot_(FeedbackSlotInterface::kInvalidFeedbackSlot) {
     set_representation(Representation::Tagged());
     SetOperandAt(0, obj);
     SetOperandAt(1, key);
     SetOperandAt(2, context);
     SetAllSideEffects();
   }
+
+  Handle<FixedArray> feedback_vector_;
+  int slot_;
 };
 
 
@@ -6927,19 +6974,28 @@ class HStoreKeyed V8_FINAL
     }
 
     ASSERT_EQ(index, 2);
-    if (IsDoubleOrFloatElementsKind(elements_kind())) {
+    return RequiredValueRepresentation(elements_kind_, store_mode_);
+  }
+
+  static Representation RequiredValueRepresentation(
+      ElementsKind kind, StoreFieldOrKeyedMode mode) {
+    if (IsDoubleOrFloatElementsKind(kind)) {
       return Representation::Double();
     }
-    if (SmiValuesAre32Bits() && store_mode_ == STORE_TO_INITIALIZED_ENTRY) {
+
+    if (kind == FAST_SMI_ELEMENTS && SmiValuesAre32Bits() &&
+        mode == STORE_TO_INITIALIZED_ENTRY) {
       return Representation::Integer32();
     }
-    if (IsFastSmiElementsKind(elements_kind())) {
+
+    if (IsFastSmiElementsKind(kind)) {
       return Representation::Smi();
     }
 
-    return is_external() || is_fixed_typed_array()
-        ? Representation::Integer32()
-        : Representation::Tagged();
+    return IsExternalArrayElementsKind(kind) ||
+                   IsFixedTypedArrayElementsKind(kind)
+               ? Representation::Integer32()
+               : Representation::Tagged();
   }
 
   bool is_external() const {
@@ -6959,20 +7015,10 @@ class HStoreKeyed V8_FINAL
     if (IsUninitialized()) {
       return Representation::None();
     }
-    if (IsDoubleOrFloatElementsKind(elements_kind())) {
-      return Representation::Double();
-    }
-    if (SmiValuesAre32Bits() && store_mode_ == STORE_TO_INITIALIZED_ENTRY) {
-      return Representation::Integer32();
-    }
-    if (IsFastSmiElementsKind(elements_kind())) {
-      return Representation::Smi();
-    }
-    if (is_typed_elements()) {
-      return Representation::Integer32();
-    }
+    Representation r = RequiredValueRepresentation(elements_kind_, store_mode_);
     // For fast object elements kinds, don't assume anything.
-    return Representation::None();
+    if (r.IsTagged()) return Representation::None();
+    return r;
   }
 
   HValue* elements() const { return OperandAt(0); }
@@ -7042,9 +7088,6 @@ class HStoreKeyed V8_FINAL
     SetOperandAt(0, obj);
     SetOperandAt(1, key);
     SetOperandAt(2, val);
-
-    ASSERT(store_mode != STORE_TO_INITIALIZED_ENTRY ||
-           elements_kind == FAST_SMI_ELEMENTS);
 
     if (IsFastObjectElementsKind(elements_kind)) {
       SetFlag(kTrackSideEffectDominators);

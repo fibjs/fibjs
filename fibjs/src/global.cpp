@@ -20,7 +20,7 @@ result_t global_base::get_console(obj_ptr<console_base> &retVal)
 
 result_t global_base::GC()
 {
-    v8::V8::LowMemoryNotification();
+    isolate->LowMemoryNotification();
     return 0;
 }
 

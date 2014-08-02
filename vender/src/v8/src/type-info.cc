@@ -175,16 +175,6 @@ bool TypeFeedbackOracle::LoadIsBuiltin(
 }
 
 
-bool TypeFeedbackOracle::LoadIsStub(TypeFeedbackId id, ICStub* stub) {
-  Handle<Object> object = GetInfo(id);
-  if (!object->IsCode()) return false;
-  Handle<Code> code = Handle<Code>::cast(object);
-  if (!code->is_load_stub()) return false;
-  if (code->ic_state() != MONOMORPHIC) return false;
-  return stub->Describes(*code);
-}
-
-
 void TypeFeedbackOracle::CompareType(TypeFeedbackId id,
                                      Type** left_type,
                                      Type** right_type,
@@ -200,16 +190,15 @@ void TypeFeedbackOracle::CompareType(TypeFeedbackId id,
   Handle<Map> map;
   Map* raw_map = code->FindFirstMap();
   if (raw_map != NULL) {
-    if (Map::CurrentMapForDeprecated(handle(raw_map)).ToHandle(&map) &&
+    if (Map::TryUpdate(handle(raw_map)).ToHandle(&map) &&
         CanRetainOtherContext(*map, *native_context_)) {
       map = Handle<Map>::null();
     }
   }
 
   if (code->is_compare_ic_stub()) {
-    int stub_minor_key = code->stub_info();
-    CompareIC::StubInfoToType(
-        stub_minor_key, left_type, right_type, combined_type, map, zone());
+    CompareIC::StubInfoToType(code->stub_key(), left_type, right_type,
+                              combined_type, map, zone());
   } else if (code->is_compare_nil_ic_stub()) {
     CompareNilICStub stub(isolate(), code->extra_ic_state());
     *combined_type = stub.GetType(zone(), map);
@@ -265,16 +254,12 @@ Type* TypeFeedbackOracle::CountType(TypeFeedbackId id) {
 }
 
 
-void TypeFeedbackOracle::PropertyReceiverTypes(
-    TypeFeedbackId id, Handle<String> name,
-    SmallMapList* receiver_types, bool* is_prototype) {
+void TypeFeedbackOracle::PropertyReceiverTypes(TypeFeedbackId id,
+                                               Handle<String> name,
+                                               SmallMapList* receiver_types) {
   receiver_types->Clear();
-  FunctionPrototypeStub proto_stub(isolate(), Code::LOAD_IC);
-  *is_prototype = LoadIsStub(id, &proto_stub);
-  if (!*is_prototype) {
-    Code::Flags flags = Code::ComputeHandlerFlags(Code::LOAD_IC);
-    CollectReceiverTypes(id, name, flags, receiver_types);
-  }
+  Code::Flags flags = Code::ComputeHandlerFlags(Code::LOAD_IC);
+  CollectReceiverTypes(id, name, flags, receiver_types);
 }
 
 

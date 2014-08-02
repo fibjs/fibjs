@@ -355,6 +355,7 @@ void Bootstrapper::DetachGlobal(Handle<Context> env) {
   Handle<JSGlobalProxy> global_proxy(JSGlobalProxy::cast(env->global_proxy()));
   global_proxy->set_native_context(*factory->null_value());
   SetObjectPrototype(global_proxy, factory->null_value());
+  global_proxy->map()->set_constructor(*factory->null_value());
 }
 
 
@@ -1533,6 +1534,38 @@ bool Genesis::CompileScriptCached(Isolate* isolate,
 }
 
 
+static Handle<JSObject> ResolveBuiltinIdHolder(Handle<Context> native_context,
+                                               const char* holder_expr) {
+  Isolate* isolate = native_context->GetIsolate();
+  Factory* factory = isolate->factory();
+  Handle<GlobalObject> global(native_context->global_object());
+  const char* period_pos = strchr(holder_expr, '.');
+  if (period_pos == NULL) {
+    return Handle<JSObject>::cast(
+        Object::GetPropertyOrElement(
+            global, factory->InternalizeUtf8String(holder_expr))
+            .ToHandleChecked());
+  }
+  const char* inner = period_pos + 1;
+  ASSERT_EQ(NULL, strchr(inner, '.'));
+  Vector<const char> property(holder_expr,
+                              static_cast<int>(period_pos - holder_expr));
+  Handle<String> property_string = factory->InternalizeUtf8String(property);
+  ASSERT(!property_string.is_null());
+  Handle<JSObject> object = Handle<JSObject>::cast(
+      Object::GetProperty(global, property_string).ToHandleChecked());
+  if (strcmp("prototype", inner) == 0) {
+    Handle<JSFunction> function = Handle<JSFunction>::cast(object);
+    return Handle<JSObject>(JSObject::cast(function->prototype()));
+  }
+  Handle<String> inner_string = factory->InternalizeUtf8String(inner);
+  ASSERT(!inner_string.is_null());
+  Handle<Object> value =
+      Object::GetProperty(object, inner_string).ToHandleChecked();
+  return Handle<JSObject>::cast(value);
+}
+
+
 #define INSTALL_NATIVE(Type, name, var)                                        \
   Handle<String> var##_name =                                                  \
       factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR(name));          \
@@ -1540,6 +1573,12 @@ bool Genesis::CompileScriptCached(Isolate* isolate,
       handle(native_context()->builtins()), var##_name).ToHandleChecked();     \
   native_context()->set_##var(Type::cast(*var##_native));
 
+#define INSTALL_NATIVE_MATH(name)                                    \
+  {                                                                  \
+    Handle<Object> fun =                                             \
+        ResolveBuiltinIdHolder(native_context(), "Math." #name);     \
+    native_context()->set_math_##name##_fun(JSFunction::cast(*fun)); \
+  }
 
 void Genesis::InstallNativeFunctions() {
   HandleScope scope(isolate());
@@ -1582,6 +1621,26 @@ void Genesis::InstallNativeFunctions() {
                  native_object_get_notifier);
   INSTALL_NATIVE(JSFunction, "NativeObjectNotifierPerformChange",
                  native_object_notifier_perform_change);
+
+  INSTALL_NATIVE_MATH(abs)
+  INSTALL_NATIVE_MATH(acos)
+  INSTALL_NATIVE_MATH(asin)
+  INSTALL_NATIVE_MATH(atan)
+  INSTALL_NATIVE_MATH(atan2)
+  INSTALL_NATIVE_MATH(ceil)
+  INSTALL_NATIVE_MATH(cos)
+  INSTALL_NATIVE_MATH(exp)
+  INSTALL_NATIVE_MATH(floor)
+  INSTALL_NATIVE_MATH(imul)
+  INSTALL_NATIVE_MATH(log)
+  INSTALL_NATIVE_MATH(max)
+  INSTALL_NATIVE_MATH(min)
+  INSTALL_NATIVE_MATH(pow)
+  INSTALL_NATIVE_MATH(random)
+  INSTALL_NATIVE_MATH(round)
+  INSTALL_NATIVE_MATH(sin)
+  INSTALL_NATIVE_MATH(sqrt)
+  INSTALL_NATIVE_MATH(tan)
 }
 
 
@@ -1910,6 +1969,12 @@ bool Genesis::InstallNatives() {
     Handle<JSFunction> apply =
         InstallFunction(proto, "apply", JS_OBJECT_TYPE, JSObject::kHeaderSize,
                         MaybeHandle<JSObject>(), Builtins::kFunctionApply);
+    if (FLAG_vector_ics) {
+      // Apply embeds an IC, so we need a type vector of size 1 in the shared
+      // function info.
+      Handle<FixedArray> feedback_vector = factory()->NewTypeFeedbackVector(1);
+      apply->shared()->set_feedback_vector(*feedback_vector);
+    }
 
     // Make sure that Function.prototype.call appears to be compiled.
     // The code will never be called, but inline caching for call will
@@ -2019,28 +2084,6 @@ bool Genesis::InstallExperimentalNatives() {
 
   InstallExperimentalNativeFunctions();
   return true;
-}
-
-
-static Handle<JSObject> ResolveBuiltinIdHolder(
-    Handle<Context> native_context,
-    const char* holder_expr) {
-  Isolate* isolate = native_context->GetIsolate();
-  Factory* factory = isolate->factory();
-  Handle<GlobalObject> global(native_context->global_object());
-  const char* period_pos = strchr(holder_expr, '.');
-  if (period_pos == NULL) {
-    return Handle<JSObject>::cast(Object::GetPropertyOrElement(
-        global, factory->InternalizeUtf8String(holder_expr)).ToHandleChecked());
-  }
-  ASSERT_EQ(".prototype", period_pos);
-  Vector<const char> property(holder_expr,
-                              static_cast<int>(period_pos - holder_expr));
-  Handle<String> property_string = factory->InternalizeUtf8String(property);
-  ASSERT(!property_string.is_null());
-  Handle<JSFunction> function = Handle<JSFunction>::cast(
-      Object::GetProperty(global, property_string).ToHandleChecked());
-  return Handle<JSObject>(JSObject::cast(function->prototype()));
 }
 
 
@@ -2329,6 +2372,10 @@ bool Genesis::InstallJSBuiltins(Handle<JSBuiltinsObject> builtins) {
         isolate(), builtins, Builtins::GetName(id)).ToHandleChecked();
     Handle<JSFunction> function = Handle<JSFunction>::cast(function_object);
     builtins->set_javascript_builtin(id, *function);
+    // TODO(mstarzinger): This is just a temporary hack to make TurboFan work,
+    // the correct solution is to restore the context register after invoking
+    // builtins from full-codegen.
+    function->shared()->set_optimization_disabled(true);
     if (!Compiler::EnsureCompiled(function, CLEAR_EXCEPTION)) {
       return false;
     }

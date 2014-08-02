@@ -579,9 +579,8 @@ void KeyedLoadIC::GenerateIndexedInterceptor(MacroAssembler* masm) {
   __ push(scratch);   // return address
 
   // Perform tail call to the entry.
-  ExternalReference ref =
-      ExternalReference(IC_Utility(kKeyedLoadPropertyWithInterceptor),
-                        masm->isolate());
+  ExternalReference ref = ExternalReference(
+      IC_Utility(kLoadElementWithInterceptor), masm->isolate());
   __ TailCallExternalReference(ref, 2, 1);
 
   __ bind(&slow);
@@ -974,24 +973,21 @@ const Register LoadIC::ReceiverRegister() { return edx; }
 const Register LoadIC::NameRegister() { return ecx; }
 
 
+const Register LoadIC::SlotRegister() {
+  ASSERT(FLAG_vector_ics);
+  return eax;
+}
+
+
+const Register LoadIC::VectorRegister() {
+  ASSERT(FLAG_vector_ics);
+  return ebx;
+}
+
+
 const Register StoreIC::ReceiverRegister() { return edx; }
 const Register StoreIC::NameRegister() { return ecx; }
 const Register StoreIC::ValueRegister() { return eax; }
-
-
-const Register KeyedStoreIC::ReceiverRegister() {
-  return StoreIC::ReceiverRegister();
-}
-
-
-const Register KeyedStoreIC::NameRegister() {
-  return StoreIC::NameRegister();
-}
-
-
-const Register KeyedStoreIC::ValueRegister() {
-  return StoreIC::ValueRegister();
-}
 
 
 const Register KeyedStoreIC::MapRegister() {

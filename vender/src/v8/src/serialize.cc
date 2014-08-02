@@ -792,6 +792,8 @@ void Deserializer::DeserializePartial(Isolate* isolate, Object** root) {
     external_reference_decoder_ = new ExternalReferenceDecoder(isolate);
   }
 
+  DisallowHeapAllocation no_gc;
+
   // Keep track of the code space start and end pointers in case new
   // code objects were unserialized
   OldSpace* code_space = isolate_->heap()->code_space();
@@ -867,7 +869,7 @@ class StringTableInsertionKey : public HashTableKey {
 };
 
 
-HeapObject* Deserializer::ProcessObjectFromSerializedCode(HeapObject* obj) {
+HeapObject* Deserializer::ProcessNewObjectFromSerializedCode(HeapObject* obj) {
   if (obj->IsString()) {
     String* string = String::cast(obj);
     // Uninitialize hash field as the hash seed may have changed.
@@ -876,8 +878,18 @@ HeapObject* Deserializer::ProcessObjectFromSerializedCode(HeapObject* obj) {
       DisallowHeapAllocation no_gc;
       HandleScope scope(isolate_);
       StringTableInsertionKey key(string);
-      return *StringTable::LookupKey(isolate_, &key);
+      String* canonical = *StringTable::LookupKey(isolate_, &key);
+      string->SetForwardedInternalizedString(canonical);
+      return canonical;
     }
+  }
+  return obj;
+}
+
+
+Object* Deserializer::ProcessBackRefInSerializedCode(Object* obj) {
+  if (obj->IsInternalizedString()) {
+    return String::cast(obj)->GetForwardedInternalizedString();
   }
   return obj;
 }
@@ -907,7 +919,7 @@ void Deserializer::ReadObject(int space_number,
   if (obj->IsAllocationSite()) RelinkAllocationSite(AllocationSite::cast(obj));
 
   // Fix up strings from serialized user code.
-  if (deserializing_user_code()) obj = ProcessObjectFromSerializedCode(obj);
+  if (deserializing_user_code()) obj = ProcessNewObjectFromSerializedCode(obj);
 
   *write_back = obj;
 #ifdef DEBUG
@@ -972,6 +984,9 @@ void Deserializer::ReadChunk(Object** current,
       } else if (where == kBackref) {                                          \
         emit_write_barrier = (space_number == NEW_SPACE);                      \
         new_object = GetAddressFromEnd(data & kSpaceMask);                     \
+        if (deserializing_user_code()) {                                       \
+          new_object = ProcessBackRefInSerializedCode(new_object);             \
+        }                                                                      \
       } else if (where == kBuiltin) {                                          \
         ASSERT(deserializing_user_code());                                     \
         int builtin_id = source_->GetInt();                                    \
@@ -992,6 +1007,9 @@ void Deserializer::ReadChunk(Object** current,
             reinterpret_cast<Address>(current) + skip);                        \
         emit_write_barrier = (space_number == NEW_SPACE);                      \
         new_object = GetAddressFromEnd(data & kSpaceMask);                     \
+        if (deserializing_user_code()) {                                       \
+          new_object = ProcessBackRefInSerializedCode(new_object);             \
+        }                                                                      \
       }                                                                        \
       if (within == kInnerPointer) {                                           \
         if (space_number != CODE_SPACE || new_object->IsCode()) {              \
@@ -1893,6 +1911,7 @@ ScriptData* CodeSerializer::Serialize(Isolate* isolate,
   List<byte> payload;
   ListSnapshotSink list_sink(&payload);
   CodeSerializer cs(isolate, &list_sink, *source);
+  DisallowHeapAllocation no_gc;
   Object** location = Handle<Object>::cast(info).location();
   cs.VisitPointer(location);
   cs.Pad();
@@ -1946,6 +1965,13 @@ void CodeSerializer::SerializeObject(Object* o, HowToCode how_to_code,
     return;
   }
 
+  if (heap_object->IsScript()) {
+    // The wrapper cache uses a Foreign object to point to a global handle.
+    // However, the object visitor expects foreign objects to point to external
+    // references.  Clear the cache to avoid this issue.
+    Script::cast(heap_object)->ClearWrapperCache();
+  }
+
   if (skip != 0) {
     sink_->Put(kSkip, "SkipFromSerializeObject");
     sink_->PutInt(skip, "SkipDistanceFromSerializeObject");
@@ -1991,15 +2017,15 @@ void CodeSerializer::SerializeSourceObject(HowToCode how_to_code,
 Handle<SharedFunctionInfo> CodeSerializer::Deserialize(Isolate* isolate,
                                                        ScriptData* data,
                                                        Handle<String> source) {
+  base::ElapsedTimer timer;
+  if (FLAG_profile_deserialization) timer.Start();
   SerializedCodeData scd(data, *source);
   SnapshotByteSource payload(scd.Payload(), scd.PayloadLength());
   Deserializer deserializer(&payload);
   STATIC_ASSERT(NEW_SPACE == 0);
-  // TODO(yangguo) what happens if remaining new space is too small?
   for (int i = NEW_SPACE; i <= PROPERTY_CELL_SPACE; i++) {
     deserializer.set_reservation(i, scd.GetReservation(i));
   }
-  DisallowHeapAllocation no_gc;
 
   // Prepare and register list of attached objects.
   Vector<Object*> attached_objects = Vector<Object*>::New(1);
@@ -2009,6 +2035,11 @@ Handle<SharedFunctionInfo> CodeSerializer::Deserialize(Isolate* isolate,
   Object* root;
   deserializer.DeserializePartial(isolate, &root);
   deserializer.FlushICacheForNewCodeObjects();
+  if (FLAG_profile_deserialization) {
+    double ms = timer.Elapsed().InMillisecondsF();
+    int length = data->length();
+    PrintF("[Deserializing from %d bytes took %0.3f ms]\n", length, ms);
+  }
   return Handle<SharedFunctionInfo>(SharedFunctionInfo::cast(root), isolate);
 }
 
