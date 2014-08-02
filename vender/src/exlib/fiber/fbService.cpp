@@ -105,7 +105,11 @@ Fiber *Service::CreateFiber(void *(*func)(void *), void *data, int stacksize)
     void **stack;
 
     stacksize = (stacksize + FB_STK_ALIGN - 1) & ~(FB_STK_ALIGN - 1);
+#ifdef WIN32
+    fb = (Fiber *) VirtualAlloc(NULL, stacksize, MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE);
+#else
     fb = (Fiber *) malloc(stacksize);
+#endif
     if (fb == NULL)
         return NULL;
     stack = (void **) fb + stacksize / sizeof(void *) - 5;

@@ -63,7 +63,11 @@ void Fiber::yield()
 
 void Fiber::destroy()
 {
+#ifdef WIN32
+    VirtualFree(this, 0, MEM_RELEASE);
+#else
     free(this);
+#endif
 }
 
 static class _timerThread: public OSThread
