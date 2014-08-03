@@ -320,18 +320,7 @@ result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
 
 result_t Smtp::quit(exlib::AsyncEvent *ac)
 {
-    if (!m_sock)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    asyncSmtp *pSmtp = new asyncSmtp(this, ac);
-
-    m_sock.Release();
-    m_stmBuffered.Release();
-
-    return pSmtp->command("QUIT", "");
+    return command("QUIT", "", ac);
 }
 
 result_t Smtp::get_socket(obj_ptr<Socket_base> &retVal)
