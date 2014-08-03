@@ -19,6 +19,7 @@ var searchData=
   ['define',['define',['../df/d84/classglobal.html#a0ee91eecae9f066671a13227e61947e0',1,'global']]],
   ['deflate',['deflate',['../d8/d09/classzlib.html#a4bbb2133b9a39ea72db80e845a6ad0aa',1,'zlib']]],
   ['deflateto',['deflateTo',['../d8/d09/classzlib.html#aa6b8b6d518e950dbaca2b18ab4330fbe',1,'zlib::deflateTo(Buffer data, Stream stm, Integer level=DEFAULT_COMPRESSION) async'],['../d8/d09/classzlib.html#a26b0d322158d30cfb60c774ee212f8d1',1,'zlib::deflateTo(Stream src, Stream stm, Integer level=DEFAULT_COMPRESSION) async']]],
+  ['del',['del',['../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e',1,'Redis::del(Array keys)'],['../db/d15/classRedis.html#a0ca852fc1075e833c7db632b5c404589',1,'Redis::del(...)']]],
   ['des',['DES',['../d8/d48/classcrypto.html#ae2125c6387aecbaab90570f65fb4f518',1,'crypto']]],
   ['des_5fede',['DES_EDE',['../d8/d48/classcrypto.html#ae36cf5e98c7fdf6ca3d4eefba29491bc',1,'crypto']]],
   ['des_5fede3',['DES_EDE3',['../d8/d48/classcrypto.html#a6a5919b052e90ecfc692123bf4657d04',1,'crypto']]],
@@ -33,5 +34,5 @@ var searchData=
   ['drop',['drop',['../d2/d07/classMongoCollection.html#a60763c7b0c63953047e105f566df1e80',1,'MongoCollection']]],
   ['dropindex',['dropIndex',['../d2/d07/classMongoCollection.html#a5967353e160d74997627e7853040dd70',1,'MongoCollection']]],
   ['dropindexes',['dropIndexes',['../d2/d07/classMongoCollection.html#a8d576a02f1c04e91b4c4f9db5a788436',1,'MongoCollection']]],
-  ['dump',['dump',['../d1/d66/classX509Cert.html#ab8b6b8427dec3e1294db2ebedc301b5b',1,'X509Cert::dump()'],['../d6/df6/classX509Crl.html#a0db20aa8971715314f30952bfdbdf904',1,'X509Crl::dump()']]]
+  ['dump',['dump',['../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b',1,'Redis::dump()'],['../d1/d66/classX509Cert.html#ab8b6b8427dec3e1294db2ebedc301b5b',1,'X509Cert::dump()'],['../d6/df6/classX509Crl.html#a0db20aa8971715314f30952bfdbdf904',1,'X509Crl::dump()']]]
 ];

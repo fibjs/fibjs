@@ -13,6 +13,7 @@ var searchData=
   ['define',['define',['../df/d84/classglobal.html#a0ee91eecae9f066671a13227e61947e0',1,'global']]],
   ['deflate',['deflate',['../d8/d09/classzlib.html#a4bbb2133b9a39ea72db80e845a6ad0aa',1,'zlib']]],
   ['deflateto',['deflateTo',['../d8/d09/classzlib.html#aa6b8b6d518e950dbaca2b18ab4330fbe',1,'zlib::deflateTo(Buffer data, Stream stm, Integer level=DEFAULT_COMPRESSION) async'],['../d8/d09/classzlib.html#a26b0d322158d30cfb60c774ee212f8d1',1,'zlib::deflateTo(Stream src, Stream stm, Integer level=DEFAULT_COMPRESSION) async']]],
+  ['del',['del',['../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e',1,'Redis::del(Array keys)'],['../db/d15/classRedis.html#a0ca852fc1075e833c7db632b5c404589',1,'Redis::del(...)']]],
   ['describe',['describe',['../de/d01/classtest.html#a28c68bd81db526a96da4da2313a3a921',1,'test']]],
   ['detail',['detail',['../d1/dd4/classuuidValue.html#acdf7d45f83f0ad92f1301aba89eb20e4',1,'uuidValue']]],
   ['digest',['digest',['../dd/d8f/classDigest.html#abdbf52a1ab8a032c4f09b31190141217',1,'Digest::digest(Buffer data)'],['../dd/d8f/classDigest.html#a02cb3c12d1c19fead4df84d0ff901de8',1,'Digest::digest(String text=&quot;&quot;)'],['../d5/df6/classhash.html#a813b296a7ed5e852a7338087bdb95239',1,'hash::digest(Integer algo, Buffer data)'],['../d5/df6/classhash.html#a38e739c2ec56ffda0efe43e1b5ce5842',1,'hash::digest(Integer algo, String text=&quot;&quot;)']]],
@@ -23,5 +24,5 @@ var searchData=
   ['drop',['drop',['../d2/d07/classMongoCollection.html#a60763c7b0c63953047e105f566df1e80',1,'MongoCollection']]],
   ['dropindex',['dropIndex',['../d2/d07/classMongoCollection.html#a5967353e160d74997627e7853040dd70',1,'MongoCollection']]],
   ['dropindexes',['dropIndexes',['../d2/d07/classMongoCollection.html#a8d576a02f1c04e91b4c4f9db5a788436',1,'MongoCollection']]],
-  ['dump',['dump',['../d1/d66/classX509Cert.html#ab8b6b8427dec3e1294db2ebedc301b5b',1,'X509Cert::dump()'],['../d6/df6/classX509Crl.html#a0db20aa8971715314f30952bfdbdf904',1,'X509Crl::dump()']]]
+  ['dump',['dump',['../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b',1,'Redis::dump()'],['../d1/d66/classX509Cert.html#ab8b6b8427dec3e1294db2ebedc301b5b',1,'X509Cert::dump()'],['../d6/df6/classX509Crl.html#a0db20aa8971715314f30952bfdbdf904',1,'X509Crl::dump()']]]
 ];

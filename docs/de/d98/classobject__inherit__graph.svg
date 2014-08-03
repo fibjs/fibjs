@@ -766,19 +766,29 @@
 <!-- Node34 -->
 <g id="node34" class="node"><title>Node34</title>
 <g id="a_node34"><a xlink:href="../../db/d15/classRedis.html" target="_top" xlink:title="Redis 数据库客户端对象 ">
-<polygon fill="white" stroke="black" points="2627.12,-421.5 2627.12,-485.5 2702.3,-485.5 2702.3,-421.5 2627.12,-421.5"/>
-<text text-anchor="middle" x="2664.71" y="-473.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
-<polyline fill="none" stroke="black" points="2627.12,-467.5 2702.3,-467.5 "/>
-<text text-anchor="middle" x="2664.71" y="-455.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="2627.12,-449.5 2702.3,-449.5 "/>
-<text text-anchor="start" x="2635.12" y="-437.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
-<text text-anchor="start" x="2635.12" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
+<polygon fill="white" stroke="black" points="2627.12,-371.5 2627.12,-535.5 2702.3,-535.5 2702.3,-371.5 2627.12,-371.5"/>
+<text text-anchor="middle" x="2664.71" y="-523.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
+<polyline fill="none" stroke="black" points="2627.12,-517.5 2702.3,-517.5 "/>
+<text text-anchor="middle" x="2664.71" y="-505.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="2627.12,-499.5 2702.3,-499.5 "/>
+<text text-anchor="start" x="2635.12" y="-487.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
+<text text-anchor="start" x="2635.12" y="-477.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ set()</text>
+<text text-anchor="start" x="2635.12" y="-467.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<text text-anchor="start" x="2635.12" y="-457.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exists()</text>
+<text text-anchor="start" x="2635.12" y="-447.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keys()</text>
+<text text-anchor="start" x="2635.12" y="-437.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2635.12" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2635.12" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ expire()</text>
+<text text-anchor="start" x="2635.12" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ttl()</text>
+<text text-anchor="start" x="2635.12" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dump()</text>
+<text text-anchor="start" x="2635.12" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ restore()</text>
+<text text-anchor="start" x="2635.12" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node34 -->
 <g id="edge33" class="edge"><title>Node1&#45;&gt;Node34</title>
-<path fill="none" stroke="midnightblue" d="M2190.52,-842.632C2295.77,-839.591 2558.48,-826.023 2617.71,-766 2692.81,-689.892 2680.62,-548.362 2670.66,-485.718"/>
+<path fill="none" stroke="midnightblue" d="M2190.52,-842.632C2295.77,-839.591 2558.48,-826.023 2617.71,-766 2676.68,-706.243 2681.83,-606.153 2676.5,-535.584"/>
 <polygon fill="none" stroke="midnightblue" points="2190.15,-839.14 2180.25,-842.909 2190.34,-846.138 2190.15,-839.14"/>
 </g>
 <!-- Node35 -->

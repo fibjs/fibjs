@@ -104,12 +104,42 @@ $(document).ready(function(){initNavTree('d1/d45/Redis_8idl_source.html','../../
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;{</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    Value <a class="code" href="../../db/d15/classRedis.html#abcc3b4d57289f58937a25245bc614359">command</a>(String cmd, ...);</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#abdebadf9d6fefa864ac347bfd582302e">close</a>() async;</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;};</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a6545010d688a101ea57f8c54b199fa83">set</a>(String key, String value, Long <a class="code" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a> = 0);</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    String <span class="keyword">get</span>(String key);</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    Boolean <a class="code" href="../../db/d15/classRedis.html#adbff904366ecc065fd12e1e6da04fcf7">exists</a>(String key);</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <a class="code" href="../../d6/da9/classList.html">List</a> <a class="code" href="../../db/d15/classRedis.html#a0f5526aeab2fe0d16274926cad953bbd">keys</a>(String pattern);</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    Integer <a class="code" href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">del</a>(Array keys);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    Integer <a class="code" href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">del</a>(...);</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    Boolean <a class="code" href="../../db/d15/classRedis.html#a041bc9f7cbd43dfa57f1718ead0555d1">expire</a>(String key, Long <a class="code" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a>);</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    Long <a class="code" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a>(String key);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">dump</a>(String key);</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a8145ce069183383bdf81d28c0c24f738">restore</a>(String key, <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data, Long ttl = 0);</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a6fed94980317b56c987da5fa83a19fd9">close</a>();</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;};</div>
+<div class="ttc" id="classRedis_html_a6545010d688a101ea57f8c54b199fa83"><div class="ttname"><a href="../../db/d15/classRedis.html#a6545010d688a101ea57f8c54b199fa83">Redis::set</a></div><div class="ttdeci">set(String key, String value, Long ttl=0)</div><div class="ttdoc">将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型 </div></div>
+<div class="ttc" id="classRedis_html_adbff904366ecc065fd12e1e6da04fcf7"><div class="ttname"><a href="../../db/d15/classRedis.html#adbff904366ecc065fd12e1e6da04fcf7">Redis::exists</a></div><div class="ttdeci">Boolean exists(String key)</div><div class="ttdoc">返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null </div></div>
+<div class="ttc" id="classRedis_html_a6fed94980317b56c987da5fa83a19fd9"><div class="ttname"><a href="../../db/d15/classRedis.html#a6fed94980317b56c987da5fa83a19fd9">Redis::close</a></div><div class="ttdeci">close()</div><div class="ttdoc">关闭当前数据库连接或事务 </div></div>
+<div class="ttc" id="classRedis_html_a041bc9f7cbd43dfa57f1718ead0555d1"><div class="ttname"><a href="../../db/d15/classRedis.html#a041bc9f7cbd43dfa57f1718ead0555d1">Redis::expire</a></div><div class="ttdeci">Boolean expire(String key, Long ttl)</div><div class="ttdoc">为给定 key 设置生存时间，当 key 过期时，它会被自动删除 </div></div>
+<div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
+<div class="ttc" id="classList_html"><div class="ttname"><a href="../../d6/da9/classList.html">List</a></div><div class="ttdoc">Variant 数组对象，一般用以返回一组 Variant 数据 </div><div class="ttdef"><b>Definition:</b> List.idl:10</div></div>
+<div class="ttc" id="classRedis_html_a8145ce069183383bdf81d28c0c24f738"><div class="ttname"><a href="../../db/d15/classRedis.html#a8145ce069183383bdf81d28c0c24f738">Redis::restore</a></div><div class="ttdeci">restore(String key, Buffer data, Long ttl=0)</div><div class="ttdoc">反序列化给定的序列化值，并将它和给定的 key 关联 </div></div>
 <div class="ttc" id="classobject_html"><div class="ttname"><a href="../../dc/dd8/classobject.html">object</a></div><div class="ttdoc">基础对象，所有对象均继承于此 </div><div class="ttdef"><b>Definition:</b> object.idl:2</div></div>
 <div class="ttc" id="classRedis_html"><div class="ttname"><a href="../../db/d15/classRedis.html">Redis</a></div><div class="ttdoc">Redis 数据库客户端对象 </div><div class="ttdef"><b>Definition:</b> Redis.idl:10</div></div>
+<div class="ttc" id="classRedis_html_a0f5526aeab2fe0d16274926cad953bbd"><div class="ttname"><a href="../../db/d15/classRedis.html#a0f5526aeab2fe0d16274926cad953bbd">Redis::keys</a></div><div class="ttdeci">List keys(String pattern)</div><div class="ttdoc">查找所有符合给定模式 pattern 的 key </div></div>
 <div class="ttc" id="classRedis_html_abcc3b4d57289f58937a25245bc614359"><div class="ttname"><a href="../../db/d15/classRedis.html#abcc3b4d57289f58937a25245bc614359">Redis::command</a></div><div class="ttdeci">Value command(String cmd,...)</div><div class="ttdoc">redis 基础命令方法 </div></div>
-<div class="ttc" id="classRedis_html_abdebadf9d6fefa864ac347bfd582302e"><div class="ttname"><a href="../../db/d15/classRedis.html#abdebadf9d6fefa864ac347bfd582302e">Redis::close</a></div><div class="ttdeci">close() async</div><div class="ttdoc">关闭当前数据库连接或事务 </div></div>
+<div class="ttc" id="classRedis_html_aeb059c5229b6b02d11bdec77e3b5212b"><div class="ttname"><a href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">Redis::dump</a></div><div class="ttdeci">Buffer dump(String key)</div><div class="ttdoc">序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键 ...</div></div>
+<div class="ttc" id="classRedis_html_a4a3c36cff3e626a99cdaa4afb0c0036b"><div class="ttname"><a href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">Redis::ttl</a></div><div class="ttdeci">Long ttl(String key)</div><div class="ttdoc">返回给定 key 的剩余生存时间 </div></div>
+<div class="ttc" id="classRedis_html_ab82f73848a2409c123b633c05294ca2e"><div class="ttname"><a href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">Redis::del</a></div><div class="ttdeci">Integer del(Array keys)</div><div class="ttdoc">检查给定 key 是否存在 </div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

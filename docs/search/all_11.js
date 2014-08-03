@@ -48,6 +48,7 @@ var searchData=
   ['resize',['resize',['../d0/d11/classBuffer.html#a551023131e4c63b198902143e5e5b274',1,'Buffer::resize()'],['../d6/da9/classList.html#a65b48a28764f7cfd800e98771770940a',1,'List::resize()']]],
   ['resolve',['resolve',['../d3/d75/classnet.html#a733a23e8a51fdc5e2b1e3cafaf6f0010',1,'net::resolve()'],['../df/d6b/classUrl.html#aa205a8a31485774d1c830dc559f032ff',1,'Url::resolve()']]],
   ['response',['response',['../d6/d28/classMessage.html#a78167fa1a78f782d15ea7122333eb53d',1,'Message::response()'],['../d6/da8/classhttp.html#a70902187780a1f3b2927b2a2f50213b5',1,'http::Response()']]],
+  ['restore',['restore',['../db/d15/classRedis.html#a8145ce069183383bdf81d28c0c24f738',1,'Redis']]],
   ['result',['result',['../d6/d28/classMessage.html#aff37dc807536324e1b576ffec75770b0',1,'Message']]],
   ['retrieve',['retrieve',['../d9/de8/classGridFS.html#a5c4af1ca1182a02bbbc4be877bfe374b',1,'GridFS']]],
   ['rewind',['rewind',['../db/d67/classSeekableStream.html#a96c92db52bea85a8080771db0d89c024',1,'SeekableStream']]],
