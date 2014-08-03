@@ -110,24 +110,34 @@ $(document).ready(function(){initNavTree('d1/d45/Redis_8idl_source.html','../../
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    Boolean <a class="code" href="../../db/d15/classRedis.html#adbff904366ecc065fd12e1e6da04fcf7">exists</a>(String key);</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <a class="code" href="../../d6/da9/classList.html">List</a> <a class="code" href="../../db/d15/classRedis.html#a0f5526aeab2fe0d16274926cad953bbd">keys</a>(String pattern);</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    String <a class="code" href="../../db/d15/classRedis.html#abc17e36e60c1b7bd392b93a039eb96b0">type</a>(String key);</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    Integer <a class="code" href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">del</a>(Array keys);</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <a class="code" href="../../d6/da9/classList.html">List</a> <a class="code" href="../../db/d15/classRedis.html#a0f5526aeab2fe0d16274926cad953bbd">keys</a>(String pattern);</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    Integer <a class="code" href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">del</a>(...);</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    Integer <a class="code" href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">del</a>(Array keys);</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    Boolean <a class="code" href="../../db/d15/classRedis.html#a041bc9f7cbd43dfa57f1718ead0555d1">expire</a>(String key, Long <a class="code" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a>);</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    Long <a class="code" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a>(String key);</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    Integer <a class="code" href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">del</a>(...);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    Boolean <a class="code" href="../../db/d15/classRedis.html#a041bc9f7cbd43dfa57f1718ead0555d1">expire</a>(String key, Long <a class="code" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a>);</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">dump</a>(String key);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    Long <a class="code" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a>(String key);</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a8145ce069183383bdf81d28c0c24f738">restore</a>(String key, <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data, Long ttl = 0);</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a6fed94980317b56c987da5fa83a19fd9">close</a>();</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;};</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    Boolean <a class="code" href="../../db/d15/classRedis.html#a0f5cee4908c219337e34e150350d6305">persist</a>(String key);</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a2b6c034b5a235cc70879b57fbd4a5a48">rename</a>(String key, String newkey);</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    Boolean <a class="code" href="../../db/d15/classRedis.html#a1299b4ba91be6e7a74c6b725255b4069">renameNX</a>(String key, String newkey);</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">dump</a>(String key);</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a8145ce069183383bdf81d28c0c24f738">restore</a>(String key, <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data, Long ttl = 0);</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <a class="code" href="../../db/d15/classRedis.html#a6fed94980317b56c987da5fa83a19fd9">close</a>();</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;};</div>
+<div class="ttc" id="classRedis_html_a2b6c034b5a235cc70879b57fbd4a5a48"><div class="ttname"><a href="../../db/d15/classRedis.html#a2b6c034b5a235cc70879b57fbd4a5a48">Redis::rename</a></div><div class="ttdeci">rename(String key, String newkey)</div><div class="ttdoc">将 key 改名为 newkey，当 key 和 newkey 相同，或者 key 不存在时，返回一个错误 </div></div>
 <div class="ttc" id="classRedis_html_a6545010d688a101ea57f8c54b199fa83"><div class="ttname"><a href="../../db/d15/classRedis.html#a6545010d688a101ea57f8c54b199fa83">Redis::set</a></div><div class="ttdeci">set(String key, String value, Long ttl=0)</div><div class="ttdoc">将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型 </div></div>
 <div class="ttc" id="classRedis_html_adbff904366ecc065fd12e1e6da04fcf7"><div class="ttname"><a href="../../db/d15/classRedis.html#adbff904366ecc065fd12e1e6da04fcf7">Redis::exists</a></div><div class="ttdeci">Boolean exists(String key)</div><div class="ttdoc">返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null </div></div>
+<div class="ttc" id="classRedis_html_a1299b4ba91be6e7a74c6b725255b4069"><div class="ttname"><a href="../../db/d15/classRedis.html#a1299b4ba91be6e7a74c6b725255b4069">Redis::renameNX</a></div><div class="ttdeci">Boolean renameNX(String key, String newkey)</div><div class="ttdoc">当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误 </div></div>
 <div class="ttc" id="classRedis_html_a6fed94980317b56c987da5fa83a19fd9"><div class="ttname"><a href="../../db/d15/classRedis.html#a6fed94980317b56c987da5fa83a19fd9">Redis::close</a></div><div class="ttdeci">close()</div><div class="ttdoc">关闭当前数据库连接或事务 </div></div>
 <div class="ttc" id="classRedis_html_a041bc9f7cbd43dfa57f1718ead0555d1"><div class="ttname"><a href="../../db/d15/classRedis.html#a041bc9f7cbd43dfa57f1718ead0555d1">Redis::expire</a></div><div class="ttdeci">Boolean expire(String key, Long ttl)</div><div class="ttdoc">为给定 key 设置生存时间，当 key 过期时，它会被自动删除 </div></div>
 <div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
@@ -140,6 +150,8 @@ $(document).ready(function(){initNavTree('d1/d45/Redis_8idl_source.html','../../
 <div class="ttc" id="classRedis_html_aeb059c5229b6b02d11bdec77e3b5212b"><div class="ttname"><a href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">Redis::dump</a></div><div class="ttdeci">Buffer dump(String key)</div><div class="ttdoc">序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键 ...</div></div>
 <div class="ttc" id="classRedis_html_a4a3c36cff3e626a99cdaa4afb0c0036b"><div class="ttname"><a href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">Redis::ttl</a></div><div class="ttdeci">Long ttl(String key)</div><div class="ttdoc">返回给定 key 的剩余生存时间 </div></div>
 <div class="ttc" id="classRedis_html_ab82f73848a2409c123b633c05294ca2e"><div class="ttname"><a href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">Redis::del</a></div><div class="ttdeci">Integer del(Array keys)</div><div class="ttdoc">检查给定 key 是否存在 </div></div>
+<div class="ttc" id="classRedis_html_a0f5cee4908c219337e34e150350d6305"><div class="ttname"><a href="../../db/d15/classRedis.html#a0f5cee4908c219337e34e150350d6305">Redis::persist</a></div><div class="ttdeci">Boolean persist(String key)</div><div class="ttdoc">移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成『持久的』(一个不带生存时间、�...</div></div>
+<div class="ttc" id="classRedis_html_abc17e36e60c1b7bd392b93a039eb96b0"><div class="ttname"><a href="../../db/d15/classRedis.html#abc17e36e60c1b7bd392b93a039eb96b0">Redis::type</a></div><div class="ttdeci">String type(String key)</div><div class="ttdoc">返回 key 所储存的值的类型 </div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

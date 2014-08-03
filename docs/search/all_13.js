@@ -21,13 +21,13 @@ var searchData=
   ['totalmem',['totalmem',['../d7/db0/classos.html#a1542770b2fd24d002d726fbbff0c0a2e',1,'os']]],
   ['trace',['trace',['../d6/df8/classconsole.html#aa60d1f56ec155161db3f3d0e48c2c2d3',1,'console']]],
   ['transparent',['transparent',['../d8/d00/classImage.html#a3b9f33aeaeb6019bb6526f3b3ce624b2',1,'Image']]],
-  ['trigger',['Trigger',['../d7/d1d/classTrigger.html',1,'Trigger'],['../d2/dd1/classcoroutine.html#a4f37b90d865f0349c9e2b301cce65257',1,'coroutine::Trigger()'],['../d7/d1d/classTrigger.html#afcf974790b6e846cd89eba5a802e7fa5',1,'Trigger::Trigger()'],['../d7/d1d/classTrigger.html#acb19a1b266ed37fcfa6a6634d4388b0e',1,'Trigger::trigger(String ev,...)']]],
+  ['trigger',['Trigger',['../d7/d1d/classTrigger.html',1,'Trigger'],['../d7/d1d/classTrigger.html#acb19a1b266ed37fcfa6a6634d4388b0e',1,'Trigger::trigger()'],['../d2/dd1/classcoroutine.html#a4f37b90d865f0349c9e2b301cce65257',1,'coroutine::Trigger()'],['../d7/d1d/classTrigger.html#afcf974790b6e846cd89eba5a802e7fa5',1,'Trigger::Trigger()']]],
   ['true',['true',['../dd/d7a/classExpect.html#aaad4e98d0e6f706cf8c331e89f4a1542',1,'Expect']]],
   ['truecolor',['TRUECOLOR',['../d5/d5d/classgd.html#abb19e274d6ddf2f7ff7703956498af30',1,'gd']]],
   ['truncate',['truncate',['../db/d30/classFile.html#a634c01460200da98755fda701fbace1a',1,'File']]],
   ['trywait',['trywait',['../d6/d72/classSemaphore.html#ab555508a557440f9d2e27bd5f8223ea7',1,'Semaphore']]],
   ['ttl',['ttl',['../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b',1,'Redis']]],
   ['txbuffersize',['txBufferSize',['../d3/da8/classMySQL.html#aaf5d8a266ab80bdb8d793898a87b6fd5',1,'MySQL']]],
-  ['type',['type',['../d8/d00/classImage.html#a5eab9a2875c655bcc7be9559b4502227',1,'Image::type()'],['../d7/db0/classos.html#a14a15c5f48a949b3ed548d59ffcc05e2',1,'os::type()'],['../d4/d33/classSocket.html#a84ed037fcf775c6c38877da2626bdbbc',1,'Socket::type()'],['../d1/d66/classX509Cert.html#ab415ea9cd56e2cf5f87d8d00a365714e',1,'X509Cert::type()']]],
+  ['type',['type',['../d8/d00/classImage.html#a5eab9a2875c655bcc7be9559b4502227',1,'Image::type()'],['../d7/db0/classos.html#a14a15c5f48a949b3ed548d59ffcc05e2',1,'os::type()'],['../d4/d33/classSocket.html#a84ed037fcf775c6c38877da2626bdbbc',1,'Socket::type()'],['../d1/d66/classX509Cert.html#ab415ea9cd56e2cf5f87d8d00a365714e',1,'X509Cert::type()'],['../db/d15/classRedis.html#abc17e36e60c1b7bd392b93a039eb96b0',1,'Redis::type()']]],
   ['typeof',['typeOf',['../de/d1c/classassert.html#a6accf1f518a6bea5c608ea513742cad3',1,'assert']]]
 ];

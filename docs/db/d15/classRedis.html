@@ -115,7 +115,7 @@ $(document).ready(function(){initNavTree('db/d15/classRedis.html','../../');});
 <div class="dynheader">
 类 Redis 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="111" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="116" height="446"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 </div>
 <table class="memberdecls">
@@ -133,6 +133,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:adbff904366ecc065fd12e1e6da04fcf7"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#adbff904366ecc065fd12e1e6da04fcf7">exists</a> (String key)</td></tr>
 <tr class="memdesc:adbff904366ecc065fd12e1e6da04fcf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null  <a href="#adbff904366ecc065fd12e1e6da04fcf7">更多...</a><br /></td></tr>
 <tr class="separator:adbff904366ecc065fd12e1e6da04fcf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc17e36e60c1b7bd392b93a039eb96b0"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#abc17e36e60c1b7bd392b93a039eb96b0">type</a> (String key)</td></tr>
+<tr class="memdesc:abc17e36e60c1b7bd392b93a039eb96b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 key 所储存的值的类型  <a href="#abc17e36e60c1b7bd392b93a039eb96b0">更多...</a><br /></td></tr>
+<tr class="separator:abc17e36e60c1b7bd392b93a039eb96b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f5526aeab2fe0d16274926cad953bbd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/da9/classList.html">List</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a0f5526aeab2fe0d16274926cad953bbd">keys</a> (String pattern)</td></tr>
 <tr class="memdesc:a0f5526aeab2fe0d16274926cad953bbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">查找所有符合给定模式 pattern 的 key  <a href="#a0f5526aeab2fe0d16274926cad953bbd">更多...</a><br /></td></tr>
 <tr class="separator:a0f5526aeab2fe0d16274926cad953bbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -148,6 +151,15 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a4a3c36cff3e626a99cdaa4afb0c0036b"><td class="memItemLeft" align="right" valign="top">Long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a> (String key)</td></tr>
 <tr class="memdesc:a4a3c36cff3e626a99cdaa4afb0c0036b"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回给定 key 的剩余生存时间  <a href="#a4a3c36cff3e626a99cdaa4afb0c0036b">更多...</a><br /></td></tr>
 <tr class="separator:a4a3c36cff3e626a99cdaa4afb0c0036b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f5cee4908c219337e34e150350d6305"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a0f5cee4908c219337e34e150350d6305">persist</a> (String key)</td></tr>
+<tr class="memdesc:a0f5cee4908c219337e34e150350d6305"><td class="mdescLeft">&#160;</td><td class="mdescRight">移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成『持久的』(一个不带生存时间、永不过期的 key)  <a href="#a0f5cee4908c219337e34e150350d6305">更多...</a><br /></td></tr>
+<tr class="separator:a0f5cee4908c219337e34e150350d6305"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b6c034b5a235cc70879b57fbd4a5a48"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a2b6c034b5a235cc70879b57fbd4a5a48">rename</a> (String key, String newkey)</td></tr>
+<tr class="memdesc:a2b6c034b5a235cc70879b57fbd4a5a48"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 key 改名为 newkey，当 key 和 newkey 相同，或者 key 不存在时，返回一个错误  <a href="#a2b6c034b5a235cc70879b57fbd4a5a48">更多...</a><br /></td></tr>
+<tr class="separator:a2b6c034b5a235cc70879b57fbd4a5a48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1299b4ba91be6e7a74c6b725255b4069"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a1299b4ba91be6e7a74c6b725255b4069">renameNX</a> (String key, String newkey)</td></tr>
+<tr class="memdesc:a1299b4ba91be6e7a74c6b725255b4069"><td class="mdescLeft">&#160;</td><td class="mdescRight">当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误  <a href="#a1299b4ba91be6e7a74c6b725255b4069">更多...</a><br /></td></tr>
+<tr class="separator:a1299b4ba91be6e7a74c6b725255b4069"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb059c5229b6b02d11bdec77e3b5212b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d11/classBuffer.html">Buffer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">dump</a> (String key)</td></tr>
 <tr class="memdesc:aeb059c5229b6b02d11bdec77e3b5212b"><td class="mdescLeft">&#160;</td><td class="mdescRight">序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 <a class="el" href="../../db/d15/classRedis.html" title="Redis 数据库客户端对象 ">Redis</a> 键  <a href="#aeb059c5229b6b02d11bdec77e3b5212b">更多...</a><br /></td></tr>
 <tr class="separator:aeb059c5229b6b02d11bdec77e3b5212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -303,6 +315,31 @@ Public 成员函数</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="abc17e36e60c1b7bd392b93a039eb96b0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">String Redis::type </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>返回 key 所储存的值的类型 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要查询的 key </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回 key 所储存的值的类型，可能的值为 none(key不存在) string(字符串) list(列表) set(集合) zset(有序集) hash(哈希表) </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a0f5526aeab2fe0d16274926cad953bbd"></a>
 <div class="memitem">
 <div class="memproto">
@@ -345,7 +382,7 @@ Public 成员函数</h2></td></tr>
 <p>检查给定 key 是否存在 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">key</td><td>指定要检查的 key </td></tr>
+    <tr><td class="paramname">keys</td><td>指定要删除的 key 数组 </td></tr>
   </table>
   </dd>
 </dl>
@@ -436,6 +473,102 @@ Public 成员函数</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>以毫秒为单位，返回 key 的剩余生存时间，当 key 不存在时，返回 -2，当 key 存在但没有设置剩余生存时间时，返回 -1 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a0f5cee4908c219337e34e150350d6305"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean Redis::persist </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成『持久的』(一个不带生存时间、永不过期的 key) </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要设定的 key </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>若 key 存在，返回 True，否则返回 False </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a2b6c034b5a235cc70879b57fbd4a5a48"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::rename </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>newkey</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>将 key 改名为 newkey，当 key 和 newkey 相同，或者 key 不存在时，返回一个错误 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要改名的 key </td></tr>
+    <tr><td class="paramname">newkey</td><td>指定要改名的目的 key </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a1299b4ba91be6e7a74c6b725255b4069"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean Redis::renameNX </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>newkey</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要改名的 key </td></tr>
+    <tr><td class="paramname">newkey</td><td>指定要改名的目的 key </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>修改成功时，返回 True，如果 newkey 已经存在，返回 False </dd></dl>
 
 </div>
 </div>

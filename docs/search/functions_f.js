@@ -6,6 +6,7 @@ var searchData=
   ['parallel',['parallel',['../d2/dd1/classcoroutine.html#acb1e2428abc3e320f4b356de8781135f',1,'coroutine::parallel(Array func)'],['../d2/dd1/classcoroutine.html#ab144e97cefa69d763e76db023becc624',1,'coroutine::parallel(Array data, Function func)'],['../d2/dd1/classcoroutine.html#aff48cfd6c77937aa2f5065a139192c93',1,'coroutine::parallel(...)']]],
   ['parse',['parse',['../df/d6b/classUrl.html#ad2ac8ec76fdd3d74a9dd6bd4cd10c1af',1,'Url']]],
   ['peek',['peek',['../d7/d56/classQueue.html#a527294456fbc8531dd4f6197eec1fc96',1,'Queue']]],
+  ['persist',['persist',['../db/d15/classRedis.html#a0f5cee4908c219337e34e150350d6305',1,'Redis']]],
   ['pkey',['PKey',['../d8/d48/classcrypto.html#a71d0698eba7eea374352808a2ef78e7d',1,'crypto::PKey()'],['../d0/d82/classPKey.html#af503c064e1ddf986b394b751ddb0c4ff',1,'PKey::PKey()']]],
   ['poll',['poll',['../d7/d56/classQueue.html#af17aa223359d90dd6682a37eff715399',1,'Queue']]],
   ['polygon',['polygon',['../d8/d00/classImage.html#a38ba5e3eba520cac72a1d3c28d605e84',1,'Image']]],
