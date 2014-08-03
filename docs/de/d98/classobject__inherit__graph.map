@@ -25,7 +25,7 @@
 <area shape="rect" id="node31" href="$d2/d6d/classMongoID.html" title="mongodb 数据库数据唯一标识对象，用于存储传递 oid " alt="" coords="3161,547,3236,620"/>
 <area shape="rect" id="node32" href="$d0/d82/classPKey.html" title="不对称加密算法对象 " alt="" coords="3260,453,3371,713"/>
 <area shape="rect" id="node33" href="$d7/d56/classQueue.html" title="FIFO（先进先出）队列对象 " alt="" coords="3395,493,3484,673"/>
-<area shape="rect" id="node34" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="3508,447,3614,720"/>
+<area shape="rect" id="node34" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="3508,387,3614,780"/>
 <area shape="rect" id="node35" href="$d8/d28/classRegex.html" title="正则表达式对象 " alt="" coords="3637,520,3738,647"/>
 <area shape="rect" id="node36" href="$d1/d3c/classSandBox.html" title="安全沙箱对象，用于管理一个独立的运行空间 " alt="" coords="3763,500,3861,667"/>
 <area shape="rect" id="node37" href="$d5/d6b/classSmtp.html" title="Smtp对象 " alt="" coords="3884,493,3984,673"/>

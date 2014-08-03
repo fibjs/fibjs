@@ -766,33 +766,42 @@
 <!-- Node34 -->
 <g id="node34" class="node"><title>Node34</title>
 <g id="a_node34"><a xlink:href="../../db/d15/classRedis.html" target="_top" xlink:title="Redis 数据库客户端对象 ">
-<polygon fill="white" stroke="black" points="2627.17,-351.5 2627.17,-555.5 2706.25,-555.5 2706.25,-351.5 2627.17,-351.5"/>
-<text text-anchor="middle" x="2666.71" y="-543.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
-<polyline fill="none" stroke="black" points="2627.17,-537.5 2706.25,-537.5 "/>
-<text text-anchor="middle" x="2666.71" y="-525.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="2627.17,-519.5 2706.25,-519.5 "/>
-<text text-anchor="start" x="2635.17" y="-507.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
-<text text-anchor="start" x="2635.17" y="-497.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ set()</text>
-<text text-anchor="start" x="2635.17" y="-487.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
-<text text-anchor="start" x="2635.17" y="-477.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exists()</text>
-<text text-anchor="start" x="2635.17" y="-467.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ type()</text>
-<text text-anchor="start" x="2635.17" y="-457.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keys()</text>
-<text text-anchor="start" x="2635.17" y="-447.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
-<text text-anchor="start" x="2635.17" y="-437.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
-<text text-anchor="start" x="2635.17" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ expire()</text>
-<text text-anchor="start" x="2635.17" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ttl()</text>
-<text text-anchor="start" x="2635.17" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ persist()</text>
-<text text-anchor="start" x="2635.17" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rename()</text>
-<text text-anchor="start" x="2635.17" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ renameNX()</text>
-<text text-anchor="start" x="2635.17" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dump()</text>
-<text text-anchor="start" x="2635.17" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ restore()</text>
-<text text-anchor="start" x="2635.17" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
+<polygon fill="white" stroke="black" points="2627.17,-306.5 2627.17,-600.5 2706.25,-600.5 2706.25,-306.5 2627.17,-306.5"/>
+<text text-anchor="middle" x="2666.71" y="-588.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
+<polyline fill="none" stroke="black" points="2627.17,-582.5 2706.25,-582.5 "/>
+<text text-anchor="middle" x="2666.71" y="-570.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="2627.17,-564.5 2706.25,-564.5 "/>
+<text text-anchor="start" x="2635.17" y="-552.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
+<text text-anchor="start" x="2635.17" y="-542.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ set()</text>
+<text text-anchor="start" x="2635.17" y="-532.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setNX()</text>
+<text text-anchor="start" x="2635.17" y="-522.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setXX()</text>
+<text text-anchor="start" x="2635.17" y="-512.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
+<text text-anchor="start" x="2635.17" y="-502.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
+<text text-anchor="start" x="2635.17" y="-492.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ append()</text>
+<text text-anchor="start" x="2635.17" y="-482.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ strlen()</text>
+<text text-anchor="start" x="2635.17" y="-472.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ bitcount()</text>
+<text text-anchor="start" x="2635.17" y="-462.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<text text-anchor="start" x="2635.17" y="-452.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
+<text text-anchor="start" x="2635.17" y="-442.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
+<text text-anchor="start" x="2635.17" y="-432.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exists()</text>
+<text text-anchor="start" x="2635.17" y="-422.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ type()</text>
+<text text-anchor="start" x="2635.17" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keys()</text>
+<text text-anchor="start" x="2635.17" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2635.17" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2635.17" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ expire()</text>
+<text text-anchor="start" x="2635.17" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ttl()</text>
+<text text-anchor="start" x="2635.17" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ persist()</text>
+<text text-anchor="start" x="2635.17" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rename()</text>
+<text text-anchor="start" x="2635.17" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ renameNX()</text>
+<text text-anchor="start" x="2635.17" y="-332.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dump()</text>
+<text text-anchor="start" x="2635.17" y="-322.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ restore()</text>
+<text text-anchor="start" x="2635.17" y="-312.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node34 -->
 <g id="edge33" class="edge"><title>Node1&#45;&gt;Node34</title>
-<path fill="none" stroke="midnightblue" d="M2190.5,-842.608C2295.69,-839.515 2558.29,-825.837 2617.71,-766 2671.52,-711.809 2681.24,-624.181 2678.93,-555.648"/>
+<path fill="none" stroke="midnightblue" d="M2190.5,-842.608C2295.69,-839.515 2558.29,-825.837 2617.71,-766 2660.24,-723.171 2675.22,-659.458 2678.5,-600.792"/>
 <polygon fill="none" stroke="midnightblue" points="2190.13,-839.117 2180.23,-842.891 2190.33,-846.114 2190.13,-839.117"/>
 </g>
 <!-- Node35 -->

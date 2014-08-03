@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['map',['Map',['../d7/db0/classMap.html',1,'Map'],['../d6/da9/classList.html#aff5474e5559d9f0bd1f2acc7f3039ab2',1,'List::map()'],['../db/d7d/classMongoCursor.html#ae250dbc24199762b2948487422049519',1,'MongoCursor::map()'],['../d3/d2d/classcollection.html#a45b6053d1d1063f010b12cb7f5a77c99',1,'collection::Map()'],['../d7/db0/classMap.html#a0f5ad0fd4563497b4214038cbca8b582',1,'Map::Map()']]],
+  ['map',['Map',['../d7/db0/classMap.html',1,'Map'],['../d3/d2d/classcollection.html#a45b6053d1d1063f010b12cb7f5a77c99',1,'collection::Map()'],['../d7/db0/classMap.html#a0f5ad0fd4563497b4214038cbca8b582',1,'Map::Map()'],['../d6/da9/classList.html#aff5474e5559d9f0bd1f2acc7f3039ab2',1,'List::map()'],['../db/d7d/classMongoCursor.html#ae250dbc24199762b2948487422049519',1,'MongoCursor::map()']]],
   ['maxheaderscount',['maxHeadersCount',['../d3/df3/classHttpHandler.html#aa3d3073109d381dcc4f0241c68546ff7',1,'HttpHandler::maxHeadersCount()'],['../dd/d77/classHttpMessage.html#a6650a9dcb99102b5e70cf1e3fa034cb9',1,'HttpMessage::maxHeadersCount()'],['../dd/dab/classHttpServer.html#a232a50ee5dcdb467f7176988ac9d833e',1,'HttpServer::maxHeadersCount()'],['../d5/d3b/classHttpsServer.html#a36f44f118f86e64e5aaf3ca87b987e21',1,'HttpsServer::maxHeadersCount()']]],
   ['maxsize',['maxSize',['../d3/db9/classPacketHandler.html#a9c4c370ef4273c8b2331731c9831f171',1,'PacketHandler::maxSize()'],['../dd/df3/classPacketMessage.html#a5643417a406c8c1e3d2f929d8b8c81b1',1,'PacketMessage::maxSize()']]],
   ['maxuploadsize',['maxUploadSize',['../d3/df3/classHttpHandler.html#a6c48f6c423cf50e69d94f81a610e1fab',1,'HttpHandler::maxUploadSize()'],['../dd/d77/classHttpMessage.html#ac79f330568ff19112fe82806362fc004',1,'HttpMessage::maxUploadSize()'],['../dd/dab/classHttpServer.html#af81d2548a59dc91a7c408e785edbe095',1,'HttpServer::maxUploadSize()'],['../d5/d3b/classHttpsServer.html#a43eb6d76acd5b3a65ab48d7e7341d51f',1,'HttpsServer::maxUploadSize()']]],
@@ -11,6 +11,7 @@ var searchData=
   ['memoryusage',['memoryUsage',['../d7/db0/classos.html#a655f15d1790c184db42267a0bdef22cd',1,'os::memoryUsage()'],['../d4/d82/classprocess.html#a30bf3a01655c4e12298c063786156d2b',1,'process::memoryUsage()']]],
   ['message',['Message',['../d6/d28/classMessage.html',1,'Message'],['../d6/d28/classMessage.html#a4fc4f717b634e66070366cb7722d7761',1,'Message::Message()'],['../d4/d86/classmq.html#a7d6c9ff01166a11f7c115e488735def6',1,'mq::Message()']]],
   ['method',['method',['../d5/d1b/classHttpRequest.html#a2d133650f24c6ba2407c8c541bdf2f22',1,'HttpRequest']]],
+  ['mget',['mget',['../db/d15/classRedis.html#ad511c75f0b8b704b8f72322d854f9cc6',1,'Redis::mget(Array keys)'],['../db/d15/classRedis.html#a0acadaf191bafc9dff5c8f2dad482ba9',1,'Redis::mget(...)']]],
   ['mkdir',['mkdir',['../dc/d2f/classfs.html#ad11bbef581ff87c5fc33e8b3d4b98dfb',1,'fs']]],
   ['mode',['mode',['../dc/d81/classStat.html#ae3cbd0224aa659cbcab4bad383519385',1,'Stat']]],
   ['module',['module',['../d0/dd3/classmodule.html',1,'']]],
@@ -20,6 +21,7 @@ var searchData=
   ['mongoid',['MongoID',['../d2/d6d/classMongoID.html',1,'']]],
   ['most',['most',['../dd/d7a/classExpect.html#a02470a5b9fb9623b14b5d9c24bfb3c83',1,'Expect']]],
   ['mq',['mq',['../d4/d86/classmq.html',1,'']]],
+  ['mset',['mset',['../db/d15/classRedis.html#a71308f3e3f6a62aeb7e0d15576891d36',1,'Redis::mset(Array keys)'],['../db/d15/classRedis.html#a96751caed808fb9ce4a834b8cee5720e',1,'Redis::mset(...)']]],
   ['mtime',['mtime',['../dc/d81/classStat.html#a356bbde5f558716ffc9ca7e4cf6f5aae',1,'Stat']]],
   ['multiline',['multiline',['../d8/d28/classRegex.html#a8bcded08d6f62d75b73fa98ee60f0af2',1,'Regex']]],
   ['mysql',['MySQL',['../d3/da8/classMySQL.html',1,'']]]

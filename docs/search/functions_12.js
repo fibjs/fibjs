@@ -9,10 +9,12 @@ var searchData=
   ['server',['Server',['../d6/da8/classhttp.html#ad4fe0324266eb7ca3209352741b33f84',1,'http::Server()'],['../dd/d36/classssl.html#a1b74602d4f15362fe1a6aab2a8bdb79e',1,'ssl::Server()']]],
   ['set',['set',['../d6/dbd/classHttpCollection.html#a957b8f7874f7d21f9d6c2a7b8b329e91',1,'HttpCollection::set(Object map)'],['../d6/dbd/classHttpCollection.html#a3df31bf39192d0b908c09af400468943',1,'HttpCollection::set(String name, Variant value)'],['../de/d0f/classLruCache.html#aac47180244d82cfa49c6cbfc3c6ae93a',1,'LruCache::set()'],['../db/d15/classRedis.html#a6545010d688a101ea57f8c54b199fa83',1,'Redis::set()']]],
   ['setheader',['setHeader',['../dd/d77/classHttpMessage.html#ac5626cfdbeb975e16ab3b127b76b1864',1,'HttpMessage::setHeader(Object map)'],['../dd/d77/classHttpMessage.html#a080e5427207dcae84985d7085f54761c',1,'HttpMessage::setHeader(String name, Variant value)']]],
+  ['setnx',['setNX',['../db/d15/classRedis.html#ac5f352dfa1e652b07c5494b1441aa6b8',1,'Redis']]],
   ['setpixel',['setPixel',['../d8/d00/classImage.html#aa59563ed17d30a71f39ff1e1755deff4',1,'Image']]],
   ['setthickness',['setThickness',['../d8/d00/classImage.html#a9b5de8a61435f88549dc600ca26e76d8',1,'Image']]],
   ['settime',['setTime',['../dd/d97/classMemoryStream.html#a4ea172a3400976947b6e6ce3c947c9bc',1,'MemoryStream']]],
   ['setup',['setup',['../de/d01/classtest.html#a38550424e855b291100020778b09064a',1,'test']]],
+  ['setxx',['setXX',['../db/d15/classRedis.html#a9e3af6a0e5577ddb77a93d523c31be49',1,'Redis']]],
   ['sha1',['sha1',['../d5/df6/classhash.html#aeebd38030db2c9e6f51674759c74d050',1,'hash::sha1(Buffer data)'],['../d5/df6/classhash.html#aee8fd5f1225e8c857221e8f36ab3933a',1,'hash::sha1(String text=&quot;&quot;)'],['../d9/d4e/classuuid.html#ac63af48b29552ad4d0b1ad5d59a21a52',1,'uuid::sha1()']]],
   ['sha224',['sha224',['../d5/df6/classhash.html#aebaa45bb312a46a71194c9118dca1a08',1,'hash::sha224(Buffer data)'],['../d5/df6/classhash.html#a4c95fb263c86a35168c7ddd2f4dc15c2',1,'hash::sha224(String text=&quot;&quot;)']]],
   ['sha256',['sha256',['../d5/df6/classhash.html#aea552567d5fea762e5d8eedda0b0067a',1,'hash::sha256(Buffer data)'],['../d5/df6/classhash.html#a11267873dc56268ea35eae2aed91717b',1,'hash::sha256(String text=&quot;&quot;)']]],
@@ -34,5 +36,6 @@ var searchData=
   ['stats',['Stats',['../db/df7/classStats.html#a5529e542d61824715b210fa103c9939b',1,'Stats::Stats(Array keys)'],['../db/df7/classStats.html#acb5cc49c1e2f36ccf98066c862ff326c',1,'Stats::Stats(Array staticKeys, Array keys)'],['../d8/d61/classutil.html#a345a3de75e6748ef3237bda10c84c92d',1,'util::Stats()']]],
   ['store',['store',['../d9/de8/classGridFS.html#ae6b355ca7a7e7fae976d3b3789c35045',1,'GridFS::store(String name, Stream src)'],['../d9/de8/classGridFS.html#a811549d931a6845bfae574cd32dd1085',1,'GridFS::store(String name, Buffer data)']]],
   ['strictequal',['strictEqual',['../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35',1,'assert']]],
+  ['strlen',['strlen',['../db/d15/classRedis.html#a3dc50fbb61784e975e3c7ce145f3b3b3',1,'Redis']]],
   ['system',['system',['../d4/d82/classprocess.html#a8ba452b49b82fff2709f27929faa57cf',1,'process']]]
 ];
