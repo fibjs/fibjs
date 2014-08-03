@@ -15,6 +15,7 @@ var searchData=
   ['openmongodb',['openMongoDB',['../de/d5f/classdb.html#a29551281115a5042ad34b3d361dddc51',1,'db']]],
   ['openmysql',['openMySQL',['../de/d5f/classdb.html#ad989737ba63bbaeb48fc899769557f5e',1,'db']]],
   ['openpolygon',['openPolygon',['../d8/d00/classImage.html#a8defab8f38e88961f71a0e279ed856b6',1,'Image']]],
+  ['openredis',['openRedis',['../de/d5f/classdb.html#a4d7f2379592b1a85a802b8b895ba27df',1,'db']]],
   ['opensmtp',['openSmtp',['../d3/d75/classnet.html#aa6774e649b7fb2336400fd006ab6371b',1,'net']]],
   ['opensqlite',['openSQLite',['../de/d5f/classdb.html#a1986951d5ca68ee0ba8361053a84f637',1,'db']]],
   ['opentextstream',['openTextStream',['../dc/d2f/classfs.html#aaf625a15d9268621cb10eacc4154db5e',1,'fs']]],

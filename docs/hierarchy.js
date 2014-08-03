@@ -80,6 +80,7 @@ var hierarchy =
       [ "Queue", "d7/d56/classQueue.html", [
         [ "BlockQueue", "d7/d38/classBlockQueue.html", null ]
       ] ],
+      [ "Redis", "db/d15/classRedis.html", null ],
       [ "Regex", "d8/d28/classRegex.html", null ],
       [ "SandBox", "d1/d3c/classSandBox.html", null ],
       [ "Smtp", "d5/d6b/classSmtp.html", null ],

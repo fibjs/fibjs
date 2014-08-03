@@ -228,25 +228,26 @@
 <!-- Node7 -->
 <g id="node7" class="node"><title>Node7</title>
 <g id="a_node7"><a xlink:href="../../de/d5f/classdb.html" target="_top" xlink:title="数据库访问模块 ">
-<polygon fill="white" stroke="black" points="566.301,-200.5 566.301,-324.5 664.293,-324.5 664.293,-200.5 566.301,-200.5"/>
-<text text-anchor="middle" x="615.297" y="-312.5" font-family="Helvetica,sans-Serif" font-size="10.00">db</text>
-<polyline fill="none" stroke="black" points="566.301,-306.5 664.293,-306.5 "/>
-<text text-anchor="middle" x="615.297" y="-294.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="566.301,-288.5 664.293,-288.5 "/>
-<text text-anchor="start" x="574.301" y="-276.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ open()</text>
-<text text-anchor="start" x="574.301" y="-266.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openMySQL()</text>
-<text text-anchor="start" x="574.301" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openSQLite()</text>
-<text text-anchor="start" x="574.301" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openMongoDB()</text>
-<text text-anchor="start" x="574.301" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openLevelDB()</text>
-<text text-anchor="start" x="574.301" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ format()</text>
-<text text-anchor="start" x="574.301" y="-216.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ formatMySQL()</text>
-<text text-anchor="start" x="574.301" y="-206.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ escape()</text>
+<polygon fill="white" stroke="black" points="566.301,-195.5 566.301,-329.5 664.293,-329.5 664.293,-195.5 566.301,-195.5"/>
+<text text-anchor="middle" x="615.297" y="-317.5" font-family="Helvetica,sans-Serif" font-size="10.00">db</text>
+<polyline fill="none" stroke="black" points="566.301,-311.5 664.293,-311.5 "/>
+<text text-anchor="middle" x="615.297" y="-299.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="566.301,-293.5 664.293,-293.5 "/>
+<text text-anchor="start" x="574.301" y="-281.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ open()</text>
+<text text-anchor="start" x="574.301" y="-271.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openMySQL()</text>
+<text text-anchor="start" x="574.301" y="-261.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openSQLite()</text>
+<text text-anchor="start" x="574.301" y="-251.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openMongoDB()</text>
+<text text-anchor="start" x="574.301" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openLevelDB()</text>
+<text text-anchor="start" x="574.301" y="-231.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ openRedis()</text>
+<text text-anchor="start" x="574.301" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ format()</text>
+<text text-anchor="start" x="574.301" y="-211.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ formatMySQL()</text>
+<text text-anchor="start" x="574.301" y="-201.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ escape()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node7 -->
 <g id="edge6" class="edge"><title>Node1&#45;&gt;Node7</title>
-<path fill="none" stroke="midnightblue" d="M1457.28,-587.251C1308.33,-585.872 732.255,-577.177 672.297,-525 615.865,-475.89 607.869,-385.122 609.706,-324.518"/>
+<path fill="none" stroke="midnightblue" d="M1457.28,-587.251C1308.33,-585.872 732.255,-577.177 672.297,-525 617.442,-477.263 608.354,-390.164 609.576,-329.669"/>
 <polygon fill="none" stroke="midnightblue" points="1457.62,-590.754 1467.65,-587.341 1457.68,-583.754 1457.62,-590.754"/>
 </g>
 <!-- Node8 -->
