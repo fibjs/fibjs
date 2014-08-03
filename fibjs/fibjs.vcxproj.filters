@@ -363,6 +363,9 @@
     <ClCompile Include="src\encoding_iconv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Redis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -900,6 +903,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\encoding_iconv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Redis.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Redis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

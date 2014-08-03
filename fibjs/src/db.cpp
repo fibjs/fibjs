@@ -14,56 +14,19 @@ namespace fibjs
 result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (!qstrcmp(connString, "mysql:", 6))
-    {
-        obj_ptr<MySQL_base> db;
-        result_t hr;
-
-        hr = openMySQL(connString, db, ac);
-        if (hr < 0)
-            return hr;
-
-        retVal = db;
-        return 0;
-    }
+        return openMySQL(connString, (obj_ptr<MySQL_base> &)retVal, ac);
 
     if (!qstrcmp(connString, "sqlite:", 7))
-    {
-        obj_ptr<SQLite_base> db;
-        result_t hr;
+        return openSQLite(connString, (obj_ptr<SQLite_base> &)retVal, ac);
 
-        hr = openSQLite(connString, db, ac);
-        if (hr < 0)
-            return hr;
-
-        retVal = db;
-        return 0;
-    }
+    if (!qstrcmp(connString, "redis:", 6))
+        return openRedis(connString, (obj_ptr<Redis_base> &)retVal, ac);
 
     if (!qstrcmp(connString, "mongodb:", 8))
-    {
-        obj_ptr<MongoDB_base> db;
-        result_t hr;
-
-        hr = openMongoDB(connString, db, ac);
-        if (hr < 0)
-            return hr;
-
-        retVal = db;
-        return 0;
-    }
+        return openMongoDB(connString, (obj_ptr<MongoDB_base> &)retVal, ac);
 
     if (!qstrcmp(connString, "leveldb:", 8))
-    {
-        obj_ptr<LevelDB_base> db;
-        result_t hr;
-
-        hr = openLevelDB(connString, db, ac);
-        if (hr < 0)
-            return hr;
-
-        retVal = db;
-        return 0;
-    }
+        return openLevelDB(connString, (obj_ptr<LevelDB_base> &)retVal, ac);
 
     return CHECK_ERROR(CALL_E_INVALIDARG);
 }

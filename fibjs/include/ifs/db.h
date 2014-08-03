@@ -23,6 +23,7 @@ class MySQL_base;
 class SQLite_base;
 class MongoDB_base;
 class LevelDB_base;
+class Redis_base;
 
 class db_base : public module_base
 {
@@ -33,6 +34,7 @@ public:
 	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t openLevelDB(const char* connString, obj_ptr<LevelDB_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t openRedis(const char* connString, obj_ptr<Redis_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t escape(const char* str, bool mysql, std::string& retVal);
@@ -45,6 +47,7 @@ public:
 	static void s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -55,6 +58,7 @@ public:
 	ASYNC_STATICVALUE2(db_base, openSQLite, const char*, obj_ptr<SQLite_base>);
 	ASYNC_STATICVALUE2(db_base, openMongoDB, const char*, obj_ptr<MongoDB_base>);
 	ASYNC_STATICVALUE2(db_base, openLevelDB, const char*, obj_ptr<LevelDB_base>);
+	ASYNC_STATICVALUE2(db_base, openRedis, const char*, obj_ptr<Redis_base>);
 };
 
 }
@@ -63,6 +67,7 @@ public:
 #include "SQLite.h"
 #include "MongoDB.h"
 #include "LevelDB.h"
+#include "Redis.h"
 
 namespace fibjs
 {
@@ -75,6 +80,7 @@ namespace fibjs
 			{"openSQLite", s_openSQLite, true},
 			{"openMongoDB", s_openMongoDB, true},
 			{"openLevelDB", s_openLevelDB, true},
+			{"openRedis", s_openRedis, true},
 			{"format", s_format, true},
 			{"formatMySQL", s_formatMySQL, true},
 			{"escape", s_escape, true}
@@ -83,7 +89,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"db", NULL, 
-			8, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			9, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -153,6 +159,19 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = ac_openLevelDB(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void db_base::s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Redis_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = ac_openRedis(v0, vr);
 
 		METHOD_RETURN();
 	}

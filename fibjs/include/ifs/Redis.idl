@@ -1,0 +1,20 @@
+
+/*! @brief Redis 数据库客户端对象
+
+ 用以创建和管理字典对象，创建方法：
+ @code
+ var db = require("db");
+ var test = new db.openRedis("redis-server");
+ @endcode
+ */
+class Redis : object
+{
+    /*! @brief redis 基础命令方法
+     @param cmd 指定发送的命令
+     @param ... 指定发送的参数
+     @return 返回服务器返回的结果 */
+    Value command(String cmd, ...);
+
+    /*! @brief 关闭当前数据库连接或事务 */
+    close() async;
+};
