@@ -27,11 +27,15 @@ public:
 	virtual result_t set(const char* key, const char* value, int64_t ttl) = 0;
 	virtual result_t get(const char* key, std::string& retVal) = 0;
 	virtual result_t exists(const char* key, bool& retVal) = 0;
+	virtual result_t type(const char* key, std::string& retVal) = 0;
 	virtual result_t keys(const char* pattern, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
 	virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
 	virtual result_t expire(const char* key, int64_t ttl, bool& retVal) = 0;
 	virtual result_t ttl(const char* key, int64_t& retVal) = 0;
+	virtual result_t persist(const char* key, bool& retVal) = 0;
+	virtual result_t rename(const char* key, const char* newkey) = 0;
+	virtual result_t renameNX(const char* key, const char* newkey, bool& retVal) = 0;
 	virtual result_t dump(const char* key, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t restore(const char* key, Buffer_base* data, int64_t ttl) = 0;
 	virtual result_t close() = 0;
@@ -43,10 +47,14 @@ public:
 	static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_type(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_expire(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_ttl(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_persist(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_dump(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_restore(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -67,10 +75,14 @@ namespace fibjs
 			{"set", s_set},
 			{"get", s_get},
 			{"exists", s_exists},
+			{"type", s_type},
 			{"keys", s_keys},
 			{"del", s_del},
 			{"expire", s_expire},
 			{"ttl", s_ttl},
+			{"persist", s_persist},
+			{"rename", s_rename},
+			{"renameNX", s_renameNX},
 			{"dump", s_dump},
 			{"restore", s_restore},
 			{"close", s_close}
@@ -79,7 +91,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Redis", NULL, 
-			11, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			15, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -144,6 +156,20 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->type(v0, vr);
+
+		METHOD_RETURN();
+	}
+
 	inline void Redis_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<List_base> vr;
@@ -201,6 +227,48 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->ttl(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_persist(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->persist(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+
+		hr = pInst->rename(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline void Redis_base::s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+
+		hr = pInst->renameNX(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

@@ -26,11 +26,15 @@ public:
     virtual result_t set(const char *key, const char *value, int64_t ttl);
     virtual result_t get(const char *key, std::string &retVal);
     virtual result_t exists(const char *key, bool &retVal);
+    virtual result_t type(const char *key, std::string &retVal);
     virtual result_t keys(const char *pattern, obj_ptr<List_base> &retVal);
     virtual result_t del(v8::Local<v8::Array> keys, int32_t &retVal);
     virtual result_t del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
     virtual result_t expire(const char *key, int64_t ttl, bool &retVal);
     virtual result_t ttl(const char *key, int64_t &retVal);
+    virtual result_t persist(const char *key, bool &retVal);
+    virtual result_t rename(const char *key, const char *newkey);
+    virtual result_t renameNX(const char *key, const char *newkey, bool &retVal);
     virtual result_t dump(const char *key, obj_ptr<Buffer_base> &retVal);
     virtual result_t restore(const char *key, Buffer_base *data, int64_t ttl);
     virtual result_t close();

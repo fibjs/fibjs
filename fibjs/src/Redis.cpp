@@ -244,6 +244,11 @@ result_t Redis::exists(const char *key, bool &retVal)
     return doCommand("EXISTS", key, retVal);
 }
 
+result_t Redis::type(const char *key, std::string &retVal)
+{
+    return doCommand("TYPE", key, retVal);
+}
+
 result_t Redis::keys(const char *pattern, obj_ptr<List_base> &retVal)
 {
     return doCommand("KEYS", pattern, retVal);
@@ -267,6 +272,22 @@ result_t Redis::expire(const char *key, int64_t ttl, bool &retVal)
 result_t Redis::ttl(const char *key, int64_t &retVal)
 {
     return doCommand("PTTL", key, retVal);
+}
+
+result_t Redis::persist(const char *key, bool &retVal)
+{
+    return doCommand("PERSIST", key, retVal);
+}
+
+result_t Redis::rename(const char *key, const char *newkey)
+{
+    Variant v;
+    return doCommand("RENAME", key, newkey, v);
+}
+
+result_t Redis::renameNX(const char *key, const char *newkey, bool &retVal)
+{
+    return doCommand("RENAMENX", key, newkey, retVal);
 }
 
 result_t Redis::dump(const char *key, obj_ptr<Buffer_base> &retVal)

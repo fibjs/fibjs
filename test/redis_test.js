@@ -32,6 +32,11 @@ describe("redis", function() {
 		assert.isFalse(rdb.exists("test2"));
 	});
 
+	it("type", function() {
+		assert.equal(rdb.type("test"), "string");
+		assert.equal(rdb.type("test2"), "none");
+	});
+
 	it("get", function() {
 		assert.equal(rdb.get("test"), "aaa");
 		assert.isNull(rdb.get("test2"));
@@ -59,6 +64,49 @@ describe("redis", function() {
 
 		coroutine.sleep(150);
 		assert.isFalse(rdb.exists("test2"));
+	});
+
+	it("persist", function() {
+		rdb.set("test", "aaa2", 100);
+		assert.greaterThan(rdb.ttl("test"), 0);
+		assert.isTrue(rdb.persist("test"));
+		assert.equal(rdb.ttl("test"), -1);
+
+		assert.isFalse(rdb.persist("test3"));
+	});
+
+	it("rename", function() {
+		rdb.set("test", "aaa222");
+
+		assert.isTrue(rdb.exists("test"));
+		assert.isFalse(rdb.exists("test2"));
+
+		rdb.rename("test", "test2");
+
+		assert.isFalse(rdb.exists("test"));
+		assert.isTrue(rdb.exists("test2"));
+
+		rdb.rename("test2", "test1");
+		assert.equal(rdb.get("test1"), "aaa222");
+
+		rdb.set("test", "aaa");
+	});
+
+	it("renameNX", function() {
+		assert.isTrue(rdb.exists("test"));
+		assert.isFalse(rdb.exists("test2"));
+
+		assert.isTrue(rdb.renameNX("test", "test2"));
+		assert.equal(rdb.get("test2"), "aaa");
+
+		assert.isFalse(rdb.exists("test"));
+		assert.isTrue(rdb.exists("test2"));
+
+		assert.isFalse(rdb.renameNX("test2", "test1"));
+		assert.equal(rdb.get("test1"), "aaa222");
+		assert.equal(rdb.get("test2"), "aaa");
+
+		rdb.renameNX("test2", "test");
 	});
 
 	it("keys", function() {

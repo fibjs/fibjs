@@ -31,13 +31,18 @@ class Redis : object
      @return 若 key 存在，返回 True，否则返回 False */
     Boolean exists(String key);
 
+    /*! @brief 返回 key 所储存的值的类型
+     @param key 指定要查询的 key
+     @return 返回 key 所储存的值的类型，可能的值为 none(key不存在) string(字符串) list(列表) set(集合) zset(有序集) hash(哈希表) */
+    String type(String key);
+
     /*! @brief 查找所有符合给定模式 pattern 的 key
      @param pattern 指定查询模式
      @return 符合给定模式的 key 列表 */
     List keys(String pattern);
 
     /*! @brief 检查给定 key 是否存在
-     @param key 指定要检查的 key
+     @param keys 指定要删除的 key 数组
      @return 被删除 key 的数量 */
     Integer del(Array keys);
 
@@ -56,6 +61,22 @@ class Redis : object
      @param key 指定要查询的 key
      @return 以毫秒为单位，返回 key 的剩余生存时间，当 key 不存在时，返回 -2，当 key 存在但没有设置剩余生存时间时，返回 -1 */
     Long ttl(String key);
+
+    /*! @brief 移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成『持久的』(一个不带生存时间、永不过期的 key)
+     @param key 指定要设定的 key
+     @return 若 key 存在，返回 True，否则返回 False */
+    Boolean persist(String key);
+
+    /*! @brief 将 key 改名为 newkey，当 key 和 newkey 相同，或者 key 不存在时，返回一个错误
+     @param key 指定要改名的 key
+     @param newkey 指定要改名的目的 key */
+    rename(String key, String newkey);
+
+    /*! @brief 当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误
+     @param key 指定要改名的 key
+     @param newkey 指定要改名的目的 key
+     @return 修改成功时，返回 True，如果 newkey 已经存在，返回 False */
+    Boolean renameNX(String key, String newkey);
 
     /*! @brief 序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键
      @param key 指定要序列化的 key
