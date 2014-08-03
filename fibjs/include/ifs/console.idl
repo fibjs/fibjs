@@ -178,7 +178,6 @@ class console : module
     /*! @brief 记录警告日志信息
 
      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     @param fmt 格式化字符串
      @param ... 可选参数列表
      */
     static warn(...);
