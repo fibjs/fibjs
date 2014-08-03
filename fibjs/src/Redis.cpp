@@ -219,17 +219,7 @@ result_t Redis::set(const char *key, const char *value, int64_t ttl)
     Variant v;
 
     if (ttl)
-    {
-        char ttlStr[64];
-
-#ifdef WIN32
-        sprintf(ttlStr, "%I64d", ttl);
-#else
-        sprintf(ttlStr, "%lld", (long long)ttl);
-#endif
-
-        return doCommand("SET", key, value, "PX", ttlStr, v);
-    }
+        return doCommand("SET", key, value, "PX", ttl, v);
     else
         return doCommand("SET", key, value, v);
 }
