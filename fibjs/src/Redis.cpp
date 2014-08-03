@@ -107,6 +107,8 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 m_val = m_lists[idx];
                 m_lists.pop();
                 m_counts.pop();
+
+                hr = 0;
             }
 
             m_retVal = m_val;
@@ -211,7 +213,8 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
 result_t Redis::command(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args,
                         v8::Local<v8::Value> &retVal)
 {
-    return doCommand(cmd, args, retVal, 1);
+    _arg a(args, 1);
+    return doCommand(cmd, a, retVal);
 }
 
 result_t Redis::set(const char *key, const char *value, int64_t ttl)
@@ -224,9 +227,68 @@ result_t Redis::set(const char *key, const char *value, int64_t ttl)
         return doCommand("SET", key, value, v);
 }
 
+result_t Redis::setNX(const char *key, const char *value, int64_t ttl)
+{
+    Variant v;
+
+    if (ttl)
+        return doCommand("SET", key, value, "PX", ttl, "NX", v);
+    else
+        return doCommand("SET", key, value, "NX", v);
+}
+
+result_t Redis::setXX(const char *key, const char *value, int64_t ttl)
+{
+    Variant v;
+
+    if (ttl)
+        return doCommand("SET", key, value, "PX", ttl, "XX", v);
+    else
+        return doCommand("SET", key, value, "XX", v);
+}
+
+result_t Redis::mset(v8::Local<v8::Array> keys)
+{
+    Variant v;
+    return doCommand("MSET", keys, v);
+}
+
+result_t Redis::mset(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    Variant v;
+    _arg a(args);
+    return doCommand("MSET", a, v);
+}
+
+result_t Redis::append(const char *key, const char *value, int32_t &retVal)
+{
+    return doCommand("APPEND", key, value, retVal);
+}
+
+result_t Redis::strlen(const char *key, int32_t &retVal)
+{
+    return doCommand("STRLEN", key, retVal);
+}
+
+result_t Redis::bitcount(const char *key, int32_t start, int32_t end, int32_t &retVal)
+{
+    return doCommand("BITCOUNT", key, start, end, retVal);
+}
+
 result_t Redis::get(const char *key, std::string &retVal)
 {
     return doCommand("GET", key, retVal);
+}
+
+result_t Redis::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
+{
+    return doCommand("MGET", keys, retVal);
+}
+
+result_t Redis::mget(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal)
+{
+    _arg a(args);
+    return doCommand("MGET", a, retVal);
 }
 
 result_t Redis::exists(const char *key, bool &retVal)
@@ -251,7 +313,8 @@ result_t Redis::del(v8::Local<v8::Array> keys, int32_t &retVal)
 
 result_t Redis::del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal)
 {
-    return doCommand("DEL", args, retVal);
+    _arg a(args);
+    return doCommand("DEL", a, retVal);
 }
 
 result_t Redis::expire(const char *key, int64_t ttl, bool &retVal)

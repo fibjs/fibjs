@@ -24,7 +24,16 @@ public:
     // Redis_base
     virtual result_t command(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args, v8::Local<v8::Value> &retVal);
     virtual result_t set(const char *key, const char *value, int64_t ttl);
+    virtual result_t setNX(const char *key, const char *value, int64_t ttl);
+    virtual result_t setXX(const char *key, const char *value, int64_t ttl);
+    virtual result_t mset(v8::Local<v8::Array> keys);
+    virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value> &args);
+    virtual result_t append(const char *key, const char *value, int32_t &retVal);
+    virtual result_t strlen(const char *key, int32_t &retVal);
+    virtual result_t bitcount(const char *key, int32_t start, int32_t end, int32_t &retVal);
     virtual result_t get(const char *key, std::string &retVal);
+    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal);
+    virtual result_t mget(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal);
     virtual result_t exists(const char *key, bool &retVal);
     virtual result_t type(const char *key, std::string &retVal);
     virtual result_t keys(const char *pattern, obj_ptr<List_base> &retVal);
@@ -43,6 +52,18 @@ public:
     result_t connect(const char *host, int port, exlib::AsyncEvent *ac);
     result_t _command(std::string &req, Variant &retVal, exlib::AsyncEvent *ac);
     ASYNC_MEMBERVALUE2(Redis, _command, std::string, Variant);
+
+    class _arg
+    {
+    public:
+        _arg(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t pos = 0) :
+            m_args(args), m_pos(pos)
+        {}
+
+    public:
+        const v8::FunctionCallbackInfo<v8::Value> &m_args;
+        int32_t m_pos;
+    };
 
     class _param
     {
@@ -97,14 +118,14 @@ public:
             return 0;
         }
 
-        result_t add(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t pos)
+        result_t add(_arg &args)
         {
             result_t hr;
             int32_t i;
 
-            for (i = pos; i < (int32_t)args.Length(); i ++)
+            for (i = args.m_pos; i < (int32_t)args.m_args.Length(); i ++)
             {
-                hr = add(args[i]);
+                hr = add(args.m_args[i]);
                 if (hr < 0)
                     return hr;
             }
@@ -184,57 +205,6 @@ private:
     {
         retVal = v;
         return 0;
-    }
-
-    template<typename T>
-    result_t doCommand(const char *cmd, v8::Local<v8::Array> keys, T &retVal)
-    {
-        if (!m_sock)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-        result_t hr;
-        _param ps;
-        Variant v;
-
-        hr = ps.add(cmd);
-        if (hr < 0)
-            return hr;
-
-        hr = ps.add(keys);
-        if (hr < 0)
-            return hr;
-
-        hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
-            return hr;
-
-        return retValue(v, retVal);
-    }
-
-    template<typename T>
-    result_t doCommand(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args,
-                       T &retVal, int32_t pos = 0)
-    {
-        if (!m_sock)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-        result_t hr;
-        _param ps;
-        Variant v;
-
-        hr = ps.add(cmd);
-        if (hr < 0)
-            return hr;
-
-        hr = ps.add(args, pos);
-        if (hr < 0)
-            return hr;
-
-        hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
-            return hr;
-
-        return retValue(v, retVal);
     }
 
     template<typename T, typename T1>
@@ -361,7 +331,46 @@ private:
         return retValue(v, retVal);
     }
 
+    template<typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
+    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T5 &a5, T &retVal)
+    {
+        if (!m_sock)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+        result_t hr;
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a1);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a2);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a3);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a4);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a5);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
 
 public:
     obj_ptr<Socket_base> m_sock;

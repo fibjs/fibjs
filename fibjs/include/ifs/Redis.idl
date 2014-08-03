@@ -21,10 +21,58 @@ class Redis : object
      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 */
     set(String key, String value, Long ttl = 0);
 
+    /*! @brief 将 key 的值设为 value ，当且仅当 key 不存在。若给定的 key 已经存在，则 SETNX 不做任何动作。
+     @param key 指定要关联的 key
+     @param value 指定要关联的数据
+     @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 */
+    setNX(String key, String value, Long ttl = 0);
+
+    /*! @brief 将 key 的值设为 value，只在键已经存在时，才对键进行设置操作。
+     @param key 指定要关联的 key
+     @param value 指定要关联的数据
+     @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 */
+    setXX(String key, String value, Long ttl = 0);
+
+    /*! @brief 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
+     @param kvs 指定要设置的 key/value 数组*/
+    mset(Array keys);
+
+    /*! @brief 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
+     @param ... 指定要设置的 key/value 列表*/
+    mset(...);
+
+    /*! @brief 如果 key 已经存在并且是一个字符串，append 命令将 value 追加到 key 原来的值的末尾。如果 key 不存在，append 就简单地将给定 key 设为 value
+     @param key 指定要追加的 key
+     @param value 指定要追加的数据
+     @return 追加 value 之后， key 中字符串的长度 */
+    Integer append(String key, String value);
+
+    /*! @brief 返回 key 所储存的字符串值的长度。当 key 储存的不是字符串值时，返回一个错误
+     @param key 指定要计算的 key
+     @return 字符串值的长度。当 key 不存在时，返回 0 */
+    Integer strlen(String key);
+
+    /*! @brief 计算给定字符串中，被设置为 1 的比特位的数量
+     @param key 指定要计算的 key
+     @param start 指定要计算的起始字节，可以使用负数值，-1 表示最后一个字节，而 -2 表示倒数第二个字节，以此类推
+     @param end 指定要计算的结束字节，可以使用负数值，-1 表示最后一个字节，而 -2 表示倒数第二个字节，以此类推
+     @return 被设置为 1 的位的数量 */
+    Integer bitcount(String key, Integer start = 0, Integer end = -1);
+
     /*! @brief 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
      @param key 指定要关联的 key
      @return 当 key 不存在时，返回 Null ，否则，返回 key 的值 */
     String get(String key);
+
+    /*! @brief 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
+     @param keys 指定要查询的 key 数组
+     @return 一个包含所有给定 key 的值的列表 */
+    List mget(Array keys);
+
+    /*! @brief 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
+     @param ... 指定要查询的 key 列表
+     @return 一个包含所有给定 key 的值的列表 */
+    List mget(...);
 
     /*! @brief 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
      @param key 指定要关联的 key

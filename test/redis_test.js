@@ -42,6 +42,12 @@ describe("redis", function() {
 		assert.isNull(rdb.get("test2"));
 	});
 
+	it("mget", function() {
+		assert.deepEqual(rdb.mget("test", "test1").toArray(), ["aaa", "aaa"]);
+		assert.deepEqual(rdb.mget(["test", "test1"]).toArray(), ["aaa", "aaa"]);
+		assert.deepEqual(rdb.mget("test", "test2").toArray(), ["aaa", null]);
+	});
+
 	it("set", function() {
 		rdb.set("test", "aaa1")
 		assert.equal(rdb.get("test"), "aaa1");
@@ -50,6 +56,49 @@ describe("redis", function() {
 		assert.equal(rdb.get("test2"), "aaa2");
 		coroutine.sleep(150);
 		assert.isFalse(rdb.exists("test2"));
+	});
+
+	it("mset", function() {
+		rdb.mset("test", "bbb", "test1", "bbb1");
+		assert.deepEqual(rdb.mget("test", "test1").toArray(), ["bbb", "bbb1"]);
+
+		rdb.mset(["test", "bbb1", "test1", "bbb2"]);
+		assert.deepEqual(rdb.mget("test", "test1").toArray(), ["bbb1", "bbb2"]);
+	});
+
+	it("setNX", function() {
+		rdb.set("test", "aaa1")
+		rdb.setNX("test", "aaa3")
+		assert.equal(rdb.get("test"), "aaa1");
+	});
+
+	it("setXX", function() {
+		rdb.set("test", "aaa1")
+		rdb.setXX("test", "aaa3")
+		assert.equal(rdb.get("test"), "aaa3");
+	});
+
+	it("append", function() {
+		rdb.set("test", "aaa1")
+		assert.equal(rdb.append("test", "aaa2"), 8);
+		assert.equal(rdb.get("test"), "aaa1aaa2");
+
+		assert.equal(rdb.append("test2", "aaa2"), 4);
+		assert.equal(rdb.get("test2"), "aaa2");
+	});
+
+	it("strlen", function() {
+		rdb.set("test", "aaa1");
+		assert.equal(rdb.strlen("test"), 4);
+		assert.equal(rdb.strlen("test3"), 0);
+	});
+
+	it("bitcount", function() {
+		rdb.set("test2", "foobar");
+		assert.equal(rdb.bitcount("test2"), 26);
+		assert.equal(rdb.bitcount("test2", 0, 0), 4);
+		assert.equal(rdb.bitcount("test2", 1, 1), 6);
+		assert.equal(rdb.bitcount("test3"), 0);
 	});
 
 	it("expire/ttl", function() {
