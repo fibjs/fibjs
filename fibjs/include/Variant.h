@@ -282,6 +282,13 @@ public:
 
     operator v8::Local<v8::Value>() const;
 
+    operator int32_t() const
+    {
+        if (type() != VT_Integer)
+            return 0;
+        return m_Val.intVal;
+    }
+
     void parseNumber(const char *str, int len = -1);
     void parseDate(const char *str, int len = -1)
     {
