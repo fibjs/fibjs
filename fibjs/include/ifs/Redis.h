@@ -27,14 +27,23 @@ public:
 	virtual result_t set(const char* key, const char* value, int64_t ttl) = 0;
 	virtual result_t setNX(const char* key, const char* value, int64_t ttl) = 0;
 	virtual result_t setXX(const char* key, const char* value, int64_t ttl) = 0;
-	virtual result_t mset(v8::Local<v8::Array> keys) = 0;
+	virtual result_t mset(v8::Local<v8::Array> kvs) = 0;
 	virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+	virtual result_t msetNX(v8::Local<v8::Array> kvs) = 0;
+	virtual result_t msetNX(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 	virtual result_t append(const char* key, const char* value, int32_t& retVal) = 0;
+	virtual result_t setRange(const char* key, int32_t offset, const char* value, int32_t& retVal) = 0;
+	virtual result_t getRange(const char* key, int32_t start, int32_t end, std::string& retVal) = 0;
 	virtual result_t strlen(const char* key, int32_t& retVal) = 0;
 	virtual result_t bitcount(const char* key, int32_t start, int32_t end, int32_t& retVal) = 0;
 	virtual result_t get(const char* key, std::string& retVal) = 0;
 	virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t mget(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
+	virtual result_t getset(const char* key, const char* value, std::string& retVal) = 0;
+	virtual result_t decr(const char* key, int64_t num, int64_t& retVal) = 0;
+	virtual result_t incr(const char* key, int64_t num, int64_t& retVal) = 0;
+	virtual result_t setBit(const char* key, int32_t offset, int32_t value, int32_t& retVal) = 0;
+	virtual result_t getBit(const char* key, int32_t offset, int32_t& retVal) = 0;
 	virtual result_t exists(const char* key, bool& retVal) = 0;
 	virtual result_t type(const char* key, std::string& retVal) = 0;
 	virtual result_t keys(const char* pattern, obj_ptr<List_base>& retVal) = 0;
@@ -57,11 +66,19 @@ public:
 	static void s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_mset(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_setRange(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getRange(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_strlen(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_bitcount(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_mget(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getset(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_decr(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_incr(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_setBit(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getBit(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_type(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -92,11 +109,19 @@ namespace fibjs
 			{"setNX", s_setNX},
 			{"setXX", s_setXX},
 			{"mset", s_mset},
+			{"msetNX", s_msetNX},
 			{"append", s_append},
+			{"setRange", s_setRange},
+			{"getRange", s_getRange},
 			{"strlen", s_strlen},
 			{"bitcount", s_bitcount},
 			{"get", s_get},
 			{"mget", s_mget},
+			{"getset", s_getset},
+			{"decr", s_decr},
+			{"incr", s_incr},
+			{"setBit", s_setBit},
+			{"getBit", s_getBit},
 			{"exists", s_exists},
 			{"type", s_type},
 			{"keys", s_keys},
@@ -114,7 +139,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Redis", NULL, 
-			22, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			30, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -195,6 +220,22 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->msetNX(v0);
+
+		METHOD_OVER(-1, 0);
+
+		hr = pInst->msetNX(args);
+
+		METHOD_VOID();
+	}
+
 	inline void Redis_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
@@ -206,6 +247,38 @@ namespace fibjs
 		ARG(arg_string, 1);
 
 		hr = pInst->append(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_setRange(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(3, 3);
+
+		ARG(arg_string, 0);
+		ARG(int32_t, 1);
+		ARG(arg_string, 2);
+
+		hr = pInst->setRange(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_getRange(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(3, 3);
+
+		ARG(arg_string, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+
+		hr = pInst->getRange(v0, v1, v2, vr);
 
 		METHOD_RETURN();
 	}
@@ -268,6 +341,82 @@ namespace fibjs
 		METHOD_OVER(-1, 0);
 
 		hr = pInst->mget(args, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_getset(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+
+		hr = pInst->getset(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_decr(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int64_t vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 1);
+
+		ARG(arg_string, 0);
+		OPT_ARG(int64_t, 1, 1);
+
+		hr = pInst->decr(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int64_t vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 1);
+
+		ARG(arg_string, 0);
+		OPT_ARG(int64_t, 1, 1);
+
+		hr = pInst->incr(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_setBit(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(3, 3);
+
+		ARG(arg_string, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+
+		hr = pInst->setBit(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_getBit(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(int32_t, 1);
+
+		hr = pInst->getBit(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

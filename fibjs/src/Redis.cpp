@@ -247,10 +247,10 @@ result_t Redis::setXX(const char *key, const char *value, int64_t ttl)
         return doCommand("SET", key, value, "XX", v);
 }
 
-result_t Redis::mset(v8::Local<v8::Array> keys)
+result_t Redis::mset(v8::Local<v8::Array> kvs)
 {
     Variant v;
-    return doCommand("MSET", keys, v);
+    return doCommand("MSET", kvs, v);
 }
 
 result_t Redis::mset(const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -260,9 +260,32 @@ result_t Redis::mset(const v8::FunctionCallbackInfo<v8::Value> &args)
     return doCommand("MSET", a, v);
 }
 
+result_t Redis::msetNX(v8::Local<v8::Array> kvs)
+{
+    Variant v;
+    return doCommand("MSETNX", kvs, v);
+}
+
+result_t Redis::msetNX(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    Variant v;
+    _arg a(args);
+    return doCommand("MSETNX", a, v);
+}
+
 result_t Redis::append(const char *key, const char *value, int32_t &retVal)
 {
     return doCommand("APPEND", key, value, retVal);
+}
+
+result_t Redis::setRange(const char *key, int32_t offset, const char *value, int32_t &retVal)
+{
+    return doCommand("SETRANGE", key, offset, value, retVal);
+}
+
+result_t Redis::getRange(const char *key, int32_t start, int32_t end, std::string &retVal)
+{
+    return doCommand("GETRANGE", key, start, end, retVal);
 }
 
 result_t Redis::strlen(const char *key, int32_t &retVal)
@@ -289,6 +312,37 @@ result_t Redis::mget(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<Li
 {
     _arg a(args);
     return doCommand("MGET", a, retVal);
+}
+
+result_t Redis::getset(const char *key, const char *value, std::string &retVal)
+{
+    return doCommand("GETSET", key, value, retVal);
+}
+
+result_t Redis::decr(const char *key, int64_t num, int64_t &retVal)
+{
+    if (num == 1)
+        return doCommand("DECR", key, retVal);
+    else
+        return doCommand("DECRBY", key, num, retVal);
+}
+
+result_t Redis::incr(const char *key, int64_t num, int64_t &retVal)
+{
+    if (num == 1)
+        return doCommand("INCR", key, retVal);
+    else
+        return doCommand("INCRBY", key, num, retVal);
+}
+
+result_t Redis::setBit(const char *key, int32_t offset, int32_t value, int32_t &retVal)
+{
+    return doCommand("SETBIT", key, offset, value, retVal);
+}
+
+result_t Redis::getBit(const char *key, int32_t offset, int32_t &retVal)
+{
+    return doCommand("GETBIT", key, offset, retVal);
 }
 
 result_t Redis::exists(const char *key, bool &retVal)

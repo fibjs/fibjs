@@ -35,17 +35,39 @@ class Redis : object
 
     /*! @brief 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
      @param kvs 指定要设置的 key/value 数组*/
-    mset(Array keys);
+    mset(Array kvs);
 
     /*! @brief 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
      @param ... 指定要设置的 key/value 列表*/
     mset(...);
+
+    /*! @brief 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
+     @param kvs 指定要设置的 key/value 数组*/
+    msetNX(Array kvs);
+
+    /*! @brief 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
+     @param ... 指定要设置的 key/value 列表*/
+    msetNX(...);
 
     /*! @brief 如果 key 已经存在并且是一个字符串，append 命令将 value 追加到 key 原来的值的末尾。如果 key 不存在，append 就简单地将给定 key 设为 value
      @param key 指定要追加的 key
      @param value 指定要追加的数据
      @return 追加 value 之后， key 中字符串的长度 */
     Integer append(String key, String value);
+
+    /*! @brief 用 value 参数覆写给定 key 所储存的字符串值，从偏移量 offset 开始
+     @param key 指定要修改的 key
+     @param offset 指定修改的字节偏移
+     @param value 指定要覆盖的数据
+     @return 被修改之后，字符串的长度 */
+    Integer setRange(String key, Integer offset, String value);
+
+    /*! @brief 返回 key 中字符串值的子字符串，字符串的截取范围由 start 和 end 两个偏移量决定(包括 start 和 end 在内)
+     @param key 指定要查询的 key
+     @param start 指定查询的起始字节偏移
+     @param end 指定查询的结束字节偏移
+     @return 截取得出的子字符串 */
+    String getRange(String key, Integer start, Integer end);
 
     /*! @brief 返回 key 所储存的字符串值的长度。当 key 储存的不是字符串值时，返回一个错误
      @param key 指定要计算的 key
@@ -73,6 +95,37 @@ class Redis : object
      @param ... 指定要查询的 key 列表
      @return 一个包含所有给定 key 的值的列表 */
     List mget(...);
+
+    /*! @brief 将给定 key 的值设为 value ，并返回 key 的旧值(old value)
+     @param key 指定要查询修改的 key
+     @param value 指定修改的数值
+     @return 返回给定 key 的旧值 */
+    String getset(String key, String value);
+
+    /*! @brief 将 key 所储存的值减去减量
+     @param key 指定要修改的 key
+     @param num 指定要减去的数值
+     @return 减去 num 之后，key 的值 */
+    Long decr(String key, Long num = 1);
+
+    /*! @brief 将 key 所储存的值加上增量
+     @param key 指定要修改的 key
+     @param num 指定要加上的数值
+     @return 加上 num 之后，key 的值 */
+    Long incr(String key, Long num = 1);
+
+    /*! @brief 对 key 所储存的字符串值，设置或清除指定偏移量上的位(bit)
+     @param key 指定要修改的 key
+     @param offset 指定修改的位偏移
+     @param value 指定设置或清除的参数，可以是 0 也可以是 1
+     @return 指定偏移量原来储存的位 */
+    Integer setBit(String key, Integer offset, Integer value);
+
+    /*! @brief 对 key 所储存的字符串值，获取指定偏移量上的位(bit)
+     @param key 指定要查询的 key
+     @param offset 指定查询的位偏移
+     @return 字符串值指定偏移量上的位(bit) */
+    Integer getBit(String key, Integer offset);
 
     /*! @brief 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
      @param key 指定要关联的 key

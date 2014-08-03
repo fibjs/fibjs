@@ -14,6 +14,12 @@ describe("redis", function() {
 			rdb.del(keys);
 	});
 
+	after(function() {
+		var keys = rdb.command("keys", "*").toArray();
+		if (keys.length)
+			rdb.del(keys);
+	});
+
 	it("command", function() {
 		rdb.command("set", "test", "aaa");
 		rdb.command("set", "test1", "aaa");
@@ -24,7 +30,6 @@ describe("redis", function() {
 		assert.deepEqual(rdb.command("keys", "aa*").toArray(), []);
 
 		assert.deepEqual(rdb.command("scan", "0")[1].toArray(), ["test", "test1"]);
-		assert.deepEqual(rdb.command("scan", "17")[1].toArray(), []);
 	});
 
 	it("exists", function() {
@@ -66,6 +71,11 @@ describe("redis", function() {
 		assert.deepEqual(rdb.mget("test", "test1").toArray(), ["bbb1", "bbb2"]);
 	});
 
+	it("msetNX", function() {
+		rdb.msetNX("test", "bbb", "test2", "bbb1");
+		assert.deepEqual(rdb.mget("test", "test1", "test2").toArray(), ["bbb1", "bbb2", null]);
+	});
+
 	it("setNX", function() {
 		rdb.set("test", "aaa1")
 		rdb.setNX("test", "aaa3")
@@ -76,6 +86,31 @@ describe("redis", function() {
 		rdb.set("test", "aaa1")
 		rdb.setXX("test", "aaa3")
 		assert.equal(rdb.get("test"), "aaa3");
+	});
+
+	it("decr", function() {
+		rdb.set("test", "100");
+		assert.equal(rdb.decr("test"), 99);
+		assert.equal(rdb.decr("test", 9), 90);
+	});
+
+	it("incr", function() {
+		rdb.set("test", "100");
+		assert.equal(rdb.incr("test"), 101);
+		assert.equal(rdb.incr("test", 9), 110);
+	});
+
+	it("setBit/getBit", function() {
+		rdb.set("test", "aaa");
+		assert.equal(rdb.getBit("test", 5), 0);
+		assert.equal(rdb.setBit("test", 5, 1), 0);
+		assert.equal(rdb.getBit("test", 5), 1);
+	});
+
+	it("getset", function() {
+		rdb.set("test", "aaa");
+		assert.equal(rdb.getset("test", "bbb"), "aaa");
+		assert.equal(rdb.get("test"), "bbb");
 	});
 
 	it("append", function() {
@@ -91,6 +126,20 @@ describe("redis", function() {
 		rdb.set("test", "aaa1");
 		assert.equal(rdb.strlen("test"), 4);
 		assert.equal(rdb.strlen("test3"), 0);
+	});
+
+	it("setRange", function() {
+		rdb.set("test", "hello world");
+		rdb.setRange("test", 6, "Redis");
+		assert.equal(rdb.get("test"), "hello Redis");
+	});
+
+	it("getRange", function() {
+		rdb.set("test", "hello, my friend");
+		assert.equal(rdb.getRange("test", 0, 4), "hello");
+		assert.equal(rdb.getRange("test", -1, -5), "");
+		assert.equal(rdb.getRange("test", -3, -1), "end");
+		assert.equal(rdb.getRange("test", 0, -1), "hello, my friend");
 	});
 
 	it("bitcount", function() {
