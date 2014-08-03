@@ -13,6 +13,7 @@
 #include "BufferedStream.h"
 #include "Variant.h"
 #include "QuickArray.h"
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -22,7 +23,17 @@ class Redis: public Redis_base
 public:
     // Redis_base
     virtual result_t command(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args, v8::Local<v8::Value> &retVal);
-    virtual result_t close(exlib::AsyncEvent *ac);
+    virtual result_t set(const char *key, const char *value, int64_t ttl);
+    virtual result_t get(const char *key, std::string &retVal);
+    virtual result_t exists(const char *key, bool &retVal);
+    virtual result_t keys(const char *pattern, obj_ptr<List_base> &retVal);
+    virtual result_t del(v8::Local<v8::Array> keys, int32_t &retVal);
+    virtual result_t del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
+    virtual result_t expire(const char *key, int64_t ttl, bool &retVal);
+    virtual result_t ttl(const char *key, int64_t &retVal);
+    virtual result_t dump(const char *key, obj_ptr<Buffer_base> &retVal);
+    virtual result_t restore(const char *key, Buffer_base *data, int64_t ttl);
+    virtual result_t close();
 
 public:
     result_t connect(const char *host, int port, exlib::AsyncEvent *ac);
@@ -36,7 +47,7 @@ public:
         {}
 
     public:
-        result_t _add(std::string &str)
+        result_t add(std::string &str)
         {
             char numStr[64];
 
@@ -52,18 +63,34 @@ public:
         result_t add(const char *v)
         {
             std::string str(v);
-            return _add(str);
+            return add(str);
         }
 
-        result_t add(v8::Local<v8::Value> v)
+        result_t add(int64_t v)
+        {
+            char numStr[64];
+
+#ifdef WIN32
+            sprintf(numStr, "%I64d", v);
+#else
+            sprintf(numStr, "%lld", (long long)v);
+#endif
+            return add(numStr);
+        }
+
+        result_t add(v8::Local<v8::Array> keys)
         {
             result_t hr;
-            std::string str;
+            int32_t i;
 
-            hr = GetArgumentValue(v, str);
-            if (hr < 0)
-                return hr;
-            return _add(str);
+            for (i = 0; i < (int32_t)keys->Length(); i ++)
+            {
+                hr = add(keys->Get(i));
+                if (hr < 0)
+                    return hr;
+            }
+
+            return 0;
         }
 
         result_t add(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t pos)
@@ -79,6 +106,17 @@ public:
             }
 
             return 0;
+        }
+
+        result_t add(v8::Local<v8::Value> v)
+        {
+            result_t hr;
+            std::string str;
+
+            hr = GetArgumentValue(v, str);
+            if (hr < 0)
+                return hr;
+            return add(str);
         }
 
         std::string str()
@@ -111,6 +149,215 @@ public:
         QuickArray<std::string> m_params;
         int32_t m_size;
     };
+
+private:
+    static result_t retValue(Variant &v, std::string &retVal)
+    {
+        retVal = v.string();
+        return 0;
+    }
+
+    static result_t retValue(Variant &v, obj_ptr<Buffer_base> &retVal)
+    {
+        retVal = new Buffer(v.string());
+        return 0;
+    }
+
+    static result_t retValue(Variant &v, obj_ptr<List_base> &retVal)
+    {
+        retVal = List_base::getInstance(v.object());
+        return retVal ? 0 : CHECK_ERROR(CALL_E_INVALID_CALL);
+    }
+
+    static result_t retValue(Variant &v, bool &retVal)
+    {
+        retVal = !!(int32_t)v;
+        return 0;
+    }
+
+    template<typename T>
+    static result_t retValue(Variant &v, T &retVal)
+    {
+        retVal = v;
+        return 0;
+    }
+
+    template<typename T>
+    result_t doCommand(const char *cmd, v8::Local<v8::Array> keys, T &retVal)
+    {
+        if (!m_sock)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t hr;
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(keys);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
+
+    template<typename T>
+    result_t doCommand(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args,
+                       T &retVal, int32_t pos = 0)
+    {
+        if (!m_sock)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t hr;
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(args, pos);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
+
+    template<typename T, typename T1>
+    result_t doCommand(const char *cmd, T1 &a1, T &retVal)
+    {
+        if (!m_sock)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t hr;
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a1);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
+
+    template<typename T, typename T1, typename T2>
+    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T &retVal)
+    {
+        if (!m_sock)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t hr;
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a1);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a2);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
+
+    template<typename T, typename T1, typename T2, typename T3>
+    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T &retVal)
+    {
+        if (!m_sock)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t hr;
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a1);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a2);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a3);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
+
+    template<typename T, typename T1, typename T2, typename T3, typename T4>
+    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T &retVal)
+    {
+        if (!m_sock)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t hr;
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a1);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a2);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a3);
+        if (hr < 0)
+            return hr;
+
+        hr = ps.add(a4);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
+
+
 
 public:
     obj_ptr<Socket_base> m_sock;

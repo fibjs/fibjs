@@ -140,7 +140,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 if (sz < 0)
                 {
                     pThis->m_val.setNull();
-                    return pThis->setResult();
+                    return pThis->setResult(CALL_RETURN_NULL);
                 }
 
                 pThis->set(bulk_ok);
@@ -156,7 +156,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 if (sz < 0)
                 {
                     pThis->m_val.setNull();
-                    return pThis->setResult();
+                    return pThis->setResult(CALL_RETURN_NULL);
                 }
 
                 if (sz == 0)
@@ -211,34 +211,82 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
 result_t Redis::command(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args,
                         v8::Local<v8::Value> &retVal)
 {
-    result_t hr;
-    _param ps;
-    Variant v;
-
-    hr = ps.add(cmd);
-    if (hr < 0)
-        return hr;
-
-    hr = ps.add(args, 1);
-    if (hr < 0)
-        return hr;
-
-    hr = ac__command(ps.str(), v);
-    if (hr < 0)
-        return hr;
-
-    retVal = v;
-
-    return 0;
+    return doCommand(cmd, args, retVal, 1);
 }
 
-result_t Redis::close(exlib::AsyncEvent *ac)
+result_t Redis::set(const char *key, const char *value, int64_t ttl)
+{
+    Variant v;
+
+    if (ttl)
+    {
+        char ttlStr[64];
+
+#ifdef WIN32
+        sprintf(ttlStr, "%I64d", ttl);
+#else
+        sprintf(ttlStr, "%lld", (long long)ttl);
+#endif
+
+        return doCommand("SET", key, value, "PX", ttlStr, v);
+    }
+    else
+        return doCommand("SET", key, value, v);
+}
+
+result_t Redis::get(const char *key, std::string &retVal)
+{
+    return doCommand("GET", key, retVal);
+}
+
+result_t Redis::exists(const char *key, bool &retVal)
+{
+    return doCommand("EXISTS", key, retVal);
+}
+
+result_t Redis::keys(const char *pattern, obj_ptr<List_base> &retVal)
+{
+    return doCommand("KEYS", pattern, retVal);
+}
+
+result_t Redis::del(v8::Local<v8::Array> keys, int32_t &retVal)
+{
+    return doCommand("DEL", keys, retVal);
+}
+
+result_t Redis::del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal)
+{
+    return doCommand("DEL", args, retVal);
+}
+
+result_t Redis::expire(const char *key, int64_t ttl, bool &retVal)
+{
+    return doCommand("PEXPIRE", key, ttl, retVal);
+}
+
+result_t Redis::ttl(const char *key, int64_t &retVal)
+{
+    return doCommand("PTTL", key, retVal);
+}
+
+result_t Redis::dump(const char *key, obj_ptr<Buffer_base> &retVal)
+{
+    return doCommand("DUMP", key, retVal);
+}
+
+result_t Redis::restore(const char *key, Buffer_base *data, int64_t ttl)
+{
+    std::string strBuf;
+    Variant v;
+
+    data->toString(strBuf);
+    return doCommand("RESTORE", key, ttl, strBuf, v);
+}
+
+result_t Redis::close()
 {
     if (!m_sock)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_sock.Release();
     m_stmBuffered.Release();

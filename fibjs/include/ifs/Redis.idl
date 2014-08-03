@@ -15,6 +15,59 @@ class Redis : object
      @return 返回服务器返回的结果 */
     Value command(String cmd, ...);
 
+    /*! @brief 将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型
+     @param key 指定要关联的 key
+     @param value 指定要关联的数据
+     @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 */
+    set(String key, String value, Long ttl = 0);
+
+    /*! @brief 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
+     @param key 指定要关联的 key
+     @return 当 key 不存在时，返回 Null ，否则，返回 key 的值 */
+    String get(String key);
+
+    /*! @brief 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
+     @param key 指定要关联的 key
+     @return 若 key 存在，返回 True，否则返回 False */
+    Boolean exists(String key);
+
+    /*! @brief 查找所有符合给定模式 pattern 的 key
+     @param pattern 指定查询模式
+     @return 符合给定模式的 key 列表 */
+    List keys(String pattern);
+
+    /*! @brief 检查给定 key 是否存在
+     @param key 指定要检查的 key
+     @return 被删除 key 的数量 */
+    Integer del(Array keys);
+
+    /*! @brief 删除给定的一个或多个 key，不存在的 key 会被忽略
+     @param ... 指定要删除的 key 列表
+     @return 被删除 key 的数量 */
+    Integer del(...);
+
+    /*! @brief 为给定 key 设置生存时间，当 key 过期时，它会被自动删除
+     @param key 指定要设定的 key
+     @param ttl 以毫秒为单位为 key 设置生存时间
+     @return 若 key 存在，返回 True，否则返回 False */
+    Boolean expire(String key, Long ttl);
+
+    /*! @brief 返回给定 key 的剩余生存时间
+     @param key 指定要查询的 key
+     @return 以毫秒为单位，返回 key 的剩余生存时间，当 key 不存在时，返回 -2，当 key 存在但没有设置剩余生存时间时，返回 -1 */
+    Long ttl(String key);
+
+    /*! @brief 序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键
+     @param key 指定要序列化的 key
+     @return 返回序列化之后的值，如果 key 不存在，那么返回 null */
+    Buffer dump(String key);
+
+    /*! @brief 反序列化给定的序列化值，并将它和给定的 key 关联
+     @param key 指定要反序列化的 key
+     @param data 指定要反序列化的数据
+     @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间*/
+    restore(String key, Buffer data, Long ttl = 0);
+
     /*! @brief 关闭当前数据库连接或事务 */
-    close() async;
+    close();
 };
