@@ -232,6 +232,14 @@ public:
         return operator=(v8::Local<v8::Value>::Cast(v));
     }
 
+    Variant &setNull()
+    {
+        clear();
+
+        set_type(VT_Null);
+        return *this;
+    }
+
     Type type() const
     {
         return (Type) (m_type & VT_Type);
