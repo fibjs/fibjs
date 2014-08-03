@@ -717,13 +717,13 @@ void date_t::fix(int part)
         return;
 
     if (part == _SECOND)
-        d = ((int64_t)d / 1000) * 1000;
+        d = (double)((int64_t)d / 1000) * 1000;
     else if (part == _MINUTE)
-        d = ((int64_t)d / (60 * 1000)) * 60 * 1000;
+        d = (double)((int64_t)d / (60 * 1000)) * 60 * 1000;
     else if (part == _HOUR)
-        d = ((int64_t)d / (60 * 60 * 1000)) * 60 * 60 * 1000;
+        d = (double)((int64_t)d / (60 * 60 * 1000)) * 60 * 60 * 1000;
     else if (part == _DAY)
-        d = ((int64_t)d / (60 * 60 * 24 * 1000)) * 60 * 60 * 24 * 1000;
+        d = (double)((int64_t)d / (60 * 60 * 24 * 1000)) * 60 * 60 * 24 * 1000;
     else
     {
         _date_split ds(d);
