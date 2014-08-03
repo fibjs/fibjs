@@ -5,6 +5,7 @@ var searchData=
   ['debug',['debug',['../d6/df8/classconsole.html#adff204aa3e37763481680087157754a1',1,'console::debug(String fmt,...)'],['../d6/df8/classconsole.html#aec6d50753570141dda375e85594b5b6d',1,'console::debug(...)']]],
   ['dec',['dec',['../db/df7/classStats.html#a0b2c6d2c38c43e2e0c2394237fd10608',1,'Stats']]],
   ['decodeuri',['decodeURI',['../d0/d52/classencoding.html#aeb50ecb378e2b4da3d3a5b0ba24c6907',1,'encoding']]],
+  ['decr',['decr',['../db/d15/classRedis.html#a1002ac009af650eccd0485bb938b8161',1,'Redis']]],
   ['decrypt',['decrypt',['../d6/d2e/classCipher.html#ad8540db73a6b68b8372d908c48ad26fc',1,'Cipher::decrypt()'],['../d0/d82/classPKey.html#a8357b8385141031a683ccf41058dbed0',1,'PKey::decrypt()']]],
   ['deepequal',['deepEqual',['../de/d1c/classassert.html#aa4fc0c264fe253b71659fa15bd444d34',1,'assert']]],
   ['deepproperty',['deepProperty',['../de/d1c/classassert.html#a5129660776f5965ef0fc8e045a9d51d4',1,'assert']]],

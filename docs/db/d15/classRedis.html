@@ -115,7 +115,7 @@ $(document).ready(function(){initNavTree('db/d15/classRedis.html','../../');});
 <div class="dynheader">
 类 Redis 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="116" height="566"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="116" height="686"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 </div>
 <table class="memberdecls">
@@ -133,15 +133,27 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a9e3af6a0e5577ddb77a93d523c31be49"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a9e3af6a0e5577ddb77a93d523c31be49">setXX</a> (String key, String value, Long <a class="el" href="../../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b">ttl</a>=0)</td></tr>
 <tr class="memdesc:a9e3af6a0e5577ddb77a93d523c31be49"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 key 的值设为 value，只在键已经存在时，才对键进行设置操作。  <a href="#a9e3af6a0e5577ddb77a93d523c31be49">更多...</a><br /></td></tr>
 <tr class="separator:a9e3af6a0e5577ddb77a93d523c31be49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71308f3e3f6a62aeb7e0d15576891d36"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a71308f3e3f6a62aeb7e0d15576891d36">mset</a> (Array <a class="el" href="../../db/d15/classRedis.html#a0f5526aeab2fe0d16274926cad953bbd">keys</a>)</td></tr>
-<tr class="memdesc:a71308f3e3f6a62aeb7e0d15576891d36"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值  <a href="#a71308f3e3f6a62aeb7e0d15576891d36">更多...</a><br /></td></tr>
-<tr class="separator:a71308f3e3f6a62aeb7e0d15576891d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8fe169373a14e2aa17c60fb391ea6fc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ad8fe169373a14e2aa17c60fb391ea6fc">mset</a> (Array kvs)</td></tr>
+<tr class="memdesc:ad8fe169373a14e2aa17c60fb391ea6fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值  <a href="#ad8fe169373a14e2aa17c60fb391ea6fc">更多...</a><br /></td></tr>
+<tr class="separator:ad8fe169373a14e2aa17c60fb391ea6fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a96751caed808fb9ce4a834b8cee5720e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a96751caed808fb9ce4a834b8cee5720e">mset</a> (...)</td></tr>
 <tr class="memdesc:a96751caed808fb9ce4a834b8cee5720e"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值  <a href="#a96751caed808fb9ce4a834b8cee5720e">更多...</a><br /></td></tr>
 <tr class="separator:a96751caed808fb9ce4a834b8cee5720e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a134a5554dcf708a537b853e814023d95"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a134a5554dcf708a537b853e814023d95">msetNX</a> (Array kvs)</td></tr>
+<tr class="memdesc:a134a5554dcf708a537b853e814023d95"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在  <a href="#a134a5554dcf708a537b853e814023d95">更多...</a><br /></td></tr>
+<tr class="separator:a134a5554dcf708a537b853e814023d95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17789191649407fd4176186e0b5b4881"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a17789191649407fd4176186e0b5b4881">msetNX</a> (...)</td></tr>
+<tr class="memdesc:a17789191649407fd4176186e0b5b4881"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在  <a href="#a17789191649407fd4176186e0b5b4881">更多...</a><br /></td></tr>
+<tr class="separator:a17789191649407fd4176186e0b5b4881"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b45a4bd9ba34991c373f87a73dd86f0"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a0b45a4bd9ba34991c373f87a73dd86f0">append</a> (String key, String value)</td></tr>
 <tr class="memdesc:a0b45a4bd9ba34991c373f87a73dd86f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">如果 key 已经存在并且是一个字符串，append 命令将 value 追加到 key 原来的值的末尾。如果 key 不存在，append 就简单地将给定 key 设为 value  <a href="#a0b45a4bd9ba34991c373f87a73dd86f0">更多...</a><br /></td></tr>
 <tr class="separator:a0b45a4bd9ba34991c373f87a73dd86f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f4995da45ff0b85ae45ce02f3122080"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a1f4995da45ff0b85ae45ce02f3122080">setRange</a> (String key, Integer offset, String value)</td></tr>
+<tr class="memdesc:a1f4995da45ff0b85ae45ce02f3122080"><td class="mdescLeft">&#160;</td><td class="mdescRight">用 value 参数覆写给定 key 所储存的字符串值，从偏移量 offset 开始  <a href="#a1f4995da45ff0b85ae45ce02f3122080">更多...</a><br /></td></tr>
+<tr class="separator:a1f4995da45ff0b85ae45ce02f3122080"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84611d3e5bcaa8246be33f2a0a65efa5"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a84611d3e5bcaa8246be33f2a0a65efa5">getRange</a> (String key, Integer start, Integer end)</td></tr>
+<tr class="memdesc:a84611d3e5bcaa8246be33f2a0a65efa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 key 中字符串值的子字符串，字符串的截取范围由 start 和 end 两个偏移量决定(包括 start 和 end 在内)  <a href="#a84611d3e5bcaa8246be33f2a0a65efa5">更多...</a><br /></td></tr>
+<tr class="separator:a84611d3e5bcaa8246be33f2a0a65efa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dc50fbb61784e975e3c7ce145f3b3b3"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a3dc50fbb61784e975e3c7ce145f3b3b3">strlen</a> (String key)</td></tr>
 <tr class="memdesc:a3dc50fbb61784e975e3c7ce145f3b3b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 key 所储存的字符串值的长度。当 key 储存的不是字符串值时，返回一个错误  <a href="#a3dc50fbb61784e975e3c7ce145f3b3b3">更多...</a><br /></td></tr>
 <tr class="separator:a3dc50fbb61784e975e3c7ce145f3b3b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -157,6 +169,21 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a0acadaf191bafc9dff5c8f2dad482ba9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/da9/classList.html">List</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a0acadaf191bafc9dff5c8f2dad482ba9">mget</a> (...)</td></tr>
 <tr class="memdesc:a0acadaf191bafc9dff5c8f2dad482ba9"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。  <a href="#a0acadaf191bafc9dff5c8f2dad482ba9">更多...</a><br /></td></tr>
 <tr class="separator:a0acadaf191bafc9dff5c8f2dad482ba9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac07041098f654b5780e47e38e2ac3053"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ac07041098f654b5780e47e38e2ac3053">getset</a> (String key, String value)</td></tr>
+<tr class="memdesc:ac07041098f654b5780e47e38e2ac3053"><td class="mdescLeft">&#160;</td><td class="mdescRight">将给定 key 的值设为 value ，并返回 key 的旧值(old value)  <a href="#ac07041098f654b5780e47e38e2ac3053">更多...</a><br /></td></tr>
+<tr class="separator:ac07041098f654b5780e47e38e2ac3053"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1002ac009af650eccd0485bb938b8161"><td class="memItemLeft" align="right" valign="top">Long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a1002ac009af650eccd0485bb938b8161">decr</a> (String key, Long num=1)</td></tr>
+<tr class="memdesc:a1002ac009af650eccd0485bb938b8161"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 key 所储存的值减去减量  <a href="#a1002ac009af650eccd0485bb938b8161">更多...</a><br /></td></tr>
+<tr class="separator:a1002ac009af650eccd0485bb938b8161"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a471974e463f855f754fafac0a3da1a57"><td class="memItemLeft" align="right" valign="top">Long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a471974e463f855f754fafac0a3da1a57">incr</a> (String key, Long num=1)</td></tr>
+<tr class="memdesc:a471974e463f855f754fafac0a3da1a57"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 key 所储存的值加上增量  <a href="#a471974e463f855f754fafac0a3da1a57">更多...</a><br /></td></tr>
+<tr class="separator:a471974e463f855f754fafac0a3da1a57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad25bb32fbfe3c2f859a828ea4652cb52"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ad25bb32fbfe3c2f859a828ea4652cb52">setBit</a> (String key, Integer offset, Integer value)</td></tr>
+<tr class="memdesc:ad25bb32fbfe3c2f859a828ea4652cb52"><td class="mdescLeft">&#160;</td><td class="mdescRight">对 key 所储存的字符串值，设置或清除指定偏移量上的位(bit)  <a href="#ad25bb32fbfe3c2f859a828ea4652cb52">更多...</a><br /></td></tr>
+<tr class="separator:ad25bb32fbfe3c2f859a828ea4652cb52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec769d14a101df905aa90b5a09709f4a"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#aec769d14a101df905aa90b5a09709f4a">getBit</a> (String key, Integer offset)</td></tr>
+<tr class="memdesc:aec769d14a101df905aa90b5a09709f4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">对 key 所储存的字符串值，获取指定偏移量上的位(bit)  <a href="#aec769d14a101df905aa90b5a09709f4a">更多...</a><br /></td></tr>
+<tr class="separator:aec769d14a101df905aa90b5a09709f4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbff904366ecc065fd12e1e6da04fcf7"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#adbff904366ecc065fd12e1e6da04fcf7">exists</a> (String key)</td></tr>
 <tr class="memdesc:adbff904366ecc065fd12e1e6da04fcf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null  <a href="#adbff904366ecc065fd12e1e6da04fcf7">更多...</a><br /></td></tr>
 <tr class="separator:adbff904366ecc065fd12e1e6da04fcf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -376,7 +403,7 @@ Public 成员函数</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a71308f3e3f6a62aeb7e0d15576891d36"></a>
+<a class="anchor" id="ad8fe169373a14e2aa17c60fb391ea6fc"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -384,7 +411,7 @@ Public 成员函数</h2></td></tr>
           <td class="memname">Redis::mset </td>
           <td>(</td>
           <td class="paramtype">Array&#160;</td>
-          <td class="paramname"><em>keys</em></td><td>)</td>
+          <td class="paramname"><em>kvs</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -415,6 +442,54 @@ Public 成员函数</h2></td></tr>
 </div><div class="memdoc">
 
 <p>同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">...</td><td>指定要设置的 key/value 列表 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a134a5554dcf708a537b853e814023d95"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::msetNX </td>
+          <td>(</td>
+          <td class="paramtype">Array&#160;</td>
+          <td class="paramname"><em>kvs</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kvs</td><td>指定要设置的 key/value 数组 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a17789191649407fd4176186e0b5b4881"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::msetNX </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">...</td><td>指定要设置的 key/value 列表 </td></tr>
@@ -457,6 +532,92 @@ Public 成员函数</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>追加 value 之后， key 中字符串的长度 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1f4995da45ff0b85ae45ce02f3122080"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer Redis::setRange </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>用 value 参数覆写给定 key 所储存的字符串值，从偏移量 offset 开始 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要修改的 key </td></tr>
+    <tr><td class="paramname">offset</td><td>指定修改的字节偏移 </td></tr>
+    <tr><td class="paramname">value</td><td>指定要覆盖的数据 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>被修改之后，字符串的长度 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a84611d3e5bcaa8246be33f2a0a65efa5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">String Redis::getRange </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>start</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>返回 key 中字符串值的子字符串，字符串的截取范围由 start 和 end 两个偏移量决定(包括 start 和 end 在内) </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要查询的 key </td></tr>
+    <tr><td class="paramname">start</td><td>指定查询的起始字节偏移 </td></tr>
+    <tr><td class="paramname">end</td><td>指定查询的结束字节偏移 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>截取得出的子字符串 </dd></dl>
 
 </div>
 </div>
@@ -600,6 +761,193 @@ Public 成员函数</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>一个包含所有给定 key 的值的列表 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ac07041098f654b5780e47e38e2ac3053"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">String Redis::getset </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>将给定 key 的值设为 value ，并返回 key 的旧值(old value) </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要查询修改的 key </td></tr>
+    <tr><td class="paramname">value</td><td>指定修改的数值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回给定 key 的旧值 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1002ac009af650eccd0485bb938b8161"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Long Redis::decr </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Long&#160;</td>
+          <td class="paramname"><em>num</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>将 key 所储存的值减去减量 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要修改的 key </td></tr>
+    <tr><td class="paramname">num</td><td>指定要减去的数值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>减去 num 之后，key 的值 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a471974e463f855f754fafac0a3da1a57"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Long Redis::incr </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Long&#160;</td>
+          <td class="paramname"><em>num</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>将 key 所储存的值加上增量 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要修改的 key </td></tr>
+    <tr><td class="paramname">num</td><td>指定要加上的数值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>加上 num 之后，key 的值 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad25bb32fbfe3c2f859a828ea4652cb52"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer Redis::setBit </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>对 key 所储存的字符串值，设置或清除指定偏移量上的位(bit) </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要修改的 key </td></tr>
+    <tr><td class="paramname">offset</td><td>指定修改的位偏移 </td></tr>
+    <tr><td class="paramname">value</td><td>指定设置或清除的参数，可以是 0 也可以是 1 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指定偏移量原来储存的位 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aec769d14a101df905aa90b5a09709f4a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer Redis::getBit </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>对 key 所储存的字符串值，获取指定偏移量上的位(bit) </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要查询的 key </td></tr>
+    <tr><td class="paramname">offset</td><td>指定查询的位偏移 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>字符串值指定偏移量上的位(bit) </dd></dl>
 
 </div>
 </div>
