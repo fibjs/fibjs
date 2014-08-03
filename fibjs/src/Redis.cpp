@@ -91,21 +91,25 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
 
         int setResult(int hr = 0)
         {
-            if (m_list)
+            while (m_lists.size())
             {
-                m_list->push(m_retVal);
-                m_count --;
-                if (m_count)
+                int32_t idx = (int32_t)m_lists.size() - 1;
+                m_lists[idx]->push(m_val);
+                m_counts[idx] --;
+
+                if (m_counts[idx])
                 {
-                    m_retVal.clear();
+                    m_val.clear();
                     set(read);
                     return 0;
                 }
 
-                m_retVal = m_list;
-                return done();
+                m_val = m_lists[idx];
+                m_lists.pop();
+                m_counts.pop();
             }
 
+            m_retVal = m_val;
             return done(hr);
         }
 
@@ -116,7 +120,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
 
             if (ch == '+')
             {
-                pThis->m_retVal = pThis->m_strLine.substr(1);
+                pThis->m_val = pThis->m_strLine.substr(1);
                 return pThis->setResult();
             }
 
@@ -125,7 +129,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
 
             if (ch == ':')
             {
-                pThis->m_retVal = atoi(pThis->m_strLine.c_str() + 1);
+                pThis->m_val = atoi(pThis->m_strLine.c_str() + 1);
                 return pThis->setResult();
             }
 
@@ -134,7 +138,10 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 int32_t sz = atoi(pThis->m_strLine.c_str() + 1);
 
                 if (sz < 0)
-                    return pThis->setResult(CALL_RETURN_NULL);
+                {
+                    pThis->m_val.setNull();
+                    return pThis->setResult();
+                }
 
                 pThis->set(bulk_ok);
                 pThis->m_buffer.Release();
@@ -142,22 +149,25 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 return pThis->m_stmBuffered->read(sz + 2, pThis->m_buffer, pThis);
             }
 
-            if (ch == '*' && !pThis->m_list)
+            if (ch == '*')
             {
                 int32_t sz = atoi(pThis->m_strLine.c_str() + 1);
 
                 if (sz < 0)
-                    return pThis->done(CALL_RETURN_NULL);
-
-                pThis->m_list = new List();
+                {
+                    pThis->m_val.setNull();
+                    return pThis->setResult();
+                }
 
                 if (sz == 0)
                 {
-                    pThis->m_retVal = pThis->m_list;
-                    return pThis->done();
+                    pThis->m_val = new List();
+                    return pThis->setResult();
                 }
 
-                pThis->m_count = sz;
+                pThis->m_lists.append(new List());
+                pThis->m_counts.append(sz);
+
                 pThis->set(read);
                 return 0;
             }
@@ -176,7 +186,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
 
             pThis->m_buffer->toString(str);
             str.resize(str.length() - 2);
-            pThis->m_retVal = str;
+            pThis->m_val = str;
             return pThis->setResult();
         }
 
@@ -184,10 +194,11 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
         obj_ptr<Redis> m_pThis;
         std::string &m_req;
         Variant &m_retVal;
+        Variant m_val;
         obj_ptr<BufferedStream_base> m_stmBuffered;
         obj_ptr<Buffer_base> m_buffer;
-        obj_ptr<List_base> m_list;
-        int32_t m_count;
+        QuickArray<obj_ptr<List_base> > m_lists;
+        QuickArray<int32_t> m_counts;
         std::string m_strLine;
     };
 
