@@ -99,6 +99,7 @@
     <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\Queue.cpp" />
     <ClCompile Include="src\Redis.cpp" />
+    <ClCompile Include="src\RedisHash.cpp" />
     <ClCompile Include="src\Regex.cpp" />
     <ClCompile Include="src\Routing.cpp" />
     <ClCompile Include="src\rpc.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\re.h" />
     <ClInclude Include="include\ifs\Redis.h" />
+    <ClInclude Include="include\ifs\RedisHash.h" />
     <ClInclude Include="include\ifs\Regex.h" />
     <ClInclude Include="include\ifs\Routing.h" />
     <ClInclude Include="include\ifs\rpc.h" />
@@ -295,6 +297,7 @@
     <ClInclude Include="include\Queue.h" />
     <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Redis.h" />
+    <ClInclude Include="include\RedisHash.h" />
     <ClInclude Include="include\Regex.h" />
     <ClInclude Include="include\Routing.h" />
     <ClInclude Include="include\Runtime.h" />

@@ -10,6 +10,7 @@
 #include "Url.h"
 #include "Buffer.h"
 #include "List.h"
+#include "RedisHash.h"
 
 namespace fibjs
 {
@@ -395,6 +396,12 @@ result_t Redis::rename(const char *key, const char *newkey)
 result_t Redis::renameNX(const char *key, const char *newkey, bool &retVal)
 {
     return doCommand("RENAMENX", key, newkey, retVal);
+}
+
+result_t Redis::getHash(const char *key, obj_ptr<RedisHash_base> &retVal)
+{
+    retVal = new RedisHash(key, this);
+    return 0;
 }
 
 result_t Redis::dump(const char *key, obj_ptr<Buffer_base> &retVal)

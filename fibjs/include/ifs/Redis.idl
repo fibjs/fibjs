@@ -1,7 +1,7 @@
 
 /*! @brief Redis 数据库客户端对象
 
- 用以创建和管理字典对象，创建方法：
+ 用以创建和管理 Redis 数据库，创建方法：
  @code
  var db = require("db");
  var test = new db.openRedis("redis-server");
@@ -127,7 +127,7 @@ class Redis : object
      @return 字符串值指定偏移量上的位(bit) */
     Integer getBit(String key, Integer offset);
 
-    /*! @brief 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
+    /*! @brief 检查给定 key 是否存在
      @param key 指定要关联的 key
      @return 若 key 存在，返回 True，否则返回 False */
     Boolean exists(String key);
@@ -142,7 +142,7 @@ class Redis : object
      @return 符合给定模式的 key 列表 */
     List keys(String pattern);
 
-    /*! @brief 检查给定 key 是否存在
+    /*! @brief 删除给定的一个或多个 key，不存在的 key 会被忽略
      @param keys 指定要删除的 key 数组
      @return 被删除 key 的数量 */
     Integer del(Array keys);
@@ -178,6 +178,11 @@ class Redis : object
      @param newkey 指定要改名的目的 key
      @return 修改成功时，返回 True，如果 newkey 已经存在，返回 False */
     Boolean renameNX(String key, String newkey);
+
+    /*! @brief 获取指定 key 的 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
+     @param key 指定要获取的 key
+     @return 返回包含指定 key 的 Hash 对象 */
+    RedisHash getHash(String key);
 
     /*! @brief 序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键
      @param key 指定要序列化的 key

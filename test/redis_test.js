@@ -237,6 +237,80 @@ describe("redis", function() {
 		rdb.restore("greeting", encoding.hexDecode("001568656c6c6f2c2064756d70696e6720776f726c6421060045a05a82d872c1de"));
 		assert.equal(rdb.command("get", "greeting"), "hello, dumping world!");
 	});
+
+	describe("Hash", function() {
+		it("set/get", function() {
+			var hash = rdb.getHash("testHash");
+
+			hash.set("test", "hash aaaa");
+			assert.equal(hash.get("test"), "hash aaaa");
+			assert.isNull(hash.get("test1"));
+		});
+
+		it("exists", function() {
+			var hash = rdb.getHash("testHash");
+
+			assert.isTrue(hash.exists("test"));
+			assert.isFalse(hash.exists("test1"));
+		});
+
+		it("len", function() {
+			var hash = rdb.getHash("testHash");
+
+			assert.equal(hash.len(), 1);
+		});
+
+		it("keys", function() {
+			var hash = rdb.getHash("testHash");
+
+			assert.deepEqual(hash.keys().toArray(), ["test"]);
+		});
+
+		it("getAll", function() {
+			var hash = rdb.getHash("testHash");
+
+			assert.deepEqual(hash.getAll().toArray(), ["test", "hash aaaa"]);
+		});
+
+		it("setNX", function() {
+			var hash = rdb.getHash("testHash");
+
+			hash.setNX("test", "hash1");
+			assert.equal(hash.get("test"), "hash aaaa");
+			hash.setNX("test new", "hash1");
+			assert.equal(hash.get("test new"), "hash1");
+		});
+
+
+		it("mset/mget", function() {
+			var hash = rdb.getHash("testHash");
+
+			hash.mset("test1", "bbb1", "test2", "bbb2");
+			hash.mset(["test3", "bbb3", "test4", "bbb4"]);
+
+			assert.deepEqual(hash.mget("test1", "test2").toArray(), ["bbb1", "bbb2"]);
+			assert.deepEqual(hash.mget(["test1", "test2"]).toArray(), ["bbb1", "bbb2"]);
+		});
+
+		it("incr", function() {
+			var hash = rdb.getHash("testHash");
+
+			assert.equal(hash.incr("pv"), 1);
+			assert.equal(hash.incr("pv", 100), 101);
+			assert.equal(hash.incr("pv"), 102);
+		});
+
+		it("del", function() {
+			var hash = rdb.getHash("testHash");
+
+			assert.equal(hash.del("test1", "test2", "test001"), 2);
+			assert.equal(hash.del(["test3", "test2", "test002"]), 1);
+
+			assert.isFalse(hash.exists("test1"));
+			assert.isFalse(hash.exists("test2"));
+			assert.isFalse(hash.exists("test3"));
+		});
+	});
 });
 
 test.run(console.DEBUG);
