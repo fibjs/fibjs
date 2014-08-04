@@ -11,6 +11,8 @@ var searchData=
   ['inflateto',['inflateTo',['../d8/d09/classzlib.html#a1a585f4bb4ce9146953c29af284ba62f',1,'zlib::inflateTo(Buffer data, Stream stm) async'],['../d8/d09/classzlib.html#a2f4fbd12a75605838e9aafdcc2813c10',1,'zlib::inflateTo(Stream src, Stream stm) async']]],
   ['info',['INFO',['../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694',1,'console::INFO()'],['../d6/df8/classconsole.html#a195000bab966ff5ccbf1ea69cf1cc12e',1,'console::info(String fmt,...)'],['../d6/df8/classconsole.html#a88b9f04ef243106f58cbd0866072b7b5',1,'console::info(...)']]],
   ['insert',['insert',['../d2/d07/classMongoCollection.html#ad3910f53d7e3c1de13e7196cb5b68164',1,'MongoCollection::insert(Array documents)'],['../d2/d07/classMongoCollection.html#a3b3d039d9bf2e5260d11faa34166420b',1,'MongoCollection::insert(Object document)']]],
+  ['insertafter',['insertAfter',['../d8/dc8/classRedisList.html#ac2e9c3d7c426a6b58f72e940d6f7d6cb',1,'RedisList']]],
+  ['insertbefore',['insertBefore',['../d8/dc8/classRedisList.html#a9d4dbb459b2ce422a2a2d1776d394b84',1,'RedisList']]],
   ['insertid',['insertId',['../d0/de2/classDBResult.html#a9d489a96d737189b9765aba860fec60e',1,'DBResult']]],
   ['invoke',['invoke',['../d4/d22/classHandler.html#af901258552a23961893c5bd6f18ce681',1,'Handler::invoke()'],['../d4/d86/classmq.html#a208188a99c118c1a4bb1a99febcd3c32',1,'mq::invoke()']]],
   ['io',['io',['../d9/da1/classio.html',1,'']]],

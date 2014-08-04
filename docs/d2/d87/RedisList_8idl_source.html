@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.7"/>
+<title>{FibJS: Fiber Javascript}: RedisList.idl 源文件</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.7 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('d2/d87/RedisList_8idl_source.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">RedisList.idl</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00010"></a><span class="lineno"><a class="line" href="../../d8/dc8/classRedisList.html">   10</a></span>&#160;<span class="keyword">class </span><a class="code" href="../../d8/dc8/classRedisList.html">RedisList</a> : <a class="code" href="../../dc/dd8/classobject.html">object</a></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;{</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;    Integer <a class="code" href="../../d8/dc8/classRedisList.html#a2a2ca25191c2b3ae50e75a3b41515904">push</a>(Array values);</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    Integer <a class="code" href="../../d8/dc8/classRedisList.html#a2a2ca25191c2b3ae50e75a3b41515904">push</a>(...);</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    String <a class="code" href="../../d8/dc8/classRedisList.html#a02d5a6c5c060dc13fc696c284357e0d0">pop</a>();</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    Integer <a class="code" href="../../d8/dc8/classRedisList.html#aac41c5209574e61ab57f2a1153956750">rpush</a>(Array values);</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    Integer <a class="code" href="../../d8/dc8/classRedisList.html#aac41c5209574e61ab57f2a1153956750">rpush</a>(...);</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    String <a class="code" href="../../d8/dc8/classRedisList.html#a46eb826daea40055643ac6585f6d87ac">rpop</a>();</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <a class="code" href="../../d8/dc8/classRedisList.html#a65885ec7bfd3db0097cab1d10480b531">set</a>(Integer index, String value);</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    String <span class="keyword">get</span>(Integer index);</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    Integer <a class="code" href="../../d8/dc8/classRedisList.html#a9d4dbb459b2ce422a2a2d1776d394b84">insertBefore</a>(String pivot, String value);</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    Integer <a class="code" href="../../d8/dc8/classRedisList.html#ac2e9c3d7c426a6b58f72e940d6f7d6cb">insertAfter</a>(String pivot, String value);</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    Integer <span class="keyword">remove</span>(Integer count, String value);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    <a class="code" href="../../d8/dc8/classRedisList.html#a5604e7fbd71da4e72701e7b03db3b344">trim</a>(Integer start, Integer stop);</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    Integer <a class="code" href="../../d8/dc8/classRedisList.html#aa976e16b1b36eb515c2c3779445bdf6e">len</a>();</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <a class="code" href="../../d6/da9/classList.html">List</a> <a class="code" href="../../d8/dc8/classRedisList.html#a2e91d5546f59e6261181b203c9c62963">range</a>(Integer start, Integer stop);</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;};</div>
+<div class="ttc" id="classRedisList_html_a46eb826daea40055643ac6585f6d87ac"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#a46eb826daea40055643ac6585f6d87ac">RedisList::rpop</a></div><div class="ttdeci">String rpop()</div><div class="ttdoc">移除并返回列表 key 的表尾(最右边)元素 </div></div>
+<div class="ttc" id="classRedisList_html_a2a2ca25191c2b3ae50e75a3b41515904"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#a2a2ca25191c2b3ae50e75a3b41515904">RedisList::push</a></div><div class="ttdeci">Integer push(Array values)</div><div class="ttdoc">将一个或多个值 value 插入到列表的表头 </div></div>
+<div class="ttc" id="classRedisList_html"><div class="ttname"><a href="../../d8/dc8/classRedisList.html">RedisList</a></div><div class="ttdoc">Redis 数据库客户端 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ...</div><div class="ttdef"><b>Definition:</b> RedisList.idl:10</div></div>
+<div class="ttc" id="classRedisList_html_a5604e7fbd71da4e72701e7b03db3b344"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#a5604e7fbd71da4e72701e7b03db3b344">RedisList::trim</a></div><div class="ttdeci">trim(Integer start, Integer stop)</div><div class="ttdoc">对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除 ...</div></div>
+<div class="ttc" id="classList_html"><div class="ttname"><a href="../../d6/da9/classList.html">List</a></div><div class="ttdoc">Variant 数组对象，一般用以返回一组 Variant 数据 </div><div class="ttdef"><b>Definition:</b> List.idl:10</div></div>
+<div class="ttc" id="classRedisList_html_a65885ec7bfd3db0097cab1d10480b531"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#a65885ec7bfd3db0097cab1d10480b531">RedisList::set</a></div><div class="ttdeci">set(Integer index, String value)</div><div class="ttdoc">将列表下标为 index 的元素的值设置为 value </div></div>
+<div class="ttc" id="classRedisList_html_aa976e16b1b36eb515c2c3779445bdf6e"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#aa976e16b1b36eb515c2c3779445bdf6e">RedisList::len</a></div><div class="ttdeci">Integer len()</div><div class="ttdoc">返回列表 key 的长度 </div></div>
+<div class="ttc" id="classobject_html"><div class="ttname"><a href="../../dc/dd8/classobject.html">object</a></div><div class="ttdoc">基础对象，所有对象均继承于此 </div><div class="ttdef"><b>Definition:</b> object.idl:2</div></div>
+<div class="ttc" id="classRedisList_html_a9d4dbb459b2ce422a2a2d1776d394b84"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#a9d4dbb459b2ce422a2a2d1776d394b84">RedisList::insertBefore</a></div><div class="ttdeci">Integer insertBefore(String pivot, String value)</div><div class="ttdoc">将值 value 插入到列表当中，位于值 pivot 之前 </div></div>
+<div class="ttc" id="classRedisList_html_ac2e9c3d7c426a6b58f72e940d6f7d6cb"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#ac2e9c3d7c426a6b58f72e940d6f7d6cb">RedisList::insertAfter</a></div><div class="ttdeci">Integer insertAfter(String pivot, String value)</div><div class="ttdoc">将值 value 插入到列表当中，位于值 pivot 之后 </div></div>
+<div class="ttc" id="classRedisList_html_aac41c5209574e61ab57f2a1153956750"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#aac41c5209574e61ab57f2a1153956750">RedisList::rpush</a></div><div class="ttdeci">Integer rpush(Array values)</div><div class="ttdoc">将一个或多个值 value 插入到列表的表尾(最右边) </div></div>
+<div class="ttc" id="classRedisList_html_a02d5a6c5c060dc13fc696c284357e0d0"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#a02d5a6c5c060dc13fc696c284357e0d0">RedisList::pop</a></div><div class="ttdeci">String pop()</div><div class="ttdoc">移除并返回列表 key 的头元素 </div></div>
+<div class="ttc" id="classRedisList_html_a2e91d5546f59e6261181b203c9c62963"><div class="ttname"><a href="../../d8/dc8/classRedisList.html#a2e91d5546f59e6261181b203c9c62963">RedisList::range</a></div><div class="ttdeci">List range(Integer start, Integer stop)</div><div class="ttdoc">返回列表中指定区间内的元素，区间以偏移量 start 和 stop 指定，包含 start 和 stop 的元素 ...</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>RedisList.idl</b></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
+  </ul>
+</div>
+</body>
+</html>

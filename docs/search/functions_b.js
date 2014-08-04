@@ -1,7 +1,7 @@
 var searchData=
 [
   ['least',['least',['../dd/d7a/classExpect.html#a80a82dccaf29e7dcb10f1f2347b1c550',1,'Expect']]],
-  ['len',['len',['../df/dbc/classRedisHash.html#a26ef98c343228656940c7a64909b5dd1',1,'RedisHash']]],
+  ['len',['len',['../df/dbc/classRedisHash.html#a26ef98c343228656940c7a64909b5dd1',1,'RedisHash::len()'],['../d8/dc8/classRedisList.html#aa976e16b1b36eb515c2c3779445bdf6e',1,'RedisList::len()']]],
   ['lessthan',['lessThan',['../de/d1c/classassert.html#a4b1b450014e4539994cd105a8f9d0eb9',1,'assert::lessThan()'],['../dd/d7a/classExpect.html#ae73ba4fcdf0a8c2610bc2c1bbab6f358',1,'Expect::lessThan()']]],
   ['limit',['limit',['../db/d7d/classMongoCursor.html#a7e591ebbad75e2e4019e8ad922e1d402',1,'MongoCursor']]],
   ['line',['line',['../d8/d00/classImage.html#ab4ca0dbea7a43ea1ee0995eeb68a529f',1,'Image']]],

@@ -22,6 +22,7 @@ var searchData=
   ['trace',['trace',['../d6/df8/classconsole.html#aa60d1f56ec155161db3f3d0e48c2c2d3',1,'console']]],
   ['transparent',['transparent',['../d8/d00/classImage.html#a3b9f33aeaeb6019bb6526f3b3ce624b2',1,'Image']]],
   ['trigger',['Trigger',['../d7/d1d/classTrigger.html',1,'Trigger'],['../d7/d1d/classTrigger.html#acb19a1b266ed37fcfa6a6634d4388b0e',1,'Trigger::trigger()'],['../d2/dd1/classcoroutine.html#a4f37b90d865f0349c9e2b301cce65257',1,'coroutine::Trigger()'],['../d7/d1d/classTrigger.html#afcf974790b6e846cd89eba5a802e7fa5',1,'Trigger::Trigger()']]],
+  ['trim',['trim',['../d8/dc8/classRedisList.html#a5604e7fbd71da4e72701e7b03db3b344',1,'RedisList']]],
   ['true',['true',['../dd/d7a/classExpect.html#aaad4e98d0e6f706cf8c331e89f4a1542',1,'Expect']]],
   ['truecolor',['TRUECOLOR',['../d5/d5d/classgd.html#abb19e274d6ddf2f7ff7703956498af30',1,'gd']]],
   ['truncate',['truncate',['../db/d30/classFile.html#a634c01460200da98755fda701fbace1a',1,'File']]],
