@@ -115,8 +115,7 @@ $(document).ready(function(){initNavTree('db/d15/classRedis.html','../../');});
 <div class="dynheader">
 类 Redis 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="116" height="686"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
-</div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="116" height="699"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -185,7 +184,7 @@ Public 成员函数</h2></td></tr>
 <tr class="memdesc:aec769d14a101df905aa90b5a09709f4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">对 key 所储存的字符串值，获取指定偏移量上的位(bit)  <a href="#aec769d14a101df905aa90b5a09709f4a">更多...</a><br /></td></tr>
 <tr class="separator:aec769d14a101df905aa90b5a09709f4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbff904366ecc065fd12e1e6da04fcf7"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#adbff904366ecc065fd12e1e6da04fcf7">exists</a> (String key)</td></tr>
-<tr class="memdesc:adbff904366ecc065fd12e1e6da04fcf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null  <a href="#adbff904366ecc065fd12e1e6da04fcf7">更多...</a><br /></td></tr>
+<tr class="memdesc:adbff904366ecc065fd12e1e6da04fcf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">检查给定 key 是否存在  <a href="#adbff904366ecc065fd12e1e6da04fcf7">更多...</a><br /></td></tr>
 <tr class="separator:adbff904366ecc065fd12e1e6da04fcf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc17e36e60c1b7bd392b93a039eb96b0"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#abc17e36e60c1b7bd392b93a039eb96b0">type</a> (String key)</td></tr>
 <tr class="memdesc:abc17e36e60c1b7bd392b93a039eb96b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 key 所储存的值的类型  <a href="#abc17e36e60c1b7bd392b93a039eb96b0">更多...</a><br /></td></tr>
@@ -194,7 +193,7 @@ Public 成员函数</h2></td></tr>
 <tr class="memdesc:a0f5526aeab2fe0d16274926cad953bbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">查找所有符合给定模式 pattern 的 key  <a href="#a0f5526aeab2fe0d16274926cad953bbd">更多...</a><br /></td></tr>
 <tr class="separator:a0f5526aeab2fe0d16274926cad953bbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab82f73848a2409c123b633c05294ca2e"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e">del</a> (Array <a class="el" href="../../db/d15/classRedis.html#a0f5526aeab2fe0d16274926cad953bbd">keys</a>)</td></tr>
-<tr class="memdesc:ab82f73848a2409c123b633c05294ca2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">检查给定 key 是否存在  <a href="#ab82f73848a2409c123b633c05294ca2e">更多...</a><br /></td></tr>
+<tr class="memdesc:ab82f73848a2409c123b633c05294ca2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">删除给定的一个或多个 key，不存在的 key 会被忽略  <a href="#ab82f73848a2409c123b633c05294ca2e">更多...</a><br /></td></tr>
 <tr class="separator:ab82f73848a2409c123b633c05294ca2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ca852fc1075e833c7db632b5c404589"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a0ca852fc1075e833c7db632b5c404589">del</a> (...)</td></tr>
 <tr class="memdesc:a0ca852fc1075e833c7db632b5c404589"><td class="mdescLeft">&#160;</td><td class="mdescRight">删除给定的一个或多个 key，不存在的 key 会被忽略  <a href="#a0ca852fc1075e833c7db632b5c404589">更多...</a><br /></td></tr>
@@ -214,6 +213,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a1299b4ba91be6e7a74c6b725255b4069"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a1299b4ba91be6e7a74c6b725255b4069">renameNX</a> (String key, String newkey)</td></tr>
 <tr class="memdesc:a1299b4ba91be6e7a74c6b725255b4069"><td class="mdescLeft">&#160;</td><td class="mdescRight">当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误  <a href="#a1299b4ba91be6e7a74c6b725255b4069">更多...</a><br /></td></tr>
 <tr class="separator:a1299b4ba91be6e7a74c6b725255b4069"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d01d82e85ace21fa18aa2d165a03ab5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dbc/classRedisHash.html">RedisHash</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a2d01d82e85ace21fa18aa2d165a03ab5">getHash</a> (String key)</td></tr>
+<tr class="memdesc:a2d01d82e85ace21fa18aa2d165a03ab5"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取指定 key 的 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库  <a href="#a2d01d82e85ace21fa18aa2d165a03ab5">更多...</a><br /></td></tr>
+<tr class="separator:a2d01d82e85ace21fa18aa2d165a03ab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb059c5229b6b02d11bdec77e3b5212b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d11/classBuffer.html">Buffer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">dump</a> (String key)</td></tr>
 <tr class="memdesc:aeb059c5229b6b02d11bdec77e3b5212b"><td class="mdescLeft">&#160;</td><td class="mdescRight">序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 <a class="el" href="../../db/d15/classRedis.html" title="Redis 数据库客户端对象 ">Redis</a> 键  <a href="#aeb059c5229b6b02d11bdec77e3b5212b">更多...</a><br /></td></tr>
 <tr class="separator:aeb059c5229b6b02d11bdec77e3b5212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -238,7 +240,7 @@ Public 成员函数</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p><a class="el" href="../../db/d15/classRedis.html" title="Redis 数据库客户端对象 ">Redis</a> 数据库客户端对象 </p>
-<p>用以创建和管理字典对象，创建方法： </p><div class="fragment"><div class="line">var db = require(<span class="stringliteral">&quot;db&quot;</span>);</div>
+<p>用以创建和管理 <a class="el" href="../../db/d15/classRedis.html" title="Redis 数据库客户端对象 ">Redis</a> 数据库，创建方法： </p><div class="fragment"><div class="line">var db = require(<span class="stringliteral">&quot;db&quot;</span>);</div>
 <div class="line">var test = <span class="keyword">new</span> db.openRedis(<span class="stringliteral">&quot;redis-server&quot;</span>);</div>
 </div><!-- fragment --> </div><h2 class="groupheader">成员函数说明</h2>
 <a class="anchor" id="abcc3b4d57289f58937a25245bc614359"></a>
@@ -965,7 +967,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null </p>
+<p>检查给定 key 是否存在 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">key</td><td>指定要关联的 key </td></tr>
@@ -1040,7 +1042,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>检查给定 key 是否存在 </p>
+<p>删除给定的一个或多个 key，不存在的 key 会被忽略 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">keys</td><td>指定要删除的 key 数组 </td></tr>
@@ -1230,6 +1232,31 @@ Public 成员函数</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>修改成功时，返回 True，如果 newkey 已经存在，返回 False </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a2d01d82e85ace21fa18aa2d165a03ab5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/dbc/classRedisHash.html">RedisHash</a> Redis::getHash </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>获取指定 key 的 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要获取的 key </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回包含指定 key 的 Hash 对象 </dd></dl>
 
 </div>
 </div>

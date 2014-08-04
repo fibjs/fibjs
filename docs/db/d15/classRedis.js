@@ -31,6 +31,7 @@ var classRedis =
     [ "persist", "db/d15/classRedis.html#a0f5cee4908c219337e34e150350d6305", null ],
     [ "rename", "db/d15/classRedis.html#a2b6c034b5a235cc70879b57fbd4a5a48", null ],
     [ "renameNX", "db/d15/classRedis.html#a1299b4ba91be6e7a74c6b725255b4069", null ],
+    [ "getHash", "db/d15/classRedis.html#a2d01d82e85ace21fa18aa2d165a03ab5", null ],
     [ "dump", "db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b", null ],
     [ "restore", "db/d15/classRedis.html#a8145ce069183383bdf81d28c0c24f738", null ],
     [ "close", "db/d15/classRedis.html#a6fed94980317b56c987da5fa83a19fd9", null ],

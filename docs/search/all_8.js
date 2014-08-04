@@ -6,7 +6,7 @@ var searchData=
   ['image',['Image',['../d8/d00/classImage.html',1,'']]],
   ['importkey',['importKey',['../d0/d82/classPKey.html#a15422214b8e3334ddfd485dff78e2921',1,'PKey::importKey(Buffer DerKey, String password=&quot;&quot;)'],['../d0/d82/classPKey.html#a5509986248d46a8f2423e3b0cc45f264',1,'PKey::importKey(String pemKey, String password=&quot;&quot;)']]],
   ['inc',['inc',['../db/df7/classStats.html#ac857dc0bd7bec8432933686c00f87f65',1,'Stats']]],
-  ['incr',['incr',['../db/d15/classRedis.html#a471974e463f855f754fafac0a3da1a57',1,'Redis']]],
+  ['incr',['incr',['../db/d15/classRedis.html#a471974e463f855f754fafac0a3da1a57',1,'Redis::incr()'],['../df/dbc/classRedisHash.html#ac693d184b42a1d403fac52db015f0e35',1,'RedisHash::incr()']]],
   ['inflate',['inflate',['../d8/d09/classzlib.html#aafe7acf37cd4edfe4355ddca34cdd123',1,'zlib']]],
   ['inflateto',['inflateTo',['../d8/d09/classzlib.html#a1a585f4bb4ce9146953c29af284ba62f',1,'zlib::inflateTo(Buffer data, Stream stm) async'],['../d8/d09/classzlib.html#a2f4fbd12a75605838e9aafdcc2813c10',1,'zlib::inflateTo(Stream src, Stream stm) async']]],
   ['info',['INFO',['../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694',1,'console::INFO()'],['../d6/df8/classconsole.html#a195000bab966ff5ccbf1ea69cf1cc12e',1,'console::info(String fmt,...)'],['../d6/df8/classconsole.html#a88b9f04ef243106f58cbd0866072b7b5',1,'console::info(...)']]],

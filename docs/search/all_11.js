@@ -32,6 +32,7 @@ var searchData=
   ['recv',['recv',['../d4/d33/classSocket.html#a28174e411f641885369212291b0302d2',1,'Socket']]],
   ['redirect',['redirect',['../d8/d4c/classHttpResponse.html#a3b4a9739aa8441aba59090faeca184da',1,'HttpResponse']]],
   ['redis',['Redis',['../db/d15/classRedis.html',1,'']]],
+  ['redishash',['RedisHash',['../df/dbc/classRedisHash.html',1,'']]],
   ['regex',['Regex',['../d8/d28/classRegex.html',1,'']]],
   ['reindex',['reIndex',['../d2/d07/classMongoCollection.html#ae10a60fee59387a2dd9383732c80bdfa',1,'MongoCollection']]],
   ['release',['release',['../d6/d83/classLock.html#ad11a1833268d15bc545b958789bd7e74',1,'Lock']]],
