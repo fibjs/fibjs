@@ -281,7 +281,6 @@ describe("redis", function() {
 			assert.equal(hash.get("test new"), "hash1");
 		});
 
-
 		it("mset/mget", function() {
 			var hash = rdb.getHash("testHash");
 
@@ -311,6 +310,73 @@ describe("redis", function() {
 			assert.isFalse(hash.exists("test3"));
 		});
 	});
+
+	describe("List", function() {
+		it("push", function() {
+			var list = rdb.getList("testList");
+			assert.equal(list.push("a0", "a1", "a2"), 3);
+			assert.equal(list.push("a4", "a5", "a6"), 6);
+		});
+
+		it("pop", function() {
+			var list = rdb.getList("testList");
+			assert.equal(list.pop(), "a6");
+		});
+
+		it("set/get", function() {
+			var list = rdb.getList("testList");
+
+			list.set(0, "hash aaaa");
+			assert.equal(list.get(0), "hash aaaa");
+			assert.isNull(list.get(9));
+		});
+
+		it("len", function() {
+			var list = rdb.getList("testList");
+			assert.equal(list.len(), 5);
+		});
+
+		it("range", function() {
+			var list = rdb.getList("testList");
+			assert.deepEqual(list.range(0, 4).toArray(), ["hash aaaa", "a4", "a2", "a1", "a0"]);
+		});
+
+		it("insert", function() {
+			var list = rdb.getList("testList");
+
+			assert.equal(list.insertBefore("a4", "a3"), 6);
+			assert.deepEqual(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a4", "a2", "a1"]);
+
+			assert.equal(list.insertAfter("a4", "a9"), 7);
+			assert.deepEqual(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a4", "a9", "a2"]);
+		});
+
+		it("remove", function() {
+			var list = rdb.getList("testList");
+
+			assert.equal(list.remove(1, "a4"), 1);
+			assert.deepEqual(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a9", "a2", "a1"]);
+		});
+
+		it("trim", function() {
+			var list = rdb.getList("testList");
+
+			list.trim(1, 3);
+			assert.deepEqual(list.range(0, 2).toArray(), ["a3", "a9", "a2"]);
+		});
+
+		it("rpush", function() {
+			var list = rdb.getList("testList");
+			assert.equal(list.rpush("a0", "a1", "a2"), 6);
+			assert.equal(list.rpush("a4", "a5", "a6"), 9);
+		});
+
+		it("rpop", function() {
+			var list = rdb.getList("testList");
+			assert.equal(list.rpop(), "a6");
+		});
+	});
+
 });
 
 test.run(console.DEBUG);

@@ -18,6 +18,7 @@ namespace fibjs
 
 class List_base;
 class RedisHash_base;
+class RedisList_base;
 class Buffer_base;
 
 class Redis_base : public object_base
@@ -56,6 +57,7 @@ public:
 	virtual result_t rename(const char* key, const char* newkey) = 0;
 	virtual result_t renameNX(const char* key, const char* newkey, bool& retVal) = 0;
 	virtual result_t getHash(const char* key, obj_ptr<RedisHash_base>& retVal) = 0;
+	virtual result_t getList(const char* key, obj_ptr<RedisList_base>& retVal) = 0;
 	virtual result_t dump(const char* key, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t restore(const char* key, Buffer_base* data, int64_t ttl) = 0;
 	virtual result_t close() = 0;
@@ -91,6 +93,7 @@ public:
 	static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getList(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_dump(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_restore(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -100,6 +103,7 @@ public:
 
 #include "List.h"
 #include "RedisHash.h"
+#include "RedisList.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -136,6 +140,7 @@ namespace fibjs
 			{"rename", s_rename},
 			{"renameNX", s_renameNX},
 			{"getHash", s_getHash},
+			{"getList", s_getList},
 			{"dump", s_dump},
 			{"restore", s_restore},
 			{"close", s_close}
@@ -144,7 +149,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Redis", NULL, 
-			31, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			32, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -567,6 +572,20 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->getHash(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_getList(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<RedisList_base> vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->getList(v0, vr);
 
 		METHOD_RETURN();
 	}

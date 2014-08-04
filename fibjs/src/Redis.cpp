@@ -11,6 +11,7 @@
 #include "Buffer.h"
 #include "List.h"
 #include "RedisHash.h"
+#include "RedisList.h"
 
 namespace fibjs
 {
@@ -401,6 +402,12 @@ result_t Redis::renameNX(const char *key, const char *newkey, bool &retVal)
 result_t Redis::getHash(const char *key, obj_ptr<RedisHash_base> &retVal)
 {
     retVal = new RedisHash(key, this);
+    return 0;
+}
+
+result_t Redis::getList(const char *key, obj_ptr<RedisList_base> &retVal)
+{
+    retVal = new RedisList(key, this);
     return 0;
 }
 
