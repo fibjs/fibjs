@@ -28,7 +28,7 @@ inline void MemoryBarrier()
 #endif
 
 void *_CompareAndSwap(void *volatile *Destination, void *Exchange, void *Comparand);
-int32_t CompareAndSwap(int32_t volatile *Destination, int32_t Exchange, int32_t Comparand);
+int32_t CompareAndSwap(int32_t volatile *ptr, int32_t old_value, int32_t new_value);
 
 template<typename T>
 inline T *CompareAndSwap(T **ptr, T *old_value, T *new_value)

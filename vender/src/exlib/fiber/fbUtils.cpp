@@ -9,6 +9,7 @@
 
 #include <exlib/utils.h>
 #include <windows.h>
+#include <stdio.h>
 
 namespace exlib
 {
@@ -18,9 +19,9 @@ void *_CompareAndSwap(void *volatile *Destination, void *Exchange, void *Compara
     return InterlockedCompareExchangePointer(Destination, Exchange, Comparand);
 }
 
-int32_t CompareAndSwap(int32_t volatile *Destination, int32_t Exchange, int32_t Comparand)
+int32_t CompareAndSwap(int32_t volatile *Destination, int32_t old_value, int32_t new_value)
 {
-    return InterlockedCompareExchange((LONG *)Destination, Exchange, Comparand);
+    return InterlockedCompareExchange((LONG *)Destination, new_value, old_value);
 }
 
 int32_t atom_add(int32_t *dest, int32_t incr)
