@@ -16,7 +16,7 @@ var searchData=
   ['getlist',['getList',['../db/d15/classRedis.html#a9961ca348f484e5aa230b44f2af2b76c',1,'Redis']]],
   ['getpixel',['getPixel',['../d8/d00/classImage.html#a862add7a52d4ed7faae9067282ed8ec1',1,'Image']]],
   ['getrange',['getRange',['../db/d15/classRedis.html#a84611d3e5bcaa8246be33f2a0a65efa5',1,'Redis']]],
-  ['getset',['getset',['../db/d15/classRedis.html#ac07041098f654b5780e47e38e2ac3053',1,'Redis']]],
+  ['getset',['getset',['../db/d15/classRedis.html#ac07041098f654b5780e47e38e2ac3053',1,'Redis::getset(String key, String value)'],['../db/d15/classRedis.html#a07869effbce772f4cb657980d966d79a',1,'Redis::getSet(String key)']]],
   ['gettruecolorpixel',['getTrueColorPixel',['../d8/d00/classImage.html#a585e3918e0516fab908afbb2ba53ba4f',1,'Image']]],
   ['gif',['GIF',['../d5/d5d/classgd.html#aa03a61a0909f9761082b9bf5b53fb596',1,'gd']]],
   ['global',['global',['../df/d84/classglobal.html',1,'global'],['../d8/d28/classRegex.html#a91bef45763139f15c2cab0ab35cebcc8',1,'Regex::global()']]],

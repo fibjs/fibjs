@@ -33,6 +33,7 @@ var classRedis =
     [ "renameNX", "db/d15/classRedis.html#a1299b4ba91be6e7a74c6b725255b4069", null ],
     [ "getHash", "db/d15/classRedis.html#a2d01d82e85ace21fa18aa2d165a03ab5", null ],
     [ "getList", "db/d15/classRedis.html#a9961ca348f484e5aa230b44f2af2b76c", null ],
+    [ "getSet", "db/d15/classRedis.html#a07869effbce772f4cb657980d966d79a", null ],
     [ "dump", "db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b", null ],
     [ "restore", "db/d15/classRedis.html#a8145ce069183383bdf81d28c0c24f738", null ],
     [ "close", "db/d15/classRedis.html#a6fed94980317b56c987da5fa83a19fd9", null ],

@@ -83,6 +83,7 @@ var hierarchy =
       [ "Redis", "db/d15/classRedis.html", null ],
       [ "RedisHash", "df/dbc/classRedisHash.html", null ],
       [ "RedisList", "d8/dc8/classRedisList.html", null ],
+      [ "RedisSet", "df/d65/classRedisSet.html", null ],
       [ "Regex", "d8/d28/classRegex.html", null ],
       [ "SandBox", "d1/d3c/classSandBox.html", null ],
       [ "Smtp", "d5/d6b/classSmtp.html", null ],
