@@ -189,6 +189,11 @@ class Redis : object
      @return 返回包含指定 key 的 List 对象 */
     RedisList getList(String key);
 
+    /*! @brief 获取指定 key 的 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
+     @param key 指定要获取的 key
+     @return 返回包含指定 key 的 Set 对象 */
+    RedisSet getSet(String key);
+
     /*! @brief 序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键
      @param key 指定要序列化的 key
      @return 返回序列化之后的值，如果 key 不存在，那么返回 null */

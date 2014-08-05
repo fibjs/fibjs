@@ -5,7 +5,7 @@ var db = require('db');
 var encoding = require('encoding');
 var coroutine = require('coroutine');
 
-var rdb = db.open("redis://192.168.65.155");
+var rdb = db.open("redis://127.0.0.1");
 
 describe("redis", function() {
 	before(function() {
@@ -315,7 +315,7 @@ describe("redis", function() {
 		it("push", function() {
 			var list = rdb.getList("testList");
 			assert.equal(list.push("a0", "a1", "a2"), 3);
-			assert.equal(list.push("a4", "a5", "a6"), 6);
+			assert.equal(list.push(["a4", "a5", "a6"]), 6);
 		});
 
 		it("pop", function() {
@@ -377,6 +377,64 @@ describe("redis", function() {
 		});
 	});
 
+	describe("Set", function() {
+		it("add", function() {
+			var set = rdb.getSet("testSet");
+
+			assert.equal(set.add("a0", "a1", "a2"), 3);
+			assert.equal(set.add(["a4", "a5", "a6"]), 3);
+		});
+
+		it("exists", function() {
+			var set = rdb.getSet("testSet");
+
+			assert.isTrue(set.exists("a1"));
+			assert.isFalse(set.exists("a10"));
+		});
+
+		it("remove", function() {
+			var set = rdb.getSet("testSet");
+
+			assert.isTrue(set.exists("a1"));
+
+			assert.equal(set.remove("a1", "a2"), 2);
+			assert.equal(set.remove(["a5", "a4"]), 2);
+
+			assert.equal(set.remove("a10"), 0);
+
+			assert.isFalse(set.exists("a1"));
+		});
+
+		it("len", function() {
+			var set = rdb.getSet("testSet");
+
+			assert.equal(set.len(), 2);
+		});
+
+		it("members", function() {
+			var set = rdb.getSet("testSet");
+
+			assert.deepEqual(set.members().toArray(), ["a6", "a0"]);
+		});
+
+		it("pop", function() {
+			var set = rdb.getSet("testSet");
+
+			var m = set.pop();
+			assert.ok(m === "a6" || m === "a0");
+		});
+
+		it("randMember", function() {
+			var set = rdb.getSet("testSet");
+
+			var m = set.randMember();
+			assert.ok(m === "a6" || m === "a0");
+
+			var m = set.randMember(2);
+			assert.equal(m.length, 1);
+			assert.ok(m[0] === "a6" || m[0] === "a0");
+		});
+	});
 });
 
 test.run(console.DEBUG);

@@ -55,6 +55,7 @@ public:
     virtual result_t renameNX(const char *key, const char *newkey, bool &retVal);
     virtual result_t getHash(const char *key, obj_ptr<RedisHash_base> &retVal);
     virtual result_t getList(const char *key, obj_ptr<RedisList_base> &retVal);
+    virtual result_t getSet(const char *key, obj_ptr<RedisSet_base> &retVal);
     virtual result_t dump(const char *key, obj_ptr<Buffer_base> &retVal);
     virtual result_t restore(const char *key, Buffer_base *data, int64_t ttl);
     virtual result_t close();

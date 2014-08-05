@@ -70,7 +70,7 @@ class RedisList : object
      @param stop 指定修剪的结束下标，0 表示第一个元素，-1 表示最后一个元素 */
     trim(Integer start, Integer stop);
 
-    /*! @brief 返回列表 key 的长度
+    /*! @brief 返回列表的长度
      @return 返回列表的长度 */
     Integer len();
 

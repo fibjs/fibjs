@@ -1,5 +1,5 @@
 /*
- * RedisHash.cpp
+ * RedisList.cpp
  *
  *  Created on: Aug 5, 2014
  *      Author: lion

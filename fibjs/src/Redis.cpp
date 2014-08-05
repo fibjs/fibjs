@@ -12,6 +12,7 @@
 #include "List.h"
 #include "RedisHash.h"
 #include "RedisList.h"
+#include "RedisSet.h"
 
 namespace fibjs
 {
@@ -408,6 +409,12 @@ result_t Redis::getHash(const char *key, obj_ptr<RedisHash_base> &retVal)
 result_t Redis::getList(const char *key, obj_ptr<RedisList_base> &retVal)
 {
     retVal = new RedisList(key, this);
+    return 0;
+}
+
+result_t Redis::getSet(const char *key, obj_ptr<RedisSet_base> &retVal)
+{
+    retVal = new RedisSet(key, this);
     return 0;
 }
 
