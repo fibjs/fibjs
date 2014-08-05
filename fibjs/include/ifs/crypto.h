@@ -36,7 +36,6 @@ public:
 		_DES_EDE3 = 5,
 		_BLOWFISH = 6,
 		_ARC4 = 7,
-		_STREAM = 0,
 		_ECB = 1,
 		_CBC = 2,
 		_CFB64 = 3,
@@ -44,6 +43,8 @@ public:
 		_OFB = 5,
 		_CTR = 6,
 		_GCM = 7,
+		_STREAM = 8,
+		_CCM = 9,
 		_PKCS7 = 0,
 		_ONE_AND_ZEROS = 1,
 		_ZEROS_AND_LEN = 2,
@@ -67,7 +68,6 @@ public:
 	static void s_get_DES_EDE3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_BLOWFISH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ARC4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ECB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_CBC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_CFB64(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -75,6 +75,8 @@ public:
 	static void s_get_OFB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_CTR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_PKCS7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ONE_AND_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ZEROS_AND_LEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -127,7 +129,6 @@ namespace fibjs
 			{"DES_EDE3", s_get_DES_EDE3, block_set, true},
 			{"BLOWFISH", s_get_BLOWFISH, block_set, true},
 			{"ARC4", s_get_ARC4, block_set, true},
-			{"STREAM", s_get_STREAM, block_set, true},
 			{"ECB", s_get_ECB, block_set, true},
 			{"CBC", s_get_CBC, block_set, true},
 			{"CFB64", s_get_CFB64, block_set, true},
@@ -135,6 +136,8 @@ namespace fibjs
 			{"OFB", s_get_OFB, block_set, true},
 			{"CTR", s_get_CTR, block_set, true},
 			{"GCM", s_get_GCM, block_set, true},
+			{"STREAM", s_get_STREAM, block_set, true},
+			{"CCM", s_get_CCM, block_set, true},
 			{"PKCS7", s_get_PKCS7, block_set, true},
 			{"ONE_AND_ZEROS", s_get_ONE_AND_ZEROS, block_set, true},
 			{"ZEROS_AND_LEN", s_get_ZEROS_AND_LEN, block_set, true},
@@ -145,7 +148,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"crypto", NULL, 
-			3, s_method, 5, s_object, 20, s_property, NULL, NULL,
+			3, s_method, 5, s_object, 21, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -202,13 +205,6 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void crypto_base::s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		int32_t vr = _STREAM;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
 	inline void crypto_base::s_get_ECB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _ECB;
@@ -254,6 +250,20 @@ namespace fibjs
 	inline void crypto_base::s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _GCM;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _STREAM;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_CCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _CCM;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}

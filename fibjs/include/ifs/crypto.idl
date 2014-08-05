@@ -29,9 +29,6 @@ class crypto : module
     /*! @brief 指定对称加密算法 ARC4，支持 40, 56, 64, 128 位 key */
     const Integer ARC4 = 7;
 
-    /*! @brief 指定流密码模式 */
-    const Integer STREAM = 0;
-
     /*! @brief 指定分组密码工作模式支持 ECB */
     const Integer ECB = 1;
 
@@ -52,6 +49,12 @@ class crypto : module
 
     /*! @brief 指定分组密码工作模式支持 GCM */
     const Integer GCM = 7;
+
+    /*! @brief 指定流密码模式 */
+    const Integer STREAM = 8;
+
+    /*! @brief 指定分组密码工作模式支持 CCM */
+    const Integer CCM = 9;
 
     /*! @brief 指定填充模式为 PKCS7 */
     const Integer PKCS7 = 0;

@@ -15,11 +15,11 @@ namespace fibjs
 
 #define SIZE_COUNT 4
 #define PROVIDER_COUNT 7
-#define MODE_COUNT 8
+#define MODE_COUNT 10
 
 static const char *s_modes[MODE_COUNT] =
 {
-    "", "-ECB", "-CBC", "-CFB64", "-CFB128", "-OFB", "-CTR", "-GCM"
+    "", "-ECB", "-CBC", "-CFB64", "-CFB128", "-OFB", "-CTR", "-GCM", "", "-CCM"
 };
 
 static struct _cipher_size
@@ -69,7 +69,7 @@ public:
         for (i = 0; i < PROVIDER_COUNT; i ++)
             for (j = 0; j < SIZE_COUNT; j ++)
                 if (s_sizes[i][j].name)
-                    for (k = 0; k < MODE_COUNT; k ++)
+                    for (k = 1; k < MODE_COUNT; k ++)
                     {
                         std::string name = s_sizes[i][j].name;
 
@@ -87,7 +87,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
 {
     if (provider < crypto_base::_AES || provider > crypto_base::_ARC4)
         return CHECK_ERROR(Runtime::setError("Invalid provider"));
-    if (mode < crypto_base::_STREAM || mode > crypto_base::_GCM)
+    if (mode < crypto_base::_ECB || mode > crypto_base::_CCM)
         return CHECK_ERROR(Runtime::setError("Invalid mode"));
 
     std::string strKey;
@@ -108,7 +108,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
     for (int i = 0; i < SIZE_COUNT; i ++)
         if (s_sizes[provider - crypto_base::_AES][i].size == keylen * 8)
         {
-            info = s_sizes[provider - crypto_base::_AES][i].cis[mode - crypto_base::_STREAM];
+            info = s_sizes[provider - crypto_base::_AES][i].cis[mode];
             if (info == NULL)
                 return CHECK_ERROR(Runtime::setError("Invalid mode"));
             break;
