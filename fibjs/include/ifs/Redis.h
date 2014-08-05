@@ -20,6 +20,7 @@ class List_base;
 class RedisHash_base;
 class RedisList_base;
 class RedisSet_base;
+class RedisSortedSet_base;
 class Buffer_base;
 
 class Redis_base : public object_base
@@ -60,6 +61,7 @@ public:
 	virtual result_t getHash(const char* key, obj_ptr<RedisHash_base>& retVal) = 0;
 	virtual result_t getList(const char* key, obj_ptr<RedisList_base>& retVal) = 0;
 	virtual result_t getSet(const char* key, obj_ptr<RedisSet_base>& retVal) = 0;
+	virtual result_t getSortedSet(const char* key, obj_ptr<RedisSortedSet_base>& retVal) = 0;
 	virtual result_t dump(const char* key, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t restore(const char* key, Buffer_base* data, int64_t ttl) = 0;
 	virtual result_t close() = 0;
@@ -97,6 +99,7 @@ public:
 	static void s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getList(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getSet(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getSortedSet(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_dump(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_restore(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -108,6 +111,7 @@ public:
 #include "RedisHash.h"
 #include "RedisList.h"
 #include "RedisSet.h"
+#include "RedisSortedSet.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -146,6 +150,7 @@ namespace fibjs
 			{"getHash", s_getHash},
 			{"getList", s_getList},
 			{"getSet", s_getSet},
+			{"getSortedSet", s_getSortedSet},
 			{"dump", s_dump},
 			{"restore", s_restore},
 			{"close", s_close}
@@ -154,7 +159,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Redis", NULL, 
-			33, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			34, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -605,6 +610,20 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->getSet(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_getSortedSet(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<RedisSortedSet_base> vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->getSortedSet(v0, vr);
 
 		METHOD_RETURN();
 	}

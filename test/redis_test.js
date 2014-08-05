@@ -5,7 +5,7 @@ var db = require('db');
 var encoding = require('encoding');
 var coroutine = require('coroutine');
 
-var rdb = db.open("redis://127.0.0.1");
+var rdb = db.open("redis://192.168.65.155");
 
 describe("redis", function() {
 	before(function() {
@@ -26,7 +26,7 @@ describe("redis", function() {
 		assert.equal(rdb.command("get", "test"), "aaa");
 
 		assert.equal(rdb.command("exists", "test"), 1);
-		assert.deepEqual(rdb.command("keys", "*").toArray(), ["test", "test1"]);
+		assert.deepEqual(rdb.command("keys", "*").toArray().sort(), ["test", "test1"]);
 		assert.deepEqual(rdb.command("keys", "aa*").toArray(), []);
 
 		assert.deepEqual(rdb.command("scan", "0")[1].toArray(), ["test", "test1"]);
@@ -208,18 +208,18 @@ describe("redis", function() {
 	});
 
 	it("keys", function() {
-		assert.deepEqual(rdb.keys("*").toArray(), ["test", "test1"]);
+		assert.deepEqual(rdb.keys("*").toArray().sort(), ["test", "test1"]);
 	});
 
 	it("del", function() {
-		assert.deepEqual(rdb.command("keys", "*").toArray(), ["test", "test1"]);
+		assert.deepEqual(rdb.command("keys", "*").toArray().sort(), ["test", "test1"]);
 		assert.equal(rdb.del("test", "test1"), 2);
 		assert.deepEqual(rdb.command("keys", "*").toArray(), []);
 
 		rdb.set("test", "aaa");
 		rdb.set("test1", "aaa");
 
-		assert.deepEqual(rdb.command("keys", "*").toArray(), ["test", "test1"]);
+		assert.deepEqual(rdb.command("keys", "*").toArray().sort(), ["test", "test1"]);
 		assert.equal(rdb.del(["test", "test1"]), 2);
 		assert.deepEqual(rdb.command("keys", "*").toArray(), []);
 
@@ -433,6 +433,51 @@ describe("redis", function() {
 			var m = set.randMember(2);
 			assert.equal(m.length, 1);
 			assert.ok(m[0] === "a6" || m[0] === "a0");
+		});
+	});
+
+	describe("SortedSet", function() {
+		it("add", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+
+			assert.equal(zset.add("a0", 1, "a1", 2, "a2", 3), 3);
+			assert.equal(zset.add(["a4", 4, "a5", 5, "a6", 6]), 3);
+		});
+
+		it("len", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.equal(zset.len(), 6);
+		});
+
+		it("count", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.equal(zset.count(2, 5), 4);
+		});
+
+		it("range", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.deepEqual(zset.range(2, 5).toArray(), ["a2", "a4", "a5", "a6"]);
+			assert.deepEqual(zset.range(2, 5, true).toArray(), ["a2", "3", "a4", "4", "a5", "5", "a6", "6"]);
+		});
+
+		it("remove", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+
+			assert.equal(zset.remove("a1", "a2"), 2);
+			assert.equal(zset.len(), 4);
+
+			assert.equal(zset.remove(["a1", "a4"]), 1);
+			assert.equal(zset.len(), 3);
+		});
+
+		it("incr", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.equal(zset.incr("a5", 2), "7");
+		});
+
+		it("score", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.equal(zset.score("a5"), "7");
 		});
 	});
 });

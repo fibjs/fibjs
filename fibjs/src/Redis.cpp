@@ -13,6 +13,7 @@
 #include "RedisHash.h"
 #include "RedisList.h"
 #include "RedisSet.h"
+#include "RedisSortedSet.h"
 
 namespace fibjs
 {
@@ -415,6 +416,12 @@ result_t Redis::getList(const char *key, obj_ptr<RedisList_base> &retVal)
 result_t Redis::getSet(const char *key, obj_ptr<RedisSet_base> &retVal)
 {
     retVal = new RedisSet(key, this);
+    return 0;
+}
+
+result_t Redis::getSortedSet(const char *key, obj_ptr<RedisSortedSet_base> &retVal)
+{
+    retVal = new RedisSortedSet(key, this);
     return 0;
 }
 
