@@ -117,28 +117,30 @@ typedef int result_t;
 #define CALL_E_NOTINSTANCE      (CALL_E_MAX - 8)
 // Invalid procedure call.
 #define CALL_E_INVALID_CALL      (CALL_E_MAX - 9)
+//  Re-entrant calls are not allowed.
+#define CALL_E_REENTRANT         (CALL_E_MAX - 10)
 // Invalid input data
-#define CALL_E_INVALID_DATA      (CALL_E_MAX - 10)
+#define CALL_E_INVALID_DATA      (CALL_E_MAX - 11)
 // Index was out of range.
-#define CALL_E_BADINDEX         (CALL_E_MAX - 11)
+#define CALL_E_BADINDEX         (CALL_E_MAX - 12)
 // Memory overflow error.
-#define CALL_E_OVERFLOW         (CALL_E_MAX - 12)
+#define CALL_E_OVERFLOW         (CALL_E_MAX - 13)
 // Collection is empty.
-#define CALL_E_EMPTY            (CALL_E_MAX - 13)
+#define CALL_E_EMPTY            (CALL_E_MAX - 14)
 // Operation now in progress.
-#define CALL_E_PENDDING         (CALL_E_MAX - 14)
+#define CALL_E_PENDDING         (CALL_E_MAX - 15)
 // Operation not support synchronous call.
-#define CALL_E_NOSYNC           (CALL_E_MAX - 15)
+#define CALL_E_NOSYNC           (CALL_E_MAX - 16)
 // Operation not support asynchronous call.
-#define CALL_E_NOASYNC          (CALL_E_MAX - 16)
+#define CALL_E_NOASYNC          (CALL_E_MAX - 17)
 // Internal error.
-#define CALL_E_INTERNAL         (CALL_E_MAX - 17)
+#define CALL_E_INTERNAL         (CALL_E_MAX - 18)
 // Invalid return type.
-#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 18)
+#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 19)
 // Exception occurred.
-#define CALL_E_EXCEPTION        (CALL_E_MAX - 19)
+#define CALL_E_EXCEPTION        (CALL_E_MAX - 20)
 // Javascript error.
-#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 20)
+#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 21)
 
 #define CALL_E_MIN              -100100
 

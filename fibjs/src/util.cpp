@@ -49,6 +49,8 @@ std::string getResultMessage(result_t hr)
         "Object is not an instance of declaring class.",
         // CALL_E_INVALID_CALL
         "Invalid procedure call.",
+        // CALL_E_REENTRANT_CALL
+        "Re-entrant calls are not allowed.",
         // CALL_E_INVALID_DATA
         "Invalid input data.",
         // CALL_E_BADINDEX
