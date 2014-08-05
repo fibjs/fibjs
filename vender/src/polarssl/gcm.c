@@ -76,6 +76,11 @@
 }
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Precompute small multiples of H, that is set
  *      HH[i] || HL[i] = H times i,
@@ -129,7 +134,7 @@ static int gcm_gen_table( gcm_context *ctx )
         ctx->HH[i] = vh;
     }
 
-    for (i = 2; i < 16; i <<= 1 )
+    for( i = 2; i < 16; i <<= 1 )
     {
         uint64_t *HiL = ctx->HL + i, *HiH = ctx->HH + i;
         vh = *HiH;
@@ -151,6 +156,8 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
     const cipher_info_t *cipher_info;
 
     memset( ctx, 0, sizeof(gcm_context) );
+
+    cipher_init( &ctx->cipher_ctx );
 
     cipher_info = cipher_info_from_values( cipher, keysize, POLARSSL_MODE_ECB );
     if( cipher_info == NULL )
@@ -195,7 +202,6 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
                       unsigned char output[16] )
 {
     int i = 0;
-    unsigned char z[16];
     unsigned char lo, hi, rem;
     uint64_t zh, zl;
 
@@ -212,8 +218,6 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
         return;
     }
 #endif /* POLARSSL_AESNI_C && POLARSSL_HAVE_X86_64 */
-
-    memset( z, 0x00, 16 );
 
     lo = x[15] & 0xf;
     hi = x[15] >> 4;
@@ -263,6 +267,13 @@ int gcm_starts( gcm_context *ctx,
     size_t i;
     const unsigned char *p;
     size_t use_len, olen = 0;
+
+    /* IV and AD are limited to 2^64 bits, so 2^61 bytes */
+    if( ( (uint64_t) iv_len  ) >> 61 != 0 ||
+        ( (uint64_t) add_len ) >> 61 != 0 )
+    {
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+    }
 
     memset( ctx->y, 0x00, sizeof(ctx->y) );
     memset( ctx->buf, 0x00, sizeof(ctx->buf) );
@@ -340,6 +351,14 @@ int gcm_update( gcm_context *ctx,
     if( output > input && (size_t) ( output - input ) < length )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
 
+    /* Total length is restricted to 2^39 - 256 bits, ie 2^36 - 2^5 bytes
+     * Also check for possible overflow */
+    if( ctx->len + length < ctx->len ||
+        (uint64_t) ctx->len + length > 0x03FFFFE0llu )
+    {
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+    }
+
     ctx->len += length;
 
     p = input;
@@ -385,7 +404,7 @@ int gcm_finish( gcm_context *ctx,
     uint64_t orig_len = ctx->len * 8;
     uint64_t orig_add_len = ctx->add_len * 8;
 
-    if( tag_len > 16 )
+    if( tag_len > 16 || tag_len < 4 )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
 
     if( tag_len != 0 )
@@ -467,7 +486,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
 
     if( diff != 0 )
     {
-        memset( output, 0, length );
+        polarssl_zeroize( output, length );
         return( POLARSSL_ERR_GCM_AUTH_FAILED );
     }
 
@@ -476,8 +495,8 @@ int gcm_auth_decrypt( gcm_context *ctx,
 
 void gcm_free( gcm_context *ctx )
 {
-    (void) cipher_free_ctx( &ctx->cipher_ctx );
-    memset( ctx, 0, sizeof( gcm_context ) );
+    cipher_free( &ctx->cipher_ctx );
+    polarssl_zeroize( ctx, sizeof( gcm_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)

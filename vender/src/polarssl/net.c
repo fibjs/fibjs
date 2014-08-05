@@ -62,7 +62,7 @@
 
 static int wsa_init_done = 0;
 
-#else
+#else /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -91,7 +91,7 @@ static int wsa_init_done = 0;
 #include <endian.h>
 #endif
 
-#endif
+#endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -130,8 +130,8 @@ typedef UINT32 uint32_t;
                            (((unsigned long )(n) & 0xFF000000) >> 24))
 #endif
 
-unsigned short net_htons(unsigned short n);
-unsigned long  net_htonl(unsigned long  n);
+unsigned short net_htons( unsigned short n );
+unsigned long  net_htonl( unsigned long  n );
 #define net_htons(n) POLARSSL_HTONS(n)
 #define net_htonl(n) POLARSSL_HTONL(n)
 
@@ -146,7 +146,7 @@ static int net_prepare( void )
 
     if( wsa_init_done == 0 )
     {
-        if( WSAStartup( MAKEWORD(2,0), &wsaData ) == SOCKET_ERROR )
+        if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 )
             return( POLARSSL_ERR_NET_SOCKET_FAILED );
 
         wsa_init_done = 1;
@@ -409,7 +409,7 @@ static int net_would_block( int fd )
     }
     return( 0 );
 }
-#endif
+#endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 /*
  * Accept a connection from a remote client

@@ -206,6 +206,7 @@
     <ClCompile Include="src\polarssl\base64.c" />
     <ClCompile Include="src\polarssl\blowfish.c" />
     <ClCompile Include="src\polarssl\camellia.c" />
+    <ClCompile Include="src\polarssl\ccm.c" />
     <ClCompile Include="src\polarssl\certs.c" />
     <ClCompile Include="src\polarssl\cipher.c" />
     <ClCompile Include="src\polarssl\cipher_wrap.c" />
@@ -256,6 +257,7 @@
     <ClCompile Include="src\polarssl\ssl_version.c" />
     <ClCompile Include="src\polarssl\threading.c" />
     <ClCompile Include="src\polarssl\timing.c" />
+    <ClCompile Include="src\polarssl\version_features.c" />
     <ClCompile Include="src\polarssl\x509.c" />
     <ClCompile Include="src\polarssl\x509write_crt.c" />
     <ClCompile Include="src\polarssl\x509write_csr.c" />
@@ -581,7 +583,6 @@
     <ClCompile Include="src\zookeeper\hashtable\hashtable_itr.c" />
     <ClCompile Include="src\zookeeper\mt_adaptor.c" />
     <ClCompile Include="src\zookeeper\recordio.c" />
-    <ClCompile Include="src\zookeeper\st_adaptor.c" />
     <ClCompile Include="src\zookeeper\winport.c" />
     <ClCompile Include="src\zookeeper\zk_hashtable.c" />
     <ClCompile Include="src\zookeeper\zk_log.c" />
@@ -643,6 +644,7 @@
     <ClInclude Include="include\polarssl\blowfish.h" />
     <ClInclude Include="include\polarssl\bn_mul.h" />
     <ClInclude Include="include\polarssl\camellia.h" />
+    <ClInclude Include="include\polarssl\ccm.h" />
     <ClInclude Include="include\polarssl\certs.h" />
     <ClInclude Include="include\polarssl\check_config.h" />
     <ClInclude Include="include\polarssl\cipher.h" />

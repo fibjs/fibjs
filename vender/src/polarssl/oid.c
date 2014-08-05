@@ -76,7 +76,7 @@ static const TYPE_T * oid_ ## NAME ## _from_asn1( const asn1_buf *oid )     \
 int FN_NAME( const asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  \
 {                                                                       \
     const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1( oid );        \
-    if( data == NULL ) return ( POLARSSL_ERR_OID_NOT_FOUND );           \
+    if( data == NULL ) return( POLARSSL_ERR_OID_NOT_FOUND );            \
     *ATTR1 = data->descriptor.ATTR1;                                    \
     return( 0 );                                                        \
 }
@@ -89,7 +89,7 @@ int FN_NAME( const asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  \
 int FN_NAME( const asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  \
 {                                                                       \
     const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1( oid );        \
-    if( data == NULL ) return ( POLARSSL_ERR_OID_NOT_FOUND );           \
+    if( data == NULL ) return( POLARSSL_ERR_OID_NOT_FOUND );            \
     *ATTR1 = data->ATTR1;                                               \
     return( 0 );                                                        \
 }
@@ -103,7 +103,7 @@ int FN_NAME( const asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  \
 int FN_NAME( const asn1_buf *oid, ATTR1_TYPE * ATTR1, ATTR2_TYPE * ATTR2 )  \
 {                                                                           \
     const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1( oid );            \
-    if( data == NULL ) return ( POLARSSL_ERR_OID_NOT_FOUND );               \
+    if( data == NULL ) return( POLARSSL_ERR_OID_NOT_FOUND );                \
     *ATTR1 = data->ATTR1;                                                   \
     *ATTR2 = data->ATTR2;                                                   \
     return( 0 );                                                            \
@@ -364,6 +364,10 @@ static const oid_sig_alg_t oid_sig_alg[] =
         POLARSSL_MD_SHA512,   POLARSSL_PK_ECDSA,
     },
     {
+        { ADD_LEN( OID_RSASSA_PSS ),        "RSASSA-PSS",           "RSASSA-PSS" },
+        POLARSSL_MD_NONE,     POLARSSL_PK_RSASSA_PSS,
+    },
+    {
         { NULL, 0, NULL, NULL },
         0, 0,
     },
@@ -530,10 +534,6 @@ static const oid_md_alg_t oid_md_alg[] =
         POLARSSL_MD_SHA1,
     },
     {
-        { ADD_LEN( OID_DIGEST_ALG_SHA1 ),      "id-sha1",      "SHA-1" },
-        POLARSSL_MD_SHA1,
-    },
-    {
         { ADD_LEN( OID_DIGEST_ALG_SHA224 ),    "id-sha224",    "SHA-224" },
         POLARSSL_MD_SHA224,
     },
@@ -605,7 +605,7 @@ FN_OID_GET_ATTR2(oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, m
  * This fuction tries to 'fix' this by at least suggesting enlarging the
  * size by 20.
  */
-static int compat_snprintf(char *str, size_t size, const char *format, ...)
+static int compat_snprintf( char *str, size_t size, const char *format, ... )
 {
     va_list ap;
     int res = -1;
@@ -617,27 +617,27 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     va_end( ap );
 
     // No quick fix possible
-    if ( res < 0 )
+    if( res < 0 )
         return( (int) size + 20 );
 
-    return res;
+    return( res );
 }
 
 #define snprintf compat_snprintf
 #endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
-#define SAFE_SNPRINTF()                         \
-{                                               \
-    if( ret == -1 )                             \
-        return POLARSSL_ERR_OID_BUF_TOO_SMALL;  \
-                                                \
-    if ( (unsigned int) ret >= n ) {            \
-        p[n - 1] = '\0';                        \
-        return POLARSSL_ERR_OID_BUF_TOO_SMALL;  \
-    }                                           \
-                                                \
-    n -= (unsigned int) ret;                    \
-    p += (unsigned int) ret;                    \
+#define SAFE_SNPRINTF()                             \
+{                                                   \
+    if( ret == -1 )                                 \
+        return( POLARSSL_ERR_OID_BUF_TOO_SMALL );   \
+                                                    \
+    if( (unsigned int) ret >= n ) {                 \
+        p[n - 1] = '\0';                            \
+        return( POLARSSL_ERR_OID_BUF_TOO_SMALL );   \
+    }                                               \
+                                                    \
+    n -= (unsigned int) ret;                        \
+    p += (unsigned int) ret;                        \
 }
 
 /* Return the x.y.z.... style numeric string for the given OID */
@@ -663,7 +663,7 @@ int oid_get_numeric_string( char *buf, size_t size,
     for( i = 1; i < oid->len; i++ )
     {
         /* Prevent overflow in value. */
-        if ( ( ( value << 7 ) >> 7 ) != value )
+        if( ( ( value << 7 ) >> 7 ) != value )
             return( POLARSSL_ERR_OID_BUF_TOO_SMALL );
 
         value <<= 7;

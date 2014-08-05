@@ -55,6 +55,11 @@
 #define polarssl_free       free
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * helper to validate the mpi size and import it
  */
@@ -111,6 +116,11 @@ cleanup:
     return( ret );
 }
 
+void dhm_init( dhm_context *ctx )
+{
+    memset( ctx, 0, sizeof( dhm_context ) );
+}
+
 /*
  * Parse the ServerKeyExchange parameters
  */
@@ -119,8 +129,6 @@ int dhm_read_params( dhm_context *ctx,
                      const unsigned char *end )
 {
     int ret;
-
-    dhm_free( ctx );
 
     if( ( ret = dhm_read_bignum( &ctx->P,  p, end ) ) != 0 ||
         ( ret = dhm_read_bignum( &ctx->G,  p, end ) ) != 0 ||
@@ -395,7 +403,7 @@ void dhm_free( dhm_context *ctx )
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );
 
-    memset( ctx, 0, sizeof( dhm_context ) );
+    polarssl_zeroize( ctx, sizeof( dhm_context ) );
 }
 
 #if defined(POLARSSL_ASN1_PARSE_C)
@@ -412,7 +420,6 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
     pem_context pem;
 
     pem_init( &pem );
-    memset( dhm, 0, sizeof( dhm_context ) );
 
     ret = pem_read_buffer( &pem,
                            "-----BEGIN DH PARAMETERS-----",
@@ -530,12 +537,12 @@ int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = dhm_parse_dhm( dhm, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -556,6 +563,8 @@ int dhm_self_test( int verbose )
     int ret;
     dhm_context dhm;
 
+    dhm_init( &dhm );
+
     if( verbose != 0 )
         polarssl_printf( "  DHM parameter load: " );
 
@@ -565,15 +574,17 @@ int dhm_self_test( int verbose )
         if( verbose != 0 )
             polarssl_printf( "failed\n" );
 
-        return( ret );
+        ret = 1;
+        goto exit;
     }
 
     if( verbose != 0 )
         polarssl_printf( "passed\n\n" );
 
+exit:
     dhm_free( &dhm );
 
-    return( 0 );
+    return( ret );
 #else
     if( verbose != 0 )
         polarssl_printf( "  DHM parameter load: skipped\n" );

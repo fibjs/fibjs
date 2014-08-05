@@ -66,7 +66,7 @@ struct _hr_time
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
+    ( defined(_MSC_VER) && defined(_M_IX86) ) || defined(__WATCOMC__)
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -95,7 +95,7 @@ unsigned long hardclock( void )
           __GNUC__ && __i386__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
+    defined(__GNUC__) && ( defined(__amd64__) || defined(__x86_64__) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -103,13 +103,13 @@ unsigned long hardclock( void )
 {
     unsigned long lo, hi;
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
-    return( lo | (hi << 32) );
+    return( lo | ( hi << 32 ) );
 }
 #endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
           __GNUC__ && ( __amd64__ || __x86_64__ ) */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && (defined(__powerpc__) || defined(__ppc__))
+    defined(__GNUC__) && ( defined(__powerpc__) || defined(__ppc__) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -202,7 +202,7 @@ unsigned long hardclock( void )
 
     QueryPerformanceCounter( &offset );
 
-    return (unsigned long)( offset.QuadPart );
+    return( (unsigned long)( offset.QuadPart ) );
 }
 #endif /* !POLARSSL_HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
 
@@ -337,6 +337,25 @@ void m_sleep( int milliseconds )
 #endif
 
 /*
+ * Busy-waits for the given number of milliseconds.
+ * Used for testing hardclock.
+ */
+static void busy_msleep( unsigned long msec )
+{
+    struct hr_time hires;
+    unsigned long i = 0; /* for busy-waiting */
+    volatile unsigned long j; /* to prevent optimisation */
+
+    (void) get_timer( &hires, 1 );
+
+    while( get_timer( &hires, 0 ) < msec )
+        i++;
+
+    j = i;
+    (void) j;
+}
+
+/*
  * Checkup routine
  *
  * Warning: this is work in progress, some tests may not be reliable enough
@@ -349,8 +368,8 @@ int timing_self_test( int verbose )
     int hardfail;
     struct hr_time hires;
 
-    if( verbose != 0)
-        polarssl_printf( "  TIMING tests warning: will take some time!\n" );
+    if( verbose != 0 )
+        polarssl_printf( "  TIMING tests note: will take some time!\n" );
 
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #1 (m_sleep   / get_timer): " );
@@ -401,7 +420,7 @@ int timing_self_test( int verbose )
         polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-        polarssl_printf( "  TIMING test #3 (hardclock / m_sleep  ): " );
+        polarssl_printf( "  TIMING test #3 (hardclock / get_timer): " );
 
     /*
      * Allow one failure for possible counter wrapping.
@@ -420,15 +439,17 @@ hard_test:
     }
 
     /* Get a reference ratio cycles/ms */
+    millisecs = 1;
     cycles = hardclock();
-    m_sleep( 1 );
+    busy_msleep( millisecs );
     cycles = hardclock() - cycles;
-    ratio = cycles / 1;
+    ratio = cycles / millisecs;
 
+    /* Check that the ratio is mostly constant */
     for( millisecs = 2; millisecs <= 4; millisecs++ )
     {
         cycles = hardclock();
-        m_sleep( millisecs );
+        busy_msleep( millisecs );
         cycles = hardclock() - cycles;
 
         /* Allow variation up to 20% */
@@ -442,9 +463,6 @@ hard_test:
 
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
-
-    if( verbose != 0 )
-        polarssl_printf( "\n" );
 
 #if defined(POLARSSL_NET_C)
     if( verbose != 0 )
@@ -470,6 +488,9 @@ hard_test:
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
 #endif /* POLARSSL_NET_C */
+
+    if( verbose != 0 )
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

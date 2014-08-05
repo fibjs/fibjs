@@ -49,6 +49,11 @@
 #define polarssl_printf printf
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if !defined(POLARSSL_MD2_ALT)
 
 static const unsigned char PI_SUBST[256] =
@@ -80,6 +85,19 @@ static const unsigned char PI_SUBST[256] =
     0x31, 0x44, 0x50, 0xB4, 0x8F, 0xED, 0x1F, 0x1A, 0xDB, 0x99,
     0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14
 };
+
+void md2_init( md2_context *ctx )
+{
+    memset( ctx, 0, sizeof( md2_context ) );
+}
+
+void md2_free( md2_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( md2_context ) );
+}
 
 /*
  * MD2 context setup
@@ -184,11 +202,11 @@ void md2( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
     md2_context ctx;
 
+    md2_init( &ctx );
     md2_starts( &ctx );
     md2_update( &ctx, input, ilen );
     md2_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( md2_context ) );
+    md2_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -205,14 +223,14 @@ int md2_file( const char *path, unsigned char output[16] )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_MD2_FILE_IO_ERROR );
 
+    md2_init( &ctx );
     md2_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         md2_update( &ctx, buf, n );
 
     md2_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( md2_context ) );
+    md2_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -253,7 +271,7 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
     md2_starts( ctx );
     md2_update( ctx, ctx->ipad, 16 );
 
-    memset( sum, 0, sizeof( sum ) );
+    polarssl_zeroize( sum, sizeof( sum ) );
 }
 
 /*
@@ -278,7 +296,7 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] )
     md2_update( ctx, tmpbuf, 16 );
     md2_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -299,11 +317,11 @@ void md2_hmac( const unsigned char *key, size_t keylen,
 {
     md2_context ctx;
 
+    md2_init( &ctx );
     md2_hmac_starts( &ctx, key, keylen );
     md2_hmac_update( &ctx, input, ilen );
     md2_hmac_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( md2_context ) );
+    md2_free( &ctx );
 }
 
 #if defined(POLARSSL_SELF_TEST)

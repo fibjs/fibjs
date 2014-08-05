@@ -34,6 +34,7 @@
 #endif
 #include "net.h"
 #include "bignum.h"
+#include "ecp.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -221,6 +222,9 @@
 #define SSL_RENEGOTIATION_DISABLED      0
 #define SSL_RENEGOTIATION_ENABLED       1
 
+#define SSL_RENEGOTIATION_NOT_ENFORCED  -1
+#define SSL_RENEGO_MAX_RECORDS_DEFAULT  16
+
 #define SSL_LEGACY_NO_RENEGOTIATION     0
 #define SSL_LEGACY_ALLOW_RENEGOTIATION  1
 #define SSL_LEGACY_BREAK_HANDSHAKE      2
@@ -249,7 +253,9 @@
  * Note: the RFC defines the default size of SSL / TLS messages. If you
  * change the value here, other clients / servers may not be able to
  * communicate with you anymore. Only change this value if you control
- * both sides of the connection and have it reduced at both sides!
+ * both sides of the connection and have it reduced at both sides, or
+ * if you're using the Max Fragment Length extension and you know all your
+ * peers are using it too!
  */
 #if !defined(SSL_MAX_CONTENT_LEN)
 #define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
@@ -258,8 +264,8 @@
 /* \} name SECTION: Module settings */
 
 /*
- * Allow an extra 301 bytes for the record header
- * and encryption overhead: counter (8) + header (5) + MAC (32) + padding (256)
+ * Allow extra bytes for record, authentication and encryption overhead:
+ * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256)
  * and allow for a maximum of 1024 of compression expansion if
  * enabled.
  */
@@ -269,8 +275,36 @@
 #define SSL_COMPRESSION_ADD             0
 #endif
 
-#define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + SSL_COMPRESSION_ADD + 301)
+#if defined(POLARSSL_RC4_C) || defined(POLARSSL_CIPHER_MODE_CBC)
+/* Ciphersuites using HMAC */
+#if defined(POLARSSL_SHA512_C)
+#define SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
+#elif defined(POLARSSL_SHA256_C)
+#define SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
+#else
+#define SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
+#endif
+#else
+/* AEAD ciphersuites: GCM and CCM use a 128 bits tag */
+#define SSL_MAC_ADD                 16
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+#define SSL_PADDING_ADD            256
+#else
+#define SSL_PADDING_ADD              0
+#endif
+
+#define SSL_BUFFER_LEN  ( SSL_MAX_CONTENT_LEN               \
+                        + SSL_COMPRESSION_ADD               \
+                        + 29 /* counter + header + IV */    \
+                        + SSL_MAC_ADD                       \
+                        + SSL_PADDING_ADD                   \
+                        )
+
+/*
+ * Signaling ciphersuite values (SCSV)
+ */
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
 
 /*
@@ -379,11 +413,42 @@
 /*
  * Size defines
  */
-#if !defined(POLARSSL_MPI_MAX_SIZE)
-#define POLARSSL_PREMASTER_SIZE             512
-#else
-#define POLARSSL_PREMASTER_SIZE             POLARSSL_MPI_MAX_SIZE
+#if !defined(POLARSSL_PSK_MAX_LEN)
+#define POLARSSL_PSK_MAX_LEN            32 /* 256 bits */
 #endif
+
+/* Dummy type used only for its size */
+union _ssl_premaster_secret
+{
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
+    unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
+    unsigned char _pms_dhm[POLARSSL_MPI_MAX_SIZE];      /* RFC 5246 8.1.2 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    unsigned char _pms_ecdh[POLARSSL_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    unsigned char _pms_psk[4 + 2 * POLARSSL_PSK_MAX_LEN];       /* RFC 4279 2 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    unsigned char _pms_dhe_psk[4 + POLARSSL_MPI_MAX_SIZE
+                                 + POLARSSL_PSK_MAX_LEN];       /* RFC 4279 3 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    unsigned char _pms_rsa_psk[52 + POLARSSL_PSK_MAX_LEN];      /* RFC 4279 4 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    unsigned char _pms_ecdhe_psk[4 + POLARSSL_ECP_MAX_BYTES
+                                   + POLARSSL_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif
+};
+
+#define POLARSSL_PREMASTER_SIZE     sizeof( union _ssl_premaster_secret )
 
 #ifdef __cplusplus
 extern "C" {
@@ -522,8 +587,8 @@ struct _ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
-    int sig_alg;                        /*!<  Signature algorithm     */
-    int cert_type;                      /*!<  Requested cert type     */
+    int sig_alg;                        /*!<  Hash algorithm for signature   */
+    int cert_type;                      /*!<  Requested cert type            */
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
 #if defined(POLARSSL_DHM_C)
     dhm_context dhm_ctx;                /*!<  DHM key exchange        */
@@ -620,6 +685,7 @@ struct _ssl_context
      */
     int state;                  /*!< SSL handshake: current state     */
     int renegotiation;          /*!< Initial or renegotiation         */
+    int renego_records_seen;    /*!< Records since renego request     */
 
     int major_ver;              /*!< equal to  SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
@@ -744,6 +810,7 @@ struct _ssl_context
     int verify_result;                  /*!<  verification result     */
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
+    int renego_max_records;             /*!<  grace period for renegotiation */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
 #if defined(POLARSSL_SSL_SET_CURVES)
     const ecp_group_id *curve_list;     /*!<  allowed curves                 */
@@ -1422,6 +1489,33 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
 
 /**
+ * \brief          Enforce server-requested renegotiation.
+ *                 (Default: enforced, max_records = 16)
+ *                 (No effect on client.)
+ *
+ *                 When a server requests a renegotiation, the client can
+ *                 comply or ignore the request. This function allows the
+ *                 server to decide if it should enforce its renegotiation
+ *                 requests by closing the connection if the client doesn't
+ *                 initiate a renegotiation.
+ *
+ *                 However, records could already be in transit from the
+ *                 client to the server when the request is emitted. In order
+ *                 to increase reliability, the server can accept a number of
+ *                 records containing application data before the ClientHello
+ *                 that was requested.
+ *
+ *                 The optimal value is highly dependent on the specific usage
+ *                 scenario.
+ *
+ * \param ssl      SSL context
+ * \param max_records Use SSL_RENEGOTIATION_NOT_ENFORCED if you don't want to
+ *                 enforce renegotiation, or a non-negative value to enforce
+ *                 it but allow for a grace period of max_records records.
+ */
+void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records );
+
+/**
  * \brief          Return the number of data bytes available to read
  *
  * \param ssl      SSL context
@@ -1587,6 +1681,13 @@ int ssl_close_notify( ssl_context *ssl );
  * \param ssl      SSL context
  */
 void ssl_free( ssl_context *ssl );
+
+/**
+ * \brief          Initialize SSL session structure
+ *
+ * \param session  SSL session
+ */
+void ssl_session_init( ssl_session *session );
 
 /**
  * \brief          Free referenced items in an SSL session including the

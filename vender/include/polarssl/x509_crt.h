@@ -59,7 +59,7 @@ typedef struct _x509_crt
     x509_buf raw;               /**< The raw certificate data (DER). */
     x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;                /**< The X.509 version. (0=v1, 1=v2, 2=v3) */
+    int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
     x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
     x509_buf sig_oid1;          /**< Signature algorithm, e.g. sha1RSA */
 
@@ -92,7 +92,8 @@ typedef struct _x509_crt
     x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
     x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
     md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
+    pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
+    void *sig_opts;             /**< Signature options to be passed to pk_verify_ext(), e.g. for RSASSA-PSS */
 
     struct _x509_crt *next;     /**< Next certificate in the CA-chain. */
 }

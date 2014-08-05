@@ -63,6 +63,11 @@
 #endif
 
 #if defined(POLARSSL_FS_IO)
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Load all data from a file into a given buffer.
  */
@@ -115,7 +120,7 @@ int pk_parse_keyfile( pk_context *ctx,
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     if( pwd == NULL )
@@ -124,7 +129,7 @@ int pk_parse_keyfile( pk_context *ctx,
         ret = pk_parse_key( ctx, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -139,12 +144,12 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = pk_parse_public_key( ctx, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -805,7 +810,7 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
                 return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
         }
     }
-    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
     {
         ecp_keypair_free( eck );
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
@@ -825,7 +830,7 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
         return( ret );
     }
 
-    return 0;
+    return( 0 );
 }
 #endif /* POLARSSL_ECP_C */
 
@@ -914,7 +919,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #endif /* POLARSSL_ECP_C */
         return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
 
-    return 0;
+    return( 0 );
 }
 
 /*

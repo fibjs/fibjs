@@ -56,7 +56,7 @@ typedef struct _x509_csr
     x509_buf raw;           /**< The raw CSR data (DER). */
     x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
 
-    int version;
+    int version;            /**< CSR version (1=v1). */
 
     x509_buf  subject_raw;  /**< The raw subject data (DER). */
     x509_name subject;      /**< The parsed subject data (named information object). */
@@ -66,7 +66,8 @@ typedef struct _x509_csr
     x509_buf sig_oid;
     x509_buf sig;
     md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk        /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
+    pk_type_t sig_pk;       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
+    void *sig_opts;         /**< Signature options to be passed to pk_verify_ext(), e.g. for RSASSA-PSS */
 }
 x509_csr;
 
@@ -84,7 +85,19 @@ x509write_csr;
 
 #if defined(POLARSSL_X509_CSR_PARSE_C)
 /**
- * \brief          Load a Certificate Signing Request (CSR)
+ * \brief          Load a Certificate Signing Request (CSR) in DER format
+ *
+ * \param csr      CSR context to fill
+ * \param buf      buffer holding the CRL data
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 error code
+ */
+int x509_csr_parse_der( x509_csr *csr,
+                        const unsigned char *buf, size_t buflen );
+
+/**
+ * \brief          Load a Certificate Signing Request (CSR), DER or PEM format
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
@@ -115,8 +128,8 @@ int x509_csr_parse_file( x509_csr *csr, const char *path );
  * \param prefix   A line prefix
  * \param csr      The X509 CSR to represent
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         The length of the string written (exluding the terminating
+ *                 null byte), or a negative value in case of an error.
  */
 int x509_csr_info( char *buf, size_t size, const char *prefix,
                    const x509_csr *csr );

@@ -47,6 +47,11 @@
 
 #if !defined(POLARSSL_CAMELLIA_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -282,14 +287,14 @@ static const signed char transposes[2][20] =
     TK[2] = KC[(OFFSET) * 4 + 2];                           \
     TK[3] = KC[(OFFSET) * 4 + 3];                           \
                                                             \
-    for ( i = 1; i <= 4; i++ )                              \
-        if (shifts[(INDEX)][(OFFSET)][i -1])                \
-            ROTL(TK + i * 4, TK, (15 * i) % 32);            \
+    for( i = 1; i <= 4; i++ )                               \
+        if( shifts[(INDEX)][(OFFSET)][i -1] )               \
+            ROTL(TK + i * 4, TK, ( 15 * i ) % 32);          \
                                                             \
-    for ( i = 0; i < 20; i++ )                              \
-        if (indexes[(INDEX)][(OFFSET)][i] != -1) {          \
-        RK[indexes[(INDEX)][(OFFSET)][i]] = TK[ i ];        \
-    }                                                       \
+    for( i = 0; i < 20; i++ )                               \
+        if( indexes[(INDEX)][(OFFSET)][i] != -1 ) {         \
+            RK[indexes[(INDEX)][(OFFSET)][i]] = TK[ i ];    \
+        }                                                   \
 }
 
 static void camellia_feistel( const uint32_t x[2], const uint32_t k[2],
@@ -317,6 +322,19 @@ static void camellia_feistel( const uint32_t x[2], const uint32_t k[2],
     z[1] ^= I0;
 }
 
+void camellia_init( camellia_context *ctx )
+{
+    memset( ctx, 0, sizeof( camellia_context ) );
+}
+
+void camellia_free( camellia_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( camellia_context ) );
+}
+
 /*
  * Camellia key schedule (encryption)
  */
@@ -333,8 +351,8 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
 
     RK = ctx->rk;
 
-    memset(t, 0, 64);
-    memset(RK, 0, sizeof(ctx->rk));
+    memset( t, 0, 64 );
+    memset( RK, 0, sizeof(ctx->rk) );
 
     switch( keysize )
     {
@@ -344,52 +362,52 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
         default : return( POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH );
     }
 
-    for( i = 0; i < keysize / 8; ++i)
+    for( i = 0; i < keysize / 8; ++i )
         t[i] = key[i];
 
-    if (keysize == 192) {
-        for (i = 0; i < 8; i++)
+    if( keysize == 192 ) {
+        for( i = 0; i < 8; i++ )
             t[24 + i] = ~t[16 + i];
     }
 
     /*
      * Prepare SIGMA values
      */
-    for (i = 0; i < 6; i++) {
-        GET_UINT32_BE(SIGMA[i][0], SIGMA_CHARS[i], 0);
-        GET_UINT32_BE(SIGMA[i][1], SIGMA_CHARS[i], 4);
+    for( i = 0; i < 6; i++ ) {
+        GET_UINT32_BE( SIGMA[i][0], SIGMA_CHARS[i], 0 );
+        GET_UINT32_BE( SIGMA[i][1], SIGMA_CHARS[i], 4 );
     }
 
     /*
      * Key storage in KC
      * Order: KL, KR, KA, KB
      */
-    memset(KC, 0, sizeof(KC));
+    memset( KC, 0, sizeof(KC) );
 
     /* Store KL, KR */
-    for (i = 0; i < 8; i++)
-        GET_UINT32_BE(KC[i], t, i * 4);
+    for( i = 0; i < 8; i++ )
+        GET_UINT32_BE( KC[i], t, i * 4 );
 
     /* Generate KA */
-    for( i = 0; i < 4; ++i)
+    for( i = 0; i < 4; ++i )
         KC[8 + i] = KC[i] ^ KC[4 + i];
 
-    camellia_feistel(KC + 8, SIGMA[0], KC + 10);
-    camellia_feistel(KC + 10, SIGMA[1], KC + 8);
+    camellia_feistel( KC + 8, SIGMA[0], KC + 10 );
+    camellia_feistel( KC + 10, SIGMA[1], KC + 8 );
 
-    for( i = 0; i < 4; ++i)
+    for( i = 0; i < 4; ++i )
         KC[8 + i] ^= KC[i];
 
-    camellia_feistel(KC + 8, SIGMA[2], KC + 10);
-    camellia_feistel(KC + 10, SIGMA[3], KC + 8);
+    camellia_feistel( KC + 8, SIGMA[2], KC + 10 );
+    camellia_feistel( KC + 10, SIGMA[3], KC + 8 );
 
-    if (keysize > 128) {
+    if( keysize > 128 ) {
         /* Generate KB */
-        for( i = 0; i < 4; ++i)
+        for( i = 0; i < 4; ++i )
             KC[12 + i] = KC[4 + i] ^ KC[8 + i];
 
-        camellia_feistel(KC + 12, SIGMA[4], KC + 14);
-        camellia_feistel(KC + 14, SIGMA[5], KC + 12);
+        camellia_feistel( KC + 12, SIGMA[4], KC + 14 );
+        camellia_feistel( KC + 14, SIGMA[5], KC + 12 );
     }
 
     /*
@@ -397,24 +415,24 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
      */
 
     /* Manipulating KL */
-    SHIFT_AND_PLACE(idx, 0);
+    SHIFT_AND_PLACE( idx, 0 );
 
     /* Manipulating KR */
-    if (keysize > 128) {
-        SHIFT_AND_PLACE(idx, 1);
+    if( keysize > 128 ) {
+        SHIFT_AND_PLACE( idx, 1 );
     }
 
     /* Manipulating KA */
-    SHIFT_AND_PLACE(idx, 2);
+    SHIFT_AND_PLACE( idx, 2 );
 
     /* Manipulating KB */
-    if (keysize > 128) {
-        SHIFT_AND_PLACE(idx, 3);
+    if( keysize > 128 ) {
+        SHIFT_AND_PLACE( idx, 3 );
     }
 
     /* Do transpositions */
-    for ( i = 0; i < 20; i++ ) {
-        if (transposes[idx][i] != -1) {
+    for( i = 0; i < 20; i++ ) {
+        if( transposes[idx][i] != -1 ) {
             RK[32 + 12 * idx + i] = RK[transposes[idx][i]];
         }
     }
@@ -428,27 +446,22 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
 int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
                          unsigned int keysize )
 {
-    int idx;
+    int idx, ret;
     size_t i;
     camellia_context cty;
     uint32_t *RK;
     uint32_t *SK;
-    int ret;
 
-    switch( keysize )
-    {
-        case 128: ctx->nr = 3; idx = 0; break;
-        case 192:
-        case 256: ctx->nr = 4; idx = 1; break;
-        default : return( POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH );
-    }
+    camellia_init( &cty );
+
+    /* Also checks keysize */
+    if( ( ret = camellia_setkey_enc( &cty, key, keysize ) ) )
+        goto exit;
+
+    ctx->nr = cty.nr;
+    idx = ( ctx->nr == 4 );
 
     RK = ctx->rk;
-
-    ret = camellia_setkey_enc(&cty, key, keysize);
-    if( ret != 0 )
-        return( ret );
-
     SK = cty.rk + 24 * 2 + 8 * idx * 2;
 
     *RK++ = *SK++;
@@ -456,7 +469,7 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
 
-    for (i = 22 + 8 * idx, SK -= 6; i > 0; i--, SK -= 4)
+    for( i = 22 + 8 * idx, SK -= 6; i > 0; i--, SK -= 4 )
     {
         *RK++ = *SK++;
         *RK++ = *SK++;
@@ -469,9 +482,10 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
 
-    memset( &cty, 0, sizeof( camellia_context ) );
+exit:
+    camellia_free( &cty );
 
-    return( 0 );
+    return( ret );
 }
 
 /*
@@ -500,22 +514,22 @@ int camellia_crypt_ecb( camellia_context *ctx,
     X[2] ^= *RK++;
     X[3] ^= *RK++;
 
-    while (NR) {
+    while( NR ) {
         --NR;
-        camellia_feistel(X, RK, X + 2);
+        camellia_feistel( X, RK, X + 2 );
         RK += 2;
-        camellia_feistel(X + 2, RK, X);
+        camellia_feistel( X + 2, RK, X );
         RK += 2;
-        camellia_feistel(X, RK, X + 2);
+        camellia_feistel( X, RK, X + 2 );
         RK += 2;
-        camellia_feistel(X + 2, RK, X);
+        camellia_feistel( X + 2, RK, X );
         RK += 2;
-        camellia_feistel(X, RK, X + 2);
+        camellia_feistel( X, RK, X + 2 );
         RK += 2;
-        camellia_feistel(X + 2, RK, X);
+        camellia_feistel( X + 2, RK, X );
         RK += 2;
 
-        if (NR) {
+        if( NR ) {
             FL(X[0], X[1], RK[0], RK[1]);
             RK += 2;
             FLInv(X[2], X[3], RK[0], RK[1]);
@@ -616,7 +630,7 @@ int camellia_crypt_cfb128( camellia_context *ctx,
             *output++ = (unsigned char)( c ^ iv[n] );
             iv[n] = (unsigned char) c;
 
-            n = (n + 1) & 0x0F;
+            n = ( n + 1 ) & 0x0F;
         }
     }
     else
@@ -628,7 +642,7 @@ int camellia_crypt_cfb128( camellia_context *ctx,
 
             iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
 
-            n = (n + 1) & 0x0F;
+            n = ( n + 1 ) & 0x0F;
         }
     }
 
@@ -666,7 +680,7 @@ int camellia_crypt_ctr( camellia_context *ctx,
         c = *input++;
         *output++ = (unsigned char)( c ^ stream_block[n] );
 
-        n = (n + 1) & 0x0F;
+        n = ( n + 1 ) & 0x0F;
     }
 
     *nc_off = n;
@@ -898,7 +912,7 @@ int camellia_self_test( int verbose )
 
     memset( key, 0, 32 );
 
-    for (j = 0; j < 6; j++) {
+    for( j = 0; j < 6; j++ ) {
         u = j >> 1;
     v = j & 1;
 
@@ -906,20 +920,20 @@ int camellia_self_test( int verbose )
         polarssl_printf( "  CAMELLIA-ECB-%3d (%s): ", 128 + u * 64,
                          (v == CAMELLIA_DECRYPT) ? "dec" : "enc");
 
-    for (i = 0; i < CAMELLIA_TESTS_ECB; i++ ) {
-        memcpy( key, camellia_test_ecb_key[u][i], 16 + 8 * u);
+    for( i = 0; i < CAMELLIA_TESTS_ECB; i++ ) {
+        memcpy( key, camellia_test_ecb_key[u][i], 16 + 8 * u );
 
-        if (v == CAMELLIA_DECRYPT) {
-            camellia_setkey_dec(&ctx, key, 128 + u * 64);
-            memcpy(src, camellia_test_ecb_cipher[u][i], 16);
-            memcpy(dst, camellia_test_ecb_plain[i], 16);
+        if( v == CAMELLIA_DECRYPT ) {
+            camellia_setkey_dec( &ctx, key, 128 + u * 64 );
+            memcpy( src, camellia_test_ecb_cipher[u][i], 16 );
+            memcpy( dst, camellia_test_ecb_plain[i], 16 );
         } else { /* CAMELLIA_ENCRYPT */
-            camellia_setkey_enc(&ctx, key, 128 + u * 64);
-            memcpy(src, camellia_test_ecb_plain[i], 16);
-            memcpy(dst, camellia_test_ecb_cipher[u][i], 16);
+            camellia_setkey_enc( &ctx, key, 128 + u * 64 );
+            memcpy( src, camellia_test_ecb_plain[i], 16 );
+            memcpy( dst, camellia_test_ecb_cipher[u][i], 16 );
         }
 
-        camellia_crypt_ecb(&ctx, v, src, buf);
+        camellia_crypt_ecb( &ctx, v, src, buf );
 
         if( memcmp( buf, dst, 16 ) != 0 )
         {
@@ -950,29 +964,29 @@ int camellia_self_test( int verbose )
             polarssl_printf( "  CAMELLIA-CBC-%3d (%s): ", 128 + u * 64,
                              ( v == CAMELLIA_DECRYPT ) ? "dec" : "enc" );
 
-    memcpy( src, camellia_test_cbc_iv, 16);
-    memcpy( dst, camellia_test_cbc_iv, 16);
-    memcpy( key, camellia_test_cbc_key[u], 16 + 8 * u);
+    memcpy( src, camellia_test_cbc_iv, 16 );
+    memcpy( dst, camellia_test_cbc_iv, 16 );
+    memcpy( key, camellia_test_cbc_key[u], 16 + 8 * u );
 
-    if (v == CAMELLIA_DECRYPT) {
-        camellia_setkey_dec(&ctx, key, 128 + u * 64);
+    if( v == CAMELLIA_DECRYPT ) {
+        camellia_setkey_dec( &ctx, key, 128 + u * 64 );
     } else {
-        camellia_setkey_enc(&ctx, key, 128 + u * 64);
+        camellia_setkey_enc( &ctx, key, 128 + u * 64 );
     }
 
-    for (i = 0; i < CAMELLIA_TESTS_CBC; i++ ) {
+    for( i = 0; i < CAMELLIA_TESTS_CBC; i++ ) {
 
-        if (v == CAMELLIA_DECRYPT) {
+        if( v == CAMELLIA_DECRYPT ) {
             memcpy( iv , src, 16 );
-            memcpy(src, camellia_test_cbc_cipher[u][i], 16);
-            memcpy(dst, camellia_test_cbc_plain[i], 16);
+            memcpy( src, camellia_test_cbc_cipher[u][i], 16 );
+            memcpy( dst, camellia_test_cbc_plain[i], 16 );
         } else { /* CAMELLIA_ENCRYPT */
             memcpy( iv , dst, 16 );
-            memcpy(src, camellia_test_cbc_plain[i], 16);
-            memcpy(dst, camellia_test_cbc_cipher[u][i], 16);
+            memcpy( src, camellia_test_cbc_plain[i], 16 );
+            memcpy( dst, camellia_test_cbc_cipher[u][i], 16 );
         }
 
-        camellia_crypt_cbc(&ctx, v, 16, iv, src, buf);
+        camellia_crypt_cbc( &ctx, v, 16, iv, src, buf );
 
         if( memcmp( buf, dst, 16 ) != 0 )
         {
@@ -1051,7 +1065,7 @@ int camellia_self_test( int verbose )
         polarssl_printf( "\n" );
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 
-    return ( 0 );
+    return( 0 );
 }
 
 #endif /* POLARSSL_SELF_TEST */

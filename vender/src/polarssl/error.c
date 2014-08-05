@@ -29,9 +29,11 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_ERROR_C)
-
+#if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
 #include "polarssl/error.h"
+#endif
+
+#if defined(POLARSSL_ERROR_C)
 
 #if defined(POLARSSL_AES_C)
 #include "polarssl/aes.h"
@@ -51,6 +53,10 @@
 
 #if defined(POLARSSL_CAMELLIA_C)
 #include "polarssl/camellia.h"
+#endif
+
+#if defined(POLARSSL_CCM_C)
+#include "polarssl/ccm.h"
 #endif
 
 #if defined(POLARSSL_CIPHER_C)
@@ -198,6 +204,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 
         // High level error codes
         //
+        // BEGIN generated code
 #if defined(POLARSSL_CIPHER_C)
         if( use_ret == -(POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "CIPHER - The selected feature is not available" );
@@ -483,6 +490,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_X509_FILE_IO_ERROR) )
             snprintf( buf, buflen, "X509 - Read/write of file failed" );
 #endif /* POLARSSL_X509_USE,X509_CREATE_C */
+        // END generated code
 
         if( strlen( buf ) == 0 )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
@@ -511,6 +519,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 
     // Low level error codes
     //
+    // BEGIN generated code
 #if defined(POLARSSL_AES_C)
     if( use_ret == -(POLARSSL_ERR_AES_INVALID_KEY_LENGTH) )
         snprintf( buf, buflen, "AES - Invalid key length" );
@@ -574,6 +583,13 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH) )
         snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
 #endif /* POLARSSL_CAMELLIA_C */
+
+#if defined(POLARSSL_CCM_C)
+    if( use_ret == -(POLARSSL_ERR_CCM_BAD_INPUT) )
+        snprintf( buf, buflen, "CCM - Bad input parameters to function" );
+    if( use_ret == -(POLARSSL_ERR_CCM_AUTH_FAILED) )
+        snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
+#endif /* POLARSSL_CCM_C */
 
 #if defined(POLARSSL_CTR_DRBG_C)
     if( use_ret == -(POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )
@@ -710,6 +726,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH) )
         snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* POLARSSL_XTEA_C */
+    // END generated code
 
     if( strlen( buf ) != 0 )
         return;

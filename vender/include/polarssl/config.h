@@ -315,6 +315,19 @@
 #define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
 /**
+ * \def POLARSSL_REMOVE_ARC4_CIPHERSUITES
+ *
+ * Remove RC4 ciphersuites by default in SSL / TLS.
+ * This flag removes the ciphersuites based on RC4 from the default list as
+ * returned by ssl_list_ciphersuites(). However, it is still possible to
+ * enable (some of) them with ssl_set_ciphersuites() by including them
+ * explicitly.
+ *
+ * Uncomment this macro to remove RC4 ciphersuites by default.
+ */
+//#define POLARSSL_REMOVE_ARC4_CIPHERSUITES
+
+/**
  * \def POLARSSL_ECP_XXXX_ENABLED
  *
  * Enables specific curves within the Elliptic Curve module.
@@ -625,6 +638,9 @@
  * Make available the backward compatible error_strerror() next to the
  * current polarssl_strerror().
  *
+ * For new code, it is recommended to use polarssl_strerror() instead and
+ * disable this.
+ *
  * Disable if you run into name conflicts and want to really remove the
  * error_strerror()
  */
@@ -634,7 +650,11 @@
  * \def POLARSSL_ERROR_STRERROR_DUMMY
  *
  * Enable a dummy error function to make use of polarssl_strerror() in
- * third party libraries easier.
+ * third party libraries easier when POLARSSL_ERROR_C is disabled
+ * (no effect when POLARSSL_ERROR_C is enabled).
+ *
+ * You can safely disable this if POLARSSL_ERROR_C is enabled, or if you're
+ * not using polarssl_strerror() or error_strerror() in your application.
  *
  * Disable if you run into name conflicts and want to really remove the
  * polarssl_strerror()
@@ -1016,6 +1036,16 @@
 #define POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE
 
 /**
+ * \def POLARSSL_X509_RSASSA_PSS_SUPPORT
+ *
+ * Enable parsing and verification of X.509 certificates, CRLs and CSRS
+ * signed with RSASSA-PSS (aka PKCS#1 v2.1).
+ *
+ * Comment this macro to disallow using RSASSA-PSS in certificates.
+ */
+#define POLARSSL_X509_RSASSA_PSS_SUPPORT
+
+/**
  * \def POLARSSL_ZLIB_SUPPORT
  *
  * If set, the SSL/TLS module uses ZLIB to support compression and
@@ -1203,10 +1233,11 @@
  * Module:  library/bignum.c
  * Caller:  library/dhm.c
  *          library/ecp.c
+ *          library/ecdsa.c
  *          library/rsa.c
  *          library/ssl_tls.c
  *
- * This module is required for RSA and DHM support.
+ * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
  */
 #define POLARSSL_BIGNUM_C
 
@@ -1273,6 +1304,20 @@
  *      TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
  */
 #define POLARSSL_CAMELLIA_C
+
+/**
+ * \def POLARSSL_CCM_C
+ *
+ * Enable the Counter with CBC-MAC (CCM) mode for 128-bit block cipher.
+ *
+ * Module:  library/ccm.c
+ *
+ * Requires: POLARSSL_AES_C or POLARSSL_CAMELLIA_C
+ *
+ * This module enables the AES-CCM ciphersuites, if other requisites are
+ * enabled as well.
+ */
+#define POLARSSL_CCM_C
 
 /**
  * \def POLARSSL_CERTS_C
@@ -2093,7 +2138,7 @@
 //#define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 
 /* Memory buffer allocator options */
-//#define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
+//#define POLARSSL_MEMORY_ALIGN_MULTIPLE      4 /**< Align on multiples of this value */
 
 /* Platform options */
 //#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include if POLARSSL_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
@@ -2109,6 +2154,21 @@
 /* SSL options */
 //#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
 //#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
+//#define POLARSSL_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
+
+/**
+ * Complete list of ciphersuites to use, in order of preference.
+ *
+ * \warning No dependency checking is done on that field! This option can only
+ * be used to restrict the set of available ciphersuites. It is your
+ * responsibility to make sure the needed modules are active.
+ *
+ * Use this to save a few hundred bytes of ROM (default ordering of all
+ * available ciphersuites) and a few to a few hundred bytes of RAM.
+ *
+ * The value below is only an example, not the default.
+ */
+//#define SSL_CIPHERSUITES TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 
 /* Debug options */
 //#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */

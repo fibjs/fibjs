@@ -99,7 +99,19 @@ typedef enum {
     POLARSSL_PK_ECKEY_DH,
     POLARSSL_PK_ECDSA,
     POLARSSL_PK_RSA_ALT,
+    POLARSSL_PK_RSASSA_PSS,
 } pk_type_t;
+
+/**
+ * \brief           Options for RSASSA-PSS signature verification.
+ *                  See \c rsa_rsassa_pss_verify_ext()
+ */
+typedef struct
+{
+    md_type_t mgf1_hash_id;
+    int expected_salt_len;
+
+} pk_rsassa_pss_options;
 
 /**
  * \brief           Types for interfacing with the debug module
@@ -283,7 +295,7 @@ static inline size_t pk_get_len( const pk_context *ctx )
 int pk_can_do( pk_context *ctx, pk_type_t type );
 
 /**
- * \brief           Verify signature
+ * \brief           Verify signature (including padding if relevant).
  *
  * \param ctx       PK context to use
  * \param md_alg    Hash algorithm used (see notes)
@@ -297,6 +309,10 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
  *                  valid but its actual length is less than sig_len,
  *                  or a specific error code.
  *
+ * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ *                  Use \c pk_verify_ext( POLARSSL_PK_RSASSA_PSS, ... )
+ *                  to verify RSASSA_PSS signatures.
+ *
  * \note            If hash_len is 0, then the length associated with md_alg
  *                  is used instead, or an error returned if it is invalid.
  *
@@ -307,7 +323,41 @@ int pk_verify( pk_context *ctx, md_type_t md_alg,
                const unsigned char *sig, size_t sig_len );
 
 /**
- * \brief           Make signature
+ * \brief           Verify signature, with options.
+ *                  (Includes verification of the padding depending on type.)
+ *
+ * \param type      Signature type (inc. possible padding type) to verify
+ * \param options   Pointer to type-specific options, or NULL
+ * \param ctx       PK context to use
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes)
+ * \param sig       Signature to verify
+ * \param sig_len   Signature length
+ *
+ * \return          0 on success (signature is valid),
+ *                  POLARSSL_ERR_PK_TYPE_MISMATCH if the PK context can't be
+ *                  used for this type of signatures,
+ *                  POLARSSL_ERR_PK_SIG_LEN_MISMATCH if the signature is
+ *                  valid but its actual length is less than sig_len,
+ *                  or a specific error code.
+ *
+ * \note            If hash_len is 0, then the length associated with md_alg
+ *                  is used instead, or an error returned if it is invalid.
+ *
+ * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
+ *
+ * \note            If type is POLARSSL_PK_RSASSA_PSS, then options must point
+ *                  to a pk_rsassa_pss_options structure,
+ *                  otherwise it must be NULL.
+ */
+int pk_verify_ext( pk_type_t type, const void *options,
+                   pk_context *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   const unsigned char *sig, size_t sig_len );
+
+/**
+ * \brief           Make signature, including padding if relevant.
  *
  * \param ctx       PK context to use
  * \param md_alg    Hash algorithm used (see notes)
@@ -320,6 +370,10 @@ int pk_verify( pk_context *ctx, md_type_t md_alg,
  *
  * \return          0 on success, or a specific error code.
  *
+ * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ *                  There is no interface in the PK module to make RSASSA-PSS
+ *                  signatures yet.
+ *
  * \note            If hash_len is 0, then the length associated with md_alg
  *                  is used instead, or an error returned if it is invalid.
  *
@@ -331,7 +385,7 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           Decrypt message
+ * \brief           Decrypt message (including padding if relevant).
  *
  * \param ctx       PK context to use
  * \param input     Input to decrypt
@@ -342,6 +396,8 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
+ * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ *
  * \return          0 on success, or a specific error code.
  */
 int pk_decrypt( pk_context *ctx,
@@ -350,7 +406,7 @@ int pk_decrypt( pk_context *ctx,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           Encrypt message
+ * \brief           Encrypt message (including padding if relevant).
  *
  * \param ctx       PK context to use
  * \param input     Message to encrypt
@@ -360,6 +416,8 @@ int pk_decrypt( pk_context *ctx,
  * \param osize     Size of the output buffer
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
+ *
+ * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *
  * \return          0 on success, or a specific error code.
  */

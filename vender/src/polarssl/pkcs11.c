@@ -75,7 +75,7 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    if( 0 != x509_crt_parse(cert, cert_blob, cert_blob_size ) )
+    if( 0 != x509_crt_parse( cert, cert_blob, cert_blob_size ) )
     {
         ret = 6;
         goto cleanup;
@@ -87,7 +87,7 @@ cleanup:
     if( NULL != cert_blob )
         polarssl_free( cert_blob );
 
-    return ret;
+    return( ret );
 }
 
 
@@ -105,7 +105,7 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
     if( 0 != pkcs11_x509_cert_init( &cert, pkcs11_cert ) )
         goto cleanup;
 
-    priv_key->len = pk_get_len(&cert.pk);
+    priv_key->len = pk_get_len( &cert.pk );
     priv_key->pkcs11h_cert = pkcs11_cert;
 
     ret = 0;
@@ -113,7 +113,7 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
 cleanup:
     x509_crt_free( &cert );
 
-    return ret;
+    return( ret );
 }
 
 void pkcs11_priv_key_free( pkcs11_context *priv_key )
@@ -172,10 +172,10 @@ int pkcs11_sign( pkcs11_context *ctx,
     const char *oid;
 
     if( NULL == ctx )
-        return POLARSSL_ERR_RSA_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     if( RSA_PRIVATE != mode )
-        return POLARSSL_ERR_RSA_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     if( md_alg != POLARSSL_MD_NONE )
     {
@@ -191,13 +191,13 @@ int pkcs11_sign( pkcs11_context *ctx,
     }
 
     sig_len = ctx->len;
-    if ( hashlen > sig_len || asn_len > sig_len ||
-         hashlen + asn_len > sig_len )
+    if( hashlen > sig_len || asn_len > sig_len ||
+        hashlen + asn_len > sig_len )
     {
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
-    if( md_alg != POLARSSL_MD_NONE)
+    if( md_alg != POLARSSL_MD_NONE )
     {
         /*
          * DigestInfo ::= SEQUENCE {

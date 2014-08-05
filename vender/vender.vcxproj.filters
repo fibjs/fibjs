@@ -1719,9 +1719,6 @@
     <ClCompile Include="src\zookeeper\recordio.c">
       <Filter>Source Files\zookeeper</Filter>
     </ClCompile>
-    <ClCompile Include="src\zookeeper\st_adaptor.c">
-      <Filter>Source Files\zookeeper</Filter>
-    </ClCompile>
     <ClCompile Include="src\zookeeper\winport.c">
       <Filter>Source Files\zookeeper</Filter>
     </ClCompile>
@@ -1871,6 +1868,12 @@
     </ClCompile>
     <ClCompile Include="src\v8\src\gc-tracer.cc">
       <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ccm.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\version_features.c">
+      <Filter>Source Files\polarssl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3751,6 +3754,9 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\prototype.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ccm.h">
+      <Filter>Header Files\polarssl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
