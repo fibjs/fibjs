@@ -68,6 +68,7 @@ var annotated =
     [ "RedisHash", "df/dbc/classRedisHash.html", "df/dbc/classRedisHash" ],
     [ "RedisList", "d8/dc8/classRedisList.html", "d8/dc8/classRedisList" ],
     [ "RedisSet", "df/d65/classRedisSet.html", "df/d65/classRedisSet" ],
+    [ "RedisSortedSet", "d8/dc0/classRedisSortedSet.html", "d8/dc0/classRedisSortedSet" ],
     [ "Regex", "d8/d28/classRegex.html", "d8/d28/classRegex" ],
     [ "Routing", "d4/d90/classRouting.html", "d4/d90/classRouting" ],
     [ "rpc", "de/d2a/classrpc.html", "de/d2a/classrpc" ],

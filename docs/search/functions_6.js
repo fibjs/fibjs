@@ -14,6 +14,7 @@ var searchData=
   ['getpixel',['getPixel',['../d8/d00/classImage.html#a862add7a52d4ed7faae9067282ed8ec1',1,'Image']]],
   ['getrange',['getRange',['../db/d15/classRedis.html#a84611d3e5bcaa8246be33f2a0a65efa5',1,'Redis']]],
   ['getset',['getset',['../db/d15/classRedis.html#ac07041098f654b5780e47e38e2ac3053',1,'Redis::getset(String key, String value)'],['../db/d15/classRedis.html#a07869effbce772f4cb657980d966d79a',1,'Redis::getSet(String key)']]],
+  ['getsortedset',['getSortedSet',['../db/d15/classRedis.html#a1e513ca909e4da33bff8fc269e9a38ed',1,'Redis']]],
   ['gettruecolorpixel',['getTrueColorPixel',['../d8/d00/classImage.html#a585e3918e0516fab908afbb2ba53ba4f',1,'Image']]],
   ['greaterthan',['greaterThan',['../de/d1c/classassert.html#a402e1e36f03b891ad44a3281a64642a2',1,'assert::greaterThan()'],['../dd/d7a/classExpect.html#a73f75cab81e1d239595ee427e0ecbae3',1,'Expect::greaterThan()']]],
   ['gunzip',['gunzip',['../d8/d09/classzlib.html#a165562467d193e958c2349445dc3f90c',1,'zlib']]],

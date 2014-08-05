@@ -53,7 +53,7 @@ var searchData=
   ['copyrotated',['copyRotated',['../d8/d00/classImage.html#a884ef71e4cc72179290cc9a53253af9e',1,'Image']]],
   ['copyto',['copyTo',['../dc/de8/classStream.html#a5520387ebf75fa030283055371859d8b',1,'Stream']]],
   ['coroutine',['coroutine',['../d2/dd1/classcoroutine.html',1,'']]],
-  ['count',['count',['../db/d7d/classMongoCursor.html#a6d446e0a87acf54801d5c132b0384fd8',1,'MongoCursor']]],
+  ['count',['count',['../db/d7d/classMongoCursor.html#a6d446e0a87acf54801d5c132b0384fd8',1,'MongoCursor::count()'],['../d8/dc0/classRedisSortedSet.html#a5b8a0c27f7ff02745450716447f14793',1,'RedisSortedSet::count()']]],
   ['cpuinfo',['CPUInfo',['../d7/db0/classos.html#a2fe28e658af2fa4ed18aff69a99fff0c',1,'os']]],
   ['cpus',['CPUs',['../d7/db0/classos.html#a693209d07a04870c1d24fb8bb17605ac',1,'os']]],
   ['create',['create',['../d5/d5d/classgd.html#a3349d9352130d7050247113235a3e1a9',1,'gd']]],

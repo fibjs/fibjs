@@ -115,7 +115,7 @@ $(document).ready(function(){initNavTree('db/d15/classRedis.html','../../');});
 <div class="dynheader">
 类 Redis 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="116" height="726"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="131" height="739"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -222,6 +222,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a07869effbce772f4cb657980d966d79a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d65/classRedisSet.html">RedisSet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a07869effbce772f4cb657980d966d79a">getSet</a> (String key)</td></tr>
 <tr class="memdesc:a07869effbce772f4cb657980d966d79a"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取指定 key 的 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库  <a href="#a07869effbce772f4cb657980d966d79a">更多...</a><br /></td></tr>
 <tr class="separator:a07869effbce772f4cb657980d966d79a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e513ca909e4da33bff8fc269e9a38ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/dc0/classRedisSortedSet.html">RedisSortedSet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a1e513ca909e4da33bff8fc269e9a38ed">getSortedSet</a> (String key)</td></tr>
+<tr class="memdesc:a1e513ca909e4da33bff8fc269e9a38ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取指定 key 的 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库  <a href="#a1e513ca909e4da33bff8fc269e9a38ed">更多...</a><br /></td></tr>
+<tr class="separator:a1e513ca909e4da33bff8fc269e9a38ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb059c5229b6b02d11bdec77e3b5212b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d11/classBuffer.html">Buffer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b">dump</a> (String key)</td></tr>
 <tr class="memdesc:aeb059c5229b6b02d11bdec77e3b5212b"><td class="mdescLeft">&#160;</td><td class="mdescRight">序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 <a class="el" href="../../db/d15/classRedis.html" title="Redis 数据库客户端对象 ">Redis</a> 键  <a href="#aeb059c5229b6b02d11bdec77e3b5212b">更多...</a><br /></td></tr>
 <tr class="separator:aeb059c5229b6b02d11bdec77e3b5212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1313,6 +1316,31 @@ Public 成员函数</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>返回包含指定 key 的 Set 对象 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1e513ca909e4da33bff8fc269e9a38ed"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d8/dc0/classRedisSortedSet.html">RedisSortedSet</a> Redis::getSortedSet </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>获取指定 key 的 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>指定要获取的 key </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回包含指定 key 的 SortedSet 对象 </dd></dl>
 
 </div>
 </div>

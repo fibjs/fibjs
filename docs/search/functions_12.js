@@ -2,6 +2,7 @@ var searchData=
 [
   ['sandbox',['SandBox',['../d1/d3c/classSandBox.html#acd3962edcd65e4270953bb1f45aae2e3',1,'SandBox::SandBox(Object mods, String name=&quot;&quot;)'],['../d1/d3c/classSandBox.html#a897d1ac183aac3c8870d88af91c13b95',1,'SandBox::SandBox(Object mods, Function require, String name=&quot;&quot;)'],['../d0/d0a/classvm.html#a8e842bfbf905fcd1ef830b1074f59a34',1,'vm::SandBox()']]],
   ['save',['save',['../d8/d00/classImage.html#ad87ff3e83842e1f90eabe33106fb84ef',1,'Image::save(Stream stm, Integer format=gd.PNG, Integer quality=85) async'],['../d8/d00/classImage.html#a00f889fa05cda558fbb362b444cdcfd3',1,'Image::save(String fname, Integer format=gd.PNG, Integer quality=85) async'],['../d2/d07/classMongoCollection.html#abd1ea540422082aaf3a47087b84e8e7e',1,'MongoCollection::save()']]],
+  ['score',['score',['../d8/dc0/classRedisSortedSet.html#aab077e1fe95af42c819a18b792472e5c',1,'RedisSortedSet']]],
   ['seek',['seek',['../db/d67/classSeekableStream.html#a61e24c7dbe030d5b57bb141fdacbb068',1,'SeekableStream']]],
   ['semaphore',['Semaphore',['../d2/dd1/classcoroutine.html#ad2e5afc5a4b37eddd41ffcd409000f23',1,'coroutine::Semaphore()'],['../d6/d72/classSemaphore.html#adf61e8770130c9f386c7c78934028379',1,'Semaphore::Semaphore()']]],
   ['send',['send',['../d4/d33/classSocket.html#a6dd1fa9ffddf9c82db0847a913fadc06',1,'Socket']]],
