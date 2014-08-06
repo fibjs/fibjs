@@ -297,10 +297,11 @@ inline void initJSON()
 {
     if (s_json.IsEmpty())
     {
-        v8::Local<v8::Context> context = isolate->GetCurrentContext();
-        v8::Local<v8::Object> global = context->Global();
+        v8::Local<v8::Context> context = v8::Context::New(isolate);
 
-        s_json.Reset(isolate, global->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject());
+        context->Enter();
+        s_json.Reset(isolate, context->Global()->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject());
+        context->Exit();
     }
 }
 
