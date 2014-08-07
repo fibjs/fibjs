@@ -55,7 +55,6 @@ public:
 
 private:
     v8::Persistent<v8::Value> m_handler;
-    obj_ptr<SandBox_base> m_sbox;
 };
 
 } /* namespace fibjs */
