@@ -155,6 +155,8 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         retVal = v;
         return 0;
     }
+    else
+        return CHECK_ERROR(Runtime::setError("Invalid file format."));
 
     return 0;
 }
