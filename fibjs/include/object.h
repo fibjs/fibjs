@@ -152,6 +152,8 @@ public:
     {
         if (handle_.IsEmpty())
         {
+            if (o.IsEmpty())
+                o = Classinfo().CreateInstance();
             handle_.Reset(isolate, o);
             o->SetAlignedPointerInInternalField(0, this);
 
