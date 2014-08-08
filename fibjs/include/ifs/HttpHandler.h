@@ -24,7 +24,7 @@ class HttpHandler_base : public Handler_base
 {
 public:
 	// HttpHandler_base
-	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
+	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_crossDomain(bool& retVal) = 0;
 	virtual result_t set_crossDomain(bool newVal) = 0;
 	virtual result_t get_forceGZIP(bool& retVal) = 0;
@@ -218,7 +218,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

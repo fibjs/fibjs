@@ -23,7 +23,7 @@ class BlockQueue_base : public Queue_base
 {
 public:
 	// BlockQueue_base
-	static result_t _new(int32_t size, obj_ptr<BlockQueue_base>& retVal);
+	static result_t _new(int32_t size, obj_ptr<BlockQueue_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t put(v8::Local<v8::Value> e) = 0;
 	virtual result_t take(v8::Local<v8::Value>& retVal) = 0;
 
@@ -68,7 +68,7 @@ namespace fibjs
 
 		ARG(int32_t, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

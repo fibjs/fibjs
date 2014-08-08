@@ -20,10 +20,10 @@ class Buffer_base : public object_base
 {
 public:
 	// Buffer_base
-	static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal);
-	static result_t _new(Buffer_base* data, obj_ptr<Buffer_base>& retVal);
-	static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal);
-	static result_t _new(const char* str, const char* codec, obj_ptr<Buffer_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(Buffer_base* data, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(const char* str, const char* codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
@@ -216,26 +216,26 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Array>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		METHOD_OVER(1, 0);
 
 		OPT_ARG(int32_t, 0, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		METHOD_OVER(2, 1);
 
 		ARG(arg_string, 0);
 		OPT_ARG(arg_string, 1, "utf8");
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

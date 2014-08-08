@@ -20,7 +20,7 @@ class LruCache_base : public object_base
 {
 public:
 	// LruCache_base
-	static result_t _new(int32_t size, int32_t timeout, obj_ptr<LruCache_base>& retVal);
+	static result_t _new(int32_t size, int32_t timeout, obj_ptr<LruCache_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_size(int32_t& retVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
@@ -100,7 +100,7 @@ namespace fibjs
 		ARG(int32_t, 0);
 		OPT_ARG(int32_t, 1, 0);
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

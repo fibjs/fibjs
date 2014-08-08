@@ -20,7 +20,7 @@ class Queue_base : public object_base
 {
 public:
 	// Queue_base
-	static result_t _new(int32_t size, obj_ptr<Queue_base>& retVal);
+	static result_t _new(int32_t size, obj_ptr<Queue_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t add(v8::Local<v8::Value> e, bool& retVal) = 0;
 	virtual result_t offer(v8::Local<v8::Value> e, bool& retVal) = 0;
 	virtual result_t remove(v8::Local<v8::Value>& retVal) = 0;
@@ -100,7 +100,7 @@ namespace fibjs
 
 		ARG(int32_t, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

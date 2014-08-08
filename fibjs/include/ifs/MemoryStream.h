@@ -23,7 +23,7 @@ class MemoryStream_base : public SeekableStream_base
 {
 public:
 	// MemoryStream_base
-	static result_t _new(obj_ptr<MemoryStream_base>& retVal);
+	static result_t _new(obj_ptr<MemoryStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t setTime(date_t d) = 0;
 	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal) = 0;
 	virtual result_t clear() = 0;
@@ -69,7 +69,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

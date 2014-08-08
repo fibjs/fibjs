@@ -20,7 +20,7 @@ class Trigger_base : public object_base
 {
 public:
 	// Trigger_base
-	static result_t _new(obj_ptr<Trigger_base>& retVal);
+	static result_t _new(obj_ptr<Trigger_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t on(const char* ev, v8::Local<v8::Function> func) = 0;
 	virtual result_t on(v8::Local<v8::Object> map) = 0;
 	virtual result_t once(const char* ev, v8::Local<v8::Function> func) = 0;
@@ -71,7 +71,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

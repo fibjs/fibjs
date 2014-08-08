@@ -24,7 +24,7 @@ class PacketHandler_base : public Handler_base
 {
 public:
 	// PacketHandler_base
-	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<PacketHandler_base>& retVal);
+	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<PacketHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_maxSize(int32_t& retVal) = 0;
 	virtual result_t set_maxSize(int32_t newVal) = 0;
 	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
@@ -106,7 +106,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

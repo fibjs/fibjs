@@ -25,8 +25,8 @@ class SslHandler_base : public Handler_base
 {
 public:
 	// SslHandler_base
-	static result_t _new(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base>& retVal);
-	static result_t _new(X509Cert_base* crt, PKey_base* key, v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(X509Cert_base* crt, PKey_base* key, v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
@@ -138,7 +138,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Array>, 0);
 		ARG(v8::Local<v8::Value>, 1);
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		METHOD_OVER(3, 3);
 
@@ -146,7 +146,7 @@ namespace fibjs
 		ARG(obj_ptr<PKey_base>, 1);
 		ARG(v8::Local<v8::Value>, 2);
 
-		hr = _new(v0, v1, v2, vr);
+		hr = _new(v0, v1, v2, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

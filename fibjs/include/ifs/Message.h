@@ -25,7 +25,7 @@ class Message_base : public object_base
 {
 public:
 	// Message_base
-	static result_t _new(obj_ptr<Message_base>& retVal);
+	static result_t _new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_value(std::string& retVal) = 0;
 	virtual result_t set_value(const char* newVal) = 0;
 	virtual result_t get_params(obj_ptr<List_base>& retVal) = 0;
@@ -239,7 +239,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

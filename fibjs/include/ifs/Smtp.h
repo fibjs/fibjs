@@ -23,7 +23,7 @@ class Smtp_base : public object_base
 {
 public:
 	// Smtp_base
-	static result_t _new(obj_ptr<Smtp_base>& retVal);
+	static result_t _new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t connect(const char* host, int32_t port, int32_t family, exlib::AsyncEvent* ac) = 0;
 	virtual result_t command(const char* cmd, const char* arg, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t hello(const char* hostname, exlib::AsyncEvent* ac) = 0;
@@ -114,7 +114,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

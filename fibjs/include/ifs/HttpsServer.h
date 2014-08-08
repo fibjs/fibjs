@@ -26,10 +26,10 @@ class HttpsServer_base : public object_base
 {
 public:
 	// HttpsServer_base
-	static result_t _new(v8::Local<v8::Array> certs, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal);
-	static result_t _new(v8::Local<v8::Array> certs, const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal);
-	static result_t _new(X509Cert_base* crt, PKey_base* key, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal);
-	static result_t _new(X509Cert_base* crt, PKey_base* key, const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> certs, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(v8::Local<v8::Array> certs, const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(X509Cert_base* crt, PKey_base* key, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(X509Cert_base* crt, PKey_base* key, const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
@@ -315,7 +315,7 @@ namespace fibjs
 		ARG(int32_t, 1);
 		ARG(v8::Local<v8::Value>, 2);
 
-		hr = _new(v0, v1, v2, vr);
+		hr = _new(v0, v1, v2, vr, args.This());
 
 		METHOD_OVER(4, 4);
 
@@ -324,7 +324,7 @@ namespace fibjs
 		ARG(int32_t, 2);
 		ARG(v8::Local<v8::Value>, 3);
 
-		hr = _new(v0, v1, v2, v3, vr);
+		hr = _new(v0, v1, v2, v3, vr, args.This());
 
 		METHOD_OVER(4, 4);
 
@@ -333,7 +333,7 @@ namespace fibjs
 		ARG(int32_t, 2);
 		ARG(v8::Local<v8::Value>, 3);
 
-		hr = _new(v0, v1, v2, v3, vr);
+		hr = _new(v0, v1, v2, v3, vr, args.This());
 
 		METHOD_OVER(5, 5);
 
@@ -343,7 +343,7 @@ namespace fibjs
 		ARG(int32_t, 3);
 		ARG(v8::Local<v8::Value>, 4);
 
-		hr = _new(v0, v1, v2, v3, v4, vr);
+		hr = _new(v0, v1, v2, v3, v4, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

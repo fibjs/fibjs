@@ -20,8 +20,8 @@ class SandBox_base : public object_base
 {
 public:
 	// SandBox_base
-	static result_t _new(v8::Local<v8::Object> mods, const char* name, obj_ptr<SandBox_base>& retVal);
-	static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, const char* name, obj_ptr<SandBox_base>& retVal);
+	static result_t _new(v8::Local<v8::Object> mods, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t add(const char* id, v8::Local<v8::Value> mod) = 0;
 	virtual result_t add(v8::Local<v8::Object> mods) = 0;
 	virtual result_t addScript(const char* srcname, const char* script, v8::Local<v8::Value>& retVal) = 0;
@@ -76,7 +76,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Object>, 0);
 		OPT_ARG(arg_string, 1, "");
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		METHOD_OVER(3, 2);
 
@@ -84,7 +84,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Function>, 1);
 		OPT_ARG(arg_string, 2, "");
 
-		hr = _new(v0, v1, v2, vr);
+		hr = _new(v0, v1, v2, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

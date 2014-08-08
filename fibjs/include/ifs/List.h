@@ -20,7 +20,7 @@ class List_base : public object_base
 {
 public:
 	// List_base
-	static result_t _new(obj_ptr<List_base>& retVal);
+	static result_t _new(obj_ptr<List_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t _indexed_getter(uint32_t index, Variant& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, Variant newVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
@@ -137,7 +137,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

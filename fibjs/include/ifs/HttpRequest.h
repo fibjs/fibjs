@@ -24,7 +24,7 @@ class HttpRequest_base : public HttpMessage_base
 {
 public:
 	// HttpRequest_base
-	static result_t _new(obj_ptr<HttpRequest_base>& retVal);
+	static result_t _new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_method(std::string& retVal) = 0;
 	virtual result_t set_method(const char* newVal) = 0;
 	virtual result_t get_address(std::string& retVal) = 0;
@@ -190,7 +190,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

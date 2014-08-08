@@ -23,8 +23,8 @@ class Condition_base : public Lock_base
 {
 public:
 	// Condition_base
-	static result_t _new(obj_ptr<Condition_base>& retVal);
-	static result_t _new(Lock_base* lock, obj_ptr<Condition_base>& retVal);
+	static result_t _new(obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(Lock_base* lock, obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t wait() = 0;
 	virtual result_t notify() = 0;
 	virtual result_t notifyAll() = 0;
@@ -70,13 +70,13 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Lock_base>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

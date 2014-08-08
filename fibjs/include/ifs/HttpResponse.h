@@ -23,7 +23,7 @@ class HttpResponse_base : public HttpMessage_base
 {
 public:
 	// HttpResponse_base
-	static result_t _new(obj_ptr<HttpResponse_base>& retVal);
+	static result_t _new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_status(int32_t& retVal) = 0;
 	virtual result_t set_status(int32_t newVal) = 0;
 	virtual result_t redirect(const char* url) = 0;
@@ -94,7 +94,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

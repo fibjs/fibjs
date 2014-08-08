@@ -23,7 +23,7 @@ class Routing_base : public Handler_base
 {
 public:
 	// Routing_base
-	static result_t _new(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+	static result_t _new(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t append(v8::Local<v8::Object> map) = 0;
 	virtual result_t append(const char* pattern, v8::Local<v8::Value> hdlr) = 0;
 
@@ -66,7 +66,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Object>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

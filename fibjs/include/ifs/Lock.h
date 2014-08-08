@@ -20,7 +20,7 @@ class Lock_base : public object_base
 {
 public:
 	// Lock_base
-	static result_t _new(obj_ptr<Lock_base>& retVal);
+	static result_t _new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t acquire(bool blocking, bool& retVal) = 0;
 	virtual result_t release() = 0;
 
@@ -62,7 +62,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

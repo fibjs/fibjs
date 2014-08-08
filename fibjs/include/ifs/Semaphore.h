@@ -23,7 +23,7 @@ class Semaphore_base : public Lock_base
 {
 public:
 	// Semaphore_base
-	static result_t _new(int32_t value, obj_ptr<Semaphore_base>& retVal);
+	static result_t _new(int32_t value, obj_ptr<Semaphore_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t wait() = 0;
 	virtual result_t post() = 0;
 	virtual result_t trywait(bool& retVal) = 0;
@@ -71,7 +71,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, 1);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

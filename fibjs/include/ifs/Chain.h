@@ -23,7 +23,7 @@ class Chain_base : public Handler_base
 {
 public:
 	// Chain_base
-	static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t append(v8::Local<v8::Array> hdlrs) = 0;
 	virtual result_t append(v8::Local<v8::Value> hdlr) = 0;
 
@@ -66,7 +66,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Array>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

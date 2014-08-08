@@ -20,7 +20,7 @@ class Map_base : public object_base
 {
 public:
 	// Map_base
-	static result_t _new(obj_ptr<Map_base>& retVal);
+	static result_t _new(obj_ptr<Map_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_size(int32_t& retVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
@@ -162,7 +162,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr);
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

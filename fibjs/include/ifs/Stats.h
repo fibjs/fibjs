@@ -20,8 +20,8 @@ class Stats_base : public object_base
 {
 public:
 	// Stats_base
-	static result_t _new(v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal);
-	static result_t _new(v8::Local<v8::Array> staticKeys, v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(v8::Local<v8::Array> staticKeys, v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t inc(const char* key) = 0;
 	virtual result_t dec(const char* key) = 0;
 	virtual result_t add(const char* key, int32_t value) = 0;
@@ -110,14 +110,14 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Array>, 0);
 
-		hr = _new(v0, vr);
+		hr = _new(v0, vr, args.This());
 
 		METHOD_OVER(2, 2);
 
 		ARG(v8::Local<v8::Array>, 0);
 		ARG(v8::Local<v8::Array>, 1);
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

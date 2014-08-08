@@ -25,7 +25,7 @@ class Socket_base : public Stream_base
 {
 public:
 	// Socket_base
-	static result_t _new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal);
+	static result_t _new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_family(int32_t& retVal) = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
 	virtual result_t get_remoteAddress(std::string& retVal) = 0;
@@ -191,7 +191,7 @@ namespace fibjs
 		OPT_ARG(int32_t, 0, net_base::_AF_INET);
 		OPT_ARG(int32_t, 1, net_base::_SOCK_STREAM);
 
-		hr = _new(v0, v1, vr);
+		hr = _new(v0, v1, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}
