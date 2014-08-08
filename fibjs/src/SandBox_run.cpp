@@ -96,7 +96,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
             v8::FunctionTemplate::New(isolate, _define)->GetFunction();
 
         def->ToObject()->ForceSet(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
-                             v8::ReadOnly);
+                                  v8::ReadOnly);
         context.glob->ForceSet(strDefine, def, v8::ReadOnly);
 
         exports = v8::Object::New(isolate);
@@ -180,15 +180,15 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
         strId.resize(strId.length() - 3);
     }
 
-    retVal = v8::Local<v8::Object>::New(isolate, _mods)->Get(
-                 v8::String::NewFromUtf8(isolate, strId.c_str(),
-                                         v8::String::kNormalString,
-                                         (int)strId.length()));
+    v8::Local<v8::Object> _mods = mods();
+
+    retVal = _mods->Get(v8::String::NewFromUtf8(isolate, strId.c_str(),
+                        v8::String::kNormalString,
+                        (int)strId.length()));
     if (!IsEmpty(retVal))
         return 1;
 
-    v8::Local<v8::Value> func = v8::Local<v8::Object>::New(isolate, _mods)->GetHiddenValue(
-                                    v8::String::NewFromUtf8(isolate, "require"));
+    v8::Local<v8::Value> func = _mods->GetHiddenValue(v8::String::NewFromUtf8(isolate, "require"));
     if (!IsEmpty(func))
     {
         v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, strId.c_str());

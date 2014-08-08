@@ -14,7 +14,9 @@ namespace fibjs
 result_t SandBox_base::_new(v8::Local<v8::Object> mods, const char *name,
                             obj_ptr<SandBox_base> &retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<SandBox_base> sbox = new SandBox(name);
+    obj_ptr<SandBox> sbox = new SandBox(name);
+    sbox->wrap(This);
+
     result_t hr = sbox->add(mods);
     if (hr < 0)
         return hr;
@@ -31,6 +33,8 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
                             v8::Local<v8::Object> This)
 {
     obj_ptr<SandBox> sbox = new SandBox(name);
+    sbox->wrap(This);
+
     sbox->initRequire(require);
     result_t hr = sbox->add(mods);
     if (hr < 0)
@@ -48,21 +52,19 @@ result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
     if (ctx.IsEmpty())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    v8::Local<v8::Value> v = ctx->Global()->GetHiddenValue(
-                                 v8::String::NewFromUtf8(isolate, "_mods"));
+    retVal = SandBox_base::getInstance(ctx->Global()->GetHiddenValue(
+                                           v8::String::NewFromUtf8(isolate, "_sbox")));
 
-    if (v.IsEmpty() || !v->IsObject())
+    if (!retVal)
         return CHECK_ERROR(CALL_E_INTERNAL);
 
-    retVal = new SandBox(v->ToObject());
     return 0;
 }
 
 void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
-    v8::Local<v8::Object>::New(isolate, _mods)->Set(
-        v8::String::NewFromUtf8(isolate, fname.c_str(), v8::String::kNormalString,
-                                (int)fname.length()), o);
+    mods()->Set(v8::String::NewFromUtf8(isolate, fname.c_str(), v8::String::kNormalString,
+                                        (int)fname.length()), o);
 }
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
@@ -93,8 +95,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 
 result_t SandBox::remove(const char *id)
 {
-    v8::Local<v8::Object>::New(isolate, _mods)->Delete(
-        v8::String::NewFromUtf8(isolate, id));
+    mods()->Delete(v8::String::NewFromUtf8(isolate, id));
     return 0;
 }
 

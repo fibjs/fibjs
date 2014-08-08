@@ -23,31 +23,11 @@ class SandBox: public fibjs::SandBox_base
 public:
     SandBox(const char *name = NULL)
     {
-        v8::Local<v8::Object> o = v8::Object::New(isolate);
-
-        _mods.Reset(isolate, o);
-
         if (name && *name)
         {
-            std::string str;
-
-            str = name;
-            str.append(":", 1);
-
-            o->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_name"),
-                              v8::String::NewFromUtf8(isolate, str.c_str(),
-                                      v8::String::kNormalString, (int) str.length()));
+            m_name = name;
+            m_name.append(":", 1);
         }
-    }
-
-    SandBox(v8::Local<v8::Object> o)
-    {
-        _mods.Reset(isolate, o);
-    }
-
-    ~SandBox()
-    {
-        _mods.Reset();
     }
 
 public:
@@ -60,11 +40,27 @@ public:
     virtual result_t require(const char *id, v8::Local<v8::Value> &retVal);
 
 public:
+    v8::Local<v8::Object> mods()
+    {
+        const char *mods_name = "_mods";
+        v8::Local<v8::Value> v = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate, mods_name));
+        v8::Local<v8::Object> o;
+
+        if (!v.IsEmpty())
+            o = v->ToObject();
+        else
+        {
+            o = v8::Object::New(isolate);
+            wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, mods_name), o);
+        }
+
+        return o;
+    }
+
     void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {
-        v8::Local<v8::Object>::New(isolate, _mods)->SetHiddenValue(
-            v8::String::NewFromUtf8(isolate, "require"), func);
+        mods()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "require"), func);
     }
 
     void InstallModule(std::string fname, v8::Local<v8::Value> o);
@@ -80,19 +76,7 @@ public:
 
     std::string name()
     {
-        std::string str;
-
-        v8::Local<v8::Value> _name = v8::Local<v8::Object>::New(isolate, _mods)->GetHiddenValue(
-                                         v8::String::NewFromUtf8(isolate, "_name"));
-
-        if (_name.IsEmpty())
-            return str;
-
-        v8::String::Utf8Value s(_name);
-        if (*s)
-            str = *s;
-
-        return str;
+        return m_name;
     }
 
 public:
@@ -118,8 +102,7 @@ public:
             glob = context->Global();
             global_base::class_info().Attach(glob, ctx.IsEmpty() ? s_skips_root : s_skips);
 
-            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_mods"),
-                                 v8::Local<v8::Object>::New(isolate, sb->_mods));
+            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_sbox"), sb->wrap());
 
             // clone Function.start
             Function_base::class_info().Attach(
@@ -185,7 +168,7 @@ public:
         v8::Local<v8::Object> glob;
     };
 
-    v8::Persistent<v8::Object> _mods;
+    std::string m_name;
 };
 
 } /* namespace fibjs */
