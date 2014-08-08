@@ -144,7 +144,8 @@ function parserIDL(fname) {
 			"Function": "v8::Local<v8::Function>",
 			"Value": "v8::Local<v8::Value>",
 			"Variant": "Variant"
-		}, aTypeMap = {
+		},
+		aTypeMap = {
 			"Integer": "int32_t",
 			"Long": "int64_t",
 			"Number": "double",
@@ -639,7 +640,10 @@ function parserIDL(fname) {
 				// fnStr += ", ";
 			} else {
 				if (attr == "static") {
-					ifStr += ");";
+					if (fname === "_new")
+						ifStr += ", v8::Local<v8::Object> This = v8::Local<v8::Object>());";
+					else
+						ifStr += ");";
 					fnStr += "		hr = " + fname + "(";
 				} else {
 					ifStr += ") = 0;";
@@ -666,7 +670,10 @@ function parserIDL(fname) {
 				fnStr += "vr";
 			}
 
-			fnStr += ");\n";
+			if (fname === "_new")
+				fnStr += ", args.This());\n";
+			else
+				fnStr += ");\n";
 
 			ifs.push(ifStr);
 
