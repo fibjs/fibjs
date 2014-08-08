@@ -12,7 +12,7 @@
 namespace fibjs
 {
 
-result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal)
+result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Trigger();
     return 0;

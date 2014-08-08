@@ -36,7 +36,8 @@ enum
 };
 
 result_t HttpHandler_base::_new(v8::Local<v8::Value> hdlr,
-                                obj_ptr<HttpHandler_base> &retVal)
+                                obj_ptr<HttpHandler_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);

@@ -11,7 +11,8 @@
 namespace fibjs
 {
 
-result_t PacketMessage_base::_new(int32_t maxSize, obj_ptr<PacketMessage_base> &retVal)
+result_t PacketMessage_base::_new(int32_t maxSize, obj_ptr<PacketMessage_base> &retVal,
+                                  v8::Local<v8::Object> This)
 {
     retVal = new PacketMessage(maxSize);
     return 0;

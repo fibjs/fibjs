@@ -17,7 +17,7 @@ static const char *queryTable =
 static const char *hashTable =
     " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 
-result_t Url_base::_new(const char *url, obj_ptr<Url_base> &retVal)
+result_t Url_base::_new(const char *url, obj_ptr<Url_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
@@ -30,7 +30,8 @@ result_t Url_base::_new(const char *url, obj_ptr<Url_base> &retVal)
     return 0;
 }
 
-result_t Url_base::_new(v8::Local<v8::Object> args, obj_ptr<Url_base> &retVal)
+result_t Url_base::_new(v8::Local<v8::Object> args, obj_ptr<Url_base> &retVal,
+                        v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 

@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-result_t X509Crl_base::_new(obj_ptr<X509Crl_base> &retVal)
+result_t X509Crl_base::_new(obj_ptr<X509Crl_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new X509Crl();
     return 0;

@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t Map_base::_new(obj_ptr<Map_base> &retVal)
+result_t Map_base::_new(obj_ptr<Map_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Map();
     return 0;

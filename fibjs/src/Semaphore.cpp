@@ -10,7 +10,8 @@
 namespace fibjs
 {
 
-result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base> &retVal)
+result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     if (value < 0)
         return CHECK_ERROR(CALL_E_OUTRANGE);

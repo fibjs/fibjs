@@ -14,7 +14,8 @@ namespace fibjs
 {
 
 result_t Routing_base::_new(v8::Local<v8::Object> map,
-                            obj_ptr<Routing_base> &retVal)
+                            obj_ptr<Routing_base> &retVal,
+                            v8::Local<v8::Object> This)
 {
     obj_ptr<Routing_base> r = new Routing();
 

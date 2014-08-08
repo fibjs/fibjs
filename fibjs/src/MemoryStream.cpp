@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-result_t MemoryStream_base::_new(obj_ptr<MemoryStream_base> &retVal)
+result_t MemoryStream_base::_new(obj_ptr<MemoryStream_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new MemoryStream();
     return 0;

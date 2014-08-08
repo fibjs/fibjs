@@ -15,7 +15,8 @@ namespace fibjs
 {
 
 result_t Socket_base::_new(int32_t family, int32_t type,
-                           obj_ptr<Socket_base> &retVal)
+                           obj_ptr<Socket_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     obj_ptr<Socket> sock = new Socket();
 

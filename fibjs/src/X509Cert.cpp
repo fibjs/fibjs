@@ -41,7 +41,7 @@ X509Cert::_name X509Cert::g_types[] =
 };
 
 
-result_t X509Cert_base::_new(obj_ptr<X509Cert_base> &retVal)
+result_t X509Cert_base::_new(obj_ptr<X509Cert_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new X509Cert();
     return 0;

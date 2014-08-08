@@ -64,7 +64,8 @@ public:
 };
 
 result_t BufferedStream_base::_new(Stream_base *stm,
-                                   obj_ptr<BufferedStream_base> &retVal)
+                                   obj_ptr<BufferedStream_base> &retVal,
+                                   v8::Local<v8::Object> This)
 {
     retVal = new BufferedStream(stm);
     return 0;

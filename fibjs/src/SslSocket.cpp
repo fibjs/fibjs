@@ -13,7 +13,8 @@ namespace fibjs
 {
 
 result_t SslSocket_base::_new(X509Cert_base *crt, PKey_base *key,
-                              obj_ptr<SslSocket_base> &retVal)
+                              obj_ptr<SslSocket_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     obj_ptr<SslSocket> ss = new SslSocket();
     result_t hr = ss->setCert(crt, key);
@@ -25,7 +26,8 @@ result_t SslSocket_base::_new(X509Cert_base *crt, PKey_base *key,
 }
 
 result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
-                              obj_ptr<SslSocket_base> &retVal)
+                              obj_ptr<SslSocket_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     obj_ptr<SslSocket> ss = new SslSocket();
 

@@ -13,7 +13,7 @@ namespace fibjs
 {
 
 result_t SslHandler_base::_new(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr,
-                               obj_ptr<SslHandler_base> &retVal)
+                               obj_ptr<SslHandler_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
 
@@ -26,7 +26,8 @@ result_t SslHandler_base::_new(v8::Local<v8::Array> certs, v8::Local<v8::Value> 
 }
 
 result_t SslHandler_base::_new(X509Cert_base *crt, PKey_base *key,
-                               v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base> &retVal)
+                               v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base> &retVal,
+                               v8::Local<v8::Object> This)
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
 

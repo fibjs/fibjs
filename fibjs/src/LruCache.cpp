@@ -12,7 +12,7 @@ namespace fibjs
 {
 
 result_t LruCache_base::_new(int32_t size, int32_t timeout,
-                             obj_ptr<LruCache_base> &retVal)
+                             obj_ptr<LruCache_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new LruCache(size, timeout);
     return 0;

@@ -6,26 +6,30 @@ namespace fibjs
 {
 
 result_t Buffer_base::_new(const char *str, const char *codec,
-                           obj_ptr<Buffer_base> &retVal)
+                           obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->write(str, codec);
 }
 
-result_t Buffer_base::_new(Buffer_base *data, obj_ptr<Buffer_base> &retVal)
+result_t Buffer_base::_new(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->write(data);
 }
 
-result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal)
+result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->resize(size);
 }
 
 result_t Buffer_base::_new(v8::Local<v8::Array> datas,
-                           obj_ptr<Buffer_base> &retVal)
+                           obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->write(datas);

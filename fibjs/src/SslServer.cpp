@@ -12,13 +12,15 @@ namespace fibjs
 {
 
 result_t SslServer_base::_new(v8::Local<v8::Array> certs, int32_t port,
-                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal)
+                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     return _new(certs, "", port, listener, retVal);
 }
 
 result_t SslServer_base::_new(v8::Local<v8::Array> certs, const char *addr, int32_t port,
-                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal)
+                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     obj_ptr<SslServer> svr = new SslServer();
     result_t hr = svr->create(certs, addr, port, listener);
@@ -31,13 +33,15 @@ result_t SslServer_base::_new(v8::Local<v8::Array> certs, const char *addr, int3
 }
 
 result_t SslServer_base::_new(X509Cert_base *crt, PKey_base *key, int32_t port,
-                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal)
+                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     return _new(crt, key, "", port, listener, retVal);
 }
 
 result_t SslServer_base::_new(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port,
-                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal)
+                              v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     obj_ptr<SslServer> svr = new SslServer();
     result_t hr = svr->create(crt, key, addr, port, listener);

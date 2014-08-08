@@ -18,14 +18,15 @@
 namespace fibjs
 {
 
-result_t X509Req_base::_new(obj_ptr<X509Req_base> &retVal)
+result_t X509Req_base::_new(obj_ptr<X509Req_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new X509Req();
     return 0;
 }
 
 result_t X509Req_base::_new(const char *subject, PKey_base *key,
-                            int32_t hash, obj_ptr<X509Req_base> &retVal)
+                            int32_t hash, obj_ptr<X509Req_base> &retVal,
+                            v8::Local<v8::Object> This)
 {
     obj_ptr<X509Req> req = new X509Req();
     result_t hr;

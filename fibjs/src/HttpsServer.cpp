@@ -13,13 +13,15 @@ namespace fibjs
 {
 
 result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     return _new(certs, "", port, hdlr, retVal);
 }
 
 result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, const char *addr, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     obj_ptr<HttpsServer> svr = new HttpsServer();
     result_t hr = svr->create(certs, addr, port, hdlr);
@@ -32,13 +34,15 @@ result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, const char *addr, in
 }
 
 result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     return _new(crt, key, "", port, hdlr, retVal);
 }
 
 result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port,
-                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal)
+                                v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
     obj_ptr<HttpsServer> svr = new HttpsServer();
     result_t hr = svr->create(crt, key, addr, port, hdlr);

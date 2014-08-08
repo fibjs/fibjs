@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t List_base::_new(obj_ptr<List_base> &retVal)
+result_t List_base::_new(obj_ptr<List_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new List();
     return 0;
@@ -219,7 +219,7 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
 }
 
 v8::Local<v8::Value> List::array::_call(v8::Local<v8::Function> func,
-        v8::Local<v8::Object> thisp, int i)
+                                        v8::Local<v8::Object> thisp, int i)
 {
     v8::Local<v8::Value> args[] =
     { m_array[i], v8::Number::New(isolate, i) };

@@ -12,7 +12,7 @@
 namespace fibjs
 {
 
-result_t Smtp_base::_new(obj_ptr<Smtp_base> &retVal)
+result_t Smtp_base::_new(obj_ptr<Smtp_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Smtp();
     return 0;

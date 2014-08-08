@@ -83,7 +83,8 @@ public:
 
 
 result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
-                           Buffer_base *iv, obj_ptr<Cipher_base> &retVal)
+                           Buffer_base *iv, obj_ptr<Cipher_base> &retVal,
+                           v8::Local<v8::Object> This)
 {
     if (provider < crypto_base::_AES || provider > crypto_base::_ARC4)
         return CHECK_ERROR(Runtime::setError("Invalid provider"));
@@ -134,13 +135,13 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
 }
 
 result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
-                           obj_ptr<Cipher_base> &retVal)
+                           obj_ptr<Cipher_base> &retVal, v8::Local<v8::Object> This)
 {
     return _new(provider, mode, key, NULL, retVal);
 }
 
 result_t Cipher_base::_new(int32_t provider, Buffer_base *key,
-                           obj_ptr<Cipher_base> &retVal)
+                           obj_ptr<Cipher_base> &retVal, v8::Local<v8::Object> This)
 {
     return _new(provider, crypto_base::_STREAM, key, NULL, retVal);
 }

@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t Event_base::_new(bool value, obj_ptr<Event_base> &retVal)
+result_t Event_base::_new(bool value, obj_ptr<Event_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Event();
     if (value)

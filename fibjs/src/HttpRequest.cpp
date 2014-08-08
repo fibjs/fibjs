@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base> &retVal)
+result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpRequest();
     return 0;

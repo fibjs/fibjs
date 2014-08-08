@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t Lock_base::_new(obj_ptr<Lock_base> &retVal)
+result_t Lock_base::_new(obj_ptr<Lock_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Lock();
 

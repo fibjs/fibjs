@@ -13,7 +13,8 @@ namespace fibjs
 {
 
 result_t Chain_base::_new(v8::Local<v8::Array> hdlrs,
-                          obj_ptr<Chain_base> &retVal)
+                          obj_ptr<Chain_base> &retVal,
+                          v8::Local<v8::Object> This)
 {
     obj_ptr<Chain_base> chain = new Chain();
     result_t hr = chain->append(hdlrs);

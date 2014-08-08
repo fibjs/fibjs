@@ -88,7 +88,7 @@ result_t Message::_msg::get_length(int64_t &retVal)
     return m_body->size(retVal);
 }
 
-result_t Message_base::_new(obj_ptr<Message_base> &retVal)
+result_t Message_base::_new(obj_ptr<Message_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Message();
     return 0;

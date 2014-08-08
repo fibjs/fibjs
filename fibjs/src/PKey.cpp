@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-result_t PKey_base::_new(obj_ptr<PKey_base> &retVal)
+result_t PKey_base::_new(obj_ptr<PKey_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new PKey();
     return 0;

@@ -10,7 +10,8 @@
 namespace fibjs
 {
 
-result_t BlockQueue_base::_new(int32_t size, obj_ptr<BlockQueue_base> &retVal)
+result_t BlockQueue_base::_new(int32_t size, obj_ptr<BlockQueue_base> &retVal,
+                               v8::Local<v8::Object> This)
 {
     retVal = new BlockQueue(size);
     return 0;

@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t Queue_base::_new(int32_t size, obj_ptr<Queue_base> &retVal)
+result_t Queue_base::_new(int32_t size, obj_ptr<Queue_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new Queue(size);
     return 0;

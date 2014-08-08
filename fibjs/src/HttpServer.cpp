@@ -13,13 +13,15 @@ namespace fibjs
 {
 
 result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
-                               obj_ptr<HttpServer_base> &retVal)
+                               obj_ptr<HttpServer_base> &retVal,
+                               v8::Local<v8::Object> This)
 {
     return _new("", port, hdlr, retVal);
 }
 
 result_t HttpServer_base::_new(const char *addr, int32_t port, v8::Local<v8::Value> hdlr,
-                               obj_ptr<HttpServer_base> &retVal)
+                               obj_ptr<HttpServer_base> &retVal,
+                               v8::Local<v8::Object> This)
 {
     result_t hr;
 
