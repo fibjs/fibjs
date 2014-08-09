@@ -69,9 +69,6 @@
     <ClCompile Include="src\DBRow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\define.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Digest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
