@@ -11,6 +11,7 @@ add_executable(fibjs ${src_list})
 include(CheckIncludeFiles)
 check_include_files(iconv.h HAVE_ICONV_H)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
 
 set(flags "-c -fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
 set(link_flags " ")
@@ -62,10 +63,6 @@ if(${BUILD_TYPE} STREQUAL "Debug32")
 endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
-
-if(DEFINED GIT_INFO)
-	add_definitions("-DGIT_INFO=${GIT_INFO}")
-endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender/include" "${CMAKE_CURRENT_BINARY_DIR}")
 

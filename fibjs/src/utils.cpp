@@ -21,6 +21,10 @@
 #include <snappy.h>
 #include <leveldb/db.h>
 
+#ifndef WIN32
+#include "gitinfo.h"
+#endif
+
 namespace fibjs
 {
 
@@ -326,7 +330,7 @@ result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
     retVal->Set(v8::String::NewFromUtf8(isolate, "fibjs"), v8::String::NewFromUtf8(isolate, s_version));
 
 #ifdef GIT_INFO
-    retVal->Set(v8::String::NewFromUtf8(isolate, "git"), v8::String::NewFromUtf8(isolate, STR(GIT_INFO)));
+    retVal->Set(v8::String::NewFromUtf8(isolate, "git"), v8::String::NewFromUtf8(isolate, GIT_INFO));
 #endif
 
     retVal->Set(v8::String::NewFromUtf8(isolate, "build"),

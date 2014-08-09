@@ -1,0 +1,2 @@
+
+#cmakedefine GIT_INFO "@GIT_INFO@"
