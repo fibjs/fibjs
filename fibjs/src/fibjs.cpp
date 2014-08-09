@@ -164,13 +164,18 @@ int stack_size = 256;
 int main(int argc, char *argv[])
 {
     static char s_opts[64];
+    static char s_sharmony[] = " --harmony --harmony_scoping --harmony_modules"
+                               " --harmony_proxies --harmony_generators"
+                               " --harmony_numeric_literals --harmony_strings"
+                               " --harmony_arrays --harmony_arrow_functions";
     enableDump();
 
     exlib::OSThread::Sleep(1);
 
-    sprintf(s_opts, "--stack_size=%d --harmony", stack_size - 16);
+    v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
+    v8::V8::SetFlagsFromString(s_opts,
+                               sprintf(s_opts, "--stack_size=%d", stack_size - 16));
 
-    v8::V8::SetFlagsFromString(s_opts, sizeof(s_opts) - 1);
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
     fibjs::init_argv(argc, argv);
