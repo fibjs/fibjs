@@ -18,18 +18,47 @@
 namespace fibjs
 {
 
+static std::map<int32_t, SandBox::ScriptContext *> s_ctxs;
+
+SandBox::ScriptContext::ScriptContext(int32_t sid) : m_sid(sid)
+{
+    s_ctxs.insert(std::pair<int32_t, SandBox::ScriptContext *>(m_sid, this));
+}
+
+SandBox::ScriptContext::~ScriptContext()
+{
+    s_ctxs.erase(m_sid);
+}
+
+v8::Local<v8::Object> SandBox::ScriptContext::GetCallingContext()
+{
+    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+            isolate, 1, v8::StackTrace::kScriptId);
+
+    if (stackTrace->GetFrameCount() <= 0)
+        return v8::Local<v8::Object>();
+
+    int32_t sid = stackTrace->GetFrame(0)->GetScriptId();
+    std::map<int32_t, SandBox::ScriptContext *>::iterator it = s_ctxs.find(sid);
+
+    if (it == s_ctxs.end())
+        return v8::Local<v8::Object>();
+
+    return it->second->wrap();
+}
+
 inline std::string resolvePath(const char *id)
 {
     std::string fname;
 
     if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
     {
-        v8::Local<v8::Context> ctx = isolate->GetCallingContext();
+        v8::Local<v8::Object> ctx = SandBox::ScriptContext::GetCallingContext();
 
         if (!ctx.IsEmpty())
         {
-            v8::Local<v8::Value> path = ctx->Global()->GetHiddenValue(
-                                            v8::String::NewFromUtf8(isolate, "id"));
+            v8::Local<v8::Value> path = ctx->GetHiddenValue(
+                                            v8::String::NewFromUtf8(isolate, "_id"));
 
             if (!IsEmpty(path))
             {
@@ -51,14 +80,12 @@ inline std::string resolvePath(const char *id)
     return fname;
 }
 
-void _define(const v8::FunctionCallbackInfo<v8::Value> &args);
-result_t doDefine(v8::Local<v8::Object> &mod);
+extern v8::Persistent<v8::Object> s_global;
 
 result_t SandBox::addScript(const char *srcname, const char *script,
                             v8::Local<v8::Value> &retVal)
 {
     std::string fname(srcname);
-    Context context(this, srcname);
     result_t hr;
 
     // add to modules
@@ -80,6 +107,8 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     }
     else if (id.length() > 3 && !qstrcmp(id.c_str() + id.length() - 3, ".js"))
     {
+        Context context(this, srcname);
+
         id.resize(id.length() - 3);
 
         v8::Local<v8::Object> mod;
@@ -88,16 +117,6 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         // cache string
         v8::Local<v8::String> strRequire = v8::String::NewFromUtf8(isolate, "require");
         v8::Local<v8::String> strExports = v8::String::NewFromUtf8(isolate, "exports");
-        v8::Local<v8::String> strModule = v8::String::NewFromUtf8(isolate, "module");
-        v8::Local<v8::String> strDefine = v8::String::NewFromUtf8(isolate, "define");
-
-        // attach define function first.
-        v8::Local<v8::Function> def =
-            v8::FunctionTemplate::New(isolate, _define)->GetFunction();
-
-        def->ToObject()->ForceSet(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
-                                  v8::ReadOnly);
-        context.glob->ForceSet(strDefine, def, v8::ReadOnly);
 
         exports = v8::Object::New(isolate);
 
@@ -106,13 +125,10 @@ result_t SandBox::addScript(const char *srcname, const char *script,
 
         // init module
         mod->Set(strExports, exports);
-        mod->ForceSet(strRequire, context.glob->Get(strRequire), v8::ReadOnly);
+        mod->ForceSet(strRequire, v8::Local<v8::Object>::New(isolate, s_global)->Get(strRequire),
+                      v8::ReadOnly);
 
         InstallModule(id, exports);
-
-        // attach to global
-        context.glob->ForceSet(strModule, mod, v8::ReadOnly);
-        context.glob->ForceSet(strExports, exports, v8::ReadOnly);
 
         std::string sname = name();
         if (!sname.empty())
@@ -121,31 +137,16 @@ result_t SandBox::addScript(const char *srcname, const char *script,
             srcname = sname.c_str();
         }
 
-        hr = context.run(script, srcname);
+        v8::Local<v8::Value> args[] = {mod, exports};
+        static const char *names[] = {"module", "exports"};
+
+        hr = context.run(script, srcname, names, args, ARRAYSIZE(args));
         if (hr < 0)
         {
             // delete from modules
             remove(id.c_str());
             return hr;
         }
-
-        // remove commonjs function
-        context.glob->ForceDelete(strDefine);
-        context.glob->ForceDelete(strModule);
-        context.glob->ForceDelete(strExports);
-
-        // process defined modules
-        hr = doDefine(mod);
-        if (hr < 0)
-        {
-            // delete from modules
-            remove(id.c_str());
-            return hr;
-        }
-
-        // attach again
-        context.glob->ForceSet(strModule, mod, v8::ReadOnly);
-        context.glob->ForceSet(strExports, exports, v8::ReadOnly);
 
         // use module.exports as result value
         v8::Local<v8::Value> v = mod->Get(strExports);
@@ -283,12 +284,12 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
     if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
         return hr;
 
-    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
+    v8::Local<v8::Object> ctx = SandBox::ScriptContext::GetCallingContext();
 
     if (!ctx.IsEmpty())
     {
-        v8::Local<v8::Value> path = ctx->Global()->GetHiddenValue(
-                                        v8::String::NewFromUtf8(isolate, "id"));
+        v8::Local<v8::Value> path = ctx->GetHiddenValue(
+                                        v8::String::NewFromUtf8(isolate, "_id"));
 
         if (!IsEmpty(path))
         {

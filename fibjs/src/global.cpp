@@ -34,19 +34,6 @@ result_t global_base::run(const char *fname)
     return sbox->run(fname);
 }
 
-result_t global_base::repl()
-{
-    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
-
-    if (!ctx.IsEmpty())
-    {
-        v8::Context::Scope context_scope(ctx);
-        return SandBox::Context::repl();
-    }
-
-    return 0;
-}
-
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
     obj_ptr<SandBox_base> sbox;

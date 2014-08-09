@@ -45,14 +45,18 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
     return 0;
 }
 
+extern obj_ptr<SandBox> s_topSandbox;
 result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
 {
-    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
+    v8::Local<v8::Object> ctx = SandBox::ScriptContext::GetCallingContext();
 
     if (ctx.IsEmpty())
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    {
+        retVal = s_topSandbox;
+        return 0;
+    }
 
-    retVal = SandBox_base::getInstance(ctx->Global()->GetHiddenValue(
+    retVal = SandBox_base::getInstance(ctx->GetHiddenValue(
                                            v8::String::NewFromUtf8(isolate, "_sbox")));
 
     if (!retVal)

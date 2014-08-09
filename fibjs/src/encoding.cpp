@@ -292,16 +292,14 @@ result_t encoding_base::decodeURI(const char *url, std::string &retVal)
 
 static v8::Persistent<v8::Object> s_json;
 static v8::Persistent<v8::Function> s_stringify;
+extern v8::Persistent<v8::Object> s_global;
 
 inline void initJSON()
 {
     if (s_json.IsEmpty())
     {
-        v8::Local<v8::Context> context = v8::Context::New(isolate);
-
-        context->Enter();
-        s_json.Reset(isolate, context->Global()->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject());
-        context->Exit();
+        v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate, s_global);
+        s_json.Reset(isolate, glob->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject());
     }
 }
 

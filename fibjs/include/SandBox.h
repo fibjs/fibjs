@@ -6,8 +6,6 @@
  */
 
 #include "ifs/SandBox.h"
-#include "ifs/global.h"
-#include "ifs/Function.h"
 #include <map>
 
 #ifndef SANDBOX_H_
@@ -15,8 +13,6 @@
 
 namespace fibjs
 {
-
-extern v8::Persistent<v8::Value> s_token;
 
 class SandBox: public fibjs::SandBox_base
 {
@@ -80,52 +76,44 @@ public:
     }
 
 public:
+    class ScriptContext : public object_base
+    {
+    public:
+        ScriptContext(int32_t sid);
+        ~ScriptContext();
+
+        static v8::Local<v8::Object> GetCallingContext();
+
+    private:
+        int32_t m_sid;
+    };
+
     class Context
     {
     public:
-        Context(SandBox *sb, const char *id) :
-            context(v8::Context::New(isolate))
+        Context(SandBox *sb, const char *id) : m_sb(sb)
         {
-            v8::Local<v8::Context> ctx = isolate->GetCallingContext();
-            static const char *s_skips_root[] =
-            {
-                "define", 0
-            };
-            static const char *s_skips[] =
-            {
-                "repl", "define", 0
-            };
-
-            context->SetSecurityToken(v8::Local<v8::Value>::New(isolate, s_token));
-            context->Enter();
-
-            glob = context->Global();
-            global_base::class_info().Attach(glob, ctx.IsEmpty() ? s_skips_root : s_skips);
-
-            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_sbox"), sb->wrap());
-
-            // clone Function.start
-            Function_base::class_info().Attach(
-                glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject(),
-                NULL);
-
-            // module.id
-            v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, id,
-                                             v8::String::kNormalString,
-                                             (int) qstrlen(id));
-            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
+            m_id = v8::String::NewFromUtf8(isolate, id, v8::String::kNormalString,
+                                           (int) qstrlen(id));
         }
 
-        ~Context()
-        {
-            context->Exit();
-        }
-
-        static result_t run(std::string &src, const char *name)
+        result_t run(std::string src, const char *name, const char **argNames = NULL,
+                     v8::Local<v8::Value> *args = NULL, int32_t argCount = 0)
         {
             v8::Local<v8::Script> script;
             {
                 v8::TryCatch try_catch;
+                std::string str("(function(");
+                int32_t i;
+
+                for (i = 0; i < argCount; i ++)
+                {
+                    str += argNames[i];
+                    if (i < argCount - 1)
+                        str += ',';
+                }
+
+                src = str + "){" + src + "\n});";
 
                 script = v8::Script::Compile(
                              v8::String::NewFromUtf8(isolate, src.c_str(),
@@ -135,27 +123,21 @@ public:
                     return throwSyntaxError(try_catch);
             }
 
-            if (script->Run().IsEmpty())
+            obj_ptr<ScriptContext> ctx = new ScriptContext(script->GetUnboundScript()->GetId());
+            v8::Local<v8::Object> _mod = ctx->wrap();
+
+            _mod->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_sbox"), m_sb->wrap());
+            _mod->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_id"), m_id);
+
+            v8::Local<v8::Value> v = script->Run();
+            if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            return 0;
-        }
+            v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
+            func->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_ctx"), _mod);
 
-        static result_t run(const char *src, const char *name)
-        {
-            v8::Local<v8::Script> script;
-            {
-                v8::TryCatch try_catch;
-
-                script = v8::Script::Compile(
-                             v8::String::NewFromUtf8(isolate, src,
-                                                     v8::String::kNormalString, (int) qstrlen(src)),
-                             v8::String::NewFromUtf8(isolate, name));
-                if (script.IsEmpty())
-                    return throwSyntaxError(try_catch);
-            }
-
-            if (script->Run().IsEmpty())
+            v = func->Call(v8::Object::New(isolate), argCount, args);
+            if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
             return 0;
@@ -164,8 +146,8 @@ public:
         static result_t repl();
 
     public:
-        v8::Local<v8::Context> context;
-        v8::Local<v8::Object> glob;
+        obj_ptr<SandBox> m_sb;
+        v8::Local<v8::Value> m_id;
     };
 
     std::string m_name;

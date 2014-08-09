@@ -8,6 +8,8 @@
 
 #include "ifs/global.h"
 #include "ifs/process.h"
+#include "ifs/global.h"
+#include "ifs/Function.h"
 #include "SandBox.h"
 #include <exlib/lockfree.h>
 #include "Fiber.h"
@@ -18,7 +20,8 @@ namespace fibjs
 {
 v8::Isolate *isolate;
 v8::Persistent<v8::Context> s_context;
-v8::Persistent<v8::Value> s_token;
+v8::Persistent<v8::Object> s_global;
+obj_ptr<SandBox> s_topSandbox;
 
 void init_argv(int argc, char **argv);
 
@@ -35,11 +38,17 @@ void _main(const char *fname)
     v8::HandleScope handle_scope(isolate);
 
     v8::Local<v8::Context> _context = v8::Context::New(isolate);
+    v8::Context::Scope context_scope(_context);
+
+    v8::Local<v8::Object> glob = _context->Global();
+    global_base::class_info().Attach(glob, NULL);
+
+    Function_base::class_info().Attach(
+        glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject(),
+        NULL);
 
     s_context.Reset(isolate, _context);
-    s_token.Reset(isolate, _context->GetSecurityToken());
-
-    v8::Context::Scope context_scope(_context);
+    s_global.Reset(isolate, glob);
 
     Fiber_base *fb = new JSFiber();
     exlib::Service::tlsPut(g_tlsCurrent, fb);
@@ -47,13 +56,13 @@ void _main(const char *fname)
 
     {
         JSFiber::scope s;
-        obj_ptr<SandBox> sbox = new SandBox();
+        s_topSandbox = new SandBox();
 
-        sbox->initRoot();
+        s_topSandbox->initRoot();
         if (fname)
-            s.m_hr = sbox->run(fname);
+            s.m_hr = s_topSandbox->run(fname);
         else
-            s.m_hr = sbox->repl();
+            s.m_hr = s_topSandbox->repl();
     }
 
     process_base::exit(0);

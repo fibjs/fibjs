@@ -7,6 +7,7 @@
 
 #include "JSHandler.h"
 #include "Fiber.h"
+#include "SandBox.h"
 #include "ifs/Message.h"
 #include "ifs/global.h"
 #include "ifs/mq.h"
@@ -88,7 +89,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             else
                 pargv = &a;
 
-            if (!isolate->GetCallingContext().IsEmpty())
+            if (!SandBox::ScriptContext::GetCallingContext().IsEmpty())
             {
                 hdlr = func->Call(v8::Undefined(isolate), len + 1, pargv);
                 if (hdlr.IsEmpty())
