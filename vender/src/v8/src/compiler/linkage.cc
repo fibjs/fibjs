@@ -79,7 +79,7 @@ FrameOffset Linkage::GetFrameOffset(int spill_slot, Frame* frame, int extra) {
     return FrameOffset::FromFramePointer(offset);
   } else {
     // No frame. Retrieve all parameters relative to stack pointer.
-    ASSERT(spill_slot < 0);  // Must be a parameter.
+    DCHECK(spill_slot < 0);  // Must be a parameter.
     int register_save_area_size = frame->GetRegisterSaveAreaSize();
     int offset = register_save_area_size - (spill_slot + 1) * kPointerSize +
                  kPCOnStackSize + extra;
@@ -105,7 +105,7 @@ CallDescriptor* Linkage::GetRuntimeCallDescriptor(
 //==============================================================================
 // Provide unimplemented methods on unsupported architectures, to at least link.
 //==============================================================================
-#if !V8_TURBOFAN_TARGET
+#if !V8_TURBOFAN_BACKEND
 CallDescriptor* Linkage::GetJSCallDescriptor(int parameter_count, Zone* zone) {
   UNIMPLEMENTED();
   return NULL;
@@ -134,7 +134,7 @@ CallDescriptor* Linkage::GetSimplifiedCDescriptor(
   UNIMPLEMENTED();
   return NULL;
 }
-#endif  // !V8_TURBOFAN_TARGET
+#endif  // !V8_TURBOFAN_BACKEND
 }
 }
 }  // namespace v8::internal::compiler

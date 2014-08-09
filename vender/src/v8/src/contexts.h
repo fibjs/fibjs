@@ -5,7 +5,7 @@
 #ifndef V8_CONTEXTS_H_
 #define V8_CONTEXTS_H_
 
-#include "src/heap.h"
+#include "src/heap/heap.h"
 #include "src/objects.h"
 
 namespace v8 {
@@ -200,7 +200,8 @@ enum BindingFlags {
   V(ITERATOR_RESULT_MAP_INDEX, Map, iterator_result_map)                       \
   V(MAP_ITERATOR_MAP_INDEX, Map, map_iterator_map)                             \
   V(SET_ITERATOR_MAP_INDEX, Map, set_iterator_map)                             \
-  V(ITERATOR_SYMBOL_INDEX, Symbol, iterator_symbol)
+  V(ITERATOR_SYMBOL_INDEX, Symbol, iterator_symbol)                            \
+  V(UNSCOPABLES_SYMBOL_INDEX, Symbol, unscopables_symbol)
 
 // JSFunctions are pairs (context, function code), sometimes also called
 // closures. A Context object is used to represent function contexts and
@@ -251,7 +252,7 @@ class Context: public FixedArray {
  public:
   // Conversions.
   static Context* cast(Object* context) {
-    ASSERT(context->IsContext());
+    DCHECK(context->IsContext());
     return reinterpret_cast<Context*>(context);
   }
 
@@ -394,6 +395,7 @@ class Context: public FixedArray {
     MAP_ITERATOR_MAP_INDEX,
     SET_ITERATOR_MAP_INDEX,
     ITERATOR_SYMBOL_INDEX,
+    UNSCOPABLES_SYMBOL_INDEX,
 
     // Properties from here are treated as weak references by the full GC.
     // Scavenge treats them as strong references.
@@ -414,7 +416,7 @@ class Context: public FixedArray {
 
   Context* previous() {
     Object* result = unchecked_previous();
-    ASSERT(IsBootstrappingOrValidParentContext(result, this));
+    DCHECK(IsBootstrappingOrValidParentContext(result, this));
     return reinterpret_cast<Context*>(result);
   }
   void set_previous(Context* context) { set(PREVIOUS_INDEX, context); }
@@ -432,7 +434,7 @@ class Context: public FixedArray {
 
   GlobalObject* global_object() {
     Object* result = get(GLOBAL_OBJECT_INDEX);
-    ASSERT(IsBootstrappingOrGlobalObject(this->GetIsolate(), result));
+    DCHECK(IsBootstrappingOrGlobalObject(this->GetIsolate(), result));
     return reinterpret_cast<GlobalObject*>(result);
   }
   void set_global_object(GlobalObject* object) {
@@ -507,15 +509,15 @@ class Context: public FixedArray {
 
 #define NATIVE_CONTEXT_FIELD_ACCESSORS(index, type, name) \
   void  set_##name(type* value) {                         \
-    ASSERT(IsNativeContext());                            \
+    DCHECK(IsNativeContext());                            \
     set(index, value);                                    \
   }                                                       \
   bool is_##name(type* value) {                           \
-    ASSERT(IsNativeContext());                            \
+    DCHECK(IsNativeContext());                            \
     return type::cast(get(index)) == value;               \
   }                                                       \
   type* name() {                                          \
-    ASSERT(IsNativeContext());                            \
+    DCHECK(IsNativeContext());                            \
     return type::cast(get(index));                        \
   }
   NATIVE_CONTEXT_FIELDS(NATIVE_CONTEXT_FIELD_ACCESSORS)

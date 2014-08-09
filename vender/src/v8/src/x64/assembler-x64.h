@@ -84,13 +84,13 @@ struct Register {
   }
 
   static Register FromAllocationIndex(int index) {
-    ASSERT(index >= 0 && index < kMaxNumAllocatableRegisters);
+    DCHECK(index >= 0 && index < kMaxNumAllocatableRegisters);
     Register result = { kRegisterCodeByAllocationIndex[index] };
     return result;
   }
 
   static const char* AllocationIndexToString(int index) {
-    ASSERT(index >= 0 && index < kMaxNumAllocatableRegisters);
+    DCHECK(index >= 0 && index < kMaxNumAllocatableRegisters);
     const char* const names[] = {
       "rax",
       "rbx",
@@ -116,7 +116,7 @@ struct Register {
   // rax, rbx, rcx and rdx are byte registers, the rest are not.
   bool is_byte_register() const { return code_ <= 3; }
   int code() const {
-    ASSERT(is_valid());
+    DCHECK(is_valid());
     return code_;
   }
   int bit() const {
@@ -201,18 +201,18 @@ struct XMMRegister {
   }
 
   static int ToAllocationIndex(XMMRegister reg) {
-    ASSERT(reg.code() != 0);
+    DCHECK(reg.code() != 0);
     return reg.code() - 1;
   }
 
   static XMMRegister FromAllocationIndex(int index) {
-    ASSERT(0 <= index && index < kMaxNumAllocatableRegisters);
+    DCHECK(0 <= index && index < kMaxNumAllocatableRegisters);
     XMMRegister result = { index + 1 };
     return result;
   }
 
   static const char* AllocationIndexToString(int index) {
-    ASSERT(index >= 0 && index < kMaxNumAllocatableRegisters);
+    DCHECK(index >= 0 && index < kMaxNumAllocatableRegisters);
     const char* const names[] = {
       "xmm1",
       "xmm2",
@@ -234,15 +234,15 @@ struct XMMRegister {
   }
 
   static XMMRegister from_code(int code) {
-    ASSERT(code >= 0);
-    ASSERT(code < kMaxNumRegisters);
+    DCHECK(code >= 0);
+    DCHECK(code < kMaxNumRegisters);
     XMMRegister r = { code };
     return r;
   }
   bool is_valid() const { return 0 <= code_ && code_ < kMaxNumRegisters; }
   bool is(XMMRegister reg) const { return code_ == reg.code_; }
   int code() const {
-    ASSERT(is_valid());
+    DCHECK(is_valid());
     return code_;
   }
 
@@ -358,7 +358,7 @@ class Immediate BASE_EMBEDDED {
  public:
   explicit Immediate(int32_t value) : value_(value) {}
   explicit Immediate(Smi* value) {
-    ASSERT(SmiValuesAre31Bits());  // Only available for 31-bit SMI.
+    DCHECK(SmiValuesAre31Bits());  // Only available for 31-bit SMI.
     value_ = static_cast<int32_t>(reinterpret_cast<intptr_t>(value));
   }
 
@@ -539,6 +539,9 @@ class Assembler : public AssemblerBase {
   // of that call in the instruction stream.
   static inline Address target_address_from_return_address(Address pc);
 
+  // Return the code target address of the patch debug break slot
+  inline static Address break_address_from_return_address(Address pc);
+
   // This sets the branch destination (which is in the instruction on x64).
   // This is for calls and branches within generated code.
   inline static void deserialization_set_special_target_at(
@@ -550,7 +553,7 @@ class Assembler : public AssemblerBase {
     if (kPointerSize == kInt64Size) {
       return RelocInfo::NONE64;
     } else {
-      ASSERT(kPointerSize == kInt32Size);
+      DCHECK(kPointerSize == kInt32Size);
       return RelocInfo::NONE32;
     }
   }
@@ -1258,7 +1261,7 @@ class Assembler : public AssemblerBase {
     if (size == kInt64Size) {
       emit_rex_64();
     } else {
-      ASSERT(size == kInt32Size);
+      DCHECK(size == kInt32Size);
     }
   }
 
@@ -1267,7 +1270,7 @@ class Assembler : public AssemblerBase {
     if (size == kInt64Size) {
       emit_rex_64(p1);
     } else {
-      ASSERT(size == kInt32Size);
+      DCHECK(size == kInt32Size);
       emit_optional_rex_32(p1);
     }
   }
@@ -1277,7 +1280,7 @@ class Assembler : public AssemblerBase {
     if (size == kInt64Size) {
       emit_rex_64(p1, p2);
     } else {
-      ASSERT(size == kInt32Size);
+      DCHECK(size == kInt32Size);
       emit_optional_rex_32(p1, p2);
     }
   }
@@ -1303,7 +1306,7 @@ class Assembler : public AssemblerBase {
   // Emit a ModR/M byte with an operation subcode in the reg field and
   // a register in the rm_reg field.
   void emit_modrm(int code, Register rm_reg) {
-    ASSERT(is_uint3(code));
+    DCHECK(is_uint3(code));
     emit(0xC0 | code << 3 | rm_reg.low_bits());
   }
 
@@ -1580,7 +1583,7 @@ class EnsureSpace BASE_EMBEDDED {
 #ifdef DEBUG
   ~EnsureSpace() {
     int bytes_generated = space_before_ - assembler_->available_space();
-    ASSERT(bytes_generated < assembler_->kGap);
+    DCHECK(bytes_generated < assembler_->kGap);
   }
 #endif
 

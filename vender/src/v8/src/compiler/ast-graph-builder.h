@@ -25,8 +25,7 @@ class Graph;
 // of function inlining.
 class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
  public:
-  AstGraphBuilder(CompilationInfo* info, JSGraph* jsgraph,
-                  SourcePositionTable* source_positions_);
+  AstGraphBuilder(CompilationInfo* info, JSGraph* jsgraph);
 
   // Creates a graph by visiting the entire AST.
   bool CreateGraph();
@@ -41,7 +40,8 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   class Environment;
 
   Environment* environment() {
-    return reinterpret_cast<Environment*>(environment_internal());
+    return reinterpret_cast<Environment*>(
+        StructuredGraphBuilder::environment());
   }
 
   AstContext* ast_context() const { return ast_context_; }
@@ -56,8 +56,6 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   // depends on the graph builder, but environments themselves are not virtual.
   typedef StructuredGraphBuilder::Environment BaseEnvironment;
   virtual BaseEnvironment* CopyEnvironment(BaseEnvironment* env);
-
-  SourcePositionTable* source_positions() { return source_positions_; }
 
   // TODO(mstarzinger): The pipeline only needs to be a friend to access the
   // function context. Remove as soon as the context is a parameter.
@@ -114,7 +112,6 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   CompilationInfo* info_;
   AstContext* ast_context_;
   JSGraph* jsgraph_;
-  SourcePositionTable* source_positions_;
 
   // List of global declarations for functions and variables.
   ZoneList<Handle<Object> > globals_;
@@ -203,22 +200,22 @@ class AstGraphBuilder::Environment
   // Operations on parameter or local variables. The parameter indices are
   // shifted by 1 (receiver is parameter index -1 but environment index 0).
   void Bind(Variable* variable, Node* node) {
-    ASSERT(variable->IsStackAllocated());
+    DCHECK(variable->IsStackAllocated());
     if (variable->IsParameter()) {
       values()->at(variable->index() + 1) = node;
       parameters_dirty_ = true;
     } else {
-      ASSERT(variable->IsStackLocal());
+      DCHECK(variable->IsStackLocal());
       values()->at(variable->index() + parameters_count_) = node;
       locals_dirty_ = true;
     }
   }
   Node* Lookup(Variable* variable) {
-    ASSERT(variable->IsStackAllocated());
+    DCHECK(variable->IsStackAllocated());
     if (variable->IsParameter()) {
       return values()->at(variable->index() + 1);
     } else {
-      ASSERT(variable->IsStackLocal());
+      DCHECK(variable->IsStackLocal());
       return values()->at(variable->index() + parameters_count_);
     }
   }
@@ -229,30 +226,33 @@ class AstGraphBuilder::Environment
     stack_dirty_ = true;
   }
   Node* Top() {
-    ASSERT(stack_height() > 0);
+    DCHECK(stack_height() > 0);
     return values()->back();
   }
   Node* Pop() {
-    ASSERT(stack_height() > 0);
+    DCHECK(stack_height() > 0);
     Node* back = values()->back();
     values()->pop_back();
+    stack_dirty_ = true;
     return back;
   }
 
   // Direct mutations of the operand stack.
   void Poke(int depth, Node* node) {
-    ASSERT(depth >= 0 && depth < stack_height());
+    DCHECK(depth >= 0 && depth < stack_height());
     int index = static_cast<int>(values()->size()) - depth - 1;
     values()->at(index) = node;
+    stack_dirty_ = true;
   }
   Node* Peek(int depth) {
-    ASSERT(depth >= 0 && depth < stack_height());
+    DCHECK(depth >= 0 && depth < stack_height());
     int index = static_cast<int>(values()->size()) - depth - 1;
     return values()->at(index);
   }
   void Drop(int depth) {
-    ASSERT(depth >= 0 && depth <= stack_height());
+    DCHECK(depth >= 0 && depth <= stack_height());
     values()->erase(values()->end() - depth, values()->end());
+    stack_dirty_ = true;
   }
 
   // Preserve a checkpoint of the environment for the IR graph. Any

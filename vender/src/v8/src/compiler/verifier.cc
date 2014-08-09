@@ -56,10 +56,10 @@ class Verifier::Visitor : public NullNodeVisitor {
 
 
 GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
-  int value_count = NodeProperties::GetValueInputCount(node);
-  int context_count = NodeProperties::GetContextInputCount(node);
-  int effect_count = NodeProperties::GetEffectInputCount(node);
-  int control_count = NodeProperties::GetControlInputCount(node);
+  int value_count = OperatorProperties::GetValueInputCount(node->op());
+  int context_count = OperatorProperties::GetContextInputCount(node->op());
+  int effect_count = OperatorProperties::GetEffectInputCount(node->op());
+  int control_count = OperatorProperties::GetControlInputCount(node->op());
 
   // Verify number of inputs matches up.
   int input_count = value_count + context_count + effect_count + control_count;
@@ -68,7 +68,7 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
   // Verify all value inputs actually produce a value.
   for (int i = 0; i < value_count; ++i) {
     Node* value = NodeProperties::GetValueInput(node, i);
-    CHECK(NodeProperties::HasValueOutput(value));
+    CHECK(OperatorProperties::HasValueOutput(value->op()));
     CHECK(IsDefUseChainLinkPresent(value, node));
     CHECK(IsUseDefChainLinkPresent(value, node));
   }
@@ -76,7 +76,7 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
   // Verify all context inputs are value nodes.
   for (int i = 0; i < context_count; ++i) {
     Node* context = NodeProperties::GetContextInput(node);
-    CHECK(NodeProperties::HasValueOutput(context));
+    CHECK(OperatorProperties::HasValueOutput(context->op()));
     CHECK(IsDefUseChainLinkPresent(context, node));
     CHECK(IsUseDefChainLinkPresent(context, node));
   }
@@ -84,7 +84,7 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
   // Verify all effect inputs actually have an effect.
   for (int i = 0; i < effect_count; ++i) {
     Node* effect = NodeProperties::GetEffectInput(node);
-    CHECK(NodeProperties::HasEffectOutput(effect));
+    CHECK(OperatorProperties::HasEffectOutput(effect->op()));
     CHECK(IsDefUseChainLinkPresent(effect, node));
     CHECK(IsUseDefChainLinkPresent(effect, node));
   }
@@ -92,17 +92,18 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
   // Verify all control inputs are control nodes.
   for (int i = 0; i < control_count; ++i) {
     Node* control = NodeProperties::GetControlInput(node, i);
-    CHECK(NodeProperties::HasControlOutput(control));
+    CHECK(OperatorProperties::HasControlOutput(control->op()));
     CHECK(IsDefUseChainLinkPresent(control, node));
     CHECK(IsUseDefChainLinkPresent(control, node));
   }
 
   // Verify all successors are projections if multiple value outputs exist.
-  if (NodeProperties::GetValueOutputCount(node) > 1) {
+  if (OperatorProperties::GetValueOutputCount(node->op()) > 1) {
     Node::Uses uses = node->uses();
     for (Node::Uses::iterator it = uses.begin(); it != uses.end(); ++it) {
       CHECK(!NodeProperties::IsValueEdge(it.edge()) ||
-            (*it)->opcode() == IrOpcode::kProjection);
+            (*it)->opcode() == IrOpcode::kProjection ||
+            (*it)->opcode() == IrOpcode::kParameter);
     }
   }
 
@@ -113,9 +114,9 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
       break;
     case IrOpcode::kEnd:
       // End has no outputs.
-      CHECK(!NodeProperties::HasValueOutput(node));
-      CHECK(!NodeProperties::HasEffectOutput(node));
-      CHECK(!NodeProperties::HasControlOutput(node));
+      CHECK(!OperatorProperties::HasValueOutput(node->op()));
+      CHECK(!OperatorProperties::HasEffectOutput(node->op()));
+      CHECK(!OperatorProperties::HasControlOutput(node->op()));
       break;
     case IrOpcode::kDead:
       // Dead is never connected to the graph.
@@ -148,10 +149,18 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
     case IrOpcode::kThrow:
       // TODO(rossberg): what are the constraints on these?
       break;
-    case IrOpcode::kParameter:
-      // Parameters have no inputs.
-      CHECK_EQ(0, input_count);
+    case IrOpcode::kParameter: {
+      // Parameters have the start node as inputs.
+      CHECK_EQ(1, input_count);
+      CHECK_EQ(IrOpcode::kStart,
+               NodeProperties::GetValueInput(node, 0)->opcode());
+      // Parameter has an input that produces enough values.
+      int index = static_cast<Operator1<int>*>(node->op())->parameter();
+      Node* input = NodeProperties::GetValueInput(node, 0);
+      // Currently, parameter indices start at -1 instead of 0.
+      CHECK_GT(OperatorProperties::GetValueOutputCount(input->op()), index + 1);
       break;
+    }
     case IrOpcode::kInt32Constant:
     case IrOpcode::kInt64Constant:
     case IrOpcode::kFloat64Constant:
@@ -165,14 +174,16 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
       // Phi input count matches parent control node.
       CHECK_EQ(1, control_count);
       Node* control = NodeProperties::GetControlInput(node, 0);
-      CHECK_EQ(value_count, NodeProperties::GetControlInputCount(control));
+      CHECK_EQ(value_count,
+               OperatorProperties::GetControlInputCount(control->op()));
       break;
     }
     case IrOpcode::kEffectPhi: {
       // EffectPhi input count matches parent control node.
       CHECK_EQ(1, control_count);
       Node* control = NodeProperties::GetControlInput(node, 0);
-      CHECK_EQ(effect_count, NodeProperties::GetControlInputCount(control));
+      CHECK_EQ(effect_count,
+               OperatorProperties::GetControlInputCount(control->op()));
       break;
     }
     case IrOpcode::kLazyDeoptimization:
@@ -194,7 +205,7 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
       // Projection has an input that produces enough values.
       int index = static_cast<Operator1<int>*>(node->op())->parameter();
       Node* input = NodeProperties::GetValueInput(node, 0);
-      CHECK_GT(NodeProperties::GetValueOutputCount(input), index);
+      CHECK_GT(OperatorProperties::GetValueOutputCount(input->op()), index);
       break;
     }
     default:
@@ -215,8 +226,10 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
 void Verifier::Run(Graph* graph) {
   Visitor visitor(graph->zone());
 
+  CHECK_NE(NULL, graph->start());
   visitor.from_start = true;
   graph->VisitNodeUsesFromStart(&visitor);
+  CHECK_NE(NULL, graph->end());
   visitor.from_start = false;
   graph->VisitNodeInputsFromEnd(&visitor);
 

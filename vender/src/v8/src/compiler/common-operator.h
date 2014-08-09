@@ -43,17 +43,6 @@ class CallOperator : public Operator1<CallDescriptor*> {
   }
 };
 
-class FrameStateDescriptor {
- public:
-  explicit FrameStateDescriptor(BailoutId bailout_id)
-      : bailout_id_(bailout_id) {}
-
-  BailoutId bailout_id() const { return bailout_id_; }
-
- private:
-  BailoutId bailout_id_;
-};
-
 // Interface for building common operators that can be used at any level of IR,
 // including JavaScript, mid-level, and low-level.
 // TODO(titzer): Move the mnemonics into SimpleOperator and Operator1 classes.
@@ -65,7 +54,12 @@ class CommonOperatorBuilder {
   return new (zone_) ControlOperator(IrOpcode::k##name, Operator::kFoldable, \
                                      inputs, 0, controls, #name);
 
-  Operator* Start() { CONTROL_OP(Start, 0, 0); }
+  Operator* Start(int num_formal_parameters) {
+    // Outputs are formal parameters, plus context, receiver, and JSFunction.
+    int outputs = num_formal_parameters + 3;
+    return new (zone_) ControlOperator(IrOpcode::kStart, Operator::kFoldable, 0,
+                                       outputs, 0, "Start");
+  }
   Operator* Dead() { CONTROL_OP(Dead, 0, 0); }
   Operator* End() { CONTROL_OP(End, 0, 1); }
   Operator* Branch() { CONTROL_OP(Branch, 1, 1); }
@@ -95,7 +89,7 @@ class CommonOperatorBuilder {
   }
 
   Operator* Parameter(int index) {
-    return new (zone_) Operator1<int>(IrOpcode::kParameter, Operator::kPure, 0,
+    return new (zone_) Operator1<int>(IrOpcode::kParameter, Operator::kPure, 1,
                                       1, "Parameter", index);
   }
   Operator* Int32Constant(int32_t value) {
@@ -127,18 +121,22 @@ class CommonOperatorBuilder {
         IrOpcode::kHeapConstant, Operator::kPure, 0, 1, "HeapConstant", value);
   }
   Operator* Phi(int arguments) {
-    ASSERT(arguments > 0);  // Disallow empty phis.
+    DCHECK(arguments > 0);  // Disallow empty phis.
     return new (zone_) Operator1<int>(IrOpcode::kPhi, Operator::kPure,
                                       arguments, 1, "Phi", arguments);
   }
   Operator* EffectPhi(int arguments) {
-    ASSERT(arguments > 0);  // Disallow empty phis.
+    DCHECK(arguments > 0);  // Disallow empty phis.
     return new (zone_) Operator1<int>(IrOpcode::kEffectPhi, Operator::kPure, 0,
                                       0, "EffectPhi", arguments);
   }
-  Operator* FrameState(const FrameStateDescriptor& descriptor) {
-    return new (zone_) Operator1<FrameStateDescriptor>(
-        IrOpcode::kFrameState, Operator::kPure, 0, 1, "FrameState", descriptor);
+  Operator* StateValues(int arguments) {
+    return new (zone_) Operator1<int>(IrOpcode::kStateValues, Operator::kPure,
+                                      arguments, 1, "StateValues", arguments);
+  }
+  Operator* FrameState(BailoutId ast_id) {
+    return new (zone_) Operator1<BailoutId>(
+        IrOpcode::kFrameState, Operator::kPure, 3, 1, "FrameState", ast_id);
   }
   Operator* Call(CallDescriptor* descriptor) {
     return new (zone_) CallOperator(descriptor, "Call");

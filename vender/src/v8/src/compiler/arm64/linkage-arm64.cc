@@ -16,8 +16,6 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-#if V8_TURBOFAN_TARGET
-
 struct LinkageHelperTraits {
   static Register ReturnValueReg() { return x0; }
   static Register ReturnValue2Reg() { return x1; }
@@ -66,7 +64,6 @@ CallDescriptor* Linkage::GetSimplifiedCDescriptor(
       zone, num_params, return_type, param_types);
 }
 
-#endif  // V8_TURBOFAN_TARGET
 }
 }
 }  // namespace v8::internal::compiler

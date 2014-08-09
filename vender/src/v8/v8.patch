@@ -1,5 +1,5 @@
---- /Users/lion/Downloads/source/js/v8/src/arm/deoptimizer-arm.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/arm/deoptimizer-arm.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm/deoptimizer-arm.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm/deoptimizer-arm.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -15,8 +15,8 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm/lithium-arm.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/arm/lithium-arm.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm/lithium-arm.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm/lithium-arm.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -26,14 +26,14 @@
  #include "src/arm/lithium-codegen-arm.h"
  #include "src/hydrogen-osr.h"
  #include "src/lithium-inl.h"
-@@ -2626,3 +2628,5 @@
+@@ -2627,3 +2629,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm/lithium-codegen-arm.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/arm/lithium-codegen-arm.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm/lithium-codegen-arm.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm/lithium-codegen-arm.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -49,8 +49,8 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm/lithium-gap-resolver-arm.cc	2014-06-22 19:23:17.000000000 +0800
-+++ src/arm/lithium-gap-resolver-arm.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm/lithium-gap-resolver-arm.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm/lithium-gap-resolver-arm.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -66,8 +66,8 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/deoptimizer-arm64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/arm64/deoptimizer-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm64/deoptimizer-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm64/deoptimizer-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -83,8 +83,8 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/instrument-arm64.cc	2014-06-09 04:42:32.000000000 +0800
-+++ src/arm64/instrument-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm64/instrument-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm64/instrument-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -96,14 +96,14 @@
  #include "src/arm64/instrument-arm64.h"
  
  namespace v8 {
-@@ -593,3 +597,5 @@
+@@ -592,3 +596,5 @@
  
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-arm64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/arm64/lithium-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm64/lithium-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -113,14 +113,14 @@
  #include "src/arm64/lithium-codegen-arm64.h"
  #include "src/hydrogen-osr.h"
  #include "src/lithium-inl.h"
-@@ -2752,3 +2754,5 @@
+@@ -2753,3 +2755,5 @@
  
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-codegen-arm64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/arm64/lithium-codegen-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-codegen-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm64/lithium-codegen-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -136,8 +136,8 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-gap-resolver-arm64.cc	2014-06-29 00:42:36.000000000 +0800
-+++ src/arm64/lithium-gap-resolver-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-gap-resolver-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/arm64/lithium-gap-resolver-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -153,8 +153,8 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/arm/code-generator-arm.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/arm/code-generator-arm.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/arm/code-generator-arm.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/arm/code-generator-arm.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -172,8 +172,8 @@
  }  // namespace v8::internal::compiler
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/arm/instruction-selector-arm.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/arm/instruction-selector-arm.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/arm/instruction-selector-arm.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/arm/instruction-selector-arm.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -185,14 +185,14 @@
  #include "src/compiler/instruction-selector-impl.h"
  #include "src/compiler/node-matchers.h"
  #include "src/compiler-intrinsics.h"
-@@ -969,3 +973,5 @@
+@@ -941,3 +945,5 @@
  }  // namespace compiler
  }  // namespace internal
  }  // namespace v8
 +
 +#endif
 --- /Users/lion/Downloads/source/js/v8/src/compiler/arm/linkage-arm.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/arm/linkage-arm.cc	2014-08-02 16:03:39.000000000 +0800
++++ src/compiler/arm/linkage-arm.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -208,8 +208,8 @@
  }  // namespace v8::internal::compiler
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/arm64/code-generator-arm64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/arm64/code-generator-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/arm64/code-generator-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/arm64/code-generator-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -221,14 +221,14 @@
  #include "src/compiler/code-generator.h"
  
  #include "src/arm64/macro-assembler-arm64.h"
-@@ -857,3 +861,5 @@
+@@ -853,3 +857,5 @@
  }  // namespace compiler
  }  // namespace internal
  }  // namespace v8
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/arm64/instruction-selector-arm64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/arm64/instruction-selector-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/arm64/instruction-selector-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/arm64/instruction-selector-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -246,8 +246,8 @@
  }  // namespace v8
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/arm64/linkage-arm64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/arm64/linkage-arm64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/arm64/linkage-arm64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/arm64/linkage-arm64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -257,14 +257,14 @@
  #include "src/assembler.h"
  #include "src/code-stubs.h"
  #include "src/compiler/linkage.h"
-@@ -68,3 +70,5 @@
+@@ -65,3 +67,5 @@
  }
  }
  }  // namespace v8::internal::compiler
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/ia32/code-generator-ia32.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/ia32/code-generator-ia32.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/ia32/code-generator-ia32.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/ia32/code-generator-ia32.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -282,8 +282,8 @@
  }  // namespace v8::internal::compiler
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/ia32/instruction-selector-ia32.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/ia32/instruction-selector-ia32.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/ia32/instruction-selector-ia32.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/ia32/instruction-selector-ia32.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -295,14 +295,14 @@
  #include "src/compiler/instruction-selector-impl.h"
  #include "src/compiler/node-matchers.h"
  #include "src/compiler/node-properties-inl.h"
-@@ -567,3 +571,5 @@
+@@ -558,3 +562,5 @@
  }  // namespace compiler
  }  // namespace internal
  }  // namespace v8
 +
 +#endif
 --- /Users/lion/Downloads/source/js/v8/src/compiler/ia32/linkage-ia32.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/ia32/linkage-ia32.cc	2014-08-02 16:03:39.000000000 +0800
++++ src/compiler/ia32/linkage-ia32.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -318,8 +318,8 @@
  }  // namespace v8::internal::compiler
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/x64/code-generator-x64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/x64/code-generator-x64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/x64/code-generator-x64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/x64/code-generator-x64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -331,14 +331,14 @@
  #include "src/compiler/code-generator.h"
  
  #include "src/compiler/code-generator-impl.h"
-@@ -1002,3 +1006,5 @@
- }
- }
- }  // namespace v8::internal::compiler
+@@ -999,3 +1003,5 @@
+ }  // namespace internal
+ }  // namespace compiler
+ }  // namespace v8
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/x64/instruction-selector-x64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/x64/instruction-selector-x64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/x64/instruction-selector-x64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/x64/instruction-selector-x64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -2,6 +2,10 @@
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
@@ -350,14 +350,14 @@
  #include "src/compiler/instruction-selector-impl.h"
  #include "src/compiler/node-matchers.h"
  
-@@ -737,3 +741,5 @@
+@@ -720,3 +724,5 @@
  }  // namespace compiler
  }  // namespace internal
  }  // namespace v8
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/compiler/x64/linkage-x64.cc	2014-08-02 15:25:15.000000000 +0800
-+++ src/compiler/x64/linkage-x64.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/compiler/x64/linkage-x64.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/compiler/x64/linkage-x64.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -4,6 +4,8 @@
  
  #include "src/v8.h"
@@ -367,14 +367,14 @@
  #include "src/assembler.h"
  #include "src/code-stubs.h"
  #include "src/compiler/linkage.h"
-@@ -83,3 +85,5 @@
+@@ -80,3 +82,5 @@
  }
  }
  }  // namespace v8::internal::compiler
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-freebsd.cc	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform-freebsd.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-freebsd.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-freebsd.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -5,6 +5,10 @@
  // Platform-specific code for FreeBSD goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
@@ -392,8 +392,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-linux.cc	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform-linux.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-linux.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-linux.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -5,6 +5,10 @@
  // Platform-specific code for Linux goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
@@ -411,8 +411,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-macos.cc	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform-macos.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-macos.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-macos.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -5,6 +5,10 @@
  // Platform-specific code for MacOS goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
@@ -430,8 +430,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-openbsd.cc	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform-openbsd.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-openbsd.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-openbsd.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -5,6 +5,10 @@
  // Platform-specific code for OpenBSD and NetBSD goes here. For the
  // POSIX-compatible parts, the implementation is in platform-posix.cc.
@@ -449,8 +449,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-posix.cc	2014-07-10 13:47:16.000000000 +0800
-+++ src/base/platform/platform-posix.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-posix.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-posix.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -1,3 +1,6 @@
 +
 +#ifndef WIN32
@@ -491,8 +491,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-qnx.cc	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform-qnx.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-qnx.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-qnx.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -5,6 +5,10 @@
  // Platform-specific code for QNX goes here. For the POSIX-compatible
  // parts the implementation is in platform-posix.cc.
@@ -510,8 +510,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-solaris.cc	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform-solaris.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-solaris.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-solaris.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -5,6 +5,10 @@
  // Platform-specific code for Solaris 10 goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
@@ -529,8 +529,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-win32.cc	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform-win32.cc	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform-win32.cc	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform-win32.cc	2014-08-09 17:38:25.000000000 +0800
 @@ -1,3 +1,6 @@
 +
 +#ifdef WIN32
@@ -570,8 +570,8 @@
  } }  // namespace v8::base
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/base/platform/platform.h	2014-07-05 18:20:51.000000000 +0800
-+++ src/base/platform/platform.h	2014-08-02 16:03:39.000000000 +0800
+--- /Users/lion/Downloads/source/js/v8/src/base/platform/platform.h	2014-08-07 16:31:56.000000000 +0800
++++ src/base/platform/platform.h	2014-08-09 17:38:25.000000000 +0800
 @@ -77,6 +77,8 @@
  // ----------------------------------------------------------------------------
  // Fast TLS support

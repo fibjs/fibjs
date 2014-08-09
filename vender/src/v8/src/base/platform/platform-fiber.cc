@@ -54,7 +54,6 @@ static void* ThreadEntry(void* arg)
 	Thread* thread = reinterpret_cast<Thread*>(arg);
 
 	thread->data()->thread_ = exlib::Fiber::Current();
-	ASSERT(thread->data()->thread_ != NULL);
 	thread->Run();
 	return NULL;
 }

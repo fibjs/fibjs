@@ -2226,12 +2226,6 @@ class V8_EXPORT Object : public Value {
   Local<String> ObjectProtoToString();
 
   /**
-   * Returns the function invoked as a constructor for this object.
-   * May be the null value.
-   */
-  Local<Value> GetConstructor();
-
-  /**
    * Returns the name of the function invoked as a constructor for this object.
    */
   Local<String> GetConstructorName();
@@ -5120,7 +5114,8 @@ class V8_EXPORT TryCatch {
 
   /**
    * Clears any exceptions that may have been caught by this try/catch block.
-   * After this method has been called, HasCaught() will return false.
+   * After this method has been called, HasCaught() will return false. Cancels
+   * the scheduled exception if it is caught and ReThrow() is not called before.
    *
    * It is not necessary to clear a try/catch block before using it again; if
    * another exception is thrown the previously caught exception will just be
@@ -5163,6 +5158,8 @@ class V8_EXPORT TryCatch {
   }
 
  private:
+  void ResetInternal();
+
   // Make it hard to create heap-allocated TryCatch blocks.
   TryCatch(const TryCatch&);
   void operator=(const TryCatch&);

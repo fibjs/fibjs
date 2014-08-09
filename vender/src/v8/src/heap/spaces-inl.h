@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_SPACES_INL_H_
-#define V8_SPACES_INL_H_
+#ifndef V8_HEAP_SPACES_INL_H_
+#define V8_HEAP_SPACES_INL_H_
 
+#include "src/heap/spaces.h"
 #include "src/heap-profiler.h"
 #include "src/isolate.h"
-#include "src/spaces.h"
 #include "src/v8memory.h"
 
 namespace v8 {
@@ -31,16 +31,14 @@ void Bitmap::Clear(MemoryChunk* chunk) {
 PageIterator::PageIterator(PagedSpace* space)
     : space_(space),
       prev_page_(&space->anchor_),
-      next_page_(prev_page_->next_page()) { }
+      next_page_(prev_page_->next_page()) {}
 
 
-bool PageIterator::has_next() {
-  return next_page_ != &space_->anchor_;
-}
+bool PageIterator::has_next() { return next_page_ != &space_->anchor_; }
 
 
 Page* PageIterator::next() {
-  ASSERT(has_next());
+  DCHECK(has_next());
   prev_page_ = next_page_;
   next_page_ = next_page_->next_page();
   return prev_page_;
@@ -54,12 +52,12 @@ Page* PageIterator::next() {
 NewSpacePageIterator::NewSpacePageIterator(NewSpace* space)
     : prev_page_(NewSpacePage::FromAddress(space->ToSpaceStart())->prev_page()),
       next_page_(NewSpacePage::FromAddress(space->ToSpaceStart())),
-      last_page_(NewSpacePage::FromLimit(space->ToSpaceEnd())) { }
+      last_page_(NewSpacePage::FromLimit(space->ToSpaceEnd())) {}
 
 NewSpacePageIterator::NewSpacePageIterator(SemiSpace* space)
     : prev_page_(space->anchor()),
       next_page_(prev_page_->next_page()),
-      last_page_(prev_page_->prev_page()) { }
+      last_page_(prev_page_->prev_page()) {}
 
 NewSpacePageIterator::NewSpacePageIterator(Address start, Address limit)
     : prev_page_(NewSpacePage::FromAddress(start)->prev_page()),
@@ -69,13 +67,11 @@ NewSpacePageIterator::NewSpacePageIterator(Address start, Address limit)
 }
 
 
-bool NewSpacePageIterator::has_next() {
-  return prev_page_ != last_page_;
-}
+bool NewSpacePageIterator::has_next() { return prev_page_ != last_page_; }
 
 
 NewSpacePage* NewSpacePageIterator::next() {
-  ASSERT(has_next());
+  DCHECK(has_next());
   prev_page_ = next_page_;
   next_page_ = next_page_->next_page();
   return prev_page_;
@@ -93,9 +89,9 @@ HeapObject* HeapObjectIterator::FromCurrentPage() {
     HeapObject* obj = HeapObject::FromAddress(cur_addr_);
     int obj_size = (size_func_ == NULL) ? obj->Size() : size_func_(obj);
     cur_addr_ += obj_size;
-    ASSERT(cur_addr_ <= cur_end_);
+    DCHECK(cur_addr_ <= cur_end_);
     if (!obj->IsFiller()) {
-      ASSERT_OBJECT_SIZE(obj_size);
+      DCHECK_OBJECT_SIZE(obj_size);
       return obj;
     }
   }
@@ -113,8 +109,7 @@ void MemoryAllocator::Protect(Address start, size_t size) {
 }
 
 
-void MemoryAllocator::Unprotect(Address start,
-                                size_t size,
+void MemoryAllocator::Unprotect(Address start, size_t size,
                                 Executability executable) {
   base::OS::Unprotect(start, size, executable);
 }
@@ -137,13 +132,11 @@ void MemoryAllocator::UnprotectChunkFromPage(Page* page) {
 
 // --------------------------------------------------------------------------
 // PagedSpace
-Page* Page::Initialize(Heap* heap,
-                       MemoryChunk* chunk,
-                       Executability executable,
+Page* Page::Initialize(Heap* heap, MemoryChunk* chunk, Executability executable,
                        PagedSpace* owner) {
   Page* page = reinterpret_cast<Page*>(chunk);
-  ASSERT(page->area_size() <= kMaxRegularHeapObjectSize);
-  ASSERT(chunk->owner() == owner);
+  DCHECK(page->area_size() <= kMaxRegularHeapObjectSize);
+  DCHECK(chunk->owner() == owner);
   owner->IncreaseCapacity(page->area_size());
   owner->Free(page->area_start(), page->area_size());
 
@@ -209,29 +202,29 @@ PointerChunkIterator::PointerChunkIterator(Heap* heap)
     : state_(kOldPointerState),
       old_pointer_iterator_(heap->old_pointer_space()),
       map_iterator_(heap->map_space()),
-      lo_iterator_(heap->lo_space()) { }
+      lo_iterator_(heap->lo_space()) {}
 
 
 Page* Page::next_page() {
-  ASSERT(next_chunk()->owner() == owner());
+  DCHECK(next_chunk()->owner() == owner());
   return static_cast<Page*>(next_chunk());
 }
 
 
 Page* Page::prev_page() {
-  ASSERT(prev_chunk()->owner() == owner());
+  DCHECK(prev_chunk()->owner() == owner());
   return static_cast<Page*>(prev_chunk());
 }
 
 
 void Page::set_next_page(Page* page) {
-  ASSERT(page->owner() == owner());
+  DCHECK(page->owner() == owner());
   set_next_chunk(page);
 }
 
 
 void Page::set_prev_page(Page* page) {
-  ASSERT(page->owner() == owner());
+  DCHECK(page->owner() == owner());
   set_prev_chunk(page);
 }
 
@@ -285,7 +278,7 @@ AllocationResult NewSpace::AllocateRaw(int size_in_bytes) {
 
   HeapObject* obj = HeapObject::FromAddress(old_top);
   allocation_info_.set_top(allocation_info_.top() + size_in_bytes);
-  ASSERT_SEMISPACE_ALLOCATION_INFO(allocation_info_, to_space_);
+  DCHECK_SEMISPACE_ALLOCATION_INFO(allocation_info_, to_space_);
 
   return obj;
 }
@@ -305,11 +298,11 @@ intptr_t LargeObjectSpace::Available() {
 bool FreeListNode::IsFreeListNode(HeapObject* object) {
   Map* map = object->map();
   Heap* heap = object->GetHeap();
-  return map == heap->raw_unchecked_free_space_map()
-      || map == heap->raw_unchecked_one_pointer_filler_map()
-      || map == heap->raw_unchecked_two_pointer_filler_map();
+  return map == heap->raw_unchecked_free_space_map() ||
+         map == heap->raw_unchecked_one_pointer_filler_map() ||
+         map == heap->raw_unchecked_two_pointer_filler_map();
 }
+}
+}  // namespace v8::internal
 
-} }  // namespace v8::internal
-
-#endif  // V8_SPACES_INL_H_
+#endif  // V8_HEAP_SPACES_INL_H_

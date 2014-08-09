@@ -16,12 +16,10 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-AstGraphBuilder::AstGraphBuilder(CompilationInfo* info, JSGraph* jsgraph,
-                                 SourcePositionTable* source_positions)
+AstGraphBuilder::AstGraphBuilder(CompilationInfo* info, JSGraph* jsgraph)
     : StructuredGraphBuilder(jsgraph->graph(), jsgraph->common()),
       info_(info),
       jsgraph_(jsgraph),
-      source_positions_(source_positions),
       globals_(0, info->zone()),
       breakable_(NULL),
       execution_context_(NULL) {
@@ -33,7 +31,7 @@ Node* AstGraphBuilder::GetFunctionClosure() {
   if (!function_closure_.is_set()) {
     // Parameter -1 is special for the function closure
     Operator* op = common()->Parameter(-1);
-    Node* node = NewNode(op);
+    Node* node = NewNode(op, graph()->start());
     function_closure_.set(node);
   }
   return function_closure_.get();
@@ -44,7 +42,7 @@ Node* AstGraphBuilder::GetFunctionContext() {
   if (!function_context_.is_set()) {
     // Parameter (arity + 1) is special for the outer context of the function
     Operator* op = common()->Parameter(info()->num_parameters() + 1);
-    Node* node = NewNode(op);
+    Node* node = NewNode(op, graph()->start());
     function_context_.set(node);
   }
   return function_context_.get();
@@ -53,14 +51,11 @@ Node* AstGraphBuilder::GetFunctionContext() {
 
 bool AstGraphBuilder::CreateGraph() {
   Scope* scope = info()->scope();
-  ASSERT(graph() != NULL);
-
-  SourcePositionTable::Scope start_pos(
-      source_positions(),
-      SourcePosition(info()->shared_info()->start_position()));
+  DCHECK(graph() != NULL);
 
   // Set up the basic structure of the graph.
-  graph()->SetStart(graph()->NewNode(common()->Start()));
+  int parameter_count = info()->num_parameters();
+  graph()->SetStart(graph()->NewNode(common()->Start(parameter_count)));
 
   // Initialize the top-level environment.
   Environment env(this, scope, graph()->start());
@@ -97,10 +92,6 @@ bool AstGraphBuilder::CreateGraph() {
   VisitStatements(info()->function()->body());
   if (HasStackOverflow()) return false;
 
-  SourcePositionTable::Scope end_pos(
-      source_positions(),
-      SourcePosition(info()->shared_info()->end_position() - 1));
-
   // Emit tracing call if requested to do so.
   if (FLAG_trace) {
     // TODO(mstarzinger): Only traces implicit return.
@@ -127,7 +118,7 @@ enum LhsKind { VARIABLE, NAMED_PROPERTY, KEYED_PROPERTY };
 // Determine the left-hand side kind of an assignment.
 static LhsKind DetermineLhsKind(Expression* expr) {
   Property* property = expr->AsProperty();
-  ASSERT(expr->IsValidReferenceExpression());
+  DCHECK(expr->IsValidReferenceExpression());
   LhsKind lhs_kind =
       (property == NULL) ? VARIABLE : (property->key()->IsPropertyName())
                                           ? NAMED_PROPERTY
@@ -171,19 +162,21 @@ AstGraphBuilder::Environment::Environment(AstGraphBuilder* builder,
       parameters_node_(NULL),
       locals_node_(NULL),
       stack_node_(NULL),
-      parameters_dirty_(false),
-      locals_dirty_(false),
-      stack_dirty_(false) {
-  ASSERT_EQ(scope->num_parameters() + 1, parameters_count());
+      parameters_dirty_(true),
+      locals_dirty_(true),
+      stack_dirty_(true) {
+  DCHECK_EQ(scope->num_parameters() + 1, parameters_count());
 
   // Bind the receiver variable.
-  Node* receiver = builder->graph()->NewNode(common()->Parameter(0));
+  Node* receiver = builder->graph()->NewNode(common()->Parameter(0),
+                                             builder->graph()->start());
   values()->push_back(receiver);
 
   // Bind all parameter variables. The parameter indices are shifted by 1
   // (receiver is parameter index -1 but environment index 0).
   for (int i = 0; i < scope->num_parameters(); ++i) {
-    Node* parameter = builder->graph()->NewNode(common()->Parameter(i + 1));
+    Node* parameter = builder->graph()->NewNode(common()->Parameter(i + 1),
+                                                builder->graph()->start());
     values()->push_back(parameter);
   }
 
@@ -207,22 +200,40 @@ AstGraphBuilder::Environment::Environment(const Environment& copy)
 
 
 Node* AstGraphBuilder::Environment::Checkpoint(BailoutId ast_id) {
-  UNIMPLEMENTED();  // TODO(mstarzinger): Implementation below is incomplete.
   if (parameters_dirty_) {
-    Node** parameters = &values()->front();
-    parameters_node_ = graph()->NewNode(NULL, parameters_count(), parameters);
+    Operator* op = common()->StateValues(parameters_count());
+    if (parameters_count() != 0) {
+      Node** parameters = &values()->front();
+      parameters_node_ = graph()->NewNode(op, parameters_count(), parameters);
+    } else {
+      parameters_node_ = graph()->NewNode(op);
+    }
     parameters_dirty_ = false;
   }
   if (locals_dirty_) {
-    Node** locals = &values()->at(parameters_count_);
-    locals_node_ = graph()->NewNode(NULL, locals_count(), locals);
+    Operator* op = common()->StateValues(locals_count());
+    if (locals_count() != 0) {
+      Node** locals = &values()->at(parameters_count_);
+      locals_node_ = graph()->NewNode(op, locals_count(), locals);
+    } else {
+      locals_node_ = graph()->NewNode(op);
+    }
     locals_dirty_ = false;
   }
-  FrameStateDescriptor descriptor(ast_id);
-  // TODO(jarin): add environment to the node.
-  Operator* op = common()->FrameState(descriptor);
+  if (stack_dirty_) {
+    Operator* op = common()->StateValues(stack_height());
+    if (stack_height() != 0) {
+      Node** stack = &values()->at(parameters_count_ + locals_count_);
+      stack_node_ = graph()->NewNode(op, stack_height(), stack);
+    } else {
+      stack_node_ = graph()->NewNode(op);
+    }
+    stack_dirty_ = false;
+  }
 
-  return graph()->NewNode(op);
+  Operator* op = common()->FrameState(ast_id);
+
+  return graph()->NewNode(op, parameters_node_, locals_node_, stack_node_);
 }
 
 
@@ -242,17 +253,17 @@ AstGraphBuilder::AstContext::~AstContext() {
 
 
 AstGraphBuilder::AstEffectContext::~AstEffectContext() {
-  ASSERT(environment()->stack_height() == original_height_);
+  DCHECK(environment()->stack_height() == original_height_);
 }
 
 
 AstGraphBuilder::AstValueContext::~AstValueContext() {
-  ASSERT(environment()->stack_height() == original_height_ + 1);
+  DCHECK(environment()->stack_height() == original_height_ + 1);
 }
 
 
 AstGraphBuilder::AstTestContext::~AstTestContext() {
-  ASSERT(environment()->stack_height() == original_height_ + 1);
+  DCHECK(environment()->stack_height() == original_height_ + 1);
 }
 
 
@@ -291,7 +302,7 @@ AstGraphBuilder::BreakableScope* AstGraphBuilder::BreakableScope::FindBreakable(
     owner_->environment()->Drop(current->drop_extra_);
     current = current->next_;
   }
-  ASSERT(current != NULL);  // Always found (unless stack is malformed).
+  DCHECK(current != NULL);  // Always found (unless stack is malformed).
   return current;
 }
 
@@ -383,7 +394,7 @@ void AstGraphBuilder::VisitFunctionDeclaration(FunctionDeclaration* decl) {
   switch (variable->location()) {
     case Variable::UNALLOCATED: {
       Handle<SharedFunctionInfo> function =
-          Compiler::BuildFunctionInfo(decl->fun(), info()->script());
+          Compiler::BuildFunctionInfo(decl->fun(), info()->script(), info());
       // Check for stack-overflow exception.
       if (function.is_null()) return SetStackOverflow();
       globals()->Add(variable->name(), zone());
@@ -784,7 +795,7 @@ void AstGraphBuilder::VisitFunctionLiteral(FunctionLiteral* expr) {
   Handle<SharedFunctionInfo> shared_info =
       SearchSharedFunctionInfo(info()->shared_info()->code(), expr);
   if (shared_info.is_null()) {
-    shared_info = Compiler::BuildFunctionInfo(expr, info()->script());
+    shared_info = Compiler::BuildFunctionInfo(expr, info()->script(), info());
     CHECK(!shared_info.is_null());  // TODO(mstarzinger): Set stack overflow?
   }
 
@@ -875,7 +886,7 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
       case ObjectLiteral::Property::CONSTANT:
         UNREACHABLE();
       case ObjectLiteral::Property::MATERIALIZED_LITERAL:
-        ASSERT(!CompileTimeValue::IsCompileTimeValue(property->value()));
+        DCHECK(!CompileTimeValue::IsCompileTimeValue(property->value()));
       // Fall through.
       case ObjectLiteral::Property::COMPUTED: {
         // It is safe to use [[Put]] here because the boilerplate already
@@ -985,7 +996,7 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
 
 
 void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value) {
-  ASSERT(expr->IsValidReferenceExpression());
+  DCHECK(expr->IsValidReferenceExpression());
 
   // Left-hand side can only be a property, a global or a variable slot.
   Property* property = expr->AsProperty();
@@ -1023,7 +1034,7 @@ void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value) {
 
 
 void AstGraphBuilder::VisitAssignment(Assignment* expr) {
-  ASSERT(expr->target()->IsValidReferenceExpression());
+  DCHECK(expr->target()->IsValidReferenceExpression());
 
   // Left-hand side can only be a property, a global or a variable slot.
   Property* property = expr->target()->AsProperty();
@@ -1162,7 +1173,7 @@ void AstGraphBuilder::VisitCall(Call* expr) {
     }
     case Call::LOOKUP_SLOT_CALL: {
       Variable* variable = callee->AsVariableProxy()->var();
-      ASSERT(variable->location() == Variable::LOOKUP);
+      DCHECK(variable->location() == Variable::LOOKUP);
       Node* name = jsgraph()->Constant(variable->name());
       Operator* op = javascript()->Runtime(Runtime::kLoadLookupSlot, 2);
       Node* pair = NewNode(op, current_context(), name);
@@ -1284,7 +1295,7 @@ void AstGraphBuilder::VisitCallRuntime(CallRuntime* expr) {
   // Handle calls to runtime functions implemented in JavaScript separately as
   // the call follows JavaScript ABI and the callee is statically unknown.
   if (expr->is_jsruntime()) {
-    ASSERT(function == NULL && expr->name()->length() > 0);
+    DCHECK(function == NULL && expr->name()->length() > 0);
     return VisitCallJSRuntime(expr);
   }
 
@@ -1319,7 +1330,7 @@ void AstGraphBuilder::VisitUnaryOperation(UnaryOperation* expr) {
 
 
 void AstGraphBuilder::VisitCountOperation(CountOperation* expr) {
-  ASSERT(expr->expression()->IsValidReferenceExpression());
+  DCHECK(expr->expression()->IsValidReferenceExpression());
 
   // Left-hand side can only be a property, a global or a variable slot.
   Property* property = expr->expression()->AsProperty();
@@ -1473,7 +1484,7 @@ void AstGraphBuilder::VisitCaseClause(CaseClause* expr) { UNREACHABLE(); }
 
 
 void AstGraphBuilder::VisitDeclarations(ZoneList<Declaration*>* declarations) {
-  ASSERT(globals()->is_empty());
+  DCHECK(globals()->is_empty());
   AstVisitor::VisitDeclarations(declarations);
   if (globals()->is_empty()) return;
   Handle<FixedArray> data =
@@ -1509,7 +1520,7 @@ void AstGraphBuilder::VisitDelete(UnaryOperation* expr) {
     // Delete of an unqualified identifier is only allowed in classic mode but
     // deleting "this" is allowed in all language modes.
     Variable* variable = expr->expression()->AsVariableProxy()->var();
-    ASSERT(strict_mode() == SLOPPY || variable->is_this());
+    DCHECK(strict_mode() == SLOPPY || variable->is_this());
     value = BuildVariableDelete(variable);
   } else if (expr->expression()->IsProperty()) {
     Property* property = expr->expression()->AsProperty();
@@ -1591,7 +1602,7 @@ void AstGraphBuilder::VisitLogicalExpression(BinaryOperation* expr) {
 
 
 Node* AstGraphBuilder::ProcessArguments(Operator* op, int arity) {
-  ASSERT(environment()->stack_height() >= arity);
+  DCHECK(environment()->stack_height() >= arity);
   Node** all = info()->zone()->NewArray<Node*>(arity);  // XXX: alloca?
   for (int i = arity - 1; i >= 0; --i) {
     all[i] = environment()->Pop();
@@ -1618,9 +1629,9 @@ Node* AstGraphBuilder::BuildLocalFunctionContext(Node* context, Node* closure) {
     if (!variable->IsContextSlot()) continue;
     // Temporary parameter node. The parameter indices are shifted by 1
     // (receiver is parameter index -1 but environment index 0).
-    Node* parameter = NewNode(common()->Parameter(i + 1));
+    Node* parameter = NewNode(common()->Parameter(i + 1), graph()->start());
     // Context variable (at bottom of the context chain).
-    ASSERT_EQ(0, info()->scope()->ContextChainLength(variable->scope()));
+    DCHECK_EQ(0, info()->scope()->ContextChainLength(variable->scope()));
     Operator* op = javascript()->StoreContext(0, variable->index());
     NewNode(op, local_context, parameter);
   }
@@ -1638,7 +1649,7 @@ Node* AstGraphBuilder::BuildArgumentsObject(Variable* arguments) {
   Node* object = NewNode(op, callee);
 
   // Assign the object to the arguments variable.
-  ASSERT(arguments->IsContextSlot() || arguments->IsStackAllocated());
+  DCHECK(arguments->IsContextSlot() || arguments->IsStackAllocated());
   BuildVariableAssignment(arguments, object, Token::ASSIGN);
 
   return object;
@@ -1682,21 +1693,9 @@ Node* AstGraphBuilder::BuildVariableLoad(Variable* variable,
   switch (variable->location()) {
     case Variable::UNALLOCATED: {
       // Global var, const, or let variable.
-      if (!info()->is_native()) {
-        // TODO(turbofan): This special case is needed only because we don't
-        // use LoadICs yet. Remove this once LoadNamed is lowered to an IC.
-        Node* name = jsgraph()->Constant(variable->name());
-        Runtime::FunctionId function_id =
-            (contextual_mode == CONTEXTUAL)
-                ? Runtime::kLoadLookupSlot
-                : Runtime::kLoadLookupSlotNoReferenceError;
-        Operator* op = javascript()->Runtime(function_id, 2);
-        Node* pair = NewNode(op, current_context(), name);
-        return NewNode(common()->Projection(0), pair);
-      }
       Node* global = BuildLoadGlobalObject();
       PrintableUnique<Name> name = MakeUnique(variable->name());
-      Operator* op = javascript()->LoadNamed(name);
+      Operator* op = javascript()->LoadNamed(name, contextual_mode);
       return NewNode(op, global);
     }
     case Variable::PARAMETER:
@@ -1792,14 +1791,6 @@ Node* AstGraphBuilder::BuildVariableAssignment(Variable* variable, Node* value,
   switch (variable->location()) {
     case Variable::UNALLOCATED: {
       // Global var, const, or let variable.
-      if (!info()->is_native()) {
-        // TODO(turbofan): This special case is needed only because we don't
-        // use StoreICs yet. Remove this once StoreNamed is lowered to an IC.
-        Node* name = jsgraph()->Constant(variable->name());
-        Node* strict = jsgraph()->Constant(strict_mode());
-        Operator* op = javascript()->Runtime(Runtime::kStoreLookupSlot, 4);
-        return NewNode(op, value, current_context(), name, strict);
-      }
       Node* global = BuildLoadGlobalObject();
       PrintableUnique<Name> name = MakeUnique(variable->name());
       Operator* op = javascript()->StoreNamed(name);
@@ -1957,10 +1948,9 @@ Node* AstGraphBuilder::BuildBinaryOp(Node* left, Node* right, Token::Value op) {
 void AstGraphBuilder::BuildLazyBailout(Node* node, BailoutId ast_id) {
   if (OperatorProperties::CanLazilyDeoptimize(node->op())) {
     // The deopting node should have an outgoing control dependency.
-    ASSERT(GetControlDependency() == node);
+    DCHECK(environment()->GetControlDependency() == node);
 
-    StructuredGraphBuilder::Environment* continuation_env =
-        environment_internal();
+    StructuredGraphBuilder::Environment* continuation_env = environment();
     // Create environment for the deoptimization block, and build the block.
     StructuredGraphBuilder::Environment* deopt_env =
         CopyEnvironment(continuation_env);
@@ -1968,8 +1958,7 @@ void AstGraphBuilder::BuildLazyBailout(Node* node, BailoutId ast_id) {
 
     NewNode(common()->LazyDeoptimization());
 
-    FrameStateDescriptor stateDescriptor(ast_id);
-    Node* state_node = NewNode(common()->FrameState(stateDescriptor));
+    Node* state_node = environment()->Checkpoint(ast_id);
 
     Node* deoptimize_node = NewNode(common()->Deoptimize(), state_node);
 

@@ -136,7 +136,7 @@ void CodeGenerator::AssembleInstruction(Instruction* instr) {
 void CodeGenerator::AssembleSourcePosition(SourcePositionInstruction* instr) {
   SourcePosition source_position = instr->source_position();
   if (source_position == current_source_position_) return;
-  ASSERT(!source_position.IsInvalid());
+  DCHECK(!source_position.IsInvalid());
   if (!source_position.IsUnknown()) {
     int code_pos = source_position.raw();
     masm()->positions_recorder()->RecordPosition(source_position.raw());
@@ -213,8 +213,8 @@ void CodeGenerator::PopulateDeoptimizationData(Handle<Code> code_object) {
 
   // Populate deoptimization entries.
   for (int i = 0; i < deopt_count; i++) {
-    FrameStateDescriptor descriptor = code()->GetDeoptimizationEntry(i);
-    data->SetAstId(i, descriptor.bailout_id());
+    FrameStateDescriptor* descriptor = code()->GetDeoptimizationEntry(i);
+    data->SetAstId(i, descriptor->bailout_id());
     data->SetTranslationIndex(i, Smi::FromInt(0));
     data->SetArgumentsStackHeight(i, Smi::FromInt(0));
     data->SetPc(i, Smi::FromInt(-1));
@@ -223,7 +223,7 @@ void CodeGenerator::PopulateDeoptimizationData(Handle<Code> code_object) {
   // Populate the return address patcher entries.
   for (int i = 0; i < patch_count; ++i) {
     LazyDeoptimizationEntry entry = lazy_deoptimization_entries_[i];
-    ASSERT(entry.position_after_call() == entry.continuation()->pos() ||
+    DCHECK(entry.position_after_call() == entry.continuation()->pos() ||
            IsNopForSmiCodeInlining(code_object, entry.position_after_call(),
                                    entry.continuation()->pos()));
     data->SetReturnAddressPc(i, Smi::FromInt(entry.position_after_call()));
@@ -267,27 +267,65 @@ int CodeGenerator::DefineDeoptimizationLiteral(Handle<Object> literal) {
 void CodeGenerator::BuildTranslation(Instruction* instr,
                                      int deoptimization_id) {
   // We should build translation only once.
-  ASSERT_EQ(NULL, deoptimization_states_[deoptimization_id]);
+  DCHECK_EQ(NULL, deoptimization_states_[deoptimization_id]);
 
-  // TODO(jarin) This should build translation codes from the instruction inputs
-  // and from the framestate descriptor. At the moment, we only create a dummy
-  // translation.
-
-  FrameStateDescriptor descriptor =
+  FrameStateDescriptor* descriptor =
       code()->GetDeoptimizationEntry(deoptimization_id);
   Translation translation(&translations_, 1, 1, zone());
-  translation.BeginJSFrame(descriptor.bailout_id(), Translation::kSelfLiteralId,
-                           0);
-  int undefined_literal_id =
-      DefineDeoptimizationLiteral(isolate()->factory()->undefined_value());
-  translation.StoreLiteral(undefined_literal_id);
+  translation.BeginJSFrame(descriptor->bailout_id(),
+                           Translation::kSelfLiteralId,
+                           descriptor->size() - descriptor->parameters_count());
+
+  for (int i = 0; i < descriptor->size(); i++) {
+    AddTranslationForOperand(&translation, instr, instr->InputAt(i));
+  }
 
   deoptimization_states_[deoptimization_id] =
       new (zone()) DeoptimizationState(translation.index());
 }
 
 
-#if !V8_TURBOFAN_TARGET
+void CodeGenerator::AddTranslationForOperand(Translation* translation,
+                                             Instruction* instr,
+                                             InstructionOperand* op) {
+  if (op->IsStackSlot()) {
+    translation->StoreStackSlot(op->index());
+  } else if (op->IsDoubleStackSlot()) {
+    translation->StoreDoubleStackSlot(op->index());
+  } else if (op->IsRegister()) {
+    InstructionOperandConverter converter(this, instr);
+    translation->StoreRegister(converter.ToRegister(op));
+  } else if (op->IsDoubleRegister()) {
+    InstructionOperandConverter converter(this, instr);
+    translation->StoreDoubleRegister(converter.ToDoubleRegister(op));
+  } else if (op->IsImmediate()) {
+    InstructionOperandConverter converter(this, instr);
+    Constant constant = converter.ToConstant(op);
+    Handle<Object> constant_object;
+    switch (constant.type()) {
+      case Constant::kInt32:
+        constant_object =
+            isolate()->factory()->NewNumberFromInt(constant.ToInt32());
+        break;
+      case Constant::kFloat64:
+        constant_object =
+            isolate()->factory()->NewHeapNumber(constant.ToFloat64());
+        break;
+      case Constant::kHeapObject:
+        constant_object = constant.ToHeapObject();
+        break;
+      default:
+        UNREACHABLE();
+    }
+    int literal_id = DefineDeoptimizationLiteral(constant_object);
+    translation->StoreLiteral(literal_id);
+  } else {
+    UNREACHABLE();
+  }
+}
+
+#if !V8_TURBOFAN_BACKEND
+
 void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   UNIMPLEMENTED();
 }
@@ -334,8 +372,7 @@ bool CodeGenerator::IsNopForSmiCodeInlining(Handle<Code> code, int start_pc,
 }
 #endif
 
-#endif
-
+#endif  // !V8_TURBOFAN_BACKEND
 
 }  // namespace compiler
 }  // namespace internal

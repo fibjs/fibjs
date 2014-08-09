@@ -253,46 +253,12 @@ static inline bool TryMatchImmediateOrShift(InstructionSelector* selector,
 }
 
 
-// Shared routine for multiple binary operations.
 static void VisitBinop(InstructionSelector* selector, Node* node,
-                       InstructionCode opcode, InstructionCode reverse_opcode) {
+                       InstructionCode opcode, InstructionCode reverse_opcode,
+                       FlagsContinuation* cont) {
   ArmOperandGenerator g(selector);
   Int32BinopMatcher m(node);
-  InstructionOperand* inputs[3];
-  size_t input_count = 0;
-  InstructionOperand* outputs[1] = {g.DefineAsRegister(node)};
-  const size_t output_count = ARRAY_SIZE(outputs);
-
-  if (TryMatchImmediateOrShift(selector, &opcode, m.right().node(),
-                               &input_count, &inputs[1])) {
-    inputs[0] = g.UseRegister(m.left().node());
-    input_count++;
-  } else if (TryMatchImmediateOrShift(selector, &reverse_opcode,
-                                      m.left().node(), &input_count,
-                                      &inputs[1])) {
-    inputs[0] = g.UseRegister(m.right().node());
-    opcode = reverse_opcode;
-    input_count++;
-  } else {
-    opcode |= AddressingModeField::encode(kMode_Operand2_R);
-    inputs[input_count++] = g.UseRegister(m.left().node());
-    inputs[input_count++] = g.UseRegister(m.right().node());
-  }
-
-  ASSERT_NE(0, input_count);
-  ASSERT_GE(ARRAY_SIZE(inputs), input_count);
-  ASSERT_NE(kMode_None, AddressingModeField::decode(opcode));
-
-  selector->Emit(opcode, output_count, outputs, input_count, inputs);
-}
-
-
-static void VisitBinopWithOverflow(InstructionSelector* selector, Node* node,
-                                   InstructionCode opcode,
-                                   InstructionCode reverse_opcode) {
-  ArmOperandGenerator g(selector);
-  Int32BinopMatcher m(node);
-  InstructionOperand* inputs[3];
+  InstructionOperand* inputs[5];
   size_t input_count = 0;
   InstructionOperand* outputs[2];
   size_t output_count = 0;
@@ -313,25 +279,32 @@ static void VisitBinopWithOverflow(InstructionSelector* selector, Node* node,
     inputs[input_count++] = g.UseRegister(m.right().node());
   }
 
-  // Define outputs depending on the projections.
-  Node* projections[2];
-  node->CollectProjections(ARRAY_SIZE(projections), projections);
-  if (projections[0]) {
-    outputs[output_count++] = g.DefineAsRegister(projections[0]);
-  }
-  if (projections[1]) {
-    opcode |= FlagsModeField::encode(kFlags_set);
-    opcode |= FlagsConditionField::encode(kOverflow);
-    outputs[output_count++] = g.DefineAsRegister(projections[1]);
+  if (cont->IsBranch()) {
+    inputs[input_count++] = g.Label(cont->true_block());
+    inputs[input_count++] = g.Label(cont->false_block());
   }
 
-  ASSERT_NE(0, input_count);
-  ASSERT_NE(0, output_count);
-  ASSERT_GE(ARRAY_SIZE(inputs), input_count);
-  ASSERT_GE(ARRAY_SIZE(outputs), output_count);
-  ASSERT_NE(kMode_None, AddressingModeField::decode(opcode));
+  outputs[output_count++] = g.DefineAsRegister(node);
+  if (cont->IsSet()) {
+    outputs[output_count++] = g.DefineAsRegister(cont->result());
+  }
 
-  selector->Emit(opcode, output_count, outputs, input_count, inputs);
+  DCHECK_NE(0, input_count);
+  DCHECK_NE(0, output_count);
+  DCHECK_GE(ARRAY_SIZE(inputs), input_count);
+  DCHECK_GE(ARRAY_SIZE(outputs), output_count);
+  DCHECK_NE(kMode_None, AddressingModeField::decode(opcode));
+
+  Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
+                                      outputs, input_count, inputs);
+  if (cont->IsBranch()) instr->MarkAsControl();
+}
+
+
+static void VisitBinop(InstructionSelector* selector, Node* node,
+                       InstructionCode opcode, InstructionCode reverse_opcode) {
+  FlagsContinuation cont;
+  VisitBinop(selector, node, opcode, reverse_opcode, &cont);
 }
 
 
@@ -387,7 +360,7 @@ void InstructionSelector::VisitStore(Node* node) {
   StoreRepresentation store_rep = OpParameter<StoreRepresentation>(node);
   MachineRepresentation rep = store_rep.rep;
   if (store_rep.write_barrier_kind == kFullWriteBarrier) {
-    ASSERT(rep == kMachineTagged);
+    DCHECK(rep == kMachineTagged);
     // TODO(dcarney): refactor RecordWrite function to take temp registers
     //                and pass them here instead of using fixed regs
     // TODO(dcarney): handle immediate indices.
@@ -397,7 +370,7 @@ void InstructionSelector::VisitStore(Node* node) {
          temps);
     return;
   }
-  ASSERT_EQ(kNoWriteBarrier, store_rep.write_barrier_kind);
+  DCHECK_EQ(kNoWriteBarrier, store_rep.write_barrier_kind);
   InstructionOperand* val = rep == kMachineFloat64 ? g.UseDoubleRegister(value)
                                                    : g.UseRegister(value);
 
@@ -468,12 +441,12 @@ void InstructionSelector::VisitWord32And(Node* node) {
       return;
     }
   }
-  if (CpuFeatures::IsSupported(ARMv7) && m.right().HasValue()) {
+  if (IsSupported(ARMv7) && m.right().HasValue()) {
     uint32_t value = m.right().Value();
     uint32_t width = CompilerIntrinsics::CountSetBits(value);
     uint32_t msb = CompilerIntrinsics::CountLeadingZeros(value);
     if (width != 0 && msb + width == 32) {
-      ASSERT_EQ(0, CompilerIntrinsics::CountTrailingZeros(value));
+      DCHECK_EQ(0, CompilerIntrinsics::CountTrailingZeros(value));
       if (m.left().IsWord32Shr()) {
         Int32BinopMatcher mleft(m.left().node());
         if (mleft.right().IsInRange(0, 31)) {
@@ -556,7 +529,7 @@ void InstructionSelector::VisitWord32Shl(Node* node) {
 void InstructionSelector::VisitWord32Shr(Node* node) {
   ArmOperandGenerator g(this);
   Int32BinopMatcher m(node);
-  if (CpuFeatures::IsSupported(ARMv7) && m.left().IsWord32And() &&
+  if (IsSupported(ARMv7) && m.left().IsWord32And() &&
       m.right().IsInRange(0, 31)) {
     int32_t lsb = m.right().Value();
     Int32BinopMatcher mleft(m.left().node());
@@ -565,7 +538,7 @@ void InstructionSelector::VisitWord32Shr(Node* node) {
       uint32_t width = CompilerIntrinsics::CountSetBits(value);
       uint32_t msb = CompilerIntrinsics::CountLeadingZeros(value);
       if (msb + width + lsb == 32) {
-        ASSERT_EQ(lsb, CompilerIntrinsics::CountTrailingZeros(value));
+        DCHECK_EQ(lsb, CompilerIntrinsics::CountTrailingZeros(value));
         Emit(kArmUbfx, g.DefineAsRegister(node),
              g.UseRegister(mleft.left().node()), g.TempImmediate(lsb),
              g.TempImmediate(width));
@@ -601,15 +574,10 @@ void InstructionSelector::VisitInt32Add(Node* node) {
 }
 
 
-void InstructionSelector::VisitInt32AddWithOverflow(Node* node) {
-  VisitBinopWithOverflow(this, node, kArmAdd, kArmAdd);
-}
-
-
 void InstructionSelector::VisitInt32Sub(Node* node) {
   ArmOperandGenerator g(this);
   Int32BinopMatcher m(node);
-  if (CpuFeatures::IsSupported(MLS) && m.right().IsInt32Mul() &&
+  if (IsSupported(MLS) && m.right().IsInt32Mul() &&
       CanCover(node, m.right().node())) {
     Int32BinopMatcher mright(m.right().node());
     Emit(kArmMls, g.DefineAsRegister(node), g.UseRegister(mright.left().node()),
@@ -617,11 +585,6 @@ void InstructionSelector::VisitInt32Sub(Node* node) {
     return;
   }
   VisitBinop(this, node, kArmSub, kArmRsb);
-}
-
-
-void InstructionSelector::VisitInt32SubWithOverflow(Node* node) {
-  VisitBinopWithOverflow(this, node, kArmSub, kArmRsb);
 }
 
 
@@ -656,7 +619,7 @@ static void EmitDiv(InstructionSelector* selector, ArchOpcode div_opcode,
                     InstructionOperand* left_operand,
                     InstructionOperand* right_operand) {
   ArmOperandGenerator g(selector);
-  if (CpuFeatures::IsSupported(SUDIV)) {
+  if (selector->IsSupported(SUDIV)) {
     selector->Emit(div_opcode, result_operand, left_operand, right_operand);
     return;
   }
@@ -703,7 +666,7 @@ static void VisitMod(InstructionSelector* selector, Node* node,
   InstructionOperand* right_operand = g.UseRegister(m.right().node());
   EmitDiv(selector, div_opcode, f64i32_opcode, i32f64_opcode, div_operand,
           left_operand, right_operand);
-  if (CpuFeatures::IsSupported(MLS)) {
+  if (selector->IsSupported(MLS)) {
     selector->Emit(kArmMls, result_operand, div_operand, right_operand,
                    left_operand);
     return;
@@ -858,23 +821,35 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
 
   call_instr->MarkAsCall();
   if (deoptimization != NULL) {
-    ASSERT(continuation != NULL);
+    DCHECK(continuation != NULL);
     call_instr->MarkAsControl();
   }
 
   // Caller clean up of stack for C-style calls.
   if (descriptor->kind() == CallDescriptor::kCallAddress &&
       buffer.pushed_count > 0) {
-    ASSERT(deoptimization == NULL && continuation == NULL);
+    DCHECK(deoptimization == NULL && continuation == NULL);
     Emit(kArmDrop | MiscField::encode(buffer.pushed_count), NULL);
   }
+}
+
+
+void InstructionSelector::VisitInt32AddWithOverflow(Node* node,
+                                                    FlagsContinuation* cont) {
+  VisitBinop(this, node, kArmAdd, kArmAdd, cont);
+}
+
+
+void InstructionSelector::VisitInt32SubWithOverflow(Node* node,
+                                                    FlagsContinuation* cont) {
+  VisitBinop(this, node, kArmSub, kArmRsb, cont);
 }
 
 
 // Shared routine for multiple compare operations.
 static void VisitWordCompare(InstructionSelector* selector, Node* node,
                              InstructionCode opcode, FlagsContinuation* cont,
-                             bool commutative, bool requires_output) {
+                             bool commutative) {
   ArmOperandGenerator g(selector);
   Int32BinopMatcher m(node);
   InstructionOperand* inputs[5];
@@ -898,19 +873,16 @@ static void VisitWordCompare(InstructionSelector* selector, Node* node,
   }
 
   if (cont->IsBranch()) {
-    if (requires_output) {
-      outputs[output_count++] = g.DefineAsRegister(node);
-    }
     inputs[input_count++] = g.Label(cont->true_block());
     inputs[input_count++] = g.Label(cont->false_block());
   } else {
-    ASSERT(cont->IsSet());
+    DCHECK(cont->IsSet());
     outputs[output_count++] = g.DefineAsRegister(cont->result());
   }
 
-  ASSERT_NE(0, input_count);
-  ASSERT_GE(ARRAY_SIZE(inputs), input_count);
-  ASSERT_GE(ARRAY_SIZE(outputs), output_count);
+  DCHECK_NE(0, input_count);
+  DCHECK_GE(ARRAY_SIZE(inputs), input_count);
+  DCHECK_GE(ARRAY_SIZE(outputs), output_count);
 
   Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
                                       outputs, input_count, inputs);
@@ -921,15 +893,15 @@ static void VisitWordCompare(InstructionSelector* selector, Node* node,
 void InstructionSelector::VisitWord32Test(Node* node, FlagsContinuation* cont) {
   switch (node->opcode()) {
     case IrOpcode::kInt32Add:
-      return VisitWordCompare(this, node, kArmCmn, cont, true, false);
+      return VisitWordCompare(this, node, kArmCmn, cont, true);
     case IrOpcode::kInt32Sub:
-      return VisitWordCompare(this, node, kArmCmp, cont, false, false);
+      return VisitWordCompare(this, node, kArmCmp, cont, false);
     case IrOpcode::kWord32And:
-      return VisitWordCompare(this, node, kArmTst, cont, true, false);
+      return VisitWordCompare(this, node, kArmTst, cont, true);
     case IrOpcode::kWord32Or:
-      return VisitWordCompare(this, node, kArmOrr, cont, true, true);
+      return VisitBinop(this, node, kArmOrr, kArmOrr, cont);
     case IrOpcode::kWord32Xor:
-      return VisitWordCompare(this, node, kArmTeq, cont, true, false);
+      return VisitWordCompare(this, node, kArmTeq, cont, true);
     default:
       break;
   }
@@ -950,7 +922,7 @@ void InstructionSelector::VisitWord32Test(Node* node, FlagsContinuation* cont) {
 
 void InstructionSelector::VisitWord32Compare(Node* node,
                                              FlagsContinuation* cont) {
-  VisitWordCompare(this, node, kArmCmp, cont, false, false);
+  VisitWordCompare(this, node, kArmCmp, cont, false);
 }
 
 
@@ -963,7 +935,7 @@ void InstructionSelector::VisitFloat64Compare(Node* node,
          g.UseDoubleRegister(m.right().node()), g.Label(cont->true_block()),
          g.Label(cont->false_block()))->MarkAsControl();
   } else {
-    ASSERT(cont->IsSet());
+    DCHECK(cont->IsSet());
     Emit(cont->Encode(kArmVcmpF64), g.DefineAsRegister(cont->result()),
          g.UseDoubleRegister(m.left().node()),
          g.UseDoubleRegister(m.right().node()));

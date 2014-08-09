@@ -19,8 +19,6 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-#if V8_TURBOFAN_TARGET
-
 #define __ masm()->
 
 
@@ -108,10 +106,10 @@ class Arm64OperandConverter V8_FINAL : public InstructionOperandConverter {
   }
 
   MemOperand ToMemOperand(InstructionOperand* op, MacroAssembler* masm) const {
-    ASSERT(op != NULL);
-    ASSERT(!op->IsRegister());
-    ASSERT(!op->IsDoubleRegister());
-    ASSERT(op->IsStackSlot() || op->IsDoubleStackSlot());
+    DCHECK(op != NULL);
+    DCHECK(!op->IsRegister());
+    DCHECK(!op->IsDoubleRegister());
+    DCHECK(op->IsStackSlot() || op->IsDoubleStackSlot());
     // The linkage computes where all spill slots are located.
     FrameOffset offset = linkage()->GetFrameOffset(op->index(), frame(), 0);
     return MemOperand(offset.from_stack_pointer() ? masm->StackPointer() : fp,
@@ -375,9 +373,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Float64Mod: {
       // TODO(dcarney): implement directly. See note in lithium-codegen-arm64.cc
       FrameScope scope(masm(), StackFrame::MANUAL);
-      ASSERT(d0.is(i.InputDoubleRegister(0)));
-      ASSERT(d1.is(i.InputDoubleRegister(1)));
-      ASSERT(d0.is(i.OutputDoubleRegister()));
+      DCHECK(d0.is(i.InputDoubleRegister(0)));
+      DCHECK(d1.is(i.InputDoubleRegister(1)));
+      DCHECK(d0.is(i.OutputDoubleRegister()));
       // TODO(dcarney): make sure this saves all relevant registers.
       __ CallCFunction(ExternalReference::mod_two_doubles_operation(isolate()),
                        0, 2);
@@ -544,7 +542,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
   // Materialize a full 64-bit 1 or 0 value. The result register is always the
   // last output of the instruction.
   Label check;
-  ASSERT_NE(0, instr->OutputCount());
+  DCHECK_NE(0, instr->OutputCount());
   Register reg = i.OutputRegister(instr->OutputCount() - 1);
   Condition cc = nv;
   switch (condition) {
@@ -711,7 +709,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
   // Dispatch on the source and destination operand kinds.  Not all
   // combinations are possible.
   if (source->IsRegister()) {
-    ASSERT(destination->IsRegister() || destination->IsStackSlot());
+    DCHECK(destination->IsRegister() || destination->IsStackSlot());
     Register src = g.ToRegister(source);
     if (destination->IsRegister()) {
       __ Mov(g.ToRegister(destination), src);
@@ -720,7 +718,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
     }
   } else if (source->IsStackSlot()) {
     MemOperand src = g.ToMemOperand(source, masm());
-    ASSERT(destination->IsRegister() || destination->IsStackSlot());
+    DCHECK(destination->IsRegister() || destination->IsStackSlot());
     if (destination->IsRegister()) {
       __ Ldr(g.ToRegister(destination), src);
     } else {
@@ -748,7 +746,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       FPRegister result = g.ToDoubleRegister(destination);
       __ Fmov(result, g.ToDouble(constant_source));
     } else {
-      ASSERT(destination->IsDoubleStackSlot());
+      DCHECK(destination->IsDoubleStackSlot());
       UseScratchRegisterScope scope(masm());
       FPRegister temp = scope.AcquireD();
       __ Fmov(temp, g.ToDouble(constant_source));
@@ -760,11 +758,11 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       FPRegister dst = g.ToDoubleRegister(destination);
       __ Fmov(dst, src);
     } else {
-      ASSERT(destination->IsDoubleStackSlot());
+      DCHECK(destination->IsDoubleStackSlot());
       __ Str(src, g.ToMemOperand(destination, masm()));
     }
   } else if (source->IsDoubleStackSlot()) {
-    ASSERT(destination->IsDoubleRegister() || destination->IsDoubleStackSlot());
+    DCHECK(destination->IsDoubleRegister() || destination->IsDoubleStackSlot());
     MemOperand src = g.ToMemOperand(source, masm());
     if (destination->IsDoubleRegister()) {
       __ Ldr(g.ToDoubleRegister(destination), src);
@@ -796,7 +794,7 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
       __ Mov(src, dst);
       __ Mov(dst, temp);
     } else {
-      ASSERT(destination->IsStackSlot());
+      DCHECK(destination->IsStackSlot());
       MemOperand dst = g.ToMemOperand(destination, masm());
       __ Mov(temp, src);
       __ Ldr(src, dst);
@@ -822,7 +820,7 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
       __ Fmov(src, dst);
       __ Fmov(src, temp);
     } else {
-      ASSERT(destination->IsDoubleStackSlot());
+      DCHECK(destination->IsDoubleStackSlot());
       MemOperand dst = g.ToMemOperand(destination, masm());
       __ Fmov(temp, src);
       __ Ldr(src, dst);
@@ -855,8 +853,6 @@ bool CodeGenerator::IsNopForSmiCodeInlining(Handle<Code> code, int start_pc,
 }
 
 #endif  // DEBUG
-
-#endif  // V8_TURBOFAN_TARGET
 
 }  // namespace compiler
 }  // namespace internal

@@ -19,8 +19,8 @@ namespace internal {
 void DelayedGapMasm::EndDelayedUse() {
   DelayedMasm::EndDelayedUse();
   if (scratch_register_used()) {
-    ASSERT(ScratchRegister().Is(root));
-    ASSERT(!pending());
+    DCHECK(ScratchRegister().Is(root));
+    DCHECK(!pending());
     InitializeRootRegister();
     reset_scratch_register_used();
   }
@@ -34,8 +34,8 @@ LGapResolver::LGapResolver(LCodeGen* owner)
 
 
 void LGapResolver::Resolve(LParallelMove* parallel_move) {
-  ASSERT(moves_.is_empty());
-  ASSERT(!masm_.pending());
+  DCHECK(moves_.is_empty());
+  DCHECK(!masm_.pending());
 
   // Build up a worklist of moves.
   BuildInitialMoveList(parallel_move);
@@ -58,7 +58,7 @@ void LGapResolver::Resolve(LParallelMove* parallel_move) {
     LMoveOperands move = moves_[i];
 
     if (!move.IsEliminated()) {
-      ASSERT(move.source()->IsConstantOperand());
+      DCHECK(move.source()->IsConstantOperand());
       EmitMove(i);
     }
   }
@@ -90,13 +90,13 @@ void LGapResolver::PerformMove(int index) {
   // cycles in the move graph.
   LMoveOperands& current_move = moves_[index];
 
-  ASSERT(!current_move.IsPending());
-  ASSERT(!current_move.IsRedundant());
+  DCHECK(!current_move.IsPending());
+  DCHECK(!current_move.IsRedundant());
 
   // Clear this move's destination to indicate a pending move.  The actual
   // destination is saved in a stack allocated local. Multiple moves can
   // be pending because this function is recursive.
-  ASSERT(current_move.source() != NULL);  // Otherwise it will look eliminated.
+  DCHECK(current_move.source() != NULL);  // Otherwise it will look eliminated.
   LOperand* destination = current_move.destination();
   current_move.set_destination(NULL);
 
@@ -123,7 +123,7 @@ void LGapResolver::PerformMove(int index) {
   // a scratch register to break it.
   LMoveOperands other_move = moves_[root_index_];
   if (other_move.Blocks(destination)) {
-    ASSERT(other_move.IsPending());
+    DCHECK(other_move.IsPending());
     BreakCycle(index);
     return;
   }
@@ -134,12 +134,12 @@ void LGapResolver::PerformMove(int index) {
 
 
 void LGapResolver::Verify() {
-#ifdef ENABLE_SLOW_ASSERTS
+#ifdef ENABLE_SLOW_DCHECKS
   // No operand should be the destination for more than one move.
   for (int i = 0; i < moves_.length(); ++i) {
     LOperand* destination = moves_[i].destination();
     for (int j = i + 1; j < moves_.length(); ++j) {
-      SLOW_ASSERT(!destination->Equals(moves_[j].destination()));
+      SLOW_DCHECK(!destination->Equals(moves_[j].destination()));
     }
   }
 #endif
@@ -147,8 +147,8 @@ void LGapResolver::Verify() {
 
 
 void LGapResolver::BreakCycle(int index) {
-  ASSERT(moves_[index].destination()->Equals(moves_[root_index_].source()));
-  ASSERT(!in_cycle_);
+  DCHECK(moves_[index].destination()->Equals(moves_[root_index_].source()));
+  DCHECK(!in_cycle_);
 
   // We save in a register the source of that move and we remember its
   // destination. Then we mark this move as resolved so the cycle is
@@ -179,8 +179,8 @@ void LGapResolver::BreakCycle(int index) {
 
 
 void LGapResolver::RestoreValue() {
-  ASSERT(in_cycle_);
-  ASSERT(saved_destination_ != NULL);
+  DCHECK(in_cycle_);
+  DCHECK(saved_destination_ != NULL);
 
   if (saved_destination_->IsRegister()) {
     __ Mov(cgen_->ToRegister(saved_destination_), SavedValueRegister());
@@ -214,7 +214,7 @@ void LGapResolver::EmitMove(int index) {
     if (destination->IsRegister()) {
       __ Mov(cgen_->ToRegister(destination), source_register);
     } else {
-      ASSERT(destination->IsStackSlot());
+      DCHECK(destination->IsStackSlot());
       __ Store(source_register, cgen_->ToMemOperand(destination));
     }
 
@@ -223,7 +223,7 @@ void LGapResolver::EmitMove(int index) {
     if (destination->IsRegister()) {
       __ Load(cgen_->ToRegister(destination), source_operand);
     } else {
-      ASSERT(destination->IsStackSlot());
+      DCHECK(destination->IsStackSlot());
       EmitStackSlotMove(index);
     }
 
@@ -242,8 +242,8 @@ void LGapResolver::EmitMove(int index) {
       DoubleRegister result = cgen_->ToDoubleRegister(destination);
       __ Fmov(result, cgen_->ToDouble(constant_source));
     } else {
-      ASSERT(destination->IsStackSlot());
-      ASSERT(!in_cycle_);  // Constant moves happen after all cycles are gone.
+      DCHECK(destination->IsStackSlot());
+      DCHECK(!in_cycle_);  // Constant moves happen after all cycles are gone.
       if (cgen_->IsSmi(constant_source)) {
         Smi* smi = cgen_->ToSmi(constant_source);
         __ StoreConstant(reinterpret_cast<intptr_t>(smi),
@@ -256,7 +256,7 @@ void LGapResolver::EmitMove(int index) {
         AllowDeferredHandleDereference smi_object_check;
         if (handle->IsSmi()) {
           Object* obj = *handle;
-          ASSERT(!obj->IsHeapObject());
+          DCHECK(!obj->IsHeapObject());
           __ StoreConstant(reinterpret_cast<intptr_t>(obj),
                            cgen_->ToMemOperand(destination));
         } else {
@@ -273,7 +273,7 @@ void LGapResolver::EmitMove(int index) {
     if (destination->IsDoubleRegister()) {
       __ Fmov(cgen_->ToDoubleRegister(destination), src);
     } else {
-      ASSERT(destination->IsDoubleStackSlot());
+      DCHECK(destination->IsDoubleStackSlot());
       __ Store(src, cgen_->ToMemOperand(destination));
     }
 
@@ -282,7 +282,7 @@ void LGapResolver::EmitMove(int index) {
     if (destination->IsDoubleRegister()) {
       __ Load(cgen_->ToDoubleRegister(destination), src);
     } else {
-      ASSERT(destination->IsDoubleStackSlot());
+      DCHECK(destination->IsDoubleStackSlot());
       EmitStackSlotMove(index);
     }
 

@@ -22,8 +22,12 @@ class FlagsContinuation;
 
 class InstructionSelector V8_FINAL {
  public:
-  explicit InstructionSelector(InstructionSequence* sequence,
-                               SourcePositionTable* source_positions);
+  // Forward declarations.
+  class Features;
+
+  InstructionSelector(InstructionSequence* sequence,
+                      SourcePositionTable* source_positions,
+                      Features features = SupportedFeatures());
 
   // Visit code for the entire graph with the included schedule.
   void SelectInstructions();
@@ -54,6 +58,32 @@ class InstructionSelector V8_FINAL {
                     InstructionOperand* *temps = NULL);
   Instruction* Emit(Instruction* instr);
 
+  // ===========================================================================
+  // ============== Architecture-independent CPU feature methods. ==============
+  // ===========================================================================
+
+  class Features V8_FINAL {
+   public:
+    Features() : bits_(0) {}
+    explicit Features(unsigned bits) : bits_(bits) {}
+    explicit Features(CpuFeature f) : bits_(1u << f) {}
+    Features(CpuFeature f1, CpuFeature f2) : bits_((1u << f1) | (1u << f2)) {}
+
+    bool Contains(CpuFeature f) const { return (bits_ & (1u << f)); }
+
+   private:
+    unsigned bits_;
+  };
+
+  bool IsSupported(CpuFeature feature) const {
+    return features_.Contains(feature);
+  }
+
+  // Returns the features supported on the target platform.
+  static Features SupportedFeatures() {
+    return Features(CpuFeatures::SupportedFeatures());
+  }
+
  private:
   friend class OperandGenerator;
 
@@ -70,6 +100,13 @@ class InstructionSelector V8_FINAL {
   // instruction. A node can be covered if the {user} of the node has the only
   // edge and the two are in the same basic block.
   bool CanCover(Node* user, Node* node) const;
+
+  // Checks if {node} was already defined, and therefore code was already
+  // generated for it.
+  bool IsDefined(Node* node) const;
+
+  // Inform the instruction selection that {node} was just defined.
+  void MarkAsDefined(Node* node);
 
   // Checks if {node} has any uses, and therefore code has to be generated for
   // it.
@@ -123,6 +160,9 @@ class InstructionSelector V8_FINAL {
   MACHINE_OP_LIST(DECLARE_GENERATOR)
 #undef DECLARE_GENERATOR
 
+  void VisitInt32AddWithOverflow(Node* node, FlagsContinuation* cont);
+  void VisitInt32SubWithOverflow(Node* node, FlagsContinuation* cont);
+
   void VisitWord32Test(Node* node, FlagsContinuation* cont);
   void VisitWord64Test(Node* node, FlagsContinuation* cont);
   void VisitWord32Compare(Node* node, FlagsContinuation* cont);
@@ -139,7 +179,7 @@ class InstructionSelector V8_FINAL {
   void VisitBranch(Node* input, BasicBlock* tbranch, BasicBlock* fbranch);
   void VisitReturn(Node* value);
   void VisitThrow(Node* value);
-  void VisitDeoptimization(Node* deopt);
+  void VisitDeoptimize(Node* deopt);
 
   // ===========================================================================
 
@@ -158,8 +198,10 @@ class InstructionSelector V8_FINAL {
   Zone zone_;
   InstructionSequence* sequence_;
   SourcePositionTable* source_positions_;
+  Features features_;
   BasicBlock* current_block_;
   Instructions instructions_;
+  BoolVector defined_;
   BoolVector used_;
 };
 

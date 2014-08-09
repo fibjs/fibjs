@@ -100,7 +100,7 @@ class MachineNodeFactory {
     Store(rep, base, Int32Constant(0), value);
   }
   void Store(MachineRepresentation rep, Node* base, Node* index, Node* value) {
-    NEW_NODE_3(MACHINE()->Store(rep), base, index, value);
+    NEW_NODE_3(MACHINE()->Store(rep, kNoWriteBarrier), base, index, value);
   }
   // Arithmetic Operations.
   Node* WordAnd(Node* a, Node* b) {
@@ -199,20 +199,14 @@ class MachineNodeFactory {
   Node* Int32Add(Node* a, Node* b) {
     return NEW_NODE_2(MACHINE()->Int32Add(), a, b);
   }
-  void Int32AddWithOverflow(Node* a, Node* b, Node** val_return,
-                            Node** ovf_return) {
-    Node* add = NEW_NODE_2(MACHINE()->Int32AddWithOverflow(), a, b);
-    if (val_return) *val_return = Projection(0, add);
-    if (ovf_return) *ovf_return = Projection(1, add);
+  Node* Int32AddWithOverflow(Node* a, Node* b) {
+    return NEW_NODE_2(MACHINE()->Int32AddWithOverflow(), a, b);
   }
   Node* Int32Sub(Node* a, Node* b) {
     return NEW_NODE_2(MACHINE()->Int32Sub(), a, b);
   }
-  void Int32SubWithOverflow(Node* a, Node* b, Node** val_return,
-                            Node** ovf_return) {
-    Node* add = NEW_NODE_2(MACHINE()->Int32SubWithOverflow(), a, b);
-    if (val_return) *val_return = Projection(0, add);
-    if (ovf_return) *ovf_return = Projection(1, add);
+  Node* Int32SubWithOverflow(Node* a, Node* b) {
+    return NEW_NODE_2(MACHINE()->Int32SubWithOverflow(), a, b);
   }
   Node* Int32Mul(Node* a, Node* b) {
     return NEW_NODE_2(MACHINE()->Int32Mul(), a, b);

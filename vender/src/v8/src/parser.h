@@ -47,7 +47,7 @@ class FunctionEntry BASE_EMBEDDED {
   int literal_count() { return backing_[kLiteralCountIndex]; }
   int property_count() { return backing_[kPropertyCountIndex]; }
   StrictMode strict_mode() {
-    ASSERT(backing_[kStrictModeIndex] == SLOPPY ||
+    DCHECK(backing_[kStrictModeIndex] == SLOPPY ||
            backing_[kStrictModeIndex] == STRICT);
     return static_cast<StrictMode>(backing_[kStrictModeIndex]);
   }
@@ -120,12 +120,12 @@ class BufferedZoneList {
   }
 
   T* last() {
-    ASSERT(last_ != NULL);
+    DCHECK(last_ != NULL);
     return last_;
   }
 
   T* RemoveLast() {
-    ASSERT(last_ != NULL);
+    DCHECK(last_ != NULL);
     T* result = last_;
     if ((list_ != NULL) && (list_->length() > 0))
       last_ = list_->RemoveLast();
@@ -135,13 +135,13 @@ class BufferedZoneList {
   }
 
   T* Get(int i) {
-    ASSERT((0 <= i) && (i < length()));
+    DCHECK((0 <= i) && (i < length()));
     if (list_ == NULL) {
-      ASSERT_EQ(0, i);
+      DCHECK_EQ(0, i);
       return last_;
     } else {
       if (i == list_->length()) {
-        ASSERT(last_ != NULL);
+        DCHECK(last_ != NULL);
         return last_;
       } else {
         return list_->at(i);
@@ -355,6 +355,21 @@ class ParserTraits {
     typedef Variable GeneratorVariable;
     typedef v8::internal::Zone Zone;
 
+    class Checkpoint BASE_EMBEDDED {
+     public:
+      template <typename Parser>
+      explicit Checkpoint(Parser* parser) {
+        isolate_ = parser->zone()->isolate();
+        saved_ast_node_id_ = isolate_->ast_node_id();
+      }
+
+      void Restore() { isolate_->set_ast_node_id(saved_ast_node_id_); }
+
+     private:
+      Isolate* isolate_;
+      int saved_ast_node_id_;
+    };
+
     typedef v8::internal::AstProperties AstProperties;
     typedef Vector<VariableProxy*> ParameterIdentifierVector;
 
@@ -400,7 +415,7 @@ class ParserTraits {
   static bool IsIdentifier(Expression* expression);
 
   static const AstRawString* AsIdentifier(Expression* expression) {
-    ASSERT(IsIdentifier(expression));
+    DCHECK(IsIdentifier(expression));
     return expression->AsVariableProxy()->raw_name();
   }
 
@@ -543,6 +558,8 @@ class ParserTraits {
   Expression* ExpressionFromString(
       int pos, Scanner* scanner,
       AstNodeFactory<AstConstructionVisitor>* factory);
+  Expression* GetIterator(Expression* iterable,
+                          AstNodeFactory<AstConstructionVisitor>* factory);
   ZoneList<v8::internal::Expression*>* NewExpressionList(int size, Zone* zone) {
     return new(zone) ZoneList<v8::internal::Expression*>(size, zone);
   }

@@ -158,7 +158,7 @@ VirtualMemory::VirtualMemory(size_t size)
 
 VirtualMemory::VirtualMemory(size_t size, size_t alignment)
     : address_(NULL), size_(0) {
-  ASSERT(IsAligned(alignment, static_cast<intptr_t>(OS::AllocateAlignment())));
+  DCHECK(IsAligned(alignment, static_cast<intptr_t>(OS::AllocateAlignment())));
   size_t request_size = RoundUp(size + alignment,
                                 static_cast<intptr_t>(OS::AllocateAlignment()));
   void* reservation = mmap(OS::GetRandomMmapAddr(),
@@ -171,7 +171,7 @@ VirtualMemory::VirtualMemory(size_t size, size_t alignment)
 
   uint8_t* base = static_cast<uint8_t*>(reservation);
   uint8_t* aligned_base = RoundUp(base, alignment);
-  ASSERT_LE(base, aligned_base);
+  DCHECK_LE(base, aligned_base);
 
   // Unmap extra memory reserved before and after the desired block.
   if (aligned_base != base) {
@@ -181,7 +181,7 @@ VirtualMemory::VirtualMemory(size_t size, size_t alignment)
   }
 
   size_t aligned_size = RoundUp(size, OS::AllocateAlignment());
-  ASSERT_LE(aligned_size, request_size);
+  DCHECK_LE(aligned_size, request_size);
 
   if (aligned_size != request_size) {
     size_t suffix_size = request_size - aligned_size;
@@ -189,7 +189,7 @@ VirtualMemory::VirtualMemory(size_t size, size_t alignment)
     request_size -= suffix_size;
   }
 
-  ASSERT(aligned_size == request_size);
+  DCHECK(aligned_size == request_size);
 
   address_ = static_cast<void*>(aligned_base);
   size_ = aligned_size;
@@ -199,7 +199,7 @@ VirtualMemory::VirtualMemory(size_t size, size_t alignment)
 VirtualMemory::~VirtualMemory() {
   if (IsReserved()) {
     bool result = ReleaseRegion(address(), size());
-    ASSERT(result);
+    DCHECK(result);
     USE(result);
   }
 }

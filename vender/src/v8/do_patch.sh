@@ -25,7 +25,6 @@ cp $V8_PATH/src/base/utils/*.h src/base/utils/
 cp $V8_PATH/src/base/utils/*.cc src/base/utils/
 
 cp $V8_PATH/out/ia32.release/obj/gen/libraries.cc src/
-cp $V8_PATH/out/ia32.release/obj/gen/trig-table.cc src/
 cp $V8_PATH/out/ia32.release/obj/gen/experimental-libraries.cc src/
 
 rm src/arm/*.h
@@ -83,8 +82,15 @@ rm src/libplatform/*.cc
 cp $V8_PATH/src/libplatform/*.h src/libplatform/
 cp $V8_PATH/src/libplatform/*.cc src/libplatform/
 
+rm src/heap/*.h
+rm src/heap/*.cc
+cp $V8_PATH/src/heap/*.h src/heap/
+cp $V8_PATH/src/heap/*.cc src/heap/
+
 cp $V8_PATH/src/third_party/valgrind/valgrind.h src/third_party/valgrind/
 cp $V8_PATH/src/third_party/kernel/tools/perf/util/jitdump.h src/third_party/kernel/tools/perf/util/
+cp $V8_PATH/third_party/fdlibm/*.h src/third_party/fdlibm/
+cp $V8_PATH/third_party/fdlibm/*.cc src/third_party/fdlibm/
 
 rm src/d8*
 rm src/i18n.*

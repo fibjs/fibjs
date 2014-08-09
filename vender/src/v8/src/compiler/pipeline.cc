@@ -9,6 +9,7 @@
 #include "src/compiler/code-generator.h"
 #include "src/compiler/graph-replay.h"
 #include "src/compiler/graph-visualizer.h"
+#include "src/compiler/instruction.h"
 #include "src/compiler/instruction-selector.h"
 #include "src/compiler/js-context-specialization.h"
 #include "src/compiler/js-generic-lowering.h"
@@ -84,16 +85,25 @@ class AstGraphBuilderWithPositions : public AstGraphBuilder {
  public:
   explicit AstGraphBuilderWithPositions(CompilationInfo* info, JSGraph* jsgraph,
                                         SourcePositionTable* source_positions)
-      : AstGraphBuilder(info, jsgraph, source_positions) {}
+      : AstGraphBuilder(info, jsgraph), source_positions_(source_positions) {}
+
+  bool CreateGraph() {
+    SourcePositionTable::Scope pos(source_positions_,
+                                   SourcePosition::Unknown());
+    return AstGraphBuilder::CreateGraph();
+  }
 
 #define DEF_VISIT(type)                                               \
   virtual void Visit##type(type* node) V8_OVERRIDE {                  \
-    SourcePositionTable::Scope pos(source_positions(),                \
+    SourcePositionTable::Scope pos(source_positions_,                 \
                                    SourcePosition(node->position())); \
     AstGraphBuilder::Visit##type(node);                               \
   }
   AST_NODE_LIST(DEF_VISIT)
 #undef DEF_VISIT
+
+ private:
+  SourcePositionTable* source_positions_;
 };
 
 
@@ -244,10 +254,10 @@ Handle<Code> Pipeline::GenerateCodeForMachineGraph(Linkage* linkage,
 Handle<Code> Pipeline::GenerateCode(Linkage* linkage, Graph* graph,
                                     Schedule* schedule,
                                     SourcePositionTable* source_positions) {
-  ASSERT_NOT_NULL(graph);
-  ASSERT_NOT_NULL(linkage);
-  ASSERT_NOT_NULL(schedule);
-  ASSERT(SupportedTarget());
+  DCHECK_NOT_NULL(graph);
+  DCHECK_NOT_NULL(linkage);
+  DCHECK_NOT_NULL(schedule);
+  DCHECK(SupportedTarget());
 
   InstructionSequence sequence(linkage, graph, schedule);
 
@@ -286,6 +296,16 @@ Handle<Code> Pipeline::GenerateCode(Linkage* linkage, Graph* graph,
   // Generate native sequence.
   CodeGenerator generator(&sequence);
   return generator.GenerateCode();
+}
+
+
+void Pipeline::SetUp() {
+  InstructionOperand::SetUpCaches();
+}
+
+
+void Pipeline::TearDown() {
+  InstructionOperand::TearDownCaches();
 }
 
 }  // namespace compiler

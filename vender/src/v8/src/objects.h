@@ -1434,7 +1434,7 @@ class Object {
     } else if (FLAG_track_computed_fields && IsUninitialized()) {
       return Representation::None();
     } else if (FLAG_track_heap_object_fields) {
-      ASSERT(IsHeapObject());
+      DCHECK(IsHeapObject());
       return Representation::HeapObject();
     } else {
       return Representation::Tagged();
@@ -2197,6 +2197,7 @@ class JSObject: public JSReceiver {
                                     PropertyDetails details);
 
   static void OptimizeAsPrototype(Handle<JSObject> object);
+  static void ReoptimizeIfPrototype(Handle<JSObject> object);
 
   // Retrieve interceptors.
   InterceptorInfo* GetNamedInterceptor();
@@ -2585,7 +2586,7 @@ class JSObject: public JSReceiver {
   static const int kMaxUncheckedOldFastElementsLength = 500;
 
   // Note that Page::kMaxRegularHeapObjectSize puts a limit on
-  // permissible values (see the ASSERT in heap.cc).
+  // permissible values (see the DCHECK in heap.cc).
   static const int kInitialMaxFastElementArray = 100000;
 
   // This constant applies only to the initial map of "$Object" aka
@@ -3261,7 +3262,7 @@ class ConstantPoolArray: public HeapObject {
     }
 
     // Add offsets for the preceding type sections.
-    ASSERT(index <= last_index(LAST_TYPE, section));
+    DCHECK(index <= last_index(LAST_TYPE, section));
     for (Type type = FIRST_TYPE; index > last_index(type, section);
          type = next_type(type)) {
       offset += entry_size(type) * number_of_entries(type, section);
@@ -3323,7 +3324,7 @@ class ConstantPoolArray: public HeapObject {
   inline int get_extended_section_header_offset();
 
   inline static Type next_type(Type type) {
-    ASSERT(type >= FIRST_TYPE && type < NUMBER_OF_TYPES);
+    DCHECK(type >= FIRST_TYPE && type < NUMBER_OF_TYPES);
     int type_int = static_cast<int>(type);
     return static_cast<Type>(++type_int);
   }
@@ -3349,7 +3350,7 @@ class DescriptorArray: public FixedArray {
 
   // Returns the number of descriptors in the array.
   int number_of_descriptors() {
-    ASSERT(length() >= kFirstIndex || IsEmpty());
+    DCHECK(length() >= kFirstIndex || IsEmpty());
     int len = length();
     return len == 0 ? 0 : Smi::cast(get(kDescriptorLengthIndex))->value();
   }
@@ -3375,7 +3376,7 @@ class DescriptorArray: public FixedArray {
   }
 
   FixedArray* GetEnumCache() {
-    ASSERT(HasEnumCache());
+    DCHECK(HasEnumCache());
     FixedArray* bridge = FixedArray::cast(get(kEnumCacheIndex));
     return FixedArray::cast(bridge->get(kEnumCacheBridgeCacheIndex));
   }
@@ -3389,13 +3390,13 @@ class DescriptorArray: public FixedArray {
   }
 
   FixedArray* GetEnumIndicesCache() {
-    ASSERT(HasEnumIndicesCache());
+    DCHECK(HasEnumIndicesCache());
     FixedArray* bridge = FixedArray::cast(get(kEnumCacheIndex));
     return FixedArray::cast(bridge->get(kEnumCacheBridgeIndicesCacheIndex));
   }
 
   Object** GetEnumCacheSlot() {
-    ASSERT(HasEnumCache());
+    DCHECK(HasEnumCache());
     return HeapObject::RawField(reinterpret_cast<HeapObject*>(this),
                                 kEnumCacheOffset);
   }
@@ -3416,6 +3417,7 @@ class DescriptorArray: public FixedArray {
   inline Object* GetValue(int descriptor_number);
   inline void SetValue(int descriptor_number, Object* value);
   inline Object** GetValueSlot(int descriptor_number);
+  static inline int GetValueOffset(int descriptor_number);
   inline Object** GetDescriptorStartSlot(int descriptor_number);
   inline Object** GetDescriptorEndSlot(int descriptor_number);
   inline PropertyDetails GetDetails(int descriptor_number);
@@ -3637,12 +3639,12 @@ class BaseShape {
   static const bool UsesSeed = false;
   static uint32_t Hash(Key key) { return 0; }
   static uint32_t SeededHash(Key key, uint32_t seed) {
-    ASSERT(UsesSeed);
+    DCHECK(UsesSeed);
     return Hash(key);
   }
   static uint32_t HashForObject(Key key, Object* object) { return 0; }
   static uint32_t SeededHashForObject(Key key, uint32_t seed, Object* object) {
-    ASSERT(UsesSeed);
+    DCHECK(UsesSeed);
     return HashForObject(key, object);
   }
 };
@@ -3783,15 +3785,15 @@ class HashTable: public FixedArray {
     // To scale a computed hash code to fit within the hash table, we
     // use bit-wise AND with a mask, so the capacity must be positive
     // and non-zero.
-    ASSERT(capacity > 0);
-    ASSERT(capacity <= kMaxCapacity);
+    DCHECK(capacity > 0);
+    DCHECK(capacity <= kMaxCapacity);
     set(kCapacityIndex, Smi::FromInt(capacity));
   }
 
 
   // Returns probe entry.
   static uint32_t GetProbe(uint32_t hash, uint32_t number, uint32_t size) {
-    ASSERT(IsPowerOf2(size));
+    DCHECK(IsPowerOf2(size));
     return (hash + GetProbeOffset(number)) & (size - 1);
   }
 
@@ -3959,7 +3961,7 @@ class Dictionary: public HashTable<Derived, Shape, Key> {
 
   // Returns the property details for the property at entry.
   PropertyDetails DetailsAt(int entry) {
-    ASSERT(entry >= 0);  // Not found is -1, which is not caught by get().
+    DCHECK(entry >= 0);  // Not found is -1, which is not caught by get().
     return PropertyDetails(
         Smi::cast(this->get(DerivedHashTable::EntryToIndex(entry) + 2)));
   }
@@ -4005,7 +4007,7 @@ class Dictionary: public HashTable<Derived, Shape, Key> {
 
   // Accessors for next enumeration index.
   void SetNextEnumerationIndex(int index) {
-    ASSERT(index != 0);
+    DCHECK(index != 0);
     this->set(kNextEnumerationIndexIndex, Smi::FromInt(index));
   }
 
@@ -4817,8 +4819,8 @@ class ByteArray: public FixedArrayBase {
   // array, this function returns the number of elements a byte array should
   // have.
   static int LengthFor(int size_in_bytes) {
-    ASSERT(IsAligned(size_in_bytes, kPointerSize));
-    ASSERT(size_in_bytes >= kHeaderSize);
+    DCHECK(IsAligned(size_in_bytes, kPointerSize));
+    DCHECK(size_in_bytes >= kHeaderSize);
     return size_in_bytes - kHeaderSize;
   }
 
@@ -5745,7 +5747,7 @@ class Code: public HeapObject {
 
   // Returns the object size for a given body (used for allocation).
   static int SizeFor(int body_size) {
-    ASSERT_SIZE_TAG_ALIGNED(body_size);
+    DCHECK_SIZE_TAG_ALIGNED(body_size);
     return RoundUp(kHeaderSize + body_size, kCodeAlignment);
   }
 
@@ -5753,7 +5755,7 @@ class Code: public HeapObject {
   // the layout of the code object into account.
   int ExecutableSize() {
     // Check that the assumptions about the layout of the code object holds.
-    ASSERT_EQ(static_cast<int>(instruction_start() - address()),
+    DCHECK_EQ(static_cast<int>(instruction_start() - address()),
               Code::kHeaderSize);
     return instruction_size() + Code::kHeaderSize;
   }
@@ -5876,11 +5878,10 @@ class Code: public HeapObject {
   static const int kProfilerTicksOffset = kFullCodeFlags + 1;
 
   // Flags layout.  BitField<type, shift, size>.
-  class ICStateField: public BitField<InlineCacheState, 0, 3> {};
-  class TypeField: public BitField<StubType, 3, 1> {};
-  class CacheHolderField : public BitField<CacheHolderFlag, 4, 2> {};
-  class KindField: public BitField<Kind, 6, 4> {};
-  // TODO(bmeurer): Bit 10 is available for free use. :-)
+  class ICStateField : public BitField<InlineCacheState, 0, 4> {};
+  class TypeField : public BitField<StubType, 4, 1> {};
+  class CacheHolderField : public BitField<CacheHolderFlag, 5, 2> {};
+  class KindField : public BitField<Kind, 7, 4> {};
   class ExtraICStateField: public BitField<ExtraICState, 11,
       PlatformSmiTagging::kSmiValueSize - 11 + 1> {};  // NOLINT
 
@@ -6204,12 +6205,14 @@ class Map: public HeapObject {
 
   inline void set_is_extensible(bool value);
   inline bool is_extensible();
+  inline void set_is_prototype_map(bool value);
+  inline bool is_prototype_map();
 
   inline void set_elements_kind(ElementsKind elements_kind) {
-    ASSERT(elements_kind < kElementsKindCount);
-    ASSERT(kElementsKindCount <= (1 << Map::ElementsKindBits::kSize));
+    DCHECK(elements_kind < kElementsKindCount);
+    DCHECK(kElementsKindCount <= (1 << Map::ElementsKindBits::kSize));
     set_bit_field2(Map::ElementsKindBits::update(bit_field2(), elements_kind));
-    ASSERT(this->elements_kind() == elements_kind);
+    DCHECK(this->elements_kind() == elements_kind);
   }
 
   inline ElementsKind elements_kind() {
@@ -6404,7 +6407,7 @@ class Map: public HeapObject {
 
   inline void SetNumberOfProtoTransitions(int value) {
     FixedArray* cache = GetPrototypeTransitions();
-    ASSERT(cache->length() != 0);
+    DCHECK(cache->length() != 0);
     cache->set(kProtoTransitionNumberOfEntriesOffset, Smi::FromInt(value));
   }
 
@@ -6428,7 +6431,7 @@ class Map: public HeapObject {
 
   int LastAdded() {
     int number_of_own_descriptors = NumberOfOwnDescriptors();
-    ASSERT(number_of_own_descriptors > 0);
+    DCHECK(number_of_own_descriptors > 0);
     return number_of_own_descriptors - 1;
   }
 
@@ -6437,7 +6440,7 @@ class Map: public HeapObject {
   }
 
   void SetNumberOfOwnDescriptors(int number) {
-    ASSERT(number <= instance_descriptors()->number_of_descriptors());
+    DCHECK(number <= instance_descriptors()->number_of_descriptors());
     set_bit_field3(NumberOfOwnDescriptorsBits::update(bit_field3(), number));
   }
 
@@ -6449,9 +6452,9 @@ class Map: public HeapObject {
 
   void SetEnumLength(int length) {
     if (length != kInvalidEnumCacheSentinel) {
-      ASSERT(length >= 0);
-      ASSERT(length == 0 || instance_descriptors()->HasEnumCache());
-      ASSERT(length <= NumberOfOwnDescriptors());
+      DCHECK(length >= 0);
+      DCHECK(length == 0 || instance_descriptors()->HasEnumCache());
+      DCHECK(length <= NumberOfOwnDescriptors());
     }
     set_bit_field3(EnumLengthBits::update(bit_field3(), length));
   }
@@ -6736,7 +6739,7 @@ class Map: public HeapObject {
   // Bit positions for bit field 2
   static const int kIsExtensible = 0;
   static const int kStringWrapperSafeForDefaultValueOf = 1;
-  // Currently bit 2 is not used.
+  class IsPrototypeMapBits : public BitField<bool, 2, 1> {};
   class ElementsKindBits: public BitField<ElementsKind, 3, 5> {};
 
   // Derived values from bit field 2
@@ -6763,8 +6766,9 @@ class Map: public HeapObject {
   bool EquivalentToForNormalization(Map* other, PropertyNormalizationMode mode);
 
  private:
-  static Handle<TransitionArray> SetElementsTransitionMap(
-      Handle<Map> map, Handle<Map> transitioned_map);
+  static void ConnectElementsTransition(Handle<Map> parent, Handle<Map> child);
+  static void ConnectTransition(Handle<Map> parent, Handle<Map> child,
+                                Handle<Name> name, SimpleTransitionFlag flag);
 
   bool EquivalentToForTransition(Map* other);
   static Handle<Map> RawCopy(Handle<Map> map, int instance_size);
@@ -7304,7 +7308,7 @@ class SharedFunctionInfo: public HeapObject {
 
   inline BailoutReason DisableOptimizationReason();
 
-  // Lookup the bailout ID and ASSERT that it exists in the non-optimized
+  // Lookup the bailout ID and DCHECK that it exists in the non-optimized
   // code, returns whether it asserted (i.e., always true if assertions are
   // disabled).
   bool VerifyBailoutId(BailoutId id);
@@ -7776,7 +7780,7 @@ class JSFunction: public JSObject {
 
   // The initial map for an object created by this constructor.
   inline Map* initial_map();
-  inline void set_initial_map(Map* value);
+  static void SetInitialMap(Handle<JSFunction> function, Handle<Map> map);
   inline bool has_initial_map();
   static void EnsureHasInitialMap(Handle<JSFunction> function);
 
@@ -8502,7 +8506,10 @@ class TypeFeedbackInfo: public Struct {
   inline void set_ic_total_count(int count);
 
   inline int ic_with_type_info_count();
-  inline void change_ic_with_type_info_count(int count);
+  inline void change_ic_with_type_info_count(int delta);
+
+  inline int ic_generic_count();
+  inline void change_ic_generic_count(int delta);
 
   inline void initialize_storage();
 
@@ -8521,7 +8528,8 @@ class TypeFeedbackInfo: public Struct {
 
   static const int kStorage1Offset = HeapObject::kHeaderSize;
   static const int kStorage2Offset = kStorage1Offset + kPointerSize;
-  static const int kSize = kStorage2Offset + kPointerSize;
+  static const int kStorage3Offset = kStorage2Offset + kPointerSize;
+  static const int kSize = kStorage3Offset + kPointerSize;
 
   // TODO(mvstanton): move these sentinel declarations to shared function info.
   // The object that indicates an uninitialized cache.
@@ -8678,7 +8686,7 @@ class AllocationSite: public Struct {
   inline bool DigestPretenuringFeedback(bool maximum_size_scavenge);
 
   ElementsKind GetElementsKind() {
-    ASSERT(!SitePointsToLiteral());
+    DCHECK(!SitePointsToLiteral());
     int value = Smi::cast(transition_info())->value();
     return ElementsKindBits::decode(value);
   }
@@ -8770,7 +8778,7 @@ class AllocationMemento: public Struct {
         !AllocationSite::cast(allocation_site())->IsZombie();
   }
   AllocationSite* GetAllocationSite() {
-    ASSERT(IsValid());
+    DCHECK(IsValid());
     return AllocationSite::cast(allocation_site());
   }
 
@@ -9000,7 +9008,8 @@ class Name: public HeapObject {
   STATIC_ASSERT(IS_POWER_OF_TWO(kMaxCachedArrayIndexLength + 1));
 
   static const unsigned int kContainsCachedArrayIndexMask =
-      (~kMaxCachedArrayIndexLength << ArrayIndexLengthBits::kShift) |
+      (~static_cast<unsigned>(kMaxCachedArrayIndexLength)
+       << ArrayIndexLengthBits::kShift) |
       kIsNotArrayIndexMask;
 
   // Value of empty hash field indicating that the hash is not computed.
@@ -9084,7 +9093,8 @@ class String: public Name {
   STATIC_ASSERT(IS_POWER_OF_TWO(kMaxCachedArrayIndexLength + 1));
 
   static const unsigned int kContainsCachedArrayIndexMask =
-      (~kMaxCachedArrayIndexLength << ArrayIndexLengthBits::kShift) |
+      (~static_cast<unsigned>(kMaxCachedArrayIndexLength)
+       << ArrayIndexLengthBits::kShift) |
       kIsNotArrayIndexMask;
 
   // Representation of the flat content of a String.
@@ -9104,19 +9114,19 @@ class String: public Name {
     // Return the one byte content of the string. Only use if IsAscii() returns
     // true.
     Vector<const uint8_t> ToOneByteVector() {
-      ASSERT_EQ(ASCII, state_);
+      DCHECK_EQ(ASCII, state_);
       return Vector<const uint8_t>(onebyte_start, length_);
     }
     // Return the two-byte content of the string. Only use if IsTwoByte()
     // returns true.
     Vector<const uc16> ToUC16Vector() {
-      ASSERT_EQ(TWO_BYTE, state_);
+      DCHECK_EQ(TWO_BYTE, state_);
       return Vector<const uc16>(twobyte_start, length_);
     }
 
     uc16 Get(int i) {
-      ASSERT(i < length_);
-      ASSERT(state_ != NON_FLAT);
+      DCHECK(i < length_);
+      DCHECK(state_ != NON_FLAT);
       if (state_ == ASCII) return onebyte_start[i];
       return twobyte_start[i];
     }
@@ -9310,7 +9320,7 @@ class String: public Name {
     const char* start = chars;
     const char* limit = chars + length;
 #ifdef V8_HOST_CAN_READ_UNALIGNED
-    ASSERT(unibrow::Utf8::kMaxOneByteChar == 0x7F);
+    DCHECK(unibrow::Utf8::kMaxOneByteChar == 0x7F);
     const uintptr_t non_ascii_mask = kUintptrAllBitsSet / 0xFF * 0x80;
     while (chars + sizeof(uintptr_t) <= limit) {
       if (*reinterpret_cast<const uintptr_t*>(chars) & non_ascii_mask) {
@@ -9884,7 +9894,7 @@ class Cell: public HeapObject {
 
   static inline Cell* FromValueAddress(Address value) {
     Object* result = FromAddress(value - kValueOffset);
-    ASSERT(result->IsCell() || result->IsPropertyCell());
+    DCHECK(result->IsCell() || result->IsPropertyCell());
     return static_cast<Cell*>(result);
   }
 

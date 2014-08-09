@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_GC_TRACER_H_
-#define V8_GC_TRACER_H_
+#ifndef V8_HEAP_GC_TRACER_H_
+#define V8_HEAP_GC_TRACER_H_
 
 namespace v8 {
 namespace internal {
@@ -103,6 +103,7 @@ class GCTracer BASE_EMBEDDED {
       MC_UPDATE_MISC_POINTERS,
       MC_WEAKCOLLECTION_PROCESS,
       MC_WEAKCOLLECTION_CLEAR,
+      MC_WEAKCOLLECTION_ABORT,
       MC_FLUSH_CODE,
       NUMBER_OF_SCOPES
     };
@@ -112,7 +113,7 @@ class GCTracer BASE_EMBEDDED {
     }
 
     ~Scope() {
-      ASSERT(scope_ < NUMBER_OF_SCOPES);  // scope_ is unsigned.
+      DCHECK(scope_ < NUMBER_OF_SCOPES);  // scope_ is unsigned.
       tracer_->current_.scopes[scope_] +=
           base::OS::TimeCurrentMillis() - start_time_;
     }
@@ -339,4 +340,4 @@ class GCTracer BASE_EMBEDDED {
 }
 }  // namespace v8::internal
 
-#endif  // V8_GC_TRACER_H_
+#endif  // V8_HEAP_GC_TRACER_H_

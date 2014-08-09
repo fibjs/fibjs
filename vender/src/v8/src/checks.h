@@ -7,28 +7,9 @@
 
 #include "src/base/logging.h"
 
-// Simulator specific helpers.
-// We can't use USE_SIMULATOR here because it isn't defined yet.
-#if V8_TARGET_ARCH_ARM64 && !V8_HOST_ARCH_ARM64
-  // TODO(all): If possible automatically prepend an indicator like
-  // UNIMPLEMENTED or LOCATION.
-  #define ASM_UNIMPLEMENTED(message)                                         \
-  __ Debug(message, __LINE__, NO_PARAM)
-  #define ASM_UNIMPLEMENTED_BREAK(message)                                   \
-  __ Debug(message, __LINE__,                                                \
-           FLAG_ignore_asm_unimplemented_break ? NO_PARAM : BREAK)
-  #define ASM_LOCATION(message)                                              \
-  __ Debug("LOCATION: " message, __LINE__, NO_PARAM)
-#else
-  #define ASM_UNIMPLEMENTED(message)
-  #define ASM_UNIMPLEMENTED_BREAK(message)
-  #define ASM_LOCATION(message)
-#endif
-
-
 #ifdef DEBUG
 #ifndef OPTIMIZED_DEBUG
-#define ENABLE_SLOW_ASSERTS    1
+#define ENABLE_SLOW_DCHECKS    1
 #endif
 #endif
 
@@ -41,12 +22,12 @@ namespace internal {
 
 intptr_t HeapObjectTagMask();
 
-#ifdef ENABLE_SLOW_ASSERTS
-#define SLOW_ASSERT(condition) \
+#ifdef ENABLE_SLOW_DCHECKS
+#define SLOW_DCHECK(condition) \
   CHECK(!v8::internal::FLAG_enable_slow_asserts || (condition))
 extern bool FLAG_enable_slow_asserts;
 #else
-#define SLOW_ASSERT(condition) ((void) 0)
+#define SLOW_DCHECK(condition) ((void) 0)
 const bool FLAG_enable_slow_asserts = false;
 #endif
 
@@ -73,9 +54,9 @@ void CheckEqualsHelper(const char* file,
                        const char* value_source,
                        v8::Handle<v8::Value> value);
 
-#define ASSERT_TAG_ALIGNED(address) \
-  ASSERT((reinterpret_cast<intptr_t>(address) & HeapObjectTagMask()) == 0)
+#define DCHECK_TAG_ALIGNED(address) \
+  DCHECK((reinterpret_cast<intptr_t>(address) & HeapObjectTagMask()) == 0)
 
-#define ASSERT_SIZE_TAG_ALIGNED(size) ASSERT((size & HeapObjectTagMask()) == 0)
+#define DCHECK_SIZE_TAG_ALIGNED(size) DCHECK((size & HeapObjectTagMask()) == 0)
 
 #endif  // V8_CHECKS_H_
