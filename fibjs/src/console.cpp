@@ -35,6 +35,8 @@ inline int64_t Ticks()
 #include <dlfcn.h>
 #include <sys/time.h>
 
+#include "utils.h" // for ARRAYSIZE()
+
 inline int64_t Ticks()
 {
     struct timeval tv;
@@ -257,7 +259,20 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 #ifdef MacOS
         void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
 #else
-        void *handle = dlopen("libreadline.so", RTLD_LAZY);
+        const char *readline_dylib_names[] =
+        {
+            "libreadline.so.6",
+            "libreadline.so.5",
+            "libreadline.so"
+        };
+        const size_t readline_dylib_names_size = ARRAYSIZE(readline_dylib_names);
+        void *handle = 0;
+
+        for (size_t i = 0; i < readline_dylib_names_size; i++)
+        {
+            handle = dlopen(readline_dylib_names[i], RTLD_LAZY);
+            if (handle) break;
+        }
 #endif
 
         if (handle)
