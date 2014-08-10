@@ -181,7 +181,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     args[argCount - 2] = v8::Function::New(isolate, _require, _mod);
     args[argCount - 1] = v8::Function::New(isolate, _run, _mod);
 
-    v = func->Call(v8::Undefined(isolate), argCount, args);
+    v = func->Call(v8::Object::New(isolate), argCount, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
