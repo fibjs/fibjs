@@ -105,7 +105,6 @@ public:
         QuickArray<obj_ptr<_case> > stack;
         QuickArray<std::string> names;
         QuickArray<std::string> msgs;
-        v8::Local<v8::Object> o = v8::Object::New(isolate);
         int i, j;
         int32_t oldlevel = 0;
         int32_t cnt = 0, errcnt = 0;
@@ -128,7 +127,8 @@ public:
             {
                 for (i = 0; i < (int) p->m_hooks[HOOK_BEFORE].size(); i++)
                     if (v8::Local<v8::Function>::New(isolate,
-                                                     p->m_hooks[HOOK_BEFORE][i])->Call(o, 0, NULL).IsEmpty())
+                                                     p->m_hooks[HOOK_BEFORE][i])->Call(v8::Undefined(isolate),
+                                                             0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
                         clear();
@@ -165,8 +165,8 @@ public:
                     for (i = 0; i < (int) p2->m_hooks[HOOK_BEFORECASE].size();
                             i++)
                         if (v8::Local<v8::Function>::New(isolate,
-                                                         p2->m_hooks[HOOK_BEFORECASE][i])->Call(o, 0,
-                                                                 NULL).IsEmpty())
+                                                         p2->m_hooks[HOOK_BEFORECASE][i])->Call(v8::Undefined(isolate),
+                                                                 0, NULL).IsEmpty())
                         {
                             console_base::set_loglevel(oldlevel);
                             clear();
@@ -180,7 +180,7 @@ public:
                     date_t d1, d2;
 
                     d1.now();
-                    v8::Local<v8::Function>::New(isolate, p1->m_block)->Call(o,
+                    v8::Local<v8::Function>::New(isolate, p1->m_block)->Call(v8::Undefined(isolate),
                             0, NULL);
                     d2.now();
 
@@ -243,8 +243,8 @@ public:
                     for (i = (int) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
                             i >= 0; i--)
                         if (v8::Local<v8::Function>::New(isolate,
-                                                         p2->m_hooks[HOOK_AFTERCASE][i])->Call(o, 0,
-                                                                 NULL).IsEmpty())
+                                                         p2->m_hooks[HOOK_AFTERCASE][i])->Call(v8::Undefined(isolate),
+                                                                 0, NULL).IsEmpty())
                         {
                             console_base::set_loglevel(oldlevel);
                             clear();
@@ -257,7 +257,8 @@ public:
             {
                 for (i = (int) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
                     if (v8::Local<v8::Function>::New(isolate,
-                                                     p->m_hooks[HOOK_AFTER][i])->Call(o, 0, NULL).IsEmpty())
+                                                     p->m_hooks[HOOK_AFTER][i])->Call(v8::Undefined(isolate),
+                                                             0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
                         clear();
@@ -323,7 +324,7 @@ result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
     if (hr < 0)
         return hr;
 
-    block->Call(block->ToObject(), 0, NULL);
+    block->Call(v8::Undefined(isolate), 0, NULL);
 
     s_now = last;
     return 0;

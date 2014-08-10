@@ -350,7 +350,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
             m_kvs[i * 2].Release();
             m_kvs[i * 2 + 1].Release();
 
-            v8::Local<v8::Value> v = func->Call(func, 2, args);
+            v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate), 2, args);
             if (v.IsEmpty())
                 return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
