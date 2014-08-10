@@ -141,12 +141,36 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 }
 
+v8::Persistent<v8::Context> s_context_test;
+
 result_t SandBox::Context::run(std::string src, const char *name, const char **argNames,
                                v8::Local<v8::Value> *args, int32_t argCount)
 {
     v8::Local<v8::Script> script;
     {
         v8::TryCatch try_catch;
+
+        {
+            v8::Local<v8::Context> _context;
+
+            if (s_context_test.IsEmpty())
+            {
+                _context = v8::Context::New(isolate);
+                s_context_test.Reset(isolate, _context);
+            }
+            else
+                _context = v8::Local<v8::Context>::New(isolate, s_context_test);
+
+            v8::Context::Scope context_scope(_context);
+
+            script = v8::Script::Compile(
+                         v8::String::NewFromUtf8(isolate, src.c_str(),
+                                                 v8::String::kNormalString, (int) src.length()),
+                         v8::String::NewFromUtf8(isolate, name));
+            if (script.IsEmpty())
+                return throwSyntaxError(try_catch);
+        }
+
         std::string str("(function(");
         int32_t i;
 

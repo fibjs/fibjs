@@ -88,9 +88,17 @@ describe("vm", function() {
 		assert.deepEqual(b, b1);
 	});
 
-	xit("disable global.repl", function() {
+	it("block global hacker", function() {
+		sbox = new vm.SandBox({});
 		assert.throws(function() {
-			repl.toString();
+			sbox.addScript("t1.js", "});(function(){");
+		});
+	});
+
+	it("block function return", function() {
+		sbox = new vm.SandBox({});
+		assert.throws(function() {
+			sbox.addScript("t1.js", "return 100;");
 		});
 	});
 
