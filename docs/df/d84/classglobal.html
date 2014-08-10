@@ -223,6 +223,11 @@ $(document).ready(function(){initNavTree('df/d84/classglobal.html','../../');});
 </div><div class="memdoc">
 
 <p>加载一个模块并返回模块对象，更多信息参阅 <a class="el" href="../../d0/db5/module.html">模块管理</a> </p>
+<p>require 可用于加载基础模块，文件模块。</p>
+<p>基础模块是沙箱创建时初始化的模块，引用时只需传递相应的 id，比如 require("net")。</p>
+<p>文件模块是用户自定义模块，引用时需传递以 ./ 或 ../ 开头的相对路径。文件模块支持 .js 和 .json 文件。</p>
+<p>文件模块也支持 package.json 格式，当模块为目录结构时，require 会先查询 package.json 中的 main，未发现则尝试加载路径下的 index.js 或 index.json。</p>
+<p>若引用路径不是 ./ 或 ../ 开头，并且非基础模块，require 则先在启动路径查找，然后从当前模块所在路径下的 .modules 查找，并上级目录递归。</p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">id</td><td>指定要加载的模块名称 </td></tr>
