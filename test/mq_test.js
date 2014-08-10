@@ -8,6 +8,8 @@ var io = require('io');
 var m = new mq.Message();
 var v = new Buffer('abcd');
 
+var n;
+
 function hdlr1(v) {
 	n = n | 1;
 }
@@ -99,7 +101,7 @@ describe("mq", function() {
 		};
 
 		it("invoke path", function() {
-			for (t in ot) {
+			for (var t in ot) {
 				n = 0;
 				m.value = t;
 				o.invoke(m);

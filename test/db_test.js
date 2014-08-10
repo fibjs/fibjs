@@ -82,7 +82,7 @@ describe("db", function() {
 				conn.execute("delete from test;");
 				conn.execute("insert into test values(1,'aa', ?, ?);",
 					b, new Date());
-				rs = conn.execute("select * from test;");
+				var rs = conn.execute("select * from test;");
 				assert.equal(rs[0].t3.length, 1);
 				assert.equal(rs[0].t3[0], i);
 			}
@@ -313,7 +313,7 @@ describe("db", function() {
 			var ldb = db.openLevelDB("testdb");
 			ldb.put(data);
 
-			count = 0;
+			var count = 0;
 			ldb.forEach(function(k, v) {
 				assert.equal(data1[k].toString(), v.toString());
 				delete data1[k];

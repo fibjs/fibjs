@@ -23,8 +23,8 @@ describe('fs', function() {
 
 	if (!win)
 		it("umask", function() {
-			assert.equal(fs.umask(022), 0);
-			assert.equal(fs.umask(0), 022);
+			assert.equal(fs.umask(18), 0);
+			assert.equal(fs.umask(0), 18);
 		});
 
 	it("stat", function() {
@@ -51,12 +51,12 @@ describe('fs', function() {
 	});
 
 	it("mkdir", function() {
-		fs.mkdir(pathname, 0777);
+		fs.mkdir(pathname, 511);
 		assert.equal(fs.exists(pathname), true);
 
 		if (!win) {
 			var st = fs.stat(pathname);
-			assert.equal(st.mode & 0777, 0777);
+			assert.equal(st.mode & 511, 511);
 		}
 	});
 
@@ -83,13 +83,13 @@ describe('fs', function() {
 			var st = fs.stat('fs_test.js');
 			var oldm = st.mode;
 
-			fs.chmod('fs_test.js', 0777);
+			fs.chmod('fs_test.js', 511);
 			var st = fs.stat('fs_test.js');
-			assert.equal(st.mode & 0777, 0777);
+			assert.equal(st.mode & 511, 511);
 
 			fs.chmod('fs_test.js', oldm);
 			var st = fs.stat('fs_test.js');
-			assert.equal(st.mode & 0777, oldm & 0777);
+			assert.equal(st.mode & 511, oldm & 511);
 		});
 
 		it("file.chmod", function() {
@@ -97,13 +97,13 @@ describe('fs', function() {
 			var st = fs.stat('fs_test.js');
 			var oldm = st.mode;
 
-			f.chmod(0777);
+			f.chmod(511);
 			var st = fs.stat('fs_test.js');
-			assert.equal(st.mode & 0777, 0777);
+			assert.equal(st.mode & 511, 511);
 
 			f.chmod(oldm);
 			var st = fs.stat('fs_test.js');
-			assert.equal(st.mode & 0777, oldm & 0777);
+			assert.equal(st.mode & 511, oldm & 511);
 
 			f.close();
 		});
@@ -123,7 +123,7 @@ describe('fs', function() {
 	});
 
 	it("file read & write", function() {
-		f = fs.open('fs_test.js');
+		var f = fs.open('fs_test.js');
 
 		var f1 = fs.open('fs_test.js.bak', 'w+');
 		f1.write(f.read(f.size()));
@@ -139,7 +139,7 @@ describe('fs', function() {
 	});
 
 	it("readFile", function() {
-		f = fs.open('fs_test.js');
+		var f = fs.open('fs_test.js');
 
 		var s = fs.readFile("fs_test.js");
 		assert.equal(s, f.read(f.size()).toString());
@@ -148,7 +148,7 @@ describe('fs', function() {
 	});
 
 	it("openTextStream", function() {
-		f = fs.openTextStream('fs_test.js');
+		var f = fs.openTextStream('fs_test.js');
 		f.EOL = '\n';
 
 		var a = fs.readFile("fs_test.js").replace(/\r/g, "").split("\n");
@@ -158,7 +158,7 @@ describe('fs', function() {
 	});
 
 	it("tell", function() {
-		f = fs.open('fs_test.js');
+		var f = fs.open('fs_test.js');
 		var st = fs.stat('fs_test.js');
 
 		f.read(f.size());
@@ -171,25 +171,25 @@ describe('fs', function() {
 	});
 
 	it("seek", function() {
-		f = fs.open('fs_test.js');
+		var f = fs.open('fs_test.js');
 		f.seek(f.size() + 10, fs.SEEK_SET);
 		assert.equal(f.tell(), f.size() + 10);
 		f.seek(10, fs.SEEK_SET);
-		b = f.read(f.size());
+		var b = f.read(f.size());
 		assert.equal(f.size() - 10, b.length);
 		f.close();
 	});
 
 	it("seek 64 bits", function() {
-		f = fs.open('fs_test.js');
+		var f = fs.open('fs_test.js');
 		f.seek(f.size() + 8589934592, fs.SEEK_SET);
 		assert.equal(f.tell(), f.size() + 8589934592);
 		f.close();
 	});
 
 	it("copyTo", function() {
-		f = fs.open('fs_test.js');
-		f1 = fs.open('fs_test.js.bak', 'w');
+		var f = fs.open('fs_test.js');
+		var f1 = fs.open('fs_test.js.bak', 'w');
 
 		var s = f.copyTo(f1, 100);
 		assert.equal(s, 100);

@@ -107,7 +107,7 @@ describe("vm", function() {
 	it("Garbage Collection", function() {
 		sbox = undefined;
 		GC();
-		no1 = os.memoryUsage().nativeObjects;
+		var no1 = os.memoryUsage().nativeObjects;
 
 		sbox = new vm.SandBox({});
 		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
@@ -117,6 +117,20 @@ describe("vm", function() {
 
 		sbox = undefined;
 		a = undefined;
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
+
+	it("Garbage Collection ERROR!!!", function() {
+		GC();
+		var no1 = os.memoryUsage().nativeObjects;
+
+		var a = {
+			b: new vm.SandBox({}).addScript('b.js', "exports.a = new Buffer()")
+		};
+		a = undefined;
+
 		GC();
 		assert.equal(no1, os.memoryUsage().nativeObjects);
 	});

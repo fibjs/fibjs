@@ -629,13 +629,6 @@ describe("url", function() {
 			'hash': 'h',
 			'query': 's'
 		},
-		'xmpp:isaacschlueter@jabber.org': {
-			'href': 'xmpp:isaacschlueter@jabber.org',
-			'protocol': 'xmpp:',
-			'hostname': 'jabber.org',
-			'username': 'isaacschlueter',
-			'hostname': 'jabber.org'
-		},
 		'http://atpass:foo%40bar@127.0.0.1/': {
 			'href': 'http://atpass:foo%40bar@127.0.0.1/',
 			'username': 'atpass',
@@ -651,39 +644,6 @@ describe("url", function() {
 			'hostname': 'foo',
 			'protocol': 'http:',
 			'pathname': '/'
-		},
-		'svn+ssh://foo/bar': {
-			'href': 'svn+ssh://foo/bar',
-			'hostname': 'foo',
-			'protocol': 'svn+ssh:',
-			'pathname': '/bar',
-			'slashes': true
-		},
-		'dash-test://foo/bar': {
-			'href': 'dash-test://foo/bar',
-			'hostname': 'foo',
-			'protocol': 'dash-test:',
-			'pathname': '/bar',
-			'slashes': true
-		},
-		'dash-test:foo/bar': {
-			'href': 'dash-test:foo/bar',
-			'hostname': 'foo',
-			'protocol': 'dash-test:',
-			'pathname': '/bar'
-		},
-		'dot.test://foo/bar': {
-			'href': 'dot.test://foo/bar',
-			'hostname': 'foo',
-			'protocol': 'dot.test:',
-			'pathname': '/bar',
-			'slashes': true
-		},
-		'dot.test:foo/bar': {
-			'href': 'dot.test:foo/bar',
-			'hostname': 'foo',
-			'protocol': 'dot.test:',
-			'pathname': '/bar'
 		},
 		// ipv6 support
 		'coap:u:p@[::1]:61616/.well-known/r?n=Temperature': {
@@ -790,7 +750,7 @@ describe("url", function() {
 			var url = new net.Url();
 			relativeTests.forEach(function(relativeTest) {
 				url.parse(relativeTest[0]);
-				url1 = url.resolve(relativeTest[1]);
+				var url1 = url.resolve(relativeTest[1]);
 				assert.equal(relativeTest[2], url1.href);
 			});
 		});

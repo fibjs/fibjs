@@ -23,7 +23,7 @@ describe("collection", function() {
 		});
 
 		it("index", function() {
-			for (i = 0; i < 256; i++) {
+			for (var i = 0; i < 256; i++) {
 				a[i] = 256 - i;
 				assert.equal(a[i], 256 - i);
 			}

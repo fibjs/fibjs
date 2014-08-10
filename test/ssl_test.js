@@ -44,6 +44,7 @@ describe('ssl', function() {
 
 		var svr = new net.TcpServer(9080, function(s) {
 			var ss;
+			var buf;
 
 			try {
 				ss = sss.accept(s);
@@ -107,7 +108,7 @@ describe('ssl', function() {
 	it("echo", function() {
 		sss.verification = ssl.VERIFY_NONE;
 
-		for (i = 0; i < 10; i++) {
+		for (var i = 0; i < 10; i++) {
 			var s1 = new net.Socket();
 			s1.connect("127.0.0.1", 9080);
 
@@ -179,7 +180,7 @@ describe('ssl', function() {
 		}));
 		svr.asyncRun();
 
-		for (i = 0; i < 10; i++) {
+		for (var i = 0; i < 10; i++) {
 			var s1 = new net.Socket();
 			s1.connect("127.0.0.1", 9083);
 
@@ -203,7 +204,7 @@ describe('ssl', function() {
 		});
 		svr.asyncRun();
 
-		for (i = 0; i < 10; i++) {
+		for (var i = 0; i < 10; i++) {
 			var s1 = new net.Socket();
 			s1.connect("127.0.0.1", 9084);
 
