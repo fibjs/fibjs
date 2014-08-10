@@ -176,7 +176,8 @@ int main(int argc, char *argv[])
     static char s_sharmony[] = " --harmony --harmony_scoping --harmony_modules"
                                " --harmony_proxies --harmony_generators"
                                " --harmony_numeric_literals --harmony_strings"
-                               " --harmony_arrays --harmony_arrow_functions";
+                               " --harmony_arrays --harmony_arrow_functions"
+                               " --use_strict";
     enableDump();
 
     exlib::OSThread::Sleep(1);
