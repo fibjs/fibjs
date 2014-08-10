@@ -41,5 +41,5 @@ var searchData=
   ['create',['create',['../d5/d5d/classgd.html#a3349d9352130d7050247113235a3e1a9',1,'gd']]],
   ['crit',['crit',['../d6/df8/classconsole.html#aafeccfedf3222b47114d8ec262f10294',1,'console::crit(String fmt,...)'],['../d6/df8/classconsole.html#adf1c772e176fe40eb4ffae758cf22c64',1,'console::crit(...)']]],
   ['crop',['crop',['../d8/d00/classImage.html#a945d440ac93ede21a89839946be8da8f',1,'Image']]],
-  ['current',['current',['../d2/dd1/classcoroutine.html#ae2d278991596f4170f2be18ae8d71454',1,'coroutine::current()'],['../d0/d0a/classvm.html#a86cf814a28e33adfe35dc66b78c83af5',1,'vm::current()']]]
+  ['current',['current',['../d2/dd1/classcoroutine.html#ae2d278991596f4170f2be18ae8d71454',1,'coroutine']]]
 ];

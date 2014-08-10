@@ -63,5 +63,5 @@ var searchData=
   ['crypto',['crypto',['../d8/d48/classcrypto.html',1,'']]],
   ['ctime',['ctime',['../dc/d81/classStat.html#af62482780f5ebea39cf8f173f424f7d4',1,'Stat']]],
   ['ctr',['CTR',['../d8/d48/classcrypto.html#a01bb9b9d12fb491a950e0279a60f602d',1,'crypto']]],
-  ['current',['current',['../d2/dd1/classcoroutine.html#ae2d278991596f4170f2be18ae8d71454',1,'coroutine::current()'],['../d0/d0a/classvm.html#a86cf814a28e33adfe35dc66b78c83af5',1,'vm::current()']]]
+  ['current',['current',['../d2/dd1/classcoroutine.html#ae2d278991596f4170f2be18ae8d71454',1,'coroutine']]]
 ];

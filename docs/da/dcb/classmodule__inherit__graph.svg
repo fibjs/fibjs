@@ -791,19 +791,18 @@
 <!-- Node27 -->
 <g id="node27" class="node"><title>Node27</title>
 <g id="a_node27"><a xlink:href="../../d0/d0a/classvm.html" target="_top" xlink:title="安全沙箱模块，用于隔离不同安全等级的运行环境 ">
-<polygon fill="white" stroke="black" points="2759.37,-230.5 2759.37,-294.5 2831.23,-294.5 2831.23,-230.5 2759.37,-230.5"/>
-<text text-anchor="middle" x="2795.3" y="-282.5" font-family="Helvetica,sans-Serif" font-size="10.00">vm</text>
-<polyline fill="none" stroke="black" points="2759.37,-276.5 2831.23,-276.5 "/>
-<text text-anchor="middle" x="2795.3" y="-264.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="2759.37,-258.5 2831.23,-258.5 "/>
-<text text-anchor="start" x="2767.37" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SandBox()</text>
-<text text-anchor="start" x="2767.37" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ current()</text>
+<polygon fill="white" stroke="black" points="2759.37,-235.5 2759.37,-289.5 2831.23,-289.5 2831.23,-235.5 2759.37,-235.5"/>
+<text text-anchor="middle" x="2795.3" y="-277.5" font-family="Helvetica,sans-Serif" font-size="10.00">vm</text>
+<polyline fill="none" stroke="black" points="2759.37,-271.5 2831.23,-271.5 "/>
+<text text-anchor="middle" x="2795.3" y="-259.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="2759.37,-253.5 2831.23,-253.5 "/>
+<text text-anchor="start" x="2767.37" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SandBox()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node27 -->
 <g id="edge26" class="edge"><title>Node1&#45;&gt;Node27</title>
-<path fill="none" stroke="midnightblue" d="M1527.09,-586.988C1725.14,-583.92 2703.24,-566.694 2750.3,-525 2815.98,-466.805 2808.83,-350.416 2800.87,-294.667"/>
+<path fill="none" stroke="midnightblue" d="M1527.09,-586.988C1725.14,-583.92 2703.24,-566.694 2750.3,-525 2818.05,-464.972 2808.31,-343.027 2800.11,-289.584"/>
 <polygon fill="none" stroke="midnightblue" points="1526.9,-583.49 1516.96,-587.143 1527.01,-590.489 1526.9,-583.49"/>
 </g>
 <!-- Node28 -->
