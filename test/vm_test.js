@@ -113,9 +113,15 @@ describe("vm", function() {
 		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
 
 		var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
+
+		GC();
 		assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
 
 		sbox = undefined;
+
+		GC();
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+
 		a = undefined;
 
 		GC();
