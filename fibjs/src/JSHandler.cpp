@@ -89,21 +89,21 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             else
                 pargv = &a;
 
-            v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                    isolate, 1, v8::StackTrace::kScriptId);
-
-            if (stackTrace->GetFrameCount() > 0)
-            {
-                hdlr = func->Call(v8::Undefined(isolate), len + 1, pargv);
-                if (hdlr.IsEmpty())
-                    return CHECK_ERROR(CALL_E_JAVASCRIPT);
-            }
-            else
             {
                 v8::TryCatch try_catch;
                 hdlr = func->Call(v8::Undefined(isolate), len + 1, pargv);
                 if (try_catch.HasCaught())
-                    return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
+                {
+                    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+                            isolate, 1, v8::StackTrace::kScriptId);
+                    if (stackTrace->GetFrameCount() > 0)
+                    {
+                        try_catch.ReThrow();
+                        return CHECK_ERROR(CALL_E_JAVASCRIPT);
+                    }
+                    else
+                        return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
+                }
             }
 
             if (IsEmpty (hdlr))
