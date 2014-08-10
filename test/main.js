@@ -20,7 +20,6 @@ run("os_test.js");
 run("process_test.js");
 run("encoding_test.js");
 run("module_test.js");
-run("define_test.js");
 run("net_test.js");
 run("buffered_test.js");
 run("hash_test.js");

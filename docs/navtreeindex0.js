@@ -2,7 +2,6 @@ var NAVTREEINDEX0 =
 {
 "annotated.html":[4,0],
 "d0/d0a/classvm.html":[4,0,93],
-"d0/d0a/classvm.html#a86cf814a28e33adfe35dc66b78c83af5":[4,0,93,1],
 "d0/d0a/classvm.html#a8e842bfbf905fcd1ef830b1074f59a34":[4,0,93,0],
 "d0/d11/classBuffer.html":[4,0,3],
 "d0/d11/classBuffer.html#a01c6953280f5ed7df68813f93b4d31a5":[4,0,3,13],
@@ -249,5 +248,6 @@ var NAVTREEINDEX0 =
 "d2/dee/classBufferedStream.html#a6dde4ed97e788d9a9963b3548d1a837b":[4,0,4,0],
 "d2/dee/classBufferedStream.html#a72779ef151e7eeffa99138341f80eeef":[4,0,4,3],
 "d2/dee/classBufferedStream.html#a7a38cc9beea41220157a0263dcd86bc7":[4,0,4,9],
-"d2/dee/classBufferedStream.html#a9fe96dcae55a53aef7ceb56544bc83d9":[4,0,4,10]
+"d2/dee/classBufferedStream.html#a9fe96dcae55a53aef7ceb56544bc83d9":[4,0,4,10],
+"d2/dee/classBufferedStream.html#ab222e6d2021b844bccf45cdaa59729cf":[4,0,4,6]
 };

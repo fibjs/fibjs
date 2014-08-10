@@ -10,6 +10,8 @@ var encoding = require('encoding');
 
 var m = new http.Request();
 
+var jr;
+
 m.value = 'test/tttt/tttt/';
 m.setHeader("Content-Type", "application/json, charset=utf-8;");
 m.body.write(new Buffer(encoding.jsonEncode({
@@ -20,7 +22,7 @@ m.body.write(new Buffer(encoding.jsonEncode({
 
 describe("rpc", function() {
 	it("function", function() {
-		var jr = rpc.json(function(m, p1, p2) {
+		jr = rpc.json(function(m, p1, p2) {
 			m.value = '';
 			return p1 + ',' + p2;
 		});
@@ -111,7 +113,7 @@ describe("rpc", function() {
 		var bs = new io.BufferedStream(s);
 		bs.EOL = '\r\n';
 
-		for (i = 0; i < 50; i++) {
+		for (var i = 0; i < 50; i++) {
 			var req = new http.Request();
 			req.addHeader("content-type", "application/json");
 			req.body.write(new Buffer(

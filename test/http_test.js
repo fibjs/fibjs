@@ -51,7 +51,7 @@ describe("http", function() {
 		});
 
 		it("all", function() {
-			a = d.all('a');
+			var a = d.all('a');
 			assert.deepEqual(a, ['100', '300']);
 		});
 
@@ -64,14 +64,14 @@ describe("http", function() {
 
 			assert.equal(d.first('c'), '400');
 
-			a = d.all('c');
+			var a = d.all('c');
 			assert.deepEqual(a, ['400', '600']);
 		});
 
 		it("set", function() {
 			d.set('c', '800');
 
-			a = d.all('c');
+			var a = d.all('c');
 			assert.equal(a.length, 1);
 			assert.equal(a[0], '800');
 
@@ -84,7 +84,7 @@ describe("http", function() {
 				b: "1000"
 			});
 
-			a = d.all('d');
+			var a = d.all('d');
 			assert.deepEqual(a, ['500', '700', '900']);
 
 			a = d.all('b');
@@ -97,7 +97,7 @@ describe("http", function() {
 				b: "1000"
 			});
 
-			a = d.all('d');
+			var a = d.all('d');
 			assert.deepEqual(a, ['900']);
 
 			a = d.all('b');
@@ -106,7 +106,7 @@ describe("http", function() {
 
 		it("set other type", function() {
 			d.set('e', 2000);
-			a = d.all('e');
+			var a = d.all('e');
 			assert.deepEqual(a, ['2000']);
 
 			d.set('f', 214748364700);
@@ -115,7 +115,7 @@ describe("http", function() {
 			d.set('f', 214.123);
 			assert.equal(d['f'], '214.123');
 
-			t = new Date('2012-12-12T12:12:12Z');
+			var t = new Date('2012-12-12T12:12:12Z');
 			d.set('f', t);
 
 			assert.deepEqual(d['f'], "Wed, 12 Dec 2012 12:12:12 GMT");

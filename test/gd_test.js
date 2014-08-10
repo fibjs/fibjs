@@ -161,7 +161,7 @@ describe("gd", function() {
 	});
 
 	it("flip", function() {
-		img1 = img.resample(220, 120);
+		var img1 = img.resample(220, 120);
 		img1.flip();
 	});
 });

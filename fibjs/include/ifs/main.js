@@ -25,7 +25,7 @@ process.system('doxygen');
 
 function preparserIDL(fname) {
 	var f, line = 0,
-		isRem;
+		st, isRem;
 
 	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
@@ -46,7 +46,7 @@ function preparserIDL(fname) {
 
 	function getStock() {
 		var pos = 0,
-			n, n1;
+			n, n1, st2;
 		var bString = false;
 		var s = f.pop();
 		line++;
@@ -105,7 +105,7 @@ function preparserIDL(fname) {
 					if (s != "") {
 						st2 = s.split(" ");
 
-						for (i = 0; i < st2.length; i++) {
+						for (var i = 0; i < st2.length; i++) {
 							s = st2[i];
 							st1.push(s);
 						}
@@ -260,7 +260,7 @@ function parserIDL(fname) {
 
 		txt.push("\nnamespace fibjs\n{\n");
 
-		for (cls in refCls) {
+		for (var cls in refCls) {
 			txt.push("class " + cls + "_base;");
 			bRef = true;
 		}
@@ -417,7 +417,8 @@ function parserIDL(fname) {
 			argOpt = 0,
 			ifStr = "",
 			fnStr = "",
-			argVars = "";
+			argVars = "",
+			type, r;
 
 		args = [];
 
@@ -926,7 +927,7 @@ function parserIDL(fname) {
 	}
 
 	function _checkID(s) {
-		r = s.match(/[a-zA-Z]\w*/);
+		var r = s.match(/[a-zA-Z]\w*/);
 		if (!r)
 			return reportErr();
 		if (r[0] != s)
@@ -940,7 +941,7 @@ function parserIDL(fname) {
 
 	function getStock() {
 		var pos = 0,
-			n, n1;
+			n, n1, st2;
 		var bString = false;
 		var s = f.pop();
 		line++;
@@ -1001,7 +1002,7 @@ function parserIDL(fname) {
 					if (s != "") {
 						st2 = s.split(" ");
 
-						for (i = 0; i < st2.length; i++) {
+						for (var i = 0; i < st2.length; i++) {
 							s = st2[i];
 							st1.push(s);
 						}

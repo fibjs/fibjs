@@ -379,23 +379,21 @@
 <!-- Node12 -->
 <g id="node12" class="node"><title>Node12</title>
 <g id="a_node12"><a xlink:href="../../df/d84/classglobal.html" target="_top" xlink:title="全局对象，所有脚本均可以访问的基础对象 ">
-<polygon fill="white" stroke="black" points="1133.09,-210.5 1133.09,-314.5 1195.5,-314.5 1195.5,-210.5 1133.09,-210.5"/>
-<text text-anchor="middle" x="1164.3" y="-302.5" font-family="Helvetica,sans-Serif" font-size="10.00">global</text>
-<polyline fill="none" stroke="black" points="1133.09,-296.5 1195.5,-296.5 "/>
-<text text-anchor="start" x="1141.09" y="-284.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ console</text>
-<polyline fill="none" stroke="black" points="1133.09,-278.5 1195.5,-278.5 "/>
-<text text-anchor="start" x="1141.09" y="-266.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Buffer()</text>
-<text text-anchor="start" x="1141.09" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
-<text text-anchor="start" x="1141.09" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ repl()</text>
-<text text-anchor="start" x="1141.09" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ define()</text>
-<text text-anchor="start" x="1141.09" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ require()</text>
-<text text-anchor="start" x="1141.09" y="-216.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ GC()</text>
+<polygon fill="white" stroke="black" points="1133.09,-220.5 1133.09,-304.5 1195.5,-304.5 1195.5,-220.5 1133.09,-220.5"/>
+<text text-anchor="middle" x="1164.3" y="-292.5" font-family="Helvetica,sans-Serif" font-size="10.00">global</text>
+<polyline fill="none" stroke="black" points="1133.09,-286.5 1195.5,-286.5 "/>
+<text text-anchor="start" x="1141.09" y="-274.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ console</text>
+<polyline fill="none" stroke="black" points="1133.09,-268.5 1195.5,-268.5 "/>
+<text text-anchor="start" x="1141.09" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Buffer()</text>
+<text text-anchor="start" x="1141.09" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
+<text text-anchor="start" x="1141.09" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ require()</text>
+<text text-anchor="start" x="1141.09" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ GC()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node12 -->
 <g id="edge11" class="edge"><title>Node1&#45;&gt;Node12</title>
-<path fill="none" stroke="midnightblue" d="M1457.43,-584.787C1388.51,-578.681 1238.56,-561.449 1204.3,-525 1151.3,-468.611 1150.74,-373.163 1156.55,-314.503"/>
+<path fill="none" stroke="midnightblue" d="M1457.43,-584.787C1388.51,-578.681 1238.56,-561.449 1204.3,-525 1148.31,-465.432 1150.84,-362.276 1157.58,-304.945"/>
 <polygon fill="none" stroke="midnightblue" points="1457.5,-588.306 1467.76,-585.673 1458.1,-581.332 1457.5,-588.306"/>
 </g>
 <!-- Node13 -->
@@ -793,19 +791,18 @@
 <!-- Node27 -->
 <g id="node27" class="node"><title>Node27</title>
 <g id="a_node27"><a xlink:href="../../d0/d0a/classvm.html" target="_top" xlink:title="安全沙箱模块，用于隔离不同安全等级的运行环境 ">
-<polygon fill="white" stroke="black" points="2759.37,-230.5 2759.37,-294.5 2831.23,-294.5 2831.23,-230.5 2759.37,-230.5"/>
-<text text-anchor="middle" x="2795.3" y="-282.5" font-family="Helvetica,sans-Serif" font-size="10.00">vm</text>
-<polyline fill="none" stroke="black" points="2759.37,-276.5 2831.23,-276.5 "/>
-<text text-anchor="middle" x="2795.3" y="-264.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="2759.37,-258.5 2831.23,-258.5 "/>
-<text text-anchor="start" x="2767.37" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SandBox()</text>
-<text text-anchor="start" x="2767.37" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ current()</text>
+<polygon fill="white" stroke="black" points="2759.37,-235.5 2759.37,-289.5 2831.23,-289.5 2831.23,-235.5 2759.37,-235.5"/>
+<text text-anchor="middle" x="2795.3" y="-277.5" font-family="Helvetica,sans-Serif" font-size="10.00">vm</text>
+<polyline fill="none" stroke="black" points="2759.37,-271.5 2831.23,-271.5 "/>
+<text text-anchor="middle" x="2795.3" y="-259.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="2759.37,-253.5 2831.23,-253.5 "/>
+<text text-anchor="start" x="2767.37" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SandBox()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node27 -->
 <g id="edge26" class="edge"><title>Node1&#45;&gt;Node27</title>
-<path fill="none" stroke="midnightblue" d="M1527.09,-586.988C1725.14,-583.92 2703.24,-566.694 2750.3,-525 2815.98,-466.805 2808.83,-350.416 2800.87,-294.667"/>
+<path fill="none" stroke="midnightblue" d="M1527.09,-586.988C1725.14,-583.92 2703.24,-566.694 2750.3,-525 2818.05,-464.972 2808.31,-343.027 2800.11,-289.584"/>
 <polygon fill="none" stroke="midnightblue" points="1526.9,-583.49 1516.96,-587.143 1527.01,-590.489 1526.9,-583.49"/>
 </g>
 <!-- Node28 -->

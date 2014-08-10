@@ -113,12 +113,11 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
 {
     result_t hr;
     v8::Local<v8::Object> o;
-    v8::Local<v8::Object> o1 = v8::Object::New(isolate);
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v = func->Call(o1, 1, &a);
+        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate), 1, &a);
 
         if (v.IsEmpty())
             return CHECK_ERROR(CALL_E_JAVASCRIPT);
@@ -132,14 +131,13 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
 {
     result_t hr;
     v8::Local<v8::Object> o;
-    v8::Local<v8::Object> o1 = v8::Object::New(isolate);
     v8::Local<v8::Array> as = v8::Array::New(isolate);
     int n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v = func->Call(o1, 1, &a);
+        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate), 1, &a);
 
         if (v.IsEmpty())
             return CHECK_ERROR(CALL_E_JAVASCRIPT);

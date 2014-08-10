@@ -3,7 +3,7 @@ console.log('exec testing....');
 var coroutine = require('coroutine');
 var process = require('process');
 
-for (i = 0; i < 2; i++) {
+for (var i = 0; i < 2; i++) {
 	coroutine.sleep(1000);
 	console.log(new Date());
 	console.print('console.print....');

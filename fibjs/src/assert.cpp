@@ -905,9 +905,13 @@ result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
 
 result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
 {
-    v8::TryCatch try_catch;
-    block->Call(block, 0, NULL);
-    _test(try_catch.HasCaught(), _msg(msg, "Missing expected exception."));
+    bool err;
+    {
+        v8::TryCatch try_catch;
+        block->Call(v8::Undefined(isolate), 0, NULL);
+        err = try_catch.HasCaught();
+    }
+    _test(err, _msg(msg, "Missing expected exception."));
 
     return 0;
 }
@@ -915,9 +919,13 @@ result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
 result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
                                    const char *msg)
 {
-    v8::TryCatch try_catch;
-    block->Call(block, 0, NULL);
-    _test(!try_catch.HasCaught(), _msg(msg, "Got unwanted exception."));
+    bool err;
+    {
+        v8::TryCatch try_catch;
+        block->Call(v8::Undefined(isolate), 0, NULL);
+        err = try_catch.HasCaught();
+    }
+    _test(!err, _msg(msg, "Got unwanted exception."));
 
     return 0;
 }

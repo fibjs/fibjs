@@ -11,7 +11,6 @@ var searchData=
   ['deepproperty',['deepProperty',['../de/d1c/classassert.html#a5129660776f5965ef0fc8e045a9d51d4',1,'assert']]],
   ['deeppropertynotval',['deepPropertyNotVal',['../de/d1c/classassert.html#a2fe6b107e4c006046154d31897370d69',1,'assert']]],
   ['deeppropertyval',['deepPropertyVal',['../de/d1c/classassert.html#a3a807667d3596b22f245aec1837a1d3d',1,'assert']]],
-  ['define',['define',['../df/d84/classglobal.html#a0ee91eecae9f066671a13227e61947e0',1,'global']]],
   ['deflate',['deflate',['../d8/d09/classzlib.html#a4bbb2133b9a39ea72db80e845a6ad0aa',1,'zlib']]],
   ['deflateto',['deflateTo',['../d8/d09/classzlib.html#aa6b8b6d518e950dbaca2b18ab4330fbe',1,'zlib::deflateTo(Buffer data, Stream stm, Integer level=DEFAULT_COMPRESSION) async'],['../d8/d09/classzlib.html#a26b0d322158d30cfb60c774ee212f8d1',1,'zlib::deflateTo(Stream src, Stream stm, Integer level=DEFAULT_COMPRESSION) async']]],
   ['del',['del',['../db/d15/classRedis.html#ab82f73848a2409c123b633c05294ca2e',1,'Redis::del(Array keys)'],['../db/d15/classRedis.html#a0ca852fc1075e833c7db632b5c404589',1,'Redis::del(...)'],['../df/dbc/classRedisHash.html#a35acad981389e288138c66b06bfdd757',1,'RedisHash::del(Array fields)'],['../df/dbc/classRedisHash.html#a85157309a13caf605121dad1b55769d4',1,'RedisHash::del(...)']]],

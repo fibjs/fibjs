@@ -56,8 +56,7 @@ void SandBox::initRoot()
 
     InstallNativeModule("test", test_base::class_info());
     InstallNativeModule("assert", assert_base::class_info());
-    InstallModule("expect",
-                  v8::FunctionTemplate::New(isolate, test_base::s_expect)->GetFunction());
+    InstallModule("expect", v8::Function::New(isolate, test_base::s_expect));
 
     InstallNativeModule("path", path_base::class_info());
 
@@ -69,7 +68,7 @@ void SandBox::initRoot()
     InstallNativeModule("fs", fs_base::class_info());
     InstallNativeModule("os", os_base::class_info());
     InstallNativeModule("net", net_base::class_info());
-    
+
     InstallNativeModule("hash", hash_base::class_info());
     InstallNativeModule("crypto", crypto_base::class_info());
     InstallNativeModule("ssl", ssl_base::class_info());

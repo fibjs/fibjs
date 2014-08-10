@@ -6,8 +6,6 @@
  */
 
 #include "ifs/SandBox.h"
-#include "ifs/global.h"
-#include "ifs/Function.h"
 #include <map>
 
 #ifndef SANDBOX_H_
@@ -15,8 +13,6 @@
 
 namespace fibjs
 {
-
-extern v8::Persistent<v8::Value> s_token;
 
 class SandBox: public fibjs::SandBox_base
 {
@@ -69,10 +65,8 @@ public:
         InstallModule(fname, ci.CreateInstance());
     }
 
+    result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);
     result_t repl();
-
-    result_t require(const char *id, v8::Local<v8::Value> &retVal, int32_t mode);
-
 
     std::string name()
     {
@@ -83,89 +77,23 @@ public:
     class Context
     {
     public:
-        Context(SandBox *sb, const char *id) :
-            context(v8::Context::New(isolate))
+        Context(SandBox *sb, const char *id) : m_sb(sb)
         {
-            v8::Local<v8::Context> ctx = isolate->GetCallingContext();
-            static const char *s_skips_root[] =
-            {
-                "define", 0
-            };
-            static const char *s_skips[] =
-            {
-                "repl", "define", 0
-            };
-
-            context->SetSecurityToken(v8::Local<v8::Value>::New(isolate, s_token));
-            context->Enter();
-
-            glob = context->Global();
-            global_base::class_info().Attach(glob, ctx.IsEmpty() ? s_skips_root : s_skips);
-
-            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_sbox"), sb->wrap());
-
-            // clone Function.start
-            Function_base::class_info().Attach(
-                glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject(),
-                NULL);
-
-            // module.id
-            v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, id,
-                                             v8::String::kNormalString,
-                                             (int) qstrlen(id));
-            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
+            m_id = v8::String::NewFromUtf8(isolate, id, v8::String::kNormalString,
+                                           (int) qstrlen(id));
         }
 
-        ~Context()
-        {
-            context->Exit();
-        }
-
-        static result_t run(std::string &src, const char *name)
-        {
-            v8::Local<v8::Script> script;
-            {
-                v8::TryCatch try_catch;
-
-                script = v8::Script::Compile(
-                             v8::String::NewFromUtf8(isolate, src.c_str(),
-                                                     v8::String::kNormalString, (int) src.length()),
-                             v8::String::NewFromUtf8(isolate, name));
-                if (script.IsEmpty())
-                    return throwSyntaxError(try_catch);
-            }
-
-            if (script->Run().IsEmpty())
-                return CALL_E_JAVASCRIPT;
-
-            return 0;
-        }
-
-        static result_t run(const char *src, const char *name)
-        {
-            v8::Local<v8::Script> script;
-            {
-                v8::TryCatch try_catch;
-
-                script = v8::Script::Compile(
-                             v8::String::NewFromUtf8(isolate, src,
-                                                     v8::String::kNormalString, (int) qstrlen(src)),
-                             v8::String::NewFromUtf8(isolate, name));
-                if (script.IsEmpty())
-                    return throwSyntaxError(try_catch);
-            }
-
-            if (script->Run().IsEmpty())
-                return CALL_E_JAVASCRIPT;
-
-            return 0;
-        }
+        result_t run(std::string src, const char *name, const char **argNames,
+                     v8::Local<v8::Value> *args, int32_t argCount);
+        result_t run(std::string src, const char *name);
+        result_t run(std::string src, const char *name, v8::Local<v8::Object> module,
+                     v8::Local<v8::Object> exports);
 
         static result_t repl();
 
     public:
-        v8::Local<v8::Context> context;
-        v8::Local<v8::Object> glob;
+        obj_ptr<SandBox> m_sb;
+        v8::Local<v8::Value> m_id;
     };
 
     std::string m_name;

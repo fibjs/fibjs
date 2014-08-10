@@ -39,7 +39,6 @@
     <ClCompile Include="src\db.cpp" />
     <ClCompile Include="src\DBResult.cpp" />
     <ClCompile Include="src\DBRow.cpp" />
-    <ClCompile Include="src\define.cpp" />
     <ClCompile Include="src\Digest.cpp" />
     <ClCompile Include="src\encoding.cpp" />
     <ClCompile Include="src\encoding_bson.cpp" />

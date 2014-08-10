@@ -8,6 +8,8 @@ var M = 102400;
 var b = new Buffer();
 b.resize(M);
 
+var i;
+
 for (i = 0; i < M; i++)
 	b[i] = Math.random() * 70 + 33;
 

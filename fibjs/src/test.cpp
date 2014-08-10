@@ -105,7 +105,6 @@ public:
         QuickArray<obj_ptr<_case> > stack;
         QuickArray<std::string> names;
         QuickArray<std::string> msgs;
-        v8::Local<v8::Object> o = v8::Object::New(isolate);
         int i, j;
         int32_t oldlevel = 0;
         int32_t cnt = 0, errcnt = 0;
@@ -128,7 +127,8 @@ public:
             {
                 for (i = 0; i < (int) p->m_hooks[HOOK_BEFORE].size(); i++)
                     if (v8::Local<v8::Function>::New(isolate,
-                                                     p->m_hooks[HOOK_BEFORE][i])->Call(o, 0, NULL).IsEmpty())
+                                                     p->m_hooks[HOOK_BEFORE][i])->Call(v8::Undefined(isolate),
+                                                             0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
                         clear();
@@ -165,8 +165,8 @@ public:
                     for (i = 0; i < (int) p2->m_hooks[HOOK_BEFORECASE].size();
                             i++)
                         if (v8::Local<v8::Function>::New(isolate,
-                                                         p2->m_hooks[HOOK_BEFORECASE][i])->Call(o, 0,
-                                                                 NULL).IsEmpty())
+                                                         p2->m_hooks[HOOK_BEFORECASE][i])->Call(v8::Undefined(isolate),
+                                                                 0, NULL).IsEmpty())
                         {
                             console_base::set_loglevel(oldlevel);
                             clear();
@@ -180,7 +180,7 @@ public:
                     date_t d1, d2;
 
                     d1.now();
-                    v8::Local<v8::Function>::New(isolate, p1->m_block)->Call(o,
+                    v8::Local<v8::Function>::New(isolate, p1->m_block)->Call(v8::Undefined(isolate),
                             0, NULL);
                     d2.now();
 
@@ -243,8 +243,8 @@ public:
                     for (i = (int) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
                             i >= 0; i--)
                         if (v8::Local<v8::Function>::New(isolate,
-                                                         p2->m_hooks[HOOK_AFTERCASE][i])->Call(o, 0,
-                                                                 NULL).IsEmpty())
+                                                         p2->m_hooks[HOOK_AFTERCASE][i])->Call(v8::Undefined(isolate),
+                                                                 0, NULL).IsEmpty())
                         {
                             console_base::set_loglevel(oldlevel);
                             clear();
@@ -257,7 +257,8 @@ public:
             {
                 for (i = (int) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
                     if (v8::Local<v8::Function>::New(isolate,
-                                                     p->m_hooks[HOOK_AFTER][i])->Call(o, 0, NULL).IsEmpty())
+                                                     p->m_hooks[HOOK_AFTER][i])->Call(v8::Undefined(isolate),
+                                                             0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
                         clear();
@@ -323,7 +324,7 @@ result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
     if (hr < 0)
         return hr;
 
-    block->Call(block->ToObject(), 0, NULL);
+    block->Call(v8::Undefined(isolate), 0, NULL);
 
     s_now = last;
     return 0;
@@ -387,80 +388,58 @@ result_t test_base::expect(v8::Local<v8::Value> actual, const char *msg,
     return 0;
 }
 
+extern v8::Persistent<v8::Object> s_global;
 result_t test_base::setup(int32_t mode)
 {
-    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
+    v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate, s_global);
 
-    if (!ctx.IsEmpty())
+    if (mode == _BDD)
     {
-        v8::Context::Scope context_scope(ctx);
-        v8::Local<v8::Object> glob = ctx->Global();
-        obj_ptr<assert_base> assert;
-
-        if (mode == _BDD)
-        {
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "describe"),
-                           v8::FunctionTemplate::New(isolate, s_describe)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xdescribe"),
-                           v8::FunctionTemplate::New(isolate, s_xdescribe)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "it"),
-                           v8::FunctionTemplate::New(isolate, s_it)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xit"),
-                           v8::FunctionTemplate::New(isolate, s_xit)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "before"),
-                           v8::FunctionTemplate::New(isolate, s_before)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "after"),
-                           v8::FunctionTemplate::New(isolate, s_after)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "beforeEach"),
-                           v8::FunctionTemplate::New(isolate, s_beforeEach)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "afterEach"),
-                           v8::FunctionTemplate::New(isolate, s_afterEach)->GetFunction(),
-                           v8::ReadOnly);
-        }
-        else if (mode == _TDD)
-        {
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "suite"),
-                           v8::FunctionTemplate::New(isolate, s_describe)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xsuite"),
-                           v8::FunctionTemplate::New(isolate, s_xdescribe)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "test"),
-                           v8::FunctionTemplate::New(isolate, s_it)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xtest"),
-                           v8::FunctionTemplate::New(isolate, s_xit)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "suiteSetup"),
-                           v8::FunctionTemplate::New(isolate, s_before)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "suiteTeardown"),
-                           v8::FunctionTemplate::New(isolate, s_after)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "setup"),
-                           v8::FunctionTemplate::New(isolate, s_beforeEach)->GetFunction(),
-                           v8::ReadOnly);
-            glob->ForceSet(v8::String::NewFromUtf8(isolate, "teardown"),
-                           v8::FunctionTemplate::New(isolate, s_afterEach)->GetFunction(),
-                           v8::ReadOnly);
-        }
-        else
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-
-        glob->ForceSet(v8::String::NewFromUtf8(isolate, "expect"),
-                       v8::FunctionTemplate::New(isolate, s_expect)->GetFunction(),
-                       v8::ReadOnly);
-
-        get_assert (assert);
-        glob->ForceSet(v8::String::NewFromUtf8(isolate, "assert"), assert->wrap(), v8::ReadOnly);
+        glob->Set(v8::String::NewFromUtf8(isolate, "describe"),
+                  v8::Function::New(isolate, s_describe));
+        glob->Set(v8::String::NewFromUtf8(isolate, "xdescribe"),
+                  v8::Function::New(isolate, s_xdescribe));
+        glob->Set(v8::String::NewFromUtf8(isolate, "it"),
+                  v8::Function::New(isolate, s_it));
+        glob->Set(v8::String::NewFromUtf8(isolate, "xit"),
+                  v8::Function::New(isolate, s_xit));
+        glob->Set(v8::String::NewFromUtf8(isolate, "before"),
+                  v8::Function::New(isolate, s_before));
+        glob->Set(v8::String::NewFromUtf8(isolate, "after"),
+                  v8::Function::New(isolate, s_after));
+        glob->Set(v8::String::NewFromUtf8(isolate, "beforeEach"),
+                  v8::Function::New(isolate, s_beforeEach));
+        glob->Set(v8::String::NewFromUtf8(isolate, "afterEach"),
+                  v8::Function::New(isolate, s_afterEach));
     }
+    else if (mode == _TDD)
+    {
+        glob->Set(v8::String::NewFromUtf8(isolate, "suite"),
+                  v8::Function::New(isolate, s_describe));
+        glob->Set(v8::String::NewFromUtf8(isolate, "xsuite"),
+                  v8::Function::New(isolate, s_xdescribe));
+        glob->Set(v8::String::NewFromUtf8(isolate, "test"),
+                  v8::Function::New(isolate, s_it));
+        glob->Set(v8::String::NewFromUtf8(isolate, "xtest"),
+                  v8::Function::New(isolate, s_xit));
+        glob->Set(v8::String::NewFromUtf8(isolate, "suiteSetup"),
+                  v8::Function::New(isolate, s_before));
+        glob->Set(v8::String::NewFromUtf8(isolate, "suiteTeardown"),
+                  v8::Function::New(isolate, s_after));
+        glob->Set(v8::String::NewFromUtf8(isolate, "setup"),
+                  v8::Function::New(isolate, s_beforeEach));
+        glob->Set(v8::String::NewFromUtf8(isolate, "teardown"),
+                  v8::Function::New(isolate, s_afterEach));
+    }
+    else
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    glob->Set(v8::String::NewFromUtf8(isolate, "expect"),
+              v8::Function::New(isolate, s_expect));
+
+    obj_ptr<assert_base> assert;
+    get_assert (assert);
+    glob->Set(v8::String::NewFromUtf8(isolate, "assert"), assert->wrap());
 
     return 0;
 }

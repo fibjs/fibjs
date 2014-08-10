@@ -101,8 +101,9 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
                 obj_ptr<Event_base> e = new Event();
                 find->second.m_event = e;
 
-                v8::Handle<v8::Value> n = v8::String::NewFromUtf8(isolate, name);
-                v8::Local<v8::Value> v = updater->Call(wrap(), 1, &n);
+                v8::Handle<v8::String> n = v8::String::NewFromUtf8(isolate, name);
+                v8::Handle<v8::Value> a = n;
+                v8::Local<v8::Value> v = updater->Call(wrap(), 1, &a);
 
                 e->set();
 
@@ -111,7 +112,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
                 {
                     if (find != m_datas.end())
                     {
-                        find->second.value = v;
+                        wrap()->SetHiddenValue(n, v);
                         if (find->second.m_event == e)
                             find->second.m_event.Release();
                     }
@@ -139,7 +140,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
     }
 
     update(find);
-    retVal = find->second.value;
+    retVal = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate, name));
 
     return 0;
 }
@@ -155,7 +156,7 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 
         if (m_timeout > 0)
             find->second.insert.now();
-        find->second.value = value;
+        wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, name), value);
     }
 
     cleanup();
@@ -184,7 +185,7 @@ result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 
     if (m_timeout > 0)
         find->second.insert.now();
-    find->second.value = value;
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, name), value);
 
     cleanup();
 
@@ -243,10 +244,10 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 
     while (it != m_datas.end())
     {
-        obj->Set(v8::String::NewFromUtf8(isolate, it->first.c_str(),
-                                         v8::String::kNormalString,
-                                         (int) it->first.length()),
-                 it->second.value);
+        v8::Local<v8::String> name = v8::String::NewFromUtf8(isolate, it->first.c_str(),
+                                     v8::String::kNormalString,
+                                     (int) it->first.length());
+        obj->Set(name, wrap()->GetHiddenValue(name));
         it = it->second.next();
     }
 

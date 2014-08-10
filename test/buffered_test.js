@@ -8,6 +8,7 @@ var mq = require('mq');
 
 describe("buffered stream", function() {
 	var s;
+	var f;
 
 	before(function() {
 		s = '0123456789\r\n';
@@ -73,6 +74,7 @@ describe("buffered stream", function() {
 		r.EOL = '\r\n';
 
 		var n = 0;
+		var s1;
 
 		while ((s1 = r.readLine()) !== null) {
 			assert.equal('0123456789', s1);
