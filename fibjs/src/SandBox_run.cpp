@@ -18,66 +18,191 @@
 namespace fibjs
 {
 
-static std::map<int32_t, SandBox::ScriptContext *> s_ctxs;
+#define FILE_ONLY   1
+#define NO_SEARCH   2
+#define FULL_SEARCH 3
 
-SandBox::ScriptContext::ScriptContext(int32_t sid) : m_sid(sid)
-{
-    s_ctxs.insert(std::pair<int32_t, SandBox::ScriptContext *>(m_sid, this));
-}
-
-SandBox::ScriptContext::~ScriptContext()
-{
-    s_ctxs.erase(m_sid);
-}
-
-v8::Local<v8::Object> SandBox::ScriptContext::GetCallingContext()
-{
-    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-            isolate, 1, v8::StackTrace::kScriptId);
-
-    if (stackTrace->GetFrameCount() <= 0)
-        return v8::Local<v8::Object>();
-
-    int32_t sid = stackTrace->GetFrame(0)->GetScriptId();
-    std::map<int32_t, SandBox::ScriptContext *>::iterator it = s_ctxs.find(sid);
-
-    if (it == s_ctxs.end())
-        return v8::Local<v8::Object>();
-
-    return it->second->wrap();
-}
-
-inline std::string resolvePath(const char *id)
+inline std::string resolvePath(std::string base, std::string id)
 {
     std::string fname;
 
     if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
     {
-        v8::Local<v8::Object> ctx = SandBox::ScriptContext::GetCallingContext();
-
-        if (!ctx.IsEmpty())
+        if (!base.empty())
         {
-            v8::Local<v8::Value> path = ctx->GetHiddenValue(
-                                            v8::String::NewFromUtf8(isolate, "_id"));
+            std::string strPath;
 
-            if (!IsEmpty(path))
-            {
-                std::string strPath;
+            path_base::dirname(base.c_str(), strPath);
+            if (strPath.length())
+                strPath += PATH_SLASH;
+            strPath += id;
+            path_base::normalize(strPath.c_str(), fname);
 
-                path_base::dirname(*v8::String::Utf8Value(path), strPath);
-                if (strPath.length())
-                    strPath += PATH_SLASH;
-                strPath += id;
-                path_base::normalize(strPath.c_str(), fname);
-
-                return fname;
-            }
+            return fname;
         }
     }
 
-    path_base::normalize(id, fname);
-
+    path_base::normalize(id.c_str(), fname);
     return fname;
+}
+
+void _require(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    int32_t argc = args.Length();
+    if (argc > 1)
+    {
+        ThrowResult(CALL_E_BADPARAMCOUNT);
+        return;
+    }
+    if (argc < 1)
+    {
+        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        return;
+    }
+
+    std::string id;
+    result_t hr = GetArgumentValue(args[0], id);
+    if (hr < 0)
+    {
+        ThrowResult(hr);
+        return;
+    }
+
+    v8::Local<v8::Object> _mod = args.Data()->ToObject();
+    v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
+    obj_ptr<SandBox> sbox = (SandBox *)SandBox_base::getInstance(
+                                _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
+
+    v8::Local<v8::Value> v;
+    hr = sbox->require(*v8::String::Utf8Value(path), id, v, FULL_SEARCH);
+    if (hr < 0)
+    {
+        if (hr == CALL_E_JAVASCRIPT)
+        {
+            args.GetReturnValue().Set(v8::Local<v8::Value>());
+            return;
+        }
+        ThrowResult(hr);
+        return;
+    }
+
+    args.GetReturnValue().Set(v);
+}
+
+void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    int32_t argc = args.Length();
+    if (argc > 1)
+    {
+        ThrowResult(CALL_E_BADPARAMCOUNT);
+        return;
+    }
+    if (argc < 1)
+    {
+        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        return;
+    }
+
+    std::string id;
+    result_t hr = GetArgumentValue(args[0], id);
+    if (hr < 0)
+    {
+        ThrowResult(hr);
+        return;
+    }
+
+    v8::Local<v8::Object> _mod = args.Data()->ToObject();
+    obj_ptr<SandBox> sbox = (SandBox *)SandBox_base::getInstance(
+                                _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
+
+
+    if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
+    {
+        v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
+
+        std::string strPath;
+
+        path_base::dirname(*v8::String::Utf8Value(path), strPath);
+        if (strPath.length())
+            strPath += PATH_SLASH;
+        id = strPath + id;
+    }
+
+    hr = sbox->run(id.c_str());
+    if (hr < 0)
+    {
+        if (hr == CALL_E_JAVASCRIPT)
+        {
+            args.GetReturnValue().Set(v8::Local<v8::Value>());
+            return;
+        }
+        ThrowResult(hr);
+        return;
+    }
+}
+
+result_t SandBox::Context::run(std::string src, const char *name, const char **argNames,
+                               v8::Local<v8::Value> *args, int32_t argCount)
+{
+    v8::Local<v8::Script> script;
+    {
+        v8::TryCatch try_catch;
+        std::string str("(function(");
+        int32_t i;
+
+        for (i = 0; i < argCount; i ++)
+        {
+            str += argNames[i];
+            if (i < argCount - 1)
+                str += ',';
+        }
+
+        src = str + "){" + src + "\n});";
+
+        script = v8::Script::Compile(
+                     v8::String::NewFromUtf8(isolate, src.c_str(),
+                                             v8::String::kNormalString, (int) src.length()),
+                     v8::String::NewFromUtf8(isolate, name));
+        if (script.IsEmpty())
+            return throwSyntaxError(try_catch);
+    }
+
+    v8::Local<v8::Object> _mod = v8::Object::New(isolate);
+
+    _mod->Set(v8::String::NewFromUtf8(isolate, "_sbox"), m_sb->wrap());
+    _mod->Set(v8::String::NewFromUtf8(isolate, "_id"), m_id);
+
+    v8::Local<v8::Value> v = script->Run();
+    if (v.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
+
+    args[argCount - 2] = v8::Function::New(isolate, _require, _mod);
+    args[argCount - 1] = v8::Function::New(isolate, _run, _mod);
+
+    v = func->Call(v8::Undefined(isolate), argCount, args);
+    if (v.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    return 0;
+}
+
+result_t SandBox::Context::run(std::string src, const char *name)
+{
+    static const char *names[] = {"require", "run"};
+    v8::Local<v8::Value> args[2];
+
+    return run(src, name, names, args, ARRAYSIZE(names));
+}
+
+result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::Object> module,
+                               v8::Local<v8::Object> exports)
+{
+    static const char *names[] = {"module", "exports", "require", "run"};
+    v8::Local<v8::Value> args[4] = {module, exports};
+
+    return run(src, name, names, args, ARRAYSIZE(names));
 }
 
 extern v8::Persistent<v8::Object> s_global;
@@ -125,8 +250,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
 
         // init module
         mod->Set(strExports, exports);
-        mod->ForceSet(strRequire, v8::Local<v8::Object>::New(isolate, s_global)->Get(strRequire),
-                      v8::ReadOnly);
+        mod->Set(strRequire, v8::Local<v8::Object>::New(isolate, s_global)->Get(strRequire));
 
         InstallModule(id, exports);
 
@@ -137,10 +261,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
             srcname = sname.c_str();
         }
 
-        v8::Local<v8::Value> args[] = {mod, exports};
-        static const char *names[] = {"module", "exports"};
-
-        hr = context.run(script, srcname, names, args, ARRAYSIZE(args));
+        hr = context.run(script, srcname, mod, exports);
         if (hr < 0)
         {
             // delete from modules
@@ -162,13 +283,10 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     return 0;
 }
 
-#define FILE_ONLY   1
-#define NO_SEARCH   2
-#define FULL_SEARCH 3
-
-result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t mode)
+result_t SandBox::require(std::string base, std::string id,
+                          v8::Local<v8::Value> &retVal, int32_t mode)
 {
-    std::string strId = resolvePath(id);
+    std::string strId = resolvePath(base, id);
     std::string fname;
     std::map<std::string, VariantEx >::iterator it;
 
@@ -197,7 +315,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
         v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, strId.c_str());
         retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
-            return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            return CALL_E_JAVASCRIPT;
 
         if (!IsEmpty(retVal))
         {
@@ -258,7 +376,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
             else
                 fname = strId + PATH_SLASH + "index";
 
-            hr = require(fname.c_str(), retVal, FILE_ONLY);
+            hr = require(base, fname, retVal, FILE_ONLY);
             if (hr < 0)
                 return hr;
 
@@ -267,7 +385,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
         }
 
         fname = strId + PATH_SLASH + "index";
-        hr = require(fname.c_str(), retVal, FILE_ONLY);
+        hr = require(base, fname, retVal, FILE_ONLY);
         if (hr >= 0)
         {
             InstallModule(strId, retVal);
@@ -284,43 +402,35 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
     if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
         return hr;
 
-    v8::Local<v8::Object> ctx = SandBox::ScriptContext::GetCallingContext();
-
-    if (!ctx.IsEmpty())
+    if (!base.empty())
     {
-        v8::Local<v8::Value> path = ctx->GetHiddenValue(
-                                        v8::String::NewFromUtf8(isolate, "_id"));
+        std::string str, str1;
 
-        if (!IsEmpty(path))
+        str = base;
+        while (true)
         {
-            std::string str, str1;
+            path_base::dirname(str.c_str(), str1);
+            if (str.length() == str1.length())
+                break;
 
-            str = *v8::String::Utf8Value(path);
-            while (true)
-            {
-                path_base::dirname(str.c_str(), str1);
-                if (str.length() == str1.length())
-                    break;
+            str = str1;
 
-                str = str1;
-
-                if (str1.length())
-                    str1 += PATH_SLASH;
-                str1 += ".modules";
+            if (str1.length())
                 str1 += PATH_SLASH;
-                str1 += strId;
-                path_base::normalize(str1.c_str(), fname);
+            str1 += ".modules";
+            str1 += PATH_SLASH;
+            str1 += strId;
+            path_base::normalize(str1.c_str(), fname);
 
-                hr = require(fname.c_str(), retVal, NO_SEARCH);
-                if (hr >= 0)
-                {
-                    InstallModule(strId, retVal);
-                    return 0;
-                }
-
-                if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
-                    return hr;
+            hr = require(base, fname, retVal, NO_SEARCH);
+            if (hr >= 0)
+            {
+                InstallModule(strId, retVal);
+                return 0;
             }
+
+            if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+                return hr;
         }
     }
 
@@ -329,14 +439,18 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
 
 result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    return require(id, retVal, FULL_SEARCH);
+    std::string sid;
+    path_base::normalize(id, sid);
+    return require("", sid, retVal, FULL_SEARCH);
 }
 
 result_t SandBox::run(const char *fname)
 {
     result_t hr;
 
-    std::string sfname = resolvePath(fname);
+    std::string sfname;
+    path_base::normalize(fname, sfname);
+
     const char *pname = sfname.c_str();
 
     std::string buf;

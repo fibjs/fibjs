@@ -65,10 +65,8 @@ public:
         InstallModule(fname, ci.CreateInstance());
     }
 
+    result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);
     result_t repl();
-
-    result_t require(const char *id, v8::Local<v8::Value> &retVal, int32_t mode);
-
 
     std::string name()
     {
@@ -76,18 +74,6 @@ public:
     }
 
 public:
-    class ScriptContext : public object_base
-    {
-    public:
-        ScriptContext(int32_t sid);
-        ~ScriptContext();
-
-        static v8::Local<v8::Object> GetCallingContext();
-
-    private:
-        int32_t m_sid;
-    };
-
     class Context
     {
     public:
@@ -97,51 +83,11 @@ public:
                                            (int) qstrlen(id));
         }
 
-        result_t run(std::string src, const char *name, const char **argNames = NULL,
-                     v8::Local<v8::Value> *args = NULL, int32_t argCount = 0)
-        {
-            v8::Local<v8::Script> script;
-            {
-                v8::TryCatch try_catch;
-                std::string str("(function(");
-                int32_t i;
-
-                for (i = 0; i < argCount; i ++)
-                {
-                    str += argNames[i];
-                    if (i < argCount - 1)
-                        str += ',';
-                }
-
-                src = str + "){" + src + "\n});";
-
-                script = v8::Script::Compile(
-                             v8::String::NewFromUtf8(isolate, src.c_str(),
-                                                     v8::String::kNormalString, (int) src.length()),
-                             v8::String::NewFromUtf8(isolate, name));
-                if (script.IsEmpty())
-                    return throwSyntaxError(try_catch);
-            }
-
-            obj_ptr<ScriptContext> ctx = new ScriptContext(script->GetUnboundScript()->GetId());
-            v8::Local<v8::Object> _mod = ctx->wrap();
-
-            _mod->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_sbox"), m_sb->wrap());
-            _mod->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_id"), m_id);
-
-            v8::Local<v8::Value> v = script->Run();
-            if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
-
-            v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
-            func->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_ctx"), _mod);
-
-            v = func->Call(v8::Object::New(isolate), argCount, args);
-            if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
-
-            return 0;
-        }
+        result_t run(std::string src, const char *name, const char **argNames,
+                     v8::Local<v8::Value> *args, int32_t argCount);
+        result_t run(std::string src, const char *name);
+        result_t run(std::string src, const char *name, v8::Local<v8::Object> module,
+                     v8::Local<v8::Object> exports);
 
         static result_t repl();
 
