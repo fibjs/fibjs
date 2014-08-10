@@ -72,7 +72,6 @@ private:
         }
 
     public:
-        VariantEx value;
         date_t insert;
         obj_ptr<Event_base> m_event;
         std::map<std::string, int>::iterator m_last, m_next, m_last1, m_next1;
@@ -108,6 +107,11 @@ private:
             else
                 m_end = last1;
         }
+
+        v8::Local<v8::String> name = v8::String::NewFromUtf8(isolate, it->first.c_str(),
+                                     v8::String::kNormalString,
+                                     (int) it->first.length());
+        wrap()->DeleteHiddenValue(name);
 
         m_datas.erase(it);
     }

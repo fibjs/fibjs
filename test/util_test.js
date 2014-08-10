@@ -3,6 +3,7 @@ test.setup();
 
 var util = require('util');
 var coroutine = require('coroutine');
+var os = require('os');
 
 describe('util', function() {
 
@@ -390,6 +391,29 @@ describe('util', function() {
 					throw "some error";
 				})
 			});
+
+		});
+
+		it("Garbage Collection", function() {
+			GC();
+			var no1 = os.memoryUsage().nativeObjects;
+
+			var lc = new util.LruCache(1024);
+			lc.put("test", lc);
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+
+			lc.put("test1", new Buffer());
+			assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
+
+			lc.remove("test1");
+			GC();
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+
+			lc = undefined;
+
+			GC();
+			assert.equal(no1, os.memoryUsage().nativeObjects);
+
 
 		});
 	});
