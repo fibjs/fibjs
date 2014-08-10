@@ -45,26 +45,6 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
     return 0;
 }
 
-extern obj_ptr<SandBox> s_topSandbox;
-result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
-{
-    v8::Local<v8::Object> ctx = SandBox::ScriptContext::GetCallingContext();
-
-    if (ctx.IsEmpty())
-    {
-        retVal = s_topSandbox;
-        return 0;
-    }
-
-    retVal = SandBox_base::getInstance(ctx->GetHiddenValue(
-                                           v8::String::NewFromUtf8(isolate, "_sbox")));
-
-    if (!retVal)
-        return CHECK_ERROR(CALL_E_INTERNAL);
-
-    return 0;
-}
-
 void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
     mods()->Set(v8::String::NewFromUtf8(isolate, fname.c_str(), v8::String::kNormalString,
