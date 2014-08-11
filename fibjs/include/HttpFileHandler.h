@@ -6,6 +6,7 @@
  */
 
 #include "ifs/Handler.h"
+#include "map"
 
 #ifndef HTTPFILEHANDLER_H_
 #define HTTPFILEHANDLER_H_
@@ -30,8 +31,12 @@ public:
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                             exlib::AsyncEvent *ac);
 
+
+    result_t set_mimes(v8::Local<v8::Object> mimes);
+
 private:
     std::string m_root;
+    std::map<std::string, std::string> m_mimes;
 };
 
 } /* namespace fibjs */

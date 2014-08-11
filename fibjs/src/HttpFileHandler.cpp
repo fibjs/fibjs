@@ -5,11 +5,12 @@
  *      Author: lion
  */
 
-#include "HttpFileHandler.h"
-#include "HttpRequest.h"
+#include "ifs/http.h"
 #include "ifs/fs.h"
 #include "ifs/os.h"
 #include "ifs/path.h"
+#include "HttpFileHandler.h"
+#include "HttpRequest.h"
 #include "Url.h"
 
 namespace fibjs
@@ -100,6 +101,40 @@ static const char *s_mimeTypes[][2] =
     { "xyz", "chemical/x-xyz" },
     { "zip", "application/zip" }
 };
+
+result_t http_base::fileHandler(const char *root, v8::Local<v8::Object> mimes,
+                                obj_ptr<Handler_base> &retVal)
+{
+    obj_ptr<HttpFileHandler> hdlr = new HttpFileHandler(root);
+    result_t hr = hdlr->set_mimes(mimes);
+    if (hr < 0)
+        return hr;
+
+    retVal = hdlr;
+    return 0;
+}
+
+result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
+{
+    v8::Local<v8::Array> keys = mimes->GetPropertyNames();
+    int len = keys->Length();
+    int i;
+    result_t hr;
+
+    for (i = 0; i < len; i++)
+    {
+        v8::Local<v8::Value> ks = keys->Get(i);
+        std::string v;
+
+        hr = GetArgumentValue(mimes->Get(ks), v);
+        if (hr < 0)
+            return hr;
+
+        m_mimes.insert(std::pair<std::string, std::string>(*v8::String::Utf8Value(ks), v));
+    }
+
+    return 0;
+}
 
 static int mt_cmp(const void *p, const void *q)
 {
@@ -207,14 +242,23 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (ext.length() > 0)
             {
                 const char *pKey = ext.c_str() + 1;
-                const char **pMimeType = (const char **) bsearch(&pKey,
-                                         &s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
-                                         sizeof(s_defType), mt_cmp);
+                std::map<std::string, std::string> &_mimes = pThis->m_pThis->m_mimes;
 
-                if (!pMimeType)
-                    pMimeType = s_defType;
+                std::map<std::string, std::string>::iterator it = _mimes.find(pKey);
 
-                pThis->m_rep->addHeader("Content-Type", pMimeType[1]);
+                if (it != _mimes.end())
+                    pThis->m_rep->addHeader("Content-Type", it->second);
+                else
+                {
+                    const char **pMimeType = (const char **) bsearch(&pKey,
+                                             &s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
+                                             sizeof(s_defType), mt_cmp);
+
+                    if (!pMimeType)
+                        pMimeType = s_defType;
+
+                    pThis->m_rep->addHeader("Content-Type", pMimeType[1]);
+                }
             }
 
             pThis->set(stat);

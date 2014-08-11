@@ -5,9 +5,6 @@
  *      Author: lion
  */
 
-#include "HttpHandler.h"
-#include "HttpFileHandler.h"
-#include "JSHandler.h"
 #include "ifs/http.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
@@ -21,12 +18,6 @@
 
 namespace fibjs
 {
-
-result_t http_base::fileHandler(const char *root, obj_ptr<Handler_base> &retVal)
-{
-    retVal = new HttpFileHandler(root);
-    return 0;
-}
 
 result_t http_base::request(const char *host, int32_t port, HttpRequest_base *req,
                             bool ssl, obj_ptr<HttpResponse_base> &retVal,
