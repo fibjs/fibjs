@@ -135,9 +135,9 @@ $(document).ready(function(){initNavTree('d6/da8/classhttp.html','../../');});
 <tr class="memitem:aeb7ec4214a199d4df745d067aaf71a3d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d3/df3/classHttpHandler.html">HttpHandler</a> new&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d">Handler</a> ()</td></tr>
 <tr class="memdesc:aeb7ec4214a199d4df745d067aaf71a3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">创建一个 http 协议处理器对象，参见 <a class="el" href="../../d3/df3/classHttpHandler.html" title="http 协议转换处理器 ">HttpHandler</a>  <a href="#aeb7ec4214a199d4df745d067aaf71a3d">更多...</a><br /></td></tr>
 <tr class="separator:aeb7ec4214a199d4df745d067aaf71a3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad14af9130d2ab78b19d9f538fde2eafe"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d4/d22/classHandler.html">Handler</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da8/classhttp.html#ad14af9130d2ab78b19d9f538fde2eafe">fileHandler</a> (String root)</td></tr>
-<tr class="memdesc:ad14af9130d2ab78b19d9f538fde2eafe"><td class="mdescLeft">&#160;</td><td class="mdescRight">创建一个 http 静态文件处理器，用以用静态文件响应 http 消息  <a href="#ad14af9130d2ab78b19d9f538fde2eafe">更多...</a><br /></td></tr>
-<tr class="separator:ad14af9130d2ab78b19d9f538fde2eafe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a134a01399b1794974c1c969c07af8e5f"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d4/d22/classHandler.html">Handler</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da8/classhttp.html#a134a01399b1794974c1c969c07af8e5f">fileHandler</a> (String root, Object mimes={})</td></tr>
+<tr class="memdesc:a134a01399b1794974c1c969c07af8e5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">创建一个 http 静态文件处理器，用以用静态文件响应 http 消息  <a href="#a134a01399b1794974c1c969c07af8e5f">更多...</a><br /></td></tr>
+<tr class="separator:a134a01399b1794974c1c969c07af8e5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a64ec8d96a0fecb0bfa6ae5749e2b9e"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">request</a> (String host, Integer port, <a class="el" href="../../d5/d1b/classHttpRequest.html">HttpRequest</a> req, Boolean <a class="el" href="../../dd/d36/classssl.html">ssl</a>=false) async</td></tr>
 <tr class="memdesc:a7a64ec8d96a0fecb0bfa6ae5749e2b9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">发送 http 请求到指定的服务器，并返回结果  <a href="#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">更多...</a><br /></td></tr>
 <tr class="separator:a7a64ec8d96a0fecb0bfa6ae5749e2b9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -297,7 +297,7 @@ $(document).ready(function(){initNavTree('d6/da8/classhttp.html','../../');});
 
 </div>
 </div>
-<a class="anchor" id="ad14af9130d2ab78b19d9f538fde2eafe"></a>
+<a class="anchor" id="a134a01399b1794974c1c969c07af8e5f"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -308,8 +308,18 @@ $(document).ready(function(){initNavTree('d6/da8/classhttp.html','../../');});
           <td class="memname">static <a class="el" href="../../d4/d22/classHandler.html">Handler</a> http::fileHandler </td>
           <td>(</td>
           <td class="paramtype">String&#160;</td>
-          <td class="paramname"><em>root</em></td><td>)</td>
+          <td class="paramname"><em>root</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>mimes</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -323,6 +333,7 @@ $(document).ready(function(){initNavTree('d6/da8/classhttp.html','../../');});
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">root</td><td>文件根路径 </td></tr>
+    <tr><td class="paramname">mimes</td><td>扩展 mime 设置 </td></tr>
   </table>
   </dd>
 </dl>

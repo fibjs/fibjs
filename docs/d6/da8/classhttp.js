@@ -5,7 +5,7 @@ var classhttp =
     [ "Server", "d6/da8/classhttp.html#ad4fe0324266eb7ca3209352741b33f84", null ],
     [ "HttpsServer", "d6/da8/classhttp.html#a5b21533b4e601a05f64dc3c814ba7b87", null ],
     [ "Handler", "d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d", null ],
-    [ "fileHandler", "d6/da8/classhttp.html#ad14af9130d2ab78b19d9f538fde2eafe", null ],
+    [ "fileHandler", "d6/da8/classhttp.html#a134a01399b1794974c1c969c07af8e5f", null ],
     [ "request", "d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e", null ],
     [ "request", "d6/da8/classhttp.html#a8633e20a8ce55d009060a4849a91c6b7", null ],
     [ "request", "d6/da8/classhttp.html#a18e9a81f160921e0788994d503a101d1", null ],
