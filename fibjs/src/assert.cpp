@@ -12,6 +12,8 @@
 namespace fibjs
 {
 
+std::string json_format(v8::Local<v8::Value> obj);
+
 class _msg
 {
 public:
@@ -118,32 +120,27 @@ public:
     std::string str()
     {
         std::string str;
-        std::string s;
 
         str = strs[0];
 
         if (strs[1])
         {
-            encoding_base::jsonEncode(*vs[0], s);
-            str.append(s);
+            str.append(json_format(*vs[0]));
             str.append(strs[1]);
 
             if (strs[2])
             {
-                encoding_base::jsonEncode(*vs[1], s);
-                str.append(s);
+                str.append(json_format(*vs[1]));
                 str.append(strs[2]);
 
                 if (strs[3])
                 {
-                    encoding_base::jsonEncode(*vs[2], s);
-                    str.append(s);
+                    str.append(json_format(*vs[2]));
                     str.append(strs[3]);
 
                     if (strs[4])
                     {
-                        encoding_base::jsonEncode(*vs[3], s);
-                        str.append(s);
+                        str.append(json_format(*vs[3]));
                         str.append(strs[4]);
                     }
                 }
