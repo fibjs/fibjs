@@ -38,6 +38,15 @@ describe("vm", function() {
 		assert.equal(100, sbox.require("t2").a);
 	});
 
+	it("module", function() {
+		sbox = new vm.SandBox({
+			assert: assert
+		});
+
+		sbox.addScript("t1.js", "assert.equal(module.exports, exports);");
+		sbox.addScript("t2.js", "assert.equal(module.require, require);");
+	});
+
 	it("callback", function() {
 		var b = 200;
 		var o = {

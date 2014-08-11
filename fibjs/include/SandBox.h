@@ -77,11 +77,7 @@ public:
     class Context
     {
     public:
-        Context(SandBox *sb, const char *id) : m_sb(sb)
-        {
-            m_id = v8::String::NewFromUtf8(isolate, id, v8::String::kNormalString,
-                                           (int) qstrlen(id));
-        }
+        Context(SandBox *sb, const char *id);
 
         result_t run(std::string src, const char *name, const char **argNames,
                      v8::Local<v8::Value> *args, int32_t argCount);
@@ -94,6 +90,8 @@ public:
     public:
         obj_ptr<SandBox> m_sb;
         v8::Local<v8::Value> m_id;
+        v8::Local<v8::Function> m_fnRequest;
+        v8::Local<v8::Function> m_fnRun;
     };
 
     std::string m_name;

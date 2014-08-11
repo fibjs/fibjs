@@ -141,7 +141,21 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 }
 
-v8::Persistent<v8::Context> s_context_test;
+SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
+{
+    m_id = v8::String::NewFromUtf8(isolate, id, v8::String::kNormalString,
+                                   (int) qstrlen(id));
+
+    v8::Local<v8::Object> _mod = v8::Object::New(isolate);
+
+    _mod->Set(v8::String::NewFromUtf8(isolate, "_sbox"), m_sb->wrap());
+    _mod->Set(v8::String::NewFromUtf8(isolate, "_id"), m_id);
+
+    m_fnRequest = v8::Function::New(isolate, _require, _mod);
+    m_fnRun = v8::Function::New(isolate, _run, _mod);
+}
+
+extern v8::Persistent<v8::Context> s_context_test;
 
 result_t SandBox::Context::run(std::string src, const char *name, const char **argNames,
                                v8::Local<v8::Value> *args, int32_t argCount)
@@ -151,16 +165,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
         v8::TryCatch try_catch;
 
         {
-            v8::Local<v8::Context> _context;
-
-            if (s_context_test.IsEmpty())
-            {
-                _context = v8::Context::New(isolate);
-                s_context_test.Reset(isolate, _context);
-            }
-            else
-                _context = v8::Local<v8::Context>::New(isolate, s_context_test);
-
+            v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate, s_context_test);
             v8::Context::Scope context_scope(_context);
 
             script = v8::Script::Compile(
@@ -191,21 +196,11 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
             return throwSyntaxError(try_catch);
     }
 
-    v8::Local<v8::Object> _mod = v8::Object::New(isolate);
-
-    _mod->Set(v8::String::NewFromUtf8(isolate, "_sbox"), m_sb->wrap());
-    _mod->Set(v8::String::NewFromUtf8(isolate, "_id"), m_id);
-
     v8::Local<v8::Value> v = script->Run();
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
-
-    args[argCount - 2] = v8::Function::New(isolate, _require, _mod);
-    args[argCount - 1] = v8::Function::New(isolate, _run, _mod);
-
-    v = func->Call(v8::Object::New(isolate), argCount, args);
+    v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate), argCount, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -215,7 +210,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
 result_t SandBox::Context::run(std::string src, const char *name)
 {
     static const char *names[] = {"require", "run"};
-    v8::Local<v8::Value> args[2];
+    v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun};
 
     return run(src, name, names, args, ARRAYSIZE(names));
 }
@@ -224,7 +219,7 @@ result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::
                                v8::Local<v8::Object> exports)
 {
     static const char *names[] = {"module", "exports", "require", "run"};
-    v8::Local<v8::Value> args[4] = {module, exports};
+    v8::Local<v8::Value> args[] = {module, exports, m_fnRequest, m_fnRun};
 
     return run(src, name, names, args, ARRAYSIZE(names));
 }
@@ -274,7 +269,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
 
         // init module
         mod->Set(strExports, exports);
-        mod->Set(strRequire, v8::Local<v8::Object>::New(isolate, s_global)->Get(strRequire));
+        mod->Set(strRequire, context.m_fnRequest);
 
         InstallModule(id, exports);
 
