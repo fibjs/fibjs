@@ -20,6 +20,7 @@
 #include <polarssl/version.h>
 #include <snappy.h>
 #include <leveldb/db.h>
+#include "QuickArray.h"
 
 #ifndef WIN32
 #include "gitinfo.h"
@@ -46,97 +47,206 @@ inline void newline(std::string &strBuffer, int padding)
     }
 }
 
+class _item
+{
+public:
+    _item()
+    {
+        pos = 0;
+        len = 0;
+        mode = 0;
+    }
+
+    _item(const _item &v)
+    {
+        keys = v.keys;
+        obj = v.obj;
+        pos = v.pos;
+        len = v.len;
+        mode = v.mode;
+    }
+
+public:
+    v8::Local<v8::Value> val;
+    v8::Local<v8::Array> keys;
+    v8::Local<v8::Object> obj;
+    int32_t pos;
+    int32_t len;
+    int32_t mode;
+};
+
+void string_format(std::string &strBuffer, v8::Local<v8::Value> v)
+{
+    std::string s;
+    encoding_base::jsonEncode(v, s);
+    strBuffer += s;
+}
+
 std::string json_format(v8::Local<v8::Value> obj)
 {
-    const char *p;
-    int padding = 0;
-    char ch;
-    bool bStrMode = false;
-    bool bNewLine = false;
-    const int tab_size = 2;
     std::string strBuffer;
-    std::string s;
 
-    if (obj->IsUndefined())
-        return "undefined";
+    QuickArray<_item> stk;
+    v8::Local<v8::Value> v = obj;
+    int32_t padding = 0;
+    const int tab_size = 2;
+    _item *it = NULL;
 
-    if (obj->IsFunction())
-        return "[Function]";
-
-    if (obj->IsNumber() || obj->IsNumberObject())
-        return *v8::String::Utf8Value(obj->ToNumber());
-
-    result_t hr = encoding_base::jsonEncode(obj, s);
-    if (hr < 0)
-        return "[Circular]";
-
-    if (!qstrcmp(s.c_str(), "undefined"))
-        return "[Object]";
-
-    p = s.c_str();
-    while ((ch = *p++) != 0)
+    while (true)
     {
-        if (bStrMode)
+        if (v->IsUndefined() || v->IsNull() || v->IsDate() ||
+                v->IsBoolean() || v->IsBooleanObject())
+            strBuffer += *v8::String::Utf8Value(v);
+        else if (v->IsFunction())
+            strBuffer += "[Function]";
+        else if (v->IsNumber() || v->IsNumberObject())
+            strBuffer += *v8::String::Utf8Value(v->ToNumber());
+        else if (v->IsString() || v->IsStringObject())
+            string_format(strBuffer, v);
+        else if (v->IsRegExp())
         {
-            if (ch == '\\' && *p == '\"')
-            {
-                strBuffer.append(&ch, 1);
-                ch = *p++;
-            }
-            else if (ch == '\"')
-                bStrMode = false;
+            v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
+            v8::Local<v8::String> src = re->GetSource();
+            v8::RegExp::Flags flgs = re->GetFlags();
+
+            strBuffer += '/';
+            strBuffer += *v8::String::Utf8Value(src);
+            strBuffer += '/';
+
+            if (flgs & v8::RegExp::kIgnoreCase)
+                strBuffer += 'i';
+            if (flgs & v8::RegExp::kGlobal)
+                strBuffer += 'g';
+            if (flgs & v8::RegExp::kMultiline)
+                strBuffer += 'm';
         }
-        else
+        else if (v->IsObject())
         {
-            switch (ch)
+            int32_t sz = (int32_t)stk.size();
+            int32_t i;
+            bool bCircular = false;
+
+            for (i = 0; i < sz; i ++)
             {
-            case '[':
-                if (*p == ']')
+                if (v->Equals(stk[i].val))
                 {
-                    strBuffer.append(&ch, 1);
-                    ch = *p ++;
+                    bCircular = true;
+                    break;
+                }
+            }
+
+            do
+            {
+                if (bCircular)
+                {
+                    strBuffer += "[Circular]";
                     break;
                 }
 
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '{':
-                if (*p == '}')
+                v8::Local<v8::Object> obj = v->ToObject();
+
+                obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
+                if (buf)
                 {
-                    strBuffer.append(&ch, 1);
-                    ch = *p ++;
+                    std::string s;
+                    buf->base64(s);
+                    strBuffer += s;
                     break;
                 }
 
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '}':
-            case ']':
+                v8::Local<v8::Value> toArray = obj->Get(v8::String::NewFromUtf8(isolate, "toArray"));
+                if (!IsEmpty(toArray))
+                {
+                    v = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
+                    obj = v->ToObject();
+                }
+
+                if (v->IsArray())
+                {
+                    v8::Local<v8::Array> keys = v8::Local<v8::Array>::Cast(v);
+                    int32_t len = keys->Length();
+
+                    if (len == 0)
+                        strBuffer += "[]";
+                    else
+                    {
+                        if (len == 1 && v->Equals(keys->Get(0)))
+                            strBuffer += "[Circular]";
+                        else
+                        {
+                            stk.resize(sz + 1);
+                            it = &stk[sz];
+
+                            it->val = v;
+
+                            it->keys = keys;
+                            it->len = len;
+
+                            strBuffer += '[';
+                            padding += tab_size;
+                        }
+                    }
+                    break;
+                }
+
+                v8::Local<v8::Array> keys = obj->GetPropertyNames();
+                int32_t len = keys->Length();
+
+                if (len == 0)
+                    strBuffer += "{}";
+                else
+                {
+                    if (len == 1 && v->Equals(obj->Get(keys->Get(0))))
+                        strBuffer += "[Circular]";
+                    else
+                    {
+                        stk.resize(sz + 1);
+                        it = &stk[sz];
+
+                        it->val = v;
+
+                        it->obj = obj;
+                        it->keys = keys;
+                        it->len = len;
+
+                        strBuffer += '{';
+                        padding += tab_size;
+                    }
+                }
+            }
+            while (false);
+        }
+
+        if (it)
+        {
+            while (it->pos == it->len)
+            {
                 padding -= tab_size;
                 newline(strBuffer, padding);
-                break;
-            case ',':
-                bNewLine = true;
-                break;
-            case ':':
-                strBuffer.append(&ch, 1);
-                ch = ' ';
-                break;
-            case '\"':
-                bStrMode = true;
-                break;
+                strBuffer += it->obj.IsEmpty() ? ']' : '}';
+
+                int32_t sz = (int32_t)stk.size();
+                if (sz == 1)
+                    return strBuffer;
+                stk.resize(sz - 1);
+                it = &stk[sz - 2];
+            }
+
+            if (it->pos)
+                strBuffer += ',';
+            newline(strBuffer, padding);
+
+            v = it->keys->Get(it->pos ++);
+
+            if (!it->obj.IsEmpty())
+            {
+                string_format(strBuffer, v);
+                strBuffer += ": ";
+                v = it->obj->Get(v);
             }
         }
-
-        strBuffer.append(&ch, 1);
-
-        if (bNewLine)
-        {
-            newline(strBuffer, padding);
-            bNewLine = false;
-        }
+        else
+            break;
     }
 
     return strBuffer;

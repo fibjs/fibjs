@@ -3,6 +3,7 @@ test.setup();
 
 var util = require('util');
 var coroutine = require('coroutine');
+var collection = require("collection");
 var os = require('os');
 
 describe('util', function() {
@@ -96,8 +97,6 @@ describe('util', function() {
 		it("basic", function() {
 			assert.equal(util.format(), '');
 			assert.equal(util.format(''), '');
-			assert.equal(util.format([]), '[]');
-			assert.equal(util.format({}), '{}');
 			assert.equal(util.format(null), 'null');
 			assert.equal(util.format(true), 'true');
 			assert.equal(util.format(false), 'false');
@@ -107,6 +106,87 @@ describe('util', function() {
 
 			// CHECKME this is for console.log() compatibility - but is it *right*?
 			assert.equal(util.format('foo', 'bar', 'baz'), 'foo bar baz');
+		});
+
+		it("array", function() {
+			assert.equal(util.format([]), '[]');
+			assert.equal(util.format([100, 200]), '[\n  100,\n  200\n]');
+		});
+
+		it("object", function() {
+			assert.equal(util.format({}), '{}');
+			assert.equal(util.format({
+				a: 100,
+				b: 200
+			}), '{\n  "a": 100,\n  "b": 200\n}');
+		});
+
+		it("Buffer", function() {
+			assert.equal(util.format(new Buffer("aaaaaaaa")), 'YWFhYWFhYWE=');
+		});
+
+		it("List", function() {
+			var a = new collection.List();
+			a.push(100, 200);
+			assert.equal(util.format(a), '[\n  100,\n  200\n]');
+		});
+
+		it("levels", function() {
+			assert.equal(util.format({}), '{}');
+			assert.equal(util.format([
+				[
+					[]
+				]
+			]), '[\n  [\n    []\n  ]\n]');
+			assert.equal(util.format({
+				a: {
+					b: {}
+				}
+			}), '{\n  "a": {\n    "b": {}\n  }\n}');
+		});
+
+		it("regexp", function() {
+			assert.equal(util.format(/aaa/), '/aaa/');
+			assert.equal(util.format(/aaa/igm), '/aaa/igm');
+			assert.equal(util.format(/a\\aa/igm), '/a\\\\aa/igm');
+			assert.equal(util.format([/aaa/]), '[\n  /aaa/\n]');
+			assert.equal(util.format({
+				a: /aaa/
+			}), '{\n  "a": /aaa/\n}');
+		});
+
+		it("Circular", function() {
+			var a = [];
+			a[0] = a;
+			assert.equal(util.format(a), '[Circular]');
+
+			var a1 = [100, 200];
+			a1[2] = a1;
+			assert.equal(util.format(a1), '[\n  100,\n  200,\n  [Circular]\n]');
+
+			var o = {};
+			o.o = o;
+			assert.equal(util.format(o), '[Circular]');
+
+			var o1 = {
+				a: 100,
+				b: 200
+			};
+			o1["c"] = o1;
+			assert.equal(util.format(o1), '{\n  "a": 100,\n  "b": 200,\n  "c": [Circular]\n}');
+		});
+
+		it("Function", function() {
+			assert.equal(util.format(function() {}), '[Function]');
+
+			assert.equal(util.format([
+
+				function() {}
+			]), '[\n  [Function]\n]');
+
+			assert.equal(util.format({
+				a: function() {}
+			}), '{\n  "a": [Function]\n}');
 		});
 
 		it("%d", function() {
@@ -137,18 +217,6 @@ describe('util', function() {
 			assert.equal(util.format('%s:%s', 'foo', 'bar', 'baz'), 'foo:bar baz');
 			assert.equal(util.format('%%%s%%', 'hi'), '%hi%');
 			assert.equal(util.format('%%%s%%%%', 'hi'), '%hi%%');
-		});
-
-		it("Circular", function() {
-			(function() {
-				var o = {};
-				o.o = o;
-				assert.equal(util.format('%j', o), '[Circular]');
-			})();
-		});
-
-		it("Function", function() {
-			assert.equal(util.format('%j', function() {}), '[Function]');
 		});
 	});
 
