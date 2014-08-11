@@ -24,14 +24,15 @@ result_t global_base::GC()
     return 0;
 }
 
+extern obj_ptr<SandBox> s_topSandbox;
 result_t global_base::run(const char *fname)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return s_topSandbox->run(fname);
 }
 
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return s_topSandbox->require(id, retVal);
 }
 
 }
