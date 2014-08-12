@@ -8,6 +8,22 @@ var os = require('os');
 
 describe('util', function() {
 
+	it("isEmpty", function() {
+		assert.isTrue(util.isEmpty(null));
+		assert.isTrue(util.isEmpty(undefined));
+
+		assert.isTrue(util.isEmpty([]));
+		assert.isFalse(util.isEmpty([100]));
+
+		assert.isTrue(util.isEmpty(""));
+		assert.isFalse(util.isEmpty("a"));
+
+		assert.isTrue(util.isEmpty({}));
+		assert.isFalse(util.isEmpty({
+			a: 100
+		}));
+	});
+
 	it("isArray", function() {
 		assert.isTrue(util.isArray([]));
 		assert.isTrue(util.isArray(Array()));
@@ -93,6 +109,329 @@ describe('util', function() {
 		assert.isFalse(util.isBuffer(5));
 	});
 
+	it('has', function() {
+		var obj = {
+			foo: 'bar',
+			func: function() {}
+		};
+		assert.ok(util.has(obj, 'foo'));
+		assert.ok(!util.has(obj, 'baz'));
+		assert.ok(util.has(obj, 'func'));
+		obj.hasOwnProperty = null;
+		assert.ok(util.has(obj, 'foo'));
+		var child = {};
+		child.prototype = obj;
+		assert.ok(!util.has(child, 'foo'));
+		assert.strictEqual(util.has(null, 'foo'), false);
+		assert.strictEqual(util.has(undefined, 'foo'), false);
+	});
+
+	it('keys', function() {
+		assert.deepEqual(util.keys({
+			one: 1,
+			two: 2
+		}), ['one', 'two'], 'can extract the keys from an object');
+		// the test above is not safe because it relies on for-in enumeration order
+		var a = [];
+		a[1] = 0;
+		assert.deepEqual(util.keys(a), ['1']);
+		assert.deepEqual(util.keys(null), []);
+		assert.deepEqual(util.keys(void 0), []);
+		assert.deepEqual(util.keys(1), []);
+		assert.deepEqual(util.keys('a'), []);
+		assert.deepEqual(util.keys(true), []);
+	});
+
+	it('values', function() {
+		assert.deepEqual(util.values({
+			one: 1,
+			two: 2
+		}), [1, 2], 'can extract the values from an object');
+		assert.deepEqual(util.values({
+			one: 1,
+			two: 2,
+			length: 3
+		}), [1, 2, 3], '... even when one of them is "length"');
+	});
+
+	it('clone', function() {
+		assert.equal(util.clone(100), 100);
+
+		var a = [100, 200];
+		var a1 = util.clone(a);
+		assert.notEqual(a, a1);
+		assert.deepEqual(a, a1);
+		a[0] = 150;
+		assert.notDeepEqual(a, a1);
+
+		var o = {
+			a: 100,
+			b: 200
+		};
+		var o1 = util.clone(o);
+		assert.notEqual(o, o1);
+		assert.deepEqual(o, o1);
+		o["a"] = 150;
+		assert.notDeepEqual(o, o1);
+	});
+
+	it('extend', function() {
+		var result;
+		assert.equal(util.extend({}, {
+			a: 'b'
+		}).a, 'b', 'can extend an object with the attributes of another');
+		assert.equal(util.extend({
+			a: 'x'
+		}, {
+			a: 'b'
+		}).a, 'b', 'properties in source override destination');
+		assert.equal(util.extend({
+			x: 'x'
+		}, {
+			a: 'b'
+		}).x, 'x', "properties not in source don't get overriden");
+		result = util.extend({
+			x: 'x'
+		}, {
+			a: 'a'
+		}, {
+			b: 'b'
+		});
+		assert.deepEqual(result, {
+			x: 'x',
+			a: 'a',
+			b: 'b'
+		}, 'can extend from multiple source objects');
+		result = util.extend({
+			x: 'x'
+		}, {
+			a: 'a',
+			x: 2
+		}, {
+			a: 'b'
+		});
+		assert.deepEqual(result, {
+			x: 2,
+			a: 'b'
+		}, 'extending from multiple source objects last property trumps');
+		result = util.extend({}, {
+			a: void 0,
+			b: null
+		});
+		assert.deepEqual(util.keys(result), ['a', 'b'], 'extend copies undefined values');
+
+		try {
+			result = {};
+			util.extend(result, null, undefined, {
+				a: 1
+			});
+		} catch (ex) {}
+
+		assert.equal(result.a, 1, 'should not error on `null` or `undefined` sources');
+
+		assert.strictEqual(util.extend(null, {
+			a: 1
+		}), null, 'extending null results in null');
+		assert.strictEqual(util.extend(undefined, {
+			a: 1
+		}), undefined, 'extending undefined results in undefined');
+	});
+
+	it("first", function() {
+		assert.equal(util.first([1, 2, 3]), 1);
+		assert.deepEqual(util.first([1, 2, 3], 0), []);
+		assert.deepEqual(util.first([1, 2, 3], 2), [1, 2]);
+		assert.deepEqual(util.first([1, 2, 3], 5), [1, 2, 3]);
+
+		var result = (function() {
+			return util.first([1, 2, 3], 2);
+		}());
+		assert.deepEqual(result, [1, 2]);
+
+		assert.equal(util.first(null), undefined);
+		assert.strictEqual(util.first([1, 2, 3], -1).length, 0);
+	});
+
+	it("last", function() {
+		assert.equal(util.last([1, 2, 3]), 3);
+		assert.deepEqual(util.last([1, 2, 3], 0), []);
+		assert.deepEqual(util.last([1, 2, 3], 2), [2, 3]);
+		assert.deepEqual(util.last([1, 2, 3], 5), [1, 2, 3]);
+
+		assert.equal(util.last(null), undefined);
+		assert.strictEqual(util.last([1, 2, 3], -1).length, 0);
+	});
+
+	it('unique', function() {
+		var list = [1, 2, 1, 3, 1, 4];
+		assert.deepEqual(util.unique(list), [1, 2, 3, 4]);
+
+		list = [1, 1, 1, 2, 2, 3];
+		assert.deepEqual(util.unique(list, true), [1, 2, 3]);
+
+		list = [{
+			name: 'moe'
+		}, {
+			name: 'curly'
+		}, {
+			name: 'larry'
+		}, {
+			name: 'curly'
+		}];
+		var iterator = function(value) {
+			return value.name;
+		};
+
+		var a = {},
+			b = {},
+			c = {};
+		assert.deepEqual(util.unique([a, b, a, b, c]), [a, b, c]);
+		assert.deepEqual(util.unique(null), []);
+	});
+
+	it('union', function() {
+		var result = util.union([1, 2, 3], [2, 30, 1], [1, 40]);
+		assert.deepEqual(result, [1, 2, 3, 30, 40]);
+
+		result = util.union([1, 2, 3], [2, 30, 1], [1, 40, [1]]);
+		assert.deepEqual(result, [1, 2, 3, 30, 40, [1]]);
+	});
+
+	it('without', function() {
+		var list = [1, 2, 1, 0, 3, 1, 4];
+		assert.deepEqual(util.without(list, 0, 1), [2, 3, 4]);
+
+		list = [{
+			one: 1
+		}, {
+			two: 2
+		}];
+		assert.equal(util.without(list, {
+			one: 1
+		}).length, 2);
+		assert.equal(util.without(list, list[0]).length, 1);
+	});
+
+	it('difference', function() {
+		var result = util.difference([1, 2, 3], [2, 30, 40]);
+		assert.deepEqual(result, [1, 3]);
+
+		result = util.difference([1, 2, 3, 4], [2, 30, 40], [1, 11, 111]);
+		assert.deepEqual(result, [3, 4]);
+	});
+
+	it("intersection", function() {
+		var stooges = ['moe', 'curly', 'larry'],
+			leaders = ['moe', 'groucho'];
+		var result;
+		assert.deepEqual(util.intersection(stooges, leaders), ['moe']);
+		var theSixStooges = ['moe', 'moe', 'curly', 'curly', 'larry', 'larry'];
+		assert.deepEqual(util.intersection(theSixStooges, leaders), ['moe']);
+		result = util.intersection([2, 4, 3, 1], [1, 2, 3]);
+		assert.deepEqual(result, [2, 3, 1]);
+		result = util.intersection(null, [1, 2, 3]);
+		assert.equal(Object.prototype.toString.call(result), '[object Array]');
+		assert.equal(result.length, 0);
+	});
+
+	it("pick", function() {
+		var result;
+		result = util.pick({
+			a: 1,
+			b: 2,
+			c: 3
+		}, 'a', 'c');
+		assert.deepEqual(result, {
+			a: 1,
+			c: 3
+		});
+		result = util.pick({
+			a: 1,
+			b: 2,
+			c: 3
+		}, ['b', 'c']);
+		assert.deepEqual(result, {
+			b: 2,
+			c: 3
+		});
+		result = util.pick({
+			a: 1,
+			b: 2,
+			c: 3
+		}, ['a'], 'b');
+		assert.deepEqual(result, {
+			a: 1,
+			b: 2
+		});
+		result = util.pick(['a', 'b'], 1);
+		assert.deepEqual(result, {
+			1: 'b'
+		});
+
+		assert.deepEqual(util.pick(null, 'a', 'b'), {});
+		assert.deepEqual(util.pick(undefined, 'toString'), {});
+
+		var Obj = function() {};
+		Obj.prototype = {
+			a: 1,
+			b: 2,
+			c: 3
+		};
+		var instance = new Obj();
+		assert.deepEqual(util.pick(instance, 'a', 'c'), {
+			a: 1,
+			c: 3
+		});
+	});
+
+	it("omit", function() {
+		var result;
+		result = util.omit({
+			a: 1,
+			b: 2,
+			c: 3
+		}, 'b');
+		assert.deepEqual(result, {
+			a: 1,
+			c: 3
+		});
+		result = util.omit({
+			a: 1,
+			b: 2,
+			c: 3
+		}, 'a', 'c');
+		assert.deepEqual(result, {
+			b: 2
+		});
+		result = util.omit({
+			a: 1,
+			b: 2,
+			c: 3
+		}, ['b', 'c']);
+		assert.deepEqual(result, {
+			a: 1
+		});
+		result = util.omit(['a', 'b'], 0);
+		assert.deepEqual(result, {
+			1: 'b'
+		});
+
+		assert.deepEqual(util.omit(null, 'a', 'b'), {});
+		assert.deepEqual(util.omit(undefined, 'toString'), {});
+
+		var Obj = function() {};
+		Obj.prototype = {
+			a: 1,
+			b: 2,
+			c: 3
+		};
+		var instance = new Obj();
+		assert.deepEqual(util.omit(instance, 'b'), {
+			a: 1,
+			c: 3
+		});
+	});
+
 	describe('format', function() {
 		it("basic", function() {
 			assert.equal(util.format(), '');
@@ -110,6 +449,7 @@ describe('util', function() {
 
 		it("array", function() {
 			assert.equal(util.format([]), '[]');
+			assert.equal(util.format(["1"]), '[\n  "1"\n]');
 			assert.equal(util.format([100, 200]), '[\n  100,\n  200\n]');
 		});
 
