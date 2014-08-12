@@ -128,7 +128,7 @@ std::string json_format(v8::Local<v8::Value> obj)
 
             for (i = 0; i < sz; i ++)
             {
-                if (v->Equals(stk[i].val))
+                if (v->StrictEquals(stk[i].val))
                 {
                     bCircular = true;
                     break;
@@ -170,7 +170,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                         strBuffer += "[]";
                     else
                     {
-                        if (len == 1 && v->Equals(keys->Get(0)))
+                        if (len == 1 && v->StrictEquals(keys->Get(0)))
                             strBuffer += "[Circular]";
                         else
                         {
@@ -196,7 +196,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                     strBuffer += "{}";
                 else
                 {
-                    if (len == 1 && v->Equals(obj->Get(keys->Get(0))))
+                    if (len == 1 && v->StrictEquals(obj->Get(keys->Get(0))))
                         strBuffer += "[Circular]";
                     else
                     {
