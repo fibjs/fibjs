@@ -23,6 +23,15 @@ for (var idx = 0; idx < dir.length; idx++)
 
 process.system('doxygen');
 
+function cxxSafe(fname) {
+	var ckws = {
+		"union": true,
+		"new": true
+	};
+
+	return ckws.hasOwnProperty(fname) ? "_" + fname : fname;
+}
+
 function preparserIDL(fname) {
 	var f, line = 0,
 		st, isRem;
@@ -493,9 +502,9 @@ function parserIDL(fname) {
 				return reportErr();
 
 			if (attr == "static")
-				ifStr = "	static result_t " + fname + "(";
+				ifStr = "	static result_t " + cxxSafe(fname) + "(";
 			else
-				ifStr = "	virtual result_t " + fname + "(";
+				ifStr = "	virtual result_t " + cxxSafe(fname) + "(";
 
 			pos++;
 
@@ -645,10 +654,10 @@ function parserIDL(fname) {
 						ifStr += ", v8::Local<v8::Object> This = v8::Local<v8::Object>());";
 					else
 						ifStr += ");";
-					fnStr += "		hr = " + fname + "(";
+					fnStr += "		hr = " + cxxSafe(fname) + "(";
 				} else {
 					ifStr += ") = 0;";
-					fnStr += "		hr = pInst->" + fname + "(";
+					fnStr += "		hr = pInst->" + cxxSafe(fname) + "(";
 				}
 			}
 
