@@ -4,6 +4,7 @@ var searchData=
   ['offer',['offer',['../d7/d56/classQueue.html#a0b29d2db0a4fa1114fa4278416d41644',1,'Queue']]],
   ['oid',['oid',['../d6/d3d/classMongoDB.html#a0d73dd0798dce386a83652c91a620175',1,'MongoDB']]],
   ['ok',['ok',['../de/d1c/classassert.html#a6bc7d80bbf7943df46c671087f7cfce2',1,'assert']]],
+  ['omit',['omit',['../d8/d61/classutil.html#a819fa689debef312b6ec388e8b6fa0c4',1,'util']]],
   ['on',['on',['../d7/d1d/classTrigger.html#af6ea215ce6899abc704c011c7a9328b6',1,'Trigger::on(String ev, Function func)'],['../d7/d1d/classTrigger.html#a3fd9a92352ae0ac142a0fb19329cc19e',1,'Trigger::on(Object map)']]],
   ['once',['once',['../d7/d1d/classTrigger.html#a08c53bf7bac17ebadbc338a9237baf41',1,'Trigger::once(String ev, Function func)'],['../d7/d1d/classTrigger.html#a8ee99f33893611f6c5baa78d7cf7576c',1,'Trigger::once(Object map)']]],
   ['open',['open',['../de/d5f/classdb.html#ae6a25ce20c2a752cf20e7a577207f198',1,'db::open()'],['../dc/d2f/classfs.html#a3cd7e391b7ec9e731e7daaa84b3c8dcc',1,'fs::open()']]],

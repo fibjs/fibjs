@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['last',['last',['../d8/d61/classutil.html#adabb887de98cc0bd54035af02452225b',1,'util::last(Value v)'],['../d8/d61/classutil.html#a764290a833d1fbfdb3616374f54be720',1,'util::last(Value v, Integer n)']]],
   ['least',['least',['../dd/d7a/classExpect.html#a80a82dccaf29e7dcb10f1f2347b1c550',1,'Expect']]],
   ['len',['len',['../df/dbc/classRedisHash.html#a26ef98c343228656940c7a64909b5dd1',1,'RedisHash::len()'],['../d8/dc8/classRedisList.html#aa976e16b1b36eb515c2c3779445bdf6e',1,'RedisList::len()'],['../df/d65/classRedisSet.html#ad906a3ba2dfe4520f8044450eba90c9b',1,'RedisSet::len()'],['../d8/dc0/classRedisSortedSet.html#a46d1cfc5c8bb2d88ecaa6f0d2f5fc52f',1,'RedisSortedSet::len()']]],
   ['lessthan',['lessThan',['../de/d1c/classassert.html#a4b1b450014e4539994cd105a8f9d0eb9',1,'assert::lessThan()'],['../dd/d7a/classExpect.html#ae73ba4fcdf0a8c2610bc2c1bbab6f358',1,'Expect::lessThan()']]],

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['handler',['Handler',['../d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d',1,'http::Handler()'],['../dd/d36/classssl.html#a6abf182f9613d8f45513eac4e2fa20aa',1,'ssl::Handler()']]],
-  ['has',['has',['../d6/dbd/classHttpCollection.html#aedcf309873cb83a1eb13144dcec9942a',1,'HttpCollection::has()'],['../d8/d3e/classLevelDB.html#a9592329ae5e30e313a40637d34171a11',1,'LevelDB::has(Buffer key) async'],['../d8/d3e/classLevelDB.html#ac56d21db30410088c70f9c9b0712e7f9',1,'LevelDB::has(String key) async'],['../de/d0f/classLruCache.html#a1f47f0c7f03ead1191f99b340edc0576',1,'LruCache::has()'],['../d7/db0/classMap.html#a3a28d7c75ff941b3d9d9d3b6e6d4e3e3',1,'Map::has()']]],
+  ['has',['has',['../d6/dbd/classHttpCollection.html#aedcf309873cb83a1eb13144dcec9942a',1,'HttpCollection::has()'],['../d8/d3e/classLevelDB.html#a9592329ae5e30e313a40637d34171a11',1,'LevelDB::has(Buffer key) async'],['../d8/d3e/classLevelDB.html#ac56d21db30410088c70f9c9b0712e7f9',1,'LevelDB::has(String key) async'],['../de/d0f/classLruCache.html#a1f47f0c7f03ead1191f99b340edc0576',1,'LruCache::has()'],['../d7/db0/classMap.html#a3a28d7c75ff941b3d9d9d3b6e6d4e3e3',1,'Map::has()'],['../d8/d61/classutil.html#a74c60b5a6328e1154f392e634cb40328',1,'util::has()']]],
   ['hasheader',['hasHeader',['../dd/d77/classHttpMessage.html#a9bafc9a247f9378904788642ab903e03',1,'HttpMessage']]],
   ['hasnext',['hasNext',['../db/d7d/classMongoCursor.html#a4d30b04ba787bf502fc0defe1fb03385',1,'MongoCursor']]],
   ['hello',['hello',['../d5/d6b/classSmtp.html#a2827151e3c7938f20ef793ce708a5f22',1,'Smtp']]],
