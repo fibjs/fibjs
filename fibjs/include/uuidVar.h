@@ -29,8 +29,8 @@ public:
 
 public:
     // uuidValue_base
-    result_t data(obj_ptr<Buffer_base> &retVal);
     result_t detail(std::string &retVal);
+    result_t data(obj_ptr<Buffer_base> &retVal);
 
 public:
     uuid_st *m_uid;

@@ -1,15 +1,11 @@
 var classLevelDB =
 [
     [ "has", "d8/d3e/classLevelDB.html#a9592329ae5e30e313a40637d34171a11", null ],
-    [ "has", "d8/d3e/classLevelDB.html#ac56d21db30410088c70f9c9b0712e7f9", null ],
     [ "get", "d8/d3e/classLevelDB.html#a84f21756e54c8030b8c246639ad219ee", null ],
-    [ "get", "d8/d3e/classLevelDB.html#ad52af2aa5f8bbff4e0598255a0397afa", null ],
     [ "put", "d8/d3e/classLevelDB.html#a2043fdd267642f5f52f09577064e45be", null ],
     [ "put", "d8/d3e/classLevelDB.html#af16a871e1ebf54f081ff3c4d0c1e3857", null ],
-    [ "put", "d8/d3e/classLevelDB.html#a38bfcee0a7aad2fbf9543d71a10a7103", null ],
     [ "remove", "d8/d3e/classLevelDB.html#a5d566ec8720265abb7bef86f5e263d44", null ],
     [ "remove", "d8/d3e/classLevelDB.html#ab1f78e521fec46db732413be435d37ce", null ],
-    [ "remove", "d8/d3e/classLevelDB.html#a0c4a8914187d12234892bb6e1b7d8e2b", null ],
     [ "forEach", "d8/d3e/classLevelDB.html#ae9f6c2e0b6bfabd58e4e0bd6ed94163c", null ],
     [ "between", "d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5", null ],
     [ "begin", "d8/d3e/classLevelDB.html#aa3fab8d3decb8054f9124b070672105f", null ],

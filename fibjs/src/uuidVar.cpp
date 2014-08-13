@@ -13,6 +13,17 @@
 namespace fibjs
 {
 
+result_t uuid_base::uuid(const char *s, obj_ptr<uuidValue_base> &retVal)
+{
+    obj_ptr<uuidVar> id = new uuidVar();
+
+    uuid_create(&id->m_uid);
+    uuid_import(id->m_uid, UUID_FMT_STR, s, qstrlen(s));
+    retVal = id;
+
+    return 0;
+}
+
 result_t uuid_base::uuid(Buffer_base *data, obj_ptr<uuidValue_base> &retVal)
 {
     std::string s;
@@ -23,17 +34,6 @@ result_t uuid_base::uuid(Buffer_base *data, obj_ptr<uuidValue_base> &retVal)
 
     uuid_create(&id->m_uid);
     uuid_import(id->m_uid, UUID_FMT_BIN, s.c_str(), s.length());
-    retVal = id;
-
-    return 0;
-}
-
-result_t uuid_base::uuid(const char *s, obj_ptr<uuidValue_base> &retVal)
-{
-    obj_ptr<uuidVar> id = new uuidVar();
-
-    uuid_create(&id->m_uid);
-    uuid_import(id->m_uid, UUID_FMT_STR, s, qstrlen(s));
     retVal = id;
 
     return 0;

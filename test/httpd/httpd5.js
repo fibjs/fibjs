@@ -17,7 +17,7 @@ var body = new io.MemoryStream();
 var sz = 1;
 
 for (var i = 0; i < sz; i++)
-	body.write(new Buffer(txt));
+	body.write(txt);
 
 body.setTime(new Date());
 console.log(body.clone().stat().mtime);

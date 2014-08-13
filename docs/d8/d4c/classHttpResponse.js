@@ -10,6 +10,7 @@ var classHttpResponse =
     [ "setHeader", "d8/d4c/classHttpResponse.html#ac5626cfdbeb975e16ab3b127b76b1864", null ],
     [ "setHeader", "d8/d4c/classHttpResponse.html#a080e5427207dcae84985d7085f54761c", null ],
     [ "removeHeader", "d8/d4c/classHttpResponse.html#a527c0eba05ae52d3b2c9a2cf284277bd", null ],
+    [ "write", "d8/d4c/classHttpResponse.html#a42fdd87346cb529e34e1e12e41afe2bc", null ],
     [ "clear", "d8/d4c/classHttpResponse.html#a8ed24470ab5214955c70bb108209f9d4", null ],
     [ "sendTo", "d8/d4c/classHttpResponse.html#a8c456b35a88228f954974592e9b5c5ab", null ],
     [ "readFrom", "d8/d4c/classHttpResponse.html#ad4a8dc64a0be31e60e98c671bc630203", null ],

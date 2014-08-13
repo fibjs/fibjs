@@ -11,7 +11,7 @@ function f() {
 
 		var s1 = new net.Socket(net.AF_INET, net.SOCK_STREAM);
 		s1.connect('127.0.0.1', 8080);
-		s1.write(new Buffer("GET / HTTP/1.0\r\n\r\n"));
+		s1.write("GET / HTTP/1.0\r\n\r\n");
 		s1.read(10240);
 		s1.close();
 		s1.dispose();

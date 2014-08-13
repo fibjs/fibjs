@@ -14,7 +14,7 @@ describe('ms', function() {
 	});
 
 	it("write", function() {
-		ms.write(new Buffer('abcdefghijklmnopqrstuvwxyz'));
+		ms.write('abcdefghijklmnopqrstuvwxyz');
 		assert.equal(ms.stat().size, ms.size());
 	});
 
@@ -80,7 +80,7 @@ describe('ms', function() {
 
 	it("seek & write", function() {
 		ms.seek(10, fs.SEEK_SET);
-		ms.write(new Buffer('abcdefghijklmnopqrstuvwxyz'));
+		ms.write('abcdefghijklmnopqrstuvwxyz');
 		assert.equal(36, ms.size());
 		assert.equal(36, ms.tell());
 

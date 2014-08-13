@@ -35,6 +35,7 @@ public:
     virtual result_t set_result(Variant newVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
+    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
     virtual result_t get_length(int64_t &retVal);
     virtual result_t clear();
     virtual result_t sendTo(Stream_base *stm, exlib::AsyncEvent *ac);

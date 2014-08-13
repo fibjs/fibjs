@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -39,45 +40,26 @@ public:
 public:
 	// hash_base
 	static result_t digest(int32_t algo, Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t digest(int32_t algo, const char* text, obj_ptr<Digest_base>& retVal);
+	static result_t digest(int32_t algo, obj_ptr<Digest_base>& retVal);
 	static result_t md2(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t md2(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t md4(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t md4(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t md5(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t md5(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t sha1(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t sha1(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t sha224(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t sha224(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t sha256(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t sha256(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t sha384(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t sha384(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t sha512(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t sha512(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t ripemd160(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t ripemd160(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t hmac(int32_t algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac(int32_t algo, const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_md2(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_md2(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_md4(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_md4(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_md5(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_md5(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha1(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_sha1(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha224(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_sha224(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha256(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_sha256(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha384(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_sha384(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha512(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_sha512(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_ripemd160(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_ripemd160(const char* key, obj_ptr<Digest_base>& retVal);
 
 	DECLARE_CLASSINFO(hash_base);
 
@@ -244,12 +226,11 @@ namespace fibjs
 
 		hr = digest(v0, v1, vr);
 
-		METHOD_OVER(2, 1);
+		METHOD_OVER(1, 1);
 
 		ARG(int32_t, 0);
-		OPT_ARG(arg_string, 1, "");
 
-		hr = digest(v0, v1, vr);
+		hr = digest(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -261,12 +242,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = md2(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
 
 		hr = md2(v0, vr);
 
@@ -283,12 +258,6 @@ namespace fibjs
 
 		hr = md4(v0, vr);
 
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
-
-		hr = md4(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -299,12 +268,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = md5(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
 
 		hr = md5(v0, vr);
 
@@ -321,12 +284,6 @@ namespace fibjs
 
 		hr = sha1(v0, vr);
 
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
-
-		hr = sha1(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -337,12 +294,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = sha224(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
 
 		hr = sha224(v0, vr);
 
@@ -359,12 +310,6 @@ namespace fibjs
 
 		hr = sha256(v0, vr);
 
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
-
-		hr = sha256(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -375,12 +320,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = sha384(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
 
 		hr = sha384(v0, vr);
 
@@ -397,12 +336,6 @@ namespace fibjs
 
 		hr = sha512(v0, vr);
 
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
-
-		hr = sha512(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -413,12 +346,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = ripemd160(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
 
 		hr = ripemd160(v0, vr);
 
@@ -436,13 +363,6 @@ namespace fibjs
 
 		hr = hmac(v0, v1, vr);
 
-		METHOD_OVER(2, 2);
-
-		ARG(int32_t, 0);
-		ARG(arg_string, 1);
-
-		hr = hmac(v0, v1, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -453,12 +373,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_md2(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
 
 		hr = hmac_md2(v0, vr);
 
@@ -475,12 +389,6 @@ namespace fibjs
 
 		hr = hmac_md4(v0, vr);
 
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
-
-		hr = hmac_md4(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -491,12 +399,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_md5(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
 
 		hr = hmac_md5(v0, vr);
 
@@ -513,12 +415,6 @@ namespace fibjs
 
 		hr = hmac_sha1(v0, vr);
 
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
-
-		hr = hmac_sha1(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -529,12 +425,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_sha224(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
 
 		hr = hmac_sha224(v0, vr);
 
@@ -551,12 +441,6 @@ namespace fibjs
 
 		hr = hmac_sha256(v0, vr);
 
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
-
-		hr = hmac_sha256(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -567,12 +451,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_sha384(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
 
 		hr = hmac_sha384(v0, vr);
 
@@ -589,12 +467,6 @@ namespace fibjs
 
 		hr = hmac_sha512(v0, vr);
 
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
-
-		hr = hmac_sha512(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -605,12 +477,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_ripemd160(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
 
 		hr = hmac_ripemd160(v0, vr);
 

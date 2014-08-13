@@ -46,15 +46,11 @@ public:
 public:
     // LevelDB_base
     virtual result_t has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac);
-    virtual result_t has(const char *key, bool &retVal, exlib::AsyncEvent *ac);
     virtual result_t get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t get(const char *key, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
     virtual result_t put(v8::Local<v8::Object> map);
     virtual result_t put(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *ac);
-    virtual result_t put(const char *key, Buffer_base *value, exlib::AsyncEvent *ac);
     virtual result_t remove(v8::Local<v8::Array> keys);
     virtual result_t remove(Buffer_base *key, exlib::AsyncEvent *ac);
-    virtual result_t remove(const char *key, exlib::AsyncEvent *ac);
     virtual result_t forEach(v8::Local<v8::Function> func);
     virtual result_t between(v8::Local<v8::Value> from, v8::Local<v8::Value> to, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base> &retVal);
@@ -64,7 +60,7 @@ public:
 public:
     result_t open(const char *connString);
 
-    static result_t getKey(v8::Local<v8::Value> v, std::string &out)
+    static result_t getValue(v8::Local<v8::Value> v, std::string &out)
     {
         obj_ptr<Buffer_base> bKey = Buffer_base::getInstance(v);
         if (bKey)
@@ -126,14 +122,14 @@ private:
 
         result_t iter(v8::Local<v8::Function> func);
 
-        result_t getKey(v8::Local<v8::Value> from, v8::Local<v8::Value> to)
+        result_t getValue(v8::Local<v8::Value> from, v8::Local<v8::Value> to)
         {
             result_t hr;
 
-            hr = LevelDB::getKey(from, m_from);
+            hr = LevelDB::getValue(from, m_from);
             if (hr < 0)return hr;
 
-            return LevelDB::getKey(to, m_to);
+            return LevelDB::getValue(to, m_to);
         }
 
     public:

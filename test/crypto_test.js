@@ -272,7 +272,7 @@ describe('crypto', function() {
 
 				var pk1 = pk.publicKey;
 
-				var d = pk1.encrypt(new Buffer("abcdefg"));
+				var d = pk1.encrypt("abcdefg");
 				assert.equal(pk.decrypt(d).toString(), "abcdefg");
 
 				assert.throws(function() {
@@ -286,8 +286,8 @@ describe('crypto', function() {
 
 				var pk1 = pk.publicKey;
 
-				var md = hash.md5(new Buffer("abcdefg")).digest();
-				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+				var md = hash.md5("abcdefg").digest();
+				var md1 = hash.md5("abcdefg1").digest();
 				var d = pk.sign(md);
 				assert.isTrue(pk1.verify(d, md));
 				assert.isFalse(pk1.verify(d, md1));
@@ -368,8 +368,8 @@ describe('crypto', function() {
 
 				var pk1 = pk.publicKey;
 
-				var md = hash.md5(new Buffer("abcdefg")).digest();
-				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+				var md = hash.md5("abcdefg").digest();
+				var md1 = hash.md5("abcdefg1").digest();
 				var d = pk.sign(md);
 				assert.isTrue(pk1.verify(d, md));
 				assert.isFalse(pk1.verify(d, md1));

@@ -443,6 +443,9 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, Variant &d, bool bStric
     return 0;
 }
 
+class Buffer_base;
+result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<Buffer_base> &vr, bool bStrict = false);
+
 template<class T>
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict = false)
 {

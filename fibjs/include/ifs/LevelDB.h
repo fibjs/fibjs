@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Leo Hoo                                         *
- *   lion@9465.net                                                         *
+ *                                                                         *
+ *   This file was automatically generated using idlc.js                   *
+ *   PLEASE DO NOT EDIT!!!!                                                *
  *                                                                         *
  ***************************************************************************/
 
@@ -23,15 +24,11 @@ class LevelDB_base : public object_base
 public:
 	// LevelDB_base
 	virtual result_t has(Buffer_base* key, bool& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t has(const char* key, bool& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t get(const char* key, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t put(v8::Local<v8::Object> map) = 0;
 	virtual result_t put(Buffer_base* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
-	virtual result_t put(const char* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
 	virtual result_t remove(v8::Local<v8::Array> keys) = 0;
 	virtual result_t remove(Buffer_base* key, exlib::AsyncEvent* ac) = 0;
-	virtual result_t remove(const char* key, exlib::AsyncEvent* ac) = 0;
 	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
 	virtual result_t between(v8::Local<v8::Value> from, v8::Local<v8::Value> to, v8::Local<v8::Function> func) = 0;
 	virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
@@ -53,13 +50,9 @@ public:
 
 public:
 	ASYNC_MEMBERVALUE2(LevelDB_base, has, Buffer_base*, bool);
-	ASYNC_MEMBERVALUE2(LevelDB_base, has, const char*, bool);
 	ASYNC_MEMBERVALUE2(LevelDB_base, get, Buffer_base*, obj_ptr<Buffer_base>);
-	ASYNC_MEMBERVALUE2(LevelDB_base, get, const char*, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER2(LevelDB_base, put, Buffer_base*, Buffer_base*);
-	ASYNC_MEMBER2(LevelDB_base, put, const char*, Buffer_base*);
 	ASYNC_MEMBER1(LevelDB_base, remove, Buffer_base*);
-	ASYNC_MEMBER1(LevelDB_base, remove, const char*);
 	ASYNC_MEMBER0(LevelDB_base, close);
 };
 
@@ -107,12 +100,6 @@ namespace fibjs
 
 		hr = pInst->ac_has(v0, vr);
 
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
-
-		hr = pInst->ac_has(v0, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -124,12 +111,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = pInst->ac_get(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
 
 		hr = pInst->ac_get(v0, vr);
 
@@ -152,13 +133,6 @@ namespace fibjs
 
 		hr = pInst->ac_put(v0, v1);
 
-		METHOD_OVER(2, 2);
-
-		ARG(arg_string, 0);
-		ARG(obj_ptr<Buffer_base>, 1);
-
-		hr = pInst->ac_put(v0, v1);
-
 		METHOD_VOID();
 	}
 
@@ -174,12 +148,6 @@ namespace fibjs
 		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = pInst->ac_remove(v0);
-
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
 
 		hr = pInst->ac_remove(v0);
 
