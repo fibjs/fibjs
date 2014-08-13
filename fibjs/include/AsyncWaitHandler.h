@@ -39,7 +39,7 @@ public:
     };
 
 public:
-    AsyncWaitHandler() : m_ac(NULL), m_as(NULL)
+    AsyncWaitHandler() : m_as(NULL), m_stat(0), m_invoked(0)
     {}
 
 public:
@@ -52,8 +52,9 @@ public:
     virtual result_t end();
 
 private:
-    AsyncCall m_ac;
     asyncWaiter *m_as;
+    int32_t m_stat;
+    int32_t m_invoked;
 };
 
 } /* namespace fibjs */
