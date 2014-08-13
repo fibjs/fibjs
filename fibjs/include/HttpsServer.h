@@ -46,7 +46,7 @@ public:
 
 private:
     obj_ptr<SslServer_base> m_server;
-    obj_ptr<HttpHandler> m_handler;
+    obj_ptr<HttpHandler_base> m_handler;
 };
 
 } /* namespace fibjs */

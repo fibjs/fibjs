@@ -22,6 +22,13 @@ public:
                             exlib::AsyncEvent *ac);
 
 public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
+
+public:
     // Chain_base
     virtual result_t append(v8::Local<v8::Array> hdlrs);
     virtual result_t append(v8::Local<v8::Value> hdlr);
@@ -29,12 +36,26 @@ public:
 public:
     result_t append(Handler_base *hdlr)
     {
+        v8::Local<v8::String> k = v8::String::NewFromUtf8(isolate, "handler");
+        v8::Local<v8::Value> v = wrap()->GetHiddenValue(k);
+        v8::Local<v8::Array> a;
+
+        if (IsEmpty(v))
+        {
+            a = v8::Array::New(isolate);
+            wrap()->SetHiddenValue(k, a);
+        }
+        else
+            a = v8::Local<v8::Array>::Cast(v);
+
+        a->Set((int32_t)m_array.size(), hdlr->wrap());
         m_array.append(hdlr);
+
         return 0;
     }
 
 private:
-    QuickArray<obj_ptr<Handler_base> > m_array;
+    QuickArray<Handler_base *> m_array;
 };
 
 } /* namespace fibjs */

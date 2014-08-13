@@ -44,16 +44,27 @@ result_t HttpHandler_base::_new(v8::Local<v8::Value> hdlr,
     if (hr < 0)
         return hr;
 
-    retVal = new HttpHandler(hdlr1);
+    obj_ptr<HttpHandler> ht_hdlr = new HttpHandler();
+    ht_hdlr->wrap(This);
+    ht_hdlr->setHandler(hdlr1);
+
+    retVal = ht_hdlr;
+
     return 0;
 }
 
-HttpHandler::HttpHandler(Handler_base *hdlr) :
-    m_hdlr(hdlr), m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
+HttpHandler::HttpHandler() :
+    m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
         128), m_maxUploadSize(67108864)
 {
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 6);
+}
+
+void HttpHandler::setHandler(Handler_base *hdlr)
+{
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), hdlr->wrap());
+    m_hdlr = hdlr;
 }
 
 static std::string s_crossdomain;

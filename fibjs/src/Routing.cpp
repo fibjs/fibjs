@@ -18,6 +18,7 @@ result_t Routing_base::_new(v8::Local<v8::Object> map,
                             v8::Local<v8::Object> This)
 {
     obj_ptr<Routing_base> r = new Routing();
+    r->wrap(This);
 
     result_t hr = r->append(map);
     if (hr < 0)
@@ -131,6 +132,20 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
         pcre_free(re);
         return CHECK_ERROR(Runtime::setError(error));
     }
+
+    v8::Local<v8::String> k = v8::String::NewFromUtf8(isolate, "handler");
+    v8::Local<v8::Value> v = wrap()->GetHiddenValue(k);
+    v8::Local<v8::Array> a;
+
+    if (IsEmpty(v))
+    {
+        a = v8::Array::New(isolate);
+        wrap()->SetHiddenValue(k, a);
+    }
+    else
+        a = v8::Local<v8::Array>::Cast(v);
+
+    a->Set((int32_t)m_array.size(), hdlr->wrap());
 
     obj_ptr<rule> r = new rule(re, extra, hdlr);
     m_array.append(r);

@@ -58,13 +58,9 @@ result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, const char *add
                              v8::Local<v8::Value> hdlr)
 {
     result_t hr;
-    obj_ptr<Handler_base> hdlr1;
-
-    hr = JSHandler::New(hdlr, hdlr1);
+    hr = HttpHandler_base::_new(hdlr, m_handler);
     if (hr < 0)
         return hr;
-
-    m_handler = new HttpHandler(hdlr1);
 
     hr = m_handler->ValueOf(hdlr);
     if (hr < 0)
@@ -81,13 +77,9 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
                              v8::Local<v8::Value> hdlr)
 {
     result_t hr;
-    obj_ptr<Handler_base> hdlr1;
-
-    hr = JSHandler::New(hdlr, hdlr1);
+    hr = HttpHandler_base::_new(hdlr, m_handler);
     if (hr < 0)
         return hr;
-
-    m_handler = new HttpHandler(hdlr1);
 
     hr = m_handler->ValueOf(hdlr);
     if (hr < 0)

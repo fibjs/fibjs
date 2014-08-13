@@ -144,7 +144,7 @@ private:
 private:
     static void WeakCallback(const v8::WeakCallbackData<v8::Object, object_base> &data)
     {
-        data.GetParameter()->dispose();
+        data.GetParameter()->internalDispose();
     }
 
 public:
@@ -241,9 +241,7 @@ private:
     int m_nExtMemory;
     int m_nExtMemoryDelay;
 
-public:
-    // object_base
-    virtual result_t dispose()
+    result_t internalDispose()
     {
         if (!handle_.IsEmpty())
         {
@@ -260,6 +258,13 @@ public:
         }
 
         return 0;
+    }
+
+public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return internalDispose();
     }
 
     virtual result_t toString(std::string &retVal)

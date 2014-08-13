@@ -19,6 +19,13 @@ class JSHandler: public Handler_base
     FIBER_FREE();
 
 public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
+
+public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                             exlib::AsyncEvent *ac);

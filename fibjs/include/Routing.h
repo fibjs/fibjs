@@ -35,8 +35,15 @@ public:
     public:
         pcre *m_re;
         pcre_extra *m_extra;
-        obj_ptr<Handler_base> m_hdlr;
+        Handler_base *m_hdlr;
     };
+
+public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
 
 public:
     // Handler_base

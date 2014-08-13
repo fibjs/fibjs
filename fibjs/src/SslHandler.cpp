@@ -17,6 +17,8 @@ result_t SslHandler_base::_new(v8::Local<v8::Array> certs, v8::Local<v8::Value> 
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
 
+    sslHdlr->wrap(This);
+
     result_t hr = sslHdlr->init(certs, hdlr);
     if (hr < 0)
         return hr;
@@ -31,6 +33,8 @@ result_t SslHandler_base::_new(X509Cert_base *crt, PKey_base *key,
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
 
+    sslHdlr->wrap(This);
+
     result_t hr = sslHdlr->init(crt, key, hdlr);
     if (hr < 0)
         return hr;
@@ -43,9 +47,12 @@ result_t SslHandler::init(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr)
 {
     result_t hr;
 
-    hr = JSHandler::New(hdlr, m_hdlr);
+    obj_ptr<Handler_base> hdlr1;
+    hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
+
+    set_handler(hdlr1);
 
     hr = SslSocket_base::_new(certs, m_socket);
     if (hr < 0)
@@ -58,9 +65,12 @@ result_t SslHandler::init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Valu
 {
     result_t hr;
 
-    hr = JSHandler::New(hdlr, m_hdlr);
+    obj_ptr<Handler_base> hdlr1;
+    hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
+
+    set_handler(hdlr1);
 
     hr = SslSocket_base::_new(crt, key, m_socket);
     if (hr < 0)
@@ -151,6 +161,7 @@ result_t SslHandler::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t SslHandler::set_handler(Handler_base *newVal)
 {
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }
