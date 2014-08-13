@@ -110,7 +110,7 @@ describe("net", function() {
 			while (true) {
 				var c = s.accept();
 
-				// c.write(new Buffer(str));
+				// c.write(str);
 
 				fs.writeFile('net_temp_000001', str);
 				var f = fs.open('net_temp_000001');
@@ -154,15 +154,15 @@ describe("net", function() {
 			while (true) {
 				var c = s.accept();
 
-				c.write(new Buffer('a'));
+				c.write('a');
 				coroutine.sleep(100);
-				c.write(new Buffer('a'));
+				c.write('a');
 				coroutine.sleep(100);
-				c.write(new Buffer('b'));
+				c.write('b');
 				coroutine.sleep(100);
-				c.write(new Buffer('c'));
+				c.write('c');
 				coroutine.sleep(100);
-				c.write(new Buffer('d'));
+				c.write('d');
 				coroutine.sleep(100);
 
 				c.close();

@@ -14,7 +14,7 @@ txt = txt + txt;
 var body = new io.MemoryStream();
 
 for (var i = 0; i < 10; i++)
-	body.write(new Buffer(txt));
+	body.write(txt);
 
 new net.TcpServer(8080, function(c) {
 	var bs = new io.BufferedStream(c);

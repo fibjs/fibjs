@@ -17,7 +17,7 @@ describe("buffered stream", function() {
 			s = s + s;
 
 		var f = fs.open("test0000", 'w');
-		f.write(new Buffer(s));
+		f.write(s);
 		f.close();
 	});
 
@@ -100,7 +100,7 @@ describe("buffered stream", function() {
 		var r = new io.BufferedStream(f);
 
 		for (var i = 0; i < 1000; i++)
-			r.writePacket(new Buffer(s.substring(0, i)));
+			r.writePacket(s.substring(0, i));
 
 		f.rewind();
 		for (var i = 0; i < 1000; i++)
@@ -114,7 +114,7 @@ describe("buffered stream", function() {
 		var m = new mq.PacketMessage();
 
 		for (var i = 0; i < 1000; i++) {
-			m.body.write(new Buffer(s.substring(0, i)));
+			m.body.write(s.substring(0, i));
 			m.sendTo(f);
 			m.clear();
 		}
@@ -134,7 +134,7 @@ describe("buffered stream", function() {
 		var r = new io.BufferedStream(f);
 
 		for (var i = 1; i < 1000; i++)
-			r.writePacket(new Buffer(s.substring(0, i)));
+			r.writePacket(s.substring(0, i));
 
 		var m = new mq.PacketMessage();
 
@@ -157,7 +157,7 @@ describe("buffered stream", function() {
 	it('readPacket limit', function() {
 		var r = new io.BufferedStream(f);
 		f.rewind();
-		r.writePacket(new Buffer(s.substring(0, 65567)));
+		r.writePacket(s.substring(0, 65567));
 
 		f.rewind();
 		assert.equal(r.readPacket(65567).toString(), s.substring(0, 65567));
@@ -180,7 +180,7 @@ describe("buffered stream", function() {
 
 		assert.equal(r.charset, "utf-8");
 
-		f.write(new Buffer("哈哈哈\r\n"));
+		f.write("哈哈哈\r\n");
 		f.rewind();
 		assert.equal(r.readLine(), "哈哈哈");
 

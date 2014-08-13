@@ -115,7 +115,7 @@ describe('ssl', function() {
 			var ss = new ssl.Socket();
 			ss.connect(s1);
 
-			ss.write(new Buffer("GET / HTTP/1.0"));
+			ss.write("GET / HTTP/1.0");
 			assert.equal("GET / HTTP/1.0", ss.read());
 
 			ss.close();
@@ -187,7 +187,7 @@ describe('ssl', function() {
 			var ss = new ssl.Socket();
 			ss.connect(s1);
 
-			ss.write(new Buffer("GET / HTTP/1.0"));
+			ss.write("GET / HTTP/1.0");
 			assert.equal("GET / HTTP/1.0", ss.read());
 
 			ss.close();
@@ -211,7 +211,7 @@ describe('ssl', function() {
 			var ss = new ssl.Socket();
 			ss.connect(s1);
 
-			ss.write(new Buffer("GET / HTTP/1.0"));
+			ss.write("GET / HTTP/1.0");
 			assert.equal("GET / HTTP/1.0", ss.read());
 
 			ss.close();

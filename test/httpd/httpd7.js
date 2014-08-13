@@ -21,7 +21,7 @@ var hdlr = http.handler(mq.routing({
 		}
 	}),
 	'^/test$': function(v) {
-		v.response.body.write(new Buffer("define('" + new Date() + "');"));
+		v.response.body.write("define('" + new Date() + "');");
 		console.log('requested.', new Date());
 	}
 }));

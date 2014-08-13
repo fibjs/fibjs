@@ -349,7 +349,7 @@ describe("http", function() {
 	describe("encode", function() {
 		it("response", function() {
 			var rep = new http.Request();
-			rep.body.write(new Buffer("0123456789"));
+			rep.body.write("0123456789");
 
 			var ms = new io.MemoryStream();
 
@@ -361,7 +361,7 @@ describe("http", function() {
 			var ms = new io.MemoryStream();
 
 			var rep = new http.Response();
-			rep.body.write(new Buffer("0123456789"));
+			rep.body.write("0123456789");
 
 			rep.sendTo(ms);
 			ms.rewind();
@@ -370,7 +370,7 @@ describe("http", function() {
 
 		it("address", function() {
 			var rep = new http.Request();
-			rep.body.write(new Buffer("0123456789"));
+			rep.body.write("0123456789");
 			rep.address = "/docs/";
 			rep.value = "/docs/";
 
@@ -383,7 +383,7 @@ describe("http", function() {
 
 		it("query", function() {
 			var rep = new http.Request();
-			rep.body.write(new Buffer("0123456789"));
+			rep.body.write("0123456789");
 			rep.address = "/docs";
 			rep.value = "/docs";
 			rep.queryString = "page=100&style=wap";
@@ -437,7 +437,7 @@ describe("http", function() {
 		}
 
 		it("normal request", function() {
-			c.write(new Buffer("GET / HTTP/1.0\r\n\r\n"));
+			c.write("GET / HTTP/1.0\r\n\r\n");
 			var req = get_response();
 			assert.equal(req.status, 200);
 
@@ -454,7 +454,7 @@ describe("http", function() {
 		});
 
 		it("bad request(error 400)", function() {
-			c.write(new Buffer("GET /\r\n\r\n"));
+			c.write("GET /\r\n\r\n");
 			var req = get_response();
 			assert.equal(req.status, 400);
 
@@ -471,7 +471,7 @@ describe("http", function() {
 		});
 
 		it("error 404", function() {
-			c.write(new Buffer("GET /not_found HTTP/1.0\r\n\r\n"));
+			c.write("GET /not_found HTTP/1.0\r\n\r\n");
 			var req = get_response();
 			assert.equal(req.status, 404);
 
@@ -488,7 +488,7 @@ describe("http", function() {
 		});
 
 		it("error 500", function() {
-			c.write(new Buffer("GET /throw HTTP/1.0\r\n\r\n"));
+			c.write("GET /throw HTTP/1.0\r\n\r\n");
 			var req = get_response();
 			assert.equal(req.status, 500);
 
@@ -507,7 +507,7 @@ describe("http", function() {
 		it("remote close when response", function() {
 			st = new Step();
 
-			c.write(new Buffer("GET /remote_close HTTP/1.0\r\n\r\n"));
+			c.write("GET /remote_close HTTP/1.0\r\n\r\n");
 			c.close();
 
 			st.wait(1);
@@ -538,7 +538,7 @@ describe("http", function() {
 		});
 
 		it("remote close when request", function() {
-			c.write(new Buffer("GET / HTTP/1.0\r\n"));
+			c.write("GET / HTTP/1.0\r\n");
 			c.close();
 
 			coroutine.sleep(10);
@@ -664,13 +664,13 @@ describe("http", function() {
 		it("server", function() {
 			new http.Server(8882, function(r) {
 				if (r.address != "/gzip_test") {
-					r.response.body.write(new Buffer(r.address));
+					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
 					if (r.hasHeader("test_header"))
-						r.response.body.write(new Buffer(r.firstHeader("test_header")));
+						r.response.body.write(r.firstHeader("test_header"));
 				} else {
 					r.response.addHeader("Content-Type", "text/html");
-					r.response.body.write(new Buffer("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"));
+					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 				}
 			}).asyncRun();
 		});
@@ -736,13 +736,13 @@ describe("http", function() {
 		it("server", function() {
 			new http.HttpsServer(crt, pk, 8883, function(r) {
 				if (r.address != "/gzip_test") {
-					r.response.body.write(new Buffer(r.address));
+					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
 					if (r.hasHeader("test_header"))
-						r.response.body.write(new Buffer(r.firstHeader("test_header")));
+						r.response.body.write(r.firstHeader("test_header"));
 				} else {
 					r.response.addHeader("Content-Type", "text/html");
-					r.response.body.write(new Buffer("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"));
+					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 				}
 			}).asyncRun();
 		});
