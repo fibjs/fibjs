@@ -19,6 +19,13 @@ class SslHandler: public SslHandler_base
     FIBER_FREE();
     
 public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
+
+public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                             exlib::AsyncEvent *ac);
@@ -36,7 +43,7 @@ public:
     result_t init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Value> hdlr);
 
 private:
-    obj_ptr<Handler_base> m_hdlr;
+    Handler_base* m_hdlr;
     obj_ptr<SslSocket_base> m_socket;
 };
 

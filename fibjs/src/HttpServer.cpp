@@ -36,15 +36,12 @@ result_t HttpServer_base::_new(const char *addr, int32_t port, v8::Local<v8::Val
 
 result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value> hdlr)
 {
-    obj_ptr<Handler_base> hdlr1;
     result_t hr;
-
-    hr = JSHandler::New(hdlr, hdlr1);
+    hr = HttpHandler_base::_new(hdlr, m_handler);
     if (hr < 0)
         return hr;
 
     m_server = new TcpServer();
-    m_handler = new HttpHandler(hdlr1);
 
     return m_server->create(addr, port, m_handler);
 }

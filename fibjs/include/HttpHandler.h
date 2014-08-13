@@ -19,7 +19,15 @@ class HttpHandler: public HttpHandler_base
     FIBER_FREE();
 
 public:
-    HttpHandler(Handler_base *hdlr);
+    HttpHandler();
+    void setHandler(Handler_base *hdlr);
+
+public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
 
 public:
     // Handler_base
@@ -44,7 +52,7 @@ public:
     obj_ptr<Stats> m_stats;
 
 private:
-    obj_ptr<Handler_base> m_hdlr;
+    Handler_base* m_hdlr;
     bool m_crossDomain;
     bool m_forceGZIP;
     int32_t m_maxHeadersCount;

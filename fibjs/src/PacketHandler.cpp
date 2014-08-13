@@ -38,15 +38,26 @@ result_t PacketHandler_base::_new(v8::Local<v8::Value> hdlr,
     if (hr < 0)
         return hr;
 
-    retVal = new PacketHandler(hdlr1);
+    obj_ptr<PacketHandler> pk_hdlr = new PacketHandler();
+    pk_hdlr->wrap(This);
+    pk_hdlr->setHandler(hdlr1);
+
+    retVal = pk_hdlr;
+
     return 0;
 }
 
-PacketHandler::PacketHandler(Handler_base *hdlr) :
-    m_hdlr(hdlr), m_maxSize(67108864)
+PacketHandler::PacketHandler() :
+    m_maxSize(67108864)
 {
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 3);
+}
+
+void PacketHandler::setHandler(Handler_base *hdlr)
+{
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), hdlr->wrap());
+    m_hdlr = hdlr;
 }
 
 result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,

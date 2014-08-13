@@ -42,7 +42,7 @@ public:
 
 private:
     obj_ptr<TcpServer> m_server;
-    obj_ptr<HttpHandler> m_handler;
+    obj_ptr<HttpHandler_base> m_handler;
 };
 
 } /* namespace fibjs */

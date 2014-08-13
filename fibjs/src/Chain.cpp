@@ -17,6 +17,8 @@ result_t Chain_base::_new(v8::Local<v8::Array> hdlrs,
                           v8::Local<v8::Object> This)
 {
     obj_ptr<Chain_base> chain = new Chain();
+    chain->wrap(This);
+
     result_t hr = chain->append(hdlrs);
     if (hr < 0)
         return hr;
