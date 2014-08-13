@@ -44,7 +44,7 @@ result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<Buffer_base> &vr, bool
             return CALL_E_INVALIDARG;
 
         std::string str;
-        result_t hr = GetArgumentValue(v, str, true);
+        result_t hr = GetArgumentValue(v, str);
         if (hr < 0)
             return hr;
 
