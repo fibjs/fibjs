@@ -8,5 +8,5 @@ var searchData=
   ['uptime',['uptime',['../d7/db0/classos.html#a7fa90fa210d31f489f824de639820d42',1,'os::uptime()'],['../db/df7/classStats.html#a32d73f6238ce28d6651f18465af79ae0',1,'Stats::uptime()']]],
   ['url',['Url',['../d3/d75/classnet.html#a9b78a177f78a2f214f66dfd52fb68c88',1,'net::Url()'],['../df/d6b/classUrl.html#a9a1f4ab58de0b3d7d55708e7ecad1adc',1,'Url::Url(Object args)'],['../df/d6b/classUrl.html#aec1f5c08b7c5046e838286600f2e955a',1,'Url::Url(String url=&quot;&quot;)']]],
   ['use',['use',['../d3/da8/classMySQL.html#af3d7af443d45a1e778aa00a76c28f51b',1,'MySQL']]],
-  ['uuid',['uuid',['../d9/d4e/classuuid.html#a61e618bfdc2d1146b05c0a73b7dbfe25',1,'uuid::uuid(Buffer data)'],['../d9/d4e/classuuid.html#a5fdc6d7f478a448083de3d30305d9d79',1,'uuid::uuid(String s)']]]
+  ['uuid',['uuid',['../d9/d4e/classuuid.html#a5fdc6d7f478a448083de3d30305d9d79',1,'uuid::uuid(String s)'],['../d9/d4e/classuuid.html#a61e618bfdc2d1146b05c0a73b7dbfe25',1,'uuid::uuid(Buffer data)']]]
 ];

@@ -12,6 +12,6 @@ var searchData=
   ['use',['use',['../d3/da8/classMySQL.html#af3d7af443d45a1e778aa00a76c28f51b',1,'MySQL']]],
   ['username',['username',['../df/d6b/classUrl.html#a824c81c2a6c19971bd3b321ff4009ab2',1,'Url']]],
   ['util',['util',['../d8/d61/classutil.html',1,'']]],
-  ['uuid',['uuid',['../d9/d4e/classuuid.html',1,'uuid'],['../d9/d4e/classuuid.html#a61e618bfdc2d1146b05c0a73b7dbfe25',1,'uuid::uuid(Buffer data)'],['../d9/d4e/classuuid.html#a5fdc6d7f478a448083de3d30305d9d79',1,'uuid::uuid(String s)']]],
+  ['uuid',['uuid',['../d9/d4e/classuuid.html',1,'uuid'],['../d9/d4e/classuuid.html#a5fdc6d7f478a448083de3d30305d9d79',1,'uuid::uuid(String s)'],['../d9/d4e/classuuid.html#a61e618bfdc2d1146b05c0a73b7dbfe25',1,'uuid::uuid(Buffer data)']]],
   ['uuidvalue',['uuidValue',['../d1/dd4/classuuidValue.html',1,'']]]
 ];
