@@ -18,8 +18,8 @@ namespace fibjs
 {
 
 class module_base;
-class Buffer_base;
 class uuidValue_base;
+class Buffer_base;
 
 class uuid_base : public module_base
 {
@@ -33,8 +33,8 @@ public:
 
 public:
 	// uuid_base
-	static result_t uuid(Buffer_base* data, obj_ptr<uuidValue_base>& retVal);
 	static result_t uuid(const char* s, obj_ptr<uuidValue_base>& retVal);
+	static result_t uuid(Buffer_base* data, obj_ptr<uuidValue_base>& retVal);
 	static result_t node(obj_ptr<uuidValue_base>& retVal);
 	static result_t md5(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
 	static result_t random(obj_ptr<uuidValue_base>& retVal);
@@ -56,8 +56,8 @@ public:
 
 }
 
-#include "Buffer.h"
 #include "uuidValue.h"
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -125,13 +125,13 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(arg_string, 0);
 
 		hr = uuid(v0, vr);
 
 		METHOD_OVER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = uuid(v0, vr);
 

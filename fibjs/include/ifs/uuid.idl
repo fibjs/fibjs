@@ -20,17 +20,17 @@ class uuid : module
     /*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 X.500 DN */
     const Integer X509 = 3;
 
-    /*! @brief 根据给定的二进制数据组建 uuid
-     @param data 指定描述 uuid 的二进制数据
-     @return 返回一个 uuidValue 类型的对象
-     */
-    static uuidValue uuid(Buffer data);
-
     /*! @brief 根据给定的字符串描述组建 uuid
      @param s 指定描述 uuid 的字符串
      @return 返回一个 uuidValue 类型的对象
      */
     static uuidValue uuid(String s);
+
+    /*! @brief 根据给定的二进制数据组建 uuid
+     @param data 指定描述 uuid 的二进制数据
+     @return 返回一个 uuidValue 类型的对象
+     */
+    static uuidValue uuid(Buffer data);
 
     /*! @brief 使用时间和主机名创建 uuid
      @return 返回一个 uuidValue 类型的对象
