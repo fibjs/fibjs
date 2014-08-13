@@ -55,21 +55,6 @@ result_t Digest::update(Buffer_base *data)
     return 0;
 }
 
-result_t Digest::update(const char *text)
-{
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (m_bMac)
-        md_hmac_update(&m_ctx, (const unsigned char *) text,
-                       (int)qstrlen(text));
-    else
-        md_update(&m_ctx, (const unsigned char *) text,
-                  (int)qstrlen(text));
-
-    return 0;
-}
-
 result_t Digest::digest(obj_ptr<Buffer_base> &retVal)
 {
     if (m_iAlgo < 0)
@@ -99,15 +84,6 @@ result_t Digest::digest(Buffer_base *data,
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     update(data);
-    return digest(retVal);
-}
-
-result_t Digest::digest(const char *text, obj_ptr<Buffer_base> &retVal)
-{
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    update(text);
     return digest(retVal);
 }
 

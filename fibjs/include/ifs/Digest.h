@@ -23,9 +23,8 @@ class Digest_base : public object_base
 public:
 	// Digest_base
 	virtual result_t update(Buffer_base* data) = 0;
-	virtual result_t update(const char* text) = 0;
 	virtual result_t digest(Buffer_base* data, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t digest(const char* text, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t digest(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t get_size(int32_t& retVal) = 0;
 
 	DECLARE_CLASSINFO(Digest_base);
@@ -87,12 +86,6 @@ namespace fibjs
 
 		hr = pInst->update(v0);
 
-		METHOD_OVER(1, 1);
-
-		ARG(arg_string, 0);
-
-		hr = pInst->update(v0);
-
 		METHOD_VOID();
 	}
 
@@ -107,11 +100,9 @@ namespace fibjs
 
 		hr = pInst->digest(v0, vr);
 
-		METHOD_OVER(1, 0);
+		METHOD_OVER(0, 0);
 
-		OPT_ARG(arg_string, 0, "");
-
-		hr = pInst->digest(v0, vr);
+		hr = pInst->digest(vr);
 
 		METHOD_RETURN();
 	}
