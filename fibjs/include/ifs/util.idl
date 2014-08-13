@@ -17,6 +17,13 @@ class util : module
      */
     static String format(...);
 
+    /*! @brief 检测给定的变量是否不包含任何值(没有可枚举的属性)
+
+     @param v 给定需要检测的变量
+     @return 如果为空则返回 True
+     */
+    static Boolean isEmpty(Value v);
+
     /*! @brief 检测给定的变量是否是数组
 
      @param v 给定需要检测的变量
@@ -100,6 +107,127 @@ class util : module
      @return 如果是函数 Buffer 对象则返回 True
      */
     static Boolean isBuffer(Value v);
+
+    /*! @brief 查询指定对象是否包含给定的键
+
+     @param v 给定需要查询的对象
+     @param key 指定需要查询的键
+     @return 返回对象的全部键数组
+     */
+    static Boolean has(Value v, String key);
+
+    /*! @brief 查询指定对象的全部键数组
+
+     @param v 给定需要查询的对象
+     @return 返回对象的全部键数组
+     */
+    static Array keys(Value v);
+
+    /*! @brief 查询指定对象的全部值数组
+
+     @param v 给定需要查询的对象
+     @return 返回对象的全部值数组
+     */
+    static Array values(Value v);
+
+    /*! @brief 克隆给定变量，如果是对象或数组，则复制内容到新对象
+
+     @param v 给定要克隆的变量
+     @return 返回克隆结果
+     */
+    static Value clone(Value v);
+
+    /*! @brief 将一个或者多个对象的键值扩展到指定对象
+
+     @param v 指定要扩展的对象
+     @param ... 指定一个或者多个用于扩展的对象
+     @return 返回扩展的结果
+     */
+    static Value extend(Value v, ...);
+
+    /*! @brief 返回一个object副本，只过滤出指定键的属性值
+
+     @param v 指定要过滤的对象
+     @param ... 指定一个或者多个用于选择的键
+     @return 返回过滤的结果
+     */
+    static Object pick(Value v, ...);
+
+    /*! @brief 返回一个object副本，只过排除指定键的属性值
+
+     @param v 指定要过滤的对象
+     @param ... 指定一个或者多个用于排除的键
+     @return 返回排除的结果
+     */
+    static Object omit(Value v, ...);
+
+    /*! @brief 获取数组的第一个元素
+
+     @param v 给定要获取的数组
+     @return 返回获取的元素
+     */
+    static Value first(Value v);
+
+    /*! @brief 获取数组的开始多个元素
+
+     @param v 给定要获取的数组
+     @param n 指定要获取的元素个数
+     @return 返回获取的元素数组
+     */
+    static Value first(Value v, Integer n);
+
+    /*! @brief 获取数组的第后一个元素
+
+     @param v 给定要获取的数组
+     @return 返回获取的元素
+     */
+    static Value last(Value v);
+
+    /*! @brief 获取数组的结尾多个元素
+
+     @param v 给定要获取的数组
+     @param n 指定要获取的元素个数
+     @return 返回获取的元素数组
+     */
+    static Value last(Value v, Integer n);
+
+    /*! @brief 获取数组的元素去重后的副本
+
+     @param v 给定要去重的数组
+     @param sorted 指定数组是否排序，如果指定数组排序，将使用快速算法
+     @return 返回去重元素后的数组
+     */
+    static Array unique(Value v, Boolean sorted = false);
+
+    /*! @brief 将一个或者多个数组的值合并成一个值唯一的数组
+
+     @param ... 指定一个或者多个用于合并的数组
+     @return 返回合并的结果
+     */
+    static Array union(...);
+
+    /*! @brief 返回一个包含 arr 数组中排除一个或者多个数组元素的交集
+
+     @param ... 指定一个或者多个用于计算交集的数组
+     @return 返回计算交集的结果
+     */
+    static Array intersection(...);
+
+    /*! @brief 返回一个包含 arr 数组中排除一个或者多个元素后的数组
+
+     @param arr 指定需要排除的数组
+     @param ... 指定一个或者多个用于排除的元素
+     @return 返回排除的结果
+     */
+    static Array without(Array arr, ...);
+
+    /*! @brief 返回一个包含 arr 数组中排除 without 数组元素之后的数组
+
+     @param arr 指定需要排除的数组
+     @param ... 指定用于排除的一个或者多个数组
+     @return 返回排除的结果
+     */
+    static Array difference(Array arr, ...);
 
     /*! @brief 数据统计对象，用以构建应用运行时数据收集，参见 Stats 对象。*/
     static Stats new Stats();

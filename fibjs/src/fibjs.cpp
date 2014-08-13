@@ -20,6 +20,7 @@ namespace fibjs
 {
 v8::Isolate *isolate;
 v8::Persistent<v8::Context> s_context;
+v8::Persistent<v8::Context> s_context_test;
 v8::Persistent<v8::Object> s_global;
 obj_ptr<SandBox> s_topSandbox;
 
@@ -36,6 +37,8 @@ void _main(const char *fname)
     v8::Isolate::Scope isolate_scope(isolate);
 
     v8::HandleScope handle_scope(isolate);
+
+    s_context_test.Reset(isolate, v8::Context::New(isolate));
 
     v8::Local<v8::Context> _context = v8::Context::New(isolate);
     v8::Context::Scope context_scope(_context);

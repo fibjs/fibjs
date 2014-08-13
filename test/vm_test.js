@@ -38,6 +38,15 @@ describe("vm", function() {
 		assert.equal(100, sbox.require("t2").a);
 	});
 
+	it("module", function() {
+		sbox = new vm.SandBox({
+			assert: assert
+		});
+
+		sbox.addScript("t1.js", "assert.equal(module.exports, exports);");
+		sbox.addScript("t2.js", "assert.equal(module.require, require);");
+	});
+
 	it("callback", function() {
 		var b = 200;
 		var o = {
@@ -136,7 +145,7 @@ describe("vm", function() {
 		assert.equal(no1, os.memoryUsage().nativeObjects);
 	});
 
-	it("Garbage Collection ERROR!!!", function() {
+	it("Garbage Collection 1", function() {
 		GC();
 		var no1 = os.memoryUsage().nativeObjects;
 
@@ -144,6 +153,18 @@ describe("vm", function() {
 			b: new vm.SandBox({}).addScript('b.js', "exports.a = new Buffer()")
 		};
 		a = undefined;
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
+
+	it("Garbage Collection 2", function() {
+		GC();
+		var no1 = os.memoryUsage().nativeObjects;
+
+		new vm.SandBox({
+			rpc: require('rpc')
+		}).addScript('server.js', 'exports.a = require("rpc").json(require)');
 
 		GC();
 		assert.equal(no1, os.memoryUsage().nativeObjects);

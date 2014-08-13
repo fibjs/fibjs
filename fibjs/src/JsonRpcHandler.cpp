@@ -5,17 +5,31 @@
  *      Author: lion
  */
 
-#include "JsonRpcHandler.h"
+#include "ifs/rpc.h"
 #include "ifs/mq.h"
 #include "ifs/encoding.h"
 #include "ifs/HttpRequest.h"
+#include "ifs/console.h"
+
+#include "JsonRpcHandler.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "JSHandler.h"
-#include "ifs/console.h"
 
 namespace fibjs
 {
+
+result_t rpc_base::json(v8::Local<v8::Value> hdlr,
+                        obj_ptr<Handler_base> &retVal)
+{
+    obj_ptr<Handler_base> hdlr1;
+    result_t hr = JSHandler::New(hdlr, hdlr1);
+    if (hr < 0)
+        return hr;
+
+    retVal = new JsonRpcHandler(hdlr1);
+    return 0;
+}
 
 result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                 exlib::AsyncEvent *ac)
@@ -111,9 +125,11 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             params->_indexed_setter(i, jsparams->Get(i));
     }
 
+    obj_ptr<Handler_base> hdlr = Handler_base::getInstance(
+                                     wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate, "handler")));
     obj_ptr<Handler_base> hdlr1;
 
-    hr = JSHandler::js_invoke(m_hdlr, v, hdlr1, NULL);
+    hr = JSHandler::js_invoke(hdlr, v, hdlr1, NULL);
     if (hr >= 0 && hr != CALL_RETURN_NULL)
         hr = mq_base::ac_invoke(hdlr1, v);
 

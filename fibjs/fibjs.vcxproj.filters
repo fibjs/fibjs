@@ -243,9 +243,6 @@
     <ClCompile Include="src\Routing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\rpc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Runtime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

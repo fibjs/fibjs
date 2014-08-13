@@ -104,7 +104,6 @@
     <ClCompile Include="src\RedisSortedSet.cpp" />
     <ClCompile Include="src\Regex.cpp" />
     <ClCompile Include="src\Routing.cpp" />
-    <ClCompile Include="src\rpc.cpp" />
     <ClCompile Include="src\Runtime.cpp" />
     <ClCompile Include="src\SandBox.cpp" />
     <ClCompile Include="src\SandBox_repl.cpp" />

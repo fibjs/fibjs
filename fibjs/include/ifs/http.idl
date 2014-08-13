@@ -19,12 +19,13 @@ class http : module
 
     /*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
      @param root 文件根路径
+     @param mimes 扩展 mime 设置
      @return 返回一个静态文件处理器用于处理 http 消息
 
      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
      从而避免重复压缩带来服务器负载。
      */
-    static Handler fileHandler(String root);
+    static Handler fileHandler(String root, Object mimes = {});
 
     /*! @brief 发送 http 请求到指定的服务器，并返回结果
      @param host 指定服务器的域名或地址

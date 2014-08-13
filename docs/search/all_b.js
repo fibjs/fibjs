@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['last',['last',['../d8/d61/classutil.html#adabb887de98cc0bd54035af02452225b',1,'util::last(Value v)'],['../d8/d61/classutil.html#a764290a833d1fbfdb3616374f54be720',1,'util::last(Value v, Integer n)']]],
   ['lastindex',['lastIndex',['../d8/d28/classRegex.html#a7a36b53fcaef538a5c81c8569c508fdf',1,'Regex']]],
   ['least',['least',['../dd/d7a/classExpect.html#a80a82dccaf29e7dcb10f1f2347b1c550',1,'Expect']]],
   ['left',['LEFT',['../d5/d5d/classgd.html#a4e70973abe19fc25232aa82e4b0c38c8',1,'gd']]],

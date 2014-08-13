@@ -19,12 +19,6 @@ class JSHandler: public Handler_base
     FIBER_FREE();
 
 public:
-    ~JSHandler()
-    {
-        m_handler.Reset();
-    }
-
-public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                             exlib::AsyncEvent *ac);
@@ -43,7 +37,7 @@ public:
             return 0;
 
         obj_ptr<JSHandler> r = new JSHandler();
-        r->m_handler.Reset(isolate, hdlr);
+        r->wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), hdlr);
 
         retVal = r;
         return 0;
@@ -52,9 +46,6 @@ public:
 public:
     static result_t js_invoke(Handler_base *hdlr, object_base *v,
                               obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac);
-
-private:
-    v8::Persistent<v8::Value> m_handler;
 };
 
 } /* namespace fibjs */

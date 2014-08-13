@@ -23,5 +23,6 @@ var searchData=
   ['expire',['expire',['../db/d15/classRedis.html#a041bc9f7cbd43dfa57f1718ead0555d1',1,'Redis']]],
   ['exportder',['exportDer',['../d0/d82/classPKey.html#a27bde6463e786c7a89e880df773550a4',1,'PKey::exportDer()'],['../d4/d6e/classX509Req.html#abee2b45b8e74584de7ff2c0aeb461f33',1,'X509Req::exportDer()']]],
   ['exportpem',['exportPem',['../d0/d82/classPKey.html#a5444bdb6ccb0ba131996414082c6bbcf',1,'PKey::exportPem()'],['../d4/d6e/classX509Req.html#a04beec98fd58cc43f14ecfaac4535226',1,'X509Req::exportPem()']]],
+  ['extend',['extend',['../d8/d61/classutil.html#a7e6ad69b1143fc3a406c8a74d9bac73e',1,'util']]],
   ['extname',['extname',['../dc/d8a/classpath.html#aea5f6966a2f57a23cb34dd2700f8ffe5',1,'path']]]
 ];
