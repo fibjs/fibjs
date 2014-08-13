@@ -14,3 +14,5 @@ describe("uuid", function() {
 		assert.equal(id.toString(), id2.toString());
 	});
 });
+
+//test.run(console.DEBUG);
