@@ -3,7 +3,7 @@
 <area shape="rect" id="node3" href="$d6/d2e/classCipher.html" title="对称加密算法对象 " alt="" coords="160,493,282,673"/>
 <area shape="rect" id="node4" href="$d6/d91/classDbConnection.html" title="数据库连接对象，用于建立和维护一个数据库连接会话。 " alt="" coords="307,507,413,660"/>
 <area shape="rect" id="node7" href="$d2/d87/classDBRow.html" title="数据库记录对象 " alt="" coords="436,540,561,627"/>
-<area shape="rect" id="node8" href="$dd/d8f/classDigest.html" title="信息摘要对象 " alt="" coords="585,527,668,640"/>
+<area shape="rect" id="node8" href="$dd/d8f/classDigest.html" title="信息摘要对象 " alt="" coords="585,533,668,633"/>
 <area shape="rect" id="node9" href="$dd/d7a/classExpect.html" title="断言期望对象 " alt="" coords="692,307,806,860"/>
 <area shape="rect" id="node10" href="$d1/d42/classFiber.html" title="纤程操作对象，此对象不可直接创建 " alt="" coords="830,547,895,620"/>
 <area shape="rect" id="node11" href="$d9/de8/classGridFS.html" title="MongoDB GridFS 分布式文件系统访问对象 " alt="" coords="919,513,1005,653"/>

@@ -148,21 +148,20 @@
 <!-- Node8 -->
 <g id="node8" class="node"><title>Node8</title>
 <g id="a_node8"><a xlink:href="../../dd/d8f/classDigest.html" target="_top" xlink:title="信息摘要对象 ">
-<polygon fill="white" stroke="black" points="434.778,-371.5 434.778,-455.5 496.643,-455.5 496.643,-371.5 434.778,-371.5"/>
-<text text-anchor="middle" x="465.71" y="-443.5" font-family="Helvetica,sans-Serif" font-size="10.00">Digest</text>
-<polyline fill="none" stroke="black" points="434.778,-437.5 496.643,-437.5 "/>
-<text text-anchor="start" x="442.778" y="-425.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ size</text>
-<polyline fill="none" stroke="black" points="434.778,-419.5 496.643,-419.5 "/>
-<text text-anchor="start" x="442.778" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ update()</text>
-<text text-anchor="start" x="442.778" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ update()</text>
-<text text-anchor="start" x="442.778" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ digest()</text>
-<text text-anchor="start" x="442.778" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ digest()</text>
+<polygon fill="white" stroke="black" points="434.778,-376.5 434.778,-450.5 496.643,-450.5 496.643,-376.5 434.778,-376.5"/>
+<text text-anchor="middle" x="465.71" y="-438.5" font-family="Helvetica,sans-Serif" font-size="10.00">Digest</text>
+<polyline fill="none" stroke="black" points="434.778,-432.5 496.643,-432.5 "/>
+<text text-anchor="start" x="442.778" y="-420.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ size</text>
+<polyline fill="none" stroke="black" points="434.778,-414.5 496.643,-414.5 "/>
+<text text-anchor="start" x="442.778" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ update()</text>
+<text text-anchor="start" x="442.778" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ digest()</text>
+<text text-anchor="start" x="442.778" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ digest()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node8 -->
 <g id="edge7" class="edge"><title>Node1&#45;&gt;Node8</title>
-<path fill="none" stroke="midnightblue" d="M2304.07,-803.24C2031.66,-801.421 574.103,-788.771 505.71,-726 430.794,-657.241 443.804,-523.342 456.389,-455.707"/>
+<path fill="none" stroke="midnightblue" d="M2304.07,-803.24C2031.66,-801.421 574.103,-788.771 505.71,-726 428.886,-655.49 444.523,-516.479 457.349,-450.67"/>
 <polygon fill="none" stroke="midnightblue" points="2304.32,-806.741 2314.35,-803.307 2304.37,-799.742 2304.32,-806.741"/>
 </g>
 <!-- Node9 -->

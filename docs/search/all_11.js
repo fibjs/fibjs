@@ -61,7 +61,7 @@ var searchData=
   ['rgb',['rgb',['../d5/d5d/classgd.html#a0706099b78bbf292b7d7898acc0b7aa2',1,'gd']]],
   ['rgba',['rgba',['../d5/d5d/classgd.html#ad330769672a80a55bbca412dd909358a',1,'gd']]],
   ['right',['RIGHT',['../d5/d5d/classgd.html#ad38a3f38117a471e8075602e1427a573',1,'gd']]],
-  ['ripemd160',['RIPEMD160',['../d5/df6/classhash.html#a85ec8a916512172c1d29e659acde0c20',1,'hash::RIPEMD160()'],['../d5/df6/classhash.html#a71a420a73d5a44d8d819bf3583cf58f2',1,'hash::ripemd160(Buffer data)'],['../d5/df6/classhash.html#a6e13bf7672c863c56dccefaaf0dfb41a',1,'hash::ripemd160(String text=&quot;&quot;)']]],
+  ['ripemd160',['RIPEMD160',['../d5/df6/classhash.html#a85ec8a916512172c1d29e659acde0c20',1,'hash::RIPEMD160()'],['../d5/df6/classhash.html#a71a420a73d5a44d8d819bf3583cf58f2',1,'hash::ripemd160(Buffer data)']]],
   ['rmdir',['rmdir',['../dc/d2f/classfs.html#ae63300a92680e28c3b2bd55046120049',1,'fs']]],
   ['rollback',['rollback',['../d6/d91/classDbConnection.html#ab4f47bec17ba6b3799c58ea8d0698b15',1,'DbConnection']]],
   ['rotate',['rotate',['../d8/d00/classImage.html#a785c849f6b76c9672502577c1c0c6e24',1,'Image']]],
