@@ -261,8 +261,15 @@ function parserIDL(fname) {
 		var txt = [];
 		var bRef = false;
 
+		txt.push("/***************************************************************************");
+		txt.push(" *                                                                         *");
+		txt.push(" *   This file was automatically generated using idlc.js                   *");
+		txt.push(" *   PLEASE DO NOT EDIT!!!!                                                *");
+		txt.push(" *                                                                         *");
+		txt.push(" ***************************************************************************/\n");
+
 		txt
-			.push("/***************************************************************************\n" + " *   Copyright (C) 2012 by Leo Hoo                                         *\n" + " *   lion@9465.net                                                         *\n" + " *                                                                         *\n" + " ***************************************************************************/\n\n" + "#ifndef _" + ns + "_base_H_\n" + "#define _" + ns + "_base_H_\n\n" + "/**\n" + " @author Leo Hoo <lion@9465.net>\n" + " */\n\n" + "#include \"../object.h\"");
+			.push("#ifndef _" + ns + "_base_H_\n" + "#define _" + ns + "_base_H_\n\n" + "/**\n" + " @author Leo Hoo <lion@9465.net>\n" + " */\n\n" + "#include \"../object.h\"");
 
 		if (baseClass !== "object")
 			txt.push("#include \"" + baseClass + ".h\"");
