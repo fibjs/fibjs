@@ -18,17 +18,14 @@ class JsonRpcHandler: public Handler_base
     FIBER_FREE();
 
 public:
-    JsonRpcHandler(Handler_base *hdlr) :
-        m_hdlr(hdlr)
+    JsonRpcHandler(Handler_base *hdlr)
     {
+        wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), hdlr->wrap());
     }
 
 public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac);
-
-private:
-    obj_ptr<Handler_base> m_hdlr;
 };
 
 } /* namespace fibjs */
