@@ -453,32 +453,28 @@
 <!-- Node18 -->
 <g id="node18" class="node"><title>Node18</title>
 <g id="a_node18"><a xlink:href="../../d8/d3e/classLevelDB.html" target="_top" xlink:title="LevelDB 数据库对象 ">
-<polygon fill="white" stroke="black" points="1496.17,-316.5 1496.17,-510.5 1565.25,-510.5 1565.25,-316.5 1496.17,-316.5"/>
-<text text-anchor="middle" x="1530.71" y="-498.5" font-family="Helvetica,sans-Serif" font-size="10.00">LevelDB</text>
-<polyline fill="none" stroke="black" points="1496.17,-492.5 1565.25,-492.5 "/>
-<text text-anchor="middle" x="1530.71" y="-480.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="1496.17,-474.5 1565.25,-474.5 "/>
-<text text-anchor="start" x="1504.17" y="-462.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
-<text text-anchor="start" x="1504.17" y="-452.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
-<text text-anchor="start" x="1504.17" y="-442.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<polygon fill="white" stroke="black" points="1496.17,-336.5 1496.17,-490.5 1565.25,-490.5 1565.25,-336.5 1496.17,-336.5"/>
+<text text-anchor="middle" x="1530.71" y="-478.5" font-family="Helvetica,sans-Serif" font-size="10.00">LevelDB</text>
+<polyline fill="none" stroke="black" points="1496.17,-472.5 1565.25,-472.5 "/>
+<text text-anchor="middle" x="1530.71" y="-460.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="1496.17,-454.5 1565.25,-454.5 "/>
+<text text-anchor="start" x="1504.17" y="-442.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ has()</text>
 <text text-anchor="start" x="1504.17" y="-432.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
 <text text-anchor="start" x="1504.17" y="-422.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
 <text text-anchor="start" x="1504.17" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
-<text text-anchor="start" x="1504.17" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ put()</text>
+<text text-anchor="start" x="1504.17" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
 <text text-anchor="start" x="1504.17" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="1504.17" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="1504.17" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="1504.17" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forEach()</text>
-<text text-anchor="start" x="1504.17" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ between()</text>
-<text text-anchor="start" x="1504.17" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ begin()</text>
-<text text-anchor="start" x="1504.17" y="-332.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ commit()</text>
-<text text-anchor="start" x="1504.17" y="-322.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
+<text text-anchor="start" x="1504.17" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forEach()</text>
+<text text-anchor="start" x="1504.17" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ between()</text>
+<text text-anchor="start" x="1504.17" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ begin()</text>
+<text text-anchor="start" x="1504.17" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ commit()</text>
+<text text-anchor="start" x="1504.17" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node18 -->
 <g id="edge17" class="edge"><title>Node1&#45;&gt;Node18</title>
-<path fill="none" stroke="midnightblue" d="M2304.05,-802.226C2148.33,-797.266 1626.6,-776.945 1573.71,-726 1517.29,-671.65 1510.61,-580.354 1515.64,-510.61"/>
+<path fill="none" stroke="midnightblue" d="M2304.05,-802.226C2148.33,-797.266 1626.6,-776.945 1573.71,-726 1511.69,-666.253 1509.77,-561.858 1517.44,-490.527"/>
 <polygon fill="none" stroke="midnightblue" points="2304.09,-805.728 2314.2,-802.543 2304.31,-798.732 2304.09,-805.728"/>
 </g>
 <!-- Node19 -->

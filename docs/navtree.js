@@ -52,9 +52,9 @@ var NAVTREEINDEX =
 "d2/dee/classBufferedStream.html#ab2c46249f028cc1dfdade4fe74ccc8de",
 "d5/df6/classhash.html#a0e3112fca405da681a0d034e6dba4016",
 "d7/d43/classChain.html",
-"d8/d4d/classSslServer.html#aefe3d9c5593a3cd26eef5c43312cae39",
-"dc/d81/classStat.html#ab6d9f86562712b75c8361cef6b4c747a",
-"de/d1c/classassert.html#af2e1f574fd2ccb3c2c36717d14e33f67"
+"d8/d61/classutil.html#a0e62c6dffcb92af6c4d397f66d49aeda",
+"dc/d81/classStat.html#ad66be13eb5b7c5f560fd8511565138c4",
+"de/d2a/classrpc.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

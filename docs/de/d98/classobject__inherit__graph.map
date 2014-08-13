@@ -13,7 +13,7 @@
 <area shape="rect" id="node15" href="$d5/d3b/classHttpsServer.html" title="https 服务器对象 " alt="" coords="1450,453,1594,713"/>
 <area shape="rect" id="node16" href="$d0/d3c/classHttpUploadData.html" title="包含 multipart 的一个条目数据 " alt="" coords="1618,527,1800,640"/>
 <area shape="rect" id="node17" href="$d8/d00/classImage.html" title="图像处理对象，用以对图像进行转换，绘制，存储等操作 " alt="" coords="1823,167,1976,1000"/>
-<area shape="rect" id="node18" href="$d8/d3e/classLevelDB.html" title="LevelDB 数据库对象 " alt="" coords="2000,453,2092,713"/>
+<area shape="rect" id="node18" href="$d8/d3e/classLevelDB.html" title="LevelDB 数据库对象 " alt="" coords="2000,480,2092,687"/>
 <area shape="rect" id="node19" href="$d6/da9/classList.html" title="Variant 数组对象，一般用以返回一组 Variant 数据 " alt="" coords="2116,467,2206,700"/>
 <area shape="rect" id="node20" href="$d6/d83/classLock.html" title="纤程锁对象 " alt="" coords="2230,533,2316,633"/>
 <area shape="rect" id="node21" href="$de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 " alt="" coords="2339,487,2439,680"/>
