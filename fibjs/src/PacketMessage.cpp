@@ -58,6 +58,11 @@ result_t PacketMessage::set_body(SeekableStream_base *newVal)
     return m_message.set_body(newVal);
 }
 
+result_t PacketMessage::write(Buffer_base *data, exlib::AsyncEvent *ac)
+{
+    return m_message.write(data, ac);
+}
+
 result_t PacketMessage::get_length(int64_t &retVal)
 {
     return m_message.get_length(retVal);

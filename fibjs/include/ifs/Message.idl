@@ -24,6 +24,11 @@ class Message: object
     /*! @brief 包含消息数据部分的流对象 */
     SeekableStream body;
 
+    /*! @brief 将给定的数据写入 body
+     @param data 给定要写入的数据
+     */
+    write(Buffer data) async;
+
     /*! @brief 消息数据部分的长度 */
     readonly Long length;
 

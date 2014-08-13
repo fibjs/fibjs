@@ -78,6 +78,14 @@ result_t Message::_msg::set_body(SeekableStream_base *newVal)
     return 0;
 }
 
+result_t Message::_msg::write(Buffer_base *data, exlib::AsyncEvent *ac)
+{
+    if (m_body == NULL)
+        m_body = new MemoryStream();
+
+    return m_body->write(data, ac);
+}
+
 result_t Message::_msg::get_length(int64_t &retVal)
 {
     if (m_body == NULL)
@@ -132,6 +140,11 @@ result_t Message::get_body(obj_ptr<SeekableStream_base> &retVal)
 result_t Message::set_body(SeekableStream_base *newVal)
 {
     return m_message.set_body(newVal);
+}
+
+result_t Message::write(Buffer_base *data, exlib::AsyncEvent *ac)
+{
+    return m_message.write(data, ac);
 }
 
 result_t Message::get_length(int64_t &retVal)
