@@ -579,27 +579,28 @@
 <!-- Node23 -->
 <g id="node23" class="node"><title>Node23</title>
 <g id="a_node23"><a xlink:href="../../d6/d28/classMessage.html" target="_top" xlink:title="基础消息对象 ">
-<polygon fill="white" stroke="red" points="1954.4,-341.5 1954.4,-485.5 2029.02,-485.5 2029.02,-341.5 1954.4,-341.5"/>
-<text text-anchor="middle" x="1991.71" y="-473.5" font-family="Helvetica,sans-Serif" font-size="10.00">Message</text>
-<polyline fill="none" stroke="red" points="1954.4,-467.5 2029.02,-467.5 "/>
-<text text-anchor="start" x="1962.4" y="-455.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ value</text>
-<text text-anchor="start" x="1962.4" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ params</text>
-<text text-anchor="start" x="1962.4" y="-435.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ result</text>
-<text text-anchor="start" x="1962.4" y="-425.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ body</text>
-<text text-anchor="start" x="1962.4" y="-415.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ length</text>
-<text text-anchor="start" x="1962.4" y="-405.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stream</text>
-<text text-anchor="start" x="1962.4" y="-395.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ response</text>
-<polyline fill="none" stroke="red" points="1954.4,-389.5 2029.02,-389.5 "/>
-<text text-anchor="start" x="1962.4" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Message()</text>
-<text text-anchor="start" x="1962.4" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ clear()</text>
-<text text-anchor="start" x="1962.4" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sendTo()</text>
-<text text-anchor="start" x="1962.4" y="-347.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readFrom()</text>
+<polygon fill="white" stroke="red" points="1954.4,-336.5 1954.4,-490.5 2029.02,-490.5 2029.02,-336.5 1954.4,-336.5"/>
+<text text-anchor="middle" x="1991.71" y="-478.5" font-family="Helvetica,sans-Serif" font-size="10.00">Message</text>
+<polyline fill="none" stroke="red" points="1954.4,-472.5 2029.02,-472.5 "/>
+<text text-anchor="start" x="1962.4" y="-460.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ value</text>
+<text text-anchor="start" x="1962.4" y="-450.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ params</text>
+<text text-anchor="start" x="1962.4" y="-440.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ result</text>
+<text text-anchor="start" x="1962.4" y="-430.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ body</text>
+<text text-anchor="start" x="1962.4" y="-420.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ length</text>
+<text text-anchor="start" x="1962.4" y="-410.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stream</text>
+<text text-anchor="start" x="1962.4" y="-400.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ response</text>
+<polyline fill="none" stroke="red" points="1954.4,-394.5 2029.02,-394.5 "/>
+<text text-anchor="start" x="1962.4" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Message()</text>
+<text text-anchor="start" x="1962.4" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ write()</text>
+<text text-anchor="start" x="1962.4" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ clear()</text>
+<text text-anchor="start" x="1962.4" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sendTo()</text>
+<text text-anchor="start" x="1962.4" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readFrom()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node23 -->
 <g id="edge22" class="edge"><title>Node1&#45;&gt;Node23</title>
-<path fill="none" stroke="midnightblue" d="M2304.09,-798.503C2227.62,-788.819 2074.09,-764.954 2038.71,-726 1979.87,-661.226 1976.22,-555.74 1981.76,-485.734"/>
+<path fill="none" stroke="midnightblue" d="M2304.09,-798.503C2227.62,-788.819 2074.09,-764.954 2038.71,-726 1981.25,-662.744 1976.42,-560.662 1981.39,-490.714"/>
 <polygon fill="none" stroke="midnightblue" points="2304,-802.018 2314.35,-799.776 2304.86,-795.072 2304,-802.018"/>
 </g>
 <!-- Node24 -->
