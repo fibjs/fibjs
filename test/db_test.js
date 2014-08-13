@@ -122,7 +122,7 @@ describe("db", function() {
 		});
 
 		it('put/get', function() {
-			var b = new Buffer("bbbbb");
+			var b = "bbbbb";
 			var ldb = db.openLevelDB("testdb");
 			ldb.put("test", b);
 			assert.equal(ldb.get("test").toString(), "bbbbb");
@@ -131,20 +131,20 @@ describe("db", function() {
 		});
 
 		it('binary Key', function() {
-			var b = new Buffer("bbbbb1");
+			var b = "bbbbb1";
 			var ldb = db.openLevelDB("testdb");
-			ldb.put(new Buffer("test1"), b);
-			assert.equal(ldb.get(new Buffer("test1")).toString(), "bbbbb1");
+			ldb.put("test1", b);
+			assert.equal(ldb.get("test1").toString(), "bbbbb1");
 			ldb.close();
 			clear_db();
 		});
 
 		it('batch put', function() {
 			var data = {
-				"aaa": new Buffer("aaa value"),
-				"bbb": new Buffer("bbb value"),
-				"ccc": new Buffer("ccc value"),
-				"ddd": new Buffer("ddd value")
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ccc": "ccc value",
+				"ddd": "ddd value"
 			};
 
 			var ldb = db.openLevelDB("testdb");
@@ -158,7 +158,7 @@ describe("db", function() {
 		});
 
 		it('remove/has', function() {
-			var b = new Buffer("bbbbb");
+			var b = "bbbbb";
 			var ldb = db.openLevelDB("testdb");
 			assert.isNull(ldb.get("not_exists"));
 			assert.isFalse(ldb.has("not_exists"));
@@ -168,8 +168,8 @@ describe("db", function() {
 			assert.isFalse(ldb.has("not_exists"));
 
 			ldb.put("not_exists", b);
-			assert.isTrue(ldb.has(new Buffer("not_exists")));
-			ldb.remove(new Buffer("not_exists"));
+			assert.isTrue(ldb.has("not_exists"));
+			ldb.remove("not_exists");
 			assert.isFalse(ldb.has("not_exists"));
 			ldb.close();
 			clear_db();
@@ -177,10 +177,10 @@ describe("db", function() {
 
 		it('batch remove', function() {
 			var data = {
-				"aaa": new Buffer("aaa value"),
-				"bbb": new Buffer("bbb value"),
-				"ccc": new Buffer("ccc value"),
-				"ddd": new Buffer("ddd value")
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ccc": "ccc value",
+				"ddd": "ddd value"
 			};
 
 			var ldb = db.openLevelDB("testdb");
@@ -198,8 +198,8 @@ describe("db", function() {
 		});
 
 		it('begin/commit', function() {
-			var b = new Buffer("bbbbb");
-			var c = new Buffer("ccccc");
+			var b = "bbbbb";
+			var c = "ccccc";
 			var ldb = db.openLevelDB("testdb");
 
 			ldb.put("test", b);
@@ -219,8 +219,8 @@ describe("db", function() {
 		});
 
 		it('begin/close', function() {
-			var b = new Buffer("bbbbb");
-			var c = new Buffer("ccccc");
+			var b = "bbbbb";
+			var c = "ccccc";
 			var ldb = db.openLevelDB("testdb");
 
 			ldb.put("test", b);
@@ -241,10 +241,10 @@ describe("db", function() {
 
 		it('forEach', function() {
 			var data = {
-				"ccc": new Buffer("ccc value"),
-				"aaa": new Buffer("aaa value"),
-				"bbb": new Buffer("bbb value"),
-				"ddd": new Buffer("ddd value")
+				"ccc": "ccc value",
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ddd": "ddd value"
 			};
 
 			var ldb = db.openLevelDB("testdb");
@@ -271,15 +271,15 @@ describe("db", function() {
 
 		it('between', function() {
 			var data = {
-				"ccc": new Buffer("ccc value"),
-				"aaa": new Buffer("aaa value"),
-				"bbb": new Buffer("bbb value"),
-				"ddd": new Buffer("ddd value")
+				"ccc": "ccc value",
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ddd": "ddd value"
 			};
 
 			var data1 = {
-				"ccc": new Buffer("ccc value"),
-				"bbb": new Buffer("bbb value")
+				"ccc": "ccc value",
+				"bbb": "bbb value"
 			};
 
 			var ldb = db.openLevelDB("testdb");
@@ -299,15 +299,15 @@ describe("db", function() {
 
 		it('break', function() {
 			var data = {
-				"ccc": new Buffer("ccc value"),
-				"aaa": new Buffer("aaa value"),
-				"bbb": new Buffer("bbb value"),
-				"ddd": new Buffer("ddd value")
+				"ccc": "ccc value",
+				"aaa": "aaa value",
+				"bbb": "bbb value",
+				"ddd": "ddd value"
 			};
 
 			var data1 = {
-				"aaa": new Buffer("aaa value"),
-				"bbb": new Buffer("bbb value")
+				"aaa": "aaa value",
+				"bbb": "bbb value"
 			};
 
 			var ldb = db.openLevelDB("testdb");
