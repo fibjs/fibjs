@@ -14,12 +14,12 @@
 namespace exlib
 {
 
-void *_CompareAndSwap(void *volatile *Destination, void *Exchange, void *Comparand)
+void *_CompareAndSwap(void **Destination, void *Exchange, void *Comparand)
 {
     return InterlockedCompareExchangePointer(Destination, Exchange, Comparand);
 }
 
-int32_t CompareAndSwap(int32_t volatile *Destination, int32_t old_value, int32_t new_value)
+int32_t CompareAndSwap(int32_t *Destination, int32_t old_value, int32_t new_value)
 {
     return InterlockedCompareExchange((LONG *)Destination, new_value, old_value);
 }
@@ -42,6 +42,11 @@ int32_t atom_dec(int32_t *dest)
 int32_t atom_xchg(int32_t *ptr, int32_t new_value)
 {
     return InterlockedExchange((LONG *)ptr, new_value);
+}
+
+void *_atom_xchg(void **ptr, void *new_value)
+{
+    return InterlockedExchangePointer(ptr, new_value);
 }
 
 }

@@ -221,7 +221,7 @@ result_t Redis::command(const char *cmd, const v8::FunctionCallbackInfo<v8::Valu
     return doCommand(cmd, a, retVal);
 }
 
-result_t Redis::set(const char *key, const char *value, int64_t ttl)
+result_t Redis::set(Buffer_base *key, Buffer_base *value, int64_t ttl)
 {
     Variant v;
 
@@ -231,7 +231,7 @@ result_t Redis::set(const char *key, const char *value, int64_t ttl)
         return doCommand("SET", key, value, v);
 }
 
-result_t Redis::setNX(const char *key, const char *value, int64_t ttl)
+result_t Redis::setNX(Buffer_base *key, Buffer_base *value, int64_t ttl)
 {
     Variant v;
 
@@ -241,7 +241,7 @@ result_t Redis::setNX(const char *key, const char *value, int64_t ttl)
         return doCommand("SET", key, value, "NX", v);
 }
 
-result_t Redis::setXX(const char *key, const char *value, int64_t ttl)
+result_t Redis::setXX(Buffer_base *key, Buffer_base *value, int64_t ttl)
 {
     Variant v;
 
@@ -277,32 +277,32 @@ result_t Redis::msetNX(const v8::FunctionCallbackInfo<v8::Value> &args)
     return doCommand("MSETNX", a, v);
 }
 
-result_t Redis::append(const char *key, const char *value, int32_t &retVal)
+result_t Redis::append(Buffer_base *key, Buffer_base *value, int32_t &retVal)
 {
     return doCommand("APPEND", key, value, retVal);
 }
 
-result_t Redis::setRange(const char *key, int32_t offset, const char *value, int32_t &retVal)
+result_t Redis::setRange(Buffer_base *key, int32_t offset, Buffer_base *value, int32_t &retVal)
 {
     return doCommand("SETRANGE", key, offset, value, retVal);
 }
 
-result_t Redis::getRange(const char *key, int32_t start, int32_t end, std::string &retVal)
+result_t Redis::getRange(Buffer_base *key, int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
 {
     return doCommand("GETRANGE", key, start, end, retVal);
 }
 
-result_t Redis::strlen(const char *key, int32_t &retVal)
+result_t Redis::strlen(Buffer_base *key, int32_t &retVal)
 {
     return doCommand("STRLEN", key, retVal);
 }
 
-result_t Redis::bitcount(const char *key, int32_t start, int32_t end, int32_t &retVal)
+result_t Redis::bitcount(Buffer_base *key, int32_t start, int32_t end, int32_t &retVal)
 {
     return doCommand("BITCOUNT", key, start, end, retVal);
 }
 
-result_t Redis::get(const char *key, std::string &retVal)
+result_t Redis::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal)
 {
     return doCommand("GET", key, retVal);
 }
@@ -318,12 +318,12 @@ result_t Redis::mget(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<Li
     return doCommand("MGET", a, retVal);
 }
 
-result_t Redis::getset(const char *key, const char *value, std::string &retVal)
+result_t Redis::getset(Buffer_base *key, Buffer_base *value, obj_ptr<Buffer_base> &retVal)
 {
     return doCommand("GETSET", key, value, retVal);
 }
 
-result_t Redis::decr(const char *key, int64_t num, int64_t &retVal)
+result_t Redis::decr(Buffer_base *key, int64_t num, int64_t &retVal)
 {
     if (num == 1)
         return doCommand("DECR", key, retVal);
@@ -331,7 +331,7 @@ result_t Redis::decr(const char *key, int64_t num, int64_t &retVal)
         return doCommand("DECRBY", key, num, retVal);
 }
 
-result_t Redis::incr(const char *key, int64_t num, int64_t &retVal)
+result_t Redis::incr(Buffer_base *key, int64_t num, int64_t &retVal)
 {
     if (num == 1)
         return doCommand("INCR", key, retVal);
@@ -339,22 +339,22 @@ result_t Redis::incr(const char *key, int64_t num, int64_t &retVal)
         return doCommand("INCRBY", key, num, retVal);
 }
 
-result_t Redis::setBit(const char *key, int32_t offset, int32_t value, int32_t &retVal)
+result_t Redis::setBit(Buffer_base *key, int32_t offset, int32_t value, int32_t &retVal)
 {
     return doCommand("SETBIT", key, offset, value, retVal);
 }
 
-result_t Redis::getBit(const char *key, int32_t offset, int32_t &retVal)
+result_t Redis::getBit(Buffer_base *key, int32_t offset, int32_t &retVal)
 {
     return doCommand("GETBIT", key, offset, retVal);
 }
 
-result_t Redis::exists(const char *key, bool &retVal)
+result_t Redis::exists(Buffer_base *key, bool &retVal)
 {
     return doCommand("EXISTS", key, retVal);
 }
 
-result_t Redis::type(const char *key, std::string &retVal)
+result_t Redis::type(Buffer_base *key, std::string &retVal)
 {
     return doCommand("TYPE", key, retVal);
 }
@@ -375,28 +375,28 @@ result_t Redis::del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &re
     return doCommand("DEL", a, retVal);
 }
 
-result_t Redis::expire(const char *key, int64_t ttl, bool &retVal)
+result_t Redis::expire(Buffer_base *key, int64_t ttl, bool &retVal)
 {
     return doCommand("PEXPIRE", key, ttl, retVal);
 }
 
-result_t Redis::ttl(const char *key, int64_t &retVal)
+result_t Redis::ttl(Buffer_base *key, int64_t &retVal)
 {
     return doCommand("PTTL", key, retVal);
 }
 
-result_t Redis::persist(const char *key, bool &retVal)
+result_t Redis::persist(Buffer_base *key, bool &retVal)
 {
     return doCommand("PERSIST", key, retVal);
 }
 
-result_t Redis::rename(const char *key, const char *newkey)
+result_t Redis::rename(Buffer_base *key, Buffer_base *newkey)
 {
     Variant v;
     return doCommand("RENAME", key, newkey, v);
 }
 
-result_t Redis::renameNX(const char *key, const char *newkey, bool &retVal)
+result_t Redis::renameNX(Buffer_base *key, Buffer_base *newkey, bool &retVal)
 {
     return doCommand("RENAMENX", key, newkey, retVal);
 }
@@ -425,12 +425,12 @@ result_t Redis::getSortedSet(const char *key, obj_ptr<RedisSortedSet_base> &retV
     return 0;
 }
 
-result_t Redis::dump(const char *key, obj_ptr<Buffer_base> &retVal)
+result_t Redis::dump(Buffer_base *key, obj_ptr<Buffer_base> &retVal)
 {
     return doCommand("DUMP", key, retVal);
 }
 
-result_t Redis::restore(const char *key, Buffer_base *data, int64_t ttl)
+result_t Redis::restore(Buffer_base *key, Buffer_base *data, int64_t ttl)
 {
     std::string strBuf;
     Variant v;

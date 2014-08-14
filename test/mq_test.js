@@ -334,6 +334,18 @@ describe("mq", function() {
 			return aw;
 		}), m);
 		assert.equal(n, 200);
+
+		n = 300;
+		mq.invoke(mq.jsHandler(function(r) {
+			var aw = mq.await();
+
+			assert.equal(n, 300);
+			n = 400;
+			aw.end();
+
+			return aw;
+		}), m);
+		assert.equal(n, 400);
 	});
 
 	it("PacketHandler", function() {

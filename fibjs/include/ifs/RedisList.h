@@ -17,6 +17,7 @@
 namespace fibjs
 {
 
+class Buffer_base;
 class List_base;
 
 class RedisList_base : public object_base
@@ -25,15 +26,15 @@ public:
 	// RedisList_base
 	virtual result_t push(v8::Local<v8::Array> values, int32_t& retVal) = 0;
 	virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
-	virtual result_t pop(std::string& retVal) = 0;
+	virtual result_t pop(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t rpush(v8::Local<v8::Array> values, int32_t& retVal) = 0;
 	virtual result_t rpush(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
-	virtual result_t rpop(std::string& retVal) = 0;
-	virtual result_t set(int32_t index, const char* value) = 0;
-	virtual result_t get(int32_t index, std::string& retVal) = 0;
-	virtual result_t insertBefore(const char* pivot, const char* value, int32_t& retVal) = 0;
-	virtual result_t insertAfter(const char* pivot, const char* value, int32_t& retVal) = 0;
-	virtual result_t remove(int32_t count, const char* value, int32_t& retVal) = 0;
+	virtual result_t rpop(obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t set(int32_t index, Buffer_base* value) = 0;
+	virtual result_t get(int32_t index, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t insertBefore(Buffer_base* pivot, Buffer_base* value, int32_t& retVal) = 0;
+	virtual result_t insertAfter(Buffer_base* pivot, Buffer_base* value, int32_t& retVal) = 0;
+	virtual result_t remove(int32_t count, Buffer_base* value, int32_t& retVal) = 0;
 	virtual result_t trim(int32_t start, int32_t stop) = 0;
 	virtual result_t len(int32_t& retVal) = 0;
 	virtual result_t range(int32_t start, int32_t stop, obj_ptr<List_base>& retVal) = 0;
@@ -57,6 +58,7 @@ public:
 
 }
 
+#include "Buffer.h"
 #include "List.h"
 
 namespace fibjs
@@ -111,7 +113,7 @@ namespace fibjs
 
 	inline void RedisList_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(RedisList_base);
 		METHOD_ENTER(0, 0);
@@ -141,7 +143,7 @@ namespace fibjs
 
 	inline void RedisList_base::s_rpop(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(RedisList_base);
 		METHOD_ENTER(0, 0);
@@ -157,7 +159,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG(int32_t, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->set(v0, v1);
 
@@ -166,7 +168,7 @@ namespace fibjs
 
 	inline void RedisList_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(RedisList_base);
 		METHOD_ENTER(1, 1);
@@ -185,8 +187,8 @@ namespace fibjs
 		METHOD_INSTANCE(RedisList_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->insertBefore(v0, v1, vr);
 
@@ -200,8 +202,8 @@ namespace fibjs
 		METHOD_INSTANCE(RedisList_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->insertAfter(v0, v1, vr);
 
@@ -216,7 +218,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG(int32_t, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->remove(v0, v1, vr);
 

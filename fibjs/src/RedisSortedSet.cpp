@@ -38,12 +38,12 @@ result_t RedisSortedSet::add(const v8::FunctionCallbackInfo<v8::Value> &args, in
     return m_rdb->doCommand("ZADD", m_key, mss, retVal);
 }
 
-result_t RedisSortedSet::score(const char *member, std::string &retVal)
+result_t RedisSortedSet::score(Buffer_base *member, obj_ptr<Buffer_base> &retVal)
 {
     return m_rdb->doCommand("ZSCORE", m_key, member, retVal);
 }
 
-result_t RedisSortedSet::incr(const char *member, int64_t num, std::string &retVal)
+result_t RedisSortedSet::incr(Buffer_base *member, int64_t num, obj_ptr<Buffer_base> &retVal)
 {
     return m_rdb->doCommand("ZINCRBY", m_key, num, member, retVal);
 }

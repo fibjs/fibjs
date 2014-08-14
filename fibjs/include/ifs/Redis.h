@@ -17,54 +17,54 @@
 namespace fibjs
 {
 
+class Buffer_base;
 class List_base;
 class RedisHash_base;
 class RedisList_base;
 class RedisSet_base;
 class RedisSortedSet_base;
-class Buffer_base;
 
 class Redis_base : public object_base
 {
 public:
 	// Redis_base
 	virtual result_t command(const char* cmd, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal) = 0;
-	virtual result_t set(const char* key, const char* value, int64_t ttl) = 0;
-	virtual result_t setNX(const char* key, const char* value, int64_t ttl) = 0;
-	virtual result_t setXX(const char* key, const char* value, int64_t ttl) = 0;
+	virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
+	virtual result_t setNX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
+	virtual result_t setXX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
 	virtual result_t mset(v8::Local<v8::Array> kvs) = 0;
 	virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 	virtual result_t msetNX(v8::Local<v8::Array> kvs) = 0;
 	virtual result_t msetNX(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
-	virtual result_t append(const char* key, const char* value, int32_t& retVal) = 0;
-	virtual result_t setRange(const char* key, int32_t offset, const char* value, int32_t& retVal) = 0;
-	virtual result_t getRange(const char* key, int32_t start, int32_t end, std::string& retVal) = 0;
-	virtual result_t strlen(const char* key, int32_t& retVal) = 0;
-	virtual result_t bitcount(const char* key, int32_t start, int32_t end, int32_t& retVal) = 0;
-	virtual result_t get(const char* key, std::string& retVal) = 0;
+	virtual result_t append(Buffer_base* key, Buffer_base* value, int32_t& retVal) = 0;
+	virtual result_t setRange(Buffer_base* key, int32_t offset, Buffer_base* value, int32_t& retVal) = 0;
+	virtual result_t getRange(Buffer_base* key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t strlen(Buffer_base* key, int32_t& retVal) = 0;
+	virtual result_t bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal) = 0;
+	virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t mget(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
-	virtual result_t getset(const char* key, const char* value, std::string& retVal) = 0;
-	virtual result_t decr(const char* key, int64_t num, int64_t& retVal) = 0;
-	virtual result_t incr(const char* key, int64_t num, int64_t& retVal) = 0;
-	virtual result_t setBit(const char* key, int32_t offset, int32_t value, int32_t& retVal) = 0;
-	virtual result_t getBit(const char* key, int32_t offset, int32_t& retVal) = 0;
-	virtual result_t exists(const char* key, bool& retVal) = 0;
-	virtual result_t type(const char* key, std::string& retVal) = 0;
+	virtual result_t getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t decr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
+	virtual result_t incr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
+	virtual result_t setBit(Buffer_base* key, int32_t offset, int32_t value, int32_t& retVal) = 0;
+	virtual result_t getBit(Buffer_base* key, int32_t offset, int32_t& retVal) = 0;
+	virtual result_t exists(Buffer_base* key, bool& retVal) = 0;
+	virtual result_t type(Buffer_base* key, std::string& retVal) = 0;
 	virtual result_t keys(const char* pattern, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
 	virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
-	virtual result_t expire(const char* key, int64_t ttl, bool& retVal) = 0;
-	virtual result_t ttl(const char* key, int64_t& retVal) = 0;
-	virtual result_t persist(const char* key, bool& retVal) = 0;
-	virtual result_t rename(const char* key, const char* newkey) = 0;
-	virtual result_t renameNX(const char* key, const char* newkey, bool& retVal) = 0;
+	virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal) = 0;
+	virtual result_t ttl(Buffer_base* key, int64_t& retVal) = 0;
+	virtual result_t persist(Buffer_base* key, bool& retVal) = 0;
+	virtual result_t rename(Buffer_base* key, Buffer_base* newkey) = 0;
+	virtual result_t renameNX(Buffer_base* key, Buffer_base* newkey, bool& retVal) = 0;
 	virtual result_t getHash(const char* key, obj_ptr<RedisHash_base>& retVal) = 0;
 	virtual result_t getList(const char* key, obj_ptr<RedisList_base>& retVal) = 0;
 	virtual result_t getSet(const char* key, obj_ptr<RedisSet_base>& retVal) = 0;
 	virtual result_t getSortedSet(const char* key, obj_ptr<RedisSortedSet_base>& retVal) = 0;
-	virtual result_t dump(const char* key, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t restore(const char* key, Buffer_base* data, int64_t ttl) = 0;
+	virtual result_t dump(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t restore(Buffer_base* key, Buffer_base* data, int64_t ttl) = 0;
 	virtual result_t close() = 0;
 
 	DECLARE_CLASSINFO(Redis_base);
@@ -108,12 +108,12 @@ public:
 
 }
 
+#include "Buffer.h"
 #include "List.h"
 #include "RedisHash.h"
 #include "RedisList.h"
 #include "RedisSet.h"
 #include "RedisSortedSet.h"
-#include "Buffer.h"
 
 namespace fibjs
 {
@@ -188,8 +188,8 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 		OPT_ARG(int64_t, 2, 0);
 
 		hr = pInst->set(v0, v1, v2);
@@ -202,8 +202,8 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 		OPT_ARG(int64_t, 2, 0);
 
 		hr = pInst->setNX(v0, v1, v2);
@@ -216,8 +216,8 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 		OPT_ARG(int64_t, 2, 0);
 
 		hr = pInst->setXX(v0, v1, v2);
@@ -264,8 +264,8 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->append(v0, v1, vr);
 
@@ -279,9 +279,9 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 3);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		ARG(int32_t, 1);
-		ARG(arg_string, 2);
+		ARG(obj_ptr<Buffer_base>, 2);
 
 		hr = pInst->setRange(v0, v1, v2, vr);
 
@@ -290,12 +290,12 @@ namespace fibjs
 
 	inline void Redis_base::s_getRange(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 3);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		ARG(int32_t, 1);
 		ARG(int32_t, 2);
 
@@ -311,7 +311,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->strlen(v0, vr);
 
@@ -325,7 +325,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		OPT_ARG(int32_t, 1, 0);
 		OPT_ARG(int32_t, 2, -1);
 
@@ -336,12 +336,12 @@ namespace fibjs
 
 	inline void Redis_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->get(v0, vr);
 
@@ -368,13 +368,13 @@ namespace fibjs
 
 	inline void Redis_base::s_getset(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->getset(v0, v1, vr);
 
@@ -388,7 +388,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		OPT_ARG(int64_t, 1, 1);
 
 		hr = pInst->decr(v0, v1, vr);
@@ -403,7 +403,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		OPT_ARG(int64_t, 1, 1);
 
 		hr = pInst->incr(v0, v1, vr);
@@ -418,7 +418,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 3);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		ARG(int32_t, 1);
 		ARG(int32_t, 2);
 
@@ -434,7 +434,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		ARG(int32_t, 1);
 
 		hr = pInst->getBit(v0, v1, vr);
@@ -449,7 +449,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->exists(v0, vr);
 
@@ -463,7 +463,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->type(v0, vr);
 
@@ -509,7 +509,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		ARG(int64_t, 1);
 
 		hr = pInst->expire(v0, v1, vr);
@@ -524,7 +524,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->ttl(v0, vr);
 
@@ -538,7 +538,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->persist(v0, vr);
 
@@ -550,8 +550,8 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->rename(v0, v1);
 
@@ -565,8 +565,8 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->renameNX(v0, v1, vr);
 
@@ -636,7 +636,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->dump(v0, vr);
 
@@ -648,7 +648,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(3, 2);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		ARG(obj_ptr<Buffer_base>, 1);
 		OPT_ARG(int64_t, 2, 0);
 

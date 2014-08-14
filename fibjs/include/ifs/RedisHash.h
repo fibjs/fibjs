@@ -17,24 +17,25 @@
 namespace fibjs
 {
 
+class Buffer_base;
 class List_base;
 
 class RedisHash_base : public object_base
 {
 public:
 	// RedisHash_base
-	virtual result_t set(const char* field, const char* value) = 0;
-	virtual result_t setNX(const char* field, const char* value) = 0;
+	virtual result_t set(Buffer_base* field, Buffer_base* value) = 0;
+	virtual result_t setNX(Buffer_base* field, Buffer_base* value) = 0;
 	virtual result_t mset(v8::Local<v8::Array> kvs) = 0;
 	virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
-	virtual result_t get(const char* field, std::string& retVal) = 0;
+	virtual result_t get(Buffer_base* field, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t mget(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
-	virtual result_t incr(const char* field, int64_t num, int64_t& retVal) = 0;
+	virtual result_t incr(Buffer_base* field, int64_t num, int64_t& retVal) = 0;
 	virtual result_t getAll(obj_ptr<List_base>& retVal) = 0;
 	virtual result_t keys(obj_ptr<List_base>& retVal) = 0;
 	virtual result_t len(int32_t& retVal) = 0;
-	virtual result_t exists(const char* field, bool& retVal) = 0;
+	virtual result_t exists(Buffer_base* field, bool& retVal) = 0;
 	virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal) = 0;
 	virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
 
@@ -56,6 +57,7 @@ public:
 
 }
 
+#include "Buffer.h"
 #include "List.h"
 
 namespace fibjs
@@ -94,8 +96,8 @@ namespace fibjs
 		METHOD_INSTANCE(RedisHash_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->set(v0, v1);
 
@@ -107,8 +109,8 @@ namespace fibjs
 		METHOD_INSTANCE(RedisHash_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->setNX(v0, v1);
 
@@ -133,12 +135,12 @@ namespace fibjs
 
 	inline void RedisHash_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(RedisHash_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->get(v0, vr);
 
@@ -170,7 +172,7 @@ namespace fibjs
 		METHOD_INSTANCE(RedisHash_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		OPT_ARG(int64_t, 1, 1);
 
 		hr = pInst->incr(v0, v1, vr);
@@ -221,7 +223,7 @@ namespace fibjs
 		METHOD_INSTANCE(RedisHash_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->exists(v0, vr);
 

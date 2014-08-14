@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var util = require('util');
+var mq = require('mq');
 var coroutine = require('coroutine');
 var collection = require("collection");
 var os = require('os');
@@ -557,6 +558,10 @@ describe('util', function() {
 			assert.equal(util.format('%s:%s', 'foo', 'bar', 'baz'), 'foo:bar baz');
 			assert.equal(util.format('%%%s%%', 'hi'), '%hi%');
 			assert.equal(util.format('%%%s%%%%', 'hi'), '%hi%%');
+		});
+
+		it("fix: crash on error.", function() {
+			util.format(new mq.Message());
 		});
 	});
 

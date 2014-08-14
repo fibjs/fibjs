@@ -14,7 +14,7 @@ var searchData=
   ['below',['below',['../dd/d7a/classExpect.html#ac7340f0a34d0826759759fa575c0da6f',1,'Expect']]],
   ['between',['between',['../d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5',1,'LevelDB']]],
   ['bind',['bind',['../d4/d33/classSocket.html#a26a688b72c8b742d830a1d89e2a7a984',1,'Socket::bind(Integer port, Boolean allowIPv4=true)'],['../d4/d33/classSocket.html#aea619a73174482ad558c95dc8d9a1fc4',1,'Socket::bind(String addr, Integer port, Boolean allowIPv4=true)']]],
-  ['bitcount',['bitcount',['../db/d15/classRedis.html#a9874fb5f678cdc91c03eddb4849c00c3',1,'Redis']]],
+  ['bitcount',['bitcount',['../db/d15/classRedis.html#ac89a7988a54cb5b6c9962048e72a3dbd',1,'Redis']]],
   ['blockqueue',['BlockQueue',['../d7/d38/classBlockQueue.html#a9f7669dc7635bfed46b5364e8f3a932a',1,'BlockQueue::BlockQueue()'],['../d2/dd1/classcoroutine.html#a2fd7cfd64b935905126e5719afb3965c',1,'coroutine::BlockQueue()']]],
   ['bsondecode',['bsonDecode',['../d0/d52/classencoding.html#a17c2e82897b90e8fab350c667f077d1a',1,'encoding']]],
   ['bsonencode',['bsonEncode',['../d0/d52/classencoding.html#aa347199ad7dca52b72ca3653a9ec293f',1,'encoding']]],

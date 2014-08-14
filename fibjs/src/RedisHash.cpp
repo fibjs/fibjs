@@ -10,13 +10,13 @@
 namespace fibjs
 {
 
-result_t RedisHash::set(const char *field, const char *value)
+result_t RedisHash::set(Buffer_base *field, Buffer_base *value)
 {
     Variant v;
     return m_rdb->doCommand("HSET", m_key, field, value, v);
 }
 
-result_t RedisHash::setNX(const char *field, const char *value)
+result_t RedisHash::setNX(Buffer_base *field, Buffer_base *value)
 {
     Variant v;
     return m_rdb->doCommand("HSETNX", m_key, field, value, v);
@@ -34,7 +34,7 @@ result_t RedisHash::mset(const v8::FunctionCallbackInfo<v8::Value> &args)
     return m_rdb->doCommand("HMSET", m_key, a, v);
 }
 
-result_t RedisHash::get(const char *field, std::string &retVal)
+result_t RedisHash::get(Buffer_base *field, obj_ptr<Buffer_base> &retVal)
 {
     return m_rdb->doCommand("HGET", m_key, field, retVal);
 }
@@ -51,7 +51,7 @@ result_t RedisHash::mget(const v8::FunctionCallbackInfo<v8::Value> &args, obj_pt
     return m_rdb->doCommand("HMGET", m_key, a, retVal);
 }
 
-result_t RedisHash::incr(const char *field, int64_t num, int64_t &retVal)
+result_t RedisHash::incr(Buffer_base *field, int64_t num, int64_t &retVal)
 {
     return m_rdb->doCommand("HINCRBY", m_key, field, num, retVal);
 }
@@ -83,7 +83,7 @@ result_t RedisHash::del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t
     return m_rdb->doCommand("HDEL", m_key, a, retVal);
 }
 
-result_t RedisHash::exists(const char *field, bool &retVal)
+result_t RedisHash::exists(Buffer_base *field, bool &retVal)
 {
     return m_rdb->doCommand("HEXISTS", m_key, field, retVal);
 }

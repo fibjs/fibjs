@@ -20,7 +20,7 @@ var searchData=
   ['alphablending',['alphaBlending',['../d8/d00/classImage.html#ac974ee7d1a7b5f3da2f744b7db75accd',1,'Image']]],
   ['an',['an',['../dd/d7a/classExpect.html#a6be42045a2b1e2b5c3badcd575b17248',1,'Expect']]],
   ['and',['and',['../dd/d7a/classExpect.html#a477561addec2b0d9feb3ed003a622aa4',1,'Expect']]],
-  ['append',['append',['../d7/d43/classChain.html#a702712b4b03f43f15d24e217afad5fe2',1,'Chain::append(Array hdlrs)'],['../d7/d43/classChain.html#ab53cecfa978a2263e38334d0e4c3bddb',1,'Chain::append(Value hdlr)'],['../db/d15/classRedis.html#a0b45a4bd9ba34991c373f87a73dd86f0',1,'Redis::append()'],['../d4/d90/classRouting.html#a134520405ec3d18b9bfe4b996c82e197',1,'Routing::append(Object map)'],['../d4/d90/classRouting.html#a9a2446ce1b998f4df43be24dc23a66c9',1,'Routing::append(String pattern, Value hdlr)']]],
+  ['append',['append',['../d7/d43/classChain.html#a702712b4b03f43f15d24e217afad5fe2',1,'Chain::append(Array hdlrs)'],['../d7/d43/classChain.html#ab53cecfa978a2263e38334d0e4c3bddb',1,'Chain::append(Value hdlr)'],['../db/d15/classRedis.html#a480ba8b375fbde3a2c3a5f01d22d712d',1,'Redis::append()'],['../d4/d90/classRouting.html#a134520405ec3d18b9bfe4b996c82e197',1,'Routing::append(Object map)'],['../d4/d90/classRouting.html#a9a2446ce1b998f4df43be24dc23a66c9',1,'Routing::append(String pattern, Value hdlr)']]],
   ['arc',['ARC',['../d5/d5d/classgd.html#a146c430b7504b0f5831fba84470e1599',1,'gd::ARC()'],['../d8/d00/classImage.html#aab87680bc57415638facc13065504523',1,'Image::arc()']]],
   ['arc4',['ARC4',['../d8/d48/classcrypto.html#ae69cd63207dd925851509f54b8e47c67',1,'crypto']]],
   ['arch',['arch',['../d7/db0/classos.html#a694ff78df5a8febb2a7a69c7722f7c34',1,'os']]],

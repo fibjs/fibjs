@@ -2,8 +2,8 @@ var classRedisSortedSet =
 [
     [ "add", "d8/dc0/classRedisSortedSet.html#a27f80b2a80da3bfb5210cbb275b1ecdb", null ],
     [ "add", "d8/dc0/classRedisSortedSet.html#a11db5b4d85cca364a0490de942dc8573", null ],
-    [ "score", "d8/dc0/classRedisSortedSet.html#aab077e1fe95af42c819a18b792472e5c", null ],
-    [ "incr", "d8/dc0/classRedisSortedSet.html#a84dbab771a6b6ae99b0e4de57b2e8a5f", null ],
+    [ "score", "d8/dc0/classRedisSortedSet.html#a7d66540ff84098ad5d6a786b88cd36d2", null ],
+    [ "incr", "d8/dc0/classRedisSortedSet.html#aa25dbff8ea3d289447a2a5d1f75db6b4", null ],
     [ "remove", "d8/dc0/classRedisSortedSet.html#a49bafb55ff9fa420f9bd37183d5ac25a", null ],
     [ "remove", "d8/dc0/classRedisSortedSet.html#abedf103cbb6014d9af53195025047f8d", null ],
     [ "len", "d8/dc0/classRedisSortedSet.html#a46d1cfc5c8bb2d88ecaa6f0d2f5fc52f", null ],

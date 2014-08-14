@@ -23,7 +23,7 @@ var searchData=
   ['best_5fspeed',['BEST_SPEED',['../d8/d09/classzlib.html#ac1fa5896622f3a54952bda03eb7d3acd',1,'zlib']]],
   ['between',['between',['../d8/d3e/classLevelDB.html#a28d17205bd5d3516354c2a651875aab5',1,'LevelDB']]],
   ['bind',['bind',['../d4/d33/classSocket.html#a26a688b72c8b742d830a1d89e2a7a984',1,'Socket::bind(Integer port, Boolean allowIPv4=true)'],['../d4/d33/classSocket.html#aea619a73174482ad558c95dc8d9a1fc4',1,'Socket::bind(String addr, Integer port, Boolean allowIPv4=true)']]],
-  ['bitcount',['bitcount',['../db/d15/classRedis.html#a9874fb5f678cdc91c03eddb4849c00c3',1,'Redis']]],
+  ['bitcount',['bitcount',['../db/d15/classRedis.html#ac89a7988a54cb5b6c9962048e72a3dbd',1,'Redis']]],
   ['blockqueue',['BlockQueue',['../d7/d38/classBlockQueue.html',1,'BlockQueue'],['../d7/d38/classBlockQueue.html#a9f7669dc7635bfed46b5364e8f3a932a',1,'BlockQueue::BlockQueue()'],['../d2/dd1/classcoroutine.html#a2fd7cfd64b935905126e5719afb3965c',1,'coroutine::BlockQueue()']]],
   ['blocksize',['blockSize',['../d6/d2e/classCipher.html#a0424c17e6db89678a25684610537d2cd',1,'Cipher']]],
   ['blowfish',['BLOWFISH',['../d8/d48/classcrypto.html#a56d896ffff1587eba779010be7404803',1,'crypto']]],

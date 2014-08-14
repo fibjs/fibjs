@@ -23,13 +23,13 @@ class RedisSortedSet : object
     /*! @brief 返回有序集中，成员 member 的 score 值
      @param member 指定要查询的 member
      @return member 成员的 score 值，以字符串形式表示 */
-    String score(String member);
+    Buffer score(Buffer member);
 
     /*! @brief 为有序集的成员 member 的 score 值加上增量 num
      @param member 指定要修改的 member
      @param num 指定要加上的数值
      @return member 成员的新 score 值，以字符串形式表示 */
-    String incr(String member, Long num = 1);
+    Buffer incr(Buffer member, Long num = 1);
 
     /*! @brief 移除有序集中的一个或多个 member 元素
      @param members 指定要移除的元素数组

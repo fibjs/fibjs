@@ -17,6 +17,7 @@
 namespace fibjs
 {
 
+class Buffer_base;
 class List_base;
 
 class RedisSortedSet_base : public object_base
@@ -25,8 +26,8 @@ public:
 	// RedisSortedSet_base
 	virtual result_t add(v8::Local<v8::Array> sms, int32_t& retVal) = 0;
 	virtual result_t add(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
-	virtual result_t score(const char* member, std::string& retVal) = 0;
-	virtual result_t incr(const char* member, int64_t num, std::string& retVal) = 0;
+	virtual result_t score(Buffer_base* member, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t incr(Buffer_base* member, int64_t num, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t remove(v8::Local<v8::Array> members, int32_t& retVal) = 0;
 	virtual result_t remove(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
 	virtual result_t len(int32_t& retVal) = 0;
@@ -47,6 +48,7 @@ public:
 
 }
 
+#include "Buffer.h"
 #include "List.h"
 
 namespace fibjs
@@ -96,12 +98,12 @@ namespace fibjs
 
 	inline void RedisSortedSet_base::s_score(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(RedisSortedSet_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->score(v0, vr);
 
@@ -110,12 +112,12 @@ namespace fibjs
 
 	inline void RedisSortedSet_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(RedisSortedSet_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		OPT_ARG(int64_t, 1, 1);
 
 		hr = pInst->incr(v0, v1, vr);

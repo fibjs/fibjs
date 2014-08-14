@@ -5,7 +5,7 @@ var searchData=
   ['debug',['debug',['../d6/df8/classconsole.html#adff204aa3e37763481680087157754a1',1,'console::debug(String fmt,...)'],['../d6/df8/classconsole.html#aec6d50753570141dda375e85594b5b6d',1,'console::debug(...)']]],
   ['dec',['dec',['../db/df7/classStats.html#a0b2c6d2c38c43e2e0c2394237fd10608',1,'Stats']]],
   ['decodeuri',['decodeURI',['../d0/d52/classencoding.html#aeb50ecb378e2b4da3d3a5b0ba24c6907',1,'encoding']]],
-  ['decr',['decr',['../db/d15/classRedis.html#a1002ac009af650eccd0485bb938b8161',1,'Redis']]],
+  ['decr',['decr',['../db/d15/classRedis.html#a210b988ae291c178e3462e934d86af20',1,'Redis']]],
   ['decrypt',['decrypt',['../d6/d2e/classCipher.html#ad8540db73a6b68b8372d908c48ad26fc',1,'Cipher::decrypt()'],['../d0/d82/classPKey.html#a8357b8385141031a683ccf41058dbed0',1,'PKey::decrypt()']]],
   ['deepequal',['deepEqual',['../de/d1c/classassert.html#aa4fc0c264fe253b71659fa15bd444d34',1,'assert']]],
   ['deepproperty',['deepProperty',['../de/d1c/classassert.html#a5129660776f5965ef0fc8e045a9d51d4',1,'assert']]],
@@ -25,5 +25,5 @@ var searchData=
   ['drop',['drop',['../d2/d07/classMongoCollection.html#a60763c7b0c63953047e105f566df1e80',1,'MongoCollection']]],
   ['dropindex',['dropIndex',['../d2/d07/classMongoCollection.html#a5967353e160d74997627e7853040dd70',1,'MongoCollection']]],
   ['dropindexes',['dropIndexes',['../d2/d07/classMongoCollection.html#a8d576a02f1c04e91b4c4f9db5a788436',1,'MongoCollection']]],
-  ['dump',['dump',['../db/d15/classRedis.html#aeb059c5229b6b02d11bdec77e3b5212b',1,'Redis::dump()'],['../d1/d66/classX509Cert.html#ab8b6b8427dec3e1294db2ebedc301b5b',1,'X509Cert::dump()'],['../d6/df6/classX509Crl.html#a0db20aa8971715314f30952bfdbdf904',1,'X509Crl::dump()']]]
+  ['dump',['dump',['../db/d15/classRedis.html#aae7a1afc76033cfbabb8a507574f6182',1,'Redis::dump()'],['../d1/d66/classX509Cert.html#ab8b6b8427dec3e1294db2ebedc301b5b',1,'X509Cert::dump()'],['../d6/df6/classX509Crl.html#a0db20aa8971715314f30952bfdbdf904',1,'X509Crl::dump()']]]
 ];

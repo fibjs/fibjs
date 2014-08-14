@@ -72,6 +72,20 @@ inline int32_t atom_xchg(int32_t *ptr, int32_t new_value)
     return prev;
 }
 
+template<typename T>
+inline T *atom_xchg(T **ptr, T *new_value)
+{
+    T *prev;
+
+    __asm__ __volatile__(
+        "lock xchgl %2,(%1)"
+        : "=r" (prev)
+        : "r" (ptr), "0" (new_value)
+        : "memory");
+
+    return prev;
+}
+
 inline int32_t atom_inc(__volatile__ int32_t *dest)
 {
     return atom_add(dest, 1);
