@@ -156,16 +156,12 @@ public:
 
     void Release()
     {
-        T *pTemp = Detach();
-        if (pTemp)
-            pTemp->Unref();
+        Attach((T *)NULL);
     }
 
     T *Attach(T *p2)
     {
-        T *p1 = p;
-        p = p2;
-
+        T *p1 = exlib::atom_xchg(&p, p2);
         if (p1)
             p1->Unref();
 
@@ -174,10 +170,7 @@ public:
 
     T *Detach()
     {
-        T *p1 = p;
-
-        p = NULL;
-        return p1;
+        return exlib::atom_xchg(&p, (T *)NULL);
     }
 
     T *p;
