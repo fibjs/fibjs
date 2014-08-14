@@ -29,7 +29,7 @@
 <area shape="rect" id="node31" href="$df/dbc/classRedisHash.html" title="Redis 数据库客户端 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="3651,460,3738,707"/>
 <area shape="rect" id="node32" href="$d8/dc8/classRedisList.html" title="Redis 数据库客户端 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="3761,460,3875,707"/>
 <area shape="rect" id="node33" href="$df/d65/classRedisSet.html" title="Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="3900,487,4017,680"/>
-<area shape="rect" id="node34" href="$d8/dc0/classRedisSortedSet.html" title="Redis 数据库客户端 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="4041,493,4156,673"/>
+<area shape="rect" id="node34" href="$d8/dc0/classRedisSortedSet.html" title="Redis 数据库客户端 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="4041,473,4156,693"/>
 <area shape="rect" id="node35" href="$d8/d28/classRegex.html" title="正则表达式对象 " alt="" coords="4180,520,4281,647"/>
 <area shape="rect" id="node36" href="$d1/d3c/classSandBox.html" title="安全沙箱对象，用于管理一个独立的运行空间 " alt="" coords="4305,500,4403,667"/>
 <area shape="rect" id="node37" href="$d5/d6b/classSmtp.html" title="Smtp对象 " alt="" coords="4427,493,4527,673"/>

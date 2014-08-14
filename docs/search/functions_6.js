@@ -13,7 +13,7 @@ var searchData=
   ['getlist',['getList',['../db/d15/classRedis.html#abce17a68ed559afe687c7d5c734bc850',1,'Redis']]],
   ['getpixel',['getPixel',['../d8/d00/classImage.html#a862add7a52d4ed7faae9067282ed8ec1',1,'Image']]],
   ['getrange',['getRange',['../db/d15/classRedis.html#a04f350bace05c348daed5b1bdeb0b12e',1,'Redis']]],
-  ['getset',['getset',['../db/d15/classRedis.html#a0a917ae043d84cf5b978021b81c34cde',1,'Redis::getset(Buffer key, Buffer value)'],['../db/d15/classRedis.html#a9139d00083d2795de81119ea1e9deec3',1,'Redis::getSet(Buffer key)']]],
+  ['getset',['getSet',['../db/d15/classRedis.html#a9139d00083d2795de81119ea1e9deec3',1,'Redis::getSet(Buffer key)'],['../db/d15/classRedis.html#a0a917ae043d84cf5b978021b81c34cde',1,'Redis::getset(Buffer key, Buffer value)']]],
   ['getsortedset',['getSortedSet',['../db/d15/classRedis.html#aff0567a3b6cf6eb95f5ab5606ae92309',1,'Redis']]],
   ['gettruecolorpixel',['getTrueColorPixel',['../d8/d00/classImage.html#a585e3918e0516fab908afbb2ba53ba4f',1,'Image']]],
   ['greaterthan',['greaterThan',['../de/d1c/classassert.html#a402e1e36f03b891ad44a3281a64642a2',1,'assert::greaterThan()'],['../dd/d7a/classExpect.html#a73f75cab81e1d239595ee427e0ecbae3',1,'Expect::greaterThan()']]],

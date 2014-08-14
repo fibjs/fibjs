@@ -115,7 +115,8 @@ $(document).ready(function(){initNavTree('d8/dc0/classRedisSortedSet.html','../.
 <div class="dynheader">
 类 RedisSortedSet 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/ddd/classRedisSortedSet__inherit__graph.svg" width="126" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/ddd/classRedisSortedSet__inherit__graph.svg" width="126" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -147,6 +148,15 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a462e422b40240e8e8372a4b9e7b9e1bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/da9/classList.html">List</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dc0/classRedisSortedSet.html#a462e422b40240e8e8372a4b9e7b9e1bd">range</a> (Integer start, Integer stop, Boolean withScores=false)</td></tr>
 <tr class="memdesc:a462e422b40240e8e8372a4b9e7b9e1bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回有序集中，指定区间内的成员，成员的位置按 score 值递增(从小到大)来排序  <a href="#a462e422b40240e8e8372a4b9e7b9e1bd">更多...</a><br /></td></tr>
 <tr class="separator:a462e422b40240e8e8372a4b9e7b9e1bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6efdcbbe3a16c4afa5858648adcf0c46"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/da9/classList.html">List</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dc0/classRedisSortedSet.html#a6efdcbbe3a16c4afa5858648adcf0c46">rangeRev</a> (Integer start, Integer stop, Boolean withScores=false)</td></tr>
+<tr class="memdesc:a6efdcbbe3a16c4afa5858648adcf0c46"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回有序集中，指定区间内的成员，成员的位置按 score 值递减(从大到小)来排序  <a href="#a6efdcbbe3a16c4afa5858648adcf0c46">更多...</a><br /></td></tr>
+<tr class="separator:a6efdcbbe3a16c4afa5858648adcf0c46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b00968e7bac705cfdae353277d07f35"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dc0/classRedisSortedSet.html#a7b00968e7bac705cfdae353277d07f35">rank</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> member)</td></tr>
+<tr class="memdesc:a7b00968e7bac705cfdae353277d07f35"><td class="mdescLeft">&#160;</td><td class="mdescRight">有序集中成员 member 的排名。其中有序集成员按 score 值递增(从小到大)顺序排列  <a href="#a7b00968e7bac705cfdae353277d07f35">更多...</a><br /></td></tr>
+<tr class="separator:a7b00968e7bac705cfdae353277d07f35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a033c2cbea581c0071ee7a3f73f460bd8"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dc0/classRedisSortedSet.html#a033c2cbea581c0071ee7a3f73f460bd8">rankRev</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> member)</td></tr>
+<tr class="memdesc:a033c2cbea581c0071ee7a3f73f460bd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">有序集中成员 member 的排名。其中有序集成员按 score 值递减(从大到小)顺序排列  <a href="#a033c2cbea581c0071ee7a3f73f460bd8">更多...</a><br /></td></tr>
+<tr class="separator:a033c2cbea581c0071ee7a3f73f460bd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b88dbc459449d2280338e5b702a68b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a6b88dbc459449d2280338e5b702a68b4">dispose</a> ()</td></tr>
 <tr class="memdesc:a6b88dbc459449d2280338e5b702a68b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">强制回收对象，调用此方法后，对象资源将立即释放  <a href="#a6b88dbc459449d2280338e5b702a68b4">更多...</a><br /></td></tr>
 <tr class="separator:a6b88dbc459449d2280338e5b702a68b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -416,10 +426,104 @@ Public 成员函数</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">start</td><td>指定查询的起始下标，0 表示第一个元素，-1 表示最后一个元素 </td></tr>
     <tr><td class="paramname">stop</td><td>指定查询的结束下标，0 表示第一个元素，-1 表示最后一个元素 </td></tr>
+    <tr><td class="paramname">withScores</td><td>指定是否在结果中包含 score </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>指定区间内，带有 score 值(可选)的有序集成员的列表 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a6efdcbbe3a16c4afa5858648adcf0c46"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d6/da9/classList.html">List</a> RedisSortedSet::rangeRev </td>
+          <td>(</td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>start</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>stop</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>withScores</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>返回有序集中，指定区间内的成员，成员的位置按 score 值递减(从大到小)来排序 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">start</td><td>指定查询的起始下标，0 表示第一个元素，-1 表示最后一个元素 </td></tr>
+    <tr><td class="paramname">stop</td><td>指定查询的结束下标，0 表示第一个元素，-1 表示最后一个元素 </td></tr>
+    <tr><td class="paramname">withScores</td><td>指定是否在结果中包含 score </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指定区间内，带有 score 值(可选)的有序集成员的列表 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a7b00968e7bac705cfdae353277d07f35"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer RedisSortedSet::rank </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d0/d11/classBuffer.html">Buffer</a>&#160;</td>
+          <td class="paramname"><em>member</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>有序集中成员 member 的排名。其中有序集成员按 score 值递增(从小到大)顺序排列 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">member</td><td>指定要查询的 member </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>member 如果 member 是有序集 key 的成员，返回 member 的排名。如果 member 不是有序集 key 的成员，返回 nil </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a033c2cbea581c0071ee7a3f73f460bd8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer RedisSortedSet::rankRev </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d0/d11/classBuffer.html">Buffer</a>&#160;</td>
+          <td class="paramname"><em>member</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>有序集中成员 member 的排名。其中有序集成员按 score 值递减(从大到小)顺序排列 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">member</td><td>指定要查询的 member </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>member 如果 member 是有序集 key 的成员，返回 member 的排名。如果 member 不是有序集 key 的成员，返回 nil </dd></dl>
 
 </div>
 </div>
