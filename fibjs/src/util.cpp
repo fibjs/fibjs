@@ -95,8 +95,10 @@ std::string json_format(v8::Local<v8::Value> obj)
 
     while (true)
     {
-        if (v->IsUndefined() || v->IsNull() || v->IsDate() ||
-                v->IsBoolean() || v->IsBooleanObject())
+        if (v.IsEmpty())
+            strBuffer += "undefined";
+        else if (v->IsUndefined() || v->IsNull() || v->IsDate() ||
+                 v->IsBoolean() || v->IsBooleanObject())
             strBuffer += *v8::String::Utf8Value(v);
         else if (v->IsFunction())
             strBuffer += "[Function]";
@@ -241,6 +243,8 @@ std::string json_format(v8::Local<v8::Value> obj)
 
             if (!it->obj.IsEmpty())
             {
+                v8::TryCatch try_catch;
+
                 string_format(strBuffer, v);
                 strBuffer += ": ";
                 v = it->obj->Get(v);
