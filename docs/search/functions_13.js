@@ -17,7 +17,7 @@ var searchData=
   ['trim',['trim',['../d8/dc8/classRedisList.html#a5604e7fbd71da4e72701e7b03db3b344',1,'RedisList']]],
   ['truncate',['truncate',['../db/d30/classFile.html#a634c01460200da98755fda701fbace1a',1,'File']]],
   ['trywait',['trywait',['../d6/d72/classSemaphore.html#ab555508a557440f9d2e27bd5f8223ea7',1,'Semaphore']]],
-  ['ttl',['ttl',['../db/d15/classRedis.html#a4a3c36cff3e626a99cdaa4afb0c0036b',1,'Redis']]],
-  ['type',['type',['../db/d15/classRedis.html#abc17e36e60c1b7bd392b93a039eb96b0',1,'Redis']]],
+  ['ttl',['ttl',['../db/d15/classRedis.html#a15a7d998869acee87500de7ca2815c44',1,'Redis']]],
+  ['type',['type',['../db/d15/classRedis.html#a10dd880a7427becdd65bd8f811defa50',1,'Redis']]],
   ['typeof',['typeOf',['../de/d1c/classassert.html#a6accf1f518a6bea5c608ea513742cad3',1,'assert']]]
 ];

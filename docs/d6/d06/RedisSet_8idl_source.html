@@ -112,25 +112,26 @@ $(document).ready(function(){initNavTree('d6/d06/RedisSet_8idl_source.html','../
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    Integer <a class="code" href="../../df/d65/classRedisSet.html#ad906a3ba2dfe4520f8044450eba90c9b">len</a>();</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    Boolean <a class="code" href="../../df/d65/classRedisSet.html#a7f75f81a1bd5ce1d2727a6c52537db25">exists</a>(String member);</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    Boolean <a class="code" href="../../df/d65/classRedisSet.html#a451d5ac9129642f683a2f692d02e6bab">exists</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> member);</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <a class="code" href="../../d6/da9/classList.html">List</a> <a class="code" href="../../df/d65/classRedisSet.html#a5aa2f7795ced6b0d35184f1f29ea67f9">members</a>();</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    String <a class="code" href="../../df/d65/classRedisSet.html#a2e7a94cbb6e17210b70fced01b18ae12">pop</a>();</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../df/d65/classRedisSet.html#aa53a6e8ce28ac3cf527649e780f91554">pop</a>();</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    Value <a class="code" href="../../df/d65/classRedisSet.html#a4ce36ad16b4d65e66f5d278fa68bf36f">randMember</a>();</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    Value <a class="code" href="../../df/d65/classRedisSet.html#a4ce36ad16b4d65e66f5d278fa68bf36f">randMember</a>(Integer count);</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;};</div>
-<div class="ttc" id="classRedisSet_html_a2e7a94cbb6e17210b70fced01b18ae12"><div class="ttname"><a href="../../df/d65/classRedisSet.html#a2e7a94cbb6e17210b70fced01b18ae12">RedisSet::pop</a></div><div class="ttdeci">String pop()</div><div class="ttdoc">移除并返回集合中的一个随机元素 </div></div>
+<div class="ttc" id="classRedisSet_html_aa53a6e8ce28ac3cf527649e780f91554"><div class="ttname"><a href="../../df/d65/classRedisSet.html#aa53a6e8ce28ac3cf527649e780f91554">RedisSet::pop</a></div><div class="ttdeci">Buffer pop()</div><div class="ttdoc">移除并返回集合中的一个随机元素 </div></div>
+<div class="ttc" id="classRedisSet_html_a451d5ac9129642f683a2f692d02e6bab"><div class="ttname"><a href="../../df/d65/classRedisSet.html#a451d5ac9129642f683a2f692d02e6bab">RedisSet::exists</a></div><div class="ttdeci">Boolean exists(Buffer member)</div><div class="ttdoc">判断 member 元素是否集合的成员 </div></div>
 <div class="ttc" id="classRedisSet_html_a5aa2f7795ced6b0d35184f1f29ea67f9"><div class="ttname"><a href="../../df/d65/classRedisSet.html#a5aa2f7795ced6b0d35184f1f29ea67f9">RedisSet::members</a></div><div class="ttdeci">List members()</div><div class="ttdoc">返回集合中的所有成员 </div></div>
+<div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
 <div class="ttc" id="classList_html"><div class="ttname"><a href="../../d6/da9/classList.html">List</a></div><div class="ttdoc">Variant 数组对象，一般用以返回一组 Variant 数据 </div><div class="ttdef"><b>Definition:</b> List.idl:10</div></div>
 <div class="ttc" id="classobject_html"><div class="ttname"><a href="../../dc/dd8/classobject.html">object</a></div><div class="ttdoc">基础对象，所有对象均继承于此 </div><div class="ttdef"><b>Definition:</b> object.idl:2</div></div>
 <div class="ttc" id="classRedisSet_html_a5743d474f0b70ad7724aba02e02e5aac"><div class="ttname"><a href="../../df/d65/classRedisSet.html#a5743d474f0b70ad7724aba02e02e5aac">RedisSet::add</a></div><div class="ttdeci">Integer add(Array members)</div><div class="ttdoc">将一个或多个 member 元素加入到集合 key 当中，已经存在于集合的 member 元素将被忽略 ...</div></div>
 <div class="ttc" id="classRedisSet_html_ad906a3ba2dfe4520f8044450eba90c9b"><div class="ttname"><a href="../../df/d65/classRedisSet.html#ad906a3ba2dfe4520f8044450eba90c9b">RedisSet::len</a></div><div class="ttdeci">Integer len()</div><div class="ttdoc">返回集合中元素的数量 </div></div>
 <div class="ttc" id="classRedisSet_html"><div class="ttname"><a href="../../df/d65/classRedisSet.html">RedisSet</a></div><div class="ttdoc">Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ...</div><div class="ttdef"><b>Definition:</b> RedisSet.idl:11</div></div>
 <div class="ttc" id="classRedisSet_html_a4ce36ad16b4d65e66f5d278fa68bf36f"><div class="ttname"><a href="../../df/d65/classRedisSet.html#a4ce36ad16b4d65e66f5d278fa68bf36f">RedisSet::randMember</a></div><div class="ttdeci">Value randMember()</div><div class="ttdoc">从集合中获取随机的一个元素 </div></div>
-<div class="ttc" id="classRedisSet_html_a7f75f81a1bd5ce1d2727a6c52537db25"><div class="ttname"><a href="../../df/d65/classRedisSet.html#a7f75f81a1bd5ce1d2727a6c52537db25">RedisSet::exists</a></div><div class="ttdeci">Boolean exists(String member)</div><div class="ttdoc">判断 member 元素是否集合的成员 </div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
