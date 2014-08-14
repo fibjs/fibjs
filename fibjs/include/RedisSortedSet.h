@@ -16,8 +16,10 @@ namespace fibjs
 class RedisSortedSet: public RedisSortedSet_base
 {
 public:
-    RedisSortedSet(const char *key, Redis *rdb) : m_key(key), m_rdb(rdb)
-    {}
+    RedisSortedSet(Buffer_base *key, Redis *rdb) : m_rdb(rdb)
+    {
+        key->toString(m_key);
+    }
 
 public:
     // RedisSortedSet_base

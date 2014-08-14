@@ -53,10 +53,10 @@ public:
     virtual result_t persist(Buffer_base *key, bool &retVal);
     virtual result_t rename(Buffer_base *key, Buffer_base *newkey);
     virtual result_t renameNX(Buffer_base *key, Buffer_base *newkey, bool &retVal);
-    virtual result_t getHash(const char *key, obj_ptr<RedisHash_base> &retVal);
-    virtual result_t getList(const char *key, obj_ptr<RedisList_base> &retVal);
-    virtual result_t getSet(const char *key, obj_ptr<RedisSet_base> &retVal);
-    virtual result_t getSortedSet(const char *key, obj_ptr<RedisSortedSet_base> &retVal);
+    virtual result_t getHash(Buffer_base *key, obj_ptr<RedisHash_base> &retVal);
+    virtual result_t getList(Buffer_base *key, obj_ptr<RedisList_base> &retVal);
+    virtual result_t getSet(Buffer_base *key, obj_ptr<RedisSet_base> &retVal);
+    virtual result_t getSortedSet(Buffer_base *key, obj_ptr<RedisSortedSet_base> &retVal);
     virtual result_t dump(Buffer_base *key, obj_ptr<Buffer_base> &retVal);
     virtual result_t restore(Buffer_base *key, Buffer_base *data, int64_t ttl);
     virtual result_t close();

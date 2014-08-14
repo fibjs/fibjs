@@ -16,8 +16,10 @@ namespace fibjs
 class RedisHash: public RedisHash_base
 {
 public:
-    RedisHash(const char *key, Redis *rdb) : m_key(key), m_rdb(rdb)
-    {}
+    RedisHash(Buffer_base *key, Redis *rdb) : m_rdb(rdb)
+    {
+        key->toString(m_key);
+    }
 
 public:
     // RedisHash_base

@@ -16,8 +16,10 @@ namespace fibjs
 class RedisSet: public RedisSet_base
 {
 public:
-    RedisSet(const char *key, Redis *rdb) : m_key(key), m_rdb(rdb)
-    {}
+    RedisSet(Buffer_base *key, Redis *rdb) : m_rdb(rdb)
+    {
+        key->toString(m_key);
+    }
 
 public:
     // RedisSet_base

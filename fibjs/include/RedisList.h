@@ -16,8 +16,10 @@ namespace fibjs
 class RedisList: public RedisList_base
 {
 public:
-    RedisList(const char *key, Redis *rdb) : m_key(key), m_rdb(rdb)
-    {}
+    RedisList(Buffer_base *key, Redis *rdb) : m_rdb(rdb)
+    {
+        key->toString(m_key);
+    }
 
 public:
     // RedisList_base
