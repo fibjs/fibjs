@@ -5,7 +5,7 @@ var db = require('db');
 var encoding = require('encoding');
 var coroutine = require('coroutine');
 
-var rdb = db.open("redis://192.168.65.155");
+var rdb = db.open("redis://127.0.0.1");
 
 describe("redis", function() {
 	before(function() {
@@ -421,7 +421,7 @@ describe("redis", function() {
 			var set = rdb.getSet("testSet");
 
 			var m = set.pop();
-			assert.ok(m === "a6" || m === "a0");
+			assert.ok(m.toString() === "a6" || m.toString() === "a0");
 		});
 
 		it("randMember", function() {

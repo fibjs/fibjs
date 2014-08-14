@@ -26,9 +26,9 @@ public:
     virtual result_t remove(v8::Local<v8::Array> members, int32_t &retVal);
     virtual result_t remove(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
     virtual result_t len(int32_t &retVal);
-    virtual result_t exists(const char *member, bool &retVal);
+    virtual result_t exists(Buffer_base *member, bool &retVal);
     virtual result_t members(obj_ptr<List_base> &retVal);
-    virtual result_t pop(std::string &retVal);
+    virtual result_t pop(obj_ptr<Buffer_base> &retVal);
     virtual result_t randMember(v8::Local<v8::Value> &retVal);
     virtual result_t randMember(int32_t count, v8::Local<v8::Value> &retVal);
 

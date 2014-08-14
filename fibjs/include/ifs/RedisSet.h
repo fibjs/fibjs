@@ -17,6 +17,7 @@
 namespace fibjs
 {
 
+class Buffer_base;
 class List_base;
 
 class RedisSet_base : public object_base
@@ -28,9 +29,9 @@ public:
 	virtual result_t remove(v8::Local<v8::Array> members, int32_t& retVal) = 0;
 	virtual result_t remove(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
 	virtual result_t len(int32_t& retVal) = 0;
-	virtual result_t exists(const char* member, bool& retVal) = 0;
+	virtual result_t exists(Buffer_base* member, bool& retVal) = 0;
 	virtual result_t members(obj_ptr<List_base>& retVal) = 0;
-	virtual result_t pop(std::string& retVal) = 0;
+	virtual result_t pop(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t randMember(v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t randMember(int32_t count, v8::Local<v8::Value>& retVal) = 0;
 
@@ -48,6 +49,7 @@ public:
 
 }
 
+#include "Buffer.h"
 #include "List.h"
 
 namespace fibjs
@@ -132,7 +134,7 @@ namespace fibjs
 		METHOD_INSTANCE(RedisSet_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->exists(v0, vr);
 
@@ -153,7 +155,7 @@ namespace fibjs
 
 	inline void RedisSet_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(RedisSet_base);
 		METHOD_ENTER(0, 0);

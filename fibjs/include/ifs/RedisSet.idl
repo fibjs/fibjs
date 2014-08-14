@@ -36,7 +36,7 @@ class RedisSet : object
 
     /*! @brief 判断 member 元素是否集合的成员
      @return 如果 member 元素是集合的成员，返回 true */
-    Boolean exists(String member);
+    Boolean exists(Buffer member);
 
     /*! @brief 返回集合中的所有成员
      @return 集合中所有成员的列表 */
@@ -44,7 +44,7 @@ class RedisSet : object
 
     /*! @brief 移除并返回集合中的一个随机元素
      @return 被移除的随机元素。当集合是空集时，返回 null */
-    String pop();
+    Buffer pop();
 
     /*! @brief 从集合中获取随机的一个元素
      @return 返回一个元素；如果集合为空，返回 null */

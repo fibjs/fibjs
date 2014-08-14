@@ -23,8 +23,8 @@ public:
     // RedisSortedSet_base
     virtual result_t add(v8::Local<v8::Array> sms, int32_t &retVal);
     virtual result_t add(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
-    virtual result_t score(const char *member, std::string &retVal);
-    virtual result_t incr(const char *member, int64_t num, std::string &retVal);
+    virtual result_t score(Buffer_base *member, obj_ptr<Buffer_base> &retVal);
+    virtual result_t incr(Buffer_base *member, int64_t num, obj_ptr<Buffer_base> &retVal);
     virtual result_t remove(v8::Local<v8::Array> members, int32_t &retVal);
     virtual result_t remove(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
     virtual result_t len(int32_t &retVal);

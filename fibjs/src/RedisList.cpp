@@ -22,7 +22,7 @@ result_t RedisList::push(const v8::FunctionCallbackInfo<v8::Value> &args, int32_
     return m_rdb->doCommand("LPUSH", m_key, a, retVal);
 }
 
-result_t RedisList::pop(std::string &retVal)
+result_t RedisList::pop(obj_ptr<Buffer_base> &retVal)
 {
     return m_rdb->doCommand("LPOP", m_key, retVal);
 }
@@ -39,33 +39,33 @@ result_t RedisList::rpush(const v8::FunctionCallbackInfo<v8::Value> &args, int32
     return m_rdb->doCommand("RPUSH", m_key, a, retVal);
 }
 
-result_t RedisList::rpop(std::string &retVal)
+result_t RedisList::rpop(obj_ptr<Buffer_base> &retVal)
 {
     return m_rdb->doCommand("RPOP", m_key, retVal);
 }
 
-result_t RedisList::set(int32_t index, const char *value)
+result_t RedisList::set(int32_t index, Buffer_base *value)
 {
     Variant v;
     return m_rdb->doCommand("LSET", m_key, index, value, v);
 }
 
-result_t RedisList::get(int32_t index, std::string &retVal)
+result_t RedisList::get(int32_t index, obj_ptr<Buffer_base> &retVal)
 {
     return m_rdb->doCommand("LINDEX", m_key, index, retVal);
 }
 
-result_t RedisList::insertBefore(const char *pivot, const char *value, int32_t &retVal)
+result_t RedisList::insertBefore(Buffer_base *pivot, Buffer_base *value, int32_t &retVal)
 {
     return m_rdb->doCommand("LINSERT", m_key, "BEFORE", pivot, value, retVal);
 }
 
-result_t RedisList::insertAfter(const char *pivot, const char *value, int32_t &retVal)
+result_t RedisList::insertAfter(Buffer_base *pivot, Buffer_base *value, int32_t &retVal)
 {
     return m_rdb->doCommand("LINSERT", m_key, "AFTER", pivot, value, retVal);
 }
 
-result_t RedisList::remove(int32_t count, const char *value, int32_t &retVal)
+result_t RedisList::remove(int32_t count, Buffer_base *value, int32_t &retVal)
 {
     return m_rdb->doCommand("LREM", m_key, count, value, retVal);
 }

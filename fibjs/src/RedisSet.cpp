@@ -37,7 +37,7 @@ result_t RedisSet::len(int32_t &retVal)
     return m_rdb->doCommand("SCARD", m_key, retVal);
 }
 
-result_t RedisSet::exists(const char *member, bool &retVal)
+result_t RedisSet::exists(Buffer_base *member, bool &retVal)
 {
     return m_rdb->doCommand("SISMEMBER", m_key, member, retVal);
 }
@@ -47,7 +47,7 @@ result_t RedisSet::members(obj_ptr<List_base> &retVal)
     return m_rdb->doCommand("SMEMBERS", m_key, retVal);
 }
 
-result_t RedisSet::pop(std::string &retVal)
+result_t RedisSet::pop(obj_ptr<Buffer_base> &retVal)
 {
     return m_rdb->doCommand("SPOP", m_key, retVal);
 }
