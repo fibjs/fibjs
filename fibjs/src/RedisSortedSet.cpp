@@ -78,4 +78,23 @@ result_t RedisSortedSet::range(int32_t start, int32_t stop, bool withScores,
         return m_rdb->doCommand("ZRANGE", m_key, start, stop, retVal);
 }
 
+result_t RedisSortedSet::rangeRev(int32_t start, int32_t stop, bool withScores,
+                                  obj_ptr<List_base> &retVal)
+{
+    if (withScores)
+        return m_rdb->doCommand("ZREVRANGE", m_key, start, stop, "WITHSCORES", retVal);
+    else
+        return m_rdb->doCommand("ZREVRANGE", m_key, start, stop, retVal);
+}
+
+result_t RedisSortedSet::rank(Buffer_base *member, int32_t &retVal)
+{
+    return m_rdb->doCommand("ZRANK", m_key, member, retVal);
+}
+
+result_t RedisSortedSet::rankRev(Buffer_base *member, int32_t &retVal)
+{
+    return m_rdb->doCommand("ZREVRANK", m_key, member, retVal);
+}
+
 }

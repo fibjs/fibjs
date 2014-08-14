@@ -902,26 +902,29 @@
 <!-- Node34 -->
 <g id="node34" class="node"><title>Node34</title>
 <g id="a_node34"><a xlink:href="../../d8/dc0/classRedisSortedSet.html" target="_top" xlink:title="Redis 数据库客户端 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ...">
-<polygon fill="white" stroke="black" points="3026.69,-346.5 3026.69,-480.5 3112.73,-480.5 3112.73,-346.5 3026.69,-346.5"/>
-<text text-anchor="middle" x="3069.71" y="-468.5" font-family="Helvetica,sans-Serif" font-size="10.00">RedisSortedSet</text>
-<polyline fill="none" stroke="black" points="3026.69,-462.5 3112.73,-462.5 "/>
-<text text-anchor="middle" x="3069.71" y="-450.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="3026.69,-444.5 3112.73,-444.5 "/>
-<text text-anchor="start" x="3034.69" y="-432.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ add()</text>
-<text text-anchor="start" x="3034.69" y="-422.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ add()</text>
-<text text-anchor="start" x="3034.69" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ score()</text>
-<text text-anchor="start" x="3034.69" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ incr()</text>
-<text text-anchor="start" x="3034.69" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="3034.69" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
-<text text-anchor="start" x="3034.69" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ len()</text>
-<text text-anchor="start" x="3034.69" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ count()</text>
-<text text-anchor="start" x="3034.69" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ range()</text>
+<polygon fill="white" stroke="black" points="3026.69,-331.5 3026.69,-495.5 3112.73,-495.5 3112.73,-331.5 3026.69,-331.5"/>
+<text text-anchor="middle" x="3069.71" y="-483.5" font-family="Helvetica,sans-Serif" font-size="10.00">RedisSortedSet</text>
+<polyline fill="none" stroke="black" points="3026.69,-477.5 3112.73,-477.5 "/>
+<text text-anchor="middle" x="3069.71" y="-465.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="3026.69,-459.5 3112.73,-459.5 "/>
+<text text-anchor="start" x="3034.69" y="-447.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ add()</text>
+<text text-anchor="start" x="3034.69" y="-437.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ add()</text>
+<text text-anchor="start" x="3034.69" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ score()</text>
+<text text-anchor="start" x="3034.69" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ incr()</text>
+<text text-anchor="start" x="3034.69" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
+<text text-anchor="start" x="3034.69" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ remove()</text>
+<text text-anchor="start" x="3034.69" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ len()</text>
+<text text-anchor="start" x="3034.69" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ count()</text>
+<text text-anchor="start" x="3034.69" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ range()</text>
+<text text-anchor="start" x="3034.69" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rangeRev()</text>
+<text text-anchor="start" x="3034.69" y="-347.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rank()</text>
+<text text-anchor="start" x="3034.69" y="-337.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rankRev()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node34 -->
 <g id="edge33" class="edge"><title>Node1&#45;&gt;Node34</title>
-<path fill="none" stroke="midnightblue" d="M2391.46,-801.45C2533.05,-794.412 2972.23,-769.248 3017.71,-726 3083.37,-663.563 3085.93,-551.937 3079.49,-480.643"/>
+<path fill="none" stroke="midnightblue" d="M2391.46,-801.45C2533.05,-794.412 2972.23,-769.248 3017.71,-726 3078.9,-667.814 3085.29,-566.908 3080.66,-495.736"/>
 <polygon fill="none" stroke="midnightblue" points="2391.22,-797.958 2381.4,-801.945 2391.56,-804.95 2391.22,-797.958"/>
 </g>
 <!-- Node35 -->

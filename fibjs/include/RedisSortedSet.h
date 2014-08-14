@@ -16,8 +16,10 @@ namespace fibjs
 class RedisSortedSet: public RedisSortedSet_base
 {
 public:
-    RedisSortedSet(const char *key, Redis *rdb) : m_key(key), m_rdb(rdb)
-    {}
+    RedisSortedSet(Buffer_base *key, Redis *rdb) : m_rdb(rdb)
+    {
+        key->toString(m_key);
+    }
 
 public:
     // RedisSortedSet_base
@@ -30,6 +32,9 @@ public:
     virtual result_t len(int32_t &retVal);
     virtual result_t count(int32_t min, int32_t max, int32_t &retVal);
     virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base> &retVal);
+    virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base> &retVal);
+    virtual result_t rank(Buffer_base *member, int32_t &retVal);
+    virtual result_t rankRev(Buffer_base *member, int32_t &retVal);
 
 private:
     std::string m_key;

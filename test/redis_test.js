@@ -460,6 +460,22 @@ describe("redis", function() {
 			assert.deepEqual(zset.range(2, 5, true).toArray(), ["a2", "3", "a4", "4", "a5", "5", "a6", "6"]);
 		});
 
+		it("rangeRev", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.deepEqual(zset.rangeRev(2, 5).toArray(), ["a4", "a2", "a1", "a0"]);
+			assert.deepEqual(zset.rangeRev(2, 5, true).toArray(), ["a4", "4", "a2", "3", "a1", "2", "a0", "1"]);
+		});
+
+		it("rank", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.deepEqual(zset.rank("a4"), 3);
+		});
+
+		it("rankRev", function() {
+			var zset = rdb.getSortedSet("testSortedSet");
+			assert.deepEqual(zset.rankRev("a4"), 2);
+		});
+
 		it("remove", function() {
 			var zset = rdb.getSortedSet("testSortedSet");
 

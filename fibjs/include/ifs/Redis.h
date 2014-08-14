@@ -59,10 +59,10 @@ public:
 	virtual result_t persist(Buffer_base* key, bool& retVal) = 0;
 	virtual result_t rename(Buffer_base* key, Buffer_base* newkey) = 0;
 	virtual result_t renameNX(Buffer_base* key, Buffer_base* newkey, bool& retVal) = 0;
-	virtual result_t getHash(const char* key, obj_ptr<RedisHash_base>& retVal) = 0;
-	virtual result_t getList(const char* key, obj_ptr<RedisList_base>& retVal) = 0;
-	virtual result_t getSet(const char* key, obj_ptr<RedisSet_base>& retVal) = 0;
-	virtual result_t getSortedSet(const char* key, obj_ptr<RedisSortedSet_base>& retVal) = 0;
+	virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal) = 0;
+	virtual result_t getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal) = 0;
+	virtual result_t getSet(Buffer_base* key, obj_ptr<RedisSet_base>& retVal) = 0;
+	virtual result_t getSortedSet(Buffer_base* key, obj_ptr<RedisSortedSet_base>& retVal) = 0;
 	virtual result_t dump(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t restore(Buffer_base* key, Buffer_base* data, int64_t ttl) = 0;
 	virtual result_t close() = 0;
@@ -580,7 +580,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->getHash(v0, vr);
 
@@ -594,7 +594,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->getList(v0, vr);
 
@@ -608,7 +608,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->getSet(v0, vr);
 
@@ -622,7 +622,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->getSortedSet(v0, vr);
 

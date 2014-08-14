@@ -33,6 +33,9 @@ public:
 	virtual result_t len(int32_t& retVal) = 0;
 	virtual result_t count(int32_t min, int32_t max, int32_t& retVal) = 0;
 	virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal) = 0;
+	virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal) = 0;
+	virtual result_t rank(Buffer_base* member, int32_t& retVal) = 0;
+	virtual result_t rankRev(Buffer_base* member, int32_t& retVal) = 0;
 
 	DECLARE_CLASSINFO(RedisSortedSet_base);
 
@@ -44,6 +47,9 @@ public:
 	static void s_len(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_count(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_range(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rangeRev(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rank(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rankRev(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -63,13 +69,16 @@ namespace fibjs
 			{"remove", s_remove},
 			{"len", s_len},
 			{"count", s_count},
-			{"range", s_range}
+			{"range", s_range},
+			{"rangeRev", s_rangeRev},
+			{"rank", s_rank},
+			{"rankRev", s_rankRev}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"RedisSortedSet", NULL, 
-			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			10, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -182,6 +191,50 @@ namespace fibjs
 		OPT_ARG(bool, 2, false);
 
 		hr = pInst->range(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void RedisSortedSet_base::s_rangeRev(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<List_base> vr;
+
+		METHOD_INSTANCE(RedisSortedSet_base);
+		METHOD_ENTER(3, 2);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+		OPT_ARG(bool, 2, false);
+
+		hr = pInst->rangeRev(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void RedisSortedSet_base::s_rank(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(RedisSortedSet_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->rank(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(RedisSortedSet_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->rankRev(v0, vr);
 
 		METHOD_RETURN();
 	}

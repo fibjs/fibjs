@@ -101,7 +101,7 @@ public:
         if (lp != NULL)
             lp->Ref();
 
-        return Attach(lp);
+        return _attach(lp);
     }
 
     template<class Q>
@@ -110,7 +110,7 @@ public:
         if (lp != NULL)
             lp->Ref();
 
-        return Attach(lp);
+        return _attach(lp);
     }
 
     T *operator=(const obj_ptr<T> &lp)
@@ -121,7 +121,7 @@ public:
     template<class Q>
     T *operator=(const obj_ptr<Q> &lp)
     {
-        return operator=(lp.p);
+        return operator=((Q*)lp);
     }
 
     operator T *() const
@@ -156,10 +156,11 @@ public:
 
     void Release()
     {
-        Attach((T *)NULL);
+        _attach((T *)NULL);
     }
 
-    T *Attach(T *p2)
+private:
+    T *_attach(T *p2)
     {
         T *p1 = exlib::atom_xchg(&p, p2);
         if (p1)
@@ -168,11 +169,7 @@ public:
         return p2;
     }
 
-    T *Detach()
-    {
-        return exlib::atom_xchg(&p, (T *)NULL);
-    }
-
+private:
     T *p;
 };
 

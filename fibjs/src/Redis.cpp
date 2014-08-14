@@ -401,25 +401,25 @@ result_t Redis::renameNX(Buffer_base *key, Buffer_base *newkey, bool &retVal)
     return doCommand("RENAMENX", key, newkey, retVal);
 }
 
-result_t Redis::getHash(const char *key, obj_ptr<RedisHash_base> &retVal)
+result_t Redis::getHash(Buffer_base *key, obj_ptr<RedisHash_base> &retVal)
 {
     retVal = new RedisHash(key, this);
     return 0;
 }
 
-result_t Redis::getList(const char *key, obj_ptr<RedisList_base> &retVal)
+result_t Redis::getList(Buffer_base *key, obj_ptr<RedisList_base> &retVal)
 {
     retVal = new RedisList(key, this);
     return 0;
 }
 
-result_t Redis::getSet(const char *key, obj_ptr<RedisSet_base> &retVal)
+result_t Redis::getSet(Buffer_base *key, obj_ptr<RedisSet_base> &retVal)
 {
     retVal = new RedisSet(key, this);
     return 0;
 }
 
-result_t Redis::getSortedSet(const char *key, obj_ptr<RedisSortedSet_base> &retVal)
+result_t Redis::getSortedSet(Buffer_base *key, obj_ptr<RedisSortedSet_base> &retVal)
 {
     retVal = new RedisSortedSet(key, this);
     return 0;
