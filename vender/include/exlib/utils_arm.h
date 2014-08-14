@@ -81,6 +81,16 @@ inline int32_t atom_add(__volatile__ int32_t *dest, int32_t incr)
     return value;
 }
 
+inline int32_t atom_inc(__volatile__ int32_t *dest)
+{
+    return atom_add(dest, 1);
+}
+
+inline int32_t atom_dec(__volatile__ int32_t *dest)
+{
+    return atom_add(dest, -1);
+}
+
 inline int32_t atom_xchg(int32_t *ptr, int32_t new_value)
 {
     int32_t old_value;
@@ -99,14 +109,23 @@ inline int32_t atom_xchg(int32_t *ptr, int32_t new_value)
     return old_value;
 }
 
-inline int32_t atom_inc(__volatile__ int32_t *dest)
+template<typename T>
+inline T *atom_xchg(T **ptr, T *new_value)
 {
-    return atom_add(dest, 1);
-}
+    T *old_value;
+    T *res;
 
-inline int32_t atom_dec(__volatile__ int32_t *dest)
-{
-    return atom_add(dest, -1);
+    do
+    {
+        __asm__ __volatile__(
+            "ldrex %0, [%3]\n"
+            "strex %1, %4, [%3]\n"
+            : "=&r"(old_value), "=&r"(res), "+m"(*ptr)
+            : "r"(ptr), "r"(new_value)
+            : "cc", "memory");
+    }
+    while (res != 0);
+    return old_value;
 }
 
 inline void *CompareAndSwap(void **ptr, void *old_value, void *new_value)
