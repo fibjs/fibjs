@@ -30,7 +30,7 @@ void Event::pulse()
 
     if (pService)
         while (!m_blocks.empty())
-            pService->m_resume.put((Fiber *)m_blocks.get());
+            pService->m_resume.put(m_blocks.get());
 }
 
 void Event::set()
