@@ -34,7 +34,7 @@ void Semaphore::post()
         Service *pService = Service::getFiberService();
 
         if (pService)
-            pService->m_resume.put((Fiber *)m_blocks.get());
+            pService->m_resume.put(m_blocks.get());
     }
     else
         m_count++;
