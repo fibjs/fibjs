@@ -8,6 +8,7 @@
 
 #include <osconfig.h>
 #include "event.h"
+#include "lockfree.h"
 
 #ifndef _ex_fiber_h__
 #define _ex_fiber_h__

@@ -7,7 +7,6 @@
  */
 
 #include <osconfig.h>
-#include "lockfree.h"
 
 #ifndef _ex_event_h__
 #define _ex_event_h__
@@ -204,7 +203,7 @@ public:
     T *tryget()
     {
         if (!m_sem.trywait())
-            return NULL;
+            return 0;
         return m_list.get();
     }
 
