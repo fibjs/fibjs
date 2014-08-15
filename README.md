@@ -14,21 +14,6 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 
 ps: 请无视编译中出现的大量警告错误，那些基本上都是第三方代码库的警告，恕不消除了。
 
-## Install
-
-### on linux/freebsd/osx:
-	sudo sh installer.sh
-
-### on Windows(run as administrator):
-	installer
-
-## Test
-
-	cd test
-	js main.js
-
-----------------------------------
-
 ## Prerequisites (unix)
 
 	GCC 4.2 or newer
@@ -89,3 +74,18 @@ ps: 请无视编译中出现的大量警告错误，那些基本上都是第三�
 	        Developer Command Prompt for VS2013
 	        
 	build
+
+----------------------------------
+
+## Install
+
+### on linux/freebsd/osx:
+	sudo sh installer.sh
+
+### on Windows(run as administrator):
+	installer
+
+## Test
+
+	cd test
+	js main.js
