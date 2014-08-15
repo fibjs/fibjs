@@ -74,7 +74,7 @@ void Locker::unlock()
                 {
                     m_count++;
                     m_locker = m_blocks.get();
-                    pService->m_resume.put((Fiber *)m_locker);
+                    pService->m_resume.put(m_locker);
                 }
             }
         }

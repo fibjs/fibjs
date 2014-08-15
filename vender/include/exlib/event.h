@@ -81,6 +81,7 @@ private:
     int m_count;
 };
 
+class Fiber;
 class Locker
 {
 public:
@@ -103,8 +104,8 @@ public:
 private:
     bool m_locked;
     int m_count;
-    linkitem *m_locker;
-    List<linkitem> m_blocks;
+    Fiber *m_locker;
+    List<Fiber> m_blocks;
 };
 
 class autoLocker
@@ -142,7 +143,7 @@ public:
 
 private:
     bool m_set;
-    List<linkitem> m_blocks;
+    List<Fiber> m_blocks;
 };
 
 class CondVar
@@ -158,7 +159,7 @@ public:
     }
 
 private:
-    List<linkitem> m_blocks;
+    List<Fiber> m_blocks;
 };
 
 class Semaphore
@@ -181,7 +182,7 @@ public:
 
 private:
     int m_count;
-    List<linkitem> m_blocks;
+    List<Fiber> m_blocks;
 };
 
 template<class T>
