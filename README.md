@@ -80,10 +80,10 @@ ps: 请无视编译中出现的大量警告错误，那些基本上都是第三�
 ## Install
 
 ### on linux/freebsd/osx:
-	sudo sh installer.sh
+	sudo sh bin/(Darwin|Linux|FreeBSD)_Release/installer.sh
 
-### on Windows(run as administrator):
-	installer
+### on Windows console (run as administrator):
+	bin\Windows_Release\installer.exe
 
 ## Test
 
