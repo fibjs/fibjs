@@ -259,13 +259,13 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 #ifdef MacOS
         void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
 #else
-        const char *readline_dylib_names[] =
+        static const char *readline_dylib_names[] =
         {
             "libreadline.so.6",
             "libreadline.so.5",
             "libreadline.so"
         };
-        const size_t readline_dylib_names_size = ARRAYSIZE(readline_dylib_names);
+        static const size_t readline_dylib_names_size = ARRAYSIZE(readline_dylib_names);
         void *handle = 0;
 
         for (size_t i = 0; i < readline_dylib_names_size; i++)

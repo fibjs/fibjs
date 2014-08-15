@@ -33,7 +33,7 @@ void CondVar::notify_one()
         Service *pService = Service::getFiberService();
 
         if (pService)
-            pService->m_resume.put((Fiber *)m_blocks.get());
+            pService->m_resume.put(m_blocks.get());
     }
 }
 
@@ -45,7 +45,7 @@ void CondVar::notify_all()
 
         if (pService)
             while (!m_blocks.empty())
-                pService->m_resume.put((Fiber *)m_blocks.get());
+                pService->m_resume.put(m_blocks.get());
     }
 }
 
