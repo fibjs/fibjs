@@ -40,7 +40,7 @@ public:
             p = (T *) m_first;
             o->m_next = p;
         }
-        while (CompareAndSwap((T **) &m_first, p, o) != p);
+        while (CompareAndSwap(&m_first, p, o) != p);
     }
 
     T *get()
@@ -50,7 +50,7 @@ public:
         if (m_first == 0)
             return 0;
 
-        while (CompareAndSwap((void **) &m_lock, (void *) (0), (void *) (-1)))
+        while (CompareAndSwap(&m_lock, 0, -1))
             ;
 
         do
@@ -59,7 +59,7 @@ public:
             if (p == 0)
                 break;
         }
-        while (CompareAndSwap((T **) &m_first, p, (T *) (p->m_next)) != p);
+        while (CompareAndSwap(&m_first, p, (T *) (p->m_next)) != p);
 
         m_lock = 0;
 
@@ -76,7 +76,7 @@ public:
         if (m_first == 0)
             return 0;
 
-        while (CompareAndSwap((void **) &m_lock, (void *) (0), (void *) (-1)))
+        while (CompareAndSwap(&m_lock, 0, -1))
             ;
 
         do
@@ -85,7 +85,7 @@ public:
             if (p == 0)
                 break;
         }
-        while (CompareAndSwap((T **) &m_first, p, (T *) (0)) != p);
+        while (CompareAndSwap(&m_first, p, (T *)0) != p);
 
         m_lock = 0;
 
@@ -134,7 +134,7 @@ private:
 
 private:
     volatile T *m_first;
-    volatile void *m_lock;
+    volatile int32_t m_lock;
 };
 
 }

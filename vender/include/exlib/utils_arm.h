@@ -16,13 +16,13 @@ inline void MemoryBarrier()
 }
 
 template<typename T>
-inline T *CompareAndSwap(T **ptr, T *old_value, T *new_value)
+inline T *CompareAndSwap(volatile T **ptr, T *old_value, T *new_value)
 {
     T *oldval, *res;
 
     do
     {
-        __asm__ __volatile__(
+        __asm__ volatile(
             "ldrex %0, [%3]\n"
             "mov %1, #0\n"
             "cmp %0, %4\n"
@@ -39,13 +39,13 @@ inline T *CompareAndSwap(T **ptr, T *old_value, T *new_value)
     return oldval;
 }
 
-inline int32_t CompareAndSwap(int32_t *ptr, int32_t old_value, int32_t new_value)
+inline int32_t CompareAndSwap(volatile int32_t *ptr, int32_t old_value, int32_t new_value)
 {
     int32_t oldval, res;
 
     do
     {
-        __asm__ __volatile__(
+        __asm__ volatile(
             "ldrex %0, [%3]\n"
             "mov %1, #0\n"
             "cmp %0, %4\n"
@@ -62,14 +62,14 @@ inline int32_t CompareAndSwap(int32_t *ptr, int32_t old_value, int32_t new_value
     return oldval;
 }
 
-inline int32_t atom_add(__volatile__ int32_t *dest, int32_t incr)
+inline int32_t atom_add(volatile int32_t *dest, int32_t incr)
 {
     unsigned int32_t value;
     int32_t res;
 
     do
     {
-        __asm__ __volatile__(
+        __asm__ volatile(
             "ldrex %0, [%3]\n"
             "add %0, %0, %4\n"
             "strex %1, %0, [%3]\n"
@@ -81,24 +81,24 @@ inline int32_t atom_add(__volatile__ int32_t *dest, int32_t incr)
     return value;
 }
 
-inline int32_t atom_inc(__volatile__ int32_t *dest)
+inline int32_t atom_inc(volatile int32_t *dest)
 {
     return atom_add(dest, 1);
 }
 
-inline int32_t atom_dec(__volatile__ int32_t *dest)
+inline int32_t atom_dec(volatile int32_t *dest)
 {
     return atom_add(dest, -1);
 }
 
-inline int32_t atom_xchg(int32_t *ptr, int32_t new_value)
+inline int32_t atom_xchg(volatile int32_t *ptr, int32_t new_value)
 {
     int32_t old_value;
     int32_t res;
 
     do
     {
-        __asm__ __volatile__(
+        __asm__ volatile(
             "ldrex %0, [%3]\n"
             "strex %1, %4, [%3]\n"
             : "=&r"(old_value), "=&r"(res), "+m"(*ptr)
@@ -110,14 +110,14 @@ inline int32_t atom_xchg(int32_t *ptr, int32_t new_value)
 }
 
 template<typename T>
-inline T *atom_xchg(T **ptr, T *new_value)
+inline T *atom_xchg(volatile T **ptr, T *new_value)
 {
     T *old_value;
     T *res;
 
     do
     {
-        __asm__ __volatile__(
+        __asm__ volatile(
             "ldrex %0, [%3]\n"
             "strex %1, %4, [%3]\n"
             : "=&r"(old_value), "=&r"(res), "+m"(*ptr)
@@ -128,7 +128,7 @@ inline T *atom_xchg(T **ptr, T *new_value)
     return old_value;
 }
 
-inline void *CompareAndSwap(void **ptr, void *old_value, void *new_value)
+inline void *CompareAndSwap(volatile void **ptr, void *old_value, void *new_value)
 {
     return CompareAndSwap((char **) ptr, (char *) old_value, (char *) new_value);
 }
