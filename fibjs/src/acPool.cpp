@@ -10,7 +10,7 @@ namespace fibjs
 BlockedAsyncQueue s_acPool;
 
 static int32_t s_threads;
-static int32_t s_idleThreads;
+static volatile int32_t s_idleThreads;
 static int32_t s_idleCount;
 
 static class _acThread: public exlib::OSThread

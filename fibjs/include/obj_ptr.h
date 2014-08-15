@@ -60,7 +60,7 @@ protected:
     }
 
 private:
-    int32_t refs_;
+    volatile int32_t refs_;
 };
 
 template<class T>
@@ -115,18 +115,18 @@ public:
 
     T *operator=(const obj_ptr<T> &lp)
     {
-        return operator=(lp.p);
+        return operator=((T *)lp);
     }
 
     template<class Q>
     T *operator=(const obj_ptr<Q> &lp)
     {
-        return operator=((Q*)lp);
+        return operator=((Q *)lp);
     }
 
     operator T *() const
     {
-        return p;
+        return (T *)p;
     }
 
     T &operator*() const
@@ -136,7 +136,7 @@ public:
 
     T **operator&()
     {
-        return &p;
+        return (T **)&p;
     }
 
     bool operator!() const
@@ -146,12 +146,12 @@ public:
 
     bool operator==(T *pT) const
     {
-        return p == pT;
+        return (T *)p == pT;
     }
 
     T *operator->()
     {
-        return p;
+        return (T *)p;
     }
 
     void Release()
@@ -170,7 +170,7 @@ private:
     }
 
 private:
-    T *p;
+    volatile T *p;
 };
 
 }

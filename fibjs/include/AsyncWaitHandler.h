@@ -53,7 +53,7 @@ public:
 
 private:
     asyncWaiter *m_as;
-    int32_t m_stat;
+    volatile int32_t m_stat;
     int32_t m_invoked;
 };
 
