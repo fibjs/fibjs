@@ -171,7 +171,14 @@ result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
 result_t coroutine_base::sleep(int32_t ms, exlib::AsyncEvent *ac)
 {
     if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    {
+        if (ms > 0)
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        v8::Unlocker unlocker(isolate);
+        exlib::Service::getFiberService()->yield();
+        return 0;
+    }
 
     ac->sleep(ms);
     return CHECK_ERROR(CALL_E_PENDDING);
