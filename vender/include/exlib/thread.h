@@ -6,7 +6,10 @@
  *  lion@9465.net
  */
 
-#include <osconfig.h>
+#ifndef _ex_thread_h__
+#define _ex_thread_h__
+
+#include "osconfig.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -23,9 +26,6 @@
 
 #include <stdint.h>
 #include "utils.h"
-
-#ifndef _ex_thread_h__
-#define _ex_thread_h__
 
 namespace exlib
 {

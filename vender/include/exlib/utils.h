@@ -6,11 +6,11 @@
  *  lion@9465.net
  */
 
-#include "../osconfig.h"
-#include <stdint.h>
-
 #ifndef _ex_utils_h__
 #define _ex_utils_h__
+
+#include <stdint.h>
+#include "osconfig.h"
 
 #ifdef WIN32
 #include "utils_win.h"

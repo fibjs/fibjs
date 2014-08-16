@@ -1,4 +1,4 @@
-#include <osconfig.h>
+#include "osconfig.h"
 
 #if defined(_MSC_VER) && defined(I386)
 

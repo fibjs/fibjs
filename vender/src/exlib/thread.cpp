@@ -6,8 +6,8 @@
  *  lion@9465.net
  */
 
-#include <exlib/thread.h>
 #include <stack>
+#include "exlib/thread.h"
 
 namespace exlib
 {
