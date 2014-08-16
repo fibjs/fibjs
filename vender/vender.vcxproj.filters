@@ -1365,9 +1365,6 @@
     <ClCompile Include="src\v8\src\compiler\linkage.cc">
       <Filter>Source Files\v8\src\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\compiler\lowering-builder.cc">
-      <Filter>Source Files\v8\src\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\compiler\machine-operator-reducer.cc">
       <Filter>Source Files\v8\src\compiler</Filter>
     </ClCompile>
@@ -1830,9 +1827,6 @@
     <ClCompile Include="src\v8\src\snapshot-source-sink.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\store-buffer.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\string-search.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
@@ -1880,6 +1874,15 @@
     </ClCompile>
     <ClCompile Include="src\v8\src\zone.cc">
       <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\change-lowering.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\compiler\machine-type.cc">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\heap\store-buffer.cc">
+      <Filter>Source Files\v8\src\heap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3038,9 +3041,6 @@
     <ClInclude Include="src\v8\src\compiler\linkage-impl.h">
       <Filter>Source Files\v8\src\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\compiler\lowering-builder.h">
-      <Filter>Source Files\v8\src\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\compiler\machine-node-factory.h">
       <Filter>Source Files\v8\src\compiler</Filter>
     </ClInclude>
@@ -3674,12 +3674,6 @@
     <ClInclude Include="src\v8\src\splay-tree-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\store-buffer.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\store-buffer-inl.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\string-search.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -3772,6 +3766,21 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\zone-inl.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\bits.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\change-lowering.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\compiler\machine-type.h">
+      <Filter>Source Files\v8\src\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\heap\store-buffer.h">
+      <Filter>Source Files\v8\src\heap</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\heap\store-buffer-inl.h">
+      <Filter>Source Files\v8\src\heap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

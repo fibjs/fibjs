@@ -20,13 +20,13 @@
 #include "src/heap/mark-compact.h"
 #include "src/heap/objects-visiting-inl.h"
 #include "src/heap/objects-visiting.h"
+#include "src/heap/store-buffer.h"
 #include "src/heap-profiler.h"
 #include "src/isolate-inl.h"
 #include "src/natives.h"
 #include "src/runtime-profiler.h"
 #include "src/scopeinfo.h"
 #include "src/snapshot.h"
-#include "src/store-buffer.h"
 #include "src/utils.h"
 #include "src/v8threads.h"
 #include "src/vm-state-inl.h"
@@ -2834,7 +2834,7 @@ void Heap::CreateInitialObjects() {
 
   // Allocate the dictionary of intrinsic function names.
   Handle<NameDictionary> intrinsic_names =
-      NameDictionary::New(isolate(), Runtime::kNumFunctions);
+      NameDictionary::New(isolate(), Runtime::kNumFunctions, TENURED);
   Runtime::InitializeIntrinsicFunctionNames(isolate(), intrinsic_names);
   set_intrinsic_function_names(*intrinsic_names);
 

@@ -230,11 +230,10 @@ void InstructionSelector::MarkAsReference(Node* node) {
 }
 
 
-void InstructionSelector::MarkAsRepresentation(MachineRepresentation rep,
-                                               Node* node) {
+void InstructionSelector::MarkAsRepresentation(MachineType rep, Node* node) {
   DCHECK_NOT_NULL(node);
-  if (rep == kMachineFloat64) MarkAsDouble(node);
-  if (rep == kMachineTagged) MarkAsReference(node);
+  if (RepresentationOf(rep) == kRepFloat64) MarkAsDouble(node);
+  if (RepresentationOf(rep) == kRepTagged) MarkAsReference(node);
 }
 
 
@@ -467,10 +466,10 @@ void InstructionSelector::VisitNode(Node* node) {
       return;
     case IrOpcode::kParameter: {
       int index = OpParameter<int>(node);
-      MachineRepresentation rep = linkage()
-                                      ->GetIncomingDescriptor()
-                                      ->GetInputLocation(index)
-                                      .representation();
+      MachineType rep = linkage()
+                            ->GetIncomingDescriptor()
+                            ->GetInputLocation(index)
+                            .representation();
       MarkAsRepresentation(rep, node);
       return VisitParameter(node);
     }
@@ -494,7 +493,7 @@ void InstructionSelector::VisitNode(Node* node) {
     case IrOpcode::kStateValues:
       return;
     case IrOpcode::kLoad: {
-      MachineRepresentation load_rep = OpParameter<MachineRepresentation>(node);
+      MachineType load_rep = OpParameter<MachineType>(node);
       MarkAsRepresentation(load_rep, node);
       return VisitLoad(node);
     }
@@ -512,6 +511,8 @@ void InstructionSelector::VisitNode(Node* node) {
       return VisitWord32Shr(node);
     case IrOpcode::kWord32Sar:
       return VisitWord32Sar(node);
+    case IrOpcode::kWord32Ror:
+      return VisitWord32Ror(node);
     case IrOpcode::kWord32Equal:
       return VisitWord32Equal(node);
     case IrOpcode::kWord64And:
@@ -526,6 +527,8 @@ void InstructionSelector::VisitNode(Node* node) {
       return VisitWord64Shr(node);
     case IrOpcode::kWord64Sar:
       return VisitWord64Sar(node);
+    case IrOpcode::kWord64Ror:
+      return VisitWord64Ror(node);
     case IrOpcode::kWord64Equal:
       return VisitWord64Equal(node);
     case IrOpcode::kInt32Add:
@@ -723,6 +726,9 @@ void InstructionSelector::VisitWord64Shr(Node* node) { UNIMPLEMENTED(); }
 
 
 void InstructionSelector::VisitWord64Sar(Node* node) { UNIMPLEMENTED(); }
+
+
+void InstructionSelector::VisitWord64Ror(Node* node) { UNIMPLEMENTED(); }
 
 
 void InstructionSelector::VisitInt64Add(Node* node) { UNIMPLEMENTED(); }

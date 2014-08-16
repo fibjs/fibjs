@@ -5,6 +5,7 @@
 #ifndef V8_COMPILER_MACHINE_OPERATOR_H_
 #define V8_COMPILER_MACHINE_OPERATOR_H_
 
+#include "src/compiler/machine-type.h"
 #include "src/compiler/opcodes.h"
 #include "src/compiler/operator.h"
 #include "src/zone.h"
@@ -13,36 +14,14 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-// An enumeration of the storage representations at the machine level.
-// - Words are uninterpreted bits of a given fixed size that can be used
-//   to store integers and pointers. They are normally allocated to general
-//   purpose registers by the backend and are not tracked for GC.
-// - Floats are bits of a given fixed size that are used to store floating
-//   point numbers. They are normally allocated to the floating point
-//   registers of the machine and are not tracked for the GC.
-// - Tagged values are the size of a reference into the heap and can store
-//   small words or references into the heap using a language and potentially
-//   machine-dependent tagging scheme. These values are tracked by the code
-//   generator for precise GC.
-enum MachineRepresentation {
-  kMachineWord8,
-  kMachineWord16,
-  kMachineWord32,
-  kMachineWord64,
-  kMachineFloat64,
-  kMachineTagged,
-  kMachineLast
-};
-
-
 // TODO(turbofan): other write barriers are possible based on type
 enum WriteBarrierKind { kNoWriteBarrier, kFullWriteBarrier };
 
 
-// A Store needs a MachineRepresentation and a WriteBarrierKind
+// A Store needs a MachineType and a WriteBarrierKind
 // in order to emit the correct write barrier.
 struct StoreRepresentation {
-  MachineRepresentation rep;
+  MachineType machine_type;
   WriteBarrierKind write_barrier_kind;
 };
 
@@ -52,10 +31,9 @@ struct StoreRepresentation {
 // for generating code to run on architectures such as ia32, x64, arm, etc.
 class MachineOperatorBuilder {
  public:
-  explicit MachineOperatorBuilder(Zone* zone,
-                                  MachineRepresentation word = pointer_rep())
+  explicit MachineOperatorBuilder(Zone* zone, MachineType word = pointer_rep())
       : zone_(zone), word_(word) {
-    CHECK(word == kMachineWord32 || word == kMachineWord64);
+    CHECK(word == kRepWord32 || word == kRepWord64);
   }
 
 #define SIMPLE(name, properties, inputs, outputs) \
@@ -83,11 +61,11 @@ class MachineOperatorBuilder {
 
 #define WORD_SIZE(x) return is64() ? Word64##x() : Word32##x()
 
-  Operator* Load(MachineRepresentation rep) {  // load [base + index]
-    OP1(Load, MachineRepresentation, rep, Operator::kNoWrite, 2, 1);
+  Operator* Load(MachineType rep) {  // load [base + index]
+    OP1(Load, MachineType, rep, Operator::kNoWrite, 2, 1);
   }
   // store [base + index], value
-  Operator* Store(MachineRepresentation rep, WriteBarrierKind kind) {
+  Operator* Store(MachineType rep, WriteBarrierKind kind) {
     StoreRepresentation store_rep = {rep, kind};
     OP1(Store, StoreRepresentation, store_rep, Operator::kNoRead, 3, 0);
   }
@@ -98,6 +76,7 @@ class MachineOperatorBuilder {
   Operator* WordShl() { WORD_SIZE(Shl); }
   Operator* WordShr() { WORD_SIZE(Shr); }
   Operator* WordSar() { WORD_SIZE(Sar); }
+  Operator* WordRor() { WORD_SIZE(Ror); }
   Operator* WordEqual() { WORD_SIZE(Equal); }
 
   Operator* Word32And() { BINOP_AC(Word32And); }
@@ -106,6 +85,7 @@ class MachineOperatorBuilder {
   Operator* Word32Shl() { BINOP(Word32Shl); }
   Operator* Word32Shr() { BINOP(Word32Shr); }
   Operator* Word32Sar() { BINOP(Word32Sar); }
+  Operator* Word32Ror() { BINOP(Word32Ror); }
   Operator* Word32Equal() { BINOP_C(Word32Equal); }
 
   Operator* Word64And() { BINOP_AC(Word64And); }
@@ -114,6 +94,7 @@ class MachineOperatorBuilder {
   Operator* Word64Shl() { BINOP(Word64Shl); }
   Operator* Word64Shr() { BINOP(Word64Shr); }
   Operator* Word64Sar() { BINOP(Word64Sar); }
+  Operator* Word64Ror() { BINOP(Word64Ror); }
   Operator* Word64Equal() { BINOP_C(Word64Equal); }
 
   Operator* Int32Add() { BINOP_AC(Int32Add); }
@@ -165,12 +146,12 @@ class MachineOperatorBuilder {
   Operator* Float64LessThan() { BINOP(Float64LessThan); }
   Operator* Float64LessThanOrEqual() { BINOP(Float64LessThanOrEqual); }
 
-  inline bool is32() const { return word_ == kMachineWord32; }
-  inline bool is64() const { return word_ == kMachineWord64; }
-  inline MachineRepresentation word() const { return word_; }
+  inline bool is32() const { return word_ == kRepWord32; }
+  inline bool is64() const { return word_ == kRepWord64; }
+  inline MachineType word() const { return word_; }
 
-  static inline MachineRepresentation pointer_rep() {
-    return kPointerSize == 8 ? kMachineWord64 : kMachineWord32;
+  static inline MachineType pointer_rep() {
+    return kPointerSize == 8 ? kRepWord64 : kRepWord32;
   }
 
 #undef WORD_SIZE
@@ -181,7 +162,7 @@ class MachineOperatorBuilder {
 
  private:
   Zone* zone_;
-  MachineRepresentation word_;
+  MachineType word_;
 };
 }
 }

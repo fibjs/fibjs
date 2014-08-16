@@ -669,12 +669,10 @@ void CodeGenerator::AssembleReturn() {
         __ ldm(ia_w, sp, saves);
       }
     }
-    __ mov(sp, fp);
-    __ ldm(ia_w, sp, fp.bit() | lr.bit());
+    __ LeaveFrame(StackFrame::MANUAL);
     __ Ret();
   } else {
-    __ mov(sp, fp);
-    __ ldm(ia_w, sp, fp.bit() | lr.bit());
+    __ LeaveFrame(StackFrame::MANUAL);
     int pop_count =
         descriptor->IsJSFunctionCall() ? descriptor->ParameterCount() : 0;
     __ Drop(pop_count);
@@ -835,16 +833,6 @@ void CodeGenerator::AddNopForSmiCodeInlining() {
   // On 32-bit ARM we do not insert nops for inlined Smi code.
   UNREACHABLE();
 }
-
-#ifdef DEBUG
-
-// Checks whether the code between start_pc and end_pc is a no-op.
-bool CodeGenerator::IsNopForSmiCodeInlining(Handle<Code> code, int start_pc,
-                                            int end_pc) {
-  return false;
-}
-
-#endif  // DEBUG
 
 #undef __
 }

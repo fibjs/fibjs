@@ -46,6 +46,7 @@ namespace internal {
                                                             \
   F(GetPrototype, 1, 1)                                     \
   F(SetPrototype, 2, 1)                                     \
+  F(InternalSetPrototype, 2, 1)                             \
   F(IsInPrototypeChain, 2, 1)                               \
                                                             \
   F(GetOwnProperty, 2, 1)                                   \
@@ -67,7 +68,6 @@ namespace internal {
   F(OptimizeFunctionOnNextCall, -1, 1)                      \
   F(NeverOptimizeFunction, 1, 1)                            \
   F(GetOptimizationStatus, -1, 1)                           \
-  F(IsOptimized, 0, 1) /* TODO(turbofan): Only temporary */ \
   F(GetOptimizationCount, 1, 1)                             \
   F(UnblockConcurrentRecompilation, 0, 1)                   \
   F(CompileForOnStackReplacement, 1, 1)                     \
@@ -259,6 +259,7 @@ namespace internal {
   F(CreateSymbol, 1, 1)                                               \
   F(CreatePrivateSymbol, 1, 1)                                        \
   F(CreateGlobalPrivateSymbol, 1, 1)                                  \
+  F(CreatePrivateOwnSymbol, 1, 1)                                     \
   F(NewSymbolWrapper, 1, 1)                                           \
   F(SymbolDescription, 1, 1)                                          \
   F(SymbolRegistry, 0, 1)                                             \

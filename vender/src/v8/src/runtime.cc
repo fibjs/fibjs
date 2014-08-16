@@ -608,6 +608,17 @@ RUNTIME_FUNCTION(Runtime_CreatePrivateSymbol) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_CreatePrivateOwnSymbol) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_HANDLE_CHECKED(Object, name, 0);
+  RUNTIME_ASSERT(name->IsString() || name->IsUndefined());
+  Handle<Symbol> symbol = isolate->factory()->NewPrivateOwnSymbol();
+  if (name->IsString()) symbol->set_name(*name);
+  return *symbol;
+}
+
+
 RUNTIME_FUNCTION(Runtime_CreateGlobalPrivateSymbol) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1);
@@ -1859,6 +1870,20 @@ static inline Handle<Object> GetPrototypeSkipHiddenPrototypes(
     iter.Advance();
   }
   return PrototypeIterator::GetCurrent(iter);
+}
+
+
+RUNTIME_FUNCTION(Runtime_InternalSetPrototype) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 2);
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, obj, 0);
+  CONVERT_ARG_HANDLE_CHECKED(Object, prototype, 1);
+  DCHECK(!obj->IsAccessCheckNeeded());
+  DCHECK(!obj->map()->is_observed());
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, result, JSObject::SetPrototype(obj, prototype, false));
+  return *result;
 }
 
 
@@ -5470,7 +5495,7 @@ RUNTIME_FUNCTION(Runtime_DebugPushPromise) {
   DCHECK(args.length() == 1);
   HandleScope scope(isolate);
   CONVERT_ARG_HANDLE_CHECKED(JSObject, promise, 0);
-  isolate->debug()->PushPromise(promise);
+  isolate->PushPromise(promise);
   return isolate->heap()->undefined_value();
 }
 
@@ -5478,7 +5503,7 @@ RUNTIME_FUNCTION(Runtime_DebugPushPromise) {
 RUNTIME_FUNCTION(Runtime_DebugPopPromise) {
   DCHECK(args.length() == 0);
   SealHandleScope shs(isolate);
-  isolate->debug()->PopPromise();
+  isolate->PopPromise();
   return isolate->heap()->undefined_value();
 }
 
@@ -11181,15 +11206,6 @@ static SaveContext* FindSavedContextForFrame(Isolate* isolate,
   }
   DCHECK(save != NULL);
   return save;
-}
-
-
-RUNTIME_FUNCTION(Runtime_IsOptimized) {
-  SealHandleScope shs(isolate);
-  DCHECK(args.length() == 0);
-  JavaScriptFrameIterator it(isolate);
-  JavaScriptFrame* frame = it.frame();
-  return isolate->heap()->ToBoolean(frame->is_optimized());
 }
 
 

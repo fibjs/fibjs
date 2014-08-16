@@ -2383,6 +2383,14 @@ bool Value::IsNumber() const {
 }
 
 
+bool Value::IsArgumentsObject() const {
+  i::Handle<i::Object> obj = Utils::OpenHandle(this);
+  if (!obj->IsHeapObject()) return false;
+  i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
+  return obj->HasSpecificClassOf(isolate->heap()->Arguments_string());
+}
+
+
 bool Value::IsBoolean() const {
   return Utils::OpenHandle(this)->IsBoolean();
 }
@@ -3204,8 +3212,8 @@ bool v8::Object::SetPrototype(Handle<Value> value) {
   // to propagate outside.
   TryCatch try_catch;
   EXCEPTION_PREAMBLE(isolate);
-  i::MaybeHandle<i::Object> result = i::JSObject::SetPrototype(
-      self, value_obj);
+  i::MaybeHandle<i::Object> result =
+      i::JSObject::SetPrototype(self, value_obj, false);
   has_pending_exception = result.is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return true;
@@ -4290,9 +4298,7 @@ class Utf8LengthHelper : public i::AllStatic {
 
   class Visitor {
    public:
-    inline explicit Visitor()
-        : utf8_length_(0),
-          state_(kInitialState) {}
+    Visitor() : utf8_length_(0), state_(kInitialState) {}
 
     void VisitOneByteString(const uint8_t* chars, int length) {
       int utf8_length = 0;
@@ -5475,7 +5481,7 @@ Local<String> v8::String::NewExternal(
 bool v8::String::MakeExternal(v8::String::ExternalStringResource* resource) {
   i::Handle<i::String> obj = Utils::OpenHandle(this);
   i::Isolate* isolate = obj->GetIsolate();
-  if (i::StringShape(*obj).IsExternalTwoByte()) {
+  if (i::StringShape(*obj).IsExternal()) {
     return false;  // Already an external string.
   }
   ENTER_V8(isolate);
@@ -5488,6 +5494,8 @@ bool v8::String::MakeExternal(v8::String::ExternalStringResource* resource) {
   CHECK(resource && resource->data());
 
   bool result = obj->MakeExternal(resource);
+  // Assert that if CanMakeExternal(), then externalizing actually succeeds.
+  DCHECK(!CanMakeExternal() || result);
   if (result) {
     DCHECK(obj->IsExternalString());
     isolate->heap()->external_string_table()->AddString(*obj);
@@ -5515,7 +5523,7 @@ bool v8::String::MakeExternal(
     v8::String::ExternalAsciiStringResource* resource) {
   i::Handle<i::String> obj = Utils::OpenHandle(this);
   i::Isolate* isolate = obj->GetIsolate();
-  if (i::StringShape(*obj).IsExternalTwoByte()) {
+  if (i::StringShape(*obj).IsExternal()) {
     return false;  // Already an external string.
   }
   ENTER_V8(isolate);
@@ -5528,6 +5536,8 @@ bool v8::String::MakeExternal(
   CHECK(resource && resource->data());
 
   bool result = obj->MakeExternal(resource);
+  // Assert that if CanMakeExternal(), then externalizing actually succeeds.
+  DCHECK(!CanMakeExternal() || result);
   if (result) {
     DCHECK(obj->IsExternalString());
     isolate->heap()->external_string_table()->AddString(*obj);

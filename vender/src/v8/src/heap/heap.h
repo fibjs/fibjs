@@ -16,9 +16,9 @@
 #include "src/heap/mark-compact.h"
 #include "src/heap/objects-visiting.h"
 #include "src/heap/spaces.h"
+#include "src/heap/store-buffer.h"
 #include "src/list.h"
 #include "src/splay-tree-inl.h"
-#include "src/store-buffer.h"
 
 namespace v8 {
 namespace internal {
@@ -960,7 +960,7 @@ class Heap {
 
   // Returns deterministic "time" value in ms. Works only with
   // FLAG_verify_predictable.
-  double synthetic_time() { return allocations_count_ / 100.0; }
+  double synthetic_time() { return allocations_count_ / 2.0; }
 
   // Print short heap statistics.
   void PrintShortHeapStatistics();

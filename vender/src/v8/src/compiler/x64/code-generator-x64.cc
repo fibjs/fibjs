@@ -374,6 +374,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kX64Sar:
       ASSEMBLE_SHIFT(sarq, 6);
       break;
+    case kX64Ror32:
+      ASSEMBLE_SHIFT(rorl, 5);
+      break;
+    case kX64Ror:
+      ASSEMBLE_SHIFT(rorq, 6);
+      break;
     case kX64Push: {
       RegisterOrOperand input = i.InputRegisterOrOperand(0);
       if (input.type == kRegister) {
@@ -985,20 +991,6 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
 void CodeGenerator::AddNopForSmiCodeInlining() { __ nop(); }
 
 #undef __
-
-#ifdef DEBUG
-
-// Checks whether the code between start_pc and end_pc is a no-op.
-bool CodeGenerator::IsNopForSmiCodeInlining(Handle<Code> code, int start_pc,
-                                            int end_pc) {
-  if (start_pc + 1 != end_pc) {
-    return false;
-  }
-  return *(code->instruction_start() + start_pc) ==
-         v8::internal::Assembler::kNopByte;
-}
-
-#endif
 
 }  // namespace internal
 }  // namespace compiler

@@ -369,6 +369,7 @@
     <ClCompile Include="src\v8\src\compiler\arm\instruction-selector-arm.cc" />
     <ClCompile Include="src\v8\src\compiler\arm\linkage-arm.cc" />
     <ClCompile Include="src\v8\src\compiler\ast-graph-builder.cc" />
+    <ClCompile Include="src\v8\src\compiler\change-lowering.cc" />
     <ClCompile Include="src\v8\src\compiler\code-generator.cc" />
     <ClCompile Include="src\v8\src\compiler\control-builders.cc" />
     <ClCompile Include="src\v8\src\compiler\gap-resolver.cc" />
@@ -387,8 +388,8 @@
     <ClCompile Include="src\v8\src\compiler\js-graph.cc" />
     <ClCompile Include="src\v8\src\compiler\js-typed-lowering.cc" />
     <ClCompile Include="src\v8\src\compiler\linkage.cc" />
-    <ClCompile Include="src\v8\src\compiler\lowering-builder.cc" />
     <ClCompile Include="src\v8\src\compiler\machine-operator-reducer.cc" />
+    <ClCompile Include="src\v8\src\compiler\machine-type.cc" />
     <ClCompile Include="src\v8\src\compiler\node-cache.cc" />
     <ClCompile Include="src\v8\src\compiler\node.cc" />
     <ClCompile Include="src\v8\src\compiler\pipeline.cc" />
@@ -444,6 +445,7 @@
     <ClCompile Include="src\v8\src\heap\mark-compact.cc" />
     <ClCompile Include="src\v8\src\heap\objects-visiting.cc" />
     <ClCompile Include="src\v8\src\heap\spaces.cc" />
+    <ClCompile Include="src\v8\src\heap\store-buffer.cc" />
     <ClCompile Include="src\v8\src\heap\sweeper-thread.cc" />
     <ClCompile Include="src\v8\src\hydrogen-bce.cc" />
     <ClCompile Include="src\v8\src\hydrogen-bch.cc" />
@@ -532,7 +534,6 @@
     <ClCompile Include="src\v8\src\snapshot-common.cc" />
     <ClCompile Include="src\v8\src\snapshot-empty.cc" />
     <ClCompile Include="src\v8\src\snapshot-source-sink.cc" />
-    <ClCompile Include="src\v8\src\store-buffer.cc" />
     <ClCompile Include="src\v8\src\string-search.cc" />
     <ClCompile Include="src\v8\src\string-stream.cc" />
     <ClCompile Include="src\v8\src\strtod.cc" />
@@ -891,6 +892,7 @@
     <ClInclude Include="src\v8\src\base\atomicops_internals_tsan.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_x86_gcc.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_x86_msvc.h" />
+    <ClInclude Include="src\v8\src\base\bits.h" />
     <ClInclude Include="src\v8\src\base\build_config.h" />
     <ClInclude Include="src\v8\src\base\cpu.h" />
     <ClInclude Include="src\v8\src\base\lazy-instance.h" />
@@ -931,6 +933,7 @@
     <ClInclude Include="src\v8\src\compiler\arm64\instruction-codes-arm64.h" />
     <ClInclude Include="src\v8\src\compiler\arm\instruction-codes-arm.h" />
     <ClInclude Include="src\v8\src\compiler\ast-graph-builder.h" />
+    <ClInclude Include="src\v8\src\compiler\change-lowering.h" />
     <ClInclude Include="src\v8\src\compiler\code-generator-impl.h" />
     <ClInclude Include="src\v8\src\compiler\code-generator.h" />
     <ClInclude Include="src\v8\src\compiler\common-node-cache.h" />
@@ -961,10 +964,10 @@
     <ClInclude Include="src\v8\src\compiler\js-typed-lowering.h" />
     <ClInclude Include="src\v8\src\compiler\linkage-impl.h" />
     <ClInclude Include="src\v8\src\compiler\linkage.h" />
-    <ClInclude Include="src\v8\src\compiler\lowering-builder.h" />
     <ClInclude Include="src\v8\src\compiler\machine-node-factory.h" />
     <ClInclude Include="src\v8\src\compiler\machine-operator-reducer.h" />
     <ClInclude Include="src\v8\src\compiler\machine-operator.h" />
+    <ClInclude Include="src\v8\src\compiler\machine-type.h" />
     <ClInclude Include="src\v8\src\compiler\node-aux-data-inl.h" />
     <ClInclude Include="src\v8\src\compiler\node-aux-data.h" />
     <ClInclude Include="src\v8\src\compiler\node-cache.h" />
@@ -1049,6 +1052,8 @@
     <ClInclude Include="src\v8\src\heap\objects-visiting.h" />
     <ClInclude Include="src\v8\src\heap\spaces-inl.h" />
     <ClInclude Include="src\v8\src\heap\spaces.h" />
+    <ClInclude Include="src\v8\src\heap\store-buffer-inl.h" />
+    <ClInclude Include="src\v8\src\heap\store-buffer.h" />
     <ClInclude Include="src\v8\src\heap\sweeper-thread.h" />
     <ClInclude Include="src\v8\src\hydrogen-alias-analysis.h" />
     <ClInclude Include="src\v8\src\hydrogen-bce.h" />
@@ -1155,8 +1160,6 @@
     <ClInclude Include="src\v8\src\snapshot.h" />
     <ClInclude Include="src\v8\src\splay-tree-inl.h" />
     <ClInclude Include="src\v8\src\splay-tree.h" />
-    <ClInclude Include="src\v8\src\store-buffer-inl.h" />
-    <ClInclude Include="src\v8\src\store-buffer.h" />
     <ClInclude Include="src\v8\src\string-search.h" />
     <ClInclude Include="src\v8\src\string-stream.h" />
     <ClInclude Include="src\v8\src\strtod.h" />
