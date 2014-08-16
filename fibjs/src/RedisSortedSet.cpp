@@ -18,7 +18,6 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t &retVal)
     v8::Local<v8::Array> keys = sms->GetPropertyNames();
     v8::Local<v8::Array> mss = v8::Array::New(isolate);
 
-    result_t hr;
     int32_t i, n = 0;
 
     for (i = 0; i < (int32_t)keys->Length(); i ++)
