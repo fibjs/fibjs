@@ -50,3 +50,12 @@ string(REPLACE "cmake_ARCH " "" ARCH "${ARCH}")
 if (NOT ARCH)
     set(ARCH unknown)
 endif()
+
+# check host bitwide
+if(${CMAKE_SIZEOF_VOID_P} EQUAL "8")
+	set(HOST_OS_64BIT TRUE BOOL INTERNAL)
+	set(HOST_OS_BIT "64")
+else()
+	set(HOST_OS_32BIT TRUE BOOL INTERNAL)
+	set(HOST_OS_BIT "32")
+endif()

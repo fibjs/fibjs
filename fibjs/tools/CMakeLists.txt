@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 include(../../tools/arch.cmake)
 include(../../tools/os.cmake)
+include(../../tools/buildtype.cmake)
 
 project(fibjs)
 
