@@ -7,9 +7,10 @@
 
 #ifdef WIN32
 
-#include <exlib/utils.h>
 #include <windows.h>
 #include <stdio.h>
+
+#include "exlib/utils.h"
 
 namespace exlib
 {

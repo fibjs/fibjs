@@ -6,10 +6,10 @@
  *  lion@9465.net
  */
 
-#include <osconfig.h>
-
 #ifndef _ex_event_h__
 #define _ex_event_h__
+
+#include "osconfig.h"
 
 namespace exlib
 {

@@ -6,11 +6,12 @@
  *  lion@9465.net
  */
 
-#include <osconfig.h>
-#include <exlib/fiber.h>
-#include <exlib/thread.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "osconfig.h"
+#include "exlib/fiber.h"
+#include "exlib/thread.h"
 
 namespace exlib
 {

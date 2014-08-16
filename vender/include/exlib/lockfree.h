@@ -6,13 +6,14 @@
  *  lion@9465.net
  */
 
-#include "utils.h"
+#ifndef _ex_lockfree_h__
+#define _ex_lockfree_h__
+
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
-#ifndef _ex_lockfree_h__
-#define _ex_lockfree_h__
+#include "utils.h"
 
 namespace exlib
 {

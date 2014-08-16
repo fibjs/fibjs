@@ -6,13 +6,14 @@
  *  lion@9465.net
  */
 
-#include <osconfig.h>
-#include <exlib/fiber.h>
-#include <exlib/thread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <time.h>
+
+#include "osconfig.h"
+#include "exlib/fiber.h"
+#include "exlib/thread.h"
 
 #ifdef _WIN32
 #define WM_SLEEP    (WM_USER + 1)
