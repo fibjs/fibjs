@@ -126,9 +126,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a61b0ac109f970cbf51ea426f81310fe5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dbc/classRedisHash.html#a61b0ac109f970cbf51ea426f81310fe5">setNX</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> field, <a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> value)</td></tr>
 <tr class="memdesc:a61b0ac109f970cbf51ea426f81310fe5"><td class="mdescLeft">&#160;</td><td class="mdescRight">将哈希表中的域 field 的值设置为 value ，当且仅当域 field 不存在。若域 field 已经存在，该操作无效  <a href="#a61b0ac109f970cbf51ea426f81310fe5">更多...</a><br /></td></tr>
 <tr class="separator:a61b0ac109f970cbf51ea426f81310fe5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa449214cd33ba5edac292d54df4de6b9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dbc/classRedisHash.html#aa449214cd33ba5edac292d54df4de6b9">mset</a> (Array kvs)</td></tr>
-<tr class="memdesc:aa449214cd33ba5edac292d54df4de6b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域  <a href="#aa449214cd33ba5edac292d54df4de6b9">更多...</a><br /></td></tr>
-<tr class="separator:aa449214cd33ba5edac292d54df4de6b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51790a023293d74e9868423782ac1b42"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dbc/classRedisHash.html#a51790a023293d74e9868423782ac1b42">mset</a> (Object kvs)</td></tr>
+<tr class="memdesc:a51790a023293d74e9868423782ac1b42"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域  <a href="#a51790a023293d74e9868423782ac1b42">更多...</a><br /></td></tr>
+<tr class="separator:a51790a023293d74e9868423782ac1b42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace7739b42d9793c4777d3f09143a5dff"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dbc/classRedisHash.html#ace7739b42d9793c4777d3f09143a5dff">mset</a> (...)</td></tr>
 <tr class="memdesc:ace7739b42d9793c4777d3f09143a5dff"><td class="mdescLeft">&#160;</td><td class="mdescRight">同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域  <a href="#ace7739b42d9793c4777d3f09143a5dff">更多...</a><br /></td></tr>
 <tr class="separator:ace7739b42d9793c4777d3f09143a5dff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -251,14 +251,14 @@ Public 成员函数</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="aa449214cd33ba5edac292d54df4de6b9"></a>
+<a class="anchor" id="a51790a023293d74e9868423782ac1b42"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">RedisHash::mset </td>
           <td>(</td>
-          <td class="paramtype">Array&#160;</td>
+          <td class="paramtype">Object&#160;</td>
           <td class="paramname"><em>kvs</em></td><td>)</td>
           <td></td>
         </tr>
@@ -268,7 +268,7 @@ Public 成员函数</h2></td></tr>
 <p>同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">kvs</td><td>指定要设置的 field/value 数组 </td></tr>
+    <tr><td class="paramname">kvs</td><td>指定要设置的 field/value 对象 </td></tr>
   </table>
   </dd>
 </dl>

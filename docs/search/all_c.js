@@ -22,8 +22,8 @@ var searchData=
   ['mongoid',['MongoID',['../d2/d6d/classMongoID.html',1,'']]],
   ['most',['most',['../dd/d7a/classExpect.html#a02470a5b9fb9623b14b5d9c24bfb3c83',1,'Expect']]],
   ['mq',['mq',['../d4/d86/classmq.html',1,'']]],
-  ['mset',['mset',['../db/d15/classRedis.html#ad8fe169373a14e2aa17c60fb391ea6fc',1,'Redis::mset(Array kvs)'],['../db/d15/classRedis.html#a96751caed808fb9ce4a834b8cee5720e',1,'Redis::mset(...)'],['../df/dbc/classRedisHash.html#aa449214cd33ba5edac292d54df4de6b9',1,'RedisHash::mset(Array kvs)'],['../df/dbc/classRedisHash.html#ace7739b42d9793c4777d3f09143a5dff',1,'RedisHash::mset(...)']]],
-  ['msetnx',['msetNX',['../db/d15/classRedis.html#a134a5554dcf708a537b853e814023d95',1,'Redis::msetNX(Array kvs)'],['../db/d15/classRedis.html#a17789191649407fd4176186e0b5b4881',1,'Redis::msetNX(...)']]],
+  ['mset',['mset',['../db/d15/classRedis.html#a2f01136669c713f14ddea847e24daeac',1,'Redis::mset(Object kvs)'],['../db/d15/classRedis.html#a96751caed808fb9ce4a834b8cee5720e',1,'Redis::mset(...)'],['../df/dbc/classRedisHash.html#a51790a023293d74e9868423782ac1b42',1,'RedisHash::mset(Object kvs)'],['../df/dbc/classRedisHash.html#ace7739b42d9793c4777d3f09143a5dff',1,'RedisHash::mset(...)']]],
+  ['msetnx',['msetNX',['../db/d15/classRedis.html#a9995f1451a20a8e6a2fa22c8f01100e8',1,'Redis::msetNX(Object kvs)'],['../db/d15/classRedis.html#a17789191649407fd4176186e0b5b4881',1,'Redis::msetNX(...)']]],
   ['mtime',['mtime',['../dc/d81/classStat.html#a356bbde5f558716ffc9ca7e4cf6f5aae',1,'Stat']]],
   ['multiline',['multiline',['../d8/d28/classRegex.html#a8bcded08d6f62d75b73fa98ee60f0af2',1,'Regex']]],
   ['mysql',['MySQL',['../d3/da8/classMySQL.html',1,'']]]

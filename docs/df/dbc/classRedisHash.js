@@ -2,7 +2,7 @@ var classRedisHash =
 [
     [ "set", "df/dbc/classRedisHash.html#ac1f0d251ddf8ffd73b9829e1fd27fe90", null ],
     [ "setNX", "df/dbc/classRedisHash.html#a61b0ac109f970cbf51ea426f81310fe5", null ],
-    [ "mset", "df/dbc/classRedisHash.html#aa449214cd33ba5edac292d54df4de6b9", null ],
+    [ "mset", "df/dbc/classRedisHash.html#a51790a023293d74e9868423782ac1b42", null ],
     [ "mset", "df/dbc/classRedisHash.html#ace7739b42d9793c4777d3f09143a5dff", null ],
     [ "get", "df/dbc/classRedisHash.html#afc07ac81b6e3bf682e35d21d72ae4621", null ],
     [ "mget", "df/dbc/classRedisHash.html#a91cccc59189209f7e27be07e41b9792a", null ],

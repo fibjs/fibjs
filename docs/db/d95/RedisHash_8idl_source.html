@@ -106,9 +106,9 @@ $(document).ready(function(){initNavTree('db/d95/RedisHash_8idl_source.html','..
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <a class="code" href="../../df/dbc/classRedisHash.html#a61b0ac109f970cbf51ea426f81310fe5">setNX</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> field, <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> value);</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <a class="code" href="../../df/dbc/classRedisHash.html#aa449214cd33ba5edac292d54df4de6b9">mset</a>(Array kvs);</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <a class="code" href="../../df/dbc/classRedisHash.html#a51790a023293d74e9868423782ac1b42">mset</a>(Object kvs);</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    <a class="code" href="../../df/dbc/classRedisHash.html#aa449214cd33ba5edac292d54df4de6b9">mset</a>(...);</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    <a class="code" href="../../df/dbc/classRedisHash.html#a51790a023293d74e9868423782ac1b42">mset</a>(...);</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <span class="keyword">get</span>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> field);</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
@@ -130,10 +130,10 @@ $(document).ready(function(){initNavTree('db/d95/RedisHash_8idl_source.html','..
 <div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;</div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    Integer <a class="code" href="../../df/dbc/classRedisHash.html#a35acad981389e288138c66b06bfdd757">del</a>(...);</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;};</div>
+<div class="ttc" id="classRedisHash_html_a51790a023293d74e9868423782ac1b42"><div class="ttname"><a href="../../df/dbc/classRedisHash.html#a51790a023293d74e9868423782ac1b42">RedisHash::mset</a></div><div class="ttdeci">mset(Object kvs)</div><div class="ttdoc">同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域 </div></div>
 <div class="ttc" id="classRedisHash_html_a60bb38924cf1174b1871c923f49e7bee"><div class="ttname"><a href="../../df/dbc/classRedisHash.html#a60bb38924cf1174b1871c923f49e7bee">RedisHash::exists</a></div><div class="ttdeci">Boolean exists(Buffer field)</div><div class="ttdoc">查看哈希表中，给定域 field 是否存在 </div></div>
 <div class="ttc" id="classRedisHash_html_a02488736b85a0df04c107d44d4ae6feb"><div class="ttname"><a href="../../df/dbc/classRedisHash.html#a02488736b85a0df04c107d44d4ae6feb">RedisHash::incr</a></div><div class="ttdeci">Long incr(Buffer field, Long num=1)</div><div class="ttdoc">将域所储存的值加上增量 </div></div>
 <div class="ttc" id="classRedisHash_html_a26ef98c343228656940c7a64909b5dd1"><div class="ttname"><a href="../../df/dbc/classRedisHash.html#a26ef98c343228656940c7a64909b5dd1">RedisHash::len</a></div><div class="ttdeci">Integer len()</div><div class="ttdoc">返回哈希表中域的数量 </div></div>
-<div class="ttc" id="classRedisHash_html_aa449214cd33ba5edac292d54df4de6b9"><div class="ttname"><a href="../../df/dbc/classRedisHash.html#aa449214cd33ba5edac292d54df4de6b9">RedisHash::mset</a></div><div class="ttdeci">mset(Array kvs)</div><div class="ttdoc">同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域 </div></div>
 <div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
 <div class="ttc" id="classList_html"><div class="ttname"><a href="../../d6/da9/classList.html">List</a></div><div class="ttdoc">Variant 数组对象，一般用以返回一组 Variant 数据 </div><div class="ttdef"><b>Definition:</b> List.idl:10</div></div>
 <div class="ttc" id="classRedisHash_html_a08e88fb674bab3f04ab8479895788961"><div class="ttname"><a href="../../df/dbc/classRedisHash.html#a08e88fb674bab3f04ab8479895788961">RedisHash::keys</a></div><div class="ttdeci">List keys()</div><div class="ttdoc">返回哈希表中的所有域 </div></div>

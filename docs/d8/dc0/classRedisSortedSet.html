@@ -115,15 +115,14 @@ $(document).ready(function(){initNavTree('d8/dc0/classRedisSortedSet.html','../.
 <div class="dynheader">
 类 RedisSortedSet 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/ddd/classRedisSortedSet__inherit__graph.svg" width="126" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
-</div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/ddd/classRedisSortedSet__inherit__graph.svg" width="126" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
-<tr class="memitem:a27f80b2a80da3bfb5210cbb275b1ecdb"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dc0/classRedisSortedSet.html#a27f80b2a80da3bfb5210cbb275b1ecdb">add</a> (Array sms)</td></tr>
-<tr class="memdesc:a27f80b2a80da3bfb5210cbb275b1ecdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">将一个或多个 member 元素及其 score 值加入到有序集当中  <a href="#a27f80b2a80da3bfb5210cbb275b1ecdb">更多...</a><br /></td></tr>
-<tr class="separator:a27f80b2a80da3bfb5210cbb275b1ecdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a307ae11b143521f0ed0d079b9f33fbdc"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dc0/classRedisSortedSet.html#a307ae11b143521f0ed0d079b9f33fbdc">add</a> (Object sms)</td></tr>
+<tr class="memdesc:a307ae11b143521f0ed0d079b9f33fbdc"><td class="mdescLeft">&#160;</td><td class="mdescRight">将一个或多个 member 元素及其 score 值加入到有序集当中  <a href="#a307ae11b143521f0ed0d079b9f33fbdc">更多...</a><br /></td></tr>
+<tr class="separator:a307ae11b143521f0ed0d079b9f33fbdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11db5b4d85cca364a0490de942dc8573"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dc0/classRedisSortedSet.html#a11db5b4d85cca364a0490de942dc8573">add</a> (...)</td></tr>
 <tr class="memdesc:a11db5b4d85cca364a0490de942dc8573"><td class="mdescLeft">&#160;</td><td class="mdescRight">将一个或多个 member 元素及其 score 值加入到有序集当中  <a href="#a11db5b4d85cca364a0490de942dc8573">更多...</a><br /></td></tr>
 <tr class="separator:a11db5b4d85cca364a0490de942dc8573"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -176,14 +175,14 @@ Public 成员函数</h2></td></tr>
 <div class="line">var rdb = <span class="keyword">new</span> db.openRedis(<span class="stringliteral">&quot;redis-server&quot;</span>);</div>
 <div class="line">var set = rdb.getSortedSet(<span class="stringliteral">&quot;test&quot;</span>);</div>
 </div><!-- fragment --> </div><h2 class="groupheader">成员函数说明</h2>
-<a class="anchor" id="a27f80b2a80da3bfb5210cbb275b1ecdb"></a>
+<a class="anchor" id="a307ae11b143521f0ed0d079b9f33fbdc"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">Integer RedisSortedSet::add </td>
           <td>(</td>
-          <td class="paramtype">Array&#160;</td>
+          <td class="paramtype">Object&#160;</td>
           <td class="paramname"><em>sms</em></td><td>)</td>
           <td></td>
         </tr>
@@ -193,7 +192,7 @@ Public 成员函数</h2></td></tr>
 <p>将一个或多个 member 元素及其 score 值加入到有序集当中 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sms</td><td>指定要添加的 member/score 数组 </td></tr>
+    <tr><td class="paramname">sms</td><td>指定要添加的 member/score 对象 </td></tr>
   </table>
   </dd>
 </dl>
