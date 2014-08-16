@@ -22,6 +22,17 @@ public:
     }
 
 public:
+    virtual void enter()
+    {
+        m_rdb->enter();
+    }
+
+    virtual void leave()
+    {
+        m_rdb->leave();
+    }
+
+public:
     // RedisSet_base
     virtual result_t add(v8::Local<v8::Array> members, int32_t &retVal);
     virtual result_t add(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);

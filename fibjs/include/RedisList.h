@@ -22,6 +22,17 @@ public:
     }
 
 public:
+    virtual void enter()
+    {
+        m_rdb->enter();
+    }
+
+    virtual void leave()
+    {
+        m_rdb->leave();
+    }
+
+public:
     // RedisList_base
     virtual result_t push(v8::Local<v8::Array> values, int32_t &retVal);
     virtual result_t push(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);

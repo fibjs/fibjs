@@ -22,6 +22,17 @@ public:
     }
 
 public:
+    virtual void enter()
+    {
+        m_rdb->enter();
+    }
+
+    virtual void leave()
+    {
+        m_rdb->leave();
+    }
+
+public:
     // RedisHash_base
     virtual result_t set(Buffer_base *field, Buffer_base *value);
     virtual result_t setNX(Buffer_base *field, Buffer_base *value);
