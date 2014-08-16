@@ -723,8 +723,8 @@
     <ClInclude Include="include\winconfig.h" />
     <ClInclude Include="include\winstdint.h" />
     <ClInclude Include="include\win_iconv.h" />
-    <ClInclude Include="include\zconf.h" />
-    <ClInclude Include="include\zlib.h" />
+    <ClInclude Include="include\zlib\zconf.h" />
+    <ClInclude Include="include\zlib\zlib.h" />
     <ClInclude Include="include\zookeeper.h" />
     <ClInclude Include="include\zookeeper.jute.h" />
     <ClInclude Include="include\zookeeper_log.h" />
@@ -1330,7 +1330,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\include\zlib;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1378,7 +1378,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\include\zlib;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>

@@ -2,14 +2,20 @@ cmake_minimum_required(VERSION 2.6)
 
 include(../../tools/arch.cmake)
 include(../../tools/os.cmake)
+include(../../tools/buildtype.cmake)
+
+include(../../tools/check_zlib.cmake)
 
 project(vender)
 
 file(GLOB_RECURSE src_list "../src/*.c*")
-add_library(vender ${src_list})
 
 set(flags "-c -fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64 -DSQLITE_ENABLE_FTS4=1")
 set(link_flags " ")
+
+include(./select_zlib.cmake)
+
+add_library(vender ${src_list})
 
 if(${OS} STREQUAL "Darwin")
 	set(flags "${flags} -mmacosx-version-min=10.6")
@@ -42,3 +48,4 @@ if(link_flags)
 endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/../include/" "${PROJECT_SOURCE_DIR}/../src/v8/src/" "${PROJECT_SOURCE_DIR}/../src/v8/" "${PROJECT_SOURCE_DIR}/../src/leveldb/" "/usr/local/include/")
+
