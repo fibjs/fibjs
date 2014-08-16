@@ -24,7 +24,7 @@ class RedisSortedSet_base : public object_base
 {
 public:
 	// RedisSortedSet_base
-	virtual result_t add(v8::Local<v8::Array> sms, int32_t& retVal) = 0;
+	virtual result_t add(v8::Local<v8::Object> sms, int32_t& retVal) = 0;
 	virtual result_t add(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
 	virtual result_t score(Buffer_base* member, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t incr(Buffer_base* member, int64_t num, obj_ptr<Buffer_base>& retVal) = 0;
@@ -94,7 +94,7 @@ namespace fibjs
 		METHOD_INSTANCE(RedisSortedSet_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Local<v8::Array>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->add(v0, vr);
 

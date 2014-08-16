@@ -32,9 +32,9 @@ public:
 	virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
 	virtual result_t setNX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
 	virtual result_t setXX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
-	virtual result_t mset(v8::Local<v8::Array> kvs) = 0;
+	virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
 	virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
-	virtual result_t msetNX(v8::Local<v8::Array> kvs) = 0;
+	virtual result_t msetNX(v8::Local<v8::Object> kvs) = 0;
 	virtual result_t msetNX(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 	virtual result_t append(Buffer_base* key, Buffer_base* value, int32_t& retVal) = 0;
 	virtual result_t setRange(Buffer_base* key, int32_t offset, Buffer_base* value, int32_t& retVal) = 0;
@@ -230,7 +230,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Local<v8::Array>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->mset(v0);
 
@@ -246,7 +246,7 @@ namespace fibjs
 		METHOD_INSTANCE(Redis_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Local<v8::Array>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->msetNX(v0);
 

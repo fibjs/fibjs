@@ -26,7 +26,7 @@ public:
 	// RedisHash_base
 	virtual result_t set(Buffer_base* field, Buffer_base* value) = 0;
 	virtual result_t setNX(Buffer_base* field, Buffer_base* value) = 0;
-	virtual result_t mset(v8::Local<v8::Array> kvs) = 0;
+	virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
 	virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 	virtual result_t get(Buffer_base* field, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<List_base>& retVal) = 0;
@@ -122,7 +122,7 @@ namespace fibjs
 		METHOD_INSTANCE(RedisHash_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Local<v8::Array>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->mset(v0);
 

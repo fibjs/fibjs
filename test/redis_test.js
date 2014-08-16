@@ -67,7 +67,10 @@ describe("redis", function() {
 		rdb.mset("test", "bbb", "test1", "bbb1");
 		assert.deepEqual(rdb.mget("test", "test1").toArray(), ["bbb", "bbb1"]);
 
-		rdb.mset(["test", "bbb1", "test1", "bbb2"]);
+		rdb.mset({
+			"test": "bbb1",
+			"test1": "bbb2"
+		});
 		assert.deepEqual(rdb.mget("test", "test1").toArray(), ["bbb1", "bbb2"]);
 	});
 
@@ -285,7 +288,10 @@ describe("redis", function() {
 			var hash = rdb.getHash("testHash");
 
 			hash.mset("test1", "bbb1", "test2", "bbb2");
-			hash.mset(["test3", "bbb3", "test4", "bbb4"]);
+			hash.mset({
+				"test3": "bbb3",
+				"test4": "bbb4"
+			});
 
 			assert.deepEqual(hash.mget("test1", "test2").toArray(), ["bbb1", "bbb2"]);
 			assert.deepEqual(hash.mget(["test1", "test2"]).toArray(), ["bbb1", "bbb2"]);
@@ -441,7 +447,11 @@ describe("redis", function() {
 			var zset = rdb.getSortedSet("testSortedSet");
 
 			assert.equal(zset.add("a0", 1, "a1", 2, "a2", 3), 3);
-			assert.equal(zset.add(["a4", 4, "a5", 5, "a6", 6]), 3);
+			assert.equal(zset.add({
+				"a4": 4,
+				"a5": 5,
+				"a6": 6
+			}), 3);
 		});
 
 		it("len", function() {

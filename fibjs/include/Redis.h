@@ -26,9 +26,9 @@ public:
     virtual result_t set(Buffer_base *key, Buffer_base *value, int64_t ttl);
     virtual result_t setNX(Buffer_base *key, Buffer_base *value, int64_t ttl);
     virtual result_t setXX(Buffer_base *key, Buffer_base *value, int64_t ttl);
-    virtual result_t mset(v8::Local<v8::Array> kvs);
+    virtual result_t mset(v8::Local<v8::Object> kvs);
     virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value> &args);
-    virtual result_t msetNX(v8::Local<v8::Array> kvs);
+    virtual result_t msetNX(v8::Local<v8::Object> kvs);
     virtual result_t msetNX(const v8::FunctionCallbackInfo<v8::Value> &args);
     virtual result_t append(Buffer_base *key, Buffer_base *value, int32_t &retVal);
     virtual result_t setRange(Buffer_base *key, int32_t offset, Buffer_base *value, int32_t &retVal);
@@ -132,6 +132,32 @@ public:
             for (i = 0; i < (int32_t)keys->Length(); i ++)
             {
                 hr = add(keys->Get(i));
+                if (hr < 0)
+                    return hr;
+            }
+
+            return 0;
+        }
+
+        result_t add(v8::Local<v8::Object> kvs)
+        {
+            if (kvs->IsArray())
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+
+            v8::Local<v8::Array> keys = kvs->GetPropertyNames();
+
+            result_t hr;
+            int32_t i;
+
+            for (i = 0; i < (int32_t)keys->Length(); i ++)
+            {
+                v8::Local<v8::Value> v = keys->Get(i);
+
+                hr = add(v);
+                if (hr < 0)
+                    return hr;
+
+                hr = add(kvs->Get(v));
                 if (hr < 0)
                     return hr;
             }

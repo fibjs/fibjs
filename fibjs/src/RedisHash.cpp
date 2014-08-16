@@ -22,7 +22,7 @@ result_t RedisHash::setNX(Buffer_base *field, Buffer_base *value)
     return m_rdb->doCommand("HSETNX", m_key, field, value, v);
 }
 
-result_t RedisHash::mset(v8::Local<v8::Array> kvs)
+result_t RedisHash::mset(v8::Local<v8::Object> kvs)
 {
     Variant v;
     return m_rdb->doCommand("HMSET", m_key, kvs, v);

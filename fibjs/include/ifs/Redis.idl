@@ -34,16 +34,16 @@ class Redis : object
     setXX(Buffer key, Buffer value, Long ttl = 0);
 
     /*! @brief 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
-     @param kvs 指定要设置的 key/value 数组*/
-    mset(Array kvs);
+     @param kvs 指定要设置的 key/value 对象*/
+    mset(Object kvs);
 
     /*! @brief 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
      @param ... 指定要设置的 key/value 列表*/
     mset(...);
 
     /*! @brief 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
-     @param kvs 指定要设置的 key/value 数组*/
-    msetNX(Array kvs);
+     @param kvs 指定要设置的 key/value 对象*/
+    msetNX(Object kvs);
 
     /*! @brief 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
      @param ... 指定要设置的 key/value 列表*/

@@ -36,7 +36,7 @@ public:
     // RedisHash_base
     virtual result_t set(Buffer_base *field, Buffer_base *value);
     virtual result_t setNX(Buffer_base *field, Buffer_base *value);
-    virtual result_t mset(v8::Local<v8::Array> kvs);
+    virtual result_t mset(v8::Local<v8::Object> kvs);
     virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value> &args);
     virtual result_t get(Buffer_base *field, obj_ptr<Buffer_base> &retVal);
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<List_base> &retVal);

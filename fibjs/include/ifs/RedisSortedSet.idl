@@ -11,9 +11,9 @@
 class RedisSortedSet : object
 {
     /*! @brief 将一个或多个 member 元素及其 score 值加入到有序集当中
-     @param sms 指定要添加的 member/score 数组
+     @param sms 指定要添加的 member/score 对象
      @return 被成功添加的新成员的数量，不包括那些被更新的、已经存在的成员 */
-    Integer add(Array sms);
+    Integer add(Object sms);
 
     /*! @brief 将一个或多个 member 元素及其 score 值加入到有序集当中
      @param ... 指定要添加的 member/score 列表

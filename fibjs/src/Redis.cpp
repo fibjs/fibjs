@@ -251,7 +251,7 @@ result_t Redis::setXX(Buffer_base *key, Buffer_base *value, int64_t ttl)
         return doCommand("SET", key, value, "XX", v);
 }
 
-result_t Redis::mset(v8::Local<v8::Array> kvs)
+result_t Redis::mset(v8::Local<v8::Object> kvs)
 {
     Variant v;
     return doCommand("MSET", kvs, v);
@@ -264,7 +264,7 @@ result_t Redis::mset(const v8::FunctionCallbackInfo<v8::Value> &args)
     return doCommand("MSET", a, v);
 }
 
-result_t Redis::msetNX(v8::Local<v8::Array> kvs)
+result_t Redis::msetNX(v8::Local<v8::Object> kvs)
 {
     Variant v;
     return doCommand("MSETNX", kvs, v);

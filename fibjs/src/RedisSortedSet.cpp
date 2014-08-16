@@ -10,15 +10,23 @@
 namespace fibjs
 {
 
-result_t RedisSortedSet::add(v8::Local<v8::Array> sms, int32_t &retVal)
+result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t &retVal)
 {
-    v8::Local<v8::Array> mss = v8::Array::New(isolate);
-    int32_t i;
+    if (sms->IsArray())
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    for (i = 0; i < (int32_t)sms->Length(); i += 2)
+    v8::Local<v8::Array> keys = sms->GetPropertyNames();
+    v8::Local<v8::Array> mss = v8::Array::New(isolate);
+
+    result_t hr;
+    int32_t i, n = 0;
+
+    for (i = 0; i < (int32_t)keys->Length(); i ++)
     {
-        mss->Set(i, sms->Get(i + 1));
-        mss->Set(i + 1, sms->Get(i));
+        v8::Local<v8::Value> v = keys->Get(i);
+
+        mss->Set(n++, sms->Get(v));
+        mss->Set(n++, v);
     }
 
     return m_rdb->doCommand("ZADD", m_key, mss, retVal);
