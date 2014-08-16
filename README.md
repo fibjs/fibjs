@@ -9,11 +9,11 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 
 All the source code and docs are on github. However, I use github for convenience as it is easy to store stuff online. So there may be small problems with the documentation as I may not be able to update them timely.
 
-文档入口(General docs (chinese)): http://prj.baoz.cn/docs/fibjs/
+***文档入口(General docs (chinese)):*** http://prj.baoz.cn/docs/fibjs/
 
-了解 fibjs 的并发(Understanding how to develop for fibjs): http://prj.baoz.cn/docs/fibjs/d2/de8/start_prog.html
+***了解 fibjs 的并发(Understanding how to develop for fibjs):*** http://prj.baoz.cn/docs/fibjs/d2/de8/start_prog.html
 
-官方交流社区(Online discussion.): http://baoz.me/fibjs
+***官方交流社区(Online discussion.):*** http://baoz.me/fibjs
 
 ps: 请无视编译中出现的大量警告错误，那些基本上都是第三方代码库的警告，恕不消除了。
 Please ignore the compiler warnings.
