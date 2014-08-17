@@ -118,7 +118,7 @@ $(document).ready(function(){initNavTree('da/db3/server.html','../../');});
 <p>一个动态服务器，其实并不比静态文件服务器复杂更多： </p><div class="fragment"><div class="line">var http = require(<span class="stringliteral">&#39;http&#39;</span>);</div>
 <div class="line"></div>
 <div class="line">var svr = <span class="keyword">new</span> http.Server(80, <span class="keyword">function</span>(r){</div>
-<div class="line">  r.response.body.write(<span class="keyword">new</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a>(<span class="stringliteral">&#39;Hello, World!&#39;</span>));</div>
+<div class="line">  r.response.write(<span class="stringliteral">&#39;Hello, World!&#39;</span>);</div>
 <div class="line">});</div>
 <div class="line">svr.run();</div>
 </div><!-- fragment --><p>这里只是一个简单的文本响应，构建更复杂的动态服务器需要进一步修改。</p>
@@ -127,11 +127,11 @@ $(document).ready(function(){initNavTree('da/db3/server.html','../../');});
 <p>当网站规模不大的时候，我们通常需要在同一台服务器上同时支持静态文件和动态请求： </p><div class="fragment"><div class="line">var http = require(<span class="stringliteral">&#39;http&#39;</span>);</div>
 <div class="line">var <a class="code" href="../../d4/d86/classmq.html">mq</a> = require(<span class="stringliteral">&#39;mq&#39;</span>);</div>
 <div class="line"></div>
-<div class="line">var svr = <span class="keyword">new</span> http.Server(8080, mq.routing({</div>
+<div class="line">var svr = <span class="keyword">new</span> http.Server(8080, <span class="keyword">new</span> mq.Routing({</div>
 <div class="line">    <span class="stringliteral">&#39;^/www(/.*)&#39;</span>: http.fileHandler(<span class="stringliteral">&#39;../fibjs</span></div>
 <div class="line"><span class="stringliteral">/docs&#39;</span>),</div>
 <div class="line">    <span class="stringliteral">&#39;^/rpc(/.*)&#39;</span>: function(r) {</div>
-<div class="line">        r.response.body.write(new Buffer(<span class="stringliteral">&#39;Hello, World!&#39;</span>));</div>
+<div class="line">        r.response.write(<span class="stringliteral">&#39;Hello, World!&#39;</span>);</div>
 <div class="line">    }</div>
 <div class="line">}));</div>
 <div class="line">svr.run();</div>
