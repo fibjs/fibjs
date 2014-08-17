@@ -21,7 +21,7 @@ svr.run();
 var http = require('http');
 
 var svr = new http.Server(80, function(r){
-  r.response.body.write(new Buffer('Hello, World!'));
+  r.response.write('Hello, World!');
 });
 svr.run();
 @endcode
@@ -34,11 +34,11 @@ svr.run();
 var http = require('http');
 var mq = require('mq');
 
-var svr = new http.Server(8080, mq.routing({
+var svr = new http.Server(8080, new mq.Routing({
 	'^/www(/.*)': http.fileHandler('../fibjs
 /docs'),
 	'^/rpc(/.*)': function(r) {
-		r.response.body.write(new Buffer('Hello, World!'));
+		r.response.write('Hello, World!');
 	}
 }));
 svr.run();
