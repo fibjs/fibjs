@@ -85,19 +85,47 @@ describe('trigger', function() {
 		assert.equal(18314, v2);
 	});
 
+	it("off(name)", function() {
+		e.off({
+			test: t1,
+			test1: t2
+		});
+		e.trigger('test', 20, 10);
+		e.trigger('test1', 20, 10);
+		coroutine.sleep();
+		assert.equal(6056, v1);
+		assert.equal(18314, v2);
+	});
+
+	it("off all", function() {
+		e.on('test', t1);
+		e.on('test', t2);
+		e.trigger('test', 20, 10);
+		coroutine.sleep();
+		assert.equal(7300, v1);
+		assert.equal(22645, v2);
+
+		e.off("test");
+
+		e.trigger('test', 20, 10);
+		coroutine.sleep();
+		assert.equal(7300, v1);
+		assert.equal(22645, v2);
+	});
+
 	it("overwrite", function() {
 		e.on('test', t1);
 		e.once('test', t1);
 		e.trigger('test', 20, 10);
 		coroutine.sleep();
-		assert.equal(7300, v1);
-		assert.equal(18314, v2);
+		assert.equal(8544, v1);
+		assert.equal(22645, v2);
 
 		e.trigger('test', 20, 10);
 		coroutine.sleep();
-		assert.equal(7300, v1);
-		assert.equal(18314, v2);
+		assert.equal(8544, v1);
+		assert.equal(22645, v2);
 	});
 });
 
-//test.run();
+//test.run(console.DEBUG);
