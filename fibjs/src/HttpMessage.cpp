@@ -420,7 +420,7 @@ result_t HttpMessage::set_protocol(const char *newVal)
 {
     if (qstrcmp(newVal, "HTTP/", 5) || !qisdigit(newVal[5]) || newVal[6] != '.'
             || !qisdigit(newVal[7]) || newVal[8])
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(Runtime::setError("HttpRequest: bad protocol version."));
 
     m_keepAlive = ((newVal[5] - '0') * 10 + newVal[7] - '0') > 10;
 
