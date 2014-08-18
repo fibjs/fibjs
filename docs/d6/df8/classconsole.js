@@ -19,7 +19,7 @@ var classconsole =
     [ "crit", "d6/df8/classconsole.html#adf1c772e176fe40eb4ffae758cf22c64", null ],
     [ "alert", "d6/df8/classconsole.html#a9ed78376361d4d5bf88eb622bd03e7dc", null ],
     [ "alert", "d6/df8/classconsole.html#af984caa1459a336e9420496f0b7d9f6c", null ],
-    [ "dir", "d6/df8/classconsole.html#a6779bc26fdbd66d34bf259c28d695678", null ],
+    [ "dir", "d6/df8/classconsole.html#ae3da6ad36822e14bae83c0af3d5d7e46", null ],
     [ "time", "d6/df8/classconsole.html#aafdd7ca53b206fdeb5ca882510374475", null ],
     [ "timeEnd", "d6/df8/classconsole.html#ab53e089924e192a2fa616e362f0bb71c", null ],
     [ "trace", "d6/df8/classconsole.html#aa60d1f56ec155161db3f3d0e48c2c2d3", null ],
