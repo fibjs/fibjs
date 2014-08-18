@@ -168,6 +168,21 @@ result_t object_base::off(const char *ev, v8::Local<v8::Function> func)
     return 0;
 }
 
+result_t object_base::off(const char *ev)
+{
+    std::string strKey = "_e_";
+    strKey.append(ev);
+
+    GetHiddenArray(strKey.c_str(), false, true);
+
+    strKey = "_e1_";
+    strKey.append(ev);
+
+    GetHiddenArray(strKey.c_str(), false, true);
+
+    return 0;
+}
+
 result_t object_base::off(v8::Local<v8::Object> map)
 {
     return _map(this, map, &object_base::off);

@@ -198,6 +198,7 @@ public:
     result_t once(const char *ev, v8::Local<v8::Function> func);
     result_t once(v8::Local<v8::Object> map);
     result_t off(const char *ev, v8::Local<v8::Function> func);
+    result_t off(const char *ev);
     result_t off(v8::Local<v8::Object> map);
     result_t trigger(const char *ev,
                      const v8::FunctionCallbackInfo<v8::Value> &args);

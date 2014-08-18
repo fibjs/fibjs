@@ -39,6 +39,11 @@ class Trigger : object
      */
     off(String ev, Function func);
 
+    /*! @brief 取消对象处理队列中的全部函数
+      @param ev 指定事件的名称
+     */
+    off(String ev);
+
     /*! @brief 从对象处理队列中取消指定函数
       @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
      */

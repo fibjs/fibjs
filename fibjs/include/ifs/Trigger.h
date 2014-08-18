@@ -27,6 +27,7 @@ public:
 	virtual result_t once(const char* ev, v8::Local<v8::Function> func) = 0;
 	virtual result_t once(v8::Local<v8::Object> map) = 0;
 	virtual result_t off(const char* ev, v8::Local<v8::Function> func) = 0;
+	virtual result_t off(const char* ev) = 0;
 	virtual result_t off(v8::Local<v8::Object> map) = 0;
 	virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 
@@ -124,6 +125,12 @@ namespace fibjs
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = pInst->off(v0, v1);
+
+		METHOD_OVER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->off(v0);
 
 		METHOD_OVER(1, 1);
 

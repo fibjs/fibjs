@@ -262,6 +262,8 @@ typedef int result_t;
     {   return object_base::once(map);} \
     virtual result_t off(const char* ev, v8::Local<v8::Function> func) \
     {   return object_base::off(ev, func);} \
+    virtual result_t off(const char* ev) \
+    {   return object_base::off(ev);} \
     virtual result_t off(v8::Local<v8::Object> map) \
     {   return object_base::off(map);} \
     virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) \
