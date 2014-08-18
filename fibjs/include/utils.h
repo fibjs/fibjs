@@ -464,6 +464,10 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &
     if (!v->IsObject())
         return CALL_E_INVALIDARG;
 
+    if (v->IsStringObject() || v->IsNumberObject() || v->IsBooleanObject()
+            || v->IsNumberObject() || v->IsFunction() || v->IsArray())
+        return CALL_E_INVALIDARG;
+
     vr = v8::Local<v8::Object>::Cast(v);
     return 0;
 }
