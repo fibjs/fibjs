@@ -230,7 +230,7 @@ class console : module
     /*! @brief 用 JSON 格式输出对象
      @param obj 给定要显示的对象
      */
-    static dir(Object obj);
+    static dir(Value obj);
 
     /*! @brief 启动一个计时器
 

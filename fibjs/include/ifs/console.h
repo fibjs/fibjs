@@ -60,7 +60,7 @@ public:
 	static result_t crit(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t alert(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t alert(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static result_t dir(v8::Local<v8::Object> obj);
+	static result_t dir(v8::Local<v8::Value> obj);
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
@@ -406,7 +406,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Local<v8::Object>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = dir(v0);
 

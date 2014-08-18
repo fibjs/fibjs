@@ -150,7 +150,7 @@ result_t console_base::alert(const v8::FunctionCallbackInfo<v8::Value> &args)
 
 std::string json_format(v8::Local<v8::Value> obj);
 
-result_t console_base::dir(v8::Local<v8::Object> obj)
+result_t console_base::dir(v8::Local<v8::Value> obj)
 {
     std::string strBuffer = json_format(obj);
     asyncLog(_INFO, strBuffer);
