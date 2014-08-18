@@ -3,7 +3,7 @@ var searchData=
   ['object',['object',['../dc/dd8/classobject.html',1,'object'],['../dd/d7a/classExpect.html#a6adad9cf5d338a5b75b1e4d1b665cdc8',1,'Expect::object()']]],
   ['of',['of',['../dd/d7a/classExpect.html#a87b9425fa84dadc6b008cbff4988ec63',1,'Expect']]],
   ['ofb',['OFB',['../d8/d48/classcrypto.html#a3a112d252c47ca85df2c5a7d3ba72fef',1,'crypto']]],
-  ['off',['off',['../d7/d1d/classTrigger.html#a76c48fb926f1f527bd0aa9913664f1ca',1,'Trigger::off(String ev, Function func)'],['../d7/d1d/classTrigger.html#a31aeac342c62cf8f8262456d1b4972c4',1,'Trigger::off(Object map)']]],
+  ['off',['off',['../d7/d1d/classTrigger.html#a76c48fb926f1f527bd0aa9913664f1ca',1,'Trigger::off(String ev, Function func)'],['../d7/d1d/classTrigger.html#a075136bfa74db0401295923cd7a95f1b',1,'Trigger::off(String ev)'],['../d7/d1d/classTrigger.html#a31aeac342c62cf8f8262456d1b4972c4',1,'Trigger::off(Object map)']]],
   ['offer',['offer',['../d7/d56/classQueue.html#a0b29d2db0a4fa1114fa4278416d41644',1,'Queue']]],
   ['oid',['oid',['../d6/d3d/classMongoDB.html#a0d73dd0798dce386a83652c91a620175',1,'MongoDB::oid()'],['../d9/d4e/classuuid.html#acfba0d7f48a40567b37d923ac1ef6322',1,'uuid::OID()']]],
   ['ok',['ok',['../dd/d7a/classExpect.html#a883134539d614088308b32e8ec3e4782',1,'Expect::ok()'],['../de/d1c/classassert.html#a6bc7d80bbf7943df46c671087f7cfce2',1,'assert::ok()']]],

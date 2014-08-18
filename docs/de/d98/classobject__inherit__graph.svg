@@ -1141,25 +1141,26 @@
 <!-- Node44 -->
 <g id="node44" class="node"><title>Node44</title>
 <g id="a_node44"><a xlink:href="../../d7/d1d/classTrigger.html" target="_top" xlink:title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 ">
-<polygon fill="white" stroke="black" points="3988.5,-351.5 3988.5,-475.5 4050.92,-475.5 4050.92,-351.5 3988.5,-351.5"/>
-<text text-anchor="middle" x="4019.71" y="-463.5" font-family="Helvetica,sans-Serif" font-size="10.00">Trigger</text>
-<polyline fill="none" stroke="black" points="3988.5,-457.5 4050.92,-457.5 "/>
-<text text-anchor="middle" x="4019.71" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="3988.5,-439.5 4050.92,-439.5 "/>
-<text text-anchor="start" x="3996.5" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Trigger()</text>
-<text text-anchor="start" x="3996.5" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ on()</text>
-<text text-anchor="start" x="3996.5" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ on()</text>
-<text text-anchor="start" x="3996.5" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ once()</text>
-<text text-anchor="start" x="3996.5" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ once()</text>
-<text text-anchor="start" x="3996.5" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ off()</text>
-<text text-anchor="start" x="3996.5" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ off()</text>
-<text text-anchor="start" x="3996.5" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ trigger()</text>
+<polygon fill="white" stroke="black" points="3988.5,-346.5 3988.5,-480.5 4050.92,-480.5 4050.92,-346.5 3988.5,-346.5"/>
+<text text-anchor="middle" x="4019.71" y="-468.5" font-family="Helvetica,sans-Serif" font-size="10.00">Trigger</text>
+<polyline fill="none" stroke="black" points="3988.5,-462.5 4050.92,-462.5 "/>
+<text text-anchor="middle" x="4019.71" y="-450.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="3988.5,-444.5 4050.92,-444.5 "/>
+<text text-anchor="start" x="3996.5" y="-432.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Trigger()</text>
+<text text-anchor="start" x="3996.5" y="-422.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ on()</text>
+<text text-anchor="start" x="3996.5" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ on()</text>
+<text text-anchor="start" x="3996.5" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ once()</text>
+<text text-anchor="start" x="3996.5" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ once()</text>
+<text text-anchor="start" x="3996.5" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ off()</text>
+<text text-anchor="start" x="3996.5" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ off()</text>
+<text text-anchor="start" x="3996.5" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ off()</text>
+<text text-anchor="start" x="3996.5" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ trigger()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node44 -->
 <g id="edge43" class="edge"><title>Node1&#45;&gt;Node44</title>
-<path fill="none" stroke="midnightblue" d="M2391.47,-802.994C2645.34,-799.862 3919.66,-781.411 3979.71,-726 4047.63,-663.325 4043.14,-547.087 4032.36,-475.692"/>
+<path fill="none" stroke="midnightblue" d="M2391.47,-802.994C2645.34,-799.862 3919.66,-781.411 3979.71,-726 4046.03,-664.804 4043.32,-552.544 4033.11,-480.82"/>
 <polygon fill="none" stroke="midnightblue" points="2391.13,-799.498 2381.17,-803.119 2391.21,-806.497 2391.13,-799.498"/>
 </g>
 <!-- Node45 -->

@@ -1,5 +1,6 @@
 var NAVTREEINDEX3 =
 {
+"d7/d3f/classSslSocket.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,81,10],
 "d7/d3f/classSslSocket.html#ad7fc4978c4fea85e5f7bda1c85a59704":[4,0,81,2],
 "d7/d3f/classSslSocket.html#aedb74c712c82af1e7cd72dd5224ab04b":[4,0,81,12],
 "d7/d43/classChain.html":[4,0,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX3 =
 "d8/d4d/classSslServer.html#ac4cbc996dc3a7959919970bf303340f7":[4,0,80,5],
 "d8/d4d/classSslServer.html#ac61f07a7d6c5471293371086af3186bd":[4,0,80,7],
 "d8/d4d/classSslServer.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,80,8],
-"d8/d4d/classSslServer.html#add3bc709b4b30dc6894afbaeec37703f":[4,0,80,0],
-"d8/d4d/classSslServer.html#aefe3d9c5593a3cd26eef5c43312cae39":[4,0,80,11]
+"d8/d4d/classSslServer.html#add3bc709b4b30dc6894afbaeec37703f":[4,0,80,0]
 };

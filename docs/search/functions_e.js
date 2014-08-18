@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['off',['off',['../d7/d1d/classTrigger.html#a76c48fb926f1f527bd0aa9913664f1ca',1,'Trigger::off(String ev, Function func)'],['../d7/d1d/classTrigger.html#a31aeac342c62cf8f8262456d1b4972c4',1,'Trigger::off(Object map)']]],
+  ['off',['off',['../d7/d1d/classTrigger.html#a76c48fb926f1f527bd0aa9913664f1ca',1,'Trigger::off(String ev, Function func)'],['../d7/d1d/classTrigger.html#a075136bfa74db0401295923cd7a95f1b',1,'Trigger::off(String ev)'],['../d7/d1d/classTrigger.html#a31aeac342c62cf8f8262456d1b4972c4',1,'Trigger::off(Object map)']]],
   ['offer',['offer',['../d7/d56/classQueue.html#a0b29d2db0a4fa1114fa4278416d41644',1,'Queue']]],
   ['oid',['oid',['../d6/d3d/classMongoDB.html#a0d73dd0798dce386a83652c91a620175',1,'MongoDB']]],
   ['ok',['ok',['../de/d1c/classassert.html#a6bc7d80bbf7943df46c671087f7cfce2',1,'assert']]],
