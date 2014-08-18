@@ -8,6 +8,7 @@
 #include "Fiber.h"
 #include "Trigger.h"
 #include "ifs/coroutine.h"
+#include "QuickArray.h"
 
 namespace fibjs
 {
@@ -247,6 +248,44 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
     if (hr < 0)
         return hr;
 
+    return 0;
+}
+
+result_t object_base::_trigger(const char *ev, Variant *args, int argCount)
+{
+    class jsTrigger: public asyncRelease
+    {
+    public:
+        jsTrigger(object_base *obj, const char *ev, Variant *args, int argCount) :
+            m_obj(obj), m_ev(ev)
+        {
+            m_args.append((VariantEx *)args, argCount);
+        }
+
+    public:
+        virtual void js_callback()
+        {
+            JSFiber::scope s;
+            size_t i;
+
+            std::vector<v8::Local<v8::Value> > argv;
+
+            argv.resize(m_args.size());
+            for (i = 0; i < m_args.size(); i++)
+                argv[i] = v8::Local<v8::Value>::New(isolate, m_args[i]);
+
+            m_obj->_trigger(m_ev.c_str(), argv.data(), (int) argv.size());
+
+            delete this;
+        }
+
+    private:
+        obj_ptr<object_base> m_obj;
+        std::string m_ev;
+        QuickArray<VariantEx> m_args;
+    };
+
+    (new jsTrigger(this, ev, args, argCount))->post(0);
     return 0;
 }
 
