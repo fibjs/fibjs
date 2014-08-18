@@ -49,8 +49,7 @@ class object_base: public obj_base
 {
 public:
     object_base() :
-        m_nTriggers(0), m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(
-            0)
+        m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
     {
     }
 
@@ -205,11 +204,6 @@ public:
     result_t _trigger(const char *ev, v8::Local<v8::Value> *args,
                       int argCount);
 
-    bool hasTrigger()
-    {
-        return m_nTriggers > 0;
-    }
-
     void extMemory(int ext)
     {
         if (handle_.IsEmpty())
@@ -237,7 +231,6 @@ private:
                                         bool autoDelete = false);
 
 private:
-    int m_nTriggers;
     int m_nExtMemory;
     int m_nExtMemoryDelay;
 
@@ -249,8 +242,6 @@ private:
             v8::Local<v8::Object>::New(isolate, handle_)->SetAlignedPointerInInternalField(
                 0, 0);
             handle_.Reset();
-
-            m_nTriggers = 0;
 
             isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 

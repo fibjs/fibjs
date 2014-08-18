@@ -123,11 +123,11 @@ result_t object_base::on(const char *ev, v8::Local<v8::Function> func)
 {
     std::string strKey = "_e_";
     strKey.append(ev);
-    m_nTriggers += putFunction(GetHiddenArray(strKey.c_str(), true), func);
+    putFunction(GetHiddenArray(strKey.c_str(), true), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenArray(strKey.c_str()), func);
 
     return 0;
 }
@@ -141,11 +141,11 @@ result_t object_base::once(const char *ev, v8::Local<v8::Function> func)
 {
     std::string strKey = "_e1_";
     strKey.append(ev);
-    m_nTriggers += putFunction(GetHiddenArray(strKey.c_str(), true), func);
+    putFunction(GetHiddenArray(strKey.c_str(), true), func);
 
     strKey = "_e_";
     strKey.append(ev);
-    m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenArray(strKey.c_str()), func);
 
     return 0;
 }
@@ -157,25 +157,19 @@ result_t object_base::once(v8::Local<v8::Object> map)
 
 result_t object_base::off(const char *ev, v8::Local<v8::Function> func)
 {
-    if (!m_nTriggers)
-        return 0;
-
     std::string strKey = "_e_";
     strKey.append(ev);
-    m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenArray(strKey.c_str()), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenArray(strKey.c_str()), func);
 
     return 0;
 }
 
 result_t object_base::off(v8::Local<v8::Object> map)
 {
-    if (!m_nTriggers)
-        return 0;
-
     return _map(this, map, &object_base::off);
 }
 
@@ -222,9 +216,6 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
 {
     extMemory(0);
 
-    if (!m_nTriggers)
-        return 0;
-
     result_t hr;
     std::string strKey = "_e_";
     strKey.append(ev);
@@ -247,9 +238,6 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
 result_t object_base::trigger(const char *ev, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     extMemory(0);
-
-    if (!m_nTriggers)
-        return 0;
 
     result_t hr;
     std::string strKey = "_e_";
