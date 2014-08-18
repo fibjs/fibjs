@@ -14,12 +14,31 @@ if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 
 	exit 0
 fi
 
+#get cpu core count 
+OS=$(uname)
+CPU_CORE=1
+case ${OS} in
+	Darwin)
+		CPU_CORE=$(sysctl hw.ncpu | awk '{print $2}')
+		;;
+	Linux)
+		CPU_CORE=$(cat /proc/cpuinfo | grep processor | wc -l)
+		;;
+	Windows)
+		CPU_CORE=$(echo $NUMBER_OF_PROCESSORS)
+		;;
+esac
+echo "host machine has ${CPU_CORE} core"
+
+# set build jobs with cpu core count * 2
+BUILD_JOBS=`expr ${CPU_CORE} \* 2`
+
 cd vender
-sh build $1
+BUILD_JOBS=${BUILD_JOBS} sh build $1
 cd ..
 
 cd fibjs
-sh build $1
+BUILD_JOBS=${BUILD_JOBS} sh build $1
 cd ..
 
 if [ $1 = 'clean' ]; then

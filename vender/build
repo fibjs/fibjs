@@ -38,6 +38,11 @@ fi
 echo "${OS}_$1"
 cd "out/${OS}_$1"
 cmake -DBUILD_TYPE=$1 ../../tools
-make
+
+if [ ! "$BUILD_JOBS" = "" ]; then
+	make -j${BUILD_JOBS}
+else
+	make
+fi
 
 cd ../..

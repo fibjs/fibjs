@@ -40,7 +40,12 @@ GIT_INFO=`git log -n 1 --pretty=format:"%H"`
 
 cd "out/${OS}_$1"
 cmake -DBUILD_TYPE=$1 -DGIT_INFO=$GIT_INFO ../../tools
-make
+
+if [ ! "$BUILD_JOBS" = "" ]; then
+	make -j${BUILD_JOBS}
+else
+	make
+fi
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
 	cp "../../installer.txt" "installer.sh"
