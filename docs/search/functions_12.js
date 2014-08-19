@@ -40,5 +40,6 @@ var searchData=
   ['store',['store',['../d9/de8/classGridFS.html#ae6b355ca7a7e7fae976d3b3789c35045',1,'GridFS::store(String name, Stream src)'],['../d9/de8/classGridFS.html#a811549d931a6845bfae574cd32dd1085',1,'GridFS::store(String name, Buffer data)']]],
   ['strictequal',['strictEqual',['../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35',1,'assert']]],
   ['strlen',['strlen',['../db/d15/classRedis.html#a0476f90872be6a8c94de65dfea6d6d05',1,'Redis']]],
+  ['sub',['sub',['../db/d15/classRedis.html#ae6e3358cb6d36a1d8dbc5e97d03a9254',1,'Redis::sub(Buffer channel, Function func)'],['../db/d15/classRedis.html#af132093d5c027212f07c80ac7cda2a5f',1,'Redis::sub(Object map)']]],
   ['system',['system',['../d4/d82/classprocess.html#a8ba452b49b82fff2709f27929faa57cf',1,'process']]]
 ];

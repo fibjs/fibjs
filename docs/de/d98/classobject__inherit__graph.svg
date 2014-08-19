@@ -762,55 +762,64 @@
 <!-- Node30 -->
 <g id="node30" class="node"><title>Node30</title>
 <g id="a_node30"><a xlink:href="../../db/d15/classRedis.html" target="_top" xlink:title="Redis 数据库客户端对象 ">
-<polygon fill="white" stroke="black" points="2626.88,-201.5 2626.88,-625.5 2716.54,-625.5 2716.54,-201.5 2626.88,-201.5"/>
-<text text-anchor="middle" x="2671.71" y="-613.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
-<polyline fill="none" stroke="black" points="2626.88,-607.5 2716.54,-607.5 "/>
-<text text-anchor="middle" x="2671.71" y="-595.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="2626.88,-589.5 2716.54,-589.5 "/>
-<text text-anchor="start" x="2634.88" y="-577.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
-<text text-anchor="start" x="2634.88" y="-567.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ set()</text>
-<text text-anchor="start" x="2634.88" y="-557.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setNX()</text>
-<text text-anchor="start" x="2634.88" y="-547.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setXX()</text>
-<text text-anchor="start" x="2634.88" y="-537.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
-<text text-anchor="start" x="2634.88" y="-527.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
-<text text-anchor="start" x="2634.88" y="-517.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
-<text text-anchor="start" x="2634.88" y="-507.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
-<text text-anchor="start" x="2634.88" y="-497.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ append()</text>
-<text text-anchor="start" x="2634.88" y="-487.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setRange()</text>
-<text text-anchor="start" x="2634.88" y="-477.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getRange()</text>
-<text text-anchor="start" x="2634.88" y="-467.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ strlen()</text>
-<text text-anchor="start" x="2634.88" y="-457.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ bitcount()</text>
-<text text-anchor="start" x="2634.88" y="-447.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
-<text text-anchor="start" x="2634.88" y="-437.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
-<text text-anchor="start" x="2634.88" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
-<text text-anchor="start" x="2634.88" y="-417.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getset()</text>
-<text text-anchor="start" x="2634.88" y="-407.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ decr()</text>
-<text text-anchor="start" x="2634.88" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ incr()</text>
-<text text-anchor="start" x="2634.88" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setBit()</text>
-<text text-anchor="start" x="2634.88" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getBit()</text>
-<text text-anchor="start" x="2634.88" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exists()</text>
-<text text-anchor="start" x="2634.88" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ type()</text>
-<text text-anchor="start" x="2634.88" y="-347.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keys()</text>
-<text text-anchor="start" x="2634.88" y="-337.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
-<text text-anchor="start" x="2634.88" y="-327.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
-<text text-anchor="start" x="2634.88" y="-317.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ expire()</text>
-<text text-anchor="start" x="2634.88" y="-307.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ttl()</text>
-<text text-anchor="start" x="2634.88" y="-297.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ persist()</text>
-<text text-anchor="start" x="2634.88" y="-287.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rename()</text>
-<text text-anchor="start" x="2634.88" y="-277.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ renameNX()</text>
-<text text-anchor="start" x="2634.88" y="-267.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getHash()</text>
-<text text-anchor="start" x="2634.88" y="-257.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getList()</text>
-<text text-anchor="start" x="2634.88" y="-247.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSet()</text>
-<text text-anchor="start" x="2634.88" y="-237.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSortedSet()</text>
-<text text-anchor="start" x="2634.88" y="-227.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dump()</text>
-<text text-anchor="start" x="2634.88" y="-217.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ restore()</text>
-<text text-anchor="start" x="2634.88" y="-207.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
+<polygon fill="white" stroke="black" points="2626.88,-156.5 2626.88,-670.5 2716.54,-670.5 2716.54,-156.5 2626.88,-156.5"/>
+<text text-anchor="middle" x="2671.71" y="-658.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
+<polyline fill="none" stroke="black" points="2626.88,-652.5 2716.54,-652.5 "/>
+<text text-anchor="middle" x="2671.71" y="-640.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="2626.88,-634.5 2716.54,-634.5 "/>
+<text text-anchor="start" x="2634.88" y="-622.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
+<text text-anchor="start" x="2634.88" y="-612.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ set()</text>
+<text text-anchor="start" x="2634.88" y="-602.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setNX()</text>
+<text text-anchor="start" x="2634.88" y="-592.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setXX()</text>
+<text text-anchor="start" x="2634.88" y="-582.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
+<text text-anchor="start" x="2634.88" y="-572.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
+<text text-anchor="start" x="2634.88" y="-562.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
+<text text-anchor="start" x="2634.88" y="-552.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
+<text text-anchor="start" x="2634.88" y="-542.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ append()</text>
+<text text-anchor="start" x="2634.88" y="-532.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setRange()</text>
+<text text-anchor="start" x="2634.88" y="-522.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getRange()</text>
+<text text-anchor="start" x="2634.88" y="-512.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ strlen()</text>
+<text text-anchor="start" x="2634.88" y="-502.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ bitcount()</text>
+<text text-anchor="start" x="2634.88" y="-492.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<text text-anchor="start" x="2634.88" y="-482.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
+<text text-anchor="start" x="2634.88" y="-472.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
+<text text-anchor="start" x="2634.88" y="-462.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getset()</text>
+<text text-anchor="start" x="2634.88" y="-452.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ decr()</text>
+<text text-anchor="start" x="2634.88" y="-442.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ incr()</text>
+<text text-anchor="start" x="2634.88" y="-432.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setBit()</text>
+<text text-anchor="start" x="2634.88" y="-422.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getBit()</text>
+<text text-anchor="start" x="2634.88" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exists()</text>
+<text text-anchor="start" x="2634.88" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ type()</text>
+<text text-anchor="start" x="2634.88" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keys()</text>
+<text text-anchor="start" x="2634.88" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2634.88" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2634.88" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ expire()</text>
+<text text-anchor="start" x="2634.88" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ttl()</text>
+<text text-anchor="start" x="2634.88" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ persist()</text>
+<text text-anchor="start" x="2634.88" y="-332.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rename()</text>
+<text text-anchor="start" x="2634.88" y="-322.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ renameNX()</text>
+<text text-anchor="start" x="2634.88" y="-312.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sub()</text>
+<text text-anchor="start" x="2634.88" y="-302.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sub()</text>
+<text text-anchor="start" x="2634.88" y="-292.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unsub()</text>
+<text text-anchor="start" x="2634.88" y="-282.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unsub()</text>
+<text text-anchor="start" x="2634.88" y="-272.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ psub()</text>
+<text text-anchor="start" x="2634.88" y="-262.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ psub()</text>
+<text text-anchor="start" x="2634.88" y="-252.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unpsub()</text>
+<text text-anchor="start" x="2634.88" y="-242.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unpsub()</text>
+<text text-anchor="start" x="2634.88" y="-232.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ pub()</text>
+<text text-anchor="start" x="2634.88" y="-222.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getHash()</text>
+<text text-anchor="start" x="2634.88" y="-212.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getList()</text>
+<text text-anchor="start" x="2634.88" y="-202.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSet()</text>
+<text text-anchor="start" x="2634.88" y="-192.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSortedSet()</text>
+<text text-anchor="start" x="2634.88" y="-182.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dump()</text>
+<text text-anchor="start" x="2634.88" y="-172.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ restore()</text>
+<text text-anchor="start" x="2634.88" y="-162.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node30 -->
 <g id="edge29" class="edge"><title>Node1&#45;&gt;Node30</title>
-<path fill="none" stroke="midnightblue" d="M2391.66,-804.288C2452.06,-802.81 2559.78,-790.537 2617.71,-726 2642.92,-697.918 2658.48,-662.453 2667.76,-625.596"/>
+<path fill="none" stroke="midnightblue" d="M2391.66,-804.288C2452.06,-802.81 2559.78,-790.537 2617.71,-726 2632.38,-709.661 2643.78,-690.824 2652.57,-670.667"/>
 <polygon fill="none" stroke="midnightblue" points="2391.26,-800.793 2381.32,-804.446 2391.37,-807.792 2391.26,-800.793"/>
 </g>
 <!-- Node31 -->
