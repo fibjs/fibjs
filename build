@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BUILD_JOBS=""
-BUILD_TYPE=${!#}
+eval BUILD_TYPE=\$$#
 
 usage()
 {
@@ -13,7 +13,7 @@ usage()
 	exit 0
 }
 
-if [ "$BUILD_TYPE" != 'Release' ] && [ $BUILD_TYPE != 'Release32' ] && [ $BUILD_TYPE != 'Debug' ] && [ $BUILD_TYPE != 'Debug32' ] && [ $BUILD_TYPE != 'clean' ]; then
+if [ $BUILD_TYPE != 'Release' ] && [ $BUILD_TYPE != 'Release32' ] && [ $BUILD_TYPE != 'Debug' ] && [ $BUILD_TYPE != 'Debug32' ] && [ $BUILD_TYPE != 'clean' ]; then
 	usage
 fi
 
