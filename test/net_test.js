@@ -308,6 +308,42 @@ describe("net", function() {
 		}, svr.stats.toJSON());
 	});
 
+	describe("abort Pending I/O", function() {
+		function close_it(s) {
+			coroutine.sleep(50);
+			s.close();
+		}
+
+		it("abort connect", function() {
+			var c1 = new net.Socket();
+			close_it.start(c1);
+			assert.throws(function() {
+				c1.connect('12.0.0.1', 8083);
+			});
+		});
+
+		it("abort accept", function() {
+			var c1 = new net.Socket();
+			c1.bind(8180);
+			c1.listen();
+
+			close_it.start(c1);
+
+			assert.throws(function() {
+				c1.accept();
+			});
+		});
+
+		it("abort read", function() {
+			var c1 = new net.Socket();
+			c1.connect('127.0.0.1', 8081);
+			close_it.start(c1);
+			assert.throws(function() {
+				c1.read();
+			});
+		});
+	});
+
 	describe("Smtp", function() {
 		var s;
 

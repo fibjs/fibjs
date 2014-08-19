@@ -214,10 +214,10 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
             return hr;
     }
 
-    if (exlib::CompareAndSwap(&m_inConnect, 0, 1))
+    if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
         return CALL_E_REENTRANT;
 
-    (new asyncConnect(m_sock, addr_info, ac, m_inConnect))->proc();
+    (new asyncConnect(m_sock, addr_info, ac, m_inRecv))->proc();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -265,7 +265,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
                            (char *) &m_sListen, sizeof(m_sListen));
                 setOption (m_s);
             }
-            asyncProc::ready(dwBytes, 0);
+            asyncProc::ready(dwBytes, nError);
         }
 
     public:
@@ -280,20 +280,20 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (exlib::CompareAndSwap(&m_inAccept, 0, 1))
+    if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
         return CALL_E_REENTRANT;
 
     obj_ptr<Socket> s = new Socket();
     result_t hr = s->create(m_family, m_type);
     if (hr < 0)
     {
-        m_inAccept = 0;
+        m_inRecv = 0;
         return hr;
     }
 
     retVal = s;
 
-    asyncAccept *pa = new asyncAccept(s->m_sock, m_sock, retVal, ac, m_inAccept);
+    asyncAccept *pa = new asyncAccept(s->m_sock, m_sock, retVal, ac, m_inRecv);
     s.Release();
 
     pa->proc();

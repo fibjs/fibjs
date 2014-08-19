@@ -71,20 +71,18 @@ result_t net_base::backend(std::string &retVal)
     return 0;
 }
 
-class asyncProc;
+class asyncEv;
 
 static ev_async s_asEvent;
-static exlib::lockfree<asyncProc> s_evWait;
+static exlib::lockfree<asyncEv> s_evWait;
 
-class asyncProc: public ev_io
+class asyncEv: public ev_io
 {
 public:
-    asyncProc(SOCKET s, int op, exlib::AsyncEvent *ac, int32_t &guard) :
-        m_s(s), m_op(op), m_ac(ac), m_guard(guard), m_next(NULL)
-    {
-    }
+    asyncEv() : m_next(NULL)
+    {}
 
-    virtual ~asyncProc()
+    virtual ~asyncEv()
     {
     }
 
@@ -94,8 +92,25 @@ public:
         ev_async_send(s_loop, &s_asEvent);
     }
 
-    inline void start()
+    virtual void start()
     {
+    }
+
+public:
+    asyncEv *m_next;
+};
+
+class asyncProc: public asyncEv
+{
+public:
+    asyncProc(SOCKET s, int op, exlib::AsyncEvent *ac, int32_t &guard, void *&opt) :
+        m_s(s), m_op(op), m_ac(ac), m_guard(guard), m_opt(opt)
+    {
+    }
+
+    virtual void start()
+    {
+        m_opt = this;
         ev_io *io = (ev_io *) this;
         ev_io_init(io, io_cb, m_s, m_op);
         ev_io_start(s_loop, this);
@@ -127,9 +142,16 @@ public:
 
     void ready(int v)
     {
+        m_opt = NULL;
         m_guard = 0;
         m_ac->apost(v);
         delete this;
+    }
+
+    void onready()
+    {
+        ev_io_stop(s_loop, this);
+        proc();
     }
 
 public:
@@ -137,13 +159,12 @@ public:
     int m_op;
     exlib::AsyncEvent *m_ac;
     int32_t &m_guard;
-    asyncProc *m_next;
+    void *&m_opt;
 
 private:
     static void io_cb(struct ev_loop *loop, struct ev_io *watcher, int revents)
     {
-        ev_io_stop(s_loop, watcher);
-        ((asyncProc *) watcher)->proc();
+        ((asyncProc *) watcher)->onready();
     }
 };
 
@@ -176,11 +197,11 @@ public:
 private:
     static void doAsync()
     {
-        asyncProc *p = s_evWait.getList(), *p1;
+        asyncEv *p = s_evWait.getList(), *p1;
 
         while (p)
         {
-            p1 = (asyncProc *) p->m_next;
+            p1 = (asyncEv *) p->m_next;
             p->m_next = NULL;
             p->start();
 
@@ -204,13 +225,44 @@ private:
     }
 } s_acSock;
 
+void Socket::cancel_socket(exlib::AsyncEvent *ac)
+{
+    class asyncCancel: public asyncEv
+    {
+    public:
+        asyncCancel(void *&opt1, void *&opt2, exlib::AsyncEvent *ac) :
+            m_opt1(opt1), m_opt2(opt2), m_ac(ac)
+        {
+        }
+
+        virtual void start()
+        {
+            if (m_opt1)
+                ((asyncProc *) m_opt1)->onready();
+
+            if (m_opt2)
+                ((asyncProc *) m_opt2)->onready();
+
+            m_ac->apost(0);
+            delete this;
+        }
+
+    public:
+        exlib::AsyncEvent *m_ac;
+        void *&m_opt1;
+        void *&m_opt2;
+    };
+
+    (new asyncCancel(m_RecvOpt, m_SendOpt, ac))->post();
+}
+
 result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
 {
     class asyncConnect: public asyncProc
     {
     public:
-        asyncConnect(SOCKET s, inetAddr &ai, exlib::AsyncEvent *ac, int32_t &guard) :
-            asyncProc(s, EV_WRITE, ac, guard), m_ai(ai)
+        asyncConnect(SOCKET s, inetAddr &ai, exlib::AsyncEvent *ac, int32_t &guard, void *&opt) :
+            asyncProc(s, EV_WRITE, ac, guard, opt), m_ai(ai)
         {
         }
 
@@ -265,10 +317,10 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
-    if (exlib::CompareAndSwap(&m_inConnect, 0, 1))
+    if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
         return CALL_E_REENTRANT;
 
-    return (new asyncConnect(m_sock, addr_info, ac, m_inConnect))->call();
+    return (new asyncConnect(m_sock, addr_info, ac, m_inRecv, m_RecvOpt))->call();
 }
 
 result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
@@ -277,8 +329,8 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
     {
     public:
         asyncAccept(SOCKET s, obj_ptr<Socket_base> &retVal,
-                    exlib::AsyncEvent *ac, int32_t &guard) :
-            asyncProc(s, EV_READ, ac, guard), m_retVal(retVal)
+                    exlib::AsyncEvent *ac, int32_t &guard, void *&opt) :
+            asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal)
         {
         }
 
@@ -321,10 +373,10 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (exlib::CompareAndSwap(&m_inAccept, 0, 1))
+    if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
         return CALL_E_REENTRANT;
 
-    return (new asyncAccept(m_sock, retVal, ac, m_inAccept))->call();
+    return (new asyncAccept(m_sock, retVal, ac, m_inRecv, m_RecvOpt))->call();
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
@@ -334,8 +386,8 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  exlib::AsyncEvent *ac, bool bRead, int32_t &guard) :
-            asyncProc(s, EV_READ, ac, guard), m_retVal(retVal), m_pos(0), m_bRead(
+                  exlib::AsyncEvent *ac, bool bRead, int32_t &guard, void *&opt) :
+            asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal), m_pos(0), m_bRead(
                 bRead)
         {
             m_buf.resize(bytes > 0 ? bytes : STREAM_BUFF_SIZE);
@@ -398,7 +450,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
         return CALL_E_REENTRANT;
 
-    return (new asyncRecv(m_sock, bytes, retVal, ac, bRead, m_inRecv))->call();
+    return (new asyncRecv(m_sock, bytes, retVal, ac, bRead, m_inRecv, m_RecvOpt))->call();
 }
 
 result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
@@ -406,8 +458,8 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
     class asyncSend: public asyncProc
     {
     public:
-        asyncSend(SOCKET s, Buffer_base *data, exlib::AsyncEvent *ac, int32_t &guard) :
-            asyncProc(s, EV_WRITE, ac, guard)
+        asyncSend(SOCKET s, Buffer_base *data, exlib::AsyncEvent *ac, int32_t &guard, void *&opt) :
+            asyncProc(s, EV_WRITE, ac, guard, opt)
         {
             data->toString(m_buf);
             m_p = m_buf.c_str();
@@ -457,7 +509,7 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
     if (exlib::CompareAndSwap(&m_inSend, 0, 1))
         return CALL_E_REENTRANT;
 
-    return (new asyncSend(m_sock, data, ac, m_inSend))->call();
+    return (new asyncSend(m_sock, data, ac, m_inSend, m_SendOpt))->call();
 }
 
 }

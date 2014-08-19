@@ -25,18 +25,22 @@ public:
     Socket() :
         m_sock(INVALID_SOCKET),
         m_family(net_base::_AF_INET), m_type(net_base::_SOCK_STREAM),
-        m_inAccept(0), m_inConnect(0), m_inRecv(0), m_inSend(0)
+        m_inRecv(0), m_inSend(0)
 #ifdef _WIN32
         , m_bBind(FALSE)
+#else
+        , m_RecvOpt(NULL), m_SendOpt(NULL)
 #endif
     {
     }
 
     Socket(SOCKET s, int32_t family, int32_t type) :
         m_sock(s), m_family(family), m_type(type),
-        m_inAccept(0), m_inConnect(0), m_inRecv(0), m_inSend(0)
+        m_inRecv(0), m_inSend(0)
 #ifdef _WIN32
         , m_bBind(FALSE)
+#else
+        , m_RecvOpt(NULL), m_SendOpt(NULL)
 #endif
     {
     }
@@ -84,13 +88,16 @@ private:
     int32_t m_family;
     int32_t m_type;
 
-    int32_t m_inAccept;
-    int32_t m_inConnect;
     int32_t m_inRecv;
     int32_t m_inSend;
 
 #ifdef _WIN32
     BOOL m_bBind;
+#else
+    void *m_RecvOpt;
+    void *m_SendOpt;
+
+    void cancel_socket(exlib::AsyncEvent *ac);
 #endif
 };
 
