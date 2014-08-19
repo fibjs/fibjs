@@ -179,6 +179,54 @@ class Redis : object
      @return 修改成功时，返回 True，如果 newkey 已经存在，返回 False */
     Boolean renameNX(Buffer key, Buffer newkey);
 
+    /*! @brief 订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message
+     @param channel 指定订阅的频道名称
+     @param func 指定回调函数
+     */
+    sub(Buffer channel, Function func);
+
+    /*! @brief 订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数
+     @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
+     */
+    sub(Object map);
+
+    /*! @brief 退订给定的频道
+     @param channel 指定退订的频道名称
+    */
+    unsub(Buffer channel);
+
+    /*! @brief 退订一组给定的频道
+     @param channels 指定退订的频道数组
+    */
+    unsub(Array channels);
+
+    /*! @brief 按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern
+     @param pattern 指定订阅的频道模板
+     @param func 指定回调函数
+     */
+    psub(String pattern, Function func);
+
+    /*! @brief 订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func
+     @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
+     */
+    psub(Object map);
+
+    /*! @brief 退订给定模板的频道
+     @param pattern 指定退订的频道模板
+    */
+    unpsub(String pattern);
+
+    /*! @brief 退订一组给定模板的频道
+     @param patterns 指定发布的频道模板数组
+    */
+    unpsub(Array patterns);
+
+    /*! @brief 将信息 message 发送到指定的频道 channel
+     @param channel 指定发布的频道
+     @param message 指定发布的消息
+    */
+    Integer pub(Buffer channel, Buffer message);
+
     /*! @brief 获取指定 key 的 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
      @param key 指定要获取的 key
      @return 返回包含指定 key 的 Hash 对象 */

@@ -100,6 +100,7 @@
     <ClCompile Include="src\Redis.cpp" />
     <ClCompile Include="src\RedisHash.cpp" />
     <ClCompile Include="src\RedisList.cpp" />
+    <ClCompile Include="src\RedisPubSub.cpp" />
     <ClCompile Include="src\RedisSet.cpp" />
     <ClCompile Include="src\RedisSortedSet.cpp" />
     <ClCompile Include="src\Regex.cpp" />

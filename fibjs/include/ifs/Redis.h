@@ -59,6 +59,15 @@ public:
 	virtual result_t persist(Buffer_base* key, bool& retVal) = 0;
 	virtual result_t rename(Buffer_base* key, Buffer_base* newkey) = 0;
 	virtual result_t renameNX(Buffer_base* key, Buffer_base* newkey, bool& retVal) = 0;
+	virtual result_t sub(Buffer_base* channel, v8::Local<v8::Function> func) = 0;
+	virtual result_t sub(v8::Local<v8::Object> map) = 0;
+	virtual result_t unsub(Buffer_base* channel) = 0;
+	virtual result_t unsub(v8::Local<v8::Array> channels) = 0;
+	virtual result_t psub(const char* pattern, v8::Local<v8::Function> func) = 0;
+	virtual result_t psub(v8::Local<v8::Object> map) = 0;
+	virtual result_t unpsub(const char* pattern) = 0;
+	virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
+	virtual result_t pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal) = 0;
 	virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal) = 0;
 	virtual result_t getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal) = 0;
 	virtual result_t getSet(Buffer_base* key, obj_ptr<RedisSet_base>& retVal) = 0;
@@ -97,6 +106,11 @@ public:
 	static void s_persist(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sub(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_psub(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_pub(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getList(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getSet(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -148,6 +162,11 @@ namespace fibjs
 			{"persist", s_persist},
 			{"rename", s_rename},
 			{"renameNX", s_renameNX},
+			{"sub", s_sub},
+			{"unsub", s_unsub},
+			{"psub", s_psub},
+			{"unpsub", s_unpsub},
+			{"pub", s_pub},
 			{"getHash", s_getHash},
 			{"getList", s_getList},
 			{"getSet", s_getSet},
@@ -160,7 +179,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Redis", NULL, 
-			34, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			39, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -569,6 +588,95 @@ namespace fibjs
 		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->renameNX(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(v8::Local<v8::Function>, 1);
+
+		hr = pInst->sub(v0, v1);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
+
+		hr = pInst->sub(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->unsub(v0);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->unsub(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(v8::Local<v8::Function>, 1);
+
+		hr = pInst->psub(v0, v1);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
+
+		hr = pInst->psub(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->unpsub(v0);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->unpsub(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void Redis_base::s_pub(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
+
+		hr = pInst->pub(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

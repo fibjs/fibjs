@@ -59,6 +59,8 @@ result_t Redis::connect(const char *host, int port, exlib::AsyncEvent *ac)
     m_stmBuffered = new BufferedStream(m_sock);
     m_stmBuffered->set_EOL("\r\n");
 
+    m_subMode = 0;
+
     return m_sock->connect(host, port, ac);
 }
 
@@ -71,8 +73,18 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
         asyncCommand(Redis *pThis, std::string &req, Variant &retVal, exlib::AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_req(req), m_retVal(retVal)
         {
+            m_subMode = pThis->m_subMode;
+
             m_stmBuffered = pThis->m_stmBuffered;
             set(send);
+        }
+
+        asyncCommand(Redis *pThis) : asyncState(NULL), m_pThis(pThis), m_retVal(m_val)
+        {
+            m_subMode = pThis->m_subMode;
+
+            m_stmBuffered = pThis->m_stmBuffered;
+            set(read);
         }
 
         static int send(asyncState *pState, int n)
@@ -89,8 +101,67 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
+            if (pThis->m_subMode == 2)
+                return pThis->done(n);
+
             pThis->set(read_ok);
             return pThis->m_stmBuffered->readLine(REDIS_MAX_LINE, pThis->m_strLine, pThis);
+        }
+
+        void _trigger()
+        {
+            obj_ptr<List_base> list = List_base::getInstance(m_val.object());
+
+            if (list)
+            {
+                Variant vs[3];
+                list->_indexed_getter(0, vs[0]);
+                obj_ptr<Buffer_base> buf = Buffer_base::getInstance(vs[0].object());
+
+                if (!buf)
+                    return;
+
+                std::string s;
+                buf->toString(s);
+
+                int32_t sz;
+
+                if (!qstricmp(s.c_str(), "MESSAGE"))
+                {
+                    s = "s_";
+                    sz = 2;
+                }
+                else if (!qstricmp(s.c_str(), "PMESSAGE"))
+                {
+                    s = "p_";
+                    sz = 3;
+                }
+                else
+                    return;
+
+                vs[0].clear();
+                list->_indexed_getter(1, vs[0]);
+                obj_ptr<Buffer_base> buf1 = Buffer_base::getInstance(vs[0].object());
+
+                if (!buf1)
+                    return;
+
+                std::string s1;
+                buf1->toString(s1);
+
+                s += s1;
+
+                if (sz == 3)
+                {
+                    vs[2] = vs[0];
+                    list->_indexed_getter(2, vs[0]);
+                    list->_indexed_getter(3, vs[1]);
+                }
+                else
+                    list->_indexed_getter(2, vs[1]);
+
+                m_pThis->_trigger(s.c_str(), vs, sz);
+            }
         }
 
         int setResult(int hr = 0)
@@ -115,18 +186,34 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 hr = 0;
             }
 
-            m_retVal = m_val;
-            return done(hr);
+            if (hr < 0)
+                return done(hr);
+
+            if (m_subMode == 0)
+            {
+                m_retVal = m_val;
+                return done(hr);
+            }
+
+            _trigger();
+
+            m_val.clear();
+            set(read);
+            return 0;
         }
 
         static int read_ok(asyncState *pState, int n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
+
+            if (pThis->m_strLine.length() == 0)
+                return Runtime::setError("Invalid response.");
+
             char ch = pThis->m_strLine[0];
 
             if (ch == '+')
             {
-                pThis->m_val = pThis->m_strLine.substr(1);
+                pThis->m_val = new Buffer(pThis->m_strLine.substr(1));
                 return pThis->setResult();
             }
 
@@ -188,17 +275,16 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
             if (n == CALL_RETURN_NULL)
                 return pThis->setResult(CALL_RETURN_NULL);
 
-            std::string str;
-
-            pThis->m_buffer->toString(str);
-            str.resize(str.length() - 2);
-            pThis->m_val = str;
+            int32_t sz;
+            pThis->m_buffer->get_length(sz);
+            pThis->m_buffer->resize(sz - 2);
+            pThis->m_val = pThis->m_buffer;
             return pThis->setResult();
         }
 
     protected:
         obj_ptr<Redis> m_pThis;
-        std::string &m_req;
+        std::string m_req;
         Variant &m_retVal;
         Variant m_val;
         obj_ptr<BufferedStream_base> m_stmBuffered;
@@ -206,10 +292,17 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
         QuickArray<obj_ptr<List_base> > m_lists;
         QuickArray<int32_t> m_counts;
         std::string m_strLine;
+        int32_t m_subMode;
     };
 
     if (switchToAsync(ac))
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_subMode == 1)
+    {
+        (new asyncCommand(this))->post(0);
+        m_subMode = 2;
+    }
 
     return (new asyncCommand(this, req, retVal, ac))->post(0);
 }
@@ -443,6 +536,8 @@ result_t Redis::close()
 {
     if (!m_sock)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    m_sock->ac_close();
 
     m_sock.Release();
     m_stmBuffered.Release();

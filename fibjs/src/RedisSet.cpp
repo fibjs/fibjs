@@ -54,7 +54,7 @@ result_t RedisSet::pop(obj_ptr<Buffer_base> &retVal)
 
 result_t RedisSet::randMember(v8::Local<v8::Value> &retVal)
 {
-    std::string v;
+    obj_ptr<Buffer_base> v;
     result_t hr;
 
     hr = m_rdb->doCommand("SRANDMEMBER", m_key, v);

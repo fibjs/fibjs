@@ -53,6 +53,15 @@ public:
     virtual result_t persist(Buffer_base *key, bool &retVal);
     virtual result_t rename(Buffer_base *key, Buffer_base *newkey);
     virtual result_t renameNX(Buffer_base *key, Buffer_base *newkey, bool &retVal);
+    virtual result_t sub(Buffer_base *channel, v8::Local<v8::Function> func);
+    virtual result_t sub(v8::Local<v8::Object> map);
+    virtual result_t unsub(Buffer_base *channel);
+    virtual result_t unsub(v8::Local<v8::Array> channels);
+    virtual result_t psub(const char *pattern, v8::Local<v8::Function> func);
+    virtual result_t psub(v8::Local<v8::Object> map);
+    virtual result_t unpsub(const char *pattern);
+    virtual result_t unpsub(v8::Local<v8::Array> patterns);
+    virtual result_t pub(Buffer_base *channel, Buffer_base *message, int32_t &retVal);
     virtual result_t getHash(Buffer_base *key, obj_ptr<RedisHash_base> &retVal);
     virtual result_t getList(Buffer_base *key, obj_ptr<RedisList_base> &retVal);
     virtual result_t getSet(Buffer_base *key, obj_ptr<RedisSet_base> &retVal);
@@ -223,15 +232,17 @@ public:
     };
 
 public:
-    static result_t retValue(Variant &v, std::string &retVal)
-    {
-        retVal = v.string();
-        return 0;
-    }
-
     static result_t retValue(Variant &v, obj_ptr<Buffer_base> &retVal)
     {
-        retVal = new Buffer(v.string());
+        retVal = Buffer_base::getInstance(v.object());
+        return retVal ? 0 : CHECK_ERROR(CALL_E_INVALID_CALL);
+    }
+
+    static result_t retValue(Variant &v, std::string &retVal)
+    {
+        obj_ptr<Buffer_base> v1 = Buffer_base::getInstance(v.object());
+        if (v1)
+            v1->toString(retVal);
         return 0;
     }
 
@@ -254,13 +265,54 @@ public:
         return 0;
     }
 
-    template<typename T, typename T1>
-    result_t doCommand(const char *cmd, T1 &a1, T &retVal)
+    result_t chkCommand(const char *cmd)
     {
         if (!m_sock)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+        if (m_subMode)
+        {
+            if (qstricmp(cmd, "SUBSCRIBE") && qstricmp(cmd, "UNSUBSCRIBE")
+                    && qstricmp(cmd, "PSUBSCRIBE") && qstricmp(cmd, "PUNSUBSCRIBE")
+                    && qstricmp(cmd, "CLOSE"))
+                return CHECK_ERROR(CALL_E_INVALID_CALL);
+        }
+
+        return 0;
+    }
+
+    template<typename T>
+    result_t doCommand(const char *cmd, T &retVal)
+    {
         result_t hr;
+
+        hr = chkCommand(cmd);
+        if (hr < 0)
+            return hr;
+
+        _param ps;
+        Variant v;
+
+        hr = ps.add(cmd);
+        if (hr < 0)
+            return hr;
+
+        hr = ac__command(ps.str(), v);
+        if (hr < 0 || hr == CALL_RETURN_NULL)
+            return hr;
+
+        return retValue(v, retVal);
+    }
+
+    template<typename T, typename T1>
+    result_t doCommand(const char *cmd, T1 &a1, T &retVal)
+    {
+        result_t hr;
+
+        hr = chkCommand(cmd);
+        if (hr < 0)
+            return hr;
+
         _param ps;
         Variant v;
 
@@ -282,10 +334,12 @@ public:
     template<typename T, typename T1, typename T2>
     result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T &retVal)
     {
-        if (!m_sock)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         result_t hr;
+
+        hr = chkCommand(cmd);
+        if (hr < 0)
+            return hr;
+
         _param ps;
         Variant v;
 
@@ -311,10 +365,12 @@ public:
     template<typename T, typename T1, typename T2, typename T3>
     result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T &retVal)
     {
-        if (!m_sock)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         result_t hr;
+
+        hr = chkCommand(cmd);
+        if (hr < 0)
+            return hr;
+
         _param ps;
         Variant v;
 
@@ -344,10 +400,12 @@ public:
     template<typename T, typename T1, typename T2, typename T3, typename T4>
     result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T &retVal)
     {
-        if (!m_sock)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         result_t hr;
+
+        hr = chkCommand(cmd);
+        if (hr < 0)
+            return hr;
+
         _param ps;
         Variant v;
 
@@ -381,10 +439,12 @@ public:
     template<typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
     result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T5 &a5, T &retVal)
     {
-        if (!m_sock)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         result_t hr;
+
+        hr = chkCommand(cmd);
+        if (hr < 0)
+            return hr;
+
         _param ps;
         Variant v;
 
@@ -420,8 +480,13 @@ public:
     }
 
 public:
+    result_t sub(const char *prefix, const char *cmd, v8::Local<v8::Object> &map);
+    result_t unsub(const char *prefix, const char *cmd, v8::Local<v8::Array> &channels);
+
+public:
     obj_ptr<Socket_base> m_sock;
     obj_ptr<BufferedStream_base> m_stmBuffered;
+    int32_t m_subMode;
 };
 
 } /* namespace fibjs */
