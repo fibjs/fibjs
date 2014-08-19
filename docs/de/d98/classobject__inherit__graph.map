@@ -25,7 +25,7 @@
 <area shape="rect" id="node27" href="$d2/d6d/classMongoID.html" title="mongodb 数据库数据唯一标识对象，用于存储传递 oid " alt="" coords="3161,547,3236,620"/>
 <area shape="rect" id="node28" href="$d0/d82/classPKey.html" title="不对称加密算法对象 " alt="" coords="3260,453,3371,713"/>
 <area shape="rect" id="node29" href="$d7/d56/classQueue.html" title="FIFO（先进先出）队列对象 " alt="" coords="3395,493,3484,673"/>
-<area shape="rect" id="node30" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="3508,240,3627,927"/>
+<area shape="rect" id="node30" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="3508,233,3627,933"/>
 <area shape="rect" id="node31" href="$df/dbc/classRedisHash.html" title="Redis 数据库客户端 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="3651,460,3738,707"/>
 <area shape="rect" id="node32" href="$d8/dc8/classRedisList.html" title="Redis 数据库客户端 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="3761,460,3875,707"/>
 <area shape="rect" id="node33" href="$df/d65/classRedisSet.html" title="Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="3900,487,4017,680"/>

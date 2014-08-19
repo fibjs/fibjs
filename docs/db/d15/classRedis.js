@@ -39,6 +39,7 @@ var classRedis =
     [ "psub", "db/d15/classRedis.html#a1ff4f50f05ac259f0deca3a8ba26e8f9", null ],
     [ "unpsub", "db/d15/classRedis.html#a2d26d2cea1bab8f765bb5b958784bc47", null ],
     [ "unpsub", "db/d15/classRedis.html#a38755960e0e8384b852e8bf3b9cb4ee7", null ],
+    [ "onsuberror", "db/d15/classRedis.html#af96772db675918003d9974601a3d7df7", null ],
     [ "pub", "db/d15/classRedis.html#ae11d8554fc2d37dc908ea7ecd7e4f9a8", null ],
     [ "getHash", "db/d15/classRedis.html#aec7a520518baaa94aa65e08a9ac9b7d3", null ],
     [ "getList", "db/d15/classRedis.html#abce17a68ed559afe687c7d5c734bc850", null ],

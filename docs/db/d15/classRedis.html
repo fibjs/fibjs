@@ -115,7 +115,8 @@ $(document).ready(function(){initNavTree('db/d15/classRedis.html','../../');});
 <div class="dynheader">
 类 Redis 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="131" height="859"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="131" height="872"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -237,6 +238,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a38755960e0e8384b852e8bf3b9cb4ee7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a38755960e0e8384b852e8bf3b9cb4ee7">unpsub</a> (Array patterns)</td></tr>
 <tr class="memdesc:a38755960e0e8384b852e8bf3b9cb4ee7"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订一组给定模板的频道  <a href="#a38755960e0e8384b852e8bf3b9cb4ee7">更多...</a><br /></td></tr>
 <tr class="separator:a38755960e0e8384b852e8bf3b9cb4ee7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af96772db675918003d9974601a3d7df7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#af96772db675918003d9974601a3d7df7">onsuberror</a> (<a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:af96772db675918003d9974601a3d7df7"><td class="mdescLeft">&#160;</td><td class="mdescRight">注册一个错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止  <a href="#af96772db675918003d9974601a3d7df7">更多...</a><br /></td></tr>
+<tr class="separator:af96772db675918003d9974601a3d7df7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae11d8554fc2d37dc908ea7ecd7e4f9a8"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ae11d8554fc2d37dc908ea7ecd7e4f9a8">pub</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> channel, <a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> message)</td></tr>
 <tr class="memdesc:ae11d8554fc2d37dc908ea7ecd7e4f9a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">将信息 message 发送到指定的频道 channel  <a href="#ae11d8554fc2d37dc908ea7ecd7e4f9a8">更多...</a><br /></td></tr>
 <tr class="separator:ae11d8554fc2d37dc908ea7ecd7e4f9a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1479,6 +1483,30 @@ Public 成员函数</h2></td></tr>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">patterns</td><td>指定发布的频道模板数组 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="af96772db675918003d9974601a3d7df7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::onsuberror </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../de/d65/classFunction.html">Function</a>&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>注册一个错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">func</td><td>指定回调函数 </td></tr>
   </table>
   </dd>
 </dl>

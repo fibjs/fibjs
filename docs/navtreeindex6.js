@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"de/d1c/classassert.html#a8d631ec59b0bb32668c8ac410d2a5f87":[4,0,0,35],
 "de/d1c/classassert.html#a8ef18037a8c8401353a6336a16373380":[4,0,0,46],
 "de/d1c/classassert.html#a9f20f8dc42056ee6bfa98761a1b8dd1c":[4,0,0,27],
 "de/d1c/classassert.html#aa41904a1025725f280feab1e7312fa5a":[4,0,0,47],
@@ -147,8 +148,8 @@ var NAVTREEINDEX6 =
 "df/dbc/classRedisHash.html#ad66be13eb5b7c5f560fd8511565138c4":[4,0,65,16],
 "df/dbc/classRedisHash.html#ae05e8adf0c2895411bc1368b4f657f19":[4,0,65,6],
 "df/dbc/classRedisHash.html#afc07ac81b6e3bf682e35d21d72ae4621":[4,0,65,4],
-"functions.html":[4,2,0,0],
 "functions.html":[4,2,0],
+"functions.html":[4,2,0,0],
 "functions_b.html":[4,2,0,1],
 "functions_c.html":[4,2,0,2],
 "functions_d.html":[4,2,0,3],
