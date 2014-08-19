@@ -67,6 +67,7 @@ public:
 	virtual result_t psub(v8::Local<v8::Object> map) = 0;
 	virtual result_t unpsub(const char* pattern) = 0;
 	virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
+	virtual result_t onsuberror(v8::Local<v8::Function> func) = 0;
 	virtual result_t pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal) = 0;
 	virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal) = 0;
 	virtual result_t getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal) = 0;
@@ -110,6 +111,7 @@ public:
 	static void s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_psub(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onsuberror(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_pub(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getList(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -166,6 +168,7 @@ namespace fibjs
 			{"unsub", s_unsub},
 			{"psub", s_psub},
 			{"unpsub", s_unpsub},
+			{"onsuberror", s_onsuberror},
 			{"pub", s_pub},
 			{"getHash", s_getHash},
 			{"getList", s_getList},
@@ -179,7 +182,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Redis", NULL, 
-			39, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			40, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -662,6 +665,18 @@ namespace fibjs
 		ARG(v8::Local<v8::Array>, 0);
 
 		hr = pInst->unpsub(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void Redis_base::s_onsuberror(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Redis_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Function>, 0);
+
+		hr = pInst->onsuberror(v0);
 
 		METHOD_VOID();
 	}

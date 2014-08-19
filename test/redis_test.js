@@ -24,16 +24,11 @@ function listEquals(list, arr) {
 }
 
 describe("redis", function() {
-	function _clear() {
-		try {
-			var keys = rdb.command("keys", "*").toArray();
-			if (keys.length)
-				rdb.del(keys);
-		} catch (e) {}
-	}
-
-	before(_clear);
-	after(_clear);
+	before(function() {
+		var keys = rdb.command("keys", "*").toArray();
+		if (keys.length)
+			rdb.del(keys);
+	});
 
 	describe("base", function() {
 		it("command", function() {
@@ -630,6 +625,26 @@ describe("redis", function() {
 			assert.equal(m, "test value 100");
 			assert.equal(p, "test.*");
 			assert.equal(n1, 3);
+		});
+
+		it("onsuberror", function() {
+			var err_num = 0;
+
+			function my_err() {
+				err_num++;
+			}
+
+			rdb1.onsuberror(my_err);
+			assert.throws(function() {
+				rdb1.command("xxxxx");
+			});
+			coroutine.sleep(100);
+			assert.equal(err_num, 0);
+
+			rdb.onsuberror(my_err);
+			rdb.close();
+			coroutine.sleep(100);
+			assert.equal(err_num, 1);
 		});
 	});
 });

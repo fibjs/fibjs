@@ -282,6 +282,14 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
             return pThis->setResult();
         }
 
+        virtual int error(int v)
+        {
+            if (m_subMode == 1)
+                m_pThis->_trigger("suberror", (Variant *)NULL, 0);
+
+            return v;
+        }
+
     protected:
         obj_ptr<Redis> m_pThis;
         std::string m_req;
