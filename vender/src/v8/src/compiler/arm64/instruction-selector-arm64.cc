@@ -61,9 +61,9 @@ class Arm64OperandGenerator V8_FINAL : public OperandGenerator {
         // TODO(dcarney): -values can be handled by instruction swapping
         return Assembler::IsImmAddSub(value);
       case kShift32Imm:
-        return 0 <= value && value < 31;
+        return 0 <= value && value < 32;
       case kShift64Imm:
-        return 0 <= value && value < 63;
+        return 0 <= value && value < 64;
       case kLoadStoreImm:
         return (0 <= value && value < (1 << 9)) ||
                (-(1 << 6) <= value && value < (1 << 6));
@@ -73,14 +73,6 @@ class Arm64OperandGenerator V8_FINAL : public OperandGenerator {
     return false;
   }
 };
-
-
-static void VisitRR(InstructionSelector* selector, ArchOpcode opcode,
-                    Node* node) {
-  Arm64OperandGenerator g(selector);
-  selector->Emit(opcode, g.DefineAsRegister(node),
-                 g.UseRegister(node->InputAt(0)));
-}
 
 
 static void VisitRRR(InstructionSelector* selector, ArchOpcode opcode,
@@ -430,16 +422,6 @@ void InstructionSelector::VisitInt64UMod(Node* node) {
 }
 
 
-void InstructionSelector::VisitConvertInt32ToInt64(Node* node) {
-  VisitRR(this, kArm64Int32ToInt64, node);
-}
-
-
-void InstructionSelector::VisitConvertInt64ToInt32(Node* node) {
-  VisitRR(this, kArm64Int64ToInt32, node);
-}
-
-
 void InstructionSelector::VisitChangeInt32ToFloat64(Node* node) {
   Arm64OperandGenerator g(this);
   Emit(kArm64Int32ToFloat64, g.DefineAsDoubleRegister(node),
@@ -465,6 +447,24 @@ void InstructionSelector::VisitChangeFloat64ToUint32(Node* node) {
   Arm64OperandGenerator g(this);
   Emit(kArm64Float64ToUint32, g.DefineAsRegister(node),
        g.UseDoubleRegister(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitChangeInt32ToInt64(Node* node) {
+  Arm64OperandGenerator g(this);
+  Emit(kArm64Sxtw, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitChangeUint32ToUint64(Node* node) {
+  Arm64OperandGenerator g(this);
+  Emit(kArm64Mov32, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitTruncateInt64ToInt32(Node* node) {
+  Arm64OperandGenerator g(this);
+  Emit(kArm64Mov32, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
 }
 
 

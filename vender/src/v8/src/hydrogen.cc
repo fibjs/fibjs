@@ -5286,16 +5286,14 @@ void HOptimizedGraphBuilder::VisitConditional(Conditional* expr) {
 
 
 HOptimizedGraphBuilder::GlobalPropertyAccess
-    HOptimizedGraphBuilder::LookupGlobalProperty(
-        Variable* var, LookupResult* lookup, PropertyAccessType access_type) {
+HOptimizedGraphBuilder::LookupGlobalProperty(Variable* var, LookupIterator* it,
+                                             PropertyAccessType access_type) {
+  DCHECK_EQ(*var->name(), *it->name());
   if (var->is_this() || !current_info()->has_global_object()) {
     return kUseGeneric;
   }
-  Handle<GlobalObject> global(current_info()->global_object());
-  global->Lookup(var->name(), lookup);
-  if (!lookup->IsNormal() ||
-      (access_type == STORE && lookup->IsReadOnly()) ||
-      lookup->holder() != *global) {
+  if (!it->HasProperty() || it->property_kind() != LookupIterator::DATA ||
+      (access_type == STORE && it->IsReadOnly())) {
     return kUseGeneric;
   }
 
@@ -5340,8 +5338,10 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
         return ast_context()->ReturnInstruction(instr, expr->id());
       }
 
-      LookupResult lookup(isolate());
-      GlobalPropertyAccess type = LookupGlobalProperty(variable, &lookup, LOAD);
+      Handle<GlobalObject> global(current_info()->global_object());
+      LookupIterator it(global, variable->name(),
+                        LookupIterator::CHECK_PROPERTY);
+      GlobalPropertyAccess type = LookupGlobalProperty(variable, &it, LOAD);
 
       if (type == kUseCell &&
           current_info()->global_object()->IsAccessCheckNeeded()) {
@@ -5349,8 +5349,7 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
       }
 
       if (type == kUseCell) {
-        Handle<GlobalObject> global(current_info()->global_object());
-        Handle<PropertyCell> cell(global->GetPropertyCell(&lookup));
+        Handle<PropertyCell> cell = it.GetPropertyCell();
         if (cell->type()->IsConstant()) {
           PropertyCell::AddDependentCompilationInfo(cell, top_info());
           Handle<Object> constant_object = cell->type()->AsConstant()->Value();
@@ -5362,7 +5361,7 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
           return ast_context()->ReturnInstruction(constant, expr->id());
         } else {
           HLoadGlobalCell* instr =
-              New<HLoadGlobalCell>(cell, lookup.GetPropertyDetails());
+              New<HLoadGlobalCell>(cell, it.property_details());
           return ast_context()->ReturnInstruction(instr, expr->id());
         }
       } else {
@@ -5797,11 +5796,9 @@ HInstruction* HOptimizedGraphBuilder::BuildLoadNamedField(
         HConstant::cast(checked_object->ActualValue())->handle(isolate()));
 
     if (object->IsJSObject()) {
-      LookupResult lookup(isolate());
-      Handle<JSObject>::cast(object)->Lookup(info->name(), &lookup);
-      Handle<Object> value(lookup.GetLazyValue(), isolate());
-
-      DCHECK(!value->IsTheHole());
+      LookupIterator it(object, info->name(), LookupIterator::CHECK_PROPERTY);
+      Handle<Object> value = JSObject::GetDataProperty(&it);
+      CHECK(it.IsFound());
       return New<HConstant>(value);
     }
   }
@@ -6458,11 +6455,11 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
     Variable* var,
     HValue* value,
     BailoutId ast_id) {
-  LookupResult lookup(isolate());
-  GlobalPropertyAccess type = LookupGlobalProperty(var, &lookup, STORE);
+  Handle<GlobalObject> global(current_info()->global_object());
+  LookupIterator it(global, var->name(), LookupIterator::CHECK_PROPERTY);
+  GlobalPropertyAccess type = LookupGlobalProperty(var, &it, STORE);
   if (type == kUseCell) {
-    Handle<GlobalObject> global(current_info()->global_object());
-    Handle<PropertyCell> cell(global->GetPropertyCell(&lookup));
+    Handle<PropertyCell> cell = it.GetPropertyCell();
     if (cell->type()->IsConstant()) {
       Handle<Object> constant = cell->type()->AsConstant()->Value();
       if (value->IsConstant()) {
@@ -6487,7 +6484,7 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
       }
     }
     HInstruction* instr =
-        Add<HStoreGlobalCell>(value, cell, lookup.GetPropertyDetails());
+        Add<HStoreGlobalCell>(value, cell, it.property_details());
     if (instr->HasObservableSideEffects()) {
       Add<HSimulate>(ast_id, REMOVABLE_SIMULATE);
     }
@@ -7201,7 +7198,9 @@ bool HOptimizedGraphBuilder::TryArgumentsAccess(Property* expr) {
   HInstruction* result = NULL;
   if (expr->key()->IsPropertyName()) {
     Handle<String> name = expr->key()->AsLiteral()->AsPropertyName();
-    if (!name->IsOneByteEqualTo(STATIC_ASCII_VECTOR("length"))) return false;
+    if (!String::Equals(name, isolate()->factory()->length_string())) {
+      return false;
+    }
 
     if (function_state()->outer() == NULL) {
       HInstruction* elements = Add<HArgumentsElements>(false);
@@ -9049,12 +9048,13 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
       // If there is a global property cell for the name at compile time and
       // access check is not enabled we assume that the function will not change
       // and generate optimized code for calling the function.
-      LookupResult lookup(isolate());
-      GlobalPropertyAccess type = LookupGlobalProperty(var, &lookup, LOAD);
+      Handle<GlobalObject> global(current_info()->global_object());
+      LookupIterator it(global, var->name(), LookupIterator::CHECK_PROPERTY);
+      GlobalPropertyAccess type = LookupGlobalProperty(var, &it, LOAD);
       if (type == kUseCell &&
           !current_info()->global_object()->IsAccessCheckNeeded()) {
         Handle<GlobalObject> global(current_info()->global_object());
-        known_global_function = expr->ComputeGlobalTarget(global, &lookup);
+        known_global_function = expr->ComputeGlobalTarget(global, &it);
       }
       if (known_global_function) {
         Add<HCheckValue>(function, expr->target());
@@ -10693,10 +10693,10 @@ void HOptimizedGraphBuilder::VisitCompareOperation(CompareOperation* expr) {
         !current_info()->global_object()->IsAccessCheckNeeded()) {
       Handle<String> name = proxy->name();
       Handle<GlobalObject> global(current_info()->global_object());
-      LookupResult lookup(isolate());
-      global->Lookup(name, &lookup);
-      if (lookup.IsNormal() && lookup.GetValue()->IsJSFunction()) {
-        Handle<JSFunction> candidate(JSFunction::cast(lookup.GetValue()));
+      LookupIterator it(global, name, LookupIterator::CHECK_PROPERTY);
+      Handle<Object> value = JSObject::GetDataProperty(&it);
+      if (it.IsFound() && value->IsJSFunction()) {
+        Handle<JSFunction> candidate = Handle<JSFunction>::cast(value);
         // If the function is in new space we assume it's more likely to
         // change and thus prefer the general IC code.
         if (!isolate()->heap()->InNewSpace(*candidate)) {
@@ -11180,6 +11180,11 @@ void HOptimizedGraphBuilder::VisitThisFunction(ThisFunction* expr) {
   DCHECK(current_block()->HasPredecessor());
   HInstruction* instr = BuildThisFunction();
   return ast_context()->ReturnInstruction(instr, expr->id());
+}
+
+
+void HOptimizedGraphBuilder::VisitSuperReference(SuperReference* expr) {
+  UNREACHABLE();
 }
 
 

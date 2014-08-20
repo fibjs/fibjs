@@ -162,6 +162,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
+    case kArchTruncateDoubleToI:
+      __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
     case kArmAdd:
       __ add(i.OutputRegister(), i.InputRegister(0), i.InputOperand2(1),
              i.OutputSBit());
@@ -202,8 +206,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArmMov:
-      __ Move(i.OutputRegister(), i.InputOperand2(0));
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      __ Move(i.OutputRegister(), i.InputOperand2(0), i.OutputSBit());
       break;
     case kArmMvn:
       __ mvn(i.OutputRegister(), i.InputOperand2(0), i.OutputSBit());

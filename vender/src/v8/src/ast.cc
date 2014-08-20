@@ -590,18 +590,16 @@ Call::CallType Call::GetCallType(Isolate* isolate) const {
 
 
 bool Call::ComputeGlobalTarget(Handle<GlobalObject> global,
-                               LookupResult* lookup) {
+                               LookupIterator* it) {
   target_ = Handle<JSFunction>::null();
   cell_ = Handle<Cell>::null();
-  DCHECK(lookup->IsFound() &&
-         lookup->type() == NORMAL &&
-         lookup->holder() == *global);
-  cell_ = Handle<Cell>(global->GetPropertyCell(lookup));
+  DCHECK(it->IsFound() && it->GetHolder<JSObject>().is_identical_to(global));
+  cell_ = it->GetPropertyCell();
   if (cell_->value()->IsJSFunction()) {
     Handle<JSFunction> candidate(JSFunction::cast(cell_->value()));
     // If the function is in new space we assume it's more likely to
     // change and thus prefer the general IC code.
-    if (!lookup->isolate()->heap()->InNewSpace(*candidate)) {
+    if (!it->isolate()->heap()->InNewSpace(*candidate)) {
       target_ = candidate;
       return true;
     }
@@ -1097,6 +1095,7 @@ DONT_OPTIMIZE_NODE(TryCatchStatement)
 DONT_OPTIMIZE_NODE(TryFinallyStatement)
 DONT_OPTIMIZE_NODE(DebuggerStatement)
 DONT_OPTIMIZE_NODE(NativeFunctionLiteral)
+DONT_OPTIMIZE_NODE(SuperReference)
 
 DONT_OPTIMIZE_NODE_WITH_FEEDBACK_SLOTS(Yield)
 

@@ -1034,7 +1034,12 @@ Handle<Code> LoadIC::CompileHandler(LookupIterator* lookup,
     DCHECK(!holder->GetNamedInterceptor()->getter()->IsUndefined());
     NamedLoadHandlerCompiler compiler(isolate(), receiver_type(), holder,
                                       cache_holder);
-    return compiler.CompileLoadInterceptor(name);
+    // Perform a lookup behind the interceptor. Copy the LookupIterator since
+    // the original iterator will be used to fetch the value.
+    LookupIterator it(lookup);
+    it.Next();
+    LookupForRead(&it);
+    return compiler.CompileLoadInterceptor(&it, name);
   }
   DCHECK(lookup->state() == LookupIterator::PROPERTY);
 
@@ -1552,12 +1557,13 @@ Handle<Code> StoreIC::CompileStoreHandler(LookupResult* lookup,
         DCHECK(holder.is_identical_to(receiver));
         return isolate()->builtins()->StoreIC_Normal();
       case CALLBACKS: {
-        Handle<Object> callback(lookup->GetCallbackObject(), isolate());
+        if (!holder->HasFastProperties()) break;
+        Handle<Object> callback(lookup->GetValueFromMap(holder->map()),
+                                isolate());
         if (callback->IsExecutableAccessorInfo()) {
           Handle<ExecutableAccessorInfo> info =
               Handle<ExecutableAccessorInfo>::cast(callback);
           if (v8::ToCData<Address>(info->setter()) == 0) break;
-          if (!holder->HasFastProperties()) break;
           if (!ExecutableAccessorInfo::IsCompatibleReceiverType(
                   isolate(), info, receiver_type())) {
             break;
@@ -1569,8 +1575,6 @@ Handle<Code> StoreIC::CompileStoreHandler(LookupResult* lookup,
           Handle<Object> setter(
               Handle<AccessorPair>::cast(callback)->setter(), isolate());
           if (!setter->IsJSFunction()) break;
-          if (holder->IsGlobalObject()) break;
-          if (!holder->HasFastProperties()) break;
           Handle<JSFunction> function = Handle<JSFunction>::cast(setter);
           CallOptimization call_optimization(function);
           NamedStoreHandlerCompiler compiler(isolate(), receiver_type(),

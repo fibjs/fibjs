@@ -226,6 +226,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
       break;
     }
+    case kArchTruncateDoubleToI:
+      __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
+      break;
     case kX64Add32:
       ASSEMBLE_BINOP(addl);
       break;
@@ -392,6 +395,24 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kX64PushI:
       __ pushq(i.InputImmediate(0));
       break;
+    case kX64Movl: {
+      RegisterOrOperand input = i.InputRegisterOrOperand(0);
+      if (input.type == kRegister) {
+        __ movl(i.OutputRegister(), input.reg);
+      } else {
+        __ movl(i.OutputRegister(), input.operand);
+      }
+      break;
+    }
+    case kX64Movsxlq: {
+      RegisterOrOperand input = i.InputRegisterOrOperand(0);
+      if (input.type == kRegister) {
+        __ movsxlq(i.OutputRegister(), input.reg);
+      } else {
+        __ movsxlq(i.OutputRegister(), input.operand);
+      }
+      break;
+    }
     case kX64CallCodeObject: {
       if (HasImmediateInput(instr, 0)) {
         Handle<Code> code = Handle<Code>::cast(i.InputHeapObject(0));
@@ -488,12 +509,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ addq(rsp, Immediate(kDoubleSize));
       break;
     }
-    case kX64Int32ToInt64:
-      __ movzxwq(i.OutputRegister(), i.InputRegister(0));
-      break;
-    case kX64Int64ToInt32:
-      __ Move(i.OutputRegister(), i.InputRegister(0));
-      break;
     case kSSEFloat64ToInt32: {
       RegisterOrOperand input = i.InputRegisterOrOperand(0);
       if (input.type == kDoubleRegister) {

@@ -233,6 +233,7 @@ namespace internal {
   F(AddNamedProperty, 4, 1)                                           \
   F(AddPropertyForTemplate, 4, 1)                                     \
   F(SetProperty, 4, 1)                                                \
+  F(AddElement, 4, 1)                                                 \
   F(DefineApiAccessorProperty, 5, 1)                                  \
   F(DefineDataPropertyUnchecked, 4, 1)                                \
   F(DefineAccessorPropertyUnchecked, 5, 1)                            \
@@ -826,12 +827,8 @@ class Runtime : public AllStatic {
       Handle<Object> value, StrictMode strict_mode);
 
   MUST_USE_RESULT static MaybeHandle<Object> DefineObjectProperty(
-      Handle<JSObject> object,
-      Handle<Object> key,
-      Handle<Object> value,
-      PropertyAttributes attr,
-      JSReceiver::StoreFromKeyed store_from_keyed =
-          JSReceiver::MAY_BE_STORE_FROM_KEYED);
+      Handle<JSObject> object, Handle<Object> key, Handle<Object> value,
+      PropertyAttributes attr);
 
   MUST_USE_RESULT static MaybeHandle<Object> DeleteObjectProperty(
       Isolate* isolate,

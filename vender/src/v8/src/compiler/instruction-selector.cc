@@ -199,12 +199,18 @@ void InstructionSelector::MarkAsDouble(Node* node) {
   DCHECK(!IsReference(node));
   sequence()->MarkAsDouble(node->id());
 
-  // Propagate "doubleness" throughout phis.
+  // Propagate "doubleness" throughout Finish/Phi nodes.
   for (UseIter i = node->uses().begin(); i != node->uses().end(); ++i) {
     Node* user = *i;
-    if (user->opcode() != IrOpcode::kPhi) continue;
-    if (IsDouble(user)) continue;
-    MarkAsDouble(user);
+    switch (user->opcode()) {
+      case IrOpcode::kFinish:
+      case IrOpcode::kPhi:
+        if (IsDouble(user)) continue;
+        MarkAsDouble(user);
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -220,12 +226,18 @@ void InstructionSelector::MarkAsReference(Node* node) {
   DCHECK(!IsDouble(node));
   sequence()->MarkAsReference(node->id());
 
-  // Propagate "referenceness" throughout phis.
+  // Propagate "referenceness" throughout Finish/Phi nodes.
   for (UseIter i = node->uses().begin(); i != node->uses().end(); ++i) {
     Node* user = *i;
-    if (user->opcode() != IrOpcode::kPhi) continue;
-    if (IsReference(user)) continue;
-    MarkAsReference(user);
+    switch (user->opcode()) {
+      case IrOpcode::kFinish:
+      case IrOpcode::kPhi:
+        if (IsReference(user)) continue;
+        MarkAsReference(user);
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -464,13 +476,12 @@ void InstructionSelector::VisitNode(Node* node) {
     case IrOpcode::kContinuation:
       // No code needed for these graph artifacts.
       return;
+    case IrOpcode::kFinish:
+      return VisitFinish(node);
     case IrOpcode::kParameter: {
-      int index = OpParameter<int>(node);
-      MachineType rep = linkage()
-                            ->GetIncomingDescriptor()
-                            ->GetInputLocation(index)
-                            .representation();
-      MarkAsRepresentation(rep, node);
+      LinkageLocation location =
+          linkage()->GetParameterLocation(OpParameter<int>(node));
+      MarkAsRepresentation(location.representation(), node);
       return VisitParameter(node);
     }
     case IrOpcode::kPhi:
@@ -575,10 +586,6 @@ void InstructionSelector::VisitNode(Node* node) {
       return VisitInt64LessThan(node);
     case IrOpcode::kInt64LessThanOrEqual:
       return VisitInt64LessThanOrEqual(node);
-    case IrOpcode::kConvertInt32ToInt64:
-      return VisitConvertInt32ToInt64(node);
-    case IrOpcode::kConvertInt64ToInt32:
-      return VisitConvertInt64ToInt32(node);
     case IrOpcode::kChangeInt32ToFloat64:
       return MarkAsDouble(node), VisitChangeInt32ToFloat64(node);
     case IrOpcode::kChangeUint32ToFloat64:
@@ -587,6 +594,14 @@ void InstructionSelector::VisitNode(Node* node) {
       return VisitChangeFloat64ToInt32(node);
     case IrOpcode::kChangeFloat64ToUint32:
       return VisitChangeFloat64ToUint32(node);
+    case IrOpcode::kChangeInt32ToInt64:
+      return VisitChangeInt32ToInt64(node);
+    case IrOpcode::kChangeUint32ToUint64:
+      return VisitChangeUint32ToUint64(node);
+    case IrOpcode::kTruncateFloat64ToInt32:
+      return VisitTruncateFloat64ToInt32(node);
+    case IrOpcode::kTruncateInt64ToInt32:
+      return VisitTruncateInt64ToInt32(node);
     case IrOpcode::kFloat64Add:
       return MarkAsDouble(node), VisitFloat64Add(node);
     case IrOpcode::kFloat64Sub:
@@ -688,6 +703,13 @@ void InstructionSelector::VisitInt64LessThanOrEqual(Node* node) {
 }
 
 
+void InstructionSelector::VisitTruncateFloat64ToInt32(Node* node) {
+  OperandGenerator g(this);
+  Emit(kArchTruncateDoubleToI, g.DefineAsRegister(node),
+       g.UseDoubleRegister(node->InputAt(0)));
+}
+
+
 void InstructionSelector::VisitFloat64Equal(Node* node) {
   FlagsContinuation cont(kUnorderedEqual, node);
   VisitFloat64Compare(node, &cont);
@@ -752,12 +774,17 @@ void InstructionSelector::VisitInt64Mod(Node* node) { UNIMPLEMENTED(); }
 void InstructionSelector::VisitInt64UMod(Node* node) { UNIMPLEMENTED(); }
 
 
-void InstructionSelector::VisitConvertInt64ToInt32(Node* node) {
+void InstructionSelector::VisitChangeInt32ToInt64(Node* node) {
   UNIMPLEMENTED();
 }
 
 
-void InstructionSelector::VisitConvertInt32ToInt64(Node* node) {
+void InstructionSelector::VisitChangeUint32ToUint64(Node* node) {
+  UNIMPLEMENTED();
+}
+
+
+void InstructionSelector::VisitTruncateInt64ToInt32(Node* node) {
   UNIMPLEMENTED();
 }
 
@@ -779,6 +806,13 @@ void InstructionSelector::VisitWord64Compare(Node* node,
 }
 
 #endif  // V8_TARGET_ARCH_32_BIT || !V8_TURBOFAN_BACKEND
+
+
+void InstructionSelector::VisitFinish(Node* node) {
+  OperandGenerator g(this);
+  Node* value = node->InputAt(0);
+  Emit(kArchNop, g.DefineSameAsFirst(node), g.Use(value));
+}
 
 
 void InstructionSelector::VisitParameter(Node* node) {

@@ -153,6 +153,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
       break;
     }
+    case kArchTruncateDoubleToI:
+      __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
+      break;
     case kArm64Add:
       __ Add(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
       break;
@@ -278,6 +281,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Ror32:
       ASSEMBLE_SHIFT(Ror, 32);
       break;
+    case kArm64Mov32:
+      __ Mov(i.OutputRegister32(), i.InputRegister32(0));
+      break;
+    case kArm64Sxtw:
+      __ Sxtw(i.OutputRegister(), i.InputRegister32(0));
+      break;
     case kArm64CallCodeObject: {
       if (instr->InputAt(0)->IsImmediate()) {
         Handle<Code> code = Handle<Code>::cast(i.InputHeapObject(0));
@@ -387,14 +396,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
                        0, 2);
       break;
     }
-    case kArm64Int32ToInt64:
-      __ Sxtw(i.OutputRegister(), i.InputRegister(0));
-      break;
-    case kArm64Int64ToInt32:
-      if (!i.OutputRegister().is(i.InputRegister(0))) {
-        __ Mov(i.OutputRegister(), i.InputRegister(0));
-      }
-      break;
     case kArm64Float64ToInt32:
       __ Fcvtzs(i.OutputRegister32(), i.InputDoubleRegister(0));
       break;

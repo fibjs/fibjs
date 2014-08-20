@@ -1228,17 +1228,7 @@ Operand LCodeGen::ToOperand(LOperand* op) {
 }
 
 
-Operand LCodeGen::ToOperand32I(LOperand* op) {
-  return ToOperand32(op, SIGNED_INT32);
-}
-
-
-Operand LCodeGen::ToOperand32U(LOperand* op) {
-  return ToOperand32(op, UNSIGNED_INT32);
-}
-
-
-Operand LCodeGen::ToOperand32(LOperand* op, IntegerSignedness signedness) {
+Operand LCodeGen::ToOperand32(LOperand* op) {
   DCHECK(op != NULL);
   if (op->IsRegister()) {
     return Operand(ToRegister32(op));
@@ -1247,10 +1237,7 @@ Operand LCodeGen::ToOperand32(LOperand* op, IntegerSignedness signedness) {
     HConstant* constant = chunk()->LookupConstant(const_op);
     Representation r = chunk_->LookupLiteralRepresentation(const_op);
     if (r.IsInteger32()) {
-      DCHECK(constant->HasInteger32Value());
-      return (signedness == SIGNED_INT32)
-          ? Operand(constant->Integer32Value())
-          : Operand(static_cast<uint32_t>(constant->Integer32Value()));
+      return Operand(constant->Integer32Value());
     } else {
       // Other constants not implemented.
       Abort(kToOperand32UnsupportedImmediate);
@@ -1316,12 +1303,10 @@ Handle<Object> LCodeGen::ToHandle(LConstantOperand* op) const {
 }
 
 
-template<class LI>
-Operand LCodeGen::ToShiftedRightOperand32(LOperand* right, LI* shift_info,
-                                          IntegerSignedness signedness) {
+template <class LI>
+Operand LCodeGen::ToShiftedRightOperand32(LOperand* right, LI* shift_info) {
   if (shift_info->shift() == NO_SHIFT) {
-    return (signedness == SIGNED_INT32) ? ToOperand32I(right)
-                                        : ToOperand32U(right);
+    return ToOperand32(right);
   } else {
     return Operand(
         ToRegister32(right),
@@ -1503,7 +1488,7 @@ void LCodeGen::DoAccessArgumentsAt(LAccessArgumentsAt* instr) {
     }
   } else {
     Register length = ToRegister32(instr->length());
-    Operand index = ToOperand32I(instr->index());
+    Operand index = ToOperand32(instr->index());
     __ Sub(result.W(), length, index);
     __ Add(result.W(), result.W(), 1);
     __ Ldr(result, MemOperand(arguments, result, UXTW, kPointerSizeLog2));
@@ -1527,7 +1512,7 @@ void LCodeGen::DoAddI(LAddI* instr) {
   bool can_overflow = instr->hydrogen()->CheckFlag(HValue::kCanOverflow);
   Register result = ToRegister32(instr->result());
   Register left = ToRegister32(instr->left());
-  Operand right = ToShiftedRightOperand32I(instr->right(), instr);
+  Operand right = ToShiftedRightOperand32(instr->right(), instr);
 
   if (can_overflow) {
     __ Adds(result, left, right);
@@ -1806,7 +1791,7 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
 void LCodeGen::DoBitI(LBitI* instr) {
   Register result = ToRegister32(instr->result());
   Register left = ToRegister32(instr->left());
-  Operand right = ToShiftedRightOperand32U(instr->right(), instr);
+  Operand right = ToShiftedRightOperand32(instr->right(), instr);
 
   switch (instr->op()) {
     case Token::BIT_AND: __ And(result, left, right); break;
@@ -1840,13 +1825,13 @@ void LCodeGen::DoBoundsCheck(LBoundsCheck *instr) {
   DCHECK(instr->hydrogen()->index()->representation().IsInteger32());
   DCHECK(instr->hydrogen()->length()->representation().IsInteger32());
   if (instr->index()->IsConstantOperand()) {
-    Operand index = ToOperand32I(instr->index());
+    Operand index = ToOperand32(instr->index());
     Register length = ToRegister32(instr->length());
     __ Cmp(length, index);
     cond = CommuteCondition(cond);
   } else {
     Register index = ToRegister32(instr->index());
-    Operand length = ToOperand32I(instr->length());
+    Operand length = ToOperand32(instr->length());
     __ Cmp(index, length);
   }
   if (FLAG_debug_code && instr->hydrogen()->skip_check()) {
@@ -2360,7 +2345,7 @@ void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   __ JumpIfSmi(input, false_label);
 
   Register map = scratch2;
-  if (class_name->IsUtf8EqualTo(CStrVector("Function"))) {
+  if (String::Equals(isolate()->factory()->Function_string(), class_name)) {
     // Assuming the following assertions, we can use the same compares to test
     // for both being a function type and being in the object type range.
     STATIC_ASSERT(NUM_OF_CALLABLE_SPEC_OBJECT_TYPES == 2);
@@ -2385,7 +2370,7 @@ void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   __ Ldr(scratch1, FieldMemOperand(map, Map::kConstructorOffset));
 
   // Objects with a non-function constructor have class 'Object'.
-  if (class_name->IsUtf8EqualTo(CStrVector("Object"))) {
+  if (String::Equals(class_name, isolate()->factory()->Object_string())) {
     __ JumpIfNotObjectType(
         scratch1, scratch2, scratch2, JS_FUNCTION_TYPE, true_label);
   } else {
@@ -2488,16 +2473,12 @@ void LCodeGen::DoCompareNumericAndBranch(LCompareNumericAndBranch* instr) {
     } else {
       if (instr->hydrogen_value()->representation().IsInteger32()) {
         if (right->IsConstantOperand()) {
-          EmitCompareAndBranch(instr,
-                               cond,
-                               ToRegister32(left),
-                               ToOperand32I(right));
+          EmitCompareAndBranch(instr, cond, ToRegister32(left),
+                               ToOperand32(right));
         } else {
           // Commute the operands and the condition.
-          EmitCompareAndBranch(instr,
-                               CommuteCondition(cond),
-                               ToRegister32(right),
-                               ToOperand32I(left));
+          EmitCompareAndBranch(instr, CommuteCondition(cond),
+                               ToRegister32(right), ToOperand32(left));
         }
       } else {
         DCHECK(instr->hydrogen_value()->representation().IsSmi());
@@ -3019,7 +3000,7 @@ void LCodeGen::DoInnerAllocatedObject(LInnerAllocatedObject* instr) {
   Register result = ToRegister(instr->result());
   Register base = ToRegister(instr->base_object());
   if (instr->offset()->IsConstantOperand()) {
-    __ Add(result, base, ToOperand32I(instr->offset()));
+    __ Add(result, base, ToOperand32(instr->offset()));
   } else {
     __ Add(result, base, Operand(ToRegister32(instr->offset()), SXTW));
   }
@@ -4222,7 +4203,7 @@ void LCodeGen::DoMathMinMax(LMathMinMax* instr) {
   if (instr->hydrogen()->representation().IsInteger32()) {
     Register result = ToRegister32(instr->result());
     Register left = ToRegister32(instr->left());
-    Operand right = ToOperand32I(instr->right());
+    Operand right = ToOperand32(instr->right());
 
     __ Cmp(left, right);
     __ Csel(result, left, right, (op == HMathMinMax::kMathMax) ? ge : le);
@@ -5573,7 +5554,7 @@ void LCodeGen::DoSubI(LSubI* instr) {
   bool can_overflow = instr->hydrogen()->CheckFlag(HValue::kCanOverflow);
   Register result = ToRegister32(instr->result());
   Register left = ToRegister32(instr->left());
-  Operand right = ToShiftedRightOperand32I(instr->right(), instr);
+  Operand right = ToShiftedRightOperand32(instr->right(), instr);
 
   if (can_overflow) {
     __ Subs(result, left, right);

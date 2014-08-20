@@ -619,6 +619,12 @@ Expression* ParserTraits::ThisExpression(
   return factory->NewVariableProxy(scope->receiver(), pos);
 }
 
+Expression* ParserTraits::SuperReference(
+    Scope* scope, AstNodeFactory<AstConstructionVisitor>* factory, int pos) {
+  return factory->NewSuperReference(
+      ThisExpression(scope, factory, pos)->AsVariableProxy(),
+      pos);
+}
 
 Literal* ParserTraits::ExpressionFromLiteral(
     Token::Value token, int pos,
@@ -731,6 +737,7 @@ Parser::Parser(CompilationInfo* info)
   set_allow_generators(FLAG_harmony_generators);
   set_allow_arrow_functions(FLAG_harmony_arrow_functions);
   set_allow_harmony_numeric_literals(FLAG_harmony_numeric_literals);
+  set_allow_classes(FLAG_harmony_classes);
   for (int feature = 0; feature < v8::Isolate::kUseCounterFeatureCount;
        ++feature) {
     use_counts_[feature] = 0;
@@ -3742,6 +3749,7 @@ PreParser::PreParseResult Parser::ParseLazyFunctionBodyWithPreParser(
     reusable_preparser_->set_allow_arrow_functions(allow_arrow_functions());
     reusable_preparser_->set_allow_harmony_numeric_literals(
         allow_harmony_numeric_literals());
+    reusable_preparser_->set_allow_classes(allow_classes());
   }
   PreParser::PreParseResult result =
       reusable_preparser_->PreParseLazyFunction(strict_mode(),

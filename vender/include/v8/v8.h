@@ -1960,7 +1960,12 @@ class V8_EXPORT Symbol : public Primitive {
   // registry that is not accessible by (and cannot clash with) JavaScript code.
   static Local<Symbol> ForApi(Isolate *isolate, Local<String> name);
 
+  // Well-known symbols
+  static Local<Symbol> GetIterator(Isolate* isolate);
+  static Local<Symbol> GetUnscopables(Isolate* isolate);
+
   V8_INLINE static Symbol* Cast(v8::Value* obj);
+
  private:
   Symbol();
   static void CheckCast(v8::Value* obj);
@@ -5616,7 +5621,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 164;
+  static const int kEmptyStringRootIndex = 161;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.

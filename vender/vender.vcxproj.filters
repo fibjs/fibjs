@@ -1884,6 +1884,9 @@
     <ClCompile Include="src\v8\src\heap\store-buffer.cc">
       <Filter>Source Files\v8\src\heap</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\heap\gc-idle-time-handler.cc">
+      <Filter>Source Files\v8\src\heap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3780,6 +3783,9 @@
       <Filter>Source Files\v8\src\heap</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\heap\store-buffer-inl.h">
+      <Filter>Source Files\v8\src\heap</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\heap\gc-idle-time-handler.h">
       <Filter>Source Files\v8\src\heap</Filter>
     </ClInclude>
   </ItemGroup>

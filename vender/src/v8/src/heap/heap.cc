@@ -16,6 +16,7 @@
 #include "src/debug.h"
 #include "src/deoptimizer.h"
 #include "src/global-handles.h"
+#include "src/heap/gc-idle-time-handler.h"
 #include "src/heap/incremental-marking.h"
 #include "src/heap/mark-compact.h"
 #include "src/heap/objects-visiting-inl.h"
@@ -3321,7 +3322,6 @@ void Heap::RightTrimFixedArray(FixedArrayBase* object, int elements_to_trim) {
   const int bytes_to_trim = elements_to_trim * element_size;
 
   // For now this trick is only applied to objects in new and paged space.
-  DCHECK(!lo_space()->Contains(object));
   DCHECK(object->map() != fixed_cow_array_map());
 
   const int len = object->length();
@@ -3333,7 +3333,12 @@ void Heap::RightTrimFixedArray(FixedArrayBase* object, int elements_to_trim) {
   // Technically in new space this write might be omitted (except for
   // debug mode which iterates through the heap), but to play safer
   // we still do it.
-  CreateFillerObjectAt(new_end, bytes_to_trim);
+  // We do not create a filler for objects in large object space.
+  // TODO(hpayer): We should shrink the large object page if the size
+  // of the object changed significantly.
+  if (!lo_space()->Contains(object)) {
+    CreateFillerObjectAt(new_end, bytes_to_trim);
+  }
 
   // Initialize header of the trimmed array. We are storing the new length
   // using release store after creating a filler for the left-over space to
@@ -4259,7 +4264,10 @@ void Heap::MakeHeapIterable() {
 }
 
 
-void Heap::AdvanceIdleIncrementalMarking(intptr_t step_size) {
+void Heap::AdvanceIdleIncrementalMarking(int idle_time_in_ms) {
+  intptr_t step_size = GCIdleTimeHandler::EstimateMarkingStepSize(
+      idle_time_in_ms, tracer_.IncrementalMarkingSpeedInBytesPerMillisecond());
+
   incremental_marking()->Step(step_size,
                               IncrementalMarking::NO_GC_VIA_STACK_GUARD, true);
 
@@ -4282,36 +4290,27 @@ void Heap::AdvanceIdleIncrementalMarking(intptr_t step_size) {
 }
 
 
-bool Heap::IdleNotification(int hint) {
+bool Heap::IdleNotification(int idle_time_in_ms) {
   // If incremental marking is off, we do not perform idle notification.
   if (!FLAG_incremental_marking) return true;
 
-  // Hints greater than this value indicate that
-  // the embedder is requesting a lot of GC work.
-  const int kMaxHint = 1000;
-  const int kMinHintForIncrementalMarking = 10;
   // Minimal hint that allows to do full GC.
   const int kMinHintForFullGC = 100;
-  intptr_t size_factor = Min(Max(hint, 20), kMaxHint) / 4;
-  // The size factor is in range [5..250]. The numbers here are chosen from
-  // experiments. If you changes them, make sure to test with
-  // chrome/performance_ui_tests --gtest_filter="GeneralMixMemoryTest.*
-  intptr_t step_size = size_factor * IncrementalMarking::kAllocatedThreshold;
-
-  isolate()->counters()->gc_idle_time_allotted_in_ms()->AddSample(hint);
+  isolate()->counters()->gc_idle_time_allotted_in_ms()->AddSample(
+      idle_time_in_ms);
   HistogramTimerScope idle_notification_scope(
       isolate_->counters()->gc_idle_notification());
 
   if (contexts_disposed_ > 0) {
     contexts_disposed_ = 0;
     int mark_sweep_time = Min(TimeMarkSweepWouldTakeInMs(), 1000);
-    if (hint >= mark_sweep_time && !FLAG_expose_gc &&
+    if (idle_time_in_ms >= mark_sweep_time && !FLAG_expose_gc &&
         incremental_marking()->IsStopped()) {
       HistogramTimerScope scope(isolate_->counters()->gc_context());
       CollectAllGarbage(kReduceMemoryFootprintMask,
                         "idle notification: contexts disposed");
     } else {
-      AdvanceIdleIncrementalMarking(step_size);
+      AdvanceIdleIncrementalMarking(idle_time_in_ms);
     }
 
     // After context disposal there is likely a lot of garbage remaining, reset
@@ -4346,17 +4345,16 @@ bool Heap::IdleNotification(int hint) {
     // the code space.
     // TODO(ulan): Once we enable code compaction for incremental marking,
     // we can get rid of this special case and always start incremental marking.
-    if (remaining_mark_sweeps <= 2 && hint >= kMinHintForFullGC) {
+    if (remaining_mark_sweeps <= 2 && idle_time_in_ms >= kMinHintForFullGC) {
       CollectAllGarbage(kReduceMemoryFootprintMask,
                         "idle notification: finalize idle round");
       mark_sweeps_since_idle_round_started_++;
-    } else if (hint > kMinHintForIncrementalMarking) {
+    } else {
       incremental_marking()->Start();
     }
   }
-  if (!incremental_marking()->IsStopped() &&
-      hint > kMinHintForIncrementalMarking) {
-    AdvanceIdleIncrementalMarking(step_size);
+  if (!incremental_marking()->IsStopped()) {
+    AdvanceIdleIncrementalMarking(idle_time_in_ms);
   }
 
   if (mark_sweeps_since_idle_round_started_ >= kMaxMarkSweepsInIdleRound) {
@@ -4366,7 +4364,7 @@ bool Heap::IdleNotification(int hint) {
 
   // If the IdleNotifcation is called with a large hint we will wait for
   // the sweepter threads here.
-  if (hint >= kMinHintForFullGC &&
+  if (idle_time_in_ms >= kMinHintForFullGC &&
       mark_compact_collector()->sweeping_in_progress()) {
     mark_compact_collector()->EnsureSweepingCompleted();
   }
