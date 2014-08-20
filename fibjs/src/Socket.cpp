@@ -140,11 +140,14 @@ result_t Socket::close(exlib::AsyncEvent *ac)
     m_sock = INVALID_SOCKET;
 
 #ifndef _WIN32
-    cancel_socket(ac);
-    return CALL_E_PENDDING;
-#else
-    return 0;
+    if (m_inRecv || m_inSend)
+    {
+        cancel_socket(ac);
+        return CALL_E_PENDDING;
+    }
 #endif
+
+    return 0;
 }
 
 result_t Socket::get_family(int32_t &retVal)
