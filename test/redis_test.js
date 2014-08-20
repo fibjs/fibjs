@@ -1,6 +1,7 @@
 var test = require("test");
 test.setup();
 
+var os = require('os');
 var db = require('db');
 var encoding = require('encoding');
 var coroutine = require('coroutine');
@@ -646,6 +647,35 @@ describe("redis", function() {
 			coroutine.sleep(100);
 			assert.equal(err_num, 1);
 		});
+
+		it("Memory Leak detect", function() {
+			rdb = undefined;
+			GC();
+			var no1 = os.memoryUsage().nativeObjects;
+
+			rdb = db.open(dbs);
+
+			assert.equal(no1 + 3, os.memoryUsage().nativeObjects);
+
+			rdb.sub("test.ch1", subf1);
+
+			coroutine.sleep(100);
+
+			GC();
+			assert.equal(no1 + 3, os.memoryUsage().nativeObjects);
+
+			rdb.close();
+			coroutine.sleep(100);
+
+			GC();
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+
+			rdb = undefined;
+
+			GC();
+			assert.equal(no1, os.memoryUsage().nativeObjects);
+		});
+
 	});
 });
 
