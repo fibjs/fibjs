@@ -374,6 +374,15 @@ describe("net", function() {
 
 		GC();
 		assert.equal(no1, os.memoryUsage().nativeObjects);
+
+		(function() {
+			var s = new net.TcpServer(8884, function() {});
+		})();
+
+		coroutine.sleep(10);
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
 	});
 
 	describe("Smtp", function() {

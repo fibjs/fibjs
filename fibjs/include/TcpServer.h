@@ -25,6 +25,13 @@ public:
     TcpServer();
 
 public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
+
+public:
     // TcpServer_base
     virtual result_t run(exlib::AsyncEvent *ac);
     virtual result_t asyncRun();
@@ -40,7 +47,7 @@ public:
 private:
     bool m_running;
     obj_ptr<Socket_base> m_socket;
-    obj_ptr<Handler_base> m_hdlr;
+    Handler_base *m_hdlr;
     obj_ptr<Stats> m_stats;
 };
 

@@ -14,9 +14,12 @@ namespace fibjs
 {
 
 result_t _new_tcpServer(const char *addr, int32_t port,
-                        Handler_base *listener, obj_ptr<TcpServer_base> &retVal)
+                        Handler_base *listener, obj_ptr<TcpServer_base> &retVal,
+                        v8::Local<v8::Object> This)
 {
     obj_ptr<TcpServer> svr = new TcpServer();
+    svr->wrap(This);
+
     result_t hr = svr->create(addr, port, listener);
     if (hr < 0)
         return hr;
@@ -30,7 +33,7 @@ result_t TcpServer_base::_new(int32_t port, v8::Local<v8::Value> listener,
                               obj_ptr<TcpServer_base> &retVal,
                               v8::Local<v8::Object> This)
 {
-    return _new("", port, listener, retVal);
+    return _new("", port, listener, retVal, This);
 }
 
 result_t TcpServer_base::_new(const char *addr, int32_t port,
@@ -42,7 +45,7 @@ result_t TcpServer_base::_new(const char *addr, int32_t port,
     if (hr < 0)
         return hr;
 
-    return _new_tcpServer(addr, port, hdlr1, retVal);
+    return _new_tcpServer(addr, port, hdlr1, retVal, This);
 }
 
 static const char *s_staticCounter[] =
@@ -80,7 +83,7 @@ result_t TcpServer::create(const char *addr, int32_t port,
     if (hr < 0)
         return hr;
 
-    m_hdlr = listener;
+    set_handler(listener);
 
     return 0;
 }
@@ -241,6 +244,7 @@ result_t TcpServer::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t TcpServer::set_handler(Handler_base *newVal)
 {
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }
