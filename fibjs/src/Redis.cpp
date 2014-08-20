@@ -237,8 +237,6 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 }
 
                 pThis->set(bulk_ok);
-                pThis->m_buffer.Release();
-
                 return pThis->m_stmBuffered->read(sz + 2, pThis->m_buffer, pThis);
             }
 
@@ -279,6 +277,8 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
             pThis->m_buffer->get_length(sz);
             pThis->m_buffer->resize(sz - 2);
             pThis->m_val = pThis->m_buffer;
+            pThis->m_buffer.Release();
+
             return pThis->setResult();
         }
 
