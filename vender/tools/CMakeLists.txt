@@ -8,7 +8,7 @@ project(vender)
 file(GLOB_RECURSE src_list "../src/*.c*")
 add_library(vender ${src_list})
 
-set(flags "-c -fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64 -DSQLITE_ENABLE_FTS4=1")
+set(flags "-fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64 -DSQLITE_ENABLE_FTS4=1")
 set(link_flags " ")
 
 if(${OS} STREQUAL "Darwin")
