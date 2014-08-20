@@ -20,6 +20,13 @@ class SslServer: public SslServer_base
     FIBER_FREE();
 
 public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
+
+public:
     // SslServer_base
     virtual result_t run(exlib::AsyncEvent *ac);
     virtual result_t asyncRun();
@@ -39,8 +46,8 @@ public:
                     v8::Local<v8::Value> listener);
 
 private:
-    obj_ptr<TcpServer_base> m_server;
-    obj_ptr<SslHandler_base> m_handler;
+    TcpServer_base *m_server;
+    SslHandler_base *m_handler;
 };
 
 } /* namespace fibjs */

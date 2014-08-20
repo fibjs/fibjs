@@ -16,7 +16,7 @@ result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
                                obj_ptr<HttpServer_base> &retVal,
                                v8::Local<v8::Object> This)
 {
-    return _new("", port, hdlr, retVal);
+    return _new("", port, hdlr, retVal, This);
 }
 
 result_t HttpServer_base::_new(const char *addr, int32_t port, v8::Local<v8::Value> hdlr,
@@ -26,6 +26,8 @@ result_t HttpServer_base::_new(const char *addr, int32_t port, v8::Local<v8::Val
     result_t hr;
 
     obj_ptr<HttpServer> svr = new HttpServer();
+    svr->wrap(This);
+
     hr = svr->create(addr, port, hdlr);
     if (hr < 0)
         return hr;
@@ -37,11 +39,22 @@ result_t HttpServer_base::_new(const char *addr, int32_t port, v8::Local<v8::Val
 result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value> hdlr)
 {
     result_t hr;
-    hr = HttpHandler_base::_new(hdlr, m_handler);
+    obj_ptr<TcpServer> _server;
+    obj_ptr<HttpHandler_base> _handler;
+
+    hr = HttpHandler_base::_new(hdlr, _handler);
     if (hr < 0)
         return hr;
 
-    m_server = new TcpServer();
+    _server = new TcpServer();
+
+    v8::Local<v8::Object> o = wrap();
+
+    m_handler = _handler;
+    o->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), _handler->wrap());
+
+    m_server = _server;
+    o->SetHiddenValue(v8::String::NewFromUtf8(isolate, "server"), _server->wrap());
 
     return m_server->create(addr, port, m_handler);
 }

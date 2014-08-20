@@ -20,6 +20,13 @@ class HttpsServer: public HttpsServer_base
     FIBER_FREE();
 
 public:
+    // object_base
+    virtual result_t dispose()
+    {
+        return 0;
+    }
+
+public:
     // HttpsServer_base
     virtual result_t run(exlib::AsyncEvent *ac);
     virtual result_t asyncRun();
@@ -46,8 +53,8 @@ public:
     result_t create(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    obj_ptr<SslServer_base> m_server;
-    obj_ptr<HttpHandler_base> m_handler;
+    SslServer_base *m_server;
+    HttpHandler_base *m_handler;
 };
 
 } /* namespace fibjs */
