@@ -4,6 +4,7 @@ var classHttpServer =
     [ "HttpServer", "dd/dab/classHttpServer.html#aa374e3f8ec624c2b9468291aeb3d3f34", null ],
     [ "run", "dd/dab/classHttpServer.html#a6c5a9a7d4a82546face474c1203c9d3b", null ],
     [ "asyncRun", "dd/dab/classHttpServer.html#a066b14cdbee44dd06689e013d8ab3637", null ],
+    [ "stop", "dd/dab/classHttpServer.html#a6129178c1bce8a35686836af04088d72", null ],
     [ "dispose", "dd/dab/classHttpServer.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "dd/dab/classHttpServer.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "dd/dab/classHttpServer.html#ad66be13eb5b7c5f560fd8511565138c4", null ],

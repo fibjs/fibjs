@@ -6,6 +6,7 @@ var classHttpsServer =
     [ "HttpsServer", "d5/d3b/classHttpsServer.html#ac435f7579e779f28baa2231ba9ef5219", null ],
     [ "run", "d5/d3b/classHttpsServer.html#a05ea0dea471e700515feb64ebba56a7a", null ],
     [ "asyncRun", "d5/d3b/classHttpsServer.html#af5e3c7be8d4ef2cb5630c79a4c10c53d", null ],
+    [ "stop", "d5/d3b/classHttpsServer.html#a9a2e6f7b269b8004b5cd83e5477f7680", null ],
     [ "dispose", "d5/d3b/classHttpsServer.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d5/d3b/classHttpsServer.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d5/d3b/classHttpsServer.html#ad66be13eb5b7c5f560fd8511565138c4", null ],

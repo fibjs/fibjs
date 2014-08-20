@@ -301,59 +301,61 @@
 <!-- Node14 -->
 <g id="node14" class="node"><title>Node14</title>
 <g id="a_node14"><a xlink:href="../../dd/dab/classHttpServer.html" target="_top" xlink:title="http 服务器对象 ">
-<polygon fill="white" stroke="black" points="957.714,-336.5 957.714,-490.5 1065.71,-490.5 1065.71,-336.5 957.714,-336.5"/>
-<text text-anchor="middle" x="1011.71" y="-478.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpServer</text>
-<polyline fill="none" stroke="black" points="957.714,-472.5 1065.71,-472.5 "/>
-<text text-anchor="start" x="965.714" y="-460.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
-<text text-anchor="start" x="965.714" y="-450.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
-<text text-anchor="start" x="965.714" y="-440.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ crossDomain</text>
-<text text-anchor="start" x="965.714" y="-430.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forceGZIP</text>
-<text text-anchor="start" x="965.714" y="-420.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxHeadersCount</text>
-<text text-anchor="start" x="965.714" y="-410.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxUploadSize</text>
-<text text-anchor="start" x="965.714" y="-400.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ httpStats</text>
-<text text-anchor="start" x="965.714" y="-390.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ tcpStats</text>
-<polyline fill="none" stroke="black" points="957.714,-384.5 1065.71,-384.5 "/>
-<text text-anchor="start" x="965.714" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpServer()</text>
-<text text-anchor="start" x="965.714" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpServer()</text>
-<text text-anchor="start" x="965.714" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
-<text text-anchor="start" x="965.714" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<polygon fill="white" stroke="black" points="957.714,-331.5 957.714,-495.5 1065.71,-495.5 1065.71,-331.5 957.714,-331.5"/>
+<text text-anchor="middle" x="1011.71" y="-483.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpServer</text>
+<polyline fill="none" stroke="black" points="957.714,-477.5 1065.71,-477.5 "/>
+<text text-anchor="start" x="965.714" y="-465.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
+<text text-anchor="start" x="965.714" y="-455.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
+<text text-anchor="start" x="965.714" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ crossDomain</text>
+<text text-anchor="start" x="965.714" y="-435.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forceGZIP</text>
+<text text-anchor="start" x="965.714" y="-425.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxHeadersCount</text>
+<text text-anchor="start" x="965.714" y="-415.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxUploadSize</text>
+<text text-anchor="start" x="965.714" y="-405.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ httpStats</text>
+<text text-anchor="start" x="965.714" y="-395.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ tcpStats</text>
+<polyline fill="none" stroke="black" points="957.714,-389.5 1065.71,-389.5 "/>
+<text text-anchor="start" x="965.714" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpServer()</text>
+<text text-anchor="start" x="965.714" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpServer()</text>
+<text text-anchor="start" x="965.714" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
+<text text-anchor="start" x="965.714" y="-347.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<text text-anchor="start" x="965.714" y="-337.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stop()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node14 -->
 <g id="edge13" class="edge"><title>Node1&#45;&gt;Node14</title>
-<path fill="none" stroke="midnightblue" d="M2304.11,-803.933C2091.43,-805.639 1169.22,-808.225 1074.71,-726 1008.73,-668.597 1000.31,-562.866 1003.45,-490.656"/>
+<path fill="none" stroke="midnightblue" d="M2304.11,-803.933C2091.43,-805.639 1169.22,-808.225 1074.71,-726 1010.3,-669.955 1000.74,-567.842 1003.25,-495.836"/>
 <polygon fill="none" stroke="midnightblue" points="2304.3,-807.431 2314.27,-803.847 2304.24,-800.432 2304.3,-807.431"/>
 </g>
 <!-- Node15 -->
 <g id="node15" class="node"><title>Node15</title>
 <g id="a_node15"><a xlink:href="../../d5/d3b/classHttpsServer.html" target="_top" xlink:title="https 服务器对象 ">
-<polygon fill="white" stroke="black" points="1083.71,-316.5 1083.71,-510.5 1191.71,-510.5 1191.71,-316.5 1083.71,-316.5"/>
-<text text-anchor="middle" x="1137.71" y="-498.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpsServer</text>
-<polyline fill="none" stroke="black" points="1083.71,-492.5 1191.71,-492.5 "/>
-<text text-anchor="start" x="1091.71" y="-480.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
-<text text-anchor="start" x="1091.71" y="-470.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
-<text text-anchor="start" x="1091.71" y="-460.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ crossDomain</text>
-<text text-anchor="start" x="1091.71" y="-450.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forceGZIP</text>
-<text text-anchor="start" x="1091.71" y="-440.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxHeadersCount</text>
-<text text-anchor="start" x="1091.71" y="-430.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxUploadSize</text>
-<text text-anchor="start" x="1091.71" y="-420.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ verification</text>
-<text text-anchor="start" x="1091.71" y="-410.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ca</text>
-<text text-anchor="start" x="1091.71" y="-400.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ httpStats</text>
-<text text-anchor="start" x="1091.71" y="-390.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ tcpStats</text>
-<polyline fill="none" stroke="black" points="1083.71,-384.5 1191.71,-384.5 "/>
-<text text-anchor="start" x="1091.71" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
-<text text-anchor="start" x="1091.71" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
-<text text-anchor="start" x="1091.71" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
-<text text-anchor="start" x="1091.71" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
-<text text-anchor="start" x="1091.71" y="-332.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
-<text text-anchor="start" x="1091.71" y="-322.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<polygon fill="white" stroke="black" points="1083.71,-311.5 1083.71,-515.5 1191.71,-515.5 1191.71,-311.5 1083.71,-311.5"/>
+<text text-anchor="middle" x="1137.71" y="-503.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpsServer</text>
+<polyline fill="none" stroke="black" points="1083.71,-497.5 1191.71,-497.5 "/>
+<text text-anchor="start" x="1091.71" y="-485.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
+<text text-anchor="start" x="1091.71" y="-475.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
+<text text-anchor="start" x="1091.71" y="-465.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ crossDomain</text>
+<text text-anchor="start" x="1091.71" y="-455.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ forceGZIP</text>
+<text text-anchor="start" x="1091.71" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxHeadersCount</text>
+<text text-anchor="start" x="1091.71" y="-435.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ maxUploadSize</text>
+<text text-anchor="start" x="1091.71" y="-425.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ verification</text>
+<text text-anchor="start" x="1091.71" y="-415.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ca</text>
+<text text-anchor="start" x="1091.71" y="-405.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ httpStats</text>
+<text text-anchor="start" x="1091.71" y="-395.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ tcpStats</text>
+<polyline fill="none" stroke="black" points="1083.71,-389.5 1191.71,-389.5 "/>
+<text text-anchor="start" x="1091.71" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
+<text text-anchor="start" x="1091.71" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
+<text text-anchor="start" x="1091.71" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
+<text text-anchor="start" x="1091.71" y="-347.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ HttpsServer()</text>
+<text text-anchor="start" x="1091.71" y="-337.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
+<text text-anchor="start" x="1091.71" y="-327.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<text text-anchor="start" x="1091.71" y="-317.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stop()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node15 -->
 <g id="edge14" class="edge"><title>Node1&#45;&gt;Node15</title>
-<path fill="none" stroke="midnightblue" d="M2304,-803.621C2104.32,-803.769 1285.01,-799.843 1200.71,-726 1140.84,-673.559 1128.44,-581.313 1129.02,-510.771"/>
+<path fill="none" stroke="midnightblue" d="M2304,-803.621C2104.32,-803.769 1285.01,-799.843 1200.71,-726 1142.19,-674.74 1129.02,-585.449 1129,-515.572"/>
 <polygon fill="none" stroke="midnightblue" points="2304.12,-807.121 2314.11,-803.609 2304.11,-800.121 2304.12,-807.121"/>
 </g>
 <!-- Node16 -->
@@ -1010,27 +1012,28 @@
 <!-- Node38 -->
 <g id="node38" class="node"><title>Node38</title>
 <g id="a_node38"><a xlink:href="../../d8/d4d/classSslServer.html" target="_top" xlink:title="ssl 服务器对象，可方便创建一个标准多纤程 ssl 服务器 ">
-<polygon fill="white" stroke="black" points="3408.84,-341.5 3408.84,-485.5 3484.58,-485.5 3484.58,-341.5 3408.84,-341.5"/>
-<text text-anchor="middle" x="3446.71" y="-473.5" font-family="Helvetica,sans-Serif" font-size="10.00">SslServer</text>
-<polyline fill="none" stroke="black" points="3408.84,-467.5 3484.58,-467.5 "/>
-<text text-anchor="start" x="3416.84" y="-455.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
-<text text-anchor="start" x="3416.84" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
-<text text-anchor="start" x="3416.84" y="-435.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ verification</text>
-<text text-anchor="start" x="3416.84" y="-425.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ca</text>
-<text text-anchor="start" x="3416.84" y="-415.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stats</text>
-<polyline fill="none" stroke="black" points="3408.84,-409.5 3484.58,-409.5 "/>
-<text text-anchor="start" x="3416.84" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
-<text text-anchor="start" x="3416.84" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
-<text text-anchor="start" x="3416.84" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
-<text text-anchor="start" x="3416.84" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
-<text text-anchor="start" x="3416.84" y="-357.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
-<text text-anchor="start" x="3416.84" y="-347.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<polygon fill="white" stroke="black" points="3408.84,-336.5 3408.84,-490.5 3484.58,-490.5 3484.58,-336.5 3408.84,-336.5"/>
+<text text-anchor="middle" x="3446.71" y="-478.5" font-family="Helvetica,sans-Serif" font-size="10.00">SslServer</text>
+<polyline fill="none" stroke="black" points="3408.84,-472.5 3484.58,-472.5 "/>
+<text text-anchor="start" x="3416.84" y="-460.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
+<text text-anchor="start" x="3416.84" y="-450.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
+<text text-anchor="start" x="3416.84" y="-440.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ verification</text>
+<text text-anchor="start" x="3416.84" y="-430.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ca</text>
+<text text-anchor="start" x="3416.84" y="-420.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stats</text>
+<polyline fill="none" stroke="black" points="3408.84,-414.5 3484.58,-414.5 "/>
+<text text-anchor="start" x="3416.84" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
+<text text-anchor="start" x="3416.84" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
+<text text-anchor="start" x="3416.84" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
+<text text-anchor="start" x="3416.84" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ SslServer()</text>
+<text text-anchor="start" x="3416.84" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
+<text text-anchor="start" x="3416.84" y="-352.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<text text-anchor="start" x="3416.84" y="-342.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stop()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node38 -->
 <g id="edge37" class="edge"><title>Node1&#45;&gt;Node38</title>
-<path fill="none" stroke="midnightblue" d="M2391.25,-803.439C2580.53,-802.762 3325.76,-795.658 3400.71,-726 3465.48,-665.804 3466.77,-557.32 3458.93,-485.599"/>
+<path fill="none" stroke="midnightblue" d="M2391.25,-803.439C2580.53,-802.762 3325.76,-795.658 3400.71,-726 3463.98,-667.199 3466.67,-562.324 3459.46,-490.646"/>
 <polygon fill="none" stroke="midnightblue" points="2391.11,-799.94 2381.12,-803.471 2391.13,-806.94 2391.11,-799.94"/>
 </g>
 <!-- Node39 -->
@@ -1109,23 +1112,24 @@
 <!-- Node42 -->
 <g id="node42" class="node"><title>Node42</title>
 <g id="a_node42"><a xlink:href="../../de/df9/classTcpServer.html" target="_top" xlink:title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 ">
-<polygon fill="white" stroke="black" points="3810.65,-361.5 3810.65,-465.5 3886.77,-465.5 3886.77,-361.5 3810.65,-361.5"/>
-<text text-anchor="middle" x="3848.71" y="-453.5" font-family="Helvetica,sans-Serif" font-size="10.00">TcpServer</text>
-<polyline fill="none" stroke="black" points="3810.65,-447.5 3886.77,-447.5 "/>
-<text text-anchor="start" x="3818.65" y="-435.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
-<text text-anchor="start" x="3818.65" y="-425.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
-<text text-anchor="start" x="3818.65" y="-415.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stats</text>
-<polyline fill="none" stroke="black" points="3810.65,-409.5 3886.77,-409.5 "/>
-<text text-anchor="start" x="3818.65" y="-397.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ TcpServer()</text>
-<text text-anchor="start" x="3818.65" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ TcpServer()</text>
-<text text-anchor="start" x="3818.65" y="-377.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
-<text text-anchor="start" x="3818.65" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<polygon fill="white" stroke="black" points="3810.65,-356.5 3810.65,-470.5 3886.77,-470.5 3886.77,-356.5 3810.65,-356.5"/>
+<text text-anchor="middle" x="3848.71" y="-458.5" font-family="Helvetica,sans-Serif" font-size="10.00">TcpServer</text>
+<polyline fill="none" stroke="black" points="3810.65,-452.5 3886.77,-452.5 "/>
+<text text-anchor="start" x="3818.65" y="-440.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ socket</text>
+<text text-anchor="start" x="3818.65" y="-430.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ handler</text>
+<text text-anchor="start" x="3818.65" y="-420.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stats</text>
+<polyline fill="none" stroke="black" points="3810.65,-414.5 3886.77,-414.5 "/>
+<text text-anchor="start" x="3818.65" y="-402.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ TcpServer()</text>
+<text text-anchor="start" x="3818.65" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ TcpServer()</text>
+<text text-anchor="start" x="3818.65" y="-382.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
+<text text-anchor="start" x="3818.65" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ asyncRun()</text>
+<text text-anchor="start" x="3818.65" y="-362.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ stop()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node42 -->
 <g id="edge41" class="edge"><title>Node1&#45;&gt;Node42</title>
-<path fill="none" stroke="midnightblue" d="M2391.44,-802.707C2628.12,-798.22 3747.13,-774.493 3800.71,-726 3872.82,-660.735 3867.94,-535.927 3858.21,-465.726"/>
+<path fill="none" stroke="midnightblue" d="M2391.44,-802.707C2628.12,-798.22 3747.13,-774.493 3800.71,-726 3871.2,-662.203 3868.12,-541.514 3858.86,-470.547"/>
 <polygon fill="none" stroke="midnightblue" points="2391.09,-799.212 2381.16,-802.9 2391.22,-806.211 2391.09,-799.212"/>
 </g>
 <!-- Node43 -->

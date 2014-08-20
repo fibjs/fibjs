@@ -37,6 +37,7 @@ var searchData=
   ['start',['start',['../d2/dd1/classcoroutine.html#aab30743ccc280e7950189c50a0afabde',1,'coroutine::start()'],['../de/d65/classFunction.html#ad906fb642705bd95fa917f53e3d8a608',1,'Function::start()']]],
   ['stat',['stat',['../dc/d2f/classfs.html#a51eb9e7e0bebba7af47eeff6ddcb6425',1,'fs::stat()'],['../db/d67/classSeekableStream.html#a18f7e1862399c42a167a2b30009592d0',1,'SeekableStream::stat()']]],
   ['stats',['Stats',['../db/df7/classStats.html#a5529e542d61824715b210fa103c9939b',1,'Stats::Stats(Array keys)'],['../db/df7/classStats.html#acb5cc49c1e2f36ccf98066c862ff326c',1,'Stats::Stats(Array staticKeys, Array keys)'],['../d8/d61/classutil.html#a345a3de75e6748ef3237bda10c84c92d',1,'util::Stats()']]],
+  ['stop',['stop',['../dd/dab/classHttpServer.html#a6129178c1bce8a35686836af04088d72',1,'HttpServer::stop()'],['../d5/d3b/classHttpsServer.html#a9a2e6f7b269b8004b5cd83e5477f7680',1,'HttpsServer::stop()'],['../d8/d4d/classSslServer.html#ad8cae4de23bf5a66872ea74f2821c479',1,'SslServer::stop()'],['../de/df9/classTcpServer.html#af61a58eaa7b7b6bcc1471713778ec797',1,'TcpServer::stop()']]],
   ['store',['store',['../d9/de8/classGridFS.html#ae6b355ca7a7e7fae976d3b3789c35045',1,'GridFS::store(String name, Stream src)'],['../d9/de8/classGridFS.html#a811549d931a6845bfae574cd32dd1085',1,'GridFS::store(String name, Buffer data)']]],
   ['strictequal',['strictEqual',['../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35',1,'assert']]],
   ['strlen',['strlen',['../db/d15/classRedis.html#a0476f90872be6a8c94de65dfea6d6d05',1,'Redis']]],
