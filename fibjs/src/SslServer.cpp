@@ -104,6 +104,11 @@ result_t SslServer::asyncRun()
     return m_server->asyncRun();
 }
 
+result_t SslServer::stop(exlib::AsyncEvent *ac)
+{
+    return m_server->stop(ac);
+}
+
 result_t SslServer::get_socket(obj_ptr<Socket_base> &retVal)
 {
     return m_server->get_socket(retVal);

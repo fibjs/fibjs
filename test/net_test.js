@@ -344,6 +344,38 @@ describe("net", function() {
 		});
 	});
 
+	it("Memory Leak detect", function() {
+		var ss, no1;
+		GC();
+		coroutine.sleep(100);
+		GC();
+		no1 = os.memoryUsage().nativeObjects;
+
+		ss = new net.TcpServer(9812, function(c) {});
+		(function() {
+			ss.run();
+		}).start();
+
+		coroutine.sleep(10);
+		ss.stop();
+		ss = undefined;
+		coroutine.sleep(10);
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+
+		ss = new net.TcpServer(9813, function(c) {});
+		ss.asyncRun();
+
+		coroutine.sleep(10);
+		ss.stop();
+		ss = undefined;
+		coroutine.sleep(10);
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
+
 	describe("Smtp", function() {
 		var s;
 

@@ -123,7 +123,7 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
         }
 
     private:
-        TcpServer *m_pThis;
+        obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_sock;
         obj_ptr<object_base> m_obj;
     };
@@ -166,6 +166,9 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    if (!m_socket)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (m_running)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     m_running = true;
@@ -175,32 +178,57 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
 
 result_t TcpServer::asyncRun()
 {
-    class asyncCall: public asyncEvent
+    class asyncCall: public asyncState
     {
     public:
         asyncCall(TcpServer *pThis) :
-            m_pThis(pThis)
+            asyncState(NULL), m_pThis(pThis)
         {
+            set(accept);
         }
 
-        virtual void invoke()
+    public:
+        static int accept(asyncState *pState, int n)
         {
-            m_pThis->run(this);
+            asyncCall *pThis = (asyncCall *) pState;
+
+            pThis->set(end);
+            return pThis->m_pThis->run(pThis);
+        }
+
+        static int end(asyncState *pState, int n)
+        {
+            asyncCall *pThis = (asyncCall *) pState;
+            return pThis->done();
         }
 
     private:
         obj_ptr<TcpServer> m_pThis;
     };
 
+    if (!m_socket)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (m_running)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    s_acPool.put(new asyncCall(this));
+    (new asyncCall(this))->apost(0);
     return 0;
+}
+
+result_t TcpServer::stop(exlib::AsyncEvent *ac)
+{
+    if (!m_socket)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    return m_socket->close(ac);
 }
 
 result_t TcpServer::get_socket(obj_ptr<Socket_base> &retVal)
 {
+    if (!m_socket)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     retVal = m_socket;
     return 0;
 }

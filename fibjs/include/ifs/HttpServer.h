@@ -29,6 +29,7 @@ public:
 	static result_t _new(const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
+	virtual result_t stop(exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
 	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
 	virtual result_t set_handler(Handler_base* newVal) = 0;
@@ -49,6 +50,7 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -65,6 +67,7 @@ public:
 
 public:
 	ASYNC_MEMBER0(HttpServer_base, run);
+	ASYNC_MEMBER0(HttpServer_base, stop);
 };
 
 }
@@ -80,7 +83,8 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"run", s_run},
-			{"asyncRun", s_asyncRun}
+			{"asyncRun", s_asyncRun},
+			{"stop", s_stop}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -98,7 +102,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"HttpServer", s__new, 
-			2, s_method, 0, NULL, 8, s_property, NULL, NULL,
+			3, s_method, 0, NULL, 8, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -295,6 +299,16 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->asyncRun();
+
+		METHOD_VOID();
+	}
+
+	inline void HttpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(HttpServer_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ac_stop();
 
 		METHOD_VOID();
 	}

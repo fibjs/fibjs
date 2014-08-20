@@ -37,6 +37,9 @@ class TcpServer : object
     /*! @brief 异步运行 tcp 服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
     asyncRun();
 
+    /*! @brief 关闭 socket中止正在运行的服务器 */
+    stop() async;
+
     /*! @brief tcp 服务器当前侦听的 Socket 对象  */
     readonly Socket socket;
 
