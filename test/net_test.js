@@ -356,10 +356,10 @@ describe("net", function() {
 			ss.run();
 		}).start();
 
-		coroutine.sleep(10);
+		coroutine.sleep(50);
 		ss.stop();
 		ss = undefined;
-		coroutine.sleep(10);
+		coroutine.sleep(50);
 
 		GC();
 		assert.equal(no1, os.memoryUsage().nativeObjects);
@@ -367,10 +367,10 @@ describe("net", function() {
 		ss = new net.TcpServer(9813, function(c) {});
 		ss.asyncRun();
 
-		coroutine.sleep(10);
+		coroutine.sleep(50);
 		ss.stop();
 		ss = undefined;
-		coroutine.sleep(10);
+		coroutine.sleep(50);
 
 		GC();
 		assert.equal(no1, os.memoryUsage().nativeObjects);
@@ -379,7 +379,7 @@ describe("net", function() {
 			var s = new net.TcpServer(8884, function() {});
 		})();
 
-		coroutine.sleep(10);
+		coroutine.sleep(50);
 
 		GC();
 		assert.equal(no1, os.memoryUsage().nativeObjects);
