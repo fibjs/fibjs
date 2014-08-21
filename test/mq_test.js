@@ -349,7 +349,7 @@ describe("mq", function() {
 	});
 
 	it("PacketHandler", function() {
-		var s = new net.TcpServer(8884, new mq.PacketHandler(function(r) {
+		var s = new net.TcpServer(9876, new mq.PacketHandler(function(r) {
 			var d = r.body.readAll();
 			r.clear();
 			r.response.body.write(d.toString().toUpperCase());
@@ -358,7 +358,7 @@ describe("mq", function() {
 		s.asyncRun();
 
 		var c = new net.Socket();
-		c.connect('127.0.0.1', 8884);
+		c.connect('127.0.0.1', 9876);
 		var r = new io.BufferedStream(c);
 
 		r.writePacket(new Buffer('abcdefg'));

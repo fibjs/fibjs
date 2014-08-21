@@ -7,6 +7,7 @@ var mq = require('mq');
 var net = require('net');
 var io = require('io');
 var encoding = require('encoding');
+var os = require('os');
 
 var m = new http.Request();
 
@@ -120,6 +121,16 @@ describe("rpc", function() {
 			req.sendTo(s);
 			req.response.readFrom(bs);
 		}
+	});
+
+	it("Garbage Collection", function() {
+		GC();
+		var no1 = os.memoryUsage().nativeObjects;
+
+		rpc.json({});
+
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
 	});
 });
 

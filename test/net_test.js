@@ -376,7 +376,7 @@ describe("net", function() {
 		assert.equal(no1, os.memoryUsage().nativeObjects);
 
 		(function() {
-			var s = new net.TcpServer(8884, function() {});
+			var s = new net.TcpServer(9884, function() {});
 		})();
 
 		coroutine.sleep(50);
