@@ -40,9 +40,9 @@ cd "out/${OS}_$1"
 cmake -DBUILD_TYPE=$1 ../../tools
 
 if [ ! "$BUILD_JOBS" = "" ]; then
-	make -j${BUILD_JOBS}
+	sh -c "${VERBOSE} make -j${BUILD_JOBS}"
 else
-	make
+	sh -c "${VERBOSE} make"
 fi
 
 cd ../..
