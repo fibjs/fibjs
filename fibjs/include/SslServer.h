@@ -46,8 +46,8 @@ public:
                     v8::Local<v8::Value> listener);
 
 private:
-    TcpServer_base *m_server;
-    SslHandler_base *m_handler;
+    weak_ptr<TcpServer_base> m_server;
+    weak_ptr<SslHandler_base> m_handler;
 };
 
 } /* namespace fibjs */

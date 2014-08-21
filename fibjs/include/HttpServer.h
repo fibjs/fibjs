@@ -49,8 +49,8 @@ public:
     result_t create(const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    TcpServer *m_server;
-    HttpHandler_base *m_handler;
+    weak_ptr<TcpServer> m_server;
+    weak_ptr<HttpHandler_base> m_handler;
 };
 
 } /* namespace fibjs */

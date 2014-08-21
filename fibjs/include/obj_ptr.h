@@ -173,6 +173,59 @@ private:
     volatile T *p;
 };
 
+template<class T>
+class weak_ptr
+{
+public:
+    weak_ptr() :
+        p(NULL)
+    {
+    }
+
+    weak_ptr(T *lp) :
+        p(NULL)
+    {
+        operator=(lp);
+    }
+
+    ~weak_ptr()
+    {
+    }
+
+    T *operator=(T *lp)
+    {
+        exlib::atom_xchg(&p, lp);
+        return lp;
+    }
+
+    operator T *() const
+    {
+        return (T *)p;
+    }
+
+    T *operator->()
+    {
+        return (T *)p;
+    }
+
+    void Ref()
+    {
+        T *p1 = (T *)p;
+        if (p1)
+            p1->Ref();
+    }
+
+    void Unref()
+    {
+        T *p1 = (T *)p;
+        if (p1)
+            p1->Unref();
+    }
+
+private:
+    volatile T *p;
+};
+
 }
 
 #endif /* OBJ_PTR_H_ */

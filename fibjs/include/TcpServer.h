@@ -47,7 +47,7 @@ public:
 private:
     bool m_running;
     obj_ptr<Socket_base> m_socket;
-    Handler_base *m_hdlr;
+    weak_ptr<Handler_base> m_hdlr;
     obj_ptr<Stats> m_stats;
 };
 

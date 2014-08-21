@@ -36,7 +36,7 @@ public:
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac);
 
 private:
-    Handler_base *m_handler;
+    weak_ptr<Handler_base> m_handler;
 };
 
 } /* namespace fibjs */

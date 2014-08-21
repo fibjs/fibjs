@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    QuickArray<Handler_base *> m_array;
+    QuickArray<weak_ptr<Handler_base> > m_array;
 };
 
 } /* namespace fibjs */

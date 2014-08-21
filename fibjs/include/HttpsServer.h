@@ -53,8 +53,8 @@ public:
     result_t create(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    SslServer_base *m_server;
-    HttpHandler_base *m_handler;
+    weak_ptr<SslServer_base> m_server;
+    weak_ptr<HttpHandler_base> m_handler;
 };
 
 } /* namespace fibjs */

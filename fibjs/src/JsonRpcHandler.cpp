@@ -125,10 +125,8 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             params->_indexed_setter(i, jsparams->Get(i));
     }
 
-    obj_ptr<Handler_base> hdlr = m_handler;
     obj_ptr<Handler_base> hdlr1;
-
-    hr = JSHandler::js_invoke(hdlr, v, hdlr1, NULL);
+    hr = JSHandler::js_invoke(m_handler, v, hdlr1, NULL);
     if (hr >= 0 && hr != CALL_RETURN_NULL)
         hr = mq_base::ac_invoke(hdlr1, v);
 

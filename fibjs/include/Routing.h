@@ -35,7 +35,7 @@ public:
     public:
         pcre *m_re;
         pcre_extra *m_extra;
-        Handler_base *m_hdlr;
+        weak_ptr<Handler_base> m_hdlr;
     };
 
 public:
