@@ -69,7 +69,7 @@ cd fibjs
 sh build $BUILD_TYPE
 cd ..
 
-if [ "$1" = "clean" ]; then
+if [ "$BUILD_TYPE" = "clean" ]; then
 	if [ -e "bin" ]; then
 		rm -rf "bin"
 	fi
