@@ -24,16 +24,12 @@ fi
 for i in "$@"
 do
 case $i in
-    -j*)
-    ENABLE_JOBS=1
-    BUILD_JOBS="${i#-j}"
-    ;;
-    -v)
-	BUILD_VERBOSE='VERBOSE=1' 
-    ;;
-    *)
-    usage
-    ;;
+	-j*) ENABLE_JOBS=1; BUILD_JOBS="${i#-j}"
+		;;
+	 -v) BUILD_VERBOSE='VERBOSE=1' 
+		;;
+	  *) usage
+		;;
 esac
 done
 
