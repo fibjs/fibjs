@@ -1,0 +1,36 @@
+/*! @brief mongodb 数据库NumberLong类型64位整数 */
+class Integer64: object
+{
+    /*! @brief 高 32 位数值 */
+    Long hi;
+
+    /*! @brief 低 32 位数值 */
+    Long lo;
+
+    /*! @brief 设置 16 进制HEX字符串更新对象的值
+      @param hexStr 16 进制字符串
+     */
+    fromHex(String hexStr = "");
+
+    /*! @brief 使用字符串转换为对应的整数
+      @param numStr 数字字符串默认为64进制
+      @param base 字符串进制数
+     */
+    fromString(String numStr = "", Integer base = 64);
+
+    /*! @brief 转换成字符串类型
+      @param base 字符串进制数默认为64
+      @return 返回转换后的字符串
+     */
+    String toString(Integer base = 64);
+
+    /*! @brief 转化为整型数字类型
+      @return 返回整数数值
+     */
+    Number valueOf();
+
+    /*! @brief 对象转换为JSON数据
+      @return 返回JSON转换结果
+     */
+    Value toJSON(String key);
+};
