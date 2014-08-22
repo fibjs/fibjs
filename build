@@ -1,36 +1,40 @@
 #!/bin/bash
 
-BUILD_JOBS=""
-eval BUILD_TYPE=\$$#
-
 usage()
 {
 	echo ""
-	echo "Usage: `basename $0` [-j] [-h] <Release | Release32 | Debug | Debug32 | clean>"
-	echo "  -j: enable make '-j' option. if set, will auto_detect core count and set make jobs to x2."
-	echo "  -h: print this and exit."
+	echo "Usage: `basename $0` <Release | Release32 | Debug | Debug32 | clean> [-j n|auto] [-v]"
+	echo "  -j: enable make '-j' option."
+	echo "      if 'auto' is gaven, will set jobs to auto detected core count, otherwise n is used."
+	echo "  -v: verbose make"
 	echo ""
 	exit 0
 }
+
+BUILD_TYPE=$1; shift 1;
+
+if [ "$BUILD_TYPE" = "" ]; then
+	usage
+fi
 
 if [ $BUILD_TYPE != 'Release' ] && [ $BUILD_TYPE != 'Release32' ] && [ $BUILD_TYPE != 'Debug' ] && [ $BUILD_TYPE != 'Debug32' ] && [ $BUILD_TYPE != 'clean' ]; then
 	usage
 fi
 
-while getopts :jh OPT
+while getopts j:v OPT
 do
     case $OPT in
-        j)  BUILD_JOBS=1
+        j)  BUILD_JOBS=$OPTARG
             ;;
-        h)  usage
+        v)  BUILD_VERBOSE='VERBOSE=V=1' 
             ;;
         \?) usage
             ;;
     esac
 done
-shift $((OPTIND - 1))
 
-if [ "$BUILD_JOBS" = "1" ]; then
+
+if [ "$BUILD_JOBS" = "auto" ]; then
 	#get cpu core count 
 	OS=$(uname)
 	CPU_CORE=1
@@ -50,17 +54,20 @@ if [ "$BUILD_JOBS" = "1" ]; then
 	if [ "$CPU_CORE" = "1" ]; then
 		BUILD_JOBS=""
 	else
-		# set build jobs with cpu core count * 2
-		BUILD_JOBS=`expr ${CPU_CORE} \* 2`
+		# set build jobs with cpu core count
+		BUILD_JOBS=${CPU_CORE}
 	fi
 fi
 
+export BUILD_JOBS
+export $BUILD_VERBOSE
+
 cd vender
-BUILD_JOBS=${BUILD_JOBS} sh build $BUILD_TYPE
+sh build $BUILD_TYPE
 cd ..
 
 cd fibjs
-BUILD_JOBS=${BUILD_JOBS} sh build $BUILD_TYPE
+sh build $BUILD_TYPE
 cd ..
 
 if [ $1 = 'clean' ]; then
