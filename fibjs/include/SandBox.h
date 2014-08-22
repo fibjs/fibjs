@@ -92,6 +92,7 @@ public:
         v8::Local<v8::Value> m_id;
         v8::Local<v8::Function> m_fnRequest;
         v8::Local<v8::Function> m_fnRun;
+        v8::HandleScope handle_scope;
     };
 
     std::string m_name;

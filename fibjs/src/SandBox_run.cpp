@@ -141,7 +141,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 }
 
-SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
+SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb), handle_scope(isolate)
 {
     m_id = v8::String::NewFromUtf8(isolate, id, v8::String::kNormalString,
                                    (int) qstrlen(id));
@@ -160,7 +160,6 @@ extern v8::Persistent<v8::Context> s_context_test;
 result_t SandBox::Context::run(std::string src, const char *name, const char **argNames,
                                v8::Local<v8::Value> *args, int32_t argCount)
 {
-    v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Script> script;
     {
         v8::TryCatch try_catch;
