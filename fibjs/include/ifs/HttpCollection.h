@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+class List_base;
+
 class HttpCollection_base : public object_base
 {
 public:
@@ -24,7 +26,7 @@ public:
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
 	virtual result_t first(const char* name, Variant& retVal) = 0;
-	virtual result_t all(const char* name, v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t all(const char* name, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t add(v8::Local<v8::Object> map) = 0;
 	virtual result_t add(const char* name, Variant value) = 0;
 	virtual result_t set(v8::Local<v8::Object> map) = 0;
@@ -52,6 +54,8 @@ public:
 };
 
 }
+
+#include "List.h"
 
 namespace fibjs
 {
@@ -180,7 +184,7 @@ namespace fibjs
 
 	inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Local<v8::Array> vr;
+		obj_ptr<List_base> vr;
 
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);

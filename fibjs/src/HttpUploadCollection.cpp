@@ -8,6 +8,7 @@
 #include "HttpUploadCollection.h"
 #include "HttpUploadData.h"
 #include "MemoryStream.h"
+#include "List.h"
 #include <string.h>
 
 namespace fibjs
@@ -259,17 +260,18 @@ result_t HttpUploadCollection::first(const char *name, Variant &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpUploadCollection::all(const char *name,
-                                   v8::Local<v8::Array> &retVal)
+result_t HttpUploadCollection::all(const char *name, obj_ptr<List_base> &retVal)
 {
-    int32_t i, n = 0;
+    obj_ptr<List> list;
+    int32_t i;
 
-    retVal = v8::Array::New(isolate);
+    list = new List();
 
     for (i = 0; i < m_count; i++)
         if (!qstricmp(m_names[i].c_str(), name))
-            retVal->Set(n++, m_values[i]);
+            list->append(m_values[i]);
 
+    retVal = list;
     return 0;
 }
 

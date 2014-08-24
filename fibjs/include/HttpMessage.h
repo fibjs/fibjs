@@ -39,7 +39,7 @@ public:
     result_t set_maxUploadSize(int32_t newVal);
     result_t hasHeader(const char *name, bool &retVal);
     result_t firstHeader(const char *name, Variant &retVal);
-    result_t allHeader(const char *name, v8::Local<v8::Array> &retVal);
+    result_t allHeader(const char *name, obj_ptr<List_base> &retVal);
     result_t addHeader(v8::Local<v8::Object> map);
     result_t addHeader(const char *name, Variant value);
     result_t setHeader(v8::Local<v8::Object> map);

@@ -486,7 +486,7 @@ result_t HttpMessage::firstHeader(const char *name, Variant &retVal)
     return m_headers->first(name, retVal);
 }
 
-result_t HttpMessage::allHeader(const char *name, v8::Local<v8::Array> &retVal)
+result_t HttpMessage::allHeader(const char *name, obj_ptr<List_base> &retVal)
 {
     return m_headers->all(name, retVal);
 }

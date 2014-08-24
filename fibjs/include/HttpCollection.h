@@ -27,7 +27,7 @@ public:
     virtual result_t clear();
     virtual result_t has(const char *name, bool &retVal);
     virtual result_t first(const char *name, Variant &retVal);
-    virtual result_t all(const char *name, v8::Local<v8::Array> &retVal);
+    virtual result_t all(const char *name, obj_ptr<List_base> &retVal);
     virtual result_t add(v8::Local<v8::Object> map);
     virtual result_t add(const char *name, Variant value);
     virtual result_t set(v8::Local<v8::Object> map);
