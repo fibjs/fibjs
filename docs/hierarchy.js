@@ -50,6 +50,7 @@ var hierarchy =
         [ "SslHandler", "da/d2d/classSslHandler.html", null ]
       ] ],
       [ "HttpCollection", "d6/dbd/classHttpCollection.html", null ],
+      [ "HttpCookie", "df/d61/classHttpCookie.html", null ],
       [ "HttpServer", "dd/dab/classHttpServer.html", null ],
       [ "HttpsServer", "d5/d3b/classHttpsServer.html", null ],
       [ "HttpUploadData", "d0/d3c/classHttpUploadData.html", null ],

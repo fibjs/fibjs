@@ -15,7 +15,7 @@ var searchData=
   ['console',['console',['../df/d84/classglobal.html#a69cd8fa430cb4536156e8052a37c9303',1,'global']]],
   ['contenttransferencoding',['contentTransferEncoding',['../d0/d3c/classHttpUploadData.html#afdc22e05a8c573d27f7f191a82f91d0a',1,'HttpUploadData']]],
   ['contenttype',['contentType',['../d0/d3c/classHttpUploadData.html#afc4c67023232895364f2b719e31d5fa4',1,'HttpUploadData']]],
-  ['cookie',['cookie',['../d5/d1b/classHttpRequest.html#afb0f722363cf1f24b88d68d690c542b1',1,'HttpRequest']]],
+  ['cookies',['cookies',['../d5/d1b/classHttpRequest.html#a883cdefbbe1fec7aa89f011c941c0707',1,'HttpRequest::cookies()'],['../d8/d4c/classHttpResponse.html#ac86661de36347c4ef46e29c8ff4be146',1,'HttpResponse::cookies()']]],
   ['crit',['CRIT',['../d6/df8/classconsole.html#a0a9c19825a7e11769d5646cb24002d1b',1,'console']]],
   ['crossdomain',['crossDomain',['../d3/df3/classHttpHandler.html#acc43d9a11fa2e9b7aa62f4ca0ae91b93',1,'HttpHandler::crossDomain()'],['../dd/dab/classHttpServer.html#a113023f684bec5d69809b283afcdcca4',1,'HttpServer::crossDomain()'],['../d5/d3b/classHttpsServer.html#a4579a042f3a3a28b0b99db5af2bbd93c',1,'HttpsServer::crossDomain()']]],
   ['ctime',['ctime',['../dc/d81/classStat.html#af62482780f5ebea39cf8f173f424f7d4',1,'Stat']]],

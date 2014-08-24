@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['name',['name',['../d6/d2e/classCipher.html#a8c7a977f76574518766d47c86dbdec00',1,'Cipher::name()'],['../db/d30/classFile.html#ae249a82a4ed27278e366b4f791c59d4f',1,'File::name()'],['../d0/d82/classPKey.html#aa2c0c0b3b94a7f6ecd551fa994413c6b',1,'PKey::name()'],['../dc/d81/classStat.html#ad647ebf992d48ff3b14a01c27563171d',1,'Stat::name()']]],
+  ['name',['name',['../d6/d2e/classCipher.html#a8c7a977f76574518766d47c86dbdec00',1,'Cipher::name()'],['../db/d30/classFile.html#ae249a82a4ed27278e366b4f791c59d4f',1,'File::name()'],['../df/d61/classHttpCookie.html#a1021070764b5270a9b7dcb14a48e22e7',1,'HttpCookie::name()'],['../d0/d82/classPKey.html#aa2c0c0b3b94a7f6ecd551fa994413c6b',1,'PKey::name()'],['../dc/d81/classStat.html#ad647ebf992d48ff3b14a01c27563171d',1,'Stat::name()']]],
   ['net',['net',['../d3/d75/classnet.html',1,'']]],
   ['networkinfo',['networkInfo',['../d7/db0/classos.html#ade138388eb17cb0d8804d3a615402a0e',1,'os']]],
   ['next',['next',['../d1/d66/classX509Cert.html#a0546d54369b3208d63bc547c8fe0efcc',1,'X509Cert::next()'],['../db/d7d/classMongoCursor.html#a81d3581bb430a7982f5916668b060832',1,'MongoCursor::next()']]],
@@ -19,7 +19,7 @@ var searchData=
   ['notequal',['notEqual',['../de/d1c/classassert.html#a2685f5cac15c1818fdd1be92cbf369c1',1,'assert']]],
   ['notexist',['notExist',['../de/d1c/classassert.html#a3d4e62849c9d75031ece79a91c96aa39',1,'assert']]],
   ['notgreaterthan',['notGreaterThan',['../de/d1c/classassert.html#ac0a045550d46df6659c6a97f2b1554b6',1,'assert']]],
-  ['notice',['notice',['../df/d0e/classTextColor.html#a9b7bce159ed5ec43137063a20a9e0e16',1,'TextColor::notice()'],['../d6/df8/classconsole.html#a7bd9f400a69ccc58045bea58edc43614',1,'console::notice(String fmt,...)'],['../d6/df8/classconsole.html#a9772882f183a2f91d26f8973ca95df3c',1,'console::notice(...)'],['../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e',1,'console::NOTICE()']]],
+  ['notice',['NOTICE',['../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e',1,'console::NOTICE()'],['../df/d0e/classTextColor.html#a9b7bce159ed5ec43137063a20a9e0e16',1,'TextColor::notice()'],['../d6/df8/classconsole.html#a7bd9f400a69ccc58045bea58edc43614',1,'console::notice(String fmt,...)'],['../d6/df8/classconsole.html#a9772882f183a2f91d26f8973ca95df3c',1,'console::notice(...)']]],
   ['notlessthan',['notLessThan',['../de/d1c/classassert.html#a552b2247c9920297cad7068a1fb007f0',1,'assert']]],
   ['notok',['notOk',['../de/d1c/classassert.html#ac587cf8bf42a5f632c7c03e672040de8',1,'assert']]],
   ['notproperty',['notProperty',['../de/d1c/classassert.html#ae0e3e69d65ed263243ac2370a2d36c7e',1,'assert']]],

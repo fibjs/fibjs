@@ -1,10 +1,11 @@
 var classHttpResponse =
 [
     [ "HttpResponse", "d8/d4c/classHttpResponse.html#ab2e6cd363b5ea437643017766f882066", null ],
+    [ "addCookie", "d8/d4c/classHttpResponse.html#a2c99acd2e0949dd52a4c52acafc7a48b", null ],
     [ "redirect", "d8/d4c/classHttpResponse.html#a3b4a9739aa8441aba59090faeca184da", null ],
     [ "hasHeader", "d8/d4c/classHttpResponse.html#a9bafc9a247f9378904788642ab903e03", null ],
     [ "firstHeader", "d8/d4c/classHttpResponse.html#a5db3f91a4a32b70e2fcbd188d8a452c9", null ],
-    [ "allHeader", "d8/d4c/classHttpResponse.html#aae6c77df3dc7e9bb61e58fcd2cab6e3a", null ],
+    [ "allHeader", "d8/d4c/classHttpResponse.html#a30f6ddc198f9265a7b7d733f6620fc8b", null ],
     [ "addHeader", "d8/d4c/classHttpResponse.html#a7c8a4dcbe3777feec747c1fe1cefb88e", null ],
     [ "addHeader", "d8/d4c/classHttpResponse.html#ab3b564f6d8124ed9c889d378bca12f03", null ],
     [ "setHeader", "d8/d4c/classHttpResponse.html#ac5626cfdbeb975e16ab3b127b76b1864", null ],
@@ -19,6 +20,7 @@ var classHttpResponse =
     [ "toJSON", "d8/d4c/classHttpResponse.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
     [ "ValueOf", "d8/d4c/classHttpResponse.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
     [ "status", "d8/d4c/classHttpResponse.html#a418ebc4d556401052e637162210dcadd", null ],
+    [ "cookies", "d8/d4c/classHttpResponse.html#ac86661de36347c4ef46e29c8ff4be146", null ],
     [ "protocol", "d8/d4c/classHttpResponse.html#a336551e60570807abff96b539b914d25", null ],
     [ "headers", "d8/d4c/classHttpResponse.html#aedc41fa258d4d5cf91d2f850dd49ece4", null ],
     [ "keepAlive", "d8/d4c/classHttpResponse.html#aacc29dd266d58f65858aa117b77f9f7d", null ],

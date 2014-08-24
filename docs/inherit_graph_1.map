@@ -1,5 +1,5 @@
 <map id="类继承关系图" name="类继承关系图">
-<area shape="rect" id="node1" href="$dc/dd8/classobject.html" title="基础对象，所有对象均继承于此 " alt="" coords="5,1116,62,1141"/>
+<area shape="rect" id="node1" href="$dc/dd8/classobject.html" title="基础对象，所有对象均继承于此 " alt="" coords="5,1140,62,1165"/>
 <area shape="rect" id="node2" href="$d0/d11/classBuffer.html" title="二进制数据缓存对象，用于 io 读写的数据处理 " alt="" coords="142,5,199,31"/>
 <area shape="rect" id="node3" href="$d6/d2e/classCipher.html" title="对称加密算法对象 " alt="" coords="140,55,201,80"/>
 <area shape="rect" id="node4" href="$d6/d91/classDbConnection.html" title="数据库连接对象，用于建立和维护一个数据库连接会话。 " alt="" coords="118,104,223,129"/>
@@ -10,42 +10,43 @@
 <area shape="rect" id="node11" href="$d9/de8/classGridFS.html" title="MongoDB GridFS 分布式文件系统访问对象 " alt="" coords="139,351,202,376"/>
 <area shape="rect" id="node12" href="$d4/d22/classHandler.html" title="消息处理器接口 " alt="" coords="137,400,205,425"/>
 <area shape="rect" id="node19" href="$d6/dbd/classHttpCollection.html" title="http 容器对象，用于 http header，cookie，query，form，等数据的存储与组织 " alt="" coords="118,449,223,475"/>
-<area shape="rect" id="node20" href="$dd/dab/classHttpServer.html" title="http 服务器对象 " alt="" coords="128,499,213,524"/>
-<area shape="rect" id="node21" href="$d5/d3b/classHttpsServer.html" title="https 服务器对象 " alt="" coords="125,548,216,573"/>
-<area shape="rect" id="node22" href="$d0/d3c/classHttpUploadData.html" title="包含 multipart 的一个条目数据 " alt="" coords="112,597,229,623"/>
-<area shape="rect" id="node23" href="$d8/d00/classImage.html" title="图像处理对象，用以对图像进行转换，绘制，存储等操作 " alt="" coords="141,647,200,672"/>
-<area shape="rect" id="node24" href="$d8/d3e/classLevelDB.html" title="LevelDB 数据库对象 " alt="" coords="135,696,206,721"/>
-<area shape="rect" id="node25" href="$d6/da9/classList.html" title="Variant 数组对象，一般用以返回一组 Variant 数据 " alt="" coords="150,745,192,771"/>
-<area shape="rect" id="node27" href="$d6/d83/classLock.html" title="纤程锁对象 " alt="" coords="146,795,195,820"/>
-<area shape="rect" id="node31" href="$de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 " alt="" coords="131,844,210,869"/>
-<area shape="rect" id="node32" href="$d7/db0/classMap.html" title="字典对象 " alt="" coords="147,893,194,919"/>
-<area shape="rect" id="node33" href="$d6/d28/classMessage.html" title="基础消息对象 " alt="" coords="133,943,208,968"/>
-<area shape="rect" id="node38" href="$d2/d07/classMongoCollection.html" title="mongodb 数据库数据集对象 " alt="" coords="110,992,231,1017"/>
-<area shape="rect" id="node39" href="$db/d7d/classMongoCursor.html" title="mongodb 数据库数据游标对象 " alt="" coords="120,1041,222,1067"/>
-<area shape="rect" id="node40" href="$d6/d3d/classMongoDB.html" title="mongodb 数据库连接对象 " alt="" coords="130,1091,211,1116"/>
-<area shape="rect" id="node41" href="$d2/d6d/classMongoID.html" title="mongodb 数据库数据唯一标识对象，用于存储传递 oid " alt="" coords="133,1140,208,1165"/>
-<area shape="rect" id="node42" href="$d0/d82/classPKey.html" title="不对称加密算法对象 " alt="" coords="144,1189,197,1215"/>
-<area shape="rect" id="node43" href="$d7/d56/classQueue.html" title="FIFO（先进先出）队列对象 " alt="" coords="140,1239,201,1264"/>
-<area shape="rect" id="node45" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="143,1288,198,1313"/>
-<area shape="rect" id="node46" href="$df/dbc/classRedisHash.html" title="Redis 数据库客户端 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="127,1337,214,1363"/>
-<area shape="rect" id="node47" href="$d8/dc8/classRedisList.html" title="Redis 数据库客户端 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="132,1387,209,1412"/>
-<area shape="rect" id="node48" href="$df/d65/classRedisSet.html" title="Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="133,1436,208,1461"/>
-<area shape="rect" id="node49" href="$d8/dc0/classRedisSortedSet.html" title="Redis 数据库客户端 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="113,1485,228,1511"/>
-<area shape="rect" id="node50" href="$d8/d28/classRegex.html" title="正则表达式对象 " alt="" coords="141,1535,201,1560"/>
-<area shape="rect" id="node51" href="$d1/d3c/classSandBox.html" title="安全沙箱对象，用于管理一个独立的运行空间 " alt="" coords="133,1584,208,1609"/>
-<area shape="rect" id="node52" href="$d5/d6b/classSmtp.html" title="Smtp对象 " alt="" coords="144,1633,197,1659"/>
-<area shape="rect" id="node53" href="$d8/d4d/classSslServer.html" title="ssl 服务器对象，可方便创建一个标准多纤程 ssl 服务器 " alt="" coords="131,1683,210,1708"/>
-<area shape="rect" id="node54" href="$dc/d81/classStat.html" title="文件的基础信息对象 " alt="" coords="148,1732,193,1757"/>
-<area shape="rect" id="node55" href="$db/df7/classStats.html" title="数据统计对象，用以构建应用运行时数据收集 " alt="" coords="145,1781,196,1807"/>
-<area shape="rect" id="node56" href="$dc/de8/classStream.html" title="流操作对象，用于二进制数据流读写 " alt="" coords="138,1831,203,1856"/>
-<area shape="rect" id="node63" href="$de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 " alt="" coords="130,1880,211,1905"/>
-<area shape="rect" id="node64" href="$df/d0e/classTextColor.html" title="终端输出颜色配置对象 " alt="" coords="132,1929,209,1955"/>
-<area shape="rect" id="node65" href="$d7/d1d/classTrigger.html" title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 " alt="" coords="139,1979,202,2004"/>
-<area shape="rect" id="node66" href="$df/d6b/classUrl.html" title="Url 处理对象 " alt="" coords="151,2028,190,2053"/>
-<area shape="rect" id="node67" href="$d1/dd4/classuuidValue.html" title="uuid 对象 " alt="" coords="131,2077,210,2103"/>
-<area shape="rect" id="node68" href="$d1/d66/classX509Cert.html" title="x509 证书对象 " alt="" coords="132,2127,209,2152"/>
-<area shape="rect" id="node69" href="$d6/df6/classX509Crl.html" title="x509 撤销证书对象 " alt="" coords="136,2176,205,2201"/>
-<area shape="rect" id="node70" href="$d4/d6e/classX509Req.html" title="x509 证书请求对象 " alt="" coords="132,2225,209,2251"/>
+<area shape="rect" id="node20" href="$df/d61/classHttpCookie.html" title="http Cookie 对象，用于添加和处理 cookie " alt="" coords="127,499,214,524"/>
+<area shape="rect" id="node21" href="$dd/dab/classHttpServer.html" title="http 服务器对象 " alt="" coords="128,548,213,573"/>
+<area shape="rect" id="node22" href="$d5/d3b/classHttpsServer.html" title="https 服务器对象 " alt="" coords="125,597,216,623"/>
+<area shape="rect" id="node23" href="$d0/d3c/classHttpUploadData.html" title="包含 multipart 的一个条目数据 " alt="" coords="112,647,229,672"/>
+<area shape="rect" id="node24" href="$d8/d00/classImage.html" title="图像处理对象，用以对图像进行转换，绘制，存储等操作 " alt="" coords="141,696,200,721"/>
+<area shape="rect" id="node25" href="$d8/d3e/classLevelDB.html" title="LevelDB 数据库对象 " alt="" coords="135,745,206,771"/>
+<area shape="rect" id="node26" href="$d6/da9/classList.html" title="Variant 数组对象，一般用以返回一组 Variant 数据 " alt="" coords="150,795,192,820"/>
+<area shape="rect" id="node28" href="$d6/d83/classLock.html" title="纤程锁对象 " alt="" coords="146,844,195,869"/>
+<area shape="rect" id="node32" href="$de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 " alt="" coords="131,893,210,919"/>
+<area shape="rect" id="node33" href="$d7/db0/classMap.html" title="字典对象 " alt="" coords="147,943,194,968"/>
+<area shape="rect" id="node34" href="$d6/d28/classMessage.html" title="基础消息对象 " alt="" coords="133,992,208,1017"/>
+<area shape="rect" id="node39" href="$d2/d07/classMongoCollection.html" title="mongodb 数据库数据集对象 " alt="" coords="110,1041,231,1067"/>
+<area shape="rect" id="node40" href="$db/d7d/classMongoCursor.html" title="mongodb 数据库数据游标对象 " alt="" coords="120,1091,222,1116"/>
+<area shape="rect" id="node41" href="$d6/d3d/classMongoDB.html" title="mongodb 数据库连接对象 " alt="" coords="130,1140,211,1165"/>
+<area shape="rect" id="node42" href="$d2/d6d/classMongoID.html" title="mongodb 数据库数据唯一标识对象，用于存储传递 oid " alt="" coords="133,1189,208,1215"/>
+<area shape="rect" id="node43" href="$d0/d82/classPKey.html" title="不对称加密算法对象 " alt="" coords="144,1239,197,1264"/>
+<area shape="rect" id="node44" href="$d7/d56/classQueue.html" title="FIFO（先进先出）队列对象 " alt="" coords="140,1288,201,1313"/>
+<area shape="rect" id="node46" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="143,1337,198,1363"/>
+<area shape="rect" id="node47" href="$df/dbc/classRedisHash.html" title="Redis 数据库客户端 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="127,1387,214,1412"/>
+<area shape="rect" id="node48" href="$d8/dc8/classRedisList.html" title="Redis 数据库客户端 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="132,1436,209,1461"/>
+<area shape="rect" id="node49" href="$df/d65/classRedisSet.html" title="Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="133,1485,208,1511"/>
+<area shape="rect" id="node50" href="$d8/dc0/classRedisSortedSet.html" title="Redis 数据库客户端 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="113,1535,228,1560"/>
+<area shape="rect" id="node51" href="$d8/d28/classRegex.html" title="正则表达式对象 " alt="" coords="141,1584,201,1609"/>
+<area shape="rect" id="node52" href="$d1/d3c/classSandBox.html" title="安全沙箱对象，用于管理一个独立的运行空间 " alt="" coords="133,1633,208,1659"/>
+<area shape="rect" id="node53" href="$d5/d6b/classSmtp.html" title="Smtp对象 " alt="" coords="144,1683,197,1708"/>
+<area shape="rect" id="node54" href="$d8/d4d/classSslServer.html" title="ssl 服务器对象，可方便创建一个标准多纤程 ssl 服务器 " alt="" coords="131,1732,210,1757"/>
+<area shape="rect" id="node55" href="$dc/d81/classStat.html" title="文件的基础信息对象 " alt="" coords="148,1781,193,1807"/>
+<area shape="rect" id="node56" href="$db/df7/classStats.html" title="数据统计对象，用以构建应用运行时数据收集 " alt="" coords="145,1831,196,1856"/>
+<area shape="rect" id="node57" href="$dc/de8/classStream.html" title="流操作对象，用于二进制数据流读写 " alt="" coords="138,1880,203,1905"/>
+<area shape="rect" id="node64" href="$de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 " alt="" coords="130,1929,211,1955"/>
+<area shape="rect" id="node65" href="$df/d0e/classTextColor.html" title="终端输出颜色配置对象 " alt="" coords="132,1979,209,2004"/>
+<area shape="rect" id="node66" href="$d7/d1d/classTrigger.html" title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 " alt="" coords="139,2028,202,2053"/>
+<area shape="rect" id="node67" href="$df/d6b/classUrl.html" title="Url 处理对象 " alt="" coords="151,2077,190,2103"/>
+<area shape="rect" id="node68" href="$d1/dd4/classuuidValue.html" title="uuid 对象 " alt="" coords="131,2127,210,2152"/>
+<area shape="rect" id="node69" href="$d1/d66/classX509Cert.html" title="x509 证书对象 " alt="" coords="132,2176,209,2201"/>
+<area shape="rect" id="node70" href="$d6/df6/classX509Crl.html" title="x509 撤销证书对象 " alt="" coords="136,2225,205,2251"/>
+<area shape="rect" id="node71" href="$d4/d6e/classX509Req.html" title="x509 证书请求对象 " alt="" coords="132,2275,209,2300"/>
 <area shape="rect" id="node5" href="$d3/da8/classMySQL.html" title="mysql 数据库连接对象 " alt="" coords="306,80,372,105"/>
 <area shape="rect" id="node6" href="$df/d93/classSQLite.html" title="sqlite 数据库连接对象 " alt="" coords="308,129,370,155"/>
 <area shape="rect" id="node13" href="$d7/ded/classAsyncWait.html" title="消息处理器异步等待对象 " alt="" coords="297,277,381,303"/>
@@ -54,19 +55,19 @@
 <area shape="rect" id="node16" href="$d3/db9/classPacketHandler.html" title="Packet 包协议转换处理器 " alt="" coords="284,425,393,451"/>
 <area shape="rect" id="node17" href="$d4/d90/classRouting.html" title="消息处理器路由对象 " alt="" coords="305,475,372,500"/>
 <area shape="rect" id="node18" href="$da/d2d/classSslHandler.html" title="ssl 协议转换处理器 " alt="" coords="296,524,382,549"/>
-<area shape="rect" id="node26" href="$d0/de2/classDBResult.html" title="数据库结果集合对象 " alt="" coords="300,721,378,747"/>
-<area shape="rect" id="node28" href="$df/d5f/classCondition.html" title="条件变量对象 " alt="" coords="300,771,378,796"/>
-<area shape="rect" id="node29" href="$d5/da5/classEvent.html" title="信号量对象 " alt="" coords="311,820,367,845"/>
-<area shape="rect" id="node30" href="$d6/d72/classSemaphore.html" title="纤程信号量对象 " alt="" coords="294,869,384,895"/>
-<area shape="rect" id="node34" href="$dd/d77/classHttpMessage.html" title="http 基础消息对象 " alt="" coords="289,931,389,956"/>
-<area shape="rect" id="node37" href="$dd/df3/classPacketMessage.html" title="包处理消息对象 " alt="" coords="281,980,397,1005"/>
-<area shape="rect" id="node35" href="$d5/d1b/classHttpRequest.html" title="http 请求消息对象 " alt="" coords="455,907,551,932"/>
-<area shape="rect" id="node36" href="$d8/d4c/classHttpResponse.html" title="http 响应消息对象 " alt="" coords="450,956,556,981"/>
-<area shape="rect" id="node44" href="$d7/d38/classBlockQueue.html" title="阻塞 FIFO（先进先出）队列对象 " alt="" coords="292,1239,386,1264"/>
-<area shape="rect" id="node57" href="$d2/dee/classBufferedStream.html" title="缓存读取对象 " alt="" coords="282,1756,396,1781"/>
-<area shape="rect" id="node58" href="$db/d67/classSeekableStream.html" title="可移动当前指针的流对象接口 " alt="" coords="279,1805,399,1831"/>
-<area shape="rect" id="node61" href="$d4/d33/classSocket.html" title="网络套接口对象 " alt="" coords="308,1855,370,1880"/>
-<area shape="rect" id="node62" href="$d7/d3f/classSslSocket.html" title="ssl 网络套接口对象 " alt="" coords="299,1904,379,1929"/>
-<area shape="rect" id="node59" href="$db/d30/classFile.html" title="文件操作对象，用于二进制文件读写 " alt="" coords="482,1781,524,1807"/>
-<area shape="rect" id="node60" href="$dd/d97/classMemoryStream.html" title="内存流对象 " alt="" coords="447,1831,559,1856"/>
+<area shape="rect" id="node27" href="$d0/de2/classDBResult.html" title="数据库结果集合对象 " alt="" coords="300,771,378,796"/>
+<area shape="rect" id="node29" href="$df/d5f/classCondition.html" title="条件变量对象 " alt="" coords="300,820,378,845"/>
+<area shape="rect" id="node30" href="$d5/da5/classEvent.html" title="信号量对象 " alt="" coords="311,869,367,895"/>
+<area shape="rect" id="node31" href="$d6/d72/classSemaphore.html" title="纤程信号量对象 " alt="" coords="294,919,384,944"/>
+<area shape="rect" id="node35" href="$dd/d77/classHttpMessage.html" title="http 基础消息对象 " alt="" coords="289,980,389,1005"/>
+<area shape="rect" id="node38" href="$dd/df3/classPacketMessage.html" title="包处理消息对象 " alt="" coords="281,1029,397,1055"/>
+<area shape="rect" id="node36" href="$d5/d1b/classHttpRequest.html" title="http 请求消息对象 " alt="" coords="455,956,551,981"/>
+<area shape="rect" id="node37" href="$d8/d4c/classHttpResponse.html" title="http 响应消息对象 " alt="" coords="450,1005,556,1031"/>
+<area shape="rect" id="node45" href="$d7/d38/classBlockQueue.html" title="阻塞 FIFO（先进先出）队列对象 " alt="" coords="292,1288,386,1313"/>
+<area shape="rect" id="node58" href="$d2/dee/classBufferedStream.html" title="缓存读取对象 " alt="" coords="282,1805,396,1831"/>
+<area shape="rect" id="node59" href="$db/d67/classSeekableStream.html" title="可移动当前指针的流对象接口 " alt="" coords="279,1855,399,1880"/>
+<area shape="rect" id="node62" href="$d4/d33/classSocket.html" title="网络套接口对象 " alt="" coords="308,1904,370,1929"/>
+<area shape="rect" id="node63" href="$d7/d3f/classSslSocket.html" title="ssl 网络套接口对象 " alt="" coords="299,1953,379,1979"/>
+<area shape="rect" id="node60" href="$db/d30/classFile.html" title="文件操作对象，用于二进制文件读写 " alt="" coords="482,1831,524,1856"/>
+<area shape="rect" id="node61" href="$dd/d97/classMemoryStream.html" title="内存流对象 " alt="" coords="447,1880,559,1905"/>
 </map>

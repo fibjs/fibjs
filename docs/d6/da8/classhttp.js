@@ -2,6 +2,7 @@ var classhttp =
 [
     [ "Request", "d6/da8/classhttp.html#af42dded35bbc45313730fc90e9eb8f83", null ],
     [ "Response", "d6/da8/classhttp.html#a70902187780a1f3b2927b2a2f50213b5", null ],
+    [ "Cookie", "d6/da8/classhttp.html#a8f3b344e2e2e196a92de9602d2203d61", null ],
     [ "Server", "d6/da8/classhttp.html#ad4fe0324266eb7ca3209352741b33f84", null ],
     [ "HttpsServer", "d6/da8/classhttp.html#a5b21533b4e601a05f64dc3c814ba7b87", null ],
     [ "Handler", "d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d", null ],

@@ -31,6 +31,7 @@ var annotated =
     [ "hash", "d5/df6/classhash.html", "d5/df6/classhash" ],
     [ "http", "d6/da8/classhttp.html", "d6/da8/classhttp" ],
     [ "HttpCollection", "d6/dbd/classHttpCollection.html", "d6/dbd/classHttpCollection" ],
+    [ "HttpCookie", "df/d61/classHttpCookie.html", "df/d61/classHttpCookie" ],
     [ "HttpHandler", "d3/df3/classHttpHandler.html", "d3/df3/classHttpHandler" ],
     [ "HttpMessage", "dd/d77/classHttpMessage.html", "dd/d77/classHttpMessage" ],
     [ "HttpRequest", "d5/d1b/classHttpRequest.html", "d5/d1b/classHttpRequest" ],

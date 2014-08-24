@@ -26,6 +26,7 @@ var searchData=
   ['exit',['exit',['../d4/d82/classprocess.html#a219dc13763dff453b237901c89bc6add',1,'process']]],
   ['expect',['Expect',['../dd/d7a/classExpect.html',1,'Expect'],['../de/d01/classtest.html#a278434a7f57c827da6585fc0f23499ea',1,'test::expect()']]],
   ['expire',['expire',['../db/d15/classRedis.html#ae7417ef57367f0b0d6d302f32354fe55',1,'Redis']]],
+  ['expires',['expires',['../df/d61/classHttpCookie.html#a687e66f2cf20e7e700f2e598033d81b0',1,'HttpCookie']]],
   ['exportder',['exportDer',['../d0/d82/classPKey.html#a27bde6463e786c7a89e880df773550a4',1,'PKey::exportDer()'],['../d4/d6e/classX509Req.html#abee2b45b8e74584de7ff2c0aeb461f33',1,'X509Req::exportDer()']]],
   ['exportpem',['exportPem',['../d0/d82/classPKey.html#a5444bdb6ccb0ba131996414082c6bbcf',1,'PKey::exportPem()'],['../d4/d6e/classX509Req.html#a04beec98fd58cc43f14ecfaac4535226',1,'X509Req::exportPem()']]],
   ['extend',['extend',['../d8/d61/classutil.html#a7e6ad69b1143fc3a406c8a74d9bac73e',1,'util']]],

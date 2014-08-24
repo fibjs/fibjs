@@ -32,6 +32,7 @@ var searchData=
   ['dispose',['dispose',['../dc/dd8/classobject.html#a6b88dbc459449d2280338e5b702a68b4',1,'object']]],
   ['dns',['DNS',['../d9/d4e/classuuid.html#a8a295ea729b6143bc51745b719c43599',1,'uuid']]],
   ['doesnotthrow',['doesNotThrow',['../de/d1c/classassert.html#aa41904a1025725f280feab1e7312fa5a',1,'assert']]],
+  ['domain',['domain',['../df/d61/classHttpCookie.html#a6ae230932670e696206af980c2a9d510',1,'HttpCookie']]],
   ['drop',['drop',['../d2/d07/classMongoCollection.html#a60763c7b0c63953047e105f566df1e80',1,'MongoCollection']]],
   ['dropindex',['dropIndex',['../d2/d07/classMongoCollection.html#a5967353e160d74997627e7853040dd70',1,'MongoCollection']]],
   ['dropindexes',['dropIndexes',['../d2/d07/classMongoCollection.html#a8d576a02f1c04e91b4c4f9db5a788436',1,'MongoCollection']]],

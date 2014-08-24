@@ -3,7 +3,7 @@ var searchData=
   ['palette',['PALETTE',['../d5/d5d/classgd.html#aa2a13a4b909b87aeae041a916e71c7c2',1,'gd']]],
   ['params',['params',['../d6/d28/classMessage.html#a9d9a47e71f4a592898d50e0ea410a19f',1,'Message']]],
   ['password',['password',['../df/d6b/classUrl.html#aac9c4f2dcf668c564c064ee8601ce4bc',1,'Url']]],
-  ['path',['path',['../df/d6b/classUrl.html#a912c8ef0208d0dbacc21fdb8bd80346f',1,'Url']]],
+  ['path',['path',['../df/d61/classHttpCookie.html#ad72f660c2dd59e713386d5d0c2128da2',1,'HttpCookie::path()'],['../df/d6b/classUrl.html#a912c8ef0208d0dbacc21fdb8bd80346f',1,'Url::path()']]],
   ['pathlen',['pathlen',['../d1/d66/classX509Cert.html#a52fbf0107ce899de688b8088bde5ea0d',1,'X509Cert']]],
   ['pathname',['pathname',['../df/d6b/classUrl.html#a44b11c603476e61c465fc0d8e23d1bfd',1,'Url']]],
   ['peercert',['peerCert',['../d7/d3f/classSslSocket.html#abb0d358298f6a4c3ef8ddef11a668930',1,'SslSocket']]],
