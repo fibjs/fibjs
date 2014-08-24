@@ -65,9 +65,14 @@ public:
             push(v);
         }
 
+        void append(Variant &newVal)
+        {
+            push(newVal);
+        }
+
     private:
         v8::Local<v8::Value> _call(v8::Local<v8::Function> func,
-                                    v8::Local<v8::Object> thisp, int i);
+                                   v8::Local<v8::Object> thisp, int i);
 
     private:
         QuickArray<VariantEx> m_array;
@@ -75,6 +80,11 @@ public:
 
 public:
     void append(object_base *newVal)
+    {
+        m_array.append(newVal);
+    }
+
+    void append(Variant newVal)
     {
         m_array.append(newVal);
     }
