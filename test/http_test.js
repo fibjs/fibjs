@@ -53,7 +53,7 @@ function cookie_data(cookie) {
 
 
 describe("http", function() {
-	xdescribe("headers", function() {
+	describe("headers", function() {
 		var d = new http.Request().headers;
 
 		it("add", function() {
@@ -525,7 +525,7 @@ describe("http", function() {
 		});
 	});
 
-	xdescribe("handler", function() {
+	describe("handler", function() {
 		var svr, hdr;
 		var c, bs;
 		var st;
@@ -698,7 +698,7 @@ describe("http", function() {
 		});
 	});
 
-	xdescribe("file handler", function() {
+	describe("file handler", function() {
 		var hfHandler = new http.fileHandler('./');
 		var url = 'test.html';
 		var rep;
@@ -789,7 +789,7 @@ describe("http", function() {
 		});
 	});
 
-	xdescribe("server/request", function() {
+	describe("server/request", function() {
 		it("server", function() {
 			new http.Server(8882, function(r) {
 				if (r.address != "/gzip_test") {
@@ -859,7 +859,7 @@ describe("http", function() {
 		});
 	});
 
-	xdescribe("https server/https request", function() {
+	describe("https server/https request", function() {
 		ssl.ca.load(ca_pem);
 
 		it("server", function() {
