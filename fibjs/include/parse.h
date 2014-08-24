@@ -108,6 +108,45 @@ public:
         }
     }
 
+    void skipUntil(char ch1)
+    {
+        char ch;
+
+        while (0 != (ch = get()))
+        {
+            if (ch == ch1)
+                break;
+            else
+                skip();
+        }
+    }
+
+    void skipUntil(char ch1, char ch2)
+    {
+        char ch;
+
+        while (0 != (ch = get()))
+        {
+            if (ch == ch1 || ch == ch2)
+                break;
+            else
+                skip();
+        }
+    }
+
+    void skipUntil(char ch1, char ch2, char ch3)
+    {
+        char ch;
+
+        while (0 != (ch = get()))
+        {
+            if (ch == ch1 || ch == ch2 || ch == ch3)
+                break;
+            else
+                skip();
+        }
+    }
+
     char getChar()
     {
         char ch = get();
@@ -161,6 +200,45 @@ public:
 
         p1 = pos;
         skipWord(ch1, ch2, ch3);
+        p2 = pos - p1;
+
+        retVal.assign(string + p1, p2);
+
+        return p2;
+    }
+
+    int getString(std::string &retVal, char ch1)
+    {
+        int p1, p2;
+
+        p1 = pos;
+        skipUntil(ch1);
+        p2 = pos - p1;
+
+        retVal.assign(string + p1, p2);
+
+        return p2;
+    }
+
+    int getString(std::string &retVal, char ch1, char ch2)
+    {
+        int p1, p2;
+
+        p1 = pos;
+        skipUntil(ch1, ch2);
+        p2 = pos - p1;
+
+        retVal.assign(string + p1, p2);
+
+        return p2;
+    }
+
+    int getString(std::string &retVal, char ch1, char ch2, char ch3)
+    {
+        int p1, p2;
+
+        p1 = pos;
+        skipUntil(ch1, ch2, ch3);
         p2 = pos - p1;
 
         retVal.assign(string + p1, p2);
