@@ -2,14 +2,17 @@
 /*! @brief http Cookie 对象，用于添加和处理 cookie */
 class HttpCookie : object
 {
-    /*! @brief HttpCookie 构造函数，创建一个新的 HttpCookie 对象 */
-    HttpCookie();
+    /*! @brief HttpCookie 构造函数，创建一个新的 HttpCookie 对象
+     @param opts 指定创建的 cookie 的属性
+    */
+    HttpCookie(Object opts = {});
 
     /*! @brief HttpCookie 构造函数，创建一个新的 HttpCookie 对象
      @param name 指定创建的 cookie 名称
      @param value 指定创建的 cookie 值
+     @param opts 指定创建的 cookie 的其它属性
     */
-    HttpCookie(String name, String value = "");
+    HttpCookie(String name, String value = "", Object opts = {});
 
     /*! @brief 解析给定的字符串，填充 cookie 对象
      @param header 指定需要解析的 header 字符串

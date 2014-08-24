@@ -12,21 +12,30 @@
 namespace fibjs
 {
 
-result_t HttpCookie_base::_new(obj_ptr<HttpCookie_base> &retVal,
+result_t HttpCookie_base::_new(v8::Local<v8::Object> opts,
+                               obj_ptr<HttpCookie_base> &retVal,
                                v8::Local<v8::Object> This)
 {
-    retVal = new HttpCookie();
+    obj_ptr<HttpCookie> cookie = new HttpCookie();
+    cookie->fill(opts, true);
+
+    retVal = cookie;
     return 0;
 }
 
 result_t HttpCookie_base::_new(const char *name, const char *value,
+                               v8::Local<v8::Object> opts,
                                obj_ptr<HttpCookie_base> &retVal,
                                v8::Local<v8::Object> This)
 {
-    retVal = new HttpCookie();
-    retVal->set_name(name);
-    retVal->set_value(value);
+    obj_ptr<HttpCookie> cookie = new HttpCookie();
 
+    cookie->set_name(name);
+    cookie->set_value(value);
+
+    cookie->fill(opts, false);
+
+    retVal = cookie;
     return 0;
 }
 
@@ -66,6 +75,23 @@ result_t HttpCookie::parse(const char *header)
                 m_httpOnly = true;
         }
     }
+
+    return 0;
+}
+
+result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
+{
+    if (bBase)
+    {
+        GetConfigValue(opts, "name", m_name);
+        GetConfigValue(opts, "value", m_value);
+    }
+
+    GetConfigValue(opts, "expires", m_expires);
+    GetConfigValue(opts, "domain", m_domain);
+    GetConfigValue(opts, "path", m_path);
+    GetConfigValue(opts, "secure", m_secure);
+    GetConfigValue(opts, "httpOnly", m_httpOnly);
 
     return 0;
 }

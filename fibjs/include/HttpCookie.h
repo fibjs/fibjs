@@ -41,6 +41,9 @@ public:
     // object_base
     virtual result_t toString(std::string &retVal);
 
+public:
+    result_t fill(v8::Local<v8::Object> opts, bool bBase);
+
 private:
     std::string m_name;
     std::string m_value;

@@ -146,24 +146,7 @@ describe("http", function() {
 
 	describe("cookie", function() {
 		function build(opt) {
-			var cookie = new http.Cookie();
-
-			if (opt.name)
-				cookie.name = opt.name;
-			if (opt.value)
-				cookie.value = opt.value;
-			if (opt.expires)
-				cookie.expires = opt.expires;
-			if (opt.domain)
-				cookie.domain = opt.domain;
-			if (opt.path)
-				cookie.path = opt.path;
-			if (opt.secure)
-				cookie.secure = true;
-			if (opt.httpOnly)
-				cookie.httpOnly = true;
-
-			return cookie.toString();
+			return new http.Cookie(opt).toString();
 		}
 
 		function parse(str) {

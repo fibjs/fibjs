@@ -21,8 +21,8 @@ class HttpCookie_base : public object_base
 {
 public:
 	// HttpCookie_base
-	static result_t _new(obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	static result_t _new(const char* name, const char* value, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(const char* name, const char* value, v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t parse(const char* header) = 0;
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t set_name(const char* newVal) = 0;
@@ -258,16 +258,19 @@ namespace fibjs
 	{
 		obj_ptr<HttpCookie_base> vr;
 
-		CONSTRUCT_ENTER(0, 0);
+		CONSTRUCT_ENTER(1, 0);
 
-		hr = _new(vr, args.This());
+		OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
 
-		METHOD_OVER(2, 1);
+		hr = _new(v0, vr, args.This());
+
+		METHOD_OVER(3, 1);
 
 		ARG(arg_string, 0);
 		OPT_ARG(arg_string, 1, "");
+		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-		hr = _new(v0, v1, vr, args.This());
+		hr = _new(v0, v1, v2, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}
