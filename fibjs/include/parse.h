@@ -20,7 +20,7 @@ public:
         string(s), pos(0)
     {
         if (n < 0)
-            n = qstrlen(s);
+            n = (int)qstrlen(s);
         sz = n;
     }
 
