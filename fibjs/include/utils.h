@@ -76,6 +76,21 @@ typedef int SOCKET;
 #include <math.h>
 #include <vector>
 
+#ifdef _WIN32
+
+#ifndef INFINITY
+#define INFINITY (DBL_MAX+DBL_MAX)
+#endif
+
+#ifndef NAN
+#define NAN (INFINITY-INFINITY)
+#endif
+
+#ifndef isnan
+#define isnan !!_isnan
+#endif
+#endif
+
 #include "qstring.h"
 #include "date.h"
 #include "obj_ptr.h"
@@ -280,19 +295,6 @@ typedef int result_t;
 #ifndef ARRAYSIZE
 #define ARRAYSIZE(a) \
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
-#endif
-
-#ifdef _MSC_VER
-
-#ifndef INFINITY
-#define INFINITY (DBL_MAX+DBL_MAX)
-#endif
-
-#ifndef NAN
-#define NAN (INFINITY-INFINITY)
-#endif
-
-#define isnan _isnan
 #endif
 
 class arg_string

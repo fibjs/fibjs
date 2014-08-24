@@ -43,7 +43,7 @@ public:
     };
 
 public:
-    date_t(double v = 0) :
+    date_t(double v = NAN) :
         d(v)
     {
     }
@@ -54,14 +54,14 @@ public:
     }
 
     date_t(v8::Local<v8::Value> v) :
-        d(0)
+        d(NAN)
     {
         operator=(v);
     }
 
     void clear()
     {
-        d = 0;
+        d = NAN;
     }
 
     void now()
@@ -96,7 +96,7 @@ public:
 
     bool empty() const
     {
-        return d == 0;
+        return isnan(d);
     }
 
     double diff(date_t d1)
