@@ -19,6 +19,8 @@ namespace fibjs
 {
 
 class HttpMessage_base;
+class List_base;
+class HttpCookie_base;
 
 class HttpResponse_base : public HttpMessage_base
 {
@@ -27,6 +29,8 @@ public:
 	static result_t _new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_status(int32_t& retVal) = 0;
 	virtual result_t set_status(int32_t newVal) = 0;
+	virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
+	virtual result_t addCookie(HttpCookie_base* cookie) = 0;
 	virtual result_t redirect(const char* url) = 0;
 
 	DECLARE_CLASSINFO(HttpResponse_base);
@@ -35,11 +39,15 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_status(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_status(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
 
+#include "List.h"
+#include "HttpCookie.h"
 
 namespace fibjs
 {
@@ -47,18 +55,20 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
+			{"addCookie", s_addCookie},
 			{"redirect", s_redirect}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"status", s_get_status, s_set_status}
+			{"status", s_get_status, s_set_status},
+			{"cookies", s_get_cookies, block_set}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"HttpResponse", s__new, 
-			1, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&HttpMessage_base::class_info()
 		};
 
@@ -89,6 +99,18 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
+	inline void HttpResponse_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<List_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(HttpResponse_base);
+
+		hr = pInst->get_cookies(vr);
+
+		METHOD_RETURN();
+	}
+
 	inline void HttpResponse_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<HttpResponse_base> vr;
@@ -98,6 +120,18 @@ namespace fibjs
 		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
+	}
+
+	inline void HttpResponse_base::s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(HttpResponse_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<HttpCookie_base>, 0);
+
+		hr = pInst->addCookie(v0);
+
+		METHOD_VOID();
 	}
 
 	inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args)

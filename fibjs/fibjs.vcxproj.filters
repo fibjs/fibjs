@@ -375,6 +375,9 @@
     <ClCompile Include="src\RedisPubSub.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\HttpCookie.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -942,6 +945,12 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\RedisSortedSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\HttpCookie.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpCookie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

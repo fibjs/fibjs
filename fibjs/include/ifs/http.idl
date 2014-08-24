@@ -8,6 +8,9 @@ class http : module
     /*! @brief 创建一个 http 响应对象，参见 HttpResponse */
     static HttpResponse new Response();
 
+    /*! @brief 创建一个 http cookie 对象，参见 HttpCookie */
+    static HttpCookie new Cookie();
+
     /*! @brief 创建一个 http 服务器，参见 HttpServer */
     static HttpServer new Server();
 

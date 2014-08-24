@@ -21,6 +21,7 @@ namespace fibjs
 class module_base;
 class HttpRequest_base;
 class HttpResponse_base;
+class HttpCookie_base;
 class HttpServer_base;
 class HttpsServer_base;
 class HttpHandler_base;
@@ -60,6 +61,7 @@ public:
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "HttpCookie.h"
 #include "HttpServer.h"
 #include "HttpsServer.h"
 #include "HttpHandler.h"
@@ -83,6 +85,7 @@ namespace fibjs
 		{
 			{"Request", HttpRequest_base::class_info},
 			{"Response", HttpResponse_base::class_info},
+			{"Cookie", HttpCookie_base::class_info},
 			{"Server", HttpServer_base::class_info},
 			{"HttpsServer", HttpsServer_base::class_info},
 			{"Handler", HttpHandler_base::class_info}
@@ -91,7 +94,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"http", NULL, 
-			4, s_method, 5, s_object, 0, NULL, NULL, NULL,
+			4, s_method, 6, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 

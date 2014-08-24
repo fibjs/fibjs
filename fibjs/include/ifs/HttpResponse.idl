@@ -8,6 +8,14 @@ class HttpResponse : HttpMessage
     /*! @brief 查询和设置响应消息的返回状态 */
     Integer status;
 
+    /*! @brief 返回当前消息的 HttpCookie 对象列表 */
+    readonly List cookies;
+
+    /*! @brief 向 cookies 添加一个 HttpCookie 对象
+     @param cookie 指定要添加的 HttpCookie 对象
+     */
+    addCookie(HttpCookie cookie);
+
     /*! @brief 发送重定向到客户端
      @param url 重定向的地址
      */

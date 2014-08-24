@@ -67,11 +67,14 @@ public:
     // HttpResponse_base
     virtual result_t get_status(int32_t &retVal);
     virtual result_t set_status(int32_t newVal);
+    virtual result_t get_cookies(obj_ptr<List_base> &retVal);
+    virtual result_t addCookie(HttpCookie_base *cookie);
     virtual result_t redirect(const char *url);
 
 public:
     HttpMessage m_message;
     int32_t m_status;
+    obj_ptr<List_base> m_cookies;
 };
 
 } /* namespace fibjs */

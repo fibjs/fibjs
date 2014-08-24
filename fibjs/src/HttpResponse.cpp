@@ -6,7 +6,9 @@
  */
 
 #include "HttpResponse.h"
+#include "HttpCookie.h"
 #include "Buffer.h"
+#include "List.h"
 
 namespace fibjs
 {
@@ -155,6 +157,8 @@ result_t HttpResponse::set_result(Variant newVal)
 result_t HttpResponse::clear()
 {
     m_message.clear();
+
+    m_cookies.Release();
     m_status = 200;
 
     return 0;
@@ -207,12 +211,35 @@ public:
     }
 } s_init_status_line;
 
-#define TINY_SIZE   32768
-
 result_t HttpResponse::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_cookies)
+    {
+        int32_t len, i;
+
+        m_cookies->get_length(len);
+
+        for (i = 0; i < len; i ++)
+        {
+            Variant v;
+            obj_ptr<object_base> cookie;
+            std::string str;
+
+            m_cookies->_indexed_getter(i, v);
+            cookie = v.object();
+
+            if (cookie)
+            {
+                cookie->toString(str);
+                addHeader("Set-Cookie", str.c_str());
+            }
+        }
+
+        m_cookies.Release();
+    }
 
     int pos = shortcut[m_status / 100 - 1] + m_status % 100;
     std::string strCommand;
@@ -309,6 +336,53 @@ result_t HttpResponse::set_status(int32_t newVal)
     }
 
     m_status = newVal;
+    return 0;
+}
+
+result_t HttpResponse::get_cookies(obj_ptr<List_base> &retVal)
+{
+    if (!m_cookies)
+    {
+        obj_ptr<List> cookies = new List();
+
+        int32_t len, i;
+        obj_ptr<List_base> headers;
+
+        allHeader("Set-Cookie", headers);
+        removeHeader("Set-Cookie");
+
+        headers->get_length(len);
+
+        for (i = 0; i < len; i ++)
+        {
+            Variant v;
+            std::string str;
+            obj_ptr<HttpCookie> cookie;
+
+            headers->_indexed_getter(i, v);
+            str = v.string();
+
+            cookie = new HttpCookie();
+            if (cookie->parse(str.c_str()) >= 0)
+                cookies->append(cookie);
+        }
+
+        m_cookies = cookies;
+    }
+
+    retVal = m_cookies;
+    return 0;
+}
+
+result_t HttpResponse::addCookie(HttpCookie_base *cookie)
+{
+    obj_ptr<List_base> cookies;
+    Variant v;
+
+    v = cookie;
+    get_cookies(cookies);
+    cookies->push(v);
+
     return 0;
 }
 

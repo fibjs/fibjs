@@ -56,6 +56,7 @@
     <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\http.cpp" />
     <ClCompile Include="src\HttpCollection.cpp" />
+    <ClCompile Include="src\HttpCookie.cpp" />
     <ClCompile Include="src\HttpFileHandler.cpp" />
     <ClCompile Include="src\HttpHandler.cpp" />
     <ClCompile Include="src\HttpMessage.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\GridFS.h" />
     <ClInclude Include="include\HttpCollection.h" />
+    <ClInclude Include="include\HttpCookie.h" />
     <ClInclude Include="include\HttpFileHandler.h" />
     <ClInclude Include="include\HttpHandler.h" />
     <ClInclude Include="include\HttpMessage.h" />
@@ -208,6 +210,7 @@
     <ClInclude Include="include\ifs\hash.h" />
     <ClInclude Include="include\ifs\http.h" />
     <ClInclude Include="include\ifs\HttpCollection.h" />
+    <ClInclude Include="include\ifs\HttpCookie.h" />
     <ClInclude Include="include\ifs\HttpHandler.h" />
     <ClInclude Include="include\ifs\HttpMessage.h" />
     <ClInclude Include="include\ifs\HttpRequest.h" />
