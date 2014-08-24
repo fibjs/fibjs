@@ -244,7 +244,7 @@ describe("http", function() {
 
 		it("cookie", function() {
 			function get_cookie(txt) {
-				return get_request(txt).cookie.toJSON();
+				return get_request(txt).cookies.toJSON();
 			}
 
 			var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new;\r\n\r\n");

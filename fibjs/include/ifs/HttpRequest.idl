@@ -15,7 +15,7 @@ class HttpRequest : HttpMessage
     String queryString;
 
     /*! @brief 获取包含消息 cookies 的容器*/
-    readonly HttpCollection cookie;
+    readonly HttpCollection cookies;
 
     /*! @brief 获取包含消息 form 的容器*/
     readonly HttpCollection form;

@@ -164,7 +164,7 @@ result_t HttpRequest::clear()
     if (m_response)
         m_response->clear();
 
-    m_cookie.Release();
+    m_cookies.Release();
     m_query.Release();
     m_form.Release();
 
@@ -387,17 +387,17 @@ void HttpRequest::parse(std::string &str, char split,
     retVal = c;
 }
 
-result_t HttpRequest::get_cookie(obj_ptr<HttpCollection_base> &retVal)
+result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base> &retVal)
 {
-    if (m_cookie == NULL)
+    if (!m_cookies)
     {
         std::string strCookie;
 
         header("cookie", strCookie);
-        parse(strCookie, ';', m_cookie);
+        parse(strCookie, ';', m_cookies);
     }
 
-    retVal = m_cookie;
+    retVal = m_cookies;
     return 0;
 }
 

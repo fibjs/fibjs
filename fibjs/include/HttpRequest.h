@@ -71,7 +71,7 @@ public:
     virtual result_t set_address(const char *newVal);
     virtual result_t get_queryString(std::string &retVal);
     virtual result_t set_queryString(const char *newVal);
-    virtual result_t get_cookie(obj_ptr<HttpCollection_base> &retVal);
+    virtual result_t get_cookies(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_form(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_query(obj_ptr<HttpCollection_base> &retVal);
 
@@ -95,7 +95,7 @@ private:
     std::string m_address;
     std::string m_queryString;
     obj_ptr<HttpResponse_base> m_response;
-    obj_ptr<HttpCollection_base> m_cookie;
+    obj_ptr<HttpCollection_base> m_cookies;
     obj_ptr<HttpCollection_base> m_query;
     obj_ptr<HttpCollection_base> m_form;
 };

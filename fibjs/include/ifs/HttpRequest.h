@@ -32,7 +32,7 @@ public:
 	virtual result_t set_address(const char* newVal) = 0;
 	virtual result_t get_queryString(std::string& retVal) = 0;
 	virtual result_t set_queryString(const char* newVal) = 0;
-	virtual result_t get_cookie(obj_ptr<HttpCollection_base>& retVal) = 0;
+	virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal) = 0;
 
@@ -46,7 +46,7 @@ public:
 	static void s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_queryString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-	static void s_get_cookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_form(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
@@ -64,7 +64,7 @@ namespace fibjs
 			{"method", s_get_method, s_set_method},
 			{"address", s_get_address, s_set_address},
 			{"queryString", s_get_queryString, s_set_queryString},
-			{"cookie", s_get_cookie, block_set},
+			{"cookies", s_get_cookies, block_set},
 			{"form", s_get_form, block_set},
 			{"query", s_get_query, block_set}
 		};
@@ -149,14 +149,14 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline void HttpRequest_base::s_get_cookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	inline void HttpRequest_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<HttpCollection_base> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
 
-		hr = pInst->get_cookie(vr);
+		hr = pInst->get_cookies(vr);
 
 		METHOD_RETURN();
 	}
