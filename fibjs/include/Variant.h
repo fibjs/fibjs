@@ -298,11 +298,11 @@ public:
 
     bool toString(std::string &retVal);
 
-    obj_base *object() const
+    object_base *object() const
     {
         if (type() != VT_Object)
             return NULL;
-        return m_Val.objVal;
+        return (object_base *)m_Val.objVal;
     }
 
 private:
