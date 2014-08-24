@@ -16,9 +16,12 @@ namespace fibjs
 class _parser
 {
 public:
-    _parser(const char *s, int n) :
-        string(s), sz(n), pos(0)
+    _parser(const char *s, int n = -1) :
+        string(s), pos(0)
     {
+        if (n < 0)
+            n = qstrlen(s);
+        sz = n;
     }
 
     _parser(std::string &s) :
