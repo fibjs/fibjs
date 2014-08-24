@@ -1,7 +1,7 @@
 var classHttpCookie =
 [
-    [ "HttpCookie", "df/d61/classHttpCookie.html#acd5da17724e0fdee1ea706214f744d32", null ],
-    [ "HttpCookie", "df/d61/classHttpCookie.html#a16238c2946cc85256f290b74825249bc", null ],
+    [ "HttpCookie", "df/d61/classHttpCookie.html#aeaf22658ecce73e194a6effafdc555e9", null ],
+    [ "HttpCookie", "df/d61/classHttpCookie.html#ab76d9042bcd75150fa8a1e54959a2bd3", null ],
     [ "parse", "df/d61/classHttpCookie.html#acc36fa46966c57a77192caf01495748f", null ],
     [ "dispose", "df/d61/classHttpCookie.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "df/d61/classHttpCookie.html#ac61f07a7d6c5471293371086af3186bd", null ],

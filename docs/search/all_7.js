@@ -32,7 +32,7 @@ var searchData=
   ['hsla',['hsla',['../d5/d5d/classgd.html#a14fb8efd2fd9e7c1bbb0d7169a5eecca',1,'gd']]],
   ['http',['http',['../d6/da8/classhttp.html',1,'']]],
   ['httpcollection',['HttpCollection',['../d6/dbd/classHttpCollection.html',1,'']]],
-  ['httpcookie',['HttpCookie',['../df/d61/classHttpCookie.html',1,'HttpCookie'],['../df/d61/classHttpCookie.html#acd5da17724e0fdee1ea706214f744d32',1,'HttpCookie::HttpCookie()'],['../df/d61/classHttpCookie.html#a16238c2946cc85256f290b74825249bc',1,'HttpCookie::HttpCookie(String name, String value=&quot;&quot;)']]],
+  ['httpcookie',['HttpCookie',['../df/d61/classHttpCookie.html',1,'HttpCookie'],['../df/d61/classHttpCookie.html#aeaf22658ecce73e194a6effafdc555e9',1,'HttpCookie::HttpCookie(Object opts={})'],['../df/d61/classHttpCookie.html#ab76d9042bcd75150fa8a1e54959a2bd3',1,'HttpCookie::HttpCookie(String name, String value=&quot;&quot;, Object opts={})']]],
   ['httphandler',['HttpHandler',['../d3/df3/classHttpHandler.html',1,'HttpHandler'],['../d3/df3/classHttpHandler.html#a67076bb6a7281898aed64f09676d56a2',1,'HttpHandler::HttpHandler()'],['../d4/d86/classmq.html#a57f8f9f44fbbf200b54df0139a56bb40',1,'mq::HttpHandler()']]],
   ['httpmessage',['HttpMessage',['../dd/d77/classHttpMessage.html',1,'']]],
   ['httponly',['httpOnly',['../df/d61/classHttpCookie.html#a5116746acee8713cfc7f854c0e0164ae',1,'HttpCookie']]],
