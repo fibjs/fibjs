@@ -222,7 +222,7 @@ describe("net", function() {
 		c1.connect('127.0.0.1', 8083);
 		send2.start(c1);
 
-		coroutine.sleep(10);
+		coroutine.sleep(100);
 		assert.throws(function() {
 			var b = new Buffer("aaaaaaaa");
 			c1.send(b);
