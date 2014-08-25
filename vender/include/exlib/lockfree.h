@@ -34,39 +34,28 @@ public:
 
     void put(T *o)
     {
-        T *p;
+        while (CompareAndSwap(&m_lock, 0, -1));
 
-        do
-        {
-            p = (T *) m_first;
-            o->m_next = p;
-        }
-        while (CompareAndSwap(&m_first, p, o) != p);
+        o->m_next = (T *)m_first;
+        m_first = o;
+
+        atom_xchg(&m_lock, 0);
     }
 
     T *get()
     {
         T *p;
 
-        if (m_first == 0)
-            return 0;
+        while (CompareAndSwap(&m_lock, 0, -1));
 
-        while (CompareAndSwap(&m_lock, 0, -1))
-            ;
-
-        do
+        p = (T *)m_first;
+        if (p)
         {
-            p = (T *) m_first;
-            if (p == 0)
-                break;
-        }
-        while (CompareAndSwap(&m_first, p, (T *) (p->m_next)) != p);
-
-        m_lock = 0;
-
-        if (p != 0)
+            m_first = (T *)p->m_next;
             p->m_next = 0;
+        }
 
+        atom_xchg(&m_lock, 0);
         return p;
     }
 
@@ -74,22 +63,12 @@ public:
     {
         T *p;
 
-        if (m_first == 0)
-            return 0;
+        while (CompareAndSwap(&m_lock, 0, -1));
 
-        while (CompareAndSwap(&m_lock, 0, -1))
-            ;
+        p = (T *)m_first;
+        m_first = 0;
 
-        do
-        {
-            p = (T *) m_first;
-            if (p == 0)
-                break;
-        }
-        while (CompareAndSwap(&m_first, p, (T *)0) != p);
-
-        m_lock = 0;
-
+        atom_xchg(&m_lock, 0);
         return p;
     }
 
