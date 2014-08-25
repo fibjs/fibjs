@@ -37,7 +37,6 @@ void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
         bson_append_bool(bb, name, element->IsTrue());
     else if (element->IsNumber() || element->IsNumberObject())
     {
-
         double value = element->NumberValue();
         int64_t num = (int64_t) value;
 
@@ -153,14 +152,14 @@ bool encodeObject(bson *bb, const char *name, v8::Local<v8::Value> element,
     if (doJson)
     {
         v8::Local<v8::Value> jsonFun = object->Get(
-                                            v8::String::NewFromUtf8(isolate, "toJSON",
-                                                    v8::String::kNormalString, 6));
+                                           v8::String::NewFromUtf8(isolate, "toJSON",
+                                                   v8::String::kNormalString, 6));
 
         if (!IsEmpty(jsonFun) && jsonFun->IsFunction())
         {
             v8::Local<v8::Value> p = v8::String::NewFromUtf8(isolate, name ? name : "");
             v8::Local<v8::Value> element1 = v8::Local<v8::Function>::Cast(
-                                                 jsonFun)->Call(object, 1, &p);
+                                                jsonFun)->Call(object, 1, &p);
 
             if (name)
             {
@@ -268,10 +267,13 @@ void decodeValue(v8::Local<v8::Object> obj, bson_iterator *it)
     case BSON_LONG:
     {
         int64_t num = bson_iterator_long(it);
-        if (num >= -2147483648ll && num <= 2147483647ll){
-          obj->Set(v8::String::NewFromUtf8(isolate, key),
-                 v8::Number::New(isolate, (double) num));
-        }else {
+        if (num >= -2147483648ll && num <= 2147483647ll)
+        {
+            obj->Set(v8::String::NewFromUtf8(isolate, key),
+                     v8::Number::New(isolate, (double) num));
+        }
+        else
+        {
             obj_ptr<Integer64> int64 = new Integer64(num);
             obj->Set(v8::String::NewFromUtf8(isolate, key), int64->wrap());
         }
