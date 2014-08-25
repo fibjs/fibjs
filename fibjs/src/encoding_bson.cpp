@@ -9,6 +9,7 @@
 #include "ifs/encoding.h"
 #include "Buffer.h"
 #include "MongoID.h"
+#include "Integer64.h"
 
 namespace fibjs
 {
@@ -73,6 +74,19 @@ void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
     }
     else if (element->IsObject())
     {
+        {
+            obj_ptr<Integer64> num = (Integer64 *)Integer64_base::getInstance(element);
+
+            if (num)
+            {
+                if (num->m_num >= -2147483648ll && num->m_num <= 2147483647ll)
+                    bson_append_int(bb, name, (int) num->m_num);
+                else
+                    bson_append_long(bb, name, num->m_num);
+                return;
+            }
+        }
+
         {
             obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
 
@@ -252,9 +266,17 @@ void decodeValue(v8::Local<v8::Object> obj, bson_iterator *it)
         obj->Set(v8::String::NewFromUtf8(isolate, key), v8::Number::New(isolate, bson_iterator_int(it)));
         break;
     case BSON_LONG:
-        obj->Set(v8::String::NewFromUtf8(isolate, key),
-                 v8::Number::New(isolate, (double) bson_iterator_long(it)));
+    {
+        int64_t num = bson_iterator_long(it);
+        if (num >= -2147483648ll && num <= 2147483647ll){
+          obj->Set(v8::String::NewFromUtf8(isolate, key),
+                 v8::Number::New(isolate, (double) num));
+        }else {
+            obj_ptr<Integer64> int64 = new Integer64(num);
+            obj->Set(v8::String::NewFromUtf8(isolate, key), int64->wrap());
+        }
         break;
+    }
     case BSON_DOUBLE:
         obj->Set(v8::String::NewFromUtf8(isolate, key),
                  v8::Number::New(isolate, bson_iterator_double(it)));
