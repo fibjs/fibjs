@@ -161,6 +161,12 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
 
+        virtual int error(int v)
+        {
+            asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
+            return v;
+        }
+
     private:
         obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_retVal;
