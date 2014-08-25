@@ -172,10 +172,8 @@ result_t encoding_base::hexDecode(const char *data,
     pos = 0;
     while ((ch1 = utf8_getchar(data)) != 0)
     {
-        if ((ch1 >= 'a' && ch1 <= 'f') || (ch1 >= 'A' && ch1 <= 'F'))
-            ch1 = (ch1 & 0xf) + 9;
-        else if (ch1 >= '0' && ch1 <= '9')
-            ch1 &= 0xf;
+        if (qisxdigit(ch1))
+            ch1 = qhex(ch1);
         else
             continue;
 
@@ -183,10 +181,8 @@ result_t encoding_base::hexDecode(const char *data,
         if (ch2 == 0)
             break;
 
-        if ((ch2 >= 'a' && ch2 <= 'f') || (ch2 >= 'A' && ch2 <= 'F'))
-            ch2 = (ch2 & 0xf) + 9;
-        else if (ch2 >= '0' && ch2 <= '9')
-            ch2 &= 0xf;
+        if (qisxdigit(ch2))
+            ch2 = qhex(ch2);
         else
         {
             ch2 = ch1;

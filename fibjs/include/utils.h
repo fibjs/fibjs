@@ -575,10 +575,7 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Local<v8::Function> &func)
 template<class T>
 inline v8::Local<v8::Value> GetReturnValue(obj_ptr<T> &obj)
 {
-    v8::Local<v8::Value> retVal;
-    obj->ValueOf(retVal);
-
-    return retVal;
+    return obj->wrap();
 }
 
 inline v8::Local<v8::Value> ThrowError(const char *msg)
