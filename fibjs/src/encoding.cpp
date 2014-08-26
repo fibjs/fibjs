@@ -89,7 +89,7 @@ inline void baseDecode(const char *pdecodeTable, int dwBits,
 
 result_t encoding_base::base32Encode(Buffer_base *data, std::string &retVal)
 {
-    baseEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", 5, data, retVal);
+    baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, retVal);
     return 0;
 }
 
