@@ -15,7 +15,7 @@ var classList =
     [ "dispose", "d6/da9/classList.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d6/da9/classList.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d6/da9/classList.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d6/da9/classList.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d6/da9/classList.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "operator[]", "d6/da9/classList.html#a4d86d77e9b5051e347291f023871bd57", null ],
     [ "length", "d6/da9/classList.html#ac14dd2e85d341d532c0a7c3f107922f0", null ]
 ];

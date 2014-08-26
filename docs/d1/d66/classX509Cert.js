@@ -10,7 +10,7 @@ var classX509Cert =
     [ "dispose", "d1/d66/classX509Cert.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d1/d66/classX509Cert.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d1/d66/classX509Cert.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d1/d66/classX509Cert.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d1/d66/classX509Cert.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "version", "d1/d66/classX509Cert.html#af38ce8e9508c32488d8963ef2478997b", null ],
     [ "serial", "d1/d66/classX509Cert.html#afa2659fac486d044a7c4e11eb6857cb7", null ],
     [ "issuer", "d1/d66/classX509Cert.html#a72345ac653b7808dc7eb2cc0a9db1268", null ],

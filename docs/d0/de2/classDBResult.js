@@ -14,7 +14,7 @@ var classDBResult =
     [ "dispose", "d0/de2/classDBResult.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d0/de2/classDBResult.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d0/de2/classDBResult.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d0/de2/classDBResult.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d0/de2/classDBResult.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "insertId", "d0/de2/classDBResult.html#a9d489a96d737189b9765aba860fec60e", null ],
     [ "affected", "d0/de2/classDBResult.html#a76af35f41832f6ebd616bee6af603afe", null ],
     [ "fields", "d0/de2/classDBResult.html#a6655635387709359c4ea872a0343d139", null ],

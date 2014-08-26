@@ -11,7 +11,7 @@ var classSQLite =
     [ "dispose", "df/d93/classSQLite.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "df/d93/classSQLite.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "df/d93/classSQLite.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "df/d93/classSQLite.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "df/d93/classSQLite.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "fileName", "df/d93/classSQLite.html#a9a2a52bdba24af6fe86ba65b149e3f1b", null ],
     [ "timeout", "df/d93/classSQLite.html#ac1125a44ad8f97d1cf7e9a3acd08db1e", null ]
 ];

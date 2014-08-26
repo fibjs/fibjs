@@ -11,7 +11,7 @@ var classX509Req =
     [ "dispose", "d4/d6e/classX509Req.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d4/d6e/classX509Req.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d4/d6e/classX509Req.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d4/d6e/classX509Req.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d4/d6e/classX509Req.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "subject", "d4/d6e/classX509Req.html#a3f636dc3d8417ac6e5b508989f6d91c6", null ],
     [ "publicKey", "d4/d6e/classX509Req.html#a4d039bd80913600438b107d0273c3eb4", null ]
 ];

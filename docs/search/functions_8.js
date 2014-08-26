@@ -11,6 +11,7 @@ var searchData=
   ['insert',['insert',['../d2/d07/classMongoCollection.html#ad3910f53d7e3c1de13e7196cb5b68164',1,'MongoCollection::insert(Array documents)'],['../d2/d07/classMongoCollection.html#a3b3d039d9bf2e5260d11faa34166420b',1,'MongoCollection::insert(Object document)']]],
   ['insertafter',['insertAfter',['../d8/dc8/classRedisList.html#a4163e7aeaa525e280a8ce87a9e8373ef',1,'RedisList']]],
   ['insertbefore',['insertBefore',['../d8/dc8/classRedisList.html#a01e77ae5ed3b771a993f9473c52d1a6f',1,'RedisList']]],
+  ['int64',['Int64',['../df/d84/classglobal.html#afff25b68e6507a6a32a55a6eebd569b7',1,'global::Int64()'],['../d1/dee/classInt64.html#ae400848aafc8ed4eb1ae43100e2c2642',1,'Int64::Int64(Long num=0)'],['../d1/dee/classInt64.html#a6c94b35e21035a0cc5c29400109786bf',1,'Int64::Int64(Int64 num)'],['../d1/dee/classInt64.html#a8f76d7ffad5929a575aa6d7ee28e8d9d',1,'Int64::Int64(Long hi, Long lo)'],['../d1/dee/classInt64.html#a2d6e3cbedeb640fdb97804a1916c5b83',1,'Int64::Int64(String num, Integer base=10)']]],
   ['intersection',['intersection',['../d8/d61/classutil.html#adf0b6b3970027bac03b8a52ebd580b72',1,'util']]],
   ['invoke',['invoke',['../d4/d22/classHandler.html#af901258552a23961893c5bd6f18ce681',1,'Handler::invoke()'],['../d4/d86/classmq.html#a208188a99c118c1a4bb1a99febcd3c32',1,'mq::invoke()']]],
   ['ip',['ip',['../d3/d75/classnet.html#a3150c8ad034c6a907a1531327a94b9a3',1,'net']]],

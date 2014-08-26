@@ -17,6 +17,6 @@ var classFile =
     [ "dispose", "db/d30/classFile.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "db/d30/classFile.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "db/d30/classFile.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "db/d30/classFile.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "db/d30/classFile.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "name", "db/d30/classFile.html#ae249a82a4ed27278e366b4f791c59d4f", null ]
 ];

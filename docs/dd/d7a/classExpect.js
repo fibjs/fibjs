@@ -16,7 +16,7 @@ var classExpect =
     [ "dispose", "dd/d7a/classExpect.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "dd/d7a/classExpect.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "dd/d7a/classExpect.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "dd/d7a/classExpect.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "dd/d7a/classExpect.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "to", "dd/d7a/classExpect.html#a4e211fec62704ffb2e78c235732157e6", null ],
     [ "be", "dd/d7a/classExpect.html#aa2896b5ae99886b5fce68ba05058e18f", null ],
     [ "been", "dd/d7a/classExpect.html#a14299251d029a0cfc8bcef53c98c47f9", null ],

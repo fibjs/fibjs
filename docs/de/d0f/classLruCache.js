@@ -13,6 +13,6 @@ var classLruCache =
     [ "dispose", "de/d0f/classLruCache.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "de/d0f/classLruCache.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "de/d0f/classLruCache.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "de/d0f/classLruCache.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "de/d0f/classLruCache.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "size", "de/d0f/classLruCache.html#aee1e7aea2978a02636cb4314bdb11420", null ]
 ];

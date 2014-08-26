@@ -8,7 +8,7 @@ var classMessage =
     [ "dispose", "d6/d28/classMessage.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d6/d28/classMessage.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d6/d28/classMessage.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d6/d28/classMessage.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d6/d28/classMessage.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "value", "d6/d28/classMessage.html#a572dd6923c69839d8e29da3e342b8f76", null ],
     [ "params", "d6/d28/classMessage.html#a9d9a47e71f4a592898d50e0ea410a19f", null ],
     [ "result", "d6/d28/classMessage.html#aff37dc807536324e1b576ffec75770b0", null ],

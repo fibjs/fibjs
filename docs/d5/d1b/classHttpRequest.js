@@ -16,7 +16,7 @@ var classHttpRequest =
     [ "dispose", "d5/d1b/classHttpRequest.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d5/d1b/classHttpRequest.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d5/d1b/classHttpRequest.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d5/d1b/classHttpRequest.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d5/d1b/classHttpRequest.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "method", "d5/d1b/classHttpRequest.html#a2d133650f24c6ba2407c8c541bdf2f22", null ],
     [ "address", "d5/d1b/classHttpRequest.html#af2376806cefea583924ddd0f42b0762e", null ],
     [ "queryString", "d5/d1b/classHttpRequest.html#a8a4ba832c2405354f31158e293a48a01", null ],

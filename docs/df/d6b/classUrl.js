@@ -9,7 +9,7 @@ var classUrl =
     [ "dispose", "df/d6b/classUrl.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "df/d6b/classUrl.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "df/d6b/classUrl.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "df/d6b/classUrl.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "df/d6b/classUrl.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "href", "df/d6b/classUrl.html#ab0e04fcefbb5ea69d357773973010e4d", null ],
     [ "protocol", "df/d6b/classUrl.html#ac2cd4dcec1bb66d83a47a964440efe96", null ],
     [ "slashes", "df/d6b/classUrl.html#a77d7f7816531a40a03534c4b41a9a87c", null ],

@@ -29,15 +29,15 @@
 <!-- Node2 -->
 <g id="node2" class="node"><title>Node2</title>
 <g id="a_node2"><a xlink:href="../../dc/dd8/classobject.html" target="_top" xlink:title="基础对象，所有对象均继承于此 ">
-<polygon fill="white" stroke="black" points="12.605,-171.5 12.605,-255.5 79.2788,-255.5 79.2788,-171.5 12.605,-171.5"/>
+<polygon fill="white" stroke="black" points="12.7979,-171.5 12.7979,-255.5 79.0859,-255.5 79.0859,-171.5 12.7979,-171.5"/>
 <text text-anchor="middle" x="45.9419" y="-243.5" font-family="Helvetica,sans-Serif" font-size="10.00">object</text>
-<polyline fill="none" stroke="black" points="12.605,-237.5 79.2788,-237.5 "/>
+<polyline fill="none" stroke="black" points="12.7979,-237.5 79.0859,-237.5 "/>
 <text text-anchor="middle" x="45.9419" y="-225.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="12.605,-219.5 79.2788,-219.5 "/>
-<text text-anchor="start" x="20.605" y="-207.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dispose()</text>
-<text text-anchor="start" x="20.605" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ toString()</text>
-<text text-anchor="start" x="20.605" y="-187.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ toJSON()</text>
-<text text-anchor="start" x="20.605" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ValueOf()</text>
+<polyline fill="none" stroke="black" points="12.7979,-219.5 79.0859,-219.5 "/>
+<text text-anchor="start" x="20.7979" y="-207.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dispose()</text>
+<text text-anchor="start" x="20.7979" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ toString()</text>
+<text text-anchor="start" x="20.7979" y="-187.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ toJSON()</text>
+<text text-anchor="start" x="20.7979" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ valueOf()</text>
 </a>
 </g>
 </g>

@@ -55,6 +55,7 @@ var hierarchy =
       [ "HttpsServer", "d5/d3b/classHttpsServer.html", null ],
       [ "HttpUploadData", "d0/d3c/classHttpUploadData.html", null ],
       [ "Image", "d8/d00/classImage.html", null ],
+      [ "Int64", "d1/dee/classInt64.html", null ],
       [ "LevelDB", "d8/d3e/classLevelDB.html", null ],
       [ "List", "d6/da9/classList.html", [
         [ "DBResult", "d0/de2/classDBResult.html", null ]

@@ -379,21 +379,22 @@
 <!-- Node12 -->
 <g id="node12" class="node"><title>Node12</title>
 <g id="a_node12"><a xlink:href="../../df/d84/classglobal.html" target="_top" xlink:title="全局对象，所有脚本均可以访问的基础对象 ">
-<polygon fill="white" stroke="black" points="1133.09,-220.5 1133.09,-304.5 1195.5,-304.5 1195.5,-220.5 1133.09,-220.5"/>
-<text text-anchor="middle" x="1164.3" y="-292.5" font-family="Helvetica,sans-Serif" font-size="10.00">global</text>
-<polyline fill="none" stroke="black" points="1133.09,-286.5 1195.5,-286.5 "/>
-<text text-anchor="start" x="1141.09" y="-274.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ console</text>
-<polyline fill="none" stroke="black" points="1133.09,-268.5 1195.5,-268.5 "/>
-<text text-anchor="start" x="1141.09" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Buffer()</text>
-<text text-anchor="start" x="1141.09" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
-<text text-anchor="start" x="1141.09" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ require()</text>
-<text text-anchor="start" x="1141.09" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ GC()</text>
+<polygon fill="white" stroke="black" points="1133.09,-215.5 1133.09,-309.5 1195.5,-309.5 1195.5,-215.5 1133.09,-215.5"/>
+<text text-anchor="middle" x="1164.3" y="-297.5" font-family="Helvetica,sans-Serif" font-size="10.00">global</text>
+<polyline fill="none" stroke="black" points="1133.09,-291.5 1195.5,-291.5 "/>
+<text text-anchor="start" x="1141.09" y="-279.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ console</text>
+<polyline fill="none" stroke="black" points="1133.09,-273.5 1195.5,-273.5 "/>
+<text text-anchor="start" x="1141.09" y="-261.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Buffer()</text>
+<text text-anchor="start" x="1141.09" y="-251.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Int64()</text>
+<text text-anchor="start" x="1141.09" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ run()</text>
+<text text-anchor="start" x="1141.09" y="-231.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ require()</text>
+<text text-anchor="start" x="1141.09" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ GC()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node12 -->
 <g id="edge11" class="edge"><title>Node1&#45;&gt;Node12</title>
-<path fill="none" stroke="midnightblue" d="M1457.43,-584.787C1388.51,-578.681 1238.56,-561.449 1204.3,-525 1148.31,-465.432 1150.84,-362.276 1157.58,-304.945"/>
+<path fill="none" stroke="midnightblue" d="M1457.43,-584.787C1388.51,-578.681 1238.56,-561.449 1204.3,-525 1149.8,-467.022 1150.75,-367.751 1157.05,-309.631"/>
 <polygon fill="none" stroke="midnightblue" points="1457.5,-588.306 1467.76,-585.673 1458.1,-581.332 1457.5,-588.306"/>
 </g>
 <!-- Node13 -->

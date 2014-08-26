@@ -9,7 +9,7 @@
 <area shape="rect" id="node9" href="$dc/d2f/classfs.html" title="文件系统处理模块 " alt="" coords="1116,333,1255,620"/>
 <area shape="rect" id="node10" href="$de/d65/classFunction.html" title="Function 模块不可直接引用，仅用于实现对 javascript Function 对象的扩展 " alt="" coords="1279,440,1351,513"/>
 <area shape="rect" id="node11" href="$d5/d5d/classgd.html" title="图像文件处理模块 " alt="" coords="1375,267,1493,687"/>
-<area shape="rect" id="node12" href="$df/d84/classglobal.html" title="全局对象，所有脚本均可以访问的基础对象 " alt="" coords="1516,420,1599,533"/>
+<area shape="rect" id="node12" href="$df/d84/classglobal.html" title="全局对象，所有脚本均可以访问的基础对象 " alt="" coords="1516,413,1599,540"/>
 <area shape="rect" id="node13" href="$d5/df6/classhash.html" title="信息摘要计算模块，可用于计算信息摘要和摘要签名 " alt="" coords="1623,253,1767,700"/>
 <area shape="rect" id="node14" href="$d6/da8/classhttp.html" title="超文本传输协议模块，用以支持 http 协议处理 " alt="" coords="1791,333,1903,620"/>
 <area shape="rect" id="node15" href="$d9/da1/classio.html" title="输入输出处理模块 " alt="" coords="1928,433,2062,520"/>

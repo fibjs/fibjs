@@ -8,7 +8,7 @@ var classPacketMessage =
     [ "dispose", "dd/df3/classPacketMessage.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "dd/df3/classPacketMessage.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "dd/df3/classPacketMessage.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "dd/df3/classPacketMessage.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "dd/df3/classPacketMessage.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "maxSize", "dd/df3/classPacketMessage.html#a5643417a406c8c1e3d2f929d8b8c81b1", null ],
     [ "value", "dd/df3/classPacketMessage.html#a572dd6923c69839d8e29da3e342b8f76", null ],
     [ "params", "dd/df3/classPacketMessage.html#a9d9a47e71f4a592898d50e0ea410a19f", null ],

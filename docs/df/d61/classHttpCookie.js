@@ -6,7 +6,7 @@ var classHttpCookie =
     [ "dispose", "df/d61/classHttpCookie.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "df/d61/classHttpCookie.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "df/d61/classHttpCookie.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "df/d61/classHttpCookie.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "df/d61/classHttpCookie.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "name", "df/d61/classHttpCookie.html#a1021070764b5270a9b7dcb14a48e22e7", null ],
     [ "value", "df/d61/classHttpCookie.html#aa93491877f72a151c7d44af9dfd3e3a7", null ],
     [ "domain", "df/d61/classHttpCookie.html#a6ae230932670e696206af980c2a9d510", null ],

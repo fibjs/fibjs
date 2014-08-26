@@ -18,7 +18,7 @@ var classHttpResponse =
     [ "dispose", "d8/d4c/classHttpResponse.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d8/d4c/classHttpResponse.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d8/d4c/classHttpResponse.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d8/d4c/classHttpResponse.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d8/d4c/classHttpResponse.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "status", "d8/d4c/classHttpResponse.html#a418ebc4d556401052e637162210dcadd", null ],
     [ "cookies", "d8/d4c/classHttpResponse.html#ac86661de36347c4ef46e29c8ff4be146", null ],
     [ "protocol", "d8/d4c/classHttpResponse.html#a336551e60570807abff96b539b914d25", null ],

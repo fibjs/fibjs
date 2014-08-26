@@ -18,6 +18,8 @@ var classBuffer =
     [ "readInt16BE", "d0/d11/classBuffer.html#ac2aaf87f746c6e86dff94fb8f144192a", null ],
     [ "readInt32LE", "d0/d11/classBuffer.html#a237125974fd43b21ceb407882d6f36a7", null ],
     [ "readInt32BE", "d0/d11/classBuffer.html#a07c4b7a5e0af4402ad257d0dfdd1904d", null ],
+    [ "readInt64LE", "d0/d11/classBuffer.html#a815bd9ece8bd366e812befaeabe837ef", null ],
+    [ "readInt64BE", "d0/d11/classBuffer.html#ad42f80b9e720054bac2e9269e92afb1d", null ],
     [ "readFloatLE", "d0/d11/classBuffer.html#a522729af2a77d8235a4d39eed45fcdbd", null ],
     [ "readFloatBE", "d0/d11/classBuffer.html#ac264d4c959f984dd261e60402f12a49c", null ],
     [ "readDoubleLE", "d0/d11/classBuffer.html#a2ec44f49809c3b79b67f1d1ab2e76ec1", null ],
@@ -32,6 +34,10 @@ var classBuffer =
     [ "writeInt16BE", "d0/d11/classBuffer.html#a0500f514967f73ae1c58b40757da1a26", null ],
     [ "writeInt32LE", "d0/d11/classBuffer.html#a86121684507df1c289b08eadcc9bf573", null ],
     [ "writeInt32BE", "d0/d11/classBuffer.html#a2b4ed494d86af3b7b2b46b12c3ef5cd7", null ],
+    [ "writeInt64LE", "d0/d11/classBuffer.html#a50018c5cbd825904dcb1db654093ed9c", null ],
+    [ "writeInt64LE", "d0/d11/classBuffer.html#a1476421a3d84a0d27b02a44a7f38d680", null ],
+    [ "writeInt64BE", "d0/d11/classBuffer.html#ae0d0b9be65cc76bc3965b994cd8e3e8f", null ],
+    [ "writeInt64BE", "d0/d11/classBuffer.html#a81e7bbb73392e704ca83b6fe9d48bf5a", null ],
     [ "writeFloatLE", "d0/d11/classBuffer.html#af0da2db736bab85c79464a57ab05df54", null ],
     [ "writeFloatBE", "d0/d11/classBuffer.html#ab81698ec4b2b292809b43bbba9a12c98", null ],
     [ "writeDoubleLE", "d0/d11/classBuffer.html#adf45fe19c68fd9a58f8138a2ef509e77", null ],
@@ -43,7 +49,7 @@ var classBuffer =
     [ "toString", "d0/d11/classBuffer.html#a704ee70a5949e3ce5e3ed9efffbfd054", null ],
     [ "dispose", "d0/d11/classBuffer.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toJSON", "d0/d11/classBuffer.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d0/d11/classBuffer.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d0/d11/classBuffer.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "operator[]", "d0/d11/classBuffer.html#ab9877007db2fad366b7fb0fae861243a", null ],
     [ "length", "d0/d11/classBuffer.html#a31eae850157fbe1e15cf7e333c795793", null ]
 ];

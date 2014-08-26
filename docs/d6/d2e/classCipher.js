@@ -9,7 +9,7 @@ var classCipher =
     [ "dispose", "d6/d2e/classCipher.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d6/d2e/classCipher.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d6/d2e/classCipher.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d6/d2e/classCipher.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d6/d2e/classCipher.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "name", "d6/d2e/classCipher.html#a8c7a977f76574518766d47c86dbdec00", null ],
     [ "keySize", "d6/d2e/classCipher.html#ae638990581ae5d7071b9b1bbd18466a5", null ],
     [ "ivSize", "d6/d2e/classCipher.html#a8008bbe01ddf221b6482cd26ac63d80d", null ],

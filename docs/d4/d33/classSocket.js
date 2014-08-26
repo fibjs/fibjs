@@ -17,7 +17,7 @@ var classSocket =
     [ "dispose", "d4/d33/classSocket.html#a6b88dbc459449d2280338e5b702a68b4", null ],
     [ "toString", "d4/d33/classSocket.html#ac61f07a7d6c5471293371086af3186bd", null ],
     [ "toJSON", "d4/d33/classSocket.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
-    [ "ValueOf", "d4/d33/classSocket.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
+    [ "valueOf", "d4/d33/classSocket.html#ab9261a7662bc8bb4a898bc15dc16f206", null ],
     [ "family", "d4/d33/classSocket.html#abf6546327fa4e426b1cf8933fd7ded14", null ],
     [ "type", "d4/d33/classSocket.html#a84ed037fcf775c6c38877da2626bdbbc", null ],
     [ "remoteAddress", "d4/d33/classSocket.html#aea5a56e9aa58cd921df2d28693aa52c7", null ],

@@ -12,6 +12,7 @@ var searchData=
   ['hex',['hex',['../d0/d11/classBuffer.html#ae792f93a92ad21c0c28e4953e91032cb',1,'Buffer']]],
   ['hexdecode',['hexDecode',['../d0/d52/classencoding.html#af057caa3f173428c397e8b13185940c6',1,'encoding']]],
   ['hexencode',['hexEncode',['../d0/d52/classencoding.html#afaded7ab09c1a8882e73a4613a9716fd',1,'encoding']]],
+  ['hi',['hi',['../d1/dee/classInt64.html#aa356139546e7fcc65dc524ed52f585b7',1,'Int64']]],
   ['highlight',['highLight',['../df/d0e/classTextColor.html#af2f9ebf1de8543a516e82866df99363d',1,'TextColor']]],
   ['hint',['hint',['../db/d7d/classMongoCursor.html#afe5537d4e887dea551f20feba3627aaf',1,'MongoCursor']]],
   ['hmac',['hmac',['../d5/df6/classhash.html#a330e7a9e3d593264815d68aa495e7a7d',1,'hash']]],

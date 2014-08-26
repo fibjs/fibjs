@@ -13,6 +13,8 @@ var searchData=
   ['writeint16le',['writeInt16LE',['../d0/d11/classBuffer.html#af8a10eb6889789a38a8949c4526ad981',1,'Buffer']]],
   ['writeint32be',['writeInt32BE',['../d0/d11/classBuffer.html#a2b4ed494d86af3b7b2b46b12c3ef5cd7',1,'Buffer']]],
   ['writeint32le',['writeInt32LE',['../d0/d11/classBuffer.html#a86121684507df1c289b08eadcc9bf573',1,'Buffer']]],
+  ['writeint64be',['writeInt64BE',['../d0/d11/classBuffer.html#ae0d0b9be65cc76bc3965b994cd8e3e8f',1,'Buffer::writeInt64BE(Long value, Integer offset, Boolean noAssert=false)'],['../d0/d11/classBuffer.html#a81e7bbb73392e704ca83b6fe9d48bf5a',1,'Buffer::writeInt64BE(Int64 value, Integer offset, Boolean noAssert=false)']]],
+  ['writeint64le',['writeInt64LE',['../d0/d11/classBuffer.html#a50018c5cbd825904dcb1db654093ed9c',1,'Buffer::writeInt64LE(Long value, Integer offset, Boolean noAssert=false)'],['../d0/d11/classBuffer.html#a1476421a3d84a0d27b02a44a7f38d680',1,'Buffer::writeInt64LE(Int64 value, Integer offset, Boolean noAssert=false)']]],
   ['writeint8',['writeInt8',['../d0/d11/classBuffer.html#afad216b40b5a7f0c9980cadf63a9288d',1,'Buffer']]],
   ['writeline',['writeLine',['../d2/dee/classBufferedStream.html#a4da24e0d02dc1725ae42545689588e52',1,'BufferedStream']]],
   ['writepacket',['writePacket',['../d2/dee/classBufferedStream.html#a0329abc9685c9a618a5d5ec75bc0bf23',1,'BufferedStream']]],

@@ -116,7 +116,7 @@ $(document).ready(function(){initNavTree('d0/d11/classBuffer.html','../../');});
 <div class="dynheader">
 类 Buffer 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../da/d29/classBuffer__inherit__graph.svg" width="140" height="792"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../da/d29/classBuffer__inherit__graph.svg" width="140" height="872"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -175,6 +175,12 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a07c4b7a5e0af4402ad257d0dfdd1904d"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#a07c4b7a5e0af4402ad257d0dfdd1904d">readInt32BE</a> (Integer offset, Boolean noAssert=false)</td></tr>
 <tr class="memdesc:a07c4b7a5e0af4402ad257d0dfdd1904d"><td class="mdescLeft">&#160;</td><td class="mdescRight">从缓存对象读取一个 32 位整型数值，以高字节序的存储方式  <a href="#a07c4b7a5e0af4402ad257d0dfdd1904d">更多...</a><br /></td></tr>
 <tr class="separator:a07c4b7a5e0af4402ad257d0dfdd1904d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a815bd9ece8bd366e812befaeabe837ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d1/dee/classInt64.html">Int64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#a815bd9ece8bd366e812befaeabe837ef">readInt64LE</a> (Integer offset, Boolean noAssert=false)</td></tr>
+<tr class="memdesc:a815bd9ece8bd366e812befaeabe837ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">从缓存对象读取一个 64 位整型数值，以低字节序的存储方式  <a href="#a815bd9ece8bd366e812befaeabe837ef">更多...</a><br /></td></tr>
+<tr class="separator:a815bd9ece8bd366e812befaeabe837ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad42f80b9e720054bac2e9269e92afb1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d1/dee/classInt64.html">Int64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#ad42f80b9e720054bac2e9269e92afb1d">readInt64BE</a> (Integer offset, Boolean noAssert=false)</td></tr>
+<tr class="memdesc:ad42f80b9e720054bac2e9269e92afb1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">从缓存对象读取一个 64 位整型数值，以高字节序的存储方式  <a href="#ad42f80b9e720054bac2e9269e92afb1d">更多...</a><br /></td></tr>
+<tr class="separator:ad42f80b9e720054bac2e9269e92afb1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a522729af2a77d8235a4d39eed45fcdbd"><td class="memItemLeft" align="right" valign="top">Number&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#a522729af2a77d8235a4d39eed45fcdbd">readFloatLE</a> (Integer offset, Boolean noAssert=false)</td></tr>
 <tr class="memdesc:a522729af2a77d8235a4d39eed45fcdbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">从缓存对象读取一个浮点数，以低字节序的存储方式  <a href="#a522729af2a77d8235a4d39eed45fcdbd">更多...</a><br /></td></tr>
 <tr class="separator:a522729af2a77d8235a4d39eed45fcdbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -217,6 +223,18 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a2b4ed494d86af3b7b2b46b12c3ef5cd7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#a2b4ed494d86af3b7b2b46b12c3ef5cd7">writeInt32BE</a> (Integer value, Integer offset, Boolean noAssert=false)</td></tr>
 <tr class="memdesc:a2b4ed494d86af3b7b2b46b12c3ef5cd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">向缓存对象写入一个 32 位整型数值，以高字节序的存储方式  <a href="#a2b4ed494d86af3b7b2b46b12c3ef5cd7">更多...</a><br /></td></tr>
 <tr class="separator:a2b4ed494d86af3b7b2b46b12c3ef5cd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50018c5cbd825904dcb1db654093ed9c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#a50018c5cbd825904dcb1db654093ed9c">writeInt64LE</a> (Long value, Integer offset, Boolean noAssert=false)</td></tr>
+<tr class="memdesc:a50018c5cbd825904dcb1db654093ed9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">向缓存对象写入一个 64 位整型数值，以低字节序的存储方式  <a href="#a50018c5cbd825904dcb1db654093ed9c">更多...</a><br /></td></tr>
+<tr class="separator:a50018c5cbd825904dcb1db654093ed9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1476421a3d84a0d27b02a44a7f38d680"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#a1476421a3d84a0d27b02a44a7f38d680">writeInt64LE</a> (<a class="el" href="../../d1/dee/classInt64.html">Int64</a> value, Integer offset, Boolean noAssert=false)</td></tr>
+<tr class="memdesc:a1476421a3d84a0d27b02a44a7f38d680"><td class="mdescLeft">&#160;</td><td class="mdescRight">向缓存对象写入一个 64 位整型数值，以低字节序的存储方式  <a href="#a1476421a3d84a0d27b02a44a7f38d680">更多...</a><br /></td></tr>
+<tr class="separator:a1476421a3d84a0d27b02a44a7f38d680"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0d0b9be65cc76bc3965b994cd8e3e8f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#ae0d0b9be65cc76bc3965b994cd8e3e8f">writeInt64BE</a> (Long value, Integer offset, Boolean noAssert=false)</td></tr>
+<tr class="memdesc:ae0d0b9be65cc76bc3965b994cd8e3e8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">向缓存对象写入一个 64 位整型数值，以高字节序的存储方式  <a href="#ae0d0b9be65cc76bc3965b994cd8e3e8f">更多...</a><br /></td></tr>
+<tr class="separator:ae0d0b9be65cc76bc3965b994cd8e3e8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81e7bbb73392e704ca83b6fe9d48bf5a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#a81e7bbb73392e704ca83b6fe9d48bf5a">writeInt64BE</a> (<a class="el" href="../../d1/dee/classInt64.html">Int64</a> value, Integer offset, Boolean noAssert=false)</td></tr>
+<tr class="memdesc:a81e7bbb73392e704ca83b6fe9d48bf5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">向缓存对象写入一个 64 位整型数值，以高字节序的存储方式  <a href="#a81e7bbb73392e704ca83b6fe9d48bf5a">更多...</a><br /></td></tr>
+<tr class="separator:a81e7bbb73392e704ca83b6fe9d48bf5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0da2db736bab85c79464a57ab05df54"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d11/classBuffer.html#af0da2db736bab85c79464a57ab05df54">writeFloatLE</a> (Number value, Integer offset, Boolean noAssert=false)</td></tr>
 <tr class="memdesc:af0da2db736bab85c79464a57ab05df54"><td class="mdescLeft">&#160;</td><td class="mdescRight">向缓存对象写入一个浮点数，以低字节序的存储方式  <a href="#af0da2db736bab85c79464a57ab05df54">更多...</a><br /></td></tr>
 <tr class="separator:af0da2db736bab85c79464a57ab05df54"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -250,9 +268,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:ad66be13eb5b7c5f560fd8511565138c4"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#ad66be13eb5b7c5f560fd8511565138c4">toJSON</a> (String key=&quot;&quot;)</td></tr>
 <tr class="memdesc:ad66be13eb5b7c5f560fd8511565138c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合  <a href="#ad66be13eb5b7c5f560fd8511565138c4">更多...</a><br /></td></tr>
 <tr class="separator:ad66be13eb5b7c5f560fd8511565138c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a561030ca5d5b23349b5bab2cc8afa739"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a561030ca5d5b23349b5bab2cc8afa739">ValueOf</a> ()</td></tr>
-<tr class="memdesc:a561030ca5d5b23349b5bab2cc8afa739"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象本身的数值  <a href="#a561030ca5d5b23349b5bab2cc8afa739">更多...</a><br /></td></tr>
-<tr class="separator:a561030ca5d5b23349b5bab2cc8afa739"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9261a7662bc8bb4a898bc15dc16f206"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#ab9261a7662bc8bb4a898bc15dc16f206">valueOf</a> ()</td></tr>
+<tr class="memdesc:ab9261a7662bc8bb4a898bc15dc16f206"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象本身的数值  <a href="#ab9261a7662bc8bb4a898bc15dc16f206">更多...</a><br /></td></tr>
+<tr class="separator:ab9261a7662bc8bb4a898bc15dc16f206"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public 属性</h2></td></tr>
@@ -842,6 +860,78 @@ Public 属性</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a815bd9ece8bd366e812befaeabe837ef"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d1/dee/classInt64.html">Int64</a> Buffer::readInt64LE </td>
+          <td>(</td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>noAssert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>从缓存对象读取一个 64 位整型数值，以低字节序的存储方式 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offset</td><td>指定读取的起始位置 </td></tr>
+    <tr><td class="paramname">noAssert</td><td>指定读取越界时不抛出错误，缺省为 flase，抛出 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回读取的整型数值 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad42f80b9e720054bac2e9269e92afb1d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d1/dee/classInt64.html">Int64</a> Buffer::readInt64BE </td>
+          <td>(</td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>noAssert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>从缓存对象读取一个 64 位整型数值，以高字节序的存储方式 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offset</td><td>指定读取的起始位置 </td></tr>
+    <tr><td class="paramname">noAssert</td><td>指定读取越界时不抛出错误，缺省为 flase，抛出 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回读取的整型数值 </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a522729af2a77d8235a4d39eed45fcdbd"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1406,6 +1496,174 @@ Public 属性</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a50018c5cbd825904dcb1db654093ed9c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Buffer::writeInt64LE </td>
+          <td>(</td>
+          <td class="paramtype">Long&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>noAssert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>向缓存对象写入一个 64 位整型数值，以低字节序的存储方式 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>指定写入的数值 </td></tr>
+    <tr><td class="paramname">offset</td><td>指定写入的起始位置 </td></tr>
+    <tr><td class="paramname">noAssert</td><td>指定写入越界时不抛出错误，缺省为 flase，抛出 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a1476421a3d84a0d27b02a44a7f38d680"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Buffer::writeInt64LE </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d1/dee/classInt64.html">Int64</a>&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>noAssert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>向缓存对象写入一个 64 位整型数值，以低字节序的存储方式 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>指定写入的数值 </td></tr>
+    <tr><td class="paramname">offset</td><td>指定写入的起始位置 </td></tr>
+    <tr><td class="paramname">noAssert</td><td>指定写入越界时不抛出错误，缺省为 flase，抛出 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ae0d0b9be65cc76bc3965b994cd8e3e8f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Buffer::writeInt64BE </td>
+          <td>(</td>
+          <td class="paramtype">Long&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>noAssert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>向缓存对象写入一个 64 位整型数值，以高字节序的存储方式 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>指定写入的数值 </td></tr>
+    <tr><td class="paramname">offset</td><td>指定写入的起始位置 </td></tr>
+    <tr><td class="paramname">noAssert</td><td>指定写入越界时不抛出错误，缺省为 flase，抛出 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a81e7bbb73392e704ca83b6fe9d48bf5a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Buffer::writeInt64BE </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d1/dee/classInt64.html">Int64</a>&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Boolean&#160;</td>
+          <td class="paramname"><em>noAssert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>向缓存对象写入一个 64 位整型数值，以高字节序的存储方式 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>指定写入的数值 </td></tr>
+    <tr><td class="paramname">offset</td><td>指定写入的起始位置 </td></tr>
+    <tr><td class="paramname">noAssert</td><td>指定写入越界时不抛出错误，缺省为 flase，抛出 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="af0da2db736bab85c79464a57ab05df54"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1747,7 +2005,7 @@ Public 属性</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a561030ca5d5b23349b5bab2cc8afa739"></a>
+<a class="anchor" id="ab9261a7662bc8bb4a898bc15dc16f206"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -1755,7 +2013,7 @@ Public 属性</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">Value object::ValueOf </td>
+          <td class="memname">Value object::valueOf </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
