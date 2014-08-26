@@ -26,7 +26,7 @@ inline void MemoryBarrier()
 #endif
 
 template<typename T>
-inline T *CompareAndSwap(volatile T **ptr, T *old_value, T *new_value)
+inline T *CompareAndSwap(T *volatile *ptr, T *old_value, T *new_value)
 {
     T *prev;
     __asm__ volatile(
@@ -73,7 +73,7 @@ inline int32_t atom_xchg(volatile int32_t *ptr, int32_t new_value)
 }
 
 template<typename T>
-inline T *atom_xchg(volatile T **ptr, T *new_value)
+inline T *atom_xchg(T *volatile *ptr, T *new_value)
 {
     T *prev;
 
@@ -96,9 +96,9 @@ inline int32_t atom_dec(volatile int32_t *dest)
     return atom_add(dest, -1);
 }
 
-inline void *CompareAndSwap(volatile void **ptr, void *old_value, void *new_value)
+inline void *CompareAndSwap(void *volatile *ptr, void *old_value, void *new_value)
 {
-    return CompareAndSwap((volatile char **) ptr, (char *) old_value, (char *) new_value);
+    return CompareAndSwap((char *volatile *) ptr, (char *) old_value, (char *) new_value);
 }
 
 }

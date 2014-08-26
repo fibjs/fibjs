@@ -36,7 +36,7 @@ public:
     {
         while (CompareAndSwap(&m_lock, 0, -1));
 
-        o->m_next = (T *)m_first;
+        o->m_next = m_first;
         m_first = o;
 
         atom_xchg(&m_lock, 0);
@@ -48,7 +48,7 @@ public:
 
         while (CompareAndSwap(&m_lock, 0, -1));
 
-        p = (T *)m_first;
+        p = m_first;
         if (p)
         {
             m_first = (T *)p->m_next;
@@ -65,7 +65,7 @@ public:
 
         while (CompareAndSwap(&m_lock, 0, -1));
 
-        p = (T *)m_first;
+        p = m_first;
         m_first = 0;
 
         atom_xchg(&m_lock, 0);
@@ -113,7 +113,7 @@ private:
     }
 
 private:
-    volatile T *m_first;
+    T *volatile  m_first;
     volatile int32_t m_lock;
 };
 

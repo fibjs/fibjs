@@ -126,7 +126,7 @@ public:
 
     operator T *() const
     {
-        return (T *)p;
+        return p;
     }
 
     T &operator*() const
@@ -146,12 +146,12 @@ public:
 
     bool operator==(T *pT) const
     {
-        return (T *)p == pT;
+        return p == pT;
     }
 
     T *operator->()
     {
-        return (T *)p;
+        return p;
     }
 
     void Release()
@@ -170,7 +170,7 @@ private:
     }
 
 private:
-    volatile T *p;
+    T *volatile p;
 };
 
 template<class T>
@@ -200,30 +200,30 @@ public:
 
     operator T *() const
     {
-        return (T *)p;
+        return p;
     }
 
     T *operator->()
     {
-        return (T *)p;
+        return p;
     }
 
     void Ref()
     {
-        T *p1 = (T *)p;
+        T *p1 = p;
         if (p1)
             p1->Ref();
     }
 
     void Unref()
     {
-        T *p1 = (T *)p;
+        T *p1 = p;
         if (p1)
             p1->Unref();
     }
 
 private:
-    volatile T *p;
+    T *volatile p;
 };
 
 }

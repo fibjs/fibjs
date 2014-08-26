@@ -16,7 +16,7 @@ inline void MemoryBarrier()
 }
 
 template<typename T>
-inline T *CompareAndSwap(volatile T **ptr, T *old_value, T *new_value)
+inline T *CompareAndSwap(T *volatile *ptr, T *old_value, T *new_value)
 {
     T *oldval, *res;
 
@@ -110,7 +110,7 @@ inline int32_t atom_xchg(volatile int32_t *ptr, int32_t new_value)
 }
 
 template<typename T>
-inline T *atom_xchg(volatile T **ptr, T *new_value)
+inline T *atom_xchg(T *volatile *ptr, T *new_value)
 {
     T *old_value;
     T *res;
@@ -128,9 +128,9 @@ inline T *atom_xchg(volatile T **ptr, T *new_value)
     return old_value;
 }
 
-inline void *CompareAndSwap(volatile void **ptr, void *old_value, void *new_value)
+inline void *CompareAndSwap(void *volatile *ptr, void *old_value, void *new_value)
 {
-    return CompareAndSwap((char **) ptr, (char *) old_value, (char *) new_value);
+    return CompareAndSwap((char *volatile *) ptr, (char *) old_value, (char *) new_value);
 }
 
 }
