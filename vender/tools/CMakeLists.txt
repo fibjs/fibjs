@@ -17,22 +17,24 @@ endif()
 
 if(${BUILD_TYPE} STREQUAL "Release")
 	set(flags "${flags} -O3")
-	add_definitions("-DNDEBUG=1")
+	add_definitions(-DNDEBUG=1)
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug")
 	set(flags "${flags} -g -O0")
+	add_definitions(-DDEBUG=1 -DVERIFY_HEAP=1 -DOBJECT_PRINT=1 -DENABLE_DISASSEMBLER=1)
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Release32")
 	set(flags "${flags} -O3 -m32")
 	set(link_flags "${link_flags} -m32")
-	add_definitions("-DNDEBUG=1")
+	add_definitions(-DNDEBUG=1)
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug32")
 	set(flags "${flags} -g -O0 -m32")
 	set(link_flags "${link_flags} -m32")
+	add_definitions(-DDEBUG=1 -DVERIFY_HEAP=1 -DOBJECT_PRINT=1 -DENABLE_DISASSEMBLER=1)
 endif()
 
 set_target_properties(vender PROPERTIES COMPILE_FLAGS ${flags})

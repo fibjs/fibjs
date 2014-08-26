@@ -1311,7 +1311,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;DEBUG;VERIFY_HEAP;OBJECT_PRINT;ENABLE_DISASSEMBLER;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
@@ -1331,7 +1331,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;DEBUG;VERIFY_HEAP;OBJECT_PRINT;ENABLE_DISASSEMBLER;NOMINMAX;SQLITE_ENABLE_FTS4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
