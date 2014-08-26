@@ -482,6 +482,9 @@ void date_t::parse(const char *str, int len)
 
     create(wYear, wMonth + 1, wDay + 1, wHour, wMinute, wSecond, wMicroSecond);
 
+    if (isnan(d))
+        return;
+
     if (bLocal)
         d = (double) Runtime::now().m_pDateCache->ToUTC((int64_t) d);
     else
@@ -734,11 +737,17 @@ void date_t::fix(int part)
 
 void date_t::toLocal()
 {
+    if (isnan(d))
+        return;
+
     d = (double) Runtime::now().m_pDateCache->ToLocal((int64_t) d);
 }
 
 void date_t::toUTC()
 {
+    if (isnan(d))
+        return;
+
     d = (double) Runtime::now().m_pDateCache->ToUTC((int64_t) d);
 }
 
