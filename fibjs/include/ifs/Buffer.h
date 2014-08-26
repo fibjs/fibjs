@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+class Int64_base;
+
 class Buffer_base : public object_base
 {
 public:
@@ -42,6 +44,8 @@ public:
 	virtual result_t readInt16BE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
 	virtual result_t readInt32LE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
 	virtual result_t readInt32BE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
+	virtual result_t readInt64LE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal) = 0;
+	virtual result_t readInt64BE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t readFloatLE(int32_t offset, bool noAssert, double& retVal) = 0;
 	virtual result_t readFloatBE(int32_t offset, bool noAssert, double& retVal) = 0;
 	virtual result_t readDoubleLE(int32_t offset, bool noAssert, double& retVal) = 0;
@@ -56,6 +60,10 @@ public:
 	virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert) = 0;
+	virtual result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert) = 0;
+	virtual result_t writeInt64LE(Int64_base* value, int32_t offset, bool noAssert) = 0;
+	virtual result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert) = 0;
+	virtual result_t writeInt64BE(Int64_base* value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert) = 0;
@@ -85,6 +93,8 @@ public:
 	static void s_readInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readInt32LE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readFloatBE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -99,6 +109,8 @@ public:
 	static void s_writeInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeInt32LE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeFloatBE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,6 +122,8 @@ public:
 };
 
 }
+
+#include "Int64.h"
 
 namespace fibjs
 {
@@ -129,6 +143,8 @@ namespace fibjs
 			{"readInt16BE", s_readInt16BE},
 			{"readInt32LE", s_readInt32LE},
 			{"readInt32BE", s_readInt32BE},
+			{"readInt64LE", s_readInt64LE},
+			{"readInt64BE", s_readInt64BE},
 			{"readFloatLE", s_readFloatLE},
 			{"readFloatBE", s_readFloatBE},
 			{"readDoubleLE", s_readDoubleLE},
@@ -143,6 +159,8 @@ namespace fibjs
 			{"writeInt16BE", s_writeInt16BE},
 			{"writeInt32LE", s_writeInt32LE},
 			{"writeInt32BE", s_writeInt32BE},
+			{"writeInt64LE", s_writeInt64LE},
+			{"writeInt64BE", s_writeInt64BE},
 			{"writeFloatLE", s_writeFloatLE},
 			{"writeFloatBE", s_writeFloatBE},
 			{"writeDoubleLE", s_writeDoubleLE},
@@ -166,7 +184,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			34, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			38, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -428,6 +446,36 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline void Buffer_base::s_readInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Int64_base> vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(2, 1);
+
+		ARG(int32_t, 0);
+		OPT_ARG(bool, 1, false);
+
+		hr = pInst->readInt64LE(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Buffer_base::s_readInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Int64_base> vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(2, 1);
+
+		ARG(int32_t, 0);
+		OPT_ARG(bool, 1, false);
+
+		hr = pInst->readInt64BE(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
 	inline void Buffer_base::s_readFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		double vr;
@@ -624,6 +672,50 @@ namespace fibjs
 		OPT_ARG(bool, 2, false);
 
 		hr = pInst->writeInt32BE(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline void Buffer_base::s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(3, 2);
+
+		ARG(int64_t, 0);
+		ARG(int32_t, 1);
+		OPT_ARG(bool, 2, false);
+
+		hr = pInst->writeInt64LE(v0, v1, v2);
+
+		METHOD_OVER(3, 2);
+
+		ARG(obj_ptr<Int64_base>, 0);
+		ARG(int32_t, 1);
+		OPT_ARG(bool, 2, false);
+
+		hr = pInst->writeInt64LE(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline void Buffer_base::s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(3, 2);
+
+		ARG(int64_t, 0);
+		ARG(int32_t, 1);
+		OPT_ARG(bool, 2, false);
+
+		hr = pInst->writeInt64BE(v0, v1, v2);
+
+		METHOD_OVER(3, 2);
+
+		ARG(obj_ptr<Int64_base>, 0);
+		ARG(int32_t, 1);
+		OPT_ARG(bool, 2, false);
+
+		hr = pInst->writeInt64BE(v0, v1, v2);
 
 		METHOD_VOID();
 	}

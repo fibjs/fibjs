@@ -83,25 +83,49 @@ describe('Buffer', function() {
 		assert.equal(buf.readInt16BE(0), -19646);
 		assert.equal(buf.readInt16LE(0), 17075);
 
-		var buf = new Buffer(4);
+		var buf = new Buffer([
+			0x12,
+			0x34,
+			0x56,
+			0x78
+		]);
 
-		buf[0] = 0x00;
-		buf[1] = 0x00;
-		buf[2] = 0x80;
-		buf[3] = 0x3f;
+		assert.equal(buf.readInt32BE(0), 0x12345678);
+		assert.equal(buf.readInt32LE(0), 0x78563412);
+
+		var buf = new Buffer([
+			0x12,
+			0x34,
+			0x56,
+			0x78,
+			0x9a,
+			0xbc,
+			0xde,
+			0xf0
+		]);
+
+		assert.equal(buf.readInt64BE(0).toString(16), "0x123456789abcdef0");
+		assert.equal(buf.readInt64LE(0).toString(16), "0xf0debc9a78563412");
+
+		var buf = new Buffer([
+			0x00,
+			0x00,
+			0x80,
+			0x3f
+		]);
 
 		assert.equal(buf.readFloatLE(0), 1);
 
-		var buf = new Buffer(8);
-
-		buf[0] = 0x55;
-		buf[1] = 0x55;
-		buf[2] = 0x55;
-		buf[3] = 0x55;
-		buf[4] = 0x55;
-		buf[5] = 0x55;
-		buf[6] = 0xd5;
-		buf[7] = 0x3f;
+		var buf = new Buffer([
+			0x55,
+			0x55,
+			0x55,
+			0x55,
+			0x55,
+			0x55,
+			0xd5,
+			0x3f
+		]);
 
 		assert.equal(buf.readDoubleLE(0), 0.3333333333333333);
 	});
@@ -132,6 +156,74 @@ describe('Buffer', function() {
 		assert.throws(function() {
 			buf.writeUInt16LE(0, 1);
 		});
+
+		var buf = new Buffer(4);
+
+		buf.writeInt32BE(0x12345678, 0);
+		assert.deepEqual(buf.toJSON(), [
+			0x12,
+			0x34,
+			0x56,
+			0x78
+		]);
+
+		buf.writeInt32LE(0x12345678, 0);
+		assert.deepEqual(buf.toJSON(), [
+			0x78,
+			0x56,
+			0x34,
+			0x12
+		]);
+
+		var buf = new Buffer(8);
+
+		buf.writeInt64BE(0x12345678abcd, 0);
+		assert.deepEqual(buf.toJSON(), [
+			0x0,
+			0x0,
+			0x12,
+			0x34,
+			0x56,
+			0x78,
+			0xab,
+			0xcd
+		]);
+
+		buf.writeInt64LE(0x12345678abcd, 0);
+		assert.deepEqual(buf.toJSON(), [
+			0xcd,
+			0xab,
+			0x78,
+			0x56,
+			0x34,
+			0x12,
+			0x0,
+			0x0
+		]);
+
+		buf.writeInt64BE(new Int64(0x12345678abcd), 0);
+		assert.deepEqual(buf.toJSON(), [
+			0x0,
+			0x0,
+			0x12,
+			0x34,
+			0x56,
+			0x78,
+			0xab,
+			0xcd
+		]);
+
+		buf.writeInt64LE(new Int64(0x12345678abcd), 0);
+		assert.deepEqual(buf.toJSON(), [
+			0xcd,
+			0xab,
+			0x78,
+			0x56,
+			0x34,
+			0x12,
+			0x0,
+			0x0
+		]);
 
 		var buf = new Buffer(4);
 		buf.writeFloatLE(1, 0);

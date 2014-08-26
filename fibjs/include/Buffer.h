@@ -47,6 +47,8 @@ public:
     virtual result_t readInt16BE(int32_t offset, bool noAssert, int32_t &retVal);
     virtual result_t readInt32LE(int32_t offset, bool noAssert, int32_t &retVal);
     virtual result_t readInt32BE(int32_t offset, bool noAssert, int32_t &retVal);
+    virtual result_t readInt64LE(int32_t offset, bool noAssert, obj_ptr<Int64_base> &retVal);
+    virtual result_t readInt64BE(int32_t offset, bool noAssert, obj_ptr<Int64_base> &retVal);
     virtual result_t readFloatLE(int32_t offset, bool noAssert, double &retVal);
     virtual result_t readFloatBE(int32_t offset, bool noAssert, double &retVal);
     virtual result_t readDoubleLE(int32_t offset, bool noAssert, double &retVal);
@@ -61,6 +63,10 @@ public:
     virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert);
     virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert);
     virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt64LE(Int64_base *value, int32_t offset, bool noAssert);
+    virtual result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
+    virtual result_t writeInt64BE(Int64_base *value, int32_t offset, bool noAssert);
     virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert);
     virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert);
     virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert);
@@ -76,6 +82,9 @@ public:
 private:
     result_t readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le);
     result_t writeNumber(int32_t offset, const char *buf, int32_t size, bool noAssert, bool le);
+
+    result_t readInt64LE(int32_t offset, bool noAssert, int64_t &retVal);
+    result_t readInt64BE(int32_t offset, bool noAssert, int64_t &retVal);
 
 private:
     std::string m_data;
