@@ -26,6 +26,9 @@ process.system('doxygen');
 function cxxSafe(fname) {
 	var ckws = {
 		"union": true,
+		"and": true,
+		"or": true,
+		"xor": true,
 		"new": true
 	};
 
