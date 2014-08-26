@@ -1,0 +1,72 @@
+/*! @brief 64位整数对象
+
+ 创建方法：
+ @code
+ var n = new Int64(123);
+ @endcode
+ */
+class Int64: object
+{
+    /*! @brief Int64 构造函数
+     @param num 初始化的值
+    */
+    Int64(Long num = 0);
+
+    /*! @brief Int64 构造函数
+     @param num 初始化的值
+    */
+    Int64(Int64 num);
+
+    /*! @brief Int64 构造函数
+     @param hi 高32位数
+     @param lo 低32位数
+    */
+    Int64(Long hi, Long lo);
+
+    /*! @brief Int64 构造函数
+     @param num 数字字符串
+     @param base 数字字符串的编码方式，可以接受 2-16, 32, 64，默认为 10，为 10 时自动识别 0x 编码
+    */
+    Int64(String num, Integer base = 10);
+
+    /*! @brief 高 32 位数值 */
+    Long hi;
+
+    /*! @brief 低 32 位数值 */
+    Long lo;
+
+    Boolean equal(Long num);
+    Boolean equal(Int64 num);
+
+    Integer compare(Long num);
+    Integer compare(Int64 num);
+
+    Int64 shiftLeft(Integer bits);
+    Int64 shiftRight(Integer bits);
+
+    Int64 and(Long num);
+    Int64 and(Int64 num);
+
+    Int64 or(Long num);
+    Int64 or(Int64 num);
+
+    Int64 xor(Long num);
+    Int64 xor(Int64 num);
+
+    Int64 add(Long num);
+    Int64 add(Int64 num);
+
+    Int64 sub(Long num);
+    Int64 sub(Int64 num);
+
+    /*! @brief 转换成数字类型
+      @return 返回转换后的数字
+     */
+    Number toNumber();
+
+    /*! @brief 转换成字符串类型
+      @param base 字符串进制数，可以接受 2-16, 32, 64，默认为 10
+      @return 返回转换后的字符串
+     */
+    String toString(Integer base = 10);
+};

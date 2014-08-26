@@ -68,6 +68,7 @@
     <ClCompile Include="src\HttpUploadData.cpp" />
     <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\inetAddr.cpp" />
+    <ClCompile Include="src\Int64.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\JSHandler.cpp" />
     <ClCompile Include="src\JsonRpcHandler.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="include\ifs\HttpsServer.h" />
     <ClInclude Include="include\ifs\HttpUploadData.h" />
     <ClInclude Include="include\ifs\Image.h" />
+    <ClInclude Include="include\ifs\Int64.h" />
     <ClInclude Include="include\ifs\io.h" />
     <ClInclude Include="include\ifs\LevelDB.h" />
     <ClInclude Include="include\ifs\List.h" />
@@ -280,6 +282,7 @@
     <ClInclude Include="include\ifs\zlib.h" />
     <ClInclude Include="include\Image.h" />
     <ClInclude Include="include\inetAddr.h" />
+    <ClInclude Include="include\Int64.h" />
     <ClInclude Include="include\JSHandler.h" />
     <ClInclude Include="include\JsonRpcHandler.h" />
     <ClInclude Include="include\LevelDB.h" />

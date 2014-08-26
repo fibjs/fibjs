@@ -9,7 +9,7 @@
 #include "ifs/encoding.h"
 #include "Buffer.h"
 #include "MongoID.h"
-#include "Integer64.h"
+#include "Int64.h"
 
 namespace fibjs
 {
@@ -74,7 +74,7 @@ void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
     else if (element->IsObject())
     {
         {
-            obj_ptr<Integer64> num = (Integer64 *)Integer64_base::getInstance(element);
+            obj_ptr<Int64> num = (Int64 *)Int64_base::getInstance(element);
 
             if (num)
             {
@@ -274,7 +274,7 @@ void decodeValue(v8::Local<v8::Object> obj, bson_iterator *it)
         }
         else
         {
-            obj_ptr<Integer64> int64 = new Integer64(num);
+            obj_ptr<Int64> int64 = new Int64(num);
             obj->Set(v8::String::NewFromUtf8(isolate, key), int64->wrap());
         }
         break;
