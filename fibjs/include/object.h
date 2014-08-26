@@ -227,7 +227,7 @@ public:
     }
 
 private:
-    v8::Local<v8::Array> GetHiddenArray(const char *k, bool create = false,
+    v8::Local<v8::Object> GetHiddenList(const char *k, bool create = false,
                                         bool autoDelete = false);
 
 private:

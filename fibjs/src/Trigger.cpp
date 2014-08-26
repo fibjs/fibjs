@@ -19,24 +19,24 @@ result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object>
     return 0;
 }
 
-v8::Local<v8::Array> object_base::GetHiddenArray(const char *k, bool create,
+v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
         bool autoDelete)
 {
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, k);
     v8::Local<v8::Object> o = wrap();
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, k);
     v8::Local<v8::Value> es = o->GetHiddenValue(s);
-    v8::Local<v8::Array> esa;
+    v8::Local<v8::Object> esa;
 
     if (es.IsEmpty())
     {
         if (create)
         {
-            esa = v8::Array::New(isolate);
+            esa = v8::Object::New(isolate);
             o->SetHiddenValue(s, esa);
         }
     }
     else
-        esa = v8::Local<v8::Array> ::Cast(es);
+        esa = v8::Local<v8::Object> ::Cast(es);
 
     if (autoDelete)
         o->DeleteHiddenValue(s);
@@ -44,54 +44,47 @@ v8::Local<v8::Array> object_base::GetHiddenArray(const char *k, bool create,
     return esa;
 }
 
-inline int putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func)
-{
-    int len = esa->Length();
-    int i, p = -1;
+static uint64_t s_fid = 0;
 
-    for (i = 0; i < len; i++)
+inline void putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
+{
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
+    v8::Local<v8::Value> fid = func->GetHiddenValue(s);
+    char buf[64];
+    const int32_t base = 26;
+
+    if (fid.IsEmpty())
     {
-        v8::Local<v8::Value> v = esa->Get(i);
-        if (v->IsFunction())
+        uint64_t num = s_fid ++;
+        int32_t p = 0;
+
+        buf[p++] = '_';
+        while (num)
         {
-            if (v->StrictEquals(func))
-                return 0;
+            buf[p++] = (char)(num % base) + 'a';
+            num /= base;
         }
-        else if (p == -1)
-            p = i;
+
+        buf[p++] = 0;
+
+        fid = v8::String::NewFromUtf8(isolate, buf);
+        func->SetHiddenValue(s, fid);
     }
 
-    if (p == -1)
-        p = len;
-
-    esa->Set(p, func);
-
-    return 1;
+    esa->Set(fid, func);
 }
 
-inline int removeFunction(v8::Local<v8::Array> esa,
-                          v8::Local<v8::Function> func)
+inline void removeFunction(v8::Local<v8::Object> esa,
+                           v8::Local<v8::Function> func)
 {
     if (esa.IsEmpty())
-        return 0;
+        return;
 
-    int len = esa->Length();
-    int i;
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
+    v8::Local<v8::Value> fid = func->GetHiddenValue(s);
 
-    for (i = 0; i < len; i++)
-    {
-        v8::Local<v8::Value> v = esa->Get(i);
-        if (v->IsFunction())
-        {
-            if (v->StrictEquals(func))
-            {
-                esa->Delete(i);
-                return -1;
-            }
-        }
-    }
-
-    return 0;
+    if (!fid.IsEmpty())
+        esa->Delete(fid);
 }
 
 inline result_t _map(object_base *o, v8::Local<v8::Object> m,
@@ -124,11 +117,11 @@ result_t object_base::on(const char *ev, v8::Local<v8::Function> func)
 {
     std::string strKey = "_e_";
     strKey.append(ev);
-    putFunction(GetHiddenArray(strKey.c_str(), true), func);
+    putFunction(GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
@@ -142,11 +135,11 @@ result_t object_base::once(const char *ev, v8::Local<v8::Function> func)
 {
     std::string strKey = "_e1_";
     strKey.append(ev);
-    putFunction(GetHiddenArray(strKey.c_str(), true), func);
+    putFunction(GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e_";
     strKey.append(ev);
-    removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
@@ -160,11 +153,11 @@ result_t object_base::off(const char *ev, v8::Local<v8::Function> func)
 {
     std::string strKey = "_e_";
     strKey.append(ev);
-    removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenList(strKey.c_str()), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    removeFunction(GetHiddenArray(strKey.c_str()), func);
+    removeFunction(GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
@@ -174,12 +167,12 @@ result_t object_base::off(const char *ev)
     std::string strKey = "_e_";
     strKey.append(ev);
 
-    GetHiddenArray(strKey.c_str(), false, true);
+    GetHiddenList(strKey.c_str(), false, true);
 
     strKey = "_e1_";
     strKey.append(ev);
 
-    GetHiddenArray(strKey.c_str(), false, true);
+    GetHiddenList(strKey.c_str(), false, true);
 
     return 0;
 }
@@ -204,18 +197,19 @@ inline result_t _fire(v8::Local<v8::Function> func,
 }
 
 template<typename T>
-result_t fireTrigger(v8::Local<v8::Array> esa, T args, int argCount)
+result_t fireTrigger(v8::Local<v8::Object> esa, T args, int argCount)
 {
     if (esa.IsEmpty())
         return 0;
 
-    result_t hr;
-    int len = esa->Length();
+    v8::Local<v8::Array> ks = esa->GetPropertyNames();
+    int len = ks->Length();
     int i;
+    result_t hr;
 
     for (i = 0; i < len; i++)
     {
-        v8::Local<v8::Value> func = esa->Get(i);
+        v8::Local<v8::Value> func = esa->Get(ks->Get(i));
         if (func->IsFunction())
         {
             hr = _fire(v8::Local<v8::Function>::Cast(func), args, argCount);
@@ -236,14 +230,14 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
     std::string strKey = "_e_";
     strKey.append(ev);
 
-    hr = fireTrigger(GetHiddenArray(strKey.c_str()), args, argCount);
+    hr = fireTrigger(GetHiddenList(strKey.c_str()), args, argCount);
     if (hr < 0)
         return hr;
 
     strKey = "_e1_";
     strKey.append(ev);
 
-    hr = fireTrigger(GetHiddenArray(strKey.c_str(), false, true), args,
+    hr = fireTrigger(GetHiddenList(strKey.c_str(), false, true), args,
                      argCount);
     if (hr < 0)
         return hr;
@@ -297,14 +291,14 @@ result_t object_base::trigger(const char *ev, const v8::FunctionCallbackInfo<v8:
     std::string strKey = "_e_";
     strKey.append(ev);
 
-    hr = fireTrigger(GetHiddenArray(strKey.c_str()), args, 0);
+    hr = fireTrigger(GetHiddenList(strKey.c_str()), args, 0);
     if (hr < 0)
         return hr;
 
     strKey = "_e1_";
     strKey.append(ev);
 
-    hr = fireTrigger(GetHiddenArray(strKey.c_str(), false, true), args, 0);
+    hr = fireTrigger(GetHiddenList(strKey.c_str(), false, true), args, 0);
     if (hr < 0)
         return hr;
 
