@@ -1,39 +1,6 @@
 var NAVTREE =
 [
   [ "{FibJS: Fiber Javascript}", "index.html", [
-    [ "快速入门", "index.html", [
-      [ "什么是 fibjs", "index.html#intro_sec", null ],
-      [ "编译执行版本", "index.html#install_sec", [
-        [ "第一步：准备编译环境", "index.html#install_step1", null ],
-        [ "第二步：获取代码", "index.html#install_step2", null ],
-        [ "第三步：编译命令及说明", "index.html#install_step3", null ],
-        [ "第四步：测试全部用例", "index.html#install_step4", null ],
-        [ "第五步：歇一会，喝点什么", "index.html#install_step5", null ]
-      ] ]
-    ] ],
-    [ "模块管理", "d0/db5/module.html", [
-      [ "基本组成", "d0/db5/module.html#element", [
-        [ "require() 函数", "d0/db5/module.html#fun_require", null ],
-        [ "define() 函数", "d0/db5/module.html#fun_define", null ],
-        [ "module 对象", "d0/db5/module.html#obj_module", null ],
-        [ "exports 对象", "d0/db5/module.html#obj_exports", null ]
-      ] ]
-    ] ],
-    [ "服务器编程", "da/db3/server.html", [
-      [ "静态文件服务器", "da/db3/server.html#web_file", null ],
-      [ "动态服务器", "da/db3/server.html#web_script", null ],
-      [ "动静合一", "da/db3/server.html#web_both", null ]
-    ] ],
-    [ "开始写代码", "d2/de8/start_prog.html", [
-      [ "开始写代码", "d2/de8/start_prog.html#program_sec", [
-        [ "第一步：Hello, World!", "d2/de8/start_prog.html#prg_step1", null ],
-        [ "第二步：DANG, DANG, DANG...", "d2/de8/start_prog.html#prg_step2", null ],
-        [ "第三步：DANG 们", "d2/de8/start_prog.html#prg_step3", null ],
-        [ "进阶：并行作业", "d2/de8/start_prog.html#prg_step4", null ],
-        [ "再进一步：异步作业", "d2/de8/start_prog.html#prg_step5", null ],
-        [ "小结", "d2/de8/start_prog.html#prg_step10", null ]
-      ] ]
-    ] ],
     [ "类", null, [
       [ "类列表", "annotated.html", "annotated" ],
       [ "类继承关系", "hierarchy.html", "hierarchy" ],
@@ -49,13 +16,13 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"d2/dd1/classcoroutine.html#a463e4db5114bdce2a92a95e17bb94750",
-"d5/d5d/classgd.html#aa810ccf3c53765e07860a6e4bc4e86a0",
-"d7/d1d/classTrigger.html#a8ee99f33893611f6c5baa78d7cf7576c",
-"d8/d4c/classHttpResponse.html#a42fdd87346cb529e34e1e12e41afe2bc",
-"db/d7d/classMongoCursor.html#a84611a0b25226ce2a282838a2b46ff4b",
-"de/d0f/classLruCache.html#a6b88dbc459449d2280338e5b702a68b4",
-"functions_s.html"
+"d2/dd1/classcoroutine.html#ad2e5afc5a4b37eddd41ffcd409000f23",
+"d5/d6b/classSmtp.html#a6b88dbc459449d2280338e5b702a68b4",
+"d7/d38/classBlockQueue.html#a5d54db5509dc75de10b7c15f3bb1996b",
+"d8/d4c/classHttpResponse.html#ab2e6cd363b5ea437643017766f882066",
+"db/df7/classStats.html#acb5cc49c1e2f36ccf98066c862ff326c",
+"de/d1c/classassert.html#a2fe6b107e4c006046154d31897370d69",
+"functions_vars_n.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

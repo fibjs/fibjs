@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.7"/>
+<meta name="generator" content="Doxygen 1.8.8"/>
 <title>{FibJS: Fiber Javascript}: HttpServer类 参考</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -38,14 +38,13 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- 制作者 Doxygen 1.8.7 -->
+<!-- 制作者 Doxygen 1.8.8 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
-      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -92,7 +91,7 @@ $(document).ready(function(){initNavTree('dd/dab/classHttpServer.html','../../')
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -178,10 +177,10 @@ Public 属性</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>http 服务器对象 </p>
-<p>http 服务器对象是将 <a class="el" href="../../de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 ">TcpServer</a> 和 <a class="el" href="../../d3/df3/classHttpHandler.html" title="http 协议转换处理器 ">HttpHandler</a> 组合封装的对象，方便快速搭建服务器，逻辑上相当于： </p><div class="fragment"><div class="line">var svr = <span class="keyword">new</span> <a class="code" href="../../d3/d75/classnet.html">net</a>.<a class="code" href="../../d3/d75/classnet.html#aaabab7b0079c410324f03ca1474d9ba3">TcpServer</a>(addr, port, <span class="keyword">new</span> http.Handler(<span class="keyword">function</span>(req){</div>
+<p>http 服务器对象是将 <a class="el" href="../../de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 ">TcpServer</a> 和 <a class="el" href="../../d3/df3/classHttpHandler.html" title="http 协议转换处理器 ">HttpHandler</a> 组合封装的对象，方便快速搭建服务器，逻辑上相当于： </p><div class="fragment"><div class="line">var svr = <span class="keyword">new</span> <a class="code" href="../../d3/d75/classnet.html">net</a>.<a class="code" href="../../d3/d75/classnet.html#aaabab7b0079c410324f03ca1474d9ba3">TcpServer</a>(addr, port, <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html">http</a>.<a class="code" href="../../d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d">Handler</a>(<span class="keyword">function</span>(req){</div>
 <div class="line">   ...</div>
 <div class="line">}));</div>
-</div><!-- fragment --><p>创建方法： </p><div class="fragment"><div class="line">var http = require(<span class="stringliteral">&quot;http&quot;</span>);</div>
+</div><!-- fragment --><p>创建方法： </p><div class="fragment"><div class="line">var <a class="code" href="../../d6/da8/classhttp.html">http</a> = require(<span class="stringliteral">&quot;http&quot;</span>);</div>
 <div class="line">var svr = <span class="keyword">new</span> http.Server(80, <span class="keyword">function</span>(req){</div>
 <div class="line">    ...</div>
 <div class="line">});</div>
@@ -562,7 +561,7 @@ Public 属性</h2></td></tr>
     <li class="navelem"><a class="el" href="../../dd/dab/classHttpServer.html">HttpServer</a></li>
     <li class="footer">制作者
     <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.8 </li>
   </ul>
 </div>
 </body>

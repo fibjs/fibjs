@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.7"/>
+<meta name="generator" content="Doxygen 1.8.8"/>
 <title>{FibJS: Fiber Javascript}: net.idl 源文件</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -38,14 +38,13 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- 制作者 Doxygen 1.8.7 -->
+<!-- 制作者 Doxygen 1.8.8 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
-      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -85,7 +84,7 @@ $(document).ready(function(){initNavTree('d6/da0/net_8idl_source.html','../../')
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -110,7 +109,7 @@ $(document).ready(function(){initNavTree('d6/da0/net_8idl_source.html','../../')
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;</div>
 <div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="../../d3/d75/classnet.html#ad4fdfbcf4cec520964c559a52a69c2f7">   21</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d3/d75/classnet.html#ad4fdfbcf4cec520964c559a52a69c2f7">SOCK_DGRAM</a> = 2;</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d3/d75/classnet.html#a733a23e8a51fdc5e2b1e3cafaf6f0010">resolve</a>(String name, Integer family = <a class="code" href="../../d3/d75/classnet.html#a154e84bb59358d901425c2996f3d6fde">AF_INET</a>) async;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d3/d75/classnet.html#a733a23e8a51fdc5e2b1e3cafaf6f0010">resolve</a>(String name, Integer family = AF_INET) async;</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    static String <a class="code" href="../../d3/d75/classnet.html#a3150c8ad034c6a907a1531327a94b9a3">ip</a>(String name) async;</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
@@ -118,11 +117,11 @@ $(document).ready(function(){initNavTree('d6/da0/net_8idl_source.html','../../')
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    static <a class="code" href="../../d4/d33/classSocket.html">Socket</a> new <a class="code" href="../../d4/d33/classSocket.html">Socket</a>();</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    static Socket <a class="code" href="../../d3/d75/classnet.html#ab2c4365c1eeb0ce2a3fff7595e2e3c3c">connect</a>(String host, Integer port, Integer family = <a class="code" href="../../d3/d75/classnet.html">net</a>.<a class="code" href="../../d3/d75/classnet.html#a154e84bb59358d901425c2996f3d6fde">AF_INET</a>) async;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    static Socket <a class="code" href="../../d3/d75/classnet.html#ab2c4365c1eeb0ce2a3fff7595e2e3c3c">connect</a>(String host, Integer port, Integer family = <a class="code" href="../../d3/d75/classnet.html">net</a>.AF_INET) async;</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    static <a class="code" href="../../d5/d6b/classSmtp.html">Smtp</a> new <a class="code" href="../../d5/d6b/classSmtp.html">Smtp</a>();</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    static Smtp <a class="code" href="../../d3/d75/classnet.html#aa6774e649b7fb2336400fd006ab6371b">openSmtp</a>(String host, Integer port, Integer family = <a class="code" href="../../d3/d75/classnet.html">net</a>.<a class="code" href="../../d3/d75/classnet.html#a154e84bb59358d901425c2996f3d6fde">AF_INET</a>) async;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    static Smtp <a class="code" href="../../d3/d75/classnet.html#aa6774e649b7fb2336400fd006ab6371b">openSmtp</a>(String host, Integer port, Integer family = <a class="code" href="../../d3/d75/classnet.html">net</a>.AF_INET) async;</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    static <a class="code" href="../../de/df9/classTcpServer.html">TcpServer</a> new <a class="code" href="../../de/df9/classTcpServer.html">TcpServer</a>();</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
@@ -154,7 +153,7 @@ $(document).ready(function(){initNavTree('d6/da0/net_8idl_source.html','../../')
     <li class="navelem"><b>net.idl</b></li>
     <li class="footer">制作者
     <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.8 </li>
   </ul>
 </div>
 </body>

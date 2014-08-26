@@ -23,6 +23,8 @@ var searchData=
   ['sha256',['sha256',['../d5/df6/classhash.html#aea552567d5fea762e5d8eedda0b0067a',1,'hash']]],
   ['sha384',['sha384',['../d5/df6/classhash.html#a0e3112fca405da681a0d034e6dba4016',1,'hash']]],
   ['sha512',['sha512',['../d5/df6/classhash.html#a93e3215efb856aa97da67966530387f7',1,'hash']]],
+  ['shiftleft',['shiftLeft',['../d1/dee/classInt64.html#acbe2152ea45f78be39771e50d00f1b9f',1,'Int64']]],
+  ['shiftright',['shiftRight',['../d1/dee/classInt64.html#a770d45ef40dbddcb9892b96370930b72',1,'Int64']]],
   ['sign',['sign',['../d0/d82/classPKey.html#a6b84f432a5b8c372c15e13b4636bfa76',1,'PKey::sign()'],['../d4/d6e/classX509Req.html#a6539f318125f8a29d49ceda762302de4',1,'X509Req::sign()']]],
   ['size',['size',['../db/d7d/classMongoCursor.html#aef6a5f9cf1ee475d698d4c2e17e1cf3e',1,'MongoCursor::size()'],['../db/d67/classSeekableStream.html#af31c485565a6699bd6b8209d46ba0acb',1,'SeekableStream::size()']]],
   ['skip',['skip',['../db/d7d/classMongoCursor.html#aba4f2ce60710195d5a26e3966c264989',1,'MongoCursor']]],
@@ -41,6 +43,6 @@ var searchData=
   ['store',['store',['../d9/de8/classGridFS.html#ae6b355ca7a7e7fae976d3b3789c35045',1,'GridFS::store(String name, Stream src)'],['../d9/de8/classGridFS.html#a811549d931a6845bfae574cd32dd1085',1,'GridFS::store(String name, Buffer data)']]],
   ['strictequal',['strictEqual',['../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35',1,'assert']]],
   ['strlen',['strlen',['../db/d15/classRedis.html#a0476f90872be6a8c94de65dfea6d6d05',1,'Redis']]],
-  ['sub',['sub',['../db/d15/classRedis.html#ae6e3358cb6d36a1d8dbc5e97d03a9254',1,'Redis::sub(Buffer channel, Function func)'],['../db/d15/classRedis.html#af132093d5c027212f07c80ac7cda2a5f',1,'Redis::sub(Object map)']]],
+  ['sub',['sub',['../d1/dee/classInt64.html#ab008b7eec52ab9ab6365d73405de23ec',1,'Int64::sub(Long num)'],['../d1/dee/classInt64.html#a73317460aa29ea9164287ecd10e477c1',1,'Int64::sub(Int64 num)'],['../db/d15/classRedis.html#ae6e3358cb6d36a1d8dbc5e97d03a9254',1,'Redis::sub(Buffer channel, Function func)'],['../db/d15/classRedis.html#af132093d5c027212f07c80ac7cda2a5f',1,'Redis::sub(Object map)']]],
   ['system',['system',['../d4/d82/classprocess.html#a8ba452b49b82fff2709f27929faa57cf',1,'process']]]
 ];

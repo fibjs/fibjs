@@ -23,5 +23,6 @@ var searchData=
   ['opentextstream',['openTextStream',['../dc/d2f/classfs.html#aaf625a15d9268621cb10eacc4154db5e',1,'fs']]],
   ['operator_5b_5d',['operator[]',['../d0/d11/classBuffer.html#ab9877007db2fad366b7fb0fae861243a',1,'Buffer::operator[]()'],['../d2/d87/classDBRow.html#a36563627739c7ec1a3428d0ea57a270a',1,'DBRow::operator[]()'],['../d6/da9/classList.html#a4d86d77e9b5051e347291f023871bd57',1,'List::operator[]()']]],
   ['operator_5bstring_5d',['operator[String]',['../d2/d87/classDBRow.html#a8b767e56ff234e2d46150158b64b2c02',1,'DBRow::operator[String]()'],['../d6/dbd/classHttpCollection.html#a43deef7817ecced782fa1da441f1b840',1,'HttpCollection::operator[String]()'],['../d7/db0/classMap.html#a56e913aff35dbe0a0f49eafc6e4bb7a1',1,'Map::operator[String]()'],['../d2/d07/classMongoCollection.html#a93fbdb4ba5a6fdc6311a3bc43d1a3096',1,'MongoCollection::operator[String]()'],['../d6/d3d/classMongoDB.html#a32ad25775c4c088b51be4b459be3748c',1,'MongoDB::operator[String]()'],['../db/df7/classStats.html#ae37aeb1b8ae6e5cbde0922ed035d386f',1,'Stats::operator[String]()']]],
+  ['or',['or',['../d1/dee/classInt64.html#adaf7d5d2042af9d8450746936de5503d',1,'Int64::or(Long num)'],['../d1/dee/classInt64.html#aa22505e8e3807d664ace66a95e0b89a1',1,'Int64::or(Int64 num)']]],
   ['os',['os',['../d7/db0/classos.html',1,'']]]
 ];

@@ -31,6 +31,8 @@ var searchData=
   ['sha256',['SHA256',['../d5/df6/classhash.html#a479d5d79b494b5324cc536b483b4619f',1,'hash::SHA256()'],['../d5/df6/classhash.html#aea552567d5fea762e5d8eedda0b0067a',1,'hash::sha256(Buffer data)']]],
   ['sha384',['sha384',['../d5/df6/classhash.html#a0e3112fca405da681a0d034e6dba4016',1,'hash::sha384(Buffer data)'],['../d5/df6/classhash.html#ab3642bba484b7f0633956bae80dc6bd9',1,'hash::SHA384()']]],
   ['sha512',['SHA512',['../d5/df6/classhash.html#a8ba2e8e53c773269d0e949bfd5e07fb8',1,'hash::SHA512()'],['../d5/df6/classhash.html#a93e3215efb856aa97da67966530387f7',1,'hash::sha512(Buffer data)']]],
+  ['shiftleft',['shiftLeft',['../d1/dee/classInt64.html#acbe2152ea45f78be39771e50d00f1b9f',1,'Int64']]],
+  ['shiftright',['shiftRight',['../d1/dee/classInt64.html#a770d45ef40dbddcb9892b96370930b72',1,'Int64']]],
   ['sign',['sign',['../d0/d82/classPKey.html#a6b84f432a5b8c372c15e13b4636bfa76',1,'PKey::sign()'],['../d4/d6e/classX509Req.html#a6539f318125f8a29d49ceda762302de4',1,'X509Req::sign()']]],
   ['singleusermode',['singleUserMode',['../d2/dd1/classcoroutine.html#af105dc75a226575e7b8e6c2e2312c1b2',1,'coroutine']]],
   ['size',['size',['../dd/d8f/classDigest.html#a4ffefefd60695d1448d2a79421b2b85d',1,'Digest::size()'],['../de/d0f/classLruCache.html#aee1e7aea2978a02636cb4314bdb11420',1,'LruCache::size()'],['../d7/db0/classMap.html#a36abb4b144a680fb4a2152bac4ff80fa',1,'Map::size()'],['../dc/d81/classStat.html#a2e40d56627672e702cfd14aae5bc40e5',1,'Stat::size()'],['../db/d7d/classMongoCursor.html#aef6a5f9cf1ee475d698d4c2e17e1cf3e',1,'MongoCursor::size()'],['../db/d67/classSeekableStream.html#af31c485565a6699bd6b8209d46ba0acb',1,'SeekableStream::size()']]],
@@ -59,7 +61,7 @@ var searchData=
   ['strictequal',['strictEqual',['../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35',1,'assert']]],
   ['string',['string',['../dd/d7a/classExpect.html#a82d5903aca490a3a6c416b138cadc2f0',1,'Expect']]],
   ['strlen',['strlen',['../db/d15/classRedis.html#a0476f90872be6a8c94de65dfea6d6d05',1,'Redis']]],
-  ['sub',['sub',['../db/d15/classRedis.html#ae6e3358cb6d36a1d8dbc5e97d03a9254',1,'Redis::sub(Buffer channel, Function func)'],['../db/d15/classRedis.html#af132093d5c027212f07c80ac7cda2a5f',1,'Redis::sub(Object map)']]],
+  ['sub',['sub',['../d1/dee/classInt64.html#ab008b7eec52ab9ab6365d73405de23ec',1,'Int64::sub(Long num)'],['../d1/dee/classInt64.html#a73317460aa29ea9164287ecd10e477c1',1,'Int64::sub(Int64 num)'],['../db/d15/classRedis.html#ae6e3358cb6d36a1d8dbc5e97d03a9254',1,'Redis::sub(Buffer channel, Function func)'],['../db/d15/classRedis.html#af132093d5c027212f07c80ac7cda2a5f',1,'Redis::sub(Object map)']]],
   ['subject',['subject',['../d1/d66/classX509Cert.html#a496a03ab80e5b3c6bdc01626df6900ba',1,'X509Cert::subject()'],['../d4/d6e/classX509Req.html#a3f636dc3d8417ac6e5b508989f6d91c6',1,'X509Req::subject()']]],
   ['system',['system',['../d4/d82/classprocess.html#a8ba452b49b82fff2709f27929faa57cf',1,'process']]]
 ];

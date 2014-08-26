@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.7"/>
+<meta name="generator" content="Doxygen 1.8.8"/>
 <title>{FibJS: Fiber Javascript}: zlib.idl 源文件</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -38,14 +38,13 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- 制作者 Doxygen 1.8.7 -->
+<!-- 制作者 Doxygen 1.8.8 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
-      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -85,7 +84,7 @@ $(document).ready(function(){initNavTree('d8/d16/zlib_8idl_source.html','../../'
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -110,11 +109,11 @@ $(document).ready(function(){initNavTree('d8/d16/zlib_8idl_source.html','../../'
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;</div>
 <div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="../../d8/d09/classzlib.html#ae2546475689a2db791939b2903c9ec67">   21</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d8/d09/classzlib.html#ae2546475689a2db791939b2903c9ec67">DEFAULT_COMPRESSION</a> = -1;</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d8/d09/classzlib.html#a4bbb2133b9a39ea72db80e845a6ad0aa">deflate</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data, Integer level = <a class="code" href="../../d8/d09/classzlib.html#ae2546475689a2db791939b2903c9ec67">DEFAULT_COMPRESSION</a>) async;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d8/d09/classzlib.html#a4bbb2133b9a39ea72db80e845a6ad0aa">deflate</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data, Integer level = DEFAULT_COMPRESSION) async;</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    static <a class="code" href="../../d8/d09/classzlib.html#aa6b8b6d518e950dbaca2b18ab4330fbe">deflateTo</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data, <a class="code" href="../../dc/de8/classStream.html">Stream</a> stm, Integer level = <a class="code" href="../../d8/d09/classzlib.html#ae2546475689a2db791939b2903c9ec67">DEFAULT_COMPRESSION</a>) async;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    static <a class="code" href="../../d8/d09/classzlib.html#aa6b8b6d518e950dbaca2b18ab4330fbe">deflateTo</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data, <a class="code" href="../../dc/de8/classStream.html">Stream</a> stm, Integer level = DEFAULT_COMPRESSION) async;</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    static <a class="code" href="../../d8/d09/classzlib.html#aa6b8b6d518e950dbaca2b18ab4330fbe">deflateTo</a>(<a class="code" href="../../dc/de8/classStream.html">Stream</a> src, <a class="code" href="../../dc/de8/classStream.html">Stream</a> stm, Integer level = <a class="code" href="../../d8/d09/classzlib.html#ae2546475689a2db791939b2903c9ec67">DEFAULT_COMPRESSION</a>) async;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    static <a class="code" href="../../d8/d09/classzlib.html#aa6b8b6d518e950dbaca2b18ab4330fbe">deflateTo</a>(<a class="code" href="../../dc/de8/classStream.html">Stream</a> src, <a class="code" href="../../dc/de8/classStream.html">Stream</a> stm, Integer level = DEFAULT_COMPRESSION) async;</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    static <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d8/d09/classzlib.html#aafe7acf37cd4edfe4355ddca34cdd123">inflate</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data) async;</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
@@ -158,7 +157,7 @@ $(document).ready(function(){initNavTree('d8/d16/zlib_8idl_source.html','../../'
     <li class="navelem"><b>zlib.idl</b></li>
     <li class="footer">制作者
     <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.8 </li>
   </ul>
 </div>
 </body>

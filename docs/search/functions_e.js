@@ -16,5 +16,6 @@ var searchData=
   ['openredis',['openRedis',['../de/d5f/classdb.html#a4d7f2379592b1a85a802b8b895ba27df',1,'db']]],
   ['opensmtp',['openSmtp',['../d3/d75/classnet.html#aa6774e649b7fb2336400fd006ab6371b',1,'net']]],
   ['opensqlite',['openSQLite',['../de/d5f/classdb.html#a1986951d5ca68ee0ba8361053a84f637',1,'db']]],
-  ['opentextstream',['openTextStream',['../dc/d2f/classfs.html#aaf625a15d9268621cb10eacc4154db5e',1,'fs']]]
+  ['opentextstream',['openTextStream',['../dc/d2f/classfs.html#aaf625a15d9268621cb10eacc4154db5e',1,'fs']]],
+  ['or',['or',['../d1/dee/classInt64.html#adaf7d5d2042af9d8450746936de5503d',1,'Int64::or(Long num)'],['../d1/dee/classInt64.html#aa22505e8e3807d664ace66a95e0b89a1',1,'Int64::or(Int64 num)']]]
 ];
