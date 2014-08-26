@@ -20,17 +20,14 @@ namespace fibjs
 
 class module_base;
 class Buffer_base;
+class Int64_base;
 class console_base;
-class Integer64_base;
 
 class global_base : public module_base
 {
 public:
 	// global_base
 	static result_t get_console(obj_ptr<console_base>& retVal);
-	static result_t int64(int64_t hi, int64_t lo, obj_ptr<Integer64_base>& retVal);
-	static result_t int64String(const char* num, double base, obj_ptr<Integer64_base>& retVal);
-	static result_t int64Hex(const char* hex, obj_ptr<Integer64_base>& retVal);
 	static result_t run(const char* fname);
 	static result_t require(const char* id, v8::Local<v8::Value>& retVal);
 	static result_t GC();
@@ -39,9 +36,6 @@ public:
 
 public:
 	static void s_get_console(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_int64(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_int64String(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_int64Hex(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -50,8 +44,8 @@ public:
 }
 
 #include "Buffer.h"
+#include "Int64.h"
 #include "console.h"
-#include "Integer64.h"
 
 namespace fibjs
 {
@@ -59,9 +53,6 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"int64", s_int64, true},
-			{"int64String", s_int64String, true},
-			{"int64Hex", s_int64Hex, true},
 			{"run", s_run, true},
 			{"require", s_require, true},
 			{"GC", s_GC, true}
@@ -69,7 +60,8 @@ namespace fibjs
 
 		static ClassData::ClassObject s_object[] = 
 		{
-			{"Buffer", Buffer_base::class_info}
+			{"Buffer", Buffer_base::class_info},
+			{"Int64", Int64_base::class_info}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -80,7 +72,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			6, s_method, 1, s_object, 1, s_property, NULL, NULL,
+			3, s_method, 2, s_object, 1, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -95,47 +87,6 @@ namespace fibjs
 		PROPERTY_ENTER();
 
 		hr = get_console(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void global_base::s_int64(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Integer64_base> vr;
-
-		METHOD_ENTER(2, 0);
-
-		OPT_ARG(int64_t, 0, 0);
-		OPT_ARG(int64_t, 1, 0);
-
-		hr = int64(v0, v1, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void global_base::s_int64String(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Integer64_base> vr;
-
-		METHOD_ENTER(2, 0);
-
-		OPT_ARG(arg_string, 0, "");
-		OPT_ARG(double, 1, 64);
-
-		hr = int64String(v0, v1, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void global_base::s_int64Hex(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Integer64_base> vr;
-
-		METHOD_ENTER(1, 0);
-
-		OPT_ARG(arg_string, 0, "");
-
-		hr = int64Hex(v0, vr);
 
 		METHOD_RETURN();
 	}

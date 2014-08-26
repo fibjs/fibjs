@@ -5,28 +5,11 @@ class global : module
     /*! @brief 二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。*/
     static Buffer new Buffer();
 
+    /*! @brief 64位整数对象，参见 Int64 对象。*/
+    static Int64 new Int64();
+
     /*! @brief 控制台访问对象 */
     static readonly console console;
-
-    /*! @brief 通过两个32位数组合生成一个Int64对象
-     @param hi 高32位数
-     @param lo 低32位数
-     @return 返回生成的对象
-     */
-    static Integer64 int64(Long hi = 0, Long lo = 0);
-
-    /*! @brief 通过字符串转换生成一个Int64对象
-     @param num 数字字符串
-     @param base 数字字符串的进制数默认为64
-     @return 返回生成的对象
-     */
-    static Integer64 int64String(String num = "", Number base = 64);
-
-    /*! @brief 转换一个16进制字符串生成一个Int64对象
-     @param hex 16进制字符串
-     @return 返回生成的对象
-     */
-    static Integer64 int64Hex(String hex = "");
 
     /*! @brief 运行一个脚本
      @param fname 指定要运行的脚本路径

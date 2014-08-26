@@ -2,7 +2,6 @@
 #include "ifs/coroutine.h"
 #include "ifs/vm.h"
 #include "SandBox.h"
-#include "Integer64.h"
 
 namespace fibjs
 {
@@ -34,26 +33,6 @@ result_t global_base::run(const char *fname)
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
     return s_topSandbox->require(id, retVal);
-}
-
-result_t global_base::int64(int64_t hi, int64_t lo, obj_ptr<Integer64_base> &retVal)
-{
-    retVal = new Integer64(hi, lo);
-    return 0;
-}
-
-result_t global_base::int64String(const char *num, double base, obj_ptr<Integer64_base> &retVal)
-{
-    retVal = new Integer64(0);
-    (Integer64) retVal->fromString(num, base);
-    return 0;
-}
-
-result_t global_base::int64Hex(const char *hex, obj_ptr<Integer64_base> &retVal)
-{
-    retVal = new Integer64(0);
-    (Integer64) retVal->fromHex(hex);
-    return 0;
 }
 
 }
