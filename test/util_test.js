@@ -466,6 +466,10 @@ describe('util', function() {
 			assert.equal(util.format(new Buffer("aaaaaaaa")), 'YWFhYWFhYWE=');
 		});
 
+		it("Int64", function() {
+			assert.equal(util.format(new Int64(12345678)), '12345678');
+		});
+
 		it("List", function() {
 			var a = new collection.List();
 			a.push(100, 200);

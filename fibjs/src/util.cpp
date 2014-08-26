@@ -7,6 +7,7 @@
 
 #include "ifs/util.h"
 #include "ifs/encoding.h"
+#include "ifs/Int64.h"
 #include <v8/v8.h>
 #include <zlib.h>
 #include <sqlite3.h>
@@ -153,6 +154,15 @@ std::string json_format(v8::Local<v8::Value> obj)
                 {
                     std::string s;
                     buf->base64(s);
+                    strBuffer += s;
+                    break;
+                }
+
+                obj_ptr<Int64_base> int64Val = Int64_base::getInstance(v);
+                if (int64Val)
+                {
+                    std::string s;
+                    int64Val->toString(10, s);
                     strBuffer += s;
                     break;
                 }
