@@ -45,6 +45,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -91,7 +92,7 @@ $(document).ready(function(){initNavTree('dd/dab/classHttpServer.html','../../')
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -115,7 +116,8 @@ $(document).ready(function(){initNavTree('dd/dab/classHttpServer.html','../../')
 <div class="dynheader">
 类 HttpServer 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../de/d64/classHttpServer__inherit__graph.svg" width="155" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../de/d64/classHttpServer__inherit__graph.svg" width="155" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -177,10 +179,10 @@ Public 属性</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>http 服务器对象 </p>
-<p>http 服务器对象是将 <a class="el" href="../../de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 ">TcpServer</a> 和 <a class="el" href="../../d3/df3/classHttpHandler.html" title="http 协议转换处理器 ">HttpHandler</a> 组合封装的对象，方便快速搭建服务器，逻辑上相当于： </p><div class="fragment"><div class="line">var svr = <span class="keyword">new</span> <a class="code" href="../../d3/d75/classnet.html">net</a>.<a class="code" href="../../d3/d75/classnet.html#aaabab7b0079c410324f03ca1474d9ba3">TcpServer</a>(addr, port, <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html">http</a>.<a class="code" href="../../d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d">Handler</a>(<span class="keyword">function</span>(req){</div>
+<p>http 服务器对象是将 <a class="el" href="../../de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 ">TcpServer</a> 和 <a class="el" href="../../d3/df3/classHttpHandler.html" title="http 协议转换处理器 ">HttpHandler</a> 组合封装的对象，方便快速搭建服务器，逻辑上相当于： </p><div class="fragment"><div class="line">var svr = <span class="keyword">new</span> <a class="code" href="../../d3/d75/classnet.html">net</a>.<a class="code" href="../../d3/d75/classnet.html#aaabab7b0079c410324f03ca1474d9ba3">TcpServer</a>(addr, port, <span class="keyword">new</span> http.Handler(<span class="keyword">function</span>(req){</div>
 <div class="line">   ...</div>
 <div class="line">}));</div>
-</div><!-- fragment --><p>创建方法： </p><div class="fragment"><div class="line">var <a class="code" href="../../d6/da8/classhttp.html">http</a> = require(<span class="stringliteral">&quot;http&quot;</span>);</div>
+</div><!-- fragment --><p>创建方法： </p><div class="fragment"><div class="line">var http = require(<span class="stringliteral">&quot;http&quot;</span>);</div>
 <div class="line">var svr = <span class="keyword">new</span> http.Server(80, <span class="keyword">function</span>(req){</div>
 <div class="line">    ...</div>
 <div class="line">});</div>

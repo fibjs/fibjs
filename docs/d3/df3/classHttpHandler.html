@@ -45,6 +45,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -91,7 +92,7 @@ $(document).ready(function(){initNavTree('d3/df3/classHttpHandler.html','../../'
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -115,7 +116,8 @@ $(document).ready(function(){initNavTree('d3/df3/classHttpHandler.html','../../'
 <div class="dynheader">
 类 HttpHandler 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d9/dd7/classHttpHandler__inherit__graph.svg" width="155" height="434"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d9/dd7/classHttpHandler__inherit__graph.svg" width="155" height="434"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -162,8 +164,8 @@ Public 属性</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>http 协议转换处理器 </p>
-<p>用以将数据流转换为 http 协议消息，创建方式： </p><div class="fragment"><div class="line">var hdlr = <span class="keyword">new</span> <a class="code" href="../../d4/d86/classmq.html">mq</a>.<a class="code" href="../../d4/d86/classmq.html#a57f8f9f44fbbf200b54df0139a56bb40">HttpHandler</a>(...);</div>
-</div><!-- fragment --><p> 或者： </p><div class="fragment"><div class="line">var hdlr = <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html">http</a>.<a class="code" href="../../d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d">Handler</a>(...);</div>
+<p>用以将数据流转换为 http 协议消息，创建方式： </p><div class="fragment"><div class="line">var hdlr = <span class="keyword">new</span> mq.HttpHandler(...);</div>
+</div><!-- fragment --><p> 或者： </p><div class="fragment"><div class="line">var hdlr = <span class="keyword">new</span> http.Handler(...);</div>
 </div><!-- fragment --> </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a class="anchor" id="a67076bb6a7281898aed64f09676d56a2"></a>
 <div class="memitem">

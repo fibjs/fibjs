@@ -45,6 +45,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -91,7 +92,7 @@ $(document).ready(function(){initNavTree('d7/d38/classBlockQueue.html','../../')
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -115,7 +116,8 @@ $(document).ready(function(){initNavTree('d7/d38/classBlockQueue.html','../../')
 <div class="dynheader">
 类 BlockQueue 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d4/d1e/classBlockQueue__inherit__graph.svg" width="126" height="500"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d4/d1e/classBlockQueue__inherit__graph.svg" width="126" height="500"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -174,7 +176,7 @@ Public 属性</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>阻塞 FIFO（先进先出）队列对象 </p>
-<p>用以创建和管理阻塞先进先出数据队列，创建方法： </p><div class="fragment"><div class="line">var <a class="code" href="../../d2/dd1/classcoroutine.html">coroutine</a> = require(<span class="stringliteral">&quot;coroutine&quot;</span>);</div>
+<p>用以创建和管理阻塞先进先出数据队列，创建方法： </p><div class="fragment"><div class="line">var coroutine = require(<span class="stringliteral">&quot;coroutine&quot;</span>);</div>
 <div class="line">var q = <span class="keyword">new</span> coroutine.BlockQueue(100);</div>
 </div><!-- fragment --> </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a class="anchor" id="a9f7669dc7635bfed46b5364e8f3a932a"></a>

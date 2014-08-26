@@ -45,6 +45,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -84,7 +85,7 @@ $(document).ready(function(){initNavTree('d6/d16/global_8idl_source.html','../..
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -116,7 +117,7 @@ $(document).ready(function(){initNavTree('d6/d16/global_8idl_source.html','../..
 <div class="ttc" id="classconsole_html"><div class="ttname"><a href="../../d6/df8/classconsole.html">console</a></div><div class="ttdoc">控制台访问对象 </div><div class="ttdef"><b>Definition:</b> console.idl:15</div></div>
 <div class="ttc" id="classglobal_html_a77b5ab3a88955255ac7abc7251919fbc"><div class="ttname"><a href="../../df/d84/classglobal.html#a77b5ab3a88955255ac7abc7251919fbc">global::Buffer</a></div><div class="ttdeci">static Buffer new Buffer()</div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。 </div></div>
 <div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
-<div class="ttc" id="classglobal_html_a9b11defd1000737a5b70b50edfcc8156"><div class="ttname"><a href="../../df/d84/classglobal.html#a9b11defd1000737a5b70b50edfcc8156">global::require</a></div><div class="ttdeci">static Value require(String id)</div><div class="ttdoc">加载一个模块并返回模块对象，更多信息参阅 module </div></div>
+<div class="ttc" id="classglobal_html_a9b11defd1000737a5b70b50edfcc8156"><div class="ttname"><a href="../../df/d84/classglobal.html#a9b11defd1000737a5b70b50edfcc8156">global::require</a></div><div class="ttdeci">static Value require(String id)</div><div class="ttdoc">加载一个模块并返回模块对象，更多信息参阅 模块管理 </div></div>
 <div class="ttc" id="classglobal_html"><div class="ttname"><a href="../../df/d84/classglobal.html">global</a></div><div class="ttdoc">全局对象，所有脚本均可以访问的基础对象 </div><div class="ttdef"><b>Definition:</b> global.idl:3</div></div>
 <div class="ttc" id="classglobal_html_a69cd8fa430cb4536156e8052a37c9303"><div class="ttname"><a href="../../df/d84/classglobal.html#a69cd8fa430cb4536156e8052a37c9303">global::console</a></div><div class="ttdeci">static readonly console console</div><div class="ttdoc">控制台访问对象 </div><div class="ttdef"><b>Definition:</b> global.idl:12</div></div>
 <div class="ttc" id="classglobal_html_a917c15ea7d2eafaa6df0aea5868a86e7"><div class="ttname"><a href="../../df/d84/classglobal.html#a917c15ea7d2eafaa6df0aea5868a86e7">global::run</a></div><div class="ttdeci">static run(String fname)</div><div class="ttdoc">运行一个脚本 </div></div>

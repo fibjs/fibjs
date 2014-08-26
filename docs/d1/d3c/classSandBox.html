@@ -45,6 +45,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
       <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -91,7 +92,7 @@ $(document).ready(function(){initNavTree('d1/d3c/classSandBox.html','../../');})
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -114,7 +115,8 @@ $(document).ready(function(){initNavTree('d1/d3c/classSandBox.html','../../');})
 <div class="dynheader">
 类 SandBox 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/d96/classSandBox__inherit__graph.svg" width="110" height="339"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/d96/classSandBox__inherit__graph.svg" width="110" height="339"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -141,7 +143,7 @@ Public 成员函数</h2></td></tr>
 <tr class="memdesc:a0825ce67b1b94497b53d2bd8cabfbea7"><td class="mdescLeft">&#160;</td><td class="mdescRight">运行一个脚本  <a href="#a0825ce67b1b94497b53d2bd8cabfbea7">更多...</a><br /></td></tr>
 <tr class="separator:a0825ce67b1b94497b53d2bd8cabfbea7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a134871a1c0b138d7b582225810ed6e9e"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3c/classSandBox.html#a134871a1c0b138d7b582225810ed6e9e">require</a> (String id)</td></tr>
-<tr class="memdesc:a134871a1c0b138d7b582225810ed6e9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">加载一个模块并返回模块对象，更多信息参阅 <a class="el" href="../../d0/dd3/classmodule.html">module</a>  <a href="#a134871a1c0b138d7b582225810ed6e9e">更多...</a><br /></td></tr>
+<tr class="memdesc:a134871a1c0b138d7b582225810ed6e9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">加载一个模块并返回模块对象，更多信息参阅 <a class="el" href="../../d0/db5/module.html">模块管理</a>  <a href="#a134871a1c0b138d7b582225810ed6e9e">更多...</a><br /></td></tr>
 <tr class="separator:a134871a1c0b138d7b582225810ed6e9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b88dbc459449d2280338e5b702a68b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a6b88dbc459449d2280338e5b702a68b4">dispose</a> ()</td></tr>
 <tr class="memdesc:a6b88dbc459449d2280338e5b702a68b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">强制回收对象，调用此方法后，对象资源将立即释放  <a href="#a6b88dbc459449d2280338e5b702a68b4">更多...</a><br /></td></tr>
@@ -402,7 +404,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>加载一个模块并返回模块对象，更多信息参阅 <a class="el" href="../../d0/dd3/classmodule.html">module</a> </p>
+<p>加载一个模块并返回模块对象，更多信息参阅 <a class="el" href="../../d0/db5/module.html">模块管理</a> </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">id</td><td>指定要加载的模块名称，查找路径与当前运行脚本无关，永远从当前工作目录作为起始 </td></tr>
