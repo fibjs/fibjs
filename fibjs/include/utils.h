@@ -462,17 +462,28 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bS
 
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict = false)
 {
+    static v8::Persistent<v8::Value> s_proto;
+
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
 
     if (!v->IsObject())
         return CALL_E_INVALIDARG;
 
-    if (v->IsStringObject() || v->IsNumberObject() || v->IsBooleanObject()
-            || v->IsNumberObject() || v->IsFunction() || v->IsArray())
+    v8::Local<v8::Value> proto;
+    if (s_proto.IsEmpty())
+    {
+        proto = v8::Object::New(isolate)->GetPrototype();
+        s_proto.Reset(isolate, proto);
+    }
+    else
+        proto = v8::Local<v8::Value>::New(isolate, s_proto);
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+    if (!proto->Equals(o->GetPrototype()))
         return CALL_E_INVALIDARG;
 
-    vr = v8::Local<v8::Object>::Cast(v);
+    vr = o;
     return 0;
 }
 
