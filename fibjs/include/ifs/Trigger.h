@@ -22,13 +22,13 @@ class Trigger_base : public object_base
 public:
 	// Trigger_base
 	static result_t _new(obj_ptr<Trigger_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	virtual result_t on(const char* ev, v8::Local<v8::Function> func) = 0;
-	virtual result_t on(v8::Local<v8::Object> map) = 0;
-	virtual result_t once(const char* ev, v8::Local<v8::Function> func) = 0;
-	virtual result_t once(v8::Local<v8::Object> map) = 0;
-	virtual result_t off(const char* ev, v8::Local<v8::Function> func) = 0;
-	virtual result_t off(const char* ev) = 0;
-	virtual result_t off(v8::Local<v8::Object> map) = 0;
+	virtual result_t on(const char* ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
+	virtual result_t on(v8::Local<v8::Object> map, int32_t& retVal) = 0;
+	virtual result_t once(const char* ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
+	virtual result_t once(v8::Local<v8::Object> map, int32_t& retVal) = 0;
+	virtual result_t off(const char* ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
+	virtual result_t off(const char* ev, int32_t& retVal) = 0;
+	virtual result_t off(v8::Local<v8::Object> map, int32_t& retVal) = 0;
 	virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 
 	DECLARE_CLASSINFO(Trigger_base);
@@ -80,65 +80,71 @@ namespace fibjs
 
 	inline void Trigger_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
+		int32_t vr;
+
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
 		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
-		hr = pInst->on(v0, v1);
+		hr = pInst->on(v0, v1, vr);
 
 		METHOD_OVER(1, 1);
 
 		ARG(v8::Local<v8::Object>, 0);
 
-		hr = pInst->on(v0);
+		hr = pInst->on(v0, vr);
 
-		METHOD_VOID();
+		METHOD_RETURN();
 	}
 
 	inline void Trigger_base::s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
+		int32_t vr;
+
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
 		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
-		hr = pInst->once(v0, v1);
+		hr = pInst->once(v0, v1, vr);
 
 		METHOD_OVER(1, 1);
 
 		ARG(v8::Local<v8::Object>, 0);
 
-		hr = pInst->once(v0);
+		hr = pInst->once(v0, vr);
 
-		METHOD_VOID();
+		METHOD_RETURN();
 	}
 
 	inline void Trigger_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
+		int32_t vr;
+
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
 		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
-		hr = pInst->off(v0, v1);
+		hr = pInst->off(v0, v1, vr);
 
 		METHOD_OVER(1, 1);
 
 		ARG(arg_string, 0);
 
-		hr = pInst->off(v0);
+		hr = pInst->off(v0, vr);
 
 		METHOD_OVER(1, 1);
 
 		ARG(v8::Local<v8::Object>, 0);
 
-		hr = pInst->off(v0);
+		hr = pInst->off(v0, vr);
 
-		METHOD_VOID();
+		METHOD_RETURN();
 	}
 
 	inline void Trigger_base::s_trigger(const v8::FunctionCallbackInfo<v8::Value>& args)

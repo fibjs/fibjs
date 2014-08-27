@@ -46,7 +46,7 @@ v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
 
 static uint64_t s_fid = 0;
 
-inline void putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
+inline int32_t putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
 {
     v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
@@ -71,29 +71,42 @@ inline void putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
         func->SetHiddenValue(s, fid);
     }
 
-    esa->Set(fid, func);
+    if (!esa->Has(fid))
+    {
+        esa->Set(fid, func);
+        return 1;
+    }
+
+    return 0;
 }
 
-inline void removeFunction(v8::Local<v8::Object> esa,
-                           v8::Local<v8::Function> func)
+inline int32_t removeFunction(v8::Local<v8::Object> esa,
+                              v8::Local<v8::Function> func)
 {
     if (esa.IsEmpty())
-        return;
+        return 0;
 
     v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
 
-    if (!fid.IsEmpty())
+    if (!fid.IsEmpty() && esa->Has(fid))
+    {
         esa->Delete(fid);
+        return 1;
+    }
+
+    return 0;
 }
 
 inline result_t _map(object_base *o, v8::Local<v8::Object> m,
-                     result_t (object_base::*fn)(const char *, v8::Local<v8::Function>))
+                     result_t (object_base::*fn)(const char *, v8::Local<v8::Function>, int32_t &),
+                     int32_t &retVal)
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
     int len = ks->Length();
     int i;
 
+    retVal = 0;
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> k = ks->Get(i);
@@ -103,8 +116,12 @@ inline result_t _map(object_base *o, v8::Local<v8::Object> m,
             v8::Local<v8::Value> v = m->Get(k);
 
             if (v->IsFunction())
+            {
+                int32_t n = 0;
                 (o->*fn)(*v8::String::Utf8Value(k),
-                         v8::Local<v8::Function>::Cast(v));
+                         v8::Local<v8::Function>::Cast(v), n);
+                retVal += n;
+            }
             else
                 return CHECK_ERROR(CALL_E_BADVARTYPE);
         }
@@ -113,73 +130,87 @@ inline result_t _map(object_base *o, v8::Local<v8::Object> m,
     return 0;
 }
 
-result_t object_base::on(const char *ev, v8::Local<v8::Function> func)
+result_t object_base::on(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
+    retVal = 0;
+
     std::string strKey = "_e_";
     strKey.append(ev);
-    putFunction(GetHiddenList(strKey.c_str(), true), func);
+    retVal += putFunction(GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal -= removeFunction(GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
 
-result_t object_base::on(v8::Local<v8::Object> map)
+result_t object_base::on(v8::Local<v8::Object> map, int32_t &retVal)
 {
-    return _map(this, map, &object_base::on);
+    return _map(this, map, &object_base::on, retVal);
 }
 
-result_t object_base::once(const char *ev, v8::Local<v8::Function> func)
+result_t object_base::once(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
+    retVal = 0;
+
     std::string strKey = "_e1_";
     strKey.append(ev);
-    putFunction(GetHiddenList(strKey.c_str(), true), func);
+    retVal += putFunction(GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e_";
     strKey.append(ev);
-    removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal -= removeFunction(GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
 
-result_t object_base::once(v8::Local<v8::Object> map)
+result_t object_base::once(v8::Local<v8::Object> map, int32_t &retVal)
 {
-    return _map(this, map, &object_base::once);
+    return _map(this, map, &object_base::once, retVal);
 }
 
-result_t object_base::off(const char *ev, v8::Local<v8::Function> func)
+result_t object_base::off(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
+    retVal = 0;
+
     std::string strKey = "_e_";
     strKey.append(ev);
-    removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal += removeFunction(GetHiddenList(strKey.c_str()), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal += removeFunction(GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
 
-result_t object_base::off(const char *ev)
+result_t object_base::off(const char *ev, int32_t &retVal)
 {
+    retVal = 0;
+
+    v8::Local<v8::Object> esa;
+
     std::string strKey = "_e_";
     strKey.append(ev);
 
-    GetHiddenList(strKey.c_str(), false, true);
+    esa = GetHiddenList(strKey.c_str(), false, true);
+    if (!esa.IsEmpty())
+        retVal += esa->GetPropertyNames()->Length();
 
     strKey = "_e1_";
     strKey.append(ev);
 
-    GetHiddenList(strKey.c_str(), false, true);
+    esa = GetHiddenList(strKey.c_str(), false, true);
+    if (!esa.IsEmpty())
+        retVal += esa->GetPropertyNames()->Length();
 
     return 0;
 }
 
-result_t object_base::off(v8::Local<v8::Object> map)
+result_t object_base::off(v8::Local<v8::Object> map, int32_t &retVal)
 {
-    return _map(this, map, &object_base::off);
+    return _map(this, map, &object_base::off, retVal);
 }
 
 inline result_t _fire(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value> &args,

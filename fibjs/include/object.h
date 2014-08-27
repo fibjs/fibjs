@@ -193,13 +193,13 @@ public:
 
 public:
     // Event
-    result_t on(const char *ev, v8::Local<v8::Function> func);
-    result_t on(v8::Local<v8::Object> map);
-    result_t once(const char *ev, v8::Local<v8::Function> func);
-    result_t once(v8::Local<v8::Object> map);
-    result_t off(const char *ev, v8::Local<v8::Function> func);
-    result_t off(const char *ev);
-    result_t off(v8::Local<v8::Object> map);
+    result_t on(const char *ev, v8::Local<v8::Function> func, int32_t &retVal);
+    result_t on(v8::Local<v8::Object> map, int32_t &retVal);
+    result_t once(const char *ev, v8::Local<v8::Function> func, int32_t &retVal);
+    result_t once(v8::Local<v8::Object> map, int32_t &retVal);
+    result_t off(const char *ev, v8::Local<v8::Function> func, int32_t &retVal);
+    result_t off(const char *ev, int32_t &retVal);
+    result_t off(v8::Local<v8::Object> map, int32_t &retVal);
     result_t trigger(const char *ev, const v8::FunctionCallbackInfo<v8::Value> &args);
     result_t _trigger(const char *ev, v8::Local<v8::Value> *args, int argCount);
     result_t _trigger(const char *ev, Variant *args, int argCount);
