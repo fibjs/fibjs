@@ -141,7 +141,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 }
 
-SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb), handle_scope(isolate)
+SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
 {
     m_id = v8::String::NewFromUtf8(isolate, id, v8::String::kNormalString,
                                    (int) qstrlen(id));
