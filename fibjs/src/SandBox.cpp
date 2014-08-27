@@ -69,9 +69,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> k = ks->Get(i);
-
-        if (!k->IsNumber() && !k->IsNumberObject())
-            add(*v8::String::Utf8Value(k), mods->Get(k));
+        add(*v8::String::Utf8Value(k), mods->Get(k));
     }
 
     return 0;

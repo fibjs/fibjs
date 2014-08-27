@@ -86,16 +86,12 @@ result_t Chain::append(v8::Local<v8::Array> hdlrs)
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> v = hdlrs->Get(i);
+        obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
 
-        if (v->IsObject())
+        if (hdlr)
         {
-            obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
-
-            if (hdlr)
-            {
-                append(hdlr);
-                continue;
-            }
+            append(hdlr);
+            continue;
         }
 
         hr = append(v);

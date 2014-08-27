@@ -117,13 +117,9 @@ inline result_t _map(HttpCollection *o, v8::Local<v8::Object> m,
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> k = ks->Get(i);
-
-        if (!k->IsNumber() && !k->IsNumberObject())
-        {
-            hr = (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
-            if (hr < 0)
-                return hr;
-        }
+        hr = (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
+        if (hr < 0)
+            return hr;
     }
 
     return 0;

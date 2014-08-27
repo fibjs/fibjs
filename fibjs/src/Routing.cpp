@@ -172,26 +172,19 @@ result_t Routing::append(v8::Local<v8::Object> map)
     for (i = len - 1; i >= 0; i--)
     {
         v8::Local<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> v = map->Get(k);
 
-        if (!k->IsNumber() && !k->IsNumberObject())
+        obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
+
+        if (hdlr)
         {
-            v8::Local<v8::Value> v = map->Get(k);
-
-            if (v->IsObject())
-            {
-                obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
-
-                if (hdlr)
-                {
-                    append(*v8::String::Utf8Value(k), hdlr);
-                    continue;
-                }
-            }
-
-            hr = append(*v8::String::Utf8Value(k), v);
-            if (hr < 0)
-                return hr;
+            append(*v8::String::Utf8Value(k), hdlr);
+            continue;
         }
+
+        hr = append(*v8::String::Utf8Value(k), v);
+        if (hr < 0)
+            return hr;
     }
 
     return 0;

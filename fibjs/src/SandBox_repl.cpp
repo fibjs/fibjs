@@ -56,21 +56,9 @@ result_t SandBox::Context::repl()
     while (true)
     {
         if (!v.IsEmpty() && !v->IsUndefined())
-        {
-            if (v->IsObject() && !v->IsNumberObject() &&
-                    !v->IsStringObject() && !v->IsBooleanObject() &&
-                    !v->IsFunction())
-                console_base::dir(v->ToObject());
-            else
-            {
-                v8::String::Utf8Value s(v);
+            console_base::dir(v);
 
-                if (*s)
-                    asyncLog(console_base::_INFO, *s);
-            }
-
-            v = v1;
-        }
+        v = v1;
 
         std::string line;
         hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
