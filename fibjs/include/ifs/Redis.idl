@@ -179,47 +179,69 @@ class Redis : object
      @return 修改成功时，返回 True，如果 newkey 已经存在，返回 False */
     Boolean renameNX(Buffer key, Buffer newkey);
 
-    /*! @brief 订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message
+    /*! @brief 订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message，同一频道同一函数只会回调一次
      @param channel 指定订阅的频道名称
      @param func 指定回调函数
      */
     sub(Buffer channel, Function func);
 
-    /*! @brief 订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数
+    /*! @brief 订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数，同一频道同一函数只会回调一次
      @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
      */
     sub(Object map);
 
-    /*! @brief 退订给定的频道
+    /*! @brief 退订给定的频道的全部回调
      @param channel 指定退订的频道名称
     */
     unsub(Buffer channel);
 
-    /*! @brief 退订一组给定的频道
+    /*! @brief 退订给定的频道的指定回调函数
+     @param channel 指定退订的频道名称
+     @param func 指定退订的回调函数
+    */
+    unsub(Buffer channel, Function func);
+
+    /*! @brief 退订一组给定的频道的全部回调
      @param channels 指定退订的频道数组
     */
     unsub(Array channels);
 
-    /*! @brief 按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern
+    /*! @brief 退订给定的一组频道的指定回调函数
+     @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
+     */
+    unsub(Object map);
+
+    /*! @brief 按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern，同一模板同一函数只会回调一次
      @param pattern 指定订阅的频道模板
      @param func 指定回调函数
      */
     psub(String pattern, Function func);
 
-    /*! @brief 订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func
+    /*! @brief 订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func，同一频道同一函数只会回调一次
      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
      */
     psub(Object map);
 
-    /*! @brief 退订给定模板的频道
+    /*! @brief 退订给定模板的频道的全部回调
      @param pattern 指定退订的频道模板
     */
     unpsub(String pattern);
 
-    /*! @brief 退订一组给定模板的频道
+    /*! @brief 退订给定模板的频道的指定回调函数
+     @param pattern 指定退订的频道模板
+     @param func 指定退订的回调函数
+    */
+    unpsub(String pattern, Function func);
+
+    /*! @brief 退订一组给定模板的频道的全部回调
      @param patterns 指定发布的频道模板数组
     */
     unpsub(Array patterns);
+
+    /*! @brief 退订一组模板的频道的指定回调函数
+     @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
+     */
+    unpsub(Object map);
 
     /*! @brief 注册一个错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止
      @param func 指定回调函数

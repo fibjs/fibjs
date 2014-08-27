@@ -62,11 +62,15 @@ public:
 	virtual result_t sub(Buffer_base* channel, v8::Local<v8::Function> func) = 0;
 	virtual result_t sub(v8::Local<v8::Object> map) = 0;
 	virtual result_t unsub(Buffer_base* channel) = 0;
+	virtual result_t unsub(Buffer_base* channel, v8::Local<v8::Function> func) = 0;
 	virtual result_t unsub(v8::Local<v8::Array> channels) = 0;
+	virtual result_t unsub(v8::Local<v8::Object> map) = 0;
 	virtual result_t psub(const char* pattern, v8::Local<v8::Function> func) = 0;
 	virtual result_t psub(v8::Local<v8::Object> map) = 0;
 	virtual result_t unpsub(const char* pattern) = 0;
+	virtual result_t unpsub(const char* pattern, v8::Local<v8::Function> func) = 0;
 	virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
+	virtual result_t unpsub(v8::Local<v8::Object> map) = 0;
 	virtual result_t onsuberror(v8::Local<v8::Function> func) = 0;
 	virtual result_t pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal) = 0;
 	virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal) = 0;
@@ -623,9 +627,22 @@ namespace fibjs
 
 		hr = pInst->unsub(v0);
 
+		METHOD_OVER(2, 2);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(v8::Local<v8::Function>, 1);
+
+		hr = pInst->unsub(v0, v1);
+
 		METHOD_OVER(1, 1);
 
 		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->unsub(v0);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->unsub(v0);
 
@@ -660,9 +677,22 @@ namespace fibjs
 
 		hr = pInst->unpsub(v0);
 
+		METHOD_OVER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(v8::Local<v8::Function>, 1);
+
+		hr = pInst->unpsub(v0, v1);
+
 		METHOD_OVER(1, 1);
 
 		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->unpsub(v0);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->unpsub(v0);
 

@@ -14,6 +14,7 @@
 #include "Variant.h"
 #include "QuickArray.h"
 #include "Buffer.h"
+#include <map>
 
 namespace fibjs
 {
@@ -56,11 +57,15 @@ public:
     virtual result_t sub(Buffer_base *channel, v8::Local<v8::Function> func);
     virtual result_t sub(v8::Local<v8::Object> map);
     virtual result_t unsub(Buffer_base *channel);
+    virtual result_t unsub(Buffer_base *channel, v8::Local<v8::Function> func);
     virtual result_t unsub(v8::Local<v8::Array> channels);
+    virtual result_t unsub(v8::Local<v8::Object> map);
     virtual result_t psub(const char *pattern, v8::Local<v8::Function> func);
     virtual result_t psub(v8::Local<v8::Object> map);
     virtual result_t unpsub(const char *pattern);
+    virtual result_t unpsub(const char *pattern, v8::Local<v8::Function> func);
     virtual result_t unpsub(v8::Local<v8::Array> patterns);
+    virtual result_t unpsub(v8::Local<v8::Object> map);
     virtual result_t onsuberror(v8::Local<v8::Function> func);
     virtual result_t pub(Buffer_base *channel, Buffer_base *message, int32_t &retVal);
     virtual result_t getHash(Buffer_base *key, obj_ptr<RedisHash_base> &retVal);
@@ -481,10 +486,16 @@ public:
     }
 
 public:
-    result_t sub(const char *prefix, const char *cmd, v8::Local<v8::Object> &map);
-    result_t unsub(const char *prefix, const char *cmd, v8::Local<v8::Array> &channels);
+    result_t _single(std::string key, v8::Local<v8::Function> func, int32_t cmd);
+    result_t _map(v8::Local<v8::Object> &map, int32_t cmd);
+    result_t unsub(v8::Local<v8::Array> &channels, int32_t cmd);
+    result_t unsub(std::string key, int32_t cmd);
+
+    bool regsub(std::string &key, v8::Local<v8::Function> func);
+    bool unregsub(std::string &key, v8::Local<v8::Function> func);
 
 public:
+    std::map<std::string, int32_t> m_funcs;
     obj_ptr<Socket_base> m_sock;
     obj_ptr<BufferedStream_base> m_stmBuffered;
     int32_t m_subMode;
