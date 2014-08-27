@@ -54,10 +54,17 @@ extern std_logger s_std;
 
 void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    std::string str;
+    int32_t level;
 
-    util_base::format(fmt, args, str);
-    asyncLog(type, str);
+    console_base::get_loglevel(level);
+
+    if (type <= level)
+    {
+        std::string str;
+
+        util_base::format(fmt, args, str);
+        asyncLog(type, str);
+    }
 }
 
 result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
