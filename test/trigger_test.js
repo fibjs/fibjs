@@ -92,7 +92,7 @@ describe('trigger', function() {
 		assert.equal(7300, v1);
 		assert.equal(22645, v2);
 
-		assert.equal(e.off("test"), 2);
+		assert.equal(e.off("test"), 0);
 
 		e.trigger('test', 20, 10);
 		coroutine.sleep();

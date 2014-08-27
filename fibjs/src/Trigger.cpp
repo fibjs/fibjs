@@ -189,21 +189,15 @@ result_t object_base::off(const char *ev, int32_t &retVal)
 {
     retVal = 0;
 
-    v8::Local<v8::Object> esa;
-
     std::string strKey = "_e_";
     strKey.append(ev);
 
-    esa = GetHiddenList(strKey.c_str(), false, true);
-    if (!esa.IsEmpty())
-        retVal += esa->GetPropertyNames()->Length();
+    GetHiddenList(strKey.c_str(), false, true);
 
     strKey = "_e1_";
     strKey.append(ev);
 
-    esa = GetHiddenList(strKey.c_str(), false, true);
-    if (!esa.IsEmpty())
-        retVal += esa->GetPropertyNames()->Length();
+    GetHiddenList(strKey.c_str(), false, true);
 
     return 0;
 }
