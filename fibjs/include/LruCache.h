@@ -51,61 +51,39 @@ private:
     class _linkedNode
     {
     public:
-        std::map<std::string, _linkedNode>::iterator &last()
-        {
-            return *(std::map<std::string, _linkedNode>::iterator *) &m_last;
-        }
-
-        std::map<std::string, _linkedNode>::iterator &next()
-        {
-            return *(std::map<std::string, _linkedNode>::iterator *) &m_next;
-        }
-
-        std::map<std::string, _linkedNode>::iterator &last1()
-        {
-            return *(std::map<std::string, _linkedNode>::iterator *) &m_last1;
-        }
-
-        std::map<std::string, _linkedNode>::iterator &next1()
-        {
-            return *(std::map<std::string, _linkedNode>::iterator *) &m_next1;
-        }
-
-    public:
         date_t insert;
-        obj_ptr<Event_base> m_event;
-        std::map<std::string, int>::iterator m_last, m_next, m_last1, m_next1;
+        std::map<std::string, _linkedNode>::iterator m_prev, m_next, m_prev1, m_next1;
     };
 
     void remove(std::map<std::string, _linkedNode>::iterator it)
     {
-        std::map<std::string, _linkedNode>::iterator &last = it->second.last();
-        std::map<std::string, _linkedNode>::iterator &next = it->second.next();
+        std::map<std::string, _linkedNode>::iterator &prev = it->second.m_prev;
+        std::map<std::string, _linkedNode>::iterator &next = it->second.m_next;
 
-        if (last != m_datas.end())
-            last->second.next() = next;
+        if (prev != m_datas.end())
+            prev->second.m_next = next;
         else
             m_begin_lru = next;
 
         if (next != m_datas.end())
-            next->second.last() = last;
+            next->second.m_prev = prev;
         else
-            m_end_lru = last;
+            m_end_lru = prev;
 
         if (m_timeout > 0)
         {
-            std::map<std::string, _linkedNode>::iterator &last1 = it->second.last1();
-            std::map<std::string, _linkedNode>::iterator &next1 = it->second.next1();
+            std::map<std::string, _linkedNode>::iterator &prev1 = it->second.m_prev1;
+            std::map<std::string, _linkedNode>::iterator &next1 = it->second.m_next1;
 
-            if (last1 != m_datas.end())
-                last1->second.next1() = next1;
+            if (prev1 != m_datas.end())
+                prev1->second.m_next1 = next1;
             else
                 m_begin = next1;
 
             if (next1 != m_datas.end())
-                next1->second.last1() = last1;
+                next1->second.m_prev1 = prev1;
             else
-                m_end = last1;
+                m_end = prev1;
         }
 
         v8::Local<v8::String> name = v8::String::NewFromUtf8(isolate, it->first.c_str(),
@@ -118,11 +96,11 @@ private:
 
     void insert(std::map<std::string, _linkedNode>::iterator it)
     {
-        it->second.next() = m_begin_lru;
-        it->second.last() = m_datas.end();
+        it->second.m_next = m_begin_lru;
+        it->second.m_prev = m_datas.end();
 
         if (m_begin_lru != m_datas.end())
-            m_begin_lru->second.last() = it;
+            m_begin_lru->second.m_prev = it;
         else
             m_end_lru = it;
 
@@ -130,11 +108,11 @@ private:
 
         if (m_timeout > 0)
         {
-            it->second.next1() = m_begin;
-            it->second.last1() = m_datas.end();
+            it->second.m_next1 = m_begin;
+            it->second.m_prev1 = m_datas.end();
 
             if (m_begin != m_datas.end())
-                m_begin->second.last1() = it;
+                m_begin->second.m_prev1 = it;
             else
                 m_end = it;
 
@@ -146,24 +124,24 @@ private:
     {
         if (m_begin_lru != it)
         {
-            std::map<std::string, _linkedNode>::iterator &last = it->second.last();
-            std::map<std::string, _linkedNode>::iterator &next = it->second.next();
+            std::map<std::string, _linkedNode>::iterator &prev = it->second.m_prev;
+            std::map<std::string, _linkedNode>::iterator &next = it->second.m_next;
 
-            if (last != m_datas.end())
-                last->second.next() = next;
+            if (prev != m_datas.end())
+                prev->second.m_next = next;
             else
                 m_begin_lru = next;
 
             if (next != m_datas.end())
-                next->second.last() = last;
+                next->second.m_prev = prev;
             else
-                m_end_lru = last;
+                m_end_lru = prev;
 
-            it->second.next() = m_begin_lru;
-            it->second.last() = m_datas.end();
+            it->second.m_next = m_begin_lru;
+            it->second.m_prev = m_datas.end();
 
             if (m_begin_lru != m_datas.end())
-                m_begin_lru->second.last() = it;
+                m_begin_lru->second.m_prev = it;
             else
                 m_end_lru = it;
 
@@ -175,24 +153,24 @@ private:
     {
         if (m_timeout > 0 && m_begin != it)
         {
-            std::map<std::string, _linkedNode>::iterator &last1 = it->second.last1();
-            std::map<std::string, _linkedNode>::iterator &next1 = it->second.next1();
+            std::map<std::string, _linkedNode>::iterator &prev1 = it->second.m_prev1;
+            std::map<std::string, _linkedNode>::iterator &next1 = it->second.m_next1;
 
-            if (last1 != m_datas.end())
-                last1->second.next1() = next1;
+            if (prev1 != m_datas.end())
+                prev1->second.m_next1 = next1;
             else
                 m_begin = next1;
 
             if (next1 != m_datas.end())
-                next1->second.last1() = last1;
+                next1->second.m_prev1 = prev1;
             else
-                m_end = last1;
+                m_end = prev1;
 
-            it->second.next1() = m_begin;
-            it->second.last1() = m_datas.end();
+            it->second.m_next1 = m_begin;
+            it->second.m_prev1 = m_datas.end();
 
             if (m_begin != m_datas.end())
-                m_begin->second.last1() = it;
+                m_begin->second.m_prev1 = it;
             else
                 m_end = it;
 
@@ -208,6 +186,8 @@ private:
 
     std::map<std::string, _linkedNode>::iterator m_begin;
     std::map<std::string, _linkedNode>::iterator m_end;
+
+    std::map<std::string, obj_ptr<Event_base> > m_paddings;
 
     int32_t m_size;
     int32_t m_timeout;

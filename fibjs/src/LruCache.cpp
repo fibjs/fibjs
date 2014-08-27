@@ -76,71 +76,57 @@ result_t LruCache::get(const char *name, v8::Local<v8::Value> &retVal)
 result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
                        v8::Local<v8::Value> &retVal)
 {
+    static _linkedNode newNode;
+    v8::Handle<v8::Object> o = wrap();
+    v8::Handle<v8::String> n = v8::String::NewFromUtf8(isolate, name);
+    std::string sname(name);
+    v8::Handle<v8::Value> a = n;
+
     std::map<std::string, _linkedNode>::iterator find;
 
     cleanup();
 
     while (true)
     {
-        find  = m_datas.find(name);
+        obj_ptr<Event_base> e;
 
-        if (find == m_datas.end())
+        find = m_datas.find(sname);
+        if (find != m_datas.end())
+            break;
+
+        if (updater.IsEmpty())
+            return 0;
+
+        std::map<std::string, obj_ptr<Event_base> >::iterator padding;
+        padding = m_paddings.find(sname);
+        if (padding == m_paddings.end())
         {
-            if (!updater.IsEmpty())
-            {
-                static _linkedNode newNode;
+            e = new Event();
+            padding = m_paddings.insert(std::pair<std::string, obj_ptr<Event_base> >(sname, e)).first;
+            v8::Local<v8::Value> v = updater->Call(o, 1, &a);
+            m_paddings.erase(padding);
+            e->set();
 
-                m_datas.insert(std::pair<std::string, _linkedNode>(name, newNode));
-                find = m_datas.find(name);
+            if (v.IsEmpty())
+                return CHECK_ERROR(CALL_E_JAVASCRIPT);
 
-                insert(find);
+            find = m_datas.insert(std::pair<std::string, _linkedNode>(sname, newNode)).first;
+            insert(find);
 
-                if (m_timeout > 0)
-                    find->second.insert.now();
+            if (m_timeout > 0)
+                find->second.insert.now();
+            o->SetHiddenValue(n, v);
 
-                obj_ptr<Event_base> e = new Event();
-                find->second.m_event = e;
-
-                v8::Handle<v8::String> n = v8::String::NewFromUtf8(isolate, name);
-                v8::Handle<v8::Value> a = n;
-                v8::Local<v8::Value> v = updater->Call(wrap(), 1, &a);
-
-                e->set();
-
-                find = m_datas.find(name);
-                if (!v.IsEmpty())
-                {
-                    if (find != m_datas.end())
-                    {
-                        wrap()->SetHiddenValue(n, v);
-                        if (find->second.m_event == e)
-                            find->second.m_event.Release();
-                    }
-                }
-                else
-                {
-                    if (find != m_datas.end() && find->second.m_event == e)
-                        remove(find);
-                    return CHECK_ERROR(CALL_E_JAVASCRIPT);
-                }
-
-                retVal = v;
-            }
-
+            retVal = v;
             return 0;
         }
 
-        if (find->second.m_event)
-        {
-            obj_ptr<Event_base> e = find->second.m_event;
-            e->wait();
-        }
-        else
-            break;
+        e = padding->second;
+        e->wait();
     }
 
     update(find);
-    retVal = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate, name));
+    retVal = o->GetHiddenValue(n);
 
     return 0;
 }
@@ -166,15 +152,12 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 
 result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 {
+    static _linkedNode newNode;
     std::map<std::string, _linkedNode>::iterator find = m_datas.find(name);
 
     if (find == m_datas.end())
     {
-        static _linkedNode newNode;
-
-        m_datas.insert(std::pair<std::string, _linkedNode>(name, newNode));
-        find = m_datas.find(name);
-
+        find = m_datas.insert(std::pair<std::string, _linkedNode>(name, newNode)).first;
         insert(find);
     }
     else
@@ -248,7 +231,7 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
                                      v8::String::kNormalString,
                                      (int) it->first.length());
         obj->Set(name, wrap()->GetHiddenValue(name));
-        it = it->second.next();
+        it = it->second.m_next;
     }
 
     retVal = obj;
