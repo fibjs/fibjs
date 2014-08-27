@@ -135,8 +135,7 @@ public:
     void *getInstance(void *o);
     void *getInstance(v8::Local<v8::Value> o)
     {
-        if (o.IsEmpty() || !o->IsObject() ||
-                !v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(o))
+        if (o.IsEmpty() || !v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(o))
             return NULL;
 
         return o->ToObject()->GetAlignedPointerFromInternalField(0);
@@ -197,14 +196,14 @@ public:
         for (i = 0; i < m_cd.mc; i++)
             if (!is_skip(m_cd.cms[i].name, skips))
                 o->ForceSet(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
-                       v8::FunctionTemplate::New(isolate, m_cd.cms[i].invoker)->GetFunction(),
-                       v8::ReadOnly);
+                            v8::FunctionTemplate::New(isolate, m_cd.cms[i].invoker)->GetFunction(),
+                            v8::ReadOnly);
 
         for (i = 0; i < m_cd.oc; i++)
             if (!is_skip(m_cd.cos[i].name, skips))
                 o->ForceSet(v8::String::NewFromUtf8(isolate, m_cd.cos[i].name),
-                       v8::Local<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
-                       v8::ReadOnly);
+                            v8::Local<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
+                            v8::ReadOnly);
 
         for (i = 0; i < m_cd.pc; i++)
             if (!is_skip(m_cd.cps[i].name, skips))
