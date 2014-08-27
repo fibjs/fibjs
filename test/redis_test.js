@@ -31,7 +31,7 @@ describe("redis", function() {
 			rdb.del(keys);
 	});
 
-	xdescribe("base", function() {
+	describe("base", function() {
 		it("command", function() {
 			rdb.command("set", "test", "aaa");
 			rdb.command("set", "test1", "aaa");
@@ -254,7 +254,7 @@ describe("redis", function() {
 		});
 	});
 
-	xdescribe("Hash", function() {
+	describe("Hash", function() {
 		it("set/get", function() {
 			var hash = rdb.getHash("testHash");
 
@@ -330,7 +330,7 @@ describe("redis", function() {
 		});
 	});
 
-	xdescribe("List", function() {
+	describe("List", function() {
 		it("push", function() {
 			var list = rdb.getList("testList");
 			assert.equal(list.push("a0", "a1", "a2"), 3);
@@ -396,7 +396,7 @@ describe("redis", function() {
 		});
 	});
 
-	xdescribe("Set", function() {
+	describe("Set", function() {
 		it("add", function() {
 			var set = rdb.getSet("testSet");
 
@@ -455,7 +455,7 @@ describe("redis", function() {
 		});
 	});
 
-	xdescribe("SortedSet", function() {
+	describe("SortedSet", function() {
 		it("add", function() {
 			var zset = rdb.getSortedSet("testSortedSet");
 
