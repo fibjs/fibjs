@@ -27,7 +27,7 @@
 <area shape="rect" id="node27" href="$d2/d6d/classMongoID.html" title="mongodb 数据库数据唯一标识对象，用于存储传递 oid " alt="" coords="3415,547,3491,620"/>
 <area shape="rect" id="node28" href="$d0/d82/classPKey.html" title="不对称加密算法对象 " alt="" coords="3515,453,3626,713"/>
 <area shape="rect" id="node29" href="$d7/d56/classQueue.html" title="FIFO（先进先出）队列对象 " alt="" coords="3650,493,3739,673"/>
-<area shape="rect" id="node30" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="3763,233,3882,933"/>
+<area shape="rect" id="node30" href="$db/d15/classRedis.html" title="Redis 数据库客户端对象 " alt="" coords="3763,207,3882,960"/>
 <area shape="rect" id="node31" href="$df/dbc/classRedisHash.html" title="Redis 数据库客户端 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="3906,460,3992,707"/>
 <area shape="rect" id="node32" href="$d8/dc8/classRedisList.html" title="Redis 数据库客户端 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="4016,460,4130,707"/>
 <area shape="rect" id="node33" href="$df/d65/classRedisSet.html" title="Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库 ..." alt="" coords="4154,487,4272,680"/>
@@ -41,7 +41,7 @@
 <area shape="rect" id="node41" href="$dc/de8/classStream.html" title="流操作对象，用于二进制数据流读写 " alt="" coords="5232,527,5316,640"/>
 <area shape="rect" id="node42" href="$de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 " alt="" coords="5341,507,5442,660"/>
 <area shape="rect" id="node43" href="$df/d0e/classTextColor.html" title="终端输出颜色配置对象 " alt="" coords="5467,527,5554,640"/>
-<area shape="rect" id="node44" href="$d7/d1d/classTrigger.html" title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 " alt="" coords="5578,493,5661,673"/>
+<area shape="rect" id="node44" href="$d7/d1d/classTrigger.html" title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，同一事件的同一函数只会产生一次回调 ..." alt="" coords="5578,493,5661,673"/>
 <area shape="rect" id="node45" href="$df/d6b/classUrl.html" title="Url 处理对象 " alt="" coords="5686,427,5785,740"/>
 <area shape="rect" id="node46" href="$d1/dd4/classuuidValue.html" title="uuid 对象 " alt="" coords="5809,540,5889,627"/>
 <area shape="rect" id="node47" href="$d1/d66/classX509Cert.html" title="x509 证书对象 " alt="" coords="5913,433,6011,733"/>

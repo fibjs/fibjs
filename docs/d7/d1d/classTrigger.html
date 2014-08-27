@@ -110,13 +110,12 @@ $(document).ready(function(){initNavTree('d7/d1d/classTrigger.html','../../');})
 </div><!--header-->
 <div class="contents">
 
-<p>事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此  
+<p>事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，同一事件的同一函数只会产生一次回调  
  <a href="../../d7/d1d/classTrigger.html#details">更多...</a></p>
 <div class="dynheader">
 类 Trigger 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../dd/d31/classTrigger__inherit__graph.svg" width="99" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
-</div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../dd/d31/classTrigger__inherit__graph.svg" width="99" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -124,27 +123,27 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:afcf974790b6e846cd89eba5a802e7fa5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#afcf974790b6e846cd89eba5a802e7fa5">Trigger</a> ()</td></tr>
 <tr class="memdesc:afcf974790b6e846cd89eba5a802e7fa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数  <a href="#afcf974790b6e846cd89eba5a802e7fa5">更多...</a><br /></td></tr>
 <tr class="separator:afcf974790b6e846cd89eba5a802e7fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af6ea215ce6899abc704c011c7a9328b6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#af6ea215ce6899abc704c011c7a9328b6">on</a> (String ev, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
-<tr class="memdesc:af6ea215ce6899abc704c011c7a9328b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个事件处理函数到对象  <a href="#af6ea215ce6899abc704c011c7a9328b6">更多...</a><br /></td></tr>
-<tr class="separator:af6ea215ce6899abc704c011c7a9328b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3fd9a92352ae0ac142a0fb19329cc19e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a3fd9a92352ae0ac142a0fb19329cc19e">on</a> (Object map)</td></tr>
-<tr class="memdesc:a3fd9a92352ae0ac142a0fb19329cc19e"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个事件处理函数到对象  <a href="#a3fd9a92352ae0ac142a0fb19329cc19e">更多...</a><br /></td></tr>
-<tr class="separator:a3fd9a92352ae0ac142a0fb19329cc19e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a08c53bf7bac17ebadbc338a9237baf41"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a08c53bf7bac17ebadbc338a9237baf41">once</a> (String ev, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
-<tr class="memdesc:a08c53bf7bac17ebadbc338a9237baf41"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次  <a href="#a08c53bf7bac17ebadbc338a9237baf41">更多...</a><br /></td></tr>
-<tr class="separator:a08c53bf7bac17ebadbc338a9237baf41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ee99f33893611f6c5baa78d7cf7576c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a8ee99f33893611f6c5baa78d7cf7576c">once</a> (Object map)</td></tr>
-<tr class="memdesc:a8ee99f33893611f6c5baa78d7cf7576c"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次  <a href="#a8ee99f33893611f6c5baa78d7cf7576c">更多...</a><br /></td></tr>
-<tr class="separator:a8ee99f33893611f6c5baa78d7cf7576c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a76c48fb926f1f527bd0aa9913664f1ca"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a76c48fb926f1f527bd0aa9913664f1ca">off</a> (String ev, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
-<tr class="memdesc:a76c48fb926f1f527bd0aa9913664f1ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">从对象处理队列中取消指定函数  <a href="#a76c48fb926f1f527bd0aa9913664f1ca">更多...</a><br /></td></tr>
-<tr class="separator:a76c48fb926f1f527bd0aa9913664f1ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a075136bfa74db0401295923cd7a95f1b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a075136bfa74db0401295923cd7a95f1b">off</a> (String ev)</td></tr>
-<tr class="memdesc:a075136bfa74db0401295923cd7a95f1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">取消对象处理队列中的全部函数  <a href="#a075136bfa74db0401295923cd7a95f1b">更多...</a><br /></td></tr>
-<tr class="separator:a075136bfa74db0401295923cd7a95f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31aeac342c62cf8f8262456d1b4972c4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a31aeac342c62cf8f8262456d1b4972c4">off</a> (Object map)</td></tr>
-<tr class="memdesc:a31aeac342c62cf8f8262456d1b4972c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">从对象处理队列中取消指定函数  <a href="#a31aeac342c62cf8f8262456d1b4972c4">更多...</a><br /></td></tr>
-<tr class="separator:a31aeac342c62cf8f8262456d1b4972c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a101c95c3d098435250e5d15db4eb7359"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a101c95c3d098435250e5d15db4eb7359">on</a> (String ev, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:a101c95c3d098435250e5d15db4eb7359"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个事件处理函数到对象  <a href="#a101c95c3d098435250e5d15db4eb7359">更多...</a><br /></td></tr>
+<tr class="separator:a101c95c3d098435250e5d15db4eb7359"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebcc15a350707b449aa98207b71dda34"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#aebcc15a350707b449aa98207b71dda34">on</a> (Object map)</td></tr>
+<tr class="memdesc:aebcc15a350707b449aa98207b71dda34"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个事件处理函数到对象  <a href="#aebcc15a350707b449aa98207b71dda34">更多...</a><br /></td></tr>
+<tr class="separator:aebcc15a350707b449aa98207b71dda34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad09d65f485b88e3624488ac8e48f5fc7"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#ad09d65f485b88e3624488ac8e48f5fc7">once</a> (String ev, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:ad09d65f485b88e3624488ac8e48f5fc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次  <a href="#ad09d65f485b88e3624488ac8e48f5fc7">更多...</a><br /></td></tr>
+<tr class="separator:ad09d65f485b88e3624488ac8e48f5fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a497604e081ef6098c08fd826fb52b307"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a497604e081ef6098c08fd826fb52b307">once</a> (Object map)</td></tr>
+<tr class="memdesc:a497604e081ef6098c08fd826fb52b307"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次  <a href="#a497604e081ef6098c08fd826fb52b307">更多...</a><br /></td></tr>
+<tr class="separator:a497604e081ef6098c08fd826fb52b307"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfdd94a52ee12e7fcffe2c044d70cee3"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#abfdd94a52ee12e7fcffe2c044d70cee3">off</a> (String ev, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:abfdd94a52ee12e7fcffe2c044d70cee3"><td class="mdescLeft">&#160;</td><td class="mdescRight">从对象处理队列中取消指定函数  <a href="#abfdd94a52ee12e7fcffe2c044d70cee3">更多...</a><br /></td></tr>
+<tr class="separator:abfdd94a52ee12e7fcffe2c044d70cee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab240d558c9f4043f1e159c08beba278a"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#ab240d558c9f4043f1e159c08beba278a">off</a> (String ev)</td></tr>
+<tr class="memdesc:ab240d558c9f4043f1e159c08beba278a"><td class="mdescLeft">&#160;</td><td class="mdescRight">取消对象处理队列中的全部函数  <a href="#ab240d558c9f4043f1e159c08beba278a">更多...</a><br /></td></tr>
+<tr class="separator:ab240d558c9f4043f1e159c08beba278a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1227f3a0cfeb5be138deba4e21fa42eb"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#a1227f3a0cfeb5be138deba4e21fa42eb">off</a> (Object map)</td></tr>
+<tr class="memdesc:a1227f3a0cfeb5be138deba4e21fa42eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">从对象处理队列中取消指定函数  <a href="#a1227f3a0cfeb5be138deba4e21fa42eb">更多...</a><br /></td></tr>
+<tr class="separator:a1227f3a0cfeb5be138deba4e21fa42eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb19a1b266ed37fcfa6a6634d4388b0e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d1d/classTrigger.html#acb19a1b266ed37fcfa6a6634d4388b0e">trigger</a> (String ev,...)</td></tr>
 <tr class="memdesc:acb19a1b266ed37fcfa6a6634d4388b0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">主动触发一个事件  <a href="#acb19a1b266ed37fcfa6a6634d4388b0e">更多...</a><br /></td></tr>
 <tr class="separator:acb19a1b266ed37fcfa6a6634d4388b0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -162,7 +161,7 @@ Public 成员函数</h2></td></tr>
 <tr class="separator:ab9261a7662bc8bb4a898bc15dc16f206"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
-<div class="textblock"><p>事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 </p>
+<div class="textblock"><p>事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，同一事件的同一函数只会产生一次回调 </p>
 <p><a class="el" href="../../d5/da5/classEvent.html" title="信号量对象 ">Event</a> 对象可独立创建，以用于组建自定义的事件系统： </p><div class="fragment"><div class="line">var e = <span class="keyword">new</span> coroutine.Trigger();</div>
 </div><!-- fragment --> </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a class="anchor" id="afcf974790b6e846cd89eba5a802e7fa5"></a>
@@ -183,12 +182,12 @@ Public 成员函数</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">成员函数说明</h2>
-<a class="anchor" id="af6ea215ce6899abc704c011c7a9328b6"></a>
+<a class="anchor" id="a101c95c3d098435250e5d15db4eb7359"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Trigger::on </td>
+          <td class="memname">Integer Trigger::on </td>
           <td>(</td>
           <td class="paramtype">String&#160;</td>
           <td class="paramname"><em>ev</em>, </td>
@@ -215,15 +214,16 @@ Public 成员函数</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>返回</dt><dd>返回成功绑定的数量，如果函数已绑定则返回 0 </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a3fd9a92352ae0ac142a0fb19329cc19e"></a>
+<a class="anchor" id="aebcc15a350707b449aa98207b71dda34"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Trigger::on </td>
+          <td class="memname">Integer Trigger::on </td>
           <td>(</td>
           <td class="paramtype">Object&#160;</td>
           <td class="paramname"><em>map</em></td><td>)</td>
@@ -239,15 +239,16 @@ Public 成员函数</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>返回</dt><dd>返回成功绑定的数量 </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a08c53bf7bac17ebadbc338a9237baf41"></a>
+<a class="anchor" id="ad09d65f485b88e3624488ac8e48f5fc7"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Trigger::once </td>
+          <td class="memname">Integer Trigger::once </td>
           <td>(</td>
           <td class="paramtype">String&#160;</td>
           <td class="paramname"><em>ev</em>, </td>
@@ -274,15 +275,16 @@ Public 成员函数</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>返回</dt><dd>返回成功绑定的数量，如果函数已绑定则返回 0 </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a8ee99f33893611f6c5baa78d7cf7576c"></a>
+<a class="anchor" id="a497604e081ef6098c08fd826fb52b307"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Trigger::once </td>
+          <td class="memname">Integer Trigger::once </td>
           <td>(</td>
           <td class="paramtype">Object&#160;</td>
           <td class="paramname"><em>map</em></td><td>)</td>
@@ -298,15 +300,16 @@ Public 成员函数</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>返回</dt><dd>返回成功绑定的数量 </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a76c48fb926f1f527bd0aa9913664f1ca"></a>
+<a class="anchor" id="abfdd94a52ee12e7fcffe2c044d70cee3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Trigger::off </td>
+          <td class="memname">Integer Trigger::off </td>
           <td>(</td>
           <td class="paramtype">String&#160;</td>
           <td class="paramname"><em>ev</em>, </td>
@@ -333,15 +336,16 @@ Public 成员函数</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>返回</dt><dd>返回成功取消的数量，如果函数未绑定则返回 0 </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a075136bfa74db0401295923cd7a95f1b"></a>
+<a class="anchor" id="ab240d558c9f4043f1e159c08beba278a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Trigger::off </td>
+          <td class="memname">Integer Trigger::off </td>
           <td>(</td>
           <td class="paramtype">String&#160;</td>
           <td class="paramname"><em>ev</em></td><td>)</td>
@@ -357,15 +361,16 @@ Public 成员函数</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>返回</dt><dd>此操作永远返回 0 </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a31aeac342c62cf8f8262456d1b4972c4"></a>
+<a class="anchor" id="a1227f3a0cfeb5be138deba4e21fa42eb"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Trigger::off </td>
+          <td class="memname">Integer Trigger::off </td>
           <td>(</td>
           <td class="paramtype">Object&#160;</td>
           <td class="paramname"><em>map</em></td><td>)</td>
@@ -381,6 +386,7 @@ Public 成员函数</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>返回</dt><dd>返回成功取消的数量 </dd></dl>
 
 </div>
 </div>

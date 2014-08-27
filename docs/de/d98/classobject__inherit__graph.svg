@@ -834,65 +834,69 @@
 <!-- Node30 -->
 <g id="node30" class="node"><title>Node30</title>
 <g id="a_node30"><a xlink:href="../../db/d15/classRedis.html" target="_top" xlink:title="Redis 数据库客户端对象 ">
-<polygon fill="white" stroke="black" points="2817.88,-50.5 2817.88,-574.5 2907.54,-574.5 2907.54,-50.5 2817.88,-50.5"/>
-<text text-anchor="middle" x="2862.71" y="-562.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
-<polyline fill="none" stroke="black" points="2817.88,-556.5 2907.54,-556.5 "/>
-<text text-anchor="middle" x="2862.71" y="-544.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
-<polyline fill="none" stroke="black" points="2817.88,-538.5 2907.54,-538.5 "/>
-<text text-anchor="start" x="2825.88" y="-526.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
-<text text-anchor="start" x="2825.88" y="-516.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ set()</text>
-<text text-anchor="start" x="2825.88" y="-506.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setNX()</text>
-<text text-anchor="start" x="2825.88" y="-496.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setXX()</text>
-<text text-anchor="start" x="2825.88" y="-486.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
-<text text-anchor="start" x="2825.88" y="-476.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
-<text text-anchor="start" x="2825.88" y="-466.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
-<text text-anchor="start" x="2825.88" y="-456.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
-<text text-anchor="start" x="2825.88" y="-446.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ append()</text>
-<text text-anchor="start" x="2825.88" y="-436.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setRange()</text>
-<text text-anchor="start" x="2825.88" y="-426.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getRange()</text>
-<text text-anchor="start" x="2825.88" y="-416.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ strlen()</text>
-<text text-anchor="start" x="2825.88" y="-406.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ bitcount()</text>
-<text text-anchor="start" x="2825.88" y="-396.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
-<text text-anchor="start" x="2825.88" y="-386.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
-<text text-anchor="start" x="2825.88" y="-376.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
-<text text-anchor="start" x="2825.88" y="-366.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getset()</text>
-<text text-anchor="start" x="2825.88" y="-356.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ decr()</text>
-<text text-anchor="start" x="2825.88" y="-346.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ incr()</text>
-<text text-anchor="start" x="2825.88" y="-336.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setBit()</text>
-<text text-anchor="start" x="2825.88" y="-326.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getBit()</text>
-<text text-anchor="start" x="2825.88" y="-316.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exists()</text>
-<text text-anchor="start" x="2825.88" y="-306.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ type()</text>
-<text text-anchor="start" x="2825.88" y="-296.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keys()</text>
-<text text-anchor="start" x="2825.88" y="-286.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
-<text text-anchor="start" x="2825.88" y="-276.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
-<text text-anchor="start" x="2825.88" y="-266.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ expire()</text>
-<text text-anchor="start" x="2825.88" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ttl()</text>
-<text text-anchor="start" x="2825.88" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ persist()</text>
-<text text-anchor="start" x="2825.88" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rename()</text>
-<text text-anchor="start" x="2825.88" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ renameNX()</text>
-<text text-anchor="start" x="2825.88" y="-216.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sub()</text>
-<text text-anchor="start" x="2825.88" y="-206.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sub()</text>
+<polygon fill="white" stroke="black" points="2817.88,-30.5 2817.88,-594.5 2907.54,-594.5 2907.54,-30.5 2817.88,-30.5"/>
+<text text-anchor="middle" x="2862.71" y="-582.5" font-family="Helvetica,sans-Serif" font-size="10.00">Redis</text>
+<polyline fill="none" stroke="black" points="2817.88,-576.5 2907.54,-576.5 "/>
+<text text-anchor="middle" x="2862.71" y="-564.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
+<polyline fill="none" stroke="black" points="2817.88,-558.5 2907.54,-558.5 "/>
+<text text-anchor="start" x="2825.88" y="-546.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ command()</text>
+<text text-anchor="start" x="2825.88" y="-536.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ set()</text>
+<text text-anchor="start" x="2825.88" y="-526.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setNX()</text>
+<text text-anchor="start" x="2825.88" y="-516.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setXX()</text>
+<text text-anchor="start" x="2825.88" y="-506.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
+<text text-anchor="start" x="2825.88" y="-496.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mset()</text>
+<text text-anchor="start" x="2825.88" y="-486.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
+<text text-anchor="start" x="2825.88" y="-476.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ msetNX()</text>
+<text text-anchor="start" x="2825.88" y="-466.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ append()</text>
+<text text-anchor="start" x="2825.88" y="-456.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setRange()</text>
+<text text-anchor="start" x="2825.88" y="-446.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getRange()</text>
+<text text-anchor="start" x="2825.88" y="-436.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ strlen()</text>
+<text text-anchor="start" x="2825.88" y="-426.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ bitcount()</text>
+<text text-anchor="start" x="2825.88" y="-416.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get()</text>
+<text text-anchor="start" x="2825.88" y="-406.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
+<text text-anchor="start" x="2825.88" y="-396.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mget()</text>
+<text text-anchor="start" x="2825.88" y="-386.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getset()</text>
+<text text-anchor="start" x="2825.88" y="-376.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ decr()</text>
+<text text-anchor="start" x="2825.88" y="-366.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ incr()</text>
+<text text-anchor="start" x="2825.88" y="-356.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ setBit()</text>
+<text text-anchor="start" x="2825.88" y="-346.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getBit()</text>
+<text text-anchor="start" x="2825.88" y="-336.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ exists()</text>
+<text text-anchor="start" x="2825.88" y="-326.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ type()</text>
+<text text-anchor="start" x="2825.88" y="-316.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ keys()</text>
+<text text-anchor="start" x="2825.88" y="-306.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2825.88" y="-296.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ del()</text>
+<text text-anchor="start" x="2825.88" y="-286.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ expire()</text>
+<text text-anchor="start" x="2825.88" y="-276.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ttl()</text>
+<text text-anchor="start" x="2825.88" y="-266.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ persist()</text>
+<text text-anchor="start" x="2825.88" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ rename()</text>
+<text text-anchor="start" x="2825.88" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ renameNX()</text>
+<text text-anchor="start" x="2825.88" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sub()</text>
+<text text-anchor="start" x="2825.88" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sub()</text>
+<text text-anchor="start" x="2825.88" y="-216.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unsub()</text>
+<text text-anchor="start" x="2825.88" y="-206.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unsub()</text>
 <text text-anchor="start" x="2825.88" y="-196.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unsub()</text>
 <text text-anchor="start" x="2825.88" y="-186.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unsub()</text>
 <text text-anchor="start" x="2825.88" y="-176.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ psub()</text>
 <text text-anchor="start" x="2825.88" y="-166.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ psub()</text>
 <text text-anchor="start" x="2825.88" y="-156.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unpsub()</text>
 <text text-anchor="start" x="2825.88" y="-146.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unpsub()</text>
-<text text-anchor="start" x="2825.88" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ onsuberror()</text>
-<text text-anchor="start" x="2825.88" y="-126.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ pub()</text>
-<text text-anchor="start" x="2825.88" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getHash()</text>
-<text text-anchor="start" x="2825.88" y="-106.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getList()</text>
-<text text-anchor="start" x="2825.88" y="-96.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSet()</text>
-<text text-anchor="start" x="2825.88" y="-86.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSortedSet()</text>
-<text text-anchor="start" x="2825.88" y="-76.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dump()</text>
-<text text-anchor="start" x="2825.88" y="-66.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ restore()</text>
-<text text-anchor="start" x="2825.88" y="-56.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
+<text text-anchor="start" x="2825.88" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unpsub()</text>
+<text text-anchor="start" x="2825.88" y="-126.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ unpsub()</text>
+<text text-anchor="start" x="2825.88" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ onsuberror()</text>
+<text text-anchor="start" x="2825.88" y="-106.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ pub()</text>
+<text text-anchor="start" x="2825.88" y="-96.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getHash()</text>
+<text text-anchor="start" x="2825.88" y="-86.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getList()</text>
+<text text-anchor="start" x="2825.88" y="-76.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSet()</text>
+<text text-anchor="start" x="2825.88" y="-66.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ getSortedSet()</text>
+<text text-anchor="start" x="2825.88" y="-56.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dump()</text>
+<text text-anchor="start" x="2825.88" y="-46.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ restore()</text>
+<text text-anchor="start" x="2825.88" y="-36.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ close()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node30 -->
 <g id="edge29" class="edge"><title>Node1&#45;&gt;Node30</title>
-<path fill="none" stroke="midnightblue" d="M2484.19,-699.343C2571.64,-692.073 2764.22,-671.113 2808.71,-625 2823,-610.187 2834.26,-593.03 2843.08,-574.533"/>
+<path fill="none" stroke="midnightblue" d="M2484.19,-699.343C2571.64,-692.073 2764.22,-671.113 2808.71,-625 2817.67,-615.717 2825.43,-605.514 2832.15,-594.637"/>
 <polygon fill="none" stroke="midnightblue" points="2483.75,-695.867 2474.07,-700.162 2484.32,-702.844 2483.75,-695.867"/>
 </g>
 <!-- Node31 -->
@@ -1224,7 +1228,7 @@
 </g>
 <!-- Node44 -->
 <g id="node44" class="node"><title>Node44</title>
-<g id="a_node44"><a xlink:href="../../d7/d1d/classTrigger.html" target="_top" xlink:title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 ">
+<g id="a_node44"><a xlink:href="../../d7/d1d/classTrigger.html" target="_top" xlink:title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，同一事件的同一函数只会产生一次回调 ...">
 <polygon fill="white" stroke="black" points="4179.5,-245.5 4179.5,-379.5 4241.92,-379.5 4241.92,-245.5 4179.5,-245.5"/>
 <text text-anchor="middle" x="4210.71" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">Trigger</text>
 <polyline fill="none" stroke="black" points="4179.5,-361.5 4241.92,-361.5 "/>

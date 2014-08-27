@@ -565,7 +565,7 @@
 </g>
 <!-- Node67 -->
 <g id="node67" class="node"><title>Node67</title>
-<g id="a_node67"><a xlink:href="d7/d1d/classTrigger.html" target="_top" xlink:title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 ">
+<g id="a_node67"><a xlink:href="d7/d1d/classTrigger.html" target="_top" xlink:title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，同一事件的同一函数只会产生一次回调 ...">
 <polygon fill="white" stroke="black" points="100.274,-185.5 100.274,-203.5 147.583,-203.5 147.583,-185.5 100.274,-185.5"/>
 <text text-anchor="middle" x="123.928" y="-191.5" font-family="Helvetica,sans-Serif" font-size="10.00">Trigger</text>
 </a>

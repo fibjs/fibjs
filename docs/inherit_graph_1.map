@@ -42,7 +42,7 @@
 <area shape="rect" id="node58" href="$dc/de8/classStream.html" title="流操作对象，用于二进制数据流读写 " alt="" coords="138,1929,203,1955"/>
 <area shape="rect" id="node65" href="$de/df9/classTcpServer.html" title="tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器 " alt="" coords="130,1979,211,2004"/>
 <area shape="rect" id="node66" href="$df/d0e/classTextColor.html" title="终端输出颜色配置对象 " alt="" coords="132,2028,209,2053"/>
-<area shape="rect" id="node67" href="$d7/d1d/classTrigger.html" title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此 " alt="" coords="139,2077,202,2103"/>
+<area shape="rect" id="node67" href="$d7/d1d/classTrigger.html" title="事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，同一事件的同一函数只会产生一次回调 ..." alt="" coords="139,2077,202,2103"/>
 <area shape="rect" id="node68" href="$df/d6b/classUrl.html" title="Url 处理对象 " alt="" coords="151,2127,190,2152"/>
 <area shape="rect" id="node69" href="$d1/dd4/classuuidValue.html" title="uuid 对象 " alt="" coords="131,2176,210,2201"/>
 <area shape="rect" id="node70" href="$d1/d66/classX509Cert.html" title="x509 证书对象 " alt="" coords="132,2225,209,2251"/>

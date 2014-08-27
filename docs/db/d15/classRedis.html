@@ -115,8 +115,7 @@ $(document).ready(function(){initNavTree('db/d15/classRedis.html','../../');});
 <div class="dynheader">
 类 Redis 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="131" height="872"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
-</div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d2/d0d/classRedis__inherit__graph.svg" width="131" height="926"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -215,29 +214,41 @@ Public 成员函数</h2></td></tr>
 <tr class="memdesc:a1c2531df8e027c7650295364a6eed5ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误  <a href="#a1c2531df8e027c7650295364a6eed5ec">更多...</a><br /></td></tr>
 <tr class="separator:a1c2531df8e027c7650295364a6eed5ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6e3358cb6d36a1d8dbc5e97d03a9254"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ae6e3358cb6d36a1d8dbc5e97d03a9254">sub</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> channel, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
-<tr class="memdesc:ae6e3358cb6d36a1d8dbc5e97d03a9254"><td class="mdescLeft">&#160;</td><td class="mdescRight">订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message  <a href="#ae6e3358cb6d36a1d8dbc5e97d03a9254">更多...</a><br /></td></tr>
+<tr class="memdesc:ae6e3358cb6d36a1d8dbc5e97d03a9254"><td class="mdescLeft">&#160;</td><td class="mdescRight">订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message，同一频道同一函数只会回调一次  <a href="#ae6e3358cb6d36a1d8dbc5e97d03a9254">更多...</a><br /></td></tr>
 <tr class="separator:ae6e3358cb6d36a1d8dbc5e97d03a9254"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af132093d5c027212f07c80ac7cda2a5f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#af132093d5c027212f07c80ac7cda2a5f">sub</a> (Object map)</td></tr>
-<tr class="memdesc:af132093d5c027212f07c80ac7cda2a5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数  <a href="#af132093d5c027212f07c80ac7cda2a5f">更多...</a><br /></td></tr>
+<tr class="memdesc:af132093d5c027212f07c80ac7cda2a5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数，同一频道同一函数只会回调一次  <a href="#af132093d5c027212f07c80ac7cda2a5f">更多...</a><br /></td></tr>
 <tr class="separator:af132093d5c027212f07c80ac7cda2a5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff9f809876d8447ca344e0845c7fbd88"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#aff9f809876d8447ca344e0845c7fbd88">unsub</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> channel)</td></tr>
-<tr class="memdesc:aff9f809876d8447ca344e0845c7fbd88"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订给定的频道  <a href="#aff9f809876d8447ca344e0845c7fbd88">更多...</a><br /></td></tr>
+<tr class="memdesc:aff9f809876d8447ca344e0845c7fbd88"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订给定的频道的全部回调  <a href="#aff9f809876d8447ca344e0845c7fbd88">更多...</a><br /></td></tr>
 <tr class="separator:aff9f809876d8447ca344e0845c7fbd88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c006aff561c91d3180790cc2b05b366"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a2c006aff561c91d3180790cc2b05b366">unsub</a> (<a class="el" href="../../d0/d11/classBuffer.html">Buffer</a> channel, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:a2c006aff561c91d3180790cc2b05b366"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订给定的频道的指定回调函数  <a href="#a2c006aff561c91d3180790cc2b05b366">更多...</a><br /></td></tr>
+<tr class="separator:a2c006aff561c91d3180790cc2b05b366"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae01fbf20c38001bba77ce6140f872d82"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ae01fbf20c38001bba77ce6140f872d82">unsub</a> (Array channels)</td></tr>
-<tr class="memdesc:ae01fbf20c38001bba77ce6140f872d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订一组给定的频道  <a href="#ae01fbf20c38001bba77ce6140f872d82">更多...</a><br /></td></tr>
+<tr class="memdesc:ae01fbf20c38001bba77ce6140f872d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订一组给定的频道的全部回调  <a href="#ae01fbf20c38001bba77ce6140f872d82">更多...</a><br /></td></tr>
 <tr class="separator:ae01fbf20c38001bba77ce6140f872d82"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a9e5c8ccd85257bc2e36e7ee4f16940"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a4a9e5c8ccd85257bc2e36e7ee4f16940">unsub</a> (Object map)</td></tr>
+<tr class="memdesc:a4a9e5c8ccd85257bc2e36e7ee4f16940"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订给定的一组频道的指定回调函数  <a href="#a4a9e5c8ccd85257bc2e36e7ee4f16940">更多...</a><br /></td></tr>
+<tr class="separator:a4a9e5c8ccd85257bc2e36e7ee4f16940"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a566a7ac5b0ddb180adf9e923e4fc1f70"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a566a7ac5b0ddb180adf9e923e4fc1f70">psub</a> (String pattern, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
-<tr class="memdesc:a566a7ac5b0ddb180adf9e923e4fc1f70"><td class="mdescLeft">&#160;</td><td class="mdescRight">按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern  <a href="#a566a7ac5b0ddb180adf9e923e4fc1f70">更多...</a><br /></td></tr>
+<tr class="memdesc:a566a7ac5b0ddb180adf9e923e4fc1f70"><td class="mdescLeft">&#160;</td><td class="mdescRight">按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern，同一模板同一函数只会回调一次  <a href="#a566a7ac5b0ddb180adf9e923e4fc1f70">更多...</a><br /></td></tr>
 <tr class="separator:a566a7ac5b0ddb180adf9e923e4fc1f70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ff4f50f05ac259f0deca3a8ba26e8f9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a1ff4f50f05ac259f0deca3a8ba26e8f9">psub</a> (Object map)</td></tr>
-<tr class="memdesc:a1ff4f50f05ac259f0deca3a8ba26e8f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func  <a href="#a1ff4f50f05ac259f0deca3a8ba26e8f9">更多...</a><br /></td></tr>
+<tr class="memdesc:a1ff4f50f05ac259f0deca3a8ba26e8f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func，同一频道同一函数只会回调一次  <a href="#a1ff4f50f05ac259f0deca3a8ba26e8f9">更多...</a><br /></td></tr>
 <tr class="separator:a1ff4f50f05ac259f0deca3a8ba26e8f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d26d2cea1bab8f765bb5b958784bc47"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a2d26d2cea1bab8f765bb5b958784bc47">unpsub</a> (String pattern)</td></tr>
-<tr class="memdesc:a2d26d2cea1bab8f765bb5b958784bc47"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订给定模板的频道  <a href="#a2d26d2cea1bab8f765bb5b958784bc47">更多...</a><br /></td></tr>
+<tr class="memdesc:a2d26d2cea1bab8f765bb5b958784bc47"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订给定模板的频道的全部回调  <a href="#a2d26d2cea1bab8f765bb5b958784bc47">更多...</a><br /></td></tr>
 <tr class="separator:a2d26d2cea1bab8f765bb5b958784bc47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab62ae6f27cac0685f76b32f17b512408"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#ab62ae6f27cac0685f76b32f17b512408">unpsub</a> (String pattern, <a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
+<tr class="memdesc:ab62ae6f27cac0685f76b32f17b512408"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订给定模板的频道的指定回调函数  <a href="#ab62ae6f27cac0685f76b32f17b512408">更多...</a><br /></td></tr>
+<tr class="separator:ab62ae6f27cac0685f76b32f17b512408"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38755960e0e8384b852e8bf3b9cb4ee7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a38755960e0e8384b852e8bf3b9cb4ee7">unpsub</a> (Array patterns)</td></tr>
-<tr class="memdesc:a38755960e0e8384b852e8bf3b9cb4ee7"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订一组给定模板的频道  <a href="#a38755960e0e8384b852e8bf3b9cb4ee7">更多...</a><br /></td></tr>
+<tr class="memdesc:a38755960e0e8384b852e8bf3b9cb4ee7"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订一组给定模板的频道的全部回调  <a href="#a38755960e0e8384b852e8bf3b9cb4ee7">更多...</a><br /></td></tr>
 <tr class="separator:a38755960e0e8384b852e8bf3b9cb4ee7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b98e8b7fccf5f1184efd27454d001e6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#a5b98e8b7fccf5f1184efd27454d001e6">unpsub</a> (Object map)</td></tr>
+<tr class="memdesc:a5b98e8b7fccf5f1184efd27454d001e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">退订一组模板的频道的指定回调函数  <a href="#a5b98e8b7fccf5f1184efd27454d001e6">更多...</a><br /></td></tr>
+<tr class="separator:a5b98e8b7fccf5f1184efd27454d001e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af96772db675918003d9974601a3d7df7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d15/classRedis.html#af96772db675918003d9974601a3d7df7">onsuberror</a> (<a class="el" href="../../de/d65/classFunction.html">Function</a> func)</td></tr>
 <tr class="memdesc:af96772db675918003d9974601a3d7df7"><td class="mdescLeft">&#160;</td><td class="mdescRight">注册一个错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止  <a href="#af96772db675918003d9974601a3d7df7">更多...</a><br /></td></tr>
 <tr class="separator:af96772db675918003d9974601a3d7df7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1299,7 +1310,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message </p>
+<p>订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message，同一频道同一函数只会回调一次 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">channel</td><td>指定订阅的频道名称 </td></tr>
@@ -1324,7 +1335,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数 </p>
+<p>订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数，同一频道同一函数只会回调一次 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">map</td><td>指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数 </td></tr>
@@ -1348,10 +1359,45 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>退订给定的频道 </p>
+<p>退订给定的频道的全部回调 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">channel</td><td>指定退订的频道名称 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a2c006aff561c91d3180790cc2b05b366"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::unsub </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d0/d11/classBuffer.html">Buffer</a>&#160;</td>
+          <td class="paramname"><em>channel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../de/d65/classFunction.html">Function</a>&#160;</td>
+          <td class="paramname"><em>func</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>退订给定的频道的指定回调函数 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">channel</td><td>指定退订的频道名称 </td></tr>
+    <tr><td class="paramname">func</td><td>指定退订的回调函数 </td></tr>
   </table>
   </dd>
 </dl>
@@ -1372,10 +1418,34 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>退订一组给定的频道 </p>
+<p>退订一组给定的频道的全部回调 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">channels</td><td>指定退订的频道数组 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a4a9e5c8ccd85257bc2e36e7ee4f16940"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::unsub </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>map</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>退订给定的一组频道的指定回调函数 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">map</td><td>指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数 </td></tr>
   </table>
   </dd>
 </dl>
@@ -1406,7 +1476,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern </p>
+<p>按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern，同一模板同一函数只会回调一次 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">pattern</td><td>指定订阅的频道模板 </td></tr>
@@ -1431,7 +1501,7 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func </p>
+<p>订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func，同一频道同一函数只会回调一次 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">map</td><td>指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数 </td></tr>
@@ -1455,10 +1525,45 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>退订给定模板的频道 </p>
+<p>退订给定模板的频道的全部回调 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">pattern</td><td>指定退订的频道模板 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ab62ae6f27cac0685f76b32f17b512408"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::unpsub </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>pattern</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../de/d65/classFunction.html">Function</a>&#160;</td>
+          <td class="paramname"><em>func</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>退订给定模板的频道的指定回调函数 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pattern</td><td>指定退订的频道模板 </td></tr>
+    <tr><td class="paramname">func</td><td>指定退订的回调函数 </td></tr>
   </table>
   </dd>
 </dl>
@@ -1479,10 +1584,34 @@ Public 成员函数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>退订一组给定模板的频道 </p>
+<p>退订一组给定模板的频道的全部回调 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">patterns</td><td>指定发布的频道模板数组 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a5b98e8b7fccf5f1184efd27454d001e6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Redis::unpsub </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>map</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>退订一组模板的频道的指定回调函数 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">map</td><td>指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数 </td></tr>
   </table>
   </dd>
 </dl>
