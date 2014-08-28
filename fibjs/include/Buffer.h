@@ -63,9 +63,7 @@ public:
     virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert);
     virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert);
     virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert);
     virtual result_t writeInt64LE(Int64_base *value, int32_t offset, bool noAssert);
-    virtual result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
     virtual result_t writeInt64BE(Int64_base *value, int32_t offset, bool noAssert);
     virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert);
     virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert);
@@ -85,6 +83,9 @@ private:
 
     result_t readInt64LE(int32_t offset, bool noAssert, int64_t &retVal);
     result_t readInt64BE(int32_t offset, bool noAssert, int64_t &retVal);
+
+    result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert);
+    result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
 
 private:
     std::string m_data;

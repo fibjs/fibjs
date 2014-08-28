@@ -22,28 +22,21 @@ class Int64_base : public object_base
 public:
 	// Int64_base
 	static result_t _new(int64_t num, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	static result_t _new(Int64_base* num, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(int64_t hi, int64_t lo, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* num, int32_t base, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(Int64_base* num, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_hi(int64_t& retVal) = 0;
 	virtual result_t set_hi(int64_t newVal) = 0;
 	virtual result_t get_lo(int64_t& retVal) = 0;
 	virtual result_t set_lo(int64_t newVal) = 0;
-	virtual result_t equal(int64_t num, bool& retVal) = 0;
 	virtual result_t equal(Int64_base* num, bool& retVal) = 0;
-	virtual result_t compare(int64_t num, int32_t& retVal) = 0;
 	virtual result_t compare(Int64_base* num, int32_t& retVal) = 0;
 	virtual result_t shiftLeft(int32_t bits, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t shiftRight(int32_t bits, obj_ptr<Int64_base>& retVal) = 0;
-	virtual result_t _and(int64_t num, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t _and(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
-	virtual result_t _or(int64_t num, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t _or(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
-	virtual result_t _xor(int64_t num, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t _xor(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
-	virtual result_t add(int64_t num, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t add(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
-	virtual result_t sub(int64_t num, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t sub(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t toNumber(double& retVal) = 0;
 	virtual result_t toString(int32_t base, std::string& retVal) = 0;
@@ -173,12 +166,6 @@ namespace fibjs
 
 		hr = _new(v0, vr, args.This());
 
-		METHOD_OVER(1, 1);
-
-		ARG(obj_ptr<Int64_base>, 0);
-
-		hr = _new(v0, vr, args.This());
-
 		METHOD_OVER(2, 2);
 
 		ARG(int64_t, 0);
@@ -193,6 +180,12 @@ namespace fibjs
 
 		hr = _new(v0, v1, vr, args.This());
 
+		METHOD_OVER(1, 1);
+
+		ARG(obj_ptr<Int64_base>, 0);
+
+		hr = _new(v0, vr, args.This());
+
 		CONSTRUCT_RETURN();
 	}
 
@@ -202,12 +195,6 @@ namespace fibjs
 
 		METHOD_INSTANCE(Int64_base);
 		METHOD_ENTER(1, 1);
-
-		ARG(int64_t, 0);
-
-		hr = pInst->equal(v0, vr);
-
-		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Int64_base>, 0);
 
@@ -222,12 +209,6 @@ namespace fibjs
 
 		METHOD_INSTANCE(Int64_base);
 		METHOD_ENTER(1, 1);
-
-		ARG(int64_t, 0);
-
-		hr = pInst->compare(v0, vr);
-
-		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Int64_base>, 0);
 
@@ -271,12 +252,6 @@ namespace fibjs
 		METHOD_INSTANCE(Int64_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(int64_t, 0);
-
-		hr = pInst->_and(v0, vr);
-
-		METHOD_OVER(1, 1);
-
 		ARG(obj_ptr<Int64_base>, 0);
 
 		hr = pInst->_and(v0, vr);
@@ -290,12 +265,6 @@ namespace fibjs
 
 		METHOD_INSTANCE(Int64_base);
 		METHOD_ENTER(1, 1);
-
-		ARG(int64_t, 0);
-
-		hr = pInst->_or(v0, vr);
-
-		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Int64_base>, 0);
 
@@ -311,12 +280,6 @@ namespace fibjs
 		METHOD_INSTANCE(Int64_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(int64_t, 0);
-
-		hr = pInst->_xor(v0, vr);
-
-		METHOD_OVER(1, 1);
-
 		ARG(obj_ptr<Int64_base>, 0);
 
 		hr = pInst->_xor(v0, vr);
@@ -331,12 +294,6 @@ namespace fibjs
 		METHOD_INSTANCE(Int64_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(int64_t, 0);
-
-		hr = pInst->add(v0, vr);
-
-		METHOD_OVER(1, 1);
-
 		ARG(obj_ptr<Int64_base>, 0);
 
 		hr = pInst->add(v0, vr);
@@ -350,12 +307,6 @@ namespace fibjs
 
 		METHOD_INSTANCE(Int64_base);
 		METHOD_ENTER(1, 1);
-
-		ARG(int64_t, 0);
-
-		hr = pInst->sub(v0, vr);
-
-		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Int64_base>, 0);
 

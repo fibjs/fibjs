@@ -69,31 +69,22 @@ result_t Int64::set_lo(int64_t newVal)
     return 0;
 }
 
-result_t Int64::equal(int64_t num, bool &retVal)
-{
-    retVal = m_num == num;
-    return 0;
-}
-
 result_t Int64::equal(Int64_base *num, bool &retVal)
 {
-    return equal(((Int64 *)num)->m_num, retVal);
-}
-
-result_t Int64::compare(int64_t num, int32_t &retVal)
-{
-    if (m_num > num)
-        retVal = 1;
-    else if (m_num < num)
-        retVal = -1;
-    else retVal = 0;
-
+    retVal = m_num == ((Int64 *)num)->m_num;
     return 0;
 }
 
 result_t Int64::compare(Int64_base *num, int32_t &retVal)
 {
-    return compare(((Int64 *)num)->m_num, retVal);
+    int64_t num1 = ((Int64 *)num)->m_num;
+    if (m_num > num1)
+        retVal = 1;
+    else if (m_num < num1)
+        retVal = -1;
+    else retVal = 0;
+
+    return 0;
 }
 
 result_t Int64::shiftLeft(int32_t bits, obj_ptr<Int64_base> &retVal)
@@ -108,59 +99,34 @@ result_t Int64::shiftRight(int32_t bits, obj_ptr<Int64_base> &retVal)
     return 0;
 }
 
-result_t Int64::_and(int64_t num, obj_ptr<Int64_base> &retVal)
-{
-    retVal = new Int64(m_num & num);
-    return 0;
-}
-
 result_t Int64::_and(Int64_base *num, obj_ptr<Int64_base> &retVal)
 {
-    return _and(((Int64 *)num)->m_num, retVal);
-}
-
-result_t Int64::_or(int64_t num, obj_ptr<Int64_base> &retVal)
-{
-    retVal = new Int64(m_num | num);
+    retVal = new Int64(m_num & ((Int64 *)num)->m_num);
     return 0;
 }
 
 result_t Int64::_or(Int64_base *num, obj_ptr<Int64_base> &retVal)
 {
-    return _or(((Int64 *)num)->m_num, retVal);
-}
-
-result_t Int64::_xor(int64_t num, obj_ptr<Int64_base> &retVal)
-{
-    retVal = new Int64(m_num ^ num);
+    retVal = new Int64(m_num | ((Int64 *)num)->m_num);
     return 0;
 }
 
 result_t Int64::_xor(Int64_base *num, obj_ptr<Int64_base> &retVal)
 {
-    return _xor(((Int64 *)num)->m_num, retVal);
-}
-
-result_t Int64::add(int64_t num, obj_ptr<Int64_base> &retVal)
-{
-    retVal = new Int64(m_num + num);
+    retVal = new Int64(m_num ^ ((Int64 *)num)->m_num);
     return 0;
 }
 
 result_t Int64::add(Int64_base *num, obj_ptr<Int64_base> &retVal)
 {
-    return add(((Int64 *)num)->m_num, retVal);
-}
-
-result_t Int64::sub(int64_t num, obj_ptr<Int64_base> &retVal)
-{
-    retVal = new Int64(m_num - num);
+    retVal = new Int64(m_num + ((Int64 *)num)->m_num);
     return 0;
 }
 
 result_t Int64::sub(Int64_base *num, obj_ptr<Int64_base> &retVal)
 {
-    return sub(((Int64 *)num)->m_num, retVal);
+    retVal = new Int64(m_num - ((Int64 *)num)->m_num);
+    return 0;
 }
 
 result_t Int64::fromString(const char *numStr, int32_t base)

@@ -60,9 +60,7 @@ public:
 	virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert) = 0;
-	virtual result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeInt64LE(Int64_base* value, int32_t offset, bool noAssert) = 0;
-	virtual result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeInt64BE(Int64_base* value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert) = 0;
 	virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert) = 0;
@@ -691,14 +689,6 @@ namespace fibjs
 		METHOD_INSTANCE(Buffer_base);
 		METHOD_ENTER(3, 2);
 
-		ARG(int64_t, 0);
-		ARG(int32_t, 1);
-		OPT_ARG(bool, 2, false);
-
-		hr = pInst->writeInt64LE(v0, v1, v2);
-
-		METHOD_OVER(3, 2);
-
 		ARG(obj_ptr<Int64_base>, 0);
 		ARG(int32_t, 1);
 		OPT_ARG(bool, 2, false);
@@ -712,14 +702,6 @@ namespace fibjs
 	{
 		METHOD_INSTANCE(Buffer_base);
 		METHOD_ENTER(3, 2);
-
-		ARG(int64_t, 0);
-		ARG(int32_t, 1);
-		OPT_ARG(bool, 2, false);
-
-		hr = pInst->writeInt64BE(v0, v1, v2);
-
-		METHOD_OVER(3, 2);
 
 		ARG(obj_ptr<Int64_base>, 0);
 		ARG(int32_t, 1);

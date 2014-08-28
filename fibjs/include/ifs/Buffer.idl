@@ -243,21 +243,7 @@ class Buffer : object
      @param offset 指定写入的起始位置
      @param noAssert 指定写入越界时不抛出错误，缺省为 flase，抛出
      */
-    writeInt64LE(Long value, Integer offset, Boolean noAssert = false);
-
-    /*! @brief 向缓存对象写入一个 64 位整型数值，以低字节序的存储方式
-     @param value 指定写入的数值
-     @param offset 指定写入的起始位置
-     @param noAssert 指定写入越界时不抛出错误，缺省为 flase，抛出
-     */
     writeInt64LE(Int64 value, Integer offset, Boolean noAssert = false);
-
-    /*! @brief 向缓存对象写入一个 64 位整型数值，以高字节序的存储方式
-     @param value 指定写入的数值
-     @param offset 指定写入的起始位置
-     @param noAssert 指定写入越界时不抛出错误，缺省为 flase，抛出
-     */
-    writeInt64BE(Long value, Integer offset, Boolean noAssert = false);
 
     /*! @brief 向缓存对象写入一个 64 位整型数值，以高字节序的存储方式
      @param value 指定写入的数值

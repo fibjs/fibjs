@@ -13,11 +13,6 @@ class Int64: object
     Int64(Long num = 0);
 
     /*! @brief Int64 构造函数
-     @param num 初始化的值
-    */
-    Int64(Int64 num);
-
-    /*! @brief Int64 构造函数
      @param hi 高32位数
      @param lo 低32位数
     */
@@ -29,6 +24,11 @@ class Int64: object
     */
     Int64(String num, Integer base = 10);
 
+    /*! @brief Int64 构造函数
+     @param num 初始化的值
+    */
+    Int64(Int64 num);
+
     /*! @brief 高 32 位数值 */
     Long hi;
 
@@ -39,19 +39,7 @@ class Int64: object
      @param num 指定判断的数值
      @return 相等则返回 true
     */
-    Boolean equal(Long num);
-
-    /*! @brief 判断 Int64 内的数值是否与给定数值相等
-     @param num 指定判断的数值
-     @return 相等则返回 true
-    */
     Boolean equal(Int64 num);
-
-    /*! @brief 将 Int64 内的数值与给定数值比较大小
-     @param num 指定比较的数值
-     @return 返回 1 表示 Int64 内的数值比指定数值更大，0 表示相等，-1 表示更小
-    */
-    Integer compare(Long num);
 
     /*! @brief 将 Int64 内的数值与给定数值比较大小
      @param num 指定比较的数值
@@ -75,31 +63,13 @@ class Int64: object
      @param num 指定运算的数值
      @return 返回包含预算以后数值的对象
     */
-    Int64 and(Long num);
-
-    /*! @brief 将 Int64 内的数值与给定的数值进行按位 and 操作，此操作不影响 Int64 原有数值
-     @param num 指定运算的数值
-     @return 返回包含预算以后数值的对象
-    */
-    Int64 and(Int64 num);
+    Int64 and (Int64 num);
 
     /*! @brief 将 Int64 内的数值与给定的数值进行按位 or 操作，此操作不影响 Int64 原有数值
      @param num 指定运算的数值
      @return 返回包含预算以后数值的对象
     */
-    Int64 or(Long num);
-
-    /*! @brief 将 Int64 内的数值与给定的数值进行按位 or 操作，此操作不影响 Int64 原有数值
-     @param num 指定运算的数值
-     @return 返回包含预算以后数值的对象
-    */
-    Int64 or(Int64 num);
-
-    /*! @brief 将 Int64 内的数值与给定的数值进行按位 xor 操作，此操作不影响 Int64 原有数值
-     @param num 指定运算的数值
-     @return 返回包含预算以后数值的对象
-    */
-    Int64 xor(Long num);
+    Int64 or (Int64 num);
 
     /*! @brief 将 Int64 内的数值与给定的数值进行按位 xor 操作，此操作不影响 Int64 原有数值
      @param num 指定运算的数值
@@ -111,19 +81,7 @@ class Int64: object
      @param num 指定运算的数值
      @return 返回包含预算以后数值的对象
     */
-    Int64 add(Long num);
-
-    /*! @brief 将 Int64 内的数值与给定的数值进行加操作，此操作不影响 Int64 原有数值
-     @param num 指定运算的数值
-     @return 返回包含预算以后数值的对象
-    */
     Int64 add(Int64 num);
-
-    /*! @brief 将 Int64 内的数值与给定的数值进行减操作，此操作不影响 Int64 原有数值
-     @param num 指定运算的数值
-     @return 返回包含预算以后数值的对象
-    */
-    Int64 sub(Long num);
 
     /*! @brief 将 Int64 内的数值与给定的数值进行减操作，此操作不影响 Int64 原有数值
      @param num 指定运算的数值
