@@ -72,6 +72,10 @@ public:
 	DECLARE_CLASSINFO(console_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ALERT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_CRIT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

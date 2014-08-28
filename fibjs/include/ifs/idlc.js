@@ -302,12 +302,11 @@ function parserIDL(fname) {
 
 		txt.push("	DECLARE_CLASSINFO(" + ns + "_base);\n")
 
-		/*
-		 * if (tjfs.length) { txt .push(" virtual result_t toJSON(const char*
-		 * key, v8::Local<v8::Object>& retVal)\n {\n result_t hr = " +
-		 * baseClass + "_base::toJSON(key, retVal);\n if(hr < 0)return hr;\n");
-		 * txt.push(tjfs.join("\n")); txt.push("\n return 0;\n }\n"); }
-		 */
+		if (hasNew)
+			txt.push("public:\n	template<typename T>\n	static void __new(const T &args);\n");
+		else
+			txt.push("public:\n	template<typename T>\n	static void __new(const T &args){}\n");
+
 		txt.push("public:");
 		txt.push(iffs.join("\n"));
 
@@ -616,6 +615,11 @@ function parserIDL(fname) {
 				iffs.push("	static void s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args);");
 
 				fnStr = "	inline void " + ns + "_base::s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args)\n	{\n";
+
+				if (fname === "_new") {
+					fnStr += "		CONSTRUCT_INIT();\n		__new(args);\n	}\n\n";
+					fnStr += "	template<typename T>void " + ns + "_base::__new(const T& args)\n	{\n";
+				}
 
 				if (ftype != "")
 					fnStr += "		" + map_type(ftype) + " vr;\n\n";

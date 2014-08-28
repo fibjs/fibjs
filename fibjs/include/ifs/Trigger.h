@@ -34,6 +34,10 @@ public:
 	DECLARE_CLASSINFO(Trigger_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args);
+
+public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_on(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_once(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -68,6 +72,12 @@ namespace fibjs
 
 
 	inline void Trigger_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		CONSTRUCT_INIT();
+		__new(args);
+	}
+
+	template<typename T>void Trigger_base::__new(const T& args)
 	{
 		obj_ptr<Trigger_base> vr;
 

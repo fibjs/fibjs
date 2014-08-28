@@ -38,6 +38,10 @@ public:
 	DECLARE_CLASSINFO(Smtp_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args);
+
+public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_command(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,6 +114,12 @@ namespace fibjs
 	}
 
 	inline void Smtp_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		CONSTRUCT_INIT();
+		__new(args);
+	}
+
+	template<typename T>void Smtp_base::__new(const T& args)
 	{
 		obj_ptr<Smtp_base> vr;
 

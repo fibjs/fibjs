@@ -28,6 +28,10 @@ public:
 	DECLARE_CLASSINFO(Handler_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:

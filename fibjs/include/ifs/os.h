@@ -44,6 +44,10 @@ public:
 	DECLARE_CLASSINFO(os_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

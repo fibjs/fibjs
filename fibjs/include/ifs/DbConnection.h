@@ -34,6 +34,10 @@ public:
 	DECLARE_CLASSINFO(DbConnection_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);

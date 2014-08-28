@@ -22,6 +22,10 @@ class MongoID_base : public object_base
 	DECLARE_CLASSINFO(MongoID_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 
 };
 

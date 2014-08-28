@@ -30,6 +30,10 @@ public:
 	DECLARE_CLASSINFO(re_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 

@@ -34,6 +34,10 @@ public:
 	DECLARE_CLASSINFO(Stats_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args);
+
+public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_inc(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_dec(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -104,6 +108,12 @@ namespace fibjs
 	}
 
 	inline void Stats_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		CONSTRUCT_INIT();
+		__new(args);
+	}
+
+	template<typename T>void Stats_base::__new(const T& args)
 	{
 		obj_ptr<Stats_base> vr;
 

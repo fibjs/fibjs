@@ -90,6 +90,10 @@ public:
 	DECLARE_CLASSINFO(Image_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

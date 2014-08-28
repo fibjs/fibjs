@@ -36,6 +36,10 @@ public:
 	DECLARE_CLASSINFO(process_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);

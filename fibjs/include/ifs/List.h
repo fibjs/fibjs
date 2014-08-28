@@ -40,6 +40,10 @@ public:
 	DECLARE_CLASSINFO(List_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args);
+
+public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -133,6 +137,12 @@ namespace fibjs
 	}
 
 	inline void List_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		CONSTRUCT_INIT();
+		__new(args);
+	}
+
+	template<typename T>void List_base::__new(const T& args)
 	{
 		obj_ptr<List_base> vr;
 

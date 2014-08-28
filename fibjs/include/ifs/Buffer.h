@@ -77,6 +77,10 @@ public:
 	DECLARE_CLASSINFO(Buffer_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args);
+
+public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -228,6 +232,12 @@ namespace fibjs
 	}
 
 	inline void Buffer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		CONSTRUCT_INIT();
+		__new(args);
+	}
+
+	template<typename T>void Buffer_base::__new(const T& args)
 	{
 		obj_ptr<Buffer_base> vr;
 

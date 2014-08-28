@@ -33,6 +33,10 @@ public:
 	DECLARE_CLASSINFO(MySQL_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_use(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_rxBufferSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_rxBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);

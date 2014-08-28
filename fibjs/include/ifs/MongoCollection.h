@@ -47,6 +47,10 @@ public:
 	DECLARE_CLASSINFO(MongoCollection_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_findOne(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_findAndModify(const v8::FunctionCallbackInfo<v8::Value>& args);

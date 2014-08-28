@@ -36,25 +36,6 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas,
     return retVal->write(datas);
 }
 
-result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<Buffer_base> &vr, bool bStrict)
-{
-    vr = Buffer_base::getInstance(v);
-    if (vr == NULL)
-    {
-        if (bStrict)
-            return CALL_E_INVALIDARG;
-
-        std::string str;
-        result_t hr = GetArgumentValue(v, str);
-        if (hr < 0)
-            return hr;
-
-        vr = new Buffer(str);
-    }
-
-    return 0;
-}
-
 result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
 {
     if (index >= m_data.length())

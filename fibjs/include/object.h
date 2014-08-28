@@ -252,6 +252,10 @@ private:
     }
 
 public:
+    template<typename T>
+    static void __new(const T &args) {}
+
+public:
     // object_base
     virtual result_t dispose()
     {

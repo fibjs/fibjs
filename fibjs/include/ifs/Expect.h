@@ -63,6 +63,10 @@ public:
 	DECLARE_CLASSINFO(Expect_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_get_to(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_be(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_been(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

@@ -41,6 +41,10 @@ public:
 	DECLARE_CLASSINFO(HttpHandler_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args);
+
+public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -212,6 +216,12 @@ namespace fibjs
 	}
 
 	inline void HttpHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		CONSTRUCT_INIT();
+		__new(args);
+	}
+
+	template<typename T>void HttpHandler_base::__new(const T& args)
 	{
 		obj_ptr<HttpHandler_base> vr;
 

@@ -175,24 +175,27 @@ typedef int result_t;
 
 #define PROPERTY_ENTER() \
     V8_SCOPE(); \
-    result_t hr = 0;bool bStrict=false;do{do{
+    result_t hr = 0; \
+    bool bStrict=false;do{do{
 
 #define METHOD_OVER(c, o) \
     }while(0); \
     if(hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)do{hr = 0;\
-            int argc; \
-            argc = args.Length(); \
             if((c) >= 0 && argc > (c)){hr = CALL_E_BADPARAMCOUNT;break;} \
             if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
     V8_SCOPE(); \
-    result_t hr = CALL_E_BADPARAMCOUNT;bool bStrict=true;do{do{\
+    result_t hr = CALL_E_BADPARAMCOUNT; \
+    int argc = args.Length(); \
+    bool bStrict=true;do{do{\
             METHOD_OVER(c, o)
 
-#define CONSTRUCT_ENTER(c, o) \
+#define CONSTRUCT_INIT() \
     static bool s_bInit = false; \
-    if(!s_bInit){s_bInit = true; return;} \
+    if(!s_bInit){s_bInit = true; return;}
+
+#define CONSTRUCT_ENTER(c, o) \
     if (!args.IsConstructCall()){ThrowResult(CALL_E_CONSTRUCTOR); return;} \
     METHOD_ENTER(c, o)
 
@@ -236,7 +239,7 @@ typedef int result_t;
 
 #define CONSTRUCT_RETURN() \
     CHECK_ARGUMENT() \
-    if(hr >= 0){ vr->wrap(args.This()); return;} \
+    if(hr >= 0){ args.GetReturnValue().Set(vr->wrap(args.This())); return;} \
     THROW_ERROR()
 
 #define PROPERTY_VAL(t) \
@@ -447,15 +450,68 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, Variant &d, bool bStric
     return 0;
 }
 
-class Buffer_base;
-result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<Buffer_base> &vr, bool bStrict = false);
+class Value2Args
+{
+public:
+    Value2Args(v8::Local<v8::Value> &v, v8::Local<v8::Value> &vr) :
+        m_v(v), m_vr(vr)
+    {}
+
+    int32_t Length() const
+    {
+        return 1;
+    }
+
+    bool IsConstructCall() const
+    {
+        return true;
+    }
+
+    v8::Local<v8::Object> This() const
+    {
+        return v8::Local<v8::Object>();
+    }
+
+    const Value2Args &GetReturnValue() const
+    {
+        return *this;
+    }
+
+    void Set(v8::Local<v8::Value> vr) const
+    {
+        m_vr = vr;
+    }
+
+    v8::Local<v8::Value> &operator[](size_t i) const
+    {
+        return m_v;
+    }
+
+private:
+    v8::Local<v8::Value> &m_v;
+    v8::Local<v8::Value> &m_vr;
+};
 
 template<class T>
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict = false)
+result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict = false)
 {
     vr = T::getInstance(v);
     if (vr == NULL)
-        return CALL_E_INVALIDARG;
+    {
+        if (bStrict)
+            return CALL_E_INVALIDARG;
+
+        v8::TryCatch try_catch;
+
+        v8::Local<v8::Value> vr1;
+        Value2Args a(v, vr1);
+
+        T::__new(a);
+        vr = T::getInstance(vr1);
+
+        if (vr == NULL)
+            return CALL_E_INVALIDARG;
+    }
 
     return 0;
 }

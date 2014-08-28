@@ -28,6 +28,10 @@ class collection_base : public module_base
 	DECLARE_CLASSINFO(collection_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 
 };
 

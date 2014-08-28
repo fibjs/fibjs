@@ -42,6 +42,10 @@ public:
 	DECLARE_CLASSINFO(RedisHash_base);
 
 public:
+	template<typename T>
+	static void __new(const T &args){}
+
+public:
 	static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_mset(const v8::FunctionCallbackInfo<v8::Value>& args);
