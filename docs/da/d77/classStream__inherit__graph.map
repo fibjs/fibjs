@@ -1,9 +1,0 @@
-<map id="Stream" name="Stream">
-<area shape="rect" id="node3" href="$d2/dee/classBufferedStream.html" title="缓存读取对象 " alt="" coords="5,355,140,561"/>
-<area shape="rect" id="node4" href="$db/d67/classSeekableStream.html" title="可移动当前指针的流对象接口 " alt="" coords="165,388,285,528"/>
-<area shape="rect" id="node7" href="$d4/d33/classSocket.html" title="网络套接口对象 " alt="" coords="308,328,432,588"/>
-<area shape="rect" id="node8" href="$d7/d3f/classSslSocket.html" title="ssl 网络套接口对象 " alt="" coords="456,388,557,528"/>
-<area shape="rect" id="node2" href="$dc/dd8/classobject.html" title="基础对象，所有对象均继承于此 " alt="" coords="253,5,341,119"/>
-<area shape="rect" id="node5" href="$db/d30/classFile.html" title="文件操作对象，用于二进制文件读写 " alt="" coords="112,636,202,749"/>
-<area shape="rect" id="node6" href="$dd/d97/classMemoryStream.html" title="内存流对象 " alt="" coords="226,636,359,749"/>
-</map>

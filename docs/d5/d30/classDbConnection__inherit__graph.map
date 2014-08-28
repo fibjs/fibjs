@@ -1,5 +1,0 @@
-<map id="DbConnection" name="DbConnection">
-<area shape="rect" id="node3" href="$d3/da8/classMySQL.html" title="mysql 数据库连接对象 " alt="" coords="5,368,111,455"/>
-<area shape="rect" id="node4" href="$df/d93/classSQLite.html" title="sqlite 数据库连接对象 " alt="" coords="134,368,219,455"/>
-<area shape="rect" id="node2" href="$dc/dd8/classobject.html" title="基础对象，所有对象均继承于此 " alt="" coords="72,5,161,119"/>
-</map>
