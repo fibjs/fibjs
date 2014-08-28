@@ -269,9 +269,7 @@ bool objectEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> ks = keys->Get(i);
-        v8::Local<v8::String> k = v8::Local<v8::String>::Cast(ks);
-
-        if (!deepEquals(act->Get(k), exp->Get(k)))
+        if (!deepEquals(act->Get(ks), exp->Get(ks)))
         {
             s_acts.pop();
             s_exps.pop();
@@ -697,7 +695,7 @@ result_t has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = object->ToObject();
     retVal = v->Has(prop);
 
     return 0;
@@ -733,7 +731,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = object->ToObject();
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
 
@@ -750,7 +748,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = v8::Local<v8::Object>::Cast(object);
+        v = object->ToObject();
         p = p1 + 1;
     }
 
@@ -791,7 +789,7 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = object->ToObject();
     got = v->Get(prop);
     retVal = value->Equals(got);
 
@@ -838,7 +836,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = object->ToObject();
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
 
@@ -855,7 +853,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = v8::Local<v8::Object>::Cast(object);
+        v = object->ToObject();
         p = p1 + 1;
     }
 

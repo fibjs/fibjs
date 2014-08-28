@@ -78,7 +78,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> func,
         v8::Local<v8::Value> v = func->Get(i);
 
         if (!v.IsEmpty() && v->IsFunction())
-            funs[i] = v8::Local<v8::Function> ::Cast(v);
+            funs[i] = v8::Local<v8::Function>::Cast(v);
         else
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }

@@ -36,7 +36,7 @@ v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
         }
     }
     else
-        esa = v8::Local<v8::Object> ::Cast(es);
+        esa = v8::Local<v8::Object>::Cast(es);
 
     if (autoDelete)
         o->DeleteHiddenValue(s);

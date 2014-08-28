@@ -379,6 +379,9 @@ result_t SandBox::require(std::string base, std::string id,
             if (hr < 0)
                 return hr;
 
+            if (v.IsEmpty() || !v->IsObject())
+                return CHECK_ERROR(Runtime::setError("Invalid package.json"));
+
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
             v8::Local<v8::Value> main = o->Get(v8::String::NewFromUtf8(isolate, "main",
                                                v8::String::kNormalString, 4));

@@ -168,7 +168,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                 }
 
                 v8::Local<v8::Value> toArray = obj->Get(v8::String::NewFromUtf8(isolate, "toArray"));
-                if (!IsEmpty(toArray))
+                if (!IsEmpty(toArray) && toArray->IsFunction())
                 {
                     v = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
                     obj = v->ToObject();
@@ -379,9 +379,15 @@ result_t util_base::isEmpty(v8::Local<v8::Value> v, bool &retVal)
         return 0;
     }
 
-    if (v->IsString() || v->IsStringObject())
+    if (v->IsString())
     {
         retVal = v8::Local<v8::String>::Cast(v)->Length() == 0;
+        return 0;
+    }
+
+    if (v->IsStringObject())
+    {
+        retVal = v8::Local<v8::StringObject>::Cast(v)->ValueOf()->Length() == 0;
         return 0;
     }
 
