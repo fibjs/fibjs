@@ -26,14 +26,12 @@ struct ClassData
         const char *name;
         v8::AccessorGetterCallback getter;
         v8::AccessorSetterCallback setter;
-        bool bStatic;
     };
 
     struct ClassMethod
     {
         const char *name;
         v8::FunctionCallback invoker;
-        bool bStatic;
     };
 
     struct ClassObject

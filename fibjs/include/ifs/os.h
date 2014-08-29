@@ -75,26 +75,26 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"uptime", s_uptime, true},
-			{"loadavg", s_loadavg, true},
-			{"totalmem", s_totalmem, true},
-			{"freemem", s_freemem, true},
-			{"CPUInfo", s_CPUInfo, true},
-			{"CPUs", s_CPUs, true},
-			{"networkInfo", s_networkInfo, true},
-			{"time", s_time, true},
-			{"dateAdd", s_dateAdd, true},
-			{"memoryUsage", s_memoryUsage, true}
+			{"uptime", s_uptime},
+			{"loadavg", s_loadavg},
+			{"totalmem", s_totalmem},
+			{"freemem", s_freemem},
+			{"CPUInfo", s_CPUInfo},
+			{"CPUs", s_CPUs},
+			{"networkInfo", s_networkInfo},
+			{"time", s_time},
+			{"dateAdd", s_dateAdd},
+			{"memoryUsage", s_memoryUsage}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"hostname", s_get_hostname, block_set, true},
-			{"type", s_get_type, block_set, true},
-			{"version", s_get_version, block_set, true},
-			{"arch", s_get_arch, block_set, true},
-			{"timezone", s_get_timezone, block_set, true},
-			{"execPath", s_get_execPath, block_set, true}
+			{"hostname", s_get_hostname, block_set},
+			{"type", s_get_type, block_set},
+			{"version", s_get_version, block_set},
+			{"arch", s_get_arch, block_set},
+			{"timezone", s_get_timezone, block_set},
+			{"execPath", s_get_execPath, block_set}
 		};
 
 		static ClassData s_cd = 

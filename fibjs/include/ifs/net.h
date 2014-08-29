@@ -82,12 +82,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"resolve", s_resolve, true},
-			{"ip", s_ip, true},
-			{"ipv6", s_ipv6, true},
-			{"connect", s_connect, true},
-			{"openSmtp", s_openSmtp, true},
-			{"backend", s_backend, true}
+			{"resolve", s_resolve},
+			{"ip", s_ip},
+			{"ipv6", s_ipv6},
+			{"connect", s_connect},
+			{"openSmtp", s_openSmtp},
+			{"backend", s_backend}
 		};
 
 		static ClassData::ClassObject s_object[] = 
@@ -100,10 +100,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"AF_INET", s_get_AF_INET, block_set, true},
-			{"AF_INET6", s_get_AF_INET6, block_set, true},
-			{"SOCK_STREAM", s_get_SOCK_STREAM, block_set, true},
-			{"SOCK_DGRAM", s_get_SOCK_DGRAM, block_set, true}
+			{"AF_INET", s_get_AF_INET, block_set},
+			{"AF_INET6", s_get_AF_INET6, block_set},
+			{"SOCK_STREAM", s_get_SOCK_STREAM, block_set},
+			{"SOCK_DGRAM", s_get_SOCK_DGRAM, block_set}
 		};
 
 		static ClassData s_cd = 

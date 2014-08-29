@@ -704,7 +704,7 @@ function parserIDL(fname) {
 			if (!ids.hasOwnProperty(fname)) {
 				if (attr == "static") {
 					if (fname !== "_new")
-						difms.push("			{\"" + fname + "\", s_" + fname + ", true}");
+						difms.push("			{\"" + fname + "\", s_" + fname + "}");
 				} else
 					difms.push("			{\"" + fname + "\", s_" + fname + "}");
 			}
@@ -730,7 +730,7 @@ function parserIDL(fname) {
 
 				svs.push(ifStr);
 
-				difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, true}");
+				difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set}");
 			} else if (attr == "static") {
 				if (st[pos] != ";")
 					return reportErr();
@@ -764,7 +764,7 @@ function parserIDL(fname) {
 				}
 
 				if (attr1 == "readonly")
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, true}");
+					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set}");
 				else
 					difps.push("			{\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + "}");
 

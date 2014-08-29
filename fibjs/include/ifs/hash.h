@@ -110,39 +110,39 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"digest", s_digest, true},
-			{"md2", s_md2, true},
-			{"md4", s_md4, true},
-			{"md5", s_md5, true},
-			{"sha1", s_sha1, true},
-			{"sha224", s_sha224, true},
-			{"sha256", s_sha256, true},
-			{"sha384", s_sha384, true},
-			{"sha512", s_sha512, true},
-			{"ripemd160", s_ripemd160, true},
-			{"hmac", s_hmac, true},
-			{"hmac_md2", s_hmac_md2, true},
-			{"hmac_md4", s_hmac_md4, true},
-			{"hmac_md5", s_hmac_md5, true},
-			{"hmac_sha1", s_hmac_sha1, true},
-			{"hmac_sha224", s_hmac_sha224, true},
-			{"hmac_sha256", s_hmac_sha256, true},
-			{"hmac_sha384", s_hmac_sha384, true},
-			{"hmac_sha512", s_hmac_sha512, true},
-			{"hmac_ripemd160", s_hmac_ripemd160, true}
+			{"digest", s_digest},
+			{"md2", s_md2},
+			{"md4", s_md4},
+			{"md5", s_md5},
+			{"sha1", s_sha1},
+			{"sha224", s_sha224},
+			{"sha256", s_sha256},
+			{"sha384", s_sha384},
+			{"sha512", s_sha512},
+			{"ripemd160", s_ripemd160},
+			{"hmac", s_hmac},
+			{"hmac_md2", s_hmac_md2},
+			{"hmac_md4", s_hmac_md4},
+			{"hmac_md5", s_hmac_md5},
+			{"hmac_sha1", s_hmac_sha1},
+			{"hmac_sha224", s_hmac_sha224},
+			{"hmac_sha256", s_hmac_sha256},
+			{"hmac_sha384", s_hmac_sha384},
+			{"hmac_sha512", s_hmac_sha512},
+			{"hmac_ripemd160", s_hmac_ripemd160}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"MD2", s_get_MD2, block_set, true},
-			{"MD4", s_get_MD4, block_set, true},
-			{"MD5", s_get_MD5, block_set, true},
-			{"SHA1", s_get_SHA1, block_set, true},
-			{"SHA224", s_get_SHA224, block_set, true},
-			{"SHA256", s_get_SHA256, block_set, true},
-			{"SHA384", s_get_SHA384, block_set, true},
-			{"SHA512", s_get_SHA512, block_set, true},
-			{"RIPEMD160", s_get_RIPEMD160, block_set, true}
+			{"MD2", s_get_MD2, block_set},
+			{"MD4", s_get_MD4, block_set},
+			{"MD5", s_get_MD5, block_set},
+			{"SHA1", s_get_SHA1, block_set},
+			{"SHA224", s_get_SHA224, block_set},
+			{"SHA256", s_get_SHA256, block_set},
+			{"SHA384", s_get_SHA384, block_set},
+			{"SHA512", s_get_SHA512, block_set},
+			{"RIPEMD160", s_get_RIPEMD160, block_set}
 		};
 
 		static ClassData s_cd = 

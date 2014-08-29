@@ -70,19 +70,19 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"uuid", s_uuid, true},
-			{"node", s_node, true},
-			{"md5", s_md5, true},
-			{"random", s_random, true},
-			{"sha1", s_sha1, true}
+			{"uuid", s_uuid},
+			{"node", s_node},
+			{"md5", s_md5},
+			{"random", s_random},
+			{"sha1", s_sha1}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"DNS", s_get_DNS, block_set, true},
-			{"URL", s_get_URL, block_set, true},
-			{"OID", s_get_OID, block_set, true},
-			{"X509", s_get_X509, block_set, true}
+			{"DNS", s_get_DNS, block_set},
+			{"URL", s_get_URL, block_set},
+			{"OID", s_get_OID, block_set},
+			{"X509", s_get_X509, block_set}
 		};
 
 		static ClassData s_cd = 

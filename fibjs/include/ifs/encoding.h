@@ -77,22 +77,22 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"base32Encode", s_base32Encode, true},
-			{"base32Decode", s_base32Decode, true},
-			{"base64Encode", s_base64Encode, true},
-			{"base64Decode", s_base64Decode, true},
-			{"hexEncode", s_hexEncode, true},
-			{"hexDecode", s_hexDecode, true},
-			{"iconvEncode", s_iconvEncode, true},
-			{"iconvDecode", s_iconvDecode, true},
-			{"jsstr", s_jsstr, true},
-			{"encodeURI", s_encodeURI, true},
-			{"encodeURIComponent", s_encodeURIComponent, true},
-			{"decodeURI", s_decodeURI, true},
-			{"jsonEncode", s_jsonEncode, true},
-			{"jsonDecode", s_jsonDecode, true},
-			{"bsonEncode", s_bsonEncode, true},
-			{"bsonDecode", s_bsonDecode, true}
+			{"base32Encode", s_base32Encode},
+			{"base32Decode", s_base32Decode},
+			{"base64Encode", s_base64Encode},
+			{"base64Decode", s_base64Decode},
+			{"hexEncode", s_hexEncode},
+			{"hexDecode", s_hexDecode},
+			{"iconvEncode", s_iconvEncode},
+			{"iconvDecode", s_iconvDecode},
+			{"jsstr", s_jsstr},
+			{"encodeURI", s_encodeURI},
+			{"encodeURIComponent", s_encodeURIComponent},
+			{"decodeURI", s_decodeURI},
+			{"jsonEncode", s_jsonEncode},
+			{"jsonDecode", s_jsonDecode},
+			{"bsonEncode", s_bsonEncode},
+			{"bsonDecode", s_bsonDecode}
 		};
 
 		static ClassData s_cd = 

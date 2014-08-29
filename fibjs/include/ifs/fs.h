@@ -107,28 +107,28 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"exists", s_exists, true},
-			{"unlink", s_unlink, true},
-			{"umask", s_umask, true},
-			{"mkdir", s_mkdir, true},
-			{"rmdir", s_rmdir, true},
-			{"rename", s_rename, true},
-			{"chmod", s_chmod, true},
-			{"stat", s_stat, true},
-			{"readdir", s_readdir, true},
-			{"open", s_open, true},
-			{"tmpFile", s_tmpFile, true},
-			{"openTextStream", s_openTextStream, true},
-			{"readFile", s_readFile, true},
-			{"readLines", s_readLines, true},
-			{"writeFile", s_writeFile, true}
+			{"exists", s_exists},
+			{"unlink", s_unlink},
+			{"umask", s_umask},
+			{"mkdir", s_mkdir},
+			{"rmdir", s_rmdir},
+			{"rename", s_rename},
+			{"chmod", s_chmod},
+			{"stat", s_stat},
+			{"readdir", s_readdir},
+			{"open", s_open},
+			{"tmpFile", s_tmpFile},
+			{"openTextStream", s_openTextStream},
+			{"readFile", s_readFile},
+			{"readLines", s_readLines},
+			{"writeFile", s_writeFile}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"SEEK_SET", s_get_SEEK_SET, block_set, true},
-			{"SEEK_CUR", s_get_SEEK_CUR, block_set, true},
-			{"SEEK_END", s_get_SEEK_END, block_set, true}
+			{"SEEK_SET", s_get_SEEK_SET, block_set},
+			{"SEEK_CUR", s_get_SEEK_CUR, block_set},
+			{"SEEK_END", s_get_SEEK_END, block_set}
 		};
 
 		static ClassData s_cd = 

@@ -80,15 +80,15 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"open", s_open, true},
-			{"openMySQL", s_openMySQL, true},
-			{"openSQLite", s_openSQLite, true},
-			{"openMongoDB", s_openMongoDB, true},
-			{"openLevelDB", s_openLevelDB, true},
-			{"openRedis", s_openRedis, true},
-			{"format", s_format, true},
-			{"formatMySQL", s_formatMySQL, true},
-			{"escape", s_escape, true}
+			{"open", s_open},
+			{"openMySQL", s_openMySQL},
+			{"openSQLite", s_openSQLite},
+			{"openMongoDB", s_openMongoDB},
+			{"openLevelDB", s_openLevelDB},
+			{"openRedis", s_openRedis},
+			{"format", s_format},
+			{"formatMySQL", s_formatMySQL},
+			{"escape", s_escape}
 		};
 
 		static ClassData s_cd = 

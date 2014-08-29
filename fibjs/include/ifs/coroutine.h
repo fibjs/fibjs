@@ -74,10 +74,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"start", s_start, true},
-			{"parallel", s_parallel, true},
-			{"current", s_current, true},
-			{"sleep", s_sleep, true}
+			{"start", s_start},
+			{"parallel", s_parallel},
+			{"current", s_current},
+			{"sleep", s_sleep}
 		};
 
 		static ClassData::ClassObject s_object[] = 

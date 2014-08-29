@@ -85,24 +85,24 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"describe", s_describe, true},
-			{"xdescribe", s_xdescribe, true},
-			{"it", s_it, true},
-			{"xit", s_xit, true},
-			{"before", s_before, true},
-			{"after", s_after, true},
-			{"beforeEach", s_beforeEach, true},
-			{"afterEach", s_afterEach, true},
-			{"run", s_run, true},
-			{"expect", s_expect, true},
-			{"setup", s_setup, true}
+			{"describe", s_describe},
+			{"xdescribe", s_xdescribe},
+			{"it", s_it},
+			{"xit", s_xit},
+			{"before", s_before},
+			{"after", s_after},
+			{"beforeEach", s_beforeEach},
+			{"afterEach", s_afterEach},
+			{"run", s_run},
+			{"expect", s_expect},
+			{"setup", s_setup}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"BDD", s_get_BDD, block_set, true},
-			{"TDD", s_get_TDD, block_set, true},
-			{"assert", s_get_assert, block_set, true},
+			{"BDD", s_get_BDD, block_set},
+			{"TDD", s_get_TDD, block_set},
+			{"assert", s_get_assert, block_set},
 			{"slow", s_get_slow, s_set_slow}
 		};
 

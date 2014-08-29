@@ -71,10 +71,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"jsHandler", s_jsHandler, true},
-			{"await", s_await, true},
-			{"nullHandler", s_nullHandler, true},
-			{"invoke", s_invoke, true}
+			{"jsHandler", s_jsHandler},
+			{"await", s_await},
+			{"nullHandler", s_nullHandler},
+			{"invoke", s_invoke}
 		};
 
 		static ClassData::ClassObject s_object[] = 

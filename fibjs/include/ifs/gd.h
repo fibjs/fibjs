@@ -113,36 +113,36 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"create", s_create, true},
-			{"load", s_load, true},
-			{"rgb", s_rgb, true},
-			{"rgba", s_rgba, true},
-			{"hsl", s_hsl, true},
-			{"hsla", s_hsla, true},
-			{"color", s_color, true}
+			{"create", s_create},
+			{"load", s_load},
+			{"rgb", s_rgb},
+			{"rgba", s_rgba},
+			{"hsl", s_hsl},
+			{"hsla", s_hsla},
+			{"color", s_color}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"NONE", s_get_NONE, block_set, true},
-			{"JPEG", s_get_JPEG, block_set, true},
-			{"GIF", s_get_GIF, block_set, true},
-			{"PNG", s_get_PNG, block_set, true},
-			{"TIFF", s_get_TIFF, block_set, true},
-			{"BMP", s_get_BMP, block_set, true},
-			{"GD", s_get_GD, block_set, true},
-			{"GD2", s_get_GD2, block_set, true},
-			{"TRUECOLOR", s_get_TRUECOLOR, block_set, true},
-			{"PALETTE", s_get_PALETTE, block_set, true},
-			{"ARC", s_get_ARC, block_set, true},
-			{"CHORD", s_get_CHORD, block_set, true},
-			{"NOFILL", s_get_NOFILL, block_set, true},
-			{"EDGED", s_get_EDGED, block_set, true},
-			{"HORIZONTAL", s_get_HORIZONTAL, block_set, true},
-			{"VERTICAL", s_get_VERTICAL, block_set, true},
-			{"BOTH", s_get_BOTH, block_set, true},
-			{"LEFT", s_get_LEFT, block_set, true},
-			{"RIGHT", s_get_RIGHT, block_set, true}
+			{"NONE", s_get_NONE, block_set},
+			{"JPEG", s_get_JPEG, block_set},
+			{"GIF", s_get_GIF, block_set},
+			{"PNG", s_get_PNG, block_set},
+			{"TIFF", s_get_TIFF, block_set},
+			{"BMP", s_get_BMP, block_set},
+			{"GD", s_get_GD, block_set},
+			{"GD2", s_get_GD2, block_set},
+			{"TRUECOLOR", s_get_TRUECOLOR, block_set},
+			{"PALETTE", s_get_PALETTE, block_set},
+			{"ARC", s_get_ARC, block_set},
+			{"CHORD", s_get_CHORD, block_set},
+			{"NOFILL", s_get_NOFILL, block_set},
+			{"EDGED", s_get_EDGED, block_set},
+			{"HORIZONTAL", s_get_HORIZONTAL, block_set},
+			{"VERTICAL", s_get_VERTICAL, block_set},
+			{"BOTH", s_get_BOTH, block_set},
+			{"LEFT", s_get_LEFT, block_set},
+			{"RIGHT", s_get_RIGHT, block_set}
 		};
 
 		static ClassData s_cd = 

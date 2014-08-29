@@ -79,10 +79,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"fileHandler", s_fileHandler, true},
-			{"request", s_request, true},
-			{"get", s_get, true},
-			{"post", s_post, true}
+			{"fileHandler", s_fileHandler},
+			{"request", s_request},
+			{"get", s_get},
+			{"post", s_post}
 		};
 
 		static ClassData::ClassObject s_object[] = 

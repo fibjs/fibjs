@@ -82,14 +82,14 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"VERIFY_NONE", s_get_VERIFY_NONE, block_set, true},
-			{"VERIFY_OPTIONAL", s_get_VERIFY_OPTIONAL, block_set, true},
-			{"VERIFY_REQUIRED", s_get_VERIFY_REQUIRED, block_set, true},
-			{"BADCERT_EXPIRED", s_get_BADCERT_EXPIRED, block_set, true},
-			{"BADCERT_REVOKED", s_get_BADCERT_REVOKED, block_set, true},
-			{"BADCERT_CN_MISMATCH", s_get_BADCERT_CN_MISMATCH, block_set, true},
-			{"BADCERT_NOT_TRUSTED", s_get_BADCERT_NOT_TRUSTED, block_set, true},
-			{"ca", s_get_ca, block_set, true},
+			{"VERIFY_NONE", s_get_VERIFY_NONE, block_set},
+			{"VERIFY_OPTIONAL", s_get_VERIFY_OPTIONAL, block_set},
+			{"VERIFY_REQUIRED", s_get_VERIFY_REQUIRED, block_set},
+			{"BADCERT_EXPIRED", s_get_BADCERT_EXPIRED, block_set},
+			{"BADCERT_REVOKED", s_get_BADCERT_REVOKED, block_set},
+			{"BADCERT_CN_MISMATCH", s_get_BADCERT_CN_MISMATCH, block_set},
+			{"BADCERT_NOT_TRUSTED", s_get_BADCERT_NOT_TRUSTED, block_set},
+			{"ca", s_get_ca, block_set},
 			{"verification", s_get_verification, s_set_verification}
 		};
 
