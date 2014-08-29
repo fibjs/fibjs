@@ -119,7 +119,6 @@ int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
 int API_resultRowEnd(void *result, void *opt)
 {
     DBResult *res = (DBResult *) result;
-    mysql *db = (mysql *) opt;
 
     res->endRow();
 
@@ -265,8 +264,6 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
     result_t hr = format(sql, args, str);
     if (hr < 0)
         return hr;
-
-    v8::Local<v8::Value> v = args[args.Length() - 1];
 
     return execute(str.c_str(), (int) str.length(), retVal);
 }

@@ -265,8 +265,6 @@ result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Val
     if (hr < 0)
         return hr;
 
-    v8::Local<v8::Value> v = args[args.Length() - 1];
-
     return ac_execute(str.c_str(), retVal);
 }
 

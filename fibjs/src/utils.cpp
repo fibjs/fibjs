@@ -20,11 +20,6 @@ static std::string fmtString(result_t hr, const char *str, int len = -1)
     return s;
 }
 
-static std::string fmtString(result_t hr, std::string &str)
-{
-    return fmtString(hr, str.c_str(), (int) str.length());
-}
-
 std::string getResultMessage(result_t hr)
 {
     static const char *s_errors[] =

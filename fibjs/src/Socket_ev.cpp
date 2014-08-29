@@ -231,7 +231,7 @@ void Socket::cancel_socket(exlib::AsyncEvent *ac)
     {
     public:
         asyncCancel(void *&opt1, void *&opt2, exlib::AsyncEvent *ac) :
-            m_opt1(opt1), m_opt2(opt2), m_ac(ac)
+            m_ac(ac), m_opt1(opt1), m_opt2(opt2)
         {
         }
 

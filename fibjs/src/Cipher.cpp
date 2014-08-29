@@ -30,32 +30,32 @@ static struct _cipher_size
 } s_sizes[][SIZE_COUNT] =
 {
     {
-        { "AES-128", 0, NULL },
-        { "AES-192", 0, NULL },
-        { "AES-256", 0, NULL }
+        { "AES-128", 0, {} },
+        { "AES-192", 0, {} },
+        { "AES-256", 0, {} }
     },
     {
-        { "CAMELLIA-128", 0, NULL },
-        { "CAMELLIA-192", 0, NULL },
-        { "CAMELLIA-256", 0, NULL }
+        { "CAMELLIA-128", 0, {} },
+        { "CAMELLIA-192", 0, {} },
+        { "CAMELLIA-256", 0, {} }
     },
     {
-        { "DES", 0, NULL }
+        { "DES", 0, {} }
     },
     {
-        { "DES-EDE", 0, NULL }
+        { "DES-EDE", 0, {} }
     },
     {
-        { "DES-EDE3", 0, NULL }
+        { "DES-EDE3", 0, {} }
     },
     {
-        { "BLOWFISH", 0, NULL }
+        { "BLOWFISH", 0, {} }
     },
     {
-        { "ARC4-40", 0, NULL },
-        { "ARC4-56", 0, NULL },
-        { "ARC4-64", 0, NULL },
-        { "ARC4-128", 0, NULL }
+        { "ARC4-40", 0, {} },
+        { "ARC4-56", 0, {} },
+        { "ARC4-64", 0, {} },
+        { "ARC4-128", 0, {} }
     }
 };
 
