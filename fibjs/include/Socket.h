@@ -15,7 +15,7 @@
 namespace fibjs
 {
 
-#define KEEPALIVE_TIMEOUT   (2 * 60)
+#define KEEPALIVE_TIMEOUT   120
 
 class Socket: public Socket_base
 {

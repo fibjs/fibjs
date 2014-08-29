@@ -29,8 +29,8 @@ void setOption(SOCKET s)
 #endif
 
 #ifdef TCP_KEEPINTVL
-    int keepInterval = KEEPALIVE_TIMEOUT;
-    int keepCount = 3;
+    int keepInterval = 20;
+    int keepCount = 10;
 
     setsockopt(s, SOL_TCP, TCP_KEEPINTVL, (void *) &keepInterval,
                sizeof(keepInterval));
@@ -395,6 +395,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
         virtual result_t process()
         {
+            puts("recv................");
             do
             {
                 int n = (int) ::recv(m_s, &m_buf[m_pos], m_buf.length() - m_pos,

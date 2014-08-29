@@ -21,13 +21,13 @@ namespace fibjs
 void setOption(SOCKET s)
 {
     int keepAlive = 1;
-
-    tcp_keepalive Settings =
-    { 1, KEEPALIVE_TIMEOUT * 1000, KEEPALIVE_TIMEOUT * 1000 };
-    DWORD dwBytes = 0L;
-
     setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (const char *) &keepAlive,
                sizeof(keepAlive));
+
+    tcp_keepalive Settings =
+    { 1, KEEPALIVE_TIMEOUT * 1000, 20 * 1000 };
+    DWORD dwBytes = 0L;
+
     WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), NULL, 0,
              &dwBytes, NULL, NULL);
 
