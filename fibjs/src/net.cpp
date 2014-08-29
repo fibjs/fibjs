@@ -25,13 +25,9 @@ result_t net_base::resolve(const char *name, int32_t family,
     addr_info.init(family);
 
     addrinfo hints =
-    { 0 };
+    { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
     addrinfo *result = NULL;
     addrinfo *ptr = NULL;
-
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
 
     if (getaddrinfo(name, NULL, &hints, &result))
         return CHECK_ERROR(SocketError());

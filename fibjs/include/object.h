@@ -366,7 +366,7 @@ inline ClassInfo &object_base::class_info()
     };
 
     static ClassData s_cd =
-    { "object", NULL, 4, s_method, 0, NULL, 0, NULL, NULL, NULL };
+    { "object", NULL, 4, s_method, 0, NULL, 0, NULL, NULL, NULL, NULL };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
