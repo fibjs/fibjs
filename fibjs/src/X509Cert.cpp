@@ -23,8 +23,7 @@ X509Cert::_name X509Cert::g_usages[] =
     {KU_DATA_ENCIPHERMENT, "dataEncipherment"},
     {KU_KEY_AGREEMENT, "keyAgreement"},
     {KU_KEY_CERT_SIGN, "keyCertSign"},
-    {KU_CRL_SIGN, "cRLSign"},
-    {0,}
+    {KU_CRL_SIGN, "cRLSign"}
 };
 
 X509Cert::_name X509Cert::g_types[] =
@@ -36,10 +35,8 @@ X509Cert::_name X509Cert::g_types[] =
     {NS_CERT_TYPE_RESERVED, "reserved"},
     {NS_CERT_TYPE_SSL_CA, "sslCA"},
     {NS_CERT_TYPE_EMAIL_CA, "emailCA"},
-    {NS_CERT_TYPE_OBJECT_SIGNING_CA, "objCA"},
-    {0}
+    {NS_CERT_TYPE_OBJECT_SIGNING_CA, "objCA"}
 };
-
 
 result_t X509Cert_base::_new(obj_ptr<X509Cert_base> &retVal, v8::Local<v8::Object> This)
 {
@@ -457,16 +454,15 @@ result_t X509Cert::get_usage(std::string &retVal)
 
     int key_usage = crt->key_usage;
 
-    _name *p = g_usages;
-    while (p->id)
+    int32_t i;
+    for (i = 0; i < ARRAYSIZE(g_usages); i ++)
     {
-        if (key_usage & p->id)
+        if (key_usage & g_usages[i].id)
         {
             if (!retVal.empty())
                 retVal.append(", ", 2);
-            retVal.append(p->name);
+            retVal.append(g_usages[i].name);
         }
-        p ++;
     }
 
     return 0;
@@ -480,16 +476,15 @@ result_t X509Cert::get_type(std::string &retVal)
 
     int cert_type = crt->ns_cert_type;
 
-    _name *p = g_types;
-    while (p->id)
+    int32_t i;
+    for (i = 0; i < ARRAYSIZE(g_types); i ++)
     {
-        if (cert_type & p->id)
+        if (cert_type & g_types[i].id)
         {
             if (!retVal.empty())
                 retVal.append(", ", 2);
-            retVal.append(p->name);
+            retVal.append(g_types[i].name);
         }
-        p ++;
     }
 
     return 0;
