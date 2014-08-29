@@ -140,7 +140,7 @@ void file_logger::clearFile()
         }
     }
 
-    if (files.size() > m_count - 1)
+    if ((int)files.size() > m_count - 1)
     {
         std::sort(files.begin(), files.end());
 

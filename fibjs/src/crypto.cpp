@@ -38,7 +38,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        memcpy(&strBuf[i], buf, size - i > sizeof(buf) ? sizeof(buf) : size - i);
+        memcpy(&strBuf[i], buf, size - i > (int)sizeof(buf) ? (int)sizeof(buf) : size - i);
     }
 
     if (t == time(NULL))
@@ -73,7 +73,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retV
             return CHECK_ERROR(_ssl::setError(ret));
         }
 
-        memcpy(&strBuf[i], buf, size - i > sizeof(buf) ? sizeof(buf) : size - i);
+        memcpy(&strBuf[i], buf, size - i > (int)sizeof(buf) ? (int)sizeof(buf) : size - i);
     }
 
     entropy_free(&entropy);

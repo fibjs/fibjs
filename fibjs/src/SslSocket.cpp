@@ -120,7 +120,7 @@ int SslSocket::my_recv(unsigned char *buf, size_t len)
     if (m_recv_pos < 0)
         return POLARSSL_ERR_NET_CONN_RESET;
 
-    if (m_recv_pos == m_recv.length())
+    if (m_recv_pos == (int)m_recv.length())
     {
         m_recv_pos = 0;
         m_recv.resize(0);
@@ -234,7 +234,7 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
                                     m_buf.length() - m_pos)) > 0)
             {
                 m_pos += ret;
-                if (m_pos == m_buf.length())
+                if (m_pos == (int)m_buf.length())
                     return 0;
             }
 

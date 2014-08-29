@@ -390,7 +390,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                 while (n3 < n1 && ((unsigned char)pThis->m_buf[pThis->m_pos + n3] & 0x80))
                     n3 ++;
 
-                if (n2 + n3 > sizeof(int32_t))
+                if (n2 + n3 > (int)sizeof(int32_t))
                     return CHECK_ERROR(CALL_E_INVALID_DATA);
 
                 if (n3 == n1)

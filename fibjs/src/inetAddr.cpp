@@ -222,7 +222,8 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
     if ((i != 0) || (j != 0))
     {
         char tmp2[16]; /* max length of ipv4 addr string */
-        a4.s_addr = ((uint32_t *) &addr->s6_addr)[3];
+        uint32_t *paddr4 = (uint32_t *) &addr->s6_addr;
+        a4.s_addr = paddr4[3];
         len = sprintf(tmp, "::%s%s", (i != 0) ? "ffff:" : "",
                       inet_ntop4(&a4, tmp2, sizeof(tmp2)));
         if ((socklen_t) len >= size)

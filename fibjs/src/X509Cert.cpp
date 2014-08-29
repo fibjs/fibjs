@@ -455,7 +455,7 @@ result_t X509Cert::get_usage(std::string &retVal)
     int key_usage = crt->key_usage;
 
     int32_t i;
-    for (i = 0; i < ARRAYSIZE(g_usages); i ++)
+    for (i = 0; i < (int)ARRAYSIZE(g_usages); i ++)
     {
         if (key_usage & g_usages[i].id)
         {
@@ -477,7 +477,7 @@ result_t X509Cert::get_type(std::string &retVal)
     int cert_type = crt->ns_cert_type;
 
     int32_t i;
-    for (i = 0; i < ARRAYSIZE(g_types); i ++)
+    for (i = 0; i < (int)ARRAYSIZE(g_types); i ++)
     {
         if (cert_type & g_types[i].id)
         {

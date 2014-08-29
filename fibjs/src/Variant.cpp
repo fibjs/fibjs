@@ -24,7 +24,7 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
     else if (v->IsDate())
     {
         set_type(VT_Date);
-        *(date_t *) m_Val.dateVal = v;
+        dateVal() = v;
     }
     else if (v->IsBoolean() || v->IsBooleanObject())
     {
@@ -56,34 +56,31 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
             m_Val.dblVal = n;
         }
     }
+    else if (v->IsString() || v->IsStringObject())
+    {
+        v8::String::Utf8Value s(v);
+        std::string str(*s, s.length());
+        return operator=(str);
+    }
     else
     {
-        if (v->IsString() || v->IsStringObject())
-        {
-            v8::String::Utf8Value s(v);
-            std::string str(*s, s.length());
-            return operator=(str);
-        }
+        object_base *obj = object_base::getInstance(v);
+
+        if (obj)
+            return operator=(obj);
         else
         {
-            object_base *obj = object_base::getInstance(v);
+            set_type(VT_JSValue);
 
-            if (obj)
-                return operator=(obj);
-            else
+            if (isPersistent())
             {
-                set_type(VT_JSValue);
-
-                if (isPersistent())
-                {
-                    new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
-                    ((v8::Persistent<v8::Value> *) m_Val.jsVal)->Reset(isolate, v);
-                }
-                else
-                    new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>(v);
-
-                return *this;
+                new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
+                jsValEx().Reset(isolate, v);
             }
+            else
+                new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>(v);
+
+            return *this;
         }
     }
 
@@ -109,7 +106,7 @@ Variant::operator v8::Local<v8::Value>() const
     case VT_Number:
         return v8::Number::New(isolate, m_Val.dblVal);
     case VT_Date:
-        return *(date_t *) m_Val.dateVal;
+        return dateVal();
     case VT_Object:
     {
         object_base *obj = (object_base *) m_Val.objVal;
@@ -121,13 +118,12 @@ Variant::operator v8::Local<v8::Value>() const
     }
     case VT_JSValue:
         if (isPersistent())
-            return v8::Local<v8::Value>::New(isolate,
-                                             *(v8::Persistent<v8::Value> *) m_Val.jsVal);
+            return v8::Local<v8::Value>::New(isolate, jsValEx());
         else
-            return *(v8::Local<v8::Value> *) m_Val.jsVal;
+            return jsVal();
     case VT_String:
     {
-        std::string &str = *(std::string *) m_Val.strVal;
+        std::string &str = strVal();
         return v8::String::NewFromUtf8(isolate, str.c_str(),
                                        v8::String::kNormalString,
                                        (int) str.length());
@@ -289,12 +285,12 @@ bool Variant::toString(std::string &retVal)
         return true;
     }
     case VT_Date:
-        ((date_t *) m_Val.dateVal)->toGMTString(retVal);
+        dateVal().toGMTString(retVal);
         return true;
     case VT_Object:
         return false;
     case VT_String:
-        retVal = *(std::string *) m_Val.strVal;
+        retVal = strVal();
         return true;
     case VT_JSValue:
         return false;
