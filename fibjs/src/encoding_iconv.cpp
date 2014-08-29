@@ -125,23 +125,23 @@ encoding_iconv::encoding_iconv(const char *charset) :
 encoding_iconv::~encoding_iconv()
 {
     if (m_iconv_en)
-        _iconv_close(m_iconv_en);
+        _iconv_close((iconv_t)m_iconv_en);
 
     if (m_iconv_de)
-        _iconv_close(m_iconv_de);
+        _iconv_close((iconv_t)m_iconv_de);
 }
 
 void encoding_iconv::open(const char *charset)
 {
     if (m_iconv_en)
     {
-        _iconv_close(m_iconv_en);
+        _iconv_close((iconv_t)m_iconv_en);
         m_iconv_en = NULL;
     }
 
     if (m_iconv_de)
     {
-        _iconv_close(m_iconv_de);
+        _iconv_close((iconv_t)m_iconv_de);
         m_iconv_de = NULL;
     }
 
@@ -167,7 +167,7 @@ result_t encoding_iconv::encode(const char *data, std::string &retVal)
         char *output_buf = &retVal[0];
         size_t output_size = retVal.length();
 
-        size_t n = _iconv(m_iconv_en, &data, &sz, &output_buf, &output_size);
+        size_t n = _iconv((iconv_t)m_iconv_en, &data, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
             return CHECK_ERROR(Runtime::setError("convert error."));
@@ -212,7 +212,7 @@ result_t encoding_iconv::decode(const std::string &data, std::string &retVal)
         char *output_buf = &strBuf[0];
         size_t output_size = strBuf.length();
 
-        size_t n = _iconv(m_iconv_de, &ptr, &sz, &output_buf, &output_size);
+        size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
             return CHECK_ERROR(Runtime::setError("convert error."));
@@ -250,7 +250,7 @@ result_t encoding_iconv::decode(Buffer_base *data, std::string &retVal)
         char *output_buf = &strBuf[0];
         size_t output_size = strBuf.length();
 
-        size_t n = _iconv(m_iconv_de, &ptr, &sz, &output_buf, &output_size);
+        size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
             return CHECK_ERROR(Runtime::setError("convert error."));
