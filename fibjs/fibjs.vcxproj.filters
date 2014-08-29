@@ -96,7 +96,7 @@
     <ClCompile Include="src\fs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\fuck_sym.c">
+    <ClCompile Include="src\fuck_sym.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Function.cpp">

@@ -49,7 +49,7 @@
     <ClCompile Include="src\fibjs.cpp" />
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\fs.cpp" />
-    <ClCompile Include="src\fuck_sym.c" />
+    <ClCompile Include="src\fuck_sym.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\GridFS.cpp" />
