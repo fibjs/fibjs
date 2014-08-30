@@ -154,52 +154,6 @@ void CSHA1::Update(UINT_8 *data, UINT_32 len)
   memcpy(&m_buffer[j], &data[i], len - i);
 }
 
-#ifdef SHA1_UTILITY_FUNCTIONS
-// Hash in file contents
-bool CSHA1::HashFile(char *szFileName)
-{
-  unsigned long ulFileSize, ulRest, ulBlocks;
-  unsigned long i;
-  UINT_8 uData[SHA1_MAX_FILE_BUFFER];
-  FILE *fIn;
-
-  if(szFileName == NULL) return false;
-
-  fIn = fopen(szFileName, "rb");
-  if(fIn == NULL) return false;
-
-  fseek(fIn, 0, SEEK_END);
-  ulFileSize = (unsigned long)ftell(fIn);
-  fseek(fIn, 0, SEEK_SET);
-
-  if(ulFileSize != 0)
-  {
-    ulBlocks = ulFileSize / SHA1_MAX_FILE_BUFFER;
-    ulRest = ulFileSize % SHA1_MAX_FILE_BUFFER;
-  }
-  else
-  {
-    ulBlocks = 0;
-    ulRest = 0;
-  }
-
-  for(i = 0; i < ulBlocks; i++)
-  {
-    fread(uData, 1, SHA1_MAX_FILE_BUFFER, fIn);
-    Update((UINT_8 *)uData, SHA1_MAX_FILE_BUFFER);
-  }
-
-  if(ulRest != 0)
-  {
-    fread(uData, 1, ulRest, fIn);
-    Update((UINT_8 *)uData, ulRest);
-  }
-
-  fclose(fIn); fIn = NULL;
-  return true;
-}
-#endif
-
 void CSHA1::Final()
 {
   UINT_32 i;

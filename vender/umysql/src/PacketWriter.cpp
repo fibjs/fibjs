@@ -164,11 +164,11 @@ void PrintBuffer(FILE *file, void *_offset, size_t len, int perRow)
 
   int orgPerRow = perRow;
 
-  fprintf (file, "%u %p --------------\n", len, _offset);
+  fprintf (file, "%u %p --------------\n", (unsigned int)len, _offset);
 
   while (offset != end)
   {
-    fprintf (file, "%08x: ", cnt);
+    fprintf (file, "%08x: ", (unsigned int)cnt);
 
     if (end - offset < perRow)
     {
