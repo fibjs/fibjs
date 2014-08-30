@@ -155,65 +155,6 @@ void PacketWriter::writeBytes (void *data, size_t cbData)
   m_writeCursor += cbData;
 }
 
-void PrintBuffer(FILE *file, void *_offset, size_t len, int perRow)
-{
-  size_t cnt = 0;
-
-  char *offset = (char *) _offset;
-  char *end = offset + len;
-
-  int orgPerRow = perRow;
-
-  fprintf (file, "%u %p --------------\n", (unsigned int)len, _offset);
-
-  while (offset != end)
-  {
-    fprintf (file, "%08x: ", (unsigned int)cnt);
-
-    if (end - offset < perRow)
-    {
-      perRow = end - offset;
-    }
-
-    for (int index = 0; index < perRow; index ++)
-    {
-      int chr = (unsigned char) *offset;
-
-      if (isprint(chr))
-      {
-        fprintf (file, "%c", chr);
-      }
-      else
-      {
-        fprintf (file, ".");
-      }
-
-      offset ++;
-    }
-
-    offset -= perRow;
-
-    for (int index = perRow; index < orgPerRow; index ++)
-    {
-      fprintf (file, " ");
-    }
-
-    fprintf (file, "    ");
-
-    for (int index = 0; index < perRow; index ++)
-    {
-      int chr = (unsigned char) *offset;
-
-      fprintf (file, "%02x ", chr);
-      offset ++;
-    }
-
-    fprintf (file, "\n");
-
-    cnt += perRow;
-  }
-}
-
 void PacketWriter::finalize(int packetNumber)
 {
   size_t packetLen = (m_writeCursor - m_readCursor - MYSQL_PACKET_HEADER_SIZE);
@@ -232,7 +173,7 @@ size_t PacketWriter::getSize(void)
 
 size_t PacketWriter::setSize(size_t _cbSize)
 {
-  if(_cbSize < m_writeCursor - m_buffStart)
+  if((int)_cbSize < m_writeCursor - m_buffStart)
 	return 0;
 
   size_t old_cbSize = m_buffEnd - m_buffStart;

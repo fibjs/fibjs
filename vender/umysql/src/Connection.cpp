@@ -620,7 +620,6 @@ void *Connection::handleResultPacket(int _fieldCount, void* opt)
     size_t cb_org_table;
     size_t cb_name;
     size_t cb_org_name;
-    size_t cb_default;
 
     UINT8 result = m_reader.readByte();
 
@@ -647,7 +646,6 @@ void *Connection::handleResultPacket(int _fieldCount, void* opt)
     UINT8 decimals = m_reader.readByte();
     UINT16 filler2 = m_reader.readShort();
 
-    //UINT8 *def = m_reader.readLengthCodedBinary(&cb_default);
 
     typeInfo[iTypeInfo].type = type;
     typeInfo[iTypeInfo].flags = flags;

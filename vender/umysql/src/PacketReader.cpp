@@ -280,7 +280,7 @@ size_t PacketReader::getSize()
 
 size_t PacketReader::setSize(size_t _cbSize)
 {
-  if(_cbSize < m_writeCursor - m_buffStart)
+  if((int)_cbSize < m_writeCursor - m_buffStart)
 	return 0;
 
   size_t old_cbSize = m_buffEnd - m_buffStart;
