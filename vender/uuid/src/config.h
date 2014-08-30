@@ -1,7 +1,7 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-#include <osconfig.h>
+#include <exlib/include/osconfig.h>
 
 /* Predefined possible va_copy() implementation (id: ASP) */
 #define __VA_COPY_USE_ASP(d, s) do { *(d) = *(s); } while (0)

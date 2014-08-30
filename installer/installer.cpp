@@ -1,7 +1,9 @@
 // installer.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+#include <stdio.h>
+#include <tchar.h>
+#include <windows.h>
 
 #if defined(_M_X64)
 #include "..\bin\Windows_Release\js.h"

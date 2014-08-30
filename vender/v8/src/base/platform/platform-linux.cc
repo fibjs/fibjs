@@ -5,7 +5,7 @@
 // Platform-specific code for Linux goes here. For the POSIX-compatible
 // parts, the implementation is in platform-posix.cc.
 
-#include <osconfig.h>
+#include <exlib/include/osconfig.h>
 
 #ifdef Linux
 

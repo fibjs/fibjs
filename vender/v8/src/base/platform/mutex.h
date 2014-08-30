@@ -3,7 +3,7 @@
 #define V8_PLATFORM_MUTEX_H_
 
 #include "../lazy-instance.h"
-#include <event.h>
+#include <exlib/include/event.h>
 #include "src/checks.h"
 
 #if V8_OS_WIN

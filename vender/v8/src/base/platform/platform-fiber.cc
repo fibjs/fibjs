@@ -1,7 +1,7 @@
 #include "v8.h"
 
-#include <fiber.h>
 #include "platform.h"
+#include <exlib/include/fiber.h>
 
 #ifdef _WIN32
 

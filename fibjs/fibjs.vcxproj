@@ -142,8 +142,59 @@
     <ClCompile Include="src\zlib.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\vender\vender.vcxproj">
-      <Project>{1f77ab58-706b-4bb5-be73-5af083d21df6}</Project>
+    <ProjectReference Include="$(SolutionDir)vender\exif\exif.vcxproj">
+        <Project>{238FDB2A-C47D-44E0-94A2-D0FA2BF3C964}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\exlib\exlib.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000000E211B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\gd\gd.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-00000000009D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\jpeg\jpeg.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000000019E9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\leveldb\leveldb.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-000001ECE1DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\mongo\mongo.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-000000030C90}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\pcre\pcre.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-000000009C2E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\png\png.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000000009C9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\polarssl\polarssl.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000901A2331}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\snappy\snappy.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000003CA997}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\sqlite\sqlite.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-00000039117E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\tiff\tiff.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-000000007155}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\umysql\umysql.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-000000032391}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\uuid\uuid.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-00000000CC1D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\winiconv\winiconv.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000031CC0CC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\zlib\zlib.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-00000000211B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\zookeeper\zookeeper.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000000E2200}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\v8\v8.vcxproj">
+        <Project>{1F77AB58-706B-4BB5-BE73-0000000000C8}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -395,22 +446,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_Debug32\</OutDir>
-    <IntDir>out\Windows_Debug32\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Debug32\fibjs\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_Debug\</OutDir>
-    <IntDir>out\Windows_Debug\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Debug\fibjs\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_Release32\</OutDir>
-    <IntDir>out\Windows_Release32\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Release32\fibjs\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_Release\</OutDir>
-    <IntDir>out\Windows_Release\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Release\fibjs\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -420,7 +471,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -436,7 +487,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -454,7 +505,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -474,7 +525,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>

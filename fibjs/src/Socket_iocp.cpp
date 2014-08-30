@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <mswsock.h>
 #include <mstcpip.h>
-#include <exlib/thread.h>
+#include <exlib/include/thread.h>
 
 namespace fibjs
 {

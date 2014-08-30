@@ -1,6 +1,5 @@
 out
 bin
-installer/out
 docs
 temp
 *.sdf

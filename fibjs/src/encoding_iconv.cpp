@@ -6,7 +6,7 @@
  */
 
 #ifdef WIN32
-#include <win_iconv.h>
+#include <winiconv/win_iconv.h>
 #else
 
 #include "config.h"

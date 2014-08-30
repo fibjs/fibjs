@@ -1,4 +1,4 @@
-#include <osconfig.h>
+#include <exlib/include/osconfig.h>
 
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
