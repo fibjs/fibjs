@@ -6,10 +6,10 @@
  */
 
 #include "ifs/MongoDB.h"
-#include <mongo/mongo.h>
+#include <mongo/include/mongo.h>
 extern "C"
 {
-#include <mongo/gridfs.h>
+#include <mongo/include/gridfs.h>
 }
 
 #ifndef MONGODB_H_

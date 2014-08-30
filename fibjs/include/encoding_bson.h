@@ -6,7 +6,7 @@
  */
 
 #include "utils.h"
-#include <mongo/bson.h>
+#include <mongo/include/bson.h>
 
 #ifndef ENCODING_BSON_H_
 #define ENCODING_BSON_H_

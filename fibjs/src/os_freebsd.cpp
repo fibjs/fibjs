@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include <osconfig.h>
+#include <exlib/include/osconfig.h>
 
 #ifdef FreeBSD
 

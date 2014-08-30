@@ -6,7 +6,7 @@
  */
 
 
-#include <osconfig.h>
+#include <exlib/include/osconfig.h>
 
 #ifdef _WIN32
 

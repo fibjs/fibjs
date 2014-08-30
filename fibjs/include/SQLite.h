@@ -6,7 +6,7 @@
  */
 
 #include "ifs/SQLite.h"
-#include <sqlite3.h>
+#include <sqlite/sqlite3.h>
 
 #ifndef SQLITE_H_
 #define SQLITE_H_

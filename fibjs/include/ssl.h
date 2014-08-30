@@ -9,11 +9,11 @@
 #define _fj_SSL_H_
 
 #include "ifs/ssl.h"
-#include "polarssl/config.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/ssl.h"
-#include "polarssl/ssl_cache.h"
+#include <polarssl/polarssl/config.h>
+#include <polarssl/polarssl/entropy.h>
+#include <polarssl/polarssl/ctr_drbg.h>
+#include <polarssl/polarssl/ssl.h>
+#include <polarssl/polarssl/ssl_cache.h>
 #include "X509Cert.h"
 
 namespace fibjs

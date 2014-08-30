@@ -9,12 +9,16 @@ fi
 
 OS=`uname`
 
+VENDER_PATH=`pwd`
+OUT_PATH=${VENDER_PATH}/../out
+
+
 if [ $1 = 'clean' ]; then
 	if [ -e "out" ]; then
-		rm -rf "out/${OS}_Release"
-		rm -rf "out/${OS}_Debug"
-		rm -rf "out/${OS}_Release32"
-		rm -rf "out/${OS}_Debug32"
+		rm -rf "${OUT_PATH}/${OS}_Release"
+		rm -rf "${OUT_PATH}/${OS}_Debug"
+		rm -rf "${OUT_PATH}/${OS}_Release32"
+		rm -rf "${OUT_PATH}/${OS}_Debug32"
 	fi
 
 	exit 0
@@ -27,22 +31,42 @@ if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 
 	exit 0
 fi
 
-if [ ! -e "out" ]; then
-	mkdir "out"
+if [ ! -e "${OUT_PATH}" ]; then
+	mkdir "${OUT_PATH}"
 fi
 
-if [ ! -e "out/${OS}_$1" ]; then
-	mkdir "out/${OS}_$1"
+if [ ! -e "${OUT_PATH}/${OS}_$1" ]; then
+	mkdir "${OUT_PATH}/${OS}_$1"
 fi
 
-echo "${OS}_$1"
-cd "out/${OS}_$1"
-cmake -DBUILD_TYPE=$1 ../../tools
+OUT_PATH="${OUT_PATH}/${OS}_$1"
+cd ${OUT_PATH}
 
-if [ ! "$BUILD_JOBS" = "" ]; then
-	sh -c "${BUILD_VERBOSE} make -j${BUILD_JOBS}"
-else
-	sh -c "${BUILD_VERBOSE} make"
-fi
+for lib in exlib ev jpeg png tiff gd pcre sqlite zlib exif snappy leveldb mongo umysql uuid zookeeper winiconv polarssl v8
+do
 
-cd ../..
+	if [ ! -e ${lib} ]; then
+		mkdir ${lib}
+	fi
+
+	cd ${lib}
+
+	cmake -DBUILD_TYPE=$1 ${VENDER_PATH}/${lib} > CMake.log
+	if [ $? != 0 ]; then
+		exit 1
+	fi
+
+	if [ ! "$BUILD_JOBS" = "" ]; then
+		sh -c "${BUILD_VERBOSE} make -j${BUILD_JOBS}"
+	else
+		sh -c "${BUILD_VERBOSE} make"
+	fi
+	if [ $? != 0 ]; then
+		exit 1
+	fi
+
+	cd ..
+
+done
+
+cd ${VENDER_PATH}

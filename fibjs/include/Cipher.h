@@ -6,7 +6,7 @@
  */
 
 #include "ifs/Cipher.h"
-#include <polarssl/cipher.h>
+#include <polarssl/polarssl/cipher.h>
 
 #ifndef _fj_CIPHER_H
 #define _fj_CIPHER_H

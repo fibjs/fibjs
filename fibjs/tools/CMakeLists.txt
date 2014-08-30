@@ -2,11 +2,15 @@ cmake_minimum_required(VERSION 2.6)
 
 include(../../tools/arch.cmake)
 include(../../tools/os.cmake)
+include(../../tools/subdirs.cmake)
 
 project(fibjs)
 
 file(GLOB_RECURSE src_list "../src/*.c*")
 add_executable(fibjs ${src_list})
+
+set(BIN_DIR ${PROJECT_SOURCE_DIR}/../../bin/${OS}_${BUILD_TYPE})
+set(EXECUTABLE_OUTPUT_PATH ${BIN_DIR})
 
 include(CheckIncludeFiles)
 check_include_files(iconv.h HAVE_ICONV_H)
@@ -65,9 +69,12 @@ endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
-include_directories("${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender/include" "${CMAKE_CURRENT_BINARY_DIR}")
+SUBDIRLIST(libs "${PROJECT_SOURCE_DIR}/../../vender")
+
+include_directories("${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${CMAKE_CURRENT_BINARY_DIR}")
+
+foreach(lib ${libs})
+	target_link_libraries(fibjs "${BIN_DIR}/vender/lib${lib}.a")
+endforeach()
 
 set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})
-
-find_library(lib_list vender "${PROJECT_SOURCE_DIR}/../../vender/out/${OS}_${BUILD_TYPE}")
-target_link_libraries(fibjs ${lib_list})

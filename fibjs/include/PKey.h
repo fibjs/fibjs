@@ -6,8 +6,8 @@
  */
 
 #include "ifs/PKey.h"
-#include "polarssl/config.h"
-#include "polarssl/pk.h"
+#include <polarssl/polarssl/config.h>
+#include <polarssl/polarssl/pk.h>
 
 #ifndef _fj_PKEY_H
 #define _fj_PKEY_H

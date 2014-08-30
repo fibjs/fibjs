@@ -10,7 +10,7 @@
 #include "ifs/fs.h"
 #include <vector>
 #include <stdlib.h>
-#include <exif.h>
+#include <exif/exif.h>
 
 namespace fibjs
 {

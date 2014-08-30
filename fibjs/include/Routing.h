@@ -7,7 +7,7 @@
 
 #include "ifs/Routing.h"
 #include "QuickArray.h"
-#include "pcre.h"
+#include <pcre/pcre.h>
 
 #ifndef ROUTING_H_
 #define ROUTING_H_

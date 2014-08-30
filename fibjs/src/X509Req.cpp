@@ -10,8 +10,8 @@
 #include "X509Req.h"
 #include "X509Cert.h"
 #include "PKey.h"
-#include <polarssl/pem.h>
-#include <polarssl/oid.h>
+#include <polarssl/polarssl/pem.h>
+#include <polarssl/polarssl/oid.h>
 #include "Buffer.h"
 #include "parse.h"
 

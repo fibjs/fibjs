@@ -10,9 +10,9 @@
 #include "Socket.h"
 #include "ifs/net.h"
 #include "Buffer.h"
-#include "ev.h"
+#include <ev/ev.h>
 #include <fcntl.h>
-#include <exlib/thread.h>
+#include <exlib/include/thread.h>
 
 namespace fibjs
 {

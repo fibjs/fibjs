@@ -63,10 +63,16 @@ export BUILD_VERBOSE
 
 cd vender
 sh build $BUILD_TYPE
+if [ $? != 0 ]; then
+	exit 1
+fi
 cd ..
 
 cd fibjs
 sh build $BUILD_TYPE
+if [ $? != 0 ]; then
+	exit 1
+fi
 cd ..
 
 if [ "$BUILD_TYPE" = "clean" ]; then

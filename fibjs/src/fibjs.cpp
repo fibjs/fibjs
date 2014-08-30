@@ -1,5 +1,4 @@
 
-#include <v8/v8.h>
 #include <locale.h>
 
 #ifdef assert
@@ -11,10 +10,8 @@
 #include "ifs/global.h"
 #include "ifs/Function.h"
 #include "SandBox.h"
-#include <exlib/lockfree.h>
 #include "Fiber.h"
 #include "utf8.h"
-#include <exlib/thread.h>
 
 namespace fibjs
 {

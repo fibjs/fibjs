@@ -1,8 +1,7 @@
+out
 bin
-fibjs/out
 installer/out
 docs
 temp
-vender/out
 *.sdf
 *.suo

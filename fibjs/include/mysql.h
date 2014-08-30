@@ -9,7 +9,7 @@
 #define MYSQL_H_
 
 #include "ifs/MySQL.h"
-#include <umysql/umysql.h>
+#include <umysql/include/umysql.h>
 
 namespace fibjs
 {

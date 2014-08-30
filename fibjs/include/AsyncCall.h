@@ -2,7 +2,7 @@
 #define _fj_ASYNCCALL_H
 
 #include <string>
-#include <exlib/thread.h>
+#include <exlib/include/thread.h>
 
 namespace fibjs
 {

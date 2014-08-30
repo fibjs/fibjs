@@ -6,7 +6,7 @@
  */
 
 #include "ifs/Regex.h"
-#include "pcre.h"
+#include <pcre/pcre.h>
 
 #ifndef REGEX_H_
 #define REGEX_H_

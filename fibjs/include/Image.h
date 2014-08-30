@@ -7,7 +7,7 @@
 
 #include "ifs/Image.h"
 #include "ifs/SeekableStream.h"
-#include <gd.h>
+#include <gd/include/gd.h>
 
 #ifndef IMAGE_H_
 #define IMAGE_H_

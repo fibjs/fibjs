@@ -1,6 +1,6 @@
 #include "ifs/os.h"
 #include "ifs/console.h"
-#include <exlib/thread.h>
+#include <exlib/include/thread.h>
 #include "console.h"
 #include "map"
 

@@ -10,7 +10,7 @@
 #include "MongoCollection.h"
 #include "GridFS.h"
 #include "Socket_api.h"
-#include <mongo/env.h>
+#include <mongo/include/env.h>
 #include "Url.h"
 #include "encoding_bson.h"
 #include "MongoID.h"

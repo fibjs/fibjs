@@ -5,7 +5,6 @@
  *      Author: lion
  */
 
-#include <v8/v8.h>
 #include "Runtime.h"
 #include <math.h>
 #include <string.h>

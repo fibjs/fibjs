@@ -11,7 +11,7 @@
  @author Leo Hoo <lion@9465.net>
  */
 
-#include <osconfig.h>
+#include <exlib/include/osconfig.h>
 #include <errno.h>
 
 #ifdef _WIN32
@@ -71,7 +71,7 @@ typedef int SOCKET;
 #define MSG_NOSIGNAL 0
 #endif
 
-#include <v8/v8.h>
+#include <v8/include/v8.h>
 #include <string>
 #include <math.h>
 #include <vector>
@@ -96,8 +96,8 @@ typedef int SOCKET;
 #include "obj_ptr.h"
 #include "Variant.h"
 
-#include <exlib/fiber.h>
-#include <exlib/lockfree.h>
+#include <exlib/include/fiber.h>
+#include <exlib/include/lockfree.h>
 
 #ifdef _DEBUG
 #undef _DEBUG

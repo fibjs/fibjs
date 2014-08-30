@@ -7,7 +7,7 @@
 
 #include "ifs/zlib.h"
 #include "Buffer.h"
-#include "zlib.h"
+#include <zlib/include/zlib.h>
 #include <sstream>
 
 #define CHUNK 32768

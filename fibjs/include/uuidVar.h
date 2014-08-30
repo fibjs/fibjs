@@ -6,7 +6,7 @@
  */
 
 #include "ifs/uuidValue.h"
-#include "uuid.h"
+#include <uuid/uuid.h>
 
 #ifndef UUIDVAR_H_
 #define UUIDVAR_H_

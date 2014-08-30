@@ -11,7 +11,7 @@
  @author Leo Hoo <lion@9465.net>
  */
 
-#include <v8/v8.h>
+#include <v8/include/v8.h>
 #include <string>
 
 namespace fibjs

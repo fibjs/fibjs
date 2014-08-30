@@ -9,12 +9,16 @@ fi
 
 OS=`uname`
 
+FIBJS_PATH=`pwd`
+OUT_PATH=${FIBJS_PATH}/../out
+BIN_PATH=${FIBJS_PATH}/../bin/${OS}_$1
+
 if [ $1 = 'clean' ]; then
-	if [ -e "out" ]; then
-		rm -rf "out/${OS}_Release"
-		rm -rf "out/${OS}_Debug"
-		rm -rf "out/${OS}_Release32"
-		rm -rf "out/${OS}_Debug32"
+	if [ -e "${OUT_PATH}" ]; then
+		rm -rf "${OUT_PATH}/${OS}_Release"
+		rm -rf "${OUT_PATH}/${OS}_Debug"
+		rm -rf "${OUT_PATH}/${OS}_Release32"
+		rm -rf "${OUT_PATH}/${OS}_Debug32"
 	fi
 
 	exit 0
@@ -27,48 +31,45 @@ if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 
 	exit 0
 fi
 
-if [ ! -e "out" ]; then
-	mkdir "out"
+if [ ! -e "${OUT_PATH}" ]; then
+	mkdir "${OUT_PATH}"
 fi
 
-if [ ! -e "out/${OS}_$1" ]; then
-	mkdir "out/${OS}_$1"
+OUT_PATH=${OUT_PATH}/${OS}_$1
+if [ ! -e ${OUT_PATH} ]; then
+	mkdir ${OUT_PATH}
 fi
 
+OUT_PATH=${OUT_PATH}/fibjs
+if [ ! -e ${OUT_PATH} ]; then
+	mkdir ${OUT_PATH}
+fi
 
 GIT_INFO=`git log -n 1 --pretty=format:"%H"`
 
-cd "out/${OS}_$1"
-cmake -DBUILD_TYPE=$1 -DGIT_INFO=$GIT_INFO ../../tools
+cd ${OUT_PATH}
+cmake -DBUILD_TYPE=$1 -DGIT_INFO=$GIT_INFO ${FIBJS_PATH}/tools > CMake.log
+if [ $? != 0 ]; then
+	exit 1
+fi
 
 if [ ! "$BUILD_JOBS" = "" ]; then
 	sh -c "${BUILD_VERBOSE} make -j${BUILD_JOBS}"
 else
 	sh -c "${BUILD_VERBOSE} make"
 fi
+if [ $? != 0 ]; then
+	exit 1
+fi
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
-	cp "../../installer.txt" "installer.sh"
+	cd ${BIN_PATH}
+	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
 	strip fibjs -o js
 	tar -zcf js.tar.gz js
 	cat js.tar.gz >> installer.sh
+	chmod 777 installer.sh
+	rm js*
 fi
 
-cd ../..
-
-echo "copy fibjs to bin"
-
-if [ ! -e "../bin" ]; then
-	mkdir "../bin"
-fi
-
-if [ ! -e "../bin/${OS}_$1" ]; then
-	mkdir "../bin/${OS}_$1"
-fi
-
-cp "out/${OS}_$1/fibjs" "../bin/${OS}_$1/fibjs"
-
-if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
-	cp "out/${OS}_$1/installer.sh" "../bin/${OS}_$1/installer.sh"
-	chmod 777 "../bin/${OS}_$1/installer.sh"
-fi
+cd ${FIBJS_PATH}
