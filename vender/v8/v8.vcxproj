@@ -321,7 +321,6 @@
     <ClInclude Include="src\string-stream.h" />
     <ClInclude Include="src\strtod.h" />
     <ClInclude Include="src\stub-cache.h" />
-    <ClInclude Include="src\third_party\fdlibm\fdlibm.h" />
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h" />
     <ClInclude Include="src\third_party\valgrind\valgrind.h" />
     <ClInclude Include="src\token.h" />
@@ -362,6 +361,7 @@
     <ClInclude Include="src\zone-containers.h" />
     <ClInclude Include="src\zone-inl.h" />
     <ClInclude Include="src\zone.h" />
+    <ClInclude Include="third_party\fdlibm\fdlibm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\accessors.cc" />
@@ -579,7 +579,6 @@
     <ClCompile Include="src\string-stream.cc" />
     <ClCompile Include="src\strtod.cc" />
     <ClCompile Include="src\stub-cache.cc" />
-    <ClCompile Include="src\third_party\fdlibm\fdlibm.cc" />
     <ClCompile Include="src\token.cc" />
     <ClCompile Include="src\transitions.cc" />
     <ClCompile Include="src\type-info.cc" />
@@ -610,6 +609,7 @@
     <ClCompile Include="src\x64\simulator-x64.cc" />
     <ClCompile Include="src\x64\stub-cache-x64.cc" />
     <ClCompile Include="src\zone.cc" />
+    <ClCompile Include="third_party\fdlibm\fdlibm.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1F77AB58-706B-4BB5-BE73-0000000000c8}</ProjectGuid>

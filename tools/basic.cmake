@@ -47,4 +47,4 @@ if(link_flags)
 	set_target_properties(${name} PROPERTIES LINK_FLAGS ${link_flags})
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR} "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/src" "${PROJECT_SOURCE_DIR}/../" "/usr/local/include/")
+include_directories(${PROJECT_SOURCE_DIR} "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../" "/usr/local/include/")

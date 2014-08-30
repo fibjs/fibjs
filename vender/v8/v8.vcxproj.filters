@@ -49,9 +49,6 @@
     <Filter Include="Source Files\third_party">
       <UniqueIdentifier>{8cba7fd7-fbed-4ba8-b648-b33b114f4515}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\third_party\fdlibm">
-      <UniqueIdentifier>{dd3491f4-38ed-47da-ae24-85e0ed3a36c8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\third_party\kernel">
       <UniqueIdentifier>{fc141e11-539c-4bd7-944e-f8201f59bab2}</UniqueIdentifier>
     </Filter>
@@ -63,6 +60,12 @@
     </Filter>
     <Filter Include="Source Files\third_party\kernel\tools\perf\util">
       <UniqueIdentifier>{d6199390-30a2-47ae-bf7f-11580eeec414}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party">
+      <UniqueIdentifier>{2772149c-d61b-4686-b495-54db4a8178a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\fdlibm">
+      <UniqueIdentifier>{0f770cee-e416-4845-87c0-9c51b3486ba6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1092,8 +1095,8 @@
     <ClInclude Include="src\third_party\valgrind\valgrind.h">
       <Filter>Source Files\third_party</Filter>
     </ClInclude>
-    <ClInclude Include="src\third_party\fdlibm\fdlibm.h">
-      <Filter>Source Files\third_party\fdlibm</Filter>
+    <ClInclude Include="third_party\fdlibm\fdlibm.h">
+      <Filter>third_party\fdlibm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1832,8 +1835,8 @@
     <ClCompile Include="src\libplatform\worker-thread.cc">
       <Filter>Source Files\libplatform</Filter>
     </ClCompile>
-    <ClCompile Include="src\third_party\fdlibm\fdlibm.cc">
-      <Filter>Source Files\third_party\fdlibm</Filter>
+    <ClCompile Include="third_party\fdlibm\fdlibm.cc">
+      <Filter>third_party\fdlibm</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
