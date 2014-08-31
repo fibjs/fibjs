@@ -48,7 +48,7 @@ fi
 GIT_INFO=`git log -n 1 --pretty=format:"%H"`
 
 cd ${OUT_PATH}
-cmake -DBUILD_TYPE=$1 -DGIT_INFO=$GIT_INFO ${FIBJS_PATH}/tools > CMake.log
+cmake -DBUILD_TYPE=$1 -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
 if [ $? != 0 ]; then
 	exit 1
 fi

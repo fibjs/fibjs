@@ -1,23 +1,23 @@
 cmake_minimum_required(VERSION 2.6)
 
-include(../../tools/arch.cmake)
-include(../../tools/os.cmake)
-include(../../tools/subdirs.cmake)
+include(../tools/arch.cmake)
+include(../tools/os.cmake)
+include(../tools/subdirs.cmake)
 
 project(fibjs)
 
-file(GLOB_RECURSE src_list "../src/*.c*")
+file(GLOB_RECURSE src_list "src/*.c*")
 add_executable(fibjs ${src_list})
 
-set(BIN_DIR ${PROJECT_SOURCE_DIR}/../../bin/${OS}_${BUILD_TYPE})
+set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${OS}_${BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${BIN_DIR})
 
 include(CheckIncludeFiles)
 check_include_files(iconv.h HAVE_ICONV_H)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
 
-set(flags "-Wall -Wno-overloaded-virtual -Wno-strict-aliasing -fshort-wchar -fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
+set(flags "-std=c++11 -Wall -Wno-overloaded-virtual -Wno-strict-aliasing -fshort-wchar -fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
 set(link_flags " ")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -69,7 +69,7 @@ endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
-include_directories("${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(libs exlib gd tiff jpeg png zlib leveldb snappy ev pcre sqlite mongo umysql uuid zookeeper exif winiconv polarssl v8)
 
