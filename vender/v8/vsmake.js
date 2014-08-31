@@ -7,6 +7,13 @@ var Includes = {};
 var Compiles = {};
 var filters = [];
 
+var dis_archs = {
+	arm: 1,
+	arm64: 1,
+	mips: 1,
+	mips64: 1
+};
+
 function do_folder(path, base) {
 	filters.push(base);
 
@@ -15,9 +22,10 @@ function do_folder(path, base) {
 	dir.forEach(function(f) {
 		var name = f.name;
 		if (name.substr(0, 1) !== '.') {
-			if (f.isDirectory())
-				do_folder(path + '\\' + name, base + '\\' + name);
-			else {
+			if (f.isDirectory()) {
+				if (!dis_archs[name])
+					do_folder(path + '\\' + name, base + '\\' + name);
+			} else {
 				var len = name.length;
 				var bInc = name.substr(len - 2, 2) === '.h';
 				var bCc = name.substr(len - 3, 3) === '.cc';
