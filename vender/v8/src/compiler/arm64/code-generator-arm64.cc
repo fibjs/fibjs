@@ -1,10 +1,10 @@
-// Copyright 2014 the V8 project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 #include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM64
+
+// Copyright 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "src/compiler/code-generator.h"
 
@@ -135,6 +135,45 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   Arm64OperandConverter i(this, instr);
   InstructionCode opcode = instr->opcode();
   switch (ArchOpcodeField::decode(opcode)) {
+    case kArchCallAddress: {
+      DirectCEntryStub stub(isolate());
+      stub.GenerateCall(masm(), i.InputRegister(0));
+      break;
+    }
+    case kArchCallCodeObject: {
+      if (instr->InputAt(0)->IsImmediate()) {
+        __ Call(Handle<Code>::cast(i.InputHeapObject(0)),
+                RelocInfo::CODE_TARGET);
+      } else {
+        Register target = i.InputRegister(0);
+        __ Add(target, target, Code::kHeaderSize - kHeapObjectTag);
+        __ Call(target);
+      }
+      AddSafepointAndDeopt(instr);
+      break;
+    }
+    case kArchCallJSFunction: {
+      // TODO(jarin) The load of the context should be separated from the call.
+      Register func = i.InputRegister(0);
+      __ Ldr(cp, FieldMemOperand(func, JSFunction::kContextOffset));
+      __ Ldr(x10, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
+      __ Call(x10);
+      AddSafepointAndDeopt(instr);
+      break;
+    }
+    case kArchDeoptimize: {
+      int deoptimization_id = BuildTranslation(instr, 0);
+
+      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
+          isolate(), deoptimization_id, Deoptimizer::LAZY);
+      __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
+      break;
+    }
+    case kArchDrop: {
+      int words = MiscField::decode(instr->opcode());
+      __ Drop(words);
+      break;
+    }
     case kArchJmp:
       __ B(code_->GetLabel(i.InputBlock(0)));
       break;
@@ -144,15 +183,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArchRet:
       AssembleReturn();
       break;
-    case kArchDeoptimize: {
-      int deoptimization_id = MiscField::decode(instr->opcode());
-      BuildTranslation(instr, deoptimization_id);
-
-      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
-          isolate(), deoptimization_id, Deoptimizer::LAZY);
-      __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
-      break;
-    }
     case kArchTruncateDoubleToI:
       __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
       break;
@@ -287,46 +317,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Sxtw:
       __ Sxtw(i.OutputRegister(), i.InputRegister32(0));
       break;
-    case kArm64CallCodeObject: {
-      if (instr->InputAt(0)->IsImmediate()) {
-        Handle<Code> code = Handle<Code>::cast(i.InputHeapObject(0));
-        __ Call(code, RelocInfo::CODE_TARGET);
-        RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                        Safepoint::kNoLazyDeopt);
-      } else {
-        Register reg = i.InputRegister(0);
-        int entry = Code::kHeaderSize - kHeapObjectTag;
-        __ Ldr(reg, MemOperand(reg, entry));
-        __ Call(reg);
-        RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                        Safepoint::kNoLazyDeopt);
-      }
-      bool lazy_deopt = (MiscField::decode(instr->opcode()) == 1);
-      if (lazy_deopt) {
-        RecordLazyDeoptimizationEntry(instr);
-      }
-      // Meaningless instruction for ICs to overwrite.
-      AddNopForSmiCodeInlining();
-      break;
-    }
-    case kArm64CallJSFunction: {
-      Register func = i.InputRegister(0);
-
-      // TODO(jarin) The load of the context should be separated from the call.
-      __ Ldr(cp, FieldMemOperand(func, JSFunction::kContextOffset));
-      __ Ldr(x10, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
-      __ Call(x10);
-
-      RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                      Safepoint::kNoLazyDeopt);
-      RecordLazyDeoptimizationEntry(instr);
-      break;
-    }
-    case kArm64CallAddress: {
-      DirectCEntryStub stub(isolate());
-      stub.GenerateCall(masm(), i.InputRegister(0));
-      break;
-    }
     case kArm64Claim: {
       int words = MiscField::decode(instr->opcode());
       __ Claim(words);
@@ -347,11 +337,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64PokePair: {
       int slot = MiscField::decode(instr->opcode()) - 1;
       __ PokePair(i.InputRegister(1), i.InputRegister(0), slot * kPointerSize);
-      break;
-    }
-    case kArm64Drop: {
-      int words = MiscField::decode(instr->opcode());
-      __ Drop(words);
       break;
     }
     case kArm64Cmp:
@@ -408,34 +393,54 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Uint32ToFloat64:
       __ Ucvtf(i.OutputDoubleRegister(), i.InputRegister32(0));
       break;
-    case kArm64LoadWord8:
+    case kArm64Ldrb:
       __ Ldrb(i.OutputRegister(), i.MemoryOperand());
       break;
-    case kArm64StoreWord8:
+    case kArm64Ldrsb:
+      __ Ldrsb(i.OutputRegister(), i.MemoryOperand());
+      break;
+    case kArm64Strb:
       __ Strb(i.InputRegister(2), i.MemoryOperand());
       break;
-    case kArm64LoadWord16:
+    case kArm64Ldrh:
       __ Ldrh(i.OutputRegister(), i.MemoryOperand());
       break;
-    case kArm64StoreWord16:
+    case kArm64Ldrsh:
+      __ Ldrsh(i.OutputRegister(), i.MemoryOperand());
+      break;
+    case kArm64Strh:
       __ Strh(i.InputRegister(2), i.MemoryOperand());
       break;
-    case kArm64LoadWord32:
+    case kArm64LdrW:
       __ Ldr(i.OutputRegister32(), i.MemoryOperand());
       break;
-    case kArm64StoreWord32:
+    case kArm64StrW:
       __ Str(i.InputRegister32(2), i.MemoryOperand());
       break;
-    case kArm64LoadWord64:
+    case kArm64Ldr:
       __ Ldr(i.OutputRegister(), i.MemoryOperand());
       break;
-    case kArm64StoreWord64:
+    case kArm64Str:
       __ Str(i.InputRegister(2), i.MemoryOperand());
       break;
-    case kArm64Float64Load:
+    case kArm64LdrS: {
+      UseScratchRegisterScope scope(masm());
+      FPRegister scratch = scope.AcquireS();
+      __ Ldr(scratch, i.MemoryOperand());
+      __ Fcvt(i.OutputDoubleRegister(), scratch);
+      break;
+    }
+    case kArm64StrS: {
+      UseScratchRegisterScope scope(masm());
+      FPRegister scratch = scope.AcquireS();
+      __ Fcvt(scratch, i.InputDoubleRegister(2));
+      __ Str(scratch, i.MemoryOperand());
+      break;
+    }
+    case kArm64LdrD:
       __ Ldr(i.OutputDoubleRegister(), i.MemoryOperand());
       break;
-    case kArm64Float64Store:
+    case kArm64StrD:
       __ Str(i.InputDoubleRegister(2), i.MemoryOperand());
       break;
     case kArm64StoreWriteBarrier: {
@@ -847,4 +852,5 @@ void CodeGenerator::AddNopForSmiCodeInlining() { __ movz(xzr, 0); }
 }  // namespace internal
 }  // namespace v8
 
-#endif
+
+#endif  // V8_TARGET_ARCH_ARM64

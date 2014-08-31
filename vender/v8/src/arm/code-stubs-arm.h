@@ -5,7 +5,7 @@
 #ifndef V8_ARM_CODE_STUBS_ARM_H_
 #define V8_ARM_CODE_STUBS_ARM_H_
 
-#include "src/ic-inl.h"
+#include "src/code-stubs.h"
 
 namespace v8 {
 namespace internal {
@@ -28,7 +28,7 @@ class StoreBufferOverflowStub: public PlatformCodeStub {
   SaveFPRegsMode save_doubles_;
 
   Major MajorKey() const { return StoreBufferOverflow; }
-  int MinorKey() const { return (save_doubles_ == kSaveFPRegs) ? 1 : 0; }
+  uint32_t MinorKey() const { return (save_doubles_ == kSaveFPRegs) ? 1 : 0; }
 };
 
 
@@ -69,7 +69,7 @@ class SubStringStub: public PlatformCodeStub {
 
  private:
   Major MajorKey() const { return SubString; }
-  int MinorKey() const { return 0; }
+  uint32_t MinorKey() const { return 0; }
 
   void Generate(MacroAssembler* masm);
 };
@@ -100,7 +100,7 @@ class StringCompareStub: public PlatformCodeStub {
 
  private:
   virtual Major MajorKey() const { return StringCompare; }
-  virtual int MinorKey() const { return 0; }
+  virtual uint32_t MinorKey() const { return 0; }
   virtual void Generate(MacroAssembler* masm);
 
   static void GenerateAsciiCharsCompareLoop(MacroAssembler* masm,
@@ -140,7 +140,7 @@ class WriteInt32ToHeapNumberStub : public PlatformCodeStub {
   class ScratchRegisterBits: public BitField<int, 8, 4> {};
 
   Major MajorKey() const { return WriteInt32ToHeapNumber; }
-  int MinorKey() const {
+  uint32_t MinorKey() const {
     // Encode the parameters in a unique 16 bit value.
     return IntRegisterBits::encode(the_int_.code())
            | HeapNumberRegisterBits::encode(the_heap_number_.code())
@@ -307,7 +307,7 @@ class RecordWriteStub: public PlatformCodeStub {
 
   Major MajorKey() const { return RecordWrite; }
 
-  int MinorKey() const {
+  uint32_t MinorKey() const {
     return ObjectBits::encode(object_.code()) |
         ValueBits::encode(value_.code()) |
         AddressBits::encode(address_.code()) |
@@ -348,7 +348,7 @@ class DirectCEntryStub: public PlatformCodeStub {
 
  private:
   Major MajorKey() const { return DirectCEntry; }
-  int MinorKey() const { return 0; }
+  uint32_t MinorKey() const { return 0; }
 
   bool NeedsImmovableCode() { return true; }
 };
@@ -395,26 +395,12 @@ class NameDictionaryLookupStub: public PlatformCodeStub {
 
   Major MajorKey() const { return NameDictionaryLookup; }
 
-  int MinorKey() const { return LookupModeBits::encode(mode_); }
+  uint32_t MinorKey() const { return LookupModeBits::encode(mode_); }
 
   class LookupModeBits: public BitField<LookupMode, 0, 1> {};
 
   LookupMode mode_;
 };
-
-
-class PlatformInterfaceDescriptor {
- public:
-  explicit PlatformInterfaceDescriptor(
-      TargetAddressStorageMode storage_mode)
-      : storage_mode_(storage_mode) { }
-
-  TargetAddressStorageMode storage_mode() { return storage_mode_; }
-
- private:
-  TargetAddressStorageMode storage_mode_;
-};
-
 
 } }  // namespace v8::internal
 

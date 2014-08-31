@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/compiler/access-builder.h"
 #include "src/compiler/graph-inl.h"
 #include "src/compiler/js-typed-lowering.h"
 #include "src/compiler/node-aux-data-inl.h"
@@ -17,39 +18,18 @@ namespace compiler {
 // - relax effects from generic but not-side-effecting operations
 // - relax effects for ToNumber(mixed)
 
-// Replace value uses of {node} with {value} and effect uses of {node} with
-// {effect}. If {effect == NULL}, then use the effect input to {node}.
-// TODO(titzer): move into a GraphEditor?
-static void ReplaceUses(Node* node, Node* value, Node* effect) {
-  if (value == effect) {
-    // Effect and value updates are the same; no special iteration needed.
-    if (value != node) node->ReplaceUses(value);
-    return;
-  }
-
-  if (effect == NULL) effect = NodeProperties::GetEffectInput(node);
-
-  // The iteration requires distinguishing between value and effect edges.
-  UseIter iter = node->uses().begin();
-  while (iter != node->uses().end()) {
-    if (NodeProperties::IsEffectEdge(iter.edge())) {
-      iter = iter.UpdateToAndIncrement(effect);
-    } else {
-      iter = iter.UpdateToAndIncrement(value);
-    }
-  }
-}
-
 
 // Relax the effects of {node} by immediately replacing effect uses of {node}
 // with the effect input to {node}.
 // TODO(turbofan): replace the effect input to {node} with {graph->start()}.
 // TODO(titzer): move into a GraphEditor?
-static void RelaxEffects(Node* node) { ReplaceUses(node, node, NULL); }
+static void RelaxEffects(Node* node) {
+  NodeProperties::ReplaceWithValue(node, node, NULL);
+}
 
 
 Reduction JSTypedLowering::ReplaceEagerly(Node* old, Node* node) {
-  ReplaceUses(old, node, node);
+  NodeProperties::ReplaceWithValue(old, node, node);
   return Reducer::Changed(node);
 }
 
@@ -520,9 +500,46 @@ Reduction JSTypedLowering::ReduceJSToBooleanInput(Node* input) {
 }
 
 
+Reduction JSTypedLowering::ReduceJSPropertyLoad(Node* node) {
+  Node* key = NodeProperties::GetValueInput(node, 1);
+  Node* base = NodeProperties::GetValueInput(node, 0);
+  Type* key_type = NodeProperties::GetBounds(key).upper;
+  Type* base_type = NodeProperties::GetBounds(base).upper;
+  // TODO(mstarzinger): This lowering is not correct if:
+  //   a) The typed array turns external (i.e. MaterializeArrayBuffer)
+  //   b) The typed array or it's buffer is neutered.
+  //   c) The index is out of bounds.
+  if (base_type->IsConstant() && key_type->Is(Type::Integral32()) &&
+      base_type->AsConstant()->Value()->IsJSTypedArray()) {
+    // JSLoadProperty(typed-array, int32)
+    JSTypedArray* array = JSTypedArray::cast(*base_type->AsConstant()->Value());
+    ElementsKind elements_kind = array->map()->elements_kind();
+    ExternalArrayType type = array->type();
+    ElementAccess element_access;
+    Node* elements = graph()->NewNode(
+        simplified()->LoadField(AccessBuilder::ForJSObjectElements()), base,
+        NodeProperties::GetEffectInput(node));
+    if (IsExternalArrayElementsKind(elements_kind)) {
+      elements = graph()->NewNode(
+          simplified()->LoadField(AccessBuilder::ForExternalArrayPointer()),
+          elements, NodeProperties::GetEffectInput(node));
+      element_access = AccessBuilder::ForTypedArrayElement(type, true);
+    } else {
+      DCHECK(IsFixedTypedArrayElementsKind(elements_kind));
+      element_access = AccessBuilder::ForTypedArrayElement(type, false);
+    }
+    Node* value =
+        graph()->NewNode(simplified()->LoadElement(element_access), elements,
+                         key, NodeProperties::GetEffectInput(node));
+    return ReplaceEagerly(node, value);
+  }
+  return NoChange();
+}
+
+
 static Reduction ReplaceWithReduction(Node* node, Reduction reduction) {
   if (reduction.Changed()) {
-    ReplaceUses(node, reduction.replacement(), NULL);
+    NodeProperties::ReplaceWithValue(node, reduction.replacement());
     return reduction;
   }
   return Reducer::NoChange();
@@ -573,13 +590,13 @@ Reduction JSTypedLowering::Reduce(Node* node) {
         // !x => BooleanNot(x)
         value =
             graph()->NewNode(simplified()->BooleanNot(), result.replacement());
-        ReplaceUses(node, value, NULL);
+        NodeProperties::ReplaceWithValue(node, value);
         return Changed(value);
       } else {
         // !x => BooleanNot(JSToBoolean(x))
         value = graph()->NewNode(simplified()->BooleanNot(), node);
         node->set_op(javascript()->ToBoolean());
-        ReplaceUses(node, value, node);
+        NodeProperties::ReplaceWithValue(node, value, node);
         // Note: ReplaceUses() smashes all uses, so smash it back here.
         value->ReplaceInput(0, node);
         return ReplaceWith(value);
@@ -594,6 +611,8 @@ Reduction JSTypedLowering::Reduce(Node* node) {
     case IrOpcode::kJSToString:
       return ReplaceWithReduction(node,
                                   ReduceJSToStringInput(node->InputAt(0)));
+    case IrOpcode::kJSLoadProperty:
+      return ReduceJSPropertyLoad(node);
     default:
       break;
   }

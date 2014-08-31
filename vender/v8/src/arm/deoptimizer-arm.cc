@@ -1,10 +1,12 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #include "src/v8.h"
-
-#if V8_TARGET_ARCH_ARM
 
 #include "src/codegen.h"
 #include "src/deoptimizer.h"
@@ -355,4 +357,5 @@ void FrameDescription::SetCallerConstantPool(unsigned offset, intptr_t value) {
 
 } }  // namespace v8::internal
 
-#endif
+
+#endif  // V8_TARGET_ARCH_ARM

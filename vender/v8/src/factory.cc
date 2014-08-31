@@ -1139,7 +1139,7 @@ Handle<String> Factory::EmergencyNewError(const char* message,
   space -= Min(space, strlen(message));
   p = &buffer[kBufferSize] - space;
 
-  for (unsigned i = 0; i < ARRAY_SIZE(args); i++) {
+  for (int i = 0; i < Smi::cast(args->length())->value(); i++) {
     if (space > 0) {
       *p++ = ' ';
       space--;
@@ -1184,7 +1184,7 @@ Handle<Object> Factory::NewError(const char* maker,
   Handle<Object> exception;
   if (!Execution::TryCall(fun,
                           isolate()->js_builtins_object(),
-                          ARRAY_SIZE(argv),
+                          arraysize(argv),
                           argv,
                           &exception).ToHandle(&result)) {
     return exception;
@@ -1211,7 +1211,7 @@ Handle<Object> Factory::NewError(const char* constructor,
   Handle<Object> exception;
   if (!Execution::TryCall(fun,
                           isolate()->js_builtins_object(),
-                          ARRAY_SIZE(argv),
+                          arraysize(argv),
                           argv,
                           &exception).ToHandle(&result)) {
     return exception;
@@ -1777,20 +1777,19 @@ Handle<JSProxy> Factory::NewJSFunctionProxy(Handle<Object> handler,
 }
 
 
-void Factory::ReinitializeJSReceiver(Handle<JSReceiver> object,
-                                     InstanceType type,
-                                     int size) {
-  DCHECK(type >= FIRST_JS_OBJECT_TYPE);
+void Factory::ReinitializeJSProxy(Handle<JSProxy> proxy, InstanceType type,
+                                  int size) {
+  DCHECK(type == JS_OBJECT_TYPE || type == JS_FUNCTION_TYPE);
 
   // Allocate fresh map.
   // TODO(rossberg): Once we optimize proxies, cache these maps.
   Handle<Map> map = NewMap(type, size);
 
   // Check that the receiver has at least the size of the fresh object.
-  int size_difference = object->map()->instance_size() - map->instance_size();
+  int size_difference = proxy->map()->instance_size() - map->instance_size();
   DCHECK(size_difference >= 0);
 
-  map->set_prototype(object->map()->prototype());
+  map->set_prototype(proxy->map()->prototype());
 
   // Allocate the backing storage for the properties.
   int prop_size = map->InitialPropertiesLength();
@@ -1811,24 +1810,31 @@ void Factory::ReinitializeJSReceiver(Handle<JSReceiver> object,
 
   // Put in filler if the new object is smaller than the old.
   if (size_difference > 0) {
-    Address address = object->address();
+    Address address = proxy->address();
     heap->CreateFillerObjectAt(address + map->instance_size(), size_difference);
     heap->AdjustLiveBytes(address, -size_difference, Heap::FROM_MUTATOR);
   }
 
   // Reset the map for the object.
-  object->synchronized_set_map(*map);
-  Handle<JSObject> jsobj = Handle<JSObject>::cast(object);
+  proxy->synchronized_set_map(*map);
+  Handle<JSObject> jsobj = Handle<JSObject>::cast(proxy);
 
   // Reinitialize the object from the constructor map.
   heap->InitializeJSObjectFromMap(*jsobj, *properties, *map);
 
+  // The current native context is used to set up certain bits.
+  // TODO(adamk): Using the current context seems wrong, it should be whatever
+  // context the JSProxy originated in. But that context isn't stored anywhere.
+  Handle<Context> context(isolate()->native_context());
+
   // Functions require some minimal initialization.
   if (type == JS_FUNCTION_TYPE) {
     map->set_function_with_prototype(true);
-    Handle<JSFunction> js_function = Handle<JSFunction>::cast(object);
-    Handle<Context> context(isolate()->native_context());
+    Handle<JSFunction> js_function = Handle<JSFunction>::cast(proxy);
     InitializeFunction(js_function, shared.ToHandleChecked(), context);
+  } else {
+    // Provide JSObjects with a constructor.
+    map->set_constructor(context->object_function());
   }
 }
 
@@ -1866,13 +1872,13 @@ void Factory::ReinitializeJSGlobalProxy(Handle<JSGlobalProxy> object,
 }
 
 
-void Factory::BecomeJSObject(Handle<JSReceiver> object) {
-  ReinitializeJSReceiver(object, JS_OBJECT_TYPE, JSObject::kHeaderSize);
+void Factory::BecomeJSObject(Handle<JSProxy> proxy) {
+  ReinitializeJSProxy(proxy, JS_OBJECT_TYPE, JSObject::kHeaderSize);
 }
 
 
-void Factory::BecomeJSFunction(Handle<JSReceiver> object) {
-  ReinitializeJSReceiver(object, JS_FUNCTION_TYPE, JSFunction::kSize);
+void Factory::BecomeJSFunction(Handle<JSProxy> proxy) {
+  ReinitializeJSProxy(proxy, JS_FUNCTION_TYPE, JSFunction::kSize);
 }
 
 
@@ -2039,7 +2045,7 @@ Handle<String> Factory::NumberToString(Handle<Object> number,
   }
 
   char arr[100];
-  Vector<char> buffer(arr, ARRAY_SIZE(arr));
+  Vector<char> buffer(arr, arraysize(arr));
   const char* str;
   if (number->IsSmi()) {
     int num = Handle<Smi>::cast(number)->value();
@@ -2174,7 +2180,7 @@ Handle<JSFunction> Factory::CreateApiFunction(
   if (prototype->IsTheHole()) {
 #ifdef DEBUG
     LookupIterator it(handle(JSObject::cast(result->prototype())),
-                      constructor_string(), LookupIterator::CHECK_PROPERTY);
+                      constructor_string(), LookupIterator::OWN_PROPERTY);
     MaybeHandle<Object> maybe_prop = Object::GetProperty(&it);
     DCHECK(it.IsFound());
     DCHECK(maybe_prop.ToHandleChecked().is_identical_to(result));

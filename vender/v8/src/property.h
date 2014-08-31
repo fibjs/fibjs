@@ -119,8 +119,7 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
         lookup_type_(NOT_FOUND),
         holder_(NULL),
         transition_(NULL),
-        cacheable_(true),
-        details_(NONE, NONEXISTENT, Representation::None()) {
+        details_(NONE, NORMAL, Representation::None()) {
     isolate->set_top_lookup_result(this);
   }
 
@@ -139,32 +138,6 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
     number_ = number;
   }
 
-  bool CanHoldValue(Handle<Object> value) const {
-    switch (type()) {
-      case NORMAL:
-        return true;
-      case FIELD:
-        return value->FitsRepresentation(representation()) &&
-            GetFieldType()->NowContains(value);
-      case CONSTANT: {
-        Map* map =
-            lookup_type_ == DESCRIPTOR_TYPE ? holder_->map() : transition_;
-        Object* constant = GetConstantFromMap(map);
-        DCHECK(constant != *value ||
-               value->FitsRepresentation(representation()));
-        return constant == *value;
-      }
-      case CALLBACKS:
-      case HANDLER:
-      case INTERCEPTOR:
-        return true;
-      case NONEXISTENT:
-        UNREACHABLE();
-    }
-    UNREACHABLE();
-    return true;
-  }
-
   void TransitionResult(JSObject* holder, Map* target) {
     lookup_type_ = TRANSITION_TYPE;
     number_ = target->LastAdded();
@@ -173,70 +146,16 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
     transition_ = target;
   }
 
-  void DictionaryResult(JSObject* holder, int entry) {
-    lookup_type_ = DICTIONARY_TYPE;
-    holder_ = holder;
-    transition_ = NULL;
-    details_ = holder->property_dictionary()->DetailsAt(entry);
-    number_ = entry;
-  }
-
-  void HandlerResult(JSProxy* proxy) {
-    lookup_type_ = HANDLER_TYPE;
-    holder_ = proxy;
-    transition_ = NULL;
-    details_ = PropertyDetails(NONE, HANDLER, Representation::Tagged());
-    cacheable_ = false;
-  }
-
-  void InterceptorResult(JSObject* holder) {
-    lookup_type_ = INTERCEPTOR_TYPE;
-    holder_ = holder;
-    transition_ = NULL;
-    details_ = PropertyDetails(NONE, INTERCEPTOR, Representation::Tagged());
-  }
-
   void NotFound() {
     lookup_type_ = NOT_FOUND;
-    details_ = PropertyDetails(NONE, NONEXISTENT, Representation::None());
+    details_ = PropertyDetails(NONE, NORMAL, Representation::None());
     holder_ = NULL;
     transition_ = NULL;
   }
 
-  JSObject* holder() const {
-    DCHECK(IsFound());
-    return JSObject::cast(holder_);
-  }
-
-  JSProxy* proxy() const {
-    DCHECK(IsHandler());
-    return JSProxy::cast(holder_);
-  }
-
-  PropertyType type() const {
-    DCHECK(IsFound());
-    return details_.type();
-  }
-
   Representation representation() const {
     DCHECK(IsFound());
-    DCHECK(details_.type() != NONEXISTENT);
     return details_.representation();
-  }
-
-  PropertyAttributes GetAttributes() const {
-    DCHECK(IsFound());
-    DCHECK(details_.type() != NONEXISTENT);
-    return details_.attributes();
-  }
-
-  PropertyDetails GetPropertyDetails() const {
-    return details_;
-  }
-
-  bool IsFastPropertyType() const {
-    DCHECK(IsFound());
-    return IsTransition() || type() != NORMAL;
   }
 
   // Property callbacks does not include transitions to callbacks.
@@ -247,42 +166,27 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
 
   bool IsReadOnly() const {
     DCHECK(IsFound());
-    DCHECK(details_.type() != NONEXISTENT);
     return details_.IsReadOnly();
   }
 
   bool IsField() const {
     DCHECK(!(details_.type() == FIELD && !IsFound()));
-    return IsDescriptorOrDictionary() && type() == FIELD;
-  }
-
-  bool IsNormal() const {
-    DCHECK(!(details_.type() == NORMAL && !IsFound()));
-    return IsDescriptorOrDictionary() && type() == NORMAL;
+    return lookup_type_ == DESCRIPTOR_TYPE && details_.type() == FIELD;
   }
 
   bool IsConstant() const {
     DCHECK(!(details_.type() == CONSTANT && !IsFound()));
-    return IsDescriptorOrDictionary() && type() == CONSTANT;
+    return lookup_type_ == DESCRIPTOR_TYPE && details_.type() == CONSTANT;
   }
 
-  bool IsDontDelete() const { return details_.IsDontDelete(); }
-  bool IsDontEnum() const { return details_.IsDontEnum(); }
+  bool IsConfigurable() const { return details_.IsConfigurable(); }
   bool IsFound() const { return lookup_type_ != NOT_FOUND; }
-  bool IsDescriptorOrDictionary() const {
-    return lookup_type_ == DESCRIPTOR_TYPE || lookup_type_ == DICTIONARY_TYPE;
-  }
   bool IsTransition() const { return lookup_type_ == TRANSITION_TYPE; }
-  bool IsHandler() const { return lookup_type_ == HANDLER_TYPE; }
-  bool IsInterceptor() const { return lookup_type_ == INTERCEPTOR_TYPE; }
 
   // Is the result is a property excluding transitions and the null descriptor?
   bool IsProperty() const {
     return IsFound() && !IsTransition();
   }
-
-  bool IsCacheable() const { return cacheable_; }
-  void DisallowCaching() { cacheable_ = false; }
 
   Map* GetTransitionTarget() const {
     DCHECK(IsTransition());
@@ -293,32 +197,12 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
     return IsTransition() && details_.type() == FIELD;
   }
 
-  bool IsTransitionToConstant() const {
-    return IsTransition() && details_.type() == CONSTANT;
-  }
-
-  int GetDescriptorIndex() const {
-    DCHECK(lookup_type_ == DESCRIPTOR_TYPE);
-    return number_;
-  }
-
-  FieldIndex GetFieldIndex() const {
-    DCHECK(lookup_type_ == DESCRIPTOR_TYPE ||
-           lookup_type_ == TRANSITION_TYPE);
-    return FieldIndex::ForLookupResult(this);
-  }
-
   int GetLocalFieldIndexFromMap(Map* map) const {
     return GetFieldIndexFromMap(map) - map->inobject_properties();
   }
 
-  int GetDictionaryEntry() const {
-    DCHECK(lookup_type_ == DICTIONARY_TYPE);
-    return number_;
-  }
-
   Object* GetConstantFromMap(Map* map) const {
-    DCHECK(type() == CONSTANT);
+    DCHECK(details_.type() == CONSTANT);
     return GetValueFromMap(map);
   }
 
@@ -336,24 +220,10 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
     return map->instance_descriptors()->GetFieldIndex(number_);
   }
 
-  HeapType* GetFieldType() const {
-    DCHECK(type() == FIELD);
-    if (lookup_type_ == DESCRIPTOR_TYPE) {
-      return GetFieldTypeFromMap(holder()->map());
-    }
-    DCHECK(lookup_type_ == TRANSITION_TYPE);
-    return GetFieldTypeFromMap(transition_);
-  }
-
   HeapType* GetFieldTypeFromMap(Map* map) const {
-    DCHECK(lookup_type_ == DESCRIPTOR_TYPE ||
-           lookup_type_ == TRANSITION_TYPE);
+    DCHECK_NE(NOT_FOUND, lookup_type_);
     DCHECK(number_ < map->NumberOfOwnDescriptors());
     return map->instance_descriptors()->GetFieldType(number_);
-  }
-
-  Map* GetFieldOwner() const {
-    return GetFieldOwnerFromMap(holder()->map());
   }
 
   Map* GetFieldOwnerFromMap(Map* map) const {
@@ -363,12 +233,6 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
     return map->FindFieldOwner(number_);
   }
 
-  bool ReceiverIsHolder(Handle<Object> receiver) {
-    if (*receiver == holder()) return true;
-    if (lookup_type_ == TRANSITION_TYPE) return true;
-    return false;
-  }
-
   void Iterate(ObjectVisitor* visitor);
 
  private:
@@ -376,19 +240,11 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   LookupResult* next_;
 
   // Where did we find the result;
-  enum {
-    NOT_FOUND,
-    DESCRIPTOR_TYPE,
-    TRANSITION_TYPE,
-    DICTIONARY_TYPE,
-    HANDLER_TYPE,
-    INTERCEPTOR_TYPE
-  } lookup_type_;
+  enum { NOT_FOUND, DESCRIPTOR_TYPE, TRANSITION_TYPE } lookup_type_;
 
   JSReceiver* holder_;
   Map* transition_;
   int number_;
-  bool cacheable_;
   PropertyDetails details_;
 };
 

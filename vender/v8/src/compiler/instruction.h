@@ -89,6 +89,8 @@ class InstructionOperand : public ZoneObject {
   unsigned value_;
 };
 
+typedef ZoneVector<InstructionOperand*> InstructionOperandVector;
+
 OStream& operator<<(OStream& os, const InstructionOperand& op);
 
 class UnallocatedOperand : public InstructionOperand {
@@ -402,11 +404,13 @@ OStream& operator<<(OStream& os, const PointerMap& pm);
 class Instruction : public ZoneObject {
  public:
   size_t OutputCount() const { return OutputCountField::decode(bit_field_); }
-  InstructionOperand* Output() const { return OutputAt(0); }
   InstructionOperand* OutputAt(size_t i) const {
     DCHECK(i < OutputCount());
     return operands_[i];
   }
+
+  bool HasOutput() const { return OutputCount() == 1; }
+  InstructionOperand* Output() const { return OutputAt(0); }
 
   size_t InputCount() const { return InputCountField::decode(bit_field_); }
   InstructionOperand* InputAt(size_t i) const {
@@ -720,18 +724,13 @@ class FrameStateDescriptor : public ZoneObject {
 
 OStream& operator<<(OStream& os, const Constant& constant);
 
-typedef std::deque<Constant, zone_allocator<Constant> > ConstantDeque;
+typedef ZoneDeque<Constant> ConstantDeque;
 typedef std::map<int, Constant, std::less<int>,
                  zone_allocator<std::pair<int, Constant> > > ConstantMap;
 
-
-typedef std::deque<Instruction*, zone_allocator<Instruction*> >
-    InstructionDeque;
-typedef std::deque<PointerMap*, zone_allocator<PointerMap*> > PointerMapDeque;
-typedef std::vector<FrameStateDescriptor*,
-                    zone_allocator<FrameStateDescriptor*> >
-    DeoptimizationVector;
-
+typedef ZoneDeque<Instruction*> InstructionDeque;
+typedef ZoneDeque<PointerMap*> PointerMapDeque;
+typedef ZoneVector<FrameStateDescriptor*> DeoptimizationVector;
 
 // Represents architecture-specific generated code before, during, and after
 // register allocation.
@@ -744,14 +743,14 @@ class InstructionSequence V8_FINAL {
         schedule_(schedule),
         constants_(ConstantMap::key_compare(),
                    ConstantMap::allocator_type(zone())),
-        immediates_(ConstantDeque::allocator_type(zone())),
-        instructions_(InstructionDeque::allocator_type(zone())),
+        immediates_(zone()),
+        instructions_(zone()),
         next_virtual_register_(graph->NodeCount()),
-        pointer_maps_(PointerMapDeque::allocator_type(zone())),
+        pointer_maps_(zone()),
         doubles_(std::less<int>(), VirtualRegisterSet::allocator_type(zone())),
         references_(std::less<int>(),
                     VirtualRegisterSet::allocator_type(zone())),
-        deoptimization_entries_(DeoptimizationVector::allocator_type(zone())) {}
+        deoptimization_entries_(zone()) {}
 
   int NextVirtualRegister() { return next_virtual_register_++; }
   int VirtualRegisterCount() const { return next_virtual_register_; }

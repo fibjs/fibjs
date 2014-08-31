@@ -1,13 +1,13 @@
+#include <exlib/include/osconfig.h>
+
+#ifdef OpenBSD
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 // Platform-specific code for OpenBSD and NetBSD goes here. For the
 // POSIX-compatible parts, the implementation is in platform-posix.cc.
-
-#include <exlib/include/osconfig.h>
-
-#ifdef OpenBSD
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -340,5 +340,6 @@ bool VirtualMemory::HasLazyCommits() {
 }
 
 } }  // namespace v8::base
+
 
 #endif

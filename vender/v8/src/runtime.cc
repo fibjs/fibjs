@@ -40,7 +40,6 @@
 #include "src/scopeinfo.h"
 #include "src/smart-pointers.h"
 #include "src/string-search.h"
-#include "src/stub-cache.h"
 #include "src/uri.h"
 #include "src/utils.h"
 #include "src/v8threads.h"
@@ -291,7 +290,7 @@ MUST_USE_RESULT static MaybeHandle<Object> CreateObjectLiteralBoilerplate(
       DCHECK(key->IsNumber());
       double num = key->Number();
       char arr[100];
-      Vector<char> buffer(arr, ARRAY_SIZE(arr));
+      Vector<char> buffer(arr, arraysize(arr));
       const char* str = DoubleToCString(num, buffer);
       Handle<String> name = isolate->factory()->NewStringFromAsciiChecked(str);
       maybe_result = JSObject::SetOwnPropertyIgnoreAttributes(boilerplate, name,
@@ -619,7 +618,7 @@ RUNTIME_FUNCTION(Runtime_CreatePrivateOwnSymbol) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_CreateGlobalPrivateSymbol) {
+RUNTIME_FUNCTION(Runtime_CreateGlobalPrivateOwnSymbol) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1);
   CONVERT_ARG_HANDLE_CHECKED(String, name, 0);
@@ -635,6 +634,7 @@ RUNTIME_FUNCTION(Runtime_CreateGlobalPrivateSymbol) {
     DCHECK(symbol->IsUndefined());
     symbol = isolate->factory()->NewPrivateSymbol();
     Handle<Symbol>::cast(symbol)->set_name(*name);
+    Handle<Symbol>::cast(symbol)->set_is_own(true);
     JSObject::SetProperty(Handle<JSObject>::cast(privates), name, symbol,
                           STRICT).Assert();
   }
@@ -1714,7 +1714,8 @@ RUNTIME_FUNCTION(Runtime_GetWeakMapEntries) {
       Handle<Object> key(table->KeyAt(i), isolate);
       if (table->IsKey(*key)) {
         entries->set(number_of_non_hole_elements++, *key);
-        entries->set(number_of_non_hole_elements++, table->Lookup(key));
+        Object* value = table->Lookup(key);
+        entries->set(number_of_non_hole_elements++, value);
       }
     }
     DCHECK_EQ(table->NumberOfElements() * 2, number_of_non_hole_elements);
@@ -1980,7 +1981,7 @@ MUST_USE_RESULT static MaybeHandle<Object> GetOwnProperty(Isolate* isolate,
     }
   } else {
     // Get attributes.
-    LookupIterator it(obj, name, LookupIterator::CHECK_HIDDEN);
+    LookupIterator it(obj, name, LookupIterator::HIDDEN);
     Maybe<PropertyAttributes> maybe = JSObject::GetPropertyAttributes(&it);
     if (!maybe.has_value) return MaybeHandle<Object>();
     attrs = maybe.value;
@@ -2047,6 +2048,25 @@ RUNTIME_FUNCTION(Runtime_PreventExtensions) {
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, result, JSObject::PreventExtensions(obj));
   return *result;
+}
+
+
+RUNTIME_FUNCTION(Runtime_ToMethod) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 2);
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, fun, 0);
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, home_object, 1);
+  Handle<JSFunction> clone = JSFunction::CloneClosure(fun);
+  Handle<Symbol> home_object_symbol(isolate->heap()->home_object_symbol());
+  JSObject::SetOwnPropertyIgnoreAttributes(clone, home_object_symbol,
+                                           home_object, DONT_ENUM).Assert();
+  return *clone;
+}
+
+
+RUNTIME_FUNCTION(Runtime_HomeObjectSymbol) {
+  DCHECK(args.length() == 0);
+  return isolate->heap()->home_object_symbol();
 }
 
 
@@ -2159,7 +2179,7 @@ static Object* DeclareGlobals(Isolate* isolate, Handle<GlobalObject> global,
                               PropertyAttributes attr, bool is_var,
                               bool is_const, bool is_function) {
   // Do the lookup own properties only, see ES5 erratum.
-  LookupIterator it(global, name, LookupIterator::CHECK_HIDDEN_PROPERTY);
+  LookupIterator it(global, name, LookupIterator::HIDDEN_PROPERTY);
   Maybe<PropertyAttributes> maybe = JSReceiver::GetPropertyAttributes(&it);
   DCHECK(maybe.has_value);
   PropertyAttributes old_attributes = maybe.value;
@@ -2289,7 +2309,7 @@ RUNTIME_FUNCTION(Runtime_InitializeConstGlobal) {
   Handle<GlobalObject> global = isolate->global_object();
 
   // Lookup the property as own on the global object.
-  LookupIterator it(global, name, LookupIterator::CHECK_HIDDEN_PROPERTY);
+  LookupIterator it(global, name, LookupIterator::HIDDEN_PROPERTY);
   Maybe<PropertyAttributes> maybe = JSReceiver::GetPropertyAttributes(&it);
   DCHECK(maybe.has_value);
   PropertyAttributes old_attributes = maybe.value;
@@ -2439,7 +2459,7 @@ RUNTIME_FUNCTION(Runtime_InitializeLegacyConstLookupSlot) {
     // code can run in between that modifies the declared property.
     DCHECK(holder->IsJSGlobalObject() || holder->IsJSContextExtensionObject());
 
-    LookupIterator it(holder, name, LookupIterator::CHECK_HIDDEN_PROPERTY);
+    LookupIterator it(holder, name, LookupIterator::HIDDEN_PROPERTY);
     Maybe<PropertyAttributes> maybe = JSReceiver::GetPropertyAttributes(&it);
     if (!maybe.has_value) return isolate->heap()->exception();
     PropertyAttributes old_attributes = maybe.value;
@@ -4870,18 +4890,18 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
         }
         // Lookup cache miss.  Perform lookup and update the cache if
         // appropriate.
-        LookupResult result(isolate);
-        receiver->LookupOwn(key, &result);
-        if (result.IsField()) {
-          FieldIndex field_index = result.GetFieldIndex();
+        LookupIterator it(receiver, key, LookupIterator::OWN);
+        if (it.IsFound() && it.state() == LookupIterator::PROPERTY &&
+            it.HasProperty() && it.property_details().type() == FIELD) {
+          FieldIndex field_index = it.GetFieldIndex();
           // Do not track double fields in the keyed lookup cache. Reading
           // double values requires boxing.
-          if (!result.representation().IsDouble()) {
+          if (!it.representation().IsDouble()) {
             keyed_lookup_cache->Update(receiver_map, key,
                 field_index.GetKeyedLookupCacheIndex());
           }
           AllowHeapAllocation allow_allocation;
-          return *JSObject::FastPropertyAt(receiver, result.representation(),
+          return *JSObject::FastPropertyAt(receiver, it.representation(),
                                            field_index);
         }
       } else {
@@ -5026,15 +5046,12 @@ RUNTIME_FUNCTION(Runtime_DefineDataPropertyUnchecked) {
     return isolate->heap()->undefined_value();
   }
 
-  LookupResult lookup(isolate);
-  js_object->LookupOwnRealNamedProperty(name, &lookup);
+  LookupIterator it(js_object, name, LookupIterator::OWN_PROPERTY);
 
   // Take special care when attributes are different and there is already
-  // a property. For simplicity we normalize the property which enables us
-  // to not worry about changing the instance_descriptor and creating a new
-  // map.
-  if (lookup.IsFound() &&
-      (attr != lookup.GetAttributes() || lookup.IsPropertyCallbacks())) {
+  // a property.
+  if (it.IsFound() && it.HasProperty() &&
+      it.property_kind() == LookupIterator::ACCESSOR) {
     // Use IgnoreAttributes version since a readonly property may be
     // overridden and SetProperty does not allow this.
     Handle<Object> result;
@@ -5277,7 +5294,7 @@ RUNTIME_FUNCTION(Runtime_AddNamedProperty) {
 #ifdef DEBUG
   uint32_t index = 0;
   DCHECK(!key->ToArrayIndex(&index));
-  LookupIterator it(object, key, LookupIterator::CHECK_PROPERTY);
+  LookupIterator it(object, key, LookupIterator::OWN_PROPERTY);
   Maybe<PropertyAttributes> maybe = JSReceiver::GetPropertyAttributes(&it);
   DCHECK(maybe.has_value);
   RUNTIME_ASSERT(!it.IsFound());
@@ -5309,7 +5326,7 @@ RUNTIME_FUNCTION(Runtime_AddPropertyForTemplate) {
   bool duplicate;
   if (key->IsName()) {
     LookupIterator it(object, Handle<Name>::cast(key),
-                      LookupIterator::CHECK_PROPERTY);
+                      LookupIterator::OWN_PROPERTY);
     Maybe<PropertyAttributes> maybe = JSReceiver::GetPropertyAttributes(&it);
     DCHECK(maybe.has_value);
     duplicate = it.IsFound();
@@ -5994,6 +6011,10 @@ RUNTIME_FUNCTION(Runtime_GetArgumentsProperty) {
 
   HandleScope scope(isolate);
   if (raw_key->IsSymbol()) {
+    Handle<Symbol> symbol = Handle<Symbol>::cast(raw_key);
+    if (symbol->Equals(isolate->native_context()->iterator_symbol())) {
+      return isolate->native_context()->array_values_iterator();
+    }
     // Lookup in the initial Object.prototype object.
     Handle<Object> result;
     ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
@@ -10878,11 +10899,12 @@ RUNTIME_FUNCTION(Runtime_Break) {
 }
 
 
-static Handle<Object> DebugLookupResultValue(LookupIterator* it,
-                                             bool* has_caught = NULL) {
+static Handle<Object> DebugGetProperty(LookupIterator* it,
+                                       bool* has_caught = NULL) {
   for (; it->IsFound(); it->Next()) {
     switch (it->state()) {
       case LookupIterator::NOT_FOUND:
+      case LookupIterator::TRANSITION:
         UNREACHABLE();
       case LookupIterator::ACCESS_CHECK:
         // Ignore access checks.
@@ -10962,9 +10984,9 @@ RUNTIME_FUNCTION(Runtime_DebugGetPropertyDetails) {
     return *isolate->factory()->NewJSArrayWithElements(details);
   }
 
-  LookupIterator it(obj, name, LookupIterator::CHECK_HIDDEN);
+  LookupIterator it(obj, name, LookupIterator::HIDDEN);
   bool has_caught = false;
-  Handle<Object> value = DebugLookupResultValue(&it, &has_caught);
+  Handle<Object> value = DebugGetProperty(&it, &has_caught);
   if (!it.IsFound()) return isolate->heap()->undefined_value();
 
   Handle<Object> maybe_pair;
@@ -10977,18 +10999,20 @@ RUNTIME_FUNCTION(Runtime_DebugGetPropertyDetails) {
   // getter and/or setter.
   bool has_js_accessors = !maybe_pair.is_null() && maybe_pair->IsAccessorPair();
   Handle<FixedArray> details =
-      isolate->factory()->NewFixedArray(has_js_accessors ? 5 : 2);
+      isolate->factory()->NewFixedArray(has_js_accessors ? 6 : 3);
   details->set(0, *value);
   // TODO(verwaest): Get rid of this random way of handling interceptors.
   PropertyDetails d = it.state() == LookupIterator::INTERCEPTOR
-                          ? PropertyDetails(NONE, INTERCEPTOR, 0)
+                          ? PropertyDetails(NONE, NORMAL, 0)
                           : it.property_details();
   details->set(1, d.AsSmi());
+  details->set(
+      2, isolate->heap()->ToBoolean(it.state() == LookupIterator::INTERCEPTOR));
   if (has_js_accessors) {
     AccessorPair* accessors = AccessorPair::cast(*maybe_pair);
-    details->set(2, isolate->heap()->ToBoolean(has_caught));
-    details->set(3, accessors->GetComponent(ACCESSOR_GETTER));
-    details->set(4, accessors->GetComponent(ACCESSOR_SETTER));
+    details->set(3, isolate->heap()->ToBoolean(has_caught));
+    details->set(4, accessors->GetComponent(ACCESSOR_GETTER));
+    details->set(5, accessors->GetComponent(ACCESSOR_SETTER));
   }
 
   return *isolate->factory()->NewJSArrayWithElements(details);
@@ -11003,8 +11027,8 @@ RUNTIME_FUNCTION(Runtime_DebugGetProperty) {
   CONVERT_ARG_HANDLE_CHECKED(JSObject, obj, 0);
   CONVERT_ARG_HANDLE_CHECKED(Name, name, 1);
 
-  LookupIterator it(obj, name, LookupIterator::CHECK_DERIVED);
-  return *DebugLookupResultValue(&it);
+  LookupIterator it(obj, name);
+  return *DebugGetProperty(&it);
 }
 
 
@@ -11483,11 +11507,13 @@ RUNTIME_FUNCTION(Runtime_GetFrameDetails) {
     if (receiver->IsUndefined()) {
       receiver = handle(function->global_proxy());
     } else {
-      DCHECK(!receiver->IsNull());
       Context* context = Context::cast(it.frame()->context());
       Handle<Context> native_context(Context::cast(context->native_context()));
-      receiver = Object::ToObject(
-          isolate, receiver, native_context).ToHandleChecked();
+      if (!Object::ToObject(isolate, receiver, native_context)
+               .ToHandle(&receiver)) {
+        // This only happens if the receiver is forcibly set in %_CallFunction.
+        return heap->undefined_value();
+      }
     }
   }
   details->set(kFrameDetailsReceiverIndex, *receiver);
@@ -14309,7 +14335,7 @@ RUNTIME_FUNCTION(Runtime_StringNormalize) {
   CONVERT_ARG_HANDLE_CHECKED(String, stringValue, 0);
   CONVERT_NUMBER_CHECKED(int, form_id, Int32, args[1]);
   RUNTIME_ASSERT(form_id >= 0 &&
-                 static_cast<size_t>(form_id) < ARRAY_SIZE(normalizationForms));
+                 static_cast<size_t>(form_id) < arraysize(normalizationForms));
 
   v8::String::Value string_value(v8::Utils::ToLocal(stringValue));
   const UChar* u_value = reinterpret_cast<const UChar*>(*string_value);
@@ -14695,7 +14721,7 @@ RUNTIME_FUNCTION(Runtime_GetFromCache) {
     Handle<Object> argv[] = { key_handle };
     ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
         isolate, value,
-        Execution::Call(isolate, factory, receiver, ARRAY_SIZE(argv), argv));
+        Execution::Call(isolate, factory, receiver, arraysize(argv), argv));
   }
 
 #ifdef VERIFY_HEAP
@@ -15619,7 +15645,7 @@ const Runtime::Function* Runtime::FunctionForName(Handle<String> name) {
 
 
 const Runtime::Function* Runtime::FunctionForEntry(Address entry) {
-  for (size_t i = 0; i < ARRAY_SIZE(kIntrinsicFunctions); ++i) {
+  for (size_t i = 0; i < arraysize(kIntrinsicFunctions); ++i) {
     if (entry == kIntrinsicFunctions[i].entry) {
       return &(kIntrinsicFunctions[i]);
     }

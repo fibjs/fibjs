@@ -1,5 +1,6 @@
+#include <exlib/include/osconfig.h>
 
-#ifdef WIN32
+#ifdef Windows
 
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
@@ -115,11 +116,6 @@ namespace {
 bool g_hard_abort = false;
 
 }  // namespace
-
-intptr_t OS::MaxVirtualMemory() {
-  return 0;
-}
-
 
 class TimezoneCache {
  public:
@@ -823,11 +819,11 @@ void OS::Guard(void* address, const size_t size) {
   VirtualProtect(address, size, PAGE_NOACCESS, &oldprotect);
 }
 
-#if 0
-void OS::Sleep(int milliseconds) {
+
+void OS_Sleep(int milliseconds) {
   ::Sleep(milliseconds);
 }
-#endif
+
 
 void OS::Abort() {
   if (g_hard_abort) {
@@ -1171,18 +1167,6 @@ void OS::SignalCodeMovingGC() {
 }
 
 
-uint64_t OS::TotalPhysicalMemory() {
-  MEMORYSTATUSEX memory_info;
-  memory_info.dwLength = sizeof(memory_info);
-  if (!GlobalMemoryStatusEx(&memory_info)) {
-    UNREACHABLE();
-    return 0;
-  }
-
-  return static_cast<uint64_t>(memory_info.ullTotalPhys);
-}
-
-
 #else  // __MINGW32__
 std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
   return std::vector<OS::SharedLibraryAddress>();
@@ -1191,13 +1175,6 @@ std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
 
 void OS::SignalCodeMovingGC() { }
 #endif  // __MINGW32__
-
-
-int OS::NumberOfProcessorsOnline() {
-  SYSTEM_INFO info;
-  GetSystemInfo(&info);
-  return info.dwNumberOfProcessors;
-}
 
 
 double OS::nan_value() {
@@ -1326,7 +1303,7 @@ bool VirtualMemory::HasLazyCommits() {
   return false;
 }
 
-#if 0
+
 // ----------------------------------------------------------------------------
 // Win32 thread support.
 
@@ -1344,6 +1321,7 @@ static unsigned int __stdcall ThreadEntry(void* arg) {
 }
 
 
+#if 0
 class Thread::PlatformData {
  public:
   explicit PlatformData(HANDLE thread) : thread_(thread) {}
@@ -1428,7 +1406,10 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
 void Thread::YieldCPU() {
   Sleep(0);
 }
+
 #endif
+
 } }  // namespace v8::base
+
 
 #endif

@@ -8,7 +8,6 @@
 
 #include "src/code-stubs.h"
 #include "src/hydrogen-osr.h"
-#include "src/stub-cache.h"
 #include "src/x64/lithium-codegen-x64.h"
 
 namespace v8 {
@@ -811,7 +810,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   int length = deoptimizations_.length();
   if (length == 0) return;
   Handle<DeoptimizationInputData> data =
-      DeoptimizationInputData::New(isolate(), length, 0, TENURED);
+      DeoptimizationInputData::New(isolate(), length, TENURED);
 
   Handle<ByteArray> translations =
       translations_.CreateByteArray(isolate()->factory());
@@ -2847,19 +2846,28 @@ void LCodeGen::DoLoadGlobalCell(LLoadGlobalCell* instr) {
 }
 
 
+template <class T>
+void LCodeGen::EmitVectorLoadICRegisters(T* instr) {
+  DCHECK(FLAG_vector_ics);
+  Register vector = ToRegister(instr->temp_vector());
+  DCHECK(vector.is(FullVectorLoadConvention::VectorRegister()));
+  __ Move(vector, instr->hydrogen()->feedback_vector());
+  // No need to allocate this register.
+  DCHECK(VectorLoadConvention::SlotRegister().is(rax));
+  __ Move(VectorLoadConvention::SlotRegister(),
+          Smi::FromInt(instr->hydrogen()->slot()));
+}
+
+
 void LCodeGen::DoLoadGlobalGeneric(LLoadGlobalGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(rsi));
-  DCHECK(ToRegister(instr->global_object()).is(LoadIC::ReceiverRegister()));
+  DCHECK(ToRegister(instr->global_object())
+             .is(LoadConvention::ReceiverRegister()));
   DCHECK(ToRegister(instr->result()).is(rax));
 
-  __ Move(LoadIC::NameRegister(), instr->name());
+  __ Move(LoadConvention::NameRegister(), instr->name());
   if (FLAG_vector_ics) {
-    Register vector = ToRegister(instr->temp_vector());
-    DCHECK(vector.is(LoadIC::VectorRegister()));
-    __ Move(vector, instr->hydrogen()->feedback_vector());
-    // No need to allocate this register.
-    DCHECK(LoadIC::SlotRegister().is(rax));
-    __ Move(LoadIC::SlotRegister(), Smi::FromInt(instr->hydrogen()->slot()));
+    EmitVectorLoadICRegisters<LLoadGlobalGeneric>(instr);
   }
   ContextualMode mode = instr->for_typeof() ? NOT_CONTEXTUAL : CONTEXTUAL;
   Handle<Code> ic = LoadIC::initialize_stub(isolate(), mode);
@@ -2997,17 +3005,12 @@ void LCodeGen::DoLoadNamedField(LLoadNamedField* instr) {
 
 void LCodeGen::DoLoadNamedGeneric(LLoadNamedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(rsi));
-  DCHECK(ToRegister(instr->object()).is(LoadIC::ReceiverRegister()));
+  DCHECK(ToRegister(instr->object()).is(LoadConvention::ReceiverRegister()));
   DCHECK(ToRegister(instr->result()).is(rax));
 
-  __ Move(LoadIC::NameRegister(), instr->name());
+  __ Move(LoadConvention::NameRegister(), instr->name());
   if (FLAG_vector_ics) {
-    Register vector = ToRegister(instr->temp_vector());
-    DCHECK(vector.is(LoadIC::VectorRegister()));
-    __ Move(vector, instr->hydrogen()->feedback_vector());
-    // No need to allocate this register.
-    DCHECK(LoadIC::SlotRegister().is(rax));
-    __ Move(LoadIC::SlotRegister(), Smi::FromInt(instr->hydrogen()->slot()));
+    EmitVectorLoadICRegisters<LLoadNamedGeneric>(instr);
   }
   Handle<Code> ic = LoadIC::initialize_stub(isolate(), NOT_CONTEXTUAL);
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
@@ -3286,16 +3289,11 @@ Operand LCodeGen::BuildFastArrayOperand(
 
 void LCodeGen::DoLoadKeyedGeneric(LLoadKeyedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(rsi));
-  DCHECK(ToRegister(instr->object()).is(LoadIC::ReceiverRegister()));
-  DCHECK(ToRegister(instr->key()).is(LoadIC::NameRegister()));
+  DCHECK(ToRegister(instr->object()).is(LoadConvention::ReceiverRegister()));
+  DCHECK(ToRegister(instr->key()).is(LoadConvention::NameRegister()));
 
   if (FLAG_vector_ics) {
-    Register vector = ToRegister(instr->temp_vector());
-    DCHECK(vector.is(LoadIC::VectorRegister()));
-    __ Move(vector, instr->hydrogen()->feedback_vector());
-    // No need to allocate this register.
-    DCHECK(LoadIC::SlotRegister().is(rax));
-    __ Move(LoadIC::SlotRegister(), Smi::FromInt(instr->hydrogen()->slot()));
+    EmitVectorLoadICRegisters<LLoadKeyedGeneric>(instr);
   }
 
   Handle<Code> ic = isolate()->builtins()->KeyedLoadIC_Initialize();
@@ -4191,10 +4189,10 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
 
 void LCodeGen::DoStoreNamedGeneric(LStoreNamedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(rsi));
-  DCHECK(ToRegister(instr->object()).is(StoreIC::ReceiverRegister()));
-  DCHECK(ToRegister(instr->value()).is(StoreIC::ValueRegister()));
+  DCHECK(ToRegister(instr->object()).is(StoreConvention::ReceiverRegister()));
+  DCHECK(ToRegister(instr->value()).is(StoreConvention::ValueRegister()));
 
-  __ Move(StoreIC::NameRegister(), instr->hydrogen()->name());
+  __ Move(StoreConvention::NameRegister(), instr->hydrogen()->name());
   Handle<Code> ic = StoreIC::initialize_stub(isolate(), instr->strict_mode());
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
@@ -4456,9 +4454,9 @@ void LCodeGen::DoStoreKeyed(LStoreKeyed* instr) {
 
 void LCodeGen::DoStoreKeyedGeneric(LStoreKeyedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(rsi));
-  DCHECK(ToRegister(instr->object()).is(KeyedStoreIC::ReceiverRegister()));
-  DCHECK(ToRegister(instr->key()).is(KeyedStoreIC::NameRegister()));
-  DCHECK(ToRegister(instr->value()).is(KeyedStoreIC::ValueRegister()));
+  DCHECK(ToRegister(instr->object()).is(StoreConvention::ReceiverRegister()));
+  DCHECK(ToRegister(instr->key()).is(StoreConvention::NameRegister()));
+  DCHECK(ToRegister(instr->value()).is(StoreConvention::ValueRegister()));
 
   Handle<Code> ic = instr->strict_mode() == STRICT
       ? isolate()->builtins()->KeyedStoreIC_Initialize_Strict()

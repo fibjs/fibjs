@@ -704,7 +704,7 @@ void Simulator::DoRuntimeCall(Instruction* instr) {
 
     case ExternalReference::PROFILING_GETTER_CALL: {
       // void f(Local<String> property, PropertyCallbackInfo& info,
-      //        AccessorGetterCallback callback)
+      //        AccessorNameGetterCallback callback)
       TraceSim("Type: PROFILING_GETTER_CALL\n");
       SimulatorRuntimeProfilingGetterCall target =
         reinterpret_cast<SimulatorRuntimeProfilingGetterCall>(
@@ -1065,7 +1065,7 @@ void Simulator::PrintSystemRegisters(bool print_all) {
       "0b10 (Round towards Minus Infinity)",
       "0b11 (Round towards Zero)"
     };
-    DCHECK(fpcr().RMode() < ARRAY_SIZE(rmode));
+    DCHECK(fpcr().RMode() < arraysize(rmode));
     fprintf(stream_, "# %sFPCR: %sAHP:%d DN:%d FZ:%d RMode:%s%s\n",
             clr_flag_name,
             clr_flag_value,

@@ -142,6 +142,10 @@ class InstructionSelector V8_FINAL {
                             bool call_address_immediate, BasicBlock* cont_node,
                             BasicBlock* deopt_node);
 
+  FrameStateDescriptor* GetFrameStateDescriptor(Node* node);
+  void AddFrameStateInputs(Node* state, InstructionOperandVector* inputs,
+                           FrameStateDescriptor* descriptor);
+
   // ===========================================================================
   // ============= Architecture-specific graph covering methods. ===============
   // ===========================================================================
@@ -193,15 +197,12 @@ class InstructionSelector V8_FINAL {
 
   // ===========================================================================
 
-  typedef zone_allocator<Instruction*> InstructionPtrZoneAllocator;
-  typedef std::deque<Instruction*, InstructionPtrZoneAllocator> Instructions;
-
   Zone zone_;
   InstructionSequence* sequence_;
   SourcePositionTable* source_positions_;
   Features features_;
   BasicBlock* current_block_;
-  Instructions instructions_;
+  ZoneDeque<Instruction*> instructions_;
   BoolVector defined_;
   BoolVector used_;
 };

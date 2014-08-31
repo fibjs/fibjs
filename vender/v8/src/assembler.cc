@@ -40,19 +40,20 @@
 #include "src/base/lazy-instance.h"
 #include "src/base/platform/platform.h"
 #include "src/builtins.h"
+#include "src/codegen.h"
 #include "src/counters.h"
 #include "src/cpu-profiler.h"
 #include "src/debug.h"
 #include "src/deoptimizer.h"
 #include "src/execution.h"
-#include "src/ic.h"
+#include "src/ic/ic.h"
+#include "src/ic/stub-cache.h"
 #include "src/isolate-inl.h"
 #include "src/jsregexp.h"
 #include "src/regexp-macro-assembler.h"
 #include "src/regexp-stack.h"
 #include "src/runtime.h"
 #include "src/serialize.h"
-#include "src/stub-cache.h"
 #include "src/token.h"
 
 #if V8_TARGET_ARCH_IA32
@@ -936,8 +937,11 @@ void ExternalReference::InitializeMathExpData() {
 
 void ExternalReference::TearDownMathExpData() {
   delete[] math_exp_constants_array;
+  math_exp_constants_array = NULL;
   delete[] math_exp_log_table_array;
+  math_exp_log_table_array = NULL;
   delete math_exp_data_mutex;
+  math_exp_data_mutex = NULL;
 }
 
 

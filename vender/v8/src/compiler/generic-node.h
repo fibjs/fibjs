@@ -5,19 +5,14 @@
 #ifndef V8_COMPILER_GENERIC_NODE_H_
 #define V8_COMPILER_GENERIC_NODE_H_
 
-#include <deque>
-
 #include "src/v8.h"
 
-#include "src/compiler/operator.h"
-#include "src/zone.h"
-#include "src/zone-allocator.h"
+#include "src/zone-containers.h"
 
 namespace v8 {
 namespace internal {
 namespace compiler {
 
-class Operator;
 class GenericGraphBase;
 
 typedef int NodeId;
@@ -43,9 +38,9 @@ class GenericNode : public B {
   S* InputAt(int index) const {
     return static_cast<S*>(GetInputRecordPtr(index)->to);
   }
-  void ReplaceInput(int index, GenericNode* new_input);
-  void AppendInput(Zone* zone, GenericNode* new_input);
-  void InsertInput(Zone* zone, int index, GenericNode* new_input);
+  inline void ReplaceInput(int index, GenericNode* new_input);
+  inline void AppendInput(Zone* zone, GenericNode* new_input);
+  inline void InsertInput(Zone* zone, int index, GenericNode* new_input);
 
   int UseCount() { return use_count_; }
   S* UseAt(int index) {
@@ -59,7 +54,7 @@ class GenericNode : public B {
   inline void ReplaceUses(GenericNode* replace_to);
   template <class UnaryPredicate>
   inline void ReplaceUsesIf(UnaryPredicate pred, GenericNode* replace_to);
-  void RemoveAllInputs();
+  inline void RemoveAllInputs();
 
   void TrimInputCount(int input_count);
 
@@ -127,8 +122,8 @@ class GenericNode : public B {
     }
   }
 
-  void AppendUse(Use* use);
-  void RemoveUse(Use* use);
+  inline void AppendUse(Use* use);
+  inline void RemoveUse(Use* use);
 
   void* operator new(size_t, void* location) { return location; }
 
@@ -137,8 +132,7 @@ class GenericNode : public B {
  private:
   void AssignUniqueID(GenericGraphBase* graph);
 
-  typedef zone_allocator<Input> ZoneInputAllocator;
-  typedef std::deque<Input, ZoneInputAllocator> InputDeque;
+  typedef ZoneDeque<Input> InputDeque;
 
   NodeId id_;
   int input_count_ : 31;
@@ -202,6 +196,12 @@ class GenericNode<B, S>::Inputs::iterator {
     DCHECK(node_ != NULL);
     DCHECK(index_ < node_->input_count_);
     ++index_;
+    return *this;
+  }
+  iterator& UpdateToAndIncrement(GenericNode<B, S>* new_to) {
+    typename GenericNode<B, S>::Input* input = GetInput();
+    input->Update(new_to);
+    index_++;
     return *this;
   }
   int index() { return index_; }

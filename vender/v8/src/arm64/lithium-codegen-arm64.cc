@@ -1,16 +1,17 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM64
+
 // Copyright 2013 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #include "src/v8.h"
 
-#if V8_TARGET_ARCH_ARM64
-
 #include "src/arm64/lithium-codegen-arm64.h"
 #include "src/arm64/lithium-gap-resolver-arm64.h"
 #include "src/code-stubs.h"
 #include "src/hydrogen-osr.h"
-#include "src/stub-cache.h"
 
 namespace v8 {
 namespace internal {
@@ -940,7 +941,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   if (length == 0) return;
 
   Handle<DeoptimizationInputData> data =
-      DeoptimizationInputData::New(isolate(), length, 0, TENURED);
+      DeoptimizationInputData::New(isolate(), length, TENURED);
 
   Handle<ByteArray> translations =
       translations_.CreateByteArray(isolate()->factory());
@@ -3347,19 +3348,27 @@ void LCodeGen::DoLoadGlobalCell(LLoadGlobalCell* instr) {
 }
 
 
+template <class T>
+void LCodeGen::EmitVectorLoadICRegisters(T* instr) {
+  DCHECK(FLAG_vector_ics);
+  Register vector = ToRegister(instr->temp_vector());
+  DCHECK(vector.is(FullVectorLoadConvention::VectorRegister()));
+  __ Mov(vector, instr->hydrogen()->feedback_vector());
+  // No need to allocate this register.
+  DCHECK(FullVectorLoadConvention::SlotRegister().is(x0));
+  __ Mov(FullVectorLoadConvention::SlotRegister(),
+         Smi::FromInt(instr->hydrogen()->slot()));
+}
+
+
 void LCodeGen::DoLoadGlobalGeneric(LLoadGlobalGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
-  DCHECK(ToRegister(instr->global_object()).is(LoadIC::ReceiverRegister()));
+  DCHECK(ToRegister(instr->global_object())
+             .is(LoadConvention::ReceiverRegister()));
   DCHECK(ToRegister(instr->result()).Is(x0));
-  __ Mov(LoadIC::NameRegister(), Operand(instr->name()));
+  __ Mov(LoadConvention::NameRegister(), Operand(instr->name()));
   if (FLAG_vector_ics) {
-    Register vector = ToRegister(instr->temp_vector());
-    DCHECK(vector.is(LoadIC::VectorRegister()));
-    __ Mov(vector, instr->hydrogen()->feedback_vector());
-    // No need to allocate this register.
-    DCHECK(LoadIC::SlotRegister().is(x0));
-    __ Mov(LoadIC::SlotRegister(),
-           Smi::FromInt(instr->hydrogen()->slot()));
+    EmitVectorLoadICRegisters<LLoadGlobalGeneric>(instr);
   }
   ContextualMode mode = instr->for_typeof() ? NOT_CONTEXTUAL : CONTEXTUAL;
   Handle<Code> ic = LoadIC::initialize_stub(isolate(), mode);
@@ -3611,16 +3620,10 @@ void LCodeGen::DoLoadKeyedFixed(LLoadKeyedFixed* instr) {
 
 void LCodeGen::DoLoadKeyedGeneric(LLoadKeyedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
-  DCHECK(ToRegister(instr->object()).is(LoadIC::ReceiverRegister()));
-  DCHECK(ToRegister(instr->key()).is(LoadIC::NameRegister()));
+  DCHECK(ToRegister(instr->object()).is(LoadConvention::ReceiverRegister()));
+  DCHECK(ToRegister(instr->key()).is(LoadConvention::NameRegister()));
   if (FLAG_vector_ics) {
-    Register vector = ToRegister(instr->temp_vector());
-    DCHECK(vector.is(LoadIC::VectorRegister()));
-    __ Mov(vector, instr->hydrogen()->feedback_vector());
-    // No need to allocate this register.
-    DCHECK(LoadIC::SlotRegister().is(x0));
-    __ Mov(LoadIC::SlotRegister(),
-           Smi::FromInt(instr->hydrogen()->slot()));
+    EmitVectorLoadICRegisters<LLoadKeyedGeneric>(instr);
   }
 
   Handle<Code> ic = isolate()->builtins()->KeyedLoadIC_Initialize();
@@ -3673,16 +3676,10 @@ void LCodeGen::DoLoadNamedField(LLoadNamedField* instr) {
 void LCodeGen::DoLoadNamedGeneric(LLoadNamedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
   // LoadIC expects name and receiver in registers.
-  DCHECK(ToRegister(instr->object()).is(LoadIC::ReceiverRegister()));
-  __ Mov(LoadIC::NameRegister(), Operand(instr->name()));
+  DCHECK(ToRegister(instr->object()).is(LoadConvention::ReceiverRegister()));
+  __ Mov(LoadConvention::NameRegister(), Operand(instr->name()));
   if (FLAG_vector_ics) {
-    Register vector = ToRegister(instr->temp_vector());
-    DCHECK(vector.is(LoadIC::VectorRegister()));
-    __ Mov(vector, instr->hydrogen()->feedback_vector());
-    // No need to allocate this register.
-    DCHECK(LoadIC::SlotRegister().is(x0));
-    __ Mov(LoadIC::SlotRegister(),
-           Smi::FromInt(instr->hydrogen()->slot()));
+    EmitVectorLoadICRegisters<LLoadNamedGeneric>(instr);
   }
 
   Handle<Code> ic = LoadIC::initialize_stub(isolate(), NOT_CONTEXTUAL);
@@ -4893,13 +4890,12 @@ void LCodeGen::DoShiftI(LShiftI* instr) {
       case Token::SAR: __ Asr(result, left, right); break;
       case Token::SHL: __ Lsl(result, left, right); break;
       case Token::SHR:
-        if (instr->can_deopt()) {
-          Label right_not_zero;
-          __ Cbnz(right, &right_not_zero);
-          DeoptimizeIfNegative(left, instr->environment());
-          __ Bind(&right_not_zero);
-        }
         __ Lsr(result, left, right);
+        if (instr->can_deopt()) {
+          // If `left >>> right` >= 0x80000000, the result is not representable
+          // in a signed 32-bit smi.
+          DeoptimizeIfNegative(result, instr->environment());
+        }
         break;
       default: UNREACHABLE();
     }
@@ -4929,40 +4925,40 @@ void LCodeGen::DoShiftS(LShiftS* instr) {
   Register left = ToRegister(instr->left());
   Register result = ToRegister(instr->result());
 
-  // Only ROR by register needs a temp.
-  DCHECK(((instr->op() == Token::ROR) && right_op->IsRegister()) ||
-         (instr->temp() == NULL));
-
   if (right_op->IsRegister()) {
     Register right = ToRegister(instr->right());
+
+    // JavaScript shifts only look at the bottom 5 bits of the 'right' operand.
+    // Since we're handling smis in X registers, we have to extract these bits
+    // explicitly.
+    __ Ubfx(result, right, kSmiShift, 5);
+
     switch (instr->op()) {
       case Token::ROR: {
-        Register temp = ToRegister(instr->temp());
-        __ Ubfx(temp, right, kSmiShift, 5);
-        __ SmiUntag(result, left);
-        __ Ror(result.W(), result.W(), temp.W());
+        // This is the only case that needs a scratch register. To keep things
+        // simple for the other cases, borrow a MacroAssembler scratch register.
+        UseScratchRegisterScope temps(masm());
+        Register temp = temps.AcquireW();
+        __ SmiUntag(temp, left);
+        __ Ror(result.W(), temp.W(), result.W());
         __ SmiTag(result);
         break;
       }
       case Token::SAR:
-        __ Ubfx(result, right, kSmiShift, 5);
         __ Asr(result, left, result);
         __ Bic(result, result, kSmiShiftMask);
         break;
       case Token::SHL:
-        __ Ubfx(result, right, kSmiShift, 5);
         __ Lsl(result, left, result);
         break;
       case Token::SHR:
-        if (instr->can_deopt()) {
-          Label right_not_zero;
-          __ Cbnz(right, &right_not_zero);
-          DeoptimizeIfNegative(left, instr->environment());
-          __ Bind(&right_not_zero);
-        }
-        __ Ubfx(result, right, kSmiShift, 5);
         __ Lsr(result, left, result);
         __ Bic(result, result, kSmiShiftMask);
+        if (instr->can_deopt()) {
+          // If `left >>> right` >= 0x80000000, the result is not representable
+          // in a signed 32-bit smi.
+          DeoptimizeIfNegative(result, instr->environment());
+        }
         break;
       default: UNREACHABLE();
     }
@@ -5317,9 +5313,9 @@ void LCodeGen::DoStoreKeyedFixed(LStoreKeyedFixed* instr) {
 
 void LCodeGen::DoStoreKeyedGeneric(LStoreKeyedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
-  DCHECK(ToRegister(instr->object()).is(KeyedStoreIC::ReceiverRegister()));
-  DCHECK(ToRegister(instr->key()).is(KeyedStoreIC::NameRegister()));
-  DCHECK(ToRegister(instr->value()).is(KeyedStoreIC::ValueRegister()));
+  DCHECK(ToRegister(instr->object()).is(StoreConvention::ReceiverRegister()));
+  DCHECK(ToRegister(instr->key()).is(StoreConvention::NameRegister()));
+  DCHECK(ToRegister(instr->value()).is(StoreConvention::ValueRegister()));
 
   Handle<Code> ic = instr->strict_mode() == STRICT
       ? isolate()->builtins()->KeyedStoreIC_Initialize_Strict()
@@ -5424,10 +5420,10 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
 
 void LCodeGen::DoStoreNamedGeneric(LStoreNamedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
-  DCHECK(ToRegister(instr->object()).is(StoreIC::ReceiverRegister()));
-  DCHECK(ToRegister(instr->value()).is(StoreIC::ValueRegister()));
+  DCHECK(ToRegister(instr->object()).is(StoreConvention::ReceiverRegister()));
+  DCHECK(ToRegister(instr->value()).is(StoreConvention::ValueRegister()));
 
-  __ Mov(StoreIC::NameRegister(), Operand(instr->name()));
+  __ Mov(StoreConvention::NameRegister(), Operand(instr->name()));
   Handle<Code> ic = StoreIC::initialize_stub(isolate(), instr->strict_mode());
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
@@ -6037,4 +6033,5 @@ void LCodeGen::DoAllocateBlockContext(LAllocateBlockContext* instr) {
 
 } }  // namespace v8::internal
 
-#endif
+
+#endif  // V8_TARGET_ARCH_ARM64

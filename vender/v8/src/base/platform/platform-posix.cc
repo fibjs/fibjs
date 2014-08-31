@@ -1,5 +1,6 @@
+#include <exlib/include/osconfig.h>
 
-#ifndef WIN32
+#ifndef Windows
 
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,7 +10,6 @@
 // own, but contains the parts which are the same across the POSIX platforms
 // Linux, MacOS, FreeBSD, OpenBSD, NetBSD and QNX.
 
-#include <dlfcn.h>
 #include <errno.h>
 #include <limits.h>
 #include <pthread.h>
@@ -23,20 +23,12 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#if defined(__linux__)
-#include <sys/prctl.h>  // NOLINT, for prctl
-#endif
 #if defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || \
     defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>  // NOLINT, for sysctl
 #endif
-
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
 
 #undef MAP_TYPE
 
@@ -58,6 +50,18 @@
 #include "src/base/atomicops.h"
 #endif
 
+#if V8_OS_MACOSX
+#include <dlfcn.h>
+#endif
+
+#if V8_OS_LINUX
+#include <sys/prctl.h>  // NOLINT, for prctl
+#endif
+
+#if !V8_OS_NACL
+#include <sys/syscall.h>
+#endif
+
 namespace v8 {
 namespace base {
 
@@ -71,77 +75,6 @@ bool g_hard_abort = false;
 const char* g_gc_fake_mmap = NULL;
 
 }  // namespace
-
-
-int OS::NumberOfProcessorsOnline() {
-  return static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
-}
-
-
-// Maximum size of the virtual memory.  0 means there is no artificial
-// limit.
-
-intptr_t OS::MaxVirtualMemory() {
-  struct rlimit limit;
-  int result = getrlimit(RLIMIT_DATA, &limit);
-  if (result != 0) return 0;
-#if V8_OS_NACL
-  // The NaCl compiler doesn't like resource.h constants.
-  if (static_cast<int>(limit.rlim_cur) == -1) return 0;
-#else
-  if (limit.rlim_cur == RLIM_INFINITY) return 0;
-#endif
-  return limit.rlim_cur;
-}
-
-
-uint64_t OS::TotalPhysicalMemory() {
-#if V8_OS_MACOSX
-  int mib[2];
-  mib[0] = CTL_HW;
-  mib[1] = HW_MEMSIZE;
-  int64_t size = 0;
-  size_t len = sizeof(size);
-  if (sysctl(mib, 2, &size, &len, NULL, 0) != 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return static_cast<uint64_t>(size);
-#elif V8_OS_FREEBSD
-  int pages, page_size;
-  size_t size = sizeof(pages);
-  sysctlbyname("vm.stats.vm.v_page_count", &pages, &size, NULL, 0);
-  sysctlbyname("vm.stats.vm.v_page_size", &page_size, &size, NULL, 0);
-  if (pages == -1 || page_size == -1) {
-    UNREACHABLE();
-    return 0;
-  }
-  return static_cast<uint64_t>(pages) * page_size;
-#elif V8_OS_CYGWIN
-  MEMORYSTATUS memory_info;
-  memory_info.dwLength = sizeof(memory_info);
-  if (!GlobalMemoryStatus(&memory_info)) {
-    UNREACHABLE();
-    return 0;
-  }
-  return static_cast<uint64_t>(memory_info.dwTotalPhys);
-#elif V8_OS_QNX
-  struct stat stat_buf;
-  if (stat("/proc", &stat_buf) != 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return static_cast<uint64_t>(stat_buf.st_size);
-#else
-  intptr_t pages = sysconf(_SC_PHYS_PAGES);
-  intptr_t page_size = sysconf(_SC_PAGESIZE);
-  if (pages == -1 || page_size == -1) {
-    UNREACHABLE();
-    return 0;
-  }
-  return static_cast<uint64_t>(pages) * page_size;
-#endif
-}
 
 
 int OS::ActivationFrameAlignment() {
@@ -270,12 +203,12 @@ size_t OS::AllocateAlignment() {
   return static_cast<size_t>(sysconf(_SC_PAGESIZE));
 }
 
-#if 0
-void OS::Sleep(int milliseconds) {
+
+void OS_Sleep(int milliseconds) {
   useconds_t ms = static_cast<useconds_t>(milliseconds);
   usleep(1000 * ms);
 }
-#endif
+
 
 void OS::Abort() {
   if (g_hard_abort) {
@@ -296,11 +229,11 @@ void OS::DebugBreak() {
 #elif V8_HOST_ARCH_MIPS64
   asm("break");
 #elif V8_HOST_ARCH_IA32
-#if defined(__native_client__)
+#if V8_OS_NACL
   asm("hlt");
 #else
   asm("int $3");
-#endif  // __native_client__
+#endif  // V8_OS_NACL
 #elif V8_HOST_ARCH_X64
   asm("int $3");
 #else
@@ -326,9 +259,13 @@ int OS::GetCurrentProcessId() {
 int OS::GetCurrentThreadId() {
 #if defined(ANDROID)
   return static_cast<int>(syscall(__NR_gettid));
-#else
+#elif defined(SYS_gettid)
   return static_cast<int>(syscall(SYS_gettid));
-#endif  // defined(ANDROID)
+#else
+  // PNaCL doesn't have a way to get an integral thread ID, but it doesn't
+  // really matter, because we only need it in PerfJitLogger::LogRecordedBuffer.
+  return 0;
+#endif
 }
 
 
@@ -337,12 +274,17 @@ int OS::GetCurrentThreadId() {
 //
 
 int OS::GetUserTime(uint32_t* secs,  uint32_t* usecs) {
+#if V8_OS_NACL
+  // Optionally used in Logger::ResourceEvent.
+  return -1;
+#else
   struct rusage usage;
 
   if (getrusage(RUSAGE_SELF, &usage) < 0) return -1;
   *secs = usage.ru_utime.tv_sec;
   *usecs = usage.ru_utime.tv_usec;
   return 0;
+#endif
 }
 
 
@@ -501,11 +443,12 @@ void OS::StrNCpy(char* dest, int length, const char* src, size_t n) {
   strncpy(dest, src, n);
 }
 
-#if 0
+
 // ----------------------------------------------------------------------------
 // POSIX thread support.
 //
 
+#if 0
 class Thread::PlatformData {
  public:
   PlatformData() : thread_(kNoThread) {}
@@ -736,7 +679,10 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
   USE(result);
 }
 
+
 #endif
+
 } }  // namespace v8::base
+
 
 #endif

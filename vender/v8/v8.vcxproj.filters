@@ -4,14 +4,11 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{1680c80b-ff1e-ea4d-9817-cc12254f2e40}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\libplatform">
+      <UniqueIdentifier>{c92920a3-c604-e8b4-2254-95ee6656c9c6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{ba03e055-4fa2-fce3-8a1c-d348547d379c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\arm">
-      <UniqueIdentifier>{590af86c-a093-8074-3a56-280454ab24b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\arm64">
-      <UniqueIdentifier>{a0442c43-ce40-876f-4300-d8b5738e5780}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\base">
       <UniqueIdentifier>{68529cf3-5a67-0bb1-84a4-c91e13c58f94}</UniqueIdentifier>
@@ -24,12 +21,6 @@
     </Filter>
     <Filter Include="Source Files\compiler">
       <UniqueIdentifier>{99e52990-fb59-1eaf-e932-48f9c3481633}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\compiler\arm">
-      <UniqueIdentifier>{fcc4b973-376a-d95f-0a24-4f7ab25212b3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\compiler\arm64">
-      <UniqueIdentifier>{beb49b96-d52c-4f2c-90e2-256402efc0b2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\compiler\ia32">
       <UniqueIdentifier>{afd14b90-34a2-9841-1aad-7fccf917eda4}</UniqueIdentifier>
@@ -45,6 +36,18 @@
     </Filter>
     <Filter Include="Source Files\ia32">
       <UniqueIdentifier>{9b33c6cd-acc4-f1ac-84da-03a68e2be030}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ic">
+      <UniqueIdentifier>{6019b762-3351-6dad-b1ec-1384959b5883}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ic\ia32">
+      <UniqueIdentifier>{6602bd0f-4c9a-7aa6-4b75-d8433dffae53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ic\x64">
+      <UniqueIdentifier>{7e4c29af-711e-18fb-353a-9dc159584321}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ic\x87">
+      <UniqueIdentifier>{8aedb8d2-fb2e-3ad0-c5d0-dd320eeecd95}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\libplatform">
       <UniqueIdentifier>{d55c839e-d9e9-0541-edc0-1b7cf01a3405}</UniqueIdentifier>
@@ -70,6 +73,9 @@
     <Filter Include="Source Files\x64">
       <UniqueIdentifier>{ad65f0e1-d29e-4a32-08c7-a09fd2f464f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\x87">
+      <UniqueIdentifier>{acef08ff-e260-9824-5923-978cb77e35fb}</UniqueIdentifier>
+    </Filter>
     <Filter Include="third_party">
       <UniqueIdentifier>{15230e5d-ad94-ffae-fa7b-526c0c1e89e5}</UniqueIdentifier>
     </Filter>
@@ -78,6 +84,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\libplatform\libplatform.h">
+      <Filter>Header Files\libplatform</Filter>
+    </ClInclude>
     <ClInclude Include="include\v8-debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -119,105 +128,6 @@
     </ClInclude>
     <ClInclude Include="src\arguments.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\assembler-arm64-inl.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\assembler-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\code-stubs-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\codegen-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\constants-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\decoder-arm64-inl.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\decoder-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\delayed-masm-arm64-inl.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\delayed-masm-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\disasm-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\frames-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\instructions-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\instrument-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\lithium-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\lithium-codegen-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\lithium-gap-resolver-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\macro-assembler-arm64-inl.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\macro-assembler-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\regexp-macro-assembler-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\simulator-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm64\utils-arm64.h">
-      <Filter>Source Files\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\assembler-arm-inl.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\assembler-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\code-stubs-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\codegen-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\constants-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\frames-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\lithium-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\lithium-codegen-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\lithium-gap-resolver-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\macro-assembler-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\regexp-macro-assembler-arm.h">
-      <Filter>Source Files\arm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\arm\simulator-arm.h">
-      <Filter>Source Files\arm</Filter>
     </ClInclude>
     <ClInclude Include="src\assembler.h">
       <Filter>Source Files</Filter>
@@ -270,6 +180,9 @@
     <ClInclude Include="src\base\cpu.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
+    <ClInclude Include="src\base\flags.h">
+      <Filter>Source Files\base</Filter>
+    </ClInclude>
     <ClInclude Include="src\base\lazy-instance.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
@@ -313,6 +226,9 @@
       <Filter>Source Files\base</Filter>
     </ClInclude>
     <ClInclude Include="src\base\safe_math_impl.h">
+      <Filter>Source Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\base\sys-info.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
     <ClInclude Include="src\base\utils\random-number-generator.h">
@@ -369,17 +285,11 @@
     <ClInclude Include="src\compilation-cache.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler-intrinsics.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\compiler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\arm64\instruction-codes-arm64.h">
-      <Filter>Source Files\compiler\arm64</Filter>
-    </ClInclude>
-    <ClInclude Include="src\compiler\arm\instruction-codes-arm.h">
-      <Filter>Source Files\compiler\arm</Filter>
+    <ClInclude Include="src\compiler\access-builder.h">
+      <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\ast-graph-builder.h">
       <Filter>Source Files\compiler</Filter>
@@ -465,6 +375,9 @@
     <ClInclude Include="src\compiler\js-graph.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\js-inlining.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\js-operator.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -547,6 +460,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\simplified-node-factory.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\simplified-operator-reducer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\simplified-operator.h">
@@ -867,13 +783,34 @@
     <ClInclude Include="src\ia32\simulator-ia32.h">
       <Filter>Source Files\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="src\ic-inl.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\ic\access-compiler.h">
+      <Filter>Source Files\ic</Filter>
     </ClInclude>
-    <ClInclude Include="src\ic.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\ic\call-optimization.h">
+      <Filter>Source Files\ic</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ic\handler-compiler.h">
+      <Filter>Source Files\ic</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ic\ic-compiler.h">
+      <Filter>Source Files\ic</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ic\ic-conventions.h">
+      <Filter>Source Files\ic</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ic\ic-inl.h">
+      <Filter>Source Files\ic</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ic\ic.h">
+      <Filter>Source Files\ic</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ic\stub-cache.h">
+      <Filter>Source Files\ic</Filter>
     </ClInclude>
     <ClInclude Include="src\icu_util.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface-descriptors.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\interface.h">
@@ -1086,9 +1023,6 @@
     <ClInclude Include="src\strtod.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stub-cache.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h">
       <Filter>Source Files\third_party\kernel\tools\perf\util</Filter>
     </ClInclude>
@@ -1197,6 +1131,39 @@
     <ClInclude Include="src\x64\simulator-x64.h">
       <Filter>Source Files\x64</Filter>
     </ClInclude>
+    <ClInclude Include="src\x87\assembler-x87-inl.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\assembler-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\code-stubs-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\codegen-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\frames-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\lithium-codegen-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\lithium-gap-resolver-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\lithium-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\macro-assembler-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\regexp-macro-assembler-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
+    <ClInclude Include="src\x87\simulator-x87.h">
+      <Filter>Source Files\x87</Filter>
+    </ClInclude>
     <ClInclude Include="src\zone-allocator.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1231,132 +1198,6 @@
     </ClCompile>
     <ClCompile Include="src\arguments.cc">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\assembler-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\builtins-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\code-stubs-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\codegen-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\cpu-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\debug-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\decoder-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\delayed-masm-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\deoptimizer-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\disasm-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\frames-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\full-codegen-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\ic-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\instructions-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\instrument-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\lithium-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\lithium-codegen-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\lithium-gap-resolver-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\macro-assembler-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\regexp-macro-assembler-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\simulator-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\stub-cache-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm64\utils-arm64.cc">
-      <Filter>Source Files\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\assembler-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\builtins-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\code-stubs-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\codegen-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\constants-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\cpu-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\debug-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\deoptimizer-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\disasm-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\frames-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\full-codegen-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\ic-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\lithium-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\lithium-codegen-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\lithium-gap-resolver-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\macro-assembler-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\regexp-macro-assembler-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\simulator-arm.cc">
-      <Filter>Source Files\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\arm\stub-cache-arm.cc">
-      <Filter>Source Files\arm</Filter>
     </ClCompile>
     <ClCompile Include="src\assembler.cc">
       <Filter>Source Files</Filter>
@@ -1409,9 +1250,6 @@
     <ClCompile Include="src\base\platform\platform-posix.cc">
       <Filter>Source Files\base\platform</Filter>
     </ClCompile>
-    <ClCompile Include="src\base\platform\platform-qnx.cc">
-      <Filter>Source Files\base\platform</Filter>
-    </ClCompile>
     <ClCompile Include="src\base\platform\platform-solaris.cc">
       <Filter>Source Files\base\platform</Filter>
     </ClCompile>
@@ -1423,6 +1261,9 @@
     </ClCompile>
     <ClCompile Include="src\base\platform\time.cc">
       <Filter>Source Files\base\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\sys-info.cc">
+      <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\utils\random-number-generator.cc">
       <Filter>Source Files\base\utils</Filter>
@@ -1462,24 +1303,6 @@
     </ClCompile>
     <ClCompile Include="src\compiler.cc">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\arm64\code-generator-arm64.cc">
-      <Filter>Source Files\compiler\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\arm64\instruction-selector-arm64.cc">
-      <Filter>Source Files\compiler\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\arm64\linkage-arm64.cc">
-      <Filter>Source Files\compiler\arm64</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\arm\code-generator-arm.cc">
-      <Filter>Source Files\compiler\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\arm\instruction-selector-arm.cc">
-      <Filter>Source Files\compiler\arm</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\arm\linkage-arm.cc">
-      <Filter>Source Files\compiler\arm</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\ast-graph-builder.cc">
       <Filter>Source Files\compiler</Filter>
@@ -1535,6 +1358,9 @@
     <ClCompile Include="src\compiler\js-graph.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\js-inlining.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\js-typed-lowering.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1569,6 +1395,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\simplified-lowering.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\simplified-operator-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\source-position.cc">
@@ -1659,9 +1488,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\fast-dtoa.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\field-index.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\fixed-dtoa.cc">
@@ -1826,7 +1652,7 @@
     <ClCompile Include="src\ia32\full-codegen-ia32.cc">
       <Filter>Source Files\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="src\ia32\ic-ia32.cc">
+    <ClCompile Include="src\ia32\interface-descriptors-ia32.cc">
       <Filter>Source Files\ia32</Filter>
     </ClCompile>
     <ClCompile Include="src\ia32\lithium-codegen-ia32.cc">
@@ -1847,13 +1673,82 @@
     <ClCompile Include="src\ia32\simulator-ia32.cc">
       <Filter>Source Files\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="src\ia32\stub-cache-ia32.cc">
-      <Filter>Source Files\ia32</Filter>
+    <ClCompile Include="src\ic\access-compiler.cc">
+      <Filter>Source Files\ic</Filter>
     </ClCompile>
-    <ClCompile Include="src\ic.cc">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\ic\call-optimization.cc">
+      <Filter>Source Files\ic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\handler-compiler.cc">
+      <Filter>Source Files\ic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ia32\access-compiler-ia32.cc">
+      <Filter>Source Files\ic\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ia32\handler-compiler-ia32.cc">
+      <Filter>Source Files\ic\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ia32\ic-compiler-ia32.cc">
+      <Filter>Source Files\ic\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ia32\ic-conventions-ia32.cc">
+      <Filter>Source Files\ic\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ia32\ic-ia32.cc">
+      <Filter>Source Files\ic\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ia32\stub-cache-ia32.cc">
+      <Filter>Source Files\ic\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ic-compiler.cc">
+      <Filter>Source Files\ic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ic.cc">
+      <Filter>Source Files\ic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\stub-cache.cc">
+      <Filter>Source Files\ic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x64\access-compiler-x64.cc">
+      <Filter>Source Files\ic\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x64\handler-compiler-x64.cc">
+      <Filter>Source Files\ic\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x64\ic-compiler-x64.cc">
+      <Filter>Source Files\ic\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x64\ic-conventions-x64.cc">
+      <Filter>Source Files\ic\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x64\ic-x64.cc">
+      <Filter>Source Files\ic\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x64\stub-cache-x64.cc">
+      <Filter>Source Files\ic\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x87\access-compiler-x87.cc">
+      <Filter>Source Files\ic\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x87\handler-compiler-x87.cc">
+      <Filter>Source Files\ic\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x87\ic-compiler-x87.cc">
+      <Filter>Source Files\ic\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x87\ic-conventions-x87.cc">
+      <Filter>Source Files\ic\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x87\ic-x87.cc">
+      <Filter>Source Files\ic\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\x87\stub-cache-x87.cc">
+      <Filter>Source Files\ic\x87</Filter>
     </ClCompile>
     <ClCompile Include="src\icu_util.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\interface-descriptors.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\interface.cc">
@@ -2000,9 +1895,6 @@
     <ClCompile Include="src\strtod.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\stub-cache.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\token.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -2066,7 +1958,7 @@
     <ClCompile Include="src\x64\full-codegen-x64.cc">
       <Filter>Source Files\x64</Filter>
     </ClCompile>
-    <ClCompile Include="src\x64\ic-x64.cc">
+    <ClCompile Include="src\x64\interface-descriptors-x64.cc">
       <Filter>Source Files\x64</Filter>
     </ClCompile>
     <ClCompile Include="src\x64\lithium-codegen-x64.cc">
@@ -2087,8 +1979,53 @@
     <ClCompile Include="src\x64\simulator-x64.cc">
       <Filter>Source Files\x64</Filter>
     </ClCompile>
-    <ClCompile Include="src\x64\stub-cache-x64.cc">
-      <Filter>Source Files\x64</Filter>
+    <ClCompile Include="src\x87\assembler-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\builtins-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\code-stubs-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\codegen-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\cpu-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\debug-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\deoptimizer-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\disasm-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\frames-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\full-codegen-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\lithium-codegen-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\lithium-gap-resolver-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\lithium-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\macro-assembler-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\regexp-macro-assembler-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\simulator-x87.cc">
+      <Filter>Source Files\x87</Filter>
     </ClCompile>
     <ClCompile Include="src\zone.cc">
       <Filter>Source Files</Filter>

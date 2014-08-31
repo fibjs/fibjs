@@ -77,8 +77,6 @@ namespace base {
 // ----------------------------------------------------------------------------
 // Fast TLS support
 
-#define V8_NO_FAST_TLS
-
 #ifndef V8_NO_FAST_TLS
 
 #if defined(_MSC_VER) && (V8_HOST_ARCH_IA32)
@@ -285,16 +283,6 @@ class OS {
   // nothing, in which case the code objects must not move (e.g., by
   // using --never-compact) if accurate profiling is desired.
   static void SignalCodeMovingGC();
-
-  // Returns the number of processors online.
-  static int NumberOfProcessorsOnline();
-
-  // The total amount of physical memory available on the current system.
-  static uint64_t TotalPhysicalMemory();
-
-  // Maximum size of the virtual memory.  0 means there is no artificial
-  // limit.
-  static intptr_t MaxVirtualMemory();
 
   // Returns the double constant NAN
   static double nan_value();

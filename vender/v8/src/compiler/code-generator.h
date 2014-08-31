@@ -46,8 +46,8 @@ class CodeGenerator V8_FINAL : public GapResolver::Assembler {
   }
 
   // Record a safepoint with the given pointer map.
-  void RecordSafepoint(PointerMap* pointers, Safepoint::Kind kind,
-                       int arguments, Safepoint::DeoptMode deopt_mode);
+  Safepoint::Id RecordSafepoint(PointerMap* pointers, Safepoint::Kind kind,
+                                int arguments, Safepoint::DeoptMode deopt_mode);
 
   // Assemble code for the specified instruction.
   void AssembleInstruction(Instruction* instr);
@@ -81,10 +81,13 @@ class CodeGenerator V8_FINAL : public GapResolver::Assembler {
 
   // ===========================================================================
   // Deoptimization table construction
-  void RecordLazyDeoptimizationEntry(Instruction* instr);
+  void AddSafepointAndDeopt(Instruction* instr);
+  void UpdateSafepointsWithDeoptimizationPc();
+  void RecordLazyDeoptimizationEntry(Instruction* instr,
+                                     Safepoint::Id safepoint_id);
   void PopulateDeoptimizationData(Handle<Code> code);
   int DefineDeoptimizationLiteral(Handle<Object> literal);
-  void BuildTranslation(Instruction* instr, int deoptimization_id);
+  int BuildTranslation(Instruction* instr, int frame_state_offset);
   void AddTranslationForOperand(Translation* translation, Instruction* instr,
                                 InstructionOperand* op);
   void AddNopForSmiCodeInlining();
@@ -93,19 +96,22 @@ class CodeGenerator V8_FINAL : public GapResolver::Assembler {
   class LazyDeoptimizationEntry V8_FINAL {
    public:
     LazyDeoptimizationEntry(int position_after_call, Label* continuation,
-                            Label* deoptimization)
+                            Label* deoptimization, Safepoint::Id safepoint_id)
         : position_after_call_(position_after_call),
           continuation_(continuation),
-          deoptimization_(deoptimization) {}
+          deoptimization_(deoptimization),
+          safepoint_id_(safepoint_id) {}
 
     int position_after_call() const { return position_after_call_; }
     Label* continuation() const { return continuation_; }
     Label* deoptimization() const { return deoptimization_; }
+    Safepoint::Id safepoint_id() const { return safepoint_id_; }
 
    private:
     int position_after_call_;
     Label* continuation_;
     Label* deoptimization_;
+    Safepoint::Id safepoint_id_;
   };
 
   struct DeoptimizationState : ZoneObject {
@@ -115,23 +121,15 @@ class CodeGenerator V8_FINAL : public GapResolver::Assembler {
         : translation_id_(translation_id) {}
   };
 
-  typedef std::deque<LazyDeoptimizationEntry,
-                     zone_allocator<LazyDeoptimizationEntry> >
-      LazyDeoptimizationEntries;
-  typedef std::deque<DeoptimizationState*,
-                     zone_allocator<DeoptimizationState*> >
-      DeoptimizationStates;
-  typedef std::deque<Handle<Object>, zone_allocator<Handle<Object> > > Literals;
-
   InstructionSequence* code_;
   BasicBlock* current_block_;
   SourcePosition current_source_position_;
   MacroAssembler masm_;
   GapResolver resolver_;
   SafepointTableBuilder safepoints_;
-  LazyDeoptimizationEntries lazy_deoptimization_entries_;
-  DeoptimizationStates deoptimization_states_;
-  Literals deoptimization_literals_;
+  ZoneDeque<LazyDeoptimizationEntry> lazy_deoptimization_entries_;
+  ZoneDeque<DeoptimizationState*> deoptimization_states_;
+  ZoneDeque<Handle<Object> > deoptimization_literals_;
   TranslationBuffer translations_;
 };
 

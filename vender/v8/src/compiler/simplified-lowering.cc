@@ -4,9 +4,6 @@
 
 #include "src/compiler/simplified-lowering.h"
 
-#include <deque>
-#include <queue>
-
 #include "src/compiler/common-operator.h"
 #include "src/compiler/graph-inl.h"
 #include "src/compiler/node-properties-inl.h"
@@ -54,10 +51,10 @@ class RepresentationSelector {
  public:
   // Information for each node tracked during the fixpoint.
   struct NodeInfo {
-    MachineTypeUnion use : 14;     // Union of all usages for the node.
+    MachineTypeUnion use : 15;     // Union of all usages for the node.
     bool queued : 1;           // Bookkeeping for the traversal.
     bool visited : 1;          // Bookkeeping for the traversal.
-    MachineTypeUnion output : 14;  // Output type of the node.
+    MachineTypeUnion output : 15;  // Output type of the node.
   };
 
   RepresentationSelector(JSGraph* jsgraph, Zone* zone,
@@ -65,13 +62,12 @@ class RepresentationSelector {
       : jsgraph_(jsgraph),
         count_(jsgraph->graph()->NodeCount()),
         info_(zone->NewArray<NodeInfo>(count_)),
-        nodes_(NodeVector::allocator_type(zone)),
-        replacements_(NodeVector::allocator_type(zone)),
+        nodes_(zone),
+        replacements_(zone),
         contains_js_nodes_(false),
         phase_(PROPAGATE),
         changer_(changer),
-        queue_(std::deque<Node*, NodePtrZoneAllocator>(
-            NodePtrZoneAllocator(zone))) {
+        queue_(zone) {
     memset(info_, 0, sizeof(NodeInfo) * count_);
   }
 
@@ -457,10 +453,9 @@ class RepresentationSelector {
             DeferReplacement(node, node->InputAt(0));
           } else {
             // Require the input in float64 format and perform truncation.
-            // TODO(turbofan): could also avoid the truncation with a tag check.
+            // TODO(turbofan): avoid a truncation with a smi check.
             VisitUnop(node, kTypeInt32 | kRepFloat64, kTypeInt32 | kRepWord32);
-            // TODO(titzer): should be a truncation.
-            node->set_op(lowering->machine()->ChangeFloat64ToInt32());
+            node->set_op(lowering->machine()->TruncateFloat64ToInt32());
           }
         } else {
           // Propagate a type to the input, but pass through representation.
@@ -479,11 +474,10 @@ class RepresentationSelector {
             DeferReplacement(node, node->InputAt(0));
           } else {
             // Require the input in float64 format to perform truncation.
-            // TODO(turbofan): could also avoid the truncation with a tag check.
+            // TODO(turbofan): avoid the truncation with a smi check.
             VisitUnop(node, kTypeUint32 | kRepFloat64,
                       kTypeUint32 | kRepWord32);
-            // TODO(titzer): should be a truncation.
-            node->set_op(lowering->machine()->ChangeFloat64ToUint32());
+            node->set_op(lowering->machine()->TruncateFloat64ToInt32());
           }
         } else {
           // Propagate a type to the input, but pass through representation.
@@ -704,8 +698,7 @@ class RepresentationSelector {
   bool contains_js_nodes_;          // {true} if a JS operator was seen
   Phase phase_;                     // current phase of algorithm
   RepresentationChanger* changer_;  // for inserting representation changes
-
-  std::queue<Node*, std::deque<Node*, NodePtrZoneAllocator> > queue_;
+  ZoneQueue<Node*> queue_;          // queue for traversing the graph
 
   NodeInfo* GetInfo(Node* node) {
     DCHECK(node->id() >= 0);
@@ -731,10 +724,6 @@ void SimplifiedLowering::LowerAllNodes() {
                                 graph()->zone()->isolate());
   RepresentationSelector selector(jsgraph(), zone(), &changer);
   selector.Run(this);
-
-  GraphReducer graph_reducer(graph());
-  graph_reducer.AddReducer(this);
-  graph_reducer.ReduceGraph();
 }
 
 
@@ -754,157 +743,6 @@ Node* SimplifiedLowering::SmiTag(Node* node) {
 
 Node* SimplifiedLowering::OffsetMinusTagConstant(int32_t offset) {
   return jsgraph()->Int32Constant(offset - kHeapObjectTag);
-}
-
-
-static void UpdateControlSuccessors(Node* before, Node* node) {
-  DCHECK(IrOpcode::IsControlOpcode(before->opcode()));
-  UseIter iter = before->uses().begin();
-  while (iter != before->uses().end()) {
-    if (IrOpcode::IsControlOpcode((*iter)->opcode()) &&
-        NodeProperties::IsControlEdge(iter.edge())) {
-      iter = iter.UpdateToAndIncrement(node);
-      continue;
-    }
-    ++iter;
-  }
-}
-
-
-void SimplifiedLowering::DoChangeTaggedToUI32(Node* node, Node* effect,
-                                              Node* control, bool is_signed) {
-  // if (IsTagged(val))
-  // ConvertFloat64To(Int32|Uint32)(Load[kMachFloat64](input, #value_offset))
-  // else Untag(val)
-  Node* val = node->InputAt(0);
-  Node* branch = graph()->NewNode(common()->Branch(), IsTagged(val), control);
-
-  // true branch.
-  Node* tbranch = graph()->NewNode(common()->IfTrue(), branch);
-  Node* loaded = graph()->NewNode(
-      machine()->Load(kMachFloat64), val,
-      OffsetMinusTagConstant(HeapNumber::kValueOffset), effect);
-  Operator* op = is_signed ? machine()->ChangeFloat64ToInt32()
-                           : machine()->ChangeFloat64ToUint32();
-  Node* converted = graph()->NewNode(op, loaded);
-
-  // false branch.
-  Node* fbranch = graph()->NewNode(common()->IfFalse(), branch);
-  Node* untagged = Untag(val);
-
-  // merge.
-  Node* merge = graph()->NewNode(common()->Merge(2), tbranch, fbranch);
-  Node* phi = graph()->NewNode(common()->Phi(2), converted, untagged, merge);
-  UpdateControlSuccessors(control, merge);
-  branch->ReplaceInput(1, control);
-  node->ReplaceUses(phi);
-}
-
-
-void SimplifiedLowering::DoChangeTaggedToFloat64(Node* node, Node* effect,
-                                                 Node* control) {
-  // if (IsTagged(input)) Load[kMachFloat64](input, #value_offset)
-  // else ConvertFloat64(Untag(input))
-  Node* val = node->InputAt(0);
-  Node* branch = graph()->NewNode(common()->Branch(), IsTagged(val), control);
-
-  // true branch.
-  Node* tbranch = graph()->NewNode(common()->IfTrue(), branch);
-  Node* loaded = graph()->NewNode(
-      machine()->Load(kMachFloat64), val,
-      OffsetMinusTagConstant(HeapNumber::kValueOffset), effect);
-
-  // false branch.
-  Node* fbranch = graph()->NewNode(common()->IfFalse(), branch);
-  Node* untagged = Untag(val);
-  Node* converted =
-      graph()->NewNode(machine()->ChangeInt32ToFloat64(), untagged);
-
-  // merge.
-  Node* merge = graph()->NewNode(common()->Merge(2), tbranch, fbranch);
-  Node* phi = graph()->NewNode(common()->Phi(2), loaded, converted, merge);
-  UpdateControlSuccessors(control, merge);
-  branch->ReplaceInput(1, control);
-  node->ReplaceUses(phi);
-}
-
-
-void SimplifiedLowering::DoChangeUI32ToTagged(Node* node, Node* effect,
-                                              Node* control, bool is_signed) {
-  Node* val = node->InputAt(0);
-  Node* is_smi = NULL;
-  if (is_signed) {
-    if (SmiValuesAre32Bits()) {
-      // All int32s fit in this case.
-      DCHECK(kPointerSize == 8);
-      return node->ReplaceUses(SmiTag(val));
-    } else {
-      // TODO(turbofan): use an Int32AddWithOverflow to tag and check here.
-      Node* lt = graph()->NewNode(machine()->Int32LessThanOrEqual(), val,
-                                  jsgraph()->Int32Constant(Smi::kMaxValue));
-      Node* gt =
-          graph()->NewNode(machine()->Int32LessThanOrEqual(),
-                           jsgraph()->Int32Constant(Smi::kMinValue), val);
-      is_smi = graph()->NewNode(machine()->Word32And(), lt, gt);
-    }
-  } else {
-    // Check if Uint32 value is in the smi range.
-    is_smi = graph()->NewNode(machine()->Uint32LessThanOrEqual(), val,
-                              jsgraph()->Int32Constant(Smi::kMaxValue));
-  }
-
-  // TODO(turbofan): fold smi test branch eagerly.
-  // if (IsSmi(input)) SmiTag(input);
-  // else InlineAllocAndInitHeapNumber(ConvertToFloat64(input)))
-  Node* branch = graph()->NewNode(common()->Branch(), is_smi, control);
-
-  // true branch.
-  Node* tbranch = graph()->NewNode(common()->IfTrue(), branch);
-  Node* smi_tagged = SmiTag(val);
-
-  // false branch.
-  Node* fbranch = graph()->NewNode(common()->IfFalse(), branch);
-  Node* heap_num = jsgraph()->Constant(0.0);  // TODO(titzer): alloc and init
-
-  // merge.
-  Node* merge = graph()->NewNode(common()->Merge(2), tbranch, fbranch);
-  Node* phi = graph()->NewNode(common()->Phi(2), smi_tagged, heap_num, merge);
-  UpdateControlSuccessors(control, merge);
-  branch->ReplaceInput(1, control);
-  node->ReplaceUses(phi);
-}
-
-
-void SimplifiedLowering::DoChangeFloat64ToTagged(Node* node, Node* effect,
-                                                 Node* control) {
-  return;  // TODO(titzer): need to call runtime to allocate in one branch
-}
-
-
-void SimplifiedLowering::DoChangeBoolToBit(Node* node, Node* effect,
-                                           Node* control) {
-  Node* cmp = graph()->NewNode(machine()->WordEqual(), node->InputAt(0),
-                               jsgraph()->TrueConstant());
-  node->ReplaceUses(cmp);
-}
-
-
-void SimplifiedLowering::DoChangeBitToBool(Node* node, Node* effect,
-                                           Node* control) {
-  Node* val = node->InputAt(0);
-  Node* branch = graph()->NewNode(common()->Branch(), val, control);
-
-  // true branch.
-  Node* tbranch = graph()->NewNode(common()->IfTrue(), branch);
-  // false branch.
-  Node* fbranch = graph()->NewNode(common()->IfFalse(), branch);
-  // merge.
-  Node* merge = graph()->NewNode(common()->Merge(2), tbranch, fbranch);
-  Node* phi = graph()->NewNode(common()->Phi(2), jsgraph()->TrueConstant(),
-                               jsgraph()->FalseConstant(), merge);
-  UpdateControlSuccessors(control, merge);
-  branch->ReplaceInput(1, control);
-  node->ReplaceUses(phi);
 }
 
 
@@ -968,41 +806,6 @@ void SimplifiedLowering::DoStoreElement(Node* node) {
   node->ReplaceInput(1, ComputeIndex(access, node->InputAt(1)));
 }
 
-
-Reduction SimplifiedLowering::Reduce(Node* node) { return NoChange(); }
-
-
-void SimplifiedLowering::LowerChange(Node* node, Node* effect, Node* control) {
-  switch (node->opcode()) {
-    case IrOpcode::kChangeTaggedToInt32:
-      DoChangeTaggedToUI32(node, effect, control, true);
-      break;
-    case IrOpcode::kChangeTaggedToUint32:
-      DoChangeTaggedToUI32(node, effect, control, false);
-      break;
-    case IrOpcode::kChangeTaggedToFloat64:
-      DoChangeTaggedToFloat64(node, effect, control);
-      break;
-    case IrOpcode::kChangeInt32ToTagged:
-      DoChangeUI32ToTagged(node, effect, control, true);
-      break;
-    case IrOpcode::kChangeUint32ToTagged:
-      DoChangeUI32ToTagged(node, effect, control, false);
-      break;
-    case IrOpcode::kChangeFloat64ToTagged:
-      DoChangeFloat64ToTagged(node, effect, control);
-      break;
-    case IrOpcode::kChangeBoolToBit:
-      DoChangeBoolToBit(node, effect, control);
-      break;
-    case IrOpcode::kChangeBitToBool:
-      DoChangeBitToBool(node, effect, control);
-      break;
-    default:
-      UNREACHABLE();
-      break;
-  }
-}
 
 }  // namespace compiler
 }  // namespace internal

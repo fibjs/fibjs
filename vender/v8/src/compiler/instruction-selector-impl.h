@@ -25,11 +25,6 @@ class OperandGenerator {
                   UnallocatedOperand(UnallocatedOperand::MUST_HAVE_REGISTER));
   }
 
-  InstructionOperand* DefineAsDoubleRegister(Node* node) {
-    return Define(node, new (zone())
-                  UnallocatedOperand(UnallocatedOperand::MUST_HAVE_REGISTER));
-  }
-
   InstructionOperand* DefineSameAsFirst(Node* result) {
     return Define(result, new (zone())
                   UnallocatedOperand(UnallocatedOperand::SAME_AS_FIRST_INPUT));
@@ -41,7 +36,7 @@ class OperandGenerator {
                                      Register::ToAllocationIndex(reg)));
   }
 
-  InstructionOperand* DefineAsFixedDouble(Node* node, DoubleRegister reg) {
+  InstructionOperand* DefineAsFixed(Node* node, DoubleRegister reg) {
     return Define(node, new (zone())
                   UnallocatedOperand(UnallocatedOperand::FIXED_DOUBLE_REGISTER,
                                      DoubleRegister::ToAllocationIndex(reg)));
@@ -69,12 +64,6 @@ class OperandGenerator {
                                   UnallocatedOperand::USED_AT_START));
   }
 
-  InstructionOperand* UseDoubleRegister(Node* node) {
-    return Use(node, new (zone())
-               UnallocatedOperand(UnallocatedOperand::MUST_HAVE_REGISTER,
-                                  UnallocatedOperand::USED_AT_START));
-  }
-
   // Use register or operand for the node. If a register is chosen, it won't
   // alias any temporary or output registers.
   InstructionOperand* UseUnique(Node* node) {
@@ -88,20 +77,13 @@ class OperandGenerator {
                UnallocatedOperand(UnallocatedOperand::MUST_HAVE_REGISTER));
   }
 
-  // Use a unique double register for the node that does not alias any temporary
-  // or output double registers.
-  InstructionOperand* UseUniqueDoubleRegister(Node* node) {
-    return Use(node, new (zone())
-               UnallocatedOperand(UnallocatedOperand::MUST_HAVE_REGISTER));
-  }
-
   InstructionOperand* UseFixed(Node* node, Register reg) {
     return Use(node, new (zone())
                UnallocatedOperand(UnallocatedOperand::FIXED_REGISTER,
                                   Register::ToAllocationIndex(reg)));
   }
 
-  InstructionOperand* UseFixedDouble(Node* node, DoubleRegister reg) {
+  InstructionOperand* UseFixed(Node* node, DoubleRegister reg) {
     return Use(node, new (zone())
                UnallocatedOperand(UnallocatedOperand::FIXED_DOUBLE_REGISTER,
                                   DoubleRegister::ToAllocationIndex(reg)));
@@ -346,22 +328,29 @@ class FlagsContinuation V8_FINAL {
 // TODO(bmeurer): Get rid of the CallBuffer business and make
 // InstructionSelector::VisitCall platform independent instead.
 struct CallBuffer {
-  CallBuffer(Zone* zone, CallDescriptor* descriptor);
+  CallBuffer(Zone* zone, CallDescriptor* descriptor,
+             FrameStateDescriptor* frame_state);
 
-  int output_count;
   CallDescriptor* descriptor;
-  Node** output_nodes;
-  InstructionOperand** outputs;
-  InstructionOperand** fixed_and_control_args;
-  int fixed_count;
-  Node** pushed_nodes;
-  int pushed_count;
+  FrameStateDescriptor* frame_state_descriptor;
+  NodeVector output_nodes;
+  InstructionOperandVector outputs;
+  InstructionOperandVector instruction_args;
+  NodeVector pushed_nodes;
 
-  int input_count() { return descriptor->InputCount(); }
+  int input_count() const { return descriptor->InputCount(); }
 
-  int control_count() { return descriptor->CanLazilyDeoptimize() ? 2 : 0; }
+  int frame_state_count() const { return descriptor->FrameStateCount(); }
 
-  int fixed_and_control_count() { return fixed_count + control_count(); }
+  int frame_state_value_count() const {
+    return (frame_state_descriptor == NULL)
+               ? 0
+               : (frame_state_descriptor->size() + 1);
+  }
+
+  int control_count() const {
+    return descriptor->CanLazilyDeoptimize() ? 2 : 0;
+  }
 };
 
 }  // namespace compiler

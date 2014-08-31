@@ -1,10 +1,10 @@
-// Copyright 2014 the V8 project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 #include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM64
+
+// Copyright 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
@@ -87,9 +87,9 @@ static void VisitRRR(InstructionSelector* selector, ArchOpcode opcode,
 static void VisitRRRFloat64(InstructionSelector* selector, ArchOpcode opcode,
                             Node* node) {
   Arm64OperandGenerator g(selector);
-  selector->Emit(opcode, g.DefineAsDoubleRegister(node),
-                 g.UseDoubleRegister(node->InputAt(0)),
-                 g.UseDoubleRegister(node->InputAt(1)));
+  selector->Emit(opcode, g.DefineAsRegister(node),
+                 g.UseRegister(node->InputAt(0)),
+                 g.UseRegister(node->InputAt(1)));
 }
 
 
@@ -128,8 +128,8 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
 
   DCHECK_NE(0, input_count);
   DCHECK_NE(0, output_count);
-  DCHECK_GE(ARRAY_SIZE(inputs), input_count);
-  DCHECK_GE(ARRAY_SIZE(outputs), output_count);
+  DCHECK_GE(arraysize(inputs), input_count);
+  DCHECK_GE(arraysize(outputs), output_count);
 
   Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
                                       outputs, input_count, inputs);
@@ -147,47 +147,42 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
 
 void InstructionSelector::VisitLoad(Node* node) {
   MachineType rep = RepresentationOf(OpParameter<MachineType>(node));
+  MachineType typ = TypeOf(OpParameter<MachineType>(node));
   Arm64OperandGenerator g(this);
   Node* base = node->InputAt(0);
   Node* index = node->InputAt(1);
-
-  InstructionOperand* result = rep == kRepFloat64
-                                   ? g.DefineAsDoubleRegister(node)
-                                   : g.DefineAsRegister(node);
-
   ArchOpcode opcode;
-  // TODO(titzer): signed/unsigned small loads
   switch (rep) {
+    case kRepFloat32:
+      opcode = kArm64LdrS;
+      break;
     case kRepFloat64:
-      opcode = kArm64Float64Load;
+      opcode = kArm64LdrD;
       break;
     case kRepBit:  // Fall through.
     case kRepWord8:
-      opcode = kArm64LoadWord8;
+      opcode = typ == kTypeInt32 ? kArm64Ldrsb : kArm64Ldrb;
       break;
     case kRepWord16:
-      opcode = kArm64LoadWord16;
+      opcode = typ == kTypeInt32 ? kArm64Ldrsh : kArm64Ldrh;
       break;
     case kRepWord32:
-      opcode = kArm64LoadWord32;
+      opcode = kArm64LdrW;
       break;
     case kRepTagged:  // Fall through.
     case kRepWord64:
-      opcode = kArm64LoadWord64;
+      opcode = kArm64Ldr;
       break;
     default:
       UNREACHABLE();
       return;
   }
   if (g.CanBeImmediate(index, kLoadStoreImm)) {
-    Emit(opcode | AddressingModeField::encode(kMode_MRI), result,
-         g.UseRegister(base), g.UseImmediate(index));
-  } else if (g.CanBeImmediate(base, kLoadStoreImm)) {
-    Emit(opcode | AddressingModeField::encode(kMode_MRI), result,
-         g.UseRegister(index), g.UseImmediate(base));
+    Emit(opcode | AddressingModeField::encode(kMode_MRI),
+         g.DefineAsRegister(node), g.UseRegister(base), g.UseImmediate(index));
   } else {
-    Emit(opcode | AddressingModeField::encode(kMode_MRR), result,
-         g.UseRegister(base), g.UseRegister(index));
+    Emit(opcode | AddressingModeField::encode(kMode_MRR),
+         g.DefineAsRegister(node), g.UseRegister(base), g.UseRegister(index));
   }
 }
 
@@ -207,35 +202,32 @@ void InstructionSelector::VisitStore(Node* node) {
     // TODO(dcarney): handle immediate indices.
     InstructionOperand* temps[] = {g.TempRegister(x11), g.TempRegister(x12)};
     Emit(kArm64StoreWriteBarrier, NULL, g.UseFixed(base, x10),
-         g.UseFixed(index, x11), g.UseFixed(value, x12), ARRAY_SIZE(temps),
+         g.UseFixed(index, x11), g.UseFixed(value, x12), arraysize(temps),
          temps);
     return;
   }
   DCHECK_EQ(kNoWriteBarrier, store_rep.write_barrier_kind);
-  InstructionOperand* val;
-  if (rep == kRepFloat64) {
-    val = g.UseDoubleRegister(value);
-  } else {
-    val = g.UseRegister(value);
-  }
   ArchOpcode opcode;
   switch (rep) {
+    case kRepFloat32:
+      opcode = kArm64StrS;
+      break;
     case kRepFloat64:
-      opcode = kArm64Float64Store;
+      opcode = kArm64StrD;
       break;
     case kRepBit:  // Fall through.
     case kRepWord8:
-      opcode = kArm64StoreWord8;
+      opcode = kArm64Strb;
       break;
     case kRepWord16:
-      opcode = kArm64StoreWord16;
+      opcode = kArm64Strh;
       break;
     case kRepWord32:
-      opcode = kArm64StoreWord32;
+      opcode = kArm64StrW;
       break;
     case kRepTagged:  // Fall through.
     case kRepWord64:
-      opcode = kArm64StoreWord64;
+      opcode = kArm64Str;
       break;
     default:
       UNREACHABLE();
@@ -243,13 +235,10 @@ void InstructionSelector::VisitStore(Node* node) {
   }
   if (g.CanBeImmediate(index, kLoadStoreImm)) {
     Emit(opcode | AddressingModeField::encode(kMode_MRI), NULL,
-         g.UseRegister(base), g.UseImmediate(index), val);
-  } else if (g.CanBeImmediate(base, kLoadStoreImm)) {
-    Emit(opcode | AddressingModeField::encode(kMode_MRI), NULL,
-         g.UseRegister(index), g.UseImmediate(base), val);
+         g.UseRegister(base), g.UseImmediate(index), g.UseRegister(value));
   } else {
     Emit(opcode | AddressingModeField::encode(kMode_MRR), NULL,
-         g.UseRegister(base), g.UseRegister(index), val);
+         g.UseRegister(base), g.UseRegister(index), g.UseRegister(value));
   }
 }
 
@@ -424,14 +413,14 @@ void InstructionSelector::VisitInt64UMod(Node* node) {
 
 void InstructionSelector::VisitChangeInt32ToFloat64(Node* node) {
   Arm64OperandGenerator g(this);
-  Emit(kArm64Int32ToFloat64, g.DefineAsDoubleRegister(node),
+  Emit(kArm64Int32ToFloat64, g.DefineAsRegister(node),
        g.UseRegister(node->InputAt(0)));
 }
 
 
 void InstructionSelector::VisitChangeUint32ToFloat64(Node* node) {
   Arm64OperandGenerator g(this);
-  Emit(kArm64Uint32ToFloat64, g.DefineAsDoubleRegister(node),
+  Emit(kArm64Uint32ToFloat64, g.DefineAsRegister(node),
        g.UseRegister(node->InputAt(0)));
 }
 
@@ -439,14 +428,14 @@ void InstructionSelector::VisitChangeUint32ToFloat64(Node* node) {
 void InstructionSelector::VisitChangeFloat64ToInt32(Node* node) {
   Arm64OperandGenerator g(this);
   Emit(kArm64Float64ToInt32, g.DefineAsRegister(node),
-       g.UseDoubleRegister(node->InputAt(0)));
+       g.UseRegister(node->InputAt(0)));
 }
 
 
 void InstructionSelector::VisitChangeFloat64ToUint32(Node* node) {
   Arm64OperandGenerator g(this);
   Emit(kArm64Float64ToUint32, g.DefineAsRegister(node),
-       g.UseDoubleRegister(node->InputAt(0)));
+       g.UseRegister(node->InputAt(0)));
 }
 
 
@@ -490,9 +479,9 @@ void InstructionSelector::VisitFloat64Div(Node* node) {
 
 void InstructionSelector::VisitFloat64Mod(Node* node) {
   Arm64OperandGenerator g(this);
-  Emit(kArm64Float64Mod, g.DefineAsFixedDouble(node, d0),
-       g.UseFixedDouble(node->InputAt(0), d0),
-       g.UseFixedDouble(node->InputAt(1), d1))->MarkAsCall();
+  Emit(kArm64Float64Mod, g.DefineAsFixed(node, d0),
+       g.UseFixed(node->InputAt(0), d0),
+       g.UseFixed(node->InputAt(1), d1))->MarkAsCall();
 }
 
 
@@ -591,8 +580,8 @@ void InstructionSelector::VisitFloat64Compare(Node* node,
   Arm64OperandGenerator g(this);
   Node* left = node->InputAt(0);
   Node* right = node->InputAt(1);
-  VisitCompare(this, kArm64Float64Cmp, g.UseDoubleRegister(left),
-               g.UseDoubleRegister(right), cont);
+  VisitCompare(this, kArm64Float64Cmp, g.UseRegister(left),
+               g.UseRegister(right), cont);
 }
 
 
@@ -600,7 +589,14 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
                                     BasicBlock* deoptimization) {
   Arm64OperandGenerator g(this);
   CallDescriptor* descriptor = OpParameter<CallDescriptor*>(call);
-  CallBuffer buffer(zone(), descriptor);  // TODO(turbofan): temp zone here?
+
+  FrameStateDescriptor* frame_state_descriptor = NULL;
+  if (descriptor->NeedsFrameState()) {
+    frame_state_descriptor =
+        GetFrameStateDescriptor(call->InputAt(descriptor->InputCount()));
+  }
+
+  CallBuffer buffer(zone(), descriptor, frame_state_descriptor);
 
   // Compute InstructionOperands for inputs and outputs.
   // TODO(turbofan): on ARM64 it's probably better to use the code object in a
@@ -611,8 +607,8 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
 
   // Push the arguments to the stack.
   bool is_c_frame = descriptor->kind() == CallDescriptor::kCallAddress;
-  bool pushed_count_uneven = buffer.pushed_count & 1;
-  int aligned_push_count = buffer.pushed_count;
+  bool pushed_count_uneven = buffer.pushed_nodes.size() & 1;
+  int aligned_push_count = buffer.pushed_nodes.size();
   if (is_c_frame && pushed_count_uneven) {
     aligned_push_count++;
   }
@@ -626,7 +622,7 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   }
   // Move arguments to the stack.
   {
-    int slot = buffer.pushed_count - 1;
+    int slot = buffer.pushed_nodes.size() - 1;
     // Emit the uneven pushes.
     if (pushed_count_uneven) {
       Node* input = buffer.pushed_nodes[slot];
@@ -646,25 +642,25 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   InstructionCode opcode;
   switch (descriptor->kind()) {
     case CallDescriptor::kCallCodeObject: {
-      bool lazy_deopt = descriptor->CanLazilyDeoptimize();
-      opcode = kArm64CallCodeObject | MiscField::encode(lazy_deopt ? 1 : 0);
+      opcode = kArchCallCodeObject;
       break;
     }
     case CallDescriptor::kCallAddress:
-      opcode = kArm64CallAddress;
+      opcode = kArchCallAddress;
       break;
     case CallDescriptor::kCallJSFunction:
-      opcode = kArm64CallJSFunction;
+      opcode = kArchCallJSFunction;
       break;
     default:
       UNREACHABLE();
       return;
   }
+  opcode |= MiscField::encode(descriptor->flags());
 
   // Emit the call instruction.
   Instruction* call_instr =
-      Emit(opcode, buffer.output_count, buffer.outputs,
-           buffer.fixed_and_control_count(), buffer.fixed_and_control_args);
+      Emit(opcode, buffer.outputs.size(), &buffer.outputs.front(),
+           buffer.instruction_args.size(), &buffer.instruction_args.front());
 
   call_instr->MarkAsCall();
   if (deoptimization != NULL) {
@@ -675,7 +671,7 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   // Caller clean up of stack for C-style calls.
   if (is_c_frame && aligned_push_count > 0) {
     DCHECK(deoptimization == NULL && continuation == NULL);
-    Emit(kArm64Drop | MiscField::encode(aligned_push_count), NULL);
+    Emit(kArchDrop | MiscField::encode(aligned_push_count), NULL);
   }
 }
 
@@ -683,4 +679,5 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
 }  // namespace internal
 }  // namespace v8
 
-#endif
+
+#endif  // V8_TARGET_ARCH_ARM64

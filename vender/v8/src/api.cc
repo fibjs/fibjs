@@ -413,6 +413,7 @@ void RegisteredExtension::UnregisterAll() {
     delete re;
     re = next;
   }
+  first_extension_ = NULL;
 }
 
 
@@ -828,7 +829,7 @@ static void TemplateSet(i::Isolate* isolate,
 }
 
 
-void Template::Set(v8::Handle<String> name,
+void Template::Set(v8::Handle<Name> name,
                    v8::Handle<Data> value,
                    v8::PropertyAttribute attribute) {
   i::Isolate* isolate = i::Isolate::Current();
@@ -845,7 +846,7 @@ void Template::Set(v8::Handle<String> name,
 
 
 void Template::SetAccessorProperty(
-    v8::Local<v8::String> name,
+    v8::Local<v8::Name> name,
     v8::Local<FunctionTemplate> getter,
     v8::Local<FunctionTemplate> setter,
     v8::PropertyAttribute attribute,
@@ -1156,7 +1157,7 @@ void FunctionTemplate::SetCallHandler(FunctionCallback callback,
 
 static i::Handle<i::AccessorInfo> SetAccessorInfoProperties(
     i::Handle<i::AccessorInfo> obj,
-    v8::Handle<String> name,
+    v8::Handle<Name> name,
     v8::AccessControl settings,
     v8::PropertyAttribute attributes,
     v8::Handle<AccessorSignature> signature) {
@@ -1173,7 +1174,7 @@ static i::Handle<i::AccessorInfo> SetAccessorInfoProperties(
 
 template<typename Getter, typename Setter>
 static i::Handle<i::AccessorInfo> MakeAccessorInfo(
-    v8::Handle<String> name,
+    v8::Handle<Name> name,
     Getter getter,
     Setter setter,
     v8::Handle<Value> data,
@@ -1194,7 +1195,7 @@ static i::Handle<i::AccessorInfo> MakeAccessorInfo(
 
 
 static i::Handle<i::AccessorInfo> MakeAccessorInfo(
-    v8::Handle<String> name,
+    v8::Handle<Name> name,
     v8::Handle<v8::DeclaredAccessorDescriptor> descriptor,
     void* setter_ignored,
     void* data_ignored,
@@ -1345,10 +1346,10 @@ static inline i::Handle<i::TemplateInfo> GetTemplateInfo(
 }
 
 
-template<typename Setter, typename Getter, typename Data, typename Template>
+template<typename Getter, typename Setter, typename Data, typename Template>
 static bool TemplateSetAccessor(
     Template* template_obj,
-    v8::Local<String> name,
+    v8::Local<Name> name,
     Getter getter,
     Setter setter,
     Data data,
@@ -1368,7 +1369,7 @@ static bool TemplateSetAccessor(
 
 
 bool Template::SetDeclaredAccessor(
-    Local<String> name,
+    Local<Name> name,
     Local<DeclaredAccessorDescriptor> descriptor,
     PropertyAttribute attribute,
     Local<AccessorSignature> signature,
@@ -1391,9 +1392,33 @@ void Template::SetNativeDataProperty(v8::Local<String> name,
 }
 
 
+void Template::SetNativeDataProperty(v8::Local<Name> name,
+                                     AccessorNameGetterCallback getter,
+                                     AccessorNameSetterCallback setter,
+                                     v8::Handle<Value> data,
+                                     PropertyAttribute attribute,
+                                     v8::Local<AccessorSignature> signature,
+                                     AccessControl settings) {
+  TemplateSetAccessor(
+      this, name, getter, setter, data, settings, attribute, signature);
+}
+
+
 void ObjectTemplate::SetAccessor(v8::Handle<String> name,
                                  AccessorGetterCallback getter,
                                  AccessorSetterCallback setter,
+                                 v8::Handle<Value> data,
+                                 AccessControl settings,
+                                 PropertyAttribute attribute,
+                                 v8::Handle<AccessorSignature> signature) {
+  TemplateSetAccessor(
+      this, name, getter, setter, data, settings, attribute, signature);
+}
+
+
+void ObjectTemplate::SetAccessor(v8::Handle<Name> name,
+                                 AccessorNameGetterCallback getter,
+                                 AccessorNameSetterCallback setter,
                                  v8::Handle<Value> data,
                                  AccessControl settings,
                                  PropertyAttribute attribute,
@@ -2041,7 +2066,7 @@ MUST_USE_RESULT static i::MaybeHandle<i::Object> CallV8HeapFunction(
   i::Handle<i::Object> argv[] = { data };
   return CallV8HeapFunction(name,
                             i::Isolate::Current()->js_builtins_object(),
-                            ARRAY_SIZE(argv),
+                            arraysize(argv),
                             argv);
 }
 
@@ -2324,6 +2349,11 @@ bool Value::IsFunction() const {
 }
 
 
+bool Value::IsName() const {
+  return Utils::OpenHandle(this)->IsName();
+}
+
+
 bool Value::FullIsString() const {
   bool result = Utils::OpenHandle(this)->IsString();
   DCHECK_EQ(result, QuickIsString());
@@ -2383,12 +2413,26 @@ bool Value::IsNumber() const {
 }
 
 
-bool Value::IsArgumentsObject() const {
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (!obj->IsHeapObject()) return false;
-  i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
-  return obj->HasSpecificClassOf(isolate->heap()->Arguments_string());
-}
+#define VALUE_IS_SPECIFIC_TYPE(Type, Class)                            \
+  bool Value::Is##Type() const {                                       \
+    i::Handle<i::Object> obj = Utils::OpenHandle(this);                \
+    if (!obj->IsHeapObject()) return false;                            \
+    i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();     \
+    return obj->HasSpecificClassOf(isolate->heap()->Class##_string()); \
+  }
+
+VALUE_IS_SPECIFIC_TYPE(ArgumentsObject, Arguments)
+VALUE_IS_SPECIFIC_TYPE(BooleanObject, Boolean)
+VALUE_IS_SPECIFIC_TYPE(NumberObject, Number)
+VALUE_IS_SPECIFIC_TYPE(StringObject, String)
+VALUE_IS_SPECIFIC_TYPE(SymbolObject, Symbol)
+VALUE_IS_SPECIFIC_TYPE(Date, Date)
+VALUE_IS_SPECIFIC_TYPE(Map, Map)
+VALUE_IS_SPECIFIC_TYPE(Set, Set)
+VALUE_IS_SPECIFIC_TYPE(WeakMap, WeakMap)
+VALUE_IS_SPECIFIC_TYPE(WeakSet, WeakSet)
+
+#undef VALUE_IS_SPECIFIC_TYPE
 
 
 bool Value::IsBoolean() const {
@@ -2425,38 +2469,6 @@ bool Value::IsUint32() const {
 }
 
 
-bool Value::IsDate() const {
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (!obj->IsHeapObject()) return false;
-  i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
-  return obj->HasSpecificClassOf(isolate->heap()->Date_string());
-}
-
-
-bool Value::IsStringObject() const {
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (!obj->IsHeapObject()) return false;
-  i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
-  return obj->HasSpecificClassOf(isolate->heap()->String_string());
-}
-
-
-bool Value::IsSymbolObject() const {
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (!obj->IsHeapObject()) return false;
-  i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
-  return obj->HasSpecificClassOf(isolate->heap()->Symbol_string());
-}
-
-
-bool Value::IsNumberObject() const {
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (!obj->IsHeapObject()) return false;
-  i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
-  return obj->HasSpecificClassOf(isolate->heap()->Number_string());
-}
-
-
 static bool CheckConstructor(i::Isolate* isolate,
                              i::Handle<i::JSObject> obj,
                              const char* class_name) {
@@ -2485,14 +2497,6 @@ bool Value::IsNativeError() const {
   } else {
     return false;
   }
-}
-
-
-bool Value::IsBooleanObject() const {
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (!obj->IsHeapObject()) return false;
-  i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
-  return obj->HasSpecificClassOf(isolate->heap()->Boolean_string());
 }
 
 
@@ -2637,6 +2641,14 @@ void v8::Function::CheckCast(Value* that) {
   Utils::ApiCheck(obj->IsJSFunction(),
                   "v8::Function::Cast()",
                   "Could not convert to function");
+}
+
+
+void v8::Name::CheckCast(v8::Value* that) {
+  i::Handle<i::Object> obj = Utils::OpenHandle(that);
+  Utils::ApiCheck(obj->IsName(),
+                  "v8::Name::Cast()",
+                  "Could not convert to name");
 }
 
 
@@ -2956,7 +2968,7 @@ bool Value::Equals(Handle<Value> that) const {
   EXCEPTION_PREAMBLE(isolate);
   i::Handle<i::Object> result;
   has_pending_exception = !CallV8HeapFunction(
-      "EQUALS", obj, ARRAY_SIZE(args), args).ToHandle(&result);
+      "EQUALS", obj, arraysize(args), args).ToHandle(&result);
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return *result == i::Smi::FromInt(i::EQUAL);
 }
@@ -3185,7 +3197,7 @@ Local<Value> v8::Object::GetOwnPropertyDescriptor(Local<String> key) {
   has_pending_exception = !CallV8HeapFunction(
       "ObjectGetOwnPropertyDescriptor",
       isolate->factory()->undefined_value(),
-      ARRAY_SIZE(args),
+      arraysize(args),
       args).ToHandle(&result);
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Value>());
   return Utils::ToLocal(result);
@@ -3423,11 +3435,11 @@ bool v8::Object::Has(uint32_t index) {
 }
 
 
-template<typename Setter, typename Getter, typename Data>
+template<typename Getter, typename Setter, typename Data>
 static inline bool ObjectSetAccessor(Object* obj,
-                                     Handle<String> name,
-                                     Setter getter,
-                                     Getter setter,
+                                     Handle<Name> name,
+                                     Getter getter,
+                                     Setter setter,
                                      Data data,
                                      AccessControl settings,
                                      PropertyAttribute attributes) {
@@ -3462,7 +3474,18 @@ bool Object::SetAccessor(Handle<String> name,
 }
 
 
-bool Object::SetDeclaredAccessor(Local<String> name,
+bool Object::SetAccessor(Handle<Name> name,
+                         AccessorNameGetterCallback getter,
+                         AccessorNameSetterCallback setter,
+                         v8::Handle<Value> data,
+                         AccessControl settings,
+                         PropertyAttribute attributes) {
+  return ObjectSetAccessor(
+      this, name, getter, setter, data, settings, attributes);
+}
+
+
+bool Object::SetDeclaredAccessor(Local<Name> name,
                                  Local<DeclaredAccessorDescriptor> descriptor,
                                  PropertyAttribute attributes,
                                  AccessControl settings) {
@@ -3472,7 +3495,7 @@ bool Object::SetDeclaredAccessor(Local<String> name,
 }
 
 
-void Object::SetAccessorProperty(Local<String> name,
+void Object::SetAccessorProperty(Local<Name> name,
                                  Local<Function> getter,
                                  Handle<Function> setter,
                                  PropertyAttribute attribute,
@@ -3571,7 +3594,8 @@ static Local<Value> GetPropertyByLookup(i::LookupIterator* it) {
   has_pending_exception = !i::Object::GetProperty(it).ToHandle(&result);
   EXCEPTION_BAILOUT_CHECK(it->isolate(), Local<Value>());
 
-  return Utils::ToLocal(result);
+  if (it->IsFound()) return Utils::ToLocal(result);
+  return Local<Value>();
 }
 
 
@@ -3587,7 +3611,7 @@ Local<Value> v8::Object::GetRealNamedPropertyInPrototypeChain(
   i::PrototypeIterator iter(isolate, self_obj);
   if (iter.IsAtEnd()) return Local<Value>();
   i::LookupIterator it(i::PrototypeIterator::GetCurrent(iter), key_obj,
-                       i::LookupIterator::CHECK_DERIVED_PROPERTY);
+                       i::LookupIterator::PROTOTYPE_CHAIN_PROPERTY);
   return GetPropertyByLookup(&it);
 }
 
@@ -3600,7 +3624,7 @@ Local<Value> v8::Object::GetRealNamedProperty(Handle<String> key) {
   i::Handle<i::JSObject> self_obj = Utils::OpenHandle(this);
   i::Handle<i::String> key_obj = Utils::OpenHandle(*key);
   i::LookupIterator it(self_obj, key_obj,
-                       i::LookupIterator::CHECK_DERIVED_PROPERTY);
+                       i::LookupIterator::PROTOTYPE_CHAIN_PROPERTY);
   return GetPropertyByLookup(&it);
 }
 
@@ -5712,7 +5736,7 @@ static i::Handle<i::String> RegExpFlagsToString(RegExp::Flags flags) {
   if ((flags & RegExp::kGlobal) != 0) flags_buf[num_flags++] = 'g';
   if ((flags & RegExp::kMultiline) != 0) flags_buf[num_flags++] = 'm';
   if ((flags & RegExp::kIgnoreCase) != 0) flags_buf[num_flags++] = 'i';
-  DCHECK(num_flags <= static_cast<int>(ARRAY_SIZE(flags_buf)));
+  DCHECK(num_flags <= static_cast<int>(arraysize(flags_buf)));
   return isolate->factory()->InternalizeOneByteString(
       i::Vector<const uint8_t>(flags_buf, num_flags));
 }
@@ -5818,7 +5842,7 @@ bool Value::IsPromise() const {
       isolate,
       isolate->is_promise(),
       isolate->factory()->undefined_value(),
-      ARRAY_SIZE(argv), argv,
+      arraysize(argv), argv,
       false).ToHandle(&b);
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return b->BooleanValue();
@@ -5859,7 +5883,7 @@ void Promise::Resolver::Resolve(Handle<Value> value) {
       isolate,
       isolate->promise_resolve(),
       isolate->factory()->undefined_value(),
-      ARRAY_SIZE(argv), argv,
+      arraysize(argv), argv,
       false).is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, /* void */ ;);
 }
@@ -5876,7 +5900,7 @@ void Promise::Resolver::Reject(Handle<Value> value) {
       isolate,
       isolate->promise_reject(),
       isolate->factory()->undefined_value(),
-      ARRAY_SIZE(argv), argv,
+      arraysize(argv), argv,
       false).is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, /* void */ ;);
 }
@@ -5894,7 +5918,7 @@ Local<Promise> Promise::Chain(Handle<Function> handler) {
       isolate,
       isolate->promise_chain(),
       promise,
-      ARRAY_SIZE(argv), argv,
+      arraysize(argv), argv,
       false).ToHandle(&result);
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Promise>());
   return Local<Promise>::Cast(Utils::ToLocal(result));
@@ -5913,7 +5937,7 @@ Local<Promise> Promise::Catch(Handle<Function> handler) {
       isolate,
       isolate->promise_catch(),
       promise,
-      ARRAY_SIZE(argv), argv,
+      arraysize(argv), argv,
       false).ToHandle(&result);
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Promise>());
   return Local<Promise>::Cast(Utils::ToLocal(result));
@@ -5932,7 +5956,7 @@ Local<Promise> Promise::Then(Handle<Function> handler) {
       isolate,
       isolate->promise_then(),
       promise,
-      ARRAY_SIZE(argv), argv,
+      arraysize(argv), argv,
       false).ToHandle(&result);
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Promise>());
   return Local<Promise>::Cast(Utils::ToLocal(result));
@@ -7552,7 +7576,7 @@ void HandleScopeImplementer::IterateThis(ObjectVisitor* v) {
   }
 
   List<Context*>* context_lists[2] = { &saved_contexts_, &entered_contexts_};
-  for (unsigned i = 0; i < ARRAY_SIZE(context_lists); i++) {
+  for (unsigned i = 0; i < arraysize(context_lists); i++) {
     if (context_lists[i]->is_empty()) continue;
     Object** start = reinterpret_cast<Object**>(&context_lists[i]->first());
     v->VisitPointers(start, start + context_lists[i]->length());
@@ -7636,9 +7660,9 @@ void DeferredHandles::Iterate(ObjectVisitor* v) {
 
 
 void InvokeAccessorGetterCallback(
-    v8::Local<v8::String> property,
+    v8::Local<v8::Name> property,
     const v8::PropertyCallbackInfo<v8::Value>& info,
-    v8::AccessorGetterCallback getter) {
+    v8::AccessorNameGetterCallback getter) {
   // Leaving JavaScript.
   Isolate* isolate = reinterpret_cast<Isolate*>(info.GetIsolate());
   Address getter_address = reinterpret_cast<Address>(reinterpret_cast<intptr_t>(

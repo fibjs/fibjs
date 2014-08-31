@@ -631,13 +631,35 @@ namespace internal {
 44, 10, 34, 102, 105, 108, 108, 34, 44, 65, 114, 114, 97, 121, 70, 105, 108,
 108, 10, 41, 41, 59, 10, 125, 10, 72, 97, 114, 109, 111, 110, 121, 65, 114, 114,
 97, 121, 69, 120, 116, 101, 110, 100, 65, 114, 114, 97, 121, 80, 114, 111, 116,
-111, 116, 121, 112, 101, 40, 41, 59, 10, 10 };
+111, 116, 121, 112, 101, 40, 41, 59, 10, 10, 10, 40, 102, 117, 110, 99, 116,
+105, 111, 110, 40, 41, 123, 10, 102, 117, 110, 99, 116, 105, 111, 110, 32, 70,
+117, 110, 99, 116, 105, 111, 110, 84, 111, 77, 101, 116, 104, 111, 100, 40, 97,
+41, 123, 10, 105, 102, 40, 33, 40, 37, 95, 67, 108, 97, 115, 115, 79, 102, 40,
+116, 104, 105, 115, 41, 61, 61, 61, 39, 70, 117, 110, 99, 116, 105, 111, 110,
+39, 41, 41, 123, 10, 116, 104, 114, 111, 119, 32, 77, 97, 107, 101, 84, 121,
+112, 101, 69, 114, 114, 111, 114, 40, 39, 116, 111, 77, 101, 116, 104, 111, 100,
+95, 110, 111, 110, 95, 102, 117, 110, 99, 116, 105, 111, 110, 39, 44, 10, 91,
+37, 84, 111, 83, 116, 114, 105, 110, 103, 40, 116, 104, 105, 115, 41, 44, 116,
+121, 112, 101, 111, 102, 32, 116, 104, 105, 115, 93, 41, 59, 10, 125, 10, 105,
+102, 40, 33, 40, 37, 95, 73, 115, 83, 112, 101, 99, 79, 98, 106, 101, 99, 116,
+40, 97, 41, 41, 41, 123, 10, 116, 104, 114, 111, 119, 32, 77, 97, 107, 101, 84,
+121, 112, 101, 69, 114, 114, 111, 114, 40, 39, 116, 111, 77, 101, 116, 104, 111,
+100, 95, 110, 111, 110, 95, 111, 98, 106, 101, 99, 116, 39, 44, 10, 91, 37, 84,
+111, 83, 116, 114, 105, 110, 103, 40, 97, 41, 93, 41, 59, 10, 125, 10, 114, 101,
+116, 117, 114, 110, 32, 37, 84, 111, 77, 101, 116, 104, 111, 100, 40, 116, 104,
+105, 115, 44, 97, 41, 59, 10, 125, 10, 37, 67, 104, 101, 99, 107, 73, 115, 66,
+111, 111, 116, 115, 116, 114, 97, 112, 112, 105, 110, 103, 40, 41, 59, 10, 73,
+110, 115, 116, 97, 108, 108, 70, 117, 110, 99, 116, 105, 111, 110, 115, 40, 36,
+70, 117, 110, 99, 116, 105, 111, 110, 46, 112, 114, 111, 116, 111, 116, 121,
+112, 101, 44, 50, 44, 36, 65, 114, 114, 97, 121, 40, 10, 34, 116, 111, 77, 101,
+116, 104, 111, 100, 34, 44, 70, 117, 110, 99, 116, 105, 111, 110, 84, 111, 77,
+101, 116, 104, 111, 100, 10, 41, 41, 59, 10, 125, 40, 41, 41, 59, 10, 10 };
 
   static const char* raw_sources = reinterpret_cast<const char*>(sources);
 
   template <>
   int NativesCollection<EXPERIMENTAL>::GetBuiltinsCount() {
-    return 4;
+    return 5;
   }
 
   template <>
@@ -651,12 +673,13 @@ namespace internal {
     if (strcmp(name, "generator") == 0) return 1;
     if (strcmp(name, "harmony-string") == 0) return 2;
     if (strcmp(name, "harmony-array") == 0) return 3;
+    if (strcmp(name, "harmony-classes") == 0) return 4;
     return -1;
   }
 
   template <>
   int NativesCollection<EXPERIMENTAL>::GetRawScriptsSize() {
-    return 10770;
+    return 11157;
   }
 
   template <>
@@ -665,6 +688,7 @@ namespace internal {
     if (index == 1) return Vector<const char>(raw_sources + 3208, 1624);
     if (index == 2) return Vector<const char>(raw_sources + 4832, 3642);
     if (index == 3) return Vector<const char>(raw_sources + 8474, 2296);
+    if (index == 4) return Vector<const char>(raw_sources + 10770, 387);
     return Vector<const char>("", 0);
   }
 
@@ -674,17 +698,18 @@ namespace internal {
     if (index == 1) return Vector<const char>("native generator.js", 19);
     if (index == 2) return Vector<const char>("native harmony-string.js", 24);
     if (index == 3) return Vector<const char>("native harmony-array.js", 23);
+    if (index == 4) return Vector<const char>("native harmony-classes.js", 25);
     return Vector<const char>("", 0);
   }
 
   template <>
   Vector<const byte> NativesCollection<EXPERIMENTAL>::GetScriptsSource() {
-    return Vector<const byte>(sources, 10770);
+    return Vector<const byte>(sources, 11157);
   }
 
   template <>
   void NativesCollection<EXPERIMENTAL>::SetRawScriptsSource(Vector<const char> raw_source) {
-    DCHECK(10770 == raw_source.length());
+    DCHECK(11157 == raw_source.length());
     raw_sources = raw_source.start();
   }
 

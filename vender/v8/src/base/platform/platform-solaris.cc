@@ -1,13 +1,13 @@
+#include <exlib/include/osconfig.h>
+
+#ifdef Solaris
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 // Platform-specific code for Solaris 10 goes here. For the POSIX-compatible
 // parts, the implementation is in platform-posix.cc.
-
-#include <exlib/include/osconfig.h>
-
-#ifdef Solaris
 
 #ifdef __sparc
 # error "V8 does not support the SPARC CPU architecture."
@@ -281,5 +281,6 @@ bool VirtualMemory::HasLazyCommits() {
 }
 
 } }  // namespace v8::base
+
 
 #endif

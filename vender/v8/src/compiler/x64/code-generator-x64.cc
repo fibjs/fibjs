@@ -1,10 +1,10 @@
-// Copyright 2013 the V8 project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 #include "src/v8.h"
 
 #if V8_TARGET_ARCH_X64
+
+// Copyright 2013 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "src/compiler/code-generator.h"
 
@@ -208,6 +208,48 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   X64OperandConverter i(this, instr);
 
   switch (ArchOpcodeField::decode(instr->opcode())) {
+    case kArchCallCodeObject: {
+      if (HasImmediateInput(instr, 0)) {
+        Handle<Code> code = Handle<Code>::cast(i.InputHeapObject(0));
+        __ Call(code, RelocInfo::CODE_TARGET);
+      } else {
+        Register reg = i.InputRegister(0);
+        int entry = Code::kHeaderSize - kHeapObjectTag;
+        __ Call(Operand(reg, entry));
+      }
+      AddSafepointAndDeopt(instr);
+      break;
+    }
+    case kArchCallAddress:
+      if (HasImmediateInput(instr, 0)) {
+        Immediate64 imm = i.InputImmediate64(0);
+        DCHECK_EQ(kImm64Value, imm.type);
+        __ Call(reinterpret_cast<byte*>(imm.value), RelocInfo::NONE64);
+      } else {
+        __ call(i.InputRegister(0));
+      }
+      break;
+    case kArchCallJSFunction: {
+      // TODO(jarin) The load of the context should be separated from the call.
+      Register func = i.InputRegister(0);
+      __ movp(rsi, FieldOperand(func, JSFunction::kContextOffset));
+      __ Call(FieldOperand(func, JSFunction::kCodeEntryOffset));
+      AddSafepointAndDeopt(instr);
+      break;
+    }
+    case kArchDeoptimize: {
+      int deoptimization_id = BuildTranslation(instr, 0);
+
+      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
+          isolate(), deoptimization_id, Deoptimizer::LAZY);
+      __ call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
+      break;
+    }
+    case kArchDrop: {
+      int words = MiscField::decode(instr->opcode());
+      __ addq(rsp, Immediate(kPointerSize * words));
+      break;
+    }
     case kArchJmp:
       __ jmp(code_->GetLabel(i.InputBlock(0)));
       break;
@@ -217,15 +259,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArchRet:
       AssembleReturn();
       break;
-    case kArchDeoptimize: {
-      int deoptimization_id = MiscField::decode(instr->opcode());
-      BuildTranslation(instr, deoptimization_id);
-
-      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
-          isolate(), deoptimization_id, Deoptimizer::LAZY);
-      __ call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
-      break;
-    }
     case kArchTruncateDoubleToI:
       __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
       break;
@@ -383,80 +416,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kX64Ror:
       ASSEMBLE_SHIFT(rorq, 6);
       break;
-    case kX64Push: {
-      RegisterOrOperand input = i.InputRegisterOrOperand(0);
-      if (input.type == kRegister) {
-        __ pushq(input.reg);
-      } else {
-        __ pushq(input.operand);
-      }
-      break;
-    }
-    case kX64PushI:
-      __ pushq(i.InputImmediate(0));
-      break;
-    case kX64Movl: {
-      RegisterOrOperand input = i.InputRegisterOrOperand(0);
-      if (input.type == kRegister) {
-        __ movl(i.OutputRegister(), input.reg);
-      } else {
-        __ movl(i.OutputRegister(), input.operand);
-      }
-      break;
-    }
-    case kX64Movsxlq: {
-      RegisterOrOperand input = i.InputRegisterOrOperand(0);
-      if (input.type == kRegister) {
-        __ movsxlq(i.OutputRegister(), input.reg);
-      } else {
-        __ movsxlq(i.OutputRegister(), input.operand);
-      }
-      break;
-    }
-    case kX64CallCodeObject: {
-      if (HasImmediateInput(instr, 0)) {
-        Handle<Code> code = Handle<Code>::cast(i.InputHeapObject(0));
-        __ Call(code, RelocInfo::CODE_TARGET);
-      } else {
-        Register reg = i.InputRegister(0);
-        int entry = Code::kHeaderSize - kHeapObjectTag;
-        __ Call(Operand(reg, entry));
-      }
-      RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                      Safepoint::kNoLazyDeopt);
-      bool lazy_deopt = (MiscField::decode(instr->opcode()) == 1);
-      if (lazy_deopt) {
-        RecordLazyDeoptimizationEntry(instr);
-      }
-      AddNopForSmiCodeInlining();
-      break;
-    }
-    case kX64CallAddress:
-      if (HasImmediateInput(instr, 0)) {
-        Immediate64 imm = i.InputImmediate64(0);
-        DCHECK_EQ(kImm64Value, imm.type);
-        __ Call(reinterpret_cast<byte*>(imm.value), RelocInfo::NONE64);
-      } else {
-        __ call(i.InputRegister(0));
-      }
-      break;
-    case kPopStack: {
-      int words = MiscField::decode(instr->opcode());
-      __ addq(rsp, Immediate(kPointerSize * words));
-      break;
-    }
-    case kX64CallJSFunction: {
-      Register func = i.InputRegister(0);
-
-      // TODO(jarin) The load of the context should be separated from the call.
-      __ movp(rsi, FieldOperand(func, JSFunction::kContextOffset));
-      __ Call(FieldOperand(func, JSFunction::kCodeEntryOffset));
-
-      RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                      Safepoint::kNoLazyDeopt);
-      RecordLazyDeoptimizationEntry(instr);
-      break;
-    }
     case kSSEFloat64Cmp: {
       RegisterOrOperand input = i.InputRegisterOrOperand(1);
       if (input.type == kDoubleRegister) {
@@ -540,76 +499,114 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ cvtqsi2sd(i.OutputDoubleRegister(), i.InputRegister(0));
       break;
     }
-
-    case kSSELoad:
-      __ movsd(i.OutputDoubleRegister(), i.MemoryOperand());
+    case kX64Movsxbl:
+      __ movsxbl(i.OutputRegister(), i.MemoryOperand());
       break;
-    case kSSEStore: {
-      int index = 0;
-      Operand operand = i.MemoryOperand(&index);
-      __ movsd(operand, i.InputDoubleRegister(index));
-      break;
-    }
-    case kX64LoadWord8:
+    case kX64Movzxbl:
       __ movzxbl(i.OutputRegister(), i.MemoryOperand());
       break;
-    case kX64StoreWord8: {
+    case kX64Movb: {
       int index = 0;
       Operand operand = i.MemoryOperand(&index);
-      __ movb(operand, i.InputRegister(index));
+      if (HasImmediateInput(instr, index)) {
+        __ movb(operand, Immediate(i.InputInt8(index)));
+      } else {
+        __ movb(operand, i.InputRegister(index));
+      }
       break;
     }
-    case kX64StoreWord8I: {
-      int index = 0;
-      Operand operand = i.MemoryOperand(&index);
-      __ movb(operand, Immediate(i.InputInt8(index)));
+    case kX64Movsxwl:
+      __ movsxwl(i.OutputRegister(), i.MemoryOperand());
       break;
-    }
-    case kX64LoadWord16:
+    case kX64Movzxwl:
       __ movzxwl(i.OutputRegister(), i.MemoryOperand());
       break;
-    case kX64StoreWord16: {
+    case kX64Movw: {
       int index = 0;
       Operand operand = i.MemoryOperand(&index);
-      __ movw(operand, i.InputRegister(index));
+      if (HasImmediateInput(instr, index)) {
+        __ movw(operand, Immediate(i.InputInt16(index)));
+      } else {
+        __ movw(operand, i.InputRegister(index));
+      }
       break;
     }
-    case kX64StoreWord16I: {
-      int index = 0;
-      Operand operand = i.MemoryOperand(&index);
-      __ movw(operand, Immediate(i.InputInt16(index)));
+    case kX64Movl:
+      if (instr->HasOutput()) {
+        if (instr->addressing_mode() == kMode_None) {
+          RegisterOrOperand input = i.InputRegisterOrOperand(0);
+          if (input.type == kRegister) {
+            __ movl(i.OutputRegister(), input.reg);
+          } else {
+            __ movl(i.OutputRegister(), input.operand);
+          }
+        } else {
+          __ movl(i.OutputRegister(), i.MemoryOperand());
+        }
+      } else {
+        int index = 0;
+        Operand operand = i.MemoryOperand(&index);
+        if (HasImmediateInput(instr, index)) {
+          __ movl(operand, i.InputImmediate(index));
+        } else {
+          __ movl(operand, i.InputRegister(index));
+        }
+      }
+      break;
+    case kX64Movsxlq: {
+      RegisterOrOperand input = i.InputRegisterOrOperand(0);
+      if (input.type == kRegister) {
+        __ movsxlq(i.OutputRegister(), input.reg);
+      } else {
+        __ movsxlq(i.OutputRegister(), input.operand);
+      }
       break;
     }
-    case kX64LoadWord32:
-      __ movl(i.OutputRegister(), i.MemoryOperand());
+    case kX64Movq:
+      if (instr->HasOutput()) {
+        __ movq(i.OutputRegister(), i.MemoryOperand());
+      } else {
+        int index = 0;
+        Operand operand = i.MemoryOperand(&index);
+        if (HasImmediateInput(instr, index)) {
+          __ movq(operand, i.InputImmediate(index));
+        } else {
+          __ movq(operand, i.InputRegister(index));
+        }
+      }
       break;
-    case kX64StoreWord32: {
-      int index = 0;
-      Operand operand = i.MemoryOperand(&index);
-      __ movl(operand, i.InputRegister(index));
+    case kX64Movss:
+      if (instr->HasOutput()) {
+        __ movss(i.OutputDoubleRegister(), i.MemoryOperand());
+        __ cvtss2sd(i.OutputDoubleRegister(), i.OutputDoubleRegister());
+      } else {
+        int index = 0;
+        Operand operand = i.MemoryOperand(&index);
+        __ cvtsd2ss(xmm0, i.InputDoubleRegister(index));
+        __ movss(operand, xmm0);
+      }
       break;
-    }
-    case kX64StoreWord32I: {
-      int index = 0;
-      Operand operand = i.MemoryOperand(&index);
-      __ movl(operand, i.InputImmediate(index));
+    case kX64Movsd:
+      if (instr->HasOutput()) {
+        __ movsd(i.OutputDoubleRegister(), i.MemoryOperand());
+      } else {
+        int index = 0;
+        Operand operand = i.MemoryOperand(&index);
+        __ movsd(operand, i.InputDoubleRegister(index));
+      }
       break;
-    }
-    case kX64LoadWord64:
-      __ movq(i.OutputRegister(), i.MemoryOperand());
+    case kX64Push:
+      if (HasImmediateInput(instr, 0)) {
+        __ pushq(i.InputImmediate(0));
+      } else {
+        RegisterOrOperand input = i.InputRegisterOrOperand(0);
+        if (input.type == kRegister) {
+          __ pushq(input.reg);
+        } else {
+          __ pushq(input.operand);
+        }
+      }
       break;
-    case kX64StoreWord64: {
-      int index = 0;
-      Operand operand = i.MemoryOperand(&index);
-      __ movq(operand, i.InputRegister(index));
-      break;
-    }
-    case kX64StoreWord64I: {
-      int index = 0;
-      Operand operand = i.MemoryOperand(&index);
-      __ movq(operand, i.InputImmediate(index));
-      break;
-    }
     case kX64StoreWriteBarrier: {
       Register object = i.InputRegister(0);
       Register index = i.InputRegister(1);
@@ -1011,4 +1008,5 @@ void CodeGenerator::AddNopForSmiCodeInlining() { __ nop(); }
 }  // namespace compiler
 }  // namespace v8
 
-#endif
+
+#endif  // V8_TARGET_ARCH_X64

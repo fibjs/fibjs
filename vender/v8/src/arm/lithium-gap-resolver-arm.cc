@@ -1,10 +1,12 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #include "src/v8.h"
-
-#if V8_TARGET_ARCH_ARM
 
 #include "src/arm/lithium-codegen-arm.h"
 #include "src/arm/lithium-gap-resolver-arm.h"
@@ -303,4 +305,5 @@ void LGapResolver::EmitMove(int index) {
 
 } }  // namespace v8::internal
 
-#endif
+
+#endif  // V8_TARGET_ARCH_ARM

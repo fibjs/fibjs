@@ -1,10 +1,10 @@
-// Copyright 2013 the V8 project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 #include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM64
+
+// Copyright 2013 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "src/arm64/instrument-arm64.h"
 
@@ -111,7 +111,7 @@ Instrument::Instrument(const char* datafile, uint64_t sample_period)
     }
   }
 
-  static const int num_counters = ARRAY_SIZE(kCounterList);
+  static const int num_counters = arraysize(kCounterList);
 
   // Dump an instrumentation description comment at the top of the file.
   fprintf(output_stream_, "# counters=%d\n", num_counters);
@@ -597,4 +597,5 @@ void Instrument::VisitUnimplemented(Instruction* instr) {
 
 } }  // namespace v8::internal
 
-#endif
+
+#endif  // V8_TARGET_ARCH_ARM64

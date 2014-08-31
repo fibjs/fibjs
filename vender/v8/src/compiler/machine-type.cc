@@ -11,10 +11,11 @@ namespace compiler {
 
 #define PRINT(bit)         \
   if (type & bit) {        \
-    if (before) os << "+"; \
+    if (before) os << "|"; \
     os << #bit;            \
     before = true;         \
   }
+
 
 OStream& operator<<(OStream& os, const MachineType& type) {
   bool before = false;
@@ -23,6 +24,7 @@ OStream& operator<<(OStream& os, const MachineType& type) {
   PRINT(kRepWord16);
   PRINT(kRepWord32);
   PRINT(kRepWord64);
+  PRINT(kRepFloat32);
   PRINT(kRepFloat64);
   PRINT(kRepTagged);
 
@@ -35,6 +37,10 @@ OStream& operator<<(OStream& os, const MachineType& type) {
   PRINT(kTypeAny);
   return os;
 }
-}
-}
-}  // namespace v8::internal::compiler
+
+
+#undef PRINT
+
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

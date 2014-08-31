@@ -99,10 +99,15 @@ void Bootstrapper::InitializeOncePerProcess() {
 
 void Bootstrapper::TearDownExtensions() {
   delete free_buffer_extension_;
+  free_buffer_extension_ = NULL;
   delete gc_extension_;
+  gc_extension_ = NULL;
   delete externalize_string_extension_;
+  externalize_string_extension_ = NULL;
   delete statistics_extension_;
+  statistics_extension_ = NULL;
   delete trigger_failure_extension_;
+  trigger_failure_extension_ = NULL;
 }
 
 
@@ -780,7 +785,7 @@ Handle<JSGlobalProxy> Genesis::CreateNewGlobals(
         name, code, prototype, JS_GLOBAL_OBJECT_TYPE, JSGlobalObject::kSize);
 #ifdef DEBUG
     LookupIterator it(prototype, factory()->constructor_string(),
-                      LookupIterator::CHECK_PROPERTY);
+                      LookupIterator::OWN_PROPERTY);
     Handle<Object> value = JSReceiver::GetProperty(&it).ToHandleChecked();
     DCHECK(it.IsFound());
     DCHECK_EQ(*isolate()->object_function(), *value);
@@ -1204,6 +1209,7 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> global_object,
                         DONT_ENUM, Representation::Tagged());
       map->AppendDescriptor(&d);
     }
+    // @@iterator method is added later.
 
     map->set_function_with_prototype(true);
     map->set_pre_allocated_property_fields(2);
@@ -1262,6 +1268,7 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> global_object,
       CallbacksDescriptor d(factory->caller_string(), caller, attributes);
       map->AppendDescriptor(&d);
     }
+    // @@iterator method is added later.
 
     map->set_function_with_prototype(true);
     map->set_prototype(native_context()->object_function()->prototype());
@@ -1596,6 +1603,7 @@ void Genesis::InstallNativeFunctions() {
 
   INSTALL_NATIVE(Symbol, "symbolIterator", iterator_symbol);
   INSTALL_NATIVE(Symbol, "symbolUnscopables", unscopables_symbol);
+  INSTALL_NATIVE(JSFunction, "ArrayValues", array_values_iterator);
 
   INSTALL_NATIVE_MATH(abs)
   INSTALL_NATIVE_MATH(acos)
@@ -2039,6 +2047,34 @@ bool Genesis::InstallNatives() {
     native_context()->set_regexp_result_map(*initial_map);
   }
 
+  // Add @@iterator method to the arguments object maps.
+  {
+    PropertyAttributes attribs = DONT_ENUM;
+    Handle<AccessorInfo> arguments_iterator =
+        Accessors::ArgumentsIteratorInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(native_context()->iterator_symbol()),
+                            arguments_iterator, attribs);
+      Handle<Map> map(native_context()->sloppy_arguments_map());
+      Map::EnsureDescriptorSlack(map, 1);
+      map->AppendDescriptor(&d);
+    }
+    {
+      CallbacksDescriptor d(Handle<Name>(native_context()->iterator_symbol()),
+                            arguments_iterator, attribs);
+      Handle<Map> map(native_context()->aliased_arguments_map());
+      Map::EnsureDescriptorSlack(map, 1);
+      map->AppendDescriptor(&d);
+    }
+    {
+      CallbacksDescriptor d(Handle<Name>(native_context()->iterator_symbol()),
+                            arguments_iterator, attribs);
+      Handle<Map> map(native_context()->strict_arguments_map());
+      Map::EnsureDescriptorSlack(map, 1);
+      map->AppendDescriptor(&d);
+    }
+  }
+
 #ifdef VERIFY_HEAP
   builtins->ObjectVerify();
 #endif
@@ -2063,6 +2099,7 @@ bool Genesis::InstallExperimentalNatives() {
     INSTALL_EXPERIMENTAL_NATIVE(i, generators, "generator.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, strings, "harmony-string.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, arrays, "harmony-array.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, classes, "harmony-classes.js")
   }
 
   InstallExperimentalNativeFunctions();
@@ -2447,11 +2484,10 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
           break;
         }
         case CALLBACKS: {
-          LookupResult result(isolate());
-          Handle<Name> key(Name::cast(descs->GetKey(i)), isolate());
-          to->LookupOwn(key, &result);
+          Handle<Name> key(descs->GetKey(i));
+          LookupIterator it(to, key, LookupIterator::OWN_PROPERTY);
           // If the property is already there we skip it
-          if (result.IsFound()) continue;
+          if (it.IsFound() && it.HasProperty()) continue;
           HandleScope inner(isolate());
           DCHECK(!to->HasFastProperties());
           // Add to dictionary.
@@ -2461,12 +2497,8 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
           JSObject::SetNormalizedProperty(to, key, callbacks, d);
           break;
         }
+        // Do not occur since the from object has fast properties.
         case NORMAL:
-          // Do not occur since the from object has fast properties.
-        case HANDLER:
-        case INTERCEPTOR:
-        case NONEXISTENT:
-          // No element in instance descriptors have proxy or interceptor type.
           UNREACHABLE();
           break;
       }
@@ -2480,10 +2512,9 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
       if (properties->IsKey(raw_key)) {
         DCHECK(raw_key->IsName());
         // If the property is already there we skip it.
-        LookupResult result(isolate());
         Handle<Name> key(Name::cast(raw_key));
-        to->LookupOwn(key, &result);
-        if (result.IsFound()) continue;
+        LookupIterator it(to, key, LookupIterator::OWN_PROPERTY);
+        if (it.IsFound() && it.HasProperty()) continue;
         // Set the property.
         Handle<Object> value = Handle<Object>(properties->ValueAt(i),
                                               isolate());
@@ -2653,7 +2684,7 @@ Genesis::Genesis(Isolate* isolate,
                                   NONE).Assert();
 
     // Initialize trigonometric lookup tables and constants.
-    const int constants_size = ARRAY_SIZE(fdlibm::MathConstants::constants);
+    const int constants_size = arraysize(fdlibm::MathConstants::constants);
     const int table_num_bytes = constants_size * kDoubleSize;
     v8::Local<v8::ArrayBuffer> trig_buffer = v8::ArrayBuffer::New(
         reinterpret_cast<v8::Isolate*>(isolate),

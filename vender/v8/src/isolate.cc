@@ -8,6 +8,7 @@
 
 #include "src/ast.h"
 #include "src/base/platform/platform.h"
+#include "src/base/sys-info.h"
 #include "src/base/utils/random-number-generator.h"
 #include "src/bootstrapper.h"
 #include "src/codegen.h"
@@ -19,6 +20,7 @@
 #include "src/heap/sweeper-thread.h"
 #include "src/heap-profiler.h"
 #include "src/hydrogen.h"
+#include "src/ic/stub-cache.h"
 #include "src/isolate-inl.h"
 #include "src/lithium-allocator.h"
 #include "src/log.h"
@@ -30,7 +32,6 @@
 #include "src/scopeinfo.h"
 #include "src/serialize.h"
 #include "src/simulator.h"
-#include "src/stub-cache.h"
 #include "src/version.h"
 #include "src/vm-state-inl.h"
 
@@ -1057,7 +1058,7 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
           // probably not a valid Error object.  In that case, we fall through
           // and capture the stack trace at this throw site.
           LookupIterator lookup(exception_handle, key,
-                                LookupIterator::CHECK_PROPERTY);
+                                LookupIterator::OWN_PROPERTY);
           Handle<Object> stack_trace_property;
           if (Object::GetProperty(&lookup).ToHandle(&stack_trace_property) &&
               stack_trace_property->IsJSArray()) {
@@ -1592,6 +1593,7 @@ void Isolate::TearDown() {
 
 void Isolate::GlobalTearDown() {
   delete thread_data_table_;
+  thread_data_table_ = NULL;
 }
 
 
@@ -1946,7 +1948,7 @@ bool Isolate::Init(Deserializer* des) {
   if (max_available_threads_ < 1) {
     // Choose the default between 1 and 4.
     max_available_threads_ =
-        Max(Min(base::OS::NumberOfProcessorsOnline(), 4), 1);
+        Max(Min(base::SysInfo::NumberOfProcessors(), 4), 1);
   }
 
   if (!FLAG_job_based_sweeping) {
@@ -2028,6 +2030,8 @@ bool Isolate::Init(Deserializer* des) {
         kDeoptTableSerializeEntryCount - 1);
   }
 
+  CallDescriptors::InitializeForIsolate(this);
+
   if (!serializer_enabled()) {
     // Ensure that all stubs which need to be generated ahead of time, but
     // cannot be serialized into the snapshot have been generated.
@@ -2052,9 +2056,8 @@ bool Isolate::Init(Deserializer* des) {
     RegExpConstructResultStub::InstallDescriptors(this);
     KeyedLoadGenericStub::InstallDescriptors(this);
     StoreFieldStub::InstallDescriptors(this);
+    LoadFastElementStub::InstallDescriptors(this);
   }
-
-  CallDescriptors::InitializeForIsolate(this);
 
   initialized_from_snapshot_ = (des != NULL);
 
@@ -2239,9 +2242,8 @@ CodeStubInterfaceDescriptor*
 }
 
 
-CallInterfaceDescriptor*
-    Isolate::call_descriptor(CallDescriptorKey index) {
-  DCHECK(0 <= index && index < NUMBER_OF_CALL_DESCRIPTORS);
+CallInterfaceDescriptor* Isolate::call_descriptor(int index) {
+  DCHECK(0 <= index && index < CallDescriptorKey::NUMBER_OF_CALL_DESCRIPTORS);
   return &call_descriptors_[index];
 }
 
@@ -2269,7 +2271,7 @@ Handle<JSObject> Isolate::GetSymbolRegistry() {
     static const char* nested[] = {
       "for", "for_api", "for_intern", "keyFor", "private_api", "private_intern"
     };
-    for (unsigned i = 0; i < ARRAY_SIZE(nested); ++i) {
+    for (unsigned i = 0; i < arraysize(nested); ++i) {
       Handle<String> name = factory()->InternalizeUtf8String(nested[i]);
       Handle<JSObject> obj = factory()->NewJSObjectFromMap(map);
       JSObject::NormalizeProperties(obj, KEEP_INOBJECT_PROPERTIES, 8);

@@ -1,10 +1,10 @@
-// Copyright 2014 the V8 project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 #include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM
+
+// Copyright 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "src/compiler/code-generator.h"
 
@@ -140,6 +140,51 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   ArmOperandConverter i(this, instr);
 
   switch (ArchOpcodeField::decode(instr->opcode())) {
+    case kArchCallAddress: {
+      DirectCEntryStub stub(isolate());
+      stub.GenerateCall(masm(), i.InputRegister(0));
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    }
+    case kArchCallCodeObject: {
+      if (instr->InputAt(0)->IsImmediate()) {
+        __ Call(Handle<Code>::cast(i.InputHeapObject(0)),
+                RelocInfo::CODE_TARGET);
+      } else {
+        __ add(ip, i.InputRegister(0),
+               Operand(Code::kHeaderSize - kHeapObjectTag));
+        __ Call(ip);
+      }
+      AddSafepointAndDeopt(instr);
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    }
+    case kArchCallJSFunction: {
+      // TODO(jarin) The load of the context should be separated from the call.
+      Register func = i.InputRegister(0);
+      __ ldr(cp, FieldMemOperand(func, JSFunction::kContextOffset));
+      __ ldr(ip, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
+      __ Call(ip);
+      AddSafepointAndDeopt(instr);
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    }
+    case kArchDeoptimize: {
+      int deoptimization_id = BuildTranslation(instr, 0);
+
+      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
+          isolate(), deoptimization_id, Deoptimizer::LAZY);
+      __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    }
+    case kArchDrop: {
+      int words = MiscField::decode(instr->opcode());
+      __ Drop(words);
+      DCHECK_LT(0, words);
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    }
     case kArchJmp:
       __ b(code_->GetLabel(i.InputBlock(0)));
       DCHECK_EQ(LeaveCC, i.OutputSBit());
@@ -152,16 +197,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       AssembleReturn();
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
-    case kArchDeoptimize: {
-      int deoptimization_id = MiscField::decode(instr->opcode());
-      BuildTranslation(instr, deoptimization_id);
-
-      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
-          isolate(), deoptimization_id, Deoptimizer::LAZY);
-      __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
-      break;
-    }
     case kArchTruncateDoubleToI:
       __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
       DCHECK_EQ(LeaveCC, i.OutputSBit());
@@ -237,57 +272,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       CpuFeatureScope scope(masm(), ARMv7);
       __ ubfx(i.OutputRegister(), i.InputRegister(0), i.InputInt8(1),
               i.InputInt8(2));
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
-      break;
-    }
-    case kArmCallCodeObject: {
-      if (instr->InputAt(0)->IsImmediate()) {
-        Handle<Code> code = Handle<Code>::cast(i.InputHeapObject(0));
-        __ Call(code, RelocInfo::CODE_TARGET);
-        RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                        Safepoint::kNoLazyDeopt);
-      } else {
-        Register reg = i.InputRegister(0);
-        int entry = Code::kHeaderSize - kHeapObjectTag;
-        __ ldr(reg, MemOperand(reg, entry));
-        __ Call(reg);
-        RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                        Safepoint::kNoLazyDeopt);
-      }
-      bool lazy_deopt = (MiscField::decode(instr->opcode()) == 1);
-      if (lazy_deopt) {
-        RecordLazyDeoptimizationEntry(instr);
-      }
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
-      break;
-    }
-    case kArmCallJSFunction: {
-      Register func = i.InputRegister(0);
-
-      // TODO(jarin) The load of the context should be separated from the call.
-      __ ldr(cp, FieldMemOperand(func, JSFunction::kContextOffset));
-      __ ldr(ip, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
-      __ Call(ip);
-
-      RecordSafepoint(instr->pointer_map(), Safepoint::kSimple, 0,
-                      Safepoint::kNoLazyDeopt);
-      RecordLazyDeoptimizationEntry(instr);
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
-      break;
-    }
-    case kArmCallAddress: {
-      DirectCEntryStub stub(isolate());
-      stub.GenerateCall(masm(), i.InputRegister(0));
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
-      break;
-    }
-    case kArmPush:
-      __ Push(i.InputRegister(0));
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
-      break;
-    case kArmDrop: {
-      int words = MiscField::decode(instr->opcode());
-      __ Drop(words);
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
@@ -387,48 +371,75 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
-    case kArmLoadWord8:
+    case kArmLdrb:
       __ ldrb(i.OutputRegister(), i.InputOffset());
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
-    case kArmStoreWord8: {
+    case kArmLdrsb:
+      __ ldrsb(i.OutputRegister(), i.InputOffset());
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    case kArmStrb: {
       int index = 0;
       MemOperand operand = i.InputOffset(&index);
       __ strb(i.InputRegister(index), operand);
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
-    case kArmLoadWord16:
+    case kArmLdrh:
       __ ldrh(i.OutputRegister(), i.InputOffset());
       break;
-    case kArmStoreWord16: {
+    case kArmLdrsh:
+      __ ldrsh(i.OutputRegister(), i.InputOffset());
+      break;
+    case kArmStrh: {
       int index = 0;
       MemOperand operand = i.InputOffset(&index);
       __ strh(i.InputRegister(index), operand);
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
-    case kArmLoadWord32:
+    case kArmLdr:
       __ ldr(i.OutputRegister(), i.InputOffset());
       break;
-    case kArmStoreWord32: {
+    case kArmStr: {
       int index = 0;
       MemOperand operand = i.InputOffset(&index);
       __ str(i.InputRegister(index), operand);
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
-    case kArmFloat64Load:
+    case kArmVldr32: {
+      SwVfpRegister scratch = kScratchDoubleReg.low();
+      __ vldr(scratch, i.InputOffset());
+      __ vcvt_f64_f32(i.OutputDoubleRegister(), scratch);
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    }
+    case kArmVstr32: {
+      int index = 0;
+      SwVfpRegister scratch = kScratchDoubleReg.low();
+      MemOperand operand = i.InputOffset(&index);
+      __ vcvt_f32_f64(scratch, i.InputDoubleRegister(index));
+      __ vstr(scratch, operand);
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    }
+    case kArmVldr64:
       __ vldr(i.OutputDoubleRegister(), i.InputOffset());
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
-    case kArmFloat64Store: {
+    case kArmVstr64: {
       int index = 0;
       MemOperand operand = i.InputOffset(&index);
       __ vstr(i.InputDoubleRegister(index), operand);
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
+    case kArmPush:
+      __ Push(i.InputRegister(0));
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
     case kArmStoreWriteBarrier: {
       Register object = i.InputRegister(0);
       Register index = i.InputRegister(1);
@@ -834,12 +845,13 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
 
 void CodeGenerator::AddNopForSmiCodeInlining() {
   // On 32-bit ARM we do not insert nops for inlined Smi code.
-  UNREACHABLE();
 }
 
 #undef __
-}
-}
-}  // namespace v8::internal::compiler
 
-#endif
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
+
+
+#endif  // V8_TARGET_ARCH_ARM

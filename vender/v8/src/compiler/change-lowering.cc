@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "src/compiler/change-lowering.h"
+#include "src/compiler/machine-operator.h"
 
 #include "src/compiler/js-graph.h"
 
@@ -27,12 +28,9 @@ Reduction ChangeLowering::Reduce(Node* node) {
     case IrOpcode::kChangeTaggedToFloat64:
       return ChangeTaggedToFloat64(node->InputAt(0), control);
     case IrOpcode::kChangeTaggedToInt32:
+      return ChangeTaggedToUI32(node->InputAt(0), control, kSigned);
     case IrOpcode::kChangeTaggedToUint32:
-      // ToInt32 and ToUint32 perform exactly the same operation, just the
-      // interpretation of the resulting 32 bit value is different, so we can
-      // use the same subgraph for both operations.
-      // See ECMA-262 9.5: ToInt32 and ECMA-262 9.6: ToUint32.
-      return ChangeTaggedToInt32(node->InputAt(0), control);
+      return ChangeTaggedToUI32(node->InputAt(0), control, kUnsigned);
     case IrOpcode::kChangeUint32ToTagged:
       return ChangeUint32ToTagged(node->InputAt(0), control);
     default:
@@ -170,7 +168,8 @@ Reduction ChangeLowering::ChangeInt32ToTagged(Node* val, Node* control) {
 }
 
 
-Reduction ChangeLowering::ChangeTaggedToInt32(Node* val, Node* control) {
+Reduction ChangeLowering::ChangeTaggedToUI32(Node* val, Node* control,
+                                             Signedness signedness) {
   STATIC_ASSERT(kSmiTag == 0);
   STATIC_ASSERT(kSmiTagMask == 1);
 
@@ -179,8 +178,9 @@ Reduction ChangeLowering::ChangeTaggedToInt32(Node* val, Node* control) {
   Node* branch = graph()->NewNode(common()->Branch(), tag, control);
 
   Node* if_true = graph()->NewNode(common()->IfTrue(), branch);
-  Node* change = graph()->NewNode(machine()->TruncateFloat64ToInt32(),
-                                  LoadHeapNumberValue(val, if_true));
+  Operator* op = (signedness == kSigned) ? machine()->ChangeFloat64ToInt32()
+                                         : machine()->ChangeFloat64ToUint32();
+  Node* change = graph()->NewNode(op, LoadHeapNumberValue(val, if_true));
 
   Node* if_false = graph()->NewNode(common()->IfFalse(), branch);
   Node* number = ChangeSmiToInt32(val);

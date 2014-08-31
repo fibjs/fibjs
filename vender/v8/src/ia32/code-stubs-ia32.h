@@ -5,8 +5,7 @@
 #ifndef V8_IA32_CODE_STUBS_IA32_H_
 #define V8_IA32_CODE_STUBS_IA32_H_
 
-#include "src/ic-inl.h"
-#include "src/macro-assembler.h"
+#include "src/code-stubs.h"
 
 namespace v8 {
 namespace internal {
@@ -31,7 +30,7 @@ class StoreBufferOverflowStub: public PlatformCodeStub {
   SaveFPRegsMode save_doubles_;
 
   Major MajorKey() const { return StoreBufferOverflow; }
-  int MinorKey() const { return (save_doubles_ == kSaveFPRegs) ? 1 : 0; }
+  uint32_t MinorKey() const { return (save_doubles_ == kSaveFPRegs) ? 1 : 0; }
 };
 
 
@@ -71,7 +70,7 @@ class SubStringStub: public PlatformCodeStub {
 
  private:
   Major MajorKey() const { return SubString; }
-  int MinorKey() const { return 0; }
+  uint32_t MinorKey() const { return 0; }
 
   void Generate(MacroAssembler* masm);
 };
@@ -99,7 +98,7 @@ class StringCompareStub: public PlatformCodeStub {
 
  private:
   virtual Major MajorKey() const { return StringCompare; }
-  virtual int MinorKey() const { return 0; }
+  virtual uint32_t MinorKey() const { return 0; }
   virtual void Generate(MacroAssembler* masm);
 
   static void GenerateAsciiCharsCompareLoop(
@@ -158,7 +157,7 @@ class NameDictionaryLookupStub: public PlatformCodeStub {
 
   Major MajorKey() const { return NameDictionaryLookup; }
 
-  int MinorKey() const {
+  uint32_t MinorKey() const {
     return DictionaryBits::encode(dictionary_.code()) |
         ResultBits::encode(result_.code()) |
         IndexBits::encode(index_.code()) |
@@ -407,7 +406,7 @@ class RecordWriteStub: public PlatformCodeStub {
 
   Major MajorKey() const { return RecordWrite; }
 
-  int MinorKey() const {
+  uint32_t MinorKey() const {
     return ObjectBits::encode(object_.code()) |
         ValueBits::encode(value_.code()) |
         AddressBits::encode(address_.code()) |
