@@ -25,8 +25,6 @@ void init_argv(int argc, char **argv);
 
 void _main(const char *fname)
 {
-    fiber_init();
-
     v8::V8::Initialize();
 
     isolate = v8::Isolate::New();
@@ -50,12 +48,9 @@ void _main(const char *fname)
     s_context.Reset(isolate, _context);
     s_global.Reset(isolate, glob);
 
-    Fiber_base *fb = new JSFiber();
-    exlib::Service::tlsPut(g_tlsCurrent, fb);
-    fb->Ref();
-
+    JSFiber *fb = new JSFiber();
     {
-        JSFiber::scope s;
+        JSFiber::scope s(fb);
         s_topSandbox = new SandBox();
 
         s_topSandbox->initRoot();

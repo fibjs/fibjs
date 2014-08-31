@@ -16,8 +16,6 @@
 namespace fibjs
 {
 
-extern int g_tlsCurrent;
-
 class FiberBase: public Fiber_base, asyncEvent
 {
     FIBER_FREE();
@@ -71,21 +69,8 @@ public:
     class scope
     {
     public:
-        scope(JSFiber *fb = NULL) :
-            m_hr(0), m_pFiber(fb)
-        {
-            if (fb == NULL)
-                m_pFiber = new JSFiber();
-
-            m_pNext = exlib::Service::tlsGet(g_tlsCurrent);
-            exlib::Service::tlsPut(g_tlsCurrent, m_pFiber);
-        }
-
-        ~scope()
-        {
-            ReportException(try_catch, m_hr);
-            exlib::Service::tlsPut(g_tlsCurrent, m_pNext);
-        }
+        scope(JSFiber *fb = NULL);
+        ~scope();
 
         JSFiber *operator->()
         {
@@ -112,6 +97,7 @@ public:
         clear();
     }
 
+    static JSFiber *current();
     virtual void js_callback();
 
     template<typename T>
@@ -154,7 +140,7 @@ public:
     static void call(v8::Local<v8::Function> func, v8::Local<v8::Value> *args,
                      int argCount, v8::Local<v8::Value> &retVal)
     {
-        JSFiber *fb = (JSFiber *) exlib::Service::tlsGet(g_tlsCurrent);
+        JSFiber *fb = (JSFiber *) current();
 
         if (fb)
             fb->callFunction1(func, args, argCount, retVal);
@@ -198,8 +184,6 @@ private:
     v8::Persistent<v8::Value> m_result;
     bool m_error;
 };
-
-void fiber_init();
 
 } /* namespace fibjs */
 #endif /* FIBER_H_ */

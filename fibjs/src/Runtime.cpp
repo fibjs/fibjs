@@ -115,7 +115,7 @@ void Runtime::reg(Runtime *rt)
 Runtime &Runtime::now()
 {
     if (exlib::Service::hasService())
-        return ((JSFiber *) exlib::Service::tlsGet(g_tlsCurrent))->runtime();
+        return JSFiber::current()->runtime();
 
 #ifdef MacOS
     return *(Runtime *) FastThreadLocal(keyRuntime);

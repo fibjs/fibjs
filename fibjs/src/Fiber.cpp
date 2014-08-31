@@ -20,29 +20,8 @@ static exlib::Queue<asyncEvent> g_jobs;
 static exlib::IDLE_PROC s_oldIdle;
 static int32_t s_fibers;
 
-int g_tlsCurrent;
+static int g_tlsCurrent;
 DateCache FiberBase::g_dc;
-
-static void onIdle()
-{
-    if (!g_jobs.empty() && (s_fibers < MAX_FIBER))
-    {
-        s_fibers++;
-        exlib::Service::CreateFiber(FiberBase::fiber_proc, NULL,
-                                    stack_size * 1024)->Unref();
-    }
-
-    if (s_oldIdle)
-        s_oldIdle();
-}
-
-void fiber_init()
-{
-    s_fibers = 0;
-
-    g_tlsCurrent = exlib::Service::tlsAlloc();
-    s_oldIdle = exlib::Service::root->onIdle(onIdle);
-}
 
 static class null_fiber_data: public Fiber_base
 {
@@ -62,7 +41,37 @@ public:
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
-} s_null;
+} *s_null;
+
+static void onIdle()
+{
+    if (!g_jobs.empty() && (s_fibers < MAX_FIBER))
+    {
+        s_fibers++;
+        exlib::Service::CreateFiber(FiberBase::fiber_proc, NULL,
+                                    stack_size * 1024)->Unref();
+    }
+
+    if (s_oldIdle)
+        s_oldIdle();
+}
+
+inline void fiber_init()
+{
+    static bool bInit = false;
+
+    if (!bInit)
+    {
+        bInit = true;
+
+        s_null = new null_fiber_data();
+
+        s_fibers = 0;
+
+        g_tlsCurrent = exlib::Service::tlsAlloc();
+        s_oldIdle = exlib::Service::root->onIdle(onIdle);
+    }
+}
 
 void *FiberBase::fiber_proc(void *p)
 {
@@ -97,7 +106,7 @@ void *FiberBase::fiber_proc(void *p)
 
 void FiberBase::start()
 {
-    m_caller = (Fiber_base *) exlib::Service::tlsGet(g_tlsCurrent);
+    m_caller = JSFiber::current();
 
     if (m_caller)
     {
@@ -150,6 +159,13 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
         m_result.Reset(isolate, retVal);
 }
 
+JSFiber *JSFiber::current()
+{
+    fiber_init();
+
+    return (JSFiber *)exlib::Service::tlsGet(g_tlsCurrent);
+}
+
 void JSFiber::js_callback()
 {
     v8::Local<v8::Value> retVal;
@@ -165,8 +181,26 @@ void JSFiber::js_callback()
     m_quit.set();
     dispose();
 
-    s_null.Ref();
-    o->SetAlignedPointerInInternalField(0, &s_null);
+    s_null->Ref();
+    o->SetAlignedPointerInInternalField(0, s_null);
+}
+
+JSFiber::scope::scope(JSFiber *fb) :
+    m_hr(0), m_pFiber(fb)
+{
+    fiber_init();
+
+    if (fb == NULL)
+        m_pFiber = new JSFiber();
+
+    m_pNext = JSFiber::current();
+    exlib::Service::tlsPut(g_tlsCurrent, m_pFiber);
+}
+
+JSFiber::scope::~scope()
+{
+    ReportException(try_catch, m_hr);
+    exlib::Service::tlsPut(g_tlsCurrent, m_pNext);
 }
 
 void asyncCallBack::callback()

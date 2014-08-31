@@ -158,7 +158,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> data,
 
 result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
 {
-    Fiber_base *fb = (Fiber_base *) exlib::Service::tlsGet(g_tlsCurrent);
+    Fiber_base *fb = JSFiber::current();
 
     if (!fb)
         return CALL_RETURN_NULL;
