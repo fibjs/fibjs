@@ -374,7 +374,7 @@ result_t SslSocket::connect(Stream_base *s, const char *server_name,
     ssl_set_endpoint(&m_ssl, SSL_IS_CLIENT);
 
     if (!m_ca)
-        m_ca = g_ssl.m_ca;
+        m_ca = g_ssl.ca();
 
     ssl_set_ca_chain(&m_ssl, &m_ca->m_crt, NULL, NULL);
 

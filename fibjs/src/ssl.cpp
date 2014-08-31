@@ -25,7 +25,7 @@ result_t _ssl::setError(int ret)
 
 result_t ssl_base::get_ca(obj_ptr<X509Cert_base> &retVal)
 {
-    retVal = g_ssl.m_ca;
+    retVal = g_ssl.ca();
     return 0;
 }
 
