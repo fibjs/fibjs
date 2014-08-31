@@ -32,6 +32,17 @@ class Buffer_base;
 class http_base : public module_base
 {
 public:
+	http_base()
+	{
+		http_base::class_info().Ref();
+	}
+
+	virtual ~http_base()
+	{
+		http_base::class_info().Unref();
+	}
+
+public:
 	// http_base
 	static result_t fileHandler(const char* root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
 	static result_t request(const char* host, int32_t port, HttpRequest_base* req, bool ssl, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);

@@ -20,6 +20,17 @@ namespace fibjs
 class SandBox_base : public object_base
 {
 public:
+	SandBox_base()
+	{
+		SandBox_base::class_info().Ref();
+	}
+
+	virtual ~SandBox_base()
+	{
+		SandBox_base::class_info().Unref();
+	}
+
+public:
 	// SandBox_base
 	static result_t _new(v8::Local<v8::Object> mods, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

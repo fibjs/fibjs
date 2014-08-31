@@ -22,6 +22,17 @@ class Buffer_base;
 class PKey_base : public object_base
 {
 public:
+	PKey_base()
+	{
+		PKey_base::class_info().Ref();
+	}
+
+	virtual ~PKey_base()
+	{
+		PKey_base::class_info().Unref();
+	}
+
+public:
 	// PKey_base
 	static result_t _new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_name(std::string& retVal) = 0;

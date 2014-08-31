@@ -22,6 +22,17 @@ class Int64_base;
 class Buffer_base : public object_base
 {
 public:
+	Buffer_base()
+	{
+		Buffer_base::class_info().Ref();
+	}
+
+	virtual ~Buffer_base()
+	{
+		Buffer_base::class_info().Unref();
+	}
+
+public:
 	// Buffer_base
 	static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(Buffer_base* data, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

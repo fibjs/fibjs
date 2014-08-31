@@ -20,6 +20,17 @@ namespace fibjs
 class Queue_base : public object_base
 {
 public:
+	Queue_base()
+	{
+		Queue_base::class_info().Ref();
+	}
+
+	virtual ~Queue_base()
+	{
+		Queue_base::class_info().Unref();
+	}
+
+public:
 	// Queue_base
 	static result_t _new(int32_t size, obj_ptr<Queue_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t add(v8::Local<v8::Value> e, bool& retVal) = 0;

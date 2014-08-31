@@ -24,6 +24,17 @@ class Buffer_base;
 class encoding_base : public module_base
 {
 public:
+	encoding_base()
+	{
+		encoding_base::class_info().Ref();
+	}
+
+	virtual ~encoding_base()
+	{
+		encoding_base::class_info().Unref();
+	}
+
+public:
 	// encoding_base
 	static result_t base32Encode(Buffer_base* data, std::string& retVal);
 	static result_t base32Decode(const char* data, obj_ptr<Buffer_base>& retVal);

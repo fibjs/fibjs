@@ -22,6 +22,17 @@ class DBResult_base;
 class DbConnection_base : public object_base
 {
 public:
+	DbConnection_base()
+	{
+		DbConnection_base::class_info().Ref();
+	}
+
+	virtual ~DbConnection_base()
+	{
+		DbConnection_base::class_info().Unref();
+	}
+
+public:
 	// DbConnection_base
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
 	virtual result_t begin(exlib::AsyncEvent* ac) = 0;

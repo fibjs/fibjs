@@ -18,11 +18,11 @@ describe('os', function() {
 	});
 
 	it("nativeObjects", function() {
-		var no1 = os.memoryUsage().nativeObjects;
+		var no1 = os.memoryUsage().nativeObjects.objects;
 		var b = new Buffer();
-		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 		b.dispose();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
 
 	it('time', function() {

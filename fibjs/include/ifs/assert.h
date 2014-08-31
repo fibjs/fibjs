@@ -23,6 +23,17 @@ class module_base;
 class assert_base : public module_base
 {
 public:
+	assert_base()
+	{
+		assert_base::class_info().Ref();
+	}
+
+	virtual ~assert_base()
+	{
+		assert_base::class_info().Unref();
+	}
+
+public:
 	// assert_base
 	static result_t ok(v8::Local<v8::Value> actual, const char* msg);
 	static result_t notOk(v8::Local<v8::Value> actual, const char* msg);

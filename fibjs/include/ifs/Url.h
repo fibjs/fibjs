@@ -20,6 +20,17 @@ namespace fibjs
 class Url_base : public object_base
 {
 public:
+	Url_base()
+	{
+		Url_base::class_info().Ref();
+	}
+
+	virtual ~Url_base()
+	{
+		Url_base::class_info().Unref();
+	}
+
+public:
 	// Url_base
 	static result_t _new(v8::Local<v8::Object> args, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* url, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

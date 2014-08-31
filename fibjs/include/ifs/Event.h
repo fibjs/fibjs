@@ -23,6 +23,17 @@ class Lock_base;
 class Event_base : public Lock_base
 {
 public:
+	Event_base()
+	{
+		Event_base::class_info().Ref();
+	}
+
+	virtual ~Event_base()
+	{
+		Event_base::class_info().Unref();
+	}
+
+public:
 	// Event_base
 	static result_t _new(bool value, obj_ptr<Event_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t isSet(bool& retVal) = 0;

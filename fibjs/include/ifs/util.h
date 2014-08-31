@@ -25,6 +25,17 @@ class LruCache_base;
 class util_base : public module_base
 {
 public:
+	util_base()
+	{
+		util_base::class_info().Ref();
+	}
+
+	virtual ~util_base()
+	{
+		util_base::class_info().Unref();
+	}
+
+public:
 	// util_base
 	static result_t format(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t format(const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);

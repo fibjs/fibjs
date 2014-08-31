@@ -29,6 +29,17 @@ class Redis_base;
 class db_base : public module_base
 {
 public:
+	db_base()
+	{
+		db_base::class_info().Ref();
+	}
+
+	virtual ~db_base()
+	{
+		db_base::class_info().Unref();
+	}
+
+public:
 	// db_base
 	static result_t open(const char* connString, obj_ptr<object_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal, exlib::AsyncEvent* ac);

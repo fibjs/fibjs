@@ -25,6 +25,17 @@ class Buffer_base;
 class uuid_base : public module_base
 {
 public:
+	uuid_base()
+	{
+		uuid_base::class_info().Ref();
+	}
+
+	virtual ~uuid_base()
+	{
+		uuid_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_DNS = 0,
 		_URL = 1,

@@ -26,6 +26,17 @@ class Expect_base;
 class test_base : public module_base
 {
 public:
+	test_base()
+	{
+		test_base::class_info().Ref();
+	}
+
+	virtual ~test_base()
+	{
+		test_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_BDD = 0,
 		_TDD = 1

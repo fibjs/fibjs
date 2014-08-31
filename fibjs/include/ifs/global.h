@@ -26,6 +26,17 @@ class console_base;
 class global_base : public module_base
 {
 public:
+	global_base()
+	{
+		global_base::class_info().Ref();
+	}
+
+	virtual ~global_base()
+	{
+		global_base::class_info().Unref();
+	}
+
+public:
 	// global_base
 	static result_t get_console(obj_ptr<console_base>& retVal);
 	static result_t run(const char* fname);

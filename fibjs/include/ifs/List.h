@@ -20,6 +20,17 @@ namespace fibjs
 class List_base : public object_base
 {
 public:
+	List_base()
+	{
+		List_base::class_info().Ref();
+	}
+
+	virtual ~List_base()
+	{
+		List_base::class_info().Unref();
+	}
+
+public:
 	// List_base
 	static result_t _new(obj_ptr<List_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t _indexed_getter(uint32_t index, Variant& retVal) = 0;

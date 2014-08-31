@@ -25,6 +25,17 @@ class PKey_base;
 class SslSocket_base : public Stream_base
 {
 public:
+	SslSocket_base()
+	{
+		SslSocket_base::class_info().Ref();
+	}
+
+	virtual ~SslSocket_base()
+	{
+		SslSocket_base::class_info().Unref();
+	}
+
+public:
 	// SslSocket_base
 	static result_t _new(v8::Local<v8::Array> certs, obj_ptr<SslSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(X509Cert_base* crt, PKey_base* key, obj_ptr<SslSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

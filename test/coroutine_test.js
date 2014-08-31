@@ -32,13 +32,13 @@ describe('coroutine', function() {
 
 	it("Memory Leak detect", function() {
 		GC();
-		var no1 = os.memoryUsage().nativeObjects;
+		var no1 = os.memoryUsage().nativeObjects.objects;
 		var f = (function(v) {}).start(new Buffer());
 		GC();
-		assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
+		assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 		f.join();
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
 
 	it('Fiber-local storage', function() {

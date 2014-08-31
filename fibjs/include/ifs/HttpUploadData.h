@@ -22,6 +22,17 @@ class SeekableStream_base;
 class HttpUploadData_base : public object_base
 {
 public:
+	HttpUploadData_base()
+	{
+		HttpUploadData_base::class_info().Ref();
+	}
+
+	virtual ~HttpUploadData_base()
+	{
+		HttpUploadData_base::class_info().Unref();
+	}
+
+public:
 	// HttpUploadData_base
 	virtual result_t get_fileName(std::string& retVal) = 0;
 	virtual result_t get_contentType(std::string& retVal) = 0;

@@ -24,6 +24,17 @@ class Stats_base;
 class TcpServer_base : public object_base
 {
 public:
+	TcpServer_base()
+	{
+		TcpServer_base::class_info().Ref();
+	}
+
+	virtual ~TcpServer_base()
+	{
+		TcpServer_base::class_info().Unref();
+	}
+
+public:
 	// TcpServer_base
 	static result_t _new(int32_t port, v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* addr, int32_t port, v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

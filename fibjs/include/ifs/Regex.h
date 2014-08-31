@@ -20,6 +20,17 @@ namespace fibjs
 class Regex_base : public object_base
 {
 public:
+	Regex_base()
+	{
+		Regex_base::class_info().Ref();
+	}
+
+	virtual ~Regex_base()
+	{
+		Regex_base::class_info().Unref();
+	}
+
+public:
 	// Regex_base
 	virtual result_t exec(const char* str, v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t test(const char* str, bool& retVal) = 0;

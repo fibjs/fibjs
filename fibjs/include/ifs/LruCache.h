@@ -20,6 +20,17 @@ namespace fibjs
 class LruCache_base : public object_base
 {
 public:
+	LruCache_base()
+	{
+		LruCache_base::class_info().Ref();
+	}
+
+	virtual ~LruCache_base()
+	{
+		LruCache_base::class_info().Unref();
+	}
+
+public:
 	// LruCache_base
 	static result_t _new(int32_t size, int32_t timeout, obj_ptr<LruCache_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_size(int32_t& retVal) = 0;

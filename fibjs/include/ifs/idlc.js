@@ -289,6 +289,8 @@ function parserIDL(fname) {
 
 		txt.push("class " + ns + "_base : public " + baseClass + "_base\n{");
 
+		txt.push("public:\n	" + ns + "_base()\n	{\n		" + ns + "_base::class_info().Ref();\n	}\n\n	virtual ~" + ns + "_base()\n	{\n		" + ns + "_base::class_info().Unref();\n	}\n");
+
 		if (svs.length) {
 			txt.push("public:\n	enum{");
 			txt.push(svs.join(",\n"));

@@ -26,6 +26,17 @@ class BufferedStream_base;
 class Message_base : public object_base
 {
 public:
+	Message_base()
+	{
+		Message_base::class_info().Ref();
+	}
+
+	virtual ~Message_base()
+	{
+		Message_base::class_info().Unref();
+	}
+
+public:
 	// Message_base
 	static result_t _new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_value(std::string& retVal) = 0;

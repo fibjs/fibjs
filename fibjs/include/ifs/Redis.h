@@ -27,6 +27,17 @@ class RedisSortedSet_base;
 class Redis_base : public object_base
 {
 public:
+	Redis_base()
+	{
+		Redis_base::class_info().Ref();
+	}
+
+	virtual ~Redis_base()
+	{
+		Redis_base::class_info().Unref();
+	}
+
+public:
 	// Redis_base
 	virtual result_t command(const char* cmd, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;

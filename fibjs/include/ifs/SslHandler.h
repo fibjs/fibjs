@@ -25,6 +25,17 @@ class PKey_base;
 class SslHandler_base : public Handler_base
 {
 public:
+	SslHandler_base()
+	{
+		SslHandler_base::class_info().Ref();
+	}
+
+	virtual ~SslHandler_base()
+	{
+		SslHandler_base::class_info().Unref();
+	}
+
+public:
 	// SslHandler_base
 	static result_t _new(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(X509Cert_base* crt, PKey_base* key, v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

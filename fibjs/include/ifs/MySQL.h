@@ -23,6 +23,17 @@ class DbConnection_base;
 class MySQL_base : public DbConnection_base
 {
 public:
+	MySQL_base()
+	{
+		MySQL_base::class_info().Ref();
+	}
+
+	virtual ~MySQL_base()
+	{
+		MySQL_base::class_info().Unref();
+	}
+
+public:
 	// MySQL_base
 	virtual result_t use(const char* dbName, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_rxBufferSize(int32_t& retVal) = 0;

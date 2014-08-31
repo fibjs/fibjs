@@ -23,6 +23,17 @@ class Lock_base;
 class Condition_base : public Lock_base
 {
 public:
+	Condition_base()
+	{
+		Condition_base::class_info().Ref();
+	}
+
+	virtual ~Condition_base()
+	{
+		Condition_base::class_info().Unref();
+	}
+
+public:
 	// Condition_base
 	static result_t _new(obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(Lock_base* lock, obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

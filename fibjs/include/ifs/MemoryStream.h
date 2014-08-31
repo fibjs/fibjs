@@ -23,6 +23,17 @@ class SeekableStream_base;
 class MemoryStream_base : public SeekableStream_base
 {
 public:
+	MemoryStream_base()
+	{
+		MemoryStream_base::class_info().Ref();
+	}
+
+	virtual ~MemoryStream_base()
+	{
+		MemoryStream_base::class_info().Unref();
+	}
+
+public:
 	// MemoryStream_base
 	static result_t _new(obj_ptr<MemoryStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t setTime(date_t d) = 0;

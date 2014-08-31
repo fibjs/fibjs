@@ -24,6 +24,17 @@ class HttpCollection_base;
 class HttpRequest_base : public HttpMessage_base
 {
 public:
+	HttpRequest_base()
+	{
+		HttpRequest_base::class_info().Ref();
+	}
+
+	virtual ~HttpRequest_base()
+	{
+		HttpRequest_base::class_info().Unref();
+	}
+
+public:
 	// HttpRequest_base
 	static result_t _new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_method(std::string& retVal) = 0;

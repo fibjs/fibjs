@@ -23,6 +23,17 @@ class Queue_base;
 class BlockQueue_base : public Queue_base
 {
 public:
+	BlockQueue_base()
+	{
+		BlockQueue_base::class_info().Ref();
+	}
+
+	virtual ~BlockQueue_base()
+	{
+		BlockQueue_base::class_info().Unref();
+	}
+
+public:
 	// BlockQueue_base
 	static result_t _new(int32_t size, obj_ptr<BlockQueue_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t put(v8::Local<v8::Value> e) = 0;

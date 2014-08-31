@@ -20,6 +20,17 @@ namespace fibjs
 class DBRow_base : public object_base
 {
 public:
+	DBRow_base()
+	{
+		DBRow_base::class_info().Ref();
+	}
+
+	virtual ~DBRow_base()
+	{
+		DBRow_base::class_info().Unref();
+	}
+
+public:
 	// DBRow_base
 	virtual result_t _indexed_getter(uint32_t index, v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t _named_getter(const char* property, v8::Local<v8::Value>& retVal) = 0;

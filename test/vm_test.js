@@ -124,30 +124,30 @@ describe("vm", function() {
 	it("Garbage Collection", function() {
 		sbox = undefined;
 		GC();
-		var no1 = os.memoryUsage().nativeObjects;
+		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		sbox = new vm.SandBox({});
-		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 
 		var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
 
 		GC();
-		assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
+		assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
 		sbox = undefined;
 
 		GC();
-		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 
 		a = undefined;
 
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
 
 	it("Garbage Collection 1", function() {
 		GC();
-		var no1 = os.memoryUsage().nativeObjects;
+		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		var a = {
 			b: new vm.SandBox({}).addScript('b.js', "exports.a = new Buffer()")
@@ -155,19 +155,19 @@ describe("vm", function() {
 		a = undefined;
 
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
 
 	it("Garbage Collection 2", function() {
 		GC();
-		var no1 = os.memoryUsage().nativeObjects;
+		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		new vm.SandBox({
 			rpc: require('rpc')
 		}).addScript('server.js', 'exports.a = require("rpc").json(require)');
 
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
 });
 

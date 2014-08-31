@@ -22,6 +22,17 @@ class Buffer_base;
 class Stream_base : public object_base
 {
 public:
+	Stream_base()
+	{
+		Stream_base::class_info().Ref();
+	}
+
+	virtual ~Stream_base()
+	{
+		Stream_base::class_info().Unref();
+	}
+
+public:
 	// Stream_base
 	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t write(Buffer_base* data, exlib::AsyncEvent* ac) = 0;

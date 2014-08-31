@@ -30,6 +30,17 @@ class Fiber_base;
 class coroutine_base : public module_base
 {
 public:
+	coroutine_base()
+	{
+		coroutine_base::class_info().Ref();
+	}
+
+	virtual ~coroutine_base()
+	{
+		coroutine_base::class_info().Unref();
+	}
+
+public:
 	// coroutine_base
 	static result_t start(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal);
 	static result_t parallel(v8::Local<v8::Array> func, v8::Local<v8::Array>& retVal);

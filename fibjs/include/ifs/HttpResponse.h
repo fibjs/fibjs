@@ -25,6 +25,17 @@ class HttpCookie_base;
 class HttpResponse_base : public HttpMessage_base
 {
 public:
+	HttpResponse_base()
+	{
+		HttpResponse_base::class_info().Ref();
+	}
+
+	virtual ~HttpResponse_base()
+	{
+		HttpResponse_base::class_info().Unref();
+	}
+
+public:
 	// HttpResponse_base
 	static result_t _new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_status(int32_t& retVal) = 0;

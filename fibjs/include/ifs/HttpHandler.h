@@ -24,6 +24,17 @@ class Stats_base;
 class HttpHandler_base : public Handler_base
 {
 public:
+	HttpHandler_base()
+	{
+		HttpHandler_base::class_info().Ref();
+	}
+
+	virtual ~HttpHandler_base()
+	{
+		HttpHandler_base::class_info().Unref();
+	}
+
+public:
 	// HttpHandler_base
 	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_crossDomain(bool& retVal) = 0;

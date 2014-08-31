@@ -23,6 +23,17 @@ class SeekableStream_base;
 class File_base : public SeekableStream_base
 {
 public:
+	File_base()
+	{
+		File_base::class_info().Ref();
+	}
+
+	virtual ~File_base()
+	{
+		File_base::class_info().Unref();
+	}
+
+public:
 	// File_base
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t truncate(int64_t bytes, exlib::AsyncEvent* ac) = 0;

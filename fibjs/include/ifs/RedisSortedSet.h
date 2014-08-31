@@ -23,6 +23,17 @@ class List_base;
 class RedisSortedSet_base : public object_base
 {
 public:
+	RedisSortedSet_base()
+	{
+		RedisSortedSet_base::class_info().Ref();
+	}
+
+	virtual ~RedisSortedSet_base()
+	{
+		RedisSortedSet_base::class_info().Unref();
+	}
+
+public:
 	// RedisSortedSet_base
 	virtual result_t add(v8::Local<v8::Object> sms, int32_t& retVal) = 0;
 	virtual result_t add(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;

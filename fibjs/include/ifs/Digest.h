@@ -22,6 +22,17 @@ class Buffer_base;
 class Digest_base : public object_base
 {
 public:
+	Digest_base()
+	{
+		Digest_base::class_info().Ref();
+	}
+
+	virtual ~Digest_base()
+	{
+		Digest_base::class_info().Unref();
+	}
+
+public:
 	// Digest_base
 	virtual result_t update(Buffer_base* data) = 0;
 	virtual result_t digest(Buffer_base* data, obj_ptr<Buffer_base>& retVal) = 0;

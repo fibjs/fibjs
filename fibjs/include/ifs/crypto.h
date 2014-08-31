@@ -29,6 +29,17 @@ class Buffer_base;
 class crypto_base : public module_base
 {
 public:
+	crypto_base()
+	{
+		crypto_base::class_info().Ref();
+	}
+
+	virtual ~crypto_base()
+	{
+		crypto_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_AES = 1,
 		_CAMELLIA = 2,

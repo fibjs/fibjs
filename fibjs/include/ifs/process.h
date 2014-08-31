@@ -24,6 +24,17 @@ class BufferedStream_base;
 class process_base : public module_base
 {
 public:
+	process_base()
+	{
+		process_base::class_info().Ref();
+	}
+
+	virtual ~process_base()
+	{
+		process_base::class_info().Unref();
+	}
+
+public:
 	// process_base
 	static result_t get_argv(v8::Local<v8::Array>& retVal);
 	static result_t get_execPath(std::string& retVal);

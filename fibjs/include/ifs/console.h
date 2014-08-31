@@ -24,6 +24,17 @@ class TextColor_base;
 class console_base : public module_base
 {
 public:
+	console_base()
+	{
+		console_base::class_info().Ref();
+	}
+
+	virtual ~console_base()
+	{
+		console_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_FATAL = 0,
 		_ALERT = 1,

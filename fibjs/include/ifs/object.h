@@ -20,6 +20,17 @@ namespace fibjs
 class object_base : public object_base
 {
 public:
+	object_base()
+	{
+		object_base::class_info().Ref();
+	}
+
+	virtual ~object_base()
+	{
+		object_base::class_info().Unref();
+	}
+
+public:
 	// object_base
 	virtual result_t dispose() = 0;
 	virtual result_t toString(std::string& retVal) = 0;

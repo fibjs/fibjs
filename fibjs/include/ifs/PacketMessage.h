@@ -23,6 +23,17 @@ class Message_base;
 class PacketMessage_base : public Message_base
 {
 public:
+	PacketMessage_base()
+	{
+		PacketMessage_base::class_info().Ref();
+	}
+
+	virtual ~PacketMessage_base()
+	{
+		PacketMessage_base::class_info().Unref();
+	}
+
+public:
 	// PacketMessage_base
 	static result_t _new(int32_t maxSize, obj_ptr<PacketMessage_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_maxSize(int32_t& retVal) = 0;

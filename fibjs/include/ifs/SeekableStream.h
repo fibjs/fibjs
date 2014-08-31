@@ -25,6 +25,17 @@ class Stat_base;
 class SeekableStream_base : public Stream_base
 {
 public:
+	SeekableStream_base()
+	{
+		SeekableStream_base::class_info().Ref();
+	}
+
+	virtual ~SeekableStream_base()
+	{
+		SeekableStream_base::class_info().Unref();
+	}
+
+public:
 	// SeekableStream_base
 	virtual result_t seek(int64_t offset, int32_t whence) = 0;
 	virtual result_t tell(int64_t& retVal) = 0;

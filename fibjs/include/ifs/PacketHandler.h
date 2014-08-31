@@ -24,6 +24,17 @@ class Stats_base;
 class PacketHandler_base : public Handler_base
 {
 public:
+	PacketHandler_base()
+	{
+		PacketHandler_base::class_info().Ref();
+	}
+
+	virtual ~PacketHandler_base()
+	{
+		PacketHandler_base::class_info().Unref();
+	}
+
+public:
 	// PacketHandler_base
 	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<PacketHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_maxSize(int32_t& retVal) = 0;

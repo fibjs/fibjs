@@ -22,6 +22,17 @@ class Buffer_base;
 class LevelDB_base : public object_base
 {
 public:
+	LevelDB_base()
+	{
+		LevelDB_base::class_info().Ref();
+	}
+
+	virtual ~LevelDB_base()
+	{
+		LevelDB_base::class_info().Unref();
+	}
+
+public:
 	// LevelDB_base
 	virtual result_t has(Buffer_base* key, bool& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;

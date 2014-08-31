@@ -20,6 +20,17 @@ namespace fibjs
 class Stats_base : public object_base
 {
 public:
+	Stats_base()
+	{
+		Stats_base::class_info().Ref();
+	}
+
+	virtual ~Stats_base()
+	{
+		Stats_base::class_info().Unref();
+	}
+
+public:
 	// Stats_base
 	static result_t _new(v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(v8::Local<v8::Array> staticKeys, v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

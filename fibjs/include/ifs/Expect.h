@@ -20,6 +20,17 @@ namespace fibjs
 class Expect_base : public object_base
 {
 public:
+	Expect_base()
+	{
+		Expect_base::class_info().Ref();
+	}
+
+	virtual ~Expect_base()
+	{
+		Expect_base::class_info().Unref();
+	}
+
+public:
 	// Expect_base
 	virtual result_t get_to(obj_ptr<Expect_base>& retVal) = 0;
 	virtual result_t get_be(obj_ptr<Expect_base>& retVal) = 0;

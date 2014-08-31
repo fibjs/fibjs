@@ -25,6 +25,17 @@ class List_base;
 class HttpMessage_base : public Message_base
 {
 public:
+	HttpMessage_base()
+	{
+		HttpMessage_base::class_info().Ref();
+	}
+
+	virtual ~HttpMessage_base()
+	{
+		HttpMessage_base::class_info().Unref();
+	}
+
+public:
 	// HttpMessage_base
 	virtual result_t get_protocol(std::string& retVal) = 0;
 	virtual result_t set_protocol(const char* newVal) = 0;

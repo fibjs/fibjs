@@ -25,6 +25,17 @@ class Buffer_base;
 class Socket_base : public Stream_base
 {
 public:
+	Socket_base()
+	{
+		Socket_base::class_info().Ref();
+	}
+
+	virtual ~Socket_base()
+	{
+		Socket_base::class_info().Unref();
+	}
+
+public:
 	// Socket_base
 	static result_t _new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_family(int32_t& retVal) = 0;

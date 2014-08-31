@@ -26,6 +26,17 @@ class Stats_base;
 class SslServer_base : public object_base
 {
 public:
+	SslServer_base()
+	{
+		SslServer_base::class_info().Ref();
+	}
+
+	virtual ~SslServer_base()
+	{
+		SslServer_base::class_info().Unref();
+	}
+
+public:
 	// SslServer_base
 	static result_t _new(v8::Local<v8::Array> certs, int32_t port, v8::Local<v8::Value> listener, obj_ptr<SslServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(v8::Local<v8::Array> certs, const char* addr, int32_t port, v8::Local<v8::Value> listener, obj_ptr<SslServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

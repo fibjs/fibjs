@@ -24,6 +24,17 @@ class Regex_base;
 class re_base : public module_base
 {
 public:
+	re_base()
+	{
+		re_base::class_info().Ref();
+	}
+
+	virtual ~re_base()
+	{
+		re_base::class_info().Unref();
+	}
+
+public:
 	// re_base
 	static result_t compile(const char* pattern, const char* opt, obj_ptr<Regex_base>& retVal);
 

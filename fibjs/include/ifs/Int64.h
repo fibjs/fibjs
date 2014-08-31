@@ -20,6 +20,17 @@ namespace fibjs
 class Int64_base : public object_base
 {
 public:
+	Int64_base()
+	{
+		Int64_base::class_info().Ref();
+	}
+
+	virtual ~Int64_base()
+	{
+		Int64_base::class_info().Unref();
+	}
+
+public:
 	// Int64_base
 	static result_t _new(int64_t num, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(int64_t hi, int64_t lo, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

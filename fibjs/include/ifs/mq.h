@@ -32,6 +32,17 @@ class object_base;
 class mq_base : public module_base
 {
 public:
+	mq_base()
+	{
+		mq_base::class_info().Ref();
+	}
+
+	virtual ~mq_base()
+	{
+		mq_base::class_info().Unref();
+	}
+
+public:
 	// mq_base
 	static result_t jsHandler(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t await(obj_ptr<AsyncWait_base>& retVal);

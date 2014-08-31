@@ -24,6 +24,17 @@ class Buffer_base;
 class BufferedStream_base : public Stream_base
 {
 public:
+	BufferedStream_base()
+	{
+		BufferedStream_base::class_info().Ref();
+	}
+
+	virtual ~BufferedStream_base()
+	{
+		BufferedStream_base::class_info().Unref();
+	}
+
+public:
 	// BufferedStream_base
 	static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac) = 0;

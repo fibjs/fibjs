@@ -23,6 +23,17 @@ class module_base;
 class path_base : public module_base
 {
 public:
+	path_base()
+	{
+		path_base::class_info().Ref();
+	}
+
+	virtual ~path_base()
+	{
+		path_base::class_info().Unref();
+	}
+
+public:
 	// path_base
 	static result_t normalize(const char* path, std::string& retVal);
 	static result_t basename(const char* path, const char* ext, std::string& retVal);

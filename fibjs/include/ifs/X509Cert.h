@@ -23,6 +23,17 @@ class PKey_base;
 class X509Cert_base : public object_base
 {
 public:
+	X509Cert_base()
+	{
+		X509Cert_base::class_info().Ref();
+	}
+
+	virtual ~X509Cert_base()
+	{
+		X509Cert_base::class_info().Unref();
+	}
+
+public:
 	// X509Cert_base
 	static result_t _new(obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t load(Buffer_base* derCert) = 0;

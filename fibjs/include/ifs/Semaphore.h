@@ -23,6 +23,17 @@ class Lock_base;
 class Semaphore_base : public Lock_base
 {
 public:
+	Semaphore_base()
+	{
+		Semaphore_base::class_info().Ref();
+	}
+
+	virtual ~Semaphore_base()
+	{
+		Semaphore_base::class_info().Unref();
+	}
+
+public:
 	// Semaphore_base
 	static result_t _new(int32_t value, obj_ptr<Semaphore_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t wait() = 0;

@@ -23,6 +23,17 @@ class Socket_base;
 class Smtp_base : public object_base
 {
 public:
+	Smtp_base()
+	{
+		Smtp_base::class_info().Ref();
+	}
+
+	virtual ~Smtp_base()
+	{
+		Smtp_base::class_info().Unref();
+	}
+
+public:
 	// Smtp_base
 	static result_t _new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t connect(const char* host, int32_t port, int32_t family, exlib::AsyncEvent* ac) = 0;

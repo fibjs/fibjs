@@ -24,6 +24,17 @@ class MongoID_base;
 class MongoDB_base : public object_base
 {
 public:
+	MongoDB_base()
+	{
+		MongoDB_base::class_info().Ref();
+	}
+
+	virtual ~MongoDB_base()
+	{
+		MongoDB_base::class_info().Unref();
+	}
+
+public:
 	// MongoDB_base
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
 	virtual result_t runCommand(v8::Local<v8::Object> cmd, v8::Local<v8::Object>& retVal) = 0;

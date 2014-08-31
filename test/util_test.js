@@ -813,23 +813,23 @@ describe('util', function() {
 
 		it("Garbage Collection", function() {
 			GC();
-			var no1 = os.memoryUsage().nativeObjects;
+			var no1 = os.memoryUsage().nativeObjects.objects;
 
 			var lc = new util.LruCache(1024);
 			lc.put("test", lc);
-			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 
 			lc.put("test1", new Buffer());
-			assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
 			lc.remove("test1");
 			GC();
-			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 
 			lc = undefined;
 
 			GC();
-			assert.equal(no1, os.memoryUsage().nativeObjects);
+			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 
 
 		});

@@ -25,6 +25,17 @@ class MongoCollection_base;
 class GridFS_base : public object_base
 {
 public:
+	GridFS_base()
+	{
+		GridFS_base::class_info().Ref();
+	}
+
+	virtual ~GridFS_base()
+	{
+		GridFS_base::class_info().Unref();
+	}
+
+public:
 	// GridFS_base
 	virtual result_t retrieve(const char* name, obj_ptr<MemoryStream_base>& retVal) = 0;
 	virtual result_t store(const char* name, Stream_base* src) = 0;

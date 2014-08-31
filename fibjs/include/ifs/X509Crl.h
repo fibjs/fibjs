@@ -22,6 +22,17 @@ class Buffer_base;
 class X509Crl_base : public object_base
 {
 public:
+	X509Crl_base()
+	{
+		X509Crl_base::class_info().Ref();
+	}
+
+	virtual ~X509Crl_base()
+	{
+		X509Crl_base::class_info().Unref();
+	}
+
+public:
 	// X509Crl_base
 	static result_t _new(obj_ptr<X509Crl_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t load(Buffer_base* derCrl) = 0;

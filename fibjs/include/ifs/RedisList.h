@@ -23,6 +23,17 @@ class List_base;
 class RedisList_base : public object_base
 {
 public:
+	RedisList_base()
+	{
+		RedisList_base::class_info().Ref();
+	}
+
+	virtual ~RedisList_base()
+	{
+		RedisList_base::class_info().Unref();
+	}
+
+public:
 	// RedisList_base
 	virtual result_t push(v8::Local<v8::Array> values, int32_t& retVal) = 0;
 	virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;

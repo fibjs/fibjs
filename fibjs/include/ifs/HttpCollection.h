@@ -22,6 +22,17 @@ class List_base;
 class HttpCollection_base : public object_base
 {
 public:
+	HttpCollection_base()
+	{
+		HttpCollection_base::class_info().Ref();
+	}
+
+	virtual ~HttpCollection_base()
+	{
+		HttpCollection_base::class_info().Unref();
+	}
+
+public:
 	// HttpCollection_base
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;

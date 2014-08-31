@@ -20,6 +20,17 @@ namespace fibjs
 class HttpCookie_base : public object_base
 {
 public:
+	HttpCookie_base()
+	{
+		HttpCookie_base::class_info().Ref();
+	}
+
+	virtual ~HttpCookie_base()
+	{
+		HttpCookie_base::class_info().Unref();
+	}
+
+public:
 	// HttpCookie_base
 	static result_t _new(v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* name, const char* value, v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

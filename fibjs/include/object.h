@@ -51,6 +51,12 @@ public:
     object_base() :
         m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
     {
+        object_base::class_info().Ref();
+    }
+
+    virtual ~object_base()
+    {
+        object_base::class_info().Unref();
     }
 
 public:

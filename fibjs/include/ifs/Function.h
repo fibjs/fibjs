@@ -24,6 +24,17 @@ class Fiber_base;
 class Function_base : public module_base
 {
 public:
+	Function_base()
+	{
+		Function_base::class_info().Ref();
+	}
+
+	virtual ~Function_base()
+	{
+		Function_base::class_info().Unref();
+	}
+
+public:
 	// Function_base
 	static result_t start(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal);
 

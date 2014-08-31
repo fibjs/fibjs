@@ -22,6 +22,17 @@ class MongoCursor_base;
 class MongoCollection_base : public object_base
 {
 public:
+	MongoCollection_base()
+	{
+		MongoCollection_base::class_info().Ref();
+	}
+
+	virtual ~MongoCollection_base()
+	{
+		MongoCollection_base::class_info().Unref();
+	}
+
+public:
 	// MongoCollection_base
 	virtual result_t find(v8::Local<v8::Object> query, v8::Local<v8::Object> projection, obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t findOne(v8::Local<v8::Object> query, v8::Local<v8::Object> projection, v8::Local<v8::Object>& retVal) = 0;

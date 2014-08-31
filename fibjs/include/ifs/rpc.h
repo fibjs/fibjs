@@ -24,6 +24,17 @@ class Handler_base;
 class rpc_base : public module_base
 {
 public:
+	rpc_base()
+	{
+		rpc_base::class_info().Ref();
+	}
+
+	virtual ~rpc_base()
+	{
+		rpc_base::class_info().Unref();
+	}
+
+public:
 	// rpc_base
 	static result_t json(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
 

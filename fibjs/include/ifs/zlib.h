@@ -25,6 +25,17 @@ class Stream_base;
 class zlib_base : public module_base
 {
 public:
+	zlib_base()
+	{
+		zlib_base::class_info().Ref();
+	}
+
+	virtual ~zlib_base()
+	{
+		zlib_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_NO_COMPRESSION = 0,
 		_BEST_SPEED = 1,

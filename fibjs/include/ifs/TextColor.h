@@ -20,6 +20,17 @@ namespace fibjs
 class TextColor_base : public object_base
 {
 public:
+	TextColor_base()
+	{
+		TextColor_base::class_info().Ref();
+	}
+
+	virtual ~TextColor_base()
+	{
+		TextColor_base::class_info().Unref();
+	}
+
+public:
 	// TextColor_base
 	virtual result_t get_notice(std::string& retVal) = 0;
 	virtual result_t set_notice(const char* newVal) = 0;

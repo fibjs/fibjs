@@ -24,6 +24,17 @@ class Stream_base;
 class Image_base : public object_base
 {
 public:
+	Image_base()
+	{
+		Image_base::class_info().Ref();
+	}
+
+	virtual ~Image_base()
+	{
+		Image_base::class_info().Unref();
+	}
+
+public:
 	// Image_base
 	virtual result_t get_width(int32_t& retVal) = 0;
 	virtual result_t get_height(int32_t& retVal) = 0;

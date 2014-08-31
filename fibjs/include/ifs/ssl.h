@@ -27,6 +27,17 @@ class X509Cert_base;
 class ssl_base : public module_base
 {
 public:
+	ssl_base()
+	{
+		ssl_base::class_info().Ref();
+	}
+
+	virtual ~ssl_base()
+	{
+		ssl_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_VERIFY_NONE = 0,
 		_VERIFY_OPTIONAL = 1,

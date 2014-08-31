@@ -20,6 +20,17 @@ namespace fibjs
 class Fiber_base : public object_base
 {
 public:
+	Fiber_base()
+	{
+		Fiber_base::class_info().Ref();
+	}
+
+	virtual ~Fiber_base()
+	{
+		Fiber_base::class_info().Unref();
+	}
+
+public:
 	// Fiber_base
 	virtual result_t join() = 0;
 	virtual result_t get_caller(obj_ptr<Fiber_base>& retVal) = 0;

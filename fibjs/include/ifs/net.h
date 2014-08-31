@@ -27,6 +27,17 @@ class Url_base;
 class net_base : public module_base
 {
 public:
+	net_base()
+	{
+		net_base::class_info().Ref();
+	}
+
+	virtual ~net_base()
+	{
+		net_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_AF_INET = 2,
 		_AF_INET6 = 10,

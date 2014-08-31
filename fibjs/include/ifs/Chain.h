@@ -23,6 +23,17 @@ class Handler_base;
 class Chain_base : public Handler_base
 {
 public:
+	Chain_base()
+	{
+		Chain_base::class_info().Ref();
+	}
+
+	virtual ~Chain_base()
+	{
+		Chain_base::class_info().Unref();
+	}
+
+public:
 	// Chain_base
 	static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t append(v8::Local<v8::Array> hdlrs) = 0;

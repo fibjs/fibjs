@@ -4,9 +4,9 @@ var assert = require('assert');
 
 var mdb = db.open("mongodb://127.0.0.1/test");
 
-var no1 = os.memoryUsage().nativeObjects;
+var no1 = os.memoryUsage().nativeObjects.objects;
 mdb.dispose();
-assert.equal(no1 - 2, os.memoryUsage().nativeObjects);
+assert.equal(no1 - 2, os.memoryUsage().nativeObjects.objects);
 
 mdb = db.open("mongodb://127.0.0.1/test");
 

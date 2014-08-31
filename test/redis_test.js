@@ -666,29 +666,29 @@ describe("redis", function() {
 		it("Memory Leak detect", function() {
 			rdb = undefined;
 			GC();
-			var no1 = os.memoryUsage().nativeObjects;
+			var no1 = os.memoryUsage().nativeObjects.objects;
 
 			rdb = db.open(dbs);
 
-			assert.equal(no1 + 3, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 3, os.memoryUsage().nativeObjects.objects);
 
 			rdb.sub("test.ch1", subf1);
 
 			coroutine.sleep(100);
 
 			GC();
-			assert.equal(no1 + 3, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 3, os.memoryUsage().nativeObjects.objects);
 
 			rdb.close();
 			coroutine.sleep(100);
 
 			GC();
-			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 
 			rdb = undefined;
 
 			GC();
-			assert.equal(no1, os.memoryUsage().nativeObjects);
+			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 		});
 
 	});

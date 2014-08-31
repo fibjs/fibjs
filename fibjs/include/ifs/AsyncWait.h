@@ -23,6 +23,17 @@ class Handler_base;
 class AsyncWait_base : public Handler_base
 {
 public:
+	AsyncWait_base()
+	{
+		AsyncWait_base::class_info().Ref();
+	}
+
+	virtual ~AsyncWait_base()
+	{
+		AsyncWait_base::class_info().Unref();
+	}
+
+public:
 	// AsyncWait_base
 	virtual result_t end() = 0;
 

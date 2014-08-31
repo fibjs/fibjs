@@ -71,8 +71,14 @@ class ClassInfo
 {
 public:
     ClassInfo(ClassData &cd) :
-        m_cd(cd)
+        m_cd(cd), refs_(0), m_next(NULL), m_Inherit(NULL)
     {
+        if (m_cd.base)
+        {
+            if (m_cd.base->m_Inherit)
+                m_next = m_cd.base->m_Inherit;
+            m_cd.base->m_Inherit = this;
+        }
     }
 
     void *getInstance(void *o);
@@ -161,6 +167,50 @@ public:
                                m_cd.cps[i].getter, m_cd.cps[i].setter);
     }
 
+public:
+    void Ref()
+    {
+        exlib::atom_inc(&refs_);
+    }
+
+    void Unref()
+    {
+        exlib::atom_dec(&refs_);
+    }
+
+    int32_t dump(v8::Local<v8::Object> &o)
+    {
+        int32_t cnt = refs_;
+
+        if (cnt)
+        {
+            o = v8::Object::New(isolate);
+            o->Set(v8::String::NewFromUtf8(isolate, "class"),
+                   v8::String::NewFromUtf8(isolate, m_cd.name));
+            o->Set(v8::String::NewFromUtf8(isolate, "objects"),
+                   v8::Integer::New(isolate, cnt));
+
+            v8::Local<v8::Array> inherits = v8::Array::New(isolate);
+
+            ClassInfo *p = m_Inherit;
+            int32_t icnt = 0;
+
+            while (p)
+            {
+                v8::Local<v8::Object> o1;
+                int32_t cnt1 = p->dump(o1);
+                if (cnt1)
+                    inherits->Set(icnt ++, o1);
+                p = p->m_next;
+            }
+
+            if (icnt)
+                o->Set(v8::String::NewFromUtf8(isolate, "inherits"), inherits);
+        }
+
+        return cnt;
+    }
+
 private:
     void _init()
     {
@@ -235,6 +285,9 @@ private:
     v8::Persistent<v8::Function> m_function;
     v8::Persistent<v8::Object> m_cache;
     ClassData &m_cd;
+    int32_t refs_;
+    ClassInfo *m_next;
+    ClassInfo *m_Inherit;
 };
 
 }

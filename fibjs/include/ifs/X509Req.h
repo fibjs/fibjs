@@ -25,6 +25,17 @@ class X509Cert_base;
 class X509Req_base : public object_base
 {
 public:
+	X509Req_base()
+	{
+		X509Req_base::class_info().Ref();
+	}
+
+	virtual ~X509Req_base()
+	{
+		X509Req_base::class_info().Unref();
+	}
+
+public:
 	// X509Req_base
 	static result_t _new(obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* subject, PKey_base* key, int32_t hash, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

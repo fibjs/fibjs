@@ -20,6 +20,17 @@ namespace fibjs
 class Stat_base : public object_base
 {
 public:
+	Stat_base()
+	{
+		Stat_base::class_info().Ref();
+	}
+
+	virtual ~Stat_base()
+	{
+		Stat_base::class_info().Unref();
+	}
+
+public:
 	// Stat_base
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t get_size(int64_t& retVal) = 0;

@@ -349,7 +349,7 @@ describe("net", function() {
 		GC();
 		coroutine.sleep(100);
 		GC();
-		no1 = os.memoryUsage().nativeObjects;
+		no1 = os.memoryUsage().nativeObjects.objects;
 
 		ss = new net.TcpServer(9812, function(c) {});
 		(function() {
@@ -362,7 +362,7 @@ describe("net", function() {
 		coroutine.sleep(50);
 
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 
 		ss = new net.TcpServer(9813, function(c) {});
 		ss.asyncRun();
@@ -373,7 +373,7 @@ describe("net", function() {
 		coroutine.sleep(50);
 
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 
 		(function() {
 			var s = new net.TcpServer(9884, function() {});
@@ -382,7 +382,7 @@ describe("net", function() {
 		coroutine.sleep(50);
 
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
 
 	describe("Smtp", function() {

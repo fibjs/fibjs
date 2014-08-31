@@ -23,6 +23,17 @@ class DbConnection_base;
 class SQLite_base : public DbConnection_base
 {
 public:
+	SQLite_base()
+	{
+		SQLite_base::class_info().Ref();
+	}
+
+	virtual ~SQLite_base()
+	{
+		SQLite_base::class_info().Unref();
+	}
+
+public:
 	// SQLite_base
 	virtual result_t get_fileName(std::string& retVal) = 0;
 	virtual result_t get_timeout(int32_t& retVal) = 0;

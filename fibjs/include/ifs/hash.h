@@ -25,6 +25,17 @@ class Digest_base;
 class hash_base : public module_base
 {
 public:
+	hash_base()
+	{
+		hash_base::class_info().Ref();
+	}
+
+	virtual ~hash_base()
+	{
+		hash_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_MD2 = 1,
 		_MD4 = 2,

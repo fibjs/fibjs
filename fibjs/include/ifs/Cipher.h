@@ -22,6 +22,17 @@ class Buffer_base;
 class Cipher_base : public object_base
 {
 public:
+	Cipher_base()
+	{
+		Cipher_base::class_info().Ref();
+	}
+
+	virtual ~Cipher_base()
+	{
+		Cipher_base::class_info().Unref();
+	}
+
+public:
 	// Cipher_base
 	static result_t _new(int32_t provider, Buffer_base* key, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(int32_t provider, int32_t mode, Buffer_base* key, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

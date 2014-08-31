@@ -20,6 +20,17 @@ namespace fibjs
 class Trigger_base : public object_base
 {
 public:
+	Trigger_base()
+	{
+		Trigger_base::class_info().Ref();
+	}
+
+	virtual ~Trigger_base()
+	{
+		Trigger_base::class_info().Unref();
+	}
+
+public:
 	// Trigger_base
 	static result_t _new(obj_ptr<Trigger_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t on(const char* ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;

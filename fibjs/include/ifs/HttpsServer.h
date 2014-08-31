@@ -26,6 +26,17 @@ class Stats_base;
 class HttpsServer_base : public object_base
 {
 public:
+	HttpsServer_base()
+	{
+		HttpsServer_base::class_info().Ref();
+	}
+
+	virtual ~HttpsServer_base()
+	{
+		HttpsServer_base::class_info().Unref();
+	}
+
+public:
 	// HttpsServer_base
 	static result_t _new(v8::Local<v8::Array> certs, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(v8::Local<v8::Array> certs, const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());

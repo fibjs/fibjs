@@ -20,6 +20,17 @@ namespace fibjs
 class MongoCursor_base : public object_base
 {
 public:
+	MongoCursor_base()
+	{
+		MongoCursor_base::class_info().Ref();
+	}
+
+	virtual ~MongoCursor_base()
+	{
+		MongoCursor_base::class_info().Unref();
+	}
+
+public:
 	// MongoCursor_base
 	virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base>& retVal) = 0;

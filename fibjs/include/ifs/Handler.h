@@ -22,6 +22,17 @@ class object_base;
 class Handler_base : public object_base
 {
 public:
+	Handler_base()
+	{
+		Handler_base::class_info().Ref();
+	}
+
+	virtual ~Handler_base()
+	{
+		Handler_base::class_info().Unref();
+	}
+
+public:
 	// Handler_base
 	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac) = 0;
 

@@ -32,17 +32,17 @@ describe("collection", function() {
 
 		it("Memory Leak detect", function() {
 			GC();
-			var no1 = os.memoryUsage().nativeObjects;
+			var no1 = os.memoryUsage().nativeObjects.objects;
 			a.push(new Buffer());
 			GC();
-			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 			a.resize(0);
 			GC();
-			assert.equal(no1, os.memoryUsage().nativeObjects);
+			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 			new Buffer();
-			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 			GC();
-			assert.equal(no1, os.memoryUsage().nativeObjects);
+			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 		});
 
 		it("toArray", function() {

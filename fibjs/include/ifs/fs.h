@@ -27,6 +27,17 @@ class BufferedStream_base;
 class fs_base : public module_base
 {
 public:
+	fs_base()
+	{
+		fs_base::class_info().Ref();
+	}
+
+	virtual ~fs_base()
+	{
+		fs_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_SEEK_SET = 0,
 		_SEEK_CUR = 1,

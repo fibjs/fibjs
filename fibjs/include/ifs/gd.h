@@ -26,6 +26,17 @@ class SeekableStream_base;
 class gd_base : public module_base
 {
 public:
+	gd_base()
+	{
+		gd_base::class_info().Ref();
+	}
+
+	virtual ~gd_base()
+	{
+		gd_base::class_info().Unref();
+	}
+
+public:
 	enum{
 		_NONE = 0,
 		_JPEG = 1,

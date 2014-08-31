@@ -20,6 +20,17 @@ namespace fibjs
 class Map_base : public object_base
 {
 public:
+	Map_base()
+	{
+		Map_base::class_info().Ref();
+	}
+
+	virtual ~Map_base()
+	{
+		Map_base::class_info().Unref();
+	}
+
+public:
 	// Map_base
 	static result_t _new(obj_ptr<Map_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_size(int32_t& retVal) = 0;

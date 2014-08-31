@@ -23,6 +23,17 @@ class List_base;
 class RedisHash_base : public object_base
 {
 public:
+	RedisHash_base()
+	{
+		RedisHash_base::class_info().Ref();
+	}
+
+	virtual ~RedisHash_base()
+	{
+		RedisHash_base::class_info().Unref();
+	}
+
+public:
 	// RedisHash_base
 	virtual result_t set(Buffer_base* field, Buffer_base* value) = 0;
 	virtual result_t setNX(Buffer_base* field, Buffer_base* value) = 0;

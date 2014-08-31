@@ -23,6 +23,17 @@ class module_base;
 class os_base : public module_base
 {
 public:
+	os_base()
+	{
+		os_base::class_info().Ref();
+	}
+
+	virtual ~os_base()
+	{
+		os_base::class_info().Unref();
+	}
+
+public:
 	// os_base
 	static result_t get_hostname(std::string& retVal);
 	static result_t get_type(std::string& retVal);

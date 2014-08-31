@@ -125,12 +125,12 @@ describe("rpc", function() {
 
 	it("Garbage Collection", function() {
 		GC();
-		var no1 = os.memoryUsage().nativeObjects;
+		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		rpc.json({});
 
 		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects);
+		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
 });
 
