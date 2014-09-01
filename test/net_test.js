@@ -336,7 +336,7 @@ describe("net", function() {
 
 		it("abort read", function() {
 			var c1 = new net.Socket();
-			c1.connect('127.0.0.1', 8081);
+			c1.connect('127.0.0.1', 8080);
 			close_it.start(c1);
 			assert.throws(function() {
 				c1.read();
