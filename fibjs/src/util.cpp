@@ -23,7 +23,7 @@
 #include "QuickArray.h"
 #include <map>
 
-#ifndef WIN32
+#ifndef _WIN32
 #include "gitinfo.h"
 #endif
 

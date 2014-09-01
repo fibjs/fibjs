@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <winiconv/win_iconv.h>
 #else
 
@@ -26,7 +26,7 @@
 namespace fibjs
 {
 
-#ifdef WIN32
+#ifdef _WIN32
 
 #define _iconv_open iconv_open
 #define _iconv_close iconv_close

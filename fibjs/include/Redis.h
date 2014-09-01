@@ -131,7 +131,7 @@ public:
         {
             char numStr[64];
 
-#ifdef WIN32
+#ifdef _WIN32
             sprintf(numStr, "%I64d", v);
 #else
             sprintf(numStr, "%lld", (long long)v);
