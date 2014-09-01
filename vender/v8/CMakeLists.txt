@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 set(name v8)
 
-set(flags "-std=c++11")
+set(flags "-std=gnu++0x")
 
 include(../../tools/basic.cmake)
 
