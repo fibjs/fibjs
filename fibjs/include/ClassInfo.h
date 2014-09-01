@@ -85,10 +85,15 @@ public:
     void *getInstance(v8::Local<v8::Value> o)
     {
         _init();
-        if (o.IsEmpty() || !v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(o))
+        if (o.IsEmpty() || !o->IsObject())
             return NULL;
 
-        return o->ToObject()->GetAlignedPointerFromInternalField(0);
+        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);
+
+        if (obj->InternalFieldCount() != 1)
+            return NULL;
+
+        return getInstance(obj->GetAlignedPointerFromInternalField(0));
     }
 
     v8::Local<v8::ObjectTemplate> getTemplate()
