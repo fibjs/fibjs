@@ -41,7 +41,7 @@ public:
 	virtual result_t remove(v8::Local<v8::Array> keys) = 0;
 	virtual result_t remove(Buffer_base* key, exlib::AsyncEvent* ac) = 0;
 	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
-	virtual result_t between(v8::Local<v8::Value> from, v8::Local<v8::Value> to, v8::Local<v8::Function> func) = 0;
+	virtual result_t between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func) = 0;
 	virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
 	virtual result_t commit() = 0;
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
@@ -186,8 +186,8 @@ namespace fibjs
 		METHOD_INSTANCE(LevelDB_base);
 		METHOD_ENTER(3, 3);
 
-		ARG(v8::Local<v8::Value>, 0);
-		ARG(v8::Local<v8::Value>, 1);
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
 		ARG(v8::Local<v8::Function>, 2);
 
 		hr = pInst->between(v0, v1, v2);

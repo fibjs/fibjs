@@ -250,7 +250,7 @@ describe("db", function() {
 			var ldb = db.openLevelDB("testdb");
 
 			var count = 0;
-			ldb.forEach(function(k, v) {
+			ldb.forEach(function(v, k) {
 				count++;
 			});
 			assert.equal(count, 0);
@@ -258,8 +258,8 @@ describe("db", function() {
 			ldb.put(data);
 
 			count = 0;
-			ldb.forEach(function(k, v) {
-				assert.equal(data[k].toString(), v.toString());
+			ldb.forEach(function(v, k) {
+				assert.equal(data[k], v.toString());
 				delete data[k];
 				count++;
 			});
@@ -286,8 +286,8 @@ describe("db", function() {
 			ldb.put(data);
 
 			var count = 0;
-			ldb.between("bbb", "ddd", function(k, v) {
-				assert.equal(data1[k].toString(), v.toString());
+			ldb.between("bbb", "ddd", function(v, k) {
+				assert.equal(data1[k], v.toString());
 				delete data1[k];
 				count++;
 			});
@@ -314,8 +314,8 @@ describe("db", function() {
 			ldb.put(data);
 
 			var count = 0;
-			ldb.forEach(function(k, v) {
-				assert.equal(data1[k].toString(), v.toString());
+			ldb.forEach(function(v, k) {
+				assert.equal(data1[k], v.toString());
 				delete data1[k];
 				count++;
 				if (count == 2)

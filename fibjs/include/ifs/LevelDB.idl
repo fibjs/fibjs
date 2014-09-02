@@ -45,13 +45,13 @@ class LevelDB : object
     /*! @brief 枚举数据库中所有的键值对
      @param func 枚举回调函数
 
-     回调函数有两个参数，key 和 value：
+     回调函数有两个参数，(value, key)
 
      @code
      var db = require("db");
      var test = new db.openLevelDB("test.db");
 
-     test.forEach(function(key, value){
+     test.forEach(function(value, key){
         ...
      });
      @endcode
@@ -59,22 +59,22 @@ class LevelDB : object
     forEach(Function func);
 
     /*! @brief 枚举数据库中键值在 from 和 to 之间的键值对
-     @param from 枚举的最小键值，枚举时包含此键值，键值允许为字符串或者二进制 Buffer
-     @param to 枚举的最大键值，枚举时不包含此键值，键值允许为字符串或者二进制 Buffer
+     @param from 枚举的最小键值，枚举时包含此键值
+     @param to 枚举的最大键值，枚举时不包含此键值
      @param func 枚举回调函数
 
-     回调函数有两个参数，key 和 value：
+     回调函数有两个参数，(value, key)
 
      @code
      var db = require("db");
      var test = new db.openLevelDB("test.db");
 
-     test.between("aaa", "bbb", function(key, value){
+     test.between("aaa", "bbb", function(value, key){
         ...
      });
      @endcode
      */
-    between(Value from, Value to, Function func);
+    between(Buffer from, Buffer to, Function func);
 
     /*! @brief 在当前数据库上开启一个事务
      @return 返回一个开启的事务对象 */

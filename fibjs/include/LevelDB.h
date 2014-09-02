@@ -52,7 +52,7 @@ public:
     virtual result_t remove(v8::Local<v8::Array> keys);
     virtual result_t remove(Buffer_base *key, exlib::AsyncEvent *ac);
     virtual result_t forEach(v8::Local<v8::Function> func);
-    virtual result_t between(v8::Local<v8::Value> from, v8::Local<v8::Value> to, v8::Local<v8::Function> func);
+    virtual result_t between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base> &retVal);
     virtual result_t commit();
     virtual result_t close(exlib::AsyncEvent *ac);
@@ -122,14 +122,11 @@ private:
 
         result_t iter(v8::Local<v8::Function> func);
 
-        result_t getValue(v8::Local<v8::Value> from, v8::Local<v8::Value> to)
+        result_t getValue(Buffer_base *from, Buffer_base *to)
         {
-            result_t hr;
-
-            hr = LevelDB::getValue(from, m_from);
-            if (hr < 0)return hr;
-
-            return LevelDB::getValue(to, m_to);
+            from->toString(m_from);
+            to->toString(m_to);
+            return 0;
         }
 
     public:

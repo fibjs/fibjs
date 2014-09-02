@@ -266,7 +266,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
         {
             v8::Local<v8::Value> args[2] =
             {
-                m_kvs[i * 2]->wrap(), m_kvs[i * 2 + 1]->wrap()
+                m_kvs[i * 2 + 1]->wrap(), m_kvs[i * 2]->wrap()
             };
 
             m_kvs[i * 2].Release();
@@ -296,8 +296,7 @@ result_t LevelDB::forEach(v8::Local<v8::Function> func)
     return Iter(db()).iter(func);
 }
 
-result_t LevelDB::between(v8::Local<v8::Value> from,
-                          v8::Local<v8::Value> to, v8::Local<v8::Function> func)
+result_t LevelDB::between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Function> func)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
