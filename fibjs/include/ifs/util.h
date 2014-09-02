@@ -68,6 +68,9 @@ public:
 	static result_t intersection(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
 	static result_t without(v8::Local<v8::Array> arr, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
 	static result_t difference(v8::Local<v8::Array> arr, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
+	static result_t each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
+	static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
+	static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
 	static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 	DECLARE_CLASSINFO(util_base);
@@ -105,6 +108,9 @@ public:
 	static void s_intersection(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_without(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_difference(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_each(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
@@ -147,6 +153,9 @@ namespace fibjs
 			{"intersection", s_intersection},
 			{"without", s_without},
 			{"difference", s_difference},
+			{"each", s_each},
+			{"map", s_map},
+			{"reduce", s_reduce},
 			{"buildInfo", s_buildInfo}
 		};
 
@@ -159,7 +168,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"util", NULL, 
-			29, s_method, 2, s_object, 0, NULL, NULL, NULL,
+			32, s_method, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -544,6 +553,52 @@ namespace fibjs
 		ARG(v8::Local<v8::Array>, 0);
 
 		hr = difference(v0, args, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void util_base::s_each(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Value> vr;
+
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Function>, 1);
+		OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate));
+
+		hr = each(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void util_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> vr;
+
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Function>, 1);
+		OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate));
+
+		hr = map(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void util_base::s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Value> vr;
+
+		METHOD_ENTER(4, 3);
+
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Function>, 1);
+		ARG(v8::Local<v8::Value>, 2);
+		OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate));
+
+		hr = reduce(v0, v1, v2, v3, vr);
 
 		METHOD_RETURN();
 	}

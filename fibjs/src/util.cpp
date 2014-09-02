@@ -1026,6 +1026,177 @@ result_t util_base::difference(v8::Local<v8::Array> arr,
     return 0;
 }
 
+result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator,
+                         v8::Local<v8::Value> context, v8::Local<v8::Value> &retVal)
+{
+    if (!list->IsObject())
+    {
+        retVal = list;
+        return 0;
+    }
+
+    v8::Local<v8::Value> args[3];
+    args[2] = list;
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+
+    if (IsEmpty(v))
+    {
+        v8::Local<v8::Array> keys = o->GetPropertyNames();
+        int32_t len = keys->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            args[1] = keys->Get(i);
+            args[0] = o->Get(args[1]);
+
+            v = iterator->Call(context, 3, args);
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+        }
+    }
+    else
+    {
+        int32_t len = v->Int32Value();
+
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            args[1] = v8::Int32::New(isolate, i);
+            args[0] = o->Get(args[1]);
+
+            v = iterator->Call(context, 3, args);
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+        }
+    }
+
+    retVal = list;
+
+    return 0;
+}
+
+result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator,
+                        v8::Local<v8::Value> context, v8::Local<v8::Array> &retVal)
+{
+    v8::Local<v8::Array> arr = v8::Array::New(isolate);
+
+    if (!list->IsObject())
+    {
+        retVal = arr;
+        return 0;
+    }
+
+    v8::Local<v8::Value> args[3];
+    args[2] = list;
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    int32_t cnt = 0;
+
+    if (IsEmpty(v))
+    {
+        v8::Local<v8::Array> keys = o->GetPropertyNames();
+        int32_t len = keys->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            args[1] = keys->Get(i);
+            args[0] = o->Get(args[1]);
+
+            v = iterator->Call(context, 3, args);
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            arr->Set(cnt ++, v);
+        }
+    }
+    else
+    {
+        int32_t len = v->Int32Value();
+
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            args[1] = v8::Int32::New(isolate, i);
+            args[0] = o->Get(args[1]);
+
+            v = iterator->Call(context, 3, args);
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            arr->Set(cnt ++, v);
+        }
+    }
+
+    retVal = arr;
+
+    return 0;
+}
+
+result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator,
+                           v8::Local<v8::Value> memo, v8::Local<v8::Value> context,
+                           v8::Local<v8::Value> &retVal)
+{
+    if (!list->IsObject())
+    {
+        retVal = memo;
+        return 0;
+    }
+
+    v8::Local<v8::Value> args[4];
+    args[3] = list;
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+
+    if (IsEmpty(v))
+    {
+        v8::Local<v8::Array> keys = o->GetPropertyNames();
+        int32_t len = keys->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            args[2] = keys->Get(i);
+            args[1] = o->Get(args[2]);
+
+            args[0] = memo;
+
+            memo = iterator->Call(context, 4, args);
+            if (memo.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+        }
+    }
+    else
+    {
+        int32_t len = v->Int32Value();
+
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            args[2] = v8::Int32::New(isolate, i);
+            args[1] = o->Get(args[2]);
+
+            args[0] = memo;
+
+            memo = iterator->Call(context, 4, args);
+            if (memo.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+        }
+    }
+
+    retVal = memo;
+
+    return 0;
+}
+
 #define _STR(s) #s
 #define STR(s)  _STR(s)
 

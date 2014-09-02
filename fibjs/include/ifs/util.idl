@@ -229,6 +229,34 @@ class util : module
      */
     static Array difference(Array arr, ...);
 
+    /*! @brief 遍历 list 中的所有元素，按顺序用遍历输出每个元素。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
+
+     @param list 指定需要遍历的列表或对象
+     @param iterator 指定用于遍历的回调函数
+     @param context 指定调用 iterator 时绑定的 context 对象
+     @return 返回 list 本身
+     */
+    static Value each(Value list, Function iterator, Value context = undefined);
+
+    /*! @brief 通过变换函数（iterator迭代器）把 list 中的每个值映射到一个新的数组中。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
+
+     @param list 指定需要变换的列表或对象
+     @param iterator 指定用于变换的回调函数
+     @param context 指定调用 iterator 时绑定的 context 对象
+     @return 返回变换的结果
+     */
+    static Array map(Value list, Function iterator, Value context = undefined);
+
+    /*! @brief 把 list中 元素归结为一个单独的数值。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(memo, element, index, list)
+
+     @param list 指定需要归结的列表或对象
+     @param iterator 指定用于归结的回调函数
+     @param memo 指定归结的初始值
+     @param context 指定调用 iterator 时绑定的 context 对象
+     @return 返回归结的结果
+     */
+    static Value reduce(Value list, Function iterator, Value memo, Value context = undefined);
+
     /*! @brief 数据统计对象，用以构建应用运行时数据收集，参见 Stats 对象。*/
     static Stats new Stats();
 

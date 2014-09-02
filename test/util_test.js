@@ -433,6 +433,117 @@ describe('util', function() {
 		});
 	});
 
+	it('each', function() {
+		util.each([1, 2, 3], function(num, i) {
+			assert.equal(num, i + 1);
+		});
+
+		var answers = [];
+		util.each([1, 2, 3], function(num) {
+			answers.push(num * this.multiplier);
+		}, {
+			multiplier: 5
+		});
+		assert.deepEqual(answers, [5, 10, 15]);
+
+		answers = [];
+		util.each([1, 2, 3], function(num) {
+			answers.push(num);
+		});
+		assert.deepEqual(answers, [1, 2, 3]);
+
+		var answer = null;
+		util.each([1, 2, 3], function(num, index, arr) {
+			assert.equal(arr[index], num);
+		});
+
+		answers = 0;
+		util.each(null, function() {
+			++answers;
+		});
+		assert.equal(answers, 0);
+
+		util.each(false, function() {});
+
+		var a = [1, 2, 3];
+		assert.strictEqual(util.each(a, function() {}), a);
+		assert.strictEqual(util.each(null, function() {}), null);
+
+		var b = [1, 2, 3];
+		b.length = 100;
+		answers = 0;
+		util.each(b, function() {
+			++answers;
+		});
+		assert.equal(answers, 100);
+	});
+
+
+	it('map', function() {
+		var doubled = util.map([1, 2, 3], function(num) {
+			return num * 2;
+		});
+		assert.deepEqual(doubled, [2, 4, 6]);
+
+		var tripled = util.map([1, 2, 3], function(num) {
+			return num * this.multiplier;
+		}, {
+			multiplier: 3
+		});
+		assert.deepEqual(tripled, [3, 6, 9]);
+
+		doubled = util.map([1, 2, 3], function(num) {
+			return num * 2;
+		});
+		assert.deepEqual(doubled, [2, 4, 6]);
+
+		var ids = util.map({
+			length: 2,
+			0: {
+				id: '1'
+			},
+			1: {
+				id: '2'
+			}
+		}, function(n) {
+			return n.id;
+		});
+		assert.deepEqual(ids, ['1', '2']);
+
+		assert.deepEqual(util.map(null, function() {}), []);
+
+		assert.deepEqual(util.map([1], function() {
+			return this.length;
+		}, [5]), [1]);
+	});
+
+
+	it('reduce', function() {
+		var sum = util.reduce([1, 2, 3], function(sum, num) {
+			return sum + num;
+		}, 0);
+		assert.equal(sum, 6);
+
+		var context = {
+			multiplier: 3
+		};
+		sum = util.reduce([1, 2, 3], function(sum, num) {
+			return sum + num * this.multiplier;
+		}, 0, context);
+		assert.equal(sum, 18);
+
+		assert.equal(util.reduce(null, function() {}, 138), 138);
+		assert.equal(util.reduce([], function() {}, undefined), undefined);
+
+		assert.throws(function() {
+			util.reduce([], function() {});
+		});
+
+		assert.throws(function() {
+			util.reduce(null, function() {});
+		});
+	});
+
 	describe('format', function() {
 		it("basic", function() {
 			assert.equal(util.format(), '');
