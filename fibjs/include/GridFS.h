@@ -30,6 +30,17 @@ public:
     }
 
 public:
+    virtual void enter()
+    {
+        m_db->enter();
+    }
+
+    virtual void leave()
+    {
+        m_db->leave();
+    }
+
+public:
     // GridFS_base
     virtual result_t retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal);
     virtual result_t store(const char *name, Stream_base *src);

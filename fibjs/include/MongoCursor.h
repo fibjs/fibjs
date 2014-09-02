@@ -22,6 +22,17 @@ public:
     ~MongoCursor();
 
 public:
+    virtual void enter()
+    {
+        m_db->enter();
+    }
+
+    virtual void leave()
+    {
+        m_db->leave();
+    }
+
+public:
     // object_base
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 

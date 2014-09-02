@@ -23,6 +23,17 @@ public:
     }
 
 public:
+    virtual void enter()
+    {
+        m_db->enter();
+    }
+
+    virtual void leave()
+    {
+        m_db->leave();
+    }
+
+public:
     // MongoCollection_base
     virtual result_t find(v8::Local<v8::Object> query, v8::Local<v8::Object> projection, obj_ptr<MongoCursor_base> &retVal);
     virtual result_t findOne(v8::Local<v8::Object> query, v8::Local<v8::Object> projection, v8::Local<v8::Object> &retVal);
