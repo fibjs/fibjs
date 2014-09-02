@@ -23,18 +23,6 @@ for (var idx = 0; idx < dir.length; idx++)
 
 process.system('doxygen');
 
-function cxxSafe(fname) {
-	var ckws = {
-		"union": true,
-		"and": true,
-		"or": true,
-		"xor": true,
-		"new": true
-	};
-
-	return ckws.hasOwnProperty(fname) ? "_" + fname : fname;
-}
-
 function preparserIDL(fname) {
 	var f, line = 0,
 		st, isRem;
@@ -170,6 +158,26 @@ function parserIDL(fname) {
 			"Value": "v8::Local<v8::Value>",
 			"Variant": "Variant"
 		};
+
+	function cxxSafe(fname) {
+		var ckws = {
+			"union": true,
+			"and": true,
+			"or": true,
+			"xor": true,
+			"new": true
+		};
+
+		return ckws.hasOwnProperty(fname) ? "_" + fname : fname;
+	}
+
+	function defMap(value) {
+		var defs = {
+			"undefined": "v8::Undefined(isolate)"
+		};
+
+		return defs[value] || value;
+	}
 
 	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
@@ -596,12 +604,12 @@ function parserIDL(fname) {
 					if (value == "")
 						argVars += "		ARG(arg_string, " + argCount + ");\n";
 					else
-						argVars += "		OPT_ARG(arg_string, " + argCount + ", " + value + ");\n";
+						argVars += "		OPT_ARG(arg_string, " + argCount + ", " + defMap(value) + ");\n";
 				} else {
 					if (value == "")
 						argVars += "		ARG(" + map_type(type) + ", " + argCount + ");\n";
 					else
-						argVars += "		OPT_ARG(" + map_type(type) + ", " + argCount + ", " + value + ");\n";
+						argVars += "		OPT_ARG(" + map_type(type) + ", " + argCount + ", " + defMap(value) + ");\n";
 				}
 
 				argCount++;
