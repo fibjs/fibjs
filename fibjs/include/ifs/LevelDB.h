@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class Buffer_base;
+class List_base;
 
 class LevelDB_base : public object_base
 {
@@ -36,8 +37,9 @@ public:
 	// LevelDB_base
 	virtual result_t has(Buffer_base* key, bool& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t put(v8::Local<v8::Object> map) = 0;
-	virtual result_t put(Buffer_base* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
+	virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
+	virtual result_t set(Buffer_base* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
+	virtual result_t mset(v8::Local<v8::Object> map) = 0;
 	virtual result_t remove(v8::Local<v8::Array> keys) = 0;
 	virtual result_t remove(Buffer_base* key, exlib::AsyncEvent* ac) = 0;
 	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
@@ -55,7 +57,9 @@ public:
 public:
 	static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_mget(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_mset(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_between(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -66,7 +70,7 @@ public:
 public:
 	ASYNC_MEMBERVALUE2(LevelDB_base, has, Buffer_base*, bool);
 	ASYNC_MEMBERVALUE2(LevelDB_base, get, Buffer_base*, obj_ptr<Buffer_base>);
-	ASYNC_MEMBER2(LevelDB_base, put, Buffer_base*, Buffer_base*);
+	ASYNC_MEMBER2(LevelDB_base, set, Buffer_base*, Buffer_base*);
 	ASYNC_MEMBER1(LevelDB_base, remove, Buffer_base*);
 	ASYNC_MEMBER0(LevelDB_base, close);
 };
@@ -74,6 +78,7 @@ public:
 }
 
 #include "Buffer.h"
+#include "List.h"
 
 namespace fibjs
 {
@@ -83,7 +88,9 @@ namespace fibjs
 		{
 			{"has", s_has},
 			{"get", s_get},
-			{"put", s_put},
+			{"mget", s_mget},
+			{"set", s_set},
+			{"mset", s_mset},
 			{"remove", s_remove},
 			{"forEach", s_forEach},
 			{"between", s_between},
@@ -95,7 +102,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"LevelDB", NULL, 
-			9, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			11, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -132,21 +139,41 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void LevelDB_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<List_base> vr;
+
+		METHOD_INSTANCE(LevelDB_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->mget(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(LevelDB_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
+
+		hr = pInst->ac_set(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(LevelDB_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(v8::Local<v8::Object>, 0);
 
-		hr = pInst->put(v0);
-
-		METHOD_OVER(2, 2);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-		ARG(obj_ptr<Buffer_base>, 1);
-
-		hr = pInst->ac_put(v0, v1);
+		hr = pInst->mset(v0);
 
 		METHOD_VOID();
 	}

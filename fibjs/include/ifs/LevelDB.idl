@@ -21,19 +21,24 @@ class LevelDB : object
      */
     Buffer get(Buffer key) async;
 
-    /*! @brief 设定一组键值数据，键值不存在则插入新数据
-     @param map 指定要设定的键值数据字典
+    /*! @brief 查询一组指定键值的值
+     @param keys 指定要查询的键值数组
      */
-    put(Object map);
+    List mget(Array keys);
 
     /*! @brief 设定一个键值数据，键值不存在则插入新数据
      @param key 指定要设定的键值
      @param value 指定要设定的数据
      */
-    put(Buffer key, Buffer value) async;
+    set(Buffer key, Buffer value) async;
+
+    /*! @brief 设定一组键值数据，键值不存在则插入新数据
+     @param map 指定要设定的键值数据字典
+     */
+    mset(Object map);
 
     /*! @brief 删除一组指定键值的值
-     @param keys 指定要设定的键值数组
+     @param keys 指定要删除的键值数组
      */
     remove(Array keys);
 

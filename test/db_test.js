@@ -121,10 +121,10 @@ describe("db", function() {
 			clear_db();
 		});
 
-		it('put/get', function() {
+		it('set/get', function() {
 			var b = "bbbbb";
 			var ldb = db.openLevelDB("testdb");
-			ldb.put("test", b);
+			ldb.set("test", b);
 			assert.equal(ldb.get("test").toString(), "bbbbb");
 			ldb.close();
 			clear_db();
@@ -133,13 +133,13 @@ describe("db", function() {
 		it('binary Key', function() {
 			var b = "bbbbb1";
 			var ldb = db.openLevelDB("testdb");
-			ldb.put("test1", b);
+			ldb.set("test1", b);
 			assert.equal(ldb.get("test1").toString(), "bbbbb1");
 			ldb.close();
 			clear_db();
 		});
 
-		it('batch put', function() {
+		it('multi set/get', function() {
 			var data = {
 				"aaa": "aaa value",
 				"bbb": "bbb value",
@@ -148,11 +148,16 @@ describe("db", function() {
 			};
 
 			var ldb = db.openLevelDB("testdb");
-			ldb.put(data);
+			ldb.mset(data);
 			assert.equal(ldb.get("aaa").toString(), "aaa value");
 			assert.equal(ldb.get("bbb").toString(), "bbb value");
 			assert.equal(ldb.get("ccc").toString(), "ccc value");
 			assert.equal(ldb.get("ddd").toString(), "ddd value");
+
+			assert.deepEqual(ldb.mget(['aaa', 'ccc', 'eee']).toArray(), [
+				new Buffer('aaa value'), new Buffer('ccc value'), null
+			]);
+
 			ldb.close();
 			clear_db();
 		});
@@ -162,12 +167,12 @@ describe("db", function() {
 			var ldb = db.openLevelDB("testdb");
 			assert.isNull(ldb.get("not_exists"));
 			assert.isFalse(ldb.has("not_exists"));
-			ldb.put("not_exists", b);
+			ldb.set("not_exists", b);
 			assert.isTrue(ldb.has("not_exists"));
 			ldb.remove("not_exists");
 			assert.isFalse(ldb.has("not_exists"));
 
-			ldb.put("not_exists", b);
+			ldb.set("not_exists", b);
 			assert.isTrue(ldb.has("not_exists"));
 			ldb.remove("not_exists");
 			assert.isFalse(ldb.has("not_exists"));
@@ -184,7 +189,7 @@ describe("db", function() {
 			};
 
 			var ldb = db.openLevelDB("testdb");
-			ldb.put(data);
+			ldb.mset(data);
 
 			ldb.remove(["bbb", "ddd"]);
 
@@ -202,12 +207,12 @@ describe("db", function() {
 			var c = "ccccc";
 			var ldb = db.openLevelDB("testdb");
 
-			ldb.put("test", b);
+			ldb.set("test", b);
 			assert.equal(ldb.get("test").toString(), "bbbbb");
 
 			var tr = ldb.begin();
 
-			tr.put("test", c);
+			tr.set("test", c);
 			assert.equal(ldb.get("test").toString(), "bbbbb");
 
 			tr.commit();
@@ -223,12 +228,12 @@ describe("db", function() {
 			var c = "ccccc";
 			var ldb = db.openLevelDB("testdb");
 
-			ldb.put("test", b);
+			ldb.set("test", b);
 			assert.equal(ldb.get("test").toString(), "bbbbb");
 
 			var tr = ldb.begin();
 
-			tr.put("test", c);
+			tr.set("test", c);
 			assert.equal(ldb.get("test").toString(), "bbbbb");
 
 			tr.close();
@@ -255,7 +260,7 @@ describe("db", function() {
 			});
 			assert.equal(count, 0);
 
-			ldb.put(data);
+			ldb.mset(data);
 
 			count = 0;
 			ldb.forEach(function(v, k) {
@@ -283,7 +288,7 @@ describe("db", function() {
 			};
 
 			var ldb = db.openLevelDB("testdb");
-			ldb.put(data);
+			ldb.mset(data);
 
 			var count = 0;
 			ldb.between("bbb", "ddd", function(v, k) {
@@ -311,7 +316,7 @@ describe("db", function() {
 			};
 
 			var ldb = db.openLevelDB("testdb");
-			ldb.put(data);
+			ldb.mset(data);
 
 			var count = 0;
 			ldb.forEach(function(v, k) {
