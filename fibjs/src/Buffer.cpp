@@ -14,13 +14,6 @@ result_t Buffer_base::_new(const char *str, const char *codec,
     return retVal->write(str, codec);
 }
 
-result_t Buffer_base::_new(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
-                           v8::Local<v8::Object> This)
-{
-    retVal = new Buffer();
-    return retVal->write(data);
-}
-
 result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal,
                            v8::Local<v8::Object> This)
 {

@@ -14,20 +14,15 @@ class Buffer : object
     Buffer(Array datas);
 
     /*! @brief 缓存对象构造函数
-     @param data 初始化二进制数据
+     @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      */
-    Buffer(Buffer data);
+    Buffer(String str, String codec = "utf8");
 
     /*! @brief 缓存对象构造函数
      @param size 初始化缓冲区大小
      */
     Buffer(Integer size = 0);
-
-    /*! @brief 缓存对象构造函数
-     @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
-     */
-    Buffer(String str, String codec = "utf8");
 
     /*! @brief 缓存对象可使用下标直接访问二进制数据*/
     Integer operator[];

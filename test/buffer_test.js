@@ -23,13 +23,6 @@ describe('Buffer', function() {
 		assert.equal(buf.toString(), "1234");
 	});
 
-	it('new Buffer(Buffer)', function() {
-		var b = new Buffer("1234");
-		var buf = new Buffer(b);
-		assert.equal(buf.length, 4);
-		assert.equal(buf.toString(), "1234");
-	});
-
 	it('toJSON', function() {
 		var buf = new Buffer([1, 2, 3, 4]);
 		assert.deepEqual(buf.toJSON(), [1, 2, 3, 4]);
