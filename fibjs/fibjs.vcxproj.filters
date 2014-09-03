@@ -1033,5 +1033,8 @@
     <ClCompile Include="src\os\os_win.cpp">
       <Filter>Source Files\os</Filter>
     </ClCompile>
+    <ClCompile Include="src\crypto\root_ca.cpp">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

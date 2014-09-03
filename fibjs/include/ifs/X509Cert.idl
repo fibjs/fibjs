@@ -18,17 +18,20 @@ class X509Cert: object
 
     /*! @brief 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
 
-    load 加载 mozilla 的 certdata,txt， 可于 http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+    load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      @param txtCert PEM 格式的证书
     */
     load(String txtCert);
 
     /*! @brief 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
 
-    loadFile 加载 mozilla 的 certdata,txt， 可于 http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+    loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      @param filename 证书文件名
     */
     loadFile(String filename);
+
+    /*! @brief 加载自带的缺省根证书，此证书内容源自：http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt */
+    loadRootCerts();
 
     /*! @brief 使用当前证书链验证给定的证书
      @param cert 给定需要验证的证书

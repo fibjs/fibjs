@@ -281,6 +281,23 @@ result_t X509Cert::loadFile(const char *filename)
     return 0;
 }
 
+extern const char *g_root_ca[];
+
+result_t X509Cert::loadRootCerts()
+{
+    const char **pca = g_root_ca;
+    result_t hr;
+
+    while (*pca)
+    {
+        hr = load(*pca ++);
+        if (hr < 0)
+            return hr;
+    }
+
+    return 0;
+}
+
 result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, exlib::AsyncEvent *ac)
 {
     int ret;

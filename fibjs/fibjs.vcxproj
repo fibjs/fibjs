@@ -303,6 +303,7 @@
     <ClCompile Include="src\crypto\Digest.cpp" />
     <ClCompile Include="src\crypto\hash.cpp" />
     <ClCompile Include="src\crypto\PKey.cpp" />
+    <ClCompile Include="src\crypto\root_ca.cpp" />
     <ClCompile Include="src\crypto\X509Cert.cpp" />
     <ClCompile Include="src\crypto\X509Crl.cpp" />
     <ClCompile Include="src\crypto\X509Req.cpp" />

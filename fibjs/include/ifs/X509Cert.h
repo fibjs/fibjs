@@ -39,6 +39,7 @@ public:
 	virtual result_t load(Buffer_base* derCert) = 0;
 	virtual result_t load(const char* txtCert) = 0;
 	virtual result_t loadFile(const char* filename) = 0;
+	virtual result_t loadRootCerts() = 0;
 	virtual result_t verify(X509Cert_base* cert, bool& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t dump(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t clear() = 0;
@@ -65,6 +66,7 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_dump(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -98,6 +100,7 @@ namespace fibjs
 		{
 			{"load", s_load},
 			{"loadFile", s_loadFile},
+			{"loadRootCerts", s_loadRootCerts},
 			{"verify", s_verify},
 			{"dump", s_dump},
 			{"clear", s_clear}
@@ -122,7 +125,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"X509Cert", s__new, 
-			5, s_method, 0, NULL, 12, s_property, NULL, NULL,
+			6, s_method, 0, NULL, 12, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -317,6 +320,16 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->loadFile(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void X509Cert_base::s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(X509Cert_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->loadRootCerts();
 
 		METHOD_VOID();
 	}

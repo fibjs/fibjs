@@ -465,6 +465,22 @@ describe('crypto', function() {
 			assert.deepEqual(s, s1);
 		});
 
+		it("root ca", function() {
+			cert.clear();
+			assert.deepEqual(cert.dump(), []);
+
+			cert.load(fs.readFile('cert_files/cacert.pem'));
+			var s = cert.dump();
+
+			cert.clear();
+			assert.deepEqual(cert.dump(), []);
+
+			cert.loadRootCerts();
+			var s1 = cert.dump();
+
+			assert.deepEqual(s, s1);
+		});
+
 		it("unknown format", function() {
 			assert.throws(function() {
 				cert.load('cert_files/certdata.txt');

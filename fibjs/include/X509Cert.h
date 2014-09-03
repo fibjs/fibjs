@@ -26,6 +26,7 @@ public:
     virtual result_t load(Buffer_base *derCert);
     virtual result_t load(const char *txtCert);
     virtual result_t loadFile(const char *filename);
+    virtual result_t loadRootCerts();
     virtual result_t verify(X509Cert_base *cert, bool &retVal, exlib::AsyncEvent *ac);
     virtual result_t dump(v8::Local<v8::Array> &retVal);
     virtual result_t clear();
