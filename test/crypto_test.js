@@ -459,8 +459,10 @@ describe('crypto', function() {
 			cert.clear();
 			assert.deepEqual(cert.dump(), []);
 
-			cert.load(fs.readFile('cert_files/certdata.txt'));
-			assert.deepEqual(cert.dump(), s);
+			cert.load(fs.readFile('cert_files/cacert.pem'));
+			var s1 = cert.dump();
+
+			assert.deepEqual(s, s1);
 		});
 
 		it("unknown format", function() {

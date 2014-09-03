@@ -11,6 +11,8 @@
 #include "parse.h"
 #include <polarssl/polarssl/pem.h>
 #include "PKey.h"
+#include "QuickArray.h"
+#include <map>
 
 namespace fibjs
 {
@@ -111,14 +113,21 @@ result_t X509Cert::load(const char *txtCert)
     }
 
     _parser p(txtCert, (int)qstrlen(txtCert));
-    bool is_loaded = false;
+    QuickArray<std::pair<std::string, std::string> > certs;
+    std::map<std::string, bool> trusts;
 
     while (!p.end())
     {
+        std::string cka_label;
         std::string cka_value;
+        std::string cka_serial;
+        std::string _value;
         bool in_multiline = false, in_obj = false;
         bool is_cert = false;
+        bool is_trust = false;
         bool is_value = false;
+        bool is_serial = false;
+        bool is_ca = false;
 
         while (!p.end())
         {
@@ -136,36 +145,40 @@ result_t X509Cert::load(const char *txtCert)
             {
                 if (p1.get() == '\\')
                 {
-                    if (is_value)
+                    while (p1.get() == '\\')
                     {
-                        while (p1.get() == '\\')
-                        {
-                            char ch1, ch2, ch3;
+                        char ch1, ch2, ch3;
 
-                            p1.skip();
+                        p1.skip();
 
-                            ch1 = p1.getChar();
-                            if (ch1 < '0' || ch1 > '7')
-                                break;
+                        ch1 = p1.getChar();
+                        if (ch1 < '0' || ch1 > '7')
+                            break;
 
-                            ch2 = p1.getChar();
-                            if (ch2 < '0' || ch2 > '7')
-                                break;
+                        ch2 = p1.getChar();
+                        if (ch2 < '0' || ch2 > '7')
+                            break;
 
-                            ch3 = p1.getChar();
-                            if (ch3 < '0' || ch3 > '7')
-                                break;
+                        ch3 = p1.getChar();
+                        if (ch3 < '0' || ch3 > '7')
+                            break;
 
-                            ch1 = (ch1 - '0') * 64 + (ch2 - '0') * 8 + (ch3 - '0');
-                            cka_value.append(&ch1, 1);
-                        }
+                        ch1 = (ch1 - '0') * 64 + (ch2 - '0') * 8 + (ch3 - '0');
+                        _value.append(&ch1, 1);
                     }
                     continue;
                 }
 
                 p1.getWord(cmd);
                 if (!qstrcmp(cmd.c_str(), "END"))
+                {
+                    if (is_value)
+                        cka_value = _value;
+                    else if (is_serial)
+                        cka_serial = _value;
+
                     in_multiline = false;
+                }
 
                 continue;
             }
@@ -176,10 +189,11 @@ result_t X509Cert::load(const char *txtCert)
             p1.getWord(type);
             if (!qstrcmp(type.c_str(), "MULTILINE_OCTAL"))
             {
-                is_value = is_cert && !qstrcmp(cmd.c_str(), "CKA_VALUE");
-                if (is_value)
-                    cka_value.resize(0);
                 in_multiline = true;
+                _value.resize(0);
+
+                is_value = is_cert && !qstrcmp(cmd.c_str(), "CKA_VALUE");
+                is_serial = !qstrcmp(cmd.c_str(), "CKA_SERIAL_NUMBER");
                 continue;
             }
 
@@ -192,19 +206,43 @@ result_t X509Cert::load(const char *txtCert)
                 {
                     in_obj = true;
                     is_cert = !qstrcmp(value.c_str(), "CKO_CERTIFICATE");
+                    is_trust = !qstrcmp(value.c_str(), "CKO_NSS_TRUST");
                 }
                 continue;
             }
+
+            if (!qstrcmp(cmd.c_str(), "CKA_LABEL"))
+                cka_label = value;
+            else if (is_trust && !qstrcmp(cmd.c_str(), "CKA_TRUST_SERVER_AUTH"))
+                is_ca = !qstrcmp(value.c_str(), "CKT_NSS_TRUSTED_DELEGATOR");
 
             if (cmd.empty())
                 break;
         }
 
-        if (!cka_value.empty())
+        if (!cka_label.empty())
+        {
+            if (is_trust && is_ca)
+                trusts.insert(std::pair<std::string, bool>(cka_label + cka_serial, true));
+            else if (is_cert && !cka_value.empty())
+                certs.append(std::pair<std::string, std::string>(cka_label + cka_serial, cka_value));
+        }
+    }
+
+    bool is_loaded = false;
+    int32_t i;
+
+    for (i = 0; i < (int32_t)certs.size(); i++)
+    {
+        std::pair<std::string, std::string> &c = certs[i];
+        std::map<std::string, bool>::iterator it_trust;
+
+        it_trust = trusts.find(c.first);
+        if (it_trust != trusts.end())
         {
             ret = x509_crt_parse_der(&m_crt,
-                                     (const unsigned char *)cka_value.c_str(),
-                                     cka_value.length());
+                                     (const unsigned char *)c.second.c_str(),
+                                     c.second.length());
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
