@@ -71,7 +71,7 @@ set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${CMAKE_CURRENT_BINARY_DIR}")
 
-set(libs exlib gd tiff jpeg png zlib leveldb snappy ev pcre sqlite mongo umysql uuid zookeeper exif winiconv polarssl v8)
+set(libs exlib expact gd tiff jpeg png zlib leveldb snappy ev pcre sqlite mongo umysql uuid zookeeper exif winiconv polarssl v8)
 
 foreach(lib ${libs})
 	target_link_libraries(fibjs "${BIN_DIR}/vender/lib${lib}.a")

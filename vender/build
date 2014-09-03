@@ -42,7 +42,7 @@ fi
 OUT_PATH="${OUT_PATH}/${OS}_$1"
 cd ${OUT_PATH}
 
-for lib in exlib ev jpeg png tiff gd pcre sqlite zlib exif snappy leveldb mongo umysql uuid zookeeper winiconv polarssl v8
+for lib in exlib expact gd tiff jpeg png zlib leveldb snappy ev pcre sqlite mongo umysql uuid zookeeper exif winiconv polarssl v8
 do
 
 	if [ ! -e ${lib} ]; then
