@@ -1003,7 +1003,8 @@ function parserIDL(fname) {
 			if (!isRem) {
 				if (!bString) {
 					n = s.indexOf("//");
-					if (n >= 0)
+					n1 = s.indexOf("/*");
+					if (n >= 0 && (n1 < 0 || n < n1))
 						s = s.substr(0, n);
 
 					while (1) {
