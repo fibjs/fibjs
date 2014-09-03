@@ -19,182 +19,59 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\acPool.cpp" />
-    <ClCompile Include="src\assert.cpp" />
-    <ClCompile Include="src\AsyncWaitHandler.cpp" />
-    <ClCompile Include="src\BlockQueue.cpp" />
-    <ClCompile Include="src\Buffer.cpp" />
-    <ClCompile Include="src\BufferedStream.cpp" />
-    <ClCompile Include="src\Chain.cpp" />
-    <ClCompile Include="src\Cipher.cpp" />
-    <ClCompile Include="src\Condition.cpp" />
-    <ClCompile Include="src\Console.cpp" />
-    <ClCompile Include="src\console_file.cpp" />
-    <ClCompile Include="src\console_log.cpp" />
-    <ClCompile Include="src\console_std.cpp" />
-    <ClCompile Include="src\console_sys.cpp" />
-    <ClCompile Include="src\coroutine.cpp" />
-    <ClCompile Include="src\crypto.cpp" />
-    <ClCompile Include="src\date.cpp" />
-    <ClCompile Include="src\db.cpp" />
-    <ClCompile Include="src\DBResult.cpp" />
-    <ClCompile Include="src\DBRow.cpp" />
-    <ClCompile Include="src\Digest.cpp" />
-    <ClCompile Include="src\encoding.cpp" />
-    <ClCompile Include="src\encoding_bson.cpp" />
-    <ClCompile Include="src\encoding_iconv.cpp" />
-    <ClCompile Include="src\Event.cpp" />
-    <ClCompile Include="src\Expect.cpp" />
-    <ClCompile Include="src\Fiber.cpp" />
-    <ClCompile Include="src\fibjs.cpp" />
-    <ClCompile Include="src\File.cpp" />
-    <ClCompile Include="src\fs.cpp" />
-    <ClCompile Include="src\fuck_sym.cpp" />
-    <ClCompile Include="src\Function.cpp" />
-    <ClCompile Include="src\global.cpp" />
-    <ClCompile Include="src\GridFS.cpp" />
-    <ClCompile Include="src\hash.cpp" />
-    <ClCompile Include="src\http.cpp" />
-    <ClCompile Include="src\HttpCollection.cpp" />
-    <ClCompile Include="src\HttpCookie.cpp" />
-    <ClCompile Include="src\HttpFileHandler.cpp" />
-    <ClCompile Include="src\HttpHandler.cpp" />
-    <ClCompile Include="src\HttpMessage.cpp" />
-    <ClCompile Include="src\HttpRequest.cpp" />
-    <ClCompile Include="src\HttpResponse.cpp" />
-    <ClCompile Include="src\HttpServer.cpp" />
-    <ClCompile Include="src\HttpsServer.cpp" />
-    <ClCompile Include="src\HttpUploadCollection.cpp" />
-    <ClCompile Include="src\HttpUploadData.cpp" />
-    <ClCompile Include="src\Image.cpp" />
-    <ClCompile Include="src\inetAddr.cpp" />
-    <ClCompile Include="src\Int64.cpp" />
-    <ClCompile Include="src\io.cpp" />
-    <ClCompile Include="src\JSHandler.cpp" />
-    <ClCompile Include="src\JsonRpcHandler.cpp" />
-    <ClCompile Include="src\LevelDB.cpp" />
-    <ClCompile Include="src\List.cpp" />
-    <ClCompile Include="src\Lock.cpp" />
-    <ClCompile Include="src\LruCache.cpp" />
-    <ClCompile Include="src\Map.cpp" />
-    <ClCompile Include="src\MemoryCloneStream.cpp" />
-    <ClCompile Include="src\MemoryStream.cpp" />
-    <ClCompile Include="src\Message.cpp" />
-    <ClCompile Include="src\MongoCollection.cpp" />
-    <ClCompile Include="src\MongoCursor.cpp" />
-    <ClCompile Include="src\MongoDB.cpp" />
-    <ClCompile Include="src\mq.cpp" />
-    <ClCompile Include="src\mysql.cpp" />
-    <ClCompile Include="src\net.cpp" />
-    <ClCompile Include="src\NullHandler.cpp" />
-    <ClCompile Include="src\os.cpp" />
-    <ClCompile Include="src\os_freebsd.cpp" />
-    <ClCompile Include="src\os_linux.cpp" />
-    <ClCompile Include="src\os_osx.cpp" />
-    <ClCompile Include="src\os_posix.cpp" />
-    <ClCompile Include="src\os_win.cpp" />
-    <ClCompile Include="src\PacketHandler.cpp" />
-    <ClCompile Include="src\PacketMessage.cpp" />
-    <ClCompile Include="src\path.cpp" />
-    <ClCompile Include="src\PKey.cpp" />
-    <ClCompile Include="src\process.cpp" />
-    <ClCompile Include="src\Queue.cpp" />
-    <ClCompile Include="src\Redis.cpp" />
-    <ClCompile Include="src\RedisHash.cpp" />
-    <ClCompile Include="src\RedisList.cpp" />
-    <ClCompile Include="src\RedisPubSub.cpp" />
-    <ClCompile Include="src\RedisSet.cpp" />
-    <ClCompile Include="src\RedisSortedSet.cpp" />
-    <ClCompile Include="src\Regex.cpp" />
-    <ClCompile Include="src\Routing.cpp" />
-    <ClCompile Include="src\Runtime.cpp" />
-    <ClCompile Include="src\SandBox.cpp" />
-    <ClCompile Include="src\SandBox_repl.cpp" />
-    <ClCompile Include="src\SandBox_root.cpp" />
-    <ClCompile Include="src\SandBox_run.cpp" />
-    <ClCompile Include="src\Semaphore.cpp" />
-    <ClCompile Include="src\Smtp.cpp" />
-    <ClCompile Include="src\Socket.cpp" />
-    <ClCompile Include="src\Socket_api.cpp" />
-    <ClCompile Include="src\Socket_ev.cpp" />
-    <ClCompile Include="src\Socket_iocp.cpp" />
-    <ClCompile Include="src\SQLite.cpp" />
-    <ClCompile Include="src\ssl.cpp" />
-    <ClCompile Include="src\SslHandler.cpp" />
-    <ClCompile Include="src\SslServer.cpp" />
-    <ClCompile Include="src\SslSocket.cpp" />
-    <ClCompile Include="src\Stat.cpp" />
-    <ClCompile Include="src\Stats.cpp" />
-    <ClCompile Include="src\Stream.cpp" />
-    <ClCompile Include="src\TcpServer.cpp" />
-    <ClCompile Include="src\test.cpp" />
-    <ClCompile Include="src\TextColor.cpp" />
-    <ClCompile Include="src\Trigger.cpp" />
-    <ClCompile Include="src\Url.cpp" />
-    <ClCompile Include="src\utf8.cpp" />
-    <ClCompile Include="src\util.cpp" />
-    <ClCompile Include="src\utils.cpp" />
-    <ClCompile Include="src\uuidVar.cpp" />
-    <ClCompile Include="src\Variant.cpp" />
-    <ClCompile Include="src\X509Cert.cpp" />
-    <ClCompile Include="src\X509Crl.cpp" />
-    <ClCompile Include="src\X509Req.cpp" />
-    <ClCompile Include="src\zlib.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="$(SolutionDir)vender\exif\exif.vcxproj">
-        <Project>{238FDB2A-C47D-44E0-94A2-D0FA2BF3C964}</Project>
+      <Project>{238FDB2A-C47D-44E0-94A2-D0FA2BF3C964}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\exlib\exlib.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000000E211B}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000E211B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\gd\gd.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-00000000009D}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000009D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\jpeg\jpeg.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000000019E9}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000019E9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\leveldb\leveldb.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-000001ECE1DB}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-000001ECE1DB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\mongo\mongo.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-000000030C90}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-000000030C90}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\pcre\pcre.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-000000009C2E}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-000000009C2E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\png\png.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000000009C9}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000009C9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\polarssl\polarssl.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000901A2331}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000901A2331}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\snappy\snappy.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000003CA997}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000003CA997}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\sqlite\sqlite.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-00000039117E}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-00000039117E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\tiff\tiff.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-000000007155}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-000000007155}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\umysql\umysql.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-000000032391}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-000000032391}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\uuid\uuid.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-00000000CC1D}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000CC1D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\winiconv\winiconv.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000031CC0CC}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000031CC0CC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\zlib\zlib.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-00000000211B}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000211B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\zookeeper\zookeeper.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000000E2200}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000E2200}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\v8\v8.vcxproj">
-        <Project>{1F77AB58-706B-4BB5-BE73-0000000000C8}</Project>
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000000C8}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -394,6 +271,129 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\base\acPool.cpp" />
+    <ClCompile Include="src\base\date.cpp" />
+    <ClCompile Include="src\base\fibjs.cpp" />
+    <ClCompile Include="src\base\fuck_sym.cpp" />
+    <ClCompile Include="src\base\Runtime.cpp" />
+    <ClCompile Include="src\base\utf8.cpp" />
+    <ClCompile Include="src\base\utils.cpp" />
+    <ClCompile Include="src\base\Variant.cpp" />
+    <ClCompile Include="src\collection\List.cpp" />
+    <ClCompile Include="src\collection\Map.cpp" />
+    <ClCompile Include="src\collection\Queue.cpp" />
+    <ClCompile Include="src\console\console.cpp" />
+    <ClCompile Include="src\console\console_file.cpp" />
+    <ClCompile Include="src\console\console_log.cpp" />
+    <ClCompile Include="src\console\console_std.cpp" />
+    <ClCompile Include="src\console\console_sys.cpp" />
+    <ClCompile Include="src\console\TextColor.cpp" />
+    <ClCompile Include="src\coroutine\BlockQueue.cpp" />
+    <ClCompile Include="src\coroutine\Condition.cpp" />
+    <ClCompile Include="src\coroutine\coroutine.cpp" />
+    <ClCompile Include="src\coroutine\Event.cpp" />
+    <ClCompile Include="src\coroutine\Fiber.cpp" />
+    <ClCompile Include="src\coroutine\Lock.cpp" />
+    <ClCompile Include="src\coroutine\Semaphore.cpp" />
+    <ClCompile Include="src\coroutine\Trigger.cpp" />
+    <ClCompile Include="src\crypto\Cipher.cpp" />
+    <ClCompile Include="src\crypto\crypto.cpp" />
+    <ClCompile Include="src\crypto\Digest.cpp" />
+    <ClCompile Include="src\crypto\hash.cpp" />
+    <ClCompile Include="src\crypto\PKey.cpp" />
+    <ClCompile Include="src\crypto\X509Cert.cpp" />
+    <ClCompile Include="src\crypto\X509Crl.cpp" />
+    <ClCompile Include="src\crypto\X509Req.cpp" />
+    <ClCompile Include="src\db\db.cpp" />
+    <ClCompile Include="src\db\LevelDB.cpp" />
+    <ClCompile Include="src\db\mongo\GridFS.cpp" />
+    <ClCompile Include="src\db\mongo\MongoCollection.cpp" />
+    <ClCompile Include="src\db\mongo\MongoCursor.cpp" />
+    <ClCompile Include="src\db\mongo\MongoDB.cpp" />
+    <ClCompile Include="src\db\redis\Redis.cpp" />
+    <ClCompile Include="src\db\redis\RedisHash.cpp" />
+    <ClCompile Include="src\db\redis\RedisList.cpp" />
+    <ClCompile Include="src\db\redis\RedisPubSub.cpp" />
+    <ClCompile Include="src\db\redis\RedisSet.cpp" />
+    <ClCompile Include="src\db\redis\RedisSortedSet.cpp" />
+    <ClCompile Include="src\db\sql\DBResult.cpp" />
+    <ClCompile Include="src\db\sql\DBRow.cpp" />
+    <ClCompile Include="src\db\sql\mysql.cpp" />
+    <ClCompile Include="src\db\sql\SQLite.cpp" />
+    <ClCompile Include="src\encoding\encoding.cpp" />
+    <ClCompile Include="src\encoding\encoding_bson.cpp" />
+    <ClCompile Include="src\encoding\encoding_iconv.cpp" />
+    <ClCompile Include="src\fs\File.cpp" />
+    <ClCompile Include="src\fs\fs.cpp" />
+    <ClCompile Include="src\fs\path.cpp" />
+    <ClCompile Include="src\fs\Stat.cpp" />
+    <ClCompile Include="src\global\Buffer.cpp" />
+    <ClCompile Include="src\global\Function.cpp" />
+    <ClCompile Include="src\global\global.cpp" />
+    <ClCompile Include="src\global\Int64.cpp" />
+    <ClCompile Include="src\http\http.cpp" />
+    <ClCompile Include="src\http\HttpCollection.cpp" />
+    <ClCompile Include="src\http\HttpCookie.cpp" />
+    <ClCompile Include="src\http\HttpFileHandler.cpp" />
+    <ClCompile Include="src\http\HttpHandler.cpp" />
+    <ClCompile Include="src\http\HttpMessage.cpp" />
+    <ClCompile Include="src\http\HttpRequest.cpp" />
+    <ClCompile Include="src\http\HttpResponse.cpp" />
+    <ClCompile Include="src\http\HttpServer.cpp" />
+    <ClCompile Include="src\http\HttpsServer.cpp" />
+    <ClCompile Include="src\http\HttpUploadCollection.cpp" />
+    <ClCompile Include="src\http\HttpUploadData.cpp" />
+    <ClCompile Include="src\io\BufferedStream.cpp" />
+    <ClCompile Include="src\io\io.cpp" />
+    <ClCompile Include="src\io\MemoryCloneStream.cpp" />
+    <ClCompile Include="src\io\MemoryStream.cpp" />
+    <ClCompile Include="src\io\Stream.cpp" />
+    <ClCompile Include="src\mq\AsyncWaitHandler.cpp" />
+    <ClCompile Include="src\mq\Chain.cpp" />
+    <ClCompile Include="src\mq\JSHandler.cpp" />
+    <ClCompile Include="src\mq\Message.cpp" />
+    <ClCompile Include="src\mq\mq.cpp" />
+    <ClCompile Include="src\mq\NullHandler.cpp" />
+    <ClCompile Include="src\mq\PacketHandler.cpp" />
+    <ClCompile Include="src\mq\PacketMessage.cpp" />
+    <ClCompile Include="src\mq\Routing.cpp" />
+    <ClCompile Include="src\net\inetAddr.cpp" />
+    <ClCompile Include="src\net\net.cpp" />
+    <ClCompile Include="src\net\Smtp.cpp" />
+    <ClCompile Include="src\net\Socket.cpp" />
+    <ClCompile Include="src\net\Socket_api.cpp" />
+    <ClCompile Include="src\net\Socket_ev.cpp" />
+    <ClCompile Include="src\net\Socket_iocp.cpp" />
+    <ClCompile Include="src\net\TcpServer.cpp" />
+    <ClCompile Include="src\net\Url.cpp" />
+    <ClCompile Include="src\os\os.cpp" />
+    <ClCompile Include="src\os\os_freebsd.cpp" />
+    <ClCompile Include="src\os\os_linux.cpp" />
+    <ClCompile Include="src\os\os_osx.cpp" />
+    <ClCompile Include="src\os\os_posix.cpp" />
+    <ClCompile Include="src\os\os_win.cpp" />
+    <ClCompile Include="src\other\Image.cpp" />
+    <ClCompile Include="src\other\JsonRpcHandler.cpp" />
+    <ClCompile Include="src\other\process.cpp" />
+    <ClCompile Include="src\other\Regex.cpp" />
+    <ClCompile Include="src\other\uuidVar.cpp" />
+    <ClCompile Include="src\other\zlib.cpp" />
+    <ClCompile Include="src\sandbox\SandBox.cpp" />
+    <ClCompile Include="src\sandbox\SandBox_repl.cpp" />
+    <ClCompile Include="src\sandbox\SandBox_root.cpp" />
+    <ClCompile Include="src\sandbox\SandBox_run.cpp" />
+    <ClCompile Include="src\ssl\ssl.cpp" />
+    <ClCompile Include="src\ssl\SslHandler.cpp" />
+    <ClCompile Include="src\ssl\SslServer.cpp" />
+    <ClCompile Include="src\ssl\SslSocket.cpp" />
+    <ClCompile Include="src\test\assert.cpp" />
+    <ClCompile Include="src\test\Expect.cpp" />
+    <ClCompile Include="src\test\test.cpp" />
+    <ClCompile Include="src\util\LruCache.cpp" />
+    <ClCompile Include="src\util\Stats.cpp" />
+    <ClCompile Include="src\util\util.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{05654A7E-DBAF-4211-886A-C23565833D05}</ProjectGuid>
