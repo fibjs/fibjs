@@ -7,7 +7,7 @@ var http = require('http');
 var mq = require('mq');
 var rpc = require('rpc');
 
-var hdlr = http.handler(mq.routing({
+var hdlr = new http.Handler(new mq.Routing({
 	'^(/.*)$': http.fileHandler('httpd/www/'),
 	'^/docs(/.*)$': http.fileHandler('../fibjs/docs/'),
 	'^/xhr(/.*)$': rpc.json({

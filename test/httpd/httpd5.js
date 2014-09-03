@@ -22,7 +22,7 @@ for (var i = 0; i < sz; i++)
 body.setTime(new Date());
 console.log(body.clone().stat().mtime);
 
-new net.TcpServer(8080, http.handler(function(req) {
+new net.TcpServer(8080, new http.Handler(function(req) {
 	req.response.body = body.clone();
 })).run();
 

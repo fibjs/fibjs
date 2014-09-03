@@ -20,6 +20,8 @@ clear();
 
 var datas = [];
 
+var i;
+
 for (i = 0; i < 30; i++)
 	datas[i] = {
 		_id: i,
