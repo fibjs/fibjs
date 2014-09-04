@@ -22,6 +22,7 @@ public:
 public:
     // HttpCookie_base
     virtual result_t parse(const char *header);
+    virtual result_t match(const char *url, bool &retVal);
     virtual result_t get_name(std::string &retVal);
     virtual result_t set_name(const char *newVal);
     virtual result_t get_value(std::string &retVal);

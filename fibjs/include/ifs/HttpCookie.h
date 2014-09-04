@@ -35,6 +35,7 @@ public:
 	static result_t _new(v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* name, const char* value, v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t parse(const char* header) = 0;
+	virtual result_t match(const char* url, bool& retVal) = 0;
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t set_name(const char* newVal) = 0;
 	virtual result_t get_value(std::string& retVal) = 0;
@@ -59,6 +60,7 @@ public:
 public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_match(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -83,7 +85,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"parse", s_parse}
+			{"parse", s_parse},
+			{"match", s_match}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -100,7 +103,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"HttpCookie", s__new, 
-			1, s_method, 0, NULL, 7, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 7, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -285,10 +288,10 @@ namespace fibjs
 
 		hr = _new(v0, vr, args.This());
 
-		METHOD_OVER(3, 1);
+		METHOD_OVER(3, 2);
 
 		ARG(arg_string, 0);
-		OPT_ARG(arg_string, 1, "");
+		ARG(arg_string, 1);
 		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
 		hr = _new(v0, v1, v2, vr, args.This());
@@ -306,6 +309,20 @@ namespace fibjs
 		hr = pInst->parse(v0);
 
 		METHOD_VOID();
+	}
+
+	inline void HttpCookie_base::s_match(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(HttpCookie_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->match(v0, vr);
+
+		METHOD_RETURN();
 	}
 
 }

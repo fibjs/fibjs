@@ -99,6 +99,83 @@ result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
     return 0;
 }
 
+result_t HttpCookie::match(const char *url, bool &retVal)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->parse(url);
+    if (hr < 0)
+        return hr;
+
+    retVal = false;
+
+    if (!m_domain.empty())
+    {
+        const char *p1, *p2;
+        size_t sz = m_domain.length();
+
+        p1 = m_domain.c_str();
+        p2 = u->m_host.c_str();
+
+        while (*p1 == '.')
+        {
+            p1 ++;
+            sz --;
+        }
+
+        if (*p1)
+        {
+            if (!qstrchr(p1, '.'))
+                return 0;
+
+            if (sz > u->m_host.length())
+                return 0;
+
+            if (sz == u->m_host.length())
+            {
+                if (qstrcmp(p1, p2))
+                    return 0;
+            }
+            else
+            {
+                p2 += u->m_host.length() - sz - 1;
+                if (*p2 != '.' || qstrcmp(p1, p2 + 1))
+                    return 0;
+            }
+        }
+    }
+
+    if (!m_path.empty())
+    {
+        const char *p1, *p2;
+        size_t sz = m_path.length();
+
+        p1 = m_path.c_str();
+        p2 = u->m_pathname.c_str();
+
+        while (sz && p1[sz - 1] == '/')
+            sz --;
+
+        if (sz)
+        {
+            if (sz > u->m_pathname.length())
+                return 0;
+
+            if (sz == u->m_pathname.length())
+            {
+                if (qstrcmp(p1, p2, (int32_t)sz))
+                    return 0;
+            }
+            else if (p2[sz] != '/' || qstrcmp(p1, p2, (int32_t)sz))
+                return 0;
+        }
+    }
+
+    retVal = true;
+
+    return 0;
+}
+
 result_t HttpCookie::get_name(std::string &retVal)
 {
     retVal = m_name;

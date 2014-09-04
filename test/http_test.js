@@ -225,6 +225,105 @@ describe("http", function() {
 				new http.Cookie().parse(";");
 			});
 		});
+
+		var match_cases = [
+			[{
+				name: "test",
+				value: "value"
+			}, "http://www.baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				path: '/'
+			}, "http://www.baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				path: '/path/'
+			}, "http://www.baoz.me/path/to", true],
+			[{
+				name: "test",
+				value: "value",
+				path: '/path/'
+			}, "http://www.baoz.me/path", true],
+			[{
+				name: "test",
+				value: "value",
+				path: '/path'
+			}, "http://www.baoz.me/path/to", true],
+			[{
+				name: "test",
+				value: "value",
+				path: '/path'
+			}, "http://www.baoz.me/path", true],
+			[{
+				name: "test",
+				value: "value",
+				path: '/path'
+			}, "http://www.baoz.me/", false],
+			[{
+				name: "test",
+				value: "value",
+				path: '/path'
+			}, "http://www.baoz.me/path1", false],
+			[{
+				name: "test",
+				value: "value",
+				path: '/path//////'
+			}, "http://www.baoz.me/path", true],
+			[{
+				name: "test",
+				value: "value",
+				path: '///////'
+			}, "http://www.baoz.me/path", true],
+			[{
+				name: "test",
+				value: "value",
+				domain: ".baoz.me"
+			}, "http://www.baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				domain: ".baoz.me"
+			}, "http://baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				domain: "baoz.me"
+			}, "http://www.baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				domain: "baoz.me"
+			}, "http://baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				domain: ".baoz.me"
+			}, "http://www.baoz1.me/", false],
+			[{
+				name: "test",
+				value: "value",
+				domain: ".....baoz.me"
+			}, "http://www.baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				domain: "....."
+			}, "http://www.baoz.me/", true],
+			[{
+				name: "test",
+				value: "value",
+				domain: ".me"
+			}, "http://www.baoz.me/", false]
+		];
+
+		it("match", function() {
+			for (var i = 0; i < match_cases.length; i++) {
+				assert.equal(new http.Cookie(match_cases[i][0]).match(match_cases[i][1]),
+					match_cases[i][2]);
+			}
+		});
 	});
 
 	describe("parse", function() {
