@@ -123,6 +123,24 @@ describe('ssl', function() {
 		}
 	});
 
+	it("ssl.connect", function() {
+		var ss = ssl.connect('ssl://127.0.0.1:9080');
+
+		ss.write("GET / HTTP/1.0");
+		assert.equal("GET / HTTP/1.0", ss.read());
+
+		ss.close();
+	});
+
+	it("net.connect", function() {
+		var ss = net.connect('ssl://127.0.0.1:9080');
+
+		ss.write("GET / HTTP/1.0");
+		assert.equal("GET / HTTP/1.0", ss.read());
+
+		ss.close();
+	});
+
 	it("copyTo", function() {
 		var str = "012345678901234567890123456789";
 

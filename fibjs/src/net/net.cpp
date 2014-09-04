@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "ifs/ssl.h"
 #include "Socket.h"
 #include "Smtp.h"
 #include "Url.h"
@@ -92,15 +93,13 @@ result_t net_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
                            exlib::AsyncEvent *ac)
 {
     if (!qstrcmp(url, "ssl:", 4))
+        return ssl_base::connect(url, retVal, ac);
+
+    if (qstrcmp(url, "tcp:", 4))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
-    {
-        if (!qstrcmp(url, "tcp:", 4))
-            return CHECK_ERROR(CALL_E_NOSYNC);
-
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-    }
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Url> u = new Url();
 

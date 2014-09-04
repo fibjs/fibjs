@@ -22,6 +22,7 @@ class module_base;
 class SslSocket_base;
 class SslHandler_base;
 class SslServer_base;
+class Stream_base;
 class X509Cert_base;
 
 class ssl_base : public module_base
@@ -50,6 +51,7 @@ public:
 
 public:
 	// ssl_base
+	static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
 	static result_t get_verification(int32_t& retVal);
 	static result_t set_verification(int32_t newVal);
@@ -68,9 +70,13 @@ public:
 	static void s_get_BADCERT_REVOKED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_BADCERT_CN_MISMATCH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_BADCERT_NOT_TRUSTED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+
+public:
+	ASYNC_STATICVALUE2(ssl_base, connect, const char*, obj_ptr<Stream_base>);
 };
 
 }
@@ -78,12 +84,18 @@ public:
 #include "SslSocket.h"
 #include "SslHandler.h"
 #include "SslServer.h"
+#include "Stream.h"
 #include "X509Cert.h"
 
 namespace fibjs
 {
 	inline ClassInfo& ssl_base::class_info()
 	{
+		static ClassData::ClassMethod s_method[] = 
+		{
+			{"connect", s_connect}
+		};
+
 		static ClassData::ClassObject s_object[] = 
 		{
 			{"Socket", SslSocket_base::class_info},
@@ -107,7 +119,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"ssl", NULL, 
-			0, NULL, 3, s_object, 9, s_property, NULL, NULL,
+			1, s_method, 3, s_object, 9, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -194,6 +206,19 @@ namespace fibjs
 		hr = set_verification(v0);
 
 		PROPERTY_SET_LEAVE();
+	}
+
+	inline void ssl_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Stream_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = ac_connect(v0, vr);
+
+		METHOD_RETURN();
 	}
 
 }
