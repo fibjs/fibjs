@@ -459,7 +459,7 @@ describe('crypto', function() {
 			cert.clear();
 			assert.deepEqual(cert.dump(), []);
 
-			cert.load(fs.readFile('cert_files/cacert.pem'));
+			cert.load(fs.readFile('cert_files/ca-bundle.crt'));
 			var s1 = cert.dump();
 
 			assert.deepEqual(s, s1);
@@ -469,7 +469,7 @@ describe('crypto', function() {
 			cert.clear();
 			assert.deepEqual(cert.dump(), []);
 
-			cert.load(fs.readFile('cert_files/cacert.pem'));
+			cert.load(fs.readFile('cert_files/ca-bundle.crt'));
 			var s = cert.dump();
 
 			cert.clear();
