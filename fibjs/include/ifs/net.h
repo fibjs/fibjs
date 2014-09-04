@@ -20,6 +20,7 @@ namespace fibjs
 
 class module_base;
 class Socket_base;
+class Stream_base;
 class Smtp_base;
 class TcpServer_base;
 class Url_base;
@@ -50,7 +51,8 @@ public:
 	static result_t resolve(const char* name, int32_t family, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t ip(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t ipv6(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
-	static result_t connect(const char* host, int32_t port, int32_t family, obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t connect(const char* host, int32_t port, int32_t family, obj_ptr<Stream_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t openSmtp(const char* host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t backend(std::string& retVal);
 
@@ -76,13 +78,15 @@ public:
 	ASYNC_STATICVALUE3(net_base, resolve, const char*, int32_t, std::string);
 	ASYNC_STATICVALUE2(net_base, ip, const char*, std::string);
 	ASYNC_STATICVALUE2(net_base, ipv6, const char*, std::string);
-	ASYNC_STATICVALUE4(net_base, connect, const char*, int32_t, int32_t, obj_ptr<Socket_base>);
+	ASYNC_STATICVALUE4(net_base, connect, const char*, int32_t, int32_t, obj_ptr<Stream_base>);
+	ASYNC_STATICVALUE2(net_base, connect, const char*, obj_ptr<Stream_base>);
 	ASYNC_STATICVALUE4(net_base, openSmtp, const char*, int32_t, int32_t, obj_ptr<Smtp_base>);
 };
 
 }
 
 #include "Socket.h"
+#include "Stream.h"
 #include "Smtp.h"
 #include "TcpServer.h"
 #include "Url.h"
@@ -198,7 +202,7 @@ namespace fibjs
 
 	inline void net_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		obj_ptr<Socket_base> vr;
+		obj_ptr<Stream_base> vr;
 
 		METHOD_ENTER(3, 2);
 
@@ -207,6 +211,12 @@ namespace fibjs
 		OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
 		hr = ac_connect(v0, v1, v2, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = ac_connect(v0, vr);
 
 		METHOD_RETURN();
 	}

@@ -8,13 +8,15 @@ var coroutine = require('coroutine');
 
 var net_config = {
 	family: net.AF_INET6,
-	address: '::1'
+	address: '::1',
+	host: '[::1]'
 };
 
 if (os.type == 'Windows' && os.version < "6.0")
 	net_config = {
 		family: net.AF_INET,
-		address: '127.0.0.1'
+		address: '127.0.0.1',
+		host: '127.0.0.1'
 	};
 
 var backend = {
@@ -96,8 +98,19 @@ describe("net", function() {
 			s1.dispose();
 		}
 
+		function conn_url() {
+			var s1 = net.connect('tcp://' + net_config.host + ':' + 8080);
+			console.log(s1.remoteAddress, s1.remotePort, "<-",
+				s1.localAddress, s1.localPort);
+			s1.send(new Buffer("GET / HTTP/1.0"));
+			assert.equal("GET / HTTP/1.0", s1.recv());
+			s1.close();
+			s1.dispose();
+		}
+
 		conn_socket();
 		conn();
+		conn_url();
 	});
 
 	it("copyTo", function() {
