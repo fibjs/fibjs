@@ -50,7 +50,7 @@ public:
 public:
     struct _name
     {
-        int id;
+        int32_t id;
         const char *name;
     };
 
@@ -62,6 +62,15 @@ public:
 
 private:
     x509_crt *get_crt();
+
+private:
+    struct _cert
+    {
+        int32_t size;
+        const char *data;
+    };
+
+    static _cert g_root_ca[];
 
 private:
     obj_ptr<X509Cert> m_root;

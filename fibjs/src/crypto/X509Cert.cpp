@@ -281,18 +281,20 @@ result_t X509Cert::loadFile(const char *filename)
     return 0;
 }
 
-extern const char *g_root_ca[];
-
 result_t X509Cert::loadRootCerts()
 {
-    const char **pca = g_root_ca;
-    result_t hr;
+    _cert *pca = g_root_ca;
+    int ret;
 
-    while (*pca)
+    while (pca->size)
     {
-        hr = load(*pca ++);
-        if (hr < 0)
-            return hr;
+        ret = x509_crt_parse_der(&m_crt,
+                                 (const unsigned char *)pca->data,
+                                 pca->size);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        pca++;
     }
 
     return 0;
