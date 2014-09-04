@@ -8,10 +8,8 @@
 #include "ifs/http.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
-#include "Socket.h"
 #include "Url.h"
 #include "HttpRequest.h"
-#include "SslSocket.h"
 #include "BufferedStream.h"
 #include "map"
 #include "ifs/zlib.h"
@@ -19,46 +17,18 @@
 namespace fibjs
 {
 
-result_t http_base::request(const char *host, int32_t port, HttpRequest_base *req,
-                            bool ssl, obj_ptr<HttpResponse_base> &retVal,
+result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
+                            obj_ptr<HttpResponse_base> &retVal,
                             exlib::AsyncEvent *ac)
 {
     class asyncRequest: public asyncState
     {
     public:
-        asyncRequest(const char *host, int32_t port, HttpRequest_base *req, bool ssl,
+        asyncRequest(Stream_base *conn, HttpRequest_base *req,
                      obj_ptr<HttpResponse_base> &retVal, exlib::AsyncEvent *ac) :
-            asyncState(ac), m_host(host), m_port(port), m_req(req), m_ssl(ssl), m_retVal(
-                retVal)
+            asyncState(ac), m_conn(conn), m_req(req), m_retVal(retVal)
         {
-            set(connect);
-        }
-
-        static int connect(asyncState *pState, int n)
-        {
-            asyncRequest *pThis = (asyncRequest *) pState;
-
-            pThis->m_sock = new Socket();
-            pThis->m_strm = pThis->m_sock;
-
-            pThis->m_sock->create(net_base::_AF_INET, net_base::_SOCK_STREAM);
-
-            pThis->set(handshake);
-            return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis);
-        }
-
-        static int handshake(asyncState *pState, int n)
-        {
-            asyncRequest *pThis = (asyncRequest *) pState;
-
-            pThis->set(send);
-
-            if (!pThis->m_ssl)
-                return 0;
-
-            pThis->m_ssl_sock = new SslSocket();
-            pThis->m_strm = pThis->m_ssl_sock;
-            return pThis->m_ssl_sock->connect(pThis->m_sock, "", pThis->m_temp, pThis);
+            set(send);
         }
 
         static int send(asyncState *pState, int n)
@@ -66,7 +36,7 @@ result_t http_base::request(const char *host, int32_t port, HttpRequest_base *re
             asyncRequest *pThis = (asyncRequest *) pState;
 
             pThis->set(recv);
-            return pThis->m_req->sendTo(pThis->m_strm, pThis);
+            return pThis->m_req->sendTo(pThis->m_conn, pThis);
         }
 
         static int recv(asyncState *pState, int n)
@@ -74,7 +44,7 @@ result_t http_base::request(const char *host, int32_t port, HttpRequest_base *re
             asyncRequest *pThis = (asyncRequest *) pState;
 
             pThis->m_retVal = new HttpResponse();
-            pThis->m_bs = new BufferedStream(pThis->m_strm);
+            pThis->m_bs = new BufferedStream(pThis->m_conn);
             pThis->m_bs->set_EOL("\r\n");
 
             pThis->set(unzip);
@@ -120,37 +90,22 @@ result_t http_base::request(const char *host, int32_t port, HttpRequest_base *re
                 pThis->m_retVal->set_body(pThis->m_unzip);
             }
 
-            pThis->set(ok);
-            if (!pThis->m_ssl)
-                return 0;
-
-            return pThis->m_ssl_sock->close(pThis);
-        }
-
-        static int ok(asyncState *pState, int n)
-        {
-            return pState->done();
+            return pThis->done();
         }
 
     private:
-        const char *m_host;
-        int32_t m_port;
+        Stream_base *m_conn;
         HttpRequest_base *m_req;
-        bool m_ssl;
         obj_ptr<HttpResponse_base> &m_retVal;
-        obj_ptr<Socket> m_sock;
-        obj_ptr<SslSocket> m_ssl_sock;
-        obj_ptr<Stream_base> m_strm;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
         obj_ptr<SeekableStream_base> m_body;
-        int m_temp;
     };
 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(host, port, req, ssl, retVal, ac))->post(0);
+    return (new asyncRequest(conn, req, retVal, ac))->post(0);
 }
 
 result_t http_base::request(const char *method, const char *url,
@@ -165,47 +120,48 @@ result_t http_base::request(const char *method, const char *url,
         urls[url] = true;
 
         result_t hr;
-        std::string hostname;
-        int nPort = 80;
         int32_t status;
         bool ssl = false;
         obj_ptr<HttpRequest> req;
         Variant v;
+        std::string connUrl;
 
         {
             obj_ptr<Url> u = new Url();
+            std::string path;
 
             hr = u->parse(url);
             if (hr < 0)
                 return hr;
 
-            std::string host, port, path;
-            std::string protocol;
-
-            u->get_protocol(protocol);
-
-            if (!qstrcmp(protocol.c_str(), "https:"))
+            if (!qstrcmp(u->m_protocol.c_str(), "https:"))
+            {
                 ssl = true;
-            else if (qstrcmp(protocol.c_str(), "http:"))
+                connUrl = "ssl://";
+            }
+            else if (!qstrcmp(u->m_protocol.c_str(), "http:"))
+                connUrl = "tcp://";
+            else
                 return CHECK_ERROR(Runtime::setError("unknown protocol"));
 
-            u->get_host(host);
-            if (host.empty())
+            if (u->m_host.empty())
                 return CHECK_ERROR(Runtime::setError("unknown host"));
 
-            u->get_hostname(hostname);
-            u->get_port(port);
-            u->get_path(path);
+            connUrl.append(u->m_host);
 
-            if (!port.empty())
-                nPort = atoi(port.c_str());
+            if (!u->m_port.empty())
+            {
+                connUrl.append(":", 1);
+                connUrl.append(u->m_port);
+            }
             else
-                nPort = ssl ? 443 : 80;
+                connUrl.append(ssl ? ":443" : ":80");
 
             req = new HttpRequest();
 
+            u->get_path(path);
             req->set_address(path.c_str());
-            req->addHeader("host", host.c_str());
+            req->addHeader("host", u->m_host.c_str());
             req->setHeader("Accept-Encoding", "gzip,deflate");
             req->addHeader(headers);
 
@@ -213,9 +169,16 @@ result_t http_base::request(const char *method, const char *url,
                 req->set_body(body);
         }
 
-        hr = ac_request(hostname.c_str(), nPort, req, ssl, retVal);
-        if (hr < 0)
-            return hr;
+        {
+            obj_ptr<Stream_base> conn;
+            hr = net_base::ac_connect(connUrl.c_str(), conn);
+            if (hr < 0)
+                return hr;
+
+            hr = ac_request(conn, req, retVal);
+            if (hr < 0)
+                return hr;
+        }
 
         hr = retVal->get_status(status);
         if (hr < 0)

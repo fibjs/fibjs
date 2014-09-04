@@ -26,6 +26,7 @@ class HttpServer_base;
 class HttpsServer_base;
 class HttpHandler_base;
 class Handler_base;
+class Stream_base;
 class SeekableStream_base;
 class Buffer_base;
 
@@ -45,7 +46,7 @@ public:
 public:
 	// http_base
 	static result_t fileHandler(const char* root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
-	static result_t request(const char* host, int32_t port, HttpRequest_base* req, bool ssl, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t request(const char* method, const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
@@ -69,7 +70,7 @@ public:
 	static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-	ASYNC_STATICVALUE5(http_base, request, const char*, int32_t, HttpRequest_base*, bool, obj_ptr<HttpResponse_base>);
+	ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
 };
 
 }
@@ -81,6 +82,7 @@ public:
 #include "HttpsServer.h"
 #include "HttpHandler.h"
 #include "Handler.h"
+#include "Stream.h"
 #include "SeekableStream.h"
 #include "Buffer.h"
 
@@ -136,14 +138,12 @@ namespace fibjs
 	{
 		obj_ptr<HttpResponse_base> vr;
 
-		METHOD_ENTER(4, 3);
+		METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(int32_t, 1);
-		ARG(obj_ptr<HttpRequest_base>, 2);
-		OPT_ARG(bool, 3, false);
+		ARG(obj_ptr<Stream_base>, 0);
+		ARG(obj_ptr<HttpRequest_base>, 1);
 
-		hr = ac_request(v0, v1, v2, v3, vr);
+		hr = ac_request(v0, v1, vr);
 
 		METHOD_OVER(3, 2);
 

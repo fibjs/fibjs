@@ -30,14 +30,12 @@ class http : module
      */
     static Handler fileHandler(String root, Object mimes = {});
 
-    /*! @brief 发送 http 请求到指定的服务器，并返回结果
-     @param host 指定服务器的域名或地址
-     @param port 指定服务器的端口
+    /*! @brief 发送 http 请求到指定的流对象，并返回结果
+     @param conn 指定处理请求的流对象
      @param req 要发送的 HttpRequest 对象
-     @param ssl 指定使用 ssl 连接服务器
-     @return 返回服务器响应，缺省为 false
+     @return 返回服务器响应
      */
-    static HttpResponse request(String host, Integer port, HttpRequest req, Boolean ssl = false) async;
+    static HttpResponse request(Stream conn, HttpRequest req) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
