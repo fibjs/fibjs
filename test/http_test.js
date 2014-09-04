@@ -161,6 +161,10 @@ describe("http", function() {
 				value: "value"
 			}, "test=value"],
 			[{
+				name: "test=",
+				value: "value;"
+			}, "test%3D=value%3B"],
+			[{
 				name: "test",
 				value: "value",
 				domain: ".baoz.me"

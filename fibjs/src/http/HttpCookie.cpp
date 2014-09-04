@@ -43,13 +43,16 @@ result_t HttpCookie::parse(const char *header)
 {
     _parser p(header);
     std::string key, value;
+    std::string tmp;
 
     p.skipSpace();
-    p.getWord(m_name, '=');
-    if (!p.want('=') || m_name.empty())
+    p.getWord(tmp, '=');
+    if (!p.want('=') || tmp.empty())
         return CHECK_ERROR(Runtime::setError("HttpCookie: bad cookie format."));
+    Url::decodeURI(tmp.c_str(), (int32_t)tmp.length(), m_name);
 
-    p.getWord(m_value, ';');
+    p.getWord(tmp, ';');
+    Url::decodeURI(tmp.c_str(), (int32_t)tmp.length(), m_value);
 
     while (p.want(';'))
     {
@@ -180,6 +183,8 @@ result_t HttpCookie::set_secure(bool newVal)
     return 0;
 }
 
+static const char *CookieNameTable =
+    " ! #$%&'()*+ -./0123456789: < >?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ ]^_`abcdefghijklmnopqrstuvwxyz{|}~ ";
 static const char *CookieTable =
     " ! #$%&'()*+ -./0123456789: <=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ ]^_`abcdefghijklmnopqrstuvwxyz{|}~ ";
 
@@ -188,7 +193,8 @@ result_t HttpCookie::toString(std::string &retVal)
     std::string str;
     std::string tmp;
 
-    str = m_name;
+    Url::encodeURI(m_name.c_str(), (int32_t)m_name.length(), tmp, CookieNameTable);
+    str = tmp;
     str += '=';
 
     Url::encodeURI(m_value.c_str(), (int32_t)m_value.length(), tmp, CookieTable);
