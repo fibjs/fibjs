@@ -255,27 +255,27 @@ static BOOL (WINAPI *pSleepConditionVariableCS)(PCONDITION_VARIABLE, PCRITICAL_S
 
 OSCondVarNew::OSCondVarNew(OSMutex *mu) : _mu(mu)
 {
-    InitializeConditionVariable(&_cv);
+    pInitializeConditionVariable(&_cv);
 }
 
 OSCondVarNew::~OSCondVarNew()
 {
-    WakeAllConditionVariable(&_cv);
+    pWakeAllConditionVariable(&_cv);
 }
 
 void OSCondVarNew::Wait()
 {
-    SleepConditionVariableCS(&_cv, &_mu->cs_, INFINITE);
+    pSleepConditionVariableCS(&_cv, &_mu->cs_, INFINITE);
 }
 
 void OSCondVarNew::Signal()
 {
-    WakeConditionVariable(&_cv);
+    pWakeConditionVariable(&_cv);
 }
 
 void OSCondVarNew::SignalAll()
 {
-    WakeAllConditionVariable(&_cv);
+    pWakeAllConditionVariable(&_cv);
 }
 
 static class _initConv
