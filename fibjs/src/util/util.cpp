@@ -961,18 +961,71 @@ result_t util_base::_union(const v8::FunctionCallbackInfo<v8::Value> &args,
     return 0;
 }
 
-result_t util_base::without(v8::Local<v8::Array> arr,
+result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
+                            v8::Local<v8::Array> &retVal)
+{
+    if (!list->IsObject())
+        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+
+    bool bNext = true;
+
+    if (retVal.IsEmpty())
+        retVal = v8::Array::New(isolate);
+    else if (shallow)
+        bNext = false;
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    if (IsEmpty(v))
+        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+
+    int32_t len = v->Int32Value();
+    int32_t cnt = retVal->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i ++)
+    {
+        v = o->Get(i);
+        if (bNext && v->IsObject())
+        {
+            v8::Local<v8::Object> o1 = v8::Local<v8::Object>::Cast(v);
+            v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+            if (IsEmpty(v))
+                retVal->Set(cnt ++, o->Get(i));
+            else
+            {
+                flatten(o1, shallow, retVal);
+                cnt = retVal->Length();
+            }
+        }
+        else
+            retVal->Set(cnt ++, o->Get(i));
+    }
+
+    return 0;
+}
+
+result_t util_base::without(v8::Local<v8::Value> arr,
                             const v8::FunctionCallbackInfo<v8::Value> &args,
                             v8::Local<v8::Array> &retVal)
 {
+    if (!arr->IsObject())
+        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(arr);
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    if (IsEmpty(v))
+        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+
+    int32_t len = v->Int32Value();
+
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate);
-    int32_t len = arr->Length();
     int32_t argc = args.Length();
     int32_t i, j, n = 0;
 
     for (i = 0; i < len; i ++)
     {
-        v8::Local<v8::Value> v = arr->Get(i);
+        v8::Local<v8::Value> v = o->Get(i);
 
         for (j = 1; j < argc; j ++)
             if (v->StrictEquals(args[j]))

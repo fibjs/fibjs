@@ -298,9 +298,47 @@ describe('util', function() {
 		assert.deepEqual(result, [1, 2, 3, 30, 40, [1]]);
 	});
 
+	it('flatten', function() {
+		var list = [1, [2],
+			[3, [
+				[
+					[4]
+				]
+			]]
+		];
+		assert.deepEqual(util.flatten(list), [1, 2, 3, 4]);
+		assert.deepEqual(util.flatten(list, true), [1, 2, 3, [
+			[
+				[4]
+			]
+		]]);
+		var result = (function() {
+			return util.flatten(arguments);
+		}(1, [2], [3, [
+			[
+				[4]
+			]
+		]]));
+		assert.deepEqual(result, [1, 2, 3, 4]);
+		list = [
+			[1],
+			[2],
+			[3],
+			[
+				[4]
+			]
+		];
+		assert.deepEqual(util.flatten(list, true), [1, 2, 3, [4]]);
+	});
+
 	it('without', function() {
 		var list = [1, 2, 1, 0, 3, 1, 4];
 		assert.deepEqual(util.without(list, 0, 1), [2, 3, 4]);
+
+		var result = (function() {
+			return util.without(arguments, 0, 1);
+		}(1, 2, 1, 0, 3, 1, 4));
+		assert.deepEqual(result, [2, 3, 4]);
 
 		list = [{
 			one: 1

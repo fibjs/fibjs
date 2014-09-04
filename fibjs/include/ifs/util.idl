@@ -213,13 +213,21 @@ class util : module
      */
     static Array intersection(...);
 
+    /*! @brief 将一个嵌套多层的数组(嵌套可以是任何层数)转换为只有一层的数组。 如果你传递 shallow 参数，数组将只减少一维的嵌套。
+
+     @param arr 指定需要转换的数组
+     @param shallow 指定是否只减少一维的嵌套，缺省为 false
+     @return 返回转换的结果
+     */
+    static Array flatten(Value arr, Boolean shallow = false);
+
     /*! @brief 返回一个包含 arr 数组中排除一个或者多个元素后的数组
 
      @param arr 指定需要排除的数组
      @param ... 指定一个或者多个用于排除的元素
      @return 返回排除的结果
      */
-    static Array without(Array arr, ...);
+    static Array without(Value arr, ...);
 
     /*! @brief 返回一个包含 arr 数组中排除 without 数组元素之后的数组
 
@@ -227,7 +235,7 @@ class util : module
      @param ... 指定用于排除的一个或者多个数组
      @return 返回排除的结果
      */
-    static Array difference(Array arr, ...);
+    static Array difference(Array list, ...);
 
     /*! @brief 遍历 list 中的所有元素，按顺序用遍历输出每个元素。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
 

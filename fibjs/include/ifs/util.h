@@ -66,8 +66,9 @@ public:
 	static result_t unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Array>& retVal);
 	static result_t _union(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
 	static result_t intersection(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
-	static result_t without(v8::Local<v8::Array> arr, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
-	static result_t difference(v8::Local<v8::Array> arr, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
+	static result_t flatten(v8::Local<v8::Value> arr, bool shallow, v8::Local<v8::Array>& retVal);
+	static result_t without(v8::Local<v8::Value> arr, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
+	static result_t difference(v8::Local<v8::Array> list, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
 	static result_t each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
 	static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
 	static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
@@ -106,6 +107,7 @@ public:
 	static void s_unique(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_union(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_intersection(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_flatten(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_without(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_difference(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_each(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -151,6 +153,7 @@ namespace fibjs
 			{"unique", s_unique},
 			{"union", s_union},
 			{"intersection", s_intersection},
+			{"flatten", s_flatten},
 			{"without", s_without},
 			{"difference", s_difference},
 			{"each", s_each},
@@ -168,7 +171,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"util", NULL, 
-			32, s_method, 2, s_object, 0, NULL, NULL, NULL,
+			33, s_method, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -531,13 +534,27 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline void util_base::s_flatten(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> vr;
+
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Local<v8::Value>, 0);
+		OPT_ARG(bool, 1, false);
+
+		hr = flatten(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
 	inline void util_base::s_without(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Local<v8::Array> vr;
 
 		METHOD_ENTER(-1, 1);
 
-		ARG(v8::Local<v8::Array>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = without(v0, args, vr);
 
