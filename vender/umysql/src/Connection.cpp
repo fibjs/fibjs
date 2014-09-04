@@ -602,7 +602,7 @@ void *Connection::handleResultPacket(int _fieldCount, void* opt)
 
   // Read Field packets
 
-  UMTypeInfo *typeInfo = (UMTypeInfo *) alloca(fieldCount * sizeof(UMTypeInfo));
+  UMTypeInfo *typeInfo = (UMTypeInfo *) alloca((size_t)fieldCount * sizeof(UMTypeInfo));
   int iTypeInfo = 0;
 
   while (true)
