@@ -46,11 +46,15 @@ public:
 
     int wait()
     {
-        if (isSet())
-            return result();
+        int r;
 
-        v8::Unlocker unlocker(isolate);
-        int r = asyncEvent::wait();
+        if (isSet())
+            r = result();
+        else
+        {
+            v8::Unlocker unlocker(isolate);
+            r = asyncEvent::wait();
+        }
 
         if (r == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
