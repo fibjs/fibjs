@@ -135,14 +135,14 @@ std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
     addr_buffer[0] = '0';
     addr_buffer[1] = 'x';
     addr_buffer[10] = 0;
-    int res = read(fd, addr_buffer + 2, 8);
-    if (res < 8) break;
+    int result = read(fd, addr_buffer + 2, 8);
+    if (result < 8) break;
     unsigned start = StringToLong(addr_buffer);
-    res = read(fd, addr_buffer + 2, 1);
-    if (res < 1) break;
+    result = read(fd, addr_buffer + 2, 1);
+    if (result < 1) break;
     if (addr_buffer[2] != '-') break;
-    res = read(fd, addr_buffer + 2, 8);
-    if (res < 8) break;
+    result = read(fd, addr_buffer + 2, 8);
+    if (result < 8) break;
     unsigned end = StringToLong(addr_buffer);
     char buffer[MAP_LENGTH];
     int bytes_read = -1;
@@ -150,8 +150,8 @@ std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
       bytes_read++;
       if (bytes_read >= MAP_LENGTH - 1)
         break;
-      res = read(fd, buffer + bytes_read, 1);
-      if (res < 1) break;
+      result = read(fd, buffer + bytes_read, 1);
+      if (result < 1) break;
     } while (buffer[bytes_read] != '\n');
     buffer[bytes_read] = 0;
     // Ignore mappings that are not executable.

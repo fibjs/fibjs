@@ -11,7 +11,7 @@ namespace base {
 class ConditionVariableEvent;
 class TimeDelta;
 
-class ConditionVariable V8_FINAL {
+class ConditionVariable FINAL {
  public:
   ConditionVariable();
   ~ConditionVariable();
@@ -19,7 +19,7 @@ class ConditionVariable V8_FINAL {
   void NotifyOne();
   void NotifyAll();
   void Wait(Mutex* mutex);
-  bool WaitFor(Mutex* mutex, const TimeDelta& rel_time) V8_WARN_UNUSED_RESULT;
+  bool WaitFor(Mutex* mutex, const TimeDelta& rel_time) WARN_UNUSED_RESULT;
 
   typedef exlib::CondVar NativeHandle;
 

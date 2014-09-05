@@ -33,7 +33,7 @@ class RandomNumberGenerator;
 namespace internal {
 
 class Bootstrapper;
-class CallInterfaceDescriptor;
+class CallInterfaceDescriptorData;
 class CodeGenerator;
 class CodeRange;
 class CodeStubInterfaceDescriptor;
@@ -133,6 +133,22 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
 
 #define ASSIGN_RETURN_ON_EXCEPTION(isolate, dst, call, T)  \
   ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, MaybeHandle<T>())
+
+#define THROW_NEW_ERROR(isolate, call, T)                                    \
+  do {                                                                       \
+    Handle<Object> __error__;                                                \
+    ASSIGN_RETURN_ON_EXCEPTION(isolate, __error__, isolate->factory()->call, \
+                               T);                                           \
+    return isolate->Throw<T>(__error__);                                     \
+  } while (false)
+
+#define THROW_NEW_ERROR_RETURN_FAILURE(isolate, call)             \
+  do {                                                            \
+    Handle<Object> __error__;                                     \
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, __error__,        \
+                                       isolate->factory()->call); \
+    return isolate->Throw(*__error__);                            \
+  } while (false)
 
 #define RETURN_ON_EXCEPTION_VALUE(isolate, call, value)            \
   do {                                                             \
@@ -762,7 +778,6 @@ class Isolate {
   // Return pending location if any or unfilled structure.
   MessageLocation GetMessageLocation();
   Object* ThrowIllegalOperation();
-  Object* ThrowInvalidStringLength();
 
   // Promote a scheduled exception to pending. Asserts has_scheduled_exception.
   Object* PromoteScheduledException();
@@ -1022,7 +1037,7 @@ class Isolate {
   CodeStubInterfaceDescriptor*
       code_stub_interface_descriptor(int index);
 
-  CallInterfaceDescriptor* call_descriptor(int index);
+  CallInterfaceDescriptorData* call_descriptor_data(int index);
 
   void IterateDeferredHandles(ObjectVisitor* visitor);
   void LinkDeferredHandles(DeferredHandles* deferred_handles);
@@ -1259,7 +1274,7 @@ class Isolate {
   DateCache* date_cache_;
   unibrow::Mapping<unibrow::Ecma262Canonicalize> interp_canonicalize_mapping_;
   CodeStubInterfaceDescriptor* code_stub_interface_descriptors_;
-  CallInterfaceDescriptor* call_descriptors_;
+  CallInterfaceDescriptorData* call_descriptor_data_;
   base::RandomNumberGenerator* random_number_generator_;
 
   // Whether the isolate has been created for snapshotting.
@@ -1478,7 +1493,7 @@ class PostponeInterruptsScope BASE_EMBEDDED {
 };
 
 
-class CodeTracer V8_FINAL : public Malloced {
+class CodeTracer FINAL : public Malloced {
  public:
   explicit CodeTracer(int isolate_id)
       : file_(NULL),

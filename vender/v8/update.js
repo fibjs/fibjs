@@ -69,7 +69,7 @@ var files = {
 var re = [
 	/^src\/d8.*$/,
 	/^src\/i18n\..*$/,
-	/^.*-unittest\.cc*$/
+	/^.*test.*\.cc$/
 ];
 
 function chk_file(fname) {

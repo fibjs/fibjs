@@ -50,6 +50,7 @@
     <ClInclude Include="src\base\atomicops_internals_x86_msvc.h" />
     <ClInclude Include="src\base\bits.h" />
     <ClInclude Include="src\base\build_config.h" />
+    <ClInclude Include="src\base\compiler-specific.h" />
     <ClInclude Include="src\base\cpu.h" />
     <ClInclude Include="src\base\flags.h" />
     <ClInclude Include="src\base\lazy-instance.h" />
@@ -94,6 +95,7 @@
     <ClInclude Include="src\compiler\code-generator.h" />
     <ClInclude Include="src\compiler\common-node-cache.h" />
     <ClInclude Include="src\compiler\common-operator.h" />
+    <ClInclude Include="src\compiler\compiler-test-utils.h" />
     <ClInclude Include="src\compiler\control-builders.h" />
     <ClInclude Include="src\compiler\frame.h" />
     <ClInclude Include="src\compiler\gap-resolver.h" />
@@ -106,11 +108,13 @@
     <ClInclude Include="src\compiler\graph-inl.h" />
     <ClInclude Include="src\compiler\graph-reducer.h" />
     <ClInclude Include="src\compiler\graph-replay.h" />
+    <ClInclude Include="src\compiler\graph-unittest.h" />
     <ClInclude Include="src\compiler\graph-visualizer.h" />
     <ClInclude Include="src\compiler\graph.h" />
     <ClInclude Include="src\compiler\ia32\instruction-codes-ia32.h" />
     <ClInclude Include="src\compiler\instruction-codes.h" />
     <ClInclude Include="src\compiler\instruction-selector-impl.h" />
+    <ClInclude Include="src\compiler\instruction-selector-unittest.h" />
     <ClInclude Include="src\compiler\instruction-selector.h" />
     <ClInclude Include="src\compiler\instruction.h" />
     <ClInclude Include="src\compiler\js-context-specialization.h" />
@@ -121,7 +125,6 @@
     <ClInclude Include="src\compiler\js-typed-lowering.h" />
     <ClInclude Include="src\compiler\linkage-impl.h" />
     <ClInclude Include="src\compiler\linkage.h" />
-    <ClInclude Include="src\compiler\machine-node-factory.h" />
     <ClInclude Include="src\compiler\machine-operator-reducer.h" />
     <ClInclude Include="src\compiler\machine-operator.h" />
     <ClInclude Include="src\compiler\machine-type.h" />
@@ -144,12 +147,11 @@
     <ClInclude Include="src\compiler\schedule.h" />
     <ClInclude Include="src\compiler\scheduler.h" />
     <ClInclude Include="src\compiler\simplified-lowering.h" />
-    <ClInclude Include="src\compiler\simplified-node-factory.h" />
     <ClInclude Include="src\compiler\simplified-operator-reducer.h" />
     <ClInclude Include="src\compiler\simplified-operator.h" />
     <ClInclude Include="src\compiler\source-position.h" />
-    <ClInclude Include="src\compiler\structured-machine-assembler.h" />
     <ClInclude Include="src\compiler\typer.h" />
+    <ClInclude Include="src\compiler\value-numbering-reducer.h" />
     <ClInclude Include="src\compiler\verifier.h" />
     <ClInclude Include="src\compiler\x64\instruction-codes-x64.h" />
     <ClInclude Include="src\contexts.h" />
@@ -256,7 +258,6 @@
     <ClInclude Include="src\ic\call-optimization.h" />
     <ClInclude Include="src\ic\handler-compiler.h" />
     <ClInclude Include="src\ic\ic-compiler.h" />
-    <ClInclude Include="src\ic\ic-conventions.h" />
     <ClInclude Include="src\ic\ic-inl.h" />
     <ClInclude Include="src\ic\ic.h" />
     <ClInclude Include="src\ic\stub-cache.h" />
@@ -332,6 +333,7 @@
     <ClInclude Include="src\string-search.h" />
     <ClInclude Include="src\string-stream.h" />
     <ClInclude Include="src\strtod.h" />
+    <ClInclude Include="src\test\test-utils.h" />
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h" />
     <ClInclude Include="src\third_party\valgrind\valgrind.h" />
     <ClInclude Include="src\token.h" />
@@ -397,6 +399,7 @@
     <ClCompile Include="src\ast-value-factory.cc" />
     <ClCompile Include="src\ast.cc" />
     <ClCompile Include="src\base\atomicops_internals_x86_gcc.cc" />
+    <ClCompile Include="src\base\bits.cc" />
     <ClCompile Include="src\base\cpu.cc" />
     <ClCompile Include="src\base\logging.cc" />
     <ClCompile Include="src\base\once.cc" />
@@ -427,6 +430,7 @@
     <ClCompile Include="src\codegen.cc" />
     <ClCompile Include="src\compilation-cache.cc" />
     <ClCompile Include="src\compiler.cc" />
+    <ClCompile Include="src\compiler\access-builder.cc" />
     <ClCompile Include="src\compiler\ast-graph-builder.cc" />
     <ClCompile Include="src\compiler\change-lowering.cc" />
     <ClCompile Include="src\compiler\code-generator.cc" />
@@ -452,6 +456,7 @@
     <ClCompile Include="src\compiler\machine-type.cc" />
     <ClCompile Include="src\compiler\node-cache.cc" />
     <ClCompile Include="src\compiler\node.cc" />
+    <ClCompile Include="src\compiler\operator.cc" />
     <ClCompile Include="src\compiler\pipeline.cc" />
     <ClCompile Include="src\compiler\raw-machine-assembler.cc" />
     <ClCompile Include="src\compiler\register-allocator.cc" />
@@ -459,9 +464,10 @@
     <ClCompile Include="src\compiler\scheduler.cc" />
     <ClCompile Include="src\compiler\simplified-lowering.cc" />
     <ClCompile Include="src\compiler\simplified-operator-reducer.cc" />
+    <ClCompile Include="src\compiler\simplified-operator.cc" />
     <ClCompile Include="src\compiler\source-position.cc" />
-    <ClCompile Include="src\compiler\structured-machine-assembler.cc" />
     <ClCompile Include="src\compiler\typer.cc" />
+    <ClCompile Include="src\compiler\value-numbering-reducer.cc" />
     <ClCompile Include="src\compiler\verifier.cc" />
     <ClCompile Include="src\compiler\x64\code-generator-x64.cc" />
     <ClCompile Include="src\compiler\x64\instruction-selector-x64.cc" />
@@ -556,7 +562,6 @@
     <ClCompile Include="src\ic\ia32\access-compiler-ia32.cc" />
     <ClCompile Include="src\ic\ia32\handler-compiler-ia32.cc" />
     <ClCompile Include="src\ic\ia32\ic-compiler-ia32.cc" />
-    <ClCompile Include="src\ic\ia32\ic-conventions-ia32.cc" />
     <ClCompile Include="src\ic\ia32\ic-ia32.cc" />
     <ClCompile Include="src\ic\ia32\stub-cache-ia32.cc" />
     <ClCompile Include="src\ic\ic-compiler.cc" />
@@ -565,13 +570,11 @@
     <ClCompile Include="src\ic\x64\access-compiler-x64.cc" />
     <ClCompile Include="src\ic\x64\handler-compiler-x64.cc" />
     <ClCompile Include="src\ic\x64\ic-compiler-x64.cc" />
-    <ClCompile Include="src\ic\x64\ic-conventions-x64.cc" />
     <ClCompile Include="src\ic\x64\ic-x64.cc" />
     <ClCompile Include="src\ic\x64\stub-cache-x64.cc" />
     <ClCompile Include="src\ic\x87\access-compiler-x87.cc" />
     <ClCompile Include="src\ic\x87\handler-compiler-x87.cc" />
     <ClCompile Include="src\ic\x87\ic-compiler-x87.cc" />
-    <ClCompile Include="src\ic\x87\ic-conventions-x87.cc" />
     <ClCompile Include="src\ic\x87\ic-x87.cc" />
     <ClCompile Include="src\ic\x87\stub-cache-x87.cc" />
     <ClCompile Include="src\icu_util.cc" />
@@ -662,6 +665,7 @@
     <ClCompile Include="src\x87\disasm-x87.cc" />
     <ClCompile Include="src\x87\frames-x87.cc" />
     <ClCompile Include="src\x87\full-codegen-x87.cc" />
+    <ClCompile Include="src\x87\interface-descriptors-x87.cc" />
     <ClCompile Include="src\x87\lithium-codegen-x87.cc" />
     <ClCompile Include="src\x87\lithium-gap-resolver-x87.cc" />
     <ClCompile Include="src\x87\lithium-x87.cc" />

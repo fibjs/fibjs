@@ -20,28 +20,55 @@ class OStream;
 
 namespace compiler {
 
-class ControlOperator : public Operator1<int> {
+class ControlOperator FINAL : public Operator1<int> {
  public:
-  ControlOperator(IrOpcode::Value opcode, uint16_t properties, int inputs,
+  ControlOperator(IrOpcode::Value opcode, Properties properties, int inputs,
                   int outputs, int controls, const char* mnemonic)
       : Operator1<int>(opcode, properties, inputs, outputs, mnemonic,
                        controls) {}
 
-  virtual OStream& PrintParameter(OStream& os) const { return os; }  // NOLINT
+  virtual OStream& PrintParameter(OStream& os) const OVERRIDE {  // NOLINT
+    return os;
+  }
   int ControlInputCount() const { return parameter(); }
 };
 
-class CallOperator : public Operator1<CallDescriptor*> {
+class CallOperator FINAL : public Operator1<CallDescriptor*> {
  public:
+  // TODO(titzer): Operator still uses int, whereas CallDescriptor uses size_t.
   CallOperator(CallDescriptor* descriptor, const char* mnemonic)
       : Operator1<CallDescriptor*>(
             IrOpcode::kCall, descriptor->properties(),
-            descriptor->InputCount() + descriptor->FrameStateCount(),
-            descriptor->ReturnCount(), mnemonic, descriptor) {}
+            static_cast<int>(descriptor->InputCount() +
+                             descriptor->FrameStateCount()),
+            static_cast<int>(descriptor->ReturnCount()), mnemonic, descriptor) {
+  }
 
-  virtual OStream& PrintParameter(OStream& os) const {  // NOLINT
+  virtual OStream& PrintParameter(OStream& os) const OVERRIDE {  // NOLINT
     return os << "[" << *parameter() << "]";
   }
+};
+
+// Flag that describes how to combine the current environment with
+// the output of a node to obtain a framestate for lazy bailout.
+enum OutputFrameStateCombine {
+  kPushOutput,   // Push the output on the expression stack.
+  kIgnoreOutput  // Use the frame state as-is.
+};
+
+
+class FrameStateCallInfo {
+ public:
+  FrameStateCallInfo(BailoutId bailout_id,
+                     OutputFrameStateCombine state_combine)
+      : bailout_id_(bailout_id), frame_state_combine_(state_combine) {}
+
+  BailoutId bailout_id() const { return bailout_id_; }
+  OutputFrameStateCombine state_combine() const { return frame_state_combine_; }
+
+ private:
+  BailoutId bailout_id_;
+  OutputFrameStateCombine frame_state_combine_;
 };
 
 // Interface for building common operators that can be used at any level of IR,
@@ -67,16 +94,10 @@ class CommonOperatorBuilder {
   Operator* IfTrue() { CONTROL_OP(IfTrue, 0, 1); }
   Operator* IfFalse() { CONTROL_OP(IfFalse, 0, 1); }
   Operator* Throw() { CONTROL_OP(Throw, 1, 1); }
-  Operator* LazyDeoptimization() { CONTROL_OP(LazyDeoptimization, 0, 1); }
-  Operator* Continuation() { CONTROL_OP(Continuation, 0, 1); }
-
-  Operator* Deoptimize() {
-    return new (zone_)
-        ControlOperator(IrOpcode::kDeoptimize, 0, 1, 0, 1, "Deoptimize");
-  }
 
   Operator* Return() {
-    return new (zone_) ControlOperator(IrOpcode::kReturn, 0, 1, 0, 1, "Return");
+    return new (zone_) ControlOperator(
+        IrOpcode::kReturn, Operator::kNoProperties, 1, 0, 1, "Return");
   }
 
   Operator* Merge(int controls) {
@@ -117,8 +138,8 @@ class CommonOperatorBuilder {
         Operator1<double>(IrOpcode::kNumberConstant, Operator::kPure, 0, 1,
                           "NumberConstant", value);
   }
-  Operator* HeapConstant(PrintableUnique<Object> value) {
-    return new (zone_) Operator1<PrintableUnique<Object> >(
+  Operator* HeapConstant(Unique<Object> value) {
+    return new (zone_) Operator1<Unique<Object> >(
         IrOpcode::kHeapConstant, Operator::kPure, 0, 1, "HeapConstant", value);
   }
   Operator* Phi(int arguments) {
@@ -149,9 +170,10 @@ class CommonOperatorBuilder {
     return new (zone_) Operator1<int>(IrOpcode::kStateValues, Operator::kPure,
                                       arguments, 1, "StateValues", arguments);
   }
-  Operator* FrameState(BailoutId ast_id) {
-    return new (zone_) Operator1<BailoutId>(
-        IrOpcode::kFrameState, Operator::kPure, 3, 1, "FrameState", ast_id);
+  Operator* FrameState(BailoutId bailout_id, OutputFrameStateCombine combine) {
+    return new (zone_) Operator1<FrameStateCallInfo>(
+        IrOpcode::kFrameState, Operator::kPure, 4, 1, "FrameState",
+        FrameStateCallInfo(bailout_id, combine));
   }
   Operator* Call(CallDescriptor* descriptor) {
     return new (zone_) CallOperator(descriptor, "Call");
@@ -169,37 +191,37 @@ class CommonOperatorBuilder {
 template <typename T>
 struct CommonOperatorTraits {
   static inline bool Equals(T a, T b);
-  static inline bool HasValue(Operator* op);
-  static inline T ValueOf(Operator* op);
+  static inline bool HasValue(const Operator* op);
+  static inline T ValueOf(const Operator* op);
 };
 
 template <>
 struct CommonOperatorTraits<int32_t> {
   static inline bool Equals(int32_t a, int32_t b) { return a == b; }
-  static inline bool HasValue(Operator* op) {
+  static inline bool HasValue(const Operator* op) {
     return op->opcode() == IrOpcode::kInt32Constant ||
            op->opcode() == IrOpcode::kNumberConstant;
   }
-  static inline int32_t ValueOf(Operator* op) {
+  static inline int32_t ValueOf(const Operator* op) {
     if (op->opcode() == IrOpcode::kNumberConstant) {
       // TODO(titzer): cache the converted int32 value in NumberConstant.
-      return FastD2I(reinterpret_cast<Operator1<double>*>(op)->parameter());
+      return FastD2I(OpParameter<double>(op));
     }
     CHECK_EQ(IrOpcode::kInt32Constant, op->opcode());
-    return static_cast<Operator1<int32_t>*>(op)->parameter();
+    return OpParameter<int32_t>(op);
   }
 };
 
 template <>
 struct CommonOperatorTraits<uint32_t> {
   static inline bool Equals(uint32_t a, uint32_t b) { return a == b; }
-  static inline bool HasValue(Operator* op) {
+  static inline bool HasValue(const Operator* op) {
     return CommonOperatorTraits<int32_t>::HasValue(op);
   }
-  static inline uint32_t ValueOf(Operator* op) {
+  static inline uint32_t ValueOf(const Operator* op) {
     if (op->opcode() == IrOpcode::kNumberConstant) {
       // TODO(titzer): cache the converted uint32 value in NumberConstant.
-      return FastD2UI(reinterpret_cast<Operator1<double>*>(op)->parameter());
+      return FastD2UI(OpParameter<double>(op));
     }
     return static_cast<uint32_t>(CommonOperatorTraits<int32_t>::ValueOf(op));
   }
@@ -208,27 +230,27 @@ struct CommonOperatorTraits<uint32_t> {
 template <>
 struct CommonOperatorTraits<int64_t> {
   static inline bool Equals(int64_t a, int64_t b) { return a == b; }
-  static inline bool HasValue(Operator* op) {
+  static inline bool HasValue(const Operator* op) {
     return op->opcode() == IrOpcode::kInt32Constant ||
            op->opcode() == IrOpcode::kInt64Constant ||
            op->opcode() == IrOpcode::kNumberConstant;
   }
-  static inline int64_t ValueOf(Operator* op) {
+  static inline int64_t ValueOf(const Operator* op) {
     if (op->opcode() == IrOpcode::kInt32Constant) {
       return static_cast<int64_t>(CommonOperatorTraits<int32_t>::ValueOf(op));
     }
     CHECK_EQ(IrOpcode::kInt64Constant, op->opcode());
-    return static_cast<Operator1<int64_t>*>(op)->parameter();
+    return OpParameter<int64_t>(op);
   }
 };
 
 template <>
 struct CommonOperatorTraits<uint64_t> {
   static inline bool Equals(uint64_t a, uint64_t b) { return a == b; }
-  static inline bool HasValue(Operator* op) {
+  static inline bool HasValue(const Operator* op) {
     return CommonOperatorTraits<int64_t>::HasValue(op);
   }
-  static inline uint64_t ValueOf(Operator* op) {
+  static inline uint64_t ValueOf(const Operator* op) {
     return static_cast<uint64_t>(CommonOperatorTraits<int64_t>::ValueOf(op));
   }
 };
@@ -238,15 +260,15 @@ struct CommonOperatorTraits<double> {
   static inline bool Equals(double a, double b) {
     return DoubleRepresentation(a).bits == DoubleRepresentation(b).bits;
   }
-  static inline bool HasValue(Operator* op) {
+  static inline bool HasValue(const Operator* op) {
     return op->opcode() == IrOpcode::kFloat64Constant ||
            op->opcode() == IrOpcode::kInt32Constant ||
            op->opcode() == IrOpcode::kNumberConstant;
   }
-  static inline double ValueOf(Operator* op) {
+  static inline double ValueOf(const Operator* op) {
     if (op->opcode() == IrOpcode::kFloat64Constant ||
         op->opcode() == IrOpcode::kNumberConstant) {
-      return reinterpret_cast<Operator1<double>*>(op)->parameter();
+      return OpParameter<double>(op);
     }
     return static_cast<double>(CommonOperatorTraits<int32_t>::ValueOf(op));
   }
@@ -257,43 +279,44 @@ struct CommonOperatorTraits<ExternalReference> {
   static inline bool Equals(ExternalReference a, ExternalReference b) {
     return a == b;
   }
-  static inline bool HasValue(Operator* op) {
+  static inline bool HasValue(const Operator* op) {
     return op->opcode() == IrOpcode::kExternalConstant;
   }
-  static inline ExternalReference ValueOf(Operator* op) {
+  static inline ExternalReference ValueOf(const Operator* op) {
     CHECK_EQ(IrOpcode::kExternalConstant, op->opcode());
-    return static_cast<Operator1<ExternalReference>*>(op)->parameter();
+    return OpParameter<ExternalReference>(op);
   }
 };
 
 template <typename T>
-struct CommonOperatorTraits<PrintableUnique<T> > {
-  static inline bool HasValue(Operator* op) {
+struct CommonOperatorTraits<Unique<T> > {
+  static inline bool HasValue(const Operator* op) {
     return op->opcode() == IrOpcode::kHeapConstant;
   }
-  static inline PrintableUnique<T> ValueOf(Operator* op) {
+  static inline Unique<T> ValueOf(const Operator* op) {
     CHECK_EQ(IrOpcode::kHeapConstant, op->opcode());
-    return static_cast<Operator1<PrintableUnique<T> >*>(op)->parameter();
+    return OpParameter<Unique<T> >(op);
   }
 };
 
 template <typename T>
 struct CommonOperatorTraits<Handle<T> > {
-  static inline bool HasValue(Operator* op) {
-    return CommonOperatorTraits<PrintableUnique<T> >::HasValue(op);
+  static inline bool HasValue(const Operator* op) {
+    return CommonOperatorTraits<Unique<T> >::HasValue(op);
   }
-  static inline Handle<T> ValueOf(Operator* op) {
-    return CommonOperatorTraits<PrintableUnique<T> >::ValueOf(op).handle();
+  static inline Handle<T> ValueOf(const Operator* op) {
+    return CommonOperatorTraits<Unique<T> >::ValueOf(op).handle();
   }
 };
 
 
 template <typename T>
-inline T ValueOf(Operator* op) {
+inline T ValueOf(const Operator* op) {
   return CommonOperatorTraits<T>::ValueOf(op);
 }
-}
-}
-}  // namespace v8::internal::compiler
+
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_COMPILER_COMMON_OPERATOR_H_

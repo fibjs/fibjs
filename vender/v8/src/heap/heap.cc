@@ -6,6 +6,7 @@
 
 #include "src/accessors.h"
 #include "src/api.h"
+#include "src/base/bits.h"
 #include "src/base/once.h"
 #include "src/base/utils/random-number-generator.h"
 #include "src/bootstrapper.h"
@@ -4287,6 +4288,10 @@ bool Heap::WorthActivatingIncrementalMarking() {
 bool Heap::IdleNotification(int idle_time_in_ms) {
   // If incremental marking is off, we do not perform idle notification.
   if (!FLAG_incremental_marking) return true;
+  base::ElapsedTimer timer;
+  if (FLAG_trace_idle_notification) {
+    timer.Start();
+  }
   isolate()->counters()->gc_idle_time_allotted_in_ms()->AddSample(
       idle_time_in_ms);
   HistogramTimerScope idle_notification_scope(
@@ -4335,6 +4340,13 @@ bool Heap::IdleNotification(int idle_time_in_ms) {
     case DO_NOTHING:
       result = true;
       break;
+  }
+  if (FLAG_trace_idle_notification) {
+    int actual_time_ms = static_cast<int>(timer.Elapsed().InMilliseconds());
+    PrintF("Idle notification: requested idle time %d ms, actual time %d ms [",
+           idle_time_in_ms, actual_time_ms);
+    action.Print();
+    PrintF("]\n");
   }
 
   return result;
@@ -4843,8 +4855,10 @@ bool Heap::ConfigureHeap(int max_semi_space_size, int max_old_space_size,
 
   // The new space size must be a power of two to support single-bit testing
   // for containment.
-  max_semi_space_size_ = RoundUpToPowerOf2(max_semi_space_size_);
-  reserved_semispace_size_ = RoundUpToPowerOf2(reserved_semispace_size_);
+  max_semi_space_size_ =
+      base::bits::RoundUpToPowerOfTwo32(max_semi_space_size_);
+  reserved_semispace_size_ =
+      base::bits::RoundUpToPowerOfTwo32(reserved_semispace_size_);
 
   if (FLAG_min_semi_space_size > 0) {
     int initial_semispace_size = FLAG_min_semi_space_size * MB;

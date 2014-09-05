@@ -3610,8 +3610,9 @@ Local<Value> v8::Object::GetRealNamedPropertyInPrototypeChain(
   i::Handle<i::String> key_obj = Utils::OpenHandle(*key);
   i::PrototypeIterator iter(isolate, self_obj);
   if (iter.IsAtEnd()) return Local<Value>();
-  i::LookupIterator it(i::PrototypeIterator::GetCurrent(iter), key_obj,
-                       i::LookupIterator::PROTOTYPE_CHAIN_PROPERTY);
+  i::Handle<i::Object> proto = i::PrototypeIterator::GetCurrent(iter);
+  i::LookupIterator it(self_obj, key_obj, i::Handle<i::JSReceiver>::cast(proto),
+                       i::LookupIterator::PROTOTYPE_CHAIN_SKIP_INTERCEPTOR);
   return GetPropertyByLookup(&it);
 }
 
@@ -3624,7 +3625,7 @@ Local<Value> v8::Object::GetRealNamedProperty(Handle<String> key) {
   i::Handle<i::JSObject> self_obj = Utils::OpenHandle(this);
   i::Handle<i::String> key_obj = Utils::OpenHandle(*key);
   i::LookupIterator it(self_obj, key_obj,
-                       i::LookupIterator::PROTOTYPE_CHAIN_PROPERTY);
+                       i::LookupIterator::PROTOTYPE_CHAIN_SKIP_INTERCEPTOR);
   return GetPropertyByLookup(&it);
 }
 
@@ -6820,90 +6821,37 @@ String::Value::~Value() {
 }
 
 
-Local<Value> Exception::RangeError(v8::Handle<v8::String> raw_message) {
-  i::Isolate* isolate = i::Isolate::Current();
-  LOG_API(isolate, "RangeError");
-  ON_BAILOUT(isolate, "v8::Exception::RangeError()", return Local<Value>());
-  ENTER_V8(isolate);
-  i::Object* error;
-  {
-    i::HandleScope scope(isolate);
-    i::Handle<i::String> message = Utils::OpenHandle(*raw_message);
-    i::Handle<i::Object> result = isolate->factory()->NewRangeError(message);
-    error = *result;
+#define DEFINE_ERROR(NAME)                                                    \
+  Local<Value> Exception::NAME(v8::Handle<v8::String> raw_message) {          \
+    i::Isolate* isolate = i::Isolate::Current();                              \
+    LOG_API(isolate, #NAME);                                                  \
+    ON_BAILOUT(isolate, "v8::Exception::" #NAME "()", return Local<Value>()); \
+    ENTER_V8(isolate);                                                        \
+    i::Object* error;                                                         \
+    {                                                                         \
+      i::HandleScope scope(isolate);                                          \
+      i::Handle<i::String> message = Utils::OpenHandle(*raw_message);         \
+      i::Handle<i::Object> result;                                            \
+      EXCEPTION_PREAMBLE(isolate);                                            \
+      i::MaybeHandle<i::Object> maybe_result =                                \
+          isolate->factory()->New##NAME(message);                             \
+      has_pending_exception = !maybe_result.ToHandle(&result);                \
+      /* TODO(yangguo): crbug/403509. Return empty handle instead. */         \
+      EXCEPTION_BAILOUT_CHECK(                                                \
+          isolate, v8::Undefined(reinterpret_cast<v8::Isolate*>(isolate)));   \
+      error = *result;                                                        \
+    }                                                                         \
+    i::Handle<i::Object> result(error, isolate);                              \
+    return Utils::ToLocal(result);                                            \
   }
-  i::Handle<i::Object> result(error, isolate);
-  return Utils::ToLocal(result);
-}
 
+DEFINE_ERROR(RangeError)
+DEFINE_ERROR(ReferenceError)
+DEFINE_ERROR(SyntaxError)
+DEFINE_ERROR(TypeError)
+DEFINE_ERROR(Error)
 
-Local<Value> Exception::ReferenceError(v8::Handle<v8::String> raw_message) {
-  i::Isolate* isolate = i::Isolate::Current();
-  LOG_API(isolate, "ReferenceError");
-  ON_BAILOUT(isolate, "v8::Exception::ReferenceError()", return Local<Value>());
-  ENTER_V8(isolate);
-  i::Object* error;
-  {
-    i::HandleScope scope(isolate);
-    i::Handle<i::String> message = Utils::OpenHandle(*raw_message);
-    i::Handle<i::Object> result =
-        isolate->factory()->NewReferenceError(message);
-    error = *result;
-  }
-  i::Handle<i::Object> result(error, isolate);
-  return Utils::ToLocal(result);
-}
-
-
-Local<Value> Exception::SyntaxError(v8::Handle<v8::String> raw_message) {
-  i::Isolate* isolate = i::Isolate::Current();
-  LOG_API(isolate, "SyntaxError");
-  ON_BAILOUT(isolate, "v8::Exception::SyntaxError()", return Local<Value>());
-  ENTER_V8(isolate);
-  i::Object* error;
-  {
-    i::HandleScope scope(isolate);
-    i::Handle<i::String> message = Utils::OpenHandle(*raw_message);
-    i::Handle<i::Object> result = isolate->factory()->NewSyntaxError(message);
-    error = *result;
-  }
-  i::Handle<i::Object> result(error, isolate);
-  return Utils::ToLocal(result);
-}
-
-
-Local<Value> Exception::TypeError(v8::Handle<v8::String> raw_message) {
-  i::Isolate* isolate = i::Isolate::Current();
-  LOG_API(isolate, "TypeError");
-  ON_BAILOUT(isolate, "v8::Exception::TypeError()", return Local<Value>());
-  ENTER_V8(isolate);
-  i::Object* error;
-  {
-    i::HandleScope scope(isolate);
-    i::Handle<i::String> message = Utils::OpenHandle(*raw_message);
-    i::Handle<i::Object> result = isolate->factory()->NewTypeError(message);
-    error = *result;
-  }
-  i::Handle<i::Object> result(error, isolate);
-  return Utils::ToLocal(result);
-}
-
-
-Local<Value> Exception::Error(v8::Handle<v8::String> raw_message) {
-  i::Isolate* isolate = i::Isolate::Current();
-  LOG_API(isolate, "Error");
-  ON_BAILOUT(isolate, "v8::Exception::Error()", return Local<Value>());
-  ENTER_V8(isolate);
-  i::Object* error;
-  {
-    i::HandleScope scope(isolate);
-    i::Handle<i::String> message = Utils::OpenHandle(*raw_message);
-    i::Handle<i::Object> result = isolate->factory()->NewError(message);
-    error = *result;
-  }
-  i::Handle<i::Object> result(error, isolate);
-  return Utils::ToLocal(result);
-}
+#undef DEFINE_ERROR
 
 
 // --- D e b u g   S u p p o r t ---

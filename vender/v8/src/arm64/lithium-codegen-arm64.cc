@@ -10,6 +10,7 @@
 
 #include "src/arm64/lithium-codegen-arm64.h"
 #include "src/arm64/lithium-gap-resolver-arm64.h"
+#include "src/base/bits.h"
 #include "src/code-stubs.h"
 #include "src/hydrogen-osr.h"
 
@@ -17,7 +18,7 @@ namespace v8 {
 namespace internal {
 
 
-class SafepointGenerator V8_FINAL : public CallWrapper {
+class SafepointGenerator FINAL : public CallWrapper {
  public:
   SafepointGenerator(LCodeGen* codegen,
                      LPointerMap* pointers,
@@ -2240,7 +2241,7 @@ void LCodeGen::DoCheckInstanceType(LCheckInstanceType* instr) {
     uint8_t tag;
     instr->hydrogen()->GetCheckMaskAndTag(&mask, &tag);
 
-    if (IsPowerOf2(mask)) {
+    if (base::bits::IsPowerOfTwo32(mask)) {
       DCHECK((tag == 0) || (tag == mask));
       if (tag == 0) {
         DeoptimizeIfBitSet(scratch, MaskToBit(mask), instr->environment());
@@ -2673,7 +2674,7 @@ void LCodeGen::DoDivByPowerOf2I(LDivByPowerOf2I* instr) {
   Register dividend = ToRegister32(instr->dividend());
   int32_t divisor = instr->divisor();
   Register result = ToRegister32(instr->result());
-  DCHECK(divisor == kMinInt || IsPowerOf2(Abs(divisor)));
+  DCHECK(divisor == kMinInt || base::bits::IsPowerOfTwo32(Abs(divisor)));
   DCHECK(!result.is(dividend));
 
   // Check for (0 / -x) that will produce negative zero.
@@ -3352,11 +3353,11 @@ template <class T>
 void LCodeGen::EmitVectorLoadICRegisters(T* instr) {
   DCHECK(FLAG_vector_ics);
   Register vector = ToRegister(instr->temp_vector());
-  DCHECK(vector.is(FullVectorLoadConvention::VectorRegister()));
+  DCHECK(vector.is(VectorLoadICDescriptor::VectorRegister()));
   __ Mov(vector, instr->hydrogen()->feedback_vector());
   // No need to allocate this register.
-  DCHECK(FullVectorLoadConvention::SlotRegister().is(x0));
-  __ Mov(FullVectorLoadConvention::SlotRegister(),
+  DCHECK(VectorLoadICDescriptor::SlotRegister().is(x0));
+  __ Mov(VectorLoadICDescriptor::SlotRegister(),
          Smi::FromInt(instr->hydrogen()->slot()));
 }
 
@@ -3364,9 +3365,9 @@ void LCodeGen::EmitVectorLoadICRegisters(T* instr) {
 void LCodeGen::DoLoadGlobalGeneric(LLoadGlobalGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
   DCHECK(ToRegister(instr->global_object())
-             .is(LoadConvention::ReceiverRegister()));
+             .is(LoadDescriptor::ReceiverRegister()));
   DCHECK(ToRegister(instr->result()).Is(x0));
-  __ Mov(LoadConvention::NameRegister(), Operand(instr->name()));
+  __ Mov(LoadDescriptor::NameRegister(), Operand(instr->name()));
   if (FLAG_vector_ics) {
     EmitVectorLoadICRegisters<LLoadGlobalGeneric>(instr);
   }
@@ -3620,8 +3621,8 @@ void LCodeGen::DoLoadKeyedFixed(LLoadKeyedFixed* instr) {
 
 void LCodeGen::DoLoadKeyedGeneric(LLoadKeyedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
-  DCHECK(ToRegister(instr->object()).is(LoadConvention::ReceiverRegister()));
-  DCHECK(ToRegister(instr->key()).is(LoadConvention::NameRegister()));
+  DCHECK(ToRegister(instr->object()).is(LoadDescriptor::ReceiverRegister()));
+  DCHECK(ToRegister(instr->key()).is(LoadDescriptor::NameRegister()));
   if (FLAG_vector_ics) {
     EmitVectorLoadICRegisters<LLoadKeyedGeneric>(instr);
   }
@@ -3676,8 +3677,8 @@ void LCodeGen::DoLoadNamedField(LLoadNamedField* instr) {
 void LCodeGen::DoLoadNamedGeneric(LLoadNamedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
   // LoadIC expects name and receiver in registers.
-  DCHECK(ToRegister(instr->object()).is(LoadConvention::ReceiverRegister()));
-  __ Mov(LoadConvention::NameRegister(), Operand(instr->name()));
+  DCHECK(ToRegister(instr->object()).is(LoadDescriptor::ReceiverRegister()));
+  __ Mov(LoadDescriptor::NameRegister(), Operand(instr->name()));
   if (FLAG_vector_ics) {
     EmitVectorLoadICRegisters<LLoadNamedGeneric>(instr);
   }
@@ -4364,7 +4365,7 @@ void LCodeGen::DoMulConstIS(LMulConstIS* instr) {
       // can be done efficiently with shifted operands.
       int32_t right_abs = Abs(right);
 
-      if (IsPowerOf2(right_abs)) {
+      if (base::bits::IsPowerOfTwo32(right_abs)) {
         int right_log2 = WhichPowerOf2(right_abs);
 
         if (can_overflow) {
@@ -4397,10 +4398,10 @@ void LCodeGen::DoMulConstIS(LMulConstIS* instr) {
       DCHECK(!can_overflow);
 
       if (right >= 0) {
-        if (IsPowerOf2(right - 1)) {
+        if (base::bits::IsPowerOfTwo32(right - 1)) {
           // result = left + left << log2(right - 1)
           __ Add(result, left, Operand(left, LSL, WhichPowerOf2(right - 1)));
-        } else if (IsPowerOf2(right + 1)) {
+        } else if (base::bits::IsPowerOfTwo32(right + 1)) {
           // result = -left + left << log2(right + 1)
           __ Sub(result, left, Operand(left, LSL, WhichPowerOf2(right + 1)));
           __ Neg(result, result);
@@ -4408,10 +4409,10 @@ void LCodeGen::DoMulConstIS(LMulConstIS* instr) {
           UNREACHABLE();
         }
       } else {
-        if (IsPowerOf2(-right + 1)) {
+        if (base::bits::IsPowerOfTwo32(-right + 1)) {
           // result = left - left << log2(-right + 1)
           __ Sub(result, left, Operand(left, LSL, WhichPowerOf2(-right + 1)));
-        } else if (IsPowerOf2(-right - 1)) {
+        } else if (base::bits::IsPowerOfTwo32(-right - 1)) {
           // result = -left - left << log2(-right - 1)
           __ Add(result, left, Operand(left, LSL, WhichPowerOf2(-right - 1)));
           __ Neg(result, result);
@@ -5313,9 +5314,9 @@ void LCodeGen::DoStoreKeyedFixed(LStoreKeyedFixed* instr) {
 
 void LCodeGen::DoStoreKeyedGeneric(LStoreKeyedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
-  DCHECK(ToRegister(instr->object()).is(StoreConvention::ReceiverRegister()));
-  DCHECK(ToRegister(instr->key()).is(StoreConvention::NameRegister()));
-  DCHECK(ToRegister(instr->value()).is(StoreConvention::ValueRegister()));
+  DCHECK(ToRegister(instr->object()).is(StoreDescriptor::ReceiverRegister()));
+  DCHECK(ToRegister(instr->key()).is(StoreDescriptor::NameRegister()));
+  DCHECK(ToRegister(instr->value()).is(StoreDescriptor::ValueRegister()));
 
   Handle<Code> ic = instr->strict_mode() == STRICT
       ? isolate()->builtins()->KeyedStoreIC_Initialize_Strict()
@@ -5420,10 +5421,10 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
 
 void LCodeGen::DoStoreNamedGeneric(LStoreNamedGeneric* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
-  DCHECK(ToRegister(instr->object()).is(StoreConvention::ReceiverRegister()));
-  DCHECK(ToRegister(instr->value()).is(StoreConvention::ValueRegister()));
+  DCHECK(ToRegister(instr->object()).is(StoreDescriptor::ReceiverRegister()));
+  DCHECK(ToRegister(instr->value()).is(StoreDescriptor::ValueRegister()));
 
-  __ Mov(StoreConvention::NameRegister(), Operand(instr->name()));
+  __ Mov(StoreDescriptor::NameRegister(), Operand(instr->name()));
   Handle<Code> ic = StoreIC::initialize_stub(isolate(), instr->strict_mode());
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
@@ -5956,7 +5957,7 @@ void LCodeGen::DoDeferredLoadMutableDouble(LLoadFieldByIndex* instr,
 
 
 void LCodeGen::DoLoadFieldByIndex(LLoadFieldByIndex* instr) {
-  class DeferredLoadMutableDouble V8_FINAL : public LDeferredCode {
+  class DeferredLoadMutableDouble FINAL : public LDeferredCode {
    public:
     DeferredLoadMutableDouble(LCodeGen* codegen,
                               LLoadFieldByIndex* instr,
@@ -5969,10 +5970,10 @@ void LCodeGen::DoLoadFieldByIndex(LLoadFieldByIndex* instr) {
           object_(object),
           index_(index) {
     }
-    virtual void Generate() V8_OVERRIDE {
+    virtual void Generate() OVERRIDE {
       codegen()->DoDeferredLoadMutableDouble(instr_, result_, object_, index_);
     }
-    virtual LInstruction* instr() V8_OVERRIDE { return instr_; }
+    virtual LInstruction* instr() OVERRIDE { return instr_; }
    private:
     LLoadFieldByIndex* instr_;
     Register result_;

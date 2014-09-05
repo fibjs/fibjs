@@ -645,7 +645,10 @@ void Isolate::ReportFailedAccessCheck(Handle<JSObject> receiver,
                                       v8::AccessType type) {
   if (!thread_local_top()->failed_access_check_callback_) {
     Handle<String> message = factory()->InternalizeUtf8String("no access");
-    ScheduleThrow(*factory()->NewTypeError(message));
+    Handle<Object> error;
+    ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+        this, error, factory()->NewTypeError(message), /* void */);
+    ScheduleThrow(*error);
     return;
   }
 
@@ -862,12 +865,6 @@ Object* Isolate::ThrowIllegalOperation() {
 }
 
 
-Object* Isolate::ThrowInvalidStringLength() {
-  return Throw(*factory()->NewRangeError(
-      "invalid_string_length", HandleVector<Object>(NULL, 0)));
-}
-
-
 void Isolate::ScheduleThrow(Object* exception) {
   // When scheduling a throw we first throw the exception to get the
   // error reporting if it is uncaught before rescheduling it.
@@ -1058,7 +1055,7 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
           // probably not a valid Error object.  In that case, we fall through
           // and capture the stack trace at this throw site.
           LookupIterator lookup(exception_handle, key,
-                                LookupIterator::OWN_PROPERTY);
+                                LookupIterator::OWN_SKIP_INTERCEPTOR);
           Handle<Object> stack_trace_property;
           if (Object::GetProperty(&lookup).ToHandle(&stack_trace_property) &&
               stack_trace_property->IsJSArray()) {
@@ -1508,7 +1505,7 @@ Isolate::Isolate()
       regexp_stack_(NULL),
       date_cache_(NULL),
       code_stub_interface_descriptors_(NULL),
-      call_descriptors_(NULL),
+      call_descriptor_data_(NULL),
       // TODO(bmeurer) Initialized lazily because it depends on flags; can
       // be fixed once the default isolate cleanup is done.
       random_number_generator_(NULL),
@@ -1707,8 +1704,8 @@ Isolate::~Isolate() {
   delete[] code_stub_interface_descriptors_;
   code_stub_interface_descriptors_ = NULL;
 
-  delete[] call_descriptors_;
-  call_descriptors_ = NULL;
+  delete[] call_descriptor_data_;
+  call_descriptor_data_ = NULL;
 
   delete regexp_stack_;
   regexp_stack_ = NULL;
@@ -1885,8 +1882,8 @@ bool Isolate::Init(Deserializer* des) {
   date_cache_ = new DateCache();
   code_stub_interface_descriptors_ =
       new CodeStubInterfaceDescriptor[CodeStub::NUMBER_OF_IDS];
-  call_descriptors_ =
-      new CallInterfaceDescriptor[NUMBER_OF_CALL_DESCRIPTORS];
+  call_descriptor_data_ =
+      new CallInterfaceDescriptorData[CallDescriptors::NUMBER_OF_DESCRIPTORS];
   cpu_profiler_ = new CpuProfiler(this);
   heap_profiler_ = new HeapProfiler(heap());
 
@@ -2029,8 +2026,6 @@ bool Isolate::Init(Deserializer* des) {
         Deoptimizer::LAZY,
         kDeoptTableSerializeEntryCount - 1);
   }
-
-  CallDescriptors::InitializeForIsolate(this);
 
   if (!serializer_enabled()) {
     // Ensure that all stubs which need to be generated ahead of time, but
@@ -2242,9 +2237,9 @@ CodeStubInterfaceDescriptor*
 }
 
 
-CallInterfaceDescriptor* Isolate::call_descriptor(int index) {
-  DCHECK(0 <= index && index < CallDescriptorKey::NUMBER_OF_CALL_DESCRIPTORS);
-  return &call_descriptors_[index];
+CallInterfaceDescriptorData* Isolate::call_descriptor_data(int index) {
+  DCHECK(0 <= index && index < CallDescriptors::NUMBER_OF_DESCRIPTORS);
+  return &call_descriptor_data_[index];
 }
 
 
@@ -2361,14 +2356,13 @@ void Isolate::RunMicrotasks() {
             Handle<JSFunction>::cast(microtask);
         SaveContext save(this);
         set_context(microtask_function->context()->native_context());
-        Handle<Object> exception;
-        MaybeHandle<Object> result = Execution::TryCall(
-            microtask_function, factory()->undefined_value(),
-            0, NULL, &exception);
+        MaybeHandle<Object> maybe_exception;
+        MaybeHandle<Object> result =
+            Execution::TryCall(microtask_function, factory()->undefined_value(),
+                               0, NULL, &maybe_exception);
         // If execution is terminating, just bail out.
-        if (result.is_null() &&
-            !exception.is_null() &&
-            *exception == heap()->termination_exception()) {
+        Handle<Object> exception;
+        if (result.is_null() && maybe_exception.is_null()) {
           // Clear out any remaining callbacks in the queue.
           heap()->set_microtask_queue(heap()->empty_fixed_array());
           set_pending_microtask_count(0);

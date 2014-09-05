@@ -6,6 +6,7 @@
 
 #if V8_TARGET_ARCH_X87
 
+#include "src/base/bits.h"
 #include "src/bootstrapper.h"
 #include "src/codegen.h"
 #include "src/cpu-profiler.h"
@@ -178,8 +179,7 @@ void MacroAssembler::RememberedSetHelper(
     DCHECK(and_then == kFallThroughAtEnd);
     j(equal, &done, Label::kNear);
   }
-  StoreBufferOverflowStub store_buffer_overflow =
-      StoreBufferOverflowStub(isolate());
+  StoreBufferOverflowStub store_buffer_overflow(isolate());
   CallStub(&store_buffer_overflow);
   if (and_then == kReturnAtEnd) {
     ret(0);
@@ -896,7 +896,7 @@ void MacroAssembler::EnterExitFrameEpilogue(int argc) {
   // Get the required frame alignment for the OS.
   const int kFrameAlignment = base::OS::ActivationFrameAlignment();
   if (kFrameAlignment > 0) {
-    DCHECK(IsPowerOf2(kFrameAlignment));
+    DCHECK(base::bits::IsPowerOfTwo32(kFrameAlignment));
     and_(esp, -kFrameAlignment);
   }
 
@@ -1828,7 +1828,7 @@ void MacroAssembler::BooleanBitTest(Register object,
                                     int field_offset,
                                     int bit_index) {
   bit_index += kSmiTagSize + kSmiShiftSize;
-  DCHECK(IsPowerOf2(kBitsPerByte));
+  DCHECK(base::bits::IsPowerOfTwo32(kBitsPerByte));
   int byte_index = bit_index / kBitsPerByte;
   int byte_bit_index = bit_index & (kBitsPerByte - 1);
   test_b(FieldOperand(object, field_offset + byte_index),
@@ -2669,7 +2669,7 @@ void MacroAssembler::CheckStackAlignment() {
   int frame_alignment = base::OS::ActivationFrameAlignment();
   int frame_alignment_mask = frame_alignment - 1;
   if (frame_alignment > kPointerSize) {
-    DCHECK(IsPowerOf2(frame_alignment));
+    DCHECK(base::bits::IsPowerOfTwo32(frame_alignment));
     Label alignment_as_expected;
     test(esp, Immediate(frame_alignment_mask));
     j(zero, &alignment_as_expected);
@@ -2899,7 +2899,7 @@ void MacroAssembler::PrepareCallCFunction(int num_arguments, Register scratch) {
     // and the original value of esp.
     mov(scratch, esp);
     sub(esp, Immediate((num_arguments + 1) * kPointerSize));
-    DCHECK(IsPowerOf2(frame_alignment));
+    DCHECK(base::bits::IsPowerOfTwo32(frame_alignment));
     and_(esp, -frame_alignment);
     mov(Operand(esp, num_arguments * kPointerSize), scratch);
   } else {

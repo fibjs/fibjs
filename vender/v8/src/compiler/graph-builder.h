@@ -101,6 +101,7 @@ class StructuredGraphBuilder : public GraphBuilder {
 
  protected:
   class Environment;
+  friend class Environment;
   friend class ControlBuilder;
 
   // The following method creates a new node having the specified operator and
@@ -127,8 +128,8 @@ class StructuredGraphBuilder : public GraphBuilder {
 
   // Helper to wrap a Handle<T> into a Unique<T>.
   template <class T>
-  PrintableUnique<T> MakeUnique(Handle<T> object) {
-    return PrintableUnique<T>::CreateUninitialized(zone(), object);
+  Unique<T> MakeUnique(Handle<T> object) {
+    return Unique<T>::CreateUninitialized(object);
   }
 
   // Support for control flow builders. The concrete type of the environment
@@ -201,6 +202,8 @@ class StructuredGraphBuilder::Environment : public ZoneObject {
     PrepareForLoop();
     return builder()->CopyEnvironment(this);
   }
+
+  Node* GetContext() { return builder_->current_context(); }
 
  protected:
   // TODO(mstarzinger): Use phase-local zone instead!

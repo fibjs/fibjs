@@ -23,8 +23,8 @@ namespace compiler {
 
 class NodeData {
  public:
-  Operator* op() const { return op_; }
-  void set_op(Operator* op) { op_ = op; }
+  const Operator* op() const { return op_; }
+  void set_op(const Operator* op) { op_ = op; }
 
   IrOpcode::Value opcode() const {
     DCHECK(op_->opcode() <= IrOpcode::kLast);
@@ -34,7 +34,7 @@ class NodeData {
   Bounds bounds() { return bounds_; }
 
  protected:
-  Operator* op_;
+  const Operator* op_;
   Bounds bounds_;
   explicit NodeData(Zone* zone) : bounds_(Bounds(Type::None(zone))) {}
 
@@ -47,12 +47,13 @@ class NodeData {
 // during compilation, e.g. during lowering passes.  Other information that
 // needs to be associated with Nodes during compilation must be stored
 // out-of-line indexed by the Node's id.
-class Node : public GenericNode<NodeData, Node> {
+class Node FINAL : public GenericNode<NodeData, Node> {
  public:
   Node(GenericGraphBase* graph, int input_count)
       : GenericNode<NodeData, Node>(graph, input_count) {}
 
-  void Initialize(Operator* op) { set_op(op); }
+  void Initialize(const Operator* op) { set_op(op); }
+  void Kill();
 
   void CollectProjections(ZoneVector<Node*>* projections);
   Node* FindProjection(int32_t projection_index);
@@ -79,11 +80,12 @@ typedef Node::Inputs::iterator InputIter;
 
 // Helper to extract parameters from Operator1<*> nodes.
 template <typename T>
-static inline T OpParameter(Node* node) {
-  return reinterpret_cast<Operator1<T>*>(node->op())->parameter();
+static inline T OpParameter(const Node* node) {
+  return OpParameter<T>(node->op());
 }
-}
-}
-}  // namespace v8::internal::compiler
+
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_COMPILER_NODE_H_

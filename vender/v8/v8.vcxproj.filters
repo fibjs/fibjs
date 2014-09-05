@@ -52,6 +52,9 @@
     <Filter Include="Source Files\libplatform">
       <UniqueIdentifier>{d55c839e-d9e9-0541-edc0-1b7cf01a3405}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\test">
+      <UniqueIdentifier>{4c71dba2-1448-753e-32fb-4d83994539f4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\third_party">
       <UniqueIdentifier>{517d88ea-d211-bcd7-bc22-b7165eec24c6}</UniqueIdentifier>
     </Filter>
@@ -175,6 +178,9 @@
       <Filter>Source Files\base</Filter>
     </ClInclude>
     <ClInclude Include="src\base\build_config.h">
+      <Filter>Source Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\base\compiler-specific.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
     <ClInclude Include="src\base\cpu.h">
@@ -309,6 +315,9 @@
     <ClInclude Include="src\compiler\common-operator.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\compiler-test-utils.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\control-builders.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -345,6 +354,9 @@
     <ClInclude Include="src\compiler\graph-replay.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\graph-unittest.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\graph-visualizer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -358,6 +370,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\instruction-selector-impl.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\instruction-selector-unittest.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\instruction-selector.h">
@@ -388,9 +403,6 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\linkage.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\compiler\machine-node-factory.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\machine-operator-reducer.h">
@@ -459,9 +471,6 @@
     <ClInclude Include="src\compiler\simplified-lowering.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\simplified-node-factory.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\compiler\simplified-operator-reducer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -471,10 +480,10 @@
     <ClInclude Include="src\compiler\source-position.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\structured-machine-assembler.h">
+    <ClInclude Include="src\compiler\typer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\typer.h">
+    <ClInclude Include="src\compiler\value-numbering-reducer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\verifier.h">
@@ -795,9 +804,6 @@
     <ClInclude Include="src\ic\ic-compiler.h">
       <Filter>Source Files\ic</Filter>
     </ClInclude>
-    <ClInclude Include="src\ic\ic-conventions.h">
-      <Filter>Source Files\ic</Filter>
-    </ClInclude>
     <ClInclude Include="src\ic\ic-inl.h">
       <Filter>Source Files\ic</Filter>
     </ClInclude>
@@ -1023,6 +1029,9 @@
     <ClInclude Include="src\strtod.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\test\test-utils.h">
+      <Filter>Source Files\test</Filter>
+    </ClInclude>
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h">
       <Filter>Source Files\third_party\kernel\tools\perf\util</Filter>
     </ClInclude>
@@ -1214,6 +1223,9 @@
     <ClCompile Include="src\base\atomicops_internals_x86_gcc.cc">
       <Filter>Source Files\base</Filter>
     </ClCompile>
+    <ClCompile Include="src\base\bits.cc">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
     <ClCompile Include="src\base\cpu.cc">
       <Filter>Source Files\base</Filter>
     </ClCompile>
@@ -1304,6 +1316,9 @@
     <ClCompile Include="src\compiler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\access-builder.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\ast-graph-builder.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1379,6 +1394,9 @@
     <ClCompile Include="src\compiler\node.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\operator.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\pipeline.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1400,13 +1418,16 @@
     <ClCompile Include="src\compiler\simplified-operator-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\simplified-operator.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\source-position.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\structured-machine-assembler.cc">
+    <ClCompile Include="src\compiler\typer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\typer.cc">
+    <ClCompile Include="src\compiler\value-numbering-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\verifier.cc">
@@ -1691,9 +1712,6 @@
     <ClCompile Include="src\ic\ia32\ic-compiler-ia32.cc">
       <Filter>Source Files\ic\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="src\ic\ia32\ic-conventions-ia32.cc">
-      <Filter>Source Files\ic\ia32</Filter>
-    </ClCompile>
     <ClCompile Include="src\ic\ia32\ic-ia32.cc">
       <Filter>Source Files\ic\ia32</Filter>
     </ClCompile>
@@ -1718,9 +1736,6 @@
     <ClCompile Include="src\ic\x64\ic-compiler-x64.cc">
       <Filter>Source Files\ic\x64</Filter>
     </ClCompile>
-    <ClCompile Include="src\ic\x64\ic-conventions-x64.cc">
-      <Filter>Source Files\ic\x64</Filter>
-    </ClCompile>
     <ClCompile Include="src\ic\x64\ic-x64.cc">
       <Filter>Source Files\ic\x64</Filter>
     </ClCompile>
@@ -1734,9 +1749,6 @@
       <Filter>Source Files\ic\x87</Filter>
     </ClCompile>
     <ClCompile Include="src\ic\x87\ic-compiler-x87.cc">
-      <Filter>Source Files\ic\x87</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ic\x87\ic-conventions-x87.cc">
       <Filter>Source Files\ic\x87</Filter>
     </ClCompile>
     <ClCompile Include="src\ic\x87\ic-x87.cc">
@@ -2007,6 +2019,9 @@
       <Filter>Source Files\x87</Filter>
     </ClCompile>
     <ClCompile Include="src\x87\full-codegen-x87.cc">
+      <Filter>Source Files\x87</Filter>
+    </ClCompile>
+    <ClCompile Include="src\x87\interface-descriptors-x87.cc">
       <Filter>Source Files\x87</Filter>
     </ClCompile>
     <ClCompile Include="src\x87\lithium-codegen-x87.cc">

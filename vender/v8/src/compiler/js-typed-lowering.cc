@@ -222,7 +222,8 @@ Reduction JSTypedLowering::ReduceJSAdd(Node* node) {
   if (r.OneInputIs(Type::String())) {
     r.ConvertInputsToString();
     return r.ChangeToPureOperator(simplified()->StringAdd());
-  } else if (r.NeitherInputCanBe(Type::String())) {
+  }
+  if (r.NeitherInputCanBe(Type::String())) {
     r.ConvertInputsToNumber();
     return r.ChangeToPureOperator(simplified()->NumberAdd());
   }
@@ -490,10 +491,7 @@ Reduction JSTypedLowering::ReduceJSToBooleanInput(Node* input) {
     Node* cmp = graph()->NewNode(simplified()->NumberEqual(), input,
                                  jsgraph()->ZeroConstant());
     Node* inv = graph()->NewNode(simplified()->BooleanNot(), cmp);
-    ReplaceEagerly(input, inv);
-    // TODO(titzer): Ugly. ReplaceEagerly smashes all uses. Smash it back here.
-    cmp->ReplaceInput(0, input);
-    return Changed(inv);
+    return ReplaceWith(inv);
   }
   // TODO(turbofan): js-typed-lowering of ToBoolean(string)
   return NoChange();
@@ -587,19 +585,19 @@ Reduction JSTypedLowering::Reduce(Node* node) {
       Reduction result = ReduceJSToBooleanInput(node->InputAt(0));
       Node* value;
       if (result.Changed()) {
-        // !x => BooleanNot(x)
+        // JSUnaryNot(x) => BooleanNot(x)
         value =
             graph()->NewNode(simplified()->BooleanNot(), result.replacement());
         NodeProperties::ReplaceWithValue(node, value);
         return Changed(value);
       } else {
-        // !x => BooleanNot(JSToBoolean(x))
+        // JSUnaryNot(x) => BooleanNot(JSToBoolean(x))
         value = graph()->NewNode(simplified()->BooleanNot(), node);
         node->set_op(javascript()->ToBoolean());
         NodeProperties::ReplaceWithValue(node, value, node);
         // Note: ReplaceUses() smashes all uses, so smash it back here.
         value->ReplaceInput(0, node);
-        return ReplaceWith(value);
+        return Changed(node);
       }
     }
     case IrOpcode::kJSToBoolean:

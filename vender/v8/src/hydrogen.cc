@@ -1855,9 +1855,11 @@ HValue* HGraphBuilder::BuildRegExpConstructResult(HValue* length,
   HAllocate* elements = BuildAllocateElements(elements_kind, size);
   BuildInitializeElementsHeader(elements, elements_kind, length);
 
-  HConstant* size_in_bytes_upper_bound = EstablishElementsAllocationSize(
-      elements_kind, max_length->Integer32Value());
-  elements->set_size_upper_bound(size_in_bytes_upper_bound);
+  if (!elements->has_size_upper_bound()) {
+    HConstant* size_in_bytes_upper_bound = EstablishElementsAllocationSize(
+        elements_kind, max_length->Integer32Value());
+    elements->set_size_upper_bound(size_in_bytes_upper_bound);
+  }
 
   Add<HStoreNamedField>(
       result, HObjectAccess::ForJSArrayOffset(JSArray::kElementsOffset),
@@ -5290,16 +5292,26 @@ void HOptimizedGraphBuilder::VisitConditional(Conditional* expr) {
 HOptimizedGraphBuilder::GlobalPropertyAccess
 HOptimizedGraphBuilder::LookupGlobalProperty(Variable* var, LookupIterator* it,
                                              PropertyAccessType access_type) {
-  DCHECK_EQ(*var->name(), *it->name());
   if (var->is_this() || !current_info()->has_global_object()) {
     return kUseGeneric;
   }
-  if (!it->HasProperty() || it->property_kind() != LookupIterator::DATA ||
-      (access_type == STORE && it->IsReadOnly())) {
-    return kUseGeneric;
-  }
 
-  return kUseCell;
+  switch (it->state()) {
+    case LookupIterator::ACCESSOR:
+    case LookupIterator::ACCESS_CHECK:
+    case LookupIterator::INTERCEPTOR:
+    case LookupIterator::NOT_FOUND:
+      return kUseGeneric;
+    case LookupIterator::DATA:
+      if (access_type == STORE && it->IsReadOnly()) return kUseGeneric;
+      return kUseCell;
+    case LookupIterator::JSPROXY:
+    case LookupIterator::TRANSITION:
+    case LookupIterator::UNKNOWN:
+      UNREACHABLE();
+  }
+  UNREACHABLE();
+  return kUseGeneric;
 }
 
 
@@ -5341,13 +5353,9 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
       }
 
       Handle<GlobalObject> global(current_info()->global_object());
-      LookupIterator it(global, variable->name(), LookupIterator::OWN_PROPERTY);
+      LookupIterator it(global, variable->name(),
+                        LookupIterator::OWN_SKIP_INTERCEPTOR);
       GlobalPropertyAccess type = LookupGlobalProperty(variable, &it, LOAD);
-
-      if (type == kUseCell &&
-          current_info()->global_object()->IsAccessCheckNeeded()) {
-        type = kUseGeneric;
-      }
 
       if (type == kUseCell) {
         Handle<PropertyCell> cell = it.GetPropertyCell();
@@ -5790,16 +5798,17 @@ HInstruction* HOptimizedGraphBuilder::BuildLoadNamedField(
     PropertyAccessInfo* info,
     HValue* checked_object) {
   // See if this is a load for an immutable property
-  if (checked_object->ActualValue()->IsConstant() && info->IsReadOnly() &&
-      !info->IsConfigurable()) {
+  if (checked_object->ActualValue()->IsConstant()) {
     Handle<Object> object(
         HConstant::cast(checked_object->ActualValue())->handle(isolate()));
 
     if (object->IsJSObject()) {
-      LookupIterator it(object, info->name(), LookupIterator::OWN_PROPERTY);
+      LookupIterator it(object, info->name(),
+                        LookupIterator::OWN_SKIP_INTERCEPTOR);
       Handle<Object> value = JSObject::GetDataProperty(&it);
-      CHECK(it.IsFound());
-      return New<HConstant>(value);
+      if (it.IsFound() && it.IsReadOnly() && !it.IsConfigurable()) {
+        return New<HConstant>(value);
+      }
     }
   }
 
@@ -6459,7 +6468,7 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
     HValue* value,
     BailoutId ast_id) {
   Handle<GlobalObject> global(current_info()->global_object());
-  LookupIterator it(global, var->name(), LookupIterator::OWN_PROPERTY);
+  LookupIterator it(global, var->name(), LookupIterator::OWN_SKIP_INTERCEPTOR);
   GlobalPropertyAccess type = LookupGlobalProperty(var, &it, STORE);
   if (type == kUseCell) {
     Handle<PropertyCell> cell = it.GetPropertyCell();
@@ -7392,9 +7401,7 @@ HInstruction* HOptimizedGraphBuilder::NewPlainFunctionCall(
 HInstruction* HOptimizedGraphBuilder::NewArgumentAdaptorCall(
     HValue* fun, HValue* context,
     int argument_count, HValue* expected_param_count) {
-  CallInterfaceDescriptor* descriptor =
-      isolate()->call_descriptor(CallDescriptorKey::ArgumentAdaptorCall);
-
+  ArgumentAdaptorDescriptor descriptor(isolate());
   HValue* arity = Add<HConstant>(argument_count - 1);
 
   HValue* op_vals[] = { context, fun, arity, expected_param_count };
@@ -7405,7 +7412,7 @@ HInstruction* HOptimizedGraphBuilder::NewArgumentAdaptorCall(
 
   return New<HCallWithDescriptor>(
       adaptor_value, argument_count, descriptor,
-      Vector<HValue*>(op_vals, descriptor->GetEnvironmentLength()));
+      Vector<HValue*>(op_vals, descriptor.GetEnvironmentLength()));
 }
 
 
@@ -7889,10 +7896,9 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
   Scope* saved_scope = scope();
   set_scope(target_info.scope());
   HEnterInlined* enter_inlined =
-      Add<HEnterInlined>(return_id, target, arguments_count, function,
+      Add<HEnterInlined>(return_id, target, context, arguments_count, function,
                          function_state()->inlining_kind(),
-                         function->scope()->arguments(),
-                         arguments_object);
+                         function->scope()->arguments(), arguments_object);
   function_state()->set_entry(enter_inlined);
 
   VisitDeclarations(target_info.scope()->declarations());
@@ -8643,19 +8649,16 @@ bool HOptimizedGraphBuilder::TryInlineApiCall(Handle<JSFunction> function,
     api_function_address
   };
 
-  CallInterfaceDescriptor* descriptor =
-      isolate()->call_descriptor(CallDescriptorKey::ApiFunctionCall);
-
+  ApiFunctionDescriptor descriptor(isolate());
   CallApiFunctionStub stub(isolate(), is_store, call_data_is_undefined, argc);
   Handle<Code> code = stub.GetCode();
   HConstant* code_value = Add<HConstant>(code);
 
-  DCHECK((sizeof(op_vals) / kPointerSize) ==
-         descriptor->GetEnvironmentLength());
+  DCHECK((sizeof(op_vals) / kPointerSize) == descriptor.GetEnvironmentLength());
 
   HInstruction* call = New<HCallWithDescriptor>(
       code_value, argc + 1, descriptor,
-      Vector<HValue*>(op_vals, descriptor->GetEnvironmentLength()));
+      Vector<HValue*>(op_vals, descriptor.GetEnvironmentLength()));
 
   if (drop_extra) Drop(1);  // Drop function.
   ast_context()->ReturnInstruction(call, ast_id);
@@ -8801,6 +8804,12 @@ HValue* HOptimizedGraphBuilder::BuildArrayIndexOf(HValue* receiver,
 
   Push(graph()->GetConstantMinus1());
   if (IsFastDoubleElementsKind(kind) || IsFastSmiElementsKind(kind)) {
+    // Make sure that we can actually compare numbers correctly below, see
+    // https://code.google.com/p/chromium/issues/detail?id=407946 for details.
+    search_element = AddUncasted<HForceRepresentation>(
+        search_element, IsFastSmiElementsKind(kind) ? Representation::Smi()
+                                                    : Representation::Double());
+
     LoopBuilder loop(this, context(), direction);
     {
       HValue* index = loop.BeginBody(initial, terminating, token);
@@ -8808,12 +8817,8 @@ HValue* HOptimizedGraphBuilder::BuildArrayIndexOf(HValue* receiver,
           elements, index, static_cast<HValue*>(NULL),
           kind, ALLOW_RETURN_HOLE);
       IfBuilder if_issame(this);
-      if (IsFastDoubleElementsKind(kind)) {
-        if_issame.If<HCompareNumericAndBranch>(
-            element, search_element, Token::EQ_STRICT);
-      } else {
-        if_issame.If<HCompareObjectEqAndBranch>(element, search_element);
-      }
+      if_issame.If<HCompareNumericAndBranch>(element, search_element,
+                                             Token::EQ_STRICT);
       if_issame.Then();
       {
         Drop(1);
@@ -9051,10 +9056,10 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
       // access check is not enabled we assume that the function will not change
       // and generate optimized code for calling the function.
       Handle<GlobalObject> global(current_info()->global_object());
-      LookupIterator it(global, var->name(), LookupIterator::OWN_PROPERTY);
+      LookupIterator it(global, var->name(),
+                        LookupIterator::OWN_SKIP_INTERCEPTOR);
       GlobalPropertyAccess type = LookupGlobalProperty(var, &it, LOAD);
-      if (type == kUseCell &&
-          !current_info()->global_object()->IsAccessCheckNeeded()) {
+      if (type == kUseCell) {
         Handle<GlobalObject> global(current_info()->global_object());
         known_global_function = expr->ComputeGlobalTarget(global, &it);
       }
@@ -10690,12 +10695,10 @@ void HOptimizedGraphBuilder::VisitCompareOperation(CompareOperation* expr) {
     Handle<JSFunction> target = Handle<JSFunction>::null();
     VariableProxy* proxy = expr->right()->AsVariableProxy();
     bool global_function = (proxy != NULL) && proxy->var()->IsUnallocated();
-    if (global_function &&
-        current_info()->has_global_object() &&
-        !current_info()->global_object()->IsAccessCheckNeeded()) {
+    if (global_function && current_info()->has_global_object()) {
       Handle<String> name = proxy->name();
       Handle<GlobalObject> global(current_info()->global_object());
-      LookupIterator it(global, name, LookupIterator::OWN_PROPERTY);
+      LookupIterator it(global, name, LookupIterator::OWN_SKIP_INTERCEPTOR);
       Handle<Object> value = JSObject::GetDataProperty(&it);
       if (it.IsFound() && value->IsJSFunction()) {
         Handle<JSFunction> candidate = Handle<JSFunction>::cast(value);
@@ -12359,17 +12362,12 @@ void HTracer::TraceLiveRange(LiveRange* range, const char* type,
         trace_.Add(" \"%s\"", Register::AllocationIndexToString(assigned_reg));
       }
     } else if (range->IsSpilled()) {
-      int index = -1;
-      if (range->TopLevel()->GetSpillRange()->id() != -1) {
-        index = range->TopLevel()->GetSpillRange()->id();
+      LOperand* op = range->TopLevel()->GetSpillOperand();
+      if (op->IsDoubleStackSlot()) {
+        trace_.Add(" \"double_stack:%d\"", op->index());
       } else {
-        index = range->TopLevel()->GetSpillOperand()->index();
-      }
-      if (range->TopLevel()->Kind() == DOUBLE_REGISTERS) {
-        trace_.Add(" \"double_stack:%d\"", index);
-      } else {
-        DCHECK(range->TopLevel()->Kind() == GENERAL_REGISTERS);
-        trace_.Add(" \"stack:%d\"", index);
+        DCHECK(op->IsStackSlot());
+        trace_.Add(" \"stack:%d\"", op->index());
       }
     }
     int parent_index = -1;

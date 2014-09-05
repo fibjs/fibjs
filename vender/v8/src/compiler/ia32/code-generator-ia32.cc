@@ -136,19 +136,14 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArchCallJSFunction: {
-      // TODO(jarin) The load of the context should be separated from the call.
       Register func = i.InputRegister(0);
-      __ mov(esi, FieldOperand(func, JSFunction::kContextOffset));
+      if (FLAG_debug_code) {
+        // Check the function's context matches the context argument.
+        __ cmp(esi, FieldOperand(func, JSFunction::kContextOffset));
+        __ Assert(equal, kWrongFunctionContext);
+      }
       __ call(FieldOperand(func, JSFunction::kCodeEntryOffset));
       AddSafepointAndDeopt(instr);
-      break;
-    }
-    case kArchDeoptimize: {
-      int deoptimization_id = BuildTranslation(instr, 0);
-
-      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
-          isolate(), deoptimization_id, Deoptimizer::LAZY);
-      __ call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
       break;
     }
     case kArchDrop: {
@@ -586,6 +581,13 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
 }
 
 
+void CodeGenerator::AssembleDeoptimizerCall(int deoptimization_id) {
+  Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
+      isolate(), deoptimization_id, Deoptimizer::LAZY);
+  __ call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
+}
+
+
 // The calling convention for JSFunctions on IA32 passes arguments on the
 // stack and the JSFunction and context in EDI and ESI, respectively, thus
 // the steps of the call look as follows:
@@ -794,8 +796,9 @@ void CodeGenerator::AssembleReturn() {
   } else {
     __ mov(esp, ebp);  // Move stack pointer back to frame pointer.
     __ pop(ebp);       // Pop caller's frame pointer.
-    int pop_count =
-        descriptor->IsJSFunctionCall() ? descriptor->ParameterCount() : 0;
+    int pop_count = descriptor->IsJSFunctionCall()
+                        ? static_cast<int>(descriptor->JSParameterCount())
+                        : 0;
     __ ret(pop_count * kPointerSize);
   }
 }

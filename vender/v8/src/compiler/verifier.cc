@@ -73,6 +73,17 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
                     effect_count + control_count;
   CHECK_EQ(input_count, node->InputCount());
 
+  // Verify that frame state has been inserted for the nodes that need it.
+  if (OperatorProperties::HasFrameStateInput(node->op())) {
+    Node* frame_state = NodeProperties::GetFrameStateInput(node);
+    CHECK(frame_state->opcode() == IrOpcode::kFrameState ||
+          // kFrameState uses undefined as a sentinel.
+          (node->opcode() == IrOpcode::kFrameState &&
+           frame_state->opcode() == IrOpcode::kHeapConstant));
+    CHECK(IsDefUseChainLinkPresent(frame_state, node));
+    CHECK(IsUseDefChainLinkPresent(frame_state, node));
+  }
+
   // Verify all value inputs actually produce a value.
   for (int i = 0; i < value_count; ++i) {
     Node* value = NodeProperties::GetValueInput(node, i);
@@ -163,7 +174,7 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
       CHECK_EQ(IrOpcode::kStart,
                NodeProperties::GetValueInput(node, 0)->opcode());
       // Parameter has an input that produces enough values.
-      int index = static_cast<Operator1<int>*>(node->op())->parameter();
+      int index = OpParameter<int>(node);
       Node* input = NodeProperties::GetValueInput(node, 0);
       // Currently, parameter indices start at -1 instead of 0.
       CHECK_GT(OperatorProperties::GetValueOutputCount(input->op()), index + 1);
@@ -194,24 +205,15 @@ GenericGraphVisit::Control Verifier::Visitor::Pre(Node* node) {
                OperatorProperties::GetControlInputCount(control->op()));
       break;
     }
-    case IrOpcode::kLazyDeoptimization:
-      // TODO(jarin): what are the constraints on these?
-      break;
-    case IrOpcode::kDeoptimize:
-      // TODO(jarin): what are the constraints on these?
-      break;
     case IrOpcode::kFrameState:
       // TODO(jarin): what are the constraints on these?
       break;
     case IrOpcode::kCall:
       // TODO(rossberg): what are the constraints on these?
       break;
-    case IrOpcode::kContinuation:
-      // TODO(jarin): what are the constraints on these?
-      break;
     case IrOpcode::kProjection: {
       // Projection has an input that produces enough values.
-      int index = static_cast<Operator1<int>*>(node->op())->parameter();
+      int index = OpParameter<int>(node);
       Node* input = NodeProperties::GetValueInput(node, 0);
       CHECK_GT(OperatorProperties::GetValueOutputCount(input->op()), index);
       break;

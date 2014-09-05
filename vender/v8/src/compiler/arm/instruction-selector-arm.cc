@@ -15,7 +15,7 @@ namespace internal {
 namespace compiler {
 
 // Adds Arm-specific methods for generating InstructionOperands.
-class ArmOperandGenerator V8_FINAL : public OperandGenerator {
+class ArmOperandGenerator FINAL : public OperandGenerator {
  public:
   explicit ArmOperandGenerator(InstructionSelector* selector)
       : OperandGenerator(selector) {}
@@ -81,7 +81,6 @@ class ArmOperandGenerator V8_FINAL : public OperandGenerator {
       case kArchCallAddress:
       case kArchCallCodeObject:
       case kArchCallJSFunction:
-      case kArchDeoptimize:
       case kArchDrop:
       case kArchJmp:
       case kArchNop:
@@ -601,14 +600,14 @@ void InstructionSelector::VisitInt32Mul(Node* node) {
   Int32BinopMatcher m(node);
   if (m.right().HasValue() && m.right().Value() > 0) {
     int32_t value = m.right().Value();
-    if (IsPowerOf2(value - 1)) {
+    if (base::bits::IsPowerOfTwo32(value - 1)) {
       Emit(kArmAdd | AddressingModeField::encode(kMode_Operand2_R_LSL_I),
            g.DefineAsRegister(node), g.UseRegister(m.left().node()),
            g.UseRegister(m.left().node()),
            g.TempImmediate(WhichPowerOf2(value - 1)));
       return;
     }
-    if (value < kMaxInt && IsPowerOf2(value + 1)) {
+    if (value < kMaxInt && base::bits::IsPowerOfTwo32(value + 1)) {
       Emit(kArmRsb | AddressingModeField::encode(kMode_Operand2_R_LSL_I),
            g.DefineAsRegister(node), g.UseRegister(m.left().node()),
            g.UseRegister(m.left().node()),
@@ -798,8 +797,7 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   // TODO(turbofan): on ARM64 it's probably better to use the code object in a
   // register if there are multiple uses of it. Improve constant pool and the
   // heuristics in the register allocator for where to emit constants.
-  InitializeCallBuffer(call, &buffer, true, false, continuation,
-                       deoptimization);
+  InitializeCallBuffer(call, &buffer, true, false);
 
   // TODO(dcarney): might be possible to use claim/poke instead
   // Push any stack arguments.

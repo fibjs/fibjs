@@ -178,8 +178,6 @@ DEFINE_IMPLICATION(harmony, es_staging)
 DEFINE_IMPLICATION(es_staging, harmony_generators)
 
 // Flags for experimental implementation features.
-DEFINE_BOOL(compiled_keyed_dictionary_loads, true,
-            "use optimizing compiler to generate keyed dictionary load stubs")
 DEFINE_BOOL(compiled_keyed_generic_loads, false,
             "use optimizing compiler to generate keyed generic load stubs")
 DEFINE_BOOL(clever_optimizations, true,
@@ -436,8 +434,6 @@ DEFINE_BOOL(serialize_toplevel, false, "enable caching of toplevel scripts")
 // compiler.cc
 DEFINE_INT(min_preparse_length, 1024,
            "minimum length for automatic enable preparsing")
-DEFINE_BOOL(always_full_compiler, false,
-            "try to use the dedicated run-once backend for all code")
 DEFINE_INT(max_opt_count, 10,
            "maximum number of optimization attempts before giving up.")
 
@@ -495,6 +491,8 @@ DEFINE_BOOL(trace_gc_nvp, false,
             "after each garbage collection")
 DEFINE_BOOL(trace_gc_ignore_scavenger, false,
             "do not print trace line after scavenger collection")
+DEFINE_BOOL(trace_idle_notification, false,
+            "print one trace line following each idle notification")
 DEFINE_BOOL(print_cumulative_gc_stat, false,
             "print cumulative GC statistics in name=value format on exit")
 DEFINE_BOOL(print_max_heap_committed, false,
@@ -530,7 +528,7 @@ DEFINE_BOOL(parallel_sweeping, false, "enable parallel sweeping")
 DEFINE_BOOL(concurrent_sweeping, true, "enable concurrent sweeping")
 DEFINE_INT(sweeper_threads, 0,
            "number of parallel and concurrent sweeping threads")
-DEFINE_BOOL(job_based_sweeping, false, "enable job based sweeping")
+DEFINE_BOOL(job_based_sweeping, true, "enable job based sweeping")
 #ifdef VERIFY_HEAP
 DEFINE_BOOL(verify_heap, false, "verify heap pointers before and after GC")
 #endif

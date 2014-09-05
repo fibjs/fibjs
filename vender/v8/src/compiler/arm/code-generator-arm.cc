@@ -160,21 +160,16 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArchCallJSFunction: {
-      // TODO(jarin) The load of the context should be separated from the call.
       Register func = i.InputRegister(0);
-      __ ldr(cp, FieldMemOperand(func, JSFunction::kContextOffset));
+      if (FLAG_debug_code) {
+        // Check the function's context matches the context argument.
+        __ ldr(kScratchReg, FieldMemOperand(func, JSFunction::kContextOffset));
+        __ cmp(cp, kScratchReg);
+        __ Assert(eq, kWrongFunctionContext);
+      }
       __ ldr(ip, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
       __ Call(ip);
       AddSafepointAndDeopt(instr);
-      DCHECK_EQ(LeaveCC, i.OutputSBit());
-      break;
-    }
-    case kArchDeoptimize: {
-      int deoptimization_id = BuildTranslation(instr, 0);
-
-      Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
-          isolate(), deoptimization_id, Deoptimizer::LAZY);
-      __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
@@ -618,6 +613,13 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
 }
 
 
+void CodeGenerator::AssembleDeoptimizerCall(int deoptimization_id) {
+  Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
+      isolate(), deoptimization_id, Deoptimizer::LAZY);
+  __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
+}
+
+
 void CodeGenerator::AssemblePrologue() {
   CallDescriptor* descriptor = linkage()->GetIncomingDescriptor();
   if (descriptor->kind() == CallDescriptor::kCallAddress) {
@@ -687,8 +689,9 @@ void CodeGenerator::AssembleReturn() {
     __ Ret();
   } else {
     __ LeaveFrame(StackFrame::MANUAL);
-    int pop_count =
-        descriptor->IsJSFunctionCall() ? descriptor->ParameterCount() : 0;
+    int pop_count = descriptor->IsJSFunctionCall()
+                        ? static_cast<int>(descriptor->JSParameterCount())
+                        : 0;
     __ Drop(pop_count);
     __ Ret();
   }

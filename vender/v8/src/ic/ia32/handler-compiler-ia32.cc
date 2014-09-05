@@ -15,52 +15,6 @@ namespace internal {
 #define __ ACCESS_MASM(masm)
 
 
-void ElementHandlerCompiler::GenerateLoadDictionaryElement(
-    MacroAssembler* masm) {
-  // ----------- S t a t e -------------
-  //  -- ecx    : key
-  //  -- edx    : receiver
-  //  -- esp[0] : return address
-  // -----------------------------------
-  DCHECK(edx.is(LoadConvention::ReceiverRegister()));
-  DCHECK(ecx.is(LoadConvention::NameRegister()));
-  Label slow, miss;
-
-  // This stub is meant to be tail-jumped to, the receiver must already
-  // have been verified by the caller to not be a smi.
-  __ JumpIfNotSmi(ecx, &miss);
-  __ mov(ebx, ecx);
-  __ SmiUntag(ebx);
-  __ mov(eax, FieldOperand(edx, JSObject::kElementsOffset));
-
-  // Push receiver on the stack to free up a register for the dictionary
-  // probing.
-  __ push(edx);
-  __ LoadFromNumberDictionary(&slow, eax, ecx, ebx, edx, edi, eax);
-  // Pop receiver before returning.
-  __ pop(edx);
-  __ ret(0);
-
-  __ bind(&slow);
-  __ pop(edx);
-
-  // ----------- S t a t e -------------
-  //  -- ecx    : key
-  //  -- edx    : receiver
-  //  -- esp[0] : return address
-  // -----------------------------------
-  TailCallBuiltin(masm, Builtins::kKeyedLoadIC_Slow);
-
-  __ bind(&miss);
-  // ----------- S t a t e -------------
-  //  -- ecx    : key
-  //  -- edx    : receiver
-  //  -- esp[0] : return address
-  // -----------------------------------
-  TailCallBuiltin(masm, Builtins::kKeyedLoadIC_Miss);
-}
-
-
 void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
     MacroAssembler* masm, Handle<HeapType> type, Register receiver,
     Handle<JSFunction> getter) {
@@ -327,9 +281,9 @@ static void CompileCallLoadPropertyWithInterceptor(
 
 
 static void StoreIC_PushArgs(MacroAssembler* masm) {
-  Register receiver = StoreConvention::ReceiverRegister();
-  Register name = StoreConvention::NameRegister();
-  Register value = StoreConvention::ValueRegister();
+  Register receiver = StoreDescriptor::ReceiverRegister();
+  Register name = StoreDescriptor::NameRegister();
+  Register value = StoreDescriptor::ValueRegister();
 
   DCHECK(!ebx.is(receiver) && !ebx.is(name) && !ebx.is(value));
 
@@ -745,8 +699,7 @@ void NamedLoadHandlerCompiler::GenerateLoadInterceptorWithFollowup(
       !holder().is_identical_to(it->GetHolder<JSObject>());
   bool must_preserve_receiver_reg =
       !receiver().is(holder_reg) &&
-      (it->property_kind() == LookupIterator::ACCESSOR ||
-       must_perform_prototype_check);
+      (it->state() == LookupIterator::ACCESSOR || must_perform_prototype_check);
 
   // Save necessary data before invoking an interceptor.
   // Requires a frame to make GC aware of pushed pointers.
@@ -853,7 +806,7 @@ Handle<Code> NamedStoreHandlerCompiler::CompileStoreInterceptor(
 
 
 Register NamedStoreHandlerCompiler::value() {
-  return StoreConvention::ValueRegister();
+  return StoreDescriptor::ValueRegister();
 }
 
 
@@ -863,7 +816,7 @@ Handle<Code> NamedLoadHandlerCompiler::CompileLoadGlobal(
 
   FrontendHeader(receiver(), name, &miss);
   // Get the value from the cell.
-  Register result = StoreConvention::ValueRegister();
+  Register result = StoreDescriptor::ValueRegister();
   if (masm()->serializer_enabled()) {
     __ mov(result, Immediate(cell));
     __ mov(result, FieldOperand(result, PropertyCell::kValueOffset));
