@@ -32,8 +32,11 @@ public:
 
     result_t join()
     {
-        v8::Unlocker unlocker(isolate);
-        m_quit.wait();
+        if (!m_quit.isSet())
+        {
+            v8::Unlocker unlocker(isolate);
+            m_quit.wait();
+        }
 
         return 0;
     }
