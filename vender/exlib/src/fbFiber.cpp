@@ -15,11 +15,7 @@
 #include "fiber.h"
 #include "thread.h"
 
-#ifdef _WIN32
-#define WM_SLEEP    (WM_USER + 1)
-#else
 #include <map>
-#endif
 
 namespace v8
 {
@@ -38,10 +34,8 @@ public:
 namespace exlib
 {
 
-#ifndef _WIN32
 exlib::lockfree<AsyncEvent> s_acSleep;
 std::multimap<double, AsyncEvent *> s_tms;
-#endif
 
 
 Fiber *Fiber::Current()
@@ -79,86 +73,19 @@ public:
         start();
     }
 
-#ifdef _WIN32
-    static void PASCAL Timer(unsigned int uTimerID, unsigned int uMsg,
-                             DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
-    {
-        timeKillEvent(uTimerID);
-
-        AsyncEvent *p = (AsyncEvent *)dwUser;
-
-        p->apost(0);
-    }
-
-    virtual void Run()
-    {
-        TIMECAPS tc;
-
-        timeGetDevCaps(&tc, sizeof(TIMECAPS));
-
-        if (tc.wPeriodMin < 1)
-            tc.wPeriodMin = 1;
-
-        timeBeginPeriod(tc.wPeriodMin);
-
-        MSG msg;
-        while (GetMessage(&msg, 0, 0, 0))
-            if (msg.message == WM_SLEEP)
-            {
-                UINT tm;
-                AsyncEvent *p = (AsyncEvent *)msg.lParam;
-
-                tm = (UINT)p->result();
-                if (tm < tc.wPeriodMin)
-                    tm = tc.wPeriodMin;
-
-                timeSetEvent(tm, tc.wPeriodMin, Timer, (DWORD_PTR)p, TIME_ONESHOT);
-            }
-    }
-#else
     OSSemaphore m_sem;
     double now;
 
-#ifdef MacOS
     void wait()
     {
         std::multimap<double, AsyncEvent *>::iterator e;
 
         e = s_tms.begin();
         if (e != s_tms.end())
-        {
-            mach_timespec_t mts;
-            int tm = e->first - now;
-
-            mts.tv_sec = tm / 1000;
-            mts.tv_nsec = (tm % 1000) * 1000000;
-
-            semaphore_timedwait(m_sem.m_sem, mts);
-        }
+            m_sem.TimedWait((int32_t)(e->first - now));
         else
             m_sem.Wait();
     }
-
-#else
-    void wait()
-    {
-        std::multimap<double, AsyncEvent *>::iterator e;
-
-        e = s_tms.begin();
-        if (e != s_tms.end())
-        {
-            struct timespec tm;
-
-            tm.tv_sec = (time_t)(e->first / 1000);
-            tm.tv_nsec = (e->first - (double)tm.tv_sec * 1000) * 1000000;
-
-            sem_timedwait(&m_sem.m_sem, &tm);
-        }
-        else
-            m_sem.Wait();
-    }
-
-#endif
 
     virtual void Run()
     {
@@ -196,20 +123,14 @@ public:
         }
     }
 
-#endif
-
     static void post(AsyncEvent *p);
 
 } s_timer;
 
 void _timerThread::post(AsyncEvent *p)
 {
-#ifdef _WIN32
-    PostThreadMessage(s_timer.threadid, WM_SLEEP, 0, (LPARAM)p);
-#else
     s_acSleep.put(p);
     s_timer.m_sem.Post();
-#endif
 }
 
 void AsyncEvent::sleep(int ms)
