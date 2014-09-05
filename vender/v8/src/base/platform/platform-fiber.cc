@@ -44,6 +44,7 @@ Thread::Thread(const Options& options) :
 Thread::~Thread()
 {
 	data_->thread_->Unref();
+	delete data_;
 }
 
 static void* ThreadEntry(void* arg)

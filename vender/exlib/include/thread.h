@@ -73,26 +73,31 @@ public:
 
     ~OSSemaphore()
     {
-        CloseHandle(m_handle);
+        CloseHandle(m_sem);
     }
 
     void Post()
     {
-        ReleaseSemaphore(m_handle, 1, NULL);
+        ReleaseSemaphore(m_sem, 1, NULL);
     }
 
     void Wait()
     {
-        WaitForSingleObject(m_handle, INFINITE);
+        TimedWait(INFINITE);
+    }
+
+    bool TimedWait(int ms)
+    {
+        return WaitForSingleObject(m_sem, ms) == WAIT_OBJECT_0;
     }
 
     bool TryWait()
     {
-        return WaitForSingleObject(m_handle, 0) == WAIT_OBJECT_0;
+        return TimedWait(0);
     }
 
 public:
-    HANDLE m_handle;
+    HANDLE m_sem;
 };
 
 class OSCondVarOld
@@ -243,6 +248,21 @@ public:
         semaphore_wait(m_sem);
     }
 
+    bool TimedWait(int ms)
+    {
+        mach_timespec_t mts;
+
+        mts.tv_sec = ms / 1000;
+        mts.tv_nsec = (ms % 1000) * 1000000;
+
+        return semaphore_timedwait(m_sem, mts) == 0;
+    }
+
+    bool TryWait()
+    {
+        return TimedWait(0);
+    }
+
 public:
     semaphore_t m_sem;
 };
@@ -273,6 +293,22 @@ public:
     bool TryWait()
     {
         return sem_trywait(&m_sem) == 0;
+    }
+
+    bool TimedWait(int ms)
+    {
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        long secs = ms / 1000;
+        ms = ms % 1000;
+
+        long add = 0;
+        ms = ms * 1000 * 1000 + ts.tv_nsec;
+        add = ms / (1000 * 1000 * 1000);
+        ts.tv_sec += (add + secs);
+        ts.tv_nsec = ms % (1000 * 1000 * 1000);
+
+        return sem_timedwait(&m_sem, &ts) == 0;
     }
 
 public:
