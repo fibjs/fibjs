@@ -12,6 +12,7 @@
 #include "SandBox.h"
 #include "Fiber.h"
 #include "utf8.h"
+#include "include/libplatform/libplatform.h"
 
 namespace fibjs
 {
@@ -26,6 +27,9 @@ void init_argv(int argc, char **argv);
 void _main(const char *fname)
 {
     v8::V8::Initialize();
+
+    v8::Platform *platform = v8::platform::CreateDefaultPlatform();
+    v8::V8::InitializePlatform(platform);
 
     isolate = v8::Isolate::New();
     v8::Locker locker(isolate);
@@ -61,6 +65,11 @@ void _main(const char *fname)
     }
 
     process_base::exit(0);
+
+    isolate->Dispose();
+
+    v8::V8::ShutdownPlatform();
+    delete platform;
 
     s_context.Reset();
 }
