@@ -155,24 +155,22 @@ SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
     m_fnRun = v8::Function::New(isolate, _run, _mod);
 }
 
-extern v8::Persistent<v8::Context> s_context_test;
-
 result_t SandBox::Context::run(std::string src, const char *name, const char **argNames,
                                v8::Local<v8::Value> *args, int32_t argCount)
 {
     v8::Local<v8::Script> script;
     {
         v8::TryCatch try_catch;
+        v8::Local<v8::String> sname = v8::String::NewFromUtf8(isolate, name);
 
         {
-            v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate, s_context_test);
-            v8::Context::Scope context_scope(_context);
+            v8::ScriptCompiler::Source script_source(
+                v8::String::NewFromUtf8(isolate, src.c_str(),
+                                        v8::String::kNormalString, (int) src.length()),
+                v8::ScriptOrigin(sname));
 
-            script = v8::Script::Compile(
-                         v8::String::NewFromUtf8(isolate, src.c_str(),
-                                                 v8::String::kNormalString, (int) src.length()),
-                         v8::String::NewFromUtf8(isolate, name));
-            if (script.IsEmpty())
+            if (v8::ScriptCompiler::CompileUnbound(
+                        isolate, &script_source).IsEmpty())
                 return throwSyntaxError(try_catch);
         }
 
@@ -191,7 +189,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
         script = v8::Script::Compile(
                      v8::String::NewFromUtf8(isolate, src.c_str(),
                                              v8::String::kNormalString, (int) src.length()),
-                     v8::String::NewFromUtf8(isolate, name));
+                     sname);
         if (script.IsEmpty())
             return throwSyntaxError(try_catch);
     }
