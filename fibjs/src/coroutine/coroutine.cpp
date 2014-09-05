@@ -168,20 +168,11 @@ result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
     return 0;
 }
 
-result_t coroutine_base::sleep(int32_t ms, exlib::AsyncEvent *ac)
+result_t coroutine_base::sleep(int32_t ms)
 {
-    if (!ac)
-    {
-        if (ms > 0)
-            return CHECK_ERROR(CALL_E_NOSYNC);
-
-        v8::Unlocker unlocker(isolate);
-        exlib::Service::getFiberService()->yield();
-        return 0;
-    }
-
-    ac->sleep(ms);
-    return CHECK_ERROR(CALL_E_PENDDING);
+    v8::Unlocker unlocker(isolate);
+    exlib::Fiber::sleep(ms);
+    return 0;
 }
 
 result_t coroutine_base::get_singleUserMode(bool &retVal)

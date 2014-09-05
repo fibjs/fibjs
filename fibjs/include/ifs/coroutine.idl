@@ -57,7 +57,7 @@ class coroutine : module
     /*! @brief 暂停当前纤程指定的时间
      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
      */
-    static sleep(Integer ms = 0) async;
+    static sleep(Integer ms = 0);
 
     /*! @brief 是否强制使用单用户模式，缺省为 False
 

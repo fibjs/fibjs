@@ -188,7 +188,7 @@ public:
     void flush()
     {
         while (!m_acLog.empty() || !m_logEmpty)
-            coroutine_base::ac_sleep(1);
+            coroutine_base::sleep(1);
     }
 
     void stop()
