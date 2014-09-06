@@ -52,6 +52,7 @@
     <ClInclude Include="src\base\build_config.h" />
     <ClInclude Include="src\base\compiler-specific.h" />
     <ClInclude Include="src\base\cpu.h" />
+    <ClInclude Include="src\base\division-by-constant.h" />
     <ClInclude Include="src\base\flags.h" />
     <ClInclude Include="src\base\lazy-instance.h" />
     <ClInclude Include="src\base\logging.h" />
@@ -401,6 +402,7 @@
     <ClCompile Include="src\base\atomicops_internals_x86_gcc.cc" />
     <ClCompile Include="src\base\bits.cc" />
     <ClCompile Include="src\base\cpu.cc" />
+    <ClCompile Include="src\base\division-by-constant.cc" />
     <ClCompile Include="src\base\logging.cc" />
     <ClCompile Include="src\base\once.cc" />
     <ClCompile Include="src\base\platform\_date_cache.cc" />

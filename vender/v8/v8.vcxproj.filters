@@ -186,6 +186,9 @@
     <ClInclude Include="src\base\cpu.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
+    <ClInclude Include="src\base\division-by-constant.h">
+      <Filter>Source Files\base</Filter>
+    </ClInclude>
     <ClInclude Include="src\base\flags.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
@@ -1227,6 +1230,9 @@
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\cpu.cc">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\division-by-constant.cc">
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\logging.cc">
