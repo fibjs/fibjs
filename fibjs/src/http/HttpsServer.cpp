@@ -198,7 +198,7 @@ result_t HttpsServer::get_httpStats(obj_ptr<Stats_base> &retVal)
     return m_handler->get_stats(retVal);
 }
 
-result_t HttpsServer::get_tcpStats(obj_ptr<Stats_base> &retVal)
+result_t HttpsServer::get_stats(obj_ptr<Stats_base> &retVal)
 {
     return m_server->get_stats(retVal);
 }

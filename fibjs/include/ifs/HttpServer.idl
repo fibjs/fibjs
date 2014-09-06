@@ -15,7 +15,7 @@
  });
  @endcode
  */
-interface HttpServer: object
+interface HttpServer: TcpServer
 {
     /*! @brief HttpServer 构造函数，在所有本机地址侦听
       @param port 指定 http 服务器侦听端口
@@ -29,21 +29,6 @@ interface HttpServer: object
       @param hdlr http 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
      */
     HttpServer(String addr, Integer port, Value hdlr);
-
-    /*! @brief 运行 http 服务器并开始接收和分发连接，此函数不会返回 */
-    run() async;
-
-    /*! @brief 异步运行 http 服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
-    asyncRun();
-
-    /*! @brief 关闭 socket中止正在运行的服务器 */
-    stop() async;
-
-    /*! @brief http 服务器当前侦听的 Socket 对象  */
-    readonly Socket socket;
-
-    /*! @brief http 服务器当前事件处理接口对象 */
-    Handler handler;
 
     /*! @brief 查询和设置是否允许跨域请求，缺省为 false */
     Boolean crossDomain;
@@ -74,18 +59,4 @@ interface HttpServer: object
       @endcode
      */
     readonly Stats httpStats;
-
-    /*! @brief 查询当前服务器 tcp 运行状态
-
-      返回的结果为一个 Stats 对象，结构如下：
-      @code
-      {
-          total : 1000,      // 总计处理的连接
-          connections : 100, // 当前正在处理的连接
-          accept : 10,       // 上次查询后新建的连接
-          close : 10         // 上次查询后关闭的连接
-      }
-      @endcode
-     */
-    readonly Stats tcpStats;
 };

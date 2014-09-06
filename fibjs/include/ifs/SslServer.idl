@@ -16,7 +16,7 @@ SslServer 对象是将 TcpServer 和 SslHandler 组合封装的对象，方便�
  });
  @endcode
  */
-interface SslServer : object
+interface SslServer : TcpServer
 {
     /*! @brief SslServer 构造函数，在所有本机地址侦听
       @param certs 服务器证书列表，格式为
@@ -74,38 +74,9 @@ interface SslServer : object
      */
     SslServer(X509Cert crt, PKey key, String addr, Integer port, Value listener);
 
-    /*! @brief 运行 ssl 服务器并开始接收和分发连接，此函数不会返回 */
-    run() async;
-
-    /*! @brief 异步运行 ssl 服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
-    asyncRun();
-
-    /*! @brief 关闭 socket中止正在运行的服务器 */
-    stop() async;
-
-    /*! @brief ssl 服务器当前侦听的 Socket 对象  */
-    readonly Socket socket;
-
-    /*! @brief ssl 服务器当前事件处理接口对象 */
-    Handler handler;
-
     /*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
     Integer verification;
 
     /*! @brief 客户端证书验证证书链*/
     readonly X509Cert ca;
-
-    /*! @brief 查询当前服务器运行状态
-
-      返回的结果为一个 Stats 对象，初始化计数器如下：
-      @code
-      {
-          total : 1000,      // 总计处理的连接
-          connections : 100, // 当前正在处理的连接
-          accept : 10,       // 上次查询后新建的连接
-          close : 10         // 上次查询后关闭的连接
-      }
-      @endcode
-     */
-    readonly Stats stats;
 };
