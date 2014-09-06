@@ -6,7 +6,7 @@
  var net = require('net');
  \endcode
  */
-class net : module
+interface net : module
 {
     /*! @brief 地址集常量，指定 ipv4*/
     const Integer AF_INET = 2;

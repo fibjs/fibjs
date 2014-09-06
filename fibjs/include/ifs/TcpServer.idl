@@ -16,7 +16,7 @@
  new net.TcpServer(8080, func).run();
  @endcode
  */
-class TcpServer : object
+interface TcpServer : object
 {
     /*! @brief TcpServer 构造函数，在所有本机地址侦听
       @param port 指定 tcp 服务器侦听端口

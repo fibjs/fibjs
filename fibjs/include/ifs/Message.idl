@@ -7,7 +7,7 @@
  var m = new mq.Message();
  @endcode
  *  */
-class Message: object
+interface Message: object
 {
     /*! @brief 消息对象构造函数 */
     Message();

@@ -7,7 +7,7 @@
  var id = uuid.uuid1();
  \endcode
  */
-class uuidValue : object
+interface uuidValue : object
 {
     /*! @brief 返回 uuid 的二进制数据
      @return 返回数据

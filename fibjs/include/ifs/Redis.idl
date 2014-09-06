@@ -7,7 +7,7 @@
  var test = new db.openRedis("redis-server");
  @endcode
  */
-class Redis : object
+interface Redis : object
 {
     /*! @brief redis 基础命令方法
      @param cmd 指定发送的命令

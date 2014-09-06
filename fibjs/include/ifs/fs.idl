@@ -6,7 +6,7 @@
  var fs = require('fs');
  @endcode
  */
-class fs : module
+interface fs : module
 {
     /*! @brief seek 方式常量，移动到绝对位置 */
     const Integer SEEK_SET = 0;

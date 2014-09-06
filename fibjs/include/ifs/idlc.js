@@ -34,7 +34,7 @@ function preparserIDL(fname) {
 		st = getStock();
 
 		if (st.length > 0) {
-			if (st[0] == "class" && st.length > 1) {
+			if (st[0] == "interface" && st.length > 1) {
 				if (clsName[st[1]])
 					return reportErr();
 
@@ -187,7 +187,7 @@ function parserIDL(fname) {
 		st = getStock();
 
 		if (st.length > 0) {
-			if (st[0] == "class" && st.length > 1) {
+			if (st[0] == "interface" && st.length > 1) {
 				if (!_checkID(st[1]))
 					return false;
 
@@ -966,7 +966,7 @@ function parserIDL(fname) {
 		if (r[0] != s)
 			return reportErr();
 
-		if (s == "namespace" || s == "class" || s == "const" || s == "static" || s == "readonly" || s == "unsigned" || s == "int" || s == "long" || s == "float" || s == "boolean" || s == "date" || s == "string" || s == "array" || s == "")
+		if (s == "interface" || s == "const" || s == "static" || s == "readonly" || s == "")
 			return reportErr();
 
 		return true;

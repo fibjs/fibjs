@@ -7,7 +7,7 @@
  var m = new collection.Map();
  @endcode
  */
-class Map : object
+interface Map : object
 {
     /*! @brief Map 构造函数 */
     Map();

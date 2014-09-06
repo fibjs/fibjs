@@ -10,7 +10,7 @@
   var hdlr = new http.Handler(...);
   @endcode
  */
-class HttpHandler: Handler
+interface HttpHandler: Handler
 {
     /*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
      @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler

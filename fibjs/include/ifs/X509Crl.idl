@@ -6,7 +6,7 @@
  var k = new crypto.X509Crl();
  @endcode
  */
-class X509Crl: object
+interface X509Crl: object
 {
     /*! @brief X509Crl 构造函数 */
     X509Crl();

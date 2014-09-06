@@ -1,6 +1,6 @@
 
 /*! @brief 包含 multipart 的一个条目数据 */
-class HttpUploadData : object
+interface HttpUploadData : object
 {
     /*! @brief 包含本条目数据的文件名 */
     readonly String fileName;

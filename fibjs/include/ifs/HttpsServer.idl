@@ -15,7 +15,7 @@
  });
  @endcode
  */
-class HttpsServer: object
+interface HttpsServer: object
 {
     /*! @brief HttpsServer 构造函数，在所有本机地址侦听
       @param certs 服务器证书列表，格式为

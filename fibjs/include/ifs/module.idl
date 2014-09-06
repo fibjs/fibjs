@@ -1,5 +1,5 @@
 
 /*! @brief 基础模块对象，所有模块对象均继承于此*/
-class module
+interface module
 {
 };

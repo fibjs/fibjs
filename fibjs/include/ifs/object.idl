@@ -1,5 +1,5 @@
 /*! @brief 基础对象，所有对象均继承于此*/
-class object
+interface object
 {
     /*! @brief 强制回收对象，调用此方法后，对象资源将立即释放*/
     dispose();

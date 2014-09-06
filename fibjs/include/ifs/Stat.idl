@@ -3,7 +3,7 @@
 
   Stat 对象通过 fs.stat, File.stat, fs.readdir 查询，不可独立创建
  */
-class Stat : object
+interface Stat : object
 {
     /*! @brief 文件名称 */
     readonly String name;

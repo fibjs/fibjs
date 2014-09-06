@@ -6,7 +6,7 @@
  var test = require('test');
  @endcode
  */
-class test : module
+interface test : module
 {
     /*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert 和expect
      */

@@ -1,6 +1,6 @@
 
 /*! @brief http Cookie 对象，用于添加和处理 cookie */
-class HttpCookie : object
+interface HttpCookie : object
 {
     /*! @brief HttpCookie 构造函数，创建一个新的 HttpCookie 对象
      @param opts 指定创建的 cookie 的属性

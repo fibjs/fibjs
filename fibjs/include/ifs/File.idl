@@ -5,7 +5,7 @@
  var f = fs.open('test.txt');
  @endcode
  */
-class File: SeekableStream
+interface File: SeekableStream
 {
     /*! @brief 查询当前文件名 */
     readonly String name;

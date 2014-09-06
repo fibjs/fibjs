@@ -1,5 +1,5 @@
 /*! @brief 信息摘要对象 */
-class Digest : object
+interface Digest : object
 {
     /*! @brief 更新二进制摘要信息
      @param data 二进制数据块

@@ -6,7 +6,7 @@
  var buf = new Buffer();
  @endcode
  */
-class Buffer : object
+interface Buffer : object
 {
     /*! @brief 缓存对象构造函数
      @param datas 初始化数据数组

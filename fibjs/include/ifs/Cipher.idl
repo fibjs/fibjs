@@ -6,7 +6,7 @@
  var c = new crypto.Cipher(crypto.AES, crypto.ECB, ...);
  @endcode
  */
-class Cipher: object
+interface Cipher: object
 {
     /*! @brief Cipher 构造函数，仅用于 ARC4 初始化
      @param provider 指定加密算法

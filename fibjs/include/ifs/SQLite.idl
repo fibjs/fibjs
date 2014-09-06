@@ -6,7 +6,7 @@
  var slite = db.openSQLite("sqlite:/path/to/db");
  @endcode
 */
-class SQLite : DbConnection
+interface SQLite : DbConnection
 {
     /*! @brief 当前数据库文件名 */
     readonly String fileName;

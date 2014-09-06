@@ -8,7 +8,7 @@
  var hash = rdb.getHash("test");
  @endcode
  */
-class RedisHash : object
+interface RedisHash : object
 {
     /*! @brief 将哈希表中的域 field 的值设为 value，如果域 field 已经存在于哈希表中，旧值将被覆盖
      @param field 指定要修改的 field

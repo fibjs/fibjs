@@ -6,7 +6,7 @@
  var io = require('io');
  @endcode
  */
-class io : module
+interface io : module
 {
     /*! @brief 创建一个内存流对象，参见 MemoryStream */
     static MemoryStream new MemoryStream();

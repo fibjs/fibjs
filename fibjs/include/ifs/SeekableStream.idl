@@ -1,6 +1,6 @@
 
 /*! @brief 可移动当前指针的流对象接口 */
-class SeekableStream : Stream
+interface SeekableStream : Stream
 {
     /*! @brief 移动文件当前操作位置
       @param offset 指定新的位置

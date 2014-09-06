@@ -6,7 +6,7 @@
  var s = new ssl.Socket();
  \endcode
  */
-class SslSocket : Stream
+interface SslSocket : Stream
 {
     /*! @brief SslSocket 构造函数，创建一个新的 SslSocket 对象
       @param certs 服务器证书列表，格式为

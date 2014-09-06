@@ -9,7 +9,7 @@
  l.release();
  @endcode
  */
-class Lock : object
+interface Lock : object
 {
     /*! @brief 构造函数*/
     Lock();

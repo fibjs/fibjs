@@ -8,7 +8,7 @@
  var set = rdb.getSortedSet("test");
  @endcode
  */
-class RedisSortedSet : object
+interface RedisSortedSet : object
 {
     /*! @brief 将一个或多个 member 元素及其 score 值加入到有序集当中
      @param sms 指定要添加的 member/score 对象

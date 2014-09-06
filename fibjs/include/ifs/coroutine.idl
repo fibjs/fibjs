@@ -3,7 +3,7 @@
 
  引用方法：var coroutine = require('coroutine');
  */
-class coroutine : module
+interface coroutine : module
 {
     /*! @brief 锁对象，参见 Lock */
     static Lock new Lock();

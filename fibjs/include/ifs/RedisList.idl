@@ -7,7 +7,7 @@
  var list = rdb.getList("test");
  @endcode
  */
-class RedisList : object
+interface RedisList : object
 {
     /*! @brief 将一个或多个值 value 插入到列表的表头
      @param values 指定要插入的数据

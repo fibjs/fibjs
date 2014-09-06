@@ -1,7 +1,7 @@
 
 /*! @brief 正则表达式对象
  */
-class Regex : object
+interface Regex : object
 {
     /*! @brief 检索字符串中的正则表达式的匹配
      @param str 要检索的字符串

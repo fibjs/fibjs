@@ -46,7 +46,7 @@
  fb.join();
  @endcode
  */
-class Fiber : object
+interface Fiber : object
 {
     /*! @brief 等待纤程结束 */
     join();

@@ -17,7 +17,7 @@
  var obj = expect(exp);
  @endcode
   */
-class Expect : object
+interface Expect : object
 {
     /*! @brief 无任何修改，仅用于构建语义
      @return 返回对象本身

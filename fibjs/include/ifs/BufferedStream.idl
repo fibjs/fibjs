@@ -6,7 +6,7 @@
  var reader = new io.BufferedStream(stream);
  @endcode
  */
-class BufferedStream : Stream
+interface BufferedStream : Stream
 {
     /*! @brief BufferedStream 构造函数
       @param stm BufferedStream 的二进制基础流对象

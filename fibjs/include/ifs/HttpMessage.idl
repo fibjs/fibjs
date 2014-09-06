@@ -1,6 +1,6 @@
 
 /*! @brief http 基础消息对象  */
-class HttpMessage: Message
+interface HttpMessage: Message
 {
     /*! @brief 协议版本信息，允许的格式为：HTTP/#.# */
     String protocol;

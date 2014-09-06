@@ -6,7 +6,7 @@
  var s = new net.Socket();
  \endcode
  */
-class Socket : Stream
+interface Socket : Stream
 {
     /*! @brief Socket 构造函数，创建一个新的 Socket 对象
      @param family 指定地址集，缺省为 AF_INET，ipv4

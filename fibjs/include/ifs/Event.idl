@@ -1,7 +1,7 @@
 /*! @brief 信号量对象
 
  */
-class Event : Lock
+interface Event : Lock
 {
     Event(Boolean value = false);
 

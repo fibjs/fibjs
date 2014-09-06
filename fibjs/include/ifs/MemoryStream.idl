@@ -6,7 +6,7 @@
  var ms = new io.MemoryStream();
  @endcode
  */
-class MemoryStream : SeekableStream
+interface MemoryStream : SeekableStream
 {
     /*! @brief MemoryStream 构造函数 */
     MemoryStream();

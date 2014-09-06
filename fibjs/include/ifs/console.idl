@@ -12,7 +12,7 @@
  - %j - 以 JSON 格式输出对象
  - %% - 输出字符 '%' 本身
  */
-class console : module
+interface console : module
 {
     /*! @brief loglevel 级别常量 */
     const Integer FATAL = 0;

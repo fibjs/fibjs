@@ -6,7 +6,7 @@
  var db = require('db');
  \endcode
  */
-class db : module
+interface db : module
 {
     /*! @brief 打开一个数据库，此方法为通用入口，根据提供的 connString 不同调用不同的引擎
      @param connString 数据库描述，如：mysql://user:pass\@host/db

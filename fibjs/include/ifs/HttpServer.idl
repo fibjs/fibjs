@@ -15,7 +15,7 @@
  });
  @endcode
  */
-class HttpServer: object
+interface HttpServer: object
 {
     /*! @brief HttpServer 构造函数，在所有本机地址侦听
       @param port 指定 http 服务器侦听端口

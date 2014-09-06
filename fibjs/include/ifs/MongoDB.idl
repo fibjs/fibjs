@@ -6,7 +6,7 @@
  var mdb = db.openMongoDB("mongodb://host/db");
  @endcode
  */
-class MongoDB : object
+interface MongoDB : object
 {
     /*! @brief 获取指定集合访问对象
       @param name 指定集合的名称

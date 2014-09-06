@@ -1,6 +1,6 @@
 
 /*! @brief 常用工具模块 */
-class util : module
+interface util : module
 {
     /*! @brief 按照指定的格式格式化变量
 
@@ -231,7 +231,7 @@ class util : module
 
     /*! @brief 返回一个包含 arr 数组中排除 without 数组元素之后的数组
 
-     @param arr 指定需要排除的数组
+     @param list 指定需要排除的数组
      @param ... 指定用于排除的一个或者多个数组
      @return 返回排除的结果
      */

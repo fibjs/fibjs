@@ -6,7 +6,7 @@
  var zlib = require('zlib');
  @endcode
  */
-class zlib : module
+interface zlib : module
 {
     /*! @brief deflate 压缩级别，设定不压缩 */
     const Integer NO_COMPRESSION = 0;

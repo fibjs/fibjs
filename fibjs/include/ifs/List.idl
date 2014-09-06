@@ -7,7 +7,7 @@
  var a = new collection.List();
  @endcode
  */
-class List : object
+interface List : object
 {
     /*! @brief List 对象构造函数*/
     List();

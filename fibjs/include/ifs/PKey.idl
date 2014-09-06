@@ -6,7 +6,7 @@
  var k = new crypto.PKey();
  @endcode
  */
-class PKey: object
+interface PKey: object
 {
     /*! @brief PKey 构造函数 */
     PKey();

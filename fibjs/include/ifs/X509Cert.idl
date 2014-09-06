@@ -6,7 +6,7 @@
  var k = new crypto.X509Cert();
  @endcode
  */
-class X509Cert: object
+interface X509Cert: object
 {
     /*! @brief X509Cert 构造函数 */
     X509Cert();

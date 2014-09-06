@@ -6,7 +6,7 @@
  var c = new util.LruCache(10, 100);
  @endcode
  */
-class LruCache : object
+interface LruCache : object
 {
     /*! @brief LruCache 对象构造函数
      @param size 缓存最大尺寸

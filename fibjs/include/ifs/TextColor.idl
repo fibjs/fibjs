@@ -1,7 +1,7 @@
 
 /*! @brief 终端输出颜色配置对象
  */
-class TextColor : object
+interface TextColor : object
 {
     /*! @brief 指定 notice 颜色 */
     String notice;

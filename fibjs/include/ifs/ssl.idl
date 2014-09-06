@@ -1,5 +1,5 @@
 /*! @brief ssl/tls 模块 */
-class ssl : module
+interface ssl : module
 {
     /*! @brief 证书验证模式，不验证 */
     const Integer VERIFY_NONE = 0;

@@ -1,6 +1,6 @@
 
 /*! @brief 消息队列模块 */
-class mq : module
+interface mq : module
 {
     /*! @brief 创建一个消息对象，参见 Message */
     static Message new Message();

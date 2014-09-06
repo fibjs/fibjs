@@ -2,7 +2,7 @@
 /*! @brief Smtp对象
 
  */
-class Smtp : object
+interface Smtp : object
 {
     /*! @brief Smtp 对象构造函数 */
     Smtp();

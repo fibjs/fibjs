@@ -8,7 +8,7 @@
  @endcode
  一些内部对象会提供预先定义的的统计对象
  */
-class Stats : object
+interface Stats : object
 {
     /*! @brief 数据统计对象构造方法
      @param keys 指定计数器的名称

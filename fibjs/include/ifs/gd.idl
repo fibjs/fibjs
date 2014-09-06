@@ -6,7 +6,7 @@
  var gd = require('gd');
  \endcode
  */
-class gd : module
+interface gd : module
 {
     /*! @brief 图像格式常量，标示当前图像来源为未知 */
     const Integer NONE = 0;

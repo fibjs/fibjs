@@ -1,5 +1,5 @@
 /*! @brief 条件变量对象 */
-class Condition : Lock
+interface Condition : Lock
 {
     Condition();
     Condition(Lock lock);

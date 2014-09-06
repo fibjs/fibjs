@@ -6,7 +6,7 @@
  var msql = db.openSQLite("mysql://user:pass@host/db");
  @endcode
 */
-class MySQL : DbConnection
+interface MySQL : DbConnection
 {
     /*! @brief 选择当前数据库连接的缺省数据库
      @param dbName 指定数据库名

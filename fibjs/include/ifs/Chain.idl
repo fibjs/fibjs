@@ -7,7 +7,7 @@
  ]);
  @endcode
  */
-class Chain: Handler
+interface Chain: Handler
 {
     /*! @brief 构造一个消息处理器链处理对象
      @param hdlrs 处理器数组

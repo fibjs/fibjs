@@ -6,7 +6,7 @@
  var gfs = mdb.fs;
  @endcode
  */
-class GridFS : object
+interface GridFS : object
 {
     /*! @brief 获取一个文件
       @param name 指定获取的文件名

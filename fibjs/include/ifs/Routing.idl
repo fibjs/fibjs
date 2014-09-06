@@ -39,7 +39,7 @@
  @endcode
  匹配消息 "/func1/123/456.html" 后，value == "123"，params == ["123"];
  */
-class Routing: Handler
+interface Routing: Handler
 {
     /*! @brief 创建一个消息处理器路由对象
      @param map 初始化路由参数

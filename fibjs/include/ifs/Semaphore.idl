@@ -23,7 +23,7 @@
  生产者/消费者模式通常则将信号量与队列配合使用。生产者向队列中加入数据，并 post 一个信号，消费者则先 wait 信号，获取信号后去队查询取数据。
 
  */
-class Semaphore : Lock
+interface Semaphore : Lock
 {
     /*! @brief 信号量构造函数
      @param value 计数器初始数值

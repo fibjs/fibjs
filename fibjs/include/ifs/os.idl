@@ -6,7 +6,7 @@
  var os = require('os');
  @endcode
  */
-class os : module
+interface os : module
 {
     /*! @brief 查询当前运行环境主机名 */
     static readonly String hostname;

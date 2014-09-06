@@ -6,7 +6,7 @@
  var e = new coroutine.Trigger();
  @endcode
  */
-class Trigger : object
+interface Trigger : object
 {
     /*! @brief 构造函数 */
     Trigger();

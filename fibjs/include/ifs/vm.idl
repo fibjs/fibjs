@@ -15,7 +15,7 @@
  var mod_in_sbox = sbox.require('./path/to/mod');
  @endcode
  */
-class vm : module
+interface vm : module
 {
     /*! @brief 创建一个 SandBox 对象，参见 SandBox */
     static SandBox new SandBox();

@@ -7,7 +7,7 @@
  var img1 = gd.load(data);
  @endcode
  */
-class Image : object
+interface Image : object
 {
     /*! @brief 查询图像宽度 */
     readonly Integer width;
