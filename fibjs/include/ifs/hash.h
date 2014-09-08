@@ -64,10 +64,6 @@ public:
 	static result_t hmac_ripemd160(Buffer_base* key, obj_ptr<Digest_base>& retVal);
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_get_MD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_MD4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_MD5(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

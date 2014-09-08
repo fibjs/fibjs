@@ -37,10 +37,6 @@ public:
 	virtual result_t close() = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

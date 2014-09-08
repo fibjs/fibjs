@@ -54,10 +54,6 @@ public:
 	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_get_SEEK_SET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

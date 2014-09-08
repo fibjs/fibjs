@@ -33,10 +33,6 @@ public:
 	static result_t combine(const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_basename(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_extname(const v8::FunctionCallbackInfo<v8::Value>& args);

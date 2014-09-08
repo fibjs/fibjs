@@ -47,10 +47,6 @@ public:
 	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_findOne(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_findAndModify(const v8::FunctionCallbackInfo<v8::Value>& args);

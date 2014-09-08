@@ -44,10 +44,6 @@ public:
 	static result_t sha1(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_get_DNS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

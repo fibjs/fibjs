@@ -40,10 +40,6 @@ public:
 	virtual result_t rankRev(Buffer_base* member, int32_t& retVal) = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_score(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_incr(const v8::FunctionCallbackInfo<v8::Value>& args);

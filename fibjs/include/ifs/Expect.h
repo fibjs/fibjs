@@ -63,10 +63,6 @@ public:
 	virtual result_t closeTo(v8::Local<v8::Value> expected, v8::Local<v8::Value> delta) = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_get_to(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_be(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_been(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

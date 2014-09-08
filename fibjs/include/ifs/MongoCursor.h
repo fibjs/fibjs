@@ -36,10 +36,6 @@ public:
 	virtual result_t hint(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_skip(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_limit(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);

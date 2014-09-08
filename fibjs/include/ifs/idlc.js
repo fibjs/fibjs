@@ -312,8 +312,6 @@ function parserIDL(fname) {
 
 		if (hasNew)
 			txt.push("public:\n	template<typename T>\n	static void __new(const T &args);\n");
-		else
-			txt.push("public:\n	template<typename T>\n	static void __new(const T &args){}\n");
 
 		txt.push("public:");
 		txt.push(iffs.join("\n"));

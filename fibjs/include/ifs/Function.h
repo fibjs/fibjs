@@ -30,10 +30,6 @@ public:
 	static result_t start(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal);
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 

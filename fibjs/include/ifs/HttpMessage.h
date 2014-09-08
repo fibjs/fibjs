@@ -47,10 +47,6 @@ public:
 	virtual result_t removeHeader(const char* name) = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_headers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

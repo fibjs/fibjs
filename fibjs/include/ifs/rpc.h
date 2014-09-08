@@ -30,10 +30,6 @@ public:
 	static result_t json(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 

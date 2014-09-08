@@ -38,10 +38,6 @@ public:
 	virtual result_t randMember(int32_t count, v8::Local<v8::Value>& retVal) = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_len(const v8::FunctionCallbackInfo<v8::Value>& args);

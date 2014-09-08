@@ -43,10 +43,6 @@ public:
 	static result_t set_singleUserMode(bool newVal);
 
 public:
-	template<typename T>
-	static void __new(const T &args){}
-
-public:
 	static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
