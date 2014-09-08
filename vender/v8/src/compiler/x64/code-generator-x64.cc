@@ -922,7 +922,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       }
     } else {
       __ movq(kScratchRegister,
-              BitCast<uint64_t, double>(g.ToDouble(constant_source)));
+              bit_cast<uint64_t, double>(g.ToDouble(constant_source)));
       if (destination->IsDoubleRegister()) {
         __ movq(g.ToDoubleRegister(destination), kScratchRegister);
       } else {
