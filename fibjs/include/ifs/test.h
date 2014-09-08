@@ -25,16 +25,7 @@ class Expect_base;
 
 class test_base : public module_base
 {
-public:
-	test_base()
-	{
-		test_base::class_info().Ref();
-	}
-
-	virtual ~test_base()
-	{
-		test_base::class_info().Unref();
-	}
+	DECLARE_CLASS(test_base);
 
 public:
 	enum{
@@ -58,8 +49,6 @@ public:
 	static result_t setup(int32_t mode);
 	static result_t get_slow(int32_t& retVal);
 	static result_t set_slow(int32_t newVal);
-
-	DECLARE_CLASSINFO(test_base);
 
 public:
 	template<typename T>

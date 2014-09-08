@@ -22,16 +22,7 @@ class List_base;
 
 class RedisSet_base : public object_base
 {
-public:
-	RedisSet_base()
-	{
-		RedisSet_base::class_info().Ref();
-	}
-
-	virtual ~RedisSet_base()
-	{
-		RedisSet_base::class_info().Unref();
-	}
+	DECLARE_CLASS(RedisSet_base);
 
 public:
 	// RedisSet_base
@@ -45,8 +36,6 @@ public:
 	virtual result_t pop(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t randMember(v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t randMember(int32_t count, v8::Local<v8::Value>& retVal) = 0;
-
-	DECLARE_CLASSINFO(RedisSet_base);
 
 public:
 	template<typename T>

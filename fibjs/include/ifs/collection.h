@@ -25,18 +25,7 @@ class Queue_base;
 
 class collection_base : public module_base
 {
-public:
-	collection_base()
-	{
-		collection_base::class_info().Ref();
-	}
-
-	virtual ~collection_base()
-	{
-		collection_base::class_info().Unref();
-	}
-
-	DECLARE_CLASSINFO(collection_base);
+	DECLARE_CLASS(collection_base);
 
 public:
 	template<typename T>

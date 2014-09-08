@@ -268,6 +268,12 @@ typedef int result_t;
     static c* getInstance(v8::Local<v8::Value> o) \
     {   return (c*)class_info().getInstance(o); }
 
+#define DECLARE_CLASS(c) \
+    public: \
+    c(){c::class_info().Ref();} \
+    virtual ~c(){c::class_info().Unref();} \
+    DECLARE_CLASSINFO(c)
+
 #define EVENT_SUPPORT() \
     public: \
     virtual result_t on(const char* ev, v8::Local<v8::Function> func, int32_t &retVal) \

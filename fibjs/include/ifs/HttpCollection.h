@@ -21,16 +21,7 @@ class List_base;
 
 class HttpCollection_base : public object_base
 {
-public:
-	HttpCollection_base()
-	{
-		HttpCollection_base::class_info().Ref();
-	}
-
-	virtual ~HttpCollection_base()
-	{
-		HttpCollection_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpCollection_base);
 
 public:
 	// HttpCollection_base
@@ -47,8 +38,6 @@ public:
 	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t _named_setter(const char* property, Variant newVal) = 0;
 	virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;
-
-	DECLARE_CLASSINFO(HttpCollection_base);
 
 public:
 	template<typename T>

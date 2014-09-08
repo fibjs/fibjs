@@ -19,16 +19,7 @@ namespace fibjs
 
 class TextColor_base : public object_base
 {
-public:
-	TextColor_base()
-	{
-		TextColor_base::class_info().Ref();
-	}
-
-	virtual ~TextColor_base()
-	{
-		TextColor_base::class_info().Unref();
-	}
+	DECLARE_CLASS(TextColor_base);
 
 public:
 	// TextColor_base
@@ -40,8 +31,6 @@ public:
 	virtual result_t set_error(const char* newVal) = 0;
 	virtual result_t get_highLight(std::string& retVal) = 0;
 	virtual result_t set_highLight(const char* newVal) = 0;
-
-	DECLARE_CLASSINFO(TextColor_base);
 
 public:
 	template<typename T>

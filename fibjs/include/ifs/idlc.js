@@ -297,7 +297,7 @@ function parserIDL(fname) {
 
 		txt.push("class " + ns + "_base : public " + baseClass + "_base\n{");
 
-		txt.push("public:\n	" + ns + "_base()\n	{\n		" + ns + "_base::class_info().Ref();\n	}\n\n	virtual ~" + ns + "_base()\n	{\n		" + ns + "_base::class_info().Unref();\n	}\n");
+		txt.push("	DECLARE_CLASS(" + ns + "_base);\n")
 
 		if (svs.length) {
 			txt.push("public:\n	enum{");
@@ -309,8 +309,6 @@ function parserIDL(fname) {
 			txt.push("public:\n	// " + ns + "_base");
 			txt.push(ifs.join("\n") + "\n");
 		}
-
-		txt.push("	DECLARE_CLASSINFO(" + ns + "_base);\n")
 
 		if (hasNew)
 			txt.push("public:\n	template<typename T>\n	static void __new(const T &args);\n");

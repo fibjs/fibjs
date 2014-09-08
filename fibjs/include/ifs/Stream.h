@@ -21,16 +21,7 @@ class Buffer_base;
 
 class Stream_base : public object_base
 {
-public:
-	Stream_base()
-	{
-		Stream_base::class_info().Ref();
-	}
-
-	virtual ~Stream_base()
-	{
-		Stream_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Stream_base);
 
 public:
 	// Stream_base
@@ -38,8 +29,6 @@ public:
 	virtual result_t write(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(Stream_base);
 
 public:
 	template<typename T>

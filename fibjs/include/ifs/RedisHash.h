@@ -22,16 +22,7 @@ class List_base;
 
 class RedisHash_base : public object_base
 {
-public:
-	RedisHash_base()
-	{
-		RedisHash_base::class_info().Ref();
-	}
-
-	virtual ~RedisHash_base()
-	{
-		RedisHash_base::class_info().Unref();
-	}
+	DECLARE_CLASS(RedisHash_base);
 
 public:
 	// RedisHash_base
@@ -49,8 +40,6 @@ public:
 	virtual result_t exists(Buffer_base* field, bool& retVal) = 0;
 	virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal) = 0;
 	virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
-
-	DECLARE_CLASSINFO(RedisHash_base);
 
 public:
 	template<typename T>

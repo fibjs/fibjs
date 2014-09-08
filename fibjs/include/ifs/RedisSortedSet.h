@@ -22,16 +22,7 @@ class List_base;
 
 class RedisSortedSet_base : public object_base
 {
-public:
-	RedisSortedSet_base()
-	{
-		RedisSortedSet_base::class_info().Ref();
-	}
-
-	virtual ~RedisSortedSet_base()
-	{
-		RedisSortedSet_base::class_info().Unref();
-	}
+	DECLARE_CLASS(RedisSortedSet_base);
 
 public:
 	// RedisSortedSet_base
@@ -47,8 +38,6 @@ public:
 	virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t rank(Buffer_base* member, int32_t& retVal) = 0;
 	virtual result_t rankRev(Buffer_base* member, int32_t& retVal) = 0;
-
-	DECLARE_CLASSINFO(RedisSortedSet_base);
 
 public:
 	template<typename T>

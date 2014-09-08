@@ -22,16 +22,7 @@ class Socket_base;
 
 class Smtp_base : public object_base
 {
-public:
-	Smtp_base()
-	{
-		Smtp_base::class_info().Ref();
-	}
-
-	virtual ~Smtp_base()
-	{
-		Smtp_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Smtp_base);
 
 public:
 	// Smtp_base
@@ -45,8 +36,6 @@ public:
 	virtual result_t data(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t quit(exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(Smtp_base);
 
 public:
 	template<typename T>

@@ -19,24 +19,13 @@ namespace fibjs
 
 class Lock_base : public object_base
 {
-public:
-	Lock_base()
-	{
-		Lock_base::class_info().Ref();
-	}
-
-	virtual ~Lock_base()
-	{
-		Lock_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Lock_base);
 
 public:
 	// Lock_base
 	static result_t _new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t acquire(bool blocking, bool& retVal) = 0;
 	virtual result_t release() = 0;
-
-	DECLARE_CLASSINFO(Lock_base);
 
 public:
 	template<typename T>

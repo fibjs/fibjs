@@ -24,16 +24,7 @@ class MongoCollection_base;
 
 class GridFS_base : public object_base
 {
-public:
-	GridFS_base()
-	{
-		GridFS_base::class_info().Ref();
-	}
-
-	virtual ~GridFS_base()
-	{
-		GridFS_base::class_info().Unref();
-	}
+	DECLARE_CLASS(GridFS_base);
 
 public:
 	// GridFS_base
@@ -44,8 +35,6 @@ public:
 	virtual result_t remove(const char* name) = 0;
 	virtual result_t get_files(obj_ptr<MongoCollection_base>& retVal) = 0;
 	virtual result_t get_chunks(obj_ptr<MongoCollection_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(GridFS_base);
 
 public:
 	template<typename T>

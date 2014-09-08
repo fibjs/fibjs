@@ -19,16 +19,7 @@ namespace fibjs
 
 class Int64_base : public object_base
 {
-public:
-	Int64_base()
-	{
-		Int64_base::class_info().Ref();
-	}
-
-	virtual ~Int64_base()
-	{
-		Int64_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Int64_base);
 
 public:
 	// Int64_base
@@ -51,8 +42,6 @@ public:
 	virtual result_t sub(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
 	virtual result_t toNumber(double& retVal) = 0;
 	virtual result_t toString(int32_t base, std::string& retVal) = 0;
-
-	DECLARE_CLASSINFO(Int64_base);
 
 public:
 	template<typename T>

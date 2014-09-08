@@ -23,16 +23,7 @@ class Stats_base;
 
 class PacketHandler_base : public Handler_base
 {
-public:
-	PacketHandler_base()
-	{
-		PacketHandler_base::class_info().Ref();
-	}
-
-	virtual ~PacketHandler_base()
-	{
-		PacketHandler_base::class_info().Unref();
-	}
+	DECLARE_CLASS(PacketHandler_base);
 
 public:
 	// PacketHandler_base
@@ -40,8 +31,6 @@ public:
 	virtual result_t get_maxSize(int32_t& retVal) = 0;
 	virtual result_t set_maxSize(int32_t newVal) = 0;
 	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(PacketHandler_base);
 
 public:
 	template<typename T>

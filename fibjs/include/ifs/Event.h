@@ -22,16 +22,7 @@ class Lock_base;
 
 class Event_base : public Lock_base
 {
-public:
-	Event_base()
-	{
-		Event_base::class_info().Ref();
-	}
-
-	virtual ~Event_base()
-	{
-		Event_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Event_base);
 
 public:
 	// Event_base
@@ -41,8 +32,6 @@ public:
 	virtual result_t pulse() = 0;
 	virtual result_t clear() = 0;
 	virtual result_t wait() = 0;
-
-	DECLARE_CLASSINFO(Event_base);
 
 public:
 	template<typename T>

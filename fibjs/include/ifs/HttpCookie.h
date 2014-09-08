@@ -19,16 +19,7 @@ namespace fibjs
 
 class HttpCookie_base : public object_base
 {
-public:
-	HttpCookie_base()
-	{
-		HttpCookie_base::class_info().Ref();
-	}
-
-	virtual ~HttpCookie_base()
-	{
-		HttpCookie_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpCookie_base);
 
 public:
 	// HttpCookie_base
@@ -50,8 +41,6 @@ public:
 	virtual result_t set_httpOnly(bool newVal) = 0;
 	virtual result_t get_secure(bool& retVal) = 0;
 	virtual result_t set_secure(bool newVal) = 0;
-
-	DECLARE_CLASSINFO(HttpCookie_base);
 
 public:
 	template<typename T>

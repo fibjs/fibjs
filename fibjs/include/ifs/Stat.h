@@ -19,16 +19,7 @@ namespace fibjs
 
 class Stat_base : public object_base
 {
-public:
-	Stat_base()
-	{
-		Stat_base::class_info().Ref();
-	}
-
-	virtual ~Stat_base()
-	{
-		Stat_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Stat_base);
 
 public:
 	// Stat_base
@@ -47,8 +38,6 @@ public:
 	virtual result_t isSymbolicLink(bool& retVal) = 0;
 	virtual result_t isMemory(bool& retVal) = 0;
 	virtual result_t isSocket(bool& retVal) = 0;
-
-	DECLARE_CLASSINFO(Stat_base);
 
 public:
 	template<typename T>

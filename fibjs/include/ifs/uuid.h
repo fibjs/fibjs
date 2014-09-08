@@ -24,16 +24,7 @@ class Buffer_base;
 
 class uuid_base : public module_base
 {
-public:
-	uuid_base()
-	{
-		uuid_base::class_info().Ref();
-	}
-
-	virtual ~uuid_base()
-	{
-		uuid_base::class_info().Unref();
-	}
+	DECLARE_CLASS(uuid_base);
 
 public:
 	enum{
@@ -51,8 +42,6 @@ public:
 	static result_t md5(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
 	static result_t random(obj_ptr<uuidValue_base>& retVal);
 	static result_t sha1(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
-
-	DECLARE_CLASSINFO(uuid_base);
 
 public:
 	template<typename T>

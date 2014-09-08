@@ -24,16 +24,7 @@ class PKey_base;
 
 class SslSocket_base : public Stream_base
 {
-public:
-	SslSocket_base()
-	{
-		SslSocket_base::class_info().Ref();
-	}
-
-	virtual ~SslSocket_base()
-	{
-		SslSocket_base::class_info().Unref();
-	}
+	DECLARE_CLASS(SslSocket_base);
 
 public:
 	// SslSocket_base
@@ -45,8 +36,6 @@ public:
 	virtual result_t get_peerCert(obj_ptr<X509Cert_base>& retVal) = 0;
 	virtual result_t connect(Stream_base* s, const char* server_name, int32_t& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(SslSocket_base);
 
 public:
 	template<typename T>

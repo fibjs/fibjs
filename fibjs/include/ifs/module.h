@@ -19,18 +19,7 @@ namespace fibjs
 
 class module_base : public object_base
 {
-public:
-	module_base()
-	{
-		module_base::class_info().Ref();
-	}
-
-	virtual ~module_base()
-	{
-		module_base::class_info().Unref();
-	}
-
-	DECLARE_CLASSINFO(module_base);
+	DECLARE_CLASS(module_base);
 
 public:
 	template<typename T>

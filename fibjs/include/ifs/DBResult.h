@@ -22,24 +22,13 @@ class List_base;
 
 class DBResult_base : public List_base
 {
-public:
-	DBResult_base()
-	{
-		DBResult_base::class_info().Ref();
-	}
-
-	virtual ~DBResult_base()
-	{
-		DBResult_base::class_info().Unref();
-	}
+	DECLARE_CLASS(DBResult_base);
 
 public:
 	// DBResult_base
 	virtual result_t get_insertId(int64_t& retVal) = 0;
 	virtual result_t get_affected(int64_t& retVal) = 0;
 	virtual result_t get_fields(v8::Local<v8::Array>& retVal) = 0;
-
-	DECLARE_CLASSINFO(DBResult_base);
 
 public:
 	template<typename T>

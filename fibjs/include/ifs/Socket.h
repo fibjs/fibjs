@@ -24,16 +24,7 @@ class Buffer_base;
 
 class Socket_base : public Stream_base
 {
-public:
-	Socket_base()
-	{
-		Socket_base::class_info().Ref();
-	}
-
-	virtual ~Socket_base()
-	{
-		Socket_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Socket_base);
 
 public:
 	// Socket_base
@@ -53,8 +44,6 @@ public:
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t send(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t sendto(Buffer_base* data, const char* host, int32_t port) = 0;
-
-	DECLARE_CLASSINFO(Socket_base);
 
 public:
 	template<typename T>

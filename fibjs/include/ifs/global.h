@@ -25,16 +25,7 @@ class console_base;
 
 class global_base : public module_base
 {
-public:
-	global_base()
-	{
-		global_base::class_info().Ref();
-	}
-
-	virtual ~global_base()
-	{
-		global_base::class_info().Unref();
-	}
+	DECLARE_CLASS(global_base);
 
 public:
 	// global_base
@@ -42,8 +33,6 @@ public:
 	static result_t run(const char* fname);
 	static result_t require(const char* id, v8::Local<v8::Value>& retVal);
 	static result_t GC();
-
-	DECLARE_CLASSINFO(global_base);
 
 public:
 	template<typename T>

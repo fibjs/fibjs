@@ -24,16 +24,7 @@ class PKey_base;
 
 class SslHandler_base : public Handler_base
 {
-public:
-	SslHandler_base()
-	{
-		SslHandler_base::class_info().Ref();
-	}
-
-	virtual ~SslHandler_base()
-	{
-		SslHandler_base::class_info().Unref();
-	}
+	DECLARE_CLASS(SslHandler_base);
 
 public:
 	// SslHandler_base
@@ -44,8 +35,6 @@ public:
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
 	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
 	virtual result_t set_handler(Handler_base* newVal) = 0;
-
-	DECLARE_CLASSINFO(SslHandler_base);
 
 public:
 	template<typename T>

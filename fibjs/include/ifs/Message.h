@@ -25,16 +25,7 @@ class BufferedStream_base;
 
 class Message_base : public object_base
 {
-public:
-	Message_base()
-	{
-		Message_base::class_info().Ref();
-	}
-
-	virtual ~Message_base()
-	{
-		Message_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Message_base);
 
 public:
 	// Message_base
@@ -54,8 +45,6 @@ public:
 	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
 	virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(Message_base);
 
 public:
 	template<typename T>

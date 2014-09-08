@@ -22,16 +22,7 @@ class PKey_base;
 
 class X509Cert_base : public object_base
 {
-public:
-	X509Cert_base()
-	{
-		X509Cert_base::class_info().Ref();
-	}
-
-	virtual ~X509Cert_base()
-	{
-		X509Cert_base::class_info().Unref();
-	}
+	DECLARE_CLASS(X509Cert_base);
 
 public:
 	// X509Cert_base
@@ -55,8 +46,6 @@ public:
 	virtual result_t get_type(std::string& retVal) = 0;
 	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 	virtual result_t get_next(obj_ptr<X509Cert_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(X509Cert_base);
 
 public:
 	template<typename T>

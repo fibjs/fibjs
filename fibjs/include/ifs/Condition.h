@@ -22,16 +22,7 @@ class Lock_base;
 
 class Condition_base : public Lock_base
 {
-public:
-	Condition_base()
-	{
-		Condition_base::class_info().Ref();
-	}
-
-	virtual ~Condition_base()
-	{
-		Condition_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Condition_base);
 
 public:
 	// Condition_base
@@ -40,8 +31,6 @@ public:
 	virtual result_t wait() = 0;
 	virtual result_t notify() = 0;
 	virtual result_t notifyAll() = 0;
-
-	DECLARE_CLASSINFO(Condition_base);
 
 public:
 	template<typename T>

@@ -22,16 +22,7 @@ class module_base;
 
 class os_base : public module_base
 {
-public:
-	os_base()
-	{
-		os_base::class_info().Ref();
-	}
-
-	virtual ~os_base()
-	{
-		os_base::class_info().Unref();
-	}
+	DECLARE_CLASS(os_base);
 
 public:
 	// os_base
@@ -51,8 +42,6 @@ public:
 	static result_t dateAdd(date_t d, int32_t num, const char* part, date_t& retVal);
 	static result_t get_execPath(std::string& retVal);
 	static result_t memoryUsage(v8::Local<v8::Object>& retVal);
-
-	DECLARE_CLASSINFO(os_base);
 
 public:
 	template<typename T>

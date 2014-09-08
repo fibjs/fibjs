@@ -21,16 +21,7 @@ class DBResult_base;
 
 class DbConnection_base : public object_base
 {
-public:
-	DbConnection_base()
-	{
-		DbConnection_base::class_info().Ref();
-	}
-
-	virtual ~DbConnection_base()
-	{
-		DbConnection_base::class_info().Unref();
-	}
+	DECLARE_CLASS(DbConnection_base);
 
 public:
 	// DbConnection_base
@@ -41,8 +32,6 @@ public:
 	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t execute(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
 	virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal) = 0;
-
-	DECLARE_CLASSINFO(DbConnection_base);
 
 public:
 	template<typename T>

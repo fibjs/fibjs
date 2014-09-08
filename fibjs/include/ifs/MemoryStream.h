@@ -22,16 +22,7 @@ class SeekableStream_base;
 
 class MemoryStream_base : public SeekableStream_base
 {
-public:
-	MemoryStream_base()
-	{
-		MemoryStream_base::class_info().Ref();
-	}
-
-	virtual ~MemoryStream_base()
-	{
-		MemoryStream_base::class_info().Unref();
-	}
+	DECLARE_CLASS(MemoryStream_base);
 
 public:
 	// MemoryStream_base
@@ -39,8 +30,6 @@ public:
 	virtual result_t setTime(date_t d) = 0;
 	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal) = 0;
 	virtual result_t clear() = 0;
-
-	DECLARE_CLASSINFO(MemoryStream_base);
 
 public:
 	template<typename T>

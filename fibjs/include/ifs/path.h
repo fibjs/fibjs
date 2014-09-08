@@ -22,16 +22,7 @@ class module_base;
 
 class path_base : public module_base
 {
-public:
-	path_base()
-	{
-		path_base::class_info().Ref();
-	}
-
-	virtual ~path_base()
-	{
-		path_base::class_info().Unref();
-	}
+	DECLARE_CLASS(path_base);
 
 public:
 	// path_base
@@ -40,8 +31,6 @@ public:
 	static result_t extname(const char* path, std::string& retVal);
 	static result_t dirname(const char* path, std::string& retVal);
 	static result_t combine(const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
-
-	DECLARE_CLASSINFO(path_base);
 
 public:
 	template<typename T>

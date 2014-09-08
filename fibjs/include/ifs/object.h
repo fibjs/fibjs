@@ -19,16 +19,7 @@ namespace fibjs
 
 class object_base : public object_base
 {
-public:
-	object_base()
-	{
-		object_base::class_info().Ref();
-	}
-
-	virtual ~object_base()
-	{
-		object_base::class_info().Unref();
-	}
+	DECLARE_CLASS(object_base);
 
 public:
 	// object_base
@@ -36,8 +27,6 @@ public:
 	virtual result_t toString(std::string& retVal) = 0;
 	virtual result_t toJSON(const char* key, v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t valueOf(v8::Local<v8::Value>& retVal) = 0;
-
-	DECLARE_CLASSINFO(object_base);
 
 public:
 	template<typename T>

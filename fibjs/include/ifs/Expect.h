@@ -19,16 +19,7 @@ namespace fibjs
 
 class Expect_base : public object_base
 {
-public:
-	Expect_base()
-	{
-		Expect_base::class_info().Ref();
-	}
-
-	virtual ~Expect_base()
-	{
-		Expect_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Expect_base);
 
 public:
 	// Expect_base
@@ -70,8 +61,6 @@ public:
 	virtual result_t property(v8::Local<v8::Value> prop) = 0;
 	virtual result_t property(v8::Local<v8::Value> prop, v8::Local<v8::Value> value) = 0;
 	virtual result_t closeTo(v8::Local<v8::Value> expected, v8::Local<v8::Value> delta) = 0;
-
-	DECLARE_CLASSINFO(Expect_base);
 
 public:
 	template<typename T>

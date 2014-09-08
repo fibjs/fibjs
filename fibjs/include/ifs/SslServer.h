@@ -24,16 +24,7 @@ class PKey_base;
 
 class SslServer_base : public TcpServer_base
 {
-public:
-	SslServer_base()
-	{
-		SslServer_base::class_info().Ref();
-	}
-
-	virtual ~SslServer_base()
-	{
-		SslServer_base::class_info().Unref();
-	}
+	DECLARE_CLASS(SslServer_base);
 
 public:
 	// SslServer_base
@@ -44,8 +35,6 @@ public:
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(SslServer_base);
 
 public:
 	template<typename T>

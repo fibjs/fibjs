@@ -24,16 +24,7 @@ class Stream_base;
 
 class zlib_base : public module_base
 {
-public:
-	zlib_base()
-	{
-		zlib_base::class_info().Ref();
-	}
-
-	virtual ~zlib_base()
-	{
-		zlib_base::class_info().Unref();
-	}
+	DECLARE_CLASS(zlib_base);
 
 public:
 	enum{
@@ -57,8 +48,6 @@ public:
 	static result_t gunzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t gunzipTo(Buffer_base* data, Stream_base* stm, exlib::AsyncEvent* ac);
 	static result_t gunzipTo(Stream_base* src, Stream_base* stm, exlib::AsyncEvent* ac);
-
-	DECLARE_CLASSINFO(zlib_base);
 
 public:
 	template<typename T>

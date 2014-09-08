@@ -22,24 +22,13 @@ class Handler_base;
 
 class Routing_base : public Handler_base
 {
-public:
-	Routing_base()
-	{
-		Routing_base::class_info().Ref();
-	}
-
-	virtual ~Routing_base()
-	{
-		Routing_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Routing_base);
 
 public:
 	// Routing_base
 	static result_t _new(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t append(v8::Local<v8::Object> map) = 0;
 	virtual result_t append(const char* pattern, v8::Local<v8::Value> hdlr) = 0;
-
-	DECLARE_CLASSINFO(Routing_base);
 
 public:
 	template<typename T>

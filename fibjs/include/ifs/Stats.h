@@ -19,16 +19,7 @@ namespace fibjs
 
 class Stats_base : public object_base
 {
-public:
-	Stats_base()
-	{
-		Stats_base::class_info().Ref();
-	}
-
-	virtual ~Stats_base()
-	{
-		Stats_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Stats_base);
 
 public:
 	// Stats_base
@@ -41,8 +32,6 @@ public:
 	virtual result_t uptime(int32_t& retVal) = 0;
 	virtual result_t _named_getter(const char* property, int32_t& retVal) = 0;
 	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
-
-	DECLARE_CLASSINFO(Stats_base);
 
 public:
 	template<typename T>

@@ -23,16 +23,7 @@ class Stats_base;
 
 class TcpServer_base : public object_base
 {
-public:
-	TcpServer_base()
-	{
-		TcpServer_base::class_info().Ref();
-	}
-
-	virtual ~TcpServer_base()
-	{
-		TcpServer_base::class_info().Unref();
-	}
+	DECLARE_CLASS(TcpServer_base);
 
 public:
 	// TcpServer_base
@@ -45,8 +36,6 @@ public:
 	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
 	virtual result_t set_handler(Handler_base* newVal) = 0;
 	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(TcpServer_base);
 
 public:
 	template<typename T>

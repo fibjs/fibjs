@@ -22,22 +22,11 @@ class Handler_base;
 
 class AsyncWait_base : public Handler_base
 {
-public:
-	AsyncWait_base()
-	{
-		AsyncWait_base::class_info().Ref();
-	}
-
-	virtual ~AsyncWait_base()
-	{
-		AsyncWait_base::class_info().Unref();
-	}
+	DECLARE_CLASS(AsyncWait_base);
 
 public:
 	// AsyncWait_base
 	virtual result_t end() = 0;
-
-	DECLARE_CLASSINFO(AsyncWait_base);
 
 public:
 	template<typename T>

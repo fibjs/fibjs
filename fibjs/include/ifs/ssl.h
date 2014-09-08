@@ -27,16 +27,7 @@ class X509Cert_base;
 
 class ssl_base : public module_base
 {
-public:
-	ssl_base()
-	{
-		ssl_base::class_info().Ref();
-	}
-
-	virtual ~ssl_base()
-	{
-		ssl_base::class_info().Unref();
-	}
+	DECLARE_CLASS(ssl_base);
 
 public:
 	enum{
@@ -55,8 +46,6 @@ public:
 	static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
 	static result_t get_verification(int32_t& retVal);
 	static result_t set_verification(int32_t newVal);
-
-	DECLARE_CLASSINFO(ssl_base);
 
 public:
 	template<typename T>

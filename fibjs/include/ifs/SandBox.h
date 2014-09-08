@@ -19,16 +19,7 @@ namespace fibjs
 
 class SandBox_base : public object_base
 {
-public:
-	SandBox_base()
-	{
-		SandBox_base::class_info().Ref();
-	}
-
-	virtual ~SandBox_base()
-	{
-		SandBox_base::class_info().Unref();
-	}
+	DECLARE_CLASS(SandBox_base);
 
 public:
 	// SandBox_base
@@ -40,8 +31,6 @@ public:
 	virtual result_t remove(const char* id) = 0;
 	virtual result_t run(const char* fname) = 0;
 	virtual result_t require(const char* id, v8::Local<v8::Value>& retVal) = 0;
-
-	DECLARE_CLASSINFO(SandBox_base);
 
 public:
 	template<typename T>

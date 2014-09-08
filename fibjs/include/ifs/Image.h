@@ -23,16 +23,7 @@ class Stream_base;
 
 class Image_base : public object_base
 {
-public:
-	Image_base()
-	{
-		Image_base::class_info().Ref();
-	}
-
-	virtual ~Image_base()
-	{
-		Image_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Image_base);
 
 public:
 	// Image_base
@@ -97,8 +88,6 @@ public:
 	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(Image_base);
 
 public:
 	template<typename T>

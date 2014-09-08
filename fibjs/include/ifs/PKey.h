@@ -21,16 +21,7 @@ class Buffer_base;
 
 class PKey_base : public object_base
 {
-public:
-	PKey_base()
-	{
-		PKey_base::class_info().Ref();
-	}
-
-	virtual ~PKey_base()
-	{
-		PKey_base::class_info().Unref();
-	}
+	DECLARE_CLASS(PKey_base);
 
 public:
 	// PKey_base
@@ -50,8 +41,6 @@ public:
 	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t verify(Buffer_base* sign, Buffer_base* data, bool& retVal, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(PKey_base);
 
 public:
 	template<typename T>

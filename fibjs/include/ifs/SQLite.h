@@ -22,16 +22,7 @@ class DbConnection_base;
 
 class SQLite_base : public DbConnection_base
 {
-public:
-	SQLite_base()
-	{
-		SQLite_base::class_info().Ref();
-	}
-
-	virtual ~SQLite_base()
-	{
-		SQLite_base::class_info().Unref();
-	}
+	DECLARE_CLASS(SQLite_base);
 
 public:
 	// SQLite_base
@@ -39,8 +30,6 @@ public:
 	virtual result_t get_timeout(int32_t& retVal) = 0;
 	virtual result_t set_timeout(int32_t newVal) = 0;
 	virtual result_t backup(const char* fileName, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(SQLite_base);
 
 public:
 	template<typename T>

@@ -22,16 +22,7 @@ class List_base;
 
 class RedisList_base : public object_base
 {
-public:
-	RedisList_base()
-	{
-		RedisList_base::class_info().Ref();
-	}
-
-	virtual ~RedisList_base()
-	{
-		RedisList_base::class_info().Unref();
-	}
+	DECLARE_CLASS(RedisList_base);
 
 public:
 	// RedisList_base
@@ -49,8 +40,6 @@ public:
 	virtual result_t trim(int32_t start, int32_t stop) = 0;
 	virtual result_t len(int32_t& retVal) = 0;
 	virtual result_t range(int32_t start, int32_t stop, obj_ptr<List_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(RedisList_base);
 
 public:
 	template<typename T>

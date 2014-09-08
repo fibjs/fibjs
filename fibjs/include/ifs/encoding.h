@@ -23,16 +23,7 @@ class Buffer_base;
 
 class encoding_base : public module_base
 {
-public:
-	encoding_base()
-	{
-		encoding_base::class_info().Ref();
-	}
-
-	virtual ~encoding_base()
-	{
-		encoding_base::class_info().Unref();
-	}
+	DECLARE_CLASS(encoding_base);
 
 public:
 	// encoding_base
@@ -52,8 +43,6 @@ public:
 	static result_t jsonDecode(const char* data, v8::Local<v8::Value>& retVal);
 	static result_t bsonEncode(v8::Local<v8::Object> data, obj_ptr<Buffer_base>& retVal);
 	static result_t bsonDecode(Buffer_base* data, v8::Local<v8::Object>& retVal);
-
-	DECLARE_CLASSINFO(encoding_base);
 
 public:
 	template<typename T>

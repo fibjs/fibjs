@@ -24,16 +24,7 @@ class Stat_base;
 
 class SeekableStream_base : public Stream_base
 {
-public:
-	SeekableStream_base()
-	{
-		SeekableStream_base::class_info().Ref();
-	}
-
-	virtual ~SeekableStream_base()
-	{
-		SeekableStream_base::class_info().Unref();
-	}
+	DECLARE_CLASS(SeekableStream_base);
 
 public:
 	// SeekableStream_base
@@ -43,8 +34,6 @@ public:
 	virtual result_t size(int64_t& retVal) = 0;
 	virtual result_t readAll(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(SeekableStream_base);
 
 public:
 	template<typename T>

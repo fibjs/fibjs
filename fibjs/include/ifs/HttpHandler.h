@@ -23,16 +23,7 @@ class Stats_base;
 
 class HttpHandler_base : public Handler_base
 {
-public:
-	HttpHandler_base()
-	{
-		HttpHandler_base::class_info().Ref();
-	}
-
-	virtual ~HttpHandler_base()
-	{
-		HttpHandler_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpHandler_base);
 
 public:
 	// HttpHandler_base
@@ -48,8 +39,6 @@ public:
 	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
 	virtual result_t set_handler(Handler_base* newVal) = 0;
 	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(HttpHandler_base);
 
 public:
 	template<typename T>

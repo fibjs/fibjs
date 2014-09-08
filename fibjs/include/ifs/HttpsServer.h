@@ -24,16 +24,7 @@ class PKey_base;
 
 class HttpsServer_base : public HttpServer_base
 {
-public:
-	HttpsServer_base()
-	{
-		HttpsServer_base::class_info().Ref();
-	}
-
-	virtual ~HttpsServer_base()
-	{
-		HttpsServer_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpsServer_base);
 
 public:
 	// HttpsServer_base
@@ -44,8 +35,6 @@ public:
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(HttpsServer_base);
 
 public:
 	template<typename T>

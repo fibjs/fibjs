@@ -22,16 +22,7 @@ class Lock_base;
 
 class Semaphore_base : public Lock_base
 {
-public:
-	Semaphore_base()
-	{
-		Semaphore_base::class_info().Ref();
-	}
-
-	virtual ~Semaphore_base()
-	{
-		Semaphore_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Semaphore_base);
 
 public:
 	// Semaphore_base
@@ -39,8 +30,6 @@ public:
 	virtual result_t wait() = 0;
 	virtual result_t post() = 0;
 	virtual result_t trywait(bool& retVal) = 0;
-
-	DECLARE_CLASSINFO(Semaphore_base);
 
 public:
 	template<typename T>

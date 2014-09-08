@@ -23,16 +23,7 @@ class BufferedStream_base;
 
 class process_base : public module_base
 {
-public:
-	process_base()
-	{
-		process_base::class_info().Ref();
-	}
-
-	virtual ~process_base()
-	{
-		process_base::class_info().Unref();
-	}
+	DECLARE_CLASS(process_base);
 
 public:
 	// process_base
@@ -43,8 +34,6 @@ public:
 	static result_t system(const char* cmd, int32_t& retVal, exlib::AsyncEvent* ac);
 	static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t exec(const char* cmd);
-
-	DECLARE_CLASSINFO(process_base);
 
 public:
 	template<typename T>

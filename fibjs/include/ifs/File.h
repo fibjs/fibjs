@@ -22,16 +22,7 @@ class SeekableStream_base;
 
 class File_base : public SeekableStream_base
 {
-public:
-	File_base()
-	{
-		File_base::class_info().Ref();
-	}
-
-	virtual ~File_base()
-	{
-		File_base::class_info().Unref();
-	}
+	DECLARE_CLASS(File_base);
 
 public:
 	// File_base
@@ -40,8 +31,6 @@ public:
 	virtual result_t eof(bool& retVal) = 0;
 	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
 	virtual result_t chmod(int32_t mode, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(File_base);
 
 public:
 	template<typename T>

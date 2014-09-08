@@ -19,16 +19,7 @@ namespace fibjs
 
 class Queue_base : public object_base
 {
-public:
-	Queue_base()
-	{
-		Queue_base::class_info().Ref();
-	}
-
-	virtual ~Queue_base()
-	{
-		Queue_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Queue_base);
 
 public:
 	// Queue_base
@@ -42,8 +33,6 @@ public:
 	virtual result_t clear() = 0;
 	virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
-
-	DECLARE_CLASSINFO(Queue_base);
 
 public:
 	template<typename T>

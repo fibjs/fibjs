@@ -19,16 +19,7 @@ namespace fibjs
 
 class LruCache_base : public object_base
 {
-public:
-	LruCache_base()
-	{
-		LruCache_base::class_info().Ref();
-	}
-
-	virtual ~LruCache_base()
-	{
-		LruCache_base::class_info().Unref();
-	}
+	DECLARE_CLASS(LruCache_base);
 
 public:
 	// LruCache_base
@@ -43,8 +34,6 @@ public:
 	virtual result_t put(v8::Local<v8::Object> map) = 0;
 	virtual result_t remove(const char* name) = 0;
 	virtual result_t isEmpty(bool& retVal) = 0;
-
-	DECLARE_CLASSINFO(LruCache_base);
 
 public:
 	template<typename T>

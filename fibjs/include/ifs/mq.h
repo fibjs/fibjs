@@ -31,16 +31,7 @@ class object_base;
 
 class mq_base : public module_base
 {
-public:
-	mq_base()
-	{
-		mq_base::class_info().Ref();
-	}
-
-	virtual ~mq_base()
-	{
-		mq_base::class_info().Unref();
-	}
+	DECLARE_CLASS(mq_base);
 
 public:
 	// mq_base
@@ -48,8 +39,6 @@ public:
 	static result_t await(obj_ptr<AsyncWait_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
 	static result_t invoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac);
-
-	DECLARE_CLASSINFO(mq_base);
 
 public:
 	template<typename T>

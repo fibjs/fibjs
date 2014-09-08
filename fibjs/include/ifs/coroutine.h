@@ -29,16 +29,7 @@ class Fiber_base;
 
 class coroutine_base : public module_base
 {
-public:
-	coroutine_base()
-	{
-		coroutine_base::class_info().Ref();
-	}
-
-	virtual ~coroutine_base()
-	{
-		coroutine_base::class_info().Unref();
-	}
+	DECLARE_CLASS(coroutine_base);
 
 public:
 	// coroutine_base
@@ -50,8 +41,6 @@ public:
 	static result_t sleep(int32_t ms);
 	static result_t get_singleUserMode(bool& retVal);
 	static result_t set_singleUserMode(bool newVal);
-
-	DECLARE_CLASSINFO(coroutine_base);
 
 public:
 	template<typename T>

@@ -23,18 +23,7 @@ class SandBox_base;
 
 class vm_base : public module_base
 {
-public:
-	vm_base()
-	{
-		vm_base::class_info().Ref();
-	}
-
-	virtual ~vm_base()
-	{
-		vm_base::class_info().Unref();
-	}
-
-	DECLARE_CLASSINFO(vm_base);
+	DECLARE_CLASS(vm_base);
 
 public:
 	template<typename T>

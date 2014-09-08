@@ -23,16 +23,7 @@ class MongoID_base;
 
 class MongoDB_base : public object_base
 {
-public:
-	MongoDB_base()
-	{
-		MongoDB_base::class_info().Ref();
-	}
-
-	virtual ~MongoDB_base()
-	{
-		MongoDB_base::class_info().Unref();
-	}
+	DECLARE_CLASS(MongoDB_base);
 
 public:
 	// MongoDB_base
@@ -44,8 +35,6 @@ public:
 	virtual result_t get_fs(obj_ptr<GridFS_base>& retVal) = 0;
 	virtual result_t oid(const char* hexStr, obj_ptr<MongoID_base>& retVal) = 0;
 	virtual result_t close() = 0;
-
-	DECLARE_CLASSINFO(MongoDB_base);
 
 public:
 	template<typename T>

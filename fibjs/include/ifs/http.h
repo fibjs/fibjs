@@ -32,16 +32,7 @@ class Buffer_base;
 
 class http_base : public module_base
 {
-public:
-	http_base()
-	{
-		http_base::class_info().Ref();
-	}
-
-	virtual ~http_base()
-	{
-		http_base::class_info().Unref();
-	}
+	DECLARE_CLASS(http_base);
 
 public:
 	// http_base
@@ -56,8 +47,6 @@ public:
 	static result_t post(const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t post(const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t post(const char* url, const char* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-
-	DECLARE_CLASSINFO(http_base);
 
 public:
 	template<typename T>

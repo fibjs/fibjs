@@ -19,16 +19,7 @@ namespace fibjs
 
 class Url_base : public object_base
 {
-public:
-	Url_base()
-	{
-		Url_base::class_info().Ref();
-	}
-
-	virtual ~Url_base()
-	{
-		Url_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Url_base);
 
 public:
 	// Url_base
@@ -52,8 +43,6 @@ public:
 	virtual result_t get_search(std::string& retVal) = 0;
 	virtual result_t get_query(std::string& retVal) = 0;
 	virtual result_t get_hash(std::string& retVal) = 0;
-
-	DECLARE_CLASSINFO(Url_base);
 
 public:
 	template<typename T>

@@ -24,16 +24,7 @@ class X509Cert_base;
 
 class X509Req_base : public object_base
 {
-public:
-	X509Req_base()
-	{
-		X509Req_base::class_info().Ref();
-	}
-
-	virtual ~X509Req_base()
-	{
-		X509Req_base::class_info().Unref();
-	}
+	DECLARE_CLASS(X509Req_base);
 
 public:
 	// X509Req_base
@@ -47,8 +38,6 @@ public:
 	virtual result_t sign(const char* issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_subject(std::string& retVal) = 0;
 	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(X509Req_base);
 
 public:
 	template<typename T>

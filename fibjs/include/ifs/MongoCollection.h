@@ -21,16 +21,7 @@ class MongoCursor_base;
 
 class MongoCollection_base : public object_base
 {
-public:
-	MongoCollection_base()
-	{
-		MongoCollection_base::class_info().Ref();
-	}
-
-	virtual ~MongoCollection_base()
-	{
-		MongoCollection_base::class_info().Unref();
-	}
+	DECLARE_CLASS(MongoCollection_base);
 
 public:
 	// MongoCollection_base
@@ -54,8 +45,6 @@ public:
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
 	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
-
-	DECLARE_CLASSINFO(MongoCollection_base);
 
 public:
 	template<typename T>

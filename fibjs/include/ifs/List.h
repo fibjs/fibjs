@@ -19,16 +19,7 @@ namespace fibjs
 
 class List_base : public object_base
 {
-public:
-	List_base()
-	{
-		List_base::class_info().Ref();
-	}
-
-	virtual ~List_base()
-	{
-		List_base::class_info().Unref();
-	}
+	DECLARE_CLASS(List_base);
 
 public:
 	// List_base
@@ -47,8 +38,6 @@ public:
 	virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp) = 0;
 	virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
-
-	DECLARE_CLASSINFO(List_base);
 
 public:
 	template<typename T>

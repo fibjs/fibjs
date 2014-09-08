@@ -24,16 +24,7 @@ class Digest_base;
 
 class hash_base : public module_base
 {
-public:
-	hash_base()
-	{
-		hash_base::class_info().Ref();
-	}
-
-	virtual ~hash_base()
-	{
-		hash_base::class_info().Unref();
-	}
+	DECLARE_CLASS(hash_base);
 
 public:
 	enum{
@@ -71,8 +62,6 @@ public:
 	static result_t hmac_sha384(Buffer_base* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha512(Buffer_base* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_ripemd160(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-
-	DECLARE_CLASSINFO(hash_base);
 
 public:
 	template<typename T>

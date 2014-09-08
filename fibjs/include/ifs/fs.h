@@ -26,16 +26,7 @@ class BufferedStream_base;
 
 class fs_base : public module_base
 {
-public:
-	fs_base()
-	{
-		fs_base::class_info().Ref();
-	}
-
-	virtual ~fs_base()
-	{
-		fs_base::class_info().Unref();
-	}
+	DECLARE_CLASS(fs_base);
 
 public:
 	enum{
@@ -61,8 +52,6 @@ public:
 	static result_t readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t readLines(const char* fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
 	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
-
-	DECLARE_CLASSINFO(fs_base);
 
 public:
 	template<typename T>

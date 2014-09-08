@@ -19,16 +19,7 @@ namespace fibjs
 
 class Map_base : public object_base
 {
-public:
-	Map_base()
-	{
-		Map_base::class_info().Ref();
-	}
-
-	virtual ~Map_base()
-	{
-		Map_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Map_base);
 
 public:
 	// Map_base
@@ -45,8 +36,6 @@ public:
 	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t _named_setter(const char* property, v8::Local<v8::Value> newVal) = 0;
 	virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;
-
-	DECLARE_CLASSINFO(Map_base);
 
 public:
 	template<typename T>

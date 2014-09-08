@@ -19,18 +19,7 @@ namespace fibjs
 
 class MongoID_base : public object_base
 {
-public:
-	MongoID_base()
-	{
-		MongoID_base::class_info().Ref();
-	}
-
-	virtual ~MongoID_base()
-	{
-		MongoID_base::class_info().Unref();
-	}
-
-	DECLARE_CLASSINFO(MongoID_base);
+	DECLARE_CLASS(MongoID_base);
 
 public:
 	template<typename T>

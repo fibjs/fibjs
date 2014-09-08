@@ -21,16 +21,7 @@ class Buffer_base;
 
 class Cipher_base : public object_base
 {
-public:
-	Cipher_base()
-	{
-		Cipher_base::class_info().Ref();
-	}
-
-	virtual ~Cipher_base()
-	{
-		Cipher_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Cipher_base);
 
 public:
 	// Cipher_base
@@ -44,8 +35,6 @@ public:
 	virtual result_t paddingMode(int32_t mode) = 0;
 	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(Cipher_base);
 
 public:
 	template<typename T>

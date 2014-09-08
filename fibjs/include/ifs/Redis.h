@@ -26,16 +26,7 @@ class RedisSortedSet_base;
 
 class Redis_base : public object_base
 {
-public:
-	Redis_base()
-	{
-		Redis_base::class_info().Ref();
-	}
-
-	virtual ~Redis_base()
-	{
-		Redis_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Redis_base);
 
 public:
 	// Redis_base
@@ -91,8 +82,6 @@ public:
 	virtual result_t dump(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t restore(Buffer_base* key, Buffer_base* data, int64_t ttl) = 0;
 	virtual result_t close() = 0;
-
-	DECLARE_CLASSINFO(Redis_base);
 
 public:
 	template<typename T>

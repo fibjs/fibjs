@@ -19,16 +19,7 @@ namespace fibjs
 
 class MongoCursor_base : public object_base
 {
-public:
-	MongoCursor_base()
-	{
-		MongoCursor_base::class_info().Ref();
-	}
-
-	virtual ~MongoCursor_base()
-	{
-		MongoCursor_base::class_info().Unref();
-	}
+	DECLARE_CLASS(MongoCursor_base);
 
 public:
 	// MongoCursor_base
@@ -43,8 +34,6 @@ public:
 	virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t hint(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(MongoCursor_base);
 
 public:
 	template<typename T>

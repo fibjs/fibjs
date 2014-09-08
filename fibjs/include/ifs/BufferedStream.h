@@ -23,16 +23,7 @@ class Buffer_base;
 
 class BufferedStream_base : public Stream_base
 {
-public:
-	BufferedStream_base()
-	{
-		BufferedStream_base::class_info().Ref();
-	}
-
-	virtual ~BufferedStream_base()
-	{
-		BufferedStream_base::class_info().Unref();
-	}
+	DECLARE_CLASS(BufferedStream_base);
 
 public:
 	// BufferedStream_base
@@ -50,8 +41,6 @@ public:
 	virtual result_t set_charset(const char* newVal) = 0;
 	virtual result_t get_EOL(std::string& retVal) = 0;
 	virtual result_t set_EOL(const char* newVal) = 0;
-
-	DECLARE_CLASSINFO(BufferedStream_base);
 
 public:
 	template<typename T>

@@ -19,16 +19,7 @@ namespace fibjs
 
 class Regex_base : public object_base
 {
-public:
-	Regex_base()
-	{
-		Regex_base::class_info().Ref();
-	}
-
-	virtual ~Regex_base()
-	{
-		Regex_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Regex_base);
 
 public:
 	// Regex_base
@@ -39,8 +30,6 @@ public:
 	virtual result_t get_global(bool& retVal) = 0;
 	virtual result_t get_ignoreCase(bool& retVal) = 0;
 	virtual result_t get_multiline(bool& retVal) = 0;
-
-	DECLARE_CLASSINFO(Regex_base);
 
 public:
 	template<typename T>

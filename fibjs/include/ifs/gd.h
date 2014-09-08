@@ -25,16 +25,7 @@ class SeekableStream_base;
 
 class gd_base : public module_base
 {
-public:
-	gd_base()
-	{
-		gd_base::class_info().Ref();
-	}
-
-	virtual ~gd_base()
-	{
-		gd_base::class_info().Unref();
-	}
+	DECLARE_CLASS(gd_base);
 
 public:
 	enum{
@@ -70,8 +61,6 @@ public:
 	static result_t hsl(double hue, double saturation, double lightness, int32_t& retVal);
 	static result_t hsla(double hue, double saturation, double lightness, double alpha, int32_t& retVal);
 	static result_t color(const char* color, int32_t& retVal);
-
-	DECLARE_CLASSINFO(gd_base);
 
 public:
 	template<typename T>

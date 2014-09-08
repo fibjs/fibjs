@@ -23,16 +23,7 @@ class HttpCollection_base;
 
 class HttpRequest_base : public HttpMessage_base
 {
-public:
-	HttpRequest_base()
-	{
-		HttpRequest_base::class_info().Ref();
-	}
-
-	virtual ~HttpRequest_base()
-	{
-		HttpRequest_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpRequest_base);
 
 public:
 	// HttpRequest_base
@@ -46,8 +37,6 @@ public:
 	virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(HttpRequest_base);
 
 public:
 	template<typename T>

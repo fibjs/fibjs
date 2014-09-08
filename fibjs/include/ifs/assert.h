@@ -22,16 +22,7 @@ class module_base;
 
 class assert_base : public module_base
 {
-public:
-	assert_base()
-	{
-		assert_base::class_info().Ref();
-	}
-
-	virtual ~assert_base()
-	{
-		assert_base::class_info().Unref();
-	}
+	DECLARE_CLASS(assert_base);
 
 public:
 	// assert_base
@@ -83,8 +74,6 @@ public:
 	static result_t deepPropertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, const char* msg);
 	static result_t throws(v8::Local<v8::Function> block, const char* msg);
 	static result_t doesNotThrow(v8::Local<v8::Function> block, const char* msg);
-
-	DECLARE_CLASSINFO(assert_base);
 
 public:
 	template<typename T>

@@ -21,16 +21,7 @@ class Int64_base;
 
 class Buffer_base : public object_base
 {
-public:
-	Buffer_base()
-	{
-		Buffer_base::class_info().Ref();
-	}
-
-	virtual ~Buffer_base()
-	{
-		Buffer_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Buffer_base);
 
 public:
 	// Buffer_base
@@ -81,8 +72,6 @@ public:
 	virtual result_t base64(std::string& retVal) = 0;
 	virtual result_t toString(const char* codec, std::string& retVal) = 0;
 	virtual result_t toString(std::string& retVal) = 0;
-
-	DECLARE_CLASSINFO(Buffer_base);
 
 public:
 	template<typename T>

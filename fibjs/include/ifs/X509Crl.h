@@ -21,16 +21,7 @@ class Buffer_base;
 
 class X509Crl_base : public object_base
 {
-public:
-	X509Crl_base()
-	{
-		X509Crl_base::class_info().Ref();
-	}
-
-	virtual ~X509Crl_base()
-	{
-		X509Crl_base::class_info().Unref();
-	}
+	DECLARE_CLASS(X509Crl_base);
 
 public:
 	// X509Crl_base
@@ -40,8 +31,6 @@ public:
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t dump(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t clear() = 0;
-
-	DECLARE_CLASSINFO(X509Crl_base);
 
 public:
 	template<typename T>

@@ -27,16 +27,7 @@ class Url_base;
 
 class net_base : public module_base
 {
-public:
-	net_base()
-	{
-		net_base::class_info().Ref();
-	}
-
-	virtual ~net_base()
-	{
-		net_base::class_info().Unref();
-	}
+	DECLARE_CLASS(net_base);
 
 public:
 	enum{
@@ -55,8 +46,6 @@ public:
 	static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t openSmtp(const char* host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t backend(std::string& retVal);
-
-	DECLARE_CLASSINFO(net_base);
 
 public:
 	template<typename T>

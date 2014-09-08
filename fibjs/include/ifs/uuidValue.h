@@ -21,23 +21,12 @@ class Buffer_base;
 
 class uuidValue_base : public object_base
 {
-public:
-	uuidValue_base()
-	{
-		uuidValue_base::class_info().Ref();
-	}
-
-	virtual ~uuidValue_base()
-	{
-		uuidValue_base::class_info().Unref();
-	}
+	DECLARE_CLASS(uuidValue_base);
 
 public:
 	// uuidValue_base
 	virtual result_t data(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t detail(std::string& retVal) = 0;
-
-	DECLARE_CLASSINFO(uuidValue_base);
 
 public:
 	template<typename T>

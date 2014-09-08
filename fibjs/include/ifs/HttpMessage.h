@@ -24,16 +24,7 @@ class List_base;
 
 class HttpMessage_base : public Message_base
 {
-public:
-	HttpMessage_base()
-	{
-		HttpMessage_base::class_info().Ref();
-	}
-
-	virtual ~HttpMessage_base()
-	{
-		HttpMessage_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpMessage_base);
 
 public:
 	// HttpMessage_base
@@ -54,8 +45,6 @@ public:
 	virtual result_t setHeader(v8::Local<v8::Object> map) = 0;
 	virtual result_t setHeader(const char* name, Variant value) = 0;
 	virtual result_t removeHeader(const char* name) = 0;
-
-	DECLARE_CLASSINFO(HttpMessage_base);
 
 public:
 	template<typename T>

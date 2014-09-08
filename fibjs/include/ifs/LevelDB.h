@@ -22,16 +22,7 @@ class List_base;
 
 class LevelDB_base : public object_base
 {
-public:
-	LevelDB_base()
-	{
-		LevelDB_base::class_info().Ref();
-	}
-
-	virtual ~LevelDB_base()
-	{
-		LevelDB_base::class_info().Unref();
-	}
+	DECLARE_CLASS(LevelDB_base);
 
 public:
 	// LevelDB_base
@@ -47,8 +38,6 @@ public:
 	virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
 	virtual result_t commit() = 0;
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(LevelDB_base);
 
 public:
 	template<typename T>

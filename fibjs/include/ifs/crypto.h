@@ -28,16 +28,7 @@ class Buffer_base;
 
 class crypto_base : public module_base
 {
-public:
-	crypto_base()
-	{
-		crypto_base::class_info().Ref();
-	}
-
-	virtual ~crypto_base()
-	{
-		crypto_base::class_info().Unref();
-	}
+	DECLARE_CLASS(crypto_base);
 
 public:
 	enum{
@@ -69,8 +60,6 @@ public:
 	static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t randomArt(Buffer_base* data, const char* title, int32_t size, std::string& retVal);
-
-	DECLARE_CLASSINFO(crypto_base);
 
 public:
 	template<typename T>

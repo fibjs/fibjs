@@ -23,16 +23,7 @@ class TextColor_base;
 
 class console_base : public module_base
 {
-public:
-	console_base()
-	{
-		console_base::class_info().Ref();
-	}
-
-	virtual ~console_base()
-	{
-		console_base::class_info().Unref();
-	}
+	DECLARE_CLASS(console_base);
 
 public:
 	enum{
@@ -79,8 +70,6 @@ public:
 	static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t readLine(const char* msg, std::string& retVal, exlib::AsyncEvent* ac);
-
-	DECLARE_CLASSINFO(console_base);
 
 public:
 	template<typename T>

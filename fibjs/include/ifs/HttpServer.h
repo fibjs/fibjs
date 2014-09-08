@@ -23,16 +23,7 @@ class Stats_base;
 
 class HttpServer_base : public TcpServer_base
 {
-public:
-	HttpServer_base()
-	{
-		HttpServer_base::class_info().Ref();
-	}
-
-	virtual ~HttpServer_base()
-	{
-		HttpServer_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpServer_base);
 
 public:
 	// HttpServer_base
@@ -47,8 +38,6 @@ public:
 	virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
 	virtual result_t set_maxUploadSize(int32_t newVal) = 0;
 	virtual result_t get_httpStats(obj_ptr<Stats_base>& retVal) = 0;
-
-	DECLARE_CLASSINFO(HttpServer_base);
 
 public:
 	template<typename T>

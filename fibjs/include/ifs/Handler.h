@@ -21,22 +21,11 @@ class object_base;
 
 class Handler_base : public object_base
 {
-public:
-	Handler_base()
-	{
-		Handler_base::class_info().Ref();
-	}
-
-	virtual ~Handler_base()
-	{
-		Handler_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Handler_base);
 
 public:
 	// Handler_base
 	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac) = 0;
-
-	DECLARE_CLASSINFO(Handler_base);
 
 public:
 	template<typename T>

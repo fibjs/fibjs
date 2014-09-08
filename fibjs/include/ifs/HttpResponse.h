@@ -24,16 +24,7 @@ class HttpCookie_base;
 
 class HttpResponse_base : public HttpMessage_base
 {
-public:
-	HttpResponse_base()
-	{
-		HttpResponse_base::class_info().Ref();
-	}
-
-	virtual ~HttpResponse_base()
-	{
-		HttpResponse_base::class_info().Unref();
-	}
+	DECLARE_CLASS(HttpResponse_base);
 
 public:
 	// HttpResponse_base
@@ -43,8 +34,6 @@ public:
 	virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
 	virtual result_t addCookie(HttpCookie_base* cookie) = 0;
 	virtual result_t redirect(const char* url) = 0;
-
-	DECLARE_CLASSINFO(HttpResponse_base);
 
 public:
 	template<typename T>

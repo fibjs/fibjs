@@ -24,16 +24,7 @@ class LruCache_base;
 
 class util_base : public module_base
 {
-public:
-	util_base()
-	{
-		util_base::class_info().Ref();
-	}
-
-	virtual ~util_base()
-	{
-		util_base::class_info().Unref();
-	}
+	DECLARE_CLASS(util_base);
 
 public:
 	// util_base
@@ -73,8 +64,6 @@ public:
 	static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
 	static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
 	static result_t buildInfo(v8::Local<v8::Object>& retVal);
-
-	DECLARE_CLASSINFO(util_base);
 
 public:
 	template<typename T>

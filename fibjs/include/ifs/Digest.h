@@ -21,16 +21,7 @@ class Buffer_base;
 
 class Digest_base : public object_base
 {
-public:
-	Digest_base()
-	{
-		Digest_base::class_info().Ref();
-	}
-
-	virtual ~Digest_base()
-	{
-		Digest_base::class_info().Unref();
-	}
+	DECLARE_CLASS(Digest_base);
 
 public:
 	// Digest_base
@@ -38,8 +29,6 @@ public:
 	virtual result_t digest(Buffer_base* data, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t digest(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t get_size(int32_t& retVal) = 0;
-
-	DECLARE_CLASSINFO(Digest_base);
 
 public:
 	template<typename T>

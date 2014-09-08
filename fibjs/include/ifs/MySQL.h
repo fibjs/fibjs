@@ -22,16 +22,7 @@ class DbConnection_base;
 
 class MySQL_base : public DbConnection_base
 {
-public:
-	MySQL_base()
-	{
-		MySQL_base::class_info().Ref();
-	}
-
-	virtual ~MySQL_base()
-	{
-		MySQL_base::class_info().Unref();
-	}
+	DECLARE_CLASS(MySQL_base);
 
 public:
 	// MySQL_base
@@ -40,8 +31,6 @@ public:
 	virtual result_t set_rxBufferSize(int32_t newVal) = 0;
 	virtual result_t get_txBufferSize(int32_t& retVal) = 0;
 	virtual result_t set_txBufferSize(int32_t newVal) = 0;
-
-	DECLARE_CLASSINFO(MySQL_base);
 
 public:
 	template<typename T>

@@ -28,16 +28,7 @@ class Redis_base;
 
 class db_base : public module_base
 {
-public:
-	db_base()
-	{
-		db_base::class_info().Ref();
-	}
-
-	virtual ~db_base()
-	{
-		db_base::class_info().Unref();
-	}
+	DECLARE_CLASS(db_base);
 
 public:
 	// db_base
@@ -50,8 +41,6 @@ public:
 	static result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t escape(const char* str, bool mysql, std::string& retVal);
-
-	DECLARE_CLASSINFO(db_base);
 
 public:
 	template<typename T>

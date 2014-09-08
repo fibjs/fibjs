@@ -24,18 +24,7 @@ class BufferedStream_base;
 
 class io_base : public module_base
 {
-public:
-	io_base()
-	{
-		io_base::class_info().Ref();
-	}
-
-	virtual ~io_base()
-	{
-		io_base::class_info().Unref();
-	}
-
-	DECLARE_CLASSINFO(io_base);
+	DECLARE_CLASS(io_base);
 
 public:
 	template<typename T>
