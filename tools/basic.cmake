@@ -12,7 +12,7 @@ if(NOT flags)
 	set(flags " ")
 endif()
 
-set(flags "${flags} -fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
+set(flags "${flags} -fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -fvisibility=hidden -D_FILE_OFFSET_BITS=64")
 set(link_flags " ")
 
 if(${OS} STREQUAL "Darwin")
