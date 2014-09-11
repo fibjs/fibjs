@@ -22,7 +22,7 @@ Please ignore the compiler warnings.
 
 ## Prerequisites (unix)
 
-	GCC 4.2 or newer
+	GCC 4.6 or newer
 	CMake 2.6 or newer
 	GNU Make 3.81 or newer
 	libexecinfo (FreeBSD and OpenBSD only)
@@ -72,7 +72,7 @@ Please ignore the compiler warnings.
 ### on unix:
 	sh build
 
-### on Windows:
+### on Windows (Visual Studio 2013 Express):
 	Start
 	  All Programs
 	    Visual Studio 2013
