@@ -229,7 +229,14 @@ result_t XmlDocument::createAttribute(const char *name, obj_ptr<XmlAttr_base> &r
 
 result_t XmlDocument::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
+    XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_Element;
+
+    if (pEl)
+        pEl->getElementsByTagNameFromThis(tagName, ret);
+
+    retVal = ret;
+    return 0;
 }
 
 result_t XmlDocument::getElementById(const char *elementId, obj_ptr<XmlElement_base> &retVal)

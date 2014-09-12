@@ -44,14 +44,18 @@ public:
     result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
     result_t hasChildNodes(bool &retVal);
 
+public:
+    void appendChild(XmlNodeImpl *newChild)
+    {
+        m_childs.push_back(newChild);
+    }
+
 private:
     XmlNodeImpl *checkChild(XmlNode_base *child);
     bool checkNew(XmlNodeImpl *child);
 
 public:
     XmlNodeImpl *m_this;
-
-private:
     std::vector<XmlNodeImpl *> m_childs;
 };
 

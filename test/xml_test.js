@@ -144,6 +144,21 @@ describe('xml', function() {
 			assert.equal(xdoc.documentElement, null);
 			assert.equal(xdoc1.documentElement, e);
 		});
+
+		it("getElementsByTagName", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			xdoc.appendChild(e);
+			e.appendChild(xdoc.createElement("aaa"));
+			e.appendChild(xdoc.createElement("bbb"));
+
+			var l = xdoc.getElementsByTagName("aaa");
+			assert.equal(l.length, 2);
+			var l1 = xdoc.getElementsByTagName("bbb");
+			assert.equal(l1.length, 1);
+			var l2 = xdoc.getElementsByTagName("ccc");
+			assert.equal(l2.length, 0);
+		});
 	});
 
 	describe('Element', function() {
@@ -163,6 +178,22 @@ describe('xml', function() {
 		it("child rule", function() {
 			var xdoc = newDoc();
 			test_Child(xdoc, xdoc.createElement("bbb"), [0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
+		});
+
+		it("getElementsByTagName", function() {
+			var xdoc = newDoc();
+			var root = xdoc.createElement("aaa");
+			var e = xdoc.createElement("aaa");
+			root.appendChild(e);
+			e.appendChild(xdoc.createElement("aaa"));
+			e.appendChild(xdoc.createElement("bbb"));
+
+			var l = root.getElementsByTagName("aaa");
+			assert.equal(l.length, 2);
+			var l1 = root.getElementsByTagName("bbb");
+			assert.equal(l1.length, 1);
+			var l2 = root.getElementsByTagName("ccc");
+			assert.equal(l2.length, 0);
 		});
 	});
 

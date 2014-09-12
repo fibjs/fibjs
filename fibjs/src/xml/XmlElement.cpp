@@ -147,7 +147,11 @@ result_t XmlElement::removeAttributeNode(XmlAttr_base *oldAttr, obj_ptr<XmlAttr_
 
 result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
+    getElementsByTagName(tagName, ret);
+
+    retVal = ret;
+    return 0;
 }
 
 result_t XmlElement::hasAttribute(bool &retVal)

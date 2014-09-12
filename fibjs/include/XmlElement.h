@@ -7,6 +7,7 @@
 
 #include "ifs/XmlElement.h"
 #include "XmlNodeImpl.h"
+#include "XmlNodeList.h"
 
 #ifndef XMLELEMENT_H_
 #define XMLELEMENT_H_
@@ -55,6 +56,28 @@ public:
     virtual result_t removeAttributeNode(XmlAttr_base *oldAttr, obj_ptr<XmlAttr_base> &retVal);
     virtual result_t getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal);
     virtual result_t hasAttribute(bool &retVal);
+
+public:
+    void getElementsByTagNameFromThis(const char *tagName, obj_ptr<XmlNodeList> &retVal)
+    {
+        if (!qstrcmp(m_tagName.c_str(), tagName))
+            retVal->appendChild(this);
+        getElementsByTagName(tagName, retVal);
+    }
+
+    void getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList> &retVal)
+    {
+        std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
+        int32_t sz = (int32_t)childs.size();
+        int32_t i;
+
+        for (i = 0; i < sz; i ++)
+            if (childs[i]->m_type == xml_base::_ELEMENT_NODE)
+            {
+                XmlElement *pEl = (XmlElement *)(childs[i]->m_node);
+                pEl->getElementsByTagNameFromThis(tagName, retVal);
+            }
+    }
 
 private:
     std::string m_tagName;
