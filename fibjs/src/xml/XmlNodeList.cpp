@@ -109,12 +109,9 @@ result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
 
     m_childs[idx] = pNew;
 
-    pNew->m_document = m_this->m_document;
-    pNew->m_parent = m_this;
-    pNew->m_index = idx;
+    pNew->setParent(m_this, idx);
     newChild->Ref();
 
-    retVal = newChild;
     return 0;
 }
 
@@ -137,13 +134,10 @@ result_t XmlNodeList::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChil
 
     m_childs[pOld->m_index] = pNew;
 
-    pNew->m_document = m_this->m_document;
-    pNew->m_parent = m_this;
-    pNew->m_index = pOld->m_index;
+    pNew->setParent(m_this, pOld->m_index);
     newChild->Ref();
 
-    pOld->m_parent = NULL;
-    pOld->m_index = -1;
+    pOld->clearParent();
     oldChild->Unref();
 
     retVal = oldChild;
@@ -169,8 +163,9 @@ result_t XmlNodeList::removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> 
         pTmp->m_index --;
     }
 
-    pOld->m_parent = NULL;
-    pOld->m_index = -1;
+    m_childs.resize(sz - 1);
+
+    pOld->clearParent();
     oldChild->Unref();
 
     retVal = oldChild;
@@ -188,9 +183,7 @@ result_t XmlNodeList::appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> 
     else
         retVal = newChild;
 
-    pNew->m_document = m_this->m_document;
-    pNew->m_parent = m_this;
-    pNew->m_index = (int32_t)m_childs.size();
+    pNew->setParent(m_this, (int32_t)m_childs.size());
     newChild->Ref();
 
     m_childs.push_back(pNew);

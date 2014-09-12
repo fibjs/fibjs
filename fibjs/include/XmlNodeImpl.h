@@ -79,6 +79,19 @@ public:
     result_t toNode(obj_ptr<XmlNode_base> &retVal);
     static XmlNodeImpl *fromNode(XmlNode_base *pNode);
 
+    void setParent(XmlNodeImpl *parent, int32_t idx)
+    {
+        m_document = parent->m_document;
+        m_parent = parent;
+        m_index = idx;
+    }
+
+    void clearParent()
+    {
+        m_parent = NULL;
+        m_index = -1;
+    }
+
 public:
     obj_ptr<XmlNodeList> m_childs;
     weak_ptr<XmlDocument_base> m_document;
