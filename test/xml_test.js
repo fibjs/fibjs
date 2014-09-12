@@ -111,6 +111,11 @@ describe('xml', function() {
 			xdoc.nodeValue = 'aaaaa';
 			assert.equal(xdoc.nodeValue, null);
 		});
+
+		it("child rule", function() {
+			var xdoc = newDoc();
+			test_Child(xdoc, xdoc, [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1]);
+		});
 	});
 
 	describe('Element', function() {
