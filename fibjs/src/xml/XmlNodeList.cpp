@@ -94,6 +94,11 @@ result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
         return 0;
     }
 
+    if (pNew->m_parent)
+        pNew->m_parent->m_childs->removeChild(newChild, retVal);
+    else
+        retVal = newChild;
+
     int32_t sz = (int32_t)m_childs.size();
     int32_t idx = pRef->m_index;
     int32_t i;
@@ -130,6 +135,12 @@ result_t XmlNodeList::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChil
     {
         retVal = newChild;
         return 0;
+    }
+
+    if (pNew->m_parent)
+    {
+        obj_ptr<XmlNode_base> pTmp;
+        pNew->m_parent->m_childs->removeChild(newChild, pTmp);
     }
 
     m_childs[pOld->m_index] = pNew;
