@@ -22,6 +22,11 @@ public:
     XmlNodeList(XmlNodeImpl *pThis) : m_this(pThis)
     {}
 
+    ~XmlNodeList()
+    {
+        clean();
+    }
+
 public:
     // XmlNodeList_base
     virtual result_t get_length(int32_t &retVal);

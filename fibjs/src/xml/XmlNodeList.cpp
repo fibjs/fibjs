@@ -35,15 +35,20 @@ result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &ret
 
 void XmlNodeList::clean()
 {
-    m_this = NULL;
+    bool isAlone = m_this == NULL;
 
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
 
     for (i = 0; i < sz; i ++)
-        m_childs[i]->clearParent();
+        if (isAlone)
+            m_childs[i]->m_node->Unref();
+        else
+            m_childs[i]->clearParent();
 
     m_childs.resize(0);
+
+    m_this = NULL;
 }
 
 result_t XmlNodeList::firstChild(obj_ptr<XmlNode_base> &retVal)
