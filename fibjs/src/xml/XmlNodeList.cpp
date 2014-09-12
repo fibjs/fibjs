@@ -31,6 +31,27 @@ result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &ret
     return m_childs[index]->toNode(retVal);
 }
 
+void XmlNodeList::clean()
+{
+    m_this = NULL;
+
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i ++)
+    {
+        XmlNodeImpl *child = m_childs[i];
+        child->clearParent();
+
+        obj_ptr<XmlNode_base> node;
+        child->toNode(node);
+        if (node)
+            node->Unref();
+    }
+
+    m_childs.resize(0);
+}
+
 result_t XmlNodeList::firstChild(obj_ptr<XmlNode_base> &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();

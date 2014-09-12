@@ -29,6 +29,8 @@ public:
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &retVal);
 
 public:
+    void clean();
+
     result_t firstChild(obj_ptr<XmlNode_base> &retVal);
     result_t lastChild(obj_ptr<XmlNode_base> &retVal);
     result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
@@ -36,12 +38,6 @@ public:
     result_t removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal);
     result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
     result_t hasChildNodes(bool &retVal);
-
-public:
-    void clean()
-    {
-        m_this = NULL;
-    }
 
 private:
     XmlNodeImpl *checkChild(XmlNode_base *child);

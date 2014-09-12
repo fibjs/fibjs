@@ -264,7 +264,7 @@ describe('xml', function() {
 		test_CharacterData("createComment");
 	});
 
-	describe('ChildList', function() {
+	describe('childNodes', function() {
 		it("apendChild", function() {
 			var xdoc = newDoc();
 			var e = xdoc.createElement("aaa");
@@ -355,6 +355,20 @@ describe('xml', function() {
 			e.insertBefore(e4, e3);
 			assert.equal(e4.parentNode, e);
 			assert.equal(e1.childNodes.length, 0);
+		});
+
+		it("childNodes", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			var e1 = xdoc.createElement("bbb");
+			e.appendChild(e1);
+
+			var childs = e.childNodes;
+			assert.equal(childs.length, 1);
+			assert.equal(e1.parentNode, e);
+			e.dispose();
+			assert.equal(childs.length, 0);
+			assert.equal(e1.parentNode, null);
 		});
 	});
 });
