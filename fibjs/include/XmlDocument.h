@@ -56,6 +56,11 @@ public:
     virtual result_t getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal);
     virtual result_t getElementById(const char *elementId, obj_ptr<XmlElement_base> &retVal);
 
+private:
+    result_t checkElement(XmlNode_base *newChild);
+
+private:
+    obj_ptr<XmlElement_base> m_Element;
 };
 
 } /* namespace fibjs */

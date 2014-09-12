@@ -116,6 +116,27 @@ describe('xml', function() {
 			var xdoc = newDoc();
 			test_Child(xdoc, xdoc, [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1]);
 		});
+
+		it("Element limit", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			var e1 = xdoc.createElement("bbb");
+			var c = xdoc.createComment("aaa");
+
+			xdoc.appendChild(e);
+			xdoc.appendChild(c);
+			assert.throws(function() {
+				xdoc.appendChild(e1);
+			});
+
+			xdoc.replaceChild(e1, e);
+			assert.throws(function() {
+				xdoc.replaceChild(e, c);
+			});
+
+			xdoc.removeChild(e1);
+			xdoc.appendChild(e);
+		});
 	});
 
 	describe('Element', function() {
