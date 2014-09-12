@@ -83,9 +83,11 @@ describe('xml', function() {
 
 	function test_Child(xdoc, e, s) {
 		function test(e1, v) {
-			if (v)
+			if (v) {
 				assert.equal(e.appendChild(e1), e1);
-			else
+				assert.equal(e1.parentNode, e);
+				assert.equal(e.lastChild, e1);
+			} else
 				assert.throws(function() {
 					e.appendChild(e1)
 				});
@@ -106,6 +108,7 @@ describe('xml', function() {
 			assert.equal(xdoc.ownerDocument, null);
 			assert.equal(xdoc.nodeType, 9);
 			assert.equal(xdoc.nodeName, '#document');
+			assert.equal(xdoc.childNodes.length, 0);
 
 			assert.equal(xdoc.nodeValue, null);
 			xdoc.nodeValue = 'aaaaa';
@@ -169,6 +172,7 @@ describe('xml', function() {
 			assert.equal(e.nodeType, 1);
 			assert.equal(e.nodeName, 'aaa');
 			assert.equal(e.tagName, 'aaa');
+			assert.equal(e.childNodes.length, 0);
 
 			assert.equal(e.nodeValue, null);
 			e.nodeValue = 'aaaaa';
@@ -204,6 +208,7 @@ describe('xml', function() {
 			assert.equal(e.ownerDocument, xdoc);
 			assert.equal(e.nodeType, 2);
 			assert.equal(e.nodeName, 'aaa');
+			assert.equal(e.childNodes.length, 0);
 
 			assert.equal(e.nodeValue, '');
 			e.nodeValue = 'aaaaa';
@@ -230,6 +235,7 @@ describe('xml', function() {
 			assert.equal(e.ownerDocument, xdoc);
 			assert.equal(e.nodeType, 7);
 			assert.equal(e.nodeName, 'aaa');
+			assert.equal(e.childNodes.length, 0);
 
 			assert.equal(e.nodeValue, 'bbb');
 			e.nodeValue = 'aaaaa';
@@ -254,6 +260,7 @@ describe('xml', function() {
 			assert.equal(e.ownerDocument, xdoc);
 			assert.equal(e.nodeType, 3);
 			assert.equal(e.nodeName, '#text');
+			assert.equal(e.childNodes.length, 0);
 
 			assert.equal(e.nodeValue, 'aaa');
 			e.nodeValue = 'aaaaa';
@@ -284,6 +291,7 @@ describe('xml', function() {
 			assert.equal(e.ownerDocument, xdoc);
 			assert.equal(e.nodeType, 4);
 			assert.equal(e.nodeName, '#cdata-section');
+			assert.equal(e.childNodes.length, 0);
 
 			assert.equal(e.nodeValue, 'aaa');
 			e.nodeValue = 'aaaaa';
@@ -314,6 +322,7 @@ describe('xml', function() {
 			assert.equal(e.ownerDocument, xdoc);
 			assert.equal(e.nodeType, 8);
 			assert.equal(e.nodeName, '#comment');
+			assert.equal(e.childNodes.length, 0);
 
 			assert.equal(e.nodeValue, 'aaa');
 			e.nodeValue = 'aaaaa';
