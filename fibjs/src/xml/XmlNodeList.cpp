@@ -13,18 +13,12 @@ namespace fibjs
 
 result_t XmlNodeList::get_length(int32_t &retVal)
 {
-    if (!m_this)
-        return CALL_E_INVALID_CALL;
-
     retVal = (int32_t)m_childs.size();
     return 0;
 }
 
 result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base> &retVal)
 {
-    if (!m_this)
-        return CALL_E_INVALID_CALL;
-
     if (index < 0 || index >= (int32_t)m_childs.size())
         return CALL_RETURN_NULL;
     return m_childs[index]->toNode(retVal);
@@ -32,9 +26,6 @@ result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &retVal)
 {
-    if (!m_this)
-        return CALL_E_INVALID_CALL;
-
     if (index >= m_childs.size())
         return CALL_RETURN_NULL;
     return m_childs[index]->toNode(retVal);
@@ -91,7 +82,6 @@ result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
 {
     XmlNodeImpl *pNew = checkChild(newChild);
     XmlNodeImpl *pRef = checkChild(refChild);
-
     if (!pNew || !pRef)
         return CALL_E_INVALIDARG;
 
@@ -133,7 +123,6 @@ result_t XmlNodeList::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChil
 {
     XmlNodeImpl *pNew = checkChild(newChild);
     XmlNodeImpl *pOld = checkChild(oldChild);
-
     if (!pNew || !pOld)
         return CALL_E_INVALIDARG;
 
