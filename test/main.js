@@ -11,6 +11,7 @@ run("int64_test.js");
 run("buffer_test.js");
 run("path_test.js");
 run("util_test.js");
+run("xml_test.js");
 run("coroutine_test.js");
 run("fibmod_test.js");
 run("trigger_test.js");

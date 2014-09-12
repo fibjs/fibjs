@@ -1,0 +1,82 @@
+
+/*! @brief XmlDocument 对象代表整个 XML 文档
+
+XmlDocument 对象是一棵文档树的根，可为我们提供对文档数据的最初（或最顶层）的访问入口。
+用于元素节点、文本节点、注释、处理指令等均无法存在于 XmlDocument 之外， XmlDocument 对象同样提供了创建这些对象的方法。 XmlNode 对象提供了一个 ownerDocument 属性，此属性可把它们与在其中创建它们的 XmlDocument 关联起来。
+*/
+interface XmlDocument : XmlNode
+{
+    /*! @brief 构造一个 XmlDocument 对象
+     @param source 要解析的 XML 文本，缺省为空，创建一个空的 XmlDocument 对象
+    */
+    XmlDocument(String source = "");
+
+    /*! @brief 通过解析一个 XML 标签字符串来组成该文档
+     @param source 要解析的 XML 文本
+    */
+    loadXML(String source);
+
+    /*! @brief 返回与文档相关的文档类型声明（Document Type Declaration）
+
+    对于没有 DTD 的 XML 文档，则返回 null。此属性可提供对 XmlDocumentType 对象（ XmlDocument 的一个子节点）的直接访问。
+    */
+    readonly XmlDocumentType doctype;
+
+    /*! @brief 返回文档的根节点
+    */
+    readonly XmlElement documentElement;
+
+    /*! @brief 创建元素节点
+     @param tagName 指定元素节点规定名称
+     @return 返回新创建的 XmlElement 节点，具有指定的标签名
+    */
+    XmlElement createElement(String tagName);
+
+    /*! @brief 创建文本节点
+     @param data 指定此节点的文本
+     @return 返回新创建的 XmlText 节点，表示指定的 data 字符串
+    */
+    XmlText createTextNode(String data);
+
+    /*! @brief 创建注释节点
+     @param data 指定此节点的注释文本
+     @return 返回新创建的 XmlComment 节点，注释文本为指定的 data
+    */
+    XmlComment createComment(String data);
+
+    /*! @brief 创建 XmlCDATASection 节点
+     @param data 指定此节点规定 CDATA 数据
+     @return 返回新创建的 XmlCDATASection 节点，内容为指定的 data
+    */
+    XmlCDATASection createCDATASection(String data);
+
+    /*! @brief 创建 XmlProcessingInstruction 节点
+     @param target 指定处理指令的目标
+     @param data 指定处理指令的内容文本
+     @return 新创建的 ProcessingInstruction 节点
+    */
+    XmlProcessingInstruction createProcessingInstruction(String target, String data);
+
+    /*! @brief 创建新的 Attr 节点
+     @param name 新创建的属性的名称
+     @return 返回新创建的 XmlAttr 节点，名称为指定的 name
+    */
+    XmlAttr createAttribute(String name);
+
+    /*! @brief 返回带有指定名称的所有元素的一个节点列表
+
+     该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中具有指定标签名的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了指定标签名的元素，它的内容会自动进行必要的更新。
+     @param tagName 需检索的标签名。值 "*" 匹配所有的标签
+     @return 文档树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
+    */
+    XmlNodeList getElementsByTagName(String tagName);
+
+    /*! @brief 查找具有指定的唯一 ID 的元素
+
+     该方法将检索 id 属性的值为 elementId 的元素节点，并返回它。如果没有找到这样的元素，则返回 null。id 属性的值在文档中是唯一的，如果该方法找到更多具有指定 elementId 的元素节点，它将随机返回一个这样的元素节点，或者返回 null。
+
+     这是一个重要的常用方法，因为它为获取表示指定的文档元素的 XmlElement 对象提供了简便的方法。
+     @param elementId 想获取的元素的 id 属性的值
+    */
+    XmlElement getElementById(String elementId);
+};

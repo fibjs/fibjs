@@ -1,0 +1,66 @@
+
+/*! @brief XmlElement 对象表示 XML 文档中的元素
+*/
+interface XmlElement : XmlNode
+{
+    /*! @brief 返回元素的标签名
+    */
+    readonly String tagName;
+
+    /*! @brief 返回包含被选节点属性的 NamedNodeMap。如果被选节点不是元素，则该属性返回 NULL。
+    */
+    readonly XmlNamedNodeMap attributes;
+
+    /*! @brief 通过名称查询属性的值
+     @param name 指定查询的属性名
+     @return 返回属性的值
+    */
+    String getAttribute(String name);
+
+    /*! @brief 创建或改变某个新属性
+
+     该方法把指定的属性设置为指定的值。如果不存在具有指定名称的属性，该方法将创建一个新属性
+     @param name 指定要设置的属性名
+     @param value 指定要设置的属性值
+    */
+    setAttribute(String name, String value);
+
+    /*! @brief 通过名称删除指定的属性
+     @param name 指定删除的属性名
+    */
+    removeAttribute(String name);
+
+    /*! @brief 通过名称查询属性的节点
+     @param name 指定查询的属性名
+     @return 返回属性的节点
+    */
+    XmlAttr getAttributeNode(String name);
+
+    /*! @brief 创建或改变某个新属性节点，如果元素中已经存在指定名称的属性，那么该属性将被新属性替代。
+
+     @param newAttr 指定要设置的属性节点
+     @return 如果新属性替代了已有的属性，则返回被替代的属性，否则返回 null
+    */
+    XmlAttr setAttributeNode(XmlAttr newAttr);
+
+    /*! @brief 通过名称删除指定的属性节点
+     @param oldAttr 指定删除的属性名
+     @return 返回被删除的属性节点
+    */
+    XmlAttr removeAttributeNode(XmlAttr oldAttr);
+
+    /*! @brief 返回拥有指定名称的所有元素的 XmlNodeList
+
+     该方法将遍历指定元素的子孙节点，返回一个 XmlElement 节点的 XmlNodeList 对象，表示所有具有指定标签名的文档元素。元素在返回的数组中的顺序就是它们出现在文档源代码中的顺序。
+
+     XmlDocument 接口也定义了 getElementsByTagName 方法，它与该方法相似，但遍历整个文档，而不是遍历某个元素的子孙节点。
+     @param tagName 需检索的标签名。值 "*" 匹配所有的标签
+     @return 节点树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
+    */
+    XmlNodeList getElementsByTagName(String tagName);
+
+    /*! @brief 查询当前节点是否拥有属性
+     @return 如果当前元素节点拥有任何属性，则 hasAttributes 返回 true，否则返回 false
+    */
+    Boolean hasAttribute();
+};

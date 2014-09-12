@@ -27,6 +27,7 @@
 #include "ifs/ssl.h"
 
 #include "ifs/mq.h"
+#include "ifs/xml.h"
 
 #include "ifs/db.h"
 #include "ifs/zlib.h"
@@ -74,6 +75,7 @@ void SandBox::initRoot()
     InstallNativeModule("ssl", ssl_base::class_info());
 
     InstallNativeModule("mq", mq_base::class_info());
+    InstallNativeModule("xml", xml_base::class_info());
 
     InstallNativeModule("http", http_base::class_info());
     InstallNativeModule("rpc", rpc_base::class_info());

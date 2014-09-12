@@ -1,0 +1,17 @@
+
+/*! @brief XmlNamedNodeMap 对象表示一个无顺序的节点列表
+*/
+interface XmlNamedNodeMap : XmlNodeList
+{
+    /*! @brief 查询指定名称的节点
+     @param name 指定要查询的名称
+     @return 返回查询出的节点
+    */
+    XmlNode getNamedItem(String name);
+
+    /*! @brief 删除指定名称的节点
+     @param name 指定要删除的名称
+     @return 返回删除的节点
+    */
+    XmlNode removeNamedItem(String name);
+};
