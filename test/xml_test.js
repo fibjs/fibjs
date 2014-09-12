@@ -288,6 +288,10 @@ describe('xml', function() {
 			assert.equal(e3.parentNode, e);
 			e1.appendChild(e3);
 			assert.equal(e3.parentNode, e1);
+
+			assert.throws(function() {
+				e3.appendChild(e);
+			})
 		});
 
 		it("removeChild", function() {

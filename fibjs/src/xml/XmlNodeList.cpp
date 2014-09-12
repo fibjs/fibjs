@@ -98,6 +98,27 @@ XmlNodeImpl *XmlNodeList::checkChild(XmlNode_base *child)
     return node;
 }
 
+bool XmlNodeList::checkNew(XmlNodeImpl *child, XmlNode_base *node)
+{
+    XmlNodeImpl *pThis = m_this;
+
+    while (pThis)
+    {
+        if (pThis == child)
+            return false;
+
+        pThis = pThis->m_parent;
+    }
+
+    if (child->m_parent)
+    {
+        obj_ptr<XmlNode_base> tmp;
+        child->m_parent->m_childs->removeChild(node, tmp);
+    }
+
+    return true;
+}
+
 result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
                                    obj_ptr<XmlNode_base> &retVal)
 {
@@ -115,10 +136,8 @@ result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
         return 0;
     }
 
-    if (pNew->m_parent)
-        pNew->m_parent->m_childs->removeChild(newChild, retVal);
-    else
-        retVal = newChild;
+    if (!checkNew(pNew, newChild))
+        return Runtime::setError("The new child element contains the parent.");
 
     int32_t sz = (int32_t)m_childs.size();
     int32_t idx = pRef->m_index;
@@ -138,6 +157,7 @@ result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
     pNew->setParent(m_this, idx);
     newChild->Ref();
 
+    retVal = newChild;
     return 0;
 }
 
@@ -158,11 +178,8 @@ result_t XmlNodeList::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChil
         return 0;
     }
 
-    if (pNew->m_parent)
-    {
-        obj_ptr<XmlNode_base> pTmp;
-        pNew->m_parent->m_childs->removeChild(newChild, pTmp);
-    }
+    if (!checkNew(pNew, newChild))
+        return Runtime::setError("The new child element contains the parent.");
 
     m_childs[pOld->m_index] = pNew;
 
@@ -210,16 +227,15 @@ result_t XmlNodeList::appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> 
     if (!pNew)
         return CALL_E_INVALIDARG;
 
-    if (pNew->m_parent)
-        pNew->m_parent->m_childs->removeChild(newChild, retVal);
-    else
-        retVal = newChild;
+    if (!checkNew(pNew, newChild))
+        return Runtime::setError("The new child element contains the parent.");
 
     pNew->setParent(m_this, (int32_t)m_childs.size());
     newChild->Ref();
 
     m_childs.push_back(pNew);
 
+    retVal = newChild;
     return 0;
 }
 
