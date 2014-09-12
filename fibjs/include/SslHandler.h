@@ -43,7 +43,7 @@ public:
     result_t init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Value> hdlr);
 
 private:
-    weak_ptr<Handler_base> m_hdlr;
+    naked_ptr<Handler_base> m_hdlr;
     obj_ptr<SslSocket_base> m_socket;
 };
 

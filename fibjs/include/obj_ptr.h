@@ -170,21 +170,21 @@ private:
 };
 
 template<class T>
-class weak_ptr
+class naked_ptr
 {
 public:
-    weak_ptr() :
+    naked_ptr() :
         p(NULL)
     {
     }
 
-    weak_ptr(T *lp) :
+    naked_ptr(T *lp) :
         p(NULL)
     {
         operator=(lp);
     }
 
-    ~weak_ptr()
+    ~naked_ptr()
     {
     }
 
