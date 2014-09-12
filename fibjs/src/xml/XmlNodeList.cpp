@@ -109,7 +109,7 @@ bool XmlNodeList::checkNew(XmlNodeImpl *child)
     if (child->m_parent)
     {
         obj_ptr<XmlNode_base> tmp;
-        child->m_parent->m_childs->removeChild(child->m_node, tmp);
+        child->m_parent->m_node->removeChild(child->m_node, tmp);
     }
 
     return true;

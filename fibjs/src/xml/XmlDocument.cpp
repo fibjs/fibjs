@@ -183,7 +183,11 @@ result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)
 
 result_t XmlDocument::get_documentElement(obj_ptr<XmlElement_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    if (!m_Element)
+        return CALL_RETURN_NULL;
+
+    retVal = m_Element;
+    return 0;
 }
 
 result_t XmlDocument::createElement(const char *tagName, obj_ptr<XmlElement_base> &retVal)

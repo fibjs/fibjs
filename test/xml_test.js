@@ -136,6 +136,13 @@ describe('xml', function() {
 
 			xdoc.removeChild(e1);
 			xdoc.appendChild(e);
+
+			assert.equal(xdoc.documentElement, e);
+			var xdoc1 = newDoc();
+			xdoc1.appendChild(e);
+			assert.equal(e.parentNode, xdoc1);
+			assert.equal(xdoc.documentElement, null);
+			assert.equal(xdoc1.documentElement, e);
 		});
 	});
 
