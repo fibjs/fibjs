@@ -6,7 +6,7 @@
  var uuid = require('uuid');
  \endcode
  */
-interface uuid : module
+module uuid
 {
     /*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为域名 */
     const Integer DNS = 0;

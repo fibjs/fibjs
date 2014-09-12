@@ -12,7 +12,7 @@
  var mod_in_sbox = sbox.require('./path/to/mod');
  @endcode
  */
-interface SandBox: object
+interface SandBox : object
 {
     /*! @brief 构造一个新的安全沙箱对象，并初始化基础模块
      @param mods 指定要添加的模块对象字典

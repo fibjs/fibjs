@@ -6,7 +6,7 @@
  var col = mdb.test;
  @endcode
  */
-interface MongoCollection: object
+interface MongoCollection : object
 {
     /*! @brief 根据给定的查询条件和返回字段设定，建立游标对象
       @param query 指定查询条件的对象

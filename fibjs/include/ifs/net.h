@@ -13,19 +13,17 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Socket_base;
 class Stream_base;
 class Smtp_base;
 class TcpServer_base;
 class Url_base;
 
-class net_base : public module_base
+class net_base : public object_base
 {
 	DECLARE_CLASS(net_base);
 
@@ -110,7 +108,7 @@ namespace fibjs
 		{ 
 			"net", NULL, 
 			6, s_method, 4, s_object, 4, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

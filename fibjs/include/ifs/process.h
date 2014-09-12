@@ -13,15 +13,13 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class BufferedStream_base;
 
-class process_base : public module_base
+class process_base : public object_base
 {
 	DECLARE_CLASS(process_base);
 
@@ -76,7 +74,7 @@ namespace fibjs
 		{ 
 			"process", NULL, 
 			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

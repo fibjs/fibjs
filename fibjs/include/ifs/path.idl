@@ -6,7 +6,7 @@
  var path = require('path');
  @endcode
  */
-interface path : module
+module path
 {
     /*! @brief 标准化路径，处理路径中父目录等信息
 

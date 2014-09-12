@@ -13,17 +13,15 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Map_base;
 class List_base;
 class Queue_base;
 
-class collection_base : public module_base
+class collection_base : public object_base
 {
 	DECLARE_CLASS(collection_base);
 
@@ -52,7 +50,7 @@ namespace fibjs
 		{ 
 			"collection", NULL, 
 			0, NULL, 3, s_object, 0, NULL, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

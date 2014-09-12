@@ -16,7 +16,7 @@
  require("test").setup();
  @endcode
  */
-interface assert : module
+module assert
 {
     /*! @brief 测试数值为真，为假则断言失败
      @param actual 要测试的数值

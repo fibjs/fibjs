@@ -1,5 +1,5 @@
 /*! @brief mongodb 数据库数据游标对象 */
-interface MongoCursor: object
+interface MongoCursor : object
 {
     /*! @brief 指定返回结果时跳过的记录数
       @param num 记录数

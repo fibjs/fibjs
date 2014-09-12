@@ -6,7 +6,7 @@
  var crypto = require('crypto');
  @endcode
  */
-interface crypto : module
+module crypto
 {
     /*! @brief 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
     const Integer AES = 1;

@@ -13,12 +13,10 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Cipher_base;
 class PKey_base;
 class X509Cert_base;
@@ -26,7 +24,7 @@ class X509Crl_base;
 class X509Req_base;
 class Buffer_base;
 
-class crypto_base : public module_base
+class crypto_base : public object_base
 {
 	DECLARE_CLASS(crypto_base);
 
@@ -150,7 +148,7 @@ namespace fibjs
 		{ 
 			"crypto", NULL, 
 			3, s_method, 5, s_object, 21, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

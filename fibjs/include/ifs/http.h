@@ -13,12 +13,10 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class HttpRequest_base;
 class HttpResponse_base;
 class HttpCookie_base;
@@ -30,7 +28,7 @@ class Stream_base;
 class SeekableStream_base;
 class Buffer_base;
 
-class http_base : public module_base
+class http_base : public object_base
 {
 	DECLARE_CLASS(http_base);
 
@@ -97,7 +95,7 @@ namespace fibjs
 		{ 
 			"http", NULL, 
 			4, s_method, 6, s_object, 0, NULL, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

@@ -13,12 +13,10 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Message_base;
 class PacketMessage_base;
 class PacketHandler_base;
@@ -29,7 +27,7 @@ class Handler_base;
 class AsyncWait_base;
 class object_base;
 
-class mq_base : public module_base
+class mq_base : public object_base
 {
 	DECLARE_CLASS(mq_base);
 
@@ -87,7 +85,7 @@ namespace fibjs
 		{ 
 			"mq", NULL, 
 			4, s_method, 6, s_object, 0, NULL, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

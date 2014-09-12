@@ -13,15 +13,13 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class XmlDocument_base;
 
-class xml_base : public module_base
+class xml_base : public object_base
 {
 	DECLARE_CLASS(xml_base);
 
@@ -87,7 +85,7 @@ namespace fibjs
 		{ 
 			"xml", NULL, 
 			1, s_method, 1, s_object, 8, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

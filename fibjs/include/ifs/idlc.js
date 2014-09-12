@@ -34,7 +34,7 @@ function preparserIDL(fname) {
 		st = getStock();
 
 		if (st.length > 0) {
-			if (st[0] == "interface" && st.length > 1) {
+			if ((st[0] == "interface" || st[0] == "module") && st.length > 1) {
 				if (clsName[st[1]])
 					return reportErr();
 
@@ -187,7 +187,7 @@ function parserIDL(fname) {
 		st = getStock();
 
 		if (st.length > 0) {
-			if (st[0] == "interface" && st.length > 1) {
+			if ((st[0] == "interface" || st[0] == "module") && st.length > 1) {
 				if (!_checkID(st[1]))
 					return false;
 

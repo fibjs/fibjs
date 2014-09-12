@@ -5,7 +5,7 @@
  var encoding = require('encoding');
  @endcode
  */
-interface encoding : module
+module encoding
 {
     /*! @brief 以 base32 方式编码数据
      @param data 要编码的数据

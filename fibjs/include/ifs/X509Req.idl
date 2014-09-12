@@ -6,7 +6,7 @@
  var k = new crypto.X509Req();
  @endcode
  */
-interface X509Req: object
+interface X509Req : object
 {
     /*! @brief X509Req 构造函数 */
     X509Req();

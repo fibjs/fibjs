@@ -6,7 +6,7 @@
  var rpc = require('rpc');
  @endcode
  */
-interface rpc: module
+module rpc
 {
     /*! @brief 生成一个 json-rpc 消息转换处理器
      @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler

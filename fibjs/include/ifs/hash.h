@@ -13,16 +13,14 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Buffer_base;
 class Digest_base;
 
-class hash_base : public module_base
+class hash_base : public object_base
 {
 	DECLARE_CLASS(hash_base);
 
@@ -145,7 +143,7 @@ namespace fibjs
 		{ 
 			"hash", NULL, 
 			20, s_method, 0, NULL, 9, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

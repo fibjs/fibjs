@@ -1,7 +1,7 @@
 
 /*! @brief xml 处理模块
 */
-interface xml : module
+module xml
 {
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlElement 对象
     */

@@ -6,7 +6,7 @@
  var collection = require("collection");
  @endcode
  */
-interface collection : module
+module collection
 {
     /*! @brief 创建一个 Map 容器，参见 Map */
     static Map new Map();

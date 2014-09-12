@@ -1,6 +1,6 @@
 
 /*! @brief 超文本传输协议模块，用以支持 http 协议处理 */
-interface http : module
+module http
 {
     /*! @brief 创建一个 http 请求对象，参见 HttpRequest */
     static HttpRequest new Request();

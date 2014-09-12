@@ -1,6 +1,6 @@
 
 /*! @brief Function 模块不可直接引用，仅用于实现对 javascript Function 对象的扩展*/
-interface Function : module
+interface Function : object
 {
     /*! @brief 启动一个纤程
 

@@ -13,15 +13,13 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class TextColor_base;
 
-class console_base : public module_base
+class console_base : public object_base
 {
 	DECLARE_CLASS(console_base);
 
@@ -154,7 +152,7 @@ namespace fibjs
 		{ 
 			"console", NULL, 
 			17, s_method, 0, NULL, 11, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

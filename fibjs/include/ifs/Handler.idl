@@ -1,5 +1,5 @@
 /*! @brief 消息处理器接口 */
-interface Handler: object
+interface Handler : object
 {
     /*! @brief 处理一个消息或对象
      @param v 指定处理的消息或对象

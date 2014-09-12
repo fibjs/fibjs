@@ -13,12 +13,10 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class object_base;
 class MySQL_base;
 class SQLite_base;
@@ -26,7 +24,7 @@ class MongoDB_base;
 class LevelDB_base;
 class Redis_base;
 
-class db_base : public module_base
+class db_base : public object_base
 {
 	DECLARE_CLASS(db_base);
 
@@ -91,7 +89,7 @@ namespace fibjs
 		{ 
 			"db", NULL, 
 			9, s_method, 0, NULL, 0, NULL, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

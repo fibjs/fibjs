@@ -1,6 +1,6 @@
 
 /*! @brief 常用工具模块 */
-interface util : module
+module util
 {
     /*! @brief 按照指定的格式格式化变量
 

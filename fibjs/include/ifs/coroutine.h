@@ -13,12 +13,10 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Lock_base;
 class Semaphore_base;
 class Condition_base;
@@ -27,7 +25,7 @@ class Trigger_base;
 class BlockQueue_base;
 class Fiber_base;
 
-class coroutine_base : public module_base
+class coroutine_base : public object_base
 {
 	DECLARE_CLASS(coroutine_base);
 
@@ -92,7 +90,7 @@ namespace fibjs
 		{ 
 			"coroutine", NULL, 
 			4, s_method, 6, s_object, 1, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

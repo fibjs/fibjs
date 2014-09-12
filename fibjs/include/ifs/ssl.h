@@ -13,19 +13,17 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class SslSocket_base;
 class SslHandler_base;
 class SslServer_base;
 class Stream_base;
 class X509Cert_base;
 
-class ssl_base : public module_base
+class ssl_base : public object_base
 {
 	DECLARE_CLASS(ssl_base);
 
@@ -105,7 +103,7 @@ namespace fibjs
 		{ 
 			"ssl", NULL, 
 			1, s_method, 3, s_object, 9, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

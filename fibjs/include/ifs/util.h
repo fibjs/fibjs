@@ -13,16 +13,14 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Stats_base;
 class LruCache_base;
 
-class util_base : public module_base
+class util_base : public object_base
 {
 	DECLARE_CLASS(util_base);
 
@@ -157,7 +155,7 @@ namespace fibjs
 		{ 
 			"util", NULL, 
 			33, s_method, 2, s_object, 0, NULL, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

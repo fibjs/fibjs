@@ -5,7 +5,7 @@
  var n = new Int64(123);
  @endcode
  */
-interface Int64: object
+interface Int64 : object
 {
     /*! @brief Int64 构造函数
      @param num 初始化的值

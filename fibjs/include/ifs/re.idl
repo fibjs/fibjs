@@ -1,6 +1,6 @@
 
 /*! @brief 正则表达式处理模块 */
-interface re : module
+module re
 {
     /*! @brief 编译一个正则表达式模版，并返回正则表达式处理对象
      @param pattern 正则表达式

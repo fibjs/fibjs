@@ -13,16 +13,14 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class uuidValue_base;
 class Buffer_base;
 
-class uuid_base : public module_base
+class uuid_base : public object_base
 {
 	DECLARE_CLASS(uuid_base);
 
@@ -85,7 +83,7 @@ namespace fibjs
 		{ 
 			"uuid", NULL, 
 			5, s_method, 0, NULL, 4, s_property, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

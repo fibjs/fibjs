@@ -13,15 +13,13 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class SandBox_base;
 
-class vm_base : public module_base
+class vm_base : public object_base
 {
 	DECLARE_CLASS(vm_base);
 
@@ -46,7 +44,7 @@ namespace fibjs
 		{ 
 			"vm", NULL, 
 			0, NULL, 1, s_object, 0, NULL, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
