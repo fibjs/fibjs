@@ -18,7 +18,7 @@ class XmlAttr: public XmlAttr_base, public XmlNodeImpl
 {
 public:
     XmlAttr(XmlDocument_base *document, const char *name):
-        XmlNodeImpl(document, xml_base::_ATTRIBUTE_NODE), m_name(name)
+        XmlNodeImpl(document, this, xml_base::_ATTRIBUTE_NODE), m_name(name)
     {
     }
 

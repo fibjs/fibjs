@@ -19,12 +19,12 @@ class XmlCDATASection: public XmlCDATASection_base, public XmlNodeImpl
 {
 public:
     XmlCDATASection(XmlDocument_base *document, const char *data):
-        XmlNodeImpl(document, xml_base::_CDATA_SECTION_NODE), m_data(data)
+        XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE), m_data(data)
     {
     }
 
     XmlCDATASection(XmlDocument_base *document, std::string &data):
-        XmlNodeImpl(document, xml_base::_CDATA_SECTION_NODE), m_data(data)
+        XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE), m_data(data)
     {
     }
 

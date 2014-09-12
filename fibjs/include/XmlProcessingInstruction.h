@@ -18,7 +18,8 @@ class XmlProcessingInstruction: public XmlProcessingInstruction_base, public Xml
 {
 public:
     XmlProcessingInstruction(XmlDocument_base *document, const char *target, const char *data):
-        XmlNodeImpl(document, xml_base::_PROCESSING_INSTRUCTION_NODE), m_target(target), m_data(data)
+        XmlNodeImpl(document, this, xml_base::_PROCESSING_INSTRUCTION_NODE),
+        m_target(target), m_data(data)
     {
     }
 

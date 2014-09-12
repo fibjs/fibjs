@@ -17,7 +17,7 @@ namespace fibjs
 class XmlDocument: public XmlDocument_base, public XmlNodeImpl
 {
 public:
-    XmlDocument(): XmlNodeImpl(NULL, xml_base::_DOCUMENT_NODE)
+    XmlDocument(): XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE)
     {
     }
 

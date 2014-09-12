@@ -19,7 +19,7 @@ class XmlComment: public XmlComment_base, public XmlNodeImpl
 {
 public:
     XmlComment(XmlDocument_base *document, const char *data):
-        XmlNodeImpl(document, xml_base::_COMMENT_NODE), m_data(data)
+        XmlNodeImpl(document, this, xml_base::_COMMENT_NODE), m_data(data)
     {
     }
 

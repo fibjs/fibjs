@@ -41,7 +41,7 @@ public:
 
 private:
     XmlNodeImpl *checkChild(XmlNode_base *child);
-    bool checkNew(XmlNodeImpl *child, XmlNode_base *node);
+    bool checkNew(XmlNodeImpl *child);
 
 public:
     XmlNodeImpl *m_this;

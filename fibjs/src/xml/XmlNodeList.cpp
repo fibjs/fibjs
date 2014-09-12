@@ -21,14 +21,16 @@ result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base> &retVal)
 {
     if (index < 0 || index >= (int32_t)m_childs.size())
         return CALL_RETURN_NULL;
-    return m_childs[index]->toNode(retVal);
+    retVal = m_childs[index]->m_node;
+    return 0;
 }
 
 result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &retVal)
 {
     if (index >= m_childs.size())
         return CALL_RETURN_NULL;
-    return m_childs[index]->toNode(retVal);
+    retVal = m_childs[index]->m_node;
+    return 0;
 }
 
 void XmlNodeList::clean()
@@ -39,15 +41,7 @@ void XmlNodeList::clean()
     int32_t i;
 
     for (i = 0; i < sz; i ++)
-    {
-        XmlNodeImpl *child = m_childs[i];
-        child->clearParent();
-
-        obj_ptr<XmlNode_base> node;
-        child->toNode(node);
-        if (node)
-            node->Unref();
-    }
+        m_childs[i]->clearParent();
 
     m_childs.resize(0);
 }
@@ -58,7 +52,8 @@ result_t XmlNodeList::firstChild(obj_ptr<XmlNode_base> &retVal)
     if (!sz)
         return CALL_RETURN_NULL;
 
-    return m_childs[0]->toNode(retVal);
+    retVal = m_childs[0]->m_node;
+    return 0;
 }
 
 result_t XmlNodeList::lastChild(obj_ptr<XmlNode_base> &retVal)
@@ -67,7 +62,8 @@ result_t XmlNodeList::lastChild(obj_ptr<XmlNode_base> &retVal)
     if (!sz)
         return CALL_RETURN_NULL;
 
-    return m_childs[sz - 1]->toNode(retVal);
+    retVal = m_childs[sz - 1]->m_node;
+    return 0;
 }
 
 XmlNodeImpl *XmlNodeList::checkChild(XmlNode_base *child)
@@ -98,7 +94,7 @@ XmlNodeImpl *XmlNodeList::checkChild(XmlNode_base *child)
     return node;
 }
 
-bool XmlNodeList::checkNew(XmlNodeImpl *child, XmlNode_base *node)
+bool XmlNodeList::checkNew(XmlNodeImpl *child)
 {
     XmlNodeImpl *pThis = m_this;
 
@@ -113,7 +109,7 @@ bool XmlNodeList::checkNew(XmlNodeImpl *child, XmlNode_base *node)
     if (child->m_parent)
     {
         obj_ptr<XmlNode_base> tmp;
-        child->m_parent->m_childs->removeChild(node, tmp);
+        child->m_parent->m_childs->removeChild(child->m_node, tmp);
     }
 
     return true;
@@ -136,7 +132,7 @@ result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
         return 0;
     }
 
-    if (!checkNew(pNew, newChild))
+    if (!checkNew(pNew))
         return Runtime::setError("The new child element contains the parent.");
 
     int32_t sz = (int32_t)m_childs.size();
@@ -152,10 +148,8 @@ result_t XmlNodeList::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
         pTmp->m_index ++;
     }
 
-    m_childs[idx] = pNew;
-
     pNew->setParent(m_this, idx);
-    newChild->Ref();
+    m_childs[idx] = pNew;
 
     retVal = newChild;
     return 0;
@@ -178,16 +172,15 @@ result_t XmlNodeList::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChil
         return 0;
     }
 
-    if (!checkNew(pNew, newChild))
+    if (!checkNew(pNew))
         return Runtime::setError("The new child element contains the parent.");
 
-    m_childs[pOld->m_index] = pNew;
-
-    pNew->setParent(m_this, pOld->m_index);
-    newChild->Ref();
+    int32_t idx = pOld->m_index;
 
     pOld->clearParent();
-    oldChild->Unref();
+
+    pNew->setParent(m_this, idx);
+    m_childs[idx] = pNew;
 
     retVal = oldChild;
     return 0;
@@ -211,11 +204,9 @@ result_t XmlNodeList::removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> 
         m_childs[i] = pTmp;
         pTmp->m_index --;
     }
-
     m_childs.resize(sz - 1);
 
     pOld->clearParent();
-    oldChild->Unref();
 
     retVal = oldChild;
     return 0;
@@ -227,12 +218,10 @@ result_t XmlNodeList::appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> 
     if (!pNew)
         return CALL_E_INVALIDARG;
 
-    if (!checkNew(pNew, newChild))
+    if (!checkNew(pNew))
         return Runtime::setError("The new child element contains the parent.");
 
     pNew->setParent(m_this, (int32_t)m_childs.size());
-    newChild->Ref();
-
     m_childs.push_back(pNew);
 
     retVal = newChild;

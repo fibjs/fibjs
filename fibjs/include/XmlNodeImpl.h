@@ -17,9 +17,9 @@ namespace fibjs
 class XmlNodeImpl
 {
 public:
-    XmlNodeImpl(XmlDocument_base *document, int32_t type) :
+    XmlNodeImpl(XmlDocument_base *document, XmlNode_base *node, int32_t type) :
         m_childs(new XmlNodeList(this)),
-        m_document(document), m_type(type), m_parent(NULL), m_index(-1)
+        m_document(document), m_node(node), m_type(type), m_parent(NULL), m_index(-1)
     {}
 
     ~XmlNodeImpl()
@@ -38,7 +38,8 @@ public:
     {
         if (!m_parent)
             return CALL_RETURN_NULL;
-        return m_parent->toNode(retVal);
+        retVal = m_parent->m_node;
+        return 0;
     }
 
     result_t get_childNodes(obj_ptr<XmlNodeList_base> &retVal)
@@ -76,7 +77,6 @@ public:
     result_t normalize();
 
 public:
-    result_t toNode(obj_ptr<XmlNode_base> &retVal);
     static XmlNodeImpl *fromNode(XmlNode_base *pNode);
 
     void setParent(XmlNodeImpl *parent, int32_t idx)
@@ -84,17 +84,20 @@ public:
         m_document = parent->m_document;
         m_parent = parent;
         m_index = idx;
+        m_node->Ref();
     }
 
     void clearParent()
     {
         m_parent = NULL;
         m_index = -1;
+        m_node->Unref();
     }
 
 public:
     obj_ptr<XmlNodeList> m_childs;
     weak_ptr<XmlDocument_base> m_document;
+    XmlNode_base *m_node;
     int32_t m_type;
     XmlNodeImpl *m_parent;
     int32_t m_index;

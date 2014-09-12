@@ -18,7 +18,7 @@ class XmlElement: public XmlElement_base, public XmlNodeImpl
 {
 public:
     XmlElement(XmlDocument_base *document, const char *tagName):
-        XmlNodeImpl(document, xml_base::_ELEMENT_NODE), m_tagName(tagName)
+        XmlNodeImpl(document, this, xml_base::_ELEMENT_NODE), m_tagName(tagName)
     {
     }
 
