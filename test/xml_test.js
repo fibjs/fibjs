@@ -268,9 +268,11 @@ describe('xml', function() {
 		it("apendChild", function() {
 			var xdoc = newDoc();
 			var e = xdoc.createElement("aaa");
+			assert.equal(e.childNodes[0], null);
 			var e1 = xdoc.createElement("bbb");
 			e.appendChild(e1);
 			assert.equal(e.firstChild, e1);
+			assert.equal(e.childNodes[0], e1);
 
 			var xdoc1 = newDoc();
 			var e2 = xdoc1.createElement("bbb");
@@ -280,10 +282,6 @@ describe('xml', function() {
 
 			assert.equal(e1.nextSibling, e2);
 			assert.equal(e1, e2.previousSibling);
-
-			var e3 = xdoc.createElement("bbb");
-			e.appendChild(e3);
-			e1.appendChild(e3);
 
 			var e3 = xdoc.createElement("bbb");
 			e.appendChild(e3);
@@ -305,6 +303,7 @@ describe('xml', function() {
 			assert.equal(e1, e2.previousSibling);
 
 			e.removeChild(e1);
+			assert.equal(e.childNodes.length, 1);
 
 			assert.equal(e1.nextSibling, null);
 			assert.equal(e2.previousSibling, null);
@@ -324,6 +323,14 @@ describe('xml', function() {
 
 			assert.equal(e1.nextSibling, null);
 			assert.equal(e2.previousSibling, e3);
+
+			var e4 = xdoc.createElement("bbb");
+			e1.appendChild(e4);
+			assert.equal(e1.childNodes.length, 1);
+			assert.equal(e4.parentNode, e1);
+			e.replaceChild(e4, e3);
+			assert.equal(e4.parentNode, e);
+			assert.equal(e1.childNodes.length, 0);
 		});
 
 		it("insertBefore", function() {
@@ -340,6 +347,14 @@ describe('xml', function() {
 
 			assert.equal(e1.nextSibling, e3);
 			assert.equal(e2.previousSibling, e3);
+
+			var e4 = xdoc.createElement("bbb");
+			e1.appendChild(e4);
+			assert.equal(e1.childNodes.length, 1);
+			assert.equal(e4.parentNode, e1);
+			e.insertBefore(e4, e3);
+			assert.equal(e4.parentNode, e);
+			assert.equal(e1.childNodes.length, 0);
 		});
 	});
 });
