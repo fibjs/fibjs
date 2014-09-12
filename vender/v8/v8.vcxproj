@@ -84,6 +84,7 @@
     <ClInclude Include="src\checks.h" />
     <ClInclude Include="src\circular-queue-inl.h" />
     <ClInclude Include="src\circular-queue.h" />
+    <ClInclude Include="src\code-factory.h" />
     <ClInclude Include="src\code-stubs.h" />
     <ClInclude Include="src\code.h" />
     <ClInclude Include="src\codegen.h" />
@@ -427,6 +428,7 @@
     <ClCompile Include="src\builtins.cc" />
     <ClCompile Include="src\cached-powers.cc" />
     <ClCompile Include="src\checks.cc" />
+    <ClCompile Include="src\code-factory.cc" />
     <ClCompile Include="src\code-stubs-hydrogen.cc" />
     <ClCompile Include="src\code-stubs.cc" />
     <ClCompile Include="src\codegen.cc" />
@@ -455,6 +457,7 @@
     <ClCompile Include="src\compiler\js-typed-lowering.cc" />
     <ClCompile Include="src\compiler\linkage.cc" />
     <ClCompile Include="src\compiler\machine-operator-reducer.cc" />
+    <ClCompile Include="src\compiler\machine-operator.cc" />
     <ClCompile Include="src\compiler\machine-type.cc" />
     <ClCompile Include="src\compiler\node-cache.cc" />
     <ClCompile Include="src\compiler\node.cc" />

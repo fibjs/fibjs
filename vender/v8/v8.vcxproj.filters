@@ -282,6 +282,9 @@
     <ClInclude Include="src\circular-queue.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\code-factory.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\code-stubs.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1307,6 +1310,9 @@
     <ClCompile Include="src\checks.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\code-factory.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\code-stubs-hydrogen.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1389,6 +1395,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\machine-operator-reducer.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\machine-operator.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\machine-type.cc">
