@@ -40,18 +40,6 @@ result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &ret
     return m_childs[index]->toNode(retVal);
 }
 
-result_t XmlNodeList::_indexed_setter(uint32_t index, XmlNode_base *newVal)
-{
-    if (!m_this)
-        return CALL_E_INVALID_CALL;
-
-    if (index >= m_childs.size())
-        return CHECK_ERROR(CALL_E_BADINDEX);
-
-
-    return 0;
-}
-
 result_t XmlNodeList::firstChild(obj_ptr<XmlNode_base> &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();

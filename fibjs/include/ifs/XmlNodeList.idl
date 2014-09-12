@@ -15,5 +15,5 @@ interface XmlNodeList : object
 
     /*! @brief 可使用下标直接访问数据
     */
-    XmlNode operator[];
+    readonly XmlNode operator[];
 };

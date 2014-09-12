@@ -27,7 +27,6 @@ public:
     virtual result_t get_length(int32_t &retVal);
     virtual result_t item(int32_t index, obj_ptr<XmlNode_base> &retVal);
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t _indexed_setter(uint32_t index, XmlNode_base *newVal);
 
 public:
     result_t firstChild(obj_ptr<XmlNode_base> &retVal);

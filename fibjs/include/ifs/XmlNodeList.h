@@ -28,13 +28,11 @@ public:
 	virtual result_t get_length(int32_t& retVal) = 0;
 	virtual result_t item(int32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
-	virtual result_t _indexed_setter(uint32_t index, XmlNode_base* newVal) = 0;
 
 public:
 	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_item(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -93,17 +91,6 @@ namespace fibjs
 		hr = pInst->_indexed_getter(index, vr);
 
 		METHOD_RETURN();
-	}
-
-	inline void XmlNodeList_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(XmlNodeList_base);
-
-		PROPERTY_VAL(obj_ptr<XmlNode_base>);
-		hr = pInst->_indexed_setter(index, v0);
-
-		METHOD_VOID();
 	}
 
 	inline void XmlNodeList_base::s_item(const v8::FunctionCallbackInfo<v8::Value>& args)
