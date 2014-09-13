@@ -7,6 +7,7 @@
 
 #include "ifs/xml.h"
 #include "XmlElement.h"
+#include "XmlAttr.h"
 
 namespace fibjs
 {
@@ -112,37 +113,79 @@ result_t XmlElement::get_tagName(std::string &retVal)
 
 result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    retVal = m_attrs;
+    return 0;
 }
 
 result_t XmlElement::getAttribute(const char *name, std::string &retVal)
 {
-    return CALL_RETURN_NULL;
+    result_t hr;
+    obj_ptr<XmlAttr_base> attr;
+
+    hr = getAttributeNode(name, attr);
+    if (hr < 0 || hr == CALL_RETURN_NULL)
+        return hr;
+
+    return attr->get_nodeValue(retVal);
 }
 
 result_t XmlElement::setAttribute(const char *name, const char *value)
 {
-    return CALL_RETURN_NULL;
+    obj_ptr<XmlAttr_base> attr = new XmlAttr(m_document, name);
+    attr->set_nodeValue(value);
+
+    obj_ptr<XmlAttr_base> ret;
+    return setAttributeNode(attr, ret);
 }
 
 result_t XmlElement::removeAttribute(const char *name)
 {
-    return CALL_RETURN_NULL;
+    obj_ptr<XmlNode_base> node;
+    return m_attrs->removeNamedItem(name, node);
 }
 
 result_t XmlElement::getAttributeNode(const char *name, obj_ptr<XmlAttr_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    result_t hr;
+    obj_ptr<XmlNode_base> node;
+
+    hr = m_attrs->getNamedItem(name, node);
+    if (hr < 0 || hr == CALL_RETURN_NULL)
+        return hr;
+
+    retVal = (XmlAttr_base *)(XmlNode_base *)node;
+    return 0;
 }
 
 result_t XmlElement::setAttributeNode(XmlAttr_base *newAttr, obj_ptr<XmlAttr_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    result_t hr;
+    obj_ptr<XmlNode_base> node;
+
+    hr = m_attrs->setAttributeNode(newAttr, node);
+    if (hr < 0 || hr == CALL_RETURN_NULL)
+        return hr;
+
+    retVal = (XmlAttr_base *)(XmlNode_base *)node;
+    return 0;
 }
 
 result_t XmlElement::removeAttributeNode(XmlAttr_base *oldAttr, obj_ptr<XmlAttr_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    result_t hr;
+    std::string name;
+    obj_ptr<XmlNode_base> node;
+
+    hr = oldAttr->get_nodeName(name);
+    if (hr < 0)
+        return hr;
+
+    hr = m_attrs->removeNamedItem(name.c_str(), node);
+    if (hr < 0 || hr == CALL_RETURN_NULL)
+        return hr;
+
+    retVal = (XmlAttr_base *)(XmlNode_base *)node;
+    return 0;
 }
 
 result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)
@@ -156,7 +199,7 @@ result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeLi
 
 result_t XmlElement::hasAttribute(bool &retVal)
 {
-    return CALL_RETURN_NULL;
+    return m_attrs->hasAttribute(retVal);
 }
 
 }

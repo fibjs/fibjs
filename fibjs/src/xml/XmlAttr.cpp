@@ -36,7 +36,7 @@ result_t XmlAttr::get_nodeType(int32_t &retVal)
 
 result_t XmlAttr::get_parentNode(obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::get_parentNode(retVal);
+    return CALL_RETURN_NULL;
 }
 
 result_t XmlAttr::get_childNodes(obj_ptr<XmlNodeList_base> &retVal)
@@ -56,12 +56,12 @@ result_t XmlAttr::get_lastChild(obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlAttr::get_previousSibling(obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::get_previousSibling(retVal);
+    return CALL_RETURN_NULL;
 }
 
 result_t XmlAttr::get_nextSibling(obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::get_nextSibling(retVal);
+    return CALL_RETURN_NULL;
 }
 
 result_t XmlAttr::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)

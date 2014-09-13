@@ -448,6 +448,74 @@ describe('xml', function() {
 			assert.equal(e1.parentNode, null);
 		});
 	});
+
+	describe('attrs', function() {
+		it("setAttribute", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			e.setAttribute("att1", "val1");
+			assert.equal(e.attributes[0].nodeValue, "val1");
+
+			e.setAttribute("att1", "val2");
+			assert.equal(e.attributes[0].nodeValue, "val2");
+		});
+
+		it("getAttribute", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			e.setAttribute("att1", "val1");
+
+			assert.equal(e.getAttribute("att1"), "val1");
+			assert.equal(e.getAttribute("att2"), null);
+		});
+
+		it("removeAttribute", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			e.setAttribute("att1", "val1");
+
+			assert.equal(e.getAttribute("att1"), "val1");
+			e.removeAttribute("att1");
+			assert.equal(e.getAttribute("att1"), null);
+			e.removeAttribute("att1");
+		});
+
+		it("getAttributeNode", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			e.setAttribute("att1", "val1");
+
+			assert.equal(e.getAttributeNode("att1").nodeValue, "val1");
+			assert.equal(e.getAttributeNode("att2"), null);
+		});
+
+		it("setAttributeNode", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			var a = xdoc.createAttribute("attr1");
+			a.nodeValue = "val1";
+
+			assert.equal(e.setAttributeNode(a), null);
+			assert.equal(e.getAttribute("attr1"), "val1");
+
+			var a1 = xdoc.createAttribute("attr1");
+			a1.nodeValue = "val2";
+
+			assert.equal(e.setAttributeNode(a1), a);
+			assert.equal(e.getAttribute("attr1"), "val2");
+		});
+
+		it("removeAttributeNode", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			e.setAttribute("att1", "val1");
+
+			var a = e.getAttributeNode("att1");
+			assert.equal(a.nodeValue, "val1");
+			assert.equal(e.removeAttributeNode(a), a);
+			assert.equal(e.getAttributeNode("att1"), null);
+		});
+	});
 });
 
 //test.run(console.DEBUG);

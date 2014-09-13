@@ -291,6 +291,7 @@
     <ClInclude Include="include\XmlDocument.h" />
     <ClInclude Include="include\XmlDocumentType.h" />
     <ClInclude Include="include\XmlElement.h" />
+    <ClInclude Include="include\XmlNamedNodeMap.h" />
     <ClInclude Include="include\XmlNodeImpl.h" />
     <ClInclude Include="include\XmlNodeList.h" />
     <ClInclude Include="include\XmlParser.h" />
@@ -429,6 +430,7 @@
     <ClCompile Include="src\xml\XmlDocument.cpp" />
     <ClCompile Include="src\xml\XmlDocumentType.cpp" />
     <ClCompile Include="src\xml\XmlElement.cpp" />
+    <ClCompile Include="src\xml\XmlNamedNodeMap.cpp" />
     <ClCompile Include="src\xml\XmlNodeImpl.cpp" />
     <ClCompile Include="src\xml\XmlNodeList.cpp" />
     <ClCompile Include="src\xml\XmlParser.cpp" />

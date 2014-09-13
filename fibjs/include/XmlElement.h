@@ -8,6 +8,7 @@
 #include "ifs/XmlElement.h"
 #include "XmlNodeImpl.h"
 #include "XmlNodeList.h"
+#include "XmlNamedNodeMap.h"
 
 #ifndef XMLELEMENT_H_
 #define XMLELEMENT_H_
@@ -19,7 +20,8 @@ class XmlElement: public XmlElement_base, public XmlNodeImpl
 {
 public:
     XmlElement(XmlDocument_base *document, const char *tagName):
-        XmlNodeImpl(document, this, xml_base::_ELEMENT_NODE), m_tagName(tagName)
+        XmlNodeImpl(document, this, xml_base::_ELEMENT_NODE),
+        m_tagName(tagName), m_attrs(new XmlNamedNodeMap(this))
     {
     }
 
@@ -81,7 +83,7 @@ public:
 
 private:
     std::string m_tagName;
-
+    obj_ptr<XmlNamedNodeMap> m_attrs;
 };
 
 } /* namespace fibjs */
