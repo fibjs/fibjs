@@ -125,7 +125,7 @@ public:
 
                 hr = GetArgumentValue(l, num);
                 if (hr < 0)
-                    return hr;
+                    return CHECK_ERROR(hr);
 
                 if (num >= 0 && num < console_base::_NOTSET)
                     m_levels[num] = true;

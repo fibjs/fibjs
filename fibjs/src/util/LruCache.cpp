@@ -108,7 +108,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
             e->set();
 
             if (v.IsEmpty())
-                return CHECK_ERROR(CALL_E_JAVASCRIPT);
+                return CALL_E_JAVASCRIPT;
 
             find = m_datas.insert(std::pair<std::string, _linkedNode>(sname, newNode)).first;
             insert(find);

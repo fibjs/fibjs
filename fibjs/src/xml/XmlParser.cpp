@@ -49,7 +49,7 @@ result_t XmlParser::parse(const char *source)
                 XML_GetCurrentColumnNumber(m_parser) + 1,
                 XML_ErrorString(XML_GetErrorCode(m_parser)));
 
-        return Runtime::setError(msg);
+        return CHECK_ERROR(Runtime::setError(msg));
     }
 
     return 0;

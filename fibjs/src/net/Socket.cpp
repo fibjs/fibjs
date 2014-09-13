@@ -143,7 +143,7 @@ result_t Socket::close(exlib::AsyncEvent *ac)
     if (m_inRecv || m_inSend)
     {
         cancel_socket(ac);
-        return CALL_E_PENDDING;
+        return CHECK_ERROR(CALL_E_PENDDING);
     }
 #endif
 

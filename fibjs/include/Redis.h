@@ -202,7 +202,7 @@ public:
 
             hr = GetArgumentValue(v, str);
             if (hr < 0)
-                return hr;
+                return CHECK_ERROR(hr);
             return add(str);
         }
 

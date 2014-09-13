@@ -128,7 +128,7 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
 
         hr = GetArgumentValue(mimes->Get(ks), v);
         if (hr < 0)
-            return hr;
+            return CHECK_ERROR(hr);
 
         m_mimes.insert(std::pair<std::string, std::string>(*v8::String::Utf8Value(ks), v));
     }

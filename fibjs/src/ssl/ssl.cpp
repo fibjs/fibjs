@@ -22,7 +22,7 @@ result_t _ssl::setError(int ret)
     char msg[128];
 
     polarssl_strerror(ret, msg, sizeof(msg));
-    return Runtime::setError(msg);
+    return CHECK_ERROR(Runtime::setError(msg));
 }
 
 result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,

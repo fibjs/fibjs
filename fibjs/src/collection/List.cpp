@@ -238,7 +238,7 @@ result_t List::array::every(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            return CALL_E_JAVASCRIPT;
 
         if (!r->BooleanValue())
         {
@@ -265,7 +265,7 @@ result_t List::array::filter(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            return CALL_E_JAVASCRIPT;
 
         if (r->BooleanValue())
             a->push(m_array[i]);
@@ -287,7 +287,7 @@ result_t List::array::forEach(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            return CALL_E_JAVASCRIPT;
     }
 
     return 0;
@@ -307,7 +307,7 @@ result_t List::array::map(v8::Local<v8::Function> func,
         v8::Local<v8::Value> r = _call(func, thisp, i);
 
         if (r.IsEmpty())
-            return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            return CALL_E_JAVASCRIPT;
 
         a->push(r);
     }

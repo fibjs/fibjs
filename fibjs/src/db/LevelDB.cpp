@@ -141,7 +141,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
 
         hr = GetArgumentValue(v, buf);
         if (hr < 0)
-            return hr;
+            return CHECK_ERROR(hr);
 
         std::string s;
         buf->toString(s);
@@ -333,7 +333,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
 
             v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate), 2, args);
             if (v.IsEmpty())
-                return CHECK_ERROR(CALL_E_JAVASCRIPT);
+                return CALL_E_JAVASCRIPT;
 
             if (v->BooleanValue())
             {

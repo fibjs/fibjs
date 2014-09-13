@@ -318,7 +318,7 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
     }
 
     if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
-        return CALL_E_REENTRANT;
+        return CHECK_ERROR(CALL_E_REENTRANT);
 
     return (new asyncConnect(m_sock, addr_info, ac, m_inRecv, m_RecvOpt))->call();
 }
@@ -374,7 +374,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
-        return CALL_E_REENTRANT;
+        return CHECK_ERROR(CALL_E_REENTRANT);
 
     return (new asyncAccept(m_sock, retVal, ac, m_inRecv, m_RecvOpt))->call();
 }
@@ -448,7 +448,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
-        return CALL_E_REENTRANT;
+        return CHECK_ERROR(CALL_E_REENTRANT);
 
     return (new asyncRecv(m_sock, bytes, retVal, ac, bRead, m_inRecv, m_RecvOpt))->call();
 }
@@ -507,7 +507,7 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (exlib::CompareAndSwap(&m_inSend, 0, 1))
-        return CALL_E_REENTRANT;
+        return CHECK_ERROR(CALL_E_REENTRANT);
 
     return (new asyncSend(m_sock, data, ac, m_inSend, m_SendOpt))->call();
 }

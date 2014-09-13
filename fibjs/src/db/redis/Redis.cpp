@@ -207,7 +207,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
             asyncCommand *pThis = (asyncCommand *) pState;
 
             if (pThis->m_strLine.length() == 0)
-                return Runtime::setError("Invalid response.");
+                return CHECK_ERROR(Runtime::setError("Invalid response."));
 
             char ch = pThis->m_strLine[0];
 
@@ -218,7 +218,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
             }
 
             if (ch == '-')
-                return Runtime::setError(pThis->m_strLine.substr(1));
+                return CHECK_ERROR(Runtime::setError(pThis->m_strLine.substr(1)));
 
             if (ch == ':')
             {
@@ -263,7 +263,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
                 return 0;
             }
 
-            return Runtime::setError("Invalid response.");
+            return CHECK_ERROR(Runtime::setError("Invalid response."));
         }
 
         static int bulk_ok(asyncState *pState, int n)

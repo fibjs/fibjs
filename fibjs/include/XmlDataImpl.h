@@ -44,7 +44,7 @@ public:
     result_t substringData(int32_t offset, int32_t count, std::string &retVal)
     {
         if (offset < 0 || offset > (int32_t)m_data.length())
-            return CALL_E_BADINDEX;
+            return CHECK_ERROR(CALL_E_BADINDEX);
         retVal = m_data.substr(offset, count);
         return 0;
     }
@@ -58,7 +58,7 @@ public:
     result_t insertData(int32_t offset, const char *arg)
     {
         if (offset < 0 || offset > (int32_t)m_data.length())
-            return CALL_E_BADINDEX;
+            return CHECK_ERROR(CALL_E_BADINDEX);
 
         m_data = m_data.substr(0, offset) + arg + m_data.substr(offset);
         return 0;
@@ -67,7 +67,7 @@ public:
     result_t deleteData(int32_t offset, int32_t count)
     {
         if (offset < 0 || offset > (int32_t)m_data.length())
-            return CALL_E_BADINDEX;
+            return CHECK_ERROR(CALL_E_BADINDEX);
 
         if (offset + count > (int32_t)m_data.length())
             count = (int32_t)m_data.length() - offset;
@@ -79,7 +79,7 @@ public:
     result_t replaceData(int32_t offset, int32_t count, const char *arg)
     {
         if (offset < 0 || offset > (int32_t)m_data.length())
-            return CALL_E_BADINDEX;
+            return CHECK_ERROR(CALL_E_BADINDEX);
 
         if (offset + count > (int32_t)m_data.length())
             count = (int32_t)m_data.length() - offset;
@@ -91,7 +91,7 @@ public:
     result_t splitText(int32_t offset, std::string &retVal)
     {
         if (offset < 0 || offset > (int32_t)m_data.length())
-            return CALL_E_BADINDEX;
+            return CHECK_ERROR(CALL_E_BADINDEX);
 
         retVal = m_data.substr(offset);
         m_data = m_data.substr(0, offset);

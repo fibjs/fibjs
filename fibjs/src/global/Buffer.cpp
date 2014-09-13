@@ -85,7 +85,7 @@ result_t Buffer::write(v8::Local<v8::Array> datas)
 
             hr = GetArgumentValue(v, num);
             if (hr < 0)
-                return hr;
+                return CHECK_ERROR(hr);
 
             if (num < 0 || num > 256)
                 return CHECK_ERROR(CALL_E_OUTRANGE);

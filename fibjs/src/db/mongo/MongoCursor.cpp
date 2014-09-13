@@ -120,7 +120,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
         v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate), 1, &a);
 
         if (v.IsEmpty())
-            return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            return CALL_E_JAVASCRIPT;
     }
 
     return hr < 0 ? hr : 0;
@@ -140,7 +140,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
         v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate), 1, &a);
 
         if (v.IsEmpty())
-            return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            return CALL_E_JAVASCRIPT;
 
         as->Set(n, v);
         n++;

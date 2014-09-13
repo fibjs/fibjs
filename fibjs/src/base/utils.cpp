@@ -211,7 +211,7 @@ result_t throwSyntaxError(v8::TryCatch &try_catch)
         return Runtime::setError(strError);
     }
 
-    return CHECK_ERROR(CALL_E_JAVASCRIPT);
+    return CALL_E_JAVASCRIPT;
 }
 
 void ReportException(v8::TryCatch &try_catch, result_t hr)
