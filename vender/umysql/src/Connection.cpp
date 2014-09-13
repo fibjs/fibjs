@@ -139,7 +139,7 @@ void Connection::scramble(const char *_scramble1, const char *_scramble2, UINT8 
 bool Connection::readSocket()
 {
   size_t bytesToRecv = m_reader.getEndPtr() - m_reader.getWritePtr();
-  assert (bytesToRecv <= m_reader.getEndPtr() - m_reader.getWritePtr()); 
+  assert ((int)bytesToRecv <= m_reader.getEndPtr() - m_reader.getWritePtr()); 
 
   if (bytesToRecv == 0)
   {
@@ -177,7 +177,7 @@ bool Connection::writeSocket()
   size_t bytesToSend = m_writer.getWriteCursor() - m_writer.getReadCursor();
 
   assert (bytesToSend > 0);
-  assert (bytesToSend < m_writer.getEnd() - m_writer.getStart());
+  assert ((int)bytesToSend < m_writer.getEnd() - m_writer.getStart());
 
   int sendResult = m_capi.sendSocket(m_sockInst, m_writer.getReadCursor(), bytesToSend);
 

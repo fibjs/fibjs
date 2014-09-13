@@ -90,7 +90,7 @@ void PacketWriter::push(void *data, size_t cbData)
 // Pull/Increment read cursor
 void PacketWriter::pull(size_t cbSize)
 {
-  assert (m_writeCursor - m_readCursor <= cbSize);
+  assert (m_writeCursor - m_readCursor <= (int)cbSize);
   m_readCursor += cbSize;
 }
 
