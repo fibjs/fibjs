@@ -21,6 +21,23 @@ for (var idx = 0; idx < dir.length; idx++)
 	if (path.extname(dir[idx].name) === '.idl')
 		parserIDL(dir[idx].name);
 
+function clean_folder(path) {
+	var dir = fs.readdir(path);
+	dir.forEach(function(f) {
+		var name = f.name;
+		if (name !== '.' && name !== '..') {
+			var fname = path + '/' + name;
+			if (f.isDirectory()) {
+				clean_folder(fname);
+				fs.rmdir(fname);
+			} else
+				fs.unlink(fname);
+		}
+	});
+}
+
+clean_folder("../../../docs/html");
+
 process.system('doxygen');
 
 function preparserIDL(fname) {
