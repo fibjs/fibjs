@@ -39,12 +39,9 @@ public:
 	static result_t request(const char* method, const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t request(const char* method, const char* url, const char* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t get(const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t post(const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t post(const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t post(const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t post(const char* url, const char* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 
 public:
 	static void s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -154,15 +151,6 @@ namespace fibjs
 
 		hr = request(v0, v1, v2, v3, vr);
 
-		METHOD_OVER(4, 3);
-
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
-		ARG(arg_string, 2);
-		OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
-
-		hr = request(v0, v1, v2, v3, vr);
-
 		METHOD_RETURN();
 	}
 
@@ -184,14 +172,7 @@ namespace fibjs
 	{
 		obj_ptr<HttpResponse_base> vr;
 
-		METHOD_ENTER(2, 1);
-
-		ARG(arg_string, 0);
-		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-
-		hr = post(v0, v1, vr);
-
-		METHOD_OVER(3, 2);
+		METHOD_ENTER(3, 2);
 
 		ARG(arg_string, 0);
 		ARG(obj_ptr<SeekableStream_base>, 1);
@@ -203,14 +184,6 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 		ARG(obj_ptr<Buffer_base>, 1);
-		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
-
-		hr = post(v0, v1, v2, vr);
-
-		METHOD_OVER(3, 2);
-
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
 		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
 		hr = post(v0, v1, v2, vr);

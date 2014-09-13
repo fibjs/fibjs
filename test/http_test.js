@@ -944,18 +944,13 @@ describe("http", function() {
 		});
 
 		describe("post", function() {
-			it("simple", function() {
-				assert.equal(http.post("http://127.0.0.1:8882/request").body.read().toString(),
-					"/request");
-			});
-
 			it("body", function() {
 				assert.equal(http.post("http://127.0.0.1:8882/request:", "body").body.read().toString(),
 					"/request:body");
 			});
 
 			it("header", function() {
-				assert.equal(http.post("http://127.0.0.1:8882/request:", {
+				assert.equal(http.post("http://127.0.0.1:8882/request:", "", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
@@ -1016,11 +1011,6 @@ describe("http", function() {
 		});
 
 		describe("post", function() {
-			it("simple", function() {
-				assert.equal(http.post("https://127.0.0.1:8883/request").body.read().toString(),
-					"/request");
-			});
-
 			it("body", function() {
 				assert.equal(http.post(
 						"https://127.0.0.1:8883/request:", "body").body
@@ -1029,7 +1019,7 @@ describe("http", function() {
 
 			it("header", function() {
 				assert.equal(http.post(
-					"https://127.0.0.1:8883/request:", {
+					"https://127.0.0.1:8883/request:", "", {
 						"test_header": "header"
 					}).body.read().toString(), "/request:header");
 			});
