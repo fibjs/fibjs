@@ -154,6 +154,8 @@ result_t MemoryStream::size(int64_t &retVal)
 
     m_buffer.seekg(0, std::ios::end);
     retVal = m_buffer.tellg();
+    if (retVal < 0)
+        retVal = 0;
     m_buffer.seekg(p, std::ios::beg);
 
     return 0;
