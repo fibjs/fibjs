@@ -1,8 +1,10 @@
 <doxygenlayout version="1.0">
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>
-    <tab type="pages" visible="yes" title="基础教程" intro=""/>
-    <tab type="namespacelist" visible="yes" title="模块手册" />
-    <tab type="classlist" visible="yes" title="对象手册" />
+    <tab type="pages" visible="yes" title="教程" intro=""/>
+    <tab type="namespacelist" visible="yes" title="模块" />
+    <tab type="classlist" visible="yes" title="对象" />
+    <tab type="user" url="https://github.com/xicilion/fibjs" title="下载" />
+    <tab type="user" url="http://baoz.me/fibjs" title="社区" />
   </navindex>
 </doxygenlayout>
