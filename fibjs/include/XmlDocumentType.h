@@ -29,6 +29,12 @@ public:
     {
     }
 
+    XmlDocumentType(const XmlDocumentType &from):
+        XmlNodeImpl(from.m_document, this, xml_base::_DOCUMENT_TYPE_NODE),
+        m_name(from.m_name), m_systemId(from.m_systemId), m_publicId(from.m_publicId)
+    {
+    }
+
 public:
     // object_base
     virtual result_t toString(std::string &retVal);

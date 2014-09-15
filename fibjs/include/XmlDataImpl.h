@@ -20,7 +20,7 @@ public:
     XmlDataImpl(const char *data) : m_data(data)
     {}
 
-    XmlDataImpl(std::string &data) : m_data(data)
+    XmlDataImpl(const std::string &data) : m_data(data)
     {}
 
 public:

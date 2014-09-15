@@ -99,7 +99,8 @@ result_t XmlAttr::hasChildNodes(bool &retVal)
 
 result_t XmlAttr::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlAttr> attr = new XmlAttr(*this);
+    return XmlNodeImpl::cloneNode(attr, deep, retVal);
 }
 
 result_t XmlAttr::normalize()

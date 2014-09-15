@@ -172,4 +172,27 @@ result_t XmlNamedNodeMap::hasAttribute(bool &retVal)
     return 0;
 }
 
+result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap *to)
+{
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+    result_t hr;
+
+    for (i = 0; i < sz; i ++)
+    {
+        obj_ptr<XmlNode_base> child;
+        obj_ptr<XmlNode_base> out;
+
+        hr = m_childs[i]->m_node->cloneNode(true, child);
+        if (hr < 0)
+            return hr;
+
+        hr = to->setAttributeNode(child, out);
+        if (hr < 0)
+            return hr;
+    }
+
+    return 0;
+}
+
 }

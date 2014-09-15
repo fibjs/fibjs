@@ -28,6 +28,12 @@ public:
     {
     }
 
+    XmlText(const XmlText &from):
+        XmlNodeImpl(from.m_document, this, xml_base::_TEXT_NODE),
+        m_data(from.m_data.m_data)
+    {
+    }
+
 public:
     // object_base
     virtual result_t toString(std::string &retVal);

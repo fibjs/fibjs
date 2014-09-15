@@ -59,6 +59,8 @@ public:
         return !!m_childs.size();
     }
 
+    result_t cloneChilds(XmlNode_base *to);
+
 private:
     XmlNodeImpl *checkChild(XmlNode_base *child);
     bool checkNew(XmlNodeImpl *child);

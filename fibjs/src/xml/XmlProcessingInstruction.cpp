@@ -98,7 +98,8 @@ result_t XmlProcessingInstruction::hasChildNodes(bool &retVal)
 
 result_t XmlProcessingInstruction::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlProcessingInstruction> pi = new XmlProcessingInstruction(*this);
+    return XmlNodeImpl::cloneNode(pi, deep, retVal);
 }
 
 result_t XmlProcessingInstruction::normalize()

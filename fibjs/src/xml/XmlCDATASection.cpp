@@ -96,7 +96,8 @@ result_t XmlCDATASection::hasChildNodes(bool &retVal)
 
 result_t XmlCDATASection::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlCDATASection> cds = new XmlCDATASection(*this);
+    return XmlNodeImpl::cloneNode(cds, deep, retVal);
 }
 
 result_t XmlCDATASection::normalize()

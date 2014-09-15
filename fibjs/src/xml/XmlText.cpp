@@ -96,7 +96,8 @@ result_t XmlText::hasChildNodes(bool &retVal)
 
 result_t XmlText::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlText> txt = new XmlText(*this);
+    return XmlNodeImpl::cloneNode(txt, deep, retVal);
 }
 
 result_t XmlText::normalize()

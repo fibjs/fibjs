@@ -47,11 +47,6 @@ XmlNodeImpl *XmlNodeImpl::fromNode(XmlNode_base *pNode)
     return NULL;
 }
 
-result_t XmlNodeImpl::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
-{
-    return 0;
-}
-
 result_t XmlNodeImpl::normalize()
 {
     return 0;

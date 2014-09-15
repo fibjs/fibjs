@@ -97,7 +97,12 @@ result_t XmlElement::hasChildNodes(bool &retVal)
 
 result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlElement> el = new XmlElement(*this);
+    result_t hr = m_attrs->cloneAttrs(el->m_attrs);
+    if (hr < 0)
+        return hr;
+
+    return XmlNodeImpl::cloneNode(el, deep, retVal);
 }
 
 result_t XmlElement::normalize()

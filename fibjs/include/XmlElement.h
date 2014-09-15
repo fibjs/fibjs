@@ -25,6 +25,12 @@ public:
     {
     }
 
+    XmlElement(const XmlElement &from):
+        XmlNodeImpl(from.m_document, this, xml_base::_ELEMENT_NODE),
+        m_tagName(from.m_tagName), m_attrs(new XmlNamedNodeMap(this))
+    {
+    }
+
 public:
     // object_base
     virtual result_t toString(std::string &retVal);

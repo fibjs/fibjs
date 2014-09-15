@@ -73,8 +73,20 @@ public:
         return m_document;
     }
 
-    result_t cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal);
     result_t normalize();
+
+    result_t cloneNode(XmlNode_base *to, bool deep, obj_ptr<XmlNode_base> &retVal)
+    {
+        if (deep)
+        {
+            result_t hr = m_childs->cloneChilds(to);
+            if (hr < 0)
+                return hr;
+        }
+
+        retVal = to;
+        return 0;
+    }
 
 public:
     static XmlNodeImpl *fromNode(XmlNode_base *pNode);

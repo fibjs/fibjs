@@ -23,6 +23,12 @@ public:
     {
     }
 
+    XmlProcessingInstruction(const XmlProcessingInstruction &from):
+        XmlNodeImpl(from.m_document, this, xml_base::_PROCESSING_INSTRUCTION_NODE),
+        m_target(from.m_target), m_data(from.m_data)
+    {
+    }
+
 public:
     // object_base
     virtual result_t toString(std::string &retVal);

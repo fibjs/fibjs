@@ -28,6 +28,12 @@ public:
     {
     }
 
+    XmlCDATASection(const XmlCDATASection &from):
+        XmlNodeImpl(from.m_document, this, xml_base::_CDATA_SECTION_NODE),
+        m_data(from.m_data.m_data)
+    {
+    }
+
 public:
     // object_base
     virtual result_t toString(std::string &retVal);

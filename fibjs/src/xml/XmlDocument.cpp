@@ -180,7 +180,8 @@ result_t XmlDocument::hasChildNodes(bool &retVal)
 
 result_t XmlDocument::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlDocument> doc = new XmlDocument(*this);
+    return XmlNodeImpl::cloneNode(doc, deep, retVal);
 }
 
 result_t XmlDocument::normalize()

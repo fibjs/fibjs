@@ -21,6 +21,13 @@ public:
     {
     }
 
+    XmlDocument(const XmlDocument &from):
+        XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE),
+        m_version(from.m_version), m_encoding(from.m_encoding),
+        m_standalone(from.m_standalone)
+    {
+    }
+
 public:
     // object_base
     virtual result_t toString(std::string &retVal);

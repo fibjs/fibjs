@@ -48,6 +48,8 @@ public:
         return !!m_childs.size();
     }
 
+    result_t cloneAttrs(XmlNamedNodeMap *to);
+
 public:
     XmlNodeImpl *m_this;
     std::vector<XmlNodeImpl *> m_childs;

@@ -96,7 +96,8 @@ result_t XmlComment::hasChildNodes(bool &retVal)
 
 result_t XmlComment::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlComment> comment = new XmlComment(*this);
+    return XmlNodeImpl::cloneNode(comment, deep, retVal);
 }
 
 result_t XmlComment::normalize()

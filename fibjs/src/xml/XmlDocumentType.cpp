@@ -96,7 +96,8 @@ result_t XmlDocumentType::hasChildNodes(bool &retVal)
 
 result_t XmlDocumentType::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
-    return XmlNodeImpl::cloneNode(deep, retVal);
+    obj_ptr<XmlDocumentType> doctype = new XmlDocumentType(*this);
+    return XmlNodeImpl::cloneNode(doctype, deep, retVal);
 }
 
 result_t XmlDocumentType::normalize()
