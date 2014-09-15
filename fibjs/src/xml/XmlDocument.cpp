@@ -262,11 +262,6 @@ result_t XmlDocument::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeL
     return 0;
 }
 
-result_t XmlDocument::getElementById(const char *elementId, obj_ptr<XmlElement_base> &retVal)
-{
-    return CALL_RETURN_NULL;
-}
-
 result_t XmlDocument::get_inputEncoding(std::string &retVal)
 {
     if (m_encoding.empty())

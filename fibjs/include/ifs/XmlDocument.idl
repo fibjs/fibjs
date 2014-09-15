@@ -71,15 +71,6 @@ interface XmlDocument : XmlNode
     */
     XmlNodeList getElementsByTagName(String tagName);
 
-    /*! @brief 查找具有指定的唯一 ID 的元素
-
-     该方法将检索 id 属性的值为 elementId 的元素节点，并返回它。如果没有找到这样的元素，则返回 null。id 属性的值在文档中是唯一的，如果该方法找到更多具有指定 elementId 的元素节点，它将随机返回一个这样的元素节点，或者返回 null。
-
-     这是一个重要的常用方法，因为它为获取表示指定的文档元素的 XmlElement 对象提供了简便的方法。
-     @param elementId 想获取的元素的 id 属性的值
-    */
-    XmlElement getElementById(String elementId);
-
     /*! @brief 返回用于文档的编码（在解析时）
     */
     readonly String inputEncoding;

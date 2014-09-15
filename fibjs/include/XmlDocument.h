@@ -65,7 +65,6 @@ public:
     virtual result_t createProcessingInstruction(const char *target, const char *data, obj_ptr<XmlProcessingInstruction_base> &retVal);
     virtual result_t createAttribute(const char *name, obj_ptr<XmlAttr_base> &retVal);
     virtual result_t getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal);
-    virtual result_t getElementById(const char *elementId, obj_ptr<XmlElement_base> &retVal);
     virtual result_t get_inputEncoding(std::string &retVal);
     virtual result_t get_xmlStandalone(bool &retVal);
     virtual result_t set_xmlStandalone(bool newVal);

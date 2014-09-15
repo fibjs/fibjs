@@ -45,7 +45,6 @@ public:
 	virtual result_t createProcessingInstruction(const char* target, const char* data, obj_ptr<XmlProcessingInstruction_base>& retVal) = 0;
 	virtual result_t createAttribute(const char* name, obj_ptr<XmlAttr_base>& retVal) = 0;
 	virtual result_t getElementsByTagName(const char* tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
-	virtual result_t getElementById(const char* elementId, obj_ptr<XmlElement_base>& retVal) = 0;
 	virtual result_t get_inputEncoding(std::string& retVal) = 0;
 	virtual result_t get_xmlStandalone(bool& retVal) = 0;
 	virtual result_t set_xmlStandalone(bool newVal) = 0;
@@ -68,7 +67,6 @@ public:
 	static void s_createProcessingInstruction(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_createAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_getElementById(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_inputEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_xmlStandalone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_xmlStandalone(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -100,8 +98,7 @@ namespace fibjs
 			{"createCDATASection", s_createCDATASection},
 			{"createProcessingInstruction", s_createProcessingInstruction},
 			{"createAttribute", s_createAttribute},
-			{"getElementsByTagName", s_getElementsByTagName},
-			{"getElementById", s_getElementById}
+			{"getElementsByTagName", s_getElementsByTagName}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -116,7 +113,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"XmlDocument", s__new, 
-			9, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			8, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&XmlNode_base::class_info()
 		};
 
@@ -332,20 +329,6 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->getElementsByTagName(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void XmlDocument_base::s_getElementById(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<XmlElement_base> vr;
-
-		METHOD_INSTANCE(XmlDocument_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(arg_string, 0);
-
-		hr = pInst->getElementById(v0, vr);
 
 		METHOD_RETURN();
 	}
