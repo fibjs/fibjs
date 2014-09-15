@@ -54,7 +54,6 @@ private:
         pThis->OnXmlDecl(version, encoding, standalone);
     }
 
-
     static void XMLCALL StartElementHandler(void *userData, const XML_Char *name,
                                             const XML_Char **atts)
     {
@@ -111,7 +110,7 @@ private:
     XML_Parser m_parser;
     obj_ptr<XmlDocument> m_document;
     obj_ptr<XmlNode_base> m_now;
-    std::list<XmlNode_base *> m_list;
+    std::list<obj_ptr<XmlNode_base> > m_list;
 };
 
 } /* namespace fibjs */

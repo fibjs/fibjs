@@ -48,7 +48,7 @@ void XmlParser::newNode(XmlNode_base *node, bool enter)
     if (enter)
     {
         m_now = node;
-        m_list.push_back(node);
+        m_list.push_back(m_now);
     }
 }
 
