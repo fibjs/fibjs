@@ -161,6 +161,12 @@ result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
         return hr;
 
     retVal = new XmlText(m_document, ret);
+    if (m_parent)
+    {
+        obj_ptr<XmlNode_base> out;
+        return m_parent->m_childs->insertAfter(retVal, this, out);
+    }
+
     return 0;
 }
 

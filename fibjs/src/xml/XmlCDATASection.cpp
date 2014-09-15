@@ -161,6 +161,12 @@ result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base> &retVa
         return hr;
 
     retVal = new XmlCDATASection(m_document, ret);
+    if (m_parent)
+    {
+        obj_ptr<XmlNode_base> out;
+        return m_parent->m_childs->insertAfter(retVal, this, out);
+    }
+
     return 0;
 }
 

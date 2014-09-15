@@ -285,6 +285,15 @@ describe('xml', function() {
 
 			assert.equal(e.nodeValue, 'aaa');
 			assert.equal(e1.nodeValue, 'bbb');
+
+			e.nodeValue = "aaabbb";
+			var root = xdoc.createElement("aaa");
+			root.appendChild(e);
+			assert.equal(e.parentNode, root);
+			e1 = e.splitText(3);
+			assert.equal(e1.parentNode, root);
+			assert.equal(root.firstChild, e);
+			assert.equal(root.lastChild, e1);
 		});
 
 		it("child rule", function() {
@@ -340,6 +349,15 @@ describe('xml', function() {
 
 			assert.equal(e.nodeValue, 'aaa');
 			assert.equal(e1.nodeValue, 'bbb');
+
+			e.nodeValue = "aaabbb";
+			var root = xdoc.createElement("aaa");
+			root.appendChild(e);
+			assert.equal(e.parentNode, root);
+			e1 = e.splitText(3);
+			assert.equal(e1.parentNode, root);
+			assert.equal(root.firstChild, e);
+			assert.equal(root.lastChild, e1);
 		});
 
 		it("child rule", function() {
