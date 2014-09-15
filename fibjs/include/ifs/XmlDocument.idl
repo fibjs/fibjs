@@ -16,11 +16,6 @@ interface XmlDocument : XmlNode
     */
     loadXML(String source);
 
-    /*! @brief 序列化当前文档为字符串
-     @return 返回序列化的字符串
-    */
-    String saveHTML();
-
     /*! @brief 返回与文档相关的文档类型声明（Document Type Declaration）
 
     对于没有 DTD 的 XML 文档，则返回 null。此属性可提供对 XmlDocumentType 对象（ XmlDocument 的一个子节点）的直接访问。

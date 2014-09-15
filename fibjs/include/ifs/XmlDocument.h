@@ -36,7 +36,6 @@ public:
 	// XmlDocument_base
 	static result_t _new(const char* source, obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t loadXML(const char* source) = 0;
-	virtual result_t saveHTML(std::string& retVal) = 0;
 	virtual result_t get_doctype(obj_ptr<XmlDocumentType_base>& retVal) = 0;
 	virtual result_t get_documentElement(obj_ptr<XmlElement_base>& retVal) = 0;
 	virtual result_t createElement(const char* tagName, obj_ptr<XmlElement_base>& retVal) = 0;
@@ -60,7 +59,6 @@ public:
 public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_loadXML(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_saveHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_doctype(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_documentElement(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_createElement(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -96,7 +94,6 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"loadXML", s_loadXML},
-			{"saveHTML", s_saveHTML},
 			{"createElement", s_createElement},
 			{"createTextNode", s_createTextNode},
 			{"createComment", s_createComment},
@@ -119,7 +116,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"XmlDocument", s__new, 
-			10, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			9, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&XmlNode_base::class_info()
 		};
 
@@ -238,18 +235,6 @@ namespace fibjs
 		hr = pInst->loadXML(v0);
 
 		METHOD_VOID();
-	}
-
-	inline void XmlDocument_base::s_saveHTML(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		std::string vr;
-
-		METHOD_INSTANCE(XmlDocument_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->saveHTML(vr);
-
-		METHOD_RETURN();
 	}
 
 	inline void XmlDocument_base::s_createElement(const v8::FunctionCallbackInfo<v8::Value>& args)

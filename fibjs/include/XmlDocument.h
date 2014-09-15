@@ -49,7 +49,6 @@ public:
 public:
     // XmlDocument_base
     virtual result_t loadXML(const char *source);
-    virtual result_t saveHTML(std::string &retVal);
     virtual result_t get_doctype(obj_ptr<XmlDocumentType_base> &retVal);
     virtual result_t get_documentElement(obj_ptr<XmlElement_base> &retVal);
     virtual result_t createElement(const char *tagName, obj_ptr<XmlElement_base> &retVal);

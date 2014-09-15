@@ -181,11 +181,6 @@ result_t XmlDocument::loadXML(const char *source)
     return parser.parse(source);
 }
 
-result_t XmlDocument::saveHTML(std::string &retVal)
-{
-    return 0;
-}
-
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)
 {
     return CALL_RETURN_NULL;
