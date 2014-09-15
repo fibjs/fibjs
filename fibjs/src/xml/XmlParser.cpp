@@ -32,7 +32,7 @@ XmlParser::XmlParser(XmlDocument *document)
     XML_SetProcessingInstructionHandler(m_parser, ProcessingInstructionHandler);
     XML_SetCommentHandler(m_parser, CommentHandler);
     XML_SetCdataSectionHandler(m_parser, StartCdataSectionHandler, EndCdataSectionHandler);
-    XML_SetDoctypeDeclHandler(m_parser, StartDoctypeDeclHandler, EndDoctypeDeclHandler);
+    XML_SetStartDoctypeDeclHandler(m_parser, StartDoctypeDeclHandler);
 }
 
 void XmlParser::newNode(XmlNode_base *node, bool enter)
@@ -65,10 +65,6 @@ void XmlParser::OnStartDoctypeDecl(const XML_Char *doctypeName, const XML_Char *
     obj_ptr<XmlDocumentType> doctype = new XmlDocumentType(m_document, doctypeName,
             sysid ? sysid : "", pubid ? pubid : "");
     newNode(doctype);
-}
-
-void XmlParser::OnEndDoctypeDecl()
-{
 }
 
 void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)

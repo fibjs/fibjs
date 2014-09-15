@@ -41,7 +41,6 @@ public:
 
     void OnStartDoctypeDecl(const XML_Char *doctypeName, const XML_Char *sysid,
                             const XML_Char *pubid, int has_internal_subset);
-    void OnEndDoctypeDecl();
 
 private:
     void leaveNode();
@@ -106,12 +105,6 @@ private:
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnStartDoctypeDecl(doctypeName, sysid, pubid, has_internal_subset);
-    }
-
-    static void XMLCALL EndDoctypeDeclHandler(void *userData)
-    {
-        XmlParser *pThis = static_cast <XmlParser *>(userData);
-        pThis->OnEndDoctypeDecl();
     }
 
 private:
