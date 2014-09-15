@@ -107,7 +107,7 @@ result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlElement::normalize()
 {
-    return XmlNodeImpl::normalize();
+    return m_childs->normalize();
 }
 
 result_t XmlElement::get_tagName(std::string &retVal)

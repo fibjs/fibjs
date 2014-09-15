@@ -104,7 +104,7 @@ result_t XmlProcessingInstruction::cloneNode(bool deep, obj_ptr<XmlNode_base> &r
 
 result_t XmlProcessingInstruction::normalize()
 {
-    return XmlNodeImpl::normalize();
+    return m_childs->normalize();
 }
 
 result_t XmlProcessingInstruction::get_target(std::string &retVal)

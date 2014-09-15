@@ -17,6 +17,9 @@ describe('xml', function() {
 			var xdoc1 = xdoc.cloneNode();
 			assert.notEqual(xdoc, xdoc1);
 			assert.equal(xdoc1.toString(), out);
+
+			xdoc1.normalize();
+			assert.equal(xdoc1.toString(), out);
 		}
 	});
 });

@@ -7,6 +7,7 @@
 
 #include "XmlNodeList.h"
 #include "XmlNodeImpl.h"
+#include "ifs/XmlText.h"
 #include <string.h>
 
 namespace fibjs
@@ -294,6 +295,50 @@ result_t XmlNodeList::cloneChilds(XmlNode_base *to)
         hr = to->appendChild(child, out);
         if (hr < 0)
             return hr;
+    }
+
+    return 0;
+}
+
+result_t XmlNodeList::normalize()
+{
+    int32_t i;
+    int32_t type;
+
+    for (i = 0; i < (int32_t)m_childs.size(); i ++)
+    {
+        XmlNode_base *child = m_childs[i]->m_node;
+
+        child->get_nodeType(type);
+        if (type == xml_base::_TEXT_NODE)
+        {
+            XmlText_base *txt = (XmlText_base *)child;
+            std::string val;
+
+            while (i + 1 < (int32_t)m_childs.size())
+            {
+                XmlNode_base *next = m_childs[i + 1]->m_node;
+                next->get_nodeType(type);
+                if (type != xml_base::_TEXT_NODE)
+                    break;
+
+                next->get_nodeValue(val);
+                txt->appendData(val.c_str());
+
+                obj_ptr<XmlNode_base> out;
+                removeChild(next, out);
+            }
+
+            child->get_nodeValue(val);
+            if (val.empty())
+            {
+                obj_ptr<XmlNode_base> out;
+                removeChild(child, out);
+                i --;
+            }
+        }
+        else
+            child->normalize();
     }
 
     return 0;

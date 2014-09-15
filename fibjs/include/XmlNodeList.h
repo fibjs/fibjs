@@ -60,6 +60,7 @@ public:
     }
 
     result_t cloneChilds(XmlNode_base *to);
+    result_t normalize();
 
 private:
     XmlNodeImpl *checkChild(XmlNode_base *child);

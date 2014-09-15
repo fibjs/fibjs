@@ -102,7 +102,7 @@ result_t XmlDocumentType::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlDocumentType::normalize()
 {
-    return XmlNodeImpl::normalize();
+    return m_childs->normalize();
 }
 
 result_t XmlDocumentType::get_name(std::string &retVal)

@@ -292,6 +292,30 @@ describe('xml', function() {
 			test_Child(xdoc, xdoc.createTextNode("aaa"), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 		});
 
+		it("normalize", function() {
+			var xdoc = newDoc();
+			var root = xdoc.createElement("aaa");
+
+			xdoc.appendChild(root);
+			root.appendChild(xdoc.createTextNode("aaa"));
+			root.appendChild(xdoc.createTextNode("bbb"));
+			xdoc.normalize();
+			assert.equal(root.firstChild.nodeValue, "aaabbb");
+
+			root.firstChild.nodeValue = "";
+			root.normalize();
+			assert.equal(root.firstChild, null);
+
+			root.appendChild(xdoc.createTextNode(""));
+			var next = xdoc.createElement("aaa");
+			root.appendChild(next);
+			next.appendChild(xdoc.createTextNode("aaa"));
+			next.appendChild(xdoc.createTextNode("bbb"));
+
+			xdoc.normalize();
+			assert.equal(next.firstChild.nodeValue, "aaabbb");
+		});
+
 		test_CharacterData("createTextNode");
 	});
 

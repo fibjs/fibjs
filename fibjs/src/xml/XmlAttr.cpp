@@ -105,7 +105,7 @@ result_t XmlAttr::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlAttr::normalize()
 {
-    return XmlNodeImpl::normalize();
+    return m_childs->normalize();
 }
 
 result_t XmlAttr::get_name(std::string &retVal)

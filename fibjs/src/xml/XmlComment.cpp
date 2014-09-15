@@ -102,7 +102,7 @@ result_t XmlComment::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlComment::normalize()
 {
-    return XmlNodeImpl::normalize();
+    return m_childs->normalize();
 }
 
 result_t XmlComment::get_data(std::string &retVal)

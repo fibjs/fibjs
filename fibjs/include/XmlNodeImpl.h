@@ -73,8 +73,6 @@ public:
         return m_document;
     }
 
-    result_t normalize();
-
     result_t cloneNode(XmlNode_base *to, bool deep, obj_ptr<XmlNode_base> &retVal)
     {
         if (deep)

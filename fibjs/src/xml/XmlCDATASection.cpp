@@ -102,7 +102,7 @@ result_t XmlCDATASection::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlCDATASection::normalize()
 {
-    return XmlNodeImpl::normalize();
+    return m_childs->normalize();
 }
 
 result_t XmlCDATASection::get_data(std::string &retVal)

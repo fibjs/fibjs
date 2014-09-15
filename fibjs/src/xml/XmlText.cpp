@@ -102,7 +102,7 @@ result_t XmlText::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 
 result_t XmlText::normalize()
 {
-    return XmlNodeImpl::normalize();
+    return m_childs->normalize();
 }
 
 result_t XmlText::get_data(std::string &retVal)

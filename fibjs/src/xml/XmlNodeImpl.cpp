@@ -47,9 +47,4 @@ XmlNodeImpl *XmlNodeImpl::fromNode(XmlNode_base *pNode)
     return NULL;
 }
 
-result_t XmlNodeImpl::normalize()
-{
-    return 0;
-}
-
 }
