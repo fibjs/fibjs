@@ -8,6 +8,8 @@ function newDoc() {
 	return new xml.Document();
 }
 
+var parse = xml.parse;
+
 describe('xml', function() {
 	function test_CharacterData(fn) {
 		describe('CharacterData', function() {
@@ -114,6 +116,14 @@ describe('xml', function() {
 			assert.equal(xdoc.nodeValue, null);
 			xdoc.nodeValue = 'aaaaa';
 			assert.equal(xdoc.nodeValue, null);
+
+			xdoc = parse("<!DOCTYPE foo><foo/>");
+			assert.equal(xdoc.doctype, xdoc.firstChild);
+			xdoc.removeChild(xdoc.firstChild);
+			assert.equal(xdoc.doctype, null);
+
+			var xdoc1 = parse("<!DOCTYPE foo><foo/>");
+			xdoc.appendChild(xdoc1.removeChild(xdoc1.firstChild));
 		});
 
 		it("child rule", function() {

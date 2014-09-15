@@ -74,9 +74,10 @@ public:
     }
 
 private:
-    result_t checkElement(XmlNode_base *newChild);
+    result_t checkNode(XmlNode_base *newChild);
 
 private:
+    obj_ptr<XmlDocumentType_base> m_doctype;
     obj_ptr<XmlElement_base> m_Element;
     std::string m_version;
     std::string m_encoding;

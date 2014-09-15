@@ -94,7 +94,7 @@ result_t XmlDocument::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlDocument::checkElement(XmlNode_base *newChild)
+result_t XmlDocument::checkNode(XmlNode_base *newChild)
 {
     int32_t type;
     newChild->get_nodeType(type);
@@ -109,6 +109,16 @@ result_t XmlDocument::checkElement(XmlNode_base *newChild)
         else
             m_Element = (XmlElement_base *)newChild;
     }
+    else if (type == xml_base::_DOCUMENT_TYPE_NODE)
+    {
+        if (m_doctype)
+        {
+            if (m_doctype != newChild)
+                return Runtime::setError("The document node contains only one element node.");
+        }
+        else
+            m_doctype = (XmlDocumentType_base *)newChild;
+    }
 
     return 0;
 }
@@ -116,7 +126,7 @@ result_t XmlDocument::checkElement(XmlNode_base *newChild)
 result_t XmlDocument::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
                                    obj_ptr<XmlNode_base> &retVal)
 {
-    result_t hr = checkElement(newChild);
+    result_t hr = checkNode(newChild);
     if (hr < 0)
         return hr;
 
@@ -126,34 +136,37 @@ result_t XmlDocument::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
 result_t XmlDocument::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
                                    obj_ptr<XmlNode_base> &retVal)
 {
-    if (m_Element != oldChild)
+    if (newChild == oldChild)
     {
-        result_t hr = checkElement(newChild);
-        if (hr < 0)
-            return hr;
+        retVal = oldChild;
+        return 0;
     }
-    else if (m_Element != newChild)
-    {
+
+    if (oldChild == m_Element)
         m_Element.Release();
-        result_t hr = checkElement(newChild);
-        if (hr < 0)
-            return hr;
-    }
+    else if (oldChild == m_doctype)
+        m_doctype.Release();
+
+    result_t hr = checkNode(newChild);
+    if (hr < 0)
+        return hr;
 
     return m_childs->replaceChild(newChild, oldChild, retVal);
 }
 
 result_t XmlDocument::removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal)
 {
-    if (m_Element == oldChild)
+    if (oldChild == m_Element)
         m_Element.Release();
+    else if (oldChild == m_doctype)
+        m_doctype.Release();
 
     return m_childs->removeChild(oldChild, retVal);
 }
 
 result_t XmlDocument::appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal)
 {
-    result_t hr = checkElement(newChild);
+    result_t hr = checkNode(newChild);
     if (hr < 0)
         return hr;
 
@@ -183,7 +196,11 @@ result_t XmlDocument::loadXML(const char *source)
 
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)
 {
-    return CALL_RETURN_NULL;
+    if (!m_doctype)
+        return CALL_RETURN_NULL;
+
+    retVal = m_doctype;
+    return 0;
 }
 
 result_t XmlDocument::get_documentElement(obj_ptr<XmlElement_base> &retVal)
