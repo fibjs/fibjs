@@ -181,11 +181,6 @@ public:
         return *p;
     }
 
-    T **operator&()
-    {
-        return (T **)&p;
-    }
-
     bool operator!() const
     {
         return (p == NULL);
@@ -276,11 +271,6 @@ public:
     T &operator*() const
     {
         return *p;
-    }
-
-    T **operator&()
-    {
-        return (T **)&p;
     }
 
     bool operator!() const
