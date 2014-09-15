@@ -133,6 +133,16 @@ result_t XmlDocument::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
     return m_childs->insertBefore(newChild, refChild, retVal);
 }
 
+result_t XmlDocument::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
+                                 obj_ptr<XmlNode_base> &retVal)
+{
+    result_t hr = checkNode(newChild);
+    if (hr < 0)
+        return hr;
+
+    return m_childs->insertAfter(newChild, refChild, retVal);
+}
+
 result_t XmlDocument::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
                                    obj_ptr<XmlNode_base> &retVal)
 {

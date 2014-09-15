@@ -68,11 +68,6 @@ public:
         return !retVal ? CALL_RETURN_NULL : 0;
     }
 
-    XmlDocument_base *ownerDocument()
-    {
-        return m_document;
-    }
-
     result_t cloneNode(XmlNode_base *to, bool deep, obj_ptr<XmlNode_base> &retVal)
     {
         if (deep)

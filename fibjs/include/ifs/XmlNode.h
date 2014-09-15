@@ -38,6 +38,7 @@ public:
 	virtual result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal) = 0;
 	virtual result_t insertBefore(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
+	virtual result_t insertAfter(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal) = 0;
@@ -58,6 +59,7 @@ public:
 	static void s_get_nextSibling(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ownerDocument(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_insertBefore(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_insertAfter(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_replaceChild(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_removeChild(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_appendChild(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -78,6 +80,7 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"insertBefore", s_insertBefore},
+			{"insertAfter", s_insertAfter},
 			{"replaceChild", s_replaceChild},
 			{"removeChild", s_removeChild},
 			{"appendChild", s_appendChild},
@@ -103,7 +106,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"XmlNode", NULL, 
-			7, s_method, 0, NULL, 10, s_property, NULL, NULL,
+			8, s_method, 0, NULL, 10, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -253,6 +256,21 @@ namespace fibjs
 		ARG(obj_ptr<XmlNode_base>, 1);
 
 		hr = pInst->insertBefore(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlNode_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<XmlNode_base> vr;
+
+		METHOD_INSTANCE(XmlNode_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(obj_ptr<XmlNode_base>, 0);
+		ARG(obj_ptr<XmlNode_base>, 1);
+
+		hr = pInst->insertAfter(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

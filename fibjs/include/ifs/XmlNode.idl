@@ -82,6 +82,15 @@ interface XmlNode : object
     */
     XmlNode insertBefore(XmlNode newChild, XmlNode refChild);
 
+    /*! @brief 在已有的子节点后插入一个新的子节点
+
+     如果文档树中已经存在了 newChild，它将从文档树中删除，然后重新插入它的新位置。来自一个文档的节点（或由一个文档创建的节点）不能插入另一个文档。也就是说，newChild 的 ownerDocument 属性必须与当前节点的 ownerDocument 属性相同。
+     @param newChild 插入新的节点
+     @param refChild 在此节点后插入新节点
+     @return 返回新的子节点
+    */
+    XmlNode insertAfter(XmlNode newChild, XmlNode refChild);
+
     /*! @brief 将某个子节点替换为另一个
 
      如果文档树中已经存在了 newChild，它将从文档树中删除，然后重新插入它的新位置。来自一个文档的节点（或由一个文档创建的节点）不能插入另一个文档。也就是说，newChild 的 ownerDocument 属性必须与当前节点的 ownerDocument 属性相同。

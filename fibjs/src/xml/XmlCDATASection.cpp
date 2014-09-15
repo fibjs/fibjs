@@ -73,6 +73,12 @@ result_t XmlCDATASection::insertBefore(XmlNode_base *newChild, XmlNode_base *ref
     return m_childs->insertBefore(newChild, refChild, retVal);
 }
 
+result_t XmlCDATASection::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
+                                      obj_ptr<XmlNode_base> &retVal)
+{
+    return m_childs->insertAfter(newChild, refChild, retVal);
+}
+
 result_t XmlCDATASection::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
                                        obj_ptr<XmlNode_base> &retVal)
 {
@@ -154,7 +160,7 @@ result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base> &retVa
     if (hr < 0)
         return hr;
 
-    retVal = new XmlCDATASection(XmlNodeImpl::ownerDocument(), ret);
+    retVal = new XmlCDATASection(m_document, ret);
     return 0;
 }
 

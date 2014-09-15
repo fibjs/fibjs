@@ -75,6 +75,12 @@ result_t XmlProcessingInstruction::insertBefore(XmlNode_base *newChild, XmlNode_
     return m_childs->insertBefore(newChild, refChild, retVal);
 }
 
+result_t XmlProcessingInstruction::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
+        obj_ptr<XmlNode_base> &retVal)
+{
+    return m_childs->insertAfter(newChild, refChild, retVal);
+}
+
 result_t XmlProcessingInstruction::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
         obj_ptr<XmlNode_base> &retVal)
 {

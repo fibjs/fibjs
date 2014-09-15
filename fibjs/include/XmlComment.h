@@ -47,6 +47,7 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal);
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal);
     virtual result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
+    virtual result_t insertAfter(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);

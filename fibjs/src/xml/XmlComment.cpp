@@ -73,6 +73,12 @@ result_t XmlComment::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild
     return m_childs->insertBefore(newChild, refChild, retVal);
 }
 
+result_t XmlComment::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
+                                 obj_ptr<XmlNode_base> &retVal)
+{
+    return m_childs->insertAfter(newChild, refChild, retVal);
+}
+
 result_t XmlComment::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
                                   obj_ptr<XmlNode_base> &retVal)
 {

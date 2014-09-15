@@ -73,6 +73,12 @@ result_t XmlText::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
     return m_childs->insertBefore(newChild, refChild, retVal);
 }
 
+result_t XmlText::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
+                              obj_ptr<XmlNode_base> &retVal)
+{
+    return m_childs->insertAfter(newChild, refChild, retVal);
+}
+
 result_t XmlText::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
                                obj_ptr<XmlNode_base> &retVal)
 {
@@ -154,7 +160,7 @@ result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
     if (hr < 0)
         return hr;
 
-    retVal = new XmlText(XmlNodeImpl::ownerDocument(), ret);
+    retVal = new XmlText(m_document, ret);
     return 0;
 }
 

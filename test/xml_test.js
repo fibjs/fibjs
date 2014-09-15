@@ -469,6 +469,30 @@ describe('xml', function() {
 			assert.equal(e1.childNodes.length, 0);
 		});
 
+		it("insertAfter", function() {
+			var xdoc = newDoc();
+			var e = xdoc.createElement("aaa");
+			var e1 = xdoc.createElement("bbb");
+			var e2 = xdoc.createElement("bbb");
+
+			e.appendChild(e1);
+			e.appendChild(e2);
+
+			var e3 = xdoc.createElement("bbb");
+			e.insertAfter(e3, e1);
+
+			assert.equal(e1.nextSibling, e3);
+			assert.equal(e2.previousSibling, e3);
+
+			var e4 = xdoc.createElement("bbb");
+			e1.appendChild(e4);
+			assert.equal(e1.childNodes.length, 1);
+			assert.equal(e4.parentNode, e1);
+			e.insertAfter(e4, e3);
+			assert.equal(e4.parentNode, e);
+			assert.equal(e1.childNodes.length, 0);
+		});
+
 		it("childNodes", function() {
 			var xdoc = newDoc();
 			var e = xdoc.createElement("aaa");

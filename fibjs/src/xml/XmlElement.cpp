@@ -74,6 +74,12 @@ result_t XmlElement::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild
     return m_childs->insertBefore(newChild, refChild, retVal);
 }
 
+result_t XmlElement::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
+                                 obj_ptr<XmlNode_base> &retVal)
+{
+    return m_childs->insertAfter(newChild, refChild, retVal);
+}
+
 result_t XmlElement::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
                                   obj_ptr<XmlNode_base> &retVal)
 {
