@@ -38,8 +38,12 @@ XmlParser::XmlParser(XmlDocument *document)
 void XmlParser::newNode(XmlNode_base *node, bool enter)
 {
     obj_ptr<XmlNode_base> out;
-
-    m_now->appendChild(node, out);
+    result_t hr = m_now->appendChild(node, out);
+    if (hr < 0)
+    {
+        XML_StopParser(m_parser, 0);
+        return;
+    }
 
     if (enter)
     {
