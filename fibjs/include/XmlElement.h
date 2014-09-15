@@ -73,7 +73,10 @@ public:
     void getElementsByTagNameFromThis(const char *tagName, obj_ptr<XmlNodeList> &retVal)
     {
         if (!qstrcmp(m_tagName.c_str(), tagName))
+        {
             retVal->appendChild(this);
+            Ref();
+        }
         getElementsByTagName(tagName, retVal);
     }
 
