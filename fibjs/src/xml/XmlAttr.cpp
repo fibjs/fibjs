@@ -138,7 +138,7 @@ result_t XmlAttr::toString(std::string &retVal)
     retVal.append("=\"");
 
     std::string str;
-    int32_t sz = m_value.length();
+    int32_t sz = (int32_t)m_value.length();
 
     if (sz)
     {
