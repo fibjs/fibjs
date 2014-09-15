@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!--comment--> <?pi?>
+<!DOCTYPE doc
+[
+<!ELEMENT doc EMPTY>
+]>
+
+<!--comment--> <?pi?>
+
+<doc/>

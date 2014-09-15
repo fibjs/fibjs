@@ -24,6 +24,10 @@ public:
     }
 
 public:
+    // object_base
+    virtual result_t toString(std::string &retVal);
+
+public:
     // XmlNode_base
     virtual result_t get_nodeName(std::string &retVal);
     virtual result_t get_nodeValue(std::string &retVal);

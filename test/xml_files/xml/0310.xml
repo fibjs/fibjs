@@ -1,0 +1,9 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 64-->
+<!DOCTYPE animal SYSTEM "ibm64n01.dtd"
+[
+<!ELEMENT animal ANY>
+]>
+<animal>
+Negative Test. Pattern2. Wrong character.
+</animal>

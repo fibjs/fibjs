@@ -1,0 +1,5 @@
+<!DOCTYPE root [
+<!ELEMENT root (#PCDATA|repeat-till-done|repeat-till-done)*>
+<!ELEMENT repeat-till-done (#PCDATA)>
+]>
+<root/>

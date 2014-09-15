@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE root 
+[
+<!ELEMENT root (#PCDATA)>
+<!--* PE referenced before declared, against WFC: entity declared -->
+%paaa;
+<!ENTITY % paaa "<!ATTLIST root att CDATA #IMPLIED>">
+<!ENTITY aaa "aString">
+]>
+<root/>

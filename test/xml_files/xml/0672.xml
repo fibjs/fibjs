@@ -1,0 +1,6 @@
+<!DOCTYPE doc
+[
+<!ELEMENT doc EMPTY>
+<!ATTLIST doc att (0|35a|A|-a|:a|a:|.|_a) #IMPLIED>
+]>
+<doc/>

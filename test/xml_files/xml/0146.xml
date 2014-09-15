@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- External general entity has implausible version number -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+<!ENTITY ent SYSTEM "009.ent">
+]>
+<foo>&ent;</foo>

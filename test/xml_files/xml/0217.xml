@@ -1,0 +1,1 @@
+<root><a></a><b>&#10;   <c><f></f></c> &#10;   content of b element&#10;   <c>&#10;      <d>not declared in dtd</d>&#10;   </c>&#10;</b></root>

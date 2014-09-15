@@ -1,0 +1,14 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(negative Test)-->
+<!DOCTYPE tokenizer
+ [
+ <!ELEMENT tokenizer ANY>
+ <!ELEMENT b EMPTY>
+ <!ATTLIST b attr ID #REQUIRED>
+ <!ATTLIST tokenizer UniqueName ID #REQUIRED>
+  ]>
+<tokenizer UniqueName = "Ac999">
+<b attr = "Ac999"></b>
+This is a negative test for validity constraints
+the value of the attribute with a type ID appears more than once in the XML document
+</tokenizer>

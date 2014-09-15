@@ -1,0 +1,2 @@
+<!DOCTYPE x [ <!ELEMENT x EMPTY> ]>
+<x xmlns:foo='http://example.org'/>

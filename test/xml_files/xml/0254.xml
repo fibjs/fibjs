@@ -1,0 +1,1 @@
+<test>&#10;<id UniqueName="AC456"></id>&#10;<idref reference="BC456"></idref>&#10;Negative test for validity constraint of IDREF.&#10;In an attribute decl, values of type IDREF match the name production and&#10;IDREF value does not match the value assigned to any ID attribute somewhere&#10;in the XML document.&#10;</test>

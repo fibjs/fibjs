@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (#PCDATA|b)* >
+  <!ELEMENT b (#PCDATA) >
+  <!ATTLIST b attr2 (abc|def) "abc">
+  <!ATTLIST b attr3 CDATA #FIXED "fixed">
+]>
+<root>
+  <b attr1="value1" attr2="def" attr3="fixed">attr1 not declared</b>
+</root>
+<!--* testing VC:Attribute Value Type  *-->

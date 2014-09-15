@@ -1,0 +1,286 @@
+<TESTCASES PROFILE="Richard Tobin's XML 1.1 test suite 13 Feb 2003">
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="001.xml" ID="rmt-001" TYPE="not-wf" ENTITIES="parameter">
+External subset has later version number
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="002.xml" ID="rmt-002" TYPE="not-wf" ENTITIES="parameter">
+External PE has later version number
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="003.xml" ID="rmt-003" TYPE="not-wf" ENTITIES="general">
+External general entity has later version number
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="004.xml" ID="rmt-004" TYPE="not-wf" ENTITIES="general">
+External general entity has later version number (no decl means 1.0)
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="005.xml" ID="rmt-005" TYPE="not-wf" ENTITIES="general">
+Indirect external general entity has later version number
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="006.xml" ID="rmt-006" OUTPUT="out/006.xml" TYPE="valid" ENTITIES="general">
+Second-level external general entity has later version number than
+first-level, but not later than document, so not an error.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="007.xml" ID="rmt-007" OUTPUT="out/007.xml" TYPE="valid">
+A vanilla XML 1.1 document
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="008.xml" ID="rmt-008" TYPE="error">
+an implausibly-versioned document
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.8 4.3.4" URI="009.xml" ID="rmt-009" TYPE="error" ENTITIES="general">
+External general entity has implausible version number
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="010.xml" ID="rmt-010" OUTPUT="out/010.xml" TYPE="valid">
+Contains a C1 control, legal in XML 1.0, illegal in XML 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="011.xml" ID="rmt-011" TYPE="not-wf">
+Contains a C1 control, legal in XML 1.0, illegal in XML 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="012.xml" ID="rmt-012" OUTPUT="out/012.xml" TYPE="valid">
+Contains a DEL, legal in XML 1.0, illegal in XML 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="013.xml" ID="rmt-013" TYPE="not-wf">
+Contains a DEL, legal in XML 1.0, illegal in XML 1.1
+</TEST>
+
+<TEST VERSION="1.0" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="014.xml" ID="rmt-014" TYPE="not-wf" EDITION="1 2 3 4">
+Has a "long s" in a name, legal in XML 1.1, illegal in XML 1.0 thru 4th edition
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="015.xml" ID="rmt-015" OUTPUT="out/015.xml" TYPE="invalid">
+Has a "long s" in a name, legal in XML 1.1, illegal in XML 1.0 thru 4th edition
+</TEST>
+
+<TEST VERSION="1.0" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="016.xml" ID="rmt-016" TYPE="not-wf" EDITION="1 2 3 4">
+Has a Byzantine Musical Symbol Kratimata in a name,
+legal in XML 1.1, illegal in XML 1.0 thru 4th edition
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="017.xml" ID="rmt-017" OUTPUT="out/017.xml" TYPE="invalid">
+Has a Byzantine Musical Symbol Kratimata in a name,
+legal in XML 1.1, illegal in XML 1.0 thru 4th edition
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="018.xml" ID="rmt-018" OUTPUT="out/018.xml" TYPE="invalid">
+Has the last legal namechar in XML 1.1, illegal in XML 1.0 thru 4th edition
+</TEST>
+
+<TEST VERSION="1.0" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="019.xml" ID="rmt-019" TYPE="not-wf" EDITION="1 2 3 4">
+Has the last legal namechar in XML 1.1, illegal in XML 1.0 thru 4th edition
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="020.xml" ID="rmt-020" TYPE="not-wf">
+Has the first character after the last legal namechar in XML 1.1,
+illegal in both XML 1.0 and 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="021.xml" ID="rmt-021" TYPE="not-wf">
+Has the first character after the last legal namechar in XML 1.1,
+illegal in both XML 1.0 and 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="022.xml" ID="rmt-022" OUTPUT="out/022.xml" TYPE="valid">
+Has a NEL character; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="023.xml" ID="rmt-023" OUTPUT="out/023.xml" TYPE="valid">
+Has a NEL character; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="024.xml" ID="rmt-024" OUTPUT="out/024.xml" TYPE="valid">
+Has an LSEP character; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="025.xml" ID="rmt-025" OUTPUT="out/025.xml" TYPE="valid">
+Has an LSEP character; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="026.xml" ID="rmt-026" OUTPUT="out/026.xml" TYPE="valid">
+Has CR-NEL; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="027.xml" ID="rmt-027" OUTPUT="out/027.xml" TYPE="valid">
+Has CR-NEL; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="028.xml" ID="rmt-028" OUTPUT="out/028.xml" TYPE="valid">
+Has CR-LSEP; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1.
+Note that CR and LSEP are not combined into a single LF
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="029.xml" ID="rmt-029" OUTPUT="out/029.xml" TYPE="valid">
+Has CR-LSEP; legal in both XML 1.0 and 1.1, but different
+canonical output because of normalization in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="030.xml" ID="rmt-030" OUTPUT="out/030.xml" TYPE="invalid">
+Has a NEL character in an NMTOKENS attribute; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="031.xml" ID="rmt-031" OUTPUT="out/031.xml" TYPE="valid">
+Has a NEL character in an NMTOKENS attribute; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="032.xml" ID="rmt-032" OUTPUT="out/032.xml" TYPE="invalid">
+Has an LSEP character in an NMTOKENS attribute; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="033.xml" ID="rmt-033" OUTPUT="out/033.xml" TYPE="valid">
+Has an LSEP character in an NMTOKENS attribute; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="034.xml" ID="rmt-034" OUTPUT="out/034.xml" TYPE="valid">
+Has an NMTOKENS attribute containing a CR character that comes from a
+character reference in an internal entity.  Because CR is in the
+S production, this is valid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="035.xml" ID="rmt-035" OUTPUT="out/035.xml" TYPE="valid">
+Has an NMTOKENS attribute containing a CR character that comes from a
+character reference in an internal entity.  Because CR is in the
+S production, this is valid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="036.xml" ID="rmt-036" OUTPUT="out/036.xml" TYPE="invalid">
+Has an NMTOKENS attribute containing a NEL character that comes from a
+character reference in an internal entity.  Because NEL is not in the
+S production (even though real NELs are converted to LF on input),
+this is invalid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="037.xml" ID="rmt-037" OUTPUT="out/037.xml" TYPE="invalid">
+Has an NMTOKENS attribute containing a NEL character that comes from a
+character reference in an internal entity.  Because NEL is not in the
+S production (even though real NELs are converted to LF on input),
+this is invalid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="038.xml" ID="rmt-038" TYPE="not-wf">
+Contains a C0 control character (form-feed), illegal in
+both XML 1.0 and 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="039.xml" ID="rmt-039" TYPE="not-wf">
+Contains a C0 control character (form-feed), illegal in
+both XML 1.0 and 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="040.xml" ID="rmt-040" OUTPUT="out/040.xml" TYPE="valid">
+Contains a C1 control character (partial line up), legal in
+XML 1.0 but not 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.2" URI="041.xml" ID="rmt-041" TYPE="not-wf">
+Contains a C1 control character (partial line up), legal in
+XML 1.0 but not 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="4.1" URI="042.xml" ID="rmt-042" TYPE="not-wf">
+Contains a character reference to a C0 control character (form-feed),
+legal in XML 1.1 but not 1.0
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="4.1" URI="043.xml" ID="rmt-043" OUTPUT="out/043.xml" TYPE="valid">
+Contains a character reference to a C0 control character (form-feed),
+legal in XML 1.1 but not 1.0
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="4.1" URI="044.xml" ID="rmt-044" OUTPUT="out/044.xml" TYPE="valid">
+Contains a character reference to a C1 control character (partial line
+up), legal in both XML 1.0 and 1.1 (but for different reasons)
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="4.1" URI="045.xml" ID="rmt-045" OUTPUT="out/045.xml" TYPE="valid">
+Contains a character reference to a C1 control character (partial line
+up), legal in both XML 1.0 and 1.1 (but for different reasons)
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="046.xml" ID="rmt-046" OUTPUT="out/046.xml" TYPE="invalid">
+Has a NEL character in element content whitespace; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="047.xml" ID="rmt-047" OUTPUT="out/047.xml" TYPE="valid">
+Has a NEL character in element content whitespace; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="048.xml" ID="rmt-048" OUTPUT="out/048.xml" TYPE="invalid">
+Has an LSEP character in element content whitespace; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="049.xml" ID="rmt-049" OUTPUT="out/049.xml" TYPE="valid">
+has an LSEP character in element content whitespace; well-formed in both
+XML 1.0 and 1.1, but valid only in 1.1
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="050.xml" ID="rmt-050" OUTPUT="out/050.xml" TYPE="valid">
+Has element content whitespace containing a CR character that comes from
+a character reference in an internal entity.  Because CR is in the
+S production, this is valid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="051.xml" ID="rmt-051" OUTPUT="out/051.xml" TYPE="valid">
+Has element content whitespace containing a CR character that comes from
+a character reference in an internal entity.  Because CR is in the
+S production, this is valid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="052.xml" ID="rmt-052" OUTPUT="out/052.xml" TYPE="invalid">
+Has element content whitespace containing a NEL character that comes from
+a character reference in an internal entity.  Because NEL is not in the
+S production (even though real NELs are converted to LF on input),
+this is invalid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.3" URI="053.xml" ID="rmt-053" OUTPUT="out/053.xml" TYPE="invalid">
+Has element content whitespace containing a NEL character that comes from
+a character reference in an internal entity.  Because NEL is not in the
+S production (even though real NELs are converted to LF on input),
+this is invalid in both XML 1.0 and 1.1.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="4.3.2" URI="054.xml" ID="rmt-054" OUTPUT="out/054.xml" TYPE="valid">
+Contains a character reference to a C0 control character (form-feed)
+in an entity value.  This will be legal (in XML 1.1) when the entity
+declaration is parsed, but what about when it is used?  According to
+the grammar in the CR spec, it should be illegal (because the
+replacement text must match "content"), but this is probably not
+intended.  This will be fixed in the PR version.
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="055.xml" ID="rmt-055" TYPE="error">
+Has a Latin-1 NEL in the XML declaration (to be made an error in PR)
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="056.xml" ID="rmt-056" TYPE="error">
+Has a UTF-8 NEL in the XML declaration (to be made an error in PR)
+</TEST>
+
+<TEST VERSION="1.1" RECOMMENDATION="XML1.1" SECTIONS="2.11" URI="057.xml" ID="rmt-057" TYPE="error">
+Has a UTF-8 LSEP in the XML declaration (to be made an error in PR)
+</TEST>
+
+</TESTCASES>

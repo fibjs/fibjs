@@ -1,0 +1,6 @@
+<!DOCTYPE root [
+<!ELEMENT root EMPTY>
+<!-- URI fragments disallowed -->
+<!ENTITY foo SYSTEM "foo#bar">
+]>
+<root/>

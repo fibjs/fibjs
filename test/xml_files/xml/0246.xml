@@ -1,0 +1,12 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(Negative Test)-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT nametoken EMPTY>
+ <!ATTLIST nametoken thistoken NMTOKEN #IMPLIED>
+]>
+<test>
+<nametoken thistoken = "x : image"></nametoken>
+In an attribute declaration, values of type NMTOKEN does not match the Nmtoken production
+</test>

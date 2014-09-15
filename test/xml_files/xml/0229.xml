@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root ANY>
+  <!ELEMENT a (#PCDATA)* >
+  <!ELEMENT b (#PCDATA) >
+  <!ELEMENT c ( #PCDATA)*>
+  <!ELEMENT d (#PCDATA|c)* >
+  <!--* Duplicate element types in Mixed content decl *-->
+  <!ELEMENT e (#PCDATA|a|a|b|c)* >
+]>
+<root>
+  <a> Element type a </a>
+  <b> Element type b </b>
+</root>
+<!--* a invalid test: tests P51 VC: No Duplicate Types *-->

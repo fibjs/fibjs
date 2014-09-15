@@ -1,0 +1,9 @@
+<!DOCTYPE doc
+[
+<!ELEMENT doc (a|b)*>
+<!ELEMENT a EMPTY>
+<!ELEMENT b EMPTY>
+<!ATTLIST a att (a) #IMPLIED>
+<!ATTLIST b att ( a | b ) #IMPLIED>
+]>
+<doc/>

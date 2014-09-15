@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Has an NMTOKENS attribute containing a NEL character that comes from a
+     character reference in an internal entity.  Because NEL is not in the
+     S production (even though real NELs are converted to LF on input),
+     this is invalid in both XML 1.0 and 1.1. -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+<!ATTLIST foo bar  NMTOKENS #IMPLIED>
+<!ENTITY val "abc&#x85;def">
+]>
+<foo bar="&val;" />

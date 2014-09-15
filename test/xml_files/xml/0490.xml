@@ -1,0 +1,5 @@
+<!DOCTYPE root [
+<!NOTATION a SYSTEM 'a'>
+<!NOTATION b SYSTEM 'b'>
+]>
+<root>&#10;This test case tests the kinds of enumerated types&#10;<a></a><b></b>&#10;</root>

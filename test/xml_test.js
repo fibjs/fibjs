@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var xml = require('xml');
+var fs = require('fs');
 
 function newDoc() {
 	return new xml.Document();

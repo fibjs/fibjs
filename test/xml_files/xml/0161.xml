@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- Has an LSEP character in an NMTOKENS attribute; well-formed in both
+     XML 1.0 and 1.1, but valid only in 1.1 -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+<!ATTLIST foo bar NMTOKENS #IMPLIED>
+]>
+<foo bar="abc def"/>

@@ -1,0 +1,21 @@
+<?xml  version="1.0"?>
+<!-- validity test for Production 60-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT a EMPTY>
+ <!ELEMENT b EMPTY>
+ <!ELEMENT attr EMPTY>
+ <!ATTLIST attr value (a|b) "c"> 
+  ]>
+<test>
+The default value specified for an attribute does not meet the 
+lexical constraints of the declared attribute type.
+</test>
+
+
+
+
+
+
+

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE root SYSTEM "ibm68i02.dtd" [
+  <!ELEMENT root (#PCDATA|a)* >
+]>
+<root>
+  pcdata content
+  <a attr1="xyz"/>
+</root>
+<!--* a invalid test for P68 VC:Entity Declared *-->
+

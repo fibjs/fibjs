@@ -1,0 +1,38 @@
+<!DOCTYPE root [
+<!ELEMENT root ANY>
+<!ELEMENT empty EMPTY>
+<!ELEMENT mixed1 (#PCDATA)>
+<!ELEMENT mixed2 (#PCDATA)*>
+<!ELEMENT mixed3 (#PCDATA|empty)*>
+]>
+
+<root>
+    <empty/>
+
+    <mixed1/>
+    <mixed1></mixed1>
+
+    <mixed2/>
+    <mixed2></mixed2>
+
+    <mixed3/>
+    <mixed3></mixed3>
+
+    <mixed1>allowed</mixed1>
+    <mixed1><![CDATA[<allowed>]]></mixed1>
+
+    <mixed2>also</mixed2>
+    <mixed2><![CDATA[<% illegal otherwise %>]]></mixed2>
+
+    <mixed3>moreover</mixed3>
+
+    <mixed1>allowed &amp; stuff</mixed1>
+
+    <mixed2>also</mixed2>
+
+    <mixed3>moreover <empty></empty> </mixed3>
+    <mixed3>moreover <empty/> </mixed3>
+    <mixed3><empty/> </mixed3>
+    <mixed3><empty/> too</mixed3>
+
+</root>

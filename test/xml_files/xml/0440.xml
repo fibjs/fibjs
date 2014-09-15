@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (a,b)>
+  <!ELEMENT a EMPTY>
+  <!ELEMENT b (#PCDATA|c)* >
+  <!ELEMENT c ANY>
+  <!ELEMENT d ((e,e)|f)+ >
+  <!ELEMENT e ANY>
+  <!ELEMENT f EMPTY>
+]>
+<root><a/><b>
+   <c></c> 
+   content of b element
+   <c>
+      <d><e>no more children</e><e><f/></e><f/></d>
+   </c>
+</b></root>
+<!--* test P39's syntax and Element Valid VC *-->

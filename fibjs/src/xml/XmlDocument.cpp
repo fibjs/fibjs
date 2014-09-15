@@ -33,6 +33,11 @@ result_t xml_base::parse(const char *source, obj_ptr<XmlDocument_base> &retVal)
     return retVal->loadXML(source);
 }
 
+result_t xml_base::serialize(XmlDocument_base *xmlDoc, std::string &retVal)
+{
+    return xmlDoc->toString(retVal);
+}
+
 result_t XmlDocument::get_nodeName(std::string &retVal)
 {
     retVal = "#document";
@@ -172,8 +177,13 @@ result_t XmlDocument::normalize()
 
 result_t XmlDocument::loadXML(const char *source)
 {
-    XmlParser parser;
+    XmlParser parser(this);
     return parser.parse(source);
+}
+
+result_t XmlDocument::saveHTML(std::string &retVal)
+{
+    return 0;
 }
 
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)
@@ -242,6 +252,74 @@ result_t XmlDocument::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeL
 result_t XmlDocument::getElementById(const char *elementId, obj_ptr<XmlElement_base> &retVal)
 {
     return CALL_RETURN_NULL;
+}
+
+result_t XmlDocument::get_inputEncoding(std::string &retVal)
+{
+    if (m_encoding.empty())
+        return CALL_RETURN_NULL;
+
+    retVal = m_encoding;
+    return 0;
+}
+
+result_t XmlDocument::get_xmlStandalone(bool &retVal)
+{
+    if (m_standalone < 0)
+        return CALL_RETURN_NULL;
+
+    retVal = m_standalone == 1;
+    return 0;
+}
+
+result_t XmlDocument::set_xmlStandalone(bool newVal)
+{
+    m_standalone = newVal ? 1 : 0;
+    return 0;
+}
+
+result_t XmlDocument::get_xmlVersion(std::string &retVal)
+{
+    if (m_version.empty())
+        retVal = "1.0";
+    else
+        retVal = m_version;
+    return 0;
+}
+
+result_t XmlDocument::set_xmlVersion(const char *newVal)
+{
+    m_version = newVal;
+    return 0;
+}
+
+result_t XmlDocument::toString(std::string &retVal)
+{
+    std::string strChilds;
+    m_childs->toString(strChilds);
+
+    if (!m_version.empty())
+    {
+        retVal = "<?xml version=\"";
+        retVal.append(m_version);
+
+        if (!m_encoding.empty())
+        {
+            retVal.append("\" encoding=\"");
+            retVal.append(m_encoding);
+        }
+
+        if (m_standalone >= 0)
+            retVal.append(m_standalone ? "\" standalone=\"yes\"?>" : "\" standalone=\"no\"?>");
+        else
+            retVal.append("\"?>");
+
+        retVal.append(strChilds);
+    }
+    else
+        retVal = strChilds;
+
+    return 0;
 }
 
 }

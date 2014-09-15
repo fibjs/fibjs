@@ -7,6 +7,7 @@
 
 #include "ifs/xml.h"
 #include "XmlAttr.h"
+#include <string.h>
 
 namespace fibjs
 {
@@ -127,6 +128,83 @@ result_t XmlAttr::get_value(std::string &retVal)
 result_t XmlAttr::set_value(const char *newVal)
 {
     m_value = newVal;
+    return 0;
+}
+
+result_t XmlAttr::toString(std::string &retVal)
+{
+    retVal = " ";
+    retVal.append(m_name);
+    retVal.append("=\"");
+
+    std::string str;
+    int32_t sz = m_value.length();
+
+    if (sz)
+    {
+        const char *data = m_value.c_str();
+        int32_t sz1 = 0;
+        int32_t i;
+
+        for (i = 0; i < sz; i ++)
+        {
+            switch (data[i])
+            {
+            case '<':
+                sz1 += 4;
+                break;
+            case '>':
+                sz1 += 4;
+                break;
+            case '&':
+                sz1 += 5;
+                break;
+            case '\"':
+                sz1 += 6;
+                break;
+            default:
+                sz1 ++;
+            }
+        }
+
+        if (sz == sz1)
+            str = m_value;
+        else
+        {
+            str.resize(sz1);
+            char *data1 = &str[0];
+
+            for (i = 0; i < sz; i ++)
+            {
+                char ch;
+                switch (ch = data[i])
+                {
+                case '<':
+                    memcpy(data1, "&lt;", 4);
+                    data1 += 4;
+                    break;
+                case '>':
+                    memcpy(data1, "&gt;", 4);
+                    data1 += 4;
+                    break;
+                case '&':
+                    memcpy(data1, "&amp;", 5);
+                    data1 += 5;
+                    break;
+                case '\"':
+                    memcpy(data1, "&quot;", 6);
+                    data1 += 6;
+                    break;
+                default:
+                    *data1++ = ch;
+                }
+            }
+        }
+    }
+
+    retVal.append(str);
+    retVal += '\"';
+
     return 0;
 }
 

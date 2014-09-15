@@ -1,0 +1,6 @@
+<!DOCTYPE root [
+<!NOTATION bar SYSTEM 'file:/dev/tty'>
+<!NOTATION foo PUBLIC '-//public id//foo' 'file:/dev/null'>
+<!NOTATION nonce SYSTEM 'file:/dev/null'>
+]>
+<root><child>&#10;    No whitespace before or after this standalone element.&#10;</child></root>

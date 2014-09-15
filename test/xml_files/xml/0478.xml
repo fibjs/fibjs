@@ -1,0 +1,12 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(Positive Test)-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT nametokens EMPTY>
+ <!ATTLIST nametokens thistoken NMTOKENS #IMPLIED>
+]>
+<test>
+<nametokens thistoken = "x:lang y:country"></nametokens>
+In an attribute declaration, values of type NMTOKENS match the Nmtokens production
+</test>

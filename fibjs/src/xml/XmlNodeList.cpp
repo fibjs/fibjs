@@ -7,6 +7,7 @@
 
 #include "XmlNodeList.h"
 #include "XmlNodeImpl.h"
+#include <string.h>
 
 namespace fibjs
 {
@@ -30,6 +31,42 @@ result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &ret
     if (index >= m_childs.size())
         return CALL_RETURN_NULL;
     retVal = m_childs[index]->m_node;
+    return 0;
+}
+
+result_t XmlNodeList::toString(std::string &retVal)
+{
+    std::vector<std::string> strs;
+
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+    int32_t len = 0, pos = 0;
+
+    if (sz == 0)
+    {
+        retVal.clear();
+        return 0;
+    }
+    else if (sz == 1)
+        return m_childs[0]->m_node->toString(retVal);
+
+    for (i = 0; i < sz; i ++)
+    {
+        std::string str;
+
+        m_childs[i]->m_node->toString(str);
+        len += (int32_t)str.length();
+        strs.push_back(str);
+    }
+
+    retVal.resize(len);
+    for (i = 0; i < sz; i ++)
+    {
+        int32_t l = (int32_t)strs[i].length();
+        memcpy(&retVal[pos], strs[i].c_str(), l);
+        pos += l;
+    }
+
     return 0;
 }
 

@@ -1,0 +1,17 @@
+<?xml  version="1.0"?>
+<!-- validity test for Production 60-->
+<!DOCTYPE Java 
+ [
+ <!ELEMENT Java ANY>
+ <!ELEMENT one EMPTY>
+ <!ELEMENT two EMPTY>
+ <!ATTLIST one chapter CDATA #REQUIRED>
+ <!ATTLIST two chapter CDATA #REQUIRED>
+ ]>
+<Java>
+<one chapter="Introduction"></one>
+<two></two>
+Negative test for Required Attribute. Some occurrence of an element with 
+an attribute of #REQUIRED default declaration does not give the value of 
+those attribute
+</Java>

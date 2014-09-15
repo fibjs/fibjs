@@ -1,0 +1,9 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 65-->
+<!DOCTYPE animal SYSTEM "ibm65n02.dtd"
+[
+<!ELEMENT animal ANY>
+]>
+<animal>
+Negative Test. Pattern2. 
+</animal>

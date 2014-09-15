@@ -17,9 +17,21 @@ namespace fibjs
 class XmlDocumentType: public XmlDocumentType_base, public XmlNodeImpl
 {
 public:
-    XmlDocumentType(): XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_TYPE_NODE)
+    XmlDocumentType(XmlDocument_base *document, const char *name):
+        XmlNodeImpl(document, this, xml_base::_DOCUMENT_TYPE_NODE), m_name(name)
     {
     }
+
+    XmlDocumentType(XmlDocument_base *document, const char *name,
+                    const char *systemId, const char *publicId):
+        XmlNodeImpl(document, this, xml_base::_DOCUMENT_TYPE_NODE),
+        m_name(name), m_systemId(systemId), m_publicId(publicId)
+    {
+    }
+
+public:
+    // object_base
+    virtual result_t toString(std::string &retVal);
 
 public:
     // XmlNode_base
@@ -45,8 +57,13 @@ public:
 public:
     // XmlDocumentType_base
     virtual result_t get_name(std::string &retVal);
+    virtual result_t get_publicId(std::string &retVal);
     virtual result_t get_systemId(std::string &retVal);
 
+private:
+    std::string m_name;
+    std::string m_systemId;
+    std::string m_publicId;
 };
 
 } /* namespace fibjs */

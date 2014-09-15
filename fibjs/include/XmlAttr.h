@@ -22,6 +22,16 @@ public:
     {
     }
 
+    XmlAttr(XmlDocument_base *document, const char *name, const char *value):
+        XmlNodeImpl(document, this, xml_base::_ATTRIBUTE_NODE),
+        m_name(name), m_value(value)
+    {
+    }
+
+public:
+    // object_base
+    virtual result_t toString(std::string &retVal);
+
 public:
     // XmlNode_base
     virtual result_t get_nodeName(std::string &retVal);

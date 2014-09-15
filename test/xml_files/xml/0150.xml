@@ -1,0 +1,6 @@
+<?xml version="1.1" encoding="iso-8859-1"?>
+<!-- Contains a DEL, legal in XML 1.0, illegal in XML 1.1 -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+]>
+<foo></foo>

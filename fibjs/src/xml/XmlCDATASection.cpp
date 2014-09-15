@@ -157,4 +157,13 @@ result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base> &retVa
     return 0;
 }
 
+result_t XmlCDATASection::toString(std::string &retVal)
+{
+    retVal = "<![CDATA[";
+    retVal.append(m_data.m_data);
+    retVal.append("]]>");
+
+    return 0;
+}
+
 }

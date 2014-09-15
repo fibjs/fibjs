@@ -1,0 +1,12 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 62-->
+<!DOCTYPE animal SYSTEM "ibm62v05.dtd"
+[
+<!ELEMENT animal ANY>
+<!ELEMENT tiger EMPTY>
+]>
+
+<animal>
+ <tiger/>
+Positive test. Missing external subset declaration.
+</animal>

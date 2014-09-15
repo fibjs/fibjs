@@ -1,0 +1,6 @@
+<!DOCTYPE book [
+   <!ELEMENT book ANY>
+   <!ATTLIST book xml:lang CDATA #REQUIRED>
+]>
+<book xml:lang="en-US">It is written in English</book>
+<!-- Tests LanguageID with Langcode - Subcode -->

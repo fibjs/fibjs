@@ -1,0 +1,1 @@
+<root><a>should not have content here</a><b>&#10;   <c></c> &#10;   content of b element&#10;</b></root>

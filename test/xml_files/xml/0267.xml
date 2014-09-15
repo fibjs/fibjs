@@ -1,0 +1,6 @@
+<!DOCTYPE test [
+<!NOTATION base64 SYSTEM 'mimecode'>
+<!NOTATION raw SYSTEM 'raw'>
+<!NOTATION uuencode SYSTEM 'uudecode'>
+]>
+<test>&#10;<blob content-encoding="raw"></blob>&#10;The attribute values of type NOTATION does not match any of the notation names included in the&#10;declaration.All notation names in the declaration have been declared.&#10;</test>

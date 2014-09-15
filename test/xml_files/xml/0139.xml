@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- External PE has later version number -->
+<!DOCTYPE foo [
+<!ENTITY % pe SYSTEM "002.pe">
+%pe;
+]>
+<foo/>

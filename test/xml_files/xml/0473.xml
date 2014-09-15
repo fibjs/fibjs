@@ -1,0 +1,16 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(positive Test)-->
+<!DOCTYPE tokenizer
+ [
+ <!ELEMENT tokenizer ANY>
+ <!ELEMENT a EMPTY>
+ <!ELEMENT b EMPTY>
+ <!ATTLIST a first ID #REQUIRED>
+ <!ATTLIST b second ID #REQUIRED>
+ ]>
+<tokenizer>
+<a first = "AC1999"></a>
+<b second = "CD345"></b>
+This is a positive validity test for ID.
+any element type has no more than one attribute of type ID specified
+</tokenizer>

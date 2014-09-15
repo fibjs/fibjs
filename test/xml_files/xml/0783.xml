@@ -1,0 +1,5 @@
+<!DOCTYPE paper [
+<!ELEMENT paper EMPTY>
+<!ENTITY Brittannica SYSTEM "http://www.eb.com" NDATA Encyclopaedia>
+]>
+<paper/>

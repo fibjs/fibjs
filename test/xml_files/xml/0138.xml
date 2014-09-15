@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<!-- External subset has later version number -->
+<!DOCTYPE foo SYSTEM "001.dtd">
+<foo/>

@@ -1,0 +1,15 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(Positive Test)it is a DTD-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT landscape EMPTY>
+ <!NOTATION gif PUBLIC "gif">
+ <!ENTITY image SYSTEM "testspec/images/sunset.gif" NDATA gif>
+ <!ATTLIST landscape sun ENTITY #IMPLIED>
+]>
+<test>
+<landscape sun = "image"></landscape>
+values of type ENTITY match the Name production and the ENTITY value
+matches the name of an unparsed entity declared in the DTD.
+</test>

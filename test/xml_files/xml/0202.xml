@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!DOCTYPE tiger [
+   <!ELEMENT tiger EMPTY>
+]>
+<!-- This against VC of P28. The Name in the document type declaration
+ does not match the element type of the root element. --> 
+<animal/>

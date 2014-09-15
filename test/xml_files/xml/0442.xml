@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (#PCDATA|b)* >
+  <!ELEMENT b (#PCDATA) >
+  <!ATTLIST b attr1 CDATA #IMPLIED>
+  <!ATTLIST b attr2 CDATA #IMPLIED>
+  <!ATTLIST b attr3 CDATA #IMPLIED>
+]>
+<root>
+  <b>without white space</b>
+  <b > with a white space</b>
+  <b attr1="value1">one attribute</b>
+  <b attr1="value1" attr2="value2" attr3 = "value3">one attribute</b>
+</root>
+<!--* testing P40 *-->

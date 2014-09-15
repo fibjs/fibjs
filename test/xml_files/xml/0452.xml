@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (a,b)>
+  <!ELEMENT a EMPTY>
+  <!ELEMENT b (#PCDATA|c)* >
+  <!ELEMENT c ANY>
+  <!ELEMENT d ANY>
+  <!ELEMENT e ANY>
+  <!ELEMENT f ANY>
+  <!--* test all possible children,cp,choice,seq patterns in P47,P48,P49,P50 *-->
+  <!ELEMENT child0 (a)>
+  <!ELEMENT child1 (a|b|c)>
+  <!ELEMENT child2 (a ,b,b?,a*,c,c,a,a,b+,c ) >
+  <!ELEMENT child3 (a+|b)? >
+  <!ELEMENT child4 (a, (b|c)+, (a|d)?, (e|f)* )?>
+  <!ELEMENT child5 ( (a,b) | c? | ((d|e),b,c) )* >
+  <!ELEMENT child5_1 ( (a,b)* | (c,b)? | (d,a)+ | ((e|f),b,c) )* >
+  <!ELEMENT child6 (a,b,c)*>
+  <!ELEMENT child7 ((a,b)|c*|((d|e),b,c) )+ >
+  <!ELEMENT child8 ( a, (b|c), (a|b), b)+>  
+]>
+<root><a/><b>
+   <c></c >
+   content of b element
+</b></root>
+<!--* a valid test: tests P47,P48,P49,P50*-->
+

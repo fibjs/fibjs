@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE student [
+   <!ELEMENT student (#PCDATA)>
+   <!ENTITY unref SYSTEM "">
+]>
+
+<!-- testing systemliteral with nothing between the double quotes -->
+<student>My Name is SnowMan. </student>
+
+
+
+
+
+
+
+
+ 

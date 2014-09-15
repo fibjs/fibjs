@@ -1,0 +1,20 @@
+<?xml version="1.1" encoding="iso-8859-1"?>
+<!-- Namespace inequality test: different escaping of non-ascii letter -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+<!ATTLIST foo xmlns:a CDATA #IMPLIED
+              xmlns:b CDATA #IMPLIED
+              xmlns:c CDATA #IMPLIED>
+<!ELEMENT bar ANY>
+<!ATTLIST bar a:attr CDATA #IMPLIED
+              b:attr CDATA #IMPLIED
+              c:attr CDATA #IMPLIED>
+]>
+<foo xmlns:a="http://example.org/ros�"
+     xmlns:b="http://example.org/ros%c3%a9"
+     xmlns:c="http://example.org/ros%c3%A9">
+
+<bar a:attr="1" b:attr="2" c:attr="3"/>
+
+</foo>
+

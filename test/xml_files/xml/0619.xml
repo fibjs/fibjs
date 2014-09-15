@@ -1,0 +1,6 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (root*)>
+<!ELEMENT root EMPTY>
+<!ENTITY e SYSTEM "ibm77n17.ent">
+]>
+<doc>&e;</doc>

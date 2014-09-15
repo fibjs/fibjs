@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE student [
+	<!ELEMENT student (#PCDATA)> 
+]>
+
+<!-- testing CData with empty string -->
+
+<student>My Name is SnowMan. <![CDATA[]]></student>
+
+

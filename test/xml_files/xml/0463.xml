@@ -1,0 +1,12 @@
+<?xml  version="1.0"?>
+<!-- test for Production 54-->
+<!DOCTYPE AttrType
+[
+<!ELEMENT AttrType ANY>
+<!ELEMENT a (#PCDATA)>
+<!ATTLIST a att CDATA #IMPLIED>
+]>
+<AttrType>
+<a att= 'hello world'>
+</a>
+</AttrType>

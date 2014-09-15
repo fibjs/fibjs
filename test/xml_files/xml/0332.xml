@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!DOCTYPE student  SYSTEM "ibm09v03.dtd">
+<student>I am a new student with &Name;</student>

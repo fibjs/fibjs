@@ -28,6 +28,10 @@ public:
     }
 
 public:
+    // object_base
+    virtual result_t toString(std::string &retVal);
+
+public:
     // XmlNodeList_base
     virtual result_t get_length(int32_t &retVal);
     virtual result_t item(int32_t index, obj_ptr<XmlNode_base> &retVal);
@@ -48,6 +52,11 @@ public:
     void appendChild(XmlNodeImpl *newChild)
     {
         m_childs.push_back(newChild);
+    }
+
+    bool hasChildNodes()
+    {
+        return !!m_childs.size();
     }
 
 private:

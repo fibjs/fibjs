@@ -1,0 +1,9 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 61-->
+<!DOCTYPE animal SYSTEM "ibm61v02.dtd"
+[
+<!ELEMENT animal EMPTY>
+]>
+<animal/>
+
+ 

@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE root [
+  <!ELEMENT root (#PCDATA)* >
+  <!ENTITY % pe1 SYSTEM "ibm68i03.ent">
+  %pe1;
+]>
+<root>
+  pcdata content
+</root>
+<!--* a invalid test for P68 VC:Entity Declared *-->

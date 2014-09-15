@@ -1,0 +1,10 @@
+<?xml version="1.1" encoding="iso-8859-1"?>
+<!-- Has element content whitespace containing a NEL character that comes from
+     a character reference in an internal entity.  Because NEL is not in the
+     S production (even though real NELs are converted to LF on input),
+     this is invalid in both XML 1.0 and 1.1. -->
+<!DOCTYPE foo [
+<!ELEMENT foo (foo*)>
+<!ENTITY e "abc&#x85;def">
+]>
+<foo>&e;</foo>

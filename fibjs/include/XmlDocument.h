@@ -17,9 +17,13 @@ namespace fibjs
 class XmlDocument: public XmlDocument_base, public XmlNodeImpl
 {
 public:
-    XmlDocument(): XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE)
+    XmlDocument(): XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE), m_standalone(-1)
     {
     }
+
+public:
+    // object_base
+    virtual result_t toString(std::string &retVal);
 
 public:
     // XmlNode_base
@@ -45,6 +49,7 @@ public:
 public:
     // XmlDocument_base
     virtual result_t loadXML(const char *source);
+    virtual result_t saveHTML(std::string &retVal);
     virtual result_t get_doctype(obj_ptr<XmlDocumentType_base> &retVal);
     virtual result_t get_documentElement(obj_ptr<XmlElement_base> &retVal);
     virtual result_t createElement(const char *tagName, obj_ptr<XmlElement_base> &retVal);
@@ -55,12 +60,28 @@ public:
     virtual result_t createAttribute(const char *name, obj_ptr<XmlAttr_base> &retVal);
     virtual result_t getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal);
     virtual result_t getElementById(const char *elementId, obj_ptr<XmlElement_base> &retVal);
+    virtual result_t get_inputEncoding(std::string &retVal);
+    virtual result_t get_xmlStandalone(bool &retVal);
+    virtual result_t set_xmlStandalone(bool newVal);
+    virtual result_t get_xmlVersion(std::string &retVal);
+    virtual result_t set_xmlVersion(const char *newVal);
+
+public:
+    void setDecl(const char *version, const char *encoding, int32_t standalone)
+    {
+        m_version = version ? version : "";
+        m_encoding = encoding ? encoding : "";
+        m_standalone = standalone;
+    }
 
 private:
     result_t checkElement(XmlNode_base *newChild);
 
 private:
     obj_ptr<XmlElement_base> m_Element;
+    std::string m_version;
+    std::string m_encoding;
+    int32_t m_standalone;
 };
 
 } /* namespace fibjs */

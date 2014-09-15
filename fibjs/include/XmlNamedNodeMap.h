@@ -24,6 +24,10 @@ public:
     ~XmlNamedNodeMap();
 
 public:
+    // object_base
+    virtual result_t toString(std::string &retVal);
+
+public:
     // XmlNodeList_base
     virtual result_t get_length(int32_t &retVal);
     virtual result_t item(int32_t index, obj_ptr<XmlNode_base> &retVal);
@@ -37,6 +41,12 @@ public:
 public:
     result_t setAttributeNode(XmlNode_base *newAttr, obj_ptr<XmlNode_base> &retVal);
     result_t hasAttribute(bool &retVal);
+
+public:
+    bool hasAttribute()
+    {
+        return !!m_childs.size();
+    }
 
 public:
     XmlNodeImpl *m_this;

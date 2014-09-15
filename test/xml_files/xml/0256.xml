@@ -1,0 +1,1 @@
+<test>&#10;<id1 UniqueName="BC456"></id1>&#10;<id2 UName="AC567"></id2>&#10;<idrefs reference="EF456 DE355"></idrefs>&#10;Negative test for validity constraint of IDREFS.&#10;In an attribute decl, values of type IDREFS match the name production&#10;but IDREFS value do not match the values assigned to one or more ID attributes&#10;somewhere in the XML document&#10;</test>

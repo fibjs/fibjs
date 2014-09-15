@@ -1,0 +1,7 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE root SYSTEM "sa.dtd">
+
+<root><child>
+    No whitespace before or after this standalone element.
+</child></root>

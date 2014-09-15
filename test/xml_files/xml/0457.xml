@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE root SYSTEM "ibm51v02.dtd" [
+  <!ELEMENT root ANY>
+]>
+<root>
+  <a> Element type a </a>
+  <b> Element type b </b>
+  <c> Element type c </c>
+  <d> Element type d <c></c> </d>
+  <e> Element type e <a></a> <b></b> <c></c> </e>
+</root>
+<!--* a valid test: tests P51 VC: Proper Group/PE Nesting *-->

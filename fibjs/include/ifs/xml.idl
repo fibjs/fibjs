@@ -43,4 +43,10 @@ module xml
      @return 返回创建的 XmlDocument 对象
     */
     static XmlDocument parse(String source);
+
+    /*! @brief 序列化 XmlDocument 为字符串
+     @param xmlDoc 指定需要序列化的 XmlDocument
+     @return 返回序列化的字符串
+    */
+    static String serialize(XmlDocument xmlDoc);
 };

@@ -1,0 +1,1 @@
+<Java>&#10;<one chapter="JavaBeans"></one>&#10;Negative Test&#10;An attribute has a default value declared with the #FIXED keyword, &#10;and an instances of that attribute is given a value which is not &#10;the same as the default value in the declaration. &#10;</Java>

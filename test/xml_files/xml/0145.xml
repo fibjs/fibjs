@@ -1,0 +1,6 @@
+<?xml version="42.88"?>
+<!-- an implausibly-versioned document -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+]>
+<foo/>

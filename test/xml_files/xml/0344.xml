@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE student [
+	<!ELEMENT student (#PCDATA)>
+	<!ATTLIST student
+		first CDATA #REQUIRED
+		middle CDATA #IMPLIED
+		last CDATA #REQUIRED > 
+	<!ENTITY myfirst "Snow">
+	<!ENTITY mymiddle "Y">
+	<!ENTITY mylast '&myfirst; Man'>
+]>
+<!-- testing AttValue with a reference in single quote -->
+<student first='&myfirst;' last='&mylast;'>My Name is &mylast;. </student>
+

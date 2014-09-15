@@ -1,0 +1,21 @@
+<?xml  version="1.0"?>
+<!-- valid test for Production 56-->
+<!DOCTYPE root
+ [
+ <!ELEMENT root (a|b|c|d|e|f|g)*>
+ <!ELEMENT a EMPTY>
+ <!ELEMENT b EMPTY>
+ <!ELEMENT c EMPTY>
+ <!ELEMENT d EMPTY>
+ <!ELEMENT e EMPTY>
+ <!ELEMENT f EMPTY>
+ <!ELEMENT g EMPTY>
+ <!ATTLIST a attr ID #IMPLIED>
+ <!ATTLIST b attr IDREF #IMPLIED>
+ <!ATTLIST c attr IDREFS #IMPLIED>
+ <!ATTLIST d attr ENTITY #IMPLIED>
+ <!ATTLIST e attr ENTITIES #IMPLIED>
+ <!ATTLIST f attr NMTOKEN #IMPLIED>
+ <!ATTLIST g attr NMTOKENS #IMPLIED>
+ ]>
+<root/>

@@ -1,0 +1,7 @@
+<?xml version='1.1'?>
+<!DOCTYPE doc [
+<!ELEMENT doc (öroot*)>
+<!ELEMENT öroot EMPTY>
+<!ENTITY e SYSTEM "ibm77v10.ent">
+]>
+<doc>&e;</doc>

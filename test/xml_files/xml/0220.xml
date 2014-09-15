@@ -1,0 +1,1 @@
+<root>&#10;  <b attr1="value1" attr2="def" attr3="fixed">attr1 not declared</b>&#10;</root>

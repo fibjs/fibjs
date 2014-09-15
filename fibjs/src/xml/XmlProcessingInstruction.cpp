@@ -124,4 +124,15 @@ result_t XmlProcessingInstruction::set_data(const char *newVal)
     return 0;
 }
 
+result_t XmlProcessingInstruction::toString(std::string &retVal)
+{
+    retVal = "<?";
+    retVal.append(m_target);
+    retVal += ' ';
+    retVal.append(m_data);
+    retVal.append("?>");
+
+    return 0;
+}
+
 }

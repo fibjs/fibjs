@@ -1,0 +1,15 @@
+<!DOCTYPE doc
+[
+<!ELEMENT doc (a|refs)*>
+<!ELEMENT a EMPTY>
+<!ELEMENT refs EMPTY>
+<!ATTLIST refs refs IDREFS #REQUIRED>
+<!ATTLIST a id ID #REQUIRED>
+]>
+<doc>
+<a id="A1"/><a id="A2"/><a id="A3"/>
+<refs refs="A1 A2 A3"/>
+<refs refs="A1
+A2	A3"/>
+<refs refs="A1"/>
+</doc>

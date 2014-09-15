@@ -1,0 +1,1 @@
+<root>&#10;  <b>without white space</b>&#10;  <b> with a white space</b>&#10;  <b attr1="value1">one attribute</b>&#10;  <b attr1="value1" attr2="value2" attr3="value3">one attribute</b>&#10;</root>

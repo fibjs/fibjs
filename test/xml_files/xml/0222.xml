@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (#PCDATA|b)* >
+  <!ELEMENT b EMPTY>
+  <!ELEMENT not_unique ANY>
+  <!ELEMENT not_unique EMPTY>
+  <!ELEMENT not_unique (b,b) >
+  <!ELEMENT unique. ANY>
+  <!ATTLIST b attr1 CDATA #IMPLIED>
+  <!ATTLIST b attr2 CDATA #IMPLIED>
+  <!ATTLIST b attr3 CDATA #IMPLIED>
+]>
+<root>
+  <b/>without white space
+  <b /> with a white space
+  <b attr1="value1" />
+  <b attr1="value1" attr2="value2" attr3 = "value3"/>
+</root>
+<!--* a invalid test: testing P45 VC unique element type decl  *-->

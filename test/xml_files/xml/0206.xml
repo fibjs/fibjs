@@ -1,0 +1,15 @@
+<?xml version='1.0' standalone='yes' ?>
+<!DOCTYPE animal SYSTEM "ibm32i04.dtd" [
+  <!ATTLIST animal xml:space (default|preserve) 'preserve'>
+]>
+<!-- This is against VC: Standalone Document Declaration in P32
+ The standalone document declaration has the value "yes", there is an 
+ external markup declaration of element with a element only content type, and 
+ white space occurs directly within the mixed content.
+-->
+<animal><a>This is a 
+
+yellow tiger</a> <b/>
+<c/>
+
+</animal>

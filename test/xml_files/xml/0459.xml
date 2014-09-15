@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root ANY>
+  <!ELEMENT a (#PCDATA)* >
+  <!ELEMENT b (#PCDATA) >
+  <!--* All AttlistDecl Patterns in P52 and P53 *-->
+  <!ATTLIST a>
+  <!ATTLIST a >
+  <!ATTLIST b battr1 CDATA #REQUIRED >
+  <!ATTLIST b battr2 CDATA #IMPLIED 
+              battr3 CDATA #FIXED "fixedvalue" battr4 (abc|def) "abc" >
+]>
+<root>
+  <a> Element type a </a>
+  <b battr1 = "anyvalue" battr3="fixedvalue" battr4 ="def"> test P52 and P53 </b>
+</root>
+<!--* a valid test: tests P52 and P53 *-->

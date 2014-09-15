@@ -1,0 +1,11 @@
+<?xml version="1.1"?>
+<!DOCTYPE root [
+<!ENTITY int "&#x2028;">
+<!ELEMENT root (a)>
+<!ELEMENT a EMPTY>
+]>
+<!-- Invalid because NEL and LSEP are not allowed as whitespace. -->
+<root>&int;
+    <a/>
+</root>
+

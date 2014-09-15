@@ -1,0 +1,3 @@
+<!DOCTYPE animal SYSTEM "ibm31n01.dtd">
+<animal/>
+<!-- Illegal extSubsetDecl in the external DTD -->

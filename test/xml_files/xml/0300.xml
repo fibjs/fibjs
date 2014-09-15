@@ -1,0 +1,7 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 62-->
+<!DOCTYPE animal SYSTEM "ibm62n06.dtd">
+<animal>
+ <tiger/>
+Negative test.  Wrong Ordering. External subset declaration prior to the keyword INCLUDE
+</animal>

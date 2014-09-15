@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE book 
+[
+<!ELEMENT book ANY>
+<!ATTLIST notebook att CDATA #IMPLIED>
+<!ENTITY % epe SYSTEM "ibm79v01.ent" >
+%epe;
+]>
+<book><name>XML Handbook</name> This is a book</book>
+
+<!-- a valid test case: test P79 -->

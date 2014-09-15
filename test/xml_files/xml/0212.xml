@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (a,b)>
+  <!ELEMENT a EMPTY>
+  <!ELEMENT b (#PCDATA|c)* >
+  <!ELEMENT c ANY>
+]>
+<!--* illgal element in b's Mixed content *-->
+<root><a/><b>
+   <c></c> 
+   content of b element
+   <a/>
+   could not have 'a' as 'b's content
+</b></root>
+

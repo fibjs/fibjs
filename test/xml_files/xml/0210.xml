@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (a,b)>
+  <!ELEMENT a EMPTY>
+  <!ELEMENT b (#PCDATA|c)* >
+  <!ELEMENT c ANY>
+
+]>
+<!--* EMPTY element a has content *-->
+<root><a>should not have content here</a><b>
+   <c></c> 
+   content of b element
+</b></root>
+

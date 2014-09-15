@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book [
+<!ELEMENT book ANY>
+<!-- This test case covers 0 legal character ranges plus
+     4 discrete legal characters for production 03. -->
+<?NAME_20- _09-	_0D-_0A-
+ This is a PI target ?>
+]>
+<book/>

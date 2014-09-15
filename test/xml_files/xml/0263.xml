@@ -1,0 +1,1 @@
+<test>&#10;<nametoken thistoken="x : image"></nametoken>&#10;In an attribute declaration, values of type NMTOKEN does not match the Nmtoken production&#10;</test>

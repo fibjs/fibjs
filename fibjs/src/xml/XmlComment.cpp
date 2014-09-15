@@ -144,4 +144,13 @@ result_t XmlComment::replaceData(int32_t offset, int32_t count, const char *arg)
     return m_data.replaceData(offset, count, arg);
 }
 
+result_t XmlComment::toString(std::string &retVal)
+{
+    retVal = "<!--";
+    retVal.append(m_data.m_data);
+    retVal.append("-->");
+
+    return 0;
+}
+
 }

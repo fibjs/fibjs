@@ -1,0 +1,12 @@
+<?xml version="1.1" encoding="UTF-8" ?>
+<!DOCTYPE root [
+<!ENTITY dataBad "&#x9;&#x0A;&#x0D;&#x85;&#x2028;">
+<!ENTITY data "&#x9;&#x0A;&#x0D;">
+<!ELEMENT root (child)>
+<!ELEMENT child EMPTY>
+<!-- This test case contains embeded whitespace characters 
+	 some form the range 1 - 1F. -->
+]>
+<root>&data;
+	<child/>
+</root>

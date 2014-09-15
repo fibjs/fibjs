@@ -1,0 +1,6 @@
+<!DOCTYPE test [
+<!NOTATION base64 SYSTEM 'mimecode'>
+<!NOTATION raw SYSTEM 'bin/cat'>
+<!NOTATION uuencode SYSTEM 'uudecode'>
+]>
+<test>&#10;<blob content-encoding="base64"></blob>&#10;The attribute values of type NOTATION matches one of the notation names included in the declaration;&#10;all notation names in the declaration have been declared&#10;</test>

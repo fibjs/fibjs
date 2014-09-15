@@ -16,6 +16,11 @@ interface XmlDocument : XmlNode
     */
     loadXML(String source);
 
+    /*! @brief 序列化当前文档为字符串
+     @return 返回序列化的字符串
+    */
+    String saveHTML();
+
     /*! @brief 返回与文档相关的文档类型声明（Document Type Declaration）
 
     对于没有 DTD 的 XML 文档，则返回 null。此属性可提供对 XmlDocumentType 对象（ XmlDocument 的一个子节点）的直接访问。
@@ -79,4 +84,16 @@ interface XmlDocument : XmlNode
      @param elementId 想获取的元素的 id 属性的值
     */
     XmlElement getElementById(String elementId);
+
+    /*! @brief 返回用于文档的编码（在解析时）
+    */
+    readonly String inputEncoding;
+
+    /*! @brief 设置或返回文档是否为 standalone
+    */
+    Boolean xmlStandalone;
+
+    /*! @brief 设置或返回文档的 XML 版本
+    */
+    String xmlVersion;
 };

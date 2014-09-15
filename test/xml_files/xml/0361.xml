@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<!DOCTYPE student PUBLIC 'The latest version' 'student.dtd'[
+]>
+
+<!-- testing Pubid Literal with a string without  "'" inside -->
+<student>My Name is SnowMan. </student>

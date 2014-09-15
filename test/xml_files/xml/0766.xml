@@ -1,0 +1,9 @@
+<!DOCTYPE root [
+<!ELEMENT root EMPTY>
+<!ATTLIST root
+    affiliated	ENTITY	#REQUIRED
+    >
+    <!-- tests the "entity name" VC ... the "entity declared" clause,
+	as applied to attributes of type ENTITY -->
+]>
+<root affiliated="food"/>

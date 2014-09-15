@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<!-- Richard Tobin's XML 1.1 test suite. 
+     Copyright Richard Tobin, HCRC February 2003.
+     May be freely redistributed provided copyright notice is retained.
+  -->
+
+<?xml-stylesheet href="xmlconformance.xsl" type="text/xsl"?>
+
+<!DOCTYPE TESTSUITE SYSTEM "testcases.dtd" [
+    <!ENTITY eduni-xml11 SYSTEM "xml11.xml">
+]>
+
+<TESTSUITE PROFILE="Richard Tobin's XML 1.1 test suite 13 Feb 2003">
+    &eduni-xml11;
+</TESTSUITE>

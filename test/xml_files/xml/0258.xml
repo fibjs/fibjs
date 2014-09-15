@@ -1,0 +1,1 @@
+<test>&#10;<landscape sun="notimage"></landscape>&#10;In the attribute decl, values of type ENTITY match the Name production&#10;but does not match the name of any entity declared in the DTD&#10;</test>

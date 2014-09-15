@@ -1,0 +1,15 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(Negative test)-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT landscape EMPTY>
+ <!ENTITY parsedentity1 SYSTEM "ibm56iv01.xml">
+ <!ENTITY parsedentity2 SYSTEM "ibm56iv02.xml">
+ <!ATTLIST landscape sun ENTITIES #IMPLIED>
+]>
+<test>
+<landscape sun = "parsedentity1 parsedentity2"></landscape>
+In an attribute declaration, values of type ENTITIES match the Name production and the ENTITIES value
+matches one or more names of parsed entities declared in the DTD. .
+</test>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE root 
+[
+<!ELEMENT root (#PCDATA)>
+<!ATTLIST root att CDATA #IMPLIED>
+
+<!ENTITY % pe1 '<!ATTLIST root att2 CDATA "&ge1;">'>
+<!ENTITY ge1 "attdefaultvalue" >
+%pe1;
+
+<!--* notation JPGformat not declared *-->
+<!ENTITY ge2  SYSTEM "image.jpg" NDATA JPGformat>
+
+]>
+<root att2="any" />
+<!-- a invalid test case: test P76 VC: Notation Declared -->

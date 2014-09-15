@@ -1,0 +1,7 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 62-->
+<!DOCTYPE animal SYSTEM "ibm62n05.dtd">
+<animal>
+ <tiger/>
+Negative test.  Missing the required field '[' after INCLUDE.
+</animal>

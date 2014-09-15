@@ -1,0 +1,9 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 65-->
+<!DOCTYPE animal SYSTEM "ibm65n01.dtd"
+[
+<!ELEMENT animal ANY>
+]>
+<animal>
+Negative Test. Pattern1.Illegal sequence of ']]'
+</animal>

@@ -1,0 +1,21 @@
+<?xml  version="1.0"?>
+<!-- valid test for Production 58-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT one ANY>
+ <!ELEMENT two ANY>
+ <!ELEMENT three ANY>
+ <!ELEMENT four ANY>
+ <!ELEMENT five ANY>
+ <!NOTATION this SYSTEM "alpha">
+ <!NOTATION that SYSTEM "beta">
+ <!ATTLIST one attr NOTATION (this) #IMPLIED>
+ <!ATTLIST two attr NOTATION ( this) #IMPLIED>
+ <!ATTLIST three attr NOTATION (this|that) #IMPLIED>
+ <!ATTLIST four attr NOTATION (that |this) #IMPLIED>
+ <!ATTLIST five attr NOTATION ( that ) #IMPLIED>
+ ]>
+ <test>
+This is a positive test with different patterns for NOTATION
+</test>

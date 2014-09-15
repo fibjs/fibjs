@@ -1,0 +1,11 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 63-->
+<!DOCTYPE animal SYSTEM "ibm63n04.dtd"
+[
+<!ELEMENT animal ANY>
+<!ELEMENT tiger (#PCDATA)>
+<!ATTLIST animal a (tiger) #REQUIRED> 
+]>
+<animal a = "TIGER1">
+Negative test.  Missing required field(The keyword IGNORE is missing).
+</animal>

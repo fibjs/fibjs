@@ -1,0 +1,9 @@
+<!DOCTYPE root [
+<!ELEMENT root EMPTY>
+<!ATTLIST root
+    token	NMTOKEN		#REQUIRED
+    >
+
+    <!-- tests the "name token' VC for an NMTOKENS value -->
+]>
+<root token="now is the time!?"/>

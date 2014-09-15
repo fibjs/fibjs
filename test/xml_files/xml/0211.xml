@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (a,b)>
+  <!ELEMENT a EMPTY>
+  <!ELEMENT b (#PCDATA|c)* >
+  <!ELEMENT c ANY>
+
+]>
+<!--* root element have text content *-->
+<root>
+ root can't have text content
+<a></a><b>
+   <c></c> 
+   content of b element
+</b></root>
+

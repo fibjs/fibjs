@@ -1,0 +1,5 @@
+<!DOCTYPE root [
+<!NOTATION UTF-8 SYSTEM 'UTF-8'>
+<!NOTATION gif SYSTEM 'gif'>
+]>
+<root>&#10;  <a aattr1="a1"> Element type a </a>&#10;  <b battr1="anyvalue" battr2="good" battr3="b1"> Element type b </b>&#10;  <c c_reference="b1"> Element type c </c>&#10;  <d d_reference="a1 b1"> Element type d </d>&#10;  <e eattr1="xmltech"> Element type e </e>&#10;  <f fattr1="xmltech IBMlogo"> Element type f </f>&#10;  <g gattr1="xml4j3_0_0_EA3"> Element type g </g>&#10;  <h hattr1="xml4j3_0_0_EA3 Xerces-J_1_0_1"> Element type h </h>&#10;  <i iattr1="UTF-8"> Element type i </i>&#10;  <j jattr1="anyvalue" jattr2="good" jattr3="fixed"> Element type j </j>&#10;</root>

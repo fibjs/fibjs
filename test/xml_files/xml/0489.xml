@@ -1,0 +1,16 @@
+<?xml  version="1.0"?>
+<!-- valid test for Production 57-->
+<!DOCTYPE root
+ [
+ <!ELEMENT root (#PCDATA|a|b)*>
+ <!ELEMENT a ANY>
+ <!ELEMENT b ANY>
+ <!NOTATION a SYSTEM "a">
+ <!NOTATION b SYSTEM "b"> 
+ <!ATTLIST a att (a|b) #IMPLIED>
+ <!ATTLIST b att NOTATION (a|b) #IMPLIED>
+ ]>
+ <root>
+This test case tests the kinds of enumerated types
+<a/><b/>
+</root>

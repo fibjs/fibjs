@@ -18,7 +18,7 @@ namespace fibjs
 class XmlCDATASection: public XmlCDATASection_base, public XmlNodeImpl
 {
 public:
-    XmlCDATASection(XmlDocument_base *document, const char *data):
+    XmlCDATASection(XmlDocument_base *document, const char *data = ""):
         XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE), m_data(data)
     {
     }
@@ -27,6 +27,10 @@ public:
         XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE), m_data(data)
     {
     }
+
+public:
+    // object_base
+    virtual result_t toString(std::string &retVal);
 
 public:
     // XmlNode_base

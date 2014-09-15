@@ -1,0 +1,5 @@
+<!DOCTYPE book [
+   <!ELEMENT book ANY>
+   <!ATTLIST book xml:lang CDATA #REQUIRED>
+]>
+<book xml:lang="en">It is written in English</book>

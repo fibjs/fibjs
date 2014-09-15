@@ -7,6 +7,10 @@ interface XmlDocumentType : XmlNode
     */
     readonly String name;
 
+    /*! @brief 可返回外部 DTD 的公共识别符
+    */
+    readonly String publicId;
+
     /*! @brief 可返回外部 DTD 的系统识别符
     */
     readonly String systemId;

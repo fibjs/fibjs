@@ -1,0 +1,9 @@
+<?xml version="1.0"?> 
+<!DOCTYPE student [
+	<!ELEMENT student (#PCDATA)>
+<!-- testing entity value with Reference -->
+	<!ENTITY RealName "SnowMan"> 
+ 	<!ENTITY FullName "&RealName;">
+]>
+
+<student>My Name is &FullName;. </student>

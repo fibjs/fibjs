@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE root SYSTEM "ibm50i01.dtd" [
+  <!ELEMENT root (a,b)>
+]>
+<root><a/><b>
+   <c></c >
+   content of b element
+</b></root>
+<!--* a invalid test: tests VC:Proper Group/PE Nesting in P50 *-->

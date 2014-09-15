@@ -1,0 +1,13 @@
+<!--non-validating processors may pass this instance because they don't check the IDREFS attribute type-->
+<!DOCTYPE doc
+[
+<!ELEMENT doc (a|refs)*>
+<!ELEMENT a EMPTY>
+<!ELEMENT refs EMPTY>
+<!ATTLIST refs refs IDREFS #REQUIRED>
+<!ATTLIST a id ID #REQUIRED>
+]>
+<doc>
+<a id="A1"/><a id="A2"/><a id="A3"/>
+<refs refs=""/>
+</doc>

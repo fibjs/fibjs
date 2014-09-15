@@ -1,0 +1,12 @@
+<!DOCTYPE doc [
+<?Pi?><!--comment-->
+<!ELEMENT doc EMPTY>
+<?Pi?><!--comment-->
+<!ATTLIST doc att CDATA #IMPLIED>
+<?Pi?><!--comment-->
+<!ENTITY % ent "">
+<?Pi?><!--comment-->
+<!NOTATION not PUBLIC "some notation">
+<?Pi?><!--comment-->
+]>
+<doc/>

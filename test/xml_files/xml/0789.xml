@@ -1,0 +1,6 @@
+<!DOCTYPE root [
+<!ELEMENT root ANY>
+<!ELEMENT exception (#PCDATA)>
+<!ELEMENT exception (#PCDATA)>
+]>
+<root/>

@@ -1,0 +1,7 @@
+<?xml version="1.1"?>
+<!-- Has an LSEP character; legal in both XML 1.0 and 1.1, but different
+     canonical output because of normalization in 1.1 -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+]>
+<foo> </foo>

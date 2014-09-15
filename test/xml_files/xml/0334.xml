@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE student SYSTEM "student.dtd"[
+	<!ELEMENT student (#PCDATA)> 
+	<!ENTITY Age "21">
+	<!ENTITY Status "freshman">
+ 	<!ENTITY % FullName "first , last , middle">
+]>
+
+<!-- testing entity value with combination reference -->
+<student>This is a test of &combine;</student>
+
+
+

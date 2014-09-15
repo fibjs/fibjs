@@ -38,6 +38,7 @@ public:
 public:
 	// xml_base
 	static result_t parse(const char* source, obj_ptr<XmlDocument_base>& retVal);
+	static result_t serialize(XmlDocument_base* xmlDoc, std::string& retVal);
 
 public:
 	static void s_get_ELEMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -49,6 +50,7 @@ public:
 	static void s_get_DOCUMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_DOCUMENT_TYPE_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -61,7 +63,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"parse", s_parse}
+			{"parse", s_parse},
+			{"serialize", s_serialize}
 		};
 
 		static ClassData::ClassObject s_object[] = 
@@ -84,7 +87,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"xml", NULL, 
-			1, s_method, 1, s_object, 8, s_property, NULL, NULL,
+			2, s_method, 1, s_object, 8, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -157,6 +160,19 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = parse(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void xml_base::s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<XmlDocument_base>, 0);
+
+		hr = serialize(v0, vr);
 
 		METHOD_RETURN();
 	}

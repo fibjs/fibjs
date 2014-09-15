@@ -157,4 +157,10 @@ result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
     return 0;
 }
 
+result_t XmlText::toString(std::string &retVal)
+{
+    retVal = m_data.encodedText();
+    return 0;
+}
+
 }

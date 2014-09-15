@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE root SYSTEM "ibm69v01.dtd" [
+  <!ELEMENT root (#PCDATA|a)* >
+  <!ENTITY % pe1 "<!-- comment in PE -->">
+  %pe1;
+]>
+<root>
+  pcdata content
+  <a attr1="xyz"/>
+</root>
+<!--* a valid test for P69 VC:Entity Declared *-->

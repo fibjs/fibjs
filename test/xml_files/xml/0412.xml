@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!DOCTYPE animal [
+   <!ELEMENT animal EMPTY>
+]>
+<!-- This a valid test file for production [28] --> 
+<animal/>

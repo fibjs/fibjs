@@ -1,0 +1,9 @@
+<?xml version="1.1"?>
+<!-- Second-level external general entity has later version number than
+     first-level, but not later than document, so not an error. -->
+<!DOCTYPE foo [
+<!ELEMENT foo ANY>
+<!ENTITY ent1 SYSTEM "006_1.ent">
+<!ENTITY ent2 SYSTEM "006_2.ent">
+]>
+<foo>&ent1;</foo>

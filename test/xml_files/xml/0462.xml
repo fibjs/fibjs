@@ -1,0 +1,16 @@
+<?xml  version="1.0"?>
+<!-- test for Production 54-->
+<!DOCTYPE root
+ [
+ <!ELEMENT root (x|y|z)*>
+ <!ELEMENT x (#PCDATA)>
+ <!ELEMENT y ANY>
+ <!ELEMENT z EMPTY>
+ <!ATTLIST x attr CDATA #IMPLIED>
+ <!ATTLIST y attr NMTOKENS #IMPLIED>
+ <!ATTLIST z attr (x|y) #IMPLIED>
+ ]>
+<root>
+<x attr= 'Madhu'></x>
+<y attr= '1.a.name.token.but.not.a.name'></y>
+</root>

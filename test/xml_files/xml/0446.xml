@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (a,b)>
+  <!ELEMENT a EMPTY>
+  <!ELEMENT b (#PCDATA|c)* >
+  <!ELEMENT c ANY>
+]>
+<root><a/><b>
+   <c></c > : End tag with a space inside
+   content of b element
+</b></root>
+<!--* test P42 *-->
+

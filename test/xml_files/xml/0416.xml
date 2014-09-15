@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE animal [
+   <!ELEMENT animal (cat|tiger|leopard)+>
+   <!NOTATION animal_class SYSTEM "ibm29v01.txt">
+   <!ELEMENT cat ANY>
+   <!ENTITY forcat "This is a small cat">
+   <!ELEMENT tiger (#PCDATA)>
+   <!ENTITY % make_leopard_element "<!ELEMENT leopard ANY>">
+   %make_leopard_element; 
+   <!ELEMENT small EMPTY>
+   <!ELEMENT big EMPTY>
+   <!ATTLIST tiger color CDATA #REQUIRED>
+   <?sound "This is a PI" ?>
+   <!-- This is a comment -->
+    
+]>
+<animal>
+   <cat>&forcat;</cat>
+   <tiger color="white">This is a white tiger in Mirage!!</tiger>
+   <cat/>
+   <leopard>
+      <small/>
+      <big/>
+   </leopard>
+</animal>

@@ -1,0 +1,1 @@
+<root><a></a><b>&#10;   <c></c> &#10;   content of b element&#10;   <a></a>&#10;   could not have 'a' as 'b's content&#10;</b></root>

@@ -1,0 +1,1 @@
+<test>&#10;<nametokens thistoken="@lang y: #country"></nametokens>&#10;In an attribute declaration, values of type NMTOKENS does not match the Nmtokens production&#10;</test>

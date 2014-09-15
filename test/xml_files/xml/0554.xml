@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE root 
+[
+<!ELEMENT root (#PCDATA)>
+<!ATTLIST root att CDATA #IMPLIED>
+<!ATTLIST root entatt1 ENTITY #REQUIRED >
+
+<!--* Test PublicID in P82 *-->
+<!NOTATION JPGformat PUBLIC "-//image//notreal" >
+<!ENTITY unparsed1  SYSTEM "image.jpg" NDATA JPGformat>
+]>
+<root entatt1="unparsed1">test PublicID in P82</root>
+<!-- a valid test case: test P82 and P83 -->

@@ -1,0 +1,11 @@
+<!--Inability to resolve a notation should not be reported as an error-->
+<!DOCTYPE doc
+[
+<!ELEMENT doc EMPTY>
+<!NOTATION not1 SYSTEM "a%a&b&#0<!ELEMENT<!--<?</>?>/\''">
+<!NOTATION not2 SYSTEM 'a
+	b"""'>
+<!NOTATION not3 SYSTEM "">
+<!NOTATION not4 SYSTEM ''>
+]>
+<doc/>

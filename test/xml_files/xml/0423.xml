@@ -1,0 +1,4 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE animal SYSTEM "ibm32v02.dtd">
+<animal>&animal_content;</animal>
+<!-- Tests VC: Standalone Document Declaration with external enitity reference and standalone is no -->

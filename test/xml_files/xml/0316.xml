@@ -1,0 +1,8 @@
+<!DOCTYPE root 
+[
+<!ELEMENT root (#PCDATA)>
+<!ATTLIST root att CDATA #IMPLIED>
+<!--* error in external entity  *-->
+<!ENTITY aExternal SYSTEM "ibm77n01.ent">
+]>
+<root>&aExternal;</root>

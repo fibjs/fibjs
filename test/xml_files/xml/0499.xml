@@ -1,0 +1,19 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 60-->
+<!DOCTYPE Java 
+ [
+ <!ELEMENT Java (#PCDATA|one|two|three|four)*>
+ <!ELEMENT one EMPTY>
+ <!ELEMENT two EMPTY>
+ <!ELEMENT three EMPTY>
+ <!ELEMENT four EMPTY>
+ <!ATTLIST one chapter CDATA #IMPLIED>
+ <!ATTLIST two chapter CDATA #REQUIRED>
+ <!ATTLIST three chapter CDATA #FIXED "JavaBeans">
+ <!ATTLIST four chapter CDATA 'defualt'>
+ ]>
+<Java><one chapter="Introduction"/>
+ <three chapter="JavaBeans"/>
+ Positive test
+ DefaultDecl attributes values IMPLIED, REQUIRED, FIXED and default
+</Java>

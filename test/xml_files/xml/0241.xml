@@ -1,0 +1,14 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(Negative test)-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT landscape EMPTY>
+ <!ENTITY image SYSTEM "d:\testspec\images\sunset.gif" NDATA gif>
+ <!ATTLIST landscape sun ENTITY #IMPLIED>
+]>
+<test>
+<landscape sun = "notimage"></landscape>
+In the attribute decl, values of type ENTITY match the Name production
+but does not match the name of any entity declared in the DTD
+</test>

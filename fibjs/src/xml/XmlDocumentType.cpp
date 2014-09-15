@@ -13,7 +13,8 @@ namespace fibjs
 
 result_t XmlDocumentType::get_nodeName(std::string &retVal)
 {
-    return CALL_RETURN_NULL;
+    retVal = m_name;
+    return 0;
 }
 
 result_t XmlDocumentType::get_nodeValue(std::string &retVal)
@@ -105,11 +106,47 @@ result_t XmlDocumentType::normalize()
 
 result_t XmlDocumentType::get_name(std::string &retVal)
 {
+    retVal = m_name;
+    return 0;
+}
+
+result_t XmlDocumentType::get_publicId(std::string &retVal)
+{
+    retVal = m_publicId;
     return 0;
 }
 
 result_t XmlDocumentType::get_systemId(std::string &retVal)
 {
+    retVal = m_systemId;
+    return 0;
+}
+
+result_t XmlDocumentType::toString(std::string &retVal)
+{
+    retVal = "<!DOCTYPE ";
+    retVal.append(m_name);
+
+    if (!m_publicId.empty())
+    {
+        retVal.append(" PUBLIC \"");
+        retVal.append(m_publicId);
+        retVal += '\"';
+    }
+
+    if (!m_systemId.empty())
+    {
+        if (m_publicId.empty())
+            retVal.append(" SYSTEM \"");
+        else
+            retVal.append(" \"");
+
+        retVal.append(m_systemId);
+        retVal += '\"';
+    }
+
+    retVal += '>';
+
     return 0;
 }
 

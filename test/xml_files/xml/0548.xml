@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE root 
+[
+<!ELEMENT root (#PCDATA)>
+<!ATTLIST root att CDATA #IMPLIED>
+
+<!--* Test all legal patterns derived from P70-76 *-->
+<!ENTITY % pe1 '<!ATTLIST root att2 CDATA "&ge1;">'>
+<!ENTITY ge1 "attdefaultvalue" >
+%pe1;
+<!NOTATION JPGformat SYSTEM "JPGFormat">
+<!ENTITY ge2  SYSTEM "image.jpg" NDATA JPGformat>
+<!ENTITY % pe2 PUBLIC "-//w3c//any" "ibm70v01.ent" >
+%pe2;
+]>
+<root att2="any" />
+<!-- a valid test case: test P70-P76 -->

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [
+  <!ELEMENT root (a,b)>
+  <!ELEMENT a EMPTY>
+  <!ELEMENT b (#PCDATA|c)* >
+  <!ELEMENT c ANY>
+  <!ELEMENT f EMPTY>
+]>
+<!--* element c has undeclared element as its ANY content *-->
+<root><a/><b>
+   <c><f/></c> 
+   content of b element
+   <c>
+      <d>not declared in dtd</d>
+   </c>
+</b></root>
+

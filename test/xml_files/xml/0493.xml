@@ -1,0 +1,5 @@
+<!DOCTYPE test [
+<!NOTATION that SYSTEM 'beta'>
+<!NOTATION this SYSTEM 'alpha'>
+]>
+<test>&#10;This is a positive test with different patterns for NOTATION&#10;</test>

@@ -1,0 +1,15 @@
+<?xml  version="1.0"?>
+<!-- validity test for Production 59-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT one EMPTY>
+ <!ELEMENT two EMPTY>
+ <!ELEMENT num EMPTY>
+ <!ATTLIST num value (one|two) #IMPLIED>
+ ]>
+ <test>
+<num value = "one"></num>
+This is a Positive test
+The attribute values of type Enumeration match one of the Nmtoken tokens in the declaration.
+</test>

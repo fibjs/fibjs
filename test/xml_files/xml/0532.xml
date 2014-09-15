@@ -1,0 +1,9 @@
+<?xml  version="1.0"?>
+<!-- syntax test for Production 64-->
+<!DOCTYPE animal SYSTEM "ibm64v03.dtd"
+[
+<!ELEMENT animal ANY>
+]>
+<animal>
+Positive Test. Pattern3
+</animal>

@@ -1,0 +1,5 @@
+<!DOCTYPE doc [
+<!ENTITY % eldecl "<!ELEMENT doc EMPTY>">
+%eldecl;
+]>
+<doc/>

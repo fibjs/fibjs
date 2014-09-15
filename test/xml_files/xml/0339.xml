@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE student [
+	<!ELEMENT student (#PCDATA)>
+	<!ATTLIST student
+		first CDATA #REQUIRED
+		middle CDATA #IMPLIED
+		last CDATA #REQUIRED > 
+	<!ENTITY myfirst "Snow">
+	<!ENTITY mymiddle "Y">
+	<!ENTITY mylast "">
+]>
+<!-- testing AttValue with empty char inside double quote -->
+<student first="" last="">My Name is Snow &mylast; Man. </student>
+
+
+
+
+
+

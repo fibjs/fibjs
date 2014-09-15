@@ -1,0 +1,7 @@
+<?xml version="1.1"?>
+<!DOCTYPE doc [
+<!ELEMENT doc (#PCDATA)>
+<!ENTITY e SYSTEM "ibm03v09.ent">
+<!ATTLIST doc a CDATA #IMPLIED>
+]>
+<doc>Test</doc>

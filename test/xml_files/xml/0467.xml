@@ -1,0 +1,12 @@
+<?xml  version="1.0"?>
+<!-- test valid syntax for Production 55-->
+<!DOCTYPE StType
+[
+<!ELEMENT StType ANY>
+<!ELEMENT a EMPTY>
+<!ATTLIST a att CDATA #IMPLIED> 
+]>
+<StType>
+<a att='Hello'/>
+Testing with a valid stringType attribute 
+</StType>

@@ -1,0 +1,18 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(Positive Test)-->
+<!DOCTYPE test
+ [
+ <!ELEMENT test ANY>
+ <!ELEMENT id EMPTY>
+ <!ELEMENT idref EMPTY>
+ <!ATTLIST id UniqueName ID #REQUIRED>
+ <!ATTLIST idref reference IDREF #IMPLIED>
+ ]>
+<test>
+<id UniqueName = "AC456"></id>
+<idref reference = "AC456"></idref>
+Positive test for validity constraint of IDREF.
+In an attribute decl, values of type IDREF match tha name production
+and the IDREF value matches the value assigned to an ID attribute somewhere
+in the XML document.
+</test>

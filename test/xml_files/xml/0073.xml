@@ -1,0 +1,37 @@
+<TESTCASES PROFILE="Bjoern Hoehrmann via HST 2013-09-18">
+
+<TEST SECTIONS="2.2 [2], 4.1 [66]" URI="001.xml" ID="hst-bh-001" TYPE="not-wf">
+decimal charref > 10FFFF, indeed > max 32 bit integer, checking for recovery
+from possible overflow
+</TEST>
+<TEST SECTIONS="2.2 [2], 4.1 [66]" URI="002.xml" ID="hst-bh-002" TYPE="not-wf">
+hex charref > 10FFFF, indeed > max 32 bit integer, checking for recovery
+from possible overflow
+</TEST>
+<TEST SECTIONS="2.2 [2], 4.1 [66]" URI="003.xml" ID="hst-bh-003" TYPE="not-wf">
+decimal charref > 10FFFF, indeed > max 64 bit integer, checking for recovery
+from possible overflow
+</TEST>
+<TEST SECTIONS="2.2 [2], 4.1 [66]" URI="004.xml" ID="hst-bh-004" TYPE="not-wf">
+hex charref > 10FFFF, indeed > max 64 bit integer, checking for recovery
+from possible overflow
+</TEST>
+<TEST SECTIONS="3.1 [41]" URI="005.xml" ID="hst-bh-005" TYPE="invalid">
+xmlns:xml is an attribute as far as validation is concerned and must
+be declared
+</TEST>
+<TEST SECTIONS="3.1 [41]" URI="006.xml" ID="hst-bh-006" TYPE="invalid">
+xmlns:foo is an attribute as far as validation is concerned and must
+be declared
+</TEST>
+<TEST SECTIONS="4.3.3" URI="007.xml" ID="hst-lhs-007" TYPE="not-wf">
+UTF-8 BOM plus xml decl of iso-8859-1 incompatible
+</TEST>
+<TEST SECTIONS="4.3.3" URI="008.xml" ID="hst-lhs-008" TYPE="not-wf">
+UTF-16 BOM plus xml decl of utf-8 (using UTF-16 coding) incompatible
+</TEST>
+<TEST SECTIONS="4.3.3" URI="009.xml" ID="hst-lhs-009" TYPE="not-wf">
+UTF-16 BOM plus xml decl of utf-8 (using UTF-8 coding) incompatible
+</TEST>
+
+</TESTCASES>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE student [
+	<!ELEMENT student (#PCDATA)> 
+]>
+
+<!-- Student's name -->
+<student>My Name is SnowMan. </student>

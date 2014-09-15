@@ -1,0 +1,6 @@
+<!DOCTYPE root [
+    <!-- reference to undefined PE -->
+    %undefined;
+]>
+
+<root/>

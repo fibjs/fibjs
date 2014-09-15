@@ -131,8 +131,7 @@ result_t XmlElement::getAttribute(const char *name, std::string &retVal)
 
 result_t XmlElement::setAttribute(const char *name, const char *value)
 {
-    obj_ptr<XmlAttr_base> attr = new XmlAttr(m_document, name);
-    attr->set_nodeValue(value);
+    obj_ptr<XmlAttr_base> attr = new XmlAttr(m_document, name, value);
 
     obj_ptr<XmlAttr_base> ret;
     return setAttributeNode(attr, ret);
@@ -200,6 +199,32 @@ result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeLi
 result_t XmlElement::hasAttribute(bool &retVal)
 {
     return m_attrs->hasAttribute(retVal);
+}
+
+result_t XmlElement::toString(std::string &retVal)
+{
+    retVal = "<";
+    retVal.append(m_tagName);
+
+    std::string strAttr;
+    m_attrs->toString(strAttr);
+    retVal.append(strAttr);
+
+    if (m_childs->hasChildNodes())
+    {
+        std::string strChild;
+        m_childs->toString(strChild);
+
+        retVal += '>';
+        retVal.append(strChild);
+        retVal.append("</");
+        retVal.append(m_tagName);
+        retVal += '>';
+    }
+    else
+        retVal.append("/>");
+
+    return 0;
 }
 
 }

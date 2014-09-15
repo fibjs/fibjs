@@ -1,0 +1,11 @@
+<?xml  version="1.0"?>
+<!-- validity constraint check for Production 56(Positive Test)-->
+<!DOCTYPE tokenizer
+ [
+ <!ELEMENT tokenizer ANY>
+ <!ATTLIST tokenizer UniqueName ID #REQUIRED>
+ ]>
+<tokenizer UniqueName = "AC1999">
+This is a positive test for validity constraints
+Giving a unique name to the attribute ID an ID Attribute default as #required
+</tokenizer>
