@@ -110,7 +110,20 @@ void XmlParser::OnCharacterData(const XML_Char *s, int len)
         ((XmlCDATASection_base *)(XmlNode_base *)m_now)->appendData(data.c_str());
     else
     {
-        obj_ptr<XmlText> text = new XmlText(m_document, data.c_str());
+        obj_ptr<XmlNode_base> last;
+        m_now->get_lastChild(last);
+
+        if (last)
+        {
+            last->get_nodeType(type);
+            if (type == xml_base::_TEXT_NODE)
+            {
+                ((XmlText_base *)(XmlNode_base *)last)->appendData(data.c_str());
+                return;
+            }
+        }
+
+        obj_ptr<XmlText_base> text = new XmlText(m_document, data.c_str());
         newNode(text);
     }
 }
