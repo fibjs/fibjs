@@ -27,6 +27,8 @@ public:
     virtual result_t set_result(Variant newVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
+    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
     virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
     virtual result_t get_length(int64_t &retVal);
     virtual result_t clear();
@@ -60,6 +62,8 @@ public:
         result_t set_result(Variant newVal);
         result_t get_body(obj_ptr<SeekableStream_base> &retVal);
         result_t set_body(SeekableStream_base *newVal);
+        result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
+        result_t readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
         result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
         result_t get_length(int64_t &retVal);
 

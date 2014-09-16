@@ -78,6 +78,23 @@ result_t Message::_msg::set_body(SeekableStream_base *newVal)
     return 0;
 }
 
+result_t Message::_msg::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
+                             exlib::AsyncEvent *ac)
+{
+    if (m_body == NULL)
+        return CALL_RETURN_NULL;
+
+    return m_body->read(bytes, retVal, ac);
+}
+
+result_t Message::_msg::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+{
+    if (m_body == NULL)
+        return CALL_RETURN_NULL;
+
+    return m_body->readAll(retVal, ac);
+}
+
 result_t Message::_msg::write(Buffer_base *data, exlib::AsyncEvent *ac)
 {
     if (m_body == NULL)
@@ -140,6 +157,17 @@ result_t Message::get_body(obj_ptr<SeekableStream_base> &retVal)
 result_t Message::set_body(SeekableStream_base *newVal)
 {
     return m_message.set_body(newVal);
+}
+
+result_t Message::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
+                       exlib::AsyncEvent *ac)
+{
+    return m_message.read(bytes, retVal, ac);
+}
+
+result_t Message::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+{
+    return m_message.readAll(retVal, ac);
 }
 
 result_t Message::write(Buffer_base *data, exlib::AsyncEvent *ac)

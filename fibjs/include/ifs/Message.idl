@@ -24,7 +24,18 @@ interface Message : object
     /*! @brief 包含消息数据部分的流对象 */
     SeekableStream body;
 
-    /*! @brief 将给定的数据写入 body
+    /*! @brief 从流内读取指定大小的数据，此方法为 body 相应方法的别名
+     @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
+     @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     */
+    Buffer read(Integer bytes = -1) async;
+
+    /*! @brief 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
+     @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     */
+    Buffer readAll() async;
+
+    /*! @brief 写入给定的数据，此方法为 body 相应方法的别名
      @param data 给定要写入的数据
      */
     write(Buffer data) async;

@@ -44,6 +44,17 @@ result_t HttpResponse::set_body(SeekableStream_base *newVal)
     return m_message.set_body(newVal);
 }
 
+result_t HttpResponse::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
+                            exlib::AsyncEvent *ac)
+{
+    return m_message.read(bytes, retVal, ac);
+}
+
+result_t HttpResponse::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+{
+    return m_message.readAll(retVal, ac);
+}
+
 result_t HttpResponse::write(Buffer_base *data, exlib::AsyncEvent *ac)
 {
     return m_message.write(data, ac);
