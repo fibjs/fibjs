@@ -159,8 +159,11 @@ result_t http_base::request(const char *method, const char *url,
 
             req = new HttpRequest();
 
+            req->set_method(method);
+
             u->get_path(path);
             req->set_address(path.c_str());
+
             req->addHeader("host", u->m_host.c_str());
             req->setHeader("Accept-Encoding", "gzip,deflate");
             req->addHeader(headers);
