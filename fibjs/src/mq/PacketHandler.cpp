@@ -182,6 +182,18 @@ result_t PacketHandler::set_maxSize(int32_t newVal)
     return 0;
 }
 
+result_t PacketHandler::get_handler(obj_ptr<Handler_base> &retVal)
+{
+    retVal = m_hdlr;
+    return 0;
+}
+
+result_t PacketHandler::set_handler(Handler_base *newVal)
+{
+    m_hdlr = newVal;
+    return 0;
+}
+
 result_t PacketHandler::get_stats(obj_ptr<Stats_base> &retVal)
 {
     retVal = m_stats;

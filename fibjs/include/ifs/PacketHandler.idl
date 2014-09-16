@@ -16,6 +16,9 @@ interface PacketHandler: Handler
     /*! @brief 查询和设置最大包尺寸，以 MB 为单位，缺省为 64 */
     Integer maxSize;
 
+    /*! @brief Packet 协议转换处理器当前事件处理接口对象 */
+    Handler handler;
+
     /*! @brief 查询 Packet 包协议转换处理器的工作状态
 
       返回的结果为一个 Stats 对象，结构如下：

@@ -30,6 +30,8 @@ public:
 	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<PacketHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_maxSize(int32_t& retVal) = 0;
 	virtual result_t set_maxSize(int32_t newVal) = 0;
+	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
+	virtual result_t set_handler(Handler_base* newVal) = 0;
 	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 public:
@@ -40,6 +42,8 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
@@ -54,13 +58,14 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"maxSize", s_get_maxSize, s_set_maxSize},
+			{"handler", s_get_handler, s_set_handler},
 			{"stats", s_get_stats, block_set}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"PacketHandler", s__new, 
-			0, NULL, 0, NULL, 2, s_property, NULL, NULL,
+			0, NULL, 0, NULL, 3, s_property, NULL, NULL,
 			&Handler_base::class_info()
 		};
 
@@ -87,6 +92,29 @@ namespace fibjs
 
 		PROPERTY_VAL(int32_t);
 		hr = pInst->set_maxSize(v0);
+
+		PROPERTY_SET_LEAVE();
+	}
+
+	inline void PacketHandler_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<Handler_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(PacketHandler_base);
+
+		hr = pInst->get_handler(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PacketHandler_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(PacketHandler_base);
+
+		PROPERTY_VAL(obj_ptr<Handler_base>);
+		hr = pInst->set_handler(v0);
 
 		PROPERTY_SET_LEAVE();
 	}
