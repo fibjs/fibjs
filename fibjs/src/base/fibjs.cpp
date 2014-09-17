@@ -174,10 +174,7 @@ int stack_size = 256;
 int main(int argc, char *argv[])
 {
     static char s_opts[64];
-    static char s_sharmony[] = " --harmony --harmony_scoping --harmony_modules"
-                               " --harmony_proxies --harmony_generators"
-                               " --harmony_numeric_literals --harmony_strings"
-                               " --harmony_arrays --harmony_arrow_functions"
+    static char s_sharmony[] = " --harmony --harmony_proxies"
                                " --use_strict";
     enableDump();
 

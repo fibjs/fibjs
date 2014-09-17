@@ -144,6 +144,9 @@
     <ClInclude Include="src\ast.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\background-parsing-task.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\base\atomicops.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
@@ -813,6 +816,9 @@
     <ClInclude Include="src\ic\ic-inl.h">
       <Filter>Source Files\ic</Filter>
     </ClInclude>
+    <ClInclude Include="src\ic\ic-state.h">
+      <Filter>Source Files\ic</Filter>
+    </ClInclude>
     <ClInclude Include="src\ic\ic.h">
       <Filter>Source Files\ic</Filter>
     </ClInclude>
@@ -1226,6 +1232,9 @@
     <ClCompile Include="src\ast.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\background-parsing-task.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\base\atomicops_internals_x86_gcc.cc">
       <Filter>Source Files\base</Filter>
     </ClCompile>
@@ -1338,6 +1347,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\code-generator.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\common-operator.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\control-builders.cc">
@@ -1734,6 +1746,9 @@
       <Filter>Source Files\ic\ia32</Filter>
     </ClCompile>
     <ClCompile Include="src\ic\ic-compiler.cc">
+      <Filter>Source Files\ic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ic\ic-state.cc">
       <Filter>Source Files\ic</Filter>
     </ClCompile>
     <ClCompile Include="src\ic\ic.cc">

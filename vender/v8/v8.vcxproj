@@ -38,6 +38,7 @@
     <ClInclude Include="src\assert-scope.h" />
     <ClInclude Include="src\ast-value-factory.h" />
     <ClInclude Include="src\ast.h" />
+    <ClInclude Include="src\background-parsing-task.h" />
     <ClInclude Include="src\base\atomicops.h" />
     <ClInclude Include="src\base\atomicops_internals_arm64_gcc.h" />
     <ClInclude Include="src\base\atomicops_internals_arm_gcc.h" />
@@ -261,6 +262,7 @@
     <ClInclude Include="src\ic\handler-compiler.h" />
     <ClInclude Include="src\ic\ic-compiler.h" />
     <ClInclude Include="src\ic\ic-inl.h" />
+    <ClInclude Include="src\ic\ic-state.h" />
     <ClInclude Include="src\ic\ic.h" />
     <ClInclude Include="src\ic\stub-cache.h" />
     <ClInclude Include="src\icu_util.h" />
@@ -400,6 +402,7 @@
     <ClCompile Include="src\assert-scope.cc" />
     <ClCompile Include="src\ast-value-factory.cc" />
     <ClCompile Include="src\ast.cc" />
+    <ClCompile Include="src\background-parsing-task.cc" />
     <ClCompile Include="src\base\atomicops_internals_x86_gcc.cc" />
     <ClCompile Include="src\base\bits.cc" />
     <ClCompile Include="src\base\cpu.cc" />
@@ -438,6 +441,7 @@
     <ClCompile Include="src\compiler\ast-graph-builder.cc" />
     <ClCompile Include="src\compiler\change-lowering.cc" />
     <ClCompile Include="src\compiler\code-generator.cc" />
+    <ClCompile Include="src\compiler\common-operator.cc" />
     <ClCompile Include="src\compiler\control-builders.cc" />
     <ClCompile Include="src\compiler\gap-resolver.cc" />
     <ClCompile Include="src\compiler\graph-builder.cc" />
@@ -570,6 +574,7 @@
     <ClCompile Include="src\ic\ia32\ic-ia32.cc" />
     <ClCompile Include="src\ic\ia32\stub-cache-ia32.cc" />
     <ClCompile Include="src\ic\ic-compiler.cc" />
+    <ClCompile Include="src\ic\ic-state.cc" />
     <ClCompile Include="src\ic\ic.cc" />
     <ClCompile Include="src\ic\stub-cache.cc" />
     <ClCompile Include="src\ic\x64\access-compiler-x64.cc" />

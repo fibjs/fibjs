@@ -35,6 +35,7 @@
 #include "src/hydrogen-store-elimination.h"
 #include "src/hydrogen-uint32-analysis.h"
 #include "src/ic/call-optimization.h"
+#include "src/ic/ic.h"
 // GetRootConstructor
 #include "src/ic/ic-inl.h"
 #include "src/lithium-allocator.h"
@@ -4510,6 +4511,11 @@ void HOptimizedGraphBuilder::SetUpScope(Scope* scope) {
 }
 
 
+Type* HOptimizedGraphBuilder::ToType(Handle<Map> map) {
+  return IC::MapToType<Type>(map, zone());
+}
+
+
 void HOptimizedGraphBuilder::VisitStatements(ZoneList<Statement*>* statements) {
   for (int i = 0; i < statements->length(); i++) {
     Statement* stmt = statements->at(i);
@@ -5307,7 +5313,6 @@ HOptimizedGraphBuilder::LookupGlobalProperty(Variable* var, LookupIterator* it,
       return kUseCell;
     case LookupIterator::JSPROXY:
     case LookupIterator::TRANSITION:
-    case LookupIterator::UNKNOWN:
       UNREACHABLE();
   }
   UNREACHABLE();
@@ -6393,8 +6398,8 @@ static bool ComputeReceiverTypes(Expression* expr,
     types->FilterForPossibleTransitions(root_map);
     monomorphic = types->length() == 1;
   }
-  return monomorphic && CanInlinePropertyAccess(
-      IC::MapToType<Type>(types->first(), zone));
+  return monomorphic &&
+         CanInlinePropertyAccess(IC::MapToType<Type>(types->first(), zone));
 }
 
 
@@ -11539,10 +11544,9 @@ void HOptimizedGraphBuilder::GenerateDateField(CallRuntime* call) {
 void HOptimizedGraphBuilder::GenerateOneByteSeqStringSetChar(
     CallRuntime* call) {
   DCHECK(call->arguments()->length() == 3);
-  // We need to follow the evaluation order of full codegen.
+  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   CHECK_ALIVE(VisitForValue(call->arguments()->at(1)));
   CHECK_ALIVE(VisitForValue(call->arguments()->at(2)));
-  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   HValue* string = Pop();
   HValue* value = Pop();
   HValue* index = Pop();
@@ -11556,10 +11560,9 @@ void HOptimizedGraphBuilder::GenerateOneByteSeqStringSetChar(
 void HOptimizedGraphBuilder::GenerateTwoByteSeqStringSetChar(
     CallRuntime* call) {
   DCHECK(call->arguments()->length() == 3);
-  // We need to follow the evaluation order of full codegen.
+  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   CHECK_ALIVE(VisitForValue(call->arguments()->at(1)));
   CHECK_ALIVE(VisitForValue(call->arguments()->at(2)));
-  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   HValue* string = Pop();
   HValue* value = Pop();
   HValue* index = Pop();

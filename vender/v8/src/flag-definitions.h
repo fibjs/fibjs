@@ -154,7 +154,6 @@ DEFINE_BOOL(harmony_scoping, false, "enable harmony block scoping")
 DEFINE_BOOL(harmony_modules, false,
             "enable harmony modules (implies block scoping)")
 DEFINE_BOOL(harmony_proxies, false, "enable harmony proxies")
-DEFINE_BOOL(harmony_generators, false, "enable harmony generators")
 DEFINE_BOOL(harmony_numeric_literals, false,
             "enable harmony numeric literals (0o77, 0b11)")
 DEFINE_BOOL(harmony_strings, false, "enable harmony string")
@@ -178,7 +177,6 @@ DEFINE_IMPLICATION(harmony, harmony_object_literals)
 DEFINE_IMPLICATION(harmony_modules, harmony_scoping)
 
 DEFINE_IMPLICATION(harmony, es_staging)
-DEFINE_IMPLICATION(es_staging, harmony_generators)
 
 // Flags for experimental implementation features.
 DEFINE_BOOL(compiled_keyed_generic_loads, false,
@@ -333,7 +331,11 @@ DEFINE_BOOL(trace_turbo_types, true, "trace generated TurboFan types")
 DEFINE_BOOL(trace_turbo_scheduler, false, "trace generated TurboFan scheduler")
 DEFINE_BOOL(turbo_verify, false, "verify TurboFan graphs at each phase")
 DEFINE_BOOL(turbo_stats, false, "print TurboFan statistics")
+#if V8_TURBOFAN_BACKEND
 DEFINE_BOOL(turbo_types, true, "use typed lowering in TurboFan")
+#else
+DEFINE_BOOL(turbo_types, false, "use typed lowering in TurboFan")
+#endif
 DEFINE_BOOL(turbo_source_positions, false,
             "track source code positions when building TurboFan IR")
 DEFINE_BOOL(context_specialization, false,
@@ -341,6 +343,7 @@ DEFINE_BOOL(context_specialization, false,
 DEFINE_BOOL(turbo_deoptimization, false, "enable deoptimization in TurboFan")
 DEFINE_BOOL(turbo_inlining, false, "enable inlining in TurboFan")
 DEFINE_BOOL(trace_turbo_inlining, false, "trace TurboFan inlining")
+DEFINE_IMPLICATION(turbo_inlining, turbo_types)
 
 DEFINE_INT(typed_array_max_size_in_heap, 64,
            "threshold for in-heap typed array")

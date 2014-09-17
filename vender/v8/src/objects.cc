@@ -24,6 +24,7 @@
 #include "src/heap/mark-compact.h"
 #include "src/heap/objects-visiting-inl.h"
 #include "src/hydrogen.h"
+#include "src/ic/ic.h"
 #include "src/isolate-inl.h"
 #include "src/log.h"
 #include "src/lookup.h"
@@ -110,7 +111,6 @@ MaybeHandle<Object> Object::GetProperty(LookupIterator* it) {
     switch (it->state()) {
       case LookupIterator::NOT_FOUND:
       case LookupIterator::TRANSITION:
-      case LookupIterator::UNKNOWN:
         UNREACHABLE();
       case LookupIterator::JSPROXY:
         return JSProxy::GetPropertyWithHandler(it->GetHolder<JSProxy>(),
@@ -151,7 +151,6 @@ Handle<Object> JSObject::GetDataProperty(LookupIterator* it) {
       case LookupIterator::INTERCEPTOR:
       case LookupIterator::NOT_FOUND:
       case LookupIterator::TRANSITION:
-      case LookupIterator::UNKNOWN:
         UNREACHABLE();
       case LookupIterator::ACCESS_CHECK:
         if (it->HasAccess(v8::ACCESS_GET)) continue;
@@ -2806,7 +2805,6 @@ MaybeHandle<Object> Object::SetProperty(LookupIterator* it,
   for (; it->IsFound(); it->Next()) {
     switch (it->state()) {
       case LookupIterator::NOT_FOUND:
-      case LookupIterator::UNKNOWN:
         UNREACHABLE();
 
       case LookupIterator::ACCESS_CHECK:
@@ -3801,7 +3799,6 @@ MaybeHandle<Object> JSObject::SetOwnPropertyIgnoreAttributes(
       case LookupIterator::JSPROXY:
       case LookupIterator::NOT_FOUND:
       case LookupIterator::TRANSITION:
-      case LookupIterator::UNKNOWN:
         UNREACHABLE();
 
       case LookupIterator::ACCESS_CHECK:
@@ -3978,7 +3975,6 @@ Maybe<PropertyAttributes> JSReceiver::GetPropertyAttributes(
   for (; it->IsFound(); it->Next()) {
     switch (it->state()) {
       case LookupIterator::NOT_FOUND:
-      case LookupIterator::UNKNOWN:
       case LookupIterator::TRANSITION:
         UNREACHABLE();
       case LookupIterator::JSPROXY:
@@ -4918,7 +4914,6 @@ MaybeHandle<Object> JSObject::DeleteProperty(Handle<JSObject> object,
       case LookupIterator::JSPROXY:
       case LookupIterator::NOT_FOUND:
       case LookupIterator::TRANSITION:
-      case LookupIterator::UNKNOWN:
         UNREACHABLE();
       case LookupIterator::ACCESS_CHECK:
         if (it.HasAccess(v8::ACCESS_DELETE)) break;
@@ -6297,7 +6292,6 @@ MaybeHandle<Object> JSObject::GetAccessor(Handle<JSObject> object,
         case LookupIterator::INTERCEPTOR:
         case LookupIterator::NOT_FOUND:
         case LookupIterator::TRANSITION:
-        case LookupIterator::UNKNOWN:
           UNREACHABLE();
 
         case LookupIterator::ACCESS_CHECK:
@@ -8507,36 +8501,7 @@ template <typename Char>
 static inline bool CompareRawStringContents(const Char* const a,
                                             const Char* const b,
                                             int length) {
-  int i = 0;
-#ifndef V8_HOST_CAN_READ_UNALIGNED
-  // If this architecture isn't comfortable reading unaligned ints
-  // then we have to check that the strings are aligned before
-  // comparing them blockwise.
-  const int kAlignmentMask = sizeof(uint32_t) - 1;  // NOLINT
-  uintptr_t pa_addr = reinterpret_cast<uintptr_t>(a);
-  uintptr_t pb_addr = reinterpret_cast<uintptr_t>(b);
-  if (((pa_addr & kAlignmentMask) | (pb_addr & kAlignmentMask)) == 0) {
-#endif
-    const int kStepSize = sizeof(int) / sizeof(Char);  // NOLINT
-    int endpoint = length - kStepSize;
-    // Compare blocks until we reach near the end of the string.
-    for (; i <= endpoint; i += kStepSize) {
-      uint32_t wa = *reinterpret_cast<const uint32_t*>(a + i);
-      uint32_t wb = *reinterpret_cast<const uint32_t*>(b + i);
-      if (wa != wb) {
-        return false;
-      }
-    }
-#ifndef V8_HOST_CAN_READ_UNALIGNED
-  }
-#endif
-  // Compare the remaining characters that didn't fit into a block.
-  for (; i < length; i++) {
-    if (a[i] != b[i]) {
-      return false;
-    }
-  }
-  return true;
+  return CompareChars(a, b, length) == 0;
 }
 
 
@@ -10885,9 +10850,9 @@ void Code::Disassemble(const char* name, OStream& os) {  // NOLINT
     if (is_compare_ic_stub()) {
       DCHECK(CodeStub::GetMajorKey(this) == CodeStub::CompareIC);
       CompareICStub stub(stub_key(), GetIsolate());
-      os << "compare_state = " << CompareIC::GetStateName(stub.left()) << "*"
-         << CompareIC::GetStateName(stub.right()) << " -> "
-         << CompareIC::GetStateName(stub.state()) << "\n";
+      os << "compare_state = " << CompareICState::GetStateName(stub.left())
+         << "*" << CompareICState::GetStateName(stub.right()) << " -> "
+         << CompareICState::GetStateName(stub.state()) << "\n";
       os << "compare_operation = " << Token::Name(stub.op()) << "\n";
     }
   }
@@ -10933,13 +10898,6 @@ void Code::Disassemble(const char* name, OStream& os) {  // NOLINT
       if (entry.deoptimization_index() != Safepoint::kNoDeoptimizationIndex) {
         Vector<char> buf2 = Vector<char>::New(30);
         SNPrintF(buf2, "%6d", entry.deoptimization_index());
-        os << buf2.start();
-      } else {
-        os << "<none>";
-      }
-      if (entry.deoptimization_pc() != Safepoint::kNoDeoptimizationPc) {
-        Vector<char> buf2 = Vector<char>::New(30);
-        SNPrintF(buf2, "%6d", entry.deoptimization_pc());
         os << buf2.start();
       } else {
         os << "<none>";

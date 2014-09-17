@@ -6552,34 +6552,38 @@ static bool FastAsciiConvert(char* dst,
   bool changed = false;
   uintptr_t or_acc = 0;
   const char* const limit = src + length;
-#ifdef V8_HOST_CAN_READ_UNALIGNED
-  // Process the prefix of the input that requires no conversion one
-  // (machine) word at a time.
-  while (src <= limit - sizeof(uintptr_t)) {
-    const uintptr_t w = *reinterpret_cast<const uintptr_t*>(src);
-    or_acc |= w;
-    if (AsciiRangeMask(w, lo, hi) != 0) {
-      changed = true;
-      break;
+
+  // dst is newly allocated and always aligned.
+  DCHECK(IsAligned(reinterpret_cast<intptr_t>(dst), sizeof(uintptr_t)));
+  // Only attempt processing one word at a time if src is also aligned.
+  if (IsAligned(reinterpret_cast<intptr_t>(src), sizeof(uintptr_t))) {
+    // Process the prefix of the input that requires no conversion one aligned
+    // (machine) word at a time.
+    while (src <= limit - sizeof(uintptr_t)) {
+      const uintptr_t w = *reinterpret_cast<const uintptr_t*>(src);
+      or_acc |= w;
+      if (AsciiRangeMask(w, lo, hi) != 0) {
+        changed = true;
+        break;
+      }
+      *reinterpret_cast<uintptr_t*>(dst) = w;
+      src += sizeof(uintptr_t);
+      dst += sizeof(uintptr_t);
     }
-    *reinterpret_cast<uintptr_t*>(dst) = w;
-    src += sizeof(uintptr_t);
-    dst += sizeof(uintptr_t);
+    // Process the remainder of the input performing conversion when
+    // required one word at a time.
+    while (src <= limit - sizeof(uintptr_t)) {
+      const uintptr_t w = *reinterpret_cast<const uintptr_t*>(src);
+      or_acc |= w;
+      uintptr_t m = AsciiRangeMask(w, lo, hi);
+      // The mask has high (7th) bit set in every byte that needs
+      // conversion and we know that the distance between cases is
+      // 1 << 5.
+      *reinterpret_cast<uintptr_t*>(dst) = w ^ (m >> 2);
+      src += sizeof(uintptr_t);
+      dst += sizeof(uintptr_t);
+    }
   }
-  // Process the remainder of the input performing conversion when
-  // required one word at a time.
-  while (src <= limit - sizeof(uintptr_t)) {
-    const uintptr_t w = *reinterpret_cast<const uintptr_t*>(src);
-    or_acc |= w;
-    uintptr_t m = AsciiRangeMask(w, lo, hi);
-    // The mask has high (7th) bit set in every byte that needs
-    // conversion and we know that the distance between cases is
-    // 1 << 5.
-    *reinterpret_cast<uintptr_t*>(dst) = w ^ (m >> 2);
-    src += sizeof(uintptr_t);
-    dst += sizeof(uintptr_t);
-  }
-#endif
   // Process the last few bytes of the input (or the whole input if
   // unaligned access is not supported).
   while (src < limit) {
@@ -6593,9 +6597,8 @@ static bool FastAsciiConvert(char* dst,
     ++src;
     ++dst;
   }
-  if ((or_acc & kAsciiMask) != 0) {
-    return false;
-  }
+
+  if ((or_acc & kAsciiMask) != 0) return false;
 
   DCHECK(CheckFastAsciiConvert(
              saved_dst, saved_src, length, changed, Converter::kIsToLower));
@@ -7169,10 +7172,10 @@ RUNTIME_FUNCTION(Runtime_StringBuilderConcat) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 3);
   CONVERT_ARG_HANDLE_CHECKED(JSArray, array, 0);
-  if (!args[1]->IsSmi()) {
+  int32_t array_length;
+  if (!args[1]->ToInt32(&array_length)) {
     THROW_NEW_ERROR_RETURN_FAILURE(isolate, NewInvalidStringLengthError());
   }
-  CONVERT_SMI_ARG_CHECKED(array_length, 1);
   CONVERT_ARG_HANDLE_CHECKED(String, special, 2);
 
   size_t actual_array_length = 0;
@@ -7243,10 +7246,10 @@ RUNTIME_FUNCTION(Runtime_StringBuilderJoin) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 3);
   CONVERT_ARG_HANDLE_CHECKED(JSArray, array, 0);
-  if (!args[1]->IsSmi()) {
+  int32_t array_length;
+  if (!args[1]->ToInt32(&array_length)) {
     THROW_NEW_ERROR_RETURN_FAILURE(isolate, NewInvalidStringLengthError());
   }
-  CONVERT_SMI_ARG_CHECKED(array_length, 1);
   CONVERT_ARG_HANDLE_CHECKED(String, separator, 2);
   RUNTIME_ASSERT(array->HasFastObjectElements());
   RUNTIME_ASSERT(array_length >= 0);
@@ -10924,7 +10927,6 @@ static Handle<Object> DebugGetProperty(LookupIterator* it,
     switch (it->state()) {
       case LookupIterator::NOT_FOUND:
       case LookupIterator::TRANSITION:
-      case LookupIterator::UNKNOWN:
         UNREACHABLE();
       case LookupIterator::ACCESS_CHECK:
         // Ignore access checks.
@@ -15415,9 +15417,9 @@ RUNTIME_FUNCTION(RuntimeReference_StringCharAt) {
 RUNTIME_FUNCTION(RuntimeReference_OneByteSeqStringSetChar) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 3);
-  CONVERT_ARG_CHECKED(SeqOneByteString, string, 0);
-  CONVERT_INT32_ARG_CHECKED(index, 1);
-  CONVERT_INT32_ARG_CHECKED(value, 2);
+  CONVERT_INT32_ARG_CHECKED(index, 0);
+  CONVERT_INT32_ARG_CHECKED(value, 1);
+  CONVERT_ARG_CHECKED(SeqOneByteString, string, 2);
   string->SeqOneByteStringSet(index, value);
   return string;
 }
@@ -15426,9 +15428,9 @@ RUNTIME_FUNCTION(RuntimeReference_OneByteSeqStringSetChar) {
 RUNTIME_FUNCTION(RuntimeReference_TwoByteSeqStringSetChar) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 3);
-  CONVERT_ARG_CHECKED(SeqTwoByteString, string, 0);
-  CONVERT_INT32_ARG_CHECKED(index, 1);
-  CONVERT_INT32_ARG_CHECKED(value, 2);
+  CONVERT_INT32_ARG_CHECKED(index, 0);
+  CONVERT_INT32_ARG_CHECKED(value, 1);
+  CONVERT_ARG_CHECKED(SeqTwoByteString, string, 2);
   string->SeqTwoByteStringSet(index, value);
   return string;
 }

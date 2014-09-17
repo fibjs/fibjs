@@ -1135,6 +1135,19 @@ LInstruction* LChunkBuilder::DoCallWithDescriptor(
 }
 
 
+LInstruction* LChunkBuilder::DoTailCallThroughMegamorphicCache(
+    HTailCallThroughMegamorphicCache* instr) {
+  LOperand* context = UseFixed(instr->context(), esi);
+  LOperand* receiver_register =
+      UseFixed(instr->receiver(), LoadDescriptor::ReceiverRegister());
+  LOperand* name_register =
+      UseFixed(instr->name(), LoadDescriptor::NameRegister());
+  // Not marked as call. It can't deoptimize, and it never returns.
+  return new (zone()) LTailCallThroughMegamorphicCache(
+      context, receiver_register, name_register);
+}
+
+
 LInstruction* LChunkBuilder::DoInvokeFunction(HInvokeFunction* instr) {
   LOperand* context = UseFixed(instr->context(), esi);
   LOperand* function = UseFixed(instr->function(), edi);
@@ -2376,8 +2389,6 @@ LInstruction* LChunkBuilder::DoStoreNamedField(HStoreNamedField* instr) {
     val = UseTempRegister(instr->value());
   } else if (can_be_constant) {
     val = UseRegisterOrConstant(instr->value());
-  } else if (instr->field_representation().IsSmi()) {
-    val = UseTempRegister(instr->value());
   } else if (instr->field_representation().IsDouble()) {
     val = UseRegisterAtStart(instr->value());
   } else {
@@ -2477,8 +2488,8 @@ LInstruction* LChunkBuilder::DoParameter(HParameter* instr) {
     return DefineAsSpilled(result, spill_index);
   } else {
     DCHECK(info()->IsStub());
-    CodeStubInterfaceDescriptor descriptor;
-    info()->code_stub()->InitializeInterfaceDescriptor(&descriptor);
+    CallInterfaceDescriptor descriptor =
+        info()->code_stub()->GetCallInterfaceDescriptor();
     int index = static_cast<int>(instr->index());
     Register reg = descriptor.GetEnvironmentParameterRegister(index);
     return DefineFixed(result, reg);
