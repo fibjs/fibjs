@@ -39,10 +39,9 @@ msbuild fibjs.sln /t:Build /p:Configuration=Debug;Platform=Win32 /m
 goto out
 
 :clean
-msbuild fibjs.sln /t:Clean
-cd installer
-msbuild installer.sln /t:Clean
-cd ..
-goto out
+rmdir /S/Q out\Windows_Debug
+rmdir /S/Q out\Windows_Release
+rmdir /S/Q out\Windows_Debug32
+rmdir /S/Q out\Windows_Release32
 
 :out
