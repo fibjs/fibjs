@@ -156,7 +156,10 @@ result_t encoding_iconv::encode(const char *data, std::string &retVal)
         {
             m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
             if (m_iconv_en == (iconv_t)(-1))
+            {
+                m_iconv_en = NULL;
                 return CHECK_ERROR(Runtime::setError("Unknown charset."));
+            }
         }
 
         size_t sz = qstrlen(data);
@@ -199,7 +202,10 @@ result_t encoding_iconv::decode(const std::string &data, std::string &retVal)
         {
             m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
             if (m_iconv_de == (iconv_t)(-1))
+            {
+                m_iconv_de = NULL;
                 return CHECK_ERROR(Runtime::setError("Unknown charset."));
+            }
         }
 
         size_t sz = data.length();
@@ -233,7 +239,10 @@ result_t encoding_iconv::decode(Buffer_base *data, std::string &retVal)
         {
             m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
             if (m_iconv_de == (iconv_t)(-1))
+            {
+                m_iconv_de = NULL;
                 return CHECK_ERROR(Runtime::setError("Unknown charset."));
+            }
         }
 
         std::string strData;
