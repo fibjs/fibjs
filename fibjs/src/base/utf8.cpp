@@ -1,5 +1,8 @@
 #include "utf8.h"
 
+namespace fibjs
+{
+
 static const char utf8_length[128] =
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x80-0x8f */
@@ -12,277 +15,205 @@ static const char utf8_length[128] =
     3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 0, 0 /* 0xf0-0xff */
 };
 
-/* first byte mask depending on UTF-8 sequence length */
 static const unsigned char utf8_mask[6] =
 { 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
 
-/* minimum Unicode value depending on UTF-8 sequence length */
-static const unsigned int utf8_minval[6] =
-{ 0x0, 0x80, 0x800, 0x10000, 0x200000, 0x4000000 };
-
-inline int utf8_charWidth(unsigned char ch)
+int utf8_getchar(const char *&src, const char *end)
 {
-    return utf8_length[ch - 0x80];
-}
-
-wchar_t utf8_getchar(const char *&src)
-{
-    static const unsigned char utf8_mask[6] =
-    { 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
-
-    static const unsigned int utf8_minval[6] =
-    { 0x0, 0x80, 0x800, 0x10000, 0x200000, 0x4000000 };
-
-    if (!*src)
+    if (src >= end)
         return 0;
 
     unsigned char ch = (unsigned char) * src++;
     if (ch < 0x80)
         return ch;
 
-    int len = utf8_charWidth(ch);
-    int res;
-
-    res = ch & utf8_mask[len];
+    int len = utf8_length[ch - 0x80];
+    int res = ch & utf8_mask[len];
 
     switch (len)
     {
     case 5:
-        if (!*src)
-            return 0;
-        if ((ch = (unsigned char) * src ^ 0x80) >= 0x40)
+        if (src >= end || (ch = (unsigned char) * src ^ 0x80) >= 0x40)
             return '?';
 
         res = (res << 6) | ch;
         src++;
     case 4:
-        if (!*src)
-            return 0;
-        if ((ch = (unsigned char) * src ^ 0x80) >= 0x40)
+        if (src >= end || (ch = (unsigned char) * src ^ 0x80) >= 0x40)
             return '?';
 
         res = (res << 6) | ch;
         src++;
     case 3:
-        if (!*src)
-            return 0;
-        if ((ch = (unsigned char) * src ^ 0x80) >= 0x40)
+        if (src >= end || (ch = (unsigned char) * src ^ 0x80) >= 0x40)
             return '?';
 
         res = (res << 6) | ch;
         src++;
     case 2:
-        if (!*src)
-            return 0;
-        if ((ch = (unsigned char) * src ^ 0x80) >= 0x40)
+        if (src >= end || (ch = (unsigned char) * src ^ 0x80) >= 0x40)
             return '?';
 
         res = (res << 6) | ch;
         src++;
     case 1:
-        if (!*src)
-            return 0;
-        if ((ch = (unsigned char) * src ^ 0x80) >= 0x40)
+        if (src >= end || (ch = (unsigned char) * src ^ 0x80) >= 0x40)
             return '?';
 
         res = (res << 6) | ch;
         src++;
-
-        if (res < (int)utf8_minval[len])
-            return '?';
-        if (res >= 0x10000)
-            return '?';
     }
 
     return res;
 }
 
-/* query necessary dst length for src string */
-inline static int get_length_mbs_utf8(const unsigned char *src, int srclen)
+int utf8_putchar(int ch, char *&dst, const char *end)
 {
-    int ret;
-    const unsigned char *srcend = src + srclen;
+    if (dst && dst >= end)
+        return 0;
 
-    for (ret = 0; src < srcend; ret++)
+    int count;
+    int i;
+
+    if (ch < 0)
+        ch = '?';
+
+    if (ch < 0x80)
     {
-        unsigned char ch = *src++;
-        if (ch < 0xc0)
-            continue;
-
-        switch (utf8_length[ch - 0x80])
-        {
-        case 5:
-            if (src >= srcend)
-                return ret; /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                continue;
-            src++;
-        case 4:
-            if (src >= srcend)
-                return ret; /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                continue;
-            src++;
-        case 3:
-            if (src >= srcend)
-                return ret; /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                continue;
-            src++;
-        case 2:
-            if (src >= srcend)
-                return ret; /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                continue;
-            src++;
-        case 1:
-            if (src >= srcend)
-                return ret; /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                continue;
-            src++;
-        }
-    }
-    return ret;
-}
-
-/* UTF-8 to wide char string conversion */
-/* return -1 on dst buffer overflow, -2 on invalid input char */
-int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen)
-{
-    int len, count;
-    unsigned int res;
-    const char *srcend = src + srclen;
-
-    if (!dstlen)
-        return get_length_mbs_utf8((const unsigned char *) src, srclen);
-
-    for (count = dstlen; count && (src < srcend); count--, dst++)
-    {
-        unsigned char ch = *src++;
-        if (ch < 0x80) /* special fast case for 7-bit ASCII */
-        {
-            *dst = ch;
-            continue;
-        }
-        len = utf8_length[ch - 0x80];
-        res = ch & utf8_mask[len];
-
-        switch (len)
-        {
-        case 5:
-            if (src >= srcend)
-                goto done;
-            /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                goto bad;
-            res = (res << 6) | ch;
-            src++;
-        case 4:
-            if (src >= srcend)
-                goto done;
-            /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                goto bad;
-            res = (res << 6) | ch;
-            src++;
-        case 3:
-            if (src >= srcend)
-                goto done;
-            /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                goto bad;
-            res = (res << 6) | ch;
-            src++;
-        case 2:
-            if (src >= srcend)
-                goto done;
-            /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                goto bad;
-            res = (res << 6) | ch;
-            src++;
-        case 1:
-            if (src >= srcend)
-                goto done;
-            /* ignore partial char */
-            if ((ch = *src ^ 0x80) >= 0x40)
-                goto bad;
-            res = (res << 6) | ch;
-            src++;
-            if (res < utf8_minval[len])
-                goto bad;
-            if (res >= 0x10000)
-                goto bad;
-            /* FIXME: maybe we should do surrogates here */
-            *dst = res;
-            continue;
-        }
-bad: *dst = (wchar_t) '?';
-    }
-    if (src < srcend)
-        return -1; /* overflow */
-done: return dstlen - count;
-}
-
-/* query necessary dst length for src string */
-inline static int get_length_wcs_utf8(const wchar_t *src, unsigned int srclen)
-{
-    int len;
-    for (len = 0; srclen; srclen--, src++, len++)
-    {
-        if (*src >= 0x80)
-        {
-            len++;
-            if (*src >= 0x800)
-                len++;
-        }
-    }
-    return len;
-}
-
-/* wide char to UTF-8 string conversion */
-/* return -1 on dst buffer overflow */
-int utf8_wcstombs(const wchar_t *src, int srclen, char *dst, int dstlen)
-{
-    int len = dstlen;
-
-    if (!dstlen)
-        return get_length_wcs_utf8(src, srclen);
-
-    for (; srclen; srclen--, src++)
-    {
-        wchar_t ch = *src;
-
-        if (ch < 0x80) /* 0x00-0x7f: 1 byte */
-        {
-            if (!len--)
-                return -1; /* overflow */
+        if (dst)
             *dst++ = (char) ch;
-            continue;
-        }
-
-        if (ch < 0x800) /* 0x80-0x7ff: 2 bytes */
-        {
-            if ((len -= 2) < 0)
-                return -1; /* overflow */
-            dst[1] = 0x80 | (ch & 0x3f);
-            ch >>= 6;
-            dst[0] = 0xc0 | ch;
-            dst += 2;
-            continue;
-        }
-
-        /* 0x800-0xffff: 3 bytes */
-
-        if ((len -= 3) < 0)
-            return -1; /* overflow */
-        dst[2] = 0x80 | (ch & 0x3f);
-        ch >>= 6;
-        dst[1] = 0x80 | (ch & 0x3f);
-        ch >>= 6;
-        dst[0] = 0xe0 | ch;
-        dst += 3;
+        return 1;
     }
-    return dstlen - len;
+    else
+    {
+        wchar ch1;
+
+        if (ch < 0x800)
+        {
+            count = 1;
+            ch1 = 0xc0;
+        }
+        else if (ch < 0x10000)
+        {
+            count = 2;
+            ch1 = 0xe0;
+        }
+        else if (ch < 0x200000)
+        {
+            count = 3;
+            ch1 = 0xf0;
+        }
+        else if (ch < 0x4000000)
+        {
+            count = 4;
+            ch1 = 0xf8;
+        }
+        else
+        {
+            count = 5;
+            ch1 = 0xfc;
+        }
+
+        if (dst)
+        {
+            if (dst >= end - count)
+            {
+                *dst++ = '?';
+                return 1;
+            }
+
+            for (i = count; i > 0; i --)
+            {
+                dst[i] = (char)((ch & 0x3f) | 0x80);
+                ch >>= 6;
+            }
+            *dst = (char)(ch | ch1);
+            dst += count + 1;
+        }
+
+        return count + 1;
+    }
+
+    return 0;
+}
+
+int utf16_getchar(const wchar *&src, const wchar *end)
+{
+    int ch;
+
+    if (src >= end)
+        return 0;
+
+    if (((ch = *src++) & 0xf800) != 0xd800)
+        return ch;
+
+    wchar ch1;
+    if (src >= end || ((ch1 = *src) & 0xfc00) != 0xdc00)
+        return '?';
+
+    src ++;
+    return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff);
+}
+
+int utf16_putchar(int ch, wchar *&dst, const wchar *end)
+{
+    if (!dst)
+        return ch >= 0x10000 ? 2 : 1;
+
+    if (dst >= end)
+        return 0;
+
+    if (ch < 0)
+        ch = '?';
+
+    if (ch >= 0x10000)
+    {
+        if (dst >= end + 1)
+        {
+            *dst = '?';
+            return 1;
+        }
+
+        *dst++ = (wchar)((ch >> 10) | 0xd800);
+        *dst++ = (wchar)((ch & 0x3ff) | 0xdc00);
+
+        return 2;
+    }
+
+    *dst++ = (wchar)ch;
+    return 1;
+}
+
+int utf8_mbstowcs(const char *src, int srclen, wchar *dst, int dstlen)
+{
+    int count = 0;
+    const char *src_end = src + srclen;
+    const wchar *dst_end = dst + dstlen;
+    int ch;
+
+    while (src < src_end)
+    {
+        ch = utf8_getchar(src, src_end);
+        count += utf16_putchar(ch, dst, dst_end);
+    }
+
+    return count;
+}
+
+int utf8_wcstombs(const wchar *src, int srclen, char *dst, int dstlen)
+{
+    int count = 0;
+    const wchar *src_end = src + srclen;
+    const char *dst_end = dst + dstlen;
+    int ch;
+
+    while (src < src_end)
+    {
+        ch = utf16_getchar(src, src_end);
+        count += utf8_putchar(ch, dst, dst_end);
+    }
+
+    return count;
+}
+
 }

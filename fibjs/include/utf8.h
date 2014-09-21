@@ -14,9 +14,15 @@
 #include <string>
 #include "qstring.h"
 
-int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen);
-int utf8_wcstombs(const wchar_t *src, int srclen, char *dst, int dstlen);
-wchar_t utf8_getchar(const char *&src);
+namespace fibjs
+{
+
+int utf8_mbstowcs(const char *src, int srclen, wchar *dst, int dstlen);
+int utf8_wcstombs(const wchar *src, int srclen, char *dst, int dstlen);
+int utf8_getchar(const char *&src, const char *end);
+int utf8_putchar(int ch, char *&dst, const char *end);
+int utf16_getchar(const wchar *&src, const wchar *end);
+int utf16_putchar(int ch, wchar *&dst, const wchar *end);
 
 inline int utf8_strlen(const char *src, int srclen)
 {
@@ -26,7 +32,7 @@ inline int utf8_strlen(const char *src, int srclen)
     return utf8_mbstowcs(src, srclen, NULL, 0);
 }
 
-inline int utf8_strlen(const wchar_t *src, int srclen)
+inline int utf8_strlen(const wchar *src, int srclen)
 {
     if (srclen == -1)
         srclen = (int) qstrlen(src);
@@ -34,9 +40,9 @@ inline int utf8_strlen(const wchar_t *src, int srclen)
     return utf8_wcstombs(src, srclen, NULL, 0);
 }
 
-inline std::wstring utf8to16String(const char *src, int srclen = -1)
+inline wstring utf8to16String(const char *src, int srclen = -1)
 {
-    std::wstring str;
+    wstring str;
 
     if (srclen == -1)
         srclen = (int) qstrlen(src);
@@ -52,14 +58,14 @@ inline std::wstring utf8to16String(const char *src, int srclen = -1)
     return str;
 }
 
-inline std::wstring utf8to16String(std::string src)
+inline wstring utf8to16String(std::string src)
 {
     return utf8to16String(src.c_str(), (int)src.length());
 }
 
 #define UTF8_W(s) utf8to16String(s).c_str()
 
-inline std::string utf16to8String(const wchar_t *src, int srclen = -1)
+inline std::string utf16to8String(const wchar *src, int srclen = -1)
 {
     std::string str;
 
@@ -77,11 +83,13 @@ inline std::string utf16to8String(const wchar_t *src, int srclen = -1)
     return str;
 }
 
-inline std::string utf16to8String(std::wstring src)
+inline std::string utf16to8String(wstring src)
 {
     return utf16to8String(src.c_str(), (int)src.length());
 }
 
 #define UTF8_A(s) utf16to8String(s).c_str()
+
+}
 
 #endif
