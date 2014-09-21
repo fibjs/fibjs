@@ -56,6 +56,7 @@ inline void baseDecode(const char *pdecodeTable, int dwBits,
                        const char *baseString, obj_ptr<Buffer_base> &retVal)
 {
     int nWritten = 0, len = (int) qstrlen(baseString);
+    const char *end = baseString + len;
     std::string strBuf;
 
     strBuf.resize(len * dwBits / 8);
@@ -64,7 +65,7 @@ inline void baseDecode(const char *pdecodeTable, int dwBits,
     int nBits = 0;
     uint32_t ch;
 
-    while ((ch = utf8_getchar(baseString)) != 0)
+    while ((ch = utf8_getchar(baseString, end)) != 0)
     {
         int nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
 
@@ -164,20 +165,21 @@ result_t encoding_base::hexDecode(const char *data,
                                   obj_ptr<Buffer_base> &retVal)
 {
     int pos, len = (int) qstrlen(data);
+    const char *end = data + len;
     std::string strBuf;
     uint32_t ch1, ch2;
 
     strBuf.resize(len / 2);
 
     pos = 0;
-    while ((ch1 = utf8_getchar(data)) != 0)
+    while ((ch1 = utf8_getchar(data, end)) != 0)
     {
         if (qisxdigit(ch1))
             ch1 = qhex(ch1);
         else
             continue;
 
-        ch2 = utf8_getchar(data);
+        ch2 = utf8_getchar(data, end);
         if (ch2 == 0)
             break;
 

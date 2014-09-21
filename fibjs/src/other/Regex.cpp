@@ -73,13 +73,14 @@ result_t Regex::exec(const char *str, v8::Local<v8::Array> &retVal)
 {
     int rc = 0;
     int ovector[RE_SIZE];
-    int len = 0;
+    int len = (int) qstrlen(str);
+    const char *end = str + len;
     int i;
 
     if (m_bGlobal)
     {
         int n = m_nlastIndex;
-        while (n > 0 && utf8_getchar(str))
+        while (n > 0 && utf8_getchar(str, end))
             n--;
     }
 
@@ -116,12 +117,13 @@ result_t Regex::test(const char *str, bool &retVal)
 {
     int rc = 0;
     int ovector[RE_SIZE];
-    int len = 0;
+    int len = (int) qstrlen(str);
+    const char *end = str + len;
 
     if (m_bGlobal)
     {
         int n = m_nlastIndex;
-        while (n > 0 && utf8_getchar(str))
+        while (n > 0 && utf8_getchar(str, end))
             n--;
     }
 

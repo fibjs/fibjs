@@ -91,7 +91,7 @@ public:
                      && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
                      && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
             {
-                wchar_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+                wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
                               + (qhex(src[4]) << 4) + qhex(src[5]);
 
                 len += utf8_strlen(&wch, 1) - 1;
@@ -118,7 +118,7 @@ public:
                      && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
                      && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
             {
-                wchar_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+                wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
                               + (qhex(src[4]) << 4) + qhex(src[5]);
 
                 bstr += utf8_wcstombs(&wch, 1, bstr, 5);

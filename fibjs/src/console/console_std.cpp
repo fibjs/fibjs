@@ -40,11 +40,11 @@ void std_logger::out(const char *txt)
 
         void out(const char *s, FILE *stream)
         {
-            std::wstring ws = utf8to16String(s);
-            wchar_t *ptr = &ws[0];
-            wchar_t *ptr2;
+            wstring ws = utf8to16String(s);
+            wchar *ptr = &ws[0];
+            wchar *ptr2;
 
-            while (ptr2 = (wchar_t *) qstrchr(ptr, L'\x1b'))
+            while (ptr2 = (wchar *) qstrchr(ptr, L'\x1b'))
             {
                 if (ptr2[1] == '[')
                 {

@@ -104,7 +104,7 @@ result_t process_base::exec(const char *cmd)
     ZeroMemory(&si, sizeof(STARTUPINFO));
     si.cb = sizeof(STARTUPINFO);
 
-    std::wstring wstr(L"cmd /C ");
+    wstring wstr(L"cmd /C ");
     wstr.append(utf8to16String(cmd));
 
     CreateProcessW(NULL, &wstr[0], NULL, NULL, 0, 0, NULL, NULL, &si, &pi);

@@ -325,7 +325,7 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal, exlib::A
 
     WIN32_FIND_DATAW fd;
     HANDLE hFind;
-    std::wstring fpath;
+    wstring fpath;
     obj_ptr<List> oa;
 
     fpath = utf8to16String(path);
