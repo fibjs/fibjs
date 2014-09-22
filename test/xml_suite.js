@@ -60,7 +60,7 @@ function dump_dom(dom) {
 
 describe('xml', function() {
 	it("test suite", function() {
-		for (var i = 1; i < 1180; i++) {
+		for (var i = 1; i <= 1180; i++) {
 			var id = ("000" + i).slice(-4);
 			console.log("xml_files/xml/" + id + ".xml");
 			var txt = fs.readFile("xml_files/xml/" + id + ".xml");

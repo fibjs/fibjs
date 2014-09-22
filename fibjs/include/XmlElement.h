@@ -95,10 +95,25 @@ public:
     virtual result_t getElementsByTagNameNS(const char *namespaceURI, const char *localName, obj_ptr<XmlNodeList_base> &retVal);
 
 public:
-    void get_defaultNamespace(std::string &def_ns)
+    result_t get_defaultNamespace(std::string &def_ns)
     {
         if (m_prefix.empty())
+        {
             def_ns = m_namespaceURI;
+            return 0;
+        }
+
+        result_t hr = getAttribute("xmlns", def_ns);
+        if (hr == CALL_RETURN_NULL && m_parent)
+        {
+            int32_t type;
+
+            m_parent->get_nodeType(type);
+            if (type == xml_base::_ELEMENT_NODE)
+                return ((XmlElement *)m_parent->m_node)->get_defaultNamespace(def_ns);
+        }
+
+        return 0;
     }
 
     void getElementsByTagNameFromThis(const char *tagName, obj_ptr<XmlNodeList> &retVal)
