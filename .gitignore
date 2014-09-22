@@ -1,6 +1,6 @@
-out
-bin
-docs
-temp
+/out
+/bin
+/docs
+/temp
 *.sdf
 *.suo
