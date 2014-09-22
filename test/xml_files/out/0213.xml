@@ -1,0 +1,7 @@
+<?xml version="1.0"?><!DOCTYPE root><!--* element c has undeclared element as its ANY content *--><root><a/><b>
+   <c><f/></c> 
+   content of b element
+   <c>
+      <d>not declared in dtd</d>
+   </c>
+</b></root>

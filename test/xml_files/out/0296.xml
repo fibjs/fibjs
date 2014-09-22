@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!-- syntax test for Production 62--><!DOCTYPE animal SYSTEM "ibm62n02.dtd"><animal>
+ <tiger/>
+Negative test.  An extra '[' is used.
+</animal>

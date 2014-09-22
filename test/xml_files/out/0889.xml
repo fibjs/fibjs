@@ -1,0 +1,5 @@
+<!DOCTYPE root><!--
+	SGML dislikes token reuse.  It's legal XML, so any
+	XML parser must accept it, though it's discouraged
+	in documents "for interoperability"
+    --><root status="initial-draft" position="first"/>

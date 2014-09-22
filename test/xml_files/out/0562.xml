@@ -1,0 +1,30 @@
+<!--
+	(C) Copyright IBM Corp. 2003  All rights reserved.
+	
+	US Government Users Restricted Rights Use, duplication or
+	disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+	
+	The program is provided "as is" without any warranty express or
+	implied, including the warranty of non-infringement and the implied
+	warranties of merchantibility and fitness for a particular purpose.
+	IBM will not be liable for any damages suffered by you as a result
+	of using the Program. In no event will IBM be liable for any
+	special, indirect or consequential damages or lost profits even if
+	IBM has been advised of the possibility of their occurrence. IBM
+	will not be liable for any third party claims against you.
+--><!--
+    Configuration file for invalid XML 1.1 test cases.
+--><TESTCASES PROFILE="IBM Invalid Conformance Tests for XML 1.1 CR October 15, 2002">
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite">
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="invalid/P46/ibm46i01.xml" TYPE="invalid" ID="ibm-1-1-valid-P46-ibm46i01.xml" ENTITIES="none" SECTIONS="3.2.1, 2.2">
+        An element with Element-Only content contains the character #x85 (NEL not a 
+        whitespace character as defined by S).
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="invalid/P46/ibm46i02.xml" TYPE="invalid" ID="ibm-1-1-valid-P46-ibm46i02.xml" ENTITIES="none" SECTIONS="3.2.1, 2.2">
+        An element with Element-Only content contains the character #x2028 (LESP not a 
+        whitespace character as defined by S).
+  </TEST>  
+</TESTCASES>
+
+</TESTCASES>

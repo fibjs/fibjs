@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!DOCTYPE root><!--* EMPTY element a has content *--><root><a>should not have content here</a><b>
+   <c/> 
+   content of b element
+</b></root>

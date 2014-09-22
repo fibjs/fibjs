@@ -1,0 +1,5 @@
+<?xml version="1.0" standalone="no"?><!DOCTYPE attributes SYSTEM "sa.dtd"><!--
+	This one isn't standalone since it's got a defaulted
+	attribute (token) and one needing normalization
+	(notation).
+    --><attributes notation="nonce" nmtoken="this-gets-normalized" nmtokens="this also gets normalized" id="internal42" idref="internal42" idrefs="internal42 internal42 internal42" entity="unparsed-1" entities="unparsed-1 unparsed-2" cdata="nothing happens to this one!" token="a"/><?pi equals three?>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE animal SYSTEM "ibm28v02.dtd"><?sound "This is a PI" ?><!-- This is a valid test file for p28 --><animal>
+   <cat>This is a small cat</cat>
+   <tiger color="white">This is a white tiger in Mirage!!</tiger>
+   <cat/>
+   <leopard>
+      <small/>
+      <big/>
+   </leopard>
+</animal>

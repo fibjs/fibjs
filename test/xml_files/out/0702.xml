@@ -1,0 +1,2 @@
+<?xml version="1.0"?><!--Non-terminal Misc only appears as Misc*, so we cannot test the fact
+    that Misc must match exactly one comment, PI, or S--><doc/>

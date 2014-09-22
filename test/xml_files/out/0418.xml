@@ -1,0 +1,1 @@
+<!DOCTYPE animal SYSTEM "ibm30v01.dtd"><animal/><!-- tests extSubset with extSubsetDecl only in the dtd file -->

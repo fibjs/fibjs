@@ -1,0 +1,14 @@
+<?xml version="1.0"?><!DOCTYPE root><!--* content: element|CharData|Reference|CDSect|PI|CDSect|PI|Comment *--><root><a/><b>
+<!-- there is an empty element in the above line -->
+   <c/> 
+   CharData: content of b element
+   %paaa; : PE reference should not be recognized in element content 
+   <c>
+<?PIcontent anyProcessingInstruction?>
+<!-- Comment content -->
+    <b>General entity reference in element content</b>
+    Charater reference: A
+    CDSect in content: <![CDATA[ <html>markups<head>HEAD</head><body>nothing</body></html> ]]>
+   </c>
+</b>
+</root><!--* test P43 *-->

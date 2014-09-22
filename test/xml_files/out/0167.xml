@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="iso-8859-1"?><!-- Contains a C1 control character (partial line up), legal in
+     XML 1.0 but not 1.1 --><!DOCTYPE foo><foo>ï¿½</foo>

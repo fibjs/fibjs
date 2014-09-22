@@ -1,0 +1,6 @@
+<?xml version="1.0"?><!-- University of Edinburgh XML 1.0 4th edition errata test suite. 
+     Copyright University of Edinburgh, HCRC February 2008.
+     May be freely redistributed provided copyright notice is retained.
+  --><?xml-stylesheet href="xmlconformance.xsl" type="text/xsl"?><!DOCTYPE TESTSUITE SYSTEM "testcases.dtd"><TESTSUITE PROFILE="University of Edinburgh's XML 1.0 4th edition errata test suite 5 February 2008">
+    
+</TESTSUITE>

@@ -1,0 +1,5 @@
+<!DOCTYPE doc><doc>
+<e a3="v3" a1="v1" a2="v2"/>
+<e a1="w1" a2="v2"/>
+<e a2="w2" a3="v3" a1="v1"/>
+</doc>

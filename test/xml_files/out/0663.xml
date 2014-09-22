@@ -1,0 +1,1287 @@
+<?xml version="1.0" encoding="UTF-8"?><TESTCASES PROFILE="OASIS/NIST TESTS, 1-Nov-1998">
+
+  <TEST TYPE="valid" SECTIONS="2.2 [1]" ID="o-p01pass2" URI="p01pass2.xml">
+     various Misc items where they can occur
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.3 [6]" ID="o-p06pass1" URI="p06pass1.xml">
+     various satisfactions of the Names production in a NAMES
+    attribute
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.3 [7]" ID="o-p07pass1" URI="p07pass1.xml">
+     various valid Nmtoken 's in an attribute list declaration.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.3 [8]" ID="o-p08pass1" URI="p08pass1.xml" NAMESPACE="no">
+     various satisfaction of an NMTOKENS attribute value.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.3 [9]" ID="o-p09pass1" ENTITIES="parameter" URI="p09pass1.xml">
+     valid EntityValue's.  Except for entity references,
+              markup is not recognized.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.3 [12]" ID="o-p12pass1" URI="p12pass1.xml">
+     valid public IDs.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 [22]" ID="o-p22pass4" URI="p22pass4.xml">
+     XML decl and doctypedecl
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 [22]" ID="o-p22pass5" URI="p22pass5.xml">
+     just doctypedecl
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 [22]" ID="o-p22pass6" URI="p22pass6.xml">
+     S between decls is not required
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.1 [43] [44]" ID="o-p28pass1" URI="p28pass1.xml">
+    Empty-element tag must be used for element which are declared EMPTY.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 4.1 [28] [69]" ID="o-p28pass3" ENTITIES="parameter" URI="p28pass3.xml">
+    Valid doctypedecl with Parameter entity reference.  The declaration of a parameter entity must precede any reference to it.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 4.2.2 [28] [75]" ID="o-p28pass4" ENTITIES="parameter" URI="p28pass4.xml">
+    Valid doctypedecl with ExternalID as an External Entity declaration.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 4.1 [28] [69]" ID="o-p28pass5" ENTITIES="parameter" URI="p28pass5.xml">
+    Valid doctypedecl with ExternalID as an External Entity.  A parameter entity reference is also used.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 [29]" ID="o-p29pass1" URI="p29pass1.xml">
+     Valid types of markupdecl.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 4.2.2 [30] [75]" ID="o-p30pass1" ENTITIES="parameter" URI="p30pass1.xml">
+    Valid doctypedecl with ExternalID as an External Entity.  The external entity has an element declaration.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 4.2.2 4.3.1 [30] [75] [77]" ID="o-p30pass2" ENTITIES="parameter" URI="p30pass2.xml">
+    Valid doctypedecl with ExternalID as an Enternal Entity.  The external entity begins with a Text Declaration.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 [31]" ID="o-p31pass1" ENTITIES="parameter" URI="p31pass1.xml">
+     external subset can be empty
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.8 3.4 4.2.2 [31] [62] [63] [75]" ID="o-p31pass2" ENTITIES="parameter" URI="p31pass2.xml">
+    Valid doctypedecl with EXternalID as Enternal Entity.  The external entity contains a parameter entity reference and condtional sections.</TEST>
+
+  <TEST TYPE="valid" SECTIONS="2.4 2.5 2.6 2.7 [15] [16] [18]" ID="o-p43pass1" URI="p43pass1.xml">
+    Valid use of character data, comments, processing instructions and CDATA sections within the start and end tag.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.2 [45]" ID="o-p45pass1" URI="p45pass1.xml">
+     valid element declarations
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.2 3.2.1 3.2.2 [45] [46] [47] [51]" ID="o-p46pass1" URI="p46pass1.xml">
+    Valid use of contentspec, element content models, and mixed content within an element type declaration.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.2 3.2.1 [45] [46] [47] " ID="o-p47pass1" URI="p47pass1.xml">
+    Valid use of contentspec, element content models, choices, sequences and content particles within an element type declaration.  The optional character following a name or list governs the number of times the element or content particle may appear.     </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.2 3.2.1 [45] [46] [47]" ID="o-p48pass1" URI="p48pass1.xml">
+    Valid use of contentspec, element content models, choices, sequences and content particles within an element type declaration.  The optional character following a name or list governs the number of times the element or content particle may appear.    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.2 3.2.1 [45] [46] [47]" ID="o-p49pass1" URI="p49pass1.xml">
+    Valid use of contentspec, element content models, choices, and content particles within an element type declaration.  The optional character following a name or list governs the number of times the element or content particle may appear.  Whitespace is also valid between choices.   </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.2 3.2.1 [45] [46] [47]" ID="o-p50pass1" URI="p50pass1.xml">
+    Valid use of contentspec, element content models, sequences and content particles within an element type declaration.  The optional character following a name or list governs the number of times the element or content particle may appear.  Whitespace is also valid between sequences.   </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.2.2 [51]" ID="o-p51pass1" URI="p51pass1.xml">
+     valid Mixed contentspec's.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3 [52]" ID="o-p52pass1" URI="p52pass1.xml">
+     valid AttlistDecls: No AttDef's are required,
+    and the terminating
+          S is optional, multiple ATTLISTS per element are OK, and multiple
+          declarations of the same attribute are OK.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3 [53]" ID="o-p53pass1" URI="p53pass1.xml">
+     a valid AttDef
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3.1 [54]" ID="o-p54pass1" URI="p54pass1.xml">
+     the three kinds of attribute types
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3.1 [55]" ID="o-p55pass1" URI="p55pass1.xml">
+     StringType = "CDATA"
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3.1 [56]" ID="o-p56pass1" URI="p56pass1.xml">
+     the 7 tokenized attribute types
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3.1 [57]" ID="o-p57pass1" URI="p57pass1.xml">
+     enumerated types are NMTOKEN or NOTATION lists
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3.1 [58]" ID="o-p58pass1" URI="p58pass1.xml">
+     NOTATION enumeration has on or more items
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3.1 [59]" ID="o-p59pass1" URI="p59pass1.xml">
+     NMTOKEN enumerations haveon or more items
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.3.2 [60]" ID="o-p60pass1" URI="p60pass1.xml">
+     the four types of default values
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.4 [61]" ID="o-p61pass1" ENTITIES="parameter" URI="p61pass1.xml">
+     valid conditional sections are INCLUDE and IGNORE
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.4 [62]" ID="o-p62pass1" ENTITIES="parameter" URI="p62pass1.xml">
+     valid INCLUDE sections -- options S before and
+    after keyword, sections can nest
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.4 [63]" ID="o-p63pass1" ENTITIES="parameter" URI="p63pass1.xml">
+     valid IGNORE sections
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="3.4 [64]" ID="o-p64pass1" ENTITIES="parameter" URI="p64pass1.xml">
+     IGNOREd sections ignore everything except section delimiters
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="4.1 [68]" ID="o-p68pass1" URI="p68pass1.xml">
+     Valid entity references.  Also ensures that a charref to
+          '&amp;' isn't interpreted as an entity reference open delimiter
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="4.1 [69]" ID="o-p69pass1" ENTITIES="parameter" URI="p69pass1.xml">
+     Valid PEReferences.
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="4.2 [70]" ID="o-p70pass1" URI="p70pass1.xml">
+     An EntityDecl is either a GEDecl or a PEDecl
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="4.2 [71]" ID="o-p71pass1" URI="p71pass1.xml">
+     Valid GEDecls
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="4.2 [72]" ID="o-p72pass1" URI="p72pass1.xml">
+     Valid PEDecls
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="4.2 [73]" ID="o-p73pass1" URI="p73pass1.xml">
+     EntityDef is either Entity value or an external id,
+    with an optional NDataDecl
+    </TEST>
+
+  <TEST TYPE="valid" SECTIONS="4.2.2 [76]" ID="o-p76pass1" URI="p76pass1.xml">
+     valid NDataDecls
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.1 [1]" ID="o-p01pass1" URI="p01pass1.xml">
+     no prolog
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.1 [1]" ID="o-p01pass3" URI="p01pass3.xml">
+     Misc items after the document
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.3 [3]" ID="o-p03pass1" URI="p03pass1.xml">
+     all valid S characters
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.3 [4]" ID="o-p04pass1" URI="p04pass1.xml" NAMESPACE="no">
+     names with all valid ASCII characters, and one from each
+              other class in NameChar
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.3 [5]" ID="o-p05pass1" URI="p05pass1.xml" NAMESPACE="no">
+     various valid Name constructions
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.3 [6]" ID="o-p06fail1" URI="p06fail1.xml">
+     Requires at least one name.
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.3 [8]" ID="o-p08fail1" URI="p08fail1.xml">
+     at least one Nmtoken is required.
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.3 [8]" ID="o-p08fail2" URI="p08fail2.xml">
+     an invalid Nmtoken character.
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.3 [10]" ID="o-p10pass1" URI="p10pass1.xml">
+     valid attribute values
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.4 [14]" ID="o-p14pass1" URI="p14pass1.xml">
+     valid CharData
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.5 [15]" ID="o-p15pass1" URI="p15pass1.xml">
+     valid comments
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.6 [16] [17]" ID="o-p16pass1" URI="p16pass1.xml">
+    Valid form of Processing Instruction. Shows that whitespace character data is valid before end of processing instruction.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.6 [16]" ID="o-p16pass2" URI="p16pass2.xml">
+    Valid form of Processing Instruction. Shows that whitespace character data is valid before end of processing instruction.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.6 [16]" ID="o-p16pass3" URI="p16pass3.xml">
+    Valid form of Processing Instruction. Shows that whitespace character data is valid before end of processing instruction.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.7 [18]" ID="o-p18pass1" URI="p18pass1.xml">
+     valid CDSect's.  Note that a CDStart in a CDSect is not
+              recognized as such
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [22]" ID="o-p22pass1" URI="p22pass1.xml">
+     prolog can be empty
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [22]" ID="o-p22pass2" URI="p22pass2.xml">
+     XML declaration only
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [22]" ID="o-p22pass3" URI="p22pass3.xml">
+     XML decl and Misc
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [23]" ID="o-p23pass1" URI="p23pass1.xml">
+    Test shows a valid XML declaration along with version info.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [23]" ID="o-p23pass2" URI="p23pass2.xml">
+    Test shows a valid XML declaration along with encoding declaration.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [23]" ID="o-p23pass3" URI="p23pass3.xml">
+    Test shows a valid XML declaration along with Standalone Document Declaration.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [23]" ID="o-p23pass4" URI="p23pass4.xml">
+    Test shows a valid XML declaration, encoding declarationand Standalone Document Declaration.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [24]" ID="o-p24pass1" URI="p24pass1.xml">
+    Test shows a prolog that has the VersionInfo delimited by double quotes.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [24]" ID="o-p24pass2" URI="p24pass2.xml">
+    Test shows a prolog that has the VersionInfo delimited by single quotes.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [24]" ID="o-p24pass3" URI="p24pass3.xml">
+    Test shows whitespace is allowed in prolog before version info.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [24]" ID="o-p24pass4" URI="p24pass4.xml">
+    Test shows whitespace is allowed in prolog on both sides of equal sign.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [25]" ID="o-p25pass1" URI="p25pass1.xml">
+    Test shows whitespace is NOT necessary before or after equal sign of versioninfo.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [25]" ID="o-p25pass2" URI="p25pass2.xml">
+    Test shows whitespace can be used on both sides of equal sign of versioninfo.     </TEST>
+
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [26]" ID="o-p26pass1" URI="p26pass1.xml">
+     The valid version number.  We cannot test others because
+              a 1.0 processor is allowed to fail them.
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [27]" ID="o-p27pass1" URI="p27pass1.xml">
+    Comments are valid as the Misc part of the prolog.    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [27]" ID="o-p27pass2" URI="p27pass2.xml">
+    Processing Instructions are valid as the Misc part of the prolog.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [27]" ID="o-p27pass3" URI="p27pass3.xml">
+    Whitespace is valid as the Misc part of the prolog.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.8 [27]" ID="o-p27pass4" URI="p27pass4.xml">
+    A combination of comments, whitespaces and processing instructions are valid as the Misc part of the prolog.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.9 [32]" ID="o-p32pass1" URI="p32pass1.xml">
+    Double quotes can be used as delimeters for the value of a Standalone Document Declaration.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="2.9 [32]" ID="o-p32pass2" URI="p32pass2.xml">
+    Single quotes can be used as delimeters for the value of a Standalone Document Declaration.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3 3.1 [39] [44]" ID="o-p39pass1" URI="p39pass1.xml">
+    Empty element tag may be used for any element which has no content.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3 3.1 [39] [43]" ID="o-p39pass2" URI="p39pass2.xml">
+    Character data is valid element content.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [40]" ID="o-p40pass1" URI="p40pass1.xml">
+    Elements content can be empty.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [40]" ID="o-p40pass2" URI="p40pass2.xml">
+    Whitespace is valid within a Start-tag.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [40] [41]" ID="o-p40pass3" URI="p40pass3.xml">
+    Attributes are valid within a Start-tag.    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [40]" ID="o-p40pass4" URI="p40pass4.xml">
+    Whitespace and Multiple Attributes are valid within a Start-tag.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [41]" ID="o-p41pass1" URI="p41pass1.xml">
+    Attributes are valid within a Start-tag.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [41]" ID="o-p41pass2" URI="p41pass2.xml">
+    Whitespace is valid within a Start-tags Attribute.    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [42]" ID="o-p42pass1" URI="p42pass1.xml">
+    Test shows proper syntax for an End-tag.    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [42]" ID="o-p42pass2" URI="p42pass2.xml">
+    Whitespace is valid after name in End-tag.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [44]" ID="o-p44pass1" URI="p44pass1.xml">
+    Valid display of an Empty Element Tag.    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [44]" ID="o-p44pass2" URI="p44pass2.xml">
+    Empty Element Tags can contain an Attribute.    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [44]" ID="o-p44pass3" URI="p44pass3.xml">
+    Whitespace is valid in an Empty Element Tag following the end of the attribute value.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [44]" ID="o-p44pass4" URI="p44pass4.xml">
+    Whitespace is valid after the name in an Empty Element Tag.     </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.1 [44]" ID="o-p44pass5" URI="p44pass5.xml">
+    Whitespace and Multiple Attributes are valid in an Empty Element Tag.    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="4.1 [66]" ID="o-p66pass1" URI="p66pass1.xml">
+     valid character references
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="4.2 [74]" ID="o-p74pass1" URI="p74pass1.xml">
+     PEDef is either an entity value or an external id
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="4.2.2 [75]" ID="o-p75pass1" URI="p75pass1.xml">
+     valid external identifiers
+    </TEST>
+
+  <TEST TYPE="invalid" SECTIONS="3.3.1 [58] [59] Errata [E2]" ID="o-e2" URI="e2.xml">
+      Validity Constraint:  No duplicate tokens 
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.1 [1]" ID="o-p01fail1" URI="p01fail1.xml">
+     S cannot occur before the prolog
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.1 [1]" ID="o-p01fail2" URI="p01fail2.xml">
+     comments cannot occur before the prolog
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.1 [1]" ID="o-p01fail3" URI="p01fail3.xml">
+     only one document element
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.1 [1]" ID="o-p01fail4" URI="p01fail4.xml">
+     document element must be complete.
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail1" URI="p02fail1.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail10" URI="p02fail10.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail11" URI="p02fail11.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail12" URI="p02fail12.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail13" URI="p02fail13.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail14" URI="p02fail14.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail15" URI="p02fail15.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail16" URI="p02fail16.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail17" URI="p02fail17.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail18" URI="p02fail18.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail19" URI="p02fail19.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail2" URI="p02fail2.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail20" URI="p02fail20.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail21" URI="p02fail21.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail22" URI="p02fail22.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail23" URI="p02fail23.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail24" URI="p02fail24.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail25" URI="p02fail25.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail26" URI="p02fail26.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail27" URI="p02fail27.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail28" URI="p02fail28.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail29" URI="p02fail29.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail3" URI="p02fail3.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail30" URI="p02fail30.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail31" URI="p02fail31.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail4" URI="p02fail4.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail5" URI="p02fail5.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail6" URI="p02fail6.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail7" URI="p02fail7.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail8" URI="p02fail8.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.2 [2]" ID="o-p02fail9" URI="p02fail9.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail1" URI="p03fail1.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail10" URI="p03fail10.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail11" URI="p03fail11.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail12" URI="p03fail12.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail13" URI="p03fail13.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail14" URI="p03fail14.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail15" URI="p03fail15.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail16" URI="p03fail16.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail17" URI="p03fail17.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail18" URI="p03fail18.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail19" URI="p03fail19.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail2" URI="p03fail2.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail20" URI="p03fail20.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail21" URI="p03fail21.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail22" URI="p03fail22.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail23" URI="p03fail23.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail24" URI="p03fail24.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail25" URI="p03fail25.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail26" URI="p03fail26.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail27" URI="p03fail27.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail28" URI="p03fail28.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail29" URI="p03fail29.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail3" URI="p03fail3.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail4" URI="p03fail4.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail5" URI="p03fail5.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail7" URI="p03fail7.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail8" URI="p03fail8.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [3]" ID="o-p03fail9" URI="p03fail9.xml">
+    Use of illegal character within XML document.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [4]" ID="o-p04fail1" URI="p04fail1.xml">
+    Name contains invalid character.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [4]" ID="o-p04fail2" URI="p04fail2.xml">
+    Name contains invalid character.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [4]" ID="o-p04fail3" URI="p04fail3.xml">
+    Name contains invalid character.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [5]" ID="o-p05fail1" URI="p05fail1.xml">
+     a Name cannot start with a digit
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [5]" ID="o-p05fail2" URI="p05fail2.xml">
+     a Name cannot start with a '.'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [5]" ID="o-p05fail3" URI="p05fail3.xml">
+     a Name cannot start with a "-"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [5]" ID="o-p05fail4" URI="p05fail4.xml">
+     a Name cannot start with a CombiningChar
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [5]" ID="o-p05fail5" URI="p05fail5.xml">
+     a Name cannot start with an Extender
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [9]" ID="o-p09fail1" ENTITIES="parameter" URI="p09fail1.xml">
+     EntityValue excludes '%'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [9]" ID="o-p09fail2" ENTITIES="parameter" URI="p09fail2.xml">
+     EntityValue excludes '&amp;'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [9]" ID="o-p09fail3" URI="p09fail3.xml">
+     incomplete character reference
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [9]" ID="o-p09fail4" URI="p09fail4.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [9]" ID="o-p09fail5" URI="p09fail5.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [10]" ID="o-p10fail1" URI="p10fail1.xml">
+     attribute values exclude '&lt;'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [10]" ID="o-p10fail2" URI="p10fail2.xml">
+     attribute values exclude '&amp;'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [10]" ID="o-p10fail3" URI="p10fail3.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [11]" ID="o-p11fail1" URI="p11fail1.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [11]" ID="o-p11fail2" URI="p11fail2.xml">
+     cannot contain delimiting quotes
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [12]" ID="o-p12fail1" URI="p12fail1.xml">
+     '"' excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [12]" ID="o-p12fail2" URI="p12fail2.xml">
+     '\' excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [12]" ID="o-p12fail3" URI="p12fail3.xml">
+     entity references excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [12]" ID="o-p12fail4" URI="p12fail4.xml">
+     '&gt;' excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [12]" ID="o-p12fail5" URI="p12fail5.xml">
+     '&lt;' excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [12]" ID="o-p12fail6" URI="p12fail6.xml">
+     built-in entity refs excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.3 [13]" ID="o-p12fail7" URI="p12fail7.xml">
+      The public ID has a tab character, which is disallowed
+     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.4 [14]" ID="o-p14fail1" URI="p14fail1.xml">
+     '&lt;' excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.4 [14]" ID="o-p14fail2" URI="p14fail2.xml">
+     '&amp;' excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.4 [14]" ID="o-p14fail3" URI="p14fail3.xml">
+     "]]&gt;" excluded
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.5 [15]" ID="o-p15fail1" URI="p15fail1.xml">
+     comments can't end in '-'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.5 [15]" ID="o-p15fail2" URI="p15fail2.xml">
+     one comment per comment (contrasted with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.5 [15]" ID="o-p15fail3" URI="p15fail3.xml">
+     can't include 2 or more adjacent '-'s
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.6 [16]" ID="o-p16fail1" URI="p16fail1.xml">
+     "xml" is an invalid PITarget
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.6 [16]" ID="o-p16fail2" URI="p16fail2.xml">
+     a PITarget must be present
+    </TEST>
+
+<TEST TYPE="not-wf" SECTIONS="2.6 [16]" ID="o-p16fail3" URI="p16fail3.xml">
+     S after PITarget is required
+    </TEST>
+
+
+  <TEST TYPE="not-wf" SECTIONS="2.7 [18]" ID="o-p18fail1" URI="p18fail1.xml">
+     no space before "CDATA"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.7 [18]" ID="o-p18fail2" URI="p18fail2.xml">
+     no space after "CDATA"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.7 [18]" ID="o-p18fail3" URI="p18fail3.xml">
+     CDSect's can't nest
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [22]" ID="o-p22fail1" URI="p22fail1.xml">
+     prolog must start with XML decl
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [22]" ID="o-p22fail2" URI="p22fail2.xml">
+     prolog must start with XML decl
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [23]" ID="o-p23fail1" URI="p23fail1.xml">
+     "xml" must be lower-case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [23]" ID="o-p23fail2" URI="p23fail2.xml">
+     VersionInfo must be supplied
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [23]" ID="o-p23fail3" URI="p23fail3.xml">
+     VersionInfo must come first
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [23]" ID="o-p23fail4" URI="p23fail4.xml">
+     SDDecl must come last
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [23]" ID="o-p23fail5" URI="p23fail5.xml">
+     no SGML-type PIs
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [24]" ID="o-p24fail1" URI="p24fail1.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [24]" ID="o-p24fail2" URI="p24fail2.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [25]" ID="o-p25fail1" URI="p25fail1.xml">
+    Comment is illegal in VersionInfo.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [26]" ID="o-p26fail1" URI="p26fail1.xml">
+    Illegal character in VersionNum.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [26]" ID="o-p26fail2" URI="p26fail2.xml">
+    Illegal character in VersionNum.     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [27]" ID="o-p27fail1" URI="p27fail1.xml">
+     References aren't allowed in Misc,
+    even if they would resolve to valid Misc.
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [28]" ID="o-p28fail1" URI="p28fail1.xml">
+     only declarations in DTD.
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [29]" ID="o-p29fail1" URI="p29fail1.xml">
+     A processor must not pass unknown declaration types.
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [30]" ID="o-p30fail1" ENTITIES="parameter" URI="p30fail1.xml">
+     An XML declaration is not the same as a TextDecl
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [31]" ID="o-p31fail1" ENTITIES="parameter" URI="p31fail1.xml">
+     external subset excludes doctypedecl
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.9 [32]" ID="o-p32fail1" URI="p32fail1.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.9 [32]" ID="o-p32fail2" URI="p32fail2.xml">
+     quote types must match
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.9 [32]" ID="o-p32fail3" URI="p32fail3.xml">
+     initial S is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.9 [32]" ID="o-p32fail4" URI="p32fail4.xml">
+     quotes are required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.9 [32]" ID="o-p32fail5" URI="p32fail5.xml">
+     yes or no must be lower case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3 [39]" ID="o-p39fail1" URI="p39fail1.xml">
+     start-tag requires end-tag
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3 [39]" ID="o-p39fail2" URI="p39fail2.xml">
+     end-tag requires start-tag
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3 [39]" ID="o-p39fail3" URI="p39fail3.xml">
+    XML documents contain one or more elements</TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [23]" ID="o-p39fail4" URI="p39fail4.xml">
+     XML declarations must be correctly terminated </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="2.8 [23]" ID="o-p39fail5" URI="p39fail5.xml">
+     XML declarations must be correctly terminated </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [40]" ID="o-p40fail1" URI="p40fail1.xml">
+     S is required between attributes
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [40]" ID="o-p40fail2" URI="p40fail2.xml">
+     tags start with names, not nmtokens
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [40]" ID="o-p40fail3" URI="p40fail3.xml">
+     tags start with names, not nmtokens
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [40]" ID="o-p40fail4" URI="p40fail4.xml">
+     no space before name
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [41]" ID="o-p41fail1" URI="p41fail1.xml">
+     quotes are required (contrast with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [41]" ID="o-p41fail2" URI="p41fail2.xml">
+     attribute name is required (contrast with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [41]" ID="o-p41fail3" URI="p41fail3.xml">
+     Eq required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [42]" ID="o-p42fail1" URI="p42fail1.xml">
+     no space before name
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [42]" ID="o-p42fail2" URI="p42fail2.xml">
+     cannot end with "/&gt;"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [42]" ID="o-p42fail3" URI="p42fail3.xml">
+     no NET (contrast with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [43]" ID="o-p43fail1" URI="p43fail1.xml">
+     no non-comment declarations
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [43]" ID="o-p43fail2" URI="p43fail2.xml">
+     no conditional sections
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [43]" ID="o-p43fail3" URI="p43fail3.xml">
+     no conditional sections
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [44]" ID="o-p44fail1" URI="p44fail1.xml">
+    Illegal space before Empty element tag.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [44]" ID="o-p44fail2" URI="p44fail2.xml">
+    Illegal space after Empty element tag.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [44]" ID="o-p44fail3" URI="p44fail3.xml">
+    Illegal comment in Empty element tag.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [44]" ID="o-p44fail4" URI="p44fail4.xml">
+    Whitespace required between attributes.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.1 [44]" ID="o-p44fail5" URI="p44fail5.xml">
+    Duplicate attribute name is illegal.    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [45]" ID="o-p45fail1" URI="p45fail1.xml">
+     ELEMENT must be upper case.
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [45]" ID="o-p45fail2" URI="p45fail2.xml">
+     S before contentspec is required.
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [45]" ID="o-p45fail3" URI="p45fail3.xml">
+     only one content spec
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [45]" ID="o-p45fail4" URI="p45fail4.xml">
+     no comments in declarations (contrast with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [46]" ID="o-p46fail1" URI="p46fail1.xml">
+     no parens on declared content
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [46]" ID="o-p46fail2" URI="p46fail2.xml">
+     no inclusions (contrast with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [46]" ID="o-p46fail3" URI="p46fail3.xml">
+     no exclusions (contrast with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [46]" ID="o-p46fail4" URI="p46fail4.xml">
+     no space before occurrence
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [46]" ID="o-p46fail5" URI="p46fail5.xml">
+     single group
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2 [46]" ID="o-p46fail6" URI="p46fail6.xml">
+     can't be both declared and modeled
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [47]" ID="o-p47fail1" URI="p47fail1.xml">
+    Invalid operator '|' must match previous operator ','</TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [47]" ID="o-p47fail2" URI="p47fail2.xml">
+    Illegal character '-' in Element-content model     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [47]" ID="o-p47fail3" URI="p47fail3.xml">
+    Optional character must follow a name or list     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [47]" ID="o-p47fail4" URI="p47fail4.xml">
+    Illegal space before optional character</TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [48]" ID="o-p48fail1" URI="p48fail1.xml">
+    Illegal space before optional character    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [48]" ID="o-p48fail2" URI="p48fail2.xml">
+    Illegal space before optional character     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [49]" ID="o-p49fail1" URI="p49fail1.xml">
+    connectors must match     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.1 [50]" ID="o-p50fail1" URI="p50fail1.xml">
+    connectors must match     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.2 [51]" ID="o-p51fail1" URI="p51fail1.xml">
+     occurrence on #PCDATA group must be *
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.2 [51]" ID="o-p51fail2" URI="p51fail2.xml">
+     occurrence on #PCDATA group must be *
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.2 [51]" ID="o-p51fail3" URI="p51fail3.xml">
+     #PCDATA must come first
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.2 [51]" ID="o-p51fail4" URI="p51fail4.xml">
+     occurrence on #PCDATA group must be *
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.2 [51]" ID="o-p51fail5" URI="p51fail5.xml">
+     only '|' connectors
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.2 [51]" ID="o-p51fail6" URI="p51fail6.xml">
+    Only '|' connectors and occurrence on #PCDATA group must be *     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.2.2 [51]" ID="o-p51fail7" URI="p51fail7.xml">
+     no nested groups
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3 [52]" ID="o-p52fail1" URI="p52fail1.xml">
+     A name is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3 [52]" ID="o-p52fail2" URI="p52fail2.xml">
+     A name is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3 [53]" ID="o-p53fail1" URI="p53fail1.xml">
+     S is required before default
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3 [53]" ID="o-p53fail2" URI="p53fail2.xml">
+     S is required before type
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3 [53]" ID="o-p53fail3" URI="p53fail3.xml">
+     type is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3 [53]" ID="o-p53fail4" URI="p53fail4.xml">
+     default is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3 [53]" ID="o-p53fail5" URI="p53fail5.xml">
+     name is requried
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [54]" ID="o-p54fail1" URI="p54fail1.xml">
+     don't pass unknown attribute types
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [55]" ID="o-p55fail1" URI="p55fail1.xml">
+     must be upper case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [56]" ID="o-p56fail1" URI="p56fail1.xml">
+     no IDS type
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [56]" ID="o-p56fail2" URI="p56fail2.xml">
+     no NUMBER type
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [56]" ID="o-p56fail3" URI="p56fail3.xml">
+     no NAME type
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [56]" ID="o-p56fail4" URI="p56fail4.xml">
+     no ENTITYS type
+- types must be upper case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [56]" ID="o-p56fail5" URI="p56fail5.xml">
+    types must be upper case     </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [57]" ID="o-p57fail1" URI="p57fail1.xml">
+     no keyword for NMTOKEN enumeration
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail1" URI="p58fail1.xml">
+     at least one value required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail2" URI="p58fail2.xml">
+     separator must be '|'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail3" URI="p58fail3.xml">
+     notations are NAMEs, not NMTOKENs -- note:
+    Leaving the invalid
+          notation undeclared would cause a validating parser to fail without
+          checking the name syntax, so the notation is declared with an
+          invalid name.  A parser that reports error positions should report
+          an error at the AttlistDecl on line 6, before reaching the notation
+          declaration.
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail4" URI="p58fail4.xml">
+     NOTATION must be upper case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail5" URI="p58fail5.xml">
+     S after keyword is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail6" URI="p58fail6.xml">
+     parentheses are require
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail7" URI="p58fail7.xml">
+     values are unquoted
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [58]" ID="o-p58fail8" URI="p58fail8.xml">
+     values are unquoted
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [59]" ID="o-p59fail1" URI="p59fail1.xml">
+     at least one required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [59]" ID="o-p59fail2" URI="p59fail2.xml">
+     separator must be ","
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.1 [59]" ID="o-p59fail3" URI="p59fail3.xml">
+     values are unquoted
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.2 [60]" ID="o-p60fail1" URI="p60fail1.xml">
+     keywords must be upper case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.2 [60]" ID="o-p60fail2" URI="p60fail2.xml">
+     S is required after #FIXED
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.2 [60]" ID="o-p60fail3" URI="p60fail3.xml">
+     only #FIXED has both keyword and value
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.2 [60]" ID="o-p60fail4" URI="p60fail4.xml">
+     #FIXED required value
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.3.2 [60]" ID="o-p60fail5" URI="p60fail5.xml">
+     only one default type
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.4 [61]" ID="o-p61fail1" ENTITIES="parameter" URI="p61fail1.xml">
+     no other types, including TEMP, which is valid in SGML
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.4 [62]" ID="o-p62fail1" ENTITIES="parameter" URI="p62fail1.xml">
+     INCLUDE must be upper case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.4 [62]" ID="o-p62fail2" ENTITIES="parameter" URI="p62fail2.xml">
+     no spaces in terminating delimiter
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.4 [63]" ID="o-p63fail1" ENTITIES="parameter" URI="p63fail1.xml">
+     IGNORE must be upper case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.4 [63]" ID="o-p63fail2" ENTITIES="parameter" URI="p63fail2.xml">
+     delimiters must be balanced
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.4 [64]" ID="o-p64fail1" ENTITIES="parameter" URI="p64fail1.xml">
+     section delimiters must balance
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="3.4 [64]" ID="o-p64fail2" ENTITIES="parameter" URI="p64fail2.xml">
+     section delimiters must balance
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [66]" ID="o-p66fail1" URI="p66fail1.xml">
+     terminating ';' is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [66]" ID="o-p66fail2" URI="p66fail2.xml">
+     no S after '&amp;#'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [66]" ID="o-p66fail3" URI="p66fail3.xml">
+     no hex digits in numeric reference
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [66]" ID="o-p66fail4" URI="p66fail4.xml">
+     only hex digits in hex references
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [66]" ID="o-p66fail5" URI="p66fail5.xml">
+     no references to non-characters
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [66]" ID="o-p66fail6" URI="p66fail6.xml">
+     no references to non-characters
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [68]" ID="o-p68fail1" URI="p68fail1.xml">
+     terminating ';' is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [68]" ID="o-p68fail2" URI="p68fail2.xml">
+     no S after '&amp;'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [68]" ID="o-p68fail3" URI="p68fail3.xml">
+     no S before ';'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [69]" ID="o-p69fail1" URI="p69fail1.xml">
+     terminating ';' is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [69]" ID="o-p69fail2" URI="p69fail2.xml">
+     no S after '%'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.1 [69]" ID="o-p69fail3" URI="p69fail3.xml">
+     no S before ';'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [70]" ID="o-p70fail1" URI="p70fail1.xml">
+     This is neither
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [71]" ID="o-p71fail1" URI="p71fail1.xml">
+     S is required before EntityDef
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [71]" ID="o-p71fail2" URI="p71fail2.xml">
+     Entity name is a Name, not an NMToken
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [71]" ID="o-p71fail3" URI="p71fail3.xml">
+     no S after "&lt;!"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [71]" ID="o-p71fail4" URI="p71fail4.xml">
+     S is required after "&lt;!ENTITY"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [72]" ID="o-p72fail1" URI="p72fail1.xml">
+     S is required after "&lt;!ENTITY"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [72]" ID="o-p72fail2" URI="p72fail2.xml">
+     S is required after '%'
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [72]" ID="o-p72fail3" URI="p72fail3.xml">
+     S is required after name
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [72]" ID="o-p72fail4" URI="p72fail4.xml">
+     Entity name is a name, not an NMToken
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [73]" ID="o-p73fail1" URI="p73fail1.xml">
+     No typed replacement text
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [73]" ID="o-p73fail2" URI="p73fail2.xml">
+     Only one replacement value
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [73]" ID="o-p73fail3" URI="p73fail3.xml">
+     No NDataDecl on replacement text
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [73]" ID="o-p73fail4" URI="p73fail4.xml">
+     Value is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [73]" ID="o-p73fail5" URI="p73fail5.xml">
+     No NDataDecl without value
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [74]" ID="o-p74fail1" URI="p74fail1.xml">
+     no NDataDecls on parameter entities
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [74]" ID="o-p74fail2" URI="p74fail2.xml">
+     value is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2 [74]" ID="o-p74fail3" URI="p74fail3.xml">
+     only one value
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [75]" ID="o-p75fail1" URI="p75fail1.xml">
+     S required after "PUBLIC"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [75]" ID="o-p75fail2" URI="p75fail2.xml">
+     S required after "SYSTEM"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [75]" ID="o-p75fail3" URI="p75fail3.xml">
+     S required between literals
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [75]" ID="o-p75fail4" URI="p75fail4.xml">
+     "SYSTEM" implies only one literal
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [75]" ID="o-p75fail5" URI="p75fail5.xml">
+     only one keyword
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [75]" ID="o-p75fail6" URI="p75fail6.xml">
+     "PUBLIC" requires two literals (contrast with SGML)
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [76]" ID="o-p76fail1" URI="p76fail1.xml">
+     S is required before "NDATA"
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [76]" ID="o-p76fail2" URI="p76fail2.xml">
+     "NDATA" is upper-case
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [76]" ID="o-p76fail3" URI="p76fail3.xml">
+     notation name is required
+    </TEST>
+
+  <TEST TYPE="not-wf" SECTIONS="4.2.2 [76]" ID="o-p76fail4" URI="p76fail4.xml">
+     notation names are Names
+    </TEST>
+
+  <TEST TYPE="error" SECTIONS="2.3, 4.2.2 [11]" ID="o-p11pass1" URI="p11pass1.xml">
+     system literals may not contain
+    URI fragments
+    </TEST>
+
+</TESTCASES>

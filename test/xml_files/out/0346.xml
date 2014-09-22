@@ -1,0 +1,1 @@
+<?xml version="1.0"?><!DOCTYPE student><!-- testing AttValue with references combination in single quote --><student first="Full Name Snow and &quot;Man Snow and Snow mymiddle;.&quot; Man Snow and Snow mymiddle;." last="Man Snow and Snow mymiddle;.">My first Name is Snow and my last name is Man Snow and Snow mymiddle;.. </student>

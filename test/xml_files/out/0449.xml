@@ -1,0 +1,14 @@
+<root><a/><b>
+
+   <c/> 
+   CharData: content of b element
+   %paaa; : PE reference should not be recognized in element content 
+   <c>
+<?PIcontent anyProcessingInstruction?>
+
+    <b>General entity reference in element content</b>
+    Charater reference: A
+    CDSect in content:  &lt;html&gt;markups&lt;head&gt;HEAD&lt;/head&gt;&lt;body&gt;nothing&lt;/body&gt;&lt;/html&gt; 
+   </c>
+</b>
+</root>

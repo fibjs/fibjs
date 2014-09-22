@@ -1,0 +1,4 @@
+<?xml version="1.0" standalone="no"?><!DOCTYPE animal SYSTEM "ibm32v04.dtd"><animal>This is a 
+      <a/>  
+
+yellow tiger</animal><!-- Tests VC: Standalone Document Declaration with whitespace in mixed content -->

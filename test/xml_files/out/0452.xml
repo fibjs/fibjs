@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!DOCTYPE root><!--* test all possible children,cp,choice,seq patterns in P47,P48,P49,P50 *--><root><a/><b>
+   <c/>
+   content of b element
+</b></root><!--* a valid test: tests P47,P48,P49,P50*-->

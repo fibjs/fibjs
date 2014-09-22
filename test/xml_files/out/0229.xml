@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!DOCTYPE root><!--* Duplicate element types in Mixed content decl *--><root>
+  <a> Element type a </a>
+  <b> Element type b </b>
+</root><!--* a invalid test: tests P51 VC: No Duplicate Types *-->

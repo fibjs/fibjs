@@ -1,0 +1,5 @@
+<?xml version="1.0"?><!-- validity test for Production 58(Negative Test--><!DOCTYPE test><test>
+<blob content-encoding="raw"/>
+The attribute values of type NOTATION does not match any of the notation names included in the
+declaration.All notation names in the declaration have been declared.
+</test>

@@ -1,0 +1,5 @@
+<?xml version="1.0"?><!-- validity constraint check for Production 56(Negative test)--><!DOCTYPE test><test>
+<landscape sun="parsedentity"/>
+In an attribute declaration, values of type ENTITY match the Name production and the ENTITY value
+matches the name of a parsed entity declared in the DTD. 
+</test>

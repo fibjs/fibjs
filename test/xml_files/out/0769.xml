@@ -1,0 +1,2 @@
+<!DOCTYPE root><!-- tests the 'all notation names in the declaration must
+	be declared' part of the "Notation Attributes" VC --><root type="fruit"/>

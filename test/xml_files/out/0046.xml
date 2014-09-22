@@ -1,0 +1,1 @@
+<!-- Default values for NOTATION attributes must match one of the enumerated values. --><!DOCTYPE foo><foo a="not">junk</foo>

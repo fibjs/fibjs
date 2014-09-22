@@ -1,0 +1,4 @@
+<animal>
+ <tiger/>
+Positive test. Missing external subset declaration.
+</animal>

@@ -1,0 +1,6 @@
+<root>
+    <child>
+    The whitespace around this element would be
+    invalid as standalone were the DTD external.
+    </child>
+</root>

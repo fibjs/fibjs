@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!-- Has CR-LSEP; legal in both XML 1.0 and 1.1, but different
+     canonical output because of normalization in 1.1.
+     Note that CR and LSEP are not combined into a single LF --><!DOCTYPE foo><foo>
+ </foo>

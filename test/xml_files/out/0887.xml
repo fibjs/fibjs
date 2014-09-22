@@ -1,0 +1,13 @@
+<?xml version="1.0" standalone="yes"?><!DOCTYPE attributes SYSTEM "sa.dtd"><!--
+	This one is standalone since the values are
+	pre-normalized in this document, except that
+	one defaulted attribute is (re)defined internally
+	and so is one normalized one.
+    
+        Similarly the entity refs are internal.  Unparsed
+        entities and notations are not listed among the
+        items that must not be externally declared in
+        standalone documents, even though processors must
+        in theory report their identifiers.
+
+    --><attributes notation="nonce" nmtoken="this-gets-normalized" nmtokens="this also gets normalized" id="internal42" idref="internal42" idrefs="internal42 internal42 internal42" entity="unparsed-1" entities="unparsed-1 unparsed-2" cdata="nothing happens to this one!" token="a"/><?pi equals three?>

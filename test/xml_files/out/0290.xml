@@ -1,0 +1,5 @@
+<!DOCTYPE student><!--* This test is to test the GE well-formedness 
+      constraints in Section 4.3.2:
+      An internal general parsed encith is well-formed if 
+      its replacement text matches the production labeled
+      "content" *--><?MyInstruct This is a test ?><student att1="ibm">My Name is SnowMan. </student>

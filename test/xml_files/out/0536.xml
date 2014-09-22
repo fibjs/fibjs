@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!-- syntax test for Production 65--><!DOCTYPE animal SYSTEM "ibm65v01.dtd"><animal>
+Positive Test. Pattern1. Empty string.
+</animal>

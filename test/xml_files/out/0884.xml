@@ -1,0 +1,6 @@
+<?xml version="1.0" standalone="yes"?><!DOCTYPE root><root>
+    <child>
+    The whitespace around this element would be
+    invalid as standalone were the DTD external.
+    </child>
+</root>

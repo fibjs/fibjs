@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!DOCTYPE root><root>
+  <b attr1="value1" attr2="abc" attr3="shoudbefixed">attr3 value not fixed</b>
+</root><!--* testing P41 VC: AtributeValueType*-->

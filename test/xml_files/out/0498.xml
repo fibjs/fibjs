@@ -1,0 +1,5 @@
+<test>
+<num value="one"/>
+This is a Positive test
+The attribute values of type Enumeration match one of the Nmtoken tokens in the declaration.
+</test>

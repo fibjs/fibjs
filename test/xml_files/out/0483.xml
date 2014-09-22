@@ -1,0 +1,6 @@
+<tokenizer>
+<a first="AC1999"/>
+<b second="CD345"/>
+This is a positive validity test for ID.
+any element type has no more than one attribute of type ID specified
+</tokenizer>

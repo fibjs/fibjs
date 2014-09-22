@@ -1,0 +1,5 @@
+<root><a/><b>
+   <c><child1><a/><b/><c/></child1></c>
+   <c><child2><a/><b/><c/></child2></c>
+   content of b element
+</b></root>

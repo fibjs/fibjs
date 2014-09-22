@@ -1,0 +1,5 @@
+<?xml version="1.0"?><!-- syntax test for Production 62--><!DOCTYPE animal SYSTEM "ibm62v02.dtd"><animal>
+ <tiger/>
+Positive test. Test includeSect with pattern2 of p62.
+space included before INCLUDE
+</animal>

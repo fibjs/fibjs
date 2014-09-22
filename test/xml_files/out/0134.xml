@@ -1,0 +1,1 @@
+<?xml version="1.0"?><!-- The xmlns namespace must not be declared as the default namespace. --><!DOCTYPE foo><foo xmlns="http://www.w3.org/2000/xmlns/"/>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!DOCTYPE root><!--* All AttlistDecl Patterns in P52 and P53 *--><root>
+  <a> Element type a </a>
+  <b battr1="anyvalue" battr3="fixedvalue" battr4="def"> test P52 and P53 </b>
+</root><!--* a valid test: tests P52 and P53 *-->

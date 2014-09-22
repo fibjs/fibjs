@@ -1,0 +1,49 @@
+<!DOCTYPE root SYSTEM "dtdtest.dtd"><root>
+    <!--
+	This primarily bangs on different ways of expressing
+	optionality in content models.
+    -->
+    <once><e/></once>
+
+    <twice><e/><e/></twice>
+
+
+    <once-or-twice-a><e/></once-or-twice-a>
+    <once-or-twice-b><e/></once-or-twice-b>
+    <once-or-twice-c><e/></once-or-twice-c>
+    <once-or-twice-d><e/></once-or-twice-d>
+    <once-or-twice-e><e/></once-or-twice-e>
+
+    <once-or-twice-a><e/><e/></once-or-twice-a>
+    <once-or-twice-b><e/><e/></once-or-twice-b>
+    <once-or-twice-c><e/><e/></once-or-twice-c>
+    <once-or-twice-d><e/><e/></once-or-twice-d>
+    <once-or-twice-e><e/><e/></once-or-twice-e>
+
+
+    <once-or-more-a><e/></once-or-more-a>
+    <once-or-more-b><e/></once-or-more-b>
+    <once-or-more-c><e/></once-or-more-c>
+    <once-or-more-d><e/></once-or-more-d>
+    <once-or-more-e><e/></once-or-more-e>
+
+    <once-or-more-a><e/><e/></once-or-more-a>
+    <once-or-more-b><e/><e/></once-or-more-b>
+    <once-or-more-c><e/><e/></once-or-more-c>
+    <once-or-more-d><e/><e/></once-or-more-d>
+    <once-or-more-e><e/><e/></once-or-more-e>
+
+    <once-or-more-a><e/><e/><e/></once-or-more-a>
+    <once-or-more-b><e/><e/><e/></once-or-more-b>
+    <once-or-more-c><e/><e/><e/></once-or-more-c>
+    <once-or-more-d><e/><e/><e/></once-or-more-d>
+    <once-or-more-e><e/><e/><e/></once-or-more-e>
+
+    <once-or-more-a><e/><e/><e/><e/></once-or-more-a>
+    <once-or-more-b><e/><e/><e/><e/></once-or-more-b>
+    <once-or-more-c><e/><e/><e/><e/></once-or-more-c>
+    <once-or-more-d><e/><e/><e/><e/></once-or-more-d>
+    <once-or-more-e><e/><e/><e/><e/></once-or-more-e>
+
+
+</root>

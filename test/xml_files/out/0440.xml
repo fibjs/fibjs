@@ -1,0 +1,7 @@
+<?xml version="1.0"?><!DOCTYPE root><root><a/><b>
+   <c/> 
+   content of b element
+   <c>
+      <d><e>no more children</e><e><f/></e><f/></d>
+   </c>
+</b></root><!--* test P39's syntax and Element Valid VC *-->

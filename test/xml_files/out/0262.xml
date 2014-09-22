@@ -1,0 +1,5 @@
+<test>
+<landscape sun="parsedentity1 parsedentity2"/>
+In an attribute declaration, values of type ENTITIES match the Name production and the ENTITIES value
+matches one or more names of parsed entities declared in the DTD. .
+</test>

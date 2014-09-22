@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!-- Colon in ID attribute name --><!DOCTYPE foo><foo ref="a:b">
+ <foo id="a:b"/>
+</foo>

@@ -1,0 +1,9 @@
+<?sound "This is a PI" ?><!DOCTYPE animal><animal>
+   <cat>This is a small cat</cat>
+   <tiger color="white">This is a white tiger in Mirage!!</tiger>
+   <cat/>
+   <leopard>
+      <small/>
+      <big/>
+   </leopard>
+</animal>

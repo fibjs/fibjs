@@ -1,0 +1,2 @@
+<!DOCTYPE root><!-- Example 1 from XML spec 1.0 Appendix D --><root><p>An ampersand (&amp;) may be escaped
+numerically (&amp;#38) or with a general entity (&amp;amp;).</p></root>

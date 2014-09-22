@@ -1,0 +1,6 @@
+<tokenizer>
+<a first="AC1999" second="BC1999"/>
+This is a Negative validity test for ID.
+There is more than attribute of type ID for the element a
+
+</tokenizer>

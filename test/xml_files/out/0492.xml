@@ -1,0 +1,5 @@
+<?xml version="1.0"?><!-- validity test for Production 58--><!DOCTYPE test><test>
+<blob content-encoding="base64"/>
+The attribute values of type NOTATION matches one of the notation names included in the declaration;
+all notation names in the declaration have been declared
+</test>

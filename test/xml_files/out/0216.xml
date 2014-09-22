@@ -1,0 +1,6 @@
+<root><a/><b>
+   <c/> 
+   content of b element
+   <a/>
+   could not have 'a' as 'b's content
+</b></root>

@@ -1,0 +1,6 @@
+<?xml version="1.1"?><!-- Test whether non-Latin-1 characters are accepted in IRIs, and whether
+     they are correctly distinguished --><!DOCTYPE foo><foo xmlns:a="http://example.org/P" xmlns:b="http://example.org/Ő" xmlns:c="http://example.org/ɐ">
+
+<bar a:attr="1" b:attr="2" c:attr="3"/>
+
+</foo>

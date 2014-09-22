@@ -1,0 +1,4 @@
+<test>
+<nametokens thistoken="x:lang y:country"/>
+In an attribute declaration, values of type NMTOKENS match the Nmtokens production
+</test>

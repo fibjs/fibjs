@@ -1,0 +1,3 @@
+<!DOCTYPE root SYSTEM "../valid/sa.dtd"><!-- values of type ID must match "name" --><root>
+    <attributes id="42a"/>
+</root>

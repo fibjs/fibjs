@@ -1,0 +1,4 @@
+<!DOCTYPE root><!--
+	reusing this entity; it's got no markup decls,
+	so it's legal except for a missing "encoding=...".
+    --><root/>

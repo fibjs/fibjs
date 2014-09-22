@@ -1,0 +1,6 @@
+<?xml version="1.0"?><!DOCTYPE root><!--* root element have text content *--><root>
+ root can't have text content
+<a/><b>
+   <c/> 
+   content of b element
+</b></root>

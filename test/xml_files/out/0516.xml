@@ -1,0 +1,5 @@
+<animal>
+ <tiger/>
+Positive test. Test includeSect with pattern2 of p62.
+space included before INCLUDE
+</animal>

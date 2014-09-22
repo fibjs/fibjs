@@ -1,0 +1,2 @@
+<!-- Non-syntactic validity errors in default attributes only happen if the attribute is in fact defaulted. --><!DOCTYPE foo><!-- can't test NOTATION attribute, because if it's undeclared then we'll
+     get an error for one of the enumerated values being undeclared. --><foo id="g0034" ref="g0034" ent="ent"/>

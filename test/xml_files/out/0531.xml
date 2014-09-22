@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!-- syntax test for Production 64--><!DOCTYPE animal SYSTEM "ibm64v02.dtd"><animal>
+Positive Test. Pattern2
+</animal>

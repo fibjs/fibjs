@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!DOCTYPE root SYSTEM "ibm69i02.dtd"><root>
+  pcdata content
+  <a attr1="xyz"/>
+</root><!--* a invalid test for P69 VC:Entity Declared *-->

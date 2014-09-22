@@ -1,0 +1,3 @@
+<?PI before document element?><!-- comment after document element--><?PI before document element?><!-- comment after document element--><?PI before document element?><!-- comment after document element--><?PI before document element?><!DOCTYPE doc><doc>
+<a><b><c/></b></a>
+</doc><!-- comment after document element--><?PI after document element?><!-- comment after document element--><?PI after document element?><!-- comment after document element--><?PI after document element?>

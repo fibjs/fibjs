@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!-- validity constraint check for Production 56(Positive Test)--><!DOCTYPE test><test>
+<nametoken thistoken="x:image"/>
+In an attribute declaration, values of type NMTOKEN match the Nmtoken production
+</test>

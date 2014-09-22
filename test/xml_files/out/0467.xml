@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!-- test valid syntax for Production 55--><!DOCTYPE StType><StType>
+<a att="Hello"/>
+Testing with a valid stringType attribute 
+</StType>

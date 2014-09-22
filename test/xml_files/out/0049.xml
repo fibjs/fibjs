@@ -1,0 +1,1 @@
+<!-- Even internal parameter entity references are enough to make undeclared entities into mere validity errors rather than well-formedness errors. --><!DOCTYPE foo><foo/>

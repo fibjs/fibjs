@@ -1,0 +1,7 @@
+<?xml version="1.0"?><!-- validity test for Production 60--><!DOCTYPE Java><Java>
+<one chapter="Introduction"/>
+<two/>
+Negative test for Required Attribute. Some occurrence of an element with 
+an attribute of #REQUIRED default declaration does not give the value of 
+those attribute
+</Java>

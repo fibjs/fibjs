@@ -1,0 +1,1 @@
+<!DOCTYPE root><!-- in case parsers special-case builtin entities incorrectly --><root>&amp;</root>

@@ -1,0 +1,1 @@
+<!-- CDATA sections may occur in Mixed content. --><!DOCTYPE foo><foo>a <![CDATA[cdata section]]> in mixed content</foo>

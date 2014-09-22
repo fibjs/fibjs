@@ -1,0 +1,1 @@
+<?xml version="1.0"?><!DOCTYPE student><!-- testing AttValue string with a single quote inside --><student first="Snow'" last="Man">My Name is Snow Man'. </student>

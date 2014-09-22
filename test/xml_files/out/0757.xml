@@ -1,0 +1,6 @@
+<!DOCTYPE doc><doc>
+replacement textaaareplacement text
+<!--Not a reference:-->
+<!--Charref to & doesn't make a delimiter-->
+&amp;en
+</doc>

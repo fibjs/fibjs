@@ -1,0 +1,4 @@
+<test>
+<nametoken thistoken="x:image"/>
+In an attribute declaration, values of type NMTOKEN match the Nmtoken production
+</test>

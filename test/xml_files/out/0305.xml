@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!-- syntax test for Production 63--><!DOCTYPE animal SYSTEM "ibm63n03.dtd"><animal a="TIGER1">
+Negative test.  Wrong character.
+</animal>

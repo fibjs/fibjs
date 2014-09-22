@@ -1,0 +1,2 @@
+<?xml version="1.1"?><!-- Second-level external general entity has later version number than
+     first-level, but not later than document, so not an error. --><!DOCTYPE foo><foo/>

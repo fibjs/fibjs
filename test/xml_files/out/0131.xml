@@ -1,0 +1,28 @@
+<TESTCASES PROFILE="Richard Tobin's XML Namespaces 1.1 test suite 14 Feb 2003">
+
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="2.1" URI="001.xml" ID="rmt-ns11-001" TYPE="valid">
+Namespace name test: a perfectly good http IRI that is not a URI
+</TEST>
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="2.3" URI="002.xml" ID="rmt-ns11-002" TYPE="valid">
+Namespace inequality test: different escaping of non-ascii letter
+</TEST>
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="6.1" URI="003.xml" ID="rmt-ns11-003" TYPE="valid">
+1.1 style prefix unbinding
+</TEST>
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="6.1" URI="004.xml" ID="rmt-ns11-004" TYPE="valid">
+1.1 style prefix unbinding and rebinding
+</TEST>
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="5" URI="005.xml" ID="rmt-ns11-005" TYPE="not-wf">
+Illegal use of prefix that has been unbound
+</TEST>
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="2.1" URI="006.xml" ID="rmt-ns11-006" TYPE="valid">
+Test whether non-Latin-1 characters are accepted in IRIs, and whether
+they are correctly distinguished
+</TEST>
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="3" URI="007.xml" ID="ht-bh-ns11-007" TYPE="not-wf">
+Attempt to unbind xmlns 'namespace'
+</TEST>
+<TEST VERSION="1.1" RECOMMENDATION="NS1.1" SECTIONS="3" URI="008.xml" ID="ht-bh-ns11-008" TYPE="not-wf">
+Attempt to unbind xml namespace
+</TEST>
+</TESTCASES>

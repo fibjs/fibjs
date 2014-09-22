@@ -1,0 +1,6 @@
+<Java>
+<one chapter="Introduction"/>
+<two chapter="JavaApplets"/>
+Positive test. Required attribute. Every occurrence of an element with a 
+#REQUIRED attribute default declaration gives the value of that attribute
+</Java>

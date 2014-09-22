@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!-- syntax test for Production 63--><!DOCTYPE animal SYSTEM "ibm63n07.dtd"><animal a="TIGER1">
+Negative test.  Missing closing sequence.
+</animal>

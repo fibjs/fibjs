@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!-- validity constraint check for Production 56(Negative test)--><!DOCTYPE test><test>
+<landscape sun="#image1 @image"/>
+In an attribute declaration, values of type ENTITIES do not match the Name production.
+</test>

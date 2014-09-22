@@ -1,0 +1,4 @@
+<!DOCTYPE collection><!-- tests the "attribute default legal" vc --><collection>
+    <identifier name="i-am-not-a-number" value="i-am-not-a-number 42"/>
+    <identified id="i-am-not-a-number"/>
+</collection>

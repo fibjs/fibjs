@@ -1,0 +1,7 @@
+<?xml version="1.0" standalone="yes"?><!DOCTYPE attributes><!--
+	2.9 gives validity constraints applying to attributes
+	in standalone docs:  no external defaults or decls
+	causing normalization.
+
+	3.3.3 describes the normalization rules
+    --><attributes notation="nonce" nmtoken="this-gets-normalized" nmtokens="this also gets normalized" id="internal42" idref="internal42" idrefs="internal42 internal42 internal42" entity="unparsed-1" entities="unparsed-1 unparsed-2" cdata="nothing happens to this one!" token="a"/>

@@ -1,0 +1,8 @@
+<?xml version="1.0"?><!-- validity constraint check for Production 56(Negative Test)--><!DOCTYPE test><test>
+<id UniqueName="AC456"/>
+<idref reference="BC456"/>
+Negative test for validity constraint of IDREF.
+In an attribute decl, values of type IDREF match the name production and
+IDREF value does not match the value assigned to any ID attribute somewhere
+in the XML document.
+</test>

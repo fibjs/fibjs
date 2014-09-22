@@ -1,0 +1,268 @@
+<!--
+        (C) Copyright IBM Corp. 2003  All rights reserved.
+        
+        US Government Users Restricted Rights Use, duplication or
+        disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+        
+        The program is provided "as is" without any warranty express or
+        implied, including the warranty of non-infringement and the implied
+        warranties of merchantibility and fitness for a particular purpose.
+        IBM will not be liable for any damages suffered by you as a result
+        of using the Program. In no event will IBM be liable for any
+        special, indirect or consequential damages or lost profits even if
+        IBM has been advised of the possibility of their occurrence. IBM
+        will not be liable for any third party claims against you.
+--><TESTCASES PROFILE="IBM Valid Conformance Tests for XML 1.1 CR October 15, 2002">
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 2">
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P02/ibm02v01.xml" TYPE="valid" ID="ibm-1-1-valid-P02-ibm02v01.xml" ENTITIES="none" SECTIONS="2.2">
+        This test case covers legal character ranges plus discrete legal characters 
+        for production 02 of the XML1.1 sepcification.
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P02/ibm02v02.xml" TYPE="valid" ID="ibm-1-1-valid-P02-ibm02v02.xml" ENTITIES="none" SECTIONS="2.2,4.1">
+        This test case covers control characters x1 to x1F and x7F to x9F 
+        which should only appear as character references.
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P02/ibm02v03.xml" TYPE="valid" ID="ibm-1-1-valid-P02-ibm02v03.xml" ENTITIES="none" SECTIONS="2.2,4.1">
+        This test case covers control characters x1 to x1F and x7F to x9F 
+        which appear as character references as an entity's replacement text.
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P02/ibm02v04.xml" TYPE="valid" ID="ibm-1-1-valid-P02-ibm02v04.xml" ENTITIES="none" SECTIONS="2.2,4.1">
+        This test case contains embeded whitespace characters 
+                 some form the range 1 - 1F.
+    </TEST>    
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P02/ibm02v05.xml" TYPE="valid" ID="ibm-1-1-valid-P02-ibm02v05.xml" ENTITIES="none" SECTIONS="2.2,4.1">
+        This test case contains valid char references that match the char production.
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P02/ibm02v06.xml" TYPE="valid" ID="ibm-1-1-valid-P02-ibm02v06.xml" ENTITIES="general" SECTIONS="2.2,4.1">
+        This test case contains valid char references in the CDATA section, comment and
+        processing instruction of an external entity that match the char production.
+    </TEST>     
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 3">
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v01.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v01.xml" ENTITIES="general" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v01.xml">
+        The two character sequence #x0D #x85 in an external entity must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v02.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v02.xml" ENTITIES="general" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v02.xml">
+        The single character sequence #x85 in an external entity must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v03.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v03.xml" ENTITIES="general" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v03.xml">
+        The two character sequence #x0D #x85 in an external entity must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v04.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v04.xml" ENTITIES="general" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v04.xml">
+        The single character sequence #x85 in an external entity must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v05.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v05.xml" ENTITIES="none" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v05.xml">
+        The two character sequence #x0D #x85 in a document entity must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v06.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v06.xml" ENTITIES="none" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v06.xml">
+        The single character sequence #x85 in a document entity must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v07.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v07.xml" ENTITIES="none" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v07.xml">
+        The single character sequence #x2028 in a document entity must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v08.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v08.xml" ENTITIES="none" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v08.xml">
+        The single character sequence #x85 in the XMLDecl must be normalized to a 
+        single newline.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P03/ibm03v09.xml" TYPE="valid" ID="ibm-1-1-valid-P03-ibm03v09.xml" ENTITIES="general" SECTIONS="2.11" OUTPUT="valid/P03/out/ibm03v09.xml">
+        The single character sequence #x2028 in the XMLDecl must be normalized to a 
+        single newline. (This test is questionable)
+  </TEST>  
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 4">
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P04/ibm04v01.xml" TYPE="valid" ID="ibm-1-1-valid-P04-ibm04v01.xml" ENTITIES="none" SECTIONS="2.3" NAMESPACE="no">
+        This test case covers legal NameStartChars character ranges plus discrete legal 
+        characters for production 04.
+    </TEST>
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 4a">
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P04a/ibm04av01.xml" TYPE="valid" ID="ibm-1-1-valid-P04-ibm04av01.xml" ENTITIES="none" SECTIONS="2.3">
+        This test case covers legal NameChars character ranges plus discrete legal 
+        characters for production 04a.
+    </TEST>
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 5">
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P05/ibm05v01.xml" TYPE="valid" ID="ibm-1-1-valid-P05-ibm05v01.xml" ENTITIES="none" SECTIONS="2.3" NAMESPACE="no">
+        This test case covers legal Element Names as per production 5.
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P05/ibm05v02.xml" TYPE="valid" ID="ibm-1-1-valid-P05-ibm05v02.xml" ENTITIES="none" SECTIONS="2.3" NAMESPACE="no">
+        This test case covers legal PITarget (Names) as per production 5.
+    </TEST>  
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P05/ibm05v03.xml" TYPE="valid" ID="ibm-1-1-valid-P05-ibm05v03.xml" ENTITIES="none" SECTIONS="2.3" NAMESPACE="no">
+        This test case covers legal Attribute (Names) as per production 5.
+    </TEST>  
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P05/ibm05v04.xml" TYPE="valid" ID="ibm-1-1-valid-P05-ibm05v04.xml" ENTITIES="none" SECTIONS="2.3">
+        This test case covers legal ID/IDREF (Names) as per production 5.
+    </TEST>  
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P05/ibm05v05.xml" TYPE="valid" ID="ibm-1-1-valid-P05-ibm05v05.xml" ENTITIES="none" SECTIONS="2.3" NAMESPACE="no">
+        This test case covers legal ENTITY (Names) as per production 5.
+    </TEST>      
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 7">
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P07/ibm07v01.xml" TYPE="valid" ID="ibm-1-1-valid-P047-ibm07v01.xml" ENTITIES="none" SECTIONS="2.3">
+        This test case covers legal NMTOKEN Name character ranges plus discrete legal 
+        characters for production 7.
+    </TEST>
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 77">
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v01.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v01.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 whereas the VersionNum of the external 
+        DTD is 1.0.  The character #xC0 which is a valid XML 1.1 but an invalid XML 1.0 
+        character is present in both documents.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v02.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v02.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 whereas the VersionNum of the external 
+        DTD is 1.0.  The character #x1FFF which is a valid XML 1.1 but an invalid XML 1.0 
+        character is present in both documents.        
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v03.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v03.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 whereas the VersionNum of the external 
+        DTD is 1.0.  The character #xF901 which is a valid XML 1.1 but an invalid XML 1.0 
+        character is present in both documents.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v04.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v04.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 whereas the VersionNum of the external 
+        entity is 1.0.  The character #xD6 which is a valid XML 1.1 but an invalid XML 1.0 
+        character is present in both documents.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v05.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v05.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 whereas the VersionNum of the external 
+        entity is 1.0.  The character #x1FFF which is a valid XML 1.1 but an invalid XML 1.0 
+        character is present in both documents.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v06.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v06.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 whereas the VersionNum of the external 
+        entity is 1.0.  The character #xF901 which is a valid XML 1.1 but an invalid XML 1.0 
+        character is present in both documents.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v07.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v07.xml" ENTITIES="none" SECTIONS="4.3.4">
+        The VersionNum of the document and external dtd is 1.1 and both contain the 
+        valid XML1.1 but invalid XML1.0 character #xD8.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v08.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v08.xml" ENTITIES="none" SECTIONS="4.3.4">
+        The VersionNum of the document and external dtd is 1.1 and both contain the 
+        valid XML1.1 but invalid XML1.0 character #x1FFF.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v09.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v09.xml" ENTITIES="none" SECTIONS="4.3.4">
+        The VersionNum of the document and external dtd is 1.1 and both contain the 
+        valid XML1.1 but invalid XML1.0 character #xF901.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v10.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v10.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and external entity is 1.1 and both contain the 
+        valid XML1.1 but invalid XML1.0 character #xF6.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v11.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v11.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and external entity is 1.1 and both contain the 
+        valid XML1.1 but invalid XML1.0 character #x1FFF.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v12.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v12.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and external entity is 1.1 and both contain the 
+        valid XML1.1 but invalid XML1.0 character #xF901.
+  </TEST>  
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v13.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v13.xml" ENTITIES="none" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 but the external dtd does not 
+        contain a textDecl and both contain the valid XML1.1 but invalid XML1.0 character 
+        #xF8.        
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v14.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v14.xml" ENTITIES="none" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 but the external dtd does not 
+        contain a textDecl and both contain the valid XML1.1 but invalid XML1.0 character 
+        #x1FFF.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v15.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v15.xml" ENTITIES="none" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 but the external dtd does not 
+        contain a textDecl and both contain the valid XML1.1 but invalid XML1.0 character 
+        #xF901.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v16.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v16.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 but the external entity does not 
+        contain a textDecl and both contain the valid XML1.1 but invalid XML1.0 character 
+        #x2FF.        
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v17.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v17.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 but the external entity does not 
+        contain a textDecl and both contain the valid XML1.1 but invalid XML1.0 character 
+        #x1FFF.        
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v18.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v18.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 but the external entity does not 
+        contain a textDecl and both contain the valid XML1.1 but invalid XML1.0 character 
+        #xF901.        
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v19.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v19.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and external dtd is 1.1.  The replacement 
+        text of an entity declared in the external DTD contains a reference to the 
+        character #x7F.  This entity is not referenced in the document entity.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v20.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v20.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and external dtd is 1.1.  The replacement 
+        text of an entity declared in the external DTD contains a reference to the 
+        character #x80.  This entity is not referenced in the document entity.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v21.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v21.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and external dtd is 1.1.  The replacement 
+        text of an entity declared in the external DTD contains a reference to the 
+        character #x9F.  This entity is not referenced in the document entity.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v22.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v22.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and the external entity is 1.1.  The entity contains 
+        a reference to the character #x7F. 
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v23.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v23.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and the external entity is 1.1.  The entity contains 
+        a reference to the character #x80. 
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v24.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v24.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document and the external entity is 1.1.  The entity contains 
+        a reference to the character #x9F. 
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v25.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v25.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document is 1.1 and the textDecl is missing in the external 
+        DTD.  The replacement text of an entity declared in the external DTD contains a 
+        reference to the character #x7F, #x8F.  This entity is not referenced in the 
+        document entity.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v26.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v26.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document is 1.1 and the textDecl is missing in the external 
+        DTD.  The replacement text of an entity declared in the external DTD contains a 
+        reference to the character #x80, #x90.  This entity is not referenced in the 
+        document entity.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v27.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v27.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document is 1.1 and the textDecl is missing in the external 
+        DTD.  The replacement text of an entity declared in the external DTD contains a 
+        reference to the character #x81, #x9F.  This entity is not referenced in the 
+        document entity.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v28.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v28.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document is 1.1 and the textDecl is missing in the external 
+        entity.  The replacement text of an entity declared in the external DTD contains a 
+        reference to the character #x7F, #x80, #x9F. 
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v29.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v29.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document is 1.1 and the textDecl is missing in the external 
+        entity.  The replacement text of an entity declared in the external DTD contains a 
+        reference to the character #x85, #x8F. 
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="valid/P77/ibm77v30.xml" TYPE="valid" ID="ibm-1-1-valid-P77-ibm77v30.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document is 1.1 and the textDecl is missing in the external 
+        entity.  The replacement text of an entity declared in the external DTD contains a 
+        reference to the character #x1, #x7F. 
+  </TEST>
+</TESTCASES>
+
+</TESTCASES>

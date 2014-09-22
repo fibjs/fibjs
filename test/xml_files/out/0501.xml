@@ -1,0 +1,6 @@
+<?xml version="1.0"?><!-- validity test for Production 60--><!DOCTYPE Java><Java>
+<one chapter="Introduction"/>
+An attribute has a default value declared with the #FIXED keyword, 
+and an instances of that attribute is given a value which is exactly 
+the same as the default value in the declaration. 
+</Java>

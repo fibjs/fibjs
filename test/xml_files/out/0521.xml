@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!-- syntax test for Production 63--><!DOCTYPE animal SYSTEM "ibm63v02.dtd"><animal a="tiger">
+Positive test. Test for IGNORE with pattern 2.
+</animal>

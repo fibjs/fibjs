@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="iso-8859-1"?><!-- Has a NEL character in element content whitespace; well-formed in both
+     XML 1.0 and 1.1, but valid only in 1.1 --><!DOCTYPE foo><foo>ï¿½</foo>

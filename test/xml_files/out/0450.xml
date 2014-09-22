@@ -1,0 +1,6 @@
+<?xml version="1.0"?><!DOCTYPE root><root>
+  <b/>without white space
+  <b/> with a white space
+  <b attr1="value1"/>
+  <b attr1="value1" attr2="value2" attr3="value3"/>
+</root><!--* testing P44 *-->

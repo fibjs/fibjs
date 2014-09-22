@@ -1,0 +1,3 @@
+<!DOCTYPE doc><doc>
+<A att="abc"/><A att="abc def . :"/><A att="abc def"/>
+</doc>

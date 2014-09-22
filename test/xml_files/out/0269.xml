@@ -1,0 +1,5 @@
+<?xml version="1.0"?><!-- validity test for Production 59--><!DOCTYPE test><test>
+<num value="ONE"/>
+This is a Negative test
+The attribute values of type Enumeration does not match any of the Nmtoken tokens in the declaration.
+</test>

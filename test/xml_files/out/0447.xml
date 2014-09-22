@@ -1,0 +1,4 @@
+<root><a/><b>
+   <c/> : End tag with a space inside
+   content of b element
+</b></root>

@@ -1,0 +1,3 @@
+<?xml version="1.0"?><!-- syntax test for Production 63--><!DOCTYPE animal SYSTEM "ibm63n01.dtd"><animal a="TIGER1">
+Negative test. Case sensitive(ignore is used instead of IGNORE).
+</animal>

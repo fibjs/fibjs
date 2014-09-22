@@ -1,0 +1,6 @@
+<!DOCTYPE doc><doc>
+<a id="A1"/><a id="A2"/><a id="A3"/>
+<refs refs="A1 A2 A3"/>
+<refs refs="A1 A2 A3"/>
+<refs refs="A1"/>
+</doc>

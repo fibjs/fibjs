@@ -1,0 +1,8 @@
+<!DOCTYPE violation><!-- tests the "element valid" constraint for content
+	which doesn't match the declared content model.
+	(there can be an infinite number of such tests...)
+	--><violation>
+    <a/>
+    <a/>
+    <b/>
+</violation>

@@ -1,0 +1,15 @@
+<!--
+    From: "Henry S. Thompson" <ht@cogsci.ed.ac.uk>
+
+    I'd be interested in reports from validating parsers wrt the
+    following:
+--><!DOCTYPE foo><foo>
+
+<a/>
+ 
+<a/>
+<![CDATA[]]>
+<a/>
+<![CDATA[ ]]>
+<a/>
+</foo>

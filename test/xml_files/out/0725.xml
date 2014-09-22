@@ -1,0 +1,22 @@
+<!DOCTYPE elem><elem>
+CharData 
+<!--comment-->
+<![CDATA[
+<elem>
+CharData&#32;
+<!--comment-->
+<?pi?>&ent;&quot;
+CharData
+</elem>
+]]>
+<![CDATA[
+<elem>
+CharData&#32;
+<!--comment-->
+<?pi?>&ent;&quot;
+CharData
+</elem>
+]]>
+<?pi ?><elem>CharData</elem>"
+CharData
+</elem>

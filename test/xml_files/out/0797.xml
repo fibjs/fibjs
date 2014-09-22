@@ -1,0 +1,3 @@
+<!DOCTYPE root><!-- an ID attribute must have a declared default
+    of #IMPLIED or #REQUIRED
+--><root id2="x23"/>

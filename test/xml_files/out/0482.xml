@@ -1,0 +1,5 @@
+<tokenizer UniqueName="Ac999">
+<b attr="BC999"/>
+This is a positive test for validity constraints
+the value of the attribute with a type ID does not appear more than once in the XML document
+</tokenizer>

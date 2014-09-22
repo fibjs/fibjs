@@ -1,0 +1,5 @@
+<?xml version="1.0"?><!-- syntax test for Production 60--><!DOCTYPE Java><Java><one chapter="Introduction"/>
+ <three chapter="JavaBeans"/>
+ Positive test
+ DefaultDecl attributes values IMPLIED, REQUIRED, FIXED and default
+</Java>

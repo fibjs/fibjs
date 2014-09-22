@@ -1,0 +1,539 @@
+<!--
+	(C) Copyright IBM Corp. 2003  All rights reserved.
+	
+	US Government Users Restricted Rights Use, duplication or
+	disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+	
+	The program is provided "as is" without any warranty express or
+	implied, including the warranty of non-infringement and the implied
+	warranties of merchantibility and fitness for a particular purpose.
+	IBM will not be liable for any damages suffered by you as a result
+	of using the Program. In no event will IBM be liable for any
+	special, indirect or consequential damages or lost profits even if
+	IBM has been advised of the possibility of their occurrence. IBM
+	will not be liable for any third party claims against you.
+--><!--
+    Configuration file for not-wf XML 1.1 test cases.
+--><TESTCASES PROFILE="IBM Not-WF Conformance Tests for XML 1.1 CR October 15, 2002">
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 2">
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n01.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n01.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x1. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n02.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n02.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x2. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n03.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n03.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x3. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n04.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n04.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x4. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n05.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n05.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x5. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n06.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n06.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x6. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n07.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n07.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x7. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n08.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n08.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x8. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n09.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n09.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x0. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n10.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n10.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x100. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n11.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n11.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x0B. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n12.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n12.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x0C. 
+    </TEST>
+<!--
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n13.xml" 
+        TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n13.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        Entity Replacement text contains a character reference 
+	to x86 and is referenced in element content.
+    </TEST>
+-->
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n14.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n14.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x0E. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n15.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n15.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x0F. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n16.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n16.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x10. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n17.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n17.xml" ENTITIES="none" SECTIONS="2.2,4.1">
+        This test contains embeded control character 0x11. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n18.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n18.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x12. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n19.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n19.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x13. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n20.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n20.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x14. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n21.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n21.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x15. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n22.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n22.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x16. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n23.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n23.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x17. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n24.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n24.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x18. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n25.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n25.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x19. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n26.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n26.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x1A. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n27.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n27.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x1B. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n28.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n28.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x1C. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n29.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n29.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x1D. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n30.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n30.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x1E. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n31.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n31.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x1F. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n32.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n32.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x7F. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n33.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n33.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x80. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n34.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n34.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x81. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n35.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n35.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x82. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n36.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n36.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x83. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n37.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n37.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x84. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n38.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n38.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control characters  x82, x83 and x84.
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n39.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n39.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x86. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n40.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n40.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x87. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n41.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n41.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x88. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n42.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n42.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x89. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n43.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n43.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x8A. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n44.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n44.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x8B. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n45.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n45.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x8C. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n46.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n46.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x8D. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n47.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n47.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x8E. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n48.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n48.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x8F. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n49.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n49.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x90. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n50.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n50.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x91. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n51.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n51.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x92. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n52.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n52.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x93. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n53.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n53.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x94. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n54.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n54.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x95. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n55.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n55.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x96. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n56.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n56.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x97. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n57.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n57.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x98. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n58.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n58.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x99. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n59.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n59.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x9A. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n60.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n60.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x9B. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n61.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n61.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x9C. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n62.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n62.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x9D. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n63.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n63.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded control character 0x9E. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n64.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n64.xml" ENTITIES="general" SECTIONS="2.2,4.1">
+        This test contains embeded control characters present in an external entity.
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n65.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n65.xml" ENTITIES="general" SECTIONS="2.2,4.1">
+        This test contains embeded control characters present in an external entity. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n66.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n66.xml" ENTITIES="general" SECTIONS="2.2,4.1">
+        This test contains embeded control characters present in an external entity. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n67.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n67.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded character 0xD800. (Invalid UTF8 sequence)
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n68.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n68.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded character 0xFFFE. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n69.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n69.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains embeded character 0xFFFF. 
+    </TEST>
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n70.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n70.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains a reference to character 0xFFFE. 
+    </TEST> 
+    <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P02/ibm02n71.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P02-ibm02n71.xml" ENTITIES="none" SECTIONS="2.2,4.1"> 
+        This test contains a reference to character 0xFFFF. 
+    </TEST> 
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 4">
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n01.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n01.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #x300
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n02.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n02.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x333
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n03.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n03.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x369  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n04.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n04.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x37E  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n05.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n05.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2000  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n06.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n06.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2001  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n07.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n07.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2002  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n08.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n08.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2005  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n09.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n09.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x200B  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n10.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n10.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x200E   
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n11.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n11.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x200F   
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n12.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n12.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2069    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n13.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n13.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2190    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n14.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n14.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x23FF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n15.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n15.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x280F    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n16.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n16.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2A00    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n17.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n17.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2EDC    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n18.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n18.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2B00    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n19.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n19.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x2BFF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n20.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n20.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0x3000    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n21.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n21.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xD800    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n22.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n22.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xD801    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n23.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n23.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xDAFF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n24.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n24.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xDFFF
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n25.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n25.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xEFFF
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n26.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n26.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xF1FF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n27.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n27.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xF8FF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04/ibm04n28.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04-ibm04n28.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameStartChar: #0xFFFFF    
+  </TEST>
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 4a">
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an01.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an01.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #xB8
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an02.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an02.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xA1
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an03.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an03.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xAF  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an04.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an04.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x37E  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an05.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an05.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2000  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an06.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an06.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2001  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an07.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an07.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2002  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an08.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an08.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2005  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an09.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an09.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x200B  
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an10.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an10.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x200E   
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an11.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an11.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2038   
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an12.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an12.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2041    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an13.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an13.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2190    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an14.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an14.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x23FF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an15.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an15.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x280F    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an16.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an16.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2A00    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an17.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an17.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xFDD0    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an18.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an18.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xFDEF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an19.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an19.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x2FFF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an20.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an20.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0x3000    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an21.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an21.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xD800    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an22.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an22.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xD801    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an23.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an23.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xDAFF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an24.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an24.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xDFFF
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an25.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an25.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xEFFF
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an26.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an26.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xF1FF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an27.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an27.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xF8FF    
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P04a/ibm04an28.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P04a-ibm04an28.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal NameChar: #0xFFFFF    
+  </TEST>
+</TESTCASES>
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 5">
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P05/ibm05n01.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P05-ibm05n01.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal Name containing #0x0B
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P05/ibm05n02.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P05-ibm05n02.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal Name containing #0x300
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P05/ibm05n03.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P05-ibm05n03.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal Name containing #0x36F
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P05/ibm05n04.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P05-ibm05n04.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal Name containing #0x203F
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P05/ibm05n05.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P05-ibm05n05.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal Name containing #x2040
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P05/ibm05n06.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P05-ibm05n06.xml" ENTITIES="none" SECTIONS="2.3">
+        Tests an element with an illegal Name containing #0xB7
+  </TEST>        
+</TESTCASES>
+
+
+<TESTCASES PROFILE="IBM XML Conformance Test Suite - Production 77">
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n01.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n01.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and that of the external dtd 1.0. 
+        The external dtd contains the invalid XML1.1 but valid XML 1.0 character #x7F.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n02.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n02.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and that of the external dtd 1.0. 
+        The external dtd contains a comment with the invalid XML1.1 but valid XML 1.0 
+        character #x80.        
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n03.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n03.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and that of the external dtd 1.0. 
+        The external dtd contains a PI with the invalid XML1.1 but valid XML 1.0 
+        character #x9F.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n04.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n04.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and that of the external entity 1.0. 
+        The external entity the contains invalid XML1.1 but valid XML 1.0 character #x89.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n05.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n05.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and that of the external entity 1.0. 
+        The external entity contains the invalid XML1.1 but valid XML 1.0 character #x94.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n06.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n06.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and that of the external entity 1.0. 
+        The external entity contains the invalid XML1.1 but valid XML 1.0 character #x9F.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n07.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n07.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and the external dtd does not contain
+        a textDecl.  The external entity contains the invalid XML1.1 but valid XML 1.0 
+        character #x7F.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n08.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n08.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and the external dtd does not contain
+        a VersionNum in the textDecl.  The external entity contains the invalid XML1.1 but 
+        valid XML 1.0 character #x9B.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n09.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n09.xml" ENTITIES="general" SECTIONS="4.3.4">
+        The VersionNum of the document entity is 1.1 and the external dtd does not contain
+        a textDecl.  The external entity contains the invalid XML1.1 but valid XML 1.0 
+        character #x8D.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n10.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n10.xml" ENTITIES="general" SECTIONS="4.3.4">
+ 		The VersionNum of the document entity is 1.1 and the external dtd does not contain
+        a VersionNum in the textDecl.  The external entity contains the invalid XML 1.1 but 
+        valid XML 1.0 character #x84.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n11.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n11.xml" ENTITIES="general" SECTIONS="4.3.4">
+ 		The VersionNum of the document entity is 1.1 and the external dtd does not contain
+        a textDecl.  The external entity contains the invalid XML 1.1 but 
+        valid XML 1.0 character #x88.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n12.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n12.xml" ENTITIES="general" SECTIONS="4.3.4">
+ 		The VersionNum of the document entity is 1.1 and the external dtd does not contain
+        a textDecl.  The external entity contains the invalid XML 1.1 but 
+        valid XML 1.0 character #x8E.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n13.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n13.xml" ENTITIES="none" SECTIONS="4.3.4">
+ 		The VersionNum of the primary document entity is 1.0 and that of the external 
+ 		dtd is 1.0.  The external dtd contains an external entity whose VersionNum is 1.1.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n14.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n14.xml" ENTITIES="none" SECTIONS="4.3.4">
+ 		The VersionNum of the primary document entity is 1.1 and that of the external 
+ 		dtd is 1.0.  The external dtd contains an element declaration with an invalid 
+		XML 1.1 and 1.0 name.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n15.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n15.xml" ENTITIES="none" SECTIONS="4.3.4">
+ 		The VersionNum of the primary document entity is 1.1 and testDecl of the external 
+ 		dtd is absent.  The external dtd contains an external entity whose VersionNum is 
+ 		1.1 containing a valid XML1.0 but an invalid XML 1.1 character #x7F.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n16.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n16.xml" ENTITIES="general" SECTIONS="4.3.4">
+		The VersionNum of the primary document entity is 1.0 and VersioNum of the external 
+ 		entity is absent.  The replacement text of the entity contains an element followed 
+ 		by the valid XML 1.1 of line character NEL  #x85 in its empty elem tag.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n17.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n17.xml" ENTITIES="general" SECTIONS="4.3.4">
+		The VersionNum of the primary document entity is absent and that of the external 
+ 		entity is 1.0.  The textDecl in the external entity contains an invalid XML1.0
+ 		but valid XML 1.1 enf of line character NEL #x85.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n18.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n18.xml" ENTITIES="general" SECTIONS="4.3.4">
+		The VersionNum of the primary document entity is absent and that of the external 
+ 		entity is 1.0.  The textDecl in the external entity contains an invalid XML1.0
+ 		but valid XML 1.1 of line character Unicode line separator #x2028.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n19.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n19.xml" ENTITIES="general" SECTIONS="4.3.4">
+ 		The VersionNum of the primary document entity is 1.1 and that of the external 
+ 		dtd is absent.  The external dtd contains an external entity whose VersionNum is 
+ 		absent and it contains a valid XML 1.0 but an invalid XML 1.1 character #x94.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n20.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n20.xml" ENTITIES="general" SECTIONS="4.3.4">
+ 		The VersionNum of the primary document entity is 1.1 and that of the external 
+ 		dtd is 1.1.  The external dtd contains an external entity whose VersionNum is 
+ 		absent and it contains a valid XML 1.0 but an invalid XML 1.1 character #x8F.
+  </TEST>
+  <TEST VERSION="1.1" RECOMMENDATION="XML1.1" URI="not-wf/P77/ibm77n21.xml" TYPE="not-wf" ID="ibm-1-1-not-wf-P77-ibm77n21.xml" ENTITIES="both" SECTIONS="4.3.4">
+ 		The VersionNum of the primary document entity is 1.1 and the texlDecl of the 
+ 		external dtd is absent.  The external dtd contains a reference to an external 
+ 		parameter entity whose VersionNum is absent from the textDecl and it contains 
+ 		an invalid XML 1.1 character #x8F.
+  </TEST>
+</TESTCASES>
+
+</TESTCASES>

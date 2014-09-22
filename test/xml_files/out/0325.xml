@@ -1,0 +1,9 @@
+<?music "Here is a PI" ?><animal>
+   <cat/>
+   <tiger color="white">This is a white tiger in Mirage!!</tiger>
+   <cat/>
+   <leopard>
+      <small/>
+      <big/>
+   </leopard>
+</animal>

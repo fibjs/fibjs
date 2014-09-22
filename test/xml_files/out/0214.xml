@@ -1,0 +1,4 @@
+<root><a>should not have content here</a><b>
+   <c/> 
+   content of b element
+</b></root>
