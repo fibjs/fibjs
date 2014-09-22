@@ -7,14 +7,18 @@ XmlDocument 对象是一棵文档树的根，可为我们提供对文档数据�
 interface XmlDocument : XmlNode
 {
     /*! @brief 构造一个 XmlDocument 对象
-     @param source 要解析的 XML 文本，缺省为空，创建一个空的 XmlDocument 对象
     */
-    XmlDocument(String source = "");
+    XmlDocument();
 
     /*! @brief 通过解析一个 XML 标签字符串来组成该文档
      @param source 要解析的 XML 文本
     */
     loadXML(String source);
+
+    /*! @brief 通过解析一个 HTML 字符串来组成该文档
+     @param source 要解析的 HTML 文本
+    */
+    loadHTML(String source);
 
     /*! @brief 返回用于文档的编码（在解析时）
     */

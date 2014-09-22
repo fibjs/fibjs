@@ -38,7 +38,7 @@ public:
 
 public:
 	// xml_base
-	static result_t parse(const char* source, obj_ptr<XmlDocument_base>& retVal);
+	static result_t parse(const char* source, const char* type, obj_ptr<XmlDocument_base>& retVal);
 	static result_t serialize(XmlNode_base* node, std::string& retVal);
 
 public:
@@ -157,11 +157,12 @@ namespace fibjs
 	{
 		obj_ptr<XmlDocument_base> vr;
 
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(2, 1);
 
 		ARG(arg_string, 0);
+		OPT_ARG(arg_string, 1, "text/xml");
 
-		hr = parse(v0, vr);
+		hr = parse(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

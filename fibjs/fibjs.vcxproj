@@ -31,6 +31,9 @@
     <ProjectReference Include="$(SolutionDir)vender\gd\gd.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-00000000009D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\gumbo\gumbo.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000009C3B0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\jpeg\jpeg.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-0000000019E9}</Project>
     </ProjectReference>
@@ -434,6 +437,7 @@
     <ClCompile Include="src\xml\XmlNodeImpl.cpp" />
     <ClCompile Include="src\xml\XmlNodeList.cpp" />
     <ClCompile Include="src\xml\XmlParser.cpp" />
+    <ClCompile Include="src\xml\XmlParser_html.cpp" />
     <ClCompile Include="src\xml\XmlProcessingInstruction.cpp" />
     <ClCompile Include="src\xml\XmlText.cpp" />
   </ItemGroup>

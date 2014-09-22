@@ -38,11 +38,12 @@ module xml
     /*! @brief xml 文档对象，参见 XmlDocument 对象*/
     static XmlDocument new Document();
 
-    /*! @brief 解析 xml 文本，并创建 XmlDocument 对象
-     @param source 指定需要解析的 xml 文本
+    /*! @brief 解析 xml/html 文本，并创建 XmlDocument 对象
+     @param source 指定需要解析的 xml/html 文本
+     @param type 指定文本类型，缺省为 text/xml，也可指定为 text/html
      @return 返回创建的 XmlDocument 对象
     */
-    static XmlDocument parse(String source);
+    static XmlDocument parse(String source, String type = "text/xml");
 
     /*! @brief 序列化 XmlNode 为字符串
      @param node 指定需要序列化的 XmlNode

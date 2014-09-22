@@ -18,33 +18,10 @@
 namespace fibjs
 {
 
-XmlParser::XmlParser(XmlDocument *document)
-{
-    m_document = document;
-
-    m_parser = XML_ParserCreate(NULL);
-
-    XML_SetParamEntityParsing(m_parser, XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE);
-    XML_SetUserData(m_parser, this);
-
-    XML_SetXmlDeclHandler(m_parser, XmlDeclHandler);
-    XML_SetElementHandler(m_parser, StartElementHandler, EndElementHandler);
-    XML_SetCharacterDataHandler(m_parser, CharacterDataHandler);
-    XML_SetProcessingInstructionHandler(m_parser, ProcessingInstructionHandler);
-    XML_SetCommentHandler(m_parser, CommentHandler);
-    XML_SetCdataSectionHandler(m_parser, StartCdataSectionHandler, EndCdataSectionHandler);
-    XML_SetStartDoctypeDeclHandler(m_parser, StartDoctypeDeclHandler);
-}
-
 void XmlParser::newNode(XmlNode_base *node, bool enter)
 {
     obj_ptr<XmlNode_base> out;
-    result_t hr = m_now->appendChild(node, out);
-    if (hr < 0)
-    {
-        XML_StopParser(m_parser, 0);
-        return;
-    }
+    m_now->appendChild(node, out);
 
     if (enter)
     {
@@ -211,20 +188,38 @@ void XmlParser::OnEndCdataSection()
     leaveNode();
 }
 
-result_t XmlParser::parse(const char *source)
+result_t XmlParser::parse(XmlDocument *doc, const char *source)
 {
-    m_now = m_document;
-    m_list.push_back(m_now);
+    XmlParser parser(doc);
 
-    if (XML_Parse(m_parser, source, (int)qstrlen(source), true) != XML_STATUS_OK)
+    parser.m_now = doc;
+    parser.m_list.push_back(doc);
+
+    XML_Parser xml_parser = XML_ParserCreate(NULL);
+
+    XML_SetParamEntityParsing(xml_parser, XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE);
+    XML_SetUserData(xml_parser, &parser);
+
+    XML_SetXmlDeclHandler(xml_parser, XmlDeclHandler);
+    XML_SetElementHandler(xml_parser, StartElementHandler, EndElementHandler);
+    XML_SetCharacterDataHandler(xml_parser, CharacterDataHandler);
+    XML_SetProcessingInstructionHandler(xml_parser, ProcessingInstructionHandler);
+    XML_SetCommentHandler(xml_parser, CommentHandler);
+    XML_SetCdataSectionHandler(xml_parser, StartCdataSectionHandler, EndCdataSectionHandler);
+    XML_SetStartDoctypeDeclHandler(xml_parser, StartDoctypeDeclHandler);
+
+    if (XML_Parse(xml_parser, source, (int)qstrlen(source), true) != XML_STATUS_OK)
     {
         char msg[128];
-        sprintf(msg, "error on line %lu at colum %lu: %s", XML_GetCurrentLineNumber(m_parser),
-                XML_GetCurrentColumnNumber(m_parser) + 1,
-                XML_ErrorString(XML_GetErrorCode(m_parser)));
+        sprintf(msg, "error on line %lu at colum %lu: %s", XML_GetCurrentLineNumber(xml_parser),
+                XML_GetCurrentColumnNumber(xml_parser) + 1,
+                XML_ErrorString(XML_GetErrorCode(xml_parser)));
 
+        XML_ParserFree(xml_parser);
         return CHECK_ERROR(Runtime::setError(msg));
     }
+
+    XML_ParserFree(xml_parser);
 
     return 0;
 }

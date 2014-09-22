@@ -18,19 +18,22 @@
 namespace fibjs
 {
 
-result_t XmlDocument_base::_new(const char *source, obj_ptr<XmlDocument_base> &retVal,
-                                v8::Local<v8::Object> This)
-{
-    return xml_base::parse(source, retVal);
-}
-
-result_t xml_base::parse(const char *source, obj_ptr<XmlDocument_base> &retVal)
+result_t XmlDocument_base::_new(obj_ptr<XmlDocument_base> &retVal, v8::Local<v8::Object> This)
 {
     retVal = new XmlDocument();
-    if (!*source)
-        return 0;
 
-    return retVal->loadXML(source);
+    return 0;
+}
+
+result_t xml_base::parse(const char *source, const char *type, obj_ptr<XmlDocument_base> &retVal)
+{
+    bool isXml = !qstrcmp(type, "text/xml");
+
+    if (!isXml && qstrcmp(type, "text/html"))
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = new XmlDocument();
+    return isXml ? retVal->loadXML(source) : retVal->loadHTML(source);
 }
 
 result_t xml_base::serialize(XmlNode_base *node, std::string &retVal)
@@ -223,8 +226,12 @@ result_t XmlDocument::normalize()
 
 result_t XmlDocument::loadXML(const char *source)
 {
-    XmlParser parser(this);
-    return parser.parse(source);
+    return XmlParser::parse(this, source);
+}
+
+result_t XmlDocument::loadHTML(const char *source)
+{
+    return XmlParser::parseHtml(this, source);
 }
 
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)

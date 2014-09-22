@@ -33,8 +33,9 @@ class XmlDocument_base : public XmlNode_base
 
 public:
 	// XmlDocument_base
-	static result_t _new(const char* source, obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t loadXML(const char* source) = 0;
+	virtual result_t loadHTML(const char* source) = 0;
 	virtual result_t get_inputEncoding(std::string& retVal) = 0;
 	virtual result_t get_xmlStandalone(bool& retVal) = 0;
 	virtual result_t set_xmlStandalone(bool newVal) = 0;
@@ -58,6 +59,7 @@ public:
 public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_loadXML(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_loadHTML(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_inputEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_xmlStandalone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_xmlStandalone(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -92,6 +94,7 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"loadXML", s_loadXML},
+			{"loadHTML", s_loadHTML},
 			{"getElementsByTagName", s_getElementsByTagName},
 			{"getElementsByTagNameNS", s_getElementsByTagNameNS},
 			{"createElement", s_createElement},
@@ -114,7 +117,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"XmlDocument", s__new, 
-			9, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			10, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&XmlNode_base::class_info()
 		};
 
@@ -214,11 +217,9 @@ namespace fibjs
 	{
 		obj_ptr<XmlDocument_base> vr;
 
-		CONSTRUCT_ENTER(1, 0);
+		CONSTRUCT_ENTER(0, 0);
 
-		OPT_ARG(arg_string, 0, "");
-
-		hr = _new(v0, vr, args.This());
+		hr = _new(vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}
@@ -231,6 +232,18 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->loadXML(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void XmlDocument_base::s_loadHTML(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(XmlDocument_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->loadHTML(v0);
 
 		METHOD_VOID();
 	}

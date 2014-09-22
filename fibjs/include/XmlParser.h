@@ -21,14 +21,13 @@ namespace fibjs
 class XmlParser
 {
 public:
-    XmlParser(XmlDocument *document);
-    ~XmlParser()
-    {
-        XML_ParserFree(m_parser);
-    }
+    XmlParser(XmlDocument *document) :
+        m_document(document)
+    {}
 
 public:
-    result_t parse(const char *source);
+    static result_t parse(XmlDocument *doc, const char *source);
+    static result_t parseHtml(XmlDocument *doc, const char *source);
 
     void OnXmlDecl(const XML_Char *version, const XML_Char *encoding, int standalone);
     void OnStartElement(const XML_Char *name, const XML_Char **atts);
@@ -107,7 +106,6 @@ private:
     }
 
 private:
-    XML_Parser m_parser;
     obj_ptr<XmlDocument> m_document;
     obj_ptr<XmlNode_base> m_now;
     std::list<obj_ptr<XmlNode_base> > m_list;
