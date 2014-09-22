@@ -9,6 +9,7 @@ function newDoc() {
 }
 
 var parse = xml.parse;
+var serialize = xml.serialize;
 
 describe('xml', function() {
 	function test_CharacterData(fn) {
@@ -97,7 +98,6 @@ describe('xml', function() {
 		}
 
 		test(xdoc.createElement("bbb"), s[1]);
-		test(xdoc.createAttribute("bbb"), s[2]);
 		test(xdoc.createTextNode("bbb"), s[3]);
 		test(xdoc.createCDATASection("bbb"), s[4]);
 		test(xdoc.createProcessingInstruction("aaa", "bbb"), s[7]);
@@ -210,32 +210,25 @@ describe('xml', function() {
 			var l2 = root.getElementsByTagName("ccc");
 			assert.equal(l2.length, 0);
 		});
-	});
 
-	describe('Attr', function() {
-		it("base", function() {
-			var xdoc = newDoc();
-			var e = xdoc.createAttribute("aaa");
-			assert.equal(e.ownerDocument, xdoc);
-			assert.equal(e.nodeType, 2);
-			assert.equal(e.nodeName, 'aaa');
-			assert.equal(e.childNodes.length, 0);
+		it("namespace", function() {
+			var xdoc = parse("<foo xmlns:ns1=\"nsr:xns1\"><ns1:tag1 ns1:attr=\"val\" /></foo>");
+			var root = xdoc.firstChild;
 
-			assert.equal(e.nodeValue, '');
-			e.nodeValue = 'aaaaa';
-			assert.equal(e.nodeValue, 'aaaaa');
+			assert.equal(root.nodeName, "foo");
+			assert.equal(root.localName, "foo");
+			assert.equal(root.prefix, null);
+			assert.equal(root.namespaceURI, null);
 
-			assert.equal(e.name, 'aaa');
-			assert.equal(e.value, 'aaaaa');
-			e.value = 'bbbbb';
-			assert.equal(e.value, 'bbbbb');
+			var node = root.firstChild;
 
-			assert.equal(e.specified, true);
-		});
+			assert.equal(node.nodeName, "ns1:tag1");
+			assert.equal(node.localName, "tag1");
+			assert.equal(node.prefix, "ns1");
+			assert.equal(node.namespaceURI, "nsr:xns1");
 
-		it("child rule", function() {
-			var xdoc = newDoc();
-			test_Child(xdoc, xdoc.createAttribute("bbb"), [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
+			assert.equal(node.lookupNamespaceURI("ns1"), "nsr:xns1");
+			assert.equal(node.lookupPrefix("nsr:xns1"), "ns1");
 		});
 	});
 
@@ -531,10 +524,10 @@ describe('xml', function() {
 			var xdoc = newDoc();
 			var e = xdoc.createElement("aaa");
 			e.setAttribute("att1", "val1");
-			assert.equal(e.attributes[0].nodeValue, "val1");
+			assert.equal(e.attributes[0].value, "val1");
 
 			e.setAttribute("att1", "val2");
-			assert.equal(e.attributes[0].nodeValue, "val2");
+			assert.equal(e.attributes[0].value, "val2");
 		});
 
 		it("getAttribute", function() {
@@ -556,41 +549,156 @@ describe('xml', function() {
 			assert.equal(e.getAttribute("att1"), null);
 			e.removeAttribute("att1");
 		});
+	});
 
-		it("getAttributeNode", function() {
+	describe("namespace", function() {
+		it("basic", function() {
 			var xdoc = newDoc();
-			var e = xdoc.createElement("aaa");
-			e.setAttribute("att1", "val1");
 
-			assert.equal(e.getAttributeNode("att1").nodeValue, "val1");
-			assert.equal(e.getAttributeNode("att2"), null);
+			var node = xdoc.createElement("ns1:aaa");
+			assert.equal(node.localName, "ns1:aaa");
+			assert.equal(node.prefix, null);
+			assert.equal(node.namespaceURI, null);
+			assert.equal(serialize(node), "<ns1:aaa/>");
 		});
 
-		it("setAttributeNode", function() {
-			var xdoc = newDoc();
-			var e = xdoc.createElement("aaa");
-			var a = xdoc.createAttribute("attr1");
-			a.nodeValue = "val1";
+		describe("root", function() {
+			it("no prefix", function() {
+				var xdoc = newDoc();
 
-			assert.equal(e.setAttributeNode(a), null);
-			assert.equal(e.getAttribute("attr1"), "val1");
+				var node = xdoc.createElementNS("nsr:xns3", "aaa");
+				assert.equal(node.tagName, "aaa");
+				assert.equal(node.localName, "aaa");
+				assert.equal(node.prefix, null);
+				assert.equal(node.namespaceURI, "nsr:xns3");
+				assert.equal(serialize(node), "<aaa xmlns=\"nsr:xns3\"/>");
+			});
 
-			var a1 = xdoc.createAttribute("attr1");
-			a1.nodeValue = "val2";
+			it("prefix", function() {
+				var xdoc = newDoc();
 
-			assert.equal(e.setAttributeNode(a1), a);
-			assert.equal(e.getAttribute("attr1"), "val2");
+				var node = xdoc.createElementNS("nsr:xns3", "ns1:aaa");
+				assert.equal(node.tagName, "ns1:aaa");
+				assert.equal(node.localName, "aaa");
+				assert.equal(node.prefix, "ns1");
+				assert.equal(node.namespaceURI, "nsr:xns3");
+				assert.equal(serialize(node), "<ns1:aaa xmlns:ns1=\"nsr:xns3\"/>");
+			});
+
+			it("xmlns", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				node.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:ns2", "nsr:xns2");
+				assert.equal(serialize(node), "<aaa xmlns:ns2=\"nsr:xns2\"/>");
+			});
 		});
 
-		it("removeAttributeNode", function() {
-			var xdoc = newDoc();
-			var e = xdoc.createElement("aaa");
-			e.setAttribute("att1", "val1");
+		describe("sub node", function() {
+			it("no prefix", function() {
+				var xdoc = newDoc();
 
-			var a = e.getAttributeNode("att1");
-			assert.equal(a.nodeValue, "val1");
-			assert.equal(e.removeAttributeNode(a), a);
-			assert.equal(e.getAttributeNode("att1"), null);
+				var node = xdoc.createElement("aaa");
+				var sub = xdoc.createElementNS("nsr:xns1", "ns2");
+				node.appendChild(sub);
+
+				assert.equal(sub.prefix, null);
+				assert.equal(sub.namespaceURI, "nsr:xns1");
+				assert.equal(serialize(node), "<aaa><ns2 xmlns=\"nsr:xns1\"/></aaa>");
+			});
+
+			it("prefix not exists", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				var sub = xdoc.createElementNS("nsr:xns1", "ns2:ns2");
+				node.appendChild(sub);
+
+				assert.equal(sub.prefix, "ns2");
+				assert.equal(sub.namespaceURI, "nsr:xns1");
+				assert.equal(serialize(node), "<aaa><ns2:ns2 xmlns:ns2=\"nsr:xns1\"/></aaa>");
+			});
+
+			it("prefix not match", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				node.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:ns2", "nsr:xns2");
+
+				var sub = xdoc.createElementNS("nsr:xns1", "ns2:ns2");
+				node.appendChild(sub);
+
+				assert.equal(sub.prefix, "ns2");
+				assert.equal(sub.namespaceURI, "nsr:xns1");
+				assert.equal(serialize(node), "<aaa xmlns:ns2=\"nsr:xns2\"><a0:ns2 xmlns:a0=\"nsr:xns1\"/></aaa>");
+			});
+
+			it("prefix match", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				node.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:ns2", "nsr:xns2");
+
+				var sub = xdoc.createElementNS("nsr:xns2", "ns2:ns2");
+				node.appendChild(sub);
+
+				assert.equal(sub.prefix, "ns2");
+				assert.equal(sub.namespaceURI, "nsr:xns2");
+				assert.equal(serialize(node), "<aaa xmlns:ns2=\"nsr:xns2\"><ns2:ns2/></aaa>");
+			});
+		});
+
+		describe("attribute", function() {
+			it("no prefix", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				node.setAttributeNS("nsr:xns1", "ns2", "val2");
+				var attr = node.attributes[0];
+				assert.equal(attr.prefix, null);
+				assert.equal(attr.namespaceURI, "nsr:xns1");
+				assert.equal(serialize(node), "<aaa a0:ns2=\"val2\" xmlns:a0=\"nsr:xns1\"/>");
+			});
+
+			it("prefix not exists", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				node.setAttributeNS("nsr:xns1", "ns2:ns2", "val2");
+				var attr = node.attributes[0];
+				assert.equal(attr.prefix, "ns2");
+				assert.equal(attr.namespaceURI, "nsr:xns1");
+				assert.equal(serialize(node), "<aaa ns2:ns2=\"val2\" xmlns:ns2=\"nsr:xns1\"/>");
+			});
+
+			it("prefix not match", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				node.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:ns2", "nsr:xns2");
+
+				node.setAttributeNS("nsr:xns1", "ns2:ns2", "val2");
+				var attr = node.attributes[1];
+				assert.equal(attr.prefix, "ns2");
+				assert.equal(attr.namespaceURI, "nsr:xns1");
+				assert.equal(serialize(node), "<aaa xmlns:ns2=\"nsr:xns2\" a0:ns2=\"val2\" xmlns:a0=\"nsr:xns1\"/>");
+			});
+
+			it("prefix match", function() {
+				var xdoc = newDoc();
+
+				var node = xdoc.createElement("aaa");
+				node.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:ns2", "nsr:xns2");
+				var attr = node.attributes[0];
+				assert.equal(attr.prefix, "xmlns");
+				assert.equal(attr.namespaceURI, "http://www.w3.org/2000/xmlns/");
+
+				node.setAttributeNS("nsr:xns2", "ns2:ns2", "val2");
+				var attr = node.attributes[1];
+				assert.equal(attr.prefix, "ns2");
+				assert.equal(attr.namespaceURI, "nsr:xns2");
+				assert.equal(serialize(node), "<aaa xmlns:ns2=\"nsr:xns2\" ns2:ns2=\"val2\"/>");
+			});
 		});
 	});
 });
