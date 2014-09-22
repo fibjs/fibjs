@@ -7,8 +7,6 @@
 
 #include "utils.h"
 
-#define XML_STATIC
-#include <expat/include/expat.h>
 #include "XmlDocument.h"
 #include <list>
 
@@ -29,77 +27,77 @@ public:
     static result_t parse(XmlDocument *doc, const char *source);
     static result_t parseHtml(XmlDocument *doc, const char *source);
 
-    void OnXmlDecl(const XML_Char *version, const XML_Char *encoding, int standalone);
-    void OnStartElement(const XML_Char *name, const XML_Char **atts);
-    void OnEndElement(const XML_Char *name);
-    void OnCharacterData(const XML_Char *s, int len);
-    void OnProcessingInstruction(const XML_Char *target, const XML_Char *data);
-    void OnComment(const XML_Char *data);
+    void OnXmlDecl(const char *version, const char *encoding, int standalone);
+    void OnStartElement(const char *name, const char **atts);
+    void OnEndElement(const char *name);
+    void OnCharacterData(const char *s, int len);
+    void OnProcessingInstruction(const char *target, const char *data);
+    void OnComment(const char *data);
     void OnStartCdataSection();
     void OnEndCdataSection();
 
-    void OnStartDoctypeDecl(const XML_Char *doctypeName, const XML_Char *sysid,
-                            const XML_Char *pubid, int has_internal_subset);
+    void OnStartDoctypeDecl(const char *doctypeName, const char *sysid,
+                            const char *pubid, int has_internal_subset);
 
 private:
     void leaveNode();
     void newNode(XmlNode_base *node, bool enter = false);
 
 private:
-    static void XMLCALL XmlDeclHandler(void *userData, const XML_Char *version,
-                                       const XML_Char *encoding, int standalone)
+    static void XmlDeclHandler(void *userData, const char *version,
+                                       const char *encoding, int standalone)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnXmlDecl(version, encoding, standalone);
     }
 
-    static void XMLCALL StartElementHandler(void *userData, const XML_Char *name,
-                                            const XML_Char **atts)
+    static void StartElementHandler(void *userData, const char *name,
+                                            const char **atts)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnStartElement(name, atts);
     }
 
-    static void XMLCALL EndElementHandler(void *userData, const XML_Char *name)
+    static void EndElementHandler(void *userData, const char *name)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnEndElement(name);
     }
 
-    static void XMLCALL CharacterDataHandler(void *userData, const XML_Char *s, int len)
+    static void CharacterDataHandler(void *userData, const char *s, int len)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnCharacterData(s, len);
     }
 
-    static void XMLCALL ProcessingInstructionHandler(void *userData,
-            const XML_Char *target, const XML_Char *data)
+    static void ProcessingInstructionHandler(void *userData,
+            const char *target, const char *data)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnProcessingInstruction(target, data);
     }
 
-    static void XMLCALL CommentHandler(void *userData, const XML_Char *data)
+    static void CommentHandler(void *userData, const char *data)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnComment(data);
     }
 
-    static void XMLCALL StartCdataSectionHandler(void *userData)
+    static void StartCdataSectionHandler(void *userData)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnStartCdataSection();
     }
 
-    static void XMLCALL EndCdataSectionHandler(void *userData)
+    static void EndCdataSectionHandler(void *userData)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnEndCdataSection();
     }
 
-    static void XMLCALL StartDoctypeDeclHandler(void *userData,
-            const XML_Char *doctypeName, const XML_Char *sysid,
-            const XML_Char *pubid, int has_internal_subset)
+    static void StartDoctypeDeclHandler(void *userData,
+            const char *doctypeName, const char *sysid,
+            const char *pubid, int has_internal_subset)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnStartDoctypeDecl(doctypeName, sysid, pubid, has_internal_subset);

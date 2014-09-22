@@ -14,6 +14,8 @@
 #include "XmlCDATASection.h"
 #include "Runtime.h"
 #include <map>
+#define XML_STATIC
+#include <expat/include/expat.h>
 
 namespace fibjs
 {
