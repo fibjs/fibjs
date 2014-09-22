@@ -20,6 +20,7 @@
 #include <polarssl/polarssl/version.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
+#include <expat/include/expat.h>
 #include "QuickArray.h"
 #include <map>
 
@@ -1280,6 +1281,10 @@ result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
 
         vender->Set(v8::String::NewFromUtf8(isolate, "ev"),
                     v8::String::NewFromUtf8(isolate,  STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
+
+        vender->Set(v8::String::NewFromUtf8(isolate, "expat"),
+                    v8::String::NewFromUtf8(isolate,  STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION)));
+
         vender->Set(v8::String::NewFromUtf8(isolate, "gd"), v8::String::NewFromUtf8(isolate, GD_VERSION_STRING));
         vender->Set(v8::String::NewFromUtf8(isolate, "jpeg"), v8::String::NewFromUtf8(isolate,
                     STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
