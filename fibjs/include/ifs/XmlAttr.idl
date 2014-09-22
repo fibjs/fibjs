@@ -6,12 +6,12 @@ interface XmlAttr
     */
     readonly String localName;
 
-	/*! @brief 属性的值
-	*/
+    /*! @brief 属性的值
+    */
     String value;
 
-	/*! @brief 属性的名称
-	*/
+    /*! @brief 属性的名称
+    */
     readonly String name;
 
     /*! @brief 查询元素的命名空间的 URI。如果选定的节点无命名空间，则该属性返回 NULL
@@ -21,4 +21,12 @@ interface XmlAttr
     /*! @brief 查询和设置元素的命名空间前缀。如果选定的节点无命名空间，则该属性返回 NULL
     */
     String prefix;
+
+    /*! @brief 属性的名称，为兼容的目的
+    */
+    readonly String nodeName;
+
+    /*! @brief 属性的值，为兼容的目的
+    */
+    String nodeValue;
 };

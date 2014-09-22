@@ -57,6 +57,9 @@ public:
     virtual result_t get_namespaceURI(std::string &retVal);
     virtual result_t get_prefix(std::string &retVal);
     virtual result_t set_prefix(const char *newVal);
+    virtual result_t get_nodeName(std::string &retVal);
+    virtual result_t get_nodeValue(std::string &retVal);
+    virtual result_t set_nodeValue(const char *newVal);
 
 public:
     bool check(const char *namespaceURI, const char *localName)

@@ -75,6 +75,21 @@ void XmlAttr::fix_prefix()
         m_owner->fix_prefix(m_namespaceURI.c_str(), m_prefix);
 }
 
+result_t XmlAttr::get_nodeName(std::string &retVal)
+{
+    return get_name(retVal);
+}
+
+result_t XmlAttr::get_nodeValue(std::string &retVal)
+{
+    return get_value(retVal);
+}
+
+result_t XmlAttr::set_nodeValue(const char *newVal)
+{
+    return set_value(newVal);
+}
+
 result_t XmlAttr::toString(std::string &retVal)
 {
     retVal = " ";
