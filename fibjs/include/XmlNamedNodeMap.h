@@ -6,6 +6,7 @@
  */
 
 #include "ifs/XmlNamedNodeMap.h"
+#include "XmlAttr.h"
 
 #ifndef XMLNAMEDNODEMAP_H_
 #define XMLNAMEDNODEMAP_H_
@@ -13,46 +14,40 @@
 namespace fibjs
 {
 
-class XmlNodeImpl;
-
 class XmlNamedNodeMap: public XmlNamedNodeMap_base
 {
 public:
-    XmlNamedNodeMap(XmlNodeImpl *pThis) : m_this(pThis)
-    {}
+    ~XmlNamedNodeMap()
+    {
+        int32_t sz = (int32_t)m_childs.size();
+        int32_t i;
 
-    ~XmlNamedNodeMap();
+        for (i = 0; i < sz; i ++)
+            m_childs[i]->m_owner = NULL;
+    }
 
 public:
     // object_base
     virtual result_t toString(std::string &retVal);
 
 public:
-    // XmlNodeList_base
-    virtual result_t get_length(int32_t &retVal);
-    virtual result_t item(int32_t index, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &retVal);
-
-public:
     // XmlNamedNodeMap_base
-    virtual result_t getNamedItem(const char *name, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t removeNamedItem(const char *name, obj_ptr<XmlNode_base> &retVal);
+    virtual result_t get_length(int32_t &retVal);
+    virtual result_t item(int32_t index, obj_ptr<XmlAttr_base> &retVal);
+    virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlAttr_base> &retVal);
+    virtual result_t getNamedItem(const char *name, obj_ptr<XmlAttr_base> &retVal);
 
 public:
-    result_t setAttributeNode(XmlNode_base *newAttr, obj_ptr<XmlNode_base> &retVal);
-    result_t hasAttribute(bool &retVal);
+    result_t setNamedItem(XmlAttr *newAttr);
+    result_t removeNamedItem(const char *name);
+    result_t getNamedItemNS(const char *namespaceURI, const char *localName, obj_ptr<XmlAttr_base> &retVal);
+    result_t removeNamedItemNS(const char *namespaceURI, const char *localName);
+    result_t cloneAttrs(XmlNamedNodeMap *to, XmlNodeImpl *el);
+    result_t lookupPrefix(const char *namespaceURI, std::string &retVal);
+    result_t lookupNamespaceURI(const char *prefix, std::string &retVal);
 
 public:
-    bool hasAttribute()
-    {
-        return !!m_childs.size();
-    }
-
-    result_t cloneAttrs(XmlNamedNodeMap *to);
-
-public:
-    XmlNodeImpl *m_this;
-    std::vector<XmlNodeImpl *> m_childs;
+    std::vector<obj_ptr<XmlAttr> > m_childs;
 };
 
 } /* namespace fibjs */

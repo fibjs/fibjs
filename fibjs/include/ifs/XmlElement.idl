@@ -3,6 +3,18 @@
 */
 interface XmlElement : XmlNode
 {
+    /*! @brief 查询元素的命名空间的 URI。如果选定的节点无命名空间，则该属性返回 NULL
+    */
+    readonly String namespaceURI;
+
+    /*! @brief 查询和设置元素的命名空间前缀。如果选定的节点无命名空间，则该属性返回 NULL
+    */
+    String prefix;
+
+    /*! @brief 查询元素的本地名称。如果选定的节点无命名空间，则该属性等同于 nodeName
+    */
+    readonly String localName;
+
     /*! @brief 返回元素的标签名
     */
     readonly String tagName;
@@ -17,6 +29,13 @@ interface XmlElement : XmlNode
     */
     String getAttribute(String name);
 
+    /*! @brief 通过命名空间 URI 和名称来获取属性值
+     @param namespaceURI 指定查询的命名空间 URI
+     @param localName 指定查询的属性名
+     @return 返回属性的值
+    */
+    String getAttributeNS(String namespaceURI, String localName);
+
     /*! @brief 创建或改变某个新属性
 
      该方法把指定的属性设置为指定的值。如果不存在具有指定名称的属性，该方法将创建一个新属性
@@ -25,29 +44,38 @@ interface XmlElement : XmlNode
     */
     setAttribute(String name, String value);
 
+    /*! @brief 创建或改变具有命名空间的属性
+
+     该方法与 setAttribute 方法类似，只是要创建或设置的属性由命名空间 URI 和限定名（由名字空间前缀、冒号和名字空间中的本地名构成）共同指定。除了可以改变一个属性的值以外，使用该方法还可以改变属性的名字空间前缀
+     @param namespaceURI 指定要设置的命名空间 URI
+     @param qualifiedName 指定要设置的属性名
+     @param value 指定要设置的属性值
+    */
+    setAttributeNS(String namespaceURI, String qualifiedName, String value);
+
     /*! @brief 通过名称删除指定的属性
      @param name 指定删除的属性名
     */
     removeAttribute(String name);
 
-    /*! @brief 通过名称查询属性的节点
-     @param name 指定查询的属性名
-     @return 返回属性的节点
+    /*! @brief 通过命名空间和名称删除指定的属性
+     @param namespaceURI 指定要删除的命名空间 URI
+     @param localName 指定删除的属性名
     */
-    XmlAttr getAttributeNode(String name);
+    removeAttributeNS(String namespaceURI, String localName);
 
-    /*! @brief 创建或改变某个新属性节点，如果元素中已经存在指定名称的属性，那么该属性将被新属性替代。
-
-     @param newAttr 指定要设置的属性节点
-     @return 如果新属性替代了已有的属性，则返回被替代的属性，否则返回 null
+    /*! @brief 查询当前节点是否拥有指定名称的属性
+     @param name 指定查询的属性名称
+     @return 如果当前元素节点拥有指定属性，则返回 true，否则返回 false
     */
-    XmlAttr setAttributeNode(XmlAttr newAttr);
+    Boolean hasAttribute(String name);
 
-    /*! @brief 通过名称删除指定的属性节点
-     @param oldAttr 指定删除的属性名
-     @return 返回被删除的属性节点
+    /*! @brief 查询当前节点是否拥有指定命名空间和名称的属性
+     @param namespaceURI 指定要查询的命名空间 URI
+     @param localName 指定查询的属性名称
+     @return 如果当前元素节点拥有指定属性，则返回 true，否则返回 false
     */
-    XmlAttr removeAttributeNode(XmlAttr oldAttr);
+    Boolean hasAttributeNS(String namespaceURI, String localName);
 
     /*! @brief 返回拥有指定名称的所有元素的 XmlNodeList
 
@@ -59,8 +87,12 @@ interface XmlElement : XmlNode
     */
     XmlNodeList getElementsByTagName(String tagName);
 
-    /*! @brief 查询当前节点是否拥有属性
-     @return 如果当前元素节点拥有任何属性，则 hasAttributes 返回 true，否则返回 false
+    /*! @brief 返回拥有指定命名空间和名称的所有元素的 XmlNodeList
+
+     该方法与 getElementsByTagName 方法相似，只是想获取的元素的标记名被指定为命名空间 URI 和在命名空间中定义的本地名的组合。
+     @param namespaceURI 指定要查询的命名空间 URI
+     @param localName 需检索的标签名。值 "*" 匹配所有的标签
+     @return 节点树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
     */
-    Boolean hasAttribute();
+    XmlNodeList getElementsByTagNameNS(String namespaceURI, String localName);
 };

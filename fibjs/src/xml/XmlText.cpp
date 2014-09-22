@@ -67,6 +67,16 @@ result_t XmlText::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
+result_t XmlText::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
+}
+
+result_t XmlText::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
+}
+
 result_t XmlText::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
                                obj_ptr<XmlNode_base> &retVal)
 {
@@ -153,7 +163,7 @@ result_t XmlText::replaceData(int32_t offset, int32_t count, const char *arg)
 
 result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
 {
-    std::string ret;
+    wstring ret;
     result_t hr;
 
     hr = m_data.splitText(offset, ret);

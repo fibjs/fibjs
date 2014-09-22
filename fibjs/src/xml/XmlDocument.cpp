@@ -33,9 +33,9 @@ result_t xml_base::parse(const char *source, obj_ptr<XmlDocument_base> &retVal)
     return retVal->loadXML(source);
 }
 
-result_t xml_base::serialize(XmlDocument_base *xmlDoc, std::string &retVal)
+result_t xml_base::serialize(XmlNode_base *node, std::string &retVal)
 {
-    return xmlDoc->toString(retVal);
+    return node->toString(retVal);
 }
 
 result_t XmlDocument::get_nodeName(std::string &retVal)
@@ -101,13 +101,13 @@ result_t XmlDocument::checkNode(XmlNode_base *newChild)
 
     if (type == xml_base::_ELEMENT_NODE)
     {
-        if (m_Element)
+        if (m_element)
         {
-            if (m_Element != newChild)
+            if (m_element != newChild)
                 return Runtime::setError("The document node contains only one element node.");
         }
         else
-            m_Element = (XmlElement_base *)newChild;
+            m_element = (XmlElement_base *)newChild;
     }
     else if (type == xml_base::_DOCUMENT_TYPE_NODE)
     {
@@ -123,6 +123,28 @@ result_t XmlDocument::checkNode(XmlNode_base *newChild)
     return 0;
 }
 
+result_t XmlDocument::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    if (globalPrefix(namespaceURI, retVal))
+        return 0;
+
+    if (!m_element)
+        return CALL_RETURN_NULL;
+
+    return m_element->lookupPrefix(namespaceURI, retVal);
+}
+
+result_t XmlDocument::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    if (globalNamespaceURI(prefix, retVal))
+        return 0;
+
+    if (!m_element)
+        return CALL_RETURN_NULL;
+
+    return m_element->lookupNamespaceURI(prefix, retVal);
+}
+
 result_t XmlDocument::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
                                    obj_ptr<XmlNode_base> &retVal)
 {
@@ -134,7 +156,7 @@ result_t XmlDocument::insertBefore(XmlNode_base *newChild, XmlNode_base *refChil
 }
 
 result_t XmlDocument::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
-                                 obj_ptr<XmlNode_base> &retVal)
+                                  obj_ptr<XmlNode_base> &retVal)
 {
     result_t hr = checkNode(newChild);
     if (hr < 0)
@@ -152,8 +174,8 @@ result_t XmlDocument::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChil
         return 0;
     }
 
-    if (oldChild == m_Element)
-        m_Element.Release();
+    if (oldChild == m_element)
+        m_element.Release();
     else if (oldChild == m_doctype)
         m_doctype.Release();
 
@@ -166,8 +188,8 @@ result_t XmlDocument::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChil
 
 result_t XmlDocument::removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal)
 {
-    if (oldChild == m_Element)
-        m_Element.Release();
+    if (oldChild == m_element)
+        m_element.Release();
     else if (oldChild == m_doctype)
         m_doctype.Release();
 
@@ -216,16 +238,23 @@ result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)
 
 result_t XmlDocument::get_documentElement(obj_ptr<XmlElement_base> &retVal)
 {
-    if (!m_Element)
+    if (!m_element)
         return CALL_RETURN_NULL;
 
-    retVal = m_Element;
+    retVal = m_element;
     return 0;
 }
 
 result_t XmlDocument::createElement(const char *tagName, obj_ptr<XmlElement_base> &retVal)
 {
     retVal = new XmlElement(this, tagName);
+    return 0;
+}
+
+result_t XmlDocument::createElementNS(const char *namespaceURI, const char *qualifiedName,
+                                      obj_ptr<XmlElement_base> &retVal)
+{
+    retVal = new XmlElement(this, namespaceURI, qualifiedName);
     return 0;
 }
 
@@ -254,19 +283,26 @@ result_t XmlDocument::createProcessingInstruction(const char *target, const char
     return 0;
 }
 
-result_t XmlDocument::createAttribute(const char *name, obj_ptr<XmlAttr_base> &retVal)
-{
-    retVal = new XmlAttr(this, name);
-    return 0;
-}
-
 result_t XmlDocument::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
-    XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_Element;
+    XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_element;
 
     if (pEl)
         pEl->getElementsByTagNameFromThis(tagName, ret);
+
+    retVal = ret;
+    return 0;
+}
+
+result_t XmlDocument::getElementsByTagNameNS(const char *namespaceURI, const char *localName,
+        obj_ptr<XmlNodeList_base> &retVal)
+{
+    obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
+    XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_element;
+
+    if (pEl)
+        pEl->getElementsByTagNameNSFromThis(namespaceURI, localName, ret);
 
     retVal = ret;
     return 0;

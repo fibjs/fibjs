@@ -14,23 +14,33 @@
 namespace fibjs
 {
 
-class XmlAttr: public XmlAttr_base, public XmlNodeImpl
+class XmlElement;
+
+class XmlAttr: public XmlAttr_base
 {
 public:
-    XmlAttr(XmlDocument_base *document, const char *name):
-        XmlNodeImpl(document, this, xml_base::_ATTRIBUTE_NODE), m_name(name)
+    XmlAttr(XmlElement *owner, const char *name, const char *value):
+        m_owner(owner), m_name(name), m_localName(m_name), m_value(value)
     {
     }
 
-    XmlAttr(XmlDocument_base *document, const char *name, const char *value):
-        XmlNodeImpl(document, this, xml_base::_ATTRIBUTE_NODE),
-        m_name(name), m_value(value)
+    XmlAttr(XmlElement *owner, const char *namespaceURI, const char *qualifiedName,
+            const char *value):
+        m_owner(owner), m_name(qualifiedName), m_namespaceURI(namespaceURI), m_value(value)
     {
+        const char *p = qstrchr(qualifiedName, ':');
+        if (!p)
+            m_localName = m_name;
+        else
+        {
+            m_prefix.assign(qualifiedName, p - qualifiedName);
+            m_localName.assign(p + 1);
+        }
     }
 
     XmlAttr(const XmlAttr &from):
-        XmlNodeImpl(from.m_document, this, xml_base::_ATTRIBUTE_NODE),
-        m_name(from.m_name), m_value(from.m_value)
+        m_owner(NULL), m_name(from.m_name), m_localName(from.m_localName),
+        m_prefix(from.m_prefix), m_namespaceURI(from.m_namespaceURI), m_value(from.m_value)
     {
     }
 
@@ -39,36 +49,58 @@ public:
     virtual result_t toString(std::string &retVal);
 
 public:
-    // XmlNode_base
-    virtual result_t get_nodeName(std::string &retVal);
-    virtual result_t get_nodeValue(std::string &retVal);
-    virtual result_t set_nodeValue(const char *newVal);
-    virtual result_t get_nodeType(int32_t &retVal);
-    virtual result_t get_parentNode(obj_ptr<XmlNode_base> &retVal);
-    virtual result_t get_childNodes(obj_ptr<XmlNodeList_base> &retVal);
-    virtual result_t get_firstChild(obj_ptr<XmlNode_base> &retVal);
-    virtual result_t get_lastChild(obj_ptr<XmlNode_base> &retVal);
-    virtual result_t get_previousSibling(obj_ptr<XmlNode_base> &retVal);
-    virtual result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal);
-    virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal);
-    virtual result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t insertAfter(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t hasChildNodes(bool &retVal);
-    virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t normalize();
-
-public:
     // XmlAttr_base
-    virtual result_t get_name(std::string &retVal);
-    virtual result_t get_specified(bool &retVal);
+    virtual result_t get_localName(std::string &retVal);
     virtual result_t get_value(std::string &retVal);
     virtual result_t set_value(const char *newVal);
+    virtual result_t get_name(std::string &retVal);
+    virtual result_t get_namespaceURI(std::string &retVal);
+    virtual result_t get_prefix(std::string &retVal);
+    virtual result_t set_prefix(const char *newVal);
+
+public:
+    bool check(const char *namespaceURI, const char *localName)
+    {
+        return !qstrcmp(m_namespaceURI.c_str(), namespaceURI) &&
+               !qstrcmp(m_localName.c_str(), localName);
+    }
+
+    bool check(const char *name)
+    {
+        return !qstrcmp(m_name.c_str(), name);
+    }
+
+    bool check(const XmlAttr *from)
+    {
+        if (m_namespaceURI.empty() && from->m_namespaceURI.empty())
+            return check(from->m_name.c_str());
+        return check(from->m_namespaceURI.c_str(), from->m_localName.c_str());
+    }
+
+    bool check_namespaceURI(const char *namespaceURI)
+    {
+        return !qstrcmp(m_namespaceURI.c_str(), "http://www.w3.org/2000/xmlns/") &&
+               !qstrcmp(m_prefix.c_str(), "xmlns") &&
+               !qstrcmp(m_value.c_str(), namespaceURI);
+    }
+
+    bool check_prefix(const char *prefix)
+    {
+        return !qstrcmp(m_namespaceURI.c_str(), "http://www.w3.org/2000/xmlns/") &&
+               !qstrcmp(m_prefix.c_str(), "xmlns") &&
+               !qstrcmp(m_localName.c_str(), prefix);
+    }
+
+    void fix_prefix();
+
+public:
+    XmlElement *m_owner;
 
 private:
     std::string m_name;
+    std::string m_localName;
+    std::string m_prefix;
+    std::string m_namespaceURI;
     std::string m_value;
 };
 

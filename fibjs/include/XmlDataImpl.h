@@ -7,6 +7,7 @@
 
 #include "utils.h"
 #include <string.h>
+#include "utf8.h"
 
 #ifndef XMLDATAIMPL_H_
 #define XMLDATAIMPL_H_
@@ -17,22 +18,26 @@ namespace fibjs
 class XmlDataImpl
 {
 public:
-    XmlDataImpl(const char *data) : m_data(data)
+    XmlDataImpl(const char *data) : m_data(utf8to16String(data))
+    {
+    }
+
+    XmlDataImpl(const wstring &data) : m_data(data)
     {}
 
-    XmlDataImpl(const std::string &data) : m_data(data)
+    XmlDataImpl(const XmlDataImpl &data) : m_data(data.m_data)
     {}
 
 public:
     result_t get_data(std::string &retVal)
     {
-        retVal = m_data;
+        retVal = utf16to8String(m_data);
         return 0;
     }
 
     result_t set_data(const char *newVal)
     {
-        m_data = newVal;
+        m_data = utf8to16String(newVal);
         return 0;
     }
 
@@ -46,13 +51,13 @@ public:
     {
         if (offset < 0 || offset > (int32_t)m_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
-        retVal = m_data.substr(offset, count);
+        retVal = utf16to8String(m_data.substr(offset, count));
         return 0;
     }
 
     result_t appendData(const char *arg)
     {
-        m_data.append(arg);
+        m_data.append(utf8to16String(arg));
         return 0;
     }
 
@@ -61,7 +66,7 @@ public:
         if (offset < 0 || offset > (int32_t)m_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
 
-        m_data = m_data.substr(0, offset) + arg + m_data.substr(offset);
+        m_data = m_data.substr(0, offset) + utf8to16String(arg) + m_data.substr(offset);
         return 0;
     }
 
@@ -85,11 +90,11 @@ public:
         if (offset + count > (int32_t)m_data.length())
             count = (int32_t)m_data.length() - offset;
 
-        m_data = m_data.substr(0, offset) + arg + m_data.substr(offset + count);
+        m_data = m_data.substr(0, offset) + utf8to16String(arg) + m_data.substr(offset + count);
         return 0;
     }
 
-    result_t splitText(int32_t offset, std::string &retVal)
+    result_t splitText(int32_t offset, wstring &retVal)
     {
         if (offset < 0 || offset > (int32_t)m_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
@@ -101,13 +106,13 @@ public:
 
     std::string encodedText()
     {
-        std::string str;
+        wstring str;
         int32_t sz = (int32_t)m_data.length();
 
         if (!sz)
-            return str;
+            return std::string();
 
-        const char *data = m_data.c_str();
+        const wchar *data = m_data.c_str();
         int32_t sz1 = 0;
         int32_t i;
 
@@ -130,26 +135,26 @@ public:
         }
 
         if (sz == sz1)
-            return m_data;
+            return utf16to8String(m_data);
 
         str.resize(sz1);
-        char *data1 = &str[0];
+        wchar *data1 = &str[0];
 
         for (i = 0; i < sz; i ++)
         {
-            char ch;
+            wchar ch;
             switch (ch = data[i])
             {
             case '<':
-                memcpy(data1, "&lt;", 4);
+                memcpy(data1, L"&lt;", 8);
                 data1 += 4;
                 break;
             case '>':
-                memcpy(data1, "&gt;", 4);
+                memcpy(data1, L"&gt;", 8);
                 data1 += 4;
                 break;
             case '&':
-                memcpy(data1, "&amp;", 5);
+                memcpy(data1, L"&amp;", 10);
                 data1 += 5;
                 break;
             default:
@@ -157,11 +162,16 @@ public:
             }
         }
 
-        return str;
+        return utf16to8String(str);
     }
 
-public:
-    std::string m_data;
+    std::string data()
+    {
+        return utf16to8String(m_data);
+    }
+
+private:
+    wstring m_data;
 };
 
 } /* namespace fibjs */

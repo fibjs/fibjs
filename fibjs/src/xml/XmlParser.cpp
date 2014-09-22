@@ -13,6 +13,7 @@
 #include "XmlText.h"
 #include "XmlCDATASection.h"
 #include "Runtime.h"
+#include <map>
 
 namespace fibjs
 {
@@ -73,12 +74,83 @@ void XmlParser::OnStartDoctypeDecl(const XML_Char *doctypeName, const XML_Char *
 
 void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
 {
-    obj_ptr<XmlElement> el = new XmlElement(m_document, name);
+    const XML_Char **p = atts;
+    std::map<std::string, std::string> nss;
+    std::string def_ns;
+    bool has_def = false;
+
+    while (p[0] && p[1])
+    {
+        const XML_Char *ns = p[0];
+
+        if (!qstrcmp(ns, "xmlns", 5))
+        {
+            if (ns[5] == ':')
+                nss.insert(std::pair<std::string, std::string>(ns + 6, p[1]));
+            else if (!ns[5])
+            {
+                def_ns = p[1];
+                has_def = true;
+            }
+        }
+        p += 2;
+    }
+
+    obj_ptr<XmlElement> el;
+    const char *str = qstrchr(name, ':');
+
+    if (str)
+    {
+        std::string prefix(name, str - name);
+        std::string qname(str + 1);
+        std::map<std::string, std::string>::iterator it;
+
+        it = nss.find(prefix);
+        if (it != nss.end())
+            def_ns = it->second;
+        else
+            m_now->lookupNamespaceURI(prefix.c_str(), def_ns);
+    }
+    else if (!has_def)
+    {
+        int32_t type;
+        m_now->get_nodeType(type);
+        if (type == xml_base::_ELEMENT_NODE)
+            ((XmlElement *)(XmlNode_base *)m_now)->get_defaultNamespace(def_ns);
+    }
+
+    if (!def_ns.empty())
+        el = new XmlElement(m_document, def_ns.c_str(), name);
+    else
+        el = new XmlElement(m_document, name);
+
     newNode(el, true);
 
     while (atts[0] && atts[1])
     {
-        el->setAttribute(atts[0], atts[1]);
+        name = atts[0];
+
+        str = qstrchr(name, ':');
+        if (str && str[1])
+        {
+            std::string ns(name, str - name);
+            std::string qname(str + 1);
+            std::map<std::string, std::string>::iterator it;
+
+            it = nss.find(ns);
+            if (it != nss.end())
+                def_ns = it->second;
+            else
+                m_now->lookupNamespaceURI(ns.c_str(), def_ns);
+        }
+        else
+            def_ns.clear();
+
+        if (!def_ns.empty())
+            el->setAttributeNS(def_ns.c_str(), name, atts[1]);
+        else
+            el->setAttribute(name, atts[1]);
+
         atts += 2;
     }
 }

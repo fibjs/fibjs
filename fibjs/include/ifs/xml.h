@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class XmlDocument_base;
+class XmlNode_base;
 
 class xml_base : public object_base
 {
@@ -38,7 +39,7 @@ public:
 public:
 	// xml_base
 	static result_t parse(const char* source, obj_ptr<XmlDocument_base>& retVal);
-	static result_t serialize(XmlDocument_base* xmlDoc, std::string& retVal);
+	static result_t serialize(XmlNode_base* node, std::string& retVal);
 
 public:
 	static void s_get_ELEMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -56,6 +57,7 @@ public:
 }
 
 #include "XmlDocument.h"
+#include "XmlNode.h"
 
 namespace fibjs
 {
@@ -170,7 +172,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(obj_ptr<XmlDocument_base>, 0);
+		ARG(obj_ptr<XmlNode_base>, 0);
 
 		hr = serialize(v0, vr);
 

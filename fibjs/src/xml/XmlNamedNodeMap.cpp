@@ -8,20 +8,9 @@
 #include "XmlNamedNodeMap.h"
 #include "XmlNodeImpl.h"
 #include <string.h>
- 
+
 namespace fibjs
 {
-
-XmlNamedNodeMap::~XmlNamedNodeMap()
-{
-    int32_t sz = (int32_t)m_childs.size();
-    int32_t i;
-
-    for (i = 0; i < sz; i ++)
-        m_childs[i]->m_node->Unref();
-
-    m_childs.resize(0);
-}
 
 result_t XmlNamedNodeMap::get_length(int32_t &retVal)
 {
@@ -29,19 +18,19 @@ result_t XmlNamedNodeMap::get_length(int32_t &retVal)
     return 0;
 }
 
-result_t XmlNamedNodeMap::item(int32_t index, obj_ptr<XmlNode_base> &retVal)
+result_t XmlNamedNodeMap::item(int32_t index, obj_ptr<XmlAttr_base> &retVal)
 {
     if (index < 0 || index >= (int32_t)m_childs.size())
         return CALL_RETURN_NULL;
-    retVal = m_childs[index]->m_node;
+    retVal = m_childs[index];
     return 0;
 }
 
-result_t XmlNamedNodeMap::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &retVal)
+result_t XmlNamedNodeMap::_indexed_getter(uint32_t index, obj_ptr<XmlAttr_base> &retVal)
 {
     if (index >= m_childs.size())
         return CALL_RETURN_NULL;
-    retVal = m_childs[index]->m_node;
+    retVal = m_childs[index];
     return 0;
 }
 
@@ -58,14 +47,19 @@ result_t XmlNamedNodeMap::toString(std::string &retVal)
         retVal.clear();
         return 0;
     }
-    else if (sz == 1)
-        return m_childs[0]->m_node->toString(retVal);
+
+    for (i = 0; i < sz; i ++)
+        m_childs[i]->fix_prefix();
+
+    sz = (int32_t)m_childs.size();
+    if (sz == 1)
+        return m_childs[0]->toString(retVal);
 
     for (i = 0; i < sz; i ++)
     {
         std::string str;
 
-        m_childs[i]->m_node->toString(str);
+        m_childs[i]->toString(str);
         len += (int32_t)str.length();
         strs.push_back(str);
     }
@@ -81,18 +75,15 @@ result_t XmlNamedNodeMap::toString(std::string &retVal)
     return 0;
 }
 
-result_t XmlNamedNodeMap::getNamedItem(const char *name, obj_ptr<XmlNode_base> &retVal)
+result_t XmlNamedNodeMap::getNamedItem(const char *name, obj_ptr<XmlAttr_base> &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
 
     for (i = 0; i < sz; i ++)
     {
-        std::string tagName;
-        XmlNode_base *node = m_childs[i]->m_node;
-        node->get_nodeName(tagName);
-
-        if (!qstrcmp(tagName.c_str(), name))
+        XmlAttr *node = m_childs[i];
+        if (node->check(name))
         {
             retVal = node;
             return 0;
@@ -102,21 +93,36 @@ result_t XmlNamedNodeMap::getNamedItem(const char *name, obj_ptr<XmlNode_base> &
     return CALL_RETURN_NULL;
 }
 
-result_t XmlNamedNodeMap::removeNamedItem(const char *name, obj_ptr<XmlNode_base> &retVal)
+result_t XmlNamedNodeMap::getNamedItemNS(const char *namespaceURI, const char *localName,
+        obj_ptr<XmlAttr_base> &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
 
     for (i = 0; i < sz; i ++)
     {
-        std::string tagName;
-        XmlNode_base *node = m_childs[i]->m_node;
-        node->get_nodeName(tagName);
-
-        if (!qstrcmp(tagName.c_str(), name))
+        XmlAttr *node = m_childs[i];
+        if (node->check(namespaceURI, localName))
         {
             retVal = node;
-            node->Unref();
+            return 0;
+        }
+    }
+
+    return CALL_RETURN_NULL;
+}
+
+result_t XmlNamedNodeMap::removeNamedItem(const char *name)
+{
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i ++)
+    {
+        XmlAttr *node = m_childs[i];
+        if (node->check(name))
+        {
+            node->m_owner = NULL;
 
             while (i < sz - 1)
             {
@@ -125,54 +131,61 @@ result_t XmlNamedNodeMap::removeNamedItem(const char *name, obj_ptr<XmlNode_base
             }
 
             m_childs.resize(sz - 1);
-
             return 0;
         }
     }
 
-    return CALL_RETURN_NULL;
-}
-
-result_t XmlNamedNodeMap::setAttributeNode(XmlNode_base *newNode, obj_ptr<XmlNode_base> &retVal)
-{
-    int32_t sz = (int32_t)m_childs.size();
-    int32_t i;
-    XmlNodeImpl *pNew = XmlNodeImpl::fromNode(newNode);
-    std::string name;
-
-    newNode->get_nodeName(name);
-
-    for (i = 0; i < sz; i ++)
-    {
-        std::string tagName;
-        XmlNode_base *node = m_childs[i]->m_node;
-        node->get_nodeName(tagName);
-
-        if (!qstrcmp(tagName.c_str(), name.c_str()))
-        {
-            retVal = node;
-            node->Unref();
-
-            m_childs[i] = pNew;
-            pNew->m_node->Ref();
-
-            return 0;
-        }
-    }
-
-    m_childs.push_back(pNew);
-    pNew->m_node->Ref();
-
-    return CALL_RETURN_NULL;
-}
-
-result_t XmlNamedNodeMap::hasAttribute(bool &retVal)
-{
-    retVal = !!m_childs.size();
     return 0;
 }
 
-result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap *to)
+result_t XmlNamedNodeMap::removeNamedItemNS(const char *namespaceURI, const char *localName)
+{
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i ++)
+    {
+        XmlAttr *node = m_childs[i];
+        if (node->check(namespaceURI, localName))
+        {
+            node->m_owner = NULL;
+
+            while (i < sz - 1)
+            {
+                m_childs[i] = m_childs[i + 1];
+                i ++;
+            }
+
+            m_childs.resize(sz - 1);
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
+result_t XmlNamedNodeMap::setNamedItem(XmlAttr *newNode)
+{
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i ++)
+    {
+        XmlAttr *node = m_childs[i];
+        if (node->check(newNode))
+        {
+            node->m_owner = NULL;
+
+            m_childs[i] = (XmlAttr *)newNode;
+            return 0;
+        }
+    }
+
+    m_childs.push_back((XmlAttr *)newNode);
+    return 0;
+}
+
+result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap *to, XmlNodeImpl *el)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -180,19 +193,45 @@ result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap *to)
 
     for (i = 0; i < sz; i ++)
     {
-        obj_ptr<XmlNode_base> child;
-        obj_ptr<XmlNode_base> out;
-
-        hr = m_childs[i]->m_node->cloneNode(true, child);
-        if (hr < 0)
-            return hr;
-
-        hr = to->setAttributeNode(child, out);
+        obj_ptr<XmlAttr> child = new XmlAttr(*m_childs[i]);
+        child->m_owner = (XmlElement *)el->m_node;
+        hr = to->setNamedItem(child);
         if (hr < 0)
             return hr;
     }
 
     return 0;
 }
+
+result_t XmlNamedNodeMap::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i ++)
+    {
+        XmlAttr *node = m_childs[i];
+        if (node->check_namespaceURI(namespaceURI))
+            return node->get_localName(retVal);
+    }
+
+    return CALL_RETURN_NULL;
+}
+
+result_t XmlNamedNodeMap::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+
+    for (i = 0; i < sz; i ++)
+    {
+        XmlAttr *node = m_childs[i];
+        if (node->check_prefix(prefix))
+            return node->get_value(retVal);
+    }
+
+    return CALL_RETURN_NULL;
+}
+
 
 }

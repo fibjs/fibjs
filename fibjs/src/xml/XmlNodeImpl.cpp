@@ -9,7 +9,6 @@
 #include "XmlDocument.h"
 #include "XmlDocumentType.h"
 #include "XmlElement.h"
-#include "XmlAttr.h"
 #include "XmlText.h"
 #include "XmlComment.h"
 #include "XmlCDATASection.h"
@@ -17,6 +16,13 @@
 
 namespace fibjs
 {
+
+const char *XmlNodeImpl::s_nss[][2] =
+{
+    {"xml", "http://www.w3.org/XML/1998/namespace"},
+    {"xmlns", "http://www.w3.org/2000/xmlns/"},
+    {NULL, NULL}
+};
 
 XmlNodeImpl *XmlNodeImpl::fromNode(XmlNode_base *pNode)
 {
@@ -28,8 +34,6 @@ XmlNodeImpl *XmlNodeImpl::fromNode(XmlNode_base *pNode)
     {
     case xml_base::_ELEMENT_NODE:
         return (XmlElement *)pNode;
-    case xml_base::_ATTRIBUTE_NODE:
-        return (XmlAttr *)pNode;
     case xml_base::_TEXT_NODE:
         return (XmlText *)pNode;
     case xml_base::_CDATA_SECTION_NODE:

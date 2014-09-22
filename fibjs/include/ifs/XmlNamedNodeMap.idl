@@ -1,17 +1,25 @@
 
-/*! @brief XmlNamedNodeMap 对象表示一个无顺序的节点列表
+/*! @brief XmlNamedNodeMap 对象表示一个无顺序的属性列表
 */
-interface XmlNamedNodeMap : XmlNodeList
+interface XmlNamedNodeMap
 {
-    /*! @brief 查询指定名称的节点
-     @param name 指定要查询的名称
-     @return 返回查询出的节点
+    /*! @brief 返回属性列表中的属性数目
     */
-    XmlNode getNamedItem(String name);
+    readonly Integer length;
 
-    /*! @brief 删除指定名称的节点
-     @param name 指定要删除的名称
-     @return 返回删除的节点
+    /*! @brief 返回属性列表中处于指定的索引号的属性
+     @param index 指定要查询的索引
+     @return 指定索引号的属性
     */
-    XmlNode removeNamedItem(String name);
+    XmlAttr item(Integer index);
+
+    /*! @brief 可使用下标直接访问数据
+    */
+    readonly XmlAttr operator[];
+
+    /*! @brief 查询指定名称的属性
+     @param name 指定要查询的名称
+     @return 返回查询出的属性
+    */
+    XmlAttr getNamedItem(String name);
 };

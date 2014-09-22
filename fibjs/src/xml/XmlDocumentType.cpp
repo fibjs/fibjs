@@ -67,6 +67,16 @@ result_t XmlDocumentType::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
+result_t XmlDocumentType::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    return CALL_RETURN_NULL;
+}
+
+result_t XmlDocumentType::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    return CALL_RETURN_NULL;
+}
+
 result_t XmlDocumentType::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
                                        obj_ptr<XmlNode_base> &retVal)
 {

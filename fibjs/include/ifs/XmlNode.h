@@ -17,8 +17,8 @@
 namespace fibjs
 {
 
-class XmlNodeList_base;
 class XmlDocument_base;
+class XmlNodeList_base;
 
 class XmlNode_base : public object_base
 {
@@ -26,52 +26,56 @@ class XmlNode_base : public object_base
 
 public:
 	// XmlNode_base
+	virtual result_t get_nodeType(int32_t& retVal) = 0;
 	virtual result_t get_nodeName(std::string& retVal) = 0;
 	virtual result_t get_nodeValue(std::string& retVal) = 0;
 	virtual result_t set_nodeValue(const char* newVal) = 0;
-	virtual result_t get_nodeType(int32_t& retVal) = 0;
+	virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal) = 0;
 	virtual result_t get_parentNode(obj_ptr<XmlNode_base>& retVal) = 0;
+	virtual result_t hasChildNodes(bool& retVal) = 0;
 	virtual result_t get_childNodes(obj_ptr<XmlNodeList_base>& retVal) = 0;
 	virtual result_t get_firstChild(obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t get_lastChild(obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal) = 0;
-	virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal) = 0;
+	virtual result_t normalize() = 0;
+	virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal) = 0;
+	virtual result_t lookupPrefix(const char* namespaceURI, std::string& retVal) = 0;
+	virtual result_t lookupNamespaceURI(const char* prefix, std::string& retVal) = 0;
 	virtual result_t insertBefore(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t insertAfter(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
+	virtual result_t appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
 	virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
-	virtual result_t appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal) = 0;
-	virtual result_t hasChildNodes(bool& retVal) = 0;
-	virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal) = 0;
-	virtual result_t normalize() = 0;
 
 public:
+	static void s_get_nodeType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_nodeName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_nodeValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_nodeValue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-	static void s_get_nodeType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ownerDocument(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_parentNode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_childNodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_firstChild(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_lastChild(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_previousSibling(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_nextSibling(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_ownerDocument(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_lookupNamespaceURI(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_insertBefore(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_insertAfter(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_appendChild(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_replaceChild(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_removeChild(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_appendChild(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
 
-#include "XmlNodeList.h"
 #include "XmlDocument.h"
+#include "XmlNodeList.h"
 
 namespace fibjs
 {
@@ -79,39 +83,53 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
+			{"hasChildNodes", s_hasChildNodes},
+			{"normalize", s_normalize},
+			{"cloneNode", s_cloneNode},
+			{"lookupPrefix", s_lookupPrefix},
+			{"lookupNamespaceURI", s_lookupNamespaceURI},
 			{"insertBefore", s_insertBefore},
 			{"insertAfter", s_insertAfter},
-			{"replaceChild", s_replaceChild},
-			{"removeChild", s_removeChild},
 			{"appendChild", s_appendChild},
-			{"hasChildNodes", s_hasChildNodes},
-			{"cloneNode", s_cloneNode},
-			{"normalize", s_normalize}
+			{"replaceChild", s_replaceChild},
+			{"removeChild", s_removeChild}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
+			{"nodeType", s_get_nodeType, block_set},
 			{"nodeName", s_get_nodeName, block_set},
 			{"nodeValue", s_get_nodeValue, s_set_nodeValue},
-			{"nodeType", s_get_nodeType, block_set},
+			{"ownerDocument", s_get_ownerDocument, block_set},
 			{"parentNode", s_get_parentNode, block_set},
 			{"childNodes", s_get_childNodes, block_set},
 			{"firstChild", s_get_firstChild, block_set},
 			{"lastChild", s_get_lastChild, block_set},
 			{"previousSibling", s_get_previousSibling, block_set},
-			{"nextSibling", s_get_nextSibling, block_set},
-			{"ownerDocument", s_get_ownerDocument, block_set}
+			{"nextSibling", s_get_nextSibling, block_set}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"XmlNode", NULL, 
-			8, s_method, 0, NULL, 10, s_property, NULL, NULL,
+			10, s_method, 0, NULL, 10, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
+	}
+
+	inline void XmlNode_base::s_get_nodeType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlNode_base);
+
+		hr = pInst->get_nodeType(vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void XmlNode_base::s_get_nodeName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
@@ -149,14 +167,14 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline void XmlNode_base::s_get_nodeType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	inline void XmlNode_base::s_get_ownerDocument(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
-		int32_t vr;
+		obj_ptr<XmlDocument_base> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(XmlNode_base);
 
-		hr = pInst->get_nodeType(vr);
+		hr = pInst->get_ownerDocument(vr);
 
 		METHOD_RETURN();
 	}
@@ -233,14 +251,66 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void XmlNode_base::s_get_ownerDocument(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	inline void XmlNode_base::s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		obj_ptr<XmlDocument_base> vr;
+		bool vr;
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(XmlNode_base);
+		METHOD_INSTANCE(XmlNode_base);
+		METHOD_ENTER(0, 0);
 
-		hr = pInst->get_ownerDocument(vr);
+		hr = pInst->hasChildNodes(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlNode_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(XmlNode_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->normalize();
+
+		METHOD_VOID();
+	}
+
+	inline void XmlNode_base::s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<XmlNode_base> vr;
+
+		METHOD_INSTANCE(XmlNode_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(bool, 0, true);
+
+		hr = pInst->cloneNode(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlNode_base::s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(XmlNode_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->lookupPrefix(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlNode_base::s_lookupNamespaceURI(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(XmlNode_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->lookupNamespaceURI(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -275,6 +345,20 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline void XmlNode_base::s_appendChild(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<XmlNode_base> vr;
+
+		METHOD_INSTANCE(XmlNode_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<XmlNode_base>, 0);
+
+		hr = pInst->appendChild(v0, vr);
+
+		METHOD_RETURN();
+	}
+
 	inline void XmlNode_base::s_replaceChild(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<XmlNode_base> vr;
@@ -302,56 +386,6 @@ namespace fibjs
 		hr = pInst->removeChild(v0, vr);
 
 		METHOD_RETURN();
-	}
-
-	inline void XmlNode_base::s_appendChild(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<XmlNode_base> vr;
-
-		METHOD_INSTANCE(XmlNode_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<XmlNode_base>, 0);
-
-		hr = pInst->appendChild(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void XmlNode_base::s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		bool vr;
-
-		METHOD_INSTANCE(XmlNode_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->hasChildNodes(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void XmlNode_base::s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<XmlNode_base> vr;
-
-		METHOD_INSTANCE(XmlNode_base);
-		METHOD_ENTER(1, 0);
-
-		OPT_ARG(bool, 0, true);
-
-		hr = pInst->cloneNode(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void XmlNode_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(XmlNode_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->normalize();
-
-		METHOD_VOID();
 	}
 
 }

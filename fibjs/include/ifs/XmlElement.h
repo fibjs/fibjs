@@ -20,7 +20,6 @@ namespace fibjs
 
 class XmlNode_base;
 class XmlNamedNodeMap_base;
-class XmlAttr_base;
 class XmlNodeList_base;
 
 class XmlElement_base : public XmlNode_base
@@ -29,34 +28,45 @@ class XmlElement_base : public XmlNode_base
 
 public:
 	// XmlElement_base
+	virtual result_t get_namespaceURI(std::string& retVal) = 0;
+	virtual result_t get_prefix(std::string& retVal) = 0;
+	virtual result_t set_prefix(const char* newVal) = 0;
+	virtual result_t get_localName(std::string& retVal) = 0;
 	virtual result_t get_tagName(std::string& retVal) = 0;
 	virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
 	virtual result_t getAttribute(const char* name, std::string& retVal) = 0;
+	virtual result_t getAttributeNS(const char* namespaceURI, const char* localName, std::string& retVal) = 0;
 	virtual result_t setAttribute(const char* name, const char* value) = 0;
+	virtual result_t setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) = 0;
 	virtual result_t removeAttribute(const char* name) = 0;
-	virtual result_t getAttributeNode(const char* name, obj_ptr<XmlAttr_base>& retVal) = 0;
-	virtual result_t setAttributeNode(XmlAttr_base* newAttr, obj_ptr<XmlAttr_base>& retVal) = 0;
-	virtual result_t removeAttributeNode(XmlAttr_base* oldAttr, obj_ptr<XmlAttr_base>& retVal) = 0;
+	virtual result_t removeAttributeNS(const char* namespaceURI, const char* localName) = 0;
+	virtual result_t hasAttribute(const char* name, bool& retVal) = 0;
+	virtual result_t hasAttributeNS(const char* namespaceURI, const char* localName, bool& retVal) = 0;
 	virtual result_t getElementsByTagName(const char* tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
-	virtual result_t hasAttribute(bool& retVal) = 0;
+	virtual result_t getElementsByTagNameNS(const char* namespaceURI, const char* localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
 
 public:
+	static void s_get_namespaceURI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_prefix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_prefix(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_localName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_tagName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_attributes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_getAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_setAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_setAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_removeAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_getAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_setAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_removeAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_removeAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hasAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hasAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getElementsByTagNameNS(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
 
 #include "XmlNamedNodeMap.h"
-#include "XmlAttr.h"
 #include "XmlNodeList.h"
 
 namespace fibjs
@@ -66,17 +76,22 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"getAttribute", s_getAttribute},
+			{"getAttributeNS", s_getAttributeNS},
 			{"setAttribute", s_setAttribute},
+			{"setAttributeNS", s_setAttributeNS},
 			{"removeAttribute", s_removeAttribute},
-			{"getAttributeNode", s_getAttributeNode},
-			{"setAttributeNode", s_setAttributeNode},
-			{"removeAttributeNode", s_removeAttributeNode},
+			{"removeAttributeNS", s_removeAttributeNS},
+			{"hasAttribute", s_hasAttribute},
+			{"hasAttributeNS", s_hasAttributeNS},
 			{"getElementsByTagName", s_getElementsByTagName},
-			{"hasAttribute", s_hasAttribute}
+			{"getElementsByTagNameNS", s_getElementsByTagNameNS}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
 		{
+			{"namespaceURI", s_get_namespaceURI, block_set},
+			{"prefix", s_get_prefix, s_set_prefix},
+			{"localName", s_get_localName, block_set},
 			{"tagName", s_get_tagName, block_set},
 			{"attributes", s_get_attributes, block_set}
 		};
@@ -84,12 +99,59 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"XmlElement", NULL, 
-			8, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			10, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&XmlNode_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
+	}
+
+	inline void XmlElement_base::s_get_namespaceURI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlElement_base);
+
+		hr = pInst->get_namespaceURI(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlElement_base::s_get_prefix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlElement_base);
+
+		hr = pInst->get_prefix(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlElement_base::s_set_prefix(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlElement_base);
+
+		PROPERTY_VAL(arg_string);
+		hr = pInst->set_prefix(v0);
+
+		PROPERTY_SET_LEAVE();
+	}
+
+	inline void XmlElement_base::s_get_localName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlElement_base);
+
+		hr = pInst->get_localName(vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void XmlElement_base::s_get_tagName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
@@ -130,6 +192,21 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline void XmlElement_base::s_getAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(XmlElement_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+
+		hr = pInst->getAttributeNS(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
 	inline void XmlElement_base::s_setAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(XmlElement_base);
@@ -139,6 +216,20 @@ namespace fibjs
 		ARG(arg_string, 1);
 
 		hr = pInst->setAttribute(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline void XmlElement_base::s_setAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(XmlElement_base);
+		METHOD_ENTER(3, 3);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+		ARG(arg_string, 2);
+
+		hr = pInst->setAttributeNS(v0, v1, v2);
 
 		METHOD_VOID();
 	}
@@ -155,44 +246,44 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline void XmlElement_base::s_getAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void XmlElement_base::s_removeAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		obj_ptr<XmlAttr_base> vr;
+		METHOD_INSTANCE(XmlElement_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+
+		hr = pInst->removeAttributeNS(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline void XmlElement_base::s_hasAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
 
 		METHOD_INSTANCE(XmlElement_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(arg_string, 0);
 
-		hr = pInst->getAttributeNode(v0, vr);
+		hr = pInst->hasAttribute(v0, vr);
 
 		METHOD_RETURN();
 	}
 
-	inline void XmlElement_base::s_setAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void XmlElement_base::s_hasAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		obj_ptr<XmlAttr_base> vr;
+		bool vr;
 
 		METHOD_INSTANCE(XmlElement_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(2, 2);
 
-		ARG(obj_ptr<XmlAttr_base>, 0);
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
 
-		hr = pInst->setAttributeNode(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void XmlElement_base::s_removeAttributeNode(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<XmlAttr_base> vr;
-
-		METHOD_INSTANCE(XmlElement_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<XmlAttr_base>, 0);
-
-		hr = pInst->removeAttributeNode(v0, vr);
+		hr = pInst->hasAttributeNS(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -211,14 +302,17 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void XmlElement_base::s_hasAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void XmlElement_base::s_getElementsByTagNameNS(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		bool vr;
+		obj_ptr<XmlNodeList_base> vr;
 
 		METHOD_INSTANCE(XmlElement_base);
-		METHOD_ENTER(0, 0);
+		METHOD_ENTER(2, 2);
 
-		hr = pInst->hasAttribute(vr);
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+
+		hr = pInst->getElementsByTagNameNS(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

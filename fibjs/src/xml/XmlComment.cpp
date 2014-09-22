@@ -67,6 +67,16 @@ result_t XmlComment::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
+result_t XmlComment::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
+}
+
+result_t XmlComment::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
+}
+
 result_t XmlComment::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
                                   obj_ptr<XmlNode_base> &retVal)
 {
@@ -154,7 +164,7 @@ result_t XmlComment::replaceData(int32_t offset, int32_t count, const char *arg)
 result_t XmlComment::toString(std::string &retVal)
 {
     retVal = "<!--";
-    retVal.append(m_data.m_data);
+    retVal.append(m_data.data());
     retVal.append("-->");
 
     return 0;

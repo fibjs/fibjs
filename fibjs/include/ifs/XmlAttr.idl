@@ -1,21 +1,24 @@
 
-/*! @brief XmlAttr 对象表示 XmlElement 对象的属性
-
-XmlAttr 对象表示 XmlElement 对象的属性。属性的容许值通常定义在 DTD 中。
-
-由于 XmlAttr 对象也是一种节点，因此它继承 XmlNode 对象的属性和方法。不过属性无法拥有父节点，同时属性也不被认为是元素的子节点，对于许多 XmlNode 对象的属性来说都将返回 null。
- */
-interface XmlAttr : XmlNode
+/*! @brief XmlAttr 对象表示 XmlElement 对象的属性 */
+interface XmlAttr
 {
-	/*! @brief 属性的名称
-	*/
-    readonly String name;
-
-	/*! @brief 如果在文档中设置了属性值，则 specified 属性返回 true，如果是 DTD/Schema 中的默认值，则返回 false
-	*/
-    readonly Boolean specified;
+    /*! @brief 查询元素的本地名称。如果选定的节点无命名空间，则该属性等同于 nodeName
+    */
+    readonly String localName;
 
 	/*! @brief 属性的值
 	*/
     String value;
+
+	/*! @brief 属性的名称
+	*/
+    readonly String name;
+
+    /*! @brief 查询元素的命名空间的 URI。如果选定的节点无命名空间，则该属性返回 NULL
+    */
+    readonly String namespaceURI;
+
+    /*! @brief 查询和设置元素的命名空间前缀。如果选定的节点无命名空间，则该属性返回 NULL
+    */
+    String prefix;
 };

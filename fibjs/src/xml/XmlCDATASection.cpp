@@ -67,6 +67,16 @@ result_t XmlCDATASection::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
+result_t XmlCDATASection::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
+}
+
+result_t XmlCDATASection::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
+}
+
 result_t XmlCDATASection::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
                                        obj_ptr<XmlNode_base> &retVal)
 {
@@ -153,7 +163,7 @@ result_t XmlCDATASection::replaceData(int32_t offset, int32_t count, const char 
 
 result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
 {
-    std::string ret;
+    wstring ret;
     result_t hr;
 
     hr = m_data.splitText(offset, ret);
@@ -173,7 +183,7 @@ result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base> &retVa
 result_t XmlCDATASection::toString(std::string &retVal)
 {
     retVal = "<![CDATA[";
-    retVal.append(m_data.m_data);
+    retVal.append(m_data.data());
     retVal.append("]]>");
 
     return 0;

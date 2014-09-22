@@ -68,6 +68,20 @@ public:
         return !retVal ? CALL_RETURN_NULL : 0;
     }
 
+    result_t lookupPrefix(const char *namespaceURI, std::string &retVal)
+    {
+        if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
+            return CALL_RETURN_NULL;
+        return m_parent->m_node->lookupPrefix(namespaceURI, retVal);
+    }
+
+    result_t lookupNamespaceURI(const char *prefix, std::string &retVal)
+    {
+        if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
+            return CALL_RETURN_NULL;
+        return m_parent->m_node->lookupNamespaceURI(prefix, retVal);
+    }
+
     result_t cloneNode(XmlNode_base *to, bool deep, obj_ptr<XmlNode_base> &retVal)
     {
         if (deep)
@@ -79,6 +93,35 @@ public:
 
         retVal = to;
         return 0;
+    }
+
+    static const char *s_nss[][2];
+    static bool globalNamespaceURI(const char *prefix, std::string &retVal)
+    {
+        int32_t i;
+
+        for (i = 0; s_nss[i][0]; i ++)
+            if (!qstrcmp(prefix, s_nss[i][0]))
+            {
+                retVal = s_nss[i][1];
+                return true;
+            }
+
+        return false;
+    }
+
+    static bool globalPrefix(const char *namespaceURI, std::string &retVal)
+    {
+        int32_t i;
+
+        for (i = 0; s_nss[i][1]; i ++)
+            if (!qstrcmp(namespaceURI, s_nss[i][1]))
+            {
+                retVal = s_nss[i][0];
+                return true;
+            }
+
+        return false;
     }
 
 public:

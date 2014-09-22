@@ -7,122 +7,53 @@
 
 #include "ifs/xml.h"
 #include "XmlAttr.h"
+#include "XmlElement.h"
 #include <string.h>
 
 namespace fibjs
 {
 
-result_t XmlAttr::get_nodeName(std::string &retVal)
+result_t XmlAttr::get_namespaceURI(std::string &retVal)
 {
-    retVal = m_name;
+    if (m_namespaceURI.empty())
+    {
+        if (!qstrcmp(m_name.c_str(), "xmlns"))
+        {
+            retVal = "http://www.w3.org/2000/xmlns/";
+            return 0;
+        }
+
+        return CALL_RETURN_NULL;
+    }
+
+    retVal = m_namespaceURI;
     return 0;
 }
 
-result_t XmlAttr::get_nodeValue(std::string &retVal)
+result_t XmlAttr::get_prefix(std::string &retVal)
 {
-    retVal = m_value;
+    if (m_prefix.empty())
+        return CALL_RETURN_NULL;
+
+    retVal = m_prefix;
     return 0;
 }
 
-result_t XmlAttr::set_nodeValue(const char *newVal)
+result_t XmlAttr::set_prefix(const char *newVal)
 {
-    m_value = newVal;
+    m_prefix = newVal;
     return 0;
 }
 
-result_t XmlAttr::get_nodeType(int32_t &retVal)
+result_t XmlAttr::get_localName(std::string &retVal)
 {
-    return XmlNodeImpl::get_nodeType(retVal);
-}
-
-result_t XmlAttr::get_parentNode(obj_ptr<XmlNode_base> &retVal)
-{
-    return CALL_RETURN_NULL;
-}
-
-result_t XmlAttr::get_childNodes(obj_ptr<XmlNodeList_base> &retVal)
-{
-    return XmlNodeImpl::get_childNodes(retVal);
-}
-
-result_t XmlAttr::get_firstChild(obj_ptr<XmlNode_base> &retVal)
-{
-    return m_childs->firstChild(retVal);
-}
-
-result_t XmlAttr::get_lastChild(obj_ptr<XmlNode_base> &retVal)
-{
-    return m_childs->lastChild(retVal);
-}
-
-result_t XmlAttr::get_previousSibling(obj_ptr<XmlNode_base> &retVal)
-{
-    return CALL_RETURN_NULL;
-}
-
-result_t XmlAttr::get_nextSibling(obj_ptr<XmlNode_base> &retVal)
-{
-    return CALL_RETURN_NULL;
-}
-
-result_t XmlAttr::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
-{
-    return XmlNodeImpl::get_ownerDocument(retVal);
-}
-
-result_t XmlAttr::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
-                               obj_ptr<XmlNode_base> &retVal)
-{
-    return m_childs->insertBefore(newChild, refChild, retVal);
-}
-
-result_t XmlAttr::insertAfter(XmlNode_base *newChild, XmlNode_base *refChild,
-                              obj_ptr<XmlNode_base> &retVal)
-{
-    return m_childs->insertAfter(newChild, refChild, retVal);
-}
-
-result_t XmlAttr::replaceChild(XmlNode_base *newChild, XmlNode_base *oldChild,
-                               obj_ptr<XmlNode_base> &retVal)
-{
-    return m_childs->replaceChild(newChild, oldChild, retVal);
-}
-
-result_t XmlAttr::removeChild(XmlNode_base *oldChild, obj_ptr<XmlNode_base> &retVal)
-{
-    return m_childs->removeChild(oldChild, retVal);
-}
-
-result_t XmlAttr::appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal)
-{
-    return m_childs->appendChild(newChild, retVal);
-}
-
-result_t XmlAttr::hasChildNodes(bool &retVal)
-{
-    return m_childs->hasChildNodes(retVal);
-}
-
-result_t XmlAttr::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
-{
-    obj_ptr<XmlAttr> attr = new XmlAttr(*this);
-    return XmlNodeImpl::cloneNode(attr, deep, retVal);
-}
-
-result_t XmlAttr::normalize()
-{
-    return m_childs->normalize();
+    retVal = m_localName;
+    return 0;
 }
 
 result_t XmlAttr::get_name(std::string &retVal)
 {
     retVal = m_name;
-    return 0;
-}
-
-result_t XmlAttr::get_specified(bool &retVal)
-{
-    retVal = true;
     return 0;
 }
 
@@ -138,10 +69,25 @@ result_t XmlAttr::set_value(const char *newVal)
     return 0;
 }
 
+void XmlAttr::fix_prefix()
+{
+    if (!m_namespaceURI.empty() && m_owner)
+        m_owner->fix_prefix(m_namespaceURI.c_str(), m_prefix);
+}
+
 result_t XmlAttr::toString(std::string &retVal)
 {
     retVal = " ";
-    retVal.append(m_name);
+
+    if (m_prefix.empty())
+        retVal.append(m_name);
+    else
+    {
+        retVal.append(m_prefix);
+        retVal += ':';
+        retVal.append(m_localName);
+    }
+
     retVal.append("=\"");
 
     std::string str;

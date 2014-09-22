@@ -69,6 +69,16 @@ result_t XmlProcessingInstruction::get_ownerDocument(obj_ptr<XmlDocument_base> &
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
+result_t XmlProcessingInstruction::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
+}
+
+result_t XmlProcessingInstruction::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
+}
+
 result_t XmlProcessingInstruction::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
         obj_ptr<XmlNode_base> &retVal)
 {

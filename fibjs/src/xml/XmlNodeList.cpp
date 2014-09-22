@@ -73,18 +73,16 @@ result_t XmlNodeList::toString(std::string &retVal)
 
 void XmlNodeList::clean()
 {
-    bool isAlone = m_this == NULL;
-
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
 
-    for (i = 0; i < sz; i ++)
-        if (isAlone)
-            m_childs[i]->m_node->Unref();
-        else
+    if (sz > 0)
+    {
+        for (i = 0; i < sz; i ++)
             m_childs[i]->clearParent();
 
-    m_childs.resize(0);
+        m_childs.resize(0);
+    }
 
     m_this = NULL;
 }

@@ -13,33 +13,35 @@
  */
 
 #include "../object.h"
-#include "XmlNode.h"
 
 namespace fibjs
 {
 
-class XmlNode_base;
-
-class XmlAttr_base : public XmlNode_base
+class XmlAttr_base : public object_base
 {
 	DECLARE_CLASS(XmlAttr_base);
 
 public:
 	// XmlAttr_base
-	virtual result_t get_name(std::string& retVal) = 0;
-	virtual result_t get_specified(bool& retVal) = 0;
+	virtual result_t get_localName(std::string& retVal) = 0;
 	virtual result_t get_value(std::string& retVal) = 0;
 	virtual result_t set_value(const char* newVal) = 0;
+	virtual result_t get_name(std::string& retVal) = 0;
+	virtual result_t get_namespaceURI(std::string& retVal) = 0;
+	virtual result_t get_prefix(std::string& retVal) = 0;
+	virtual result_t set_prefix(const char* newVal) = 0;
 
 public:
-	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_specified(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_localName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_namespaceURI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_prefix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_prefix(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 };
 
 }
-
 
 namespace fibjs
 {
@@ -47,42 +49,32 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
+			{"localName", s_get_localName, block_set},
+			{"value", s_get_value, s_set_value},
 			{"name", s_get_name, block_set},
-			{"specified", s_get_specified, block_set},
-			{"value", s_get_value, s_set_value}
+			{"namespaceURI", s_get_namespaceURI, block_set},
+			{"prefix", s_get_prefix, s_set_prefix}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"XmlAttr", NULL, 
-			0, NULL, 0, NULL, 3, s_property, NULL, NULL,
-			&XmlNode_base::class_info()
+			0, NULL, 0, NULL, 5, s_property, NULL, NULL,
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	inline void XmlAttr_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	inline void XmlAttr_base::s_get_localName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(XmlAttr_base);
 
-		hr = pInst->get_name(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void XmlAttr_base::s_get_specified(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		bool vr;
-
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(XmlAttr_base);
-
-		hr = pInst->get_specified(vr);
+		hr = pInst->get_localName(vr);
 
 		METHOD_RETURN();
 	}
@@ -106,6 +98,53 @@ namespace fibjs
 
 		PROPERTY_VAL(arg_string);
 		hr = pInst->set_value(v0);
+
+		PROPERTY_SET_LEAVE();
+	}
+
+	inline void XmlAttr_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlAttr_base);
+
+		hr = pInst->get_name(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlAttr_base::s_get_namespaceURI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlAttr_base);
+
+		hr = pInst->get_namespaceURI(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlAttr_base::s_get_prefix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlAttr_base);
+
+		hr = pInst->get_prefix(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void XmlAttr_base::s_set_prefix(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(XmlAttr_base);
+
+		PROPERTY_VAL(arg_string);
+		hr = pInst->set_prefix(v0);
 
 		PROPERTY_SET_LEAVE();
 	}

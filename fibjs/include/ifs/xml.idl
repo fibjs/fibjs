@@ -44,9 +44,9 @@ module xml
     */
     static XmlDocument parse(String source);
 
-    /*! @brief 序列化 XmlDocument 为字符串
-     @param xmlDoc 指定需要序列化的 XmlDocument
+    /*! @brief 序列化 XmlNode 为字符串
+     @param node 指定需要序列化的 XmlNode
      @return 返回序列化的字符串
     */
-    static String serialize(XmlDocument xmlDoc);
+    static String serialize(XmlNode node);
 };

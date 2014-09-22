@@ -33,6 +33,36 @@ result_t XmlElement::get_nodeType(int32_t &retVal)
     return XmlNodeImpl::get_nodeType(retVal);
 }
 
+result_t XmlElement::get_namespaceURI(std::string &retVal)
+{
+    if (m_namespaceURI.empty())
+        return CALL_RETURN_NULL;
+
+    retVal = m_namespaceURI;
+    return 0;
+}
+
+result_t XmlElement::get_prefix(std::string &retVal)
+{
+    if (m_prefix.empty())
+        return CALL_RETURN_NULL;
+
+    retVal = m_prefix;
+    return 0;
+}
+
+result_t XmlElement::set_prefix(const char *newVal)
+{
+    m_prefix = newVal;
+    return 0;
+}
+
+result_t XmlElement::get_localName(std::string &retVal)
+{
+    retVal = m_localName;
+    return 0;
+}
+
 result_t XmlElement::get_parentNode(obj_ptr<XmlNode_base> &retVal)
 {
     return XmlNodeImpl::get_parentNode(retVal);
@@ -66,6 +96,34 @@ result_t XmlElement::get_nextSibling(obj_ptr<XmlNode_base> &retVal)
 result_t XmlElement::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
 {
     return XmlNodeImpl::get_ownerDocument(retVal);
+}
+
+result_t XmlElement::lookupPrefix(const char *namespaceURI, std::string &retVal)
+{
+    if (globalPrefix(namespaceURI, retVal))
+        return 0;
+
+    result_t hr = m_attrs->lookupPrefix(namespaceURI, retVal);
+    if (hr < 0)
+        return hr;
+    if (hr != CALL_RETURN_NULL)
+        return retVal.empty() ? CALL_RETURN_NULL : 0;
+
+    return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
+}
+
+result_t XmlElement::lookupNamespaceURI(const char *prefix, std::string &retVal)
+{
+    if (globalNamespaceURI(prefix, retVal))
+        return 0;
+
+    result_t hr = m_attrs->lookupNamespaceURI(prefix, retVal);
+    if (hr < 0)
+        return hr;
+    if (hr != CALL_RETURN_NULL)
+        return retVal.empty() ? CALL_RETURN_NULL : 0;
+
+    return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
 
 result_t XmlElement::insertBefore(XmlNode_base *newChild, XmlNode_base *refChild,
@@ -104,7 +162,7 @@ result_t XmlElement::hasChildNodes(bool &retVal)
 result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal)
 {
     obj_ptr<XmlElement> el = new XmlElement(*this);
-    result_t hr = m_attrs->cloneAttrs(el->m_attrs);
+    result_t hr = m_attrs->cloneAttrs(el->m_attrs, el);
     if (hr < 0)
         return hr;
 
@@ -131,71 +189,58 @@ result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base> &retVal)
 result_t XmlElement::getAttribute(const char *name, std::string &retVal)
 {
     result_t hr;
-    obj_ptr<XmlAttr_base> attr;
-
-    hr = getAttributeNode(name, attr);
-    if (hr < 0 || hr == CALL_RETURN_NULL)
-        return hr;
-
-    return attr->get_nodeValue(retVal);
-}
-
-result_t XmlElement::setAttribute(const char *name, const char *value)
-{
-    obj_ptr<XmlAttr_base> attr = new XmlAttr(m_document, name, value);
-
-    obj_ptr<XmlAttr_base> ret;
-    return setAttributeNode(attr, ret);
-}
-
-result_t XmlElement::removeAttribute(const char *name)
-{
-    obj_ptr<XmlNode_base> node;
-    return m_attrs->removeNamedItem(name, node);
-}
-
-result_t XmlElement::getAttributeNode(const char *name, obj_ptr<XmlAttr_base> &retVal)
-{
-    result_t hr;
-    obj_ptr<XmlNode_base> node;
+    obj_ptr<XmlAttr_base> node;
 
     hr = m_attrs->getNamedItem(name, node);
     if (hr < 0 || hr == CALL_RETURN_NULL)
         return hr;
 
-    retVal = (XmlAttr_base *)(XmlNode_base *)node;
-    return 0;
+    return node->get_value(retVal);
 }
 
-result_t XmlElement::setAttributeNode(XmlAttr_base *newAttr, obj_ptr<XmlAttr_base> &retVal)
+result_t XmlElement::getAttributeNS(const char *namespaceURI, const char *localName,
+                                    std::string &retVal)
 {
     result_t hr;
-    obj_ptr<XmlNode_base> node;
+    obj_ptr<XmlAttr_base> node;
 
-    hr = m_attrs->setAttributeNode(newAttr, node);
+    hr = m_attrs->getNamedItemNS(namespaceURI, localName, node);
     if (hr < 0 || hr == CALL_RETURN_NULL)
         return hr;
 
-    retVal = (XmlAttr_base *)(XmlNode_base *)node;
-    return 0;
+    return node->get_value(retVal);
 }
 
-result_t XmlElement::removeAttributeNode(XmlAttr_base *oldAttr, obj_ptr<XmlAttr_base> &retVal)
+result_t XmlElement::setAttribute(const char *name, const char *value)
 {
-    result_t hr;
-    std::string name;
-    obj_ptr<XmlNode_base> node;
+    obj_ptr<XmlAttr> attr = new XmlAttr(this, name, value);
+    return m_attrs->setNamedItem(attr);
+}
 
-    hr = oldAttr->get_nodeName(name);
-    if (hr < 0)
-        return hr;
+result_t XmlElement::setAttributeNS(const char *namespaceURI, const char *qualifiedName,
+                                    const char *value)
+{
+    if (!qstrcmp(qualifiedName, "xmlns:", 6))
+    {
+        int32_t i;
 
-    hr = m_attrs->removeNamedItem(name.c_str(), node);
-    if (hr < 0 || hr == CALL_RETURN_NULL)
-        return hr;
+        for (i = 0; s_nss[i][0]; i ++)
+            if (!qstrcmp(qualifiedName + 6, s_nss[i][0]))
+                return 0;
+    }
 
-    retVal = (XmlAttr_base *)(XmlNode_base *)node;
-    return 0;
+    obj_ptr<XmlAttr> attr = new XmlAttr(this, namespaceURI, qualifiedName, value);
+    return m_attrs->setNamedItem(attr);
+}
+
+result_t XmlElement::removeAttribute(const char *name)
+{
+    return m_attrs->removeNamedItem(name);
+}
+
+result_t XmlElement::removeAttributeNS(const char *namespaceURI, const char *localName)
+{
+    return m_attrs->removeNamedItemNS(namespaceURI, localName);
 }
 
 result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)
@@ -207,15 +252,104 @@ result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeLi
     return 0;
 }
 
-result_t XmlElement::hasAttribute(bool &retVal)
+result_t XmlElement::getElementsByTagNameNS(const char *namespaceURI, const char *localName,
+        obj_ptr<XmlNodeList_base> &retVal)
 {
-    return m_attrs->hasAttribute(retVal);
+    obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
+    getElementsByTagNameNS(namespaceURI, localName, ret);
+
+    retVal = ret;
+    return 0;
+}
+
+result_t XmlElement::hasAttribute(const char *name, bool &retVal)
+{
+    result_t hr;
+    obj_ptr<XmlAttr_base> node;
+
+    hr = m_attrs->getNamedItem(name, node);
+    if (hr < 0)
+        return hr;
+
+    retVal = hr != CALL_RETURN_NULL;
+    return 0;
+}
+
+result_t XmlElement::hasAttributeNS(const char *namespaceURI, const char *localName, bool &retVal)
+{
+    result_t hr;
+    obj_ptr<XmlAttr_base> node;
+
+    hr = m_attrs->getNamedItemNS(namespaceURI, localName, node);
+    if (hr < 0)
+        return hr;
+
+    retVal = hr != CALL_RETURN_NULL;
+    return 0;
+}
+
+void XmlElement::fix_prefix(const char *namespaceURI, std::string &prefix)
+{
+    std::string _namespaceURI;
+    int32_t i;
+
+    if (!prefix.empty() && lookupNamespaceURI(prefix.c_str(), _namespaceURI) == CALL_RETURN_NULL)
+        setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix).c_str(), namespaceURI);
+    else if (qstrcmp(_namespaceURI.c_str(), namespaceURI))
+    {
+        char buf[64];
+
+        for (i = 0; i < 65536; i ++)
+        {
+            sprintf(buf, "a%d", i);
+            if (lookupNamespaceURI(buf, _namespaceURI) == CALL_RETURN_NULL)
+            {
+                prefix = buf;
+                setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix).c_str(), namespaceURI);
+                return;
+            }
+        }
+    }
 }
 
 result_t XmlElement::toString(std::string &retVal)
 {
     retVal = "<";
-    retVal.append(m_tagName);
+
+    if (m_prefix.empty())
+    {
+        if (!m_namespaceURI.empty())
+        {
+            bool skip_def_ns = false;
+
+            if (m_parent)
+            {
+                int32_t type;
+
+                m_parent->get_nodeType(type);
+                if (type == xml_base::_ELEMENT_NODE)
+                {
+                    std::string def_ns;
+                    ((XmlElement *)m_parent->m_node)->get_defaultNamespace(def_ns);
+
+                    if (!qstrcmp(def_ns.c_str(), m_namespaceURI.c_str()))
+                        skip_def_ns = true;
+                }
+            }
+
+            if (!skip_def_ns)
+                setAttribute("xmlns", m_namespaceURI.c_str());
+        }
+        retVal.append(m_tagName);
+    }
+    else
+    {
+        fix_prefix(m_namespaceURI.c_str(), m_prefix);
+
+        retVal.append(m_prefix);
+        retVal += ':';
+        retVal.append(m_localName);
+    }
 
     std::string strAttr;
     m_attrs->toString(strAttr);
