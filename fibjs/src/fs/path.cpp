@@ -6,6 +6,7 @@
  */
 
 #include "ifs/path.h"
+#include "utf8.h"
 #include <sstream>
 
 namespace fibjs
@@ -256,7 +257,7 @@ result_t path_base::normalize(const char *path, std::string &retVal)
     return 0;
 }
 
-result_t path_base::combine(const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal)
+result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal)
 {
     std::string strBuffer;
     int argc = args.Length();
@@ -322,6 +323,47 @@ result_t path_base::combine(const v8::FunctionCallbackInfo<v8::Value> &args, std
     }
 
     return normalize(strBuffer.c_str(), retVal);
+}
+
+result_t path_base::realpath(const char *path, std::string &retVal)
+{
+#ifdef _WIN32
+    wstring str = utf8to16String(path);
+    wchar utf16_buffer[MAX_PATH];
+
+    DWORD utf16_len = GetFullPathNameW(str.c_str(), MAX_PATH, utf16_buffer, NULL);
+    if (!utf16_len)
+        return CHECK_ERROR(LastError());
+
+    retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
+#else
+#ifdef PATH_MAX
+    char buf[PATH_MAX];
+#else
+    char buf[4096];
+#endif
+
+    if (!::realpath(path, buf))
+        return CHECK_ERROR(LastError());
+
+    retVal = buf;
+#endif
+
+    return 0;
+}
+
+result_t path_base::get_sep(std::string &retVal)
+{
+    retVal.clear();
+    retVal.append(1, PATH_SLASH);
+    return 0;
+}
+
+result_t path_base::get_delimiter(std::string &retVal)
+{
+    retVal.clear();
+    retVal.append(1, PATH_DELIMITER);
+    return 0;
 }
 
 }

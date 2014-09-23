@@ -3,6 +3,7 @@ test.setup();
 
 var os = require('os');
 var path = require('path');
+var process = require('process');
 var isWindows = os.type === 'Windows';
 
 describe('path', function() {
@@ -130,9 +131,9 @@ describe('path', function() {
 		}
 	});
 
-	it('combine', function() {
+	it('join', function() {
 		var failures = [];
-		var combineTests = [
+		var joinTests = [
 			[
 				['.', 'x/b', '..', 'b/c.js'], 'x/b/c.js'
 			],
@@ -254,20 +255,24 @@ describe('path', function() {
 				[' ', ''], ' '
 			]
 		];
-		combineTests.forEach(function(test) {
-			var actual = path.combine.apply(path, test[0]);
+		joinTests.forEach(function(test) {
+			var actual = path.join.apply(path, test[0]);
 			var expected = isWindows ? test[1].replace(/\//g, '\\') : test[1];
-			var message = 'path.combine(' + test[0].map(JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
+			var message = 'path.join(' + test[0].map(JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
 			if (actual !== expected)
 				failures.push('\n' + message);
 		});
 		assert.equal(failures.length, 0, failures.join(''));
 
 		if (isWindows) {
-			assert.equal(path.combine('c:/path1', 'c:path2'), 'c:\\path1\\path2');
-			assert.equal(path.combine('c:/path1', 'd:path2'), 'd:path2');
+			assert.equal(path.join('c:/path1', 'c:path2'), 'c:\\path1\\path2');
+			assert.equal(path.join('c:/path1', 'd:path2'), 'd:path2');
 		}
+	});
+
+	it("realpath", function() {
+		assert.equal(path.join(process.cwd(), "main.js"), path.realpath("main.js"));
 	});
 });
 
-//test.run();
+//test.run(console.DEBUG);

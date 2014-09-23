@@ -697,6 +697,7 @@ result_t throwSyntaxError(v8::TryCatch &try_catch);
 #ifdef _WIN32
 
 #define PATH_SLASH  '\\'
+#define PATH_DELIMITER  ';'
 
 inline bool isPathSlash(char ch)
 {
@@ -706,6 +707,7 @@ inline bool isPathSlash(char ch)
 #else
 
 #define PATH_SLASH  '/'
+#define PATH_DELIMITER  ':'
 
 inline bool isPathSlash(char ch)
 {
