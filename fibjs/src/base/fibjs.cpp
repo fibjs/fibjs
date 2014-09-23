@@ -56,11 +56,7 @@ void _main(const char *fname)
 
         s_topSandbox->initRoot();
         if (fname)
-        {
-            std::string path;
-            process_base::cwd(path);
             s.m_hr = s_topSandbox->run(fname);
-        }
         else
             s.m_hr = s_topSandbox->repl();
     }
