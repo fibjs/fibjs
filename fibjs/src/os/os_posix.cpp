@@ -10,7 +10,8 @@
 #ifndef _WIN32
 
 #include "ifs/os.h"
-# include <sys/utsname.h>
+#include "ifs/process.h"
+#include <sys/utsname.h>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <string.h>
@@ -101,6 +102,30 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
     }
 
     freeifaddrs(addrs);
+
+    return 0;
+}
+
+result_t process_base::cwd(std::string &retVal)
+{
+
+#ifdef PATH_MAX
+    char buf[PATH_MAX];
+#else
+    char buf[4096];
+#endif
+
+    if (!::getcwd(buf, sizeof(buf)))
+        return CHECK_ERROR(LastError());
+
+    retVal = buf;
+    return 0;
+}
+
+result_t process_base::chdir(const char *directory)
+{
+    if (::chdir(directory))
+        return CHECK_ERROR(LastError());
 
     return 0;
 }

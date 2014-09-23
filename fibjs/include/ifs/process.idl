@@ -18,6 +18,16 @@ module process
      */
     static exit(Integer code);
 
+    /*! @brief 返回操作系统当前工作路径
+     @return 返回当前系统路径
+     */
+    static String cwd();
+
+    /*! @brief 修改操作系统当前工作路径
+     @param directory 指定设定的新路径
+     */
+    static chdir(String directory);
+
     /*! @brief 查询当前进程内存使用报告
      @return 返回包含内存报告
 

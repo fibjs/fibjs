@@ -28,6 +28,8 @@ public:
 	static result_t get_argv(v8::Local<v8::Array>& retVal);
 	static result_t get_execPath(std::string& retVal);
 	static result_t exit(int32_t code);
+	static result_t cwd(std::string& retVal);
+	static result_t chdir(const char* directory);
 	static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 	static result_t system(const char* cmd, int32_t& retVal, exlib::AsyncEvent* ac);
 	static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
@@ -37,6 +39,8 @@ public:
 	static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_system(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_popen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -58,6 +62,8 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"exit", s_exit},
+			{"cwd", s_cwd},
+			{"chdir", s_chdir},
 			{"memoryUsage", s_memoryUsage},
 			{"system", s_system},
 			{"popen", s_popen},
@@ -73,7 +79,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"process", NULL, 
-			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			7, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -110,6 +116,28 @@ namespace fibjs
 		ARG(int32_t, 0);
 
 		hr = exit(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = cwd(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void process_base::s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = chdir(v0);
 
 		METHOD_VOID();
 	}

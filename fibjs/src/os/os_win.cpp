@@ -11,6 +11,7 @@
 #ifdef _WIN32
 
 #include "ifs/os.h"
+#include "ifs/process.h"
 #include <iphlpapi.h>
 #include <psapi.h>
 #include "utf8.h"
@@ -419,6 +420,75 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     info->Set(v8::String::NewFromUtf8(isolate, "nativeObjects"), objs);
 
     retVal = info;
+
+    return 0;
+}
+
+result_t process_base::cwd(std::string &retVal)
+{
+    DWORD utf16_len;
+    wchar utf16_buffer[MAX_PATH];
+
+    utf16_len = GetCurrentDirectoryW(MAX_PATH, utf16_buffer);
+    if (utf16_len == 0)
+        return CHECK_ERROR(LastError());
+
+    utf16_buffer[utf16_len] = L'\0';
+
+    if (utf16_buffer[utf16_len - 1] == L'\\' &&
+            !(utf16_len == 3 && utf16_buffer[1] == L':'))
+    {
+        utf16_len--;
+        utf16_buffer[utf16_len] = L'\0';
+    }
+
+    retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
+
+    return 0;
+}
+
+result_t process_base::chdir(const char *directory)
+{
+    wstring str = utf8to16String(directory);
+    wchar utf16_buffer[MAX_PATH];
+    DWORD utf16_len;
+    wchar drive_letter;
+
+    if (!SetCurrentDirectoryW(str.c_str()))
+        return CHECK_ERROR(LastError());
+
+    utf16_len = GetCurrentDirectoryW(MAX_PATH, utf16_buffer);
+    if (utf16_len == 0)
+        return CHECK_ERROR(LastError());
+
+    if (utf16_buffer[utf16_len - 1] == L'\\' &&
+            !(utf16_len == 3 && utf16_buffer[1] == L':'))
+    {
+        utf16_len--;
+        utf16_buffer[utf16_len] = L'\0';
+    }
+
+    if (utf16_len < 2 || utf16_buffer[1] != L':')
+        drive_letter = 0;
+    else if (utf16_buffer[0] >= L'A' && utf16_buffer[0] <= L'Z')
+        drive_letter = utf16_buffer[0];
+    else if (utf16_buffer[0] >= L'a' && utf16_buffer[0] <= L'z')
+        drive_letter = utf16_buffer[0] - L'a' + L'A';
+    else
+        drive_letter = 0;
+
+    if (drive_letter != 0)
+    {
+        wchar env_var[4];
+
+        env_var[0] = L'=';
+        env_var[1] = drive_letter;
+        env_var[2] = L':';
+        env_var[3] = L'\0';
+
+        if (!SetEnvironmentVariableW(env_var, utf16_buffer))
+            return CHECK_ERROR(LastError());
+    }
 
     return 0;
 }
