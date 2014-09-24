@@ -479,7 +479,10 @@ result_t SandBox::run(const char *fname)
         return hr;
 
     if (buf[0] == '#' && buf[1] == '!')
-        buf = "//" + buf;
+    {
+        buf[0] = '/';
+        buf[1] = '/';
+    }
 
     Context context(this, pname);
 
