@@ -27,7 +27,7 @@ public:
 	static result_t basename(const char* path, const char* ext, std::string& retVal);
 	static result_t extname(const char* path, std::string& retVal);
 	static result_t dirname(const char* path, std::string& retVal);
-	static result_t realpath(const char* path, std::string& retVal);
+	static result_t fullpath(const char* path, std::string& retVal);
 	static result_t join(const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t get_sep(std::string& retVal);
 	static result_t get_delimiter(std::string& retVal);
@@ -37,7 +37,7 @@ public:
 	static void s_basename(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_extname(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_delimiter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -55,7 +55,7 @@ namespace fibjs
 			{"basename", s_basename},
 			{"extname", s_extname},
 			{"dirname", s_dirname},
-			{"realpath", s_realpath},
+			{"fullpath", s_fullpath},
 			{"join", s_join}
 		};
 
@@ -151,7 +151,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void path_base::s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void path_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -159,7 +159,7 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = realpath(v0, vr);
+		hr = fullpath(v0, vr);
 
 		METHOD_RETURN();
 	}

@@ -6,6 +6,7 @@
  */
 
 #include "ifs/path.h"
+#include "ifs/process.h"
 #include "utf8.h"
 #include <sstream>
 
@@ -325,7 +326,7 @@ result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, std::s
     return normalize(strBuffer.c_str(), retVal);
 }
 
-result_t path_base::realpath(const char *path, std::string &retVal)
+result_t path_base::fullpath(const char *path, std::string &retVal)
 {
 #ifdef _WIN32
     wstring str = utf8to16String(path);
@@ -336,20 +337,19 @@ result_t path_base::realpath(const char *path, std::string &retVal)
         return CHECK_ERROR(LastError());
 
     retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
-#else
-#ifdef PATH_MAX
-    char buf[PATH_MAX];
-#else
-    char buf[4096];
-#endif
-
-    if (!::realpath(path, buf))
-        return CHECK_ERROR(LastError());
-
-    retVal = buf;
-#endif
-
     return 0;
+#else
+    if (isPathSlash(path[0]))
+        return normalize(path, retVal);
+
+    std::string str;
+
+    process_base::cwd(str);
+    str.append(1, PATH_SLASH);
+    str.append(path);
+
+    return normalize(str.c_str(), retVal);
+#endif
 }
 
 result_t path_base::get_sep(std::string &retVal)

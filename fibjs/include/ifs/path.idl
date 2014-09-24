@@ -42,7 +42,7 @@ module path
      @param path 给定转换的路径
      @return 返回转换的全路径
      */
-    static String realpath(String path);
+    static String fullpath(String path);
 
     /*! @brief 合并一系列路径成为一个单一路径
 

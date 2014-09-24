@@ -270,8 +270,8 @@ describe('path', function() {
 		}
 	});
 
-	it("realpath", function() {
-		assert.equal(path.join(process.cwd(), "main.js"), path.realpath("main.js"));
+	it("fullpath", function() {
+		assert.equal(path.join(process.cwd(), "not_exists"), path.fullpath("not_exists"));
 	});
 });
 
