@@ -295,15 +295,15 @@ class CallIC : public IC {
  public:
   explicit CallIC(Isolate* isolate) : IC(EXTRA_CALL_FRAME, isolate) {}
 
-  void PatchMegamorphic(Handle<Object> function, Handle<FixedArray> vector,
-                        Handle<Smi> slot);
+  void PatchMegamorphic(Handle<Object> function,
+                        Handle<TypeFeedbackVector> vector, Handle<Smi> slot);
 
   void HandleMiss(Handle<Object> receiver, Handle<Object> function,
-                  Handle<FixedArray> vector, Handle<Smi> slot);
+                  Handle<TypeFeedbackVector> vector, Handle<Smi> slot);
 
   // Returns true if a custom handler was installed.
   bool DoCustomHandler(Handle<Object> receiver, Handle<Object> function,
-                       Handle<FixedArray> vector, Handle<Smi> slot,
+                       Handle<TypeFeedbackVector> vector, Handle<Smi> slot,
                        const CallICState& state);
 
   // Code generator routines.
@@ -314,7 +314,7 @@ class CallIC : public IC {
                     ConstantPoolArray* constant_pool);
 
  private:
-  inline IC::State FeedbackToState(Handle<FixedArray> vector,
+  inline IC::State FeedbackToState(Handle<TypeFeedbackVector> vector,
                                    Handle<Smi> slot) const;
 };
 
@@ -371,7 +371,7 @@ class LoadIC : public IC {
     }
   }
 
-  virtual Handle<Code> megamorphic_stub();
+  virtual Handle<Code> megamorphic_stub() OVERRIDE;
 
   // Update the inline cache and the global stub cache based on the
   // lookup result.
@@ -414,8 +414,6 @@ class KeyedLoadIC : public LoadIC {
   }
   static void GenerateGeneric(MacroAssembler* masm);
   static void GenerateString(MacroAssembler* masm);
-  static void GenerateIndexedInterceptor(MacroAssembler* masm);
-  static void GenerateSloppyArguments(MacroAssembler* masm);
 
   // Bit mask to be tested against bit field for the cases when
   // generic stub should go into slow case.
@@ -435,12 +433,6 @@ class KeyedLoadIC : public LoadIC {
 
  private:
   Handle<Code> generic_stub() const { return generic_stub(isolate()); }
-  Handle<Code> indexed_interceptor_stub() {
-    return isolate()->builtins()->KeyedLoadIC_IndexedInterceptor();
-  }
-  Handle<Code> sloppy_arguments_stub() {
-    return isolate()->builtins()->KeyedLoadIC_SloppyArguments();
-  }
   Handle<Code> string_stub() {
     return isolate()->builtins()->KeyedLoadIC_String();
   }
@@ -497,14 +489,12 @@ class StoreIC : public IC {
                       JSReceiver::StoreFromKeyed store_mode);
 
  protected:
-  virtual Handle<Code> megamorphic_stub();
+  virtual Handle<Code> megamorphic_stub() OVERRIDE;
 
   // Stub accessors.
-  virtual Handle<Code> generic_stub() const;
+  Handle<Code> generic_stub() const;
 
-  virtual Handle<Code> slow_stub() const {
-    return isolate()->builtins()->StoreIC_Slow();
-  }
+  Handle<Code> slow_stub() const;
 
   virtual Handle<Code> pre_monomorphic_stub() const {
     return pre_monomorphic_stub(isolate(), strict_mode());
@@ -585,16 +575,6 @@ class KeyedStoreIC : public StoreIC {
       return isolate->builtins()->KeyedStoreIC_PreMonomorphic();
     }
   }
-  virtual Handle<Code> slow_stub() const {
-    return isolate()->builtins()->KeyedStoreIC_Slow();
-  }
-  virtual Handle<Code> megamorphic_stub() {
-    if (strict_mode() == STRICT) {
-      return isolate()->builtins()->KeyedStoreIC_Generic_Strict();
-    } else {
-      return isolate()->builtins()->KeyedStoreIC_Generic();
-    }
-  }
 
   Handle<Code> StoreElementStub(Handle<JSObject> receiver,
                                 KeyedAccessStoreMode store_mode);
@@ -603,14 +583,6 @@ class KeyedStoreIC : public StoreIC {
   inline void set_target(Code* code);
 
   // Stub accessors.
-  virtual Handle<Code> generic_stub() const {
-    if (strict_mode() == STRICT) {
-      return isolate()->builtins()->KeyedStoreIC_Generic_Strict();
-    } else {
-      return isolate()->builtins()->KeyedStoreIC_Generic();
-    }
-  }
-
   Handle<Code> sloppy_arguments_stub() {
     return isolate()->builtins()->KeyedStoreIC_SloppyArguments();
   }

@@ -380,9 +380,7 @@ void InstructionSelector::VisitChangeFloat64ToInt32(Node* node) {
 
 void InstructionSelector::VisitChangeFloat64ToUint32(Node* node) {
   IA32OperandGenerator g(this);
-  // TODO(turbofan): IA32 SSE subsd() should take an operand.
-  Emit(kSSEFloat64ToUint32, g.DefineAsRegister(node),
-       g.UseRegister(node->InputAt(0)));
+  Emit(kSSEFloat64ToUint32, g.DefineAsRegister(node), g.Use(node->InputAt(0)));
 }
 
 
@@ -537,9 +535,6 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
       opcode = kArchCallCodeObject;
       break;
     }
-    case CallDescriptor::kCallAddress:
-      opcode = kArchCallAddress;
-      break;
     case CallDescriptor::kCallJSFunction:
       opcode = kArchCallJSFunction;
       break;
@@ -558,13 +553,6 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   if (deoptimization != NULL) {
     DCHECK(continuation != NULL);
     call_instr->MarkAsControl();
-  }
-
-  // Caller clean up of stack for C-style calls.
-  if (descriptor->kind() == CallDescriptor::kCallAddress &&
-      buffer.pushed_nodes.size() > 0) {
-    DCHECK(deoptimization == NULL && continuation == NULL);
-    Emit(kArchDrop | MiscField::encode(buffer.pushed_nodes.size()), NULL);
   }
 }
 

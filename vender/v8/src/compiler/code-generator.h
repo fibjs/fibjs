@@ -87,19 +87,21 @@ class CodeGenerator FINAL : public GapResolver::Assembler {
   void PopulateDeoptimizationData(Handle<Code> code);
   int DefineDeoptimizationLiteral(Handle<Object> literal);
   FrameStateDescriptor* GetFrameStateDescriptor(Instruction* instr,
-                                                int frame_state_offset);
+                                                size_t frame_state_offset);
   int BuildTranslation(Instruction* instr, int pc_offset,
-                       int frame_state_offset,
+                       size_t frame_state_offset,
                        OutputFrameStateCombine state_combine);
   void BuildTranslationForFrameStateDescriptor(
       FrameStateDescriptor* descriptor, Instruction* instr,
-      Translation* translation, int frame_state_offset,
+      Translation* translation, size_t frame_state_offset,
       OutputFrameStateCombine state_combine);
   void AddTranslationForOperand(Translation* translation, Instruction* instr,
                                 InstructionOperand* op);
   void AddNopForSmiCodeInlining();
-  // ===========================================================================
+  void EnsureSpaceForLazyDeopt();
+  void MarkLazyDeoptSite();
 
+  // ===========================================================================
   struct DeoptimizationState : ZoneObject {
    public:
     BailoutId bailout_id() const { return bailout_id_; }
@@ -126,6 +128,7 @@ class CodeGenerator FINAL : public GapResolver::Assembler {
   ZoneDeque<DeoptimizationState*> deoptimization_states_;
   ZoneDeque<Handle<Object> > deoptimization_literals_;
   TranslationBuffer translations_;
+  int last_lazy_deopt_pc_;
 };
 
 }  // namespace compiler

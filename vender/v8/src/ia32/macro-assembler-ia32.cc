@@ -250,18 +250,17 @@ void MacroAssembler::TruncateDoubleToI(Register result_reg,
 }
 
 
-void MacroAssembler::DoubleToI(Register result_reg,
-                               XMMRegister input_reg,
+void MacroAssembler::DoubleToI(Register result_reg, XMMRegister input_reg,
                                XMMRegister scratch,
                                MinusZeroMode minus_zero_mode,
-                               Label* conversion_failed,
-                               Label::Distance dst) {
+                               Label* lost_precision, Label* is_nan,
+                               Label* minus_zero, Label::Distance dst) {
   DCHECK(!input_reg.is(scratch));
   cvttsd2si(result_reg, Operand(input_reg));
   Cvtsi2sd(scratch, Operand(result_reg));
   ucomisd(scratch, input_reg);
-  j(not_equal, conversion_failed, dst);
-  j(parity_even, conversion_failed, dst);  // NaN.
+  j(not_equal, lost_precision, dst);
+  j(parity_even, is_nan, dst);
   if (minus_zero_mode == FAIL_ON_MINUS_ZERO) {
     Label done;
     // The integer converted back is equal to the original. We
@@ -271,9 +270,9 @@ void MacroAssembler::DoubleToI(Register result_reg,
     movmskpd(result_reg, input_reg);
     // Bit 0 contains the sign of the double in input_reg.
     // If input was positive, we are ok and return 0, otherwise
-    // jump to conversion_failed.
+    // jump to minus_zero.
     and_(result_reg, 1);
-    j(not_zero, conversion_failed, dst);
+    j(not_zero, minus_zero, dst);
     bind(&done);
   }
 }
@@ -341,40 +340,6 @@ void MacroAssembler::TruncateHeapNumberToI(Register result_reg,
     } else {
       SlowTruncateToI(result_reg, input_reg);
     }
-  }
-  bind(&done);
-}
-
-
-void MacroAssembler::TaggedToI(Register result_reg,
-                               Register input_reg,
-                               XMMRegister temp,
-                               MinusZeroMode minus_zero_mode,
-                               Label* lost_precision) {
-  Label done;
-  DCHECK(!temp.is(xmm0));
-
-  cmp(FieldOperand(input_reg, HeapObject::kMapOffset),
-      isolate()->factory()->heap_number_map());
-  j(not_equal, lost_precision, Label::kNear);
-
-  DCHECK(!temp.is(no_xmm_reg));
-
-  movsd(xmm0, FieldOperand(input_reg, HeapNumber::kValueOffset));
-  cvttsd2si(result_reg, Operand(xmm0));
-  Cvtsi2sd(temp, Operand(result_reg));
-  ucomisd(xmm0, temp);
-  RecordComment("Deferred TaggedToI: lost precision");
-  j(not_equal, lost_precision, Label::kNear);
-  RecordComment("Deferred TaggedToI: NaN");
-  j(parity_even, lost_precision, Label::kNear);
-  if (minus_zero_mode == FAIL_ON_MINUS_ZERO) {
-    test(result_reg, Operand(result_reg));
-    j(not_zero, &done, Label::kNear);
-    movmskpd(result_reg, xmm0);
-    and_(result_reg, 1);
-    RecordComment("Deferred TaggedToI: minus zero");
-    j(not_zero, lost_precision, Label::kNear);
   }
   bind(&done);
 }
@@ -2951,9 +2916,9 @@ void MacroAssembler::JumpIfNotBothSequentialOneByteStrings(Register object1,
 }
 
 
-void MacroAssembler::JumpIfNotUniqueName(Operand operand,
-                                         Label* not_unique_name,
-                                         Label::Distance distance) {
+void MacroAssembler::JumpIfNotUniqueNameInstanceType(Operand operand,
+                                                     Label* not_unique_name,
+                                                     Label::Distance distance) {
   STATIC_ASSERT(kInternalizedTag == 0 && kStringTag == 0);
   Label succeed;
   test(operand, Immediate(kIsNotStringMask | kIsNotInternalizedMask));

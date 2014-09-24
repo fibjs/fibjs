@@ -48,7 +48,6 @@ int ThreadId::AllocateThreadId() {
 
 
 int ThreadId::GetCurrentThreadId() {
-  Isolate::EnsureInitialized();
   int thread_id = base::Thread::GetThreadLocalInt(Isolate::thread_id_key_);
   if (thread_id == 0) {
     thread_id = AllocateThreadId();
@@ -114,17 +113,16 @@ base::Thread::LocalStorageKey Isolate::per_isolate_thread_data_key_;
 #ifdef DEBUG
 base::Thread::LocalStorageKey PerThreadAssertScopeBase::thread_local_key;
 #endif  // DEBUG
-base::LazyMutex Isolate::process_wide_mutex_ = LAZY_MUTEX_INITIALIZER;
+base::LazyMutex Isolate::thread_data_table_mutex_ = LAZY_MUTEX_INITIALIZER;
 Isolate::ThreadDataTable* Isolate::thread_data_table_ = NULL;
 base::Atomic32 Isolate::isolate_counter_ = 0;
 
 Isolate::PerIsolateThreadData*
     Isolate::FindOrAllocatePerThreadDataForThisThread() {
-  EnsureInitialized();
   ThreadId thread_id = ThreadId::Current();
   PerIsolateThreadData* per_thread = NULL;
   {
-    base::LockGuard<base::Mutex> lock_guard(process_wide_mutex_.Pointer());
+    base::LockGuard<base::Mutex> lock_guard(thread_data_table_mutex_.Pointer());
     per_thread = thread_data_table_->Lookup(this, thread_id);
     if (per_thread == NULL) {
       per_thread = new PerIsolateThreadData(this, thread_id);
@@ -144,28 +142,26 @@ Isolate::PerIsolateThreadData* Isolate::FindPerThreadDataForThisThread() {
 
 Isolate::PerIsolateThreadData* Isolate::FindPerThreadDataForThread(
     ThreadId thread_id) {
-  EnsureInitialized();
   PerIsolateThreadData* per_thread = NULL;
   {
-    base::LockGuard<base::Mutex> lock_guard(process_wide_mutex_.Pointer());
+    base::LockGuard<base::Mutex> lock_guard(thread_data_table_mutex_.Pointer());
     per_thread = thread_data_table_->Lookup(this, thread_id);
   }
   return per_thread;
 }
 
 
-void Isolate::EnsureInitialized() {
-  base::LockGuard<base::Mutex> lock_guard(process_wide_mutex_.Pointer());
-  if (thread_data_table_ == NULL) {
-    isolate_key_ = base::Thread::CreateThreadLocalKey();
-    thread_id_key_ = base::Thread::CreateThreadLocalKey();
-    per_isolate_thread_data_key_ = base::Thread::CreateThreadLocalKey();
+void Isolate::InitializeOncePerProcess() {
+  base::LockGuard<base::Mutex> lock_guard(thread_data_table_mutex_.Pointer());
+  CHECK(thread_data_table_ == NULL);
+  isolate_key_ = base::Thread::CreateThreadLocalKey();
+  thread_id_key_ = base::Thread::CreateThreadLocalKey();
+  per_isolate_thread_data_key_ = base::Thread::CreateThreadLocalKey();
 #ifdef DEBUG
-    PerThreadAssertScopeBase::thread_local_key =
-        base::Thread::CreateThreadLocalKey();
+  PerThreadAssertScopeBase::thread_local_key =
+      base::Thread::CreateThreadLocalKey();
 #endif  // DEBUG
-    thread_data_table_ = new Isolate::ThreadDataTable();
-  }
+  thread_data_table_ = new Isolate::ThreadDataTable();
 }
 
 
@@ -1023,9 +1019,9 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
       ShouldReportException(&can_be_caught_externally, catchable_by_javascript);
   bool report_exception = catchable_by_javascript && should_report_exception;
   bool try_catch_needs_message =
-      can_be_caught_externally && try_catch_handler()->capture_message_ &&
-      !thread_local_top()->rethrowing_message_;
+      can_be_caught_externally && try_catch_handler()->capture_message_;
   bool bootstrapping = bootstrapper()->IsActive();
+  bool rethrowing_message = thread_local_top()->rethrowing_message_;
 
   thread_local_top()->rethrowing_message_ = false;
 
@@ -1035,7 +1031,7 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
   }
 
   // Generate the message if required.
-  if (report_exception || try_catch_needs_message) {
+  if (!rethrowing_message && (report_exception || try_catch_needs_message)) {
     MessageLocation potential_computed_location;
     if (location == NULL) {
       // If no location was specified we use a computed one instead.
@@ -1521,6 +1517,10 @@ Isolate::Isolate()
       stress_deopt_count_(0),
       next_optimization_id_(0),
       use_counter_callback_(NULL) {
+  {
+    base::LockGuard<base::Mutex> lock_guard(thread_data_table_mutex_.Pointer());
+    CHECK(thread_data_table_);
+  }
   id_ = base::NoBarrier_AtomicIncrement(&isolate_counter_, 1);
   TRACE_ISOLATE(constructor);
 
@@ -1571,7 +1571,7 @@ void Isolate::TearDown() {
   Deinit();
 
   {
-    base::LockGuard<base::Mutex> lock_guard(process_wide_mutex_.Pointer());
+    base::LockGuard<base::Mutex> lock_guard(thread_data_table_mutex_.Pointer());
     thread_data_table_->RemoveAllThreads(this);
   }
 
@@ -1676,7 +1676,6 @@ void Isolate::PushToPartialSnapshotCache(Object* obj) {
 
 void Isolate::SetIsolateThreadLocals(Isolate* isolate,
                                      PerIsolateThreadData* data) {
-  EnsureInitialized();
   base::Thread::SetThreadLocal(isolate_key_, isolate);
   base::Thread::SetThreadLocal(per_isolate_thread_data_key_, data);
 }

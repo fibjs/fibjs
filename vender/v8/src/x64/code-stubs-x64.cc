@@ -318,7 +318,9 @@ void MathPowStub::Generate(MacroAssembler* masm) {
     Label fast_power, try_arithmetic_simplification;
     // Detect integer exponents stored as double.
     __ DoubleToI(exponent, double_exponent, double_scratch,
-                 TREAT_MINUS_ZERO_AS_ZERO, &try_arithmetic_simplification);
+                 TREAT_MINUS_ZERO_AS_ZERO, &try_arithmetic_simplification,
+                 &try_arithmetic_simplification,
+                 &try_arithmetic_simplification);
     __ jmp(&int_exponent);
 
     __ bind(&try_arithmetic_simplification);
@@ -831,6 +833,37 @@ void ArgumentsAccessStub::GenerateNewSloppySlow(MacroAssembler* masm) {
 
   __ bind(&runtime);
   __ TailCallRuntime(Runtime::kNewSloppyArguments, 3, 1);
+}
+
+
+void LoadIndexedInterceptorStub::Generate(MacroAssembler* masm) {
+  // Return address is on the stack.
+  Label slow;
+
+  Register receiver = LoadDescriptor::ReceiverRegister();
+  Register key = LoadDescriptor::NameRegister();
+  Register scratch = rax;
+  DCHECK(!scratch.is(receiver) && !scratch.is(key));
+
+  // Check that the key is an array index, that is Uint32.
+  STATIC_ASSERT(kSmiValueSize <= 32);
+  __ JumpUnlessNonNegativeSmi(key, &slow);
+
+  // Everything is fine, call runtime.
+  __ PopReturnAddressTo(scratch);
+  __ Push(receiver);  // receiver
+  __ Push(key);       // key
+  __ PushReturnAddressFrom(scratch);
+
+  // Perform tail call to the entry.
+  __ TailCallExternalReference(
+      ExternalReference(IC_Utility(IC::kLoadElementWithInterceptor),
+                        masm->isolate()),
+      2, 1);
+
+  __ bind(&slow);
+  PropertyAccessCompiler::TailCallBuiltin(
+      masm, PropertyAccessCompiler::MissBuiltin(Code::KEYED_LOAD_IC));
 }
 
 
@@ -1694,7 +1727,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
   // function without changing the state.
   __ cmpp(rcx, rdi);
   __ j(equal, &done);
-  __ Cmp(rcx, TypeFeedbackInfo::MegamorphicSentinel(isolate));
+  __ Cmp(rcx, TypeFeedbackVector::MegamorphicSentinel(isolate));
   __ j(equal, &done);
 
   if (!FLAG_pretenuring_call_new) {
@@ -1718,13 +1751,13 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 
   // A monomorphic miss (i.e, here the cache is not uninitialized) goes
   // megamorphic.
-  __ Cmp(rcx, TypeFeedbackInfo::UninitializedSentinel(isolate));
+  __ Cmp(rcx, TypeFeedbackVector::UninitializedSentinel(isolate));
   __ j(equal, &initialize);
   // MegamorphicSentinel is an immortal immovable object (undefined) so no
   // write-barrier is needed.
   __ bind(&megamorphic);
   __ Move(FieldOperand(rbx, rdx, times_pointer_size, FixedArray::kHeaderSize),
-          TypeFeedbackInfo::MegamorphicSentinel(isolate));
+          TypeFeedbackVector::MegamorphicSentinel(isolate));
   __ jmp(&done);
 
   // An uninitialized cache is patched with the function or sentinel to
@@ -2071,9 +2104,9 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
   __ movp(rcx, FieldOperand(rbx, rdx, times_pointer_size,
                             FixedArray::kHeaderSize));
-  __ Cmp(rcx, TypeFeedbackInfo::MegamorphicSentinel(isolate));
+  __ Cmp(rcx, TypeFeedbackVector::MegamorphicSentinel(isolate));
   __ j(equal, &slow_start);
-  __ Cmp(rcx, TypeFeedbackInfo::UninitializedSentinel(isolate));
+  __ Cmp(rcx, TypeFeedbackVector::UninitializedSentinel(isolate));
   __ j(equal, &miss);
 
   if (!FLAG_trace_ic) {
@@ -2082,9 +2115,8 @@ void CallICStub::Generate(MacroAssembler* masm) {
     __ AssertNotSmi(rcx);
     __ CmpObjectType(rcx, JS_FUNCTION_TYPE, rcx);
     __ j(not_equal, &miss);
-    __ Move(FieldOperand(rbx, rdx, times_pointer_size,
-                         FixedArray::kHeaderSize),
-            TypeFeedbackInfo::MegamorphicSentinel(isolate));
+    __ Move(FieldOperand(rbx, rdx, times_pointer_size, FixedArray::kHeaderSize),
+            TypeFeedbackVector::MegamorphicSentinel(isolate));
     __ jmp(&slow_start);
   }
 
@@ -3424,8 +3456,8 @@ void CompareICStub::GenerateUniqueNames(MacroAssembler* masm) {
   __ movzxbp(tmp1, FieldOperand(tmp1, Map::kInstanceTypeOffset));
   __ movzxbp(tmp2, FieldOperand(tmp2, Map::kInstanceTypeOffset));
 
-  __ JumpIfNotUniqueName(tmp1, &miss, Label::kNear);
-  __ JumpIfNotUniqueName(tmp2, &miss, Label::kNear);
+  __ JumpIfNotUniqueNameInstanceType(tmp1, &miss, Label::kNear);
+  __ JumpIfNotUniqueNameInstanceType(tmp2, &miss, Label::kNear);
 
   // Unique names are compared by identity.
   Label done;
@@ -3644,8 +3676,8 @@ void NameDictionaryLookupStub::GenerateNegativeLookup(MacroAssembler* masm,
 
     // Check if the entry name is not a unique name.
     __ movp(entity_name, FieldOperand(entity_name, HeapObject::kMapOffset));
-    __ JumpIfNotUniqueName(FieldOperand(entity_name, Map::kInstanceTypeOffset),
-                           miss);
+    __ JumpIfNotUniqueNameInstanceType(
+        FieldOperand(entity_name, Map::kInstanceTypeOffset), miss);
     __ bind(&good);
   }
 
@@ -3774,8 +3806,9 @@ void NameDictionaryLookupStub::Generate(MacroAssembler* masm) {
 
       // Check if the entry name is not a unique name.
       __ movp(scratch, FieldOperand(scratch, HeapObject::kMapOffset));
-      __ JumpIfNotUniqueName(FieldOperand(scratch, Map::kInstanceTypeOffset),
-                             &maybe_in_dictionary);
+      __ JumpIfNotUniqueNameInstanceType(
+          FieldOperand(scratch, Map::kInstanceTypeOffset),
+          &maybe_in_dictionary);
     }
   }
 

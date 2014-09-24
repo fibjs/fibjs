@@ -120,6 +120,7 @@
     <ClInclude Include="src\compiler\instruction-selector-unittest.h" />
     <ClInclude Include="src\compiler\instruction-selector.h" />
     <ClInclude Include="src\compiler\instruction.h" />
+    <ClInclude Include="src\compiler\js-builtin-reducer.h" />
     <ClInclude Include="src\compiler\js-context-specialization.h" />
     <ClInclude Include="src\compiler\js-generic-lowering.h" />
     <ClInclude Include="src\compiler\js-graph.h" />
@@ -343,6 +344,8 @@
     <ClInclude Include="src\token.h" />
     <ClInclude Include="src\transitions-inl.h" />
     <ClInclude Include="src\transitions.h" />
+    <ClInclude Include="src\type-feedback-vector-inl.h" />
+    <ClInclude Include="src\type-feedback-vector.h" />
     <ClInclude Include="src\type-info.h" />
     <ClInclude Include="src\types-inl.h" />
     <ClInclude Include="src\types.h" />
@@ -454,6 +457,7 @@
     <ClCompile Include="src\compiler\ia32\linkage-ia32.cc" />
     <ClCompile Include="src\compiler\instruction-selector.cc" />
     <ClCompile Include="src\compiler\instruction.cc" />
+    <ClCompile Include="src\compiler\js-builtin-reducer.cc" />
     <ClCompile Include="src\compiler\js-context-specialization.cc" />
     <ClCompile Include="src\compiler\js-generic-lowering.cc" />
     <ClCompile Include="src\compiler\js-graph.cc" />
@@ -639,6 +643,7 @@
     <ClCompile Include="src\strtod.cc" />
     <ClCompile Include="src\token.cc" />
     <ClCompile Include="src\transitions.cc" />
+    <ClCompile Include="src\type-feedback-vector.cc" />
     <ClCompile Include="src\type-info.cc" />
     <ClCompile Include="src\types.cc" />
     <ClCompile Include="src\typing.cc" />

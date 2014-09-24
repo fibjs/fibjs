@@ -41,9 +41,13 @@ class Arm64OperandGenerator FINAL : public OperandGenerator {
   }
 
   bool CanBeImmediate(Node* node, ImmediateMode mode) {
-    Int32Matcher m(node);
-    if (!m.HasValue()) return false;
-    int64_t value = m.Value();
+    int64_t value;
+    if (node->opcode() == IrOpcode::kInt32Constant)
+      value = OpParameter<int32_t>(node);
+    else if (node->opcode() == IrOpcode::kInt64Constant)
+      value = OpParameter<int64_t>(node);
+    else
+      return false;
     unsigned ignored;
     switch (mode) {
       case kLogical32Imm:
@@ -111,11 +115,12 @@ static void VisitRRO(InstructionSelector* selector, ArchOpcode opcode,
 
 
 // Shared routine for multiple binary operations.
+template <typename Matcher>
 static void VisitBinop(InstructionSelector* selector, Node* node,
                        InstructionCode opcode, ImmediateMode operand_mode,
                        FlagsContinuation* cont) {
   Arm64OperandGenerator g(selector);
-  Int32BinopMatcher m(node);
+  Matcher m(node);
   InstructionOperand* inputs[4];
   size_t input_count = 0;
   InstructionOperand* outputs[2];
@@ -146,10 +151,11 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
 
 
 // Shared routine for multiple binary operations.
+template <typename Matcher>
 static void VisitBinop(InstructionSelector* selector, Node* node,
                        ArchOpcode opcode, ImmediateMode operand_mode) {
   FlagsContinuation cont;
-  VisitBinop(selector, node, opcode, operand_mode, &cont);
+  VisitBinop<Matcher>(selector, node, opcode, operand_mode, &cont);
 }
 
 
@@ -266,22 +272,22 @@ void InstructionSelector::VisitStore(Node* node) {
 
 
 void InstructionSelector::VisitWord32And(Node* node) {
-  VisitBinop(this, node, kArm64And32, kLogical32Imm);
+  VisitBinop<Int32BinopMatcher>(this, node, kArm64And32, kLogical32Imm);
 }
 
 
 void InstructionSelector::VisitWord64And(Node* node) {
-  VisitBinop(this, node, kArm64And, kLogical64Imm);
+  VisitBinop<Int64BinopMatcher>(this, node, kArm64And, kLogical64Imm);
 }
 
 
 void InstructionSelector::VisitWord32Or(Node* node) {
-  VisitBinop(this, node, kArm64Or32, kLogical32Imm);
+  VisitBinop<Int32BinopMatcher>(this, node, kArm64Or32, kLogical32Imm);
 }
 
 
 void InstructionSelector::VisitWord64Or(Node* node) {
-  VisitBinop(this, node, kArm64Or, kLogical64Imm);
+  VisitBinop<Int64BinopMatcher>(this, node, kArm64Or, kLogical64Imm);
 }
 
 
@@ -291,7 +297,7 @@ void InstructionSelector::VisitWord32Xor(Node* node) {
   if (m.right().Is(-1)) {
     Emit(kArm64Not32, g.DefineAsRegister(node), g.UseRegister(m.left().node()));
   } else {
-    VisitBinop(this, node, kArm64Xor32, kLogical32Imm);
+    VisitBinop<Int32BinopMatcher>(this, node, kArm64Xor32, kLogical32Imm);
   }
 }
 
@@ -302,7 +308,7 @@ void InstructionSelector::VisitWord64Xor(Node* node) {
   if (m.right().Is(-1)) {
     Emit(kArm64Not, g.DefineAsRegister(node), g.UseRegister(m.left().node()));
   } else {
-    VisitBinop(this, node, kArm64Xor, kLogical32Imm);
+    VisitBinop<Int64BinopMatcher>(this, node, kArm64Xor, kLogical32Imm);
   }
 }
 
@@ -348,12 +354,12 @@ void InstructionSelector::VisitWord64Ror(Node* node) {
 
 
 void InstructionSelector::VisitInt32Add(Node* node) {
-  VisitBinop(this, node, kArm64Add32, kArithmeticImm);
+  VisitBinop<Int32BinopMatcher>(this, node, kArm64Add32, kArithmeticImm);
 }
 
 
 void InstructionSelector::VisitInt64Add(Node* node) {
-  VisitBinop(this, node, kArm64Add, kArithmeticImm);
+  VisitBinop<Int64BinopMatcher>(this, node, kArm64Add, kArithmeticImm);
 }
 
 
@@ -364,7 +370,7 @@ void InstructionSelector::VisitInt32Sub(Node* node) {
     Emit(kArm64Neg32, g.DefineAsRegister(node),
          g.UseRegister(m.right().node()));
   } else {
-    VisitBinop(this, node, kArm64Sub32, kArithmeticImm);
+    VisitBinop<Int32BinopMatcher>(this, node, kArm64Sub32, kArithmeticImm);
   }
 }
 
@@ -375,7 +381,7 @@ void InstructionSelector::VisitInt64Sub(Node* node) {
   if (m.left().Is(0)) {
     Emit(kArm64Neg, g.DefineAsRegister(node), g.UseRegister(m.right().node()));
   } else {
-    VisitBinop(this, node, kArm64Sub, kArithmeticImm);
+    VisitBinop<Int64BinopMatcher>(this, node, kArm64Sub, kArithmeticImm);
   }
 }
 
@@ -506,13 +512,13 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
 
 void InstructionSelector::VisitInt32AddWithOverflow(Node* node,
                                                     FlagsContinuation* cont) {
-  VisitBinop(this, node, kArm64Add32, kArithmeticImm, cont);
+  VisitBinop<Int32BinopMatcher>(this, node, kArm64Add32, kArithmeticImm, cont);
 }
 
 
 void InstructionSelector::VisitInt32SubWithOverflow(Node* node,
                                                     FlagsContinuation* cont) {
-  VisitBinop(this, node, kArm64Sub32, kArithmeticImm, cont);
+  VisitBinop<Int32BinopMatcher>(this, node, kArm64Sub32, kArithmeticImm, cont);
 }
 
 
@@ -628,12 +634,8 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   InitializeCallBuffer(call, &buffer, true, false);
 
   // Push the arguments to the stack.
-  bool is_c_frame = descriptor->kind() == CallDescriptor::kCallAddress;
   bool pushed_count_uneven = buffer.pushed_nodes.size() & 1;
   int aligned_push_count = buffer.pushed_nodes.size();
-  if (is_c_frame && pushed_count_uneven) {
-    aligned_push_count++;
-  }
   // TODO(dcarney): claim and poke probably take small immediates,
   //                loop here or whatever.
   // Bump the stack pointer(s).
@@ -648,8 +650,7 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
     // Emit the uneven pushes.
     if (pushed_count_uneven) {
       Node* input = buffer.pushed_nodes[slot];
-      ArchOpcode opcode = is_c_frame ? kArm64PokePairZero : kArm64Poke;
-      Emit(opcode | MiscField::encode(slot), NULL, g.UseRegister(input));
+      Emit(kArm64Poke | MiscField::encode(slot), NULL, g.UseRegister(input));
       slot--;
     }
     // Now all pushes can be done in pairs.
@@ -667,9 +668,6 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
       opcode = kArchCallCodeObject;
       break;
     }
-    case CallDescriptor::kCallAddress:
-      opcode = kArchCallAddress;
-      break;
     case CallDescriptor::kCallJSFunction:
       opcode = kArchCallJSFunction;
       break;
@@ -688,12 +686,6 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   if (deoptimization != NULL) {
     DCHECK(continuation != NULL);
     call_instr->MarkAsControl();
-  }
-
-  // Caller clean up of stack for C-style calls.
-  if (is_c_frame && aligned_push_count > 0) {
-    DCHECK(deoptimization == NULL && continuation == NULL);
-    Emit(kArchDrop | MiscField::encode(aligned_push_count), NULL);
   }
 }
 

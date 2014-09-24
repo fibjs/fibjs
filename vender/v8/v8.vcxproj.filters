@@ -390,6 +390,9 @@
     <ClInclude Include="src\compiler\instruction.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\js-builtin-reducer.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\js-context-specialization.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -1059,6 +1062,12 @@
     <ClInclude Include="src\transitions.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\type-feedback-vector-inl.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\type-feedback-vector.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\type-info.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1386,6 +1395,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\instruction.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\js-builtin-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\js-context-specialization.cc">
@@ -1941,6 +1953,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\transitions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\type-feedback-vector.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\type-info.cc">

@@ -295,7 +295,7 @@ class HistogramTimerScope BASE_EMBEDDED {
   /* Generic range histograms */                                              \
   HR(gc_idle_time_allotted_in_ms, V8.GCIdleTimeAllottedInMS, 0, 10000, 101)   \
   HR(gc_idle_time_limit_overshot, V8.GCIdleTimeLimit.Overshot, 0, 10000, 101) \
-  HR(gc_idle_time_limit_undershot, V8.GCIdleTimeLimi.Undershot, 0, 10000, 101)
+  HR(gc_idle_time_limit_undershot, V8.GCIdleTimeLimit.Undershot, 0, 10000, 101)
 
 #define HISTOGRAM_TIMER_LIST(HT)                             \
   /* Garbage collection timers. */                           \
@@ -311,7 +311,11 @@ class HistogramTimerScope BASE_EMBEDDED {
   HT(pre_parse, V8.PreParse)                                 \
   /* Total compilation times. */                             \
   HT(compile, V8.Compile)                                    \
-  HT(compile_eval, V8.CompileEval)
+  HT(compile_eval, V8.CompileEval)                           \
+  /* Serialization as part of compilation (code caching) */  \
+  HT(compile_serialize, V8.CompileSerialize)                 \
+  HT(compile_deserialize, V8.CompileDeserialize)
+
 
 #define HISTOGRAM_PERCENTAGE_LIST(HP)                                 \
   /* Heap fragmentation. */                                           \
