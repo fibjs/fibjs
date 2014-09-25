@@ -99,9 +99,9 @@ void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
     }
 
     if (!def_ns.empty())
-        el = new XmlElement(m_document, def_ns.c_str(), name);
+        el = new XmlElement(m_document, def_ns.c_str(), name, m_isXml);
     else
-        el = new XmlElement(m_document, name);
+        el = new XmlElement(m_document, name, m_isXml);
 
     newNode(el, true);
 
@@ -192,7 +192,7 @@ void XmlParser::OnEndCdataSection()
 
 result_t XmlParser::parse(XmlDocument *doc, const char *source)
 {
-    XmlParser parser(doc);
+    XmlParser parser(doc, true);
 
     parser.m_now = doc;
     parser.m_list.push_back(doc);

@@ -8,8 +8,11 @@ function newDoc() {
 	return new xml.Document();
 }
 
-var parse = xml.parse;
 var serialize = xml.serialize;
+var parse = xml.parse;
+var parseHtml = function(txt) {
+	return xml.parse(txt, "text/html")
+};
 
 describe('xml', function() {
 	function test_CharacterData(fn) {
@@ -699,6 +702,29 @@ describe('xml', function() {
 				assert.equal(attr.namespaceURI, "nsr:xns2");
 				assert.equal(serialize(node), "<aaa xmlns:ns2=\"nsr:xns2\" ns2:ns2=\"val2\"/>");
 			});
+		});
+	});
+
+	describe("html", function() {
+		it("body", function() {
+			var hdoc = parseHtml("<div>");
+			assert.equal(hdoc.body, hdoc.documentElement.getElementsByTagName("body")[0]);
+		});
+
+		it("innerHTML", function() {
+			var hdoc = parseHtml("<Div>    <p>abcdef</div>");
+			assert.equal(hdoc.body.innerHTML, "<div>    <p>abcdef</p></div>");
+
+			hdoc.body.innerHTML = "<img><br>";
+			assert.equal(hdoc.body.firstChild.tagName, "IMG");
+		});
+
+		it("textContent", function() {
+			var hdoc = parseHtml("<Div>    <p>abcde\nf&lt;</div>");
+			assert.equal(hdoc.body.textContent, "    abcde\nf<");
+
+			hdoc.body.textContent = "<img><br>";
+			assert.equal(hdoc.body.innerHTML, "&lt;img&gt;&lt;br&gt;");
 		});
 	});
 });

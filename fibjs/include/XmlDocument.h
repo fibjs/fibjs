@@ -17,13 +17,14 @@ namespace fibjs
 class XmlDocument: public XmlDocument_base, public XmlNodeImpl
 {
 public:
-    XmlDocument(): XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE), m_standalone(-1)
+    XmlDocument(bool isXml):
+        XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE), m_isXml(isXml), m_standalone(-1)
     {
     }
 
     XmlDocument(const XmlDocument &from):
         XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE),
-        m_version(from.m_version), m_encoding(from.m_encoding),
+        m_isXml(from.m_isXml), m_version(from.m_version), m_encoding(from.m_encoding),
         m_standalone(from.m_standalone)
     {
     }
@@ -58,14 +59,16 @@ public:
 
 public:
     // XmlDocument_base
-    virtual result_t loadXML(const char *source);
-    virtual result_t loadHTML(const char *source);
+    virtual result_t load(const char *source);
     virtual result_t get_inputEncoding(std::string &retVal);
     virtual result_t get_xmlStandalone(bool &retVal);
     virtual result_t set_xmlStandalone(bool newVal);
     virtual result_t get_xmlVersion(std::string &retVal);
     virtual result_t set_xmlVersion(const char *newVal);
     virtual result_t get_doctype(obj_ptr<XmlDocumentType_base> &retVal);
+    virtual result_t get_head(obj_ptr<XmlElement_base> &retVal);
+    virtual result_t get_title(std::string &retVal);
+    virtual result_t get_body(obj_ptr<XmlElement_base> &retVal);
     virtual result_t get_documentElement(obj_ptr<XmlElement_base> &retVal);
     virtual result_t getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal);
     virtual result_t getElementsByTagNameNS(const char *namespaceURI, const char *localName, obj_ptr<XmlNodeList_base> &retVal);
@@ -88,6 +91,7 @@ private:
     result_t checkNode(XmlNode_base *newChild);
 
 private:
+    bool m_isXml;
     obj_ptr<XmlDocumentType_base> m_doctype;
     obj_ptr<XmlElement_base> m_element;
     std::string m_version;

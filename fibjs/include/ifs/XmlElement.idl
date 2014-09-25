@@ -19,6 +19,22 @@ interface XmlElement : XmlNode
     */
     readonly String tagName;
 
+    /*! 查询和设置元素的 id 属性
+    */
+    String id;
+
+    /*! 查询和设置选定元素的文本。查询时，返回元素节点内所有文本节点的值；设置时，删除所有子节点，并用单个文本节点来替换它们。
+    */
+    String textContent;
+
+    /*! 查询和设置选定元素的 HTML 文本，仅在 html 模式有效。查询时，返回元素节点内所有子节点的 HTML 编码；设置时，删除所有子节点，并用指定的 HTML 解码后替换它们。
+    */
+    String innerHTML;
+
+    /*! 查询和设置元素的 class 属性，仅在 html 模式有效
+    */
+    String className;
+
     /*! @brief 返回包含被选节点属性的 NamedNodeMap。如果被选节点不是元素，则该属性返回 NULL。
     */
     readonly XmlNamedNodeMap attributes;

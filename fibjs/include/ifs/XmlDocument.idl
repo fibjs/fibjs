@@ -7,18 +7,14 @@ XmlDocument 对象是一棵文档树的根，可为我们提供对文档数据�
 interface XmlDocument : XmlNode
 {
     /*! @brief 构造一个 XmlDocument 对象
+     @param type 指定文档对象的类型，缺省为 "text/xml"，若需要处理 html 则需要指定 "text/html"
     */
-    XmlDocument();
+    XmlDocument(String type = "text/xml");
 
-    /*! @brief 通过解析一个 XML 标签字符串来组成该文档
-     @param source 要解析的 XML 文本
+    /*! @brief 通过解析一个 XML/HTML 标签字符串来组成该文档
+     @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
     */
-    loadXML(String source);
-
-    /*! @brief 通过解析一个 HTML 字符串来组成该文档
-     @param source 要解析的 HTML 文本
-    */
-    loadHTML(String source);
+    load(String source);
 
     /*! @brief 返回用于文档的编码（在解析时）
     */
@@ -41,6 +37,18 @@ interface XmlDocument : XmlNode
     /*! @brief 返回文档的根节点
     */
     readonly XmlElement documentElement;
+
+    /*! @brief 返回 HTML 文档的 head 节点，仅在 html 模式有效
+    */
+    readonly XmlElement head;
+
+    /*! @brief 返回 HTML 文档的 title 节点的内容，仅在 html 模式有效
+    */
+    readonly String title;
+
+    /*! @brief 返回 HTML 文档的 body 节点，仅在 html 模式有效
+    */
+    readonly XmlElement body;
 
     /*! @brief 返回带有指定名称的所有元素的一个节点列表
 

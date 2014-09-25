@@ -19,8 +19,8 @@ namespace fibjs
 class XmlParser
 {
 public:
-    XmlParser(XmlDocument *document) :
-        m_document(document)
+    XmlParser(XmlDocument *document, bool isXml) :
+        m_document(document), m_isXml(isXml)
     {}
 
 public:
@@ -45,14 +45,14 @@ private:
 
 private:
     static void XmlDeclHandler(void *userData, const char *version,
-                                       const char *encoding, int standalone)
+                               const char *encoding, int standalone)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnXmlDecl(version, encoding, standalone);
     }
 
     static void StartElementHandler(void *userData, const char *name,
-                                            const char **atts)
+                                    const char **atts)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnStartElement(name, atts);
@@ -96,8 +96,8 @@ private:
     }
 
     static void StartDoctypeDeclHandler(void *userData,
-            const char *doctypeName, const char *sysid,
-            const char *pubid, int has_internal_subset)
+                                        const char *doctypeName, const char *sysid,
+                                        const char *pubid, int has_internal_subset)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnStartDoctypeDecl(doctypeName, sysid, pubid, has_internal_subset);
@@ -107,6 +107,7 @@ private:
     obj_ptr<XmlDocument> m_document;
     obj_ptr<XmlNode_base> m_now;
     std::list<obj_ptr<XmlNode_base> > m_list;
+    bool m_isXml;
 };
 
 } /* namespace fibjs */

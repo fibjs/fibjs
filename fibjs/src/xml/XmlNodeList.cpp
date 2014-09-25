@@ -71,7 +71,7 @@ result_t XmlNodeList::toString(std::string &retVal)
     return 0;
 }
 
-void XmlNodeList::clean()
+void XmlNodeList::removeAll()
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -83,7 +83,11 @@ void XmlNodeList::clean()
 
         m_childs.resize(0);
     }
+}
 
+void XmlNodeList::clean()
+{
+    removeAll();
     m_this = NULL;
 }
 

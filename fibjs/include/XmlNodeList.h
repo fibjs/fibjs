@@ -39,6 +39,7 @@ public:
 
 public:
     void clean();
+    void removeAll();
 
     result_t firstChild(obj_ptr<XmlNode_base> &retVal);
     result_t lastChild(obj_ptr<XmlNode_base> &retVal);

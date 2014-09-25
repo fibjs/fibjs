@@ -18,9 +18,15 @@
 namespace fibjs
 {
 
-result_t XmlDocument_base::_new(obj_ptr<XmlDocument_base> &retVal, v8::Local<v8::Object> This)
+result_t XmlDocument_base::_new(const char *type, obj_ptr<XmlDocument_base> &retVal,
+                                v8::Local<v8::Object> This)
 {
-    retVal = new XmlDocument();
+    bool isXml = !qstrcmp(type, "text/xml");
+
+    if (!isXml && qstrcmp(type, "text/html"))
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = new XmlDocument(isXml);
 
     return 0;
 }
@@ -32,8 +38,9 @@ result_t xml_base::parse(const char *source, const char *type, obj_ptr<XmlDocume
     if (!isXml && qstrcmp(type, "text/html"))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new XmlDocument();
-    return isXml ? retVal->loadXML(source) : retVal->loadHTML(source);
+    retVal = new XmlDocument(isXml);
+
+    return retVal->load(source);
 }
 
 result_t xml_base::serialize(XmlNode_base *node, std::string &retVal)
@@ -224,14 +231,9 @@ result_t XmlDocument::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlDocument::loadXML(const char *source)
+result_t XmlDocument::load(const char *source)
 {
-    return XmlParser::parse(this, source);
-}
-
-result_t XmlDocument::loadHTML(const char *source)
-{
-    return XmlParser::parseHtml(this, source);
+    return m_isXml ? XmlParser::parse(this, source) : XmlParser::parseHtml(this, source);
 }
 
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)
@@ -254,14 +256,14 @@ result_t XmlDocument::get_documentElement(obj_ptr<XmlElement_base> &retVal)
 
 result_t XmlDocument::createElement(const char *tagName, obj_ptr<XmlElement_base> &retVal)
 {
-    retVal = new XmlElement(this, tagName);
+    retVal = new XmlElement(this, tagName, m_isXml);
     return 0;
 }
 
 result_t XmlDocument::createElementNS(const char *namespaceURI, const char *qualifiedName,
                                       obj_ptr<XmlElement_base> &retVal)
 {
-    retVal = new XmlElement(this, namespaceURI, qualifiedName);
+    retVal = new XmlElement(this, namespaceURI, qualifiedName, m_isXml);
     return 0;
 }
 
@@ -288,6 +290,48 @@ result_t XmlDocument::createProcessingInstruction(const char *target, const char
 {
     retVal = new XmlProcessingInstruction(this, target, data);
     return 0;
+}
+
+result_t XmlDocument::get_head(obj_ptr<XmlElement_base> &retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_element;
+    if (pEl)
+        return pEl->getFirstElementsByTagName("head", retVal);
+
+    return CALL_RETURN_NULL;
+}
+
+result_t XmlDocument::get_title(std::string &retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_element;
+    if (pEl)
+    {
+        obj_ptr<XmlElement_base> title;
+        if (pEl->getFirstElementsByTagName("title", title) == CALL_RETURN_NULL)
+            return 0;
+
+        return title->get_textContent(retVal);
+    }
+
+    return 0;
+}
+
+result_t XmlDocument::get_body(obj_ptr<XmlElement_base> &retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_element;
+    if (pEl)
+        return pEl->getFirstElementsByTagName("body", retVal);
+
+    return CALL_RETURN_NULL;
 }
 
 result_t XmlDocument::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)

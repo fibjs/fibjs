@@ -19,14 +19,16 @@ namespace fibjs
 class XmlElement: public XmlElement_base, public XmlNodeImpl
 {
 public:
-    XmlElement(XmlDocument_base *document, const char *tagName):
-        XmlNodeImpl(document, this, xml_base::_ELEMENT_NODE),
+    XmlElement(XmlDocument_base *document, const char *tagName, bool isXml):
+        XmlNodeImpl(document, this, xml_base::_ELEMENT_NODE), m_isXml(isXml),
         m_tagName(tagName), m_localName(tagName), m_attrs(new XmlNamedNodeMap())
     {
+        if (!m_isXml)
+            qstrupr(&m_tagName[0]);
     }
 
-    XmlElement(XmlDocument_base *document, const char *namespaceURI, const char *qualifiedName):
-        XmlNodeImpl(document, this, xml_base::_ELEMENT_NODE),
+    XmlElement(XmlDocument_base *document, const char *namespaceURI, const char *qualifiedName, bool isXml):
+        XmlNodeImpl(document, this, xml_base::_ELEMENT_NODE), m_isXml(isXml),
         m_tagName(qualifiedName), m_namespaceURI(namespaceURI), m_attrs(new XmlNamedNodeMap())
     {
         const char *p = qstrchr(qualifiedName, ':');
@@ -37,11 +39,14 @@ public:
             m_prefix.assign(qualifiedName, p - qualifiedName);
             m_localName.assign(p + 1);
         }
+
+        if (!m_isXml)
+            qstrupr(&m_tagName[0]);
     }
 
     XmlElement(const XmlElement &from):
         XmlNodeImpl(from.m_document, this, xml_base::_ELEMENT_NODE),
-        m_tagName(from.m_tagName), m_localName(from.m_localName),
+        m_isXml(from.m_isXml), m_tagName(from.m_tagName), m_localName(from.m_localName),
         m_prefix(from.m_prefix), m_namespaceURI(from.m_namespaceURI),
         m_attrs(new XmlNamedNodeMap())
     {
@@ -82,6 +87,14 @@ public:
     virtual result_t set_prefix(const char *newVal);
     virtual result_t get_localName(std::string &retVal);
     virtual result_t get_tagName(std::string &retVal);
+    virtual result_t get_id(std::string &retVal);
+    virtual result_t set_id(const char *newVal);
+    virtual result_t get_textContent(std::string &retVal);
+    virtual result_t set_textContent(const char *newVal);
+    virtual result_t get_innerHTML(std::string &retVal);
+    virtual result_t set_innerHTML(const char *newVal);
+    virtual result_t get_className(std::string &retVal);
+    virtual result_t set_className(const char *newVal);
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base> &retVal);
     virtual result_t getAttribute(const char *name, std::string &retVal);
     virtual result_t getAttributeNS(const char *namespaceURI, const char *localName, std::string &retVal);
@@ -118,11 +131,14 @@ public:
 
     void getElementsByTagNameFromThis(const char *tagName, obj_ptr<XmlNodeList> &retVal)
     {
-        if (*tagName == '*' || !qstrcmp(m_tagName.c_str(), tagName))
+        if (*tagName == '*' ||
+                ( m_isXml ? !qstrcmp(m_tagName.c_str(), tagName) :
+                  !qstricmp(m_tagName.c_str(), tagName)))
         {
             retVal->appendChild(this);
             Ref();
         }
+
         getElementsByTagName(tagName, retVal);
     }
 
@@ -137,6 +153,50 @@ public:
             {
                 XmlElement *pEl = (XmlElement *)(childs[i]->m_node);
                 pEl->getElementsByTagNameFromThis(tagName, retVal);
+            }
+    }
+
+    result_t getFirstElementsByTagName(const char *tagName, obj_ptr<XmlElement_base> &retVal)
+    {
+        if (m_isXml ? !qstrcmp(m_tagName.c_str(), tagName) :
+                !qstricmp(m_tagName.c_str(), tagName))
+        {
+            retVal = this;
+            return 0;
+        }
+
+        std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
+        int32_t sz = (int32_t)childs.size();
+        int32_t i;
+
+        for (i = 0; i < sz; i ++)
+            if (childs[i]->m_type == xml_base::_ELEMENT_NODE)
+            {
+                XmlElement *pEl = (XmlElement *)(childs[i]->m_node);
+                if (pEl->getFirstElementsByTagName(tagName, retVal) == 0)
+                    return 0;
+            }
+
+        return CALL_RETURN_NULL;
+    }
+
+    void getTextContent(std::vector<std::string> &retVal)
+    {
+        std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
+        int32_t sz = (int32_t)childs.size();
+        int32_t i;
+
+        for (i = 0; i < sz; i ++)
+            if (childs[i]->m_type == xml_base::_ELEMENT_NODE)
+            {
+                XmlElement *pEl = (XmlElement *)(childs[i]->m_node);
+                pEl->getTextContent(retVal);
+            }
+            else if (childs[i]->m_type == xml_base::_TEXT_NODE)
+            {
+                std::string value;
+                childs[i]->m_node->get_nodeValue(value);
+                retVal.push_back(value);
             }
     }
 
@@ -170,6 +230,7 @@ public:
     void fix_prefix(const char *namespaceURI, std::string &prefix);
 
 private:
+    bool m_isXml;
     std::string m_tagName;
     std::string m_localName;
     std::string m_prefix;

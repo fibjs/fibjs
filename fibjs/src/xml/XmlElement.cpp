@@ -8,6 +8,8 @@
 #include "ifs/xml.h"
 #include "XmlElement.h"
 #include "XmlAttr.h"
+#include "XmlText.h"
+#include "XmlDocument.h"
 
 namespace fibjs
 {
@@ -180,6 +182,114 @@ result_t XmlElement::get_tagName(std::string &retVal)
     return 0;
 }
 
+result_t XmlElement::get_id(std::string &retVal)
+{
+    getAttribute("id", retVal);
+    return 0;
+}
+
+result_t XmlElement::set_id(const char *newVal)
+{
+    if (!*newVal)
+        return removeAttribute("id");
+
+    return setAttribute("id", newVal);
+}
+
+result_t XmlElement::get_textContent(std::string &retVal)
+{
+    std::vector<std::string> strs;
+
+    getTextContent(strs);
+
+    int32_t sz = (int32_t)strs.size();
+    int32_t len = 0, pos = 0;
+    int32_t i;
+
+    for (i = 0; i < sz; i ++)
+        len += (int32_t)strs[i].length();
+
+    retVal.resize(len);
+    for (i = 0; i < sz; i ++)
+    {
+        int32_t l = (int32_t)strs[i].length();
+        memcpy(&retVal[pos], strs[i].c_str(), l);
+        pos += l;
+    }
+
+    return 0;
+}
+
+result_t XmlElement::set_textContent(const char *newVal)
+{
+    m_childs->removeAll();
+
+    obj_ptr<XmlText> text = new XmlText(m_document, newVal);
+
+    obj_ptr<XmlNode_base> out;
+    appendChild(text, out);
+
+    return 0;
+}
+
+result_t XmlElement::get_innerHTML(std::string &retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    if (m_childs->hasChildNodes())
+        m_childs->toString(retVal);
+
+    return 0;
+}
+
+result_t XmlElement::set_innerHTML(const char *newVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    result_t hr;
+
+    m_childs->removeAll();
+
+    obj_ptr<XmlDocument> doc = new XmlDocument(false);
+    hr = doc->load(newVal);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<XmlElement_base> body;
+    hr = doc->get_body(body);
+    if (hr != 0)
+        return hr;
+
+    obj_ptr<XmlNode_base> node;
+    obj_ptr<XmlNode_base> out;
+    while (body->get_firstChild(node) == 0)
+        appendChild(node, out);
+
+    return 0;
+}
+
+result_t XmlElement::get_className(std::string &retVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    getAttribute("class", retVal);
+    return 0;
+}
+
+result_t XmlElement::set_className(const char *newVal)
+{
+    if (m_isXml)
+        return CALL_E_INVALID_CALL;
+
+    if (!*newVal)
+        return removeAttribute("class");
+
+    return setAttribute("class", newVal);
+}
+
 result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base> &retVal)
 {
     retVal = m_attrs;
@@ -316,6 +426,11 @@ result_t XmlElement::toString(std::string &retVal)
 {
     retVal = "<";
 
+    std::string tagName(m_tagName);
+
+    if (!m_isXml)
+        qstrlwr(&tagName[0]);
+
     if (m_prefix.empty())
     {
         if (!m_namespaceURI.empty())
@@ -340,7 +455,7 @@ result_t XmlElement::toString(std::string &retVal)
             if (!skip_def_ns)
                 setAttribute("xmlns", m_namespaceURI.c_str());
         }
-        retVal.append(m_tagName);
+        retVal.append(tagName);
     }
     else
     {
@@ -363,7 +478,7 @@ result_t XmlElement::toString(std::string &retVal)
         retVal += '>';
         retVal.append(strChild);
         retVal.append("</");
-        retVal.append(m_tagName);
+        retVal.append(tagName);
         retVal += '>';
     }
     else

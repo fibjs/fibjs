@@ -92,6 +92,7 @@ inline void buildChilds(XmlParser &parser, GumboVector &childs)
             buildElement(parser, nodes[i]->v.element);
             break;
         case GUMBO_NODE_TEXT:
+        case GUMBO_NODE_WHITESPACE:
             buildText(parser, nodes[i]->v.text);
             break;
         case GUMBO_NODE_CDATA:
@@ -116,7 +117,7 @@ inline void buildDocument(XmlParser &parser, GumboDocument &document)
 
 result_t XmlParser::parseHtml(XmlDocument *doc, const char *source)
 {
-    XmlParser parser(doc);
+    XmlParser parser(doc, false);
 
     parser.m_now = doc;
     parser.m_list.push_back(doc);
