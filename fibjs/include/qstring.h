@@ -66,7 +66,15 @@ template<typename T>
 T qtolower(T c)
 {
     if (qisupper(c))
-        return c + 'a' - 'A';
+        return c + ('a' - 'A');
+    return c;
+}
+
+template<typename T>
+T qtoupper(T c)
+{
+    if (qislower(c))
+        return c + ('A' - 'a');
     return c;
 }
 
@@ -175,6 +183,15 @@ void qstrlwr(T *s)
 
     while ((c = *s) != 0)
         * s++ = qtolower(c);
+}
+
+template<typename T>
+void qstrupr(T *s)
+{
+    T c;
+
+    while ((c = *s) != 0)
+        * s++ = qtoupper(c);
 }
 
 }
