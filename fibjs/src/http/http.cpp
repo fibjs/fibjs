@@ -181,6 +181,8 @@ result_t http_base::request(const char *method, const char *url,
             hr = ac_request(conn, req, retVal);
             if (hr < 0)
                 return hr;
+
+            conn->ac_close();
         }
 
         hr = retVal->get_status(status);
