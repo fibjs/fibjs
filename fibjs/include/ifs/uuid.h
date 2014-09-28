@@ -83,7 +83,7 @@ namespace fibjs
 		{ 
 			"uuid", NULL, 
 			5, s_method, 0, NULL, 4, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

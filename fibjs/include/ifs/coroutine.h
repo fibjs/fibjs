@@ -90,7 +90,7 @@ namespace fibjs
 		{ 
 			"coroutine", NULL, 
 			4, s_method, 6, s_object, 1, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

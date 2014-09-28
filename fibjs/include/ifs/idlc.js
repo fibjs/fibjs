@@ -145,7 +145,7 @@ function preparserIDL(fname) {
 }
 
 function parserIDL(fname) {
-	var st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difos, difps, dsvs, refCls, ids, ns, baseClass, isRem = false,
+	var modType, st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difos, difps, dsvs, refCls, ids, ns, baseClass, isRem = false,
 		hasNew = false,
 		hasIndexed = false,
 		hasNamed = false,
@@ -205,6 +205,7 @@ function parserIDL(fname) {
 
 		if (st.length > 0) {
 			if ((st[0] == "interface" || st[0] == "module") && st.length > 1) {
+				modType = st[0];
 				if (!_checkID(st[1]))
 					return false;
 
@@ -413,8 +414,10 @@ function parserIDL(fname) {
 		else
 			strClass += ", NULL";
 
-		if (ns != "object")
+		if (ns != "object" && modType == "interface")
 			strClass += ",\n			&" + baseClass + "_base::class_info()";
+		else
+			strClass += ",\n			NULL";
 
 		txt.push(strClass + "\n		};\n");
 		txt.push("		static ClassInfo s_ci(s_cd);");

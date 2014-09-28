@@ -143,7 +143,7 @@ namespace fibjs
 		{ 
 			"hash", NULL, 
 			20, s_method, 0, NULL, 9, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

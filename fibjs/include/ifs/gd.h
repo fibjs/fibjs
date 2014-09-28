@@ -143,7 +143,7 @@ namespace fibjs
 		{ 
 			"gd", NULL, 
 			7, s_method, 0, NULL, 19, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

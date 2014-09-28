@@ -108,7 +108,7 @@ namespace fibjs
 		{ 
 			"net", NULL, 
 			6, s_method, 4, s_object, 4, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

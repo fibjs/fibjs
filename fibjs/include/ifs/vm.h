@@ -44,7 +44,7 @@ namespace fibjs
 		{ 
 			"vm", NULL, 
 			0, NULL, 1, s_object, 0, NULL, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

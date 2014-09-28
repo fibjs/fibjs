@@ -148,7 +148,7 @@ namespace fibjs
 		{ 
 			"crypto", NULL, 
 			3, s_method, 5, s_object, 21, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

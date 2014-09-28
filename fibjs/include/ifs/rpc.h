@@ -48,7 +48,7 @@ namespace fibjs
 		{ 
 			"rpc", NULL, 
 			1, s_method, 0, NULL, 0, NULL, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

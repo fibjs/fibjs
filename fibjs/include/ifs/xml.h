@@ -90,7 +90,7 @@ namespace fibjs
 		{ 
 			"xml", NULL, 
 			2, s_method, 1, s_object, 8, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

@@ -103,7 +103,7 @@ namespace fibjs
 		{ 
 			"ssl", NULL, 
 			1, s_method, 3, s_object, 9, s_property, NULL, NULL,
-			&object_base::class_info()
+			NULL
 		};
 
 		static ClassInfo s_ci(s_cd);
