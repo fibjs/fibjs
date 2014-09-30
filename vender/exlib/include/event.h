@@ -84,8 +84,7 @@ class Fiber;
 class Locker
 {
 public:
-    Locker() :
-        m_locked(false), m_count(0), m_locker(0)
+    Locker() : m_count(0), m_locker(0)
     {
     }
 
@@ -101,7 +100,6 @@ public:
     }
 
 private:
-    bool m_locked;
     int m_count;
     Fiber *m_locker;
     List<Fiber> m_blocks;

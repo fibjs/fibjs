@@ -19,16 +19,13 @@ void Locker::lock()
     {
         Fiber *current = pService->m_running;
 
-        if (m_locked && current != m_locker)
+        if (m_locker && current != m_locker)
         {
             m_blocks.put(current);
             pService->switchtonext();
         }
         else if (++m_count == 1)
-        {
-            m_locked = true;
             m_locker = current;
-        }
     }
 }
 
@@ -40,14 +37,11 @@ bool Locker::trylock()
     {
         Fiber *current = pService->m_running;
 
-        if (m_locked && current != m_locker)
+        if (m_locker && current != m_locker)
             return false;
 
         if (++m_count == 1)
-        {
-            m_locked = true;
             m_locker = current;
-        }
     }
 
     return true;
@@ -66,10 +60,7 @@ void Locker::unlock()
             if (--m_count == 0)
             {
                 if (m_blocks.empty())
-                {
-                    m_locked = false;
-                    m_locker = 0;
-                }
+                    m_locker = NULL;
                 else
                 {
                     m_count++;
@@ -83,7 +74,6 @@ void Locker::unlock()
 
 bool Locker::owned()
 {
-
     Service *pService = Service::getFiberService();
 
     if (pService)
