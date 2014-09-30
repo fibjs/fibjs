@@ -15,7 +15,7 @@ namespace internal {
 namespace compiler {
 
 // Adds Arm-specific methods for generating InstructionOperands.
-class ArmOperandGenerator FINAL : public OperandGenerator {
+class ArmOperandGenerator : public OperandGenerator {
  public:
   explicit ArmOperandGenerator(InstructionSelector* selector)
       : OperandGenerator(selector) {}
@@ -53,10 +53,10 @@ class ArmOperandGenerator FINAL : public OperandGenerator {
       case kArmRsb:
         return ImmediateFitsAddrMode1Instruction(value);
 
-      case kArmVldr32:
-      case kArmVstr32:
-      case kArmVldr64:
-      case kArmVstr64:
+      case kArmVldrF32:
+      case kArmVstrF32:
+      case kArmVldrF64:
+      case kArmVstrF64:
         return value >= -1020 && value <= 1020 && (value % 4) == 0;
 
       case kArmLdrb:
@@ -94,6 +94,9 @@ class ArmOperandGenerator FINAL : public OperandGenerator {
       case kArmVdivF64:
       case kArmVmodF64:
       case kArmVnegF64:
+      case kArmVsqrtF64:
+      case kArmVcvtF32F64:
+      case kArmVcvtF64F32:
       case kArmVcvtF64S32:
       case kArmVcvtF64U32:
       case kArmVcvtS32F64:
@@ -294,10 +297,10 @@ void InstructionSelector::VisitLoad(Node* node) {
   ArchOpcode opcode;
   switch (rep) {
     case kRepFloat32:
-      opcode = kArmVldr32;
+      opcode = kArmVldrF32;
       break;
     case kRepFloat64:
-      opcode = kArmVldr64;
+      opcode = kArmVldrF64;
       break;
     case kRepBit:  // Fall through.
     case kRepWord8:
@@ -349,10 +352,10 @@ void InstructionSelector::VisitStore(Node* node) {
   ArchOpcode opcode;
   switch (rep) {
     case kRepFloat32:
-      opcode = kArmVstr32;
+      opcode = kArmVstrF32;
       break;
     case kRepFloat64:
-      opcode = kArmVstr64;
+      opcode = kArmVstrF64;
       break;
     case kRepBit:  // Fall through.
     case kRepWord8:
@@ -686,6 +689,13 @@ void InstructionSelector::VisitInt32UMod(Node* node) {
 }
 
 
+void InstructionSelector::VisitChangeFloat32ToFloat64(Node* node) {
+  ArmOperandGenerator g(this);
+  Emit(kArmVcvtF64F32, g.DefineAsRegister(node),
+       g.UseRegister(node->InputAt(0)));
+}
+
+
 void InstructionSelector::VisitChangeInt32ToFloat64(Node* node) {
   ArmOperandGenerator g(this);
   Emit(kArmVcvtF64S32, g.DefineAsRegister(node),
@@ -710,6 +720,13 @@ void InstructionSelector::VisitChangeFloat64ToInt32(Node* node) {
 void InstructionSelector::VisitChangeFloat64ToUint32(Node* node) {
   ArmOperandGenerator g(this);
   Emit(kArmVcvtU32F64, g.DefineAsRegister(node),
+       g.UseRegister(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitTruncateFloat64ToFloat32(Node* node) {
+  ArmOperandGenerator g(this);
+  Emit(kArmVcvtF32F64, g.DefineAsRegister(node),
        g.UseRegister(node->InputAt(0)));
 }
 
@@ -769,6 +786,12 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
   ArmOperandGenerator g(this);
   Emit(kArmVmodF64, g.DefineAsFixed(node, d0), g.UseFixed(node->InputAt(0), d0),
        g.UseFixed(node->InputAt(1), d1))->MarkAsCall();
+}
+
+
+void InstructionSelector::VisitFloat64Sqrt(Node* node) {
+  ArmOperandGenerator g(this);
+  Emit(kArmVsqrtF64, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
 }
 
 

@@ -66,10 +66,12 @@ var files = {
 	'src/base/platform/platform-qnx.cc': 1,
 	'src/base/platform/platform-cygwin.cc': 1
 };
+
 var re = [
 	/^src\/d8.*$/,
 	/^src\/i18n\..*$/,
-	/^.*test.*\.cc$/
+	/^.*unittest.*\.cc$/,
+	/^src\/test\/.*\.cc$/
 ];
 
 function chk_file(fname) {
@@ -97,7 +99,7 @@ function cp_folder(path) {
 				fs.mkdir(fname);
 				cp_folder(fname);
 			} else {
-				if (chk_file(fname)){
+				if (chk_file(fname)) {
 					console.log("copy", fname);
 					fs.writeFile(fname, fs.readFile(v8Folder + '/' + fname));
 				}
@@ -186,7 +188,7 @@ function patch_plat() {
 		txt1 = txt.replace('void OS::Sleep', 'void OS_Sleep');
 		txt1 = txt1.replace('class Thread::PlatformData {', '#if 0\nclass Thread::PlatformData {');
 
-		if (txt != txt1){
+		if (txt != txt1) {
 			var idx = txt1.indexOf('} }', txt1.lastIndexOf('Thread::'));
 
 			txt1 = txt1.substr(0, idx) + '#endif\n\n' + txt1.substr(idx);

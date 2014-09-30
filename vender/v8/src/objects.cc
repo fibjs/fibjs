@@ -2807,7 +2807,8 @@ MaybeHandle<Object> Object::SetProperty(Handle<Object> object,
 MaybeHandle<Object> Object::SetProperty(LookupIterator* it,
                                         Handle<Object> value,
                                         StrictMode strict_mode,
-                                        StoreFromKeyed store_mode) {
+                                        StoreFromKeyed store_mode,
+                                        StorePropertyMode data_store_mode) {
   // Make sure that the top context does not change when doing callbacks or
   // interceptor calls.
   AssertNoContextChange ncc(it->isolate());
@@ -2900,6 +2901,16 @@ MaybeHandle<Object> Object::SetProperty(LookupIterator* it,
     THROW_NEW_ERROR(it->isolate(),
                     NewReferenceError("not_defined", HandleVector(args, 1)),
                     Object);
+  }
+
+  if (data_store_mode == SUPER_PROPERTY) {
+    if (strict_mode == STRICT) {
+      Handle<Object> args[1] = {it->name()};
+      THROW_NEW_ERROR(it->isolate(),
+                      NewReferenceError("not_defined", HandleVector(args, 1)),
+                      Object);
+    }
+    return value;
   }
 
   return AddDataProperty(it, value, NONE, strict_mode, store_mode);
@@ -8999,19 +9010,25 @@ void String::PrintOn(FILE* file) {
 }
 
 
+inline static uint32_t ObjectAddressForHashing(Object* object) {
+  uint32_t value = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(object));
+  return value & MemoryChunk::kAlignmentMask;
+}
+
+
 int Map::Hash() {
   // For performance reasons we only hash the 3 most variable fields of a map:
-  // constructor, prototype and bit_field2.
+  // constructor, prototype and bit_field2. For predictability reasons we
+  // use objects' offsets in respective pages for hashing instead of raw
+  // addresses.
 
   // Shift away the tag.
-  int hash = (static_cast<uint32_t>(
-        reinterpret_cast<uintptr_t>(constructor())) >> 2);
+  int hash = ObjectAddressForHashing(constructor()) >> 2;
 
   // XOR-ing the prototype and constructor directly yields too many zero bits
   // when the two pointers are close (which is fairly common).
-  // To avoid this we shift the prototype 4 bits relatively to the constructor.
-  hash ^= (static_cast<uint32_t>(
-        reinterpret_cast<uintptr_t>(prototype())) << 2);
+  // To avoid this we shift the prototype bits relatively to the constructor.
+  hash ^= ObjectAddressForHashing(prototype()) << (32 - kPageSizeBits);
 
   return hash ^ (hash >> 16) ^ bit_field2();
 }
@@ -9113,7 +9130,7 @@ void JSFunction::MarkForConcurrentOptimization() {
   DCHECK(GetIsolate()->concurrent_recompilation_enabled());
   if (FLAG_trace_concurrent_recompilation) {
     PrintF("  ** Marking ");
-    PrintName();
+    ShortPrint();
     PrintF(" for concurrent recompilation.\n");
   }
   set_code_no_write_barrier(
@@ -9131,7 +9148,7 @@ void JSFunction::MarkInOptimizationQueue() {
   DCHECK(GetIsolate()->concurrent_recompilation_enabled());
   if (FLAG_trace_concurrent_recompilation) {
     PrintF("  ** Queueing ");
-    PrintName();
+    ShortPrint();
     PrintF(" for concurrent recompilation.\n");
   }
   set_code_no_write_barrier(
@@ -10871,10 +10888,19 @@ void Code::Disassemble(const char* name, OStream& os) {  // NOLINT
   }
 
   os << "Instructions (size = " << instruction_size() << ")\n";
-  // TODO(svenpanne) The Disassembler should use streams, too!
   {
-    CodeTracer::Scope trace_scope(GetIsolate()->GetCodeTracer());
-    Disassembler::Decode(trace_scope.file(), this);
+    Isolate* isolate = GetIsolate();
+    int decode_size = is_crankshafted()
+                          ? static_cast<int>(safepoint_table_offset())
+                          : instruction_size();
+    // If there might be a back edge table, stop before reaching it.
+    if (kind() == Code::FUNCTION) {
+      decode_size =
+          Min(decode_size, static_cast<int>(back_edge_table_offset()));
+    }
+    byte* begin = instruction_start();
+    byte* end = begin + decode_size;
+    Disassembler::Decode(isolate, &os, begin, end, this);
   }
   os << "\n";
 
@@ -16359,17 +16385,5 @@ void PropertyCell::AddDependentCompilationInfo(Handle<PropertyCell> cell,
   info->dependencies(DependentCode::kPropertyCellChangedGroup)->Add(
       cell, info->zone());
 }
-
-
-const char* GetBailoutReason(BailoutReason reason) {
-  DCHECK(reason < kLastErrorMessage);
-#define ERROR_MESSAGES_TEXTS(C, T) T,
-  static const char* error_messages_[] = {
-      ERROR_MESSAGES_LIST(ERROR_MESSAGES_TEXTS)
-  };
-#undef ERROR_MESSAGES_TEXTS
-  return error_messages_[reason];
-}
-
 
 } }  // namespace v8::internal

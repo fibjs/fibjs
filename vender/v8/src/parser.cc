@@ -6,6 +6,7 @@
 
 #include "src/api.h"
 #include "src/ast.h"
+#include "src/bailout-reason.h"
 #include "src/base/platform/platform.h"
 #include "src/bootstrapper.h"
 #include "src/char-predicates-inl.h"
@@ -14,7 +15,7 @@
 #include "src/messages.h"
 #include "src/parser.h"
 #include "src/preparser.h"
-#include "src/runtime.h"
+#include "src/runtime/runtime.h"
 #include "src/scanner-character-streams.h"
 #include "src/scopeinfo.h"
 #include "src/string-stream.h"

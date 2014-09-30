@@ -472,12 +472,6 @@ LPlatformChunk* LChunkBuilder::Build() {
 }
 
 
-void LChunkBuilder::Abort(BailoutReason reason) {
-  info()->set_bailout_reason(reason);
-  status_ = ABORTED;
-}
-
-
 LUnallocated* LChunkBuilder::ToUnallocated(Register reg) {
   return new(zone()) LUnallocated(LUnallocated::FIXED_REGISTER,
                                   Register::ToAllocationIndex(reg));
@@ -1258,8 +1252,10 @@ LInstruction* LChunkBuilder::DoMathExp(HUnaryMathOperation* instr) {
 
 LInstruction* LChunkBuilder::DoMathSqrt(HUnaryMathOperation* instr) {
   LOperand* input = UseRegisterAtStart(instr->value());
-  LMathSqrt* result = new(zone()) LMathSqrt(input);
-  return DefineSameAsFirst(result);
+  LOperand* temp1 = FixedTemp(ecx);
+  LOperand* temp2 = FixedTemp(edx);
+  LMathSqrt* result = new(zone()) LMathSqrt(input, temp1, temp2);
+  return MarkAsCall(DefineSameAsFirst(result), instr);
 }
 
 
@@ -2534,7 +2530,7 @@ LInstruction* LChunkBuilder::DoUnknownOSRValue(HUnknownOSRValue* instr) {
   } else {
     spill_index = env_index - instr->environment()->first_local_index();
     if (spill_index > LUnallocated::kMaxFixedSlotIndex) {
-      Abort(kNotEnoughSpillSlotsForOsr);
+      Retry(kNotEnoughSpillSlotsForOsr);
       spill_index = 0;
     }
     if (spill_index == 0) {

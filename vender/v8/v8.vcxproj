@@ -39,6 +39,7 @@
     <ClInclude Include="src\ast-value-factory.h" />
     <ClInclude Include="src\ast.h" />
     <ClInclude Include="src\background-parsing-task.h" />
+    <ClInclude Include="src\bailout-reason.h" />
     <ClInclude Include="src\base\atomicops.h" />
     <ClInclude Include="src\base\atomicops_internals_arm64_gcc.h" />
     <ClInclude Include="src\base\atomicops_internals_arm_gcc.h" />
@@ -74,6 +75,7 @@
     <ClInclude Include="src\base\utils\random-number-generator.h" />
     <ClInclude Include="src\base\win32-headers.h" />
     <ClInclude Include="src\base\win32-math.h" />
+    <ClInclude Include="src\basic-block-profiler.h" />
     <ClInclude Include="src\bignum-dtoa.h" />
     <ClInclude Include="src\bignum.h" />
     <ClInclude Include="src\bootstrapper.h" />
@@ -93,6 +95,7 @@
     <ClInclude Include="src\compiler.h" />
     <ClInclude Include="src\compiler\access-builder.h" />
     <ClInclude Include="src\compiler\ast-graph-builder.h" />
+    <ClInclude Include="src\compiler\basic-block-instrumentor.h" />
     <ClInclude Include="src\compiler\change-lowering.h" />
     <ClInclude Include="src\compiler\code-generator-impl.h" />
     <ClInclude Include="src\compiler\code-generator.h" />
@@ -320,7 +323,9 @@
     <ClInclude Include="src\regexp-stack.h" />
     <ClInclude Include="src\rewriter.h" />
     <ClInclude Include="src\runtime-profiler.h" />
-    <ClInclude Include="src\runtime.h" />
+    <ClInclude Include="src\runtime\runtime-utils.h" />
+    <ClInclude Include="src\runtime\runtime.h" />
+    <ClInclude Include="src\runtime\string-builder.h" />
     <ClInclude Include="src\safepoint-table.h" />
     <ClInclude Include="src\sampler.h" />
     <ClInclude Include="src\scanner-character-streams.h" />
@@ -355,7 +360,6 @@
     <ClInclude Include="src\unicode-inl.h" />
     <ClInclude Include="src\unicode.h" />
     <ClInclude Include="src\unique.h" />
-    <ClInclude Include="src\uri.h" />
     <ClInclude Include="src\utils-inl.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\v8.h" />
@@ -406,6 +410,7 @@
     <ClCompile Include="src\ast-value-factory.cc" />
     <ClCompile Include="src\ast.cc" />
     <ClCompile Include="src\background-parsing-task.cc" />
+    <ClCompile Include="src\bailout-reason.cc" />
     <ClCompile Include="src\base\atomicops_internals_x86_gcc.cc" />
     <ClCompile Include="src\base\bits.cc" />
     <ClCompile Include="src\base\cpu.cc" />
@@ -428,6 +433,7 @@
     <ClCompile Include="src\base\sys-info.cc" />
     <ClCompile Include="src\base\utils\random-number-generator.cc" />
     <ClCompile Include="src\base\win32-math.cc" />
+    <ClCompile Include="src\basic-block-profiler.cc" />
     <ClCompile Include="src\bignum-dtoa.cc" />
     <ClCompile Include="src\bignum.cc" />
     <ClCompile Include="src\bootstrapper.cc" />
@@ -442,6 +448,7 @@
     <ClCompile Include="src\compiler.cc" />
     <ClCompile Include="src\compiler\access-builder.cc" />
     <ClCompile Include="src\compiler\ast-graph-builder.cc" />
+    <ClCompile Include="src\compiler\basic-block-instrumentor.cc" />
     <ClCompile Include="src\compiler\change-lowering.cc" />
     <ClCompile Include="src\compiler\code-generator.cc" />
     <ClCompile Include="src\compiler\common-operator.cc" />
@@ -627,7 +634,18 @@
     <ClCompile Include="src\regexp-stack.cc" />
     <ClCompile Include="src\rewriter.cc" />
     <ClCompile Include="src\runtime-profiler.cc" />
-    <ClCompile Include="src\runtime.cc" />
+    <ClCompile Include="src\runtime\runtime-collections.cc" />
+    <ClCompile Include="src\runtime\runtime-compiler.cc" />
+    <ClCompile Include="src\runtime\runtime-i18n.cc" />
+    <ClCompile Include="src\runtime\runtime-json.cc" />
+    <ClCompile Include="src\runtime\runtime-maths.cc" />
+    <ClCompile Include="src\runtime\runtime-numbers.cc" />
+    <ClCompile Include="src\runtime\runtime-regexp.cc" />
+    <ClCompile Include="src\runtime\runtime-strings.cc" />
+    <ClCompile Include="src\runtime\runtime-test.cc" />
+    <ClCompile Include="src\runtime\runtime-typedarray.cc" />
+    <ClCompile Include="src\runtime\runtime-uri.cc" />
+    <ClCompile Include="src\runtime\runtime.cc" />
     <ClCompile Include="src\safepoint-table.cc" />
     <ClCompile Include="src\sampler.cc" />
     <ClCompile Include="src\scanner-character-streams.cc" />

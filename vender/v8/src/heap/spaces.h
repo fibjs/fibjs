@@ -880,6 +880,10 @@ class CodeRange {
     DCHECK(valid());
     return static_cast<Address>(code_range_->address());
   }
+  size_t size() {
+    DCHECK(valid());
+    return code_range_->size();
+  }
   bool contains(Address address) {
     if (!valid()) return false;
     Address start = static_cast<Address>(code_range_->address());
@@ -2727,6 +2731,8 @@ class LargeObjectSpace : public Space {
   // AllocateRawFixedArray.
   MUST_USE_RESULT AllocationResult
       AllocateRaw(int object_size, Executability executable);
+
+  bool CanAllocateSize(int size) { return Size() + size <= max_capacity_; }
 
   // Available bytes for objects in this space.
   inline intptr_t Available();

@@ -131,6 +131,20 @@ Reduction MachineOperatorReducer::Reduce(Node* node) {
       if (m.IsFoldable()) {                                  // K << K => K
         return ReplaceInt32(m.left().Value() << m.right().Value());
       }
+      if (m.right().IsInRange(1, 31)) {
+        // (x >>> K) << K => x & ~(2^K - 1)
+        // (x >> K) << K => x & ~(2^K - 1)
+        if (m.left().IsWord32Sar() || m.left().IsWord32Shr()) {
+          Int32BinopMatcher mleft(m.left().node());
+          if (mleft.right().Is(m.right().Value())) {
+            node->set_op(machine()->Word32And());
+            node->ReplaceInput(0, mleft.left().node());
+            node->ReplaceInput(
+                1, Uint32Constant(~((1U << m.right().Value()) - 1U)));
+            return Changed(node);
+          }
+        }
+      }
       break;
     }
     case IrOpcode::kWord32Shr: {
@@ -338,6 +352,9 @@ Reduction MachineOperatorReducer::Reduce(Node* node) {
     }
     case IrOpcode::kFloat64Add: {
       Float64BinopMatcher m(node);
+      if (m.right().IsNaN()) {  // x + NaN => NaN
+        return Replace(m.right().node());
+      }
       if (m.IsFoldable()) {  // K + K => K
         return ReplaceFloat64(m.left().Value() + m.right().Value());
       }
@@ -345,6 +362,15 @@ Reduction MachineOperatorReducer::Reduce(Node* node) {
     }
     case IrOpcode::kFloat64Sub: {
       Float64BinopMatcher m(node);
+      if (m.right().Is(0) && (Double(m.right().Value()).Sign() > 0)) {
+        return Replace(m.left().node());  // x - 0 => x
+      }
+      if (m.right().IsNaN()) {  // x - NaN => NaN
+        return Replace(m.right().node());
+      }
+      if (m.left().IsNaN()) {  // NaN - x => NaN
+        return Replace(m.left().node());
+      }
       if (m.IsFoldable()) {  // K - K => K
         return ReplaceFloat64(m.left().Value() - m.right().Value());
       }
@@ -377,6 +403,9 @@ Reduction MachineOperatorReducer::Reduce(Node* node) {
     }
     case IrOpcode::kFloat64Mod: {
       Float64BinopMatcher m(node);
+      if (m.right().Is(0)) {  // x % 0 => NaN
+        return ReplaceFloat64(base::OS::nan_value());
+      }
       if (m.right().IsNaN()) {  // x % NaN => NaN
         return Replace(m.right().node());
       }
@@ -443,7 +472,6 @@ Reduction MachineOperatorReducer::Reduce(Node* node) {
       if (m.IsChangeFloat32ToFloat64()) return Replace(m.node()->InputAt(0));
       break;
     }
-    // TODO(turbofan): strength-reduce and fold floating point operations.
     default:
       break;
   }

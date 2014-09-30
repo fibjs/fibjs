@@ -93,6 +93,9 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
         return Operand(constant.ToInt32());
       case Constant::kInt64:
         return Operand(constant.ToInt64());
+      case Constant::kFloat32:
+        return Operand(
+            isolate()->factory()->NewNumber(constant.ToFloat32(), TENURED));
       case Constant::kFloat64:
         return Operand(
             isolate()->factory()->NewNumber(constant.ToFloat64(), TENURED));
@@ -193,11 +196,39 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64And32:
       __ And(i.OutputRegister32(), i.InputRegister32(0), i.InputOperand32(1));
       break;
+    case kArm64Bic:
+      __ Bic(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
+      break;
+    case kArm64Bic32:
+      __ Bic(i.OutputRegister32(), i.InputRegister32(0), i.InputOperand32(1));
+      break;
     case kArm64Mul:
       __ Mul(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1));
       break;
     case kArm64Mul32:
       __ Mul(i.OutputRegister32(), i.InputRegister32(0), i.InputRegister32(1));
+      break;
+    case kArm64Madd:
+      __ Madd(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1),
+              i.InputRegister(2));
+      break;
+    case kArm64Madd32:
+      __ Madd(i.OutputRegister32(), i.InputRegister32(0), i.InputRegister32(1),
+              i.InputRegister32(2));
+      break;
+    case kArm64Msub:
+      __ Msub(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1),
+              i.InputRegister(2));
+      break;
+    case kArm64Msub32:
+      __ Msub(i.OutputRegister32(), i.InputRegister32(0), i.InputRegister32(1),
+              i.InputRegister32(2));
+      break;
+    case kArm64Mneg:
+      __ Mneg(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1));
+      break;
+    case kArm64Mneg32:
+      __ Mneg(i.OutputRegister32(), i.InputRegister32(0), i.InputRegister32(1));
       break;
     case kArm64Idiv:
       __ Sdiv(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1));
@@ -260,11 +291,23 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Or32:
       __ Orr(i.OutputRegister32(), i.InputRegister32(0), i.InputOperand32(1));
       break;
-    case kArm64Xor:
+    case kArm64Orn:
+      __ Orn(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
+      break;
+    case kArm64Orn32:
+      __ Orn(i.OutputRegister32(), i.InputRegister32(0), i.InputOperand32(1));
+      break;
+    case kArm64Eor:
       __ Eor(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
       break;
-    case kArm64Xor32:
+    case kArm64Eor32:
       __ Eor(i.OutputRegister32(), i.InputRegister32(0), i.InputOperand32(1));
+      break;
+    case kArm64Eon:
+      __ Eon(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
+      break;
+    case kArm64Eon32:
+      __ Eon(i.OutputRegister32(), i.InputRegister32(0), i.InputOperand32(1));
       break;
     case kArm64Sub:
       __ Sub(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
@@ -377,6 +420,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
                        0, 2);
       break;
     }
+    case kArm64Float64Sqrt:
+      __ Fsqrt(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
+    case kArm64Float32ToFloat64:
+      __ Fcvt(i.OutputDoubleRegister(), i.InputDoubleRegister(0).S());
+      break;
+    case kArm64Float64ToFloat32:
+      __ Fcvt(i.OutputDoubleRegister().S(), i.InputDoubleRegister(0));
+      break;
     case kArm64Float64ToInt32:
       __ Fcvtzs(i.OutputRegister32(), i.InputDoubleRegister(0));
       break;
@@ -419,20 +471,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Str:
       __ Str(i.InputRegister(2), i.MemoryOperand());
       break;
-    case kArm64LdrS: {
-      UseScratchRegisterScope scope(masm());
-      FPRegister scratch = scope.AcquireS();
-      __ Ldr(scratch, i.MemoryOperand());
-      __ Fcvt(i.OutputDoubleRegister(), scratch);
+    case kArm64LdrS:
+      __ Ldr(i.OutputDoubleRegister().S(), i.MemoryOperand());
       break;
-    }
-    case kArm64StrS: {
-      UseScratchRegisterScope scope(masm());
-      FPRegister scratch = scope.AcquireS();
-      __ Fcvt(scratch, i.InputDoubleRegister(2));
-      __ Str(scratch, i.MemoryOperand());
+    case kArm64StrS:
+      __ Str(i.InputDoubleRegister(2).S(), i.MemoryOperand());
       break;
-    }
     case kArm64LdrD:
       __ Ldr(i.OutputDoubleRegister(), i.MemoryOperand());
       break;
@@ -743,12 +787,11 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       __ Str(temp, g.ToMemOperand(destination, masm()));
     }
   } else if (source->IsConstant()) {
-    ConstantOperand* constant_source = ConstantOperand::cast(source);
+    Constant src = g.ToConstant(ConstantOperand::cast(source));
     if (destination->IsRegister() || destination->IsStackSlot()) {
       UseScratchRegisterScope scope(masm());
       Register dst = destination->IsRegister() ? g.ToRegister(destination)
                                                : scope.AcquireX();
-      Constant src = g.ToConstant(source);
       if (src.type() == Constant::kHeapObject) {
         __ LoadObject(dst, src.ToHeapObject());
       } else {
@@ -757,15 +800,29 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       if (destination->IsStackSlot()) {
         __ Str(dst, g.ToMemOperand(destination, masm()));
       }
-    } else if (destination->IsDoubleRegister()) {
-      FPRegister result = g.ToDoubleRegister(destination);
-      __ Fmov(result, g.ToDouble(constant_source));
+    } else if (src.type() == Constant::kFloat32) {
+      if (destination->IsDoubleRegister()) {
+        FPRegister dst = g.ToDoubleRegister(destination).S();
+        __ Fmov(dst, src.ToFloat32());
+      } else {
+        DCHECK(destination->IsDoubleStackSlot());
+        UseScratchRegisterScope scope(masm());
+        FPRegister temp = scope.AcquireS();
+        __ Fmov(temp, src.ToFloat32());
+        __ Str(temp, g.ToMemOperand(destination, masm()));
+      }
     } else {
-      DCHECK(destination->IsDoubleStackSlot());
-      UseScratchRegisterScope scope(masm());
-      FPRegister temp = scope.AcquireD();
-      __ Fmov(temp, g.ToDouble(constant_source));
-      __ Str(temp, g.ToMemOperand(destination, masm()));
+      DCHECK_EQ(Constant::kFloat64, src.type());
+      if (destination->IsDoubleRegister()) {
+        FPRegister dst = g.ToDoubleRegister(destination);
+        __ Fmov(dst, src.ToFloat64());
+      } else {
+        DCHECK(destination->IsDoubleStackSlot());
+        UseScratchRegisterScope scope(masm());
+        FPRegister temp = scope.AcquireD();
+        __ Fmov(temp, src.ToFloat64());
+        __ Str(temp, g.ToMemOperand(destination, masm()));
+      }
     }
   } else if (source->IsDoubleRegister()) {
     FPRegister src = g.ToDoubleRegister(source);

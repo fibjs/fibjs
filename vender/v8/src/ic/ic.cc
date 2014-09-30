@@ -17,7 +17,7 @@
 #include "src/ic/ic-compiler.h"
 #include "src/ic/stub-cache.h"
 #include "src/prototype.h"
-#include "src/runtime.h"
+#include "src/runtime/runtime.h"
 
 namespace v8 {
 namespace internal {
@@ -929,7 +929,14 @@ Handle<Code> IC::ComputeHandler(LookupIterator* lookup, Handle<Object> value) {
   code = CompileHandler(lookup, value, flag);
   DCHECK(code->is_handler());
 
-  if (code->type() != Code::NORMAL) {
+  // TODO(mvstanton): we'd only like to cache code on the map when it's custom
+  // code compiled for this map, otherwise it's already cached in the global
+  // code
+  // cache. We are also guarding against installing code with flags that don't
+  // match the desired CacheHolderFlag computed above, which would lead to
+  // invalid lookups later.
+  if (code->type() != Code::NORMAL &&
+      Code::ExtractCacheHolderFromFlags(code->flags()) == flag) {
     Map::UpdateCodeCache(stub_holder_map, lookup->name(), code);
   }
 
@@ -1800,12 +1807,12 @@ MaybeHandle<Object> KeyedStoreIC::Store(Handle<Object> object,
         StoreIC::Store(object, Handle<String>::cast(key), value,
                        JSReceiver::MAY_BE_STORE_FROM_KEYED),
         Object);
-    if (!is_target_set()) {
-      TRACE_GENERIC_IC(isolate(), "KeyedStoreIC",
-                       "unhandled internalized string key");
-      TRACE_IC("StoreIC", key);
-      set_target(*stub);
-    }
+    // TODO(jkummerow): Ideally we'd wrap this in "if (!is_target_set())",
+    // but doing so causes Hydrogen crashes. Needs investigation.
+    TRACE_GENERIC_IC(isolate(), "KeyedStoreIC",
+                     "unhandled internalized string key");
+    TRACE_IC("StoreIC", key);
+    set_target(*stub);
     return store_handle;
   }
 

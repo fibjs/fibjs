@@ -7,6 +7,7 @@
 
 #include "src/allocation.h"
 #include "src/ast.h"
+#include "src/bailout-reason.h"
 #include "src/zone.h"
 
 namespace v8 {
@@ -82,7 +83,10 @@ class CompilationInfo {
     kSerializing = 1 << 15,
     kContextSpecializing = 1 << 16,
     kInliningEnabled = 1 << 17,
-    kTypingEnabled = 1 << 18
+    kTypingEnabled = 1 << 18,
+    kDisableFutureOptimization = 1 << 19,
+    kAbortedDueToDependency = 1 << 20,
+    kToplevel = 1 << 21
   };
 
   CompilationInfo(Handle<JSFunction> closure, Zone* zone);
@@ -205,6 +209,10 @@ class CompilationInfo {
 
   bool is_typing_enabled() const { return GetFlag(kTypingEnabled); }
 
+  void MarkAsToplevel() { SetFlag(kToplevel); }
+
+  bool is_toplevel() const { return GetFlag(kToplevel); }
+
   bool IsCodePreAgingActive() const {
     return FLAG_optimize_for_size && FLAG_age_code && !will_serialize() &&
            !is_debug();
@@ -319,8 +327,16 @@ class CompilationInfo {
     SaveHandle(&unoptimized_code_);
   }
 
+  void AbortOptimization(BailoutReason reason) {
+    if (bailout_reason_ != kNoReason) bailout_reason_ = reason;
+    SetFlag(kDisableFutureOptimization);
+  }
+
+  void RetryOptimization(BailoutReason reason) {
+    if (bailout_reason_ != kNoReason) bailout_reason_ = reason;
+  }
+
   BailoutReason bailout_reason() const { return bailout_reason_; }
-  void set_bailout_reason(BailoutReason reason) { bailout_reason_ = reason; }
 
   int prologue_offset() const {
     DCHECK_NE(Code::kPrologueOffsetNotSet, prologue_offset_);
@@ -355,12 +371,12 @@ class CompilationInfo {
 
   void AbortDueToDependencyChange() {
     DCHECK(!OptimizingCompilerThread::IsOptimizerThread(isolate()));
-    abort_due_to_dependency_ = true;
+    SetFlag(kAbortedDueToDependency);
   }
 
-  bool HasAbortedDueToDependencyChange() {
+  bool HasAbortedDueToDependencyChange() const {
     DCHECK(!OptimizingCompilerThread::IsOptimizerThread(isolate()));
-    return abort_due_to_dependency_;
+    return GetFlag(kAbortedDueToDependency);
   }
 
   bool HasSameOsrEntry(Handle<JSFunction> function, BailoutId osr_ast_id) {
@@ -461,9 +477,6 @@ class CompilationInfo {
   // afterwards, since we may need to compile it again to include deoptimization
   // data.  Keep track which code we patched.
   Handle<Code> unoptimized_code_;
-
-  // Flag whether compilation needs to be aborted due to dependency change.
-  bool abort_due_to_dependency_;
 
   // The zone from which the compilation pipeline working on this
   // CompilationInfo allocates.
@@ -588,18 +601,13 @@ class OptimizedCompileJob: public ZoneObject {
   CompilationInfo* info() const { return info_; }
   Isolate* isolate() const { return info()->isolate(); }
 
-  MUST_USE_RESULT Status AbortOptimization(
-      BailoutReason reason = kNoReason) {
-    if (reason != kNoReason) info_->set_bailout_reason(reason);
+  Status RetryOptimization(BailoutReason reason) {
+    info_->RetryOptimization(reason);
     return SetLastStatus(BAILED_OUT);
   }
 
-  MUST_USE_RESULT Status AbortAndDisableOptimization(
-      BailoutReason reason = kNoReason) {
-    if (reason != kNoReason) info_->set_bailout_reason(reason);
-    // Reference to shared function info does not change between phases.
-    AllowDeferredHandleDereference allow_handle_dereference;
-    info_->shared_info()->DisableOptimization(info_->bailout_reason());
+  Status AbortOptimization(BailoutReason reason) {
+    info_->AbortOptimization(reason);
     return SetLastStatus(BAILED_OUT);
   }
 

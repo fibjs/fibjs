@@ -87,6 +87,8 @@ Matcher<Node*> IsCall(const Matcher<CallDescriptor*>& descriptor_matcher,
 
 Matcher<Node*> IsNumberLessThan(const Matcher<Node*>& lhs_matcher,
                                 const Matcher<Node*>& rhs_matcher);
+Matcher<Node*> IsNumberSubtract(const Matcher<Node*>& lhs_matcher,
+                                const Matcher<Node*>& rhs_matcher);
 
 Matcher<Node*> IsLoad(const Matcher<LoadRepresentation>& rep_matcher,
                       const Matcher<Node*>& base_matcher,
@@ -129,8 +131,10 @@ Matcher<Node*> IsChangeInt32ToFloat64(const Matcher<Node*>& input_matcher);
 Matcher<Node*> IsChangeInt32ToInt64(const Matcher<Node*>& input_matcher);
 Matcher<Node*> IsChangeUint32ToFloat64(const Matcher<Node*>& input_matcher);
 Matcher<Node*> IsChangeUint32ToUint64(const Matcher<Node*>& input_matcher);
+Matcher<Node*> IsTruncateFloat64ToFloat32(const Matcher<Node*>& input_matcher);
 Matcher<Node*> IsTruncateFloat64ToInt32(const Matcher<Node*>& input_matcher);
 Matcher<Node*> IsTruncateInt64ToInt32(const Matcher<Node*>& input_matcher);
+Matcher<Node*> IsFloat64Sqrt(const Matcher<Node*>& input_matcher);
 
 }  //  namespace compiler
 }  //  namespace internal

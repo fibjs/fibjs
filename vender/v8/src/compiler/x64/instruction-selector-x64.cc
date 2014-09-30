@@ -24,11 +24,6 @@ class X64OperandGenerator FINAL : public OperandGenerator {
                                            Register::ToAllocationIndex(reg));
   }
 
-  InstructionOperand* UseByteRegister(Node* node) {
-    // TODO(dcarney): relax constraint.
-    return UseFixed(node, rdx);
-  }
-
   InstructionOperand* UseImmediate64(Node* node) { return UseImmediate(node); }
 
   bool CanBeImmediate(Node* node) {
@@ -56,13 +51,95 @@ class X64OperandGenerator FINAL : public OperandGenerator {
         return false;
     }
   }
+
+  bool CanBeBetterLeftOperand(Node* node) const {
+    return !selector()->IsLive(node);
+  }
+};
+
+
+class AddressingModeMatcher {
+ public:
+  AddressingModeMatcher(X64OperandGenerator* g, Node* base, Node* index)
+      : base_operand_(NULL),
+        index_operand_(NULL),
+        displacement_operand_(NULL),
+        mode_(kMode_None) {
+    Int32Matcher index_imm(index);
+    if (index_imm.HasValue()) {
+      int32_t value = index_imm.Value();
+      if (value == 0) {
+        mode_ = kMode_MR;
+      } else {
+        mode_ = kMode_MRI;
+        index_operand_ = g->UseImmediate(index);
+      }
+      base_operand_ = g->UseRegister(base);
+    } else {
+      // Compute base operand.
+      Int64Matcher base_imm(base);
+      if (!base_imm.HasValue() || base_imm.Value() != 0) {
+        base_operand_ = g->UseRegister(base);
+      }
+      // Compute index and displacement.
+      IndexAndDisplacementMatcher matcher(index);
+      index_operand_ = g->UseRegister(matcher.index_node());
+      if (matcher.displacement() != 0) {
+        displacement_operand_ = g->TempImmediate(matcher.displacement());
+      }
+      // Compute mode with scale factor one.
+      if (base_operand_ == NULL) {
+        if (displacement_operand_ == NULL) {
+          mode_ = kMode_M1;
+        } else {
+          mode_ = kMode_M1I;
+        }
+      } else {
+        if (displacement_operand_ == NULL) {
+          mode_ = kMode_MR1;
+        } else {
+          mode_ = kMode_MR1I;
+        }
+      }
+      // Adjust mode to actual scale factor.
+      mode_ = GetMode(mode_, matcher.power());
+    }
+    DCHECK_NE(kMode_None, mode_);
+  }
+
+  AddressingMode GetMode(AddressingMode one, int power) {
+    return static_cast<AddressingMode>(static_cast<int>(one) + power);
+  }
+
+  size_t SetInputs(InstructionOperand** inputs) {
+    size_t input_count = 0;
+    // Compute inputs_ and input_count.
+    if (base_operand_ != NULL) {
+      inputs[input_count++] = base_operand_;
+    }
+    if (index_operand_ != NULL) {
+      inputs[input_count++] = index_operand_;
+    }
+    if (displacement_operand_ != NULL) {
+      // Pure displacement mode not supported by x64.
+      DCHECK_NE(input_count, 0);
+      inputs[input_count++] = displacement_operand_;
+    }
+    DCHECK_NE(input_count, 0);
+    return input_count;
+  }
+
+  static const int kMaxInputCount = 3;
+  InstructionOperand* base_operand_;
+  InstructionOperand* index_operand_;
+  InstructionOperand* displacement_operand_;
+  AddressingMode mode_;
 };
 
 
 void InstructionSelector::VisitLoad(Node* node) {
   MachineType rep = RepresentationOf(OpParameter<LoadRepresentation>(node));
   MachineType typ = TypeOf(OpParameter<LoadRepresentation>(node));
-  X64OperandGenerator g(this);
   Node* base = node->InputAt(0);
   Node* index = node->InputAt(1);
 
@@ -93,18 +170,14 @@ void InstructionSelector::VisitLoad(Node* node) {
       UNREACHABLE();
       return;
   }
-  if (g.CanBeImmediate(base)) {
-    // load [#base + %index]
-    Emit(opcode | AddressingModeField::encode(kMode_MRI),
-         g.DefineAsRegister(node), g.UseRegister(index), g.UseImmediate(base));
-  } else if (g.CanBeImmediate(index)) {  // load [%base + #index]
-    Emit(opcode | AddressingModeField::encode(kMode_MRI),
-         g.DefineAsRegister(node), g.UseRegister(base), g.UseImmediate(index));
-  } else {  // load [%base + %index + K]
-    Emit(opcode | AddressingModeField::encode(kMode_MR1I),
-         g.DefineAsRegister(node), g.UseRegister(base), g.UseRegister(index));
-  }
-  // TODO(turbofan): addressing modes [r+r*{2,4,8}+K]
+
+  X64OperandGenerator g(this);
+  AddressingModeMatcher matcher(&g, base, index);
+  InstructionCode code = opcode | AddressingModeField::encode(matcher.mode_);
+  InstructionOperand* outputs[] = {g.DefineAsRegister(node)};
+  InstructionOperand* inputs[AddressingModeMatcher::kMaxInputCount];
+  size_t input_count = matcher.SetInputs(inputs);
+  Emit(code, 1, outputs, input_count, inputs);
 }
 
 
@@ -128,14 +201,6 @@ void InstructionSelector::VisitStore(Node* node) {
     return;
   }
   DCHECK_EQ(kNoWriteBarrier, store_rep.write_barrier_kind());
-  InstructionOperand* val;
-  if (g.CanBeImmediate(value)) {
-    val = g.UseImmediate(value);
-  } else if (rep == kRepWord8 || rep == kRepBit) {
-    val = g.UseByteRegister(value);
-  } else {
-    val = g.UseRegister(value);
-  }
   ArchOpcode opcode;
   switch (rep) {
     case kRepFloat32:
@@ -162,18 +227,20 @@ void InstructionSelector::VisitStore(Node* node) {
       UNREACHABLE();
       return;
   }
-  if (g.CanBeImmediate(base)) {
-    // store [#base + %index], %|#value
-    Emit(opcode | AddressingModeField::encode(kMode_MRI), NULL,
-         g.UseRegister(index), g.UseImmediate(base), val);
-  } else if (g.CanBeImmediate(index)) {  // store [%base + #index], %|#value
-    Emit(opcode | AddressingModeField::encode(kMode_MRI), NULL,
-         g.UseRegister(base), g.UseImmediate(index), val);
-  } else {  // store [%base + %index], %|#value
-    Emit(opcode | AddressingModeField::encode(kMode_MR1I), NULL,
-         g.UseRegister(base), g.UseRegister(index), val);
+
+  InstructionOperand* val;
+  if (g.CanBeImmediate(value)) {
+    val = g.UseImmediate(value);
+  } else {
+    val = g.UseRegister(value);
   }
-  // TODO(turbofan): addressing modes [r+r*{2,4,8}+K]
+
+  AddressingModeMatcher matcher(&g, base, index);
+  InstructionCode code = opcode | AddressingModeField::encode(matcher.mode_);
+  InstructionOperand* inputs[AddressingModeMatcher::kMaxInputCount + 1];
+  size_t input_count = matcher.SetInputs(inputs);
+  inputs[input_count++] = val;
+  Emit(code, 0, static_cast<InstructionOperand**>(NULL), input_count, inputs);
 }
 
 
@@ -182,20 +249,24 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
                        InstructionCode opcode, FlagsContinuation* cont) {
   X64OperandGenerator g(selector);
   Int32BinopMatcher m(node);
+  Node* left = m.left().node();
+  Node* right = m.right().node();
   InstructionOperand* inputs[4];
   size_t input_count = 0;
   InstructionOperand* outputs[2];
   size_t output_count = 0;
 
   // TODO(turbofan): match complex addressing modes.
-  // TODO(turbofan): if commutative, pick the non-live-in operand as the left as
-  // this might be the last use and therefore its register can be reused.
-  if (g.CanBeImmediate(m.right().node())) {
-    inputs[input_count++] = g.Use(m.left().node());
-    inputs[input_count++] = g.UseImmediate(m.right().node());
+  if (g.CanBeImmediate(right)) {
+    inputs[input_count++] = g.Use(left);
+    inputs[input_count++] = g.UseImmediate(right);
   } else {
-    inputs[input_count++] = g.UseRegister(m.left().node());
-    inputs[input_count++] = g.Use(m.right().node());
+    if (node->op()->HasProperty(Operator::kCommutative) &&
+        g.CanBeBetterLeftOperand(right)) {
+      std::swap(left, right);
+    }
+    inputs[input_count++] = g.UseRegister(left);
+    inputs[input_count++] = g.Use(right);
   }
 
   if (cont->IsBranch()) {
@@ -396,16 +467,16 @@ void InstructionSelector::VisitInt64Sub(Node* node) {
 static void VisitMul(InstructionSelector* selector, Node* node,
                      ArchOpcode opcode) {
   X64OperandGenerator g(selector);
-  Node* left = node->InputAt(0);
-  Node* right = node->InputAt(1);
+  Int32BinopMatcher m(node);
+  Node* left = m.left().node();
+  Node* right = m.right().node();
   if (g.CanBeImmediate(right)) {
     selector->Emit(opcode, g.DefineAsRegister(node), g.Use(left),
                    g.UseImmediate(right));
-  } else if (g.CanBeImmediate(left)) {
-    selector->Emit(opcode, g.DefineAsRegister(node), g.Use(right),
-                   g.UseImmediate(left));
   } else {
-    // TODO(turbofan): select better left operand.
+    if (g.CanBeBetterLeftOperand(right)) {
+      std::swap(left, right);
+    }
     selector->Emit(opcode, g.DefineSameAsFirst(node), g.UseRegister(left),
                    g.Use(right));
   }
@@ -482,6 +553,13 @@ void InstructionSelector::VisitInt64UMod(Node* node) {
 }
 
 
+void InstructionSelector::VisitChangeFloat32ToFloat64(Node* node) {
+  X64OperandGenerator g(this);
+  // TODO(turbofan): X64 SSE conversions should take an operand.
+  Emit(kSSECvtss2sd, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
+}
+
+
 void InstructionSelector::VisitChangeInt32ToFloat64(Node* node) {
   X64OperandGenerator g(this);
   Emit(kSSEInt32ToFloat64, g.DefineAsRegister(node), g.Use(node->InputAt(0)));
@@ -517,6 +595,13 @@ void InstructionSelector::VisitChangeInt32ToInt64(Node* node) {
 void InstructionSelector::VisitChangeUint32ToUint64(Node* node) {
   X64OperandGenerator g(this);
   Emit(kX64Movl, g.DefineAsRegister(node), g.Use(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitTruncateFloat64ToFloat32(Node* node) {
+  X64OperandGenerator g(this);
+  // TODO(turbofan): X64 SSE conversions should take an operand.
+  Emit(kSSECvtsd2ss, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
 }
 
 
@@ -560,6 +645,12 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
   Emit(kSSEFloat64Mod, g.DefineSameAsFirst(node),
        g.UseRegister(node->InputAt(0)), g.UseRegister(node->InputAt(1)), 1,
        temps);
+}
+
+
+void InstructionSelector::VisitFloat64Sqrt(Node* node) {
+  X64OperandGenerator g(this);
+  Emit(kSSEFloat64Sqrt, g.DefineAsRegister(node), g.Use(node->InputAt(0)));
 }
 
 
@@ -678,8 +769,6 @@ void InstructionSelector::VisitCall(Node* call, BasicBlock* continuation,
   // Compute InstructionOperands for inputs and outputs.
   InitializeCallBuffer(call, &buffer, true, true);
 
-  // TODO(dcarney): stack alignment for c calls.
-  // TODO(dcarney): shadow space on window for c calls.
   // Push any stack arguments.
   for (NodeVectorRIter input = buffer.pushed_nodes.rbegin();
        input != buffer.pushed_nodes.rend(); input++) {

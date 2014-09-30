@@ -63,6 +63,9 @@ class IA32OperandConverter : public InstructionOperandConverter {
     switch (constant.type()) {
       case Constant::kInt32:
         return Immediate(constant.ToInt32());
+      case Constant::kFloat32:
+        return Immediate(
+            isolate()->factory()->NewNumber(constant.ToFloat32(), TENURED));
       case Constant::kFloat64:
         return Immediate(
             isolate()->factory()->NewNumber(constant.ToFloat64(), TENURED));
@@ -77,25 +80,83 @@ class IA32OperandConverter : public InstructionOperandConverter {
     return Immediate(-1);
   }
 
-  Operand MemoryOperand(int* first_input) {
-    const int offset = *first_input;
-    switch (AddressingModeField::decode(instr_->opcode())) {
+  static int NextOffset(int* offset) {
+    int i = *offset;
+    (*offset)++;
+    return i;
+  }
+
+  static ScaleFactor ScaleFor(AddressingMode one, AddressingMode mode) {
+    STATIC_ASSERT(0 == static_cast<int>(times_1));
+    STATIC_ASSERT(1 == static_cast<int>(times_2));
+    STATIC_ASSERT(2 == static_cast<int>(times_4));
+    STATIC_ASSERT(3 == static_cast<int>(times_8));
+    int scale = static_cast<int>(mode - one);
+    DCHECK(scale >= 0 && scale < 4);
+    return static_cast<ScaleFactor>(scale);
+  }
+
+  Operand MemoryOperand(int* offset) {
+    AddressingMode mode = AddressingModeField::decode(instr_->opcode());
+    switch (mode) {
+      case kMode_MR: {
+        Register base = InputRegister(NextOffset(offset));
+        int32_t disp = 0;
+        return Operand(base, disp);
+      }
+      case kMode_MRI: {
+        Register base = InputRegister(NextOffset(offset));
+        int32_t disp = InputInt32(NextOffset(offset));
+        return Operand(base, disp);
+      }
+      case kMode_MR1:
+      case kMode_MR2:
+      case kMode_MR4:
+      case kMode_MR8: {
+        Register base = InputRegister(NextOffset(offset));
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_MR1, mode);
+        int32_t disp = 0;
+        return Operand(base, index, scale, disp);
+      }
       case kMode_MR1I:
-        *first_input += 2;
-        return Operand(InputRegister(offset + 0), InputRegister(offset + 1),
-                       times_1,
-                       0);  // TODO(dcarney): K != 0
-      case kMode_MRI:
-        *first_input += 2;
-        return Operand::ForRegisterPlusImmediate(InputRegister(offset + 0),
-                                                 InputImmediate(offset + 1));
-      case kMode_MI:
-        *first_input += 1;
-        return Operand(InputImmediate(offset + 0));
-      default:
+      case kMode_MR2I:
+      case kMode_MR4I:
+      case kMode_MR8I: {
+        Register base = InputRegister(NextOffset(offset));
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_MR1I, mode);
+        int32_t disp = InputInt32(NextOffset(offset));
+        return Operand(base, index, scale, disp);
+      }
+      case kMode_M1:
+      case kMode_M2:
+      case kMode_M4:
+      case kMode_M8: {
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_M1, mode);
+        int32_t disp = 0;
+        return Operand(index, scale, disp);
+      }
+      case kMode_M1I:
+      case kMode_M2I:
+      case kMode_M4I:
+      case kMode_M8I: {
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_M1I, mode);
+        int32_t disp = InputInt32(NextOffset(offset));
+        return Operand(index, scale, disp);
+      }
+      case kMode_MI: {
+        int32_t disp = InputInt32(NextOffset(offset));
+        return Operand(Immediate(disp));
+      }
+      case kMode_None:
         UNREACHABLE();
-        return Operand(no_reg);
+        return Operand(no_reg, 0);
     }
+    UNREACHABLE();
+    return Operand(no_reg, 0);
   }
 
   Operand MemoryOperand() {
@@ -289,6 +350,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ add(esp, Immediate(kDoubleSize));
       break;
     }
+    case kSSEFloat64Sqrt:
+      __ sqrtsd(i.OutputDoubleRegister(), i.InputOperand(0));
+      break;
+    case kSSECvtss2sd:
+      __ cvtss2sd(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
+    case kSSECvtsd2ss:
+      __ cvtsd2ss(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
     case kSSEFloat64ToInt32:
       __ cvttsd2si(i.OutputRegister(), i.InputOperand(0));
       break;
@@ -364,12 +434,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kIA32Movss:
       if (instr->HasOutput()) {
         __ movss(i.OutputDoubleRegister(), i.MemoryOperand());
-        __ cvtss2sd(i.OutputDoubleRegister(), i.OutputDoubleRegister());
       } else {
         int index = 0;
         Operand operand = i.MemoryOperand(&index);
-        __ cvtsd2ss(xmm0, i.InputDoubleRegister(index));
-        __ movss(operand, xmm0);
+        __ movss(operand, i.InputDoubleRegister(index));
       }
       break;
     case kIA32Push:
@@ -836,8 +904,22 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
     } else if (destination->IsStackSlot()) {
       Operand dst = g.ToOperand(destination);
       __ mov(dst, g.ToImmediate(source));
+    } else if (src_constant.type() == Constant::kFloat32) {
+      // TODO(turbofan): Can we do better here?
+      Immediate src(bit_cast<int32_t>(src_constant.ToFloat32()));
+      if (destination->IsDoubleRegister()) {
+        XMMRegister dst = g.ToDoubleRegister(destination);
+        __ push(Immediate(src));
+        __ movss(dst, Operand(esp, 0));
+        __ add(esp, Immediate(kDoubleSize / 2));
+      } else {
+        DCHECK(destination->IsDoubleStackSlot());
+        Operand dst = g.ToOperand(destination);
+        __ mov(dst, src);
+      }
     } else {
-      double v = g.ToDouble(source);
+      DCHECK_EQ(Constant::kFloat64, src_constant.type());
+      double v = src_constant.ToFloat64();
       uint64_t int_val = bit_cast<uint64_t, double>(v);
       int32_t lower = static_cast<int32_t>(int_val);
       int32_t upper = static_cast<int32_t>(int_val >> kBitsPerInt);

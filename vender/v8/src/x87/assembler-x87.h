@@ -148,6 +148,13 @@ struct X87Register {
     return kMaxNumAllocatableRegisters;
   }
 
+
+  // TODO(turbofan): Proper support for float32.
+  static int NumAllocatableAliasedRegisters() {
+    return NumAllocatableRegisters();
+  }
+
+
   static int ToAllocationIndex(X87Register reg) {
     return reg.code_;
   }
@@ -908,9 +915,6 @@ class Assembler : public AssemblerBase {
   void cpuid();
 
   // TODO(lrn): Need SFENCE for movnt?
-
-  // Debugging
-  void Print();
 
   // Check the code size generated from label to here.
   int SizeOfCodeGeneratedSince(Label* label) {

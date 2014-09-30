@@ -79,6 +79,11 @@ class X64OperandConverter : public InstructionOperandConverter {
       case Constant::kInt64:
         immediate.value = constant.ToInt64();
         return immediate;
+      case Constant::kFloat32:
+        immediate.type = kImm64Handle;
+        immediate.handle =
+            isolate()->factory()->NewNumber(constant.ToFloat32(), TENURED);
+        return immediate;
       case Constant::kFloat64:
         immediate.type = kImm64Handle;
         immediate.handle =
@@ -103,6 +108,7 @@ class X64OperandConverter : public InstructionOperandConverter {
       case Constant::kInt32:
         return Immediate(constant.ToInt32());
       case Constant::kInt64:
+      case Constant::kFloat32:
       case Constant::kFloat64:
       case Constant::kExternalReference:
       case Constant::kHeapObject:
@@ -143,22 +149,79 @@ class X64OperandConverter : public InstructionOperandConverter {
     return result;
   }
 
-  Operand MemoryOperand(int* first_input) {
-    const int offset = *first_input;
-    switch (AddressingModeField::decode(instr_->opcode())) {
-      case kMode_MR1I: {
-        *first_input += 2;
-        Register index = InputRegister(offset + 1);
-        return Operand(InputRegister(offset + 0), index, times_1,
-                       0);  // TODO(dcarney): K != 0
+  static int NextOffset(int* offset) {
+    int i = *offset;
+    (*offset)++;
+    return i;
+  }
+
+  static ScaleFactor ScaleFor(AddressingMode one, AddressingMode mode) {
+    STATIC_ASSERT(0 == static_cast<int>(times_1));
+    STATIC_ASSERT(1 == static_cast<int>(times_2));
+    STATIC_ASSERT(2 == static_cast<int>(times_4));
+    STATIC_ASSERT(3 == static_cast<int>(times_8));
+    int scale = static_cast<int>(mode - one);
+    DCHECK(scale >= 0 && scale < 4);
+    return static_cast<ScaleFactor>(scale);
+  }
+
+  Operand MemoryOperand(int* offset) {
+    AddressingMode mode = AddressingModeField::decode(instr_->opcode());
+    switch (mode) {
+      case kMode_MR: {
+        Register base = InputRegister(NextOffset(offset));
+        int32_t disp = 0;
+        return Operand(base, disp);
       }
-      case kMode_MRI:
-        *first_input += 2;
-        return Operand(InputRegister(offset + 0), InputInt32(offset + 1));
-      default:
+      case kMode_MRI: {
+        Register base = InputRegister(NextOffset(offset));
+        int32_t disp = InputInt32(NextOffset(offset));
+        return Operand(base, disp);
+      }
+      case kMode_MR1:
+      case kMode_MR2:
+      case kMode_MR4:
+      case kMode_MR8: {
+        Register base = InputRegister(NextOffset(offset));
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_MR1, mode);
+        int32_t disp = 0;
+        return Operand(base, index, scale, disp);
+      }
+      case kMode_MR1I:
+      case kMode_MR2I:
+      case kMode_MR4I:
+      case kMode_MR8I: {
+        Register base = InputRegister(NextOffset(offset));
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_MR1I, mode);
+        int32_t disp = InputInt32(NextOffset(offset));
+        return Operand(base, index, scale, disp);
+      }
+      case kMode_M1:
+      case kMode_M2:
+      case kMode_M4:
+      case kMode_M8: {
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_M1, mode);
+        int32_t disp = 0;
+        return Operand(index, scale, disp);
+      }
+      case kMode_M1I:
+      case kMode_M2I:
+      case kMode_M4I:
+      case kMode_M8I: {
+        Register index = InputRegister(NextOffset(offset));
+        ScaleFactor scale = ScaleFor(kMode_M1I, mode);
+        int32_t disp = InputInt32(NextOffset(offset));
+        return Operand(index, scale, disp);
+      }
+      case kMode_None:
         UNREACHABLE();
         return Operand(no_reg, 0);
     }
+    UNREACHABLE();
+    return Operand(no_reg, 0);
   }
 
   Operand MemoryOperand() {
@@ -281,8 +344,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
         if (input.type == kRegister) {
           __ imull(i.OutputRegister(), input.reg, i.InputImmediate(1));
         } else {
-          __ movq(kScratchRegister, input.operand);
-          __ imull(i.OutputRegister(), kScratchRegister, i.InputImmediate(1));
+          __ imull(i.OutputRegister(), input.operand, i.InputImmediate(1));
         }
       } else {
         RegisterOrOperand input = i.InputRegisterOrOperand(1);
@@ -299,8 +361,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
         if (input.type == kRegister) {
           __ imulq(i.OutputRegister(), input.reg, i.InputImmediate(1));
         } else {
-          __ movq(kScratchRegister, input.operand);
-          __ imulq(i.OutputRegister(), kScratchRegister, i.InputImmediate(1));
+          __ imulq(i.OutputRegister(), input.operand, i.InputImmediate(1));
         }
       } else {
         RegisterOrOperand input = i.InputRegisterOrOperand(1);
@@ -451,6 +512,21 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ addq(rsp, Immediate(kDoubleSize));
       break;
     }
+    case kSSEFloat64Sqrt: {
+      RegisterOrOperand input = i.InputRegisterOrOperand(0);
+      if (input.type == kDoubleRegister) {
+        __ sqrtsd(i.OutputDoubleRegister(), input.double_reg);
+      } else {
+        __ sqrtsd(i.OutputDoubleRegister(), input.operand);
+      }
+      break;
+    }
+    case kSSECvtss2sd:
+      __ cvtss2sd(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
+    case kSSECvtsd2ss:
+      __ cvtsd2ss(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
     case kSSEFloat64ToInt32: {
       RegisterOrOperand input = i.InputRegisterOrOperand(0);
       if (input.type == kDoubleRegister) {
@@ -565,12 +641,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kX64Movss:
       if (instr->HasOutput()) {
         __ movss(i.OutputDoubleRegister(), i.MemoryOperand());
-        __ cvtss2sd(i.OutputDoubleRegister(), i.OutputDoubleRegister());
       } else {
         int index = 0;
         Operand operand = i.MemoryOperand(&index);
-        __ cvtsd2ss(xmm0, i.InputDoubleRegister(index));
-        __ movss(operand, xmm0);
+        __ movss(operand, i.InputDoubleRegister(index));
       }
       break;
     case kX64Movsd:
@@ -894,6 +968,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
     }
   } else if (source->IsConstant()) {
     ConstantOperand* constant_source = ConstantOperand::cast(source);
+    Constant src = g.ToConstant(constant_source);
     if (destination->IsRegister() || destination->IsStackSlot()) {
       Register dst = destination->IsRegister() ? g.ToRegister(destination)
                                                : kScratchRegister;
@@ -912,9 +987,20 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       if (destination->IsStackSlot()) {
         __ movq(g.ToOperand(destination), kScratchRegister);
       }
+    } else if (src.type() == Constant::kFloat32) {
+      // TODO(turbofan): Can we do better here?
+      __ movl(kScratchRegister, Immediate(bit_cast<int32_t>(src.ToFloat32())));
+      if (destination->IsDoubleRegister()) {
+        XMMRegister dst = g.ToDoubleRegister(destination);
+        __ movq(dst, kScratchRegister);
+      } else {
+        DCHECK(destination->IsDoubleStackSlot());
+        Operand dst = g.ToOperand(destination);
+        __ movl(dst, kScratchRegister);
+      }
     } else {
-      __ movq(kScratchRegister,
-              bit_cast<uint64_t, double>(g.ToDouble(constant_source)));
+      DCHECK_EQ(Constant::kFloat64, src.type());
+      __ movq(kScratchRegister, bit_cast<int64_t>(src.ToFloat64()));
       if (destination->IsDoubleRegister()) {
         __ movq(g.ToDoubleRegister(destination), kScratchRegister);
       } else {
