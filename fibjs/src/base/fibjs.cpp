@@ -175,7 +175,8 @@ int main(int argc, char *argv[])
 {
     static char s_opts[64];
     static char s_sharmony[] = " --harmony --harmony_proxies"
-                               " --use_strict";
+                               " --use_strict"
+                               " --nologfile_per_isolate";
     enableDump();
 
     exlib::OSThread::Sleep(1);
