@@ -385,6 +385,7 @@ typedef List<HeapObject*> DebugObjectCache;
   V(uint32_t, per_isolate_assert_data, 0xFFFFFFFFu)                            \
   V(InterruptCallback, api_interrupt_callback, NULL)                           \
   V(void*, api_interrupt_callback_data, NULL)                                  \
+  V(PromiseRejectCallback, promise_reject_callback, NULL)                      \
   ISOLATE_INIT_SIMULATOR_LIST(V)
 
 #define THREAD_LOCAL_TOP_ACCESSOR(type, name)                        \
@@ -1060,14 +1061,6 @@ class Isolate {
     return optimizing_compiler_thread_;
   }
 
-  int num_sweeper_threads() const {
-    return num_sweeper_threads_;
-  }
-
-  SweeperThread** sweeper_threads() {
-    return sweeper_thread_;
-  }
-
   int id() const { return static_cast<int>(id_); }
 
   HStatistics* GetHStatistics();
@@ -1101,6 +1094,10 @@ class Isolate {
   void AddCallCompletedCallback(CallCompletedCallback callback);
   void RemoveCallCompletedCallback(CallCompletedCallback callback);
   void FireCallCompletedCallback();
+
+  void SetPromiseRejectCallback(PromiseRejectCallback callback);
+  void ReportPromiseReject(Handle<JSObject> promise, Handle<Object> value,
+                           v8::PromiseRejectEvent event);
 
   void EnqueueMicrotask(Handle<Object> microtask);
   void RunMicrotasks();
@@ -1216,6 +1213,9 @@ class Isolate {
   // then return true.
   bool PropagatePendingExceptionToExternalTryCatch();
 
+  Handle<JSMessageObject> CreateMessage(Handle<Object> exception,
+                                        MessageLocation* location);
+
   // Traverse prototype chain to find out whether the object is derived from
   // the Error object.
   bool IsErrorObject(Handle<Object> obj);
@@ -1319,8 +1319,6 @@ class Isolate {
 
   DeferredHandles* deferred_handles_head_;
   OptimizingCompilerThread* optimizing_compiler_thread_;
-  SweeperThread** sweeper_thread_;
-  int num_sweeper_threads_;
 
   // Counts deopt points if deopt_every_n_times is enabled.
   unsigned int stress_deopt_count_;

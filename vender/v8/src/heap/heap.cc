@@ -2522,6 +2522,13 @@ bool Heap::CreateInitialMaps() {
       roots_[entry.index] = map;
     }
 
+    {  // Create a separate external one byte string map for native sources.
+      AllocationResult allocation = AllocateMap(EXTERNAL_ONE_BYTE_STRING_TYPE,
+                                                ExternalOneByteString::kSize);
+      if (!allocation.To(&obj)) return false;
+      set_native_source_string_map(Map::cast(obj));
+    }
+
     ALLOCATE_VARSIZE_MAP(STRING_TYPE, undetectable_string)
     undetectable_string_map()->set_is_undetectable();
 
@@ -2830,6 +2837,15 @@ void Heap::CreateInitialObjects() {
   set_instanceof_cache_map(Smi::FromInt(0));
   set_instanceof_cache_answer(Smi::FromInt(0));
 
+  {
+    HandleScope scope(isolate());
+#define SYMBOL_INIT(name)                               \
+  Handle<Symbol> name = factory->NewPrivateOwnSymbol(); \
+  roots_[k##name##RootIndex] = *name;
+    PRIVATE_SYMBOL_LIST(SYMBOL_INIT)
+#undef SYMBOL_INIT
+  }
+
   CreateFixedStubs();
 
   // Allocate the dictionary of intrinsic function names.
@@ -2867,19 +2883,6 @@ void Heap::CreateInitialObjects() {
   // Microtask queue uses the empty fixed array as a sentinel for "empty".
   // Number of queued microtasks stored in Isolate::pending_microtask_count().
   set_microtask_queue(empty_fixed_array());
-
-  set_detailed_stack_trace_symbol(*factory->NewPrivateOwnSymbol());
-  set_elements_transition_symbol(*factory->NewPrivateOwnSymbol());
-  set_frozen_symbol(*factory->NewPrivateOwnSymbol());
-  set_megamorphic_symbol(*factory->NewPrivateOwnSymbol());
-  set_premonomorphic_symbol(*factory->NewPrivateOwnSymbol());
-  set_generic_symbol(*factory->NewPrivateOwnSymbol());
-  set_nonexistent_symbol(*factory->NewPrivateOwnSymbol());
-  set_normal_ic_symbol(*factory->NewPrivateOwnSymbol());
-  set_observed_symbol(*factory->NewPrivateOwnSymbol());
-  set_stack_trace_symbol(*factory->NewPrivateOwnSymbol());
-  set_uninitialized_symbol(*factory->NewPrivateOwnSymbol());
-  set_home_object_symbol(*factory->NewPrivateOwnSymbol());
 
   Handle<SeededNumberDictionary> slow_element_dictionary =
       SeededNumberDictionary::New(isolate(), 0, TENURED);
@@ -4318,7 +4321,7 @@ bool Heap::IdleNotification(int idle_time_in_ms) {
       tracer()->IncrementalMarkingSpeedInBytesPerMillisecond());
   heap_state.scavenge_speed_in_bytes_per_ms =
       static_cast<size_t>(tracer()->ScavengeSpeedInBytesPerMillisecond());
-  heap_state.available_new_space_memory = new_space_.Available();
+  heap_state.used_new_space_size = new_space_.Size();
   heap_state.new_space_capacity = new_space_.Capacity();
   heap_state.new_space_allocation_throughput_in_bytes_per_ms =
       static_cast<size_t>(

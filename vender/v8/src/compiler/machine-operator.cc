@@ -12,7 +12,8 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-OStream& operator<<(OStream& os, const WriteBarrierKind& write_barrier_kind) {
+std::ostream& operator<<(std::ostream& os,
+                         const WriteBarrierKind& write_barrier_kind) {
   switch (write_barrier_kind) {
     case kNoWriteBarrier:
       return os << "NoWriteBarrier";
@@ -24,7 +25,7 @@ OStream& operator<<(OStream& os, const WriteBarrierKind& write_barrier_kind) {
 }
 
 
-OStream& operator<<(OStream& os, const StoreRepresentation& rep) {
+std::ostream& operator<<(std::ostream& os, const StoreRepresentation& rep) {
   return os << "(" << rep.machine_type() << " : " << rep.write_barrier_kind()
             << ")";
 }
@@ -32,7 +33,8 @@ OStream& operator<<(OStream& os, const StoreRepresentation& rep) {
 
 template <>
 struct StaticParameterTraits<StoreRepresentation> {
-  static OStream& PrintTo(OStream& os, const StoreRepresentation& rep) {
+  static std::ostream& PrintTo(std::ostream& os,
+                               const StoreRepresentation& rep) {
     return os << rep;
   }
   static int HashCode(const StoreRepresentation& rep) {
@@ -47,7 +49,8 @@ struct StaticParameterTraits<StoreRepresentation> {
 
 template <>
 struct StaticParameterTraits<LoadRepresentation> {
-  static OStream& PrintTo(OStream& os, LoadRepresentation type) {  // NOLINT
+  static std::ostream& PrintTo(std::ostream& os,
+                               LoadRepresentation type) {  // NOLINT
     return os << type;
   }
   static int HashCode(LoadRepresentation type) { return type; }
@@ -81,22 +84,23 @@ struct StaticParameterTraits<LoadRepresentation> {
   V(Int32SubWithOverflow, Operator::kNoProperties, 2, 2)                      \
   V(Int32Mul, Operator::kAssociative | Operator::kCommutative, 2, 1)          \
   V(Int32Div, Operator::kNoProperties, 2, 1)                                  \
-  V(Int32UDiv, Operator::kNoProperties, 2, 1)                                 \
   V(Int32Mod, Operator::kNoProperties, 2, 1)                                  \
-  V(Int32UMod, Operator::kNoProperties, 2, 1)                                 \
   V(Int32LessThan, Operator::kNoProperties, 2, 1)                             \
   V(Int32LessThanOrEqual, Operator::kNoProperties, 2, 1)                      \
+  V(Uint32Div, Operator::kNoProperties, 2, 1)                                 \
   V(Uint32LessThan, Operator::kNoProperties, 2, 1)                            \
   V(Uint32LessThanOrEqual, Operator::kNoProperties, 2, 1)                     \
+  V(Uint32Mod, Operator::kNoProperties, 2, 1)                                 \
   V(Int64Add, Operator::kAssociative | Operator::kCommutative, 2, 1)          \
   V(Int64Sub, Operator::kNoProperties, 2, 1)                                  \
   V(Int64Mul, Operator::kAssociative | Operator::kCommutative, 2, 1)          \
   V(Int64Div, Operator::kNoProperties, 2, 1)                                  \
-  V(Int64UDiv, Operator::kNoProperties, 2, 1)                                 \
   V(Int64Mod, Operator::kNoProperties, 2, 1)                                  \
-  V(Int64UMod, Operator::kNoProperties, 2, 1)                                 \
   V(Int64LessThan, Operator::kNoProperties, 2, 1)                             \
   V(Int64LessThanOrEqual, Operator::kNoProperties, 2, 1)                      \
+  V(Uint64Div, Operator::kNoProperties, 2, 1)                                 \
+  V(Uint64LessThan, Operator::kNoProperties, 2, 1)                            \
+  V(Uint64Mod, Operator::kNoProperties, 2, 1)                                 \
   V(ChangeFloat32ToFloat64, Operator::kNoProperties, 1, 1)                    \
   V(ChangeFloat64ToInt32, Operator::kNoProperties, 1, 1)                      \
   V(ChangeFloat64ToUint32, Operator::kNoProperties, 1, 1)                     \
@@ -115,7 +119,8 @@ struct StaticParameterTraits<LoadRepresentation> {
   V(Float64Sqrt, Operator::kNoProperties, 1, 1)                               \
   V(Float64Equal, Operator::kCommutative, 2, 1)                               \
   V(Float64LessThan, Operator::kNoProperties, 2, 1)                           \
-  V(Float64LessThanOrEqual, Operator::kNoProperties, 2, 1)
+  V(Float64LessThanOrEqual, Operator::kNoProperties, 2, 1)                    \
+  V(LoadStackPointer, Operator::kNoProperties, 0, 1)
 
 
 #define MACHINE_TYPE_LIST(V) \

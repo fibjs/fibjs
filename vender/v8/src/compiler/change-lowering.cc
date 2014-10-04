@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 #include "src/compiler/change-lowering.h"
-#include "src/compiler/machine-operator.h"
 
 #include "src/compiler/js-graph.h"
+#include "src/compiler/linkage.h"
+#include "src/compiler/machine-operator.h"
 
 namespace v8 {
 namespace internal {
@@ -96,8 +97,8 @@ Node* ChangeLowering::ChangeSmiToInt32(Node* value) {
 
 Node* ChangeLowering::LoadHeapNumberValue(Node* value, Node* control) {
   return graph()->NewNode(machine()->Load(kMachFloat64), value,
-                          HeapNumberValueIndexConstant(),
-                          graph()->NewNode(common()->ControlEffect(), control));
+                          HeapNumberValueIndexConstant(), graph()->start(),
+                          control);
 }
 
 

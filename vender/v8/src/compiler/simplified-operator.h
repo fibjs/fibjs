@@ -5,6 +5,8 @@
 #ifndef V8_COMPILER_SIMPLIFIED_OPERATOR_H_
 #define V8_COMPILER_SIMPLIFIED_OPERATOR_H_
 
+#include <iosfwd>
+
 #include "src/compiler/machine-type.h"
 #include "src/handles.h"
 
@@ -28,7 +30,7 @@ struct SimplifiedOperatorBuilderImpl;
 
 enum BaseTaggedness { kUntaggedBase, kTaggedBase };
 
-OStream& operator<<(OStream&, BaseTaggedness);
+std::ostream& operator<<(std::ostream&, BaseTaggedness);
 
 // An access descriptor for loads/stores of fixed structures like field
 // accesses of heap objects. Accesses from either tagged or untagged base
@@ -36,12 +38,22 @@ OStream& operator<<(OStream&, BaseTaggedness);
 struct FieldAccess {
   BaseTaggedness base_is_tagged;  // specifies if the base pointer is tagged.
   int offset;                     // offset of the field, without tag.
-  Handle<Name> name;              // debugging only.
+  MaybeHandle<Name> name;         // debugging only.
   Type* type;                     // type of the field.
   MachineType machine_type;       // machine type of the field.
 
   int tag() const { return base_is_tagged == kTaggedBase ? kHeapObjectTag : 0; }
 };
+
+bool operator==(FieldAccess const& lhs, FieldAccess const& rhs);
+bool operator!=(FieldAccess const& lhs, FieldAccess const& rhs);
+
+std::ostream& operator<<(std::ostream&, FieldAccess const&);
+
+
+enum BoundsCheckMode { kNoBoundsCheck, kTypedArrayBoundsCheck };
+
+std::ostream& operator<<(std::ostream&, BoundsCheckMode);
 
 
 // An access descriptor for loads/stores of indexed structures like characters
@@ -49,6 +61,7 @@ struct FieldAccess {
 // untagged base pointers are supported; untagging is done automatically during
 // lowering.
 struct ElementAccess {
+  BoundsCheckMode bounds_check;   // specifies the bounds checking mode.
   BaseTaggedness base_is_tagged;  // specifies if the base pointer is tagged.
   int header_size;                // size of the header, without tag.
   Type* type;                     // type of the element.
@@ -60,7 +73,7 @@ struct ElementAccess {
 bool operator==(ElementAccess const& lhs, ElementAccess const& rhs);
 bool operator!=(ElementAccess const& lhs, ElementAccess const& rhs);
 
-OStream& operator<<(OStream&, ElementAccess const&);
+std::ostream& operator<<(std::ostream&, ElementAccess const&);
 
 
 // If the accessed object is not a heap object, add this to the header_size.

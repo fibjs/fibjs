@@ -215,7 +215,7 @@ class HBasicBlock FINAL : public ZoneObject {
 };
 
 
-OStream& operator<<(OStream& os, const HBasicBlock& b);
+std::ostream& operator<<(std::ostream& os, const HBasicBlock& b);
 
 
 class HPredecessorIterator FINAL BASE_EMBEDDED {
@@ -315,7 +315,6 @@ class HGraph FINAL : public ZoneObject {
   HEnvironment* start_environment() const { return start_environment_; }
 
   void FinalizeUniqueness();
-  bool ProcessArgumentsObject();
   void OrderBlocks();
   void AssignDominators();
   void RestoreActualValues();
@@ -478,8 +477,6 @@ class HGraph FINAL : public ZoneObject {
     Phase phase(this);
     phase.Run();
   }
-
-  void EliminateRedundantBoundsChecksUsingInductionVariables();
 
   Isolate* isolate_;
   int next_block_id_;
@@ -743,7 +740,7 @@ class HEnvironment FINAL : public ZoneObject {
 };
 
 
-OStream& operator<<(OStream& os, const HEnvironment& env);
+std::ostream& operator<<(std::ostream& os, const HEnvironment& env);
 
 
 class HOptimizedGraphBuilder;
@@ -1805,8 +1802,9 @@ class HGraphBuilder {
                                      ElementsKind kind,
                                      HValue* capacity);
 
-  HValue* BuildAllocateElementsAndInitializeElementsHeader(ElementsKind kind,
-                                                           HValue* capacity);
+  // Build allocation and header initialization code for respective successor
+  // of FixedArrayBase.
+  HValue* BuildAllocateAndInitializeArray(ElementsKind kind, HValue* capacity);
 
   // |array| must have been allocated with enough room for
   // 1) the JSArray and 2) an AllocationMemento if mode requires it.
@@ -1837,6 +1835,9 @@ class HGraphBuilder {
                                  ElementsKind elements_kind,
                                  HValue* from,
                                  HValue* to);
+
+  void BuildCopyProperties(HValue* from_properties, HValue* to_properties,
+                           HValue* length, HValue* capacity);
 
   void BuildCopyElements(HValue* from_elements,
                          ElementsKind from_elements_kind,
@@ -2200,7 +2201,6 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   void VisitLogicalExpression(BinaryOperation* expr);
   void VisitArithmeticExpression(BinaryOperation* expr);
 
-  bool PreProcessOsrEntry(IterationStatement* statement);
   void VisitLoopBody(IterationStatement* stmt,
                      HBasicBlock* loop_entry);
 

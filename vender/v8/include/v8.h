@@ -85,6 +85,7 @@ class ObjectOperationDescriptor;
 class ObjectTemplate;
 class Platform;
 class Primitive;
+class Promise;
 class RawOperationDescriptor;
 class Script;
 class Signature;
@@ -1415,6 +1416,27 @@ class V8_EXPORT StackFrame {
 };
 
 
+// A StateTag represents a possible state of the VM.
+enum StateTag { JS, GC, COMPILER, OTHER, EXTERNAL, IDLE };
+
+
+// A RegisterState represents the current state of registers used
+// by the sampling profiler API.
+struct RegisterState {
+  RegisterState() : pc(NULL), sp(NULL), fp(NULL) {}
+  void* pc;  // Instruction pointer.
+  void* sp;  // Stack pointer.
+  void* fp;  // Frame pointer.
+};
+
+
+// The output structure filled up by GetStackSample API function.
+struct SampleInfo {
+  size_t frames_count;
+  StateTag vm_state;
+};
+
+
 /**
  * A JSON Parser.
  */
@@ -2564,6 +2586,11 @@ class V8_EXPORT Object : public Value {
    */
   Local<Value> CallAsConstructor(int argc, Handle<Value> argv[]);
 
+  /**
+   * Return the isolate to which the Object belongs to.
+   */
+  Isolate* GetIsolate();
+
   static Local<Object> New(Isolate* isolate);
 
   V8_INLINE static Object* Cast(Value* obj);
@@ -2829,6 +2856,12 @@ class V8_EXPORT Promise : public Object {
   Local<Promise> Chain(Handle<Function> handler);
   Local<Promise> Catch(Handle<Function> handler);
   Local<Promise> Then(Handle<Function> handler);
+
+  /**
+   * Returns true if the promise has at least one derived promise, and
+   * therefore resolve/reject handlers (including default handler).
+   */
+  bool HasHandler();
 
   V8_INLINE static Promise* Cast(Value* obj);
 
@@ -4175,6 +4208,16 @@ typedef void (*MemoryAllocationCallback)(ObjectSpace space,
 // --- Leave Script Callback ---
 typedef void (*CallCompletedCallback)();
 
+// --- Promise Reject Callback ---
+enum PromiseRejectEvent {
+  kPromiseRejectWithNoHandler = 0,
+  kPromiseHandlerAddedAfterReject = 1
+};
+
+typedef void (*PromiseRejectCallback)(Handle<Promise> promise,
+                                      Handle<Value> value,
+                                      PromiseRejectEvent event);
+
 // --- Microtask Callback ---
 typedef void (*MicrotaskCallback)(void* data);
 
@@ -4560,6 +4603,21 @@ class V8_EXPORT Isolate {
   void GetHeapStatistics(HeapStatistics* heap_statistics);
 
   /**
+   * Get a call stack sample from the isolate.
+   * \param state Execution state.
+   * \param frames Caller allocated buffer to store stack frames.
+   * \param frames_limit Maximum number of frames to capture. The buffer must
+   *                     be large enough to hold the number of frames.
+   * \param sample_info The sample info is filled up by the function
+   *                    provides number of actual captured stack frames and
+   *                    the current VM state.
+   * \note GetStackSample should only be called when the JS thread is paused or
+   *       interrupted. Otherwise the behavior is undefined.
+   */
+  void GetStackSample(const RegisterState& state, void** frames,
+                      size_t frames_limit, SampleInfo* sample_info);
+
+  /**
    * Adjusts the amount of registered external memory. Used to give V8 an
    * indication of the amount of externally allocated memory that is kept alive
    * by JavaScript objects. V8 uses this to decide when to perform global
@@ -4735,6 +4793,13 @@ class V8_EXPORT Isolate {
    */
   void RemoveCallCompletedCallback(CallCompletedCallback callback);
 
+
+  /**
+   * Set callback to notify about promise reject with no handler, or
+   * revocation of such a previous notification once the handler is added.
+   */
+  void SetPromiseRejectCallback(PromiseRejectCallback callback);
+
   /**
    * Experimental: Runs the Microtask Work Queue until empty
    * Any exceptions thrown by microtask callbacks are swallowed.
@@ -4852,6 +4917,9 @@ class V8_EXPORT Isolate {
    *
    * On Win64, embedders are advised to install function table callbacks for
    * these ranges, as default SEH won't be able to unwind through jitted code.
+   *
+   * The first page of the code range is reserved for the embedder and is
+   * committed, writable, and executable.
    *
    * Might be empty on other platforms.
    *
@@ -5844,7 +5912,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 164;
+  static const int kEmptyStringRootIndex = 153;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.

@@ -6,6 +6,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/compiler/generic-node-inl.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
 
@@ -24,8 +25,6 @@ class X64OperandGenerator FINAL : public OperandGenerator {
                                            Register::ToAllocationIndex(reg));
   }
 
-  InstructionOperand* UseImmediate64(Node* node) { return UseImmediate(node); }
-
   bool CanBeImmediate(Node* node) {
     switch (node->opcode()) {
       case IrOpcode::kInt32Constant:
@@ -35,27 +34,19 @@ class X64OperandGenerator FINAL : public OperandGenerator {
     }
   }
 
-  bool CanBeImmediate64(Node* node) {
-    switch (node->opcode()) {
-      case IrOpcode::kInt32Constant:
-        return true;
-      case IrOpcode::kNumberConstant:
-        return true;
-      case IrOpcode::kHeapConstant: {
-        // Constants in new space cannot be used as immediates in V8 because
-        // the GC does not scan code objects when collecting the new generation.
-        Unique<HeapObject> value = OpParameter<Unique<HeapObject> >(node);
-        return !isolate()->heap()->InNewSpace(*value.handle());
-      }
-      default:
-        return false;
-    }
-  }
-
   bool CanBeBetterLeftOperand(Node* node) const {
     return !selector()->IsLive(node);
   }
 };
+
+
+// Get the AddressingMode of scale factor N from the AddressingMode of scale
+// factor 1.
+static AddressingMode AdjustAddressingMode(AddressingMode base_mode,
+                                           int power) {
+  DCHECK(0 <= power && power < 4);
+  return static_cast<AddressingMode>(static_cast<int>(base_mode) + power);
+}
 
 
 class AddressingModeMatcher {
@@ -102,13 +93,9 @@ class AddressingModeMatcher {
         }
       }
       // Adjust mode to actual scale factor.
-      mode_ = GetMode(mode_, matcher.power());
+      mode_ = AdjustAddressingMode(mode_, matcher.power());
     }
     DCHECK_NE(kMode_None, mode_);
-  }
-
-  AddressingMode GetMode(AddressingMode one, int power) {
-    return static_cast<AddressingMode>(static_cast<int>(one) + power);
   }
 
   size_t SetInputs(InstructionOperand** inputs) {
@@ -348,9 +335,8 @@ static void VisitWord32Shift(InstructionSelector* selector, Node* node,
   Node* left = node->InputAt(0);
   Node* right = node->InputAt(1);
 
-  // TODO(turbofan): assembler only supports some addressing modes for shifts.
   if (g.CanBeImmediate(right)) {
-    selector->Emit(opcode, g.DefineSameAsFirst(node), g.UseRegister(left),
+    selector->Emit(opcode, g.DefineSameAsFirst(node), g.Use(left),
                    g.UseImmediate(right));
   } else {
     Int32BinopMatcher m(node);
@@ -360,7 +346,7 @@ static void VisitWord32Shift(InstructionSelector* selector, Node* node,
         right = mright.left().node();
       }
     }
-    selector->Emit(opcode, g.DefineSameAsFirst(node), g.UseRegister(left),
+    selector->Emit(opcode, g.DefineSameAsFirst(node), g.Use(left),
                    g.UseFixed(right, rcx));
   }
 }
@@ -374,9 +360,8 @@ static void VisitWord64Shift(InstructionSelector* selector, Node* node,
   Node* left = node->InputAt(0);
   Node* right = node->InputAt(1);
 
-  // TODO(turbofan): assembler only supports some addressing modes for shifts.
   if (g.CanBeImmediate(right)) {
-    selector->Emit(opcode, g.DefineSameAsFirst(node), g.UseRegister(left),
+    selector->Emit(opcode, g.DefineSameAsFirst(node), g.Use(left),
                    g.UseImmediate(right));
   } else {
     Int64BinopMatcher m(node);
@@ -386,7 +371,7 @@ static void VisitWord64Shift(InstructionSelector* selector, Node* node,
         right = mright.left().node();
       }
     }
-    selector->Emit(opcode, g.DefineSameAsFirst(node), g.UseRegister(left),
+    selector->Emit(opcode, g.DefineSameAsFirst(node), g.Use(left),
                    g.UseFixed(right, rcx));
   }
 }
@@ -432,12 +417,57 @@ void InstructionSelector::VisitWord64Ror(Node* node) {
 }
 
 
+static bool TryEmitLeaMultAdd(InstructionSelector* selector, Node* node,
+                              ArchOpcode opcode) {
+  int32_t displacement_value;
+  Node* left;
+  {
+    Int32BinopMatcher m32(node);
+    left = m32.left().node();
+    if (m32.right().HasValue()) {
+      displacement_value = m32.right().Value();
+    } else {
+      Int64BinopMatcher m64(node);
+      if (!m64.right().HasValue()) {
+        return false;
+      }
+      int64_t value_64 = m64.right().Value();
+      displacement_value = static_cast<int32_t>(value_64);
+      if (displacement_value != value_64) return false;
+    }
+  }
+  LeaMultiplyMatcher lmm(left);
+  if (!lmm.Matches()) return false;
+  AddressingMode mode;
+  size_t input_count;
+  X64OperandGenerator g(selector);
+  InstructionOperand* index = g.UseRegister(lmm.Left());
+  InstructionOperand* displacement = g.TempImmediate(displacement_value);
+  InstructionOperand* inputs[] = {index, displacement, displacement};
+  if (lmm.Displacement() != 0) {
+    input_count = 3;
+    inputs[1] = index;
+    mode = kMode_MR1I;
+  } else {
+    input_count = 2;
+    mode = kMode_M1I;
+  }
+  mode = AdjustAddressingMode(mode, lmm.Power());
+  InstructionOperand* outputs[] = {g.DefineAsRegister(node)};
+  selector->Emit(opcode | AddressingModeField::encode(mode), 1, outputs,
+                 input_count, inputs);
+  return true;
+}
+
+
 void InstructionSelector::VisitInt32Add(Node* node) {
+  if (TryEmitLeaMultAdd(this, node, kX64Lea32)) return;
   VisitBinop(this, node, kX64Add32);
 }
 
 
 void InstructionSelector::VisitInt64Add(Node* node) {
+  if (TryEmitLeaMultAdd(this, node, kX64Lea)) return;
   VisitBinop(this, node, kX64Add);
 }
 
@@ -464,6 +494,31 @@ void InstructionSelector::VisitInt64Sub(Node* node) {
 }
 
 
+static bool TryEmitLeaMult(InstructionSelector* selector, Node* node,
+                           ArchOpcode opcode) {
+  LeaMultiplyMatcher lea(node);
+  // Try to match lea.
+  if (!lea.Matches()) return false;
+  AddressingMode mode;
+  size_t input_count;
+  X64OperandGenerator g(selector);
+  InstructionOperand* left = g.UseRegister(lea.Left());
+  InstructionOperand* inputs[] = {left, left};
+  if (lea.Displacement() != 0) {
+    input_count = 2;
+    mode = kMode_MR1;
+  } else {
+    input_count = 1;
+    mode = kMode_M1;
+  }
+  mode = AdjustAddressingMode(mode, lea.Power());
+  InstructionOperand* outputs[] = {g.DefineAsRegister(node)};
+  selector->Emit(opcode | AddressingModeField::encode(mode), 1, outputs,
+                 input_count, inputs);
+  return true;
+}
+
+
 static void VisitMul(InstructionSelector* selector, Node* node,
                      ArchOpcode opcode) {
   X64OperandGenerator g(selector);
@@ -484,11 +539,13 @@ static void VisitMul(InstructionSelector* selector, Node* node,
 
 
 void InstructionSelector::VisitInt32Mul(Node* node) {
+  if (TryEmitLeaMult(this, node, kX64Lea32)) return;
   VisitMul(this, node, kX64Imul32);
 }
 
 
 void InstructionSelector::VisitInt64Mul(Node* node) {
+  if (TryEmitLeaMult(this, node, kX64Lea)) return;
   VisitMul(this, node, kX64Imul);
 }
 
@@ -513,12 +570,12 @@ void InstructionSelector::VisitInt64Div(Node* node) {
 }
 
 
-void InstructionSelector::VisitInt32UDiv(Node* node) {
+void InstructionSelector::VisitUint32Div(Node* node) {
   VisitDiv(this, node, kX64Udiv32);
 }
 
 
-void InstructionSelector::VisitInt64UDiv(Node* node) {
+void InstructionSelector::VisitUint64Div(Node* node) {
   VisitDiv(this, node, kX64Udiv);
 }
 
@@ -543,12 +600,12 @@ void InstructionSelector::VisitInt64Mod(Node* node) {
 }
 
 
-void InstructionSelector::VisitInt32UMod(Node* node) {
+void InstructionSelector::VisitUint32Mod(Node* node) {
   VisitMod(this, node, kX64Udiv32);
 }
 
 
-void InstructionSelector::VisitInt64UMod(Node* node) {
+void InstructionSelector::VisitUint64Mod(Node* node) {
   VisitMod(this, node, kX64Udiv);
 }
 
@@ -568,9 +625,7 @@ void InstructionSelector::VisitChangeInt32ToFloat64(Node* node) {
 
 void InstructionSelector::VisitChangeUint32ToFloat64(Node* node) {
   X64OperandGenerator g(this);
-  // TODO(turbofan): X64 SSE cvtqsi2sd should support operands.
-  Emit(kSSEUint32ToFloat64, g.DefineAsRegister(node),
-       g.UseRegister(node->InputAt(0)));
+  Emit(kSSEUint32ToFloat64, g.DefineAsRegister(node), g.Use(node->InputAt(0)));
 }
 
 

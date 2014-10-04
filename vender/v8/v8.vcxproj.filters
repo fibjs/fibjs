@@ -55,9 +55,6 @@
     <Filter Include="Source Files\runtime">
       <UniqueIdentifier>{103f0e8f-8587-2131-6779-fa0e8e7a0c4f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\test">
-      <UniqueIdentifier>{4c71dba2-1448-753e-32fb-4d83994539f4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\third_party">
       <UniqueIdentifier>{517d88ea-d211-bcd7-bc22-b7165eec24c6}</UniqueIdentifier>
     </Filter>
@@ -336,9 +333,6 @@
     <ClInclude Include="src\compiler\common-operator.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\compiler-test-utils.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\compiler\control-builders.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -375,9 +369,6 @@
     <ClInclude Include="src\compiler\graph-replay.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\graph-unittest.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\compiler\graph-visualizer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -391,9 +382,6 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\instruction-selector-impl.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\compiler\instruction-selector-unittest.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\instruction-selector.h">
@@ -600,9 +588,6 @@
     <ClInclude Include="src\fast-dtoa.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\feedback-slots.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\field-index-inl.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -697,9 +682,6 @@
       <Filter>Source Files\heap</Filter>
     </ClInclude>
     <ClInclude Include="src\heap\store-buffer.h">
-      <Filter>Source Files\heap</Filter>
-    </ClInclude>
-    <ClInclude Include="src\heap\sweeper-thread.h">
       <Filter>Source Files\heap</Filter>
     </ClInclude>
     <ClInclude Include="src\hydrogen-alias-analysis.h">
@@ -1061,9 +1043,6 @@
     </ClInclude>
     <ClInclude Include="src\strtod.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\test\test-utils.h">
-      <Filter>Source Files\test</Filter>
     </ClInclude>
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h">
       <Filter>Source Files\third_party\kernel\tools\perf\util</Filter>
@@ -1436,6 +1415,9 @@
     <ClCompile Include="src\compiler\js-inlining.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\js-operator.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\js-typed-lowering.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1452,6 +1434,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\node-cache.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\node-matchers.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\node.cc">
@@ -1626,9 +1611,6 @@
       <Filter>Source Files\heap</Filter>
     </ClCompile>
     <ClCompile Include="src\heap\store-buffer.cc">
-      <Filter>Source Files\heap</Filter>
-    </ClCompile>
-    <ClCompile Include="src\heap\sweeper-thread.cc">
       <Filter>Source Files\heap</Filter>
     </ClCompile>
     <ClCompile Include="src\hydrogen-bce.cc">
@@ -1931,10 +1913,25 @@
     <ClCompile Include="src\runtime-profiler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\runtime\runtime-classes.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="src\runtime\runtime-collections.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-compiler.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-date.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-debug.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-function.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-generator.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-i18n.cc">
@@ -1943,16 +1940,34 @@
     <ClCompile Include="src\runtime\runtime-json.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="src\runtime\runtime-literals.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-liveedit.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="src\runtime\runtime-maths.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-numbers.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="src\runtime\runtime-observe.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-proxy.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="src\runtime\runtime-regexp.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="src\runtime\runtime-scopes.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="src\runtime\runtime-strings.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-symbol.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-test.cc">

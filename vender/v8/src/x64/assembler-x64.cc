@@ -617,11 +617,37 @@ void Assembler::shift(Register dst,
 }
 
 
+void Assembler::shift(Operand dst, Immediate shift_amount, int subcode,
+                      int size) {
+  EnsureSpace ensure_space(this);
+  DCHECK(size == kInt64Size ? is_uint6(shift_amount.value_)
+                            : is_uint5(shift_amount.value_));
+  if (shift_amount.value_ == 1) {
+    emit_rex(dst, size);
+    emit(0xD1);
+    emit_operand(subcode, dst);
+  } else {
+    emit_rex(dst, size);
+    emit(0xC1);
+    emit_operand(subcode, dst);
+    emit(shift_amount.value_);
+  }
+}
+
+
 void Assembler::shift(Register dst, int subcode, int size) {
   EnsureSpace ensure_space(this);
   emit_rex(dst, size);
   emit(0xD3);
   emit_modrm(subcode, dst);
+}
+
+
+void Assembler::shift(Operand dst, int subcode, int size) {
+  EnsureSpace ensure_space(this);
+  emit_rex(dst, size);
+  emit(0xD3);
+  emit_operand(subcode, dst);
 }
 
 
@@ -948,11 +974,13 @@ void Assembler::emit_imul(Register dst, const Operand& src, Immediate imm,
   emit_rex(dst, src, size);
   if (is_int8(imm.value_)) {
     emit(0x6B);
+    emit_operand(dst, src);
+    emit(imm.value_);
   } else {
     emit(0x69);
+    emit_operand(dst, src);
+    emitl(imm.value_);
   }
-  emit_operand(dst, src);
-  emit(imm.value_);
 }
 
 
@@ -2677,6 +2705,16 @@ void Assembler::cvtlsi2ss(XMMRegister dst, Register src) {
   EnsureSpace ensure_space(this);
   emit(0xF3);
   emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x2A);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::cvtqsi2sd(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_rex_64(dst, src);
   emit(0x0F);
   emit(0x2A);
   emit_sse_operand(dst, src);

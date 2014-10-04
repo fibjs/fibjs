@@ -198,6 +198,28 @@ function patch_plat() {
 	}
 }
 
+function patch_samp() {
+	var fname = "src/sampler.cc";
+	var txt = fs.readFile(fname);
+
+	var idx = txt.lastIndexOf("#if defined(USE_SIGNALS)");
+	if (idx < 0)
+		return;
+
+	var txt1 = txt.substr(0, idx);
+	txt1 += "#if 0\n\n";
+	txt1 += txt.substr(idx);
+
+	txt = txt1;
+	idx = txt.lastIndexOf("#endif  // USE_SIGNALS");
+
+	txt1 = txt.substr(0, idx);
+	txt1 += "#endif\n\n";
+	txt1 += txt.substr(idx);
+
+	fs.writeFile(fname, txt1);
+}
+
 save_plat();
 
 clean_folder('include');
@@ -214,6 +236,7 @@ clean_folder('src/third_party/vtune');
 fs.rmdir('src/third_party/vtune');
 
 update_plat();
+patch_samp();
 
 patch_src('src');
 patch_plat();

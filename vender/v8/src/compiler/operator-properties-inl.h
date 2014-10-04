@@ -7,6 +7,7 @@
 
 #include "src/compiler/common-operator.h"
 #include "src/compiler/js-operator.h"
+#include "src/compiler/linkage.h"
 #include "src/compiler/opcodes.h"
 #include "src/compiler/operator-properties.h"
 
@@ -40,8 +41,8 @@ inline bool OperatorProperties::HasFrameStateInput(const Operator* op) {
     case IrOpcode::kFrameState:
       return true;
     case IrOpcode::kJSCallRuntime: {
-      Runtime::FunctionId function = OpParameter<Runtime::FunctionId>(op);
-      return Linkage::NeedsFrameState(function);
+      const CallRuntimeParameters& p = CallRuntimeParametersOf(op);
+      return Linkage::NeedsFrameState(p.id());
     }
 
     // Strict equality cannot lazily deoptimize.
@@ -55,28 +56,33 @@ inline bool OperatorProperties::HasFrameStateInput(const Operator* op) {
 
     // Compare operations
     case IrOpcode::kJSEqual:
-    case IrOpcode::kJSNotEqual:
-    case IrOpcode::kJSLessThan:
     case IrOpcode::kJSGreaterThan:
-    case IrOpcode::kJSLessThanOrEqual:
     case IrOpcode::kJSGreaterThanOrEqual:
+    case IrOpcode::kJSHasProperty:
+    case IrOpcode::kJSInstanceOf:
+    case IrOpcode::kJSLessThan:
+    case IrOpcode::kJSLessThanOrEqual:
+    case IrOpcode::kJSNotEqual:
 
     // Binary operations
+    case IrOpcode::kJSAdd:
+    case IrOpcode::kJSBitwiseAnd:
     case IrOpcode::kJSBitwiseOr:
     case IrOpcode::kJSBitwiseXor:
-    case IrOpcode::kJSBitwiseAnd:
+    case IrOpcode::kJSDivide:
+    case IrOpcode::kJSLoadNamed:
+    case IrOpcode::kJSLoadProperty:
+    case IrOpcode::kJSModulus:
+    case IrOpcode::kJSMultiply:
     case IrOpcode::kJSShiftLeft:
     case IrOpcode::kJSShiftRight:
     case IrOpcode::kJSShiftRightLogical:
-    case IrOpcode::kJSAdd:
-    case IrOpcode::kJSSubtract:
-    case IrOpcode::kJSMultiply:
-    case IrOpcode::kJSDivide:
-    case IrOpcode::kJSModulus:
-    case IrOpcode::kJSLoadProperty:
-    case IrOpcode::kJSStoreProperty:
-    case IrOpcode::kJSLoadNamed:
     case IrOpcode::kJSStoreNamed:
+    case IrOpcode::kJSStoreProperty:
+    case IrOpcode::kJSSubtract:
+
+    // Other
+    case IrOpcode::kJSDeleteProperty:
       return true;
 
     default:
@@ -110,7 +116,8 @@ inline int OperatorProperties::GetControlInputCount(const Operator* op) {
   switch (op->opcode()) {
     case IrOpcode::kPhi:
     case IrOpcode::kEffectPhi:
-    case IrOpcode::kControlEffect:
+    case IrOpcode::kLoad:
+    case IrOpcode::kLoadElement:
       return 1;
 #define OPCODE_CASE(x) case IrOpcode::k##x:
       CONTROL_OP_LIST(OPCODE_CASE)
@@ -143,7 +150,6 @@ inline bool OperatorProperties::HasValueOutput(const Operator* op) {
 
 inline bool OperatorProperties::HasEffectOutput(const Operator* op) {
   return op->opcode() == IrOpcode::kStart ||
-         op->opcode() == IrOpcode::kControlEffect ||
          op->opcode() == IrOpcode::kValueEffect ||
          (op->opcode() != IrOpcode::kFinish && GetEffectInputCount(op) > 0);
 }

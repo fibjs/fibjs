@@ -547,7 +547,6 @@ class MarkCompactCollector {
   void EnableCodeFlushing(bool enable);
 
   enum SweeperType {
-    PARALLEL_SWEEPING,
     CONCURRENT_SWEEPING,
     SEQUENTIAL_SWEEPING
   };
@@ -640,8 +639,6 @@ class MarkCompactCollector {
   bool IsSweepingCompleted();
 
   void RefillFreeList(PagedSpace* space);
-
-  bool AreSweeperThreadsActivated();
 
   // Checks if sweeping is in progress right now on any space.
   bool sweeping_in_progress() { return sweeping_in_progress_; }

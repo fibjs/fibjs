@@ -4,6 +4,8 @@
 
 #include "src/compiler/simplified-operator.h"
 
+#include <ostream>  // NOLINT(readability/streams)
+
 #include "src/base/lazy-instance.h"
 #include "src/compiler/opcodes.h"
 #include "src/compiler/operator.h"
@@ -13,12 +15,50 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-OStream& operator<<(OStream& os, BaseTaggedness base_taggedness) {
+std::ostream& operator<<(std::ostream& os, BaseTaggedness base_taggedness) {
   switch (base_taggedness) {
     case kUntaggedBase:
       return os << "untagged base";
     case kTaggedBase:
       return os << "tagged base";
+  }
+  UNREACHABLE();
+  return os;
+}
+
+
+bool operator==(FieldAccess const& lhs, FieldAccess const& rhs) {
+  return lhs.base_is_tagged == rhs.base_is_tagged && lhs.offset == rhs.offset &&
+         lhs.type == rhs.type && lhs.machine_type == rhs.machine_type;
+}
+
+
+bool operator!=(FieldAccess const& lhs, FieldAccess const& rhs) {
+  return !(lhs == rhs);
+}
+
+
+std::ostream& operator<<(std::ostream& os, FieldAccess const& access) {
+  os << "[" << access.base_is_tagged << ", " << access.offset << ", ";
+#ifdef OBJECT_PRINT
+  Handle<Name> name;
+  if (access.name.ToHandle(&name)) {
+    name->Print(os);
+    os << ", ";
+  }
+#endif
+  access.type->PrintTo(os);
+  os << ", " << access.machine_type << "]";
+  return os;
+}
+
+
+std::ostream& operator<<(std::ostream& os, BoundsCheckMode bounds_check_mode) {
+  switch (bounds_check_mode) {
+    case kNoBoundsCheck:
+      return os << "no bounds check";
+    case kTypedArrayBoundsCheck:
+      return os << "ignore out of bounds";
   }
   UNREACHABLE();
   return os;
@@ -37,10 +77,10 @@ bool operator!=(ElementAccess const& lhs, ElementAccess const& rhs) {
 }
 
 
-OStream& operator<<(OStream& os, ElementAccess const& access) {
+std::ostream& operator<<(std::ostream& os, ElementAccess const& access) {
   os << "[" << access.base_is_tagged << ", " << access.header_size << ", ";
   access.type->PrintTo(os);
-  os << ", " << access.machine_type << "]";
+  os << ", " << access.machine_type << ", " << access.bounds_check << "]";
   return os;
 }
 
@@ -64,7 +104,7 @@ const ElementAccess& ElementAccessOf(const Operator* op) {
 // Specialization for static parameters of type {FieldAccess}.
 template <>
 struct StaticParameterTraits<FieldAccess> {
-  static OStream& PrintTo(OStream& os, const FieldAccess& val) {
+  static std::ostream& PrintTo(std::ostream& os, const FieldAccess& val) {
     return os << val.offset;
   }
   static int HashCode(const FieldAccess& val) {
@@ -81,7 +121,7 @@ struct StaticParameterTraits<FieldAccess> {
 // Specialization for static parameters of type {ElementAccess}.
 template <>
 struct StaticParameterTraits<ElementAccess> {
-  static OStream& PrintTo(OStream& os, const ElementAccess& access) {
+  static std::ostream& PrintTo(std::ostream& os, const ElementAccess& access) {
     return os << access;
   }
   static int HashCode(const ElementAccess& access) {

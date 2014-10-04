@@ -77,6 +77,7 @@ class ArmOperandGenerator : public OperandGenerator {
       case kArchJmp:
       case kArchNop:
       case kArchRet:
+      case kArchStackPointer:
       case kArchTruncateDoubleToI:
       case kArmMul:
       case kArmMla:
@@ -652,7 +653,7 @@ void InstructionSelector::VisitInt32Div(Node* node) {
 }
 
 
-void InstructionSelector::VisitInt32UDiv(Node* node) {
+void InstructionSelector::VisitUint32Div(Node* node) {
   VisitDiv(this, node, kArmUdiv, kArmVcvtF64U32, kArmVcvtU32F64);
 }
 
@@ -684,7 +685,7 @@ void InstructionSelector::VisitInt32Mod(Node* node) {
 }
 
 
-void InstructionSelector::VisitInt32UMod(Node* node) {
+void InstructionSelector::VisitUint32Mod(Node* node) {
   VisitMod(this, node, kArmUdiv, kArmVcvtF64U32, kArmVcvtU32F64);
 }
 
