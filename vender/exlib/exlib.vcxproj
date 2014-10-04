@@ -23,6 +23,7 @@
     <ClInclude Include="include\fiber.h" />
     <ClInclude Include="include\lockfree.h" />
     <ClInclude Include="include\osconfig.h" />
+    <ClInclude Include="include\service.h" />
     <ClInclude Include="include\thread.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\utils_arm.h" />

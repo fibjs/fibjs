@@ -7,12 +7,12 @@
  */
 
 #include <stdio.h>
-#include "fiber.h"
+#include "service.h"
 
 namespace exlib
 {
 
-int Service::tlsAlloc()
+int Fiber::tlsAlloc()
 {
 	Service* pService = Service::getFiberService();
 	int i;
@@ -30,7 +30,7 @@ int Service::tlsAlloc()
 	return -1;
 }
 
-void* Service::tlsGet(int idx)
+void* Fiber::tlsGet(int idx)
 {
 	Service* pService = Service::getFiberService();
 
@@ -40,7 +40,7 @@ void* Service::tlsGet(int idx)
 	return NULL;
 }
 
-void Service::tlsPut(int idx, void* v)
+void Fiber::tlsPut(int idx, void* v)
 {
 	Service* pService = Service::getFiberService();
 
@@ -48,7 +48,7 @@ void Service::tlsPut(int idx, void* v)
 		pService->m_running->m_tls[idx] = v;
 }
 
-void Service::tlsFree(int idx)
+void Fiber::tlsFree(int idx)
 {
 	Service* pService = Service::getFiberService();
 

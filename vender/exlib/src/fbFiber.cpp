@@ -12,7 +12,7 @@
 #include <time.h>
 
 #include "osconfig.h"
-#include "fiber.h"
+#include "service.h"
 #include "thread.h"
 
 #include <map>

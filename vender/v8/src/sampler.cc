@@ -699,6 +699,7 @@ void Sampler::SampleStack(const RegisterState& state) {
 }
 
 
+#if 0
 #if defined(USE_SIGNALS)
 
 void Sampler::DoSample() {
@@ -745,6 +746,7 @@ void Sampler::DoSample() {
 }
 
 #endif  // USE_SIGNALS
+#endif
 
 
 } }  // namespace v8::internal

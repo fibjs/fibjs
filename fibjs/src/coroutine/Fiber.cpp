@@ -48,8 +48,8 @@ static void onIdle()
     if (!g_jobs.empty() && (s_fibers < MAX_FIBER))
     {
         s_fibers++;
-        exlib::Service::CreateFiber(FiberBase::fiber_proc, NULL,
-                                    stack_size * 1024)->Unref();
+        exlib::Fiber::Create(FiberBase::fiber_proc, NULL,
+                             stack_size * 1024)->Unref();
     }
 
     if (s_oldIdle)
@@ -68,7 +68,7 @@ inline void fiber_init()
 
         s_fibers = 0;
 
-        g_tlsCurrent = exlib::Service::tlsAlloc();
+        g_tlsCurrent = exlib::Fiber::tlsAlloc();
         s_oldIdle = exlib::Service::root->onIdle(onIdle);
     }
 }
@@ -163,7 +163,7 @@ JSFiber *JSFiber::current()
 {
     fiber_init();
 
-    return (JSFiber *)exlib::Service::tlsGet(g_tlsCurrent);
+    return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
 void JSFiber::js_callback()
@@ -194,13 +194,13 @@ JSFiber::scope::scope(JSFiber *fb) :
         m_pFiber = new JSFiber();
 
     m_pNext = JSFiber::current();
-    exlib::Service::tlsPut(g_tlsCurrent, m_pFiber);
+    exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
 }
 
 JSFiber::scope::~scope()
 {
     ReportException(try_catch, m_hr);
-    exlib::Service::tlsPut(g_tlsCurrent, m_pNext);
+    exlib::Fiber::tlsPut(g_tlsCurrent, m_pNext);
 }
 
 void asyncCallBack::callback()

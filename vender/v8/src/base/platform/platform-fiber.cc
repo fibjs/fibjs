@@ -1,6 +1,5 @@
-#include "v8.h"
-
-#include "platform.h"
+#include "src/v8.h"
+#include "src/sampler.h"
 #include <exlib/include/fiber.h>
 
 #ifdef _WIN32
@@ -21,6 +20,31 @@ inline int64_t getTime();
 
 namespace v8
 {
+
+namespace internal
+{
+
+void Sampler::DoSample()
+{
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    exlib::Fiber *pFiber = exlib::Fiber::Current();
+    RegisterState state;
+
+#if defined(x64)
+    state.pc = reinterpret_cast<Address>(pFiber->m_cntxt.Rip);
+    state.sp = reinterpret_cast<Address>(pFiber->m_cntxt.Rsp);
+    state.fp = reinterpret_cast<Address>(pFiber->m_cntxt.Rbp);
+#else
+    state.pc = reinterpret_cast<Address>(pFiber->m_cntxt.Eip);
+    state.sp = reinterpret_cast<Address>(pFiber->m_cntxt.Esp);
+    state.fp = reinterpret_cast<Address>(pFiber->m_cntxt.Ebp);
+#endif
+
+    SampleStack(state);
+}
+
+}
+
 namespace base
 {
 
@@ -62,7 +86,7 @@ void Thread::set_name(const char *name)
 
 void Thread::Start()
 {
-    data_->thread_ = exlib::Service::CreateFiber(ThreadEntry, this);
+    data_->thread_ = exlib::Fiber::Create(ThreadEntry, this);
 }
 
 void Thread::Join()
@@ -72,22 +96,22 @@ void Thread::Join()
 
 Thread::LocalStorageKey Thread::CreateThreadLocalKey()
 {
-    return static_cast<LocalStorageKey>(exlib::Service::tlsAlloc());
+    return static_cast<LocalStorageKey>(exlib::Fiber::tlsAlloc());
 }
 
 void Thread::DeleteThreadLocalKey(LocalStorageKey key)
 {
-    exlib::Service::tlsFree(static_cast<int>(key));
+    exlib::Fiber::tlsFree(static_cast<int>(key));
 }
 
 void *Thread::GetThreadLocal(LocalStorageKey key)
 {
-    return exlib::Service::tlsGet(static_cast<int>(key));
+    return exlib::Fiber::tlsGet(static_cast<int>(key));
 }
 
 void Thread::SetThreadLocal(LocalStorageKey key, void *value)
 {
-    exlib::Service::tlsPut(static_cast<int>(key), value);
+    exlib::Fiber::tlsPut(static_cast<int>(key), value);
 }
 
 void Thread::YieldCPU()

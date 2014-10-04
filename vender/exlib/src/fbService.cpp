@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 #include "osconfig.h"
-#include "fiber.h"
+#include "service.h"
 #include "thread.h"
 
 namespace exlib
@@ -100,7 +100,7 @@ static void fiber_proc(void *(*func)(void *), void *data)
     Service::root->switchtonext();
 }
 
-Fiber *Service::CreateFiber(void *(*func)(void *), void *data, int stacksize)
+Fiber *Fiber::Create(void *(*func)(void *), void *data, int stacksize)
 {
     Fiber *fb;
     void **stack;
@@ -144,7 +144,7 @@ Fiber *Service::CreateFiber(void *(*func)(void *), void *data, int stacksize)
     fb->m_cntxt.r1 = (unsigned long) data;
 #endif
 
-    root->m_resume.put(fb);
+    Service::root->m_resume.put(fb);
 
     fb->Ref();
     fb->Ref();

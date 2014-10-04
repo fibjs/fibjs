@@ -45,11 +45,9 @@
     <ClInclude Include="include\utils_x86.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\fb_switch.asm">
-      <Filter>Source Files</Filter>
-    </None>
+    <ClInclude Include="include\service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\fbAsyncEvent.cpp">
@@ -85,5 +83,10 @@
     <ClCompile Include="src\thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="src\fb_switch.asm">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

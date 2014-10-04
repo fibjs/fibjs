@@ -96,8 +96,7 @@ typedef int SOCKET;
 #include "obj_ptr.h"
 #include "Variant.h"
 
-#include <exlib/include/fiber.h>
-#include <exlib/include/lockfree.h>
+#include <exlib/include/service.h>
 
 #ifdef _DEBUG
 #undef _DEBUG
