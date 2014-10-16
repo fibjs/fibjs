@@ -10,8 +10,8 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-Node* JSGraph::ImmovableHeapConstant(Handle<Object> object) {
-  Unique<Object> unique = Unique<Object>::CreateImmovable(object);
+Node* JSGraph::ImmovableHeapConstant(Handle<HeapObject> object) {
+  Unique<HeapObject> unique = Unique<HeapObject>::CreateImmovable(object);
   return NewNode(common()->HeapConstant(unique));
 }
 
@@ -93,13 +93,13 @@ Node* JSGraph::NaNConstant() {
 }
 
 
-Node* JSGraph::HeapConstant(Unique<Object> value) {
+Node* JSGraph::HeapConstant(Unique<HeapObject> value) {
   // TODO(turbofan): canonicalize heap constants using Unique<T>
   return NewNode(common()->HeapConstant(value));
 }
 
 
-Node* JSGraph::HeapConstant(Handle<Object> value) {
+Node* JSGraph::HeapConstant(Handle<HeapObject> value) {
   // TODO(titzer): We could also match against the addresses of immortable
   // immovables here, even without access to the heap, thus always
   // canonicalizing references to them.
@@ -107,7 +107,8 @@ Node* JSGraph::HeapConstant(Handle<Object> value) {
   // TODO(turbofan): This is a work-around to make Unique::HashCode() work for
   // value numbering. We need some sane way to compute a unique hash code for
   // arbitrary handles here.
-  Unique<Object> unique(reinterpret_cast<Address>(*value.location()), value);
+  Unique<HeapObject> unique(reinterpret_cast<Address>(*value.location()),
+                            value);
   return HeapConstant(unique);
 }
 
@@ -128,7 +129,7 @@ Node* JSGraph::Constant(Handle<Object> value) {
   } else if (value->IsTheHole()) {
     return TheHoleConstant();
   } else {
-    return HeapConstant(value);
+    return HeapConstant(Handle<HeapObject>::cast(value));
   }
 }
 
@@ -151,6 +152,15 @@ Node* JSGraph::Int32Constant(int32_t value) {
   Node** loc = cache_.FindInt32Constant(value);
   if (*loc == NULL) {
     *loc = NewNode(common()->Int32Constant(value));
+  }
+  return *loc;
+}
+
+
+Node* JSGraph::Int64Constant(int64_t value) {
+  Node** loc = cache_.FindInt64Constant(value);
+  if (*loc == NULL) {
+    *loc = NewNode(common()->Int64Constant(value));
   }
   return *loc;
 }
@@ -187,6 +197,7 @@ Node* JSGraph::ExternalConstant(ExternalReference reference) {
   }
   return *loc;
 }
+
 }  // namespace compiler
 }  // namespace internal
 }  // namespace v8

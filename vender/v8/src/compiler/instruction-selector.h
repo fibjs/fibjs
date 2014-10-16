@@ -145,8 +145,11 @@ class InstructionSelector FINAL {
                             bool call_address_immediate);
 
   FrameStateDescriptor* GetFrameStateDescriptor(Node* node);
+  void FillTypeVectorFromStateValues(ZoneVector<MachineType>* parameters,
+                                     Node* state_values);
   void AddFrameStateInputs(Node* state, InstructionOperandVector* inputs,
                            FrameStateDescriptor* descriptor);
+  MachineType GetMachineType(Node* node);
 
   // ===========================================================================
   // ============= Architecture-specific graph covering methods. ===============
@@ -166,22 +169,12 @@ class InstructionSelector FINAL {
   MACHINE_OP_LIST(DECLARE_GENERATOR)
 #undef DECLARE_GENERATOR
 
-  void VisitInt32AddWithOverflow(Node* node, FlagsContinuation* cont);
-  void VisitInt32SubWithOverflow(Node* node, FlagsContinuation* cont);
-
-  void VisitWord32Test(Node* node, FlagsContinuation* cont);
-  void VisitWord64Test(Node* node, FlagsContinuation* cont);
-  void VisitWord32Compare(Node* node, FlagsContinuation* cont);
-  void VisitWord64Compare(Node* node, FlagsContinuation* cont);
-  void VisitFloat64Compare(Node* node, FlagsContinuation* cont);
-
   void VisitFinish(Node* node);
   void VisitParameter(Node* node);
   void VisitPhi(Node* node);
   void VisitProjection(Node* node);
   void VisitConstant(Node* node);
-  void VisitCall(Node* call, BasicBlock* continuation,
-                 BasicBlock* deoptimization);
+  void VisitCall(Node* call);
   void VisitGoto(BasicBlock* target);
   void VisitBranch(Node* input, BasicBlock* tbranch, BasicBlock* fbranch);
   void VisitReturn(Node* value);
@@ -190,7 +183,6 @@ class InstructionSelector FINAL {
 
   // ===========================================================================
 
-  Graph* graph() const { return sequence()->graph(); }
   Linkage* linkage() const { return sequence()->linkage(); }
   Schedule* schedule() const { return sequence()->schedule(); }
   InstructionSequence* sequence() const { return sequence_; }

@@ -57,7 +57,7 @@ class RawMachineAssembler : public GraphBuilder {
   MachineSignature* machine_sig() const { return machine_sig_; }
 
   Node* UndefinedConstant() {
-    Unique<Object> unique = Unique<Object>::CreateImmovable(
+    Unique<HeapObject> unique = Unique<HeapObject>::CreateImmovable(
         isolate()->factory()->undefined_value());
     return NewNode(common()->HeapConstant(unique));
   }
@@ -86,8 +86,8 @@ class RawMachineAssembler : public GraphBuilder {
   Node* Float64Constant(double value) {
     return NewNode(common()->Float64Constant(value));
   }
-  Node* HeapConstant(Handle<Object> object) {
-    Unique<Object> val = Unique<Object>::CreateUninitialized(object);
+  Node* HeapConstant(Handle<HeapObject> object) {
+    Unique<HeapObject> val = Unique<HeapObject>::CreateUninitialized(object);
     return NewNode(common()->HeapConstant(val));
   }
 
@@ -224,6 +224,9 @@ class RawMachineAssembler : public GraphBuilder {
   }
   Node* Int32Mul(Node* a, Node* b) {
     return NewNode(machine()->Int32Mul(), a, b);
+  }
+  Node* Int32MulHigh(Node* a, Node* b) {
+    return NewNode(machine()->Int32MulHigh(), a, b);
   }
   Node* Int32Div(Node* a, Node* b) {
     return NewNode(machine()->Int32Div(), a, b);

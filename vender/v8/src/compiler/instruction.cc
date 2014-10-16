@@ -6,6 +6,7 @@
 
 #include "src/compiler/common-operator.h"
 #include "src/compiler/generic-node-inl.h"
+#include "src/compiler/graph.h"
 
 namespace v8 {
 namespace internal {
@@ -291,7 +292,7 @@ std::ostream& operator<<(std::ostream& os, const Instruction& instr) {
       os << " " << *instr.InputAt(i);
     }
   }
-  return os << "\n";
+  return os;
 }
 
 
@@ -316,32 +317,67 @@ std::ostream& operator<<(std::ostream& os, const Constant& constant) {
 }
 
 
-Label* InstructionSequence::GetLabel(BasicBlock* block) {
-  return GetBlockStart(block)->label();
+InstructionSequence::InstructionSequence(Linkage* linkage, Graph* graph,
+                                         Schedule* schedule)
+    : zone_(schedule->zone()),
+      node_count_(graph->NodeCount()),
+      node_map_(zone()->NewArray<int>(node_count_)),
+      block_data_(static_cast<int>(schedule->BasicBlockCount()), zone()),
+      linkage_(linkage),
+      schedule_(schedule),
+      constants_(ConstantMap::key_compare(),
+                 ConstantMap::allocator_type(zone())),
+      immediates_(zone()),
+      instructions_(zone()),
+      next_virtual_register_(0),
+      pointer_maps_(zone()),
+      doubles_(std::less<int>(), VirtualRegisterSet::allocator_type(zone())),
+      references_(std::less<int>(), VirtualRegisterSet::allocator_type(zone())),
+      deoptimization_entries_(zone()) {
+  for (int i = 0; i < node_count_; ++i) {
+    node_map_[i] = -1;
+  }
 }
 
 
-BlockStartInstruction* InstructionSequence::GetBlockStart(BasicBlock* block) {
-  return BlockStartInstruction::cast(InstructionAt(block->code_start()));
+int InstructionSequence::GetVirtualRegister(const Node* node) {
+  if (node_map_[node->id()] == -1) {
+    node_map_[node->id()] = NextVirtualRegister();
+  }
+  return node_map_[node->id()];
+}
+
+
+Label* InstructionSequence::GetLabel(BasicBlock::RpoNumber rpo) {
+  return GetBlockStart(rpo)->label();
+}
+
+
+BlockStartInstruction* InstructionSequence::GetBlockStart(
+    BasicBlock::RpoNumber rpo) {
+  BlockStartInstruction* block_start =
+      BlockStartInstruction::cast(InstructionAt(code_start(rpo)));
+  DCHECK_EQ(rpo.ToInt(), block_start->rpo_number().ToInt());
+  return block_start;
 }
 
 
 void InstructionSequence::StartBlock(BasicBlock* block) {
-  block->set_code_start(static_cast<int>(instructions_.size()));
+  set_code_start(block, static_cast<int>(instructions_.size()));
   BlockStartInstruction* block_start =
       BlockStartInstruction::New(zone(), block);
-  AddInstruction(block_start, block);
+  AddInstruction(block_start);
 }
 
 
 void InstructionSequence::EndBlock(BasicBlock* block) {
   int end = static_cast<int>(instructions_.size());
-  DCHECK(block->code_start() >= 0 && block->code_start() < end);
-  block->set_code_end(end);
+  DCHECK(code_start(block) >= 0 && code_start(block) < end);
+  set_code_end(block, end);
 }
 
 
-int InstructionSequence::AddInstruction(Instruction* instr, BasicBlock* block) {
+int InstructionSequence::AddInstruction(Instruction* instr) {
   // TODO(titzer): the order of these gaps is a holdover from Lithium.
   GapInstruction* gap = GapInstruction::New(zone());
   if (instr->IsControl()) instructions_.push_back(gap);
@@ -365,7 +401,8 @@ BasicBlock* InstructionSequence::GetBasicBlock(int instruction_index) {
     DCHECK_LE(0, instruction_index);
     Instruction* instruction = InstructionAt(instruction_index--);
     if (instruction->IsBlockStart()) {
-      return BlockStartInstruction::cast(instruction)->block();
+      return schedule()->rpo_order()->at(
+          BlockStartInstruction::cast(instruction)->rpo_number().ToSize());
     }
   }
 }
@@ -416,6 +453,78 @@ int InstructionSequence::GetFrameStateDescriptorCount() {
 }
 
 
+FrameStateDescriptor::FrameStateDescriptor(
+    Zone* zone, const FrameStateCallInfo& state_info, size_t parameters_count,
+    size_t locals_count, size_t stack_count, FrameStateDescriptor* outer_state)
+    : type_(state_info.type()),
+      bailout_id_(state_info.bailout_id()),
+      frame_state_combine_(state_info.state_combine()),
+      parameters_count_(parameters_count),
+      locals_count_(locals_count),
+      stack_count_(stack_count),
+      types_(zone),
+      outer_state_(outer_state),
+      jsfunction_(state_info.jsfunction()) {
+  types_.resize(GetSize(), kMachNone);
+}
+
+size_t FrameStateDescriptor::GetSize(OutputFrameStateCombine combine) const {
+  size_t size = parameters_count() + locals_count() + stack_count() +
+                (HasContext() ? 1 : 0);
+  switch (combine.kind()) {
+    case OutputFrameStateCombine::kPushOutput:
+      size += combine.GetPushCount();
+      break;
+    case OutputFrameStateCombine::kPokeAt:
+      break;
+  }
+  return size;
+}
+
+
+size_t FrameStateDescriptor::GetTotalSize() const {
+  size_t total_size = 0;
+  for (const FrameStateDescriptor* iter = this; iter != NULL;
+       iter = iter->outer_state_) {
+    total_size += iter->GetSize();
+  }
+  return total_size;
+}
+
+
+size_t FrameStateDescriptor::GetFrameCount() const {
+  size_t count = 0;
+  for (const FrameStateDescriptor* iter = this; iter != NULL;
+       iter = iter->outer_state_) {
+    ++count;
+  }
+  return count;
+}
+
+
+size_t FrameStateDescriptor::GetJSFrameCount() const {
+  size_t count = 0;
+  for (const FrameStateDescriptor* iter = this; iter != NULL;
+       iter = iter->outer_state_) {
+    if (iter->type_ == JS_FRAME) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+
+MachineType FrameStateDescriptor::GetType(size_t index) const {
+  return types_[index];
+}
+
+
+void FrameStateDescriptor::SetType(size_t index, MachineType type) {
+  DCHECK(index < GetSize());
+  types_[index] = type;
+}
+
+
 std::ostream& operator<<(std::ostream& os, const InstructionSequence& code) {
   for (size_t i = 0; i < code.immediates_.size(); ++i) {
     Constant constant = code.immediates_[i];
@@ -435,8 +544,8 @@ std::ostream& operator<<(std::ostream& os, const InstructionSequence& code) {
       os << " loop blocks: [" << block->rpo_number() << ", "
          << block->loop_end() << ")";
     }
-    os << "  instructions: [" << block->code_start() << ", "
-       << block->code_end() << ")\n  predecessors:";
+    os << "  instructions: [" << code.code_start(block) << ", "
+       << code.code_end(block) << ")\n  predecessors:";
 
     for (BasicBlock::Predecessors::iterator iter = block->predecessors_begin();
          iter != block->predecessors_end(); ++iter) {
@@ -458,11 +567,11 @@ std::ostream& operator<<(std::ostream& os, const InstructionSequence& code) {
     }
 
     ScopedVector<char> buf(32);
-    for (int j = block->first_instruction_index();
-         j <= block->last_instruction_index(); j++) {
+    for (int j = code.first_instruction_index(block);
+         j <= code.last_instruction_index(block); j++) {
       // TODO(svenpanne) Add some basic formatting to our streams.
       SNPrintF(buf, "%5d", j);
-      os << "   " << buf.start() << ": " << *code.InstructionAt(j);
+      os << "   " << buf.start() << ": " << *code.InstructionAt(j) << "\n";
     }
 
     os << "  " << block->control();

@@ -657,6 +657,8 @@ class MarkCompactCollector {
   // to artificially keep AllocationSites alive for a time.
   void MarkAllocationSite(AllocationSite* site);
 
+  bool IsMarkingDequeEmpty();
+
  private:
   class SweeperTask;
 
@@ -823,6 +825,10 @@ class MarkCompactCollector {
   // We have to remove all encountered weak maps from the list of weak
   // collections when incremental marking is aborted.
   void AbortWeakCollections();
+
+
+  void ProcessAndClearWeakCells();
+  void AbortWeakCells();
 
   // -----------------------------------------------------------------------
   // Phase 2: Sweeping to clear mark bits and free non-live objects for

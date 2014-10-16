@@ -237,7 +237,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArchJmp:
-      __ jmp(code_->GetLabel(i.InputBlock(0)));
+      __ jmp(code_->GetLabel(i.InputRpo(0)));
       break;
     case kArchNop:
       // don't emit code for nops.
@@ -286,6 +286,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     case kX64Imul:
       ASSEMBLE_MULT(imulq);
+      break;
+    case kX64ImulHigh32:
+      __ imull(i.InputRegister(1));
       break;
     case kX64Idiv32:
       __ cdq();
@@ -409,10 +412,18 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       }
       break;
     case kSSECvtss2sd:
-      __ cvtss2sd(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      if (instr->InputAt(0)->IsDoubleRegister()) {
+        __ cvtss2sd(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      } else {
+        __ cvtss2sd(i.OutputDoubleRegister(), i.InputOperand(0));
+      }
       break;
     case kSSECvtsd2ss:
-      __ cvtsd2ss(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      if (instr->InputAt(0)->IsDoubleRegister()) {
+        __ cvtsd2ss(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      } else {
+        __ cvtsd2ss(i.OutputDoubleRegister(), i.InputOperand(0));
+      }
       break;
     case kSSEFloat64ToInt32:
       if (instr->InputAt(0)->IsDoubleRegister()) {
@@ -579,8 +590,10 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr,
 
   // Emit a branch. The true and false targets are always the last two inputs
   // to the instruction.
-  BasicBlock* tblock = i.InputBlock(static_cast<int>(instr->InputCount()) - 2);
-  BasicBlock* fblock = i.InputBlock(static_cast<int>(instr->InputCount()) - 1);
+  BasicBlock::RpoNumber tblock =
+      i.InputRpo(static_cast<int>(instr->InputCount()) - 2);
+  BasicBlock::RpoNumber fblock =
+      i.InputRpo(static_cast<int>(instr->InputCount()) - 1);
   bool fallthru = IsNextInAssemblyOrder(fblock);
   Label* tlabel = code()->GetLabel(tblock);
   Label* flabel = fallthru ? &done : code()->GetLabel(fblock);
@@ -655,7 +668,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
   // Materialize a full 64-bit 1 or 0 value. The result register is always the
   // last output of the instruction.
   Label check;
-  DCHECK_NE(0, instr->OutputCount());
+  DCHECK_NE(0, static_cast<int>(instr->OutputCount()));
   Register reg = i.OutputRegister(static_cast<int>(instr->OutputCount() - 1));
   Condition cc = no_condition;
   switch (condition) {
@@ -861,7 +874,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       switch (src.type()) {
         case Constant::kInt32:
           // TODO(dcarney): don't need scratch in this case.
-          __ movq(dst, Immediate(src.ToInt32()));
+          __ Set(dst, src.ToInt32());
           break;
         case Constant::kInt64:
           __ Set(dst, src.ToInt64());

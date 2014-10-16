@@ -58,6 +58,9 @@
     <Filter Include="Source Files\third_party">
       <UniqueIdentifier>{517d88ea-d211-bcd7-bc22-b7165eec24c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\third_party\fdlibm">
+      <UniqueIdentifier>{150701b7-2672-7bd0-aace-02cbfb72715d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\third_party\kernel">
       <UniqueIdentifier>{8d80d09c-1f8c-ae2d-f57a-12f0757989f5}</UniqueIdentifier>
     </Filter>
@@ -171,6 +174,9 @@
     <ClInclude Include="src\base\atomicops_internals_mips_gcc.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
+    <ClInclude Include="src\base\atomicops_internals_portable.h">
+      <Filter>Source Files\base</Filter>
+    </ClInclude>
     <ClInclude Include="src\base\atomicops_internals_tsan.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
@@ -196,6 +202,9 @@
       <Filter>Source Files\base</Filter>
     </ClInclude>
     <ClInclude Include="src\base\flags.h">
+      <Filter>Source Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\base\functional.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
     <ClInclude Include="src\base\lazy-instance.h">
@@ -1044,6 +1053,9 @@
     <ClInclude Include="src\strtod.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\third_party\fdlibm\fdlibm.h">
+      <Filter>Source Files\third_party\fdlibm</Filter>
+    </ClInclude>
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h">
       <Filter>Source Files\third_party\kernel\tools\perf\util</Filter>
     </ClInclude>
@@ -1081,6 +1093,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\unbound-queue.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode-decoder.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\unicode-inl.h">
@@ -1200,9 +1215,6 @@
     <ClInclude Include="src\zone.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="third_party\fdlibm\fdlibm.h">
-      <Filter>third_party\fdlibm</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\accessors.cc">
@@ -1251,6 +1263,9 @@
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\division-by-constant.cc">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\functional.cc">
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\logging.cc">
@@ -1323,6 +1338,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\cached-powers.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\char-predicates.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\checks.cc">
@@ -1913,6 +1931,12 @@
     <ClCompile Include="src\runtime-profiler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\runtime\runtime-api.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-array.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="src\runtime\runtime-classes.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
@@ -1937,6 +1961,9 @@
     <ClCompile Include="src\runtime\runtime-i18n.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="src\runtime\runtime-internal.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="src\runtime\runtime-json.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
@@ -1950,6 +1977,9 @@
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-numbers.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-object.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-observe.cc">
@@ -2021,6 +2051,9 @@
     <ClCompile Include="src\strtod.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\third_party\fdlibm\fdlibm.cc">
+      <Filter>Source Files\third_party\fdlibm</Filter>
+    </ClCompile>
     <ClCompile Include="src\token.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -2037,6 +2070,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\typing.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\unicode-decoder.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\unicode.cc">
@@ -2161,9 +2197,6 @@
     </ClCompile>
     <ClCompile Include="src\zone.cc">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="third_party\fdlibm\fdlibm.cc">
-      <Filter>third_party\fdlibm</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

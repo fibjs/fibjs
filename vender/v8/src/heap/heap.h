@@ -52,6 +52,7 @@ namespace internal {
   V(Map, fixed_cow_array_map, FixedCOWArrayMap)                                \
   V(Map, fixed_double_array_map, FixedDoubleArrayMap)                          \
   V(Map, constant_pool_array_map, ConstantPoolArrayMap)                        \
+  V(Map, weak_cell_map, WeakCellMap)                                           \
   V(Oddball, no_interceptor_result_sentinel, NoInterceptorResultSentinel)      \
   V(Map, hash_table_map, HashTableMap)                                         \
   V(Map, ordered_hash_table_map, OrderedHashTableMap)                          \
@@ -223,6 +224,7 @@ namespace internal {
   V(fixed_cow_array_map)                \
   V(fixed_double_array_map)             \
   V(constant_pool_array_map)            \
+  V(weak_cell_map)                      \
   V(no_interceptor_result_sentinel)     \
   V(hash_table_map)                     \
   V(ordered_hash_table_map)             \
@@ -340,7 +342,10 @@ namespace internal {
   V(intl_initialized_marker_symbol) \
   V(intl_impl_object_symbol)        \
   V(promise_debug_marker_symbol)    \
-  V(promise_has_handler_symbol)
+  V(promise_has_handler_symbol)     \
+  V(class_script_symbol)            \
+  V(class_start_position_symbol)    \
+  V(class_end_position_symbol)
 
 // Forward declarations.
 class HeapStats;
@@ -542,6 +547,10 @@ class Heap {
   // code that looks here, because it is faster than loading from the static
   // jslimit_/real_jslimit_ variable in the StackGuard.
   void SetStackLimits();
+
+  // Notifies the heap that is ok to start marking or other activities that
+  // should not happen during deserialization.
+  void NotifyDeserializationComplete();
 
   // Returns whether SetUp has been called.
   bool HasBeenSetUp();
@@ -821,6 +830,11 @@ class Heap {
   Object* encountered_weak_collections() const {
     return encountered_weak_collections_;
   }
+
+  void set_encountered_weak_cells(Object* weak_cell) {
+    encountered_weak_cells_ = weak_cell;
+  }
+  Object* encountered_weak_cells() const { return encountered_weak_cells_; }
 
   // Number of mark-sweeps.
   unsigned int ms_count() { return ms_count_; }
@@ -1378,6 +1392,8 @@ class Heap {
   inline void OnMoveEvent(HeapObject* target, HeapObject* source,
                           int size_in_bytes);
 
+  bool deserialization_complete() const { return deserialization_complete_; }
+
  protected:
   // Methods made available to tests.
 
@@ -1549,6 +1565,8 @@ class Heap {
   // marking. It is initialized during marking, destroyed after marking and
   // contains Smi(0) while marking is not active.
   Object* encountered_weak_collections_;
+
+  Object* encountered_weak_cells_;
 
   StoreBufferRebuilder store_buffer_rebuilder_;
 
@@ -1830,6 +1848,8 @@ class Heap {
   // Allocate a tenured JS global property cell initialized with the hole.
   MUST_USE_RESULT AllocationResult AllocatePropertyCell();
 
+  MUST_USE_RESULT AllocationResult AllocateWeakCell(HeapObject* value);
+
   // Allocates a new utility object in the old generation.
   MUST_USE_RESULT AllocationResult AllocateStruct(InstanceType type);
 
@@ -1940,7 +1960,9 @@ class Heap {
 
   void SelectScavengingVisitorsTable();
 
-  void AdvanceIdleIncrementalMarking(intptr_t step_size);
+  void TryFinalizeIdleIncrementalMarking(
+      size_t idle_time_in_ms, size_t size_of_objects,
+      size_t mark_compact_speed_in_bytes_per_ms);
 
   bool WorthActivatingIncrementalMarking();
 
@@ -2033,6 +2055,8 @@ class Heap {
   base::Mutex relocation_mutex_;
 
   int gc_callbacks_depth_;
+
+  bool deserialization_complete_;
 
   friend class AlwaysAllocateScope;
   friend class Deserializer;

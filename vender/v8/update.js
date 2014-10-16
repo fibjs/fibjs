@@ -224,11 +224,9 @@ save_plat();
 
 clean_folder('include');
 clean_folder('src');
-clean_folder('third_party/fdlibm');
 
 cp_folder('include')
 cp_folder('src')
-cp_folder('third_party/fdlibm');
 
 cp_gen();
 

@@ -2716,6 +2716,7 @@ class HLoadRoot FINAL : public HTemplateInstruction<0> {
     // TODO(bmeurer): We'll need kDependsOnRoots once we add the
     // corresponding HStoreRoot instruction.
     SetDependsOnFlag(kCalls);
+    set_representation(Representation::Tagged());
   }
 
   virtual bool IsDeletable() const OVERRIDE { return true; }
@@ -4476,11 +4477,12 @@ class HIsStringAndBranch FINAL : public HUnaryControlInstruction {
   virtual int RedefinedOperandIndex() { return 0; }
 
  private:
-  HIsStringAndBranch(HValue* value,
-                     HBasicBlock* true_target = NULL,
+  HIsStringAndBranch(HValue* value, HBasicBlock* true_target = NULL,
                      HBasicBlock* false_target = NULL)
-    : HUnaryControlInstruction(value, true_target, false_target),
-      known_successor_index_(kNoKnownSuccessorIndex) { }
+      : HUnaryControlInstruction(value, true_target, false_target),
+        known_successor_index_(kNoKnownSuccessorIndex) {
+    set_representation(Representation::Tagged());
+  }
 
   int known_successor_index_;
 };
@@ -5473,12 +5475,12 @@ class HLoadGlobalGeneric FINAL : public HTemplateInstruction<2> {
   HValue* global_object() { return OperandAt(1); }
   Handle<String> name() const { return name_; }
   bool for_typeof() const { return for_typeof_; }
-  int slot() const {
-    DCHECK(FLAG_vector_ics && slot_ != AstNode::kInvalidFeedbackSlot);
+  FeedbackVectorSlot slot() const {
+    DCHECK(FLAG_vector_ics && !slot_.IsInvalid());
     return slot_;
   }
   Handle<FixedArray> feedback_vector() const { return feedback_vector_; }
-  void SetVectorAndSlot(Handle<FixedArray> vector, int slot) {
+  void SetVectorAndSlot(Handle<FixedArray> vector, FeedbackVectorSlot slot) {
     DCHECK(FLAG_vector_ics);
     feedback_vector_ = vector;
     slot_ = slot;
@@ -5497,7 +5499,7 @@ class HLoadGlobalGeneric FINAL : public HTemplateInstruction<2> {
                      Handle<String> name, bool for_typeof)
       : name_(name),
         for_typeof_(for_typeof),
-        slot_(AstNode::kInvalidFeedbackSlot) {
+        slot_(FeedbackVectorSlot::Invalid()) {
     SetOperandAt(0, context);
     SetOperandAt(1, global_object);
     set_representation(Representation::Tagged());
@@ -5507,7 +5509,7 @@ class HLoadGlobalGeneric FINAL : public HTemplateInstruction<2> {
   Handle<String> name_;
   bool for_typeof_;
   Handle<FixedArray> feedback_vector_;
-  int slot_;
+  FeedbackVectorSlot slot_;
 };
 
 
@@ -6373,11 +6375,13 @@ class HLoadNamedField FINAL : public HTemplateInstruction<2> {
     return !access().IsInobject() || access().offset() >= size;
   }
   virtual Representation RequiredInputRepresentation(int index) OVERRIDE {
-    if (index == 0 && access().IsExternalMemory()) {
+    if (index == 0) {
       // object must be external in case of external memory access
-      return Representation::External();
+      return access().IsExternalMemory() ? Representation::External()
+                                         : Representation::Tagged();
     }
-    return Representation::Tagged();
+    DCHECK(index == 1);
+    return Representation::None();
   }
   virtual Range* InferRange(Zone* zone) OVERRIDE;
   virtual std::ostream& PrintDataTo(std::ostream& os) const OVERRIDE;  // NOLINT
@@ -6476,12 +6480,12 @@ class HLoadNamedGeneric FINAL : public HTemplateInstruction<2> {
   HValue* object() const { return OperandAt(1); }
   Handle<Object> name() const { return name_; }
 
-  int slot() const {
-    DCHECK(FLAG_vector_ics && slot_ != AstNode::kInvalidFeedbackSlot);
+  FeedbackVectorSlot slot() const {
+    DCHECK(FLAG_vector_ics && !slot_.IsInvalid());
     return slot_;
   }
   Handle<FixedArray> feedback_vector() const { return feedback_vector_; }
-  void SetVectorAndSlot(Handle<FixedArray> vector, int slot) {
+  void SetVectorAndSlot(Handle<FixedArray> vector, FeedbackVectorSlot slot) {
     DCHECK(FLAG_vector_ics);
     feedback_vector_ = vector;
     slot_ = slot;
@@ -6497,7 +6501,7 @@ class HLoadNamedGeneric FINAL : public HTemplateInstruction<2> {
 
  private:
   HLoadNamedGeneric(HValue* context, HValue* object, Handle<Object> name)
-      : name_(name), slot_(AstNode::kInvalidFeedbackSlot) {
+      : name_(name), slot_(FeedbackVectorSlot::Invalid()) {
     SetOperandAt(0, context);
     SetOperandAt(1, object);
     set_representation(Representation::Tagged());
@@ -6506,7 +6510,7 @@ class HLoadNamedGeneric FINAL : public HTemplateInstruction<2> {
 
   Handle<Object> name_;
   Handle<FixedArray> feedback_vector_;
-  int slot_;
+  FeedbackVectorSlot slot_;
 };
 
 
@@ -6752,12 +6756,12 @@ class HLoadKeyedGeneric FINAL : public HTemplateInstruction<3> {
   HValue* object() const { return OperandAt(0); }
   HValue* key() const { return OperandAt(1); }
   HValue* context() const { return OperandAt(2); }
-  int slot() const {
-    DCHECK(FLAG_vector_ics && slot_ != AstNode::kInvalidFeedbackSlot);
+  FeedbackVectorSlot slot() const {
+    DCHECK(FLAG_vector_ics && !slot_.IsInvalid());
     return slot_;
   }
   Handle<FixedArray> feedback_vector() const { return feedback_vector_; }
-  void SetVectorAndSlot(Handle<FixedArray> vector, int slot) {
+  void SetVectorAndSlot(Handle<FixedArray> vector, FeedbackVectorSlot slot) {
     DCHECK(FLAG_vector_ics);
     feedback_vector_ = vector;
     slot_ = slot;
@@ -6776,7 +6780,7 @@ class HLoadKeyedGeneric FINAL : public HTemplateInstruction<3> {
 
  private:
   HLoadKeyedGeneric(HValue* context, HValue* obj, HValue* key)
-      : slot_(AstNode::kInvalidFeedbackSlot) {
+      : slot_(FeedbackVectorSlot::Invalid()) {
     set_representation(Representation::Tagged());
     SetOperandAt(0, obj);
     SetOperandAt(1, key);
@@ -6785,7 +6789,7 @@ class HLoadKeyedGeneric FINAL : public HTemplateInstruction<3> {
   }
 
   Handle<FixedArray> feedback_vector_;
-  int slot_;
+  FeedbackVectorSlot slot_;
 };
 
 

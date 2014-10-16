@@ -20,6 +20,7 @@
 #include "src/property-details.h"
 #include "src/smart-pointers.h"
 #include "src/unicode-inl.h"
+#include "src/unicode-decoder.h"
 #include "src/zone.h"
 
 #if V8_TARGET_ARCH_ARM
@@ -142,6 +143,7 @@
 //       - DebugInfo
 //       - BreakPointInfo
 //       - CodeCache
+//     - WeakCell
 //
 // Formats of Object*:
 //  Smi:        [31 bit signed int] 0
@@ -229,6 +231,9 @@ static inline bool IsGrowStoreMode(KeyedAccessStoreMode store_mode) {
   return store_mode >= STORE_AND_GROW_NO_TRANSITION &&
       store_mode <= STORE_AND_GROW_TRANSITION_HOLEY_DOUBLE_TO_OBJECT;
 }
+
+
+enum IcCheckType { ELEMENT, PROPERTY };
 
 
 // Setter that skips the write barrier if mode is SKIP_WRITE_BARRIER.
@@ -421,6 +426,7 @@ const int kStubMinorKeyBits = kSmiValueSize - kStubMajorKeyBits - 1;
   V(FIXED_DOUBLE_ARRAY_TYPE)                                    \
   V(CONSTANT_POOL_ARRAY_TYPE)                                   \
   V(SHARED_FUNCTION_INFO_TYPE)                                  \
+  V(WEAK_CELL_TYPE)                                             \
                                                                 \
   V(JS_MESSAGE_OBJECT_TYPE)                                     \
                                                                 \
@@ -717,6 +723,7 @@ enum InstanceType {
   FIXED_ARRAY_TYPE,
   CONSTANT_POOL_ARRAY_TYPE,
   SHARED_FUNCTION_INFO_TYPE,
+  WEAK_CELL_TYPE,
 
   // All the following types are subtypes of JSReceiver, which corresponds to
   // objects in the JS sense. The first and the last type in this range are
@@ -980,6 +987,7 @@ template <class C> inline bool Is(Object* obj);
   V(AccessCheckNeeded)             \
   V(Cell)                          \
   V(PropertyCell)                  \
+  V(WeakCell)                      \
   V(ObjectHashTable)               \
   V(WeakHashTable)                 \
   V(OrderedHashTable)
@@ -1122,8 +1130,8 @@ class Object {
       StorePropertyMode data_store_mode = NORMAL_PROPERTY);
   MUST_USE_RESULT static MaybeHandle<Object> WriteToReadOnlyProperty(
       LookupIterator* it, Handle<Object> value, StrictMode strict_mode);
-  static Handle<Object> SetDataProperty(LookupIterator* it,
-                                        Handle<Object> value);
+  MUST_USE_RESULT static MaybeHandle<Object> SetDataProperty(
+      LookupIterator* it, Handle<Object> value);
   MUST_USE_RESULT static MaybeHandle<Object> AddDataProperty(
       LookupIterator* it, Handle<Object> value, PropertyAttributes attributes,
       StrictMode strict_mode, StoreFromKeyed store_mode);
@@ -2207,10 +2215,9 @@ class JSObject: public JSReceiver {
   Context* GetCreationContext();
 
   // Enqueue change record for Object.observe. May cause GC.
-  static void EnqueueChangeRecord(Handle<JSObject> object,
-                                  const char* type,
-                                  Handle<Name> name,
-                                  Handle<Object> old_value);
+  MUST_USE_RESULT static MaybeHandle<Object> EnqueueChangeRecord(
+      Handle<JSObject> object, const char* type, Handle<Name> name,
+      Handle<Object> old_value);
 
  private:
   friend class DictionaryElementsAccessor;
@@ -3582,6 +3589,11 @@ class Dictionary: public HashTable<Derived, Shape, Key> {
       Handle<Object> value,
       PropertyDetails details);
 
+  // Returns iteration indices array for the |dictionary|.
+  // Values are direct indices in the |HashTable| array.
+  static Handle<FixedArray> BuildIterationIndicesArray(
+      Handle<Derived> dictionary);
+
  protected:
   // Generic at put operation.
   MUST_USE_RESULT static Handle<Derived> AtPut(
@@ -3598,7 +3610,9 @@ class Dictionary: public HashTable<Derived, Shape, Key> {
       uint32_t hash);
 
   // Generate new enumeration indices to avoid enumeration index overflow.
-  static void GenerateNewEnumerationIndices(Handle<Derived> dictionary);
+  // Returns iteration indices array for the |dictionary|.
+  static Handle<FixedArray> GenerateNewEnumerationIndices(
+      Handle<Derived> dictionary);
   static const int kMaxNumberKeyIndex = DerivedHashTable::kPrefixStartIndex;
   static const int kNextEnumerationIndexIndex = kMaxNumberKeyIndex + 1;
 };
@@ -3627,7 +3641,7 @@ class NameDictionary: public Dictionary<NameDictionary,
 
   // Copies enumerable keys to preallocated fixed array.
   void CopyEnumKeysTo(FixedArray* storage);
-  inline static void DoGenerateNewEnumerationIndices(
+  inline static Handle<FixedArray> DoGenerateNewEnumerationIndices(
       Handle<NameDictionary> dictionary);
 
   // Find entry for key, otherwise return kNotFound. Optimized version of
@@ -5309,6 +5323,7 @@ class Code: public HeapObject {
   // compilation stub.
   static void MakeCodeAgeSequenceYoung(byte* sequence, Isolate* isolate);
   static void MarkCodeAsExecuted(byte* sequence, Isolate* isolate);
+  void MakeYoung();
   void MakeOlder(MarkingParity);
   static bool IsYoungSequence(Isolate* isolate, byte* sequence);
   bool IsOld();
@@ -6548,6 +6563,7 @@ class Script: public Struct {
   V(String.prototype, charCodeAt, StringCharCodeAt) \
   V(String.prototype, charAt, StringCharAt)         \
   V(String, fromCharCode, StringFromCharCode)       \
+  V(Math, random, MathRandom)                       \
   V(Math, floor, MathFloor)                         \
   V(Math, round, MathRound)                         \
   V(Math, ceil, MathCeil)                           \
@@ -6558,6 +6574,13 @@ class Script: public Struct {
   V(Math, pow, MathPow)                             \
   V(Math, max, MathMax)                             \
   V(Math, min, MathMin)                             \
+  V(Math, cos, MathCos)                             \
+  V(Math, sin, MathSin)                             \
+  V(Math, tan, MathTan)                             \
+  V(Math, acos, MathAcos)                           \
+  V(Math, asin, MathAsin)                           \
+  V(Math, atan, MathAtan)                           \
+  V(Math, atan2, MathAtan2)                         \
   V(Math, imul, MathImul)                           \
   V(Math, clz32, MathClz32)                         \
   V(Math, fround, MathFround)
@@ -6808,6 +6831,9 @@ class SharedFunctionInfo: public HeapObject {
   // Indicates that this function is an asm function.
   DECL_BOOLEAN_ACCESSORS(asm_function)
 
+  // Indicates that the the shared function info is deserialized from cache.
+  DECL_BOOLEAN_ACCESSORS(deserialized)
+
   inline FunctionKind kind();
   inline void set_kind(FunctionKind kind);
 
@@ -7040,6 +7066,7 @@ class SharedFunctionInfo: public HeapObject {
     kIsGenerator,
     kIsConciseMethod,
     kIsAsmFunction,
+    kDeserialized,
     kCompilerHintsCount  // Pseudo entry
   };
 
@@ -9540,6 +9567,35 @@ class PropertyCell: public Cell {
  private:
   DECL_ACCESSORS(type_raw, Object)
   DISALLOW_IMPLICIT_CONSTRUCTORS(PropertyCell);
+};
+
+
+class WeakCell : public HeapObject {
+ public:
+  inline HeapObject* value() const;
+
+  // This should not be called by anyone except GC.
+  inline void clear(HeapObject* undefined);
+
+  // This should not be called by anyone except allocator.
+  inline void initialize(HeapObject* value);
+
+  DECL_ACCESSORS(next, Object)
+
+  DECLARE_CAST(WeakCell)
+
+  DECLARE_PRINTER(WeakCell)
+  DECLARE_VERIFIER(WeakCell)
+
+  // Layout description.
+  static const int kValueOffset = HeapObject::kHeaderSize;
+  static const int kNextOffset = kValueOffset + kPointerSize;
+  static const int kSize = kNextOffset + kPointerSize;
+
+  typedef FixedBodyDescriptor<kValueOffset, kSize, kSize> BodyDescriptor;
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(WeakCell);
 };
 
 

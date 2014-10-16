@@ -509,7 +509,7 @@ Handle<JSFunction> Genesis::CreateEmptyFunction(Isolate* isolate) {
     // prototype, otherwise the missing initial_array_prototype will cause
     // assertions during startup.
     native_context()->set_initial_array_prototype(*prototype);
-    Accessors::FunctionSetPrototype(object_fun, prototype);
+    Accessors::FunctionSetPrototype(object_fun, prototype).Assert();
   }
 
   // Allocate the empty function as the prototype for function ECMAScript
@@ -1505,12 +1505,6 @@ static Handle<JSObject> ResolveBuiltinIdHolder(Handle<Context> native_context,
           .ToHandleChecked();                                               \
   native_context()->set_##var(Type::cast(*var##_native));
 
-#define INSTALL_NATIVE_MATH(name)                                    \
-  {                                                                  \
-    Handle<Object> fun =                                             \
-        ResolveBuiltinIdHolder(native_context(), "Math." #name);     \
-    native_context()->set_math_##name##_fun(JSFunction::cast(*fun)); \
-  }
 
 void Genesis::InstallNativeFunctions() {
   HandleScope scope(isolate());
@@ -1557,26 +1551,6 @@ void Genesis::InstallNativeFunctions() {
   INSTALL_NATIVE(Symbol, "symbolIterator", iterator_symbol);
   INSTALL_NATIVE(Symbol, "symbolUnscopables", unscopables_symbol);
   INSTALL_NATIVE(JSFunction, "ArrayValues", array_values_iterator);
-
-  INSTALL_NATIVE_MATH(abs)
-  INSTALL_NATIVE_MATH(acos)
-  INSTALL_NATIVE_MATH(asin)
-  INSTALL_NATIVE_MATH(atan)
-  INSTALL_NATIVE_MATH(atan2)
-  INSTALL_NATIVE_MATH(ceil)
-  INSTALL_NATIVE_MATH(cos)
-  INSTALL_NATIVE_MATH(exp)
-  INSTALL_NATIVE_MATH(floor)
-  INSTALL_NATIVE_MATH(imul)
-  INSTALL_NATIVE_MATH(log)
-  INSTALL_NATIVE_MATH(max)
-  INSTALL_NATIVE_MATH(min)
-  INSTALL_NATIVE_MATH(pow)
-  INSTALL_NATIVE_MATH(random)
-  INSTALL_NATIVE_MATH(round)
-  INSTALL_NATIVE_MATH(sin)
-  INSTALL_NATIVE_MATH(sqrt)
-  INSTALL_NATIVE_MATH(tan)
 }
 
 
@@ -1699,7 +1673,7 @@ bool Genesis::InstallNatives() {
         isolate()->initial_object_prototype(), Builtins::kIllegal);
     Handle<JSObject> prototype =
         factory()->NewJSObject(isolate()->object_function(), TENURED);
-    Accessors::FunctionSetPrototype(script_fun, prototype);
+    Accessors::FunctionSetPrototype(script_fun, prototype).Assert();
     native_context()->set_script_function(*script_fun);
 
     Handle<Map> script_map = Handle<Map>(script_fun->initial_map());
@@ -1841,7 +1815,7 @@ bool Genesis::InstallNatives() {
         isolate()->initial_object_prototype(), Builtins::kIllegal);
     Handle<JSObject> prototype =
         factory()->NewJSObject(isolate()->object_function(), TENURED);
-    Accessors::FunctionSetPrototype(opaque_reference_fun, prototype);
+    Accessors::FunctionSetPrototype(opaque_reference_fun, prototype).Assert();
     native_context()->set_opaque_reference_function(*opaque_reference_fun);
   }
 
@@ -2590,20 +2564,24 @@ void Genesis::MakeFunctionInstancePrototypeWritable() {
 class NoTrackDoubleFieldsForSerializerScope {
  public:
   explicit NoTrackDoubleFieldsForSerializerScope(Isolate* isolate)
-      : flag_(FLAG_track_double_fields) {
+      : flag_(FLAG_track_double_fields), enabled_(false) {
     if (isolate->serializer_enabled()) {
       // Disable tracking double fields because heap numbers treated as
       // immutable by the serializer.
       FLAG_track_double_fields = false;
+      enabled_ = true;
     }
   }
 
   ~NoTrackDoubleFieldsForSerializerScope() {
-    FLAG_track_double_fields = flag_;
+    if (enabled_) {
+      FLAG_track_double_fields = flag_;
+    }
   }
 
  private:
   bool flag_;
+  bool enabled_;
 };
 
 

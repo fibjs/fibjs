@@ -133,7 +133,8 @@ Heap::Heap()
       configured_(false),
       external_string_table_(this),
       chunks_queued_for_free_(NULL),
-      gc_callbacks_depth_(0) {
+      gc_callbacks_depth_(0),
+      deserialization_complete_(false) {
 // Allow build-time customization of the max semispace size. Building
 // V8 with snapshots and a non-default max semispace size is much
 // easier if you can define it as part of the build environment.
@@ -149,6 +150,7 @@ Heap::Heap()
   set_array_buffers_list(Smi::FromInt(0));
   set_allocation_sites_list(Smi::FromInt(0));
   set_encountered_weak_collections(Smi::FromInt(0));
+  set_encountered_weak_cells(Smi::FromInt(0));
   // Put a dummy entry in the remembered pages so we can find the list the
   // minidump even if there are no real unmapped pages.
   RememberUnmappedPage(NULL, false);
@@ -1508,6 +1510,8 @@ void Heap::Scavenge() {
 
   // Copy objects reachable from the encountered weak collections list.
   scavenge_visitor.VisitPointer(&encountered_weak_collections_);
+  // Copy objects reachable from the encountered weak cells.
+  scavenge_visitor.VisitPointer(&encountered_weak_cells_);
 
   // Copy objects reachable from the code flushing candidates list.
   MarkCompactCollector* collector = mark_compact_collector();
@@ -2558,6 +2562,7 @@ bool Heap::CreateInitialMaps() {
 
     ALLOCATE_MAP(CELL_TYPE, Cell::kSize, cell)
     ALLOCATE_MAP(PROPERTY_CELL_TYPE, PropertyCell::kSize, global_property_cell)
+    ALLOCATE_MAP(WEAK_CELL_TYPE, WeakCell::kSize, weak_cell)
     ALLOCATE_MAP(FILLER_TYPE, kPointerSize, one_pointer_filler)
     ALLOCATE_MAP(FILLER_TYPE, 2 * kPointerSize, two_pointer_filler)
 
@@ -2680,6 +2685,22 @@ AllocationResult Heap::AllocatePropertyCell() {
                            SKIP_WRITE_BARRIER);
   cell->set_value(the_hole_value());
   cell->set_type(HeapType::None());
+  return result;
+}
+
+
+AllocationResult Heap::AllocateWeakCell(HeapObject* value) {
+  int size = WeakCell::kSize;
+  STATIC_ASSERT(WeakCell::kSize <= Page::kMaxRegularHeapObjectSize);
+  HeapObject* result;
+  {
+    AllocationResult allocation =
+        AllocateRaw(size, OLD_POINTER_SPACE, OLD_POINTER_SPACE);
+    if (!allocation.To(&result)) return allocation;
+  }
+  result->set_map_no_write_barrier(weak_cell_map());
+  WeakCell::cast(result)->initialize(value);
+  WeakCell::cast(result)->set_next(undefined_value(), SKIP_WRITE_BARRIER);
   return result;
 }
 
@@ -4267,11 +4288,14 @@ void Heap::MakeHeapIterable() {
 }
 
 
-void Heap::AdvanceIdleIncrementalMarking(intptr_t step_size) {
-  incremental_marking()->Step(step_size,
-                              IncrementalMarking::NO_GC_VIA_STACK_GUARD, true);
-
-  if (incremental_marking()->IsComplete()) {
+void Heap::TryFinalizeIdleIncrementalMarking(
+    size_t idle_time_in_ms, size_t size_of_objects,
+    size_t mark_compact_speed_in_bytes_per_ms) {
+  if (incremental_marking()->IsComplete() ||
+      (mark_compact_collector()->IsMarkingDequeEmpty() &&
+       gc_idle_time_handler_.ShouldDoMarkCompact(
+           idle_time_in_ms, size_of_objects,
+           mark_compact_speed_in_bytes_per_ms))) {
     bool uncommit = false;
     if (gc_count_at_last_idle_gc_ == gc_count_) {
       // No GC since the last full GC, the mutator is probably not active.
@@ -4331,16 +4355,28 @@ bool Heap::IdleNotification(int idle_time_in_ms) {
       gc_idle_time_handler_.Compute(idle_time_in_ms, heap_state);
 
   bool result = false;
+  int actual_time_in_ms = 0;
   switch (action.type) {
     case DONE:
       result = true;
       break;
-    case DO_INCREMENTAL_MARKING:
+    case DO_INCREMENTAL_MARKING: {
       if (incremental_marking()->IsStopped()) {
         incremental_marking()->Start();
       }
-      AdvanceIdleIncrementalMarking(action.parameter);
+      incremental_marking()->Step(action.parameter,
+                                  IncrementalMarking::NO_GC_VIA_STACK_GUARD,
+                                  IncrementalMarking::FORCE_MARKING,
+                                  IncrementalMarking::DO_NOT_FORCE_COMPLETION);
+      actual_time_in_ms = static_cast<int>(timer.Elapsed().InMilliseconds());
+      int remaining_idle_time_in_ms = idle_time_in_ms - actual_time_in_ms;
+      if (remaining_idle_time_in_ms > 0) {
+        TryFinalizeIdleIncrementalMarking(
+            remaining_idle_time_in_ms, heap_state.size_of_objects,
+            heap_state.mark_compact_speed_in_bytes_per_ms);
+      }
       break;
+    }
     case DO_FULL_GC: {
       HistogramTimerScope scope(isolate_->counters()->gc_context());
       const char* message = contexts_disposed_
@@ -4360,20 +4396,20 @@ bool Heap::IdleNotification(int idle_time_in_ms) {
       break;
   }
 
-  int actual_time_ms = static_cast<int>(timer.Elapsed().InMilliseconds());
-  if (actual_time_ms <= idle_time_in_ms) {
+  actual_time_in_ms = static_cast<int>(timer.Elapsed().InMilliseconds());
+  if (actual_time_in_ms <= idle_time_in_ms) {
     if (action.type != DONE && action.type != DO_NOTHING) {
       isolate()->counters()->gc_idle_time_limit_undershot()->AddSample(
-          idle_time_in_ms - actual_time_ms);
+          idle_time_in_ms - actual_time_in_ms);
     }
   } else {
     isolate()->counters()->gc_idle_time_limit_overshot()->AddSample(
-        actual_time_ms - idle_time_in_ms);
+        actual_time_in_ms - idle_time_in_ms);
   }
 
   if (FLAG_trace_idle_notification) {
     PrintF("Idle notification: requested idle time %d ms, actual time %d ms [",
-           idle_time_in_ms, actual_time_ms);
+           idle_time_in_ms, actual_time_in_ms);
     action.Print();
     PrintF("]\n");
   }
@@ -5186,6 +5222,9 @@ void Heap::SetStackLimits() {
   roots_[kRealStackLimitRootIndex] = reinterpret_cast<Object*>(
       (isolate_->stack_guard()->real_jslimit() & ~kSmiTagMask) | kSmiTag);
 }
+
+
+void Heap::NotifyDeserializationComplete() { deserialization_complete_ = true; }
 
 
 void Heap::TearDown() {

@@ -12,10 +12,10 @@
 
 #include "src/compiler/common-operator.h"
 #include "src/compiler/frame.h"
-#include "src/compiler/graph.h"
 #include "src/compiler/instruction-codes.h"
 #include "src/compiler/opcodes.h"
 #include "src/compiler/schedule.h"
+#include "src/compiler/source-position.h"
 // TODO(titzer): don't include the macro-assembler?
 #include "src/macro-assembler.h"
 #include "src/zone-allocator.h"
@@ -34,8 +34,8 @@ const InstructionCode kSourcePositionInstruction = -3;
 
 
 #define INSTRUCTION_OPERAND_LIST(V)              \
-  V(Constant, CONSTANT, 128)                     \
-  V(Immediate, IMMEDIATE, 128)                   \
+  V(Constant, CONSTANT, 0)                       \
+  V(Immediate, IMMEDIATE, 0)                     \
   V(StackSlot, STACK_SLOT, 128)                  \
   V(DoubleStackSlot, DOUBLE_STACK_SLOT, 128)     \
   V(Register, REGISTER, Register::kNumRegisters) \
@@ -596,8 +596,9 @@ class GapInstruction : public Instruction {
 // TODO(titzer): move code_start and code_end from BasicBlock to here.
 class BlockStartInstruction FINAL : public GapInstruction {
  public:
-  BasicBlock* block() const { return block_; }
   Label* label() { return &label_; }
+  BasicBlock::RpoNumber rpo_number() const { return rpo_number_; }
+  BasicBlock::Id id() const { return id_; }
 
   static BlockStartInstruction* New(Zone* zone, BasicBlock* block) {
     void* buffer = zone->New(sizeof(BlockStartInstruction));
@@ -611,9 +612,12 @@ class BlockStartInstruction FINAL : public GapInstruction {
 
  private:
   explicit BlockStartInstruction(BasicBlock* block)
-      : GapInstruction(kBlockStartInstruction), block_(block) {}
+      : GapInstruction(kBlockStartInstruction),
+        id_(block->id()),
+        rpo_number_(block->GetRpoNumber()) {}
 
-  BasicBlock* block_;
+  BasicBlock::Id id_;
+  BasicBlock::RpoNumber rpo_number_;
   Label label_;
 };
 
@@ -711,18 +715,10 @@ class Constant FINAL {
 
 class FrameStateDescriptor : public ZoneObject {
  public:
-  FrameStateDescriptor(const FrameStateCallInfo& state_info,
+  FrameStateDescriptor(Zone* zone, const FrameStateCallInfo& state_info,
                        size_t parameters_count, size_t locals_count,
                        size_t stack_count,
-                       FrameStateDescriptor* outer_state = NULL)
-      : type_(state_info.type()),
-        bailout_id_(state_info.bailout_id()),
-        frame_state_combine_(state_info.state_combine()),
-        parameters_count_(parameters_count),
-        locals_count_(locals_count),
-        stack_count_(stack_count),
-        outer_state_(outer_state),
-        jsfunction_(state_info.jsfunction()) {}
+                       FrameStateDescriptor* outer_state = NULL);
 
   FrameStateType type() const { return type_; }
   BailoutId bailout_id() const { return bailout_id_; }
@@ -732,51 +728,16 @@ class FrameStateDescriptor : public ZoneObject {
   size_t stack_count() const { return stack_count_; }
   FrameStateDescriptor* outer_state() const { return outer_state_; }
   MaybeHandle<JSFunction> jsfunction() const { return jsfunction_; }
+  bool HasContext() const { return type_ == JS_FRAME; }
 
   size_t GetSize(OutputFrameStateCombine combine =
-                     OutputFrameStateCombine::Ignore()) const {
-    size_t size = parameters_count_ + locals_count_ + stack_count_ +
-                  (HasContext() ? 1 : 0);
-    switch (combine.kind()) {
-      case OutputFrameStateCombine::kPushOutput:
-        size += combine.GetPushCount();
-        break;
-      case OutputFrameStateCombine::kPokeAt:
-        break;
-    }
-    return size;
-  }
+                     OutputFrameStateCombine::Ignore()) const;
+  size_t GetTotalSize() const;
+  size_t GetFrameCount() const;
+  size_t GetJSFrameCount() const;
 
-  size_t GetTotalSize() const {
-    size_t total_size = 0;
-    for (const FrameStateDescriptor* iter = this; iter != NULL;
-         iter = iter->outer_state_) {
-      total_size += iter->GetSize();
-    }
-    return total_size;
-  }
-
-  size_t GetFrameCount() const {
-    size_t count = 0;
-    for (const FrameStateDescriptor* iter = this; iter != NULL;
-         iter = iter->outer_state_) {
-      ++count;
-    }
-    return count;
-  }
-
-  size_t GetJSFrameCount() const {
-    size_t count = 0;
-    for (const FrameStateDescriptor* iter = this; iter != NULL;
-         iter = iter->outer_state_) {
-      if (iter->type_ == JS_FRAME) {
-        ++count;
-      }
-    }
-    return count;
-  }
-
-  bool HasContext() const { return type_ == JS_FRAME; }
+  MachineType GetType(size_t index) const;
+  void SetType(size_t index, MachineType type);
 
  private:
   FrameStateType type_;
@@ -785,6 +746,7 @@ class FrameStateDescriptor : public ZoneObject {
   size_t parameters_count_;
   size_t locals_count_;
   size_t stack_count_;
+  ZoneVector<MachineType> types_;
   FrameStateDescriptor* outer_state_;
   MaybeHandle<JSFunction> jsfunction_;
 };
@@ -804,25 +766,12 @@ typedef ZoneVector<FrameStateDescriptor*> DeoptimizationVector;
 // TODO(titzer): s/IsDouble/IsFloat64/
 class InstructionSequence FINAL {
  public:
-  InstructionSequence(Linkage* linkage, Graph* graph, Schedule* schedule)
-      : graph_(graph),
-        linkage_(linkage),
-        schedule_(schedule),
-        constants_(ConstantMap::key_compare(),
-                   ConstantMap::allocator_type(zone())),
-        immediates_(zone()),
-        instructions_(zone()),
-        next_virtual_register_(graph->NodeCount()),
-        pointer_maps_(zone()),
-        doubles_(std::less<int>(), VirtualRegisterSet::allocator_type(zone())),
-        references_(std::less<int>(),
-                    VirtualRegisterSet::allocator_type(zone())),
-        deoptimization_entries_(zone()) {}
+  InstructionSequence(Linkage* linkage, Graph* graph, Schedule* schedule);
 
   int NextVirtualRegister() { return next_virtual_register_++; }
   int VirtualRegisterCount() const { return next_virtual_register_; }
 
-  int ValueCount() const { return graph_->NodeCount(); }
+  int node_count() const { return node_count_; }
 
   int BasicBlockCount() const {
     return static_cast<int>(schedule_->rpo_order()->size());
@@ -836,11 +785,11 @@ class InstructionSequence FINAL {
     return block->loop_header();
   }
 
-  int GetLoopEnd(BasicBlock* block) const { return block->loop_end(); }
-
   BasicBlock* GetBasicBlock(int instruction_index);
 
-  int GetVirtualRegister(Node* node) const { return node->id(); }
+  int GetVirtualRegister(const Node* node);
+  // TODO(dcarney): find a way to remove this.
+  const int* GetNodeMapForTesting() const { return node_map_; }
 
   bool IsReference(int virtual_register) const;
   bool IsDouble(int virtual_register) const;
@@ -850,8 +799,8 @@ class InstructionSequence FINAL {
 
   void AddGapMove(int index, InstructionOperand* from, InstructionOperand* to);
 
-  Label* GetLabel(BasicBlock* block);
-  BlockStartInstruction* GetBlockStart(BasicBlock* block);
+  Label* GetLabel(BasicBlock::RpoNumber rpo);
+  BlockStartInstruction* GetBlockStart(BasicBlock::RpoNumber rpo);
 
   typedef InstructionDeque::const_iterator const_iterator;
   const_iterator begin() const { return instructions_.begin(); }
@@ -868,21 +817,44 @@ class InstructionSequence FINAL {
   }
 
   Frame* frame() { return &frame_; }
-  Graph* graph() const { return graph_; }
   Isolate* isolate() const { return zone()->isolate(); }
   Linkage* linkage() const { return linkage_; }
   Schedule* schedule() const { return schedule_; }
   const PointerMapDeque* pointer_maps() const { return &pointer_maps_; }
-  Zone* zone() const { return graph_->zone(); }
+  Zone* zone() const { return zone_; }
 
-  // Used by the code generator while adding instructions.
-  int AddInstruction(Instruction* instr, BasicBlock* block);
+  // Used by the instruction selector while adding instructions.
+  int AddInstruction(Instruction* instr);
   void StartBlock(BasicBlock* block);
   void EndBlock(BasicBlock* block);
+  void set_code_start(BasicBlock* block, int start) {
+    return GetBlockData(block->GetRpoNumber()).set_code_start(start);
+  }
+  void set_code_end(BasicBlock* block, int end) {
+    return GetBlockData(block->GetRpoNumber()).set_code_end(end);
+  }
+  // TODO(dcarney): use RpoNumber for all of the below.
+  int code_start(BasicBlock::RpoNumber rpo_number) const {
+    return GetBlockData(rpo_number).code_start();
+  }
+  int code_start(BasicBlock* block) const {
+    return GetBlockData(block->GetRpoNumber()).code_start();
+  }
+  int code_end(BasicBlock* block) const {
+    return GetBlockData(block->GetRpoNumber()).code_end();
+  }
+  int first_instruction_index(BasicBlock* block) const {
+    return GetBlockData(block->GetRpoNumber()).first_instruction_index();
+  }
+  int last_instruction_index(BasicBlock* block) const {
+    return GetBlockData(block->GetRpoNumber()).last_instruction_index();
+  }
 
-  void AddConstant(int virtual_register, Constant constant) {
+  int AddConstant(Node* node, Constant constant) {
+    int virtual_register = GetVirtualRegister(node);
     DCHECK(constants_.find(virtual_register) == constants_.end());
     constants_.insert(std::make_pair(virtual_register, constant));
+    return virtual_register;
   }
   Constant GetConstant(int virtual_register) const {
     ConstantMap::const_iterator it = constants_.find(virtual_register);
@@ -920,12 +892,51 @@ class InstructionSequence FINAL {
   int GetFrameStateDescriptorCount();
 
  private:
+  class BlockData {
+   public:
+    BlockData() : code_start_(-1), code_end_(-1) {}
+    // Instruction indexes (used by the register allocator).
+    int first_instruction_index() const {
+      DCHECK(code_start_ >= 0);
+      DCHECK(code_end_ > 0);
+      DCHECK(code_end_ >= code_start_);
+      return code_start_;
+    }
+    int last_instruction_index() const {
+      DCHECK(code_start_ >= 0);
+      DCHECK(code_end_ > 0);
+      DCHECK(code_end_ >= code_start_);
+      return code_end_ - 1;
+    }
+
+    int32_t code_start() const { return code_start_; }
+    void set_code_start(int32_t start) { code_start_ = start; }
+
+    int32_t code_end() const { return code_end_; }
+    void set_code_end(int32_t end) { code_end_ = end; }
+
+   private:
+    int32_t code_start_;  // start index of arch-specific code.
+    int32_t code_end_;    // end index of arch-specific code.
+  };
+
+  const BlockData& GetBlockData(BasicBlock::RpoNumber rpo_number) const {
+    return block_data_[rpo_number.ToSize()];
+  }
+  BlockData& GetBlockData(BasicBlock::RpoNumber rpo_number) {
+    return block_data_[rpo_number.ToSize()];
+  }
+
   friend std::ostream& operator<<(std::ostream& os,
                                   const InstructionSequence& code);
 
   typedef std::set<int, std::less<int>, ZoneIntAllocator> VirtualRegisterSet;
+  typedef ZoneVector<BlockData> BlockDataVector;
 
-  Graph* graph_;
+  Zone* zone_;
+  int node_count_;
+  int* node_map_;
+  BlockDataVector block_data_;
   Linkage* linkage_;
   Schedule* schedule_;
   ConstantMap constants_;

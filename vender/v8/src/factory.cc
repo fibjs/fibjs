@@ -931,6 +931,13 @@ Handle<PropertyCell> Factory::NewPropertyCell(Handle<Object> value) {
 }
 
 
+Handle<WeakCell> Factory::NewWeakCell(Handle<HeapObject> value) {
+  AllowDeferredHandleDereference convert_to_cell;
+  CALL_HEAP_FUNCTION(isolate(), isolate()->heap()->AllocateWeakCell(*value),
+                     WeakCell);
+}
+
+
 Handle<AllocationSite> Factory::NewAllocationSite() {
   Handle<Map> map = allocation_site_map();
   Handle<AllocationSite> site = New<AllocationSite>(map, OLD_POINTER_SPACE);
@@ -1731,6 +1738,19 @@ ElementsKind GetExternalArrayElementsKind(ExternalArrayType type) {
 }
 
 
+size_t GetExternalArrayElementSize(ExternalArrayType type) {
+  switch (type) {
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype, size) \
+  case kExternal##Type##Array:                          \
+    return size;
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
+  }
+  UNREACHABLE();
+  return 0;
+#undef TYPED_ARRAY_CASE
+}
+
+
 JSFunction* GetTypedArrayFun(ExternalArrayType type, Isolate* isolate) {
   Context* native_context = isolate->context()->native_context();
   switch (type) {
@@ -1769,7 +1789,9 @@ Handle<JSTypedArray> Factory::NewJSTypedArray(ExternalArrayType type,
   array->set_weak_next(buffer->weak_first_view());
   buffer->set_weak_first_view(*array);
   array->set_byte_offset(Smi::FromInt(0));
-  array->set_byte_length(buffer->byte_length());
+  Handle<Object> byte_length_handle =
+      NewNumberFromSize(length * GetExternalArrayElementSize(type));
+  array->set_byte_length(*byte_length_handle);
   Handle<Object> length_handle = NewNumberFromSize(length);
   array->set_length(*length_handle);
   Handle<ExternalArray> elements =

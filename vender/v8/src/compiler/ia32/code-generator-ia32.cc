@@ -199,7 +199,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArchJmp:
-      __ jmp(code()->GetLabel(i.InputBlock(0)));
+      __ jmp(code()->GetLabel(i.InputRpo(0)));
       break;
     case kArchNop:
       // don't emit code for nops.
@@ -248,12 +248,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
         __ imul(i.OutputRegister(), i.InputOperand(1));
       }
       break;
+    case kIA32ImulHigh:
+      __ imul(i.InputRegister(1));
+      break;
     case kIA32Idiv:
       __ cdq();
       __ idiv(i.InputOperand(1));
       break;
     case kIA32Udiv:
-      __ xor_(edx, edx);
+      __ Move(edx, Immediate(0));
       __ div(i.InputOperand(1));
       break;
     case kIA32Not:
@@ -355,10 +358,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ sqrtsd(i.OutputDoubleRegister(), i.InputOperand(0));
       break;
     case kSSECvtss2sd:
-      __ cvtss2sd(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      __ cvtss2sd(i.OutputDoubleRegister(), i.InputOperand(0));
       break;
     case kSSECvtsd2ss:
-      __ cvtsd2ss(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      __ cvtsd2ss(i.OutputDoubleRegister(), i.InputOperand(0));
       break;
     case kSSEFloat64ToInt32:
       __ cvttsd2si(i.OutputRegister(), i.InputOperand(0));
@@ -474,8 +477,10 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr,
 
   // Emit a branch. The true and false targets are always the last two inputs
   // to the instruction.
-  BasicBlock* tblock = i.InputBlock(instr->InputCount() - 2);
-  BasicBlock* fblock = i.InputBlock(instr->InputCount() - 1);
+  BasicBlock::RpoNumber tblock =
+      i.InputRpo(static_cast<int>(instr->InputCount()) - 2);
+  BasicBlock::RpoNumber fblock =
+      i.InputRpo(static_cast<int>(instr->InputCount()) - 1);
   bool fallthru = IsNextInAssemblyOrder(fblock);
   Label* tlabel = code()->GetLabel(tblock);
   Label* flabel = fallthru ? &done : code()->GetLabel(fblock);
@@ -556,7 +561,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
   switch (condition) {
     case kUnorderedEqual:
       __ j(parity_odd, &check, Label::kNear);
-      __ mov(reg, Immediate(0));
+      __ Move(reg, Immediate(0));
       __ jmp(&done, Label::kNear);
     // Fall through.
     case kEqual:
@@ -584,7 +589,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
       break;
     case kUnorderedLessThan:
       __ j(parity_odd, &check, Label::kNear);
-      __ mov(reg, Immediate(0));
+      __ Move(reg, Immediate(0));
       __ jmp(&done, Label::kNear);
     // Fall through.
     case kUnsignedLessThan:
@@ -600,7 +605,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
       break;
     case kUnorderedLessThanOrEqual:
       __ j(parity_odd, &check, Label::kNear);
-      __ mov(reg, Immediate(0));
+      __ Move(reg, Immediate(0));
       __ jmp(&done, Label::kNear);
     // Fall through.
     case kUnsignedLessThanOrEqual:
@@ -630,7 +635,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
     // Emit a branch to set a register to either 1 or 0.
     Label set;
     __ j(cc, &set, Label::kNear);
-    __ mov(reg, Immediate(0));
+    __ Move(reg, Immediate(0));
     __ jmp(&done, Label::kNear);
     __ bind(&set);
     __ mov(reg, Immediate(1));
@@ -903,38 +908,35 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       }
     } else if (destination->IsRegister()) {
       Register dst = g.ToRegister(destination);
-      __ mov(dst, g.ToImmediate(source));
+      __ Move(dst, g.ToImmediate(source));
     } else if (destination->IsStackSlot()) {
       Operand dst = g.ToOperand(destination);
-      __ mov(dst, g.ToImmediate(source));
+      __ Move(dst, g.ToImmediate(source));
     } else if (src_constant.type() == Constant::kFloat32) {
       // TODO(turbofan): Can we do better here?
-      Immediate src(bit_cast<int32_t>(src_constant.ToFloat32()));
+      uint32_t src = bit_cast<uint32_t>(src_constant.ToFloat32());
       if (destination->IsDoubleRegister()) {
         XMMRegister dst = g.ToDoubleRegister(destination);
-        __ push(Immediate(src));
-        __ movss(dst, Operand(esp, 0));
-        __ add(esp, Immediate(kDoubleSize / 2));
+        __ Move(dst, src);
       } else {
         DCHECK(destination->IsDoubleStackSlot());
         Operand dst = g.ToOperand(destination);
-        __ mov(dst, src);
+        __ Move(dst, Immediate(src));
       }
     } else {
       DCHECK_EQ(Constant::kFloat64, src_constant.type());
-      double v = src_constant.ToFloat64();
-      uint64_t int_val = bit_cast<uint64_t, double>(v);
-      int32_t lower = static_cast<int32_t>(int_val);
-      int32_t upper = static_cast<int32_t>(int_val >> kBitsPerInt);
+      uint64_t src = bit_cast<uint64_t>(src_constant.ToFloat64());
+      uint32_t lower = static_cast<uint32_t>(src);
+      uint32_t upper = static_cast<uint32_t>(src >> 32);
       if (destination->IsDoubleRegister()) {
         XMMRegister dst = g.ToDoubleRegister(destination);
-        __ Move(dst, v);
+        __ Move(dst, src);
       } else {
         DCHECK(destination->IsDoubleStackSlot());
         Operand dst0 = g.ToOperand(destination);
         Operand dst1 = g.HighOperand(destination);
-        __ mov(dst0, Immediate(lower));
-        __ mov(dst1, Immediate(upper));
+        __ Move(dst0, Immediate(lower));
+        __ Move(dst1, Immediate(upper));
       }
     }
   } else if (source->IsDoubleRegister()) {
@@ -994,7 +996,7 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
     __ movaps(xmm0, src);
     __ movaps(src, dst);
     __ movaps(dst, xmm0);
-  } else if (source->IsDoubleRegister() && source->IsDoubleStackSlot()) {
+  } else if (source->IsDoubleRegister() && destination->IsDoubleStackSlot()) {
     // XMM register-memory swap.  We rely on having xmm0
     // available as a fixed scratch register.
     XMMRegister reg = g.ToDoubleRegister(source);

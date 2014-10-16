@@ -47,6 +47,7 @@
     <ClInclude Include="src\base\atomicops_internals_mac.h" />
     <ClInclude Include="src\base\atomicops_internals_mips64_gcc.h" />
     <ClInclude Include="src\base\atomicops_internals_mips_gcc.h" />
+    <ClInclude Include="src\base\atomicops_internals_portable.h" />
     <ClInclude Include="src\base\atomicops_internals_tsan.h" />
     <ClInclude Include="src\base\atomicops_internals_x86_gcc.h" />
     <ClInclude Include="src\base\atomicops_internals_x86_msvc.h" />
@@ -56,6 +57,7 @@
     <ClInclude Include="src\base\cpu.h" />
     <ClInclude Include="src\base\division-by-constant.h" />
     <ClInclude Include="src\base\flags.h" />
+    <ClInclude Include="src\base\functional.h" />
     <ClInclude Include="src\base\lazy-instance.h" />
     <ClInclude Include="src\base\logging.h" />
     <ClInclude Include="src\base\macros.h" />
@@ -338,6 +340,7 @@
     <ClInclude Include="src\string-search.h" />
     <ClInclude Include="src\string-stream.h" />
     <ClInclude Include="src\strtod.h" />
+    <ClInclude Include="src\third_party\fdlibm\fdlibm.h" />
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h" />
     <ClInclude Include="src\third_party\valgrind\valgrind.h" />
     <ClInclude Include="src\token.h" />
@@ -351,6 +354,7 @@
     <ClInclude Include="src\typing.h" />
     <ClInclude Include="src\unbound-queue-inl.h" />
     <ClInclude Include="src\unbound-queue.h" />
+    <ClInclude Include="src\unicode-decoder.h" />
     <ClInclude Include="src\unicode-inl.h" />
     <ClInclude Include="src\unicode.h" />
     <ClInclude Include="src\unique.h" />
@@ -390,7 +394,6 @@
     <ClInclude Include="src\zone-containers.h" />
     <ClInclude Include="src\zone-inl.h" />
     <ClInclude Include="src\zone.h" />
-    <ClInclude Include="third_party\fdlibm\fdlibm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\accessors.cc" />
@@ -409,6 +412,7 @@
     <ClCompile Include="src\base\bits.cc" />
     <ClCompile Include="src\base\cpu.cc" />
     <ClCompile Include="src\base\division-by-constant.cc" />
+    <ClCompile Include="src\base\functional.cc" />
     <ClCompile Include="src\base\logging.cc" />
     <ClCompile Include="src\base\once.cc" />
     <ClCompile Include="src\base\platform\_date_cache.cc" />
@@ -433,6 +437,7 @@
     <ClCompile Include="src\bootstrapper.cc" />
     <ClCompile Include="src\builtins.cc" />
     <ClCompile Include="src\cached-powers.cc" />
+    <ClCompile Include="src\char-predicates.cc" />
     <ClCompile Include="src\checks.cc" />
     <ClCompile Include="src\code-factory.cc" />
     <ClCompile Include="src\code-stubs-hydrogen.cc" />
@@ -629,6 +634,8 @@
     <ClCompile Include="src\regexp-stack.cc" />
     <ClCompile Include="src\rewriter.cc" />
     <ClCompile Include="src\runtime-profiler.cc" />
+    <ClCompile Include="src\runtime\runtime-api.cc" />
+    <ClCompile Include="src\runtime\runtime-array.cc" />
     <ClCompile Include="src\runtime\runtime-classes.cc" />
     <ClCompile Include="src\runtime\runtime-collections.cc" />
     <ClCompile Include="src\runtime\runtime-compiler.cc" />
@@ -637,11 +644,13 @@
     <ClCompile Include="src\runtime\runtime-function.cc" />
     <ClCompile Include="src\runtime\runtime-generator.cc" />
     <ClCompile Include="src\runtime\runtime-i18n.cc" />
+    <ClCompile Include="src\runtime\runtime-internal.cc" />
     <ClCompile Include="src\runtime\runtime-json.cc" />
     <ClCompile Include="src\runtime\runtime-literals.cc" />
     <ClCompile Include="src\runtime\runtime-liveedit.cc" />
     <ClCompile Include="src\runtime\runtime-maths.cc" />
     <ClCompile Include="src\runtime\runtime-numbers.cc" />
+    <ClCompile Include="src\runtime\runtime-object.cc" />
     <ClCompile Include="src\runtime\runtime-observe.cc" />
     <ClCompile Include="src\runtime\runtime-proxy.cc" />
     <ClCompile Include="src\runtime\runtime-regexp.cc" />
@@ -665,12 +674,14 @@
     <ClCompile Include="src\string-search.cc" />
     <ClCompile Include="src\string-stream.cc" />
     <ClCompile Include="src\strtod.cc" />
+    <ClCompile Include="src\third_party\fdlibm\fdlibm.cc" />
     <ClCompile Include="src\token.cc" />
     <ClCompile Include="src\transitions.cc" />
     <ClCompile Include="src\type-feedback-vector.cc" />
     <ClCompile Include="src\type-info.cc" />
     <ClCompile Include="src\types.cc" />
     <ClCompile Include="src\typing.cc" />
+    <ClCompile Include="src\unicode-decoder.cc" />
     <ClCompile Include="src\unicode.cc" />
     <ClCompile Include="src\utils.cc" />
     <ClCompile Include="src\v8.cc" />
@@ -712,7 +723,6 @@
     <ClCompile Include="src\x87\regexp-macro-assembler-x87.cc" />
     <ClCompile Include="src\x87\simulator-x87.cc" />
     <ClCompile Include="src\zone.cc" />
-    <ClCompile Include="third_party\fdlibm\fdlibm.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1F77AB58-706B-4BB5-BE73-0000000000c8}</ProjectGuid>

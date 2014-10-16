@@ -90,13 +90,28 @@ static inline bool VerifyGraphs() {
 }
 
 
+void Pipeline::PrintCompilationStart() {
+  std::ofstream turbo_cfg_stream;
+  OpenTurboCfgFile(&turbo_cfg_stream);
+  turbo_cfg_stream << AsC1VCompilation(info());
+}
+
+
+void Pipeline::OpenTurboCfgFile(std::ofstream* stream) {
+  char buffer[512];
+  Vector<char> filename(buffer, sizeof(buffer));
+  isolate()->GetTurboCfgFileName(filename);
+  stream->open(filename.start(), std::fstream::out | std::fstream::app);
+}
+
+
 void Pipeline::VerifyAndPrintGraph(Graph* graph, const char* phase) {
   if (FLAG_trace_turbo) {
     char buffer[256];
     Vector<char> filename(buffer, sizeof(buffer));
+    SmartArrayPointer<char> functionname;
     if (!info_->shared_info().is_null()) {
-      SmartArrayPointer<char> functionname =
-          info_->shared_info()->DebugName()->ToCString();
+      functionname = info_->shared_info()->DebugName()->ToCString();
       if (strlen(functionname.get()) > 0) {
         SNPrintF(filename, "turbo-%s-%s", functionname.get(), phase);
       } else {
@@ -132,6 +147,24 @@ void Pipeline::VerifyAndPrintGraph(Graph* graph, const char* phase) {
 }
 
 
+void Pipeline::PrintScheduleAndInstructions(
+    const char* phase, const Schedule* schedule,
+    const SourcePositionTable* positions,
+    const InstructionSequence* instructions) {
+  std::ofstream turbo_cfg_stream;
+  OpenTurboCfgFile(&turbo_cfg_stream);
+  turbo_cfg_stream << AsC1V(phase, schedule, positions, instructions);
+}
+
+
+void Pipeline::PrintAllocator(const char* phase,
+                              const RegisterAllocator* allocator) {
+  std::ofstream turbo_cfg_stream;
+  OpenTurboCfgFile(&turbo_cfg_stream);
+  turbo_cfg_stream << AsC1VAllocator(phase, allocator);
+}
+
+
 class AstGraphBuilderWithPositions : public AstGraphBuilder {
  public:
   explicit AstGraphBuilderWithPositions(CompilationInfo* info, JSGraph* jsgraph,
@@ -145,7 +178,7 @@ class AstGraphBuilderWithPositions : public AstGraphBuilder {
   }
 
 #define DEF_VISIT(type)                                               \
-  virtual void Visit##type(type* node) OVERRIDE {                  \
+  virtual void Visit##type(type* node) OVERRIDE {                     \
     SourcePositionTable::Scope pos(source_positions_,                 \
                                    SourcePosition(node->position())); \
     AstGraphBuilder::Visit##type(node);                               \
@@ -166,12 +199,15 @@ static void TraceSchedule(Schedule* schedule) {
 
 
 Handle<Code> Pipeline::GenerateCode() {
+  // This list must be kept in sync with DONT_TURBOFAN_NODE in ast.cc.
   if (info()->function()->dont_optimize_reason() == kTryCatchStatement ||
       info()->function()->dont_optimize_reason() == kTryFinallyStatement ||
       // TODO(turbofan): Make ES6 for-of work and remove this bailout.
       info()->function()->dont_optimize_reason() == kForOfStatement ||
       // TODO(turbofan): Make super work and remove this bailout.
       info()->function()->dont_optimize_reason() == kSuperReference ||
+      // TODO(turbofan): Make class literals work and remove this bailout.
+      info()->function()->dont_optimize_reason() == kClassLiteral ||
       // TODO(turbofan): Make OSR work and remove this bailout.
       info()->is_osr()) {
     return Handle<Code>::null();
@@ -185,6 +221,7 @@ Handle<Code> Pipeline::GenerateCode() {
        << "Begin compiling method "
        << info()->function()->debug_name()->ToCString().get()
        << " using Turbofan" << std::endl;
+    PrintCompilationStart();
   }
 
   // Build the graph.
@@ -287,14 +324,13 @@ Handle<Code> Pipeline::GenerateCode() {
       SourcePositionTable::Scope pos(&source_positions,
                                      SourcePosition::Unknown());
       Linkage linkage(info());
-      // TODO(turbofan): Value numbering disabled for now.
-      // ValueNumberingReducer vn_reducer(zone());
+      ValueNumberingReducer vn_reducer(zone());
       SimplifiedOperatorReducer simple_reducer(&jsgraph);
       ChangeLowering lowering(&jsgraph, &linkage);
       MachineOperatorReducer mach_reducer(&jsgraph);
       GraphReducer graph_reducer(&graph);
       // TODO(titzer): Figure out if we should run all reducers at once here.
-      // graph_reducer.AddReducer(&vn_reducer);
+      graph_reducer.AddReducer(&vn_reducer);
       graph_reducer.AddReducer(&simple_reducer);
       graph_reducer.AddReducer(&lowering);
       graph_reducer.AddReducer(&mach_reducer);
@@ -403,6 +439,8 @@ Handle<Code> Pipeline::GenerateCode(Linkage* linkage, Graph* graph,
     OFStream os(stdout);
     os << "----- Instruction sequence before register allocation -----\n"
        << sequence;
+    PrintScheduleAndInstructions("CodeGen", schedule, source_positions,
+                                 &sequence);
   }
 
   // Allocate registers.
@@ -416,6 +454,9 @@ Handle<Code> Pipeline::GenerateCode(Linkage* linkage, Graph* graph,
     if (!allocator.Allocate()) {
       linkage->info()->AbortOptimization(kNotEnoughVirtualRegistersRegalloc);
       return Handle<Code>::null();
+    }
+    if (FLAG_trace_turbo) {
+      PrintAllocator("CodeGen", &allocator);
     }
   }
 

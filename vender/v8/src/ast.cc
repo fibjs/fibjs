@@ -61,53 +61,52 @@ bool Expression::IsUndefinedLiteral(Isolate* isolate) const {
 
 VariableProxy::VariableProxy(Zone* zone, Variable* var, int position,
                              IdGen* id_gen)
-    : Expression(zone, position, id_gen),
-      name_(var->raw_name()),
-      var_(NULL),  // Will be set by the call to BindTo.
+    : Expression(zone, position, 0, id_gen),
       is_this_(var->is_this()),
       is_assigned_(false),
-      interface_(var->interface()),
-      variable_feedback_slot_(kInvalidFeedbackSlot) {
+      is_resolved_(false),
+      variable_feedback_slot_(FeedbackVectorSlot::Invalid()),
+      raw_name_(var->raw_name()),
+      interface_(var->interface()) {
   BindTo(var);
 }
 
 
 VariableProxy::VariableProxy(Zone* zone, const AstRawString* name, bool is_this,
                              Interface* interface, int position, IdGen* id_gen)
-    : Expression(zone, position, id_gen),
-      name_(name),
-      var_(NULL),
+    : Expression(zone, position, 0, id_gen),
       is_this_(is_this),
       is_assigned_(false),
-      interface_(interface),
-      variable_feedback_slot_(kInvalidFeedbackSlot) {}
+      is_resolved_(false),
+      variable_feedback_slot_(FeedbackVectorSlot::Invalid()),
+      raw_name_(name),
+      interface_(interface) {}
 
 
 void VariableProxy::BindTo(Variable* var) {
-  DCHECK(var_ == NULL);  // must be bound only once
-  DCHECK(var != NULL);  // must bind
   DCHECK(!FLAG_harmony_modules || interface_->IsUnified(var->interface()));
-  DCHECK((is_this() && var->is_this()) || name_ == var->raw_name());
+  DCHECK((is_this() && var->is_this()) || raw_name() == var->raw_name());
   // Ideally CONST-ness should match. However, this is very hard to achieve
   // because we don't know the exact semantics of conflicting (const and
   // non-const) multiple variable declarations, const vars introduced via
   // eval() etc.  Const-ness and variable declarations are a complete mess
   // in JS. Sigh...
-  var_ = var;
+  set_var(var);
+  set_is_resolved();
   var->set_is_used();
 }
 
 
 Assignment::Assignment(Zone* zone, Token::Value op, Expression* target,
                        Expression* value, int pos, IdGen* id_gen)
-    : Expression(zone, pos, id_gen),
+    : Expression(zone, pos, num_ids(), id_gen),
+      is_uninitialized_(false),
+      key_type_(ELEMENT),
+      store_mode_(STANDARD_STORE),
       op_(op),
       target_(target),
       value_(value),
-      binary_operation_(NULL),
-      assignment_id_(id_gen->GetNextId()),
-      is_uninitialized_(false),
-      store_mode_(STANDARD_STORE) {}
+      binary_operation_(NULL) {}
 
 
 Token::Value Assignment::binary_op() const {
@@ -436,7 +435,7 @@ void BinaryOperation::RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) {
 
 
 bool BinaryOperation::ResultOverwriteAllowed() const {
-  switch (op_) {
+  switch (op()) {
     case Token::COMMA:
     case Token::OR:
     case Token::AND:
@@ -607,9 +606,9 @@ bool Call::ComputeGlobalTarget(Handle<GlobalObject> global,
 
 
 void CallNew::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
-  int allocation_site_feedback_slot = FLAG_pretenuring_call_new
-      ? AllocationSiteFeedbackSlot()
-      : CallNewFeedbackSlot();
+  FeedbackVectorSlot allocation_site_feedback_slot =
+      FLAG_pretenuring_call_new ? AllocationSiteFeedbackSlot()
+                                : CallNewFeedbackSlot();
   allocation_site_ =
       oracle->GetCallNewAllocationSite(allocation_site_feedback_slot);
   is_monomorphic_ = oracle->CallNewIsMonomorphic(CallNewFeedbackSlot());
@@ -990,12 +989,10 @@ RegExpAlternative::RegExpAlternative(ZoneList<RegExpTree*>* nodes)
 
 CaseClause::CaseClause(Zone* zone, Expression* label,
                        ZoneList<Statement*>* statements, int pos, IdGen* id_gen)
-    : Expression(zone, pos, id_gen),
+    : Expression(zone, pos, num_ids(), id_gen),
       label_(label),
       statements_(statements),
-      compare_type_(Type::None(zone)),
-      compare_id_(id_gen->GetNextId()),
-      entry_id_(id_gen->GetNextId()) {}
+      compare_type_(Type::None(zone)) {}
 
 
 #define REGULAR_NODE(NodeType)                                   \
@@ -1023,6 +1020,14 @@ CaseClause::CaseClause(Zone* zone, Expression* label,
 #define DONT_TURBOFAN_NODE(NodeType)                             \
   void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
     increase_node_count();                                       \
+    set_dont_crankshaft_reason(k##NodeType);                     \
+    set_dont_turbofan_reason(k##NodeType);                       \
+    add_flag(kDontSelfOptimize);                                 \
+  }
+#define DONT_TURBOFAN_NODE_WITH_FEEDBACK_SLOTS(NodeType)         \
+  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
+    increase_node_count();                                       \
+    add_slot_node(node);                                         \
     set_dont_crankshaft_reason(k##NodeType);                     \
     set_dont_turbofan_reason(k##NodeType);                       \
     add_flag(kDontSelfOptimize);                                 \
@@ -1091,16 +1096,18 @@ DONT_OPTIMIZE_NODE(ModuleUrl)
 DONT_OPTIMIZE_NODE(ModuleStatement)
 DONT_OPTIMIZE_NODE(WithStatement)
 DONT_OPTIMIZE_NODE(DebuggerStatement)
-DONT_OPTIMIZE_NODE(ClassLiteral)
 DONT_OPTIMIZE_NODE(NativeFunctionLiteral)
-DONT_OPTIMIZE_NODE(SuperReference)
 
 DONT_OPTIMIZE_NODE_WITH_FEEDBACK_SLOTS(Yield)
 
 // TODO(turbofan): Remove the dont_turbofan_reason once this list is empty.
+// This list must be kept in sync with Pipeline::GenerateCode.
 DONT_TURBOFAN_NODE(ForOfStatement)
 DONT_TURBOFAN_NODE(TryCatchStatement)
 DONT_TURBOFAN_NODE(TryFinallyStatement)
+DONT_TURBOFAN_NODE(ClassLiteral)
+
+DONT_TURBOFAN_NODE_WITH_FEEDBACK_SLOTS(SuperReference)
 
 DONT_SELFOPTIMIZE_NODE(DoWhileStatement)
 DONT_SELFOPTIMIZE_NODE(WhileStatement)

@@ -1563,6 +1563,7 @@ const Operand& rt = Operand(zero_reg), BranchDelaySlot bd = PROTECT
 
   // Activation support.
   void EnterFrame(StackFrame::Type type);
+  void EnterFrame(StackFrame::Type type, bool load_constant_pool_pointer_reg);
   void LeaveFrame(StackFrame::Type type);
 
   // Patch the relocated value (lui/ori pair).
@@ -1665,6 +1666,7 @@ const Operand& rt = Operand(zero_reg), BranchDelaySlot bd = PROTECT
 
   bool generating_stub_;
   bool has_frame_;
+  bool has_double_zero_reg_set_;
   // This handle will be patched with the code object on installation.
   Handle<Object> code_object_;
 

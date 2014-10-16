@@ -168,7 +168,6 @@ DEFINE_IMPLICATION(harmony, harmony_scoping)
 DEFINE_IMPLICATION(harmony, harmony_modules)
 // TODO(rossberg): Reenable when problems are sorted out.
 // DEFINE_IMPLICATION(harmony, harmony_proxies)
-DEFINE_IMPLICATION(harmony, harmony_numeric_literals)
 DEFINE_IMPLICATION(harmony, harmony_strings)
 DEFINE_IMPLICATION(harmony, harmony_arrays)
 DEFINE_IMPLICATION(harmony, harmony_arrow_functions)
@@ -180,6 +179,7 @@ DEFINE_IMPLICATION(harmony_classes, harmony_scoping)
 DEFINE_IMPLICATION(harmony_classes, harmony_object_literals)
 
 DEFINE_IMPLICATION(harmony, es_staging)
+DEFINE_IMPLICATION(es_staging, harmony_numeric_literals)
 
 // Flags for experimental implementation features.
 DEFINE_BOOL(compiled_keyed_generic_loads, false,
@@ -307,12 +307,14 @@ DEFINE_INT(escape_analysis_iterations, 2,
            "maximum number of escape analysis fix-point iterations")
 
 DEFINE_BOOL(optimize_for_in, true, "optimize functions containing for-in loops")
-DEFINE_BOOL(opt_safe_uint32_operations, true,
-            "allow uint32 values on optimize frames if they are used only in "
-            "safe operations")
 
 DEFINE_BOOL(concurrent_recompilation, true,
             "optimizing hot functions asynchronously on a separate thread")
+DEFINE_BOOL(job_based_recompilation, false,
+            "post tasks to v8::Platform instead of using a thread for "
+            "concurrent recompilation")
+DEFINE_IMPLICATION(job_based_recompilation, concurrent_recompilation)
+DEFINE_NEG_IMPLICATION(job_based_recompilation, block_concurrent_recompilation)
 DEFINE_BOOL(trace_concurrent_recompilation, false,
             "track concurrent recompilation")
 DEFINE_INT(concurrent_recompilation_queue_length, 8,
@@ -331,6 +333,8 @@ DEFINE_BOOL(omit_map_checks_for_leaf_maps, true,
 // Flags for TurboFan.
 DEFINE_STRING(turbo_filter, "~", "optimization filter for TurboFan compiler")
 DEFINE_BOOL(trace_turbo, false, "trace generated TurboFan IR")
+DEFINE_STRING(trace_turbo_cfg_file, NULL,
+              "trace turbo cfg graph (for C1 visualizer) to a given file name")
 DEFINE_BOOL(trace_turbo_types, true, "trace generated TurboFan types")
 DEFINE_BOOL(trace_turbo_scheduler, false, "trace generated TurboFan scheduler")
 DEFINE_BOOL(turbo_asm, false, "enable TurboFan for asm.js code")
@@ -729,8 +733,6 @@ DEFINE_BOOL(trace_contexts, false, "trace contexts operations")
 DEFINE_BOOL(gc_verbose, false, "print stuff during garbage collection")
 DEFINE_BOOL(heap_stats, false, "report heap statistics before and after GC")
 DEFINE_BOOL(code_stats, false, "report code statistics after GC")
-DEFINE_BOOL(verify_native_context_separation, false,
-            "verify that code holds on to at most one native context after GC")
 DEFINE_BOOL(print_handles, false, "report handles after GC")
 DEFINE_BOOL(print_global_handles, false, "report global handles after GC")
 
@@ -901,7 +903,7 @@ DEFINE_INT(dump_allocations_digest_at_alloc, 0,
 #undef FLAG
 #define FLAG FLAG_READONLY
 
-// assembler-arm.h
+// assembler.h
 DEFINE_BOOL(enable_ool_constant_pool, V8_OOL_CONSTANT_POOL,
             "enable use of out-of-line constant pools (ARM only)")
 

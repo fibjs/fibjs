@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 
+#include <fstream>  // NOLINT(readability/streams)
+
 #include "src/v8.h"
 
 #include "src/ast.h"
@@ -584,13 +586,6 @@ static void PrintFrames(Isolate* isolate,
 
 
 void Isolate::PrintStack(StringStream* accumulator) {
-  if (!IsInitialized()) {
-    accumulator->Add(
-        "\n==== JS stack trace is not available =======================\n\n");
-    accumulator->Add(
-        "\n==== Isolate for the thread is not initialized =============\n\n");
-    return;
-  }
   // The MentionedObjectCache is not GC-proof at the moment.
   DisallowHeapAllocation no_gc;
   DCHECK(StringStream::IsMentionedObjectCacheClear(this));
@@ -1467,9 +1462,8 @@ void Isolate::ThreadDataTable::RemoveAllThreads(Isolate* isolate) {
 #endif
 
 
-Isolate::Isolate()
+Isolate::Isolate(bool enable_serializer)
     : embedder_data_(),
-      state_(UNINITIALIZED),
       entry_stack_(NULL),
       stack_trace_nesting_level_(0),
       incomplete_message_(NULL),
@@ -1507,7 +1501,7 @@ Isolate::Isolate()
       // TODO(bmeurer) Initialized lazily because it depends on flags; can
       // be fixed once the default isolate cleanup is done.
       random_number_generator_(NULL),
-      serializer_enabled_(false),
+      serializer_enabled_(enable_serializer),
       has_fatal_error_(false),
       initialized_from_snapshot_(false),
       cpu_profiler_(NULL),
@@ -1596,58 +1590,53 @@ void Isolate::GlobalTearDown() {
 
 
 void Isolate::Deinit() {
-  if (state_ == INITIALIZED) {
-    TRACE_ISOLATE(deinit);
+  TRACE_ISOLATE(deinit);
 
-    debug()->Unload();
+  debug()->Unload();
 
-    FreeThreadResources();
+  FreeThreadResources();
 
-    if (concurrent_recompilation_enabled()) {
-      optimizing_compiler_thread_->Stop();
-      delete optimizing_compiler_thread_;
-      optimizing_compiler_thread_ = NULL;
-    }
-
-    if (heap_.mark_compact_collector()->sweeping_in_progress()) {
-      heap_.mark_compact_collector()->EnsureSweepingCompleted();
-    }
-
-    if (FLAG_turbo_stats) GetTStatistics()->Print("TurboFan");
-    if (FLAG_hydrogen_stats) GetHStatistics()->Print("Hydrogen");
-
-    if (FLAG_print_deopt_stress) {
-      PrintF(stdout, "=== Stress deopt counter: %u\n", stress_deopt_count_);
-    }
-
-    // We must stop the logger before we tear down other components.
-    Sampler* sampler = logger_->sampler();
-    if (sampler && sampler->IsActive()) sampler->Stop();
-
-    delete deoptimizer_data_;
-    deoptimizer_data_ = NULL;
-    builtins_.TearDown();
-    bootstrapper_->TearDown();
-
-    if (runtime_profiler_ != NULL) {
-      delete runtime_profiler_;
-      runtime_profiler_ = NULL;
-    }
-
-    delete basic_block_profiler_;
-    basic_block_profiler_ = NULL;
-
-    heap_.TearDown();
-    logger_->TearDown();
-
-    delete heap_profiler_;
-    heap_profiler_ = NULL;
-    delete cpu_profiler_;
-    cpu_profiler_ = NULL;
-
-    // The default isolate is re-initializable due to legacy API.
-    state_ = UNINITIALIZED;
+  if (concurrent_recompilation_enabled()) {
+    optimizing_compiler_thread_->Stop();
+    delete optimizing_compiler_thread_;
+    optimizing_compiler_thread_ = NULL;
   }
+
+  if (heap_.mark_compact_collector()->sweeping_in_progress()) {
+    heap_.mark_compact_collector()->EnsureSweepingCompleted();
+  }
+
+  if (FLAG_turbo_stats) GetTStatistics()->Print("TurboFan");
+  if (FLAG_hydrogen_stats) GetHStatistics()->Print("Hydrogen");
+
+  if (FLAG_print_deopt_stress) {
+    PrintF(stdout, "=== Stress deopt counter: %u\n", stress_deopt_count_);
+  }
+
+  // We must stop the logger before we tear down other components.
+  Sampler* sampler = logger_->sampler();
+  if (sampler && sampler->IsActive()) sampler->Stop();
+
+  delete deoptimizer_data_;
+  deoptimizer_data_ = NULL;
+  builtins_.TearDown();
+  bootstrapper_->TearDown();
+
+  if (runtime_profiler_ != NULL) {
+    delete runtime_profiler_;
+    runtime_profiler_ = NULL;
+  }
+
+  delete basic_block_profiler_;
+  basic_block_profiler_ = NULL;
+
+  heap_.TearDown();
+  logger_->TearDown();
+
+  delete heap_profiler_;
+  heap_profiler_ = NULL;
+  delete cpu_profiler_;
+  cpu_profiler_ = NULL;
 }
 
 
@@ -1824,7 +1813,6 @@ void Isolate::InitializeLoggingAndCounters() {
 
 
 bool Isolate::Init(Deserializer* des) {
-  DCHECK(state_ != INITIALIZED);
   TRACE_ISOLATE(init);
 
   stress_deopt_count_ = FLAG_deopt_every_n_times;
@@ -1923,12 +1911,6 @@ bool Isolate::Init(Deserializer* des) {
   bootstrapper_->Initialize(create_heap_objects);
   builtins_.SetUp(this, create_heap_objects);
 
-  if (FLAG_log_internal_timer_events) {
-    set_event_logger(Logger::DefaultTimerEventsLogger);
-  } else {
-    set_event_logger(Logger::EmptyTimerEventsLogger);
-  }
-
   // Set default value if not yet set.
   // TODO(yangguo): move this to ResourceConstraints::ConfigureDefaults
   // once ResourceConstraints becomes an argument to the Isolate constructor.
@@ -1965,6 +1947,16 @@ bool Isolate::Init(Deserializer* des) {
 
   runtime_profiler_ = new RuntimeProfiler(this);
 
+  if (FLAG_trace_turbo) {
+    // Erase the file.
+    char buffer[512];
+    Vector<char> filename(buffer, sizeof(buffer));
+    GetTurboCfgFileName(filename);
+    std::ofstream turbo_cfg_stream(filename.start(),
+                                   std::fstream::out | std::fstream::trunc);
+  }
+
+
   // If we are deserializing, log non-function code objects and compiled
   // functions found in the snapshot.
   if (!create_heap_objects &&
@@ -1990,8 +1982,9 @@ bool Isolate::Init(Deserializer* des) {
                heap_.amount_of_external_allocated_memory_at_last_global_gc_)),
            Internals::kAmountOfExternalAllocatedMemoryAtLastGlobalGCOffset);
 
-  state_ = INITIALIZED;
   time_millis_at_init_ = base::OS::TimeCurrentMillis();
+
+  heap_.NotifyDeserializationComplete();
 
   if (!create_heap_objects) {
     // Now that the heap is consistent, it's OK to generate the code for the
@@ -2272,8 +2265,16 @@ void Isolate::ReportPromiseReject(Handle<JSObject> promise,
                                   Handle<Object> value,
                                   v8::PromiseRejectEvent event) {
   if (promise_reject_callback_ == NULL) return;
-  promise_reject_callback_(v8::Utils::PromiseToLocal(promise),
-                           v8::Utils::ToLocal(value), event);
+  Handle<JSArray> stack_trace;
+  if (event == v8::kPromiseRejectWithNoHandler && value->IsJSObject()) {
+    Handle<JSObject> error_obj = Handle<JSObject>::cast(value);
+    Handle<Name> key = factory()->detailed_stack_trace_symbol();
+    Handle<Object> property = JSObject::GetDataProperty(error_obj, key);
+    if (property->IsJSArray()) stack_trace = Handle<JSArray>::cast(property);
+  }
+  promise_reject_callback_(v8::PromiseRejectMessage(
+      v8::Utils::PromiseToLocal(promise), event, v8::Utils::ToLocal(value),
+      v8::Utils::StackTraceToLocal(stack_trace)));
 }
 
 
@@ -2366,6 +2367,16 @@ BasicBlockProfiler* Isolate::GetOrCreateBasicBlockProfiler() {
     basic_block_profiler_ = new BasicBlockProfiler();
   }
   return basic_block_profiler_;
+}
+
+
+void Isolate::GetTurboCfgFileName(Vector<char> filename) {
+  if (FLAG_trace_turbo_cfg_file == NULL) {
+    SNPrintF(filename, "turbo-%d-%d.cfg", base::OS::GetCurrentProcessId(),
+             id());
+  } else {
+    StrNCpy(filename, FLAG_trace_turbo_cfg_file, filename.length());
+  }
 }
 
 

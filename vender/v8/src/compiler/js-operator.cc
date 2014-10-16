@@ -14,9 +14,53 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
+bool operator==(CallFunctionParameters const& lhs,
+                CallFunctionParameters const& rhs) {
+  return lhs.arity() == rhs.arity() && lhs.flags() == rhs.flags();
+}
+
+
+bool operator!=(CallFunctionParameters const& lhs,
+                CallFunctionParameters const& rhs) {
+  return !(lhs == rhs);
+}
+
+
+size_t hash_value(CallFunctionParameters const& p) {
+  return base::hash_combine(p.arity(), p.flags());
+}
+
+
+std::ostream& operator<<(std::ostream& os, CallFunctionParameters const& p) {
+  return os << p.arity() << ", " << p.flags();
+}
+
+
 const CallFunctionParameters& CallFunctionParametersOf(const Operator* op) {
   DCHECK_EQ(IrOpcode::kJSCallFunction, op->opcode());
   return OpParameter<CallFunctionParameters>(op);
+}
+
+
+bool operator==(CallRuntimeParameters const& lhs,
+                CallRuntimeParameters const& rhs) {
+  return lhs.id() == rhs.id() && lhs.arity() == rhs.arity();
+}
+
+
+bool operator!=(CallRuntimeParameters const& lhs,
+                CallRuntimeParameters const& rhs) {
+  return !(lhs == rhs);
+}
+
+
+size_t hash_value(CallRuntimeParameters const& p) {
+  return base::hash_combine(p.id(), p.arity());
+}
+
+
+std::ostream& operator<<(std::ostream& os, CallRuntimeParameters const& p) {
+  return os << p.id() << ", " << p.arity();
 }
 
 
@@ -35,21 +79,98 @@ ContextAccess::ContextAccess(size_t depth, size_t index, bool immutable)
 }
 
 
-bool operator==(const ContextAccess& lhs, const ContextAccess& rhs) {
+bool operator==(ContextAccess const& lhs, ContextAccess const& rhs) {
   return lhs.depth() == rhs.depth() && lhs.index() == rhs.index() &&
          lhs.immutable() == rhs.immutable();
 }
 
 
-bool operator!=(const ContextAccess& lhs, const ContextAccess& rhs) {
+bool operator!=(ContextAccess const& lhs, ContextAccess const& rhs) {
   return !(lhs == rhs);
 }
 
 
-const ContextAccess& ContextAccessOf(const Operator* op) {
+size_t hash_value(ContextAccess const& access) {
+  return base::hash_combine(access.depth(), access.index(), access.immutable());
+}
+
+
+std::ostream& operator<<(std::ostream& os, ContextAccess const& access) {
+  return os << access.depth() << ", " << access.index() << ", "
+            << access.immutable();
+}
+
+
+ContextAccess const& ContextAccessOf(Operator const* op) {
   DCHECK(op->opcode() == IrOpcode::kJSLoadContext ||
          op->opcode() == IrOpcode::kJSStoreContext);
   return OpParameter<ContextAccess>(op);
+}
+
+
+bool operator==(VectorSlotPair const& lhs, VectorSlotPair const& rhs) {
+  return lhs.slot().ToInt() == rhs.slot().ToInt() &&
+         lhs.vector().is_identical_to(rhs.vector());
+}
+
+
+size_t hash_value(VectorSlotPair const& p) {
+  // TODO(mvstanton): include the vector in the hash.
+  base::hash<int> h;
+  return h(p.slot().ToInt());
+}
+
+
+bool operator==(LoadNamedParameters const& lhs,
+                LoadNamedParameters const& rhs) {
+  return lhs.name() == rhs.name() &&
+         lhs.contextual_mode() == rhs.contextual_mode() &&
+         lhs.feedback() == rhs.feedback();
+}
+
+
+bool operator!=(LoadNamedParameters const& lhs,
+                LoadNamedParameters const& rhs) {
+  return !(lhs == rhs);
+}
+
+
+size_t hash_value(LoadNamedParameters const& p) {
+  return base::hash_combine(p.name(), p.contextual_mode(), p.feedback());
+}
+
+
+std::ostream& operator<<(std::ostream& os, LoadNamedParameters const& p) {
+  return os << Brief(*p.name().handle()) << ", " << p.contextual_mode();
+}
+
+
+std::ostream& operator<<(std::ostream& os, LoadPropertyParameters const& p) {
+  // Nothing special to print.
+  return os;
+}
+
+
+bool operator==(LoadPropertyParameters const& lhs,
+                LoadPropertyParameters const& rhs) {
+  return lhs.feedback() == rhs.feedback();
+}
+
+
+bool operator!=(LoadPropertyParameters const& lhs,
+                LoadPropertyParameters const& rhs) {
+  return !(lhs == rhs);
+}
+
+
+const LoadPropertyParameters& LoadPropertyParametersOf(const Operator* op) {
+  DCHECK_EQ(IrOpcode::kJSLoadProperty, op->opcode());
+  return OpParameter<LoadPropertyParameters>(op);
+}
+
+
+size_t hash_value(LoadPropertyParameters const& p) {
+  return hash_value(p.feedback());
 }
 
 
@@ -59,40 +180,32 @@ const LoadNamedParameters& LoadNamedParametersOf(const Operator* op) {
 }
 
 
+bool operator==(StoreNamedParameters const& lhs,
+                StoreNamedParameters const& rhs) {
+  return lhs.strict_mode() == rhs.strict_mode() && lhs.name() == rhs.name();
+}
+
+
+bool operator!=(StoreNamedParameters const& lhs,
+                StoreNamedParameters const& rhs) {
+  return !(lhs == rhs);
+}
+
+
+size_t hash_value(StoreNamedParameters const& p) {
+  return base::hash_combine(p.strict_mode(), p.name());
+}
+
+
+std::ostream& operator<<(std::ostream& os, StoreNamedParameters const& p) {
+  return os << p.strict_mode() << ", " << Brief(*p.name().handle());
+}
+
+
 const StoreNamedParameters& StoreNamedParametersOf(const Operator* op) {
   DCHECK_EQ(IrOpcode::kJSStoreNamed, op->opcode());
   return OpParameter<StoreNamedParameters>(op);
 }
-
-
-// Specialization for static parameters of type {ContextAccess}.
-template <>
-struct StaticParameterTraits<ContextAccess> {
-  static std::ostream& PrintTo(std::ostream& os, const ContextAccess& access) {
-    return os << access.depth() << "," << access.index()
-              << (access.immutable() ? ",imm" : "");
-  }
-  static int HashCode(const ContextAccess& access) {
-    return static_cast<int>((access.depth() << 16) | (access.index() & 0xffff));
-  }
-  static bool Equals(const ContextAccess& lhs, const ContextAccess& rhs) {
-    return lhs == rhs;
-  }
-};
-
-
-// Specialization for static parameters of type {Runtime::FunctionId}.
-template <>
-struct StaticParameterTraits<Runtime::FunctionId> {
-  static std::ostream& PrintTo(std::ostream& os, Runtime::FunctionId val) {
-    const Runtime::Function* f = Runtime::FunctionForId(val);
-    return os << (f->name ? f->name : "?Runtime?");
-  }
-  static int HashCode(Runtime::FunctionId val) { return static_cast<int>(val); }
-  static bool Equals(Runtime::FunctionId a, Runtime::FunctionId b) {
-    return a == b;
-  }
-};
 
 
 #define SHARED_OP_LIST(V)                                 \
@@ -123,7 +236,6 @@ struct StaticParameterTraits<Runtime::FunctionId> {
   V(ToObject, Operator::kNoProperties, 1, 1)              \
   V(Yield, Operator::kNoProperties, 1, 1)                 \
   V(Create, Operator::kEliminatable, 0, 1)                \
-  V(LoadProperty, Operator::kNoProperties, 2, 1)          \
   V(HasProperty, Operator::kNoProperties, 2, 1)           \
   V(TypeOf, Operator::kPure, 1, 1)                        \
   V(InstanceOf, Operator::kNoProperties, 2, 1)            \
@@ -191,11 +303,21 @@ const Operator* JSOperatorBuilder::CallConstruct(int arguments) {
 
 
 const Operator* JSOperatorBuilder::LoadNamed(const Unique<Name>& name,
+                                             const VectorSlotPair& feedback,
                                              ContextualMode contextual_mode) {
-  LoadNamedParameters parameters(name, contextual_mode);
+  LoadNamedParameters parameters(name, feedback, contextual_mode);
   return new (zone()) Operator1<LoadNamedParameters>(
       IrOpcode::kJSLoadNamed, Operator::kNoProperties, 1, 1, "JSLoadNamed",
       parameters);
+}
+
+
+const Operator* JSOperatorBuilder::LoadProperty(
+    const VectorSlotPair& feedback) {
+  LoadPropertyParameters parameters(feedback);
+  return new (zone()) Operator1<LoadPropertyParameters>(
+      IrOpcode::kJSLoadProperty, Operator::kNoProperties, 2, 1,
+      "JSLoadProperty", parameters);
 }
 
 
@@ -241,9 +363,9 @@ const Operator* JSOperatorBuilder::StoreContext(size_t depth, size_t index) {
 
 const Operator* JSOperatorBuilder::CreateCatchContext(
     const Unique<String>& name) {
-  return new (zone()) Operator1<Unique<String> >(
-      IrOpcode::kJSCreateCatchContext, Operator::kNoProperties, 1, 1,
-      "JSCreateCatchContext", name);
+  return new (zone()) Operator1<Unique<String>>(IrOpcode::kJSCreateCatchContext,
+                                                Operator::kNoProperties, 1, 1,
+                                                "JSCreateCatchContext", name);
 }
 
 }  // namespace compiler

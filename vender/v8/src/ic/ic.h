@@ -223,7 +223,6 @@ class IC {
     return target_maps_.length() > 0 ? *target_maps_.at(0) : NULL;
   }
 
- protected:
   inline void UpdateTarget();
 
  private:
@@ -354,6 +353,8 @@ class LoadIC : public IC {
 
   static Handle<Code> initialize_stub(Isolate* isolate,
                                       ExtraICState extra_state);
+  static Handle<Code> initialize_stub_in_optimized_code(
+      Isolate* isolate, ExtraICState extra_state);
 
   MUST_USE_RESULT MaybeHandle<Object> Load(Handle<Object> object,
                                            Handle<Name> name);
@@ -421,6 +422,8 @@ class KeyedLoadIC : public LoadIC {
   static const int kSlowCaseBitFieldMask =
       (1 << Map::kIsAccessCheckNeeded) | (1 << Map::kHasIndexedInterceptor);
 
+  static Handle<Code> initialize_stub(Isolate* isolate);
+  static Handle<Code> initialize_stub_in_optimized_code(Isolate* isolate);
   static Handle<Code> generic_stub(Isolate* isolate);
   static Handle<Code> pre_monomorphic_stub(Isolate* isolate);
 
@@ -526,6 +529,12 @@ enum KeyedStoreCheckMap { kDontCheckMap, kCheckMap };
 enum KeyedStoreIncrementLength { kDontIncrementLength, kIncrementLength };
 
 
+enum KeyedStoreStubCacheRequirement {
+  kCallRuntimeOnMissingHandler,
+  kMissOnMissingHandler
+};
+
+
 class KeyedStoreIC : public StoreIC {
  public:
   // ExtraICState bits (building on IC)
@@ -533,15 +542,22 @@ class KeyedStoreIC : public StoreIC {
   class ExtraICStateKeyedAccessStoreMode
       : public BitField<KeyedAccessStoreMode, 2, 4> {};  // NOLINT
 
+  class IcCheckTypeField : public BitField<IcCheckType, 6, 1> {};
+
   static ExtraICState ComputeExtraICState(StrictMode flag,
                                           KeyedAccessStoreMode mode) {
     return StrictModeState::encode(flag) |
-           ExtraICStateKeyedAccessStoreMode::encode(mode);
+           ExtraICStateKeyedAccessStoreMode::encode(mode) |
+           IcCheckTypeField::encode(ELEMENT);
   }
 
   static KeyedAccessStoreMode GetKeyedAccessStoreMode(
       ExtraICState extra_state) {
     return ExtraICStateKeyedAccessStoreMode::decode(extra_state);
+  }
+
+  static IcCheckType GetKeyType(ExtraICState extra_state) {
+    return IcCheckTypeField::decode(extra_state);
   }
 
   KeyedStoreIC(FrameDepth depth, Isolate* isolate) : StoreIC(depth, isolate) {
@@ -559,7 +575,9 @@ class KeyedStoreIC : public StoreIC {
   }
   static void GenerateMiss(MacroAssembler* masm);
   static void GenerateSlow(MacroAssembler* masm);
-  static void GenerateGeneric(MacroAssembler* masm, StrictMode strict_mode);
+  static void GenerateGeneric(
+      MacroAssembler* masm, StrictMode strict_mode,
+      KeyedStoreStubCacheRequirement handler_requirement);
   static void GenerateSloppyArguments(MacroAssembler* masm);
 
  protected:
@@ -680,8 +698,7 @@ DECLARE_RUNTIME_FUNCTION(BinaryOpIC_Miss);
 DECLARE_RUNTIME_FUNCTION(BinaryOpIC_MissWithAllocationSite);
 DECLARE_RUNTIME_FUNCTION(CompareNilIC_Miss);
 DECLARE_RUNTIME_FUNCTION(ToBooleanIC_Miss);
-DECLARE_RUNTIME_FUNCTION(VectorLoadIC_MissFromStubFailure);
-DECLARE_RUNTIME_FUNCTION(VectorKeyedLoadIC_MissFromStubFailure);
+DECLARE_RUNTIME_FUNCTION(LoadIC_MissFromStubFailure);
 
 // Support functions for callbacks handlers.
 DECLARE_RUNTIME_FUNCTION(StoreCallbackProperty);

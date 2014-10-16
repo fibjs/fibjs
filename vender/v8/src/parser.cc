@@ -342,25 +342,6 @@ class TargetScope BASE_EMBEDDED {
 // ----------------------------------------------------------------------------
 // Implementation of Parser
 
-class ParserTraits::Checkpoint
-    : public ParserBase<ParserTraits>::CheckpointBase {
- public:
-  explicit Checkpoint(ParserBase<ParserTraits>* parser)
-      : CheckpointBase(parser), parser_(parser) {
-    saved_ast_node_id_gen_ = *parser_->ast_node_id_gen_;
-  }
-
-  void Restore() {
-    CheckpointBase::Restore();
-    *parser_->ast_node_id_gen_ = saved_ast_node_id_gen_;
-  }
-
- private:
-  ParserBase<ParserTraits>* parser_;
-  AstNode::IdGen saved_ast_node_id_gen_;
-};
-
-
 bool ParserTraits::IsEvalOrArguments(const AstRawString* identifier) const {
   return identifier == parser_->ast_value_factory()->eval_string() ||
          identifier == parser_->ast_value_factory()->arguments_string();
@@ -665,11 +646,12 @@ Expression* ParserTraits::SuperReference(
       pos);
 }
 
-Expression* ParserTraits::ClassLiteral(
+Expression* ParserTraits::ClassExpression(
     const AstRawString* name, Expression* extends, Expression* constructor,
-    ZoneList<ObjectLiteral::Property*>* properties, int pos,
-    AstNodeFactory<AstConstructionVisitor>* factory) {
-  return factory->NewClassLiteral(name, extends, constructor, properties, pos);
+    ZoneList<ObjectLiteral::Property*>* properties, int start_position,
+    int end_position, AstNodeFactory<AstConstructionVisitor>* factory) {
+  return factory->NewClassLiteral(name, extends, constructor, properties,
+                                  start_position, end_position);
 }
 
 Literal* ParserTraits::ExpressionFromLiteral(
@@ -896,8 +878,10 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info, Scope** scope,
     ParsingModeScope parsing_mode(this, mode);
 
     // Enters 'scope'.
-    FunctionState function_state(&function_state_, &scope_, *scope, zone(),
-                                 ast_value_factory(), info->ast_node_id_gen());
+    AstNodeFactory<AstConstructionVisitor> function_factory(
+        zone(), ast_value_factory(), info->ast_node_id_gen());
+    FunctionState function_state(&function_state_, &scope_, *scope,
+                                 &function_factory);
 
     scope_->SetStrictMode(info->strict_mode());
     ZoneList<Statement*>* body = new(zone()) ZoneList<Statement*>(16, zone());
@@ -1009,9 +993,10 @@ FunctionLiteral* Parser::ParseLazy(Utf16CharacterStream* source) {
                                            zone());
     }
     original_scope_ = scope;
-    FunctionState function_state(&function_state_, &scope_, scope, zone(),
-                                 ast_value_factory(),
-                                 info()->ast_node_id_gen());
+    AstNodeFactory<AstConstructionVisitor> function_factory(
+        zone(), ast_value_factory(), info()->ast_node_id_gen());
+    FunctionState function_state(&function_state_, &scope_, scope,
+                                 &function_factory);
     DCHECK(scope->strict_mode() == SLOPPY || info()->strict_mode() == STRICT);
     DCHECK(info()->strict_mode() == shared_info->strict_mode());
     scope->SetStrictMode(shared_info->strict_mode());
@@ -1975,21 +1960,18 @@ Statement* Parser::ParseClassDeclaration(ZoneList<const AstRawString*>* names,
   Expression* value = ParseClassLiteral(name, scanner()->location(),
                                         is_strict_reserved, pos, CHECK_OK);
 
-  Block* block = factory()->NewBlock(NULL, 1, true, pos);
-  VariableMode mode = LET;
-  VariableProxy* proxy = NewUnresolved(name, mode, Interface::NewValue());
+  VariableProxy* proxy = NewUnresolved(name, LET, Interface::NewValue());
   Declaration* declaration =
-      factory()->NewVariableDeclaration(proxy, mode, scope_, pos);
+      factory()->NewVariableDeclaration(proxy, LET, scope_, pos);
   Declare(declaration, true, CHECK_OK);
+  proxy->var()->set_initializer_position(pos);
 
   Token::Value init_op = Token::INIT_LET;
   Assignment* assignment = factory()->NewAssignment(init_op, proxy, value, pos);
-  block->AddStatement(
-      factory()->NewExpressionStatement(assignment, RelocInfo::kNoPosition),
-      zone());
-
+  Statement* assignment_statement =
+      factory()->NewExpressionStatement(assignment, RelocInfo::kNoPosition);
   if (names) names->Add(name, zone());
-  return block;
+  return assignment_statement;
 }
 
 
@@ -2259,7 +2241,7 @@ Block* Parser::ParseVariableDeclarations(
     }
 
     // Record the end position of the initializer.
-    if (proxy->var() != NULL) {
+    if (proxy->is_resolved()) {
       proxy->var()->set_initializer_position(position());
     }
 
@@ -3513,9 +3495,10 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
   BailoutReason dont_optimize_reason = kNoReason;
   // Parse function body.
   {
-    FunctionState function_state(&function_state_, &scope_, scope, zone(),
-                                 ast_value_factory(),
-                                 info()->ast_node_id_gen());
+    AstNodeFactory<AstConstructionVisitor> function_factory(
+        zone(), ast_value_factory(), info()->ast_node_id_gen());
+    FunctionState function_state(&function_state_, &scope_, scope,
+                                 &function_factory);
     scope_->SetScopeName(function_name);
 
     if (is_generator) {

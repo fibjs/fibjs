@@ -1991,6 +1991,7 @@ void CodeSerializer::SerializeObject(Object* o, HowToCode how_to_code,
           Code* lazy = *isolate()->builtins()->CompileLazy();
           SerializeBuiltin(lazy, how_to_code, where_to_point);
         } else {
+          code_object->MakeYoung();
           SerializeHeapObject(code_object, how_to_code, where_to_point);
         }
         return;
@@ -2139,7 +2140,9 @@ Handle<SharedFunctionInfo> CodeSerializer::Deserialize(Isolate* isolate,
     int length = data->length();
     PrintF("[Deserializing from %d bytes took %0.3f ms]\n", length, ms);
   }
-  return Handle<SharedFunctionInfo>(SharedFunctionInfo::cast(root), isolate);
+  Handle<SharedFunctionInfo> result(SharedFunctionInfo::cast(root), isolate);
+  result->set_deserialized(true);
+  return result;
 }
 
 

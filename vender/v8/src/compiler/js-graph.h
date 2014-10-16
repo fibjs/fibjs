@@ -46,11 +46,11 @@ class JSGraph : public ZoneObject {
 
   // Creates a HeapConstant node, possibly canonicalized, without inspecting the
   // object.
-  Node* HeapConstant(Unique<Object> value);
+  Node* HeapConstant(Unique<HeapObject> value);
 
   // Creates a HeapConstant node, possibly canonicalized, and may access the
   // heap to inspect the object.
-  Node* HeapConstant(Handle<Object> value);
+  Node* HeapConstant(Handle<HeapObject> value);
 
   // Creates a Constant node of the appropriate type for the given object.
   // Accesses the heap to inspect the object and determine whether one of the
@@ -67,6 +67,21 @@ class JSGraph : public ZoneObject {
   Node* Int32Constant(int32_t value);
   Node* Uint32Constant(uint32_t value) {
     return Int32Constant(bit_cast<int32_t>(value));
+  }
+
+  // Creates a Int64Constant node, usually canonicalized.
+  Node* Int64Constant(int64_t value);
+  Node* Uint64Constant(uint64_t value) {
+    return Int64Constant(bit_cast<int64_t>(value));
+  }
+
+  // Creates a Int32Constant/Int64Constant node, depending on the word size of
+  // the target machine.
+  // TODO(turbofan): Code using Int32Constant/Int64Constant to store pointer
+  // constants is probably not serializable.
+  Node* IntPtrConstant(intptr_t value) {
+    return machine()->Is32() ? Int32Constant(static_cast<int32_t>(value))
+                             : Int64Constant(static_cast<int64_t>(value));
   }
 
   // Creates a Float32Constant node, usually canonicalized.
@@ -109,7 +124,7 @@ class JSGraph : public ZoneObject {
 
   CommonNodeCache cache_;
 
-  Node* ImmovableHeapConstant(Handle<Object> value);
+  Node* ImmovableHeapConstant(Handle<HeapObject> value);
   Node* NumberConstant(double value);
   Node* NewNode(const Operator* op);
 

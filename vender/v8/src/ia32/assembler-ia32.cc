@@ -1951,7 +1951,7 @@ void Assembler::cvtsi2sd(XMMRegister dst, const Operand& src) {
 }
 
 
-void Assembler::cvtss2sd(XMMRegister dst, XMMRegister src) {
+void Assembler::cvtss2sd(XMMRegister dst, const Operand& src) {
   EnsureSpace ensure_space(this);
   EMIT(0xF3);
   EMIT(0x0F);
@@ -1960,7 +1960,7 @@ void Assembler::cvtss2sd(XMMRegister dst, XMMRegister src) {
 }
 
 
-void Assembler::cvtsd2ss(XMMRegister dst, XMMRegister src) {
+void Assembler::cvtsd2ss(XMMRegister dst, const Operand& src) {
   EnsureSpace ensure_space(this);
   EMIT(0xF2);
   EMIT(0x0F);
@@ -2378,6 +2378,26 @@ void Assembler::ptest(XMMRegister dst, XMMRegister src) {
   EMIT(0x38);
   EMIT(0x17);
   emit_sse_operand(dst, src);
+}
+
+
+void Assembler::pslld(XMMRegister reg, int8_t shift) {
+  EnsureSpace ensure_space(this);
+  EMIT(0x66);
+  EMIT(0x0F);
+  EMIT(0x72);
+  emit_sse_operand(esi, reg);  // esi == 6
+  EMIT(shift);
+}
+
+
+void Assembler::psrld(XMMRegister reg, int8_t shift) {
+  EnsureSpace ensure_space(this);
+  EMIT(0x66);
+  EMIT(0x0F);
+  EMIT(0x72);
+  emit_sse_operand(edx, reg);  // edx == 2
+  EMIT(shift);
 }
 
 

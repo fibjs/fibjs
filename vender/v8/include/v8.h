@@ -697,9 +697,6 @@ template <class T, class M> class Persistent : public PersistentBase<T> {
     return Persistent<S>::Cast(*this);
   }
 
-  // This will be removed.
-  V8_INLINE T* ClearAndLeak();
-
  private:
   friend class Isolate;
   friend class Utils;
@@ -4214,9 +4211,28 @@ enum PromiseRejectEvent {
   kPromiseHandlerAddedAfterReject = 1
 };
 
-typedef void (*PromiseRejectCallback)(Handle<Promise> promise,
-                                      Handle<Value> value,
-                                      PromiseRejectEvent event);
+class PromiseRejectMessage {
+ public:
+  PromiseRejectMessage(Handle<Promise> promise, PromiseRejectEvent event,
+                       Handle<Value> value, Handle<StackTrace> stack_trace)
+      : promise_(promise),
+        event_(event),
+        value_(value),
+        stack_trace_(stack_trace) {}
+
+  V8_INLINE Handle<Promise> GetPromise() const { return promise_; }
+  V8_INLINE PromiseRejectEvent GetEvent() const { return event_; }
+  V8_INLINE Handle<Value> GetValue() const { return value_; }
+  V8_INLINE Handle<StackTrace> GetStackTrace() const { return stack_trace_; }
+
+ private:
+  Handle<Promise> promise_;
+  PromiseRejectEvent event_;
+  Handle<Value> value_;
+  Handle<StackTrace> stack_trace_;
+};
+
+typedef void (*PromiseRejectCallback)(PromiseRejectMessage message);
 
 // --- Microtask Callback ---
 typedef void (*MicrotaskCallback)(void* data);
@@ -4528,6 +4544,7 @@ class V8_EXPORT Isolate {
    */
   enum UseCounterFeature {
     kUseAsm = 0,
+    kBreakIterator = 1,
     kUseCounterFeatureCount  // This enum value must be last.
   };
 
@@ -5784,8 +5801,6 @@ class V8_EXPORT Locker {
   bool top_level_;
   internal::Isolate* isolate_;
 
-  static bool active_;
-
   // Disallow copying and assigning.
   Locker(const Locker&);
   void operator=(const Locker&);
@@ -5894,7 +5909,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 95;
+  static const int kContextEmbedderDataIndex = 76;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -5912,7 +5927,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 153;
+  static const int kEmptyStringRootIndex = 154;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.
@@ -5927,7 +5942,7 @@ class Internals {
   static const int kNodeIsIndependentShift = 4;
   static const int kNodeIsPartiallyDependentShift = 5;
 
-  static const int kJSObjectType = 0xbc;
+  static const int kJSObjectType = 0xbd;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
   static const int kForeignType = 0x88;
@@ -6222,15 +6237,6 @@ void PersistentBase<T>::MarkPartiallyDependent() {
   I::UpdateNodeFlag(reinterpret_cast<internal::Object**>(this->val_),
                     true,
                     I::kNodeIsPartiallyDependentShift);
-}
-
-
-template <class T, class M>
-T* Persistent<T, M>::ClearAndLeak() {
-  T* old;
-  old = this->val_;
-  this->val_ = NULL;
-  return old;
 }
 
 

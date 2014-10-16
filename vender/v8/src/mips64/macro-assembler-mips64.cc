@@ -4779,6 +4779,13 @@ void MacroAssembler::Prologue(bool code_pre_aging) {
 }
 
 
+void MacroAssembler::EnterFrame(StackFrame::Type type,
+                                bool load_constant_pool_pointer_reg) {
+  // Out-of-line constant pool not implemented on mips64.
+  UNREACHABLE();
+}
+
+
 void MacroAssembler::EnterFrame(StackFrame::Type type) {
   daddiu(sp, sp, -5 * kPointerSize);
   li(t8, Operand(Smi::FromInt(type)));
@@ -6069,7 +6076,7 @@ void MacroAssembler::TruncatingDiv(Register result,
   DCHECK(!result.is(at));
   base::MagicNumbersForDivision<uint32_t> mag =
   base::SignedDivisionByConstant(static_cast<uint32_t>(divisor));
-  li(at, Operand(mag.multiplier));
+  li(at, Operand(static_cast<int32_t>(mag.multiplier)));
   Mulh(result, dividend, Operand(at));
   bool neg = (mag.multiplier & (static_cast<uint32_t>(1) << 31)) != 0;
   if (divisor > 0 && neg) {

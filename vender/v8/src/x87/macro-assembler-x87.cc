@@ -278,7 +278,7 @@ void MacroAssembler::TruncateHeapNumberToI(Register result_reg,
 }
 
 
-void MacroAssembler::LoadUint32NoSSE2(Register src) {
+void MacroAssembler::LoadUint32NoSSE2(const Operand& src) {
   Label done;
   push(src);
   fild_s(Operand(esp, 0));
@@ -857,6 +857,13 @@ void MacroAssembler::Prologue(bool code_pre_aging) {
     push(esi);  // Callee's context.
     push(edi);  // Callee's JS function.
   }
+}
+
+
+void MacroAssembler::EnterFrame(StackFrame::Type type,
+                                bool load_constant_pool_pointer_reg) {
+  // Out-of-line constant pool not implemented on x87.
+  UNREACHABLE();
 }
 
 

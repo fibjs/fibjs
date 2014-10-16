@@ -432,7 +432,10 @@ class FullCodeGenerator: public AstVisitor {
   Handle<FixedArray> FeedbackVector() {
     return info_->feedback_vector();
   }
-  void EnsureSlotContainsAllocationSite(int slot);
+  void EnsureSlotContainsAllocationSite(FeedbackVectorSlot slot);
+  Smi* SmiFromSlot(FeedbackVectorSlot slot) const {
+    return Smi::FromInt(slot.ToInt());
+  }
 
   // Record a call's return site offset, used to rebuild the frame if the
   // called function was inlined at the site.
@@ -479,6 +482,7 @@ class FullCodeGenerator: public AstVisitor {
   void EmitCallWithLoadIC(Call* expr);
   void EmitSuperCallWithLoadIC(Call* expr);
   void EmitKeyedCallWithLoadIC(Call* expr, Expression* key);
+  void EmitKeyedSuperCallWithLoadIC(Call* expr);
 
   // Platform-specific code for inline runtime calls.
   InlineFunctionGenerator FindInlineFunctionGenerator(Runtime::FunctionId id);
@@ -517,6 +521,24 @@ class FullCodeGenerator: public AstVisitor {
 
   // Platform-specific support for compiling assignments.
 
+  // Left-hand side can only be a property, a global or a (parameter or local)
+  // slot.
+  enum LhsKind {
+    VARIABLE,
+    NAMED_PROPERTY,
+    KEYED_PROPERTY,
+    NAMED_SUPER_PROPERTY,
+    KEYED_SUPER_PROPERTY
+  };
+
+  static LhsKind GetAssignType(Property* property) {
+    if (property == NULL) return VARIABLE;
+    bool super_access = property->IsSuperAccess();
+    return (property->key()->IsPropertyName())
+               ? (super_access ? NAMED_SUPER_PROPERTY : NAMED_PROPERTY)
+               : (super_access ? KEYED_SUPER_PROPERTY : KEYED_PROPERTY);
+  }
+
   // Load a value from a named property.
   // The receiver is left on the stack by the IC.
   void EmitNamedPropertyLoad(Property* expr);
@@ -524,6 +546,10 @@ class FullCodeGenerator: public AstVisitor {
   // Load a value from super.named property.
   // Expect receiver ('this' value) and home_object on the stack.
   void EmitNamedSuperPropertyLoad(Property* expr);
+
+  // Load a value from super[keyed] property.
+  // Expect receiver ('this' value), home_object and key on the stack.
+  void EmitKeyedSuperPropertyLoad(Property* expr);
 
   // Load a value from a keyed property.
   // The receiver and the key is left on the stack by the IC.
@@ -563,6 +589,10 @@ class FullCodeGenerator: public AstVisitor {
   // Complete a super named property assignment. The right-hand-side value
   // is expected in accumulator.
   void EmitNamedSuperPropertyStore(Property* prop);
+
+  // Complete a super named property assignment. The right-hand-side value
+  // is expected in accumulator.
+  void EmitKeyedSuperPropertyStore(Property* prop);
 
   // Complete a keyed property assignment.  The receiver and key are
   // expected on top of the stack and the right-hand-side value in the

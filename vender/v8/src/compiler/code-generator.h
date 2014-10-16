@@ -27,7 +27,6 @@ class CodeGenerator FINAL : public GapResolver::Assembler {
 
   InstructionSequence* code() const { return code_; }
   Frame* frame() const { return code()->frame(); }
-  Graph* graph() const { return code()->graph(); }
   Isolate* isolate() const { return zone()->isolate(); }
   Linkage* linkage() const { return code()->linkage(); }
   Schedule* schedule() const { return code()->schedule(); }
@@ -40,9 +39,8 @@ class CodeGenerator FINAL : public GapResolver::Assembler {
 
   // Checks if {block} will appear directly after {current_block_} when
   // assembling code, in which case, a fall-through can be used.
-  bool IsNextInAssemblyOrder(const BasicBlock* block) const {
-    return block->rpo_number() == (current_block_->rpo_number() + 1) &&
-           block->deferred() == current_block_->deferred();
+  bool IsNextInAssemblyOrder(BasicBlock::RpoNumber block) const {
+    return current_block_.IsNext(block);
   }
 
   // Record a safepoint with the given pointer map.
@@ -96,7 +94,7 @@ class CodeGenerator FINAL : public GapResolver::Assembler {
       Translation* translation, size_t frame_state_offset,
       OutputFrameStateCombine state_combine);
   void AddTranslationForOperand(Translation* translation, Instruction* instr,
-                                InstructionOperand* op);
+                                InstructionOperand* op, MachineType type);
   void AddNopForSmiCodeInlining();
   void EnsureSpaceForLazyDeopt();
   void MarkLazyDeoptSite();
@@ -120,7 +118,7 @@ class CodeGenerator FINAL : public GapResolver::Assembler {
   };
 
   InstructionSequence* code_;
-  BasicBlock* current_block_;
+  BasicBlock::RpoNumber current_block_;
   SourcePosition current_source_position_;
   MacroAssembler masm_;
   GapResolver resolver_;

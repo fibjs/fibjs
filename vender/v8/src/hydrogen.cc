@@ -2686,9 +2686,8 @@ HInstruction* HGraphBuilder::AddElementAccess(
   DCHECK(val == NULL);
   HLoadKeyed* load = Add<HLoadKeyed>(
       elements, checked_key, dependency, elements_kind, load_mode);
-  if (FLAG_opt_safe_uint32_operations &&
-      (elements_kind == EXTERNAL_UINT32_ELEMENTS ||
-       elements_kind == UINT32_ELEMENTS)) {
+  if (elements_kind == EXTERNAL_UINT32_ELEMENTS ||
+      elements_kind == UINT32_ELEMENTS) {
     graph()->RecordUint32Instruction(load);
   }
   return load;
@@ -4400,7 +4399,7 @@ bool HGraph::Optimize(BailoutReason* bailout_reason) {
   // Must be performed before canonicalization to ensure that Canonicalize
   // will not remove semantically meaningful ToInt32 operations e.g. BIT_OR with
   // zero.
-  if (FLAG_opt_safe_uint32_operations) Run<HUint32AnalysisPhase>();
+  Run<HUint32AnalysisPhase>();
 
   if (FLAG_use_canonicalizing) Run<HCanonicalizePhase>();
 
@@ -7175,8 +7174,14 @@ HValue* HOptimizedGraphBuilder::HandleKeyedElementAccess(
   bool monomorphic = ComputeReceiverTypes(expr, obj, &types, zone());
 
   bool force_generic = false;
-  if (access_type == STORE &&
-      (monomorphic || (types != NULL && !types->is_empty()))) {
+  if (access_type == STORE && expr->GetKeyType() == PROPERTY) {
+    // Non-Generic accesses assume that elements are being accessed, and will
+    // deopt for non-index keys, which the IC knows will occur.
+    // TODO(jkummerow): Consider adding proper support for property accesses.
+    force_generic = true;
+    monomorphic = false;
+  } else if (access_type == STORE &&
+             (monomorphic || (types != NULL && !types->is_empty()))) {
     // Stores can't be mono/polymorphic if their prototype chain has dictionary
     // elements. However a receiver map that has dictionary elements itself
     // should be left to normal mono/poly behavior (the other maps may benefit
@@ -10456,8 +10461,7 @@ HValue* HGraphBuilder::BuildBinaryOperation(
         break;
       case Token::SHR:
         instr = AddUncasted<HShr>(left, right);
-        if (FLAG_opt_safe_uint32_operations && instr->IsShr() &&
-            CanBeZero(right)) {
+        if (instr->IsShr() && CanBeZero(right)) {
           graph()->RecordUint32Instruction(instr);
         }
         break;

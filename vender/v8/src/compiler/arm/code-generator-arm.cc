@@ -197,7 +197,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArchJmp:
-      __ b(code_->GetLabel(i.InputBlock(0)));
+      __ b(code_->GetLabel(i.InputRpo(0)));
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     case kArchNop:
@@ -243,6 +243,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
+    case kArmSmmul:
+      __ smmul(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1));
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
+    case kArmSmmla:
+      __ smmla(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1),
+               i.InputRegister(2));
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
     case kArmSdiv: {
       CpuFeatureScope scope(masm(), SUDIV);
       __ sdiv(i.OutputRegister(), i.InputRegister(0), i.InputRegister(1));
@@ -489,8 +498,10 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr,
 
   // Emit a branch. The true and false targets are always the last two inputs
   // to the instruction.
-  BasicBlock* tblock = i.InputBlock(instr->InputCount() - 2);
-  BasicBlock* fblock = i.InputBlock(instr->InputCount() - 1);
+  BasicBlock::RpoNumber tblock =
+      i.InputRpo(static_cast<int>(instr->InputCount()) - 2);
+  BasicBlock::RpoNumber fblock =
+      i.InputRpo(static_cast<int>(instr->InputCount()) - 1);
   bool fallthru = IsNextInAssemblyOrder(fblock);
   Label* tlabel = code()->GetLabel(tblock);
   Label* flabel = fallthru ? &done : code()->GetLabel(fblock);
