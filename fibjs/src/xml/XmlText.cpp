@@ -163,7 +163,7 @@ result_t XmlText::replaceData(int32_t offset, int32_t count, const char *arg)
 
 result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
 {
-    wstring ret;
+    std::string ret;
     result_t hr;
 
     hr = m_data.splitText(offset, ret);

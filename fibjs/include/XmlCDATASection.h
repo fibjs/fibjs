@@ -23,7 +23,7 @@ public:
     {
     }
 
-    XmlCDATASection(XmlDocument_base *document, wstring &data):
+    XmlCDATASection(XmlDocument_base *document, std::string &data):
         XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE), m_data(data)
     {
     }

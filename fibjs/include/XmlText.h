@@ -23,7 +23,7 @@ public:
     {
     }
 
-    XmlText(XmlDocument_base *document, wstring &data):
+    XmlText(XmlDocument_base *document, std::string &data):
         XmlNodeImpl(document, this, xml_base::_TEXT_NODE), m_data(data)
     {
     }
