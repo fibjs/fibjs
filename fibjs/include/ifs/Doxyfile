@@ -941,7 +941,7 @@ HTML_COLORSTYLE_SAT    = 0
 # so 80 represents a gamma of 0.8, The value 220 represents a gamma of 2.2,
 # and 100 does not change the gamma.
 
-HTML_COLORSTYLE_GAMMA  = 0
+HTML_COLORSTYLE_GAMMA  = 80
 
 # If the HTML_TIMESTAMP tag is set to YES then the footer of each generated HTML
 # page will contain the date and time when the page was generated. Setting
