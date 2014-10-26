@@ -73,7 +73,9 @@ void close_buffer_iarchive(struct iarchive **ia);
 char *get_buffer(struct oarchive *);
 int get_buffer_len(struct oarchive *);
 
+#ifndef htonll
 int64_t htonll(int64_t v);
+#endif
 
 #ifdef __cplusplus
 }
