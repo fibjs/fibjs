@@ -746,6 +746,22 @@ inline result_t _error_checker(result_t hr, const char *file, int line)
 #define CHECK_ERROR(hr) (hr)
 #endif
 
+inline std::string dump_str(std::string str)
+{
+    static const char hexs[] = "0123456789abcdef";
+    std::string strHex;
+    int32_t i;
+
+    for (i = 0; i < (int)str.length(); i ++)
+    {
+        unsigned char ch = (unsigned char)str[i];
+        strHex += hexs[ch >> 4];
+        strHex += hexs[ch & 0xf];
+    }
+
+    return strHex;
+}
+
 void flushLog();
 
 }
