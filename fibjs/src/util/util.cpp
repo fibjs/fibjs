@@ -545,8 +545,26 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array> &retVal)
 
 result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 {
-    if (v->IsObject())
-        retVal = v->ToObject()->Clone();
+    if (v->IsObject() && !object_base::getInstance(v))
+    {
+        if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
+            retVal = v;
+        else if (v->IsDate())
+            retVal = v8::Date::New(isolate, v->NumberValue());
+        else if (v->IsBooleanObject())
+            retVal = v8::BooleanObject::New(v->BooleanValue());
+        else if (v->IsNumberObject())
+            retVal = v8::NumberObject::New(isolate, v->NumberValue());
+        else if (v->IsStringObject())
+            retVal = v8::StringObject::New(v->ToString());
+        else if (v->IsRegExp())
+        {
+            v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
+            retVal = v8::RegExp::New(re->GetSource(), re->GetFlags());
+        }
+        else
+            retVal = v8::Local<v8::Object>::Cast(v)->Clone();
+    }
     else
         retVal = v;
 

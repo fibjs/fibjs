@@ -7,6 +7,7 @@
 
 #include "MongoCursor.h"
 #include "encoding_bson.h"
+#include "ifs/util.h"
 
 namespace fibjs
 {
@@ -23,7 +24,9 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
 
     mongo_cursor_init(&m_cursor, &db->m_conn, ns.c_str());
 
-    m_query.Reset(isolate, query->Clone());
+    v8::Local<v8::Value> _query;
+    util_base::clone(query, _query);
+    m_query.Reset(isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
 
     mongo_cursor_set_query(&m_cursor, &m_bbq);
 

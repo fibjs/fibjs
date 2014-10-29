@@ -12,6 +12,7 @@
 #include "ifs/path.h"
 #include "ifs/Stat.h"
 #include "ifs/encoding.h"
+#include "ifs/util.h"
 
 #include <sstream>
 
@@ -337,7 +338,7 @@ result_t SandBox::require(std::string base, std::string id,
         if (!IsEmpty(retVal))
         {
             if (retVal->IsObject() && !object_base::getInstance(retVal))
-                retVal = retVal->ToObject()->Clone();
+                util_base::clone(retVal, retVal);
             InstallModule(strId, retVal);
 
             return 0;

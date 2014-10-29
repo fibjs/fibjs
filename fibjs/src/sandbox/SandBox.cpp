@@ -7,6 +7,7 @@
 
 #include "SandBox.h"
 #include "ifs/vm.h"
+#include "ifs/util.h"
 
 namespace fibjs
 {
@@ -53,8 +54,7 @@ void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
 {
-    if (mod->IsObject() && !object_base::getInstance(mod))
-        mod = mod->ToObject()->Clone();
+    util_base::clone(mod, mod);
     InstallModule(id, mod);
 
     return 0;
