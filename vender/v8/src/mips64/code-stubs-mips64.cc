@@ -1405,6 +1405,34 @@ void JSEntryStub::Generate(MacroAssembler* masm) {
 }
 
 
+void LoadIndexedStringStub::Generate(MacroAssembler* masm) {
+  // Return address is in ra.
+  Label miss;
+
+  Register receiver = LoadDescriptor::ReceiverRegister();
+  Register index = LoadDescriptor::NameRegister();
+  Register scratch = a3;
+  Register result = v0;
+  DCHECK(!scratch.is(receiver) && !scratch.is(index));
+
+  StringCharAtGenerator char_at_generator(receiver, index, scratch, result,
+                                          &miss,  // When not a string.
+                                          &miss,  // When not a number.
+                                          &miss,  // When index out of range.
+                                          STRING_INDEX_IS_ARRAY_INDEX,
+                                          RECEIVER_IS_STRING);
+  char_at_generator.GenerateFast(masm);
+  __ Ret();
+
+  StubRuntimeCallHelper call_helper;
+  char_at_generator.GenerateSlow(masm, call_helper);
+
+  __ bind(&miss);
+  PropertyAccessCompiler::TailCallBuiltin(
+      masm, PropertyAccessCompiler::MissBuiltin(Code::KEYED_LOAD_IC));
+}
+
+
 // Uses registers a0 to a4.
 // Expected input (depending on whether args are in registers or on the stack):
 // * object: a0 or at sp + 1 * kPointerSize.
@@ -1542,9 +1570,7 @@ void InstanceofStub::Generate(MacroAssembler* masm) {
   __ Branch(&slow, ne, scratch, Operand(JS_FUNCTION_TYPE));
 
   // Null is not instance of anything.
-  __ Branch(&object_not_null,
-            ne,
-            scratch,
+  __ Branch(&object_not_null, ne, object,
             Operand(isolate()->factory()->null_value()));
   __ li(v0, Operand(Smi::FromInt(1)));
   __ DropAndRet(HasArgsInRegisters() ? 0 : 2);
@@ -2783,14 +2809,16 @@ void StringCharCodeAtGenerator::GenerateFast(MacroAssembler* masm) {
   DCHECK(!a4.is(object_));
 
   // If the receiver is a smi trigger the non-string case.
-  __ JumpIfSmi(object_, receiver_not_string_);
+  if (check_mode_ == RECEIVER_IS_UNKNOWN) {
+    __ JumpIfSmi(object_, receiver_not_string_);
 
-  // Fetch the instance type of the receiver into result register.
-  __ ld(result_, FieldMemOperand(object_, HeapObject::kMapOffset));
-  __ lbu(result_, FieldMemOperand(result_, Map::kInstanceTypeOffset));
-  // If the receiver is not a string trigger the non-string case.
-  __ And(a4, result_, Operand(kIsNotStringMask));
-  __ Branch(receiver_not_string_, ne, a4, Operand(zero_reg));
+    // Fetch the instance type of the receiver into result register.
+    __ ld(result_, FieldMemOperand(object_, HeapObject::kMapOffset));
+    __ lbu(result_, FieldMemOperand(result_, Map::kInstanceTypeOffset));
+    // If the receiver is not a string trigger the non-string case.
+    __ And(a4, result_, Operand(kIsNotStringMask));
+    __ Branch(receiver_not_string_, ne, a4, Operand(zero_reg));
+  }
 
   // If the index is non-smi trigger the non-smi case.
   __ JumpIfNotSmi(index_, &index_not_smi_);
@@ -2919,7 +2947,18 @@ void CallICStub::Generate(MacroAssembler* masm) {
     __ Daddu(a4, a2, Operand(a4));
     __ LoadRoot(at, Heap::kmegamorphic_symbolRootIndex);
     __ sd(at, FieldMemOperand(a4, FixedArray::kHeaderSize));
-    __ Branch(&slow_start);
+    // We have to update statistics for runtime profiling.
+    const int with_types_offset =
+    FixedArray::OffsetOfElementAt(TypeFeedbackVector::kWithTypesIndex);
+    __ ld(a4, FieldMemOperand(a2, with_types_offset));
+    __ Dsubu(a4, a4, Operand(Smi::FromInt(1)));
+    __ sd(a4, FieldMemOperand(a2, with_types_offset));
+    const int generic_offset =
+    FixedArray::OffsetOfElementAt(TypeFeedbackVector::kGenericCountIndex);
+    __ ld(a4, FieldMemOperand(a2, generic_offset));
+    __ Daddu(a4, a4, Operand(Smi::FromInt(1)));
+    __ Branch(USE_DELAY_SLOT, &slow_start);
+    __ sd(a4, FieldMemOperand(a2, generic_offset));  // In delay slot.
   }
 
   // We are here because tracing is on or we are going monomorphic.
@@ -3329,8 +3368,8 @@ void SubStringStub::Generate(MacroAssembler* masm) {
   // a1: instance type
   // a2: length
   // a3: from index (untagged)
-  StringCharAtGenerator generator(
-      v0, a3, a2, v0, &runtime, &runtime, &runtime, STRING_INDEX_IS_NUMBER);
+  StringCharAtGenerator generator(v0, a3, a2, v0, &runtime, &runtime, &runtime,
+                                  STRING_INDEX_IS_NUMBER, RECEIVER_IS_STRING);
   generator.GenerateFast(masm);
   __ DropAndRet(3);
   generator.SkipSlow(masm, &runtime);

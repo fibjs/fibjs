@@ -98,15 +98,17 @@ ContextAccess const& ContextAccessOf(Operator const*);
 
 class VectorSlotPair {
  public:
-  VectorSlotPair(Handle<TypeFeedbackVector> vector, FeedbackVectorSlot slot)
+  VectorSlotPair(Handle<TypeFeedbackVector> vector, FeedbackVectorICSlot slot)
       : vector_(vector), slot_(slot) {}
 
   Handle<TypeFeedbackVector> vector() const { return vector_; }
-  FeedbackVectorSlot slot() const { return slot_; }
+  FeedbackVectorICSlot slot() const { return slot_; }
+
+  int index() const { return vector_->GetIndex(slot_); }
 
  private:
   const Handle<TypeFeedbackVector> vector_;
-  const FeedbackVectorSlot slot_;
+  const FeedbackVectorICSlot slot_;
 };
 
 
@@ -193,7 +195,7 @@ const StoreNamedParameters& StoreNamedParametersOf(const Operator* op);
 // Interface for building JavaScript-level operators, e.g. directly from the
 // AST. Most operators have no parameters, thus can be globally shared for all
 // graphs.
-class JSOperatorBuilder FINAL {
+class JSOperatorBuilder FINAL : public ZoneObject {
  public:
   explicit JSOperatorBuilder(Zone* zone);
 
@@ -264,6 +266,8 @@ class JSOperatorBuilder FINAL {
 
   const JSOperatorBuilderImpl& impl_;
   Zone* const zone_;
+
+  DISALLOW_COPY_AND_ASSIGN(JSOperatorBuilder);
 };
 
 }  // namespace compiler

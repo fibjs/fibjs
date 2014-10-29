@@ -25,7 +25,8 @@ class InstructionSelector FINAL {
   // Forward declarations.
   class Features;
 
-  InstructionSelector(InstructionSequence* sequence,
+  InstructionSelector(Zone* local_zone, Linkage* linkage,
+                      InstructionSequence* sequence, Schedule* schedule,
                       SourcePositionTable* source_positions,
                       Features features = SupportedFeatures());
 
@@ -84,19 +85,12 @@ class InstructionSelector FINAL {
     return Features(CpuFeatures::SupportedFeatures());
   }
 
-  // Checks if {node} is currently live.
-  bool IsLive(Node* node) const { return !IsDefined(node) && IsUsed(node); }
-
- private:
-  friend class OperandGenerator;
+  // TODO(sigurds) This should take a CpuFeatures argument.
+  static MachineOperatorBuilder::Flags SupportedMachineOperatorFlags();
 
   // ===========================================================================
   // ============ Architecture-independent graph covering methods. =============
   // ===========================================================================
-
-  // Checks if {block} will appear directly after {current_block_} when
-  // assembling code, in which case, a fall-through can be used.
-  bool IsNextInAssemblyOrder(const BasicBlock* block) const;
 
   // Used in pattern matching during code generation.
   // Check if {node} can be covered while generating code for the current
@@ -108,12 +102,22 @@ class InstructionSelector FINAL {
   // generated for it.
   bool IsDefined(Node* node) const;
 
-  // Inform the instruction selection that {node} was just defined.
-  void MarkAsDefined(Node* node);
-
   // Checks if {node} has any uses, and therefore code has to be generated for
   // it.
   bool IsUsed(Node* node) const;
+
+  // Checks if {node} is currently live.
+  bool IsLive(Node* node) const { return !IsDefined(node) && IsUsed(node); }
+
+ private:
+  friend class OperandGenerator;
+
+  // Checks if {block} will appear directly after {current_block_} when
+  // assembling code, in which case, a fall-through can be used.
+  bool IsNextInAssemblyOrder(const BasicBlock* block) const;
+
+  // Inform the instruction selection that {node} was just defined.
+  void MarkAsDefined(Node* node);
 
   // Inform the instruction selection that {node} has at least one use and we
   // will need to generate code for it.
@@ -134,6 +138,10 @@ class InstructionSelector FINAL {
   // Inform the register allocation of the representation of the value produced
   // by {node}.
   void MarkAsRepresentation(MachineType rep, Node* node);
+
+  // Inform the register allocation of the representation of the unallocated
+  // operand {op}.
+  void MarkAsRepresentation(MachineType rep, InstructionOperand* op);
 
   // Initialize the call buffer with the InstructionOperands, nodes, etc,
   // corresponding
@@ -183,18 +191,20 @@ class InstructionSelector FINAL {
 
   // ===========================================================================
 
-  Linkage* linkage() const { return sequence()->linkage(); }
-  Schedule* schedule() const { return sequence()->schedule(); }
+  Schedule* schedule() const { return schedule_; }
+  Linkage* linkage() const { return linkage_; }
   InstructionSequence* sequence() const { return sequence_; }
   Zone* instruction_zone() const { return sequence()->zone(); }
-  Zone* zone() { return &zone_; }
+  Zone* zone() const { return zone_; }
 
   // ===========================================================================
 
-  Zone zone_;
-  InstructionSequence* sequence_;
-  SourcePositionTable* source_positions_;
+  Zone* const zone_;
+  Linkage* const linkage_;
+  InstructionSequence* const sequence_;
+  SourcePositionTable* const source_positions_;
   Features features_;
+  Schedule* const schedule_;
   BasicBlock* current_block_;
   ZoneDeque<Instruction*> instructions_;
   BoolVector defined_;

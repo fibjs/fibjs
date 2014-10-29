@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/bootstrapper.h"
 #include "src/compiler/graph-inl.h"
 #include "src/compiler/js-operator.h"
 #include "src/compiler/node.h"
@@ -14,13 +15,29 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-Typer::Typer(Zone* zone) : zone_(zone) {
+class Typer::Decorator : public GraphDecorator {
+ public:
+  explicit Decorator(Typer* typer) : typer_(typer) {}
+  virtual void Decorate(Node* node);
+
+ private:
+  Typer* typer_;
+};
+
+
+Typer::Typer(Graph* graph, MaybeHandle<Context> context)
+    : graph_(graph),
+      context_(context),
+      decorator_(NULL),
+      weaken_min_limits_(graph->zone()),
+      weaken_max_limits_(graph->zone()) {
+  Zone* zone = this->zone();
   Factory* f = zone->isolate()->factory();
 
   Handle<Object> zero = f->NewNumber(0);
   Handle<Object> one = f->NewNumber(1);
-  Handle<Object> positive_infinity = f->NewNumber(+V8_INFINITY);
-  Handle<Object> negative_infinity = f->NewNumber(-V8_INFINITY);
+  Handle<Object> infinity = f->NewNumber(+V8_INFINITY);
+  Handle<Object> minusinfinity = f->NewNumber(-V8_INFINITY);
 
   negative_signed32 = Type::Union(
       Type::SignedSmall(), Type::OtherSigned32(), zone);
@@ -36,7 +53,9 @@ Typer::Typer(Zone* zone) : zone_(zone) {
       singleton_zero, Type::Union(Type::NaN(), Type::MinusZero(), zone), zone);
   falsish = Type::Union(Type::Undetectable(),
       Type::Union(zeroish, undefined_or_null, zone), zone);
-  integer = Type::Range(negative_infinity, positive_infinity, zone);
+  integer = Type::Range(minusinfinity, infinity, zone);
+  weakint = Type::Union(
+      integer, Type::Union(Type::NaN(), Type::MinusZero(), zone), zone);
 
   Type* number = Type::Number();
   Type* signed32 = Type::Signed32();
@@ -44,14 +63,14 @@ Typer::Typer(Zone* zone) : zone_(zone) {
   Type* integral32 = Type::Integral32();
   Type* object = Type::Object();
   Type* undefined = Type::Undefined();
-  Type* weakint = Type::Union(
-      integer, Type::Union(Type::NaN(), Type::MinusZero(), zone), zone);
 
   number_fun0_ = Type::Function(number, zone);
   number_fun1_ = Type::Function(number, number, zone);
   number_fun2_ = Type::Function(number, number, number, zone);
   weakint_fun1_ = Type::Function(weakint, number, zone);
   imul_fun_ = Type::Function(signed32, integral32, integral32, zone);
+  clz32_fun_ = Type::Function(
+      Type::Range(zero, f->NewNumber(32), zone), number, zone);
   random_fun_ = Type::Function(Type::Union(
       Type::UnsignedSmall(), Type::OtherNumber(), zone), zone);
 
@@ -97,13 +116,34 @@ Typer::Typer(Zone* zone) : zone_(zone) {
   uint32_array_fun_ = Type::Function(uint32_array, arg1, arg2, arg3, zone);
   float32_array_fun_ = Type::Function(float32_array, arg1, arg2, arg3, zone);
   float64_array_fun_ = Type::Function(float64_array, arg1, arg2, arg3, zone);
+
+  const int limits_count = 20;
+
+  weaken_min_limits_.reserve(limits_count + 1);
+  weaken_max_limits_.reserve(limits_count + 1);
+
+  double limit = 1 << 30;
+  weaken_min_limits_.push_back(f->NewNumber(0));
+  weaken_max_limits_.push_back(f->NewNumber(0));
+  for (int i = 0; i < limits_count; i++) {
+    weaken_min_limits_.push_back(f->NewNumber(-limit));
+    weaken_max_limits_.push_back(f->NewNumber(limit - 1));
+    limit *= 2;
+  }
+
+  decorator_ = new (zone) Decorator(this);
+  graph_->AddDecorator(decorator_);
+}
+
+
+Typer::~Typer() {
+  graph_->RemoveDecorator(decorator_);
 }
 
 
 class Typer::Visitor : public NullNodeVisitor {
  public:
-  Visitor(Typer* typer, MaybeHandle<Context> context)
-      : typer_(typer), context_(context) {}
+  explicit Visitor(Typer* typer) : typer_(typer) {}
 
   Bounds TypeNode(Node* node) {
     switch (node->opcode()) {
@@ -142,22 +182,30 @@ class Typer::Visitor : public NullNodeVisitor {
   VALUE_OP_LIST(DECLARE_METHOD)
 #undef DECLARE_METHOD
 
-  static Bounds OperandType(Node* node, int i) {
-    return NodeProperties::GetBounds(NodeProperties::GetValueInput(node, i));
+  Bounds BoundsOrNone(Node* node) {
+    return NodeProperties::IsTyped(node) ? NodeProperties::GetBounds(node)
+                                         : Bounds(Type::None());
   }
 
-  static Type* ContextType(Node* node) {
-    Bounds result =
-        NodeProperties::GetBounds(NodeProperties::GetContextInput(node));
+  Bounds Operand(Node* node, int i) {
+    Node* operand_node = NodeProperties::GetValueInput(node, i);
+    return BoundsOrNone(operand_node);
+  }
+
+  Bounds ContextOperand(Node* node) {
+    Bounds result = BoundsOrNone(NodeProperties::GetContextInput(node));
     DCHECK(result.upper->Maybe(Type::Internal()));
     // TODO(rossberg): More precisely, instead of the above assertion, we should
     // back-propagate the constraint that it has to be a subtype of Internal.
-    return result.upper;
+    return result;
   }
+
+  Type* Weaken(Type* current_type, Type* previous_type);
 
   Zone* zone() { return typer_->zone(); }
   Isolate* isolate() { return typer_->isolate(); }
-  MaybeHandle<Context> context() { return context_; }
+  Graph* graph() { return typer_->graph(); }
+  MaybeHandle<Context> context() { return typer_->context(); }
 
  private:
   Typer* typer_;
@@ -171,6 +219,7 @@ class Typer::Visitor : public NullNodeVisitor {
 
   static Type* Invert(Type*, Typer*);
   static Type* FalsifyUndefined(Type*, Typer*);
+  static Type* Rangify(Type*, Typer*);
 
   static Type* ToPrimitive(Type*, Typer*);
   static Type* ToBoolean(Type*, Typer*);
@@ -198,24 +247,17 @@ class Typer::Visitor : public NullNodeVisitor {
 
 class Typer::RunVisitor : public Typer::Visitor {
  public:
-  RunVisitor(Typer* typer, MaybeHandle<Context> context)
-      : Visitor(typer, context),
+  explicit RunVisitor(Typer* typer)
+      : Visitor(typer),
         redo(NodeSet::key_compare(), NodeSet::allocator_type(typer->zone())) {}
 
   GenericGraphVisit::Control Post(Node* node) {
-    if (OperatorProperties::HasValueOutput(node->op())) {
+    if (OperatorProperties::HasValueOutput(node->op()) &&
+        !NodeProperties::IsTyped(node)) {
       Bounds bounds = TypeNode(node);
       NodeProperties::SetBounds(node, bounds);
       // Remember incompletely typed nodes for least fixpoint iteration.
-      int arity = OperatorProperties::GetValueInputCount(node->op());
-      for (int i = 0; i < arity; ++i) {
-        // TODO(rossberg): change once IsTyped is available.
-        // if (!NodeProperties::IsTyped(NodeProperties::GetValueInput(node, i)))
-        if (OperandType(node, i).upper->Is(Type::None())) {
-          redo.insert(node);
-          break;
-        }
-      }
+      if (!NodeProperties::AllValueInputsAreTyped(node)) redo.insert(node);
     }
     return GenericGraphVisit::CONTINUE;
   }
@@ -226,18 +268,17 @@ class Typer::RunVisitor : public Typer::Visitor {
 
 class Typer::NarrowVisitor : public Typer::Visitor {
  public:
-  NarrowVisitor(Typer* typer, MaybeHandle<Context> context)
-      : Visitor(typer, context) {}
+  explicit NarrowVisitor(Typer* typer) : Visitor(typer) {}
 
   GenericGraphVisit::Control Pre(Node* node) {
     if (OperatorProperties::HasValueOutput(node->op())) {
       Bounds previous = NodeProperties::GetBounds(node);
-      Bounds bounds = TypeNode(node);
-      NodeProperties::SetBounds(node, Bounds::Both(bounds, previous, zone()));
-      DCHECK(bounds.Narrows(previous));
+      Bounds current = TypeNode(node);
+      NodeProperties::SetBounds(node, Bounds::Both(current, previous, zone()));
+      DCHECK(current.Narrows(previous));
       // Stop when nothing changed (but allow re-entry in case it does later).
-      return previous.Narrows(bounds)
-          ? GenericGraphVisit::DEFER : GenericGraphVisit::REENTER;
+      return previous.Narrows(current) ? GenericGraphVisit::DEFER
+                                       : GenericGraphVisit::REENTER;
     } else {
       return GenericGraphVisit::SKIP;
     }
@@ -251,19 +292,25 @@ class Typer::NarrowVisitor : public Typer::Visitor {
 
 class Typer::WidenVisitor : public Typer::Visitor {
  public:
-  WidenVisitor(Typer* typer, MaybeHandle<Context> context)
-      : Visitor(typer, context) {}
+  explicit WidenVisitor(Typer* typer) : Visitor(typer) {}
 
   GenericGraphVisit::Control Pre(Node* node) {
     if (OperatorProperties::HasValueOutput(node->op())) {
-      Bounds previous = NodeProperties::GetBounds(node);
-      Bounds bounds = TypeNode(node);
-      DCHECK(previous.lower->Is(bounds.lower));
-      DCHECK(previous.upper->Is(bounds.upper));
-      NodeProperties::SetBounds(node, bounds);  // TODO(rossberg): Either?
+      Bounds previous = BoundsOrNone(node);
+      Bounds current = TypeNode(node);
+
+      // Speed up termination in the presence of range types:
+      current.upper = Weaken(current.upper, previous.upper);
+      current.lower = Weaken(current.lower, previous.lower);
+
+      DCHECK(previous.lower->Is(current.lower));
+      DCHECK(previous.upper->Is(current.upper));
+
+      NodeProperties::SetBounds(node, current);
       // Stop when nothing changed (but allow re-entry in case it does later).
-      return bounds.Narrows(previous)
-          ? GenericGraphVisit::DEFER : GenericGraphVisit::REENTER;
+      return previous.Narrows(current) && current.Narrows(previous)
+                 ? GenericGraphVisit::DEFER
+                 : GenericGraphVisit::REENTER;
     } else {
       return GenericGraphVisit::SKIP;
     }
@@ -275,33 +322,37 @@ class Typer::WidenVisitor : public Typer::Visitor {
 };
 
 
-void Typer::Run(Graph* graph, MaybeHandle<Context> context) {
-  RunVisitor typing(this, context);
-  graph->VisitNodeInputsFromEnd(&typing);
+void Typer::Run() {
+  RunVisitor typing(this);
+  graph_->VisitNodeInputsFromEnd(&typing);
   // Find least fixpoint.
-  for (NodeSetIter i = typing.redo.begin(); i != typing.redo.end(); ++i) {
-    Widen(graph, *i, context);
+  WidenVisitor widen(this);
+  for (NodeSetIter it = typing.redo.begin(); it != typing.redo.end(); ++it) {
+    graph_->VisitNodeUsesFrom(*it, &widen);
   }
 }
 
 
-void Typer::Narrow(Graph* graph, Node* start, MaybeHandle<Context> context) {
-  NarrowVisitor typing(this, context);
-  graph->VisitNodeUsesFrom(start, &typing);
+void Typer::Narrow(Node* start) {
+  NarrowVisitor typing(this);
+  graph_->VisitNodeUsesFrom(start, &typing);
 }
 
 
-void Typer::Widen(Graph* graph, Node* start, MaybeHandle<Context> context) {
-  WidenVisitor typing(this, context);
-  graph->VisitNodeUsesFrom(start, &typing);
-}
-
-
-void Typer::Init(Node* node) {
+void Typer::Decorator::Decorate(Node* node) {
   if (OperatorProperties::HasValueOutput(node->op())) {
-    Visitor typing(this, MaybeHandle<Context>());
-    Bounds bounds = typing.TypeNode(node);
-    NodeProperties::SetBounds(node, bounds);
+    // Only eagerly type-decorate nodes with known input types.
+    // Other cases will generally require a proper fixpoint iteration with Run.
+    bool is_typed = NodeProperties::IsTyped(node);
+    if (is_typed || NodeProperties::AllValueInputsAreTyped(node)) {
+      Visitor typing(typer_);
+      Bounds bounds = typing.TypeNode(node);
+      if (is_typed) {
+        bounds =
+          Bounds::Both(bounds, NodeProperties::GetBounds(node), typer_->zone());
+      }
+      NodeProperties::SetBounds(node, bounds);
+    }
   }
 }
 
@@ -314,7 +365,7 @@ void Typer::Init(Node* node) {
 
 
 Bounds Typer::Visitor::TypeUnaryOp(Node* node, UnaryTyperFun f) {
-  Bounds input = OperandType(node, 0);
+  Bounds input = Operand(node, 0);
   Type* upper = input.upper->Is(Type::None())
       ? Type::None()
       : f(input.upper, typer_);
@@ -329,8 +380,8 @@ Bounds Typer::Visitor::TypeUnaryOp(Node* node, UnaryTyperFun f) {
 
 
 Bounds Typer::Visitor::TypeBinaryOp(Node* node, BinaryTyperFun f) {
-  Bounds left = OperandType(node, 0);
-  Bounds right = OperandType(node, 1);
+  Bounds left = Operand(node, 0);
+  Bounds right = Operand(node, 1);
   Type* upper = left.upper->Is(Type::None()) || right.upper->Is(Type::None())
       ? Type::None()
       : f(left.upper, right.upper, typer_);
@@ -355,6 +406,15 @@ Type* Typer::Visitor::Invert(Type* type, Typer* t) {
 Type* Typer::Visitor::FalsifyUndefined(Type* type, Typer* t) {
   if (type->Is(Type::Undefined())) return t->singleton_false;
   return type;
+}
+
+
+Type* Typer::Visitor::Rangify(Type* type, Typer* t) {
+  if (type->IsRange()) return type;        // Shortcut.
+  if (!type->Is(t->integer)) return type;  // Give up.
+  Factory* f = t->isolate()->factory();
+  return Type::Range(f->NewNumber(type->Min()), f->NewNumber(type->Max()),
+                     t->zone());
 }
 
 
@@ -419,7 +479,7 @@ Type* Typer::Visitor::NumberToUint32(Type* type, Typer* t) {
 
 
 Bounds Typer::Visitor::TypeStart(Node* node) {
-  return Bounds(Type::Internal());
+  return Bounds(Type::None(zone()), Type::Internal(zone()));
 }
 
 
@@ -432,7 +492,7 @@ Bounds Typer::Visitor::TypeParameter(Node* node) {
 
 
 Bounds Typer::Visitor::TypeInt32Constant(Node* node) {
-  Factory* f = zone()->isolate()->factory();
+  Factory* f = isolate()->factory();
   Handle<Object> number = f->NewNumber(OpParameter<int32_t>(node));
   return Bounds(Type::Intersect(
       Type::Range(number, number, zone()), Type::UntaggedInt32(), zone()));
@@ -459,7 +519,7 @@ Bounds Typer::Visitor::TypeFloat64Constant(Node* node) {
 
 
 Bounds Typer::Visitor::TypeNumberConstant(Node* node) {
-  Factory* f = zone()->isolate()->factory();
+  Factory* f = isolate()->factory();
   return Bounds(Type::Constant(
       f->NewNumber(OpParameter<double>(node)), zone()));
 }
@@ -471,15 +531,15 @@ Bounds Typer::Visitor::TypeHeapConstant(Node* node) {
 
 
 Bounds Typer::Visitor::TypeExternalConstant(Node* node) {
-  return Bounds(Type::Internal());
+  return Bounds(Type::None(zone()), Type::Internal(zone()));
 }
 
 
 Bounds Typer::Visitor::TypePhi(Node* node) {
   int arity = OperatorProperties::GetValueInputCount(node->op());
-  Bounds bounds = OperandType(node, 0);
+  Bounds bounds = Operand(node, 0);
   for (int i = 1; i < arity; ++i) {
-    bounds = Bounds::Either(bounds, OperandType(node, i), zone());
+    bounds = Bounds::Either(bounds, Operand(node, i), zone());
   }
   return bounds;
 }
@@ -498,18 +558,18 @@ Bounds Typer::Visitor::TypeValueEffect(Node* node) {
 
 
 Bounds Typer::Visitor::TypeFinish(Node* node) {
-  return OperandType(node, 0);
+  return Operand(node, 0);
 }
 
 
 Bounds Typer::Visitor::TypeFrameState(Node* node) {
   // TODO(rossberg): Ideally FrameState wouldn't have a value output.
-  return Bounds(Type::Internal());
+  return Bounds(Type::None(zone()), Type::Internal(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeStateValues(Node* node) {
-  return Bounds(Type::Internal());
+  return Bounds(Type::None(zone()), Type::Internal(zone()));
 }
 
 
@@ -636,7 +696,7 @@ Type* Typer::Visitor::JSGreaterThanOrEqualTyper(
 
 
 Type* Typer::Visitor::JSBitwiseOrTyper(Type* lhs, Type* rhs, Typer* t) {
-  Factory* f = t->zone()->isolate()->factory();
+  Factory* f = t->isolate()->factory();
   lhs = NumberToInt32(ToNumber(lhs, t), t);
   rhs = NumberToInt32(ToNumber(rhs, t), t);
   double lmin = lhs->Min();
@@ -660,7 +720,7 @@ Type* Typer::Visitor::JSBitwiseOrTyper(Type* lhs, Type* rhs, Typer* t) {
 
 
 Type* Typer::Visitor::JSBitwiseAndTyper(Type* lhs, Type* rhs, Typer* t) {
-  Factory* f = t->zone()->isolate()->factory();
+  Factory* f = t->isolate()->factory();
   lhs = NumberToInt32(ToNumber(lhs, t), t);
   rhs = NumberToInt32(ToNumber(rhs, t), t);
   double lmin = lhs->Min();
@@ -708,7 +768,7 @@ Type* Typer::Visitor::JSShiftLeftTyper(Type* lhs, Type* rhs, Typer* t) {
 
 Type* Typer::Visitor::JSShiftRightTyper(Type* lhs, Type* rhs, Typer* t) {
   lhs = NumberToInt32(ToNumber(lhs, t), t);
-  Factory* f = t->zone()->isolate()->factory();
+  Factory* f = t->isolate()->factory();
   if (lhs->Min() >= 0) {
     // Right-shifting a non-negative value cannot make it negative, nor larger.
     Handle<Object> min = f->NewNumber(0);
@@ -727,7 +787,7 @@ Type* Typer::Visitor::JSShiftRightTyper(Type* lhs, Type* rhs, Typer* t) {
 
 Type* Typer::Visitor::JSShiftRightLogicalTyper(Type* lhs, Type* rhs, Typer* t) {
   lhs = NumberToUint32(ToNumber(lhs, t), t);
-  Factory* f = t->zone()->isolate()->factory();
+  Factory* f = t->isolate()->factory();
   // Logical right-shifting any value cannot make it larger.
   Handle<Object> min = f->NewNumber(0);
   Handle<Object> max = f->NewNumber(lhs->Max());
@@ -736,6 +796,66 @@ Type* Typer::Visitor::JSShiftRightLogicalTyper(Type* lhs, Type* rhs, Typer* t) {
 
 
 // JS arithmetic operators.
+
+
+// Returns the array's least element, ignoring NaN.
+// There must be at least one non-NaN element.
+// Any -0 is converted to 0.
+static double array_min(double a[], size_t n) {
+  DCHECK(n != 0);
+  double x = +V8_INFINITY;
+  for (size_t i = 0; i < n; ++i) {
+    if (!std::isnan(a[i])) {
+      x = std::min(a[i], x);
+    }
+  }
+  DCHECK(!std::isnan(x));
+  return x == 0 ? 0 : x;  // -0 -> 0
+}
+
+
+// Returns the array's greatest element, ignoring NaN.
+// There must be at least one non-NaN element.
+// Any -0 is converted to 0.
+static double array_max(double a[], size_t n) {
+  DCHECK(n != 0);
+  double x = -V8_INFINITY;
+  for (size_t i = 0; i < n; ++i) {
+    if (!std::isnan(a[i])) {
+      x = std::max(a[i], x);
+    }
+  }
+  DCHECK(!std::isnan(x));
+  return x == 0 ? 0 : x;  // -0 -> 0
+}
+
+
+Type* Typer::Visitor::JSAddRanger(Type::RangeType* lhs, Type::RangeType* rhs,
+                                  Typer* t) {
+  double results[4];
+  results[0] = lhs->Min()->Number() + rhs->Min()->Number();
+  results[1] = lhs->Min()->Number() + rhs->Max()->Number();
+  results[2] = lhs->Max()->Number() + rhs->Min()->Number();
+  results[3] = lhs->Max()->Number() + rhs->Max()->Number();
+  // Since none of the inputs can be -0, the result cannot be -0 either.
+  // However, it can be nan (the sum of two infinities of opposite sign).
+  // On the other hand, if none of the "results" above is nan, then the actual
+  // result cannot be nan either.
+  int nans = 0;
+  for (int i = 0; i < 4; ++i) {
+    if (std::isnan(results[i])) ++nans;
+  }
+  if (nans == 4) return Type::NaN();  // [-inf..-inf] + [inf..inf] or vice versa
+  Factory* f = t->isolate()->factory();
+  Type* range = Type::Range(f->NewNumber(array_min(results, 4)),
+                            f->NewNumber(array_max(results, 4)), t->zone());
+  return nans == 0 ? range : Type::Union(range, Type::NaN(), t->zone());
+  // Examples:
+  //   [-inf, -inf] + [+inf, +inf] = NaN
+  //   [-inf, -inf] + [n, +inf] = [-inf, -inf] \/ NaN
+  //   [-inf, +inf] + [n, +inf] = [-inf, +inf] \/ NaN
+  //   [-inf, m] + [n, +inf] = [-inf, +inf] \/ NaN
+}
 
 
 Type* Typer::Visitor::JSAddTyper(Type* lhs, Type* rhs, Typer* t) {
@@ -748,29 +868,93 @@ Type* Typer::Visitor::JSAddTyper(Type* lhs, Type* rhs, Typer* t) {
       return Type::NumberOrString();
     }
   }
-  lhs = ToNumber(lhs, t);
-  rhs = ToNumber(rhs, t);
+  lhs = Rangify(ToNumber(lhs, t), t);
+  rhs = Rangify(ToNumber(rhs, t), t);
   if (lhs->Is(Type::NaN()) || rhs->Is(Type::NaN())) return Type::NaN();
-  // TODO(neis): Do some analysis.
+  if (lhs->IsRange() && rhs->IsRange()) {
+    return JSAddRanger(lhs->AsRange(), rhs->AsRange(), t);
+  }
   // TODO(neis): Deal with numeric bitsets here and elsewhere.
   return Type::Number();
 }
 
 
+Type* Typer::Visitor::JSSubtractRanger(Type::RangeType* lhs,
+                                       Type::RangeType* rhs, Typer* t) {
+  double results[4];
+  results[0] = lhs->Min()->Number() - rhs->Min()->Number();
+  results[1] = lhs->Min()->Number() - rhs->Max()->Number();
+  results[2] = lhs->Max()->Number() - rhs->Min()->Number();
+  results[3] = lhs->Max()->Number() - rhs->Max()->Number();
+  // Since none of the inputs can be -0, the result cannot be -0.
+  // However, it can be nan (the subtraction of two infinities of same sign).
+  // On the other hand, if none of the "results" above is nan, then the actual
+  // result cannot be nan either.
+  int nans = 0;
+  for (int i = 0; i < 4; ++i) {
+    if (std::isnan(results[i])) ++nans;
+  }
+  if (nans == 4) return Type::NaN();  // [inf..inf] - [inf..inf] (all same sign)
+  Factory* f = t->isolate()->factory();
+  Type* range = Type::Range(f->NewNumber(array_min(results, 4)),
+                            f->NewNumber(array_max(results, 4)), t->zone());
+  return nans == 0 ? range : Type::Union(range, Type::NaN(), t->zone());
+  // Examples:
+  //   [-inf, +inf] - [-inf, +inf] = [-inf, +inf] \/ NaN
+  //   [-inf, -inf] - [-inf, -inf] = NaN
+  //   [-inf, -inf] - [n, +inf] = [-inf, -inf] \/ NaN
+  //   [m, +inf] - [-inf, n] = [-inf, +inf] \/ NaN
+}
+
+
 Type* Typer::Visitor::JSSubtractTyper(Type* lhs, Type* rhs, Typer* t) {
-  lhs = ToNumber(lhs, t);
-  rhs = ToNumber(rhs, t);
+  lhs = Rangify(ToNumber(lhs, t), t);
+  rhs = Rangify(ToNumber(rhs, t), t);
   if (lhs->Is(Type::NaN()) || rhs->Is(Type::NaN())) return Type::NaN();
-  // TODO(neis): Do some analysis.
+  if (lhs->IsRange() && rhs->IsRange()) {
+    return JSSubtractRanger(lhs->AsRange(), rhs->AsRange(), t);
+  }
   return Type::Number();
 }
 
 
+Type* Typer::Visitor::JSMultiplyRanger(Type::RangeType* lhs,
+                                       Type::RangeType* rhs, Typer* t) {
+  double results[4];
+  double lmin = lhs->Min()->Number();
+  double lmax = lhs->Max()->Number();
+  double rmin = rhs->Min()->Number();
+  double rmax = rhs->Max()->Number();
+  results[0] = lmin * rmin;
+  results[1] = lmin * rmax;
+  results[2] = lmax * rmin;
+  results[3] = lmax * rmax;
+  // If the result may be nan, we give up on calculating a precise type, because
+  // the discontinuity makes it too complicated.  Note that even if none of the
+  // "results" above is nan, the actual result may still be, so we have to do a
+  // different check:
+  bool maybe_nan = (lhs->Maybe(t->singleton_zero) &&
+                    (rmin == -V8_INFINITY || rmax == +V8_INFINITY)) ||
+                   (rhs->Maybe(t->singleton_zero) &&
+                    (lmin == -V8_INFINITY || lmax == +V8_INFINITY));
+  if (maybe_nan) return t->weakint;  // Giving up.
+  bool maybe_minuszero = (lhs->Maybe(t->singleton_zero) && rmin < 0) ||
+                         (rhs->Maybe(t->singleton_zero) && lmin < 0);
+  Factory* f = t->isolate()->factory();
+  Type* range = Type::Range(f->NewNumber(array_min(results, 4)),
+                            f->NewNumber(array_max(results, 4)), t->zone());
+  return maybe_minuszero ? Type::Union(range, Type::MinusZero(), t->zone())
+                         : range;
+}
+
+
 Type* Typer::Visitor::JSMultiplyTyper(Type* lhs, Type* rhs, Typer* t) {
-  lhs = ToNumber(lhs, t);
-  rhs = ToNumber(rhs, t);
+  lhs = Rangify(ToNumber(lhs, t), t);
+  rhs = Rangify(ToNumber(rhs, t), t);
   if (lhs->Is(Type::NaN()) || rhs->Is(Type::NaN())) return Type::NaN();
-  // TODO(neis): Do some analysis.
+  if (lhs->IsRange() && rhs->IsRange()) {
+    return JSMultiplyRanger(lhs->AsRange(), rhs->AsRange(), t);
+  }
   return Type::Number();
 }
 
@@ -779,8 +963,13 @@ Type* Typer::Visitor::JSDivideTyper(Type* lhs, Type* rhs, Typer* t) {
   lhs = ToNumber(lhs, t);
   rhs = ToNumber(rhs, t);
   if (lhs->Is(Type::NaN()) || rhs->Is(Type::NaN())) return Type::NaN();
-  // TODO(neis): Do some analysis.
-  return Type::Number();
+  // Division is tricky, so all we do is try ruling out nan.
+  // TODO(neis): try ruling out -0 as well?
+  bool maybe_nan =
+      lhs->Maybe(Type::NaN()) || rhs->Maybe(t->zeroish) ||
+      ((lhs->Min() == -V8_INFINITY || lhs->Max() == +V8_INFINITY) &&
+       (rhs->Min() == -V8_INFINITY || rhs->Max() == +V8_INFINITY));
+  return maybe_nan ? Type::Number() : Type::OrderedNumber();
 }
 
 
@@ -788,8 +977,13 @@ Type* Typer::Visitor::JSModulusTyper(Type* lhs, Type* rhs, Typer* t) {
   lhs = ToNumber(lhs, t);
   rhs = ToNumber(rhs, t);
   if (lhs->Is(Type::NaN()) || rhs->Is(Type::NaN())) return Type::NaN();
-  // TODO(neis): Do some analysis.
-  return Type::Number();
+  // Division is tricky, so all we do is try ruling out nan.
+  // TODO(neis): try ruling out -0 as well?
+  bool maybe_nan =
+      lhs->Maybe(Type::NaN()) || rhs->Maybe(t->zeroish) ||
+      ((lhs->Min() == -V8_INFINITY || lhs->Max() == +V8_INFINITY) &&
+       (rhs->Min() == -V8_INFINITY || rhs->Max() == +V8_INFINITY));
+  return maybe_nan ? Type::Number() : Type::OrderedNumber();
 }
 
 
@@ -807,7 +1001,7 @@ Bounds Typer::Visitor::TypeJSUnaryNot(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSTypeOf(Node* node) {
-  return Bounds(Type::InternalizedString());
+  return Bounds(Type::None(zone()), Type::InternalizedString(zone()));
 }
 
 
@@ -815,12 +1009,12 @@ Bounds Typer::Visitor::TypeJSTypeOf(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSToBoolean(Node* node) {
-  return TypeUnaryOp(node, ToBoolean);
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSToNumber(Node* node) {
-  return TypeUnaryOp(node, ToNumber);
+  return Bounds(Type::None(zone()), Type::Number(zone()));
 }
 
 
@@ -867,6 +1061,51 @@ Bounds Typer::Visitor::TypeJSLoadNamed(Node* node) {
 }
 
 
+// Returns a somewhat larger range if we previously assigned
+// a (smaller) range to this node. This is used  to speed up
+// the fixpoint calculation in case there appears to be a loop
+// in the graph. In the current implementation, we are
+// increasing the limits to the closest power of two.
+Type* Typer::Visitor::Weaken(Type* current_type, Type* previous_type) {
+  if (current_type->IsRange() && previous_type->IsRange()) {
+    Type::RangeType* previous = previous_type->AsRange();
+    Type::RangeType* current = current_type->AsRange();
+
+    double current_min = current->Min()->Number();
+    Handle<Object> new_min = current->Min();
+
+    // Find the closest lower entry in the list of allowed
+    // minima (or negative infinity if there is no such entry).
+    if (current_min != previous->Min()->Number()) {
+      new_min = typer_->integer->AsRange()->Min();
+      for (const auto val : typer_->weaken_min_limits_) {
+        if (val->Number() <= current_min) {
+          new_min = val;
+          break;
+        }
+      }
+    }
+
+    double current_max = current->Max()->Number();
+    Handle<Object> new_max = current->Max();
+    // Find the closest greater entry in the list of allowed
+    // maxima (or infinity if there is no such entry).
+    if (current_max != previous->Max()->Number()) {
+      new_max = typer_->integer->AsRange()->Max();
+      for (const auto val : typer_->weaken_max_limits_) {
+        if (val->Number() >= current_max) {
+          new_max = val;
+          break;
+        }
+      }
+    }
+
+    return Type::Range(new_min, new_max, typer_->zone());
+  }
+  return current_type;
+}
+
+
 Bounds Typer::Visitor::TypeJSStoreProperty(Node* node) {
   UNREACHABLE();
   return Bounds();
@@ -880,17 +1119,17 @@ Bounds Typer::Visitor::TypeJSStoreNamed(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSDeleteProperty(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSHasProperty(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSInstanceOf(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
@@ -898,7 +1137,7 @@ Bounds Typer::Visitor::TypeJSInstanceOf(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSLoadContext(Node* node) {
-  Bounds outer = OperandType(node, 0);
+  Bounds outer = Operand(node, 0);
   DCHECK(outer.upper->Maybe(Type::Internal()));
   // TODO(rossberg): More precisely, instead of the above assertion, we should
   // back-propagate the constraint that it has to be a subtype of Internal.
@@ -943,39 +1182,39 @@ Bounds Typer::Visitor::TypeJSStoreContext(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSCreateFunctionContext(Node* node) {
-  Type* outer = ContextType(node);
-  return Bounds(Type::Context(outer, zone()));
+  Bounds outer = ContextOperand(node);
+  return Bounds(Type::Context(outer.upper, zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateCatchContext(Node* node) {
-  Type* outer = ContextType(node);
-  return Bounds(Type::Context(outer, zone()));
+  Bounds outer = ContextOperand(node);
+  return Bounds(Type::Context(outer.upper, zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateWithContext(Node* node) {
-  Type* outer = ContextType(node);
-  return Bounds(Type::Context(outer, zone()));
+  Bounds outer = ContextOperand(node);
+  return Bounds(Type::Context(outer.upper, zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateBlockContext(Node* node) {
-  Type* outer = ContextType(node);
-  return Bounds(Type::Context(outer, zone()));
+  Bounds outer = ContextOperand(node);
+  return Bounds(Type::Context(outer.upper, zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateModuleContext(Node* node) {
   // TODO(rossberg): this is probably incorrect
-  Type* outer = ContextType(node);
-  return Bounds(Type::Context(outer, zone()));
+  Bounds outer = ContextOperand(node);
+  return Bounds(Type::Context(outer.upper, zone()));
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateGlobalContext(Node* node) {
-  Type* outer = ContextType(node);
-  return Bounds(Type::Context(outer, zone()));
+  Bounds outer = ContextOperand(node);
+  return Bounds(Type::Context(outer.upper, zone()));
 }
 
 
@@ -1016,52 +1255,52 @@ Bounds Typer::Visitor::TypeJSDebugger(Node* node) {
 
 
 Bounds Typer::Visitor::TypeBooleanNot(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeBooleanToNumber(Node* node) {
-  return Bounds(Type::Number());
+  return Bounds(Type::None(zone()), typer_->zero_or_one);
 }
 
 
 Bounds Typer::Visitor::TypeNumberEqual(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeNumberLessThan(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeNumberLessThanOrEqual(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeNumberAdd(Node* node) {
-  return Bounds(Type::Number());
+  return Bounds(Type::None(zone()), Type::Number(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeNumberSubtract(Node* node) {
-  return Bounds(Type::Number());
+  return Bounds(Type::None(zone()), Type::Number(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeNumberMultiply(Node* node) {
-  return Bounds(Type::Number());
+  return Bounds(Type::None(zone()), Type::Number(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeNumberDivide(Node* node) {
-  return Bounds(Type::Number());
+  return Bounds(Type::None(zone()), Type::Number(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeNumberModulus(Node* node) {
-  return Bounds(Type::Number());
+  return Bounds(Type::None(zone()), Type::Number(zone()));
 }
 
 
@@ -1076,27 +1315,27 @@ Bounds Typer::Visitor::TypeNumberToUint32(Node* node) {
 
 
 Bounds Typer::Visitor::TypeReferenceEqual(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeStringEqual(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeStringLessThan(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeStringLessThanOrEqual(Node* node) {
-  return Bounds(Type::Boolean());
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
 }
 
 
 Bounds Typer::Visitor::TypeStringAdd(Node* node) {
-  return Bounds(Type::String());
+  return Bounds(Type::None(zone()), Type::String(zone()));
 }
 
 
@@ -1112,7 +1351,7 @@ static Type* ChangeRepresentation(Type* type, Type* rep, Zone* zone) {
 
 
 Bounds Typer::Visitor::TypeChangeTaggedToInt32(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): DCHECK(arg.upper->Is(Type::Signed32()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::UntaggedInt32(), zone()),
@@ -1121,7 +1360,7 @@ Bounds Typer::Visitor::TypeChangeTaggedToInt32(Node* node) {
 
 
 Bounds Typer::Visitor::TypeChangeTaggedToUint32(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): DCHECK(arg.upper->Is(Type::Unsigned32()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::UntaggedInt32(), zone()),
@@ -1130,7 +1369,7 @@ Bounds Typer::Visitor::TypeChangeTaggedToUint32(Node* node) {
 
 
 Bounds Typer::Visitor::TypeChangeTaggedToFloat64(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): DCHECK(arg.upper->Is(Type::Number()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::UntaggedFloat64(), zone()),
@@ -1139,7 +1378,7 @@ Bounds Typer::Visitor::TypeChangeTaggedToFloat64(Node* node) {
 
 
 Bounds Typer::Visitor::TypeChangeInt32ToTagged(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): DCHECK(arg.upper->Is(Type::Signed32()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::Tagged(), zone()),
@@ -1148,7 +1387,7 @@ Bounds Typer::Visitor::TypeChangeInt32ToTagged(Node* node) {
 
 
 Bounds Typer::Visitor::TypeChangeUint32ToTagged(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): DCHECK(arg.upper->Is(Type::Unsigned32()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::Tagged(), zone()),
@@ -1157,7 +1396,7 @@ Bounds Typer::Visitor::TypeChangeUint32ToTagged(Node* node) {
 
 
 Bounds Typer::Visitor::TypeChangeFloat64ToTagged(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): CHECK(arg.upper->Is(Type::Number()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::Tagged(), zone()),
@@ -1166,7 +1405,7 @@ Bounds Typer::Visitor::TypeChangeFloat64ToTagged(Node* node) {
 
 
 Bounds Typer::Visitor::TypeChangeBoolToBit(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): DCHECK(arg.upper->Is(Type::Boolean()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::UntaggedInt1(), zone()),
@@ -1175,7 +1414,7 @@ Bounds Typer::Visitor::TypeChangeBoolToBit(Node* node) {
 
 
 Bounds Typer::Visitor::TypeChangeBitToBool(Node* node) {
-  Bounds arg = OperandType(node, 0);
+  Bounds arg = Operand(node, 0);
   // TODO(neis): DCHECK(arg.upper->Is(Type::Boolean()));
   return Bounds(
       ChangeRepresentation(arg.lower, Type::TaggedPtr(), zone()),
@@ -1205,8 +1444,17 @@ Bounds Typer::Visitor::TypeStoreElement(Node* node) {
 }
 
 
-// Machine operators.
+Bounds Typer::Visitor::TypeObjectIsSmi(Node* node) {
+  return Bounds(Type::Boolean());
+}
 
+
+Bounds Typer::Visitor::TypeObjectIsNonNegativeSmi(Node* node) {
+  return Bounds(Type::Boolean());
+}
+
+
+// Machine operators.
 
 Bounds Typer::Visitor::TypeLoad(Node* node) {
   return Bounds::Unbounded(zone());
@@ -1522,6 +1770,30 @@ Bounds Typer::Visitor::TypeFloat64LessThanOrEqual(Node* node) {
 }
 
 
+Bounds Typer::Visitor::TypeFloat64Floor(Node* node) {
+  // TODO(sigurds): We could have a tighter bound here.
+  return Bounds(Type::Number());
+}
+
+
+Bounds Typer::Visitor::TypeFloat64Ceil(Node* node) {
+  // TODO(sigurds): We could have a tighter bound here.
+  return Bounds(Type::Number());
+}
+
+
+Bounds Typer::Visitor::TypeFloat64RoundTruncate(Node* node) {
+  // TODO(sigurds): We could have a tighter bound here.
+  return Bounds(Type::Number());
+}
+
+
+Bounds Typer::Visitor::TypeFloat64RoundTiesAway(Node* node) {
+  // TODO(sigurds): We could have a tighter bound here.
+  return Bounds(Type::Number());
+}
+
+
 Bounds Typer::Visitor::TypeLoadStackPointer(Node* node) {
   return Bounds(Type::Internal());
 }
@@ -1534,8 +1806,34 @@ Type* Typer::Visitor::TypeConstant(Handle<Object> value) {
   if (value->IsJSFunction()) {
     if (JSFunction::cast(*value)->shared()->HasBuiltinFunctionId()) {
       switch (JSFunction::cast(*value)->shared()->builtin_function_id()) {
-        // TODO(rossberg): can't express overloading
+        case kMathRandom:
+          return typer_->random_fun_;
+        case kMathFloor:
+          return typer_->weakint_fun1_;
+        case kMathRound:
+          return typer_->weakint_fun1_;
+        case kMathCeil:
+          return typer_->weakint_fun1_;
         case kMathAbs:
+          // TODO(rossberg): can't express overloading
+          return typer_->number_fun1_;
+        case kMathLog:
+          return typer_->number_fun1_;
+        case kMathExp:
+          return typer_->number_fun1_;
+        case kMathSqrt:
+          return typer_->number_fun1_;
+        case kMathPow:
+          return typer_->number_fun2_;
+        case kMathMax:
+          return typer_->number_fun2_;
+        case kMathMin:
+          return typer_->number_fun2_;
+        case kMathCos:
+          return typer_->number_fun1_;
+        case kMathSin:
+          return typer_->number_fun1_;
+        case kMathTan:
           return typer_->number_fun1_;
         case kMathAcos:
           return typer_->number_fun1_;
@@ -1545,29 +1843,11 @@ Type* Typer::Visitor::TypeConstant(Handle<Object> value) {
           return typer_->number_fun1_;
         case kMathAtan2:
           return typer_->number_fun2_;
-        case kMathCeil:
-          return typer_->weakint_fun1_;
-        case kMathCos:
-          return typer_->number_fun1_;
-        case kMathExp:
-          return typer_->number_fun1_;
-        case kMathFloor:
-          return typer_->weakint_fun1_;
         case kMathImul:
           return typer_->imul_fun_;
-        case kMathLog:
-          return typer_->number_fun1_;
-        case kMathPow:
-          return typer_->number_fun2_;
-        case kMathRandom:
-          return typer_->random_fun_;
-        case kMathRound:
-          return typer_->weakint_fun1_;
-        case kMathSin:
-          return typer_->number_fun1_;
-        case kMathSqrt:
-          return typer_->number_fun1_;
-        case kMathTan:
+        case kMathClz32:
+          return typer_->clz32_fun_;
+        case kMathFround:
           return typer_->number_fun1_;
         default:
           break;
@@ -1597,25 +1877,6 @@ Type* Typer::Visitor::TypeConstant(Handle<Object> value) {
     }
   }
   return Type::Constant(value, zone());
-}
-
-
-namespace {
-
-class TyperDecorator : public GraphDecorator {
- public:
-  explicit TyperDecorator(Typer* typer) : typer_(typer) {}
-  virtual void Decorate(Node* node) { typer_->Init(node); }
-
- private:
-  Typer* typer_;
-};
-
-}
-
-
-void Typer::DecorateGraph(Graph* graph) {
-  graph->AddDecorator(new (zone()) TyperDecorator(this));
 }
 
 }

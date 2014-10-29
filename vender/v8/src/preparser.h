@@ -70,7 +70,6 @@ class ParserBase : public Traits {
 
   ParserBase(Scanner* scanner, uintptr_t stack_limit, v8::Extension* extension,
              ParserRecorder* log, typename Traits::Type::Zone* zone,
-             AstNode::IdGen* ast_node_id_gen,
              typename Traits::Type::Parser this_object)
       : Traits(this_object),
         parenthesized_function_(false),
@@ -87,8 +86,7 @@ class ParserBase : public Traits {
         allow_natives_syntax_(false),
         allow_arrow_functions_(false),
         allow_harmony_object_literals_(false),
-        zone_(zone),
-        ast_node_id_gen_(ast_node_id_gen) {}
+        zone_(zone) {}
 
   // Getters that indicate whether certain syntactical constructs are
   // allowed to be parsed by this instance of the parser.
@@ -277,7 +275,6 @@ class ParserBase : public Traits {
   void set_stack_overflow() { stack_overflow_ = true; }
   Mode mode() const { return mode_; }
   typename Traits::Type::Zone* zone() const { return zone_; }
-  AstNode::IdGen* ast_node_id_gen() const { return ast_node_id_gen_; }
 
   INLINE(Token::Value peek()) {
     if (stack_overflow_) return Token::ILLEGAL;
@@ -347,12 +344,16 @@ class ParserBase : public Traits {
   }
 
   bool CheckContextualKeyword(Vector<const char> keyword) {
-    if (peek() == Token::IDENTIFIER &&
-        scanner()->is_next_contextual_keyword(keyword)) {
+    if (PeekContextualKeyword(keyword)) {
       Consume(Token::IDENTIFIER);
       return true;
     }
     return false;
+  }
+
+  bool PeekContextualKeyword(Vector<const char> keyword) {
+    return peek() == Token::IDENTIFIER &&
+           scanner()->is_next_contextual_keyword(keyword);
   }
 
   void ExpectContextualKeyword(Vector<const char> keyword, bool* ok) {
@@ -580,7 +581,6 @@ class ParserBase : public Traits {
   bool allow_harmony_object_literals_;
 
   typename Traits::Type::Zone* zone_;  // Only used by Parser.
-  AstNode::IdGen* ast_node_id_gen_;
 };
 
 
@@ -615,7 +615,9 @@ class PreParserIdentifier {
     return PreParserIdentifier(kConstructorIdentifier);
   }
   bool IsEval() const { return type_ == kEvalIdentifier; }
-  bool IsArguments() const { return type_ == kArgumentsIdentifier; }
+  bool IsArguments(const AstValueFactory* = NULL) const {
+    return type_ == kArgumentsIdentifier;
+  }
   bool IsYield() const { return type_ == kYieldIdentifier; }
   bool IsPrototype() const { return type_ == kPrototypeIdentifier; }
   bool IsConstructor() const { return type_ == kConstructorIdentifier; }
@@ -956,6 +958,8 @@ class PreParserScope {
 
   bool IsDeclared(const PreParserIdentifier& identifier) const { return false; }
   void DeclareParameter(const PreParserIdentifier& identifier, VariableMode) {}
+  void RecordArgumentsUsage() {}
+  void RecordThisUsage() {}
 
   // Allow scope->Foo() to work.
   PreParserScope* operator->() { return this; }
@@ -968,7 +972,7 @@ class PreParserScope {
 
 class PreParserFactory {
  public:
-  PreParserFactory(void*, void*, void*) {}
+  explicit PreParserFactory(void* unused_value_factory) {}
   PreParserExpression NewStringLiteral(PreParserIdentifier identifier,
                                        int pos) {
     return PreParserExpression::Default();
@@ -1413,7 +1417,7 @@ class PreParser : public ParserBase<PreParserTraits> {
   };
 
   PreParser(Scanner* scanner, ParserRecorder* log, uintptr_t stack_limit)
-      : ParserBase<PreParserTraits>(scanner, stack_limit, NULL, log, NULL, NULL,
+      : ParserBase<PreParserTraits>(scanner, stack_limit, NULL, log, NULL,
                                     this) {}
 
   // Pre-parse the program from the character stream; returns true on
@@ -1422,7 +1426,7 @@ class PreParser : public ParserBase<PreParserTraits> {
   // during parsing.
   PreParseResult PreParseProgram() {
     PreParserScope scope(scope_, GLOBAL_SCOPE);
-    PreParserFactory factory(NULL, NULL, NULL);
+    PreParserFactory factory(NULL);
     FunctionState top_scope(&function_state_, &scope_, &scope, &factory);
     bool ok = true;
     int start_position = scanner()->peek_location().beg_pos;
@@ -1615,6 +1619,8 @@ typename ParserBase<Traits>::IdentifierT ParserBase<Traits>::ParseIdentifier(
       ReportMessage("strict_eval_arguments");
       *ok = false;
     }
+    if (name->IsArguments(this->ast_value_factory()))
+      scope_->RecordArgumentsUsage();
     return name;
   } else if (strict_mode() == SLOPPY &&
              (next == Token::FUTURE_STRICT_RESERVED_WORD ||
@@ -1645,7 +1651,11 @@ typename ParserBase<Traits>::IdentifierT ParserBase<
     *ok = false;
     return Traits::EmptyIdentifier();
   }
-  return this->GetSymbol(scanner());
+
+  IdentifierT name = this->GetSymbol(scanner());
+  if (name->IsArguments(this->ast_value_factory()))
+    scope_->RecordArgumentsUsage();
+  return name;
 }
 
 
@@ -1660,7 +1670,11 @@ ParserBase<Traits>::ParseIdentifierName(bool* ok) {
     *ok = false;
     return Traits::EmptyIdentifier();
   }
-  return this->GetSymbol(scanner());
+
+  IdentifierT name = this->GetSymbol(scanner());
+  if (name->IsArguments(this->ast_value_factory()))
+    scope_->RecordArgumentsUsage();
+  return name;
 }
 
 
@@ -1738,6 +1752,7 @@ ParserBase<Traits>::ParsePrimaryExpression(bool* ok) {
   switch (token) {
     case Token::THIS: {
       Consume(Token::THIS);
+      scope_->RecordThisUsage();
       result = this->ThisExpression(scope_, factory());
       break;
     }
@@ -2591,9 +2606,7 @@ template <class Traits>
 typename ParserBase<Traits>::ExpressionT ParserBase<
     Traits>::ParseArrowFunctionLiteral(int start_pos, ExpressionT params_ast,
                                        bool* ok) {
-  // TODO(aperez): Change this to use ARROW_SCOPE
-  typename Traits::Type::ScopePtr scope =
-      this->NewScope(scope_, FUNCTION_SCOPE);
+  typename Traits::Type::ScopePtr scope = this->NewScope(scope_, ARROW_SCOPE);
   typename Traits::Type::StatementList body;
   typename Traits::Type::AstProperties ast_properties;
   BailoutReason dont_optimize_reason = kNoReason;
@@ -2603,8 +2616,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<
   int handler_count = 0;
 
   {
-    typename Traits::Type::Factory function_factory(
-        zone(), this->ast_value_factory(), ast_node_id_gen_);
+    typename Traits::Type::Factory function_factory(this->ast_value_factory());
     FunctionState function_state(&function_state_, &scope_,
                                  Traits::Type::ptr_to_scope(scope),
                                  &function_factory);

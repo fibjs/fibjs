@@ -39,7 +39,8 @@ RawMachineAssembler::RawMachineAssembler(Graph* graph,
 Schedule* RawMachineAssembler::Export() {
   // Compute the correct codegen order.
   DCHECK(schedule_->rpo_order()->empty());
-  Scheduler::ComputeSpecialRPO(schedule_);
+  ZonePool zone_pool(isolate());
+  Scheduler::ComputeSpecialRPO(&zone_pool, schedule_);
   // Invalidate MachineAssembler.
   Schedule* schedule = schedule_;
   schedule_ = NULL;
@@ -150,10 +151,10 @@ BasicBlock* RawMachineAssembler::CurrentBlock() {
 
 
 Node* RawMachineAssembler::MakeNode(const Operator* op, int input_count,
-                                    Node** inputs) {
+                                    Node** inputs, bool incomplete) {
   DCHECK(ScheduleValid());
   DCHECK(current_block_ != NULL);
-  Node* node = graph()->NewNode(op, input_count, inputs);
+  Node* node = graph()->NewNode(op, input_count, inputs, incomplete);
   BasicBlock* block = op->opcode() == IrOpcode::kParameter ? schedule()->start()
                                                            : CurrentBlock();
   schedule()->AddNode(block, node);

@@ -7,13 +7,14 @@
 
 // Opcodes for control operators.
 #define INNER_CONTROL_OP_LIST(V) \
-  V(Dead)                  \
-  V(Loop)                  \
-  V(Branch)                \
-  V(IfTrue)                \
-  V(IfFalse)               \
-  V(Merge)                 \
-  V(Return)                \
+  V(Dead)                        \
+  V(Loop)                        \
+  V(Branch)                      \
+  V(IfTrue)                      \
+  V(IfFalse)                     \
+  V(Merge)                       \
+  V(Return)                      \
+  V(Terminate)                   \
   V(Throw)
 
 #define CONTROL_OP_LIST(V) \
@@ -158,7 +159,9 @@
   V(LoadField)                \
   V(LoadElement)              \
   V(StoreField)               \
-  V(StoreElement)
+  V(StoreElement)             \
+  V(ObjectIsSmi)              \
+  V(ObjectIsNonNegativeSmi)
 
 // Opcodes for Machine-level operators.
 #define MACHINE_OP_LIST(V)    \
@@ -223,6 +226,10 @@
   V(Float64Equal)             \
   V(Float64LessThan)          \
   V(Float64LessThanOrEqual)   \
+  V(Float64Floor)             \
+  V(Float64Ceil)              \
+  V(Float64RoundTruncate)     \
+  V(Float64RoundTiesAway)     \
   V(LoadStackPointer)
 
 #define VALUE_OP_LIST(V) \

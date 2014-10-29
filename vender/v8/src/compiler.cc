@@ -6,6 +6,7 @@
 
 #include "src/compiler.h"
 
+#include "src/ast-numbering.h"
 #include "src/bootstrapper.h"
 #include "src/codegen.h"
 #include "src/compilation-cache.h"
@@ -291,12 +292,13 @@ void CompilationInfo::PrepareForCompilation(Scope* scope) {
   DCHECK(scope_ == NULL);
   scope_ = scope;
 
-  int length = function()->slot_count();
   if (feedback_vector_.is_null()) {
     // Allocate the feedback vector too.
-    feedback_vector_ = isolate()->factory()->NewTypeFeedbackVector(length);
+    feedback_vector_ = isolate()->factory()->NewTypeFeedbackVector(
+        function()->slot_count(), function()->ic_slot_count());
   }
-  DCHECK(feedback_vector_->length() == length);
+  DCHECK(feedback_vector_->Slots() == function()->slot_count() &&
+         feedback_vector_->ICSlots() == function()->ic_slot_count());
 }
 
 
@@ -412,9 +414,6 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
     compiler::Pipeline pipeline(info());
     pipeline.GenerateCode();
     if (!info()->code().is_null()) {
-      if (FLAG_turbo_deoptimization) {
-        info()->context()->native_context()->AddOptimizedCode(*info()->code());
-      }
       return SetLastStatus(SUCCEEDED);
     }
   }
@@ -483,6 +482,9 @@ OptimizedCompileJob::Status OptimizedCompileJob::GenerateCode() {
   DCHECK(last_status() == SUCCEEDED);
   // TODO(turbofan): Currently everything is done in the first phase.
   if (!info()->code().is_null()) {
+    if (FLAG_turbo_deoptimization) {
+      info()->context()->native_context()->AddOptimizedCode(*info()->code());
+    }
     RecordOptimizationStats();
     return last_status();
   }
@@ -745,6 +747,7 @@ static bool CompileOptimizedPrologue(CompilationInfo* info) {
   if (!Parser::Parse(info)) return false;
   if (!Rewriter::Rewrite(info)) return false;
   if (!Scope::Analyze(info)) return false;
+  if (!AstNumbering::Renumber(info->function(), info->zone())) return false;
   DCHECK(info->scope() != NULL);
   return true;
 }
@@ -1177,7 +1180,12 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
         compile_options == ScriptCompiler::kConsumeCodeCache &&
         !isolate->debug()->is_loaded()) {
       HistogramTimerScope timer(isolate->counters()->compile_deserialize());
-      return CodeSerializer::Deserialize(isolate, *cached_data, source);
+      Handle<SharedFunctionInfo> result;
+      if (CodeSerializer::Deserialize(isolate, *cached_data, source)
+              .ToHandle(&result)) {
+        return result;
+      }
+      // Deserializer failed. Fall through to compile.
     } else {
       maybe_result = compilation_cache->LookupScript(
           source, script_name, line_offset, column_offset,
@@ -1221,14 +1229,17 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
     result = CompileToplevel(&info);
     if (extension == NULL && !result.is_null() && !result->dont_cache()) {
       compilation_cache->PutScript(source, context, result);
-      if (FLAG_serialize_toplevel &&
+      // TODO(yangguo): Issue 3628
+      // With block scoping, top-level variables may resolve to a global,
+      // context, which makes the code context-dependent.
+      if (FLAG_serialize_toplevel && !FLAG_harmony_scoping &&
           compile_options == ScriptCompiler::kProduceCodeCache) {
         HistogramTimerScope histogram_timer(
             isolate->counters()->compile_serialize());
         *cached_data = CodeSerializer::Serialize(isolate, result, source);
         if (FLAG_profile_deserialization) {
-          PrintF("[Compiling and serializing %d bytes took %0.3f ms]\n",
-                 (*cached_data)->length(), timer.Elapsed().InMillisecondsF());
+          PrintF("[Compiling and serializing took %0.3f ms]\n",
+                 timer.Elapsed().InMillisecondsF());
         }
       }
     }

@@ -4,6 +4,8 @@
 
 #include "src/v8.h"
 
+#include "src/ast.h"
+#include "src/ast-numbering.h"
 #include "src/code-factory.h"
 #include "src/codegen.h"
 #include "src/compiler.h"
@@ -306,6 +308,11 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
 
   TimerEventScope<TimerEventCompileFullCode> timer(info->isolate());
 
+  if (!AstNumbering::Renumber(info->function(), info->zone())) {
+    DCHECK(!isolate->has_pending_exception());
+    return false;
+  }
+
   Handle<Script> script = info->script();
   if (!script->IsUndefined() && !script->source()->IsUndefined()) {
     int len = String::cast(script->source())->length();
@@ -367,11 +374,22 @@ unsigned FullCodeGenerator::EmitBackEdgeTable() {
 
 void FullCodeGenerator::EnsureSlotContainsAllocationSite(
     FeedbackVectorSlot slot) {
-  Handle<FixedArray> vector = FeedbackVector();
-  if (!vector->get(slot.ToInt())->IsAllocationSite()) {
+  Handle<TypeFeedbackVector> vector = FeedbackVector();
+  if (!vector->Get(slot)->IsAllocationSite()) {
     Handle<AllocationSite> allocation_site =
         isolate()->factory()->NewAllocationSite();
-    vector->set(slot.ToInt(), *allocation_site);
+    vector->Set(slot, *allocation_site);
+  }
+}
+
+
+void FullCodeGenerator::EnsureSlotContainsAllocationSite(
+    FeedbackVectorICSlot slot) {
+  Handle<TypeFeedbackVector> vector = FeedbackVector();
+  if (!vector->Get(slot)->IsAllocationSite()) {
+    Handle<AllocationSite> allocation_site =
+        isolate()->factory()->NewAllocationSite();
+    vector->Set(slot, *allocation_site);
   }
 }
 

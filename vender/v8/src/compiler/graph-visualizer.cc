@@ -118,7 +118,7 @@ class JSONGraphEdgeWriter : public NullNodeVisitor {
 
   void Print() { const_cast<Graph*>(graph_)->VisitNodeInputsFromEnd(this); }
 
-  GenericGraphVisit::Control PreEdge(Node* from, int index, Node* to);
+  void PreEdge(Node* from, int index, Node* to);
 
  private:
   std::ostream& os_;
@@ -129,8 +129,7 @@ class JSONGraphEdgeWriter : public NullNodeVisitor {
 };
 
 
-GenericGraphVisit::Control JSONGraphEdgeWriter::PreEdge(Node* from, int index,
-                                                        Node* to) {
+void JSONGraphEdgeWriter::PreEdge(Node* from, int index, Node* to) {
   if (first_edge_) {
     first_edge_ = false;
   } else {
@@ -152,7 +151,6 @@ GenericGraphVisit::Control JSONGraphEdgeWriter::PreEdge(Node* from, int index,
   }
   os_ << "{\"source\":" << to->id() << ",\"target\":" << from->id()
       << ",\"index\":" << index << ",\"type\":\"" << edge_type << "\"}";
-  return GenericGraphVisit::CONTINUE;
 }
 
 
@@ -174,7 +172,6 @@ class GraphVisualizer : public NullNodeVisitor {
   void Print();
 
   GenericGraphVisit::Control Pre(Node* node);
-  GenericGraphVisit::Control PreEdge(Node* from, int index, Node* to);
 
  private:
   void AnnotateNode(Node* node);
@@ -218,17 +215,6 @@ GenericGraphVisit::Control GraphVisualizer::Pre(Node* node) {
     if (use_to_def_) white_nodes_.insert(node);
   }
   return GenericGraphVisit::CONTINUE;
-}
-
-
-GenericGraphVisit::Control GraphVisualizer::PreEdge(Node* from, int index,
-                                                    Node* to) {
-  if (use_to_def_) return GenericGraphVisit::CONTINUE;
-  // When going from def to use, only consider white -> other edges, which are
-  // the dead nodes that use live nodes. We're probably not interested in
-  // dead nodes that only use other dead nodes.
-  if (white_nodes_.count(from) > 0) return GenericGraphVisit::CONTINUE;
-  return GenericGraphVisit::SKIP;
 }
 
 
@@ -299,7 +285,7 @@ void GraphVisualizer::AnnotateNode(Node* node) {
   }
   os_ << "}";
 
-  if (FLAG_trace_turbo_types && !NodeProperties::IsControl(node)) {
+  if (FLAG_trace_turbo_types && NodeProperties::IsTyped(node)) {
     Bounds bounds = NodeProperties::GetBounds(node);
     std::ostringstream upper;
     bounds.upper->PrintTo(upper);
@@ -541,11 +527,13 @@ void GraphC1Visualizer::PrintInputs(Node* node) {
 
 
 void GraphC1Visualizer::PrintType(Node* node) {
-  Bounds bounds = NodeProperties::GetBounds(node);
-  os_ << " type:";
-  bounds.upper->PrintTo(os_);
-  os_ << "..";
-  bounds.lower->PrintTo(os_);
+  if (NodeProperties::IsTyped(node)) {
+    Bounds bounds = NodeProperties::GetBounds(node);
+    os_ << " type:";
+    bounds.upper->PrintTo(os_);
+    os_ << "..";
+    bounds.lower->PrintTo(os_);
+  }
 }
 
 
@@ -591,9 +579,11 @@ void GraphC1Visualizer::PrintSchedule(const char* phase,
 
     PrintIntProperty("loop_depth", current->loop_depth());
 
-    if (instructions->code_start(current) >= 0) {
-      int first_index = instructions->first_instruction_index(current);
-      int last_index = instructions->last_instruction_index(current);
+    const InstructionBlock* instruction_block =
+        instructions->InstructionBlockAt(current->GetRpoNumber());
+    if (instruction_block->code_start() >= 0) {
+      int first_index = instruction_block->first_instruction_index();
+      int last_index = instruction_block->last_instruction_index();
       PrintIntProperty("first_lir_id", LifetimePosition::FromInstructionIndex(
                                            first_index).Value());
       PrintIntProperty("last_lir_id", LifetimePosition::FromInstructionIndex(
@@ -672,8 +662,8 @@ void GraphC1Visualizer::PrintSchedule(const char* phase,
 
     if (instructions != NULL) {
       Tag LIR_tag(this, "LIR");
-      for (int j = instructions->first_instruction_index(current);
-           j <= instructions->last_instruction_index(current); j++) {
+      for (int j = instruction_block->first_instruction_index();
+           j <= instruction_block->last_instruction_index(); j++) {
         PrintIndent();
         os_ << j << " " << *instructions->InstructionAt(j) << " <|@\n";
       }

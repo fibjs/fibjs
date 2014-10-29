@@ -27,7 +27,6 @@
     <ClInclude Include="include\v8-util.h" />
     <ClInclude Include="include\v8.h" />
     <ClInclude Include="include\v8config.h" />
-    <ClInclude Include="include\v8stdint.h" />
     <ClInclude Include="src\accessors.h" />
     <ClInclude Include="src\allocation-site-scopes.h" />
     <ClInclude Include="src\allocation-tracker.h" />
@@ -36,6 +35,7 @@
     <ClInclude Include="src\arguments.h" />
     <ClInclude Include="src\assembler.h" />
     <ClInclude Include="src\assert-scope.h" />
+    <ClInclude Include="src\ast-numbering.h" />
     <ClInclude Include="src\ast-value-factory.h" />
     <ClInclude Include="src\ast.h" />
     <ClInclude Include="src\background-parsing-task.h" />
@@ -76,7 +76,6 @@
     <ClInclude Include="src\base\sys-info.h" />
     <ClInclude Include="src\base\utils\random-number-generator.h" />
     <ClInclude Include="src\base\win32-headers.h" />
-    <ClInclude Include="src\base\win32-math.h" />
     <ClInclude Include="src\basic-block-profiler.h" />
     <ClInclude Include="src\bignum-dtoa.h" />
     <ClInclude Include="src\bignum.h" />
@@ -94,6 +93,7 @@
     <ClInclude Include="src\code.h" />
     <ClInclude Include="src\codegen.h" />
     <ClInclude Include="src\compilation-cache.h" />
+    <ClInclude Include="src\compilation-statistics.h" />
     <ClInclude Include="src\compiler.h" />
     <ClInclude Include="src\compiler\access-builder.h" />
     <ClInclude Include="src\compiler\ast-graph-builder.h" />
@@ -104,6 +104,7 @@
     <ClInclude Include="src\compiler\common-node-cache.h" />
     <ClInclude Include="src\compiler\common-operator.h" />
     <ClInclude Include="src\compiler\control-builders.h" />
+    <ClInclude Include="src\compiler\control-reducer.h" />
     <ClInclude Include="src\compiler\frame.h" />
     <ClInclude Include="src\compiler\gap-resolver.h" />
     <ClInclude Include="src\compiler\generic-algorithm-inl.h" />
@@ -127,6 +128,7 @@
     <ClInclude Include="src\compiler\js-generic-lowering.h" />
     <ClInclude Include="src\compiler\js-graph.h" />
     <ClInclude Include="src\compiler\js-inlining.h" />
+    <ClInclude Include="src\compiler\js-intrinsic-builder.h" />
     <ClInclude Include="src\compiler\js-operator.h" />
     <ClInclude Include="src\compiler\js-typed-lowering.h" />
     <ClInclude Include="src\compiler\linkage-impl.h" />
@@ -146,6 +148,7 @@
     <ClInclude Include="src\compiler\operator-properties.h" />
     <ClInclude Include="src\compiler\operator.h" />
     <ClInclude Include="src\compiler\phi-reducer.h" />
+    <ClInclude Include="src\compiler\pipeline-statistics.h" />
     <ClInclude Include="src\compiler\pipeline.h" />
     <ClInclude Include="src\compiler\raw-machine-assembler.h" />
     <ClInclude Include="src\compiler\register-allocator.h" />
@@ -160,6 +163,7 @@
     <ClInclude Include="src\compiler\value-numbering-reducer.h" />
     <ClInclude Include="src\compiler\verifier.h" />
     <ClInclude Include="src\compiler\x64\instruction-codes-x64.h" />
+    <ClInclude Include="src\compiler\zone-pool.h" />
     <ClInclude Include="src\contexts.h" />
     <ClInclude Include="src\conversions-inl.h" />
     <ClInclude Include="src\conversions.h" />
@@ -294,7 +298,6 @@
     <ClInclude Include="src\lookup.h" />
     <ClInclude Include="src\macro-assembler.h" />
     <ClInclude Include="src\messages.h" />
-    <ClInclude Include="src\misc-intrinsics.h" />
     <ClInclude Include="src\msan.h" />
     <ClInclude Include="src\natives.h" />
     <ClInclude Include="src\objects-inl.h" />
@@ -404,6 +407,7 @@
     <ClCompile Include="src\arguments.cc" />
     <ClCompile Include="src\assembler.cc" />
     <ClCompile Include="src\assert-scope.cc" />
+    <ClCompile Include="src\ast-numbering.cc" />
     <ClCompile Include="src\ast-value-factory.cc" />
     <ClCompile Include="src\ast.cc" />
     <ClCompile Include="src\background-parsing-task.cc" />
@@ -430,7 +434,6 @@
     <ClCompile Include="src\base\platform\time.cc" />
     <ClCompile Include="src\base\sys-info.cc" />
     <ClCompile Include="src\base\utils\random-number-generator.cc" />
-    <ClCompile Include="src\base\win32-math.cc" />
     <ClCompile Include="src\basic-block-profiler.cc" />
     <ClCompile Include="src\bignum-dtoa.cc" />
     <ClCompile Include="src\bignum.cc" />
@@ -444,6 +447,7 @@
     <ClCompile Include="src\code-stubs.cc" />
     <ClCompile Include="src\codegen.cc" />
     <ClCompile Include="src\compilation-cache.cc" />
+    <ClCompile Include="src\compilation-statistics.cc" />
     <ClCompile Include="src\compiler.cc" />
     <ClCompile Include="src\compiler\access-builder.cc" />
     <ClCompile Include="src\compiler\ast-graph-builder.cc" />
@@ -452,6 +456,7 @@
     <ClCompile Include="src\compiler\code-generator.cc" />
     <ClCompile Include="src\compiler\common-operator.cc" />
     <ClCompile Include="src\compiler\control-builders.cc" />
+    <ClCompile Include="src\compiler\control-reducer.cc" />
     <ClCompile Include="src\compiler\gap-resolver.cc" />
     <ClCompile Include="src\compiler\graph-builder.cc" />
     <ClCompile Include="src\compiler\graph-reducer.cc" />
@@ -468,6 +473,7 @@
     <ClCompile Include="src\compiler\js-generic-lowering.cc" />
     <ClCompile Include="src\compiler\js-graph.cc" />
     <ClCompile Include="src\compiler\js-inlining.cc" />
+    <ClCompile Include="src\compiler\js-intrinsic-builder.cc" />
     <ClCompile Include="src\compiler\js-operator.cc" />
     <ClCompile Include="src\compiler\js-typed-lowering.cc" />
     <ClCompile Include="src\compiler\linkage.cc" />
@@ -478,6 +484,7 @@
     <ClCompile Include="src\compiler\node-matchers.cc" />
     <ClCompile Include="src\compiler\node.cc" />
     <ClCompile Include="src\compiler\operator.cc" />
+    <ClCompile Include="src\compiler\pipeline-statistics.cc" />
     <ClCompile Include="src\compiler\pipeline.cc" />
     <ClCompile Include="src\compiler\raw-machine-assembler.cc" />
     <ClCompile Include="src\compiler\register-allocator.cc" />
@@ -493,6 +500,7 @@
     <ClCompile Include="src\compiler\x64\code-generator-x64.cc" />
     <ClCompile Include="src\compiler\x64\instruction-selector-x64.cc" />
     <ClCompile Include="src\compiler\x64\linkage-x64.cc" />
+    <ClCompile Include="src\compiler\zone-pool.cc" />
     <ClCompile Include="src\contexts.cc" />
     <ClCompile Include="src\conversions.cc" />
     <ClCompile Include="src\counters.cc" />

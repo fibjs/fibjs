@@ -429,12 +429,20 @@ class FullCodeGenerator: public AstVisitor {
 
   // Feedback slot support. The feedback vector will be cleared during gc and
   // collected by the type-feedback oracle.
-  Handle<FixedArray> FeedbackVector() {
+  Handle<TypeFeedbackVector> FeedbackVector() const {
     return info_->feedback_vector();
   }
   void EnsureSlotContainsAllocationSite(FeedbackVectorSlot slot);
+  void EnsureSlotContainsAllocationSite(FeedbackVectorICSlot slot);
+
+  // Returns a smi for the index into the FixedArray that backs the feedback
+  // vector
   Smi* SmiFromSlot(FeedbackVectorSlot slot) const {
-    return Smi::FromInt(slot.ToInt());
+    return Smi::FromInt(FeedbackVector()->GetIndex(slot));
+  }
+
+  Smi* SmiFromSlot(FeedbackVectorICSlot slot) const {
+    return Smi::FromInt(FeedbackVector()->GetIndex(slot));
   }
 
   // Record a call's return site offset, used to rebuild the frame if the
@@ -600,6 +608,8 @@ class FullCodeGenerator: public AstVisitor {
   void EmitKeyedPropertyAssignment(Assignment* expr);
 
   void EmitLoadHomeObject(SuperReference* expr);
+
+  void EmitLoadSuperConstructor(SuperReference* expr);
 
   void CallIC(Handle<Code> code,
               TypeFeedbackId id = TypeFeedbackId::None());

@@ -82,12 +82,6 @@
     <Filter Include="Source Files\x87">
       <UniqueIdentifier>{acef08ff-e260-9824-5923-978cb77e35fb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="third_party">
-      <UniqueIdentifier>{15230e5d-ad94-ffae-fa7b-526c0c1e89e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="third_party\fdlibm">
-      <UniqueIdentifier>{ece52f05-e0b7-3063-74f1-c1e8ea8e4ba4}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\libplatform\libplatform.h">
@@ -114,9 +108,6 @@
     <ClInclude Include="include\v8config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8stdint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\accessors.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -139,6 +130,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\assert-scope.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ast-numbering.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ast-value-factory.h">
@@ -261,9 +255,6 @@
     <ClInclude Include="src\base\win32-headers.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
-    <ClInclude Include="src\base\win32-math.h">
-      <Filter>Source Files\base</Filter>
-    </ClInclude>
     <ClInclude Include="src\basic-block-profiler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -315,6 +306,9 @@
     <ClInclude Include="src\compilation-cache.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\compilation-statistics.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -343,6 +337,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\control-builders.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\control-reducer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\frame.h">
@@ -414,6 +411,9 @@
     <ClInclude Include="src\compiler\js-inlining.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\js-intrinsic-builder.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\js-operator.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -471,6 +471,9 @@
     <ClInclude Include="src\compiler\phi-reducer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\pipeline-statistics.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\pipeline.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -512,6 +515,9 @@
     </ClInclude>
     <ClInclude Include="src\compiler\x64\instruction-codes-x64.h">
       <Filter>Source Files\compiler\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\zone-pool.h">
+      <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\contexts.h">
       <Filter>Source Files</Filter>
@@ -915,9 +921,6 @@
     <ClInclude Include="src\messages.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\misc-intrinsics.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\msan.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1241,6 +1244,9 @@
     <ClCompile Include="src\assert-scope.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ast-numbering.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\ast-value-factory.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1319,9 +1325,6 @@
     <ClCompile Include="src\base\utils\random-number-generator.cc">
       <Filter>Source Files\base\utils</Filter>
     </ClCompile>
-    <ClCompile Include="src\base\win32-math.cc">
-      <Filter>Source Files\base</Filter>
-    </ClCompile>
     <ClCompile Include="src\basic-block-profiler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1361,6 +1364,9 @@
     <ClCompile Include="src\compilation-cache.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\compilation-statistics.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1383,6 +1389,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\control-builders.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\control-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\gap-resolver.cc">
@@ -1433,6 +1442,9 @@
     <ClCompile Include="src\compiler\js-inlining.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\js-intrinsic-builder.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\js-operator.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1461,6 +1473,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\operator.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\pipeline-statistics.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\pipeline.cc">
@@ -1507,6 +1522,9 @@
     </ClCompile>
     <ClCompile Include="src\compiler\x64\linkage-x64.cc">
       <Filter>Source Files\compiler\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\zone-pool.cc">
+      <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\contexts.cc">
       <Filter>Source Files</Filter>

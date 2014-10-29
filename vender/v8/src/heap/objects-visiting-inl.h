@@ -262,6 +262,7 @@ void StaticMarkingVisitor<StaticVisitor>::VisitCodeTarget(Heap* heap,
   // when they might be keeping a Context alive, or when the heap is about
   // to be serialized.
   if (FLAG_cleanup_code_caches_at_gc && target->is_inline_cache_stub() &&
+      !target->is_call_stub() &&
       (target->ic_state() == MEGAMORPHIC || target->ic_state() == GENERIC ||
        target->ic_state() == POLYMORPHIC ||
        (heap->flush_monomorphic_ics() && !target->is_weak_stub()) ||
@@ -358,9 +359,9 @@ void StaticMarkingVisitor<StaticVisitor>::VisitWeakCell(Map* map,
   WeakCell* weak_cell = reinterpret_cast<WeakCell*>(object);
   Object* undefined = heap->undefined_value();
   // Enqueue weak cell in linked list of encountered weak collections.
-  // We can ignore weak cells with cleared values because they will always point
-  // to the undefined_value.
-  if (weak_cell->next() == undefined && weak_cell->value() != undefined) {
+  // We can ignore weak cells with cleared values because they will always
+  // contain smi zero.
+  if (weak_cell->next() == undefined && !weak_cell->cleared()) {
     weak_cell->set_next(heap->encountered_weak_cells());
     heap->set_encountered_weak_cells(weak_cell);
   }

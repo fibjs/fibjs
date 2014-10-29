@@ -15,7 +15,11 @@
 #ifndef V8_H_
 #define V8_H_
 
-#include "v8stdint.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#include "v8config.h"
 
 // We reserve the V8_* prefix for macros defined in V8 public API and
 // assume there are no name conflicts with the embedder's code.
@@ -1699,14 +1703,24 @@ class V8_EXPORT Value : public Data {
    */
   bool IsDataView() const;
 
-  Local<Boolean> ToBoolean() const;
-  Local<Number> ToNumber() const;
-  Local<String> ToString() const;
-  Local<String> ToDetailString() const;
-  Local<Object> ToObject() const;
-  Local<Integer> ToInteger() const;
-  Local<Uint32> ToUint32() const;
-  Local<Int32> ToInt32() const;
+  Local<Boolean> ToBoolean(Isolate* isolate) const;
+  Local<Number> ToNumber(Isolate* isolate) const;
+  Local<String> ToString(Isolate* isolate) const;
+  Local<String> ToDetailString(Isolate* isolate) const;
+  Local<Object> ToObject(Isolate* isolate) const;
+  Local<Integer> ToInteger(Isolate* isolate) const;
+  Local<Uint32> ToUint32(Isolate* isolate) const;
+  Local<Int32> ToInt32(Isolate* isolate) const;
+
+  // TODO(dcarney): deprecate all these.
+  inline Local<Boolean> ToBoolean() const;
+  inline Local<Number> ToNumber() const;
+  inline Local<String> ToString() const;
+  inline Local<String> ToDetailString() const;
+  inline Local<Object> ToObject() const;
+  inline Local<Integer> ToInteger() const;
+  inline Local<Uint32> ToUint32() const;
+  inline Local<Int32> ToInt32() const;
 
   /**
    * Attempts to convert a string to an array index.
@@ -1773,7 +1787,6 @@ class V8_EXPORT String : public Name {
   enum Encoding {
     UNKNOWN_ENCODING = 0x1,
     TWO_BYTE_ENCODING = 0x0,
-    ASCII_ENCODING = 0x4,  // TODO(yangguo): deprecate this.
     ONE_BYTE_ENCODING = 0x4
   };
   /**
@@ -1829,7 +1842,6 @@ class V8_EXPORT String : public Name {
     NO_OPTIONS = 0,
     HINT_MANY_WRITES_EXPECTED = 1,
     NO_NULL_TERMINATION = 2,
-    PRESERVE_ASCII_NULL = 4,  // TODO(yangguo): deprecate this.
     PRESERVE_ONE_BYTE_NULL = 4,
     // Used by WriteUtf8 to replace orphan surrogate code units with the
     // unicode replacement character. Needs to be set to guarantee valid UTF-8
@@ -1867,9 +1879,6 @@ class V8_EXPORT String : public Name {
    * Returns true if the string is both external and one-byte.
    */
   bool IsExternalOneByte() const;
-
-  // TODO(yangguo): deprecate this.
-  bool IsExternalAscii() const { return IsExternalOneByte(); }
 
   class V8_EXPORT ExternalStringResourceBase {  // NOLINT
    public:
@@ -1949,8 +1958,6 @@ class V8_EXPORT String : public Name {
     ExternalOneByteStringResource() {}
   };
 
-  typedef ExternalOneByteStringResource ExternalAsciiStringResource;
-
   /**
    * If the string is an external string, return the ExternalStringResourceBase
    * regardless of the encoding, otherwise return NULL.  The encoding of the
@@ -1970,11 +1977,6 @@ class V8_EXPORT String : public Name {
    * Returns NULL if IsExternalOneByte() doesn't return true.
    */
   const ExternalOneByteStringResource* GetExternalOneByteStringResource() const;
-
-  // TODO(yangguo): deprecate this.
-  const ExternalAsciiStringResource* GetExternalAsciiStringResource() const {
-    return GetExternalOneByteStringResource();
-  }
 
   V8_INLINE static String* Cast(v8::Value* obj);
 
@@ -2138,6 +2140,7 @@ class V8_EXPORT Symbol : public Name {
   // Well-known symbols
   static Local<Symbol> GetIterator(Isolate* isolate);
   static Local<Symbol> GetUnscopables(Isolate* isolate);
+  static Local<Symbol> GetToStringTag(Isolate* isolate);
 
   V8_INLINE static Symbol* Cast(v8::Value* obj);
 
@@ -2513,15 +2516,6 @@ class V8_EXPORT Object : public Value {
   bool SetHiddenValue(Handle<String> key, Handle<Value> value);
   Local<Value> GetHiddenValue(Handle<String> key);
   bool DeleteHiddenValue(Handle<String> key);
-
-  /**
-   * Returns true if this is an instance of an api function (one
-   * created from a function created from a function template) and has
-   * been modified since it was created.  Note that this method is
-   * conservative and may return true for objects that haven't actually
-   * been modified.
-   */
-  bool IsDirty();
 
   /**
    * Clone this object with a fast but shallow copy.  Values will point
@@ -4164,6 +4158,8 @@ class V8_EXPORT Exception {
   static Local<Value> SyntaxError(Handle<String> message);
   static Local<Value> TypeError(Handle<String> message);
   static Local<Value> Error(Handle<String> message);
+
+  static Local<StackTrace> GetStackTrace(Handle<Value> exception);
 };
 
 
@@ -5292,6 +5288,13 @@ class V8_EXPORT V8 {
    * that have class_ids.
    */
   static void VisitHandlesWithClassIds(PersistentHandleVisitor* visitor);
+
+  /**
+   * Iterates through all the persistent handles in isolate's heap that have
+   * class_ids.
+   */
+  static void VisitHandlesWithClassIds(
+      Isolate* isolate, PersistentHandleVisitor* visitor);
 
   /**
    * Iterates through all the persistent handles in the current isolate's heap
@@ -6643,6 +6646,44 @@ bool Value::QuickIsString() const {
 template <class T> Value* Value::Cast(T* value) {
   return static_cast<Value*>(value);
 }
+
+
+Local<Boolean> Value::ToBoolean() const {
+  return ToBoolean(Isolate::GetCurrent());
+}
+
+
+Local<Number> Value::ToNumber() const {
+  return ToNumber(Isolate::GetCurrent());
+}
+
+
+Local<String> Value::ToString() const {
+  return ToString(Isolate::GetCurrent());
+}
+
+
+Local<String> Value::ToDetailString() const {
+  return ToDetailString(Isolate::GetCurrent());
+}
+
+
+Local<Object> Value::ToObject() const {
+  return ToObject(Isolate::GetCurrent());
+}
+
+
+Local<Integer> Value::ToInteger() const {
+  return ToInteger(Isolate::GetCurrent());
+}
+
+
+Local<Uint32> Value::ToUint32() const {
+  return ToUint32(Isolate::GetCurrent());
+}
+
+
+Local<Int32> Value::ToInt32() const { return ToInt32(Isolate::GetCurrent()); }
 
 
 Name* Name::Cast(v8::Value* value) {

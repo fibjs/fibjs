@@ -9,6 +9,7 @@
 #include "src/v8.h"
 
 #include "src/allocation-site-scopes.h"
+#include "src/ast-numbering.h"
 #include "src/full-codegen.h"
 #include "src/hydrogen-bce.h"
 #include "src/hydrogen-bch.h"
@@ -144,7 +145,7 @@ void HBasicBlock::AddInstruction(HInstruction* instr,
       entry->set_position(position);
     } else {
       DCHECK(!FLAG_hydrogen_track_positions ||
-             !graph()->info()->IsOptimizing());
+             !graph()->info()->IsOptimizing() || instr->IsAbnormalExit());
     }
     first_ = last_ = entry;
   }
@@ -3446,8 +3447,9 @@ HGraph::HGraph(CompilationInfo* info)
       maximum_environment_size_(0),
       no_side_effects_scope_count_(0),
       disallow_adding_new_values_(false),
-      next_inline_id_(0),
-      inlined_functions_(5, info->zone()) {
+      inlined_functions_(FLAG_hydrogen_track_positions ? 5 : 0, info->zone()),
+      inlining_id_to_function_id_(FLAG_hydrogen_track_positions ? 5 : 0,
+                                  info->zone()) {
   if (info->IsStub()) {
     CallInterfaceDescriptor descriptor =
         info->code_stub()->GetCallInterfaceDescriptor();
@@ -3507,9 +3509,7 @@ int HGraph::TraceInlinedFunction(
         os << "--- FUNCTION SOURCE (" << shared->DebugName()->ToCString().get()
            << ") id{" << info()->optimization_id() << "," << id << "} ---\n";
         {
-          ConsStringIteratorOp op;
           StringCharacterStream stream(String::cast(script->source()),
-                                       &op,
                                        shared->start_position());
           // fun->end_position() points to the last character in the stream. We
           // need to compensate by adding one to calculate the length.
@@ -3527,7 +3527,8 @@ int HGraph::TraceInlinedFunction(
     }
   }
 
-  int inline_id = next_inline_id_++;
+  int inline_id = inlining_id_to_function_id_.length();
+  inlining_id_to_function_id_.Add(id, zone());
 
   if (inline_id != 0) {
     CodeTracer::Scope tracing_scope(isolate()->GetCodeTracer());
@@ -3546,8 +3547,8 @@ int HGraph::SourcePositionToScriptPosition(HSourcePosition pos) {
     return pos.raw();
   }
 
-  return inlined_functions_[pos.inlining_id()].start_position() +
-      pos.position();
+  const int id = inlining_id_to_function_id_[pos.inlining_id()];
+  return inlined_functions_[id].start_position() + pos.position();
 }
 
 
@@ -5618,6 +5619,8 @@ void HOptimizedGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
         DCHECK(!CompileTimeValue::IsCompileTimeValue(value));
         // Fall through.
       case ObjectLiteral::Property::COMPUTED:
+        // It is safe to use [[Put]] here because the boilerplate already
+        // contains computed properties with an uninitialized value.
         if (key->value()->IsInternalizedString()) {
           if (property->emit_store()) {
             CHECK_ALIVE(VisitForValue(value));
@@ -7031,6 +7034,7 @@ HValue* HOptimizedGraphBuilder::HandlePolymorphicElementAccess(
   MapHandleList possible_transitioned_maps(maps->length());
   for (int i = 0; i < maps->length(); ++i) {
     Handle<Map> map = maps->at(i);
+    DCHECK(!map->IsStringMap());
     ElementsKind elements_kind = map->elements_kind();
     if (IsFastElementsKind(elements_kind) &&
         elements_kind != GetInitialFastElementsKind()) {
@@ -7191,6 +7195,19 @@ HValue* HOptimizedGraphBuilder::HandleKeyedElementAccess(
       if (current_map->DictionaryElementsInPrototypeChainOnly()) {
         force_generic = true;
         monomorphic = false;
+        break;
+      }
+    }
+  } else if (access_type == LOAD && !monomorphic &&
+             (types != NULL && !types->is_empty())) {
+    // Polymorphic loads have to go generic if any of the maps are strings.
+    // If some, but not all of the maps are strings, we should go generic
+    // because polymorphic access wants to key on ElementsKind and isn't
+    // compatible with strings.
+    for (int i = 0; i < types->length(); i++) {
+      Handle<Map> current_map = types->at(i);
+      if (current_map->IsStringMap()) {
+        force_generic = true;
         break;
       }
     }
@@ -7828,7 +7845,8 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
   // step, but don't transfer ownership to target_info.
   target_info.SetAstValueFactory(top_info()->ast_value_factory(), false);
   Handle<SharedFunctionInfo> target_shared(target->shared());
-  if (!Parser::Parse(&target_info) || !Scope::Analyze(&target_info)) {
+  if (!Parser::Parse(&target_info) || !Scope::Analyze(&target_info) ||
+      !AstNumbering::Renumber(target_info.function(), target_info.zone())) {
     if (target_info.isolate()->has_pending_exception()) {
       // Parse or scope error, never optimize this function.
       SetStackOverflow();
@@ -8106,9 +8124,9 @@ bool HOptimizedGraphBuilder::TryInlineSetter(Handle<JSFunction> setter,
 }
 
 
-bool HOptimizedGraphBuilder::TryInlineApply(Handle<JSFunction> function,
-                                            Call* expr,
-                                            int arguments_count) {
+bool HOptimizedGraphBuilder::TryInlineIndirectCall(Handle<JSFunction> function,
+                                                   Call* expr,
+                                                   int arguments_count) {
   return TryInline(function,
                    arguments_count,
                    NULL,
@@ -8160,13 +8178,22 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinFunctionCall(Call* expr) {
 
 
 bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
-    Call* expr,
-    HValue* receiver,
-    Handle<Map> receiver_map) {
+    Call* expr, Handle<JSFunction> function, Handle<Map> receiver_map,
+    int args_count_no_receiver) {
+  if (!function->shared()->HasBuiltinFunctionId()) return false;
+  BuiltinFunctionId id = function->shared()->builtin_function_id();
+  int argument_count = args_count_no_receiver + 1;  // Plus receiver.
+
+  if (receiver_map.is_null()) {
+    HValue* receiver = environment()->ExpressionStackAt(args_count_no_receiver);
+    if (receiver->IsConstant() &&
+        HConstant::cast(receiver)->handle(isolate())->IsHeapObject()) {
+      receiver_map =
+          handle(Handle<HeapObject>::cast(
+                     HConstant::cast(receiver)->handle(isolate()))->map());
+    }
+  }
   // Try to inline calls like Math.* as operations in the calling function.
-  if (!expr->target()->shared()->HasBuiltinFunctionId()) return false;
-  BuiltinFunctionId id = expr->target()->shared()->builtin_function_id();
-  int argument_count = expr->arguments()->length() + 1;  // Plus receiver.
   switch (id) {
     case kStringCharCodeAt:
     case kStringCharAt:
@@ -8275,7 +8302,7 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
       if (receiver_map->is_observed()) return false;
       if (!receiver_map->is_extensible()) return false;
 
-      Drop(expr->arguments()->length());
+      Drop(args_count_no_receiver);
       HValue* result;
       HValue* reduced_length;
       HValue* receiver = Pop();
@@ -8351,7 +8378,7 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
       Handle<JSObject> prototype(JSObject::cast(receiver_map->prototype()));
       BuildCheckPrototypeMaps(prototype, Handle<JSObject>());
 
-      const int argc = expr->arguments()->length();
+      const int argc = args_count_no_receiver;
       if (argc != 1) return false;
 
       HValue* value_to_push = Pop();
@@ -8408,7 +8435,7 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
       // Threshold for fast inlined Array.shift().
       HConstant* inline_threshold = Add<HConstant>(static_cast<int32_t>(16));
 
-      Drop(expr->arguments()->length());
+      Drop(args_count_no_receiver);
       HValue* receiver = Pop();
       HValue* function = Pop();
       HValue* result;
@@ -8714,7 +8741,47 @@ bool HOptimizedGraphBuilder::TryInlineApiCall(Handle<JSFunction> function,
 }
 
 
-bool HOptimizedGraphBuilder::TryCallApply(Call* expr) {
+void HOptimizedGraphBuilder::HandleIndirectCall(Call* expr, HValue* function,
+                                                int arguments_count) {
+  Handle<JSFunction> known_function;
+  int args_count_no_receiver = arguments_count - 1;
+  if (function->IsConstant() &&
+      HConstant::cast(function)->handle(isolate())->IsJSFunction()) {
+    HValue* receiver = environment()->ExpressionStackAt(args_count_no_receiver);
+    Handle<Map> receiver_map;
+    if (receiver->IsConstant() &&
+        HConstant::cast(receiver)->handle(isolate())->IsHeapObject()) {
+      receiver_map =
+          handle(Handle<HeapObject>::cast(
+                     HConstant::cast(receiver)->handle(isolate()))->map());
+    }
+
+    known_function =
+        Handle<JSFunction>::cast(HConstant::cast(function)->handle(isolate()));
+    if (TryInlineBuiltinMethodCall(expr, known_function, receiver_map,
+                                   args_count_no_receiver)) {
+      if (FLAG_trace_inlining) {
+        PrintF("Inlining builtin ");
+        known_function->ShortPrint();
+        PrintF("\n");
+      }
+      return;
+    }
+
+    if (TryInlineIndirectCall(known_function, expr, args_count_no_receiver)) {
+      return;
+    }
+  }
+
+  PushArgumentsFromEnvironment(arguments_count);
+  HInvokeFunction* call =
+      New<HInvokeFunction>(function, known_function, arguments_count);
+  Drop(1);  // Function
+  ast_context()->ReturnInstruction(call, expr->id());
+}
+
+
+bool HOptimizedGraphBuilder::TryIndirectCall(Call* expr) {
   DCHECK(expr->expression()->IsProperty());
 
   if (!expr->IsMonomorphic()) {
@@ -8722,27 +8789,45 @@ bool HOptimizedGraphBuilder::TryCallApply(Call* expr) {
   }
   Handle<Map> function_map = expr->GetReceiverTypes()->first();
   if (function_map->instance_type() != JS_FUNCTION_TYPE ||
-      !expr->target()->shared()->HasBuiltinFunctionId() ||
-      expr->target()->shared()->builtin_function_id() != kFunctionApply) {
+      !expr->target()->shared()->HasBuiltinFunctionId()) {
     return false;
   }
 
-  if (current_info()->scope()->arguments() == NULL) return false;
+  switch (expr->target()->shared()->builtin_function_id()) {
+    case kFunctionCall: {
+      if (expr->arguments()->length() == 0) return false;
+      BuildFunctionCall(expr);
+      return true;
+    }
+    case kFunctionApply: {
+      // For .apply, only the pattern f.apply(receiver, arguments)
+      // is supported.
+      if (current_info()->scope()->arguments() == NULL) return false;
 
+      ZoneList<Expression*>* args = expr->arguments();
+      if (args->length() != 2) return false;
+
+      VariableProxy* arg_two = args->at(1)->AsVariableProxy();
+      if (arg_two == NULL || !arg_two->var()->IsStackAllocated()) return false;
+      HValue* arg_two_value = LookupAndMakeLive(arg_two->var());
+      if (!arg_two_value->CheckFlag(HValue::kIsArguments)) return false;
+      BuildFunctionApply(expr);
+      return true;
+    }
+    default: { return false; }
+  }
+  UNREACHABLE();
+}
+
+
+void HOptimizedGraphBuilder::BuildFunctionApply(Call* expr) {
   ZoneList<Expression*>* args = expr->arguments();
-  if (args->length() != 2) return false;
-
-  VariableProxy* arg_two = args->at(1)->AsVariableProxy();
-  if (arg_two == NULL || !arg_two->var()->IsStackAllocated()) return false;
-  HValue* arg_two_value = LookupAndMakeLive(arg_two->var());
-  if (!arg_two_value->CheckFlag(HValue::kIsArguments)) return false;
-
-  // Found pattern f.apply(receiver, arguments).
-  CHECK_ALIVE_OR_RETURN(VisitForValue(args->at(0)), true);
+  CHECK_ALIVE(VisitForValue(args->at(0)));
   HValue* receiver = Pop();  // receiver
   HValue* function = Pop();  // f
   Drop(1);  // apply
 
+  Handle<Map> function_map = expr->GetReceiverTypes()->first();
   HValue* checked_function = AddCheckMap(function, function_map);
 
   if (function_state()->outer() == NULL) {
@@ -8754,7 +8839,6 @@ bool HOptimizedGraphBuilder::TryCallApply(Call* expr) {
                                                 length,
                                                 elements);
     ast_context()->ReturnInstruction(result, expr->id());
-    return true;
   } else {
     // We are inside inlined function and we know exactly what is inside
     // arguments object. But we need to be able to materialize at deopt.
@@ -8768,23 +8852,33 @@ bool HOptimizedGraphBuilder::TryCallApply(Call* expr) {
     for (int i = 1; i < arguments_count; i++) {
       Push(arguments_values->at(i));
     }
-
-    Handle<JSFunction> known_function;
-    if (function->IsConstant() &&
-        HConstant::cast(function)->handle(isolate())->IsJSFunction()) {
-      known_function = Handle<JSFunction>::cast(
-          HConstant::cast(function)->handle(isolate()));
-      int args_count = arguments_count - 1;  // Excluding receiver.
-      if (TryInlineApply(known_function, expr, args_count)) return true;
-    }
-
-    PushArgumentsFromEnvironment(arguments_count);
-    HInvokeFunction* call = New<HInvokeFunction>(
-        function, known_function, arguments_count);
-    Drop(1);  // Function.
-    ast_context()->ReturnInstruction(call, expr->id());
-    return true;
+    HandleIndirectCall(expr, function, arguments_count);
   }
+}
+
+
+// f.call(...)
+void HOptimizedGraphBuilder::BuildFunctionCall(Call* expr) {
+  HValue* function = Top();  // f
+  Handle<Map> function_map = expr->GetReceiverTypes()->first();
+  HValue* checked_function = AddCheckMap(function, function_map);
+
+  // f and call are on the stack in the unoptimized code
+  // during evaluation of the arguments.
+  CHECK_ALIVE(VisitExpressions(expr->arguments()));
+
+  int args_length = expr->arguments()->length();
+  int receiver_index = args_length - 1;
+  // Patch the receiver.
+  HValue* receiver = BuildWrapReceiver(
+      environment()->ExpressionStackAt(receiver_index), checked_function);
+  environment()->SetExpressionStackAt(receiver_index, receiver);
+
+  // Call must not be on the stack from now on.
+  int call_index = args_length + 1;
+  environment()->RemoveExpressionStackAt(call_index);
+
+  HandleIndirectCall(expr, function, args_length);
 }
 
 
@@ -9050,11 +9144,12 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
           HConstant::cast(function)->handle(isolate()));
       expr->set_target(known_function);
 
-      if (TryCallApply(expr)) return;
+      if (TryIndirectCall(expr)) return;
       CHECK_ALIVE(VisitExpressions(expr->arguments()));
 
       Handle<Map> map = types->length() == 1 ? types->first() : Handle<Map>();
-      if (TryInlineBuiltinMethodCall(expr, receiver, map)) {
+      if (TryInlineBuiltinMethodCall(expr, known_function, map,
+                                     expr->arguments()->length())) {
         if (FLAG_trace_inlining) {
           PrintF("Inlining builtin ");
           known_function->ShortPrint();
@@ -11459,6 +11554,29 @@ void HOptimizedGraphBuilder::GenerateIsObject(CallRuntime* call) {
 }
 
 
+void HOptimizedGraphBuilder::GenerateIsJSProxy(CallRuntime* call) {
+  DCHECK(call->arguments()->length() == 1);
+  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
+  HValue* value = Pop();
+  HIfContinuation continuation;
+  IfBuilder if_proxy(this);
+
+  HValue* smicheck = if_proxy.IfNot<HIsSmiAndBranch>(value);
+  if_proxy.And();
+  HValue* map = Add<HLoadNamedField>(value, smicheck, HObjectAccess::ForMap());
+  HValue* instance_type = Add<HLoadNamedField>(
+      map, static_cast<HValue*>(NULL), HObjectAccess::ForMapInstanceType());
+  if_proxy.If<HCompareNumericAndBranch>(
+      instance_type, Add<HConstant>(FIRST_JS_PROXY_TYPE), Token::GTE);
+  if_proxy.And();
+  if_proxy.If<HCompareNumericAndBranch>(
+      instance_type, Add<HConstant>(LAST_JS_PROXY_TYPE), Token::LTE);
+
+  if_proxy.CaptureContinuation(&continuation);
+  return ast_context()->ReturnContinuation(&continuation, call->id());
+}
+
+
 void HOptimizedGraphBuilder::GenerateIsNonNegativeSmi(CallRuntime* call) {
   return Bailout(kInlinedRuntimeFunctionIsNonNegativeSmi);
 }
@@ -12090,6 +12208,18 @@ void HEnvironment::SetExpressionStackAt(int index_from_top, HValue* value) {
 }
 
 
+HValue* HEnvironment::RemoveExpressionStackAt(int index_from_top) {
+  int count = index_from_top + 1;
+  int index = values_.length() - count;
+  DCHECK(HasExpressionAt(index));
+  // Simulate popping 'count' elements and then
+  // pushing 'count - 1' elements back.
+  pop_count_ += Max(count - push_count_, 0);
+  push_count_ = Max(push_count_ - count, 0) + (count - 1);
+  return values_.Remove(index);
+}
+
+
 void HEnvironment::Drop(int count) {
   for (int i = 0; i < count; ++i) {
     Pop();
@@ -12464,15 +12594,14 @@ void HStatistics::Initialize(CompilationInfo* info) {
 }
 
 
-void HStatistics::Print(const char* stats_name) {
+void HStatistics::Print() {
   PrintF(
       "\n"
       "----------------------------------------"
       "----------------------------------------\n"
-      "--- %s timing results:\n"
+      "--- Hydrogen timing results:\n"
       "----------------------------------------"
-      "----------------------------------------\n",
-      stats_name);
+      "----------------------------------------\n");
   base::TimeDelta sum;
   for (int i = 0; i < times_.length(); ++i) {
     sum += times_[i];

@@ -74,6 +74,11 @@ class RepresentationSelector {
         changer_(changer),
         queue_(zone) {
     memset(info_, 0, sizeof(NodeInfo) * count_);
+
+    Factory* f = zone->isolate()->factory();
+    safe_int_additive_range_ =
+        Type::Range(f->NewNumber(-std::pow(2.0, 52.0)),
+                    f->NewNumber(std::pow(2.0, 52.0)), zone);
   }
 
   void Run(SimplifiedLowering* lowering) {
@@ -165,6 +170,30 @@ class RepresentationSelector {
     DCHECK_EQ(2, node->InputCount());
     return NodeProperties::GetBounds(node->InputAt(0)).upper->Is(type) &&
            NodeProperties::GetBounds(node->InputAt(1)).upper->Is(type);
+  }
+
+  void ProcessTruncateWord32Input(Node* node, int index, MachineTypeUnion use) {
+    Node* input = node->InputAt(index);
+    if (phase_ == PROPAGATE) {
+      // In the propagate phase, propagate the usage information backward.
+      Enqueue(input, use);
+    } else {
+      // In the change phase, insert a change before the use if necessary.
+      MachineTypeUnion output = GetInfo(input)->output;
+      if ((output & kRepWord32) == 0) {
+        // Output representation doesn't match usage.
+        TRACE(("  truncate-to-int32: #%d:%s(@%d #%d:%s) ", node->id(),
+               node->op()->mnemonic(), index, input->id(),
+               input->op()->mnemonic()));
+        TRACE((" from "));
+        PrintInfo(output);
+        TRACE((" to "));
+        PrintInfo(use);
+        TRACE(("\n"));
+        Node* n = changer_->GetTruncatedWord32For(input, output);
+        node->ReplaceInput(index, n);
+      }
+    }
   }
 
   void ProcessInput(Node* node, int index, MachineTypeUnion use) {
@@ -371,8 +400,29 @@ class RepresentationSelector {
     return BothInputsAre(node, Type::Signed32()) && !CanObserveNonInt32(use);
   }
 
+  bool IsSafeIntAdditiveOperand(Node* node) {
+    Type* type = NodeProperties::GetBounds(node).upper;
+    // TODO(jarin): Unfortunately, bitset types are not subtypes of larger
+    // range types, so we have to explicitly check for Integral32 here
+    // (in addition to the safe integer range). Once we fix subtyping for
+    // ranges, we should simplify this.
+    return type->Is(safe_int_additive_range_) || type->Is(Type::Integral32());
+  }
+
+  bool CanLowerToInt32AdditiveBinop(Node* node, MachineTypeUnion use) {
+    return IsSafeIntAdditiveOperand(node->InputAt(0)) &&
+           IsSafeIntAdditiveOperand(node->InputAt(1)) &&
+           !CanObserveNonInt32(use);
+  }
+
   bool CanLowerToUint32Binop(Node* node, MachineTypeUnion use) {
     return BothInputsAre(node, Type::Unsigned32()) && !CanObserveNonUint32(use);
+  }
+
+  bool CanLowerToUint32AdditiveBinop(Node* node, MachineTypeUnion use) {
+    return IsSafeIntAdditiveOperand(node->InputAt(0)) &&
+           IsSafeIntAdditiveOperand(node->InputAt(1)) &&
+           !CanObserveNonUint32(use);
   }
 
   bool CanObserveNonInt32(MachineTypeUnion use) {
@@ -456,8 +506,8 @@ class RepresentationSelector {
         if (lower()) {
           MachineTypeUnion input = GetInfo(node->InputAt(0))->output;
           if (input & kRepBit) {
-            // BooleanNot(x: kRepBit) => WordEqual(x, #0)
-            node->set_op(lowering->machine()->WordEqual());
+            // BooleanNot(x: kRepBit) => Word32Equal(x, #0)
+            node->set_op(lowering->machine()->Word32Equal());
             node->AppendInput(jsgraph_->zone(), jsgraph_->Int32Constant(0));
           } else {
             // BooleanNot(x: kRepTagged) => WordEqual(x, #false)
@@ -516,9 +566,21 @@ class RepresentationSelector {
           // => signed Int32Add/Sub
           VisitInt32Binop(node);
           if (lower()) node->set_op(Int32Op(node));
+        } else if (CanLowerToInt32AdditiveBinop(node, use)) {
+          // => signed Int32Add/Sub, truncating inputs
+          ProcessTruncateWord32Input(node, 0, kTypeInt32);
+          ProcessTruncateWord32Input(node, 1, kTypeInt32);
+          SetOutput(node, kMachInt32);
+          if (lower()) node->set_op(Int32Op(node));
         } else if (CanLowerToUint32Binop(node, use)) {
           // => unsigned Int32Add/Sub
           VisitUint32Binop(node);
+          if (lower()) node->set_op(Uint32Op(node));
+        } else if (CanLowerToUint32AdditiveBinop(node, use)) {
+          // => signed Int32Add/Sub, truncating inputs
+          ProcessTruncateWord32Input(node, 0, kTypeUint32);
+          ProcessTruncateWord32Input(node, 1, kTypeUint32);
+          SetOutput(node, kMachUint32);
           if (lower()) node->set_op(Uint32Op(node));
         } else {
           // => Float64Add/Sub
@@ -699,6 +761,39 @@ class RepresentationSelector {
         if (lower()) lowering->DoStoreElement(node);
         break;
       }
+      case IrOpcode::kObjectIsSmi: {
+        ProcessInput(node, 0, kMachAnyTagged);
+        SetOutput(node, kRepBit | kTypeBool);
+        if (lower()) {
+          Node* is_tagged = jsgraph_->graph()->NewNode(
+              jsgraph_->machine()->WordAnd(), node->InputAt(0),
+              jsgraph_->Int32Constant(static_cast<int>(kSmiTagMask)));
+          Node* is_smi = jsgraph_->graph()->NewNode(
+              jsgraph_->machine()->WordEqual(), is_tagged,
+              jsgraph_->Int32Constant(kSmiTag));
+          DeferReplacement(node, is_smi);
+        }
+        break;
+      }
+      case IrOpcode::kObjectIsNonNegativeSmi: {
+        ProcessInput(node, 0, kMachAnyTagged);
+        SetOutput(node, kRepBit | kTypeBool);
+        if (lower()) {
+          Node* is_tagged = jsgraph_->graph()->NewNode(
+              jsgraph_->machine()->WordAnd(), node->InputAt(0),
+              jsgraph_->Int32Constant(static_cast<int>(kSmiTagMask)));
+          Node* is_smi = jsgraph_->graph()->NewNode(
+              jsgraph_->machine()->WordEqual(), is_tagged,
+              jsgraph_->Int32Constant(kSmiTag));
+          Node* is_non_neg = jsgraph_->graph()->NewNode(
+              jsgraph_->machine()->IntLessThanOrEqual(),
+              jsgraph_->Int32Constant(0), node->InputAt(0));
+          Node* is_non_neg_smi = jsgraph_->graph()->NewNode(
+              jsgraph_->machine()->Word32And(), is_smi, is_non_neg);
+          DeferReplacement(node, is_non_neg_smi);
+        }
+        break;
+      }
 
       //------------------------------------------------------------------
       // Machine-level operators.
@@ -726,7 +821,7 @@ class RepresentationSelector {
       }
       case IrOpcode::kWord32Shr:
         // We output unsigned int32 for shift right because JavaScript.
-        return VisitBinop(node, kRepWord32, kRepWord32 | kTypeUint32);
+        return VisitBinop(node, kMachUint32, kMachUint32);
       case IrOpcode::kWord32And:
       case IrOpcode::kWord32Or:
       case IrOpcode::kWord32Xor:
@@ -820,6 +915,10 @@ class RepresentationSelector {
       case IrOpcode::kFloat64Mod:
         return VisitFloat64Binop(node);
       case IrOpcode::kFloat64Sqrt:
+      case IrOpcode::kFloat64Floor:
+      case IrOpcode::kFloat64Ceil:
+      case IrOpcode::kFloat64RoundTruncate:
+      case IrOpcode::kFloat64RoundTiesAway:
         return VisitUnop(node, kMachFloat64, kMachFloat64);
       case IrOpcode::kFloat64Equal:
       case IrOpcode::kFloat64LessThan:
@@ -882,6 +981,7 @@ class RepresentationSelector {
   Phase phase_;                     // current phase of algorithm
   RepresentationChanger* changer_;  // for inserting representation changes
   ZoneQueue<Node*> queue_;          // queue for traversing the graph
+  Type* safe_int_additive_range_;
 
   NodeInfo* GetInfo(Node* node) {
     DCHECK(node->id() >= 0);
@@ -994,7 +1094,8 @@ void SimplifiedLowering::DoLoadElement(Node* node, MachineType output_type) {
     Node* control = node->InputAt(4);
 
     Node* check = graph()->NewNode(machine()->Uint32LessThan(), key, length);
-    Node* branch = graph()->NewNode(common()->Branch(), check, control);
+    Node* branch =
+        graph()->NewNode(common()->Branch(BranchHint::kTrue), check, control);
 
     Node* if_true = graph()->NewNode(common()->IfTrue(), branch);
     Node* load = graph()->NewNode(op, base, index, effect, if_true);
@@ -1065,7 +1166,8 @@ void SimplifiedLowering::DoStoreElement(Node* node) {
     Node* control = node->InputAt(5);
 
     Node* check = graph()->NewNode(machine()->Uint32LessThan(), key, length);
-    Node* branch = graph()->NewNode(common()->Branch(), check, control);
+    Node* branch =
+        graph()->NewNode(common()->Branch(BranchHint::kTrue), check, control);
 
     Node* if_true = graph()->NewNode(common()->IfTrue(), branch);
     Node* store = graph()->NewNode(op, base, index, value, effect, if_true);

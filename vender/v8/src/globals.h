@@ -5,7 +5,8 @@
 #ifndef V8_GLOBALS_H_
 #define V8_GLOBALS_H_
 
-#include "include/v8stdint.h"
+#include <stddef.h>
+#include <stdint.h>
 
 #include "src/base/build_config.h"
 #include "src/base/logging.h"
@@ -648,7 +649,8 @@ enum ScopeType {
   GLOBAL_SCOPE,    // The top-level scope for a program or a top-level eval.
   CATCH_SCOPE,     // The scope introduced by catch.
   BLOCK_SCOPE,     // The scope introduced by a new block.
-  WITH_SCOPE       // The scope introduced by with.
+  WITH_SCOPE,      // The scope introduced by with.
+  ARROW_SCOPE      // The top-level scope for an arrow function literal.
 };
 
 

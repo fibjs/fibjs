@@ -198,58 +198,6 @@ namespace internal {
   SMI_ROOT_LIST(V)    \
   V(StringTable, string_table, StringTable)
 
-// Heap roots that are known to be immortal immovable, for which we can safely
-// skip write barriers.
-#define IMMORTAL_IMMOVABLE_ROOT_LIST(V) \
-  V(byte_array_map)                     \
-  V(free_space_map)                     \
-  V(one_pointer_filler_map)             \
-  V(two_pointer_filler_map)             \
-  V(undefined_value)                    \
-  V(the_hole_value)                     \
-  V(null_value)                         \
-  V(true_value)                         \
-  V(false_value)                        \
-  V(uninitialized_value)                \
-  V(cell_map)                           \
-  V(global_property_cell_map)           \
-  V(shared_function_info_map)           \
-  V(meta_map)                           \
-  V(heap_number_map)                    \
-  V(mutable_heap_number_map)            \
-  V(native_context_map)                 \
-  V(fixed_array_map)                    \
-  V(code_map)                           \
-  V(scope_info_map)                     \
-  V(fixed_cow_array_map)                \
-  V(fixed_double_array_map)             \
-  V(constant_pool_array_map)            \
-  V(weak_cell_map)                      \
-  V(no_interceptor_result_sentinel)     \
-  V(hash_table_map)                     \
-  V(ordered_hash_table_map)             \
-  V(empty_fixed_array)                  \
-  V(empty_byte_array)                   \
-  V(empty_descriptor_array)             \
-  V(empty_constant_pool_array)          \
-  V(arguments_marker)                   \
-  V(symbol_map)                         \
-  V(sloppy_arguments_elements_map)      \
-  V(function_context_map)               \
-  V(catch_context_map)                  \
-  V(with_context_map)                   \
-  V(block_context_map)                  \
-  V(module_context_map)                 \
-  V(global_context_map)                 \
-  V(undefined_map)                      \
-  V(the_hole_map)                       \
-  V(null_map)                           \
-  V(boolean_map)                        \
-  V(uninitialized_map)                  \
-  V(message_object_map)                 \
-  V(foreign_map)                        \
-  V(neander_map)
-
 #define INTERNALIZED_STRING_LIST(V)                        \
   V(Object_string, "Object")                               \
   V(proto_string, "__proto__")                             \
@@ -324,7 +272,11 @@ namespace internal {
   V(value_string, "value")                                 \
   V(next_string, "next")                                   \
   V(byte_length_string, "byteLength")                      \
-  V(byte_offset_string, "byteOffset")
+  V(byte_offset_string, "byteOffset")                      \
+  V(minus_zero_string, "-0")                               \
+  V(Array_string, "Array")                                 \
+  V(Error_string, "Error")                                 \
+  V(RegExp_string, "RegExp")
 
 #define PRIVATE_SYMBOL_LIST(V)      \
   V(frozen_symbol)                  \
@@ -346,6 +298,60 @@ namespace internal {
   V(class_script_symbol)            \
   V(class_start_position_symbol)    \
   V(class_end_position_symbol)
+
+// Heap roots that are known to be immortal immovable, for which we can safely
+// skip write barriers. This list is not complete and has omissions.
+#define IMMORTAL_IMMOVABLE_ROOT_LIST(V) \
+  V(ByteArrayMap)                       \
+  V(FreeSpaceMap)                       \
+  V(OnePointerFillerMap)                \
+  V(TwoPointerFillerMap)                \
+  V(UndefinedValue)                     \
+  V(TheHoleValue)                       \
+  V(NullValue)                          \
+  V(TrueValue)                          \
+  V(FalseValue)                         \
+  V(UninitializedValue)                 \
+  V(CellMap)                            \
+  V(GlobalPropertyCellMap)              \
+  V(SharedFunctionInfoMap)              \
+  V(MetaMap)                            \
+  V(HeapNumberMap)                      \
+  V(MutableHeapNumberMap)               \
+  V(NativeContextMap)                   \
+  V(FixedArrayMap)                      \
+  V(CodeMap)                            \
+  V(ScopeInfoMap)                       \
+  V(FixedCOWArrayMap)                   \
+  V(FixedDoubleArrayMap)                \
+  V(ConstantPoolArrayMap)               \
+  V(WeakCellMap)                        \
+  V(NoInterceptorResultSentinel)        \
+  V(HashTableMap)                       \
+  V(OrderedHashTableMap)                \
+  V(EmptyFixedArray)                    \
+  V(EmptyByteArray)                     \
+  V(EmptyDescriptorArray)               \
+  V(EmptyConstantPoolArray)             \
+  V(ArgumentsMarker)                    \
+  V(SymbolMap)                          \
+  V(SloppyArgumentsElementsMap)         \
+  V(FunctionContextMap)                 \
+  V(CatchContextMap)                    \
+  V(WithContextMap)                     \
+  V(BlockContextMap)                    \
+  V(ModuleContextMap)                   \
+  V(GlobalContextMap)                   \
+  V(UndefinedMap)                       \
+  V(TheHoleMap)                         \
+  V(NullMap)                            \
+  V(BooleanMap)                         \
+  V(UninitializedMap)                   \
+  V(ArgumentsMarkerMap)                 \
+  V(JSMessageObjectMap)                 \
+  V(ForeignMap)                         \
+  V(NeanderMap)                         \
+  PRIVATE_SYMBOL_LIST(V)
 
 // Forward declarations.
 class HeapStats;
@@ -566,6 +572,7 @@ class Heap {
   int MaxSemiSpaceSize() { return max_semi_space_size_; }
   int ReservedSemiSpaceSize() { return reserved_semispace_size_; }
   int InitialSemiSpaceSize() { return initial_semispace_size_; }
+  int TargetSemiSpaceSize() { return target_semispace_size_; }
   intptr_t MaxOldGenerationSize() { return max_old_generation_size_; }
   intptr_t MaxExecutableSize() { return max_executable_size_; }
 
@@ -923,6 +930,8 @@ class Heap {
     return reinterpret_cast<Address*>(&roots_[kStoreBufferTopRootIndex]);
   }
 
+  static bool RootIsImmortalImmovable(int root_index);
+
 #ifdef VERIFY_HEAP
   // Verify the heap is in its normal state before or after a GC.
   void Verify();
@@ -1009,7 +1018,16 @@ class Heap {
 
   // Support for partial snapshots.  After calling this we have a linear
   // space to write objects in each space.
-  void ReserveSpace(int* sizes, Address* addresses);
+  struct Chunk {
+    uint32_t size;
+    Address start;
+    Address end;
+  };
+
+  typedef List<Chunk> Reservation;
+
+  // Returns false if not able to reserve.
+  bool ReserveSpace(Reservation* reservations);
 
   //
   // Support for the API.
@@ -1101,6 +1119,8 @@ class Heap {
     kStrongRootListLength = kStringTableRootIndex,
     kSmiRootsStart = kStringTableRootIndex + 1
   };
+
+  Object* root(RootListIndex index) { return roots_[index]; }
 
   STATIC_ASSERT(kUndefinedValueRootIndex ==
                 Internals::kUndefinedValueRootIndex);
@@ -1459,6 +1479,7 @@ class Heap {
   int reserved_semispace_size_;
   int max_semi_space_size_;
   int initial_semispace_size_;
+  int target_semispace_size_;
   intptr_t max_old_generation_size_;
   intptr_t max_executable_size_;
   intptr_t maximum_committed_;
@@ -1959,6 +1980,8 @@ class Heap {
   bool IsHighSurvivalRate() { return high_survival_rate_period_length_ > 0; }
 
   void SelectScavengingVisitorsTable();
+
+  void IdleMarkCompact(const char* message);
 
   void TryFinalizeIdleIncrementalMarking(
       size_t idle_time_in_ms, size_t size_of_objects,
