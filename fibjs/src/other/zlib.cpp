@@ -31,9 +31,11 @@ public:
         unsigned char out[CHUNK];
         std::string strBuf;
         std::stringstream outBuf;
+        int err;
 
-        if (init() != Z_OK)
-            return CHECK_ERROR(CALL_E_OVERFLOW);
+        err = init();
+        if (err != Z_OK)
+            return CHECK_ERROR(Runtime::setError(zError(err)));
 
         data->toString(strBuf);
 
@@ -45,10 +47,11 @@ public:
             strm.avail_out = CHUNK;
             strm.next_out = out;
 
-            if (put() != Z_OK)
+            err = put();
+            if (err != Z_OK && err != Z_BUF_ERROR)
             {
                 end();
-                return CHECK_ERROR(CALL_E_INVALID_DATA);
+                return CHECK_ERROR(Runtime::setError(zError(err)));
             }
 
             outBuf.write((const char *) out, CHUNK - strm.avail_out);
@@ -77,6 +80,7 @@ public:
             static int process(asyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
+                int err;
 
                 if (pThis->m_pThis->strm.avail_out != 0
                         && pThis->m_pThis->fin())
@@ -88,8 +92,9 @@ public:
                 pThis->m_pThis->strm.avail_out = CHUNK;
                 pThis->m_pThis->strm.next_out = pThis->out;
 
-                if (pThis->m_pThis->put() != Z_OK)
-                    return CHECK_ERROR(CALL_E_INVALID_DATA);
+                err = pThis->m_pThis->put();
+                if (err != Z_OK && err != Z_BUF_ERROR)
+                    return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
                     std::string((const char *) pThis->out,
@@ -111,8 +116,11 @@ public:
             obj_ptr<Buffer_base> m_buffer;
         };
 
-        if (init() != Z_OK)
-            return CHECK_ERROR(CALL_E_OVERFLOW);
+        int err;
+
+        err = init();
+        if (err != Z_OK)
+            return CHECK_ERROR(Runtime::setError(zError(err)));
 
         std::string strBuf;
 
@@ -171,12 +179,14 @@ public:
             static int process(asyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
+                int err;
 
                 pThis->m_pThis->strm.avail_out = CHUNK;
                 pThis->m_pThis->strm.next_out = pThis->out;
 
-                if (pThis->m_pThis->put() != Z_OK)
-                    return CHECK_ERROR(CALL_E_INVALID_DATA);
+                err = pThis->m_pThis->put();
+                if (err != Z_OK && err != Z_BUF_ERROR)
+                    return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
                     std::string((const char *) pThis->out,
@@ -223,8 +233,11 @@ public:
             std::string m_strBuf;
         };
 
-        if (init() != Z_OK)
-            return CHECK_ERROR(CALL_E_OVERFLOW);
+        int err;
+
+        err = init();
+        if (err != Z_OK)
+            return CHECK_ERROR(Runtime::setError(zError(err)));
 
         return (new asyncProcess(this, src, stm, ac))->post(0);
     }
