@@ -121,6 +121,12 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> data,
     int i;
     int len = data->Length();
 
+    if (len == 0)
+    {
+        retVal = v8::Array::New(isolate);
+        return 0;
+    }
+
     fibers.resize(len);
     for (i = 1; i < (int) len; i++)
     {
