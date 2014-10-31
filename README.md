@@ -15,7 +15,7 @@ All the source code and docs are on github. However, I use github for convenienc
 
 ***了解 fibjs 的并发(Understanding how to develop for fibjs):*** http://fibjs.org/d2/de8/start_prog.html
 
-***官方交流社区(Online discussion.):*** http://baoz.me/fibjs
+***官方交流社区(Online discussion.):*** http://baoz.cn/fibjs
 
 ps: 请无视编译中出现的大量警告错误，那些基本上都是第三方代码库的警告，恕不消除了。
 Please ignore the compiler warnings.
