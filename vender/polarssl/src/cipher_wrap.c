@@ -1346,7 +1346,7 @@ static int null_setkey( void *ctx, const unsigned char *key,
 
 static void * null_ctx_alloc( void )
 {
-    return( (void *) 1 )
+    return( (void *) 1 );
 }
 
 static void null_ctx_free( void *ctx )
