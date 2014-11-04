@@ -2043,6 +2043,7 @@ MUST_USE_RESULT static MaybeHandle<JSObject> MaterializeArgumentsObject(
 
 // Compile and evaluate source for the given context.
 static MaybeHandle<Object> DebugEvaluate(Isolate* isolate,
+                                         Handle<SharedFunctionInfo> outer_info,
                                          Handle<Context> context,
                                          Handle<Object> context_extension,
                                          Handle<Object> receiver,
@@ -2054,11 +2055,11 @@ static MaybeHandle<Object> DebugEvaluate(Isolate* isolate,
   }
 
   Handle<JSFunction> eval_fun;
-  ASSIGN_RETURN_ON_EXCEPTION(
-      isolate, eval_fun, Compiler::GetFunctionFromEval(source, context, SLOPPY,
-                                                       NO_PARSE_RESTRICTION,
-                                                       RelocInfo::kNoPosition),
-      Object);
+  ASSIGN_RETURN_ON_EXCEPTION(isolate, eval_fun,
+                             Compiler::GetFunctionFromEval(
+                                 source, outer_info, context, SLOPPY,
+                                 NO_PARSE_RESTRICTION, RelocInfo::kNoPosition),
+                             Object);
 
   Handle<Object> result;
   ASSIGN_RETURN_ON_EXCEPTION(
@@ -2118,6 +2119,7 @@ RUNTIME_FUNCTION(Runtime_DebugEvaluate) {
   JavaScriptFrame* frame = it.frame();
   FrameInspector frame_inspector(frame, inlined_jsframe_index, isolate);
   Handle<JSFunction> function(JSFunction::cast(frame_inspector.GetFunction()));
+  Handle<SharedFunctionInfo> outer_info(function->shared());
 
   // Traverse the saved contexts chain to find the active context for the
   // selected frame.
@@ -2177,8 +2179,8 @@ RUNTIME_FUNCTION(Runtime_DebugEvaluate) {
   }
 
   Handle<Object> receiver(frame->receiver(), isolate);
-  MaybeHandle<Object> maybe_result =
-      DebugEvaluate(isolate, eval_context, context_extension, receiver, source);
+  MaybeHandle<Object> maybe_result = DebugEvaluate(
+      isolate, outer_info, eval_context, context_extension, receiver, source);
 
   // Remove with-context if it was inserted in between.
   if (!inner_context.is_null()) inner_context->set_previous(*function_context);
@@ -2224,10 +2226,11 @@ RUNTIME_FUNCTION(Runtime_DebugEvaluateGlobal) {
   // debugger was invoked.
   Handle<Context> context = isolate->native_context();
   Handle<JSObject> receiver(context->global_proxy());
+  Handle<SharedFunctionInfo> outer_info(context->closure()->shared(), isolate);
   Handle<Object> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, result,
-      DebugEvaluate(isolate, context, context_extension, receiver, source));
+      isolate, result, DebugEvaluate(isolate, outer_info, context,
+                                     context_extension, receiver, source));
   return *result;
 }
 
@@ -2611,48 +2614,30 @@ RUNTIME_FUNCTION(Runtime_GetHeapUsage) {
 // traversals might be required rendering this operation as a rather slow
 // operation. However for setting break points which is normally done through
 // some kind of user interaction the performance is not crucial.
-static Handle<Object> Runtime_GetScriptFromScriptName(
-    Handle<String> script_name) {
-  // Scan the heap for Script objects to find the script with the requested
-  // script data.
-  Handle<Script> script;
-  Factory* factory = script_name->GetIsolate()->factory();
-  Heap* heap = script_name->GetHeap();
-  HeapIterator iterator(heap);
-  HeapObject* obj = NULL;
-  while (script.is_null() && ((obj = iterator.next()) != NULL)) {
-    // If a script is found check if it has the script data requested.
-    if (obj->IsScript()) {
-      if (Script::cast(obj)->name()->IsString()) {
-        if (String::cast(Script::cast(obj)->name())->Equals(*script_name)) {
-          script = Handle<Script>(Script::cast(obj));
-        }
+RUNTIME_FUNCTION(Runtime_GetScript) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_HANDLE_CHECKED(String, script_name, 0);
+
+  Handle<Script> found;
+  Heap* heap = isolate->heap();
+  {
+    HeapIterator iterator(heap);
+    HeapObject* obj = NULL;
+    while ((obj = iterator.next()) != NULL) {
+      if (!obj->IsScript()) continue;
+      Script* script = Script::cast(obj);
+      if (!script->name()->IsString()) continue;
+      String* name = String::cast(script->name());
+      if (name->Equals(*script_name)) {
+        found = Handle<Script>(script, isolate);
+        break;
       }
     }
   }
 
-  // If no script with the requested script data is found return undefined.
-  if (script.is_null()) return factory->undefined_value();
-
-  // Return the script found.
-  return Script::GetWrapper(script);
-}
-
-
-// Get the script object from script data. NOTE: Regarding performance
-// see the NOTE for GetScriptFromScriptData.
-// args[0]: script data for the script to find the source for
-RUNTIME_FUNCTION(Runtime_GetScript) {
-  HandleScope scope(isolate);
-
-  DCHECK(args.length() == 1);
-
-  CONVERT_ARG_CHECKED(String, script_name, 0);
-
-  // Find the requested script.
-  Handle<Object> result =
-      Runtime_GetScriptFromScriptName(Handle<String>(script_name));
-  return *result;
+  if (found.is_null()) return heap->undefined_value();
+  return *Script::GetWrapper(found);
 }
 
 

@@ -10,10 +10,10 @@
 #include "src/allocation.h"
 #include "src/assert-scope.h"
 #include "src/ast.h"
+#include "src/bit-vector.h"
 #include "src/code-stubs.h"
 #include "src/codegen.h"
 #include "src/compiler.h"
-#include "src/data-flow.h"
 #include "src/globals.h"
 #include "src/objects.h"
 
@@ -40,7 +40,7 @@ class BreakableStatementChecker: public AstVisitor {
 
  private:
   // AST node visit functions.
-#define DECLARE_VISIT(type) virtual void Visit##type(type* node);
+#define DECLARE_VISIT(type) virtual void Visit##type(type* node) OVERRIDE;
   AST_NODE_LIST(DECLARE_VISIT)
 #undef DECLARE_VISIT
 
@@ -392,7 +392,7 @@ class FullCodeGenerator: public AstVisitor {
 
   void VisitInDuplicateContext(Expression* expr);
 
-  void VisitDeclarations(ZoneList<Declaration*>* declarations);
+  void VisitDeclarations(ZoneList<Declaration*>* declarations) OVERRIDE;
   void DeclareModules(Handle<FixedArray> descriptions);
   void DeclareGlobals(Handle<FixedArray> pairs);
   int DeclareGlobalsFlags();
@@ -563,6 +563,11 @@ class FullCodeGenerator: public AstVisitor {
   // The receiver and the key is left on the stack by the IC.
   void EmitKeyedPropertyLoad(Property* expr);
 
+  // Adds the properties to the class (function) object and to its prototype.
+  // Expects the class (function) in the accumulator. The class (function) is
+  // in the accumulator after installing all the properties.
+  void EmitClassDefineProperties(ClassLiteral* lit);
+
   // Apply the compound assignment operator. Expects the left operand on top
   // of the stack and the right one in the accumulator.
   void EmitBinaryOp(BinaryOperation* expr,
@@ -665,7 +670,7 @@ class FullCodeGenerator: public AstVisitor {
   void PushFunctionArgumentForContextAllocation();
 
   // AST node visit functions.
-#define DECLARE_VISIT(type) virtual void Visit##type(type* node);
+#define DECLARE_VISIT(type) virtual void Visit##type(type* node) OVERRIDE;
   AST_NODE_LIST(DECLARE_VISIT)
 #undef DECLARE_VISIT
 

@@ -67,11 +67,7 @@ namespace internal {
 #endif
 
 // Determine whether the architecture uses an out-of-line constant pool.
-#if V8_TARGET_ARCH_ARM
-#define V8_OOL_CONSTANT_POOL 1
-#else
 #define V8_OOL_CONSTANT_POOL 0
-#endif
 
 #ifdef V8_TARGET_ARCH_ARM
 // Set stack limit lower for ARM than for other architectures because
@@ -292,6 +288,7 @@ const uint32_t kFreeListZapValue = 0xfeed1eaf;
 #endif
 
 const int kCodeZapValue = 0xbadc0de;
+const uint32_t kPhantomReferenceZap = 0xca11bac;
 
 // On Intel architecture, cache line size is 64 bytes.
 // On ARM it may be less (32 bytes), but as far this constant is
@@ -380,7 +377,6 @@ enum AllocationSpace {
   CELL_SPACE,           // Only and all cell objects.
   PROPERTY_CELL_SPACE,  // Only and all global property cell objects.
   LO_SPACE,             // Promoted large objects.
-  INVALID_SPACE,        // Only used in AllocationResult to signal success.
 
   FIRST_SPACE = NEW_SPACE,
   LAST_SPACE = LO_SPACE,
@@ -609,28 +605,29 @@ struct AccessorDescriptor {
 
 // CPU feature flags.
 enum CpuFeature {
-    // x86
-    SSE4_1,
-    SSE3,
-    SAHF,
-    // ARM
-    VFP3,
-    ARMv7,
-    SUDIV,
-    MLS,
-    UNALIGNED_ACCESSES,
-    MOVW_MOVT_IMMEDIATE_LOADS,
-    VFP32DREGS,
-    NEON,
-    // MIPS, MIPS64
-    FPU,
-    FP64FPU,
-    MIPSr1,
-    MIPSr2,
-    MIPSr6,
-    // ARM64
-    ALWAYS_ALIGN_CSP,
-    NUMBER_OF_CPU_FEATURES
+  // x86
+  SSE4_1,
+  SSE3,
+  SAHF,
+  // ARM
+  VFP3,
+  ARMv7,
+  ARMv8,
+  SUDIV,
+  MLS,
+  UNALIGNED_ACCESSES,
+  MOVW_MOVT_IMMEDIATE_LOADS,
+  VFP32DREGS,
+  NEON,
+  // MIPS, MIPS64
+  FPU,
+  FP64FPU,
+  MIPSr1,
+  MIPSr2,
+  MIPSr6,
+  // ARM64
+  ALWAYS_ALIGN_CSP,
+  NUMBER_OF_CPU_FEATURES
 };
 
 

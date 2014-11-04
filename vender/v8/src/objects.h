@@ -5362,6 +5362,10 @@ class Code: public HeapObject {
   void VerifyEmbeddedObjectsDependency();
 #endif
 
+#ifdef DEBUG
+  void VerifyEmbeddedObjectsInFullCode();
+#endif  // DEBUG
+
   inline bool CanContainWeakObjects() {
     return is_optimized_code() || is_weak_stub();
   }
@@ -6117,6 +6121,8 @@ class Map: public HeapObject {
   // In case of duplicates, the latest descriptor is used.
   static void AppendCallbackDescriptors(Handle<Map> map,
                                         Handle<Object> descriptors);
+
+  static inline int SlackForArraySize(int old_size, int size_limit);
 
   static void EnsureDescriptorSlack(Handle<Map> map, int slack);
 
@@ -7937,26 +7943,40 @@ class CompilationCacheShape : public BaseShape<HashTableKey*> {
 };
 
 
+// This cache is used in two different variants. For regexp caching, it simply
+// maps identifying info of the regexp to the cached regexp object. Scripts and
+// eval code only gets cached after a second probe for the code object. To do
+// so, on first "put" only a hash identifying the source is entered into the
+// cache, mapping it to a lifetime count of the hash. On each call to Age all
+// such lifetimes get reduced, and removed once they reach zero. If a second put
+// is called while such a hash is live in the cache, the hash gets replaced by
+// an actual cache entry. Age also removes stale live entries from the cache.
+// Such entries are identified by SharedFunctionInfos pointing to either the
+// recompilation stub, or to "old" code. This avoids memory leaks due to
+// premature caching of scripts and eval strings that are never needed later.
 class CompilationCacheTable: public HashTable<CompilationCacheTable,
                                               CompilationCacheShape,
                                               HashTableKey*> {
  public:
   // Find cached value for a string key, otherwise return null.
   Handle<Object> Lookup(Handle<String> src, Handle<Context> context);
-  Handle<Object> LookupEval(Handle<String> src, Handle<Context> context,
-                     StrictMode strict_mode, int scope_position);
+  Handle<Object> LookupEval(Handle<String> src,
+                            Handle<SharedFunctionInfo> shared,
+                            StrictMode strict_mode, int scope_position);
   Handle<Object> LookupRegExp(Handle<String> source, JSRegExp::Flags flags);
   static Handle<CompilationCacheTable> Put(
       Handle<CompilationCacheTable> cache, Handle<String> src,
       Handle<Context> context, Handle<Object> value);
   static Handle<CompilationCacheTable> PutEval(
       Handle<CompilationCacheTable> cache, Handle<String> src,
-      Handle<Context> context, Handle<SharedFunctionInfo> value,
+      Handle<SharedFunctionInfo> context, Handle<SharedFunctionInfo> value,
       int scope_position);
   static Handle<CompilationCacheTable> PutRegExp(
       Handle<CompilationCacheTable> cache, Handle<String> src,
       JSRegExp::Flags flags, Handle<FixedArray> value);
   void Remove(Object* value);
+  void Age();
+  static const int kHashGenerations = 10;
 
   DECLARE_CAST(CompilationCacheTable)
 
@@ -9960,6 +9980,9 @@ class JSArrayBuffer: public JSObject {
   inline bool should_be_freed();
   inline void set_should_be_freed(bool value);
 
+  inline bool is_neuterable();
+  inline void set_is_neuterable(bool value);
+
   // [weak_next]: linked list of array buffers.
   DECL_ACCESSORS(weak_next, Object)
 
@@ -9989,6 +10012,7 @@ class JSArrayBuffer: public JSObject {
   // Bit position in a flag
   static const int kIsExternalBit = 0;
   static const int kShouldBeFreed = 1;
+  static const int kIsNeuterableBit = 2;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(JSArrayBuffer);
 };

@@ -6941,6 +6941,12 @@ HInstruction* HOptimizedGraphBuilder::BuildMonomorphicElementAccess(
 }
 
 
+static bool CanInlineElementAccess(Handle<Map> map) {
+  return map->IsJSObjectMap() && !map->has_slow_elements_kind() &&
+         !map->has_indexed_interceptor();
+}
+
+
 HInstruction* HOptimizedGraphBuilder::TryBuildConsolidatedElementLoad(
     HValue* object,
     HValue* key,
@@ -6958,7 +6964,7 @@ HInstruction* HOptimizedGraphBuilder::TryBuildConsolidatedElementLoad(
   Handle<Map> most_general_consolidated_map;
   for (int i = 0; i < maps->length(); ++i) {
     Handle<Map> map = maps->at(i);
-    if (!map->IsJSObjectMap()) return NULL;
+    if (!CanInlineElementAccess(map)) return NULL;
     // Don't allow mixing of JSArrays with JSObjects.
     if (map->instance_type() == JS_ARRAY_TYPE) {
       if (has_non_js_array_access) return NULL;
@@ -7036,7 +7042,7 @@ HValue* HOptimizedGraphBuilder::HandlePolymorphicElementAccess(
     Handle<Map> map = maps->at(i);
     DCHECK(!map->IsStringMap());
     ElementsKind elements_kind = map->elements_kind();
-    if (IsFastElementsKind(elements_kind) &&
+    if (CanInlineElementAccess(map) && IsFastElementsKind(elements_kind) &&
         elements_kind != GetInitialFastElementsKind()) {
       possible_transitioned_maps.Add(map);
     }
@@ -7077,8 +7083,7 @@ HValue* HOptimizedGraphBuilder::HandlePolymorphicElementAccess(
   if (untransitionable_maps.length() == 1) {
     Handle<Map> untransitionable_map = untransitionable_maps[0];
     HInstruction* instr = NULL;
-    if (untransitionable_map->has_slow_elements_kind() ||
-        !untransitionable_map->IsJSObjectMap()) {
+    if (!CanInlineElementAccess(untransitionable_map)) {
       instr = AddInstruction(BuildKeyedGeneric(access_type, expr, object, key,
                                                val));
     } else {
@@ -7094,7 +7099,6 @@ HValue* HOptimizedGraphBuilder::HandlePolymorphicElementAccess(
 
   for (int i = 0; i < untransitionable_maps.length(); ++i) {
     Handle<Map> map = untransitionable_maps[i];
-    if (!map->IsJSObjectMap()) continue;
     ElementsKind elements_kind = map->elements_kind();
     HBasicBlock* this_map = graph()->CreateBasicBlock();
     HBasicBlock* other_map = graph()->CreateBasicBlock();
@@ -7104,7 +7108,7 @@ HValue* HOptimizedGraphBuilder::HandlePolymorphicElementAccess(
 
     set_current_block(this_map);
     HInstruction* access = NULL;
-    if (IsDictionaryElementsKind(elements_kind)) {
+    if (!CanInlineElementAccess(map)) {
       access = AddInstruction(BuildKeyedGeneric(access_type, expr, object, key,
                                                 val));
     } else {
@@ -7215,7 +7219,7 @@ HValue* HOptimizedGraphBuilder::HandleKeyedElementAccess(
 
   if (monomorphic) {
     Handle<Map> map = types->first();
-    if (map->has_slow_elements_kind() || !map->IsJSObjectMap()) {
+    if (!CanInlineElementAccess(map)) {
       instr = AddInstruction(BuildKeyedGeneric(access_type, expr, obj, key,
                                                val));
     } else {
@@ -7845,8 +7849,7 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
   // step, but don't transfer ownership to target_info.
   target_info.SetAstValueFactory(top_info()->ast_value_factory(), false);
   Handle<SharedFunctionInfo> target_shared(target->shared());
-  if (!Parser::Parse(&target_info) || !Scope::Analyze(&target_info) ||
-      !AstNumbering::Renumber(target_info.function(), target_info.zone())) {
+  if (!Compiler::ParseAndAnalyze(&target_info)) {
     if (target_info.isolate()->has_pending_exception()) {
       // Parse or scope error, never optimize this function.
       SetStackOverflow();
@@ -12640,9 +12643,10 @@ void HStatistics::Print() {
   double normalized_time =  source_size_in_kb > 0
       ? total.InMillisecondsF() / source_size_in_kb
       : 0;
-  double normalized_size_in_kb = source_size_in_kb > 0
-      ? total_size_ / 1024 / source_size_in_kb
-      : 0;
+  double normalized_size_in_kb =
+      source_size_in_kb > 0
+          ? static_cast<double>(total_size_) / 1024 / source_size_in_kb
+          : 0;
   PrintF("%33s %8.3f ms           %7.3f kB allocated\n",
          "Average per kB source", normalized_time, normalized_size_in_kb);
 }

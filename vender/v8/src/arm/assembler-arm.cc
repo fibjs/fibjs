@@ -109,6 +109,9 @@ void CpuFeatures::ProbeImpl(bool cross_compile) {
 
   if (cpu.architecture() >= 7) {
     if (FLAG_enable_armv7) supported_ |= 1u << ARMv7;
+    if (FLAG_enable_armv8 && cpu.architecture() >= 8) {
+      supported_ |= 1u << ARMv8;
+    }
     if (FLAG_enable_unaligned_accesses) supported_ |= 1u << UNALIGNED_ACCESSES;
     // Use movw/movt for QUALCOMM ARMv7 cores.
     if (FLAG_enable_movw_movt && cpu.implementer() == base::CPU::QUALCOMM) {
@@ -3088,6 +3091,76 @@ void Assembler::vsqrt(const DwVfpRegister dst,
   src.split_code(&vm, &m);
   emit(cond | 0x1D*B23 | d*B22 | 0x3*B20 | B16 | vd*B12 | 0x5*B9 | B8 | 0x3*B6 |
        m*B5 | vm);
+}
+
+
+void Assembler::vrinta(const DwVfpRegister dst, const DwVfpRegister src) {
+  // cond=kSpecialCondition(31-28) | 11101(27-23)| D(22) | 11(21-20) |
+  // 10(19-18) | RM=00(17-16) |  Vd(15-12) | 101(11-9) | sz=1(8) | 01(7-6) |
+  // M(5) | 0(4) | Vm(3-0)
+  DCHECK(CpuFeatures::IsSupported(ARMv8));
+  int vd, d;
+  dst.split_code(&vd, &d);
+  int vm, m;
+  src.split_code(&vm, &m);
+  emit(kSpecialCondition | 0x1D * B23 | d * B22 | 0x3 * B20 | B19 | vd * B12 |
+       0x5 * B9 | B8 | B6 | m * B5 | vm);
+}
+
+
+void Assembler::vrintn(const DwVfpRegister dst, const DwVfpRegister src) {
+  // cond=kSpecialCondition(31-28) | 11101(27-23)| D(22) | 11(21-20) |
+  // 10(19-18) | RM=01(17-16) |  Vd(15-12) | 101(11-9) | sz=1(8) | 01(7-6) |
+  // M(5) | 0(4) | Vm(3-0)
+  DCHECK(CpuFeatures::IsSupported(ARMv8));
+  int vd, d;
+  dst.split_code(&vd, &d);
+  int vm, m;
+  src.split_code(&vm, &m);
+  emit(kSpecialCondition | 0x1D * B23 | d * B22 | 0x3 * B20 | B19 | 0x1 * B16 |
+       vd * B12 | 0x5 * B9 | B8 | B6 | m * B5 | vm);
+}
+
+
+void Assembler::vrintp(const DwVfpRegister dst, const DwVfpRegister src) {
+  // cond=kSpecialCondition(31-28) | 11101(27-23)| D(22) | 11(21-20) |
+  // 10(19-18) | RM=10(17-16) |  Vd(15-12) | 101(11-9) | sz=1(8) | 01(7-6) |
+  // M(5) | 0(4) | Vm(3-0)
+  DCHECK(CpuFeatures::IsSupported(ARMv8));
+  int vd, d;
+  dst.split_code(&vd, &d);
+  int vm, m;
+  src.split_code(&vm, &m);
+  emit(kSpecialCondition | 0x1D * B23 | d * B22 | 0x3 * B20 | B19 | 0x2 * B16 |
+       vd * B12 | 0x5 * B9 | B8 | B6 | m * B5 | vm);
+}
+
+
+void Assembler::vrintm(const DwVfpRegister dst, const DwVfpRegister src) {
+  // cond=kSpecialCondition(31-28) | 11101(27-23)| D(22) | 11(21-20) |
+  // 10(19-18) | RM=11(17-16) |  Vd(15-12) | 101(11-9) | sz=1(8) | 01(7-6) |
+  // M(5) | 0(4) | Vm(3-0)
+  DCHECK(CpuFeatures::IsSupported(ARMv8));
+  int vd, d;
+  dst.split_code(&vd, &d);
+  int vm, m;
+  src.split_code(&vm, &m);
+  emit(kSpecialCondition | 0x1D * B23 | d * B22 | 0x3 * B20 | B19 | 0x3 * B16 |
+       vd * B12 | 0x5 * B9 | B8 | B6 | m * B5 | vm);
+}
+
+
+void Assembler::vrintz(const DwVfpRegister dst, const DwVfpRegister src,
+                       const Condition cond) {
+  // cond(31-28) | 11101(27-23)| D(22) | 11(21-20) | 011(19-17) | 0(16) |
+  // Vd(15-12) | 101(11-9) | sz=1(8) | op=1(7) | 1(6) | M(5) | 0(4) | Vm(3-0)
+  DCHECK(CpuFeatures::IsSupported(ARMv8));
+  int vd, d;
+  dst.split_code(&vd, &d);
+  int vm, m;
+  src.split_code(&vm, &m);
+  emit(cond | 0x1D * B23 | d * B22 | 0x3 * B20 | 0x3 * B17 | vd * B12 |
+       0x5 * B9 | B8 | B7 | B6 | m * B5 | vm);
 }
 
 

@@ -32,7 +32,7 @@ class InlinerVisitor : public NullNodeVisitor {
  public:
   explicit InlinerVisitor(JSInliner* inliner) : inliner_(inliner) {}
 
-  GenericGraphVisit::Control Post(Node* node) {
+  void Post(Node* node) {
     switch (node->opcode()) {
       case IrOpcode::kJSCallFunction:
         inliner_->TryInlineJSCall(node);
@@ -45,7 +45,6 @@ class InlinerVisitor : public NullNodeVisitor {
       default:
         break;
     }
-    return GenericGraphVisit::CONTINUE;
   }
 
  private:
@@ -56,17 +55,6 @@ class InlinerVisitor : public NullNodeVisitor {
 void JSInliner::Inline() {
   InlinerVisitor visitor(this);
   jsgraph_->graph()->VisitNodeInputsFromEnd(&visitor);
-}
-
-
-// TODO(sigurds) Find a home for this function and reuse it everywhere (esp. in
-// test cases, where similar code is currently duplicated).
-static void Parse(Handle<JSFunction> function, CompilationInfoWithZone* info) {
-  CHECK(Parser::Parse(info));
-  CHECK(Rewriter::Rewrite(info));
-  CHECK(Scope::Analyze(info));
-  CHECK(AstNumbering::Renumber(info->function(), info->zone()));
-  CHECK(Compiler::EnsureDeoptimizationSupport(info));
 }
 
 
@@ -130,8 +118,7 @@ void Inlinee::UnifyReturn(JSGraph* jsgraph) {
   }
   DCHECK_EQ(IrOpcode::kMerge, final_merge->opcode());
 
-  int predecessors =
-      OperatorProperties::GetControlInputCount(final_merge->op());
+  int predecessors = final_merge->op()->ControlInputCount();
 
   const Operator* op_phi = jsgraph->common()->Phi(kMachAnyTagged, predecessors);
   const Operator* op_ephi = jsgraph->common()->EffectPhi(predecessors);
@@ -176,10 +163,10 @@ class CopyVisitor : public NullNodeVisitor {
         source_graph_(source_graph),
         target_graph_(target_graph),
         temp_zone_(temp_zone),
-        sentinel_op_(IrOpcode::kDead, Operator::kNoProperties, 0, 0,
-                     "sentinel") {}
+        sentinel_op_(IrOpcode::kDead, Operator::kNoProperties, "sentinel", 0, 0,
+                     0, 0, 0, 0) {}
 
-  GenericGraphVisit::Control Post(Node* original) {
+  void Post(Node* original) {
     NodeVector inputs(temp_zone_);
     for (InputIter it = original->inputs().begin();
          it != original->inputs().end(); ++it) {
@@ -192,7 +179,6 @@ class CopyVisitor : public NullNodeVisitor {
         target_graph_->NewNode(original->op(), static_cast<int>(inputs.size()),
                                (inputs.empty() ? NULL : &inputs.front()));
     copies_[original->id()] = copy;
-    return GenericGraphVisit::CONTINUE;
   }
 
   Node* GetCopy(Node* original) {
@@ -235,7 +221,7 @@ class CopyVisitor : public NullNodeVisitor {
   Graph* source_graph_;
   Graph* target_graph_;
   Zone* temp_zone_;
-  SimpleOperator sentinel_op_;
+  Operator sentinel_op_;
 };
 
 
@@ -256,7 +242,7 @@ void Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
   int inlinee_context_index = static_cast<int>(total_parameters()) - 1;
   // {inliner_inputs} counts JSFunction, Receiver, arguments, but not
   // context, effect, control.
-  int inliner_inputs = OperatorProperties::GetValueInputCount(call->op());
+  int inliner_inputs = call->op()->ValueInputCount();
   // Iterate over all uses of the start node.
   UseIter iter = start_->uses().begin();
   while (iter != start_->uses().end()) {
@@ -319,7 +305,7 @@ class JSCallFunctionAccessor {
 
   size_t formal_arguments() {
     // {value_inputs} includes jsfunction and receiver.
-    size_t value_inputs = OperatorProperties::GetValueInputCount(call_->op());
+    size_t value_inputs = call_->op()->ValueInputCount();
     DCHECK_GE(call_->InputCount(), 2);
     return value_inputs - 2;
   }
@@ -385,7 +371,9 @@ void JSInliner::TryInlineJSCall(Node* call_node) {
   }
 
   CompilationInfoWithZone info(function);
-  Parse(function, &info);
+  // TODO(wingo): ParseAndAnalyze can fail due to stack overflow.
+  CHECK(Compiler::ParseAndAnalyze(&info));
+  CHECK(Compiler::EnsureDeoptimizationSupport(&info));
 
   if (info.scope()->arguments() != NULL && info.strict_mode() != STRICT) {
     // For now do not inline functions that use their arguments array.
@@ -450,7 +438,7 @@ class JSCallRuntimeAccessor {
   }
 
   size_t formal_arguments() {
-    size_t value_inputs = OperatorProperties::GetValueInputCount(call_->op());
+    size_t value_inputs = call_->op()->ValueInputCount();
     return value_inputs;
   }
 
@@ -462,7 +450,7 @@ class JSCallRuntimeAccessor {
   Node* effect() const { return NodeProperties::GetEffectInput(call_); }
 
   const Runtime::Function* function() const {
-    return Runtime::FunctionForId(OpParameter<Runtime::FunctionId>(call_));
+    return Runtime::FunctionForId(CallRuntimeParametersOf(call_->op()).id());
   }
 
   NodeVector inputs(Zone* zone) const {

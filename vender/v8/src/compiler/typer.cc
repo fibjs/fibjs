@@ -251,74 +251,79 @@ class Typer::RunVisitor : public Typer::Visitor {
       : Visitor(typer),
         redo(NodeSet::key_compare(), NodeSet::allocator_type(typer->zone())) {}
 
-  GenericGraphVisit::Control Post(Node* node) {
-    if (OperatorProperties::HasValueOutput(node->op()) &&
-        !NodeProperties::IsTyped(node)) {
+  void Post(Node* node) {
+    if (node->op()->ValueOutputCount() > 0) {
       Bounds bounds = TypeNode(node);
       NodeProperties::SetBounds(node, bounds);
       // Remember incompletely typed nodes for least fixpoint iteration.
       if (!NodeProperties::AllValueInputsAreTyped(node)) redo.insert(node);
     }
-    return GenericGraphVisit::CONTINUE;
   }
 
   NodeSet redo;
 };
 
 
-class Typer::NarrowVisitor : public Typer::Visitor {
- public:
-  explicit NarrowVisitor(Typer* typer) : Visitor(typer) {}
-
-  GenericGraphVisit::Control Pre(Node* node) {
-    if (OperatorProperties::HasValueOutput(node->op())) {
-      Bounds previous = NodeProperties::GetBounds(node);
-      Bounds current = TypeNode(node);
-      NodeProperties::SetBounds(node, Bounds::Both(current, previous, zone()));
-      DCHECK(current.Narrows(previous));
-      // Stop when nothing changed (but allow re-entry in case it does later).
-      return previous.Narrows(current) ? GenericGraphVisit::DEFER
-                                       : GenericGraphVisit::REENTER;
-    } else {
-      return GenericGraphVisit::SKIP;
-    }
-  }
-
-  GenericGraphVisit::Control Post(Node* node) {
-    return GenericGraphVisit::REENTER;
-  }
-};
-
-
 class Typer::WidenVisitor : public Typer::Visitor {
  public:
-  explicit WidenVisitor(Typer* typer) : Visitor(typer) {}
+  explicit WidenVisitor(Typer* typer)
+      : Visitor(typer),
+        local_zone_(zone()->isolate()),
+        enabled_(graph()->NodeCount(), true, &local_zone_),
+        queue_(&local_zone_) {}
 
-  GenericGraphVisit::Control Pre(Node* node) {
-    if (OperatorProperties::HasValueOutput(node->op())) {
-      Bounds previous = BoundsOrNone(node);
-      Bounds current = TypeNode(node);
+  void Run(NodeSet* nodes) {
+    // Queue all the roots.
+    for (Node* node : *nodes) {
+      Queue(node);
+    }
 
-      // Speed up termination in the presence of range types:
-      current.upper = Weaken(current.upper, previous.upper);
-      current.lower = Weaken(current.lower, previous.lower);
+    while (!queue_.empty()) {
+      Node* node = queue_.front();
+      queue_.pop();
 
-      DCHECK(previous.lower->Is(current.lower));
-      DCHECK(previous.upper->Is(current.upper));
+      if (node->op()->ValueOutputCount() > 0) {
+        // Enable future queuing (and thus re-typing) of this node.
+        enabled_[node->id()] = true;
 
-      NodeProperties::SetBounds(node, current);
-      // Stop when nothing changed (but allow re-entry in case it does later).
-      return previous.Narrows(current) && current.Narrows(previous)
-                 ? GenericGraphVisit::DEFER
-                 : GenericGraphVisit::REENTER;
-    } else {
-      return GenericGraphVisit::SKIP;
+        // Compute the new type.
+        Bounds previous = BoundsOrNone(node);
+        Bounds current = TypeNode(node);
+
+        // Speed up termination in the presence of range types:
+        current.upper = Weaken(current.upper, previous.upper);
+        current.lower = Weaken(current.lower, previous.lower);
+
+        // Types should not get less precise.
+        DCHECK(previous.lower->Is(current.lower));
+        DCHECK(previous.upper->Is(current.upper));
+
+        NodeProperties::SetBounds(node, current);
+        // If something changed, push all uses into the queue.
+        if (!(previous.Narrows(current) && current.Narrows(previous))) {
+          for (Node* use : node->uses()) {
+            Queue(use);
+          }
+        }
+      }
+      // If there is no value output, we deliberately leave the node disabled
+      // for queuing - there is no need to type it.
     }
   }
 
-  GenericGraphVisit::Control Post(Node* node) {
-    return GenericGraphVisit::REENTER;
+  void Queue(Node* node) {
+    // If the node is enabled for queuing, push it to the queue and disable it
+    // (to avoid queuing it multiple times).
+    if (enabled_[node->id()]) {
+      queue_.push(node);
+      enabled_[node->id()] = false;
+    }
   }
+
+ private:
+  Zone local_zone_;
+  BoolVector enabled_;
+  ZoneQueue<Node*> queue_;
 };
 
 
@@ -327,20 +332,12 @@ void Typer::Run() {
   graph_->VisitNodeInputsFromEnd(&typing);
   // Find least fixpoint.
   WidenVisitor widen(this);
-  for (NodeSetIter it = typing.redo.begin(); it != typing.redo.end(); ++it) {
-    graph_->VisitNodeUsesFrom(*it, &widen);
-  }
-}
-
-
-void Typer::Narrow(Node* start) {
-  NarrowVisitor typing(this);
-  graph_->VisitNodeUsesFrom(start, &typing);
+  widen.Run(&typing.redo);
 }
 
 
 void Typer::Decorator::Decorate(Node* node) {
-  if (OperatorProperties::HasValueOutput(node->op())) {
+  if (node->op()->ValueOutputCount() > 0) {
     // Only eagerly type-decorate nodes with known input types.
     // Other cases will generally require a proper fixpoint iteration with Run.
     bool is_typed = NodeProperties::IsTyped(node);
@@ -411,10 +408,19 @@ Type* Typer::Visitor::FalsifyUndefined(Type* type, Typer* t) {
 
 Type* Typer::Visitor::Rangify(Type* type, Typer* t) {
   if (type->IsRange()) return type;        // Shortcut.
-  if (!type->Is(t->integer)) return type;  // Give up.
+  if (!type->Is(t->integer) && !type->Is(Type::Integral32())) {
+    return type;  // Give up on non-integer types.
+  }
+  double min = type->Min();
+  double max = type->Max();
+  // Handle the degenerate case of empty bitset types (such as
+  // OtherUnsigned31 and OtherSigned32 on 64-bit architectures).
+  if (std::isnan(min)) {
+    DCHECK(std::isnan(max));
+    return type;
+  }
   Factory* f = t->isolate()->factory();
-  return Type::Range(f->NewNumber(type->Min()), f->NewNumber(type->Max()),
-                     t->zone());
+  return Type::Range(f->NewNumber(min), f->NewNumber(max), t->zone());
 }
 
 
@@ -535,8 +541,13 @@ Bounds Typer::Visitor::TypeExternalConstant(Node* node) {
 }
 
 
+Bounds Typer::Visitor::TypeSelect(Node* node) {
+  return Bounds::Either(Operand(node, 1), Operand(node, 2), zone());
+}
+
+
 Bounds Typer::Visitor::TypePhi(Node* node) {
-  int arity = OperatorProperties::GetValueInputCount(node->op());
+  int arity = node->op()->ValueInputCount();
   Bounds bounds = Operand(node, 0);
   for (int i = 1; i < arity; ++i) {
     bounds = Bounds::Either(bounds, Operand(node, i), zone());
@@ -1573,7 +1584,7 @@ Bounds Typer::Visitor::TypeInt32Mul(Node* node) {
 
 
 Bounds Typer::Visitor::TypeInt32MulHigh(Node* node) {
-  return Bounds(Type::Integral32());
+  return Bounds(Type::Signed32());
 }
 
 
@@ -1613,6 +1624,11 @@ Bounds Typer::Visitor::TypeUint32LessThanOrEqual(Node* node) {
 
 
 Bounds Typer::Visitor::TypeUint32Mod(Node* node) {
+  return Bounds(Type::Unsigned32());
+}
+
+
+Bounds Typer::Visitor::TypeUint32MulHigh(Node* node) {
   return Bounds(Type::Unsigned32());
 }
 

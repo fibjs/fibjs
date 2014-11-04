@@ -300,7 +300,8 @@ void FullCodeGenerator::Generate() {
       VisitDeclarations(scope()->declarations());
     }
 
-    { Comment cmnt(masm_, "[ Stack check");
+    {
+      Comment cmnt(masm_, "[ Stack check");
       PrepareForBailoutForId(BailoutId::Declarations(), NO_REGISTERS);
       Label ok;
       DCHECK(jssp.Is(__ StackPointer()));
@@ -312,7 +313,8 @@ void FullCodeGenerator::Generate() {
       __ Bind(&ok);
     }
 
-    { Comment cmnt(masm_, "[ Body");
+    {
+      Comment cmnt(masm_, "[ Body");
       DCHECK(loop_depth() == 0);
       VisitStatements(function()->body());
       DCHECK(loop_depth() == 0);
@@ -2040,7 +2042,7 @@ void FullCodeGenerator::EmitNamedSuperPropertyLoad(Property* prop) {
 
 void FullCodeGenerator::EmitKeyedPropertyLoad(Property* prop) {
   SetSourcePosition(prop->position());
-  // Call keyed load IC. It has arguments key and receiver in r0 and r1.
+  // Call keyed load IC. It has arguments key and receiver in x0 and x1.
   Handle<Code> ic = CodeFactory::KeyedLoadIC(isolate()).code();
   if (FLAG_vector_ics) {
     __ Mov(VectorLoadICDescriptor::SlotRegister(),
@@ -2172,6 +2174,62 @@ void FullCodeGenerator::EmitBinaryOp(BinaryOperation* expr,
     patch_site.EmitPatchInfo();
   }
   context()->Plug(x0);
+}
+
+
+void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
+  // Constructor is in x0.
+  DCHECK(lit != NULL);
+  __ push(x0);
+
+  // No access check is needed here since the constructor is created by the
+  // class literal.
+  Register scratch = x1;
+  __ Ldr(scratch,
+         FieldMemOperand(x0, JSFunction::kPrototypeOrInitialMapOffset));
+  __ Push(scratch);
+
+  for (int i = 0; i < lit->properties()->length(); i++) {
+    ObjectLiteral::Property* property = lit->properties()->at(i);
+    Literal* key = property->key()->AsLiteral();
+    Expression* value = property->value();
+    DCHECK(key != NULL);
+
+    if (property->is_static()) {
+      __ Peek(scratch, kPointerSize);  // constructor
+    } else {
+      __ Peek(scratch, 0);  // prototype
+    }
+    __ Push(scratch);
+    VisitForStackValue(key);
+    VisitForStackValue(value);
+
+    switch (property->kind()) {
+      case ObjectLiteral::Property::CONSTANT:
+      case ObjectLiteral::Property::MATERIALIZED_LITERAL:
+      case ObjectLiteral::Property::COMPUTED:
+      case ObjectLiteral::Property::PROTOTYPE:
+        __ CallRuntime(Runtime::kDefineClassMethod, 3);
+        break;
+
+      case ObjectLiteral::Property::GETTER:
+        __ CallRuntime(Runtime::kDefineClassGetter, 3);
+        break;
+
+      case ObjectLiteral::Property::SETTER:
+        __ CallRuntime(Runtime::kDefineClassSetter, 3);
+        break;
+
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  // prototype
+  __ CallRuntime(Runtime::kToFastProperties, 1);
+
+  // constructor
+  __ CallRuntime(Runtime::kToFastProperties, 1);
 }
 
 
@@ -2609,11 +2667,12 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
   // Prepare to push a copy of the first argument or undefined if it doesn't
   // exist.
   if (arg_count > 0) {
-    __ Peek(x10, arg_count * kXRegSize);
+    __ Peek(x9, arg_count * kXRegSize);
   } else {
-    __ LoadRoot(x10, Heap::kUndefinedValueRootIndex);
+    __ LoadRoot(x9, Heap::kUndefinedValueRootIndex);
   }
 
+  __ Ldr(x10, MemOperand(fp, JavaScriptFrameConstants::kFunctionOffset));
   // Prepare to push the receiver of the enclosing function.
   int receiver_offset = 2 + info_->scope()->num_parameters();
   __ Ldr(x11, MemOperand(fp, receiver_offset * kPointerSize));
@@ -2624,10 +2683,10 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
   __ Mov(x13, Smi::FromInt(scope()->start_position()));
 
   // Push.
-  __ Push(x10, x11, x12, x13);
+  __ Push(x9, x10, x11, x12, x13);
 
   // Do the runtime call.
-  __ CallRuntime(Runtime::kResolvePossiblyDirectEval, 5);
+  __ CallRuntime(Runtime::kResolvePossiblyDirectEval, 6);
 }
 
 
@@ -4858,7 +4917,7 @@ void FullCodeGenerator::EmitGeneratorResume(Expression *generator,
 
   // The value stays in x0, and is ultimately read by the resumed generator, as
   // if CallRuntime(Runtime::kSuspendJSGeneratorObject) returned it. Or it
-  // is read to throw the value when the resumed generator is already closed. r1
+  // is read to throw the value when the resumed generator is already closed. x1
   // will hold the generator object until the activation has been resumed.
   VisitForStackValue(generator);
   VisitForAccumulatorValue(value);
@@ -4972,16 +5031,18 @@ void FullCodeGenerator::EmitCreateIteratorResult(bool done) {
   Label gc_required;
   Label allocated;
 
-  Handle<Map> map(isolate()->native_context()->iterator_result_map());
+  const int instance_size = 5 * kPointerSize;
+  DCHECK_EQ(isolate()->native_context()->iterator_result_map()->instance_size(),
+            instance_size);
 
   // Allocate and populate an object with this form: { value: VAL, done: DONE }
 
   Register result = x0;
-  __ Allocate(map->instance_size(), result, x10, x11, &gc_required, TAG_OBJECT);
+  __ Allocate(instance_size, result, x10, x11, &gc_required, TAG_OBJECT);
   __ B(&allocated);
 
   __ Bind(&gc_required);
-  __ Push(Smi::FromInt(map->instance_size()));
+  __ Push(Smi::FromInt(instance_size));
   __ CallRuntime(Runtime::kAllocateInNewSpace, 1);
   __ Ldr(context_register(),
          MemOperand(fp, StandardFrameConstants::kContextOffset));
@@ -4992,11 +5053,13 @@ void FullCodeGenerator::EmitCreateIteratorResult(bool done) {
   Register boolean_done = x3;
   Register empty_fixed_array = x4;
   Register untagged_result = x5;
-  __ Mov(map_reg, Operand(map));
+  __ Ldr(map_reg, GlobalObjectMemOperand());
+  __ Ldr(map_reg, FieldMemOperand(map_reg, GlobalObject::kNativeContextOffset));
+  __ Ldr(map_reg,
+         ContextMemOperand(map_reg, Context::ITERATOR_RESULT_MAP_INDEX));
   __ Pop(result_value);
   __ Mov(boolean_done, Operand(isolate()->factory()->ToBoolean(done)));
   __ Mov(empty_fixed_array, Operand(isolate()->factory()->empty_fixed_array()));
-  DCHECK_EQ(map->instance_size(), 5 * kPointerSize);
   STATIC_ASSERT(JSObject::kPropertiesOffset + kPointerSize ==
                 JSObject::kElementsOffset);
   STATIC_ASSERT(JSGeneratorObject::kResultValuePropertyOffset + kPointerSize ==

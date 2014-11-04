@@ -5,10 +5,12 @@
 #include "src/compiler/ast-graph-builder.h"
 
 #include "src/compiler.h"
+#include "src/compiler/ast-loop-assignment-analyzer.h"
 #include "src/compiler/control-builders.h"
 #include "src/compiler/machine-operator.h"
-#include "src/compiler/node-properties.h"
+#include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties-inl.h"
+#include "src/compiler/node-properties.h"
 #include "src/full-codegen.h"
 #include "src/parser.h"
 #include "src/scopes.h"
@@ -24,7 +26,8 @@ AstGraphBuilder::AstGraphBuilder(Zone* local_zone, CompilationInfo* info,
       jsgraph_(jsgraph),
       globals_(0, local_zone),
       breakable_(NULL),
-      execution_context_(NULL) {
+      execution_context_(NULL),
+      loop_assignment_analysis_(NULL) {
   InitializeAstVisitor(local_zone);
 }
 
@@ -58,6 +61,12 @@ bool AstGraphBuilder::CreateGraph() {
   // Set up the basic structure of the graph.
   int parameter_count = info()->num_parameters();
   graph()->SetStart(graph()->NewNode(common()->Start(parameter_count)));
+
+  if (FLAG_loop_assignment_analysis) {
+    // TODO(turbofan): use a temporary zone for the loop assignment analysis.
+    AstLoopAssignmentAnalyzer analyzer(zone(), info());
+    loop_assignment_analysis_ = analyzer.Analyze();
+  }
 
   // Initialize the top-level environment.
   Environment env(this, scope, graph()->start());
@@ -330,24 +339,40 @@ void AstGraphBuilder::VisitForValues(ZoneList<Expression*>* exprs) {
 
 void AstGraphBuilder::VisitForValue(Expression* expr) {
   AstValueContext for_value(this);
-  if (!HasStackOverflow()) {
+  if (!CheckStackOverflow()) {
     expr->Accept(this);
+  } else {
+    ast_context()->ProduceValue(jsgraph()->UndefinedConstant());
   }
 }
 
 
 void AstGraphBuilder::VisitForEffect(Expression* expr) {
   AstEffectContext for_effect(this);
-  if (!HasStackOverflow()) {
+  if (!CheckStackOverflow()) {
     expr->Accept(this);
+  } else {
+    ast_context()->ProduceValue(jsgraph()->UndefinedConstant());
   }
 }
 
 
 void AstGraphBuilder::VisitForTest(Expression* expr) {
   AstTestContext for_condition(this);
-  if (!HasStackOverflow()) {
+  if (!CheckStackOverflow()) {
     expr->Accept(this);
+  } else {
+    ast_context()->ProduceValue(jsgraph()->UndefinedConstant());
+  }
+}
+
+
+void AstGraphBuilder::Visit(Expression* expr) {
+  // Reuses enclosing AstContext.
+  if (!CheckStackOverflow()) {
+    expr->Accept(this);
+  } else {
+    ast_context()->ProduceValue(jsgraph()->UndefinedConstant());
   }
 }
 
@@ -581,7 +606,7 @@ void AstGraphBuilder::VisitSwitchStatement(SwitchStatement* stmt) {
 
 void AstGraphBuilder::VisitDoWhileStatement(DoWhileStatement* stmt) {
   LoopBuilder while_loop(this);
-  while_loop.BeginLoop();
+  while_loop.BeginLoop(GetVariablesAssignedInLoop(stmt));
   VisitIterationBody(stmt, &while_loop, 0);
   while_loop.EndBody();
   VisitForTest(stmt->cond());
@@ -593,7 +618,7 @@ void AstGraphBuilder::VisitDoWhileStatement(DoWhileStatement* stmt) {
 
 void AstGraphBuilder::VisitWhileStatement(WhileStatement* stmt) {
   LoopBuilder while_loop(this);
-  while_loop.BeginLoop();
+  while_loop.BeginLoop(GetVariablesAssignedInLoop(stmt));
   VisitForTest(stmt->cond());
   Node* condition = environment()->Pop();
   while_loop.BreakUnless(condition);
@@ -606,7 +631,7 @@ void AstGraphBuilder::VisitWhileStatement(WhileStatement* stmt) {
 void AstGraphBuilder::VisitForStatement(ForStatement* stmt) {
   LoopBuilder for_loop(this);
   VisitIfNotNull(stmt->init());
-  for_loop.BeginLoop();
+  for_loop.BeginLoop(GetVariablesAssignedInLoop(stmt));
   if (stmt->cond() != NULL) {
     VisitForTest(stmt->cond());
     Node* condition = environment()->Pop();
@@ -682,7 +707,7 @@ void AstGraphBuilder::VisitForInStatement(ForInStatement* stmt) {
         environment()->Push(jsgraph()->ZeroConstant());
         // PrepareForBailoutForId(stmt->BodyId(), NO_REGISTERS);
         LoopBuilder for_loop(this);
-        for_loop.BeginLoop();
+        for_loop.BeginLoop(GetVariablesAssignedInLoop(stmt));
         // Check loop termination condition.
         Node* index = environment()->Peek(0);
         Node* exit_cond =
@@ -810,8 +835,7 @@ void AstGraphBuilder::VisitFunctionLiteral(FunctionLiteral* expr) {
 
   // Create node to instantiate a new closure.
   Node* info = jsgraph()->Constant(shared_info);
-  Node* pretenure = expr->pretenure() ? jsgraph()->TrueConstant()
-                                      : jsgraph()->FalseConstant();
+  Node* pretenure = jsgraph()->BooleanConstant(expr->pretenure());
   const Operator* op = javascript()->CallRuntime(Runtime::kNewClosure, 3);
   Node* value = NewNode(op, context, info, pretenure);
   ast_context()->ProduceValue(value);
@@ -1308,12 +1332,14 @@ void AstGraphBuilder::VisitCall(Call* expr) {
 
     // Create node to ask for help resolving potential eval call. This will
     // provide a fully resolved callee and the corresponding receiver.
+    Node* function = GetFunctionClosure();
     Node* receiver = environment()->Lookup(info()->scope()->receiver());
     Node* strict = jsgraph()->Constant(strict_mode());
     Node* position = jsgraph()->Constant(info()->scope()->start_position());
     const Operator* op =
-        javascript()->CallRuntime(Runtime::kResolvePossiblyDirectEval, 5);
-    Node* pair = NewNode(op, callee, source, receiver, strict, position);
+        javascript()->CallRuntime(Runtime::kResolvePossiblyDirectEval, 6);
+    Node* pair =
+        NewNode(op, callee, source, function, receiver, strict, position);
     PrepareFrameState(pair, expr->EvalOrLookupId(),
                       OutputFrameStateCombine::PokeAt(arg_count + 1));
     Node* new_callee = NewNode(common()->Projection(0), pair);
@@ -1915,8 +1941,7 @@ Node* AstGraphBuilder::BuildVariableDelete(
     case Variable::LOCAL:
     case Variable::CONTEXT:
       // Local var, const, or let variable or context variable.
-      return variable->is_this() ? jsgraph()->TrueConstant()
-                                 : jsgraph()->FalseConstant();
+      return jsgraph()->BooleanConstant(variable->is_this());
     case Variable::LOOKUP: {
       // Dynamic lookup of context variable (anywhere in the chain).
       Node* name = jsgraph()->Constant(variable->name());
@@ -2042,9 +2067,31 @@ Node* AstGraphBuilder::BuildLoadGlobalObject() {
 }
 
 
-Node* AstGraphBuilder::BuildToBoolean(Node* value) {
-  // TODO(mstarzinger): Possible optimization is to NOP for boolean values.
-  return NewNode(javascript()->ToBoolean(), value);
+Node* AstGraphBuilder::BuildToBoolean(Node* input) {
+  // TODO(titzer): this should be in a JSOperatorReducer.
+  switch (input->opcode()) {
+    case IrOpcode::kInt32Constant:
+      return jsgraph_->BooleanConstant(!Int32Matcher(input).Is(0));
+    case IrOpcode::kFloat64Constant:
+      return jsgraph_->BooleanConstant(!Float64Matcher(input).Is(0));
+    case IrOpcode::kNumberConstant:
+      return jsgraph_->BooleanConstant(!NumberMatcher(input).Is(0));
+    case IrOpcode::kHeapConstant: {
+      Handle<Object> object = HeapObjectMatcher<Object>(input).Value().handle();
+      if (object->IsTrue()) return jsgraph_->TrueConstant();
+      if (object->IsFalse()) return jsgraph_->FalseConstant();
+      // TODO(turbofan): other constants.
+      break;
+    }
+    default:
+      break;
+  }
+  if (NodeProperties::IsTyped(input)) {
+    Type* upper = NodeProperties::GetBounds(input).upper;
+    if (upper->Is(Type::Boolean())) return input;
+  }
+
+  return NewNode(javascript()->ToBoolean(), input);
 }
 
 
@@ -2113,7 +2160,7 @@ Node* AstGraphBuilder::BuildStackCheck() {
               jsgraph()->ZeroConstant());
   Node* stack = NewNode(jsgraph()->machine()->LoadStackPointer());
   Node* tag = NewNode(jsgraph()->machine()->UintLessThan(), limit, stack);
-  stack_check.If(tag);
+  stack_check.If(tag, BranchHint::kTrue);
   stack_check.Then();
   stack_check.Else();
   Node* guard = NewNode(javascript()->CallRuntime(Runtime::kStackGuard, 0));
@@ -2132,6 +2179,13 @@ void AstGraphBuilder::PrepareFrameState(Node* node, BailoutId ast_id,
   }
 }
 
+
+BitVector* AstGraphBuilder::GetVariablesAssignedInLoop(
+    IterationStatement* stmt) {
+  if (loop_assignment_analysis_ == NULL) return NULL;
+  return loop_assignment_analysis_->GetVariablesAssignedInLoop(stmt);
 }
-}
-}  // namespace v8::internal::compiler
+
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

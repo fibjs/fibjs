@@ -935,6 +935,14 @@ void Assembler::emit_imul(Register src, int size) {
 }
 
 
+void Assembler::emit_imul(const Operand& src, int size) {
+  EnsureSpace ensure_space(this);
+  emit_rex(src, size);
+  emit(0xF7);
+  emit_operand(0x5, src);
+}
+
+
 void Assembler::emit_imul(Register dst, Register src, int size) {
   EnsureSpace ensure_space(this);
   emit_rex(dst, src, size);
@@ -1499,7 +1507,23 @@ void Assembler::emit_repmovs(int size) {
 }
 
 
-void Assembler::mul(Register src) {
+void Assembler::mull(Register src) {
+  EnsureSpace ensure_space(this);
+  emit_optional_rex_32(src);
+  emit(0xF7);
+  emit_modrm(0x4, src);
+}
+
+
+void Assembler::mull(const Operand& src) {
+  EnsureSpace ensure_space(this);
+  emit_optional_rex_32(src);
+  emit(0xF7);
+  emit_operand(0x4, src);
+}
+
+
+void Assembler::mulq(Register src) {
   EnsureSpace ensure_space(this);
   emit_rex_64(src);
   emit(0xF7);
@@ -2875,7 +2899,27 @@ void Assembler::subsd(XMMRegister dst, XMMRegister src) {
 }
 
 
+void Assembler::subsd(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x5C);
+  emit_sse_operand(dst, src);
+}
+
+
 void Assembler::divsd(XMMRegister dst, XMMRegister src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x5E);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::divsd(XMMRegister dst, const Operand& src) {
   EnsureSpace ensure_space(this);
   emit(0xF2);
   emit_optional_rex_32(dst, src);

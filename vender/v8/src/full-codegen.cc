@@ -308,11 +308,6 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
 
   TimerEventScope<TimerEventCompileFullCode> timer(info->isolate());
 
-  if (!AstNumbering::Renumber(info->function(), info->zone())) {
-    DCHECK(!isolate->has_pending_exception());
-    return false;
-  }
-
   Handle<Script> script = info->script();
   if (!script->IsUndefined() && !script->source()->IsUndefined()) {
     int len = String::cast(script->source())->length();
@@ -351,6 +346,11 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
   info->SetCode(code);
   void* line_info = masm.positions_recorder()->DetachJITHandlerData();
   LOG_CODE_EVENT(isolate, CodeEndLinePosInfoRecordEvent(*code, line_info));
+
+#ifdef DEBUG
+  // Check that no context-specific object has been embedded.
+  code->VerifyEmbeddedObjectsInFullCode();
+#endif  // DEBUG
   return true;
 }
 
@@ -1585,9 +1585,9 @@ void FullCodeGenerator::VisitClassLiteral(ClassLiteral* lit) {
   __ Push(Smi::FromInt(lit->start_position()));
   __ Push(Smi::FromInt(lit->end_position()));
 
-  // TODO(arv): Process methods
-
   __ CallRuntime(Runtime::kDefineClass, 6);
+  EmitClassDefineProperties(lit);
+
   context()->Plug(result_register());
 }
 

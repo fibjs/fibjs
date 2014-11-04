@@ -746,6 +746,9 @@ class Isolate {
   void CaptureAndSetDetailedStackTrace(Handle<JSObject> error_object);
   void CaptureAndSetSimpleStackTrace(Handle<JSObject> error_object,
                                      Handle<Object> caller);
+  Handle<JSArray> GetDetailedStackTrace(Handle<JSObject> error_object);
+  Handle<JSArray> GetDetailedFromSimpleStackTrace(
+      Handle<JSObject> error_object);
 
   // Returns if the top context may access the given global object. If
   // the result is false, the pending exception is guaranteed to be
@@ -798,6 +801,11 @@ class Isolate {
   // Attempts to compute the current source location, storing the
   // result in the target out parameter.
   void ComputeLocation(MessageLocation* target);
+  void ComputeLocationFromStackTrace(MessageLocation* target,
+                                     Handle<Object> exception);
+
+  Handle<JSMessageObject> CreateMessage(Handle<Object> exception,
+                                        MessageLocation* location);
 
   // Out of resource exception helpers.
   Object* StackOverflow();
@@ -1197,9 +1205,6 @@ class Isolate {
   // If there is no external try-catch or message was successfully propagated,
   // then return true.
   bool PropagatePendingExceptionToExternalTryCatch();
-
-  Handle<JSMessageObject> CreateMessage(Handle<Object> exception,
-                                        MessageLocation* location);
 
   // Traverse prototype chain to find out whether the object is derived from
   // the Error object.

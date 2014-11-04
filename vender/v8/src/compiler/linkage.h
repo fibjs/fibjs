@@ -6,15 +6,16 @@
 #define V8_COMPILER_LINKAGE_H_
 
 #include "src/base/flags.h"
-#include "src/code-stubs.h"
 #include "src/compiler/frame.h"
 #include "src/compiler/machine-type.h"
-#include "src/compiler/node.h"
 #include "src/compiler/operator.h"
 #include "src/zone.h"
 
 namespace v8 {
 namespace internal {
+
+class CallInterfaceDescriptor;
+
 namespace compiler {
 
 // Describes the location for a parameter or a return value to a call.
@@ -173,8 +174,10 @@ class Linkage : public ZoneObject {
   // The call descriptor for this compilation unit describes the locations
   // of incoming parameters and the outgoing return value(s).
   CallDescriptor* GetIncomingDescriptor() const { return incoming_; }
-  CallDescriptor* GetJSCallDescriptor(int parameter_count) const;
-  static CallDescriptor* GetJSCallDescriptor(int parameter_count, Zone* zone);
+  CallDescriptor* GetJSCallDescriptor(int parameter_count,
+                                      CallDescriptor::Flags flags) const;
+  static CallDescriptor* GetJSCallDescriptor(int parameter_count, Zone* zone,
+                                             CallDescriptor::Flags flags);
   CallDescriptor* GetRuntimeCallDescriptor(
       Runtime::FunctionId function, int parameter_count,
       Operator::Properties properties) const;
@@ -183,10 +186,10 @@ class Linkage : public ZoneObject {
       Operator::Properties properties, Zone* zone);
 
   CallDescriptor* GetStubCallDescriptor(
-      CallInterfaceDescriptor descriptor, int stack_parameter_count = 0,
+      const CallInterfaceDescriptor& descriptor, int stack_parameter_count = 0,
       CallDescriptor::Flags flags = CallDescriptor::kNoFlags) const;
   static CallDescriptor* GetStubCallDescriptor(
-      CallInterfaceDescriptor descriptor, int stack_parameter_count,
+      const CallInterfaceDescriptor& descriptor, int stack_parameter_count,
       CallDescriptor::Flags flags, Zone* zone);
 
   // Creates a call descriptor for simplified C calls that is appropriate

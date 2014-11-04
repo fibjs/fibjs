@@ -810,8 +810,11 @@ class Assembler : public AssemblerBase {
   // Sign-extends eax into edx:eax.
   void cdq();
 
+  // Multiply eax by src, put the result in edx:eax.
+  void mull(Register src);
+  void mull(const Operand& src);
   // Multiply rax by src, put the result in rdx:rax.
-  void mul(Register src);
+  void mulq(Register src);
 
 #define DECLARE_SHIFT_INSTRUCTION(instruction, subcode)                       \
   void instruction##p(Register dst, Immediate imm8) {                         \
@@ -1087,9 +1090,11 @@ class Assembler : public AssemblerBase {
   void addsd(XMMRegister dst, XMMRegister src);
   void addsd(XMMRegister dst, const Operand& src);
   void subsd(XMMRegister dst, XMMRegister src);
+  void subsd(XMMRegister dst, const Operand& src);
   void mulsd(XMMRegister dst, XMMRegister src);
   void mulsd(XMMRegister dst, const Operand& src);
   void divsd(XMMRegister dst, XMMRegister src);
+  void divsd(XMMRegister dst, const Operand& src);
 
   void andpd(XMMRegister dst, XMMRegister src);
   void orpd(XMMRegister dst, XMMRegister src);
@@ -1471,6 +1476,7 @@ class Assembler : public AssemblerBase {
   // Signed multiply instructions.
   // rdx:rax = rax * src when size is 64 or edx:eax = eax * src when size is 32.
   void emit_imul(Register src, int size);
+  void emit_imul(const Operand& src, int size);
   void emit_imul(Register dst, Register src, int size);
   void emit_imul(Register dst, const Operand& src, int size);
   void emit_imul(Register dst, Register src, Immediate imm, int size);

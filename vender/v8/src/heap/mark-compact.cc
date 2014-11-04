@@ -2521,13 +2521,14 @@ void MarkCompactCollector::ClearMapTransitions(Map* map) {
 
   // Note that we never eliminate a transition array, though we might right-trim
   // such that number_of_transitions() == 0. If this assumption changes,
-  // TransitionArray::CopyInsert() will need to deal with the case that a
-  // transition array disappeared during GC.
-  int trim = t->number_of_transitions() - transition_index;
+  // TransitionArray::Insert() will need to deal with the case that a transition
+  // array disappeared during GC.
+  int trim = t->number_of_transitions_storage() - transition_index;
   if (trim > 0) {
     heap_->RightTrimFixedArray<Heap::FROM_GC>(
         t, t->IsSimpleTransition() ? trim
                                    : trim * TransitionArray::kTransitionSize);
+    t->SetNumberOfTransitions(transition_index);
   }
   DCHECK(map->HasTransitionArray());
 }
@@ -2926,8 +2927,7 @@ class PointersUpdatingVisitor : public ObjectVisitor {
   }
 
   static inline void UpdateSlot(Heap* heap, Object** slot) {
-    Object* obj = reinterpret_cast<Object*>(
-        base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
+    Object* obj = *slot;
 
     if (!obj->IsHeapObject()) return;
 
@@ -2938,10 +2938,7 @@ class PointersUpdatingVisitor : public ObjectVisitor {
       DCHECK(heap->InFromSpace(heap_obj) ||
              MarkCompactCollector::IsOnEvacuationCandidate(heap_obj));
       HeapObject* target = map_word.ToForwardingAddress();
-      base::NoBarrier_CompareAndSwap(
-          reinterpret_cast<base::AtomicWord*>(slot),
-          reinterpret_cast<base::AtomicWord>(obj),
-          reinterpret_cast<base::AtomicWord>(target));
+      *slot = target;
       DCHECK(!heap->InFromSpace(target) &&
              !MarkCompactCollector::IsOnEvacuationCandidate(target));
     }

@@ -941,10 +941,10 @@ class ForInStatement FINAL : public ForEachStatement {
   }
 
   // Type feedback information.
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(1, 0);
   }
-  virtual void SetFirstFeedbackSlot(FeedbackVectorSlot slot) {
+  virtual void SetFirstFeedbackSlot(FeedbackVectorSlot slot) OVERRIDE {
     for_in_feedback_slot_ = slot;
   }
 
@@ -1512,6 +1512,8 @@ class ObjectLiteralProperty FINAL : public ZoneObject {
   void set_emit_store(bool emit_store);
   bool emit_store();
 
+  bool is_static() const { return is_static_; }
+
  protected:
   template<class> friend class AstNodeFactory;
 
@@ -1708,10 +1710,10 @@ class VariableProxy FINAL : public Expression {
   // Bind this proxy to the variable var. Interfaces must match.
   void BindTo(Variable* var);
 
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(0, FLAG_vector_ics ? 1 : 0);
   }
-  virtual void SetFirstICFeedbackSlot(FeedbackVectorICSlot slot) {
+  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) OVERRIDE {
     variable_feedback_slot_ = slot;
   }
 
@@ -1762,7 +1764,7 @@ class Property FINAL : public Expression {
   virtual KeyedAccessStoreMode GetStoreMode() OVERRIDE {
     return STANDARD_STORE;
   }
-  virtual IcCheckType GetKeyType() {
+  virtual IcCheckType GetKeyType() OVERRIDE {
     // PROPERTY key types currently aren't implemented for KeyedLoadICs.
     return ELEMENT;
   }
@@ -1779,10 +1781,10 @@ class Property FINAL : public Expression {
     return obj()->IsSuperReference();
   }
 
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(0, FLAG_vector_ics ? 1 : 0);
   }
-  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) {
+  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) OVERRIDE {
     property_feedback_slot_ = slot;
   }
 
@@ -1822,10 +1824,10 @@ class Call FINAL : public Expression {
   ZoneList<Expression*>* arguments() const { return arguments_; }
 
   // Type feedback information.
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(0, 1);
   }
-  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) {
+  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) OVERRIDE {
     call_feedback_slot_ = slot;
   }
 
@@ -1922,10 +1924,10 @@ class CallNew FINAL : public Expression {
   ZoneList<Expression*>* arguments() const { return arguments_; }
 
   // Type feedback information.
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(FLAG_pretenuring_call_new ? 2 : 1, 0);
   }
-  virtual void SetFirstFeedbackSlot(FeedbackVectorSlot slot) {
+  virtual void SetFirstFeedbackSlot(FeedbackVectorSlot slot) OVERRIDE {
     callnew_feedback_slot_ = slot;
   }
 
@@ -1984,11 +1986,11 @@ class CallRuntime FINAL : public Expression {
   bool is_jsruntime() const { return function_ == NULL; }
 
   // Type feedback information.
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(
         0, (FLAG_vector_ics && is_jsruntime()) ? 1 : 0);
   }
-  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) {
+  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) OVERRIDE {
     callruntime_feedback_slot_ = slot;
   }
 
@@ -2092,6 +2094,8 @@ class BinaryOperation FINAL : public Expression {
                   Expression* right, int pos)
       : Expression(zone, pos),
         op_(static_cast<byte>(op)),
+        has_fixed_right_arg_(false),
+        fixed_right_arg_value_(0),
         left_(left),
         right_(right) {
     DCHECK(Token::IsBinaryOp(op));
@@ -2345,11 +2349,11 @@ class Yield FINAL : public Expression {
   }
 
   // Type feedback information.
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(
         0, (FLAG_vector_ics && yield_kind() == kDelegating) ? 3 : 0);
   }
-  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) {
+  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) OVERRIDE {
     yield_first_feedback_slot_ = slot;
   }
 
@@ -2665,10 +2669,10 @@ class SuperReference FINAL : public Expression {
   TypeFeedbackId HomeObjectFeedbackId() { return TypeFeedbackId(local_id(0)); }
 
   // Type feedback information.
-  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() {
+  virtual FeedbackVectorRequirements ComputeFeedbackRequirements() OVERRIDE {
     return FeedbackVectorRequirements(0, FLAG_vector_ics ? 1 : 0);
   }
-  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) {
+  virtual void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot) OVERRIDE {
     homeobject_feedback_slot_ = slot;
   }
 
@@ -3144,7 +3148,6 @@ class AstConstructionVisitor BASE_EMBEDDED {
   AST_NODE_LIST(DEF_VISIT)
 #undef DEF_VISIT
 
-  void increase_node_count() { properties_.add_node_count(1); }
   void add_flag(AstPropertiesFlag flag) { properties_.flags()->Add(flag); }
   void set_dont_crankshaft_reason(BailoutReason reason) {
     dont_crankshaft_reason_ = reason;
@@ -3411,13 +3414,6 @@ class AstNodeFactory FINAL BASE_EMBEDDED {
   Literal* NewBooleanLiteral(bool b, int pos) {
     Literal* lit =
         new (zone_) Literal(zone_, ast_value_factory_->NewBoolean(b), pos);
-    VISIT_AND_RETURN(Literal, lit)
-  }
-
-  Literal* NewStringListLiteral(ZoneList<const AstRawString*>* strings,
-                                int pos) {
-    Literal* lit = new (zone_)
-        Literal(zone_, ast_value_factory_->NewStringList(strings), pos);
     VISIT_AND_RETURN(Literal, lit)
   }
 

@@ -21,6 +21,7 @@ namespace compiler {
   V(IA32Sub)                       \
   V(IA32Imul)                      \
   V(IA32ImulHigh)                  \
+  V(IA32UmulHigh)                  \
   V(IA32Idiv)                      \
   V(IA32Udiv)                      \
   V(IA32Not)                       \
@@ -36,6 +37,9 @@ namespace compiler {
   V(SSEFloat64Div)                 \
   V(SSEFloat64Mod)                 \
   V(SSEFloat64Sqrt)                \
+  V(SSEFloat64Floor)               \
+  V(SSEFloat64Ceil)                \
+  V(SSEFloat64RoundTruncate)       \
   V(SSECvtss2sd)                   \
   V(SSECvtsd2ss)                   \
   V(SSEFloat64ToInt32)             \

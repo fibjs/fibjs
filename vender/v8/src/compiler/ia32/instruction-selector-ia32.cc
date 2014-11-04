@@ -57,6 +57,178 @@ static AddressingMode AdjustAddressingMode(AddressingMode base_mode,
 }
 
 
+// Fairly intel-specify node matcher used for matching scale factors in
+// addressing modes.
+// Matches nodes of form [x * N] for N in {1,2,4,8}
+class ScaleFactorMatcher : public NodeMatcher {
+ public:
+  static const int kMatchedFactors[4];
+
+  explicit ScaleFactorMatcher(Node* node);
+
+  bool Matches() const { return left_ != NULL; }
+  int Power() const {
+    DCHECK(Matches());
+    return power_;
+  }
+  Node* Left() const {
+    DCHECK(Matches());
+    return left_;
+  }
+
+ private:
+  Node* left_;
+  int power_;
+};
+
+
+// Fairly intel-specify node matcher used for matching index and displacement
+// operands in addressing modes.
+// Matches nodes of form:
+//  [x * N]
+//  [x * N + K]
+//  [x + K]
+//  [x] -- fallback case
+// for N in {1,2,4,8} and K int32_t
+class IndexAndDisplacementMatcher : public NodeMatcher {
+ public:
+  explicit IndexAndDisplacementMatcher(Node* node);
+
+  Node* index_node() const { return index_node_; }
+  int displacement() const { return displacement_; }
+  int power() const { return power_; }
+
+ private:
+  Node* index_node_;
+  int displacement_;
+  int power_;
+};
+
+
+// Fairly intel-specify node matcher used for matching multiplies that can be
+// transformed to lea instructions.
+// Matches nodes of form:
+//  [x * N]
+// for N in {1,2,3,4,5,8,9}
+class LeaMultiplyMatcher : public NodeMatcher {
+ public:
+  static const int kMatchedFactors[7];
+
+  explicit LeaMultiplyMatcher(Node* node);
+
+  bool Matches() const { return left_ != NULL; }
+  int Power() const {
+    DCHECK(Matches());
+    return power_;
+  }
+  Node* Left() const {
+    DCHECK(Matches());
+    return left_;
+  }
+  // Displacement will be either 0 or 1.
+  int32_t Displacement() const {
+    DCHECK(Matches());
+    return displacement_;
+  }
+
+ private:
+  Node* left_;
+  int power_;
+  int displacement_;
+};
+
+
+const int ScaleFactorMatcher::kMatchedFactors[] = {1, 2, 4, 8};
+
+
+ScaleFactorMatcher::ScaleFactorMatcher(Node* node)
+    : NodeMatcher(node), left_(NULL), power_(0) {
+  if (opcode() != IrOpcode::kInt32Mul) return;
+  // TODO(dcarney): should test 64 bit ints as well.
+  Int32BinopMatcher m(this->node());
+  if (!m.right().HasValue()) return;
+  int32_t value = m.right().Value();
+  switch (value) {
+    case 8:
+      power_++;  // Fall through.
+    case 4:
+      power_++;  // Fall through.
+    case 2:
+      power_++;  // Fall through.
+    case 1:
+      break;
+    default:
+      return;
+  }
+  left_ = m.left().node();
+}
+
+
+IndexAndDisplacementMatcher::IndexAndDisplacementMatcher(Node* node)
+    : NodeMatcher(node), index_node_(node), displacement_(0), power_(0) {
+  if (opcode() == IrOpcode::kInt32Add) {
+    Int32BinopMatcher m(this->node());
+    if (m.right().HasValue()) {
+      displacement_ = m.right().Value();
+      index_node_ = m.left().node();
+    }
+  }
+  // Test scale factor.
+  ScaleFactorMatcher scale_matcher(index_node_);
+  if (scale_matcher.Matches()) {
+    index_node_ = scale_matcher.Left();
+    power_ = scale_matcher.Power();
+  }
+}
+
+
+const int LeaMultiplyMatcher::kMatchedFactors[7] = {1, 2, 3, 4, 5, 8, 9};
+
+
+LeaMultiplyMatcher::LeaMultiplyMatcher(Node* node)
+    : NodeMatcher(node), left_(NULL), power_(0), displacement_(0) {
+  if (opcode() != IrOpcode::kInt32Mul && opcode() != IrOpcode::kInt64Mul) {
+    return;
+  }
+  int64_t value;
+  Node* left = NULL;
+  {
+    Int32BinopMatcher m(this->node());
+    if (m.right().HasValue()) {
+      value = m.right().Value();
+      left = m.left().node();
+    } else {
+      Int64BinopMatcher m(this->node());
+      if (m.right().HasValue()) {
+        value = m.right().Value();
+        left = m.left().node();
+      } else {
+        return;
+      }
+    }
+  }
+  switch (value) {
+    case 9:
+    case 8:
+      power_++;  // Fall through.
+    case 5:
+    case 4:
+      power_++;  // Fall through.
+    case 3:
+    case 2:
+      power_++;  // Fall through.
+    case 1:
+      break;
+    default:
+      return;
+  }
+  if (!base::bits::IsPowerOfTwo64(value)) {
+    displacement_ = 1;
+  }
+  left_ = left;
+}
+
+
 class AddressingModeMatcher {
  public:
   AddressingModeMatcher(IA32OperandGenerator* g, Node* base, Node* index)
@@ -144,6 +316,14 @@ class AddressingModeMatcher {
   InstructionOperand* displacement_operand_;
   AddressingMode mode_;
 };
+
+
+static void VisitRRFloat64(InstructionSelector* selector, ArchOpcode opcode,
+                           Node* node) {
+  IA32OperandGenerator g(selector);
+  selector->Emit(opcode, g.DefineAsRegister(node),
+                 g.UseRegister(node->InputAt(0)));
+}
 
 
 void InstructionSelector::VisitLoad(Node* node) {
@@ -470,23 +650,43 @@ void InstructionSelector::VisitInt32Mul(Node* node) {
 }
 
 
-void InstructionSelector::VisitInt32MulHigh(Node* node) {
-  IA32OperandGenerator g(this);
-  InstructionOperand* temps[] = {g.TempRegister(eax)};
-  Emit(kIA32ImulHigh, g.DefineAsFixed(node, edx),
-       g.UseFixed(node->InputAt(0), eax), g.UseUniqueRegister(node->InputAt(1)),
-       arraysize(temps), temps);
+namespace {
+
+void VisitMulHigh(InstructionSelector* selector, Node* node,
+                  ArchOpcode opcode) {
+  IA32OperandGenerator g(selector);
+  selector->Emit(opcode, g.DefineAsFixed(node, edx),
+                 g.UseFixed(node->InputAt(0), eax),
+                 g.UseUniqueRegister(node->InputAt(1)));
 }
 
 
-static inline void VisitDiv(InstructionSelector* selector, Node* node,
-                            ArchOpcode opcode) {
+void VisitDiv(InstructionSelector* selector, Node* node, ArchOpcode opcode) {
   IA32OperandGenerator g(selector);
   InstructionOperand* temps[] = {g.TempRegister(edx)};
-  size_t temp_count = arraysize(temps);
   selector->Emit(opcode, g.DefineAsFixed(node, eax),
                  g.UseFixed(node->InputAt(0), eax),
-                 g.UseUnique(node->InputAt(1)), temp_count, temps);
+                 g.UseUnique(node->InputAt(1)), arraysize(temps), temps);
+}
+
+
+void VisitMod(InstructionSelector* selector, Node* node, ArchOpcode opcode) {
+  IA32OperandGenerator g(selector);
+  selector->Emit(opcode, g.DefineAsFixed(node, edx),
+                 g.UseFixed(node->InputAt(0), eax),
+                 g.UseUnique(node->InputAt(1)));
+}
+
+}  // namespace
+
+
+void InstructionSelector::VisitInt32MulHigh(Node* node) {
+  VisitMulHigh(this, node, kIA32ImulHigh);
+}
+
+
+void InstructionSelector::VisitUint32MulHigh(Node* node) {
+  VisitMulHigh(this, node, kIA32UmulHigh);
 }
 
 
@@ -497,17 +697,6 @@ void InstructionSelector::VisitInt32Div(Node* node) {
 
 void InstructionSelector::VisitUint32Div(Node* node) {
   VisitDiv(this, node, kIA32Udiv);
-}
-
-
-static inline void VisitMod(InstructionSelector* selector, Node* node,
-                            ArchOpcode opcode) {
-  IA32OperandGenerator g(selector);
-  InstructionOperand* temps[] = {g.TempRegister(eax), g.TempRegister(edx)};
-  size_t temp_count = arraysize(temps);
-  selector->Emit(opcode, g.DefineAsFixed(node, edx),
-                 g.UseFixed(node->InputAt(0), eax),
-                 g.UseUnique(node->InputAt(1)), temp_count, temps);
 }
 
 
@@ -560,28 +749,28 @@ void InstructionSelector::VisitTruncateFloat64ToFloat32(Node* node) {
 void InstructionSelector::VisitFloat64Add(Node* node) {
   IA32OperandGenerator g(this);
   Emit(kSSEFloat64Add, g.DefineSameAsFirst(node),
-       g.UseRegister(node->InputAt(0)), g.UseRegister(node->InputAt(1)));
+       g.UseRegister(node->InputAt(0)), g.Use(node->InputAt(1)));
 }
 
 
 void InstructionSelector::VisitFloat64Sub(Node* node) {
   IA32OperandGenerator g(this);
   Emit(kSSEFloat64Sub, g.DefineSameAsFirst(node),
-       g.UseRegister(node->InputAt(0)), g.UseRegister(node->InputAt(1)));
+       g.UseRegister(node->InputAt(0)), g.Use(node->InputAt(1)));
 }
 
 
 void InstructionSelector::VisitFloat64Mul(Node* node) {
   IA32OperandGenerator g(this);
   Emit(kSSEFloat64Mul, g.DefineSameAsFirst(node),
-       g.UseRegister(node->InputAt(0)), g.UseRegister(node->InputAt(1)));
+       g.UseRegister(node->InputAt(0)), g.Use(node->InputAt(1)));
 }
 
 
 void InstructionSelector::VisitFloat64Div(Node* node) {
   IA32OperandGenerator g(this);
   Emit(kSSEFloat64Div, g.DefineSameAsFirst(node),
-       g.UseRegister(node->InputAt(0)), g.UseRegister(node->InputAt(1)));
+       g.UseRegister(node->InputAt(0)), g.Use(node->InputAt(1)));
 }
 
 
@@ -597,6 +786,29 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
 void InstructionSelector::VisitFloat64Sqrt(Node* node) {
   IA32OperandGenerator g(this);
   Emit(kSSEFloat64Sqrt, g.DefineAsRegister(node), g.Use(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitFloat64Floor(Node* node) {
+  DCHECK(CpuFeatures::IsSupported(SSE4_1));
+  VisitRRFloat64(this, kSSEFloat64Floor, node);
+}
+
+
+void InstructionSelector::VisitFloat64Ceil(Node* node) {
+  DCHECK(CpuFeatures::IsSupported(SSE4_1));
+  VisitRRFloat64(this, kSSEFloat64Ceil, node);
+}
+
+
+void InstructionSelector::VisitFloat64RoundTruncate(Node* node) {
+  DCHECK(CpuFeatures::IsSupported(SSE4_1));
+  VisitRRFloat64(this, kSSEFloat64RoundTruncate, node);
+}
+
+
+void InstructionSelector::VisitFloat64RoundTiesAway(Node* node) {
+  UNREACHABLE();
 }
 
 
@@ -885,6 +1097,11 @@ void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
+  if (CpuFeatures::IsSupported(SSE4_1)) {
+    return MachineOperatorBuilder::kFloat64Floor |
+           MachineOperatorBuilder::kFloat64Ceil |
+           MachineOperatorBuilder::kFloat64RoundTruncate;
+  }
   return MachineOperatorBuilder::Flag::kNoFlags;
 }
 }  // namespace compiler

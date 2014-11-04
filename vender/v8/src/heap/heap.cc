@@ -939,6 +939,8 @@ bool Heap::ReserveSpace(Reservation* reservations) {
         for (auto& chunk : *reservation) {
           AllocationResult allocation;
           int size = chunk.size;
+          DCHECK_LE(size, MemoryAllocator::PageAreaSize(
+                              static_cast<AllocationSpace>(space)));
           if (space == NEW_SPACE) {
             allocation = new_space()->AllocateRaw(size);
           } else {
@@ -4543,8 +4545,6 @@ bool Heap::InSpace(Address addr, AllocationSpace space) {
       return property_cell_space_->Contains(addr);
     case LO_SPACE:
       return lo_space_->SlowContains(addr);
-    case INVALID_SPACE:
-      break;
   }
   UNREACHABLE();
   return false;

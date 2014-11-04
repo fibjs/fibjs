@@ -647,12 +647,7 @@ static void RecordFunctionCompilation(Logger::LogEventsAndTags tag,
 
 static bool CompileUnoptimizedCode(CompilationInfo* info) {
   DCHECK(AllowCompilation::IsAllowed(info->isolate()));
-  DCHECK(info->function() != NULL);
-  if (!Rewriter::Rewrite(info)) return false;
-  if (!Scope::Analyze(info)) return false;
-  DCHECK(info->scope() != NULL);
-
-  if (!FullCodeGenerator::MakeCode(info)) {
+  if (!Compiler::Analyze(info) || !FullCodeGenerator::MakeCode(info)) {
     Isolate* isolate = info->isolate();
     if (!isolate->has_pending_exception()) isolate->StackOverflow();
     return false;
@@ -673,7 +668,6 @@ MUST_USE_RESULT static MaybeHandle<Code> GetUnoptimizedCodeCommon(
   shared->set_strict_mode(lit->strict_mode());
   SetExpectedNofPropertiesFromEstimate(shared, lit->expected_property_count());
   shared->set_bailout_reason(lit->dont_optimize_reason());
-  shared->set_ast_node_count(lit->ast_node_count());
 
   // Compile unoptimized code.
   if (!CompileUnoptimizedCode(info)) return MaybeHandle<Code>();
@@ -743,18 +737,33 @@ static void InsertCodeIntoOptimizedCodeMap(CompilationInfo* info) {
 }
 
 
-static bool CompileOptimizedPrologue(CompilationInfo* info) {
-  if (!Parser::Parse(info)) return false;
+static bool Renumber(CompilationInfo* info) {
+  if (!AstNumbering::Renumber(info->function(), info->zone())) return false;
+  if (!info->shared_info().is_null()) {
+    info->shared_info()->set_ast_node_count(info->function()->ast_node_count());
+  }
+  return true;
+}
+
+
+bool Compiler::Analyze(CompilationInfo* info) {
+  DCHECK(info->function() != NULL);
   if (!Rewriter::Rewrite(info)) return false;
   if (!Scope::Analyze(info)) return false;
-  if (!AstNumbering::Renumber(info->function(), info->zone())) return false;
+  if (!Renumber(info)) return false;
   DCHECK(info->scope() != NULL);
   return true;
 }
 
 
+bool Compiler::ParseAndAnalyze(CompilationInfo* info) {
+  if (!Parser::Parse(info)) return false;
+  return Compiler::Analyze(info);
+}
+
+
 static bool GetOptimizedCodeNow(CompilationInfo* info) {
-  if (!CompileOptimizedPrologue(info)) return false;
+  if (!Compiler::ParseAndAnalyze(info)) return false;
 
   TimerEventScope<TimerEventRecompileSynchronous> timer(info->isolate());
 
@@ -796,7 +805,7 @@ static bool GetOptimizedCodeLater(CompilationInfo* info) {
   }
 
   CompilationHandleScope handle_scope(info);
-  if (!CompileOptimizedPrologue(info)) return false;
+  if (!Compiler::ParseAndAnalyze(info)) return false;
   info->SaveHandles();  // Copy handles to the compilation handle scope.
 
   TimerEventScope<TimerEventRecompileSynchronous> timer(info->isolate());
@@ -836,14 +845,17 @@ MaybeHandle<Code> Compiler::GetUnoptimizedCode(Handle<JSFunction> function) {
 
 
 MaybeHandle<Code> Compiler::GetLazyCode(Handle<JSFunction> function) {
-  DCHECK(!function->GetIsolate()->has_pending_exception());
+  Isolate* isolate = function->GetIsolate();
+  DCHECK(!isolate->has_pending_exception());
   DCHECK(!function->is_compiled());
-
-  if (FLAG_turbo_asm && function->shared()->asm_function()) {
+  // If the debugger is active, do not compile with turbofan unless we can
+  // deopt from turbofan code.
+  if (FLAG_turbo_asm && function->shared()->asm_function() &&
+      (FLAG_turbo_deoptimization || !isolate->debug()->is_active())) {
     CompilationInfoWithZone info(function);
 
-    VMState<COMPILER> state(info.isolate());
-    PostponeInterruptsScope postpone(info.isolate());
+    VMState<COMPILER> state(isolate);
+    PostponeInterruptsScope postpone(isolate);
 
     info.SetOptimizing(BailoutId::None(),
                        Handle<Code>(function->shared()->code()));
@@ -852,7 +864,10 @@ MaybeHandle<Code> Compiler::GetLazyCode(Handle<JSFunction> function) {
     info.MarkAsTypingEnabled();
     info.MarkAsInliningDisabled();
 
-    if (GetOptimizedCodeNow(&info)) return info.code();
+    if (GetOptimizedCodeNow(&info)) {
+      DCHECK(function->shared()->is_compiled());
+      return info.code();
+    }
   }
 
   if (function->shared()->is_compiled()) {
@@ -861,13 +876,12 @@ MaybeHandle<Code> Compiler::GetLazyCode(Handle<JSFunction> function) {
 
   CompilationInfoWithZone info(function);
   Handle<Code> result;
-  ASSIGN_RETURN_ON_EXCEPTION(info.isolate(), result,
-                             GetUnoptimizedCodeCommon(&info), Code);
+  ASSIGN_RETURN_ON_EXCEPTION(isolate, result, GetUnoptimizedCodeCommon(&info),
+                             Code);
 
-  if (FLAG_always_opt &&
-      info.isolate()->use_crankshaft() &&
+  if (FLAG_always_opt && isolate->use_crankshaft() &&
       !info.shared_info()->optimization_disabled() &&
-      !info.isolate()->DebuggerHasBreakPoints()) {
+      !isolate->DebuggerHasBreakPoints()) {
     Handle<Code> opt_code;
     if (Compiler::GetOptimizedCode(
             function, result,
@@ -910,6 +924,8 @@ bool Compiler::EnsureCompiled(Handle<JSFunction> function,
 // TODO(turbofan): In the future, unoptimized code with deopt support could
 // be generated lazily once deopt is triggered.
 bool Compiler::EnsureDeoptimizationSupport(CompilationInfo* info) {
+  DCHECK(info->function() != NULL);
+  DCHECK(info->scope() != NULL);
   if (!info->shared_info()->has_deoptimization_support()) {
     CompilationInfoWithZone unoptimized(info->shared_info());
     // Note that we use the same AST that we will use for generating the
@@ -1096,11 +1112,9 @@ static Handle<SharedFunctionInfo> CompileToplevel(CompilationInfo* info) {
 
 
 MaybeHandle<JSFunction> Compiler::GetFunctionFromEval(
-    Handle<String> source,
-    Handle<Context> context,
-    StrictMode strict_mode,
-    ParseRestriction restriction,
-    int scope_position) {
+    Handle<String> source, Handle<SharedFunctionInfo> outer_info,
+    Handle<Context> context, StrictMode strict_mode,
+    ParseRestriction restriction, int scope_position) {
   Isolate* isolate = source->GetIsolate();
   int source_length = source->length();
   isolate->counters()->total_eval_size()->Increment(source_length);
@@ -1108,7 +1122,7 @@ MaybeHandle<JSFunction> Compiler::GetFunctionFromEval(
 
   CompilationCache* compilation_cache = isolate->compilation_cache();
   MaybeHandle<SharedFunctionInfo> maybe_shared_info =
-      compilation_cache->LookupEval(source, context, strict_mode,
+      compilation_cache->LookupEval(source, outer_info, context, strict_mode,
                                     scope_position);
   Handle<SharedFunctionInfo> shared_info;
 
@@ -1135,8 +1149,8 @@ MaybeHandle<JSFunction> Compiler::GetFunctionFromEval(
       // If caller is strict mode, the result must be in strict mode as well.
       DCHECK(strict_mode == SLOPPY || shared_info->strict_mode() == STRICT);
       if (!shared_info->dont_cache()) {
-        compilation_cache->PutEval(
-            source, context, shared_info, scope_position);
+        compilation_cache->PutEval(source, outer_info, context, shared_info,
+                                   scope_position);
       }
     }
   } else if (shared_info->ic_age() != isolate->heap()->global_ic_age()) {
@@ -1294,7 +1308,7 @@ Handle<SharedFunctionInfo> Compiler::BuildFunctionInfo(
 
   if (outer_info->is_toplevel() && outer_info->will_serialize()) {
     // Make sure that if the toplevel code (possibly to be serialized),
-    // the inner unction must be allowed to be compiled lazily.
+    // the inner function must be allowed to be compiled lazily.
     DCHECK(allow_lazy);
   }
 
@@ -1304,7 +1318,7 @@ Handle<SharedFunctionInfo> Compiler::BuildFunctionInfo(
     Handle<Code> code = isolate->builtins()->CompileLazy();
     info.SetCode(code);
     scope_info = Handle<ScopeInfo>(ScopeInfo::Empty(isolate));
-  } else if (FullCodeGenerator::MakeCode(&info)) {
+  } else if (Renumber(&info) && FullCodeGenerator::MakeCode(&info)) {
     DCHECK(!info.code().is_null());
     scope_info = ScopeInfo::Create(info.scope(), info.zone());
   } else {
@@ -1428,8 +1442,10 @@ Handle<Code> Compiler::GetConcurrentlyOptimizedCode(OptimizedCompileJob* job) {
 
 bool Compiler::DebuggerWantsEagerCompilation(CompilationInfo* info,
                                              bool allow_lazy_without_ctx) {
-  return LiveEditFunctionTracker::IsActive(info->isolate()) ||
-         (info->isolate()->DebuggerHasBreakPoints() && !allow_lazy_without_ctx);
+  if (LiveEditFunctionTracker::IsActive(info->isolate())) return true;
+  Debug* debug = info->isolate()->debug();
+  bool debugging = debug->is_active() || debug->has_break_points();
+  return debugging && !allow_lazy_without_ctx;
 }
 
 

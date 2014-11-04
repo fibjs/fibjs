@@ -90,6 +90,14 @@ class Arm64OperandGenerator FINAL : public OperandGenerator {
 };
 
 
+static void VisitRRFloat64(InstructionSelector* selector, ArchOpcode opcode,
+                           Node* node) {
+  Arm64OperandGenerator g(selector);
+  selector->Emit(opcode, g.DefineAsRegister(node),
+                 g.UseRegister(node->InputAt(0)));
+}
+
+
 static void VisitRRR(InstructionSelector* selector, ArchOpcode opcode,
                      Node* node) {
   Arm64OperandGenerator g(selector);
@@ -442,6 +450,13 @@ void InstructionSelector::VisitWord32And(Node* node) {
       // significant bits.
       Int32BinopMatcher mleft(m.left().node());
       if (mleft.right().IsInRange(0, 31)) {
+        // Ubfx cannot extract bits past the register size, however since
+        // shifting the original value would have introduced some zeros we can
+        // still use ubfx with a smaller mask and the remaining bits will be
+        // zeros.
+        uint32_t lsb = mleft.right().Value();
+        if (lsb + mask_width > 32) mask_width = 32 - lsb;
+
         Emit(kArm64Ubfx32, g.DefineAsRegister(node),
              g.UseRegister(mleft.left().node()),
              g.UseImmediate(mleft.right().node()), g.TempImmediate(mask_width));
@@ -472,6 +487,13 @@ void InstructionSelector::VisitWord64And(Node* node) {
       // significant bits.
       Int64BinopMatcher mleft(m.left().node());
       if (mleft.right().IsInRange(0, 63)) {
+        // Ubfx cannot extract bits past the register size, however since
+        // shifting the original value would have introduced some zeros we can
+        // still use ubfx with a smaller mask and the remaining bits will be
+        // zeros.
+        uint64_t lsb = mleft.right().Value();
+        if (lsb + mask_width > 64) mask_width = 64 - lsb;
+
         Emit(kArm64Ubfx, g.DefineAsRegister(node),
              g.UseRegister(mleft.left().node()),
              g.UseImmediate(mleft.right().node()), g.TempImmediate(mask_width));
@@ -760,6 +782,16 @@ void InstructionSelector::VisitInt32MulHigh(Node* node) {
 }
 
 
+void InstructionSelector::VisitUint32MulHigh(Node* node) {
+  // TODO(arm64): Can we do better here?
+  Arm64OperandGenerator g(this);
+  InstructionOperand* const smull_operand = g.TempRegister();
+  Emit(kArm64Umull, smull_operand, g.UseRegister(node->InputAt(0)),
+       g.UseRegister(node->InputAt(1)));
+  Emit(kArm64Lsr, g.DefineAsRegister(node), smull_operand, g.TempImmediate(32));
+}
+
+
 void InstructionSelector::VisitInt32Div(Node* node) {
   VisitRRR(this, kArm64Idiv32, node);
 }
@@ -889,9 +921,27 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
 
 
 void InstructionSelector::VisitFloat64Sqrt(Node* node) {
-  Arm64OperandGenerator g(this);
-  Emit(kArm64Float64Sqrt, g.DefineAsRegister(node),
-       g.UseRegister(node->InputAt(0)));
+  VisitRRFloat64(this, kArm64Float64Sqrt, node);
+}
+
+
+void InstructionSelector::VisitFloat64Floor(Node* node) {
+  VisitRRFloat64(this, kArm64Float64Floor, node);
+}
+
+
+void InstructionSelector::VisitFloat64Ceil(Node* node) {
+  VisitRRFloat64(this, kArm64Float64Ceil, node);
+}
+
+
+void InstructionSelector::VisitFloat64RoundTruncate(Node* node) {
+  VisitRRFloat64(this, kArm64Float64RoundTruncate, node);
+}
+
+
+void InstructionSelector::VisitFloat64RoundTiesAway(Node* node) {
+  VisitRRFloat64(this, kArm64Float64RoundTiesAway, node);
 }
 
 
@@ -1158,9 +1208,44 @@ void InstructionSelector::VisitBranch(Node* branch, BasicBlock* tbranch,
       case IrOpcode::kInt32Sub:
         return VisitWordCompare(this, value, kArm64Cmp32, &cont, false,
                                 kArithmeticImm);
-      case IrOpcode::kWord32And:
+      case IrOpcode::kWord32And: {
+        Int32BinopMatcher m(value);
+        if (m.right().HasValue() &&
+            (base::bits::CountPopulation32(m.right().Value()) == 1)) {
+          // If the mask has only one bit set, we can use tbz/tbnz.
+          DCHECK((cont.condition() == kEqual) ||
+                 (cont.condition() == kNotEqual));
+          ArchOpcode opcode =
+              (cont.condition() == kEqual) ? kArm64Tbz32 : kArm64Tbnz32;
+          Emit(opcode, NULL, g.UseRegister(m.left().node()),
+               g.TempImmediate(
+                   base::bits::CountTrailingZeros32(m.right().Value())),
+               g.Label(cont.true_block()),
+               g.Label(cont.false_block()))->MarkAsControl();
+          return;
+        }
         return VisitWordCompare(this, value, kArm64Tst32, &cont, true,
                                 kLogical32Imm);
+      }
+      case IrOpcode::kWord64And: {
+        Int64BinopMatcher m(value);
+        if (m.right().HasValue() &&
+            (base::bits::CountPopulation64(m.right().Value()) == 1)) {
+          // If the mask has only one bit set, we can use tbz/tbnz.
+          DCHECK((cont.condition() == kEqual) ||
+                 (cont.condition() == kNotEqual));
+          ArchOpcode opcode =
+              (cont.condition() == kEqual) ? kArm64Tbz : kArm64Tbnz;
+          Emit(opcode, NULL, g.UseRegister(m.left().node()),
+               g.TempImmediate(
+                   base::bits::CountTrailingZeros64(m.right().Value())),
+               g.Label(cont.true_block()),
+               g.Label(cont.false_block()))->MarkAsControl();
+          return;
+        }
+        return VisitWordCompare(this, value, kArm64Tst, &cont, true,
+                                kLogical64Imm);
+      }
       default:
         break;
     }
@@ -1304,7 +1389,10 @@ void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
-  return MachineOperatorBuilder::Flag::kNoFlags;
+  return MachineOperatorBuilder::kFloat64Floor |
+         MachineOperatorBuilder::kFloat64Ceil |
+         MachineOperatorBuilder::kFloat64RoundTruncate |
+         MachineOperatorBuilder::kFloat64RoundTiesAway;
 }
 }  // namespace compiler
 }  // namespace internal

@@ -336,11 +336,9 @@ class ParserBase : public Traits {
 
   bool peek_any_identifier() {
     Token::Value next = peek();
-    return next == Token::IDENTIFIER ||
-        next == Token::FUTURE_RESERVED_WORD ||
-        next == Token::FUTURE_STRICT_RESERVED_WORD ||
-        next == Token::LET ||
-        next == Token::YIELD;
+    return next == Token::IDENTIFIER || next == Token::FUTURE_RESERVED_WORD ||
+           next == Token::FUTURE_STRICT_RESERVED_WORD || next == Token::LET ||
+           next == Token::STATIC || next == Token::YIELD;
   }
 
   bool CheckContextualKeyword(Vector<const char> keyword) {
@@ -476,6 +474,7 @@ class ParserBase : public Traits {
   ExpressionT ParseObjectLiteral(bool* ok);
   ObjectLiteralPropertyT ParsePropertyDefinition(ObjectLiteralChecker* checker,
                                                  bool in_class, bool is_static,
+                                                 bool* has_seen_constructor,
                                                  bool* ok);
   typename Traits::Type::ExpressionList ParseArguments(bool* ok);
   ExpressionT ParseAssignmentExpression(bool accept_IN, bool* ok);
@@ -605,6 +604,9 @@ class PreParserIdentifier {
   static PreParserIdentifier Let() {
     return PreParserIdentifier(kLetIdentifier);
   }
+  static PreParserIdentifier Static() {
+    return PreParserIdentifier(kStaticIdentifier);
+  }
   static PreParserIdentifier Yield() {
     return PreParserIdentifier(kYieldIdentifier);
   }
@@ -618,6 +620,8 @@ class PreParserIdentifier {
   bool IsArguments(const AstValueFactory* = NULL) const {
     return type_ == kArgumentsIdentifier;
   }
+  bool IsLet() const { return type_ == kLetIdentifier; }
+  bool IsStatic() const { return type_ == kStaticIdentifier; }
   bool IsYield() const { return type_ == kYieldIdentifier; }
   bool IsPrototype() const { return type_ == kPrototypeIdentifier; }
   bool IsConstructor() const { return type_ == kConstructorIdentifier; }
@@ -626,14 +630,15 @@ class PreParserIdentifier {
   }
   bool IsFutureReserved() const { return type_ == kFutureReservedIdentifier; }
   bool IsFutureStrictReserved() const {
-    return type_ == kFutureStrictReservedIdentifier;
+    return type_ == kFutureStrictReservedIdentifier ||
+           type_ == kLetIdentifier || type_ == kStaticIdentifier ||
+           type_ == kYieldIdentifier;
   }
   bool IsValidStrictVariable() const { return type_ == kUnknownIdentifier; }
   V8_INLINE bool IsValidArrowParam() const {
     // A valid identifier can be an arrow function parameter
     // except for eval, arguments, yield, and reserved keywords.
-    return !(IsEval() || IsArguments() || IsYield() ||
-             IsFutureStrictReserved());
+    return !(IsEval() || IsArguments() || IsFutureStrictReserved());
   }
 
   // Allow identifier->name()[->length()] to work. The preparser
@@ -650,6 +655,7 @@ class PreParserIdentifier {
     kFutureReservedIdentifier,
     kFutureStrictReservedIdentifier,
     kLetIdentifier,
+    kStaticIdentifier,
     kYieldIdentifier,
     kEvalIdentifier,
     kArgumentsIdentifier,
@@ -1171,7 +1177,7 @@ class PreParserTraits {
   }
 
   static bool IsFutureStrictReserved(PreParserIdentifier identifier) {
-    return identifier.IsYield() || identifier.IsFutureStrictReserved();
+    return identifier.IsFutureStrictReserved();
   }
 
   static bool IsBoilerplateProperty(PreParserExpression property) {
@@ -1183,10 +1189,7 @@ class PreParserTraits {
     return false;
   }
 
-  bool IsConstructorProperty(PreParserExpression property) { return false; }
-
   static PreParserExpression GetPropertyValue(PreParserExpression property) {
-    UNREACHABLE();
     return PreParserExpression::Default();
   }
 
@@ -1595,6 +1598,7 @@ void ParserBase<Traits>::ReportUnexpectedToken(Token::Value token) {
     case Token::FUTURE_RESERVED_WORD:
       return ReportMessageAt(source_location, "unexpected_reserved");
     case Token::LET:
+    case Token::STATIC:
     case Token::YIELD:
     case Token::FUTURE_STRICT_RESERVED_WORD:
       return ReportMessageAt(source_location, strict_mode() == SLOPPY
@@ -1624,8 +1628,8 @@ typename ParserBase<Traits>::IdentifierT ParserBase<Traits>::ParseIdentifier(
     return name;
   } else if (strict_mode() == SLOPPY &&
              (next == Token::FUTURE_STRICT_RESERVED_WORD ||
-             (next == Token::LET) ||
-             (next == Token::YIELD && !is_generator()))) {
+              next == Token::LET || next == Token::STATIC ||
+              (next == Token::YIELD && !is_generator()))) {
     return this->GetSymbol(scanner());
   } else {
     this->ReportUnexpectedToken(next);
@@ -1642,8 +1646,8 @@ typename ParserBase<Traits>::IdentifierT ParserBase<
   Token::Value next = Next();
   if (next == Token::IDENTIFIER) {
     *is_strict_reserved = false;
-  } else if (next == Token::FUTURE_STRICT_RESERVED_WORD ||
-             next == Token::LET ||
+  } else if (next == Token::FUTURE_STRICT_RESERVED_WORD || next == Token::LET ||
+             next == Token::STATIC ||
              (next == Token::YIELD && !this->is_generator())) {
     *is_strict_reserved = true;
   } else {
@@ -1664,7 +1668,7 @@ typename ParserBase<Traits>::IdentifierT
 ParserBase<Traits>::ParseIdentifierName(bool* ok) {
   Token::Value next = Next();
   if (next != Token::IDENTIFIER && next != Token::FUTURE_RESERVED_WORD &&
-      next != Token::LET && next != Token::YIELD &&
+      next != Token::LET && next != Token::STATIC && next != Token::YIELD &&
       next != Token::FUTURE_STRICT_RESERVED_WORD && !Token::IsKeyword(next)) {
     this->ReportUnexpectedToken(next);
     *ok = false;
@@ -1706,7 +1710,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseRegExpLiteral(
   IdentifierT js_pattern = this->GetNextSymbol(scanner());
   if (!scanner()->ScanRegExpFlags()) {
     Next();
-    ReportMessage("invalid_regexp_flags");
+    ReportMessage("malformed_regexp_flags");
     *ok = false;
     return Traits::EmptyExpression();
   }
@@ -1767,6 +1771,7 @@ ParserBase<Traits>::ParsePrimaryExpression(bool* ok) {
 
     case Token::IDENTIFIER:
     case Token::LET:
+    case Token::STATIC:
     case Token::YIELD:
     case Token::FUTURE_STRICT_RESERVED_WORD: {
       // Using eval or arguments in this context is OK even in strict mode.
@@ -1925,7 +1930,9 @@ typename ParserBase<Traits>::IdentifierT ParserBase<Traits>::ParsePropertyName(
 template <class Traits>
 typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
     Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
-                                     bool in_class, bool is_static, bool* ok) {
+                                     bool in_class, bool is_static,
+                                     bool* has_seen_constructor, bool* ok) {
+  DCHECK(!in_class || is_static || has_seen_constructor != NULL);
   ExpressionT value = this->EmptyExpression();
   bool is_get = false;
   bool is_set = false;
@@ -1942,8 +1949,10 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
 
   if (!in_class && !is_generator && peek() == Token::COLON) {
     // PropertyDefinition : PropertyName ':' AssignmentExpression
-    checker->CheckProperty(name_token, kValueProperty,
-                           CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+    if (checker != NULL) {
+      checker->CheckProperty(name_token, kValueProperty,
+                             CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+    }
     Consume(Token::COLON);
     value = this->ParseAssignmentExpression(
         true, CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
@@ -1968,11 +1977,20 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
         return this->EmptyObjectLiteralProperty();
       }
 
+      if (*has_seen_constructor) {
+        ReportMessageAt(scanner()->location(), "duplicate_constructor");
+        *ok = false;
+        return this->EmptyObjectLiteralProperty();
+      }
+
+      *has_seen_constructor = true;
       kind = FunctionKind::kNormalFunction;
     }
 
-    checker->CheckProperty(name_token, kValueProperty,
-                           CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+    if (checker != NULL) {
+      checker->CheckProperty(name_token, kValueProperty,
+                             CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+    }
 
     value = this->ParseFunctionLiteral(
         name, scanner()->location(),
@@ -1983,7 +2001,7 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
 
   } else if (in_class && name_is_static && !is_static) {
     // static MethodDefinition
-    return ParsePropertyDefinition(checker, true, true, ok);
+    return ParsePropertyDefinition(checker, true, true, NULL, ok);
 
   } else if (is_get || is_set) {
     // Accessor
@@ -1998,16 +2016,15 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
       *ok = false;
       return this->EmptyObjectLiteralProperty();
     } else if (in_class && !is_static && this->IsConstructor(name)) {
-      // ES6, spec draft rev 27, treats static get constructor as an error too.
-      // https://bugs.ecmascript.org/show_bug.cgi?id=3223
-      // TODO(arv): Update when bug is resolved.
       ReportMessageAt(scanner()->location(), "constructor_special_method");
       *ok = false;
       return this->EmptyObjectLiteralProperty();
     }
-    checker->CheckProperty(name_token,
-                           is_get ? kGetterProperty : kSetterProperty,
-                           CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+    if (checker != NULL) {
+      checker->CheckProperty(name_token,
+                             is_get ? kGetterProperty : kSetterProperty,
+                             CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+    }
 
     typename Traits::Type::FunctionLiteral value = this->ParseFunctionLiteral(
         name, scanner()->location(),
@@ -2061,8 +2078,8 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
 
     const bool in_class = false;
     const bool is_static = false;
-    ObjectLiteralPropertyT property =
-        this->ParsePropertyDefinition(&checker, in_class, is_static, CHECK_OK);
+    ObjectLiteralPropertyT property = this->ParsePropertyDefinition(
+        &checker, in_class, is_static, NULL, CHECK_OK);
 
     // Mark top-level object literals that contain function literals and
     // pretenure the literal so it can be added as a constant function
@@ -2744,22 +2761,22 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseClassLiteral(
   scope_->SetStrictMode(STRICT);
   scope_->SetScopeName(name);
 
-  ObjectLiteralChecker checker(this, STRICT);
   typename Traits::Type::PropertyList properties =
       this->NewPropertyList(4, zone_);
   ExpressionT constructor = this->EmptyExpression();
+  bool has_seen_constructor = false;
 
   Expect(Token::LBRACE, CHECK_OK);
   while (peek() != Token::RBRACE) {
     if (Check(Token::SEMICOLON)) continue;
     if (fni_ != NULL) fni_->Enter();
-
     const bool in_class = true;
     const bool is_static = false;
-    ObjectLiteralPropertyT property =
-        this->ParsePropertyDefinition(&checker, in_class, is_static, CHECK_OK);
+    bool old_has_seen_constructor = has_seen_constructor;
+    ObjectLiteralPropertyT property = this->ParsePropertyDefinition(
+        NULL, in_class, is_static, &has_seen_constructor, CHECK_OK);
 
-    if (this->IsConstructorProperty(property)) {
+    if (has_seen_constructor != old_has_seen_constructor) {
       constructor = this->GetPropertyValue(property);
     } else {
       properties->Add(property, zone());

@@ -38,12 +38,7 @@ class X64OperandConverter : public InstructionOperandConverter {
   Operand OutputOperand() { return ToOperand(instr_->Output()); }
 
   Immediate ToImmediate(InstructionOperand* operand) {
-    Constant constant = ToConstant(operand);
-    if (constant.type() == Constant::kInt32) {
-      return Immediate(constant.ToInt32());
-    }
-    UNREACHABLE();
-    return Immediate(-1);
+    return Immediate(ToConstant(operand).ToInt32());
   }
 
   Operand ToOperand(InstructionOperand* op, int extra = 0) {
@@ -206,6 +201,16 @@ static bool HasImmediateInput(Instruction* instr, int index) {
   } while (0)
 
 
+#define ASSEMBLE_DOUBLE_BINOP(asm_instr)                                \
+  do {                                                                  \
+    if (instr->InputAt(1)->IsDoubleRegister()) {                        \
+      __ asm_instr(i.InputDoubleRegister(0), i.InputDoubleRegister(1)); \
+    } else {                                                            \
+      __ asm_instr(i.InputDoubleRegister(0), i.InputOperand(1));        \
+    }                                                                   \
+  } while (0)
+
+
 // Assembles an instruction after register allocation, producing machine code.
 void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   X64OperandConverter i(this, instr);
@@ -288,7 +293,18 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       ASSEMBLE_MULT(imulq);
       break;
     case kX64ImulHigh32:
-      __ imull(i.InputRegister(1));
+      if (instr->InputAt(1)->IsRegister()) {
+        __ imull(i.InputRegister(1));
+      } else {
+        __ imull(i.InputOperand(1));
+      }
+      break;
+    case kX64UmulHigh32:
+      if (instr->InputAt(1)->IsRegister()) {
+        __ mull(i.InputRegister(1));
+      } else {
+        __ mull(i.InputOperand(1));
+      }
       break;
     case kX64Idiv32:
       __ cdq();
@@ -355,23 +371,19 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       ASSEMBLE_SHIFT(rorq, 6);
       break;
     case kSSEFloat64Cmp:
-      if (instr->InputAt(1)->IsDoubleRegister()) {
-        __ ucomisd(i.InputDoubleRegister(0), i.InputDoubleRegister(1));
-      } else {
-        __ ucomisd(i.InputDoubleRegister(0), i.InputOperand(1));
-      }
+      ASSEMBLE_DOUBLE_BINOP(ucomisd);
       break;
     case kSSEFloat64Add:
-      __ addsd(i.InputDoubleRegister(0), i.InputDoubleRegister(1));
+      ASSEMBLE_DOUBLE_BINOP(addsd);
       break;
     case kSSEFloat64Sub:
-      __ subsd(i.InputDoubleRegister(0), i.InputDoubleRegister(1));
+      ASSEMBLE_DOUBLE_BINOP(subsd);
       break;
     case kSSEFloat64Mul:
-      __ mulsd(i.InputDoubleRegister(0), i.InputDoubleRegister(1));
+      ASSEMBLE_DOUBLE_BINOP(mulsd);
       break;
     case kSSEFloat64Div:
-      __ divsd(i.InputDoubleRegister(0), i.InputDoubleRegister(1));
+      ASSEMBLE_DOUBLE_BINOP(divsd);
       break;
     case kSSEFloat64Mod: {
       __ subq(rsp, Immediate(kDoubleSize));
@@ -411,6 +423,24 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
         __ sqrtsd(i.OutputDoubleRegister(), i.InputOperand(0));
       }
       break;
+    case kSSEFloat64Floor: {
+      CpuFeatureScope sse_scope(masm(), SSE4_1);
+      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+                 v8::internal::Assembler::kRoundDown);
+      break;
+    }
+    case kSSEFloat64Ceil: {
+      CpuFeatureScope sse_scope(masm(), SSE4_1);
+      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+                 v8::internal::Assembler::kRoundUp);
+      break;
+    }
+    case kSSEFloat64RoundTruncate: {
+      CpuFeatureScope sse_scope(masm(), SSE4_1);
+      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+                 v8::internal::Assembler::kRoundToZero);
+      break;
+    }
     case kSSECvtss2sd:
       if (instr->InputAt(0)->IsDoubleRegister()) {
         __ cvtss2sd(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
@@ -432,16 +462,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
         __ cvttsd2si(i.OutputRegister(), i.InputOperand(0));
       }
       break;
-    case kSSEFloat64ToUint32:
+    case kSSEFloat64ToUint32: {
       if (instr->InputAt(0)->IsDoubleRegister()) {
         __ cvttsd2siq(i.OutputRegister(), i.InputDoubleRegister(0));
       } else {
         __ cvttsd2siq(i.OutputRegister(), i.InputOperand(0));
       }
-      __ andl(i.OutputRegister(), i.OutputRegister());  // clear upper bits.
-      // TODO(turbofan): generated code should not look at the upper 32 bits
-      // of the result, but those bits could escape to the outside world.
+      __ AssertZeroExtended(i.OutputRegister());
       break;
+    }
     case kSSEInt32ToFloat64:
       if (instr->InputAt(0)->IsRegister()) {
         __ cvtlsi2sd(i.OutputDoubleRegister(), i.InputRegister(0));

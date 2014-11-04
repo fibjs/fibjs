@@ -79,6 +79,7 @@
     <ClInclude Include="src\basic-block-profiler.h" />
     <ClInclude Include="src\bignum-dtoa.h" />
     <ClInclude Include="src\bignum.h" />
+    <ClInclude Include="src\bit-vector.h" />
     <ClInclude Include="src\bootstrapper.h" />
     <ClInclude Include="src\builtins.h" />
     <ClInclude Include="src\bytecodes-irregexp.h" />
@@ -97,6 +98,7 @@
     <ClInclude Include="src\compiler.h" />
     <ClInclude Include="src\compiler\access-builder.h" />
     <ClInclude Include="src\compiler\ast-graph-builder.h" />
+    <ClInclude Include="src\compiler\ast-loop-assignment-analyzer.h" />
     <ClInclude Include="src\compiler\basic-block-instrumentor.h" />
     <ClInclude Include="src\compiler\change-lowering.h" />
     <ClInclude Include="src\compiler\code-generator-impl.h" />
@@ -155,6 +157,7 @@
     <ClInclude Include="src\compiler\representation-change.h" />
     <ClInclude Include="src\compiler\schedule.h" />
     <ClInclude Include="src\compiler\scheduler.h" />
+    <ClInclude Include="src\compiler\select-lowering.h" />
     <ClInclude Include="src\compiler\simplified-lowering.h" />
     <ClInclude Include="src\compiler\simplified-operator-reducer.h" />
     <ClInclude Include="src\compiler\simplified-operator.h" />
@@ -170,7 +173,6 @@
     <ClInclude Include="src\counters.h" />
     <ClInclude Include="src\cpu-profiler-inl.h" />
     <ClInclude Include="src\cpu-profiler.h" />
-    <ClInclude Include="src\data-flow.h" />
     <ClInclude Include="src\date.h" />
     <ClInclude Include="src\dateparser-inl.h" />
     <ClInclude Include="src\dateparser.h" />
@@ -437,6 +439,7 @@
     <ClCompile Include="src\basic-block-profiler.cc" />
     <ClCompile Include="src\bignum-dtoa.cc" />
     <ClCompile Include="src\bignum.cc" />
+    <ClCompile Include="src\bit-vector.cc" />
     <ClCompile Include="src\bootstrapper.cc" />
     <ClCompile Include="src\builtins.cc" />
     <ClCompile Include="src\cached-powers.cc" />
@@ -451,6 +454,7 @@
     <ClCompile Include="src\compiler.cc" />
     <ClCompile Include="src\compiler\access-builder.cc" />
     <ClCompile Include="src\compiler\ast-graph-builder.cc" />
+    <ClCompile Include="src\compiler\ast-loop-assignment-analyzer.cc" />
     <ClCompile Include="src\compiler\basic-block-instrumentor.cc" />
     <ClCompile Include="src\compiler\change-lowering.cc" />
     <ClCompile Include="src\compiler\code-generator.cc" />
@@ -481,7 +485,6 @@
     <ClCompile Include="src\compiler\machine-operator.cc" />
     <ClCompile Include="src\compiler\machine-type.cc" />
     <ClCompile Include="src\compiler\node-cache.cc" />
-    <ClCompile Include="src\compiler\node-matchers.cc" />
     <ClCompile Include="src\compiler\node.cc" />
     <ClCompile Include="src\compiler\operator.cc" />
     <ClCompile Include="src\compiler\pipeline-statistics.cc" />
@@ -490,6 +493,7 @@
     <ClCompile Include="src\compiler\register-allocator.cc" />
     <ClCompile Include="src\compiler\schedule.cc" />
     <ClCompile Include="src\compiler\scheduler.cc" />
+    <ClCompile Include="src\compiler\select-lowering.cc" />
     <ClCompile Include="src\compiler\simplified-lowering.cc" />
     <ClCompile Include="src\compiler\simplified-operator-reducer.cc" />
     <ClCompile Include="src\compiler\simplified-operator.cc" />
@@ -505,7 +509,6 @@
     <ClCompile Include="src\conversions.cc" />
     <ClCompile Include="src\counters.cc" />
     <ClCompile Include="src\cpu-profiler.cc" />
-    <ClCompile Include="src\data-flow.cc" />
     <ClCompile Include="src\date.cc" />
     <ClCompile Include="src\dateparser.cc" />
     <ClCompile Include="src\debug.cc" />

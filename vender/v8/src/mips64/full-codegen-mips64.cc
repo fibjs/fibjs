@@ -2305,23 +2305,26 @@ void FullCodeGenerator::EmitCreateIteratorResult(bool done) {
   Label gc_required;
   Label allocated;
 
-  Handle<Map> map(isolate()->native_context()->iterator_result_map());
+  const int instance_size = 5 * kPointerSize;
+  DCHECK_EQ(isolate()->native_context()->iterator_result_map()->instance_size(),
+            instance_size);
 
-  __ Allocate(map->instance_size(), v0, a2, a3, &gc_required, TAG_OBJECT);
+  __ Allocate(instance_size, v0, a2, a3, &gc_required, TAG_OBJECT);
   __ jmp(&allocated);
 
   __ bind(&gc_required);
-  __ Push(Smi::FromInt(map->instance_size()));
+  __ Push(Smi::FromInt(instance_size));
   __ CallRuntime(Runtime::kAllocateInNewSpace, 1);
   __ ld(context_register(),
         MemOperand(fp, StandardFrameConstants::kContextOffset));
 
   __ bind(&allocated);
-  __ li(a1, Operand(map));
+  __ ld(a1, ContextOperand(cp, Context::GLOBAL_OBJECT_INDEX));
+  __ ld(a1, FieldMemOperand(a1, GlobalObject::kNativeContextOffset));
+  __ ld(a1, ContextOperand(a1, Context::ITERATOR_RESULT_MAP_INDEX));
   __ pop(a2);
   __ li(a3, Operand(isolate()->factory()->ToBoolean(done)));
   __ li(a4, Operand(isolate()->factory()->empty_fixed_array()));
-  DCHECK_EQ(map->instance_size(), 5 * kPointerSize);
   __ sd(a1, FieldMemOperand(v0, HeapObject::kMapOffset));
   __ sd(a4, FieldMemOperand(v0, JSObject::kPropertiesOffset));
   __ sd(a4, FieldMemOperand(v0, JSObject::kElementsOffset));
@@ -2476,6 +2479,62 @@ void FullCodeGenerator::EmitInlineSmiBinaryOp(BinaryOperation* expr,
 
   __ bind(&done);
   context()->Plug(v0);
+}
+
+
+void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
+  // Constructor is in v0.
+  DCHECK(lit != NULL);
+  __ push(v0);
+
+  // No access check is needed here since the constructor is created by the
+  // class literal.
+  Register scratch = a1;
+  __ ld(scratch,
+        FieldMemOperand(v0, JSFunction::kPrototypeOrInitialMapOffset));
+  __ push(scratch);
+
+  for (int i = 0; i < lit->properties()->length(); i++) {
+    ObjectLiteral::Property* property = lit->properties()->at(i);
+    Literal* key = property->key()->AsLiteral();
+    Expression* value = property->value();
+    DCHECK(key != NULL);
+
+    if (property->is_static()) {
+      __ ld(scratch, MemOperand(sp, kPointerSize));  // constructor
+    } else {
+      __ ld(scratch, MemOperand(sp, 0));  // prototype
+    }
+    __ push(scratch);
+    VisitForStackValue(key);
+    VisitForStackValue(value);
+
+    switch (property->kind()) {
+      case ObjectLiteral::Property::CONSTANT:
+      case ObjectLiteral::Property::MATERIALIZED_LITERAL:
+      case ObjectLiteral::Property::COMPUTED:
+      case ObjectLiteral::Property::PROTOTYPE:
+        __ CallRuntime(Runtime::kDefineClassMethod, 3);
+        break;
+
+      case ObjectLiteral::Property::GETTER:
+        __ CallRuntime(Runtime::kDefineClassGetter, 3);
+        break;
+
+      case ObjectLiteral::Property::SETTER:
+        __ CallRuntime(Runtime::kDefineClassSetter, 3);
+        break;
+
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  // prototype
+  __ CallRuntime(Runtime::kToFastProperties, 1);
+
+  // constructor
+  __ CallRuntime(Runtime::kToFastProperties, 1);
 }
 
 
@@ -2918,12 +2977,15 @@ void FullCodeGenerator::EmitCall(Call* expr, CallICState::CallType call_type) {
 
 
 void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
-  // a6: copy of the first argument or undefined if it doesn't exist.
+  // a7: copy of the first argument or undefined if it doesn't exist.
   if (arg_count > 0) {
-    __ ld(a6, MemOperand(sp, arg_count * kPointerSize));
+    __ ld(a7, MemOperand(sp, arg_count * kPointerSize));
   } else {
-    __ LoadRoot(a6, Heap::kUndefinedValueRootIndex);
+    __ LoadRoot(a7, Heap::kUndefinedValueRootIndex);
   }
+
+  // a6: the receiver of the enclosing function.
+  __ ld(a6, MemOperand(fp, JavaScriptFrameConstants::kFunctionOffset));
 
   // a5: the receiver of the enclosing function.
   int receiver_offset = 2 + info_->scope()->num_parameters();
@@ -2936,8 +2998,9 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
   __ li(a1, Operand(Smi::FromInt(scope()->start_position())));
 
   // Do the runtime call.
+  __ Push(a7);
   __ Push(a6, a5, a4, a1);
-  __ CallRuntime(Runtime::kResolvePossiblyDirectEval, 5);
+  __ CallRuntime(Runtime::kResolvePossiblyDirectEval, 6);
 }
 
 

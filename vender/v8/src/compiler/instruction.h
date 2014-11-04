@@ -16,30 +16,29 @@
 #include "src/compiler/opcodes.h"
 #include "src/compiler/schedule.h"
 #include "src/compiler/source-position.h"
-// TODO(titzer): don't include the macro-assembler?
-#include "src/macro-assembler.h"
 #include "src/zone-allocator.h"
 
 namespace v8 {
 namespace internal {
 namespace compiler {
 
-// Forward declarations.
-class Linkage;
-
 // A couple of reserved opcodes are used for internal use.
 const InstructionCode kGapInstruction = -1;
 const InstructionCode kBlockStartInstruction = -2;
 const InstructionCode kSourcePositionInstruction = -3;
 
+// Platform independent maxes.
+static const int kMaxGeneralRegisters = 32;
+static const int kMaxDoubleRegisters = 32;
 
-#define INSTRUCTION_OPERAND_LIST(V)              \
-  V(Constant, CONSTANT, 0)                       \
-  V(Immediate, IMMEDIATE, 0)                     \
-  V(StackSlot, STACK_SLOT, 128)                  \
-  V(DoubleStackSlot, DOUBLE_STACK_SLOT, 128)     \
-  V(Register, REGISTER, Register::kNumRegisters) \
-  V(DoubleRegister, DOUBLE_REGISTER, DoubleRegister::kMaxNumRegisters)
+
+#define INSTRUCTION_OPERAND_LIST(V)           \
+  V(Constant, CONSTANT, 0)                    \
+  V(Immediate, IMMEDIATE, 0)                  \
+  V(StackSlot, STACK_SLOT, 128)               \
+  V(DoubleStackSlot, DOUBLE_STACK_SLOT, 128)  \
+  V(Register, REGISTER, kMaxGeneralRegisters) \
+  V(DoubleRegister, DOUBLE_REGISTER, kMaxDoubleRegisters)
 
 class InstructionOperand : public ZoneObject {
  public:
@@ -676,8 +675,10 @@ class Constant FINAL {
   Type type() const { return type_; }
 
   int32_t ToInt32() const {
-    DCHECK_EQ(kInt32, type());
-    return static_cast<int32_t>(value_);
+    DCHECK(type() == kInt32 || type() == kInt64);
+    const int32_t value = static_cast<int32_t>(value_);
+    DCHECK_EQ(value_, static_cast<int64_t>(value));
+    return value;
   }
 
   int64_t ToInt64() const {
@@ -808,11 +809,13 @@ class InstructionBlock FINAL : public ZoneObject {
   inline bool IsLoopHeader() const { return loop_end_.IsValid(); }
 
   typedef ZoneVector<BasicBlock::RpoNumber> Predecessors;
+  Predecessors& predecessors() { return predecessors_; }
   const Predecessors& predecessors() const { return predecessors_; }
   size_t PredecessorCount() const { return predecessors_.size(); }
   size_t PredecessorIndexOf(BasicBlock::RpoNumber rpo_number) const;
 
   typedef ZoneVector<BasicBlock::RpoNumber> Successors;
+  Successors& successors() { return successors_; }
   const Successors& successors() const { return successors_; }
   size_t SuccessorCount() const { return successors_.size(); }
 
@@ -824,12 +827,12 @@ class InstructionBlock FINAL : public ZoneObject {
   Successors successors_;
   Predecessors predecessors_;
   PhiInstructions phis_;
-  BasicBlock::Id id_;
-  BasicBlock::RpoNumber ao_number_;  // Assembly order number.
+  const BasicBlock::Id id_;
+  const BasicBlock::RpoNumber ao_number_;  // Assembly order number.
   // TODO(dcarney): probably dont't need this.
-  BasicBlock::RpoNumber rpo_number_;
-  BasicBlock::RpoNumber loop_header_;
-  BasicBlock::RpoNumber loop_end_;
+  const BasicBlock::RpoNumber rpo_number_;
+  const BasicBlock::RpoNumber loop_header_;
+  const BasicBlock::RpoNumber loop_end_;
   int32_t code_start_;   // start index of arch-specific code.
   int32_t code_end_;     // end index of arch-specific code.
   const bool deferred_;  // Block contains deferred code.
@@ -843,48 +846,43 @@ typedef ZoneDeque<Instruction*> InstructionDeque;
 typedef ZoneDeque<PointerMap*> PointerMapDeque;
 typedef ZoneVector<FrameStateDescriptor*> DeoptimizationVector;
 typedef ZoneVector<InstructionBlock*> InstructionBlocks;
-typedef IntVector NodeToVregMap;
 
 // Represents architecture-specific generated code before, during, and after
 // register allocation.
 // TODO(titzer): s/IsDouble/IsFloat64/
 class InstructionSequence FINAL {
  public:
-  static const int kNodeUnmapped = -1;
+  static InstructionBlocks* InstructionBlocksFor(Zone* zone,
+                                                 const Schedule* schedule);
 
-  InstructionSequence(Zone* zone, const Graph* graph, const Schedule* schedule);
+  InstructionSequence(Zone* zone, InstructionBlocks* instruction_blocks);
 
   int NextVirtualRegister() { return next_virtual_register_++; }
   int VirtualRegisterCount() const { return next_virtual_register_; }
 
-  int node_count() const { return static_cast<int>(node_map_.size()); }
-
   const InstructionBlocks& instruction_blocks() const {
-    return instruction_blocks_;
+    return *instruction_blocks_;
   }
 
   int InstructionBlockCount() const {
-    return static_cast<int>(instruction_blocks_.size());
+    return static_cast<int>(instruction_blocks_->size());
   }
 
   InstructionBlock* InstructionBlockAt(BasicBlock::RpoNumber rpo_number) {
-    return instruction_blocks_[rpo_number.ToSize()];
+    return instruction_blocks_->at(rpo_number.ToSize());
   }
 
   int LastLoopInstructionIndex(const InstructionBlock* block) {
-    return instruction_blocks_[block->loop_end().ToSize() - 1]
+    return instruction_blocks_->at(block->loop_end().ToSize() - 1)
         ->last_instruction_index();
   }
 
   const InstructionBlock* InstructionBlockAt(
       BasicBlock::RpoNumber rpo_number) const {
-    return instruction_blocks_[rpo_number.ToSize()];
+    return instruction_blocks_->at(rpo_number.ToSize());
   }
 
   const InstructionBlock* GetInstructionBlock(int instruction_index) const;
-
-  int GetVirtualRegister(const Node* node);
-  const NodeToVregMap& GetNodeMapForTesting() const { return node_map_; }
 
   bool IsReference(int virtual_register) const;
   bool IsDouble(int virtual_register) const;
@@ -920,8 +918,8 @@ class InstructionSequence FINAL {
   void StartBlock(BasicBlock* block);
   void EndBlock(BasicBlock* block);
 
-  int AddConstant(Node* node, Constant constant) {
-    int virtual_register = GetVirtualRegister(node);
+  int AddConstant(int virtual_register, Constant constant) {
+    DCHECK(virtual_register >= 0 && virtual_register < next_virtual_register_);
     DCHECK(constants_.find(virtual_register) == constants_.end());
     constants_.insert(std::make_pair(virtual_register, constant));
     return virtual_register;
@@ -968,8 +966,7 @@ class InstructionSequence FINAL {
   typedef std::set<int, std::less<int>, ZoneIntAllocator> VirtualRegisterSet;
 
   Zone* const zone_;
-  NodeToVregMap node_map_;
-  InstructionBlocks instruction_blocks_;
+  InstructionBlocks* const instruction_blocks_;
   ConstantMap constants_;
   ConstantDeque immediates_;
   InstructionDeque instructions_;

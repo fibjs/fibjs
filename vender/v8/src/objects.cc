@@ -2709,6 +2709,10 @@ Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
   // Add missing transitions.
   Handle<Map> new_map = split_map;
   for (int i = split_nof; i < old_nof; ++i) {
+    if (!new_map->CanHaveMoreTransitions()) {
+      return CopyGeneralizeAllRepresentations(old_map, modify_index, store_mode,
+                                              "can't have more transitions");
+    }
     new_map = CopyInstallDescriptors(new_map, i, new_descriptors);
   }
   new_map->set_owns_descriptors(true);
@@ -6584,7 +6588,8 @@ Handle<Map> Map::ShareDescriptor(Handle<Map> map,
     if (old_size == 0) {
       descriptors = DescriptorArray::Allocate(map->GetIsolate(), 0, 1);
     } else {
-      EnsureDescriptorSlack(map, old_size < 4 ? 1 : old_size / 2);
+      EnsureDescriptorSlack(
+          map, SlackForArraySize(old_size, kMaxNumberOfDescriptors));
       descriptors = handle(map->instance_descriptors());
     }
   }
@@ -6609,8 +6614,11 @@ void Map::ConnectTransition(Handle<Map> parent, Handle<Map> child,
     DCHECK(child->is_prototype_map());
   } else {
     Handle<TransitionArray> transitions =
-        TransitionArray::CopyInsert(parent, name, child, flag);
-    parent->set_transitions(*transitions);
+        TransitionArray::Insert(parent, name, child, flag);
+    if (!parent->HasTransitionArray() ||
+        *transitions != parent->transitions()) {
+      parent->set_transitions(*transitions);
+    }
     child->SetBackPointer(*parent);
   }
 }
@@ -6690,8 +6698,9 @@ Handle<Map> Map::CopyAsElementsKind(Handle<Map> map, ElementsKind kind,
     DCHECK(kind != map->elements_kind());
   }
 
-  bool insert_transition =
-      flag == INSERT_TRANSITION && !map->HasElementsTransition();
+  bool insert_transition = flag == INSERT_TRANSITION &&
+                           map->CanHaveMoreTransitions() &&
+                           !map->HasElementsTransition();
 
   if (insert_transition && map->owns_descriptors()) {
     // In case the map owned its own descriptors, share the descriptors and
@@ -6740,9 +6749,10 @@ Handle<Map> Map::CopyForObserved(Handle<Map> map) {
     new_map->InitializeDescriptors(map->instance_descriptors());
   }
 
-  Handle<Name> name = isolate->factory()->observed_symbol();
-  ConnectTransition(map, new_map, name, FULL_TRANSITION);
-
+  if (map->CanHaveMoreTransitions()) {
+    Handle<Name> name = isolate->factory()->observed_symbol();
+    ConnectTransition(map, new_map, name, FULL_TRANSITION);
+  }
   return new_map;
 }
 
@@ -7187,7 +7197,7 @@ class IntrusiveMapTransitionIterator {
     int value = Smi::cast(*IteratorField())->value();
     int index = -value - 1;
     int number_of_transitions = transition_array_->number_of_transitions();
-    while (index < number_of_transitions) {
+    if (index < number_of_transitions) {
       *IteratorField() = Smi::FromInt(value - 1);
       return transition_array_->GetTarget(index);
     }
@@ -13643,7 +13653,11 @@ class StringSharedKey : public HashTableKey {
 
   bool IsMatch(Object* other) OVERRIDE {
     DisallowHeapAllocation no_allocation;
-    if (!other->IsFixedArray()) return false;
+    if (!other->IsFixedArray()) {
+      if (!other->IsNumber()) return false;
+      uint32_t other_hash = static_cast<uint32_t>(other->Number());
+      return Hash() == other_hash;
+    }
     FixedArray* other_array = FixedArray::cast(other);
     SharedFunctionInfo* shared = SharedFunctionInfo::cast(other_array->get(0));
     if (shared != *shared_) return false;
@@ -13683,6 +13697,9 @@ class StringSharedKey : public HashTableKey {
 
   uint32_t HashForObject(Object* obj) OVERRIDE {
     DisallowHeapAllocation no_allocation;
+    if (obj->IsNumber()) {
+      return static_cast<uint32_t>(obj->Number());
+    }
     FixedArray* other_array = FixedArray::cast(obj);
     SharedFunctionInfo* shared = SharedFunctionInfo::cast(other_array->get(0));
     String* source = String::cast(other_array->get(1));
@@ -14841,19 +14858,23 @@ Handle<Object> CompilationCacheTable::Lookup(Handle<String> src,
                       RelocInfo::kNoPosition);
   int entry = FindEntry(&key);
   if (entry == kNotFound) return isolate->factory()->undefined_value();
-  return Handle<Object>(get(EntryToIndex(entry) + 1), isolate);
+  int index = EntryToIndex(entry);
+  if (!get(index)->IsFixedArray()) return isolate->factory()->undefined_value();
+  return Handle<Object>(get(index + 1), isolate);
 }
 
 
-Handle<Object> CompilationCacheTable::LookupEval(Handle<String> src,
-                                                 Handle<Context> context,
-                                                 StrictMode strict_mode,
-                                                 int scope_position) {
+Handle<Object> CompilationCacheTable::LookupEval(
+    Handle<String> src, Handle<SharedFunctionInfo> outer_info,
+    StrictMode strict_mode, int scope_position) {
   Isolate* isolate = GetIsolate();
-  Handle<SharedFunctionInfo> shared(context->closure()->shared());
-  StringSharedKey key(src, shared, strict_mode, scope_position);
+  // Cache key is the tuple (source, outer shared function info, scope position)
+  // to unambiguously identify the context chain the cached eval code assumes.
+  StringSharedKey key(src, outer_info, strict_mode, scope_position);
   int entry = FindEntry(&key);
   if (entry == kNotFound) return isolate->factory()->undefined_value();
+  int index = EntryToIndex(entry);
+  if (!get(index)->IsFixedArray()) return isolate->factory()->undefined_value();
   return Handle<Object>(get(EntryToIndex(entry) + 1), isolate);
 }
 
@@ -14876,11 +14897,20 @@ Handle<CompilationCacheTable> CompilationCacheTable::Put(
   Handle<SharedFunctionInfo> shared(context->closure()->shared());
   StringSharedKey key(src, shared, FLAG_use_strict ? STRICT : SLOPPY,
                       RelocInfo::kNoPosition);
+  int entry = cache->FindEntry(&key);
+  if (entry != kNotFound) {
+    Handle<Object> k = key.AsHandle(isolate);
+    cache->set(EntryToIndex(entry), *k);
+    cache->set(EntryToIndex(entry) + 1, *value);
+    return cache;
+  }
+
   cache = EnsureCapacity(cache, 1, &key);
-  Handle<Object> k = key.AsHandle(isolate);
-  int entry = cache->FindInsertionEntry(key.Hash());
+  entry = cache->FindInsertionEntry(key.Hash());
+  Handle<Object> k =
+      isolate->factory()->NewNumber(static_cast<double>(key.Hash()));
   cache->set(EntryToIndex(entry), *k);
-  cache->set(EntryToIndex(entry) + 1, *value);
+  cache->set(EntryToIndex(entry) + 1, Smi::FromInt(kHashGenerations));
   cache->ElementAdded();
   return cache;
 }
@@ -14888,16 +14918,24 @@ Handle<CompilationCacheTable> CompilationCacheTable::Put(
 
 Handle<CompilationCacheTable> CompilationCacheTable::PutEval(
     Handle<CompilationCacheTable> cache, Handle<String> src,
-    Handle<Context> context, Handle<SharedFunctionInfo> value,
+    Handle<SharedFunctionInfo> outer_info, Handle<SharedFunctionInfo> value,
     int scope_position) {
   Isolate* isolate = cache->GetIsolate();
-  Handle<SharedFunctionInfo> shared(context->closure()->shared());
-  StringSharedKey key(src, shared, value->strict_mode(), scope_position);
+  StringSharedKey key(src, outer_info, value->strict_mode(), scope_position);
+  int entry = cache->FindEntry(&key);
+  if (entry != kNotFound) {
+    Handle<Object> k = key.AsHandle(isolate);
+    cache->set(EntryToIndex(entry), *k);
+    cache->set(EntryToIndex(entry) + 1, *value);
+    return cache;
+  }
+
   cache = EnsureCapacity(cache, 1, &key);
-  Handle<Object> k = key.AsHandle(isolate);
-  int entry = cache->FindInsertionEntry(key.Hash());
+  entry = cache->FindInsertionEntry(key.Hash());
+  Handle<Object> k =
+      isolate->factory()->NewNumber(static_cast<double>(key.Hash()));
   cache->set(EntryToIndex(entry), *k);
-  cache->set(EntryToIndex(entry) + 1, *value);
+  cache->set(EntryToIndex(entry) + 1, Smi::FromInt(kHashGenerations));
   cache->ElementAdded();
   return cache;
 }
@@ -14915,6 +14953,35 @@ Handle<CompilationCacheTable> CompilationCacheTable::PutRegExp(
   cache->set(EntryToIndex(entry) + 1, *value);
   cache->ElementAdded();
   return cache;
+}
+
+
+void CompilationCacheTable::Age() {
+  DisallowHeapAllocation no_allocation;
+  Object* the_hole_value = GetHeap()->the_hole_value();
+  for (int entry = 0, size = Capacity(); entry < size; entry++) {
+    int entry_index = EntryToIndex(entry);
+    int value_index = entry_index + 1;
+
+    if (get(entry_index)->IsNumber()) {
+      Smi* count = Smi::cast(get(value_index));
+      count = Smi::FromInt(count->value() - 1);
+      if (count->value() == 0) {
+        NoWriteBarrierSet(this, entry_index, the_hole_value);
+        NoWriteBarrierSet(this, value_index, the_hole_value);
+        ElementRemoved();
+      } else {
+        NoWriteBarrierSet(this, value_index, count);
+      }
+    } else if (get(entry_index)->IsFixedArray()) {
+      SharedFunctionInfo* info = SharedFunctionInfo::cast(get(value_index));
+      if (info->code()->kind() != Code::FUNCTION || info->code()->IsOld()) {
+        NoWriteBarrierSet(this, entry_index, the_hole_value);
+        NoWriteBarrierSet(this, value_index, the_hole_value);
+        ElementRemoved();
+      }
+    }
+  }
 }
 
 
@@ -16366,13 +16433,15 @@ void JSDate::SetCachedFields(int64_t local_time_ms, DateCache* date_cache) {
 
 
 void JSArrayBuffer::Neuter() {
-  DCHECK(is_external());
+  CHECK(is_neuterable());
+  CHECK(is_external());
   set_backing_store(NULL);
   set_byte_length(Smi::FromInt(0));
 }
 
 
 void JSArrayBufferView::NeuterView() {
+  CHECK(JSArrayBuffer::cast(buffer())->is_neuterable());
   set_byte_offset(Smi::FromInt(0));
   set_byte_length(Smi::FromInt(0));
 }

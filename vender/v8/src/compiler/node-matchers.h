@@ -81,6 +81,13 @@ typedef IntMatcher<int32_t, IrOpcode::kInt32Constant> Int32Matcher;
 typedef IntMatcher<uint32_t, IrOpcode::kInt32Constant> Uint32Matcher;
 typedef IntMatcher<int64_t, IrOpcode::kInt64Constant> Int64Matcher;
 typedef IntMatcher<uint64_t, IrOpcode::kInt64Constant> Uint64Matcher;
+#if V8_HOST_ARCH_32_BIT
+typedef Int32Matcher IntPtrMatcher;
+typedef Uint32Matcher UintPtrMatcher;
+#else
+typedef Int64Matcher IntPtrMatcher;
+typedef Uint64Matcher UintPtrMatcher;
+#endif
 
 
 // A pattern matcher for floating point constants.
@@ -94,42 +101,6 @@ struct FloatMatcher FINAL : public ValueMatcher<T, kOpcode> {
 typedef FloatMatcher<float, IrOpcode::kFloat32Constant> Float32Matcher;
 typedef FloatMatcher<double, IrOpcode::kFloat64Constant> Float64Matcher;
 typedef FloatMatcher<double, IrOpcode::kNumberConstant> NumberMatcher;
-
-
-// A pattern matcher for any numberic constant.
-struct NumericValueMatcher : public NodeMatcher {
-  explicit NumericValueMatcher(Node* const node) : NodeMatcher(node) {
-    switch (opcode()) {
-      case IrOpcode::kInt32Constant:
-        has_value_ = true;
-        value_ = OpParameter<int32_t>(node);
-        break;
-      case IrOpcode::kFloat32Constant:
-        has_value_ = true;
-        value_ = OpParameter<float>(node);
-        break;
-      case IrOpcode::kFloat64Constant:
-      case IrOpcode::kNumberConstant:
-        has_value_ = true;
-        value_ = OpParameter<double>(node);
-        break;
-      default:
-        has_value_ = false;
-        value_ = 0;  // Make the compiler happy.
-        break;
-    }
-  }
-
-  bool HasValue() const { return has_value_; }
-  double Value() const {
-    DCHECK(HasValue());
-    return value_;
-  }
-
- private:
-  double value_;
-  bool has_value_;
-};
 
 
 // A pattern matcher for heap object constants.
@@ -174,89 +145,10 @@ typedef BinopMatcher<Int32Matcher, Int32Matcher> Int32BinopMatcher;
 typedef BinopMatcher<Uint32Matcher, Uint32Matcher> Uint32BinopMatcher;
 typedef BinopMatcher<Int64Matcher, Int64Matcher> Int64BinopMatcher;
 typedef BinopMatcher<Uint64Matcher, Uint64Matcher> Uint64BinopMatcher;
+typedef BinopMatcher<IntPtrMatcher, IntPtrMatcher> IntPtrBinopMatcher;
+typedef BinopMatcher<UintPtrMatcher, UintPtrMatcher> UintPtrBinopMatcher;
 typedef BinopMatcher<Float64Matcher, Float64Matcher> Float64BinopMatcher;
-
-
-// Fairly intel-specify node matcher used for matching scale factors in
-// addressing modes.
-// Matches nodes of form [x * N] for N in {1,2,4,8}
-class ScaleFactorMatcher : public NodeMatcher {
- public:
-  static const int kMatchedFactors[4];
-
-  explicit ScaleFactorMatcher(Node* node);
-
-  bool Matches() const { return left_ != NULL; }
-  int Power() const {
-    DCHECK(Matches());
-    return power_;
-  }
-  Node* Left() const {
-    DCHECK(Matches());
-    return left_;
-  }
-
- private:
-  Node* left_;
-  int power_;
-};
-
-
-// Fairly intel-specify node matcher used for matching index and displacement
-// operands in addressing modes.
-// Matches nodes of form:
-//  [x * N]
-//  [x * N + K]
-//  [x + K]
-//  [x] -- fallback case
-// for N in {1,2,4,8} and K int32_t
-class IndexAndDisplacementMatcher : public NodeMatcher {
- public:
-  explicit IndexAndDisplacementMatcher(Node* node);
-
-  Node* index_node() const { return index_node_; }
-  int displacement() const { return displacement_; }
-  int power() const { return power_; }
-
- private:
-  Node* index_node_;
-  int displacement_;
-  int power_;
-};
-
-
-// Fairly intel-specify node matcher used for matching multiplies that can be
-// transformed to lea instructions.
-// Matches nodes of form:
-//  [x * N]
-// for N in {1,2,3,4,5,8,9}
-class LeaMultiplyMatcher : public NodeMatcher {
- public:
-  static const int kMatchedFactors[7];
-
-  explicit LeaMultiplyMatcher(Node* node);
-
-  bool Matches() const { return left_ != NULL; }
-  int Power() const {
-    DCHECK(Matches());
-    return power_;
-  }
-  Node* Left() const {
-    DCHECK(Matches());
-    return left_;
-  }
-  // Displacement will be either 0 or 1.
-  int32_t Displacement() const {
-    DCHECK(Matches());
-    return displacement_;
-  }
-
- private:
-  Node* left_;
-  int power_;
-  int displacement_;
-};
-
+typedef BinopMatcher<NumberMatcher, NumberMatcher> NumberBinopMatcher;
 
 }  // namespace compiler
 }  // namespace internal

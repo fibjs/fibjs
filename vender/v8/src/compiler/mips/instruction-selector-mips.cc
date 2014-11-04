@@ -311,6 +311,13 @@ void InstructionSelector::VisitInt32MulHigh(Node* node) {
 }
 
 
+void InstructionSelector::VisitUint32MulHigh(Node* node) {
+  MipsOperandGenerator g(this);
+  Emit(kMipsMulHighU, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)),
+       g.UseRegister(node->InputAt(1)));
+}
+
+
 void InstructionSelector::VisitInt32Div(Node* node) {
   MipsOperandGenerator g(this);
   Int32BinopMatcher m(node);
@@ -410,6 +417,22 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
 void InstructionSelector::VisitFloat64Sqrt(Node* node) {
   MipsOperandGenerator g(this);
   Emit(kMipsSqrtD, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitFloat64Floor(Node* node) { UNREACHABLE(); }
+
+
+void InstructionSelector::VisitFloat64Ceil(Node* node) { UNREACHABLE(); }
+
+
+void InstructionSelector::VisitFloat64RoundTruncate(Node* node) {
+  UNREACHABLE();
+}
+
+
+void InstructionSelector::VisitFloat64RoundTiesAway(Node* node) {
+  UNREACHABLE();
 }
 
 
@@ -655,8 +678,12 @@ void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
-  return MachineOperatorBuilder::Flag::kNoFlags;
+  return MachineOperatorBuilder::kInt32DivIsSafe |
+         MachineOperatorBuilder::kInt32ModIsSafe |
+         MachineOperatorBuilder::kUint32DivIsSafe |
+         MachineOperatorBuilder::kUint32ModIsSafe;
 }
+
 }  // namespace compiler
 }  // namespace internal
 }  // namespace v8

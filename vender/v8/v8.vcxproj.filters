@@ -264,6 +264,9 @@
     <ClInclude Include="src\bignum.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\bit-vector.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\bootstrapper.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -316,6 +319,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\ast-graph-builder.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\ast-loop-assignment-analyzer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\basic-block-instrumentor.h">
@@ -492,6 +498,9 @@
     <ClInclude Include="src\compiler\scheduler.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\select-lowering.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\simplified-lowering.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -535,9 +544,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cpu-profiler.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\data-flow.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\date.h">
@@ -1334,6 +1340,9 @@
     <ClCompile Include="src\bignum.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\bit-vector.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\bootstrapper.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1374,6 +1383,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\ast-graph-builder.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\ast-loop-assignment-analyzer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\basic-block-instrumentor.cc">
@@ -1466,9 +1478,6 @@
     <ClCompile Include="src\compiler\node-cache.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\node-matchers.cc">
-      <Filter>Source Files\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="src\compiler\node.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1491,6 +1500,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\scheduler.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\select-lowering.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\simplified-lowering.cc">
@@ -1536,9 +1548,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\cpu-profiler.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\data-flow.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\date.cc">
