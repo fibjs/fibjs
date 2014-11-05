@@ -190,7 +190,8 @@ describe("net", function() {
 		var c1 = new net.Socket();
 		c1.connect('127.0.0.1', 8082);
 		assert.equal('a', c1.recv(100));
-		assert.equal('abc', c1.read(3));
+		assert.equal('ab', c1.read(2));
+		assert.equal('c', c1.read(1));
 		assert.equal('d', c1.read(3));
 	});
 
