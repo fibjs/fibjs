@@ -654,9 +654,6 @@ void FastNewClosureStub::InitializeDescriptor(CodeStubDescriptor* descriptor) {
 void FastNewContextStub::InitializeDescriptor(CodeStubDescriptor* d) {}
 
 
-void ToNumberStub::InitializeDescriptor(CodeStubDescriptor* d) {}
-
-
 void NumberToStringStub::InitializeDescriptor(CodeStubDescriptor* descriptor) {
   NumberToStringDescriptor call_descriptor(isolate());
   descriptor->Initialize(
@@ -694,6 +691,13 @@ void TransitionElementsKindStub::InitializeDescriptor(
     CodeStubDescriptor* descriptor) {
   descriptor->Initialize(
       Runtime::FunctionForId(Runtime::kTransitionElementsKind)->entry);
+}
+
+
+void AllocateHeapNumberStub::InitializeDescriptor(
+    CodeStubDescriptor* descriptor) {
+  descriptor->Initialize(
+      Runtime::FunctionForId(Runtime::kAllocateHeapNumber)->entry);
 }
 
 

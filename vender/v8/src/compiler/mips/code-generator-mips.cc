@@ -158,7 +158,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArchJmp:
-      __ Branch(code_->GetLabel(i.InputRpo(0)));
+      __ Branch(GetLabel(i.InputRpo(0)));
       break;
     case kArchNop:
       // don't emit code for nops.
@@ -244,11 +244,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Ror(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
       break;
     case kMipsTst:
-      // Psuedo-instruction used for tst/branch.
-      __ And(kCompareReg, i.InputRegister(0), i.InputOperand(1));
+      // Pseudo-instruction used for tst/branch. No opcode emitted here.
       break;
     case kMipsCmp:
-      // Psuedo-instruction used for cmp/branch. No opcode emitted here.
+      // Pseudo-instruction used for cmp/branch. No opcode emitted here.
       break;
     case kMipsMov:
       // TODO(plind): Should we combine mov/li like this, or use separate instr?
@@ -408,8 +407,8 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr,
   BasicBlock::RpoNumber fblock =
       i.InputRpo(static_cast<int>(instr->InputCount()) - 1);
   bool fallthru = IsNextInAssemblyOrder(fblock);
-  Label* tlabel = code()->GetLabel(tblock);
-  Label* flabel = fallthru ? &done : code()->GetLabel(fblock);
+  Label* tlabel = GetLabel(tblock);
+  Label* flabel = fallthru ? &done : GetLabel(fblock);
   Condition cc = kNoCondition;
 
   // MIPS does not have condition code flags, so compare and branch are
@@ -422,7 +421,6 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr,
   //    not separated by other instructions.
 
   if (instr->arch_opcode() == kMipsTst) {
-    // The kMipsTst psuedo-instruction emits And to 'kCompareReg' register.
     switch (condition) {
       case kNotEqual:
         cc = ne;
@@ -434,7 +432,8 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr,
         UNSUPPORTED_COND(kMipsTst, condition);
         break;
     }
-    __ Branch(tlabel, cc, kCompareReg, Operand(zero_reg));
+    __ And(at, i.InputRegister(0), i.InputOperand(1));
+    __ Branch(tlabel, cc, at, Operand(zero_reg));
 
   } else if (instr->arch_opcode() == kMipsAddOvf ||
              instr->arch_opcode() == kMipsSubOvf) {
@@ -561,7 +560,6 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
   // TODO(plind): Add CHECK() to ensure that test/cmp and this branch were
   //    not separated by other instructions.
   if (instr->arch_opcode() == kMipsTst) {
-    // The kMipsTst psuedo-instruction emits And to 'kCompareReg' register.
     switch (condition) {
       case kNotEqual:
         cc = ne;
@@ -573,7 +571,8 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
         UNSUPPORTED_COND(kMipsTst, condition);
         break;
     }
-    __ Branch(USE_DELAY_SLOT, &done, cc, kCompareReg, Operand(zero_reg));
+    __ And(at, i.InputRegister(0), i.InputOperand(1));
+    __ Branch(USE_DELAY_SLOT, &done, cc, at, Operand(zero_reg));
     __ li(result, Operand(1));  // In delay slot.
 
   } else if (instr->arch_opcode() == kMipsAddOvf ||

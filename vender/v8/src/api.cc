@@ -2571,6 +2571,16 @@ bool Value::IsGeneratorObject() const {
 }
 
 
+bool Value::IsMapIterator() const {
+  return Utils::OpenHandle(this)->IsJSMapIterator();
+}
+
+
+bool Value::IsSetIterator() const {
+  return Utils::OpenHandle(this)->IsJSSetIterator();
+}
+
+
 Local<String> Value::ToString(Isolate* v8_isolate) const {
   i::Handle<i::Object> obj = Utils::OpenHandle(this);
   i::Handle<i::Object> str;
@@ -7159,6 +7169,19 @@ int CpuProfileNode::GetLineNumber() const {
 int CpuProfileNode::GetColumnNumber() const {
   return reinterpret_cast<const i::ProfileNode*>(this)->
       entry()->column_number();
+}
+
+
+unsigned int CpuProfileNode::GetHitLineCount() const {
+  const i::ProfileNode* node = reinterpret_cast<const i::ProfileNode*>(this);
+  return node->GetHitLineCount();
+}
+
+
+bool CpuProfileNode::GetLineTicks(LineTick* entries,
+                                  unsigned int length) const {
+  const i::ProfileNode* node = reinterpret_cast<const i::ProfileNode*>(this);
+  return node->GetLineTicks(entries, length);
 }
 
 

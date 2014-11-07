@@ -107,6 +107,7 @@
     <ClInclude Include="src\compiler\common-operator.h" />
     <ClInclude Include="src\compiler\control-builders.h" />
     <ClInclude Include="src\compiler\control-reducer.h" />
+    <ClInclude Include="src\compiler\diamond.h" />
     <ClInclude Include="src\compiler\frame.h" />
     <ClInclude Include="src\compiler\gap-resolver.h" />
     <ClInclude Include="src\compiler\generic-algorithm-inl.h" />
@@ -154,6 +155,7 @@
     <ClInclude Include="src\compiler\pipeline.h" />
     <ClInclude Include="src\compiler\raw-machine-assembler.h" />
     <ClInclude Include="src\compiler\register-allocator.h" />
+    <ClInclude Include="src\compiler\register-configuration.h" />
     <ClInclude Include="src\compiler\representation-change.h" />
     <ClInclude Include="src\compiler\schedule.h" />
     <ClInclude Include="src\compiler\scheduler.h" />
@@ -491,6 +493,7 @@
     <ClCompile Include="src\compiler\pipeline.cc" />
     <ClCompile Include="src\compiler\raw-machine-assembler.cc" />
     <ClCompile Include="src\compiler\register-allocator.cc" />
+    <ClCompile Include="src\compiler\register-configuration.cc" />
     <ClCompile Include="src\compiler\schedule.cc" />
     <ClCompile Include="src\compiler\scheduler.cc" />
     <ClCompile Include="src\compiler\select-lowering.cc" />

@@ -348,6 +348,9 @@
     <ClInclude Include="src\compiler\control-reducer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\diamond.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\frame.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -487,6 +490,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\register-allocator.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\register-configuration.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\representation-change.h">
@@ -1494,6 +1500,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\register-allocator.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\register-configuration.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\schedule.cc">

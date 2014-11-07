@@ -14,6 +14,7 @@
 #include "src/compiler/frame.h"
 #include "src/compiler/instruction-codes.h"
 #include "src/compiler/opcodes.h"
+#include "src/compiler/register-configuration.h"
 #include "src/compiler/schedule.h"
 #include "src/compiler/source-position.h"
 #include "src/zone-allocator.h"
@@ -27,18 +28,13 @@ const InstructionCode kGapInstruction = -1;
 const InstructionCode kBlockStartInstruction = -2;
 const InstructionCode kSourcePositionInstruction = -3;
 
-// Platform independent maxes.
-static const int kMaxGeneralRegisters = 32;
-static const int kMaxDoubleRegisters = 32;
-
-
-#define INSTRUCTION_OPERAND_LIST(V)           \
-  V(Constant, CONSTANT, 0)                    \
-  V(Immediate, IMMEDIATE, 0)                  \
-  V(StackSlot, STACK_SLOT, 128)               \
-  V(DoubleStackSlot, DOUBLE_STACK_SLOT, 128)  \
-  V(Register, REGISTER, kMaxGeneralRegisters) \
-  V(DoubleRegister, DOUBLE_REGISTER, kMaxDoubleRegisters)
+#define INSTRUCTION_OPERAND_LIST(V)                                  \
+  V(Constant, CONSTANT, 0)                                           \
+  V(Immediate, IMMEDIATE, 0)                                         \
+  V(StackSlot, STACK_SLOT, 128)                                      \
+  V(DoubleStackSlot, DOUBLE_STACK_SLOT, 128)                         \
+  V(Register, REGISTER, RegisterConfiguration::kMaxGeneralRegisters) \
+  V(DoubleRegister, DOUBLE_REGISTER, RegisterConfiguration::kMaxDoubleRegisters)
 
 class InstructionOperand : public ZoneObject {
  public:
@@ -87,7 +83,13 @@ class InstructionOperand : public ZoneObject {
 
 typedef ZoneVector<InstructionOperand*> InstructionOperandVector;
 
-std::ostream& operator<<(std::ostream& os, const InstructionOperand& op);
+struct PrintableInstructionOperand {
+  const RegisterConfiguration* register_configuration_;
+  const InstructionOperand* op_;
+};
+
+std::ostream& operator<<(std::ostream& os,
+                         const PrintableInstructionOperand& op);
 
 class UnallocatedOperand : public InstructionOperand {
  public:
@@ -306,7 +308,15 @@ class MoveOperands FINAL {
   InstructionOperand* destination_;
 };
 
-std::ostream& operator<<(std::ostream& os, const MoveOperands& mo);
+
+struct PrintableMoveOperands {
+  const RegisterConfiguration* register_configuration_;
+  const MoveOperands* move_operands_;
+};
+
+
+std::ostream& operator<<(std::ostream& os, const PrintableMoveOperands& mo);
+
 
 template <InstructionOperand::Kind kOperandKind, int kNumCachedOperands>
 class SubKindOperand FINAL : public InstructionOperand {
@@ -359,7 +369,15 @@ class ParallelMove FINAL : public ZoneObject {
   ZoneList<MoveOperands> move_operands_;
 };
 
-std::ostream& operator<<(std::ostream& os, const ParallelMove& pm);
+
+struct PrintableParallelMove {
+  const RegisterConfiguration* register_configuration_;
+  const ParallelMove* parallel_move_;
+};
+
+
+std::ostream& operator<<(std::ostream& os, const PrintableParallelMove& pm);
+
 
 class PointerMap FINAL : public ZoneObject {
  public:
@@ -534,7 +552,13 @@ class Instruction : public ZoneObject {
   InstructionOperand* operands_[1];
 };
 
-std::ostream& operator<<(std::ostream& os, const Instruction& instr);
+
+struct PrintableInstruction {
+  const RegisterConfiguration* register_configuration_;
+  const Instruction* instr_;
+};
+std::ostream& operator<<(std::ostream& os, const PrintableInstruction& instr);
+
 
 // Represents moves inserted before an instruction due to register allocation.
 // TODO(titzer): squash GapInstruction back into Instruction, since essentially
@@ -585,23 +609,19 @@ class GapInstruction : public Instruction {
   }
 
  private:
-  friend std::ostream& operator<<(std::ostream& os, const Instruction& instr);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const PrintableInstruction& instr);
   ParallelMove* parallel_moves_[LAST_INNER_POSITION + 1];
 };
 
 
 // This special kind of gap move instruction represents the beginning of a
 // block of code.
-// TODO(titzer): move code_start and code_end from BasicBlock to here.
 class BlockStartInstruction FINAL : public GapInstruction {
  public:
-  Label* label() { return &label_; }
-  BasicBlock::RpoNumber rpo_number() const { return rpo_number_; }
-  BasicBlock::Id id() const { return id_; }
-
-  static BlockStartInstruction* New(Zone* zone, BasicBlock* block) {
+  static BlockStartInstruction* New(Zone* zone) {
     void* buffer = zone->New(sizeof(BlockStartInstruction));
-    return new (buffer) BlockStartInstruction(block);
+    return new (buffer) BlockStartInstruction();
   }
 
   static BlockStartInstruction* cast(Instruction* instr) {
@@ -610,14 +630,7 @@ class BlockStartInstruction FINAL : public GapInstruction {
   }
 
  private:
-  explicit BlockStartInstruction(BasicBlock* block)
-      : GapInstruction(kBlockStartInstruction),
-        id_(block->id()),
-        rpo_number_(block->GetRpoNumber()) {}
-
-  BasicBlock::Id id_;
-  BasicBlock::RpoNumber rpo_number_;
-  Label label_;
+  BlockStartInstruction() : GapInstruction(kBlockStartInstruction) {}
 };
 
 
@@ -774,7 +787,11 @@ class PhiInstruction FINAL : public ZoneObject {
 // Analogue of BasicBlock for Instructions instead of Nodes.
 class InstructionBlock FINAL : public ZoneObject {
  public:
-  explicit InstructionBlock(Zone* zone, const BasicBlock* block);
+  InstructionBlock(Zone* zone, BasicBlock::Id id,
+                   BasicBlock::RpoNumber ao_number,
+                   BasicBlock::RpoNumber rpo_number,
+                   BasicBlock::RpoNumber loop_header,
+                   BasicBlock::RpoNumber loop_end, bool deferred);
 
   // Instruction indexes (used by the register allocator).
   int first_instruction_index() const {
@@ -847,6 +864,9 @@ typedef ZoneDeque<PointerMap*> PointerMapDeque;
 typedef ZoneVector<FrameStateDescriptor*> DeoptimizationVector;
 typedef ZoneVector<InstructionBlock*> InstructionBlocks;
 
+struct PrintableInstructionSequence;
+
+
 // Represents architecture-specific generated code before, during, and after
 // register allocation.
 // TODO(titzer): s/IsDouble/IsFloat64/
@@ -892,7 +912,6 @@ class InstructionSequence FINAL {
 
   void AddGapMove(int index, InstructionOperand* from, InstructionOperand* to);
 
-  Label* GetLabel(BasicBlock::RpoNumber rpo);
   BlockStartInstruction* GetBlockStart(BasicBlock::RpoNumber rpo);
 
   typedef InstructionDeque::const_iterator const_iterator;
@@ -915,8 +934,8 @@ class InstructionSequence FINAL {
 
   // Used by the instruction selector while adding instructions.
   int AddInstruction(Instruction* instr);
-  void StartBlock(BasicBlock* block);
-  void EndBlock(BasicBlock* block);
+  void StartBlock(BasicBlock::RpoNumber rpo);
+  void EndBlock(BasicBlock::RpoNumber rpo);
 
   int AddConstant(int virtual_register, Constant constant) {
     DCHECK(virtual_register >= 0 && virtual_register < next_virtual_register_);
@@ -961,12 +980,13 @@ class InstructionSequence FINAL {
 
  private:
   friend std::ostream& operator<<(std::ostream& os,
-                                  const InstructionSequence& code);
+                                  const PrintableInstructionSequence& code);
 
   typedef std::set<int, std::less<int>, ZoneIntAllocator> VirtualRegisterSet;
 
   Zone* const zone_;
   InstructionBlocks* const instruction_blocks_;
+  IntVector block_starts_;
   ConstantMap constants_;
   ConstantDeque immediates_;
   InstructionDeque instructions_;
@@ -977,7 +997,15 @@ class InstructionSequence FINAL {
   DeoptimizationVector deoptimization_entries_;
 };
 
-std::ostream& operator<<(std::ostream& os, const InstructionSequence& code);
+
+struct PrintableInstructionSequence {
+  const RegisterConfiguration* register_configuration_;
+  const InstructionSequence* sequence_;
+};
+
+
+std::ostream& operator<<(std::ostream& os,
+                         const PrintableInstructionSequence& code);
 
 }  // namespace compiler
 }  // namespace internal

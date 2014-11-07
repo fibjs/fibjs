@@ -1884,11 +1884,11 @@ Handle<Map> Map::FindTransitionToField(Handle<Map> map, Handle<Name> key) {
   DisallowHeapAllocation no_allocation;
   if (!map->HasTransitionArray()) return Handle<Map>::null();
   TransitionArray* transitions = map->transitions();
-  int transition = transitions->Search(*key);
+  int transition = transitions->Search(FIELD, *key, NONE);
   if (transition == TransitionArray::kNotFound) return Handle<Map>::null();
-  PropertyDetails target_details = transitions->GetTargetDetails(transition);
-  if (target_details.type() != FIELD) return Handle<Map>::null();
-  if (target_details.attributes() != NONE) return Handle<Map>::null();
+  PropertyDetails details = transitions->GetTargetDetails(transition);
+  if (details.type() != FIELD) return Handle<Map>::null();
+  DCHECK_EQ(NONE, details.attributes());
   return Handle<Map>(transitions->GetTarget(transition));
 }
 
@@ -2801,8 +2801,10 @@ void DescriptorArray::SetNumberOfDescriptors(int number_of_descriptors) {
 // Perform a binary search in a fixed array. Low and high are entry indices. If
 // there are three entries in this array it should be called with low=0 and
 // high=2.
-template<SearchMode search_mode, typename T>
-int BinarySearch(T* array, Name* name, int low, int high, int valid_entries) {
+template <SearchMode search_mode, typename T>
+int BinarySearch(T* array, Name* name, int low, int high, int valid_entries,
+                 int* out_insertion_index) {
+  DCHECK(search_mode == ALL_ENTRIES || out_insertion_index == NULL);
   uint32_t hash = name->Hash();
   int limit = high;
 
@@ -2823,7 +2825,13 @@ int BinarySearch(T* array, Name* name, int low, int high, int valid_entries) {
   for (; low <= limit; ++low) {
     int sort_index = array->GetSortedKeyIndex(low);
     Name* entry = array->GetKey(sort_index);
-    if (entry->Hash() != hash) break;
+    uint32_t current_hash = entry->Hash();
+    if (current_hash != hash) {
+      if (out_insertion_index != NULL) {
+        *out_insertion_index = sort_index + (current_hash > hash ? 0 : 1);
+      }
+      return T::kNotFound;
+    }
     if (entry->Equals(name)) {
       if (search_mode == ALL_ENTRIES || sort_index < valid_entries) {
         return sort_index;
@@ -2832,37 +2840,45 @@ int BinarySearch(T* array, Name* name, int low, int high, int valid_entries) {
     }
   }
 
+  if (out_insertion_index != NULL) *out_insertion_index = limit + 1;
   return T::kNotFound;
 }
 
 
 // Perform a linear search in this fixed array. len is the number of entry
 // indices that are valid.
-template<SearchMode search_mode, typename T>
-int LinearSearch(T* array, Name* name, int len, int valid_entries) {
+template <SearchMode search_mode, typename T>
+int LinearSearch(T* array, Name* name, int len, int valid_entries,
+                 int* out_insertion_index) {
   uint32_t hash = name->Hash();
   if (search_mode == ALL_ENTRIES) {
     for (int number = 0; number < len; number++) {
       int sorted_index = array->GetSortedKeyIndex(number);
       Name* entry = array->GetKey(sorted_index);
       uint32_t current_hash = entry->Hash();
-      if (current_hash > hash) break;
+      if (current_hash > hash) {
+        if (out_insertion_index != NULL) *out_insertion_index = sorted_index;
+        return T::kNotFound;
+      }
       if (current_hash == hash && entry->Equals(name)) return sorted_index;
     }
+    if (out_insertion_index != NULL) *out_insertion_index = len;
+    return T::kNotFound;
   } else {
     DCHECK(len >= valid_entries);
+    DCHECK_EQ(NULL, out_insertion_index);  // Not supported here.
     for (int number = 0; number < valid_entries; number++) {
       Name* entry = array->GetKey(number);
       uint32_t current_hash = entry->Hash();
       if (current_hash == hash && entry->Equals(name)) return number;
     }
+    return T::kNotFound;
   }
-  return T::kNotFound;
 }
 
 
-template<SearchMode search_mode, typename T>
-int Search(T* array, Name* name, int valid_entries) {
+template <SearchMode search_mode, typename T>
+int Search(T* array, Name* name, int valid_entries, int* out_insertion_index) {
   if (search_mode == VALID_ENTRIES) {
     SLOW_DCHECK(array->IsSortedNoDuplicates(valid_entries));
   } else {
@@ -2870,7 +2886,10 @@ int Search(T* array, Name* name, int valid_entries) {
   }
 
   int nof = array->number_of_entries();
-  if (nof == 0) return T::kNotFound;
+  if (nof == 0) {
+    if (out_insertion_index != NULL) *out_insertion_index = 0;
+    return T::kNotFound;
+  }
 
   // Fast case: do linear search for small arrays.
   const int kMaxElementsForLinearSearch = 8;
@@ -2878,16 +2897,18 @@ int Search(T* array, Name* name, int valid_entries) {
        nof <= kMaxElementsForLinearSearch) ||
       (search_mode == VALID_ENTRIES &&
        valid_entries <= (kMaxElementsForLinearSearch * 3))) {
-    return LinearSearch<search_mode>(array, name, nof, valid_entries);
+    return LinearSearch<search_mode>(array, name, nof, valid_entries,
+                                     out_insertion_index);
   }
 
   // Slow case: perform binary search.
-  return BinarySearch<search_mode>(array, name, 0, nof - 1, valid_entries);
+  return BinarySearch<search_mode>(array, name, 0, nof - 1, valid_entries,
+                                   out_insertion_index);
 }
 
 
 int DescriptorArray::Search(Name* name, int valid_descriptors) {
-  return internal::Search<VALID_ENTRIES>(this, name, valid_descriptors);
+  return internal::Search<VALID_ENTRIES>(this, name, valid_descriptors, NULL);
 }
 
 
@@ -2922,10 +2943,10 @@ void Map::LookupDescriptor(JSObject* holder,
 }
 
 
-void Map::LookupTransition(JSObject* holder,
-                           Name* name,
+void Map::LookupTransition(JSObject* holder, Name* name,
+                           PropertyAttributes attributes,
                            LookupResult* result) {
-  int transition_index = this->SearchTransition(name);
+  int transition_index = this->SearchTransition(FIELD, name, attributes);
   if (transition_index == TransitionArray::kNotFound) return result->NotFound();
   result->TransitionResult(holder, this->GetTransition(transition_index));
 }
@@ -4310,8 +4331,10 @@ int HeapObject::SizeFromMap(Map* map) {
   }
   if (instance_type == ONE_BYTE_STRING_TYPE ||
       instance_type == ONE_BYTE_INTERNALIZED_STRING_TYPE) {
+    // Strings may get concurrently truncated, hence we have to access its
+    // length synchronized.
     return SeqOneByteString::SizeFor(
-        reinterpret_cast<SeqOneByteString*>(this)->length());
+        reinterpret_cast<SeqOneByteString*>(this)->synchronized_length());
   }
   if (instance_type == BYTE_ARRAY_TYPE) {
     return reinterpret_cast<ByteArray*>(this)->ByteArraySize();
@@ -4321,8 +4344,10 @@ int HeapObject::SizeFromMap(Map* map) {
   }
   if (instance_type == STRING_TYPE ||
       instance_type == INTERNALIZED_STRING_TYPE) {
+    // Strings may get concurrently truncated, hence we have to access its
+    // length synchronized.
     return SeqTwoByteString::SizeFor(
-        reinterpret_cast<SeqTwoByteString*>(this)->length());
+        reinterpret_cast<SeqTwoByteString*>(this)->synchronized_length());
   }
   if (instance_type == FIXED_DOUBLE_ARRAY_TYPE) {
     return FixedDoubleArray::SizeFor(
@@ -5196,7 +5221,8 @@ bool Map::HasTransitionArray() const {
 
 
 Map* Map::elements_transition_map() {
-  int index = transitions()->Search(GetHeap()->elements_transition_symbol());
+  int index =
+      transitions()->SearchSpecial(GetHeap()->elements_transition_symbol());
   return transitions()->GetTarget(index);
 }
 
@@ -5213,8 +5239,19 @@ Map* Map::GetTransition(int transition_index) {
 }
 
 
-int Map::SearchTransition(Name* name) {
-  if (HasTransitionArray()) return transitions()->Search(name);
+int Map::SearchSpecialTransition(Symbol* name) {
+  if (HasTransitionArray()) {
+    return transitions()->SearchSpecial(name);
+  }
+  return TransitionArray::kNotFound;
+}
+
+
+int Map::SearchTransition(PropertyType type, Name* name,
+                          PropertyAttributes attributes) {
+  if (HasTransitionArray()) {
+    return transitions()->Search(type, name, attributes);
+  }
   return TransitionArray::kNotFound;
 }
 
@@ -5267,9 +5304,17 @@ void Map::set_transitions(TransitionArray* transition_array,
       Map* target = transitions()->GetTarget(i);
       if (target->instance_descriptors() == instance_descriptors()) {
         Name* key = transitions()->GetKey(i);
-        int new_target_index = transition_array->Search(key);
-        DCHECK(new_target_index != TransitionArray::kNotFound);
-        DCHECK(transition_array->GetTarget(new_target_index) == target);
+        int new_target_index;
+        if (TransitionArray::IsSpecialTransition(key)) {
+          new_target_index = transition_array->SearchSpecial(Symbol::cast(key));
+        } else {
+          PropertyDetails details =
+              TransitionArray::GetTargetDetails(key, target);
+          new_target_index = transition_array->Search(details.type(), key,
+                                                      details.attributes());
+        }
+        DCHECK_NE(TransitionArray::kNotFound, new_target_index);
+        DCHECK_EQ(target, transition_array->GetTarget(new_target_index));
       }
     }
 #endif
