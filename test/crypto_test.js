@@ -462,7 +462,7 @@ describe('crypto', function() {
 			cert.load(fs.readFile('cert_files/ca-bundle.crt'));
 			var s1 = cert.dump();
 
-			assert.deepEqual(s, s1);
+			assert.deepEqual(s.slice(23), s1);
 		});
 
 		it("root ca", function() {
@@ -478,7 +478,7 @@ describe('crypto', function() {
 			cert.loadRootCerts();
 			var s1 = cert.dump();
 
-			assert.deepEqual(s, s1);
+			assert.deepEqual(s, s1.slice(23));
 		});
 
 		it("unknown format", function() {

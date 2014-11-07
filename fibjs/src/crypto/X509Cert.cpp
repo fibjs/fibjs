@@ -113,8 +113,9 @@ result_t X509Cert::load(const char *txtCert)
     }
 
     _parser p(txtCert, (int)qstrlen(txtCert));
-    QuickArray<std::pair<std::string, std::string> > certs;
-    std::map<std::string, bool> trusts;
+    QuickArray<std::pair<std::string, std::string> > values;
+    std::map<std::string, bool> verifies;
+    std::map<std::string, bool> certs;
 
     while (!p.end())
     {
@@ -128,6 +129,7 @@ result_t X509Cert::load(const char *txtCert)
         bool is_value = false;
         bool is_serial = false;
         bool is_ca = false;
+        bool is_verify = false;
 
         while (!p.end())
         {
@@ -214,7 +216,10 @@ result_t X509Cert::load(const char *txtCert)
             if (!qstrcmp(cmd.c_str(), "CKA_LABEL"))
                 cka_label = value;
             else if (is_trust && !qstrcmp(cmd.c_str(), "CKA_TRUST_SERVER_AUTH"))
+            {
                 is_ca = !qstrcmp(value.c_str(), "CKT_NSS_TRUSTED_DELEGATOR");
+                is_verify = !qstrcmp(value.c_str(), "CKT_NSS_MUST_VERIFY_TRUST");
+            }
 
             if (cmd.empty())
                 break;
@@ -222,23 +227,46 @@ result_t X509Cert::load(const char *txtCert)
 
         if (!cka_label.empty())
         {
-            if (is_trust && is_ca)
-                trusts.insert(std::pair<std::string, bool>(cka_label + cka_serial, true));
+            if (is_trust)
+            {
+                if (is_ca)
+                    certs.insert(std::pair<std::string, bool>(cka_label + cka_serial, true));
+                if (is_verify)
+                    verifies.insert(std::pair<std::string, bool>(cka_label + cka_serial, true));
+            }
             else if (is_cert && !cka_value.empty())
-                certs.append(std::pair<std::string, std::string>(cka_label + cka_serial, cka_value));
+                values.append(std::pair<std::string, std::string>(cka_label + cka_serial, cka_value));
         }
     }
 
     bool is_loaded = false;
     int32_t i;
 
-    for (i = 0; i < (int32_t)certs.size(); i++)
+    for (i = 0; i < (int32_t)values.size(); i++)
     {
-        std::pair<std::string, std::string> &c = certs[i];
+        std::pair<std::string, std::string> &c = values[i];
         std::map<std::string, bool>::iterator it_trust;
 
-        it_trust = trusts.find(c.first);
-        if (it_trust != trusts.end())
+        it_trust = verifies.find(c.first);
+        if (it_trust != verifies.end())
+        {
+            ret = x509_crt_parse_der(&m_crt,
+                                     (const unsigned char *)c.second.c_str(),
+                                     c.second.length());
+            if (ret != 0)
+                return CHECK_ERROR(_ssl::setError(ret));
+
+            is_loaded = true;
+        }
+    }
+
+    for (i = 0; i < (int32_t)values.size(); i++)
+    {
+        std::pair<std::string, std::string> &c = values[i];
+        std::map<std::string, bool>::iterator it_trust;
+
+        it_trust = certs.find(c.first);
+        if (it_trust != certs.end())
         {
             ret = x509_crt_parse_der(&m_crt,
                                      (const unsigned char *)c.second.c_str(),
