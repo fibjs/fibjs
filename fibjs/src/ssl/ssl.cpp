@@ -57,7 +57,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
             pThis->set(ok);
 
             pThis->m_ssl_sock = new SslSocket();
-            return pThis->m_ssl_sock->connect(pThis->m_sock, "", pThis->m_temp, pThis);
+            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis);
         }
 
         static int ok(asyncState *pState, int n)
