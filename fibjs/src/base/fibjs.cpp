@@ -73,6 +73,29 @@ void _main(const char *fname)
 
 }
 
+void MyInterruptCallback(v8::Isolate *isolate, void *data)
+{
+    std::string msg;
+
+    msg.append("User interrupt.", 15);
+    msg.append(fibjs::traceInfo());
+
+    fibjs::asyncLog(fibjs::console_base::_ERROR, msg);
+    fibjs::process_base::exit(0);
+}
+
+void breakEvent(int dummy)
+{
+    static bool double_break = false;
+
+    if (double_break)
+        fibjs::process_base::exit(0);
+
+    double_break = true;
+    puts("");
+    fibjs::isolate->RequestInterrupt(MyInterruptCallback, NULL);
+}
+
 #ifdef _WIN32
 #include <DbgHelp.h>
 
@@ -150,10 +173,22 @@ void enableDump()
     }
 }
 
+BOOL WINAPI win_breakEvent(DWORD dwCtrlType)
+{
+    breakEvent(0);
+    return TRUE;
+}
+
+void enableBreak()
+{
+    SetConsoleCtrlHandler(win_breakEvent, TRUE);
+}
+
 #else
 
 #include <pwd.h>
 #include <sys/resource.h>
+#include <signal.h>
 
 void enableDump()
 {
@@ -161,6 +196,11 @@ void enableDump()
     { RLIM_INFINITY, RLIM_INFINITY };
 
     setrlimit(RLIMIT_CORE, &corelimit);
+}
+
+void enableBreak()
+{
+    signal(SIGINT, breakEvent);
 }
 
 #endif
@@ -178,6 +218,7 @@ int main(int argc, char *argv[])
                                " --use_strict"
                                " --nologfile_per_isolate";
     enableDump();
+    enableBreak();
 
     exlib::OSThread::Sleep(1);
 
