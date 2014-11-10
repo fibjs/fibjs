@@ -115,7 +115,7 @@ encoding_iconv::encoding_iconv(const char *charset) :
 {
     init_iconv();
     if (charset)
-        m_charset = charset;
+        m_charset = qstricmp(charset, "gb2312") ? charset : "gbk";
     else
         m_charset = "utf-8";
 }
