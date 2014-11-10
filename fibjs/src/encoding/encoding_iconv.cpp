@@ -231,43 +231,10 @@ result_t encoding_iconv::decode(const std::string &data, std::string &retVal)
 
 result_t encoding_iconv::decode(Buffer_base *data, std::string &retVal)
 {
-    if (!qstricmp(m_charset.c_str(), "utf8") || !qstricmp(m_charset.c_str(), "utf-8"))
-        data->toString(retVal);
-    else
-    {
-        if (!m_iconv_de)
-        {
-            m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
-            if (m_iconv_de == (iconv_t)(-1))
-            {
-                m_iconv_de = NULL;
-                return CHECK_ERROR(Runtime::setError("Unknown charset."));
-            }
-        }
+    std::string strData;
+    data->toString(strData);
 
-        std::string strData;
-        std::string strBuf;
-
-        data->toString(strData);
-
-        size_t sz = strData.length();
-        const char *ptr = strData.c_str();
-
-        strBuf.resize(sz * 2);
-        char *output_buf = &strBuf[0];
-        size_t output_size = strBuf.length();
-
-        size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
-
-        if (n == (size_t) - 1)
-            return CHECK_ERROR(Runtime::setError("convert error."));
-
-        strBuf.resize(strBuf.length() - output_size);
-
-        retVal = strBuf;
-    }
-
-    return 0;
+    return decode(strData, retVal);
 }
 
 }
