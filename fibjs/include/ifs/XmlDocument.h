@@ -19,6 +19,7 @@ namespace fibjs
 {
 
 class XmlNode_base;
+class Buffer_base;
 class XmlDocumentType_base;
 class XmlElement_base;
 class XmlNodeList_base;
@@ -35,6 +36,7 @@ public:
 	// XmlDocument_base
 	static result_t _new(const char* type, obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t load(const char* source) = 0;
+	virtual result_t load(Buffer_base* source) = 0;
 	virtual result_t get_inputEncoding(std::string& retVal) = 0;
 	virtual result_t get_xmlStandalone(bool& retVal) = 0;
 	virtual result_t set_xmlStandalone(bool newVal) = 0;
@@ -83,6 +85,7 @@ public:
 
 }
 
+#include "Buffer.h"
 #include "XmlDocumentType.h"
 #include "XmlElement.h"
 #include "XmlNodeList.h"
@@ -274,6 +277,12 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(arg_string, 0);
+
+		hr = pInst->load(v0);
+
+		METHOD_OVER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->load(v0);
 

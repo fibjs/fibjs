@@ -11,10 +11,15 @@ interface XmlDocument : XmlNode
     */
     XmlDocument(String type = "text/xml");
 
-    /*! @brief 通过解析一个 XML/HTML 标签字符串来组成该文档
+    /*! @brief 通过解析一个 XML/HTML 字符串来组成该文档，不支持多语种
      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
     */
     load(String source);
+
+    /*! @brief 通过解析一个二进制 XML/HTML 字符串来组成该文档，并根据语种自动转换
+     @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
+    */
+    load(Buffer source);
 
     /*! @brief 返回用于文档的编码（在解析时）
     */

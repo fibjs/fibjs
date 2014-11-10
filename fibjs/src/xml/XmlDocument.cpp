@@ -14,6 +14,8 @@
 #include "XmlCDATASection.h"
 #include "XmlProcessingInstruction.h"
 #include "XmlParser.h"
+#include "parse.h"
+#include "encoding_iconv.h"
 
 namespace fibjs
 {
@@ -32,6 +34,18 @@ result_t XmlDocument_base::_new(const char *type, obj_ptr<XmlDocument_base> &ret
 }
 
 result_t xml_base::parse(const char *source, const char *type, obj_ptr<XmlDocument_base> &retVal)
+{
+    bool isXml = !qstrcmp(type, "text/xml");
+
+    if (!isXml && qstrcmp(type, "text/html"))
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = new XmlDocument(isXml);
+
+    return retVal->load(source);
+}
+
+result_t xml_base::parse(Buffer_base *source, const char *type, obj_ptr<XmlDocument_base> &retVal)
 {
     bool isXml = !qstrcmp(type, "text/xml");
 
@@ -234,6 +248,102 @@ result_t XmlDocument::normalize()
 result_t XmlDocument::load(const char *source)
 {
     return m_isXml ? XmlParser::parse(this, source) : XmlParser::parseHtml(this, source);
+}
+
+result_t XmlDocument::load(Buffer_base *source)
+{
+    std::string strBuf;
+    result_t hr;
+
+    source->toString(strBuf);
+
+    if (!m_isXml)
+    {
+        _parser p(strBuf);
+        const char *ptr;
+
+        while ((ptr = qstristr(p.now(), "<meta")) != NULL && qisspace(ptr[5]))
+        {
+            bool bContentType = false;
+            std::string content;
+
+            p.pos = (int)(ptr - p.string + 5);
+            while (true)
+            {
+                std::string key, value;
+
+                p.skipSpace();
+                p.getWord(key, '=', '>');
+
+                if (key.empty())
+                    break;
+
+                if (p.want('='))
+                {
+                    if (p.want('\"'))
+                    {
+                        p.getString(value, '\"', '>');
+                        p.want('\"');
+                    }
+                    else
+                        p.getWord(value, '>');
+                }
+
+                if (!qstricmp(key.c_str(), "charset"))
+                {
+                    m_encoding = value;
+                    break;
+                }
+                else if (!qstricmp(key.c_str(), "content"))
+                    content = value;
+                else if (!qstricmp(key.c_str(), "http-equiv") &&
+                         !qstricmp(value.c_str(), "Content-Type"))
+                    bContentType = true;
+            }
+
+            if (bContentType && !content.empty())
+            {
+                _parser p1(content);
+
+                while (true)
+                {
+                    std::string key, value;
+
+                    p1.skipSpace();
+                    p1.getWord(key, ';', '=');
+
+                    if (key.empty())
+                        break;
+
+                    if (p1.want('='))
+                        p1.getWord(value, ';');
+
+                    p1.want(';');
+
+                    if (!qstricmp(key.c_str(), "charset"))
+                    {
+                        m_encoding = value;
+                        break;
+                    }
+                }
+            }
+
+            if (!m_encoding.empty())
+                break;
+        }
+
+        if (!m_encoding.empty())
+        {
+            encoding_iconv conv(m_encoding.c_str());
+            conv.decode(strBuf, strBuf);
+        }
+    }
+
+    hr = load(strBuf.c_str());
+    if (hr < 0)
+        return hr;
+
+    return 0;
 }
 
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base> &retVal)

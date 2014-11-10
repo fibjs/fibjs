@@ -726,6 +726,24 @@ describe('xml', function() {
 			hdoc.body.textContent = "<img><br>";
 			assert.equal(hdoc.body.innerHTML, "&lt;img&gt;&lt;br&gt;");
 		});
+
+		it("charset", function() {
+			var data = new Buffer('<html><meta charset=gb2312>哈哈哈哈', "gb2312");
+			var doc = xml.parse(data, "text/html");
+			assert.equal(doc.documentElement.textContent, "哈哈哈哈");
+
+			var data = new Buffer('<html><meta http-equiv=content-type content="text/html; charset=gb2312">哈哈哈哈', "gb2312");
+			var doc = xml.parse(data, "text/html");
+			assert.equal(doc.documentElement.textContent, "哈哈哈哈");
+
+			var data = new Buffer('<html><meta content="text/html; charset=gb2312" http-equiv=content-type>哈哈哈哈', "gb2312");
+			var doc = xml.parse(data, "text/html");
+			assert.equal(doc.documentElement.textContent, "哈哈哈哈");
+
+			var data = new Buffer('<html><meta http-equiv=content-type content="text/html; test=111; charset=gb2312; ccc=222">哈哈哈哈', "gb2312");
+			var doc = xml.parse(data, "text/html");
+			assert.equal(doc.documentElement.textContent, "哈哈哈哈");
+		});
 	});
 });
 

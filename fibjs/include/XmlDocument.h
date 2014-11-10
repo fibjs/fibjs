@@ -60,6 +60,7 @@ public:
 public:
     // XmlDocument_base
     virtual result_t load(const char *source);
+    virtual result_t load(Buffer_base *source);
     virtual result_t get_inputEncoding(std::string &retVal);
     virtual result_t get_xmlStandalone(bool &retVal);
     virtual result_t set_xmlStandalone(bool newVal);
