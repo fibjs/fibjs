@@ -5,6 +5,6 @@
     <tab type="namespacelist" visible="yes" title="模块" />
     <tab type="classlist" visible="yes" title="对象" />
     <tab type="user" url="https://github.com/xicilion/fibjs" title="下载" />
-    <tab type="user" url="http://baoz.me/fibjs" title="社区" />
+    <tab type="user" url="http://baoz.cn/fibjs" title="社区" />
   </navindex>
 </doxygenlayout>
