@@ -31,6 +31,9 @@ void Image::setExtMemory(int add)
 result_t gd_base::create(int32_t width, int32_t height, int32_t color,
                          obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (switchToAsync(ac))
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -282,6 +285,9 @@ result_t gd_base::color(const char *color, int32_t &retVal)
 
 result_t Image::create(int32_t width, int32_t height, int32_t color)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (color == gd_base::_PALETTE)
         m_image = gdImageCreate(width, height);
     else if (color == gd_base::_TRUECOLOR)
@@ -987,6 +993,9 @@ result_t Image::filledPolygon(v8::Local<v8::Array> points, int32_t color)
 result_t Image::ellipse(int32_t x, int32_t y, int32_t width, int32_t height,
                         int32_t color)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -997,6 +1006,9 @@ result_t Image::ellipse(int32_t x, int32_t y, int32_t width, int32_t height,
 result_t Image::filledEllipse(int32_t x, int32_t y, int32_t width,
                               int32_t height, int32_t color)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1007,6 +1019,9 @@ result_t Image::filledEllipse(int32_t x, int32_t y, int32_t width,
 result_t Image::arc(int32_t x, int32_t y, int32_t width, int32_t height,
                     int32_t start, int32_t end, int32_t color)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1020,6 +1035,9 @@ result_t Image::arc(int32_t x, int32_t y, int32_t width, int32_t height,
 result_t Image::filledArc(int32_t x, int32_t y, int32_t width, int32_t height,
                           int32_t start, int32_t end, int32_t color, int32_t style)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1051,6 +1069,9 @@ result_t Image::fillToBorder(int32_t x, int32_t y, int32_t borderColor,
 
 result_t Image::New(int32_t width, int32_t height, obj_ptr<Image> &retVal)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     obj_ptr<Image> img = new Image();
 
     if (gdImageTrueColor(m_image))
@@ -1082,6 +1103,9 @@ result_t Image::colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent *ac)
 result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
                      obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1119,6 +1143,9 @@ result_t Image::clone(obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
 result_t Image::resample(int32_t width, int32_t height,
                          obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1260,6 +1287,9 @@ result_t Image::copy(Image_base *source, int32_t dstX, int32_t dstY,
                      int32_t srcX, int32_t srcY, int32_t width, int32_t height,
                      exlib::AsyncEvent *ac)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1278,6 +1308,9 @@ result_t Image::copyMerge(Image_base *source, int32_t dstX, int32_t dstY,
                           int32_t srcX, int32_t srcY, int32_t width, int32_t height,
                           int32_t percent, exlib::AsyncEvent *ac)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1297,6 +1330,9 @@ result_t Image::copyMergeGray(Image_base *source, int32_t dstX, int32_t dstY,
                               int32_t srcX, int32_t srcY, int32_t width, int32_t height,
                               int32_t percent, exlib::AsyncEvent *ac)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1354,6 +1390,9 @@ result_t Image::copyRotated(Image_base *source, double dstX, double dstY,
                             int32_t srcX, int32_t srcY, int32_t width, int32_t height,
                             int32_t angle, exlib::AsyncEvent *ac)
 {
+    if (width <= 0 || height <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
