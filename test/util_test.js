@@ -174,6 +174,20 @@ describe('util', function() {
 		assert.deepEqual(o, o1);
 		o["a"] = 150;
 		assert.notDeepEqual(o, o1);
+
+		var p = {
+			a: 100,
+			b: {
+				c: 200
+			}
+		};
+		var p1 = util.clone(p, true);
+		assert.notEqual(p, p1);
+		assert.deepEqual(p, p1);
+		o["a"] = 150;
+		assert.notDeepEqual(o, o1);
+		p1.b.c = 300;
+		assert.notEqual(p.b.c, p1.b.c);
 	});
 
 	it('extend', function() {

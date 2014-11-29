@@ -137,6 +137,14 @@ module util
      */
     static Value clone(Value v);
 
+    /*! @brief 克隆给定变量，如果是对象或数组，则复制内容到新对象
+
+     @param v 给定要克隆的变量
+     @param isDeep 是否深度拷贝
+     @return 返回克隆结果
+     */
+    static Value clone(Value v, Boolean isDeep);
+
     /*! @brief 将一个或者多个对象的键值扩展到指定对象
 
      @param v 指定要扩展的对象

@@ -49,6 +49,32 @@ inline void newline(std::string &strBuffer, int32_t padding)
     }
 }
 
+inline v8::Local<v8::Value> _clone(v8::Local<v8::Value> v)
+{
+    if (v->IsObject() && !object_base::getInstance(v))
+    {
+        if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
+            return v;
+        else if (v->IsDate())
+            return v8::Date::New(isolate, v->NumberValue());
+        else if (v->IsBooleanObject())
+            return v8::BooleanObject::New(v->BooleanValue());
+        else if (v->IsNumberObject())
+            return v8::NumberObject::New(isolate, v->NumberValue());
+        else if (v->IsStringObject())
+            return v8::StringObject::New(v->ToString());
+        else if (v->IsRegExp())
+        {
+            v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
+            return v8::RegExp::New(re->GetSource(), re->GetFlags());
+        }
+        else
+            return v8::Local<v8::Object>::Cast(v)->Clone();
+    }
+    else
+        return v;
+}
+
 class _item
 {
 public:
@@ -545,28 +571,23 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array> &retVal)
 
 result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 {
-    if (v->IsObject() && !object_base::getInstance(v))
+    retVal = _clone(v);
+    return 0;
+}
+
+result_t util_base::clone(v8::Local<v8::Value> v, bool isDeep, v8::Local<v8::Value> &retVal)
+{
+    if (isDeep && v->IsObject() && !object_base::getInstance(v) 
+        && !(v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
+        && !v->IsDate() && !v->IsBooleanObject() && !v->IsNumberObject() 
+        && !v->IsStringObject() && !v->IsRegExp())  
     {
-        if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
-            retVal = v;
-        else if (v->IsDate())
-            retVal = v8::Date::New(isolate, v->NumberValue());
-        else if (v->IsBooleanObject())
-            retVal = v8::BooleanObject::New(v->BooleanValue());
-        else if (v->IsNumberObject())
-            retVal = v8::NumberObject::New(isolate, v->NumberValue());
-        else if (v->IsStringObject())
-            retVal = v8::StringObject::New(v->ToString());
-        else if (v->IsRegExp())
-        {
-            v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
-            retVal = v8::RegExp::New(re->GetSource(), re->GetFlags());
-        }
-        else
-            retVal = v8::Local<v8::Object>::Cast(v)->Clone();
+        std::string s;
+        encoding_base::jsonEncode(v, s);
+        encoding_base::jsonDecode(s.c_str(), retVal);
     }
     else
-        retVal = v;
+        retVal = _clone(v);
 
     return 0;
 }
