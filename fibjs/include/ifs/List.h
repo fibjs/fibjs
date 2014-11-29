@@ -34,6 +34,7 @@ public:
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, bool& retVal) = 0;
+	virtual result_t some(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, bool& retVal) = 0;
 	virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp) = 0;
 	virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
@@ -54,6 +55,7 @@ public:
 	static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_every(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_some(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_filter(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -74,6 +76,7 @@ namespace fibjs
 			{"slice", s_slice},
 			{"concat", s_concat},
 			{"every", s_every},
+			{"some", s_some},
 			{"filter", s_filter},
 			{"forEach", s_forEach},
 			{"map", s_map},
@@ -93,7 +96,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"List", s__new, 
-			10, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			11, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -231,6 +234,21 @@ namespace fibjs
 		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->every(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void List_base::s_some(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(List_base);
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Local<v8::Function>, 0);
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+		hr = pInst->some(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

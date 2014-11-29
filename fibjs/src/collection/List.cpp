@@ -69,6 +69,12 @@ result_t List::every(v8::Local<v8::Function> func,
     return m_array.every(func, thisp, retVal);
 }
 
+result_t List::some(v8::Local<v8::Function> func,
+                     v8::Local<v8::Object> thisp, bool &retVal)
+{
+    return m_array.some(func, thisp, retVal);
+}
+
 result_t List::filter(v8::Local<v8::Function> func,
                       v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
@@ -248,6 +254,30 @@ result_t List::array::every(v8::Local<v8::Function> func,
     }
 
     retVal = true;
+    return 0;
+}
+
+result_t List::array::some(v8::Local<v8::Function> func,
+                            v8::Local<v8::Object> thisp, bool &retVal)
+{
+    int i, len;
+
+    len = (int)m_array.size();
+    for (i = 0; i < len; i++)
+    {
+        v8::Local<v8::Value> r = _call(func, thisp, i);
+
+        if (r.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        if (r->BooleanValue())
+        {
+            retVal = true;
+            return 0;
+        }
+    }
+
+    retVal = false;
     return 0;
 }
 
