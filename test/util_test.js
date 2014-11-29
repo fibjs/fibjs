@@ -184,8 +184,8 @@ describe('util', function() {
 		var p1 = util.clone(p, true);
 		assert.notEqual(p, p1);
 		assert.deepEqual(p, p1);
-		o["a"] = 150;
-		assert.notDeepEqual(o, o1);
+		p["a"] = 150;
+		assert.notDeepEqual(p, p1);
 		p1.b.c = 300;
 		assert.notEqual(p.b.c, p1.b.c);
 	});
