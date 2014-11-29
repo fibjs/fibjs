@@ -93,6 +93,15 @@ result_t DBResult::every(v8::Local<v8::Function> func,
     return m_array.every(func, thisp, retVal);
 }
 
+result_t DBResult::some(v8::Local<v8::Function> func,
+                         v8::Local<v8::Object> thisp, bool &retVal)
+{
+    if (!m_size)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    return m_array.some(func, thisp, retVal);
+}
+
 result_t DBResult::filter(v8::Local<v8::Function> func,
                           v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {

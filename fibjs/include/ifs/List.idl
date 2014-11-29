@@ -58,6 +58,13 @@ interface List : object
      */
     Boolean every(Function func, Object thisp = {});
 
+    /*! @brief 检测一些数据是否通过测试函数
+     @param func 测试函数
+     @param thisp 调用测试函数的 this 对象，可省略
+     @return 全部不通过测试则返回 false，否则返回true
+     */
+    Boolean some(Function func, Object thisp = {});
+
     /*! @brief 过滤通过测试的数据成为一个新的数组
      @param func 测试函数
      @param thisp 调用测试函数的 this 对象，可省略

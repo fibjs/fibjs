@@ -89,6 +89,16 @@ describe("collection", function() {
 			assert.equal(passed.every(isBigEnough), true);
 		});
 
+		it("some", function() {
+			var passed = new collection.List();
+			passed.push(12, 5, 8, 130, 44);
+			assert.ok(passed.some(isBigEnough));
+
+			passed = new collection.List();
+			passed.push(1, 5, 8, 3, 4);
+			assert.notOk(passed.some(isBigEnough));
+		});
+
 		it("filter", function() {
 			var passed = new collection.List();
 			passed.push(12, 5, 8, 130, 44);
