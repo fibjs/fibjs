@@ -479,11 +479,6 @@ Handle<Object> StringTableShape::AsHandle(Isolate* isolate, HashTableKey* key) {
 }
 
 
-Handle<Object> MapCacheShape::AsHandle(Isolate* isolate, HashTableKey* key) {
-  return key->AsHandle(isolate);
-}
-
-
 Handle<Object> CompilationCacheShape::AsHandle(Isolate* isolate,
                                                HashTableKey* key) {
   return key->AsHandle(isolate);
@@ -764,6 +759,14 @@ bool Object::IsNativeContext() const {
   return Object::IsHeapObject() &&
       HeapObject::cast(this)->map() ==
       HeapObject::cast(this)->GetHeap()->native_context_map();
+}
+
+
+bool Object::IsGlobalContextTable() const {
+  if (!Object::IsHeapObject()) return false;
+  Map* map = HeapObject::cast(this)->map();
+  Heap* heap = map->GetHeap();
+  return map == heap->global_context_table_map();
 }
 
 
@@ -3280,7 +3283,6 @@ CAST_ACCESSOR(JSValue)
 CAST_ACCESSOR(JSWeakMap)
 CAST_ACCESSOR(JSWeakSet)
 CAST_ACCESSOR(Map)
-CAST_ACCESSOR(MapCache)
 CAST_ACCESSOR(Name)
 CAST_ACCESSOR(NameDictionary)
 CAST_ACCESSOR(NormalizedMapCache)
@@ -5492,6 +5494,9 @@ ACCESSORS(SharedFunctionInfo, optimized_code_map, Object,
 ACCESSORS(SharedFunctionInfo, construct_stub, Code, kConstructStubOffset)
 ACCESSORS(SharedFunctionInfo, feedback_vector, TypeFeedbackVector,
           kFeedbackVectorOffset)
+#if TRACE_MAPS
+SMI_ACCESSORS(SharedFunctionInfo, unique_id, kUniqueIdOffset)
+#endif
 ACCESSORS(SharedFunctionInfo, instance_class_name, Object,
           kInstanceClassNameOffset)
 ACCESSORS(SharedFunctionInfo, function_data, Object, kFunctionDataOffset)
@@ -5684,6 +5689,11 @@ BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_arrow, kIsArrow)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_generator, kIsGenerator)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_concise_method,
                kIsConciseMethod)
+BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_default_constructor,
+               kIsDefaultConstructor)
+BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints,
+               is_default_constructor_call_super,
+               kIsDefaultConstructorCallSuper)
 
 ACCESSORS(CodeCache, default_cache, FixedArray, kDefaultCacheOffset)
 ACCESSORS(CodeCache, normal_type_cache, Object, kNormalTypeCacheOffset)

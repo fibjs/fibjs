@@ -70,7 +70,7 @@ result_t List::every(v8::Local<v8::Function> func,
 }
 
 result_t List::some(v8::Local<v8::Function> func,
-                     v8::Local<v8::Object> thisp, bool &retVal)
+                    v8::Local<v8::Object> thisp, bool &retVal)
 {
     return m_array.some(func, thisp, retVal);
 }
@@ -258,7 +258,7 @@ result_t List::array::every(v8::Local<v8::Function> func,
 }
 
 result_t List::array::some(v8::Local<v8::Function> func,
-                            v8::Local<v8::Object> thisp, bool &retVal)
+                           v8::Local<v8::Object> thisp, bool &retVal)
 {
     int i, len;
 

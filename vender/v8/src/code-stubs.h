@@ -92,9 +92,7 @@ namespace internal {
 
 // List of code stubs only used on ARM 32 bits platforms.
 #if V8_TARGET_ARCH_ARM
-#define CODE_STUB_LIST_ARM(V) \
-  V(DirectCEntry)             \
-  V(WriteInt32ToHeapNumber)
+#define CODE_STUB_LIST_ARM(V) V(DirectCEntry)
 
 #else
 #define CODE_STUB_LIST_ARM(V)
@@ -113,17 +111,15 @@ namespace internal {
 
 // List of code stubs only used on MIPS platforms.
 #if V8_TARGET_ARCH_MIPS
-#define CODE_STUB_LIST_MIPS(V)  \
-  V(DirectCEntry)               \
-  V(RestoreRegistersState)      \
-  V(StoreRegistersState)        \
-  V(WriteInt32ToHeapNumber)
+#define CODE_STUB_LIST_MIPS(V) \
+  V(DirectCEntry)              \
+  V(RestoreRegistersState)     \
+  V(StoreRegistersState)
 #elif V8_TARGET_ARCH_MIPS64
-#define CODE_STUB_LIST_MIPS(V)  \
-  V(DirectCEntry)               \
-  V(RestoreRegistersState)      \
-  V(StoreRegistersState)        \
-  V(WriteInt32ToHeapNumber)
+#define CODE_STUB_LIST_MIPS(V) \
+  V(DirectCEntry)              \
+  V(RestoreRegistersState)     \
+  V(StoreRegistersState)
 #else
 #define CODE_STUB_LIST_MIPS(V)
 #endif
@@ -577,10 +573,14 @@ class FastNewClosureStub : public HydrogenCodeStub {
   bool is_arrow() const { return IsArrowFunction(kind()); }
   bool is_generator() const { return IsGeneratorFunction(kind()); }
   bool is_concise_method() const { return IsConciseMethod(kind()); }
+  bool is_default_constructor() const { return IsDefaultConstructor(kind()); }
+  bool is_default_constructor_call_super() const {
+    return IsDefaultConstructorCallSuper(kind());
+  }
 
  private:
   class StrictModeBits : public BitField<StrictMode, 0, 1> {};
-  class FunctionKindBits : public BitField<FunctionKind, 1, 3> {};
+  class FunctionKindBits : public BitField<FunctionKind, 1, 5> {};
 
   DEFINE_CALL_INTERFACE_DESCRIPTOR(FastNewClosure);
   DEFINE_HYDROGEN_CODE_STUB(FastNewClosure, HydrogenCodeStub);

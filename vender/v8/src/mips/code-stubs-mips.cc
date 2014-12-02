@@ -272,66 +272,6 @@ void DoubleToIStub::Generate(MacroAssembler* masm) {
 }
 
 
-void WriteInt32ToHeapNumberStub::GenerateFixedRegStubsAheadOfTime(
-    Isolate* isolate) {
-  WriteInt32ToHeapNumberStub stub1(isolate, a1, v0, a2, a3);
-  WriteInt32ToHeapNumberStub stub2(isolate, a2, v0, a3, a0);
-  stub1.GetCode();
-  stub2.GetCode();
-}
-
-
-// See comment for class, this does NOT work for int32's that are in Smi range.
-void WriteInt32ToHeapNumberStub::Generate(MacroAssembler* masm) {
-  Label max_negative_int;
-  // the_int_ has the answer which is a signed int32 but not a Smi.
-  // We test for the special value that has a different exponent.
-  STATIC_ASSERT(HeapNumber::kSignMask == 0x80000000u);
-  // Test sign, and save for later conditionals.
-  __ And(sign(), the_int(), Operand(0x80000000u));
-  __ Branch(&max_negative_int, eq, the_int(), Operand(0x80000000u));
-
-  // Set up the correct exponent in scratch_.  All non-Smi int32s have the same.
-  // A non-Smi integer is 1.xxx * 2^30 so the exponent is 30 (biased).
-  uint32_t non_smi_exponent =
-      (HeapNumber::kExponentBias + 30) << HeapNumber::kExponentShift;
-  __ li(scratch(), Operand(non_smi_exponent));
-  // Set the sign bit in scratch_ if the value was negative.
-  __ or_(scratch(), scratch(), sign());
-  // Subtract from 0 if the value was negative.
-  __ subu(at, zero_reg, the_int());
-  __ Movn(the_int(), at, sign());
-  // We should be masking the implict first digit of the mantissa away here,
-  // but it just ends up combining harmlessly with the last digit of the
-  // exponent that happens to be 1.  The sign bit is 0 so we shift 10 to get
-  // the most significant 1 to hit the last bit of the 12 bit sign and exponent.
-  DCHECK(((1 << HeapNumber::kExponentShift) & non_smi_exponent) != 0);
-  const int shift_distance = HeapNumber::kNonMantissaBitsInTopWord - 2;
-  __ srl(at, the_int(), shift_distance);
-  __ or_(scratch(), scratch(), at);
-  __ sw(scratch(), FieldMemOperand(the_heap_number(),
-                                   HeapNumber::kExponentOffset));
-  __ sll(scratch(), the_int(), 32 - shift_distance);
-  __ Ret(USE_DELAY_SLOT);
-  __ sw(scratch(), FieldMemOperand(the_heap_number(),
-                                   HeapNumber::kMantissaOffset));
-
-  __ bind(&max_negative_int);
-  // The max negative int32 is stored as a positive number in the mantissa of
-  // a double because it uses a sign bit instead of using two's complement.
-  // The actual mantissa bits stored are all 0 because the implicit most
-  // significant 1 bit is not stored.
-  non_smi_exponent += 1 << HeapNumber::kExponentShift;
-  __ li(scratch(), Operand(HeapNumber::kSignMask | non_smi_exponent));
-  __ sw(scratch(),
-        FieldMemOperand(the_heap_number(), HeapNumber::kExponentOffset));
-  __ mov(scratch(), zero_reg);
-  __ Ret(USE_DELAY_SLOT);
-  __ sw(scratch(),
-        FieldMemOperand(the_heap_number(), HeapNumber::kMantissaOffset));
-}
-
-
 // Handle the case where the lhs and rhs are the same object.
 // Equality is almost reflexive (everything but NaN), so this is a test
 // for "identity and not NaN".
@@ -1058,7 +998,6 @@ bool CEntryStub::NeedsImmovableCode() {
 
 void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   CEntryStub::GenerateAheadOfTime(isolate);
-  WriteInt32ToHeapNumberStub::GenerateFixedRegStubsAheadOfTime(isolate);
   StoreBufferOverflowStub::GenerateFixedRegStubsAheadOfTime(isolate);
   StubFailureTrampolineStub::GenerateAheadOfTime(isolate);
   ArrayConstructorStubBase::GenerateStubsAheadOfTime(isolate);
@@ -2829,8 +2768,12 @@ void CallIC_ArrayStub::Generate(MacroAssembler* masm) {
 
 
 void CallICStub::Generate(MacroAssembler* masm) {
-  // r1 - function
-  // r3 - slot id (Smi)
+  // a1 - function
+  // a3 - slot id (Smi)
+  const int with_types_offset =
+      FixedArray::OffsetOfElementAt(TypeFeedbackVector::kWithTypesIndex);
+  const int generic_offset =
+      FixedArray::OffsetOfElementAt(TypeFeedbackVector::kGenericCountIndex);
   Label extra_checks_or_miss, slow_start;
   Label slow, non_function, wrap, cont;
   Label have_js_function;
@@ -2869,38 +2812,71 @@ void CallICStub::Generate(MacroAssembler* masm) {
   }
 
   __ bind(&extra_checks_or_miss);
-  Label miss;
+  Label uninitialized, miss;
 
   __ LoadRoot(at, Heap::kmegamorphic_symbolRootIndex);
   __ Branch(&slow_start, eq, t0, Operand(at));
-  __ LoadRoot(at, Heap::kuninitialized_symbolRootIndex);
-  __ Branch(&miss, eq, t0, Operand(at));
 
-  if (!FLAG_trace_ic) {
-    // We are going megamorphic. If the feedback is a JSFunction, it is fine
-    // to handle it here. More complex cases are dealt with in the runtime.
-    __ AssertNotSmi(t0);
-    __ GetObjectType(t0, t1, t1);
-    __ Branch(&miss, ne, t1, Operand(JS_FUNCTION_TYPE));
-    __ sll(t0, a3, kPointerSizeLog2 - kSmiTagSize);
-    __ Addu(t0, a2, Operand(t0));
-    __ LoadRoot(at, Heap::kmegamorphic_symbolRootIndex);
-    __ sw(at, FieldMemOperand(t0, FixedArray::kHeaderSize));
-    // We have to update statistics for runtime profiling.
-    const int with_types_offset =
-        FixedArray::OffsetOfElementAt(TypeFeedbackVector::kWithTypesIndex);
-    __ lw(t0, FieldMemOperand(a2, with_types_offset));
-    __ Subu(t0, t0, Operand(Smi::FromInt(1)));
-    __ sw(t0, FieldMemOperand(a2, with_types_offset));
-    const int generic_offset =
-        FixedArray::OffsetOfElementAt(TypeFeedbackVector::kGenericCountIndex);
-    __ lw(t0, FieldMemOperand(a2, generic_offset));
-    __ Addu(t0, t0, Operand(Smi::FromInt(1)));
-    __ sw(t0, FieldMemOperand(a2, generic_offset));
-    __ Branch(&slow_start);
+  // The following cases attempt to handle MISS cases without going to the
+  // runtime.
+  if (FLAG_trace_ic) {
+    __ Branch(&miss);
   }
 
-  // We are here because tracing is on or we are going monomorphic.
+  __ LoadRoot(at, Heap::kuninitialized_symbolRootIndex);
+  __ Branch(&uninitialized, eq, t0, Operand(at));
+
+  // We are going megamorphic. If the feedback is a JSFunction, it is fine
+  // to handle it here. More complex cases are dealt with in the runtime.
+  __ AssertNotSmi(t0);
+  __ GetObjectType(t0, t1, t1);
+  __ Branch(&miss, ne, t1, Operand(JS_FUNCTION_TYPE));
+  __ sll(t0, a3, kPointerSizeLog2 - kSmiTagSize);
+  __ Addu(t0, a2, Operand(t0));
+  __ LoadRoot(at, Heap::kmegamorphic_symbolRootIndex);
+  __ sw(at, FieldMemOperand(t0, FixedArray::kHeaderSize));
+  // We have to update statistics for runtime profiling.
+  __ lw(t0, FieldMemOperand(a2, with_types_offset));
+  __ Subu(t0, t0, Operand(Smi::FromInt(1)));
+  __ sw(t0, FieldMemOperand(a2, with_types_offset));
+  __ lw(t0, FieldMemOperand(a2, generic_offset));
+  __ Addu(t0, t0, Operand(Smi::FromInt(1)));
+  __ Branch(USE_DELAY_SLOT, &slow_start);
+  __ sw(t0, FieldMemOperand(a2, generic_offset));  // In delay slot.
+
+  __ bind(&uninitialized);
+
+  // We are going monomorphic, provided we actually have a JSFunction.
+  __ JumpIfSmi(a1, &miss);
+
+  // Goto miss case if we do not have a function.
+  __ GetObjectType(a1, t0, t0);
+  __ Branch(&miss, ne, t0, Operand(JS_FUNCTION_TYPE));
+
+  // Make sure the function is not the Array() function, which requires special
+  // behavior on MISS.
+  __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, t0);
+  __ Branch(&miss, eq, a1, Operand(t0));
+
+  // Update stats.
+  __ lw(t0, FieldMemOperand(a2, with_types_offset));
+  __ Addu(t0, t0, Operand(Smi::FromInt(1)));
+  __ sw(t0, FieldMemOperand(a2, with_types_offset));
+
+  // Store the function.
+  __ sll(t0, a3, kPointerSizeLog2 - kSmiTagSize);
+  __ Addu(t0, a2, Operand(t0));
+  __ Addu(t0, t0, Operand(FixedArray::kHeaderSize - kHeapObjectTag));
+  __ sw(a1, MemOperand(t0, 0));
+
+  // Update the write barrier.
+  __ mov(t1, a1);
+  __ RecordWrite(a2, t0, t1, kRAHasNotBeenSaved, kDontSaveFPRegs,
+                 EMIT_REMEMBERED_SET, OMIT_SMI_CHECK);
+  __ Branch(&have_js_function);
+
+  // We are here because tracing is on or we encountered a MISS case we can't
+  // handle here.
   __ bind(&miss);
   GenerateMiss(masm);
 

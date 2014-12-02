@@ -489,6 +489,9 @@
     <ClInclude Include="src\compiler\raw-machine-assembler.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\register-allocator-verifier.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\register-allocator.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -1497,6 +1500,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\raw-machine-assembler.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\register-allocator-verifier.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\register-allocator.cc">
