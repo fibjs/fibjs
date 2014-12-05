@@ -12,7 +12,7 @@ if(NOT flags)
 	set(flags " ")
 endif()
 
-set(flags "${flags} -fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -fvisibility=hidden -D_FILE_OFFSET_BITS=64")
+set(flags "${flags} -fshort-wchar -fsigned-char -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -fvisibility=hidden -g -D_FILE_OFFSET_BITS=64")
 set(link_flags " ")
 
 if(${OS} STREQUAL "Darwin")
@@ -37,7 +37,7 @@ if(${BUILD_TYPE} STREQUAL "Release")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug")
-	set(flags "${flags} -g -O0")
+	set(flags "${flags} -O0")
 	add_definitions(-DDEBUG=1)
 endif()
 
