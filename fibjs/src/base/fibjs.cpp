@@ -89,7 +89,7 @@ void breakEvent(int dummy)
     static bool double_break = false;
 
     if (double_break)
-        abort();
+        fibjs::process_base::exit(0);
 
     double_break = true;
     puts("");
