@@ -32,6 +32,7 @@ public:
     virtual result_t add(v8::Local<v8::Object> mods);
     virtual result_t addScript(const char *srcname, const char *script, v8::Local<v8::Value> &retVal);
     virtual result_t remove(const char *id);
+    virtual result_t clone(obj_ptr<SandBox_base> &retVal);
     virtual result_t run(const char *fname);
     virtual result_t require(const char *id, v8::Local<v8::Value> &retVal);
 

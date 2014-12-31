@@ -81,4 +81,16 @@ result_t SandBox::remove(const char *id)
     return 0;
 }
 
+result_t SandBox::clone(obj_ptr<SandBox_base> &retVal)
+{
+    obj_ptr<SandBox> sbox = new SandBox();
+    sbox->m_name = m_name;
+    sbox->wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "_mods"),
+                                 mods()->Clone());
+
+    retVal = sbox;
+
+    return 0;
+}
+
 } /* namespace fibjs */

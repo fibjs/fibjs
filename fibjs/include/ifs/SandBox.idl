@@ -50,6 +50,11 @@ interface SandBox : object
      */
     remove(String id);
 
+    /*! @brief 复制当前沙箱，新沙箱包含当前沙箱的模块，以及相同的名称和 require 函数
+     @return 复制的新沙箱
+     */
+    SandBox clone();
+
     /*! @brief 运行一个脚本
      @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，永远从当前工作目录作为起始
      */
