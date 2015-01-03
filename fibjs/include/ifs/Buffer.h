@@ -35,6 +35,7 @@ public:
 	virtual result_t write(v8::Local<v8::Array> datas) = 0;
 	virtual result_t write(Buffer_base* data) = 0;
 	virtual result_t write(const char* str, const char* codec) = 0;
+	virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
 	virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
 	virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
 	virtual result_t readUInt16BE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -84,6 +85,7 @@ public:
 	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -134,6 +136,7 @@ namespace fibjs
 		{
 			{"resize", s_resize},
 			{"write", s_write},
+			{"copy", s_copy},
 			{"readUInt8", s_readUInt8},
 			{"readUInt16LE", s_readUInt16LE},
 			{"readUInt16BE", s_readUInt16BE},
@@ -185,7 +188,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			38, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			39, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -295,6 +298,23 @@ namespace fibjs
 		hr = pInst->write(v0, v1);
 
 		METHOD_VOID();
+	}
+
+	inline void Buffer_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(4, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		OPT_ARG(int32_t, 1, 0);
+		OPT_ARG(int32_t, 2, 0);
+		OPT_ARG(int32_t, 3, -1);
+
+		hr = pInst->copy(v0, v1, v2, v3, vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void Buffer_base::s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args)
