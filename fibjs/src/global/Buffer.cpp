@@ -149,31 +149,27 @@ result_t Buffer::copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t so
         return CHECK_ERROR(CALL_E_OUTRANGE);
     }
 
-    std::string strBuf;
-    targetBuffer->toString(strBuf);
+    Buffer* buf = static_cast<Buffer*>(targetBuffer);
+    int32_t bufLen;
+    buf->get_length(bufLen);
 
     if(sourceEnd == -1)
     {
         sourceEnd = m_data.length();
     }
 
-    if(targetStart >= strBuf.length() || sourceStart >= sourceEnd)
+    if(targetStart >= bufLen || sourceStart >= sourceEnd)
     {
         retVal = 0;
         return 0;
     }
 
-    if (sourceEnd - sourceStart > strBuf.length() - targetStart)
-        sourceEnd = sourceStart + strBuf.length() - targetStart;
+    int32_t targetSz = bufLen - targetStart;
+    int32_t sourceSz = m_data.length() - sourceStart;
+    int32_t sourceLen = sourceEnd - sourceStart;
+    int32_t sz = MIN(MIN(sourceLen, targetSz), sourceSz);
 
-    int32_t sz = MIN(MIN(sourceEnd - sourceStart, strBuf.length() - targetStart), m_data.length() - sourceStart);
-
-    int i;
-
-    for (i = 0; i < (int) sz; i++)
-    {
-        targetBuffer->_indexed_setter(targetStart + i, m_data[sourceStart + i]);
-    }
+    memcpy(&buf->m_data[targetStart], m_data.c_str() + sourceStart, sz);
 
     retVal = sz;
 
