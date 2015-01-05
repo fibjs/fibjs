@@ -51,6 +51,14 @@ interface Buffer : object
      */
     write(String str, String codec = "utf8");
 
+    /*! @brief 从源缓存对象区域拷贝数据到目标缓存对象区域
+     @param targetBuffer 目标缓存对象
+     @param targetStart 目标缓存对象开始拷贝字节位置，缺省为 0
+     @param sourceStart 源缓存对象开始字节位置, 缺省为 0
+     @param sourceEnd 源缓存对象结束字节位置, 缺省为 -1,表示源数据长度
+     */
+    Integer copy(Buffer targetBuffer, Integer targetStart = 0, Integer sourceStart = 0, Integer sourceEnd = -1);
+
     /*! @brief 从缓存对象读取一个 8 位无符号整型数值
      @param offset 指定读取的起始位置
      @param noAssert 指定读取越界时不抛出错误，缺省为 flase，抛出

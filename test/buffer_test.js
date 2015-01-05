@@ -52,6 +52,38 @@ describe('Buffer', function() {
 		assert.equal(buf.toString(), "1234abcd1234121234");
 	});
 
+	it('copy', function() {
+
+		var buf1 = new Buffer([0x31, 0x32, 0x33]);
+		var arr = [0x34, 0x35, 0x36];
+
+		var buf2 = new Buffer(arr);
+		var sz = buf1.copy(buf2);
+		assert.equal(sz, 3);
+		assert.equal(buf2.toString(), '123');
+
+		buf2 = new Buffer(arr);
+		sz = buf1.copy(buf2, 1);
+		assert.equal(sz, 2);
+		assert.equal(buf2.toString(), '412');
+
+		buf2 = new Buffer(arr);
+		sz = buf1.copy(buf2, 1, 1);
+		assert.equal(sz, 2);
+		assert.equal(buf2.toString(), '423');
+
+		buf2 = new Buffer(arr);
+		sz = buf1.copy(buf2, 1, 1, 2);
+		assert.equal(sz, 1);
+		assert.equal(buf2.toString(), '426');
+
+		buf2 = new Buffer(arr);
+		sz = buf1.copy(buf2, 1, 1, 1);
+		assert.equal(sz, 0);
+		assert.equal(buf2.toString(), '456');
+
+	});
+
 	it("readNumber", function() {
 		var buf = new Buffer([0x23, 0x42]);
 

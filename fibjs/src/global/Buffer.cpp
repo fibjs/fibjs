@@ -3,6 +3,8 @@
 #include "Int64.h"
 #include <string.h>
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 namespace fibjs
 {
 
@@ -135,6 +137,43 @@ result_t Buffer::write(const char *str, const char *codec)
         return hr;
 
     return write(data);
+}
+
+result_t Buffer::copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal)
+{
+    if (targetStart < 0 || sourceStart < 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if(sourceStart > m_data.length())
+    {
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+    }
+
+    Buffer* buf = static_cast<Buffer*>(targetBuffer);
+    int32_t bufLen;
+    buf->get_length(bufLen);
+
+    if(sourceEnd == -1)
+    {
+        sourceEnd = m_data.length();
+    }
+
+    if(targetStart >= bufLen || sourceStart >= sourceEnd)
+    {
+        retVal = 0;
+        return 0;
+    }
+
+    int32_t targetSz = bufLen - targetStart;
+    int32_t sourceSz = m_data.length() - sourceStart;
+    int32_t sourceLen = sourceEnd - sourceStart;
+    int32_t sz = MIN(MIN(sourceLen, targetSz), sourceSz);
+
+    memcpy(&buf->m_data[targetStart], m_data.c_str() + sourceStart, sz);
+
+    retVal = sz;
+
+    return 0;
 }
 
 result_t Buffer::readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le)
