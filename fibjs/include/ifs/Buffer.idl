@@ -56,6 +56,7 @@ interface Buffer : object
      @param targetStart 目标缓存对象开始拷贝字节位置，缺省为 0
      @param sourceStart 源缓存对象开始字节位置, 缺省为 0
      @param sourceEnd 源缓存对象结束字节位置, 缺省为 -1,表示源数据长度
+     @return 拷贝的数据字节长度
      */
     Integer copy(Buffer targetBuffer, Integer targetStart = 0, Integer sourceStart = 0, Integer sourceEnd = -1);
 
