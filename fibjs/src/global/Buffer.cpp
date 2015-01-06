@@ -455,10 +455,10 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
         end = (int32_t) m_data.length();
 
     obj_ptr<Buffer> pNew = new Buffer();
-
-    pNew->m_data.append(m_data, start, end - start);
-    pNew->extMemory((int) (end - start));
-
+    if(start < end) {
+        pNew->m_data.append(m_data, start, end - start);
+        pNew->extMemory((int) (end - start));
+    }
     retVal = pNew;
 
     return 0;
