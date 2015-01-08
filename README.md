@@ -11,7 +11,7 @@ All the source code and docs are on github. However, I use github for convenienc
 
 ***文档入口(General docs (Chinese)):*** http://fibjs.org/
 
-***English Docs:*** http://fibjs.org/en/index.html
+***English Docs:*** http://fibjs.org/en/
 
 ***文档下载(Documents repository):*** https://github.com/xicilion/fibjs_docs
 
