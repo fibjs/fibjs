@@ -100,6 +100,8 @@ result_t Buffer_base::concat(v8::Local<v8::Array> list, int32_t totalLength, obj
             std::string temp;
             std::string bufStr("");
 
+            if(totalLength < sz) sz = totalLength;
+
             for (i = 0; i < sz; i ++)
             {
                 v8::Local<v8::Value> v = list->Get(i);

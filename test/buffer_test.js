@@ -56,6 +56,12 @@ describe('Buffer', function() {
 		d = Buffer.concat(d, 5);
 		assert.equal(d.toString(), "abcde");
 		assert.equal(d.length, 5);
+
+		var e = [new Buffer('a'), new Buffer('b'), new Buffer('c'), new Buffer('d')];
+		e = Buffer.concat(e, 3);
+		assert.equal(e.toString(), "abc");
+		assert.equal(e.length, 3);
+
 	});
 
 	it('write', function() {
@@ -312,4 +318,4 @@ describe('Buffer', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+test.run(console.DEBUG);
