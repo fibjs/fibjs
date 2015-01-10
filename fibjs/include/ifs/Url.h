@@ -78,10 +78,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"parse", s_parse},
-			{"format", s_format},
-			{"resolve", s_resolve},
-			{"normalize", s_normalize}
+			{"parse", s_parse, false},
+			{"format", s_format, false},
+			{"resolve", s_resolve, false},
+			{"normalize", s_normalize, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

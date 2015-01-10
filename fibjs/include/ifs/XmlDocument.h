@@ -100,15 +100,15 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"load", s_load},
-			{"getElementsByTagName", s_getElementsByTagName},
-			{"getElementsByTagNameNS", s_getElementsByTagNameNS},
-			{"createElement", s_createElement},
-			{"createElementNS", s_createElementNS},
-			{"createTextNode", s_createTextNode},
-			{"createComment", s_createComment},
-			{"createCDATASection", s_createCDATASection},
-			{"createProcessingInstruction", s_createProcessingInstruction}
+			{"load", s_load, false},
+			{"getElementsByTagName", s_getElementsByTagName, false},
+			{"getElementsByTagNameNS", s_getElementsByTagNameNS, false},
+			{"createElement", s_createElement, false},
+			{"createElementNS", s_createElementNS, false},
+			{"createTextNode", s_createTextNode, false},
+			{"createComment", s_createComment, false},
+			{"createCDATASection", s_createCDATASection, false},
+			{"createProcessingInstruction", s_createProcessingInstruction, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

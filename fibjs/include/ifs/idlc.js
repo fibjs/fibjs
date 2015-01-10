@@ -730,9 +730,9 @@ function parserIDL(fname) {
 			if (!ids.hasOwnProperty(fname)) {
 				if (attr == "static") {
 					if (fname !== "_new")
-						difms.push("			{\"" + fname + "\", s_" + fname + "}");
+						difms.push("			{\"" + fname + "\", s_" + fname + ", true}");
 				} else
-					difms.push("			{\"" + fname + "\", s_" + fname + "}");
+					difms.push("			{\"" + fname + "\", s_" + fname + ", false}");
 			}
 
 			ids[fname] = [ftype, fnStr];

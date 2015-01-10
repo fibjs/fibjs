@@ -94,12 +94,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"read", s_read},
-			{"readAll", s_readAll},
-			{"write", s_write},
-			{"clear", s_clear},
-			{"sendTo", s_sendTo},
-			{"readFrom", s_readFrom}
+			{"read", s_read, false},
+			{"readAll", s_readAll, false},
+			{"write", s_write, false},
+			{"clear", s_clear, false},
+			{"sendTo", s_sendTo, false},
+			{"readFrom", s_readFrom, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

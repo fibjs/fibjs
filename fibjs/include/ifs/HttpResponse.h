@@ -59,8 +59,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"addCookie", s_addCookie},
-			{"redirect", s_redirect}
+			{"addCookie", s_addCookie, false},
+			{"redirect", s_redirect, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

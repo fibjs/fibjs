@@ -53,10 +53,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"on", s_on},
-			{"once", s_once},
-			{"off", s_off},
-			{"trigger", s_trigger}
+			{"on", s_on, false},
+			{"once", s_once, false},
+			{"off", s_off, false},
+			{"trigger", s_trigger, false}
 		};
 
 		static ClassData s_cd = 

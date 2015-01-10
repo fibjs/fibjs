@@ -55,12 +55,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"add", s_add},
-			{"addScript", s_addScript},
-			{"remove", s_remove},
-			{"clone", s_clone},
-			{"run", s_run},
-			{"require", s_require}
+			{"add", s_add, false},
+			{"addScript", s_addScript, false},
+			{"remove", s_remove, false},
+			{"clone", s_clone, false},
+			{"run", s_run, false},
+			{"require", s_require, false}
 		};
 
 		static ClassData s_cd = 

@@ -58,10 +58,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"retrieve", s_retrieve},
-			{"store", s_store},
-			{"exists", s_exists},
-			{"remove", s_remove}
+			{"retrieve", s_retrieve, false},
+			{"store", s_store, false},
+			{"exists", s_exists, false},
+			{"remove", s_remove, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

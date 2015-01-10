@@ -58,13 +58,13 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"add", s_add},
-			{"remove", s_remove},
-			{"len", s_len},
-			{"exists", s_exists},
-			{"members", s_members},
-			{"pop", s_pop},
-			{"randMember", s_randMember}
+			{"add", s_add, false},
+			{"remove", s_remove, false},
+			{"len", s_len, false},
+			{"exists", s_exists, false},
+			{"members", s_members, false},
+			{"pop", s_pop, false},
+			{"randMember", s_randMember, false}
 		};
 
 		static ClassData s_cd = 

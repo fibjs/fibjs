@@ -46,8 +46,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"update", s_update},
-			{"digest", s_digest}
+			{"update", s_update, false},
+			{"digest", s_digest, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

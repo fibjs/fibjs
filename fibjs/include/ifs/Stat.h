@@ -65,15 +65,15 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"isWritable", s_isWritable},
-			{"isReadable", s_isReadable},
-			{"isExecutable", s_isExecutable},
-			{"isHidden", s_isHidden},
-			{"isDirectory", s_isDirectory},
-			{"isFile", s_isFile},
-			{"isSymbolicLink", s_isSymbolicLink},
-			{"isMemory", s_isMemory},
-			{"isSocket", s_isSocket}
+			{"isWritable", s_isWritable, false},
+			{"isReadable", s_isReadable, false},
+			{"isExecutable", s_isExecutable, false},
+			{"isHidden", s_isHidden, false},
+			{"isDirectory", s_isDirectory, false},
+			{"isFile", s_isFile, false},
+			{"isSymbolicLink", s_isSymbolicLink, false},
+			{"isMemory", s_isMemory, false},
+			{"isSocket", s_isSocket, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

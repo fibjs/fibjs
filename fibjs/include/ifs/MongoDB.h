@@ -58,10 +58,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"getCollection", s_getCollection},
-			{"runCommand", s_runCommand},
-			{"oid", s_oid},
-			{"close", s_close}
+			{"getCollection", s_getCollection, false},
+			{"runCommand", s_runCommand, false},
+			{"oid", s_oid, false},
+			{"close", s_close, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

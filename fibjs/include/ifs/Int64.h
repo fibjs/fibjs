@@ -74,17 +74,17 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"equal", s_equal},
-			{"compare", s_compare},
-			{"shiftLeft", s_shiftLeft},
-			{"shiftRight", s_shiftRight},
-			{"and", s_and},
-			{"or", s_or},
-			{"xor", s_xor},
-			{"add", s_add},
-			{"sub", s_sub},
-			{"toNumber", s_toNumber},
-			{"toString", s_toString}
+			{"equal", s_equal, false},
+			{"compare", s_compare, false},
+			{"shiftLeft", s_shiftLeft, false},
+			{"shiftRight", s_shiftRight, false},
+			{"and", s_and, false},
+			{"or", s_or, false},
+			{"xor", s_xor, false},
+			{"add", s_add, false},
+			{"sub", s_sub, false},
+			{"toNumber", s_toNumber, false},
+			{"toString", s_toString, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

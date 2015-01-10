@@ -57,17 +57,17 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"skip", s_skip},
-			{"limit", s_limit},
-			{"sort", s_sort},
-			{"hasNext", s_hasNext},
-			{"next", s_next},
-			{"count", s_count},
-			{"size", s_size},
-			{"forEach", s_forEach},
-			{"map", s_map},
-			{"toArray", s_toArray},
-			{"hint", s_hint}
+			{"skip", s_skip, false},
+			{"limit", s_limit, false},
+			{"sort", s_sort, false},
+			{"hasNext", s_hasNext, false},
+			{"next", s_next, false},
+			{"count", s_count, false},
+			{"size", s_size, false},
+			{"forEach", s_forEach, false},
+			{"map", s_map, false},
+			{"toArray", s_toArray, false},
+			{"hint", s_hint, false}
 		};
 
 		static ClassData s_cd = 

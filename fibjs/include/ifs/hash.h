@@ -104,26 +104,26 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"digest", s_digest},
-			{"md2", s_md2},
-			{"md4", s_md4},
-			{"md5", s_md5},
-			{"sha1", s_sha1},
-			{"sha224", s_sha224},
-			{"sha256", s_sha256},
-			{"sha384", s_sha384},
-			{"sha512", s_sha512},
-			{"ripemd160", s_ripemd160},
-			{"hmac", s_hmac},
-			{"hmac_md2", s_hmac_md2},
-			{"hmac_md4", s_hmac_md4},
-			{"hmac_md5", s_hmac_md5},
-			{"hmac_sha1", s_hmac_sha1},
-			{"hmac_sha224", s_hmac_sha224},
-			{"hmac_sha256", s_hmac_sha256},
-			{"hmac_sha384", s_hmac_sha384},
-			{"hmac_sha512", s_hmac_sha512},
-			{"hmac_ripemd160", s_hmac_ripemd160}
+			{"digest", s_digest, true},
+			{"md2", s_md2, true},
+			{"md4", s_md4, true},
+			{"md5", s_md5, true},
+			{"sha1", s_sha1, true},
+			{"sha224", s_sha224, true},
+			{"sha256", s_sha256, true},
+			{"sha384", s_sha384, true},
+			{"sha512", s_sha512, true},
+			{"ripemd160", s_ripemd160, true},
+			{"hmac", s_hmac, true},
+			{"hmac_md2", s_hmac_md2, true},
+			{"hmac_md4", s_hmac_md4, true},
+			{"hmac_md5", s_hmac_md5, true},
+			{"hmac_sha1", s_hmac_sha1, true},
+			{"hmac_sha224", s_hmac_sha224, true},
+			{"hmac_sha256", s_hmac_sha256, true},
+			{"hmac_sha384", s_hmac_sha384, true},
+			{"hmac_sha512", s_hmac_sha512, true},
+			{"hmac_ripemd160", s_hmac_ripemd160, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

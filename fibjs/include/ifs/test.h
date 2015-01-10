@@ -79,17 +79,17 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"describe", s_describe},
-			{"xdescribe", s_xdescribe},
-			{"it", s_it},
-			{"xit", s_xit},
-			{"before", s_before},
-			{"after", s_after},
-			{"beforeEach", s_beforeEach},
-			{"afterEach", s_afterEach},
-			{"run", s_run},
-			{"expect", s_expect},
-			{"setup", s_setup}
+			{"describe", s_describe, true},
+			{"xdescribe", s_xdescribe, true},
+			{"it", s_it, true},
+			{"xit", s_xit, true},
+			{"before", s_before, true},
+			{"after", s_after, true},
+			{"beforeEach", s_beforeEach, true},
+			{"afterEach", s_afterEach, true},
+			{"run", s_run, true},
+			{"expect", s_expect, true},
+			{"setup", s_setup, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

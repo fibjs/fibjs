@@ -48,7 +48,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"append", s_append}
+			{"append", s_append, false}
 		};
 
 		static ClassData s_cd = 

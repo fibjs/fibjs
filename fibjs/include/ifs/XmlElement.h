@@ -91,16 +91,16 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"getAttribute", s_getAttribute},
-			{"getAttributeNS", s_getAttributeNS},
-			{"setAttribute", s_setAttribute},
-			{"setAttributeNS", s_setAttributeNS},
-			{"removeAttribute", s_removeAttribute},
-			{"removeAttributeNS", s_removeAttributeNS},
-			{"hasAttribute", s_hasAttribute},
-			{"hasAttributeNS", s_hasAttributeNS},
-			{"getElementsByTagName", s_getElementsByTagName},
-			{"getElementsByTagNameNS", s_getElementsByTagNameNS}
+			{"getAttribute", s_getAttribute, false},
+			{"getAttributeNS", s_getAttributeNS, false},
+			{"setAttribute", s_setAttribute, false},
+			{"setAttributeNS", s_setAttributeNS, false},
+			{"removeAttribute", s_removeAttribute, false},
+			{"removeAttributeNS", s_removeAttributeNS, false},
+			{"hasAttribute", s_hasAttribute, false},
+			{"hasAttributeNS", s_hasAttributeNS, false},
+			{"getElementsByTagName", s_getElementsByTagName, false},
+			{"getElementsByTagNameNS", s_getElementsByTagNameNS, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

@@ -59,14 +59,14 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"add", s_add},
-			{"offer", s_offer},
-			{"remove", s_remove},
-			{"poll", s_poll},
-			{"element", s_element},
-			{"peek", s_peek},
-			{"clear", s_clear},
-			{"toArray", s_toArray}
+			{"add", s_add, false},
+			{"offer", s_offer, false},
+			{"remove", s_remove, false},
+			{"poll", s_poll, false},
+			{"element", s_element, false},
+			{"peek", s_peek, false},
+			{"clear", s_clear, false},
+			{"toArray", s_toArray, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

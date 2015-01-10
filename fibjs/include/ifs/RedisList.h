@@ -67,18 +67,18 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"push", s_push},
-			{"pop", s_pop},
-			{"rpush", s_rpush},
-			{"rpop", s_rpop},
-			{"set", s_set},
-			{"get", s_get},
-			{"insertBefore", s_insertBefore},
-			{"insertAfter", s_insertAfter},
-			{"remove", s_remove},
-			{"trim", s_trim},
-			{"len", s_len},
-			{"range", s_range}
+			{"push", s_push, false},
+			{"pop", s_pop, false},
+			{"rpush", s_rpush, false},
+			{"rpop", s_rpop, false},
+			{"set", s_set, false},
+			{"get", s_get, false},
+			{"insertBefore", s_insertBefore, false},
+			{"insertAfter", s_insertAfter, false},
+			{"remove", s_remove, false},
+			{"trim", s_trim, false},
+			{"len", s_len, false},
+			{"range", s_range, false}
 		};
 
 		static ClassData s_cd = 

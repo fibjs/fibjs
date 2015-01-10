@@ -59,12 +59,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"close", s_close},
-			{"begin", s_begin},
-			{"commit", s_commit},
-			{"rollback", s_rollback},
-			{"execute", s_execute},
-			{"format", s_format}
+			{"close", s_close, false},
+			{"begin", s_begin, false},
+			{"commit", s_commit, false},
+			{"rollback", s_rollback, false},
+			{"execute", s_execute, false},
+			{"format", s_format, false}
 		};
 
 		static ClassData s_cd = 

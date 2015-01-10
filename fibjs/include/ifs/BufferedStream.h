@@ -82,14 +82,14 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"readText", s_readText},
-			{"readLine", s_readLine},
-			{"readLines", s_readLines},
-			{"readUntil", s_readUntil},
-			{"readPacket", s_readPacket},
-			{"writeText", s_writeText},
-			{"writeLine", s_writeLine},
-			{"writePacket", s_writePacket}
+			{"readText", s_readText, false},
+			{"readLine", s_readLine, false},
+			{"readLines", s_readLines, false},
+			{"readUntil", s_readUntil, false},
+			{"readPacket", s_readPacket, false},
+			{"writeText", s_writeText, false},
+			{"writeLine", s_writeLine, false},
+			{"writePacket", s_writePacket, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

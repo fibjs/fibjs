@@ -82,17 +82,17 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"genRsaKey", s_genRsaKey},
-			{"genEcKey", s_genEcKey},
-			{"isPrivate", s_isPrivate},
-			{"clone", s_clone},
-			{"importKey", s_importKey},
-			{"exportPem", s_exportPem},
-			{"exportDer", s_exportDer},
-			{"encrypt", s_encrypt},
-			{"decrypt", s_decrypt},
-			{"sign", s_sign},
-			{"verify", s_verify}
+			{"genRsaKey", s_genRsaKey, false},
+			{"genEcKey", s_genEcKey, false},
+			{"isPrivate", s_isPrivate, false},
+			{"clone", s_clone, false},
+			{"importKey", s_importKey, false},
+			{"exportPem", s_exportPem, false},
+			{"exportDer", s_exportDer, false},
+			{"encrypt", s_encrypt, false},
+			{"decrypt", s_decrypt, false},
+			{"sign", s_sign, false},
+			{"verify", s_verify, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

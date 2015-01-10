@@ -55,11 +55,11 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"isSet", s_isSet},
-			{"set", s_set},
-			{"pulse", s_pulse},
-			{"clear", s_clear},
-			{"wait", s_wait}
+			{"isSet", s_isSet, false},
+			{"set", s_set, false},
+			{"pulse", s_pulse, false},
+			{"clear", s_clear, false},
+			{"wait", s_wait, false}
 		};
 
 		static ClassData s_cd = 

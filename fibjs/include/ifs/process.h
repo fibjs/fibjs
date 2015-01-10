@@ -61,13 +61,13 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"exit", s_exit},
-			{"cwd", s_cwd},
-			{"chdir", s_chdir},
-			{"memoryUsage", s_memoryUsage},
-			{"system", s_system},
-			{"popen", s_popen},
-			{"exec", s_exec}
+			{"exit", s_exit, true},
+			{"cwd", s_cwd, true},
+			{"chdir", s_chdir, true},
+			{"memoryUsage", s_memoryUsage, true},
+			{"system", s_system, true},
+			{"popen", s_popen, true},
+			{"exec", s_exec, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

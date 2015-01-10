@@ -56,11 +56,11 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"inc", s_inc},
-			{"dec", s_dec},
-			{"add", s_add},
-			{"reset", s_reset},
-			{"uptime", s_uptime}
+			{"inc", s_inc, false},
+			{"dec", s_dec, false},
+			{"add", s_add, false},
+			{"reset", s_reset, false},
+			{"uptime", s_uptime, false}
 		};
 
 		static ClassData::ClassNamed s_named = 

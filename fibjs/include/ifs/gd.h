@@ -107,13 +107,13 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"create", s_create},
-			{"load", s_load},
-			{"rgb", s_rgb},
-			{"rgba", s_rgba},
-			{"hsl", s_hsl},
-			{"hsla", s_hsla},
-			{"color", s_color}
+			{"create", s_create, true},
+			{"load", s_load, true},
+			{"rgb", s_rgb, true},
+			{"rgba", s_rgba, true},
+			{"hsl", s_hsl, true},
+			{"hsla", s_hsla, true},
+			{"color", s_color, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

@@ -65,9 +65,9 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"paddingMode", s_paddingMode},
-			{"encrypt", s_encrypt},
-			{"decrypt", s_decrypt}
+			{"paddingMode", s_paddingMode, false},
+			{"encrypt", s_encrypt, false},
+			{"decrypt", s_decrypt, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

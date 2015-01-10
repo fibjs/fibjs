@@ -84,14 +84,14 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"connect", s_connect},
-			{"bind", s_bind},
-			{"listen", s_listen},
-			{"accept", s_accept},
-			{"recv", s_recv},
-			{"recvFrom", s_recvFrom},
-			{"send", s_send},
-			{"sendto", s_sendto}
+			{"connect", s_connect, false},
+			{"bind", s_bind, false},
+			{"listen", s_listen, false},
+			{"accept", s_accept, false},
+			{"recv", s_recv, false},
+			{"recvFrom", s_recvFrom, false},
+			{"send", s_send, false},
+			{"sendto", s_sendto, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

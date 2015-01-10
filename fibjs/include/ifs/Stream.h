@@ -53,10 +53,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"read", s_read},
-			{"write", s_write},
-			{"close", s_close},
-			{"copyTo", s_copyTo}
+			{"read", s_read, false},
+			{"write", s_write, false},
+			{"close", s_close, false},
+			{"copyTo", s_copyTo, false}
 		};
 
 		static ClassData s_cd = 

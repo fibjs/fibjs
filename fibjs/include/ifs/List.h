@@ -70,17 +70,17 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"resize", s_resize},
-			{"push", s_push},
-			{"pop", s_pop},
-			{"slice", s_slice},
-			{"concat", s_concat},
-			{"every", s_every},
-			{"some", s_some},
-			{"filter", s_filter},
-			{"forEach", s_forEach},
-			{"map", s_map},
-			{"toArray", s_toArray}
+			{"resize", s_resize, false},
+			{"push", s_push, false},
+			{"pop", s_pop, false},
+			{"slice", s_slice, false},
+			{"concat", s_concat, false},
+			{"every", s_every, false},
+			{"some", s_some, false},
+			{"filter", s_filter, false},
+			{"forEach", s_forEach, false},
+			{"map", s_map, false},
+			{"toArray", s_toArray, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

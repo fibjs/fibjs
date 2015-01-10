@@ -50,7 +50,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"backup", s_backup}
+			{"backup", s_backup, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

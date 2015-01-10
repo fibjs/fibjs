@@ -87,12 +87,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"load", s_load},
-			{"loadFile", s_loadFile},
-			{"loadRootCerts", s_loadRootCerts},
-			{"verify", s_verify},
-			{"dump", s_dump},
-			{"clear", s_clear}
+			{"load", s_load, false},
+			{"loadFile", s_loadFile, false},
+			{"loadRootCerts", s_loadRootCerts, false},
+			{"verify", s_verify, false},
+			{"dump", s_dump, false},
+			{"clear", s_clear, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
