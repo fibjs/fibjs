@@ -58,6 +58,69 @@ result_t Buffer::get_length(int32_t &retVal)
     return 0;
 }
 
+result_t Buffer_base::concat(v8::Local<v8::Array> list, int32_t totalLength, obj_ptr<Buffer_base>& retVal)
+{
+    if (!list->IsArray())
+        return CHECK_ERROR(CALL_E_BADVARTYPE);
+
+    int32_t sz = list->Length();
+
+    if (sz)
+    {
+        result_t hr;
+        obj_ptr<Buffer_base> buf;
+        if(sz == 1)
+        {
+            v8::Local<v8::Value> v = list->Get(0);
+            hr = GetArgumentValue(v, buf);
+            if (hr < 0)
+                return CHECK_ERROR(hr);
+
+            retVal = buf;
+        }
+        else
+        {
+            int32_t len, i;
+
+            if(totalLength == -1)
+            {
+                totalLength = 0;
+                for (i = 0; i < sz; i++)
+                {
+                    v8::Local<v8::Value> v = list->Get(i);
+                    hr = GetArgumentValue(v, buf);
+                    if (hr < 0)
+                        return CHECK_ERROR(hr);
+
+                    buf->get_length(len);
+                    totalLength += len;
+                }
+            }
+
+            std::string temp;
+            std::string bufStr("");
+
+            for (i = 0; i < sz; i ++)
+            {
+                v8::Local<v8::Value> v = list->Get(i);
+                hr = GetArgumentValue(v, buf);
+                if (hr < 0)
+                    return CHECK_ERROR(hr);
+
+                buf->toString(temp);
+                bufStr += temp;
+            }
+            if(bufStr.length() > totalLength)
+                bufStr = bufStr.substr(0, totalLength);
+            retVal = new Buffer(bufStr);
+        }
+    }
+    else
+        retVal = new Buffer();
+
+    return 0;
+}
+
 result_t Buffer::resize(int32_t sz)
 {
     if (sz < 0)
