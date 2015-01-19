@@ -134,7 +134,7 @@ void encodeArray(bson *bb, const char *name, v8::Local<v8::Value> element)
 
     for (int i = 0, l = a->Length(); i < l; i++)
     {
-        v8::Local<v8::Value> val = a->Get(v8::Number::New(isolate, i));
+        v8::Local<v8::Value> val = a->Get(i);
         char numStr[32];
 
         sprintf(numStr, "%d", i);
