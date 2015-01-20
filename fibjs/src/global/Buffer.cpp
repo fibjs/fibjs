@@ -144,7 +144,7 @@ result_t Buffer::copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t so
     if (targetStart < 0 || sourceStart < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (sourceStart > m_data.length())
+    if (sourceStart > (int32_t)m_data.length())
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     Buffer *buf = static_cast<Buffer *>(targetBuffer);
