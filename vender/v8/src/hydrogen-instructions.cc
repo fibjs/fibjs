@@ -18,6 +18,8 @@
 #include "src/arm64/lithium-arm64.h"  // NOLINT
 #elif V8_TARGET_ARCH_ARM
 #include "src/arm/lithium-arm.h"  // NOLINT
+#elif V8_TARGET_ARCH_PPC
+#include "src/ppc/lithium-ppc.h"  // NOLINT
 #elif V8_TARGET_ARCH_MIPS
 #include "src/mips/lithium-mips.h"  // NOLINT
 #elif V8_TARGET_ARCH_MIPS64
@@ -796,7 +798,6 @@ bool HInstruction::CanDeoptimize() {
     case HValue::kCallNew:
     case HValue::kCallNewArray:
     case HValue::kCallStub:
-    case HValue::kCallWithDescriptor:
     case HValue::kCapturedObject:
     case HValue::kClassOfTestAndBranch:
     case HValue::kCompareGeneric:
@@ -863,6 +864,7 @@ bool HInstruction::CanDeoptimize() {
     case HValue::kBranch:
     case HValue::kCallJSFunction:
     case HValue::kCallRuntime:
+    case HValue::kCallWithDescriptor:
     case HValue::kChange:
     case HValue::kCheckHeapObject:
     case HValue::kCheckInstanceType:
@@ -1155,12 +1157,10 @@ std::ostream& HReturn::PrintDataTo(std::ostream& os) const {  // NOLINT
 
 
 Representation HBranch::observed_input_representation(int index) {
-  static const ToBooleanStub::Types tagged_types(
-      ToBooleanStub::NULL_TYPE |
-      ToBooleanStub::SPEC_OBJECT |
-      ToBooleanStub::STRING |
-      ToBooleanStub::SYMBOL);
-  if (expected_input_types_.ContainsAnyOf(tagged_types)) {
+  if (expected_input_types_.Contains(ToBooleanStub::NULL_TYPE) ||
+      expected_input_types_.Contains(ToBooleanStub::SPEC_OBJECT) ||
+      expected_input_types_.Contains(ToBooleanStub::STRING) ||
+      expected_input_types_.Contains(ToBooleanStub::SYMBOL)) {
     return Representation::Tagged();
   }
   if (expected_input_types_.Contains(ToBooleanStub::UNDEFINED)) {
@@ -1715,6 +1715,13 @@ std::ostream& HCheckInstanceType::PrintDataTo(
 std::ostream& HCallStub::PrintDataTo(std::ostream& os) const {  // NOLINT
   os << CodeStub::MajorName(major_key_, false) << " ";
   return HUnaryCall::PrintDataTo(os);
+}
+
+
+Code::Flags HTailCallThroughMegamorphicCache::flags() const {
+  Code::Flags code_flags = Code::RemoveTypeAndHolderFromFlags(
+      Code::ComputeHandlerFlags(Code::LOAD_IC));
+  return code_flags;
 }
 
 
@@ -2662,14 +2669,17 @@ void HEnterInlined::RegisterReturnTarget(HBasicBlock* return_target,
 
 
 std::ostream& HEnterInlined::PrintDataTo(std::ostream& os) const {  // NOLINT
-  return os << function()->debug_name()->ToCString().get()
-            << ", id=" << function()->id().ToInt();
+  return os << function()->debug_name()->ToCString().get();
 }
 
 
 static bool IsInteger32(double value) {
-  double roundtrip_value = static_cast<double>(static_cast<int32_t>(value));
-  return bit_cast<int64_t>(roundtrip_value) == bit_cast<int64_t>(value);
+  if (value >= std::numeric_limits<int32_t>::min() &&
+      value <= std::numeric_limits<int32_t>::max()) {
+    double roundtrip_value = static_cast<double>(static_cast<int32_t>(value));
+    return bit_cast<int64_t>(roundtrip_value) == bit_cast<int64_t>(value);
+  }
+  return false;
 }
 
 
@@ -2775,7 +2785,7 @@ HConstant::HConstant(double double_value, Representation r,
                                            !std::isnan(double_value)) |
                  IsUndetectableField::encode(false) |
                  InstanceTypeField::encode(kUnknownInstanceType)),
-      int32_value_(DoubleToInt32(double_value)),
+      int32_value_(HasInteger32Value() ? DoubleToInt32(double_value) : 0),
       double_value_(double_value) {
   bit_field_ = HasSmiValueField::update(
       bit_field_, HasInteger32Value() && Smi::IsValid(int32_value_));
@@ -4493,18 +4503,24 @@ void HPhi::SimplifyConstantInputs() {
 
 void HPhi::InferRepresentation(HInferRepresentationPhase* h_infer) {
   DCHECK(CheckFlag(kFlexibleRepresentation));
-  Representation new_rep = RepresentationFromInputs();
-  UpdateRepresentation(new_rep, h_infer, "inputs");
-  new_rep = RepresentationFromUses();
+  Representation new_rep = RepresentationFromUses();
   UpdateRepresentation(new_rep, h_infer, "uses");
+  new_rep = RepresentationFromInputs();
+  UpdateRepresentation(new_rep, h_infer, "inputs");
   new_rep = RepresentationFromUseRequirements();
   UpdateRepresentation(new_rep, h_infer, "use requirements");
 }
 
 
 Representation HPhi::RepresentationFromInputs() {
-  Representation r = Representation::None();
+  bool has_type_feedback =
+      smi_non_phi_uses() + int32_non_phi_uses() + double_non_phi_uses() > 0;
+  Representation r = representation();
   for (int i = 0; i < OperandCount(); ++i) {
+    // Ignore conservative Tagged assumption of parameters if we have
+    // reason to believe that it's too conservative.
+    if (has_type_feedback && OperandAt(i)->IsParameter()) continue;
+
     r = r.generalize(OperandAt(i)->KnownOptimalRepresentation());
   }
   return r;
@@ -4641,6 +4657,14 @@ HObjectAccess HObjectAccess::ForContextSlot(int index) {
   Portion portion = kInobject;
   int offset = Context::kHeaderSize + index * kPointerSize;
   DCHECK_EQ(offset, Context::SlotOffset(index) + kHeapObjectTag);
+  return HObjectAccess(portion, offset, Representation::Tagged());
+}
+
+
+HObjectAccess HObjectAccess::ForScriptContext(int index) {
+  DCHECK(index >= 0);
+  Portion portion = kInobject;
+  int offset = ScriptContextTable::GetContextOffset(index);
   return HObjectAccess(portion, offset, Representation::Tagged());
 }
 

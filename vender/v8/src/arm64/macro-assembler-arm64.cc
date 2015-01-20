@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM64
+
 // Copyright 2013 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -1754,12 +1758,9 @@ static int AddressOffset(ExternalReference ref0, ExternalReference ref1) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(
-    Register function_address,
-    ExternalReference thunk_ref,
-    int stack_space,
-    int spill_offset,
-    MemOperand return_value_operand,
-    MemOperand* context_restore_operand) {
+    Register function_address, ExternalReference thunk_ref, int stack_space,
+    MemOperand* stack_space_operand, int spill_offset,
+    MemOperand return_value_operand, MemOperand* context_restore_operand) {
   ASM_LOCATION("CallApiFunctionAndReturn");
   ExternalReference next_address =
       ExternalReference::handle_scope_next_address(isolate());
@@ -1871,8 +1872,16 @@ void MacroAssembler::CallApiFunctionAndReturn(
     Ldr(cp, *context_restore_operand);
   }
 
+  if (stack_space_operand != NULL) {
+    Ldr(w2, *stack_space_operand);
+  }
+
   LeaveExitFrame(false, x1, !restore_context);
-  Drop(stack_space);
+  if (stack_space_operand != NULL) {
+    Drop(x2, 1);
+  } else {
+    Drop(stack_space);
+  }
   Ret();
 
   Bind(&promote_scheduled_exception);
@@ -3788,20 +3797,35 @@ void MacroAssembler::CheckMap(Register obj_map,
 }
 
 
-void MacroAssembler::DispatchMap(Register obj,
-                                 Register scratch,
-                                 Handle<Map> map,
-                                 Handle<Code> success,
-                                 SmiCheckType smi_check_type) {
+void MacroAssembler::DispatchWeakMap(Register obj, Register scratch1,
+                                     Register scratch2, Handle<WeakCell> cell,
+                                     Handle<Code> success,
+                                     SmiCheckType smi_check_type) {
   Label fail;
   if (smi_check_type == DO_SMI_CHECK) {
     JumpIfSmi(obj, &fail);
   }
-  Ldr(scratch, FieldMemOperand(obj, HeapObject::kMapOffset));
-  Cmp(scratch, Operand(map));
+  Ldr(scratch1, FieldMemOperand(obj, HeapObject::kMapOffset));
+  CmpWeakValue(scratch1, cell, scratch2);
   B(ne, &fail);
   Jump(success, RelocInfo::CODE_TARGET);
   Bind(&fail);
+}
+
+
+void MacroAssembler::CmpWeakValue(Register value, Handle<WeakCell> cell,
+                                  Register scratch) {
+  Mov(scratch, Operand(cell));
+  Ldr(scratch, FieldMemOperand(scratch, WeakCell::kValueOffset));
+  Cmp(value, scratch);
+}
+
+
+void MacroAssembler::LoadWeakValue(Register value, Handle<WeakCell> cell,
+                                   Label* miss) {
+  Mov(value, Operand(cell));
+  Ldr(value, FieldMemOperand(value, WeakCell::kValueOffset));
+  JumpIfSmi(value, miss);
 }
 
 
@@ -4087,7 +4111,7 @@ void MacroAssembler::CheckAccessGlobalProxy(Register holder_reg,
 
   // Check the context is a native context.
   if (emit_debug_code()) {
-    // Read the first word and compare to the global_context_map.
+    // Read the first word and compare to the native_context_map.
     Ldr(scratch2, FieldMemOperand(scratch1, HeapObject::kMapOffset));
     CompareRoot(scratch2, Heap::kNativeContextMapRootIndex);
     Check(eq, kExpectedNativeContext);
@@ -4213,10 +4237,11 @@ void MacroAssembler::LoadFromNumberDictionary(Label* miss,
   }
 
   Bind(&done);
-  // Check that the value is a normal property.
+  // Check that the value is a field property.
   const int kDetailsOffset =
       SeededNumberDictionary::kElementsStartOffset + 2 * kPointerSize;
   Ldrsw(scratch1, UntagSmiFieldMemOperand(scratch2, kDetailsOffset));
+  DCHECK_EQ(FIELD, 0);
   TestAndBranchIfAnySet(scratch1, PropertyDetails::TypeField::kMask, miss);
 
   // Get the value at the masked, scaled index and return.
@@ -4630,17 +4655,6 @@ void MacroAssembler::HasColor(Register object,
   }
 
   // Fall through if it does not have the right color.
-}
-
-
-void MacroAssembler::CheckMapDeprecated(Handle<Map> map,
-                                        Register scratch,
-                                        Label* if_deprecated) {
-  if (map->CanBeDeprecated()) {
-    Mov(scratch, Operand(map));
-    Ldrsw(scratch, FieldMemOperand(scratch, Map::kBitField3Offset));
-    TestAndBranchIfAnySet(scratch, Map::Deprecated::kMask, if_deprecated);
-  }
 }
 
 
@@ -5393,5 +5407,8 @@ InlineSmiCheckInfo::InlineSmiCheckInfo(Address info)
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_ARM64
+
 
 #endif  // V8_TARGET_ARCH_ARM64

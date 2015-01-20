@@ -10,6 +10,7 @@
 #include "src/allocation.h"
 #include "src/compiler/common-operator.h"
 #include "src/compiler/graph.h"
+#include "src/compiler/node.h"
 #include "src/unique.h"
 
 namespace v8 {
@@ -86,7 +87,7 @@ class StructuredGraphBuilder : public GraphBuilder {
  public:
   StructuredGraphBuilder(Zone* zone, Graph* graph,
                          CommonOperatorBuilder* common);
-  virtual ~StructuredGraphBuilder() {}
+  ~StructuredGraphBuilder() OVERRIDE {}
 
   // Creates a new Phi node having {count} input values.
   Node* NewPhi(int count, Node* input, Node* control);
@@ -114,8 +115,8 @@ class StructuredGraphBuilder : public GraphBuilder {
   // The following method creates a new node having the specified operator and
   // ensures effect and control dependencies are wired up. The dependencies
   // tracked by the environment might be mutated.
-  virtual Node* MakeNode(const Operator* op, int value_input_count,
-                         Node** value_inputs, bool incomplete) FINAL;
+  Node* MakeNode(const Operator* op, int value_input_count, Node** value_inputs,
+                 bool incomplete) FINAL;
 
   Environment* environment() const { return environment_; }
   void set_environment(Environment* env) { environment_ = env; }
@@ -218,8 +219,8 @@ class StructuredGraphBuilder::Environment : public ZoneObject {
   }
 
   // Copies this environment at a loop header control-flow point.
-  Environment* CopyForLoop(BitVector* assigned) {
-    PrepareForLoop(assigned);
+  Environment* CopyForLoop(BitVector* assigned, bool is_osr = false) {
+    PrepareForLoop(assigned, is_osr);
     return builder()->CopyEnvironment(this);
   }
 
@@ -233,7 +234,7 @@ class StructuredGraphBuilder::Environment : public ZoneObject {
   NodeVector* values() { return &values_; }
 
   // Prepare environment to be used as loop header.
-  void PrepareForLoop(BitVector* assigned);
+  void PrepareForLoop(BitVector* assigned, bool is_osr = false);
 
  private:
   StructuredGraphBuilder* builder_;

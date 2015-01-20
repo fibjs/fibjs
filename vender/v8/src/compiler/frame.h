@@ -17,7 +17,7 @@ namespace compiler {
 // registers for a compiled function. Frames are usually populated by the
 // register allocator and are used by Linkage to generate code for the prologue
 // and epilogue to compiled code.
-class Frame {
+class Frame : public ZoneObject {
  public:
   Frame()
       : register_save_area_size_(0),
@@ -63,12 +63,19 @@ class Frame {
     return spill_slot_count_++;
   }
 
+  void ReserveSpillSlots(size_t slot_count) {
+    DCHECK_EQ(0, spill_slot_count_);  // can only reserve before allocation.
+    spill_slot_count_ = static_cast<int>(slot_count);
+  }
+
  private:
   int register_save_area_size_;
   int spill_slot_count_;
   int double_spill_slot_count_;
   BitVector* allocated_registers_;
   BitVector* allocated_double_registers_;
+
+  DISALLOW_COPY_AND_ASSIGN(Frame);
 };
 
 

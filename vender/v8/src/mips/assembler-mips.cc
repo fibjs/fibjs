@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_MIPS
+
 // Copyright (c) 1994-2006 Sun Microsystems Inc.
 // All Rights Reserved.
 //
@@ -2745,5 +2749,8 @@ void Assembler::PopulateConstantPool(ConstantPoolArray* constant_pool) {
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_MIPS
+
 
 #endif  // V8_TARGET_ARCH_MIPS

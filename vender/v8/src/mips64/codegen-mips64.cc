@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_MIPS64
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -1033,7 +1037,7 @@ void MathExpGenerator::EmitMathExp(MacroAssembler* masm,
   // Mov 1 in double_scratch2 as math_exp_constants_array[8] == 1.
   DCHECK(*reinterpret_cast<double*>
          (ExternalReference::math_exp_constants(8).address()) == 1);
-  __ Move(double_scratch2, 1);
+  __ Move(double_scratch2, 1.);
   __ add_d(result, result, double_scratch2);
   __ dsrl(temp1, temp2, 11);
   __ Ext(temp2, temp2, 0, 11);
@@ -1152,5 +1156,8 @@ void Code::PatchPlatformCodeAge(Isolate* isolate,
 #undef __
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_MIPS64
+
 
 #endif  // V8_TARGET_ARCH_MIPS64

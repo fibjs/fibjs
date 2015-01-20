@@ -174,8 +174,11 @@ Node* JSGraph::NumberConstant(double value) {
 
 
 Node* JSGraph::Float32Constant(float value) {
-  // TODO(turbofan): cache float32 constants.
-  return graph()->NewNode(common()->Float32Constant(value));
+  Node** loc = cache_.FindFloat32Constant(value);
+  if (*loc == NULL) {
+    *loc = graph()->NewNode(common()->Float32Constant(value));
+  }
+  return *loc;
 }
 
 
@@ -185,6 +188,19 @@ Node* JSGraph::Float64Constant(double value) {
     *loc = graph()->NewNode(common()->Float64Constant(value));
   }
   return *loc;
+}
+
+
+Node* JSGraph::EmptyFrameState() {
+  if (!empty_frame_state_.is_set()) {
+    Node* values = graph()->NewNode(common()->StateValues(0));
+    Node* state_node = graph()->NewNode(
+        common()->FrameState(JS_FRAME, BailoutId(0),
+                             OutputFrameStateCombine::Ignore()),
+        values, values, values, NoContextConstant(), UndefinedConstant());
+    empty_frame_state_.set(state_node);
+  }
+  return empty_frame_state_.get();
 }
 
 

@@ -37,10 +37,15 @@ void StackGuard::reset_limits(const ExecutionAccess& lock) {
 static void PrintDeserializedCodeInfo(Handle<JSFunction> function) {
   if (function->code() == function->shared()->code() &&
       function->shared()->deserialized()) {
-    PrintF("Running deserialized script ");
+    PrintF("[Running deserialized script");
     Object* script = function->shared()->script();
-    if (script->IsScript()) Script::cast(script)->name()->ShortPrint();
-    PrintF("\n");
+    if (script->IsScript()) {
+      Object* name = Script::cast(script)->name();
+      if (name->IsString()) {
+        PrintF(": %s", String::cast(name)->ToCString().get());
+      }
+    }
+    PrintF("]\n");
   }
 }
 
@@ -104,7 +109,9 @@ MUST_USE_RESULT static MaybeHandle<Object> Invoke(
   }
 
 #ifdef VERIFY_HEAP
-  value->ObjectVerify();
+  if (FLAG_verify_heap) {
+    value->ObjectVerify();
+  }
 #endif
 
   // Update the pending exception flag and return the value.
@@ -545,6 +552,12 @@ MaybeHandle<Object> Execution::ToInt32(
 }
 
 
+MaybeHandle<Object> Execution::ToLength(
+    Isolate* isolate, Handle<Object> obj) {
+  RETURN_NATIVE_CALL(to_length, { obj });
+}
+
+
 MaybeHandle<Object> Execution::NewDate(Isolate* isolate, double time) {
   Handle<Object> time_obj = isolate->factory()->NewNumber(time);
   RETURN_NATIVE_CALL(create_date, { time_obj });
@@ -707,8 +720,8 @@ Object* StackGuard::HandleInterrupts() {
   }
 
   if (CheckAndClearInterrupt(API_INTERRUPT)) {
-    // Callback must be invoked outside of ExecusionAccess lock.
-    isolate_->InvokeApiInterruptCallback();
+    // Callbacks must be invoked outside of ExecusionAccess lock.
+    isolate_->InvokeApiInterruptCallbacks();
   }
 
   isolate_->counters()->stack_interrupts()->Increment();

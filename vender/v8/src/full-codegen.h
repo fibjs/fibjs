@@ -112,6 +112,12 @@ class FullCodeGenerator: public AstVisitor {
 // TODO(all): Copied ARM value. Check this is sensible for ARM64.
   static const int kCodeSizeMultiplier = 149;
   static const int kBootCodeSizeMultiplier = 110;
+#elif V8_TARGET_ARCH_PPC64
+  static const int kCodeSizeMultiplier = 200;
+  static const int kBootCodeSizeMultiplier = 120;
+#elif V8_TARGET_ARCH_PPC
+  static const int kCodeSizeMultiplier = 200;
+  static const int kBootCodeSizeMultiplier = 120;
 #elif V8_TARGET_ARCH_MIPS
   static const int kCodeSizeMultiplier = 149;
   static const int kBootCodeSizeMultiplier = 120;
@@ -330,12 +336,15 @@ class FullCodeGenerator: public AstVisitor {
              Label* if_true,
              Label* if_false,
              Label* fall_through);
-#else  // All non-mips arch.
+#elif V8_TARGET_ARCH_PPC
+  void Split(Condition cc, Label* if_true, Label* if_false, Label* fall_through,
+             CRegister cr = cr7);
+#else  // All other arch.
   void Split(Condition cc,
              Label* if_true,
              Label* if_false,
              Label* fall_through);
-#endif  // V8_TARGET_ARCH_MIPS
+#endif
 
   // Load the value of a known (PARAMETER, LOCAL, or CONTEXT) variable into
   // a register.  Emits a context chain walk if if necessary (so does
@@ -568,6 +577,9 @@ class FullCodeGenerator: public AstVisitor {
   // in the accumulator after installing all the properties.
   void EmitClassDefineProperties(ClassLiteral* lit);
 
+  // Pushes the property key as a Name on the stack.
+  void EmitPropertyKey(ObjectLiteralProperty* property);
+
   // Apply the compound assignment operator. Expects the left operand on top
   // of the stack and the right one in the accumulator.
   void EmitBinaryOp(BinaryOperation* expr,
@@ -585,6 +597,19 @@ class FullCodeGenerator: public AstVisitor {
   // Assign to the given expression as if via '='. The right-hand-side value
   // is expected in the accumulator.
   void EmitAssignment(Expression* expr);
+
+  // Shall an error be thrown if assignment with 'op' operation is perfomed
+  // on this variable in given language mode?
+  static bool IsSignallingAssignmentToConst(Variable* var, Token::Value op,
+                                            StrictMode strict_mode) {
+    if (var->mode() == CONST) return op != Token::INIT_CONST;
+
+    if (var->mode() == CONST_LEGACY) {
+      return strict_mode == STRICT && op != Token::INIT_CONST_LEGACY;
+    }
+
+    return false;
+  }
 
   // Complete a variable assignment.  The right-hand-side value is expected
   // in the accumulator.
@@ -613,6 +638,15 @@ class FullCodeGenerator: public AstVisitor {
   void EmitKeyedPropertyAssignment(Assignment* expr);
 
   void EmitLoadHomeObject(SuperReference* expr);
+
+  static bool NeedsHomeObject(Expression* expr) {
+    return FunctionLiteral::NeedsHomeObject(expr);
+  }
+
+  // Adds the [[HomeObject]] to |initializer| if it is a FunctionLiteral.
+  // The value of the initializer is expected to be at the top of the stack.
+  // |offset| is the offset in the stack where the home object can be found.
+  void EmitSetHomeObjectIfNeeded(Expression* initializer, int offset);
 
   void EmitLoadSuperConstructor(SuperReference* expr);
 
@@ -871,6 +905,22 @@ class FullCodeGenerator: public AstVisitor {
                              Label** if_false,
                              Label** fall_through) const;
     virtual bool IsEffect() const { return true; }
+  };
+
+  class EnterBlockScopeIfNeeded {
+   public:
+    EnterBlockScopeIfNeeded(FullCodeGenerator* codegen, Scope* scope,
+                            BailoutId entry_id, BailoutId declarations_id,
+                            BailoutId exit_id);
+    ~EnterBlockScopeIfNeeded();
+
+   private:
+    MacroAssembler* masm() const { return codegen_->masm(); }
+
+    FullCodeGenerator* codegen_;
+    Scope* scope_;
+    Scope* saved_scope_;
+    BailoutId exit_id_;
   };
 
   MacroAssembler* masm_;

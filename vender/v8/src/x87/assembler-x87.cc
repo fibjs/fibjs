@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_X87
+
 // Copyright (c) 1994-2006 Sun Microsystems Inc.
 // All Rights Reserved.
 //
@@ -2094,5 +2098,8 @@ void LogGeneratedCodeCoverage(const char* file_line) {
 #endif
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_X87
+
 
 #endif  // V8_TARGET_ARCH_X87

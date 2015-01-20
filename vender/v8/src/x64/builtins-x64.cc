@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_X64
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -158,22 +162,20 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
       // rax: initial map
       __ CmpInstanceType(rax, JS_FUNCTION_TYPE);
       __ j(equal, &rt_call);
-
       if (!is_api_function) {
         Label allocate;
         // The code below relies on these assumptions.
-        STATIC_ASSERT(JSFunction::kNoSlackTracking == 0);
-        STATIC_ASSERT(Map::ConstructionCount::kShift +
-                      Map::ConstructionCount::kSize == 32);
+        STATIC_ASSERT(Map::Counter::kShift + Map::Counter::kSize == 32);
         // Check if slack tracking is enabled.
         __ movl(rsi, FieldOperand(rax, Map::kBitField3Offset));
-        __ shrl(rsi, Immediate(Map::ConstructionCount::kShift));
-        __ j(zero, &allocate);  // JSFunction::kNoSlackTracking
+        __ shrl(rsi, Immediate(Map::Counter::kShift));
+        __ cmpl(rsi, Immediate(Map::kSlackTrackingCounterEnd));
+        __ j(less, &allocate);
         // Decrease generous allocation count.
         __ subl(FieldOperand(rax, Map::kBitField3Offset),
-                Immediate(1 << Map::ConstructionCount::kShift));
+                Immediate(1 << Map::Counter::kShift));
 
-        __ cmpl(rsi, Immediate(JSFunction::kFinishSlackTracking));
+        __ cmpl(rsi, Immediate(Map::kSlackTrackingCounterEnd));
         __ j(not_equal, &allocate);
 
         __ Push(rax);
@@ -184,7 +186,7 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
 
         __ Pop(rdi);
         __ Pop(rax);
-        __ xorl(rsi, rsi);  // JSFunction::kNoSlackTracking
+        __ movl(rsi, Immediate(Map::kSlackTrackingCounterEnd - 1));
 
         __ bind(&allocate);
       }
@@ -222,8 +224,8 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
         Label no_inobject_slack_tracking;
 
         // Check if slack tracking is enabled.
-        __ cmpl(rsi, Immediate(JSFunction::kNoSlackTracking));
-        __ j(equal, &no_inobject_slack_tracking);
+        __ cmpl(rsi, Immediate(Map::kSlackTrackingCounterEnd));
+        __ j(less, &no_inobject_slack_tracking);
 
         // Allocate object with a slack.
         __ movzxbp(rsi,
@@ -1527,5 +1529,8 @@ void Builtins::Generate_OsrAfterStackCheck(MacroAssembler* masm) {
 #undef __
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_X64
+
 
 #endif  // V8_TARGET_ARCH_X64

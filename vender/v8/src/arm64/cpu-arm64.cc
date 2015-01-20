@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM64
+
 // Copyright 2013 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -42,6 +46,8 @@ class CacheLineSizes {
 
 void CpuFeatures::FlushICache(void* address, size_t length) {
   if (length == 0) return;
+
+  if (CpuFeatures::IsSupported(COHERENT_CACHE)) return;
 
 #ifdef USE_SIMULATOR
   // TODO(all): consider doing some cache simulation to ensure every address
@@ -119,5 +125,8 @@ void CpuFeatures::FlushICache(void* address, size_t length) {
 }
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_ARM64
+
 
 #endif  // V8_TARGET_ARCH_ARM64

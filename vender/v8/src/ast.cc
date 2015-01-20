@@ -151,6 +151,21 @@ StrictMode FunctionLiteral::strict_mode() const {
 }
 
 
+bool FunctionLiteral::uses_super_property() const {
+  DCHECK_NOT_NULL(scope());
+  return scope()->uses_super_property() || scope()->inner_uses_super_property();
+}
+
+
+bool FunctionLiteral::uses_super_constructor_call() const {
+  DCHECK_NOT_NULL(scope());
+  return scope()->uses_super_constructor_call() ||
+         scope()->inner_uses_super_constructor_call();
+}
+
+
+// Helper to find an existing shared function info in the baseline code for the
+// given function literal. Used to canonicalize SharedFunctionInfo objects.
 void FunctionLiteral::InitializeSharedInfo(
     Handle<Code> unoptimized_code) {
   for (RelocIterator it(*unoptimized_code); !it.done(); it.next()) {
@@ -170,13 +185,17 @@ void FunctionLiteral::InitializeSharedInfo(
 
 ObjectLiteralProperty::ObjectLiteralProperty(Zone* zone,
                                              AstValueFactory* ast_value_factory,
-                                             Literal* key, Expression* value,
-                                             bool is_static) {
-  emit_store_ = true;
-  key_ = key;
-  value_ = value;
-  is_static_ = is_static;
-  if (key->raw_value()->EqualsString(ast_value_factory->proto_string())) {
+                                             Expression* key, Expression* value,
+                                             bool is_static,
+                                             bool is_computed_name)
+    : key_(key),
+      value_(value),
+      emit_store_(true),
+      is_static_(is_static),
+      is_computed_name_(is_computed_name) {
+  if (!is_computed_name &&
+      key->AsLiteral()->raw_value()->EqualsString(
+          ast_value_factory->proto_string())) {
     kind_ = PROTOTYPE;
   } else if (value_->AsMaterializedLiteral() != NULL) {
     kind_ = MATERIALIZED_LITERAL;
@@ -189,13 +208,16 @@ ObjectLiteralProperty::ObjectLiteralProperty(Zone* zone,
 
 
 ObjectLiteralProperty::ObjectLiteralProperty(Zone* zone, bool is_getter,
+                                             Expression* key,
                                              FunctionLiteral* value,
-                                             bool is_static) {
-  emit_store_ = true;
-  value_ = value;
-  kind_ = is_getter ? GETTER : SETTER;
-  is_static_ = is_static;
-}
+                                             bool is_static,
+                                             bool is_computed_name)
+    : key_(key),
+      value_(value),
+      kind_(is_getter ? GETTER : SETTER),
+      emit_store_(true),
+      is_static_(is_static),
+      is_computed_name_(is_computed_name) {}
 
 
 bool ObjectLiteral::Property::IsCompileTimeValue() {
@@ -222,10 +244,11 @@ void ObjectLiteral::CalculateEmitStore(Zone* zone) {
                     allocator);
   for (int i = properties()->length() - 1; i >= 0; i--) {
     ObjectLiteral::Property* property = properties()->at(i);
-    Literal* literal = property->key();
+    if (property->is_computed_name()) continue;
+    Literal* literal = property->key()->AsLiteral();
     if (literal->value()->IsNull()) continue;
     uint32_t hash = literal->Hash();
-    // If the key of a computed property is in the table, do not emit
+    // If the key of a computed property value is in the table, do not emit
     // a store for the property later.
     if ((property->kind() == ObjectLiteral::Property::MATERIALIZED_LITERAL ||
          property->kind() == ObjectLiteral::Property::COMPUTED) &&
@@ -264,6 +287,13 @@ void ObjectLiteral::BuildConstantProperties(Isolate* isolate) {
       is_simple = false;
       continue;
     }
+
+    if (position == boilerplate_properties_ * 2) {
+      DCHECK(property->is_computed_name());
+      break;
+    }
+    DCHECK(!property->is_computed_name());
+
     MaterializedLiteral* m_literal = property->value()->AsMaterializedLiteral();
     if (m_literal != NULL) {
       m_literal->BuildConstants(isolate);
@@ -273,7 +303,7 @@ void ObjectLiteral::BuildConstantProperties(Isolate* isolate) {
     // Add CONSTANT and COMPUTED properties to boilerplate. Use undefined
     // value for COMPUTED properties, the real value is filled in at
     // runtime. The enumeration order is maintained.
-    Handle<Object> key = property->key()->value();
+    Handle<Object> key = property->key()->AsLiteral()->value();
     Handle<Object> value = GetBoilerplateValue(property->value(), isolate);
 
     // Ensure objects that may, at any point in time, contain fields with double
@@ -399,16 +429,6 @@ void MaterializedLiteral::BuildConstants(Isolate* isolate) {
   }
   DCHECK(IsRegExpLiteral());
   DCHECK(depth() >= 1);  // Depth should be initialized.
-}
-
-
-void TargetCollector::AddTarget(Label* target, Zone* zone) {
-  // Add the label to the collector, but discard duplicates.
-  int length = targets_.length();
-  for (int i = 0; i < length; i++) {
-    if (targets_[i] == target) return;
-  }
-  targets_.Add(target, zone);
 }
 
 
@@ -567,6 +587,12 @@ bool Call::IsUsingCallFeedbackSlot(Isolate* isolate) const {
 }
 
 
+FeedbackVectorRequirements Call::ComputeFeedbackRequirements(Isolate* isolate) {
+  int ic_slots = IsUsingCallFeedbackSlot(isolate) ? 1 : 0;
+  return FeedbackVectorRequirements(0, ic_slots);
+}
+
+
 Call::CallType Call::GetCallType(Isolate* isolate) const {
   VariableProxy* proxy = expression()->AsVariableProxy();
   if (proxy != NULL) {
@@ -619,7 +645,8 @@ void CallNew::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
 
 
 void ObjectLiteral::Property::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
-  TypeFeedbackId id = key()->LiteralFeedbackId();
+  DCHECK(!is_computed_name());
+  TypeFeedbackId id = key()->AsLiteral()->LiteralFeedbackId();
   SmallMapList maps;
   oracle->CollectReceiverTypes(id, &maps);
   receiver_type_ = maps.length() == 1 ? maps.at(0)
@@ -993,134 +1020,6 @@ CaseClause::CaseClause(Zone* zone, Expression* label,
       label_(label),
       statements_(statements),
       compare_type_(Type::None(zone)) {}
-
-
-#define REGULAR_NODE(NodeType)                                   \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-  }
-#define REGULAR_NODE_WITH_FEEDBACK_SLOTS(NodeType)               \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    add_slot_node(node);                                         \
-  }
-#define DONT_OPTIMIZE_NODE(NodeType)                             \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    set_dont_crankshaft_reason(k##NodeType);                     \
-    add_flag(kDontSelfOptimize);                                 \
-  }
-#define DONT_OPTIMIZE_NODE_WITH_FEEDBACK_SLOTS(NodeType)         \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    add_slot_node(node);                                         \
-    set_dont_crankshaft_reason(k##NodeType);                     \
-    add_flag(kDontSelfOptimize);                                 \
-  }
-#define DONT_TURBOFAN_NODE(NodeType)                             \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    set_dont_crankshaft_reason(k##NodeType);                     \
-    set_dont_turbofan_reason(k##NodeType);                       \
-    add_flag(kDontSelfOptimize);                                 \
-  }
-#define DONT_TURBOFAN_NODE_WITH_FEEDBACK_SLOTS(NodeType)         \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    add_slot_node(node);                                         \
-    set_dont_crankshaft_reason(k##NodeType);                     \
-    set_dont_turbofan_reason(k##NodeType);                       \
-    add_flag(kDontSelfOptimize);                                 \
-  }
-#define DONT_SELFOPTIMIZE_NODE(NodeType)                         \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    add_flag(kDontSelfOptimize);                                 \
-  }
-#define DONT_SELFOPTIMIZE_NODE_WITH_FEEDBACK_SLOTS(NodeType)     \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    add_slot_node(node);                                         \
-    add_flag(kDontSelfOptimize);                                 \
-  }
-#define DONT_CACHE_NODE(NodeType)                                \
-  void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
-    set_dont_crankshaft_reason(k##NodeType);                     \
-    add_flag(kDontSelfOptimize);                                 \
-    add_flag(kDontCache);                                        \
-  }
-
-REGULAR_NODE(VariableDeclaration)
-REGULAR_NODE(FunctionDeclaration)
-REGULAR_NODE(Block)
-REGULAR_NODE(ExpressionStatement)
-REGULAR_NODE(EmptyStatement)
-REGULAR_NODE(IfStatement)
-REGULAR_NODE(ContinueStatement)
-REGULAR_NODE(BreakStatement)
-REGULAR_NODE(ReturnStatement)
-REGULAR_NODE(SwitchStatement)
-REGULAR_NODE(CaseClause)
-REGULAR_NODE(Conditional)
-REGULAR_NODE(Literal)
-REGULAR_NODE(ArrayLiteral)
-REGULAR_NODE(ObjectLiteral)
-REGULAR_NODE(RegExpLiteral)
-REGULAR_NODE(FunctionLiteral)
-REGULAR_NODE(Assignment)
-REGULAR_NODE(Throw)
-REGULAR_NODE(UnaryOperation)
-REGULAR_NODE(CountOperation)
-REGULAR_NODE(BinaryOperation)
-REGULAR_NODE(CompareOperation)
-REGULAR_NODE(ThisFunction)
-
-REGULAR_NODE_WITH_FEEDBACK_SLOTS(Call)
-REGULAR_NODE_WITH_FEEDBACK_SLOTS(CallNew)
-REGULAR_NODE_WITH_FEEDBACK_SLOTS(Property)
-// In theory, for VariableProxy we'd have to add:
-// if (node->var()->IsLookupSlot())
-//   set_dont_optimize_reason(kReferenceToAVariableWhichRequiresDynamicLookup);
-// But node->var() is usually not bound yet at VariableProxy creation time, and
-// LOOKUP variables only result from constructs that cannot be inlined anyway.
-REGULAR_NODE_WITH_FEEDBACK_SLOTS(VariableProxy)
-
-// We currently do not optimize any modules.
-DONT_OPTIMIZE_NODE(ModuleDeclaration)
-DONT_OPTIMIZE_NODE(ImportDeclaration)
-DONT_OPTIMIZE_NODE(ExportDeclaration)
-DONT_OPTIMIZE_NODE(ModuleVariable)
-DONT_OPTIMIZE_NODE(ModulePath)
-DONT_OPTIMIZE_NODE(ModuleUrl)
-DONT_OPTIMIZE_NODE(ModuleStatement)
-DONT_OPTIMIZE_NODE(WithStatement)
-DONT_OPTIMIZE_NODE(DebuggerStatement)
-DONT_OPTIMIZE_NODE(NativeFunctionLiteral)
-
-DONT_OPTIMIZE_NODE_WITH_FEEDBACK_SLOTS(Yield)
-
-// TODO(turbofan): Remove the dont_turbofan_reason once this list is empty.
-// This list must be kept in sync with Pipeline::GenerateCode.
-DONT_TURBOFAN_NODE(ForOfStatement)
-DONT_TURBOFAN_NODE(TryCatchStatement)
-DONT_TURBOFAN_NODE(TryFinallyStatement)
-DONT_TURBOFAN_NODE(ClassLiteral)
-
-DONT_TURBOFAN_NODE_WITH_FEEDBACK_SLOTS(SuperReference)
-
-DONT_SELFOPTIMIZE_NODE(DoWhileStatement)
-DONT_SELFOPTIMIZE_NODE(WhileStatement)
-DONT_SELFOPTIMIZE_NODE(ForStatement)
-
-DONT_SELFOPTIMIZE_NODE_WITH_FEEDBACK_SLOTS(ForInStatement)
-
-DONT_CACHE_NODE(ModuleLiteral)
-
-
-void AstConstructionVisitor::VisitCallRuntime(CallRuntime* node) {
-  add_slot_node(node);
-  if (node->is_jsruntime()) {
-    // Don't try to optimize JS runtime calls because we bailout on them.
-    set_dont_crankshaft_reason(kCallToAJavaScriptRuntimeFunction);
-  }
-}
-
-#undef REGULAR_NODE
-#undef DONT_OPTIMIZE_NODE
-#undef DONT_SELFOPTIMIZE_NODE
-#undef DONT_CACHE_NODE
 
 
 uint32_t Literal::Hash() {

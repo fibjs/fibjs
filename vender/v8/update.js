@@ -128,9 +128,6 @@ function fix_src(path, val) {
 			var fname = path + '/' + name;
 			var txt = fs.readFile(fname);
 
-			if (txt.indexOf(val) >= 0)
-				return;
-
 			console.log("fix", fname);
 			fs.writeFile(fname, '#include "src/v8.h"\n\n#if ' + val + '\n\n' + txt + '\n\n#endif  // ' + val);
 		}
@@ -142,6 +139,7 @@ var archs = {
 	arm64: 'V8_TARGET_ARCH_ARM64',
 	mips: 'V8_TARGET_ARCH_MIPS',
 	mips64: 'V8_TARGET_ARCH_MIPS64',
+	ppc: "V8_TARGET_ARCH_PPC",
 	ia32: 'V8_TARGET_ARCH_IA32',
 	x64: 'V8_TARGET_ARCH_X64',
 	x87: 'V8_TARGET_ARCH_X87'
@@ -239,5 +237,6 @@ patch_samp();
 patch_src('src');
 patch_plat();
 
+fs.unlink('src/version_gen.cc');
 
 run('./vsmake.js');

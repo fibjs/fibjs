@@ -47,10 +47,10 @@ RUNTIME_FUNCTION(Runtime_CompileOptimized) {
   DCHECK(args.length() == 2);
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
   CONVERT_BOOLEAN_ARG_CHECKED(concurrent, 1);
+  DCHECK(isolate->use_crankshaft());
 
   Handle<Code> unoptimized(function->shared()->code());
-  if (!isolate->use_crankshaft() ||
-      function->shared()->optimization_disabled() ||
+  if (function->shared()->optimization_disabled() ||
       isolate->DebuggerHasBreakPoints()) {
     // If the function is not optimizable or debugger is active continue
     // using the code from the full compiler.
@@ -69,9 +69,20 @@ RUNTIME_FUNCTION(Runtime_CompileOptimized) {
       concurrent ? Compiler::CONCURRENT : Compiler::NOT_CONCURRENT;
   Handle<Code> code;
   if (Compiler::GetOptimizedCode(function, unoptimized, mode).ToHandle(&code)) {
+    // Optimization succeeded, return optimized code.
     function->ReplaceCode(*code);
   } else {
-    function->ReplaceCode(function->shared()->code());
+    // Optimization failed, get unoptimized code.
+    if (isolate->has_pending_exception()) {  // Possible stack overflow.
+      return isolate->heap()->exception();
+    }
+    code = Handle<Code>(function->shared()->code(), isolate);
+    if (code->kind() != Code::FUNCTION &&
+        code->kind() != Code::OPTIMIZED_FUNCTION) {
+      ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+          isolate, code, Compiler::GetUnoptimizedCode(function));
+    }
+    function->ReplaceCode(*code);
   }
 
   DCHECK(function->code()->kind() == Code::FUNCTION ||
@@ -176,7 +187,7 @@ static bool IsSuitableForOnStackReplacement(Isolate* isolate,
                                             Handle<JSFunction> function,
                                             Handle<Code> current_code) {
   // Keep track of whether we've succeeded in optimizing.
-  if (!isolate->use_crankshaft() || !current_code->optimizable()) return false;
+  if (!current_code->optimizable()) return false;
   // If we are trying to do OSR when there are already optimized
   // activations of the function, it means (a) the function is directly or
   // indirectly recursive and (b) an optimized invocation has been
@@ -290,8 +301,15 @@ RUNTIME_FUNCTION(Runtime_CompileForOnStackReplacement) {
       // match. Fix heuristics for reenabling optimizations!
       function->shared()->increment_deopt_count();
 
-      // TODO(titzer): Do not install code into the function.
-      function->ReplaceCode(*result);
+      if (result->is_turbofanned()) {
+        // TurboFanned OSR code cannot be installed into the function.
+        // But the function is obviously hot, so optimize it next time.
+        function->ReplaceCode(
+            isolate->builtins()->builtin(Builtins::kCompileOptimized));
+      } else {
+        // Crankshafted OSR code can be installed into the function.
+        function->ReplaceCode(*result);
+      }
       return *result;
     }
   }
@@ -347,9 +365,10 @@ bool CodeGenerationFromStringsAllowed(Isolate* isolate,
 
 RUNTIME_FUNCTION(Runtime_CompileString) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK(args.length() == 3);
   CONVERT_ARG_HANDLE_CHECKED(String, source, 0);
   CONVERT_BOOLEAN_ARG_CHECKED(function_literal_only, 1);
+  CONVERT_SMI_ARG_CHECKED(source_offset, 2);
 
   // Extract native context.
   Handle<Context> context(isolate->native_context());
@@ -375,6 +394,14 @@ RUNTIME_FUNCTION(Runtime_CompileString) {
       isolate, fun,
       Compiler::GetFunctionFromEval(source, outer_info, context, SLOPPY,
                                     restriction, RelocInfo::kNoPosition));
+  if (function_literal_only) {
+    // The actual body is wrapped, which shifts line numbers.
+    Handle<Script> script(Script::cast(fun->shared()->script()), isolate);
+    if (script->line_offset() == 0) {
+      int line_num = Script::GetLineNumber(script, source_offset);
+      script->set_line_offset(Smi::FromInt(-line_num));
+    }
+  }
   return *fun;
 }
 

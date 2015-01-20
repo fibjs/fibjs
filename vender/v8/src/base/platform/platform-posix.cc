@@ -17,6 +17,7 @@
 #include <pthread_np.h>  // for pthread_set_name_np
 #endif
 #include <sched.h>  // for sched_yield
+#include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -88,8 +89,8 @@ int OS::ActivationFrameAlignment() {
   // Otherwise we just assume 16 byte alignment, i.e.:
   // - With gcc 4.4 the tree vectorization optimizer can generate code
   //   that requires 16 byte alignment such as movdqa on x86.
-  // - Mac OS X and Solaris (64-bit) activation frames must be 16 byte-aligned;
-  //   see "Mac OS X ABI Function Call Guide"
+  // - Mac OS X, PPC and Solaris (64-bit) activation frames must
+  //   be 16 byte-aligned;  see "Mac OS X ABI Function Call Guide"
   return 16;
 #endif
 }
@@ -174,6 +175,14 @@ void* OS::GetRandomMmapAddr() {
   // the hint address to 46 bits to give the kernel a fighting chance of
   // fulfilling our placement request.
   raw_addr &= V8_UINT64_C(0x3ffffffff000);
+#elif V8_TARGET_ARCH_PPC64
+#if V8_TARGET_BIG_ENDIAN
+  // Big-endian Linux: 44 bits of virtual addressing.
+  raw_addr &= V8_UINT64_C(0x03fffffff000);
+#else
+  // Little-endian Linux: 48 bits of virtual addressing.
+  raw_addr &= V8_UINT64_C(0x3ffffffff000);
+#endif
 #else
   raw_addr &= 0x3ffff000;
 
@@ -228,6 +237,8 @@ void OS::DebugBreak() {
   asm("break");
 #elif V8_HOST_ARCH_MIPS64
   asm("break");
+#elif V8_HOST_ARCH_PPC
+  asm("twge 2,2");
 #elif V8_HOST_ARCH_IA32
 #if V8_OS_NACL
   asm("hlt");
@@ -257,14 +268,14 @@ int OS::GetCurrentProcessId() {
 
 
 int OS::GetCurrentThreadId() {
-#if V8_OS_MACOSX
+#if V8_OS_MACOSX || (V8_OS_ANDROID && defined(__APPLE__))
   return static_cast<int>(pthread_mach_thread_np(pthread_self()));
 #elif V8_OS_LINUX
   return static_cast<int>(syscall(__NR_gettid));
 #elif V8_OS_ANDROID
   return static_cast<int>(gettid());
 #else
-  return static_cast<int>(pthread_self());
+  return static_cast<int>(reinterpret_cast<intptr_t>(pthread_self()));
 #endif
 }
 

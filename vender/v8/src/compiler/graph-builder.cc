@@ -4,15 +4,13 @@
 
 #include "src/compiler/graph-builder.h"
 
+#include "src/bit-vector.h"
 #include "src/compiler.h"
-#include "src/compiler/generic-graph.h"
-#include "src/compiler/generic-node.h"
-#include "src/compiler/generic-node-inl.h"
 #include "src/compiler/graph-visualizer.h"
+#include "src/compiler/node.h"
 #include "src/compiler/node-properties.h"
 #include "src/compiler/node-properties-inl.h"
 #include "src/compiler/operator-properties.h"
-#include "src/compiler/operator-properties-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -45,7 +43,7 @@ Node** StructuredGraphBuilder::EnsureInputBufferSize(int size) {
 Node* StructuredGraphBuilder::MakeNode(const Operator* op,
                                        int value_input_count,
                                        Node** value_inputs, bool incomplete) {
-  DCHECK(op->InputCount() == value_input_count);
+  DCHECK(op->ValueInputCount() == value_input_count);
 
   bool has_context = OperatorProperties::HasContextInput(op);
   bool has_framestate = OperatorProperties::HasFrameStateInput(op);
@@ -170,10 +168,12 @@ void StructuredGraphBuilder::Environment::Merge(Environment* other) {
 }
 
 
-void StructuredGraphBuilder::Environment::PrepareForLoop(BitVector* assigned) {
-  Node* control = GetControlDependency();
+void StructuredGraphBuilder::Environment::PrepareForLoop(BitVector* assigned,
+                                                         bool is_osr) {
   int size = static_cast<int>(values()->size());
-  if (assigned == NULL) {
+
+  Node* control = builder_->NewLoop();
+  if (assigned == nullptr) {
     // Assume that everything is updated in the loop.
     for (int i = 0; i < size; ++i) {
       Node* phi = builder_->NewPhi(1, values()->at(i), control);
@@ -189,6 +189,30 @@ void StructuredGraphBuilder::Environment::PrepareForLoop(BitVector* assigned) {
   }
   Node* effect = builder_->NewEffectPhi(1, GetEffectDependency(), control);
   UpdateEffectDependency(effect);
+
+  if (is_osr) {
+    // Merge OSR values as inputs to the phis of the loop.
+    Graph* graph = builder_->graph();
+    Node* osr_loop_entry = builder_->graph()->NewNode(
+        builder_->common()->OsrLoopEntry(), graph->start(), graph->start());
+
+    builder_->MergeControl(control, osr_loop_entry);
+    builder_->MergeEffect(effect, osr_loop_entry, control);
+
+    for (int i = 0; i < size; ++i) {
+      Node* val = values()->at(i);
+      // TODO(titzer): use IrOpcode::IsConstant() or similar.
+      if (val->opcode() == IrOpcode::kNumberConstant ||
+          val->opcode() == IrOpcode::kInt32Constant ||
+          val->opcode() == IrOpcode::kInt64Constant ||
+          val->opcode() == IrOpcode::kFloat64Constant ||
+          val->opcode() == IrOpcode::kHeapConstant)
+        continue;
+      Node* osr_value =
+          graph->NewNode(builder_->common()->OsrValue(i), osr_loop_entry);
+      values()->at(i) = builder_->MergeValue(val, osr_value, control);
+    }
+  }
 }
 
 

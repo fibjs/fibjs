@@ -242,10 +242,8 @@ MaybeHandle<Object> Runtime::DefineObjectProperty(Handle<JSObject> js_object,
 }
 
 
-RUNTIME_FUNCTION(Runtime_GetPrototype) {
-  HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
-  CONVERT_ARG_HANDLE_CHECKED(Object, obj, 0);
+MaybeHandle<Object> Runtime::GetPrototype(Isolate* isolate,
+                                          Handle<Object> obj) {
   // We don't expect access checks to be needed on JSProxy objects.
   DCHECK(!obj->IsAccessCheckNeeded() || obj->IsJSObject());
   PrototypeIterator iter(isolate, obj, PrototypeIterator::START_AT_RECEIVER);
@@ -257,15 +255,26 @@ RUNTIME_FUNCTION(Runtime_GetPrototype) {
       isolate->ReportFailedAccessCheck(
           Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter)),
           v8::ACCESS_GET);
-      RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
-      return isolate->heap()->undefined_value();
+      RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
+      return isolate->factory()->undefined_value();
     }
     iter.AdvanceIgnoringProxies();
     if (PrototypeIterator::GetCurrent(iter)->IsJSProxy()) {
-      return *PrototypeIterator::GetCurrent(iter);
+      return PrototypeIterator::GetCurrent(iter);
     }
   } while (!iter.IsAtEnd(PrototypeIterator::END_AT_NON_HIDDEN));
-  return *PrototypeIterator::GetCurrent(iter);
+  return PrototypeIterator::GetCurrent(iter);
+}
+
+
+RUNTIME_FUNCTION(Runtime_GetPrototype) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_HANDLE_CHECKED(Object, obj, 0);
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, result,
+                                     Runtime::GetPrototype(isolate, obj));
+  return *result;
 }
 
 
@@ -521,6 +530,21 @@ RUNTIME_FUNCTION(Runtime_ObjectFreeze) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_ObjectSeal) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
+
+  // %ObjectSeal is a fast path and these cases are handled elsewhere.
+  RUNTIME_ASSERT(!object->HasSloppyArgumentsElements() &&
+                 !object->map()->is_observed() && !object->IsJSProxy());
+
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, result, JSObject::Seal(object));
+  return *result;
+}
+
+
 RUNTIME_FUNCTION(Runtime_GetProperty) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 2);
@@ -608,7 +632,7 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
         NameDictionary* dictionary = receiver->property_dictionary();
         int entry = dictionary->FindEntry(key);
         if ((entry != NameDictionary::kNotFound) &&
-            (dictionary->DetailsAt(entry).type() == NORMAL)) {
+            (dictionary->DetailsAt(entry).type() == FIELD)) {
           Object* value = dictionary->ValueAt(entry);
           if (!receiver->IsGlobalObject()) return value;
           value = PropertyCell::cast(value)->value();
@@ -791,7 +815,12 @@ RUNTIME_FUNCTION(Runtime_HasOwnProperty) {
     // Fast case: either the key is a real named property or it is not
     // an array index and there are no interceptors or hidden
     // prototypes.
-    Maybe<bool> maybe = JSObject::HasRealNamedProperty(js_obj, key);
+    Maybe<bool> maybe;
+    if (key_is_array_index) {
+      maybe = JSObject::HasOwnElement(js_obj, index);
+    } else {
+      maybe = JSObject::HasRealNamedProperty(js_obj, key);
+    }
     if (!maybe.has_value) return isolate->heap()->exception();
     DCHECK(!isolate->has_pending_exception());
     if (maybe.value) {
@@ -981,31 +1010,27 @@ RUNTIME_FUNCTION(Runtime_GetOwnPropertyNames) {
       Handle<JSObject> jsproto =
           Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
       jsproto->GetOwnPropertyNames(*names, next_copy_index, filter);
-      if (i > 0) {
-        // Names from hidden prototypes may already have been added
-        // for inherited function template instances. Count the duplicates
-        // and stub them out; the final copy pass at the end ignores holes.
-        for (int j = next_copy_index;
-             j < next_copy_index + own_property_count[i]; j++) {
-          Object* name_from_hidden_proto = names->get(j);
+      // Names from hidden prototypes may already have been added
+      // for inherited function template instances. Count the duplicates
+      // and stub them out; the final copy pass at the end ignores holes.
+      for (int j = next_copy_index; j < next_copy_index + own_property_count[i];
+           j++) {
+        Object* name_from_hidden_proto = names->get(j);
+        if (isolate->IsInternallyUsedPropertyName(name_from_hidden_proto)) {
+          hidden_strings++;
+        } else {
           for (int k = 0; k < next_copy_index; k++) {
-            if (names->get(k) != isolate->heap()->hidden_string()) {
-              Object* name = names->get(k);
-              if (name_from_hidden_proto == name) {
-                names->set(j, isolate->heap()->hidden_string());
-                hidden_strings++;
-                break;
-              }
+            Object* name = names->get(k);
+            if (name_from_hidden_proto == name) {
+              names->set(j, isolate->heap()->hidden_string());
+              hidden_strings++;
+              break;
             }
           }
         }
       }
       next_copy_index += own_property_count[i];
 
-      // Hidden properties only show up if the filter does not skip strings.
-      if ((filter & STRING) == 0 && JSObject::HasHiddenProperties(jsproto)) {
-        hidden_strings++;
-      }
       iter.Advance();
     }
   }
@@ -1018,7 +1043,7 @@ RUNTIME_FUNCTION(Runtime_GetOwnPropertyNames) {
     int dest_pos = 0;
     for (int i = 0; i < total_property_count; i++) {
       Object* name = old_names->get(i);
-      if (name == isolate->heap()->hidden_string()) {
+      if (isolate->IsInternallyUsedPropertyName(name)) {
         hidden_strings--;
         continue;
       }
@@ -1359,16 +1384,6 @@ RUNTIME_FUNCTION(Runtime_GlobalProxy) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_IsAttachedGlobal) {
-  SealHandleScope shs(isolate);
-  DCHECK(args.length() == 1);
-  CONVERT_ARG_CHECKED(Object, global, 0);
-  if (!global->IsJSGlobalObject()) return isolate->heap()->false_value();
-  return isolate->heap()->ToBoolean(
-      !JSGlobalObject::cast(global)->IsDetached());
-}
-
-
 RUNTIME_FUNCTION(Runtime_LookupAccessor) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 3);
@@ -1400,9 +1415,8 @@ RUNTIME_FUNCTION(Runtime_LoadMutableDouble) {
     RUNTIME_ASSERT(field_index.outobject_array_index() <
                    object->properties()->length());
   }
-  Handle<Object> raw_value(object->RawFastPropertyAt(field_index), isolate);
-  RUNTIME_ASSERT(raw_value->IsMutableHeapNumber());
-  return *Object::WrapForRead(isolate, raw_value, Representation::Double());
+  return *JSObject::FastPropertyAt(object, Representation::Double(),
+                                   field_index);
 }
 
 
@@ -1455,10 +1469,8 @@ RUNTIME_FUNCTION(Runtime_DefineAccessorPropertyUnchecked) {
   RUNTIME_ASSERT((unchecked & ~(READ_ONLY | DONT_ENUM | DONT_DELETE)) == 0);
   PropertyAttributes attr = static_cast<PropertyAttributes>(unchecked);
 
-  bool fast = obj->HasFastProperties();
   RETURN_FAILURE_ON_EXCEPTION(
       isolate, JSObject::DefineAccessor(obj, name, getter, setter, attr));
-  if (fast) JSObject::MigrateSlowToFast(obj, 0, "RuntimeDefineAccessor");
   return isolate->heap()->undefined_value();
 }
 
@@ -1515,6 +1527,15 @@ RUNTIME_FUNCTION(Runtime_GetDataProperty) {
   CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
   CONVERT_ARG_HANDLE_CHECKED(Name, key, 1);
   return *JSObject::GetDataProperty(object, key);
+}
+
+
+RUNTIME_FUNCTION(Runtime_HasFastPackedElements) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_CHECKED(HeapObject, obj, 0);
+  return isolate->heap()->ToBoolean(
+      IsFastPackedElementsKind(obj->map()->elements_kind()));
 }
 
 
@@ -1584,6 +1605,36 @@ RUNTIME_FUNCTION(RuntimeReference_ClassOf) {
   CONVERT_ARG_CHECKED(Object, obj, 0);
   if (!obj->IsJSReceiver()) return isolate->heap()->null_value();
   return JSReceiver::cast(obj)->class_name();
+}
+
+
+RUNTIME_FUNCTION(Runtime_DefineGetterPropertyUnchecked) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 3);
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
+  CONVERT_ARG_HANDLE_CHECKED(Name, name, 1);
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, getter, 2);
+
+  RETURN_FAILURE_ON_EXCEPTION(
+      isolate,
+      JSObject::DefineAccessor(object, name, getter,
+                               isolate->factory()->null_value(), NONE));
+  return isolate->heap()->undefined_value();
+}
+
+
+RUNTIME_FUNCTION(Runtime_DefineSetterPropertyUnchecked) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 3);
+  CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
+  CONVERT_ARG_HANDLE_CHECKED(Name, name, 1);
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, setter, 2);
+
+  RETURN_FAILURE_ON_EXCEPTION(
+      isolate,
+      JSObject::DefineAccessor(object, name, isolate->factory()->null_value(),
+                               setter, NONE));
+  return isolate->heap()->undefined_value();
 }
 }
 }  // namespace v8::internal

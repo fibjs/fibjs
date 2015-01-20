@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_MIPS64
+
 // Copyright (c) 1994-2006 Sun Microsystems Inc.
 // All Rights Reserved.
 //
@@ -2192,6 +2196,14 @@ void Assembler::ext_(Register rt, Register rs, uint16_t pos, uint16_t size) {
 }
 
 
+void Assembler::dext_(Register rt, Register rs, uint16_t pos, uint16_t size) {
+  // Should be called via MacroAssembler::Ext.
+  // Dext instr has 'rt' field as dest, and two uint5: msb, lsb.
+  DCHECK(kArchVariant == kMips64r2 || kArchVariant == kMips64r6);
+  GenInstrRegister(SPECIAL3, rs, rt, size - 1, pos, DEXT);
+}
+
+
 void Assembler::pref(int32_t hint, const MemOperand& rs) {
   DCHECK(is_uint5(hint) && is_uint16(rs.offset_));
   Instr instr = PREF | (rs.rm().code() << kRsShift) | (hint << kRtShift)
@@ -2929,5 +2941,8 @@ void Assembler::PopulateConstantPool(ConstantPoolArray* constant_pool) {
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_MIPS64
+
 
 #endif  // V8_TARGET_ARCH_MIPS64

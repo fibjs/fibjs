@@ -139,12 +139,12 @@ Handle<ConstantPoolArray> Factory::NewExtendedConstantPoolArray(
 
 
 Handle<OrderedHashSet> Factory::NewOrderedHashSet() {
-  return OrderedHashSet::Allocate(isolate(), 4);
+  return OrderedHashSet::Allocate(isolate(), OrderedHashSet::kMinCapacity);
 }
 
 
 Handle<OrderedHashMap> Factory::NewOrderedHashMap() {
-  return OrderedHashMap::Allocate(isolate(), 4);
+  return OrderedHashMap::Allocate(isolate(), OrderedHashMap::kMinCapacity);
 }
 
 
@@ -693,26 +693,26 @@ Handle<Context> Factory::NewNativeContext() {
 }
 
 
-Handle<Context> Factory::NewGlobalContext(Handle<JSFunction> function,
+Handle<Context> Factory::NewScriptContext(Handle<JSFunction> function,
                                           Handle<ScopeInfo> scope_info) {
   Handle<FixedArray> array =
       NewFixedArray(scope_info->ContextLength(), TENURED);
-  array->set_map_no_write_barrier(*global_context_map());
+  array->set_map_no_write_barrier(*script_context_map());
   Handle<Context> context = Handle<Context>::cast(array);
   context->set_closure(*function);
   context->set_previous(function->context());
   context->set_extension(*scope_info);
   context->set_global_object(function->context()->global_object());
-  DCHECK(context->IsGlobalContext());
+  DCHECK(context->IsScriptContext());
   return context;
 }
 
 
-Handle<GlobalContextTable> Factory::NewGlobalContextTable() {
+Handle<ScriptContextTable> Factory::NewScriptContextTable() {
   Handle<FixedArray> array = NewFixedArray(1);
-  array->set_map_no_write_barrier(*global_context_table_map());
-  Handle<GlobalContextTable> context_table =
-      Handle<GlobalContextTable>::cast(array);
+  array->set_map_no_write_barrier(*script_context_table_map());
+  Handle<ScriptContextTable> context_table =
+      Handle<ScriptContextTable>::cast(array);
   context_table->set_used(0);
   return context_table;
 }
@@ -802,6 +802,7 @@ Handle<CodeCache> Factory::NewCodeCache() {
       Handle<CodeCache>::cast(NewStruct(CODE_CACHE_TYPE));
   code_cache->set_default_cache(*empty_fixed_array(), SKIP_WRITE_BARRIER);
   code_cache->set_normal_type_cache(*undefined_value(), SKIP_WRITE_BARRIER);
+  code_cache->set_weak_cell_cache(*undefined_value(), SKIP_WRITE_BARRIER);
   return code_cache;
 }
 
@@ -812,21 +813,6 @@ Handle<AliasedArgumentsEntry> Factory::NewAliasedArgumentsEntry(
       NewStruct(ALIASED_ARGUMENTS_ENTRY_TYPE));
   entry->set_aliased_context_slot(aliased_context_slot);
   return entry;
-}
-
-
-Handle<DeclaredAccessorDescriptor> Factory::NewDeclaredAccessorDescriptor() {
-  return Handle<DeclaredAccessorDescriptor>::cast(
-      NewStruct(DECLARED_ACCESSOR_DESCRIPTOR_TYPE));
-}
-
-
-Handle<DeclaredAccessorInfo> Factory::NewDeclaredAccessorInfo() {
-  Handle<DeclaredAccessorInfo> info =
-      Handle<DeclaredAccessorInfo>::cast(
-          NewStruct(DECLARED_ACCESSOR_INFO_TYPE));
-  info->set_flag(0);  // Must clear the flag, it was initialized as undefined.
-  return info;
 }
 
 
@@ -1032,9 +1018,9 @@ Handle<Object> Factory::NewNumber(double value,
   // We need to distinguish the minus zero value and this cannot be
   // done after conversion to int. Doing this by comparing bit
   // patterns is faster than using fpclassify() et al.
-  if (IsMinusZero(value)) return NewHeapNumber(-0.0, IMMUTABLE, pretenure);
+  if (IsMinusZero(value)) return minus_zero_value();
 
-  int int_value = FastD2I(value);
+  int int_value = FastD2IChecked(value);
   if (value == int_value && Smi::IsValid(int_value)) {
     return handle(Smi::FromInt(int_value), isolate());
   }
@@ -1308,12 +1294,11 @@ Handle<JSFunction> Factory::NewFunction(Handle<String> name,
 }
 
 
-Handle<JSFunction> Factory::NewFunction(Handle<String> name,
-                                        Handle<Code> code,
+Handle<JSFunction> Factory::NewFunction(Handle<String> name, Handle<Code> code,
                                         Handle<Object> prototype,
-                                        InstanceType type,
-                                        int instance_size,
-                                        bool read_only_prototype) {
+                                        InstanceType type, int instance_size,
+                                        bool read_only_prototype,
+                                        bool install_constructor) {
   // Allocate the function
   Handle<JSFunction> function = NewFunction(
       name, code, prototype, read_only_prototype);
@@ -1321,8 +1306,13 @@ Handle<JSFunction> Factory::NewFunction(Handle<String> name,
   ElementsKind elements_kind =
       type == JS_ARRAY_TYPE ? FAST_SMI_ELEMENTS : FAST_HOLEY_SMI_ELEMENTS;
   Handle<Map> initial_map = NewMap(type, instance_size, elements_kind);
-  if (prototype->IsTheHole() && !function->shared()->is_generator()) {
-    prototype = NewFunctionPrototype(function);
+  if (!function->shared()->is_generator()) {
+    if (prototype->IsTheHole()) {
+      prototype = NewFunctionPrototype(function);
+    } else if (install_constructor) {
+      JSObject::AddProperty(Handle<JSObject>::cast(prototype),
+                            constructor_string(), function, DONT_ENUM);
+    }
   }
 
   JSFunction::SetInitialMap(function, initial_map,
@@ -1368,6 +1358,14 @@ Handle<JSObject> Factory::NewFunctionPrototype(Handle<JSFunction> function) {
 }
 
 
+static bool ShouldOptimizeNewClosure(Isolate* isolate,
+                                     Handle<SharedFunctionInfo> info) {
+  return isolate->use_crankshaft() && !info->is_toplevel() &&
+         info->is_compiled() && info->allows_lazy_compilation() &&
+         !isolate->DebuggerHasBreakPoints();
+}
+
+
 Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
     Handle<SharedFunctionInfo> info,
     Handle<Context> context,
@@ -1405,13 +1403,7 @@ Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
     return result;
   }
 
-  if (isolate()->use_crankshaft() &&
-      FLAG_always_opt &&
-      result->is_compiled() &&
-      !info->is_toplevel() &&
-      info->allows_lazy_compilation() &&
-      !info->optimization_disabled() &&
-      !isolate()->DebuggerHasBreakPoints()) {
+  if (FLAG_always_opt && ShouldOptimizeNewClosure(isolate(), info)) {
     result->MarkForOptimization();
   }
   return result;
@@ -1585,7 +1577,7 @@ Handle<GlobalObject> Factory::NewGlobalObject(Handle<JSFunction> constructor) {
   for (int i = 0; i < map->NumberOfOwnDescriptors(); i++) {
     PropertyDetails details = descs->GetDetails(i);
     DCHECK(details.type() == CALLBACKS);  // Only accessors are expected.
-    PropertyDetails d = PropertyDetails(details.attributes(), CALLBACKS, i + 1);
+    PropertyDetails d(details.attributes(), CALLBACKS, i + 1);
     Handle<Name> name(descs->GetKey(i));
     Handle<Object> value(descs->GetCallbacksObject(i), isolate());
     Handle<PropertyCell> cell = NewPropertyCell(value);
@@ -1675,6 +1667,7 @@ void Factory::NewJSArrayStorage(Handle<JSArray> array,
     return;
   }
 
+  HandleScope inner_scope(isolate());
   Handle<FixedArrayBase> elms;
   ElementsKind elements_kind = array->GetElementsKind();
   if (IsFastDoubleElementsKind(elements_kind)) {
@@ -1871,7 +1864,7 @@ Handle<JSProxy> Factory::NewJSProxy(Handle<Object> handler,
   // TODO(rossberg): Once we optimize proxies, think about a scheme to share
   // maps. Will probably depend on the identity of the handler object, too.
   Handle<Map> map = NewMap(JS_PROXY_TYPE, JSProxy::kSize);
-  map->set_prototype(*prototype);
+  map->SetPrototype(prototype);
 
   // Allocate the proxy object.
   Handle<JSProxy> result = New<JSProxy>(map, NEW_SPACE);
@@ -1890,7 +1883,7 @@ Handle<JSProxy> Factory::NewJSFunctionProxy(Handle<Object> handler,
   // TODO(rossberg): Once we optimize proxies, think about a scheme to share
   // maps. Will probably depend on the identity of the handler object, too.
   Handle<Map> map = NewMap(JS_FUNCTION_PROXY_TYPE, JSFunctionProxy::kSize);
-  map->set_prototype(*prototype);
+  map->SetPrototype(prototype);
 
   // Allocate the proxy object.
   Handle<JSFunctionProxy> result = New<JSFunctionProxy>(map, NEW_SPACE);
@@ -1915,7 +1908,7 @@ void Factory::ReinitializeJSProxy(Handle<JSProxy> proxy, InstanceType type,
   int size_difference = proxy->map()->instance_size() - map->instance_size();
   DCHECK(size_difference >= 0);
 
-  map->set_prototype(proxy->map()->prototype());
+  map->SetPrototype(handle(proxy->map()->prototype(), proxy->GetIsolate()));
 
   // Allocate the backing storage for the properties.
   int prop_size = map->InitialPropertiesLength();
@@ -1965,6 +1958,18 @@ void Factory::ReinitializeJSProxy(Handle<JSProxy> proxy, InstanceType type,
 }
 
 
+Handle<JSGlobalProxy> Factory::NewUninitializedJSGlobalProxy() {
+  // Create an empty shell of a JSGlobalProxy that needs to be reinitialized
+  // via ReinitializeJSGlobalProxy later.
+  Handle<Map> map = NewMap(JS_GLOBAL_PROXY_TYPE, JSGlobalProxy::kSize);
+  // Maintain invariant expected from any JSGlobalProxy.
+  map->set_is_access_check_needed(true);
+  CALL_HEAP_FUNCTION(isolate(), isolate()->heap()->AllocateJSObjectFromMap(
+                                    *map, NOT_TENURED, false),
+                     JSGlobalProxy);
+}
+
+
 void Factory::ReinitializeJSGlobalProxy(Handle<JSGlobalProxy> object,
                                         Handle<JSFunction> constructor) {
   DCHECK(constructor->has_initial_map());
@@ -2008,9 +2013,9 @@ void Factory::BecomeJSFunction(Handle<JSProxy> proxy) {
 }
 
 
-Handle<TypeFeedbackVector> Factory::NewTypeFeedbackVector(int slot_count,
-                                                          int ic_slot_count) {
-  return TypeFeedbackVector::Allocate(isolate(), slot_count, ic_slot_count);
+Handle<TypeFeedbackVector> Factory::NewTypeFeedbackVector(
+    const FeedbackVectorSpec& spec) {
+  return TypeFeedbackVector::Allocate(isolate(), spec);
 }
 
 
@@ -2085,7 +2090,9 @@ Handle<SharedFunctionInfo> Factory::NewSharedFunctionInfo(
   share->set_script(*undefined_value(), SKIP_WRITE_BARRIER);
   share->set_debug_info(*undefined_value(), SKIP_WRITE_BARRIER);
   share->set_inferred_name(*empty_string(), SKIP_WRITE_BARRIER);
-  Handle<TypeFeedbackVector> feedback_vector = NewTypeFeedbackVector(0, 0);
+  FeedbackVectorSpec empty_spec;
+  Handle<TypeFeedbackVector> feedback_vector =
+      NewTypeFeedbackVector(empty_spec);
   share->set_feedback_vector(*feedback_vector, SKIP_WRITE_BARRIER);
 #if TRACE_MAPS
   share->set_unique_id(isolate()->GetNextUniqueSharedFunctionInfoId());
@@ -2142,12 +2149,6 @@ void Factory::SetNumberStringCache(Handle<Object> number,
   if (number_string_cache()->get(hash * 2) != *undefined_value()) {
     int full_size = isolate()->heap()->FullSizeNumberStringCacheLength();
     if (number_string_cache()->length() != full_size) {
-      // The first time we have a hash collision, we move to the full sized
-      // number string cache.  The idea is to have a small number string
-      // cache in the snapshot to keep  boot-time memory usage down.
-      // If we expand the number string cache already while creating
-      // the snapshot then that didn't work out.
-      DCHECK(!isolate()->serializer_enabled() || FLAG_extra_code != NULL);
       Handle<FixedArray> new_cache = NewFixedArray(full_size, TENURED);
       isolate()->heap()->set_number_string_cache(*new_cache);
       return;
@@ -2278,8 +2279,8 @@ Handle<JSFunction> Factory::CreateApiFunction(
         break;
     }
 
-    result = NewFunction(empty_string(), code, prototype, type,
-                         instance_size, obj->read_only_prototype());
+    result = NewFunction(empty_string(), code, prototype, type, instance_size,
+                         obj->read_only_prototype(), true);
   }
 
   result->shared()->set_length(obj->length());
@@ -2299,19 +2300,13 @@ Handle<JSFunction> Factory::CreateApiFunction(
     return result;
   }
 
-  if (prototype->IsTheHole()) {
 #ifdef DEBUG
-    LookupIterator it(handle(JSObject::cast(result->prototype())),
-                      constructor_string(),
-                      LookupIterator::OWN_SKIP_INTERCEPTOR);
-    MaybeHandle<Object> maybe_prop = Object::GetProperty(&it);
-    DCHECK(it.IsFound());
-    DCHECK(maybe_prop.ToHandleChecked().is_identical_to(result));
+  LookupIterator it(handle(JSObject::cast(result->prototype())),
+                    constructor_string(), LookupIterator::OWN_SKIP_INTERCEPTOR);
+  MaybeHandle<Object> maybe_prop = Object::GetProperty(&it);
+  DCHECK(it.IsFound());
+  DCHECK(maybe_prop.ToHandleChecked().is_identical_to(result));
 #endif
-  } else {
-    JSObject::AddProperty(handle(JSObject::cast(result->prototype())),
-                          constructor_string(), result, DONT_ENUM);
-  }
 
   // Down from here is only valid for API functions that can be used as a
   // constructor (don't set the "remove prototype" flag).

@@ -233,18 +233,24 @@ void JSObject::PrintProperties(std::ostream& os) {  // NOLINT
       switch (descs->GetType(i)) {
         case FIELD: {
           FieldIndex index = FieldIndex::ForDescriptor(map(), i);
-          os << Brief(RawFastPropertyAt(index)) << " (field at offset "
-             << index.property_index() << ")\n";
+          if (IsUnboxedDoubleField(index)) {
+            os << "<unboxed double> " << RawFastDoublePropertyAt(index);
+          } else {
+            os << Brief(RawFastPropertyAt(index));
+          }
+          os << " (field at offset " << index.property_index() << ")\n";
+          break;
+        }
+        case ACCESSOR_FIELD: {
+          FieldIndex index = FieldIndex::ForDescriptor(map(), i);
+          os << " (accessor at offset " << index.property_index() << ")\n";
           break;
         }
         case CONSTANT:
           os << Brief(descs->GetConstant(i)) << " (constant)\n";
           break;
         case CALLBACKS:
-          os << Brief(descs->GetCallbacksObject(i)) << " (callback)\n";
-          break;
-        case NORMAL:  // only in slow mode
-          UNREACHABLE();
+          os << Brief(descs->GetCallbacksObject(i)) << " (callbacks)\n";
           break;
       }
     }
@@ -345,12 +351,6 @@ void JSObject::PrintElements(std::ostream& os) {  // NOLINT
 }
 
 
-void JSObject::PrintTransitions(std::ostream& os) {  // NOLINT
-  if (!map()->HasTransitionArray()) return;
-  map()->transitions()->PrintTransitions(os, false);
-}
-
-
 void JSObject::JSObjectPrint(std::ostream& os) {  // NOLINT
   HeapObject::PrintHeader(os, "JSObject");
   // Don't call GetElementsKind, its validation code can cause the printer to
@@ -413,6 +413,7 @@ void Map::MapPrint(std::ostream& os) {  // NOLINT
   os << "\n - pre-allocated property fields: "
      << pre_allocated_property_fields() << "\n";
   os << " - unused property fields: " << unused_property_fields() << "\n";
+  if (is_deprecated()) os << " - deprecated_map\n";
   if (is_dictionary_map()) os << " - dictionary_map\n";
   if (is_prototype_map()) os << " - prototype_map\n";
   if (is_hidden_prototype()) os << " - hidden_prototype\n";
@@ -421,15 +422,14 @@ void Map::MapPrint(std::ostream& os) {  // NOLINT
   if (is_undetectable()) os << " - undetectable\n";
   if (has_instance_call_handler()) os << " - instance_call_handler\n";
   if (is_access_check_needed()) os << " - access_check_needed\n";
-  if (is_frozen()) {
-    os << " - frozen\n";
-  } else if (!is_extensible()) {
-    os << " - sealed\n";
-  }
+  if (!is_extensible()) os << " - non-extensible\n";
   os << " - back pointer: " << Brief(GetBackPointer());
   os << "\n - instance descriptors " << (owns_descriptors() ? "(own) " : "")
      << "#" << NumberOfOwnDescriptors() << ": "
      << Brief(instance_descriptors());
+  if (FLAG_unbox_double_fields) {
+    os << "\n - layout descriptor: " << Brief(layout_descriptor());
+  }
   if (HasTransitionArray()) {
     os << "\n - transitions: " << Brief(transitions());
   }
@@ -585,21 +585,6 @@ void Name::NamePrint(std::ostream& os) {  // NOLINT
   } else {
     os << Brief(this);
   }
-}
-
-
-// This method is only meant to be called from gdb for debugging purposes.
-// Since the string can also be in two-byte encoding, non-Latin1 characters
-// will be ignored in the output.
-char* String::ToAsciiArray() {
-  // Static so that subsequent calls frees previously allocated space.
-  // This also means that previous results will be overwritten.
-  static char* buffer = NULL;
-  if (buffer != NULL) delete[] buffer;
-  buffer = new char[length()+1];
-  WriteToFlat(this, reinterpret_cast<uint8_t*>(buffer), 0, length());
-  buffer[length()] = 0;
-  return buffer;
 }
 
 
@@ -843,6 +828,11 @@ void PropertyCell::PropertyCellPrint(std::ostream& os) {  // NOLINT
 
 void WeakCell::WeakCellPrint(std::ostream& os) {  // NOLINT
   HeapObject::PrintHeader(os, "WeakCell");
+  if (cleared()) {
+    os << "\n - cleared";
+  } else {
+    os << "\n - value: " << Brief(value());
+  }
 }
 
 
@@ -869,24 +859,6 @@ void ExecutableAccessorInfo::ExecutableAccessorInfoPrint(
   os << "\n - getter: " << Brief(getter());
   os << "\n - setter: " << Brief(setter());
   os << "\n - data: " << Brief(data());
-  os << "\n";
-}
-
-
-void DeclaredAccessorInfo::DeclaredAccessorInfoPrint(
-    std::ostream& os) {  // NOLINT
-  HeapObject::PrintHeader(os, "DeclaredAccessorInfo");
-  os << "\n - name: " << Brief(name());
-  os << "\n - flag: " << Brief(flag());
-  os << "\n - descriptor: " << Brief(descriptor());
-  os << "\n";
-}
-
-
-void DeclaredAccessorDescriptor::DeclaredAccessorDescriptorPrint(
-    std::ostream& os) {  // NOLINT
-  HeapObject::PrintHeader(os, "DeclaredAccessorDescriptor");
-  os << "\n - internal field: " << Brief(serialized_data());
   os << "\n";
 }
 
@@ -965,14 +937,6 @@ void ObjectTemplateInfo::ObjectTemplateInfoPrint(std::ostream& os) {  // NOLINT
   os << "\n - property_accessors: " << Brief(property_accessors());
   os << "\n - constructor: " << Brief(constructor());
   os << "\n - internal_field_count: " << Brief(internal_field_count());
-  os << "\n";
-}
-
-
-void SignatureInfo::SignatureInfoPrint(std::ostream& os) {  // NOLINT
-  HeapObject::PrintHeader(os, "SignatureInfo");
-  os << "\n - receiver: " << Brief(receiver());
-  os << "\n - args: " << Brief(args());
   os << "\n";
 }
 
@@ -1058,71 +1022,40 @@ void BreakPointInfo::BreakPointInfoPrint(std::ostream& os) {  // NOLINT
 }
 
 
-void DescriptorArray::Print() {
+static void PrintBitMask(std::ostream& os, uint32_t value) {  // NOLINT
+  for (int i = 0; i < 32; i++) {
+    if ((i & 7) == 0) os << " ";
+    os << (((value & 1) == 0) ? "_" : "x");
+    value >>= 1;
+  }
+}
+
+
+void LayoutDescriptor::Print() {
   OFStream os(stdout);
-  this->PrintDescriptors(os);
+  this->Print(os);
   os << std::flush;
 }
 
 
-void DescriptorArray::PrintDescriptors(std::ostream& os) {  // NOLINT
-  os << "Descriptor array " << number_of_descriptors() << "\n";
-  for (int i = 0; i < number_of_descriptors(); i++) {
-    Descriptor desc;
-    Get(i, &desc);
-    os << " " << i << ": " << desc << "\n";
+void LayoutDescriptor::Print(std::ostream& os) {  // NOLINT
+  os << "Layout descriptor: ";
+  if (IsUninitialized()) {
+    os << "<uninitialized>";
+  } else if (IsFastPointerLayout()) {
+    os << "<all tagged>";
+  } else if (IsSmi()) {
+    os << "fast";
+    PrintBitMask(os, static_cast<uint32_t>(Smi::cast(this)->value()));
+  } else {
+    os << "slow";
+    int len = length();
+    for (int i = 0; i < len; i++) {
+      if (i > 0) os << " |";
+      PrintBitMask(os, get_scalar(i));
+    }
   }
   os << "\n";
-}
-
-
-void TransitionArray::Print() {
-  OFStream os(stdout);
-  this->PrintTransitions(os);
-  os << std::flush;
-}
-
-
-void TransitionArray::PrintTransitions(std::ostream& os,
-                                       bool print_header) {  // NOLINT
-  if (print_header) {
-    os << "Transition array " << number_of_transitions() << "\n";
-  }
-  for (int i = 0; i < number_of_transitions(); i++) {
-    Name* key = GetKey(i);
-    Map* target = GetTarget(i);
-    os << "   ";
-    key->NamePrint(os);
-    os << ": ";
-    if (key == GetHeap()->frozen_symbol()) {
-      os << " (transition to frozen)";
-    } else if (key == GetHeap()->elements_transition_symbol()) {
-      os << " (transition to " << ElementsKindToString(target->elements_kind())
-         << ")";
-    } else if (key == GetHeap()->observed_symbol()) {
-      os << " (transition to Object.observe)";
-    } else {
-      PropertyDetails details = GetTargetDetails(key, target);
-      switch (details.type()) {
-        case FIELD: {
-          os << " (transition to field)";
-          break;
-        }
-        case CONSTANT:
-          os << " (transition to constant " << Brief(GetTargetValue(i)) << ")";
-          break;
-        case CALLBACKS:
-          os << " (transition to callback " << Brief(GetTargetValue(i)) << ")";
-          break;
-        // Values below are never in the target descriptor array.
-        case NORMAL:
-          UNREACHABLE();
-          break;
-      }
-      os << ", attrs: " << details.attributes();
-    }
-    os << " -> " << Brief(target) << "\n";
-  }
 }
 
 
@@ -1163,4 +1096,96 @@ int Name::NameShortPrint(Vector<char> str) {
 
 
 #endif  // TRACE_MAPS
+
+
+#if defined(DEBUG) || defined(OBJECT_PRINT)
+// This method is only meant to be called from gdb for debugging purposes.
+// Since the string can also be in two-byte encoding, non-Latin1 characters
+// will be ignored in the output.
+char* String::ToAsciiArray() {
+  // Static so that subsequent calls frees previously allocated space.
+  // This also means that previous results will be overwritten.
+  static char* buffer = NULL;
+  if (buffer != NULL) delete[] buffer;
+  buffer = new char[length() + 1];
+  WriteToFlat(this, reinterpret_cast<uint8_t*>(buffer), 0, length());
+  buffer[length()] = 0;
+  return buffer;
+}
+
+
+void DescriptorArray::Print() {
+  OFStream os(stdout);
+  this->PrintDescriptors(os);
+  os << std::flush;
+}
+
+
+void DescriptorArray::PrintDescriptors(std::ostream& os) {  // NOLINT
+  HandleScope scope(GetIsolate());
+  os << "Descriptor array " << number_of_descriptors() << "\n";
+  for (int i = 0; i < number_of_descriptors(); i++) {
+    Descriptor desc;
+    Get(i, &desc);
+    os << " " << i << ": " << desc << "\n";
+  }
+  os << "\n";
+}
+
+
+void TransitionArray::Print() {
+  OFStream os(stdout);
+  this->PrintTransitions(os);
+  os << std::flush;
+}
+
+
+void TransitionArray::PrintTransitions(std::ostream& os,
+                                       bool print_header) {  // NOLINT
+  if (print_header) {
+    os << "Transition array " << number_of_transitions() << "\n";
+  }
+  for (int i = 0; i < number_of_transitions(); i++) {
+    Name* key = GetKey(i);
+    Map* target = GetTarget(i);
+    os << "   ";
+#ifdef OBJECT_PRINT
+    key->NamePrint(os);
+#else
+    key->ShortPrint(os);
+#endif
+    os << ": ";
+    if (key == GetHeap()->nonextensible_symbol()) {
+      os << " (transition to non-extensible)";
+    } else if (key == GetHeap()->sealed_symbol()) {
+      os << " (transition to sealed)";
+    } else if (key == GetHeap()->frozen_symbol()) {
+      os << " (transition to frozen)";
+    } else if (key == GetHeap()->elements_transition_symbol()) {
+      os << " (transition to " << ElementsKindToString(target->elements_kind())
+         << ")";
+    } else if (key == GetHeap()->observed_symbol()) {
+      os << " (transition to Object.observe)";
+    } else {
+      PropertyDetails details = GetTargetDetails(key, target);
+      os << " (transition to ";
+      if (details.location() == IN_DESCRIPTOR) {
+        os << "immutable ";
+      }
+      os << (details.kind() == DATA ? "data" : "accessor");
+      if (details.location() == IN_DESCRIPTOR) {
+        os << " " << Brief(GetTargetValue(i));
+      }
+      os << "), attrs: " << details.attributes();
+    }
+    os << " -> " << Brief(target) << "\n";
+  }
+}
+
+
+void JSObject::PrintTransitions(std::ostream& os) {  // NOLINT
+  if (!map()->HasTransitionArray()) return;
+  map()->transitions()->PrintTransitions(os, false);
+}
+#endif  // defined(DEBUG) || defined(OBJECT_PRINT)
 } }  // namespace v8::internal

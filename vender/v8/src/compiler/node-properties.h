@@ -25,24 +25,28 @@ class NodeProperties {
 
   static inline int GetFrameStateIndex(Node* node);
 
-  static inline bool IsValueEdge(Node::Edge edge);
-  static inline bool IsContextEdge(Node::Edge edge);
-  static inline bool IsEffectEdge(Node::Edge edge);
-  static inline bool IsControlEdge(Node::Edge edge);
+  static inline bool IsValueEdge(Edge edge);
+  static inline bool IsContextEdge(Edge edge);
+  static inline bool IsEffectEdge(Edge edge);
+  static inline bool IsControlEdge(Edge edge);
 
   static inline bool IsControl(Node* node);
 
+  static inline void ReplaceContextInput(Node* node, Node* context);
   static inline void ReplaceControlInput(Node* node, Node* control);
   static inline void ReplaceEffectInput(Node* node, Node* effect,
                                         int index = 0);
   static inline void ReplaceFrameStateInput(Node* node, Node* frame_state);
   static inline void RemoveNonValueInputs(Node* node);
   static inline void ReplaceWithValue(Node* node, Node* value,
-                                      Node* effect = NULL);
+                                      Node* effect = nullptr);
+
+  static Node* FindProjection(Node* node, size_t projection_index);
 
   static inline bool IsTyped(Node* node);
   static inline Bounds GetBounds(Node* node);
   static inline void SetBounds(Node* node, Bounds bounds);
+  static inline void RemoveBounds(Node* node);
   static inline bool AllValueInputsAreTyped(Node* node);
 
   static inline int FirstValueIndex(Node* node);
@@ -56,7 +60,7 @@ class NodeProperties {
   static inline int PastEffectIndex(Node* node);
   static inline int PastControlIndex(Node* node);
 
-  static inline bool IsInputRange(Node::Edge edge, int first, int count);
+  static inline bool IsInputRange(Edge edge, int first, int count);
 };
 
 }  // namespace compiler

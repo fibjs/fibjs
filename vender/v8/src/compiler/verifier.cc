@@ -4,6 +4,7 @@
 
 #include "src/compiler/verifier.h"
 
+#include <algorithm>
 #include <deque>
 #include <queue>
 #include <sstream>
@@ -11,8 +12,6 @@
 
 #include "src/bit-vector.h"
 #include "src/compiler/generic-algorithm.h"
-#include "src/compiler/generic-node-inl.h"
-#include "src/compiler/generic-node.h"
 #include "src/compiler/graph-inl.h"
 #include "src/compiler/graph.h"
 #include "src/compiler/node.h"
@@ -30,20 +29,14 @@ namespace compiler {
 
 
 static bool IsDefUseChainLinkPresent(Node* def, Node* use) {
-  Node::Uses uses = def->uses();
-  for (Node::Uses::iterator it = uses.begin(); it != uses.end(); ++it) {
-    if (*it == use) return true;
-  }
-  return false;
+  auto const uses = def->uses();
+  return std::find(uses.begin(), uses.end(), use) != uses.end();
 }
 
 
 static bool IsUseDefChainLinkPresent(Node* def, Node* use) {
-  Node::Inputs inputs = use->inputs();
-  for (Node::Inputs::iterator it = inputs.begin(); it != inputs.end(); ++it) {
-    if (*it == def) return true;
-  }
-  return false;
+  auto const inputs = use->inputs();
+  return std::find(inputs.begin(), inputs.end(), def) != inputs.end();
 }
 
 
@@ -178,11 +171,11 @@ void Verifier::Visitor::Pre(Node* node) {
 
   // Verify all successors are projections if multiple value outputs exist.
   if (node->op()->ValueOutputCount() > 1) {
-    Node::Uses uses = node->uses();
-    for (Node::Uses::iterator it = uses.begin(); it != uses.end(); ++it) {
-      CHECK(!NodeProperties::IsValueEdge(it.edge()) ||
-            (*it)->opcode() == IrOpcode::kProjection ||
-            (*it)->opcode() == IrOpcode::kParameter);
+    for (Edge edge : node->use_edges()) {
+      Node* use = edge.from();
+      CHECK(!NodeProperties::IsValueEdge(edge) ||
+            use->opcode() == IrOpcode::kProjection ||
+            use->opcode() == IrOpcode::kParameter);
     }
   }
 
@@ -207,13 +200,12 @@ void Verifier::Visitor::Pre(Node* node) {
       UNREACHABLE();
     case IrOpcode::kBranch: {
       // Branch uses are IfTrue and IfFalse.
-      Node::Uses uses = node->uses();
       int count_true = 0, count_false = 0;
-      for (Node::Uses::iterator it = uses.begin(); it != uses.end(); ++it) {
-        CHECK((*it)->opcode() == IrOpcode::kIfTrue ||
-              (*it)->opcode() == IrOpcode::kIfFalse);
-        if ((*it)->opcode() == IrOpcode::kIfTrue) ++count_true;
-        if ((*it)->opcode() == IrOpcode::kIfFalse) ++count_false;
+      for (auto use : node->uses()) {
+        CHECK(use->opcode() == IrOpcode::kIfTrue ||
+              use->opcode() == IrOpcode::kIfFalse);
+        if (use->opcode() == IrOpcode::kIfTrue) ++count_true;
+        if (use->opcode() == IrOpcode::kIfFalse) ++count_false;
       }
       CHECK(count_true == 1 && count_false == 1);
       // Type is empty.
@@ -248,6 +240,14 @@ void Verifier::Visitor::Pre(Node* node) {
       CheckNotTyped(node);
       CHECK_EQ(1, control_count);
       CHECK_EQ(input_count, 1 + effect_count);
+      break;
+    case IrOpcode::kOsrNormalEntry:
+    case IrOpcode::kOsrLoopEntry:
+      // Osr entries have
+      CHECK_EQ(1, effect_count);
+      CHECK_EQ(1, control_count);
+      // Type is empty.
+      CheckNotTyped(node);
       break;
 
     // Common operators
@@ -291,7 +291,7 @@ void Verifier::Visitor::Pre(Node* node) {
       // Constants have no inputs.
       CHECK_EQ(0, input_count);
       // Type can be anything represented as a heap pointer.
-      CheckUpperIs(node, Type::TaggedPtr());
+      CheckUpperIs(node, Type::TaggedPointer());
       break;
     case IrOpcode::kExternalConstant:
       // Constants have no inputs.
@@ -299,9 +299,16 @@ void Verifier::Visitor::Pre(Node* node) {
       // Type is considered internal.
       CheckUpperIs(node, Type::Internal());
       break;
+    case IrOpcode::kOsrValue:
+      // OSR values have a value and a control input.
+      CHECK_EQ(1, control_count);
+      CHECK_EQ(1, input_count);
+      // Type is merged from other values in the graph and could be any.
+      CheckUpperIs(node, Type::Any());
+      break;
     case IrOpcode::kProjection: {
       // Projection has an input that produces enough values.
-      int index = static_cast<int>(OpParameter<size_t>(node->op()));
+      int index = static_cast<int>(ProjectionIndexOf(node->op()));
       Node* input = NodeProperties::GetValueInput(node, 0);
       CHECK_GT(input->op()->ValueOutputCount(), index);
       // Type can be anything.
@@ -460,7 +467,7 @@ void Verifier::Visitor::Pre(Node* node) {
     case IrOpcode::kJSCreateWithContext:
     case IrOpcode::kJSCreateBlockContext:
     case IrOpcode::kJSCreateModuleContext:
-    case IrOpcode::kJSCreateGlobalContext: {
+    case IrOpcode::kJSCreateScriptContext: {
       // Type is Context, and operand is Internal.
       Node* context = NodeProperties::GetContextInput(node);
       // TODO(rossberg): This should really be Is(Internal), but the typer
@@ -484,6 +491,10 @@ void Verifier::Visitor::Pre(Node* node) {
 
     // Simplified operators
     // -------------------------------
+    case IrOpcode::kAnyToBoolean:
+      // Type is Boolean.
+      CheckUpperIs(node, Type::Boolean());
+      break;
     case IrOpcode::kBooleanNot:
       // Boolean -> Boolean
       CheckValueInputIs(node, 0, Type::Boolean());
@@ -522,6 +533,11 @@ void Verifier::Visitor::Pre(Node* node) {
       // Number -> Unsigned32
       CheckValueInputIs(node, 0, Type::Number());
       CheckUpperIs(node, Type::Unsigned32());
+      break;
+    case IrOpcode::kPlainPrimitiveToNumber:
+      // PlainPrimitive -> Number
+      CheckValueInputIs(node, 0, Type::PlainPrimitive());
+      CheckUpperIs(node, Type::Number());
       break;
     case IrOpcode::kStringEqual:
     case IrOpcode::kStringLessThan:
@@ -635,6 +651,8 @@ void Verifier::Visitor::Pre(Node* node) {
       // CheckValueInputIs(node, 0, Type::Object());
       // CheckUpperIs(node, Field(node).type));
       break;
+    case IrOpcode::kLoadBuffer:
+      break;
     case IrOpcode::kLoadElement:
       // Object -> elementtype
       // TODO(rossberg): activate once machine ops are typed.
@@ -647,6 +665,8 @@ void Verifier::Visitor::Pre(Node* node) {
       // CheckValueInputIs(node, 0, Type::Object());
       // CheckValueInputIs(node, 1, Field(node).type));
       CheckNotTyped(node);
+      break;
+    case IrOpcode::kStoreBuffer:
       break;
     case IrOpcode::kStoreElement:
       // (Object, elementtype) -> _|_
@@ -725,6 +745,8 @@ void Verifier::Visitor::Pre(Node* node) {
     case IrOpcode::kChangeFloat64ToInt32:
     case IrOpcode::kChangeFloat64ToUint32:
     case IrOpcode::kLoadStackPointer:
+    case IrOpcode::kCheckedLoad:
+    case IrOpcode::kCheckedStore:
       // TODO(rossberg): Check.
       break;
   }

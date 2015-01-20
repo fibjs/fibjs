@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_IA32
+
 // Copyright (c) 1994-2006 Sun Microsystems Inc.
 // All Rights Reserved.
 //
@@ -34,7 +38,11 @@
 // significantly by Google Inc.
 // Copyright 2012 the V8 project authors. All rights reserved.
 
-#include "src/v8.h"
+#include "src/ia32/assembler-ia32.h"
+
+#if V8_OS_MACOSX
+#include <sys/sysctl.h>
+#endif
 
 #if V8_TARGET_ARCH_IA32
 
@@ -42,13 +50,39 @@
 #include "src/base/cpu.h"
 #include "src/disassembler.h"
 #include "src/macro-assembler.h"
-#include "src/serialize.h"
+#include "src/v8.h"
 
 namespace v8 {
 namespace internal {
 
 // -----------------------------------------------------------------------------
 // Implementation of CpuFeatures
+
+namespace {
+
+bool EnableAVX() {
+#if V8_OS_MACOSX
+  // Mac OS X up to 10.9 has a bug where AVX transitions were indeed being
+  // caused by ISRs, so we detect that here and disable AVX in that case.
+  char buffer[128];
+  size_t buffer_size = arraysize(buffer);
+  int ctl_name[] = { CTL_KERN , KERN_OSRELEASE };
+  if (sysctl(ctl_name, 2, buffer, &buffer_size, nullptr, 0) != 0) {
+    V8_Fatal(__FILE__, __LINE__, "V8 failed to get kernel version");
+  }
+  // The buffer now contains a string of the form XX.YY.ZZ, where
+  // XX is the major kernel version component.
+  char* period_pos = strchr(buffer, '.');
+  DCHECK_NOT_NULL(period_pos);
+  *period_pos = '\0';
+  long kernel_version_major = strtol(buffer, nullptr, 10);  // NOLINT
+  if (kernel_version_major <= 13) return false;
+#endif  // V8_OS_MACOSX
+  return FLAG_enable_avx;
+}
+
+}  // namespace
+
 
 void CpuFeatures::ProbeImpl(bool cross_compile) {
   base::CPU cpu;
@@ -60,11 +94,17 @@ void CpuFeatures::ProbeImpl(bool cross_compile) {
 
   if (cpu.has_sse41() && FLAG_enable_sse4_1) supported_ |= 1u << SSE4_1;
   if (cpu.has_sse3() && FLAG_enable_sse3) supported_ |= 1u << SSE3;
+  if (cpu.has_avx() && EnableAVX()) supported_ |= 1u << AVX;
+  if (cpu.has_fma3() && FLAG_enable_fma3) supported_ |= 1u << FMA3;
 }
 
 
 void CpuFeatures::PrintTarget() { }
-void CpuFeatures::PrintFeatures() { }
+void CpuFeatures::PrintFeatures() {
+  printf("SSE3=%d SSE4_1=%d AVX=%d FMA3=%d\n", CpuFeatures::IsSupported(SSE3),
+         CpuFeatures::IsSupported(SSE4_1), CpuFeatures::IsSupported(AVX),
+         CpuFeatures::IsSupported(FMA3));
+}
 
 
 // -----------------------------------------------------------------------------
@@ -457,11 +497,11 @@ void Assembler::mov_b(Register dst, const Operand& src) {
 }
 
 
-void Assembler::mov_b(const Operand& dst, int8_t imm8) {
+void Assembler::mov_b(const Operand& dst, const Immediate& src) {
   EnsureSpace ensure_space(this);
   EMIT(0xC6);
   emit_operand(eax, dst);
-  EMIT(imm8);
+  EMIT(static_cast<int8_t>(src.x_));
 }
 
 
@@ -489,13 +529,13 @@ void Assembler::mov_w(const Operand& dst, Register src) {
 }
 
 
-void Assembler::mov_w(const Operand& dst, int16_t imm16) {
+void Assembler::mov_w(const Operand& dst, const Immediate& src) {
   EnsureSpace ensure_space(this);
   EMIT(0x66);
   EMIT(0xC7);
   emit_operand(eax, dst);
-  EMIT(static_cast<int8_t>(imm16 & 0xff));
-  EMIT(static_cast<int8_t>(imm16 >> 8));
+  EMIT(static_cast<int8_t>(src.x_ & 0xff));
+  EMIT(static_cast<int8_t>(src.x_ >> 8));
 }
 
 
@@ -2437,6 +2477,81 @@ void Assembler::pinsrd(XMMRegister dst, const Operand& src, int8_t offset) {
 }
 
 
+void Assembler::addss(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  EMIT(0xF3);
+  EMIT(0x0F);
+  EMIT(0x58);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::subss(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  EMIT(0xF3);
+  EMIT(0x0F);
+  EMIT(0x5C);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::mulss(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  EMIT(0xF3);
+  EMIT(0x0F);
+  EMIT(0x59);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::divss(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  EMIT(0xF3);
+  EMIT(0x0F);
+  EMIT(0x5E);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::ucomiss(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  EMIT(0x0f);
+  EMIT(0x2e);
+  emit_sse_operand(dst, src);
+}
+
+
+// AVX instructions
+void Assembler::vfmasd(byte op, XMMRegister dst, XMMRegister src1,
+                       const Operand& src2) {
+  DCHECK(IsEnabled(FMA3));
+  EnsureSpace ensure_space(this);
+  emit_vex_prefix(src1, kLIG, k66, k0F38, kW1);
+  EMIT(op);
+  emit_sse_operand(dst, src2);
+}
+
+
+void Assembler::vfmass(byte op, XMMRegister dst, XMMRegister src1,
+                       const Operand& src2) {
+  DCHECK(IsEnabled(FMA3));
+  EnsureSpace ensure_space(this);
+  emit_vex_prefix(src1, kLIG, k66, k0F38, kW0);
+  EMIT(op);
+  emit_sse_operand(dst, src2);
+}
+
+
+void Assembler::vsd(byte op, XMMRegister dst, XMMRegister src1,
+                    const Operand& src2) {
+  DCHECK(IsEnabled(AVX));
+  EnsureSpace ensure_space(this);
+  emit_vex_prefix(src1, kLIG, kF2, k0F, kWIG);
+  EMIT(op);
+  emit_sse_operand(dst, src2);
+}
+
+
 void Assembler::emit_sse_operand(XMMRegister reg, const Operand& adr) {
   Register ireg = { reg.code() };
   emit_operand(ireg, adr);
@@ -2455,6 +2570,19 @@ void Assembler::emit_sse_operand(Register dst, XMMRegister src) {
 
 void Assembler::emit_sse_operand(XMMRegister dst, Register src) {
   EMIT(0xC0 | (dst.code() << 3) | src.code());
+}
+
+
+void Assembler::emit_vex_prefix(XMMRegister vreg, VectorLength l, SIMDPrefix pp,
+                                LeadingOpcode mm, VexW w) {
+  if (mm != k0F || w != kW0) {
+    EMIT(0xc4);
+    EMIT(0xc0 | mm);
+    EMIT(w | ((~vreg.code() & 0xf) << 3) | l | pp);
+  } else {
+    EMIT(0xc5);
+    EMIT(((~vreg.code()) << 3) | l | pp);
+  }
 }
 
 
@@ -2656,5 +2784,8 @@ void LogGeneratedCodeCoverage(const char* file_line) {
 #endif
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_IA32
+
 
 #endif  // V8_TARGET_ARCH_IA32

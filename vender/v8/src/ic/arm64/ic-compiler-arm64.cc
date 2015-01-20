@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM64
+
 // Copyright 2014 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -42,9 +46,12 @@ Handle<Code> PropertyICCompiler::CompilePolymorphic(TypeHandleList* types,
 
   if (check == PROPERTY &&
       (kind() == Code::KEYED_LOAD_IC || kind() == Code::KEYED_STORE_IC)) {
-    // In case we are compiling an IC for dictionary loads and stores, just
+    // In case we are compiling an IC for dictionary loads or stores, just
     // check whether the name is unique.
     if (name.is_identical_to(isolate()->factory()->normal_ic_symbol())) {
+      // Keyed loads with dictionaries shouldn't be here, they go generic.
+      // The DCHECK is to protect assumptions when --vector-ics is on.
+      DCHECK(kind() != Code::KEYED_LOAD_IC);
       Register tmp = scratch1();
       __ JumpIfSmi(this->name(), &miss);
       __ Ldr(tmp, FieldMemOperand(this->name(), HeapObject::kMapOffset));
@@ -71,8 +78,9 @@ Handle<Code> PropertyICCompiler::CompilePolymorphic(TypeHandleList* types,
     Handle<Map> map = IC::TypeToMap(*type, isolate());
     if (!map->is_deprecated()) {
       number_of_handled_maps++;
+      Handle<WeakCell> cell = Map::WeakCellForMap(map);
+      __ CmpWeakValue(map_reg, cell, scratch2());
       Label try_next;
-      __ Cmp(map_reg, Operand(map));
       __ B(ne, &try_next);
       if (type->Is(HeapType::Number())) {
         DCHECK(!number_case.is_unused());
@@ -104,16 +112,18 @@ Handle<Code> PropertyICCompiler::CompileKeyedStorePolymorphic(
   __ JumpIfSmi(receiver(), &miss);
 
   int receiver_count = receiver_maps->length();
-  __ Ldr(scratch1(), FieldMemOperand(receiver(), HeapObject::kMapOffset));
+  Register map_reg = scratch1();
+  __ Ldr(map_reg, FieldMemOperand(receiver(), HeapObject::kMapOffset));
   for (int i = 0; i < receiver_count; i++) {
-    __ Cmp(scratch1(), Operand(receiver_maps->at(i)));
-
+    Handle<WeakCell> cell = Map::WeakCellForMap(receiver_maps->at(i));
+    __ CmpWeakValue(map_reg, cell, scratch2());
     Label skip;
     __ B(&skip, ne);
     if (!transitioned_maps->at(i).is_null()) {
       // This argument is used by the handler stub. For example, see
       // ElementsTransitionGenerator::GenerateMapChangeElementsTransition.
-      __ Mov(transition_map(), Operand(transitioned_maps->at(i)));
+      Handle<WeakCell> cell = Map::WeakCellForMap(transitioned_maps->at(i));
+      __ LoadWeakValue(transition_map(), cell, &miss);
     }
     __ Jump(handler_stubs->at(i), RelocInfo::CODE_TARGET);
     __ Bind(&skip);
@@ -129,5 +139,8 @@ Handle<Code> PropertyICCompiler::CompileKeyedStorePolymorphic(
 #undef __
 }
 }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_ARM64
+
 
 #endif  // V8_TARGET_ARCH_ARM64

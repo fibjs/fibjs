@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM64
+
 // Copyright 2013 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -367,13 +371,13 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
             FieldMemOperand(init_map, Map::kBitField3Offset);
         // Check if slack tracking is enabled.
         __ Ldr(x4, bit_field3);
-        __ DecodeField<Map::ConstructionCount>(constructon_count, x4);
-        __ Cmp(constructon_count, Operand(JSFunction::kNoSlackTracking));
-        __ B(eq, &allocate);
+        __ DecodeField<Map::Counter>(constructon_count, x4);
+        __ Cmp(constructon_count, Operand(Map::kSlackTrackingCounterEnd));
+        __ B(lt, &allocate);
         // Decrease generous allocation count.
-        __ Subs(x4, x4, Operand(1 << Map::ConstructionCount::kShift));
+        __ Subs(x4, x4, Operand(1 << Map::Counter::kShift));
         __ Str(x4, bit_field3);
-        __ Cmp(constructon_count, Operand(JSFunction::kFinishSlackTracking));
+        __ Cmp(constructon_count, Operand(Map::kSlackTrackingCounterEnd));
         __ B(ne, &allocate);
 
         // Push the constructor and map to the stack, and the constructor again
@@ -381,7 +385,7 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
         __ Push(constructor, init_map, constructor);
         __ CallRuntime(Runtime::kFinalizeInstanceSize, 1);
         __ Pop(init_map, constructor);
-        __ Mov(constructon_count, Operand(JSFunction::kNoSlackTracking));
+        __ Mov(constructon_count, Operand(Map::kSlackTrackingCounterEnd - 1));
         __ Bind(&allocate);
       }
 
@@ -434,8 +438,8 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
         Label no_inobject_slack_tracking;
 
         // Check if slack tracking is enabled.
-        __ Cmp(constructon_count, Operand(JSFunction::kNoSlackTracking));
-        __ B(eq, &no_inobject_slack_tracking);
+        __ Cmp(constructon_count, Operand(Map::kSlackTrackingCounterEnd));
+        __ B(lt, &no_inobject_slack_tracking);
         constructon_count = NoReg;
 
         // Fill the pre-allocated fields with undef.
@@ -1562,3 +1566,6 @@ void Builtins::Generate_ArgumentsAdaptorTrampoline(MacroAssembler* masm) {
 } }  // namespace v8::internal
 
 #endif  // V8_TARGET_ARCH_ARM
+
+
+#endif  // V8_TARGET_ARCH_ARM64
