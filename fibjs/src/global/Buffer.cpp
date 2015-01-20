@@ -139,33 +139,29 @@ result_t Buffer::write(const char *str, const char *codec)
     return write(data);
 }
 
-result_t Buffer::copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal)
+result_t Buffer::copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t &retVal)
 {
     if (targetStart < 0 || sourceStart < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if(sourceStart > m_data.length())
-    {
+    if (sourceStart > m_data.length())
         return CHECK_ERROR(CALL_E_OUTRANGE);
-    }
 
-    Buffer* buf = static_cast<Buffer*>(targetBuffer);
+    Buffer *buf = static_cast<Buffer *>(targetBuffer);
     int32_t bufLen;
     buf->get_length(bufLen);
 
-    if(sourceEnd == -1)
-    {
-        sourceEnd = m_data.length();
-    }
+    if (sourceEnd == -1)
+        sourceEnd = (int32_t)m_data.length();
 
-    if(targetStart >= bufLen || sourceStart >= sourceEnd)
+    if (targetStart >= bufLen || sourceStart >= sourceEnd)
     {
         retVal = 0;
         return 0;
     }
 
     int32_t targetSz = bufLen - targetStart;
-    int32_t sourceSz = m_data.length() - sourceStart;
+    int32_t sourceSz = (int32_t)m_data.length() - sourceStart;
     int32_t sourceLen = sourceEnd - sourceStart;
     int32_t sz = MIN(MIN(sourceLen, targetSz), sourceSz);
 
@@ -455,7 +451,8 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
         end = (int32_t) m_data.length();
 
     obj_ptr<Buffer> pNew = new Buffer();
-    if(start < end) {
+    if (start < end)
+    {
         pNew->m_data.append(m_data, start, end - start);
         pNew->extMemory((int) (end - start));
     }
