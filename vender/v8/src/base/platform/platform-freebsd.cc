@@ -13,6 +13,7 @@
 #include <semaphore.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
