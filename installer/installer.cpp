@@ -89,7 +89,7 @@ int _tmain(int argc, _TCHAR *argv[])
     wcscpy_s(szCommmand + l, MAX_PATH * 3 - l, szSysDir);
 
     l = wcslen(szCommmand);
-    wcscpy_s(szCommmand + l, MAX_PATH * 3 - l, L"\\js.exe");
+    wcscpy_s(szCommmand + l, MAX_PATH * 3 - l, L"\\fibjs.exe");
 
     _putws(szCommmand);
     ::_wsystem(szCommmand);

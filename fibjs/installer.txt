@@ -1,8 +1,4 @@
 #!/bin/sh
-rm -f /bin/js
-rm -f /usr/bin/js
-( read l; read l; read l ; read l; read l; read l ; read l; read l; exec cat ) < "$0" | tar -C /usr/bin/ -zxf - js
-if [ ! -e "/bin/js" ]; then
-	ln -s /usr/bin/js /bin/js
-fi
+rm -f /usr/local/bin/fibjs
+( read l; read l ; read l; read l; exec cat ) < "$0" | tar -C /usr/local/bin/ -zxf - fibjs
 exit

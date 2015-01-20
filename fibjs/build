@@ -65,11 +65,13 @@ fi
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
 	cd ${BIN_PATH}
 	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
-	strip fibjs -o js
-	tar -zcf js.tar.gz js
-	cat js.tar.gz >> installer.sh
+	cp fibjs js
+	strip js -o fibjs
+	tar -zcf fibjs.tar.gz fibjs
+	cat fibjs.tar.gz >> installer.sh
 	chmod 777 installer.sh
-	rm js*
+	rm fibjs*
+	mv js fibjs
 fi
 
 cd ${FIBJS_PATH}
