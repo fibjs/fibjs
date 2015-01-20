@@ -9,4 +9,4 @@ make ia32.release
 
 cd $WORK_PATH
 
-js update.js $V8_PATH
+fibjs update.js $V8_PATH
