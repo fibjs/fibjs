@@ -276,10 +276,13 @@ result_t Socket::bind(int32_t port, bool allowIPv4)
     return bind(NULL, port, allowIPv4);
 }
 
-result_t Socket::listen(int32_t backlog)
+result_t Socket::listen(int32_t backlog, exlib::AsyncEvent *ac)
 {
     if (m_sock == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::listen(m_sock, backlog) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
