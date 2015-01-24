@@ -30,6 +30,17 @@ interface Buffer : object
     /*! @brief 获取缓存对象的尺寸 */
     readonly Integer length;
 
+    /*! @brief 返回一组Buffer对象合并和的结果。
+               如果list为空，则返回一个新的空Buffer对象；
+               如果list长度为一，则返回list的第一个对象；
+               如果list长度大于一，则返回新的合并后的Buffer对象。
+               totalLength，如果不给出，则会隐式循环计算list的总长度，所以，指定长度，会提升性能。
+     @param list 一组Buffer对象
+     @param totalLength 合并和后长度
+     @return 合并后的Buffer对象
+     */
+    static Buffer concat(Array list, Integer totalLength = -1);
+
     /*! @brief 修改缓存对象尺寸
      @param sz 指定新尺寸
      */

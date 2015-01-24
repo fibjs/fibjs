@@ -31,6 +31,7 @@ public:
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
+	static result_t concat(v8::Local<v8::Array> list, int32_t totalLength, obj_ptr<Buffer_base>& retVal);
 	virtual result_t resize(int32_t sz) = 0;
 	virtual result_t write(v8::Local<v8::Array> datas) = 0;
 	virtual result_t write(Buffer_base* data) = 0;
@@ -83,6 +84,7 @@ public:
 	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -134,6 +136,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
+			{"concat", s_concat, true},
 			{"resize", s_resize, false},
 			{"write", s_write, false},
 			{"copy", s_copy, false},
@@ -188,7 +191,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			39, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			40, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -261,6 +264,20 @@ namespace fibjs
 		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
+	}
+
+	inline void Buffer_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+		OPT_ARG(int32_t, 1, -1);
+
+		hr = concat(v0, v1, vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void Buffer_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
