@@ -60,9 +60,6 @@ result_t Buffer::get_length(int32_t &retVal)
 
 result_t Buffer_base::concat(v8::Local<v8::Array> list, int32_t totalLength, obj_ptr<Buffer_base>& retVal)
 {
-    if (!list->IsArray())
-        return CHECK_ERROR(CALL_E_BADVARTYPE);
-
     int32_t sz = list->Length();
 
     if (sz)
@@ -80,27 +77,12 @@ result_t Buffer_base::concat(v8::Local<v8::Array> list, int32_t totalLength, obj
         }
         else
         {
-            int32_t len, i;
-
-            if(totalLength == -1)
-            {
-                totalLength = 0;
-                for (i = 0; i < sz; i++)
-                {
-                    v8::Local<v8::Value> v = list->Get(i);
-                    hr = GetArgumentValue(v, buf);
-                    if (hr < 0)
-                        return CHECK_ERROR(hr);
-
-                    buf->get_length(len);
-                    totalLength += len;
-                }
-            }
-
-            std::string temp;
-            std::string bufStr("");
-
-            if(totalLength < sz) sz = totalLength;
+            int32_t i, len(0);
+            std::string temp, bufStr;
+            if(totalLength > 0)
+                bufStr.resize(totalLength);
+            else
+                bufStr.resize(0);
 
             for (i = 0; i < sz; i ++)
             {
@@ -108,12 +90,17 @@ result_t Buffer_base::concat(v8::Local<v8::Array> list, int32_t totalLength, obj
                 hr = GetArgumentValue(v, buf);
                 if (hr < 0)
                     return CHECK_ERROR(hr);
-
                 buf->toString(temp);
-                bufStr += temp;
+
+                if(totalLength > 0){
+                    memcpy(&(bufStr[len]), temp.c_str(), temp.length() + 1);
+                    len += temp.length();
+                }else{
+                    len = bufStr.length();
+                    bufStr.resize(len + temp.length());
+                    memcpy(&(bufStr[len]), temp.c_str(), temp.length() + 1);
+                }
             }
-            if(bufStr.length() > totalLength)
-                bufStr = bufStr.substr(0, totalLength);
             retVal = new Buffer(bufStr);
         }
     }
