@@ -51,9 +51,9 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"setTime", s_setTime},
-			{"clone", s_clone},
-			{"clear", s_clear}
+			{"setTime", s_setTime, false},
+			{"clone", s_clone, false},
+			{"clear", s_clear, false}
 		};
 
 		static ClassData s_cd = 

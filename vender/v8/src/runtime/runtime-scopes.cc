@@ -22,15 +22,23 @@ static Object* ThrowRedeclarationError(Isolate* isolate, Handle<String> name) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_ThrowConstAssignError) {
+  HandleScope scope(isolate);
+  THROW_NEW_ERROR_RETURN_FAILURE(
+      isolate,
+      NewTypeError("harmony_const_assign", HandleVector<Object>(NULL, 0)));
+}
+
+
 // May throw a RedeclarationError.
 static Object* DeclareGlobals(Isolate* isolate, Handle<GlobalObject> global,
                               Handle<String> name, Handle<Object> value,
                               PropertyAttributes attr, bool is_var,
                               bool is_const, bool is_function) {
-  Handle<GlobalContextTable> global_contexts(
-      global->native_context()->global_context_table());
-  GlobalContextTable::LookupResult lookup;
-  if (GlobalContextTable::Lookup(global_contexts, name, &lookup) &&
+  Handle<ScriptContextTable> script_contexts(
+      global->native_context()->script_context_table());
+  ScriptContextTable::LookupResult lookup;
+  if (ScriptContextTable::Lookup(script_contexts, name, &lookup) &&
       IsLexicalVariableMode(lookup.mode)) {
     return ThrowRedeclarationError(isolate, name);
   }
@@ -98,7 +106,8 @@ RUNTIME_FUNCTION(Runtime_DeclareGlobals) {
     bool is_var = initial_value->IsUndefined();
     bool is_const = initial_value->IsTheHole();
     bool is_function = initial_value->IsSharedFunctionInfo();
-    DCHECK(is_var + is_const + is_function == 1);
+    DCHECK_EQ(1,
+              BoolToInt(is_var) + BoolToInt(is_const) + BoolToInt(is_function));
 
     Handle<Object> value;
     if (is_function) {
@@ -197,7 +206,7 @@ RUNTIME_FUNCTION(Runtime_DeclareLookupSlot) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 4);
 
-  // Declarations are always made in a function, native, or global context. In
+  // Declarations are always made in a function, eval or script context. In
   // the case of eval code, the context passed is the context of the caller,
   // which may be some nested context and not the declaration context.
   CONVERT_ARG_HANDLE_CHECKED(Context, context_arg, 0);
@@ -212,7 +221,8 @@ RUNTIME_FUNCTION(Runtime_DeclareLookupSlot) {
   bool is_var = *initial_value == NULL;
   bool is_const = initial_value->IsTheHole();
   bool is_function = initial_value->IsJSFunction();
-  DCHECK(is_var + is_const + is_function == 1);
+  DCHECK_EQ(1,
+            BoolToInt(is_var) + BoolToInt(is_const) + BoolToInt(is_function));
 
   int index;
   PropertyAttributes attributes;
@@ -306,9 +316,11 @@ RUNTIME_FUNCTION(Runtime_InitializeLegacyConstLookupSlot) {
 
   // The declared const was configurable, and may have been deleted in the
   // meanwhile. If so, re-introduce the variable in the context extension.
-  DCHECK(context_arg->has_extension());
   if (attributes == ABSENT) {
-    holder = handle(context_arg->extension(), isolate);
+    Handle<Context> declaration_context(context_arg->declaration_context());
+    DCHECK(declaration_context->has_extension());
+    holder = handle(declaration_context->extension(), isolate);
+    CHECK(holder->IsJSObject());
   } else {
     // For JSContextExtensionObjects, the initializer can be run multiple times
     // if in a for loop: for (var i = 0; i < 2; i++) { const x = i; }. Only the
@@ -517,13 +529,13 @@ RUNTIME_FUNCTION(Runtime_NewClosure) {
 
 static Object* FindNameClash(Handle<ScopeInfo> scope_info,
                              Handle<GlobalObject> global_object,
-                             Handle<GlobalContextTable> global_context) {
+                             Handle<ScriptContextTable> script_context) {
   Isolate* isolate = scope_info->GetIsolate();
   for (int var = 0; var < scope_info->ContextLocalCount(); var++) {
     Handle<String> name(scope_info->ContextLocalName(var));
     VariableMode mode = scope_info->ContextLocalMode(var);
-    GlobalContextTable::LookupResult lookup;
-    if (GlobalContextTable::Lookup(global_context, name, &lookup)) {
+    ScriptContextTable::LookupResult lookup;
+    if (ScriptContextTable::Lookup(script_context, name, &lookup)) {
       if (IsLexicalVariableMode(mode) || IsLexicalVariableMode(lookup.mode)) {
         return ThrowRedeclarationError(isolate, name);
       }
@@ -545,7 +557,7 @@ static Object* FindNameClash(Handle<ScopeInfo> scope_info,
 }
 
 
-RUNTIME_FUNCTION(Runtime_NewGlobalContext) {
+RUNTIME_FUNCTION(Runtime_NewScriptContext) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 2);
 
@@ -553,23 +565,23 @@ RUNTIME_FUNCTION(Runtime_NewGlobalContext) {
   CONVERT_ARG_HANDLE_CHECKED(ScopeInfo, scope_info, 1);
   Handle<GlobalObject> global_object(function->context()->global_object());
   Handle<Context> native_context(global_object->native_context());
-  Handle<GlobalContextTable> global_context_table(
-      native_context->global_context_table());
+  Handle<ScriptContextTable> script_context_table(
+      native_context->script_context_table());
 
   Handle<String> clashed_name;
   Object* name_clash_result =
-      FindNameClash(scope_info, global_object, global_context_table);
+      FindNameClash(scope_info, global_object, script_context_table);
   if (isolate->has_pending_exception()) return name_clash_result;
 
   Handle<Context> result =
-      isolate->factory()->NewGlobalContext(function, scope_info);
+      isolate->factory()->NewScriptContext(function, scope_info);
 
   DCHECK(function->context() == isolate->context());
   DCHECK(function->context()->global_object() == result->global_object());
 
-  Handle<GlobalContextTable> new_global_context_table =
-      GlobalContextTable::Extend(global_context_table, result);
-  native_context->set_global_context_table(*new_global_context_table);
+  Handle<ScriptContextTable> new_script_context_table =
+      ScriptContextTable::Extend(script_context_table, result);
+  native_context->set_script_context_table(*new_script_context_table);
   return *result;
 }
 
@@ -679,7 +691,7 @@ RUNTIME_FUNCTION(Runtime_PushModuleContext) {
 
   if (!args[1]->IsScopeInfo()) {
     // Module already initialized. Find hosting context and retrieve context.
-    Context* host = Context::cast(isolate->context())->global_context();
+    Context* host = Context::cast(isolate->context())->script_context();
     Context* context = Context::cast(host->get(index));
     DCHECK(context->previous() == isolate->context());
     isolate->set_context(context);
@@ -701,7 +713,7 @@ RUNTIME_FUNCTION(Runtime_PushModuleContext) {
   isolate->set_context(*context);
 
   // Find hosting scope and initialize internal variable holding module there.
-  previous->global_context()->set(index, *context);
+  previous->script_context()->set(index, *context);
 
   return *context;
 }
@@ -1006,7 +1018,7 @@ RUNTIME_FUNCTION(Runtime_GetArgumentsProperty) {
   HandleScope scope(isolate);
   if (raw_key->IsSymbol()) {
     Handle<Symbol> symbol = Handle<Symbol>::cast(raw_key);
-    if (symbol->Equals(isolate->native_context()->iterator_symbol())) {
+    if (Name::Equals(symbol, isolate->factory()->iterator_symbol())) {
       return isolate->native_context()->array_values_iterator();
     }
     // Lookup in the initial Object.prototype object.

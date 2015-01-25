@@ -51,9 +51,9 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"run", s_run},
-			{"require", s_require},
-			{"GC", s_GC}
+			{"run", s_run, true},
+			{"require", s_require, true},
+			{"GC", s_GC, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 

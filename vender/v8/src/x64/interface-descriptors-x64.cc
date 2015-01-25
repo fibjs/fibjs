@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_X64
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -301,6 +305,27 @@ void ApiFunctionDescriptor::Initialize(CallInterfaceDescriptorData* data) {
       rbx,  // call_data
       rcx,  // holder
       rdx,  // api_function_address
+      rdi,  // actual number of arguments
+  };
+  Representation representations[] = {
+      Representation::Tagged(),     // context
+      Representation::Tagged(),     // callee
+      Representation::Tagged(),     // call_data
+      Representation::Tagged(),     // holder
+      Representation::External(),   // api_function_address
+      Representation::Integer32(),  // actual number of arguments
+  };
+  data->Initialize(arraysize(registers), registers, representations);
+}
+
+
+void ApiAccessorDescriptor::Initialize(CallInterfaceDescriptorData* data) {
+  Register registers[] = {
+      rsi,  // context
+      rax,  // callee
+      rbx,  // call_data
+      rcx,  // holder
+      rdx,  // api_function_address
   };
   Representation representations[] = {
       Representation::Tagged(),    // context
@@ -313,5 +338,8 @@ void ApiFunctionDescriptor::Initialize(CallInterfaceDescriptorData* data) {
 }
 }
 }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_X64
+
 
 #endif  // V8_TARGET_ARCH_X64

@@ -5,22 +5,31 @@
 #ifndef V8_COMPILER_GRAPH_H_
 #define V8_COMPILER_GRAPH_H_
 
-#include <map>
-#include <set>
-
-#include "src/compiler/generic-algorithm.h"
-#include "src/compiler/node.h"
-#include "src/compiler/node-aux-data.h"
-#include "src/compiler/source-position.h"
+#include "src/zone.h"
+#include "src/zone-containers.h"
 
 namespace v8 {
 namespace internal {
 namespace compiler {
 
+// Forward declarations.
 class GraphDecorator;
+class Node;
+class Operator;
 
 
-class Graph : public GenericGraph<Node> {
+// Marks are used during traversal of the graph to distinguish states of nodes.
+// Each node has a mark which is a monotonically increasing integer, and a
+// {NodeMarker} has a range of values that indicate states of a node.
+typedef uint32_t Mark;
+
+
+// NodeIds are identifying numbers for nodes that can be used to index auxiliary
+// out-of-line data associated with each node.
+typedef int32_t NodeId;
+
+
+class Graph : public ZoneObject {
  public:
   explicit Graph(Zone* zone);
 
@@ -30,7 +39,7 @@ class Graph : public GenericGraph<Node> {
 
   // Factories for nodes with static input counts.
   Node* NewNode(const Operator* op) {
-    return NewNode(op, 0, static_cast<Node**>(NULL));
+    return NewNode(op, 0, static_cast<Node**>(nullptr));
   }
   Node* NewNode(const Operator* op, Node* n1) { return NewNode(op, 1, &n1); }
   Node* NewNode(const Operator* op, Node* n1, Node* n2) {
@@ -62,32 +71,39 @@ class Graph : public GenericGraph<Node> {
   }
 
   template <class Visitor>
-  void VisitNodeUsesFrom(Node* node, Visitor* visitor);
+  inline void VisitNodeInputsFromEnd(Visitor* visitor);
 
-  template <class Visitor>
-  void VisitNodeUsesFromStart(Visitor* visitor);
+  Zone* zone() const { return zone_; }
+  Node* start() const { return start_; }
+  Node* end() const { return end_; }
 
-  template <class Visitor>
-  void VisitNodeInputsFromEnd(Visitor* visitor);
+  void SetStart(Node* start) { start_ = start; }
+  void SetEnd(Node* end) { end_ = end; }
+
+  int NodeCount() const { return next_node_id_; }
 
   void Decorate(Node* node);
-
-  void AddDecorator(GraphDecorator* decorator) {
-    decorators_.push_back(decorator);
-  }
-
-  void RemoveDecorator(GraphDecorator* decorator) {
-    ZoneVector<GraphDecorator*>::iterator it =
-        std::find(decorators_.begin(), decorators_.end(), decorator);
-    DCHECK(it != decorators_.end());
-    decorators_.erase(it, it + 1);
-  }
+  void AddDecorator(GraphDecorator* decorator);
+  void RemoveDecorator(GraphDecorator* decorator);
 
  private:
+  friend class NodeMarkerBase;
+
+  inline NodeId NextNodeId();
+
+  Zone* const zone_;
+  Node* start_;
+  Node* end_;
+  Mark mark_max_;
+  NodeId next_node_id_;
   ZoneVector<GraphDecorator*> decorators_;
+
+  DISALLOW_COPY_AND_ASSIGN(Graph);
 };
 
 
+// A graph decorator can be used to add behavior to the creation of nodes
+// in a graph.
 class GraphDecorator : public ZoneObject {
  public:
   virtual ~GraphDecorator() {}

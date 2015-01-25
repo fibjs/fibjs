@@ -68,9 +68,9 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"run", s_run},
-			{"asyncRun", s_asyncRun},
-			{"stop", s_stop}
+			{"run", s_run, false},
+			{"asyncRun", s_asyncRun, false},
+			{"stop", s_stop, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

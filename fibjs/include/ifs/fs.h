@@ -101,21 +101,21 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"exists", s_exists},
-			{"unlink", s_unlink},
-			{"umask", s_umask},
-			{"mkdir", s_mkdir},
-			{"rmdir", s_rmdir},
-			{"rename", s_rename},
-			{"chmod", s_chmod},
-			{"stat", s_stat},
-			{"readdir", s_readdir},
-			{"open", s_open},
-			{"tmpFile", s_tmpFile},
-			{"openTextStream", s_openTextStream},
-			{"readFile", s_readFile},
-			{"readLines", s_readLines},
-			{"writeFile", s_writeFile}
+			{"exists", s_exists, true},
+			{"unlink", s_unlink, true},
+			{"umask", s_umask, true},
+			{"mkdir", s_mkdir, true},
+			{"rmdir", s_rmdir, true},
+			{"rename", s_rename, true},
+			{"chmod", s_chmod, true},
+			{"stat", s_stat, true},
+			{"readdir", s_readdir, true},
+			{"open", s_open, true},
+			{"tmpFile", s_tmpFile, true},
+			{"openTextStream", s_openTextStream, true},
+			{"readFile", s_readFile, true},
+			{"readLines", s_readLines, true},
+			{"writeFile", s_writeFile, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

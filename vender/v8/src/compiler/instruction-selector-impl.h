@@ -5,7 +5,6 @@
 #ifndef V8_COMPILER_INSTRUCTION_SELECTOR_IMPL_H_
 #define V8_COMPILER_INSTRUCTION_SELECTOR_IMPL_H_
 
-#include "src/compiler/generic-node-inl.h"
 #include "src/compiler/instruction.h"
 #include "src/compiler/instruction-selector.h"
 #include "src/compiler/linkage.h"
@@ -137,8 +136,8 @@ class OperandGenerator {
   }
 
   InstructionOperand* Label(BasicBlock* block) {
-    // TODO(bmeurer): We misuse ImmediateOperand here.
-    return TempImmediate(block->rpo_number());
+    int index = sequence()->AddImmediate(Constant(block->GetRpoNumber()));
+    return ImmediateOperand::Create(index, zone());
   }
 
  protected:
@@ -189,13 +188,22 @@ class OperandGenerator {
   UnallocatedOperand* ToUnallocatedOperand(LinkageLocation location,
                                            MachineType type) {
     if (location.location_ == LinkageLocation::ANY_REGISTER) {
+      // any machine register.
       return new (zone())
           UnallocatedOperand(UnallocatedOperand::MUST_HAVE_REGISTER);
     }
     if (location.location_ < 0) {
+      // a location on the caller frame.
       return new (zone()) UnallocatedOperand(UnallocatedOperand::FIXED_SLOT,
                                              location.location_);
     }
+    if (location.location_ > LinkageLocation::ANY_REGISTER) {
+      // a spill location on this (callee) frame.
+      return new (zone()) UnallocatedOperand(
+          UnallocatedOperand::FIXED_SLOT,
+          location.location_ - LinkageLocation::ANY_REGISTER - 1);
+    }
+    // a fixed register.
     if (RepresentationOf(type) == kRepFloat64) {
       return new (zone()) UnallocatedOperand(
           UnallocatedOperand::FIXED_DOUBLE_REGISTER, location.location_);
@@ -257,7 +265,7 @@ class FlagsContinuation FINAL {
 
   void Negate() {
     DCHECK(!IsNone());
-    condition_ = static_cast<FlagsCondition>(condition_ ^ 1);
+    condition_ = NegateFlagsCondition(condition_);
   }
 
   void Commute() {
@@ -295,18 +303,6 @@ class FlagsContinuation FINAL {
       case kUnorderedEqual:
       case kUnorderedNotEqual:
         return;
-      case kUnorderedLessThan:
-        condition_ = kUnorderedGreaterThan;
-        return;
-      case kUnorderedGreaterThanOrEqual:
-        condition_ = kUnorderedLessThanOrEqual;
-        return;
-      case kUnorderedLessThanOrEqual:
-        condition_ = kUnorderedGreaterThanOrEqual;
-        return;
-      case kUnorderedGreaterThan:
-        condition_ = kUnorderedLessThan;
-        return;
     }
     UNREACHABLE();
   }
@@ -316,8 +312,6 @@ class FlagsContinuation FINAL {
     condition_ = condition;
     if (negate) Negate();
   }
-
-  void SwapBlocks() { std::swap(true_block_, false_block_); }
 
   // Encodes this flags continuation into the given opcode.
   InstructionCode Encode(InstructionCode opcode) {
@@ -341,10 +335,10 @@ class FlagsContinuation FINAL {
 // TODO(bmeurer): Get rid of the CallBuffer business and make
 // InstructionSelector::VisitCall platform independent instead.
 struct CallBuffer {
-  CallBuffer(Zone* zone, CallDescriptor* descriptor,
+  CallBuffer(Zone* zone, const CallDescriptor* descriptor,
              FrameStateDescriptor* frame_state);
 
-  CallDescriptor* descriptor;
+  const CallDescriptor* descriptor;
   FrameStateDescriptor* frame_state_descriptor;
   NodeVector output_nodes;
   InstructionOperandVector outputs;

@@ -63,16 +63,16 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"add", s_add},
-			{"score", s_score},
-			{"incr", s_incr},
-			{"remove", s_remove},
-			{"len", s_len},
-			{"count", s_count},
-			{"range", s_range},
-			{"rangeRev", s_rangeRev},
-			{"rank", s_rank},
-			{"rankRev", s_rankRev}
+			{"add", s_add, false},
+			{"score", s_score, false},
+			{"incr", s_incr, false},
+			{"remove", s_remove, false},
+			{"len", s_len, false},
+			{"count", s_count, false},
+			{"range", s_range, false},
+			{"rangeRev", s_rangeRev, false},
+			{"rank", s_rank, false},
+			{"rankRev", s_rankRev, false}
 		};
 
 		static ClassData s_cd = 

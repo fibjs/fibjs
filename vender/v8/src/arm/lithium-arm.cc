@@ -1102,9 +1102,17 @@ LInstruction* LChunkBuilder::DoTailCallThroughMegamorphicCache(
       UseFixed(instr->receiver(), LoadDescriptor::ReceiverRegister());
   LOperand* name_register =
       UseFixed(instr->name(), LoadDescriptor::NameRegister());
+  LOperand* slot = NULL;
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    slot = UseFixed(instr->slot(), VectorLoadICDescriptor::SlotRegister());
+    vector =
+        UseFixed(instr->vector(), VectorLoadICDescriptor::VectorRegister());
+  }
+
   // Not marked as call. It can't deoptimize, and it never returns.
   return new (zone()) LTailCallThroughMegamorphicCache(
-      context, receiver_register, name_register);
+      context, receiver_register, name_register, slot, vector);
 }
 
 
@@ -1401,8 +1409,16 @@ LInstruction* LChunkBuilder::DoFlooringDivI(HMathFloorOfDiv* instr) {
   LOperand* divisor = UseRegister(instr->right());
   LOperand* temp =
       CpuFeatures::IsSupported(SUDIV) ? NULL : TempDoubleRegister();
-  LFlooringDivI* div = new(zone()) LFlooringDivI(dividend, divisor, temp);
-  return AssignEnvironment(DefineAsRegister(div));
+  LInstruction* result =
+      DefineAsRegister(new (zone()) LFlooringDivI(dividend, divisor, temp));
+  if (instr->CheckFlag(HValue::kCanBeDivByZero) ||
+      instr->CheckFlag(HValue::kBailoutOnMinusZero) ||
+      (instr->CheckFlag(HValue::kCanOverflow) &&
+       (!CpuFeatures::IsSupported(SUDIV) ||
+        !instr->CheckFlag(HValue::kAllUsesTruncatingToInt32)))) {
+    result = AssignEnvironment(result);
+  }
+  return result;
 }
 
 
@@ -2115,7 +2131,7 @@ LInstruction* LChunkBuilder::DoLoadGlobalGeneric(HLoadGlobalGeneric* instr) {
   LOperand* global_object =
       UseFixed(instr->global_object(), LoadDescriptor::ReceiverRegister());
   LOperand* vector = NULL;
-  if (FLAG_vector_ics) {
+  if (instr->HasVectorAndSlot()) {
     vector = FixedTemp(VectorLoadICDescriptor::VectorRegister());
   }
   LLoadGlobalGeneric* result =
@@ -2174,7 +2190,7 @@ LInstruction* LChunkBuilder::DoLoadNamedGeneric(HLoadNamedGeneric* instr) {
   LOperand* object =
       UseFixed(instr->object(), LoadDescriptor::ReceiverRegister());
   LOperand* vector = NULL;
-  if (FLAG_vector_ics) {
+  if (instr->HasVectorAndSlot()) {
     vector = FixedTemp(VectorLoadICDescriptor::VectorRegister());
   }
 
@@ -2241,7 +2257,7 @@ LInstruction* LChunkBuilder::DoLoadKeyedGeneric(HLoadKeyedGeneric* instr) {
       UseFixed(instr->object(), LoadDescriptor::ReceiverRegister());
   LOperand* key = UseFixed(instr->key(), LoadDescriptor::NameRegister());
   LOperand* vector = NULL;
-  if (FLAG_vector_ics) {
+  if (instr->HasVectorAndSlot()) {
     vector = FixedTemp(VectorLoadICDescriptor::VectorRegister());
   }
 

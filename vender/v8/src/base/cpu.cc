@@ -16,6 +16,9 @@
 #if V8_OS_QNX
 #include <sys/syspage.h>  // cpuinfo
 #endif
+#if V8_OS_LINUX && V8_HOST_ARCH_PPC
+#include <elf.h>
+#endif
 #if V8_OS_POSIX
 #include <unistd.h>  // sysconf()
 #endif
@@ -291,32 +294,36 @@ static bool HasListItem(const char* list, const char* item) {
 
 #endif  // V8_HOST_ARCH_IA32 || V8_HOST_ARCH_X64
 
-CPU::CPU() : stepping_(0),
-             model_(0),
-             ext_model_(0),
-             family_(0),
-             ext_family_(0),
-             type_(0),
-             implementer_(0),
-             architecture_(0),
-             part_(0),
-             has_fpu_(false),
-             has_cmov_(false),
-             has_sahf_(false),
-             has_mmx_(false),
-             has_sse_(false),
-             has_sse2_(false),
-             has_sse3_(false),
-             has_ssse3_(false),
-             has_sse41_(false),
-             has_sse42_(false),
-             has_idiva_(false),
-             has_neon_(false),
-             has_thumb2_(false),
-             has_vfp_(false),
-             has_vfp3_(false),
-             has_vfp3_d32_(false),
-             is_fp64_mode_(false) {
+CPU::CPU()
+    : stepping_(0),
+      model_(0),
+      ext_model_(0),
+      family_(0),
+      ext_family_(0),
+      type_(0),
+      implementer_(0),
+      architecture_(0),
+      variant_(-1),
+      part_(0),
+      has_fpu_(false),
+      has_cmov_(false),
+      has_sahf_(false),
+      has_mmx_(false),
+      has_sse_(false),
+      has_sse2_(false),
+      has_sse3_(false),
+      has_ssse3_(false),
+      has_sse41_(false),
+      has_sse42_(false),
+      has_avx_(false),
+      has_fma3_(false),
+      has_idiva_(false),
+      has_neon_(false),
+      has_thumb2_(false),
+      has_vfp_(false),
+      has_vfp3_(false),
+      has_vfp3_d32_(false),
+      is_fp64_mode_(false) {
   memcpy(vendor_, "Unknown", 8);
 #if V8_OS_NACL
 // Portable host shouldn't do feature detection.
@@ -356,6 +363,8 @@ CPU::CPU() : stepping_(0),
     has_ssse3_ = (cpu_info[2] & 0x00000200) != 0;
     has_sse41_ = (cpu_info[2] & 0x00080000) != 0;
     has_sse42_ = (cpu_info[2] & 0x00100000) != 0;
+    has_avx_ = (cpu_info[2] & 0x10000000) != 0;
+    if (has_avx_) has_fma3_ = (cpu_info[2] & 0x00001000) != 0;
   }
 
 #if V8_HOST_ARCH_IA32
@@ -383,7 +392,7 @@ CPU::CPU() : stepping_(0),
   // Extract implementor from the "CPU implementer" field.
   char* implementer = cpu_info.ExtractField("CPU implementer");
   if (implementer != NULL) {
-    char* end ;
+    char* end;
     implementer_ = strtol(implementer, &end, 0);
     if (end == implementer) {
       implementer_ = 0;
@@ -391,10 +400,20 @@ CPU::CPU() : stepping_(0),
     delete[] implementer;
   }
 
+  char* variant = cpu_info.ExtractField("CPU variant");
+  if (variant != NULL) {
+    char* end;
+    variant_ = strtol(variant, &end, 0);
+    if (end == variant) {
+      variant_ = -1;
+    }
+    delete[] variant;
+  }
+
   // Extract part number from the "CPU part" field.
   char* part = cpu_info.ExtractField("CPU part");
   if (part != NULL) {
-    char* end ;
+    char* end;
     part_ = strtol(part, &end, 0);
     if (end == part) {
       part_ = 0;
@@ -535,7 +554,7 @@ CPU::CPU() : stepping_(0),
   // Extract implementor from the "CPU implementer" field.
   char* implementer = cpu_info.ExtractField("CPU implementer");
   if (implementer != NULL) {
-    char* end ;
+    char* end;
     implementer_ = strtol(implementer, &end, 0);
     if (end == implementer) {
       implementer_ = 0;
@@ -543,10 +562,20 @@ CPU::CPU() : stepping_(0),
     delete[] implementer;
   }
 
+  char* variant = cpu_info.ExtractField("CPU variant");
+  if (variant != NULL) {
+    char* end;
+    variant_ = strtol(variant, &end, 0);
+    if (end == variant) {
+      variant_ = -1;
+    }
+    delete[] variant;
+  }
+
   // Extract part number from the "CPU part" field.
   char* part = cpu_info.ExtractField("CPU part");
   if (part != NULL) {
-    char* end ;
+    char* end;
     part_ = strtol(part, &end, 0);
     if (end == part) {
       part_ = 0;
@@ -554,7 +583,54 @@ CPU::CPU() : stepping_(0),
     delete[] part;
   }
 
+#elif V8_HOST_ARCH_PPC
+
+#ifndef USE_SIMULATOR
+#if V8_OS_LINUX
+  // Read processor info from /proc/self/auxv.
+  char* auxv_cpu_type = NULL;
+  FILE* fp = fopen("/proc/self/auxv", "r");
+  if (fp != NULL) {
+#if V8_TARGET_ARCH_PPC64
+    Elf64_auxv_t entry;
+#else
+    Elf32_auxv_t entry;
 #endif
+    for (;;) {
+      size_t n = fread(&entry, sizeof(entry), 1, fp);
+      if (n == 0 || entry.a_type == AT_NULL) {
+        break;
+      }
+      if (entry.a_type == AT_PLATFORM) {
+        auxv_cpu_type = reinterpret_cast<char*>(entry.a_un.a_val);
+        break;
+      }
+    }
+    fclose(fp);
+  }
+
+  part_ = -1;
+  if (auxv_cpu_type) {
+    if (strcmp(auxv_cpu_type, "power8") == 0) {
+      part_ = PPC_POWER8;
+    } else if (strcmp(auxv_cpu_type, "power7") == 0) {
+      part_ = PPC_POWER7;
+    } else if (strcmp(auxv_cpu_type, "power6") == 0) {
+      part_ = PPC_POWER6;
+    } else if (strcmp(auxv_cpu_type, "power5") == 0) {
+      part_ = PPC_POWER5;
+    } else if (strcmp(auxv_cpu_type, "ppc970") == 0) {
+      part_ = PPC_G5;
+    } else if (strcmp(auxv_cpu_type, "ppc7450") == 0) {
+      part_ = PPC_G4;
+    } else if (strcmp(auxv_cpu_type, "pa6t") == 0) {
+      part_ = PPC_PA6T;
+    }
+  }
+
+#endif  // V8_OS_LINUX
+#endif  // !USE_SIMULATOR
+#endif  // V8_HOST_ARCH_PPC
 }
 
 } }  // namespace v8::base

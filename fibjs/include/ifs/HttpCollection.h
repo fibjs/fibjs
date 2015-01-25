@@ -63,13 +63,13 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"clear", s_clear},
-			{"has", s_has},
-			{"first", s_first},
-			{"all", s_all},
-			{"add", s_add},
-			{"set", s_set},
-			{"remove", s_remove}
+			{"clear", s_clear, false},
+			{"has", s_has, false},
+			{"first", s_first, false},
+			{"all", s_all, false},
+			{"add", s_add, false},
+			{"set", s_set, false},
+			{"remove", s_remove, false}
 		};
 
 		static ClassData::ClassNamed s_named = 

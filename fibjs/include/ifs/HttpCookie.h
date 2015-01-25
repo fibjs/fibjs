@@ -74,8 +74,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"parse", s_parse},
-			{"match", s_match}
+			{"parse", s_parse, false},
+			{"match", s_match, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

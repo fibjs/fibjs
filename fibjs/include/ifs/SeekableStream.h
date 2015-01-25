@@ -59,12 +59,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"seek", s_seek},
-			{"tell", s_tell},
-			{"rewind", s_rewind},
-			{"size", s_size},
-			{"readAll", s_readAll},
-			{"stat", s_stat}
+			{"seek", s_seek, false},
+			{"tell", s_tell, false},
+			{"rewind", s_rewind, false},
+			{"size", s_size, false},
+			{"readAll", s_readAll, false},
+			{"stat", s_stat, false}
 		};
 
 		static ClassData s_cd = 

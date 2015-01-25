@@ -76,21 +76,21 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"find", s_find},
-			{"findOne", s_findOne},
-			{"findAndModify", s_findAndModify},
-			{"insert", s_insert},
-			{"save", s_save},
-			{"update", s_update},
-			{"remove", s_remove},
-			{"runCommand", s_runCommand},
-			{"drop", s_drop},
-			{"ensureIndex", s_ensureIndex},
-			{"reIndex", s_reIndex},
-			{"dropIndex", s_dropIndex},
-			{"dropIndexes", s_dropIndexes},
-			{"getIndexes", s_getIndexes},
-			{"getCollection", s_getCollection}
+			{"find", s_find, false},
+			{"findOne", s_findOne, false},
+			{"findAndModify", s_findAndModify, false},
+			{"insert", s_insert, false},
+			{"save", s_save, false},
+			{"update", s_update, false},
+			{"remove", s_remove, false},
+			{"runCommand", s_runCommand, false},
+			{"drop", s_drop, false},
+			{"ensureIndex", s_ensureIndex, false},
+			{"reIndex", s_reIndex, false},
+			{"dropIndex", s_dropIndex, false},
+			{"dropIndexes", s_dropIndexes, false},
+			{"getIndexes", s_getIndexes, false},
+			{"getCollection", s_getCollection, false}
 		};
 
 		static ClassData::ClassNamed s_named = 

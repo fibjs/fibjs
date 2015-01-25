@@ -56,7 +56,8 @@ CallDescriptor* Linkage::ComputeIncoming(Zone* zone, CompilationInfo* info) {
     // Use the code stub interface descriptor.
     CallInterfaceDescriptor descriptor =
         info->code_stub()->GetCallInterfaceDescriptor();
-    return GetStubCallDescriptor(descriptor, 0, CallDescriptor::kNoFlags, zone);
+    return GetStubCallDescriptor(descriptor, 0, CallDescriptor::kNoFlags,
+                                 Operator::kNoProperties, zone);
   }
   return NULL;  // TODO(titzer): ?
 }
@@ -105,8 +106,9 @@ CallDescriptor* Linkage::GetRuntimeCallDescriptor(
 
 CallDescriptor* Linkage::GetStubCallDescriptor(
     const CallInterfaceDescriptor& descriptor, int stack_parameter_count,
-    CallDescriptor::Flags flags) const {
-  return GetStubCallDescriptor(descriptor, stack_parameter_count, flags, zone_);
+    CallDescriptor::Flags flags, Operator::Properties properties) const {
+  return GetStubCallDescriptor(descriptor, stack_parameter_count, flags,
+                               properties, zone_);
 }
 
 
@@ -177,13 +179,14 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
     case Runtime::kNewObjectFromBound:
     case Runtime::kNewObjectWithAllocationSite:
     case Runtime::kObjectFreeze:
+    case Runtime::kObjectSeal:
     case Runtime::kOwnKeys:
     case Runtime::kParseJson:
     case Runtime::kPrepareStep:
     case Runtime::kPreventExtensions:
     case Runtime::kPromiseRejectEvent:
     case Runtime::kPromiseRevokeReject:
-    case Runtime::kRegExpCompile:
+    case Runtime::kRegExpInitializeAndCompile:
     case Runtime::kRegExpExecMultiple:
     case Runtime::kResolvePossiblyDirectEval:
     case Runtime::kRunMicrotasks:
@@ -200,6 +203,7 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
     case Runtime::kStringBuilderJoin:
     case Runtime::kStringMatch:
     case Runtime::kStringReplaceGlobalRegExpWithString:
+    case Runtime::kThrowConstAssignError:
     case Runtime::kThrowNonMethodError:
     case Runtime::kThrowNotDateError:
     case Runtime::kThrowReferenceError:
@@ -228,6 +232,12 @@ CallDescriptor* Linkage::GetJSCallDescriptor(int parameter_count, Zone* zone,
 }
 
 
+LinkageLocation Linkage::GetOsrValueLocation(int index) const {
+  UNIMPLEMENTED();
+  return LinkageLocation(-1);  // Dummy value
+}
+
+
 CallDescriptor* Linkage::GetRuntimeCallDescriptor(
     Runtime::FunctionId function, int parameter_count,
     Operator::Properties properties, Zone* zone) {
@@ -238,7 +248,8 @@ CallDescriptor* Linkage::GetRuntimeCallDescriptor(
 
 CallDescriptor* Linkage::GetStubCallDescriptor(
     const CallInterfaceDescriptor& descriptor, int stack_parameter_count,
-    CallDescriptor::Flags flags, Zone* zone) {
+    CallDescriptor::Flags flags, Operator::Properties properties,
+    Zone* zone) {
   UNIMPLEMENTED();
   return NULL;
 }

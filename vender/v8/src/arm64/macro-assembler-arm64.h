@@ -1137,8 +1137,8 @@ class MacroAssembler : public Assembler {
   // 'spill_offset' is the offset from the stack pointer where
   // CallApiFunctionAndReturn can spill registers.
   void CallApiFunctionAndReturn(Register function_address,
-                                ExternalReference thunk_ref,
-                                int stack_space,
+                                ExternalReference thunk_ref, int stack_space,
+                                MemOperand* stack_space_operand,
                                 int spill_offset,
                                 MemOperand return_value_operand,
                                 MemOperand* context_restore_operand);
@@ -1478,14 +1478,19 @@ class MacroAssembler : public Assembler {
                 Label* fail,
                 SmiCheckType smi_check_type);
 
-  // Check if the map of an object is equal to a specified map and branch to a
-  // specified target if equal. Skip the smi check if not required (object is
-  // known to be a heap object)
-  void DispatchMap(Register obj,
-                   Register scratch,
-                   Handle<Map> map,
-                   Handle<Code> success,
-                   SmiCheckType smi_check_type);
+  // Check if the map of an object is equal to a specified weak map and branch
+  // to a specified target if equal. Skip the smi check if not required
+  // (object is known to be a heap object)
+  void DispatchWeakMap(Register obj, Register scratch1, Register scratch2,
+                       Handle<WeakCell> cell, Handle<Code> success,
+                       SmiCheckType smi_check_type);
+
+  // Compare the given value and the value of weak cell.
+  void CmpWeakValue(Register value, Handle<WeakCell> cell, Register scratch);
+
+  // Load the value of the weak cell in the value register. Branch to the given
+  // miss label if the weak cell was cleared.
+  void LoadWeakValue(Register value, Handle<WeakCell> cell, Label* miss);
 
   // Test the bitfield of the heap object map with mask and set the condition
   // flags. The object register is preserved.
@@ -1774,10 +1779,6 @@ class MacroAssembler : public Assembler {
                           const Register& scratch,
                           int mask,
                           Label* if_all_clear);
-
-  void CheckMapDeprecated(Handle<Map> map,
-                          Register scratch,
-                          Label* if_deprecated);
 
   // Check if object is in new space and jump accordingly.
   // Register 'object' is preserved.

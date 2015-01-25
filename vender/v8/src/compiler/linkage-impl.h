@@ -6,6 +6,7 @@
 #define V8_COMPILER_LINKAGE_IMPL_H_
 
 #include "src/code-stubs.h"
+#include "src/compiler/osr.h"
 
 namespace v8 {
 namespace internal {
@@ -134,7 +135,8 @@ class LinkageHelper {
   // TODO(turbofan): cache call descriptors for code stub calls.
   static CallDescriptor* GetStubCallDescriptor(
       Zone* zone, const CallInterfaceDescriptor& descriptor,
-      int stack_parameter_count, CallDescriptor::Flags flags) {
+      int stack_parameter_count, CallDescriptor::Flags flags,
+      Operator::Properties properties) {
     const int register_parameter_count =
         descriptor.GetEnvironmentParameterCount();
     const int js_parameter_count =
@@ -178,7 +180,7 @@ class LinkageHelper {
         types.Build(),                    // machine_sig
         locations.Build(),                // location_sig
         js_parameter_count,               // js_parameter_count
-        Operator::kNoProperties,          // properties
+        properties,                       // properties
         kNoCalleeSaved,                   // callee-saved registers
         flags,                            // flags
         descriptor.DebugName(zone->isolate()));
@@ -225,6 +227,28 @@ class LinkageHelper {
     return LinkageLocation(i);
   }
 };
+
+
+LinkageLocation Linkage::GetOsrValueLocation(int index) const {
+  CHECK(incoming_->IsJSFunctionCall());
+  int parameter_count = static_cast<int>(incoming_->JSParameterCount() - 1);
+  int first_stack_slot = OsrHelper::FirstStackSlotIndex(parameter_count);
+
+  if (index >= first_stack_slot) {
+    // Local variable stored in this (callee) stack.
+    int spill_index =
+        LinkageLocation::ANY_REGISTER + 1 + index - first_stack_slot;
+    // TODO(titzer): bailout instead of crashing here.
+    CHECK(spill_index <= LinkageLocation::MAX_STACK_SLOT);
+    return LinkageLocation(spill_index);
+  } else {
+    // Parameter. Use the assigned location from the incoming call descriptor.
+    int parameter_index = 1 + index;  // skip index 0, which is the target.
+    return incoming_->GetInputLocation(parameter_index);
+  }
+}
+
+
 }  // namespace compiler
 }  // namespace internal
 }  // namespace v8

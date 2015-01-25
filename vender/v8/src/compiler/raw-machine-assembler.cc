@@ -40,8 +40,7 @@ RawMachineAssembler::RawMachineAssembler(Graph* graph,
 Schedule* RawMachineAssembler::Export() {
   // Compute the correct codegen order.
   DCHECK(schedule_->rpo_order()->empty());
-  ZonePool zone_pool(isolate());
-  Scheduler::ComputeSpecialRPO(&zone_pool, schedule_);
+  Scheduler::ComputeSpecialRPO(zone(), schedule_);
   // Invalidate MachineAssembler.
   Schedule* schedule = schedule_;
   schedule_ = NULL;
@@ -88,7 +87,8 @@ Node* RawMachineAssembler::CallFunctionStub0(Node* function, Node* receiver,
                                              CallFunctionFlags flags) {
   Callable callable = CodeFactory::CallFunction(isolate(), 0, flags);
   CallDescriptor* desc = Linkage::GetStubCallDescriptor(
-      callable.descriptor(), 1, CallDescriptor::kNeedsFrameState, zone());
+      callable.descriptor(), 1, CallDescriptor::kNeedsFrameState,
+      Operator::kNoProperties, zone());
   Node* stub_code = HeapConstant(callable.code());
   Node* call = graph()->NewNode(common()->Call(desc), stub_code, function,
                                 receiver, context, frame_state);

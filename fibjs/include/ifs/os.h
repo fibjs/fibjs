@@ -67,16 +67,16 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"uptime", s_uptime},
-			{"loadavg", s_loadavg},
-			{"totalmem", s_totalmem},
-			{"freemem", s_freemem},
-			{"CPUInfo", s_CPUInfo},
-			{"CPUs", s_CPUs},
-			{"networkInfo", s_networkInfo},
-			{"time", s_time},
-			{"dateAdd", s_dateAdd},
-			{"memoryUsage", s_memoryUsage}
+			{"uptime", s_uptime, true},
+			{"loadavg", s_loadavg, true},
+			{"totalmem", s_totalmem, true},
+			{"freemem", s_freemem, true},
+			{"CPUInfo", s_CPUInfo, true},
+			{"CPUs", s_CPUs, true},
+			{"networkInfo", s_networkInfo, true},
+			{"time", s_time, true},
+			{"dateAdd", s_dateAdd, true},
+			{"memoryUsage", s_memoryUsage, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

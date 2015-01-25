@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_X64
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -20,6 +24,12 @@ const int Deoptimizer::table_entry_size_ = 10;
 
 int Deoptimizer::patch_size() {
   return Assembler::kCallSequenceLength;
+}
+
+
+void Deoptimizer::EnsureRelocSpaceForLazyDeoptimization(Handle<Code> code) {
+  // Empty because there is no need for relocation information for the code
+  // patching in Deoptimizer::PatchCodeForDeoptimization below.
 }
 
 
@@ -348,5 +358,8 @@ void FrameDescription::SetCallerConstantPool(unsigned offset, intptr_t value) {
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_X64
+
 
 #endif  // V8_TARGET_ARCH_X64

@@ -45,8 +45,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"acquire", s_acquire},
-			{"release", s_release}
+			{"acquire", s_acquire, false},
+			{"release", s_release, false}
 		};
 
 		static ClassData s_cd = 

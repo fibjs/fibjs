@@ -76,7 +76,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"connect", s_connect}
+			{"connect", s_connect, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 

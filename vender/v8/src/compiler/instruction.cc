@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 #include "src/compiler/common-operator.h"
-#include "src/compiler/generic-node-inl.h"
 #include "src/compiler/graph.h"
 #include "src/compiler/instruction.h"
 
@@ -16,8 +15,6 @@ std::ostream& operator<<(std::ostream& os,
   const InstructionOperand& op = *printable.op_;
   const RegisterConfiguration* conf = printable.register_configuration_;
   switch (op.kind()) {
-    case InstructionOperand::INVALID:
-      return os << "(0)";
     case InstructionOperand::UNALLOCATED: {
       const UnallocatedOperand* unalloc = UnallocatedOperand::cast(&op);
       os << "v" << unalloc->virtual_register();
@@ -115,6 +112,16 @@ std::ostream& operator<<(std::ostream& os,
 bool ParallelMove::IsRedundant() const {
   for (int i = 0; i < move_operands_.length(); ++i) {
     if (!move_operands_[i].IsRedundant()) return false;
+  }
+  return true;
+}
+
+
+bool GapInstruction::IsRedundant() const {
+  for (int i = GapInstruction::FIRST_INNER_POSITION;
+       i <= GapInstruction::LAST_INNER_POSITION; i++) {
+    if (parallel_moves_[i] != NULL && !parallel_moves_[i]->IsRedundant())
+      return false;
   }
   return true;
 }
@@ -245,14 +252,6 @@ std::ostream& operator<<(std::ostream& os, const FlagsCondition& fc) {
       return os << "unordered equal";
     case kUnorderedNotEqual:
       return os << "unordered not equal";
-    case kUnorderedLessThan:
-      return os << "unordered less than";
-    case kUnorderedGreaterThanOrEqual:
-      return os << "unordered greater than or equal";
-    case kUnorderedLessThanOrEqual:
-      return os << "unordered less than or equal";
-    case kUnorderedGreaterThan:
-      return os << "unordered greater than";
     case kOverflow:
       return os << "overflow";
     case kNotOverflow:
@@ -280,7 +279,7 @@ std::ostream& operator<<(std::ostream& os,
 
   if (instr.IsGapMoves()) {
     const GapInstruction* gap = GapInstruction::cast(&instr);
-    os << (instr.IsBlockStart() ? " block-start" : "gap ");
+    os << "gap ";
     for (int i = GapInstruction::FIRST_INNER_POSITION;
          i <= GapInstruction::LAST_INNER_POSITION; i++) {
       os << "(";
@@ -332,6 +331,8 @@ std::ostream& operator<<(std::ostream& os, const Constant& constant) {
                        constant.ToExternalReference().address());
     case Constant::kHeapObject:
       return os << Brief(*constant.ToHeapObject());
+    case Constant::kRpoNumber:
+      return os << "RPO" << constant.ToRpoNumber().ToInt();
   }
   UNREACHABLE();
   return os;
@@ -339,7 +340,6 @@ std::ostream& operator<<(std::ostream& os, const Constant& constant) {
 
 
 InstructionBlock::InstructionBlock(Zone* zone, BasicBlock::Id id,
-                                   BasicBlock::RpoNumber ao_number,
                                    BasicBlock::RpoNumber rpo_number,
                                    BasicBlock::RpoNumber loop_header,
                                    BasicBlock::RpoNumber loop_end,
@@ -348,7 +348,7 @@ InstructionBlock::InstructionBlock(Zone* zone, BasicBlock::Id id,
       predecessors_(zone),
       phis_(zone),
       id_(id),
-      ao_number_(ao_number),
+      ao_number_(rpo_number),
       rpo_number_(rpo_number),
       loop_header_(loop_header),
       loop_end_(loop_end),
@@ -383,8 +383,8 @@ static BasicBlock::RpoNumber GetLoopEndRpo(const BasicBlock* block) {
 static InstructionBlock* InstructionBlockFor(Zone* zone,
                                              const BasicBlock* block) {
   InstructionBlock* instr_block = new (zone) InstructionBlock(
-      zone, block->id(), block->GetAoNumber(), block->GetRpoNumber(),
-      GetRpo(block->loop_header()), GetLoopEndRpo(block), block->deferred());
+      zone, block->id(), block->GetRpoNumber(), GetRpo(block->loop_header()),
+      GetLoopEndRpo(block), block->deferred());
   // Map successors and precessors
   instr_block->successors().reserve(block->SuccessorCount());
   for (auto it = block->successors_begin(); it != block->successors_end();
@@ -412,7 +412,23 @@ InstructionBlocks* InstructionSequence::InstructionBlocksFor(
     DCHECK((*it)->GetRpoNumber().ToSize() == rpo_number);
     (*blocks)[rpo_number] = InstructionBlockFor(zone, *it);
   }
+  ComputeAssemblyOrder(blocks);
   return blocks;
+}
+
+
+void InstructionSequence::ComputeAssemblyOrder(InstructionBlocks* blocks) {
+  int ao = 0;
+  for (auto const block : *blocks) {
+    if (!block->IsDeferred()) {
+      block->set_ao_number(BasicBlock::RpoNumber::FromInt(ao++));
+    }
+  }
+  for (auto const block : *blocks) {
+    if (block->IsDeferred()) {
+      block->set_ao_number(BasicBlock::RpoNumber::FromInt(ao++));
+    }
+  }
 }
 
 
@@ -434,10 +450,17 @@ InstructionSequence::InstructionSequence(Zone* instruction_zone,
 }
 
 
-BlockStartInstruction* InstructionSequence::GetBlockStart(
-    BasicBlock::RpoNumber rpo) {
-  InstructionBlock* block = InstructionBlockAt(rpo);
-  return BlockStartInstruction::cast(InstructionAt(block->code_start()));
+int InstructionSequence::NextVirtualRegister() {
+  int virtual_register = next_virtual_register_++;
+  CHECK_NE(virtual_register, UnallocatedOperand::kInvalidVirtualRegister);
+  return virtual_register;
+}
+
+
+GapInstruction* InstructionSequence::GetBlockStart(
+    BasicBlock::RpoNumber rpo) const {
+  const InstructionBlock* block = InstructionBlockAt(rpo);
+  return GapInstruction::cast(InstructionAt(block->code_start()));
 }
 
 
@@ -447,26 +470,26 @@ void InstructionSequence::StartBlock(BasicBlock::RpoNumber rpo) {
   int code_start = static_cast<int>(instructions_.size());
   block->set_code_start(code_start);
   block_starts_.push_back(code_start);
-  BlockStartInstruction* block_start = BlockStartInstruction::New(zone());
-  AddInstruction(block_start);
 }
 
 
 void InstructionSequence::EndBlock(BasicBlock::RpoNumber rpo) {
   int end = static_cast<int>(instructions_.size());
   InstructionBlock* block = InstructionBlockAt(rpo);
+  if (block->code_start() == end) {  // Empty block.  Insert a nop.
+    AddInstruction(Instruction::New(zone(), kArchNop));
+    end = static_cast<int>(instructions_.size());
+  }
   DCHECK(block->code_start() >= 0 && block->code_start() < end);
   block->set_code_end(end);
 }
 
 
 int InstructionSequence::AddInstruction(Instruction* instr) {
-  // TODO(titzer): the order of these gaps is a holdover from Lithium.
   GapInstruction* gap = GapInstruction::New(zone());
-  if (instr->IsControl()) instructions_.push_back(gap);
+  instructions_.push_back(gap);
   int index = static_cast<int>(instructions_.size());
   instructions_.push_back(instr);
-  if (!instr->IsControl()) instructions_.push_back(gap);
   if (instr->NeedsPointerMap()) {
     DCHECK(instr->pointer_map() == NULL);
     PointerMap* pointer_map = new (zone()) PointerMap(zone());
@@ -644,9 +667,12 @@ std::ostream& operator<<(std::ostream& os,
     os << "\n";
 
     for (auto phi : block->phis()) {
-      os << "     phi: v" << phi->virtual_register() << " =";
-      for (auto op_vreg : phi->operands()) {
-        os << " v" << op_vreg;
+      PrintableInstructionOperand printable_op = {
+          printable.register_configuration_, phi->output()};
+      os << "     phi: " << printable_op << " =";
+      for (auto input : phi->inputs()) {
+        printable_op.op_ = input;
+        os << " " << printable_op;
       }
       os << "\n";
     }

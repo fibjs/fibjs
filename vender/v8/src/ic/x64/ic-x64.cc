@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_X64
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -119,9 +123,8 @@ static void GenerateDictionaryStore(MacroAssembler* masm, Label* miss_label,
       NameDictionary::kElementsStartIndex * kPointerSize;
   const int kDetailsOffset = kElementsStartOffset + 2 * kPointerSize;
   const int kTypeAndReadOnlyMask =
-      (PropertyDetails::TypeField::kMask |
-       PropertyDetails::AttributesField::encode(READ_ONLY))
-      << kSmiTagSize;
+      PropertyDetails::TypeField::kMask |
+      PropertyDetails::AttributesField::encode(READ_ONLY);
   __ Test(Operand(elements, scratch1, times_pointer_size,
                   kDetailsOffset - kHeapObjectTag),
           Smi::FromInt(kTypeAndReadOnlyMask));
@@ -169,11 +172,10 @@ static void GenerateKeyedLoadReceiverCheck(MacroAssembler* masm,
 
 
 // Loads an indexed element from a fast case array.
-// If not_fast_array is NULL, doesn't perform the elements map check.
 static void GenerateFastArrayLoad(MacroAssembler* masm, Register receiver,
                                   Register key, Register elements,
                                   Register scratch, Register result,
-                                  Label* not_fast_array, Label* out_of_range) {
+                                  Label* slow) {
   // Register use:
   //
   // receiver - holds the receiver on entry.
@@ -182,8 +184,6 @@ static void GenerateFastArrayLoad(MacroAssembler* masm, Register receiver,
   // key      - holds the smi key on entry.
   //            Unchanged unless 'result' is the same register.
   //
-  // elements - holds the elements of the receiver on exit.
-  //
   // result   - holds the result on exit if the load succeeded.
   //            Allowed to be the the same as 'receiver' or 'key'.
   //            Unchanged on bailout so 'receiver' and 'key' can be safely
@@ -191,32 +191,58 @@ static void GenerateFastArrayLoad(MacroAssembler* masm, Register receiver,
   //
   // Scratch registers:
   //
-  //   scratch - used to hold elements of the receiver and the loaded value.
+  // elements - holds the elements of the receiver and its prototypes.
+  //
+  // scratch  - used to hold maps, prototypes, and the loaded value.
+  Label check_prototypes, check_next_prototype;
+  Label done, in_bounds, return_undefined;
 
   __ movp(elements, FieldOperand(receiver, JSObject::kElementsOffset));
-  if (not_fast_array != NULL) {
-    // Check that the object is in fast mode and writable.
-    __ CompareRoot(FieldOperand(elements, HeapObject::kMapOffset),
-                   Heap::kFixedArrayMapRootIndex);
-    __ j(not_equal, not_fast_array);
-  } else {
-    __ AssertFastElements(elements);
-  }
+  __ AssertFastElements(elements);
   // Check that the key (index) is within bounds.
   __ SmiCompare(key, FieldOperand(elements, FixedArray::kLengthOffset));
   // Unsigned comparison rejects negative indices.
-  __ j(above_equal, out_of_range);
+  __ j(below, &in_bounds);
+
+  // Out-of-bounds. Check the prototype chain to see if we can just return
+  // 'undefined'.
+  __ SmiCompare(key, Smi::FromInt(0));
+  __ j(less, slow);  // Negative keys can't take the fast OOB path.
+  __ bind(&check_prototypes);
+  __ movp(scratch, FieldOperand(receiver, HeapObject::kMapOffset));
+  __ bind(&check_next_prototype);
+  __ movp(scratch, FieldOperand(scratch, Map::kPrototypeOffset));
+  // scratch: current prototype
+  __ CompareRoot(scratch, Heap::kNullValueRootIndex);
+  __ j(equal, &return_undefined);
+  __ movp(elements, FieldOperand(scratch, JSObject::kElementsOffset));
+  __ movp(scratch, FieldOperand(scratch, HeapObject::kMapOffset));
+  // elements: elements of current prototype
+  // scratch: map of current prototype
+  __ CmpInstanceType(scratch, JS_OBJECT_TYPE);
+  __ j(below, slow);
+  __ testb(FieldOperand(scratch, Map::kBitFieldOffset),
+           Immediate((1 << Map::kIsAccessCheckNeeded) |
+                     (1 << Map::kHasIndexedInterceptor)));
+  __ j(not_zero, slow);
+  __ CompareRoot(elements, Heap::kEmptyFixedArrayRootIndex);
+  __ j(not_equal, slow);
+  __ jmp(&check_next_prototype);
+
+  __ bind(&return_undefined);
+  __ LoadRoot(result, Heap::kUndefinedValueRootIndex);
+  __ jmp(&done);
+
+  __ bind(&in_bounds);
   // Fast case: Do the load.
   SmiIndex index = masm->SmiToIndex(scratch, key, kPointerSizeLog2);
   __ movp(scratch, FieldOperand(elements, index.reg, index.scale,
                                 FixedArray::kHeaderSize));
   __ CompareRoot(scratch, Heap::kTheHoleValueRootIndex);
-  // In case the loaded value is the_hole we have to consult GetProperty
-  // to ensure the prototype chain is searched.
-  __ j(equal, out_of_range);
-  if (!result.is(scratch)) {
-    __ movp(result, scratch);
-  }
+  // In case the loaded value is the_hole we have to check the prototype chain.
+  __ j(equal, &check_prototypes);
+  __ Move(result, scratch);
+  __ bind(&done);
 }
 
 
@@ -274,7 +300,7 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
   // Check the receiver's map to see if it has fast elements.
   __ CheckFastElements(rax, &check_number_dictionary);
 
-  GenerateFastArrayLoad(masm, receiver, key, rax, rbx, rax, NULL, &slow);
+  GenerateFastArrayLoad(masm, receiver, key, rax, rbx, rax, &slow);
   Counters* counters = masm->isolate()->counters();
   __ IncrementCounter(counters->keyed_load_generic_smi(), 1);
   __ ret(0);
@@ -590,8 +616,8 @@ void KeyedStoreIC::GenerateMegamorphic(MacroAssembler* masm,
   __ JumpIfNotUniqueNameInstanceType(r9, &slow_with_tagged_index);
   Code::Flags flags = Code::RemoveTypeAndHolderFromFlags(
       Code::ComputeHandlerFlags(Code::STORE_IC));
-  masm->isolate()->stub_cache()->GenerateProbe(masm, flags, false, receiver,
-                                               key, rbx, no_reg);
+  masm->isolate()->stub_cache()->GenerateProbe(
+      masm, Code::STORE_IC, flags, false, receiver, key, rbx, no_reg);
   // Cache miss.
   __ jmp(&miss);
 
@@ -763,11 +789,30 @@ void LoadIC::GenerateNormal(MacroAssembler* masm) {
 }
 
 
-// A register that isn't one of the parameters to the load ic.
-static const Register LoadIC_TempRegister() { return rbx; }
+static void LoadIC_PushArgs(MacroAssembler* masm) {
+  Register receiver = LoadDescriptor::ReceiverRegister();
+  Register name = LoadDescriptor::NameRegister();
+  if (FLAG_vector_ics) {
+    Register slot = VectorLoadICDescriptor::SlotRegister();
+    Register vector = VectorLoadICDescriptor::VectorRegister();
+    DCHECK(!rdi.is(receiver) && !rdi.is(name) && !rdi.is(slot) &&
+           !rdi.is(vector));
 
+    __ PopReturnAddressTo(rdi);
+    __ Push(receiver);
+    __ Push(name);
+    __ Push(slot);
+    __ Push(vector);
+    __ PushReturnAddressFrom(rdi);
+  } else {
+    DCHECK(!rbx.is(receiver) && !rbx.is(name));
 
-static const Register KeyedLoadIC_TempRegister() { return rbx; }
+    __ PopReturnAddressTo(rbx);
+    __ Push(receiver);
+    __ Push(name);
+    __ PushReturnAddressFrom(rbx);
+  }
+}
 
 
 void LoadIC::GenerateMiss(MacroAssembler* masm) {
@@ -776,25 +821,26 @@ void LoadIC::GenerateMiss(MacroAssembler* masm) {
   Counters* counters = masm->isolate()->counters();
   __ IncrementCounter(counters->load_miss(), 1);
 
-  __ PopReturnAddressTo(LoadIC_TempRegister());
-  __ Push(LoadDescriptor::ReceiverRegister());  // receiver
-  __ Push(LoadDescriptor::NameRegister());      // name
-  __ PushReturnAddressFrom(LoadIC_TempRegister());
+  LoadIC_PushArgs(masm);
 
   // Perform tail call to the entry.
   ExternalReference ref =
       ExternalReference(IC_Utility(kLoadIC_Miss), masm->isolate());
-  __ TailCallExternalReference(ref, 2, 1);
+  int arg_count = FLAG_vector_ics ? 4 : 2;
+  __ TailCallExternalReference(ref, arg_count, 1);
 }
 
 
 void LoadIC::GenerateRuntimeGetProperty(MacroAssembler* masm) {
   // The return address is on the stack.
+  Register receiver = LoadDescriptor::ReceiverRegister();
+  Register name = LoadDescriptor::NameRegister();
+  DCHECK(!rbx.is(receiver) && !rbx.is(name));
 
-  __ PopReturnAddressTo(LoadIC_TempRegister());
-  __ Push(LoadDescriptor::ReceiverRegister());  // receiver
-  __ Push(LoadDescriptor::NameRegister());      // name
-  __ PushReturnAddressFrom(LoadIC_TempRegister());
+  __ PopReturnAddressTo(rbx);
+  __ Push(receiver);
+  __ Push(name);
+  __ PushReturnAddressFrom(rbx);
 
   // Perform tail call to the entry.
   __ TailCallRuntime(Runtime::kGetProperty, 2, 1);
@@ -806,25 +852,26 @@ void KeyedLoadIC::GenerateMiss(MacroAssembler* masm) {
   Counters* counters = masm->isolate()->counters();
   __ IncrementCounter(counters->keyed_load_miss(), 1);
 
-  __ PopReturnAddressTo(KeyedLoadIC_TempRegister());
-  __ Push(LoadDescriptor::ReceiverRegister());  // receiver
-  __ Push(LoadDescriptor::NameRegister());      // name
-  __ PushReturnAddressFrom(KeyedLoadIC_TempRegister());
+  LoadIC_PushArgs(masm);
 
   // Perform tail call to the entry.
   ExternalReference ref =
       ExternalReference(IC_Utility(kKeyedLoadIC_Miss), masm->isolate());
-  __ TailCallExternalReference(ref, 2, 1);
+  int arg_count = FLAG_vector_ics ? 4 : 2;
+  __ TailCallExternalReference(ref, arg_count, 1);
 }
 
 
 void KeyedLoadIC::GenerateRuntimeGetProperty(MacroAssembler* masm) {
   // The return address is on the stack.
+  Register receiver = LoadDescriptor::ReceiverRegister();
+  Register name = LoadDescriptor::NameRegister();
+  DCHECK(!rbx.is(receiver) && !rbx.is(name));
 
-  __ PopReturnAddressTo(KeyedLoadIC_TempRegister());
-  __ Push(LoadDescriptor::ReceiverRegister());  // receiver
-  __ Push(LoadDescriptor::NameRegister());      // name
-  __ PushReturnAddressFrom(KeyedLoadIC_TempRegister());
+  __ PopReturnAddressTo(rbx);
+  __ Push(receiver);
+  __ Push(name);
+  __ PushReturnAddressFrom(rbx);
 
   // Perform tail call to the entry.
   __ TailCallRuntime(Runtime::kKeyedGetProperty, 2, 1);
@@ -838,7 +885,7 @@ void StoreIC::GenerateMegamorphic(MacroAssembler* masm) {
   Code::Flags flags = Code::RemoveTypeAndHolderFromFlags(
       Code::ComputeHandlerFlags(Code::STORE_IC));
   masm->isolate()->stub_cache()->GenerateProbe(
-      masm, flags, false, StoreDescriptor::ReceiverRegister(),
+      masm, Code::STORE_IC, flags, false, StoreDescriptor::ReceiverRegister(),
       StoreDescriptor::NameRegister(), rbx, no_reg);
 
   // Cache miss: Jump to runtime.
@@ -975,5 +1022,8 @@ void PatchInlinedSmiCode(Address address, InlinedSmiCheck check) {
 }
 }
 }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_X64
+
 
 #endif  // V8_TARGET_ARCH_X64

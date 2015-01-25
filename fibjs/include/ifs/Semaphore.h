@@ -51,9 +51,9 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"wait", s_wait},
-			{"post", s_post},
-			{"trywait", s_trywait}
+			{"wait", s_wait, false},
+			{"post", s_post, false},
+			{"trywait", s_trywait, false}
 		};
 
 		static ClassData s_cd = 

@@ -54,10 +54,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"truncate", s_truncate},
-			{"eof", s_eof},
-			{"flush", s_flush},
-			{"chmod", s_chmod}
+			{"truncate", s_truncate, false},
+			{"eof", s_eof, false},
+			{"flush", s_flush, false},
+			{"chmod", s_chmod, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

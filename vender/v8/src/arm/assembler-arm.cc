@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM
+
 // Copyright (c) 1994-2006 Sun Microsystems Inc.
 // All Rights Reserved.
 //
@@ -127,6 +131,11 @@ void CpuFeatures::ProbeImpl(bool cross_compile) {
   }
 
   if (FLAG_enable_32dregs && cpu.has_vfp3_d32()) supported_ |= 1u << VFP32DREGS;
+
+  if (cpu.implementer() == base::CPU::NVIDIA &&
+      cpu.variant() == base::CPU::NVIDIA_DENVER) {
+    supported_ |= 1u << COHERENT_CACHE;
+  }
 #endif
 
   DCHECK(!IsSupported(VFP3) || IsSupported(ARMv7));
@@ -188,14 +197,15 @@ void CpuFeatures::PrintTarget() {
 void CpuFeatures::PrintFeatures() {
   printf(
     "ARMv7=%d VFP3=%d VFP32DREGS=%d NEON=%d SUDIV=%d UNALIGNED_ACCESSES=%d "
-    "MOVW_MOVT_IMMEDIATE_LOADS=%d",
+    "MOVW_MOVT_IMMEDIATE_LOADS=%d COHERENT_CACHE=%d",
     CpuFeatures::IsSupported(ARMv7),
     CpuFeatures::IsSupported(VFP3),
     CpuFeatures::IsSupported(VFP32DREGS),
     CpuFeatures::IsSupported(NEON),
     CpuFeatures::IsSupported(SUDIV),
     CpuFeatures::IsSupported(UNALIGNED_ACCESSES),
-    CpuFeatures::IsSupported(MOVW_MOVT_IMMEDIATE_LOADS));
+    CpuFeatures::IsSupported(MOVW_MOVT_IMMEDIATE_LOADS),
+    CpuFeatures::IsSupported(COHERENT_CACHE));
 #ifdef __arm__
   bool eabi_hardfloat = base::OS::ArmUsingHardFloat();
 #elif USE_EABI_HARDFLOAT
@@ -1338,7 +1348,7 @@ int Assembler::branch_offset(Label* L, bool jump_elimination_allowed) {
 void Assembler::b(int branch_offset, Condition cond) {
   DCHECK((branch_offset & 3) == 0);
   int imm24 = branch_offset >> 2;
-  DCHECK(is_int24(imm24));
+  CHECK(is_int24(imm24));
   emit(cond | B27 | B25 | (imm24 & kImm24Mask));
 
   if (cond == al) {
@@ -1352,7 +1362,7 @@ void Assembler::bl(int branch_offset, Condition cond) {
   positions_recorder()->WriteRecordedPositions();
   DCHECK((branch_offset & 3) == 0);
   int imm24 = branch_offset >> 2;
-  DCHECK(is_int24(imm24));
+  CHECK(is_int24(imm24));
   emit(cond | B27 | B25 | B24 | (imm24 & kImm24Mask));
 }
 
@@ -1362,7 +1372,7 @@ void Assembler::blx(int branch_offset) {  // v5 and above
   DCHECK((branch_offset & 1) == 0);
   int h = ((branch_offset & 2) >> 1)*B24;
   int imm24 = branch_offset >> 2;
-  DCHECK(is_int24(imm24));
+  CHECK(is_int24(imm24));
   emit(kSpecialCondition | B27 | B25 | h | (imm24 & kImm24Mask));
 }
 
@@ -1504,7 +1514,7 @@ void Assembler::mov_label_offset(Register dst, Label* label) {
     //
     // When the label gets bound: target_at extracts the link and target_at_put
     // patches the instructions.
-    DCHECK(is_uint24(link));
+    CHECK(is_uint24(link));
     BlockConstPoolScope block_const_pool(this);
     emit(link);
     nop(dst.code());
@@ -2482,6 +2492,12 @@ void  Assembler::vstm(BlockAddrMode am,
   int count = last.code() - first.code() + 1;
   emit(cond | B27 | B26 | am | d*B22 | base.code()*B16 | sd*B12 |
        0xA*B8 | count);
+}
+
+
+void Assembler::vmov(const SwVfpRegister dst, float imm) {
+  mov(ip, Operand(bit_cast<int32_t>(imm)));
+  vmov(dst, ip);
 }
 
 
@@ -3970,5 +3986,8 @@ void ConstantPoolBuilder::Populate(Assembler* assm,
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_ARM
+
 
 #endif  // V8_TARGET_ARCH_ARM

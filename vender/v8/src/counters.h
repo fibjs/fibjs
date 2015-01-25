@@ -309,12 +309,14 @@ class HistogramTimerScope BASE_EMBEDDED {
   HT(parse, V8.Parse)                                        \
   HT(parse_lazy, V8.ParseLazy)                               \
   HT(pre_parse, V8.PreParse)                                 \
-  /* Total compilation times. */                             \
+  /* Compilation times. */                                   \
   HT(compile, V8.Compile)                                    \
   HT(compile_eval, V8.CompileEval)                           \
   /* Serialization as part of compilation (code caching) */  \
   HT(compile_serialize, V8.CompileSerialize)                 \
-  HT(compile_deserialize, V8.CompileDeserialize)
+  HT(compile_deserialize, V8.CompileDeserialize)             \
+  /* Total compilation time incl. caching/parsing */         \
+  HT(compile_script, V8.CompileScript)
 
 
 #define HISTOGRAM_PERCENTAGE_LIST(HP)                                 \
@@ -489,7 +491,6 @@ class HistogramTimerScope BASE_EMBEDDED {
   SC(for_in, V8.ForIn)                                                         \
   SC(enum_cache_hits, V8.EnumCacheHits)                                        \
   SC(enum_cache_misses, V8.EnumCacheMisses)                                    \
-  SC(zone_segment_bytes, V8.ZoneSegmentBytes)                                  \
   SC(fast_new_closure_total, V8.FastNewClosureTotal)                           \
   SC(fast_new_closure_try_optimized, V8.FastNewClosureTryOptimized)            \
   SC(fast_new_closure_install_optimized, V8.FastNewClosureInstallOptimized)    \

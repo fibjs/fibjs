@@ -14,74 +14,120 @@
 namespace v8 {
 namespace internal {
 
-void Snapshot::ReserveSpaceForLinkedInSnapshot(Deserializer* deserializer) {
-  deserializer->AddReservation(NEW_SPACE, new_space_used_);
-  deserializer->AddReservation(OLD_POINTER_SPACE, pointer_space_used_);
-  deserializer->AddReservation(OLD_DATA_SPACE, data_space_used_);
-  deserializer->AddReservation(CODE_SPACE, code_space_used_);
-  deserializer->AddReservation(MAP_SPACE, map_space_used_);
-  deserializer->AddReservation(CELL_SPACE, cell_space_used_);
-  deserializer->AddReservation(PROPERTY_CELL_SPACE, property_cell_space_used_);
-  deserializer->AddReservation(LO_SPACE, lo_space_used_);
+bool Snapshot::HaveASnapshotToStartFrom() {
+  return SnapshotBlob().data != NULL;
+}
+
+
+#ifdef DEBUG
+bool Snapshot::SnapshotIsValid(v8::StartupData* snapshot_blob) {
+  return !Snapshot::ExtractStartupData(snapshot_blob).is_empty() &&
+         !Snapshot::ExtractContextData(snapshot_blob).is_empty();
+}
+#endif  // DEBUG
+
+
+bool Snapshot::EmbedsScript() {
+  if (!HaveASnapshotToStartFrom()) return false;
+  const v8::StartupData blob = SnapshotBlob();
+  return ExtractMetadata(&blob).embeds_script();
 }
 
 
 bool Snapshot::Initialize(Isolate* isolate) {
-  if (size_ > 0) {
-    base::ElapsedTimer timer;
-    if (FLAG_profile_deserialization) {
-      timer.Start();
-    }
-    SnapshotByteSource source(raw_data_, raw_size_);
-    Deserializer deserializer(&source);
-    ReserveSpaceForLinkedInSnapshot(&deserializer);
-    bool success = isolate->Init(&deserializer);
-    if (FLAG_profile_deserialization) {
-      double ms = timer.Elapsed().InMillisecondsF();
-      PrintF("[Snapshot loading and deserialization took %0.3f ms]\n", ms);
-    }
-    return success;
+  if (!HaveASnapshotToStartFrom()) return false;
+  base::ElapsedTimer timer;
+  if (FLAG_profile_deserialization) timer.Start();
+
+  const v8::StartupData blob = SnapshotBlob();
+  Vector<const byte> startup_data = ExtractStartupData(&blob);
+  SnapshotData snapshot_data(startup_data);
+  Deserializer deserializer(&snapshot_data);
+  bool success = isolate->Init(&deserializer);
+  if (FLAG_profile_deserialization) {
+    double ms = timer.Elapsed().InMillisecondsF();
+    int bytes = startup_data.length();
+    PrintF("[Deserializing isolate (%d bytes) took %0.3f ms]\n", bytes, ms);
   }
-  return false;
+  return success;
 }
 
 
-bool Snapshot::HaveASnapshotToStartFrom() {
-  return size_ != 0;
-}
+MaybeHandle<Context> Snapshot::NewContextFromSnapshot(
+    Isolate* isolate, Handle<JSGlobalProxy> global_proxy,
+    Handle<FixedArray>* outdated_contexts_out) {
+  if (!HaveASnapshotToStartFrom()) return Handle<Context>();
+  base::ElapsedTimer timer;
+  if (FLAG_profile_deserialization) timer.Start();
 
+  const v8::StartupData blob = SnapshotBlob();
+  Vector<const byte> context_data = ExtractContextData(&blob);
+  SnapshotData snapshot_data(context_data);
+  Deserializer deserializer(&snapshot_data);
 
-Handle<Context> Snapshot::NewContextFromSnapshot(Isolate* isolate) {
-  if (context_size_ == 0) {
-    return Handle<Context>();
+  MaybeHandle<Object> maybe_context = deserializer.DeserializePartial(
+      isolate, global_proxy, outdated_contexts_out);
+  Handle<Object> result;
+  if (!maybe_context.ToHandle(&result)) return MaybeHandle<Context>();
+  CHECK(result->IsContext());
+  // If the snapshot does not contain a custom script, we need to update
+  // the global object for exactly one context.
+  CHECK(EmbedsScript() || (*outdated_contexts_out)->length() == 1);
+  if (FLAG_profile_deserialization) {
+    double ms = timer.Elapsed().InMillisecondsF();
+    int bytes = context_data.length();
+    PrintF("[Deserializing context (%d bytes) took %0.3f ms]\n", bytes, ms);
   }
-  SnapshotByteSource source(context_raw_data_,
-                            context_raw_size_);
-  Deserializer deserializer(&source);
-  Object* root;
-  deserializer.AddReservation(NEW_SPACE, context_new_space_used_);
-  deserializer.AddReservation(OLD_POINTER_SPACE, context_pointer_space_used_);
-  deserializer.AddReservation(OLD_DATA_SPACE, context_data_space_used_);
-  deserializer.AddReservation(CODE_SPACE, context_code_space_used_);
-  deserializer.AddReservation(MAP_SPACE, context_map_space_used_);
-  deserializer.AddReservation(CELL_SPACE, context_cell_space_used_);
-  deserializer.AddReservation(PROPERTY_CELL_SPACE,
-                              context_property_cell_space_used_);
-  deserializer.AddReservation(LO_SPACE, context_lo_space_used_);
-  deserializer.DeserializePartial(isolate, &root);
-  CHECK(root->IsContext());
-  return Handle<Context>(Context::cast(root));
+  return Handle<Context>::cast(result);
 }
 
 
-#ifdef V8_USE_EXTERNAL_STARTUP_DATA
-// Dummy implementations of Set*FromFile(..) APIs.
-//
-// These are meant for use with snapshot-external.cc. Should this file
-// be compiled with those options we just supply these dummy implementations
-// below. This happens when compiling the mksnapshot utility.
-void SetNativesFromFile(StartupData* data) { CHECK(false); }
-void SetSnapshotFromFile(StartupData* data) { CHECK(false); }
-#endif  // V8_USE_EXTERNAL_STARTUP_DATA
+v8::StartupData Snapshot::CreateSnapshotBlob(
+    const Vector<const byte> startup_data,
+    const Vector<const byte> context_data, Snapshot::Metadata metadata) {
+  int startup_length = startup_data.length();
+  int context_length = context_data.length();
+  int context_offset = ContextOffset(startup_length);
 
+  int length = context_offset + context_length;
+  char* data = new char[length];
+
+  memcpy(data + kMetadataOffset, &metadata.RawValue(), kInt32Size);
+  memcpy(data + kStartupLengthOffset, &startup_length, kInt32Size);
+  memcpy(data + kStartupDataOffset, startup_data.begin(), startup_length);
+  memcpy(data + context_offset, context_data.begin(), context_length);
+  v8::StartupData result = {data, length};
+  return result;
+}
+
+
+Snapshot::Metadata Snapshot::ExtractMetadata(const v8::StartupData* data) {
+  uint32_t raw;
+  memcpy(&raw, data->data + kMetadataOffset, kInt32Size);
+  return Metadata(raw);
+}
+
+
+Vector<const byte> Snapshot::ExtractStartupData(const v8::StartupData* data) {
+  DCHECK_LT(kIntSize, data->raw_size);
+  int startup_length;
+  memcpy(&startup_length, data->data + kStartupLengthOffset, kInt32Size);
+  DCHECK_LT(startup_length, data->raw_size);
+  const byte* startup_data =
+      reinterpret_cast<const byte*>(data->data + kStartupDataOffset);
+  return Vector<const byte>(startup_data, startup_length);
+}
+
+
+Vector<const byte> Snapshot::ExtractContextData(const v8::StartupData* data) {
+  DCHECK_LT(kIntSize, data->raw_size);
+  int startup_length;
+  memcpy(&startup_length, data->data + kStartupLengthOffset, kIntSize);
+  int context_offset = ContextOffset(startup_length);
+  const byte* context_data =
+      reinterpret_cast<const byte*>(data->data + context_offset);
+  DCHECK_LT(context_offset, data->raw_size);
+  int context_length = data->raw_size - context_offset;
+  return Vector<const byte>(context_data, context_length);
+}
 } }  // namespace v8::internal

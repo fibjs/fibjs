@@ -10,59 +10,58 @@
 namespace v8 {
 namespace internal {
 
-class Snapshot {
+class Snapshot : public AllStatic {
  public:
+  class Metadata {
+   public:
+    explicit Metadata(uint32_t data = 0) : data_(data) {}
+    bool embeds_script() { return EmbedsScriptBits::decode(data_); }
+    void set_embeds_script(bool v) {
+      data_ = EmbedsScriptBits::update(data_, v);
+    }
+
+    uint32_t& RawValue() { return data_; }
+
+   private:
+    class EmbedsScriptBits : public BitField<bool, 0, 1> {};
+    uint32_t data_;
+  };
+
   // Initialize the Isolate from the internal snapshot. Returns false if no
   // snapshot could be found.
   static bool Initialize(Isolate* isolate);
+  // Create a new context using the internal partial snapshot.
+  static MaybeHandle<Context> NewContextFromSnapshot(
+      Isolate* isolate, Handle<JSGlobalProxy> global_proxy,
+      Handle<FixedArray>* outdated_contexts_out);
 
   static bool HaveASnapshotToStartFrom();
 
-  // Create a new context using the internal partial snapshot.
-  static Handle<Context> NewContextFromSnapshot(Isolate* isolate);
+  static bool EmbedsScript();
 
-  // These methods support COMPRESS_STARTUP_DATA_BZ2.
-  static const byte* data() { return data_; }
-  static int size() { return size_; }
-  static int raw_size() { return raw_size_; }
-  static void set_raw_data(const byte* raw_data) {
-    raw_data_ = raw_data;
-  }
-  static const byte* context_data() { return context_data_; }
-  static int context_size() { return context_size_; }
-  static int context_raw_size() { return context_raw_size_; }
-  static void set_context_raw_data(
-      const byte* context_raw_data) {
-    context_raw_data_ = context_raw_data;
-  }
+  // To be implemented by the snapshot source.
+  static const v8::StartupData SnapshotBlob();
+
+  static v8::StartupData CreateSnapshotBlob(
+      const Vector<const byte> startup_data,
+      const Vector<const byte> context_data, Metadata metadata);
+
+#ifdef DEBUG
+  static bool SnapshotIsValid(v8::StartupData* snapshot_blob);
+#endif  // DEBUG
 
  private:
-  static const byte data_[];
-  static const byte* raw_data_;
-  static const byte context_data_[];
-  static const byte* context_raw_data_;
-  static const int new_space_used_;
-  static const int pointer_space_used_;
-  static const int data_space_used_;
-  static const int code_space_used_;
-  static const int map_space_used_;
-  static const int cell_space_used_;
-  static const int property_cell_space_used_;
-  static const int lo_space_used_;
-  static const int context_new_space_used_;
-  static const int context_pointer_space_used_;
-  static const int context_data_space_used_;
-  static const int context_code_space_used_;
-  static const int context_map_space_used_;
-  static const int context_cell_space_used_;
-  static const int context_property_cell_space_used_;
-  static const int context_lo_space_used_;
-  static const int size_;
-  static const int raw_size_;
-  static const int context_size_;
-  static const int context_raw_size_;
+  static Vector<const byte> ExtractStartupData(const v8::StartupData* data);
+  static Vector<const byte> ExtractContextData(const v8::StartupData* data);
+  static Metadata ExtractMetadata(const v8::StartupData* data);
 
-  static void ReserveSpaceForLinkedInSnapshot(Deserializer* deserializer);
+  static const int kMetadataOffset = 0;
+  static const int kStartupLengthOffset = kMetadataOffset + kInt32Size;
+  static const int kStartupDataOffset = kStartupLengthOffset + kInt32Size;
+
+  static int ContextOffset(int startup_length) {
+    return kStartupDataOffset + startup_length;
+  }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Snapshot);
 };

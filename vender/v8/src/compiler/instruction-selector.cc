@@ -4,7 +4,6 @@
 
 #include "src/compiler/instruction-selector.h"
 
-#include "src/compiler/graph.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties-inl.h"
@@ -14,58 +13,56 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-InstructionSelector::InstructionSelector(Zone* local_zone, Graph* graph,
+InstructionSelector::InstructionSelector(Zone* zone, size_t node_count,
                                          Linkage* linkage,
                                          InstructionSequence* sequence,
                                          Schedule* schedule,
                                          SourcePositionTable* source_positions,
                                          Features features)
-    : zone_(local_zone),
+    : zone_(zone),
       linkage_(linkage),
       sequence_(sequence),
       source_positions_(source_positions),
       features_(features),
       schedule_(schedule),
-      node_map_(graph->NodeCount(), kNodeUnmapped, zone()),
       current_block_(NULL),
-      instructions_(zone()),
-      defined_(graph->NodeCount(), false, zone()),
-      used_(graph->NodeCount(), false, zone()) {}
+      instructions_(zone),
+      defined_(node_count, false, zone),
+      used_(node_count, false, zone),
+      virtual_registers_(node_count,
+                         UnallocatedOperand::kInvalidVirtualRegister, zone) {
+  instructions_.reserve(node_count);
+}
 
 
 void InstructionSelector::SelectInstructions() {
   // Mark the inputs of all phis in loop headers as used.
   BasicBlockVector* blocks = schedule()->rpo_order();
-  for (BasicBlockVectorIter i = blocks->begin(); i != blocks->end(); ++i) {
-    BasicBlock* block = *i;
+  for (auto const block : *blocks) {
     if (!block->IsLoopHeader()) continue;
-    DCHECK_NE(0, static_cast<int>(block->PredecessorCount()));
-    DCHECK_NE(1, static_cast<int>(block->PredecessorCount()));
-    for (BasicBlock::const_iterator j = block->begin(); j != block->end();
-         ++j) {
-      Node* phi = *j;
+    DCHECK_LE(2, block->PredecessorCount());
+    for (Node* const phi : *block) {
       if (phi->opcode() != IrOpcode::kPhi) continue;
 
       // Mark all inputs as used.
-      Node::Inputs inputs = phi->inputs();
-      for (InputIter k = inputs.begin(); k != inputs.end(); ++k) {
-        MarkAsUsed(*k);
+      for (Node* const input : phi->inputs()) {
+        MarkAsUsed(input);
       }
     }
   }
 
   // Visit each basic block in post order.
-  for (BasicBlockVectorRIter i = blocks->rbegin(); i != blocks->rend(); ++i) {
+  for (auto i = blocks->rbegin(); i != blocks->rend(); ++i) {
     VisitBlock(*i);
   }
 
   // Schedule the selected instructions.
-  for (BasicBlockVectorIter i = blocks->begin(); i != blocks->end(); ++i) {
-    BasicBlock* block = *i;
+  for (auto const block : *blocks) {
     InstructionBlock* instruction_block =
         sequence()->InstructionBlockAt(block->GetRpoNumber());
     size_t end = instruction_block->code_end();
     size_t start = instruction_block->code_start();
+    DCHECK_LE(end, start);
     sequence()->StartBlock(block->GetRpoNumber());
     while (start-- > end) {
       sequence()->AddInstruction(instructions_[start]);
@@ -133,6 +130,31 @@ Instruction* InstructionSelector::Emit(
 
 
 Instruction* InstructionSelector::Emit(
+    InstructionCode opcode, InstructionOperand* output, InstructionOperand* a,
+    InstructionOperand* b, InstructionOperand* c, InstructionOperand* d,
+    InstructionOperand* e, size_t temp_count, InstructionOperand** temps) {
+  size_t output_count = output == NULL ? 0 : 1;
+  InstructionOperand* inputs[] = {a, b, c, d, e};
+  size_t input_count = arraysize(inputs);
+  return Emit(opcode, output_count, &output, input_count, inputs, temp_count,
+              temps);
+}
+
+
+Instruction* InstructionSelector::Emit(
+    InstructionCode opcode, InstructionOperand* output, InstructionOperand* a,
+    InstructionOperand* b, InstructionOperand* c, InstructionOperand* d,
+    InstructionOperand* e, InstructionOperand* f, size_t temp_count,
+    InstructionOperand** temps) {
+  size_t output_count = output == NULL ? 0 : 1;
+  InstructionOperand* inputs[] = {a, b, c, d, e, f};
+  size_t input_count = arraysize(inputs);
+  return Emit(opcode, output_count, &output, input_count, inputs, temp_count,
+              temps);
+}
+
+
+Instruction* InstructionSelector::Emit(
     InstructionCode opcode, size_t output_count, InstructionOperand** outputs,
     size_t input_count, InstructionOperand** inputs, size_t temp_count,
     InstructionOperand** temps) {
@@ -149,11 +171,6 @@ Instruction* InstructionSelector::Emit(Instruction* instr) {
 }
 
 
-bool InstructionSelector::IsNextInAssemblyOrder(const BasicBlock* block) const {
-  return current_block_->GetAoNumber().IsNext(block->GetAoNumber());
-}
-
-
 bool InstructionSelector::CanCover(Node* user, Node* node) const {
   return node->OwnedBy(user) &&
          schedule()->block(node) == schedule()->block(user);
@@ -161,58 +178,70 @@ bool InstructionSelector::CanCover(Node* user, Node* node) const {
 
 
 int InstructionSelector::GetVirtualRegister(const Node* node) {
-  if (node_map_[node->id()] == kNodeUnmapped) {
-    node_map_[node->id()] = sequence()->NextVirtualRegister();
+  DCHECK_NOT_NULL(node);
+  size_t const id = node->id();
+  DCHECK_LT(id, virtual_registers_.size());
+  int virtual_register = virtual_registers_[id];
+  if (virtual_register == UnallocatedOperand::kInvalidVirtualRegister) {
+    virtual_register = sequence()->NextVirtualRegister();
+    virtual_registers_[id] = virtual_register;
   }
-  return node_map_[node->id()];
+  return virtual_register;
 }
 
 
-int InstructionSelector::GetMappedVirtualRegister(const Node* node) const {
-  return node_map_[node->id()];
+const std::map<NodeId, int> InstructionSelector::GetVirtualRegistersForTesting()
+    const {
+  std::map<NodeId, int> virtual_registers;
+  for (size_t n = 0; n < virtual_registers_.size(); ++n) {
+    if (virtual_registers_[n] != UnallocatedOperand::kInvalidVirtualRegister) {
+      NodeId const id = static_cast<NodeId>(n);
+      virtual_registers.insert(std::make_pair(id, virtual_registers_[n]));
+    }
+  }
+  return virtual_registers;
 }
 
 
 bool InstructionSelector::IsDefined(Node* node) const {
   DCHECK_NOT_NULL(node);
-  NodeId id = node->id();
-  DCHECK(id >= 0);
-  DCHECK(id < static_cast<NodeId>(defined_.size()));
+  size_t const id = node->id();
+  DCHECK_LT(id, defined_.size());
   return defined_[id];
 }
 
 
 void InstructionSelector::MarkAsDefined(Node* node) {
   DCHECK_NOT_NULL(node);
-  NodeId id = node->id();
-  DCHECK(id >= 0);
-  DCHECK(id < static_cast<NodeId>(defined_.size()));
+  size_t const id = node->id();
+  DCHECK_LT(id, defined_.size());
   defined_[id] = true;
 }
 
 
 bool InstructionSelector::IsUsed(Node* node) const {
+  DCHECK_NOT_NULL(node);
   if (!node->op()->HasProperty(Operator::kEliminatable)) return true;
-  NodeId id = node->id();
-  DCHECK(id >= 0);
-  DCHECK(id < static_cast<NodeId>(used_.size()));
+  size_t const id = node->id();
+  DCHECK_LT(id, used_.size());
   return used_[id];
 }
 
 
 void InstructionSelector::MarkAsUsed(Node* node) {
   DCHECK_NOT_NULL(node);
-  NodeId id = node->id();
-  DCHECK(id >= 0);
-  DCHECK(id < static_cast<NodeId>(used_.size()));
+  size_t const id = node->id();
+  DCHECK_LT(id, used_.size());
   used_[id] = true;
 }
 
 
 bool InstructionSelector::IsDouble(const Node* node) const {
   DCHECK_NOT_NULL(node);
-  int virtual_register = GetMappedVirtualRegister(node);
-  if (virtual_register == kNodeUnmapped) return false;
+  int const virtual_register = virtual_registers_[node->id()];
+  if (virtual_register == UnallocatedOperand::kInvalidVirtualRegister) {
+    return false;
+  }
   return sequence()->IsDouble(virtual_register);
 }
 
@@ -226,8 +255,10 @@ void InstructionSelector::MarkAsDouble(Node* node) {
 
 bool InstructionSelector::IsReference(const Node* node) const {
   DCHECK_NOT_NULL(node);
-  int virtual_register = GetMappedVirtualRegister(node);
-  if (virtual_register == kNodeUnmapped) return false;
+  int const virtual_register = virtual_registers_[node->id()];
+  if (virtual_register == UnallocatedOperand::kInvalidVirtualRegister) {
+    return false;
+  }
   return sequence()->IsReference(virtual_register);
 }
 
@@ -274,7 +305,7 @@ void InstructionSelector::MarkAsRepresentation(MachineType rep, Node* node) {
 
 // TODO(bmeurer): Get rid of the CallBuffer business and make
 // InstructionSelector::VisitCall platform independent instead.
-CallBuffer::CallBuffer(Zone* zone, CallDescriptor* d,
+CallBuffer::CallBuffer(Zone* zone, const CallDescriptor* d,
                        FrameStateDescriptor* frame_desc)
     : descriptor(d),
       frame_state_descriptor(frame_desc),
@@ -295,7 +326,7 @@ void InstructionSelector::InitializeCallBuffer(Node* call, CallBuffer* buffer,
                                                bool call_code_immediate,
                                                bool call_address_immediate) {
   OperandGenerator g(this);
-  DCHECK_EQ(call->op()->OutputCount(),
+  DCHECK_EQ(call->op()->ValueOutputCount(),
             static_cast<int>(buffer->descriptor->ReturnCount()));
   DCHECK_EQ(
       call->op()->ValueInputCount(),
@@ -306,8 +337,14 @@ void InstructionSelector::InitializeCallBuffer(Node* call, CallBuffer* buffer,
     if (buffer->descriptor->ReturnCount() == 1) {
       buffer->output_nodes.push_back(call);
     } else {
-      buffer->output_nodes.resize(buffer->descriptor->ReturnCount(), NULL);
-      call->CollectProjections(&buffer->output_nodes);
+      buffer->output_nodes.resize(buffer->descriptor->ReturnCount(), nullptr);
+      for (auto use : call->uses()) {
+        if (use->opcode() != IrOpcode::kProjection) continue;
+        size_t const index = ProjectionIndexOf(use->op());
+        DCHECK_LT(index, buffer->output_nodes.size());
+        DCHECK_EQ(nullptr, buffer->output_nodes[index]);
+        buffer->output_nodes[index] = use;
+      }
     }
 
     // Filter out the outputs that aren't live because no projection uses them.
@@ -384,11 +421,10 @@ void InstructionSelector::InitializeCallBuffer(Node* call, CallBuffer* buffer,
   // arguments require an explicit push instruction before the call and do
   // not appear as arguments to the call. Everything else ends up
   // as an InstructionOperand argument to the call.
-  InputIter iter(call->inputs().begin());
+  auto iter(call->inputs().begin());
   int pushed_count = 0;
   for (size_t index = 0; index < input_count; ++iter, ++index) {
     DCHECK(iter != call->inputs().end());
-    DCHECK(index == static_cast<size_t>(iter.index()));
     DCHECK((*iter)->op()->opcode() != IrOpcode::kFrameState);
     if (index == 0) continue;  // The first argument (callee) is already done.
     InstructionOperand* op =
@@ -513,6 +549,8 @@ MachineType InstructionSelector::GetMachineType(Node* node) {
       return kMachAnyTagged;
     case IrOpcode::kParameter:
       return linkage()->GetParameterType(OpParameter<int>(node));
+    case IrOpcode::kOsrValue:
+      return kMachAnyTagged;
     case IrOpcode::kPhi:
       return OpParameter<MachineType>(node);
     case IrOpcode::kProjection:
@@ -537,6 +575,10 @@ MachineType InstructionSelector::GetMachineType(Node* node) {
     case IrOpcode::kLoad:
       return OpParameter<LoadRepresentation>(node);
     case IrOpcode::kStore:
+      return kMachNone;
+    case IrOpcode::kCheckedLoad:
+      return OpParameter<MachineType>(node);
+    case IrOpcode::kCheckedStore:
       return kMachNone;
     case IrOpcode::kWord32And:
     case IrOpcode::kWord32Or:
@@ -647,6 +689,8 @@ void InstructionSelector::VisitNode(Node* node) {
       MarkAsRepresentation(type, node);
       return VisitParameter(node);
     }
+    case IrOpcode::kOsrValue:
+      return MarkAsReference(node), VisitOsrValue(node);
     case IrOpcode::kPhi: {
       MachineType type = OpParameter<MachineType>(node);
       MarkAsRepresentation(type, node);
@@ -663,9 +707,12 @@ void InstructionSelector::VisitNode(Node* node) {
     case IrOpcode::kFloat64Constant:
       return MarkAsDouble(node), VisitConstant(node);
     case IrOpcode::kHeapConstant:
-    case IrOpcode::kNumberConstant:
-      // TODO(turbofan): only mark non-smis as references.
       return MarkAsReference(node), VisitConstant(node);
+    case IrOpcode::kNumberConstant: {
+      double value = OpParameter<double>(node);
+      if (!IsSmiDouble(value)) MarkAsReference(node);
+      return VisitConstant(node);
+    }
     case IrOpcode::kCall:
       return VisitCall(node);
     case IrOpcode::kFrameState:
@@ -808,6 +855,13 @@ void InstructionSelector::VisitNode(Node* node) {
       return MarkAsDouble(node), VisitFloat64RoundTiesAway(node);
     case IrOpcode::kLoadStackPointer:
       return VisitLoadStackPointer(node);
+    case IrOpcode::kCheckedLoad: {
+      MachineType rep = OpParameter<MachineType>(node);
+      MarkAsRepresentation(rep, node);
+      return VisitCheckedLoad(node);
+    }
+    case IrOpcode::kCheckedStore:
+      return VisitCheckedStore(node);
     default:
       V8_Fatal(__FILE__, __LINE__, "Unexpected operator #%d:%s @ node #%d",
                node->opcode(), node->op()->mnemonic(), node->id());
@@ -924,17 +978,24 @@ void InstructionSelector::VisitParameter(Node* node) {
 }
 
 
+void InstructionSelector::VisitOsrValue(Node* node) {
+  OperandGenerator g(this);
+  int index = OpParameter<int>(node);
+  Emit(kArchNop, g.DefineAsLocation(node, linkage()->GetOsrValueLocation(index),
+                                    kMachAnyTagged));
+}
+
+
 void InstructionSelector::VisitPhi(Node* node) {
-  // TODO(bmeurer): Emit a PhiInstruction here.
+  const int input_count = node->op()->ValueInputCount();
   PhiInstruction* phi = new (instruction_zone())
-      PhiInstruction(instruction_zone(), GetVirtualRegister(node));
+      PhiInstruction(instruction_zone(), GetVirtualRegister(node),
+                     static_cast<size_t>(input_count));
   sequence()->InstructionBlockAt(current_block_->GetRpoNumber())->AddPhi(phi);
-  const int input_count = node->op()->InputCount();
-  phi->operands().reserve(static_cast<size_t>(input_count));
   for (int i = 0; i < input_count; ++i) {
     Node* const input = node->InputAt(i);
     MarkAsUsed(input);
-    phi->operands().push_back(GetVirtualRegister(input));
+    phi->Extend(instruction_zone(), GetVirtualRegister(input));
   }
 }
 
@@ -945,10 +1006,10 @@ void InstructionSelector::VisitProjection(Node* node) {
   switch (value->opcode()) {
     case IrOpcode::kInt32AddWithOverflow:
     case IrOpcode::kInt32SubWithOverflow:
-      if (OpParameter<size_t>(node) == 0) {
+      if (ProjectionIndexOf(node->op()) == 0u) {
         Emit(kArchNop, g.DefineSameAsFirst(node), g.Use(value));
       } else {
-        DCHECK(OpParameter<size_t>(node) == 1u);
+        DCHECK(ProjectionIndexOf(node->op()) == 1u);
         MarkAsUsed(value);
       }
       break;
@@ -967,14 +1028,9 @@ void InstructionSelector::VisitConstant(Node* node) {
 
 
 void InstructionSelector::VisitGoto(BasicBlock* target) {
-  if (IsNextInAssemblyOrder(target)) {
-    // fall through to the next block.
-    Emit(kArchNop, NULL)->MarkAsControl();
-  } else {
-    // jump to the next block.
-    OperandGenerator g(this);
-    Emit(kArchJmp, NULL, g.Label(target))->MarkAsControl();
-  }
+  // jump to the next block.
+  OperandGenerator g(this);
+  Emit(kArchJmp, NULL, g.Label(target))->MarkAsControl();
 }
 
 

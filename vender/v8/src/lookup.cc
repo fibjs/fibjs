@@ -102,7 +102,7 @@ void LookupIterator::ReconfigureDataProperty(Handle<Object> value,
   DCHECK(HolderIsReceiverOrHiddenPrototype());
   Handle<JSObject> holder = GetHolder<JSObject>();
   if (holder_map_->is_dictionary_map()) {
-    PropertyDetails details(attributes, NORMAL, 0);
+    PropertyDetails details(attributes, FIELD, 0);
     JSObject::SetNormalizedProperty(holder, name(), value, details);
   } else {
     holder_map_ = Map::ReconfigureDataProperty(holder_map_, descriptor_number(),
@@ -118,8 +118,7 @@ void LookupIterator::PrepareTransitionToDataProperty(
     Handle<Object> value, PropertyAttributes attributes,
     Object::StoreFromKeyed store_mode) {
   if (state_ == TRANSITION) return;
-  DCHECK(state_ != LookupIterator::ACCESSOR ||
-         GetAccessors()->IsDeclaredAccessorInfo());
+  DCHECK(state_ != LookupIterator::ACCESSOR);
   DCHECK(state_ == NOT_FOUND || !HolderIsReceiverOrHiddenPrototype());
 
   // Can only be called when the receiver is a JSObject. JSProxy has to be
@@ -127,7 +126,7 @@ void LookupIterator::PrepareTransitionToDataProperty(
   // observable.
   Handle<JSObject> receiver = GetStoreTarget();
 
-  if (!name().is_identical_to(isolate()->factory()->hidden_string()) &&
+  if (!isolate()->IsInternallyUsedPropertyName(name()) &&
       !receiver->map()->is_extensible()) {
     return;
   }
@@ -289,7 +288,7 @@ Handle<Object> LookupIterator::GetDataValue() const {
 }
 
 
-void LookupIterator::WriteDataValue(Handle<Object> value) {
+Handle<Object> LookupIterator::WriteDataValue(Handle<Object> value) {
   DCHECK_EQ(DATA, state_);
   Handle<JSObject> holder = GetHolder<JSObject>();
   if (holder_map_->is_dictionary_map()) {
@@ -297,7 +296,7 @@ void LookupIterator::WriteDataValue(Handle<Object> value) {
     if (holder->IsGlobalObject()) {
       Handle<PropertyCell> cell(
           PropertyCell::cast(property_dictionary->ValueAt(dictionary_entry())));
-      PropertyCell::SetValueInferType(cell, value);
+      value = PropertyCell::SetValueInferType(cell, value);
     } else {
       property_dictionary->ValueAtPut(dictionary_entry(), *value);
     }
@@ -306,6 +305,7 @@ void LookupIterator::WriteDataValue(Handle<Object> value) {
   } else {
     DCHECK_EQ(v8::internal::CONSTANT, property_details_.type());
   }
+  return value;
 }
 
 

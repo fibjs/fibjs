@@ -37,6 +37,7 @@ public:
     virtual result_t write(v8::Local<v8::Array> datas);
     virtual result_t write(Buffer_base *data);
     virtual result_t write(const char *str, const char *codec);
+    virtual result_t copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t &retVal);
     virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t &retVal);
     virtual result_t readUInt16BE(int32_t offset, bool noAssert, int32_t &retVal);

@@ -75,12 +75,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"hasHeader", s_hasHeader},
-			{"firstHeader", s_firstHeader},
-			{"allHeader", s_allHeader},
-			{"addHeader", s_addHeader},
-			{"setHeader", s_setHeader},
-			{"removeHeader", s_removeHeader}
+			{"hasHeader", s_hasHeader, false},
+			{"firstHeader", s_firstHeader, false},
+			{"allHeader", s_allHeader, false},
+			{"addHeader", s_addHeader, false},
+			{"setHeader", s_setHeader, false},
+			{"removeHeader", s_removeHeader, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

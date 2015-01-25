@@ -80,12 +80,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"resolve", s_resolve},
-			{"ip", s_ip},
-			{"ipv6", s_ipv6},
-			{"connect", s_connect},
-			{"openSmtp", s_openSmtp},
-			{"backend", s_backend}
+			{"resolve", s_resolve, true},
+			{"ip", s_ip, true},
+			{"ipv6", s_ipv6, true},
+			{"connect", s_connect, true},
+			{"openSmtp", s_openSmtp, true},
+			{"backend", s_backend, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 

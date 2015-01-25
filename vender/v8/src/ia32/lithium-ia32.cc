@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_IA32
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -1138,9 +1142,17 @@ LInstruction* LChunkBuilder::DoTailCallThroughMegamorphicCache(
       UseFixed(instr->receiver(), LoadDescriptor::ReceiverRegister());
   LOperand* name_register =
       UseFixed(instr->name(), LoadDescriptor::NameRegister());
+  LOperand* slot = NULL;
+  LOperand* vector = NULL;
+  if (FLAG_vector_ics) {
+    slot = UseFixed(instr->slot(), VectorLoadICDescriptor::SlotRegister());
+    vector =
+        UseFixed(instr->vector(), VectorLoadICDescriptor::VectorRegister());
+  }
+
   // Not marked as call. It can't deoptimize, and it never returns.
   return new (zone()) LTailCallThroughMegamorphicCache(
-      context, receiver_register, name_register);
+      context, receiver_register, name_register, slot, vector);
 }
 
 
@@ -2115,7 +2127,7 @@ LInstruction* LChunkBuilder::DoLoadGlobalGeneric(HLoadGlobalGeneric* instr) {
   LOperand* global_object =
       UseFixed(instr->global_object(), LoadDescriptor::ReceiverRegister());
   LOperand* vector = NULL;
-  if (FLAG_vector_ics) {
+  if (instr->HasVectorAndSlot()) {
     vector = FixedTemp(VectorLoadICDescriptor::VectorRegister());
   }
 
@@ -2176,7 +2188,7 @@ LInstruction* LChunkBuilder::DoLoadNamedGeneric(HLoadNamedGeneric* instr) {
   LOperand* object =
       UseFixed(instr->object(), LoadDescriptor::ReceiverRegister());
   LOperand* vector = NULL;
-  if (FLAG_vector_ics) {
+  if (instr->HasVectorAndSlot()) {
     vector = FixedTemp(VectorLoadICDescriptor::VectorRegister());
   }
   LLoadNamedGeneric* result = new(zone()) LLoadNamedGeneric(
@@ -2241,7 +2253,7 @@ LInstruction* LChunkBuilder::DoLoadKeyedGeneric(HLoadKeyedGeneric* instr) {
       UseFixed(instr->object(), LoadDescriptor::ReceiverRegister());
   LOperand* key = UseFixed(instr->key(), LoadDescriptor::NameRegister());
   LOperand* vector = NULL;
-  if (FLAG_vector_ics) {
+  if (instr->HasVectorAndSlot()) {
     vector = FixedTemp(VectorLoadICDescriptor::VectorRegister());
   }
   LLoadKeyedGeneric* result =
@@ -2710,5 +2722,8 @@ LInstruction* LChunkBuilder::DoAllocateBlockContext(
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_IA32
+
 
 #endif  // V8_TARGET_ARCH_IA32

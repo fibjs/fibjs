@@ -55,11 +55,11 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"substringData", s_substringData},
-			{"appendData", s_appendData},
-			{"insertData", s_insertData},
-			{"deleteData", s_deleteData},
-			{"replaceData", s_replaceData}
+			{"substringData", s_substringData, false},
+			{"appendData", s_appendData, false},
+			{"insertData", s_insertData, false},
+			{"deleteData", s_deleteData, false},
+			{"replaceData", s_replaceData, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

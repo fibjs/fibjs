@@ -41,7 +41,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"splitText", s_splitText}
+			{"splitText", s_splitText, false}
 		};
 
 		static ClassData s_cd = 

@@ -39,7 +39,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"join", s_join}
+			{"join", s_join, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

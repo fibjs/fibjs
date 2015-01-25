@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_X87
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -7,7 +11,9 @@
 #if V8_TARGET_ARCH_X87
 
 #include "src/codegen.h"
+#include "src/ic/ic.h"
 #include "src/ic/stub-cache.h"
+#include "src/interface-descriptors.h"
 
 namespace v8 {
 namespace internal {
@@ -16,7 +22,7 @@ namespace internal {
 
 
 static void ProbeTable(Isolate* isolate, MacroAssembler* masm,
-                       Code::Flags flags, bool leave_frame,
+                       Code::Kind ic_kind, Code::Flags flags, bool leave_frame,
                        StubCache::Table table, Register name, Register receiver,
                        // Number of the cache entry pointer-size scaled.
                        Register offset, Register extra) {
@@ -55,6 +61,13 @@ static void ProbeTable(Isolate* isolate, MacroAssembler* masm,
       __ jmp(&miss);
     }
 #endif
+
+    if (IC::ICUseVector(ic_kind)) {
+      // The vector and slot were pushed onto the stack before starting the
+      // probe, and need to be dropped before calling the handler.
+      __ pop(VectorLoadICDescriptor::VectorRegister());
+      __ pop(VectorLoadICDescriptor::SlotRegister());
+    }
 
     if (leave_frame) __ leave();
 
@@ -100,6 +113,18 @@ static void ProbeTable(Isolate* isolate, MacroAssembler* masm,
     __ pop(offset);
     __ mov(offset, Operand::StaticArray(offset, times_1, value_offset));
 
+    if (IC::ICUseVector(ic_kind)) {
+      // The vector and slot were pushed onto the stack before starting the
+      // probe, and need to be dropped before calling the handler.
+      Register vector = VectorLoadICDescriptor::VectorRegister();
+      Register slot = VectorLoadICDescriptor::SlotRegister();
+      DCHECK(!offset.is(vector) && !offset.is(slot));
+
+      __ pop(vector);
+      __ pop(slot);
+    }
+
+
     if (leave_frame) __ leave();
 
     // Jump to the first instruction in the code stub.
@@ -113,10 +138,11 @@ static void ProbeTable(Isolate* isolate, MacroAssembler* masm,
 }
 
 
-void StubCache::GenerateProbe(MacroAssembler* masm, Code::Flags flags,
-                              bool leave_frame, Register receiver,
-                              Register name, Register scratch, Register extra,
-                              Register extra2, Register extra3) {
+void StubCache::GenerateProbe(MacroAssembler* masm, Code::Kind ic_kind,
+                              Code::Flags flags, bool leave_frame,
+                              Register receiver, Register name,
+                              Register scratch, Register extra, Register extra2,
+                              Register extra3) {
   Label miss;
 
   // Assert that code is valid.  The multiplying code relies on the entry size
@@ -159,8 +185,8 @@ void StubCache::GenerateProbe(MacroAssembler* masm, Code::Flags flags,
   DCHECK(kCacheIndexShift == kPointerSizeLog2);
 
   // Probe the primary table.
-  ProbeTable(isolate(), masm, flags, leave_frame, kPrimary, name, receiver,
-             offset, extra);
+  ProbeTable(isolate(), masm, ic_kind, flags, leave_frame, kPrimary, name,
+             receiver, offset, extra);
 
   // Primary miss: Compute hash for secondary probe.
   __ mov(offset, FieldOperand(name, Name::kHashFieldOffset));
@@ -172,8 +198,8 @@ void StubCache::GenerateProbe(MacroAssembler* masm, Code::Flags flags,
   __ and_(offset, (kSecondaryTableSize - 1) << kCacheIndexShift);
 
   // Probe the secondary table.
-  ProbeTable(isolate(), masm, flags, leave_frame, kSecondary, name, receiver,
-             offset, extra);
+  ProbeTable(isolate(), masm, ic_kind, flags, leave_frame, kSecondary, name,
+             receiver, offset, extra);
 
   // Cache miss: Fall-through and let caller handle the miss by
   // entering the runtime system.
@@ -185,5 +211,8 @@ void StubCache::GenerateProbe(MacroAssembler* masm, Code::Flags flags,
 #undef __
 }
 }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_X87
+
 
 #endif  // V8_TARGET_ARCH_X87

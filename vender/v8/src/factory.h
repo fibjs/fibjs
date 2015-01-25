@@ -10,8 +10,9 @@
 namespace v8 {
 namespace internal {
 
-// Interface for handle based allocation.
+class FeedbackVectorSpec;
 
+// Interface for handle based allocation.
 class Factory FINAL {
  public:
   Handle<Oddball> NewOddball(Handle<Map> map,
@@ -225,12 +226,12 @@ class Factory FINAL {
   // Create a global (but otherwise uninitialized) context.
   Handle<Context> NewNativeContext();
 
-  // Create a global context.
-  Handle<Context> NewGlobalContext(Handle<JSFunction> function,
+  // Create a script context.
+  Handle<Context> NewScriptContext(Handle<JSFunction> function,
                                    Handle<ScopeInfo> scope_info);
 
-  // Create an empty global context table.
-  Handle<GlobalContextTable> NewGlobalContextTable();
+  // Create an empty script context table.
+  Handle<ScriptContextTable> NewScriptContextTable();
 
   // Create a module context.
   Handle<Context> NewModuleContext(Handle<ScopeInfo> scope_info);
@@ -262,10 +263,6 @@ class Factory FINAL {
 
   Handle<AliasedArgumentsEntry> NewAliasedArgumentsEntry(
       int aliased_context_slot);
-
-  Handle<DeclaredAccessorDescriptor> NewDeclaredAccessorDescriptor();
-
-  Handle<DeclaredAccessorInfo> NewDeclaredAccessorInfo();
 
   Handle<ExecutableAccessorInfo> NewExecutableAccessorInfo();
 
@@ -468,6 +465,8 @@ class Factory FINAL {
   void ReinitializeJSGlobalProxy(Handle<JSGlobalProxy> global,
                                  Handle<JSFunction> constructor);
 
+  Handle<JSGlobalProxy> NewUninitializedJSGlobalProxy();
+
   // Change the type of the argument into a JS object/function and reinitialize.
   void BecomeJSObject(Handle<JSProxy> object);
   void BecomeJSFunction(Handle<JSProxy> object);
@@ -485,12 +484,11 @@ class Factory FINAL {
       Handle<Context> context,
       PretenureFlag pretenure = TENURED);
 
-  Handle<JSFunction> NewFunction(Handle<String> name,
-                                 Handle<Code> code,
-                                 Handle<Object> prototype,
-                                 InstanceType type,
+  Handle<JSFunction> NewFunction(Handle<String> name, Handle<Code> code,
+                                 Handle<Object> prototype, InstanceType type,
                                  int instance_size,
-                                 bool read_only_prototype = false);
+                                 bool read_only_prototype = false,
+                                 bool install_constructor = false);
   Handle<JSFunction> NewFunction(Handle<String> name,
                                  Handle<Code> code,
                                  InstanceType type,
@@ -612,6 +610,14 @@ class Factory FINAL {
   PRIVATE_SYMBOL_LIST(SYMBOL_ACCESSOR)
 #undef SYMBOL_ACCESSOR
 
+#define SYMBOL_ACCESSOR(name, varname, description)             \
+  inline Handle<Symbol> name() {                                \
+    return Handle<Symbol>(bit_cast<Symbol**>(                   \
+        &isolate()->heap()->roots_[Heap::k##name##RootIndex])); \
+  }
+  PUBLIC_SYMBOL_LIST(SYMBOL_ACCESSOR)
+#undef SYMBOL_ACCESSOR
+
   inline void set_string_table(Handle<StringTable> table) {
     isolate()->heap()->set_string_table(*table);
   }
@@ -629,8 +635,8 @@ class Factory FINAL {
                                                    MaybeHandle<Code> code);
 
   // Allocate a new type feedback vector
-  Handle<TypeFeedbackVector> NewTypeFeedbackVector(int slot_count,
-                                                   int ic_slot_count);
+  Handle<TypeFeedbackVector> NewTypeFeedbackVector(
+      const FeedbackVectorSpec& spec);
 
   // Allocates a new JSMessageObject object.
   Handle<JSMessageObject> NewJSMessageObject(

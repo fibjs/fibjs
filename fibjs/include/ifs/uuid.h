@@ -64,11 +64,11 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"uuid", s_uuid},
-			{"node", s_node},
-			{"md5", s_md5},
-			{"random", s_random},
-			{"sha1", s_sha1}
+			{"uuid", s_uuid, true},
+			{"node", s_node, true},
+			{"md5", s_md5, true},
+			{"random", s_random, true},
+			{"sha1", s_sha1, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

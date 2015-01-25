@@ -87,14 +87,14 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"deflate", s_deflate},
-			{"deflateTo", s_deflateTo},
-			{"inflate", s_inflate},
-			{"inflateTo", s_inflateTo},
-			{"gzip", s_gzip},
-			{"gzipTo", s_gzipTo},
-			{"gunzip", s_gunzip},
-			{"gunzipTo", s_gunzipTo}
+			{"deflate", s_deflate, true},
+			{"deflateTo", s_deflateTo, true},
+			{"inflate", s_inflate, true},
+			{"inflateTo", s_inflateTo, true},
+			{"gzip", s_gzip, true},
+			{"gzipTo", s_gzipTo, true},
+			{"gunzip", s_gunzip, true},
+			{"gunzipTo", s_gunzipTo, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

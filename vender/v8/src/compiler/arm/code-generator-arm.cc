@@ -13,6 +13,7 @@
 #include "src/compiler/gap-resolver.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties-inl.h"
+#include "src/compiler/osr.h"
 #include "src/scopes.h"
 
 namespace v8 {
@@ -81,6 +82,7 @@ class ArmOperandConverter FINAL : public InstructionOperandConverter {
       case Constant::kInt64:
       case Constant::kExternalReference:
       case Constant::kHeapObject:
+      case Constant::kRpoNumber:
         break;
     }
     UNREACHABLE();
@@ -145,9 +147,8 @@ class ArmOperandConverter FINAL : public InstructionOperandConverter {
     return MemOperand(r0);
   }
 
-  MemOperand InputOffset() {
-    int index = 0;
-    return InputOffset(&index);
+  MemOperand InputOffset(int first_index = 0) {
+    return InputOffset(&first_index);
   }
 
   MemOperand ToMemOperand(InstructionOperand* op) const {
@@ -160,6 +161,147 @@ class ArmOperandConverter FINAL : public InstructionOperandConverter {
     return MemOperand(offset.from_stack_pointer() ? sp : fp, offset.offset());
   }
 };
+
+
+namespace {
+
+class OutOfLineLoadFloat32 FINAL : public OutOfLineCode {
+ public:
+  OutOfLineLoadFloat32(CodeGenerator* gen, SwVfpRegister result)
+      : OutOfLineCode(gen), result_(result) {}
+
+  void Generate() FINAL {
+    __ vmov(result_, std::numeric_limits<float>::quiet_NaN());
+  }
+
+ private:
+  SwVfpRegister const result_;
+};
+
+
+class OutOfLineLoadFloat64 FINAL : public OutOfLineCode {
+ public:
+  OutOfLineLoadFloat64(CodeGenerator* gen, DwVfpRegister result)
+      : OutOfLineCode(gen), result_(result) {}
+
+  void Generate() FINAL {
+    __ vmov(result_, std::numeric_limits<double>::quiet_NaN(), kScratchReg);
+  }
+
+ private:
+  DwVfpRegister const result_;
+};
+
+
+class OutOfLineLoadInteger FINAL : public OutOfLineCode {
+ public:
+  OutOfLineLoadInteger(CodeGenerator* gen, Register result)
+      : OutOfLineCode(gen), result_(result) {}
+
+  void Generate() FINAL { __ mov(result_, Operand::Zero()); }
+
+ private:
+  Register const result_;
+};
+
+
+Condition FlagsConditionToCondition(FlagsCondition condition) {
+  switch (condition) {
+    case kEqual:
+      return eq;
+    case kNotEqual:
+      return ne;
+    case kSignedLessThan:
+      return lt;
+    case kSignedGreaterThanOrEqual:
+      return ge;
+    case kSignedLessThanOrEqual:
+      return le;
+    case kSignedGreaterThan:
+      return gt;
+    case kUnsignedLessThan:
+      return lo;
+    case kUnsignedGreaterThanOrEqual:
+      return hs;
+    case kUnsignedLessThanOrEqual:
+      return ls;
+    case kUnsignedGreaterThan:
+      return hi;
+    case kOverflow:
+      return vs;
+    case kNotOverflow:
+      return vc;
+    case kUnorderedEqual:
+    case kUnorderedNotEqual:
+      break;
+  }
+  UNREACHABLE();
+  return kNoCondition;
+}
+
+}  // namespace
+
+
+#define ASSEMBLE_CHECKED_LOAD_FLOAT(width)                           \
+  do {                                                               \
+    auto result = i.OutputFloat##width##Register();                  \
+    auto offset = i.InputRegister(0);                                \
+    if (instr->InputAt(1)->IsRegister()) {                           \
+      __ cmp(offset, i.InputRegister(1));                            \
+    } else {                                                         \
+      __ cmp(offset, i.InputImmediate(1));                           \
+    }                                                                \
+    auto ool = new (zone()) OutOfLineLoadFloat##width(this, result); \
+    __ b(hs, ool->entry());                                          \
+    __ vldr(result, i.InputOffset(2));                               \
+    __ bind(ool->exit());                                            \
+    DCHECK_EQ(LeaveCC, i.OutputSBit());                              \
+  } while (0)
+
+
+#define ASSEMBLE_CHECKED_LOAD_INTEGER(asm_instr)                \
+  do {                                                          \
+    auto result = i.OutputRegister();                           \
+    auto offset = i.InputRegister(0);                           \
+    if (instr->InputAt(1)->IsRegister()) {                      \
+      __ cmp(offset, i.InputRegister(1));                       \
+    } else {                                                    \
+      __ cmp(offset, i.InputImmediate(1));                      \
+    }                                                           \
+    auto ool = new (zone()) OutOfLineLoadInteger(this, result); \
+    __ b(hs, ool->entry());                                     \
+    __ asm_instr(result, i.InputOffset(2));                     \
+    __ bind(ool->exit());                                       \
+    DCHECK_EQ(LeaveCC, i.OutputSBit());                         \
+  } while (0)
+
+
+#define ASSEMBLE_CHECKED_STORE_FLOAT(width)        \
+  do {                                             \
+    auto offset = i.InputRegister(0);              \
+    if (instr->InputAt(1)->IsRegister()) {         \
+      __ cmp(offset, i.InputRegister(1));          \
+    } else {                                       \
+      __ cmp(offset, i.InputImmediate(1));         \
+    }                                              \
+    auto value = i.InputFloat##width##Register(2); \
+    __ vstr(value, i.InputOffset(3), lo);          \
+    DCHECK_EQ(LeaveCC, i.OutputSBit());            \
+  } while (0)
+
+
+#define ASSEMBLE_CHECKED_STORE_INTEGER(asm_instr) \
+  do {                                            \
+    auto offset = i.InputRegister(0);             \
+    if (instr->InputAt(1)->IsRegister()) {        \
+      __ cmp(offset, i.InputRegister(1));         \
+    } else {                                      \
+      __ cmp(offset, i.InputImmediate(1));        \
+    }                                             \
+    auto value = i.InputRegister(2);              \
+    __ asm_instr(value, i.InputOffset(3), lo);    \
+    DCHECK_EQ(LeaveCC, i.OutputSBit());           \
+  } while (0)
 
 
 // Assembles an instruction after register allocation, producing machine code.
@@ -197,7 +339,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArchJmp:
-      __ b(GetLabel(i.InputRpo(0)));
+      AssembleArchJump(i.InputRpo(0));
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     case kArchNop:
@@ -356,8 +498,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       DCHECK_EQ(SetCC, i.OutputSBit());
       break;
     case kArmVcmpF64:
-      __ VFPCompareAndSetFlags(i.InputFloat64Register(0),
-                               i.InputFloat64Register(1));
+      if (instr->InputAt(1)->IsDoubleRegister()) {
+        __ VFPCompareAndSetFlags(i.InputFloat64Register(0),
+                                 i.InputFloat64Register(1));
+      } else {
+        DCHECK(instr->InputAt(1)->IsImmediate());
+        // 0.0 is the only immediate supported by vcmp instructions.
+        DCHECK(i.InputDouble(1) == 0.0);
+        __ VFPCompareAndSetFlags(i.InputFloat64Register(0), i.InputDouble(1));
+      }
       DCHECK_EQ(SetCC, i.OutputSBit());
       break;
     case kArmVaddF64:
@@ -538,83 +687,59 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
+    case kCheckedLoadInt8:
+      ASSEMBLE_CHECKED_LOAD_INTEGER(ldrsb);
+      break;
+    case kCheckedLoadUint8:
+      ASSEMBLE_CHECKED_LOAD_INTEGER(ldrb);
+      break;
+    case kCheckedLoadInt16:
+      ASSEMBLE_CHECKED_LOAD_INTEGER(ldrsh);
+      break;
+    case kCheckedLoadUint16:
+      ASSEMBLE_CHECKED_LOAD_INTEGER(ldrh);
+      break;
+    case kCheckedLoadWord32:
+      ASSEMBLE_CHECKED_LOAD_INTEGER(ldr);
+      break;
+    case kCheckedLoadFloat32:
+      ASSEMBLE_CHECKED_LOAD_FLOAT(32);
+      break;
+    case kCheckedLoadFloat64:
+      ASSEMBLE_CHECKED_LOAD_FLOAT(64);
+      break;
+    case kCheckedStoreWord8:
+      ASSEMBLE_CHECKED_STORE_INTEGER(strb);
+      break;
+    case kCheckedStoreWord16:
+      ASSEMBLE_CHECKED_STORE_INTEGER(strh);
+      break;
+    case kCheckedStoreWord32:
+      ASSEMBLE_CHECKED_STORE_INTEGER(str);
+      break;
+    case kCheckedStoreFloat32:
+      ASSEMBLE_CHECKED_STORE_FLOAT(32);
+      break;
+    case kCheckedStoreFloat64:
+      ASSEMBLE_CHECKED_STORE_FLOAT(64);
+      break;
   }
 }
 
 
 // Assembles branches after an instruction.
-void CodeGenerator::AssembleArchBranch(Instruction* instr,
-                                       FlagsCondition condition) {
+void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
   ArmOperandConverter i(this, instr);
-  Label done;
+  Label* tlabel = branch->true_label;
+  Label* flabel = branch->false_label;
+  Condition cc = FlagsConditionToCondition(branch->condition);
+  __ b(cc, tlabel);
+  if (!branch->fallthru) __ b(flabel);  // no fallthru to flabel.
+}
 
-  // Emit a branch. The true and false targets are always the last two inputs
-  // to the instruction.
-  BasicBlock::RpoNumber tblock =
-      i.InputRpo(static_cast<int>(instr->InputCount()) - 2);
-  BasicBlock::RpoNumber fblock =
-      i.InputRpo(static_cast<int>(instr->InputCount()) - 1);
-  bool fallthru = IsNextInAssemblyOrder(fblock);
-  Label* tlabel = GetLabel(tblock);
-  Label* flabel = fallthru ? &done : GetLabel(fblock);
-  switch (condition) {
-    case kUnorderedEqual:
-      __ b(vs, flabel);
-    // Fall through.
-    case kEqual:
-      __ b(eq, tlabel);
-      break;
-    case kUnorderedNotEqual:
-      __ b(vs, tlabel);
-    // Fall through.
-    case kNotEqual:
-      __ b(ne, tlabel);
-      break;
-    case kSignedLessThan:
-      __ b(lt, tlabel);
-      break;
-    case kSignedGreaterThanOrEqual:
-      __ b(ge, tlabel);
-      break;
-    case kSignedLessThanOrEqual:
-      __ b(le, tlabel);
-      break;
-    case kSignedGreaterThan:
-      __ b(gt, tlabel);
-      break;
-    case kUnorderedLessThan:
-      __ b(vs, flabel);
-    // Fall through.
-    case kUnsignedLessThan:
-      __ b(lo, tlabel);
-      break;
-    case kUnorderedGreaterThanOrEqual:
-      __ b(vs, tlabel);
-    // Fall through.
-    case kUnsignedGreaterThanOrEqual:
-      __ b(hs, tlabel);
-      break;
-    case kUnorderedLessThanOrEqual:
-      __ b(vs, flabel);
-    // Fall through.
-    case kUnsignedLessThanOrEqual:
-      __ b(ls, tlabel);
-      break;
-    case kUnorderedGreaterThan:
-      __ b(vs, tlabel);
-    // Fall through.
-    case kUnsignedGreaterThan:
-      __ b(hi, tlabel);
-      break;
-    case kOverflow:
-      __ b(vs, tlabel);
-      break;
-    case kNotOverflow:
-      __ b(vc, tlabel);
-      break;
-  }
-  if (!fallthru) __ b(flabel);  // no fallthru to flabel.
-  __ bind(&done);
+
+void CodeGenerator::AssembleArchJump(BasicBlock::RpoNumber target) {
+  if (!IsNextInAssemblyOrder(target)) __ b(GetLabel(target));
 }
 
 
@@ -622,86 +747,14 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr,
 void CodeGenerator::AssembleArchBoolean(Instruction* instr,
                                         FlagsCondition condition) {
   ArmOperandConverter i(this, instr);
-  Label done;
 
   // Materialize a full 32-bit 1 or 0 value. The result register is always the
   // last output of the instruction.
-  Label check;
   DCHECK_NE(0, instr->OutputCount());
   Register reg = i.OutputRegister(instr->OutputCount() - 1);
-  Condition cc = kNoCondition;
-  switch (condition) {
-    case kUnorderedEqual:
-      __ b(vc, &check);
-      __ mov(reg, Operand(0));
-      __ b(&done);
-    // Fall through.
-    case kEqual:
-      cc = eq;
-      break;
-    case kUnorderedNotEqual:
-      __ b(vc, &check);
-      __ mov(reg, Operand(1));
-      __ b(&done);
-    // Fall through.
-    case kNotEqual:
-      cc = ne;
-      break;
-    case kSignedLessThan:
-      cc = lt;
-      break;
-    case kSignedGreaterThanOrEqual:
-      cc = ge;
-      break;
-    case kSignedLessThanOrEqual:
-      cc = le;
-      break;
-    case kSignedGreaterThan:
-      cc = gt;
-      break;
-    case kUnorderedLessThan:
-      __ b(vc, &check);
-      __ mov(reg, Operand(0));
-      __ b(&done);
-    // Fall through.
-    case kUnsignedLessThan:
-      cc = lo;
-      break;
-    case kUnorderedGreaterThanOrEqual:
-      __ b(vc, &check);
-      __ mov(reg, Operand(1));
-      __ b(&done);
-    // Fall through.
-    case kUnsignedGreaterThanOrEqual:
-      cc = hs;
-      break;
-    case kUnorderedLessThanOrEqual:
-      __ b(vc, &check);
-      __ mov(reg, Operand(0));
-      __ b(&done);
-    // Fall through.
-    case kUnsignedLessThanOrEqual:
-      cc = ls;
-      break;
-    case kUnorderedGreaterThan:
-      __ b(vc, &check);
-      __ mov(reg, Operand(1));
-      __ b(&done);
-    // Fall through.
-    case kUnsignedGreaterThan:
-      cc = hi;
-      break;
-    case kOverflow:
-      cc = vs;
-      break;
-    case kNotOverflow:
-      cc = vc;
-      break;
-  }
-  __ bind(&check);
+  Condition cc = FlagsConditionToCondition(condition);
   __ mov(reg, Operand(0));
   __ mov(reg, Operand(1), LeaveCC, cc);
-  __ bind(&done);
 }
 
 
@@ -742,30 +795,29 @@ void CodeGenerator::AssemblePrologue() {
     __ Prologue(info->IsCodePreAgingActive());
     frame()->SetRegisterSaveAreaSize(
         StandardFrameConstants::kFixedFrameSizeFromFp);
-
-    // Sloppy mode functions and builtins need to replace the receiver with the
-    // global proxy when called as functions (without an explicit receiver
-    // object).
-    // TODO(mstarzinger/verwaest): Should this be moved back into the CallIC?
-    if (info->strict_mode() == SLOPPY && !info->is_native()) {
-      Label ok;
-      // +2 for return address and saved frame pointer.
-      int receiver_slot = info->scope()->num_parameters() + 2;
-      __ ldr(r2, MemOperand(fp, receiver_slot * kPointerSize));
-      __ CompareRoot(r2, Heap::kUndefinedValueRootIndex);
-      __ b(ne, &ok);
-      __ ldr(r2, GlobalObjectOperand());
-      __ ldr(r2, FieldMemOperand(r2, GlobalObject::kGlobalProxyOffset));
-      __ str(r2, MemOperand(fp, receiver_slot * kPointerSize));
-      __ bind(&ok);
-    }
-
   } else {
     __ StubPrologue();
     frame()->SetRegisterSaveAreaSize(
         StandardFrameConstants::kFixedFrameSizeFromFp);
   }
   int stack_slots = frame()->GetSpillSlotCount();
+
+  if (info()->is_osr()) {
+    // TurboFan OSR-compiled functions cannot be entered directly.
+    __ Abort(kShouldNotDirectlyEnterOsrFunction);
+
+    // Unoptimized code jumps directly to this entrypoint while the unoptimized
+    // frame is still on the stack. Optimized code uses OSR values directly from
+    // the unoptimized frame. Thus, all that needs to be done is to allocate the
+    // remaining stack slots.
+    if (FLAG_code_comments) __ RecordComment("-- OSR entrypoint --");
+    osr_pc_offset_ = __ pc_offset();
+    int unoptimized_slots =
+        static_cast<int>(OsrHelper(info()).UnoptimizedFrameSlots());
+    DCHECK(stack_slots >= unoptimized_slots);
+    stack_slots -= unoptimized_slots;
+  }
+
   if (stack_slots > 0) {
     __ sub(sp, sp, Operand(stack_slots * kPointerSize));
   }
@@ -849,24 +901,26 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
         case Constant::kHeapObject:
           __ Move(dst, src.ToHeapObject());
           break;
+        case Constant::kRpoNumber:
+          UNREACHABLE();  // TODO(dcarney): loading RPO constants on arm.
+          break;
       }
       if (destination->IsStackSlot()) __ str(dst, g.ToMemOperand(destination));
     } else if (src.type() == Constant::kFloat32) {
-      SwVfpRegister dst = destination->IsDoubleRegister()
-                              ? g.ToFloat32Register(destination)
-                              : kScratchDoubleReg.low();
-      // TODO(turbofan): Can we do better here?
-      __ mov(ip, Operand(bit_cast<int32_t>(src.ToFloat32())));
-      __ vmov(dst, ip);
       if (destination->IsDoubleStackSlot()) {
-        __ vstr(dst, g.ToMemOperand(destination));
+        MemOperand dst = g.ToMemOperand(destination);
+        __ mov(ip, Operand(bit_cast<int32_t>(src.ToFloat32())));
+        __ str(ip, dst);
+      } else {
+        SwVfpRegister dst = g.ToFloat32Register(destination);
+        __ vmov(dst, src.ToFloat32());
       }
     } else {
       DCHECK_EQ(Constant::kFloat64, src.type());
       DwVfpRegister dst = destination->IsDoubleRegister()
                               ? g.ToFloat64Register(destination)
                               : kScratchDoubleReg;
-      __ vmov(dst, src.ToFloat64());
+      __ vmov(dst, src.ToFloat64(), kScratchReg);
       if (destination->IsDoubleStackSlot()) {
         __ vstr(dst, g.ToMemOperand(destination));
       }

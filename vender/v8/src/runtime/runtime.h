@@ -45,7 +45,6 @@ namespace internal {
   F(IsSloppyModeFunction, 1, 1)                            \
   F(GetDefaultReceiver, 1, 1)                              \
                                                            \
-  F(GetPrototype, 1, 1)                                    \
   F(SetPrototype, 2, 1)                                    \
   F(InternalSetPrototype, 2, 1)                            \
   F(IsInPrototypeChain, 2, 1)                              \
@@ -74,6 +73,7 @@ namespace internal {
   F(CompileForOnStackReplacement, 1, 1)                    \
   F(SetAllocationTimeout, -1 /* 2 || 3 */, 1)              \
   F(SetNativeFlag, 1, 1)                                   \
+  F(IsConstructor, 1, 1)                                   \
   F(SetInlineBuiltinFlag, 1, 1)                            \
   F(StoreArrayLiteralElement, 5, 1)                        \
   F(DebugPrepareStepInIfStepping, 1, 1)                    \
@@ -155,9 +155,8 @@ namespace internal {
   F(RemPiO2, 1, 1)                                         \
                                                            \
   /* Regular expressions */                                \
-  F(RegExpCompile, 3, 1)                                   \
+  F(RegExpInitializeAndCompile, 3, 1)                      \
   F(RegExpExecMultiple, 4, 1)                              \
-  F(RegExpInitializeObject, 6, 1)                          \
                                                            \
   /* JSON */                                               \
   F(ParseJson, 1, 1)                                       \
@@ -189,8 +188,6 @@ namespace internal {
   F(HomeObjectSymbol, 0, 1)                                \
   F(DefineClass, 6, 1)                                     \
   F(DefineClassMethod, 3, 1)                               \
-  F(DefineClassGetter, 3, 1)                               \
-  F(DefineClassSetter, 3, 1)                               \
   F(ClassGetSourceCode, 1, 1)                              \
   F(ThrowNonMethodError, 0, 1)                             \
   F(ThrowUnsupportedSuperError, 0, 1)                      \
@@ -199,7 +196,8 @@ namespace internal {
   F(StoreToSuper_Strict, 4, 1)                             \
   F(StoreToSuper_Sloppy, 4, 1)                             \
   F(StoreKeyedToSuper_Strict, 4, 1)                        \
-  F(StoreKeyedToSuper_Sloppy, 4, 1)
+  F(StoreKeyedToSuper_Sloppy, 4, 1)                        \
+  F(DefaultConstructorSuperCall, 0, 1)
 
 
 #define RUNTIME_FUNCTION_LIST_ALWAYS_2(F)              \
@@ -250,11 +248,10 @@ namespace internal {
   F(DateCacheVersion, 0, 1)                            \
                                                        \
   /* Globals */                                        \
-  F(CompileString, 2, 1)                               \
+  F(CompileString, 3, 1)                               \
                                                        \
   /* Eval */                                           \
   F(GlobalProxy, 1, 1)                                 \
-  F(IsAttachedGlobal, 1, 1)                            \
                                                        \
   F(AddNamedProperty, 4, 1)                            \
   F(AddPropertyForTemplate, 4, 1)                      \
@@ -264,6 +261,8 @@ namespace internal {
   F(DefineDataPropertyUnchecked, 4, 1)                 \
   F(DefineAccessorPropertyUnchecked, 5, 1)             \
   F(GetDataProperty, 2, 1)                             \
+  F(DefineGetterPropertyUnchecked, 3, 1)               \
+  F(DefineSetterPropertyUnchecked, 3, 1)               \
                                                        \
   /* Arrays */                                         \
   F(RemoveArrayHoles, 2, 1)                            \
@@ -277,6 +276,7 @@ namespace internal {
   F(LookupAccessor, 3, 1)                              \
                                                        \
   /* ES5 */                                            \
+  F(ObjectSeal, 1, 1)                                  \
   F(ObjectFreeze, 1, 1)                                \
                                                        \
   /* Harmony modules */                                \
@@ -301,30 +301,15 @@ namespace internal {
   F(GetConstructTrap, 1, 1)                            \
   F(Fix, 1, 1)                                         \
                                                        \
-  /* Harmony sets */                                   \
-  F(SetInitialize, 1, 1)                               \
-  F(SetAdd, 2, 1)                                      \
-  F(SetHas, 2, 1)                                      \
-  F(SetDelete, 2, 1)                                   \
-  F(SetClear, 1, 1)                                    \
-  F(SetGetSize, 1, 1)                                  \
-                                                       \
+  /* ES6 collection iterators */                       \
   F(SetIteratorInitialize, 3, 1)                       \
   F(SetIteratorClone, 1, 1)                            \
   F(SetIteratorNext, 2, 1)                             \
-                                                       \
-  /* Harmony maps */                                   \
-  F(MapInitialize, 1, 1)                               \
-  F(MapGet, 2, 1)                                      \
-  F(MapHas, 2, 1)                                      \
-  F(MapDelete, 2, 1)                                   \
-  F(MapClear, 1, 1)                                    \
-  F(MapSet, 3, 1)                                      \
-  F(MapGetSize, 1, 1)                                  \
-                                                       \
+  F(SetIteratorDetails, 1, 1)                          \
   F(MapIteratorInitialize, 3, 1)                       \
   F(MapIteratorClone, 1, 1)                            \
   F(MapIteratorNext, 2, 1)                             \
+  F(MapIteratorDetails, 1, 1)                          \
                                                        \
   /* Harmony weak maps and sets */                     \
   F(WeakCollectionInitialize, 1, 1)                    \
@@ -333,8 +318,8 @@ namespace internal {
   F(WeakCollectionDelete, 2, 1)                        \
   F(WeakCollectionSet, 3, 1)                           \
                                                        \
-  F(GetWeakMapEntries, 1, 1)                           \
-  F(GetWeakSetValues, 1, 1)                            \
+  F(GetWeakMapEntries, 2, 1)                           \
+  F(GetWeakSetValues, 2, 1)                            \
                                                        \
   /* Harmony events */                                 \
   F(EnqueueMicrotask, 1, 1)                            \
@@ -476,7 +461,7 @@ namespace internal {
   F(CreateJSGeneratorObject, 0, 1)                           \
   F(SuspendJSGeneratorObject, 1, 1)                          \
   F(ResumeJSGeneratorObject, 3, 1)                           \
-  F(ThrowGeneratorStateError, 1, 1)                          \
+  F(GeneratorClose, 1, 1)                                    \
                                                              \
   /* Arrays */                                               \
   F(ArrayConstructor, -1, 1)                                 \
@@ -498,12 +483,13 @@ namespace internal {
   F(ReThrow, 1, 1)                                           \
   F(ThrowReferenceError, 1, 1)                               \
   F(ThrowNotDateError, 0, 1)                                 \
+  F(ThrowConstAssignError, 0, 1)                             \
   F(StackGuard, 0, 1)                                        \
   F(Interrupt, 0, 1)                                         \
   F(PromoteScheduledException, 0, 1)                         \
                                                              \
   /* Contexts */                                             \
-  F(NewGlobalContext, 2, 1)                                  \
+  F(NewScriptContext, 2, 1)                                  \
   F(NewFunctionContext, 1, 1)                                \
   F(PushWithContext, 2, 1)                                   \
   F(PushCatchContext, 3, 1)                                  \
@@ -728,7 +714,24 @@ namespace internal {
   F(DoubleHi, 1, 1)                       \
   F(DoubleLo, 1, 1)                       \
   F(MathSqrtRT, 1, 1)                     \
-  F(MathLogRT, 1, 1)
+  F(MathLogRT, 1, 1)                      \
+  /* ES6 Collections */                   \
+  F(MapClear, 1, 1)                       \
+  F(MapDelete, 2, 1)                      \
+  F(MapGet, 2, 1)                         \
+  F(MapGetSize, 1, 1)                     \
+  F(MapHas, 2, 1)                         \
+  F(MapInitialize, 1, 1)                  \
+  F(MapSet, 3, 1)                         \
+  F(SetAdd, 2, 1)                         \
+  F(SetClear, 1, 1)                       \
+  F(SetDelete, 2, 1)                      \
+  F(SetGetSize, 1, 1)                     \
+  F(SetHas, 2, 1)                         \
+  F(SetInitialize, 1, 1)                  \
+  /* Arrays */                            \
+  F(HasFastPackedElements, 1, 1)          \
+  F(GetPrototype, 1, 1)
 
 
 //---------------------------------------------------------------------------
@@ -827,6 +830,9 @@ class Runtime : public AllStatic {
 
   MUST_USE_RESULT static MaybeHandle<Object> GetObjectProperty(
       Isolate* isolate, Handle<Object> object, Handle<Object> key);
+
+  MUST_USE_RESULT static MaybeHandle<Object> GetPrototype(
+      Isolate* isolate, Handle<Object> object);
 
   MUST_USE_RESULT static MaybeHandle<Name> ToName(Isolate* isolate,
                                                   Handle<Object> key);

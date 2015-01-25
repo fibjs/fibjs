@@ -110,18 +110,18 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"a", s_a},
-			{"an", s_an},
-			{"equal", s_equal},
-			{"eql", s_eql},
-			{"above", s_above},
-			{"greaterThan", s_greaterThan},
-			{"least", s_least},
-			{"below", s_below},
-			{"lessThan", s_lessThan},
-			{"most", s_most},
-			{"property", s_property},
-			{"closeTo", s_closeTo}
+			{"a", s_a, false},
+			{"an", s_an, false},
+			{"equal", s_equal, false},
+			{"eql", s_eql, false},
+			{"above", s_above, false},
+			{"greaterThan", s_greaterThan, false},
+			{"least", s_least, false},
+			{"below", s_below, false},
+			{"lessThan", s_lessThan, false},
+			{"most", s_most, false},
+			{"property", s_property, false},
+			{"closeTo", s_closeTo, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

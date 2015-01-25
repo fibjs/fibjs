@@ -52,7 +52,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"use", s_use}
+			{"use", s_use, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

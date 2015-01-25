@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_X87
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -627,5 +631,8 @@ void Code::PatchPlatformCodeAge(Isolate* isolate,
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_X87
+
 
 #endif  // V8_TARGET_ARCH_X87

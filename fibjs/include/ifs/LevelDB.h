@@ -71,17 +71,17 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"has", s_has},
-			{"get", s_get},
-			{"mget", s_mget},
-			{"set", s_set},
-			{"mset", s_mset},
-			{"remove", s_remove},
-			{"forEach", s_forEach},
-			{"between", s_between},
-			{"begin", s_begin},
-			{"commit", s_commit},
-			{"close", s_close}
+			{"has", s_has, false},
+			{"get", s_get, false},
+			{"mget", s_mget, false},
+			{"set", s_set, false},
+			{"mset", s_mset, false},
+			{"remove", s_remove, false},
+			{"forEach", s_forEach, false},
+			{"between", s_between, false},
+			{"begin", s_begin, false},
+			{"commit", s_commit, false},
+			{"close", s_close, false}
 		};
 
 		static ClassData s_cd = 

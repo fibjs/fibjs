@@ -35,6 +35,7 @@ public:
 	virtual result_t write(v8::Local<v8::Array> datas) = 0;
 	virtual result_t write(Buffer_base* data) = 0;
 	virtual result_t write(const char* str, const char* codec) = 0;
+	virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
 	virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
 	virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
 	virtual result_t readUInt16BE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -84,6 +85,7 @@ public:
 	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -132,44 +134,45 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"resize", s_resize},
-			{"write", s_write},
-			{"readUInt8", s_readUInt8},
-			{"readUInt16LE", s_readUInt16LE},
-			{"readUInt16BE", s_readUInt16BE},
-			{"readUInt32LE", s_readUInt32LE},
-			{"readUInt32BE", s_readUInt32BE},
-			{"readInt8", s_readInt8},
-			{"readInt16LE", s_readInt16LE},
-			{"readInt16BE", s_readInt16BE},
-			{"readInt32LE", s_readInt32LE},
-			{"readInt32BE", s_readInt32BE},
-			{"readInt64LE", s_readInt64LE},
-			{"readInt64BE", s_readInt64BE},
-			{"readFloatLE", s_readFloatLE},
-			{"readFloatBE", s_readFloatBE},
-			{"readDoubleLE", s_readDoubleLE},
-			{"readDoubleBE", s_readDoubleBE},
-			{"writeUInt8", s_writeUInt8},
-			{"writeUInt16LE", s_writeUInt16LE},
-			{"writeUInt16BE", s_writeUInt16BE},
-			{"writeUInt32LE", s_writeUInt32LE},
-			{"writeUInt32BE", s_writeUInt32BE},
-			{"writeInt8", s_writeInt8},
-			{"writeInt16LE", s_writeInt16LE},
-			{"writeInt16BE", s_writeInt16BE},
-			{"writeInt32LE", s_writeInt32LE},
-			{"writeInt32BE", s_writeInt32BE},
-			{"writeInt64LE", s_writeInt64LE},
-			{"writeInt64BE", s_writeInt64BE},
-			{"writeFloatLE", s_writeFloatLE},
-			{"writeFloatBE", s_writeFloatBE},
-			{"writeDoubleLE", s_writeDoubleLE},
-			{"writeDoubleBE", s_writeDoubleBE},
-			{"slice", s_slice},
-			{"hex", s_hex},
-			{"base64", s_base64},
-			{"toString", s_toString}
+			{"resize", s_resize, false},
+			{"write", s_write, false},
+			{"copy", s_copy, false},
+			{"readUInt8", s_readUInt8, false},
+			{"readUInt16LE", s_readUInt16LE, false},
+			{"readUInt16BE", s_readUInt16BE, false},
+			{"readUInt32LE", s_readUInt32LE, false},
+			{"readUInt32BE", s_readUInt32BE, false},
+			{"readInt8", s_readInt8, false},
+			{"readInt16LE", s_readInt16LE, false},
+			{"readInt16BE", s_readInt16BE, false},
+			{"readInt32LE", s_readInt32LE, false},
+			{"readInt32BE", s_readInt32BE, false},
+			{"readInt64LE", s_readInt64LE, false},
+			{"readInt64BE", s_readInt64BE, false},
+			{"readFloatLE", s_readFloatLE, false},
+			{"readFloatBE", s_readFloatBE, false},
+			{"readDoubleLE", s_readDoubleLE, false},
+			{"readDoubleBE", s_readDoubleBE, false},
+			{"writeUInt8", s_writeUInt8, false},
+			{"writeUInt16LE", s_writeUInt16LE, false},
+			{"writeUInt16BE", s_writeUInt16BE, false},
+			{"writeUInt32LE", s_writeUInt32LE, false},
+			{"writeUInt32BE", s_writeUInt32BE, false},
+			{"writeInt8", s_writeInt8, false},
+			{"writeInt16LE", s_writeInt16LE, false},
+			{"writeInt16BE", s_writeInt16BE, false},
+			{"writeInt32LE", s_writeInt32LE, false},
+			{"writeInt32BE", s_writeInt32BE, false},
+			{"writeInt64LE", s_writeInt64LE, false},
+			{"writeInt64BE", s_writeInt64BE, false},
+			{"writeFloatLE", s_writeFloatLE, false},
+			{"writeFloatBE", s_writeFloatBE, false},
+			{"writeDoubleLE", s_writeDoubleLE, false},
+			{"writeDoubleBE", s_writeDoubleBE, false},
+			{"slice", s_slice, false},
+			{"hex", s_hex, false},
+			{"base64", s_base64, false},
+			{"toString", s_toString, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -185,7 +188,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			38, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			39, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -295,6 +298,23 @@ namespace fibjs
 		hr = pInst->write(v0, v1);
 
 		METHOD_VOID();
+	}
+
+	inline void Buffer_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(4, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		OPT_ARG(int32_t, 1, 0);
+		OPT_ARG(int32_t, 2, 0);
+		OPT_ARG(int32_t, 3, -1);
+
+		hr = pInst->copy(v0, v1, v2, v3, vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void Buffer_base::s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args)

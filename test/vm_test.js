@@ -97,6 +97,24 @@ describe("vm", function() {
 		assert.deepEqual(b, b1);
 	});
 
+	it("clone", function() {
+		sbox = new vm.SandBox({
+			a: 100,
+			b: 200
+		});
+		assert.equal(sbox.require("a"), 100);
+
+		var sb1 = sbox.clone();
+		assert.equal(sb1.require("a"), 100);
+
+		sb1.add("c", 300);
+		assert.equal(sb1.require("c"), 300);
+
+		assert.throws(function() {
+			sbox.require("c");
+		});
+	});
+
 	it("block global hacker", function() {
 		sbox = new vm.SandBox({});
 		assert.throws(function() {

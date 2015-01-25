@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_MIPS
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -591,11 +595,12 @@ void MacroAssembler::LoadFromNumberDictionary(Label* miss,
   }
 
   bind(&done);
-  // Check that the value is a normal property.
+  // Check that the value is a field property.
   // reg2: elements + (index * kPointerSize).
   const int kDetailsOffset =
       SeededNumberDictionary::kElementsStartOffset + 2 * kPointerSize;
   lw(reg1, FieldMemOperand(reg2, kDetailsOffset));
+  DCHECK_EQ(FIELD, 0);
   And(at, reg1, Operand(Smi::FromInt(PropertyDetails::TypeField::kMask)));
   Branch(miss, ne, at, Operand(zero_reg));
 
@@ -1545,6 +1550,12 @@ void MacroAssembler::BranchF(Label* target,
   if (bd == PROTECT) {
     nop();
   }
+}
+
+
+void MacroAssembler::Move(FPURegister dst, float imm) {
+  li(at, Operand(bit_cast<int32_t>(imm)));
+  mtc1(at, dst);
 }
 
 
@@ -3991,17 +4002,17 @@ void MacroAssembler::CheckMap(Register obj,
 }
 
 
-void MacroAssembler::DispatchMap(Register obj,
-                                 Register scratch,
-                                 Handle<Map> map,
-                                 Handle<Code> success,
-                                 SmiCheckType smi_check_type) {
+void MacroAssembler::DispatchWeakMap(Register obj, Register scratch1,
+                                     Register scratch2, Handle<WeakCell> cell,
+                                     Handle<Code> success,
+                                     SmiCheckType smi_check_type) {
   Label fail;
   if (smi_check_type == DO_SMI_CHECK) {
     JumpIfSmi(obj, &fail);
   }
-  lw(scratch, FieldMemOperand(obj, HeapObject::kMapOffset));
-  Jump(success, RelocInfo::CODE_TARGET, eq, scratch, Operand(map));
+  lw(scratch1, FieldMemOperand(obj, HeapObject::kMapOffset));
+  GetWeakValue(scratch2, cell);
+  Jump(success, RelocInfo::CODE_TARGET, eq, scratch1, Operand(scratch2));
   bind(&fail);
 }
 
@@ -4017,6 +4028,19 @@ void MacroAssembler::CheckMap(Register obj,
   lw(scratch, FieldMemOperand(obj, HeapObject::kMapOffset));
   LoadRoot(at, index);
   Branch(fail, ne, scratch, Operand(at));
+}
+
+
+void MacroAssembler::GetWeakValue(Register value, Handle<WeakCell> cell) {
+  li(value, Operand(cell));
+  lw(value, FieldMemOperand(value, WeakCell::kValueOffset));
+}
+
+
+void MacroAssembler::LoadWeakValue(Register value, Handle<WeakCell> cell,
+                                   Label* miss) {
+  GetWeakValue(value, cell);
+  JumpIfSmi(value, miss);
 }
 
 
@@ -4399,10 +4423,8 @@ static int AddressOffset(ExternalReference ref0, ExternalReference ref1) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(
-    Register function_address,
-    ExternalReference thunk_ref,
-    int stack_space,
-    MemOperand return_value_operand,
+    Register function_address, ExternalReference thunk_ref, int stack_space,
+    MemOperand* stack_space_operand, MemOperand return_value_operand,
     MemOperand* context_restore_operand) {
   ExternalReference next_address =
       ExternalReference::handle_scope_next_address(isolate());
@@ -4496,8 +4518,13 @@ void MacroAssembler::CallApiFunctionAndReturn(
   if (restore_context) {
     lw(cp, *context_restore_operand);
   }
-  li(s0, Operand(stack_space));
-  LeaveExitFrame(false, s0, !restore_context, EMIT_RETURN);
+  if (stack_space_operand != NULL) {
+    lw(s0, *stack_space_operand);
+  } else {
+    li(s0, Operand(stack_space));
+  }
+  LeaveExitFrame(false, s0, !restore_context, EMIT_RETURN,
+                 stack_space_operand != NULL);
 
   bind(&promote_scheduled_exception);
   {
@@ -5146,10 +5173,9 @@ void MacroAssembler::EnterExitFrame(bool save_doubles,
 }
 
 
-void MacroAssembler::LeaveExitFrame(bool save_doubles,
-                                    Register argument_count,
-                                    bool restore_context,
-                                    bool do_return) {
+void MacroAssembler::LeaveExitFrame(bool save_doubles, Register argument_count,
+                                    bool restore_context, bool do_return,
+                                    bool argument_count_is_length) {
   // Optionally restore all double registers.
   if (save_doubles) {
     // Remember: we only need to restore every 2nd double FPU value.
@@ -5180,8 +5206,12 @@ void MacroAssembler::LeaveExitFrame(bool save_doubles,
   lw(ra, MemOperand(sp, ExitFrameConstants::kCallerPCOffset));
 
   if (argument_count.is_valid()) {
-    sll(t8, argument_count, kPointerSizeLog2);
-    addu(sp, sp, t8);
+    if (argument_count_is_length) {
+      addu(sp, sp, argument_count);
+    } else {
+      sll(t8, argument_count, kPointerSizeLog2);
+      addu(sp, sp, t8);
+    }
   }
 
   if (do_return) {
@@ -5785,18 +5815,6 @@ void MacroAssembler::CheckPageFlag(
 }
 
 
-void MacroAssembler::CheckMapDeprecated(Handle<Map> map,
-                                        Register scratch,
-                                        Label* if_deprecated) {
-  if (map->CanBeDeprecated()) {
-    li(scratch, Operand(map));
-    lw(scratch, FieldMemOperand(scratch, Map::kBitField3Offset));
-    And(scratch, scratch, Operand(Map::Deprecated::kMask));
-    Branch(if_deprecated, ne, scratch, Operand(zero_reg));
-  }
-}
-
-
 void MacroAssembler::JumpIfBlack(Register object,
                                  Register scratch0,
                                  Register scratch1,
@@ -6267,5 +6285,8 @@ void MacroAssembler::TruncatingDiv(Register result,
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_MIPS
+
 
 #endif  // V8_TARGET_ARCH_MIPS

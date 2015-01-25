@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_ARM
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -1118,9 +1122,9 @@ int MacroAssembler::ActivationFrameAlignment() {
 }
 
 
-void MacroAssembler::LeaveExitFrame(bool save_doubles,
-                                    Register argument_count,
-                                    bool restore_context) {
+void MacroAssembler::LeaveExitFrame(bool save_doubles, Register argument_count,
+                                    bool restore_context,
+                                    bool argument_count_is_length) {
   ConstantPoolUnavailableScope constant_pool_unavailable(this);
 
   // Optionally restore all double registers.
@@ -1154,7 +1158,11 @@ void MacroAssembler::LeaveExitFrame(bool save_doubles,
   mov(sp, Operand(fp));
   ldm(ia_w, sp, fp.bit() | lr.bit());
   if (argument_count.is_valid()) {
-    add(sp, sp, Operand(argument_count, LSL, kPointerSizeLog2));
+    if (argument_count_is_length) {
+      add(sp, sp, argument_count);
+    } else {
+      add(sp, sp, Operand(argument_count, LSL, kPointerSizeLog2));
+    }
   }
 }
 
@@ -1699,11 +1707,12 @@ void MacroAssembler::LoadFromNumberDictionary(Label* miss,
   }
 
   bind(&done);
-  // Check that the value is a normal property.
+  // Check that the value is a field property.
   // t2: elements + (index * kPointerSize)
   const int kDetailsOffset =
       SeededNumberDictionary::kElementsStartOffset + 2 * kPointerSize;
   ldr(t1, FieldMemOperand(t2, kDetailsOffset));
+  DCHECK_EQ(FIELD, 0);
   tst(t1, Operand(Smi::FromInt(PropertyDetails::TypeField::kMask)));
   b(ne, miss);
 
@@ -2251,20 +2260,34 @@ void MacroAssembler::CheckMap(Register obj,
 }
 
 
-void MacroAssembler::DispatchMap(Register obj,
-                                 Register scratch,
-                                 Handle<Map> map,
-                                 Handle<Code> success,
-                                 SmiCheckType smi_check_type) {
+void MacroAssembler::DispatchWeakMap(Register obj, Register scratch1,
+                                     Register scratch2, Handle<WeakCell> cell,
+                                     Handle<Code> success,
+                                     SmiCheckType smi_check_type) {
   Label fail;
   if (smi_check_type == DO_SMI_CHECK) {
     JumpIfSmi(obj, &fail);
   }
-  ldr(scratch, FieldMemOperand(obj, HeapObject::kMapOffset));
-  mov(ip, Operand(map));
-  cmp(scratch, ip);
+  ldr(scratch1, FieldMemOperand(obj, HeapObject::kMapOffset));
+  CmpWeakValue(scratch1, cell, scratch2);
   Jump(success, RelocInfo::CODE_TARGET, eq);
   bind(&fail);
+}
+
+
+void MacroAssembler::CmpWeakValue(Register value, Handle<WeakCell> cell,
+                                  Register scratch) {
+  mov(scratch, Operand(cell));
+  ldr(scratch, FieldMemOperand(scratch, WeakCell::kValueOffset));
+  cmp(value, scratch);
+}
+
+
+void MacroAssembler::LoadWeakValue(Register value, Handle<WeakCell> cell,
+                                   Label* miss) {
+  mov(value, Operand(cell));
+  ldr(value, FieldMemOperand(value, WeakCell::kValueOffset));
+  JumpIfSmi(value, miss);
 }
 
 
@@ -2348,10 +2371,8 @@ static int AddressOffset(ExternalReference ref0, ExternalReference ref1) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(
-    Register function_address,
-    ExternalReference thunk_ref,
-    int stack_space,
-    MemOperand return_value_operand,
+    Register function_address, ExternalReference thunk_ref, int stack_space,
+    MemOperand* stack_space_operand, MemOperand return_value_operand,
     MemOperand* context_restore_operand) {
   ExternalReference next_address =
       ExternalReference::handle_scope_next_address(isolate());
@@ -2449,8 +2470,12 @@ void MacroAssembler::CallApiFunctionAndReturn(
     ldr(cp, *context_restore_operand);
   }
   // LeaveExitFrame expects unwind space to be in a register.
-  mov(r4, Operand(stack_space));
-  LeaveExitFrame(false, r4, !restore_context);
+  if (stack_space_operand != NULL) {
+    ldr(r4, *stack_space_operand);
+  } else {
+    mov(r4, Operand(stack_space));
+  }
+  LeaveExitFrame(false, r4, !restore_context, stack_space_operand != NULL);
   mov(pc, lr);
 
   bind(&promote_scheduled_exception);
@@ -3653,18 +3678,6 @@ void MacroAssembler::CheckPageFlag(
 }
 
 
-void MacroAssembler::CheckMapDeprecated(Handle<Map> map,
-                                        Register scratch,
-                                        Label* if_deprecated) {
-  if (map->CanBeDeprecated()) {
-    mov(scratch, Operand(map));
-    ldr(scratch, FieldMemOperand(scratch, Map::kBitField3Offset));
-    tst(scratch, Operand(Map::Deprecated::kMask));
-    b(ne, if_deprecated);
-  }
-}
-
-
 void MacroAssembler::JumpIfBlack(Register object,
                                  Register scratch0,
                                  Register scratch1,
@@ -4088,5 +4101,8 @@ void MacroAssembler::TruncatingDiv(Register result,
 
 }  // namespace internal
 }  // namespace v8
+
+#endif  // V8_TARGET_ARCH_ARM
+
 
 #endif  // V8_TARGET_ARCH_ARM

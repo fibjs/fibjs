@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_IA32
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -740,16 +744,16 @@ void MacroAssembler::CheckMap(Register obj,
 }
 
 
-void MacroAssembler::DispatchMap(Register obj,
-                                 Register unused,
-                                 Handle<Map> map,
-                                 Handle<Code> success,
-                                 SmiCheckType smi_check_type) {
+void MacroAssembler::DispatchWeakMap(Register obj, Register scratch1,
+                                     Register scratch2, Handle<WeakCell> cell,
+                                     Handle<Code> success,
+                                     SmiCheckType smi_check_type) {
   Label fail;
   if (smi_check_type == DO_SMI_CHECK) {
     JumpIfSmi(obj, &fail);
   }
-  cmp(FieldOperand(obj, HeapObject::kMapOffset), Immediate(map));
+  mov(scratch1, FieldOperand(obj, HeapObject::kMapOffset));
+  CmpWeakValue(scratch1, cell, scratch2);
   j(equal, success);
 
   bind(&fail);
@@ -1356,10 +1360,10 @@ void MacroAssembler::LoadFromNumberDictionary(Label* miss,
   }
 
   bind(&done);
-  // Check that the value is a normal propety.
+  // Check that the value is a field property.
   const int kDetailsOffset =
       SeededNumberDictionary::kElementsStartOffset + 2 * kPointerSize;
-  DCHECK_EQ(NORMAL, 0);
+  DCHECK_EQ(FIELD, 0);
   test(FieldOperand(elements, r2, times_pointer_size, kDetailsOffset),
        Immediate(PropertyDetails::TypeField::kMask << kSmiTagSize));
   j(not_zero, miss);
@@ -2098,12 +2102,9 @@ void MacroAssembler::PrepareCallApiFunction(int argc) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(
-    Register function_address,
-    ExternalReference thunk_ref,
-    Operand thunk_last_arg,
-    int stack_space,
-    Operand return_value_operand,
-    Operand* context_restore_operand) {
+    Register function_address, ExternalReference thunk_ref,
+    Operand thunk_last_arg, int stack_space, Operand* stack_space_operand,
+    Operand return_value_operand, Operand* context_restore_operand) {
   ExternalReference next_address =
       ExternalReference::handle_scope_next_address(isolate());
   ExternalReference limit_address =
@@ -2183,7 +2184,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
   j(not_equal, &promote_scheduled_exception);
   bind(&exception_handled);
 
-#if ENABLE_EXTRA_CHECKS
+#if DEBUG
   // Check if the function returned a valid JavaScript value.
   Label ok;
   Register return_value = eax;
@@ -2222,8 +2223,18 @@ void MacroAssembler::CallApiFunctionAndReturn(
   if (restore_context) {
     mov(esi, *context_restore_operand);
   }
+  if (stack_space_operand != nullptr) {
+    mov(ebx, *stack_space_operand);
+  }
   LeaveApiExitFrame(!restore_context);
-  ret(stack_space * kPointerSize);
+  if (stack_space_operand != nullptr) {
+    DCHECK_EQ(0, stack_space);
+    pop(ecx);
+    add(esp, ebx);
+    jmp(ecx);
+  } else {
+    ret(stack_space * kPointerSize);
+  }
 
   bind(&promote_scheduled_exception);
   {
@@ -2577,6 +2588,21 @@ void MacroAssembler::PushHeapObject(Handle<HeapObject> object) {
   } else {
     Push(object);
   }
+}
+
+
+void MacroAssembler::CmpWeakValue(Register value, Handle<WeakCell> cell,
+                                  Register scratch) {
+  mov(scratch, cell);
+  cmp(value, FieldOperand(scratch, WeakCell::kValueOffset));
+}
+
+
+void MacroAssembler::LoadWeakValue(Register value, Handle<WeakCell> cell,
+                                   Label* miss) {
+  mov(value, cell);
+  mov(value, FieldOperand(value, WeakCell::kValueOffset));
+  JumpIfSmi(value, miss);
 }
 
 
@@ -3157,18 +3183,6 @@ void MacroAssembler::CheckPageFlagForMap(
 }
 
 
-void MacroAssembler::CheckMapDeprecated(Handle<Map> map,
-                                        Register scratch,
-                                        Label* if_deprecated) {
-  if (map->CanBeDeprecated()) {
-    mov(scratch, map);
-    mov(scratch, FieldOperand(scratch, Map::kBitField3Offset));
-    and_(scratch, Immediate(Map::Deprecated::kMask));
-    j(not_zero, if_deprecated);
-  }
-}
-
-
 void MacroAssembler::JumpIfBlack(Register object,
                                  Register scratch0,
                                  Register scratch1,
@@ -3452,5 +3466,8 @@ void MacroAssembler::TruncatingDiv(Register dividend, int32_t divisor) {
 
 
 } }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_IA32
+
 
 #endif  // V8_TARGET_ARCH_IA32

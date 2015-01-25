@@ -43,10 +43,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"dispose", s_dispose},
-			{"toString", s_toString},
-			{"toJSON", s_toJSON},
-			{"valueOf", s_valueOf}
+			{"dispose", s_dispose, false},
+			{"toString", s_toString, false},
+			{"toJSON", s_toJSON, false},
+			{"valueOf", s_valueOf, false}
 		};
 
 		static ClassData s_cd = 

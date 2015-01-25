@@ -26,7 +26,8 @@ class LoopBuilder;
 // of function inlining.
 class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
  public:
-  AstGraphBuilder(Zone* local_zone, CompilationInfo* info, JSGraph* jsgraph);
+  AstGraphBuilder(Zone* local_zone, CompilationInfo* info, JSGraph* jsgraph,
+                  LoopAssignmentAnalysis* loop_assignment = NULL);
 
   // Creates a graph by visiting the entire AST.
   bool CreateGraph();
@@ -56,11 +57,7 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   // Support for control flow builders. The concrete type of the environment
   // depends on the graph builder, but environments themselves are not virtual.
   typedef StructuredGraphBuilder::Environment BaseEnvironment;
-  virtual BaseEnvironment* CopyEnvironment(BaseEnvironment* env) OVERRIDE;
-
-  // TODO(mstarzinger): The pipeline only needs to be a friend to access the
-  // function context. Remove as soon as the context is a parameter.
-  friend class Pipeline;
+  BaseEnvironment* CopyEnvironment(BaseEnvironment* env) OVERRIDE;
 
   // Getters for values in the activation record.
   Node* GetFunctionClosure();
@@ -72,8 +69,12 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   // other dependencies tracked by the environment might be mutated though.
   //
 
-  // Builder to create a local function context.
+  // Builder to create a receiver check for sloppy mode.
+  Node* BuildPatchReceiverToGlobalProxy(Node* receiver);
+
+  // Builders to create local function and block contexts.
   Node* BuildLocalFunctionContext(Node* context, Node* closure);
+  Node* BuildLocalBlockContext(Scope* scope);
 
   // Builder to create an arguments object if it is used.
   Node* BuildArgumentsObject(Variable* arguments);
@@ -92,6 +93,7 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   // Builders for accessing the function context.
   Node* BuildLoadBuiltinsObject();
   Node* BuildLoadGlobalObject();
+  Node* BuildLoadGlobalProxy();
   Node* BuildLoadClosure();
   Node* BuildLoadObjectField(Node* object, int offset);
 
@@ -100,6 +102,7 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
 
   // Builders for error reporting at runtime.
   Node* BuildThrowReferenceError(Variable* var, BailoutId bailout_id);
+  Node* BuildThrowConstAssignError(BailoutId bailout_id);
 
   // Builders for dynamic hole-checks at runtime.
   Node* BuildHoleCheckSilent(Node* value, Node* for_hole, Node* not_hole);
@@ -112,13 +115,16 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   // Builder for stack-check guards.
   Node* BuildStackCheck();
 
-#define DECLARE_VISIT(type) virtual void Visit##type(type* node) OVERRIDE;
+  bool IsOsrLoopEntry(IterationStatement* stmt);
+
+#define DECLARE_VISIT(type) void Visit##type(type* node) OVERRIDE;
+
   // Visiting functions for AST nodes make this an AstVisitor.
   AST_NODE_LIST(DECLARE_VISIT)
 #undef DECLARE_VISIT
 
   // Visiting function for declarations list is overridden.
-  virtual void VisitDeclarations(ZoneList<Declaration*>* declarations) OVERRIDE;
+  void VisitDeclarations(ZoneList<Declaration*>* declarations) OVERRIDE;
 
  private:
   CompilationInfo* info_;
@@ -126,7 +132,7 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   JSGraph* jsgraph_;
 
   // List of global declarations for functions and variables.
-  ZoneList<Handle<Object> > globals_;
+  ZoneVector<Handle<Object>> globals_;
 
   // Stack of breakable statements entered by the visitor.
   BreakableScope* breakable_;
@@ -138,6 +144,9 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   SetOncePointer<Node> function_closure_;
   SetOncePointer<Node> function_context_;
 
+  // The node representing the OSR entry into the loop, if any.
+  SetOncePointer<Node> osr_loop_entry_;
+
   // Result of loop assignment analysis performed before graph creation.
   LoopAssignmentAnalysis* loop_assignment_analysis_;
 
@@ -145,7 +154,7 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   inline StrictMode strict_mode() const;
   JSGraph* jsgraph() { return jsgraph_; }
   JSOperatorBuilder* javascript() { return jsgraph_->javascript(); }
-  ZoneList<Handle<Object> >* globals() { return &globals_; }
+  ZoneVector<Handle<Object>>* globals() { return &globals_; }
 
   // Current scope during visitation.
   inline Scope* current_scope() const;
@@ -166,6 +175,7 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
   void VisitForEffect(Expression* expr);
   void VisitForValue(Expression* expr);
   void VisitForValueOrNull(Expression* expr);
+  void VisitForValueOrTheHole(Expression* expr);
   void VisitForValues(ZoneList<Expression*>* exprs);
 
   // Common for all IterationStatement bodies.
@@ -187,6 +197,9 @@ class AstGraphBuilder : public StructuredGraphBuilder, public AstVisitor {
 
   // Dispatched from VisitForInStatement.
   void VisitForInAssignment(Expression* expr, Node* value);
+
+  // Dispatched from VisitClassLiteral.
+  void VisitClassLiteralContents(ClassLiteral* expr);
 
   // Builds deoptimization for a given node.
   void PrepareFrameState(
@@ -345,9 +358,9 @@ class AstGraphBuilder::AstEffectContext FINAL : public AstContext {
  public:
   explicit AstEffectContext(AstGraphBuilder* owner)
       : AstContext(owner, Expression::kEffect) {}
-  virtual ~AstEffectContext();
-  virtual void ProduceValue(Node* value) OVERRIDE;
-  virtual Node* ConsumeValue() OVERRIDE;
+  ~AstEffectContext() FINAL;
+  void ProduceValue(Node* value) FINAL;
+  Node* ConsumeValue() FINAL;
 };
 
 
@@ -356,9 +369,9 @@ class AstGraphBuilder::AstValueContext FINAL : public AstContext {
  public:
   explicit AstValueContext(AstGraphBuilder* owner)
       : AstContext(owner, Expression::kValue) {}
-  virtual ~AstValueContext();
-  virtual void ProduceValue(Node* value) OVERRIDE;
-  virtual Node* ConsumeValue() OVERRIDE;
+  ~AstValueContext() FINAL;
+  void ProduceValue(Node* value) FINAL;
+  Node* ConsumeValue() FINAL;
 };
 
 
@@ -367,9 +380,9 @@ class AstGraphBuilder::AstTestContext FINAL : public AstContext {
  public:
   explicit AstTestContext(AstGraphBuilder* owner)
       : AstContext(owner, Expression::kTest) {}
-  virtual ~AstTestContext();
-  virtual void ProduceValue(Node* value) OVERRIDE;
-  virtual Node* ConsumeValue() OVERRIDE;
+  ~AstTestContext() FINAL;
+  void ProduceValue(Node* value) FINAL;
+  Node* ConsumeValue() FINAL;
 };
 
 

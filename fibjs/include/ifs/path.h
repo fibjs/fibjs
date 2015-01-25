@@ -51,12 +51,12 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"normalize", s_normalize},
-			{"basename", s_basename},
-			{"extname", s_extname},
-			{"dirname", s_dirname},
-			{"fullpath", s_fullpath},
-			{"join", s_join}
+			{"normalize", s_normalize, true},
+			{"basename", s_basename, true},
+			{"extname", s_extname, true},
+			{"dirname", s_dirname, true},
+			{"fullpath", s_fullpath, true},
+			{"join", s_join, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

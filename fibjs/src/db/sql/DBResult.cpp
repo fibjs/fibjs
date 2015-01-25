@@ -94,7 +94,7 @@ result_t DBResult::every(v8::Local<v8::Function> func,
 }
 
 result_t DBResult::some(v8::Local<v8::Function> func,
-                         v8::Local<v8::Object> thisp, bool &retVal)
+                        v8::Local<v8::Object> thisp, bool &retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -131,9 +131,6 @@ result_t DBResult::map(v8::Local<v8::Function> func,
 
 result_t DBResult::toArray(v8::Local<v8::Array> &retVal)
 {
-    if (!m_size)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     return m_array.toArray(retVal);
 }
 

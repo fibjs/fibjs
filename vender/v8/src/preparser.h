@@ -83,41 +83,69 @@ class ParserBase : public Traits {
         scanner_(scanner),
         stack_overflow_(false),
         allow_lazy_(false),
-        allow_natives_syntax_(false),
-        allow_arrow_functions_(false),
+        allow_natives_(false),
+        allow_harmony_arrow_functions_(false),
         allow_harmony_object_literals_(false),
+        allow_harmony_sloppy_(false),
+        allow_harmony_computed_property_names_(false),
         zone_(zone) {}
 
   // Getters that indicate whether certain syntactical constructs are
   // allowed to be parsed by this instance of the parser.
   bool allow_lazy() const { return allow_lazy_; }
-  bool allow_natives_syntax() const { return allow_natives_syntax_; }
-  bool allow_arrow_functions() const { return allow_arrow_functions_; }
-  bool allow_modules() const { return scanner()->HarmonyModules(); }
+  bool allow_natives() const { return allow_natives_; }
+  bool allow_harmony_arrow_functions() const {
+    return allow_harmony_arrow_functions_;
+  }
+  bool allow_harmony_modules() const { return scanner()->HarmonyModules(); }
   bool allow_harmony_scoping() const { return scanner()->HarmonyScoping(); }
   bool allow_harmony_numeric_literals() const {
     return scanner()->HarmonyNumericLiterals();
   }
-  bool allow_classes() const { return scanner()->HarmonyClasses(); }
+  bool allow_harmony_classes() const { return scanner()->HarmonyClasses(); }
   bool allow_harmony_object_literals() const {
     return allow_harmony_object_literals_;
+  }
+  bool allow_harmony_templates() const { return scanner()->HarmonyTemplates(); }
+  bool allow_harmony_sloppy() const { return allow_harmony_sloppy_; }
+  bool allow_harmony_unicode() const { return scanner()->HarmonyUnicode(); }
+  bool allow_harmony_computed_property_names() const {
+    return allow_harmony_computed_property_names_;
   }
 
   // Setters that determine whether certain syntactical constructs are
   // allowed to be parsed by this instance of the parser.
   void set_allow_lazy(bool allow) { allow_lazy_ = allow; }
-  void set_allow_natives_syntax(bool allow) { allow_natives_syntax_ = allow; }
-  void set_allow_arrow_functions(bool allow) { allow_arrow_functions_ = allow; }
-  void set_allow_modules(bool allow) { scanner()->SetHarmonyModules(allow); }
+  void set_allow_natives(bool allow) { allow_natives_ = allow; }
+  void set_allow_harmony_arrow_functions(bool allow) {
+    allow_harmony_arrow_functions_ = allow;
+  }
+  void set_allow_harmony_modules(bool allow) {
+    scanner()->SetHarmonyModules(allow);
+  }
   void set_allow_harmony_scoping(bool allow) {
     scanner()->SetHarmonyScoping(allow);
   }
   void set_allow_harmony_numeric_literals(bool allow) {
     scanner()->SetHarmonyNumericLiterals(allow);
   }
-  void set_allow_classes(bool allow) { scanner()->SetHarmonyClasses(allow); }
+  void set_allow_harmony_classes(bool allow) {
+    scanner()->SetHarmonyClasses(allow);
+  }
   void set_allow_harmony_object_literals(bool allow) {
     allow_harmony_object_literals_ = allow;
+  }
+  void set_allow_harmony_templates(bool allow) {
+    scanner()->SetHarmonyTemplates(allow);
+  }
+  void set_allow_harmony_sloppy(bool allow) {
+    allow_harmony_sloppy_ = allow;
+  }
+  void set_allow_harmony_unicode(bool allow) {
+    scanner()->SetHarmonyUnicode(allow);
+  }
+  void set_allow_harmony_computed_property_names(bool allow) {
+    allow_harmony_computed_property_names_ = allow;
   }
 
  protected:
@@ -364,15 +392,24 @@ class ParserBase : public Traits {
   }
 
   // Checks whether an octal literal was last seen between beg_pos and end_pos.
-  // If so, reports an error. Only called for strict mode.
-  void CheckOctalLiteral(int beg_pos, int end_pos, bool* ok) {
+  // If so, reports an error. Only called for strict mode and template strings.
+  void CheckOctalLiteral(int beg_pos, int end_pos, const char* error,
+                         bool* ok) {
     Scanner::Location octal = scanner()->octal_position();
     if (octal.IsValid() && beg_pos <= octal.beg_pos &&
         octal.end_pos <= end_pos) {
-      ReportMessageAt(octal, "strict_octal_literal");
+      ReportMessageAt(octal, error);
       scanner()->clear_octal_position();
       *ok = false;
     }
+  }
+
+  inline void CheckStrictOctalLiteral(int beg_pos, int end_pos, bool* ok) {
+    CheckOctalLiteral(beg_pos, end_pos, "strict_octal_literal", ok);
+  }
+
+  inline void CheckTemplateOctalLiteral(int beg_pos, int end_pos, bool* ok) {
+    CheckOctalLiteral(beg_pos, end_pos, "template_octal_literal", ok);
   }
 
   // Validates strict mode for function parameter lists. This has to be
@@ -437,7 +474,7 @@ class ParserBase : public Traits {
   void ReportMessageAt(Scanner::Location location, const char* message,
                        bool is_reference_error = false) {
     Traits::ReportMessageAt(location, message,
-                            reinterpret_cast<const char*>(NULL),
+                            reinterpret_cast<const char*>(0),
                             is_reference_error);
   }
 
@@ -469,11 +506,13 @@ class ParserBase : public Traits {
   ExpressionT ParsePrimaryExpression(bool* ok);
   ExpressionT ParseExpression(bool accept_IN, bool* ok);
   ExpressionT ParseArrayLiteral(bool* ok);
-  IdentifierT ParsePropertyName(bool* is_get, bool* is_set, bool* is_static,
+  ExpressionT ParsePropertyName(IdentifierT* name, bool* is_get, bool* is_set,
+                                bool* is_static, bool* is_computed_name,
                                 bool* ok);
   ExpressionT ParseObjectLiteral(bool* ok);
   ObjectLiteralPropertyT ParsePropertyDefinition(ObjectLiteralChecker* checker,
                                                  bool in_class, bool is_static,
+                                                 bool* is_computed_name,
                                                  bool* has_seen_constructor,
                                                  bool* ok);
   typename Traits::Type::ExpressionList ParseArguments(bool* ok);
@@ -490,10 +529,8 @@ class ParserBase : public Traits {
                                                 bool* ok);
   ExpressionT ParseArrowFunctionLiteral(int start_pos, ExpressionT params_ast,
                                         bool* ok);
-  ExpressionT ParseClassLiteral(IdentifierT name,
-                                Scanner::Location function_name_location,
-                                bool name_is_strict_reserved, int pos,
-                                bool* ok);
+  ExpressionT ParseTemplateLiteral(ExpressionT tag, int start, bool* ok);
+  void AddTemplateExpression(ExpressionT);
 
   // Checks if the expression is a valid reference expression (e.g., on the
   // left-hand side of assignments). Although ruled out by ECMA as early errors,
@@ -575,9 +612,11 @@ class ParserBase : public Traits {
   bool stack_overflow_;
 
   bool allow_lazy_;
-  bool allow_natives_syntax_;
-  bool allow_arrow_functions_;
+  bool allow_natives_;
+  bool allow_harmony_arrow_functions_;
   bool allow_harmony_object_literals_;
+  bool allow_harmony_sloppy_;
+  bool allow_harmony_computed_property_names_;
 
   typename Traits::Type::Zone* zone_;  // Only used by Parser.
 };
@@ -736,6 +775,12 @@ class PreParserExpression {
                                ExpressionTypeField::encode(kCallExpression));
   }
 
+  static PreParserExpression NoTemplateTag() {
+    return PreParserExpression(TypeField::encode(kExpression) |
+                               ExpressionTypeField::encode(
+                                  kNoTemplateTagExpression));
+  }
+
   bool IsIdentifier() const {
     return TypeField::decode(code_) == kIdentifierExpression;
   }
@@ -789,6 +834,11 @@ class PreParserExpression {
   bool IsFunctionLiteral() const { return false; }
   bool IsCallNew() const { return false; }
 
+  bool IsNoTemplateTag() const {
+    return TypeField::decode(code_) == kExpression &&
+           ExpressionTypeField::decode(code_) == kNoTemplateTagExpression;
+  }
+
   PreParserExpression AsFunctionLiteral() { return *this; }
 
   bool IsBinaryOperation() const {
@@ -815,8 +865,6 @@ class PreParserExpression {
 
   int position() const { return RelocInfo::kNoPosition; }
   void set_function_token_position(int position) {}
-  void set_ast_properties(int* ast_properties) {}
-  void set_dont_optimize_reason(BailoutReason dont_optimize_reason) {}
 
  private:
   enum Type {
@@ -837,7 +885,8 @@ class PreParserExpression {
     kThisPropertyExpression,
     kPropertyExpression,
     kCallExpression,
-    kSuperExpression
+    kSuperExpression,
+    kNoTemplateTagExpression
   };
 
   explicit PreParserExpression(uint32_t expression_code)
@@ -965,6 +1014,8 @@ class PreParserScope {
   bool IsDeclared(const PreParserIdentifier& identifier) const { return false; }
   void DeclareParameter(const PreParserIdentifier& identifier, VariableMode) {}
   void RecordArgumentsUsage() {}
+  void RecordSuperPropertyUsage() {}
+  void RecordSuperConstructorCallUsage() {}
   void RecordThisUsage() {}
 
   // Allow scope->Foo() to work.
@@ -999,13 +1050,16 @@ class PreParserFactory {
     return PreParserExpression::Default();
   }
   PreParserExpression NewObjectLiteralProperty(bool is_getter,
+                                               PreParserExpression key,
                                                PreParserExpression value,
-                                               int pos, bool is_static) {
+                                               int pos, bool is_static,
+                                               bool is_computed_name) {
     return PreParserExpression::Default();
   }
   PreParserExpression NewObjectLiteralProperty(PreParserExpression key,
                                                PreParserExpression value,
-                                               bool is_static) {
+                                               bool is_static,
+                                               bool is_computed_name) {
     return PreParserExpression::Default();
   }
   PreParserExpression NewObjectLiteral(PreParserExpressionList properties,
@@ -1091,18 +1145,10 @@ class PreParserFactory {
       int position) {
     return PreParserExpression::Default();
   }
-  PreParserExpression NewClassLiteral(PreParserIdentifier name,
-                                      PreParserExpression extends,
-                                      PreParserExpression constructor,
-                                      PreParserExpressionList properties,
-                                      int start_position, int end_position) {
-    return PreParserExpression::Default();
-  }
 
   // Return the object itself as AstVisitor and implement the needed
   // dummy method right in this class.
   PreParserFactory* visitor() { return this; }
-  BailoutReason dont_optimize_reason() { return kNoReason; }
   int* ast_properties() {
     static int dummy = 42;
     return &dummy;
@@ -1199,11 +1245,13 @@ class PreParserTraits {
     // PreParser should not use FuncNameInferrer.
     UNREACHABLE();
   }
+
   static void PushPropertyName(FuncNameInferrer* fni,
                                PreParserExpression expression) {
     // PreParser should not use FuncNameInferrer.
     UNREACHABLE();
   }
+
   static void InferFunctionName(FuncNameInferrer* fni,
                                 PreParserExpression expression) {
     // PreParser should not use FuncNameInferrer.
@@ -1318,13 +1366,6 @@ class PreParserTraits {
     return PreParserExpression::Super();
   }
 
-  static PreParserExpression ClassExpression(
-      PreParserIdentifier name, PreParserExpression extends,
-      PreParserExpression constructor, PreParserExpressionList properties,
-      int start_position, int end_position, PreParserFactory* factory) {
-    return PreParserExpression::Default();
-  }
-
   static PreParserExpression DefaultConstructor(bool call_super,
                                                 PreParserScope* scope, int pos,
                                                 int end_pos) {
@@ -1385,6 +1426,29 @@ class PreParserTraits {
     return 0;
   }
 
+  struct TemplateLiteralState {};
+
+  TemplateLiteralState OpenTemplateLiteral(int pos) {
+    return TemplateLiteralState();
+  }
+  void AddTemplateSpan(TemplateLiteralState*, bool) {}
+  void AddTemplateExpression(TemplateLiteralState*, PreParserExpression) {}
+  PreParserExpression CloseTemplateLiteral(TemplateLiteralState*, int,
+                                           PreParserExpression tag) {
+    if (IsTaggedTemplate(tag)) {
+      // Emulate generation of array literals for tag callsite
+      // 1st is array of cooked strings, second is array of raw strings
+      MaterializeTemplateCallsiteLiterals();
+    }
+    return EmptyExpression();
+  }
+  inline void MaterializeTemplateCallsiteLiterals();
+  PreParserExpression NoTemplateTag() {
+    return PreParserExpression::NoTemplateTag();
+  }
+  static bool IsTaggedTemplate(const PreParserExpression tag) {
+    return !tag.IsNoTemplateTag();
+  }
   static AstValueFactory* ast_value_factory() { return NULL; }
 
   void CheckConflictingVarDeclarations(PreParserScope scope, bool* ok) {}
@@ -1396,6 +1460,11 @@ class PreParserTraits {
       bool name_is_strict_reserved, FunctionKind kind,
       int function_token_position, FunctionLiteral::FunctionType type,
       FunctionLiteral::ArityRestriction arity_restriction, bool* ok);
+
+  PreParserExpression ParseClassLiteral(PreParserIdentifier name,
+                                        Scanner::Location class_name_location,
+                                        bool name_is_strict_reserved, int pos,
+                                        bool* ok);
 
  private:
   PreParser* pre_parser_;
@@ -1433,8 +1502,8 @@ class PreParser : public ParserBase<PreParserTraits> {
   // success (even if parsing failed, the pre-parse data successfully
   // captured the syntax error), and false if a stack-overflow happened
   // during parsing.
-  PreParseResult PreParseProgram() {
-    PreParserScope scope(scope_, GLOBAL_SCOPE);
+  PreParseResult PreParseProgram(int* materialized_literals = 0) {
+    PreParserScope scope(scope_, SCRIPT_SCOPE);
     PreParserFactory factory(NULL);
     FunctionState top_scope(&function_state_, &scope_, &scope, &factory);
     bool ok = true;
@@ -1444,7 +1513,11 @@ class PreParser : public ParserBase<PreParserTraits> {
     if (!ok) {
       ReportUnexpectedToken(scanner()->current_token());
     } else if (scope_->strict_mode() == STRICT) {
-      CheckOctalLiteral(start_position, scanner()->location().end_pos, &ok);
+      CheckStrictOctalLiteral(start_position, scanner()->location().end_pos,
+                              &ok);
+    }
+    if (materialized_literals) {
+      *materialized_literals = function_state_->materialized_literal_count();
     }
     return kPreParseSuccess;
   }
@@ -1534,8 +1607,19 @@ class PreParser : public ParserBase<PreParserTraits> {
       FunctionLiteral::ArityRestriction arity_restriction, bool* ok);
   void ParseLazyFunctionLiteralBody(bool* ok);
 
+  PreParserExpression ParseClassLiteral(PreParserIdentifier name,
+                                        Scanner::Location class_name_location,
+                                        bool name_is_strict_reserved, int pos,
+                                        bool* ok);
+
   bool CheckInOrOf(bool accept_OF);
 };
+
+
+void PreParserTraits::MaterializeTemplateCallsiteLiterals() {
+  pre_parser_->function_state_->NextMaterializedLiteralIndex();
+  pre_parser_->function_state_->NextMaterializedLiteralIndex();
+}
 
 
 PreParserStatementList PreParser::ParseEagerFunctionBody(
@@ -1609,6 +1693,10 @@ void ParserBase<Traits>::ReportUnexpectedToken(Token::Value token) {
     case Token::FUTURE_STRICT_RESERVED_WORD:
       return ReportMessageAt(source_location, strict_mode() == SLOPPY
           ? "unexpected_token_identifier" : "unexpected_strict_reserved");
+    case Token::TEMPLATE_SPAN:
+    case Token::TEMPLATE_TAIL:
+      return Traits::ReportMessageAt(source_location,
+          "unexpected_template_string");
     default:
       const char* name = Token::String(token);
       DCHECK(name != NULL);
@@ -1755,6 +1843,7 @@ ParserBase<Traits>::ParsePrimaryExpression(bool* ok) {
   //   RegExpLiteral
   //   ClassLiteral
   //   '(' Expression ')'
+  //   TemplateLiteral
 
   int pos = peek_position();
   ExpressionT result = this->EmptyExpression();
@@ -1810,7 +1899,7 @@ ParserBase<Traits>::ParsePrimaryExpression(bool* ok) {
 
     case Token::LPAREN:
       Consume(Token::LPAREN);
-      if (allow_arrow_functions() && peek() == Token::RPAREN) {
+      if (allow_harmony_arrow_functions() && peek() == Token::RPAREN) {
         // Arrow functions are the only expression type constructions
         // for which an empty parameter list "()" is valid input.
         Consume(Token::RPAREN);
@@ -1828,6 +1917,11 @@ ParserBase<Traits>::ParsePrimaryExpression(bool* ok) {
 
     case Token::CLASS: {
       Consume(Token::CLASS);
+      if (!allow_harmony_sloppy() && strict_mode() == SLOPPY) {
+        ReportMessage("sloppy_lexical", NULL);
+        *ok = false;
+        break;
+      }
       int class_token_position = position();
       IdentifierT name = this->EmptyIdentifier();
       bool is_strict_reserved_name = false;
@@ -1843,8 +1937,14 @@ ParserBase<Traits>::ParsePrimaryExpression(bool* ok) {
       break;
     }
 
+    case Token::TEMPLATE_SPAN:
+    case Token::TEMPLATE_TAIL:
+      result =
+          this->ParseTemplateLiteral(Traits::NoTemplateTag(), pos, CHECK_OK);
+      break;
+
     case Token::MOD:
-      if (allow_natives_syntax() || extension_ != NULL) {
+      if (allow_natives() || extension_ != NULL) {
         result = this->ParseV8Intrinsic(CHECK_OK);
         break;
       }
@@ -1912,34 +2012,68 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseArrayLiteral(
 
 
 template <class Traits>
-typename ParserBase<Traits>::IdentifierT ParserBase<Traits>::ParsePropertyName(
-    bool* is_get, bool* is_set, bool* is_static, bool* ok) {
-  Token::Value next = peek();
-  switch (next) {
+typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParsePropertyName(
+    IdentifierT* name, bool* is_get, bool* is_set, bool* is_static,
+    bool* is_computed_name, bool* ok) {
+  Token::Value token = peek();
+  int pos = peek_position();
+
+  // For non computed property names we normalize the name a bit:
+  //
+  //   "12" -> 12
+  //   12.3 -> "12.3"
+  //   12.30 -> "12.3"
+  //   identifier -> "identifier"
+  //
+  // This is important because we use the property name as a key in a hash
+  // table when we compute constant properties.
+  switch (token) {
     case Token::STRING:
       Consume(Token::STRING);
-      return this->GetSymbol(scanner_);
+      *name = this->GetSymbol(scanner());
+      break;
+
     case Token::NUMBER:
       Consume(Token::NUMBER);
-      return this->GetNumberAsSymbol(scanner_);
+      *name = this->GetNumberAsSymbol(scanner());
+      break;
+
+    case Token::LBRACK:
+      if (allow_harmony_computed_property_names_) {
+        *is_computed_name = true;
+        Consume(Token::LBRACK);
+        ExpressionT expression = ParseAssignmentExpression(true, CHECK_OK);
+        Expect(Token::RBRACK, CHECK_OK);
+        return expression;
+      }
+
+    // Fall through.
     case Token::STATIC:
       *is_static = true;
-      // Fall through.
+
+    // Fall through.
     default:
-      return ParseIdentifierNameOrGetOrSet(is_get, is_set, ok);
+      *name = ParseIdentifierNameOrGetOrSet(is_get, is_set, CHECK_OK);
+      break;
   }
-  UNREACHABLE();
-  return this->EmptyIdentifier();
+
+  uint32_t index;
+  return this->IsArrayIndex(*name, &index)
+             ? factory()->NewNumberLiteral(index, pos)
+             : factory()->NewStringLiteral(*name, pos);
 }
 
 
 template <class Traits>
-typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
-    Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
-                                     bool in_class, bool is_static,
-                                     bool* has_seen_constructor, bool* ok) {
+typename ParserBase<Traits>::ObjectLiteralPropertyT
+ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
+                                            bool in_class, bool is_static,
+                                            bool* is_computed_name,
+                                            bool* has_seen_constructor,
+                                            bool* ok) {
   DCHECK(!in_class || is_static || has_seen_constructor != NULL);
   ExpressionT value = this->EmptyExpression();
+  IdentifierT name = this->EmptyIdentifier();
   bool is_get = false;
   bool is_set = false;
   bool name_is_static = false;
@@ -1947,15 +2081,17 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
 
   Token::Value name_token = peek();
   int next_pos = peek_position();
-  IdentifierT name =
-      ParsePropertyName(&is_get, &is_set, &name_is_static,
-                        CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+  ExpressionT name_expression = ParsePropertyName(
+      &name, &is_get, &is_set, &name_is_static, is_computed_name,
+      CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
 
-  if (fni_ != NULL) this->PushLiteralName(fni_, name);
+  if (fni_ != NULL && !*is_computed_name) {
+    this->PushLiteralName(fni_, name);
+  }
 
   if (!in_class && !is_generator && peek() == Token::COLON) {
     // PropertyDefinition : PropertyName ':' AssignmentExpression
-    if (checker != NULL) {
+    if (!*is_computed_name && checker != NULL) {
       checker->CheckProperty(name_token, kValueProperty,
                              CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
     }
@@ -1993,7 +2129,7 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
       kind = FunctionKind::kNormalFunction;
     }
 
-    if (checker != NULL) {
+    if (!*is_computed_name && checker != NULL) {
       checker->CheckProperty(name_token, kValueProperty,
                              CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
     }
@@ -2007,14 +2143,18 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
 
   } else if (in_class && name_is_static && !is_static) {
     // static MethodDefinition
-    return ParsePropertyDefinition(checker, true, true, NULL, ok);
+    return ParsePropertyDefinition(checker, true, true, is_computed_name, NULL,
+                                   ok);
 
   } else if (is_get || is_set) {
     // Accessor
+    name = this->EmptyIdentifier();
     bool dont_care = false;
     name_token = peek();
-    name = ParsePropertyName(&dont_care, &dont_care, &dont_care,
-                             CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+
+    name_expression = ParsePropertyName(
+        &name, &dont_care, &dont_care, &dont_care, is_computed_name,
+        CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
 
     // Validate the property.
     if (is_static && this->IsPrototype(name)) {
@@ -2026,7 +2166,7 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
       *ok = false;
       return this->EmptyObjectLiteralProperty();
     }
-    if (checker != NULL) {
+    if (!*is_computed_name && checker != NULL) {
       checker->CheckProperty(name_token,
                              is_get ? kGetterProperty : kSetterProperty,
                              CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
@@ -2039,8 +2179,17 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
         FunctionLiteral::ANONYMOUS_EXPRESSION,
         is_get ? FunctionLiteral::GETTER_ARITY : FunctionLiteral::SETTER_ARITY,
         CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
-    return factory()->NewObjectLiteralProperty(is_get, value, next_pos,
-                                               is_static);
+
+    // Make sure the name expression is a string since we need a Name for
+    // Runtime_DefineAccessorPropertyUnchecked and since we can determine this
+    // statically we can skip the extra runtime check.
+    if (!*is_computed_name) {
+      name_expression =
+          factory()->NewStringLiteral(name, name_expression->position());
+    }
+
+    return factory()->NewObjectLiteralProperty(
+        is_get, name_expression, value, next_pos, is_static, *is_computed_name);
 
   } else if (!in_class && allow_harmony_object_literals_ &&
              Token::IsIdentifier(name_token, strict_mode(),
@@ -2054,12 +2203,8 @@ typename ParserBase<Traits>::ObjectLiteralPropertyT ParserBase<
     return this->EmptyObjectLiteralProperty();
   }
 
-  uint32_t index;
-  LiteralT key = this->IsArrayIndex(name, &index)
-                     ? factory()->NewNumberLiteral(index, next_pos)
-                     : factory()->NewStringLiteral(name, next_pos);
-
-  return factory()->NewObjectLiteralProperty(key, value, is_static);
+  return factory()->NewObjectLiteralProperty(name_expression, value, is_static,
+                                             *is_computed_name);
 }
 
 
@@ -2074,6 +2219,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
       this->NewPropertyList(4, zone_);
   int number_of_boilerplate_properties = 0;
   bool has_function = false;
+  bool has_computed_names = false;
 
   ObjectLiteralChecker checker(this, strict_mode());
 
@@ -2084,8 +2230,13 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
 
     const bool in_class = false;
     const bool is_static = false;
+    bool is_computed_name = false;
     ObjectLiteralPropertyT property = this->ParsePropertyDefinition(
-        &checker, in_class, is_static, NULL, CHECK_OK);
+        &checker, in_class, is_static, &is_computed_name, NULL, CHECK_OK);
+
+    if (is_computed_name) {
+      has_computed_names = true;
+    }
 
     // Mark top-level object literals that contain function literals and
     // pretenure the literal so it can be added as a constant function
@@ -2094,7 +2245,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
                                                           &has_function);
 
     // Count CONSTANT or COMPUTED properties to maintain the enumeration order.
-    if (this->IsBoilerplateProperty(property)) {
+    if (!has_computed_names && this->IsBoilerplateProperty(property)) {
       number_of_boilerplate_properties++;
     }
     properties->Add(property, zone());
@@ -2172,7 +2323,7 @@ ParserBase<Traits>::ParseAssignmentExpression(bool accept_IN, bool* ok) {
   ExpressionT expression =
       this->ParseConditionalExpression(accept_IN, CHECK_OK);
 
-  if (allow_arrow_functions() && peek() == Token::ARROW) {
+  if (allow_harmony_arrow_functions() && peek() == Token::ARROW) {
     checkpoint.Restore();
     expression = this->ParseArrowFunctionLiteral(lhs_location.beg_pos,
                                                  expression, CHECK_OK);
@@ -2466,6 +2617,23 @@ ParserBase<Traits>::ParseLeftHandSideExpression(bool* ok) {
         break;
       }
 
+      case Token::TEMPLATE_SPAN:
+      case Token::TEMPLATE_TAIL: {
+        int pos;
+        if (scanner()->current_token() == Token::IDENTIFIER) {
+          pos = position();
+        } else {
+          pos = peek_position();
+          if (result->IsFunctionLiteral() && mode() == PARSE_EAGERLY) {
+            // If the tag function looks like an IIFE, set_parenthesized() to
+            // force eager compilation.
+            result->AsFunctionLiteral()->set_parenthesized();
+          }
+        }
+        result = ParseTemplateLiteral(result, pos, CHECK_OK);
+        break;
+      }
+
       case Token::PERIOD: {
         Consume(Token::PERIOD);
         int pos = position();
@@ -2568,8 +2736,11 @@ ParserBase<Traits>::ParseMemberExpression(bool* ok) {
     int beg_pos = position();
     Consume(Token::SUPER);
     Token::Value next = peek();
-    if (next == Token::PERIOD || next == Token::LBRACK ||
-        next == Token::LPAREN) {
+    if (next == Token::PERIOD || next == Token::LBRACK) {
+      scope_->RecordSuperPropertyUsage();
+      result = this->SuperReference(scope_, factory());
+    } else if (next == Token::LPAREN) {
+      scope_->RecordSuperConstructorCallUsage();
       result = this->SuperReference(scope_, factory());
     } else {
       ReportMessageAt(Scanner::Location(beg_pos, position()),
@@ -2631,8 +2802,6 @@ typename ParserBase<Traits>::ExpressionT ParserBase<
                                        bool* ok) {
   typename Traits::Type::ScopePtr scope = this->NewScope(scope_, ARROW_SCOPE);
   typename Traits::Type::StatementList body;
-  typename Traits::Type::AstProperties ast_properties;
-  BailoutReason dont_optimize_reason = kNoReason;
   int num_parameters = -1;
   int materialized_literal_count = -1;
   int expected_property_count = -1;
@@ -2709,14 +2878,12 @@ typename ParserBase<Traits>::ExpressionT ParserBase<
 
     // Validate strict mode.
     if (strict_mode() == STRICT) {
-      CheckOctalLiteral(start_pos, scanner()->location().end_pos, CHECK_OK);
+      CheckStrictOctalLiteral(start_pos, scanner()->location().end_pos,
+                              CHECK_OK);
     }
 
     if (allow_harmony_scoping() && strict_mode() == STRICT)
       this->CheckConflictingVarDeclarations(scope, CHECK_OK);
-
-    ast_properties = *factory()->visitor()->ast_properties();
-    dont_optimize_reason = factory()->visitor()->dont_optimize_reason();
   }
 
   FunctionLiteralT function_literal = factory()->NewFunctionLiteral(
@@ -2728,8 +2895,6 @@ typename ParserBase<Traits>::ExpressionT ParserBase<
       start_pos);
 
   function_literal->set_function_token_position(start_pos);
-  function_literal->set_ast_properties(&ast_properties);
-  function_literal->set_dont_optimize_reason(dont_optimize_reason);
 
   if (fni_ != NULL) this->InferFunctionName(fni_, function_literal);
 
@@ -2737,83 +2902,103 @@ typename ParserBase<Traits>::ExpressionT ParserBase<
 }
 
 
-template <class Traits>
-typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseClassLiteral(
-    IdentifierT name, Scanner::Location class_name_location,
-    bool name_is_strict_reserved, int pos, bool* ok) {
-  // All parts of a ClassDeclaration or a ClassExpression are strict code.
-  if (name_is_strict_reserved) {
-    ReportMessageAt(class_name_location, "unexpected_strict_reserved");
-    *ok = false;
-    return this->EmptyExpression();
+template <typename Traits>
+typename ParserBase<Traits>::ExpressionT
+ParserBase<Traits>::ParseTemplateLiteral(ExpressionT tag, int start, bool* ok) {
+  // A TemplateLiteral is made up of 0 or more TEMPLATE_SPAN tokens (literal
+  // text followed by a substitution expression), finalized by a single
+  // TEMPLATE_TAIL.
+  //
+  // In terms of draft language, TEMPLATE_SPAN may be either the TemplateHead or
+  // TemplateMiddle productions, while TEMPLATE_TAIL is either TemplateTail, or
+  // NoSubstitutionTemplate.
+  //
+  // When parsing a TemplateLiteral, we must have scanned either an initial
+  // TEMPLATE_SPAN, or a TEMPLATE_TAIL.
+  CHECK(peek() == Token::TEMPLATE_SPAN || peek() == Token::TEMPLATE_TAIL);
+
+  // If we reach a TEMPLATE_TAIL first, we are parsing a NoSubstitutionTemplate.
+  // In this case we may simply consume the token and build a template with a
+  // single TEMPLATE_SPAN and no expressions.
+  if (peek() == Token::TEMPLATE_TAIL) {
+    Consume(Token::TEMPLATE_TAIL);
+    int pos = position();
+    CheckTemplateOctalLiteral(pos, peek_position(), CHECK_OK);
+    typename Traits::TemplateLiteralState ts = Traits::OpenTemplateLiteral(pos);
+    Traits::AddTemplateSpan(&ts, true);
+    return Traits::CloseTemplateLiteral(&ts, start, tag);
   }
-  if (this->IsEvalOrArguments(name)) {
-    ReportMessageAt(class_name_location, "strict_eval_arguments");
-    *ok = false;
-    return this->EmptyExpression();
-  }
 
-  bool has_extends = false;
-  ExpressionT extends = this->EmptyExpression();
-  if (Check(Token::EXTENDS)) {
-    typename Traits::Type::ScopePtr scope = this->NewScope(scope_, BLOCK_SCOPE);
-    BlockState block_state(&scope_, Traits::Type::ptr_to_scope(scope));
-    scope_->SetStrictMode(STRICT);
-    extends = this->ParseLeftHandSideExpression(CHECK_OK);
-    has_extends = true;
-  }
+  Consume(Token::TEMPLATE_SPAN);
+  int pos = position();
+  typename Traits::TemplateLiteralState ts = Traits::OpenTemplateLiteral(pos);
+  Traits::AddTemplateSpan(&ts, false);
+  Token::Value next;
 
-  // TODO(arv): Implement scopes and name binding in class body only.
-  typename Traits::Type::ScopePtr scope = this->NewScope(scope_, BLOCK_SCOPE);
-  BlockState block_state(&scope_, Traits::Type::ptr_to_scope(scope));
-  scope_->SetStrictMode(STRICT);
-  scope_->SetScopeName(name);
+  // If we open with a TEMPLATE_SPAN, we must scan the subsequent expression,
+  // and repeat if the following token is a TEMPLATE_SPAN as well (in this
+  // case, representing a TemplateMiddle).
 
-  typename Traits::Type::PropertyList properties =
-      this->NewPropertyList(4, zone_);
-  ExpressionT constructor = this->EmptyExpression();
-  bool has_seen_constructor = false;
-
-  Expect(Token::LBRACE, CHECK_OK);
-  while (peek() != Token::RBRACE) {
-    if (Check(Token::SEMICOLON)) continue;
-    if (fni_ != NULL) fni_->Enter();
-    const bool in_class = true;
-    const bool is_static = false;
-    bool old_has_seen_constructor = has_seen_constructor;
-    ObjectLiteralPropertyT property = this->ParsePropertyDefinition(
-        NULL, in_class, is_static, &has_seen_constructor, CHECK_OK);
-
-    if (has_seen_constructor != old_has_seen_constructor) {
-      constructor = this->GetPropertyValue(property);
-    } else {
-      properties->Add(property, zone());
+  do {
+    CheckTemplateOctalLiteral(pos, peek_position(), CHECK_OK);
+    next = peek();
+    if (next == Token::EOS) {
+      ReportMessageAt(Scanner::Location(start, peek_position()),
+                      "unterminated_template");
+      *ok = false;
+      return Traits::EmptyExpression();
+    } else if (next == Token::ILLEGAL) {
+      Traits::ReportMessageAt(
+          Scanner::Location(position() + 1, peek_position()),
+          "unexpected_token", "ILLEGAL", false);
+      *ok = false;
+      return Traits::EmptyExpression();
     }
 
-    if (fni_ != NULL) {
-      fni_->Infer();
-      fni_->Leave();
+    int expr_pos = peek_position();
+    ExpressionT expression = this->ParseExpression(true, CHECK_OK);
+    Traits::AddTemplateExpression(&ts, expression);
+
+    if (peek() != Token::RBRACE) {
+      ReportMessageAt(Scanner::Location(expr_pos, peek_position()),
+                      "unterminated_template_expr");
+      *ok = false;
+      return Traits::EmptyExpression();
     }
-  }
 
-  int end_pos = peek_position();
-  Expect(Token::RBRACE, CHECK_OK);
+    // If we didn't die parsing that expression, our next token should be a
+    // TEMPLATE_SPAN or TEMPLATE_TAIL.
+    next = scanner()->ScanTemplateContinuation();
+    Next();
+    pos = position();
 
-  if (!has_seen_constructor) {
-    constructor =
-        this->DefaultConstructor(has_extends, scope_, pos, end_pos + 1);
-  }
+    if (next == Token::EOS) {
+      ReportMessageAt(Scanner::Location(start, pos), "unterminated_template");
+      *ok = false;
+      return Traits::EmptyExpression();
+    } else if (next == Token::ILLEGAL) {
+      Traits::ReportMessageAt(
+          Scanner::Location(position() + 1, peek_position()),
+          "unexpected_token", "ILLEGAL", false);
+      *ok = false;
+      return Traits::EmptyExpression();
+    }
 
-  return this->ClassExpression(name, extends, constructor, properties, pos,
-                               end_pos + 1, factory());
+    Traits::AddTemplateSpan(&ts, next == Token::TEMPLATE_TAIL);
+  } while (next == Token::TEMPLATE_SPAN);
+
+  DCHECK_EQ(next, Token::TEMPLATE_TAIL);
+  CheckTemplateOctalLiteral(pos, peek_position(), CHECK_OK);
+  // Once we've reached a TEMPLATE_TAIL, we can close the TemplateLiteral.
+  return Traits::CloseTemplateLiteral(&ts, start, tag);
 }
 
 
 template <typename Traits>
-typename ParserBase<Traits>::ExpressionT
-ParserBase<Traits>::CheckAndRewriteReferenceExpression(
-    ExpressionT expression,
-    Scanner::Location location, const char* message, bool* ok) {
+typename ParserBase<Traits>::ExpressionT ParserBase<
+    Traits>::CheckAndRewriteReferenceExpression(ExpressionT expression,
+                                                Scanner::Location location,
+                                                const char* message, bool* ok) {
   if (strict_mode() == STRICT && this->IsIdentifier(expression) &&
       this->IsEvalOrArguments(this->AsIdentifier(expression))) {
     this->ReportMessageAt(location, "strict_eval_arguments", false);

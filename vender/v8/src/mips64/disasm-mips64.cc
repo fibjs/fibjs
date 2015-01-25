@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_MIPS64
+
 // Copyright 2012 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -963,6 +967,10 @@ int Decoder::DecodeTypeRegister(Instruction* instr) {
           Format(instr, "ext     'rt, 'rs, 'sa, 'ss1");
           break;
         }
+        case DEXT: {
+          Format(instr, "dext    'rt, 'rs, 'sa, 'ss1");
+          break;
+        }
         default:
           UNREACHABLE();
       }
@@ -1500,5 +1508,8 @@ void Disassembler::Disassemble(FILE* f, byte* begin, byte* end) {
 #undef UNSUPPORTED
 
 }  // namespace disasm
+
+#endif  // V8_TARGET_ARCH_MIPS64
+
 
 #endif  // V8_TARGET_ARCH_MIPS64

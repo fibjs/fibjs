@@ -68,8 +68,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"parse", s_parse},
-			{"serialize", s_serialize}
+			{"parse", s_parse, true},
+			{"serialize", s_serialize, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 

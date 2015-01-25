@@ -43,7 +43,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"invoke", s_invoke}
+			{"invoke", s_invoke, false}
 		};
 
 		static ClassData s_cd = 

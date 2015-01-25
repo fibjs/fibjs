@@ -52,9 +52,9 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"wait", s_wait},
-			{"notify", s_notify},
-			{"notifyAll", s_notifyAll}
+			{"wait", s_wait, false},
+			{"notify", s_notify, false},
+			{"notifyAll", s_notifyAll, false}
 		};
 
 		static ClassData s_cd = 

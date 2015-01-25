@@ -97,6 +97,19 @@ struct ObjectGroupRetainerInfo {
 };
 
 
+enum WeaknessType {
+  NORMAL_WEAK,  // Embedder gets a handle to the dying object.
+  // In the following cases, the embedder gets the parameter they passed in
+  // earlier, and the 0, 1 or 2 first internal fields. Note that the internal
+  // fields must contain aligned non-V8 pointers.  Getting pointers to V8
+  // objects through this interface would be GC unsafe so in that case the
+  // embedder gets a null pointer instead.
+  PHANTOM_WEAK_0_INTERNAL_FIELDS,
+  PHANTOM_WEAK_1_INTERNAL_FIELDS,
+  PHANTOM_WEAK_2_INTERNAL_FIELDS
+};
+
+
 class GlobalHandles {
  public:
   ~GlobalHandles();
@@ -128,8 +141,13 @@ class GlobalHandles {
   // before the callback is invoked, but the handle can still be identified
   // in the callback by using the location() of the handle.
   static void MakeWeak(Object** location, void* parameter,
-                       WeakCallback weak_callback,
-                       PhantomState phantom = Nonphantom);
+                       WeakCallback weak_callback);
+
+  // It would be nice to template this one, but it's really hard to get
+  // the template instantiator to work right if you do.
+  static void MakePhantom(
+      Object** location, void* parameter, int number_of_internal_fields,
+      PhantomCallbackData<void, void, void>::Callback weak_callback);
 
   void RecordStats(HeapStats* stats);
 
@@ -144,6 +162,10 @@ class GlobalHandles {
   int global_handles_count() const {
     return number_of_global_handles_;
   }
+
+  // Collect up data for the weak handle callbacks after GC has completed, but
+  // before memory is reclaimed.
+  void CollectPhantomCallbackData();
 
   // Clear the weakness of a global handle.
   static void* ClearWeakness(Object** location);
@@ -270,10 +292,17 @@ class GlobalHandles {
   // don't assign any initial capacity.
   static const int kObjectGroupConnectionsCapacity = 20;
 
+  // Helpers for PostGarbageCollectionProcessing.
+  int PostScavengeProcessing(int initial_post_gc_processing_count);
+  int PostMarkSweepProcessing(int initial_post_gc_processing_count);
+  int DispatchPendingPhantomCallbacks();
+  void UpdateListOfNewSpaceNodes();
+
   // Internal node structures.
   class Node;
   class NodeBlock;
   class NodeIterator;
+  class PendingPhantomCallback;
 
   Isolate* isolate_;
 
@@ -306,9 +335,28 @@ class GlobalHandles {
   List<ObjectGroupRetainerInfo> retainer_infos_;
   List<ObjectGroupConnection> implicit_ref_connections_;
 
+  List<PendingPhantomCallback> pending_phantom_callbacks_;
+
   friend class Isolate;
 
   DISALLOW_COPY_AND_ASSIGN(GlobalHandles);
+};
+
+
+class GlobalHandles::PendingPhantomCallback {
+ public:
+  typedef PhantomCallbackData<void, void, void> Data;
+  PendingPhantomCallback(Node* node, Data data, Data::Callback callback)
+      : node_(node), data_(data), callback_(callback) {}
+
+  void invoke();
+
+  Node* node() { return node_; }
+
+ private:
+  Node* node_;
+  Data data_;
+  Data::Callback callback_;
 };
 
 

@@ -326,6 +326,34 @@ RUNTIME_FUNCTION(Runtime_SetNativeFlag) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_IsConstructor) {
+  HandleScope handles(isolate);
+  RUNTIME_ASSERT(args.length() == 1);
+
+  CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
+
+  // TODO(caitp): implement this in a better/simpler way, allow inlining via TF
+  if (object->IsJSFunction()) {
+    Handle<JSFunction> func = Handle<JSFunction>::cast(object);
+    bool should_have_prototype = func->should_have_prototype();
+    if (func->shared()->bound()) {
+      Handle<FixedArray> bound_args =
+          Handle<FixedArray>(FixedArray::cast(func->function_bindings()));
+      Handle<Object> bound_function(
+          JSReceiver::cast(bound_args->get(JSFunction::kBoundFunctionIndex)),
+          isolate);
+      if (bound_function->IsJSFunction()) {
+        Handle<JSFunction> bound = Handle<JSFunction>::cast(bound_function);
+        DCHECK(!bound->shared()->bound());
+        should_have_prototype = bound->should_have_prototype();
+      }
+    }
+    return isolate->heap()->ToBoolean(should_have_prototype);
+  }
+  return isolate->heap()->false_value();
+}
+
+
 RUNTIME_FUNCTION(Runtime_SetInlineBuiltinFlag) {
   SealHandleScope shs(isolate);
   RUNTIME_ASSERT(args.length() == 1);
@@ -435,8 +463,7 @@ RUNTIME_FUNCTION(Runtime_FunctionBindArguments) {
   for (int j = 0; j < argc; j++, i++) {
     new_bindings->set(i, *arguments[j + 1]);
   }
-  new_bindings->set_map_no_write_barrier(
-      isolate->heap()->fixed_cow_array_map());
+  new_bindings->set_map_no_write_barrier(isolate->heap()->fixed_array_map());
   bound_function->set_function_bindings(*new_bindings);
 
   // Update length. Have to remove the prototype first so that map migration
@@ -462,8 +489,8 @@ RUNTIME_FUNCTION(Runtime_BoundFunctionGetBindings) {
   if (callable->IsJSFunction()) {
     Handle<JSFunction> function = Handle<JSFunction>::cast(callable);
     if (function->shared()->bound()) {
+      RUNTIME_ASSERT(function->function_bindings()->IsFixedArray());
       Handle<FixedArray> bindings(function->function_bindings());
-      RUNTIME_ASSERT(bindings->map() == isolate->heap()->fixed_cow_array_map());
       return *isolate->factory()->NewJSArrayWithElements(bindings);
     }
   }

@@ -70,11 +70,11 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"load", s_load},
-			{"loadFile", s_loadFile},
-			{"exportPem", s_exportPem},
-			{"exportDer", s_exportDer},
-			{"sign", s_sign}
+			{"load", s_load, false},
+			{"loadFile", s_loadFile, false},
+			{"exportPem", s_exportPem, false},
+			{"exportDer", s_exportDer, false},
+			{"sign", s_sign, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 

@@ -105,9 +105,9 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"randomBytes", s_randomBytes},
-			{"pseudoRandomBytes", s_pseudoRandomBytes},
-			{"randomArt", s_randomArt}
+			{"randomBytes", s_randomBytes, true},
+			{"pseudoRandomBytes", s_pseudoRandomBytes, true},
+			{"randomArt", s_randomArt, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 

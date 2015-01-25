@@ -43,8 +43,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"data", s_data},
-			{"detail", s_detail}
+			{"data", s_data, false},
+			{"detail", s_detail, false}
 		};
 
 		static ClassData s_cd = 

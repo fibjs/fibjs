@@ -32,6 +32,7 @@ struct ClassData
     {
         const char *name;
         v8::FunctionCallback invoker;
+        bool is_static;
     };
 
     struct ClassObject
@@ -241,8 +242,14 @@ private:
             pt->MarkAsUndetectable();
 
             for (i = 0; i < m_cd.mc; i++)
+            {
                 pt->Set(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
                         v8::FunctionTemplate::New(isolate, m_cd.cms[i].invoker));
+                if (m_cd.cms[i].is_static)
+                    _class->Set(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
+                                v8::Function::New(isolate, m_cd.cms[i].invoker),
+                                v8::ReadOnly);
+            }
 
             for (i = 0; i < m_cd.oc; i++)
             {

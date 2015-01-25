@@ -9,6 +9,7 @@
 #include "src/base/bits.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
+#include "src/compiler/node-properties.h"
 
 namespace v8 {
 namespace internal {
@@ -46,6 +47,10 @@ class MipsOperandGenerator FINAL : public OperandGenerator {
         return is_uint16(value);
       case kMipsLdc1:
       case kMipsSdc1:
+      case kCheckedLoadFloat32:
+      case kCheckedLoadFloat64:
+      case kCheckedStoreFloat32:
+      case kCheckedStoreFloat64:
         return is_int16(value + kIntSize);
       default:
         return is_int16(value);
@@ -66,6 +71,14 @@ static void VisitRRR(InstructionSelector* selector, ArchOpcode opcode,
   selector->Emit(opcode, g.DefineAsRegister(node),
                  g.UseRegister(node->InputAt(0)),
                  g.UseRegister(node->InputAt(1)));
+}
+
+
+static void VisitRR(InstructionSelector* selector, ArchOpcode opcode,
+                    Node* node) {
+  MipsOperandGenerator g(selector);
+  selector->Emit(opcode, g.DefineAsRegister(node),
+                 g.UseRegister(node->InputAt(0)));
 }
 
 
@@ -420,14 +433,18 @@ void InstructionSelector::VisitFloat64Sqrt(Node* node) {
 }
 
 
-void InstructionSelector::VisitFloat64Floor(Node* node) { UNREACHABLE(); }
+void InstructionSelector::VisitFloat64Floor(Node* node) {
+  VisitRR(this, kMipsFloat64Floor, node);
+}
 
 
-void InstructionSelector::VisitFloat64Ceil(Node* node) { UNREACHABLE(); }
+void InstructionSelector::VisitFloat64Ceil(Node* node) {
+  VisitRR(this, kMipsFloat64Ceil, node);
+}
 
 
 void InstructionSelector::VisitFloat64RoundTruncate(Node* node) {
-  UNREACHABLE();
+  VisitRR(this, kMipsFloat64RoundTruncate, node);
 }
 
 
@@ -438,7 +455,7 @@ void InstructionSelector::VisitFloat64RoundTiesAway(Node* node) {
 
 void InstructionSelector::VisitCall(Node* node) {
   MipsOperandGenerator g(this);
-  CallDescriptor* descriptor = OpParameter<CallDescriptor*>(node);
+  const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(node);
 
   FrameStateDescriptor* frame_state_descriptor = NULL;
   if (descriptor->NeedsFrameState()) {
@@ -450,15 +467,17 @@ void InstructionSelector::VisitCall(Node* node) {
 
   // Compute InstructionOperands for inputs and outputs.
   InitializeCallBuffer(node, &buffer, true, false);
-
-  // TODO(dcarney): might be possible to use claim/poke instead
-  // Push any stack arguments.
-  for (NodeVectorRIter input = buffer.pushed_nodes.rbegin();
-       input != buffer.pushed_nodes.rend(); input++) {
-    // TODO(plind): inefficient for MIPS, use MultiPush here.
-    //    - Also need to align the stack. See arm64.
-    //    - Maybe combine with arg slot stuff in DirectCEntry stub.
-    Emit(kMipsPush, NULL, g.UseRegister(*input));
+  // Possibly align stack here for functions.
+  int push_count = buffer.pushed_nodes.size();
+  if (push_count > 0) {
+    Emit(kMipsStackClaim | MiscField::encode(push_count), NULL);
+  }
+  int slot = buffer.pushed_nodes.size() - 1;
+  for (auto i = buffer.pushed_nodes.rbegin(); i != buffer.pushed_nodes.rend();
+       ++i) {
+    Emit(kMipsStoreToStackSlot | MiscField::encode(slot), nullptr,
+         g.UseRegister(*i));
+    slot--;
   }
 
   // Select the appropriate opcode based on the call type.
@@ -484,6 +503,93 @@ void InstructionSelector::VisitCall(Node* node) {
       Emit(opcode, buffer.outputs.size(), first_output,
            buffer.instruction_args.size(), &buffer.instruction_args.front());
   call_instr->MarkAsCall();
+}
+
+
+void InstructionSelector::VisitCheckedLoad(Node* node) {
+  MachineType rep = RepresentationOf(OpParameter<MachineType>(node));
+  MachineType typ = TypeOf(OpParameter<MachineType>(node));
+  MipsOperandGenerator g(this);
+  Node* const buffer = node->InputAt(0);
+  Node* const offset = node->InputAt(1);
+  Node* const length = node->InputAt(2);
+  ArchOpcode opcode;
+  switch (rep) {
+    case kRepWord8:
+      opcode = typ == kTypeInt32 ? kCheckedLoadInt8 : kCheckedLoadUint8;
+      break;
+    case kRepWord16:
+      opcode = typ == kTypeInt32 ? kCheckedLoadInt16 : kCheckedLoadUint16;
+      break;
+    case kRepWord32:
+      opcode = kCheckedLoadWord32;
+      break;
+    case kRepFloat32:
+      opcode = kCheckedLoadFloat32;
+      break;
+    case kRepFloat64:
+      opcode = kCheckedLoadFloat64;
+      break;
+    default:
+      UNREACHABLE();
+      return;
+  }
+  InstructionOperand* offset_operand = g.CanBeImmediate(offset, opcode)
+                                           ? g.UseImmediate(offset)
+                                           : g.UseRegister(offset);
+
+  InstructionOperand* length_operand =
+      (!g.CanBeImmediate(offset, opcode)) ? g.CanBeImmediate(length, opcode)
+      ? g.UseImmediate(length)
+      : g.UseRegister(length)
+      : g.UseRegister(length);
+
+  Emit(opcode | AddressingModeField::encode(kMode_MRI),
+       g.DefineAsRegister(node), offset_operand, length_operand,
+       g.UseRegister(buffer));
+}
+
+
+void InstructionSelector::VisitCheckedStore(Node* node) {
+  MachineType rep = RepresentationOf(OpParameter<MachineType>(node));
+  MipsOperandGenerator g(this);
+  Node* const buffer = node->InputAt(0);
+  Node* const offset = node->InputAt(1);
+  Node* const length = node->InputAt(2);
+  Node* const value = node->InputAt(3);
+  ArchOpcode opcode;
+  switch (rep) {
+    case kRepWord8:
+      opcode = kCheckedStoreWord8;
+      break;
+    case kRepWord16:
+      opcode = kCheckedStoreWord16;
+      break;
+    case kRepWord32:
+      opcode = kCheckedStoreWord32;
+      break;
+    case kRepFloat32:
+      opcode = kCheckedStoreFloat32;
+      break;
+    case kRepFloat64:
+      opcode = kCheckedStoreFloat64;
+      break;
+    default:
+      UNREACHABLE();
+      return;
+  }
+  InstructionOperand* offset_operand = g.CanBeImmediate(offset, opcode)
+                                           ? g.UseImmediate(offset)
+                                           : g.UseRegister(offset);
+
+  InstructionOperand* length_operand =
+      (!g.CanBeImmediate(offset, opcode)) ? g.CanBeImmediate(length, opcode)
+      ? g.UseImmediate(length)
+      : g.UseRegister(length)
+      : g.UseRegister(length);
+
+  Emit(opcode | AddressingModeField::encode(kMode_MRI), nullptr, offset_operand,
+       length_operand, g.UseRegister(value), g.UseRegister(buffer));
 }
 
 
@@ -579,25 +685,25 @@ void VisitWordCompareZero(InstructionSelector* selector, Node* user,
         cont->OverwriteAndNegateIfEqual(kUnsignedLessThanOrEqual);
         return VisitWordCompare(selector, value, cont);
       case IrOpcode::kFloat64Equal:
-        cont->OverwriteAndNegateIfEqual(kUnorderedEqual);
+        cont->OverwriteAndNegateIfEqual(kEqual);
         return VisitFloat64Compare(selector, value, cont);
       case IrOpcode::kFloat64LessThan:
-        cont->OverwriteAndNegateIfEqual(kUnorderedLessThan);
+        cont->OverwriteAndNegateIfEqual(kUnsignedLessThan);
         return VisitFloat64Compare(selector, value, cont);
       case IrOpcode::kFloat64LessThanOrEqual:
-        cont->OverwriteAndNegateIfEqual(kUnorderedLessThanOrEqual);
+        cont->OverwriteAndNegateIfEqual(kUnsignedLessThanOrEqual);
         return VisitFloat64Compare(selector, value, cont);
       case IrOpcode::kProjection:
         // Check if this is the overflow output projection of an
         // <Operation>WithOverflow node.
-        if (OpParameter<size_t>(value) == 1u) {
+        if (ProjectionIndexOf(value->op()) == 1u) {
           // We cannot combine the <Operation>WithOverflow with this branch
           // unless the 0th projection (the use of the actual value of the
           // <Operation> is either NULL, which means there's no use of the
           // actual value, or was already defined, which means it is scheduled
           // *AFTER* this branch).
           Node* const node = value->InputAt(0);
-          Node* const result = node->FindProjection(0);
+          Node* const result = NodeProperties::FindProjection(node, 0);
           if (!result || selector->IsDefined(result)) {
             switch (node->opcode()) {
               case IrOpcode::kInt32AddWithOverflow:
@@ -638,11 +744,6 @@ void VisitWordCompareZero(InstructionSelector* selector, Node* user,
 void InstructionSelector::VisitBranch(Node* branch, BasicBlock* tbranch,
                                       BasicBlock* fbranch) {
   FlagsContinuation cont(kNotEqual, tbranch, fbranch);
-  // If we can fall through to the true block, invert the branch.
-  if (IsNextInAssemblyOrder(tbranch)) {
-    cont.Negate();
-    cont.SwapBlocks();
-  }
   VisitWordCompareZero(this, branch, branch->InputAt(0), &cont);
 }
 
@@ -682,7 +783,7 @@ void InstructionSelector::VisitUint32LessThanOrEqual(Node* node) {
 
 
 void InstructionSelector::VisitInt32AddWithOverflow(Node* node) {
-  if (Node* ovf = node->FindProjection(1)) {
+  if (Node* ovf = NodeProperties::FindProjection(node, 1)) {
     FlagsContinuation cont(kOverflow, ovf);
     return VisitBinop(this, node, kMipsAddOvf, &cont);
   }
@@ -692,7 +793,7 @@ void InstructionSelector::VisitInt32AddWithOverflow(Node* node) {
 
 
 void InstructionSelector::VisitInt32SubWithOverflow(Node* node) {
-  if (Node* ovf = node->FindProjection(1)) {
+  if (Node* ovf = NodeProperties::FindProjection(node, 1)) {
     FlagsContinuation cont(kOverflow, ovf);
     return VisitBinop(this, node, kMipsSubOvf, &cont);
   }
@@ -702,19 +803,19 @@ void InstructionSelector::VisitInt32SubWithOverflow(Node* node) {
 
 
 void InstructionSelector::VisitFloat64Equal(Node* node) {
-  FlagsContinuation cont(kUnorderedEqual, node);
+  FlagsContinuation cont(kEqual, node);
   VisitFloat64Compare(this, node, &cont);
 }
 
 
 void InstructionSelector::VisitFloat64LessThan(Node* node) {
-  FlagsContinuation cont(kUnorderedLessThan, node);
+  FlagsContinuation cont(kUnsignedLessThan, node);
   VisitFloat64Compare(this, node, &cont);
 }
 
 
 void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
-  FlagsContinuation cont(kUnorderedLessThanOrEqual, node);
+  FlagsContinuation cont(kUnsignedLessThanOrEqual, node);
   VisitFloat64Compare(this, node, &cont);
 }
 
@@ -722,6 +823,11 @@ void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
+  if (IsMipsArchVariant(kMips32r2) || IsMipsArchVariant(kMips32r6)) {
+    return MachineOperatorBuilder::kFloat64Floor |
+           MachineOperatorBuilder::kFloat64Ceil |
+           MachineOperatorBuilder::kFloat64RoundTruncate;
+  }
   return MachineOperatorBuilder::kNoFlags;
 }
 

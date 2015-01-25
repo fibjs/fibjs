@@ -134,7 +134,7 @@ void encodeArray(bson *bb, const char *name, v8::Local<v8::Value> element)
 
     for (int i = 0, l = a->Length(); i < l; i++)
     {
-        v8::Local<v8::Value> val = a->Get(v8::Number::New(isolate, i));
+        v8::Local<v8::Value> val = a->Get(i);
         char numStr[32];
 
         sprintf(numStr, "%d", i);
@@ -186,17 +186,13 @@ bool encodeObject(bson *bb, const char *name, v8::Local<v8::Value> element,
 
     for (int i = 0; i < (int) properties->Length(); i++)
     {
-        v8::Local<v8::Value> prop_name = properties->Get(v8::Integer::New(isolate, i));
+        v8::Local<v8::Value> prop_name = properties->Get(i);
+        v8::Local<v8::Value> prop_val = object->Get(prop_name);
 
-        if (!prop_name->IsNumber() && !prop_name->IsNumberObject())
-        {
-            v8::Local<v8::Value> prop_val = object->Get(prop_name->ToString());
+        v8::String::Utf8Value n(prop_name);
+        const char *pname = ToCString(n);
 
-            v8::String::Utf8Value n(prop_name);
-            const char *pname = ToCString(n);
-
-            encodeValue(bb, pname, prop_val);
-        }
+        encodeValue(bb, pname, prop_val);
     }
 
     if (name)

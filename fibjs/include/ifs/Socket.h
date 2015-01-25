@@ -38,7 +38,7 @@ public:
 	virtual result_t connect(const char* host, int32_t port, exlib::AsyncEvent* ac) = 0;
 	virtual result_t bind(int32_t port, bool allowIPv4) = 0;
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
-	virtual result_t listen(int32_t backlog) = 0;
+	virtual result_t listen(int32_t backlog, exlib::AsyncEvent* ac) = 0;
 	virtual result_t accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
@@ -68,6 +68,7 @@ public:
 
 public:
 	ASYNC_MEMBER2(Socket_base, connect, const char*, int32_t);
+	ASYNC_MEMBER1(Socket_base, listen, int32_t);
 	ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
 	ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER1(Socket_base, send, Buffer_base*);
@@ -84,14 +85,14 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"connect", s_connect},
-			{"bind", s_bind},
-			{"listen", s_listen},
-			{"accept", s_accept},
-			{"recv", s_recv},
-			{"recvFrom", s_recvFrom},
-			{"send", s_send},
-			{"sendto", s_sendto}
+			{"connect", s_connect, false},
+			{"bind", s_bind, false},
+			{"listen", s_listen, false},
+			{"accept", s_accept, false},
+			{"recv", s_recv, false},
+			{"recvFrom", s_recvFrom, false},
+			{"send", s_send, false},
+			{"sendto", s_sendto, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -248,7 +249,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, 120);
 
-		hr = pInst->listen(v0);
+		hr = pInst->ac_listen(v0);
 
 		METHOD_VOID();
 	}

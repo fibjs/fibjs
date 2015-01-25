@@ -9,7 +9,9 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 
 All the source code and docs are on github. However, I use github for convenience as it is easy to store stuff online. So there may be small problems with the documentation as I may not be able to update them timely.
 
-***文档入口(General docs (chinese)):*** http://fibjs.org/
+***文档入口(General docs (Chinese)):*** http://fibjs.org/
+
+***English Docs:*** http://fibjs.org/en/
 
 ***文档下载(Documents repository):*** https://github.com/xicilion/fibjs_docs
 
@@ -18,7 +20,7 @@ All the source code and docs are on github. However, I use github for convenienc
 ***官方交流社区(Online discussion.):*** http://baoz.cn/fibjs
 
 ps: 请无视编译中出现的大量警告错误，那些基本上都是第三方代码库的警告，恕不消除了。
-Please ignore the compiler warnings.
+Please ignore the compiler warnings.Basically , it's from third party library .
 
 ## Prerequisites (unix)
 

@@ -1,3 +1,7 @@
+#include "src/v8.h"
+
+#if V8_TARGET_ARCH_MIPS64
+
 // Copyright 2014 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -24,9 +28,12 @@ Handle<Code> PropertyICCompiler::CompilePolymorphic(TypeHandleList* types,
 
   if (check == PROPERTY &&
       (kind() == Code::KEYED_LOAD_IC || kind() == Code::KEYED_STORE_IC)) {
-    // In case we are compiling an IC for dictionary loads and stores, just
+    // In case we are compiling an IC for dictionary loads or stores, just
     // check whether the name is unique.
     if (name.is_identical_to(isolate()->factory()->normal_ic_symbol())) {
+      // Keyed loads with dictionaries shouldn't be here, they go generic.
+      // The DCHECK is to protect assumptions when --vector-ics is on.
+      DCHECK(kind() != Code::KEYED_LOAD_IC);
       Register tmp = scratch1();
       __ JumpIfSmi(this->name(), &miss);
       __ ld(tmp, FieldMemOperand(this->name(), HeapObject::kMapOffset));
@@ -57,7 +64,9 @@ Handle<Code> PropertyICCompiler::CompilePolymorphic(TypeHandleList* types,
       number_of_handled_maps++;
       // Check map and tail call if there's a match.
       // Separate compare from branch, to provide path for above JumpIfSmi().
-      __ Dsubu(match, map_reg, Operand(map));
+      Handle<WeakCell> cell = Map::WeakCellForMap(map);
+      __ GetWeakValue(match, cell);
+      __ Dsubu(match, match, Operand(map_reg));
       if (type->Is(HeapType::Number())) {
         DCHECK(!number_case.is_unused());
         __ bind(&number_case);
@@ -85,15 +94,20 @@ Handle<Code> PropertyICCompiler::CompileKeyedStorePolymorphic(
   __ JumpIfSmi(receiver(), &miss);
 
   int receiver_count = receiver_maps->length();
-  __ ld(scratch1(), FieldMemOperand(receiver(), HeapObject::kMapOffset));
+  Register map_reg = scratch1();
+  Register match = scratch2();
+  __ ld(map_reg, FieldMemOperand(receiver(), HeapObject::kMapOffset));
   for (int i = 0; i < receiver_count; ++i) {
+    Handle<WeakCell> cell = Map::WeakCellForMap(receiver_maps->at(i));
+    __ GetWeakValue(match, cell);
     if (transitioned_maps->at(i).is_null()) {
-      __ Jump(handler_stubs->at(i), RelocInfo::CODE_TARGET, eq, scratch1(),
-              Operand(receiver_maps->at(i)));
+      __ Jump(handler_stubs->at(i), RelocInfo::CODE_TARGET, eq, match,
+              Operand(map_reg));
     } else {
       Label next_map;
-      __ Branch(&next_map, ne, scratch1(), Operand(receiver_maps->at(i)));
-      __ li(transition_map(), Operand(transitioned_maps->at(i)));
+      __ Branch(&next_map, ne, match, Operand(map_reg));
+      Handle<WeakCell> cell = Map::WeakCellForMap(transitioned_maps->at(i));
+      __ LoadWeakValue(transition_map(), cell, &miss);
       __ Jump(handler_stubs->at(i), RelocInfo::CODE_TARGET);
       __ bind(&next_map);
     }
@@ -127,5 +141,8 @@ void PropertyICCompiler::GenerateRuntimeSetProperty(MacroAssembler* masm,
 #undef __
 }
 }  // namespace v8::internal
+
+#endif  // V8_TARGET_ARCH_MIPS64
+
 
 #endif  // V8_TARGET_ARCH_MIPS64

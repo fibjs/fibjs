@@ -200,10 +200,6 @@ class MacroAssembler: public Assembler {
                      Condition cc,
                      Label* condition_met);
 
-  void CheckMapDeprecated(Handle<Map> map,
-                          Register scratch,
-                          Label* if_deprecated);
-
   // Check if object is in new space.  Jumps if the object is not in new space.
   // The register scratch can be object itself, but scratch will be clobbered.
   void JumpIfNotInNewSpace(Register object,
@@ -559,9 +555,9 @@ class MacroAssembler: public Assembler {
   // Leave the current exit frame. Expects the return value in r0.
   // Expect the number of values, pushed prior to the exit frame, to
   // remove in a register (or no_reg, if there is nothing to remove).
-  void LeaveExitFrame(bool save_doubles,
-                      Register argument_count,
-                      bool restore_context);
+  void LeaveExitFrame(bool save_doubles, Register argument_count,
+                      bool restore_context,
+                      bool argument_count_is_length = false);
 
   // Get the actual activation frame alignment for target environment.
   static int ActivationFrameAlignment();
@@ -918,15 +914,19 @@ class MacroAssembler: public Assembler {
                 SmiCheckType smi_check_type);
 
 
-  // Check if the map of an object is equal to a specified map and branch to a
-  // specified target if equal. Skip the smi check if not required (object is
-  // known to be a heap object)
-  void DispatchMap(Register obj,
-                   Register scratch,
-                   Handle<Map> map,
-                   Handle<Code> success,
-                   SmiCheckType smi_check_type);
+  // Check if the map of an object is equal to a specified weak map and branch
+  // to a specified target if equal. Skip the smi check if not required
+  // (object is known to be a heap object)
+  void DispatchWeakMap(Register obj, Register scratch1, Register scratch2,
+                       Handle<WeakCell> cell, Handle<Code> success,
+                       SmiCheckType smi_check_type);
 
+  // Compare the given value and the value of weak cell.
+  void CmpWeakValue(Register value, Handle<WeakCell> cell, Register scratch);
+
+  // Load the value of the weak cell in the value register. Branch to the given
+  // miss label if the weak cell was cleared.
+  void LoadWeakValue(Register value, Handle<WeakCell> cell, Label* miss);
 
   // Compare the object in a register to a value from the root list.
   // Uses the ip register as scratch.
@@ -1119,8 +1119,8 @@ class MacroAssembler: public Assembler {
   // - space to be unwound on exit (includes the call JS arguments space and
   // the additional space allocated for the fast call).
   void CallApiFunctionAndReturn(Register function_address,
-                                ExternalReference thunk_ref,
-                                int stack_space,
+                                ExternalReference thunk_ref, int stack_space,
+                                MemOperand* stack_space_operand,
                                 MemOperand return_value_operand,
                                 MemOperand* context_restore_operand);
 
