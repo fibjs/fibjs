@@ -228,11 +228,16 @@ extern v8::Persistent<v8::Object> s_global;
 result_t SandBox::addScript(const char *srcname, const char *script,
                             v8::Local<v8::Value> &retVal)
 {
-    std::string fname(srcname);
+    return define(srcname, script, "", retVal);
+}
+
+result_t SandBox::define(const char* module_id, const char* script,
+                         const char* base, v8::Local<v8::Value>& retVal)
+{
     result_t hr;
 
     // add to modules
-    std::string id(fname);
+    std::string id(module_id);
 
     if (id.length() > 5 && !qstrcmp(id.c_str() + id.length() - 5, ".json"))
     {
@@ -250,7 +255,17 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     }
     else if (id.length() > 3 && !qstrcmp(id.c_str() + id.length() - 3, ".js"))
     {
-        Context context(this, srcname);
+        std::string srcname(base);
+
+        if (srcname.length() > 0){
+            srcname.append(".");
+            path_base::dirname(srcname.c_str(), srcname);
+            if (srcname.length())
+                srcname += PATH_SLASH;
+        }
+        srcname += id;
+
+        Context context(this, srcname.c_str());
 
         id.resize(id.length() - 3);
 
@@ -275,11 +290,10 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         std::string sname = name();
         if (!sname.empty())
         {
-            sname.append(srcname);
-            srcname = sname.c_str();
+            srcname = sname + srcname;
         }
 
-        hr = context.run(script, srcname, mod, exports);
+        hr = context.run(script, srcname.c_str(), mod, exports);
         if (hr < 0)
         {
             // delete from modules

@@ -34,6 +34,8 @@ public:
     virtual result_t remove(const char *id);
     virtual result_t run(const char *fname);
     virtual result_t require(const char *id, v8::Local<v8::Value> &retVal);
+    virtual result_t define(const char* id, const char* script, const char* base, v8::Local<v8::Value>& retVal);
+
 
 public:
     v8::Local<v8::Object> mods()
