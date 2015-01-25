@@ -32,6 +32,7 @@ public:
 	virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
 	virtual result_t run(const char* fname) = 0;
 	virtual result_t require(const char* id, v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t define(const char* id, const char* script, const char* base, v8::Local<v8::Value>& retVal) = 0;
 
 public:
 	template<typename T>
@@ -45,6 +46,7 @@ public:
 	static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_define(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -60,13 +62,14 @@ namespace fibjs
 			{"remove", s_remove, false},
 			{"clone", s_clone, false},
 			{"run", s_run, false},
-			{"require", s_require, false}
+			{"require", s_require, false},
+			{"define", s_define, false}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"SandBox", s__new, 
-			6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -183,6 +186,22 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->require(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void SandBox_base::s_define(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Value> vr;
+
+		METHOD_INSTANCE(SandBox_base);
+		METHOD_ENTER(3, 2);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+		OPT_ARG(arg_string, 2, "");
+
+		hr = pInst->define(v0, v1, v2, vr);
 
 		METHOD_RETURN();
 	}

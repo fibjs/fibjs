@@ -35,6 +35,8 @@ public:
     virtual result_t clone(obj_ptr<SandBox_base> &retVal);
     virtual result_t run(const char *fname);
     virtual result_t require(const char *id, v8::Local<v8::Value> &retVal);
+    virtual result_t define(const char* id, const char* script, const char* base, v8::Local<v8::Value>& retVal);
+
 
 public:
     v8::Local<v8::Object> mods()

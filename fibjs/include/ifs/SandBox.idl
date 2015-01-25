@@ -65,4 +65,12 @@ interface SandBox : object
      @return 返回加载的模块对象
      */
     Value require(String id);
+
+    /*! @brief 使用指定的 js 或 json 代码定义一个模块
+     @param id 指定要加载的模块名称
+     @param script 指定要添加的脚本代码
+     @param base 指定代码运行的参考基础路径
+     @return 返回定义的模块对象
+     */
+    Value define(String id, String script, String base = "");
 };
