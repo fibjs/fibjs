@@ -174,7 +174,7 @@ void Service::switchConext()
             break;
         }
 
-        // Then weakup async event.
+        // Then wakeup async event.
         while (1)
         {
             AsyncEvent *p = m_aEvents.get();
@@ -194,7 +194,7 @@ void Service::switchConext()
         if (!m_resume.empty())
             continue;
 
-        // if we still have time, weakup yield fiber.
+        // if we still have time, wakeup yield fiber.
         while (1)
         {
             AsyncEvent *p = m_yieldList.get();
