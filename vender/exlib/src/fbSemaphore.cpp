@@ -20,7 +20,7 @@ void Semaphore::wait()
         if (pService)
         {
             m_blocks.put(pService->m_running);
-            pService->switchtonext();
+            pService->switchConext();
         }
     }
     else
