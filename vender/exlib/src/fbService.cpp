@@ -97,7 +97,7 @@ static void fiber_proc(void *(*func)(void *), void *data)
     func(data);
 
     Service::root->m_recycle = Service::root->m_running;
-    Service::root->switchtonext();
+    Service::root->switchConext();
 }
 
 Fiber *Fiber::Create(void *(*func)(void *), void *data, int stacksize)
@@ -152,7 +152,7 @@ Fiber *Fiber::Create(void *(*func)(void *), void *data, int stacksize)
     return fb;
 }
 
-void Service::switchtonext()
+void Service::switchConext()
 {
     while (1)
     {
@@ -174,7 +174,7 @@ void Service::switchtonext()
             break;
         }
 
-        // Then weakup async event.
+        // Then wakeup async event.
         while (1)
         {
             AsyncEvent *p = m_aEvents.get();
@@ -194,7 +194,7 @@ void Service::switchtonext()
         if (!m_resume.empty())
             continue;
 
-        // if we still have time, weakup yield fiber.
+        // if we still have time, wakeup yield fiber.
         while (1)
         {
             AsyncEvent *p = m_yieldList.get();

@@ -97,18 +97,18 @@ public:
 
     virtual void callback()
     {
-        weak.set();
+        wake.set();
     }
 
     int wait()
     {
-        weak.wait();
+        wake.wait();
         return m_v;
     }
 
     bool isSet()
     {
-        return weak.isSet();
+        return wake.isSet();
     }
 
     int result()
@@ -119,7 +119,7 @@ public:
     void sleep(int ms);
 
 private:
-    Event weak;
+    Event wake;
     int m_v;
 };
 

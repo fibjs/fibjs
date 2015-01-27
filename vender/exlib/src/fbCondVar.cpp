@@ -20,7 +20,7 @@ void CondVar::wait(Locker &l)
         l.unlock();
 
         m_blocks.put(pService->m_running);
-        pService->switchtonext();
+        pService->switchConext();
 
         l.lock();
     }

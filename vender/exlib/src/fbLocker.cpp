@@ -22,7 +22,7 @@ void Locker::lock()
         if (m_locker && current != m_locker)
         {
             m_blocks.put(current);
-            pService->switchtonext();
+            pService->switchConext();
         }
         else if (++m_count == 1)
             m_locker = current;
