@@ -14,6 +14,7 @@
 #endif
 
 #include "utils.h"
+#include "thread.h"
 
 namespace exlib
 {
@@ -23,8 +24,14 @@ class lockfree
 {
 public:
     lockfree() :
-        m_first(0), m_lock(0)
+        m_first(0), m_lock(0), m_wait_lock(0), m_wait_count(0), m_cond(0)
     {
+        m_cond = new OSCondVar(&m_mutex);
+    }
+
+    ~lockfree(){
+        delete m_cond;
+        m_cond = 0;
     }
 
     bool empty()
@@ -40,6 +47,18 @@ public:
         m_first = o;
 
         atom_xchg(&m_lock, 0);
+
+        while (CompareAndSwap(&m_wait_lock, 0, -1));
+
+        bool has_wait = (m_wait_count > 0);
+
+        atom_xchg(&m_wait_lock, 0);
+
+        if (has_wait){
+            m_mutex.Lock();
+            m_cond->Signal();
+            m_mutex.Unlock();
+        }
     }
 
     T *get()
@@ -74,47 +93,48 @@ public:
 
     T *wait()
     {
-        int nCount = 0;
-        int time_0 = 0;
-        int time_1 = time_0 + 2000;
-        int time_2 = time_1 + 200;
-        int time_3 = time_2 + 20;
+        T *p;
+        // sleep first let other thread set data
+        #ifdef _WIN32
+        ::Sleep(0);
+        #else
+        ::usleep(0);
+        #endif
+        p = get();
+        if (p == 0){
+            // first lock the mutex
+            m_mutex.Lock();
 
-        while (1)
-        {
-            if (nCount < 2000000)
-                nCount++;
+            // second lock the lockfree var
+            while (CompareAndSwap(&m_wait_lock, 0, -1));
+            m_wait_count++;
+            atom_xchg(&m_wait_lock, 0);
 
-            T *p = get();
-            if (p != 0)
-                return p;
+            while (p == 0){
+                // wait for the signal
+                m_cond->Wait();
+                // get item
+                p = get();
+            }
 
-            if (nCount > time_3)
-                Sleep(100);
-            else if (nCount > time_2)
-                Sleep(10);
-            else if (nCount > time_1)
-                Sleep(1);
-            else if (nCount > time_0)
-                Sleep(0);
+            // second lock the lockfree var
+            while (CompareAndSwap(&m_wait_lock, 0, -1));
+            m_wait_count--;
+            atom_xchg(&m_wait_lock, 0);
+
+            // unlock the mutex
+            m_mutex.Unlock();
         }
-
-        return 0;
-    }
-
-private:
-    static void Sleep(int ms)
-    {
-#ifdef _WIN32
-        ::Sleep(ms);
-#else
-        ::usleep(1000 * ms);
-#endif
+        return p;
     }
 
 private:
     T *volatile  m_first;
     volatile int32_t m_lock;
+    volatile int32_t m_wait_lock;
+    volatile uint32_t m_wait_count;
+    OSMutex m_mutex;
+    OSCondVar *m_cond;
 };
 
 }
