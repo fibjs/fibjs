@@ -7,25 +7,7 @@
 namespace fibjs
 {
 
-class BlockedAsyncQueue: public exlib::AsyncQueue
-{
-public:
-    void put(exlib::AsyncEvent *o)
-    {
-        exlib::AsyncQueue::put(o);
-        m_sem.Post();
-    }
-
-    exlib::AsyncEvent *wait()
-    {
-        m_sem.Wait();
-        return exlib::AsyncQueue::get();
-    }
-
-private:
-    exlib::OSSemaphore m_sem;
-};
-
+typedef exlib::AsyncQueue BlockedAsyncQueue;
 extern BlockedAsyncQueue s_acPool;
 
 class AsyncCall: public asyncEvent
