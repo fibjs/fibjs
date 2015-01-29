@@ -68,9 +68,9 @@ class ParserBase : public Traits {
   typedef typename Traits::Type::Literal LiteralT;
   typedef typename Traits::Type::ObjectLiteralProperty ObjectLiteralPropertyT;
 
-  ParserBase(Scanner* scanner, uintptr_t stack_limit, v8::Extension* extension,
-             ParserRecorder* log, typename Traits::Type::Zone* zone,
-             typename Traits::Type::Parser this_object)
+  ParserBase(Isolate* isolate, typename Traits::Type::Zone* zone,
+             Scanner* scanner, uintptr_t stack_limit, v8::Extension* extension,
+             ParserRecorder* log, typename Traits::Type::Parser this_object)
       : Traits(this_object),
         parenthesized_function_(false),
         scope_(NULL),
@@ -80,6 +80,8 @@ class ParserBase : public Traits {
         log_(log),
         mode_(PARSE_EAGERLY),  // Lazy mode must be set explicitly.
         stack_limit_(stack_limit),
+        isolate_(isolate),
+        zone_(zone),
         scanner_(scanner),
         stack_overflow_(false),
         allow_lazy_(false),
@@ -87,8 +89,7 @@ class ParserBase : public Traits {
         allow_harmony_arrow_functions_(false),
         allow_harmony_object_literals_(false),
         allow_harmony_sloppy_(false),
-        allow_harmony_computed_property_names_(false),
-        zone_(zone) {}
+        allow_harmony_computed_property_names_(false) {}
 
   // Getters that indicate whether certain syntactical constructs are
   // allowed to be parsed by this instance of the parser.
@@ -296,6 +297,7 @@ class ParserBase : public Traits {
     Mode old_mode_;
   };
 
+  Isolate* isolate() const { return isolate_; }
   Scanner* scanner() const { return scanner_; }
   int position() { return scanner_->location().beg_pos; }
   int peek_position() { return scanner_->peek_location().beg_pos; }
@@ -608,6 +610,9 @@ class ParserBase : public Traits {
   uintptr_t stack_limit_;
 
  private:
+  Isolate* isolate_;
+  typename Traits::Type::Zone* zone_;  // Only used by Parser.
+
   Scanner* scanner_;
   bool stack_overflow_;
 
@@ -617,8 +622,6 @@ class ParserBase : public Traits {
   bool allow_harmony_object_literals_;
   bool allow_harmony_sloppy_;
   bool allow_harmony_computed_property_names_;
-
-  typename Traits::Type::Zone* zone_;  // Only used by Parser.
 };
 
 
@@ -1049,10 +1052,10 @@ class PreParserFactory {
                                       int pos) {
     return PreParserExpression::Default();
   }
-  PreParserExpression NewObjectLiteralProperty(bool is_getter,
-                                               PreParserExpression key,
+  PreParserExpression NewObjectLiteralProperty(PreParserExpression key,
                                                PreParserExpression value,
-                                               int pos, bool is_static,
+                                               ObjectLiteralProperty::Kind kind,
+                                               bool is_static,
                                                bool is_computed_name) {
     return PreParserExpression::Default();
   }
@@ -1494,9 +1497,10 @@ class PreParser : public ParserBase<PreParserTraits> {
     kPreParseSuccess
   };
 
-  PreParser(Scanner* scanner, ParserRecorder* log, uintptr_t stack_limit)
-      : ParserBase<PreParserTraits>(scanner, stack_limit, NULL, log, NULL,
-                                    this) {}
+  PreParser(Isolate* isolate, Scanner* scanner, ParserRecorder* log,
+            uintptr_t stack_limit)
+      : ParserBase<PreParserTraits>(isolate, NULL, scanner, stack_limit, NULL,
+                                    log, this) {}
 
   // Pre-parse the program from the character stream; returns true on
   // success (even if parsing failed, the pre-parse data successfully
@@ -2141,6 +2145,10 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
         FunctionLiteral::NORMAL_ARITY,
         CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
 
+    return factory()->NewObjectLiteralProperty(name_expression, value,
+                                               ObjectLiteralProperty::COMPUTED,
+                                               is_static, *is_computed_name);
+
   } else if (in_class && name_is_static && !is_static) {
     // static MethodDefinition
     return ParsePropertyDefinition(checker, true, true, is_computed_name, NULL,
@@ -2189,12 +2197,18 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
     }
 
     return factory()->NewObjectLiteralProperty(
-        is_get, name_expression, value, next_pos, is_static, *is_computed_name);
+        name_expression, value,
+        is_get ? ObjectLiteralProperty::GETTER : ObjectLiteralProperty::SETTER,
+        is_static, *is_computed_name);
 
   } else if (!in_class && allow_harmony_object_literals_ &&
              Token::IsIdentifier(name_token, strict_mode(),
                                  this->is_generator())) {
+    DCHECK(!*is_computed_name);
+    DCHECK(!is_static);
     value = this->ExpressionFromIdentifier(name, next_pos, scope_, factory());
+    return factory()->NewObjectLiteralProperty(
+        name_expression, value, ObjectLiteralProperty::COMPUTED, false, false);
 
   } else {
     Token::Value next = Next();
@@ -2797,9 +2811,10 @@ ParserBase<Traits>::ParseMemberExpressionContinuation(ExpressionT expression,
 
 
 template <class Traits>
-typename ParserBase<Traits>::ExpressionT ParserBase<
-    Traits>::ParseArrowFunctionLiteral(int start_pos, ExpressionT params_ast,
-                                       bool* ok) {
+typename ParserBase<Traits>::ExpressionT
+ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
+                                              ExpressionT params_ast,
+                                              bool* ok) {
   typename Traits::Type::ScopePtr scope = this->NewScope(scope_, ARROW_SCOPE);
   typename Traits::Type::StatementList body;
   int num_parameters = -1;

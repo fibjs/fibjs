@@ -163,8 +163,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       "std::log");
   Add(ExternalReference::store_buffer_top(isolate).address(),
       "store_buffer_top");
-  Add(ExternalReference::address_of_canonical_non_hole_nan().address(),
-      "canonical_nan");
   Add(ExternalReference::address_of_the_hole_nan().address(), "the_hole_nan");
   Add(ExternalReference::get_date_field_function(isolate).address(),
       "JSDate::GetField");
@@ -666,7 +664,7 @@ void Deserializer::Deserialize(Isolate* isolate) {
   DCHECK(isolate_->handle_scope_implementer()->blocks()->is_empty());
   isolate_->heap()->IterateSmiRoots(this);
   isolate_->heap()->IterateStrongRoots(this, VISIT_ONLY_STRONG);
-  isolate_->heap()->RepairFreeListsAfterBoot();
+  isolate_->heap()->RepairFreeListsAfterDeserialization();
   isolate_->heap()->IterateWeakRoots(this, VISIT_ALL);
 
   isolate_->heap()->set_native_contexts_list(

@@ -5,6 +5,7 @@
 #ifndef V8_HYDROGEN_INSTRUCTIONS_H_
 #define V8_HYDROGEN_INSTRUCTIONS_H_
 
+#include <cstring>
 #include <iosfwd>
 
 #include "src/v8.h"
@@ -951,98 +952,76 @@ std::ostream& operator<<(std::ostream& os, const TypeOf& v);
 std::ostream& operator<<(std::ostream& os, const ChangesOf& v);
 
 
-#define DECLARE_INSTRUCTION_FACTORY_P0(I)                                      \
-  static I* New(Zone* zone, HValue* context) {                                 \
-    return new(zone) I();                                                      \
-}
+#define DECLARE_INSTRUCTION_FACTORY_P0(I)                        \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context) { \
+    return new (zone) I();                                       \
+  }
 
-#define DECLARE_INSTRUCTION_FACTORY_P1(I, P1)                                  \
-  static I* New(Zone* zone, HValue* context, P1 p1) {                          \
-    return new(zone) I(p1);                                                    \
+#define DECLARE_INSTRUCTION_FACTORY_P1(I, P1)                           \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1) { \
+    return new (zone) I(p1);                                            \
   }
 
 #define DECLARE_INSTRUCTION_FACTORY_P2(I, P1, P2)                              \
-  static I* New(Zone* zone, HValue* context, P1 p1, P2 p2) {                   \
-    return new(zone) I(p1, p2);                                                \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2) { \
+    return new (zone) I(p1, p2);                                               \
   }
 
-#define DECLARE_INSTRUCTION_FACTORY_P3(I, P1, P2, P3)                          \
-  static I* New(Zone* zone, HValue* context, P1 p1, P2 p2, P3 p3) {            \
-    return new(zone) I(p1, p2, p3);                                            \
+#define DECLARE_INSTRUCTION_FACTORY_P3(I, P1, P2, P3)                        \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2, \
+                P3 p3) {                                                     \
+    return new (zone) I(p1, p2, p3);                                         \
   }
 
-#define DECLARE_INSTRUCTION_FACTORY_P4(I, P1, P2, P3, P4)                      \
-  static I* New(Zone* zone,                                                    \
-                HValue* context,                                               \
-                P1 p1,                                                         \
-                P2 p2,                                                         \
-                P3 p3,                                                         \
-                P4 p4) {                                                       \
-    return new(zone) I(p1, p2, p3, p4);                                        \
+#define DECLARE_INSTRUCTION_FACTORY_P4(I, P1, P2, P3, P4)                    \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2, \
+                P3 p3, P4 p4) {                                              \
+    return new (zone) I(p1, p2, p3, p4);                                     \
   }
 
-#define DECLARE_INSTRUCTION_FACTORY_P5(I, P1, P2, P3, P4, P5)                  \
-  static I* New(Zone* zone,                                                    \
-                HValue* context,                                               \
-                P1 p1,                                                         \
-                P2 p2,                                                         \
-                P3 p3,                                                         \
-                P4 p4,                                                         \
-                P5 p5) {                                                       \
-    return new(zone) I(p1, p2, p3, p4, p5);                                    \
+#define DECLARE_INSTRUCTION_FACTORY_P5(I, P1, P2, P3, P4, P5)                \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2, \
+                P3 p3, P4 p4, P5 p5) {                                       \
+    return new (zone) I(p1, p2, p3, p4, p5);                                 \
   }
 
-#define DECLARE_INSTRUCTION_FACTORY_P6(I, P1, P2, P3, P4, P5, P6)              \
-  static I* New(Zone* zone,                                                    \
-                HValue* context,                                               \
-                P1 p1,                                                         \
-                P2 p2,                                                         \
-                P3 p3,                                                         \
-                P4 p4,                                                         \
-                P5 p5,                                                         \
-                P6 p6) {                                                       \
-    return new(zone) I(p1, p2, p3, p4, p5, p6);                                \
+#define DECLARE_INSTRUCTION_FACTORY_P6(I, P1, P2, P3, P4, P5, P6)            \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2, \
+                P3 p3, P4 p4, P5 p5, P6 p6) {                                \
+    return new (zone) I(p1, p2, p3, p4, p5, p6);                             \
   }
 
-#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P0(I)                         \
-  static I* New(Zone* zone, HValue* context) {                                 \
-    return new(zone) I(context);                                               \
+#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P0(I)           \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context) { \
+    return new (zone) I(context);                                \
   }
 
-#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P1(I, P1)                     \
-  static I* New(Zone* zone, HValue* context, P1 p1) {                          \
-    return new(zone) I(context, p1);                                           \
+#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P1(I, P1)              \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1) { \
+    return new (zone) I(context, p1);                                   \
   }
 
 #define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P2(I, P1, P2)                 \
-  static I* New(Zone* zone, HValue* context, P1 p1, P2 p2) {                   \
-    return new(zone) I(context, p1, p2);                                       \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2) { \
+    return new (zone) I(context, p1, p2);                                      \
   }
 
-#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P3(I, P1, P2, P3)             \
-  static I* New(Zone* zone, HValue* context, P1 p1, P2 p2, P3 p3) {            \
-    return new(zone) I(context, p1, p2, p3);                                   \
+#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P3(I, P1, P2, P3)           \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2, \
+                P3 p3) {                                                     \
+    return new (zone) I(context, p1, p2, p3);                                \
   }
 
-#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P4(I, P1, P2, P3, P4)         \
-  static I* New(Zone* zone,                                                    \
-                HValue* context,                                               \
-                P1 p1,                                                         \
-                P2 p2,                                                         \
-                P3 p3,                                                         \
-                P4 p4) {                                                       \
-    return new(zone) I(context, p1, p2, p3, p4);                               \
+#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P4(I, P1, P2, P3, P4)       \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2, \
+                P3 p3, P4 p4) {                                              \
+    return new (zone) I(context, p1, p2, p3, p4);                            \
   }
 
-#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P5(I, P1, P2, P3, P4, P5)     \
-  static I* New(Zone* zone,                                                    \
-                HValue* context,                                               \
-                P1 p1,                                                         \
-                P2 p2,                                                         \
-                P3 p3,                                                         \
-                P4 p4,                                                         \
-                P5 p5) {                                                       \
-    return new(zone) I(context, p1, p2, p3, p4, p5);                           \
+#define DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P5(I, P1, P2, P3, P4, P5)   \
+  static I* New(Isolate* isolate, Zone* zone, HValue* context, P1 p1, P2 p2, \
+                P3 p3, P4 p4, P5 p5) {                                       \
+    return new (zone) I(context, p1, p2, p3, p4, p5);                        \
   }
 
 
@@ -1383,10 +1362,8 @@ class HGoto FINAL : public HTemplateControlInstruction<1, 0> {
 
 class HDeoptimize FINAL : public HTemplateControlInstruction<1, 0> {
  public:
-  static HDeoptimize* New(Zone* zone,
-                          HValue* context,
-                          const char* reason,
-                          Deoptimizer::BailoutType type,
+  static HDeoptimize* New(Isolate* isolate, Zone* zone, HValue* context,
+                          const char* reason, Deoptimizer::BailoutType type,
                           HBasicBlock* unreachable_continuation) {
     return new(zone) HDeoptimize(reason, type, unreachable_continuation);
   }
@@ -1636,7 +1613,8 @@ class HUseConst FINAL : public HUnaryOperation {
 
 class HForceRepresentation FINAL : public HTemplateInstruction<1> {
  public:
-  static HInstruction* New(Zone* zone, HValue* context, HValue* value,
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* value,
                            Representation required_representation);
 
   HValue* value() const { return OperandAt(0); }
@@ -2017,8 +1995,8 @@ class HConstant;
 
 class HEnterInlined FINAL : public HTemplateInstruction<0> {
  public:
-  static HEnterInlined* New(Zone* zone, HValue* context, BailoutId return_id,
-                            Handle<JSFunction> closure,
+  static HEnterInlined* New(Isolate* isolate, Zone* zone, HValue* context,
+                            BailoutId return_id, Handle<JSFunction> closure,
                             HConstant* closure_context, int arguments_count,
                             FunctionLiteral* function,
                             InliningKind inlining_kind, Variable* arguments_var,
@@ -2106,31 +2084,33 @@ class HLeaveInlined FINAL : public HTemplateInstruction<0> {
 
 class HPushArguments FINAL : public HInstruction {
  public:
-  static HPushArguments* New(Zone* zone, HValue* context) {
+  static HPushArguments* New(Isolate* isolate, Zone* zone, HValue* context) {
     return new(zone) HPushArguments(zone);
   }
-  static HPushArguments* New(Zone* zone, HValue* context, HValue* arg1) {
+  static HPushArguments* New(Isolate* isolate, Zone* zone, HValue* context,
+                             HValue* arg1) {
     HPushArguments* instr = new(zone) HPushArguments(zone);
     instr->AddInput(arg1);
     return instr;
   }
-  static HPushArguments* New(Zone* zone, HValue* context, HValue* arg1,
-                             HValue* arg2) {
+  static HPushArguments* New(Isolate* isolate, Zone* zone, HValue* context,
+                             HValue* arg1, HValue* arg2) {
     HPushArguments* instr = new(zone) HPushArguments(zone);
     instr->AddInput(arg1);
     instr->AddInput(arg2);
     return instr;
   }
-  static HPushArguments* New(Zone* zone, HValue* context, HValue* arg1,
-                             HValue* arg2, HValue* arg3) {
+  static HPushArguments* New(Isolate* isolate, Zone* zone, HValue* context,
+                             HValue* arg1, HValue* arg2, HValue* arg3) {
     HPushArguments* instr = new(zone) HPushArguments(zone);
     instr->AddInput(arg1);
     instr->AddInput(arg2);
     instr->AddInput(arg3);
     return instr;
   }
-  static HPushArguments* New(Zone* zone, HValue* context, HValue* arg1,
-                             HValue* arg2, HValue* arg3, HValue* arg4) {
+  static HPushArguments* New(Isolate* isolate, Zone* zone, HValue* context,
+                             HValue* arg1, HValue* arg2, HValue* arg3,
+                             HValue* arg4) {
     HPushArguments* instr = new(zone) HPushArguments(zone);
     instr->AddInput(arg1);
     instr->AddInput(arg2);
@@ -2281,10 +2261,8 @@ class HBinaryCall : public HCall<2> {
 
 class HCallJSFunction FINAL : public HCall<1> {
  public:
-  static HCallJSFunction* New(Zone* zone,
-                              HValue* context,
-                              HValue* function,
-                              int argument_count,
+  static HCallJSFunction* New(Isolate* isolate, Zone* zone, HValue* context,
+                              HValue* function, int argument_count,
                               bool pass_argument_count);
 
   HValue* function() const { return OperandAt(0); }
@@ -2324,8 +2302,8 @@ enum CallMode { NORMAL_CALL, TAIL_CALL };
 
 class HCallWithDescriptor FINAL : public HInstruction {
  public:
-  static HCallWithDescriptor* New(Zone* zone, HValue* context, HValue* target,
-                                  int argument_count,
+  static HCallWithDescriptor* New(Isolate* isolate, Zone* zone, HValue* context,
+                                  HValue* target, int argument_count,
                                   CallInterfaceDescriptor descriptor,
                                   const Vector<HValue*>& operands,
                                   CallMode call_mode = NORMAL_CALL) {
@@ -2421,8 +2399,7 @@ class HInvokeFunction FINAL : public HBinaryCall {
          known_function->code()->kind() == Code::OPTIMIZED_FUNCTION);
   }
 
-  static HInvokeFunction* New(Zone* zone,
-                              HValue* context,
+  static HInvokeFunction* New(Isolate* isolate, Zone* zone, HValue* context,
                               HValue* function,
                               Handle<JSFunction> known_function,
                               int argument_count) {
@@ -2457,22 +2434,36 @@ class HCallFunction FINAL : public HBinaryCall {
   DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P3(
       HCallFunction, HValue*, int, CallFunctionFlags);
 
-  HValue* context() { return first(); }
-  HValue* function() { return second(); }
+  HValue* context() const { return first(); }
+  HValue* function() const { return second(); }
   CallFunctionFlags function_flags() const { return function_flags_; }
 
+  FeedbackVectorICSlot slot() const { return slot_; }
+  Handle<TypeFeedbackVector> feedback_vector() const {
+    return feedback_vector_;
+  }
+  bool HasVectorAndSlot() const { return !feedback_vector_.is_null(); }
+  void SetVectorAndSlot(Handle<TypeFeedbackVector> vector,
+                        FeedbackVectorICSlot slot) {
+    feedback_vector_ = vector;
+    slot_ = slot;
+  }
+
   DECLARE_CONCRETE_INSTRUCTION(CallFunction)
+
+  std::ostream& PrintDataTo(std::ostream& os) const OVERRIDE;  // NOLINT
 
   int argument_delta() const OVERRIDE { return -argument_count(); }
 
  private:
-  HCallFunction(HValue* context,
-                HValue* function,
-                int argument_count,
+  HCallFunction(HValue* context, HValue* function, int argument_count,
                 CallFunctionFlags flags = NO_CALL_FUNCTION_FLAGS)
-      : HBinaryCall(context, function, argument_count), function_flags_(flags) {
-  }
+      : HBinaryCall(context, function, argument_count),
+        function_flags_(flags),
+        slot_(FeedbackVectorICSlot::Invalid()) {}
   CallFunctionFlags function_flags_;
+  Handle<TypeFeedbackVector> feedback_vector_;
+  FeedbackVectorICSlot slot_;
 };
 
 
@@ -2583,10 +2574,8 @@ class HMapEnumLength FINAL : public HUnaryOperation {
 
 class HUnaryMathOperation FINAL : public HTemplateInstruction<2> {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* value,
-                           BuiltinFunctionId op);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* value, BuiltinFunctionId op);
 
   HValue* context() const { return OperandAt(0); }
   HValue* value() const { return OperandAt(1); }
@@ -2727,12 +2716,13 @@ class HLoadRoot FINAL : public HTemplateInstruction<0> {
 
 class HCheckMaps FINAL : public HTemplateInstruction<2> {
  public:
-  static HCheckMaps* New(Zone* zone, HValue* context, HValue* value,
-                         Handle<Map> map, HValue* typecheck = NULL) {
+  static HCheckMaps* New(Isolate* isolate, Zone* zone, HValue* context,
+                         HValue* value, Handle<Map> map,
+                         HValue* typecheck = NULL) {
     return new(zone) HCheckMaps(value, new(zone) UniqueSet<Map>(
             Unique<Map>::CreateImmovable(map), zone), typecheck);
   }
-  static HCheckMaps* New(Zone* zone, HValue* context,
+  static HCheckMaps* New(Isolate* isolate, Zone* zone, HValue* context,
                          HValue* value, SmallMapList* map_list,
                          HValue* typecheck = NULL) {
     UniqueSet<Map>* maps = new(zone) UniqueSet<Map>(map_list->length(), zone);
@@ -2862,9 +2852,9 @@ class HCheckMaps FINAL : public HTemplateInstruction<2> {
 
 class HCheckValue FINAL : public HUnaryOperation {
  public:
-  static HCheckValue* New(Zone* zone, HValue* context,
+  static HCheckValue* New(Isolate* isolate, Zone* zone, HValue* context,
                           HValue* value, Handle<JSFunction> func) {
-    bool in_new_space = zone->isolate()->heap()->InNewSpace(*func);
+    bool in_new_space = isolate->heap()->InNewSpace(*func);
     // NOTE: We create an uninitialized Unique and initialize it later.
     // This is because a JSFunction can move due to GC during graph creation.
     // TODO(titzer): This is a migration crutch. Replace with some kind of
@@ -2873,7 +2863,7 @@ class HCheckValue FINAL : public HUnaryOperation {
     HCheckValue* check = new(zone) HCheckValue(value, target, in_new_space);
     return check;
   }
-  static HCheckValue* New(Zone* zone, HValue* context,
+  static HCheckValue* New(Isolate* isolate, Zone* zone, HValue* context,
                           HValue* value, Unique<HeapObject> target,
                           bool object_in_new_space) {
     return new(zone) HCheckValue(value, target, object_in_new_space);
@@ -3415,7 +3405,8 @@ class HDematerializedObject : public HInstruction {
 
 class HArgumentsObject FINAL : public HDematerializedObject {
  public:
-  static HArgumentsObject* New(Zone* zone, HValue* context, int count) {
+  static HArgumentsObject* New(Isolate* isolate, Zone* zone, HValue* context,
+                               int count) {
     return new(zone) HArgumentsObject(count, zone);
   }
 
@@ -3483,19 +3474,21 @@ class HCapturedObject FINAL : public HDematerializedObject {
 
 class HConstant FINAL : public HTemplateInstruction<0> {
  public:
+  enum Special { kHoleNaN };
+
+  DECLARE_INSTRUCTION_FACTORY_P1(HConstant, Special);
   DECLARE_INSTRUCTION_FACTORY_P1(HConstant, int32_t);
   DECLARE_INSTRUCTION_FACTORY_P2(HConstant, int32_t, Representation);
   DECLARE_INSTRUCTION_FACTORY_P1(HConstant, double);
   DECLARE_INSTRUCTION_FACTORY_P1(HConstant, Handle<Object>);
   DECLARE_INSTRUCTION_FACTORY_P1(HConstant, ExternalReference);
 
-  static HConstant* CreateAndInsertAfter(Zone* zone,
-                                         HValue* context,
-                                         int32_t value,
+  static HConstant* CreateAndInsertAfter(Isolate* isolate, Zone* zone,
+                                         HValue* context, int32_t value,
                                          Representation representation,
                                          HInstruction* instruction) {
-    return instruction->Append(HConstant::New(
-        zone, context, value, representation));
+    return instruction->Append(
+        HConstant::New(isolate, zone, context, value, representation));
   }
 
   Handle<Map> GetMonomorphicJSObjectMap() OVERRIDE {
@@ -3506,13 +3499,12 @@ class HConstant FINAL : public HTemplateInstruction<0> {
     return Handle<Map>();
   }
 
-  static HConstant* CreateAndInsertBefore(Zone* zone,
-                                          HValue* context,
-                                          int32_t value,
+  static HConstant* CreateAndInsertBefore(Isolate* isolate, Zone* zone,
+                                          HValue* context, int32_t value,
                                           Representation representation,
                                           HInstruction* instruction) {
-    return instruction->Prepend(HConstant::New(
-        zone, context, value, representation));
+    return instruction->Prepend(
+        HConstant::New(isolate, zone, context, value, representation));
   }
 
   static HConstant* CreateAndInsertBefore(Zone* zone,
@@ -3550,7 +3542,6 @@ class HConstant FINAL : public HTemplateInstruction<0> {
   bool IsSpecialDouble() const {
     return HasDoubleValue() &&
            (bit_cast<int64_t>(double_value_) == bit_cast<int64_t>(-0.0) ||
-            FixedDoubleArray::is_the_hole_nan(double_value_) ||
             std::isnan(double_value_));
   }
 
@@ -3581,7 +3572,7 @@ class HConstant FINAL : public HTemplateInstruction<0> {
   std::ostream& PrintDataTo(std::ostream& os) const OVERRIDE;  // NOLINT
   HConstant* CopyToRepresentation(Representation r, Zone* zone) const;
   Maybe<HConstant*> CopyToTruncatedInt32(Zone* zone);
-  Maybe<HConstant*> CopyToTruncatedNumber(Zone* zone);
+  Maybe<HConstant*> CopyToTruncatedNumber(Isolate* isolate, Zone* zone);
   bool HasInteger32Value() const {
     return HasInt32ValueField::decode(bit_field_);
   }
@@ -3597,8 +3588,15 @@ class HConstant FINAL : public HTemplateInstruction<0> {
     DCHECK(HasDoubleValue());
     return double_value_;
   }
+  uint64_t DoubleValueAsBits() const {
+    uint64_t bits;
+    DCHECK(HasDoubleValue());
+    STATIC_ASSERT(sizeof(bits) == sizeof(double_value_));
+    std::memcpy(&bits, &double_value_, sizeof(bits));
+    return bits;
+  }
   bool IsTheHole() const {
-    if (HasDoubleValue() && FixedDoubleArray::is_the_hole_nan(double_value_)) {
+    if (HasDoubleValue() && DoubleValueAsBits() == kHoleNanInt64) {
       return true;
     }
     return object_.IsInitialized() &&
@@ -3661,7 +3659,11 @@ class HConstant FINAL : public HTemplateInstruction<0> {
     if (HasInteger32Value()) {
       return static_cast<intptr_t>(int32_value_);
     } else if (HasDoubleValue()) {
-      return static_cast<intptr_t>(bit_cast<int64_t>(double_value_));
+      uint64_t bits = DoubleValueAsBits();
+      if (sizeof(bits) > sizeof(intptr_t)) {
+        bits ^= (bits >> 32);
+      }
+      return static_cast<intptr_t>(bits);
     } else if (HasExternalReferenceValue()) {
       return reinterpret_cast<intptr_t>(external_reference_value_.address());
     } else {
@@ -3692,8 +3694,8 @@ class HConstant FINAL : public HTemplateInstruction<0> {
              int32_value_ == other_constant->int32_value_;
     } else if (HasDoubleValue()) {
       return other_constant->HasDoubleValue() &&
-             bit_cast<int64_t>(double_value_) ==
-                 bit_cast<int64_t>(other_constant->double_value_);
+             std::memcmp(&double_value_, &other_constant->double_value_,
+                         sizeof(double_value_)) == 0;
     } else if (HasExternalReferenceValue()) {
       return other_constant->HasExternalReferenceValue() &&
              external_reference_value_ ==
@@ -3720,6 +3722,7 @@ class HConstant FINAL : public HTemplateInstruction<0> {
 
  private:
   friend class HGraph;
+  explicit HConstant(Special special);
   explicit HConstant(Handle<Object> handle,
                      Representation r = Representation::None());
   HConstant(int32_t value,
@@ -4780,10 +4783,8 @@ class HInstanceOfKnownGlobal FINAL : public HTemplateInstruction<2> {
 
 class HPower FINAL : public HTemplateInstruction<2> {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   HValue* left() { return OperandAt(0); }
   HValue* right() const { return OperandAt(1); }
@@ -4819,10 +4820,8 @@ class HPower FINAL : public HTemplateInstruction<2> {
 
 class HAdd FINAL : public HArithmeticBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   // Add is only commutative if two integer values are added and not if two
   // tagged values are added (because it might be a String concatenation).
@@ -4882,10 +4881,8 @@ class HAdd FINAL : public HArithmeticBinaryOperation {
 
 class HSub FINAL : public HArithmeticBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   HValue* Canonicalize() OVERRIDE;
 
@@ -4915,16 +4912,12 @@ class HSub FINAL : public HArithmeticBinaryOperation {
 
 class HMul FINAL : public HArithmeticBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
-  static HInstruction* NewImul(Zone* zone,
-                         HValue* context,
-                         HValue* left,
-                         HValue* right) {
-    HInstruction* instr = HMul::New(zone, context, left, right);
+  static HInstruction* NewImul(Isolate* isolate, Zone* zone, HValue* context,
+                               HValue* left, HValue* right) {
+    HInstruction* instr = HMul::New(isolate, zone, context, left, right);
     if (!instr->IsMul()) return instr;
     HMul* mul = HMul::cast(instr);
     // TODO(mstarzinger): Prevent bailout on minus zero for imul.
@@ -4963,10 +4956,8 @@ class HMul FINAL : public HArithmeticBinaryOperation {
 
 class HMod FINAL : public HArithmeticBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   HValue* Canonicalize() OVERRIDE;
 
@@ -4997,10 +4988,8 @@ class HMod FINAL : public HArithmeticBinaryOperation {
 
 class HDiv FINAL : public HArithmeticBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   HValue* Canonicalize() OVERRIDE;
 
@@ -5031,11 +5020,8 @@ class HMathMinMax FINAL : public HArithmeticBinaryOperation {
  public:
   enum Operation { kMathMin, kMathMax };
 
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right,
-                           Operation op);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right, Operation op);
 
   Representation observed_input_representation(int index) OVERRIDE {
     return RequiredInputRepresentation(index);
@@ -5079,11 +5065,8 @@ class HMathMinMax FINAL : public HArithmeticBinaryOperation {
 
 class HBitwise FINAL : public HBitwiseBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           Token::Value op,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           Token::Value op, HValue* left, HValue* right);
 
   Token::Value op() const { return op_; }
 
@@ -5141,10 +5124,8 @@ class HBitwise FINAL : public HBitwiseBinaryOperation {
 
 class HShl FINAL : public HBitwiseBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   Range* InferRange(Zone* zone) OVERRIDE;
 
@@ -5172,10 +5153,8 @@ class HShl FINAL : public HBitwiseBinaryOperation {
 
 class HShr FINAL : public HBitwiseBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   bool TryDecompose(DecompositionResult* decomposition) OVERRIDE {
     if (right()->IsInteger32Constant()) {
@@ -5211,10 +5190,8 @@ class HShr FINAL : public HBitwiseBinaryOperation {
 
 class HSar FINAL : public HBitwiseBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right);
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right);
 
   bool TryDecompose(DecompositionResult* decomposition) OVERRIDE {
     if (right()->IsInteger32Constant()) {
@@ -5250,10 +5227,8 @@ class HSar FINAL : public HBitwiseBinaryOperation {
 
 class HRor FINAL : public HBitwiseBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right) {
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           HValue* left, HValue* right) {
     return new(zone) HRor(context, left, right);
   }
 
@@ -5589,14 +5564,10 @@ class HAllocate FINAL : public HTemplateInstruction<2> {
         ComputeFlags(NOT_TENURED, type1) == ComputeFlags(NOT_TENURED, type2);
   }
 
-  static HAllocate* New(Zone* zone,
-                        HValue* context,
-                        HValue* size,
-                        HType type,
-                        PretenureFlag pretenure_flag,
-                        InstanceType instance_type,
-                        Handle<AllocationSite> allocation_site =
-                            Handle<AllocationSite>::null()) {
+  static HAllocate* New(
+      Isolate* isolate, Zone* zone, HValue* context, HValue* size, HType type,
+      PretenureFlag pretenure_flag, InstanceType instance_type,
+      Handle<AllocationSite> allocation_site = Handle<AllocationSite>::null()) {
     return new(zone) HAllocate(context, size, type, pretenure_flag,
         instance_type, allocation_site);
   }
@@ -5771,10 +5742,8 @@ class HAllocate FINAL : public HTemplateInstruction<2> {
 
 class HStoreCodeEntry FINAL: public HTemplateInstruction<2> {
  public:
-  static HStoreCodeEntry* New(Zone* zone,
-                              HValue* context,
-                              HValue* function,
-                              HValue* code) {
+  static HStoreCodeEntry* New(Isolate* isolate, Zone* zone, HValue* context,
+                              HValue* function, HValue* code) {
     return new(zone) HStoreCodeEntry(function, code);
   }
 
@@ -5797,11 +5766,9 @@ class HStoreCodeEntry FINAL: public HTemplateInstruction<2> {
 
 class HInnerAllocatedObject FINAL : public HTemplateInstruction<2> {
  public:
-  static HInnerAllocatedObject* New(Zone* zone,
-                                    HValue* context,
-                                    HValue* value,
-                                    HValue* offset,
-                                    HType type) {
+  static HInnerAllocatedObject* New(Isolate* isolate, Zone* zone,
+                                    HValue* context, HValue* value,
+                                    HValue* offset, HType type) {
     return new(zone) HInnerAllocatedObject(value, offset, type);
   }
 
@@ -7338,9 +7305,8 @@ class HStoreKeyedGeneric FINAL : public HTemplateInstruction<4> {
 
 class HTransitionElementsKind FINAL : public HTemplateInstruction<2> {
  public:
-  inline static HTransitionElementsKind* New(Zone* zone,
-                                             HValue* context,
-                                             HValue* object,
+  inline static HTransitionElementsKind* New(Isolate* isolate, Zone* zone,
+                                             HValue* context, HValue* object,
                                              Handle<Map> original_map,
                                              Handle<Map> transitioned_map) {
     return new(zone) HTransitionElementsKind(context, object,
@@ -7400,14 +7366,11 @@ class HTransitionElementsKind FINAL : public HTemplateInstruction<2> {
 
 class HStringAdd FINAL : public HBinaryOperation {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           HValue* left,
-                           HValue* right,
-                           PretenureFlag pretenure_flag = NOT_TENURED,
-                           StringAddFlags flags = STRING_ADD_CHECK_BOTH,
-                           Handle<AllocationSite> allocation_site =
-                               Handle<AllocationSite>::null());
+  static HInstruction* New(
+      Isolate* isolate, Zone* zone, HValue* context, HValue* left,
+      HValue* right, PretenureFlag pretenure_flag = NOT_TENURED,
+      StringAddFlags flags = STRING_ADD_CHECK_BOTH,
+      Handle<AllocationSite> allocation_site = Handle<AllocationSite>::null());
 
   StringAddFlags flags() const { return flags_; }
   PretenureFlag pretenure_flag() const { return pretenure_flag_; }
@@ -7501,8 +7464,7 @@ class HStringCharCodeAt FINAL : public HTemplateInstruction<3> {
 
 class HStringCharFromCode FINAL : public HTemplateInstruction<2> {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
                            HValue* char_code);
 
   Representation RequiredInputRepresentation(int index) OVERRIDE {
@@ -7752,10 +7714,8 @@ class HDateField FINAL : public HUnaryOperation {
 
 class HSeqStringGetChar FINAL : public HTemplateInstruction<2> {
  public:
-  static HInstruction* New(Zone* zone,
-                           HValue* context,
-                           String::Encoding encoding,
-                           HValue* string,
+  static HInstruction* New(Isolate* isolate, Zone* zone, HValue* context,
+                           String::Encoding encoding, HValue* string,
                            HValue* index);
 
   Representation RequiredInputRepresentation(int index) OVERRIDE {

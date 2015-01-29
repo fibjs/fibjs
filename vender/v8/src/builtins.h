@@ -95,15 +95,12 @@ enum BuiltinExtraArguments {
   V(KeyedStoreIC_PreMonomorphic, KEYED_STORE_IC, PREMONOMORPHIC,               \
     kNoExtraICState)                                                           \
   V(KeyedStoreIC_Megamorphic, KEYED_STORE_IC, MEGAMORPHIC, kNoExtraICState)    \
-  V(KeyedStoreIC_Generic, KEYED_STORE_IC, GENERIC, kNoExtraICState)            \
                                                                                \
   V(KeyedStoreIC_Initialize_Strict, KEYED_STORE_IC, UNINITIALIZED,             \
     StoreIC::kStrictModeState)                                                 \
   V(KeyedStoreIC_PreMonomorphic_Strict, KEYED_STORE_IC, PREMONOMORPHIC,        \
     StoreIC::kStrictModeState)                                                 \
   V(KeyedStoreIC_Megamorphic_Strict, KEYED_STORE_IC, MEGAMORPHIC,              \
-    StoreIC::kStrictModeState)                                                 \
-  V(KeyedStoreIC_Generic_Strict, KEYED_STORE_IC, GENERIC,                      \
     StoreIC::kStrictModeState)                                                 \
   V(KeyedStoreIC_SloppyArguments, KEYED_STORE_IC, MONOMORPHIC,                 \
     kNoExtraICState)                                                           \
@@ -275,10 +272,13 @@ class Builtins {
     return names_[index];
   }
   static int GetArgumentsCount(JavaScript id) { return javascript_argc_[id]; }
-  Handle<Code> GetCode(JavaScript id, bool* resolved);
   static int NumberOfJavaScriptBuiltins() { return id_count; }
 
   bool is_initialized() const { return initialized_; }
+
+  MUST_USE_RESULT static MaybeHandle<Object> InvokeApiFunction(
+      Handle<JSFunction> function, Handle<Object> receiver, int argc,
+      Handle<Object> args[]);
 
  private:
   Builtins();

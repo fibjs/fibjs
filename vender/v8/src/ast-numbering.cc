@@ -15,11 +15,11 @@ namespace internal {
 
 class AstNumberingVisitor FINAL : public AstVisitor {
  public:
-  explicit AstNumberingVisitor(Zone* zone)
+  explicit AstNumberingVisitor(Isolate* isolate, Zone* zone)
       : AstVisitor(),
         next_id_(BailoutId::FirstUsable().ToInt()),
         dont_optimize_reason_(kNoReason) {
-    InitializeAstVisitor(zone);
+    InitializeAstVisitor(isolate, zone);
   }
 
   bool Renumber(FunctionLiteral* node);
@@ -291,6 +291,7 @@ void AstNumberingVisitor::VisitCallRuntime(CallRuntime* node) {
 void AstNumberingVisitor::VisitWithStatement(WithStatement* node) {
   IncrementNodeCount();
   DisableOptimization(kWithStatement);
+  node->set_base_id(ReserveIdRange(WithStatement::num_ids()));
   Visit(node->expression());
   Visit(node->statement());
 }
@@ -440,7 +441,7 @@ void AstNumberingVisitor::VisitForStatement(ForStatement* node) {
 void AstNumberingVisitor::VisitClassLiteral(ClassLiteral* node) {
   IncrementNodeCount();
   DisableOptimization(kClassLiteral);
-  node->set_base_id(ReserveIdRange(ClassLiteral::num_ids()));
+  node->set_base_id(ReserveIdRange(node->num_ids()));
   if (node->extends()) Visit(node->extends());
   if (node->constructor()) Visit(node->constructor());
   if (node->class_variable_proxy()) {
@@ -454,7 +455,7 @@ void AstNumberingVisitor::VisitClassLiteral(ClassLiteral* node) {
 
 void AstNumberingVisitor::VisitObjectLiteral(ObjectLiteral* node) {
   IncrementNodeCount();
-  node->set_base_id(ReserveIdRange(ObjectLiteral::num_ids()));
+  node->set_base_id(ReserveIdRange(node->num_ids()));
   for (int i = 0; i < node->properties()->length(); i++) {
     VisitObjectLiteralProperty(node->properties()->at(i));
   }
@@ -558,8 +559,9 @@ bool AstNumberingVisitor::Renumber(FunctionLiteral* node) {
 }
 
 
-bool AstNumbering::Renumber(FunctionLiteral* function, Zone* zone) {
-  AstNumberingVisitor visitor(zone);
+bool AstNumbering::Renumber(Isolate* isolate, Zone* zone,
+                            FunctionLiteral* function) {
+  AstNumberingVisitor visitor(isolate, zone);
   return visitor.Renumber(function);
 }
 }

@@ -231,26 +231,27 @@ void JSObject::PrintProperties(std::ostream& os) {  // NOLINT
       descs->GetKey(i)->NamePrint(os);
       os << ": ";
       switch (descs->GetType(i)) {
-        case FIELD: {
+        case DATA: {
           FieldIndex index = FieldIndex::ForDescriptor(map(), i);
           if (IsUnboxedDoubleField(index)) {
             os << "<unboxed double> " << RawFastDoublePropertyAt(index);
           } else {
             os << Brief(RawFastPropertyAt(index));
           }
-          os << " (field at offset " << index.property_index() << ")\n";
+          os << " (data field at offset " << index.property_index() << ")\n";
           break;
         }
-        case ACCESSOR_FIELD: {
+        case ACCESSOR: {
           FieldIndex index = FieldIndex::ForDescriptor(map(), i);
-          os << " (accessor at offset " << index.property_index() << ")\n";
+          os << " (accessor field at offset " << index.property_index()
+             << ")\n";
           break;
         }
-        case CONSTANT:
-          os << Brief(descs->GetConstant(i)) << " (constant)\n";
+        case DATA_CONSTANT:
+          os << Brief(descs->GetConstant(i)) << " (data constant)\n";
           break;
-        case CALLBACKS:
-          os << Brief(descs->GetCallbacksObject(i)) << " (callbacks)\n";
+        case ACCESSOR_CONSTANT:
+          os << Brief(descs->GetCallbacksObject(i)) << " (accessor constant)\n";
           break;
       }
     }
@@ -926,6 +927,7 @@ void FunctionTemplateInfo::FunctionTemplateInfoPrint(
   os << "\n - hidden_prototype: " << (hidden_prototype() ? "true" : "false");
   os << "\n - undetectable: " << (undetectable() ? "true" : "false");
   os << "\n - need_access_check: " << (needs_access_check() ? "true" : "false");
+  os << "\n - instantiated: " << (instantiated() ? "true" : "false");
   os << "\n";
 }
 
@@ -1169,11 +1171,11 @@ void TransitionArray::PrintTransitions(std::ostream& os,
     } else {
       PropertyDetails details = GetTargetDetails(key, target);
       os << " (transition to ";
-      if (details.location() == IN_DESCRIPTOR) {
+      if (details.location() == kDescriptor) {
         os << "immutable ";
       }
-      os << (details.kind() == DATA ? "data" : "accessor");
-      if (details.location() == IN_DESCRIPTOR) {
+      os << (details.kind() == kData ? "data" : "accessor");
+      if (details.location() == kDescriptor) {
         os << " " << Brief(GetTargetValue(i));
       }
       os << "), attrs: " << details.attributes();

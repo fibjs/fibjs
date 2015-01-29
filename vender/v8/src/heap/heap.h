@@ -692,8 +692,8 @@ class Heap {
   // Iterates the whole code space to clear all ICs of the given kind.
   void ClearAllICsByKind(Code::Kind kind);
 
-  // For use during bootup.
-  void RepairFreeListsAfterBoot();
+  // FreeSpace objects have a null map after deserialization. Update the map.
+  void RepairFreeListsAfterDeserialization();
 
   template <typename T>
   static inline bool IsOneByte(T t, int chars);
@@ -2133,9 +2133,6 @@ class Heap {
   friend class MarkCompactCollector;
   friend class MarkCompactMarkingVisitor;
   friend class MapCompact;
-#ifdef VERIFY_HEAP
-  friend class NoWeakObjectVerificationScope;
-#endif
   friend class Page;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
@@ -2187,15 +2184,6 @@ class AlwaysAllocateScope {
   Heap* heap_;
   DisallowAllocationFailure daf_;
 };
-
-
-#ifdef VERIFY_HEAP
-class NoWeakObjectVerificationScope {
- public:
-  inline NoWeakObjectVerificationScope();
-  inline ~NoWeakObjectVerificationScope();
-};
-#endif
 
 
 class GCCallbacksScope {

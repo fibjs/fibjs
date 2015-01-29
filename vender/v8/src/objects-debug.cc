@@ -276,7 +276,7 @@ void JSObject::JSObjectVerify() {
     }
     DescriptorArray* descriptors = map()->instance_descriptors();
     for (int i = 0; i < map()->NumberOfOwnDescriptors(); i++) {
-      if (descriptors->GetDetails(i).type() == FIELD) {
+      if (descriptors->GetDetails(i).type() == DATA) {
         Representation r = descriptors->GetDetails(i).representation();
         FieldIndex index = FieldIndex::ForDescriptor(map(), i);
         if (IsUnboxedDoubleField(index)) {
@@ -389,11 +389,10 @@ void FixedArray::FixedArrayVerify() {
 void FixedDoubleArray::FixedDoubleArrayVerify() {
   for (int i = 0; i < length(); i++) {
     if (!is_the_hole(i)) {
-      double value = get_scalar(i);
-      CHECK(!std::isnan(value) ||
-            (bit_cast<uint64_t>(value) ==
-             bit_cast<uint64_t>(canonical_not_the_hole_nan_as_double())) ||
-            ((bit_cast<uint64_t>(value) & Double::kSignMask) != 0));
+      uint64_t value = get_representation(i);
+      CHECK((value & V8_UINT64_C(0x7FF8000000000000)) !=
+                V8_UINT64_C(0x7FF0000000000000) ||
+            (value & V8_UINT64_C(0x0007FFFFFFFFFFFF)) == V8_UINT64_C(0));
     }
   }
 }
@@ -1173,7 +1172,7 @@ bool LayoutDescriptor::IsConsistentWithMap(Map* map) {
     int nof_descriptors = map->NumberOfOwnDescriptors();
     for (int i = 0; i < nof_descriptors; i++) {
       PropertyDetails details = descriptors->GetDetails(i);
-      if (details.type() != FIELD) continue;
+      if (details.type() != DATA) continue;
       FieldIndex field_index = FieldIndex::ForDescriptor(map, i);
       bool tagged_expected =
           !field_index.is_inobject() || !details.representation().IsDouble();
@@ -1191,13 +1190,13 @@ bool LayoutDescriptor::IsConsistentWithMap(Map* map) {
 bool TransitionArray::IsSortedNoDuplicates(int valid_entries) {
   DCHECK(valid_entries == -1);
   Name* prev_key = NULL;
-  PropertyKind prev_kind = DATA;
+  PropertyKind prev_kind = kData;
   PropertyAttributes prev_attributes = NONE;
   uint32_t prev_hash = 0;
   for (int i = 0; i < number_of_transitions(); i++) {
     Name* key = GetSortedKey(i);
     uint32_t hash = key->Hash();
-    PropertyKind kind = DATA;
+    PropertyKind kind = kData;
     PropertyAttributes attributes = NONE;
     if (!IsSpecialTransition(key)) {
       Map* target = GetTarget(i);

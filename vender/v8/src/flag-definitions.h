@@ -256,6 +256,10 @@ DEFINE_IMPLICATION(track_field_types, track_fields)
 DEFINE_IMPLICATION(track_field_types, track_heap_object_fields)
 DEFINE_BOOL(smi_binop, true, "support smi representation in binary operations")
 DEFINE_BOOL(vector_ics, false, "support vector-based ics")
+DEFINE_BOOL(experimental_classes, false,
+            "experimental new semantics for super() calls")
+DEFINE_IMPLICATION(experimental_classes, harmony_classes)
+DEFINE_IMPLICATION(experimental_classes, harmony_object_literals)
 
 // Flags for optimization types.
 DEFINE_BOOL(optimize_for_size, false,
@@ -281,9 +285,9 @@ DEFINE_BOOL(use_local_allocation_folding, false, "only fold in basic blocks")
 DEFINE_BOOL(use_write_barrier_elimination, true,
             "eliminate write barriers targeting allocations in optimized code")
 DEFINE_INT(max_inlining_levels, 5, "maximum number of inlining levels")
-DEFINE_INT(max_inlined_source_size, 600,
+DEFINE_INT(max_inlined_source_size, 1150,
            "maximum source size in bytes considered for a single inlining")
-DEFINE_INT(max_inlined_nodes, 196,
+DEFINE_INT(max_inlined_nodes, 200,
            "maximum number of AST nodes considered for a single inlining")
 DEFINE_INT(max_inlined_nodes_cumulative, 400,
            "maximum cumulative number of AST nodes considered for inlining")
@@ -399,11 +403,8 @@ DEFINE_BOOL(context_specialization, false,
             "enable context specialization in TurboFan")
 DEFINE_BOOL(turbo_deoptimization, false, "enable deoptimization in TurboFan")
 DEFINE_BOOL(turbo_inlining, false, "enable inlining in TurboFan")
-DEFINE_BOOL(turbo_inlining_intrinsics, false,
-            "enable inlining of intrinsics in TurboFan")
 DEFINE_BOOL(trace_turbo_inlining, false, "trace TurboFan inlining")
 DEFINE_BOOL(loop_assignment_analysis, true, "perform loop assignment analysis")
-DEFINE_IMPLICATION(turbo_inlining_intrinsics, turbo_inlining)
 DEFINE_IMPLICATION(turbo_inlining, turbo_types)
 DEFINE_BOOL(turbo_profiling, false, "enable profiling in TurboFan")
 // TODO(dcarney): this is just for experimentation, remove when default.
@@ -414,6 +415,8 @@ DEFINE_BOOL(turbo_verify_allocation, DEBUG_BOOL,
 DEFINE_BOOL(turbo_move_optimization, true, "optimize gap moves in TurboFan")
 DEFINE_BOOL(turbo_jt, true, "enable jump threading in TurboFan")
 DEFINE_BOOL(turbo_osr, false, "enable OSR in TurboFan")
+DEFINE_BOOL(turbo_stress_loop_peeling, false,
+            "stress loop peeling optimization")
 
 DEFINE_INT(typed_array_max_size_in_heap, 64,
            "threshold for in-heap typed array")
@@ -465,6 +468,7 @@ DEFINE_BOOL(enable_vldr_imm, false,
             "enable use of constant pools for double immediate (ARM only)")
 DEFINE_BOOL(force_long_branches, false,
             "force all emitted branches to be in long mode (MIPS/PPC only)")
+DEFINE_STRING(mcpu, "auto", "enable optimization for specific cpu")
 
 // bootstrapper.cc
 DEFINE_STRING(expose_natives_as, NULL, "expose natives in global object")
@@ -857,6 +861,8 @@ DEFINE_BOOL(log_snapshot_positions, false,
 DEFINE_BOOL(log_suspect, false, "Log suspect operations.")
 DEFINE_BOOL(prof, false,
             "Log statistical profiling information (implies --log-code).")
+DEFINE_BOOL(prof_cpp, false, "Like --prof, but ignore generated code.")
+DEFINE_IMPLICATION(prof, prof_cpp)
 DEFINE_BOOL(prof_browser_mode, true,
             "Used with --prof, turns on browser-compatible mode for profiling.")
 DEFINE_BOOL(log_regexp, false, "Log regular expression execution.")

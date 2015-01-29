@@ -978,8 +978,6 @@ class Isolate {
 
   Debug* debug() { return debug_; }
 
-  inline bool DebuggerHasBreakPoints();
-
   CpuProfiler* cpu_profiler() const { return cpu_profiler_; }
   HeapProfiler* heap_profiler() const { return heap_profiler_; }
 
@@ -1364,7 +1362,6 @@ class Isolate {
 
   friend class ExecutionAccess;
   friend class HandleScopeImplementer;
-  friend class IsolateInitializer;
   friend class OptimizingCompilerThread;
   friend class SweeperThread;
   friend class ThreadManager;

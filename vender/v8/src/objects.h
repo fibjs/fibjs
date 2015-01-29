@@ -242,7 +242,7 @@ enum WriteBarrierMode { SKIP_WRITE_BARRIER, UPDATE_WRITE_BARRIER };
 
 
 // Indicates whether a value can be loaded as a constant.
-enum StoreMode { ALLOW_IN_DESCRIPTOR, FORCE_IN_OBJECT };
+enum StoreMode { ALLOW_IN_DESCRIPTOR, FORCE_FIELD };
 
 
 // PropertyNormalizationMode is used to specify whether to keep
@@ -1589,12 +1589,6 @@ enum AccessorComponent {
 // JSObject and JSProxy.
 class JSReceiver: public HeapObject {
  public:
-  enum DeleteMode {
-    NORMAL_DELETION,
-    STRICT_DELETION,
-    FORCE_DELETION
-  };
-
   DECLARE_CAST(JSReceiver)
 
   MUST_USE_RESULT static MaybeHandle<Object> SetElement(
@@ -1616,13 +1610,11 @@ class JSReceiver: public HeapObject {
 
   // Implementation of [[Delete]], ECMA-262 5th edition, section 8.12.7.
   MUST_USE_RESULT static MaybeHandle<Object> DeleteProperty(
-      Handle<JSReceiver> object,
-      Handle<Name> name,
-      DeleteMode mode = NORMAL_DELETION);
+      Handle<JSReceiver> object, Handle<Name> name,
+      StrictMode strict_mode = SLOPPY);
   MUST_USE_RESULT static MaybeHandle<Object> DeleteElement(
-      Handle<JSReceiver> object,
-      uint32_t index,
-      DeleteMode mode = NORMAL_DELETION);
+      Handle<JSReceiver> object, uint32_t index,
+      StrictMode strict_mode = SLOPPY);
 
   // Tests for the fast common case for property enumeration.
   bool IsSimpleEnum();
@@ -2341,21 +2333,16 @@ class JSObject: public JSReceiver {
                               PropertyAttributes attributes);
 
   MUST_USE_RESULT static MaybeHandle<Object> DeleteProperty(
-      Handle<JSObject> object,
-      Handle<Name> name,
-      DeleteMode mode);
+      Handle<JSObject> object, Handle<Name> name, StrictMode strict_mode);
   MUST_USE_RESULT static MaybeHandle<Object> DeletePropertyWithInterceptor(
       Handle<JSObject> holder, Handle<JSObject> receiver, Handle<Name> name);
 
-  // Deletes the named property in a normalized object.
-  static Handle<Object> DeleteNormalizedProperty(Handle<JSObject> object,
-                                                 Handle<Name> name,
-                                                 DeleteMode mode);
+  // Deletes an existing named property in a normalized object.
+  static void DeleteNormalizedProperty(Handle<JSObject> object,
+                                       Handle<Name> name);
 
   MUST_USE_RESULT static MaybeHandle<Object> DeleteElement(
-      Handle<JSObject> object,
-      uint32_t index,
-      DeleteMode mode);
+      Handle<JSObject> object, uint32_t index, StrictMode strict_mode);
   MUST_USE_RESULT static MaybeHandle<Object> DeleteElementWithInterceptor(
       Handle<JSObject> object,
       uint32_t index);
@@ -2565,7 +2552,7 @@ class FixedDoubleArray: public FixedArrayBase {
  public:
   // Setter and getter for elements.
   inline double get_scalar(int index);
-  inline int64_t get_representation(int index);
+  inline uint64_t get_representation(int index);
   static inline Handle<Object> get(Handle<FixedDoubleArray> array, int index);
   inline void set(int index, double value);
   inline void set_the_hole(int index);
@@ -2585,10 +2572,6 @@ class FixedDoubleArray: public FixedArrayBase {
 
   // Code Generation support.
   static int OffsetOfElementAt(int index) { return SizeFor(index); }
-
-  inline static bool is_the_hole_nan(double value);
-  inline static double hole_nan_as_double();
-  inline static double canonical_not_the_hole_nan_as_double();
 
   DECLARE_CAST(FixedDoubleArray)
 
@@ -3556,10 +3539,7 @@ class Dictionary: public HashTable<Derived, Shape, Key> {
   void CopyValuesTo(FixedArray* elements);
 
   // Delete a property from the dictionary.
-  static Handle<Object> DeleteProperty(
-      Handle<Derived> dictionary,
-      int entry,
-      JSObject::DeleteMode mode);
+  static Handle<Object> DeleteProperty(Handle<Derived> dictionary, int entry);
 
   // Attempt to shrink the dictionary after deletion of key.
   MUST_USE_RESULT static inline Handle<Derived> Shrink(
@@ -4280,7 +4260,7 @@ class ScopeInfo : public FixedArray {
                                              Handle<JSObject> scope_object);
 
 
-  static Handle<ScopeInfo> Create(Scope* scope, Zone* zone);
+  static Handle<ScopeInfo> Create(Isolate* isolate, Zone* zone, Scope* scope);
 
   // Serializes empty scope info.
   static ScopeInfo* Empty(Isolate* isolate);
@@ -4468,8 +4448,11 @@ class ByteArray: public FixedArrayBase {
 };
 
 
-// FreeSpace represents fixed sized areas of the heap that are not currently in
-// use.  Used by the heap and GC.
+// FreeSpace are fixed-size free memory blocks used by the heap and GC.
+// They look like heap objects (are heap object tagged and have a map) so that
+// the heap remains iterable.  They have a size and a next pointer.
+// The next pointer is the raw address of the next FreeSpace object (or NULL)
+// in the free list.
 class FreeSpace: public HeapObject {
  public:
   // [size]: size of the free space including the header.
@@ -4481,7 +4464,12 @@ class FreeSpace: public HeapObject {
 
   inline int Size() { return size(); }
 
-  DECLARE_CAST(FreeSpace)
+  // Accessors for the next field.
+  inline FreeSpace* next();
+  inline FreeSpace** next_address();
+  inline void set_next(FreeSpace* next);
+
+  inline static FreeSpace* cast(HeapObject* obj);
 
   // Dispatched behavior.
   DECLARE_PRINTER(FreeSpace)
@@ -4490,9 +4478,7 @@ class FreeSpace: public HeapObject {
   // Layout description.
   // Size is smi tagged when it is stored.
   static const int kSizeOffset = HeapObject::kHeaderSize;
-  static const int kHeaderSize = kSizeOffset + kPointerSize;
-
-  static const int kAlignedSize = OBJECT_POINTER_ALIGN(kHeaderSize);
+  static const int kNextOffset = POINTER_SIZE_ALIGN(kSizeOffset + kPointerSize);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(FreeSpace);
@@ -4872,7 +4858,8 @@ class DeoptimizationInputData: public FixedArray {
   static const int kOsrPcOffsetIndex = 4;
   static const int kOptimizationIdIndex = 5;
   static const int kSharedFunctionInfoIndex = 6;
-  static const int kFirstDeoptEntryIndex = 7;
+  static const int kWeakCellCacheIndex = 7;
+  static const int kFirstDeoptEntryIndex = 8;
 
   // Offsets of deopt entry elements relative to the start of the entry.
   static const int kAstIdRawOffset = 0;
@@ -4897,6 +4884,7 @@ class DeoptimizationInputData: public FixedArray {
   DEFINE_ELEMENT_ACCESSORS(OsrPcOffset, Smi)
   DEFINE_ELEMENT_ACCESSORS(OptimizationId, Smi)
   DEFINE_ELEMENT_ACCESSORS(SharedFunctionInfo, Object)
+  DEFINE_ELEMENT_ACCESSORS(WeakCellCache, Object)
 
 #undef DEFINE_ELEMENT_ACCESSORS
 
@@ -5151,6 +5139,11 @@ class Code: public HeapObject {
   // code object was generated by the TurboFan optimizing compiler.
   inline bool is_turbofanned();
   inline void set_is_turbofanned(bool value);
+
+  // [can_have_weak_objects]: For kind OPTIMIZED_FUNCTION, tells whether the
+  // embedded objects in code should be treated weakly.
+  inline bool can_have_weak_objects();
+  inline void set_can_have_weak_objects(bool value);
 
   // [optimizable]: For FUNCTION kind, tells if it is optimizable.
   inline bool optimizable();
@@ -5409,14 +5402,21 @@ class Code: public HeapObject {
   void VerifyEmbeddedObjectsInFullCode();
 #endif  // DEBUG
 
-  inline bool CanContainWeakObjects() { return is_optimized_code(); }
+  inline bool CanContainWeakObjects() {
+    // is_turbofanned() implies !can_have_weak_objects().
+    DCHECK(!is_optimized_code() || !is_turbofanned() ||
+           !can_have_weak_objects());
+    return is_optimized_code() && can_have_weak_objects();
+  }
 
   inline bool IsWeakObject(Object* object) {
-    return (is_optimized_code() && !is_turbofanned() &&
-            IsWeakObjectInOptimizedCode(object));
+    return (CanContainWeakObjects() && IsWeakObjectInOptimizedCode(object));
   }
 
   static inline bool IsWeakObjectInOptimizedCode(Object* object);
+
+  static Handle<WeakCell> WeakCellFor(Handle<Code> code);
+  WeakCell* CachedWeakCell();
 
   // Max loop nesting marker used to postpose OSR. We don't take loop
   // nesting that is deeper than 5 levels into account.
@@ -5479,9 +5479,10 @@ class Code: public HeapObject {
       kStackSlotsFirstBit + kStackSlotsBitCount;
   static const int kMarkedForDeoptimizationBit = kHasFunctionCacheBit + 1;
   static const int kIsTurbofannedBit = kMarkedForDeoptimizationBit + 1;
+  static const int kCanHaveWeakObjects = kIsTurbofannedBit + 1;
 
   STATIC_ASSERT(kStackSlotsFirstBit + kStackSlotsBitCount <= 32);
-  STATIC_ASSERT(kIsTurbofannedBit + 1 <= 32);
+  STATIC_ASSERT(kCanHaveWeakObjects + 1 <= 32);
 
   class StackSlotsField: public BitField<int,
       kStackSlotsFirstBit, kStackSlotsBitCount> {};  // NOLINT
@@ -5491,6 +5492,8 @@ class Code: public HeapObject {
       : public BitField<bool, kMarkedForDeoptimizationBit, 1> {};   // NOLINT
   class IsTurbofannedField : public BitField<bool, kIsTurbofannedBit, 1> {
   };  // NOLINT
+  class CanHaveWeakObjectsField
+      : public BitField<bool, kCanHaveWeakObjects, 1> {};  // NOLINT
 
   // KindSpecificFlags2 layout (ALL)
   static const int kIsCrankshaftedBit = 0;
@@ -6143,6 +6146,11 @@ class Map: public HeapObject {
                                              PropertyAttributes attributes);
 
   inline void AppendDescriptor(Descriptor* desc);
+
+  // Returns a copy of the map, prepared for inserting into the transition
+  // tree (if the |map| owns descriptors then the new one will share
+  // descriptors with |map|).
+  static Handle<Map> CopyForTransition(Handle<Map> map, const char* reason);
 
   // Returns a copy of the map, with all transitions dropped from the
   // instance descriptors.
@@ -9843,13 +9851,9 @@ class JSProxy: public JSReceiver {
       Handle<JSProxy> proxy, uint32_t index);
 
   MUST_USE_RESULT static MaybeHandle<Object> DeletePropertyWithHandler(
-      Handle<JSProxy> proxy,
-      Handle<Name> name,
-      DeleteMode mode);
+      Handle<JSProxy> proxy, Handle<Name> name, StrictMode strict_mode);
   MUST_USE_RESULT static MaybeHandle<Object> DeleteElementWithHandler(
-      Handle<JSProxy> proxy,
-      uint32_t index,
-      DeleteMode mode);
+      Handle<JSProxy> proxy, uint32_t index, StrictMode strict_mode);
 
   MUST_USE_RESULT Object* GetIdentityHash();
 
@@ -10619,6 +10623,7 @@ class FunctionTemplateInfo: public TemplateInfo {
   DECL_BOOLEAN_ACCESSORS(read_only_prototype)
   DECL_BOOLEAN_ACCESSORS(remove_prototype)
   DECL_BOOLEAN_ACCESSORS(do_not_cache)
+  DECL_BOOLEAN_ACCESSORS(instantiated)
 
   DECLARE_CAST(FunctionTemplateInfo)
 
@@ -10651,6 +10656,10 @@ class FunctionTemplateInfo: public TemplateInfo {
   bool IsTemplateFor(Object* object);
   bool IsTemplateFor(Map* map);
 
+  // Returns the holder JSObject if the function can legally be called with this
+  // receiver.  Returns Heap::null_value() if the call is illegal.
+  Object* GetCompatibleReceiver(Isolate* isolate, Object* receiver);
+
  private:
   // Bit position in the flag, from least significant bit position.
   static const int kHiddenPrototypeBit   = 0;
@@ -10659,6 +10668,7 @@ class FunctionTemplateInfo: public TemplateInfo {
   static const int kReadOnlyPrototypeBit = 3;
   static const int kRemovePrototypeBit   = 4;
   static const int kDoNotCacheBit        = 5;
+  static const int kInstantiatedBit      = 6;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FunctionTemplateInfo);
 };

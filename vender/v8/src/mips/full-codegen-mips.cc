@@ -1251,6 +1251,7 @@ void FullCodeGenerator::VisitForInStatement(ForInStatement* stmt) {
   // Perform the assignment as if via '='.
   { EffectContext context(this);
     EmitAssignment(stmt->each());
+    PrepareForBailoutForId(stmt->AssignmentId(), NO_REGISTERS);
   }
 
   // Generate code for the body of the loop.
@@ -1799,7 +1800,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
         __ Drop(2);
       }
     } else {
-      EmitPropertyKey(property);
+      EmitPropertyKey(property, expr->GetIdForProperty(property_index));
       VisitForStackValue(value);
 
       switch (property->kind()) {
@@ -1885,6 +1886,7 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
     FastCloneShallowArrayStub stub(isolate(), allocation_site_mode);
     __ CallStub(&stub);
   }
+  PrepareForBailoutForId(expr->CreateLiteralId(), TOS_REG);
 
   bool result_saved = false;  // Is the result saved to the stack?
 
@@ -2531,7 +2533,7 @@ void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
       __ lw(scratch, MemOperand(sp, 0));  // prototype
     }
     __ push(scratch);
-    EmitPropertyKey(property);
+    EmitPropertyKey(property, lit->GetIdForProperty(i));
     VisitForStackValue(value);
     EmitSetHomeObjectIfNeeded(value, 2);
 
@@ -2985,8 +2987,7 @@ void FullCodeGenerator::EmitCall(Call* expr, CallICState::CallType call_type) {
 
   // Record source position of the IC call.
   SetSourcePosition(expr->position());
-  Handle<Code> ic = CallIC::initialize_stub(
-      isolate(), arg_count, call_type);
+  Handle<Code> ic = CodeFactory::CallIC(isolate(), arg_count, call_type).code();
   __ li(a3, Operand(SmiFromSlot(expr->CallFeedbackSlot())));
   __ lw(a1, MemOperand(sp, (arg_count + 1) * kPointerSize));
   // Don't assign a type feedback id to the IC, since type feedback is provided
@@ -3150,11 +3151,15 @@ void FullCodeGenerator::VisitCall(Call* expr) {
       }
     }
   } else if (call_type == Call::SUPER_CALL) {
-    SuperReference* super_ref = callee->AsSuperReference();
-    EmitLoadSuperConstructor(super_ref);
-    __ Push(result_register());
-    VisitForStackValue(super_ref->this_var());
-    EmitCall(expr, CallICState::METHOD);
+    if (FLAG_experimental_classes) {
+      EmitSuperConstructorCall(expr);
+    } else {
+      SuperReference* super_ref = callee->AsSuperReference();
+      EmitLoadSuperConstructor(super_ref);
+      __ Push(result_register());
+      VisitForStackValue(super_ref->this_var());
+      EmitCall(expr, CallICState::METHOD);
+    }
   } else {
     DCHECK(call_type == Call::OTHER_CALL);
     // Call to an arbitrary expression not handled specially above.
@@ -3218,6 +3223,51 @@ void FullCodeGenerator::VisitCallNew(CallNew* expr) {
   CallConstructStub stub(isolate(), RECORD_CONSTRUCTOR_TARGET);
   __ Call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
   PrepareForBailoutForId(expr->ReturnId(), TOS_REG);
+  context()->Plug(v0);
+}
+
+
+void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
+  SuperReference* super_ref = expr->expression()->AsSuperReference();
+  EmitLoadSuperConstructor(super_ref);
+  __ push(result_register());
+
+  // Push the arguments ("left-to-right") on the stack.
+  ZoneList<Expression*>* args = expr->arguments();
+  int arg_count = args->length();
+  for (int i = 0; i < arg_count; i++) {
+    VisitForStackValue(args->at(i));
+  }
+
+  // Call the construct call builtin that handles allocation and
+  // constructor invocation.
+  SetSourcePosition(expr->position());
+
+  // Load function and argument count into a1 and a0.
+  __ li(a0, Operand(arg_count));
+  __ lw(a1, MemOperand(sp, arg_count * kPointerSize));
+
+  // Record call targets in unoptimized code.
+  if (FLAG_pretenuring_call_new) {
+    UNREACHABLE();
+    /* TODO(dslomov): support pretenuring.
+    EnsureSlotContainsAllocationSite(expr->AllocationSiteFeedbackSlot());
+    DCHECK(expr->AllocationSiteFeedbackSlot().ToInt() ==
+           expr->CallNewFeedbackSlot().ToInt() + 1);
+    */
+  }
+
+  __ li(a2, FeedbackVector());
+  __ li(a3, Operand(SmiFromSlot(expr->CallFeedbackSlot())));
+
+  // TODO(dslomov): use a different stub and propagate new.target.
+  CallConstructStub stub(isolate(), RECORD_CONSTRUCTOR_TARGET);
+  __ Call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
+
+  RecordJSReturnSite(expr);
+
+  // TODO(dslomov): implement TDZ for `this`.
+  EmitVariableAssignment(super_ref->this_var()->var(), Token::ASSIGN);
   context()->Plug(v0);
 }
 

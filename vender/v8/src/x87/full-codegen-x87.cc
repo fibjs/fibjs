@@ -1177,6 +1177,7 @@ void FullCodeGenerator::VisitForInStatement(ForInStatement* stmt) {
   // Perform the assignment as if via '='.
   { EffectContext context(this);
     EmitAssignment(stmt->each());
+    PrepareForBailoutForId(stmt->AssignmentId(), NO_REGISTERS);
   }
 
   // Generate code for the body of the loop.
@@ -1725,7 +1726,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
         __ Drop(2);
       }
     } else {
-      EmitPropertyKey(property);
+      EmitPropertyKey(property, expr->GetIdForProperty(property_index));
       VisitForStackValue(value);
 
       switch (property->kind()) {
@@ -1810,6 +1811,7 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
     FastCloneShallowArrayStub stub(isolate(), allocation_site_mode);
     __ CallStub(&stub);
   }
+  PrepareForBailoutForId(expr->CreateLiteralId(), TOS_REG);
 
   bool result_saved = false;  // Is the result saved to the stack?
 
@@ -2453,15 +2455,16 @@ void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
     } else {
       __ push(Operand(esp, 0));  // prototype
     }
-    EmitPropertyKey(property);
+    EmitPropertyKey(property, lit->GetIdForProperty(i));
     VisitForStackValue(value);
     EmitSetHomeObjectIfNeeded(value, 2);
 
     switch (property->kind()) {
       case ObjectLiteral::Property::CONSTANT:
       case ObjectLiteral::Property::MATERIALIZED_LITERAL:
-      case ObjectLiteral::Property::COMPUTED:
       case ObjectLiteral::Property::PROTOTYPE:
+        UNREACHABLE();
+      case ObjectLiteral::Property::COMPUTED:
         __ CallRuntime(Runtime::kDefineClassMethod, 3);
         break;
 
@@ -2472,9 +2475,6 @@ void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
       case ObjectLiteral::Property::SETTER:
         __ CallRuntime(Runtime::kDefineSetterPropertyUnchecked, 3);
         break;
-
-      default:
-        UNREACHABLE();
     }
   }
 

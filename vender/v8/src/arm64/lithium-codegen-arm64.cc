@@ -414,8 +414,30 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   DCHECK(ToRegister(instr->result()).Is(x0));
 
   int arity = instr->arity();
-  CallFunctionStub stub(isolate(), arity, instr->hydrogen()->function_flags());
-  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  CallFunctionFlags flags = instr->hydrogen()->function_flags();
+  if (instr->hydrogen()->HasVectorAndSlot()) {
+    Register slot_register = ToRegister(instr->temp_slot());
+    Register vector_register = ToRegister(instr->temp_vector());
+    DCHECK(slot_register.is(x3));
+    DCHECK(vector_register.is(x2));
+
+    AllowDeferredHandleDereference vector_structure_check;
+    Handle<TypeFeedbackVector> vector = instr->hydrogen()->feedback_vector();
+    int index = vector->GetIndex(instr->hydrogen()->slot());
+
+    __ Mov(vector_register, vector);
+    __ Mov(slot_register, Operand(Smi::FromInt(index)));
+
+    CallICState::CallType call_type =
+        (flags & CALL_AS_METHOD) ? CallICState::METHOD : CallICState::FUNCTION;
+
+    Handle<Code> ic =
+        CodeFactory::CallICInOptimizedCode(isolate(), arity, call_type).code();
+    CallCode(ic, RelocInfo::CODE_TARGET, instr);
+  } else {
+    CallFunctionStub stub(isolate(), arity, flags);
+    CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  }
   after_push_argument_ = false;
 }
 
@@ -922,7 +944,6 @@ void LCodeGen::FinishCode(Handle<Code> code) {
   DCHECK(is_done());
   code->set_stack_slots(GetStackSlotCount());
   code->set_safepoint_table_offset(safepoints_.GetCodeOffset());
-  if (code->is_optimized_code()) RegisterWeakObjectsInOptimizedCode(code);
   PopulateDeoptimizationData(code);
 }
 
@@ -946,6 +967,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   } else {
     data->SetSharedFunctionInfo(Smi::FromInt(0));
   }
+  data->SetWeakCellCache(Smi::FromInt(0));
 
   Handle<FixedArray> literals =
       factory()->NewFixedArray(deoptimization_literals_.length(), TENURED);
@@ -1984,26 +2006,18 @@ void LCodeGen::DoBranch(LBranch* instr) {
 
 
 void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
-                                 int formal_parameter_count,
-                                 int arity,
-                                 LInstruction* instr,
-                                 Register function_reg) {
+                                 int formal_parameter_count, int arity,
+                                 LInstruction* instr) {
   bool dont_adapt_arguments =
       formal_parameter_count == SharedFunctionInfo::kDontAdaptArgumentsSentinel;
   bool can_invoke_directly =
       dont_adapt_arguments || formal_parameter_count == arity;
 
   // The function interface relies on the following register assignments.
-  DCHECK(function_reg.Is(x1) || function_reg.IsNone());
+  Register function_reg = x1;
   Register arity_reg = x0;
 
   LPointerMap* pointers = instr->pointer_map();
-
-  // If necessary, load the function object.
-  if (function_reg.IsNone()) {
-    function_reg = x1;
-    __ LoadObject(function_reg, function);
-  }
 
   if (FLAG_debug_code) {
     Label is_not_smi;
@@ -3220,9 +3234,7 @@ void LCodeGen::DoInvokeFunction(LInvokeFunction* instr) {
   } else {
     CallKnownFunction(known_function,
                       instr->hydrogen()->formal_parameter_count(),
-                      instr->arity(),
-                      instr,
-                      x1);
+                      instr->arity(), instr);
   }
   after_push_argument_ = false;
 }
@@ -3619,12 +3631,9 @@ void LCodeGen::DoLoadKeyedFixedDouble(LLoadKeyedFixedDouble* instr) {
 
   if (instr->hydrogen()->RequiresHoleCheck()) {
     Register scratch = ToRegister(instr->temp());
-    // Detect the hole NaN by adding one to the integer representation of the
-    // result, and checking for overflow.
-    STATIC_ASSERT(kHoleNanInt64 == 0x7fffffffffffffff);
-    __ Ldr(scratch, mem_op);
-    __ Cmn(scratch, 1);
-    DeoptimizeIf(vs, instr, "hole");
+    __ Fmov(scratch, result);
+    __ Eor(scratch, scratch, kHoleNanInt64);
+    DeoptimizeIfZero(scratch, instr, "hole");
   }
 }
 

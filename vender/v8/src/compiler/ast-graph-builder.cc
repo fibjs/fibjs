@@ -21,14 +21,15 @@ namespace compiler {
 
 AstGraphBuilder::AstGraphBuilder(Zone* local_zone, CompilationInfo* info,
                                  JSGraph* jsgraph, LoopAssignmentAnalysis* loop)
-    : StructuredGraphBuilder(local_zone, jsgraph->graph(), jsgraph->common()),
+    : StructuredGraphBuilder(jsgraph->isolate(), local_zone, jsgraph->graph(),
+                             jsgraph->common()),
       info_(info),
       jsgraph_(jsgraph),
       globals_(0, local_zone),
       breakable_(NULL),
       execution_context_(NULL),
       loop_assignment_analysis_(loop) {
-  InitializeAstVisitor(local_zone);
+  InitializeAstVisitor(info->isolate(), local_zone);
 }
 
 
@@ -542,6 +543,7 @@ void AstGraphBuilder::VisitWithStatement(WithStatement* stmt) {
   Node* value = environment()->Pop();
   const Operator* op = javascript()->CreateWithContext();
   Node* context = NewNode(op, value, GetFunctionClosure());
+  PrepareFrameState(context, stmt->EntryId());
   ContextScope scope(this, stmt->scope(), context);
   Visit(stmt->statement());
 }
@@ -772,7 +774,7 @@ void AstGraphBuilder::VisitForInStatement(ForInStatement* stmt) {
         }
         value = environment()->Pop();
         // Bind value and do loop body.
-        VisitForInAssignment(stmt->each(), value);
+        VisitForInAssignment(stmt->each(), value, stmt->AssignmentId());
         VisitIterationBody(stmt, &for_loop, 5);
         for_loop.EndBody();
         // Inc counter and continue.
@@ -897,6 +899,8 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
     environment()->Push(property->is_static() ? literal : proto);
 
     VisitForValue(property->key());
+    environment()->Push(
+        BuildToName(environment()->Pop(), expr->GetIdForProperty(i)));
     VisitForValue(property->value());
     Node* value = environment()->Pop();
     Node* key = environment()->Pop();
@@ -904,9 +908,9 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
     switch (property->kind()) {
       case ObjectLiteral::Property::CONSTANT:
       case ObjectLiteral::Property::MATERIALIZED_LITERAL:
+      case ObjectLiteral::Property::PROTOTYPE:
         UNREACHABLE();
-      case ObjectLiteral::Property::COMPUTED:
-      case ObjectLiteral::Property::PROTOTYPE: {
+      case ObjectLiteral::Property::COMPUTED: {
         const Operator* op =
             javascript()->CallRuntime(Runtime::kDefineClassMethod, 3);
         NewNode(op, receiver, key, value);
@@ -931,7 +935,9 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
     if (FunctionLiteral::NeedsHomeObject(property->value())) {
       Unique<Name> name =
           MakeUnique(isolate()->factory()->home_object_symbol());
-      NewNode(javascript()->StoreNamed(strict_mode(), name), value, receiver);
+      Node* store = NewNode(javascript()->StoreNamed(strict_mode(), name),
+                            value, receiver);
+      PrepareFrameState(store, BailoutId::None());
     }
   }
 
@@ -947,6 +953,7 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
     BuildVariableAssignment(var, literal, Token::INIT_CONST, BailoutId::None());
   }
 
+  PrepareFrameState(literal, expr->id(), ast_context()->GetStateCombine());
   ast_context()->ProduceValue(literal);
 }
 
@@ -1026,9 +1033,11 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
   expr->CalculateEmitStore(zone());
 
   // Create nodes to store computed values into the literal.
+  int property_index = 0;
   AccessorTable accessor_table(zone());
-  for (int i = 0; i < expr->properties()->length(); i++) {
-    ObjectLiteral::Property* property = expr->properties()->at(i);
+  for (; property_index < expr->properties()->length(); property_index++) {
+    ObjectLiteral::Property* property = expr->properties()->at(property_index);
+    if (property->is_computed_name()) break;
     if (property->IsCompileTimeValue()) continue;
 
     Literal* key = property->key()->AsLiteral();
@@ -1077,8 +1086,7 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
           const Operator* op =
               javascript()->CallRuntime(Runtime::kInternalSetPrototype, 2);
           Node* set_prototype = NewNode(op, receiver, value);
-          // SetPrototype should not lazy deopt on an object
-          // literal.
+          // SetPrototype should not lazy deopt on an object literal.
           PrepareFrameState(set_prototype, BailoutId::None());
         }
         break;
@@ -1110,6 +1118,65 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
     PrepareFrameState(call, BailoutId::None());
   }
 
+  // Object literals have two parts. The "static" part on the left contains no
+  // computed property names, and so we can compute its map ahead of time; see
+  // Runtime_CreateObjectLiteralBoilerplate. The second "dynamic" part starts
+  // with the first computed property name and continues with all properties to
+  // its right. All the code from above initializes the static component of the
+  // object literal, and arranges for the map of the result to reflect the
+  // static order in which the keys appear. For the dynamic properties, we
+  // compile them into a series of "SetOwnProperty" runtime calls. This will
+  // preserve insertion order.
+  for (; property_index < expr->properties()->length(); property_index++) {
+    ObjectLiteral::Property* property = expr->properties()->at(property_index);
+
+    environment()->Push(literal);  // Duplicate receiver.
+    VisitForValue(property->key());
+    environment()->Push(BuildToName(environment()->Pop(),
+                                    expr->GetIdForProperty(property_index)));
+    // TODO(mstarzinger): For ObjectLiteral::Property::PROTOTYPE the key should
+    // not be on the operand stack while the value is being evaluated. Come up
+    // with a repro for this and fix it. Also find a nice way to do so. :)
+    VisitForValue(property->value());
+    Node* value = environment()->Pop();
+    Node* key = environment()->Pop();
+    Node* receiver = environment()->Pop();
+
+    switch (property->kind()) {
+      case ObjectLiteral::Property::CONSTANT:
+      case ObjectLiteral::Property::COMPUTED:
+      case ObjectLiteral::Property::MATERIALIZED_LITERAL: {
+        Node* attr = jsgraph()->Constant(NONE);
+        const Operator* op =
+            javascript()->CallRuntime(Runtime::kDefineDataPropertyUnchecked, 4);
+        Node* call = NewNode(op, receiver, key, value, attr);
+        PrepareFrameState(call, BailoutId::None());
+        break;
+      }
+      case ObjectLiteral::Property::PROTOTYPE: {
+        const Operator* op =
+            javascript()->CallRuntime(Runtime::kInternalSetPrototype, 2);
+        Node* call = NewNode(op, receiver, value);
+        PrepareFrameState(call, BailoutId::None());
+        break;
+      }
+      case ObjectLiteral::Property::GETTER: {
+        const Operator* op = javascript()->CallRuntime(
+            Runtime::kDefineGetterPropertyUnchecked, 3);
+        Node* call = NewNode(op, receiver, key, value);
+        PrepareFrameState(call, BailoutId::None());
+        break;
+      }
+      case ObjectLiteral::Property::SETTER: {
+        const Operator* op = javascript()->CallRuntime(
+            Runtime::kDefineSetterPropertyUnchecked, 3);
+        Node* call = NewNode(op, receiver, key, value);
+        PrepareFrameState(call, BailoutId::None());
+        break;
+      }
+    }
+  }
+
   // Transform literals that contain functions to fast properties.
   if (expr->has_function()) {
     const Operator* op =
@@ -1134,6 +1201,8 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
   const Operator* op =
       javascript()->CallRuntime(Runtime::kCreateArrayLiteral, 4);
   Node* literal = NewNode(op, literals_array, literal_index, constants, flags);
+  PrepareFrameState(literal, expr->CreateLiteralId(),
+                    OutputFrameStateCombine::Push());
 
   // The array and the literal index are both expected on the operand stack
   // during computation of the element values.
@@ -1159,7 +1228,8 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
 }
 
 
-void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value) {
+void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value,
+                                           BailoutId bailout_id) {
   DCHECK(expr->IsValidReferenceExpression());
 
   // Left-hand side can only be a property, a global or a variable slot.
@@ -1170,8 +1240,7 @@ void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value) {
   switch (assign_type) {
     case VARIABLE: {
       Variable* var = expr->AsVariableProxy()->var();
-      // TODO(jarin) Fill in the correct bailout id.
-      BuildVariableAssignment(var, value, Token::ASSIGN, BailoutId::None());
+      BuildVariableAssignment(var, value, Token::ASSIGN, bailout_id);
       break;
     }
     case NAMED_PROPERTY: {
@@ -1183,8 +1252,7 @@ void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value) {
           MakeUnique(property->key()->AsLiteral()->AsPropertyName());
       Node* store =
           NewNode(javascript()->StoreNamed(strict_mode(), name), object, value);
-      // TODO(jarin) Fill in the correct bailout id.
-      PrepareFrameState(store, BailoutId::None());
+      PrepareFrameState(store, bailout_id);
       break;
     }
     case KEYED_PROPERTY: {
@@ -1196,8 +1264,7 @@ void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value) {
       value = environment()->Pop();
       Node* store = NewNode(javascript()->StoreProperty(strict_mode()), object,
                             key, value);
-      // TODO(jarin) Fill in the correct bailout id.
-      PrepareFrameState(store, BailoutId::None());
+      PrepareFrameState(store, bailout_id);
       break;
     }
   }
@@ -1400,11 +1467,12 @@ void AstGraphBuilder::VisitCall(Call* expr) {
       flags = CALL_AS_METHOD;
       break;
     }
-    case Call::SUPER_CALL: {
+    case Call::SUPER_CALL:
       // TODO(dslomov): Implement super calls.
-      UNIMPLEMENTED();
+      callee_value = jsgraph()->UndefinedConstant();
+      receiver_value = jsgraph()->UndefinedConstant();
+      SetStackOverflow();
       break;
-    }
     case Call::POSSIBLY_EVAL_CALL:
       possibly_eval = true;
     // Fall through.
@@ -2232,7 +2300,7 @@ Node* AstGraphBuilder::BuildLoadGlobalProxy() {
 
 
 Node* AstGraphBuilder::BuildToBoolean(Node* input) {
-  // TODO(titzer): this should be in a JSOperatorReducer.
+  // TODO(titzer): This should be in a JSOperatorReducer.
   switch (input->opcode()) {
     case IrOpcode::kInt32Constant:
       return jsgraph_->BooleanConstant(!Int32Matcher(input).Is(0));
@@ -2253,6 +2321,16 @@ Node* AstGraphBuilder::BuildToBoolean(Node* input) {
   }
 
   return NewNode(javascript()->ToBoolean(), input);
+}
+
+
+Node* AstGraphBuilder::BuildToName(Node* input, BailoutId bailout_id) {
+  // TODO(turbofan): Possible optimization is to NOP on name constants. But the
+  // same caveat as with BuildToBoolean applies, and it should be factored out
+  // into a JSOperatorReducer.
+  Node* name = NewNode(javascript()->ToName(), input);
+  PrepareFrameState(name, bailout_id);
+  return name;
 }
 
 

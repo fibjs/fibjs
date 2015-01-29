@@ -29,8 +29,9 @@ class JumpPatchSite;
 // debugger to piggybag on.
 class BreakableStatementChecker: public AstVisitor {
  public:
-  explicit BreakableStatementChecker(Zone* zone) : is_breakable_(false) {
-    InitializeAstVisitor(zone);
+  BreakableStatementChecker(Isolate* isolate, Zone* zone)
+      : is_breakable_(false) {
+    InitializeAstVisitor(isolate, zone);
   }
 
   void Check(Statement* stmt);
@@ -123,7 +124,7 @@ class FullCodeGenerator: public AstVisitor {
   static const int kBootCodeSizeMultiplier = 120;
 #elif V8_TARGET_ARCH_MIPS64
   static const int kCodeSizeMultiplier = 149;
-  static const int kBootCodeSizeMultiplier = 120;
+  static const int kBootCodeSizeMultiplier = 170;
 #else
 #error Unsupported target architecture.
 #endif
@@ -496,6 +497,7 @@ class FullCodeGenerator: public AstVisitor {
 
   // Platform-specific code sequences for calls
   void EmitCall(Call* expr, CallICState::CallType = CallICState::FUNCTION);
+  void EmitSuperConstructorCall(Call* expr);
   void EmitCallWithLoadIC(Call* expr);
   void EmitSuperCallWithLoadIC(Call* expr);
   void EmitKeyedCallWithLoadIC(Call* expr, Expression* key);
@@ -578,7 +580,7 @@ class FullCodeGenerator: public AstVisitor {
   void EmitClassDefineProperties(ClassLiteral* lit);
 
   // Pushes the property key as a Name on the stack.
-  void EmitPropertyKey(ObjectLiteralProperty* property);
+  void EmitPropertyKey(ObjectLiteralProperty* property, BailoutId bailout_id);
 
   // Apply the compound assignment operator. Expects the left operand on top
   // of the stack and the right one in the accumulator.

@@ -345,7 +345,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
   DCHECK(!info()->IsCompilingForDebugging());
 
   // Do not use Crankshaft/TurboFan if we need to be able to set break points.
-  if (isolate()->DebuggerHasBreakPoints()) {
+  if (isolate()->debug()->has_break_points()) {
     return RetryOptimization(kDebuggerHasBreakPoints);
   }
 
@@ -700,7 +700,8 @@ MUST_USE_RESULT static MaybeHandle<Code> GetUnoptimizedCodeCommon(
 
   // Update the shared function info with the scope info. Allocating the
   // ScopeInfo object may cause a GC.
-  Handle<ScopeInfo> scope_info = ScopeInfo::Create(info->scope(), info->zone());
+  Handle<ScopeInfo> scope_info =
+      ScopeInfo::Create(info->isolate(), info->zone(), info->scope());
   shared->set_scope_info(*scope_info);
 
   // Update the code and feedback vector for the shared function info.
@@ -761,7 +762,10 @@ static void InsertCodeIntoOptimizedCodeMap(CompilationInfo* info) {
 
 
 static bool Renumber(CompilationInfo* info) {
-  if (!AstNumbering::Renumber(info->function(), info->zone())) return false;
+  if (!AstNumbering::Renumber(info->isolate(), info->zone(),
+                              info->function())) {
+    return false;
+  }
   if (!info->shared_info().is_null()) {
     FunctionLiteral* lit = info->function();
     info->shared_info()->set_ast_node_count(lit->ast_node_count());
@@ -786,8 +790,8 @@ static void ThrowSuperConstructorCheckError(CompilationInfo* info,
 
 static bool CheckSuperConstructorCall(CompilationInfo* info) {
   FunctionLiteral* function = info->function();
+  if (FLAG_experimental_classes) return true;
   if (!function->uses_super_constructor_call()) return true;
-
   if (function->is_default_constructor()) return true;
 
   ZoneList<Statement*>* body = function->body();
@@ -829,7 +833,7 @@ static bool CheckSuperConstructorCall(CompilationInfo* info) {
 
   ZoneList<Expression*>* arguments = callExpr->arguments();
 
-  AstThisAccessVisitor this_access_visitor(info->zone());
+  AstThisAccessVisitor this_access_visitor(info->isolate(), info->zone());
   this_access_visitor.VisitExpressions(arguments);
 
   if (this_access_visitor.HasStackOverflow()) return false;
@@ -837,7 +841,6 @@ static bool CheckSuperConstructorCall(CompilationInfo* info) {
     ThrowSuperConstructorCheckError(info, stmt);
     return false;
   }
-
   return true;
 }
 
@@ -940,6 +943,7 @@ MaybeHandle<Code> Compiler::GetLazyCode(Handle<JSFunction> function) {
   Isolate* isolate = function->GetIsolate();
   DCHECK(!isolate->has_pending_exception());
   DCHECK(!function->is_compiled());
+  AggregatedHistogramTimerScope timer(isolate->counters()->compile_lazy());
   // If the debugger is active, do not compile with turbofan unless we can
   // deopt from turbofan code.
   if (FLAG_turbo_asm && function->shared()->asm_function() &&
@@ -967,8 +971,7 @@ MaybeHandle<Code> Compiler::GetLazyCode(Handle<JSFunction> function) {
   ASSIGN_RETURN_ON_EXCEPTION(isolate, result, GetUnoptimizedCodeCommon(&info),
                              Code);
 
-  if (FLAG_always_opt && isolate->use_crankshaft() &&
-      !isolate->DebuggerHasBreakPoints()) {
+  if (FLAG_always_opt && isolate->use_crankshaft()) {
     Handle<Code> opt_code;
     if (Compiler::GetOptimizedCode(
             function, result,
@@ -1038,7 +1041,7 @@ bool Compiler::EnsureDeoptimizationSupport(CompilationInfo* info) {
     // function is inlined before being called for the first time.
     if (shared->scope_info() == ScopeInfo::Empty(info->isolate())) {
       Handle<ScopeInfo> target_scope_info =
-          ScopeInfo::Create(info->scope(), info->zone());
+          ScopeInfo::Create(info->isolate(), info->zone(), info->scope());
       shared->set_scope_info(*target_scope_info);
     }
 
@@ -1100,8 +1103,8 @@ void Compiler::CompileForLiveEdit(Handle<Script> script) {
   LiveEditFunctionTracker tracker(info.isolate(), info.function());
   if (!CompileUnoptimizedCode(&info)) return;
   if (!info.shared_info().is_null()) {
-    Handle<ScopeInfo> scope_info = ScopeInfo::Create(info.scope(),
-                                                     info.zone());
+    Handle<ScopeInfo> scope_info =
+        ScopeInfo::Create(info.isolate(), info.zone(), info.scope());
     info.shared_info()->set_scope_info(*scope_info);
   }
   tracker.RecordRootFunctionInfo(info.code());
@@ -1170,7 +1173,8 @@ static Handle<SharedFunctionInfo> CompileToplevel(CompilationInfo* info) {
     DCHECK(!info->code().is_null());
     result = isolate->factory()->NewSharedFunctionInfo(
         lit->name(), lit->materialized_literal_count(), lit->kind(),
-        info->code(), ScopeInfo::Create(info->scope(), info->zone()),
+        info->code(),
+        ScopeInfo::Create(info->isolate(), info->zone(), info->scope()),
         info->feedback_vector());
 
     DCHECK_EQ(RelocInfo::kNoPosition, lit->function_token_position());
@@ -1264,8 +1268,6 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
     v8::Extension* extension, ScriptData** cached_data,
     ScriptCompiler::CompileOptions compile_options, NativesFlag natives) {
   Isolate* isolate = source->GetIsolate();
-  HistogramTimerScope total(isolate->counters()->compile_script(), true);
-
   if (compile_options == ScriptCompiler::kNoCompileOptions) {
     cached_data = NULL;
   } else if (compile_options == ScriptCompiler::kProduceParserCache ||
@@ -1289,7 +1291,10 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
   MaybeHandle<SharedFunctionInfo> maybe_result;
   Handle<SharedFunctionInfo> result;
   if (extension == NULL) {
-    if (FLAG_serialize_toplevel &&
+    maybe_result = compilation_cache->LookupScript(
+        source, script_name, line_offset, column_offset, is_shared_cross_origin,
+        context);
+    if (maybe_result.is_null() && FLAG_serialize_toplevel &&
         compile_options == ScriptCompiler::kConsumeCodeCache &&
         !isolate->debug()->is_loaded()) {
       HistogramTimerScope timer(isolate->counters()->compile_deserialize());
@@ -1299,10 +1304,6 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
         return result;
       }
       // Deserializer failed. Fall through to compile.
-    } else {
-      maybe_result = compilation_cache->LookupScript(
-          source, script_name, line_offset, column_offset,
-          is_shared_cross_origin, context);
     }
   }
 
@@ -1426,7 +1427,7 @@ Handle<SharedFunctionInfo> Compiler::BuildFunctionInfo(
     // MakeCode will ensure that the feedback vector is present and
     // appropriately sized.
     DCHECK(!info.code().is_null());
-    scope_info = ScopeInfo::Create(info.scope(), info.zone());
+    scope_info = ScopeInfo::Create(info.isolate(), info.zone(), info.scope());
   } else {
     return Handle<SharedFunctionInfo>::null();
   }
@@ -1520,7 +1521,7 @@ Handle<Code> Compiler::GetConcurrentlyOptimizedCode(OptimizedCompileJob* job) {
       job->RetryOptimization(kOptimizationDisabled);
     } else if (info->HasAbortedDueToDependencyChange()) {
       job->RetryOptimization(kBailedOutDueToDependencyChange);
-    } else if (isolate->DebuggerHasBreakPoints()) {
+    } else if (isolate->debug()->has_break_points()) {
       job->RetryOptimization(kDebuggerHasBreakPoints);
     } else if (job->GenerateCode() == OptimizedCompileJob::SUCCEEDED) {
       RecordFunctionCompilation(Logger::LAZY_COMPILE_TAG, info.get(), shared);
@@ -1557,7 +1558,7 @@ bool Compiler::DebuggerWantsEagerCompilation(CompilationInfo* info,
 
 
 CompilationPhase::CompilationPhase(const char* name, CompilationInfo* info)
-    : name_(name), info_(info), zone_(info->isolate()) {
+    : name_(name), info_(info) {
   if (FLAG_hydrogen_stats) {
     info_zone_start_allocation_size_ = info->zone()->allocation_size();
     timer_.Start();

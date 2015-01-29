@@ -600,7 +600,7 @@ void MacroAssembler::LoadFromNumberDictionary(Label* miss,
   const int kDetailsOffset =
       SeededNumberDictionary::kElementsStartOffset + 2 * kPointerSize;
   lw(reg1, FieldMemOperand(reg2, kDetailsOffset));
-  DCHECK_EQ(FIELD, 0);
+  DCHECK_EQ(DATA, 0);
   And(at, reg1, Operand(Smi::FromInt(PropertyDetails::TypeField::kMask)));
   Branch(miss, ne, at, Operand(zero_reg));
 
@@ -3921,7 +3921,7 @@ void MacroAssembler::StoreNumberToDoubleElements(Register value_reg,
 
   // Check for nan: all NaN values have a value greater (signed) than 0x7ff00000
   // in the exponent.
-  li(scratch1, Operand(kNaNOrInfinityLowerBoundUpper32));
+  li(scratch1, Operand(kHoleNanUpper32 & HeapNumber::kExponentMask));
   lw(exponent_reg, FieldMemOperand(value_reg, HeapNumber::kExponentOffset));
   Branch(&maybe_nan, ge, exponent_reg, Operand(scratch1));
 
@@ -4414,138 +4414,6 @@ void MacroAssembler::TailCallStub(CodeStub* stub,
                                   const Operand& r2,
                                   BranchDelaySlot bd) {
   Jump(stub->GetCode(), RelocInfo::CODE_TARGET, cond, r1, r2, bd);
-}
-
-
-static int AddressOffset(ExternalReference ref0, ExternalReference ref1) {
-  return ref0.address() - ref1.address();
-}
-
-
-void MacroAssembler::CallApiFunctionAndReturn(
-    Register function_address, ExternalReference thunk_ref, int stack_space,
-    MemOperand* stack_space_operand, MemOperand return_value_operand,
-    MemOperand* context_restore_operand) {
-  ExternalReference next_address =
-      ExternalReference::handle_scope_next_address(isolate());
-  const int kNextOffset = 0;
-  const int kLimitOffset = AddressOffset(
-      ExternalReference::handle_scope_limit_address(isolate()),
-      next_address);
-  const int kLevelOffset = AddressOffset(
-      ExternalReference::handle_scope_level_address(isolate()),
-      next_address);
-
-  DCHECK(function_address.is(a1) || function_address.is(a2));
-
-  Label profiler_disabled;
-  Label end_profiler_check;
-  li(t9, Operand(ExternalReference::is_profiling_address(isolate())));
-  lb(t9, MemOperand(t9, 0));
-  Branch(&profiler_disabled, eq, t9, Operand(zero_reg));
-
-  // Additional parameter is the address of the actual callback.
-  li(t9, Operand(thunk_ref));
-  jmp(&end_profiler_check);
-
-  bind(&profiler_disabled);
-  mov(t9, function_address);
-  bind(&end_profiler_check);
-
-  // Allocate HandleScope in callee-save registers.
-  li(s3, Operand(next_address));
-  lw(s0, MemOperand(s3, kNextOffset));
-  lw(s1, MemOperand(s3, kLimitOffset));
-  lw(s2, MemOperand(s3, kLevelOffset));
-  Addu(s2, s2, Operand(1));
-  sw(s2, MemOperand(s3, kLevelOffset));
-
-  if (FLAG_log_timer_events) {
-    FrameScope frame(this, StackFrame::MANUAL);
-    PushSafepointRegisters();
-    PrepareCallCFunction(1, a0);
-    li(a0, Operand(ExternalReference::isolate_address(isolate())));
-    CallCFunction(ExternalReference::log_enter_external_function(isolate()), 1);
-    PopSafepointRegisters();
-  }
-
-  // Native call returns to the DirectCEntry stub which redirects to the
-  // return address pushed on stack (could have moved after GC).
-  // DirectCEntry stub itself is generated early and never moves.
-  DirectCEntryStub stub(isolate());
-  stub.GenerateCall(this, t9);
-
-  if (FLAG_log_timer_events) {
-    FrameScope frame(this, StackFrame::MANUAL);
-    PushSafepointRegisters();
-    PrepareCallCFunction(1, a0);
-    li(a0, Operand(ExternalReference::isolate_address(isolate())));
-    CallCFunction(ExternalReference::log_leave_external_function(isolate()), 1);
-    PopSafepointRegisters();
-  }
-
-  Label promote_scheduled_exception;
-  Label exception_handled;
-  Label delete_allocated_handles;
-  Label leave_exit_frame;
-  Label return_value_loaded;
-
-  // Load value from ReturnValue.
-  lw(v0, return_value_operand);
-  bind(&return_value_loaded);
-
-  // No more valid handles (the result handle was the last one). Restore
-  // previous handle scope.
-  sw(s0, MemOperand(s3, kNextOffset));
-  if (emit_debug_code()) {
-    lw(a1, MemOperand(s3, kLevelOffset));
-    Check(eq, kUnexpectedLevelAfterReturnFromApiCall, a1, Operand(s2));
-  }
-  Subu(s2, s2, Operand(1));
-  sw(s2, MemOperand(s3, kLevelOffset));
-  lw(at, MemOperand(s3, kLimitOffset));
-  Branch(&delete_allocated_handles, ne, s1, Operand(at));
-
-  // Check if the function scheduled an exception.
-  bind(&leave_exit_frame);
-  LoadRoot(t0, Heap::kTheHoleValueRootIndex);
-  li(at, Operand(ExternalReference::scheduled_exception_address(isolate())));
-  lw(t1, MemOperand(at));
-  Branch(&promote_scheduled_exception, ne, t0, Operand(t1));
-  bind(&exception_handled);
-
-  bool restore_context = context_restore_operand != NULL;
-  if (restore_context) {
-    lw(cp, *context_restore_operand);
-  }
-  if (stack_space_operand != NULL) {
-    lw(s0, *stack_space_operand);
-  } else {
-    li(s0, Operand(stack_space));
-  }
-  LeaveExitFrame(false, s0, !restore_context, EMIT_RETURN,
-                 stack_space_operand != NULL);
-
-  bind(&promote_scheduled_exception);
-  {
-    FrameScope frame(this, StackFrame::INTERNAL);
-    CallExternalReference(
-        ExternalReference(Runtime::kPromoteScheduledException, isolate()),
-        0);
-  }
-  jmp(&exception_handled);
-
-  // HandleScope limit has changed. Delete allocated extensions.
-  bind(&delete_allocated_handles);
-  sw(s1, MemOperand(s3, kLimitOffset));
-  mov(s0, v0);
-  mov(a0, v0);
-  PrepareCallCFunction(1, s1);
-  li(a0, Operand(ExternalReference::isolate_address(isolate())));
-  CallCFunction(ExternalReference::delete_handle_scope_extensions(isolate()),
-      1);
-  mov(v0, s0);
-  jmp(&leave_exit_frame);
 }
 
 
@@ -6017,6 +5885,19 @@ void MacroAssembler::EnumLength(Register dst, Register map) {
   lw(dst, FieldMemOperand(map, Map::kBitField3Offset));
   And(dst, dst, Operand(Map::EnumLengthBits::kMask));
   SmiTag(dst);
+}
+
+
+void MacroAssembler::LoadAccessor(Register dst, Register holder,
+                                  int accessor_index,
+                                  AccessorComponent accessor) {
+  lw(dst, FieldMemOperand(holder, HeapObject::kMapOffset));
+  LoadInstanceDescriptors(dst, dst);
+  lw(dst,
+     FieldMemOperand(dst, DescriptorArray::GetValueOffset(accessor_index)));
+  int offset = accessor == ACCESSOR_GETTER ? AccessorPair::kGetterOffset
+                                           : AccessorPair::kSetterOffset;
+  lw(dst, FieldMemOperand(dst, offset));
 }
 
 

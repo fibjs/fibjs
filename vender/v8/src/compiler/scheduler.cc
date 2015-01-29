@@ -208,20 +208,6 @@ void Scheduler::DecrementUnscheduledUseCount(Node* node, int index,
 }
 
 
-BasicBlock* Scheduler::GetCommonDominator(BasicBlock* b1, BasicBlock* b2) {
-  while (b1 != b2) {
-    int32_t b1_depth = b1->dominator_depth();
-    int32_t b2_depth = b2->dominator_depth();
-    if (b1_depth < b2_depth) {
-      b2 = b2->dominator();
-    } else {
-      b1 = b1->dominator();
-    }
-  }
-  return b1;
-}
-
-
 // -----------------------------------------------------------------------------
 // Phase 1: Build control-flow graph.
 
@@ -330,13 +316,6 @@ class CFGBuilder : public ZoneObject {
       case IrOpcode::kMerge:
         BuildBlockForNode(node);
         break;
-      case IrOpcode::kTerminate: {
-        // Put Terminate in the loop to which it refers.
-        Node* loop = NodeProperties::GetControlInput(node);
-        BasicBlock* block = BuildBlockForNode(loop);
-        FixNode(block, node);
-        break;
-      }
       case IrOpcode::kBranch:
         BuildBlocksForSuccessors(node, IrOpcode::kIfTrue, IrOpcode::kIfFalse);
         break;
@@ -1032,8 +1011,8 @@ void Scheduler::ComputeSpecialRPONumbering() {
 
 void Scheduler::PropagateImmediateDominators(BasicBlock* block) {
   for (/*nop*/; block != NULL; block = block->rpo_next()) {
-    BasicBlock::Predecessors::iterator pred = block->predecessors_begin();
-    BasicBlock::Predecessors::iterator end = block->predecessors_end();
+    auto pred = block->predecessors().begin();
+    auto end = block->predecessors().end();
     DCHECK(pred != end);  // All blocks except start have predecessors.
     BasicBlock* dominator = *pred;
     // For multiple predecessors, walk up the dominator tree until a common
@@ -1042,7 +1021,7 @@ void Scheduler::PropagateImmediateDominators(BasicBlock* block) {
     for (++pred; pred != end; ++pred) {
       // Don't examine backwards edges.
       if ((*pred)->dominator_depth() < 0) continue;
-      dominator = GetCommonDominator(dominator, *pred);
+      dominator = BasicBlock::GetCommonDominator(dominator, *pred);
     }
     block->set_dominator(dominator);
     block->set_dominator_depth(dominator->dominator_depth() + 1);
@@ -1195,7 +1174,7 @@ class ScheduleEarlyNodeVisitor {
 
 #if DEBUG
   bool InsideSameDominatorChain(BasicBlock* b1, BasicBlock* b2) {
-    BasicBlock* dominator = scheduler_->GetCommonDominator(b1, b2);
+    BasicBlock* dominator = BasicBlock::GetCommonDominator(b1, b2);
     return dominator == b1 || dominator == b2;
   }
 #endif
@@ -1277,7 +1256,7 @@ class ScheduleLateNodeVisitor {
 
     // The schedule early block dominates the schedule late block.
     BasicBlock* min_block = scheduler_->GetData(node)->minimum_block_;
-    DCHECK_EQ(min_block, scheduler_->GetCommonDominator(block, min_block));
+    DCHECK_EQ(min_block, BasicBlock::GetCommonDominator(block, min_block));
     Trace("Schedule late of #%d:%s is B%d at loop depth %d, minimum = B%d\n",
           node->id(), node->op()->mnemonic(), block->id().ToInt(),
           block->loop_depth(), min_block->id().ToInt());
@@ -1319,7 +1298,7 @@ class ScheduleLateNodeVisitor {
       BasicBlock* use_block = GetBlockForUse(edge);
       block = block == NULL ? use_block : use_block == NULL
                                               ? block
-                                              : scheduler_->GetCommonDominator(
+                                              : BasicBlock::GetCommonDominator(
                                                     block, use_block);
     }
     return block;
@@ -1328,7 +1307,7 @@ class ScheduleLateNodeVisitor {
   BasicBlock* GetBlockForUse(Edge edge) {
     Node* use = edge.from();
     IrOpcode::Value opcode = use->opcode();
-    if (opcode == IrOpcode::kPhi || opcode == IrOpcode::kEffectPhi) {
+    if (IrOpcode::IsPhiOpcode(opcode)) {
       // If the use is from a coupled (i.e. floating) phi, compute the common
       // dominator of its uses. This will not recurse more than one level.
       if (scheduler_->GetPlacement(use) == Scheduler::kCoupled) {
@@ -1438,10 +1417,8 @@ void Scheduler::FuseFloatingControl(BasicBlock* block, Node* node) {
   NodeVector propagation_roots(control_flow_builder_->control_);
   for (Node* node : control_flow_builder_->control_) {
     for (Node* use : node->uses()) {
-      if (use->opcode() == IrOpcode::kPhi ||
-          use->opcode() == IrOpcode::kEffectPhi) {
+      if (IrOpcode::IsPhiOpcode(use->opcode()))
         propagation_roots.push_back(use);
-      }
     }
   }
   if (FLAG_trace_turbo_scheduler) {

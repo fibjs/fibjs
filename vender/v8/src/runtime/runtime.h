@@ -383,6 +383,7 @@ namespace internal {
   F(Abort, 1, 1)                                       \
   F(AbortJS, 1, 1)                                     \
   F(NativeScriptsCount, 0, 1)                          \
+  F(RenderCallSite, 0, 1)                              \
   /* ES5 */                                            \
   F(OwnKeys, 1, 1)                                     \
                                                        \
@@ -476,8 +477,8 @@ namespace internal {
   /* Statements */                                           \
   F(NewClosure, 3, 1)                                        \
   F(NewClosureFromStubFailure, 1, 1)                         \
-  F(NewObject, 1, 1)                                         \
-  F(NewObjectWithAllocationSite, 2, 1)                       \
+  F(NewObject, 2, 1)                                         \
+  F(NewObjectWithAllocationSite, 3, 1)                       \
   F(FinalizeInstanceSize, 1, 1)                              \
   F(Throw, 1, 1)                                             \
   F(ReThrow, 1, 1)                                           \

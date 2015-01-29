@@ -315,6 +315,8 @@ CPU::CPU()
       has_ssse3_(false),
       has_sse41_(false),
       has_sse42_(false),
+      is_atom_(false),
+      has_osxsave_(false),
       has_avx_(false),
       has_fma3_(false),
       has_idiva_(false),
@@ -363,8 +365,23 @@ CPU::CPU()
     has_ssse3_ = (cpu_info[2] & 0x00000200) != 0;
     has_sse41_ = (cpu_info[2] & 0x00080000) != 0;
     has_sse42_ = (cpu_info[2] & 0x00100000) != 0;
+    has_osxsave_ = (cpu_info[2] & 0x08000000) != 0;
     has_avx_ = (cpu_info[2] & 0x10000000) != 0;
-    if (has_avx_) has_fma3_ = (cpu_info[2] & 0x00001000) != 0;
+    has_fma3_ = (cpu_info[2] & 0x00001000) != 0;
+
+    if (family_ == 0x6) {
+      switch (model_) {
+        case 0x1c:  // SLT
+        case 0x26:
+        case 0x36:
+        case 0x27:
+        case 0x35:
+        case 0x37:  // SLM
+        case 0x4a:
+        case 0x4d:
+          is_atom_ = true;
+      }
+    }
   }
 
 #if V8_HOST_ARCH_IA32
@@ -441,13 +458,22 @@ CPU::CPU()
     //
     // See http://code.google.com/p/android/issues/detail?id=10812
     //
-    // We try to correct this by looking at the 'elf_format'
+    // We try to correct this by looking at the 'elf_platform'
     // field reported by the 'Processor' field, which is of the
     // form of "(v7l)" for an ARMv7-based CPU, and "(v6l)" for
     // an ARMv6-one. For example, the Raspberry Pi is one popular
     // ARMv6 device that reports architecture 7.
     if (architecture_ == 7) {
       char* processor = cpu_info.ExtractField("Processor");
+      if (HasListItem(processor, "(v6l)")) {
+        architecture_ = 6;
+      }
+      delete[] processor;
+    }
+
+    // elf_platform moved to the model name field in Linux v3.8.
+    if (architecture_ == 7) {
+      char* processor = cpu_info.ExtractField("model name");
       if (HasListItem(processor, "(v6l)")) {
         architecture_ = 6;
       }

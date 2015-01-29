@@ -71,7 +71,6 @@ void LCodeGen::FinishCode(Handle<Code> code) {
   DCHECK(is_done());
   code->set_stack_slots(GetStackSlotCount());
   code->set_safepoint_table_offset(safepoints_.GetCodeOffset());
-  if (code->is_optimized_code()) RegisterWeakObjectsInOptimizedCode(code);
   PopulateDeoptimizationData(code);
 }
 
@@ -828,6 +827,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   } else {
     data->SetSharedFunctionInfo(Smi::FromInt(0));
   }
+  data->SetWeakCellCache(Smi::FromInt(0));
 
   Handle<FixedArray> literals =
       factory()->NewFixedArray(deoptimization_literals_.length(), TENURED);
@@ -1721,19 +1721,7 @@ void LCodeGen::DoConstantS(LConstantS* instr) {
 
 
 void LCodeGen::DoConstantD(LConstantD* instr) {
-  DCHECK(instr->result()->IsDoubleRegister());
-  XMMRegister res = ToDoubleRegister(instr->result());
-  double v = instr->value();
-  uint64_t int_val = bit_cast<uint64_t, double>(v);
-  // Use xor to produce +0.0 in a fast and compact way, but avoid to
-  // do so if the constant is -0.0.
-  if (int_val == 0) {
-    __ xorps(res, res);
-  } else {
-    Register tmp = ToRegister(instr->temp());
-    __ Set(tmp, int_val);
-    __ movq(res, tmp);
-  }
+  __ Move(ToDoubleRegister(instr->result()), instr->bits());
 }
 
 
@@ -2019,23 +2007,45 @@ void LCodeGen::DoArithmeticD(LArithmeticD* instr) {
   XMMRegister left = ToDoubleRegister(instr->left());
   XMMRegister right = ToDoubleRegister(instr->right());
   XMMRegister result = ToDoubleRegister(instr->result());
-  // All operations except MOD are computed in-place.
-  DCHECK(instr->op() == Token::MOD || left.is(result));
   switch (instr->op()) {
     case Token::ADD:
-      __ addsd(left, right);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vaddsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ addsd(left, right);
+      }
       break;
     case Token::SUB:
-       __ subsd(left, right);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vsubsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ subsd(left, right);
+      }
        break;
     case Token::MUL:
-      __ mulsd(left, right);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vmulsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ mulsd(left, right);
+      }
       break;
     case Token::DIV:
-      __ divsd(left, right);
-      // Don't delete this mov. It may improve performance on some CPUs,
-      // when there is a mulsd depending on the result
-      __ movaps(left, left);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vdivsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ divsd(left, right);
+        // Don't delete this mov. It may improve performance on some CPUs,
+        // when there is a mulsd depending on the result
+        __ movaps(left, left);
+      }
       break;
     case Token::MOD: {
       XMMRegister xmm_scratch = double_scratch0();
@@ -3494,24 +3504,19 @@ void LCodeGen::DoDeclareGlobals(LDeclareGlobals* instr) {
 
 
 void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
-                                 int formal_parameter_count,
-                                 int arity,
-                                 LInstruction* instr,
-                                 RDIState rdi_state) {
+                                 int formal_parameter_count, int arity,
+                                 LInstruction* instr) {
   bool dont_adapt_arguments =
       formal_parameter_count == SharedFunctionInfo::kDontAdaptArgumentsSentinel;
   bool can_invoke_directly =
       dont_adapt_arguments || formal_parameter_count == arity;
 
+  Register function_reg = rdi;
   LPointerMap* pointers = instr->pointer_map();
 
   if (can_invoke_directly) {
-    if (rdi_state == RDI_UNINITIALIZED) {
-      __ Move(rdi, function);
-    }
-
     // Change context.
-    __ movp(rsi, FieldOperand(rdi, JSFunction::kContextOffset));
+    __ movp(rsi, FieldOperand(function_reg, JSFunction::kContextOffset));
 
     // Set rax to arguments count if adaption is not needed. Assumes that rax
     // is available to write to at this point.
@@ -3523,7 +3528,7 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
     if (function.is_identical_to(info()->closure())) {
       __ CallSelf();
     } else {
-      __ Call(FieldOperand(rdi, JSFunction::kCodeEntryOffset));
+      __ Call(FieldOperand(function_reg, JSFunction::kCodeEntryOffset));
     }
 
     // Set up deoptimization.
@@ -3534,7 +3539,7 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
         this, pointers, Safepoint::kLazyDeopt);
     ParameterCount count(arity);
     ParameterCount expected(formal_parameter_count);
-    __ InvokeFunction(function, expected, count, CALL_FUNCTION, generator);
+    __ InvokeFunction(function_reg, expected, count, CALL_FUNCTION, generator);
   }
 }
 
@@ -3972,10 +3977,7 @@ void LCodeGen::DoMathLog(LMathLog* instr) {
   __ ucomisd(input_reg, xmm_scratch);
   __ j(above, &positive, Label::kNear);
   __ j(not_carry, &zero, Label::kNear);
-  ExternalReference nan =
-      ExternalReference::address_of_canonical_non_hole_nan();
-  Operand nan_operand = masm()->ExternalOperand(nan);
-  __ movsd(input_reg, nan_operand);
+  __ pcmpeqd(input_reg, input_reg);
   __ jmp(&done, Label::kNear);
   __ bind(&zero);
   ExternalReference ninf =
@@ -4024,9 +4026,7 @@ void LCodeGen::DoInvokeFunction(LInvokeFunction* instr) {
   } else {
     CallKnownFunction(known_function,
                       instr->hydrogen()->formal_parameter_count(),
-                      instr->arity(),
-                      instr,
-                      RDI_CONTAINS_TARGET);
+                      instr->arity(), instr);
   }
 }
 
@@ -4037,8 +4037,30 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   DCHECK(ToRegister(instr->result()).is(rax));
 
   int arity = instr->arity();
-  CallFunctionStub stub(isolate(), arity, instr->hydrogen()->function_flags());
-  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  CallFunctionFlags flags = instr->hydrogen()->function_flags();
+  if (instr->hydrogen()->HasVectorAndSlot()) {
+    Register slot_register = ToRegister(instr->temp_slot());
+    Register vector_register = ToRegister(instr->temp_vector());
+    DCHECK(slot_register.is(rdx));
+    DCHECK(vector_register.is(rbx));
+
+    AllowDeferredHandleDereference vector_structure_check;
+    Handle<TypeFeedbackVector> vector = instr->hydrogen()->feedback_vector();
+    int index = vector->GetIndex(instr->hydrogen()->slot());
+
+    __ Move(vector_register, vector);
+    __ Move(slot_register, Smi::FromInt(index));
+
+    CallICState::CallType call_type =
+        (flags & CALL_AS_METHOD) ? CallICState::METHOD : CallICState::FUNCTION;
+
+    Handle<Code> ic =
+        CodeFactory::CallICInOptimizedCode(isolate(), arity, call_type).code();
+    CallCode(ic, RelocInfo::CODE_TARGET, instr);
+  } else {
+    CallFunctionStub stub(isolate(), arity, flags);
+    CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  }
 }
 
 
@@ -4401,17 +4423,10 @@ void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
     __ movsxlq(ToRegister(key), ToRegister(key));
   }
   if (instr->NeedsCanonicalization()) {
-    Label have_value;
-
-    __ ucomisd(value, value);
-    __ j(parity_odd, &have_value, Label::kNear);  // NaN.
-
-    __ Set(kScratchRegister,
-           bit_cast<uint64_t>(
-               FixedDoubleArray::canonical_not_the_hole_nan_as_double()));
-    __ movq(value, kScratchRegister);
-
-    __ bind(&have_value);
+    XMMRegister xmm_scratch = double_scratch0();
+    // Turn potential sNaN value into qNaN.
+    __ xorps(xmm_scratch, xmm_scratch);
+    __ subsd(value, xmm_scratch);
   }
 
   Operand double_store_operand = BuildFastArrayOperand(
@@ -4949,8 +4964,7 @@ void LCodeGen::EmitNumberUntagD(LNumberUntagD* instr, Register input_reg,
       __ CompareRoot(input_reg, Heap::kUndefinedValueRootIndex);
       DeoptimizeIf(not_equal, instr, "not a heap number/undefined");
 
-      __ xorps(result_reg, result_reg);
-      __ divsd(result_reg, result_reg);
+      __ pcmpeqd(result_reg, result_reg);
       __ jmp(&done, Label::kNear);
     }
   } else {

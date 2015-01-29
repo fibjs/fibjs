@@ -9,9 +9,6 @@
 
 #include "src/compiler.h"
 
-// Note: TODO(turbofan) implies a performance improvement opportunity,
-//   and TODO(name) implies an incomplete implementation
-
 namespace v8 {
 namespace internal {
 namespace compiler {
@@ -40,7 +37,8 @@ class Pipeline {
 
   // Run the pipeline on a machine graph and generate code. If {schedule} is
   // {nullptr}, then compute a new schedule for code generation.
-  static Handle<Code> GenerateCodeForTesting(CallDescriptor* call_descriptor,
+  static Handle<Code> GenerateCodeForTesting(Isolate* isolate,
+                                             CallDescriptor* call_descriptor,
                                              Graph* graph,
                                              Schedule* schedule = nullptr);
 

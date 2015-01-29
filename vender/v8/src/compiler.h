@@ -89,10 +89,12 @@ class CompilationInfo {
     kInliningEnabled = 1 << 17,
     kTypingEnabled = 1 << 18,
     kDisableFutureOptimization = 1 << 19,
-    kToplevel = 1 << 20
+    kModule = 1 << 20,
+    kToplevel = 1 << 21
   };
 
   CompilationInfo(Handle<JSFunction> closure, Zone* zone);
+  CompilationInfo(Handle<Script> script, Zone* zone);
   CompilationInfo(Isolate* isolate, Zone* zone);
   virtual ~CompilationInfo();
 
@@ -104,6 +106,7 @@ class CompilationInfo {
   bool is_lazy() const { return GetFlag(kLazy); }
   bool is_eval() const { return GetFlag(kEval); }
   bool is_global() const { return GetFlag(kGlobal); }
+  bool is_module() const { return GetFlag(kModule); }
   StrictMode strict_mode() const {
     return GetFlag(kStrictMode) ? STRICT : SLOPPY;
   }
@@ -143,6 +146,11 @@ class CompilationInfo {
   void MarkAsGlobal() {
     DCHECK(!is_lazy());
     SetFlag(kGlobal);
+  }
+
+  void MarkAsModule() {
+    DCHECK(!is_lazy());
+    SetFlag(kModule);
   }
 
   void set_parameter_count(int parameter_count) {
@@ -398,8 +406,6 @@ class CompilationInfo {
   }
 
  protected:
-  CompilationInfo(Handle<Script> script,
-                  Zone* zone);
   CompilationInfo(Handle<SharedFunctionInfo> shared_info,
                   Zone* zone);
   CompilationInfo(HydrogenCodeStub* stub,
@@ -530,21 +536,17 @@ class CompilationInfo {
 class CompilationInfoWithZone: public CompilationInfo {
  public:
   explicit CompilationInfoWithZone(Handle<Script> script)
-      : CompilationInfo(script, &zone_),
-        zone_(script->GetIsolate()) {}
+      : CompilationInfo(script, &zone_) {}
   explicit CompilationInfoWithZone(Handle<SharedFunctionInfo> shared_info)
-      : CompilationInfo(shared_info, &zone_),
-        zone_(shared_info->GetIsolate()) {}
+      : CompilationInfo(shared_info, &zone_) {}
   explicit CompilationInfoWithZone(Handle<JSFunction> closure)
-      : CompilationInfo(closure, &zone_),
-        zone_(closure->GetIsolate()) {}
+      : CompilationInfo(closure, &zone_) {}
   CompilationInfoWithZone(HydrogenCodeStub* stub, Isolate* isolate)
-      : CompilationInfo(stub, isolate, &zone_),
-        zone_(isolate) {}
+      : CompilationInfo(stub, isolate, &zone_) {}
   CompilationInfoWithZone(ScriptCompiler::ExternalSourceStream* stream,
                           ScriptCompiler::StreamedSource::Encoding encoding,
                           Isolate* isolate)
-      : CompilationInfo(stream, encoding, isolate, &zone_), zone_(isolate) {}
+      : CompilationInfo(stream, encoding, isolate, &zone_) {}
 
   // Virtual destructor because a CompilationInfoWithZone has to exit the
   // zone scope and get rid of dependent maps even when the destructor is

@@ -45,7 +45,8 @@ enum LazyCachedType {
 // TODO(turbofan): these types could be globally cached or cached per isolate.
 class LazyTypeCache FINAL : public ZoneObject {
  public:
-  explicit LazyTypeCache(Zone* zone) : zone_(zone) {
+  explicit LazyTypeCache(Isolate* isolate, Zone* zone)
+      : isolate_(isolate), zone_(zone) {
     memset(cache_, 0, sizeof(cache_));
   }
 
@@ -128,15 +129,15 @@ class LazyTypeCache FINAL : public ZoneObject {
   }
 
   Type* CreateRange(double min, double max) const {
-    return Type::Range(factory()->NewNumber(min), factory()->NewNumber(max),
-                       zone());
+    return Type::Range(min, max, zone());
   }
 
   Factory* factory() const { return isolate()->factory(); }
-  Isolate* isolate() const { return zone()->isolate(); }
+  Isolate* isolate() const { return isolate_; }
   Zone* zone() const { return zone_; }
 
   Type* cache_[kNumLazyCachedTypes];
+  Isolate* isolate_;
   Zone* zone_;
 };
 
@@ -151,18 +152,17 @@ class Typer::Decorator FINAL : public GraphDecorator {
 };
 
 
-Typer::Typer(Graph* graph, MaybeHandle<Context> context)
-    : graph_(graph),
+Typer::Typer(Isolate* isolate, Graph* graph, MaybeHandle<Context> context)
+    : isolate_(isolate),
+      graph_(graph),
       context_(context),
       decorator_(NULL),
-      cache_(new (graph->zone()) LazyTypeCache(graph->zone())),
+      cache_(new (graph->zone()) LazyTypeCache(isolate, graph->zone())),
       weaken_min_limits_(graph->zone()),
       weaken_max_limits_(graph->zone()) {
   Zone* zone = this->zone();
-  Factory* f = zone->isolate()->factory();
+  Factory* f = isolate->factory();
 
-  Handle<Object> zero = f->NewNumber(0);
-  Handle<Object> one = f->NewNumber(1);
   Handle<Object> infinity = f->NewNumber(+V8_INFINITY);
   Handle<Object> minusinfinity = f->NewNumber(-V8_INFINITY);
 
@@ -180,8 +180,8 @@ Typer::Typer(Graph* graph, MaybeHandle<Context> context)
   undefined_or_number = Type::Union(Type::Undefined(), Type::Number(), zone);
   singleton_false = Type::Constant(f->false_value(), zone);
   singleton_true = Type::Constant(f->true_value(), zone);
-  singleton_zero = Type::Range(zero, zero, zone);
-  singleton_one = Type::Range(one, one, zone);
+  singleton_zero = Type::Range(0.0, 0.0, zone);
+  singleton_one = Type::Range(1.0, 1.0, zone);
   zero_or_one = Type::Union(singleton_zero, singleton_one, zone);
   zeroish = Type::Union(singleton_zero, nan_or_minuszero, zone);
   signed32ish = Type::Union(signed32, truncating_to_zero, zone);
@@ -193,7 +193,7 @@ Typer::Typer(Graph* graph, MaybeHandle<Context> context)
   truish = Type::Union(
       singleton_true,
       Type::Union(Type::DetectableReceiver(), Type::Symbol(), zone), zone);
-  integer = Type::Range(minusinfinity, infinity, zone);
+  integer = Type::Range(-V8_INFINITY, V8_INFINITY, zone);
   weakint = Type::Union(integer, nan_or_minuszero, zone);
 
   number_fun0_ = Type::Function(number, zone);
@@ -209,11 +209,11 @@ Typer::Typer(Graph* graph, MaybeHandle<Context> context)
   weaken_max_limits_.reserve(limits_count + 1);
 
   double limit = 1 << 30;
-  weaken_min_limits_.push_back(f->NewNumber(0));
-  weaken_max_limits_.push_back(f->NewNumber(0));
+  weaken_min_limits_.push_back(0);
+  weaken_max_limits_.push_back(0);
   for (int i = 0; i < limits_count; i++) {
-    weaken_min_limits_.push_back(f->NewNumber(-limit));
-    weaken_max_limits_.push_back(f->NewNumber(limit - 1));
+    weaken_min_limits_.push_back(-limit);
+    weaken_max_limits_.push_back(limit - 1);
     limit *= 2;
   }
 
@@ -313,14 +313,7 @@ class Typer::Visitor : public Reducer {
     return BoundsOrNone(operand_node);
   }
 
-  Bounds ContextOperand(Node* node) {
-    Bounds result = BoundsOrNone(NodeProperties::GetContextInput(node));
-    DCHECK(result.upper->Maybe(Type::Internal()));
-    // TODO(rossberg): More precisely, instead of the above assertion, we should
-    // back-propagate the constraint that it has to be a subtype of Internal.
-    return result;
-  }
-
+  Bounds WrapContextBoundsForInput(Node* node);
   Type* Weaken(Type* current_type, Type* previous_type);
 
   Zone* zone() { return typer_->zone(); }
@@ -500,8 +493,7 @@ Type* Typer::Visitor::Rangify(Type* type, Typer* t) {
     DCHECK(std::isnan(max));
     return type;
   }
-  Factory* f = t->isolate()->factory();
-  return Type::Range(f->NewNumber(min), f->NewNumber(max), t->zone());
+  return Type::Range(min, max, t->zone());
 }
 
 
@@ -593,6 +585,11 @@ Bounds Typer::Visitor::TypeStart(Node* node) {
 // Common operators.
 
 
+Bounds Typer::Visitor::TypeAlways(Node* node) {
+  return Bounds(Type::None(zone()), Type::Boolean(zone()));
+}
+
+
 Bounds Typer::Visitor::TypeParameter(Node* node) {
   return Bounds::Unbounded(zone());
 }
@@ -609,8 +606,7 @@ Bounds Typer::Visitor::TypeOsrValue(Node* node) {
 
 
 Bounds Typer::Visitor::TypeInt32Constant(Node* node) {
-  Factory* f = isolate()->factory();
-  Handle<Object> number = f->NewNumber(OpParameter<int32_t>(node));
+  double number = OpParameter<int32_t>(node);
   return Bounds(Type::Intersect(
       Type::Range(number, number, zone()), Type::UntaggedSigned32(), zone()));
 }
@@ -669,6 +665,12 @@ Bounds Typer::Visitor::TypePhi(Node* node) {
 
 
 Bounds Typer::Visitor::TypeEffectPhi(Node* node) {
+  UNREACHABLE();
+  return Bounds();
+}
+
+
+Bounds Typer::Visitor::TypeEffectSet(Node* node) {
   UNREACHABLE();
   return Bounds();
 }
@@ -819,7 +821,6 @@ Type* Typer::Visitor::JSGreaterThanOrEqualTyper(
 
 
 Type* Typer::Visitor::JSBitwiseOrTyper(Type* lhs, Type* rhs, Typer* t) {
-  Factory* f = t->isolate()->factory();
   lhs = NumberToInt32(ToNumber(lhs, t), t);
   rhs = NumberToInt32(ToNumber(rhs, t), t);
   double lmin = lhs->Min();
@@ -847,13 +848,12 @@ Type* Typer::Visitor::JSBitwiseOrTyper(Type* lhs, Type* rhs, Typer* t) {
     // value.
     max = std::min(max, -1.0);
   }
-  return Type::Range(f->NewNumber(min), f->NewNumber(max), t->zone());
+  return Type::Range(min, max, t->zone());
   // TODO(neis): Be precise for singleton inputs, here and elsewhere.
 }
 
 
 Type* Typer::Visitor::JSBitwiseAndTyper(Type* lhs, Type* rhs, Typer* t) {
-  Factory* f = t->isolate()->factory();
   lhs = NumberToInt32(ToNumber(lhs, t), t);
   rhs = NumberToInt32(ToNumber(rhs, t), t);
   double lmin = lhs->Min();
@@ -875,7 +875,7 @@ Type* Typer::Visitor::JSBitwiseAndTyper(Type* lhs, Type* rhs, Typer* t) {
     min = 0;
     max = std::min(max, rmax);
   }
-  return Type::Range(f->NewNumber(min), f->NewNumber(max), t->zone());
+  return Type::Range(min, max, t->zone());
 }
 
 
@@ -888,12 +888,12 @@ Type* Typer::Visitor::JSBitwiseXorTyper(Type* lhs, Type* rhs, Typer* t) {
   double rmax = rhs->Max();
   if ((lmin >= 0 && rmin >= 0) || (lmax < 0 && rmax < 0)) {
     // Xor-ing negative or non-negative values results in a non-negative value.
-    return Type::NonNegativeSigned32();
+    return Type::Unsigned31();
   }
   if ((lmax < 0 && rmin >= 0) || (lmin >= 0 && rmax < 0)) {
     // Xor-ing a negative and a non-negative value results in a negative value.
     // TODO(jarin) Use a range here.
-    return Type::NegativeSigned32();
+    return Type::Negative32();
   }
   return Type::Signed32();
 }
@@ -913,11 +913,17 @@ Type* Typer::Visitor::JSShiftRightTyper(Type* lhs, Type* rhs, Typer* t) {
     // Right-shifting a non-negative value cannot make it negative, nor larger.
     min = std::max(min, 0.0);
     max = std::min(max, lhs->Max());
+    if (rhs->Min() > 0 && rhs->Max() <= 31) {
+      max = static_cast<int>(max) >> static_cast<int>(rhs->Min());
+    }
   }
   if (lhs->Max() < 0) {
     // Right-shifting a negative value cannot make it non-negative, nor smaller.
     min = std::max(min, lhs->Min());
     max = std::min(max, -1.0);
+    if (rhs->Min() > 0 && rhs->Max() <= 31) {
+      min = static_cast<int>(min) >> static_cast<int>(rhs->Min());
+    }
   }
   if (rhs->Min() > 0 && rhs->Max() <= 31) {
     // Right-shifting by a positive value yields a small integer value.
@@ -929,8 +935,7 @@ Type* Typer::Visitor::JSShiftRightTyper(Type* lhs, Type* rhs, Typer* t) {
   // TODO(jarin) Ideally, the following micro-optimization should be performed
   // by the type constructor.
   if (max != Type::Signed32()->Max() || min != Type::Signed32()->Min()) {
-    Factory* f = t->isolate()->factory();
-    return Type::Range(f->NewNumber(min), f->NewNumber(max), t->zone());
+    return Type::Range(min, max, t->zone());
   }
   return Type::Signed32();
 }
@@ -938,11 +943,8 @@ Type* Typer::Visitor::JSShiftRightTyper(Type* lhs, Type* rhs, Typer* t) {
 
 Type* Typer::Visitor::JSShiftRightLogicalTyper(Type* lhs, Type* rhs, Typer* t) {
   lhs = NumberToUint32(ToNumber(lhs, t), t);
-  Factory* f = t->isolate()->factory();
   // Logical right-shifting any value cannot make it larger.
-  Handle<Object> min = f->NewNumber(0);
-  Handle<Object> max = f->NewNumber(lhs->Max());
-  return Type::Range(min, max, t->zone());
+  return Type::Range(0.0, lhs->Max(), t->zone());
 }
 
 
@@ -984,10 +986,10 @@ static double array_max(double a[], size_t n) {
 Type* Typer::Visitor::JSAddRanger(Type::RangeType* lhs, Type::RangeType* rhs,
                                   Typer* t) {
   double results[4];
-  results[0] = lhs->Min()->Number() + rhs->Min()->Number();
-  results[1] = lhs->Min()->Number() + rhs->Max()->Number();
-  results[2] = lhs->Max()->Number() + rhs->Min()->Number();
-  results[3] = lhs->Max()->Number() + rhs->Max()->Number();
+  results[0] = lhs->Min() + rhs->Min();
+  results[1] = lhs->Min() + rhs->Max();
+  results[2] = lhs->Max() + rhs->Min();
+  results[3] = lhs->Max() + rhs->Max();
   // Since none of the inputs can be -0, the result cannot be -0 either.
   // However, it can be nan (the sum of two infinities of opposite sign).
   // On the other hand, if none of the "results" above is nan, then the actual
@@ -997,9 +999,8 @@ Type* Typer::Visitor::JSAddRanger(Type::RangeType* lhs, Type::RangeType* rhs,
     if (std::isnan(results[i])) ++nans;
   }
   if (nans == 4) return Type::NaN();  // [-inf..-inf] + [inf..inf] or vice versa
-  Factory* f = t->isolate()->factory();
-  Type* range = Type::Range(f->NewNumber(array_min(results, 4)),
-                            f->NewNumber(array_max(results, 4)), t->zone());
+  Type* range =
+      Type::Range(array_min(results, 4), array_max(results, 4), t->zone());
   return nans == 0 ? range : Type::Union(range, Type::NaN(), t->zone());
   // Examples:
   //   [-inf, -inf] + [+inf, +inf] = NaN
@@ -1033,10 +1034,10 @@ Type* Typer::Visitor::JSAddTyper(Type* lhs, Type* rhs, Typer* t) {
 Type* Typer::Visitor::JSSubtractRanger(Type::RangeType* lhs,
                                        Type::RangeType* rhs, Typer* t) {
   double results[4];
-  results[0] = lhs->Min()->Number() - rhs->Min()->Number();
-  results[1] = lhs->Min()->Number() - rhs->Max()->Number();
-  results[2] = lhs->Max()->Number() - rhs->Min()->Number();
-  results[3] = lhs->Max()->Number() - rhs->Max()->Number();
+  results[0] = lhs->Min() - rhs->Min();
+  results[1] = lhs->Min() - rhs->Max();
+  results[2] = lhs->Max() - rhs->Min();
+  results[3] = lhs->Max() - rhs->Max();
   // Since none of the inputs can be -0, the result cannot be -0.
   // However, it can be nan (the subtraction of two infinities of same sign).
   // On the other hand, if none of the "results" above is nan, then the actual
@@ -1046,9 +1047,8 @@ Type* Typer::Visitor::JSSubtractRanger(Type::RangeType* lhs,
     if (std::isnan(results[i])) ++nans;
   }
   if (nans == 4) return Type::NaN();  // [inf..inf] - [inf..inf] (all same sign)
-  Factory* f = t->isolate()->factory();
-  Type* range = Type::Range(f->NewNumber(array_min(results, 4)),
-                            f->NewNumber(array_max(results, 4)), t->zone());
+  Type* range =
+      Type::Range(array_min(results, 4), array_max(results, 4), t->zone());
   return nans == 0 ? range : Type::Union(range, Type::NaN(), t->zone());
   // Examples:
   //   [-inf, +inf] - [-inf, +inf] = [-inf, +inf] \/ NaN
@@ -1072,10 +1072,10 @@ Type* Typer::Visitor::JSSubtractTyper(Type* lhs, Type* rhs, Typer* t) {
 Type* Typer::Visitor::JSMultiplyRanger(Type::RangeType* lhs,
                                        Type::RangeType* rhs, Typer* t) {
   double results[4];
-  double lmin = lhs->Min()->Number();
-  double lmax = lhs->Max()->Number();
-  double rmin = rhs->Min()->Number();
-  double rmax = rhs->Max()->Number();
+  double lmin = lhs->Min();
+  double lmax = lhs->Max();
+  double rmin = rhs->Min();
+  double rmax = rhs->Max();
   results[0] = lmin * rmin;
   results[1] = lmin * rmax;
   results[2] = lmax * rmin;
@@ -1091,9 +1091,8 @@ Type* Typer::Visitor::JSMultiplyRanger(Type::RangeType* lhs,
   if (maybe_nan) return t->weakint;  // Giving up.
   bool maybe_minuszero = (lhs->Maybe(t->singleton_zero) && rmin < 0) ||
                          (rhs->Maybe(t->singleton_zero) && lmin < 0);
-  Factory* f = t->isolate()->factory();
-  Type* range = Type::Range(f->NewNumber(array_min(results, 4)),
-                            f->NewNumber(array_max(results, 4)), t->zone());
+  Type* range =
+      Type::Range(array_min(results, 4), array_max(results, 4), t->zone());
   return maybe_minuszero ? Type::Union(range, Type::MinusZero(), t->zone())
                          : range;
 }
@@ -1126,10 +1125,10 @@ Type* Typer::Visitor::JSDivideTyper(Type* lhs, Type* rhs, Typer* t) {
 
 Type* Typer::Visitor::JSModulusRanger(Type::RangeType* lhs,
                                       Type::RangeType* rhs, Typer* t) {
-  double lmin = lhs->Min()->Number();
-  double lmax = lhs->Max()->Number();
-  double rmin = rhs->Min()->Number();
-  double rmax = rhs->Max()->Number();
+  double lmin = lhs->Min();
+  double lmax = lhs->Max();
+  double rmin = rhs->Min();
+  double rmax = rhs->Max();
 
   double labs = std::max(std::abs(lmin), std::abs(lmax));
   double rabs = std::max(std::abs(rmin), std::abs(rmax)) - 1;
@@ -1150,8 +1149,7 @@ Type* Typer::Visitor::JSModulusRanger(Type::RangeType* lhs,
     maybe_minus_zero = true;
   }
 
-  Factory* f = t->isolate()->factory();
-  Type* result = Type::Range(f->NewNumber(omin), f->NewNumber(omax), t->zone());
+  Type* result = Type::Range(omin, omax, t->zone());
   if (maybe_minus_zero)
     result = Type::Union(result, Type::MinusZero(), t->zone());
   return result;
@@ -1258,43 +1256,53 @@ Bounds Typer::Visitor::TypeJSLoadNamed(Node* node) {
 // in the graph. In the current implementation, we are
 // increasing the limits to the closest power of two.
 Type* Typer::Visitor::Weaken(Type* current_type, Type* previous_type) {
-  Type::RangeType* previous = previous_type->GetRange();
-  Type::RangeType* current = current_type->GetRange();
-  if (previous != NULL && current != NULL) {
-    double current_min = current->Min()->Number();
-    Handle<Object> new_min = current->Min();
-
-    // Find the closest lower entry in the list of allowed
-    // minima (or negative infinity if there is no such entry).
-    if (current_min != previous->Min()->Number()) {
-      new_min = typer_->integer->AsRange()->Min();
-      for (const auto val : typer_->weaken_min_limits_) {
-        if (val->Number() <= current_min) {
-          new_min = val;
-          break;
-        }
-      }
-    }
-
-    double current_max = current->Max()->Number();
-    Handle<Object> new_max = current->Max();
-    // Find the closest greater entry in the list of allowed
-    // maxima (or infinity if there is no such entry).
-    if (current_max != previous->Max()->Number()) {
-      new_max = typer_->integer->AsRange()->Max();
-      for (const auto val : typer_->weaken_max_limits_) {
-        if (val->Number() >= current_max) {
-          new_max = val;
-          break;
-        }
-      }
-    }
-
-    return Type::Union(current_type,
-                       Type::Range(new_min, new_max, typer_->zone()),
-                       typer_->zone());
+  // If the types have nothing to do with integers, return the types.
+  if (!current_type->Maybe(typer_->integer) ||
+      !previous_type->Maybe(typer_->integer)) {
+    return current_type;
   }
-  return current_type;
+
+  Type* previous_number =
+      Type::Intersect(previous_type, typer_->integer, zone());
+  Type* current_number = Type::Intersect(current_type, typer_->integer, zone());
+  if (!current_number->IsRange() || !previous_number->IsRange()) {
+    return current_type;
+  }
+
+  Type::RangeType* previous = previous_number->AsRange();
+  Type::RangeType* current = current_number->AsRange();
+
+  double current_min = current->Min();
+  double new_min = current_min;
+  // Find the closest lower entry in the list of allowed
+  // minima (or negative infinity if there is no such entry).
+  if (current_min != previous->Min()) {
+    new_min = typer_->integer->AsRange()->Min();
+    for (const auto val : typer_->weaken_min_limits_) {
+      if (val <= current_min) {
+        new_min = val;
+        break;
+      }
+    }
+  }
+
+  double current_max = current->Max();
+  double new_max = current_max;
+  // Find the closest greater entry in the list of allowed
+  // maxima (or infinity if there is no such entry).
+  if (current_max != previous->Max()) {
+    new_max = typer_->integer->AsRange()->Max();
+    for (const auto val : typer_->weaken_max_limits_) {
+      if (val >= current_max) {
+        new_max = val;
+        break;
+      }
+    }
+  }
+
+  return Type::Union(current_type,
+                     Type::Range(new_min, new_max, typer_->zone()),
+                     typer_->zone());
 }
 
 
@@ -1378,40 +1386,45 @@ Bounds Typer::Visitor::TypeJSStoreContext(Node* node) {
 }
 
 
+Bounds Typer::Visitor::WrapContextBoundsForInput(Node* node) {
+  Bounds outer = BoundsOrNone(NodeProperties::GetContextInput(node));
+  if (outer.upper->Is(Type::None())) {
+    return Bounds(Type::None());
+  } else {
+    DCHECK(outer.upper->Maybe(Type::Internal()));
+    return Bounds(Type::Context(outer.upper, zone()));
+  }
+}
+
+
 Bounds Typer::Visitor::TypeJSCreateFunctionContext(Node* node) {
-  Bounds outer = ContextOperand(node);
-  return Bounds(Type::Context(outer.upper, zone()));
+  return WrapContextBoundsForInput(node);
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateCatchContext(Node* node) {
-  Bounds outer = ContextOperand(node);
-  return Bounds(Type::Context(outer.upper, zone()));
+  return WrapContextBoundsForInput(node);
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateWithContext(Node* node) {
-  Bounds outer = ContextOperand(node);
-  return Bounds(Type::Context(outer.upper, zone()));
+  return WrapContextBoundsForInput(node);
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateBlockContext(Node* node) {
-  Bounds outer = ContextOperand(node);
-  return Bounds(Type::Context(outer.upper, zone()));
+  return WrapContextBoundsForInput(node);
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateModuleContext(Node* node) {
   // TODO(rossberg): this is probably incorrect
-  Bounds outer = ContextOperand(node);
-  return Bounds(Type::Context(outer.upper, zone()));
+  return WrapContextBoundsForInput(node);
 }
 
 
 Bounds Typer::Visitor::TypeJSCreateScriptContext(Node* node) {
-  Bounds outer = ContextOperand(node);
-  return Bounds(Type::Context(outer.upper, zone()));
+  return WrapContextBoundsForInput(node);
 }
 
 
@@ -1439,6 +1452,16 @@ Bounds Typer::Visitor::TypeJSCallFunction(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSCallRuntime(Node* node) {
+  switch (CallRuntimeParametersOf(node->op()).id()) {
+    case Runtime::kInlineIsSmi:
+    case Runtime::kInlineIsNonNegativeSmi:
+    case Runtime::kInlineIsArray:
+    case Runtime::kInlineIsFunction:
+    case Runtime::kInlineIsRegExp:
+      return Bounds(Type::None(zone()), Type::Boolean(zone()));
+    default:
+      break;
+  }
   return Bounds::Unbounded(zone());
 }
 

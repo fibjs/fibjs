@@ -22,7 +22,7 @@ namespace internal {
 
 void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
     MacroAssembler* masm, Handle<HeapType> type, Register receiver,
-    Handle<JSFunction> getter) {
+    Register holder, int accessor_index, int expected_arguments) {
   // ----------- S t a t e -------------
   //  -- a0    : receiver
   //  -- a2    : name
@@ -31,7 +31,7 @@ void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
 
-    if (!getter.is_null()) {
+    if (accessor_index >= 0) {
       // Call the JavaScript getter with the receiver on the stack.
       if (IC::TypeToMap(*type, masm->isolate())->IsJSGlobalObjectMap()) {
         // Swap in the global receiver.
@@ -40,9 +40,9 @@ void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
       }
       __ push(receiver);
       ParameterCount actual(0);
-      ParameterCount expected(getter);
-      __ InvokeFunction(getter, expected, actual, CALL_FUNCTION,
-                        NullCallWrapper());
+      ParameterCount expected(expected_arguments);
+      __ LoadAccessor(a1, holder, accessor_index, ACCESSOR_GETTER);
+      __ InvokeFunction(a1, expected, actual, CALL_FUNCTION, NullCallWrapper());
     } else {
       // If we generate a global code snippet for deoptimization only, remember
       // the place to continue after deoptimization.
@@ -58,7 +58,7 @@ void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
 
 void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
     MacroAssembler* masm, Handle<HeapType> type, Register receiver,
-    Handle<JSFunction> setter) {
+    Register holder, int accessor_index, int expected_arguments) {
   // ----------- S t a t e -------------
   //  -- ra    : return address
   // -----------------------------------
@@ -68,7 +68,7 @@ void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
     // Save value register, so we can restore it later.
     __ push(value());
 
-    if (!setter.is_null()) {
+    if (accessor_index >= 0) {
       // Call the JavaScript setter with receiver and value on the stack.
       if (IC::TypeToMap(*type, masm->isolate())->IsJSGlobalObjectMap()) {
         // Swap in the global receiver.
@@ -77,9 +77,9 @@ void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
       }
       __ Push(receiver, value());
       ParameterCount actual(1);
-      ParameterCount expected(setter);
-      __ InvokeFunction(setter, expected, actual, CALL_FUNCTION,
-                        NullCallWrapper());
+      ParameterCount expected(expected_arguments);
+      __ LoadAccessor(a1, holder, accessor_index, ACCESSOR_SETTER);
+      __ InvokeFunction(a1, expected, actual, CALL_FUNCTION, NullCallWrapper());
     } else {
       // If we generate a global code snippet for deoptimization only, remember
       // the place to continue after deoptimization.

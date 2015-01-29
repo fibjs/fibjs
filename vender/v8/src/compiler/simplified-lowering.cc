@@ -10,7 +10,6 @@
 #include "src/code-factory.h"
 #include "src/compiler/common-operator.h"
 #include "src/compiler/diamond.h"
-#include "src/compiler/graph-inl.h"
 #include "src/compiler/linkage.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties-inl.h"
@@ -76,10 +75,8 @@ class RepresentationSelector {
         queue_(zone) {
     memset(info_, 0, sizeof(NodeInfo) * count_);
 
-    Factory* f = zone->isolate()->factory();
     safe_int_additive_range_ =
-        Type::Range(f->NewNumber(-std::pow(2.0, 52.0)),
-                    f->NewNumber(std::pow(2.0, 52.0)), zone);
+        Type::Range(-std::pow(2.0, 52.0), std::pow(2.0, 52.0), zone);
   }
 
   void Run(SimplifiedLowering* lowering) {
@@ -474,6 +471,8 @@ class RepresentationSelector {
         SetOutput(node, kRepTagged | changer_->TypeFromUpperBound(upper));
         return;
       }
+      case IrOpcode::kAlways:
+        return VisitLeaf(node, kRepBit);
       case IrOpcode::kInt32Constant:
         return VisitLeaf(node, kRepWord32);
       case IrOpcode::kInt64Constant:
@@ -530,7 +529,8 @@ class RepresentationSelector {
               jsgraph_->isolate(), ToBooleanStub::RESULT_AS_ODDBALL);
           CallDescriptor::Flags flags = CallDescriptor::kPatchableCallSite;
           CallDescriptor* desc = Linkage::GetStubCallDescriptor(
-              callable.descriptor(), 0, flags, properties, jsgraph_->zone());
+              jsgraph_->isolate(), jsgraph_->zone(), callable.descriptor(), 0,
+              flags, properties);
           node->set_op(jsgraph_->common()->Call(desc));
           node->InsertInput(jsgraph_->zone(), 0,
                             jsgraph_->HeapConstant(callable.code()));
@@ -740,7 +740,8 @@ class RepresentationSelector {
           Callable callable = CodeFactory::ToNumber(jsgraph_->isolate());
           CallDescriptor::Flags flags = CallDescriptor::kNoFlags;
           CallDescriptor* desc = Linkage::GetStubCallDescriptor(
-              callable.descriptor(), 0, flags, properties, jsgraph_->zone());
+              jsgraph_->isolate(), jsgraph_->zone(), callable.descriptor(), 0,
+              flags, properties);
           node->set_op(jsgraph_->common()->Call(desc));
           node->InsertInput(jsgraph_->zone(), 0,
                             jsgraph_->HeapConstant(callable.code()));
@@ -852,10 +853,10 @@ class RepresentationSelector {
         if (lower()) {
           Node* is_tagged = jsgraph_->graph()->NewNode(
               jsgraph_->machine()->WordAnd(), node->InputAt(0),
-              jsgraph_->Int32Constant(static_cast<int>(kSmiTagMask)));
+              jsgraph_->IntPtrConstant(kSmiTagMask));
           Node* is_smi = jsgraph_->graph()->NewNode(
               jsgraph_->machine()->WordEqual(), is_tagged,
-              jsgraph_->Int32Constant(kSmiTag));
+              jsgraph_->IntPtrConstant(kSmiTag));
           DeferReplacement(node, is_smi);
         }
         break;
@@ -866,13 +867,13 @@ class RepresentationSelector {
         if (lower()) {
           Node* is_tagged = jsgraph_->graph()->NewNode(
               jsgraph_->machine()->WordAnd(), node->InputAt(0),
-              jsgraph_->Int32Constant(static_cast<int>(kSmiTagMask)));
+              jsgraph_->IntPtrConstant(kSmiTagMask));
           Node* is_smi = jsgraph_->graph()->NewNode(
               jsgraph_->machine()->WordEqual(), is_tagged,
-              jsgraph_->Int32Constant(kSmiTag));
+              jsgraph_->IntPtrConstant(kSmiTag));
           Node* is_non_neg = jsgraph_->graph()->NewNode(
               jsgraph_->machine()->IntLessThanOrEqual(),
-              jsgraph_->Int32Constant(0), node->InputAt(0));
+              jsgraph_->IntPtrConstant(0), node->InputAt(0));
           Node* is_non_neg_smi = jsgraph_->graph()->NewNode(
               jsgraph_->machine()->Word32And(), is_smi, is_non_neg);
           DeferReplacement(node, is_non_neg_smi);
@@ -1031,14 +1032,16 @@ class RepresentationSelector {
              node->op()->mnemonic(), replacement->id(),
              replacement->op()->mnemonic()));
     }
-    if (replacement->id() < count_) {
-      // Replace with a previously existing node eagerly.
+    if (replacement->id() < count_ &&
+        GetInfo(replacement)->output == GetInfo(node)->output) {
+      // Replace with a previously existing node eagerly only if the type is the
+      // same.
       node->ReplaceUses(replacement);
     } else {
       // Otherwise, we are replacing a node with a representation change.
       // Such a substitution must be done after all lowering is done, because
-      // new nodes do not have {NodeInfo} entries, and that would confuse
-      // the representation change insertion for uses of it.
+      // changing the type could confuse the representation change
+      // insertion for uses of the node.
       replacements_.push_back(node);
       replacements_.push_back(replacement);
     }
@@ -1089,8 +1092,7 @@ Node* SimplifiedLowering::IsTagged(Node* node) {
 
 void SimplifiedLowering::LowerAllNodes() {
   SimplifiedOperatorBuilder simplified(graph()->zone());
-  RepresentationChanger changer(jsgraph(), &simplified,
-                                graph()->zone()->isolate());
+  RepresentationChanger changer(jsgraph(), &simplified, jsgraph()->isolate());
   RepresentationSelector selector(jsgraph(), zone_, &changer);
   selector.Run(this);
 }
@@ -1255,10 +1257,11 @@ void SimplifiedLowering::DoStoreElement(Node* node) {
 void SimplifiedLowering::DoStringAdd(Node* node) {
   Operator::Properties properties = node->op()->properties();
   Callable callable = CodeFactory::StringAdd(
-      zone()->isolate(), STRING_ADD_CHECK_NONE, NOT_TENURED);
+      jsgraph()->isolate(), STRING_ADD_CHECK_NONE, NOT_TENURED);
   CallDescriptor::Flags flags = CallDescriptor::kNoFlags;
   CallDescriptor* desc = Linkage::GetStubCallDescriptor(
-      callable.descriptor(), 0, flags, properties, zone());
+      jsgraph()->isolate(), zone(), callable.descriptor(), 0, flags,
+      properties);
   node->set_op(common()->Call(desc));
   node->InsertInput(graph()->zone(), 0,
                     jsgraph()->HeapConstant(callable.code()));
@@ -1269,14 +1272,14 @@ void SimplifiedLowering::DoStringAdd(Node* node) {
 
 
 Node* SimplifiedLowering::StringComparison(Node* node, bool requires_ordering) {
-  CEntryStub stub(zone()->isolate(), 1);
+  CEntryStub stub(jsgraph()->isolate(), 1);
   Runtime::FunctionId f =
       requires_ordering ? Runtime::kStringCompare : Runtime::kStringEquals;
-  ExternalReference ref(f, zone()->isolate());
+  ExternalReference ref(f, jsgraph()->isolate());
   Operator::Properties props = node->op()->properties();
   // TODO(mstarzinger): We should call StringCompareStub here instead, once an
   // interface descriptor is available for it.
-  CallDescriptor* desc = Linkage::GetRuntimeCallDescriptor(f, 2, props, zone());
+  CallDescriptor* desc = Linkage::GetRuntimeCallDescriptor(zone(), f, 2, props);
   return graph()->NewNode(common()->Call(desc),
                           jsgraph()->HeapConstant(stub.GetCode()),
                           NodeProperties::GetValueInput(node, 0),

@@ -270,7 +270,7 @@ void NamedLoadHandlerCompiler::InterceptorVectorSlotPop(Register holder_reg,
 
 Handle<Code> NamedLoadHandlerCompiler::CompileLoadInterceptor(
     LookupIterator* it) {
-  // So far the most popular follow ups for interceptor loads are FIELD and
+  // So far the most popular follow ups for interceptor loads are DATA and
   // ExecutableAccessorInfo, so inline only them. Other cases may be added
   // later.
   bool inline_followup = false;
@@ -284,7 +284,7 @@ Handle<Code> NamedLoadHandlerCompiler::CompileLoadInterceptor(
       break;
     case LookupIterator::DATA:
       inline_followup =
-          it->property_details().type() == FIELD && !it->is_dictionary_holder();
+          it->property_details().type() == DATA && !it->is_dictionary_holder();
       break;
     case LookupIterator::ACCESSOR: {
       Handle<Object> accessors = it->GetAccessors();
@@ -337,7 +337,7 @@ void NamedLoadHandlerCompiler::GenerateLoadPostInterceptor(
     case LookupIterator::TRANSITION:
       UNREACHABLE();
     case LookupIterator::DATA: {
-      DCHECK_EQ(FIELD, it->property_details().type());
+      DCHECK_EQ(DATA, it->property_details().type());
       __ Move(receiver(), reg);
       LoadFieldStub stub(isolate(), it->GetFieldIndex());
       GenerateTailCall(masm(), stub.GetCode());
@@ -353,9 +353,10 @@ void NamedLoadHandlerCompiler::GenerateLoadPostInterceptor(
 
 
 Handle<Code> NamedLoadHandlerCompiler::CompileLoadViaGetter(
-    Handle<Name> name, Handle<JSFunction> getter) {
-  Frontend(name);
-  GenerateLoadViaGetter(masm(), type(), receiver(), getter);
+    Handle<Name> name, int accessor_index, int expected_arguments) {
+  Register holder = Frontend(name);
+  GenerateLoadViaGetter(masm(), type(), receiver(), holder, accessor_index,
+                        expected_arguments);
   return GetCode(kind(), Code::FAST, name);
 }
 
@@ -392,7 +393,7 @@ Handle<Code> NamedStoreHandlerCompiler::CompileStoreTransition(
   DCHECK(!transition->is_access_check_needed());
 
   // Call to respective StoreTransitionStub.
-  if (details.type() == CONSTANT) {
+  if (details.type() == DATA_CONSTANT) {
     GenerateRestoreMap(transition, scratch2(), &miss);
     DCHECK(descriptors->GetValue(descriptor)->IsJSFunction());
     Register map_reg = StoreTransitionDescriptor::MapRegister();
@@ -441,9 +442,11 @@ Handle<Code> NamedStoreHandlerCompiler::CompileStoreField(LookupIterator* it) {
 
 
 Handle<Code> NamedStoreHandlerCompiler::CompileStoreViaSetter(
-    Handle<JSObject> object, Handle<Name> name, Handle<JSFunction> setter) {
-  Frontend(name);
-  GenerateStoreViaSetter(masm(), type(), receiver(), setter);
+    Handle<JSObject> object, Handle<Name> name, int accessor_index,
+    int expected_arguments) {
+  Register holder = Frontend(name);
+  GenerateStoreViaSetter(masm(), type(), receiver(), holder, accessor_index,
+                         expected_arguments);
 
   return GetCode(kind(), Code::FAST, name);
 }

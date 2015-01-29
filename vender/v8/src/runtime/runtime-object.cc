@@ -615,7 +615,7 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
         // appropriate.
         LookupIterator it(receiver, key, LookupIterator::OWN);
         if (it.state() == LookupIterator::DATA &&
-            it.property_details().type() == FIELD) {
+            it.property_details().type() == DATA) {
           FieldIndex field_index = it.GetFieldIndex();
           // Do not track double fields in the keyed lookup cache. Reading
           // double values requires boxing.
@@ -632,7 +632,7 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
         NameDictionary* dictionary = receiver->property_dictionary();
         int entry = dictionary->FindEntry(key);
         if ((entry != NameDictionary::kNotFound) &&
-            (dictionary->DetailsAt(entry).type() == FIELD)) {
+            (dictionary->DetailsAt(entry).type() == DATA)) {
           Object* value = dictionary->ValueAt(entry);
           if (!receiver->IsGlobalObject()) return value;
           value = PropertyCell::cast(value)->value();
@@ -765,12 +765,9 @@ RUNTIME_FUNCTION(Runtime_DeleteProperty) {
   CONVERT_ARG_HANDLE_CHECKED(JSReceiver, object, 0);
   CONVERT_ARG_HANDLE_CHECKED(Name, key, 1);
   CONVERT_STRICT_MODE_ARG_CHECKED(strict_mode, 2);
-  JSReceiver::DeleteMode delete_mode = strict_mode == STRICT
-                                           ? JSReceiver::STRICT_DELETION
-                                           : JSReceiver::NORMAL_DELETION;
   Handle<Object> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, result, JSReceiver::DeleteProperty(object, key, delete_mode));
+      isolate, result, JSReceiver::DeleteProperty(object, key, strict_mode));
   return *result;
 }
 
@@ -1282,7 +1279,12 @@ RUNTIME_FUNCTION(Runtime_AllocateHeapNumber) {
 
 static Object* Runtime_NewObjectHelper(Isolate* isolate,
                                        Handle<Object> constructor,
+                                       Handle<Object> original_constructor,
                                        Handle<AllocationSite> site) {
+  // TODO(dslomov): implement prototype rewiring.
+  // The check below is a sanity check.
+  CHECK(*constructor == *original_constructor);
+
   // If the constructor isn't a proper function we throw a type error.
   if (!constructor->IsJSFunction()) {
     Vector<Handle<Object> > arguments = HandleVector(&constructor, 1);
@@ -1343,16 +1345,18 @@ static Object* Runtime_NewObjectHelper(Isolate* isolate,
 
 RUNTIME_FUNCTION(Runtime_NewObject) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK(args.length() == 2);
   CONVERT_ARG_HANDLE_CHECKED(Object, constructor, 0);
-  return Runtime_NewObjectHelper(isolate, constructor,
+  CONVERT_ARG_HANDLE_CHECKED(Object, original_constructor, 1);
+  return Runtime_NewObjectHelper(isolate, constructor, original_constructor,
                                  Handle<AllocationSite>::null());
 }
 
 
 RUNTIME_FUNCTION(Runtime_NewObjectWithAllocationSite) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK(args.length() == 3);
+  CONVERT_ARG_HANDLE_CHECKED(Object, original_constructor, 2);
   CONVERT_ARG_HANDLE_CHECKED(Object, constructor, 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, feedback, 0);
   Handle<AllocationSite> site;
@@ -1360,7 +1364,8 @@ RUNTIME_FUNCTION(Runtime_NewObjectWithAllocationSite) {
     // The feedback can be an AllocationSite or undefined.
     site = Handle<AllocationSite>::cast(feedback);
   }
-  return Runtime_NewObjectHelper(isolate, constructor, site);
+  return Runtime_NewObjectHelper(isolate, constructor, original_constructor,
+                                 site);
 }
 
 

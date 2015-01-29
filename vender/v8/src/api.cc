@@ -27,6 +27,7 @@
 #include "src/debug.h"
 #include "src/deoptimizer.h"
 #include "src/execution.h"
+#include "src/full-codegen.h"
 #include "src/global-handles.h"
 #include "src/heap-profiler.h"
 #include "src/heap-snapshot-generator-inl.h"
@@ -220,6 +221,54 @@ bool RunExtraCode(Isolate* isolate, char* utf8_source) {
 }
 
 
+void CheckDefaultReservationSizes(const i::StartupSerializer& startup_ser,
+                                  const i::PartialSerializer& context_ser) {
+#ifdef DEBUG
+  i::List<i::SerializedData::Reservation> startup_reservations;
+  i::List<i::SerializedData::Reservation> context_reservations;
+  startup_ser.EncodeReservations(&startup_reservations);
+  context_ser.EncodeReservations(&context_reservations);
+  for (int space = 0; space < i::Serializer::kNumberOfSpaces; space++) {
+    // Exactly one chunk per space.
+    CHECK(startup_reservations[space].is_last());
+    CHECK(startup_reservations[space].is_last());
+    uint32_t sum = startup_reservations[space].chunk_size() +
+                   context_reservations[space].chunk_size();
+    uint32_t limit = 0;
+    const int constant_pool_delta = i::FLAG_enable_ool_constant_pool ? 48 : 0;
+    switch (space) {
+      case i::NEW_SPACE:
+        limit = 3 * i::kPointerSize;
+        break;
+      case i::OLD_POINTER_SPACE:
+        limit = (128 + constant_pool_delta) * i::kPointerSize * i::KB;
+        break;
+      case i::OLD_DATA_SPACE:
+        limit = 192 * i::KB;
+        break;
+      case i::MAP_SPACE:
+        limit = 16 * i::kPointerSize * i::KB;
+        break;
+      case i::CELL_SPACE:
+        limit = 16 * i::kPointerSize * i::KB;
+        break;
+      case i::PROPERTY_CELL_SPACE:
+        limit = 8 * i::kPointerSize * i::KB;
+        break;
+      case i::CODE_SPACE:
+        limit = RoundUp((480 - constant_pool_delta) * i::KB *
+                            i::FullCodeGenerator::kBootCodeSizeMultiplier / 100,
+                        i::kPointerSize);
+        break;
+      default:
+        break;
+    }
+    CHECK_LE(sum, limit);
+  }
+#endif  // DEBUG
+}
+
+
 StartupData V8::CreateSnapshotDataBlob(char* custom_source) {
   Isolate::CreateParams params;
   params.enable_serializer = true;
@@ -265,6 +314,8 @@ StartupData V8::CreateSnapshotDataBlob(char* custom_source) {
 
       i::SnapshotData sd(snapshot_sink, ser);
       i::SnapshotData csd(context_sink, context_ser);
+
+      if (custom_source == NULL) CheckDefaultReservationSizes(ser, context_ser);
 
       result = i::Snapshot::CreateSnapshotBlob(sd.RawData(), csd.RawData(),
                                                metadata);
@@ -434,20 +485,19 @@ void V8::MakeWeak(i::Object** object, void* parameter,
 }
 
 
-void V8::MakePhantom(
-    i::Object** object, void* parameter, int internal_field_index1,
-    int internal_field_index2,
-    PhantomCallbackData<void, void, void>::Callback weak_callback) {
+void V8::MakePhantom(i::Object** object, void* parameter,
+                     int internal_field_index1, int internal_field_index2,
+                     PhantomCallbackData<void>::Callback weak_callback) {
   if (internal_field_index1 == 0) {
     if (internal_field_index2 == 1) {
       i::GlobalHandles::MakePhantom(object, parameter, 2, weak_callback);
     } else {
-      DCHECK_EQ(internal_field_index2, Object::kNoInternalFieldIndex);
+      DCHECK_EQ(internal_field_index2, kNoInternalFieldIndex);
       i::GlobalHandles::MakePhantom(object, parameter, 1, weak_callback);
     }
   } else {
-    DCHECK_EQ(internal_field_index1, Object::kNoInternalFieldIndex);
-    DCHECK_EQ(internal_field_index2, Object::kNoInternalFieldIndex);
+    DCHECK_EQ(internal_field_index1, kNoInternalFieldIndex);
+    DCHECK_EQ(internal_field_index2, kNoInternalFieldIndex);
     i::GlobalHandles::MakePhantom(object, parameter, 0, weak_callback);
   }
 }
@@ -797,10 +847,19 @@ Local<ObjectTemplate> FunctionTemplate::PrototypeTemplate() {
 }
 
 
+static void EnsureNotInstantiated(i::Handle<i::FunctionTemplateInfo> info,
+                                  const char* func) {
+  Utils::ApiCheck(!info->instantiated(), func,
+                  "FunctionTemplate already instantiated");
+}
+
+
 void FunctionTemplate::Inherit(v8::Handle<FunctionTemplate> value) {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  auto info = Utils::OpenHandle(this);
+  EnsureNotInstantiated(info, "v8::FunctionTemplate::Inherit");
+  i::Isolate* isolate = info->GetIsolate();
   ENTER_V8(isolate);
-  Utils::OpenHandle(this)->set_parent_template(*Utils::OpenHandle(*value));
+  info->set_parent_template(*Utils::OpenHandle(*value));
 }
 
 
@@ -910,7 +969,9 @@ int TypeSwitch::match(v8::Handle<Value> value) {
 
 void FunctionTemplate::SetCallHandler(FunctionCallback callback,
                                       v8::Handle<Value> data) {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  auto info = Utils::OpenHandle(this);
+  EnsureNotInstantiated(info, "v8::FunctionTemplate::SetCallHandler");
+  i::Isolate* isolate = info->GetIsolate();
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
   i::Handle<i::Struct> struct_obj =
@@ -922,7 +983,7 @@ void FunctionTemplate::SetCallHandler(FunctionCallback callback,
     data = v8::Undefined(reinterpret_cast<v8::Isolate*>(isolate));
   }
   obj->set_data(*Utils::OpenHandle(*data));
-  Utils::OpenHandle(this)->set_call_code(*obj);
+  info->set_call_code(*obj);
 }
 
 
@@ -986,37 +1047,47 @@ Local<ObjectTemplate> FunctionTemplate::InstanceTemplate() {
 
 
 void FunctionTemplate::SetLength(int length) {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  auto info = Utils::OpenHandle(this);
+  EnsureNotInstantiated(info, "v8::FunctionTemplate::SetLength");
+  auto isolate = info->GetIsolate();
   ENTER_V8(isolate);
-  Utils::OpenHandle(this)->set_length(length);
+  info->set_length(length);
 }
 
 
 void FunctionTemplate::SetClassName(Handle<String> name) {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  auto info = Utils::OpenHandle(this);
+  EnsureNotInstantiated(info, "v8::FunctionTemplate::SetClassName");
+  auto isolate = info->GetIsolate();
   ENTER_V8(isolate);
-  Utils::OpenHandle(this)->set_class_name(*Utils::OpenHandle(*name));
+  info->set_class_name(*Utils::OpenHandle(*name));
 }
 
 
 void FunctionTemplate::SetHiddenPrototype(bool value) {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  auto info = Utils::OpenHandle(this);
+  EnsureNotInstantiated(info, "v8::FunctionTemplate::SetHiddenPrototype");
+  auto isolate = info->GetIsolate();
   ENTER_V8(isolate);
-  Utils::OpenHandle(this)->set_hidden_prototype(value);
+  info->set_hidden_prototype(value);
 }
 
 
 void FunctionTemplate::ReadOnlyPrototype() {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  auto info = Utils::OpenHandle(this);
+  EnsureNotInstantiated(info, "v8::FunctionTemplate::ReadOnlyPrototype");
+  auto isolate = info->GetIsolate();
   ENTER_V8(isolate);
-  Utils::OpenHandle(this)->set_read_only_prototype(true);
+  info->set_read_only_prototype(true);
 }
 
 
 void FunctionTemplate::RemovePrototype() {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  auto info = Utils::OpenHandle(this);
+  EnsureNotInstantiated(info, "v8::FunctionTemplate::RemovePrototype");
+  auto isolate = info->GetIsolate();
   ENTER_V8(isolate);
-  Utils::OpenHandle(this)->set_remove_prototype(true);
+  info->set_remove_prototype(true);
 }
 
 
@@ -1183,10 +1254,8 @@ static void ObjectTemplateSetNamedPropertyHandler(ObjectTemplate* templ,
   i::Isolate* isolate = Utils::OpenHandle(templ)->GetIsolate();
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
-  EnsureConstructor(isolate, templ);
-  i::FunctionTemplateInfo* constructor =
-      i::FunctionTemplateInfo::cast(Utils::OpenHandle(templ)->constructor());
-  i::Handle<i::FunctionTemplateInfo> cons(constructor);
+  auto cons = EnsureConstructor(isolate, templ);
+  EnsureNotInstantiated(cons, "ObjectTemplateSetNamedPropertyHandler");
   i::Handle<i::Struct> struct_obj =
       isolate->factory()->NewStruct(i::INTERCEPTOR_INFO_TYPE);
   i::Handle<i::InterceptorInfo> obj =
@@ -1229,10 +1298,8 @@ void ObjectTemplate::MarkAsUndetectable() {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
-  EnsureConstructor(isolate, this);
-  i::FunctionTemplateInfo* constructor =
-      i::FunctionTemplateInfo::cast(Utils::OpenHandle(this)->constructor());
-  i::Handle<i::FunctionTemplateInfo> cons(constructor);
+  auto cons = EnsureConstructor(isolate, this);
+  EnsureNotInstantiated(cons, "v8::ObjectTemplate::MarkAsUndetectable");
   cons->set_undetectable(true);
 }
 
@@ -1245,7 +1312,8 @@ void ObjectTemplate::SetAccessCheckCallbacks(
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
-  EnsureConstructor(isolate, this);
+  auto cons = EnsureConstructor(isolate, this);
+  EnsureNotInstantiated(cons, "v8::ObjectTemplate::SetAccessCheckCallbacks");
 
   i::Handle<i::Struct> struct_info =
       isolate->factory()->NewStruct(i::ACCESS_CHECK_INFO_TYPE);
@@ -1260,9 +1328,6 @@ void ObjectTemplate::SetAccessCheckCallbacks(
   }
   info->set_data(*Utils::OpenHandle(*data));
 
-  i::FunctionTemplateInfo* constructor =
-      i::FunctionTemplateInfo::cast(Utils::OpenHandle(this)->constructor());
-  i::Handle<i::FunctionTemplateInfo> cons(constructor);
   cons->set_access_check_info(*info);
   cons->set_needs_access_check(turned_on_by_default);
 }
@@ -1273,10 +1338,8 @@ void ObjectTemplate::SetHandler(
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
-  EnsureConstructor(isolate, this);
-  i::FunctionTemplateInfo* constructor = i::FunctionTemplateInfo::cast(
-      Utils::OpenHandle(this)->constructor());
-  i::Handle<i::FunctionTemplateInfo> cons(constructor);
+  auto cons = EnsureConstructor(isolate, this);
+  EnsureNotInstantiated(cons, "v8::ObjectTemplate::SetHandler");
   i::Handle<i::Struct> struct_obj =
       isolate->factory()->NewStruct(i::INTERCEPTOR_INFO_TYPE);
   i::Handle<i::InterceptorInfo> obj =
@@ -1305,10 +1368,8 @@ void ObjectTemplate::SetCallAsFunctionHandler(FunctionCallback callback,
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
-  EnsureConstructor(isolate, this);
-  i::FunctionTemplateInfo* constructor = i::FunctionTemplateInfo::cast(
-      Utils::OpenHandle(this)->constructor());
-  i::Handle<i::FunctionTemplateInfo> cons(constructor);
+  auto cons = EnsureConstructor(isolate, this);
+  EnsureNotInstantiated(cons, "v8::ObjectTemplate::SetCallAsFunctionHandler");
   i::Handle<i::Struct> struct_obj =
       isolate->factory()->NewStruct(i::CALL_HANDLER_INFO_TYPE);
   i::Handle<i::CallHandlerInfo> obj =
@@ -1480,6 +1541,7 @@ Local<Value> Script::Run() {
   ON_BAILOUT(isolate, "v8::Script::Run()", return Local<Value>());
   LOG_API(isolate, "Script::Run");
   ENTER_V8(isolate);
+  i::AggregatingHistogramTimerScope timer(isolate->counters()->compile_lazy());
   i::TimerEventScope<i::TimerEventExecute> timer_scope(isolate);
   i::HandleScope scope(isolate);
   i::Handle<i::JSFunction> fun = i::Handle<i::JSFunction>::cast(obj);
@@ -1536,6 +1598,7 @@ Local<UnboundScript> ScriptCompiler::CompileUnbound(
   ENTER_V8(isolate);
   i::SharedFunctionInfo* raw_result = NULL;
   { i::HandleScope scope(isolate);
+    i::HistogramTimerScope total(isolate->counters()->compile_script(), true);
     i::Handle<i::Object> name_obj;
     int line_offset = 0;
     int column_offset = 0;
@@ -2735,7 +2798,7 @@ double Value::NumberValue() const {
     EXCEPTION_PREAMBLE(isolate);
     has_pending_exception = !i::Execution::ToNumber(
         isolate, obj).ToHandle(&num);
-    EXCEPTION_BAILOUT_CHECK(isolate, base::OS::nan_value());
+    EXCEPTION_BAILOUT_CHECK(isolate, std::numeric_limits<double>::quiet_NaN());
   }
   return num->Number();
 }
@@ -2829,8 +2892,8 @@ Local<Uint32> Value::ToArrayIndex() const {
 
 int32_t Value::Int32Value() const {
   i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (obj->IsSmi()) {
-    return i::Smi::cast(*obj)->value();
+  if (obj->IsNumber()) {
+    return NumberToInt32(*obj);
   } else {
     i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
     LOG_API(isolate, "Int32Value (slow)");
@@ -2930,8 +2993,8 @@ bool Value::SameValue(Handle<Value> that) const {
 
 uint32_t Value::Uint32Value() const {
   i::Handle<i::Object> obj = Utils::OpenHandle(this);
-  if (obj->IsSmi()) {
-    return i::Smi::cast(*obj)->value();
+  if (obj->IsNumber()) {
+    return NumberToUint32(*obj);
   } else {
     i::Isolate* isolate = i::HeapObject::cast(*obj)->GetIsolate();
     LOG_API(isolate, "Uint32Value");
@@ -3011,7 +3074,7 @@ bool v8::Object::SetPrivate(v8::Handle<Private> key, v8::Handle<Value> value) {
 
 i::MaybeHandle<i::Object> DeleteObjectProperty(
     i::Isolate* isolate, i::Handle<i::JSReceiver> receiver,
-    i::Handle<i::Object> key, i::JSReceiver::DeleteMode mode) {
+    i::Handle<i::Object> key, i::StrictMode strict_mode) {
   // Check if the given key is an array index.
   uint32_t index;
   if (key->ToArrayIndex(&index)) {
@@ -3025,7 +3088,7 @@ i::MaybeHandle<i::Object> DeleteObjectProperty(
       return isolate->factory()->true_value();
     }
 
-    return i::JSReceiver::DeleteElement(receiver, index, mode);
+    return i::JSReceiver::DeleteElement(receiver, index, strict_mode);
   }
 
   i::Handle<i::Name> name;
@@ -3043,25 +3106,7 @@ i::MaybeHandle<i::Object> DeleteObjectProperty(
   if (name->IsString()) {
     name = i::String::Flatten(i::Handle<i::String>::cast(name));
   }
-  return i::JSReceiver::DeleteProperty(receiver, name, mode);
-}
-
-
-bool v8::Object::ForceDelete(v8::Handle<Value> key) {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Object::ForceDelete()", return false);
-  ENTER_V8(isolate);
-  i::HandleScope scope(isolate);
-  i::Handle<i::JSObject> self = Utils::OpenHandle(this);
-  i::Handle<i::Object> key_obj = Utils::OpenHandle(*key);
-
-  EXCEPTION_PREAMBLE(isolate);
-  i::Handle<i::Object> obj;
-  has_pending_exception =
-      !DeleteObjectProperty(isolate, self, key_obj,
-                            i::JSReceiver::FORCE_DELETION).ToHandle(&obj);
-  EXCEPTION_BAILOUT_CHECK(isolate, false);
-  return obj->IsTrue();
+  return i::JSReceiver::DeleteProperty(receiver, name, strict_mode);
 }
 
 
@@ -3365,8 +3410,7 @@ bool v8::Object::Delete(v8::Handle<Value> key) {
   EXCEPTION_PREAMBLE(isolate);
   i::Handle<i::Object> obj;
   has_pending_exception =
-      !DeleteObjectProperty(isolate, self, key_obj,
-                            i::JSReceiver::NORMAL_DELETION).ToHandle(&obj);
+      !DeleteObjectProperty(isolate, self, key_obj, i::SLOPPY).ToHandle(&obj);
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return obj->IsTrue();
 }
@@ -5600,7 +5644,7 @@ Local<v8::Value> v8::Date::New(Isolate* isolate, double time) {
   LOG_API(i_isolate, "Date::New");
   if (std::isnan(time)) {
     // Introduce only canonical NaN value into the VM, to avoid signaling NaNs.
-    time = base::OS::nan_value();
+    time = std::numeric_limits<double>::quiet_NaN();
   }
   ENTER_V8(i_isolate);
   EXCEPTION_PREAMBLE(i_isolate);
@@ -6121,7 +6165,7 @@ Local<Number> v8::Number::New(Isolate* isolate, double value) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
   if (std::isnan(value)) {
     // Introduce only canonical NaN value into the VM, to avoid signaling NaNs.
-    value = base::OS::nan_value();
+    value = std::numeric_limits<double>::quiet_NaN();
   }
   ENTER_V8(internal_isolate);
   i::Handle<i::Object> result = internal_isolate->factory()->NewNumber(value);

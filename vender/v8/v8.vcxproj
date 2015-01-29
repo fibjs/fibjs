@@ -100,6 +100,7 @@
     <ClInclude Include="src\compilation-statistics.h" />
     <ClInclude Include="src\compiler.h" />
     <ClInclude Include="src\compiler\access-builder.h" />
+    <ClInclude Include="src\compiler\all-nodes.h" />
     <ClInclude Include="src\compiler\ast-graph-builder.h" />
     <ClInclude Include="src\compiler\ast-loop-assignment-analyzer.h" />
     <ClInclude Include="src\compiler\basic-block-instrumentor.h" />
@@ -132,7 +133,7 @@
     <ClInclude Include="src\compiler\js-generic-lowering.h" />
     <ClInclude Include="src\compiler\js-graph.h" />
     <ClInclude Include="src\compiler\js-inlining.h" />
-    <ClInclude Include="src\compiler\js-intrinsic-builder.h" />
+    <ClInclude Include="src\compiler\js-intrinsic-lowering.h" />
     <ClInclude Include="src\compiler\js-operator.h" />
     <ClInclude Include="src\compiler\js-typed-lowering.h" />
     <ClInclude Include="src\compiler\jump-threading.h" />
@@ -140,6 +141,7 @@
     <ClInclude Include="src\compiler\linkage.h" />
     <ClInclude Include="src\compiler\load-elimination.h" />
     <ClInclude Include="src\compiler\loop-analysis.h" />
+    <ClInclude Include="src\compiler\loop-peeling.h" />
     <ClInclude Include="src\compiler\machine-operator-reducer.h" />
     <ClInclude Include="src\compiler\machine-operator.h" />
     <ClInclude Include="src\compiler\machine-type.h" />
@@ -476,6 +478,7 @@
     <ClCompile Include="src\compilation-statistics.cc" />
     <ClCompile Include="src\compiler.cc" />
     <ClCompile Include="src\compiler\access-builder.cc" />
+    <ClCompile Include="src\compiler\all-nodes.cc" />
     <ClCompile Include="src\compiler\ast-graph-builder.cc" />
     <ClCompile Include="src\compiler\ast-loop-assignment-analyzer.cc" />
     <ClCompile Include="src\compiler\basic-block-instrumentor.cc" />
@@ -502,13 +505,14 @@
     <ClCompile Include="src\compiler\js-generic-lowering.cc" />
     <ClCompile Include="src\compiler\js-graph.cc" />
     <ClCompile Include="src\compiler\js-inlining.cc" />
-    <ClCompile Include="src\compiler\js-intrinsic-builder.cc" />
+    <ClCompile Include="src\compiler\js-intrinsic-lowering.cc" />
     <ClCompile Include="src\compiler\js-operator.cc" />
     <ClCompile Include="src\compiler\js-typed-lowering.cc" />
     <ClCompile Include="src\compiler\jump-threading.cc" />
     <ClCompile Include="src\compiler\linkage.cc" />
     <ClCompile Include="src\compiler\load-elimination.cc" />
     <ClCompile Include="src\compiler\loop-analysis.cc" />
+    <ClCompile Include="src\compiler\loop-peeling.cc" />
     <ClCompile Include="src\compiler\machine-operator-reducer.cc" />
     <ClCompile Include="src\compiler\machine-operator.cc" />
     <ClCompile Include="src\compiler\machine-type.cc" />

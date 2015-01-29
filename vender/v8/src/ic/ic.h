@@ -146,6 +146,8 @@ class IC {
   // Get the original (non-breakpointed) code object of the caller.
   Code* GetOriginalCode() const;
 
+  bool AddressIsOptimizedCode() const;
+
   // Set the call-site target.
   inline void set_target(Code* code);
   bool is_target_set() { return target_set_; }
@@ -355,6 +357,8 @@ class CallIC : public IC {
   // Code generator routines.
   static Handle<Code> initialize_stub(Isolate* isolate, int argc,
                                       CallICState::CallType call_type);
+  static Handle<Code> initialize_stub_in_optimized_code(
+      Isolate* isolate, int argc, CallICState::CallType call_type);
 
   static void Clear(Isolate* isolate, Code* host, CallICNexus* nexus);
 };
@@ -561,11 +565,8 @@ class StoreIC : public IC {
                       JSReceiver::StoreFromKeyed store_mode);
 
  protected:
-  Handle<Code> megamorphic_stub() OVERRIDE;
-
   // Stub accessors.
-  Handle<Code> generic_stub() const;
-
+  Handle<Code> megamorphic_stub() OVERRIDE;
   Handle<Code> slow_stub() const;
 
   virtual Handle<Code> pre_monomorphic_stub() const {
@@ -640,7 +641,6 @@ class KeyedStoreIC : public StoreIC {
   static void GenerateMiss(MacroAssembler* masm);
   static void GenerateSlow(MacroAssembler* masm);
   static void GenerateMegamorphic(MacroAssembler* masm, StrictMode strict_mode);
-  static void GenerateGeneric(MacroAssembler* masm, StrictMode strict_mode);
   static void GenerateSloppyArguments(MacroAssembler* masm);
 
  protected:

@@ -110,6 +110,7 @@ size_t ProjectionIndexOf(const Operator* const op) {
 
 
 #define CACHED_OP_LIST(V)                                  \
+  V(Always, Operator::kPure, 0, 0, 0, 1, 0, 0)             \
   V(Dead, Operator::kFoldable, 0, 0, 0, 0, 0, 1)           \
   V(End, Operator::kFoldable, 0, 0, 1, 0, 0, 0)            \
   V(IfTrue, Operator::kFoldable, 0, 0, 1, 0, 0, 1)         \
@@ -294,14 +295,6 @@ const Operator* CommonOperatorBuilder::Merge(int control_input_count) {
 }
 
 
-const Operator* CommonOperatorBuilder::Terminate(int effects) {
-  return new (zone()) Operator(               // --
-      IrOpcode::kTerminate, Operator::kPure,  // opcode
-      "Terminate",                            // name
-      0, effects, 1, 0, 0, 1);                // counts
-}
-
-
 const Operator* CommonOperatorBuilder::Parameter(int index) {
   switch (index) {
 #define CACHED_PARAMETER(index) \
@@ -427,6 +420,15 @@ const Operator* CommonOperatorBuilder::EffectPhi(int arguments) {
 }
 
 
+const Operator* CommonOperatorBuilder::EffectSet(int arguments) {
+  DCHECK(arguments > 1);                      // Disallow empty/singleton sets.
+  return new (zone()) Operator(               // --
+      IrOpcode::kEffectSet, Operator::kPure,  // opcode
+      "EffectSet",                            // name
+      0, arguments, 0, 0, 1, 0);              // counts
+}
+
+
 const Operator* CommonOperatorBuilder::ValueEffect(int arguments) {
   DCHECK(arguments > 0);                        // Disallow empty value effects.
   return new (zone()) Operator(                 // --
@@ -491,6 +493,24 @@ const Operator* CommonOperatorBuilder::Projection(size_t index) {
       1, 0, 0, 1, 0, 0,                        // counts
       index);                                  // parameter
 }
+
+
+const Operator* CommonOperatorBuilder::ResizeMergeOrPhi(const Operator* op,
+                                                        int size) {
+  if (op->opcode() == IrOpcode::kPhi) {
+    return Phi(OpParameter<MachineType>(op), size);
+  } else if (op->opcode() == IrOpcode::kEffectPhi) {
+    return EffectPhi(size);
+  } else if (op->opcode() == IrOpcode::kMerge) {
+    return Merge(size);
+  } else if (op->opcode() == IrOpcode::kLoop) {
+    return Loop(size);
+  } else {
+    UNREACHABLE();
+    return nullptr;
+  }
+}
+
 
 }  // namespace compiler
 }  // namespace internal

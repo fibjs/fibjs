@@ -653,7 +653,7 @@ HConstant* HGraph::GetConstant(SetOncePointer<HConstant>* pointer,
   if (!pointer->is_set()) {
     // Can't pass GetInvalidContext() to HConstant::New, because that will
     // recursively call GetConstant
-    HConstant* constant = HConstant::New(zone(), NULL, value);
+    HConstant* constant = HConstant::New(isolate(), zone(), NULL, value);
     constant->InsertAfter(entry_block()->first());
     pointer->set(constant);
     return constant;
@@ -1027,8 +1027,9 @@ void HGraphBuilder::IfBuilder::End() {
   current = merge_at_join_blocks_;
   while (current != NULL) {
     if (current->deopt_ && current->block_ != NULL) {
-      current->block_->FinishExit(HAbnormalExit::New(builder()->zone(), NULL),
-                                  HSourcePosition::Unknown());
+      current->block_->FinishExit(
+          HAbnormalExit::New(builder()->isolate(), builder()->zone(), NULL),
+          HSourcePosition::Unknown());
     }
     current = current->next_;
   }
@@ -1098,11 +1099,12 @@ HValue* HGraphBuilder::LoopBuilder::BeginBody(
 
   builder_->set_current_block(body_block_);
   if (direction_ == kPreIncrement || direction_ == kPreDecrement) {
+    Isolate* isolate = builder_->isolate();
     HValue* one = builder_->graph()->GetConstant1();
     if (direction_ == kPreIncrement) {
-      increment_ = HAdd::New(zone(), context_, phi_, one);
+      increment_ = HAdd::New(isolate, zone(), context_, phi_, one);
     } else {
-      increment_ = HSub::New(zone(), context_, phi_, one);
+      increment_ = HSub::New(isolate, zone(), context_, phi_, one);
     }
     increment_->ClearFlag(HValue::kCanOverflow);
     builder_->AddInstruction(increment_);
@@ -1144,10 +1146,13 @@ void HGraphBuilder::LoopBuilder::EndBody() {
   DCHECK(!finished_);
 
   if (direction_ == kPostIncrement || direction_ == kPostDecrement) {
+    Isolate* isolate = builder_->isolate();
     if (direction_ == kPostIncrement) {
-      increment_ = HAdd::New(zone(), context_, phi_, increment_amount_);
+      increment_ =
+          HAdd::New(isolate, zone(), context_, phi_, increment_amount_);
     } else {
-      increment_ = HSub::New(zone(), context_, phi_, increment_amount_);
+      increment_ =
+          HSub::New(isolate, zone(), context_, phi_, increment_amount_);
     }
     increment_->ClearFlag(HValue::kCanOverflow);
     builder_->AddInstruction(increment_);
@@ -2548,9 +2553,9 @@ HValue* HGraphBuilder::BuildCalculateElementsSize(ElementsKind kind,
       : kPointerSize;
 
   HConstant* elements_size_value = Add<HConstant>(elements_size);
-  HInstruction* mul = HMul::NewImul(zone(), context(),
-                                    capacity->ActualValue(),
-                                    elements_size_value);
+  HInstruction* mul =
+      HMul::NewImul(isolate(), zone(), context(), capacity->ActualValue(),
+                    elements_size_value);
   AddInstruction(mul);
   mul->ClearFlag(HValue::kCanOverflow);
 
@@ -2801,12 +2806,10 @@ void HGraphBuilder::BuildFillElementsWithHole(HValue* elements,
                                               HValue* to) {
   // Fast elements kinds need to be initialized in case statements below cause a
   // garbage collection.
-  Factory* factory = isolate()->factory();
 
-  double nan_double = FixedDoubleArray::hole_nan_as_double();
   HValue* hole = IsFastSmiOrObjectElementsKind(elements_kind)
-      ? Add<HConstant>(factory->the_hole_value())
-      : Add<HConstant>(nan_double);
+                     ? graph()->GetConstantHole()
+                     : Add<HConstant>(HConstant::kHoleNaN);
 
   // Since we're about to store a hole value, the store instruction below must
   // assume an elements kind that supports heap object values.
@@ -2904,8 +2907,8 @@ void HGraphBuilder::BuildCopyElements(HValue* from_elements,
       if_hole.If<HCompareHoleAndBranch>(element);
       if_hole.Then();
       HConstant* hole_constant = IsFastDoubleElementsKind(to_elements_kind)
-        ? Add<HConstant>(FixedDoubleArray::hole_nan_as_double())
-        : graph()->GetConstantHole();
+                                     ? Add<HConstant>(HConstant::kHoleNaN)
+                                     : graph()->GetConstantHole();
       Add<HStoreKeyed>(to_elements, key, hole_constant, kind);
       if_hole.Else();
       HStoreKeyed* store = Add<HStoreKeyed>(to_elements, key, element, kind);
@@ -3346,7 +3349,7 @@ HOptimizedGraphBuilder::HOptimizedGraphBuilder(CompilationInfo* info)
   // constructor for the initial state relies on function_state_ == NULL
   // to know it's the initial state.
   function_state_ = &initial_function_state_;
-  InitializeAstVisitor(info->zone());
+  InitializeAstVisitor(info->isolate(), info->zone());
   if (FLAG_hydrogen_track_positions) {
     SetSourcePosition(info->shared_info()->start_position());
   }
@@ -5543,7 +5546,7 @@ static bool IsFastLiteral(Handle<JSObject> boilerplate,
     int limit = boilerplate->map()->NumberOfOwnDescriptors();
     for (int i = 0; i < limit; i++) {
       PropertyDetails details = descriptors->GetDetails(i);
-      if (details.type() != FIELD) continue;
+      if (details.type() != DATA) continue;
       if ((*max_properties)-- == 0) return false;
       FieldIndex field_index = FieldIndex::ForDescriptor(boilerplate->map(), i);
       if (boilerplate->IsUnboxedDoubleField(field_index)) continue;
@@ -5662,7 +5665,7 @@ void HOptimizedGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
               PropertyAccessInfo info(this, STORE, ToType(map), name);
               if (info.CanAccessMonomorphic()) {
                 HValue* checked_literal = Add<HCheckMaps>(literal, map);
-                DCHECK(!info.IsAccessor());
+                DCHECK(!info.IsAccessorConstant());
                 store = BuildMonomorphicAccess(
                     &info, literal, checked_literal, value,
                     BailoutId::None(), BailoutId::None());
@@ -5974,17 +5977,17 @@ bool HOptimizedGraphBuilder::PropertyAccessInfo::IsCompatible(
   // chain.
   if (info->has_holder()) return false;
 
-  if (IsAccessor()) {
+  if (IsAccessorConstant()) {
     return accessor_.is_identical_to(info->accessor_) &&
         api_holder_.is_identical_to(info->api_holder_);
   }
 
-  if (IsConstant()) {
+  if (IsDataConstant()) {
     return constant_.is_identical_to(info->constant_);
   }
 
-  DCHECK(IsField());
-  if (!info->IsField()) return false;
+  DCHECK(IsData());
+  if (!info->IsData()) return false;
 
   Representation r = access_.representation();
   if (IsLoad()) {
@@ -6031,14 +6034,14 @@ bool HOptimizedGraphBuilder::PropertyAccessInfo::LoadResult(Handle<Map> map) {
     return false;
   }
 
-  if (IsField()) {
+  if (IsData()) {
     // Construct the object field access.
     int index = GetLocalFieldIndexFromMap(map);
     access_ = HObjectAccess::ForField(map, index, representation(), name_);
 
     // Load field map for heap objects.
     LoadFieldMaps(map);
-  } else if (IsAccessor()) {
+  } else if (IsAccessorConstant()) {
     Handle<Object> accessors = GetAccessorsFromMap(map);
     if (!accessors->IsAccessorPair()) return false;
     Object* raw_accessor =
@@ -6056,7 +6059,7 @@ bool HOptimizedGraphBuilder::PropertyAccessInfo::LoadResult(Handle<Map> map) {
       }
     }
     accessor_ = accessor;
-  } else if (IsConstant()) {
+  } else if (IsDataConstant()) {
     constant_ = GetConstantFromMap(map);
   }
 
@@ -6135,10 +6138,10 @@ bool HOptimizedGraphBuilder::PropertyAccessInfo::CanAccessMonomorphic() {
   if (!LookupInPrototypes()) return false;
   if (IsLoad()) return true;
 
-  if (IsAccessor()) return true;
+  if (IsAccessorConstant()) return true;
   Handle<Map> map = this->map();
   map->LookupTransition(NULL, *name_, NONE, &lookup_);
-  if (lookup_.IsTransitionToField() && map->unused_property_fields() > 0) {
+  if (lookup_.IsTransitionToData() && map->unused_property_fields() > 0) {
     // Construct the object field access.
     int descriptor = transition()->LastAdded();
     int index =
@@ -6242,7 +6245,7 @@ HInstruction* HOptimizedGraphBuilder::BuildMonomorphicAccess(
     return graph()->GetConstantUndefined();
   }
 
-  if (info->IsField()) {
+  if (info->IsData()) {
     if (info->IsLoad()) {
       return BuildLoadNamedField(info, checked_holder);
     } else {
@@ -6255,7 +6258,7 @@ HInstruction* HOptimizedGraphBuilder::BuildMonomorphicAccess(
     return BuildStoreNamedField(info, checked_object, value);
   }
 
-  if (info->IsAccessor()) {
+  if (info->IsAccessorConstant()) {
     Push(checked_object);
     int argument_count = 1;
     if (!info->IsLoad()) {
@@ -6279,7 +6282,7 @@ HInstruction* HOptimizedGraphBuilder::BuildMonomorphicAccess(
     return BuildCallConstantFunction(info->accessor(), argument_count);
   }
 
-  DCHECK(info->IsConstant());
+  DCHECK(info->IsDataConstant());
   if (info->IsLoad()) {
     return New<HConstant>(info->constant());
   } else {
@@ -7524,8 +7527,7 @@ void HOptimizedGraphBuilder::AddCheckPrototypeMaps(Handle<JSObject> holder,
 
 HInstruction* HOptimizedGraphBuilder::NewPlainFunctionCall(
     HValue* fun, int argument_count, bool pass_argument_count) {
-  return New<HCallJSFunction>(
-      fun, argument_count, pass_argument_count);
+  return New<HCallJSFunction>(fun, argument_count, pass_argument_count);
 }
 
 
@@ -7615,7 +7617,7 @@ void HOptimizedGraphBuilder::HandlePolymorphicCallNamed(
   for (i = 0; i < types->length() && ordered_functions < kMaxCallPolymorphism;
        ++i) {
     PropertyAccessInfo info(this, LOAD, ToType(types->at(i)), name);
-    if (info.CanAccessMonomorphic() && info.IsConstant() &&
+    if (info.CanAccessMonomorphic() && info.IsDataConstant() &&
         info.constant()->IsJSFunction()) {
       if (info.type()->Is(Type::String())) {
         if (handled_string) continue;
@@ -8209,7 +8211,8 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinFunctionCall(Call* expr) {
         HValue* right = Pop();
         HValue* left = Pop();
         Drop(2);  // Receiver and function.
-        HInstruction* op = HMul::NewImul(zone(), context(), left, right);
+        HInstruction* op =
+            HMul::NewImul(isolate(), zone(), context(), left, right);
         ast_context()->ReturnInstruction(op, expr->id());
         return true;
       }
@@ -8334,7 +8337,8 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
         HValue* right = Pop();
         HValue* left = Pop();
         Drop(2);  // Receiver and function.
-        HInstruction* result = HMul::NewImul(zone(), context(), left, right);
+        HInstruction* result =
+            HMul::NewImul(isolate(), zone(), context(), left, right);
         ast_context()->ReturnInstruction(result, expr->id());
         return true;
       }
@@ -8379,11 +8383,9 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
         reduced_length = AddUncasted<HSub>(length, graph()->GetConstant1());
         result = AddElementAccess(elements, reduced_length, NULL,
                                   bounds_check, elements_kind, LOAD);
-        Factory* factory = isolate()->factory();
-        double nan_double = FixedDoubleArray::hole_nan_as_double();
         HValue* hole = IsFastSmiOrObjectElementsKind(elements_kind)
-            ? Add<HConstant>(factory->the_hole_value())
-            : Add<HConstant>(nan_double);
+                           ? graph()->GetConstantHole()
+                           : Add<HConstant>(HConstant::kHoleNaN);
         if (IsFastSmiOrObjectElementsKind(elements_kind)) {
           elements_kind = FAST_HOLEY_ELEMENTS;
         }
@@ -8545,8 +8547,8 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
 
             // Put a hole at the end.
             HValue* hole = IsFastSmiOrObjectElementsKind(kind)
-                ? Add<HConstant>(isolate()->factory()->the_hole_value())
-                : Add<HConstant>(FixedDoubleArray::hole_nan_as_double());
+                               ? graph()->GetConstantHole()
+                               : Add<HConstant>(HConstant::kHoleNaN);
             if (IsFastSmiOrObjectElementsKind(kind)) kind = FAST_HOLEY_ELEMENTS;
             Add<HStoreKeyed>(
                 elements, new_length, hole, kind, INITIALIZING_STORE);
@@ -9346,7 +9348,19 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
       Push(graph()->GetConstantUndefined());
       CHECK_ALIVE(VisitExpressions(expr->arguments()));
       PushArgumentsFromEnvironment(argument_count);
-      call = New<HCallFunction>(function, argument_count);
+      HCallFunction* call_function =
+          New<HCallFunction>(function, argument_count);
+      call = call_function;
+      if (expr->is_uninitialized() && expr->HasCallFeedbackSlot()) {
+        // We've never seen this call before, so let's have Crankshaft learn
+        // through the type vector.
+        Handle<SharedFunctionInfo> current_shared =
+            function_state()->compilation_info()->shared_info();
+        Handle<TypeFeedbackVector> vector =
+            handle(current_shared->feedback_vector(), isolate());
+        FeedbackVectorICSlot slot = expr->CallFeedbackSlot();
+        call_function->SetVectorAndSlot(vector, slot);
+      }
     }
   }
 
@@ -10285,7 +10299,7 @@ HInstruction* HOptimizedGraphBuilder::BuildStringCharCodeAt(
       int32_t i = c_index->NumberValueAsInteger32();
       Handle<String> s = c_string->StringValue();
       if (i < 0 || i >= s->length()) {
-        return New<HConstant>(base::OS::nan_value());
+        return New<HConstant>(std::numeric_limits<double>::quiet_NaN());
       }
       return New<HConstant>(s->Get(i));
     }
@@ -10371,7 +10385,8 @@ HValue* HGraphBuilder::EnforceNumberType(HValue* number,
 HValue* HGraphBuilder::TruncateToNumber(HValue* value, Type** expected) {
   if (value->IsConstant()) {
     HConstant* constant = HConstant::cast(value);
-    Maybe<HConstant*> number = constant->CopyToTruncatedNumber(zone());
+    Maybe<HConstant*> number =
+        constant->CopyToTruncatedNumber(isolate(), zone());
     if (number.has_value) {
       *expected = Type::Number(zone());
       return AddInstruction(number.value);
@@ -11250,7 +11265,7 @@ void HOptimizedGraphBuilder::BuildEmitInObjectProperties(
   int copied_fields = 0;
   for (int i = 0; i < limit; i++) {
     PropertyDetails details = descriptors->GetDetails(i);
-    if (details.type() != FIELD) continue;
+    if (details.type() != DATA) continue;
     copied_fields++;
     FieldIndex field_index = FieldIndex::ForDescriptor(*boilerplate_map, i);
 

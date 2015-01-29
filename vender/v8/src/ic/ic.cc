@@ -223,6 +223,17 @@ Code* IC::GetOriginalCode() const {
 }
 
 
+bool IC::AddressIsOptimizedCode() const {
+  Object* maybe_function =
+      Memory::Object_at(fp() + JavaScriptFrameConstants::kFunctionOffset);
+  if (maybe_function->IsJSFunction()) {
+    JSFunction* function = JSFunction::cast(maybe_function);
+    return function->IsOptimized();
+  }
+  return false;
+}
+
+
 static void LookupForRead(LookupIterator* it) {
   for (; it->IsFound(); it->Next()) {
     switch (it->state()) {
@@ -1229,7 +1240,9 @@ Handle<Code> LoadIC::CompileHandler(LookupIterator* lookup,
           return compiler.CompileLoadCallback(lookup->name(),
                                               call_optimization);
         }
-        return compiler.CompileLoadViaGetter(lookup->name(), function);
+        int expected_arguments = function->shared()->formal_parameter_count();
+        return compiler.CompileLoadViaGetter(
+            lookup->name(), lookup->GetAccessorIndex(), expected_arguments);
       }
       break;
     }
@@ -1259,7 +1272,7 @@ Handle<Code> LoadIC::CompileHandler(LookupIterator* lookup,
       }
 
       // -------------- Fields --------------
-      if (lookup->property_details().type() == FIELD) {
+      if (lookup->property_details().type() == DATA) {
         FieldIndex field = lookup->GetFieldIndex();
         if (receiver_is_holder) {
           return SimpleFieldLoad(field);
@@ -1270,7 +1283,7 @@ Handle<Code> LoadIC::CompileHandler(LookupIterator* lookup,
       }
 
       // -------------- Constant properties --------------
-      DCHECK(lookup->property_details().type() == CONSTANT);
+      DCHECK(lookup->property_details().type() == DATA_CONSTANT);
       if (receiver_is_holder) {
         LoadConstantStub stub(isolate(), lookup->GetConstantIndex());
         return stub.GetCode();
@@ -1589,6 +1602,14 @@ MaybeHandle<Object> StoreIC::Store(Handle<Object> object, Handle<Name> name,
 
 Handle<Code> CallIC::initialize_stub(Isolate* isolate, int argc,
                                      CallICState::CallType call_type) {
+  CallICTrampolineStub stub(isolate, CallICState(argc, call_type));
+  Handle<Code> code = stub.GetCode();
+  return code;
+}
+
+
+Handle<Code> CallIC::initialize_stub_in_optimized_code(
+    Isolate* isolate, int argc, CallICState::CallType call_type) {
   CallICStub stub(isolate, CallICState(argc, call_type));
   Handle<Code> code = stub.GetCode();
   return code;
@@ -1614,21 +1635,6 @@ Handle<Code> StoreIC::megamorphic_stub() {
       return isolate()->builtins()->KeyedStoreIC_Megamorphic_Strict();
     } else {
       return isolate()->builtins()->KeyedStoreIC_Megamorphic();
-    }
-  }
-}
-
-
-Handle<Code> StoreIC::generic_stub() const {
-  if (kind() == Code::STORE_IC) {
-    return PropertyICCompiler::ComputeStore(isolate(), GENERIC,
-                                            extra_ic_state());
-  } else {
-    DCHECK(kind() == Code::KEYED_STORE_IC);
-    if (strict_mode() == STRICT) {
-      return isolate()->builtins()->KeyedStoreIC_Generic_Strict();
-    } else {
-      return isolate()->builtins()->KeyedStoreIC_Generic();
     }
   }
 }
@@ -1737,8 +1743,10 @@ Handle<Code> StoreIC::CompileHandler(LookupIterator* lookup,
           return compiler.CompileStoreCallback(receiver, lookup->name(),
                                                call_optimization);
         }
+        int expected_arguments = function->shared()->formal_parameter_count();
         return compiler.CompileStoreViaSetter(receiver, lookup->name(),
-                                              Handle<JSFunction>::cast(setter));
+                                              lookup->GetAccessorIndex(),
+                                              expected_arguments);
       }
       break;
     }
@@ -1761,7 +1769,7 @@ Handle<Code> StoreIC::CompileHandler(LookupIterator* lookup,
       }
 
       // -------------- Fields --------------
-      if (lookup->property_details().type() == FIELD) {
+      if (lookup->property_details().type() == DATA) {
         bool use_stub = true;
         if (lookup->representation().IsHeapObject()) {
           // Only use a generic stub if no types need to be tracked.
@@ -1779,7 +1787,7 @@ Handle<Code> StoreIC::CompileHandler(LookupIterator* lookup,
       }
 
       // -------------- Constant properties --------------
-      DCHECK(lookup->property_details().type() == CONSTANT);
+      DCHECK(lookup->property_details().type() == DATA_CONSTANT);
       TRACE_GENERIC_IC(isolate(), "StoreIC", "constant property");
       break;
     }
@@ -1795,12 +1803,13 @@ Handle<Code> StoreIC::CompileHandler(LookupIterator* lookup,
 
 Handle<Code> KeyedStoreIC::StoreElementStub(Handle<JSObject> receiver,
                                             KeyedAccessStoreMode store_mode) {
-  // Don't handle megamorphic property accesses for INTERCEPTORS or CALLBACKS
+  // Don't handle megamorphic property accesses for INTERCEPTORS or
+  // ACCESSOR_CONSTANT
   // via megamorphic stubs, since they don't have a map in their relocation info
   // and so the stubs can't be harvested for the object needed for a map check.
   if (target()->type() != Code::NORMAL) {
     TRACE_GENERIC_IC(isolate(), "KeyedStoreIC", "non-NORMAL target type");
-    return generic_stub();
+    return megamorphic_stub();
   }
 
   Handle<Map> receiver_map(receiver->map(), isolate());
@@ -1864,9 +1873,9 @@ Handle<Code> KeyedStoreIC::StoreElementStub(Handle<JSObject> receiver,
 
   if (!map_added) {
     // If the miss wasn't due to an unseen map, a polymorphic stub
-    // won't help, use the generic stub.
+    // won't help, use the megamorphic stub which can handle everything.
     TRACE_GENERIC_IC(isolate(), "KeyedStoreIC", "same map added twice");
-    return generic_stub();
+    return megamorphic_stub();
   }
 
   // If the maximum number of receiver maps has been exceeded, use the
@@ -1876,20 +1885,20 @@ Handle<Code> KeyedStoreIC::StoreElementStub(Handle<JSObject> receiver,
   }
 
   // Make sure all polymorphic handlers have the same store mode, otherwise the
-  // generic stub must be used.
+  // megamorphic stub must be used.
   store_mode = GetNonTransitioningStoreMode(store_mode);
   if (old_store_mode != STANDARD_STORE) {
     if (store_mode == STANDARD_STORE) {
       store_mode = old_store_mode;
     } else if (store_mode != old_store_mode) {
       TRACE_GENERIC_IC(isolate(), "KeyedStoreIC", "store mode mismatch");
-      return generic_stub();
+      return megamorphic_stub();
     }
   }
 
   // If the store mode isn't the standard mode, make sure that all polymorphic
   // receivers are either external arrays, or all "normal" arrays. Otherwise,
-  // use the generic stub.
+  // use the megamorphic stub.
   if (store_mode != STANDARD_STORE) {
     int external_arrays = 0;
     for (int i = 0; i < target_receiver_maps.length(); ++i) {
@@ -1902,7 +1911,7 @@ Handle<Code> KeyedStoreIC::StoreElementStub(Handle<JSObject> receiver,
         external_arrays != target_receiver_maps.length()) {
       TRACE_GENERIC_IC(isolate(), "KeyedStoreIC",
                        "unsupported combination of external and normal arrays");
-      return generic_stub();
+      return megamorphic_stub();
     }
   }
 
@@ -2047,12 +2056,12 @@ MaybeHandle<Object> KeyedStoreIC::Store(Handle<Object> object,
   key = TryConvertKey(key, isolate());
 
   Handle<Object> store_handle;
-  Handle<Code> stub = generic_stub();
+  Handle<Code> stub = megamorphic_stub();
 
-  if (key->IsInternalizedString()) {
+  if (key->IsInternalizedString() || key->IsSymbol()) {
     ASSIGN_RETURN_ON_EXCEPTION(
         isolate(), store_handle,
-        StoreIC::Store(object, Handle<String>::cast(key), value,
+        StoreIC::Store(object, Handle<Name>::cast(key), value,
                        JSReceiver::MAY_BE_STORE_FROM_KEYED),
         Object);
     if (!is_target_set()) {
@@ -2121,8 +2130,8 @@ MaybeHandle<Object> KeyedStoreIC::Store(Handle<Object> object,
   }
 
   DCHECK(!is_target_set());
-  Code* generic = *generic_stub();
-  if (*stub == generic) {
+  Code* megamorphic = *megamorphic_stub();
+  if (*stub == megamorphic) {
     TRACE_GENERIC_IC(isolate(), "KeyedStoreIC", "set generic");
   }
   if (*stub == *slow_stub()) {
@@ -2133,13 +2142,6 @@ MaybeHandle<Object> KeyedStoreIC::Store(Handle<Object> object,
   TRACE_IC("StoreIC", key);
 
   return store_handle;
-}
-
-
-// static
-void KeyedStoreIC::GenerateGeneric(MacroAssembler* masm,
-                                   StrictMode strict_mode) {
-  PropertyICCompiler::GenerateRuntimeSetProperty(masm, strict_mode);
 }
 
 
@@ -2155,8 +2157,16 @@ bool CallIC::DoCustomHandler(Handle<Object> receiver, Handle<Object> function,
     CallICNexus* nexus = casted_nexus<CallICNexus>();
     nexus->ConfigureMonomorphicArray();
 
-    CallIC_ArrayStub stub(isolate(), callic_state);
-    set_target(*stub.GetCode());
+    // Vector-based ICs have a different calling convention in optimized code
+    // than full code so the correct stub has to be chosen.
+    if (AddressIsOptimizedCode()) {
+      CallIC_ArrayStub stub(isolate(), callic_state);
+      set_target(*stub.GetCode());
+    } else {
+      CallIC_ArrayTrampolineStub stub(isolate(), callic_state);
+      set_target(*stub.GetCode());
+    }
+
     Handle<String> name;
     if (array_function->shared()->name()->IsString()) {
       name = Handle<String>(String::cast(array_function->shared()->name()),
@@ -2178,9 +2188,15 @@ void CallIC::PatchMegamorphic(Handle<Object> function) {
   CallICNexus* nexus = casted_nexus<CallICNexus>();
   nexus->ConfigureGeneric();
 
-  CallICStub stub(isolate(), callic_state);
-  Handle<Code> code = stub.GetCode();
-  set_target(*code);
+  // Vector-based ICs have a different calling convention in optimized code
+  // than full code so the correct stub has to be chosen.
+  if (AddressIsOptimizedCode()) {
+    CallICStub stub(isolate(), callic_state);
+    set_target(*stub.GetCode());
+  } else {
+    CallICTrampolineStub stub(isolate(), callic_state);
+    set_target(*stub.GetCode());
+  }
 
   Handle<Object> name = isolate()->factory()->empty_string();
   if (function->IsJSFunction()) {

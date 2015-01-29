@@ -89,7 +89,6 @@ void LCodeGen::FinishCode(Handle<Code> code) {
   DCHECK(is_done());
   code->set_stack_slots(GetStackSlotCount());
   code->set_safepoint_table_offset(safepoints_.GetCodeOffset());
-  if (code->is_optimized_code()) RegisterWeakObjectsInOptimizedCode(code);
   PopulateDeoptimizationData(code);
 }
 
@@ -913,6 +912,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   } else {
     data->SetSharedFunctionInfo(Smi::FromInt(0));
   }
+  data->SetWeakCellCache(Smi::FromInt(0));
 
   Handle<FixedArray> literals =
       factory()->NewFixedArray(deoptimization_literals_.length(), TENURED);
@@ -1748,6 +1748,20 @@ void LCodeGen::DoConstantS(LConstantS* instr) {
 void LCodeGen::DoConstantD(LConstantD* instr) {
   DCHECK(instr->result()->IsDoubleRegister());
   DoubleRegister result = ToDoubleRegister(instr->result());
+#if V8_HOST_ARCH_IA32
+  // Need some crappy work-around for x87 sNaN -> qNaN breakage in simulator
+  // builds.
+  uint64_t bits = instr->bits();
+  if ((bits & V8_UINT64_C(0x7FF8000000000000)) ==
+      V8_UINT64_C(0x7FF0000000000000)) {
+    uint32_t lo = static_cast<uint32_t>(bits);
+    uint32_t hi = static_cast<uint32_t>(bits >> 32);
+    __ li(at, Operand(lo));
+    __ li(scratch0(), Operand(hi));
+    __ Move(result, at, scratch0());
+    return;
+  }
+#endif
   double v = instr->value();
   __ Move(result, v);
 }
@@ -3557,24 +3571,19 @@ void LCodeGen::DoDeclareGlobals(LDeclareGlobals* instr) {
 
 
 void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
-                                 int formal_parameter_count,
-                                 int arity,
-                                 LInstruction* instr,
-                                 A1State a1_state) {
+                                 int formal_parameter_count, int arity,
+                                 LInstruction* instr) {
   bool dont_adapt_arguments =
       formal_parameter_count == SharedFunctionInfo::kDontAdaptArgumentsSentinel;
   bool can_invoke_directly =
       dont_adapt_arguments || formal_parameter_count == arity;
 
+  Register function_reg = a1;
   LPointerMap* pointers = instr->pointer_map();
 
   if (can_invoke_directly) {
-    if (a1_state == A1_UNINITIALIZED) {
-      __ li(a1, function);
-    }
-
     // Change context.
-    __ lw(cp, FieldMemOperand(a1, JSFunction::kContextOffset));
+    __ lw(cp, FieldMemOperand(function_reg, JSFunction::kContextOffset));
 
     // Set r0 to arguments count if adaption is not needed. Assumes that r0
     // is available to write to at this point.
@@ -3583,7 +3592,7 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
     }
 
     // Invoke function.
-    __ lw(at, FieldMemOperand(a1, JSFunction::kCodeEntryOffset));
+    __ lw(at, FieldMemOperand(function_reg, JSFunction::kCodeEntryOffset));
     __ Call(at);
 
     // Set up deoptimization.
@@ -3592,7 +3601,7 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
     SafepointGenerator generator(this, pointers, Safepoint::kLazyDeopt);
     ParameterCount count(arity);
     ParameterCount expected(formal_parameter_count);
-    __ InvokeFunction(function, expected, count, CALL_FUNCTION, generator);
+    __ InvokeFunction(function_reg, expected, count, CALL_FUNCTION, generator);
   }
 }
 
@@ -3939,9 +3948,7 @@ void LCodeGen::DoInvokeFunction(LInvokeFunction* instr) {
   } else {
     CallKnownFunction(known_function,
                       instr->hydrogen()->formal_parameter_count(),
-                      instr->arity(),
-                      instr,
-                      A1_CONTAINS_TARGET);
+                      instr->arity(), instr);
   }
 }
 
@@ -4050,8 +4057,30 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   DCHECK(ToRegister(instr->result()).is(v0));
 
   int arity = instr->arity();
-  CallFunctionStub stub(isolate(), arity, instr->hydrogen()->function_flags());
-  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  CallFunctionFlags flags = instr->hydrogen()->function_flags();
+  if (instr->hydrogen()->HasVectorAndSlot()) {
+    Register slot_register = ToRegister(instr->temp_slot());
+    Register vector_register = ToRegister(instr->temp_vector());
+    DCHECK(slot_register.is(a3));
+    DCHECK(vector_register.is(a2));
+
+    AllowDeferredHandleDereference vector_structure_check;
+    Handle<TypeFeedbackVector> vector = instr->hydrogen()->feedback_vector();
+    int index = vector->GetIndex(instr->hydrogen()->slot());
+
+    __ li(vector_register, vector);
+    __ li(slot_register, Operand(Smi::FromInt(index)));
+
+    CallICState::CallType call_type =
+        (flags & CALL_AS_METHOD) ? CallICState::METHOD : CallICState::FUNCTION;
+
+    Handle<Code> ic =
+        CodeFactory::CallICInOptimizedCode(isolate(), arity, call_type).code();
+    CallCode(ic, RelocInfo::CODE_TARGET, instr);
+  } else {
+    CallFunctionStub stub(isolate(), arity, flags);
+    CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  }
 }
 
 

@@ -35,7 +35,8 @@ class IA32OperandGenerator FINAL : public OperandGenerator {
         // Constants in new space cannot be used as immediates in V8 because
         // the GC does not scan code objects when collecting the new generation.
         Unique<HeapObject> value = OpParameter<Unique<HeapObject> >(node);
-        return !isolate()->heap()->InNewSpace(*value.handle());
+        Isolate* isolate = value.handle()->GetIsolate();
+        return !isolate->heap()->InNewSpace(*value.handle());
       }
       default:
         return false;
@@ -741,8 +742,11 @@ void InstructionSelector::VisitCall(Node* node) {
   for (auto i = buffer.pushed_nodes.rbegin(); i != buffer.pushed_nodes.rend();
        ++i) {
     // TODO(titzer): handle pushing double parameters.
-    Emit(kIA32Push, nullptr,
-         g.CanBeImmediate(*i) ? g.UseImmediate(*i) : g.Use(*i));
+    InstructionOperand* value =
+        g.CanBeImmediate(*i) ? g.UseImmediate(*i) : IsSupported(ATOM)
+                                                        ? g.UseRegister(*i)
+                                                        : g.Use(*i);
+    Emit(kIA32Push, nullptr, value);
   }
 
   // Select the appropriate opcode based on the call type.

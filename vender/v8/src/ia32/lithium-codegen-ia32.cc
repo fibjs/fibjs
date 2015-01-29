@@ -79,7 +79,6 @@ void LCodeGen::FinishCode(Handle<Code> code) {
   DCHECK(is_done());
   code->set_stack_slots(GetStackSlotCount());
   code->set_safepoint_table_offset(safepoints_.GetCodeOffset());
-  if (code->is_optimized_code()) RegisterWeakObjectsInOptimizedCode(code);
   PopulateDeoptimizationData(code);
   if (!info()->IsStub()) {
     Deoptimizer::EnsureRelocSpaceForLazyDeoptimization(code);
@@ -918,6 +917,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   } else {
     data->SetSharedFunctionInfo(Smi::FromInt(0));
   }
+  data->SetWeakCellCache(Smi::FromInt(0));
 
   Handle<FixedArray> literals =
       factory()->NewFixedArray(deoptimization_literals_.length(), TENURED);
@@ -1713,38 +1713,37 @@ void LCodeGen::DoConstantS(LConstantS* instr) {
 
 
 void LCodeGen::DoConstantD(LConstantD* instr) {
-  double v = instr->value();
-  uint64_t int_val = bit_cast<uint64_t, double>(v);
-  int32_t lower = static_cast<int32_t>(int_val);
-  int32_t upper = static_cast<int32_t>(int_val >> (kBitsPerInt));
+  uint64_t const bits = instr->bits();
+  uint32_t const lower = static_cast<uint32_t>(bits);
+  uint32_t const upper = static_cast<uint32_t>(bits >> 32);
   DCHECK(instr->result()->IsDoubleRegister());
 
-  XMMRegister res = ToDoubleRegister(instr->result());
-  if (int_val == 0) {
-    __ xorps(res, res);
+  XMMRegister result = ToDoubleRegister(instr->result());
+  if (bits == 0u) {
+    __ xorps(result, result);
   } else {
     Register temp = ToRegister(instr->temp());
     if (CpuFeatures::IsSupported(SSE4_1)) {
       CpuFeatureScope scope2(masm(), SSE4_1);
       if (lower != 0) {
         __ Move(temp, Immediate(lower));
-        __ movd(res, Operand(temp));
+        __ movd(result, Operand(temp));
         __ Move(temp, Immediate(upper));
-        __ pinsrd(res, Operand(temp), 1);
+        __ pinsrd(result, Operand(temp), 1);
       } else {
-        __ xorps(res, res);
+        __ xorps(result, result);
         __ Move(temp, Immediate(upper));
-        __ pinsrd(res, Operand(temp), 1);
+        __ pinsrd(result, Operand(temp), 1);
       }
     } else {
       __ Move(temp, Immediate(upper));
-      __ movd(res, Operand(temp));
-      __ psllq(res, 32);
-      if (lower != 0) {
+      __ movd(result, Operand(temp));
+      __ psllq(result, 32);
+      if (lower != 0u) {
         XMMRegister xmm_scratch = double_scratch0();
         __ Move(temp, Immediate(lower));
         __ movd(xmm_scratch, Operand(temp));
-        __ orps(res, xmm_scratch);
+        __ orps(result, xmm_scratch);
       }
     }
   }
@@ -1987,19 +1986,43 @@ void LCodeGen::DoArithmeticD(LArithmeticD* instr) {
   XMMRegister result = ToDoubleRegister(instr->result());
   switch (instr->op()) {
     case Token::ADD:
-      __ addsd(left, right);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vaddsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ addsd(left, right);
+      }
       break;
     case Token::SUB:
-      __ subsd(left, right);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vsubsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ subsd(left, right);
+      }
       break;
     case Token::MUL:
-      __ mulsd(left, right);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vmulsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ mulsd(left, right);
+      }
       break;
     case Token::DIV:
-      __ divsd(left, right);
-      // Don't delete this mov. It may improve performance on some CPUs,
-      // when there is a mulsd depending on the result
-      __ movaps(left, left);
+      if (CpuFeatures::IsSupported(AVX)) {
+        CpuFeatureScope scope(masm(), AVX);
+        __ vdivsd(result, left, right);
+      } else {
+        DCHECK(result.is(left));
+        __ divsd(left, right);
+        // Don't delete this mov. It may improve performance on some CPUs,
+        // when there is a mulsd depending on the result
+        __ movaps(left, left);
+      }
       break;
     case Token::MOD: {
       // Pass two doubles as arguments on the stack.
@@ -3411,22 +3434,18 @@ void LCodeGen::DoDeclareGlobals(LDeclareGlobals* instr) {
 
 
 void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
-                                 int formal_parameter_count,
-                                 int arity,
-                                 LInstruction* instr,
-                                 EDIState edi_state) {
+                                 int formal_parameter_count, int arity,
+                                 LInstruction* instr) {
   bool dont_adapt_arguments =
       formal_parameter_count == SharedFunctionInfo::kDontAdaptArgumentsSentinel;
   bool can_invoke_directly =
       dont_adapt_arguments || formal_parameter_count == arity;
 
-  if (can_invoke_directly) {
-    if (edi_state == EDI_UNINITIALIZED) {
-      __ LoadHeapObject(edi, function);
-    }
+  Register function_reg = edi;
 
+  if (can_invoke_directly) {
     // Change context.
-    __ mov(esi, FieldOperand(edi, JSFunction::kContextOffset));
+    __ mov(esi, FieldOperand(function_reg, JSFunction::kContextOffset));
 
     // Set eax to arguments count if adaption is not needed. Assumes that eax
     // is available to write to at this point.
@@ -3438,7 +3457,7 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
     if (function.is_identical_to(info()->closure())) {
       __ CallSelf();
     } else {
-      __ call(FieldOperand(edi, JSFunction::kCodeEntryOffset));
+      __ call(FieldOperand(function_reg, JSFunction::kCodeEntryOffset));
     }
     RecordSafepointWithLazyDeopt(instr, RECORD_SIMPLE_SAFEPOINT);
   } else {
@@ -3448,7 +3467,7 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
         this, pointers, Safepoint::kLazyDeopt);
     ParameterCount count(arity);
     ParameterCount expected(formal_parameter_count);
-    __ InvokeFunction(function, expected, count, CALL_FUNCTION, generator);
+    __ InvokeFunction(function_reg, expected, count, CALL_FUNCTION, generator);
   }
 }
 
@@ -3878,9 +3897,7 @@ void LCodeGen::DoMathLog(LMathLog* instr) {
   __ ucomisd(input_reg, xmm_scratch);
   __ j(above, &positive, Label::kNear);
   __ j(not_carry, &zero, Label::kNear);
-  ExternalReference nan =
-      ExternalReference::address_of_canonical_non_hole_nan();
-  __ movsd(input_reg, Operand::StaticVariable(nan));
+  __ pcmpeqd(input_reg, input_reg);
   __ jmp(&done, Label::kNear);
   __ bind(&zero);
   ExternalReference ninf =
@@ -3940,9 +3957,7 @@ void LCodeGen::DoInvokeFunction(LInvokeFunction* instr) {
   } else {
     CallKnownFunction(known_function,
                       instr->hydrogen()->formal_parameter_count(),
-                      instr->arity(),
-                      instr,
-                      EDI_CONTAINS_TARGET);
+                      instr->arity(), instr);
   }
 }
 
@@ -3953,8 +3968,30 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   DCHECK(ToRegister(instr->result()).is(eax));
 
   int arity = instr->arity();
-  CallFunctionStub stub(isolate(), arity, instr->hydrogen()->function_flags());
-  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  CallFunctionFlags flags = instr->hydrogen()->function_flags();
+  if (instr->hydrogen()->HasVectorAndSlot()) {
+    Register slot_register = ToRegister(instr->temp_slot());
+    Register vector_register = ToRegister(instr->temp_vector());
+    DCHECK(slot_register.is(edx));
+    DCHECK(vector_register.is(ebx));
+
+    AllowDeferredHandleDereference vector_structure_check;
+    Handle<TypeFeedbackVector> vector = instr->hydrogen()->feedback_vector();
+    int index = vector->GetIndex(instr->hydrogen()->slot());
+
+    __ mov(vector_register, vector);
+    __ mov(slot_register, Immediate(Smi::FromInt(index)));
+
+    CallICState::CallType call_type =
+        (flags & CALL_AS_METHOD) ? CallICState::METHOD : CallICState::FUNCTION;
+
+    Handle<Code> ic =
+        CodeFactory::CallICInOptimizedCode(isolate(), arity, call_type).code();
+    CallCode(ic, RelocInfo::CODE_TARGET, instr);
+  } else {
+    CallFunctionStub stub(isolate(), arity, flags);
+    CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  }
 }
 
 
@@ -4236,8 +4273,6 @@ void LCodeGen::DoStoreKeyedExternalArray(LStoreKeyed* instr) {
 
 
 void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
-  ExternalReference canonical_nan_reference =
-      ExternalReference::address_of_canonical_non_hole_nan();
   Operand double_store_operand = BuildFastArrayOperand(
       instr->elements(),
       instr->key(),
@@ -4248,13 +4283,10 @@ void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
   XMMRegister value = ToDoubleRegister(instr->value());
 
   if (instr->NeedsCanonicalization()) {
-    Label have_value;
-
-    __ ucomisd(value, value);
-    __ j(parity_odd, &have_value, Label::kNear);  // NaN.
-
-    __ movsd(value, Operand::StaticVariable(canonical_nan_reference));
-    __ bind(&have_value);
+    XMMRegister xmm_scratch = double_scratch0();
+    // Turn potential sNaN value into qNaN.
+    __ xorps(xmm_scratch, xmm_scratch);
+    __ subsd(value, xmm_scratch);
   }
 
   __ movsd(double_store_operand, value);
@@ -4743,13 +4775,11 @@ void LCodeGen::EmitNumberUntagD(LNumberUntagD* instr, Register input_reg,
     if (can_convert_undefined_to_nan) {
       __ bind(&convert);
 
-      // Convert undefined (and hole) to NaN.
+      // Convert undefined to NaN.
       __ cmp(input_reg, factory()->undefined_value());
       DeoptimizeIf(not_equal, instr, "not a heap number/undefined");
 
-      ExternalReference nan =
-          ExternalReference::address_of_canonical_non_hole_nan();
-      __ movsd(result_reg, Operand::StaticVariable(nan));
+      __ pcmpeqd(result_reg, result_reg);
       __ jmp(&done, Label::kNear);
     }
   } else {

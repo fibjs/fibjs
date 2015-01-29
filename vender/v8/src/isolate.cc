@@ -1063,7 +1063,7 @@ void Isolate::ComputeLocation(MessageLocation* target) {
       int pos = frame->LookupCode()->SourcePosition(frame->pc());
       // Compute the location from the function and the reloc info.
       Handle<Script> casted_script(Script::cast(script));
-      *target = MessageLocation(casted_script, pos, pos + 1);
+      *target = MessageLocation(casted_script, pos, pos + 1, handle(fun));
     }
   }
 }
@@ -1644,7 +1644,6 @@ Isolate::Isolate(bool enable_serializer)
       descriptor_lookup_cache_(NULL),
       handle_scope_implementer_(NULL),
       unicode_cache_(NULL),
-      runtime_zone_(this),
       inner_pointer_to_code_cache_(NULL),
       global_handles_(NULL),
       eternal_handles_(NULL),
@@ -2113,19 +2112,6 @@ bool Isolate::Init(Deserializer* des) {
   if (FLAG_trace_turbo) {
     // Create an empty file.
     std::ofstream(GetTurboCfgFileName().c_str(), std::ios_base::trunc);
-  }
-
-  // If we are deserializing, log non-function code objects and compiled
-  // functions found in the snapshot.
-  if (!create_heap_objects &&
-      (FLAG_log_code ||
-       FLAG_ll_prof ||
-       FLAG_perf_jit_prof ||
-       FLAG_perf_basic_prof ||
-       logger_->is_logging_code_events())) {
-    HandleScope scope(this);
-    LOG(this, LogCodeObjects());
-    LOG(this, LogCompiledFunctions());
   }
 
   CHECK_EQ(static_cast<int>(OFFSET_OF(Isolate, embedder_data_)),

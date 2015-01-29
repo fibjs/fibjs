@@ -24,9 +24,12 @@
 #include "src/compiler/js-context-specialization.h"
 #include "src/compiler/js-generic-lowering.h"
 #include "src/compiler/js-inlining.h"
+#include "src/compiler/js-intrinsic-lowering.h"
 #include "src/compiler/js-typed-lowering.h"
 #include "src/compiler/jump-threading.h"
 #include "src/compiler/load-elimination.h"
+#include "src/compiler/loop-analysis.h"
+#include "src/compiler/loop-peeling.h"
 #include "src/compiler/machine-operator-reducer.h"
 #include "src/compiler/move-optimizer.h"
 #include "src/compiler/osr.h"
@@ -52,7 +55,7 @@ namespace compiler {
 class PipelineData {
  public:
   explicit PipelineData(ZonePool* zone_pool, CompilationInfo* info)
-      : isolate_(info->zone()->isolate()),
+      : isolate_(info->isolate()),
         info_(info),
         outer_zone_(nullptr),
         zone_pool_(zone_pool),
@@ -94,9 +97,9 @@ class PipelineData {
         InstructionSelector::SupportedMachineOperatorFlags());
     common_ = new (graph_zone()) CommonOperatorBuilder(graph_zone());
     javascript_ = new (graph_zone()) JSOperatorBuilder(graph_zone());
-    jsgraph_ =
-        new (graph_zone()) JSGraph(graph(), common(), javascript(), machine());
-    typer_.Reset(new Typer(graph(), info()->context()));
+    jsgraph_ = new (graph_zone())
+        JSGraph(info()->isolate(), graph(), common(), javascript(), machine());
+    typer_.Reset(new Typer(info()->isolate(), graph(), info()->context()));
     instruction_zone_ = instruction_zone_scope_.zone();
   }
 
@@ -195,8 +198,8 @@ class PipelineData {
     InstructionBlocks* instruction_blocks =
         InstructionSequence::InstructionBlocksFor(instruction_zone(),
                                                   schedule());
-    sequence_ = new (instruction_zone())
-        InstructionSequence(instruction_zone(), instruction_blocks);
+    sequence_ = new (instruction_zone()) InstructionSequence(
+        info()->isolate(), instruction_zone(), instruction_blocks);
   }
 
   void InitializeRegisterAllocator(Zone* local_zone,
@@ -426,12 +429,14 @@ struct TypedLoweringPhase {
     LoadElimination load_elimination;
     JSBuiltinReducer builtin_reducer(data->jsgraph());
     JSTypedLowering typed_lowering(data->jsgraph(), temp_zone);
+    JSIntrinsicLowering intrinsic_lowering(data->jsgraph());
     SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     CommonOperatorReducer common_reducer;
     GraphReducer graph_reducer(data->graph(), temp_zone);
     graph_reducer.AddReducer(&vn_reducer);
     graph_reducer.AddReducer(&builtin_reducer);
     graph_reducer.AddReducer(&typed_lowering);
+    graph_reducer.AddReducer(&intrinsic_lowering);
     graph_reducer.AddReducer(&load_elimination);
     graph_reducer.AddReducer(&simple_reducer);
     graph_reducer.AddReducer(&common_reducer);
@@ -501,6 +506,23 @@ struct EarlyControlReductionPhase : ControlReductionPhase {
 
 struct LateControlReductionPhase : ControlReductionPhase {
   static const char* phase_name() { return "late control reduction"; }
+};
+
+
+struct StressLoopPeelingPhase {
+  static const char* phase_name() { return "stress loop peeling"; }
+
+  void Run(PipelineData* data, Zone* temp_zone) {
+    SourcePositionTable::Scope pos(data->source_positions(),
+                                   SourcePosition::Unknown());
+    // Peel the first outer loop for testing.
+    // TODO(titzer): peel all loops? the N'th loop? Innermost loops?
+    LoopTree* loop_tree = LoopFinder::BuildLoopTree(data->graph(), temp_zone);
+    if (loop_tree != NULL && loop_tree->outer_loops().size() > 0) {
+      LoopPeeler::Peel(data->graph(), data->common(), loop_tree,
+                       loop_tree->outer_loops()[0], temp_zone);
+    }
+  }
 };
 
 
@@ -758,9 +780,15 @@ Handle<Code> Pipeline::GenerateCode() {
   // TODO(mstarzinger): This is just a temporary hack to make TurboFan work,
   // the correct solution is to restore the context register after invoking
   // builtins from full-codegen.
-  if (isolate()->bootstrapper()->IsActive()) return Handle<Code>::null();
+  Handle<SharedFunctionInfo> shared = info()->shared_info();
+  if (isolate()->bootstrapper()->IsActive() ||
+      shared->disable_optimization_reason() ==
+          kBuiltinFunctionCannotBeOptimized) {
+    shared->DisableOptimization(kBuiltinFunctionCannotBeOptimized);
+    return Handle<Code>::null();
+  }
 
-  ZonePool zone_pool(isolate());
+  ZonePool zone_pool;
   SmartPointer<PipelineStatistics> pipeline_statistics;
 
   if (FLAG_turbo_stats) {
@@ -828,6 +856,11 @@ Handle<Code> Pipeline::GenerateCode() {
     Run<TypedLoweringPhase>();
     RunPrintAndVerify("Lowered typed");
 
+    if (FLAG_turbo_stress_loop_peeling) {
+      Run<StressLoopPeelingPhase>();
+      RunPrintAndVerify("Loop peeled", true);
+    }
+
     if (info()->is_osr()) {
       Run<OsrDeconstructionPhase>();
       RunPrintAndVerify("OSR deconstruction");
@@ -894,10 +927,11 @@ Handle<Code> Pipeline::GenerateCodeForTesting(CompilationInfo* info,
 }
 
 
-Handle<Code> Pipeline::GenerateCodeForTesting(CallDescriptor* call_descriptor,
+Handle<Code> Pipeline::GenerateCodeForTesting(Isolate* isolate,
+                                              CallDescriptor* call_descriptor,
                                               Graph* graph,
                                               Schedule* schedule) {
-  CompilationInfo info(graph->zone()->isolate(), graph->zone());
+  CompilationInfo info(isolate, graph->zone());
   return GenerateCodeForTesting(&info, call_descriptor, graph, schedule);
 }
 
@@ -907,7 +941,7 @@ Handle<Code> Pipeline::GenerateCodeForTesting(CompilationInfo* info,
                                               Graph* graph,
                                               Schedule* schedule) {
   CHECK(SupportedBackend());
-  ZonePool zone_pool(info->isolate());
+  ZonePool zone_pool;
   Pipeline pipeline(info);
   PipelineData data(&zone_pool, info);
   pipeline.data_ = &data;
@@ -920,7 +954,7 @@ Handle<Code> Pipeline::GenerateCodeForTesting(CompilationInfo* info,
     TraceSchedule(schedule);
   }
 
-  Linkage linkage(info->zone(), call_descriptor);
+  Linkage linkage(info->isolate(), info->zone(), call_descriptor);
   pipeline.GenerateCode(&linkage);
   Handle<Code> code = data.code();
 
@@ -938,8 +972,8 @@ Handle<Code> Pipeline::GenerateCodeForTesting(CompilationInfo* info,
 bool Pipeline::AllocateRegistersForTesting(const RegisterConfiguration* config,
                                            InstructionSequence* sequence,
                                            bool run_verifier) {
-  CompilationInfo info(sequence->zone()->isolate(), sequence->zone());
-  ZonePool zone_pool(sequence->zone()->isolate());
+  CompilationInfo info(sequence->isolate(), sequence->zone());
+  ZonePool zone_pool;
   PipelineData data(&zone_pool, &info);
   data.InitializeTorTesting(sequence);
   Pipeline pipeline(&info);
@@ -1014,7 +1048,7 @@ void Pipeline::AllocateRegisters(const RegisterConfiguration* config,
   SmartPointer<Zone> verifier_zone;
   RegisterAllocatorVerifier* verifier = nullptr;
   if (run_verifier) {
-    verifier_zone.Reset(new Zone(info()->isolate()));
+    verifier_zone.Reset(new Zone());
     verifier = new (verifier_zone.get()) RegisterAllocatorVerifier(
         verifier_zone.get(), config, data->sequence());
   }

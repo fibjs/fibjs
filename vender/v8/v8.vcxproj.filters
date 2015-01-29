@@ -336,6 +336,9 @@
     <ClInclude Include="src\compiler\access-builder.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\all-nodes.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\ast-graph-builder.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -432,7 +435,7 @@
     <ClInclude Include="src\compiler\js-inlining.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\js-intrinsic-builder.h">
+    <ClInclude Include="src\compiler\js-intrinsic-lowering.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\js-operator.h">
@@ -454,6 +457,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\loop-analysis.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\loop-peeling.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\machine-operator-reducer.h">
@@ -1460,6 +1466,9 @@
     <ClCompile Include="src\compiler\access-builder.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\all-nodes.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\ast-graph-builder.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1538,7 +1547,7 @@
     <ClCompile Include="src\compiler\js-inlining.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\js-intrinsic-builder.cc">
+    <ClCompile Include="src\compiler\js-intrinsic-lowering.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\js-operator.cc">
@@ -1557,6 +1566,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\loop-analysis.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\loop-peeling.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\machine-operator-reducer.cc">

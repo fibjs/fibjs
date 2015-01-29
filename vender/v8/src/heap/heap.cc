@@ -67,7 +67,7 @@ Heap::Heap()
       initial_semispace_size_(Page::kPageSize),
       target_semispace_size_(Page::kPageSize),
       max_old_generation_size_(700ul * (kPointerSize / 4) * MB),
-      initial_old_generation_size_(max_old_generation_size_ / 2),
+      initial_old_generation_size_(max_old_generation_size_),
       old_generation_size_configured_(false),
       max_executable_size_(256ul * (kPointerSize / 4) * MB),
       // Variables set based on semispace_size_ and old_generation_size_ in
@@ -495,11 +495,11 @@ void Heap::ClearAllICsByKind(Code::Kind kind) {
 }
 
 
-void Heap::RepairFreeListsAfterBoot() {
+void Heap::RepairFreeListsAfterDeserialization() {
   PagedSpaces spaces(this);
   for (PagedSpace* space = spaces.next(); space != NULL;
        space = spaces.next()) {
-    space->RepairFreeListsAfterBoot();
+    space->RepairFreeListsAfterDeserialization();
   }
 }
 
@@ -827,7 +827,8 @@ bool Heap::CollectGarbage(GarbageCollector collector, const char* gc_reason,
     const intptr_t kStepSizeWhenDelayedByScavenge = 1 * MB;
     incremental_marking()->Step(kStepSizeWhenDelayedByScavenge,
                                 IncrementalMarking::NO_GC_VIA_STACK_GUARD);
-    if (!incremental_marking()->IsComplete() && !FLAG_gc_global) {
+    if (!incremental_marking()->IsComplete() &&
+        !mark_compact_collector_.marking_deque_.IsEmpty() && !FLAG_gc_global) {
       if (FLAG_trace_incremental_marking) {
         PrintF("[IncrementalMarking] Delaying MarkSweep.\n");
       }
@@ -951,14 +952,15 @@ bool Heap::ReserveSpace(Reservation* reservations) {
           } else {
             allocation = paged_space(space)->AllocateRaw(size);
           }
-          FreeListNode* node;
-          if (allocation.To(&node)) {
+          HeapObject* free_space;
+          if (allocation.To(&free_space)) {
             // Mark with a free list node, in case we have a GC before
             // deserializing.
-            node->set_size(this, size);
+            Address free_space_address = free_space->address();
+            CreateFillerObjectAt(free_space_address, size);
             DCHECK(space < Serializer::kNumberOfPreallocatedSpaces);
-            chunk.start = node->address();
-            chunk.end = node->address() + size;
+            chunk.start = free_space_address;
+            chunk.end = free_space_address + size;
           } else {
             perform_gc = true;
             break;
@@ -1048,6 +1050,8 @@ void Heap::UpdateSurvivalStatistics(int start_new_space_size) {
   promotion_ratio_ = (static_cast<double>(promoted_objects_size_) /
                       static_cast<double>(start_new_space_size) * 100);
 
+  if (gc_count_ > 1) tracer()->AddPromotionRatio(promotion_ratio_);
+
   if (previous_semi_space_copied_object_size_ > 0) {
     promotion_rate_ =
         (static_cast<double>(promoted_objects_size_) /
@@ -1061,8 +1065,6 @@ void Heap::UpdateSurvivalStatistics(int start_new_space_size) {
        static_cast<double>(start_new_space_size) * 100);
 
   double survival_rate = promotion_ratio_ + semi_space_copied_rate_;
-  tracer()->AddSurvivalRate(survival_rate);
-
   if (survival_rate > kYoungSurvivalRateHighThreshold) {
     high_survival_rate_period_length_++;
   } else {
@@ -2372,7 +2374,7 @@ void Heap::ConfigureInitialOldGenerationSize() {
         Max(kMinimumOldGenerationAllocationLimit,
             static_cast<intptr_t>(
                 static_cast<double>(initial_old_generation_size_) *
-                (tracer()->AverageSurvivalRate() / 100)));
+                (tracer()->AveragePromotionRatio() / 100)));
   }
 }
 
@@ -2911,8 +2913,8 @@ void Heap::CreateInitialObjects() {
   set_minus_zero_value(*factory->NewHeapNumber(-0.0, IMMUTABLE, TENURED));
   DCHECK(std::signbit(minus_zero_value()->Number()) != 0);
 
-  set_nan_value(
-      *factory->NewHeapNumber(base::OS::nan_value(), IMMUTABLE, TENURED));
+  set_nan_value(*factory->NewHeapNumber(
+      std::numeric_limits<double>::quiet_NaN(), IMMUTABLE, TENURED));
   set_infinity_value(*factory->NewHeapNumber(V8_INFINITY, IMMUTABLE, TENURED));
 
   // The hole has not been created yet, but we want to put something
@@ -3391,13 +3393,18 @@ AllocationResult Heap::AllocateByteArray(int length, PretenureFlag pretenure) {
 void Heap::CreateFillerObjectAt(Address addr, int size) {
   if (size == 0) return;
   HeapObject* filler = HeapObject::FromAddress(addr);
+  // At this point, we may be deserializing the heap from a snapshot, and
+  // none of the maps have been created yet and are NULL.
   if (size == kPointerSize) {
-    filler->set_map_no_write_barrier(one_pointer_filler_map());
+    filler->set_map_no_write_barrier(raw_unchecked_one_pointer_filler_map());
+    DCHECK(filler->map() == NULL || filler->map() == one_pointer_filler_map());
   } else if (size == 2 * kPointerSize) {
-    filler->set_map_no_write_barrier(two_pointer_filler_map());
+    filler->set_map_no_write_barrier(raw_unchecked_two_pointer_filler_map());
+    DCHECK(filler->map() == NULL || filler->map() == two_pointer_filler_map());
   } else {
-    filler->set_map_no_write_barrier(free_space_map());
-    FreeSpace::cast(filler)->set_size(size);
+    filler->set_map_no_write_barrier(raw_unchecked_free_space_map());
+    DCHECK(filler->map() == NULL || filler->map() == free_space_map());
+    FreeSpace::cast(filler)->nobarrier_set_size(size);
   }
 }
 

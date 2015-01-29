@@ -49,25 +49,10 @@ RUNTIME_FUNCTION(Runtime_CompileOptimized) {
   CONVERT_BOOLEAN_ARG_CHECKED(concurrent, 1);
   DCHECK(isolate->use_crankshaft());
 
-  Handle<Code> unoptimized(function->shared()->code());
-  if (function->shared()->optimization_disabled() ||
-      isolate->DebuggerHasBreakPoints()) {
-    // If the function is not optimizable or debugger is active continue
-    // using the code from the full compiler.
-    if (FLAG_trace_opt) {
-      PrintF("[failed to optimize ");
-      function->PrintName();
-      PrintF(": is code optimizable: %s, is debugger enabled: %s]\n",
-             function->shared()->optimization_disabled() ? "F" : "T",
-             isolate->DebuggerHasBreakPoints() ? "T" : "F");
-    }
-    function->ReplaceCode(*unoptimized);
-    return function->code();
-  }
-
   Compiler::ConcurrencyMode mode =
       concurrent ? Compiler::CONCURRENT : Compiler::NOT_CONCURRENT;
   Handle<Code> code;
+  Handle<Code> unoptimized(function->shared()->code());
   if (Compiler::GetOptimizedCode(function, unoptimized, mode).ToHandle(&code)) {
     // Optimization succeeded, return optimized code.
     function->ReplaceCode(*code);

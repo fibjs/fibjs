@@ -7,6 +7,7 @@
 
 #include "src/v8.h"
 
+#include "src/compiler/node.h"
 #include "src/compiler/opcodes.h"
 #include "src/compiler/schedule.h"
 #include "src/compiler/zone-pool.h"
@@ -16,9 +17,12 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
+// Forward declarations.
 class CFGBuilder;
 class ControlEquivalence;
+class Graph;
 class SpecialRPONumberer;
+
 
 // Computes a schedule from a graph, placing nodes into basic blocks and
 // ordering the basic blocks in the special RPO order.
@@ -76,7 +80,6 @@ class Scheduler {
   void IncrementUnscheduledUseCount(Node* node, int index, Node* from);
   void DecrementUnscheduledUseCount(Node* node, int index, Node* from);
 
-  BasicBlock* GetCommonDominator(BasicBlock* b1, BasicBlock* b2);
   void PropagateImmediateDominators(BasicBlock* block);
 
   // Phase 1: Build control-flow graph.

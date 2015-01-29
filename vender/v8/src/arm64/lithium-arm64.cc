@@ -146,6 +146,20 @@ void LInnerAllocatedObject::PrintDataTo(StringStream* stream) {
 }
 
 
+void LCallFunction::PrintDataTo(StringStream* stream) {
+  context()->PrintTo(stream);
+  stream->Add(" ");
+  function()->PrintTo(stream);
+  if (hydrogen()->HasVectorAndSlot()) {
+    stream->Add(" (type-feedback-vector ");
+    temp_vector()->PrintTo(stream);
+    stream->Add(" ");
+    temp_slot()->PrintTo(stream);
+    stream->Add(")");
+  }
+}
+
+
 void LInvokeFunction::PrintDataTo(StringStream* stream) {
   stream->Add("= ");
   function()->PrintTo(stream);
@@ -1057,7 +1071,15 @@ LInstruction* LChunkBuilder::DoCallWithDescriptor(
 LInstruction* LChunkBuilder::DoCallFunction(HCallFunction* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   LOperand* function = UseFixed(instr->function(), x1);
-  LCallFunction* call = new(zone()) LCallFunction(context, function);
+  LOperand* slot = NULL;
+  LOperand* vector = NULL;
+  if (instr->HasVectorAndSlot()) {
+    slot = FixedTemp(x3);
+    vector = FixedTemp(x2);
+  }
+
+  LCallFunction* call =
+      new (zone()) LCallFunction(context, function, slot, vector);
   return MarkAsCall(DefineFixed(call, x0), instr);
 }
 
@@ -1967,7 +1989,9 @@ LInstruction* LChunkBuilder::DoMul(HMul* instr) {
                                        : UseRegisterAtStart(least_const);
         LInstruction* result =
             DefineAsRegister(new(zone()) LMulConstIS(left, right));
-        if ((bailout_on_minus_zero && constant <= 0) || can_overflow) {
+        if ((bailout_on_minus_zero && constant <= 0) ||
+            (can_overflow && constant != 1 &&
+             base::bits::IsPowerOfTwo32(constant_abs))) {
           result = AssignEnvironment(result);
         }
         return result;

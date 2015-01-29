@@ -8,8 +8,8 @@
 #include <string>
 
 #include "src/code-stubs.h"
+#include "src/compiler/all-nodes.h"
 #include "src/compiler/graph.h"
-#include "src/compiler/graph-inl.h"
 #include "src/compiler/node.h"
 #include "src/compiler/node-properties.h"
 #include "src/compiler/node-properties-inl.h"
@@ -30,57 +30,6 @@ static const char* SafeMnemonic(Node* node) {
 }
 
 #define DEAD_COLOR "#999999"
-
-class AllNodes {
- public:
-  enum State { kDead, kGray, kLive };
-
-  AllNodes(Zone* local_zone, const Graph* graph)
-      : state(graph->NodeCount(), kDead, local_zone),
-        live(local_zone),
-        gray(local_zone) {
-    Node* end = graph->end();
-    state[end->id()] = kLive;
-    live.push_back(end);
-    // Find all live nodes reachable from end.
-    for (size_t i = 0; i < live.size(); i++) {
-      for (Node* const input : live[i]->inputs()) {
-        if (input == NULL) {
-          // TODO(titzer): print a warning.
-          continue;
-        }
-        if (input->id() >= graph->NodeCount()) {
-          // TODO(titzer): print a warning.
-          continue;
-        }
-        if (state[input->id()] != kLive) {
-          live.push_back(input);
-          state[input->id()] = kLive;
-        }
-      }
-    }
-
-    // Find all nodes that are not reachable from end that use live nodes.
-    for (size_t i = 0; i < live.size(); i++) {
-      for (Node* const use : live[i]->uses()) {
-        if (state[use->id()] == kDead) {
-          gray.push_back(use);
-          state[use->id()] = kGray;
-        }
-      }
-    }
-  }
-
-  bool IsLive(Node* node) {
-    return node != NULL && node->id() < static_cast<int>(state.size()) &&
-           state[node->id()] == kLive;
-  }
-
-  ZoneVector<State> state;
-  NodeVector live;
-  NodeVector gray;
-};
-
 
 class Escaped {
  public:
@@ -129,7 +78,7 @@ class JSONGraphNodeWriter {
     os_ << "{\"id\":" << SafeId(node) << ",\"label\":\"" << Escaped(label, "\"")
         << "\"";
     IrOpcode::Value opcode = node->opcode();
-    if (opcode == IrOpcode::kPhi || opcode == IrOpcode::kEffectPhi) {
+    if (IrOpcode::IsPhiOpcode(opcode)) {
       os_ << ",\"rankInputs\":[0," << NodeProperties::FirstControlIndex(node)
           << "]";
       os_ << ",\"rankWithInput\":[" << NodeProperties::FirstControlIndex(node)
@@ -208,7 +157,7 @@ class JSONGraphEdgeWriter {
 
 
 std::ostream& operator<<(std::ostream& os, const AsJSON& ad) {
-  Zone tmp_zone(ad.graph.zone()->isolate());
+  Zone tmp_zone;
   os << "{\"nodes\":[";
   JSONGraphNodeWriter(os, &tmp_zone, &ad.graph).Print();
   os << "],\"edges\":[";
@@ -325,8 +274,7 @@ void GraphVisualizer::PrintNode(Node* node, bool gray) {
 
 
 static bool IsLikelyBackEdge(Node* from, int index, Node* to) {
-  if (from->opcode() == IrOpcode::kPhi ||
-      from->opcode() == IrOpcode::kEffectPhi) {
+  if (IrOpcode::IsPhiOpcode(from->opcode())) {
     Node* control = NodeProperties::GetControlInput(from, 0);
     return control != NULL && control->opcode() != IrOpcode::kMerge &&
            control != to && index != 0;
@@ -391,7 +339,7 @@ void GraphVisualizer::Print() {
 
 
 std::ostream& operator<<(std::ostream& os, const AsDOT& ad) {
-  Zone tmp_zone(ad.graph.zone()->isolate());
+  Zone tmp_zone;
   GraphVisualizer(os, &tmp_zone, &ad.graph).Print();
   return os;
 }
@@ -571,17 +519,15 @@ void GraphC1Visualizer::PrintSchedule(const char* phase,
 
     PrintIndent();
     os_ << "predecessors";
-    for (BasicBlock::Predecessors::iterator j = current->predecessors_begin();
-         j != current->predecessors_end(); ++j) {
-      os_ << " \"B" << (*j)->id() << "\"";
+    for (BasicBlock* predecessor : current->predecessors()) {
+      os_ << " \"B" << predecessor->id() << "\"";
     }
     os_ << "\n";
 
     PrintIndent();
     os_ << "successors";
-    for (BasicBlock::Successors::iterator j = current->successors_begin();
-         j != current->successors_end(); ++j) {
-      os_ << " \"B" << (*j)->id() << "\"";
+    for (BasicBlock* successor : current->successors()) {
+      os_ << " \"B" << successor->id() << "\"";
     }
     os_ << "\n";
 
@@ -666,9 +612,8 @@ void GraphC1Visualizer::PrintSchedule(const char* phase,
           os_ << -1 - current->id().ToInt() << " Goto";
         }
         os_ << " ->";
-        for (BasicBlock::Successors::iterator j = current->successors_begin();
-             j != current->successors_end(); ++j) {
-          os_ << " B" << (*j)->id();
+        for (BasicBlock* successor : current->successors()) {
+          os_ << " B" << successor->id();
         }
         if (FLAG_trace_turbo_types && current->control_input() != NULL) {
           os_ << " ";
@@ -773,14 +718,14 @@ void GraphC1Visualizer::PrintLiveRange(LiveRange* range, const char* type) {
 
 
 std::ostream& operator<<(std::ostream& os, const AsC1VCompilation& ac) {
-  Zone tmp_zone(ac.info_->isolate());
+  Zone tmp_zone;
   GraphC1Visualizer(os, &tmp_zone).PrintCompilation(ac.info_);
   return os;
 }
 
 
 std::ostream& operator<<(std::ostream& os, const AsC1V& ac) {
-  Zone tmp_zone(ac.schedule_->zone()->isolate());
+  Zone tmp_zone;
   GraphC1Visualizer(os, &tmp_zone)
       .PrintSchedule(ac.phase_, ac.schedule_, ac.positions_, ac.instructions_);
   return os;
@@ -788,7 +733,7 @@ std::ostream& operator<<(std::ostream& os, const AsC1V& ac) {
 
 
 std::ostream& operator<<(std::ostream& os, const AsC1VAllocator& ac) {
-  Zone tmp_zone(ac.allocator_->code()->zone()->isolate());
+  Zone tmp_zone;
   GraphC1Visualizer(os, &tmp_zone).PrintAllocator(ac.phase_, ac.allocator_);
   return os;
 }
@@ -798,7 +743,7 @@ const int kOnStack = 1;
 const int kVisited = 2;
 
 std::ostream& operator<<(std::ostream& os, const AsRPO& ar) {
-  Zone local_zone(ar.graph.zone()->isolate());
+  Zone local_zone;
   ZoneVector<byte> state(ar.graph.NodeCount(), kUnvisited, &local_zone);
   ZoneStack<Node*> stack(&local_zone);
 

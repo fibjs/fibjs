@@ -420,7 +420,7 @@ void FullCodeGenerator::PopulateTypeFeedbackInfo(Handle<Code> code) {
 
 
 void FullCodeGenerator::Initialize() {
-  InitializeAstVisitor(info_->zone());
+  InitializeAstVisitor(info_->isolate(), info_->zone());
   // The generation of debug code must match between the snapshot code and the
   // code that is generated later.  This is assumed by the debugger when it is
   // calculating PC offsets after generating a debug version of code.  Therefore
@@ -837,7 +837,7 @@ void FullCodeGenerator::SetStatementPosition(Statement* stmt) {
   } else {
     // Check if the statement will be breakable without adding a debug break
     // slot.
-    BreakableStatementChecker checker(zone());
+    BreakableStatementChecker checker(info_->isolate(), zone());
     checker.Check(stmt);
     // Record the statement position right here if the statement is not
     // breakable. For breakable statements the actual recording of the
@@ -864,7 +864,7 @@ void FullCodeGenerator::SetExpressionPosition(Expression* expr) {
   } else {
     // Check if the expression will be breakable without adding a debug break
     // slot.
-    BreakableStatementChecker checker(zone());
+    BreakableStatementChecker checker(info_->isolate(), zone());
     checker.Check(expr);
     // Record a statement position right here if the expression is not
     // breakable. For breakable expressions the actual recording of the
@@ -1211,9 +1211,11 @@ void FullCodeGenerator::EmitUnwindBeforeReturn() {
 }
 
 
-void FullCodeGenerator::EmitPropertyKey(ObjectLiteralProperty* property) {
+void FullCodeGenerator::EmitPropertyKey(ObjectLiteralProperty* property,
+                                        BailoutId bailout_id) {
   VisitForStackValue(property->key());
   __ InvokeBuiltin(Builtins::TO_NAME, CALL_FUNCTION);
+  PrepareForBailoutForId(bailout_id, NO_REGISTERS);
   __ Push(result_register());
 }
 
@@ -1236,6 +1238,7 @@ void FullCodeGenerator::VisitWithStatement(WithStatement* stmt) {
   PushFunctionArgumentForContextAllocation();
   __ CallRuntime(Runtime::kPushWithContext, 2);
   StoreToFrameField(StandardFrameConstants::kContextOffset, context_register());
+  PrepareForBailoutForId(stmt->EntryId(), NO_REGISTERS);
 
   Scope* saved_scope = scope();
   scope_ = stmt->scope();
