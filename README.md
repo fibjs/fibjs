@@ -96,4 +96,4 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 ## Test
 
 	cd test
-	js main.js
+	fibjs main.js
