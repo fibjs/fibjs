@@ -20,7 +20,6 @@ class HttpHandler: public HttpHandler_base
 
 public:
     HttpHandler();
-    void setHandler(Handler_base *hdlr);
 
 public:
     // object_base

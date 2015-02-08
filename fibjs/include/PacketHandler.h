@@ -20,7 +20,6 @@ class PacketHandler: public PacketHandler_base
 
 public:
     PacketHandler();
-    void setHandler(Handler_base *hdlr);
 
 public:
     // object_base

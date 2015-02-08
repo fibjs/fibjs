@@ -40,7 +40,7 @@ result_t PacketHandler_base::_new(v8::Local<v8::Value> hdlr,
 
     obj_ptr<PacketHandler> pk_hdlr = new PacketHandler();
     pk_hdlr->wrap(This);
-    pk_hdlr->setHandler(hdlr1);
+    pk_hdlr->set_handler(hdlr1);
 
     retVal = pk_hdlr;
 
@@ -52,12 +52,6 @@ PacketHandler::PacketHandler() :
 {
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 3);
-}
-
-void PacketHandler::setHandler(Handler_base *hdlr)
-{
-    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), hdlr->wrap());
-    m_hdlr = hdlr;
 }
 
 result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
@@ -190,6 +184,7 @@ result_t PacketHandler::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t PacketHandler::set_handler(Handler_base *newVal)
 {
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }
