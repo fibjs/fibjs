@@ -2119,9 +2119,29 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
   // The checks. First, does rdi match the recorded monomorphic target?
   __ SmiToInteger32(rdx, rdx);
-  __ cmpp(rdi, FieldOperand(rbx, rdx, times_pointer_size,
-                            FixedArray::kHeaderSize));
+  __ movp(rcx,
+          FieldOperand(rbx, rdx, times_pointer_size, FixedArray::kHeaderSize));
+
+  // We don't know that we have a weak cell. We might have a private symbol
+  // or an AllocationSite, but the memory is safe to examine.
+  // AllocationSite::kTransitionInfoOffset - contains a Smi or pointer to
+  // FixedArray.
+  // WeakCell::kValueOffset - contains a JSFunction or Smi(0)
+  // Symbol::kHashFieldSlot - if the low bit is 1, then the hash is not
+  // computed, meaning that it can't appear to be a pointer. If the low bit is
+  // 0, then hash is computed, but the 0 bit prevents the field from appearing
+  // to be a pointer.
+  STATIC_ASSERT(WeakCell::kSize >= kPointerSize);
+  STATIC_ASSERT(AllocationSite::kTransitionInfoOffset ==
+                    WeakCell::kValueOffset &&
+                WeakCell::kValueOffset == Symbol::kHashFieldSlot);
+
+  __ cmpp(rdi, FieldOperand(rcx, WeakCell::kValueOffset));
   __ j(not_equal, &extra_checks_or_miss);
+
+  // The compare above could have been a SMI/SMI comparison. Guard against this
+  // convincing us that we have a monomorphic JSFunction.
+  __ JumpIfSmi(rdi, &extra_checks_or_miss);
 
   __ bind(&have_js_function);
   if (CallAsMethod()) {
@@ -2151,8 +2171,6 @@ void CallICStub::Generate(MacroAssembler* masm) {
   __ bind(&extra_checks_or_miss);
   Label uninitialized, miss;
 
-  __ movp(rcx, FieldOperand(rbx, rdx, times_pointer_size,
-                            FixedArray::kHeaderSize));
   __ Cmp(rcx, TypeFeedbackVector::MegamorphicSentinel(isolate));
   __ j(equal, &slow_start);
 
@@ -2195,14 +2213,20 @@ void CallICStub::Generate(MacroAssembler* masm) {
   // Update stats.
   __ SmiAddConstant(FieldOperand(rbx, with_types_offset), Smi::FromInt(1));
 
-  // Store the function.
-  __ movp(FieldOperand(rbx, rdx, times_pointer_size, FixedArray::kHeaderSize),
-          rdi);
+  // Store the function. Use a stub since we need a frame for allocation.
+  // rbx - vector
+  // rdx - slot (needs to be in smi form)
+  // rdi - function
+  {
+    FrameScope scope(masm, StackFrame::INTERNAL);
+    CreateWeakCellStub create_stub(isolate);
 
-  // Update the write barrier.
-  __ movp(rax, rdi);
-  __ RecordWriteArray(rbx, rax, rdx, kDontSaveFPRegs, EMIT_REMEMBERED_SET,
-                      OMIT_SMI_CHECK);
+    __ Integer32ToSmi(rdx, rdx);
+    __ Push(rdi);
+    __ CallStub(&create_stub);
+    __ Pop(rdi);
+  }
+
   __ jmp(&have_js_function);
 
   // We are here because tracing is on or we encountered a MISS case we can't
@@ -2225,30 +2249,23 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
 
 void CallICStub::GenerateMiss(MacroAssembler* masm) {
-  // Get the receiver of the function from the stack; 1 ~ return address.
-  __ movp(rcx, Operand(rsp, (arg_count() + 1) * kPointerSize));
+  FrameScope scope(masm, StackFrame::INTERNAL);
 
-  {
-    FrameScope scope(masm, StackFrame::INTERNAL);
+  // Push the receiver and the function and feedback info.
+  __ Push(rdi);
+  __ Push(rbx);
+  __ Integer32ToSmi(rdx, rdx);
+  __ Push(rdx);
 
-    // Push the receiver and the function and feedback info.
-    __ Push(rcx);
-    __ Push(rdi);
-    __ Push(rbx);
-    __ Integer32ToSmi(rdx, rdx);
-    __ Push(rdx);
+  // Call the entry.
+  IC::UtilityId id = GetICState() == DEFAULT ? IC::kCallIC_Miss
+                                             : IC::kCallIC_Customization_Miss;
 
-    // Call the entry.
-    IC::UtilityId id = GetICState() == DEFAULT ? IC::kCallIC_Miss
-                                               : IC::kCallIC_Customization_Miss;
+  ExternalReference miss = ExternalReference(IC_Utility(id), masm->isolate());
+  __ CallExternalReference(miss, 3);
 
-    ExternalReference miss = ExternalReference(IC_Utility(id),
-                                               masm->isolate());
-    __ CallExternalReference(miss, 4);
-
-    // Move result to edi and exit the internal frame.
-    __ movp(rdi, rax);
-  }
+  // Move result to edi and exit the internal frame.
+  __ movp(rdi, rax);
 }
 
 
@@ -2264,6 +2281,7 @@ void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   // It is important that the store buffer overflow stubs are generated first.
   ArrayConstructorStubBase::GenerateStubsAheadOfTime(isolate);
   CreateAllocationSiteStub::GenerateAheadOfTime(isolate);
+  CreateWeakCellStub::GenerateAheadOfTime(isolate);
   BinaryOpICStub::GenerateAheadOfTime(isolate);
   BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
 }
@@ -3722,14 +3740,16 @@ void CompareICStub::GenerateObjects(MacroAssembler* masm) {
 
 void CompareICStub::GenerateKnownObjects(MacroAssembler* masm) {
   Label miss;
+  Handle<WeakCell> cell = Map::WeakCellForMap(known_map_);
   Condition either_smi = masm->CheckEitherSmi(rdx, rax);
   __ j(either_smi, &miss, Label::kNear);
 
+  __ GetWeakValue(rdi, cell);
   __ movp(rcx, FieldOperand(rax, HeapObject::kMapOffset));
   __ movp(rbx, FieldOperand(rdx, HeapObject::kMapOffset));
-  __ Cmp(rcx, known_map_);
+  __ cmpp(rcx, rdi);
   __ j(not_equal, &miss, Label::kNear);
-  __ Cmp(rbx, known_map_);
+  __ cmpp(rbx, rdi);
   __ j(not_equal, &miss, Label::kNear);
 
   __ subp(rax, rdx);

@@ -323,6 +323,8 @@ const FPURegister f31 = { 31 };
 #define kLithiumScratchReg2 s4
 #define kLithiumScratchDouble f30
 #define kDoubleRegZero f28
+// Used on mips64r6 for compare operations.
+#define kDoubleCompareReg f31
 
 // FPU (coprocessor 1) control registers.
 // Currently only FCSR (#31) is implemented.
@@ -1052,6 +1054,10 @@ class Assembler : public AssemblerBase {
   // Record a comment relocation entry that can be used by a disassembler.
   // Use --code-comments to enable.
   void RecordComment(const char* msg);
+
+  // Record a deoptimization reason that can be used by a log or cpu profiler.
+  // Use --trace-deopt to enable.
+  void RecordDeoptReason(const int reason, const int raw_position);
 
   static int RelocateInternalReference(byte* pc, intptr_t pc_delta);
 

@@ -9,7 +9,8 @@
 #include "src/compiler/machine-operator.h"
 #include "src/compiler/node-aux-data-inl.h"
 #include "src/compiler/node-matchers.h"
-#include "src/compiler/node-properties-inl.h"
+#include "src/compiler/node-properties.h"
+#include "src/compiler/operator-properties.h"
 #include "src/unique.h"
 
 namespace v8 {
@@ -103,7 +104,6 @@ REPLACE_COMPARE_IC_CALL(JSGreaterThanOrEqual, Token::GTE)
 REPLACE_RUNTIME_CALL(JSTypeOf, Runtime::kTypeof)
 REPLACE_RUNTIME_CALL(JSCreate, Runtime::kAbort)
 REPLACE_RUNTIME_CALL(JSCreateFunctionContext, Runtime::kNewFunctionContext)
-REPLACE_RUNTIME_CALL(JSCreateCatchContext, Runtime::kPushCatchContext)
 REPLACE_RUNTIME_CALL(JSCreateWithContext, Runtime::kPushWithContext)
 REPLACE_RUNTIME_CALL(JSCreateBlockContext, Runtime::kPushBlockContext)
 REPLACE_RUNTIME_CALL(JSCreateModuleContext, Runtime::kPushModuleContext)
@@ -286,24 +286,24 @@ void JSGenericLowering::LowerJSLoadNamed(Node* node) {
 
 
 void JSGenericLowering::LowerJSStoreProperty(Node* node) {
-  StrictMode strict_mode = OpParameter<StrictMode>(node);
-  Callable callable = CodeFactory::KeyedStoreIC(isolate(), strict_mode);
+  LanguageMode language_mode = OpParameter<LanguageMode>(node);
+  Callable callable = CodeFactory::KeyedStoreIC(isolate(), language_mode);
   ReplaceWithStubCall(node, callable, CallDescriptor::kPatchableCallSite);
 }
 
 
 void JSGenericLowering::LowerJSStoreNamed(Node* node) {
   const StoreNamedParameters& p = StoreNamedParametersOf(node->op());
-  Callable callable = CodeFactory::StoreIC(isolate(), p.strict_mode());
+  Callable callable = CodeFactory::StoreIC(isolate(), p.language_mode());
   PatchInsertInput(node, 1, jsgraph()->HeapConstant(p.name()));
   ReplaceWithStubCall(node, callable, CallDescriptor::kPatchableCallSite);
 }
 
 
 void JSGenericLowering::LowerJSDeleteProperty(Node* node) {
-  StrictMode strict_mode = OpParameter<StrictMode>(node);
+  LanguageMode language_mode = OpParameter<LanguageMode>(node);
   ReplaceWithBuiltinCall(node, Builtins::DELETE, 3);
-  PatchInsertInput(node, 4, jsgraph()->SmiConstant(strict_mode));
+  PatchInsertInput(node, 4, jsgraph()->SmiConstant(language_mode));
 }
 
 
@@ -363,6 +363,13 @@ void JSGenericLowering::LowerJSStoreContext(Node* node) {
 }
 
 
+void JSGenericLowering::LowerJSCreateCatchContext(Node* node) {
+  Unique<String> name = OpParameter<Unique<String>>(node);
+  PatchInsertInput(node, 0, jsgraph()->HeapConstant(name));
+  ReplaceWithRuntimeCall(node, Runtime::kPushCatchContext);
+}
+
+
 void JSGenericLowering::LowerJSCallConstruct(Node* node) {
   int arity = OpParameter<int>(node);
   CallConstructStub stub(isolate(), NO_CALL_CONSTRUCTOR_FLAGS);
@@ -409,8 +416,8 @@ bool JSGenericLowering::TryLowerDirectJSCall(Node* node) {
     context = jsgraph()->HeapConstant(Handle<Context>(function->context()));
   }
   node->ReplaceInput(index, context);
-  CallDescriptor* desc = linkage()->GetJSCallDescriptor(
-      jsgraph()->zone(), 1 + arg_count, FlagsForNode(node));
+  CallDescriptor* desc =
+      linkage()->GetJSCallDescriptor(1 + arg_count, FlagsForNode(node));
   PatchOperator(node, common()->Call(desc));
   return true;
 }

@@ -20,7 +20,7 @@ static void VerifyGapEmpty(const GapInstruction* gap) {
        i <= GapInstruction::LAST_INNER_POSITION; i++) {
     GapInstruction::InnerPosition inner_pos =
         static_cast<GapInstruction::InnerPosition>(i);
-    CHECK_EQ(NULL, gap->GetParallelMove(inner_pos));
+    CHECK(!gap->GetParallelMove(inner_pos));
   }
 }
 
@@ -29,7 +29,7 @@ void RegisterAllocatorVerifier::VerifyInput(
     const OperandConstraint& constraint) {
   CHECK_NE(kSameAsFirst, constraint.type_);
   if (constraint.type_ != kImmediate) {
-    CHECK_NE(UnallocatedOperand::kInvalidVirtualRegister,
+    CHECK_NE(InstructionOperand::kInvalidVirtualRegister,
              constraint.virtual_register_);
   }
 }
@@ -40,15 +40,13 @@ void RegisterAllocatorVerifier::VerifyTemp(
   CHECK_NE(kSameAsFirst, constraint.type_);
   CHECK_NE(kImmediate, constraint.type_);
   CHECK_NE(kConstant, constraint.type_);
-  CHECK_EQ(UnallocatedOperand::kInvalidVirtualRegister,
-           constraint.virtual_register_);
 }
 
 
 void RegisterAllocatorVerifier::VerifyOutput(
     const OperandConstraint& constraint) {
   CHECK_NE(kImmediate, constraint.type_);
-  CHECK_NE(UnallocatedOperand::kInvalidVirtualRegister,
+  CHECK_NE(InstructionOperand::kInvalidVirtualRegister,
            constraint.virtual_register_);
 }
 
@@ -122,7 +120,7 @@ void RegisterAllocatorVerifier::VerifyAssignment() {
 void RegisterAllocatorVerifier::BuildConstraint(const InstructionOperand* op,
                                                 OperandConstraint* constraint) {
   constraint->value_ = kMinInt;
-  constraint->virtual_register_ = UnallocatedOperand::kInvalidVirtualRegister;
+  constraint->virtual_register_ = InstructionOperand::kInvalidVirtualRegister;
   if (op->IsConstant()) {
     constraint->type_ = kConstant;
     constraint->value_ = ConstantOperand::cast(op)->index();
@@ -219,7 +217,7 @@ namespace {
 
 typedef BasicBlock::RpoNumber Rpo;
 
-static const int kInvalidVreg = UnallocatedOperand::kInvalidVirtualRegister;
+static const int kInvalidVreg = InstructionOperand::kInvalidVirtualRegister;
 
 struct PhiData : public ZoneObject {
   PhiData(Rpo definition_rpo, const PhiInstruction* phi, int first_pred_vreg,
@@ -240,13 +238,9 @@ struct PhiData : public ZoneObject {
   IntVector operands;
 };
 
-typedef std::map<int, PhiData*, std::less<int>,
-                 zone_allocator<std::pair<int, PhiData*>>> PhiMapBase;
-
-class PhiMap : public PhiMapBase, public ZoneObject {
+class PhiMap : public ZoneMap<int, PhiData*>, public ZoneObject {
  public:
-  explicit PhiMap(Zone* zone)
-      : PhiMapBase(key_compare(), allocator_type(zone)) {}
+  explicit PhiMap(Zone* zone) : ZoneMap<int, PhiData*>(zone) {}
 };
 
 struct OperandLess {
@@ -271,13 +265,11 @@ class OperandMap : public ZoneObject {
     int succ_vreg;       // valid if propagated back from successor block.
   };
 
-  typedef std::map<
-      const InstructionOperand*, MapValue*, OperandLess,
-      zone_allocator<std::pair<const InstructionOperand*, MapValue*>>> MapBase;
-
-  class Map : public MapBase {
+  class Map
+      : public ZoneMap<const InstructionOperand*, MapValue*, OperandLess> {
    public:
-    explicit Map(Zone* zone) : MapBase(key_compare(), allocator_type(zone)) {}
+    explicit Map(Zone* zone)
+        : ZoneMap<const InstructionOperand*, MapValue*, OperandLess>(zone) {}
 
     // Remove all entries with keys not in other.
     void Intersect(const Map& other) {
@@ -432,14 +424,14 @@ class OperandMap : public ZoneObject {
         for (; p != nullptr; p = p->first_pred_phi) {
           if (p->virtual_register == v->use_vreg) break;
         }
-        CHECK_NE(nullptr, p);
+        CHECK(p);
       }
       // Mark the use.
       it->second->use_vreg = use_vreg;
       return;
     }
     // Use of a phi value without definition.
-    CHECK(false);
+    UNREACHABLE();
   }
 
  private:

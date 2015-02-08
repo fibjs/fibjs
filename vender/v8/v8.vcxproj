@@ -31,6 +31,7 @@
     <ClInclude Include="src\allocation-site-scopes.h" />
     <ClInclude Include="src\allocation-tracker.h" />
     <ClInclude Include="src\allocation.h" />
+    <ClInclude Include="src\api-natives.h" />
     <ClInclude Include="src\api.h" />
     <ClInclude Include="src\arguments.h" />
     <ClInclude Include="src\assembler.h" />
@@ -151,7 +152,6 @@
     <ClInclude Include="src\compiler\node-cache.h" />
     <ClInclude Include="src\compiler\node-marker.h" />
     <ClInclude Include="src\compiler\node-matchers.h" />
-    <ClInclude Include="src\compiler\node-properties-inl.h" />
     <ClInclude Include="src\compiler\node-properties.h" />
     <ClInclude Include="src\compiler\node.h" />
     <ClInclude Include="src\compiler\opcodes.h" />
@@ -160,6 +160,7 @@
     <ClInclude Include="src\compiler\osr.h" />
     <ClInclude Include="src\compiler\pipeline-statistics.h" />
     <ClInclude Include="src\compiler\pipeline.h" />
+    <ClInclude Include="src\compiler\ppc\instruction-codes-ppc.h" />
     <ClInclude Include="src\compiler\raw-machine-assembler.h" />
     <ClInclude Include="src\compiler\register-allocator-verifier.h" />
     <ClInclude Include="src\compiler\register-allocator.h" />
@@ -421,7 +422,6 @@
     <ClInclude Include="src\x87\simulator-x87.h" />
     <ClInclude Include="src\zone-allocator.h" />
     <ClInclude Include="src\zone-containers.h" />
-    <ClInclude Include="src\zone-inl.h" />
     <ClInclude Include="src\zone.h" />
   </ItemGroup>
   <ItemGroup>
@@ -429,6 +429,7 @@
     <ClCompile Include="src\allocation-site-scopes.cc" />
     <ClCompile Include="src\allocation-tracker.cc" />
     <ClCompile Include="src\allocation.cc" />
+    <ClCompile Include="src\api-natives.cc" />
     <ClCompile Include="src\api.cc" />
     <ClCompile Include="src\arguments.cc" />
     <ClCompile Include="src\assembler.cc" />
@@ -449,6 +450,7 @@
     <ClCompile Include="src\base\platform\_date_cache.cc" />
     <ClCompile Include="src\base\platform\condition-variable.cc" />
     <ClCompile Include="src\base\platform\mutex.cc" />
+    <ClCompile Include="src\base\platform\platform-aix.cc" />
     <ClCompile Include="src\base\platform\platform-fiber.cc" />
     <ClCompile Include="src\base\platform\platform-freebsd.cc" />
     <ClCompile Include="src\base\platform\platform-linux.cc" />
@@ -490,7 +492,6 @@
     <ClCompile Include="src\compiler\control-builders.cc" />
     <ClCompile Include="src\compiler\control-reducer.cc" />
     <ClCompile Include="src\compiler\gap-resolver.cc" />
-    <ClCompile Include="src\compiler\graph-builder.cc" />
     <ClCompile Include="src\compiler\graph-reducer.cc" />
     <ClCompile Include="src\compiler\graph-replay.cc" />
     <ClCompile Include="src\compiler\graph-visualizer.cc" />
@@ -527,6 +528,9 @@
     <ClCompile Include="src\compiler\osr.cc" />
     <ClCompile Include="src\compiler\pipeline-statistics.cc" />
     <ClCompile Include="src\compiler\pipeline.cc" />
+    <ClCompile Include="src\compiler\ppc\code-generator-ppc.cc" />
+    <ClCompile Include="src\compiler\ppc\instruction-selector-ppc.cc" />
+    <ClCompile Include="src\compiler\ppc\linkage-ppc.cc" />
     <ClCompile Include="src\compiler\raw-machine-assembler.cc" />
     <ClCompile Include="src\compiler\register-allocator-verifier.cc" />
     <ClCompile Include="src\compiler\register-allocator.cc" />
@@ -709,7 +713,6 @@
     <ClCompile Include="src\regexp-stack.cc" />
     <ClCompile Include="src\rewriter.cc" />
     <ClCompile Include="src\runtime-profiler.cc" />
-    <ClCompile Include="src\runtime\runtime-api.cc" />
     <ClCompile Include="src\runtime\runtime-array.cc" />
     <ClCompile Include="src\runtime\runtime-classes.cc" />
     <ClCompile Include="src\runtime\runtime-collections.cc" />

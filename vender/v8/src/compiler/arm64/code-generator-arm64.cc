@@ -12,8 +12,6 @@
 #include "src/compiler/code-generator-impl.h"
 #include "src/compiler/gap-resolver.h"
 #include "src/compiler/node-matchers.h"
-#include "src/compiler/node-properties-inl.h"
-#include "src/compiler/osr.h"
 #include "src/scopes.h"
 
 namespace v8 {
@@ -851,7 +849,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
 
   // Materialize a full 64-bit 1 or 0 value. The result register is always the
   // last output of the instruction.
-  DCHECK_NE(0, instr->OutputCount());
+  DCHECK_NE(0u, instr->OutputCount());
   Register reg = i.OutputRegister(instr->OutputCount() - 1);
   Condition cc = FlagsConditionToCondition(condition);
   __ Cset(reg, cc);
@@ -905,10 +903,8 @@ void CodeGenerator::AssemblePrologue() {
     // remaining stack slots.
     if (FLAG_code_comments) __ RecordComment("-- OSR entrypoint --");
     osr_pc_offset_ = __ pc_offset();
-    int unoptimized_slots =
-        static_cast<int>(OsrHelper(info()).UnoptimizedFrameSlots());
-    DCHECK(stack_slots >= unoptimized_slots);
-    stack_slots -= unoptimized_slots;
+    DCHECK(stack_slots >= frame()->GetOsrStackSlotCount());
+    stack_slots -= frame()->GetOsrStackSlotCount();
   }
 
   if (stack_slots > 0) {

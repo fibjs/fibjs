@@ -111,12 +111,11 @@ CompilationCacheScript::CompilationCacheScript(Isolate* isolate,
 // We only re-use a cached function for some script source code if the
 // script originates from the same place. This is to avoid issues
 // when reporting errors, etc.
-bool CompilationCacheScript::HasOrigin(
-    Handle<SharedFunctionInfo> function_info,
-    Handle<Object> name,
-    int line_offset,
-    int column_offset,
-    bool is_shared_cross_origin) {
+bool CompilationCacheScript::HasOrigin(Handle<SharedFunctionInfo> function_info,
+                                       Handle<Object> name, int line_offset,
+                                       int column_offset,
+                                       bool is_embedder_debug_script,
+                                       bool is_shared_cross_origin) {
   Handle<Script> script =
       Handle<Script>(Script::cast(function_info->script()), isolate());
   // If the script name isn't set, the boilerplate script should have
@@ -129,6 +128,10 @@ bool CompilationCacheScript::HasOrigin(
   if (column_offset != script->column_offset()->value()) return false;
   // Check that both names are strings. If not, no match.
   if (!name->IsString() || !script->name()->IsString()) return false;
+  // Were both scripts tagged by the embedder as being internal script?
+  if (is_embedder_debug_script != script->is_embedder_debug_script()) {
+    return false;
+  }
   // Were both scripts tagged by the embedder as being shared cross-origin?
   if (is_shared_cross_origin != script->is_shared_cross_origin()) return false;
   // Compare the two name strings for equality.
@@ -142,12 +145,9 @@ bool CompilationCacheScript::HasOrigin(
 // will be cached, but subsequent code from different source / line
 // won't.
 Handle<SharedFunctionInfo> CompilationCacheScript::Lookup(
-    Handle<String> source,
-    Handle<Object> name,
-    int line_offset,
-    int column_offset,
-    bool is_shared_cross_origin,
-    Handle<Context> context) {
+    Handle<String> source, Handle<Object> name, int line_offset,
+    int column_offset, bool is_embedder_debug_script,
+    bool is_shared_cross_origin, Handle<Context> context) {
   Object* result = NULL;
   int generation;
 
@@ -162,11 +162,8 @@ Handle<SharedFunctionInfo> CompilationCacheScript::Lookup(
             Handle<SharedFunctionInfo>::cast(probe);
         // Break when we've found a suitable shared function info that
         // matches the origin.
-        if (HasOrigin(function_info,
-                      name,
-                      line_offset,
-                      column_offset,
-                      is_shared_cross_origin)) {
+        if (HasOrigin(function_info, name, line_offset, column_offset,
+                      is_embedder_debug_script, is_shared_cross_origin)) {
           result = *function_info;
           break;
         }
@@ -180,11 +177,8 @@ Handle<SharedFunctionInfo> CompilationCacheScript::Lookup(
   if (result != NULL) {
     Handle<SharedFunctionInfo> shared(SharedFunctionInfo::cast(result),
                                       isolate());
-    DCHECK(HasOrigin(shared,
-                     name,
-                     line_offset,
-                     column_offset,
-                     is_shared_cross_origin));
+    DCHECK(HasOrigin(shared, name, line_offset, column_offset,
+                     is_embedder_debug_script, is_shared_cross_origin));
     // If the script was found in a later generation, we promote it to
     // the first generation to let it survive longer in the cache.
     if (generation != 0) Put(source, context, shared);
@@ -209,7 +203,7 @@ void CompilationCacheScript::Put(Handle<String> source,
 
 MaybeHandle<SharedFunctionInfo> CompilationCacheEval::Lookup(
     Handle<String> source, Handle<SharedFunctionInfo> outer_info,
-    StrictMode strict_mode, int scope_position) {
+    LanguageMode language_mode, int scope_position) {
   HandleScope scope(isolate());
   // Make sure not to leak the table into the surrounding handle
   // scope. Otherwise, we risk keeping old tables around even after
@@ -218,7 +212,8 @@ MaybeHandle<SharedFunctionInfo> CompilationCacheEval::Lookup(
   int generation;
   for (generation = 0; generation < generations(); generation++) {
     Handle<CompilationCacheTable> table = GetTable(generation);
-    result = table->LookupEval(source, outer_info, strict_mode, scope_position);
+    result =
+        table->LookupEval(source, outer_info, language_mode, scope_position);
     if (result->IsSharedFunctionInfo()) break;
   }
   if (result->IsSharedFunctionInfo()) {
@@ -295,31 +290,29 @@ void CompilationCache::Remove(Handle<SharedFunctionInfo> function_info) {
 
 
 MaybeHandle<SharedFunctionInfo> CompilationCache::LookupScript(
-    Handle<String> source,
-    Handle<Object> name,
-    int line_offset,
-    int column_offset,
-    bool is_shared_cross_origin,
-    Handle<Context> context) {
+    Handle<String> source, Handle<Object> name, int line_offset,
+    int column_offset, bool is_embedder_debug_script,
+    bool is_shared_cross_origin, Handle<Context> context) {
   if (!IsEnabled()) return MaybeHandle<SharedFunctionInfo>();
 
   return script_.Lookup(source, name, line_offset, column_offset,
-                        is_shared_cross_origin, context);
+                        is_embedder_debug_script, is_shared_cross_origin,
+                        context);
 }
 
 
 MaybeHandle<SharedFunctionInfo> CompilationCache::LookupEval(
     Handle<String> source, Handle<SharedFunctionInfo> outer_info,
-    Handle<Context> context, StrictMode strict_mode, int scope_position) {
+    Handle<Context> context, LanguageMode language_mode, int scope_position) {
   if (!IsEnabled()) return MaybeHandle<SharedFunctionInfo>();
 
   MaybeHandle<SharedFunctionInfo> result;
   if (context->IsNativeContext()) {
     result =
-        eval_global_.Lookup(source, outer_info, strict_mode, scope_position);
+        eval_global_.Lookup(source, outer_info, language_mode, scope_position);
   } else {
     DCHECK(scope_position != RelocInfo::kNoPosition);
-    result = eval_contextual_.Lookup(source, outer_info, strict_mode,
+    result = eval_contextual_.Lookup(source, outer_info, language_mode,
                                      scope_position);
   }
   return result;

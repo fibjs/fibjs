@@ -73,24 +73,26 @@ class CompilationInfo {
     kEval = 1 << 1,
     kGlobal = 1 << 2,
     kStrictMode = 1 << 3,
-    kThisHasUses = 1 << 4,
-    kNative = 1 << 5,
-    kDeferredCalling = 1 << 6,
-    kNonDeferredCalling = 1 << 7,
-    kSavesCallerDoubles = 1 << 8,
-    kRequiresFrame = 1 << 9,
-    kMustNotHaveEagerFrame = 1 << 10,
-    kDeoptimizationSupport = 1 << 11,
-    kDebug = 1 << 12,
-    kCompilingForDebugging = 1 << 13,
-    kParseRestriction = 1 << 14,
-    kSerializing = 1 << 15,
-    kContextSpecializing = 1 << 16,
-    kInliningEnabled = 1 << 17,
-    kTypingEnabled = 1 << 18,
-    kDisableFutureOptimization = 1 << 19,
-    kModule = 1 << 20,
-    kToplevel = 1 << 21
+    kStrongMode = 1 << 4,
+    kThisHasUses = 1 << 5,
+    kNative = 1 << 6,
+    kDeferredCalling = 1 << 7,
+    kNonDeferredCalling = 1 << 8,
+    kSavesCallerDoubles = 1 << 9,
+    kRequiresFrame = 1 << 10,
+    kMustNotHaveEagerFrame = 1 << 11,
+    kDeoptimizationSupport = 1 << 12,
+    kDebug = 1 << 13,
+    kCompilingForDebugging = 1 << 14,
+    kParseRestriction = 1 << 15,
+    kSerializing = 1 << 16,
+    kContextSpecializing = 1 << 17,
+    kInliningEnabled = 1 << 18,
+    kTypingEnabled = 1 << 19,
+    kDisableFutureOptimization = 1 << 20,
+    kModule = 1 << 21,
+    kToplevel = 1 << 22,
+    kSplittingEnabled = 1 << 23
   };
 
   CompilationInfo(Handle<JSFunction> closure, Zone* zone);
@@ -107,8 +109,9 @@ class CompilationInfo {
   bool is_eval() const { return GetFlag(kEval); }
   bool is_global() const { return GetFlag(kGlobal); }
   bool is_module() const { return GetFlag(kModule); }
-  StrictMode strict_mode() const {
-    return GetFlag(kStrictMode) ? STRICT : SLOPPY;
+  LanguageMode language_mode() const {
+    STATIC_ASSERT(LANGUAGE_END == 3);
+    return construct_language_mode(GetFlag(kStrictMode), GetFlag(kStrongMode));
   }
   FunctionLiteral* function() const { return function_; }
   Scope* scope() const { return scope_; }
@@ -164,8 +167,10 @@ class CompilationInfo {
 
   bool this_has_uses() { return GetFlag(kThisHasUses); }
 
-  void SetStrictMode(StrictMode strict_mode) {
-    SetFlag(kStrictMode, strict_mode == STRICT);
+  void SetLanguageMode(LanguageMode language_mode) {
+    STATIC_ASSERT(LANGUAGE_END == 3);
+    SetFlag(kStrictMode, language_mode & STRICT_BIT);
+    SetFlag(kStrongMode, language_mode & STRONG_BIT);
   }
 
   void MarkAsNative() { SetFlag(kNative); }
@@ -221,6 +226,10 @@ class CompilationInfo {
   void MarkAsToplevel() { SetFlag(kToplevel); }
 
   bool is_toplevel() const { return GetFlag(kToplevel); }
+
+  void MarkAsSplittingEnabled() { SetFlag(kSplittingEnabled); }
+
+  bool is_splitting_enabled() const { return GetFlag(kSplittingEnabled); }
 
   bool IsCodePreAgingActive() const {
     return FLAG_optimize_for_size && FLAG_age_code && !will_serialize() &&
@@ -405,6 +414,16 @@ class CompilationInfo {
     ast_value_factory_owned_ = owned;
   }
 
+  int osr_expr_stack_height() { return osr_expr_stack_height_; }
+  void set_osr_expr_stack_height(int height) {
+    DCHECK(height >= 0);
+    osr_expr_stack_height_ = height;
+  }
+
+#if DEBUG
+  void PrintAstForTesting();
+#endif
+
  protected:
   CompilationInfo(Handle<SharedFunctionInfo> shared_info,
                   Zone* zone);
@@ -526,6 +545,8 @@ class CompilationInfo {
   // This flag is used by the main thread to track whether this compilation
   // should be abandoned due to dependency change.
   bool aborted_due_to_dependency_change_;
+
+  int osr_expr_stack_height_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationInfo);
 };
@@ -698,16 +719,16 @@ class Compiler : public AllStatic {
   // Compile a String source within a context for eval.
   MUST_USE_RESULT static MaybeHandle<JSFunction> GetFunctionFromEval(
       Handle<String> source, Handle<SharedFunctionInfo> outer_info,
-      Handle<Context> context, StrictMode strict_mode,
+      Handle<Context> context, LanguageMode language_mode,
       ParseRestriction restriction, int scope_position);
 
   // Compile a String source within a context.
   static Handle<SharedFunctionInfo> CompileScript(
       Handle<String> source, Handle<Object> script_name, int line_offset,
-      int column_offset, bool is_shared_cross_origin, Handle<Context> context,
-      v8::Extension* extension, ScriptData** cached_data,
-      ScriptCompiler::CompileOptions compile_options,
-      NativesFlag is_natives_code);
+      int column_offset, bool is_debugger_script, bool is_shared_cross_origin,
+      Handle<Context> context, v8::Extension* extension,
+      ScriptData** cached_data, ScriptCompiler::CompileOptions compile_options,
+      NativesFlag is_natives_code, bool is_module);
 
   static Handle<SharedFunctionInfo> CompileStreamedScript(CompilationInfo* info,
                                                           int source_length);

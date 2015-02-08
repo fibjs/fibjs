@@ -25,6 +25,9 @@
     <Filter Include="Source Files\compiler\ia32">
       <UniqueIdentifier>{afd14b90-34a2-9841-1aad-7fccf917eda4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\compiler\ppc">
+      <UniqueIdentifier>{747a3f26-b765-b376-aaaf-3d94438790ba}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\compiler\x64">
       <UniqueIdentifier>{7e4db021-7f1c-d574-294e-09b6102be2dd}</UniqueIdentifier>
     </Filter>
@@ -127,6 +130,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\allocation.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\api-natives.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\api.h">
@@ -489,9 +495,6 @@
     <ClInclude Include="src\compiler\node-matchers.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\node-properties-inl.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\compiler\node-properties.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -515,6 +518,9 @@
     </ClInclude>
     <ClInclude Include="src\compiler\pipeline.h">
       <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\ppc\instruction-codes-ppc.h">
+      <Filter>Source Files\compiler\ppc</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\raw-machine-assembler.h">
       <Filter>Source Files\compiler</Filter>
@@ -1299,9 +1305,6 @@
     <ClInclude Include="src\zone-containers.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\zone-inl.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\zone.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1317,6 +1320,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\allocation.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\api-natives.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\api.cc">
@@ -1377,6 +1383,9 @@
       <Filter>Source Files\base\platform</Filter>
     </ClCompile>
     <ClCompile Include="src\base\platform\mutex.cc">
+      <Filter>Source Files\base\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\platform\platform-aix.cc">
       <Filter>Source Files\base\platform</Filter>
     </ClCompile>
     <ClCompile Include="src\base\platform\platform-fiber.cc">
@@ -1502,9 +1511,6 @@
     <ClCompile Include="src\compiler\gap-resolver.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\graph-builder.cc">
-      <Filter>Source Files\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="src\compiler\graph-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1612,6 +1618,15 @@
     </ClCompile>
     <ClCompile Include="src\compiler\pipeline.cc">
       <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\ppc\code-generator-ppc.cc">
+      <Filter>Source Files\compiler\ppc</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\ppc\instruction-selector-ppc.cc">
+      <Filter>Source Files\compiler\ppc</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\ppc\linkage-ppc.cc">
+      <Filter>Source Files\compiler\ppc</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\raw-machine-assembler.cc">
       <Filter>Source Files\compiler</Filter>
@@ -2158,9 +2173,6 @@
     </ClCompile>
     <ClCompile Include="src\runtime-profiler.cc">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\runtime\runtime-api.cc">
-      <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-array.cc">
       <Filter>Source Files\runtime</Filter>

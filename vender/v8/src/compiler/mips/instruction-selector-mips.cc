@@ -27,7 +27,7 @@ class MipsOperandGenerator FINAL : public OperandGenerator {
   explicit MipsOperandGenerator(InstructionSelector* selector)
       : OperandGenerator(selector) {}
 
-  InstructionOperand* UseOperand(Node* node, InstructionCode opcode) {
+  InstructionOperand UseOperand(Node* node, InstructionCode opcode) {
     if (CanBeImmediate(node, opcode)) {
       return UseImmediate(node);
     }
@@ -95,9 +95,9 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
                        InstructionCode opcode, FlagsContinuation* cont) {
   MipsOperandGenerator g(selector);
   Int32BinopMatcher m(node);
-  InstructionOperand* inputs[4];
+  InstructionOperand inputs[4];
   size_t input_count = 0;
-  InstructionOperand* outputs[2];
+  InstructionOperand outputs[2];
   size_t output_count = 0;
 
   inputs[input_count++] = g.UseRegister(m.left().node());
@@ -113,8 +113,8 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
     outputs[output_count++] = g.DefineAsRegister(cont->result());
   }
 
-  DCHECK_NE(0, input_count);
-  DCHECK_NE(0, output_count);
+  DCHECK_NE(0u, input_count);
+  DCHECK_NE(0u, output_count);
   DCHECK_GE(arraysize(inputs), input_count);
   DCHECK_GE(arraysize(outputs), output_count);
 
@@ -166,7 +166,7 @@ void InstructionSelector::VisitLoad(Node* node) {
     Emit(opcode | AddressingModeField::encode(kMode_MRI),
          g.DefineAsRegister(node), g.UseRegister(base), g.UseImmediate(index));
   } else {
-    InstructionOperand* addr_reg = g.TempRegister();
+    InstructionOperand addr_reg = g.TempRegister();
     Emit(kMipsAdd | AddressingModeField::encode(kMode_None), addr_reg,
          g.UseRegister(index), g.UseRegister(base));
     // Emit desired load opcode, using temp addr_reg.
@@ -189,8 +189,8 @@ void InstructionSelector::VisitStore(Node* node) {
     // TODO(dcarney): refactor RecordWrite function to take temp registers
     //                and pass them here instead of using fixed regs
     // TODO(dcarney): handle immediate indices.
-    InstructionOperand* temps[] = {g.TempRegister(t1), g.TempRegister(t2)};
-    Emit(kMipsStoreWriteBarrier, NULL, g.UseFixed(base, t0),
+    InstructionOperand temps[] = {g.TempRegister(t1), g.TempRegister(t2)};
+    Emit(kMipsStoreWriteBarrier, g.NoOutput(), g.UseFixed(base, t0),
          g.UseFixed(index, t1), g.UseFixed(value, t2), arraysize(temps), temps);
     return;
   }
@@ -221,15 +221,15 @@ void InstructionSelector::VisitStore(Node* node) {
   }
 
   if (g.CanBeImmediate(index, opcode)) {
-    Emit(opcode | AddressingModeField::encode(kMode_MRI), NULL,
+    Emit(opcode | AddressingModeField::encode(kMode_MRI), g.NoOutput(),
          g.UseRegister(base), g.UseImmediate(index), g.UseRegister(value));
   } else {
-    InstructionOperand* addr_reg = g.TempRegister();
+    InstructionOperand addr_reg = g.TempRegister();
     Emit(kMipsAdd | AddressingModeField::encode(kMode_None), addr_reg,
          g.UseRegister(index), g.UseRegister(base));
     // Emit desired store opcode, using temp addr_reg.
-    Emit(opcode | AddressingModeField::encode(kMode_MRI), NULL, addr_reg,
-         g.TempImmediate(0), g.UseRegister(value));
+    Emit(opcode | AddressingModeField::encode(kMode_MRI), g.NoOutput(),
+         addr_reg, g.TempImmediate(0), g.UseRegister(value));
   }
 }
 
@@ -294,7 +294,7 @@ void InstructionSelector::VisitInt32Mul(Node* node) {
       return;
     }
     if (base::bits::IsPowerOfTwo32(value - 1)) {
-      InstructionOperand* temp = g.TempRegister();
+      InstructionOperand temp = g.TempRegister();
       Emit(kMipsShl | AddressingModeField::encode(kMode_None), temp,
            g.UseRegister(m.left().node()),
            g.TempImmediate(WhichPowerOf2(value - 1)));
@@ -303,7 +303,7 @@ void InstructionSelector::VisitInt32Mul(Node* node) {
       return;
     }
     if (base::bits::IsPowerOfTwo32(value + 1)) {
-      InstructionOperand* temp = g.TempRegister();
+      InstructionOperand temp = g.TempRegister();
       Emit(kMipsShl | AddressingModeField::encode(kMode_None), temp,
            g.UseRegister(m.left().node()),
            g.TempImmediate(WhichPowerOf2(value + 1)));
@@ -470,12 +470,12 @@ void InstructionSelector::VisitCall(Node* node) {
   // Possibly align stack here for functions.
   int push_count = buffer.pushed_nodes.size();
   if (push_count > 0) {
-    Emit(kMipsStackClaim | MiscField::encode(push_count), NULL);
+    Emit(kMipsStackClaim | MiscField::encode(push_count), g.NoOutput());
   }
   int slot = buffer.pushed_nodes.size() - 1;
   for (auto i = buffer.pushed_nodes.rbegin(); i != buffer.pushed_nodes.rend();
        ++i) {
-    Emit(kMipsStoreToStackSlot | MiscField::encode(slot), nullptr,
+    Emit(kMipsStoreToStackSlot | MiscField::encode(slot), g.NoOutput(),
          g.UseRegister(*i));
     slot--;
   }
@@ -497,7 +497,7 @@ void InstructionSelector::VisitCall(Node* node) {
   opcode |= MiscField::encode(descriptor->flags());
 
   // Emit the call instruction.
-  InstructionOperand** first_output =
+  InstructionOperand* first_output =
       buffer.outputs.size() > 0 ? &buffer.outputs.front() : NULL;
   Instruction* call_instr =
       Emit(opcode, buffer.outputs.size(), first_output,
@@ -534,15 +534,15 @@ void InstructionSelector::VisitCheckedLoad(Node* node) {
       UNREACHABLE();
       return;
   }
-  InstructionOperand* offset_operand = g.CanBeImmediate(offset, opcode)
-                                           ? g.UseImmediate(offset)
-                                           : g.UseRegister(offset);
+  InstructionOperand offset_operand = g.CanBeImmediate(offset, opcode)
+                                          ? g.UseImmediate(offset)
+                                          : g.UseRegister(offset);
 
-  InstructionOperand* length_operand =
-      (!g.CanBeImmediate(offset, opcode)) ? g.CanBeImmediate(length, opcode)
-      ? g.UseImmediate(length)
-      : g.UseRegister(length)
-      : g.UseRegister(length);
+  InstructionOperand length_operand = (!g.CanBeImmediate(offset, opcode))
+                                          ? g.CanBeImmediate(length, opcode)
+                                                ? g.UseImmediate(length)
+                                                : g.UseRegister(length)
+                                          : g.UseRegister(length);
 
   Emit(opcode | AddressingModeField::encode(kMode_MRI),
        g.DefineAsRegister(node), offset_operand, length_operand,
@@ -578,18 +578,19 @@ void InstructionSelector::VisitCheckedStore(Node* node) {
       UNREACHABLE();
       return;
   }
-  InstructionOperand* offset_operand = g.CanBeImmediate(offset, opcode)
-                                           ? g.UseImmediate(offset)
-                                           : g.UseRegister(offset);
+  InstructionOperand offset_operand = g.CanBeImmediate(offset, opcode)
+                                          ? g.UseImmediate(offset)
+                                          : g.UseRegister(offset);
 
-  InstructionOperand* length_operand =
-      (!g.CanBeImmediate(offset, opcode)) ? g.CanBeImmediate(length, opcode)
-      ? g.UseImmediate(length)
-      : g.UseRegister(length)
-      : g.UseRegister(length);
+  InstructionOperand length_operand = (!g.CanBeImmediate(offset, opcode))
+                                          ? g.CanBeImmediate(length, opcode)
+                                                ? g.UseImmediate(length)
+                                                : g.UseRegister(length)
+                                          : g.UseRegister(length);
 
-  Emit(opcode | AddressingModeField::encode(kMode_MRI), nullptr, offset_operand,
-       length_operand, g.UseRegister(value), g.UseRegister(buffer));
+  Emit(opcode | AddressingModeField::encode(kMode_MRI), g.NoOutput(),
+       offset_operand, length_operand, g.UseRegister(value),
+       g.UseRegister(buffer));
 }
 
 
@@ -597,12 +598,13 @@ namespace {
 
 // Shared routine for multiple compare operations.
 static void VisitCompare(InstructionSelector* selector, InstructionCode opcode,
-                         InstructionOperand* left, InstructionOperand* right,
+                         InstructionOperand left, InstructionOperand right,
                          FlagsContinuation* cont) {
   MipsOperandGenerator g(selector);
   opcode = cont->Encode(opcode);
   if (cont->IsBranch()) {
-    selector->Emit(opcode, NULL, left, right, g.Label(cont->true_block()),
+    selector->Emit(opcode, g.NoOutput(), left, right,
+                   g.Label(cont->true_block()),
                    g.Label(cont->false_block()))->MarkAsControl();
   } else {
     DCHECK(cont->IsSet());
@@ -729,9 +731,9 @@ void VisitWordCompareZero(InstructionSelector* selector, Node* user,
   // Continuation could not be combined with a compare, emit compare against 0.
   MipsOperandGenerator g(selector);
   InstructionCode const opcode = cont->Encode(kMipsCmp);
-  InstructionOperand* const value_operand = g.UseRegister(value);
+  InstructionOperand const value_operand = g.UseRegister(value);
   if (cont->IsBranch()) {
-    selector->Emit(opcode, nullptr, value_operand, g.TempImmediate(0),
+    selector->Emit(opcode, g.NoOutput(), value_operand, g.TempImmediate(0),
                    g.Label(cont->true_block()),
                    g.Label(cont->false_block()))->MarkAsControl();
   } else {

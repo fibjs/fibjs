@@ -38,6 +38,15 @@ RUNTIME_FUNCTION(Runtime_ThrowUnsupportedSuperError) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_ThrowConstructorNonCallableError) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 0);
+  THROW_NEW_ERROR_RETURN_FAILURE(
+      isolate,
+      NewTypeError("constructor_noncallable", HandleVector<Object>(NULL, 0)));
+}
+
+
 RUNTIME_FUNCTION(Runtime_ToMethod) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 2);
@@ -107,6 +116,13 @@ RUNTIME_FUNCTION(Runtime_DefineClass) {
                                    : isolate->factory()->empty_string();
   constructor->shared()->set_name(*name_string);
 
+  if (FLAG_experimental_classes) {
+    if (!super_class->IsTheHole() && !super_class->IsNull()) {
+      Handle<Code> stub(isolate->builtins()->JSConstructStubForDerived());
+      constructor->shared()->set_construct_stub(*stub);
+    }
+  }
+
   JSFunction::SetPrototype(constructor, prototype);
   PropertyAttributes attribs =
       static_cast<PropertyAttributes>(DONT_ENUM | DONT_DELETE | READ_ONLY);
@@ -159,11 +175,12 @@ RUNTIME_FUNCTION(Runtime_DefineClassMethod) {
   uint32_t index;
   if (name->AsArrayIndex(&index)) {
     RETURN_FAILURE_ON_EXCEPTION(
-        isolate, JSObject::SetOwnElement(object, index, function, STRICT));
+        isolate,
+        JSObject::SetOwnElement(object, index, function, DONT_ENUM, STRICT));
   } else {
     RETURN_FAILURE_ON_EXCEPTION(
-        isolate,
-        JSObject::SetOwnPropertyIgnoreAttributes(object, name, function, NONE));
+        isolate, JSObject::SetOwnPropertyIgnoreAttributes(object, name,
+                                                          function, DONT_ENUM));
   }
   return isolate->heap()->undefined_value();
 }
@@ -281,7 +298,7 @@ RUNTIME_FUNCTION(Runtime_LoadKeyedFromSuper) {
 
 static Object* StoreToSuper(Isolate* isolate, Handle<JSObject> home_object,
                             Handle<Object> receiver, Handle<Name> name,
-                            Handle<Object> value, StrictMode strict_mode) {
+                            Handle<Object> value, LanguageMode language_mode) {
   if (home_object->IsAccessCheckNeeded() &&
       !isolate->MayNamedAccess(home_object, name, v8::ACCESS_SET)) {
     isolate->ReportFailedAccessCheck(home_object, v8::ACCESS_SET);
@@ -296,7 +313,7 @@ static Object* StoreToSuper(Isolate* isolate, Handle<JSObject> home_object,
   Handle<Object> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, result,
-      Object::SetProperty(&it, value, strict_mode,
+      Object::SetProperty(&it, value, language_mode,
                           Object::CERTAINLY_NOT_STORE_FROM_KEYED,
                           Object::SUPER_PROPERTY));
   return *result;
@@ -307,7 +324,7 @@ static Object* StoreElementToSuper(Isolate* isolate,
                                    Handle<JSObject> home_object,
                                    Handle<Object> receiver, uint32_t index,
                                    Handle<Object> value,
-                                   StrictMode strict_mode) {
+                                   LanguageMode language_mode) {
   if (home_object->IsAccessCheckNeeded() &&
       !isolate->MayIndexedAccess(home_object, index, v8::ACCESS_SET)) {
     isolate->ReportFailedAccessCheck(home_object, v8::ACCESS_SET);
@@ -322,7 +339,7 @@ static Object* StoreElementToSuper(Isolate* isolate,
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, result,
       Object::SetElementWithReceiver(isolate, proto, receiver, index, value,
-                                     strict_mode));
+                                     language_mode));
   return *result;
 }
 
@@ -353,21 +370,23 @@ RUNTIME_FUNCTION(Runtime_StoreToSuper_Sloppy) {
 
 static Object* StoreKeyedToSuper(Isolate* isolate, Handle<JSObject> home_object,
                                  Handle<Object> receiver, Handle<Object> key,
-                                 Handle<Object> value, StrictMode strict_mode) {
+                                 Handle<Object> value,
+                                 LanguageMode language_mode) {
   uint32_t index;
 
   if (key->ToArrayIndex(&index)) {
     return StoreElementToSuper(isolate, home_object, receiver, index, value,
-                               strict_mode);
+                               language_mode);
   }
   Handle<Name> name;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, name,
                                      Runtime::ToName(isolate, key));
   if (name->AsArrayIndex(&index)) {
     return StoreElementToSuper(isolate, home_object, receiver, index, value,
-                               strict_mode);
+                               language_mode);
   }
-  return StoreToSuper(isolate, home_object, receiver, name, value, strict_mode);
+  return StoreToSuper(isolate, home_object, receiver, name, value,
+                      language_mode);
 }
 
 

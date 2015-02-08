@@ -809,6 +809,8 @@ class Isolate {
   // Attempts to compute the current source location, storing the
   // result in the target out parameter.
   void ComputeLocation(MessageLocation* target);
+  bool ComputeLocationFromException(MessageLocation* target,
+                                    Handle<Object> exception);
   bool ComputeLocationFromStackTrace(MessageLocation* target,
                                      Handle<Object> exception);
 
@@ -1139,6 +1141,9 @@ class Isolate {
     return store_buffer_hash_set_2_address_;
   }
 
+  void AddDetachedContext(Handle<Context> context);
+  void CheckDetachedContextsAfterGC();
+
  private:
   explicit Isolate(bool enable_serializer);
 
@@ -1359,6 +1364,7 @@ class Isolate {
 
   v8::Isolate::UseCounterCallback use_counter_callback_;
   BasicBlockProfiler* basic_block_profiler_;
+
 
   friend class ExecutionAccess;
   friend class HandleScopeImplementer;

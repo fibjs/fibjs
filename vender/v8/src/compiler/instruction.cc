@@ -50,47 +50,11 @@ std::ostream& operator<<(std::ostream& os,
       return os << "[" << conf->general_register_name(op.index()) << "|R]";
     case InstructionOperand::DOUBLE_REGISTER:
       return os << "[" << conf->double_register_name(op.index()) << "|R]";
+    case InstructionOperand::INVALID:
+      return os << "(x)";
   }
   UNREACHABLE();
   return os;
-}
-
-
-template <InstructionOperand::Kind kOperandKind, int kNumCachedOperands>
-SubKindOperand<kOperandKind, kNumCachedOperands>*
-    SubKindOperand<kOperandKind, kNumCachedOperands>::cache = NULL;
-
-
-template <InstructionOperand::Kind kOperandKind, int kNumCachedOperands>
-void SubKindOperand<kOperandKind, kNumCachedOperands>::SetUpCache() {
-  if (cache) return;
-  cache = new SubKindOperand[kNumCachedOperands];
-  for (int i = 0; i < kNumCachedOperands; i++) {
-    cache[i].ConvertTo(kOperandKind, i);
-  }
-}
-
-
-template <InstructionOperand::Kind kOperandKind, int kNumCachedOperands>
-void SubKindOperand<kOperandKind, kNumCachedOperands>::TearDownCache() {
-  delete[] cache;
-  cache = NULL;
-}
-
-
-void InstructionOperand::SetUpCaches() {
-#define INSTRUCTION_OPERAND_SETUP(name, type, number) \
-  name##Operand::SetUpCache();
-  INSTRUCTION_OPERAND_LIST(INSTRUCTION_OPERAND_SETUP)
-#undef INSTRUCTION_OPERAND_SETUP
-}
-
-
-void InstructionOperand::TearDownCaches() {
-#define INSTRUCTION_OPERAND_TEARDOWN(name, type, number) \
-  name##Operand::TearDownCache();
-  INSTRUCTION_OPERAND_LIST(INSTRUCTION_OPERAND_TEARDOWN)
-#undef INSTRUCTION_OPERAND_TEARDOWN
 }
 
 
@@ -114,6 +78,40 @@ bool ParallelMove::IsRedundant() const {
     if (!move_operands_[i].IsRedundant()) return false;
   }
   return true;
+}
+
+
+Instruction::Instruction(InstructionCode opcode)
+    : opcode_(opcode),
+      bit_field_(OutputCountField::encode(0) | InputCountField::encode(0) |
+                 TempCountField::encode(0) | IsCallField::encode(false) |
+                 IsControlField::encode(false)),
+      pointer_map_(NULL) {}
+
+
+Instruction::Instruction(InstructionCode opcode, size_t output_count,
+                         InstructionOperand* outputs, size_t input_count,
+                         InstructionOperand* inputs, size_t temp_count,
+                         InstructionOperand* temps)
+    : opcode_(opcode),
+      bit_field_(OutputCountField::encode(output_count) |
+                 InputCountField::encode(input_count) |
+                 TempCountField::encode(temp_count) |
+                 IsCallField::encode(false) | IsControlField::encode(false)),
+      pointer_map_(NULL) {
+  size_t offset = 0;
+  for (size_t i = 0; i < output_count; ++i) {
+    DCHECK(!outputs[i].IsInvalid());
+    operands_[offset++] = outputs[i];
+  }
+  for (size_t i = 0; i < input_count; ++i) {
+    DCHECK(!inputs[i].IsInvalid());
+    operands_[offset++] = inputs[i];
+  }
+  for (size_t i = 0; i < temp_count; ++i) {
+    DCHECK(!temps[i].IsInvalid());
+    operands_[offset++] = temps[i];
+  }
 }
 
 
@@ -406,7 +404,7 @@ InstructionBlocks* InstructionSequence::InstructionBlocksFor(
   size_t rpo_number = 0;
   for (BasicBlockVector::const_iterator it = schedule->rpo_order()->begin();
        it != schedule->rpo_order()->end(); ++it, ++rpo_number) {
-    DCHECK_EQ(NULL, (*blocks)[rpo_number]);
+    DCHECK(!(*blocks)[rpo_number]);
     DCHECK((*it)->GetRpoNumber().ToSize() == rpo_number);
     (*blocks)[rpo_number] = InstructionBlockFor(zone, *it);
   }
@@ -452,7 +450,7 @@ InstructionSequence::InstructionSequence(Isolate* isolate,
 
 int InstructionSequence::NextVirtualRegister() {
   int virtual_register = next_virtual_register_++;
-  CHECK_NE(virtual_register, UnallocatedOperand::kInvalidVirtualRegister);
+  CHECK_NE(virtual_register, InstructionOperand::kInvalidVirtualRegister);
   return virtual_register;
 }
 

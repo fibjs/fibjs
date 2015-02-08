@@ -10,8 +10,6 @@
 #include "src/compiler/code-generator-impl.h"
 #include "src/compiler/gap-resolver.h"
 #include "src/compiler/node-matchers.h"
-#include "src/compiler/node-properties-inl.h"
-#include "src/compiler/osr.h"
 #include "src/mips/macro-assembler-mips.h"
 #include "src/scopes.h"
 
@@ -266,6 +264,40 @@ Condition FlagsConditionToConditionOvf(FlagsCondition condition) {
   }
   UNREACHABLE();
   return kNoCondition;
+}
+
+
+FPUCondition FlagsConditionToConditionCmpD(bool& predicate,
+                                           FlagsCondition condition) {
+  switch (condition) {
+    case kEqual:
+      predicate = true;
+      return EQ;
+    case kNotEqual:
+      predicate = false;
+      return EQ;
+    case kUnsignedLessThan:
+      predicate = true;
+      return OLT;
+    case kUnsignedGreaterThanOrEqual:
+      predicate = false;
+      return ULT;
+    case kUnsignedLessThanOrEqual:
+      predicate = true;
+      return OLE;
+    case kUnsignedGreaterThan:
+      predicate = false;
+      return ULE;
+    case kUnorderedEqual:
+    case kUnorderedNotEqual:
+      predicate = true;
+      break;
+    default:
+      predicate = true;
+      break;
+  }
+  UNREACHABLE();
+  return kNoFPUCondition;
 }
 
 }  // namespace
@@ -897,7 +929,7 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
   // Materialize a full 32-bit 1 or 0 value. The result register is always the
   // last output of the instruction.
   Label false_value;
-  DCHECK_NE(0, instr->OutputCount());
+  DCHECK_NE(0u, instr->OutputCount());
   Register result = i.OutputRegister(instr->OutputCount() - 1);
   Condition cc = kNoCondition;
 
@@ -974,47 +1006,25 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
   } else if (instr->arch_opcode() == kMips64CmpD) {
     FPURegister left = i.InputDoubleRegister(0);
     FPURegister right = i.InputDoubleRegister(1);
-    // TODO(plind): Provide NaN-testing macro-asm function without need for
-    // BranchF.
-    FPURegister dummy1 = f0;
-    FPURegister dummy2 = f2;
-    switch (condition) {
-      case kEqual:
-        // TODO(plind):  improve the NaN testing throughout this function.
-        __ BranchF(NULL, &false_value, kNoCondition, dummy1, dummy2);
-        cc = eq;
-        break;
-      case kNotEqual:
-        __ BranchF(USE_DELAY_SLOT, NULL, &done, kNoCondition, dummy1, dummy2);
-        __ li(result, Operand(1));  // In delay slot - returns 1 on NaN.
-        cc = ne;
-        break;
-      case kUnsignedLessThan:
-        __ BranchF(NULL, &false_value, kNoCondition, dummy1, dummy2);
-        cc = lt;
-        break;
-      case kUnsignedGreaterThanOrEqual:
-        __ BranchF(USE_DELAY_SLOT, NULL, &done, kNoCondition, dummy1, dummy2);
-        __ li(result, Operand(1));  // In delay slot - returns 1 on NaN.
-        cc = ge;
-        break;
-      case kUnsignedLessThanOrEqual:
-        __ BranchF(NULL, &false_value, kNoCondition, dummy1, dummy2);
-        cc = le;
-        break;
-      case kUnsignedGreaterThan:
-        __ BranchF(USE_DELAY_SLOT, NULL, &done, kNoCondition, dummy1, dummy2);
-        __ li(result, Operand(1));  // In delay slot - returns 1 on NaN.
-        cc = gt;
-        break;
-      default:
-        UNSUPPORTED_COND(kMips64Cmp, condition);
-        break;
-    }
-    __ BranchF(USE_DELAY_SLOT, &done, NULL, cc, left, right);
-    __ li(result, Operand(1));  // In delay slot - branch taken returns 1.
-                                // Fall-thru (branch not taken) returns 0.
 
+    bool predicate;
+    FPUCondition cc = FlagsConditionToConditionCmpD(predicate, condition);
+    if (kArchVariant != kMips64r6) {
+      __ li(result, Operand(1));
+      __ c(cc, D, left, right);
+      if (predicate) {
+        __ Movf(result, zero_reg);
+      } else {
+        __ Movt(result, zero_reg);
+      }
+    } else {
+      __ cmp(cc, L, kDoubleCompareReg, left, right);
+      __ dmfc1(at, kDoubleCompareReg);
+      __ dsrl32(result, at, 31);  // Cmp returns all 1s for true.
+      if (!predicate)             // Toggle result for not equal.
+        __ xori(result, result, 1);
+    }
+    return;
   } else {
     PrintF("AssembleArchBranch Unimplemented arch_opcode is : %d\n",
            instr->arch_opcode());
@@ -1056,24 +1066,6 @@ void CodeGenerator::AssemblePrologue() {
     __ Prologue(info->IsCodePreAgingActive());
     frame()->SetRegisterSaveAreaSize(
         StandardFrameConstants::kFixedFrameSizeFromFp);
-
-    // Sloppy mode functions and builtins need to replace the receiver with the
-    // global proxy when called as functions (without an explicit receiver
-    // object).
-    // TODO(mstarzinger/verwaest): Should this be moved back into the CallIC?
-    if (info->strict_mode() == SLOPPY && !info->is_native()) {
-      Label ok;
-      // +2 for return address and saved frame pointer.
-      int receiver_slot = info->scope()->num_parameters() + 2;
-      __ ld(a2, MemOperand(fp, receiver_slot * kPointerSize));
-      __ LoadRoot(at, Heap::kUndefinedValueRootIndex);
-      __ Branch(&ok, ne, a2, Operand(at));
-
-      __ ld(a2, GlobalObjectOperand());
-      __ ld(a2, FieldMemOperand(a2, GlobalObject::kGlobalProxyOffset));
-      __ sd(a2, MemOperand(fp, receiver_slot * kPointerSize));
-      __ bind(&ok);
-    }
   } else {
     __ StubPrologue();
     frame()->SetRegisterSaveAreaSize(
@@ -1091,10 +1083,8 @@ void CodeGenerator::AssemblePrologue() {
     // remaining stack slots.
     if (FLAG_code_comments) __ RecordComment("-- OSR entrypoint --");
     osr_pc_offset_ = __ pc_offset();
-    int unoptimized_slots =
-        static_cast<int>(OsrHelper(info()).UnoptimizedFrameSlots());
-    DCHECK(stack_slots >= unoptimized_slots);
-    stack_slots -= unoptimized_slots;
+    DCHECK(stack_slots >= frame()->GetOsrStackSlotCount());
+    stack_slots -= frame()->GetOsrStackSlotCount();
   }
 
   if (stack_slots > 0) {

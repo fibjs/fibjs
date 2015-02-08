@@ -31,7 +31,7 @@ class FunctionEntry BASE_EMBEDDED {
     kEndPositionIndex,
     kLiteralCountIndex,
     kPropertyCountIndex,
-    kStrictModeIndex,
+    kLanguageModeIndex,
     kSize
   };
 
@@ -44,10 +44,9 @@ class FunctionEntry BASE_EMBEDDED {
   int end_pos() { return backing_[kEndPositionIndex]; }
   int literal_count() { return backing_[kLiteralCountIndex]; }
   int property_count() { return backing_[kPropertyCountIndex]; }
-  StrictMode strict_mode() {
-    DCHECK(backing_[kStrictModeIndex] == SLOPPY ||
-           backing_[kStrictModeIndex] == STRICT);
-    return static_cast<StrictMode>(backing_[kStrictModeIndex]);
+  LanguageMode language_mode() {
+    DCHECK(is_valid_language_mode(backing_[kLanguageModeIndex]));
+    return static_cast<LanguageMode>(backing_[kLanguageModeIndex]);
   }
 
   bool is_valid() { return !backing_.is_empty(); }
@@ -365,7 +364,6 @@ class ParserTraits {
     inline static Scope* ptr_to_scope(ScopePtr scope) { return scope; }
 
     typedef Variable GeneratorVariable;
-    typedef v8::internal::Zone Zone;
 
     typedef v8::internal::AstProperties AstProperties;
     typedef Vector<VariableProxy*> ParameterIdentifierVector;
@@ -563,13 +561,13 @@ class ParserTraits {
   ZoneList<v8::internal::Statement*>* NewStatementList(int size, Zone* zone) {
     return new(zone) ZoneList<v8::internal::Statement*>(size, zone);
   }
-  V8_INLINE Scope* NewScope(Scope* parent_scope, ScopeType scope_type);
+  V8_INLINE Scope* NewScope(Scope* parent_scope, ScopeType scope_type,
+                            FunctionKind kind = kNormalFunction);
 
   // Utility functions
   int DeclareArrowParametersFromExpression(Expression* expression, Scope* scope,
                                            Scanner::Location* dupe_loc,
                                            bool* ok);
-  V8_INLINE AstValueFactory* ast_value_factory();
 
   // Temporary glue; these functions will move to ParserBase.
   Expression* ParseV8Intrinsic(bool* ok);
@@ -583,7 +581,7 @@ class ParserTraits {
                                       int* expected_property_count, bool* ok);
   V8_INLINE ZoneList<Statement*>* ParseEagerFunctionBody(
       const AstRawString* name, int pos, Variable* fvar,
-      Token::Value fvar_init_op, bool is_generator, bool* ok);
+      Token::Value fvar_init_op, FunctionKind kind, bool* ok);
 
   ClassLiteral* ParseClassLiteral(const AstRawString* name,
                                   Scanner::Location class_name_location,
@@ -670,7 +668,7 @@ class Parser : public ParserBase<ParserTraits> {
     Parser parser(info, &parse_info);
     parser.set_allow_lazy(allow_lazy);
     if (parser.Parse()) {
-      info->SetStrictMode(info->function()->strict_mode());
+      info->SetLanguageMode(info->function()->language_mode());
       return true;
     }
     return false;
@@ -716,9 +714,6 @@ class Parser : public ParserBase<ParserTraits> {
   Isolate* isolate() { return info_->isolate(); }
   CompilationInfo* info() const { return info_; }
   Handle<Script> script() const { return info_->script(); }
-  AstValueFactory* ast_value_factory() const {
-    return info_->ast_value_factory();
-  }
 
   // Called by ParseProgram after setting up the scanner.
   FunctionLiteral* DoParseProgram(CompilationInfo* info, Scope** scope,
@@ -746,17 +741,18 @@ class Parser : public ParserBase<ParserTraits> {
   // which is set to false if parsing failed; it is unchanged otherwise.
   // By making the 'exception handling' explicit, we are forced to check
   // for failure at the call sites.
-  void* ParseStatementList(ZoneList<Statement*>* processor, int end_token,
+  void* ParseStatementList(ZoneList<Statement*>* body, int end_token,
                            bool is_eval, Scope** ad_hoc_eval_scope, bool* ok);
   Statement* ParseStatementListItem(bool* ok);
-  Module* ParseModule(bool* ok);
+  Statement* ParseModule(bool* ok);
   Statement* ParseModuleItem(bool* ok);
-  Module* ParseModuleSpecifier(bool* ok);
+  Literal* ParseModuleSpecifier(bool* ok);
   Statement* ParseImportDeclaration(bool* ok);
   Statement* ParseExportDeclaration(bool* ok);
   Statement* ParseExportDefault(bool* ok);
-  void* ParseModuleDeclarationClause(ZoneList<const AstRawString*>* names,
-                                     bool* ok);
+  void* ParseExportClause(ZoneList<const AstRawString*>* names,
+                          Scanner::Location* reserved_loc, bool* ok);
+  void* ParseNamedImports(ZoneList<const AstRawString*>* names, bool* ok);
   Statement* ParseStatement(ZoneList<const AstRawString*>* labels, bool* ok);
   Statement* ParseFunctionDeclaration(ZoneList<const AstRawString*>* names,
                                       bool* ok);
@@ -851,7 +847,8 @@ class Parser : public ParserBase<ParserTraits> {
 
   // Factory methods.
 
-  Scope* NewScope(Scope* parent, ScopeType type);
+  Scope* NewScope(Scope* parent, ScopeType type,
+                  FunctionKind kind = kNormalFunction);
 
   FunctionLiteral* DefaultConstructor(bool call_super, Scope* scope, int pos,
                                       int end_pos);
@@ -869,7 +866,7 @@ class Parser : public ParserBase<ParserTraits> {
   // Consumes the ending }.
   ZoneList<Statement*>* ParseEagerFunctionBody(
       const AstRawString* function_name, int pos, Variable* fvar,
-      Token::Value fvar_init_op, bool is_generator, bool* ok);
+      Token::Value fvar_init_op, FunctionKind kind, bool* ok);
 
   void ThrowPendingError();
 
@@ -888,6 +885,7 @@ class Parser : public ParserBase<ParserTraits> {
   ParseData* cached_parse_data_;
 
   CompilationInfo* info_;
+  bool parsing_lazy_arrow_parameters_;  // for lazily parsed arrow functions.
 
   // Pending errors.
   bool has_pending_error_;
@@ -911,8 +909,9 @@ bool ParserTraits::IsFutureStrictReserved(
 }
 
 
-Scope* ParserTraits::NewScope(Scope* parent_scope, ScopeType scope_type) {
-  return parser_->NewScope(parent_scope, scope_type);
+Scope* ParserTraits::NewScope(Scope* parent_scope, ScopeType scope_type,
+                              FunctionKind kind) {
+  return parser_->NewScope(parent_scope, scope_type, kind);
 }
 
 
@@ -932,19 +931,14 @@ void ParserTraits::SkipLazyFunctionBody(const AstRawString* function_name,
 
 ZoneList<Statement*>* ParserTraits::ParseEagerFunctionBody(
     const AstRawString* name, int pos, Variable* fvar,
-    Token::Value fvar_init_op, bool is_generator, bool* ok) {
-  return parser_->ParseEagerFunctionBody(name, pos, fvar, fvar_init_op,
-                                         is_generator, ok);
+    Token::Value fvar_init_op, FunctionKind kind, bool* ok) {
+  return parser_->ParseEagerFunctionBody(name, pos, fvar, fvar_init_op, kind,
+                                         ok);
 }
 
 void ParserTraits::CheckConflictingVarDeclarations(v8::internal::Scope* scope,
                                                    bool* ok) {
   parser_->CheckConflictingVarDeclarations(scope, ok);
-}
-
-
-AstValueFactory* ParserTraits::ast_value_factory() {
-  return parser_->ast_value_factory();
 }
 
 

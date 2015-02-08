@@ -27,17 +27,20 @@ namespace compiler {
 const InstructionCode kGapInstruction = -1;
 const InstructionCode kSourcePositionInstruction = -2;
 
-#define INSTRUCTION_OPERAND_LIST(V)                                  \
-  V(Constant, CONSTANT, 0)                                           \
-  V(Immediate, IMMEDIATE, 0)                                         \
-  V(StackSlot, STACK_SLOT, 128)                                      \
-  V(DoubleStackSlot, DOUBLE_STACK_SLOT, 128)                         \
-  V(Register, REGISTER, RegisterConfiguration::kMaxGeneralRegisters) \
-  V(DoubleRegister, DOUBLE_REGISTER, RegisterConfiguration::kMaxDoubleRegisters)
+#define INSTRUCTION_OPERAND_LIST(V)     \
+  V(Constant, CONSTANT)                 \
+  V(Immediate, IMMEDIATE)               \
+  V(StackSlot, STACK_SLOT)              \
+  V(DoubleStackSlot, DOUBLE_STACK_SLOT) \
+  V(Register, REGISTER)                 \
+  V(DoubleRegister, DOUBLE_REGISTER)
 
-class InstructionOperand : public ZoneObject {
+class InstructionOperand {
  public:
+  static const int kInvalidVirtualRegister = -1;
+
   enum Kind {
+    INVALID,
     UNALLOCATED,
     CONSTANT,
     IMMEDIATE,
@@ -47,14 +50,23 @@ class InstructionOperand : public ZoneObject {
     DOUBLE_REGISTER
   };
 
-  InstructionOperand(Kind kind, int index) { ConvertTo(kind, index); }
+  InstructionOperand() : virtual_register_(kInvalidVirtualRegister) {
+    ConvertTo(INVALID, 0);
+  }
+
+  InstructionOperand(Kind kind, int index)
+      : virtual_register_(kInvalidVirtualRegister) {
+    DCHECK(kind != INVALID);
+    ConvertTo(kind, index);
+  }
 
   Kind kind() const { return KindField::decode(value_); }
   int index() const { return static_cast<int>(value_) >> KindField::kSize; }
-#define INSTRUCTION_OPERAND_PREDICATE(name, type, number) \
+#define INSTRUCTION_OPERAND_PREDICATE(name, type) \
   bool Is##name() const { return kind() == type; }
   INSTRUCTION_OPERAND_LIST(INSTRUCTION_OPERAND_PREDICATE)
-  INSTRUCTION_OPERAND_PREDICATE(Unallocated, UNALLOCATED, 0)
+  INSTRUCTION_OPERAND_PREDICATE(Unallocated, UNALLOCATED)
+  INSTRUCTION_OPERAND_PREDICATE(Invalid, INVALID)
 #undef INSTRUCTION_OPERAND_PREDICATE
   bool Equals(const InstructionOperand* other) const {
     return value_ == other->value_;
@@ -65,19 +77,27 @@ class InstructionOperand : public ZoneObject {
     value_ = KindField::encode(kind);
     value_ |= bit_cast<unsigned>(index << KindField::kSize);
     DCHECK(this->index() == index);
+    if (kind != UNALLOCATED) virtual_register_ = kInvalidVirtualRegister;
   }
 
-  // Calls SetUpCache()/TearDownCache() for each subclass.
-  static void SetUpCaches();
-  static void TearDownCaches();
+  // TODO(dcarney): get rid of these
+  void* operator new(size_t, void* location) { return location; }
+  void* operator new(size_t size, Zone* zone) {
+    return zone->New(static_cast<int>(size));
+  }
+  void operator delete(void* pointer, Zone* zone) { UNREACHABLE(); }
 
  protected:
+  InstructionOperand(Kind kind, int index, int virtual_register)
+      : virtual_register_(virtual_register) {
+    ConvertTo(kind, index);
+  }
   typedef BitField<Kind, 0, 3> KindField;
 
   uint32_t value_;
+  // TODO(dcarney): this should really be unsigned.
+  int32_t virtual_register_;
 };
-
-typedef ZoneVector<InstructionOperand*> InstructionOperandVector;
 
 struct PrintableInstructionOperand {
   const RegisterConfiguration* register_configuration_;
@@ -114,28 +134,23 @@ class UnallocatedOperand : public InstructionOperand {
     USED_AT_END
   };
 
-  static const int kInvalidVirtualRegister = -1;
-
-  explicit UnallocatedOperand(ExtendedPolicy policy)
-      : InstructionOperand(UNALLOCATED, 0),
-        virtual_register_(kInvalidVirtualRegister) {
+  UnallocatedOperand(ExtendedPolicy policy, int virtual_register)
+      : InstructionOperand(UNALLOCATED, 0, virtual_register) {
     value_ |= BasicPolicyField::encode(EXTENDED_POLICY);
     value_ |= ExtendedPolicyField::encode(policy);
     value_ |= LifetimeField::encode(USED_AT_END);
   }
 
-  UnallocatedOperand(BasicPolicy policy, int index)
-      : InstructionOperand(UNALLOCATED, 0),
-        virtual_register_(kInvalidVirtualRegister) {
+  UnallocatedOperand(BasicPolicy policy, int index, int virtual_register)
+      : InstructionOperand(UNALLOCATED, 0, virtual_register) {
     DCHECK(policy == FIXED_SLOT);
     value_ |= BasicPolicyField::encode(policy);
     value_ |= static_cast<int32_t>(index) << FixedSlotIndexField::kShift;
     DCHECK(this->fixed_slot_index() == index);
   }
 
-  UnallocatedOperand(ExtendedPolicy policy, int index)
-      : InstructionOperand(UNALLOCATED, 0),
-        virtual_register_(kInvalidVirtualRegister) {
+  UnallocatedOperand(ExtendedPolicy policy, int index, int virtual_register)
+      : InstructionOperand(UNALLOCATED, 0, virtual_register) {
     DCHECK(policy == FIXED_REGISTER || policy == FIXED_DOUBLE_REGISTER);
     value_ |= BasicPolicyField::encode(EXTENDED_POLICY);
     value_ |= ExtendedPolicyField::encode(policy);
@@ -143,18 +158,16 @@ class UnallocatedOperand : public InstructionOperand {
     value_ |= FixedRegisterField::encode(index);
   }
 
-  UnallocatedOperand(ExtendedPolicy policy, Lifetime lifetime)
-      : InstructionOperand(UNALLOCATED, 0),
-        virtual_register_(kInvalidVirtualRegister) {
+  UnallocatedOperand(ExtendedPolicy policy, Lifetime lifetime,
+                     int virtual_register)
+      : InstructionOperand(UNALLOCATED, 0, virtual_register) {
     value_ |= BasicPolicyField::encode(EXTENDED_POLICY);
     value_ |= ExtendedPolicyField::encode(policy);
     value_ |= LifetimeField::encode(lifetime);
   }
 
   UnallocatedOperand* CopyUnconstrained(Zone* zone) {
-    UnallocatedOperand* result = new (zone) UnallocatedOperand(ANY);
-    result->set_virtual_register(virtual_register());
-    return result;
+    return new (zone) UnallocatedOperand(ANY, virtual_register());
   }
 
   static const UnallocatedOperand* cast(const InstructionOperand* op) {
@@ -165,6 +178,11 @@ class UnallocatedOperand : public InstructionOperand {
   static UnallocatedOperand* cast(InstructionOperand* op) {
     DCHECK(op->IsUnallocated());
     return static_cast<UnallocatedOperand*>(op);
+  }
+
+  static UnallocatedOperand cast(const InstructionOperand& op) {
+    DCHECK(op.IsUnallocated());
+    return *static_cast<const UnallocatedOperand*>(&op);
   }
 
   // The encoding used for UnallocatedOperand operands depends on the policy
@@ -231,7 +249,10 @@ class UnallocatedOperand : public InstructionOperand {
   }
 
   // [basic_policy]: Distinguish between FIXED_SLOT and all other policies.
-  BasicPolicy basic_policy() const { return BasicPolicyField::decode(value_); }
+  BasicPolicy basic_policy() const {
+    DCHECK_EQ(UNALLOCATED, kind());
+    return BasicPolicyField::decode(value_);
+  }
 
   // [extended_policy]: Only for non-FIXED_SLOT. The finer-grained policy.
   ExtendedPolicy extended_policy() const {
@@ -253,18 +274,22 @@ class UnallocatedOperand : public InstructionOperand {
   }
 
   // [virtual_register]: The virtual register ID for this operand.
-  int32_t virtual_register() const { return virtual_register_; }
-  void set_virtual_register(int32_t id) { virtual_register_ = id; }
+  int32_t virtual_register() const {
+    DCHECK_EQ(UNALLOCATED, kind());
+    return virtual_register_;
+  }
+
+  // TODO(dcarney): remove this.
+  void set_virtual_register(int32_t id) {
+    DCHECK_EQ(UNALLOCATED, kind());
+    virtual_register_ = id;
+  }
 
   // [lifetime]: Only for non-FIXED_SLOT.
   bool IsUsedAtStart() const {
     DCHECK(basic_policy() == EXTENDED_POLICY);
     return LifetimeField::decode(value_) == USED_AT_START;
   }
-
- private:
-  // TODO(dcarney): this should really be unsigned.
-  int32_t virtual_register_;
 };
 
 
@@ -317,41 +342,33 @@ struct PrintableMoveOperands {
 std::ostream& operator<<(std::ostream& os, const PrintableMoveOperands& mo);
 
 
-template <InstructionOperand::Kind kOperandKind, int kNumCachedOperands>
-class SubKindOperand FINAL : public InstructionOperand {
- public:
-  static SubKindOperand* Create(int index, Zone* zone) {
-    DCHECK(index >= 0);
-    if (index < kNumCachedOperands) return &cache[index];
-    return new (zone) SubKindOperand(index);
-  }
-
-  static SubKindOperand* cast(InstructionOperand* op) {
-    DCHECK(op->kind() == kOperandKind);
-    return reinterpret_cast<SubKindOperand*>(op);
-  }
-
-  static const SubKindOperand* cast(const InstructionOperand* op) {
-    DCHECK(op->kind() == kOperandKind);
-    return reinterpret_cast<const SubKindOperand*>(op);
-  }
-
-  static void SetUpCache();
-  static void TearDownCache();
-
- private:
-  static SubKindOperand* cache;
-
-  SubKindOperand() : InstructionOperand(kOperandKind, 0) {}  // For the caches.
-  explicit SubKindOperand(int index)
-      : InstructionOperand(kOperandKind, index) {}
-};
-
-
-#define INSTRUCTION_TYPEDEF_SUBKIND_OPERAND_CLASS(name, type, number) \
-  typedef SubKindOperand<InstructionOperand::type, number> name##Operand;
-INSTRUCTION_OPERAND_LIST(INSTRUCTION_TYPEDEF_SUBKIND_OPERAND_CLASS)
-#undef INSTRUCTION_TYPEDEF_SUBKIND_OPERAND_CLASS
+#define INSTRUCTION_SUBKIND_OPERAND_CLASS(SubKind, kOperandKind)        \
+  class SubKind##Operand FINAL : public InstructionOperand {            \
+   public:                                                              \
+    explicit SubKind##Operand(int index)                                \
+        : InstructionOperand(kOperandKind, index) {}                    \
+                                                                        \
+    static SubKind##Operand* New(int index, Zone* zone) {               \
+      return new (zone) SubKind##Operand(index);                        \
+    }                                                                   \
+                                                                        \
+    static SubKind##Operand* cast(InstructionOperand* op) {             \
+      DCHECK(op->kind() == kOperandKind);                               \
+      return reinterpret_cast<SubKind##Operand*>(op);                   \
+    }                                                                   \
+                                                                        \
+    static const SubKind##Operand* cast(const InstructionOperand* op) { \
+      DCHECK(op->kind() == kOperandKind);                               \
+      return reinterpret_cast<const SubKind##Operand*>(op);             \
+    }                                                                   \
+                                                                        \
+    static SubKind##Operand cast(const InstructionOperand& op) {        \
+      DCHECK(op.kind() == kOperandKind);                                \
+      return *static_cast<const SubKind##Operand*>(&op);                \
+    }                                                                   \
+  };
+INSTRUCTION_OPERAND_LIST(INSTRUCTION_SUBKIND_OPERAND_CLASS)
+#undef INSTRUCTION_SUBKIND_OPERAND_CLASS
 
 
 class ParallelMove FINAL : public ZoneObject {
@@ -422,28 +439,37 @@ std::ostream& operator<<(std::ostream& os, const PointerMap& pm);
 class Instruction : public ZoneObject {
  public:
   size_t OutputCount() const { return OutputCountField::decode(bit_field_); }
-  InstructionOperand* OutputAt(size_t i) const {
+  const InstructionOperand* OutputAt(size_t i) const {
     DCHECK(i < OutputCount());
-    return operands_[i];
+    return &operands_[i];
+  }
+  InstructionOperand* OutputAt(size_t i) {
+    DCHECK(i < OutputCount());
+    return &operands_[i];
   }
 
   bool HasOutput() const { return OutputCount() == 1; }
-  InstructionOperand* Output() const { return OutputAt(0); }
+  const InstructionOperand* Output() const { return OutputAt(0); }
+  InstructionOperand* Output() { return OutputAt(0); }
 
   size_t InputCount() const { return InputCountField::decode(bit_field_); }
-  InstructionOperand* InputAt(size_t i) const {
+  const InstructionOperand* InputAt(size_t i) const {
     DCHECK(i < InputCount());
-    return operands_[OutputCount() + i];
+    return &operands_[OutputCount() + i];
   }
-  void SetInputAt(size_t i, InstructionOperand* operand) {
+  InstructionOperand* InputAt(size_t i) {
     DCHECK(i < InputCount());
-    operands_[OutputCount() + i] = operand;
+    return &operands_[OutputCount() + i];
   }
 
   size_t TempCount() const { return TempCountField::decode(bit_field_); }
-  InstructionOperand* TempAt(size_t i) const {
+  const InstructionOperand* TempAt(size_t i) const {
     DCHECK(i < TempCount());
-    return operands_[OutputCount() + InputCount() + i];
+    return &operands_[OutputCount() + InputCount() + i];
+  }
+  InstructionOperand* TempAt(size_t i) {
+    DCHECK(i < TempCount());
+    return &operands_[OutputCount() + InputCount() + i];
   }
 
   InstructionCode opcode() const { return opcode_; }
@@ -462,18 +488,18 @@ class Instruction : public ZoneObject {
   }
 
   static Instruction* New(Zone* zone, InstructionCode opcode,
-                          size_t output_count, InstructionOperand** outputs,
-                          size_t input_count, InstructionOperand** inputs,
-                          size_t temp_count, InstructionOperand** temps) {
+                          size_t output_count, InstructionOperand* outputs,
+                          size_t input_count, InstructionOperand* inputs,
+                          size_t temp_count, InstructionOperand* temps) {
     DCHECK(opcode >= 0);
     DCHECK(output_count == 0 || outputs != NULL);
     DCHECK(input_count == 0 || inputs != NULL);
     DCHECK(temp_count == 0 || temps != NULL);
-    InstructionOperand* none = NULL;
-    USE(none);
-    int size = static_cast<int>(RoundUp(sizeof(Instruction), kPointerSize) +
-                                (output_count + input_count + temp_count - 1) *
-                                    sizeof(none));
+    size_t total_extra_ops = output_count + input_count + temp_count;
+    if (total_extra_ops != 0) total_extra_ops--;
+    int size = static_cast<int>(
+        RoundUp(sizeof(Instruction), sizeof(InstructionOperand)) +
+        total_extra_ops * sizeof(InstructionOperand));
     return new (zone->New(size)) Instruction(
         opcode, output_count, outputs, input_count, inputs, temp_count, temps);
   }
@@ -505,7 +531,7 @@ class Instruction : public ZoneObject {
 
   void set_pointer_map(PointerMap* map) {
     DCHECK(NeedsPointerMap());
-    DCHECK_EQ(NULL, pointer_map_);
+    DCHECK(!pointer_map_);
     pointer_map_ = map;
   }
 
@@ -527,33 +553,11 @@ class Instruction : public ZoneObject {
   }
 
  protected:
-  explicit Instruction(InstructionCode opcode)
-      : opcode_(opcode),
-        bit_field_(OutputCountField::encode(0) | InputCountField::encode(0) |
-                   TempCountField::encode(0) | IsCallField::encode(false) |
-                   IsControlField::encode(false)),
-        pointer_map_(NULL) {}
-
+  explicit Instruction(InstructionCode opcode);
   Instruction(InstructionCode opcode, size_t output_count,
-              InstructionOperand** outputs, size_t input_count,
-              InstructionOperand** inputs, size_t temp_count,
-              InstructionOperand** temps)
-      : opcode_(opcode),
-        bit_field_(OutputCountField::encode(output_count) |
-                   InputCountField::encode(input_count) |
-                   TempCountField::encode(temp_count) |
-                   IsCallField::encode(false) | IsControlField::encode(false)),
-        pointer_map_(NULL) {
-    for (size_t i = 0; i < output_count; ++i) {
-      operands_[i] = outputs[i];
-    }
-    for (size_t i = 0; i < input_count; ++i) {
-      operands_[output_count + i] = inputs[i];
-    }
-    for (size_t i = 0; i < temp_count; ++i) {
-      operands_[output_count + input_count + i] = temps[i];
-    }
-  }
+              InstructionOperand* outputs, size_t input_count,
+              InstructionOperand* inputs, size_t temp_count,
+              InstructionOperand* temps);
 
  protected:
   typedef BitField<size_t, 0, 8> OutputCountField;
@@ -565,7 +569,7 @@ class Instruction : public ZoneObject {
   InstructionCode opcode_;
   uint32_t bit_field_;
   PointerMap* pointer_map_;
-  InstructionOperand* operands_[1];
+  InstructionOperand operands_[1];
 };
 
 
@@ -790,9 +794,8 @@ class PhiInstruction FINAL : public ZoneObject {
         operands_(zone),
         output_(nullptr),
         inputs_(zone) {
-    UnallocatedOperand* output =
-        new (zone) UnallocatedOperand(UnallocatedOperand::NONE);
-    output->set_virtual_register(virtual_register);
+    UnallocatedOperand* output = new (zone)
+        UnallocatedOperand(UnallocatedOperand::NONE, virtual_register);
     output_ = output;
     inputs_.reserve(reserved_input_count);
     operands_.reserve(reserved_input_count);
@@ -802,9 +805,8 @@ class PhiInstruction FINAL : public ZoneObject {
   const IntVector& operands() const { return operands_; }
 
   void Extend(Zone* zone, int virtual_register) {
-    UnallocatedOperand* input =
-        new (zone) UnallocatedOperand(UnallocatedOperand::ANY);
-    input->set_virtual_register(virtual_register);
+    UnallocatedOperand* input = new (zone)
+        UnallocatedOperand(UnallocatedOperand::ANY, virtual_register);
     operands_.push_back(virtual_register);
     inputs_.push_back(input);
   }

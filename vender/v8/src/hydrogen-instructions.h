@@ -1363,7 +1363,8 @@ class HGoto FINAL : public HTemplateControlInstruction<1, 0> {
 class HDeoptimize FINAL : public HTemplateControlInstruction<1, 0> {
  public:
   static HDeoptimize* New(Isolate* isolate, Zone* zone, HValue* context,
-                          const char* reason, Deoptimizer::BailoutType type,
+                          Deoptimizer::DeoptReason reason,
+                          Deoptimizer::BailoutType type,
                           HBasicBlock* unreachable_continuation) {
     return new(zone) HDeoptimize(reason, type, unreachable_continuation);
   }
@@ -1377,20 +1378,20 @@ class HDeoptimize FINAL : public HTemplateControlInstruction<1, 0> {
     return Representation::None();
   }
 
-  const char* reason() const { return reason_; }
+  Deoptimizer::DeoptReason reason() const { return reason_; }
   Deoptimizer::BailoutType type() { return type_; }
 
   DECLARE_CONCRETE_INSTRUCTION(Deoptimize)
 
  private:
-  explicit HDeoptimize(const char* reason,
+  explicit HDeoptimize(Deoptimizer::DeoptReason reason,
                        Deoptimizer::BailoutType type,
                        HBasicBlock* unreachable_continuation)
       : reason_(reason), type_(type) {
     SetSuccessorAt(0, unreachable_continuation);
   }
 
-  const char* reason_;
+  Deoptimizer::DeoptReason reason_;
   Deoptimizer::BailoutType type_;
 };
 
@@ -6227,6 +6228,10 @@ class HObjectAccess FINAL {
     return HObjectAccess(kInobject, WeakCell::kValueOffset);
   }
 
+  static HObjectAccess ForWeakCellNext() {
+    return HObjectAccess(kInobject, WeakCell::kNextOffset);
+  }
+
   static HObjectAccess ForAllocationMementoSite() {
     return HObjectAccess(kInobject, AllocationMemento::kAllocationSiteOffset);
   }
@@ -6969,6 +6974,14 @@ class HStoreNamedField FINAL : public HTemplateInstruction<3> {
     SetChangesFlag(kMaps);
   }
 
+  void MarkReceiverAsCell() {
+    bit_field_ = ReceiverIsCellField::update(bit_field_, true);
+  }
+
+  bool receiver_is_cell() const {
+    return ReceiverIsCellField::decode(bit_field_);
+  }
+
   bool NeedsWriteBarrier() const {
     DCHECK(!field_representation().IsDouble() ||
            (FLAG_unbox_double_fields && access_.IsInobject()) ||
@@ -6977,6 +6990,7 @@ class HStoreNamedField FINAL : public HTemplateInstruction<3> {
     if (field_representation().IsSmi()) return false;
     if (field_representation().IsInteger32()) return false;
     if (field_representation().IsExternal()) return false;
+    if (receiver_is_cell()) return false;
     return StoringValueNeedsWriteBarrier(value()) &&
         ReceiverObjectNeedsWriteBarrier(object(), value(), dominator());
   }
@@ -7036,6 +7050,7 @@ class HStoreNamedField FINAL : public HTemplateInstruction<3> {
 
   class HasTransitionField : public BitField<bool, 0, 1> {};
   class StoreModeField : public BitField<StoreFieldOrKeyedMode, 1, 1> {};
+  class ReceiverIsCellField : public BitField<bool, 2, 1> {};
 
   HObjectAccess access_;
   HValue* dominator_;
@@ -7047,12 +7062,12 @@ class HStoreNamedGeneric FINAL : public HTemplateInstruction<3> {
  public:
   DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P4(HStoreNamedGeneric, HValue*,
                                               Handle<String>, HValue*,
-                                              StrictMode);
+                                              LanguageMode);
   HValue* object() const { return OperandAt(0); }
   HValue* value() const { return OperandAt(1); }
   HValue* context() const { return OperandAt(2); }
   Handle<String> name() const { return name_; }
-  StrictMode strict_mode() const { return strict_mode_; }
+  LanguageMode language_mode() const { return language_mode_; }
 
   std::ostream& PrintDataTo(std::ostream& os) const OVERRIDE;  // NOLINT
 
@@ -7063,13 +7078,9 @@ class HStoreNamedGeneric FINAL : public HTemplateInstruction<3> {
   DECLARE_CONCRETE_INSTRUCTION(StoreNamedGeneric)
 
  private:
-  HStoreNamedGeneric(HValue* context,
-                     HValue* object,
-                     Handle<String> name,
-                     HValue* value,
-                     StrictMode strict_mode)
-      : name_(name),
-        strict_mode_(strict_mode) {
+  HStoreNamedGeneric(HValue* context, HValue* object, Handle<String> name,
+                     HValue* value, LanguageMode language_mode)
+      : name_(name), language_mode_(language_mode) {
     SetOperandAt(0, object);
     SetOperandAt(1, value);
     SetOperandAt(2, context);
@@ -7077,7 +7088,7 @@ class HStoreNamedGeneric FINAL : public HTemplateInstruction<3> {
   }
 
   Handle<String> name_;
-  StrictMode strict_mode_;
+  LanguageMode language_mode_;
 };
 
 
@@ -7268,13 +7279,13 @@ class HStoreKeyed FINAL
 class HStoreKeyedGeneric FINAL : public HTemplateInstruction<4> {
  public:
   DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P4(HStoreKeyedGeneric, HValue*,
-                                              HValue*, HValue*, StrictMode);
+                                              HValue*, HValue*, LanguageMode);
 
   HValue* object() const { return OperandAt(0); }
   HValue* key() const { return OperandAt(1); }
   HValue* value() const { return OperandAt(2); }
   HValue* context() const { return OperandAt(3); }
-  StrictMode strict_mode() const { return strict_mode_; }
+  LanguageMode language_mode() const { return language_mode_; }
 
   Representation RequiredInputRepresentation(int index) OVERRIDE {
     // tagged[tagged] = tagged
@@ -7286,12 +7297,9 @@ class HStoreKeyedGeneric FINAL : public HTemplateInstruction<4> {
   DECLARE_CONCRETE_INSTRUCTION(StoreKeyedGeneric)
 
  private:
-  HStoreKeyedGeneric(HValue* context,
-                     HValue* object,
-                     HValue* key,
-                     HValue* value,
-                     StrictMode strict_mode)
-      : strict_mode_(strict_mode) {
+  HStoreKeyedGeneric(HValue* context, HValue* object, HValue* key,
+                     HValue* value, LanguageMode language_mode)
+      : language_mode_(language_mode) {
     SetOperandAt(0, object);
     SetOperandAt(1, key);
     SetOperandAt(2, value);
@@ -7299,7 +7307,7 @@ class HStoreKeyedGeneric FINAL : public HTemplateInstruction<4> {
     SetAllSideEffects();
   }
 
-  StrictMode strict_mode_;
+  LanguageMode language_mode_;
 };
 
 
@@ -7583,12 +7591,10 @@ class HFunctionLiteral FINAL : public HTemplateInstruction<1> {
   bool has_no_literals() const {
     return HasNoLiteralsField::decode(bit_field_);
   }
-  bool is_arrow() const { return IsArrowFunction(kind()); }
-  bool is_generator() const { return IsGeneratorFunction(kind()); }
-  bool is_concise_method() const { return IsConciseMethod(kind()); }
-  bool is_default_constructor() const { return IsDefaultConstructor(kind()); }
   FunctionKind kind() const { return FunctionKindField::decode(bit_field_); }
-  StrictMode strict_mode() const { return StrictModeField::decode(bit_field_); }
+  LanguageMode language_mode() const {
+    return LanguageModeField::decode(bit_field_);
+  }
 
  private:
   HFunctionLiteral(HValue* context, Handle<SharedFunctionInfo> shared,
@@ -7598,7 +7604,7 @@ class HFunctionLiteral FINAL : public HTemplateInstruction<1> {
         bit_field_(FunctionKindField::encode(shared->kind()) |
                    PretenureField::encode(pretenure) |
                    HasNoLiteralsField::encode(shared->num_literals() == 0) |
-                   StrictModeField::encode(shared->strict_mode())) {
+                   LanguageModeField::encode(shared->language_mode())) {
     SetOperandAt(0, context);
     set_representation(Representation::Tagged());
     SetChangesFlag(kNewSpacePromotion);
@@ -7606,10 +7612,11 @@ class HFunctionLiteral FINAL : public HTemplateInstruction<1> {
 
   bool IsDeletable() const OVERRIDE { return true; }
 
-  class FunctionKindField : public BitField<FunctionKind, 0, 4> {};
-  class PretenureField : public BitField<bool, 5, 1> {};
-  class HasNoLiteralsField : public BitField<bool, 6, 1> {};
-  class StrictModeField : public BitField<StrictMode, 7, 1> {};
+  class FunctionKindField : public BitField<FunctionKind, 0, 6> {};
+  class PretenureField : public BitField<bool, 6, 1> {};
+  class HasNoLiteralsField : public BitField<bool, 7, 1> {};
+  STATIC_ASSERT(LANGUAGE_END == 3);
+  class LanguageModeField : public BitField<LanguageMode, 8, 2> {};
 
   Handle<SharedFunctionInfo> shared_info_;
   uint32_t bit_field_;

@@ -259,8 +259,10 @@ class AstValue : public ZoneObject {
   F(prototype, "prototype")                             \
   F(this, "this")                                       \
   F(use_asm, "use asm")                                 \
+  F(use_strong, "use strong")                           \
   F(use_strict, "use strict")                           \
-  F(value, "value")
+  F(value, "value")                                     \
+  F(is_construct_call, "_IsConstructCall")
 
 #define OTHER_CONSTANTS(F) \
   F(true_value)            \

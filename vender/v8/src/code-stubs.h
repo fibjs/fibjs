@@ -63,6 +63,7 @@ namespace internal {
   V(BinaryOpWithAllocationSite)             \
   V(CompareNilIC)                           \
   V(CreateAllocationSite)                   \
+  V(CreateWeakCell)                         \
   V(ElementsTransitionAndStore)             \
   V(FastCloneShallowArray)                  \
   V(FastCloneShallowObject)                 \
@@ -571,29 +572,26 @@ class NumberToStringStub FINAL : public HydrogenCodeStub {
 
 class FastNewClosureStub : public HydrogenCodeStub {
  public:
-  FastNewClosureStub(Isolate* isolate, StrictMode strict_mode,
+  FastNewClosureStub(Isolate* isolate, LanguageMode language_mode,
                      FunctionKind kind)
       : HydrogenCodeStub(isolate) {
     DCHECK(IsValidFunctionKind(kind));
-    set_sub_minor_key(StrictModeBits::encode(strict_mode) |
+    set_sub_minor_key(LanguageModeBits::encode(language_mode) |
                       FunctionKindBits::encode(kind));
   }
 
-  StrictMode strict_mode() const {
-    return StrictModeBits::decode(sub_minor_key());
+  LanguageMode language_mode() const {
+    return LanguageModeBits::decode(sub_minor_key());
   }
 
   FunctionKind kind() const {
     return FunctionKindBits::decode(sub_minor_key());
   }
-  bool is_arrow() const { return IsArrowFunction(kind()); }
-  bool is_generator() const { return IsGeneratorFunction(kind()); }
-  bool is_concise_method() const { return IsConciseMethod(kind()); }
-  bool is_default_constructor() const { return IsDefaultConstructor(kind()); }
 
  private:
-  class StrictModeBits : public BitField<StrictMode, 0, 1> {};
-  class FunctionKindBits : public BitField<FunctionKind, 1, 4> {};
+  STATIC_ASSERT(LANGUAGE_END == 3);
+  class LanguageModeBits : public BitField<LanguageMode, 0, 2> {};
+  class FunctionKindBits : public BitField<FunctionKind, 2, 7> {};
 
   DEFINE_CALL_INTERFACE_DESCRIPTOR(FastNewClosure);
   DEFINE_HYDROGEN_CODE_STUB(FastNewClosure, HydrogenCodeStub);
@@ -673,6 +671,17 @@ class CreateAllocationSiteStub : public HydrogenCodeStub {
 
   DEFINE_CALL_INTERFACE_DESCRIPTOR(CreateAllocationSite);
   DEFINE_HYDROGEN_CODE_STUB(CreateAllocationSite, HydrogenCodeStub);
+};
+
+
+class CreateWeakCellStub : public HydrogenCodeStub {
+ public:
+  explicit CreateWeakCellStub(Isolate* isolate) : HydrogenCodeStub(isolate) {}
+
+  static void GenerateAheadOfTime(Isolate* isolate);
+
+  DEFINE_CALL_INTERFACE_DESCRIPTOR(CreateWeakCell);
+  DEFINE_HYDROGEN_CODE_STUB(CreateWeakCell, HydrogenCodeStub);
 };
 
 
@@ -1084,7 +1093,7 @@ class StoreGlobalStub : public HandlerStub {
                       CheckGlobalBits::encode(check_global));
   }
 
-  static Handle<HeapObject> global_placeholder(Isolate* isolate) {
+  static Handle<HeapObject> property_cell_placeholder(Isolate* isolate) {
     return isolate->factory()->uninitialized_value();
   }
 
@@ -1092,13 +1101,15 @@ class StoreGlobalStub : public HandlerStub {
                                        Handle<PropertyCell> cell) {
     if (check_global()) {
       Code::FindAndReplacePattern pattern;
-      pattern.Add(Handle<Map>(global_placeholder(isolate())->map()), global);
-      pattern.Add(isolate()->factory()->meta_map(), Handle<Map>(global->map()));
-      pattern.Add(isolate()->factory()->global_property_cell_map(), cell);
+      pattern.Add(isolate()->factory()->meta_map(),
+                  Map::WeakCellForMap(Handle<Map>(global->map())));
+      pattern.Add(Handle<Map>(property_cell_placeholder(isolate())->map()),
+                  isolate()->factory()->NewWeakCell(cell));
       return CodeStub::GetCodeCopy(pattern);
     } else {
       Code::FindAndReplacePattern pattern;
-      pattern.Add(isolate()->factory()->global_property_cell_map(), cell);
+      pattern.Add(Handle<Map>(property_cell_placeholder(isolate())->map()),
+                  isolate()->factory()->NewWeakCell(cell));
       return CodeStub::GetCodeCopy(pattern);
     }
   }
@@ -1214,10 +1225,9 @@ class CallApiGetterStub : public PlatformCodeStub {
 
 class BinaryOpICStub : public HydrogenCodeStub {
  public:
-  BinaryOpICStub(Isolate* isolate, Token::Value op,
-                 OverwriteMode mode = NO_OVERWRITE)
+  BinaryOpICStub(Isolate* isolate, Token::Value op)
       : HydrogenCodeStub(isolate, UNINITIALIZED) {
-    BinaryOpICState state(isolate, op, mode);
+    BinaryOpICState state(isolate, op);
     set_sub_minor_key(state.GetExtraICState());
   }
 
@@ -1298,10 +1308,8 @@ class BinaryOpICWithAllocationSiteStub FINAL : public PlatformCodeStub {
 
 class BinaryOpWithAllocationSiteStub FINAL : public BinaryOpICStub {
  public:
-  BinaryOpWithAllocationSiteStub(Isolate* isolate,
-                                 Token::Value op,
-                                 OverwriteMode mode)
-      : BinaryOpICStub(isolate, op, mode) {}
+  BinaryOpWithAllocationSiteStub(Isolate* isolate, Token::Value op)
+      : BinaryOpICStub(isolate, op) {}
 
   BinaryOpWithAllocationSiteStub(Isolate* isolate, const BinaryOpICState& state)
       : BinaryOpICStub(isolate, state) {}
@@ -1519,7 +1527,7 @@ class CEntryStub : public PlatformCodeStub {
       : PlatformCodeStub(isolate) {
     minor_key_ = SaveDoublesBits::encode(save_doubles == kSaveFPRegs);
     DCHECK(result_size == 1 || result_size == 2);
-#if _WIN64 || (V8_TARGET_ARCH_PPC64 && !ABI_RETURNS_OBJECT_PAIRS_IN_REGS)
+#if _WIN64 || V8_TARGET_ARCH_PPC
     minor_key_ = ResultSizeBits::update(minor_key_, result_size);
 #endif  // _WIN64
   }
@@ -1532,7 +1540,7 @@ class CEntryStub : public PlatformCodeStub {
 
  private:
   bool save_doubles() const { return SaveDoublesBits::decode(minor_key_); }
-#if _WIN64 || (V8_TARGET_ARCH_PPC64 && !ABI_RETURNS_OBJECT_PAIRS_IN_REGS)
+#if _WIN64 || V8_TARGET_ARCH_PPC
   int result_size() const { return ResultSizeBits::decode(minor_key_); }
 #endif  // _WIN64
 

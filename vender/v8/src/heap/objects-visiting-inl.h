@@ -262,10 +262,7 @@ void StaticMarkingVisitor<StaticVisitor>::VisitCodeTarget(Heap* heap,
   // when they might be keeping a Context alive, or when the heap is about
   // to be serialized.
   if (FLAG_cleanup_code_caches_at_gc && target->is_inline_cache_stub() &&
-      !target->is_call_stub() &&
-      ((heap->flush_monomorphic_ics() && !target->embeds_maps_weakly()) ||
-       heap->isolate()->serializer_enabled() ||
-       target->ic_age() != heap->global_ic_age())) {
+      !target->is_call_stub() && heap->isolate()->serializer_enabled()) {
     ICUtility::Clear(heap->isolate(), rinfo->pc(),
                      rinfo->host()->constant_pool());
     target = Code::GetCodeFromTargetAddress(rinfo->target_address());
@@ -446,7 +443,7 @@ void StaticMarkingVisitor<StaticVisitor>::VisitSharedFunctionInfo(
     shared->ResetForNewContext(heap->global_ic_age());
   }
   if (FLAG_cleanup_code_caches_at_gc) {
-    shared->ClearTypeFeedbackInfo();
+    shared->ClearTypeFeedbackInfoAtGCTime();
   }
   if (FLAG_cache_optimized_code && FLAG_flush_optimized_code_cache &&
       !shared->optimized_code_map()->IsSmi()) {

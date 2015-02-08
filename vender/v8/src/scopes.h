@@ -88,7 +88,7 @@ class Scope: public ZoneObject {
     scope_name_ = scope_name;
   }
 
-  void Initialize();
+  void Initialize(bool uninitialized_this = false);
 
   // Checks if the block scope is redundant, i.e. it does not contain any
   // block scoped declarations. In that case it is removed from the scope
@@ -126,7 +126,8 @@ class Scope: public ZoneObject {
   // Declare a parameter in this scope.  When there are duplicated
   // parameters the rightmost one 'wins'.  However, the implementation
   // expects all parameters to be declared and from left to right.
-  Variable* DeclareParameter(const AstRawString* name, VariableMode mode);
+  Variable* DeclareParameter(const AstRawString* name, VariableMode mode,
+                             bool is_rest = false);
 
   // Declare a local variable in this scope. If the variable has been
   // declared before, the previously declared variable is returned.
@@ -225,8 +226,10 @@ class Scope: public ZoneObject {
   // Inform the scope that the corresponding code uses "this".
   void RecordThisUsage() { scope_uses_this_ = true; }
 
-  // Set the strict mode flag (unless disabled by a global flag).
-  void SetStrictMode(StrictMode strict_mode) { strict_mode_ = strict_mode; }
+  // Set the language mode flag (unless disabled by a global flag).
+  void SetLanguageMode(LanguageMode language_mode) {
+    language_mode_ = language_mode;
+  }
 
   // Set the ASM module flag.
   void SetAsmModule() { asm_module_ = true; }
@@ -290,13 +293,13 @@ class Scope: public ZoneObject {
         is_module_scope() || is_script_scope();
   }
   bool is_strict_eval_scope() const {
-    return is_eval_scope() && strict_mode_ == STRICT;
+    return is_eval_scope() && is_strict(language_mode_);
   }
 
   // Information about which scopes calls eval.
   bool calls_eval() const { return scope_calls_eval_; }
   bool calls_sloppy_eval() {
-    return scope_calls_eval_ && strict_mode_ == SLOPPY;
+    return scope_calls_eval_ && is_sloppy(language_mode_);
   }
   bool outer_scope_calls_sloppy_eval() const {
     return outer_scope_calls_sloppy_eval_;
@@ -339,7 +342,7 @@ class Scope: public ZoneObject {
   ScopeType scope_type() const { return scope_type_; }
 
   // The language mode of this scope.
-  StrictMode strict_mode() const { return strict_mode_; }
+  LanguageMode language_mode() const { return language_mode_; }
 
   // The variable corresponding the 'this' value.
   Variable* receiver() { return receiver_; }
@@ -358,7 +361,31 @@ class Scope: public ZoneObject {
     return params_[index];
   }
 
+  // Returns the default function arity --- does not include rest parameters.
+  int default_function_length() const {
+    int count = params_.length();
+    if (rest_index_ >= 0) {
+      DCHECK(count > 0);
+      DCHECK(is_function_scope());
+      --count;
+    }
+    return count;
+  }
+
   int num_parameters() const { return params_.length(); }
+
+  // A function can have at most one rest parameter. Returns Variable* or NULL.
+  Variable* rest_parameter(int* index) const {
+    *index = rest_index_;
+    if (rest_index_ < 0) return NULL;
+    return rest_parameter_;
+  }
+
+  bool is_simple_parameter_list() const {
+    DCHECK(is_function_scope());
+    if (rest_index_ >= 0) return false;
+    return true;
+  }
 
   // The local variable 'arguments' if we need to allocate it; NULL otherwise.
   Variable* arguments() const { return arguments_; }
@@ -522,8 +549,8 @@ class Scope: public ZoneObject {
   bool asm_module_;
   // This scope's outer context is an asm module.
   bool asm_function_;
-  // The strict mode of this scope.
-  StrictMode strict_mode_;
+  // The language mode of this scope.
+  LanguageMode language_mode_;
   // Source positions.
   int start_position_;
   int end_position_;
@@ -554,6 +581,10 @@ class Scope: public ZoneObject {
 
   // For module scopes, the host scope's internal variable binding this module.
   Variable* module_var_;
+
+  // Rest parameter
+  Variable* rest_parameter_;
+  int rest_index_;
 
   // Serialized scope info support.
   Handle<ScopeInfo> scope_info_;

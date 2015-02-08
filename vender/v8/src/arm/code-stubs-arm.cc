@@ -565,7 +565,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
   // If either is a Smi (we know that not both are), then they can only
   // be strictly equal if the other is a HeapNumber.
   STATIC_ASSERT(kSmiTag == 0);
-  DCHECK_EQ(0, Smi::FromInt(0));
+  DCHECK_EQ(static_cast<Smi*>(0), Smi::FromInt(0));
   __ and_(r2, lhs, Operand(rhs));
   __ JumpIfNotSmi(r2, &not_smis);
   // One operand is a smi.  EmitSmiNonsmiComparison generates code that can:
@@ -920,6 +920,7 @@ void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   StubFailureTrampolineStub::GenerateAheadOfTime(isolate);
   ArrayConstructorStubBase::GenerateStubsAheadOfTime(isolate);
   CreateAllocationSiteStub::GenerateAheadOfTime(isolate);
+  CreateWeakCellStub::GenerateAheadOfTime(isolate);
   BinaryOpICStub::GenerateAheadOfTime(isolate);
   BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
 }
@@ -2661,8 +2662,28 @@ void CallICStub::Generate(MacroAssembler* masm) {
   // The checks. First, does r1 match the recorded monomorphic target?
   __ add(r4, r2, Operand::PointerOffsetFromSmiKey(r3));
   __ ldr(r4, FieldMemOperand(r4, FixedArray::kHeaderSize));
-  __ cmp(r1, r4);
+
+  // We don't know that we have a weak cell. We might have a private symbol
+  // or an AllocationSite, but the memory is safe to examine.
+  // AllocationSite::kTransitionInfoOffset - contains a Smi or pointer to
+  // FixedArray.
+  // WeakCell::kValueOffset - contains a JSFunction or Smi(0)
+  // Symbol::kHashFieldSlot - if the low bit is 1, then the hash is not
+  // computed, meaning that it can't appear to be a pointer. If the low bit is
+  // 0, then hash is computed, but the 0 bit prevents the field from appearing
+  // to be a pointer.
+  STATIC_ASSERT(WeakCell::kSize >= kPointerSize);
+  STATIC_ASSERT(AllocationSite::kTransitionInfoOffset ==
+                    WeakCell::kValueOffset &&
+                WeakCell::kValueOffset == Symbol::kHashFieldSlot);
+
+  __ ldr(r5, FieldMemOperand(r4, WeakCell::kValueOffset));
+  __ cmp(r1, r5);
   __ b(ne, &extra_checks_or_miss);
+
+  // The compare above could have been a SMI/SMI comparison. Guard against this
+  // convincing us that we have a monomorphic JSFunction.
+  __ JumpIfSmi(r1, &extra_checks_or_miss);
 
   __ bind(&have_js_function);
   if (CallAsMethod()) {
@@ -2739,15 +2760,18 @@ void CallICStub::Generate(MacroAssembler* masm) {
   __ add(r4, r4, Operand(Smi::FromInt(1)));
   __ str(r4, FieldMemOperand(r2, with_types_offset));
 
-  // Store the function.
-  __ add(r4, r2, Operand::PointerOffsetFromSmiKey(r3));
-  __ add(r4, r4, Operand(FixedArray::kHeaderSize - kHeapObjectTag));
-  __ str(r1, MemOperand(r4, 0));
+  // Store the function. Use a stub since we need a frame for allocation.
+  // r2 - vector
+  // r3 - slot
+  // r1 - function
+  {
+    FrameScope scope(masm, StackFrame::INTERNAL);
+    CreateWeakCellStub create_stub(masm->isolate());
+    __ Push(r1);
+    __ CallStub(&create_stub);
+    __ Pop(r1);
+  }
 
-  // Update the write barrier.
-  __ mov(r5, r1);
-  __ RecordWrite(r2, r4, r5, kLRHasNotBeenSaved, kDontSaveFPRegs,
-                 EMIT_REMEMBERED_SET, OMIT_SMI_CHECK);
   __ jmp(&have_js_function);
 
   // We are here because tracing is on or we encountered a MISS case we can't
@@ -2769,26 +2793,20 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
 
 void CallICStub::GenerateMiss(MacroAssembler* masm) {
-  // Get the receiver of the function from the stack; 1 ~ return address.
-  __ ldr(r4, MemOperand(sp, (arg_count() + 1) * kPointerSize));
+  FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
 
-  {
-    FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
+  // Push the receiver and the function and feedback info.
+  __ Push(r1, r2, r3);
 
-    // Push the receiver and the function and feedback info.
-    __ Push(r4, r1, r2, r3);
+  // Call the entry.
+  IC::UtilityId id = GetICState() == DEFAULT ? IC::kCallIC_Miss
+                                             : IC::kCallIC_Customization_Miss;
 
-    // Call the entry.
-    IC::UtilityId id = GetICState() == DEFAULT ? IC::kCallIC_Miss
-                                               : IC::kCallIC_Customization_Miss;
+  ExternalReference miss = ExternalReference(IC_Utility(id), masm->isolate());
+  __ CallExternalReference(miss, 3);
 
-    ExternalReference miss = ExternalReference(IC_Utility(id),
-                                               masm->isolate());
-    __ CallExternalReference(miss, 4);
-
-    // Move result to edi and exit the internal frame.
-    __ mov(r1, r0);
-  }
+  // Move result to edi and exit the internal frame.
+  __ mov(r1, r0);
 }
 
 
@@ -3665,13 +3683,15 @@ void CompareICStub::GenerateObjects(MacroAssembler* masm) {
 
 void CompareICStub::GenerateKnownObjects(MacroAssembler* masm) {
   Label miss;
+  Handle<WeakCell> cell = Map::WeakCellForMap(known_map_);
   __ and_(r2, r1, Operand(r0));
   __ JumpIfSmi(r2, &miss);
+  __ GetWeakValue(r4, cell);
   __ ldr(r2, FieldMemOperand(r0, HeapObject::kMapOffset));
   __ ldr(r3, FieldMemOperand(r1, HeapObject::kMapOffset));
-  __ cmp(r2, Operand(known_map_));
+  __ cmp(r2, r4);
   __ b(ne, &miss);
-  __ cmp(r3, Operand(known_map_));
+  __ cmp(r3, r4);
   __ b(ne, &miss);
 
   __ sub(r0, r0, Operand(r1));

@@ -95,12 +95,12 @@ void ExternalReferenceTable::Add(Address address,
                                  TypeCode type,
                                  uint16_t id,
                                  const char* name) {
-  DCHECK_NE(NULL, address);
+  DCHECK_NOT_NULL(address);
   ExternalReferenceEntry entry;
   entry.address = address;
   entry.code = EncodeExternal(type, id);
   entry.name = name;
-  DCHECK_NE(0, entry.code);
+  DCHECK_NE(0u, entry.code);
   // Assert that the code is added in ascending order to rule out duplicates.
   DCHECK((size() == 0) || (code(size() - 1) < entry.code));
   refs_.Add(entry);
@@ -647,10 +647,10 @@ bool Deserializer::ReserveSpace() {
 
 
 void Deserializer::Initialize(Isolate* isolate) {
-  DCHECK_EQ(NULL, isolate_);
-  DCHECK_NE(NULL, isolate);
+  DCHECK_NULL(isolate_);
+  DCHECK_NOT_NULL(isolate);
   isolate_ = isolate;
-  DCHECK_EQ(NULL, external_reference_decoder_);
+  DCHECK_NULL(external_reference_decoder_);
   external_reference_decoder_ = new ExternalReferenceDecoder(isolate);
 }
 
@@ -659,7 +659,7 @@ void Deserializer::Deserialize(Isolate* isolate) {
   Initialize(isolate);
   if (!ReserveSpace()) FatalProcessOutOfMemory("deserializing context");
   // No active threads.
-  DCHECK_EQ(NULL, isolate_->thread_manager()->FirstThreadStateInUse());
+  DCHECK_NULL(isolate_->thread_manager()->FirstThreadStateInUse());
   // No active handles.
   DCHECK(isolate_->handle_scope_implementer()->blocks()->is_empty());
   isolate_->heap()->IterateSmiRoots(this);
@@ -899,6 +899,23 @@ void Deserializer::ReadObject(int space_number, Object** write_back) {
     DCHECK(space_number != CODE_SPACE);
   }
 #endif
+#if V8_TARGET_ARCH_PPC && \
+    (ABI_USES_FUNCTION_DESCRIPTORS || V8_OOL_CONSTANT_POOL)
+  // If we're on a platform that uses function descriptors
+  // these jump tables make use of RelocInfo::INTERNAL_REFERENCE.
+  // As the V8 serialization code doesn't handle that relocation type
+  // we use this to fix up code that has function descriptors.
+  if (space_number == CODE_SPACE) {
+    Code* code = reinterpret_cast<Code*>(HeapObject::FromAddress(address));
+    for (RelocIterator it(code); !it.done(); it.next()) {
+      RelocInfo::Mode rmode = it.rinfo()->rmode();
+      if (rmode == RelocInfo::INTERNAL_REFERENCE) {
+        Assembler::RelocateInternalReference(it.rinfo()->pc(), 0,
+                                             code->instruction_start());
+      }
+    }
+  }
+#endif
 }
 
 
@@ -925,7 +942,7 @@ Address Deserializer::Allocate(int space_index, int size) {
   } else {
     DCHECK(space_index < kNumberOfPreallocatedSpaces);
     Address address = high_water_[space_index];
-    DCHECK_NE(NULL, address);
+    DCHECK_NOT_NULL(address);
     high_water_[space_index] += size;
 #ifdef DEBUG
     // Assert that the current reserved chunk is still big enough.
@@ -1366,7 +1383,7 @@ Serializer::~Serializer() {
 void StartupSerializer::SerializeStrongReferences() {
   Isolate* isolate = this->isolate();
   // No active threads.
-  CHECK_EQ(NULL, isolate->thread_manager()->FirstThreadStateInUse());
+  CHECK_NULL(isolate->thread_manager()->FirstThreadStateInUse());
   // No active or weak handles.
   CHECK(isolate->handle_scope_implementer()->blocks()->is_empty());
   CHECK_EQ(0, isolate->global_handles()->NumberOfWeakHandles());
@@ -2483,7 +2500,11 @@ SerializedCodeData::SerializedCodeData(const List<byte>& payload,
   AllocateData(size);
 
   // Set header values.
-  SetHeaderValue(kCheckSumOffset, CheckSum(cs.source()));
+  SetHeaderValue(kVersionHashOffset, Version::Hash());
+  SetHeaderValue(kSourceHashOffset, SourceHash(cs.source()));
+  SetHeaderValue(kCpuFeaturesOffset,
+                 static_cast<uint32_t>(CpuFeatures::SupportedFeatures()));
+  SetHeaderValue(kFlagHashOffset, FlagList::Hash());
   SetHeaderValue(kNumInternalizedStringsOffset, cs.num_internalized_strings());
   SetHeaderValue(kReservationsOffset, reservations.length());
   SetHeaderValue(kNumCodeStubKeysOffset, num_stub_keys);
@@ -2504,13 +2525,12 @@ SerializedCodeData::SerializedCodeData(const List<byte>& payload,
 
 
 bool SerializedCodeData::IsSane(String* source) {
-  return GetHeaderValue(kCheckSumOffset) == CheckSum(source) &&
+  return GetHeaderValue(kVersionHashOffset) == Version::Hash() &&
+         GetHeaderValue(kSourceHashOffset) == SourceHash(source) &&
+         GetHeaderValue(kCpuFeaturesOffset) ==
+             static_cast<uint32_t>(CpuFeatures::SupportedFeatures()) &&
+         GetHeaderValue(kFlagHashOffset) == FlagList::Hash() &&
          Payload().length() >= SharedFunctionInfo::kSize;
-}
-
-
-int SerializedCodeData::CheckSum(String* string) {
-  return Version::Hash() ^ string->length();
 }
 
 

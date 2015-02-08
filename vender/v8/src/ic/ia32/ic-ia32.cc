@@ -334,7 +334,7 @@ static Operand GenerateUnmappedArgumentsLookup(MacroAssembler* masm,
 }
 
 
-void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
+void KeyedLoadIC::GenerateMegamorphic(MacroAssembler* masm) {
   // The return address is on the stack.
   Label slow, check_name, index_smi, index_name, property_array_property;
   Label probe_dictionary, check_number_dictionary;
@@ -396,95 +396,36 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
   GenerateKeyedLoadReceiverCheck(masm, receiver, eax, Map::kHasNamedInterceptor,
                                  &slow);
 
-  // If the receiver is a fast-case object, check the keyed lookup
-  // cache. Otherwise probe the dictionary.
+  // If the receiver is a fast-case object, check the stub cache. Otherwise
+  // probe the dictionary.
   __ mov(ebx, FieldOperand(receiver, JSObject::kPropertiesOffset));
   __ cmp(FieldOperand(ebx, HeapObject::kMapOffset),
          Immediate(isolate->factory()->hash_table_map()));
   __ j(equal, &probe_dictionary);
 
-  // The receiver's map is still in eax, compute the keyed lookup cache hash
-  // based on 32 bits of the map pointer and the string hash.
-  if (FLAG_debug_code) {
-    __ cmp(eax, FieldOperand(receiver, HeapObject::kMapOffset));
-    __ Check(equal, kMapIsNoLongerInEax);
-  }
-  __ mov(ebx, eax);  // Keep the map around for later.
-  __ shr(eax, KeyedLookupCache::kMapHashShift);
-  __ mov(edi, FieldOperand(key, String::kHashFieldOffset));
-  __ shr(edi, String::kHashShift);
-  __ xor_(eax, edi);
-  __ and_(eax, KeyedLookupCache::kCapacityMask & KeyedLookupCache::kHashMask);
-
-  // Load the key (consisting of map and internalized string) from the cache and
-  // check for match.
-  Label load_in_object_property;
-  static const int kEntriesPerBucket = KeyedLookupCache::kEntriesPerBucket;
-  Label hit_on_nth_entry[kEntriesPerBucket];
-  ExternalReference cache_keys =
-      ExternalReference::keyed_lookup_cache_keys(masm->isolate());
-
-  for (int i = 0; i < kEntriesPerBucket - 1; i++) {
-    Label try_next_entry;
-    __ mov(edi, eax);
-    __ shl(edi, kPointerSizeLog2 + 1);
-    if (i != 0) {
-      __ add(edi, Immediate(kPointerSize * i * 2));
-    }
-    __ cmp(ebx, Operand::StaticArray(edi, times_1, cache_keys));
-    __ j(not_equal, &try_next_entry);
-    __ add(edi, Immediate(kPointerSize));
-    __ cmp(key, Operand::StaticArray(edi, times_1, cache_keys));
-    __ j(equal, &hit_on_nth_entry[i]);
-    __ bind(&try_next_entry);
+  if (FLAG_vector_ics) {
+    // When vector ics are in use, the handlers in the stub cache expect a
+    // vector and slot. Since we won't change the IC from any downstream
+    // misses, a dummy vector can be used.
+    Handle<TypeFeedbackVector> dummy_vector = Handle<TypeFeedbackVector>::cast(
+        isolate->factory()->keyed_load_dummy_vector());
+    int slot = dummy_vector->GetIndex(FeedbackVectorICSlot(0));
+    __ push(Immediate(Smi::FromInt(slot)));
+    __ push(Immediate(dummy_vector));
   }
 
-  __ lea(edi, Operand(eax, 1));
-  __ shl(edi, kPointerSizeLog2 + 1);
-  __ add(edi, Immediate(kPointerSize * (kEntriesPerBucket - 1) * 2));
-  __ cmp(ebx, Operand::StaticArray(edi, times_1, cache_keys));
-  __ j(not_equal, &slow);
-  __ add(edi, Immediate(kPointerSize));
-  __ cmp(key, Operand::StaticArray(edi, times_1, cache_keys));
-  __ j(not_equal, &slow);
+  Code::Flags flags = Code::RemoveTypeAndHolderFromFlags(
+      Code::ComputeHandlerFlags(Code::LOAD_IC));
+  masm->isolate()->stub_cache()->GenerateProbe(masm, Code::KEYED_LOAD_IC, flags,
+                                               false, receiver, key, ebx, edi);
 
-  // Get field offset.
-  // ebx      : receiver's map
-  // eax      : lookup cache index
-  ExternalReference cache_field_offsets =
-      ExternalReference::keyed_lookup_cache_field_offsets(masm->isolate());
-
-  // Hit on nth entry.
-  for (int i = kEntriesPerBucket - 1; i >= 0; i--) {
-    __ bind(&hit_on_nth_entry[i]);
-    if (i != 0) {
-      __ add(eax, Immediate(i));
-    }
-    __ mov(edi,
-           Operand::StaticArray(eax, times_pointer_size, cache_field_offsets));
-    __ movzx_b(eax, FieldOperand(ebx, Map::kInObjectPropertiesOffset));
-    __ sub(edi, eax);
-    __ j(above_equal, &property_array_property);
-    if (i != 0) {
-      __ jmp(&load_in_object_property);
-    }
+  if (FLAG_vector_ics) {
+    __ pop(VectorLoadICDescriptor::VectorRegister());
+    __ pop(VectorLoadICDescriptor::SlotRegister());
   }
 
-  // Load in-object property.
-  __ bind(&load_in_object_property);
-  __ movzx_b(eax, FieldOperand(ebx, Map::kInstanceSizeOffset));
-  __ add(eax, edi);
-  __ mov(eax, FieldOperand(receiver, eax, times_pointer_size, 0));
-  __ IncrementCounter(counters->keyed_load_generic_lookup_cache(), 1);
-  __ ret(0);
-
-  // Load property array property.
-  __ bind(&property_array_property);
-  __ mov(eax, FieldOperand(receiver, JSObject::kPropertiesOffset));
-  __ mov(eax,
-         FieldOperand(eax, edi, times_pointer_size, FixedArray::kHeaderSize));
-  __ IncrementCounter(counters->keyed_load_generic_lookup_cache(), 1);
-  __ ret(0);
+  // Cache miss.
+  GenerateMiss(masm);
 
   // Do a quick inline probe of the receiver's dictionary, if it
   // exists.
@@ -675,7 +616,7 @@ static void KeyedStoreGenerateMegamorphicHelper(
 
 
 void KeyedStoreIC::GenerateMegamorphic(MacroAssembler* masm,
-                                       StrictMode strict_mode) {
+                                       LanguageMode language_mode) {
   // Return address is on the stack.
   Label slow, fast_object, fast_object_grow;
   Label fast_double, fast_double_grow;
@@ -712,7 +653,7 @@ void KeyedStoreIC::GenerateMegamorphic(MacroAssembler* masm,
 
   // Slow case: call runtime.
   __ bind(&slow);
-  PropertyICCompiler::GenerateRuntimeSetProperty(masm, strict_mode);
+  PropertyICCompiler::GenerateRuntimeSetProperty(masm, language_mode);
   // Never returns to here.
 
   __ bind(&maybe_name_key);

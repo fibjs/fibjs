@@ -146,8 +146,8 @@ int FunctionLiteral::end_position() const {
 }
 
 
-StrictMode FunctionLiteral::strict_mode() const {
-  return scope()->strict_mode();
+LanguageMode FunctionLiteral::language_mode() const {
+  return scope()->language_mode();
 }
 
 
@@ -235,33 +235,33 @@ bool ObjectLiteral::Property::emit_store() {
 
 
 void ObjectLiteral::CalculateEmitStore(Zone* zone) {
+  const auto GETTER = ObjectLiteral::Property::GETTER;
+  const auto SETTER = ObjectLiteral::Property::SETTER;
+
   ZoneAllocationPolicy allocator(zone);
 
   ZoneHashMap table(Literal::Match, ZoneHashMap::kDefaultHashMapCapacity,
                     allocator);
-  bool seen_prototype = false;
   for (int i = properties()->length() - 1; i >= 0; i--) {
     ObjectLiteral::Property* property = properties()->at(i);
     if (property->is_computed_name()) continue;
+    if (property->kind() == ObjectLiteral::Property::PROTOTYPE) continue;
     Literal* literal = property->key()->AsLiteral();
-    if (literal->value()->IsNull()) continue;
+    DCHECK(!literal->value()->IsNull());
+
+    // If there is an existing entry do not emit a store unless the previous
+    // entry was also an accessor.
     uint32_t hash = literal->Hash();
-    // If the key of a computed property value is in the table, do not emit
-    // a store for the property later.
-    if ((property->kind() == ObjectLiteral::Property::MATERIALIZED_LITERAL ||
-         property->kind() == ObjectLiteral::Property::COMPUTED) &&
-        table.Lookup(literal, hash, false, allocator) != NULL) {
-      property->set_emit_store(false);
-    } else if (property->kind() == ObjectLiteral::Property::PROTOTYPE) {
-      // Only emit a store for the last prototype property. Make sure we do not
-      // clobber the "__proto__" name for instance properties (using method or
-      // literal shorthand syntax).
-      property->set_emit_store(!seen_prototype);
-      seen_prototype = true;
-    } else {
-      // Add key to the table.
-      table.Lookup(literal, hash, true, allocator);
+    ZoneHashMap::Entry* entry = table.Lookup(literal, hash, true, allocator);
+    if (entry->value != NULL) {
+      auto previous_kind =
+          static_cast<ObjectLiteral::Property*>(entry->value)->kind();
+      if (!((property->kind() == GETTER && previous_kind == SETTER) ||
+            (property->kind() == SETTER && previous_kind == GETTER))) {
+        property->set_emit_store(false);
+      }
     }
+    entry->value = property;
   }
 }
 
@@ -456,31 +456,6 @@ void BinaryOperation::RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) {
 }
 
 
-bool BinaryOperation::ResultOverwriteAllowed() const {
-  switch (op()) {
-    case Token::COMMA:
-    case Token::OR:
-    case Token::AND:
-      return false;
-    case Token::BIT_OR:
-    case Token::BIT_XOR:
-    case Token::BIT_AND:
-    case Token::SHL:
-    case Token::SAR:
-    case Token::SHR:
-    case Token::ADD:
-    case Token::SUB:
-    case Token::MUL:
-    case Token::DIV:
-    case Token::MOD:
-      return true;
-    default:
-      UNREACHABLE();
-  }
-  return false;
-}
-
-
 static bool IsTypeof(Expression* expr) {
   UnaryOperation* maybe_unary = expr->AsUnaryOperation();
   return maybe_unary != NULL && maybe_unary->op() == Token::TYPEOF;
@@ -585,15 +560,28 @@ void Expression::RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) {
 }
 
 
-bool Call::IsUsingCallFeedbackSlot(Isolate* isolate) const {
+bool Call::IsUsingCallFeedbackICSlot(Isolate* isolate) const {
   CallType call_type = GetCallType(isolate);
-  return (call_type != POSSIBLY_EVAL_CALL);
+  if (IsUsingCallFeedbackSlot(isolate) || call_type == POSSIBLY_EVAL_CALL) {
+    return false;
+  }
+  return true;
+}
+
+
+bool Call::IsUsingCallFeedbackSlot(Isolate* isolate) const {
+  // SuperConstructorCall uses a CallConstructStub, which wants
+  // a Slot, not an IC slot.
+  return FLAG_experimental_classes && GetCallType(isolate) == SUPER_CALL;
 }
 
 
 FeedbackVectorRequirements Call::ComputeFeedbackRequirements(Isolate* isolate) {
-  int ic_slots = IsUsingCallFeedbackSlot(isolate) ? 1 : 0;
-  return FeedbackVectorRequirements(0, ic_slots);
+  int ic_slots = IsUsingCallFeedbackICSlot(isolate) ? 1 : 0;
+  int slots = IsUsingCallFeedbackSlot(isolate) ? 1 : 0;
+  // A Call uses either a slot or an IC slot.
+  DCHECK((ic_slots & slots) == 0);
+  return FeedbackVectorRequirements(slots, ic_slots);
 }
 
 

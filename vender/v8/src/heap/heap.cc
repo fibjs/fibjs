@@ -81,7 +81,6 @@ Heap::Heap()
       always_allocate_scope_depth_(0),
       contexts_disposed_(0),
       global_ic_age_(0),
-      flush_monomorphic_ics_(false),
       scan_on_scavenge_pages_(0),
       new_space_(this),
       old_pointer_space_(NULL),
@@ -854,6 +853,9 @@ bool Heap::CollectGarbage(GarbageCollector collector, const char* gc_reason,
     }
 
     GarbageCollectionEpilogue();
+    if (collector == MARK_COMPACTOR && FLAG_track_detached_contexts) {
+      isolate()->CheckDetachedContextsAfterGC();
+    }
     tracer()->Stop(collector);
   }
 
@@ -877,7 +879,6 @@ int Heap::NotifyContextDisposed(bool dependant_context) {
     // Flush the queued recompilation tasks.
     isolate()->optimizing_compiler_thread()->Flush();
   }
-  flush_monomorphic_ics_ = true;
   AgeInlineCaches();
   tracer()->AddContextDisposalTime(base::OS::TimeCurrentMillis());
   return ++contexts_disposed_;
@@ -1245,8 +1246,6 @@ void Heap::MarkCompactEpilogue() {
 
   isolate_->counters()->objs_since_last_full()->Set(0);
 
-  flush_monomorphic_ics_ = false;
-
   incremental_marking()->Epilogue();
 }
 
@@ -1597,7 +1596,12 @@ void Heap::Scavenge() {
   incremental_marking()->UpdateMarkingDequeAfterScavenge();
 
   ScavengeWeakObjectRetainer weak_object_retainer(this);
-  ProcessWeakReferences(&weak_object_retainer);
+  ProcessYoungWeakReferences(&weak_object_retainer);
+
+  // Collects callback info for handles referenced by young generation that are
+  // pending (about to be collected) and either phantom or internal-fields.
+  // Releases the global handles.  See also PostGarbageCollectionProcessing.
+  isolate()->global_handles()->CollectYoungPhantomCallbackData();
 
   DCHECK(new_space_front == new_space_.top());
 
@@ -1684,16 +1688,16 @@ void Heap::UpdateReferencesInExternalStringTable(
 }
 
 
-void Heap::ProcessWeakReferences(WeakObjectRetainer* retainer) {
+void Heap::ProcessAllWeakReferences(WeakObjectRetainer* retainer) {
   ProcessArrayBuffers(retainer);
   ProcessNativeContexts(retainer);
-  // TODO(mvstanton): AllocationSites only need to be processed during
-  // MARK_COMPACT, as they live in old space. Verify and address.
   ProcessAllocationSites(retainer);
-  // Collects callback info for handles that are pending (about to be
-  // collected) and either phantom or internal-fields.  Releases the global
-  // handles.  See also PostGarbageCollectionProcessing.
-  isolate()->global_handles()->CollectPhantomCallbackData();
+}
+
+
+void Heap::ProcessYoungWeakReferences(WeakObjectRetainer* retainer) {
+  ProcessArrayBuffers(retainer);
+  ProcessNativeContexts(retainer);
 }
 
 
@@ -3053,6 +3057,21 @@ void Heap::CreateInitialObjects() {
   // Number of queued microtasks stored in Isolate::pending_microtask_count().
   set_microtask_queue(empty_fixed_array());
 
+  if (FLAG_vector_ics) {
+    FeedbackVectorSpec spec(0, 1);
+    spec.SetKind(0, Code::KEYED_LOAD_IC);
+    Handle<TypeFeedbackVector> dummy_vector =
+        factory->NewTypeFeedbackVector(spec);
+    dummy_vector->Set(FeedbackVectorICSlot(0),
+                      *TypeFeedbackVector::MegamorphicSentinel(isolate()),
+                      SKIP_WRITE_BARRIER);
+    set_keyed_load_dummy_vector(*dummy_vector);
+  } else {
+    set_keyed_load_dummy_vector(empty_fixed_array());
+  }
+
+  set_detached_contexts(empty_fixed_array());
+
   Handle<SeededNumberDictionary> slow_element_dictionary =
       SeededNumberDictionary::New(isolate(), 0, TENURED);
   slow_element_dictionary->set_requires_slow_elements();
@@ -3634,7 +3653,6 @@ AllocationResult Heap::AllocateCode(int object_size, bool immovable) {
   DCHECK(isolate_->code_range() == NULL || !isolate_->code_range()->valid() ||
          isolate_->code_range()->contains(code->address()));
   code->set_gc_metadata(Smi::FromInt(0));
-  code->set_ic_age(global_ic_age_);
   return code;
 }
 
@@ -3888,9 +3906,33 @@ AllocationResult Heap::CopyJSObject(JSObject* source, AllocationSite* site) {
     }
     Address clone_address = clone->address();
     CopyBlock(clone_address, source->address(), object_size);
-    // Update write barrier for all fields that lie beyond the header.
-    RecordWrites(clone_address, JSObject::kHeaderSize,
-                 (object_size - JSObject::kHeaderSize) / kPointerSize);
+
+    // Update write barrier for all tagged fields that lie beyond the header.
+    const int start_offset = JSObject::kHeaderSize;
+    const int end_offset = object_size;
+
+#if V8_DOUBLE_FIELDS_UNBOXING
+    LayoutDescriptorHelper helper(map);
+    bool has_only_tagged_fields = helper.all_fields_tagged();
+
+    if (!has_only_tagged_fields) {
+      for (int offset = start_offset; offset < end_offset;) {
+        int end_of_region_offset;
+        if (helper.IsTagged(offset, end_offset, &end_of_region_offset)) {
+          RecordWrites(clone_address, offset,
+                       (end_of_region_offset - offset) / kPointerSize);
+        }
+        offset = end_of_region_offset;
+      }
+    } else {
+#endif
+      // Object has only tagged fields.
+      RecordWrites(clone_address, start_offset,
+                   (end_offset - start_offset) / kPointerSize);
+#if V8_DOUBLE_FIELDS_UNBOXING
+    }
+#endif
+
   } else {
     wb_mode = SKIP_WRITE_BARRIER;
 
@@ -3957,9 +3999,9 @@ static inline void WriteOneByteData(Vector<const char> vector, uint8_t* chars,
 static inline void WriteTwoByteData(Vector<const char> vector, uint16_t* chars,
                                     int len) {
   const uint8_t* stream = reinterpret_cast<const uint8_t*>(vector.start());
-  unsigned stream_length = vector.length();
+  size_t stream_length = vector.length();
   while (stream_length != 0) {
-    unsigned consumed = 0;
+    size_t consumed = 0;
     uint32_t c = unibrow::Utf8::ValueOf(stream, stream_length, &consumed);
     DCHECK(c != unibrow::Utf8::kBadChar);
     DCHECK(consumed <= stream_length);
@@ -4496,6 +4538,7 @@ bool Heap::IdleNotification(int idle_time_in_ms) {
 
 
 bool Heap::IdleNotification(double deadline_in_seconds) {
+  CHECK(HasBeenSetUp());  // http://crbug.com/425035
   double deadline_in_ms =
       deadline_in_seconds *
       static_cast<double>(base::Time::kMillisecondsPerSecond);
@@ -5453,7 +5496,7 @@ bool Heap::CreateHeapObjects() {
 
   // Create initial objects
   CreateInitialObjects();
-  CHECK_EQ(0, gc_count_);
+  CHECK_EQ(0u, gc_count_);
 
   set_native_contexts_list(undefined_value());
   set_array_buffers_list(undefined_value());

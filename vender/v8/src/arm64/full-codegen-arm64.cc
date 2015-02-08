@@ -128,7 +128,7 @@ void FullCodeGenerator::Generate() {
   // Sloppy mode functions and builtins need to replace the receiver with the
   // global proxy when called as functions (without an explicit receiver
   // object).
-  if (info->strict_mode() == SLOPPY && !info->is_native()) {
+  if (is_sloppy(info->language_mode()) && !info->is_native()) {
     Label ok;
     int receiver_offset = info->scope()->num_parameters() * kXRegSize;
     __ Peek(x10, receiver_offset);
@@ -159,7 +159,7 @@ void FullCodeGenerator::Generate() {
   { Comment cmnt(masm_, "[ Allocate locals");
     int locals_count = info->scope()->num_stack_slots();
     // Generators allocate locals, if any, in context slots.
-    DCHECK(!info->function()->is_generator() || locals_count == 0);
+    DCHECK(!IsGeneratorFunction(info->function()->kind()) || locals_count == 0);
 
     if (locals_count > 0) {
       if (locals_count >= 128) {
@@ -267,7 +267,7 @@ void FullCodeGenerator::Generate() {
     // The stub will rewrite receiver and parameter count if the previous
     // stack frame was an arguments adapter frame.
     ArgumentsAccessStub::Type type;
-    if (strict_mode() == STRICT) {
+    if (is_strict(language_mode())) {
       type = ArgumentsAccessStub::NEW_STRICT;
     } else if (function()->has_duplicate_parameters()) {
       type = ArgumentsAccessStub::NEW_SLOPPY_SLOW;
@@ -1292,7 +1292,7 @@ void FullCodeGenerator::EmitNewClosure(Handle<SharedFunctionInfo> info,
       !pretenure &&
       scope()->is_function_scope() &&
       info->num_literals() == 0) {
-    FastNewClosureStub stub(isolate(), info->strict_mode(), info->kind());
+    FastNewClosureStub stub(isolate(), info->language_mode(), info->kind());
     __ Mov(x2, Operand(info));
     __ CallStub(&stub);
   } else {
@@ -1522,6 +1522,11 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
         bool skip_init_check;
         if (var->scope()->DeclarationScope() != scope()->DeclarationScope()) {
           skip_init_check = false;
+        } else if (var->is_this()) {
+          CHECK(info_->function() != nullptr &&
+                (info_->function()->kind() & kSubclassConstructor) != 0);
+          // TODO(dslomov): implement 'this' hole check elimination.
+          skip_init_check = false;
         } else {
           // Check that we always have valid source position.
           DCHECK(var->initializer_position() != RelocInfo::kNoPosition);
@@ -1721,7 +1726,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
           VisitForStackValue(key);
           VisitForStackValue(value);
           EmitSetHomeObjectIfNeeded(value, 2);
-          __ Mov(x0, Smi::FromInt(SLOPPY));  // Strict mode
+          __ Mov(x0, Smi::FromInt(SLOPPY));  // Language mode
           __ Push(x0);
           __ CallRuntime(Runtime::kSetProperty, 4);
         } else {
@@ -1730,21 +1735,22 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
         }
         break;
       case ObjectLiteral::Property::PROTOTYPE:
-        if (property->emit_store()) {
-          // Duplicate receiver on stack.
-          __ Peek(x0, 0);
-          __ Push(x0);
-          VisitForStackValue(value);
-          __ CallRuntime(Runtime::kInternalSetPrototype, 2);
-        } else {
-          VisitForEffect(value);
-        }
+        DCHECK(property->emit_store());
+        // Duplicate receiver on stack.
+        __ Peek(x0, 0);
+        __ Push(x0);
+        VisitForStackValue(value);
+        __ CallRuntime(Runtime::kInternalSetPrototype, 2);
         break;
       case ObjectLiteral::Property::GETTER:
-        accessor_table.lookup(key)->second->getter = value;
+        if (property->emit_store()) {
+          accessor_table.lookup(key)->second->getter = value;
+        }
         break;
       case ObjectLiteral::Property::SETTER:
-        accessor_table.lookup(key)->second->setter = value;
+        if (property->emit_store()) {
+          accessor_table.lookup(key)->second->setter = value;
+        }
         break;
     }
   }
@@ -1790,11 +1796,8 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
     if (property->kind() == ObjectLiteral::Property::PROTOTYPE) {
       DCHECK(!property->is_computed_name());
       VisitForStackValue(value);
-      if (property->emit_store()) {
-        __ CallRuntime(Runtime::kInternalSetPrototype, 2);
-      } else {
-        __ Drop(2);
-      }
+      DCHECK(property->emit_store());
+      __ CallRuntime(Runtime::kInternalSetPrototype, 2);
     } else {
       EmitPropertyKey(property, expr->GetIdForProperty(property_index));
       VisitForStackValue(value);
@@ -1817,11 +1820,15 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
           break;
 
         case ObjectLiteral::Property::GETTER:
-          __ CallRuntime(Runtime::kDefineGetterPropertyUnchecked, 3);
+          __ Mov(x0, Smi::FromInt(NONE));
+          __ Push(x0);
+          __ CallRuntime(Runtime::kDefineGetterPropertyUnchecked, 4);
           break;
 
         case ObjectLiteral::Property::SETTER:
-          __ CallRuntime(Runtime::kDefineSetterPropertyUnchecked, 3);
+          __ Mov(x0, Smi::FromInt(NONE));
+          __ Push(x0);
+          __ CallRuntime(Runtime::kDefineSetterPropertyUnchecked, 4);
           break;
       }
     }
@@ -2015,19 +2022,15 @@ void FullCodeGenerator::VisitAssignment(Assignment* expr) {
     __ Push(x0);  // Left operand goes on the stack.
     VisitForAccumulatorValue(expr->value());
 
-    OverwriteMode mode = expr->value()->ResultOverwriteAllowed()
-        ? OVERWRITE_RIGHT
-        : NO_OVERWRITE;
     SetSourcePosition(expr->position() + 1);
     AccumulatorValueContext context(this);
     if (ShouldInlineSmiCase(op)) {
       EmitInlineSmiBinaryOp(expr->binary_operation(),
                             op,
-                            mode,
                             expr->target(),
                             expr->value());
     } else {
-      EmitBinaryOp(expr->binary_operation(), op, mode);
+      EmitBinaryOp(expr->binary_operation(), op);
     }
 
     // Deoptimization point in case the binary operation may have side effects.
@@ -2117,7 +2120,6 @@ void FullCodeGenerator::EmitKeyedSuperPropertyLoad(Property* prop) {
 
 void FullCodeGenerator::EmitInlineSmiBinaryOp(BinaryOperation* expr,
                                               Token::Value op,
-                                              OverwriteMode mode,
                                               Expression* left_expr,
                                               Expression* right_expr) {
   Label done, both_smis, stub_call;
@@ -2135,7 +2137,7 @@ void FullCodeGenerator::EmitInlineSmiBinaryOp(BinaryOperation* expr,
 
   __ Bind(&stub_call);
 
-  Handle<Code> code = CodeFactory::BinaryOpIC(isolate(), op, mode).code();
+  Handle<Code> code = CodeFactory::BinaryOpIC(isolate(), op).code();
   {
     Assembler::BlockPoolsScope scope(masm_);
     CallIC(code, expr->BinaryOperationFeedbackId());
@@ -2215,11 +2217,9 @@ void FullCodeGenerator::EmitInlineSmiBinaryOp(BinaryOperation* expr,
 }
 
 
-void FullCodeGenerator::EmitBinaryOp(BinaryOperation* expr,
-                                     Token::Value op,
-                                     OverwriteMode mode) {
+void FullCodeGenerator::EmitBinaryOp(BinaryOperation* expr, Token::Value op) {
   __ Pop(x1);
-  Handle<Code> code = CodeFactory::BinaryOpIC(isolate(), op, mode).code();
+  Handle<Code> code = CodeFactory::BinaryOpIC(isolate(), op).code();
   JumpPatchSite patch_site(masm_);    // Unbound, signals no inlined smi code.
   {
     Assembler::BlockPoolsScope scope(masm_);
@@ -2259,17 +2259,22 @@ void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
     switch (property->kind()) {
       case ObjectLiteral::Property::CONSTANT:
       case ObjectLiteral::Property::MATERIALIZED_LITERAL:
-      case ObjectLiteral::Property::COMPUTED:
       case ObjectLiteral::Property::PROTOTYPE:
+        UNREACHABLE();
+      case ObjectLiteral::Property::COMPUTED:
         __ CallRuntime(Runtime::kDefineClassMethod, 3);
         break;
 
       case ObjectLiteral::Property::GETTER:
-        __ CallRuntime(Runtime::kDefineGetterPropertyUnchecked, 3);
+        __ Mov(x0, Smi::FromInt(DONT_ENUM));
+        __ Push(x0);
+        __ CallRuntime(Runtime::kDefineGetterPropertyUnchecked, 4);
         break;
 
       case ObjectLiteral::Property::SETTER:
-        __ CallRuntime(Runtime::kDefineSetterPropertyUnchecked, 3);
+        __ Mov(x0, Smi::FromInt(DONT_ENUM));
+        __ Push(x0);
+        __ CallRuntime(Runtime::kDefineSetterPropertyUnchecked, 4);
         break;
 
       default:
@@ -2354,7 +2359,7 @@ void FullCodeGenerator::EmitAssignment(Expression* expr) {
       __ Pop(StoreDescriptor::ReceiverRegister(),
              StoreDescriptor::ValueRegister());
       Handle<Code> ic =
-          CodeFactory::KeyedStoreIC(isolate(), strict_mode()).code();
+          CodeFactory::KeyedStoreIC(isolate(), language_mode()).code();
       CallIC(ic);
       break;
     }
@@ -2421,7 +2426,7 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
     if (var->IsLookupSlot()) {
       // Assignment to var.
       __ Mov(x11, Operand(var->name()));
-      __ Mov(x10, Smi::FromInt(strict_mode()));
+      __ Mov(x10, Smi::FromInt(language_mode()));
       // jssp[0]  : mode.
       // jssp[8]  : name.
       // jssp[16] : context.
@@ -2440,7 +2445,7 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
       }
       EmitStoreToStackLocalOrContextSlot(var, location);
     }
-  } else if (IsSignallingAssignmentToConst(var, op, strict_mode())) {
+  } else if (IsSignallingAssignmentToConst(var, op, language_mode())) {
     __ CallRuntime(Runtime::kThrowConstAssignError, 0);
   }
 }
@@ -2475,8 +2480,8 @@ void FullCodeGenerator::EmitNamedSuperPropertyStore(Property* prop) {
 
   __ Push(key->value());
   __ Push(x0);
-  __ CallRuntime((strict_mode() == STRICT ? Runtime::kStoreToSuper_Strict
-                                          : Runtime::kStoreToSuper_Sloppy),
+  __ CallRuntime((is_strict(language_mode()) ? Runtime::kStoreToSuper_Strict
+                                             : Runtime::kStoreToSuper_Sloppy),
                  4);
 }
 
@@ -2488,9 +2493,10 @@ void FullCodeGenerator::EmitKeyedSuperPropertyStore(Property* prop) {
   DCHECK(prop != NULL);
 
   __ Push(x0);
-  __ CallRuntime((strict_mode() == STRICT ? Runtime::kStoreKeyedToSuper_Strict
-                                          : Runtime::kStoreKeyedToSuper_Sloppy),
-                 4);
+  __ CallRuntime(
+      (is_strict(language_mode()) ? Runtime::kStoreKeyedToSuper_Strict
+                                  : Runtime::kStoreKeyedToSuper_Sloppy),
+      4);
 }
 
 
@@ -2504,7 +2510,8 @@ void FullCodeGenerator::EmitKeyedPropertyAssignment(Assignment* expr) {
   __ Pop(StoreDescriptor::NameRegister(), StoreDescriptor::ReceiverRegister());
   DCHECK(StoreDescriptor::ValueRegister().is(x0));
 
-  Handle<Code> ic = CodeFactory::KeyedStoreIC(isolate(), strict_mode()).code();
+  Handle<Code> ic =
+      CodeFactory::KeyedStoreIC(isolate(), language_mode()).code();
   CallIC(ic, expr->AssignmentFeedbackId());
 
   PrepareForBailoutForId(expr->AssignmentId(), TOS_REG);
@@ -2527,8 +2534,6 @@ void FullCodeGenerator::VisitProperty(Property* expr) {
       __ Push(result_register());
       EmitNamedSuperPropertyLoad(expr);
     }
-    PrepareForBailoutForId(expr->LoadId(), TOS_REG);
-    context()->Plug(x0);
   } else {
     if (!expr->IsSuperAccess()) {
       VisitForStackValue(expr->obj());
@@ -2543,8 +2548,9 @@ void FullCodeGenerator::VisitProperty(Property* expr) {
       VisitForStackValue(expr->key());
       EmitKeyedSuperPropertyLoad(expr);
     }
-    context()->Plug(x0);
   }
+  PrepareForBailoutForId(expr->LoadId(), TOS_REG);
+  context()->Plug(x0);
 }
 
 
@@ -2701,7 +2707,7 @@ void FullCodeGenerator::EmitCall(Call* expr, CallICState::CallType call_type) {
   SetSourcePosition(expr->position());
 
   Handle<Code> ic = CodeFactory::CallIC(isolate(), arg_count, call_type).code();
-  __ Mov(x3, SmiFromSlot(expr->CallFeedbackSlot()));
+  __ Mov(x3, SmiFromSlot(expr->CallFeedbackICSlot()));
   __ Peek(x1, (arg_count + 1) * kXRegSize);
   // Don't assign a type feedback id to the IC, since type feedback is provided
   // by the vector above.
@@ -2730,7 +2736,7 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
   __ Ldr(x11, MemOperand(fp, receiver_offset * kPointerSize));
 
   // Prepare to push the language mode.
-  __ Mov(x12, Smi::FromInt(strict_mode()));
+  __ Mov(x12, Smi::FromInt(language_mode()));
   // Prepare to push the start position of the scope the calls resides in.
   __ Mov(x13, Smi::FromInt(scope()->start_position()));
 
@@ -2948,6 +2954,16 @@ void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
   EmitLoadSuperConstructor(super_ref);
   __ push(result_register());
 
+  Variable* this_var = super_ref->this_var()->var();
+
+  GetVar(x0, this_var);
+  Label uninitialized_this;
+  __ JumpIfRoot(x0, Heap::kTheHoleValueRootIndex, &uninitialized_this);
+  __ Mov(x0, Operand(this_var->name()));
+  __ Push(x0);
+  __ CallRuntime(Runtime::kThrowReferenceError, 1);
+  __ bind(&uninitialized_this);
+
   // Push the arguments ("left-to-right") on the stack.
   ZoneList<Expression*>* args = expr->arguments();
   int arg_count = args->length();
@@ -2982,8 +2998,7 @@ void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
 
   RecordJSReturnSite(expr);
 
-  // TODO(dslomov): implement TDZ for `this`.
-  EmitVariableAssignment(super_ref->this_var()->var(), Token::ASSIGN);
+  EmitVariableAssignment(this_var, Token::INIT_CONST);
   context()->Plug(x0);
 }
 
@@ -3531,7 +3546,7 @@ void FullCodeGenerator::EmitValueOf(CallRuntime* expr) {
 void FullCodeGenerator::EmitDateField(CallRuntime* expr) {
   ZoneList<Expression*>* args = expr->arguments();
   DCHECK(args->length() == 2);
-  DCHECK_NE(NULL, args->at(1)->AsLiteral());
+  DCHECK_NOT_NULL(args->at(1)->AsLiteral());
   Smi* index = Smi::cast(*(args->at(1)->AsLiteral()->value()));
 
   VisitForAccumulatorValue(args->at(0));  // Load the object.
@@ -3877,7 +3892,7 @@ void FullCodeGenerator::EmitRegExpConstructResult(CallRuntime* expr) {
 void FullCodeGenerator::EmitGetFromCache(CallRuntime* expr) {
   ZoneList<Expression*>* args = expr->arguments();
   DCHECK_EQ(2, args->length());
-  DCHECK_NE(NULL, args->at(0)->AsLiteral());
+  DCHECK_NOT_NULL(args->at(0)->AsLiteral());
   int cache_id = Smi::cast(*(args->at(0)->AsLiteral()->value()))->value();
 
   Handle<FixedArray> jsfunction_result_caches(
@@ -4255,7 +4270,7 @@ void FullCodeGenerator::VisitUnaryOperation(UnaryOperation* expr) {
       if (property != NULL) {
         VisitForStackValue(property->obj());
         VisitForStackValue(property->key());
-        __ Mov(x10, Smi::FromInt(strict_mode()));
+        __ Mov(x10, Smi::FromInt(language_mode()));
         __ Push(x10);
         __ InvokeBuiltin(Builtins::DELETE, CALL_FUNCTION);
         context()->Plug(x0);
@@ -4263,7 +4278,7 @@ void FullCodeGenerator::VisitUnaryOperation(UnaryOperation* expr) {
         Variable* var = proxy->var();
         // Delete of an unqualified identifier is disallowed in strict mode
         // but "delete this" is allowed.
-        DCHECK(strict_mode() == SLOPPY || var->is_this());
+        DCHECK(is_sloppy(language_mode()) || var->is_this());
         if (var->IsUnallocated()) {
           __ Ldr(x12, GlobalObjectMemOperand());
           __ Mov(x11, Operand(var->name()));
@@ -4512,8 +4527,7 @@ void FullCodeGenerator::VisitCountOperation(CountOperation* expr) {
 
   {
     Assembler::BlockPoolsScope scope(masm_);
-    Handle<Code> code =
-        CodeFactory::BinaryOpIC(isolate(), Token::ADD, NO_OVERWRITE).code();
+    Handle<Code> code = CodeFactory::BinaryOpIC(isolate(), Token::ADD).code();
     CallIC(code, expr->CountBinOpFeedbackId());
     patch_site.EmitPatchInfo();
   }
@@ -4582,7 +4596,7 @@ void FullCodeGenerator::VisitCountOperation(CountOperation* expr) {
       __ Pop(StoreDescriptor::NameRegister());
       __ Pop(StoreDescriptor::ReceiverRegister());
       Handle<Code> ic =
-          CodeFactory::KeyedStoreIC(isolate(), strict_mode()).code();
+          CodeFactory::KeyedStoreIC(isolate(), language_mode()).code();
       CallIC(ic, expr->CountStoreFeedbackId());
       PrepareForBailoutForId(expr->AssignmentId(), TOS_REG);
       if (expr->is_postfix()) {

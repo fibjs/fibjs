@@ -42,7 +42,6 @@ namespace internal {
 //     // Used by FunctionState and BlockState.
 //     typedef Scope;
 //     typedef GeneratorVariable;
-//     typedef Zone;
 //     // Return types for traversing functions.
 //     typedef Identifier;
 //     typedef Expression;
@@ -68,15 +67,17 @@ class ParserBase : public Traits {
   typedef typename Traits::Type::Literal LiteralT;
   typedef typename Traits::Type::ObjectLiteralProperty ObjectLiteralPropertyT;
 
-  ParserBase(Isolate* isolate, typename Traits::Type::Zone* zone,
-             Scanner* scanner, uintptr_t stack_limit, v8::Extension* extension,
-             ParserRecorder* log, typename Traits::Type::Parser this_object)
+  ParserBase(Isolate* isolate, Zone* zone, Scanner* scanner,
+             uintptr_t stack_limit, v8::Extension* extension,
+             AstValueFactory* ast_value_factory, ParserRecorder* log,
+             typename Traits::Type::Parser this_object)
       : Traits(this_object),
         parenthesized_function_(false),
         scope_(NULL),
         function_state_(NULL),
         extension_(extension),
         fni_(NULL),
+        ast_value_factory_(ast_value_factory),
         log_(log),
         mode_(PARSE_EAGERLY),  // Lazy mode must be set explicitly.
         stack_limit_(stack_limit),
@@ -89,7 +90,9 @@ class ParserBase : public Traits {
         allow_harmony_arrow_functions_(false),
         allow_harmony_object_literals_(false),
         allow_harmony_sloppy_(false),
-        allow_harmony_computed_property_names_(false) {}
+        allow_harmony_computed_property_names_(false),
+        allow_harmony_rest_params_(false),
+        allow_strong_mode_(false) {}
 
   // Getters that indicate whether certain syntactical constructs are
   // allowed to be parsed by this instance of the parser.
@@ -113,6 +116,11 @@ class ParserBase : public Traits {
   bool allow_harmony_computed_property_names() const {
     return allow_harmony_computed_property_names_;
   }
+  bool allow_harmony_rest_params() const {
+    return allow_harmony_rest_params_;
+  }
+
+  bool allow_strong_mode() const { return allow_strong_mode_; }
 
   // Setters that determine whether certain syntactical constructs are
   // allowed to be parsed by this instance of the parser.
@@ -148,6 +156,10 @@ class ParserBase : public Traits {
   void set_allow_harmony_computed_property_names(bool allow) {
     allow_harmony_computed_property_names_ = allow;
   }
+  void set_allow_harmony_rest_params(bool allow) {
+    allow_harmony_rest_params_ = allow;
+  }
+  void set_allow_strong_mode(bool allow) { allow_strong_mode_ = allow; }
 
  protected:
   enum AllowEvalOrArgumentsAsIdentifier {
@@ -161,7 +173,7 @@ class ParserBase : public Traits {
   };
 
   class Checkpoint;
-  class ObjectLiteralChecker;
+  class ObjectLiteralCheckerBase;
 
   // ---------------------------------------------------------------------------
   // FunctionState and BlockState together implement the parser's scope stack.
@@ -189,7 +201,7 @@ class ParserBase : public Traits {
    public:
     FunctionState(FunctionState** function_state_stack,
                   typename Traits::Type::Scope** scope_stack,
-                  typename Traits::Type::Scope* scope,
+                  typename Traits::Type::Scope* scope, FunctionKind kind,
                   typename Traits::Type::Factory* factory);
     ~FunctionState();
 
@@ -206,15 +218,15 @@ class ParserBase : public Traits {
     void AddProperty() { expected_property_count_++; }
     int expected_property_count() { return expected_property_count_; }
 
-    void set_is_generator(bool is_generator) { is_generator_ = is_generator; }
-    bool is_generator() const { return is_generator_; }
+    bool is_generator() const { return IsGeneratorFunction(kind_); }
+
+    FunctionKind kind() const { return kind_; }
 
     void set_generator_object_variable(
         typename Traits::Type::GeneratorVariable* variable) {
       DCHECK(variable != NULL);
-      DCHECK(!is_generator());
+      DCHECK(is_generator());
       generator_object_variable_ = variable;
-      is_generator_ = true;
     }
     typename Traits::Type::GeneratorVariable* generator_object_variable()
         const {
@@ -235,18 +247,17 @@ class ParserBase : public Traits {
     // Properties count estimation.
     int expected_property_count_;
 
-    // Whether the function is a generator.
-    bool is_generator_;
+    FunctionKind kind_;
     // For generators, this variable may hold the generator object. It variable
     // is used by yield expressions and return statements. It is not necessary
     // for generator functions to have this variable set.
     Variable* generator_object_variable_;
 
+
     FunctionState** function_state_stack_;
     FunctionState* outer_function_state_;
     typename Traits::Type::Scope** scope_stack_;
     typename Traits::Type::Scope* outer_scope_;
-    typename Traits::Type::Zone* extra_param_;
     typename Traits::Type::Factory* factory_;
 
     friend class ParserTraits;
@@ -299,12 +310,13 @@ class ParserBase : public Traits {
 
   Isolate* isolate() const { return isolate_; }
   Scanner* scanner() const { return scanner_; }
+  AstValueFactory* ast_value_factory() const { return ast_value_factory_; }
   int position() { return scanner_->location().beg_pos; }
   int peek_position() { return scanner_->peek_location().beg_pos; }
   bool stack_overflow() const { return stack_overflow_; }
   void set_stack_overflow() { stack_overflow_ = true; }
   Mode mode() const { return mode_; }
-  typename Traits::Type::Zone* zone() const { return zone_; }
+  Zone* zone() const { return zone_; }
 
   INLINE(Token::Value peek()) {
     if (stack_overflow_) return Token::ILLEGAL;
@@ -414,17 +426,18 @@ class ParserBase : public Traits {
     CheckOctalLiteral(beg_pos, end_pos, "template_octal_literal", ok);
   }
 
-  // Validates strict mode for function parameter lists. This has to be
-  // done after parsing the function, since the function can declare
-  // itself strict.
-  void CheckStrictFunctionNameAndParameters(
-      IdentifierT function_name,
-      bool function_name_is_strict_reserved,
-      const Scanner::Location& function_name_loc,
-      const Scanner::Location& eval_args_error_loc,
-      const Scanner::Location& dupe_error_loc,
-      const Scanner::Location& reserved_loc,
-      bool* ok) {
+  // Checking the name of a function literal. This has to be done after parsing
+  // the function, since the function can declare itself strict.
+  void CheckFunctionName(LanguageMode language_mode, FunctionKind kind,
+                         IdentifierT function_name,
+                         bool function_name_is_strict_reserved,
+                         const Scanner::Location& function_name_loc,
+                         bool* ok) {
+    // Property names are never checked.
+    if (IsConciseMethod(kind) || IsAccessorFunction(kind)) return;
+    // The function name needs to be checked in strict mode.
+    if (is_sloppy(language_mode)) return;
+
     if (this->IsEvalOrArguments(function_name)) {
       Traits::ReportMessageAt(function_name_loc, "strict_eval_arguments");
       *ok = false;
@@ -435,11 +448,25 @@ class ParserBase : public Traits {
       *ok = false;
       return;
     }
+  }
+
+  // Checking the parameter names of a function literal. This has to be done
+  // after parsing the function, since the function can declare itself strict.
+  void CheckFunctionParameterNames(LanguageMode language_mode,
+                                   bool strict_params,
+                                   const Scanner::Location& eval_args_error_loc,
+                                   const Scanner::Location& dupe_error_loc,
+                                   const Scanner::Location& reserved_loc,
+                                   bool* ok) {
+    if (is_sloppy(language_mode) && !strict_params) return;
+
     if (eval_args_error_loc.IsValid()) {
       Traits::ReportMessageAt(eval_args_error_loc, "strict_eval_arguments");
       *ok = false;
       return;
     }
+    // TODO(arv): When we add support for destructuring in setters we also need
+    // to check for duplicate names.
     if (dupe_error_loc.IsValid()) {
       Traits::ReportMessageAt(dupe_error_loc, "strict_param_dupe");
       *ok = false;
@@ -463,7 +490,7 @@ class ParserBase : public Traits {
     return function_state_->factory();
   }
 
-  StrictMode strict_mode() { return scope_->strict_mode(); }
+  LanguageMode language_mode() { return scope_->language_mode(); }
   bool is_generator() const { return function_state_->is_generator(); }
 
   // Report syntax errors.
@@ -512,11 +539,10 @@ class ParserBase : public Traits {
                                 bool* is_static, bool* is_computed_name,
                                 bool* ok);
   ExpressionT ParseObjectLiteral(bool* ok);
-  ObjectLiteralPropertyT ParsePropertyDefinition(ObjectLiteralChecker* checker,
-                                                 bool in_class, bool is_static,
-                                                 bool* is_computed_name,
-                                                 bool* has_seen_constructor,
-                                                 bool* ok);
+  ObjectLiteralPropertyT ParsePropertyDefinition(
+      ObjectLiteralCheckerBase* checker, bool in_class, bool has_extends,
+      bool is_static, bool* is_computed_name, bool* has_seen_constructor,
+      bool* ok);
   typename Traits::Type::ExpressionList ParseArguments(bool* ok);
   ExpressionT ParseAssignmentExpression(bool accept_IN, bool* ok);
   ExpressionT ParseYieldExpression(bool* ok);
@@ -541,58 +567,63 @@ class ParserBase : public Traits {
       ExpressionT expression,
       Scanner::Location location, const char* message, bool* ok);
 
-  // Used to detect duplicates in object literals. Each of the values
-  // kGetterProperty, kSetterProperty and kValueProperty represents
-  // a type of object literal property. When parsing a property, its
-  // type value is stored in the DuplicateFinder for the property name.
-  // Values are chosen so that having intersection bits means the there is
-  // an incompatibility.
-  // I.e., you can add a getter to a property that already has a setter, since
-  // kGetterProperty and kSetterProperty doesn't intersect, but not if it
-  // already has a getter or a value. Adding the getter to an existing
-  // setter will store the value (kGetterProperty | kSetterProperty), which
-  // is incompatible with adding any further properties.
+  // Used to validate property names in object literals and class literals
   enum PropertyKind {
-    kNone = 0,
-    // Bit patterns representing different object literal property types.
-    kGetterProperty = 1,
-    kSetterProperty = 2,
-    kValueProperty = 7,
-    // Helper constants.
-    kValueFlag = 4
+    kAccessorProperty,
+    kValueProperty,
+    kMethodProperty
   };
 
-  // Validation per ECMA 262 - 11.1.5 "Object Initializer".
-  class ObjectLiteralChecker {
+  class ObjectLiteralCheckerBase {
    public:
-    ObjectLiteralChecker(ParserBase* parser, StrictMode strict_mode)
-        : parser_(parser),
-          finder_(scanner()->unicode_cache()),
-          strict_mode_(strict_mode) {}
+    explicit ObjectLiteralCheckerBase(ParserBase* parser) : parser_(parser) {}
 
-    void CheckProperty(Token::Value property, PropertyKind type, bool* ok);
+    virtual void CheckProperty(Token::Value property, PropertyKind type,
+                               bool is_static, bool is_generator, bool* ok) = 0;
 
-   private:
+    virtual ~ObjectLiteralCheckerBase() {}
+
+   protected:
     ParserBase* parser() const { return parser_; }
     Scanner* scanner() const { return parser_->scanner(); }
 
-    // Checks the type of conflict based on values coming from PropertyType.
-    bool HasConflict(PropertyKind type1, PropertyKind type2) {
-      return (type1 & type2) != 0;
+   private:
+    ParserBase* parser_;
+  };
+
+  // Validation per ES6 object literals.
+  class ObjectLiteralChecker : public ObjectLiteralCheckerBase {
+   public:
+    explicit ObjectLiteralChecker(ParserBase* parser)
+        : ObjectLiteralCheckerBase(parser), has_seen_proto_(false) {}
+
+    void CheckProperty(Token::Value property, PropertyKind type, bool is_static,
+                       bool is_generator, bool* ok) OVERRIDE;
+
+   private:
+    bool IsProto() { return this->scanner()->LiteralMatches("__proto__", 9); }
+
+    bool has_seen_proto_;
+  };
+
+  // Validation per ES6 class literals.
+  class ClassLiteralChecker : public ObjectLiteralCheckerBase {
+   public:
+    explicit ClassLiteralChecker(ParserBase* parser)
+        : ObjectLiteralCheckerBase(parser), has_seen_constructor_(false) {}
+
+    void CheckProperty(Token::Value property, PropertyKind type, bool is_static,
+                       bool is_generator, bool* ok) OVERRIDE;
+
+   private:
+    bool IsConstructor() {
+      return this->scanner()->LiteralMatches("constructor", 11);
     }
-    bool IsDataDataConflict(PropertyKind type1, PropertyKind type2) {
-      return ((type1 & type2) & kValueFlag) != 0;
-    }
-    bool IsDataAccessorConflict(PropertyKind type1, PropertyKind type2) {
-      return ((type1 ^ type2) & kValueFlag) != 0;
-    }
-    bool IsAccessorAccessorConflict(PropertyKind type1, PropertyKind type2) {
-      return ((type1 | type2) & kValueFlag) == 0;
+    bool IsPrototype() {
+      return this->scanner()->LiteralMatches("prototype", 9);
     }
 
-    ParserBase* parser_;
-    DuplicateFinder finder_;
-    StrictMode strict_mode_;
+    bool has_seen_constructor_;
   };
 
   // If true, the next (and immediately following) function literal is
@@ -605,13 +636,14 @@ class ParserBase : public Traits {
   FunctionState* function_state_;  // Function state stack.
   v8::Extension* extension_;
   FuncNameInferrer* fni_;
+  AstValueFactory* ast_value_factory_;  // Not owned.
   ParserRecorder* log_;
   Mode mode_;
   uintptr_t stack_limit_;
 
  private:
   Isolate* isolate_;
-  typename Traits::Type::Zone* zone_;  // Only used by Parser.
+  Zone* zone_;
 
   Scanner* scanner_;
   bool stack_overflow_;
@@ -622,6 +654,8 @@ class ParserBase : public Traits {
   bool allow_harmony_object_literals_;
   bool allow_harmony_sloppy_;
   bool allow_harmony_computed_property_names_;
+  bool allow_harmony_rest_params_;
+  bool allow_strong_mode_;
 };
 
 
@@ -742,13 +776,17 @@ class PreParserExpression {
   }
 
   static PreParserExpression StringLiteral() {
-    return PreParserExpression(TypeField::encode(kStringLiteralExpression) |
-                               IsUseStrictField::encode(false));
+    return PreParserExpression(TypeField::encode(kStringLiteralExpression));
   }
 
   static PreParserExpression UseStrictStringLiteral() {
     return PreParserExpression(TypeField::encode(kStringLiteralExpression) |
                                IsUseStrictField::encode(true));
+  }
+
+  static PreParserExpression UseStrongStringLiteral() {
+    return PreParserExpression(TypeField::encode(kStringLiteralExpression) |
+                               IsUseStrongField::encode(true));
   }
 
   static PreParserExpression This() {
@@ -800,6 +838,11 @@ class PreParserExpression {
   bool IsUseStrictLiteral() const {
     return TypeField::decode(code_) == kStringLiteralExpression &&
            IsUseStrictField::decode(code_);
+  }
+
+  bool IsUseStrongLiteral() const {
+    return TypeField::decode(code_) == kStringLiteralExpression &&
+           IsUseStrongField::decode(code_);
   }
 
   bool IsThis() const {
@@ -910,6 +953,7 @@ class PreParserExpression {
   typedef BitField<ExpressionType, ParenthesizationField::kNext, 3>
       ExpressionTypeField;
   typedef BitField<bool, ParenthesizationField::kNext, 1> IsUseStrictField;
+  typedef BitField<bool, IsUseStrictField::kNext, 1> IsUseStrongField;
   typedef BitField<bool, ParenthesizationField::kNext, 1>
       IsValidArrowParamListField;
   typedef BitField<PreParserIdentifier::Type, ParenthesizationField::kNext, 10>
@@ -951,6 +995,9 @@ class PreParserStatement {
     if (expression.IsUseStrictLiteral()) {
       return PreParserStatement(kUseStrictExpressionStatement);
     }
+    if (expression.IsUseStrongLiteral()) {
+      return PreParserStatement(kUseStrongExpressionStatement);
+    }
     if (expression.IsStringLiteral()) {
       return PreParserStatement(kStringLiteralExpressionStatement);
     }
@@ -965,6 +1012,8 @@ class PreParserStatement {
     return code_ == kUseStrictExpressionStatement;
   }
 
+  bool IsUseStrongLiteral() { return code_ == kUseStrongExpressionStatement; }
+
   bool IsFunctionDeclaration() {
     return code_ == kFunctionDeclaration;
   }
@@ -974,6 +1023,7 @@ class PreParserStatement {
     kUnknownStatement,
     kStringLiteralExpressionStatement,
     kUseStrictExpressionStatement,
+    kUseStrongExpressionStatement,
     kFunctionDeclaration
   };
 
@@ -999,12 +1049,14 @@ class PreParserScope {
   explicit PreParserScope(PreParserScope* outer_scope, ScopeType scope_type,
                           void* = NULL)
       : scope_type_(scope_type) {
-    strict_mode_ = outer_scope ? outer_scope->strict_mode() : SLOPPY;
+    language_mode_ = outer_scope ? outer_scope->language_mode() : SLOPPY;
   }
 
   ScopeType type() { return scope_type_; }
-  StrictMode strict_mode() const { return strict_mode_; }
-  void SetStrictMode(StrictMode strict_mode) { strict_mode_ = strict_mode; }
+  LanguageMode language_mode() const { return language_mode_; }
+  void SetLanguageMode(LanguageMode language_mode) {
+    language_mode_ = language_mode;
+  }
   void SetScopeName(PreParserIdentifier name) {}
 
   // When PreParser is in use, lazy compilation is already being done,
@@ -1026,7 +1078,7 @@ class PreParserScope {
 
  private:
   ScopeType scope_type_;
-  StrictMode strict_mode_;
+  LanguageMode language_mode_;
 };
 
 
@@ -1175,8 +1227,6 @@ class PreParserTraits {
 
     // PreParser doesn't need to store generator variables.
     typedef void GeneratorVariable;
-    // No interaction with Zones.
-    typedef void Zone;
 
     typedef int AstProperties;
     typedef Vector<PreParserIdentifier> ParameterIdentifierVector;
@@ -1304,7 +1354,8 @@ class PreParserTraits {
       const char* type, Handle<Object> arg, int pos) {
     return PreParserExpression::Default();
   }
-  PreParserScope NewScope(PreParserScope* outer_scope, ScopeType scope_type) {
+  PreParserScope NewScope(PreParserScope* outer_scope, ScopeType scope_type,
+                          FunctionKind kind = kNormalFunction) {
     return PreParserScope(outer_scope, scope_type);
   }
 
@@ -1396,15 +1447,15 @@ class PreParserTraits {
     return PreParserExpression::Default();
   }
 
-  static PreParserExpressionList NewExpressionList(int size, void* zone) {
+  static PreParserExpressionList NewExpressionList(int size, Zone* zone) {
     return PreParserExpressionList();
   }
 
-  static PreParserStatementList NewStatementList(int size, void* zone) {
+  static PreParserStatementList NewStatementList(int size, Zone* zone) {
     return PreParserStatementList();
   }
 
-  static PreParserExpressionList NewPropertyList(int size, void* zone) {
+  static PreParserExpressionList NewPropertyList(int size, Zone* zone) {
     return PreParserExpressionList();
   }
 
@@ -1415,9 +1466,9 @@ class PreParserTraits {
   }
 
   V8_INLINE PreParserStatementList
-      ParseEagerFunctionBody(PreParserIdentifier function_name, int pos,
-                             Variable* fvar, Token::Value fvar_init_op,
-                             bool is_generator, bool* ok);
+  ParseEagerFunctionBody(PreParserIdentifier function_name, int pos,
+                         Variable* fvar, Token::Value fvar_init_op,
+                         FunctionKind kind, bool* ok);
 
   // Utility functions
   int DeclareArrowParametersFromExpression(PreParserExpression expression,
@@ -1452,7 +1503,6 @@ class PreParserTraits {
   static bool IsTaggedTemplate(const PreParserExpression tag) {
     return !tag.IsNoTemplateTag();
   }
-  static AstValueFactory* ast_value_factory() { return NULL; }
 
   void CheckConflictingVarDeclarations(PreParserScope scope, bool* ok) {}
 
@@ -1497,10 +1547,11 @@ class PreParser : public ParserBase<PreParserTraits> {
     kPreParseSuccess
   };
 
-  PreParser(Isolate* isolate, Scanner* scanner, ParserRecorder* log,
+  PreParser(Isolate* isolate, Zone* zone, Scanner* scanner,
+            AstValueFactory* ast_value_factory, ParserRecorder* log,
             uintptr_t stack_limit)
-      : ParserBase<PreParserTraits>(isolate, NULL, scanner, stack_limit, NULL,
-                                    log, this) {}
+      : ParserBase<PreParserTraits>(isolate, zone, scanner, stack_limit, NULL,
+                                    ast_value_factory, log, this) {}
 
   // Pre-parse the program from the character stream; returns true on
   // success (even if parsing failed, the pre-parse data successfully
@@ -1509,14 +1560,15 @@ class PreParser : public ParserBase<PreParserTraits> {
   PreParseResult PreParseProgram(int* materialized_literals = 0) {
     PreParserScope scope(scope_, SCRIPT_SCOPE);
     PreParserFactory factory(NULL);
-    FunctionState top_scope(&function_state_, &scope_, &scope, &factory);
+    FunctionState top_scope(&function_state_, &scope_, &scope, kNormalFunction,
+                            &factory);
     bool ok = true;
     int start_position = scanner()->peek_location().beg_pos;
-    ParseSourceElements(Token::EOS, &ok);
+    ParseStatementList(Token::EOS, &ok);
     if (stack_overflow()) return kPreParseStackOverflow;
     if (!ok) {
       ReportUnexpectedToken(scanner()->current_token());
-    } else if (scope_->strict_mode() == STRICT) {
+    } else if (is_strict(scope_->language_mode())) {
       CheckStrictOctalLiteral(start_position, scanner()->location().end_pos,
                               &ok);
     }
@@ -1534,9 +1586,8 @@ class PreParser : public ParserBase<PreParserTraits> {
   // keyword and parameters, and have consumed the initial '{'.
   // At return, unless an error occurred, the scanner is positioned before the
   // the final '}'.
-  PreParseResult PreParseLazyFunction(StrictMode strict_mode,
-                                      bool is_generator,
-                                      ParserRecorder* log);
+  PreParseResult PreParseLazyFunction(LanguageMode language_mode,
+                                      FunctionKind kind, ParserRecorder* log);
 
  private:
   friend class PreParserTraits;
@@ -1558,17 +1609,12 @@ class PreParser : public ParserBase<PreParserTraits> {
     kHasNoInitializers
   };
 
-
-  enum SourceElements {
-    kUnknownSourceElements
-  };
-
   // All ParseXXX functions take as the last argument an *ok parameter
   // which is set to false if parsing failed; it is unchanged otherwise.
   // By making the 'exception handling' explicit, we are forced to check
   // for failure at the call sites.
-  Statement ParseSourceElement(bool* ok);
-  SourceElements ParseSourceElements(int end_token, bool* ok);
+  Statement ParseStatementListItem(bool* ok);
+  void ParseStatementList(int end_token, bool* ok);
   Statement ParseStatement(bool* ok);
   Statement ParseFunctionDeclaration(bool* ok);
   Statement ParseClassDeclaration(bool* ok);
@@ -1600,9 +1646,9 @@ class PreParser : public ParserBase<PreParserTraits> {
                                       int* materialized_literal_count,
                                       int* expected_property_count, bool* ok);
   V8_INLINE PreParserStatementList
-      ParseEagerFunctionBody(PreParserIdentifier function_name, int pos,
-                             Variable* fvar, Token::Value fvar_init_op,
-                             bool is_generator, bool* ok);
+  ParseEagerFunctionBody(PreParserIdentifier function_name, int pos,
+                         Variable* fvar, Token::Value fvar_init_op,
+                         FunctionKind kind, bool* ok);
 
   Expression ParseFunctionLiteral(
       Identifier name, Scanner::Location function_name_location,
@@ -1628,10 +1674,10 @@ void PreParserTraits::MaterializeTemplateCallsiteLiterals() {
 
 PreParserStatementList PreParser::ParseEagerFunctionBody(
     PreParserIdentifier function_name, int pos, Variable* fvar,
-    Token::Value fvar_init_op, bool is_generator, bool* ok) {
+    Token::Value fvar_init_op, FunctionKind kind, bool* ok) {
   ParsingModeScope parsing_mode(this, PARSE_EAGERLY);
 
-  ParseSourceElements(Token::RBRACE, ok);
+  ParseStatementList(Token::RBRACE, ok);
   if (!*ok) return PreParserStatementList();
 
   Expect(Token::RBRACE, ok);
@@ -1641,9 +1687,9 @@ PreParserStatementList PreParser::ParseEagerFunctionBody(
 
 PreParserStatementList PreParserTraits::ParseEagerFunctionBody(
     PreParserIdentifier function_name, int pos, Variable* fvar,
-    Token::Value fvar_init_op, bool is_generator, bool* ok) {
+    Token::Value fvar_init_op, FunctionKind kind, bool* ok) {
   return pre_parser_->ParseEagerFunctionBody(function_name, pos, fvar,
-                                             fvar_init_op, is_generator, ok);
+                                             fvar_init_op, kind, ok);
 }
 
 
@@ -1651,12 +1697,12 @@ template <class Traits>
 ParserBase<Traits>::FunctionState::FunctionState(
     FunctionState** function_state_stack,
     typename Traits::Type::Scope** scope_stack,
-    typename Traits::Type::Scope* scope,
+    typename Traits::Type::Scope* scope, FunctionKind kind,
     typename Traits::Type::Factory* factory)
     : next_materialized_literal_index_(JSFunction::kLiteralsPrefixSize),
       next_handler_index_(0),
       expected_property_count_(0),
-      is_generator_(false),
+      kind_(kind),
       generator_object_variable_(NULL),
       function_state_stack_(function_state_stack),
       outer_function_state_(*function_state_stack),
@@ -1695,8 +1741,10 @@ void ParserBase<Traits>::ReportUnexpectedToken(Token::Value token) {
     case Token::STATIC:
     case Token::YIELD:
     case Token::FUTURE_STRICT_RESERVED_WORD:
-      return ReportMessageAt(source_location, strict_mode() == SLOPPY
-          ? "unexpected_token_identifier" : "unexpected_strict_reserved");
+      return ReportMessageAt(source_location,
+                             is_strict(language_mode())
+                                 ? "unexpected_strict_reserved"
+                                 : "unexpected_token_identifier");
     case Token::TEMPLATE_SPAN:
     case Token::TEMPLATE_TAIL:
       return Traits::ReportMessageAt(source_location,
@@ -1717,14 +1765,13 @@ typename ParserBase<Traits>::IdentifierT ParserBase<Traits>::ParseIdentifier(
   if (next == Token::IDENTIFIER) {
     IdentifierT name = this->GetSymbol(scanner());
     if (allow_eval_or_arguments == kDontAllowEvalOrArguments &&
-        strict_mode() == STRICT && this->IsEvalOrArguments(name)) {
+        is_strict(language_mode()) && this->IsEvalOrArguments(name)) {
       ReportMessage("strict_eval_arguments");
       *ok = false;
     }
-    if (name->IsArguments(this->ast_value_factory()))
-      scope_->RecordArgumentsUsage();
+    if (name->IsArguments(ast_value_factory())) scope_->RecordArgumentsUsage();
     return name;
-  } else if (strict_mode() == SLOPPY &&
+  } else if (is_sloppy(language_mode()) &&
              (next == Token::FUTURE_STRICT_RESERVED_WORD ||
               next == Token::LET || next == Token::STATIC ||
               (next == Token::YIELD && !is_generator()))) {
@@ -1755,8 +1802,7 @@ typename ParserBase<Traits>::IdentifierT ParserBase<
   }
 
   IdentifierT name = this->GetSymbol(scanner());
-  if (name->IsArguments(this->ast_value_factory()))
-    scope_->RecordArgumentsUsage();
+  if (name->IsArguments(ast_value_factory())) scope_->RecordArgumentsUsage();
   return name;
 }
 
@@ -1774,8 +1820,7 @@ ParserBase<Traits>::ParseIdentifierName(bool* ok) {
   }
 
   IdentifierT name = this->GetSymbol(scanner());
-  if (name->IsArguments(this->ast_value_factory()))
-    scope_->RecordArgumentsUsage();
+  if (name->IsArguments(ast_value_factory())) scope_->RecordArgumentsUsage();
   return name;
 }
 
@@ -1921,7 +1966,7 @@ ParserBase<Traits>::ParsePrimaryExpression(bool* ok) {
 
     case Token::CLASS: {
       Consume(Token::CLASS);
-      if (!allow_harmony_sloppy() && strict_mode() == SLOPPY) {
+      if (!allow_harmony_sloppy() && is_sloppy(language_mode())) {
         ReportMessage("sloppy_lexical", NULL);
         *ok = false;
         break;
@@ -2070,12 +2115,13 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParsePropertyName(
 
 template <class Traits>
 typename ParserBase<Traits>::ObjectLiteralPropertyT
-ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
-                                            bool in_class, bool is_static,
+ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralCheckerBase* checker,
+                                            bool in_class, bool has_extends,
+                                            bool is_static,
                                             bool* is_computed_name,
                                             bool* has_seen_constructor,
                                             bool* ok) {
-  DCHECK(!in_class || is_static || has_seen_constructor != NULL);
+  DCHECK(!in_class || is_static || has_seen_constructor != nullptr);
   ExpressionT value = this->EmptyExpression();
   IdentifierT name = this->EmptyIdentifier();
   bool is_get = false;
@@ -2089,14 +2135,15 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
       &name, &is_get, &is_set, &name_is_static, is_computed_name,
       CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
 
-  if (fni_ != NULL && !*is_computed_name) {
+  if (fni_ != nullptr && !*is_computed_name) {
     this->PushLiteralName(fni_, name);
   }
 
   if (!in_class && !is_generator && peek() == Token::COLON) {
     // PropertyDefinition : PropertyName ':' AssignmentExpression
-    if (!*is_computed_name && checker != NULL) {
-      checker->CheckProperty(name_token, kValueProperty,
+    if (!*is_computed_name) {
+      checker->CheckProperty(name_token, kValueProperty, is_static,
+                             is_generator,
                              CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
     }
     Consume(Token::COLON);
@@ -2106,36 +2153,19 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
   } else if (is_generator ||
              (allow_harmony_object_literals_ && peek() == Token::LPAREN)) {
     // Concise Method
-
-    if (is_static && this->IsPrototype(name)) {
-      ReportMessageAt(scanner()->location(), "static_prototype");
-      *ok = false;
-      return this->EmptyObjectLiteralProperty();
+    if (!*is_computed_name) {
+      checker->CheckProperty(name_token, kMethodProperty, is_static,
+                             is_generator,
+                             CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
     }
 
     FunctionKind kind = is_generator ? FunctionKind::kConciseGeneratorMethod
                                      : FunctionKind::kConciseMethod;
 
     if (in_class && !is_static && this->IsConstructor(name)) {
-      if (is_generator) {
-        ReportMessageAt(scanner()->location(), "constructor_special_method");
-        *ok = false;
-        return this->EmptyObjectLiteralProperty();
-      }
-
-      if (*has_seen_constructor) {
-        ReportMessageAt(scanner()->location(), "duplicate_constructor");
-        *ok = false;
-        return this->EmptyObjectLiteralProperty();
-      }
-
       *has_seen_constructor = true;
-      kind = FunctionKind::kNormalFunction;
-    }
-
-    if (!*is_computed_name && checker != NULL) {
-      checker->CheckProperty(name_token, kValueProperty,
-                             CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
+      kind = has_extends ? FunctionKind::kSubclassConstructor
+                         : FunctionKind::kBaseConstructor;
     }
 
     value = this->ParseFunctionLiteral(
@@ -2151,9 +2181,8 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
 
   } else if (in_class && name_is_static && !is_static) {
     // static MethodDefinition
-    return ParsePropertyDefinition(checker, true, true, is_computed_name, NULL,
-                                   ok);
-
+    return ParsePropertyDefinition(checker, true, has_extends, true,
+                                   is_computed_name, nullptr, ok);
   } else if (is_get || is_set) {
     // Accessor
     name = this->EmptyIdentifier();
@@ -2164,26 +2193,16 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
         &name, &dont_care, &dont_care, &dont_care, is_computed_name,
         CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
 
-    // Validate the property.
-    if (is_static && this->IsPrototype(name)) {
-      ReportMessageAt(scanner()->location(), "static_prototype");
-      *ok = false;
-      return this->EmptyObjectLiteralProperty();
-    } else if (in_class && !is_static && this->IsConstructor(name)) {
-      ReportMessageAt(scanner()->location(), "constructor_special_method");
-      *ok = false;
-      return this->EmptyObjectLiteralProperty();
-    }
-    if (!*is_computed_name && checker != NULL) {
-      checker->CheckProperty(name_token,
-                             is_get ? kGetterProperty : kSetterProperty,
+    if (!*is_computed_name) {
+      checker->CheckProperty(name_token, kAccessorProperty, is_static,
+                             is_generator,
                              CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
     }
 
     typename Traits::Type::FunctionLiteral value = this->ParseFunctionLiteral(
         name, scanner()->location(),
         false,  // reserved words are allowed here
-        FunctionKind::kNormalFunction, RelocInfo::kNoPosition,
+        FunctionKind::kAccessorFunction, RelocInfo::kNoPosition,
         FunctionLiteral::ANONYMOUS_EXPRESSION,
         is_get ? FunctionLiteral::GETTER_ARITY : FunctionLiteral::SETTER_ARITY,
         CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
@@ -2202,7 +2221,7 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralChecker* checker,
         is_static, *is_computed_name);
 
   } else if (!in_class && allow_harmony_object_literals_ &&
-             Token::IsIdentifier(name_token, strict_mode(),
+             Token::IsIdentifier(name_token, language_mode(),
                                  this->is_generator())) {
     DCHECK(!*is_computed_name);
     DCHECK(!is_static);
@@ -2234,19 +2253,20 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
   int number_of_boilerplate_properties = 0;
   bool has_function = false;
   bool has_computed_names = false;
-
-  ObjectLiteralChecker checker(this, strict_mode());
+  ObjectLiteralChecker checker(this);
 
   Expect(Token::LBRACE, CHECK_OK);
 
   while (peek() != Token::RBRACE) {
-    if (fni_ != NULL) fni_->Enter();
+    if (fni_ != nullptr) fni_->Enter();
 
     const bool in_class = false;
     const bool is_static = false;
+    const bool has_extends = false;
     bool is_computed_name = false;
     ObjectLiteralPropertyT property = this->ParsePropertyDefinition(
-        &checker, in_class, is_static, &is_computed_name, NULL, CHECK_OK);
+        &checker, in_class, has_extends, is_static, &is_computed_name, NULL,
+        CHECK_OK);
 
     if (is_computed_name) {
       has_computed_names = true;
@@ -2269,7 +2289,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
       Expect(Token::COMMA, CHECK_OK);
     }
 
-    if (fni_ != NULL) {
+    if (fni_ != nullptr) {
       fni_->Infer();
       fni_->Leave();
     }
@@ -2524,7 +2544,7 @@ ParserBase<Traits>::ParseUnaryExpression(bool* ok) {
     ExpressionT expression = ParseUnaryExpression(CHECK_OK);
 
     // "delete identifier" is a syntax error in strict mode.
-    if (op == Token::DELETE && strict_mode() == STRICT &&
+    if (op == Token::DELETE && is_strict(language_mode()) &&
         this->IsIdentifier(expression)) {
       ReportMessage("strict_delete");
       *ok = false;
@@ -2823,11 +2843,12 @@ ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
   int handler_count = 0;
 
   {
-    typename Traits::Type::Factory function_factory(this->ast_value_factory());
+    typename Traits::Type::Factory function_factory(ast_value_factory());
     FunctionState function_state(&function_state_, &scope_,
                                  Traits::Type::ptr_to_scope(scope),
-                                 &function_factory);
+                                 kArrowFunction, &function_factory);
     Scanner::Location dupe_error_loc = Scanner::Location::invalid();
+    // TODO(arv): Pass in eval_args_error_loc and reserved_loc here.
     num_parameters = Traits::DeclareArrowParametersFromExpression(
         params_ast, scope_, &dupe_error_loc, ok);
     if (!*ok) {
@@ -2859,8 +2880,7 @@ ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
       } else {
         body = this->ParseEagerFunctionBody(
             this->EmptyIdentifier(), RelocInfo::kNoPosition, NULL,
-            Token::INIT_VAR, false,  // Not a generator.
-            CHECK_OK);
+            Token::INIT_VAR, kArrowFunction, CHECK_OK);
         materialized_literal_count =
             function_state.materialized_literal_count();
         expected_property_count = function_state.expected_property_count();
@@ -2882,27 +2902,26 @@ ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
     scope->set_end_position(scanner()->location().end_pos);
 
     // Arrow function *parameter lists* are always checked as in strict mode.
-    bool function_name_is_strict_reserved = false;
-    Scanner::Location function_name_loc = Scanner::Location::invalid();
+    // TODO(arv): eval_args_error_loc and reserved_loc needs to be set by
+    // DeclareArrowParametersFromExpression.
     Scanner::Location eval_args_error_loc = Scanner::Location::invalid();
     Scanner::Location reserved_loc = Scanner::Location::invalid();
-    this->CheckStrictFunctionNameAndParameters(
-        this->EmptyIdentifier(), function_name_is_strict_reserved,
-        function_name_loc, eval_args_error_loc, dupe_error_loc, reserved_loc,
-        CHECK_OK);
+    const bool use_strict_params = true;
+    this->CheckFunctionParameterNames(language_mode(), use_strict_params,
+        eval_args_error_loc, dupe_error_loc, reserved_loc, CHECK_OK);
 
     // Validate strict mode.
-    if (strict_mode() == STRICT) {
+    if (is_strict(language_mode())) {
       CheckStrictOctalLiteral(start_pos, scanner()->location().end_pos,
                               CHECK_OK);
     }
 
-    if (allow_harmony_scoping() && strict_mode() == STRICT)
+    if (allow_harmony_scoping() && is_strict(language_mode()))
       this->CheckConflictingVarDeclarations(scope, CHECK_OK);
   }
 
   FunctionLiteralT function_literal = factory()->NewFunctionLiteral(
-      this->EmptyIdentifierString(), this->ast_value_factory(), scope, body,
+      this->EmptyIdentifierString(), ast_value_factory(), scope, body,
       materialized_literal_count, expected_property_count, handler_count,
       num_parameters, FunctionLiteral::kNoDuplicateParameters,
       FunctionLiteral::ANONYMOUS_EXPRESSION, FunctionLiteral::kIsFunction,
@@ -3014,7 +3033,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<
     Traits>::CheckAndRewriteReferenceExpression(ExpressionT expression,
                                                 Scanner::Location location,
                                                 const char* message, bool* ok) {
-  if (strict_mode() == STRICT && this->IsIdentifier(expression) &&
+  if (is_strict(language_mode()) && this->IsIdentifier(expression) &&
       this->IsEvalOrArguments(this->AsIdentifier(expression))) {
     this->ReportMessageAt(location, "strict_eval_arguments", false);
     *ok = false;
@@ -3041,28 +3060,52 @@ typename ParserBase<Traits>::ExpressionT ParserBase<
 
 template <typename Traits>
 void ParserBase<Traits>::ObjectLiteralChecker::CheckProperty(
-    Token::Value property, PropertyKind type, bool* ok) {
-  int old;
-  if (property == Token::NUMBER) {
-    old = scanner()->FindNumber(&finder_, type);
-  } else {
-    old = scanner()->FindSymbol(&finder_, type);
-  }
-  PropertyKind old_type = static_cast<PropertyKind>(old);
-  if (HasConflict(old_type, type)) {
-    if (IsDataDataConflict(old_type, type)) {
-      // Both are data properties.
-      if (strict_mode_ == SLOPPY) return;
-      parser()->ReportMessage("strict_duplicate_property");
-    } else if (IsDataAccessorConflict(old_type, type)) {
-      // Both a data and an accessor property with the same name.
-      parser()->ReportMessage("accessor_data_property");
-    } else {
-      DCHECK(IsAccessorAccessorConflict(old_type, type));
-      // Both accessors of the same type.
-      parser()->ReportMessage("accessor_get_set");
+    Token::Value property, PropertyKind type, bool is_static, bool is_generator,
+    bool* ok) {
+  DCHECK(!is_static);
+  DCHECK(!is_generator || type == kMethodProperty);
+
+  if (property == Token::NUMBER) return;
+
+  if (type == kValueProperty && IsProto()) {
+    if (has_seen_proto_) {
+      this->parser()->ReportMessage("duplicate_proto");
+      *ok = false;
+      return;
     }
-    *ok = false;
+    has_seen_proto_ = true;
+    return;
+  }
+}
+
+
+template <typename Traits>
+void ParserBase<Traits>::ClassLiteralChecker::CheckProperty(
+    Token::Value property, PropertyKind type, bool is_static, bool is_generator,
+    bool* ok) {
+  DCHECK(type == kMethodProperty || type == kAccessorProperty);
+
+  if (property == Token::NUMBER) return;
+
+  if (is_static) {
+    if (IsPrototype()) {
+      this->parser()->ReportMessage("static_prototype");
+      *ok = false;
+      return;
+    }
+  } else if (IsConstructor()) {
+    if (is_generator || type == kAccessorProperty) {
+      this->parser()->ReportMessage("constructor_special_method");
+      *ok = false;
+      return;
+    }
+    if (has_seen_constructor_) {
+      this->parser()->ReportMessage("duplicate_constructor");
+      *ok = false;
+      return;
+    }
+    has_seen_constructor_ = true;
+    return;
   }
 }
 } }  // v8::internal

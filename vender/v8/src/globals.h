@@ -22,6 +22,8 @@
 # define V8_INFINITY std::numeric_limits<double>::infinity()
 #elif V8_LIBC_MSVCRT
 # define V8_INFINITY HUGE_VAL
+#elif V8_OS_AIX
+#define V8_INFINITY (__builtin_inff())
 #else
 # define V8_INFINITY INFINITY
 #endif
@@ -87,7 +89,7 @@ namespace internal {
 
 // Determine whether double field unboxing feature is enabled.
 #if V8_TARGET_ARCH_64_BIT
-#define V8_DOUBLE_FIELDS_UNBOXING 1
+#define V8_DOUBLE_FIELDS_UNBOXING 0
 #else
 #define V8_DOUBLE_FIELDS_UNBOXING 0
 #endif
@@ -223,7 +225,47 @@ template <typename T, class P = FreeStoreAllocationPolicy> class List;
 
 // The Strict Mode (ECMA-262 5th edition, 4.2.2).
 
-enum StrictMode { SLOPPY, STRICT };
+enum LanguageMode {
+  // LanguageMode is expressed as a bitmask. Descriptions of the bits:
+  STRICT_BIT = 1 << 0,
+  STRONG_BIT = 1 << 1,
+  LANGUAGE_END,
+
+  // Shorthands for some common language modes.
+  SLOPPY = 0,
+  STRICT = STRICT_BIT,
+  STRONG = STRICT_BIT | STRONG_BIT
+};
+
+
+inline bool is_sloppy(LanguageMode language_mode) {
+  return (language_mode & STRICT_BIT) == 0;
+}
+
+
+inline bool is_strict(LanguageMode language_mode) {
+  return language_mode & STRICT_BIT;
+}
+
+
+inline bool is_strong(LanguageMode language_mode) {
+  return language_mode & STRONG_BIT;
+}
+
+
+inline bool is_valid_language_mode(int language_mode) {
+  return language_mode == SLOPPY || language_mode == STRICT ||
+         language_mode == STRONG;
+}
+
+
+inline LanguageMode construct_language_mode(bool strict_bit, bool strong_bit) {
+  int language_mode = 0;
+  if (strict_bit) language_mode |= STRICT_BIT;
+  if (strong_bit) language_mode |= STRONG_BIT;
+  DCHECK(is_valid_language_mode(language_mode));
+  return static_cast<LanguageMode>(language_mode);
+}
 
 
 // Mask for the sign bit in a smi.
@@ -565,9 +607,6 @@ struct AccessorDescriptor {
 #define HAS_SMI_TAG(value) \
   ((reinterpret_cast<intptr_t>(value) & kSmiTagMask) == kSmiTag)
 
-#define HAS_FAILURE_TAG(value) \
-  ((reinterpret_cast<intptr_t>(value) & kFailureTagMask) == kFailureTag)
-
 // OBJECT_POINTER_ALIGN returns the value aligned as a HeapObject pointer
 #define OBJECT_POINTER_ALIGN(value)                             \
   (((value) + kObjectAlignmentMask) & ~kObjectAlignmentMask)
@@ -775,11 +814,14 @@ enum Signedness { kSigned, kUnsigned };
 
 enum FunctionKind {
   kNormalFunction = 0,
-  kArrowFunction = 1,
-  kGeneratorFunction = 2,
-  kConciseMethod = 4,
+  kArrowFunction = 1 << 0,
+  kGeneratorFunction = 1 << 1,
+  kConciseMethod = 1 << 2,
   kConciseGeneratorMethod = kGeneratorFunction | kConciseMethod,
-  kDefaultConstructor = 8
+  kAccessorFunction = 1 << 3,
+  kDefaultConstructor = 1 << 4,
+  kSubclassConstructor = 1 << 5,
+  kBaseConstructor = 1 << 6,
 };
 
 
@@ -789,7 +831,10 @@ inline bool IsValidFunctionKind(FunctionKind kind) {
          kind == FunctionKind::kGeneratorFunction ||
          kind == FunctionKind::kConciseMethod ||
          kind == FunctionKind::kConciseGeneratorMethod ||
-         kind == FunctionKind::kDefaultConstructor;
+         kind == FunctionKind::kAccessorFunction ||
+         kind == FunctionKind::kDefaultConstructor ||
+         kind == FunctionKind::kBaseConstructor ||
+         kind == FunctionKind::kSubclassConstructor;
 }
 
 
@@ -811,12 +856,36 @@ inline bool IsConciseMethod(FunctionKind kind) {
 }
 
 
+inline bool IsAccessorFunction(FunctionKind kind) {
+  DCHECK(IsValidFunctionKind(kind));
+  return kind & FunctionKind::kAccessorFunction;
+}
+
+
 inline bool IsDefaultConstructor(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
   return kind & FunctionKind::kDefaultConstructor;
 }
 
 
+inline bool IsBaseConstructor(FunctionKind kind) {
+  DCHECK(IsValidFunctionKind(kind));
+  return kind & FunctionKind::kBaseConstructor;
+}
+
+
+inline bool IsSubclassConstructor(FunctionKind kind) {
+  DCHECK(IsValidFunctionKind(kind));
+  return kind & FunctionKind::kSubclassConstructor;
+}
+
+
+inline bool IsConstructor(FunctionKind kind) {
+  DCHECK(IsValidFunctionKind(kind));
+  return kind &
+         (FunctionKind::kBaseConstructor | FunctionKind::kSubclassConstructor |
+          FunctionKind::kDefaultConstructor);
+}
 } }  // namespace v8::internal
 
 namespace i = v8::internal;

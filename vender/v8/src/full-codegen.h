@@ -584,15 +584,12 @@ class FullCodeGenerator: public AstVisitor {
 
   // Apply the compound assignment operator. Expects the left operand on top
   // of the stack and the right one in the accumulator.
-  void EmitBinaryOp(BinaryOperation* expr,
-                    Token::Value op,
-                    OverwriteMode mode);
+  void EmitBinaryOp(BinaryOperation* expr, Token::Value op);
 
   // Helper functions for generating inlined smi code for certain
   // binary operations.
   void EmitInlineSmiBinaryOp(BinaryOperation* expr,
                              Token::Value op,
-                             OverwriteMode mode,
                              Expression* left,
                              Expression* right);
 
@@ -603,11 +600,11 @@ class FullCodeGenerator: public AstVisitor {
   // Shall an error be thrown if assignment with 'op' operation is perfomed
   // on this variable in given language mode?
   static bool IsSignallingAssignmentToConst(Variable* var, Token::Value op,
-                                            StrictMode strict_mode) {
+                                            LanguageMode language_mode) {
     if (var->mode() == CONST) return op != Token::INIT_CONST;
 
     if (var->mode() == CONST_LEGACY) {
-      return strict_mode == STRICT && op != Token::INIT_CONST_LEGACY;
+      return is_strict(language_mode) && op != Token::INIT_CONST_LEGACY;
     }
 
     return false;
@@ -686,7 +683,7 @@ class FullCodeGenerator: public AstVisitor {
   Handle<Script> script() { return info_->script(); }
   bool is_eval() { return info_->is_eval(); }
   bool is_native() { return info_->is_native(); }
-  StrictMode strict_mode() { return function()->strict_mode(); }
+  LanguageMode language_mode() { return function()->language_mode(); }
   FunctionLiteral* function() { return info_->function(); }
   Scope* scope() { return scope_; }
 

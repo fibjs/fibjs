@@ -37,6 +37,8 @@
 #ifndef V8_IA32_ASSEMBLER_IA32_H_
 #define V8_IA32_ASSEMBLER_IA32_H_
 
+#include <deque>
+
 #include "src/isolate.h"
 #include "src/serialize.h"
 
@@ -357,6 +359,11 @@ class Operand BASE_EMBEDDED {
                    int32_t disp,
                    RelocInfo::Mode rmode = RelocInfo::NONE32);
 
+  static Operand JumpTable(Register index, ScaleFactor scale, Label* table) {
+    return Operand(index, scale, reinterpret_cast<int32_t>(table),
+                   RelocInfo::INTERNAL_REFERENCE);
+  }
+
   static Operand StaticVariable(const ExternalReference& ext) {
     return Operand(reinterpret_cast<int32_t>(ext.address()),
                    RelocInfo::EXTERNAL_REFERENCE);
@@ -430,11 +437,7 @@ class Operand BASE_EMBEDDED {
 
 class Displacement BASE_EMBEDDED {
  public:
-  enum Type {
-    UNCONDITIONAL_JUMP,
-    CODE_RELATIVE,
-    OTHER
-  };
+  enum Type { UNCONDITIONAL_JUMP, CODE_RELATIVE, OTHER, CODE_ABSOLUTE };
 
   int data() const { return data_; }
   Type type() const { return TypeField::decode(data_); }
@@ -804,6 +807,7 @@ class Assembler : public AssemblerBase {
   void int3();
   void nop();
   void ret(int imm16);
+  void ud2();
 
   // Label operations & relative jumps (PPUM Appendix D)
   //
@@ -1260,10 +1264,15 @@ class Assembler : public AssemblerBase {
   // write a comment.
   void RecordComment(const char* msg, bool force = false);
 
+  // Record a deoptimization reason that can be used by a log or cpu profiler.
+  // Use --trace-deopt to enable.
+  void RecordDeoptReason(const int reason, const int raw_position);
+
   // Writes a single byte or word of data in the code stream.  Used for
   // inline tables, e.g., jump-tables.
   void db(uint8_t data);
   void dd(uint32_t data);
+  void dd(Label* label);
 
   // Check if there is less than kGap bytes available in the buffer.
   // If this is the case, we need to grow the buffer before emitting
@@ -1339,6 +1348,8 @@ class Assembler : public AssemblerBase {
 
   void emit_operand(Register reg, const Operand& adr);
 
+  void emit_label(Label* label);
+
   void emit_farith(int b1, int b2, int i);
 
   // Emit vex prefix
@@ -1364,6 +1375,11 @@ class Assembler : public AssemblerBase {
 
   friend class CodePatcher;
   friend class EnsureSpace;
+
+  // Internal reference positions, required for (potential) patching in
+  // GrowBuffer(); contains only those internal references whose labels
+  // are already bound.
+  std::deque<int> internal_reference_positions_;
 
   // code generation
   RelocInfoWriter reloc_info_writer;

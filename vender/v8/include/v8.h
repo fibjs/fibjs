@@ -976,21 +976,29 @@ class ScriptOrigin {
       Handle<Integer> resource_line_offset = Handle<Integer>(),
       Handle<Integer> resource_column_offset = Handle<Integer>(),
       Handle<Boolean> resource_is_shared_cross_origin = Handle<Boolean>(),
-      Handle<Integer> script_id = Handle<Integer>())
+      Handle<Integer> script_id = Handle<Integer>(),
+      Handle<Boolean> resource_is_embedder_debug_script = Handle<Boolean>())
       : resource_name_(resource_name),
         resource_line_offset_(resource_line_offset),
         resource_column_offset_(resource_column_offset),
+        resource_is_embedder_debug_script_(resource_is_embedder_debug_script),
         resource_is_shared_cross_origin_(resource_is_shared_cross_origin),
-        script_id_(script_id) { }
+        script_id_(script_id) {}
   V8_INLINE Handle<Value> ResourceName() const;
   V8_INLINE Handle<Integer> ResourceLineOffset() const;
   V8_INLINE Handle<Integer> ResourceColumnOffset() const;
+  /**
+    * Returns true for embedder's debugger scripts
+    */
+  V8_INLINE Handle<Boolean> ResourceIsEmbedderDebugScript() const;
   V8_INLINE Handle<Boolean> ResourceIsSharedCrossOrigin() const;
   V8_INLINE Handle<Integer> ScriptID() const;
+
  private:
   Handle<Value> resource_name_;
   Handle<Integer> resource_line_offset_;
   Handle<Integer> resource_column_offset_;
+  Handle<Boolean> resource_is_embedder_debug_script_;
   Handle<Boolean> resource_is_shared_cross_origin_;
   Handle<Integer> script_id_;
 };
@@ -1136,6 +1144,7 @@ class V8_EXPORT ScriptCompiler {
     Handle<Value> resource_name;
     Handle<Integer> resource_line_offset;
     Handle<Integer> resource_column_offset;
+    Handle<Boolean> resource_is_embedder_debug_script;
     Handle<Boolean> resource_is_shared_cross_origin;
 
     // Cached data from previous compilation (if a kConsume*Cache flag is
@@ -1299,6 +1308,24 @@ class V8_EXPORT ScriptCompiler {
    *   compared when it is being used.
    */
   static uint32_t CachedDataVersionTag();
+
+  /**
+   * Compile an ES6 module.
+   *
+   * This is an experimental feature.
+   *
+   * TODO(adamk): Script is likely the wrong return value for this;
+   * should return some new Module type.
+   */
+  static Local<Script> CompileModule(
+      Isolate* isolate, Source* source,
+      CompileOptions options = kNoCompileOptions);
+
+ private:
+  static Local<UnboundScript> CompileUnboundInternal(Isolate* isolate,
+                                                     Source* source,
+                                                     CompileOptions options,
+                                                     bool is_module);
 };
 
 
@@ -1524,6 +1551,21 @@ class V8_EXPORT JSON {
    * \return The corresponding value if successfully parsed.
    */
   static Local<Value> Parse(Local<String> json_string);
+};
+
+
+/**
+ * A map whose keys are referenced weakly. It is similar to JavaScript WeakMap
+ * but can be created without entering a v8::Context and hence shouldn't
+ * escape to JavaScript.
+ */
+class V8_EXPORT NativeWeakMap : public Data {
+ public:
+  static Local<NativeWeakMap> New(Isolate* isolate);
+  void Set(Handle<Value> key, Handle<Value> value);
+  Local<Value> Get(Handle<Value> key);
+  bool Has(Handle<Value> key);
+  bool Delete(Handle<Value> key);
 };
 
 
@@ -6173,7 +6215,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 76;
+  static const int kContextEmbedderDataIndex = 74;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -6191,7 +6233,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 154;
+  static const int kEmptyStringRootIndex = 156;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.
@@ -6726,6 +6768,11 @@ Handle<Integer> ScriptOrigin::ResourceColumnOffset() const {
 }
 
 
+Handle<Boolean> ScriptOrigin::ResourceIsEmbedderDebugScript() const {
+  return resource_is_embedder_debug_script_;
+}
+
+
 Handle<Boolean> ScriptOrigin::ResourceIsSharedCrossOrigin() const {
   return resource_is_shared_cross_origin_;
 }
@@ -6742,6 +6789,7 @@ ScriptCompiler::Source::Source(Local<String> string, const ScriptOrigin& origin,
       resource_name(origin.ResourceName()),
       resource_line_offset(origin.ResourceLineOffset()),
       resource_column_offset(origin.ResourceColumnOffset()),
+      resource_is_embedder_debug_script(origin.ResourceIsEmbedderDebugScript()),
       resource_is_shared_cross_origin(origin.ResourceIsSharedCrossOrigin()),
       cached_data(data) {}
 

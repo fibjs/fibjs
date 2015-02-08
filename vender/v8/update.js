@@ -162,6 +162,7 @@ function patch_src(path) {
 }
 
 var plats1 = {
+	'aix': "#ifdef AIX",
 	'freebsd': "#ifdef FreeBSD",
 	'linux': "#ifdef Linux",
 	'macos': "#ifdef MacOS",

@@ -275,7 +275,7 @@ class BackReferenceMap : public AddressMapBase {
 
   void Add(HeapObject* obj, BackReference b) {
     DCHECK(b.is_valid());
-    DCHECK_EQ(NULL, LookupEntry(map_, obj, false));
+    DCHECK_NULL(LookupEntry(map_, obj, false));
     HashMap::Entry* entry = LookupEntry(map_, obj, true);
     SetValue(entry, b.bitfield());
   }
@@ -307,7 +307,7 @@ class HotObjectsList {
   }
 
   HeapObject* Get(int index) {
-    DCHECK_NE(NULL, circular_queue_[index]);
+    DCHECK_NOT_NULL(circular_queue_[index]);
     return circular_queue_[index];
   }
 
@@ -494,12 +494,12 @@ class SerializedData {
   class IsLastChunkBits : public BitField<bool, 31, 1> {};
 
  protected:
-  void SetHeaderValue(int offset, int value) {
-    memcpy(reinterpret_cast<int*>(data_) + offset, &value, sizeof(value));
+  void SetHeaderValue(int offset, uint32_t value) {
+    memcpy(reinterpret_cast<uint32_t*>(data_) + offset, &value, sizeof(value));
   }
 
-  int GetHeaderValue(int offset) const {
-    int value;
+  uint32_t GetHeaderValue(int offset) const {
+    uint32_t value;
     memcpy(&value, reinterpret_cast<int*>(data_) + offset, sizeof(value));
     return value;
   }
@@ -948,19 +948,25 @@ class SerializedCodeData : public SerializedData {
 
   bool IsSane(String* source);
 
-  int CheckSum(String* source);
+  uint32_t SourceHash(String* source) { return source->length(); }
 
   // The data header consists of int-sized entries:
   // [0] version hash
-  // [1] number of internalized strings
-  // [2] number of code stub keys
-  // [3] number of reservation size entries
-  // [4] payload length
-  static const int kCheckSumOffset = 0;
-  static const int kNumInternalizedStringsOffset = 1;
-  static const int kReservationsOffset = 2;
-  static const int kNumCodeStubKeysOffset = 3;
-  static const int kPayloadLengthOffset = 4;
+  // [1] source hash
+  // [2] cpu features
+  // [3] flag hash
+  // [4] number of internalized strings
+  // [5] number of code stub keys
+  // [6] number of reservation size entries
+  // [7] payload length
+  static const int kVersionHashOffset = 0;
+  static const int kSourceHashOffset = 1;
+  static const int kCpuFeaturesOffset = 2;
+  static const int kFlagHashOffset = 3;
+  static const int kNumInternalizedStringsOffset = 4;
+  static const int kReservationsOffset = 5;
+  static const int kNumCodeStubKeysOffset = 6;
+  static const int kPayloadLengthOffset = 7;
   static const int kHeaderSize = (kPayloadLengthOffset + 1) * kIntSize;
 };
 } }  // namespace v8::internal

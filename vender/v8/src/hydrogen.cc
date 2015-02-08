@@ -931,7 +931,7 @@ void HGraphBuilder::IfBuilder::Else() {
 }
 
 
-void HGraphBuilder::IfBuilder::Deopt(const char* reason) {
+void HGraphBuilder::IfBuilder::Deopt(Deoptimizer::DeoptReason reason) {
   DCHECK(did_then_);
   builder()->Add<HDeoptimize>(reason, Deoptimizer::EAGER);
   AddMergeAtJoinBlock(true);
@@ -1273,7 +1273,8 @@ HValue* HGraphBuilder::BuildCheckHeapObject(HValue* obj) {
 }
 
 
-void HGraphBuilder::FinishExitWithHardDeoptimization(const char* reason) {
+void HGraphBuilder::FinishExitWithHardDeoptimization(
+    Deoptimizer::DeoptReason reason) {
   Add<HDeoptimize>(reason, Deoptimizer::EAGER);
   FinishExitCurrentBlock(New<HAbnormalExit>());
 }
@@ -1297,7 +1298,7 @@ HValue* HGraphBuilder::BuildWrapReceiver(HValue* object, HValue* function) {
     Handle<JSFunction> f = Handle<JSFunction>::cast(
         HConstant::cast(function)->handle(isolate()));
     SharedFunctionInfo* shared = f->shared();
-    if (shared->strict_mode() == STRICT || shared->native()) return object;
+    if (is_strict(shared->language_mode()) || shared->native()) return object;
   }
   return Add<HWrapReceiver>(object, function);
 }
@@ -1589,7 +1590,7 @@ void HGraphBuilder::BuildNonGlobalObjectCheck(HValue* receiver) {
   if_global_object.If<HCompareNumericAndBranch>(instance_type,
                                                 min_global_type,
                                                 Token::GTE);
-  if_global_object.ThenDeopt("receiver was a global object");
+  if_global_object.ThenDeopt(Deoptimizer::kReceiverWasAGlobalObject);
   if_global_object.End();
 }
 
@@ -1919,7 +1920,7 @@ HValue* HGraphBuilder::BuildNumberToString(HValue* object, Type* type) {
   if_objectissmi.Else();
   {
     if (type->Is(Type::SignedSmall())) {
-      if_objectissmi.Deopt("Expected smi");
+      if_objectissmi.Deopt(Deoptimizer::kExpectedSmi);
     } else {
       // Check if the object is a heap number.
       IfBuilder if_objectisnumber(this);
@@ -1974,7 +1975,7 @@ HValue* HGraphBuilder::BuildNumberToString(HValue* object, Type* type) {
       if_objectisnumber.Else();
       {
         if (type->Is(Type::Number())) {
-          if_objectisnumber.Deopt("Expected heap number");
+          if_objectisnumber.Deopt(Deoptimizer::kExpectedHeapNumber);
         }
       }
       if_objectisnumber.JoinContinuation(&found);
@@ -2447,7 +2448,7 @@ HInstruction* HGraphBuilder::BuildUncheckedMonomorphicElementAccess(
       negative_checker.Then();
       HInstruction* result = AddElementAccess(
           backing_store, key, val, bounds_check, elements_kind, access_type);
-      negative_checker.ElseDeopt("Negative key encountered");
+      negative_checker.ElseDeopt(Deoptimizer::kNegativeKeyEncountered);
       negative_checker.End();
       length_checker.End();
       return result;
@@ -2532,7 +2533,8 @@ HValue* HGraphBuilder::BuildAllocateArrayFromLength(
   if (!(top_info()->IsStub()) &&
       IsFastPackedElementsKind(array_builder->kind())) {
     // We'll come back later with better (holey) feedback.
-    if_builder.Deopt("Holey array despite packed elements_kind feedback");
+    if_builder.Deopt(
+        Deoptimizer::kHoleyArrayDespitePackedElements_kindFeedback);
   } else {
     Push(checked_length);         // capacity
     Push(checked_length);         // length
@@ -3071,14 +3073,14 @@ void HGraphBuilder::BuildCompareNil(HValue* value, Type* type,
             Add<HLoadNamedField>(value, nullptr, HObjectAccess::ForMap());
         IfBuilder map_check(this);
         map_check.IfNot<HCompareObjectEqAndBranch>(expected_map, map);
-        map_check.ThenDeopt("Unknown map");
+        map_check.ThenDeopt(Deoptimizer::kUnknownMap);
         map_check.End();
       } else {
         DCHECK(map_embedding == kEmbedMapsDirectly);
         Add<HCheckMaps>(value, type->Classes().Current());
       }
     } else {
-      if_nil.Deopt("Too many undetectable types");
+      if_nil.Deopt(Deoptimizer::kTooManyUndetectableTypes);
     }
   }
 
@@ -3511,16 +3513,13 @@ int HGraph::TraceInlinedFunction(
         os << "--- FUNCTION SOURCE (" << shared->DebugName()->ToCString().get()
            << ") id{" << info()->optimization_id() << "," << id << "} ---\n";
         {
-          StringCharacterStream stream(String::cast(script->source()),
-                                       shared->start_position());
-          // fun->end_position() points to the last character in the stream. We
-          // need to compensate by adding one to calculate the length.
-          int source_len =
-              shared->end_position() - shared->start_position() + 1;
-          for (int i = 0; i < source_len; i++) {
-            if (stream.HasMore()) {
-              os << AsReversiblyEscapedUC16(stream.GetNext());
-            }
+          DisallowHeapAllocation no_allocation;
+          int start = shared->start_position();
+          int len = shared->end_position() - start + 1;
+          String::SubStringRange source(String::cast(script->source()), start,
+                                        len);
+          for (const auto& c : source) {
+            os << AsReversiblyEscapedUC16(c);
           }
         }
 
@@ -5383,6 +5382,14 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
                                        &lookup)) {
           Handle<Context> script_context = ScriptContextTable::GetContext(
               script_contexts, lookup.context_index);
+          Handle<Object> current_value =
+              FixedArray::get(script_context, lookup.context_index);
+
+          // If the values is not the hole, it will stay initialized,
+          // so no need to generate a check.
+          if (*current_value == *isolate()->factory()->the_hole_value()) {
+            return Bailout(kReferenceToUninitializedVariable);
+          }
           HInstruction* result = New<HLoadNamedField>(
               Add<HConstant>(script_context), nullptr,
               HObjectAccess::ForContextSlot(lookup.slot_index));
@@ -6208,8 +6215,8 @@ Handle<Map> HOptimizedGraphBuilder::PropertyAccessInfo::map() {
 
 static bool NeedsWrappingFor(Type* type, Handle<JSFunction> target) {
   return type->Is(Type::NumberOrString()) &&
-      target->shared()->strict_mode() == SLOPPY &&
-      !target->shared()->native();
+         is_sloppy(target->shared()->language_mode()) &&
+         !target->shared()->native();
 }
 
 
@@ -6411,7 +6418,8 @@ void HOptimizedGraphBuilder::HandlePolymorphicNamedFieldAccess(
   // know about and do not want to handle ones we've never seen.  Otherwise
   // use a generic IC.
   if (count == types->length() && FLAG_deoptimize_uncommon_cases) {
-    FinishExitWithHardDeoptimization("Unknown map in polymorphic access");
+    FinishExitWithHardDeoptimization(
+        Deoptimizer::kUnknownMapInPolymorphicAccess);
   } else {
     HInstruction* instr = BuildNamedGeneric(access_type, expr, object, name,
                                             value);
@@ -6558,7 +6566,7 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
       if (value->IsConstant()) {
         HConstant* c_value = HConstant::cast(value);
         if (!constant.is_identical_to(c_value->handle(isolate()))) {
-          Add<HDeoptimize>("Constant global variable assignment",
+          Add<HDeoptimize>(Deoptimizer::kConstantGlobalVariableAssignment,
                            Deoptimizer::EAGER);
         }
       } else {
@@ -6571,7 +6579,7 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
         }
         builder.Then();
         builder.Else();
-        Add<HDeoptimize>("Constant global variable assignment",
+        Add<HDeoptimize>(Deoptimizer::kConstantGlobalVariableAssignment,
                          Deoptimizer::EAGER);
         builder.End();
       }
@@ -6585,9 +6593,8 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
     HValue* global_object = Add<HLoadNamedField>(
         context(), nullptr,
         HObjectAccess::ForContextSlot(Context::GLOBAL_OBJECT_INDEX));
-    HStoreNamedGeneric* instr =
-        Add<HStoreNamedGeneric>(global_object, var->name(),
-                                 value, function_strict_mode());
+    HStoreNamedGeneric* instr = Add<HStoreNamedGeneric>(
+        global_object, var->name(), value, function_language_mode());
     USE(instr);
     DCHECK(instr->HasObservableSideEffects());
     Add<HSimulate>(ast_id, REMOVABLE_SIMULATE);
@@ -6892,8 +6899,9 @@ HInstruction* HOptimizedGraphBuilder::BuildNamedGeneric(
     HValue* value,
     bool is_uninitialized) {
   if (is_uninitialized) {
-    Add<HDeoptimize>("Insufficient type feedback for generic named access",
-                     Deoptimizer::SOFT);
+    Add<HDeoptimize>(
+        Deoptimizer::kInsufficientTypeFeedbackForGenericNamedAccess,
+        Deoptimizer::SOFT);
   }
   if (access_type == LOAD) {
     HLoadNamedGeneric* result = New<HLoadNamedGeneric>(object, name);
@@ -6907,7 +6915,8 @@ HInstruction* HOptimizedGraphBuilder::BuildNamedGeneric(
     }
     return result;
   } else {
-    return New<HStoreNamedGeneric>(object, name, value, function_strict_mode());
+    return New<HStoreNamedGeneric>(object, name, value,
+                                   function_language_mode());
   }
 }
 
@@ -6931,7 +6940,8 @@ HInstruction* HOptimizedGraphBuilder::BuildKeyedGeneric(
     }
     return result;
   } else {
-    return New<HStoreKeyedGeneric>(object, key, value, function_strict_mode());
+    return New<HStoreKeyedGeneric>(object, key, value,
+                                   function_language_mode());
   }
 }
 
@@ -7193,7 +7203,8 @@ HValue* HOptimizedGraphBuilder::HandlePolymorphicElementAccess(
   DCHECK(join->predecessors()->length() > 0);
   // Deopt if none of the cases matched.
   NoObservableSideEffectsScope scope(this);
-  FinishExitWithHardDeoptimization("Unknown map in polymorphic element access");
+  FinishExitWithHardDeoptimization(
+      Deoptimizer::kUnknownMapInPolymorphicElementAccess);
   set_current_block(join);
   return access_type == STORE ? val : Pop();
 }
@@ -7288,12 +7299,12 @@ HValue* HOptimizedGraphBuilder::HandleKeyedElementAccess(
     if (access_type == STORE) {
       if (expr->IsAssignment() &&
           expr->AsAssignment()->HasNoTypeInformation()) {
-        Add<HDeoptimize>("Insufficient type feedback for keyed store",
+        Add<HDeoptimize>(Deoptimizer::kInsufficientTypeFeedbackForKeyedStore,
                          Deoptimizer::SOFT);
       }
     } else {
       if (expr->AsProperty()->HasNoTypeInformation()) {
-        Add<HDeoptimize>("Insufficient type feedback for keyed load",
+        Add<HDeoptimize>(Deoptimizer::kInsufficientTypeFeedbackForKeyedLoad,
                          Deoptimizer::SOFT);
       }
     }
@@ -7738,7 +7749,7 @@ void HOptimizedGraphBuilder::HandlePolymorphicCallNamed(
   // know about and do not want to handle ones we've never seen.  Otherwise
   // use a generic IC.
   if (ordered_functions == types->length() && FLAG_deoptimize_uncommon_cases) {
-    FinishExitWithHardDeoptimization("Unknown map in polymorphic call");
+    FinishExitWithHardDeoptimization(Deoptimizer::kUnknownMapInPolymorphicCall);
   } else {
     Property* prop = expr->expression()->AsProperty();
     HInstruction* function = BuildNamedGeneric(
@@ -7888,6 +7899,7 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
   }
 
   // We don't want to add more than a certain number of nodes from inlining.
+  // Always inline small methods (<= 10 nodes).
   if (inlined_count_ > Min(FLAG_max_inlined_nodes_cumulative,
                            kUnlimitedMaxInlinedNodesCumulative)) {
     TraceInline(target, caller, "cumulative AST node limit reached");
@@ -8225,6 +8237,18 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinFunctionCall(Call* expr) {
 }
 
 
+// static
+bool HOptimizedGraphBuilder::CanInlineArrayResizeOperation(
+    Handle<Map> receiver_map) {
+  return !receiver_map.is_null() &&
+         receiver_map->instance_type() == JS_ARRAY_TYPE &&
+         IsFastElementsKind(receiver_map->elements_kind()) &&
+         !receiver_map->is_dictionary_map() &&
+         !JSArray::IsReadOnlyLengthDescriptor(receiver_map) &&
+         !receiver_map->is_observed() && receiver_map->is_extensible();
+}
+
+
 bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
     Call* expr, Handle<JSFunction> function, Handle<Map> receiver_map,
     int args_count_no_receiver) {
@@ -8344,13 +8368,8 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
       }
       break;
     case kArrayPop: {
-      if (receiver_map.is_null()) return false;
-      if (receiver_map->instance_type() != JS_ARRAY_TYPE) return false;
+      if (!CanInlineArrayResizeOperation(receiver_map)) return false;
       ElementsKind elements_kind = receiver_map->elements_kind();
-      if (JSArray::IsReadOnlyLengthDescriptor(receiver_map)) return false;
-      if (!IsFastElementsKind(elements_kind)) return false;
-      if (receiver_map->is_observed()) return false;
-      if (!receiver_map->is_extensible()) return false;
 
       Drop(args_count_no_receiver);
       HValue* result;
@@ -8407,13 +8426,8 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
       return true;
     }
     case kArrayPush: {
-      if (receiver_map.is_null()) return false;
-      if (receiver_map->instance_type() != JS_ARRAY_TYPE) return false;
+      if (!CanInlineArrayResizeOperation(receiver_map)) return false;
       ElementsKind elements_kind = receiver_map->elements_kind();
-      if (!IsFastElementsKind(elements_kind)) return false;
-      if (receiver_map->is_observed()) return false;
-      if (JSArray::IsReadOnlyLengthDescriptor(receiver_map)) return false;
-      if (!receiver_map->is_extensible()) return false;
 
       // If there may be elements accessors in the prototype chain, the fast
       // inlined version can't be used.
@@ -8460,13 +8474,8 @@ bool HOptimizedGraphBuilder::TryInlineBuiltinMethodCall(
       return true;
     }
     case kArrayShift: {
-      if (receiver_map.is_null()) return false;
-      if (receiver_map->instance_type() != JS_ARRAY_TYPE) return false;
+      if (!CanInlineArrayResizeOperation(receiver_map)) return false;
       ElementsKind kind = receiver_map->elements_kind();
-      if (JSArray::IsReadOnlyLengthDescriptor(receiver_map)) return false;
-      if (!IsFastElementsKind(kind)) return false;
-      if (receiver_map->is_observed()) return false;
-      if (!receiver_map->is_extensible()) return false;
 
       // If there may be elements accessors in the prototype chain, the fast
       // inlined version can't be used.
@@ -8724,7 +8733,7 @@ bool HOptimizedGraphBuilder::TryInlineApiCall(Handle<JSFunction> function,
     case kCallApiGetter:
       // Receiver and prototype chain cannot have changed.
       DCHECK_EQ(0, argc);
-      DCHECK_EQ(NULL, receiver);
+      DCHECK_NULL(receiver);
       // Receiver is on expression stack.
       receiver = Pop();
       Add<HPushArguments>(receiver);
@@ -8734,7 +8743,7 @@ bool HOptimizedGraphBuilder::TryInlineApiCall(Handle<JSFunction> function,
         is_store = true;
         // Receiver and prototype chain cannot have changed.
         DCHECK_EQ(1, argc);
-        DCHECK_EQ(NULL, receiver);
+        DCHECK_NULL(receiver);
         // Receiver and value are on expression stack.
         HValue* value = Pop();
         receiver = Pop();
@@ -8945,7 +8954,7 @@ void HOptimizedGraphBuilder::BuildFunctionCall(Call* expr) {
 HValue* HOptimizedGraphBuilder::ImplicitReceiverFor(HValue* function,
                                                     Handle<JSFunction> target) {
   SharedFunctionInfo* shared = target->shared();
-  if (shared->strict_mode() == SLOPPY && !shared->native()) {
+  if (is_sloppy(shared->language_mode()) && !shared->native()) {
     // Cannot embed a direct reference to the global proxy
     // as is it dropped on deserialization.
     CHECK(!isolate()->serializer_enabled());
@@ -9247,8 +9256,9 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
       if (CanBeFunctionApplyArguments(expr) && expr->is_uninitialized()) {
         // We have to use EAGER deoptimization here because Deoptimizer::SOFT
         // gets ignored by the always-opt flag, which leads to incorrect code.
-        Add<HDeoptimize>("Insufficient type feedback for call with arguments",
-                         Deoptimizer::EAGER);
+        Add<HDeoptimize>(
+            Deoptimizer::kInsufficientTypeFeedbackForCallWithArguments,
+            Deoptimizer::EAGER);
         arguments_flag = ARGUMENTS_FAKED;
       }
 
@@ -9351,14 +9361,15 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
       HCallFunction* call_function =
           New<HCallFunction>(function, argument_count);
       call = call_function;
-      if (expr->is_uninitialized() && expr->HasCallFeedbackSlot()) {
+      if (expr->is_uninitialized() &&
+          expr->IsUsingCallFeedbackICSlot(isolate())) {
         // We've never seen this call before, so let's have Crankshaft learn
         // through the type vector.
         Handle<SharedFunctionInfo> current_shared =
             function_state()->compilation_info()->shared_info();
         Handle<TypeFeedbackVector> vector =
             handle(current_shared->feedback_vector(), isolate());
-        FeedbackVectorICSlot slot = expr->CallFeedbackSlot();
+        FeedbackVectorICSlot slot = expr->CallFeedbackICSlot();
         call_function->SetVectorAndSlot(vector, slot);
       }
     }
@@ -10032,7 +10043,7 @@ void HOptimizedGraphBuilder::VisitDelete(UnaryOperation* expr) {
     HValue* key = Pop();
     HValue* obj = Pop();
     HValue* function = AddLoadJSBuiltin(Builtins::DELETE);
-    Add<HPushArguments>(obj, key, Add<HConstant>(function_strict_mode()));
+    Add<HPushArguments>(obj, key, Add<HConstant>(function_language_mode()));
     // TODO(olivf) InvokeFunction produces a check for the parameter count,
     // even though we are certain to pass the correct number of arguments here.
     HInstruction* instr = New<HInvokeFunction>(function, 3);
@@ -10478,8 +10489,9 @@ HValue* HGraphBuilder::BuildBinaryOperation(
                            right_type->Maybe(Type::Receiver()));
 
   if (!left_type->IsInhabited()) {
-    Add<HDeoptimize>("Insufficient type feedback for LHS of binary operation",
-                     Deoptimizer::SOFT);
+    Add<HDeoptimize>(
+        Deoptimizer::kInsufficientTypeFeedbackForLHSOfBinaryOperation,
+        Deoptimizer::SOFT);
     // TODO(rossberg): we should be able to get rid of non-continuous
     // defaults.
     left_type = Type::Any(zone());
@@ -10489,8 +10501,9 @@ HValue* HGraphBuilder::BuildBinaryOperation(
   }
 
   if (!right_type->IsInhabited()) {
-    Add<HDeoptimize>("Insufficient type feedback for RHS of binary operation",
-                     Deoptimizer::SOFT);
+    Add<HDeoptimize>(
+        Deoptimizer::kInsufficientTypeFeedbackForRHSOfBinaryOperation,
+        Deoptimizer::SOFT);
     right_type = Type::Any(zone());
   } else {
     if (!maybe_string_add) right = TruncateToNumber(right, &right_type);
@@ -10610,7 +10623,7 @@ HValue* HGraphBuilder::BuildBinaryOperation(
           IfBuilder if_same(this);
           if_same.If<HCompareNumericAndBranch>(right, fixed_right, Token::EQ);
           if_same.Then();
-          if_same.ElseDeopt("Unexpected RHS of binary operation");
+          if_same.ElseDeopt(Deoptimizer::kUnexpectedRHSOfBinaryOperation);
           right = fixed_right;
         }
         instr = AddUncasted<HMod>(left, right);
@@ -10984,9 +10997,9 @@ HControlInstruction* HOptimizedGraphBuilder::BuildCompareInstruction(
   // Cases handled below depend on collected type feedback. They should
   // soft deoptimize when there is no type feedback.
   if (!combined_type->IsInhabited()) {
-    Add<HDeoptimize>("Insufficient type feedback for combined type "
-                     "of binary operation",
-                     Deoptimizer::SOFT);
+    Add<HDeoptimize>(
+        Deoptimizer::kInsufficientTypeFeedbackForCombinedTypeOfBinaryOperation,
+        Deoptimizer::SOFT);
     combined_type = left_type = right_type = Type::Any(zone());
   }
 
@@ -11002,7 +11015,7 @@ HControlInstruction* HOptimizedGraphBuilder::BuildCompareInstruction(
            HConstant::cast(left)->HasNumberValue()) ||
           (right->IsConstant() &&
            HConstant::cast(right)->HasNumberValue())) {
-        Add<HDeoptimize>("Type mismatch between feedback and constant",
+        Add<HDeoptimize>(Deoptimizer::kTypeMismatchBetweenFeedbackAndConstant,
                          Deoptimizer::SOFT);
         // The caller expects a branch instruction, so make it happy.
         return New<HBranch>(graph()->GetConstantTrue());
@@ -11040,7 +11053,7 @@ HControlInstruction* HOptimizedGraphBuilder::BuildCompareInstruction(
          !HConstant::cast(left)->HasInternalizedStringValue()) ||
         (right->IsConstant() &&
          !HConstant::cast(right)->HasInternalizedStringValue())) {
-      Add<HDeoptimize>("Type mismatch between feedback and constant",
+      Add<HDeoptimize>(Deoptimizer::kTypeMismatchBetweenFeedbackAndConstant,
                        Deoptimizer::SOFT);
       // The caller expects a branch instruction, so make it happy.
       return New<HBranch>(graph()->GetConstantTrue());
@@ -11439,9 +11452,10 @@ void HOptimizedGraphBuilder::VisitDeclarations(
     Handle<FixedArray> array =
        isolate()->factory()->NewFixedArray(globals_.length(), TENURED);
     for (int i = 0; i < globals_.length(); ++i) array->set(i, *globals_.at(i));
-    int flags = DeclareGlobalsEvalFlag::encode(current_info()->is_eval()) |
+    int flags =
+        DeclareGlobalsEvalFlag::encode(current_info()->is_eval()) |
         DeclareGlobalsNativeFlag::encode(current_info()->is_native()) |
-        DeclareGlobalsStrictMode::encode(current_info()->strict_mode());
+        DeclareGlobalsLanguageMode::encode(current_info()->language_mode());
     Add<HDeclareGlobals>(array, flags);
     globals_.Rewind(0);
   }
@@ -11815,7 +11829,7 @@ void HOptimizedGraphBuilder::GenerateValueOf(CallRuntime* call) {
 
 void HOptimizedGraphBuilder::GenerateDateField(CallRuntime* call) {
   DCHECK(call->arguments()->length() == 2);
-  DCHECK_NE(NULL, call->arguments()->at(1)->AsLiteral());
+  DCHECK_NOT_NULL(call->arguments()->at(1)->AsLiteral());
   Smi* index = Smi::cast(*(call->arguments()->at(1)->AsLiteral()->value()));
   CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   HValue* date = Pop();

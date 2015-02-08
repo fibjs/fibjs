@@ -7,7 +7,6 @@
 
 #include "src/allocation.h"
 #include "src/assembler.h"
-#include "src/zone-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -240,7 +239,7 @@ class CharacterRange {
  public:
   CharacterRange() : from_(0), to_(0) { }
   // For compatibility with the CHECK_OK macro
-  CharacterRange(void* null) { DCHECK_EQ(NULL, null); }  //NOLINT
+  CharacterRange(void* null) { DCHECK_NULL(null); }  // NOLINT
   CharacterRange(uc16 from, uc16 to) : from_(from), to_(to) { }
   static void AddClassEscape(uc16 type, ZoneList<CharacterRange>* ranges,
                              Zone* zone);

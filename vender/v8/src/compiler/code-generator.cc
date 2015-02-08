@@ -85,8 +85,6 @@ Handle<Code> CodeGenerator::GenerateCode() {
     }
   }
 
-  FinishCode(masm());
-
   // Ensure there is space for lazy deoptimization in the code.
   if (!info->IsStub()) {
     int target_offset = masm()->pc_offset() + Deoptimizer::patch_size();
@@ -94,6 +92,8 @@ Handle<Code> CodeGenerator::GenerateCode() {
       masm()->nop();
     }
   }
+
+  FinishCode(masm());
 
   safepoints()->Emit(masm(), frame()->GetSpillSlotCount());
 
@@ -281,7 +281,7 @@ void CodeGenerator::PopulateDeoptimizationData(Handle<Code> code_object) {
   for (int i = 0; i < deopt_count; i++) {
     DeoptimizationState* deoptimization_state = deoptimization_states_[i];
     data->SetAstId(i, deoptimization_state->bailout_id());
-    CHECK_NE(NULL, deoptimization_states_[i]);
+    CHECK(deoptimization_states_[i]);
     data->SetTranslationIndex(
         i, Smi::FromInt(deoptimization_states_[i]->translation_id()));
     data->SetArgumentsStackHeight(i, Smi::FromInt(0));

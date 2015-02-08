@@ -39,9 +39,10 @@ struct ArmLinkageHelperTraits {
 
 typedef LinkageHelper<ArmLinkageHelperTraits> LH;
 
-CallDescriptor* Linkage::GetJSCallDescriptor(Zone* zone, int parameter_count,
+CallDescriptor* Linkage::GetJSCallDescriptor(Zone* zone, bool is_osr,
+                                             int parameter_count,
                                              CallDescriptor::Flags flags) {
-  return LH::GetJSCallDescriptor(zone, parameter_count, flags);
+  return LH::GetJSCallDescriptor(zone, is_osr, parameter_count, flags);
 }
 
 
@@ -63,7 +64,7 @@ CallDescriptor* Linkage::GetStubCallDescriptor(
 
 
 CallDescriptor* Linkage::GetSimplifiedCDescriptor(Zone* zone,
-                                                  MachineSignature* sig) {
+                                                  const MachineSignature* sig) {
   return LH::GetSimplifiedCDescriptor(zone, sig);
 }
 

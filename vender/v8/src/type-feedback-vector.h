@@ -120,6 +120,7 @@ class TypeFeedbackVector : public FixedArray {
   // Conversion from a slot or ic slot to an integer index to the underlying
   // array.
   int GetIndex(FeedbackVectorSlot slot) const {
+    DCHECK(slot.ToInt() < first_ic_slot_index());
     return kReservedIndexCount + ic_metadata_length() + slot.ToInt();
   }
 
@@ -165,6 +166,12 @@ class TypeFeedbackVector : public FixedArray {
 
   // Clears the vector slots and the vector ic slots.
   void ClearSlots(SharedFunctionInfo* shared);
+  void ClearICSlots(SharedFunctionInfo* shared) {
+    ClearICSlotsImpl(shared, true);
+  }
+  void ClearICSlotsAtGCTime(SharedFunctionInfo* shared) {
+    ClearICSlotsImpl(shared, false);
+  }
 
   // The object that indicates an uninitialized cache.
   static inline Handle<Object> UninitializedSentinel(Isolate* isolate);
@@ -174,9 +181,6 @@ class TypeFeedbackVector : public FixedArray {
 
   // The object that indicates a premonomorphic state.
   static inline Handle<Object> PremonomorphicSentinel(Isolate* isolate);
-
-  // The object that indicates a generic state.
-  static inline Handle<Object> GenericSentinel(Isolate* isolate);
 
   // The object that indicates a monomorphic state of Array with
   // ElementsKind
@@ -202,6 +206,8 @@ class TypeFeedbackVector : public FixedArray {
 
   typedef BitSetComputer<VectorICKind, kVectorICKindBits, kSmiValueSize,
                          uint32_t> VectorICComputer;
+
+  void ClearICSlotsImpl(SharedFunctionInfo* shared, bool force_clear);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(TypeFeedbackVector);
 };
@@ -348,7 +354,7 @@ class KeyedLoadICNexus : public FeedbackNexus {
 
   void Clear(Code* host);
 
-  void ConfigureGeneric();
+  void ConfigureMegamorphic();
   void ConfigurePremonomorphic();
   // name can be a null handle for element loads.
   void ConfigureMonomorphic(Handle<Name> name, Handle<HeapType> type,

@@ -58,7 +58,9 @@ class PropertyHandlerCompiler : public PropertyAccessCompiler {
                                       const CallOptimization& optimization,
                                       Handle<Map> receiver_map,
                                       Register receiver, Register scratch,
-                                      bool is_store, Register store_parameter);
+                                      bool is_store, Register store_parameter,
+                                      Register accessor_holder,
+                                      int accessor_index);
 
   // Helper function used to check that the dictionary doesn't contain
   // the property. This function may return false negatives, so miss_label
@@ -124,7 +126,8 @@ class NamedLoadHandlerCompiler : public PropertyHandlerCompiler {
                                    Handle<ExecutableAccessorInfo> callback);
 
   Handle<Code> CompileLoadCallback(Handle<Name> name,
-                                   const CallOptimization& call_optimization);
+                                   const CallOptimization& call_optimization,
+                                   int accessor_index);
 
   Handle<Code> CompileLoadConstant(Handle<Name> name, int constant_index);
 
@@ -145,11 +148,12 @@ class NamedLoadHandlerCompiler : public PropertyHandlerCompiler {
 
   static void GenerateLoadViaGetter(MacroAssembler* masm, Handle<HeapType> type,
                                     Register receiver, Register holder,
-                                    int accessor_index, int expected_arguments);
+                                    int accessor_index, int expected_arguments,
+                                    Register scratch);
 
   static void GenerateLoadViaGetterForDeopt(MacroAssembler* masm) {
     GenerateLoadViaGetter(masm, Handle<HeapType>::null(), no_reg, no_reg, -1,
-                          -1);
+                          -1, no_reg);
   }
 
   static void GenerateLoadFunctionPrototype(MacroAssembler* masm,
@@ -163,10 +167,9 @@ class NamedLoadHandlerCompiler : public PropertyHandlerCompiler {
   // PushInterceptorArguments and read by LoadPropertyWithInterceptorOnly and
   // LoadWithInterceptor.
   static const int kInterceptorArgsNameIndex = 0;
-  static const int kInterceptorArgsInfoIndex = 1;
-  static const int kInterceptorArgsThisIndex = 2;
-  static const int kInterceptorArgsHolderIndex = 3;
-  static const int kInterceptorArgsLength = 4;
+  static const int kInterceptorArgsThisIndex = 1;
+  static const int kInterceptorArgsHolderIndex = 2;
+  static const int kInterceptorArgsLength = 3;
 
  protected:
   virtual Register FrontendHeader(Register object_reg, Handle<Name> name,
@@ -221,9 +224,10 @@ class NamedStoreHandlerCompiler : public PropertyHandlerCompiler {
                                       Handle<Name> name);
   Handle<Code> CompileStoreField(LookupIterator* it);
   Handle<Code> CompileStoreCallback(Handle<JSObject> object, Handle<Name> name,
-                                    Handle<ExecutableAccessorInfo> callback);
+                                    int accessor_index);
   Handle<Code> CompileStoreCallback(Handle<JSObject> object, Handle<Name> name,
-                                    const CallOptimization& call_optimization);
+                                    const CallOptimization& call_optimization,
+                                    int accessor_index);
   Handle<Code> CompileStoreViaSetter(Handle<JSObject> object, Handle<Name> name,
                                      int accessor_index,
                                      int expected_arguments);
@@ -232,11 +236,11 @@ class NamedStoreHandlerCompiler : public PropertyHandlerCompiler {
   static void GenerateStoreViaSetter(MacroAssembler* masm,
                                      Handle<HeapType> type, Register receiver,
                                      Register holder, int accessor_index,
-                                     int expected_arguments);
+                                     int expected_arguments, Register scratch);
 
   static void GenerateStoreViaSetterForDeopt(MacroAssembler* masm) {
     GenerateStoreViaSetter(masm, Handle<HeapType>::null(), no_reg, no_reg, -1,
-                           -1);
+                           -1, no_reg);
   }
 
   static void GenerateSlow(MacroAssembler* masm);

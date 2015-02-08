@@ -12,7 +12,7 @@ namespace internal {
 namespace compiler {
 
 RawMachineAssembler::RawMachineAssembler(Isolate* isolate, Graph* graph,
-                                         MachineSignature* machine_sig,
+                                         const MachineSignature* machine_sig,
                                          MachineType word,
                                          MachineOperatorBuilder::Flags flags)
     : GraphBuilder(isolate, graph),
@@ -99,8 +99,8 @@ Node* RawMachineAssembler::CallFunctionStub0(Node* function, Node* receiver,
 
 Node* RawMachineAssembler::CallJS0(Node* function, Node* receiver,
                                    Node* context, Node* frame_state) {
-  CallDescriptor* descriptor =
-      Linkage::GetJSCallDescriptor(zone(), 1, CallDescriptor::kNeedsFrameState);
+  CallDescriptor* descriptor = Linkage::GetJSCallDescriptor(
+      zone(), false, 1, CallDescriptor::kNeedsFrameState);
   Node* call = graph()->NewNode(common()->Call(descriptor), function, receiver,
                                 context, frame_state);
   schedule()->AddNode(CurrentBlock(), call);

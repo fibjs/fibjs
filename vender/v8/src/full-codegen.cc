@@ -351,7 +351,7 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
 
 #ifdef DEBUG
   // Check that no context-specific object has been embedded.
-  code->VerifyEmbeddedObjectsInFullCode();
+  code->VerifyEmbeddedObjects(Code::kNoContextSpecificPointers);
 #endif  // DEBUG
   return true;
 }
@@ -447,7 +447,7 @@ void FullCodeGenerator::CallLoadIC(ContextualMode contextual_mode,
 
 
 void FullCodeGenerator::CallStoreIC(TypeFeedbackId id) {
-  Handle<Code> ic = CodeFactory::StoreIC(isolate(), strict_mode()).code();
+  Handle<Code> ic = CodeFactory::StoreIC(isolate(), language_mode()).code();
   CallIC(ic, id);
 }
 
@@ -725,9 +725,14 @@ void FullCodeGenerator::VisitDeclarations(
   AstVisitor::VisitDeclarations(declarations);
 
   if (scope_->num_modules() != 0) {
+    // TODO(ES6): This step, which creates module instance objects,
+    // can probably be delayed until an "import *" declaration
+    // reifies a module instance. Until imports are implemented,
+    // we skip it altogether.
+    //
     // Initialize modules from descriptor array.
-    DCHECK(module_index_ == modules_->length());
-    DeclareModules(modules_);
+    //  DCHECK(module_index_ == modules_->length());
+    //  DeclareModules(modules_);
     modules_ = saved_modules;
     module_index_ = saved_module_index;
   }
@@ -814,10 +819,10 @@ void FullCodeGenerator::VisitModuleUrl(ModuleUrl* module) {
 
 
 int FullCodeGenerator::DeclareGlobalsFlags() {
-  DCHECK(DeclareGlobalsStrictMode::is_valid(strict_mode()));
+  DCHECK(DeclareGlobalsLanguageMode::is_valid(language_mode()));
   return DeclareGlobalsEvalFlag::encode(is_eval()) |
-      DeclareGlobalsNativeFlag::encode(is_native()) |
-      DeclareGlobalsStrictMode::encode(strict_mode());
+         DeclareGlobalsNativeFlag::encode(is_native()) |
+         DeclareGlobalsLanguageMode::encode(language_mode());
 }
 
 
@@ -1052,19 +1057,15 @@ void FullCodeGenerator::VisitArithmeticExpression(BinaryOperation* expr) {
   Comment cmnt(masm_, "[ ArithmeticExpression");
   Expression* left = expr->left();
   Expression* right = expr->right();
-  OverwriteMode mode =
-      left->ResultOverwriteAllowed()
-      ? OVERWRITE_LEFT
-      : (right->ResultOverwriteAllowed() ? OVERWRITE_RIGHT : NO_OVERWRITE);
 
   VisitForStackValue(left);
   VisitForAccumulatorValue(right);
 
   SetSourcePosition(expr->position());
   if (ShouldInlineSmiCase(op)) {
-    EmitInlineSmiBinaryOp(expr, op, mode, left, right);
+    EmitInlineSmiBinaryOp(expr, op, left, right);
   } else {
-    EmitBinaryOp(expr, op, mode);
+    EmitBinaryOp(expr, op);
   }
 }
 

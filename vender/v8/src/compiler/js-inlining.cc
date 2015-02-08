@@ -13,7 +13,7 @@
 #include "src/compiler/js-operator.h"
 #include "src/compiler/node-aux-data-inl.h"
 #include "src/compiler/node-matchers.h"
-#include "src/compiler/node-properties-inl.h"
+#include "src/compiler/node-properties.h"
 #include "src/compiler/simplified-operator.h"
 #include "src/compiler/typer.h"
 #include "src/full-codegen.h"
@@ -84,7 +84,7 @@ class Inlinee {
 
   // Counts only formal parameters.
   size_t formal_parameters() {
-    DCHECK_GE(total_parameters(), 3);
+    DCHECK_GE(total_parameters(), 3u);
     return total_parameters() - 3;
   }
 
@@ -176,7 +176,7 @@ class CopyVisitor : public NullNodeVisitor {
     if (copy == NULL) {
       copy = GetSentinel(original);
     }
-    DCHECK_NE(NULL, copy);
+    DCHECK(copy);
     return copy;
   }
 
@@ -193,7 +193,7 @@ class CopyVisitor : public NullNodeVisitor {
       Node* sentinel = sentinels_[id];
       if (sentinel == NULL) continue;
       Node* copy = copies_[id];
-      DCHECK_NE(NULL, copy);
+      DCHECK(copy);
       sentinel->ReplaceUses(copy);
     }
   }
@@ -362,7 +362,7 @@ void JSInliner::TryInlineJSCall(Node* call_node) {
   CHECK(Compiler::ParseAndAnalyze(&info));
   CHECK(Compiler::EnsureDeoptimizationSupport(&info));
 
-  if (info.scope()->arguments() != NULL && info.strict_mode() != STRICT) {
+  if (info.scope()->arguments() != NULL && is_sloppy(info.language_mode())) {
     // For now do not inline functions that use their arguments array.
     SmartArrayPointer<char> name = function->shared()->DebugName()->ToCString();
     if (FLAG_trace_turbo_inlining) {

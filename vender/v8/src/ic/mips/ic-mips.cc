@@ -479,7 +479,7 @@ void KeyedLoadIC::GenerateRuntimeGetProperty(MacroAssembler* masm) {
 }
 
 
-void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
+void KeyedLoadIC::GenerateMegamorphic(MacroAssembler* masm) {
   // The return address is in ra.
   Label slow, check_name, index_smi, index_name, property_array_property;
   Label probe_dictionary, check_number_dictionary;
@@ -533,92 +533,33 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
                                  Map::kHasNamedInterceptor, &slow);
 
 
-  // If the receiver is a fast-case object, check the keyed lookup
-  // cache. Otherwise probe the dictionary.
+  // If the receiver is a fast-case object, check the stub cache. Otherwise
+  // probe the dictionary.
   __ lw(a3, FieldMemOperand(receiver, JSObject::kPropertiesOffset));
   __ lw(t0, FieldMemOperand(a3, HeapObject::kMapOffset));
   __ LoadRoot(at, Heap::kHashTableMapRootIndex);
   __ Branch(&probe_dictionary, eq, t0, Operand(at));
 
-  // Load the map of the receiver, compute the keyed lookup cache hash
-  // based on 32 bits of the map pointer and the name hash.
-  __ lw(a0, FieldMemOperand(receiver, HeapObject::kMapOffset));
-  __ sra(a3, a0, KeyedLookupCache::kMapHashShift);
-  __ lw(t0, FieldMemOperand(key, Name::kHashFieldOffset));
-  __ sra(at, t0, Name::kHashShift);
-  __ xor_(a3, a3, at);
-  int mask = KeyedLookupCache::kCapacityMask & KeyedLookupCache::kHashMask;
-  __ And(a3, a3, Operand(mask));
-
-  // Load the key (consisting of map and unique name) from the cache and
-  // check for match.
-  Label load_in_object_property;
-  static const int kEntriesPerBucket = KeyedLookupCache::kEntriesPerBucket;
-  Label hit_on_nth_entry[kEntriesPerBucket];
-  ExternalReference cache_keys =
-      ExternalReference::keyed_lookup_cache_keys(isolate);
-  __ li(t0, Operand(cache_keys));
-  __ sll(at, a3, kPointerSizeLog2 + 1);
-  __ addu(t0, t0, at);
-
-  for (int i = 0; i < kEntriesPerBucket - 1; i++) {
-    Label try_next_entry;
-    __ lw(t1, MemOperand(t0, kPointerSize * i * 2));
-    __ Branch(&try_next_entry, ne, a0, Operand(t1));
-    __ lw(t1, MemOperand(t0, kPointerSize * (i * 2 + 1)));
-    __ Branch(&hit_on_nth_entry[i], eq, key, Operand(t1));
-    __ bind(&try_next_entry);
+  if (FLAG_vector_ics) {
+    // When vector ics are in use, the handlers in the stub cache expect a
+    // vector and slot. Since we won't change the IC from any downstream
+    // misses, a dummy vector can be used.
+    Register vector = VectorLoadICDescriptor::VectorRegister();
+    Register slot = VectorLoadICDescriptor::SlotRegister();
+    DCHECK(!AreAliased(vector, slot, t0, t1, t2, t5));
+    Handle<TypeFeedbackVector> dummy_vector = Handle<TypeFeedbackVector>::cast(
+        masm->isolate()->factory()->keyed_load_dummy_vector());
+    int int_slot = dummy_vector->GetIndex(FeedbackVectorICSlot(0));
+    __ LoadRoot(vector, Heap::kKeyedLoadDummyVectorRootIndex);
+    __ li(slot, Operand(Smi::FromInt(int_slot)));
   }
 
-  __ lw(t1, MemOperand(t0, kPointerSize * (kEntriesPerBucket - 1) * 2));
-  __ Branch(&slow, ne, a0, Operand(t1));
-  __ lw(t1, MemOperand(t0, kPointerSize * ((kEntriesPerBucket - 1) * 2 + 1)));
-  __ Branch(&slow, ne, key, Operand(t1));
-
-  // Get field offset.
-  // a0     : receiver's map
-  // a3     : lookup cache index
-  ExternalReference cache_field_offsets =
-      ExternalReference::keyed_lookup_cache_field_offsets(isolate);
-
-  // Hit on nth entry.
-  for (int i = kEntriesPerBucket - 1; i >= 0; i--) {
-    __ bind(&hit_on_nth_entry[i]);
-    __ li(t0, Operand(cache_field_offsets));
-    __ sll(at, a3, kPointerSizeLog2);
-    __ addu(at, t0, at);
-    __ lw(t1, MemOperand(at, kPointerSize * i));
-    __ lbu(t2, FieldMemOperand(a0, Map::kInObjectPropertiesOffset));
-    __ Subu(t1, t1, t2);
-    __ Branch(&property_array_property, ge, t1, Operand(zero_reg));
-    if (i != 0) {
-      __ Branch(&load_in_object_property);
-    }
-  }
-
-  // Load in-object property.
-  __ bind(&load_in_object_property);
-  __ lbu(t2, FieldMemOperand(a0, Map::kInstanceSizeOffset));
-  __ addu(t2, t2, t1);  // Index from start of object.
-  __ Subu(receiver, receiver, Operand(kHeapObjectTag));  // Remove the heap tag.
-  __ sll(at, t2, kPointerSizeLog2);
-  __ addu(at, receiver, at);
-  __ lw(v0, MemOperand(at));
-  __ IncrementCounter(isolate->counters()->keyed_load_generic_lookup_cache(), 1,
-                      t0, a3);
-  __ Ret();
-
-  // Load property array property.
-  __ bind(&property_array_property);
-  __ lw(receiver, FieldMemOperand(receiver, JSObject::kPropertiesOffset));
-  __ Addu(receiver, receiver, FixedArray::kHeaderSize - kHeapObjectTag);
-  __ sll(v0, t1, kPointerSizeLog2);
-  __ Addu(v0, v0, receiver);
-  __ lw(v0, MemOperand(v0));
-  __ IncrementCounter(isolate->counters()->keyed_load_generic_lookup_cache(), 1,
-                      t0, a3);
-  __ Ret();
-
+  Code::Flags flags = Code::RemoveTypeAndHolderFromFlags(
+      Code::ComputeHandlerFlags(Code::LOAD_IC));
+  masm->isolate()->stub_cache()->GenerateProbe(
+      masm, Code::LOAD_IC, flags, false, receiver, key, t0, t1, t2, t5);
+  // Cache miss.
+  GenerateMiss(masm);
 
   // Do a quick inline probe of the receiver's dictionary, if it
   // exists.
@@ -787,7 +728,7 @@ static void KeyedStoreGenerateMegamorphicHelper(
 
 
 void KeyedStoreIC::GenerateMegamorphic(MacroAssembler* masm,
-                                       StrictMode strict_mode) {
+                                       LanguageMode language_mode) {
   // ---------- S t a t e --------------
   //  -- a0     : value
   //  -- a1     : key
@@ -838,7 +779,7 @@ void KeyedStoreIC::GenerateMegamorphic(MacroAssembler* masm,
   // a0: value.
   // a1: key.
   // a2: receiver.
-  PropertyICCompiler::GenerateRuntimeSetProperty(masm, strict_mode);
+  PropertyICCompiler::GenerateRuntimeSetProperty(masm, language_mode);
   // Never returns to here.
 
   __ bind(&maybe_name_key);
@@ -1038,10 +979,10 @@ void PatchInlinedSmiCode(Address address, InlinedSmiCheck check) {
   Register reg = Register::from_code(Assembler::GetRs(instr_at_patch));
   if (check == ENABLE_INLINED_SMI_CHECK) {
     DCHECK(Assembler::IsAndImmediate(instr_at_patch));
-    DCHECK_EQ(0, Assembler::GetImmediate16(instr_at_patch));
+    DCHECK_EQ(0u, Assembler::GetImmediate16(instr_at_patch));
     patcher.masm()->andi(at, reg, kSmiTagMask);
   } else {
-    DCHECK(check == DISABLE_INLINED_SMI_CHECK);
+    DCHECK_EQ(check, DISABLE_INLINED_SMI_CHECK);
     DCHECK(Assembler::IsAndImmediate(instr_at_patch));
     patcher.masm()->andi(at, reg, 0);
   }

@@ -143,7 +143,7 @@ class LCodeGen: public LCodeGenBase {
 #undef DECLARE_DO
 
  private:
-  StrictMode strict_mode() const { return info()->strict_mode(); }
+  LanguageMode language_mode() const { return info()->language_mode(); }
 
   Scope* scope() const { return scope_; }
 
@@ -222,12 +222,14 @@ class LCodeGen: public LCodeGenBase {
   void RegisterEnvironmentForDeoptimization(LEnvironment* environment,
                                             Safepoint::DeoptMode mode);
   void DeoptimizeIf(Condition condition, LInstruction* instr,
-                    Deoptimizer::BailoutType bailout_type, const char* detail,
+                    Deoptimizer::DeoptReason deopt_reason,
+                    Deoptimizer::BailoutType bailout_type,
                     Register src1 = zero_reg,
                     const Operand& src2 = Operand(zero_reg));
-  void DeoptimizeIf(Condition condition, LInstruction* instr,
-                    const char* detail = NULL, Register src1 = zero_reg,
-                    const Operand& src2 = Operand(zero_reg));
+  void DeoptimizeIf(
+      Condition condition, LInstruction* instr,
+      Deoptimizer::DeoptReason deopt_reason = Deoptimizer::kNoReason,
+      Register src1 = zero_reg, const Operand& src2 = Operand(zero_reg));
 
   void AddToTranslation(LEnvironment* environment,
                         Translation* translation,

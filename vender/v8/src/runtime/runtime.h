@@ -152,7 +152,7 @@ namespace internal {
   F(MathExpRT, 1, 1)                                       \
   F(RoundNumber, 1, 1)                                     \
   F(MathFround, 1, 1)                                      \
-  F(RemPiO2, 1, 1)                                         \
+  F(RemPiO2, 2, 1)                                         \
                                                            \
   /* Regular expressions */                                \
   F(RegExpInitializeAndCompile, 3, 1)                      \
@@ -186,18 +186,19 @@ namespace internal {
   /* Classes support */                                    \
   F(ToMethod, 2, 1)                                        \
   F(HomeObjectSymbol, 0, 1)                                \
+  F(DefaultConstructorSuperCall, 0, 1)                     \
   F(DefineClass, 6, 1)                                     \
   F(DefineClassMethod, 3, 1)                               \
   F(ClassGetSourceCode, 1, 1)                              \
-  F(ThrowNonMethodError, 0, 1)                             \
-  F(ThrowUnsupportedSuperError, 0, 1)                      \
   F(LoadFromSuper, 3, 1)                                   \
   F(LoadKeyedFromSuper, 3, 1)                              \
+  F(ThrowConstructorNonCallableError, 0, 1)                \
+  F(ThrowNonMethodError, 0, 1)                             \
+  F(ThrowUnsupportedSuperError, 0, 1)                      \
   F(StoreToSuper_Strict, 4, 1)                             \
   F(StoreToSuper_Sloppy, 4, 1)                             \
   F(StoreKeyedToSuper_Strict, 4, 1)                        \
-  F(StoreKeyedToSuper_Sloppy, 4, 1)                        \
-  F(DefaultConstructorSuperCall, 0, 1)
+  F(StoreKeyedToSuper_Sloppy, 4, 1)
 
 
 #define RUNTIME_FUNCTION_LIST_ALWAYS_2(F)              \
@@ -232,9 +233,6 @@ namespace internal {
                                                        \
   F(SetCode, 2, 1)                                     \
                                                        \
-  F(CreateApiFunction, 2, 1)                           \
-  F(IsTemplate, 1, 1)                                  \
-  F(GetTemplateField, 2, 1)                            \
   F(DisableAccessChecks, 1, 1)                         \
   F(EnableAccessChecks, 1, 1)                          \
                                                        \
@@ -254,15 +252,13 @@ namespace internal {
   F(GlobalProxy, 1, 1)                                 \
                                                        \
   F(AddNamedProperty, 4, 1)                            \
-  F(AddPropertyForTemplate, 4, 1)                      \
   F(SetProperty, 4, 1)                                 \
   F(AddElement, 4, 1)                                  \
-  F(DefineApiAccessorProperty, 5, 1)                   \
   F(DefineDataPropertyUnchecked, 4, 1)                 \
   F(DefineAccessorPropertyUnchecked, 5, 1)             \
   F(GetDataProperty, 2, 1)                             \
-  F(DefineGetterPropertyUnchecked, 3, 1)               \
-  F(DefineSetterPropertyUnchecked, 3, 1)               \
+  F(DefineGetterPropertyUnchecked, 4, 1)               \
+  F(DefineSetterPropertyUnchecked, 4, 1)               \
                                                        \
   /* Arrays */                                         \
   F(RemoveArrayHoles, 2, 1)                            \
@@ -823,7 +819,7 @@ class Runtime : public AllStatic {
 
   MUST_USE_RESULT static MaybeHandle<Object> SetObjectProperty(
       Isolate* isolate, Handle<Object> object, Handle<Object> key,
-      Handle<Object> value, StrictMode strict_mode);
+      Handle<Object> value, LanguageMode language_mode);
 
   MUST_USE_RESULT static MaybeHandle<Object> DefineObjectProperty(
       Handle<JSObject> object, Handle<Object> key, Handle<Object> value,
@@ -879,6 +875,13 @@ class Runtime : public AllStatic {
   MUST_USE_RESULT static MaybeHandle<Object> CreateArrayLiteralBoilerplate(
       Isolate* isolate, Handle<FixedArray> literals,
       Handle<FixedArray> elements);
+
+  static void WeakCollectionInitialize(
+      Isolate* isolate, Handle<JSWeakCollection> weak_collection);
+  static void WeakCollectionSet(Handle<JSWeakCollection> weak_collection,
+                                Handle<Object> key, Handle<Object> value);
+  static bool WeakCollectionDelete(Handle<JSWeakCollection> weak_collection,
+                                   Handle<Object> key);
 };
 
 
@@ -892,7 +895,8 @@ class AllocateTargetSpace : public BitField<AllocationSpace, 1, 3> {};
 
 class DeclareGlobalsEvalFlag : public BitField<bool, 0, 1> {};
 class DeclareGlobalsNativeFlag : public BitField<bool, 1, 1> {};
-class DeclareGlobalsStrictMode : public BitField<StrictMode, 2, 1> {};
+STATIC_ASSERT(LANGUAGE_END == 3);
+class DeclareGlobalsLanguageMode : public BitField<LanguageMode, 2, 2> {};
 
 }  // namespace internal
 }  // namespace v8

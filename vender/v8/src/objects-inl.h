@@ -1197,10 +1197,10 @@ MaybeHandle<Object> JSProxy::SetElementWithHandler(Handle<JSProxy> proxy,
                                                    Handle<JSReceiver> receiver,
                                                    uint32_t index,
                                                    Handle<Object> value,
-                                                   StrictMode strict_mode) {
+                                                   LanguageMode language_mode) {
   Isolate* isolate = proxy->GetIsolate();
   Handle<String> name = isolate->factory()->Uint32ToString(index);
-  return SetPropertyWithHandler(proxy, receiver, name, value, strict_mode);
+  return SetPropertyWithHandler(proxy, receiver, name, value, language_mode);
 }
 
 
@@ -2192,6 +2192,14 @@ bool JSObject::HasFastProperties() {
 }
 
 
+MaybeHandle<Object> JSObject::SetOwnElement(Handle<JSObject> object,
+                                            uint32_t index,
+                                            Handle<Object> value,
+                                            LanguageMode language_mode) {
+  return JSObject::SetOwnElement(object, index, value, NONE, language_mode);
+}
+
+
 bool Map::TooManyFastProperties(StoreFromKeyed store_mode) {
   if (unused_property_fields() != 0) return false;
   if (is_prototype_map()) return false;
@@ -2951,7 +2959,7 @@ int LinearSearch(T* array, Name* name, int len, int valid_entries,
     return T::kNotFound;
   } else {
     DCHECK(len >= valid_entries);
-    DCHECK_EQ(NULL, out_insertion_index);  // Not supported here.
+    DCHECK_NULL(out_insertion_index);  // Not supported here.
     for (int number = 0; number < valid_entries; number++) {
       Name* entry = array->GetKey(number);
       uint32_t current_hash = entry->Hash();
@@ -3390,6 +3398,12 @@ CAST_ACCESSOR(UnseededNumberDictionary)
 CAST_ACCESSOR(WeakCell)
 CAST_ACCESSOR(WeakFixedArray)
 CAST_ACCESSOR(WeakHashTable)
+
+
+// static
+template <class Traits>
+STATIC_CONST_MEMBER_DEFINITION const InstanceType
+    FixedTypedArray<Traits>::kInstanceType;
 
 
 template <class Traits>
@@ -5228,9 +5242,16 @@ bool Code::IsWeakObjectInOptimizedCode(Object* object) {
     return Map::cast(object)->CanTransition() &&
            FLAG_weak_embedded_maps_in_optimized_code;
   }
-  if (object->IsJSObject() ||
-      (object->IsCell() && Cell::cast(object)->value()->IsJSObject())) {
+  if (object->IsCell()) object = Cell::cast(object)->value();
+  if (object->IsJSObject()) {
     return FLAG_weak_embedded_objects_in_optimized_code;
+  }
+  if (object->IsFixedArray()) {
+    // Contexts of inlined functions are embedded in optimized code.
+    Map* map = HeapObject::cast(object)->map();
+    Heap* heap = map->GetHeap();
+    return FLAG_weak_embedded_objects_in_optimized_code &&
+           map == heap->function_context_map();
   }
   return false;
 }
@@ -5607,6 +5628,8 @@ ACCESSORS(Script, eval_from_shared, Object, kEvalFromSharedOffset)
 ACCESSORS_TO_SMI(Script, eval_from_instructions_offset,
                  kEvalFrominstructionsOffsetOffset)
 ACCESSORS_TO_SMI(Script, flags, kFlagsOffset)
+BOOL_ACCESSORS(Script, flags, is_embedder_debug_script,
+               kIsEmbedderDebugScriptBit)
 BOOL_ACCESSORS(Script, flags, is_shared_cross_origin, kIsSharedCrossOriginBit)
 ACCESSORS(Script, source_url, Object, kSourceUrlOffset)
 ACCESSORS(Script, source_mapping_url, Object, kSourceMappingUrlOffset)
@@ -5796,17 +5819,22 @@ void SharedFunctionInfo::set_optimization_disabled(bool disable) {
 }
 
 
-StrictMode SharedFunctionInfo::strict_mode() {
-  return BooleanBit::get(compiler_hints(), kStrictModeFunction)
-      ? STRICT : SLOPPY;
+LanguageMode SharedFunctionInfo::language_mode() {
+  STATIC_ASSERT(LANGUAGE_END == 3);
+  return construct_language_mode(
+      BooleanBit::get(compiler_hints(), kStrictModeFunction),
+      BooleanBit::get(compiler_hints(), kStrongModeFunction));
 }
 
 
-void SharedFunctionInfo::set_strict_mode(StrictMode strict_mode) {
-  // We only allow mode transitions from sloppy to strict.
-  DCHECK(this->strict_mode() == SLOPPY || this->strict_mode() == strict_mode);
+void SharedFunctionInfo::set_language_mode(LanguageMode language_mode) {
+  STATIC_ASSERT(LANGUAGE_END == 3);
+  // We only allow language mode transitions that set the same language mode
+  // again or go up in the chain:
+  DCHECK(is_sloppy(this->language_mode()) || is_strict(language_mode));
   int hints = compiler_hints();
-  hints = BooleanBit::set(hints, kStrictModeFunction, strict_mode == STRICT);
+  hints = BooleanBit::set(hints, kStrictModeFunction, is_strict(language_mode));
+  hints = BooleanBit::set(hints, kStrongModeFunction, is_strong(language_mode));
   set_compiler_hints(hints);
 }
 
@@ -5843,6 +5871,8 @@ BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_arrow, kIsArrow)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_generator, kIsGenerator)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_concise_method,
                kIsConciseMethod)
+BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_accessor_function,
+               kIsAccessorFunction)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_default_constructor,
                kIsDefaultConstructor)
 
@@ -6423,7 +6453,6 @@ void Code::set_stub_key(uint32_t key) {
 
 
 ACCESSORS(Code, gc_metadata, Object, kGCMetadataOffset)
-INT_ACCESSORS(Code, ic_age, kICAgeOffset)
 
 
 byte* Code::instruction_start()  {
@@ -7518,6 +7547,49 @@ Object* JSMapIterator::CurrentValue() {
   Object* value = table->ValueAt(index);
   DCHECK(!value->IsTheHole());
   return value;
+}
+
+
+class String::SubStringRange::iterator FINAL {
+ public:
+  typedef std::forward_iterator_tag iterator_category;
+  typedef int difference_type;
+  typedef uc16 value_type;
+  typedef uc16* pointer;
+  typedef uc16& reference;
+
+  iterator(const iterator& other)
+      : content_(other.content_), offset_(other.offset_) {}
+
+  uc16 operator*() { return content_.Get(offset_); }
+  bool operator==(const iterator& other) const {
+    return content_.UsesSameString(other.content_) && offset_ == other.offset_;
+  }
+  bool operator!=(const iterator& other) const {
+    return !content_.UsesSameString(other.content_) || offset_ != other.offset_;
+  }
+  iterator& operator++() {
+    ++offset_;
+    return *this;
+  }
+  iterator operator++(int);
+
+ private:
+  friend class String;
+  iterator(String* from, int offset)
+      : content_(from->GetFlatContent()), offset_(offset) {}
+  String::FlatContent content_;
+  int offset_;
+};
+
+
+String::SubStringRange::iterator String::SubStringRange::begin() {
+  return String::SubStringRange::iterator(string_, first_);
+}
+
+
+String::SubStringRange::iterator String::SubStringRange::end() {
+  return String::SubStringRange::iterator(string_, first_ + length_);
 }
 
 

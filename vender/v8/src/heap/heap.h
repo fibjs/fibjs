@@ -182,7 +182,9 @@ namespace internal {
     EmptySlowElementDictionary)                                                \
   V(FixedArray, materialized_objects, MaterializedObjects)                     \
   V(FixedArray, allocation_sites_scratchpad, AllocationSitesScratchpad)        \
-  V(FixedArray, microtask_queue, MicrotaskQueue)
+  V(FixedArray, microtask_queue, MicrotaskQueue)                               \
+  V(FixedArray, keyed_load_dummy_vector, KeyedLoadDummyVector)                 \
+  V(FixedArray, detached_contexts, DetachedContexts)
 
 // Entries in this list are limited to Smis and are not visited during GC.
 #define SMI_ROOT_LIST(V)                                                   \
@@ -199,85 +201,85 @@ namespace internal {
   SMI_ROOT_LIST(V)    \
   V(StringTable, string_table, StringTable)
 
-#define INTERNALIZED_STRING_LIST(V)                        \
-  V(Object_string, "Object")                               \
-  V(proto_string, "__proto__")                             \
-  V(arguments_string, "arguments")                         \
-  V(Arguments_string, "Arguments")                         \
-  V(caller_string, "caller")                               \
-  V(boolean_string, "boolean")                             \
-  V(Boolean_string, "Boolean")                             \
-  V(callee_string, "callee")                               \
-  V(constructor_string, "constructor")                     \
-  V(dot_result_string, ".result")                          \
-  V(eval_string, "eval")                                   \
-  V(empty_string, "")                                      \
-  V(function_string, "function")                           \
-  V(Function_string, "Function")                           \
-  V(length_string, "length")                               \
-  V(name_string, "name")                                   \
-  V(null_string, "null")                                   \
-  V(number_string, "number")                               \
-  V(Number_string, "Number")                               \
-  V(nan_string, "NaN")                                     \
-  V(source_string, "source")                               \
-  V(source_url_string, "source_url")                       \
-  V(source_mapping_url_string, "source_mapping_url")       \
-  V(global_string, "global")                               \
-  V(ignore_case_string, "ignoreCase")                      \
-  V(multiline_string, "multiline")                         \
-  V(sticky_string, "sticky")                               \
-  V(unicode_string, "unicode")                             \
-  V(harmony_regexps_string, "harmony_regexps")             \
-  V(harmony_unicode_string, "harmony_unicode")             \
-  V(input_string, "input")                                 \
-  V(index_string, "index")                                 \
-  V(last_index_string, "lastIndex")                        \
-  V(object_string, "object")                               \
-  V(prototype_string, "prototype")                         \
-  V(string_string, "string")                               \
-  V(String_string, "String")                               \
-  V(symbol_string, "symbol")                               \
-  V(Symbol_string, "Symbol")                               \
-  V(Map_string, "Map")                                     \
-  V(Set_string, "Set")                                     \
-  V(WeakMap_string, "WeakMap")                             \
-  V(WeakSet_string, "WeakSet")                             \
-  V(for_string, "for")                                     \
-  V(for_api_string, "for_api")                             \
-  V(for_intern_string, "for_intern")                       \
-  V(private_api_string, "private_api")                     \
-  V(private_intern_string, "private_intern")               \
-  V(Date_string, "Date")                                   \
-  V(char_at_string, "CharAt")                              \
-  V(undefined_string, "undefined")                         \
-  V(value_of_string, "valueOf")                            \
-  V(stack_string, "stack")                                 \
-  V(toJSON_string, "toJSON")                               \
-  V(KeyedLoadMonomorphic_string, "KeyedLoadMonomorphic")   \
-  V(KeyedStoreMonomorphic_string, "KeyedStoreMonomorphic") \
-  V(stack_overflow_string, "kStackOverflowBoilerplate")    \
-  V(illegal_access_string, "illegal access")               \
-  V(cell_value_string, "%cell_value")                      \
-  V(illegal_argument_string, "illegal argument")           \
-  V(identity_hash_string, "v8::IdentityHash")              \
-  V(closure_string, "(closure)")                           \
-  V(dot_string, ".")                                       \
-  V(compare_ic_string, "==")                               \
-  V(strict_compare_ic_string, "===")                       \
-  V(infinity_string, "Infinity")                           \
-  V(minus_infinity_string, "-Infinity")                    \
-  V(query_colon_string, "(?:)")                            \
-  V(Generator_string, "Generator")                         \
-  V(throw_string, "throw")                                 \
-  V(done_string, "done")                                   \
-  V(value_string, "value")                                 \
-  V(next_string, "next")                                   \
-  V(byte_length_string, "byteLength")                      \
-  V(byte_offset_string, "byteOffset")                      \
-  V(minus_zero_string, "-0")                               \
-  V(Array_string, "Array")                                 \
-  V(Error_string, "Error")                                 \
+#define INTERNALIZED_STRING_LIST(V)                            \
+  V(Object_string, "Object")                                   \
+  V(proto_string, "__proto__")                                 \
+  V(arguments_string, "arguments")                             \
+  V(Arguments_string, "Arguments")                             \
+  V(caller_string, "caller")                                   \
+  V(boolean_string, "boolean")                                 \
+  V(Boolean_string, "Boolean")                                 \
+  V(callee_string, "callee")                                   \
+  V(constructor_string, "constructor")                         \
+  V(dot_result_string, ".result")                              \
+  V(eval_string, "eval")                                       \
+  V(empty_string, "")                                          \
+  V(function_string, "function")                               \
+  V(Function_string, "Function")                               \
+  V(length_string, "length")                                   \
+  V(name_string, "name")                                       \
+  V(null_string, "null")                                       \
+  V(number_string, "number")                                   \
+  V(Number_string, "Number")                                   \
+  V(nan_string, "NaN")                                         \
+  V(source_string, "source")                                   \
+  V(source_url_string, "source_url")                           \
+  V(source_mapping_url_string, "source_mapping_url")           \
+  V(global_string, "global")                                   \
+  V(ignore_case_string, "ignoreCase")                          \
+  V(multiline_string, "multiline")                             \
+  V(sticky_string, "sticky")                                   \
+  V(unicode_string, "unicode")                                 \
+  V(harmony_regexps_string, "harmony_regexps")                 \
+  V(harmony_unicode_regexps_string, "harmony_unicode_regexps") \
+  V(input_string, "input")                                     \
+  V(index_string, "index")                                     \
+  V(last_index_string, "lastIndex")                            \
+  V(object_string, "object")                                   \
+  V(prototype_string, "prototype")                             \
+  V(string_string, "string")                                   \
+  V(String_string, "String")                                   \
+  V(symbol_string, "symbol")                                   \
+  V(Symbol_string, "Symbol")                                   \
+  V(Map_string, "Map")                                         \
+  V(Set_string, "Set")                                         \
+  V(WeakMap_string, "WeakMap")                                 \
+  V(WeakSet_string, "WeakSet")                                 \
+  V(for_string, "for")                                         \
+  V(for_api_string, "for_api")                                 \
+  V(for_intern_string, "for_intern")                           \
+  V(private_api_string, "private_api")                         \
+  V(private_intern_string, "private_intern")                   \
+  V(Date_string, "Date")                                       \
+  V(char_at_string, "CharAt")                                  \
+  V(undefined_string, "undefined")                             \
+  V(value_of_string, "valueOf")                                \
+  V(stack_string, "stack")                                     \
+  V(toJSON_string, "toJSON")                                   \
+  V(KeyedLoadMonomorphic_string, "KeyedLoadMonomorphic")       \
+  V(KeyedStoreMonomorphic_string, "KeyedStoreMonomorphic")     \
+  V(stack_overflow_string, "kStackOverflowBoilerplate")        \
+  V(illegal_access_string, "illegal access")                   \
+  V(cell_value_string, "%cell_value")                          \
+  V(illegal_argument_string, "illegal argument")               \
+  V(identity_hash_string, "v8::IdentityHash")                  \
+  V(closure_string, "(closure)")                               \
+  V(dot_string, ".")                                           \
+  V(compare_ic_string, "==")                                   \
+  V(strict_compare_ic_string, "===")                           \
+  V(infinity_string, "Infinity")                               \
+  V(minus_infinity_string, "-Infinity")                        \
+  V(query_colon_string, "(?:)")                                \
+  V(Generator_string, "Generator")                             \
+  V(throw_string, "throw")                                     \
+  V(done_string, "done")                                       \
+  V(value_string, "value")                                     \
+  V(next_string, "next")                                       \
+  V(byte_length_string, "byteLength")                          \
+  V(byte_offset_string, "byteOffset")                          \
+  V(minus_zero_string, "-0")                                   \
+  V(Array_string, "Array")                                     \
+  V(Error_string, "Error")                                     \
   V(RegExp_string, "RegExp")
 
 #define PRIVATE_SYMBOL_LIST(V)      \
@@ -291,7 +293,6 @@ namespace internal {
   V(uninitialized_symbol)           \
   V(megamorphic_symbol)             \
   V(premonomorphic_symbol)          \
-  V(generic_symbol)                 \
   V(stack_trace_symbol)             \
   V(detailed_stack_trace_symbol)    \
   V(normal_ic_symbol)               \
@@ -302,7 +303,10 @@ namespace internal {
   V(promise_has_handler_symbol)     \
   V(class_script_symbol)            \
   V(class_start_position_symbol)    \
-  V(class_end_position_symbol)
+  V(class_end_position_symbol)      \
+  V(error_start_pos_symbol)         \
+  V(error_end_pos_symbol)           \
+  V(error_script_symbol)
 
 #define PUBLIC_SYMBOL_LIST(V)                                    \
   V(has_instance_symbol, symbolHasInstance, Symbol.hasInstance)  \
@@ -1224,7 +1228,8 @@ class Heap {
   void UpdateReferencesInExternalStringTable(
       ExternalStringTableUpdaterCallback updater_func);
 
-  void ProcessWeakReferences(WeakObjectRetainer* retainer);
+  void ProcessAllWeakReferences(WeakObjectRetainer* retainer);
+  void ProcessYoungWeakReferences(WeakObjectRetainer* retainer);
 
   void VisitExternalResources(v8::ExternalResourceVisitor* visitor);
 
@@ -1345,8 +1350,6 @@ class Heap {
   void AgeInlineCaches() {
     global_ic_age_ = (global_ic_age_ + 1) & SharedFunctionInfo::ICAgeBits::kMax;
   }
-
-  bool flush_monomorphic_ics() { return flush_monomorphic_ics_; }
 
   int64_t amount_of_external_allocated_memory() {
     return amount_of_external_allocated_memory_;
@@ -1533,8 +1536,6 @@ class Heap {
   int contexts_disposed_;
 
   int global_ic_age_;
-
-  bool flush_monomorphic_ics_;
 
   int scan_on_scavenge_pages_;
 

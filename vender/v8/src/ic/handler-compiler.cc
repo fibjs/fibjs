@@ -75,6 +75,9 @@ Handle<Code> PropertyHandlerCompiler::GetCode(Code::Kind kind,
   Code::Flags flags = Code::ComputeHandlerFlags(kind, type, cache_holder());
   Handle<Code> code = GetCodeWithFlags(flags, name);
   PROFILE(isolate(), CodeCreateEvent(Logger::STUB_TAG, *code, *name));
+#ifdef DEBUG
+  code->VerifyEmbeddedObjects();
+#endif
   return code;
 }
 
@@ -229,12 +232,13 @@ Handle<Code> NamedLoadHandlerCompiler::CompileLoadCallback(
 
 
 Handle<Code> NamedLoadHandlerCompiler::CompileLoadCallback(
-    Handle<Name> name, const CallOptimization& call_optimization) {
+    Handle<Name> name, const CallOptimization& call_optimization,
+    int accessor_index) {
   DCHECK(call_optimization.is_simple_api_call());
-  Frontend(name);
+  Register holder = Frontend(name);
   Handle<Map> receiver_map = IC::TypeToMap(*type(), isolate());
   GenerateApiAccessorCall(masm(), call_optimization, receiver_map, receiver(),
-                          scratch1(), false, no_reg);
+                          scratch2(), false, no_reg, holder, accessor_index);
   return GetCode(kind(), Code::FAST, name);
 }
 
@@ -288,13 +292,25 @@ Handle<Code> NamedLoadHandlerCompiler::CompileLoadInterceptor(
       break;
     case LookupIterator::ACCESSOR: {
       Handle<Object> accessors = it->GetAccessors();
-      inline_followup = accessors->IsExecutableAccessorInfo();
-      if (!inline_followup) break;
-      Handle<ExecutableAccessorInfo> info =
-          Handle<ExecutableAccessorInfo>::cast(accessors);
-      inline_followup = info->getter() != NULL &&
-                        ExecutableAccessorInfo::IsCompatibleReceiverType(
-                            isolate(), info, type());
+      if (accessors->IsExecutableAccessorInfo()) {
+        Handle<ExecutableAccessorInfo> info =
+            Handle<ExecutableAccessorInfo>::cast(accessors);
+        inline_followup = info->getter() != NULL &&
+                          ExecutableAccessorInfo::IsCompatibleReceiverType(
+                              isolate(), info, type());
+      } else if (accessors->IsAccessorPair()) {
+        Handle<JSObject> property_holder(it->GetHolder<JSObject>());
+        Handle<Object> getter(Handle<AccessorPair>::cast(accessors)->getter(),
+                              isolate());
+        if (!getter->IsJSFunction()) break;
+        if (!property_holder->HasFastProperties()) break;
+        auto function = Handle<JSFunction>::cast(getter);
+        CallOptimization call_optimization(function);
+        Handle<Map> receiver_map = IC::TypeToMap(*type(), isolate());
+        inline_followup = call_optimization.is_simple_api_call() &&
+                          call_optimization.IsCompatibleReceiverType(
+                              receiver_map, property_holder);
+      }
     }
   }
 
@@ -344,10 +360,20 @@ void NamedLoadHandlerCompiler::GenerateLoadPostInterceptor(
       break;
     }
     case LookupIterator::ACCESSOR:
-      Handle<ExecutableAccessorInfo> info =
-          Handle<ExecutableAccessorInfo>::cast(it->GetAccessors());
-      DCHECK_NE(NULL, info->getter());
-      GenerateLoadCallback(reg, info);
+      if (it->GetAccessors()->IsExecutableAccessorInfo()) {
+        Handle<ExecutableAccessorInfo> info =
+            Handle<ExecutableAccessorInfo>::cast(it->GetAccessors());
+        DCHECK_NOT_NULL(info->getter());
+        GenerateLoadCallback(reg, info);
+      } else {
+        auto function = handle(JSFunction::cast(
+            AccessorPair::cast(*it->GetAccessors())->getter()));
+        CallOptimization call_optimization(function);
+        Handle<Map> receiver_map = IC::TypeToMap(*type(), isolate());
+        GenerateApiAccessorCall(masm(), call_optimization, receiver_map,
+                                receiver(), scratch2(), false, no_reg, reg,
+                                it->GetAccessorIndex());
+      }
   }
 }
 
@@ -356,7 +382,7 @@ Handle<Code> NamedLoadHandlerCompiler::CompileLoadViaGetter(
     Handle<Name> name, int accessor_index, int expected_arguments) {
   Register holder = Frontend(name);
   GenerateLoadViaGetter(masm(), type(), receiver(), holder, accessor_index,
-                        expected_arguments);
+                        expected_arguments, scratch2());
   return GetCode(kind(), Code::FAST, name);
 }
 
@@ -446,7 +472,7 @@ Handle<Code> NamedStoreHandlerCompiler::CompileStoreViaSetter(
     int expected_arguments) {
   Register holder = Frontend(name);
   GenerateStoreViaSetter(masm(), type(), receiver(), holder, accessor_index,
-                         expected_arguments);
+                         expected_arguments, scratch2());
 
   return GetCode(kind(), Code::FAST, name);
 }
@@ -454,10 +480,11 @@ Handle<Code> NamedStoreHandlerCompiler::CompileStoreViaSetter(
 
 Handle<Code> NamedStoreHandlerCompiler::CompileStoreCallback(
     Handle<JSObject> object, Handle<Name> name,
-    const CallOptimization& call_optimization) {
-  Frontend(name);
+    const CallOptimization& call_optimization, int accessor_index) {
+  Register holder = Frontend(name);
   GenerateApiAccessorCall(masm(), call_optimization, handle(object->map()),
-                          receiver(), scratch1(), true, value());
+                          receiver(), scratch2(), true, value(), holder,
+                          accessor_index);
   return GetCode(kind(), Code::FAST, name);
 }
 

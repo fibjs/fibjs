@@ -5,6 +5,7 @@
 #include "src/bootstrapper.h"
 
 #include "src/accessors.h"
+#include "src/api-natives.h"
 #include "src/code-stubs.h"
 #include "src/extensions/externalize-string-extension.h"
 #include "src/extensions/free-buffer-extension.h"
@@ -210,6 +211,8 @@ class Genesis BASE_EMBEDDED {
   // Used for creating a context from scratch.
   void InstallNativeFunctions();
   void InstallExperimentalNativeFunctions();
+  // Typed arrays are not serializable and have to initialized afterwards.
+  void InitializeBuiltinTypedArrays();
 
 #define DECLARE_FEATURE_INITIALIZATION(id, descr) \
   void InstallNativeFunctions_##id();             \
@@ -373,6 +376,9 @@ void Bootstrapper::DetachGlobal(Handle<Context> env) {
   global_proxy->set_native_context(*factory->null_value());
   SetObjectPrototype(global_proxy, factory->null_value());
   global_proxy->map()->set_constructor(*factory->null_value());
+  if (FLAG_track_detached_contexts) {
+    env->GetIsolate()->AddDetachedContext(env);
+  }
 }
 
 
@@ -809,10 +815,9 @@ Handle<GlobalObject> Genesis::CreateNewGlobals(
   } else {
     Handle<FunctionTemplateInfo> js_global_object_constructor(
         FunctionTemplateInfo::cast(js_global_object_template->constructor()));
-    js_global_object_function =
-        factory()->CreateApiFunction(js_global_object_constructor,
-                                     factory()->the_hole_value(),
-                                     factory()->GlobalObjectType);
+    js_global_object_function = ApiNatives::CreateApiFunction(
+        isolate(), js_global_object_constructor, factory()->the_hole_value(),
+        ApiNatives::GlobalObjectType);
   }
 
   js_global_object_function->initial_map()->set_is_hidden_prototype();
@@ -833,10 +838,9 @@ Handle<GlobalObject> Genesis::CreateNewGlobals(
         v8::Utils::OpenHandle(*global_proxy_template);
     Handle<FunctionTemplateInfo> global_constructor(
             FunctionTemplateInfo::cast(data->constructor()));
-    global_proxy_function =
-        factory()->CreateApiFunction(global_constructor,
-                                     factory()->the_hole_value(),
-                                     factory()->GlobalProxyType);
+    global_proxy_function = ApiNatives::CreateApiFunction(
+        isolate(), global_constructor, factory()->the_hole_value(),
+        ApiNatives::GlobalProxyType);
   }
 
   Handle<String> global_name = factory()->global_string();
@@ -1448,9 +1452,9 @@ bool Genesis::CompileScriptCached(Isolate* isolate,
     Handle<String> script_name =
         factory->NewStringFromUtf8(name).ToHandleChecked();
     function_info = Compiler::CompileScript(
-        source, script_name, 0, 0, false, top_context, extension, NULL,
+        source, script_name, 0, 0, false, false, top_context, extension, NULL,
         ScriptCompiler::kNoCompileOptions,
-        use_runtime_context ? NATIVES_CODE : NOT_NATIVES_CODE);
+        use_runtime_context ? NATIVES_CODE : NOT_NATIVES_CODE, false);
     if (function_info.is_null()) return false;
     if (cache != NULL) cache->Add(name, function_info);
   }
@@ -1491,7 +1495,7 @@ static Handle<JSObject> ResolveBuiltinIdHolder(Handle<Context> native_context,
             .ToHandleChecked());
   }
   const char* inner = period_pos + 1;
-  DCHECK_EQ(NULL, strchr(inner, '.'));
+  DCHECK(!strchr(inner, '.'));
   Vector<const char> property(holder_expr,
                               static_cast<int>(period_pos - holder_expr));
   Handle<String> property_string = factory->InternalizeUtf8String(property);
@@ -1533,11 +1537,7 @@ void Genesis::InstallNativeFunctions() {
   INSTALL_NATIVE(JSFunction, "ToLength", to_length_fun);
 
   INSTALL_NATIVE(JSFunction, "GlobalEval", global_eval_fun);
-  INSTALL_NATIVE(JSFunction, "Instantiate", instantiate_fun);
-  INSTALL_NATIVE(JSFunction, "ConfigureTemplateInstance",
-                 configure_instance_fun);
   INSTALL_NATIVE(JSFunction, "GetStackTraceLine", get_stack_trace_line_fun);
-  INSTALL_NATIVE(JSObject, "functionCache", function_cache);
   INSTALL_NATIVE(JSFunction, "ToCompletePropertyDescriptor",
                  to_complete_property_descriptor);
 
@@ -1581,6 +1581,60 @@ void Genesis::InstallExperimentalNativeFunctions() {
 }
 
 
+template <typename Data>
+Data* SetBuiltinTypedArray(Isolate* isolate, Handle<JSBuiltinsObject> builtins,
+                           ExternalArrayType type, Data* data,
+                           size_t num_elements, const char* name) {
+  size_t byte_length = num_elements * sizeof(*data);
+  Handle<JSArrayBuffer> buffer = isolate->factory()->NewJSArrayBuffer();
+  bool should_be_freed = false;
+  if (data == NULL) {
+    data = reinterpret_cast<Data*>(malloc(byte_length));
+    should_be_freed = true;
+  }
+  Runtime::SetupArrayBuffer(isolate, buffer, true, data, byte_length);
+  buffer->set_should_be_freed(should_be_freed);
+
+  Handle<JSTypedArray> typed_array =
+      isolate->factory()->NewJSTypedArray(type, buffer, 0, num_elements);
+  Handle<String> name_string = isolate->factory()->InternalizeUtf8String(name);
+  // Reset property cell type before (re)initializing.
+  JSBuiltinsObject::InvalidatePropertyCell(builtins, name_string);
+  JSObject::SetOwnPropertyIgnoreAttributes(builtins, name_string, typed_array,
+                                           DONT_DELETE).Assert();
+  return data;
+}
+
+
+void Genesis::InitializeBuiltinTypedArrays() {
+  Handle<JSBuiltinsObject> builtins(native_context()->builtins());
+  {  // Initially seed the per-context random number generator using the
+    // per-isolate random number generator.
+    const size_t num_elements = 2;
+    const size_t num_bytes = num_elements * sizeof(uint32_t);
+    uint32_t* state = SetBuiltinTypedArray<uint32_t>(isolate(), builtins,
+                                                     kExternalUint32Array, NULL,
+                                                     num_elements, "rngstate");
+    do {
+      isolate()->random_number_generator()->NextBytes(state, num_bytes);
+    } while (state[0] == 0 || state[1] == 0);
+  }
+
+  {  // Initialize trigonometric lookup tables and constants.
+    const size_t num_elements = arraysize(fdlibm::MathConstants::constants);
+    double* data = const_cast<double*>(fdlibm::MathConstants::constants);
+    SetBuiltinTypedArray<double>(isolate(), builtins, kExternalFloat64Array,
+                                 data, num_elements, "kMath");
+  }
+
+  {  // Initialize a result array for rempio2 calculation
+    const size_t num_elements = 2;
+    SetBuiltinTypedArray<double>(isolate(), builtins, kExternalFloat64Array,
+                                 NULL, num_elements, "rempio2result");
+  }
+}
+
+
 #define EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(id) \
   void Genesis::InstallNativeFunctions_##id() {}
 
@@ -1598,7 +1652,9 @@ EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_tostring)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_templates)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_sloppy)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_unicode)
+EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_unicode_regexps)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_computed_property_names)
+EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_rest_parameters)
 
 
 void Genesis::InstallNativeFunctions_harmony_proxies() {
@@ -1628,7 +1684,9 @@ EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_tostring)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_proxies)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_templates)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_sloppy)
+EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_unicode)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_computed_property_names)
+EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_rest_parameters)
 
 void Genesis::InitializeGlobal_harmony_regexps() {
   Handle<JSObject> builtins(native_context()->builtins());
@@ -1642,14 +1700,15 @@ void Genesis::InitializeGlobal_harmony_regexps() {
 }
 
 
-void Genesis::InitializeGlobal_harmony_unicode() {
+void Genesis::InitializeGlobal_harmony_unicode_regexps() {
   Handle<JSObject> builtins(native_context()->builtins());
 
-  Handle<HeapObject> flag(FLAG_harmony_unicode ? heap()->true_value()
-                                               : heap()->false_value());
+  Handle<HeapObject> flag(FLAG_harmony_unicode_regexps ? heap()->true_value()
+                                                       : heap()->false_value());
   PropertyAttributes attributes =
       static_cast<PropertyAttributes>(DONT_DELETE | READ_ONLY);
-  Runtime::DefineObjectProperty(builtins, factory()->harmony_unicode_string(),
+  Runtime::DefineObjectProperty(builtins,
+                                factory()->harmony_unicode_regexps_string(),
                                 flag, attributes).Assert();
 }
 
@@ -1764,7 +1823,7 @@ bool Genesis::InstallNatives() {
     native_context()->set_script_function(*script_fun);
 
     Handle<Map> script_map = Handle<Map>(script_fun->initial_map());
-    Map::EnsureDescriptorSlack(script_map, 14);
+    Map::EnsureDescriptorSlack(script_map, 15);
 
     PropertyAttributes attribs =
         static_cast<PropertyAttributes>(DONT_ENUM | DONT_DELETE | READ_ONLY);
@@ -1889,6 +1948,15 @@ bool Genesis::InstallNatives() {
       AccessorConstantDescriptor d(
           Handle<Name>(Name::cast(script_source_mapping_url->name())),
           script_source_mapping_url, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+    Handle<AccessorInfo> script_is_embedder_debug_script =
+        Accessors::ScriptIsEmbedderDebugScriptInfo(isolate(), attribs);
+    {
+      AccessorConstantDescriptor d(
+          Handle<Name>(Name::cast(script_is_embedder_debug_script->name())),
+          script_is_embedder_debug_script, attribs);
       script_map->AppendDescriptor(&d);
     }
 
@@ -2030,6 +2098,8 @@ bool Genesis::InstallNatives() {
   }
 
   InstallNativeFunctions();
+
+  native_context()->set_function_cache(heap()->empty_fixed_array());
 
   // Store the map for the string prototype after the natives has been compiled
   // and the String function has been set up.
@@ -2198,7 +2268,9 @@ bool Genesis::InstallExperimentalNatives() {
       "native harmony-templates.js", NULL};
   static const char* harmony_sloppy_natives[] = {NULL};
   static const char* harmony_unicode_natives[] = {NULL};
+  static const char* harmony_unicode_regexps_natives[] = {NULL};
   static const char* harmony_computed_property_names_natives[] = {NULL};
+  static const char* harmony_rest_parameters_natives[] = {NULL};
 
   for (int i = ExperimentalNatives::GetDebuggerCount();
        i < ExperimentalNatives::GetBuiltinsCount(); i++) {
@@ -2563,7 +2635,7 @@ bool Genesis::ConfigureApiObject(Handle<JSObject> object,
              ->IsTemplateFor(object->map()));;
 
   MaybeHandle<JSObject> maybe_obj =
-      Execution::InstantiateObject(object_template);
+      ApiNatives::InstantiateObject(object_template);
   Handle<JSObject> obj;
   if (!maybe_obj.ToHandle(&obj)) {
     DCHECK(isolate()->has_pending_exception());
@@ -2800,46 +2872,7 @@ Genesis::Genesis(Isolate* isolate,
 
   // The serializer cannot serialize typed arrays. Reset those typed arrays
   // for each new context.
-  {
-    // Initially seed the per-context random number generator using the
-    // per-isolate random number generator.
-    const int num_elems = 2;
-    const int num_bytes = num_elems * sizeof(uint32_t);
-    uint32_t* state = reinterpret_cast<uint32_t*>(malloc(num_bytes));
-
-    do {
-      isolate->random_number_generator()->NextBytes(state, num_bytes);
-    } while (state[0] == 0 || state[1] == 0);
-
-    v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(
-        reinterpret_cast<v8::Isolate*>(isolate), state, num_bytes);
-    Utils::OpenHandle(*buffer)->set_should_be_freed(true);
-    v8::Local<v8::Uint32Array> ta = v8::Uint32Array::New(buffer, 0, num_elems);
-    Handle<JSBuiltinsObject> builtins(native_context()->builtins());
-
-    Handle<String> rngstate =
-        factory()->InternalizeOneByteString(STATIC_CHAR_VECTOR("rngstate"));
-    // Reset property cell type before (re)initializing.
-    JSBuiltinsObject::InvalidatePropertyCell(builtins, rngstate);
-    JSObject::SetOwnPropertyIgnoreAttributes(
-        builtins, rngstate, Utils::OpenHandle(*ta), DONT_DELETE).Assert();
-
-    // Initialize trigonometric lookup tables and constants.
-    const int constants_size = arraysize(fdlibm::MathConstants::constants);
-    const int table_num_bytes = constants_size * kDoubleSize;
-    v8::Local<v8::ArrayBuffer> trig_buffer = v8::ArrayBuffer::New(
-        reinterpret_cast<v8::Isolate*>(isolate),
-        const_cast<double*>(fdlibm::MathConstants::constants), table_num_bytes);
-    v8::Local<v8::Float64Array> trig_table =
-        v8::Float64Array::New(trig_buffer, 0, constants_size);
-
-    Handle<String> kmath =
-        factory()->InternalizeOneByteString(STATIC_CHAR_VECTOR("kMath"));
-    // Reset property cell type before (re)initializing.
-    JSBuiltinsObject::InvalidatePropertyCell(builtins, kmath);
-    JSObject::SetOwnPropertyIgnoreAttributes(
-        builtins, kmath, Utils::OpenHandle(*trig_table), DONT_DELETE).Assert();
-  }
+  InitializeBuiltinTypedArrays();
 
   result_ = native_context();
 }

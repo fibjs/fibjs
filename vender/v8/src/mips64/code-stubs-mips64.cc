@@ -587,7 +587,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
   // If either is a Smi (we know that not both are), then they can only
   // be strictly equal if the other is a HeapNumber.
   STATIC_ASSERT(kSmiTag == 0);
-  DCHECK_EQ(0, Smi::FromInt(0));
+  DCHECK_EQ(static_cast<Smi*>(0), Smi::FromInt(0));
   __ And(a6, lhs, Operand(rhs));
   __ JumpIfNotSmi(a6, &not_smis, a4);
   // One operand is a smi. EmitSmiNonsmiComparison generates code that can:
@@ -1001,6 +1001,7 @@ void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   StubFailureTrampolineStub::GenerateAheadOfTime(isolate);
   ArrayConstructorStubBase::GenerateStubsAheadOfTime(isolate);
   CreateAllocationSiteStub::GenerateAheadOfTime(isolate);
+  CreateWeakCellStub::GenerateAheadOfTime(isolate);
   BinaryOpICStub::GenerateAheadOfTime(isolate);
   StoreRegistersStateStub::GenerateAheadOfTime(isolate);
   RestoreRegistersStateStub::GenerateAheadOfTime(isolate);
@@ -1469,7 +1470,7 @@ void InstanceofStub::Generate(MacroAssembler* masm) {
   __ Branch(&loop);
 
   __ bind(&is_instance);
-  DCHECK(Smi::FromInt(0) == 0);
+  DCHECK_EQ(static_cast<Smi*>(0), Smi::FromInt(0));
   if (!HasCallSiteInlineCheck()) {
     __ mov(v0, zero_reg);
     __ StoreRoot(v0, Heap::kInstanceofCacheAnswerRootIndex);
@@ -1484,7 +1485,6 @@ void InstanceofStub::Generate(MacroAssembler* masm) {
     __ PatchRelocatedValue(inline_site, scratch, v0);
 
     if (!ReturnTrueFalseObject()) {
-      DCHECK_EQ(Smi::FromInt(0), 0);
       __ mov(v0, zero_reg);
     }
   }
@@ -1719,7 +1719,7 @@ void ArgumentsAccessStub::GenerateNewSloppyFast(MacroAssembler* masm) {
       FixedArray::kHeaderSize + 2 * kPointerSize;
   // If there are no mapped parameters, we do not need the parameter_map.
   Label param_map_size;
-  DCHECK_EQ(0, Smi::FromInt(0));
+  DCHECK_EQ(static_cast<Smi*>(0), Smi::FromInt(0));
   __ Branch(USE_DELAY_SLOT, &param_map_size, eq, a1, Operand(zero_reg));
   __ mov(t1, zero_reg);  // In delay slot: param map size = 0 when a1 == 0.
   __ SmiScale(t1, a1, kPointerSizeLog2);
@@ -2877,7 +2877,27 @@ void CallICStub::Generate(MacroAssembler* masm) {
   __ dsrl(a4, a3, 32 - kPointerSizeLog2);
   __ Daddu(a4, a2, Operand(a4));
   __ ld(a4, FieldMemOperand(a4, FixedArray::kHeaderSize));
-  __ Branch(&extra_checks_or_miss, ne, a1, Operand(a4));
+
+  // We don't know that we have a weak cell. We might have a private symbol
+  // or an AllocationSite, but the memory is safe to examine.
+  // AllocationSite::kTransitionInfoOffset - contains a Smi or pointer to
+  // FixedArray.
+  // WeakCell::kValueOffset - contains a JSFunction or Smi(0)
+  // Symbol::kHashFieldSlot - if the low bit is 1, then the hash is not
+  // computed, meaning that it can't appear to be a pointer. If the low bit is
+  // 0, then hash is computed, but the 0 bit prevents the field from appearing
+  // to be a pointer.
+  STATIC_ASSERT(WeakCell::kSize >= kPointerSize);
+  STATIC_ASSERT(AllocationSite::kTransitionInfoOffset ==
+                    WeakCell::kValueOffset &&
+                WeakCell::kValueOffset == Symbol::kHashFieldSlot);
+
+  __ ld(a5, FieldMemOperand(a4, WeakCell::kValueOffset));
+  __ Branch(&extra_checks_or_miss, ne, a1, Operand(a5));
+
+  // The compare above could have been a SMI/SMI comparison. Guard against this
+  // convincing us that we have a monomorphic JSFunction.
+  __ JumpIfSmi(a1, &extra_checks_or_miss);
 
   __ bind(&have_js_function);
   if (CallAsMethod()) {
@@ -2954,16 +2974,18 @@ void CallICStub::Generate(MacroAssembler* masm) {
   __ Daddu(a4, a4, Operand(Smi::FromInt(1)));
   __ sd(a4, FieldMemOperand(a2, with_types_offset));
 
-  // Store the function.
-  __ dsrl(a4, a3, 32 - kPointerSizeLog2);
-  __ Daddu(a4, a2, Operand(a4));
-  __ Daddu(a4, a4, Operand(FixedArray::kHeaderSize - kHeapObjectTag));
-  __ sd(a1, MemOperand(a4, 0));
+  // Store the function. Use a stub since we need a frame for allocation.
+  // a2 - vector
+  // a3 - slot
+  // a1 - function
+  {
+    FrameScope scope(masm, StackFrame::INTERNAL);
+    CreateWeakCellStub create_stub(masm->isolate());
+    __ Push(a1);
+    __ CallStub(&create_stub);
+    __ Pop(a1);
+  }
 
-  // Update the write barrier.
-  __ mov(a5, a1);
-  __ RecordWrite(a2, a4, a5, kRAHasNotBeenSaved, kDontSaveFPRegs,
-                 EMIT_REMEMBERED_SET, OMIT_SMI_CHECK);
   __ Branch(&have_js_function);
 
   // We are here because tracing is on or we encountered a MISS case we can't
@@ -2985,26 +3007,20 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
 
 void CallICStub::GenerateMiss(MacroAssembler* masm) {
-  // Get the receiver of the function from the stack; 1 ~ return address.
-  __ ld(a4, MemOperand(sp, (arg_count() + 1) * kPointerSize));
+  FrameScope scope(masm, StackFrame::INTERNAL);
 
-  {
-    FrameScope scope(masm, StackFrame::INTERNAL);
+  // Push the receiver and the function and feedback info.
+  __ Push(a1, a2, a3);
 
-    // Push the receiver and the function and feedback info.
-    __ Push(a4, a1, a2, a3);
+  // Call the entry.
+  IC::UtilityId id = GetICState() == DEFAULT ? IC::kCallIC_Miss
+                                             : IC::kCallIC_Customization_Miss;
 
-    // Call the entry.
-    IC::UtilityId id = GetICState() == DEFAULT ? IC::kCallIC_Miss
-                                               : IC::kCallIC_Customization_Miss;
+  ExternalReference miss = ExternalReference(IC_Utility(id), masm->isolate());
+  __ CallExternalReference(miss, 3);
 
-    ExternalReference miss = ExternalReference(IC_Utility(id),
-                                               masm->isolate());
-    __ CallExternalReference(miss, 4);
-
-    // Move result to a1 and exit the internal frame.
-    __ mov(a1, v0);
-  }
+  // Move result to a1 and exit the internal frame.
+  __ mov(a1, v0);
 }
 
 
@@ -3900,12 +3916,14 @@ void CompareICStub::GenerateObjects(MacroAssembler* masm) {
 
 void CompareICStub::GenerateKnownObjects(MacroAssembler* masm) {
   Label miss;
+  Handle<WeakCell> cell = Map::WeakCellForMap(known_map_);
   __ And(a2, a1, a0);
   __ JumpIfSmi(a2, &miss);
+  __ GetWeakValue(a4, cell);
   __ ld(a2, FieldMemOperand(a0, HeapObject::kMapOffset));
   __ ld(a3, FieldMemOperand(a1, HeapObject::kMapOffset));
-  __ Branch(&miss, ne, a2, Operand(known_map_));
-  __ Branch(&miss, ne, a3, Operand(known_map_));
+  __ Branch(&miss, ne, a2, Operand(a4));
+  __ Branch(&miss, ne, a3, Operand(a4));
 
   __ Ret(USE_DELAY_SLOT);
   __ dsubu(v0, a0, a1);
