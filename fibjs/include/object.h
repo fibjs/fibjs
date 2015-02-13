@@ -49,7 +49,7 @@ class object_base: public obj_base
 {
 public:
     object_base() :
-        m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
+        m_fast_lock(0), m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
     {
         object_base::class_info().Ref();
     }
@@ -71,27 +71,33 @@ public:
 
     virtual void Unref()
     {
+        if (!isJSObject())
+        {
+            if (internalUnref() == 0)
+                delete this;
+            return;
+        }
+
+        while (exlib::CompareAndSwap(&m_fast_lock, 0, -1));
+
         if (internalUnref() == 0)
         {
             if (exlib::Service::hasService())
             {
                 if (!handle_.IsEmpty())
                     handle_.SetWeak(this, WeakCallback);
-                else
-                    delete this;
             }
             else
             {
-                if (isJSObject())
-                {
-                    internalRef();
-                    m_ar.post(0);
-                }
-                else
-                    delete this;
+                internalRef();
+                m_ar.post(0);
             }
         }
+
+        exlib::atom_xchg(&m_fast_lock, 0);
     }
+
+    volatile int32_t m_fast_lock;
 
     virtual bool isJSObject()
     {
