@@ -51,7 +51,7 @@ CallDescriptor* Linkage::ComputeIncoming(Zone* zone, CompilationInfo* info) {
     // plus the receiver.
     SharedFunctionInfo* shared = info->closure()->shared();
     return GetJSCallDescriptor(zone, info->is_osr(),
-                               1 + shared->formal_parameter_count(),
+                               1 + shared->internal_formal_parameter_count(),
                                CallDescriptor::kNoFlags);
   }
   if (info->code_stub() != NULL) {
@@ -91,27 +91,6 @@ FrameOffset Linkage::GetFrameOffset(int spill_slot, Frame* frame,
                  kPCOnStackSize + extra;
     return FrameOffset::FromStackPointer(offset);
   }
-}
-
-
-CallDescriptor* Linkage::GetJSCallDescriptor(
-    int parameter_count, CallDescriptor::Flags flags) const {
-  return GetJSCallDescriptor(zone_, false, parameter_count, flags);
-}
-
-
-CallDescriptor* Linkage::GetRuntimeCallDescriptor(
-    Runtime::FunctionId function, int parameter_count,
-    Operator::Properties properties) const {
-  return GetRuntimeCallDescriptor(zone_, function, parameter_count, properties);
-}
-
-
-CallDescriptor* Linkage::GetStubCallDescriptor(
-    const CallInterfaceDescriptor& descriptor, int stack_parameter_count,
-    CallDescriptor::Flags flags, Operator::Properties properties) const {
-  return GetStubCallDescriptor(isolate_, zone_, descriptor,
-                               stack_parameter_count, flags, properties);
 }
 
 
@@ -202,7 +181,7 @@ CallDescriptor* Linkage::GetStubCallDescriptor(
 
 
 CallDescriptor* Linkage::GetSimplifiedCDescriptor(Zone* zone,
-                                                  MachineSignature* sig) {
+                                                  const MachineSignature* sig) {
   UNIMPLEMENTED();
   return NULL;
 }

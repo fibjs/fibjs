@@ -113,8 +113,7 @@ bool LCodeGen::GeneratePrologue() {
     // Sloppy mode functions and builtins need to replace the receiver with the
     // global proxy when called as functions (without an explicit receiver
     // object).
-    if (info_->this_has_uses() &&
-        info_->strict_mode() == SLOPPY &&
+    if (info_->this_has_uses() && is_sloppy(info_->language_mode()) &&
         !info_->is_native()) {
       Label ok;
       // +1 for return address.
@@ -386,7 +385,7 @@ bool LCodeGen::GenerateJumpTable() {
     Deoptimizer::JumpTableEntry* table_entry = &jump_table_[i];
     __ bind(&table_entry->label);
     Address entry = table_entry->address;
-    DeoptComment(table_entry->reason);
+    DeoptComment(table_entry->deopt_info);
     if (table_entry->needs_frame) {
       DCHECK(!info()->saves_caller_doubles());
       __ push(Immediate(ExternalReference::ForDeoptEntry(entry)));
@@ -1085,7 +1084,7 @@ void LCodeGen::RegisterEnvironmentForDeoptimization(
 
 
 void LCodeGen::DeoptimizeIf(Condition cc, LInstruction* instr,
-                            const char* detail,
+                            Deoptimizer::DeoptReason deopt_reason,
                             Deoptimizer::BailoutType bailout_type) {
   LEnvironment* environment = instr->environment();
   RegisterEnvironmentForDeoptimization(environment, Safepoint::kNoLazyDeopt);
@@ -1148,14 +1147,14 @@ void LCodeGen::DeoptimizeIf(Condition cc, LInstruction* instr,
     __ bind(&done);
   }
 
-  Deoptimizer::Reason reason(instr->hydrogen_value()->position().raw(),
-                             instr->Mnemonic(), detail);
+  Deoptimizer::DeoptInfo deopt_info(instr->hydrogen_value()->position().raw(),
+                                    instr->Mnemonic(), deopt_reason);
   DCHECK(info()->IsStub() || frame_is_built_);
   if (cc == no_condition && frame_is_built_) {
-    DeoptComment(reason);
+    DeoptComment(deopt_info);
     __ call(entry, RelocInfo::RUNTIME_ENTRY);
   } else {
-    Deoptimizer::JumpTableEntry table_entry(entry, reason, bailout_type,
+    Deoptimizer::JumpTableEntry table_entry(entry, deopt_info, bailout_type,
                                             !frame_is_built_);
     // We often have several deopts to the same entry, reuse the last
     // jump entry if this is the case.
@@ -1173,11 +1172,11 @@ void LCodeGen::DeoptimizeIf(Condition cc, LInstruction* instr,
 
 
 void LCodeGen::DeoptimizeIf(Condition cc, LInstruction* instr,
-                            const char* detail) {
+                            Deoptimizer::DeoptReason deopt_reason) {
   Deoptimizer::BailoutType bailout_type = info()->IsStub()
       ? Deoptimizer::LAZY
       : Deoptimizer::EAGER;
-  DeoptimizeIf(cc, instr, detail, bailout_type);
+  DeoptimizeIf(cc, instr, deopt_reason, bailout_type);
 }
 
 
@@ -2322,8 +2321,7 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
   DCHECK(ToRegister(instr->right()).is(eax));
   DCHECK(ToRegister(instr->result()).is(eax));
 
-  Handle<Code> code =
-      CodeFactory::BinaryOpIC(isolate(), instr->op(), NO_OVERWRITE).code();
+  Handle<Code> code = CodeFactory::BinaryOpIC(isolate(), instr->op()).code();
   CallCode(code, RelocInfo::CODE_TARGET, instr);
 }
 
@@ -4368,8 +4366,30 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   DCHECK(ToRegister(instr->result()).is(eax));
 
   int arity = instr->arity();
-  CallFunctionStub stub(isolate(), arity, instr->hydrogen()->function_flags());
-  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  CallFunctionFlags flags = instr->hydrogen()->function_flags();
+  if (instr->hydrogen()->HasVectorAndSlot()) {
+    Register slot_register = ToRegister(instr->temp_slot());
+    Register vector_register = ToRegister(instr->temp_vector());
+    DCHECK(slot_register.is(edx));
+    DCHECK(vector_register.is(ebx));
+
+    AllowDeferredHandleDereference vector_structure_check;
+    Handle<TypeFeedbackVector> vector = instr->hydrogen()->feedback_vector();
+    int index = vector->GetIndex(instr->hydrogen()->slot());
+
+    __ mov(vector_register, vector);
+    __ mov(slot_register, Immediate(Smi::FromInt(index)));
+
+    CallICState::CallType call_type =
+        (flags & CALL_AS_METHOD) ? CallICState::METHOD : CallICState::FUNCTION;
+
+    Handle<Code> ic =
+        CodeFactory::CallICInOptimizedCode(isolate(), arity, call_type).code();
+    CallCode(ic, RelocInfo::CODE_TARGET, instr);
+  } else {
+    CallFunctionStub stub(isolate(), arity, flags);
+    CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  }
 }
 
 
@@ -4553,7 +4573,7 @@ void LCodeGen::DoStoreNamedGeneric(LStoreNamedGeneric* instr) {
   DCHECK(ToRegister(instr->value()).is(StoreDescriptor::ValueRegister()));
 
   __ mov(StoreDescriptor::NameRegister(), instr->name());
-  Handle<Code> ic = StoreIC::initialize_stub(isolate(), instr->strict_mode());
+  Handle<Code> ic = StoreIC::initialize_stub(isolate(), instr->language_mode());
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
 
@@ -4784,7 +4804,7 @@ void LCodeGen::DoStoreKeyedGeneric(LStoreKeyedGeneric* instr) {
   DCHECK(ToRegister(instr->value()).is(StoreDescriptor::ValueRegister()));
 
   Handle<Code> ic =
-      CodeFactory::KeyedStoreIC(isolate(), instr->strict_mode()).code();
+      CodeFactory::KeyedStoreIC(isolate(), instr->language_mode()).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
 
@@ -5295,7 +5315,7 @@ void LCodeGen::DoDeferredTaggedToI(LTaggedToI* instr, Label* done) {
     __ bind(&check_false);
     __ cmp(input_reg, factory()->false_value());
     DeoptimizeIf(not_equal, instr,
-                 Deoptimizer::kNotAHeapNumberUndefinedTrueFalse);
+                 Deoptimizer::kNotAHeapNumberUndefinedBoolean);
     __ Move(input_reg, Immediate(0));
   } else {
     // TODO(olivf) Converting a number on the fpu is actually quite slow. We
@@ -5956,7 +5976,7 @@ void LCodeGen::DoFunctionLiteral(LFunctionLiteral* instr) {
   // space for nested functions that don't need literals cloning.
   bool pretenure = instr->hydrogen()->pretenure();
   if (!pretenure && instr->hydrogen()->has_no_literals()) {
-    FastNewClosureStub stub(isolate(), instr->hydrogen()->strict_mode(),
+    FastNewClosureStub stub(isolate(), instr->hydrogen()->language_mode(),
                             instr->hydrogen()->kind());
     __ mov(ebx, Immediate(instr->hydrogen()->shared_info()));
     CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);

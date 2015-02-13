@@ -37,6 +37,7 @@
 #ifndef V8_X87_ASSEMBLER_X87_H_
 #define V8_X87_ASSEMBLER_X87_H_
 
+#include "src/assembler.h"
 #include "src/isolate.h"
 #include "src/serialize.h"
 
@@ -934,6 +935,10 @@ class Assembler : public AssemblerBase {
   // Use --code-comments to enable, or provide "force = true" flag to always
   // write a comment.
   void RecordComment(const char* msg, bool force = false);
+
+  // Record a deoptimization reason that can be used by a log or cpu profiler.
+  // Use --trace-deopt to enable.
+  void RecordDeoptReason(const int reason, const int raw_position);
 
   // Writes a single byte or word of data in the code stream.  Used for
   // inline tables, e.g., jump-tables.

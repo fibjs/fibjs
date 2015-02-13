@@ -361,6 +361,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArchJmp:
       AssembleArchJump(i.InputRpo(0));
       break;
+    case kArchSwitch:
+      AssembleArchSwitch(instr);
+      break;
     case kArchNop:
       // don't emit code for nops.
       break;
@@ -842,6 +845,22 @@ void CodeGenerator::AssembleArchJump(BasicBlock::RpoNumber target) {
 }
 
 
+void CodeGenerator::AssembleArchSwitch(Instruction* instr) {
+  Arm64OperandConverter i(this, instr);
+  UseScratchRegisterScope scope(masm());
+  Register reg = i.InputRegister(0);
+  Register tmp = scope.AcquireX();
+  Label table;
+  __ Adr(tmp, &table);
+  __ Add(tmp, tmp, Operand(reg, LSL, 2));
+  __ Br(tmp);
+  __ Bind(&table);
+  for (size_t index = 1; index < instr->InputCount(); ++index) {
+    __ B(GetLabel(i.InputRpo(index)));
+  }
+}
+
+
 // Assemble boolean materializations after this instruction.
 void CodeGenerator::AssembleArchBoolean(Instruction* instr,
                                         FlagsCondition condition) {
@@ -1085,6 +1104,12 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
     // No other combinations are possible.
     UNREACHABLE();
   }
+}
+
+
+void CodeGenerator::AssembleJumpTable(Label** targets, size_t target_count) {
+  // On 64-bit ARM we emit the jump tables inline.
+  UNREACHABLE();
 }
 
 

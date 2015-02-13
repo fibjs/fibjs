@@ -366,6 +366,7 @@
     <ClInclude Include="src\snapshot.h" />
     <ClInclude Include="src\splay-tree-inl.h" />
     <ClInclude Include="src\splay-tree.h" />
+    <ClInclude Include="src\startup-data-util.h" />
     <ClInclude Include="src\string-builder.h" />
     <ClInclude Include="src\string-search.h" />
     <ClInclude Include="src\string-stream.h" />
@@ -749,6 +750,7 @@
     <ClCompile Include="src\snapshot-common.cc" />
     <ClCompile Include="src\snapshot-empty.cc" />
     <ClCompile Include="src\snapshot-source-sink.cc" />
+    <ClCompile Include="src\startup-data-util.cc" />
     <ClCompile Include="src\string-builder.cc" />
     <ClCompile Include="src\string-search.cc" />
     <ClCompile Include="src\string-stream.cc" />

@@ -44,6 +44,7 @@ class Operator : public ZoneObject {
                             // create new scheduling dependencies.
     kNoThrow = 1 << 6,      // Can never generate an exception.
     kFoldable = kNoRead | kNoWrite,
+    kKontrol = kFoldable | kNoThrow,
     kEliminatable = kNoWrite | kNoThrow,
     kPure = kNoRead | kNoWrite | kNoThrow | kIdempotent
   };
@@ -93,7 +94,7 @@ class Operator : public ZoneObject {
   int EffectOutputCount() const { return effect_out_; }
   int ControlOutputCount() const { return control_out_; }
 
-  static inline size_t ZeroIfPure(Properties properties) {
+  static size_t ZeroIfPure(Properties properties) {
     return (properties & kPure) == kPure ? 0 : 1;
   }
 

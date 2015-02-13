@@ -210,7 +210,7 @@ void FullCodeGenerator::Generate() {
     bool need_write_barrier = true;
     if (FLAG_harmony_scoping && info->scope()->is_script_scope()) {
       __ push(a1);
-      __ Push(info->scope()->GetScopeInfo());
+      __ Push(info->scope()->GetScopeInfo(info->isolate()));
       __ CallRuntime(Runtime::kNewScriptContext, 2);
     } else if (heap_slots <= FastNewContextStub::kMaximumSlots) {
       FastNewContextStub stub(isolate(), heap_slots);
@@ -1805,6 +1805,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
     } else {
       EmitPropertyKey(property, expr->GetIdForProperty(property_index));
       VisitForStackValue(value);
+      EmitSetHomeObjectIfNeeded(value, 2);
 
       switch (property->kind()) {
         case ObjectLiteral::Property::CONSTANT:
@@ -3194,12 +3195,8 @@ void FullCodeGenerator::VisitCallNew(CallNew* expr) {
   // Push constructor on the stack.  If it's not a function it's used as
   // receiver for CALL_NON_FUNCTION, otherwise the value on the stack is
   // ignored.
-  if (expr->expression()->IsSuperReference()) {
-    EmitLoadSuperConstructor(expr->expression()->AsSuperReference());
-    __ Push(result_register());
-  } else {
-    VisitForStackValue(expr->expression());
-  }
+  DCHECK(!expr->expression()->IsSuperReference());
+  VisitForStackValue(expr->expression());
 
   // Push the arguments ("left-to-right") on the stack.
   ZoneList<Expression*>* args = expr->arguments();

@@ -857,6 +857,8 @@ class ObjectVisitor;
 class StringStream;
 class TypeFeedbackVector;
 class WeakCell;
+class FunctionLiteral;
+
 // We cannot just say "class HeapType;" if it is created from a template... =8-?
 template<class> class TypeImpl;
 struct HeapTypeConfig;
@@ -1949,9 +1951,8 @@ class JSObject: public JSReceiver {
   // Returns the index'th element.
   // The undefined object if index is out of bounds.
   MUST_USE_RESULT static MaybeHandle<Object> GetElementWithInterceptor(
-      Handle<JSObject> object,
-      Handle<Object> receiver,
-      uint32_t index);
+      Handle<JSObject> object, Handle<Object> receiver, uint32_t index,
+      bool check_prototype);
 
   enum SetFastElementsCapacitySmiMode {
     kAllowSmiElements,
@@ -2297,6 +2298,14 @@ class JSObject: public JSReceiver {
   MUST_USE_RESULT static MaybeHandle<Object> SetFastDoubleElement(
       Handle<JSObject> object, uint32_t index, Handle<Object> value,
       LanguageMode language_mode, bool check_prototype = true);
+  MUST_USE_RESULT static MaybeHandle<Object> GetElementWithFailedAccessCheck(
+      Isolate* isolate, Handle<JSObject> object, Handle<Object> receiver,
+      uint32_t index);
+  MUST_USE_RESULT static Maybe<PropertyAttributes>
+  GetElementAttributesWithFailedAccessCheck(Isolate* isolate,
+                                            Handle<JSObject> object,
+                                            Handle<Object> receiver,
+                                            uint32_t index);
 
   MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithFailedAccessCheck(
       LookupIterator* it, Handle<Object> value, LanguageMode language_mode);
@@ -6732,6 +6741,10 @@ class SharedFunctionInfo: public HeapObject {
   // Trims the optimized code map after entries have been removed.
   void TrimOptimizedCodeMap(int shrink_by);
 
+  // Initialize a SharedFunctionInfo from a parsed function literal.
+  static void InitFromFunctionLiteral(Handle<SharedFunctionInfo> shared_info,
+                                      FunctionLiteral* lit);
+
   // Add a new entry to the optimized code map.
   static void AddToOptimizedCodeMap(Handle<SharedFunctionInfo> shared,
                                     Handle<Context> native_context,
@@ -6763,9 +6776,11 @@ class SharedFunctionInfo: public HeapObject {
   inline int length() const;
   inline void set_length(int value);
 
-  // [formal parameter count]: The declared number of parameters.
-  inline int formal_parameter_count() const;
-  inline void set_formal_parameter_count(int value);
+  // [internal formal parameter count]: The declared number of parameters.
+  // For subclass constructors, also includes new.target.
+  // The size of function's frame is internal_formal_parameter_count + 1.
+  inline int internal_formal_parameter_count() const;
+  inline void set_internal_formal_parameter_count(int value);
 
   // Set the formal parameter count so the function code will be
   // called without using argument adaptor frames.
@@ -7636,6 +7651,9 @@ class GlobalObject: public JSObject {
 
   static void InvalidatePropertyCell(Handle<GlobalObject> object,
                                      Handle<Name> name);
+  // Ensure that the global object has a cell for the given property name.
+  static Handle<PropertyCell> EnsurePropertyCell(Handle<GlobalObject> global,
+                                                 Handle<Name> name);
 
   // Layout description.
   static const int kBuiltinsOffset = JSObject::kHeaderSize;
@@ -7652,10 +7670,6 @@ class GlobalObject: public JSObject {
 class JSGlobalObject: public GlobalObject {
  public:
   DECLARE_CAST(JSGlobalObject)
-
-  // Ensure that the global object has a cell for the given property name.
-  static Handle<PropertyCell> EnsurePropertyCell(Handle<JSGlobalObject> global,
-                                                 Handle<Name> name);
 
   inline bool IsDetached();
 
@@ -8977,10 +8991,6 @@ class String: public Name {
   // Returns the parent of a sliced string or first part of a flat cons string.
   // Requires: StringShape(this).IsIndirect() && this->IsFlat()
   inline String* GetUnderlying();
-
-  // Mark the string as an undetectable object. It only applies to
-  // one-byte and two-byte string types.
-  bool MarkAsUndetectable();
 
   // String equality operations.
   inline bool Equals(String* other);
@@ -10543,6 +10553,7 @@ class InterceptorInfo: public Struct {
   DECL_ACCESSORS(enumerator, Object)
   DECL_ACCESSORS(data, Object)
   DECL_BOOLEAN_ACCESSORS(can_intercept_symbols)
+  DECL_BOOLEAN_ACCESSORS(all_can_read)
 
   inline int flags() const;
   inline void set_flags(int flags);
@@ -10563,6 +10574,7 @@ class InterceptorInfo: public Struct {
   static const int kSize = kFlagsOffset + kPointerSize;
 
   static const int kCanInterceptSymbolsBit = 0;
+  static const int kAllCanReadBit = 1;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InterceptorInfo);

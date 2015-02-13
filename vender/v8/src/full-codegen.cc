@@ -622,7 +622,7 @@ void FullCodeGenerator::AllocateModules(ZoneList<Declaration*>* declarations) {
         // Set up module context.
         DCHECK(scope->interface()->Index() >= 0);
         __ Push(Smi::FromInt(scope->interface()->Index()));
-        __ Push(scope->GetScopeInfo());
+        __ Push(scope->GetScopeInfo(isolate()));
         __ CallRuntime(Runtime::kPushModuleContext, 2);
         StoreToFrameField(StandardFrameConstants::kContextOffset,
                           context_register());
@@ -1652,8 +1652,8 @@ void FullCodeGenerator::VisitNativeFunctionLiteral(
 
   // Copy the function data to the shared function info.
   shared->set_function_data(fun->shared()->function_data());
-  int parameters = fun->shared()->formal_parameter_count();
-  shared->set_formal_parameter_count(parameters);
+  int parameters = fun->shared()->internal_formal_parameter_count();
+  shared->set_internal_formal_parameter_count(parameters);
 
   EmitNewClosure(shared, false);
 }
@@ -1801,7 +1801,7 @@ FullCodeGenerator::EnterBlockScopeIfNeeded::EnterBlockScopeIfNeeded(
     codegen_->scope_ = scope;
     {
       Comment cmnt(masm(), "[ Extend block context");
-      __ Push(scope->GetScopeInfo());
+      __ Push(scope->GetScopeInfo(codegen->isolate()));
       codegen_->PushFunctionArgumentForContextAllocation();
       __ CallRuntime(Runtime::kPushBlockContext, 2);
 

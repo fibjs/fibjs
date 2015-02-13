@@ -201,7 +201,7 @@ void FullCodeGenerator::Generate() {
     bool need_write_barrier = true;
     if (FLAG_harmony_scoping && info->scope()->is_script_scope()) {
       __ push(r1);
-      __ Push(info->scope()->GetScopeInfo());
+      __ Push(info->scope()->GetScopeInfo(info->isolate()));
       __ CallRuntime(Runtime::kNewScriptContext, 2);
     } else if (heap_slots <= FastNewContextStub::kMaximumSlots) {
       FastNewContextStub stub(isolate(), heap_slots);
@@ -266,6 +266,10 @@ void FullCodeGenerator::Generate() {
     //   function, receiver address, parameter count.
     // The stub will rewrite receiever and parameter count if the previous
     // stack frame was an arguments adapter frame.
+    ArgumentsAccessStub::HasNewTarget has_new_target =
+        IsSubclassConstructor(info->function()->kind())
+            ? ArgumentsAccessStub::HAS_NEW_TARGET
+            : ArgumentsAccessStub::NO_NEW_TARGET;
     ArgumentsAccessStub::Type type;
     if (is_strict(language_mode())) {
       type = ArgumentsAccessStub::NEW_STRICT;
@@ -274,7 +278,7 @@ void FullCodeGenerator::Generate() {
     } else {
       type = ArgumentsAccessStub::NEW_SLOPPY_FAST;
     }
-    ArgumentsAccessStub stub(isolate(), type);
+    ArgumentsAccessStub stub(isolate(), type, has_new_target);
     __ CallStub(&stub);
 
     SetVar(arguments, r0, r1, r2);
@@ -454,7 +458,12 @@ void FullCodeGenerator::EmitReturnSequence() {
     // Make sure that the constant pool is not emitted inside of the return
     // sequence.
     { Assembler::BlockConstPoolScope block_const_pool(masm_);
-      int32_t sp_delta = (info_->scope()->num_parameters() + 1) * kPointerSize;
+      int32_t arg_count = info_->scope()->num_parameters() + 1;
+      if (FLAG_experimental_classes &&
+          IsSubclassConstructor(info_->function()->kind())) {
+        arg_count++;
+      }
+      int32_t sp_delta = arg_count * kPointerSize;
       CodeGenerator::RecordPositions(masm_, function()->end_position() - 1);
       // TODO(svenpanne) The code below is sometimes 4 words, sometimes 5!
       PredictableCodeSizeScope predictable(masm_, -1);
@@ -1820,6 +1829,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
     } else {
       EmitPropertyKey(property, expr->GetIdForProperty(property_index));
       VisitForStackValue(value);
+      EmitSetHomeObjectIfNeeded(value, 2);
 
       switch (property->kind()) {
         case ObjectLiteral::Property::CONSTANT:
@@ -3221,12 +3231,8 @@ void FullCodeGenerator::VisitCallNew(CallNew* expr) {
   // Push constructor on the stack.  If it's not a function it's used as
   // receiver for CALL_NON_FUNCTION, otherwise the value on the stack is
   // ignored.
-  if (expr->expression()->IsSuperReference()) {
-    EmitLoadSuperConstructor(expr->expression()->AsSuperReference());
-    __ Push(result_register());
-  } else {
-    VisitForStackValue(expr->expression());
-  }
+  DCHECK(!expr->expression()->IsSuperReference());
+  VisitForStackValue(expr->expression());
 
   // Push the arguments ("left-to-right") on the stack.
   ZoneList<Expression*>* args = expr->arguments();
@@ -3261,6 +3267,11 @@ void FullCodeGenerator::VisitCallNew(CallNew* expr) {
 
 
 void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
+  Comment cmnt(masm_, "[ SuperConstructorCall");
+  Variable* new_target_var = scope()->DeclarationScope()->new_target_var();
+  GetVar(result_register(), new_target_var);
+  __ Push(result_register());
+
   SuperReference* super_ref = expr->expression()->AsSuperReference();
   EmitLoadSuperConstructor(super_ref);
   __ push(result_register());
@@ -3304,9 +3315,10 @@ void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
   __ Move(r2, FeedbackVector());
   __ mov(r3, Operand(SmiFromSlot(expr->CallFeedbackSlot())));
 
-  // TODO(dslomov): use a different stub and propagate new.target.
-  CallConstructStub stub(isolate(), RECORD_CONSTRUCTOR_TARGET);
+  CallConstructStub stub(isolate(), SUPER_CALL_RECORD_TARGET);
   __ Call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
+
+  __ Drop(1);
 
   RecordJSReturnSite(expr);
 

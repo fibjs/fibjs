@@ -1137,6 +1137,9 @@
     <ClInclude Include="src\splay-tree.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\startup-data-util.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\string-builder.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -2280,6 +2283,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\snapshot-source-sink.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\startup-data-util.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\string-builder.cc">

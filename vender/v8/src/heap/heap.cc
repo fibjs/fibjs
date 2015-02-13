@@ -734,6 +734,49 @@ void Heap::GarbageCollectionEpilogue() {
 }
 
 
+void Heap::HandleGCRequest() {
+  if (incremental_marking()->request_type() ==
+      IncrementalMarking::COMPLETE_MARKING) {
+    CollectAllGarbage(Heap::kNoGCFlags, "GC interrupt");
+    return;
+  }
+  DCHECK(FLAG_overapproximate_weak_closure);
+  DCHECK(!incremental_marking()->weak_closure_was_overapproximated());
+  OverApproximateWeakClosure("GC interrupt");
+}
+
+
+void Heap::OverApproximateWeakClosure(const char* gc_reason) {
+  if (FLAG_trace_incremental_marking) {
+    PrintF("[IncrementalMarking] Overapproximate weak closure (%s).\n",
+           gc_reason);
+  }
+  {
+    GCCallbacksScope scope(this);
+    if (scope.CheckReenter()) {
+      AllowHeapAllocation allow_allocation;
+      GCTracer::Scope scope(tracer(), GCTracer::Scope::EXTERNAL);
+      VMState<EXTERNAL> state(isolate_);
+      HandleScope handle_scope(isolate_);
+      CallGCPrologueCallbacks(kGCTypeMarkSweepCompact, kNoGCCallbackFlags);
+    }
+  }
+  mark_compact_collector()->OverApproximateWeakClosure();
+  incremental_marking()->set_should_hurry(false);
+  incremental_marking()->set_weak_closure_was_overapproximated(true);
+  {
+    GCCallbacksScope scope(this);
+    if (scope.CheckReenter()) {
+      AllowHeapAllocation allow_allocation;
+      GCTracer::Scope scope(tracer(), GCTracer::Scope::EXTERNAL);
+      VMState<EXTERNAL> state(isolate_);
+      HandleScope handle_scope(isolate_);
+      CallGCEpilogueCallbacks(kGCTypeMarkSweepCompact, kNoGCCallbackFlags);
+    }
+  }
+}
+
+
 void Heap::CollectAllGarbage(int flags, const char* gc_reason,
                              const v8::GCCallbackFlags gc_callback_flags) {
   // Since we are ignoring the return value, the exact choice of space does
@@ -1414,14 +1457,14 @@ void StoreBufferRebuilder::Callback(MemoryChunk* page, StoreBufferEvent event) {
 
 
 void PromotionQueue::Initialize() {
-  // Assumes that a NewSpacePage exactly fits a number of promotion queue
-  // entries (where each is a pair of intptr_t). This allows us to simplify
-  // the test fpr when to switch pages.
+  // The last to-space page may be used for promotion queue. On promotion
+  // conflict, we use the emergency stack.
   DCHECK((Page::kPageSize - MemoryChunk::kBodyOffset) % (2 * kPointerSize) ==
          0);
-  limit_ = reinterpret_cast<intptr_t*>(heap_->new_space()->ToSpaceStart());
   front_ = rear_ =
       reinterpret_cast<intptr_t*>(heap_->new_space()->ToSpaceEnd());
+  limit_ = reinterpret_cast<intptr_t*>(
+      Page::FromAllocationTop(reinterpret_cast<Address>(rear_))->area_start());
   emergency_stack_ = NULL;
 }
 
@@ -2672,12 +2715,6 @@ bool Heap::CreateInitialMaps() {
       if (!allocation.To(&obj)) return false;
       set_native_source_string_map(Map::cast(obj));
     }
-
-    ALLOCATE_VARSIZE_MAP(STRING_TYPE, undetectable_string)
-    undetectable_string_map()->set_is_undetectable();
-
-    ALLOCATE_VARSIZE_MAP(ONE_BYTE_STRING_TYPE, undetectable_one_byte_string);
-    undetectable_one_byte_string_map()->set_is_undetectable();
 
     ALLOCATE_VARSIZE_MAP(FIXED_DOUBLE_ARRAY_TYPE, fixed_double_array)
     ALLOCATE_VARSIZE_MAP(BYTE_ARRAY_TYPE, byte_array)
@@ -5133,10 +5170,10 @@ bool Heap::ConfigureHeap(int max_semi_space_size, int max_old_space_size,
     max_semi_space_size_ = max_semi_space_size * MB;
   }
   if (max_old_space_size > 0) {
-    max_old_generation_size_ = max_old_space_size * MB;
+    max_old_generation_size_ = static_cast<intptr_t>(max_old_space_size) * MB;
   }
   if (max_executable_size > 0) {
-    max_executable_size_ = max_executable_size * MB;
+    max_executable_size_ = static_cast<intptr_t>(max_executable_size) * MB;
   }
 
   // If max space size flags are specified overwrite the configuration.
@@ -5144,10 +5181,11 @@ bool Heap::ConfigureHeap(int max_semi_space_size, int max_old_space_size,
     max_semi_space_size_ = FLAG_max_semi_space_size * MB;
   }
   if (FLAG_max_old_space_size > 0) {
-    max_old_generation_size_ = FLAG_max_old_space_size * MB;
+    max_old_generation_size_ =
+        static_cast<intptr_t>(FLAG_max_old_space_size) * MB;
   }
   if (FLAG_max_executable_size > 0) {
-    max_executable_size_ = FLAG_max_executable_size * MB;
+    max_executable_size_ = static_cast<intptr_t>(FLAG_max_executable_size) * MB;
   }
 
   if (FLAG_stress_compaction) {

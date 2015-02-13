@@ -89,7 +89,7 @@ namespace internal {
 
 // Determine whether double field unboxing feature is enabled.
 #if V8_TARGET_ARCH_64_BIT
-#define V8_DOUBLE_FIELDS_UNBOXING 0
+#define V8_DOUBLE_FIELDS_UNBOXING 1
 #else
 #define V8_DOUBLE_FIELDS_UNBOXING 0
 #endif
@@ -527,9 +527,11 @@ enum CallFunctionFlags {
 
 
 enum CallConstructorFlags {
-  NO_CALL_CONSTRUCTOR_FLAGS,
+  NO_CALL_CONSTRUCTOR_FLAGS = 0,
   // The call target is cached in the instruction stream.
-  RECORD_CONSTRUCTOR_TARGET
+  RECORD_CONSTRUCTOR_TARGET = 1,
+  SUPER_CONSTRUCTOR_CALL = 1 << 1,
+  SUPER_CALL_RECORD_TARGET = SUPER_CONSTRUCTOR_CALL | RECORD_CONSTRUCTOR_TARGET
 };
 
 
@@ -821,7 +823,7 @@ enum FunctionKind {
   kAccessorFunction = 1 << 3,
   kDefaultConstructor = 1 << 4,
   kSubclassConstructor = 1 << 5,
-  kBaseConstructor = 1 << 6,
+  kBaseConstructor = 1 << 6
 };
 
 

@@ -433,12 +433,19 @@ MaybeHandle<Object> Object::SetPropertyWithDefinedSetter(
 
 
 static bool FindAllCanReadHolder(LookupIterator* it) {
-  for (; it->IsFound(); it->Next()) {
+  // Skip current iteration, it's in state ACCESS_CHECK or INTERCEPTOR, both of
+  // which have already been checked.
+  DCHECK(it->state() == LookupIterator::ACCESS_CHECK ||
+         it->state() == LookupIterator::INTERCEPTOR);
+  for (it->Next(); it->IsFound(); it->Next()) {
     if (it->state() == LookupIterator::ACCESSOR) {
-      Handle<Object> accessors = it->GetAccessors();
+      auto accessors = it->GetAccessors();
       if (accessors->IsAccessorInfo()) {
         if (AccessorInfo::cast(*accessors)->all_can_read()) return true;
       }
+    } else if (it->state() == LookupIterator::INTERCEPTOR) {
+      auto holder = it->GetHolder<JSObject>();
+      if (holder->GetNamedInterceptor()->all_can_read()) return true;
     }
   }
   return false;
@@ -448,10 +455,18 @@ static bool FindAllCanReadHolder(LookupIterator* it) {
 MaybeHandle<Object> JSObject::GetPropertyWithFailedAccessCheck(
     LookupIterator* it) {
   Handle<JSObject> checked = it->GetHolder<JSObject>();
-  if (FindAllCanReadHolder(it)) {
-    return GetPropertyWithAccessor(it->GetReceiver(), it->name(),
-                                   it->GetHolder<JSObject>(),
-                                   it->GetAccessors());
+  while (FindAllCanReadHolder(it)) {
+    if (it->state() == LookupIterator::ACCESSOR) {
+      return GetPropertyWithAccessor(it->GetReceiver(), it->name(),
+                                     it->GetHolder<JSObject>(),
+                                     it->GetAccessors());
+    }
+    DCHECK_EQ(LookupIterator::INTERCEPTOR, it->state());
+    auto receiver = Handle<JSObject>::cast(it->GetReceiver());
+    auto result = GetPropertyWithInterceptor(it->GetHolder<JSObject>(),
+                                             receiver, it->name());
+    if (it->isolate()->has_scheduled_exception()) break;
+    if (!result.is_null()) return result;
   }
   it->isolate()->ReportFailedAccessCheck(checked, v8::ACCESS_GET);
   RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(it->isolate(), Object);
@@ -462,8 +477,16 @@ MaybeHandle<Object> JSObject::GetPropertyWithFailedAccessCheck(
 Maybe<PropertyAttributes> JSObject::GetPropertyAttributesWithFailedAccessCheck(
     LookupIterator* it) {
   Handle<JSObject> checked = it->GetHolder<JSObject>();
-  if (FindAllCanReadHolder(it))
-    return maybe(it->property_details().attributes());
+  while (FindAllCanReadHolder(it)) {
+    if (it->state() == LookupIterator::ACCESSOR) {
+      return maybe(it->property_details().attributes());
+    }
+    DCHECK_EQ(LookupIterator::INTERCEPTOR, it->state());
+    auto result = GetPropertyAttributesWithInterceptor(
+        it->GetHolder<JSObject>(), it->GetReceiver(), it->name());
+    if (it->isolate()->has_scheduled_exception()) break;
+    if (result.has_value && result.value != ABSENT) return result;
+  }
   it->isolate()->ReportFailedAccessCheck(checked, v8::ACCESS_HAS);
   RETURN_VALUE_IF_SCHEDULED_EXCEPTION(it->isolate(),
                                       Maybe<PropertyAttributes>());
@@ -550,6 +573,65 @@ void JSObject::SetNormalizedProperty(Handle<JSObject> object,
 }
 
 
+static MaybeHandle<JSObject> FindIndexedAllCanReadHolder(
+    Isolate* isolate, Handle<JSObject> js_object,
+    PrototypeIterator::WhereToStart where_to_start) {
+  for (PrototypeIterator iter(isolate, js_object, where_to_start);
+       !iter.IsAtEnd(); iter.Advance()) {
+    auto curr = PrototypeIterator::GetCurrent(iter);
+    if (!curr->IsJSObject()) break;
+    auto obj = Handle<JSObject>::cast(curr);
+    if (!obj->HasIndexedInterceptor()) continue;
+    if (obj->GetIndexedInterceptor()->all_can_read()) return obj;
+  }
+  return MaybeHandle<JSObject>();
+}
+
+
+MaybeHandle<Object> JSObject::GetElementWithFailedAccessCheck(
+    Isolate* isolate, Handle<JSObject> object, Handle<Object> receiver,
+    uint32_t index) {
+  Handle<JSObject> holder = object;
+  PrototypeIterator::WhereToStart where_to_start =
+      PrototypeIterator::START_AT_RECEIVER;
+  while (true) {
+    auto all_can_read_holder =
+        FindIndexedAllCanReadHolder(isolate, holder, where_to_start);
+    if (!all_can_read_holder.ToHandle(&holder)) break;
+    auto result =
+        JSObject::GetElementWithInterceptor(holder, receiver, index, false);
+    if (isolate->has_scheduled_exception()) break;
+    if (!result.is_null()) return result;
+    where_to_start = PrototypeIterator::START_AT_PROTOTYPE;
+  }
+  isolate->ReportFailedAccessCheck(object, v8::ACCESS_GET);
+  RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
+  return isolate->factory()->undefined_value();
+}
+
+
+Maybe<PropertyAttributes> JSObject::GetElementAttributesWithFailedAccessCheck(
+    Isolate* isolate, Handle<JSObject> object, Handle<Object> receiver,
+    uint32_t index) {
+  Handle<JSObject> holder = object;
+  PrototypeIterator::WhereToStart where_to_start =
+      PrototypeIterator::START_AT_RECEIVER;
+  while (true) {
+    auto all_can_read_holder =
+        FindIndexedAllCanReadHolder(isolate, holder, where_to_start);
+    if (!all_can_read_holder.ToHandle(&holder)) break;
+    auto result =
+        JSObject::GetElementAttributeFromInterceptor(object, receiver, index);
+    if (isolate->has_scheduled_exception()) break;
+    if (result.has_value && result.value != ABSENT) return result;
+    where_to_start = PrototypeIterator::START_AT_PROTOTYPE;
+  }
+  isolate->ReportFailedAccessCheck(object, v8::ACCESS_HAS);
+  RETURN_VALUE_IF_SCHEDULED_EXCEPTION(isolate, Maybe<PropertyAttributes>());
+  return maybe(ABSENT);
+}
+
+
 MaybeHandle<Object> Object::GetElementWithReceiver(Isolate* isolate,
                                                    Handle<Object> object,
                                                    Handle<Object> receiver,
@@ -582,14 +664,14 @@ MaybeHandle<Object> Object::GetElementWithReceiver(Isolate* isolate,
     // Check access rights if needed.
     if (js_object->IsAccessCheckNeeded()) {
       if (!isolate->MayIndexedAccess(js_object, index, v8::ACCESS_GET)) {
-        isolate->ReportFailedAccessCheck(js_object, v8::ACCESS_GET);
-        RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
-        return isolate->factory()->undefined_value();
+        return JSObject::GetElementWithFailedAccessCheck(isolate, js_object,
+                                                         receiver, index);
       }
     }
 
     if (js_object->HasIndexedInterceptor()) {
-      return JSObject::GetElementWithInterceptor(js_object, receiver, index);
+      return JSObject::GetElementWithInterceptor(js_object, receiver, index,
+                                                 true);
     }
 
     if (js_object->elements() != isolate->heap()->empty_fixed_array()) {
@@ -1670,9 +1752,7 @@ void JSObject::AddSlowProperty(Handle<JSObject> object,
       dict->SetEntry(entry, name, cell, details);
       return;
     }
-    Handle<PropertyCell> cell = isolate->factory()->NewPropertyCell(value);
-    PropertyCell::SetValueInferType(cell, value);
-    value = cell;
+    value = isolate->factory()->NewPropertyCell(value);
   }
   PropertyDetails details(attributes, DATA, 0);
   Handle<NameDictionary> result =
@@ -2974,6 +3054,7 @@ MaybeHandle<Object> Object::AddDataProperty(LookupIterator* it,
   if (receiver->map()->is_dictionary_map()) {
     // TODO(verwaest): Probably should ensure this is done beforehand.
     it->InternalizeName();
+    // TODO(dcarney): just populate TransitionPropertyCell here?
     JSObject::AddSlowProperty(receiver, it->name(), value, attributes);
   } else {
     // Write the property value.
@@ -4012,9 +4093,8 @@ Maybe<PropertyAttributes> JSObject::GetElementAttributeWithReceiver(
   // Check access rights if needed.
   if (object->IsAccessCheckNeeded()) {
     if (!isolate->MayIndexedAccess(object, index, v8::ACCESS_HAS)) {
-      isolate->ReportFailedAccessCheck(object, v8::ACCESS_HAS);
-      RETURN_VALUE_IF_SCHEDULED_EXCEPTION(isolate, Maybe<PropertyAttributes>());
-      return maybe(ABSENT);
+      return GetElementAttributesWithFailedAccessCheck(isolate, object,
+                                                       receiver, index);
     }
   }
 
@@ -9088,23 +9168,6 @@ bool String::SlowEquals(Handle<String> one, Handle<String> two) {
 }
 
 
-bool String::MarkAsUndetectable() {
-  if (StringShape(this).IsInternalized()) return false;
-
-  Map* map = this->map();
-  Heap* heap = GetHeap();
-  if (map == heap->string_map()) {
-    this->set_map(heap->undetectable_string_map());
-    return true;
-  } else if (map == heap->one_byte_string_map()) {
-    this->set_map(heap->undetectable_one_byte_string_map());
-    return true;
-  }
-  // Rest cannot be marked as undetectable
-  return false;
-}
-
-
 bool String::IsUtf8EqualTo(Vector<const char> str, bool allow_prefix_match) {
   int slen = length();
   // Can't check exact length equality, but we can check bounds.
@@ -10315,6 +10378,42 @@ void SharedFunctionInfo::DisableOptimization(BailoutReason reason) {
 }
 
 
+void SharedFunctionInfo::InitFromFunctionLiteral(
+    Handle<SharedFunctionInfo> shared_info, FunctionLiteral* lit) {
+  shared_info->set_length(lit->parameter_count());
+  if (FLAG_experimental_classes && IsSubclassConstructor(lit->kind())) {
+    shared_info->set_internal_formal_parameter_count(lit->parameter_count() +
+                                                     1);
+  } else {
+    shared_info->set_internal_formal_parameter_count(lit->parameter_count());
+  }
+  shared_info->set_function_token_position(lit->function_token_position());
+  shared_info->set_start_position(lit->start_position());
+  shared_info->set_end_position(lit->end_position());
+  shared_info->set_is_expression(lit->is_expression());
+  shared_info->set_is_anonymous(lit->is_anonymous());
+  shared_info->set_inferred_name(*lit->inferred_name());
+  shared_info->set_allows_lazy_compilation(lit->AllowsLazyCompilation());
+  shared_info->set_allows_lazy_compilation_without_context(
+      lit->AllowsLazyCompilationWithoutContext());
+  shared_info->set_language_mode(lit->language_mode());
+  shared_info->set_uses_arguments(lit->scope()->arguments() != NULL);
+  shared_info->set_has_duplicate_parameters(lit->has_duplicate_parameters());
+  shared_info->set_ast_node_count(lit->ast_node_count());
+  shared_info->set_is_function(lit->is_function());
+  if (lit->dont_optimize_reason() != kNoReason) {
+    shared_info->DisableOptimization(lit->dont_optimize_reason());
+  }
+  shared_info->set_dont_cache(
+      lit->flags()->Contains(AstPropertiesFlag::kDontCache));
+  shared_info->set_kind(lit->kind());
+  shared_info->set_uses_super_property(lit->uses_super_property());
+  shared_info->set_uses_super_constructor_call(
+      lit->uses_super_constructor_call());
+  shared_info->set_asm_function(lit->scope()->asm_function());
+}
+
+
 bool SharedFunctionInfo::VerifyBailoutId(BailoutId id) {
   DCHECK(!id.IsNone());
   Code* unoptimized = code();
@@ -11003,30 +11102,10 @@ Code* Code::GetCodeAgeStub(Isolate* isolate, Age age, MarkingParity parity) {
 
 
 void Code::PrintDeoptLocation(FILE* out, int bailout_id) {
-  int last_position = 0;
-  Deoptimizer::DeoptReason last_reason = Deoptimizer::kNoReason;
-  int mask = RelocInfo::ModeMask(RelocInfo::DEOPT_REASON) |
-             RelocInfo::ModeMask(RelocInfo::POSITION) |
-             RelocInfo::ModeMask(RelocInfo::RUNTIME_ENTRY);
-  for (RelocIterator it(this, mask); !it.done(); it.next()) {
-    RelocInfo* info = it.rinfo();
-    if (info->rmode() == RelocInfo::POSITION) {
-      last_position = static_cast<int>(info->data());
-    } else if (info->rmode() == RelocInfo::DEOPT_REASON) {
-      last_reason = static_cast<Deoptimizer::DeoptReason>(info->data());
-    } else if (last_reason != Deoptimizer::kNoReason) {
-      if ((bailout_id == Deoptimizer::GetDeoptimizationId(
-              GetIsolate(), info->target_address(), Deoptimizer::EAGER)) ||
-          (bailout_id == Deoptimizer::GetDeoptimizationId(
-              GetIsolate(), info->target_address(), Deoptimizer::SOFT)) ||
-          (bailout_id == Deoptimizer::GetDeoptimizationId(
-              GetIsolate(), info->target_address(), Deoptimizer::LAZY))) {
-        CHECK(RelocInfo::IsRuntimeEntry(info->rmode()));
-        PrintF(out, "            ;;; deoptimize at %d: %s\n", last_position,
-               Deoptimizer::GetDeoptReason(last_reason));
-        return;
-      }
-    }
+  Deoptimizer::DeoptInfo info = Deoptimizer::GetDeoptInfo(this, bailout_id);
+  if (info.deopt_reason != Deoptimizer::kNoReason || info.raw_position != 0) {
+    PrintF(out, "            ;;; deoptimize at %d: %s\n", info.raw_position,
+           Deoptimizer::GetDeoptReason(info.deopt_reason));
   }
 }
 
@@ -13264,10 +13343,10 @@ MaybeHandle<Object> JSArray::ReadOnlyLengthError(Handle<JSArray> array) {
 }
 
 
-MaybeHandle<Object> JSObject::GetElementWithInterceptor(
-    Handle<JSObject> object,
-    Handle<Object> receiver,
-    uint32_t index) {
+MaybeHandle<Object> JSObject::GetElementWithInterceptor(Handle<JSObject> object,
+                                                        Handle<Object> receiver,
+                                                        uint32_t index,
+                                                        bool check_prototype) {
   Isolate* isolate = object->GetIsolate();
 
   // Make sure that the top context does not change when doing
@@ -13291,6 +13370,8 @@ MaybeHandle<Object> JSObject::GetElementWithInterceptor(
       return handle(*result_internal, isolate);
     }
   }
+
+  if (!check_prototype) return MaybeHandle<Object>();
 
   ElementsAccessor* handler = object->GetElementsAccessor();
   Handle<Object> result;
@@ -15050,15 +15131,13 @@ void GlobalObject::InvalidatePropertyCell(Handle<GlobalObject> global,
 }
 
 
-Handle<PropertyCell> JSGlobalObject::EnsurePropertyCell(
-    Handle<JSGlobalObject> global,
-    Handle<Name> name) {
+Handle<PropertyCell> GlobalObject::EnsurePropertyCell(
+    Handle<GlobalObject> global, Handle<Name> name) {
   DCHECK(!global->HasFastProperties());
   int entry = global->property_dictionary()->FindEntry(name);
   if (entry == NameDictionary::kNotFound) {
     Isolate* isolate = global->GetIsolate();
-    Handle<PropertyCell> cell = isolate->factory()->NewPropertyCell(
-        isolate->factory()->the_hole_value());
+    Handle<PropertyCell> cell = isolate->factory()->NewPropertyCellWithHole();
     PropertyDetails details(NONE, DATA, 0);
     details = details.AsDeleted();
     Handle<NameDictionary> dictionary = NameDictionary::Add(
@@ -15229,8 +15308,8 @@ Handle<Object> CompilationCacheTable::Lookup(Handle<String> src,
                                              Handle<Context> context) {
   Isolate* isolate = GetIsolate();
   Handle<SharedFunctionInfo> shared(context->closure()->shared());
-  StringSharedKey key(src, shared, FLAG_use_strict ? STRICT : SLOPPY,
-                      RelocInfo::kNoPosition);
+  LanguageMode mode = construct_language_mode(FLAG_use_strict, FLAG_use_strong);
+  StringSharedKey key(src, shared, mode, RelocInfo::kNoPosition);
   int entry = FindEntry(&key);
   if (entry == kNotFound) return isolate->factory()->undefined_value();
   int index = EntryToIndex(entry);
@@ -15270,8 +15349,8 @@ Handle<CompilationCacheTable> CompilationCacheTable::Put(
     Handle<Context> context, Handle<Object> value) {
   Isolate* isolate = cache->GetIsolate();
   Handle<SharedFunctionInfo> shared(context->closure()->shared());
-  StringSharedKey key(src, shared, FLAG_use_strict ? STRICT : SLOPPY,
-                      RelocInfo::kNoPosition);
+  LanguageMode mode = construct_language_mode(FLAG_use_strict, FLAG_use_strong);
+  StringSharedKey key(src, shared, mode, RelocInfo::kNoPosition);
   {
     Handle<Object> k = key.AsHandle(isolate);
     DisallowHeapAllocation no_allocation_scope;
@@ -16857,10 +16936,12 @@ Handle<Object> PropertyCell::SetValueInferType(Handle<PropertyCell> cell,
   const int kMaxLengthForInternalization = 200;
   if ((cell->type()->Is(HeapType::None()) ||
        cell->type()->Is(HeapType::Undefined())) &&
-      value->IsString() &&
-      Handle<String>::cast(value)->length() <= kMaxLengthForInternalization) {
-    value = cell->GetIsolate()->factory()->InternalizeString(
-        Handle<String>::cast(value));
+      value->IsString()) {
+    auto string = Handle<String>::cast(value);
+    if (string->length() <= kMaxLengthForInternalization &&
+        !string->map()->is_undetectable()) {
+      value = cell->GetIsolate()->factory()->InternalizeString(string);
+    }
   }
   cell->set_value(*value);
   if (!HeapType::Any()->Is(cell->type())) {

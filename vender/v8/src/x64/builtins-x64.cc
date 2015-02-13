@@ -520,6 +520,9 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     __ Push(rax);
     __ SmiToInteger32(rax, rax);
 
+    // Push new.target
+    __ Push(rdx);
+
     // receiver is the hole.
     __ Push(masm->isolate()->factory()->the_hole_value());
 
@@ -537,6 +540,7 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     __ j(greater_equal, &loop);
 
     // Call the function.
+    __ incp(rax);  // Pushed new.target.
     ParameterCount actual(rax);
     __ InvokeFunction(rdi, actual, CALL_FUNCTION, NullCallWrapper());
 

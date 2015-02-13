@@ -160,7 +160,7 @@ class LCodeGen: public LCodeGenBase {
 #undef DECLARE_DO
 
  private:
-  StrictMode strict_mode() const { return info()->strict_mode(); }
+  LanguageMode language_mode() const { return info()->language_mode(); }
 
   Scope* scope() const { return scope_; }
 
@@ -229,9 +229,11 @@ class LCodeGen: public LCodeGenBase {
 
   void RegisterEnvironmentForDeoptimization(LEnvironment* environment,
                                             Safepoint::DeoptMode mode);
-  void DeoptimizeIf(Condition cc, LInstruction* instr, const char* detail,
+  void DeoptimizeIf(Condition cc, LInstruction* instr,
+                    Deoptimizer::DeoptReason deopt_reason,
                     Deoptimizer::BailoutType bailout_type);
-  void DeoptimizeIf(Condition cc, LInstruction* instr, const char* detail);
+  void DeoptimizeIf(Condition cc, LInstruction* instr,
+                    Deoptimizer::DeoptReason deopt_reason);
 
   bool DeoptEveryNTimes() {
     return FLAG_deopt_every_n_times != 0 && !info()->IsStub();

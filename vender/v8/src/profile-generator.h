@@ -90,6 +90,10 @@ class CodeEntry {
   void set_bailout_reason(const char* bailout_reason) {
     bailout_reason_ = bailout_reason;
   }
+  void set_deopt_reason(const char* deopt_reason) {
+    deopt_reason_ = deopt_reason;
+  }
+  void set_deopt_location(int location) { deopt_location_ = location; }
   const char* bailout_reason() const { return bailout_reason_; }
 
   static inline bool is_js_function_tag(Logger::LogEventsAndTags tag);
@@ -130,6 +134,8 @@ class CodeEntry {
   int script_id_;
   List<OffsetRange>* no_frame_ranges_;
   const char* bailout_reason_;
+  const char* deopt_reason_;
+  int deopt_location_;
   JITLineInfoTable* line_info_;
   Address instruction_start_;
 
@@ -192,8 +198,6 @@ class ProfileTree {
   ProfileNode* AddPathFromEnd(
       const Vector<CodeEntry*>& path,
       int src_line = v8::CpuProfileNode::kNoLineNumberInfo);
-  void AddPathFromStart(const Vector<CodeEntry*>& path,
-                        int src_line = v8::CpuProfileNode::kNoLineNumberInfo);
   ProfileNode* root() const { return root_; }
   unsigned next_node_id() { return next_node_id_++; }
 

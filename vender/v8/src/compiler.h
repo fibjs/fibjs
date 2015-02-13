@@ -121,7 +121,7 @@ class CompilationInfo {
   Handle<SharedFunctionInfo> shared_info() const { return shared_info_; }
   Handle<Script> script() const { return script_; }
   void set_script(Handle<Script> script) { script_ = script; }
-  HydrogenCodeStub* code_stub() const {return code_stub_; }
+  CodeStub* code_stub() const { return code_stub_; }
   v8::Extension* extension() const { return extension_; }
   ScriptData** cached_data() const { return cached_data_; }
   ScriptCompiler::CompileOptions compile_options() const {
@@ -427,9 +427,7 @@ class CompilationInfo {
  protected:
   CompilationInfo(Handle<SharedFunctionInfo> shared_info,
                   Zone* zone);
-  CompilationInfo(HydrogenCodeStub* stub,
-                  Isolate* isolate,
-                  Zone* zone);
+  CompilationInfo(CodeStub* stub, Isolate* isolate, Zone* zone);
   CompilationInfo(ScriptCompiler::ExternalSourceStream* source_stream,
                   ScriptCompiler::StreamedSource::Encoding encoding,
                   Isolate* isolate, Zone* zone);
@@ -475,7 +473,7 @@ class CompilationInfo {
   // The script scope provided as a convenience.
   Scope* script_scope_;
   // For compiled stubs, the stub object
-  HydrogenCodeStub* code_stub_;
+  CodeStub* code_stub_;
   // The compiled code.
   Handle<Code> code_;
 
@@ -562,7 +560,7 @@ class CompilationInfoWithZone: public CompilationInfo {
       : CompilationInfo(shared_info, &zone_) {}
   explicit CompilationInfoWithZone(Handle<JSFunction> closure)
       : CompilationInfo(closure, &zone_) {}
-  CompilationInfoWithZone(HydrogenCodeStub* stub, Isolate* isolate)
+  CompilationInfoWithZone(CodeStub* stub, Isolate* isolate)
       : CompilationInfo(stub, isolate, &zone_) {}
   CompilationInfoWithZone(ScriptCompiler::ExternalSourceStream* stream,
                           ScriptCompiler::StreamedSource::Encoding encoding,
