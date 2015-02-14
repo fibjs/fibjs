@@ -78,20 +78,25 @@ public:
             return;
         }
 
+        if (exlib::Service::hasService())
+        {
+            if (internalUnref() == 0)
+            {
+                if (!handle_.IsEmpty())
+                    handle_.SetWeak(this, WeakCallback);
+                else
+                    delete this;
+            }
+
+            return;
+        }
+
         while (exlib::CompareAndSwap(&m_fast_lock, 0, -1));
 
         if (internalUnref() == 0)
         {
-            if (exlib::Service::hasService())
-            {
-                if (!handle_.IsEmpty())
-                    handle_.SetWeak(this, WeakCallback);
-            }
-            else
-            {
-                internalRef();
-                m_ar.post(0);
-            }
+            internalRef();
+            m_ar.post(0);
         }
 
         exlib::atom_xchg(&m_fast_lock, 0);
