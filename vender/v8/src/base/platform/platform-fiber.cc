@@ -34,7 +34,7 @@ void Sampler::DoSample()
     state.pc = reinterpret_cast<Address>(pFiber->m_cntxt.Rip);
     state.sp = reinterpret_cast<Address>(pFiber->m_cntxt.Rsp);
     state.fp = reinterpret_cast<Address>(pFiber->m_cntxt.Rbp);
-#else
+#elif defined(x86)
     state.pc = reinterpret_cast<Address>(pFiber->m_cntxt.Eip);
     state.sp = reinterpret_cast<Address>(pFiber->m_cntxt.Esp);
     state.fp = reinterpret_cast<Address>(pFiber->m_cntxt.Ebp);

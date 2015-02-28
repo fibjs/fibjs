@@ -64,7 +64,7 @@ inline int32_t CompareAndSwap(volatile int32_t *ptr, int32_t old_value, int32_t 
 
 inline int32_t atom_add(volatile int32_t *dest, int32_t incr)
 {
-    unsigned int32_t value;
+    int32_t value;
     int32_t res;
 
     do
