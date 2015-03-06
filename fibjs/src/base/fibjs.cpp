@@ -25,10 +25,10 @@ void init_argv(int argc, char **argv);
 
 void _main(const char *fname)
 {
-    v8::V8::Initialize();
-
     v8::Platform *platform = v8::platform::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform);
+
+    v8::V8::Initialize();
 
     isolate = v8::Isolate::New();
     v8::Locker locker(isolate);
