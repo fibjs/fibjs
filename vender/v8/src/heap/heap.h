@@ -182,7 +182,8 @@ namespace internal {
   V(FixedArray, allocation_sites_scratchpad, AllocationSitesScratchpad)        \
   V(FixedArray, microtask_queue, MicrotaskQueue)                               \
   V(FixedArray, keyed_load_dummy_vector, KeyedLoadDummyVector)                 \
-  V(FixedArray, detached_contexts, DetachedContexts)
+  V(FixedArray, detached_contexts, DetachedContexts)                           \
+  V(WeakHashTable, weak_object_to_code_table, WeakObjectToCodeTable)
 
 // Entries in this list are limited to Smis and are not visited during GC.
 #define SMI_ROOT_LIST(V)                                                   \
@@ -606,6 +607,9 @@ class Heap {
   // Returns the amount of memory currently committed for the heap.
   intptr_t CommittedMemory();
 
+  // Returns the amount of memory currently committed for the old space.
+  intptr_t CommittedOldGenerationMemory();
+
   // Returns the amount of executable memory currently committed for the heap.
   intptr_t CommittedMemoryExecutable();
 
@@ -687,6 +691,12 @@ class Heap {
   }
   Address* OldDataSpaceAllocationLimitAddress() {
     return old_data_space_->allocation_limit_address();
+  }
+
+  // TODO(hpayer): There is still a missmatch between capacity and actual
+  // committed memory size.
+  bool CanExpandOldGeneration(int size) {
+    return (CommittedOldGenerationMemory() + size) < MaxOldGenerationSize();
   }
 
   // Returns a deep copy of the JavaScript object.
@@ -866,8 +876,6 @@ class Heap {
   // Used in CreateAllocationSiteStub and the (de)serializer.
   Object** allocation_sites_list_address() { return &allocation_sites_list_; }
 
-  Object* weak_object_to_code_table() { return weak_object_to_code_table_; }
-
   void set_encountered_weak_collections(Object* weak_collection) {
     encountered_weak_collections_ = weak_collection;
   }
@@ -972,11 +980,6 @@ class Heap {
 #ifdef VERIFY_HEAP
   // Verify the heap is in its normal state before or after a GC.
   void Verify();
-
-
-  bool weak_embedded_objects_verification_enabled() {
-    return no_weak_object_verification_scope_depth_ == 0;
-  }
 #endif
 
 #ifdef DEBUG
@@ -1090,7 +1093,15 @@ class Heap {
   static const intptr_t kMinimumOldGenerationAllocationLimit =
       8 * (Page::kPageSize > MB ? Page::kPageSize : MB);
 
+  static const int kInitalOldGenerationLimitFactor = 2;
+
+#if V8_OS_ANDROID
+  // Don't apply pointer multiplier on Android since it has no swap space and
+  // should instead adapt it's heap size based on available physical memory.
+  static const int kPointerMultiplier = 1;
+#else
   static const int kPointerMultiplier = i::kPointerSize / 4;
+#endif
 
   // The new space size has to be a power of 2. Sizes are in MB.
   static const int kMaxSemiSpaceSizeLowMemoryDevice = 1 * kPointerMultiplier;
@@ -1432,16 +1443,10 @@ class Heap {
     Heap* heap_;
   };
 
-  void AddWeakObjectToCodeDependency(Handle<Object> obj,
+  void AddWeakObjectToCodeDependency(Handle<HeapObject> obj,
                                      Handle<DependentCode> dep);
 
-  DependentCode* LookupWeakObjectToCodeDependency(Handle<Object> obj);
-
-  void InitializeWeakObjectToCodeTable() {
-    set_weak_object_to_code_table(undefined_value());
-  }
-
-  void EnsureWeakObjectToCodeTable();
+  DependentCode* LookupWeakObjectToCodeDependency(Handle<HeapObject> obj);
 
   static void FatalProcessOutOfMemory(const char* location,
                                       bool take_snapshot = false);
@@ -1627,11 +1632,6 @@ class Heap {
   Object* native_contexts_list_;
   Object* array_buffers_list_;
   Object* allocation_sites_list_;
-
-  // WeakHashTable that maps objects embedded in optimized code to dependent
-  // code list. It is initilized lazily and contains the undefined_value at
-  // start.
-  Object* weak_object_to_code_table_;
 
   // List of encountered weak collections (JSWeakMap and JSWeakSet) during
   // marking. It is initialized during marking, destroyed after marking and
@@ -2049,15 +2049,6 @@ class Heap {
 
   void ClearObjectStats(bool clear_last_time_stats = false);
 
-  void set_weak_object_to_code_table(Object* value) {
-    DCHECK(!InNewSpace(value));
-    weak_object_to_code_table_ = value;
-  }
-
-  Object** weak_object_to_code_table_address() {
-    return &weak_object_to_code_table_;
-  }
-
   inline void UpdateAllocationsHash(HeapObject* object);
   inline void UpdateAllocationsHash(uint32_t value);
   inline void PrintAlloctionsHash();
@@ -2108,10 +2099,6 @@ class Heap {
   // this variable holds the number of garbage collections since the last
   // deoptimization triggered by garbage collection.
   int gcs_since_last_deopt_;
-
-#ifdef VERIFY_HEAP
-  int no_weak_object_verification_scope_depth_;
-#endif
 
   static const int kAllocationSiteScratchpadSize = 256;
   int allocation_sites_scratchpad_length_;

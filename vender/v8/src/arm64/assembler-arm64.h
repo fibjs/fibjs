@@ -11,6 +11,7 @@
 
 #include "src/arm64/instructions-arm64.h"
 #include "src/assembler.h"
+#include "src/compiler.h"
 #include "src/globals.h"
 #include "src/serialize.h"
 #include "src/utils.h"
@@ -951,7 +952,9 @@ class Assembler : public AssemblerBase {
 
   // Number of instructions generated for the return sequence in
   // FullCodeGenerator::EmitReturnSequence.
-  static const int kJSRetSequenceInstructions = 7;
+  static const int kJSReturnSequenceInstructions = 7;
+  static const int kJSReturnSequenceLength =
+      kJSReturnSequenceInstructions * kInstructionSize;
   // Distance between start of patched return sequence and the emitted address
   // to jump to.
   static const int kPatchReturnSequenceAddressOffset =  0;
@@ -959,7 +962,7 @@ class Assembler : public AssemblerBase {
 
   // Number of instructions necessary to be able to later patch it to a call.
   // See DebugCodegen::GenerateSlot() and
-  // BreakLocationIterator::SetDebugBreakAtSlot().
+  // BreakLocation::SetDebugBreakAtSlot().
   static const int kDebugBreakSlotInstructions = 4;
   static const int kDebugBreakSlotLength =
     kDebugBreakSlotInstructions * kInstructionSize;
@@ -1010,7 +1013,7 @@ class Assembler : public AssemblerBase {
 
   // Record a deoptimization reason that can be used by a log or cpu profiler.
   // Use --trace-deopt to enable.
-  void RecordDeoptReason(const int reason, const int raw_position);
+  void RecordDeoptReason(const int reason, const SourcePosition position);
 
   int buffer_space() const;
 

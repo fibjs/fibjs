@@ -186,14 +186,6 @@ void AstNumberingVisitor::VisitImportDeclaration(ImportDeclaration* node) {
   IncrementNodeCount();
   DisableOptimization(kImportDeclaration);
   VisitVariableProxy(node->proxy());
-  Visit(node->module());
-}
-
-
-void AstNumberingVisitor::VisitModuleVariable(ModuleVariable* node) {
-  IncrementNodeCount();
-  DisableOptimization(kModuleVariable);
-  Visit(node->proxy());
 }
 
 

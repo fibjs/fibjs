@@ -150,8 +150,8 @@ class AddressMapBase {
     return static_cast<uint32_t>(reinterpret_cast<intptr_t>(entry->value));
   }
 
-  static HashMap::Entry* LookupEntry(HashMap* map, HeapObject* obj,
-                                     bool insert) {
+  inline static HashMap::Entry* LookupEntry(HashMap* map, HeapObject* obj,
+                                            bool insert) {
     return map->Lookup(Key(obj), Hash(obj), insert);
   }
 
@@ -183,6 +183,28 @@ class RootIndexMap : public AddressMapBase {
   HashMap* map_;
 
   DISALLOW_COPY_AND_ASSIGN(RootIndexMap);
+};
+
+
+class PartialCacheIndexMap : public AddressMapBase {
+ public:
+  PartialCacheIndexMap() : map_(HashMap::PointersMatch) {}
+
+  static const int kInvalidIndex = -1;
+
+  // Lookup object in the map. Return its index if found, or create
+  // a new entry with new_index as value, and return kInvalidIndex.
+  int LookupOrInsert(HeapObject* obj, int new_index) {
+    HashMap::Entry* entry = LookupEntry(&map_, obj, false);
+    if (entry != NULL) return GetValue(entry);
+    SetValue(LookupEntry(&map_, obj, true), static_cast<uint32_t>(new_index));
+    return kInvalidIndex;
+  }
+
+ private:
+  HashMap map_;
+
+  DISALLOW_COPY_AND_ASSIGN(PartialCacheIndexMap);
 };
 
 
@@ -681,6 +703,8 @@ class Serializer : public SerializerDeserializer {
     // External strings are serialized in a way to resemble sequential strings.
     void SerializeExternalString();
 
+    Address PrepareCode();
+
     Serializer* serializer_;
     HeapObject* object_;
     SnapshotByteSink* sink_;
@@ -710,7 +734,6 @@ class Serializer : public SerializerDeserializer {
   bool BackReferenceIsAlreadyAllocated(BackReference back_reference);
 
   // This will return the space for an object.
-  static AllocationSpace SpaceOfObject(HeapObject* object);
   BackReference AllocateLargeObject(int size);
   BackReference Allocate(AllocationSpace space, int size);
   int EncodeExternalReference(Address addr) {
@@ -728,11 +751,15 @@ class Serializer : public SerializerDeserializer {
   // of the serializer.  Initialize it on demand.
   void InitializeCodeAddressMap();
 
+  Code* CopyCode(Code* code);
+
   inline uint32_t max_chunk_size(int space) const {
     DCHECK_LE(0, space);
     DCHECK_LT(space, kNumberOfSpaces);
     return max_chunk_size_[space];
   }
+
+  SnapshotByteSink* sink() const { return sink_; }
 
   Isolate* isolate_;
 
@@ -742,8 +769,9 @@ class Serializer : public SerializerDeserializer {
   BackReferenceMap back_reference_map_;
   RootIndexMap root_index_map_;
 
-  friend class ObjectSerializer;
   friend class Deserializer;
+  friend class ObjectSerializer;
+  friend class SnapshotData;
 
  private:
   CodeAddressMap* code_address_map_;
@@ -758,6 +786,8 @@ class Serializer : public SerializerDeserializer {
   // We map serialized large objects to indexes for back-referencing.
   uint32_t large_objects_total_size_;
   uint32_t seen_large_objects_index_;
+
+  List<byte> code_buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(Serializer);
 };
@@ -799,6 +829,7 @@ class PartialSerializer : public Serializer {
   Serializer* startup_serializer_;
   List<BackReference> outdated_contexts_;
   Object* global_object_;
+  PartialCacheIndexMap partial_cache_index_map_;
   DISALLOW_COPY_AND_ASSIGN(PartialSerializer);
 };
 
@@ -811,7 +842,7 @@ class StartupSerializer : public Serializer {
     // strong roots have been serialized we can create a partial snapshot
     // which will repopulate the cache with objects needed by that partial
     // snapshot.
-    isolate->set_serialize_partial_snapshot_cache_length(0);
+    isolate->partial_snapshot_cache()->Clear();
     InitializeCodeAddressMap();
   }
 
@@ -897,7 +928,7 @@ class CodeSerializer : public Serializer {
 class SnapshotData : public SerializedData {
  public:
   // Used when producing.
-  SnapshotData(const SnapshotByteSink& sink, const Serializer& ser);
+  explicit SnapshotData(const Serializer& ser);
 
   // Used when consuming.
   explicit SnapshotData(const Vector<const byte> snapshot)
@@ -949,25 +980,39 @@ class SerializedCodeData : public SerializedData {
  private:
   explicit SerializedCodeData(ScriptData* data);
 
-  bool IsSane(String* source) const;
+  enum SanityCheckResult {
+    CHECK_SUCCESS = 0,
+    MAGIC_NUMBER_MISMATCH = 1,
+    VERSION_MISMATCH = 2,
+    SOURCE_MISMATCH = 3,
+    CPU_FEATURES_MISMATCH = 4,
+    FLAGS_MISMATCH = 5,
+    CHECKSUM_MISMATCH = 6
+  };
+
+  SanityCheckResult SanityCheck(String* source) const;
 
   uint32_t SourceHash(String* source) const { return source->length(); }
 
+  static const uint32_t kMagicNumber = 0xC0D1F1ED;
+
   // The data header consists of uint32_t-sized entries:
-  // [0] version hash
-  // [1] source hash
-  // [2] cpu features
-  // [3] flag hash
-  // [4] number of internalized strings
-  // [5] number of code stub keys
-  // [6] number of reservation size entries
-  // [7] payload length
-  // [8] payload checksum part 1
-  // [9] payload checksum part 2
-  // ... reservations
-  // ... code stub keys
-  // ... serialized payload
-  static const int kVersionHashOffset = 0;
+  // [ 0] magic number
+  // [ 1] version hash
+  // [ 2] source hash
+  // [ 3] cpu features
+  // [ 4] flag hash
+  // [ 5] number of internalized strings
+  // [ 6] number of code stub keys
+  // [ 7] number of reservation size entries
+  // [ 8] payload length
+  // [ 9] payload checksum part 1
+  // [10] payload checksum part 2
+  // ...  reservations
+  // ...  code stub keys
+  // ...  serialized payload
+  static const int kMagicNumberOffset = 0;
+  static const int kVersionHashOffset = kMagicNumberOffset + kInt32Size;
   static const int kSourceHashOffset = kVersionHashOffset + kInt32Size;
   static const int kCpuFeaturesOffset = kSourceHashOffset + kInt32Size;
   static const int kFlagHashOffset = kCpuFeaturesOffset + kInt32Size;

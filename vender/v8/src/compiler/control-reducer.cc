@@ -54,8 +54,7 @@ class ControlReducerImpl {
         common_(common),
         state_(jsgraph->graph()->NodeCount(), kUnvisited, zone_),
         stack_(zone_),
-        revisit_(zone_),
-        dead_(NULL) {}
+        revisit_(zone_) {}
 
   Zone* zone_;
   JSGraph* jsgraph_;
@@ -63,7 +62,6 @@ class ControlReducerImpl {
   ZoneVector<VisitState> state_;
   ZoneDeque<Node*> stack_;
   ZoneDeque<Node*> revisit_;
-  Node* dead_;
 
   void Reduce() {
     Push(graph()->end());
@@ -133,7 +131,7 @@ class ControlReducerImpl {
           pop = false;  // restart traversing successors of this node.
           break;
         }
-        if (NodeProperties::IsControl(succ) &&
+        if (succ->op()->ControlOutputCount() > 0 &&
             !marked.IsReachableFromStart(succ)) {
           // {succ} is a control node and not yet reached from start.
           marked.Push(succ);
@@ -157,7 +155,7 @@ class ControlReducerImpl {
     // Any control nodes not reachable from start are dead, even loops.
     for (size_t i = 0; i < nodes.size(); i++) {
       Node* node = nodes[i];
-      if (NodeProperties::IsControl(node) &&
+      if (node->op()->ControlOutputCount() > 0 &&
           !marked.IsReachableFromStart(node)) {
         ReplaceNode(node, dead());  // uses will be added to revisit queue.
       }
@@ -192,16 +190,14 @@ class ControlReducerImpl {
       DCHECK(NodeProperties::IsControlEdge(edge));
       if (edge.from() == branch) continue;
       switch (edge.from()->opcode()) {
-#define CASE(Opcode) case IrOpcode::k##Opcode:
-        CONTROL_OP_LIST(CASE)
-#undef CASE
-          // Update all control nodes (except {branch}) pointing to the {loop}.
-          edge.UpdateTo(if_true);
+        case IrOpcode::kPhi:
           break;
         case IrOpcode::kEffectPhi:
           effects.push_back(edge.from());
           break;
         default:
+          // Update all control edges (except {branch}) pointing to the {loop}.
+          edge.UpdateTo(if_true);
           break;
       }
     }
@@ -293,12 +289,23 @@ class ControlReducerImpl {
     }
 #if DEBUG
     // Verify that no inputs to live nodes are NULL.
-    for (size_t j = 0; j < nodes.size(); j++) {
-      Node* node = nodes[j];
-      for (Node* const input : node->inputs()) {
-        CHECK(input);
+    for (Node* node : nodes) {
+      for (int index = 0; index < node->InputCount(); index++) {
+        Node* input = node->InputAt(index);
+        if (input == nullptr) {
+          std::ostringstream str;
+          str << "GraphError: node #" << node->id() << ":" << *node->op()
+              << "(input @" << index << ") == null";
+          FATAL(str.str().c_str());
+        }
+        if (input->opcode() == IrOpcode::kDead) {
+          std::ostringstream str;
+          str << "GraphError: node #" << node->id() << ":" << *node->op()
+              << "(input @" << index << ") == dead";
+          FATAL(str.str().c_str());
+        }
       }
-      for (Node* const use : node->uses()) {
+      for (Node* use : node->uses()) {
         CHECK(marked.IsReachableFromEnd(use));
       }
     }
@@ -380,16 +387,14 @@ class ControlReducerImpl {
     state_[id] = kVisited;
   }
 
-  Node* dead() {
-    if (dead_ == NULL) dead_ = graph()->NewNode(common_->Dead());
-    return dead_;
-  }
+  Node* dead() { return jsgraph_->DeadControl(); }
 
   //===========================================================================
   // Reducer implementation: perform reductions on a node.
   //===========================================================================
   Node* ReduceNode(Node* node) {
-    if (node->op()->ControlInputCount() == 1) {
+    if (node->op()->ControlInputCount() == 1 ||
+        node->opcode() == IrOpcode::kLoop) {
       // If a node has only one control input and it is dead, replace with dead.
       Node* control = NodeProperties::GetControlInput(node);
       if (control->opcode() == IrOpcode::kDead) {
@@ -400,6 +405,8 @@ class ControlReducerImpl {
 
     // Reduce branches, phis, and merges.
     switch (node->opcode()) {
+      case IrOpcode::kBranch:
+        return ReduceBranch(node);
       case IrOpcode::kIfTrue:
         return ReduceIfTrue(node);
       case IrOpcode::kIfFalse:
@@ -476,6 +483,14 @@ class ControlReducerImpl {
       }
     }
     return replacement == NULL ? dead() : replacement;
+  }
+
+  // Reduce branches.
+  Node* ReduceBranch(Node* branch) {
+    if (DecideCondition(branch->InputAt(0)) != kUnknown) {
+      for (Node* use : branch->uses()) Revisit(use);
+    }
+    return branch;
   }
 
   // Reduce merges by trimming away dead inputs from the merge and phis.
@@ -606,21 +621,20 @@ void ControlReducer::TrimGraph(Zone* zone, JSGraph* jsgraph) {
 }
 
 
+Node* ControlReducer::ReduceMerge(JSGraph* jsgraph,
+                                  CommonOperatorBuilder* common, Node* node) {
+  Zone zone;
+  ControlReducerImpl impl(&zone, jsgraph, common);
+  return impl.ReduceMerge(node);
+}
+
+
 Node* ControlReducer::ReducePhiForTesting(JSGraph* jsgraph,
                                           CommonOperatorBuilder* common,
                                           Node* node) {
   Zone zone;
   ControlReducerImpl impl(&zone, jsgraph, common);
   return impl.ReducePhi(node);
-}
-
-
-Node* ControlReducer::ReduceMergeForTesting(JSGraph* jsgraph,
-                                            CommonOperatorBuilder* common,
-                                            Node* node) {
-  Zone zone;
-  ControlReducerImpl impl(&zone, jsgraph, common);
-  return impl.ReduceMerge(node);
 }
 
 

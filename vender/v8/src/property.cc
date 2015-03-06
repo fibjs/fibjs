@@ -10,27 +10,6 @@
 namespace v8 {
 namespace internal {
 
-void LookupResult::Iterate(ObjectVisitor* visitor) {
-  LookupResult* current = this;  // Could be NULL.
-  while (current != NULL) {
-    visitor->VisitPointer(bit_cast<Object**>(&current->holder_));
-    visitor->VisitPointer(bit_cast<Object**>(&current->transition_));
-    current = current->next_;
-  }
-}
-
-
-std::ostream& operator<<(std::ostream& os, const LookupResult& r) {
-  if (!r.IsFound()) return os << "Not Found\n";
-
-  os << "LookupResult:\n";
-  if (r.IsTransition()) {
-    os << " -transition target:\n" << Brief(r.GetTransitionTarget()) << "\n";
-  }
-  return os;
-}
-
-
 std::ostream& operator<<(std::ostream& os,
                          const PropertyAttributes& attributes) {
   os << "[";
@@ -69,9 +48,9 @@ std::ostream& operator<<(std::ostream& os,
     os << "immutable ";
   }
   os << (details.kind() == kData ? "data" : "accessor");
+  os << ": " << details.representation().Mnemonic();
   if (details.location() == kField) {
-    os << ": " << details.representation().Mnemonic()
-       << ", field_index: " << details.field_index();
+    os << ", field_index: " << details.field_index();
   }
   return os << ", p: " << details.pointer()
             << ", attrs: " << details.attributes() << ")";

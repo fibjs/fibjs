@@ -990,6 +990,16 @@ size_t PagedSpace::CommittedPhysicalMemory() {
 }
 
 
+bool PagedSpace::ContainsSafe(Address addr) {
+  Page* p = Page::FromAddress(addr);
+  PageIterator iterator(this);
+  while (iterator.has_next()) {
+    if (iterator.next() == p) return true;
+  }
+  return false;
+}
+
+
 Object* PagedSpace::FindObject(Address addr) {
   // Note: this function can only be called on iterable spaces.
   DCHECK(!heap()->mark_compact_collector()->in_use());
@@ -1011,13 +1021,12 @@ Object* PagedSpace::FindObject(Address addr) {
 
 bool PagedSpace::CanExpand() {
   DCHECK(max_capacity_ % AreaSize() == 0);
-
-  if (Capacity() == max_capacity_) return false;
-
-  DCHECK(Capacity() < max_capacity_);
+  DCHECK(Capacity() <= heap()->MaxOldGenerationSize());
+  DCHECK(heap()->CommittedOldGenerationMemory() <=
+         heap()->MaxOldGenerationSize());
 
   // Are we going to exceed capacity for this space?
-  if ((Capacity() + Page::kPageSize) > max_capacity_) return false;
+  if (!heap()->CanExpandOldGeneration(Page::kPageSize)) return false;
 
   return true;
 }
@@ -1028,11 +1037,20 @@ bool PagedSpace::Expand() {
 
   intptr_t size = AreaSize();
 
+  if (anchor_.next_page() == &anchor_) {
+    size = Snapshot::SizeOfFirstPage(heap()->isolate(), identity());
+  }
+
   Page* p = heap()->isolate()->memory_allocator()->AllocatePage(size, this,
                                                                 executable());
   if (p == NULL) return false;
 
-  DCHECK(Capacity() <= max_capacity_);
+  // Pages created during bootstrapping may contain immortal immovable objects.
+  if (!heap()->deserialization_complete()) p->MarkNeverEvacuate();
+
+  DCHECK(Capacity() <= heap()->MaxOldGenerationSize());
+  DCHECK(heap()->CommittedOldGenerationMemory() <=
+         heap()->MaxOldGenerationSize());
 
   p->InsertAfter(anchor_.prev_page());
 
@@ -1097,7 +1115,12 @@ void PagedSpace::ReleasePage(Page* page) {
     allocation_info_.set_limit(NULL);
   }
 
-  page->Unlink();
+  // If page is still in a list, unlink it from that list.
+  if (page->next_chunk() != NULL) {
+    DCHECK(page->prev_chunk() != NULL);
+    page->Unlink();
+  }
+
   if (page->IsFlagSet(MemoryChunk::CONTAINS_ONLY_DATA)) {
     heap()->isolate()->memory_allocator()->Free(page);
   } else {

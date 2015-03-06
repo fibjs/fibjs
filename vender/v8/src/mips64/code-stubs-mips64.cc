@@ -1036,6 +1036,59 @@ void CEntryStub::GenerateAheadOfTime(Isolate* isolate) {
 }
 
 
+static void ThrowPendingException(MacroAssembler* masm) {
+  Isolate* isolate = masm->isolate();
+
+  ExternalReference pending_handler_context_address(
+      Isolate::kPendingHandlerContextAddress, isolate);
+  ExternalReference pending_handler_code_address(
+      Isolate::kPendingHandlerCodeAddress, isolate);
+  ExternalReference pending_handler_offset_address(
+      Isolate::kPendingHandlerOffsetAddress, isolate);
+  ExternalReference pending_handler_fp_address(
+      Isolate::kPendingHandlerFPAddress, isolate);
+  ExternalReference pending_handler_sp_address(
+      Isolate::kPendingHandlerSPAddress, isolate);
+
+  // Ask the runtime for help to determine the handler. This will set v0 to
+  // contain the current pending exception, don't clobber it.
+  ExternalReference find_handler(Runtime::kFindExceptionHandler, isolate);
+  {
+    FrameScope scope(masm, StackFrame::MANUAL);
+    __ PrepareCallCFunction(3, 0, a0);
+    __ mov(a0, zero_reg);
+    __ mov(a1, zero_reg);
+    __ li(a2, Operand(ExternalReference::isolate_address(isolate)));
+    __ CallCFunction(find_handler, 3);
+  }
+
+  // Retrieve the handler context, SP and FP.
+  __ li(cp, Operand(pending_handler_context_address));
+  __ ld(cp, MemOperand(cp));
+  __ li(sp, Operand(pending_handler_sp_address));
+  __ ld(sp, MemOperand(sp));
+  __ li(fp, Operand(pending_handler_fp_address));
+  __ ld(fp, MemOperand(fp));
+
+  // If the handler is a JS frame, restore the context to the frame.
+  // (kind == ENTRY) == (fp == 0) == (cp == 0), so we could test either fp
+  // or cp.
+  Label zero;
+  __ Branch(&zero, eq, cp, Operand(zero_reg));
+  __ sd(cp, MemOperand(fp, StandardFrameConstants::kContextOffset));
+  __ bind(&zero);
+
+  // Compute the handler entry address and jump to it.
+  __ li(a1, Operand(pending_handler_code_address));
+  __ ld(a1, MemOperand(a1));
+  __ li(a2, Operand(pending_handler_offset_address));
+  __ ld(a2, MemOperand(a2));
+  __ Daddu(a1, a1, Operand(Code::kHeaderSize - kHeapObjectTag));
+  __ Daddu(t9, a1, a2);
+  __ Jump(t9);
+}
+
+
 void CEntryStub::Generate(MacroAssembler* masm) {
   // Called from JavaScript; parameters are on stack as if calling JS function
   // a0: number of arguments including receiver
@@ -1120,13 +1173,12 @@ void CEntryStub::Generate(MacroAssembler* masm) {
   __ LoadRoot(a4, Heap::kExceptionRootIndex);
   __ Branch(&exception_returned, eq, a4, Operand(v0));
 
-  ExternalReference pending_exception_address(
-      Isolate::kPendingExceptionAddress, isolate());
-
   // Check that there is no pending exception, otherwise we
   // should have returned the exception sentinel.
   if (FLAG_debug_code) {
     Label okay;
+    ExternalReference pending_exception_address(
+        Isolate::kPendingExceptionAddress, isolate());
     __ li(a2, Operand(pending_exception_address));
     __ ld(a2, MemOperand(a2));
     __ LoadRoot(a4, Heap::kTheHoleValueRootIndex);
@@ -1145,26 +1197,7 @@ void CEntryStub::Generate(MacroAssembler* masm) {
 
   // Handling of exception.
   __ bind(&exception_returned);
-
-  // Retrieve the pending exception.
-  __ li(a2, Operand(pending_exception_address));
-  __ ld(v0, MemOperand(a2));
-
-  // Clear the pending exception.
-  __ li(a3, Operand(isolate()->factory()->the_hole_value()));
-  __ sd(a3, MemOperand(a2));
-
-  // Special handling of termination exceptions which are uncatchable
-  // by javascript code.
-  Label throw_termination_exception;
-  __ LoadRoot(a4, Heap::kTerminationExceptionRootIndex);
-  __ Branch(&throw_termination_exception, eq, v0, Operand(a4));
-
-  // Handle normal exception.
-  __ Throw(v0);
-
-  __ bind(&throw_termination_exception);
-  __ ThrowUncatchable(v0);
+  ThrowPendingException(masm);
 }
 
 
@@ -1589,6 +1622,7 @@ void FunctionPrototypeStub::Generate(MacroAssembler* masm) {
 
 
 void ArgumentsAccessStub::GenerateReadElement(MacroAssembler* masm) {
+  CHECK(!has_new_target());
   // The displacement is the offset of the last parameter (if any)
   // relative to the frame pointer.
   const int kDisplacement =
@@ -1647,6 +1681,9 @@ void ArgumentsAccessStub::GenerateNewSloppySlow(MacroAssembler* masm) {
   // sp[0] : number of parameters
   // sp[4] : receiver displacement
   // sp[8] : function
+
+  CHECK(!has_new_target());
+
   // Check if the calling frame is an arguments adaptor frame.
   Label runtime;
   __ ld(a3, MemOperand(fp, StandardFrameConstants::kCallerFPOffset));
@@ -1677,6 +1714,8 @@ void ArgumentsAccessStub::GenerateNewSloppyFast(MacroAssembler* masm) {
   // Registers used over whole function:
   //  a6 : allocated object (tagged)
   //  t1 : mapped parameter count (tagged)
+
+  CHECK(!has_new_target());
 
   __ ld(a1, MemOperand(sp, 0 * kPointerSize));
   // a1 = parameter count (tagged)
@@ -1934,6 +1973,12 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
   // Patch the arguments.length and the parameters pointer.
   __ bind(&adaptor_frame);
   __ ld(a1, MemOperand(a2, ArgumentsAdaptorFrameConstants::kLengthOffset));
+  if (has_new_target()) {
+    // Subtract 1 from smi-tagged arguments count.
+    __ SmiUntag(a1);
+    __ Daddu(a1, a1, Operand(-1));
+    __ SmiTag(a1);
+  }
   __ sd(a1, MemOperand(sp, 0));
   __ SmiScale(at, a1, kPointerSizeLog2);
 
@@ -2014,6 +2059,34 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
   // Do the runtime call to allocate the arguments object.
   __ bind(&runtime);
   __ TailCallRuntime(Runtime::kNewStrictArguments, 3, 1);
+}
+
+
+void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
+  // sp[0] : index of rest parameter
+  // sp[4] : number of parameters
+  // sp[8] : receiver displacement
+  // Check if the calling frame is an arguments adaptor frame.
+
+  Label runtime;
+  __ ld(a2, MemOperand(fp, StandardFrameConstants::kCallerFPOffset));
+  __ ld(a3, MemOperand(a2, StandardFrameConstants::kContextOffset));
+  __ Branch(&runtime, ne, a3,
+            Operand(Smi::FromInt(StackFrame::ARGUMENTS_ADAPTOR)));
+
+  // Patch the arguments.length and the parameters pointer.
+  __ ld(a1, MemOperand(a2, ArgumentsAdaptorFrameConstants::kLengthOffset));
+  __ sd(a1, MemOperand(sp, 1 * kPointerSize));
+  __ SmiScale(at, a1, kPointerSizeLog2);
+
+  __ Daddu(a3, a2, Operand(at));
+
+  __ Daddu(a3, a3, Operand(StandardFrameConstants::kCallerSPOffset));
+  __ sd(a3, MemOperand(sp, 2 * kPointerSize));
+
+  // Do the runtime call to allocate the arguments object.
+  __ bind(&runtime);
+  __ TailCallRuntime(Runtime::kNewRestParam, 3, 1);
 }
 
 
@@ -2338,17 +2411,9 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
   __ ld(v0, MemOperand(a2, 0));
   __ Branch(&runtime, eq, v0, Operand(a1));
 
-  __ sd(a1, MemOperand(a2, 0));  // Clear pending exception.
-
-  // Check if the exception is a termination. If so, throw as uncatchable.
-  __ LoadRoot(a0, Heap::kTerminationExceptionRootIndex);
-  Label termination_exception;
-  __ Branch(&termination_exception, eq, v0, Operand(a0));
-
-  __ Throw(v0);
-
-  __ bind(&termination_exception);
-  __ ThrowUncatchable(v0);
+  // For exception, throw the exception again.
+  __ EnterExitFrame(false);
+  ThrowPendingException(masm);
 
   __ bind(&failure);
   // For failure and exception return null.
@@ -2744,7 +2809,15 @@ void CallConstructStub::Generate(MacroAssembler* masm) {
   }
 
   // Pass function as original constructor.
-  __ mov(a3, a1);
+  if (IsSuperConstructorCall()) {
+    __ li(a4, Operand(1 * kPointerSize));
+    __ dsll(at, a0, kPointerSizeLog2);
+    __ daddu(a4, a4, at);
+    __ daddu(at, sp, a4);
+    __ ld(a3, MemOperand(at, 0));
+  } else {
+    __ mov(a3, a1);
+  }
 
   // Jump to the function-specific construct stub.
   Register jmp_reg = a4;
@@ -2842,6 +2915,7 @@ void CallIC_ArrayStub::Generate(MacroAssembler* masm) {
   __ Branch(&miss, ne, a5, Operand(at));
 
   __ mov(a2, a4);
+  __ mov(a3, a1);
   ArrayConstructorStub stub(masm->isolate(), arg_count());
   __ TailCallStub(&stub);
 
@@ -4503,7 +4577,7 @@ void StoreArrayLiteralElementStub::Generate(MacroAssembler* masm) {
   // Array literal has ElementsKind of FAST_*_DOUBLE_ELEMENTS.
   __ bind(&double_elements);
   __ ld(a5, FieldMemOperand(a1, JSObject::kElementsOffset));
-  __ StoreNumberToDoubleElements(a0, a3, a5, a7, t1, a2, &slow_elements);
+  __ StoreNumberToDoubleElements(a0, a3, a5, a7, t1, &slow_elements);
   __ Ret(USE_DELAY_SLOT);
   __ mov(v0, a0);
 }
@@ -4798,8 +4872,8 @@ void ArrayConstructorStub::Generate(MacroAssembler* masm) {
   //  -- a0 : argc (only if argument_count() == ANY)
   //  -- a1 : constructor
   //  -- a2 : AllocationSite or undefined
-  //  -- sp[0] : return address
-  //  -- sp[4] : last argument
+  //  -- a3 : original constructor
+  //  -- sp[0] : last argument
   // -----------------------------------
 
   if (FLAG_debug_code) {
@@ -4820,6 +4894,9 @@ void ArrayConstructorStub::Generate(MacroAssembler* masm) {
     __ AssertUndefinedOrAllocationSite(a2, a4);
   }
 
+  Label subclassing;
+  __ Branch(&subclassing, ne, a1, Operand(a3));
+
   Label no_info;
   // Get the elements kind and case on that.
   __ LoadRoot(at, Heap::kUndefinedValueRootIndex);
@@ -4833,6 +4910,29 @@ void ArrayConstructorStub::Generate(MacroAssembler* masm) {
 
   __ bind(&no_info);
   GenerateDispatchToArrayStub(masm, DISABLE_ALLOCATION_SITES);
+
+  // Subclassing.
+  __ bind(&subclassing);
+  __ Push(a1);
+  __ Push(a3);
+
+  // Adjust argc.
+  switch (argument_count()) {
+    case ANY:
+    case MORE_THAN_ONE:
+      __ li(at, Operand(2));
+      __ addu(a0, a0, at);
+      break;
+    case NONE:
+      __ li(a0, Operand(2));
+      break;
+    case ONE:
+      __ li(a0, Operand(3));
+      break;
+  }
+
+  __ JumpToExternalReference(
+      ExternalReference(Runtime::kArrayConstructorWithSubclassing, isolate()));
 }
 
 
@@ -4985,7 +5085,6 @@ static void CallApiFunctionAndReturn(
   }
 
   Label promote_scheduled_exception;
-  Label exception_handled;
   Label delete_allocated_handles;
   Label leave_exit_frame;
   Label return_value_loaded;
@@ -5006,13 +5105,8 @@ static void CallApiFunctionAndReturn(
   __ ld(at, MemOperand(s3, kLimitOffset));
   __ Branch(&delete_allocated_handles, ne, s1, Operand(at));
 
-  // Check if the function scheduled an exception.
+  // Leave the API exit frame.
   __ bind(&leave_exit_frame);
-  __ LoadRoot(a4, Heap::kTheHoleValueRootIndex);
-  __ li(at, Operand(ExternalReference::scheduled_exception_address(isolate)));
-  __ ld(a5, MemOperand(at));
-  __ Branch(&promote_scheduled_exception, ne, a4, Operand(a5));
-  __ bind(&exception_handled);
 
   bool restore_context = context_restore_operand != NULL;
   if (restore_context) {
@@ -5024,15 +5118,20 @@ static void CallApiFunctionAndReturn(
   } else {
     __ li(s0, Operand(stack_space));
   }
-  __ LeaveExitFrame(false, s0, !restore_context, EMIT_RETURN,
+  __ LeaveExitFrame(false, s0, !restore_context, NO_EMIT_RETURN,
                     stack_space_offset != kInvalidStackOffset);
+
+  // Check if the function scheduled an exception.
+  __ LoadRoot(a4, Heap::kTheHoleValueRootIndex);
+  __ li(at, Operand(ExternalReference::scheduled_exception_address(isolate)));
+  __ ld(a5, MemOperand(at));
+  __ Branch(&promote_scheduled_exception, ne, a4, Operand(a5));
+
+  __ Ret();
+
+  // Re-throw by promoting a scheduled exception.
   __ bind(&promote_scheduled_exception);
-  {
-    FrameScope frame(masm, StackFrame::INTERNAL);
-    __ CallExternalReference(
-        ExternalReference(Runtime::kPromoteScheduledException, isolate), 0);
-  }
-  __ jmp(&exception_handled);
+  __ TailCallRuntime(Runtime::kPromoteScheduledException, 0, 1);
 
   // HandleScope limit has changed. Delete allocated extensions.
   __ bind(&delete_allocated_handles);

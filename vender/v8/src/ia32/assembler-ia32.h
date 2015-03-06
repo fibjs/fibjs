@@ -40,6 +40,7 @@
 #include <deque>
 
 #include "src/assembler.h"
+#include "src/compiler.h"
 #include "src/isolate.h"
 #include "src/serialize.h"
 
@@ -1017,6 +1018,9 @@ class Assembler : public AssemblerBase {
   void cmpltsd(XMMRegister dst, XMMRegister src);
   void pcmpeqd(XMMRegister dst, XMMRegister src);
 
+  void punpckldq(XMMRegister dst, XMMRegister src);
+  void punpckhdq(XMMRegister dst, XMMRegister src);
+
   void movdqa(XMMRegister dst, const Operand& src);
   void movdqa(const Operand& dst, XMMRegister src);
   void movdqu(XMMRegister dst, const Operand& src);
@@ -1261,13 +1265,12 @@ class Assembler : public AssemblerBase {
   void RecordDebugBreakSlot();
 
   // Record a comment relocation entry that can be used by a disassembler.
-  // Use --code-comments to enable, or provide "force = true" flag to always
-  // write a comment.
-  void RecordComment(const char* msg, bool force = false);
+  // Use --code-comments to enable.
+  void RecordComment(const char* msg);
 
   // Record a deoptimization reason that can be used by a log or cpu profiler.
   // Use --trace-deopt to enable.
-  void RecordDeoptReason(const int reason, const int raw_position);
+  void RecordDeoptReason(const int reason, const SourcePosition position);
 
   // Writes a single byte or word of data in the code stream.  Used for
   // inline tables, e.g., jump-tables.

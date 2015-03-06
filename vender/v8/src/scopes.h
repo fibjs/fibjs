@@ -6,6 +6,7 @@
 #define V8_SCOPES_H_
 
 #include "src/ast.h"
+#include "src/pending-compilation-error-handler.h"
 #include "src/zone.h"
 
 namespace v8 {
@@ -24,8 +25,7 @@ class VariableMap: public ZoneHashMap {
   Variable* Declare(Scope* scope, const AstRawString* name, VariableMode mode,
                     bool is_valid_lhs, Variable::Kind kind,
                     InitializationFlag initialization_flag,
-                    MaybeAssignedFlag maybe_assigned_flag = kNotAssigned,
-                    Interface* interface = Interface::NewValue());
+                    MaybeAssignedFlag maybe_assigned_flag = kNotAssigned);
 
   Variable* Lookup(const AstRawString* name);
 
@@ -131,9 +131,8 @@ class Scope: public ZoneObject {
   // Declare a local variable in this scope. If the variable has been
   // declared before, the previously declared variable is returned.
   Variable* DeclareLocal(const AstRawString* name, VariableMode mode,
-                         InitializationFlag init_flag,
-                         MaybeAssignedFlag maybe_assigned_flag = kNotAssigned,
-                         Interface* interface = Interface::NewValue());
+                         InitializationFlag init_flag, Variable::Kind kind,
+                         MaybeAssignedFlag maybe_assigned_flag = kNotAssigned);
 
   // Declare an implicit global variable in this scope which must be a
   // script scope.  The variable was introduced (possibly from an inner
@@ -144,14 +143,14 @@ class Scope: public ZoneObject {
   // Create a new unresolved variable.
   VariableProxy* NewUnresolved(AstNodeFactory* factory,
                                const AstRawString* name,
-                               Interface* interface = Interface::NewValue(),
-                               int position = RelocInfo::kNoPosition) {
+                               int start_position = RelocInfo::kNoPosition,
+                               int end_position = RelocInfo::kNoPosition) {
     // Note that we must not share the unresolved variables with
     // the same name because they may be removed selectively via
     // RemoveUnresolved().
     DCHECK(!already_resolved());
     VariableProxy* proxy =
-        factory->NewVariableProxy(name, false, interface, position);
+        factory->NewVariableProxy(name, false, start_position, end_position);
     unresolved_.Add(proxy, zone_);
     return proxy;
   }
@@ -216,11 +215,6 @@ class Scope: public ZoneObject {
 
   // Inform the scope that the corresponding code uses "super".
   void RecordSuperPropertyUsage() { scope_uses_super_property_ = true; }
-
-  // Inform the scope that the corresponding code invokes "super" constructor.
-  void RecordSuperConstructorCallUsage() {
-    scope_uses_super_constructor_call_ = true;
-  }
 
   // Inform the scope that the corresponding code uses "this".
   void RecordThisUsage() { scope_uses_this_ = true; }
@@ -321,18 +315,16 @@ class Scope: public ZoneObject {
   bool inner_uses_super_property() const {
     return inner_scope_uses_super_property_;
   }
-  // Does this scope calls "super" constructor.
-  bool uses_super_constructor_call() const {
-    return scope_uses_super_constructor_call_;
-  }
-  // Does  any inner scope calls "super" constructor.
-  bool inner_uses_super_constructor_call() const {
-    return inner_scope_uses_super_constructor_call_;
-  }
   // Does this scope access "this".
   bool uses_this() const { return scope_uses_this_; }
   // Does any inner scope access "this".
   bool inner_uses_this() const { return inner_scope_uses_this_; }
+
+  const Scope* NearestOuterEvalScope() const {
+    if (is_eval_scope()) return this;
+    if (outer_scope() == nullptr) return nullptr;
+    return outer_scope()->NearestOuterEvalScope();
+  }
 
   // ---------------------------------------------------------------------------
   // Accessors.
@@ -383,6 +375,10 @@ class Scope: public ZoneObject {
     return rest_parameter_;
   }
 
+  bool has_rest_parameter() const {
+    return rest_index_ >= 0;
+  }
+
   bool is_simple_parameter_list() const {
     DCHECK(is_function_scope());
     if (rest_index_ >= 0) return false;
@@ -401,8 +397,8 @@ class Scope: public ZoneObject {
   // The scope immediately surrounding this scope, or NULL.
   Scope* outer_scope() const { return outer_scope_; }
 
-  // The interface as inferred so far; only for module scopes.
-  Interface* interface() const { return interface_; }
+  // The ModuleDescriptor for this scope; only for module scopes.
+  ModuleDescriptor* module() const { return module_descriptor_; }
 
   // ---------------------------------------------------------------------------
   // Variable allocation.
@@ -476,6 +472,17 @@ class Scope: public ZoneObject {
     return variables_.Lookup(name) != NULL;
   }
 
+  bool IsDeclaredParameter(const AstRawString* name) {
+    // If IsSimpleParameterList is false, duplicate parameters are not allowed,
+    // however `arguments` may be allowed if function is not strict code. Thus,
+    // the assumptions explained above do not hold.
+    return params_.Contains(variables_.Lookup(name));
+  }
+
+  // Error handling.
+  void ReportMessage(int start_position, int end_position, const char* message,
+                     const AstRawString* arg);
+
   // ---------------------------------------------------------------------------
   // Debugging.
 
@@ -524,8 +531,8 @@ class Scope: public ZoneObject {
   Variable* new_target_;
   // Convenience variable; function scopes only.
   Variable* arguments_;
-  // Interface; module scopes only.
-  Interface* interface_;
+  // Module descriptor; module scopes only.
+  ModuleDescriptor* module_descriptor_;
 
   // Illegal redeclaration.
   Expression* illegal_redecl_;
@@ -543,8 +550,6 @@ class Scope: public ZoneObject {
   bool scope_uses_arguments_;
   // This scope uses "super" property ('super.foo').
   bool scope_uses_super_property_;
-  // This scope uses "super" constructor ('super(..)').
-  bool scope_uses_super_constructor_call_;
   // This scope uses "this".
   bool scope_uses_this_;
   // This scope contains an "use asm" annotation.
@@ -562,7 +567,6 @@ class Scope: public ZoneObject {
   bool inner_scope_calls_eval_;
   bool inner_scope_uses_arguments_;
   bool inner_scope_uses_super_property_;
-  bool inner_scope_uses_super_constructor_call_;
   bool inner_scope_uses_this_;
   bool force_eager_compilation_;
   bool force_context_allocation_;
@@ -705,6 +709,8 @@ class Scope: public ZoneObject {
 
   AstValueFactory* ast_value_factory_;
   Zone* zone_;
+
+  PendingCompilationErrorHandler pending_error_handler_;
 };
 
 } }  // namespace v8::internal

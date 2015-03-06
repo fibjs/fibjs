@@ -539,8 +539,26 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     __ decp(rcx);
     __ j(greater_equal, &loop);
 
-    // Call the function.
     __ incp(rax);  // Pushed new.target.
+
+    // Handle step in.
+    Label skip_step_in;
+    ExternalReference debug_step_in_fp =
+        ExternalReference::debug_step_in_fp_address(masm->isolate());
+    __ Move(kScratchRegister, debug_step_in_fp);
+    __ cmpp(Operand(kScratchRegister, 0), Immediate(0));
+    __ j(equal, &skip_step_in);
+
+    __ Push(rax);
+    __ Push(rdi);
+    __ Push(rdi);
+    __ CallRuntime(Runtime::kHandleStepInForDerivedConstructors, 1);
+    __ Pop(rdi);
+    __ Pop(rax);
+
+    __ bind(&skip_step_in);
+
+    // Call the function.
     ParameterCount actual(rax);
     __ InvokeFunction(rdi, actual, CALL_FUNCTION, NullCallWrapper());
 
@@ -1258,6 +1276,7 @@ void Builtins::Generate_ArrayCode(MacroAssembler* masm) {
     __ Check(equal, kUnexpectedInitialMapForArrayFunction);
   }
 
+  __ movp(rdx, rdi);
   // Run the native code for the Array function called as a normal function.
   // tail call a stub
   __ LoadRoot(rbx, Heap::kUndefinedValueRootIndex);

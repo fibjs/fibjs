@@ -25,6 +25,9 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone,
   DCHECK(scope->StackLocalCount() == stack_local_count);
   DCHECK(scope->ContextLocalCount() == context_local_count);
 
+  bool simple_parameter_list =
+      scope->is_function_scope() ? scope->is_simple_parameter_list() : true;
+
   // Determine use and location of the function variable if it is present.
   FunctionVariableInfo function_name_info;
   VariableMode function_variable_mode;
@@ -60,7 +63,8 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone,
               FunctionVariableField::encode(function_name_info) |
               FunctionVariableMode::encode(function_variable_mode) |
               AsmModuleField::encode(scope->asm_module()) |
-              AsmFunctionField::encode(scope->asm_function());
+              AsmFunctionField::encode(scope->asm_function()) |
+              IsSimpleParameterListField::encode(simple_parameter_list);
   scope_info->SetFlags(flags);
   scope_info->SetParameterCount(parameter_count);
   scope_info->SetStackLocalCount(stack_local_count);
@@ -548,25 +552,19 @@ void ScopeInfo::Print() {
 //---------------------------------------------------------------------------
 // ModuleInfo.
 
-Handle<ModuleInfo> ModuleInfo::Create(
-    Isolate* isolate, Interface* interface, Scope* scope) {
-  Handle<ModuleInfo> info = Allocate(isolate, interface->Length());
-  info->set_host_index(interface->Index());
+Handle<ModuleInfo> ModuleInfo::Create(Isolate* isolate,
+                                      ModuleDescriptor* descriptor,
+                                      Scope* scope) {
+  Handle<ModuleInfo> info = Allocate(isolate, descriptor->Length());
+  info->set_host_index(descriptor->Index());
   int i = 0;
-  for (Interface::Iterator it = interface->iterator();
-       !it.done(); it.Advance(), ++i) {
-    Variable* var = scope->LookupLocal(it.name());
-    info->set_name(i, *(it.name()->string()));
+  for (ModuleDescriptor::Iterator it = descriptor->iterator(); !it.done();
+       it.Advance(), ++i) {
+    Variable* var = scope->LookupLocal(it.local_name());
+    info->set_name(i, *(it.export_name()->string()));
     info->set_mode(i, var->mode());
-    DCHECK((var->mode() == MODULE) == (it.interface()->IsModule()));
-    if (var->mode() == MODULE) {
-      DCHECK(it.interface()->IsFrozen());
-      DCHECK(it.interface()->Index() >= 0);
-      info->set_index(i, it.interface()->Index());
-    } else {
-      DCHECK(var->index() >= 0);
-      info->set_index(i, var->index());
-    }
+    DCHECK(var->index() >= 0);
+    info->set_index(i, var->index());
   }
   DCHECK(i == info->length());
   return info;

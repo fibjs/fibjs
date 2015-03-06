@@ -72,9 +72,9 @@ bool LookupIterator::IsBootstrapping() const {
 }
 
 
-bool LookupIterator::HasAccess(v8::AccessType access_type) const {
+bool LookupIterator::HasAccess() const {
   DCHECK_EQ(ACCESS_CHECK, state_);
-  return isolate_->MayNamedAccess(GetHolder<JSObject>(), name_, access_type);
+  return isolate_->MayAccess(GetHolder<JSObject>());
 }
 
 
@@ -105,8 +105,10 @@ void LookupIterator::ReconfigureDataProperty(Handle<Object> value,
     PropertyDetails details(attributes, v8::internal::DATA, 0);
     JSObject::SetNormalizedProperty(holder, name(), value, details);
   } else {
-    holder_map_ = Map::ReconfigureDataProperty(holder_map_, descriptor_number(),
-                                               attributes);
+    holder_map_ = Map::ReconfigureExistingProperty(
+        holder_map_, descriptor_number(), i::kData, attributes);
+    holder_map_ =
+        Map::PrepareForDataProperty(holder_map_, descriptor_number(), value);
     JSObject::MigrateToMap(holder, holder_map_);
   }
 

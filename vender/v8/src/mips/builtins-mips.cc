@@ -142,6 +142,7 @@ void Builtins::Generate_ArrayCode(MacroAssembler* masm) {
 
   // Run the native code for the Array function called as a normal function.
   // Tail call a stub.
+  __ mov(a3, a1);
   __ LoadRoot(a2, Heap::kUndefinedValueRootIndex);
   ArrayConstructorStub stub(masm->isolate());
   __ TailCallStub(&stub);
@@ -782,6 +783,9 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     __ SmiTag(t0);
     __ push(t0);  // Smi-tagged arguments count.
 
+    // Push new.target.
+    __ push(a3);
+
     // receiver is the hole.
     __ LoadRoot(at, Heap::kTheHoleValueRootIndex);
     __ push(at);
@@ -795,7 +799,8 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     // a2: address of last argument (caller sp)
     // t0: number of arguments (smi-tagged)
     // sp[0]: receiver
-    // sp[1]: number of arguments (smi-tagged)
+    // sp[1]: new.target
+    // sp[2]: number of arguments (smi-tagged)
     Label loop, entry;
     __ Branch(&entry);
     __ bind(&loop);
@@ -806,6 +811,22 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     __ bind(&entry);
     __ Subu(t0, t0, Operand(2));
     __ Branch(&loop, ge, t0, Operand(zero_reg));
+
+    __ Addu(a0, a0, Operand(1));
+
+    // Handle step in.
+    Label skip_step_in;
+    ExternalReference debug_step_in_fp =
+        ExternalReference::debug_step_in_fp_address(masm->isolate());
+    __ li(a2, Operand(debug_step_in_fp));
+    __ lw(a2, MemOperand(a2));
+    __ Branch(&skip_step_in, eq, a2, Operand(zero_reg));
+
+    __ Push(a0, a1, a1);
+    __ CallRuntime(Runtime::kHandleStepInForDerivedConstructors, 1);
+    __ Pop(a0, a1);
+
+    __ bind(&skip_step_in);
 
     // Call the function.
     // a0: number of arguments
@@ -924,7 +945,9 @@ static void CallCompileOptimized(MacroAssembler* masm, bool concurrent) {
   // Push function as parameter to the runtime call.
   __ Push(a1, a1);
   // Whether to compile in a background thread.
-  __ Push(masm->isolate()->factory()->ToBoolean(concurrent));
+  __ LoadRoot(
+      at, concurrent ? Heap::kTrueValueRootIndex : Heap::kFalseValueRootIndex);
+  __ push(at);
 
   __ CallRuntime(Runtime::kCompileOptimized, 2);
   // Restore receiver.

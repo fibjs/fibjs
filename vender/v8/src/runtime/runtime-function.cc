@@ -7,6 +7,7 @@
 #include "src/accessors.h"
 #include "src/arguments.h"
 #include "src/compiler.h"
+#include "src/cpu-profiler.h"
 #include "src/deoptimizer.h"
 #include "src/frames.h"
 #include "src/runtime/runtime-utils.h"
@@ -279,6 +280,8 @@ RUNTIME_FUNCTION(Runtime_SetCode) {
   target_shared->set_end_position(source_shared->end_position());
   bool was_native = target_shared->native();
   target_shared->set_compiler_hints(source_shared->compiler_hints());
+  target_shared->set_opt_count_and_bailout_reason(
+      source_shared->opt_count_and_bailout_reason());
   target_shared->set_native(was_native);
   target_shared->set_profiler_ticks(source_shared->profiler_ticks());
 
@@ -292,10 +295,6 @@ RUNTIME_FUNCTION(Runtime_SetCode) {
   int number_of_literals = source->NumberOfLiterals();
   Handle<FixedArray> literals =
       isolate->factory()->NewFixedArray(number_of_literals, TENURED);
-  if (number_of_literals > 0) {
-    literals->set(JSFunction::kLiteralNativeContextIndex,
-                  context->native_context());
-  }
   target->set_context(*context);
   target->set_literals(*literals);
 
@@ -627,13 +626,13 @@ RUNTIME_FUNCTION(Runtime_GetConstructorDelegate) {
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_CallFunction) {
+RUNTIME_FUNCTION(Runtime_CallFunction) {
   SealHandleScope shs(isolate);
   return __RT_impl_Runtime_Call(args, isolate);
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_IsConstructCall) {
+RUNTIME_FUNCTION(Runtime_IsConstructCall) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 0);
   JavaScriptFrameIterator it(isolate);
@@ -642,7 +641,7 @@ RUNTIME_FUNCTION(RuntimeReference_IsConstructCall) {
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_IsFunction) {
+RUNTIME_FUNCTION(Runtime_IsFunction) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 1);
   CONVERT_ARG_CHECKED(Object, obj, 0);

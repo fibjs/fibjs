@@ -34,8 +34,7 @@ Variable* VariableMap::Declare(Scope* scope, const AstRawString* name,
                                VariableMode mode, bool is_valid_lhs,
                                Variable::Kind kind,
                                InitializationFlag initialization_flag,
-                               MaybeAssignedFlag maybe_assigned_flag,
-                               Interface* interface) {
+                               MaybeAssignedFlag maybe_assigned_flag) {
   // AstRawStrings are unambiguous, i.e., the same string is always represented
   // by the same AstRawString*.
   // FIXME(marja): fix the type of Lookup.
@@ -44,9 +43,8 @@ Variable* VariableMap::Declare(Scope* scope, const AstRawString* name,
   if (p->value == NULL) {
     // The variable has not been declared yet -> insert it.
     DCHECK(p->key == name);
-    p->value = new (zone())
-        Variable(scope, name, mode, is_valid_lhs, kind, initialization_flag,
-                 maybe_assigned_flag, interface);
+    p->value = new (zone()) Variable(scope, name, mode, is_valid_lhs, kind,
+                                     initialization_flag, maybe_assigned_flag);
   }
   return reinterpret_cast<Variable*>(p->value);
 }
@@ -76,8 +74,8 @@ Scope::Scope(Zone* zone, Scope* outer_scope, ScopeType scope_type,
       params_(4, zone),
       unresolved_(16, zone),
       decls_(4, zone),
-      interface_(scope_type == MODULE_SCOPE ? Interface::NewModule(zone)
-                                            : NULL),
+      module_descriptor_(
+          scope_type == MODULE_SCOPE ? ModuleDescriptor::New(zone) : NULL),
       already_resolved_(false),
       ast_value_factory_(ast_value_factory),
       zone_(zone) {
@@ -97,7 +95,7 @@ Scope::Scope(Zone* zone, Scope* inner_scope, ScopeType scope_type,
       params_(4, zone),
       unresolved_(16, zone),
       decls_(4, zone),
-      interface_(NULL),
+      module_descriptor_(NULL),
       already_resolved_(true),
       ast_value_factory_(value_factory),
       zone_(zone) {
@@ -122,7 +120,7 @@ Scope::Scope(Zone* zone, Scope* inner_scope,
       params_(0, zone),
       unresolved_(0, zone),
       decls_(0, zone),
-      interface_(NULL),
+      module_descriptor_(NULL),
       already_resolved_(true),
       ast_value_factory_(value_factory),
       zone_(zone) {
@@ -157,18 +155,16 @@ void Scope::SetDefaults(ScopeType scope_type,
   scope_calls_eval_ = false;
   scope_uses_arguments_ = false;
   scope_uses_super_property_ = false;
-  scope_uses_super_constructor_call_ = false;
   scope_uses_this_ = false;
   asm_module_ = false;
   asm_function_ = outer_scope != NULL && outer_scope->asm_module_;
-  // Inherit the strict mode from the parent scope.
+  // Inherit the language mode from the parent scope.
   language_mode_ = outer_scope != NULL ? outer_scope->language_mode_ : SLOPPY;
   outer_scope_calls_sloppy_eval_ = false;
   inner_scope_calls_eval_ = false;
   inner_scope_uses_arguments_ = false;
   inner_scope_uses_this_ = false;
   inner_scope_uses_super_property_ = false;
-  inner_scope_uses_super_constructor_call_ = false;
   force_eager_compilation_ = false;
   force_context_allocation_ = (outer_scope != NULL && !is_function_scope())
       ? outer_scope->has_forced_context_allocation() : false;
@@ -267,7 +263,12 @@ bool Scope::Analyze(CompilationInfo* info) {
   // Allocate the variables.
   {
     AstNodeFactory ast_node_factory(info->ast_value_factory());
-    if (!top->AllocateVariables(info, &ast_node_factory)) return false;
+    if (!top->AllocateVariables(info, &ast_node_factory)) {
+      DCHECK(top->pending_error_handler_.has_pending_error());
+      top->pending_error_handler_.ThrowPendingError(info->isolate(),
+                                                    info->script());
+      return false;
+    }
   }
 
 #ifdef DEBUG
@@ -275,11 +276,6 @@ bool Scope::Analyze(CompilationInfo* info) {
           ? FLAG_print_builtin_scopes
           : FLAG_print_scopes) {
     scope->Print();
-  }
-
-  if (FLAG_harmony_modules && FLAG_print_interfaces && top->is_script_scope()) {
-    PrintF("global : ");
-    top->interface()->Print();
   }
 #endif
 
@@ -309,7 +305,6 @@ void Scope::Initialize(bool subclass_constructor) {
   // invoking scripts
   if (is_declaration_scope()) {
     DCHECK(!subclass_constructor || is_function_scope());
-    DCHECK(FLAG_experimental_classes || !subclass_constructor);
     Variable* var = variables_.Declare(
         this, ast_value_factory_->this_string(),
         subclass_constructor ? CONST : VAR, false, Variable::THIS,
@@ -372,8 +367,6 @@ Scope* Scope::FinalizeBlockScope() {
   // Propagate usage flags to outer scope.
   if (uses_arguments()) outer_scope_->RecordArgumentsUsage();
   if (uses_super_property()) outer_scope_->RecordSuperPropertyUsage();
-  if (uses_super_constructor_call())
-    outer_scope_->RecordSuperConstructorCallUsage();
   if (uses_this()) outer_scope_->RecordThisUsage();
 
   return NULL;
@@ -473,17 +466,16 @@ Variable* Scope::DeclareParameter(const AstRawString* name, VariableMode mode,
 
 
 Variable* Scope::DeclareLocal(const AstRawString* name, VariableMode mode,
-                              InitializationFlag init_flag,
-                              MaybeAssignedFlag maybe_assigned_flag,
-                              Interface* interface) {
+                              InitializationFlag init_flag, Variable::Kind kind,
+                              MaybeAssignedFlag maybe_assigned_flag) {
   DCHECK(!already_resolved());
   // This function handles VAR, LET, and CONST modes.  DYNAMIC variables are
   // introduces during variable allocation, INTERNAL variables are allocated
   // explicitly, and TEMPORARY variables are allocated via NewTemporary().
   DCHECK(IsDeclaredVariableMode(mode));
   ++num_var_or_const_;
-  return variables_.Declare(this, name, mode, true, Variable::NORMAL, init_flag,
-                            maybe_assigned_flag, interface);
+  return variables_.Declare(this, name, mode, true, kind, init_flag,
+                            maybe_assigned_flag);
 }
 
 
@@ -781,6 +773,20 @@ void Scope::GetNestedScopeChain(Isolate* isolate,
 }
 
 
+void Scope::ReportMessage(int start_position, int end_position,
+                          const char* message, const AstRawString* arg) {
+  // Propagate the error to the topmost scope targeted by this scope analysis
+  // phase.
+  Scope* top = this;
+  while (!top->is_script_scope() && !top->outer_scope()->already_resolved()) {
+    top = top->outer_scope();
+  }
+
+  top->pending_error_handler_.ReportMessageAt(start_position, end_position,
+                                              message, arg, kReferenceError);
+}
+
+
 #ifdef DEBUG
 static const char* Header(ScopeType scope_type) {
   switch (scope_type) {
@@ -892,7 +898,9 @@ void Scope::Print(int n) {
   if (HasTrivialOuterContext()) {
     Indent(n1, "// scope has trivial outer context\n");
   }
-  if (is_strict(language_mode())) {
+  if (is_strong(language_mode())) {
+    Indent(n1, "// strong mode scope\n");
+  } else if (is_strict(language_mode())) {
     Indent(n1, "// strict mode scope\n");
   }
   if (scope_inside_with_) Indent(n1, "// scope inside 'with'\n");
@@ -901,17 +909,12 @@ void Scope::Print(int n) {
   if (scope_uses_arguments_) Indent(n1, "// scope uses 'arguments'\n");
   if (scope_uses_super_property_)
     Indent(n1, "// scope uses 'super' property\n");
-  if (scope_uses_super_constructor_call_)
-    Indent(n1, "// scope uses 'super' constructor\n");
   if (scope_uses_this_) Indent(n1, "// scope uses 'this'\n");
   if (inner_scope_uses_arguments_) {
     Indent(n1, "// inner scope uses 'arguments'\n");
   }
   if (inner_scope_uses_super_property_)
     Indent(n1, "// inner scope uses 'super' property\n");
-  if (inner_scope_uses_super_constructor_call_) {
-    Indent(n1, "// inner scope uses 'super' constructor\n");
-  }
   if (inner_scope_uses_this_) Indent(n1, "// inner scope uses 'this'\n");
   if (outer_scope_calls_sloppy_eval_) {
     Indent(n1, "// outer scope calls 'eval' in sloppy context\n");
@@ -1066,6 +1069,31 @@ bool Scope::ResolveVariable(CompilationInfo* info, VariableProxy* proxy,
   switch (binding_kind) {
     case BOUND:
       // We found a variable binding.
+      if (is_strong(language_mode())) {
+        // Check for declaration-after use (for variables) in strong mode. Note
+        // that we can only do this in the case where we have seen the
+        // declaration. And we always allow referencing functions (for now).
+
+        // If both the use and the declaration are inside an eval scope
+        // (possibly indirectly), or one of them is, we need to check whether
+        // they are inside the same eval scope or different
+        // ones.
+
+        // TODO(marja,rossberg): Detect errors across different evals (depends
+        // on the future of eval in strong mode).
+        const Scope* eval_for_use = NearestOuterEvalScope();
+        const Scope* eval_for_declaration =
+            var->scope()->NearestOuterEvalScope();
+
+        if (proxy->position() != RelocInfo::kNoPosition &&
+            proxy->position() < var->initializer_position() &&
+            !var->is_function() && eval_for_use == eval_for_declaration) {
+          DCHECK(proxy->end_position() != RelocInfo::kNoPosition);
+          ReportMessage(proxy->position(), proxy->end_position(),
+                        "strong_use_before_declaration", proxy->raw_name());
+          return false;
+        }
+      }
       break;
 
     case BOUND_EVAL_SHADOWED:
@@ -1102,42 +1130,6 @@ bool Scope::ResolveVariable(CompilationInfo* info, VariableProxy* proxy,
 
   DCHECK(var != NULL);
   if (proxy->is_assigned()) var->set_maybe_assigned();
-
-  if (FLAG_harmony_modules) {
-    bool ok;
-#ifdef DEBUG
-    if (FLAG_print_interface_details) {
-      PrintF("# Resolve %.*s:\n", var->raw_name()->length(),
-             var->raw_name()->raw_data());
-    }
-#endif
-    proxy->interface()->Unify(var->interface(), zone(), &ok);
-    if (!ok) {
-#ifdef DEBUG
-      if (FLAG_print_interfaces) {
-        PrintF("SCOPES TYPE ERROR\n");
-        PrintF("proxy: ");
-        proxy->interface()->Print();
-        PrintF("var: ");
-        var->interface()->Print();
-      }
-#endif
-
-      // Inconsistent use of module. Throw a syntax error.
-      // TODO(rossberg): generate more helpful error message.
-      MessageLocation location(
-          info->script(), proxy->position(), proxy->position());
-      Isolate* isolate = info->isolate();
-      Factory* factory = isolate->factory();
-      Handle<JSArray> array = factory->NewJSArray(1);
-      JSObject::SetElement(array, 0, var->name(), NONE, STRICT).Assert();
-      Handle<Object> error;
-      MaybeHandle<Object> maybe_error =
-          factory->NewSyntaxError("module_type_error", array);
-      if (maybe_error.ToHandle(&error)) isolate->Throw(*error, &location);
-      return false;
-    }
-  }
 
   proxy->BindTo(var);
 
@@ -1187,10 +1179,6 @@ void Scope::PropagateScopeInfo(bool outer_scope_calls_sloppy_eval ) {
       if (inner->scope_uses_super_property_ ||
           inner->inner_scope_uses_super_property_) {
         inner_scope_uses_super_property_ = true;
-      }
-      if (inner->uses_super_constructor_call() ||
-          inner->inner_scope_uses_super_constructor_call_) {
-        inner_scope_uses_super_constructor_call_ = true;
       }
       if (inner->scope_uses_this_ || inner->inner_scope_uses_this_) {
         inner_scope_uses_this_ = true;
@@ -1417,7 +1405,7 @@ void Scope::AllocateVariablesRecursively(Isolate* isolate) {
 void Scope::AllocateModulesRecursively(Scope* host_scope) {
   if (already_resolved()) return;
   if (is_module_scope()) {
-    DCHECK(interface_->IsFrozen());
+    DCHECK(module_descriptor_->IsFrozen());
     DCHECK(module_var_ == NULL);
     module_var_ =
         host_scope->NewInternal(ast_value_factory_->dot_module_string());

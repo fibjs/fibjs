@@ -423,6 +423,7 @@ void LoadIndexedStringStub::Generate(MacroAssembler* masm) {
 
 
 void ArgumentsAccessStub::GenerateReadElement(MacroAssembler* masm) {
+  CHECK(!has_new_target());
   // The key is in edx and the parameter count is in eax.
   DCHECK(edx.is(ArgumentsAccessReadDescriptor::index()));
   DCHECK(eax.is(ArgumentsAccessReadDescriptor::parameter_count()));
@@ -489,6 +490,8 @@ void ArgumentsAccessStub::GenerateNewSloppySlow(MacroAssembler* masm) {
   // esp[8] : receiver displacement
   // esp[12] : function
 
+  CHECK(!has_new_target());
+
   // Check if the calling frame is an arguments adaptor frame.
   Label runtime;
   __ mov(edx, Operand(ebp, StandardFrameConstants::kCallerFPOffset));
@@ -516,6 +519,8 @@ void ArgumentsAccessStub::GenerateNewSloppyFast(MacroAssembler* masm) {
 
   // ebx = parameter count (tagged)
   __ mov(ebx, Operand(esp, 1 * kPointerSize));
+
+  CHECK(!has_new_target());
 
   // Check if the calling frame is an arguments adaptor frame.
   // TODO(rossberg): Factor out some of the bits that are shared with the other
@@ -756,9 +761,15 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
   // Patch the arguments.length and the parameters pointer.
   __ bind(&adaptor_frame);
   __ mov(ecx, Operand(edx, ArgumentsAdaptorFrameConstants::kLengthOffset));
-  __ mov(Operand(esp, 1 * kPointerSize), ecx);
+
+  if (has_new_target()) {
+    // Subtract 1 from smi-tagged arguments count.
+    __ sub(ecx, Immediate(2));
+  }
+
   __ lea(edx, Operand(edx, ecx, times_2,
                       StandardFrameConstants::kCallerSPOffset));
+  __ mov(Operand(esp, 1 * kPointerSize), ecx);
   __ mov(Operand(esp, 2 * kPointerSize), edx);
 
   // Try the new space allocation. Start out with computing the size of
@@ -830,6 +841,80 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
   // Do the runtime call to allocate the arguments object.
   __ bind(&runtime);
   __ TailCallRuntime(Runtime::kNewStrictArguments, 3, 1);
+}
+
+
+void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
+  // esp[0] : return address
+  // esp[4] : index of rest parameter
+  // esp[8] : number of parameters
+  // esp[12] : receiver displacement
+
+  // Check if the calling frame is an arguments adaptor frame.
+  Label runtime;
+  __ mov(edx, Operand(ebp, StandardFrameConstants::kCallerFPOffset));
+  __ mov(ecx, Operand(edx, StandardFrameConstants::kContextOffset));
+  __ cmp(ecx, Immediate(Smi::FromInt(StackFrame::ARGUMENTS_ADAPTOR)));
+  __ j(not_equal, &runtime);
+
+  // Patch the arguments.length and the parameters pointer.
+  __ mov(ecx, Operand(edx, ArgumentsAdaptorFrameConstants::kLengthOffset));
+  __ mov(Operand(esp, 2 * kPointerSize), ecx);
+  __ lea(edx, Operand(edx, ecx, times_2,
+                      StandardFrameConstants::kCallerSPOffset));
+  __ mov(Operand(esp, 3 * kPointerSize), edx);
+
+  __ bind(&runtime);
+  __ TailCallRuntime(Runtime::kNewRestParam, 3, 1);
+}
+
+
+static void ThrowPendingException(MacroAssembler* masm) {
+  Isolate* isolate = masm->isolate();
+
+  ExternalReference pending_handler_context_address(
+      Isolate::kPendingHandlerContextAddress, isolate);
+  ExternalReference pending_handler_code_address(
+      Isolate::kPendingHandlerCodeAddress, isolate);
+  ExternalReference pending_handler_offset_address(
+      Isolate::kPendingHandlerOffsetAddress, isolate);
+  ExternalReference pending_handler_fp_address(
+      Isolate::kPendingHandlerFPAddress, isolate);
+  ExternalReference pending_handler_sp_address(
+      Isolate::kPendingHandlerSPAddress, isolate);
+
+  // Ask the runtime for help to determine the handler. This will set eax to
+  // contain the current pending exception, don't clobber it.
+  ExternalReference find_handler(Runtime::kFindExceptionHandler, isolate);
+  {
+    FrameScope scope(masm, StackFrame::MANUAL);
+    __ PrepareCallCFunction(3, eax);
+    __ mov(Operand(esp, 0 * kPointerSize), Immediate(0));  // argc.
+    __ mov(Operand(esp, 1 * kPointerSize), Immediate(0));  // argv.
+    __ mov(Operand(esp, 2 * kPointerSize),
+           Immediate(ExternalReference::isolate_address(isolate)));
+    __ CallCFunction(find_handler, 3);
+  }
+
+  // Retrieve the handler context, SP and FP.
+  __ mov(esi, Operand::StaticVariable(pending_handler_context_address));
+  __ mov(esp, Operand::StaticVariable(pending_handler_sp_address));
+  __ mov(ebp, Operand::StaticVariable(pending_handler_fp_address));
+
+  // If the handler is a JS frame, restore the context to the frame.
+  // (kind == ENTRY) == (ebp == 0) == (esi == 0), so we could test either
+  // ebp or esi.
+  Label skip;
+  __ test(esi, esi);
+  __ j(zero, &skip, Label::kNear);
+  __ mov(Operand(ebp, StandardFrameConstants::kContextOffset), esi);
+  __ bind(&skip);
+
+  // Compute the handler entry address and jump to it.
+  __ mov(edi, Operand::StaticVariable(pending_handler_code_address));
+  __ mov(edx, Operand::StaticVariable(pending_handler_offset_address));
+  __ lea(edi, FieldOperand(edi, edx, times_1, Code::kHeaderSize));
+  __ jmp(edi);
 }
 
 
@@ -1114,22 +1199,10 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
   __ mov(eax, Operand::StaticVariable(pending_exception));
   __ cmp(edx, eax);
   __ j(equal, &runtime);
+
   // For exception, throw the exception again.
-
-  // Clear the pending exception variable.
-  __ mov(Operand::StaticVariable(pending_exception), edx);
-
-  // Special handling of termination exceptions which are uncatchable
-  // by javascript code.
-  __ cmp(eax, factory->termination_exception());
-  Label throw_termination_exception;
-  __ j(equal, &throw_termination_exception, Label::kNear);
-
-  // Handle normal exception by following handler chain.
-  __ Throw(eax);
-
-  __ bind(&throw_termination_exception);
-  __ ThrowUncatchable(eax);
+  __ EnterExitFrame(false);
+  ThrowPendingException(masm);
 
   __ bind(&failure);
   // For failure to match, return null.
@@ -1840,8 +1913,12 @@ void CallConstructStub::Generate(MacroAssembler* masm) {
     __ AssertUndefinedOrAllocationSite(ebx);
   }
 
-  // Pass original constructor to construct stub.
-  __ mov(edx, edi);
+  if (IsSuperConstructorCall()) {
+    __ mov(edx, Operand(esp, eax, times_pointer_size, 2 * kPointerSize));
+  } else {
+    // Pass original constructor to construct stub.
+    __ mov(edx, edi);
+  }
 
   // Jump to the function-specific construct stub.
   Register jmp_reg = ecx;
@@ -1903,6 +1980,7 @@ void CallIC_ArrayStub::Generate(MacroAssembler* masm) {
   __ j(not_equal, &miss);
 
   __ mov(ebx, ecx);
+  __ mov(edx, edi);
   ArrayConstructorStub stub(masm->isolate(), arg_count());
   __ TailCallStub(&stub);
 
@@ -2171,15 +2249,14 @@ void CEntryStub::Generate(MacroAssembler* masm) {
   __ cmp(eax, isolate()->factory()->exception());
   __ j(equal, &exception_returned);
 
-  ExternalReference pending_exception_address(
-      Isolate::kPendingExceptionAddress, isolate());
-
   // Check that there is no pending exception, otherwise we
   // should have returned the exception sentinel.
   if (FLAG_debug_code) {
     __ push(edx);
     __ mov(edx, Immediate(isolate()->factory()->the_hole_value()));
     Label okay;
+    ExternalReference pending_exception_address(
+        Isolate::kPendingExceptionAddress, isolate());
     __ cmp(edx, Operand::StaticVariable(pending_exception_address));
     // Cannot use check here as it attempts to generate call into runtime.
     __ j(equal, &okay, Label::kNear);
@@ -2194,25 +2271,7 @@ void CEntryStub::Generate(MacroAssembler* masm) {
 
   // Handling of exception.
   __ bind(&exception_returned);
-
-  // Retrieve the pending exception.
-  __ mov(eax, Operand::StaticVariable(pending_exception_address));
-
-  // Clear the pending exception.
-  __ mov(edx, Immediate(isolate()->factory()->the_hole_value()));
-  __ mov(Operand::StaticVariable(pending_exception_address), edx);
-
-  // Special handling of termination exceptions which are uncatchable
-  // by javascript code.
-  Label throw_termination_exception;
-  __ cmp(eax, isolate()->factory()->termination_exception());
-  __ j(equal, &throw_termination_exception);
-
-  // Handle normal exception.
-  __ Throw(eax);
-
-  __ bind(&throw_termination_exception);
-  __ ThrowUncatchable(eax);
+  ThrowPendingException(masm);
 }
 
 
@@ -4251,9 +4310,10 @@ void ArrayConstructorStub::GenerateDispatchToArrayStub(
 
 void ArrayConstructorStub::Generate(MacroAssembler* masm) {
   // ----------- S t a t e -------------
-  //  -- eax : argc (only if argument_count() == ANY)
+  //  -- eax : argc (only if argument_count() is ANY or MORE_THAN_ONE)
   //  -- ebx : AllocationSite or undefined
   //  -- edi : constructor
+  //  -- edx : Original constructor
   //  -- esp[0] : return address
   //  -- esp[4] : last argument
   // -----------------------------------
@@ -4273,6 +4333,11 @@ void ArrayConstructorStub::Generate(MacroAssembler* masm) {
     __ AssertUndefinedOrAllocationSite(ebx);
   }
 
+  Label subclassing;
+
+  __ cmp(edx, edi);
+  __ j(not_equal, &subclassing);
+
   Label no_info;
   // If the feedback vector is the undefined value call an array constructor
   // that doesn't use AllocationSites.
@@ -4288,6 +4353,30 @@ void ArrayConstructorStub::Generate(MacroAssembler* masm) {
 
   __ bind(&no_info);
   GenerateDispatchToArrayStub(masm, DISABLE_ALLOCATION_SITES);
+
+  // Subclassing.
+  __ bind(&subclassing);
+  __ pop(ecx);  // return address.
+  __ push(edi);
+  __ push(edx);
+
+  // Adjust argc.
+  switch (argument_count()) {
+    case ANY:
+    case MORE_THAN_ONE:
+      __ add(eax, Immediate(2));
+      break;
+    case NONE:
+      __ mov(eax, Immediate(2));
+      break;
+    case ONE:
+      __ mov(eax, Immediate(3));
+      break;
+  }
+
+  __ push(ecx);
+  __ JumpToExternalReference(
+      ExternalReference(Runtime::kArrayConstructorWithSubclassing, isolate()));
 }
 
 

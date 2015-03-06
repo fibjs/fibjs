@@ -20,8 +20,9 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
   if (node->opcode() != IrOpcode::kJSCallRuntime) return NoChange();
   const Runtime::Function* const f =
       Runtime::FunctionForId(CallRuntimeParametersOf(node->op()).id());
-  if (f->intrinsic_type != Runtime::IntrinsicType::INLINE) return NoChange();
   switch (f->function_id) {
+    case Runtime::kDeoptimizeNow:
+      return ReduceDeoptimizeNow(node);
     case Runtime::kInlineIsSmi:
       return ReduceInlineIsSmi(node);
     case Runtime::kInlineIsNonNegativeSmi:
@@ -30,6 +31,12 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
       return ReduceInlineIsInstanceType(node, JS_ARRAY_TYPE);
     case Runtime::kInlineIsFunction:
       return ReduceInlineIsInstanceType(node, JS_FUNCTION_TYPE);
+    case Runtime::kInlineOptimizedConstructDouble:
+      return ReduceInlineOptimizedConstructDouble(node);
+    case Runtime::kInlineOptimizedDoubleLo:
+      return ReduceInlineOptimizedDoubleLo(node);
+    case Runtime::kInlineOptimizedDoubleHi:
+      return ReduceInlineOptimizedDoubleHi(node);
     case Runtime::kInlineIsRegExp:
       return ReduceInlineIsInstanceType(node, JS_REGEXP_TYPE);
     case Runtime::kInlineValueOf:
@@ -41,6 +48,46 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
 }
 
 
+Reduction JSIntrinsicLowering::ReduceDeoptimizeNow(Node* node) {
+  if (!FLAG_turbo_deoptimization) return NoChange();
+
+  Node* frame_state = NodeProperties::GetFrameStateInput(node);
+  DCHECK_EQ(frame_state->opcode(), IrOpcode::kFrameState);
+
+  Node* effect = NodeProperties::GetEffectInput(node);
+  Node* control = NodeProperties::GetControlInput(node);
+
+  // We are making the continuation after the call dead. To
+  // model this, we generate if (true) statement with deopt
+  // in the true branch and continuation in the false branch.
+  Node* branch =
+      graph()->NewNode(common()->Branch(), jsgraph()->TrueConstant(), control);
+
+  // False branch - the original continuation.
+  Node* if_false = graph()->NewNode(common()->IfFalse(), branch);
+  NodeProperties::ReplaceWithValue(node, jsgraph()->UndefinedConstant(), effect,
+                                   if_false);
+
+  // True branch: deopt.
+  Node* if_true = graph()->NewNode(common()->IfTrue(), branch);
+  Node* deopt =
+      graph()->NewNode(common()->Deoptimize(), frame_state, effect, if_true);
+
+  // Connect the deopt to the merge exiting the graph.
+  Node* end_pred = NodeProperties::GetControlInput(graph()->end());
+  if (end_pred->opcode() == IrOpcode::kMerge) {
+    int inputs = end_pred->op()->ControlInputCount() + 1;
+    end_pred->AppendInput(graph()->zone(), deopt);
+    end_pred->set_op(common()->Merge(inputs));
+  } else {
+    Node* merge = graph()->NewNode(common()->Merge(2), end_pred, deopt);
+    NodeProperties::ReplaceControlInput(graph()->end(), merge);
+  }
+
+  return Changed(deopt);
+}
+
+
 Reduction JSIntrinsicLowering::ReduceInlineIsSmi(Node* node) {
   return Change(node, simplified()->ObjectIsSmi());
 }
@@ -48,6 +95,30 @@ Reduction JSIntrinsicLowering::ReduceInlineIsSmi(Node* node) {
 
 Reduction JSIntrinsicLowering::ReduceInlineIsNonNegativeSmi(Node* node) {
   return Change(node, simplified()->ObjectIsNonNegativeSmi());
+}
+
+
+Reduction JSIntrinsicLowering::ReduceInlineOptimizedConstructDouble(
+    Node* node) {
+  Node* high = NodeProperties::GetValueInput(node, 0);
+  Node* low = NodeProperties::GetValueInput(node, 1);
+  Node* value =
+      graph()->NewNode(machine()->Float64InsertHighWord32(),
+                       graph()->NewNode(machine()->Float64InsertLowWord32(),
+                                        jsgraph()->Constant(0), low),
+                       high);
+  NodeProperties::ReplaceWithValue(node, value);
+  return Replace(value);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceInlineOptimizedDoubleLo(Node* node) {
+  return Change(node, machine()->Float64ExtractLowWord32());
+}
+
+
+Reduction JSIntrinsicLowering::ReduceInlineOptimizedDoubleHi(Node* node) {
+  return Change(node, machine()->Float64ExtractHighWord32());
 }
 
 
@@ -145,7 +216,6 @@ Reduction JSIntrinsicLowering::ReduceInlineValueOf(Node* node) {
 
   Node* merge0 = graph()->NewNode(merge_op, if_true0, if_false0);
 
-
   // Replace all effect uses of {node} with the {ephi0}.
   Node* ephi0 = graph()->NewNode(ephi_op, etrue0, efalse0, merge0);
   NodeProperties::ReplaceWithValue(node, node, ephi0);
@@ -156,7 +226,7 @@ Reduction JSIntrinsicLowering::ReduceInlineValueOf(Node* node) {
 
 
 Reduction JSIntrinsicLowering::Change(Node* node, const Operator* op) {
-  // Remove the effects from the node and update its effect usages.
+  // Replace all effect uses of {node} with the effect dependency.
   NodeProperties::ReplaceWithValue(node, node);
   // Remove the inputs corresponding to context, effect and control.
   NodeProperties::RemoveNonValueInputs(node);

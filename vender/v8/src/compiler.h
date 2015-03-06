@@ -30,6 +30,81 @@ struct OffsetRange {
 };
 
 
+// This class encapsulates encoding and decoding of sources positions from
+// which hydrogen values originated.
+// When FLAG_track_hydrogen_positions is set this object encodes the
+// identifier of the inlining and absolute offset from the start of the
+// inlined function.
+// When the flag is not set we simply track absolute offset from the
+// script start.
+class SourcePosition {
+ public:
+  static SourcePosition Unknown() {
+    return SourcePosition::FromRaw(kNoPosition);
+  }
+
+  bool IsUnknown() const { return value_ == kNoPosition; }
+
+  uint32_t position() const { return PositionField::decode(value_); }
+  void set_position(uint32_t position) {
+    if (FLAG_hydrogen_track_positions) {
+      value_ = static_cast<uint32_t>(PositionField::update(value_, position));
+    } else {
+      value_ = position;
+    }
+  }
+
+  uint32_t inlining_id() const { return InliningIdField::decode(value_); }
+  void set_inlining_id(uint32_t inlining_id) {
+    if (FLAG_hydrogen_track_positions) {
+      value_ =
+          static_cast<uint32_t>(InliningIdField::update(value_, inlining_id));
+    }
+  }
+
+  uint32_t raw() const { return value_; }
+
+ private:
+  static const uint32_t kNoPosition =
+      static_cast<uint32_t>(RelocInfo::kNoPosition);
+  typedef BitField<uint32_t, 0, 9> InliningIdField;
+
+  // Offset from the start of the inlined function.
+  typedef BitField<uint32_t, 9, 23> PositionField;
+
+  friend class HPositionInfo;
+  friend class Deoptimizer;
+
+  static SourcePosition FromRaw(uint32_t raw_position) {
+    SourcePosition position;
+    position.value_ = raw_position;
+    return position;
+  }
+
+  // If FLAG_hydrogen_track_positions is set contains bitfields InliningIdField
+  // and PositionField.
+  // Otherwise contains absolute offset from the script start.
+  uint32_t value_;
+};
+
+
+std::ostream& operator<<(std::ostream& os, const SourcePosition& p);
+
+
+class InlinedFunctionInfo {
+ public:
+  explicit InlinedFunctionInfo(Handle<SharedFunctionInfo> shared)
+      : shared_(shared), start_position_(shared->start_position()) {}
+
+  Handle<SharedFunctionInfo> shared() const { return shared_; }
+  int start_position() const { return start_position_; }
+
+ private:
+  Handle<SharedFunctionInfo> shared_;
+  int start_position_;
+};
+
+
 class ScriptData {
  public:
   ScriptData(const byte* data, int length);
@@ -97,7 +172,7 @@ class CompilationInfo {
 
   CompilationInfo(Handle<JSFunction> closure, Zone* zone);
   CompilationInfo(Handle<Script> script, Zone* zone);
-  CompilationInfo(Isolate* isolate, Zone* zone);
+  CompilationInfo(CodeStub* stub, Isolate* isolate, Zone* zone);
   virtual ~CompilationInfo();
 
   Isolate* isolate() const {
@@ -383,6 +458,15 @@ class CompilationInfo {
     return result;
   }
 
+  List<InlinedFunctionInfo>* inlined_function_infos() {
+    return inlined_function_infos_;
+  }
+  List<int>* inlining_id_to_function_id() {
+    return inlining_id_to_function_id_;
+  }
+  int TraceInlinedFunction(Handle<SharedFunctionInfo> shared,
+                           SourcePosition position);
+
   Handle<Foreign> object_wrapper() {
     if (object_wrapper_.is_null()) {
       object_wrapper_ =
@@ -424,10 +508,11 @@ class CompilationInfo {
   void PrintAstForTesting();
 #endif
 
+  bool is_simple_parameter_list();
+
  protected:
   CompilationInfo(Handle<SharedFunctionInfo> shared_info,
                   Zone* zone);
-  CompilationInfo(CodeStub* stub, Isolate* isolate, Zone* zone);
   CompilationInfo(ScriptCompiler::ExternalSourceStream* source_stream,
                   ScriptCompiler::StreamedSource::Encoding encoding,
                   Isolate* isolate, Zone* zone);
@@ -525,6 +610,8 @@ class CompilationInfo {
   int prologue_offset_;
 
   List<OffsetRange>* no_frame_ranges_;
+  List<InlinedFunctionInfo>* inlined_function_infos_;
+  List<int>* inlining_id_to_function_id_;
 
   // A copy of shared_info()->opt_count() to avoid handle deref
   // during graph optimization.
@@ -724,8 +811,9 @@ class Compiler : public AllStatic {
   static Handle<SharedFunctionInfo> CompileScript(
       Handle<String> source, Handle<Object> script_name, int line_offset,
       int column_offset, bool is_debugger_script, bool is_shared_cross_origin,
-      Handle<Context> context, v8::Extension* extension,
-      ScriptData** cached_data, ScriptCompiler::CompileOptions compile_options,
+      Handle<Object> source_map_url, Handle<Context> context,
+      v8::Extension* extension, ScriptData** cached_data,
+      ScriptCompiler::CompileOptions compile_options,
       NativesFlag is_natives_code, bool is_module);
 
   static Handle<SharedFunctionInfo> CompileStreamedScript(CompilationInfo* info,
@@ -773,7 +861,7 @@ class CompilationPhase BASE_EMBEDDED {
   const char* name_;
   CompilationInfo* info_;
   Zone zone_;
-  unsigned info_zone_start_allocation_size_;
+  size_t info_zone_start_allocation_size_;
   base::ElapsedTimer timer_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationPhase);

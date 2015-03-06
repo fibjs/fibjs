@@ -36,7 +36,6 @@
 // modified significantly by Google Inc.
 // Copyright 2012 the V8 project authors. All rights reserved.
 
-
 #include "src/v8.h"
 
 #if V8_TARGET_ARCH_MIPS64
@@ -179,7 +178,8 @@ Register ToRegister(int num) {
 // Implementation of RelocInfo.
 
 const int RelocInfo::kApplyMask = RelocInfo::kCodeTargetMask |
-                                  1 << RelocInfo::INTERNAL_REFERENCE;
+                                  1 << RelocInfo::INTERNAL_REFERENCE |
+                                  1 << RelocInfo::INTERNAL_REFERENCE_ENCODED;
 
 
 bool RelocInfo::IsCodedSpecially() {
@@ -192,27 +192,6 @@ bool RelocInfo::IsCodedSpecially() {
 
 bool RelocInfo::IsInConstantPool() {
   return false;
-}
-
-
-// Patch the code at the current address with the supplied instructions.
-void RelocInfo::PatchCode(byte* instructions, int instruction_count) {
-  Instr* pc = reinterpret_cast<Instr*>(pc_);
-  Instr* instr = reinterpret_cast<Instr*>(instructions);
-  for (int i = 0; i < instruction_count; i++) {
-    *(pc + i) = *(instr + i);
-  }
-
-  // Indicate that code has changed.
-  CpuFeatures::FlushICache(pc_, instruction_count * Assembler::kInstrSize);
-}
-
-
-// Patch the code at the current PC with a call to the target address.
-// Additional guard instructions can be added if required.
-void RelocInfo::PatchCodeWithCall(Address target, int guard_bytes) {
-  // Patch the code at the current address with a call to the target.
-  UNIMPLEMENTED_MIPS();
 }
 
 
@@ -638,7 +617,20 @@ bool Assembler::IsAndImmediate(Instr instr) {
 }
 
 
-int64_t Assembler::target_at(int64_t pos) {
+int Assembler::target_at(int pos, bool is_internal) {
+  if (is_internal) {
+    int64_t* p = reinterpret_cast<int64_t*>(buffer_ + pos);
+    int64_t address = *p;
+    if (address == kEndOfJumpChain) {
+      return kEndOfChain;
+    } else {
+      int64_t instr_address = reinterpret_cast<int64_t>(p);
+      DCHECK(instr_address - address < INT_MAX);
+      int delta = static_cast<int>(instr_address - address);
+      DCHECK(pos > delta);
+      return pos - delta;
+    }
+  }
   Instr instr = instr_at(pos);
   if ((instr & ~kImm16Mask) == 0) {
     // Emitted label constant, not part of a branch.
@@ -680,7 +672,8 @@ int64_t Assembler::target_at(int64_t pos) {
       return kEndOfChain;
     } else {
       uint64_t instr_address = reinterpret_cast<int64_t>(buffer_ + pos);
-      int64_t delta = instr_address - imm;
+      DCHECK(instr_address - imm < INT_MAX);
+      int delta = static_cast<int>(instr_address - imm);
       DCHECK(pos > delta);
       return pos - delta;
     }
@@ -692,7 +685,7 @@ int64_t Assembler::target_at(int64_t pos) {
     } else {
       uint64_t instr_address = reinterpret_cast<int64_t>(buffer_ + pos);
       instr_address &= kImm28Mask;
-      int64_t delta = instr_address - imm28;
+      int delta = static_cast<int>(instr_address - imm28);
       DCHECK(pos > delta);
       return pos - delta;
     }
@@ -700,7 +693,12 @@ int64_t Assembler::target_at(int64_t pos) {
 }
 
 
-void Assembler::target_at_put(int64_t pos, int64_t target_pos) {
+void Assembler::target_at_put(int pos, int target_pos, bool is_internal) {
+  if (is_internal) {
+    uint64_t imm = reinterpret_cast<uint64_t>(buffer_) + target_pos;
+    *reinterpret_cast<uint64_t*>(buffer_ + pos) = imm;
+    return;
+  }
   Instr instr = instr_at(pos);
   if ((instr & ~kImm16Mask) == 0) {
     DCHECK(target_pos == kEndOfChain || target_pos >= 0);
@@ -770,7 +768,8 @@ void Assembler::print(Label* L) {
       } else {
         PrintF("%d\n", instr);
       }
-      next(&l);
+      next(&l, internal_reference_positions_.find(l.pos()) !=
+                   internal_reference_positions_.end());
     }
   } else {
     PrintF("label in inconsistent state (pos = %d)\n", L->pos_);
@@ -780,32 +779,38 @@ void Assembler::print(Label* L) {
 
 void Assembler::bind_to(Label* L, int pos) {
   DCHECK(0 <= pos && pos <= pc_offset());  // Must have valid binding position.
-  int32_t trampoline_pos = kInvalidSlotPos;
+  int trampoline_pos = kInvalidSlotPos;
+  bool is_internal = false;
   if (L->is_linked() && !trampoline_emitted_) {
     unbound_labels_count_--;
     next_buffer_check_ += kTrampolineSlotsSize;
   }
 
   while (L->is_linked()) {
-    int32_t fixup_pos = L->pos();
-    int32_t dist = pos - fixup_pos;
-    next(L);  // Call next before overwriting link with target at fixup_pos.
+    int fixup_pos = L->pos();
+    int dist = pos - fixup_pos;
+    is_internal = internal_reference_positions_.find(fixup_pos) !=
+                  internal_reference_positions_.end();
+    next(L, is_internal);  // Call next before overwriting link with target at
+                           // fixup_pos.
     Instr instr = instr_at(fixup_pos);
-    if (IsBranch(instr)) {
+    if (is_internal) {
+      target_at_put(fixup_pos, pos, is_internal);
+    } else if (IsBranch(instr)) {
       if (dist > kMaxBranchOffset) {
         if (trampoline_pos == kInvalidSlotPos) {
           trampoline_pos = get_trampoline_entry(fixup_pos);
           CHECK(trampoline_pos != kInvalidSlotPos);
         }
         DCHECK((trampoline_pos - fixup_pos) <= kMaxBranchOffset);
-        target_at_put(fixup_pos, trampoline_pos);
+        target_at_put(fixup_pos, trampoline_pos, false);
         fixup_pos = trampoline_pos;
         dist = pos - fixup_pos;
       }
-      target_at_put(fixup_pos, pos);
+      target_at_put(fixup_pos, pos, false);
     } else {
       DCHECK(IsJ(instr) || IsLui(instr) || IsEmittedConstant(instr));
-      target_at_put(fixup_pos, pos);
+      target_at_put(fixup_pos, pos, false);
     }
   }
   L->bind_to(pos);
@@ -823,9 +828,9 @@ void Assembler::bind(Label* L) {
 }
 
 
-void Assembler::next(Label* L) {
+void Assembler::next(Label* L, bool is_internal) {
   DCHECK(L->is_linked());
-  int link = target_at(L->pos());
+  int link = target_at(L->pos(), is_internal);
   if (link == kEndOfChain) {
     L->Unuse();
   } else {
@@ -2563,39 +2568,18 @@ void Assembler::bc1t(int16_t offset, uint16_t cc) {
 
 
 // Debugging.
-void Assembler::RecordJSReturn() {
-  positions_recorder()->WriteRecordedPositions();
-  CheckBuffer();
-  RecordRelocInfo(RelocInfo::JS_RETURN);
-}
-
-
-void Assembler::RecordDebugBreakSlot() {
-  positions_recorder()->WriteRecordedPositions();
-  CheckBuffer();
-  RecordRelocInfo(RelocInfo::DEBUG_BREAK_SLOT);
-}
-
-
-void Assembler::RecordComment(const char* msg) {
-  if (FLAG_code_comments) {
-    CheckBuffer();
-    RecordRelocInfo(RelocInfo::COMMENT, reinterpret_cast<intptr_t>(msg));
+int Assembler::RelocateInternalReference(RelocInfo::Mode rmode, byte* pc,
+                                         intptr_t pc_delta) {
+  if (RelocInfo::IsInternalReference(rmode)) {
+    int64_t* p = reinterpret_cast<int64_t*>(pc);
+    if (*p == kEndOfJumpChain) {
+      return 0;  // Number of instructions patched.
+    }
+    *p += pc_delta;
+    return 2;  // Number of instructions patched.
   }
-}
-
-
-void Assembler::RecordDeoptReason(const int reason, const int raw_position) {
-  if (FLAG_trace_deopt) {
-    EnsureSpace ensure_space(this);
-    RecordRelocInfo(RelocInfo::POSITION, raw_position);
-    RecordRelocInfo(RelocInfo::DEOPT_REASON, reason);
-  }
-}
-
-
-int Assembler::RelocateInternalReference(byte* pc, intptr_t pc_delta) {
   Instr instr = instr_at(pc);
+  DCHECK(RelocInfo::IsInternalReferenceEncoded(rmode));
   DCHECK(IsJ(instr) || IsLui(instr));
   if (IsLui(instr)) {
     Instr instr_lui = instr_at(pc + 0 * Assembler::kInstrSize);
@@ -2684,12 +2668,12 @@ void Assembler::GrowBuffer() {
   // Relocate runtime entries.
   for (RelocIterator it(desc); !it.done(); it.next()) {
     RelocInfo::Mode rmode = it.rinfo()->rmode();
-    if (rmode == RelocInfo::INTERNAL_REFERENCE) {
+    if (rmode == RelocInfo::INTERNAL_REFERENCE_ENCODED ||
+        rmode == RelocInfo::INTERNAL_REFERENCE) {
       byte* p = reinterpret_cast<byte*>(it.rinfo()->pc());
-      RelocateInternalReference(p, pc_delta);
+      RelocateInternalReference(rmode, p, pc_delta);
     }
   }
-
   DCHECK(!overflow());
 }
 
@@ -2705,6 +2689,21 @@ void Assembler::dd(uint32_t data) {
   CheckBuffer();
   *reinterpret_cast<uint32_t*>(pc_) = data;
   pc_ += sizeof(uint32_t);
+}
+
+
+void Assembler::dd(Label* label) {
+  CheckBuffer();
+  RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE);
+  if (label->is_bound()) {
+    uint64_t data = reinterpret_cast<uint64_t>(buffer_ + label->pos());
+    *reinterpret_cast<uint64_t*>(pc_) = data;
+    pc_ += sizeof(uint64_t);
+  } else {
+    uint64_t target_pos = jump_address(label);
+    emit(target_pos);
+    internal_reference_positions_.insert(label->pos());
+  }
 }
 
 
@@ -2788,7 +2787,7 @@ void Assembler::CheckTrampolinePool() {
           // Buffer growth (and relocation) must be blocked for internal
           // references until associated instructions are emitted and available
           // to be patched.
-          RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE);
+          RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE_ENCODED);
           // TODO(plind): Verify this, presume I cannot use macro-assembler
           // here.
           lui(at, (imm64 >> 32) & kImm16Mask);

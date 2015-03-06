@@ -67,7 +67,8 @@ Heap::Heap()
       initial_semispace_size_(Page::kPageSize),
       target_semispace_size_(Page::kPageSize),
       max_old_generation_size_(700ul * (kPointerSize / 4) * MB),
-      initial_old_generation_size_(max_old_generation_size_),
+      initial_old_generation_size_(max_old_generation_size_ /
+                                   kInitalOldGenerationLimitFactor),
       old_generation_size_configured_(false),
       max_executable_size_(256ul * (kPointerSize / 4) * MB),
       // Variables set based on semispace_size_ and old_generation_size_ in
@@ -135,9 +136,6 @@ Heap::Heap()
       full_codegen_bytes_generated_(0),
       crankshaft_codegen_bytes_generated_(0),
       gcs_since_last_deopt_(0),
-#ifdef VERIFY_HEAP
-      no_weak_object_verification_scope_depth_(0),
-#endif
       allocation_sites_scratchpad_length_(0),
       promotion_queue_(this),
       configured_(false),
@@ -179,13 +177,20 @@ intptr_t Heap::Capacity() {
 }
 
 
-intptr_t Heap::CommittedMemory() {
+intptr_t Heap::CommittedOldGenerationMemory() {
   if (!HasBeenSetUp()) return 0;
 
-  return new_space_.CommittedMemory() + old_pointer_space_->CommittedMemory() +
+  return old_pointer_space_->CommittedMemory() +
          old_data_space_->CommittedMemory() + code_space_->CommittedMemory() +
          map_space_->CommittedMemory() + cell_space_->CommittedMemory() +
          property_cell_space_->CommittedMemory() + lo_space_->Size();
+}
+
+
+intptr_t Heap::CommittedMemory() {
+  if (!HasBeenSetUp()) return 0;
+
+  return new_space_.CommittedMemory() + CommittedOldGenerationMemory();
 }
 
 
@@ -1094,8 +1099,6 @@ void Heap::UpdateSurvivalStatistics(int start_new_space_size) {
   promotion_ratio_ = (static_cast<double>(promoted_objects_size_) /
                       static_cast<double>(start_new_space_size) * 100);
 
-  if (gc_count_ > 1) tracer()->AddPromotionRatio(promotion_ratio_);
-
   if (previous_semi_space_copied_object_size_ > 0) {
     promotion_rate_ =
         (static_cast<double>(promoted_objects_size_) /
@@ -1109,6 +1112,7 @@ void Heap::UpdateSurvivalStatistics(int start_new_space_size) {
        static_cast<double>(start_new_space_size) * 100);
 
   double survival_rate = promotion_ratio_ + semi_space_copied_rate_;
+  tracer()->AddSurvivalRatio(survival_rate);
   if (survival_rate > kYoungSurvivalRateHighThreshold) {
     high_survival_rate_period_length_++;
   } else {
@@ -2203,11 +2207,7 @@ class ScavengingVisitor : public StaticVisitorBase {
                                                   object_size)) {
       return;
     }
-
-    // If promotion failed, we try to copy the object to the other semi-space
-    if (SemiSpaceCopyObject<alignment>(map, slot, object, object_size)) return;
-
-    UNREACHABLE();
+    V8::FatalProcessOutOfMemory("Scavenge promotion failed");
   }
 
 
@@ -2420,8 +2420,8 @@ void Heap::ConfigureInitialOldGenerationSize() {
     old_generation_allocation_limit_ =
         Max(kMinimumOldGenerationAllocationLimit,
             static_cast<intptr_t>(
-                static_cast<double>(initial_old_generation_size_) *
-                (tracer()->AveragePromotionRatio() / 100)));
+                static_cast<double>(old_generation_allocation_limit_) *
+                (tracer()->AverageSurvivalRatio() / 100)));
   }
 }
 
@@ -2452,6 +2452,7 @@ AllocationResult Heap::AllocatePartialMap(InstanceType instance_type,
                    Map::OwnsDescriptors::encode(true) |
                    Map::Counter::encode(Map::kRetainingCounterStart);
   reinterpret_cast<Map*>(result)->set_bit_field3(bit_field3);
+  reinterpret_cast<Map*>(result)->set_weak_cell_cache(Smi::FromInt(0));
   return result;
 }
 
@@ -2467,14 +2468,15 @@ AllocationResult Heap::AllocateMap(InstanceType instance_type,
   Map* map = Map::cast(result);
   map->set_instance_type(instance_type);
   map->set_prototype(null_value(), SKIP_WRITE_BARRIER);
-  map->set_constructor(null_value(), SKIP_WRITE_BARRIER);
+  map->set_constructor_or_backpointer(null_value(), SKIP_WRITE_BARRIER);
   map->set_instance_size(instance_size);
   map->set_inobject_properties(0);
   map->set_pre_allocated_property_fields(0);
   map->set_code_cache(empty_fixed_array(), SKIP_WRITE_BARRIER);
   map->set_dependent_code(DependentCode::cast(empty_fixed_array()),
                           SKIP_WRITE_BARRIER);
-  map->init_back_pointer(undefined_value());
+  map->set_weak_cell_cache(Smi::FromInt(0));
+  map->init_transitions(undefined_value());
   map->set_unused_property_fields(0);
   map->set_instance_descriptors(empty_descriptor_array());
   if (FLAG_unbox_double_fields) {
@@ -2608,7 +2610,7 @@ bool Heap::CreateInitialMaps() {
   // Fix the instance_descriptors for the existing maps.
   meta_map()->set_code_cache(empty_fixed_array());
   meta_map()->set_dependent_code(DependentCode::cast(empty_fixed_array()));
-  meta_map()->init_back_pointer(undefined_value());
+  meta_map()->init_transitions(undefined_value());
   meta_map()->set_instance_descriptors(empty_descriptor_array());
   if (FLAG_unbox_double_fields) {
     meta_map()->set_layout_descriptor(LayoutDescriptor::FastPointerLayout());
@@ -2617,7 +2619,7 @@ bool Heap::CreateInitialMaps() {
   fixed_array_map()->set_code_cache(empty_fixed_array());
   fixed_array_map()->set_dependent_code(
       DependentCode::cast(empty_fixed_array()));
-  fixed_array_map()->init_back_pointer(undefined_value());
+  fixed_array_map()->init_transitions(undefined_value());
   fixed_array_map()->set_instance_descriptors(empty_descriptor_array());
   if (FLAG_unbox_double_fields) {
     fixed_array_map()->set_layout_descriptor(
@@ -2626,7 +2628,7 @@ bool Heap::CreateInitialMaps() {
 
   undefined_map()->set_code_cache(empty_fixed_array());
   undefined_map()->set_dependent_code(DependentCode::cast(empty_fixed_array()));
-  undefined_map()->init_back_pointer(undefined_value());
+  undefined_map()->init_transitions(undefined_value());
   undefined_map()->set_instance_descriptors(empty_descriptor_array());
   if (FLAG_unbox_double_fields) {
     undefined_map()->set_layout_descriptor(
@@ -2635,7 +2637,7 @@ bool Heap::CreateInitialMaps() {
 
   null_map()->set_code_cache(empty_fixed_array());
   null_map()->set_dependent_code(DependentCode::cast(empty_fixed_array()));
-  null_map()->init_back_pointer(undefined_value());
+  null_map()->init_transitions(undefined_value());
   null_map()->set_instance_descriptors(empty_descriptor_array());
   if (FLAG_unbox_double_fields) {
     null_map()->set_layout_descriptor(LayoutDescriptor::FastPointerLayout());
@@ -2644,7 +2646,7 @@ bool Heap::CreateInitialMaps() {
   constant_pool_array_map()->set_code_cache(empty_fixed_array());
   constant_pool_array_map()->set_dependent_code(
       DependentCode::cast(empty_fixed_array()));
-  constant_pool_array_map()->init_back_pointer(undefined_value());
+  constant_pool_array_map()->init_transitions(undefined_value());
   constant_pool_array_map()->set_instance_descriptors(empty_descriptor_array());
   if (FLAG_unbox_double_fields) {
     constant_pool_array_map()->set_layout_descriptor(
@@ -2653,19 +2655,19 @@ bool Heap::CreateInitialMaps() {
 
   // Fix prototype object for existing maps.
   meta_map()->set_prototype(null_value());
-  meta_map()->set_constructor(null_value());
+  meta_map()->set_constructor_or_backpointer(null_value());
 
   fixed_array_map()->set_prototype(null_value());
-  fixed_array_map()->set_constructor(null_value());
+  fixed_array_map()->set_constructor_or_backpointer(null_value());
 
   undefined_map()->set_prototype(null_value());
-  undefined_map()->set_constructor(null_value());
+  undefined_map()->set_constructor_or_backpointer(null_value());
 
   null_map()->set_prototype(null_value());
-  null_map()->set_constructor(null_value());
+  null_map()->set_constructor_or_backpointer(null_value());
 
   constant_pool_array_map()->set_prototype(null_value());
-  constant_pool_array_map()->set_constructor(null_value());
+  constant_pool_array_map()->set_constructor_or_backpointer(null_value());
 
   {  // Map allocation
 #define ALLOCATE_MAP(instance_type, size, field_name)               \
@@ -3108,6 +3110,10 @@ void Heap::CreateInitialObjects() {
   }
 
   set_detached_contexts(empty_fixed_array());
+
+  set_weak_object_to_code_table(
+      *WeakHashTable::New(isolate(), 16, USE_DEFAULT_MINIMUM_CAPACITY,
+                          TENURED));
 
   Handle<SeededNumberDictionary> slow_element_dictionary =
       SeededNumberDictionary::New(isolate(), 0, TENURED);
@@ -3690,6 +3696,7 @@ AllocationResult Heap::AllocateCode(int object_size, bool immovable) {
   DCHECK(isolate_->code_range() == NULL || !isolate_->code_range()->valid() ||
          isolate_->code_range()->contains(code->address()));
   code->set_gc_metadata(Smi::FromInt(0));
+  code->set_ic_age(global_ic_age_);
   return code;
 }
 
@@ -3847,9 +3854,9 @@ void Heap::InitializeJSObjectFromMap(JSObject* obj, FixedArray* properties,
   // Pre-allocated fields need to be initialized with undefined_value as well
   // so that object accesses before the constructor completes (e.g. in the
   // debugger) will not cause a crash.
-  if (map->constructor()->IsJSFunction() &&
-      JSFunction::cast(map->constructor())
-          ->IsInobjectSlackTrackingInProgress()) {
+  Object* constructor = map->GetConstructor();
+  if (constructor->IsJSFunction() &&
+      JSFunction::cast(constructor)->IsInobjectSlackTrackingInProgress()) {
     // We might want to shrink the object later.
     DCHECK(obj->GetInternalFieldCount() == 0);
     filler = Heap::one_pointer_filler_map();
@@ -5193,7 +5200,7 @@ bool Heap::ConfigureHeap(int max_semi_space_size, int max_old_space_size,
     max_semi_space_size_ = Page::kPageSize;
   }
 
-  if (Snapshot::HaveASnapshotToStartFrom()) {
+  if (isolate()->snapshot_available()) {
     // If we are using a snapshot we always reserve the default amount
     // of memory for each semispace because code in the snapshot has
     // write-barrier code that relies on the size and alignment of new
@@ -5280,7 +5287,8 @@ bool Heap::ConfigureHeap(int max_semi_space_size, int max_old_space_size,
   if (FLAG_initial_old_space_size > 0) {
     initial_old_generation_size_ = FLAG_initial_old_space_size * MB;
   } else {
-    initial_old_generation_size_ = max_old_generation_size_ / 2;
+    initial_old_generation_size_ =
+        max_old_generation_size_ / kInitalOldGenerationLimitFactor;
   }
   old_generation_allocation_limit_ = initial_old_generation_size_;
 
@@ -5539,7 +5547,6 @@ bool Heap::CreateHeapObjects() {
   set_native_contexts_list(undefined_value());
   set_array_buffers_list(undefined_value());
   set_allocation_sites_list(undefined_value());
-  weak_object_to_code_table_ = undefined_value();
   return true;
 }
 
@@ -5559,7 +5566,17 @@ void Heap::SetStackLimits() {
 }
 
 
-void Heap::NotifyDeserializationComplete() { deserialization_complete_ = true; }
+void Heap::NotifyDeserializationComplete() {
+  deserialization_complete_ = true;
+#ifdef DEBUG
+  // All pages right after bootstrapping must be marked as never-evacuate.
+  PagedSpaces spaces(this);
+  for (PagedSpace* s = spaces.next(); s != NULL; s = spaces.next()) {
+    PageIterator it(s);
+    while (it.has_next()) CHECK(it.next()->NeverEvacuate());
+  }
+#endif  // DEBUG
+}
 
 
 void Heap::TearDown() {
@@ -5714,38 +5731,22 @@ void Heap::RemoveGCEpilogueCallback(v8::Isolate::GCEpilogueCallback callback) {
 
 
 // TODO(ishell): Find a better place for this.
-void Heap::AddWeakObjectToCodeDependency(Handle<Object> obj,
+void Heap::AddWeakObjectToCodeDependency(Handle<HeapObject> obj,
                                          Handle<DependentCode> dep) {
   DCHECK(!InNewSpace(*obj));
   DCHECK(!InNewSpace(*dep));
-  // This handle scope keeps the table handle local to this function, which
-  // allows us to safely skip write barriers in table update operations.
-  HandleScope scope(isolate());
-  Handle<WeakHashTable> table(WeakHashTable::cast(weak_object_to_code_table_),
-                              isolate());
+  Handle<WeakHashTable> table(weak_object_to_code_table(), isolate());
   table = WeakHashTable::Put(table, obj, dep);
-
-  if (ShouldZapGarbage() && weak_object_to_code_table_ != *table) {
-    WeakHashTable::cast(weak_object_to_code_table_)->Zap(the_hole_value());
-  }
-  set_weak_object_to_code_table(*table);
-  DCHECK_EQ(*dep, table->Lookup(obj));
+  if (*table != weak_object_to_code_table())
+    set_weak_object_to_code_table(*table);
+  DCHECK_EQ(*dep, LookupWeakObjectToCodeDependency(obj));
 }
 
 
-DependentCode* Heap::LookupWeakObjectToCodeDependency(Handle<Object> obj) {
-  Object* dep = WeakHashTable::cast(weak_object_to_code_table_)->Lookup(obj);
+DependentCode* Heap::LookupWeakObjectToCodeDependency(Handle<HeapObject> obj) {
+  Object* dep = weak_object_to_code_table()->Lookup(obj);
   if (dep->IsDependentCode()) return DependentCode::cast(dep);
   return DependentCode::cast(empty_fixed_array());
-}
-
-
-void Heap::EnsureWeakObjectToCodeTable() {
-  if (!weak_object_to_code_table()->IsHashTable()) {
-    set_weak_object_to_code_table(
-        *WeakHashTable::New(isolate(), 16, USE_DEFAULT_MINIMUM_CAPACITY,
-                            TENURED));
-  }
 }
 
 

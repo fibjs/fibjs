@@ -543,6 +543,25 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     __ j(greater_equal, &loop);
 
     __ inc(eax);  // Pushed new.target.
+
+
+    // Handle step in.
+    Label skip_step_in;
+    ExternalReference debug_step_in_fp =
+        ExternalReference::debug_step_in_fp_address(masm->isolate());
+    __ cmp(Operand::StaticVariable(debug_step_in_fp), Immediate(0));
+    __ j(equal, &skip_step_in);
+
+    __ push(eax);
+    __ push(edi);
+    __ push(edi);
+    __ CallRuntime(Runtime::kHandleStepInForDerivedConstructors, 1);
+    __ pop(edi);
+    __ pop(eax);
+
+    __ bind(&skip_step_in);
+
+    // Invoke function.
     ParameterCount actual(eax);
     __ InvokeFunction(edi, actual, CALL_FUNCTION, NullCallWrapper());
 
@@ -1177,6 +1196,7 @@ void Builtins::Generate_ArrayCode(MacroAssembler* masm) {
 
   // Get the Array function.
   __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, edi);
+  __ mov(edx, edi);
 
   if (FLAG_debug_code) {
     // Initial map for the builtin Array function should be a map.

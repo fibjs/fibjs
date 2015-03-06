@@ -192,22 +192,22 @@ DEFINE_IMPLICATION(es_staging, harmony)
   V(harmony_sloppy, "harmony features in sloppy mode")                  \
   V(harmony_unicode, "harmony unicode escapes")                         \
   V(harmony_unicode_regexps, "harmony unicode regexps")                 \
-  V(harmony_computed_property_names, "harmony computed property names") \
-  V(harmony_rest_parameters, "harmony rest parameters")
+  V(harmony_rest_parameters, "harmony rest parameters")                 \
 
 // Features that are complete (but still behind --harmony/es-staging flag).
-#define HARMONY_STAGED(V)                                                 \
-  V(harmony_tostring, "harmony toString")                                 \
-  V(harmony_classes,                                                      \
-    "harmony classes (implies block scoping & object literal extension)") \
-  V(harmony_object_literals, "harmony object literal extensions")
+#define HARMONY_STAGED(V)                                               \
+  V(harmony_computed_property_names, "harmony computed property names") \
+  V(harmony_tostring, "harmony toString")
 
 // Features that are shipping (turned on by default, but internal flag remains).
 #define HARMONY_SHIPPING(V)                                               \
   V(harmony_numeric_literals, "harmony numeric literals")                 \
   V(harmony_strings, "harmony string methods")                            \
   V(harmony_scoping, "harmony block scoping")                             \
-  V(harmony_templates, "harmony template literals")
+  V(harmony_templates, "harmony template literals")                       \
+  V(harmony_classes,                                                      \
+    "harmony classes (implies block scoping & object literal extension)") \
+  V(harmony_object_literals, "harmony object literal extensions")         \
 
 // Once a shipping feature has proved stable in the wild, it will be dropped
 // from HARMONY_SHIPPING, all occurrences of the FLAG_ variable are removed,
@@ -264,10 +264,6 @@ DEFINE_IMPLICATION(track_field_types, track_fields)
 DEFINE_IMPLICATION(track_field_types, track_heap_object_fields)
 DEFINE_BOOL(smi_binop, true, "support smi representation in binary operations")
 DEFINE_BOOL(vector_ics, false, "support vector-based ics")
-DEFINE_BOOL(experimental_classes, false,
-            "experimental new semantics for super() calls")
-DEFINE_IMPLICATION(experimental_classes, harmony_classes)
-DEFINE_IMPLICATION(experimental_classes, harmony_object_literals)
 
 // Flags for optimization types.
 DEFINE_BOOL(optimize_for_size, false,
@@ -371,10 +367,9 @@ DEFINE_BOOL(optimize_for_in, true, "optimize functions containing for-in loops")
 
 DEFINE_BOOL(concurrent_recompilation, true,
             "optimizing hot functions asynchronously on a separate thread")
-DEFINE_BOOL(job_based_recompilation, false,
+DEFINE_BOOL(job_based_recompilation, true,
             "post tasks to v8::Platform instead of using a thread for "
             "concurrent recompilation")
-DEFINE_IMPLICATION(job_based_recompilation, concurrent_recompilation)
 DEFINE_BOOL(trace_concurrent_recompilation, false,
             "track concurrent recompilation")
 DEFINE_INT(concurrent_recompilation_queue_length, 8,
@@ -428,6 +423,7 @@ DEFINE_BOOL(turbo_osr, false, "enable OSR in TurboFan")
 DEFINE_BOOL(turbo_exceptions, false, "enable exception handling in TurboFan")
 DEFINE_BOOL(turbo_stress_loop_peeling, false,
             "stress loop peeling optimization")
+DEFINE_BOOL(turbo_cf_optimization, true, "optimize control flow in TurboFan")
 
 DEFINE_INT(typed_array_max_size_in_heap, 64,
            "threshold for in-heap typed array")
@@ -624,8 +620,11 @@ DEFINE_BOOL(trace_incremental_marking, false,
             "trace progress of the incremental marking")
 DEFINE_BOOL(track_gc_object_stats, false,
             "track object counts and memory usage")
-DEFINE_BOOL(track_detached_contexts, false,
+DEFINE_BOOL(track_detached_contexts, true,
             "track native contexts that are expected to be garbage collected")
+DEFINE_BOOL(trace_detached_contexts, false,
+            "trace native contexts that are expected to be garbage collected")
+DEFINE_IMPLICATION(trace_detached_contexts, track_detached_contexts)
 #ifdef VERIFY_HEAP
 DEFINE_BOOL(verify_heap, false, "verify heap pointers before and after GC")
 #endif
@@ -753,6 +752,14 @@ DEFINE_NEG_IMPLICATION(predictable, concurrent_recompilation)
 DEFINE_NEG_IMPLICATION(predictable, concurrent_osr)
 DEFINE_NEG_IMPLICATION(predictable, concurrent_sweeping)
 
+// mark-compact.cc
+DEFINE_BOOL(force_marking_deque_overflows, false,
+            "force overflows of marking deque by reducing it's size "
+            "to 64 words")
+
+DEFINE_BOOL(stress_compaction, false,
+            "stress the GC compactor to flush out bugs (implies "
+            "--force_marking_deque_overflows)")
 
 //
 // Dev shell flags
@@ -770,21 +777,24 @@ DEFINE_ARGS(js_arguments,
 //
 // GDB JIT integration flags.
 //
+#undef FLAG
+#ifdef ENABLE_GDB_JIT_INTERFACE
+#define FLAG FLAG_FULL
+#else
+#define FLAG FLAG_READONLY
+#endif
 
-DEFINE_BOOL(gdbjit, false, "enable GDBJIT interface (disables compacting GC)")
+DEFINE_BOOL(gdbjit, false, "enable GDBJIT interface")
 DEFINE_BOOL(gdbjit_full, false, "enable GDBJIT interface for all code objects")
 DEFINE_BOOL(gdbjit_dump, false, "dump elf objects with debug info to disk")
 DEFINE_STRING(gdbjit_dump_filter, "",
               "dump only objects containing this substring")
 
-// mark-compact.cc
-DEFINE_BOOL(force_marking_deque_overflows, false,
-            "force overflows of marking deque by reducing it's size "
-            "to 64 words")
-
-DEFINE_BOOL(stress_compaction, false,
-            "stress the GC compactor to flush out bugs (implies "
-            "--force_marking_deque_overflows)")
+#ifdef ENABLE_GDB_JIT_INTERFACE
+DEFINE_IMPLICATION(gdbjit_full, gdbjit)
+DEFINE_IMPLICATION(gdbjit_dump, gdbjit)
+#endif
+DEFINE_NEG_IMPLICATION(gdbjit, compact_code_space)
 
 //
 // Debug only flags
@@ -828,11 +838,6 @@ DEFINE_BOOL(print_global_handles, false, "report global handles after GC")
 // TurboFan debug-only flags.
 DEFINE_BOOL(print_turbo_replay, false,
             "print C++ code to recreate TurboFan graphs")
-
-// interface.cc
-DEFINE_BOOL(print_interfaces, false, "print interfaces")
-DEFINE_BOOL(print_interface_details, false, "print interface inference details")
-DEFINE_INT(print_interface_depth, 5, "depth for printing interfaces")
 
 // objects.cc
 DEFINE_BOOL(trace_normalization, false,

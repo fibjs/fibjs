@@ -126,10 +126,10 @@ void RelocInfo::apply(intptr_t delta, ICacheFlushMode icache_flush_mode) {
       Assembler::JumpLabelToJumpRegister(pc_);
     }
   }
-  if (IsInternalReference(rmode_)) {
+  if (IsInternalReference(rmode_) || IsInternalReferenceEncoded(rmode_)) {
     // Absolute code pointer inside code object moves with the code object.
     byte* p = reinterpret_cast<byte*>(pc_);
-    int count = Assembler::RelocateInternalReference(p, delta);
+    int count = Assembler::RelocateInternalReference(rmode_, p, delta);
     CpuFeatures::FlushICache(p, count * sizeof(uint32_t));
   }
 }
@@ -229,9 +229,21 @@ void RelocInfo::set_target_object(Object* target,
 }
 
 
-Address RelocInfo::target_reference() {
+Address RelocInfo::target_external_reference() {
   DCHECK(rmode_ == EXTERNAL_REFERENCE);
   return Assembler::target_address_at(pc_, host_);
+}
+
+
+Address RelocInfo::target_internal_reference() {
+  DCHECK(rmode_ == INTERNAL_REFERENCE);
+  return Memory::Address_at(pc_);
+}
+
+
+void RelocInfo::set_target_internal_reference(Address target) {
+  DCHECK(rmode_ == INTERNAL_REFERENCE);
+  Memory::Address_at(pc_) = target;
 }
 
 
@@ -307,8 +319,8 @@ Address RelocInfo::call_address() {
   DCHECK((IsJSReturn(rmode()) && IsPatchedReturnSequence()) ||
          (IsDebugBreakSlot(rmode()) && IsPatchedDebugBreakSlotSequence()));
   // The pc_ offset of 0 assumes mips patched return sequence per
-  // debug-mips.cc BreakLocationIterator::SetDebugBreakAtReturn(), or
-  // debug break slot per BreakLocationIterator::SetDebugBreakAtSlot().
+  // debug-mips.cc BreakLocation::SetDebugBreakAtReturn(), or
+  // debug break slot per BreakLocation::SetDebugBreakAtSlot().
   return Assembler::target_address_at(pc_, host_);
 }
 
@@ -317,8 +329,8 @@ void RelocInfo::set_call_address(Address target) {
   DCHECK((IsJSReturn(rmode()) && IsPatchedReturnSequence()) ||
          (IsDebugBreakSlot(rmode()) && IsPatchedDebugBreakSlotSequence()));
   // The pc_ offset of 0 assumes mips patched return sequence per
-  // debug-mips.cc BreakLocationIterator::SetDebugBreakAtReturn(), or
-  // debug break slot per BreakLocationIterator::SetDebugBreakAtSlot().
+  // debug-mips.cc BreakLocation::SetDebugBreakAtReturn(), or
+  // debug break slot per BreakLocation::SetDebugBreakAtSlot().
   Assembler::set_target_address_at(pc_, host_, target);
   if (host() != NULL) {
     Object* target_code = Code::GetCodeFromTargetAddress(target);

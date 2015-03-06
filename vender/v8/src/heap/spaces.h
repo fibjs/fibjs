@@ -373,6 +373,7 @@ class MemoryChunk {
     CONTAINS_ONLY_DATA,
     EVACUATION_CANDIDATE,
     RESCAN_ON_EVACUATION,
+    NEVER_EVACUATE,  // May contain immortal immutables.
 
     // WAS_SWEPT indicates that marking bits have been cleared by the sweeper,
     // otherwise marking bits are still intact.
@@ -604,7 +605,14 @@ class MemoryChunk {
 
   static const int kFlagsOffset = kPointerSize;
 
-  bool IsEvacuationCandidate() { return IsFlagSet(EVACUATION_CANDIDATE); }
+  bool NeverEvacuate() { return IsFlagSet(NEVER_EVACUATE); }
+
+  void MarkNeverEvacuate() { SetFlag(NEVER_EVACUATE); }
+
+  bool IsEvacuationCandidate() {
+    DCHECK(!(IsFlagSet(NEVER_EVACUATE) && IsFlagSet(EVACUATION_CANDIDATE)));
+    return IsFlagSet(EVACUATION_CANDIDATE);
+  }
 
   bool ShouldSkipEvacuationSlotRecording() {
     return (flags_ & kSkipEvacuationSlotsRecordingMask) != 0;
@@ -619,6 +627,7 @@ class MemoryChunk {
   inline SlotsBuffer** slots_buffer_address() { return &slots_buffer_; }
 
   void MarkEvacuationCandidate() {
+    DCHECK(!IsFlagSet(NEVER_EVACUATE));
     DCHECK(slots_buffer_ == NULL);
     SetFlag(EVACUATION_CANDIDATE);
   }
@@ -1654,6 +1663,9 @@ class PagedSpace : public Space {
   // Checks whether an object/address is in this space.
   inline bool Contains(Address a);
   bool Contains(HeapObject* o) { return Contains(o->address()); }
+  // Unlike Contains() methods it is safe to call this one even for addresses
+  // of unmapped memory.
+  bool ContainsSafe(Address addr);
 
   // Given an address occupied by a live object, return that object if it is
   // in this space, or a Smi if it is not.  The implementation iterates over

@@ -114,6 +114,9 @@
     <ClInclude Include="include\v8-util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\v8-version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\v8.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -148,9 +151,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ast-numbering.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ast-this-access-visitor.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ast-value-factory.h">
@@ -378,6 +378,9 @@
     <ClInclude Include="src\compiler\control-equivalence.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\control-flow-optimizer.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\control-reducer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -390,13 +393,7 @@
     <ClInclude Include="src\compiler\gap-resolver.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\generic-algorithm.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\compiler\graph-builder.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\compiler\graph-inl.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\graph-reducer.h">
@@ -478,9 +475,6 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\move-optimizer.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\compiler\node-aux-data-inl.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\node-aux-data.h">
@@ -894,9 +888,6 @@
     <ClInclude Include="src\interface-descriptors.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\interface.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\interpreter-irregexp.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -978,6 +969,9 @@
     <ClInclude Include="src\messages.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\modules.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\msan.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -997,6 +991,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\parser.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pending-compilation-error-handler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\perf-jit.h">
@@ -1147,6 +1144,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\string-stream.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\strings-storage.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\strtod.h">
@@ -1343,9 +1343,6 @@
     <ClCompile Include="src\ast-numbering.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ast-this-access-visitor.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ast-value-factory.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1508,6 +1505,9 @@
     <ClCompile Include="src\compiler\control-builders.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\control-flow-optimizer.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\control-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1596,6 +1596,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\node-marker.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\node-matchers.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\node-properties.cc">
@@ -2018,9 +2021,6 @@
     <ClCompile Include="src\interface-descriptors.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\interface.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\interpreter-irregexp.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -2069,6 +2069,9 @@
     <ClCompile Include="src\messages.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\modules.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\objects-debug.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -2085,6 +2088,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\parser.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pending-compilation-error-handler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\perf-jit.cc">
@@ -2295,6 +2301,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\string-stream.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\strings-storage.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\strtod.cc">

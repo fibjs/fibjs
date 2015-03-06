@@ -5,7 +5,6 @@
 #include "src/compiler/access-builder.h"
 #include "src/compiler/js-graph.h"
 #include "src/compiler/js-typed-lowering.h"
-#include "src/compiler/node-aux-data-inl.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
 #include "src/compiler/operator-properties.h"
@@ -20,36 +19,32 @@ namespace compiler {
 // - relax effects from generic but not-side-effecting operations
 
 
-// Relax the effects of {node} by immediately replacing effect uses of {node}
-// with the effect input to {node}.
+// Relax the effects of {node} by immediately replacing effect and control uses
+// of {node} with the effect and control input to {node}.
 // TODO(turbofan): replace the effect input to {node} with {graph->start()}.
 // TODO(titzer): move into a GraphEditor?
-static void RelaxEffects(Node* node) {
+static void RelaxEffectsAndControls(Node* node) {
   NodeProperties::ReplaceWithValue(node, node, NULL);
+}
+
+
+// Relax the control uses of {node} by immediately replacing them with the
+// control input to {node}.
+// TODO(titzer): move into a GraphEditor?
+static void RelaxControls(Node* node) {
+  NodeProperties::ReplaceWithValue(node, node, node);
 }
 
 
 JSTypedLowering::JSTypedLowering(JSGraph* jsgraph, Zone* zone)
     : jsgraph_(jsgraph), simplified_(graph()->zone()), conversions_(zone) {
-  zero_range_ = Type::Range(0.0, 1.0, graph()->zone());
+  zero_range_ = Type::Range(0.0, 0.0, graph()->zone());
   one_range_ = Type::Range(1.0, 1.0, graph()->zone());
   zero_thirtyone_range_ = Type::Range(0.0, 31.0, graph()->zone());
-  // TODO(jarin): Can we have a correctification of the stupid type system?
-  // These stupid work-arounds are just stupid!
-  shifted_int32_ranges_[0] = Type::Signed32();
-  if (SmiValuesAre31Bits()) {
-    shifted_int32_ranges_[1] = Type::SignedSmall();
-    for (size_t k = 2; k < arraysize(shifted_int32_ranges_); ++k) {
-      double min = kMinInt / (1 << k);
-      double max = kMaxInt / (1 << k);
-      shifted_int32_ranges_[k] = Type::Range(min, max, graph()->zone());
-    }
-  } else {
-    for (size_t k = 1; k < arraysize(shifted_int32_ranges_); ++k) {
-      double min = kMinInt / (1 << k);
-      double max = kMaxInt / (1 << k);
-      shifted_int32_ranges_[k] = Type::Range(min, max, graph()->zone());
-    }
+  for (size_t k = 0; k < arraysize(shifted_int32_ranges_); ++k) {
+    double min = kMinInt / (1 << k);
+    double max = kMaxInt / (1 << k);
+    shifted_int32_ranges_[k] = Type::Range(min, max, graph()->zone());
   }
 }
 
@@ -117,9 +112,9 @@ class JSBinopReduction FINAL {
     DCHECK_EQ(0, op->ControlInputCount());
     DCHECK_EQ(2, op->ValueInputCount());
 
-    // Remove the effects from the node, if any, and update its effect usages.
+    // Remove the effects from the node, and update its effect/control usages.
     if (node_->op()->EffectInputCount() > 0) {
-      RelaxEffects(node_);
+      RelaxEffectsAndControls(node_);
     }
     // Remove the inputs corresponding to context, effect, and control.
     NodeProperties::RemoveNonValueInputs(node_);
@@ -272,13 +267,15 @@ Reduction JSTypedLowering::ReduceJSAdd(Node* node) {
 
 Reduction JSTypedLowering::ReduceJSBitwiseOr(Node* node) {
   JSBinopReduction r(this, node);
-  if (r.BothInputsAre(Type::Primitive()) || r.OneInputIs(zero_range_)) {
-    // TODO(jarin): Propagate frame state input from non-primitive input node to
-    // JSToNumber node.
+
+  // We can only reduce to Word32Or if we are sure the to-number conversions
+  // cannot lazily deoptimize.
+  bool shortcut_or_zero =
+      !FLAG_turbo_deoptimization && r.OneInputIs(zero_range_);
+  if (r.BothInputsAre(Type::Primitive()) || shortcut_or_zero) {
     // TODO(titzer): some Smi bitwise operations don't really require going
     // all the way to int32, which can save tagging/untagging for some
-    // operations
-    // on some platforms.
+    // operations on some platforms.
     // TODO(turbofan): make this heuristic configurable for code size.
     r.ConvertInputsToUI32(kSigned, kSigned);
     return r.ChangeToPureOperator(machine()->Word32Or(), Type::Integral32());
@@ -289,9 +286,13 @@ Reduction JSTypedLowering::ReduceJSBitwiseOr(Node* node) {
 
 Reduction JSTypedLowering::ReduceJSMultiply(Node* node) {
   JSBinopReduction r(this, node);
-  if (r.BothInputsAre(Type::Primitive()) || r.OneInputIs(one_range_)) {
-    // TODO(jarin): Propagate frame state input from non-primitive input node to
-    // JSToNumber node.
+
+  // We can only reduce to NumberMultiply if we are sure the to-number
+  // conversions cannot lazily deoptimize.
+  bool shortcut_multiply_one =
+      !FLAG_turbo_deoptimization && r.OneInputIs(one_range_);
+
+  if (r.BothInputsAre(Type::Primitive()) || shortcut_multiply_one) {
     r.ConvertInputsToNumber();
     return r.ChangeToPureOperator(simplified()->NumberMultiply(),
                                   Type::Number());
@@ -503,6 +504,12 @@ Reduction JSTypedLowering::ReduceJSUnaryNot(Node* node) {
     node->set_op(simplified()->BooleanNot());
     node->TrimInputCount(1);
     return Changed(node);
+  } else if (input_type->Is(Type::OrderedNumber())) {
+    // JSUnaryNot(x:number,context) => NumberEqual(x,#0)
+    node->set_op(simplified()->NumberEqual());
+    node->ReplaceInput(1, jsgraph()->ZeroConstant());
+    DCHECK_EQ(2, node->InputCount());
+    return Changed(node);
   }
   // JSUnaryNot(x,context) => BooleanNot(AnyToBoolean(x))
   node->set_op(simplified()->BooleanNot());
@@ -579,7 +586,7 @@ Reduction JSTypedLowering::ReduceJSToNumber(Node* node) {
       DCHECK(NodeProperties::IsControl(control));
       DCHECK(NodeProperties::GetBounds(node).upper->Is(Type::Number()));
       DCHECK(!NodeProperties::GetBounds(input).upper->Is(Type::Number()));
-      RelaxEffects(node);
+      RelaxEffectsAndControls(node);
       node->set_op(common()->Phi(kMachAnyTagged, input_count));
       for (int i = 0; i < input_count; ++i) {
         // We must be very careful not to introduce cycles when pushing
@@ -611,7 +618,7 @@ Reduction JSTypedLowering::ReduceJSToNumber(Node* node) {
       DCHECK_EQ(3, input_count);
       DCHECK(NodeProperties::GetBounds(node).upper->Is(Type::Number()));
       DCHECK(!NodeProperties::GetBounds(input).upper->Is(Type::Number()));
-      RelaxEffects(node);
+      RelaxEffectsAndControls(node);
       node->set_op(common()->Select(kMachAnyTagged, input_hint));
       node->ReplaceInput(0, input->InputAt(0));
       for (int i = 1; i < input_count; ++i) {
@@ -635,7 +642,7 @@ Reduction JSTypedLowering::ReduceJSToNumber(Node* node) {
         NodeProperties::GetControlInput(node) != graph()->start()) {
       // JSToNumber(x:plain-primitive,context,effect,control)
       //   => JSToNumber(x,no-context,start,start)
-      RelaxEffects(node);
+      RelaxEffectsAndControls(node);
       NodeProperties::ReplaceContextInput(node, jsgraph()->NoContextConstant());
       NodeProperties::ReplaceControlInput(node, graph()->start());
       NodeProperties::ReplaceEffectInput(node, graph()->start());
@@ -791,6 +798,7 @@ Reduction JSTypedLowering::ReduceJSStoreProperty(Node* node) {
         node->ReplaceInput(3, effect);
         node->ReplaceInput(4, control);
         node->TrimInputCount(5);
+        RelaxControls(node);
         return Changed(node);
       }
       // Compute byte offset.
@@ -804,6 +812,7 @@ Reduction JSTypedLowering::ReduceJSStoreProperty(Node* node) {
       node->ReplaceInput(4, effect);
       node->ReplaceInput(5, control);
       node->TrimInputCount(6);
+      RelaxControls(node);
       return Changed(node);
     }
   }

@@ -466,7 +466,7 @@ void EmitLea(InstructionSelector* selector, Node* result, Node* index,
   AddressingMode mode = g.GenerateMemoryOperandInputs(
       index, scale, base, displacement, inputs, &input_count);
 
-  DCHECK_NE(0, static_cast<int>(input_count));
+  DCHECK_NE(0u, input_count);
   DCHECK_GE(arraysize(inputs), input_count);
 
   InstructionOperand outputs[1];
@@ -519,7 +519,7 @@ void InstructionSelector::VisitInt32Add(Node* node) {
     AddressingMode mode = g.GenerateMemoryOperandInputs(
         m.index(), m.scale(), m.base(), m.displacement(), inputs, &input_count);
 
-    DCHECK_NE(0, static_cast<int>(input_count));
+    DCHECK_NE(0u, input_count);
     DCHECK_GE(arraysize(inputs), input_count);
 
     InstructionOperand outputs[1];
@@ -722,7 +722,7 @@ void InstructionSelector::VisitFloat64RoundTiesAway(Node* node) {
 }
 
 
-void InstructionSelector::VisitCall(Node* node) {
+void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   IA32OperandGenerator g(this);
   const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(node);
 
@@ -749,6 +749,13 @@ void InstructionSelector::VisitCall(Node* node) {
     Emit(kIA32Push, g.NoOutput(), value);
   }
 
+  // Pass label of exception handler block.
+  CallDescriptor::Flags flags = descriptor->flags();
+  if (handler != nullptr) {
+    flags |= CallDescriptor::kHasExceptionHandler;
+    buffer.instruction_args.push_back(g.Label(handler));
+  }
+
   // Select the appropriate opcode based on the call type.
   InstructionCode opcode;
   switch (descriptor->kind()) {
@@ -763,7 +770,7 @@ void InstructionSelector::VisitCall(Node* node) {
       UNREACHABLE();
       return;
   }
-  opcode |= MiscField::encode(descriptor->flags());
+  opcode |= MiscField::encode(flags);
 
   // Emit the call instruction.
   InstructionOperand* first_output =
@@ -932,6 +939,67 @@ void InstructionSelector::VisitBranch(Node* branch, BasicBlock* tbranch,
 }
 
 
+void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
+                                      BasicBlock** case_branches,
+                                      int32_t* case_values, size_t case_count,
+                                      int32_t min_value, int32_t max_value) {
+  IA32OperandGenerator g(this);
+  InstructionOperand value_operand = g.UseRegister(node->InputAt(0));
+  InstructionOperand default_operand = g.Label(default_branch);
+
+  // Note that {value_range} can be 0 if {min_value} is -2^31 and {max_value}
+  // is 2^31-1, so don't assume that it's non-zero below.
+  size_t value_range =
+      1u + bit_cast<uint32_t>(max_value) - bit_cast<uint32_t>(min_value);
+
+  // Determine whether to issue an ArchTableSwitch or an ArchLookupSwitch
+  // instruction.
+  size_t table_space_cost = 4 + value_range;
+  size_t table_time_cost = 3;
+  size_t lookup_space_cost = 3 + 2 * case_count;
+  size_t lookup_time_cost = case_count;
+  if (case_count > 4 &&
+      table_space_cost + 3 * table_time_cost <=
+          lookup_space_cost + 3 * lookup_time_cost &&
+      min_value > std::numeric_limits<int32_t>::min()) {
+    InstructionOperand index_operand = value_operand;
+    if (min_value) {
+      index_operand = g.TempRegister();
+      Emit(kIA32Lea | AddressingModeField::encode(kMode_MRI), index_operand,
+           value_operand, g.TempImmediate(-min_value));
+    }
+    size_t input_count = 2 + value_range;
+    auto* inputs = zone()->NewArray<InstructionOperand>(input_count);
+    inputs[0] = index_operand;
+    std::fill(&inputs[1], &inputs[input_count], default_operand);
+    for (size_t index = 0; index < case_count; ++index) {
+      size_t value = case_values[index] - min_value;
+      BasicBlock* branch = case_branches[index];
+      DCHECK_LE(0u, value);
+      DCHECK_LT(value + 2, input_count);
+      inputs[value + 2] = g.Label(branch);
+    }
+    Emit(kArchTableSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
+        ->MarkAsControl();
+    return;
+  }
+
+  // Generate a sequence of conditional jumps.
+  size_t input_count = 2 + case_count * 2;
+  auto* inputs = zone()->NewArray<InstructionOperand>(input_count);
+  inputs[0] = value_operand;
+  inputs[1] = default_operand;
+  for (size_t index = 0; index < case_count; ++index) {
+    int32_t value = case_values[index];
+    BasicBlock* branch = case_branches[index];
+    inputs[index * 2 + 2 + 0] = g.TempImmediate(value);
+    inputs[index * 2 + 2 + 1] = g.Label(branch);
+  }
+  Emit(kArchLookupSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
+      ->MarkAsControl();
+}
+
+
 void InstructionSelector::VisitWord32Equal(Node* const node) {
   FlagsContinuation cont(kEqual, node);
   Int32BinopMatcher m(node);
@@ -1004,16 +1072,54 @@ void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
 }
 
 
+void InstructionSelector::VisitFloat64ExtractLowWord32(Node* node) {
+  IA32OperandGenerator g(this);
+  Emit(kSSEFloat64ExtractLowWord32, g.DefineAsRegister(node),
+       g.Use(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitFloat64ExtractHighWord32(Node* node) {
+  IA32OperandGenerator g(this);
+  Emit(kSSEFloat64ExtractHighWord32, g.DefineAsRegister(node),
+       g.Use(node->InputAt(0)));
+}
+
+
+void InstructionSelector::VisitFloat64InsertLowWord32(Node* node) {
+  IA32OperandGenerator g(this);
+  Node* left = node->InputAt(0);
+  Node* right = node->InputAt(1);
+  Float64Matcher mleft(left);
+  if (mleft.HasValue() && (bit_cast<uint64_t>(mleft.Value()) >> 32) == 0u) {
+    Emit(kSSEFloat64LoadLowWord32, g.DefineAsRegister(node), g.Use(right));
+    return;
+  }
+  Emit(kSSEFloat64InsertLowWord32, g.DefineSameAsFirst(node),
+       g.UseRegister(left), g.Use(right));
+}
+
+
+void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
+  IA32OperandGenerator g(this);
+  Node* left = node->InputAt(0);
+  Node* right = node->InputAt(1);
+  Emit(kSSEFloat64InsertHighWord32, g.DefineSameAsFirst(node),
+       g.UseRegister(left), g.Use(right));
+}
+
+
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
+  MachineOperatorBuilder::Flags flags =
+      MachineOperatorBuilder::kWord32ShiftIsSafe;
   if (CpuFeatures::IsSupported(SSE4_1)) {
-    return MachineOperatorBuilder::kFloat64Floor |
-           MachineOperatorBuilder::kFloat64Ceil |
-           MachineOperatorBuilder::kFloat64RoundTruncate |
-           MachineOperatorBuilder::kWord32ShiftIsSafe;
+    flags |= MachineOperatorBuilder::kFloat64Floor |
+             MachineOperatorBuilder::kFloat64Ceil |
+             MachineOperatorBuilder::kFloat64RoundTruncate;
   }
-  return MachineOperatorBuilder::Flag::kNoFlags;
+  return flags;
 }
 
 }  // namespace compiler

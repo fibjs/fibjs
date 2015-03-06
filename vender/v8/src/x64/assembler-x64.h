@@ -40,6 +40,7 @@
 #include <deque>
 
 #include "src/assembler.h"
+#include "src/compiler.h"
 #include "src/serialize.h"
 
 namespace v8 {
@@ -74,9 +75,8 @@ struct Register {
   //  rsp - stack pointer
   //  rbp - frame pointer
   //  r10 - fixed scratch register
-  //  r12 - smi constant register
   //  r13 - root register
-  static const int kMaxNumAllocatableRegisters = 11;
+  static const int kMaxNumAllocatableRegisters = 12;
   static int NumAllocatableRegisters() {
     return kMaxNumAllocatableRegisters;
   }
@@ -104,6 +104,7 @@ struct Register {
       "r8",
       "r9",
       "r11",
+      "r12",
       "r14",
       "r15"
     };
@@ -1063,6 +1064,7 @@ class Assembler : public AssemblerBase {
 
   // SSE2 instructions
   void movd(XMMRegister dst, Register src);
+  void movd(XMMRegister dst, const Operand& src);
   void movd(Register dst, XMMRegister src);
   void movq(XMMRegister dst, Register src);
   void movq(Register dst, XMMRegister src);
@@ -1131,8 +1133,16 @@ class Assembler : public AssemblerBase {
 
   void movmskpd(Register dst, XMMRegister src);
 
+  void punpckldq(XMMRegister dst, XMMRegister src);
+  void punpckhdq(XMMRegister dst, XMMRegister src);
+
   // SSE 4.1 instruction
   void extractps(Register dst, XMMRegister src, byte imm8);
+
+  void pextrd(Register dst, XMMRegister src, int8_t imm8);
+
+  void pinsrd(XMMRegister dst, Register src, int8_t imm8);
+  void pinsrd(XMMRegister dst, const Operand& src, int8_t imm8);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
@@ -1337,11 +1347,11 @@ class Assembler : public AssemblerBase {
 
   // Record a comment relocation entry that can be used by a disassembler.
   // Use --code-comments to enable.
-  void RecordComment(const char* msg, bool force = false);
+  void RecordComment(const char* msg);
 
   // Record a deoptimization reason that can be used by a log or cpu profiler.
   // Use --trace-deopt to enable.
-  void RecordDeoptReason(const int reason, const int raw_position);
+  void RecordDeoptReason(const int reason, const SourcePosition position);
 
   // Allocate a constant pool of the correct size for the generated code.
   Handle<ConstantPoolArray> NewConstantPool(Isolate* isolate);

@@ -8,6 +8,7 @@
 
 #include "src/compiler.h"
 #include "src/debug.h"
+#include "src/deoptimizer.h"
 #include "src/global-handles.h"
 #include "src/sampler.h"
 #include "src/scopeinfo.h"
@@ -15,120 +16,6 @@
 
 namespace v8 {
 namespace internal {
-
-
-bool StringsStorage::StringsMatch(void* key1, void* key2) {
-  return strcmp(reinterpret_cast<char*>(key1),
-                reinterpret_cast<char*>(key2)) == 0;
-}
-
-
-StringsStorage::StringsStorage(Heap* heap)
-    : hash_seed_(heap->HashSeed()), names_(StringsMatch) {
-}
-
-
-StringsStorage::~StringsStorage() {
-  for (HashMap::Entry* p = names_.Start();
-       p != NULL;
-       p = names_.Next(p)) {
-    DeleteArray(reinterpret_cast<const char*>(p->value));
-  }
-}
-
-
-const char* StringsStorage::GetCopy(const char* src) {
-  int len = static_cast<int>(strlen(src));
-  HashMap::Entry* entry = GetEntry(src, len);
-  if (entry->value == NULL) {
-    Vector<char> dst = Vector<char>::New(len + 1);
-    StrNCpy(dst, src, len);
-    dst[len] = '\0';
-    entry->key = dst.start();
-    entry->value = entry->key;
-  }
-  return reinterpret_cast<const char*>(entry->value);
-}
-
-
-const char* StringsStorage::GetFormatted(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const char* result = GetVFormatted(format, args);
-  va_end(args);
-  return result;
-}
-
-
-const char* StringsStorage::AddOrDisposeString(char* str, int len) {
-  HashMap::Entry* entry = GetEntry(str, len);
-  if (entry->value == NULL) {
-    // New entry added.
-    entry->key = str;
-    entry->value = str;
-  } else {
-    DeleteArray(str);
-  }
-  return reinterpret_cast<const char*>(entry->value);
-}
-
-
-const char* StringsStorage::GetVFormatted(const char* format, va_list args) {
-  Vector<char> str = Vector<char>::New(1024);
-  int len = VSNPrintF(str, format, args);
-  if (len == -1) {
-    DeleteArray(str.start());
-    return GetCopy(format);
-  }
-  return AddOrDisposeString(str.start(), len);
-}
-
-
-const char* StringsStorage::GetName(Name* name) {
-  if (name->IsString()) {
-    String* str = String::cast(name);
-    int length = Min(kMaxNameSize, str->length());
-    int actual_length = 0;
-    SmartArrayPointer<char> data =
-        str->ToCString(DISALLOW_NULLS, ROBUST_STRING_TRAVERSAL, 0, length,
-                       &actual_length);
-    return AddOrDisposeString(data.Detach(), actual_length);
-  } else if (name->IsSymbol()) {
-    return "<symbol>";
-  }
-  return "";
-}
-
-
-const char* StringsStorage::GetName(int index) {
-  return GetFormatted("%d", index);
-}
-
-
-const char* StringsStorage::GetFunctionName(Name* name) {
-  return GetName(name);
-}
-
-
-const char* StringsStorage::GetFunctionName(const char* name) {
-  return GetCopy(name);
-}
-
-
-size_t StringsStorage::GetUsedMemorySize() const {
-  size_t size = sizeof(*this);
-  size += sizeof(HashMap::Entry) * names_.capacity();
-  for (HashMap::Entry* p = names_.Start(); p != NULL; p = names_.Next(p)) {
-    size += strlen(reinterpret_cast<const char*>(p->value)) + 1;
-  }
-  return size;
-}
-
-
-HashMap::Entry* StringsStorage::GetEntry(const char* str, int len) {
-  uint32_t hash = StringHasher::HashSequentialString(str, len, hash_seed_);
-  return names_.Lookup(const_cast<char*>(str), hash, true);
-}
 
 
 JITLineInfoTable::JITLineInfoTable() {}
@@ -159,6 +46,7 @@ int JITLineInfoTable::GetSourceLineNumber(int pc_offset) const {
 const char* const CodeEntry::kEmptyNamePrefix = "";
 const char* const CodeEntry::kEmptyResourceName = "";
 const char* const CodeEntry::kEmptyBailoutReason = "";
+const char* const CodeEntry::kNoDeoptReason = "";
 
 
 CodeEntry::~CodeEntry() {
@@ -167,10 +55,12 @@ CodeEntry::~CodeEntry() {
 }
 
 
-uint32_t CodeEntry::GetCallUid() const {
+uint32_t CodeEntry::GetHash() const {
   uint32_t hash = ComputeIntegerHash(tag(), v8::internal::kZeroHashSeed);
-  if (shared_id_ != 0) {
-    hash ^= ComputeIntegerHash(static_cast<uint32_t>(shared_id_),
+  if (script_id_ != v8::UnboundScript::kNoScriptId) {
+    hash ^= ComputeIntegerHash(static_cast<uint32_t>(script_id_),
+                               v8::internal::kZeroHashSeed);
+    hash ^= ComputeIntegerHash(static_cast<uint32_t>(position_),
                                v8::internal::kZeroHashSeed);
   } else {
     hash ^= ComputeIntegerHash(
@@ -188,13 +78,14 @@ uint32_t CodeEntry::GetCallUid() const {
 }
 
 
-bool CodeEntry::IsSameAs(CodeEntry* entry) const {
-  return this == entry ||
-         (tag() == entry->tag() && shared_id_ == entry->shared_id_ &&
-          (shared_id_ != 0 ||
-           (name_prefix_ == entry->name_prefix_ && name_ == entry->name_ &&
-            resource_name_ == entry->resource_name_ &&
-            line_number_ == entry->line_number_)));
+bool CodeEntry::IsSameFunctionAs(CodeEntry* entry) const {
+  if (this == entry) return true;
+  if (script_id_ != v8::UnboundScript::kNoScriptId) {
+    return script_id_ == entry->script_id_ && position_ == entry->position_;
+  }
+  return name_prefix_ == entry->name_prefix_ && name_ == entry->name_ &&
+         resource_name_ == entry->resource_name_ &&
+         line_number_ == entry->line_number_;
 }
 
 
@@ -212,6 +103,21 @@ int CodeEntry::GetSourceLine(int pc_offset) const {
 }
 
 
+void CodeEntry::FillFunctionInfo(SharedFunctionInfo* shared) {
+  if (!shared->script()->IsScript()) return;
+  Script* script = Script::cast(shared->script());
+  set_script_id(script->id()->value());
+  set_position(shared->start_position());
+  set_bailout_reason(GetBailoutReason(shared->disable_optimization_reason()));
+}
+
+
+void ProfileNode::CollectDeoptInfo(CodeEntry* entry) {
+  deopt_infos_.Add(DeoptInfo(entry->deopt_reason(), entry->deopt_position()));
+  entry->clear_deopt_info();
+}
+
+
 ProfileNode* ProfileNode::FindChild(CodeEntry* entry) {
   HashMap::Entry* map_entry =
       children_.Lookup(entry, CodeEntryHash(entry), false);
@@ -223,13 +129,14 @@ ProfileNode* ProfileNode::FindChild(CodeEntry* entry) {
 ProfileNode* ProfileNode::FindOrAddChild(CodeEntry* entry) {
   HashMap::Entry* map_entry =
       children_.Lookup(entry, CodeEntryHash(entry), true);
-  if (map_entry->value == NULL) {
+  ProfileNode* node = reinterpret_cast<ProfileNode*>(map_entry->value);
+  if (node == NULL) {
     // New node added.
-    ProfileNode* new_node = new ProfileNode(tree_, entry);
-    map_entry->value = new_node;
-    children_list_.Add(new_node);
+    node = new ProfileNode(tree_, entry);
+    map_entry->value = node;
+    children_list_.Add(node);
   }
-  return reinterpret_cast<ProfileNode*>(map_entry->value);
+  return node;
 }
 
 
@@ -268,12 +175,28 @@ bool ProfileNode::GetLineTicks(v8::CpuProfileNode::LineTick* entries,
 
 
 void ProfileNode::Print(int indent) {
-  base::OS::Print("%5u %*s %s%s %d #%d %s", self_ticks_, indent, "",
+  base::OS::Print("%5u %*s %s%s %d #%d", self_ticks_, indent, "",
                   entry_->name_prefix(), entry_->name(), entry_->script_id(),
-                  id(), entry_->bailout_reason());
+                  id());
   if (entry_->resource_name()[0] != '\0')
     base::OS::Print(" %s:%d", entry_->resource_name(), entry_->line_number());
   base::OS::Print("\n");
+  for (auto info : deopt_infos_) {
+    if (FLAG_hydrogen_track_positions) {
+      base::OS::Print("%*s deopted at %d_%d with reason '%s'\n", indent + 10,
+                      "", info.deopt_position.inlining_id(),
+                      info.deopt_position.position(), info.deopt_reason);
+    } else {
+      base::OS::Print("%*s deopted at %d with reason '%s'\n", indent + 10, "",
+                      info.deopt_position.raw(), info.deopt_reason);
+    }
+  }
+  const char* bailout_reason = entry_->bailout_reason();
+  if (bailout_reason != GetBailoutReason(BailoutReason::kNoReason) &&
+      bailout_reason != CodeEntry::kEmptyBailoutReason) {
+    base::OS::Print("%*s bailed out due to '%s'\n", indent + 10, "",
+                    bailout_reason);
+  }
   for (HashMap::Entry* p = children_.Start();
        p != NULL;
        p = children_.Next(p)) {
@@ -297,8 +220,9 @@ class DeleteNodesCallback {
 ProfileTree::ProfileTree()
     : root_entry_(Logger::FUNCTION_TAG, "(root)"),
       next_node_id_(1),
-      root_(new ProfileNode(this, &root_entry_)) {
-}
+      root_(new ProfileNode(this, &root_entry_)),
+      next_function_id_(1),
+      function_ids_(ProfileNode::CodeEntriesMatch) {}
 
 
 ProfileTree::~ProfileTree() {
@@ -307,15 +231,31 @@ ProfileTree::~ProfileTree() {
 }
 
 
+unsigned ProfileTree::GetFunctionId(const ProfileNode* node) {
+  CodeEntry* code_entry = node->entry();
+  HashMap::Entry* entry =
+      function_ids_.Lookup(code_entry, code_entry->GetHash(), true);
+  if (!entry->value) {
+    entry->value = reinterpret_cast<void*>(next_function_id_++);
+  }
+  return static_cast<unsigned>(reinterpret_cast<uintptr_t>(entry->value));
+}
+
+
 ProfileNode* ProfileTree::AddPathFromEnd(const Vector<CodeEntry*>& path,
                                          int src_line) {
   ProfileNode* node = root_;
+  CodeEntry* last_entry = NULL;
   for (CodeEntry** entry = path.start() + path.length() - 1;
        entry != path.start() - 1;
        --entry) {
     if (*entry != NULL) {
       node = node->FindOrAddChild(*entry);
+      last_entry = *entry;
     }
+  }
+  if (last_entry && last_entry->has_deopt_info()) {
+    node->CollectDeoptInfo(last_entry);
   }
   node->IncrementSelfTicks();
   if (src_line != v8::CpuProfileNode::kNoLineNumberInfo) {
@@ -403,7 +343,6 @@ void CpuProfile::Print() {
 }
 
 
-CodeEntry* const CodeMap::kSharedFunctionCodeEntry = NULL;
 const CodeMap::CodeTreeConfig::Key CodeMap::CodeTreeConfig::kNoKey = NULL;
 
 
@@ -445,22 +384,6 @@ CodeEntry* CodeMap::FindEntry(Address addr, Address* start) {
 }
 
 
-int CodeMap::GetSharedId(Address addr) {
-  CodeTree::Locator locator;
-  // For shared function entries, 'size' field is used to store their IDs.
-  if (tree_.Find(addr, &locator)) {
-    const CodeEntryInfo& entry = locator.value();
-    DCHECK(entry.entry == kSharedFunctionCodeEntry);
-    return entry.size;
-  } else {
-    tree_.Insert(addr, &locator);
-    int id = next_shared_id_++;
-    locator.set_value(CodeEntryInfo(kSharedFunctionCodeEntry, id));
-    return id;
-  }
-}
-
-
 void CodeMap::MoveCode(Address from, Address to) {
   if (from == to) return;
   CodeTree::Locator locator;
@@ -473,12 +396,7 @@ void CodeMap::MoveCode(Address from, Address to) {
 
 void CodeMap::CodeTreePrinter::Call(
     const Address& key, const CodeMap::CodeEntryInfo& value) {
-  // For shared function entries, 'size' field is used to store their IDs.
-  if (value.entry == kSharedFunctionCodeEntry) {
-    base::OS::Print("%p SharedFunctionInfo %d\n", key, value.size);
-  } else {
-    base::OS::Print("%p %5d %s\n", key, value.size, value.entry->name());
-  }
+  base::OS::Print("%p %5d %s\n", key, value.size, value.entry->name());
 }
 
 

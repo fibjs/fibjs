@@ -393,6 +393,20 @@ class RawMachineAssembler : public GraphBuilder {
     return NewNode(machine()->Float64RoundTiesAway(), a);
   }
 
+  // Float64 bit operations.
+  Node* Float64ExtractLowWord32(Node* a) {
+    return NewNode(machine()->Float64ExtractLowWord32(), a);
+  }
+  Node* Float64ExtractHighWord32(Node* a) {
+    return NewNode(machine()->Float64ExtractHighWord32(), a);
+  }
+  Node* Float64InsertLowWord32(Node* a, Node* b) {
+    return NewNode(machine()->Float64InsertLowWord32(), a, b);
+  }
+  Node* Float64InsertHighWord32(Node* a, Node* b) {
+    return NewNode(machine()->Float64InsertHighWord32(), a, b);
+  }
+
   // Parameters.
   Node* Parameter(size_t index);
 
@@ -400,7 +414,8 @@ class RawMachineAssembler : public GraphBuilder {
   Label* Exit();
   void Goto(Label* label);
   void Branch(Node* condition, Label* true_val, Label* false_val);
-  void Switch(Node* index, Label** succ_labels, size_t succ_count);
+  void Switch(Node* index, Label* default_label, int32_t* case_values,
+              Label** case_labels, size_t case_count);
   // Call through CallFunctionStub with lazy deopt and frame-state.
   Node* CallFunctionStub0(Node* function, Node* receiver, Node* context,
                           Node* frame_state, CallFunctionFlags flags);

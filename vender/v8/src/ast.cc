@@ -59,30 +59,30 @@ bool Expression::IsUndefinedLiteral(Isolate* isolate) const {
 }
 
 
-VariableProxy::VariableProxy(Zone* zone, Variable* var, int position)
-    : Expression(zone, position),
+VariableProxy::VariableProxy(Zone* zone, Variable* var, int start_position,
+                             int end_position)
+    : Expression(zone, start_position),
       bit_field_(IsThisField::encode(var->is_this()) |
                  IsAssignedField::encode(false) |
                  IsResolvedField::encode(false)),
       variable_feedback_slot_(FeedbackVectorICSlot::Invalid()),
       raw_name_(var->raw_name()),
-      interface_(var->interface()) {
+      end_position_(end_position) {
   BindTo(var);
 }
 
 
 VariableProxy::VariableProxy(Zone* zone, const AstRawString* name, bool is_this,
-                             Interface* interface, int position)
-    : Expression(zone, position),
+                             int start_position, int end_position)
+    : Expression(zone, start_position),
       bit_field_(IsThisField::encode(is_this) | IsAssignedField::encode(false) |
                  IsResolvedField::encode(false)),
       variable_feedback_slot_(FeedbackVectorICSlot::Invalid()),
       raw_name_(name),
-      interface_(interface) {}
+      end_position_(end_position) {}
 
 
 void VariableProxy::BindTo(Variable* var) {
-  DCHECK(!FLAG_harmony_modules || interface_->IsUnified(var->interface()));
   DCHECK((is_this() && var->is_this()) || raw_name() == var->raw_name());
   set_var(var);
   set_is_resolved();
@@ -149,13 +149,6 @@ LanguageMode FunctionLiteral::language_mode() const {
 bool FunctionLiteral::uses_super_property() const {
   DCHECK_NOT_NULL(scope());
   return scope()->uses_super_property() || scope()->inner_uses_super_property();
-}
-
-
-bool FunctionLiteral::uses_super_constructor_call() const {
-  DCHECK_NOT_NULL(scope());
-  return scope()->uses_super_constructor_call() ||
-         scope()->inner_uses_super_constructor_call();
 }
 
 
@@ -567,7 +560,7 @@ bool Call::IsUsingCallFeedbackICSlot(Isolate* isolate) const {
 bool Call::IsUsingCallFeedbackSlot(Isolate* isolate) const {
   // SuperConstructorCall uses a CallConstructStub, which wants
   // a Slot, not an IC slot.
-  return FLAG_experimental_classes && GetCallType(isolate) == SUPER_CALL;
+  return GetCallType(isolate) == SUPER_CALL;
 }
 
 
@@ -615,29 +608,6 @@ bool Call::ComputeGlobalTarget(Handle<GlobalObject> global,
     }
   }
   return false;
-}
-
-
-void CallNew::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
-  FeedbackVectorSlot allocation_site_feedback_slot =
-      FLAG_pretenuring_call_new ? AllocationSiteFeedbackSlot()
-                                : CallNewFeedbackSlot();
-  allocation_site_ =
-      oracle->GetCallNewAllocationSite(allocation_site_feedback_slot);
-  is_monomorphic_ = oracle->CallNewIsMonomorphic(CallNewFeedbackSlot());
-  if (is_monomorphic_) {
-    target_ = oracle->GetCallNewTarget(CallNewFeedbackSlot());
-  }
-}
-
-
-void ObjectLiteral::Property::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
-  DCHECK(!is_computed_name());
-  TypeFeedbackId id = key()->AsLiteral()->LiteralFeedbackId();
-  SmallMapList maps;
-  oracle->CollectReceiverTypes(id, &maps);
-  receiver_type_ = maps.length() == 1 ? maps.at(0)
-                                      : Handle<Map>::null();
 }
 
 

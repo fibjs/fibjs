@@ -220,6 +220,7 @@ namespace internal {
   V(kRegisterDidNotMatchExpectedRoot, "Register did not match expected root")  \
   V(kRegisterWasClobbered, "Register was clobbered")                           \
   V(kRememberedSetPointerInNewSpace, "Remembered set pointer is in new space") \
+  V(kRestParameter, "Rest parameters")                                         \
   V(kReturnAddressNotFoundInFrame, "Return address not found in frame")        \
   V(kRhsHasBeenClobbered, "Rhs has been clobbered")                            \
   V(kScopedBlock, "ScopedBlock")                                               \
@@ -309,7 +310,6 @@ namespace internal {
   V(kUnexpectedUnusedPropertiesOfStringWrapper,                                \
     "Unexpected unused properties of string wrapper")                          \
   V(kUnimplemented, "unimplemented")                                           \
-  V(kUninitializedKSmiConstantRegister, "Uninitialized kSmiConstantRegister")  \
   V(kUnsupportedConstCompoundAssignment,                                       \
     "Unsupported const compound assignment")                                   \
   V(kUnsupportedCountOperationWithConst,                                       \
@@ -344,7 +344,8 @@ enum BailoutReason {
 
 
 const char* GetBailoutReason(BailoutReason reason);
-}
-}  // namespace v8::internal
+
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_BAILOUT_REASON_H_

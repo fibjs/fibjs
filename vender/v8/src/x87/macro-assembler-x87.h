@@ -541,12 +541,6 @@ class MacroAssembler: public Assembler {
   // Unlink the stack handler on top of the stack from the try handler chain.
   void PopTryHandler();
 
-  // Throw to the top handler in the try hander chain.
-  void Throw(Register value);
-
-  // Throw past all JS frames to the top JS entry frame.
-  void ThrowUncatchable(Register value);
-
   // ---------------------------------------------------------------------------
   // Inline caching support
 
@@ -682,6 +676,10 @@ class MacroAssembler: public Assembler {
   // Register scratch is destroyed, and it must be different from op2.
   void NegativeZeroTest(Register result, Register op1, Register op2,
                         Register scratch, Label* then_label);
+
+  // Machine code version of Map::GetConstructor().
+  // |temp| holds |result|'s map when done.
+  void GetMapConstructor(Register result, Register map, Register temp);
 
   // Try to get function prototype of a function and puts the value in
   // the result register. Checks that the function really is a
@@ -965,10 +963,6 @@ class MacroAssembler: public Assembler {
   inline void GetMarkBits(Register addr_reg,
                           Register bitmap_reg,
                           Register mask_reg);
-
-  // Helper for throwing exceptions.  Compute a handler address and jump to
-  // it.  See the implementation for register usage.
-  void JumpToHandlerEntry();
 
   // Compute memory operands for safepoint stack slots.
   Operand SafepointRegisterSlot(Register reg);

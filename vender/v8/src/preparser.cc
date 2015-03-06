@@ -21,24 +21,16 @@ namespace v8 {
 namespace internal {
 
 void PreParserTraits::ReportMessageAt(Scanner::Location location,
-                                      const char* message,
-                                      const char* arg,
-                                      bool is_reference_error) {
-  ReportMessageAt(location.beg_pos,
-                  location.end_pos,
-                  message,
-                  arg,
-                  is_reference_error);
+                                      const char* message, const char* arg,
+                                      ParseErrorType error_type) {
+  ReportMessageAt(location.beg_pos, location.end_pos, message, arg, error_type);
 }
 
 
-void PreParserTraits::ReportMessageAt(int start_pos,
-                                      int end_pos,
-                                      const char* message,
-                                      const char* arg,
-                                      bool is_reference_error) {
-  pre_parser_->log_->LogMessage(start_pos, end_pos, message, arg,
-                                is_reference_error);
+void PreParserTraits::ReportMessageAt(int start_pos, int end_pos,
+                                      const char* message, const char* arg,
+                                      ParseErrorType error_type) {
+  pre_parser_->log_->LogMessage(start_pos, end_pos, message, arg, error_type);
 }
 
 
@@ -180,11 +172,11 @@ PreParser::Statement PreParser::ParseStatementListItem(bool* ok) {
     case Token::CLASS:
       return ParseClassDeclaration(ok);
     case Token::CONST:
-      return ParseVariableStatement(kSourceElement, ok);
+      return ParseVariableStatement(kStatementListItem, ok);
     case Token::LET:
       DCHECK(allow_harmony_scoping());
       if (is_strict(language_mode())) {
-        return ParseVariableStatement(kSourceElement, ok);
+        return ParseVariableStatement(kStatementListItem, ok);
       }
       // Fall through.
     default:
@@ -228,6 +220,14 @@ void PreParser::ParseStatementList(int end_token, bool* ok) {
 
 PreParser::Statement PreParser::ParseStatement(bool* ok) {
   // Statement ::
+  //   EmptyStatement
+  //   ...
+  return ParseSubStatement(ok);
+}
+
+
+PreParser::Statement PreParser::ParseSubStatement(bool* ok) {
+  // Statement ::
   //   Block
   //   VariableStatement
   //   EmptyStatement
@@ -257,6 +257,12 @@ PreParser::Statement PreParser::ParseStatement(bool* ok) {
       return ParseBlock(ok);
 
     case Token::SEMICOLON:
+      if (is_strong(language_mode())) {
+        PreParserTraits::ReportMessageAt(scanner()->peek_location(),
+                                         "strong_empty");
+        *ok = false;
+        return Statement::Default();
+      }
       Next();
       return Statement::Default();
 
@@ -429,6 +435,12 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
   bool require_initializer = false;
   bool is_strict_const = false;
   if (peek() == Token::VAR) {
+    if (is_strong(language_mode())) {
+      Scanner::Location location = scanner()->peek_location();
+      ReportMessageAt(location, "strong_var");
+      *ok = false;
+      return Statement::Default();
+    }
     Consume(Token::VAR);
   } else if (peek() == Token::CONST) {
     // TODO(ES6): The ES6 Draft Rev4 section 12.2.2 reads:
@@ -544,10 +556,10 @@ PreParser::Statement PreParser::ParseIfStatement(bool* ok) {
   Expect(Token::LPAREN, CHECK_OK);
   ParseExpression(true, CHECK_OK);
   Expect(Token::RPAREN, CHECK_OK);
-  ParseStatement(CHECK_OK);
+  ParseSubStatement(CHECK_OK);
   if (peek() == Token::ELSE) {
     Next();
-    ParseStatement(CHECK_OK);
+    ParseSubStatement(CHECK_OK);
   }
   return Statement::Default();
 }
@@ -630,7 +642,7 @@ PreParser::Statement PreParser::ParseWithStatement(bool* ok) {
 
   Scope* with_scope = NewScope(scope_, WITH_SCOPE);
   BlockState block_state(&scope_, with_scope);
-  ParseStatement(CHECK_OK);
+  ParseSubStatement(CHECK_OK);
   return Statement::Default();
 }
 
@@ -672,7 +684,7 @@ PreParser::Statement PreParser::ParseDoWhileStatement(bool* ok) {
   //   'do' Statement 'while' '(' Expression ')' ';'
 
   Expect(Token::DO, CHECK_OK);
-  ParseStatement(CHECK_OK);
+  ParseSubStatement(CHECK_OK);
   Expect(Token::WHILE, CHECK_OK);
   Expect(Token::LPAREN, CHECK_OK);
   ParseExpression(true, CHECK_OK);
@@ -690,17 +702,8 @@ PreParser::Statement PreParser::ParseWhileStatement(bool* ok) {
   Expect(Token::LPAREN, CHECK_OK);
   ParseExpression(true, CHECK_OK);
   Expect(Token::RPAREN, CHECK_OK);
-  ParseStatement(ok);
+  ParseSubStatement(ok);
   return Statement::Default();
-}
-
-
-bool PreParser::CheckInOrOf(bool accept_OF) {
-  if (Check(Token::IN) ||
-      (accept_OF && CheckContextualKeyword(CStrVector("of")))) {
-    return true;
-  }
-  return false;
 }
 
 
@@ -712,6 +715,7 @@ PreParser::Statement PreParser::ParseForStatement(bool* ok) {
   Expect(Token::LPAREN, CHECK_OK);
   bool is_let_identifier_expression = false;
   if (peek() != Token::SEMICOLON) {
+    ForEachStatement::VisitMode visit_mode;
     if (peek() == Token::VAR || peek() == Token::CONST ||
         (peek() == Token::LET && is_strict(language_mode()))) {
       bool is_lexical = peek() == Token::LET ||
@@ -723,22 +727,22 @@ PreParser::Statement PreParser::ParseForStatement(bool* ok) {
       bool has_initializers = decl_props == kHasInitializers;
       bool accept_IN = decl_count == 1 && !(is_lexical && has_initializers);
       bool accept_OF = !has_initializers;
-      if (accept_IN && CheckInOrOf(accept_OF)) {
+      if (accept_IN && CheckInOrOf(accept_OF, &visit_mode, ok)) {
+        if (!*ok) return Statement::Default();
         ParseExpression(true, CHECK_OK);
         Expect(Token::RPAREN, CHECK_OK);
-
-        ParseStatement(CHECK_OK);
+        ParseSubStatement(CHECK_OK);
         return Statement::Default();
       }
     } else {
       Expression lhs = ParseExpression(false, CHECK_OK);
       is_let_identifier_expression =
           lhs.IsIdentifier() && lhs.AsIdentifier().IsLet();
-      if (CheckInOrOf(lhs.IsIdentifier())) {
+      if (CheckInOrOf(lhs.IsIdentifier(), &visit_mode, ok)) {
+        if (!*ok) return Statement::Default();
         ParseExpression(true, CHECK_OK);
         Expect(Token::RPAREN, CHECK_OK);
-
-        ParseStatement(CHECK_OK);
+        ParseSubStatement(CHECK_OK);
         return Statement::Default();
       }
     }
@@ -764,7 +768,7 @@ PreParser::Statement PreParser::ParseForStatement(bool* ok) {
   }
   Expect(Token::RPAREN, CHECK_OK);
 
-  ParseStatement(ok);
+  ParseSubStatement(ok);
   return Statement::Default();
 }
 
@@ -953,9 +957,10 @@ void PreParser::ParseLazyFunctionLiteralBody(bool* ok) {
   // Position right after terminal '}'.
   DCHECK_EQ(Token::RBRACE, scanner()->peek());
   int body_end = scanner()->peek_location().end_pos;
-  log_->LogFunction(
-      body_start, body_end, function_state_->materialized_literal_count(),
-      function_state_->expected_property_count(), language_mode());
+  log_->LogFunction(body_start, body_end,
+                    function_state_->materialized_literal_count(),
+                    function_state_->expected_property_count(), language_mode(),
+                    scope_->uses_super_property());
 }
 
 

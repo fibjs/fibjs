@@ -18,10 +18,10 @@ namespace internal {
 namespace compiler {
 
 // Forward declarations.
+class BasicBlock;
 struct CallBuffer;  // TODO(bmeurer): Remove this.
 class FlagsContinuation;
 class Linkage;
-
 
 typedef ZoneVector<InstructionOperand> InstructionOperandVector;
 
@@ -199,13 +199,15 @@ class InstructionSelector FINAL {
   void VisitPhi(Node* node);
   void VisitProjection(Node* node);
   void VisitConstant(Node* node);
-  void VisitCall(Node* call);
+  void VisitCall(Node* call, BasicBlock* handler);
   void VisitGoto(BasicBlock* target);
   void VisitBranch(Node* input, BasicBlock* tbranch, BasicBlock* fbranch);
-  void VisitSwitch(Node* node, BasicBlock** branches, size_t branch_count);
+  void VisitSwitch(Node* node, BasicBlock* default_branch,
+                   BasicBlock** case_branches, int32_t* case_values,
+                   size_t case_count, int32_t min_value, int32_t max_value);
+  void VisitDeoptimize(Node* value);
   void VisitReturn(Node* value);
   void VisitThrow(Node* value);
-  void VisitDeoptimize(Node* deopt);
 
   // ===========================================================================
 

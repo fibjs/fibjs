@@ -237,6 +237,26 @@ void FullCodeGenerator::Generate() {
     }
   }
 
+  // Possibly allocate RestParameters
+  int rest_index;
+  Variable* rest_param = scope()->rest_parameter(&rest_index);
+  if (rest_param) {
+    Comment cmnt(masm_, "[ Allocate rest parameter array");
+
+    int num_parameters = info->scope()->num_parameters();
+    int offset = num_parameters * kPointerSize;
+    __ lea(edx,
+           Operand(ebp, StandardFrameConstants::kCallerSPOffset + offset));
+    __ push(edx);
+    __ push(Immediate(Smi::FromInt(num_parameters)));
+    __ push(Immediate(Smi::FromInt(rest_index)));
+
+    RestParamAccessStub stub(isolate());
+    __ CallStub(&stub);
+
+    SetVar(rest_param, eax, ebx, edx);
+  }
+
   Variable* arguments = scope()->arguments();
   if (arguments != NULL) {
     // Function uses arguments object.
@@ -258,14 +278,18 @@ void FullCodeGenerator::Generate() {
     // The stub will rewrite receiver and parameter count if the previous
     // stack frame was an arguments adapter frame.
     ArgumentsAccessStub::Type type;
-    if (is_strict(language_mode())) {
+    if (is_strict(language_mode()) || !is_simple_parameter_list()) {
       type = ArgumentsAccessStub::NEW_STRICT;
     } else if (function()->has_duplicate_parameters()) {
       type = ArgumentsAccessStub::NEW_SLOPPY_SLOW;
     } else {
       type = ArgumentsAccessStub::NEW_SLOPPY_FAST;
     }
-    ArgumentsAccessStub stub(isolate(), type);
+    ArgumentsAccessStub::HasNewTarget has_new_target =
+        IsSubclassConstructor(info->function()->kind())
+            ? ArgumentsAccessStub::HAS_NEW_TARGET
+            : ArgumentsAccessStub::NO_NEW_TARGET;
+    ArgumentsAccessStub stub(isolate(), type, has_new_target);
     __ CallStub(&stub);
 
     SetVar(arguments, eax, ebx, edx);
@@ -414,7 +438,11 @@ void FullCodeGenerator::EmitReturnSequence() {
     int no_frame_start = masm_->pc_offset();
     __ pop(ebp);
 
-    int arguments_bytes = (info_->scope()->num_parameters() + 1) * kPointerSize;
+    int arg_count = info_->scope()->num_parameters() + 1;
+    if (IsSubclassConstructor(info_->function()->kind())) {
+      arg_count++;
+    }
+    int arguments_bytes = arg_count * kPointerSize;
     __ Ret(arguments_bytes, ecx);
     // Check that the size of the code used for returning is large enough
     // for the debugger's requirements.
@@ -862,15 +890,16 @@ void FullCodeGenerator::VisitFunctionDeclaration(
 
 void FullCodeGenerator::VisitModuleDeclaration(ModuleDeclaration* declaration) {
   Variable* variable = declaration->proxy()->var();
+  ModuleDescriptor* descriptor = declaration->module()->descriptor();
   DCHECK(variable->location() == Variable::CONTEXT);
-  DCHECK(variable->interface()->IsFrozen());
+  DCHECK(descriptor->IsFrozen());
 
   Comment cmnt(masm_, "[ ModuleDeclaration");
   EmitDebugCheckDeclarationContext(variable);
 
   // Load instance object.
   __ LoadContext(eax, scope_->ContextChainLength(scope_->ScriptScope()));
-  __ mov(eax, ContextOperand(eax, variable->interface()->Index()));
+  __ mov(eax, ContextOperand(eax, descriptor->Index()));
   __ mov(eax, ContextOperand(eax, Context::EXTENSION_INDEX));
 
   // Assign it.
@@ -1417,7 +1446,7 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
         __ mov(VectorLoadICDescriptor::SlotRegister(),
                Immediate(SmiFromSlot(proxy->VariableFeedbackSlot())));
       }
-      CallLoadIC(CONTEXTUAL);
+      CallGlobalLoadIC(var->name());
       context()->Plug(eax);
       break;
     }
@@ -2938,8 +2967,7 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
 }
 
 
-void FullCodeGenerator::EmitLoadSuperConstructor(SuperReference* super_ref) {
-  DCHECK(super_ref != NULL);
+void FullCodeGenerator::EmitLoadSuperConstructor() {
   __ push(Operand(ebp, JavaScriptFrameConstants::kFunctionOffset));
   __ CallRuntime(Runtime::kGetPrototype, 1);
 }
@@ -3053,15 +3081,7 @@ void FullCodeGenerator::VisitCall(Call* expr) {
       }
     }
   } else if (call_type == Call::SUPER_CALL) {
-    if (FLAG_experimental_classes) {
-      EmitSuperConstructorCall(expr);
-    } else {
-      SuperReference* super_ref = callee->AsSuperReference();
-      EmitLoadSuperConstructor(super_ref);
-      __ push(result_register());
-      VisitForStackValue(super_ref->this_var());
-      EmitCall(expr, CallICState::METHOD);
-    }
+    EmitSuperConstructorCall(expr);
   } else {
     DCHECK(call_type == Call::OTHER_CALL);
     // Call to an arbitrary expression not handled specially above.
@@ -3125,18 +3145,12 @@ void FullCodeGenerator::VisitCallNew(CallNew* expr) {
 
 
 void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
-  SuperReference* super_ref = expr->expression()->AsSuperReference();
-  EmitLoadSuperConstructor(super_ref);
-  __ push(result_register());
+  Variable* new_target_var = scope()->DeclarationScope()->new_target_var();
+  GetVar(eax, new_target_var);
+  __ push(eax);
 
-  Variable* this_var = super_ref->this_var()->var();
-  GetVar(eax, this_var);
-  __ cmp(eax, isolate()->factory()->the_hole_value());
-  Label uninitialized_this;
-  __ j(equal, &uninitialized_this);
-  __ push(Immediate(this_var->name()));
-  __ CallRuntime(Runtime::kThrowReferenceError, 1);
-  __ bind(&uninitialized_this);
+  EmitLoadSuperConstructor();
+  __ push(result_register());
 
   // Push the arguments ("left-to-right") on the stack.
   ZoneList<Expression*>* args = expr->arguments();
@@ -3166,11 +3180,22 @@ void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
   __ LoadHeapObject(ebx, FeedbackVector());
   __ mov(edx, Immediate(SmiFromSlot(expr->CallFeedbackSlot())));
 
-  // TODO(dslomov): use a different stub and propagate new.target.
-  CallConstructStub stub(isolate(), RECORD_CONSTRUCTOR_TARGET);
+  CallConstructStub stub(isolate(), SUPER_CALL_RECORD_TARGET);
   __ call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
 
+  __ Drop(1);
+
   RecordJSReturnSite(expr);
+
+  SuperReference* super_ref = expr->expression()->AsSuperReference();
+  Variable* this_var = super_ref->this_var()->var();
+  GetVar(ecx, this_var);
+  __ cmp(ecx, isolate()->factory()->the_hole_value());
+  Label uninitialized_this;
+  __ j(equal, &uninitialized_this);
+  __ push(Immediate(this_var->name()));
+  __ CallRuntime(Runtime::kThrowReferenceError, 1);
+  __ bind(&uninitialized_this);
 
   EmitVariableAssignment(this_var, Token::INIT_CONST);
   context()->Plug(eax);
@@ -3631,8 +3656,8 @@ void FullCodeGenerator::EmitClassOf(CallRuntime* expr) {
   STATIC_ASSERT(LAST_NONCALLABLE_SPEC_OBJECT_TYPE == LAST_TYPE - 1);
 
   // Check if the constructor in the map is a JS function.
-  __ mov(eax, FieldOperand(eax, Map::kConstructorOffset));
-  __ CmpObjectType(eax, JS_FUNCTION_TYPE, ebx);
+  __ GetMapConstructor(eax, eax, ebx);
+  __ CmpInstanceType(ebx, JS_FUNCTION_TYPE);
   __ j(not_equal, &non_function_constructor);
 
   // eax now contains the constructor function. Grab the
@@ -4047,6 +4072,56 @@ void FullCodeGenerator::EmitCallFunction(CallRuntime* expr) {
 }
 
 
+void FullCodeGenerator::EmitDefaultConstructorCallSuper(CallRuntime* expr) {
+  Variable* new_target_var = scope()->DeclarationScope()->new_target_var();
+  GetVar(eax, new_target_var);
+  __ push(eax);
+
+  EmitLoadSuperConstructor();
+  __ push(result_register());
+
+  // Check if the calling frame is an arguments adaptor frame.
+  Label adaptor_frame, args_set_up, runtime;
+  __ mov(edx, Operand(ebp, StandardFrameConstants::kCallerFPOffset));
+  __ mov(ecx, Operand(edx, StandardFrameConstants::kContextOffset));
+  __ cmp(ecx, Immediate(Smi::FromInt(StackFrame::ARGUMENTS_ADAPTOR)));
+  __ j(equal, &adaptor_frame);
+  // default constructor has no arguments, so no adaptor frame means no args.
+  __ mov(eax, Immediate(0));
+  __ jmp(&args_set_up);
+
+  // Copy arguments from adaptor frame.
+  {
+    __ bind(&adaptor_frame);
+    __ mov(ecx, Operand(edx, ArgumentsAdaptorFrameConstants::kLengthOffset));
+    __ SmiUntag(ecx);
+
+    // Subtract 1 from arguments count, for new.target.
+    __ sub(ecx, Immediate(1));
+    __ mov(eax, ecx);
+    __ lea(edx, Operand(edx, ecx, times_pointer_size,
+                        StandardFrameConstants::kCallerSPOffset));
+    Label loop;
+    __ bind(&loop);
+    __ push(Operand(edx, -1 * kPointerSize));
+    __ sub(edx, Immediate(kPointerSize));
+    __ dec(ecx);
+    __ j(not_zero, &loop);
+  }
+
+  __ bind(&args_set_up);
+
+  __ mov(edi, Operand(esp, eax, times_pointer_size, 0));
+  __ mov(ebx, Immediate(isolate()->factory()->undefined_value()));
+  CallConstructStub stub(isolate(), SUPER_CONSTRUCTOR_CALL);
+  __ call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
+
+  __ Drop(1);
+
+  context()->Plug(eax);
+}
+
+
 void FullCodeGenerator::EmitRegExpConstructResult(CallRuntime* expr) {
   // Load the arguments on the stack and call the stub.
   RegExpConstructResultStub stub(isolate());
@@ -4104,7 +4179,7 @@ void FullCodeGenerator::EmitGetFromCache(CallRuntime* expr) {
   // Call runtime to perform the lookup.
   __ push(cache);
   __ push(key);
-  __ CallRuntime(Runtime::kGetFromCache, 2);
+  __ CallRuntime(Runtime::kGetFromCacheRT, 2);
 
   __ bind(&done);
   context()->Plug(eax);

@@ -137,20 +137,14 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
 #define ASSIGN_RETURN_ON_EXCEPTION(isolate, dst, call, T)  \
   ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, MaybeHandle<T>())
 
-#define THROW_NEW_ERROR(isolate, call, T)                                    \
-  do {                                                                       \
-    Handle<Object> __error__;                                                \
-    ASSIGN_RETURN_ON_EXCEPTION(isolate, __error__, isolate->factory()->call, \
-                               T);                                           \
-    return isolate->Throw<T>(__error__);                                     \
+#define THROW_NEW_ERROR(isolate, call, T)               \
+  do {                                                  \
+    return isolate->Throw<T>(isolate->factory()->call); \
   } while (false)
 
-#define THROW_NEW_ERROR_RETURN_FAILURE(isolate, call)             \
-  do {                                                            \
-    Handle<Object> __error__;                                     \
-    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, __error__,        \
-                                       isolate->factory()->call); \
-    return isolate->Throw(*__error__);                            \
+#define THROW_NEW_ERROR_RETURN_FAILURE(isolate, call) \
+  do {                                                \
+    return isolate->Throw(*isolate->factory()->call); \
   } while (false)
 
 #define RETURN_ON_EXCEPTION_VALUE(isolate, call, value)            \
@@ -174,6 +168,11 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
   C(CFunction, c_function)                              \
   C(Context, context)                                   \
   C(PendingException, pending_exception)                \
+  C(PendingHandlerContext, pending_handler_context)     \
+  C(PendingHandlerCode, pending_handler_code)           \
+  C(PendingHandlerOffset, pending_handler_offset)       \
+  C(PendingHandlerFP, pending_handler_fp)               \
+  C(PendingHandlerSP, pending_handler_sp)               \
   C(ExternalCaughtException, external_caught_exception) \
   C(JSEntrySP, js_entry_sp)
 
@@ -274,12 +273,22 @@ class ThreadLocalTop BASE_EMBEDDED {
   Context* context_;
   ThreadId thread_id_;
   Object* pending_exception_;
+
+  // Communication channel between Isolate::FindHandler and the CEntryStub.
+  Context* pending_handler_context_;
+  Code* pending_handler_code_;
+  intptr_t pending_handler_offset_;
+  Address pending_handler_fp_;
+  Address pending_handler_sp_;
+
+  // Communication channel between Isolate::Throw and message consumers.
   bool has_pending_message_;
   bool rethrowing_message_;
   Object* pending_message_obj_;
   Object* pending_message_script_;
   int pending_message_start_pos_;
   int pending_message_end_pos_;
+
   // Use a separate value for scheduled exceptions to preserve the
   // invariants that hold about pending_exception.  We may want to
   // unify them later.
@@ -290,7 +299,7 @@ class ThreadLocalTop BASE_EMBEDDED {
 
   // Stack.
   Address c_entry_fp_;  // the frame pointer of the top c entry frame
-  Address handler_;   // try-blocks are chained through the stack
+  Address handler_;     // try-blocks are chained through the stack
   Address c_function_;  // C function that was called at c entry.
 
   // Throwing an exception may cause a Promise rejection.  For this purpose
@@ -312,9 +321,6 @@ class ThreadLocalTop BASE_EMBEDDED {
 
   // Call back function to report unsafe JS accesses.
   v8::FailedAccessCheckCallback failed_access_check_callback_;
-
-  // Head of the list of live LookupResults.
-  LookupResult* top_lookup_result_;
 
  private:
   void InitializeInternal();
@@ -364,10 +370,6 @@ class ThreadLocalTop BASE_EMBEDDED {
 typedef List<HeapObject*> DebugObjectCache;
 
 #define ISOLATE_INIT_LIST(V)                                                   \
-  /* SerializerDeserializer state. */                                          \
-  V(int, serialize_partial_snapshot_cache_length, 0)                           \
-  V(int, serialize_partial_snapshot_cache_capacity, 0)                         \
-  V(Object**, serialize_partial_snapshot_cache, NULL)                          \
   /* Assembler state. */                                                       \
   V(FatalErrorCallback, exception_behavior, NULL)                              \
   V(LogEventCallback, event_logger, NULL)                                      \
@@ -394,11 +396,15 @@ typedef List<HeapObject*> DebugObjectCache;
   V(int, max_available_threads, 0)                                             \
   V(uint32_t, per_isolate_assert_data, 0xFFFFFFFFu)                            \
   V(PromiseRejectCallback, promise_reject_callback, NULL)                      \
+  V(const v8::StartupData*, snapshot_blob, NULL)                               \
   ISOLATE_INIT_SIMULATOR_LIST(V)
 
 #define THREAD_LOCAL_TOP_ACCESSOR(type, name)                        \
   inline void set_##name(type v) { thread_local_top_.name##_ = v; }  \
   inline type name() const { return thread_local_top_.name##_; }
+
+#define THREAD_LOCAL_TOP_ADDRESS(type, name) \
+  type* name##_address() { return &thread_local_top_.name##_; }
 
 
 class Isolate {
@@ -586,14 +592,18 @@ class Isolate {
     thread_local_top_.pending_exception_ = heap_.the_hole_value();
   }
 
-  Object** pending_exception_address() {
-    return &thread_local_top_.pending_exception_;
-  }
+  THREAD_LOCAL_TOP_ADDRESS(Object*, pending_exception)
 
   bool has_pending_exception() {
     DCHECK(!thread_local_top_.pending_exception_->IsException());
     return !thread_local_top_.pending_exception_->IsTheHole();
   }
+
+  THREAD_LOCAL_TOP_ADDRESS(Context*, pending_handler_context)
+  THREAD_LOCAL_TOP_ADDRESS(Code*, pending_handler_code)
+  THREAD_LOCAL_TOP_ADDRESS(intptr_t, pending_handler_offset)
+  THREAD_LOCAL_TOP_ADDRESS(Address, pending_handler_fp)
+  THREAD_LOCAL_TOP_ADDRESS(Address, pending_handler_sp)
 
   THREAD_LOCAL_TOP_ACCESSOR(bool, external_caught_exception)
 
@@ -614,9 +624,7 @@ class Isolate {
 
   THREAD_LOCAL_TOP_ACCESSOR(v8::TryCatch*, catcher)
 
-  Object** scheduled_exception_address() {
-    return &thread_local_top_.scheduled_exception_;
-  }
+  THREAD_LOCAL_TOP_ADDRESS(Object*, scheduled_exception)
 
   Address pending_message_obj_address() {
     return reinterpret_cast<Address>(&thread_local_top_.pending_message_obj_);
@@ -651,9 +659,6 @@ class Isolate {
   bool is_catchable_by_javascript(Object* exception) {
     return exception != heap()->termination_exception();
   }
-
-  // Serializer.
-  void PushToPartialSnapshotCache(Object* obj);
 
   // JS execution stack (see frames.h).
   static Address c_entry_fp(ThreadLocalTop* thread) {
@@ -760,17 +765,12 @@ class Isolate {
   // the result is false, the pending exception is guaranteed to be
   // set.
 
-  bool MayNamedAccess(Handle<JSObject> receiver,
-                      Handle<Object> key,
-                      v8::AccessType type);
-  bool MayIndexedAccess(Handle<JSObject> receiver,
-                        uint32_t index,
-                        v8::AccessType type);
+  bool MayAccess(Handle<JSObject> receiver);
   bool IsInternallyUsedPropertyName(Handle<Object> name);
   bool IsInternallyUsedPropertyName(Object* name);
 
   void SetFailedAccessCheckCallback(v8::FailedAccessCheckCallback callback);
-  void ReportFailedAccessCheck(Handle<JSObject> receiver, v8::AccessType type);
+  void ReportFailedAccessCheck(Handle<JSObject> receiver);
 
   // Exception throwing support. The caller should use the result
   // of Throw() as its return value.
@@ -787,6 +787,11 @@ class Isolate {
   // error reporting was handled when the exception was thrown
   // originally.
   Object* ReThrow(Object* exception);
+
+  // Find the correct handler for the current pending exception. This also
+  // clears and returns the current pending exception.
+  Object* FindHandler();
+
   void ScheduleThrow(Object* exception);
   // Re-set pending message, script and positions reported to the TryCatch
   // back to the TLS for re-use when rethrowing.
@@ -800,7 +805,6 @@ class Isolate {
 
   // Promote a scheduled exception to pending. Asserts has_scheduled_exception.
   Object* PromoteScheduledException();
-  void DoThrow(Object* exception, MessageLocation* location);
   // Checks if exception should be reported and finds out if it's
   // caught externally.
   bool ShouldReportException(bool* can_be_caught_externally,
@@ -1008,9 +1012,8 @@ class Isolate {
     return embedder_data_[slot];
   }
 
-  THREAD_LOCAL_TOP_ACCESSOR(LookupResult*, top_lookup_result)
-
   bool serializer_enabled() const { return serializer_enabled_; }
+  bool snapshot_available() const { return snapshot_blob_ != NULL; }
 
   bool IsDead() { return has_fatal_error_; }
   void SignalFatalError() { has_fatal_error_ = true; }
@@ -1144,9 +1147,12 @@ class Isolate {
   void AddDetachedContext(Handle<Context> context);
   void CheckDetachedContextsAfterGC();
 
- private:
+  List<Object*>* partial_snapshot_cache() { return &partial_snapshot_cache_; }
+
+ protected:
   explicit Isolate(bool enable_serializer);
 
+ private:
   friend struct GlobalState;
   friend struct InitializeGlobalState;
 
@@ -1365,6 +1371,7 @@ class Isolate {
   v8::Isolate::UseCounterCallback use_counter_callback_;
   BasicBlockProfiler* basic_block_profiler_;
 
+  List<Object*> partial_snapshot_cache_;
 
   friend class ExecutionAccess;
   friend class HandleScopeImplementer;
@@ -1379,6 +1386,7 @@ class Isolate {
   friend class v8::Isolate;
   friend class v8::Locker;
   friend class v8::Unlocker;
+  friend v8::StartupData v8::V8::CreateSnapshotDataBlob(const char*);
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
@@ -1561,7 +1569,7 @@ class CodeTracer FINAL : public Malloced {
     }
 
     if (file_ == NULL) {
-      file_ = base::OS::FOpen(filename_.start(), "a");
+      file_ = base::OS::FOpen(filename_.start(), "ab");
     }
 
     scope_depth_++;

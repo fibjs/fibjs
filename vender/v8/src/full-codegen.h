@@ -102,29 +102,21 @@ class FullCodeGenerator: public AstVisitor {
   // Platform-specific code size multiplier.
 #if V8_TARGET_ARCH_IA32 || V8_TARGET_ARCH_X87
   static const int kCodeSizeMultiplier = 105;
-  static const int kBootCodeSizeMultiplier = 100;
 #elif V8_TARGET_ARCH_X64
   static const int kCodeSizeMultiplier = 170;
-  static const int kBootCodeSizeMultiplier = 140;
 #elif V8_TARGET_ARCH_ARM
   static const int kCodeSizeMultiplier = 149;
-  static const int kBootCodeSizeMultiplier = 110;
 #elif V8_TARGET_ARCH_ARM64
 // TODO(all): Copied ARM value. Check this is sensible for ARM64.
   static const int kCodeSizeMultiplier = 149;
-  static const int kBootCodeSizeMultiplier = 110;
 #elif V8_TARGET_ARCH_PPC64
   static const int kCodeSizeMultiplier = 200;
-  static const int kBootCodeSizeMultiplier = 120;
 #elif V8_TARGET_ARCH_PPC
   static const int kCodeSizeMultiplier = 200;
-  static const int kBootCodeSizeMultiplier = 120;
 #elif V8_TARGET_ARCH_MIPS
   static const int kCodeSizeMultiplier = 149;
-  static const int kBootCodeSizeMultiplier = 120;
 #elif V8_TARGET_ARCH_MIPS64
   static const int kCodeSizeMultiplier = 149;
-  static const int kBootCodeSizeMultiplier = 170;
 #else
 #error Unsupported target architecture.
 #endif
@@ -597,19 +589,6 @@ class FullCodeGenerator: public AstVisitor {
   // is expected in the accumulator.
   void EmitAssignment(Expression* expr);
 
-  // Shall an error be thrown if assignment with 'op' operation is perfomed
-  // on this variable in given language mode?
-  static bool IsSignallingAssignmentToConst(Variable* var, Token::Value op,
-                                            LanguageMode language_mode) {
-    if (var->mode() == CONST) return op != Token::INIT_CONST;
-
-    if (var->mode() == CONST_LEGACY) {
-      return is_strict(language_mode) && op != Token::INIT_CONST_LEGACY;
-    }
-
-    return false;
-  }
-
   // Complete a variable assignment.  The right-hand-side value is expected
   // in the accumulator.
   void EmitVariableAssignment(Variable* var,
@@ -647,13 +626,14 @@ class FullCodeGenerator: public AstVisitor {
   // |offset| is the offset in the stack where the home object can be found.
   void EmitSetHomeObjectIfNeeded(Expression* initializer, int offset);
 
-  void EmitLoadSuperConstructor(SuperReference* expr);
+  void EmitLoadSuperConstructor();
 
   void CallIC(Handle<Code> code,
               TypeFeedbackId id = TypeFeedbackId::None());
 
   void CallLoadIC(ContextualMode mode,
                   TypeFeedbackId id = TypeFeedbackId::None());
+  void CallGlobalLoadIC(Handle<String> name);
   void CallStoreIC(TypeFeedbackId id = TypeFeedbackId::None());
 
   void SetFunctionPosition(FunctionLiteral* fun);
@@ -684,6 +664,7 @@ class FullCodeGenerator: public AstVisitor {
   bool is_eval() { return info_->is_eval(); }
   bool is_native() { return info_->is_native(); }
   LanguageMode language_mode() { return function()->language_mode(); }
+  bool is_simple_parameter_list() { return info_->is_simple_parameter_list(); }
   FunctionLiteral* function() { return info_->function(); }
   Scope* scope() { return scope_; }
 

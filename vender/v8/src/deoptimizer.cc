@@ -6,6 +6,7 @@
 
 #include "src/accessors.h"
 #include "src/codegen.h"
+#include "src/cpu-profiler.h"
 #include "src/deoptimizer.h"
 #include "src/disasm.h"
 #include "src/full-codegen.h"
@@ -3190,7 +3191,10 @@ SlotRef SlotRefValueBuilder::ComputeSlotForNextArgument(
 SlotRefValueBuilder::SlotRefValueBuilder(JavaScriptFrame* frame,
                                          int inlined_jsframe_index,
                                          int formal_parameter_count)
-    : current_slot_(0), args_length_(-1), first_slot_index_(-1) {
+    : current_slot_(0),
+      args_length_(-1),
+      first_slot_index_(-1),
+      should_deoptimize_(false) {
   DisallowHeapAllocation no_gc;
 
   int deopt_index = Safepoint::kNoDeoptimizationIndex;
@@ -3208,7 +3212,6 @@ SlotRefValueBuilder::SlotRefValueBuilder(JavaScriptFrame* frame,
   CHECK_GT(jsframe_count, inlined_jsframe_index);
   int jsframes_to_skip = inlined_jsframe_index;
   int number_of_slots = -1;  // Number of slots inside our frame (yet unknown)
-  bool should_deopt = false;
   while (number_of_slots != 0) {
     opcode = static_cast<Translation::Opcode>(it.Next());
     bool processed = false;
@@ -3265,7 +3268,7 @@ SlotRefValueBuilder::SlotRefValueBuilder(JavaScriptFrame* frame,
         number_of_slots += slot.GetChildrenCount();
         if (slot.Representation() == SlotRef::DEFERRED_OBJECT ||
             slot.Representation() == SlotRef::DUPLICATE_OBJECT) {
-          should_deopt = true;
+          should_deoptimize_ = true;
         }
       }
 
@@ -3276,7 +3279,7 @@ SlotRefValueBuilder::SlotRefValueBuilder(JavaScriptFrame* frame,
       it.Skip(Translation::NumberOfOperandsFor(opcode));
     }
   }
-  if (should_deopt) {
+  if (should_deoptimize_) {
     List<JSFunction*> functions(2);
     frame->GetFunctions(&functions);
     Deoptimizer::DeoptimizeFunction(functions[0]);
@@ -3286,8 +3289,13 @@ SlotRefValueBuilder::SlotRefValueBuilder(JavaScriptFrame* frame,
 
 Handle<Object> SlotRef::GetValue(Isolate* isolate) {
   switch (representation_) {
-    case TAGGED:
-      return Handle<Object>(Memory::Object_at(addr_), isolate);
+    case TAGGED: {
+      Handle<Object> value(Memory::Object_at(addr_), isolate);
+      if (value->IsMutableHeapNumber()) {
+        HeapNumber::cast(*value)->set_map(isolate->heap()->heap_number_map());
+      }
+      return value;
+    }
 
     case INT32: {
 #if V8_TARGET_BIG_ENDIAN && V8_HOST_ARCH_64_BIT
@@ -3388,9 +3396,9 @@ Handle<Object> SlotRefValueBuilder::GetNext(Isolate* isolate, int lvl) {
     case SlotRef::INT32:
     case SlotRef::UINT32:
     case SlotRef::DOUBLE:
-    case SlotRef::LITERAL: {
+    case SlotRef::LITERAL:
       return slot.GetValue(isolate);
-    }
+
     case SlotRef::ARGUMENTS_OBJECT: {
       // We should never need to materialize an arguments object,
       // but we still need to put something into the array
@@ -3492,9 +3500,11 @@ void SlotRefValueBuilder::Finish(Isolate* isolate) {
   // We should have processed all the slots
   CHECK_EQ(slot_refs_.length(), current_slot_);
 
-  if (materialized_objects_.length() > prev_materialized_count_) {
-    // We have materialized some new objects, so we have to store them
-    // to prevent duplicate materialization
+  if (should_deoptimize_ &&
+      materialized_objects_.length() > prev_materialized_count_) {
+    // We have materialized some new objects and they might be accessible
+    // from the arguments object, so we have to store them
+    // to prevent duplicate materialization.
     Handle<FixedArray> array = isolate->factory()->NewFixedArray(
         materialized_objects_.length());
     for (int i = 0; i < materialized_objects_.length(); i++) {
@@ -3640,7 +3650,7 @@ const char* Deoptimizer::GetDeoptReason(DeoptReason deopt_reason) {
 
 
 Deoptimizer::DeoptInfo Deoptimizer::GetDeoptInfo(Code* code, int bailout_id) {
-  int last_position = 0;
+  SourcePosition last_position = SourcePosition::Unknown();
   Isolate* isolate = code->GetIsolate();
   Deoptimizer::DeoptReason last_reason = Deoptimizer::kNoReason;
   int mask = RelocInfo::ModeMask(RelocInfo::DEOPT_REASON) |
@@ -3649,7 +3659,9 @@ Deoptimizer::DeoptInfo Deoptimizer::GetDeoptInfo(Code* code, int bailout_id) {
   for (RelocIterator it(code, mask); !it.done(); it.next()) {
     RelocInfo* info = it.rinfo();
     if (info->rmode() == RelocInfo::POSITION) {
-      last_position = static_cast<int>(info->data());
+      int raw_position = static_cast<int>(info->data());
+      last_position = raw_position ? SourcePosition::FromRaw(raw_position)
+                                   : SourcePosition::Unknown();
     } else if (info->rmode() == RelocInfo::DEOPT_REASON) {
       last_reason = static_cast<Deoptimizer::DeoptReason>(info->data());
     } else if (last_reason != Deoptimizer::kNoReason) {
@@ -3667,6 +3679,6 @@ Deoptimizer::DeoptInfo Deoptimizer::GetDeoptInfo(Code* code, int bailout_id) {
       }
     }
   }
-  return DeoptInfo(0, NULL, Deoptimizer::kNoReason);
+  return DeoptInfo(SourcePosition::Unknown(), NULL, Deoptimizer::kNoReason);
 }
 } }  // namespace v8::internal

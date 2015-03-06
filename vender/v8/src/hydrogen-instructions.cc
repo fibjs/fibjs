@@ -622,17 +622,6 @@ void HValue::ComputeInitialRange(Zone* zone) {
 }
 
 
-std::ostream& operator<<(std::ostream& os, const HSourcePosition& p) {
-  if (p.IsUnknown()) {
-    return os << "<?>";
-  } else if (FLAG_hydrogen_track_positions) {
-    return os << "<" << p.inlining_id() << ":" << p.position() << ">";
-  } else {
-    return os << "<0:" << p.raw() << ">";
-  }
-}
-
-
 std::ostream& HInstruction::PrintTo(std::ostream& os) const {  // NOLINT
   os << Mnemonic() << " ";
   PrintDataTo(os) << ChangesOf(this) << TypeOf(this);
@@ -1816,9 +1805,7 @@ Range* HConstant::InferRange(Zone* zone) {
 }
 
 
-HSourcePosition HPhi::position() const {
-  return block()->first()->position();
-}
+SourcePosition HPhi::position() const { return block()->first()->position(); }
 
 
 Range* HPhi::InferRange(Zone* zone) {
@@ -2959,7 +2946,7 @@ Maybe<HConstant*> HConstant::CopyToTruncatedInt32(Zone* zone) {
         HConstant(DoubleToInt32(double_value_), Representation::Integer32(),
                   NotInNewSpace(), object_);
   }
-  return Maybe<HConstant*>(res != NULL, res);
+  return res != NULL ? Just(res) : Nothing<HConstant*>();
 }
 
 
@@ -2975,7 +2962,7 @@ Maybe<HConstant*> HConstant::CopyToTruncatedNumber(Isolate* isolate,
   } else if (handle->IsNull()) {
     res = new(zone) HConstant(0);
   }
-  return Maybe<HConstant*>(res != NULL, res);
+  return res != NULL ? Just(res) : Nothing<HConstant*>();
 }
 
 

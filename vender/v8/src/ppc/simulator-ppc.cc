@@ -15,6 +15,7 @@
 #if V8_TARGET_ARCH_PPC
 
 #include "src/assembler.h"
+#include "src/base/bits.h"
 #include "src/codegen.h"
 #include "src/disasm.h"
 #include "src/ppc/constants-ppc.h"
@@ -3002,8 +3003,7 @@ void Simulator::ExecuteExt5(Instruction* instr) {
       int mb = (instr->Bits(10, 6) | (instr->Bit(5) << 5));
       DCHECK(sh >= 0 && sh <= 63);
       DCHECK(mb >= 0 && mb <= 63);
-      // rotate left
-      uintptr_t result = (rs_val << sh) | (rs_val >> (64 - sh));
+      uintptr_t result = base::bits::RotateLeft64(rs_val, sh);
       uintptr_t mask = 0xffffffffffffffff >> mb;
       result &= mask;
       set_register(ra, result);
@@ -3020,8 +3020,7 @@ void Simulator::ExecuteExt5(Instruction* instr) {
       int me = (instr->Bits(10, 6) | (instr->Bit(5) << 5));
       DCHECK(sh >= 0 && sh <= 63);
       DCHECK(me >= 0 && me <= 63);
-      // rotate left
-      uintptr_t result = (rs_val << sh) | (rs_val >> (64 - sh));
+      uintptr_t result = base::bits::RotateLeft64(rs_val, sh);
       uintptr_t mask = 0xffffffffffffffff << (63 - me);
       result &= mask;
       set_register(ra, result);
@@ -3038,8 +3037,7 @@ void Simulator::ExecuteExt5(Instruction* instr) {
       int mb = (instr->Bits(10, 6) | (instr->Bit(5) << 5));
       DCHECK(sh >= 0 && sh <= 63);
       DCHECK(mb >= 0 && mb <= 63);
-      // rotate left
-      uintptr_t result = (rs_val << sh) | (rs_val >> (64 - sh));
+      uintptr_t result = base::bits::RotateLeft64(rs_val, sh);
       uintptr_t mask = (0xffffffffffffffff >> mb) & (0xffffffffffffffff << sh);
       result &= mask;
       set_register(ra, result);
@@ -3056,8 +3054,7 @@ void Simulator::ExecuteExt5(Instruction* instr) {
       int sh = (instr->Bits(15, 11) | (instr->Bit(1) << 5));
       int mb = (instr->Bits(10, 6) | (instr->Bit(5) << 5));
       int me = 63 - sh;
-      // rotate left
-      uintptr_t result = (rs_val << sh) | (rs_val >> (64 - sh));
+      uintptr_t result = base::bits::RotateLeft64(rs_val, sh);
       uintptr_t mask = 0;
       if (mb < me + 1) {
         uintptr_t bit = 0x8000000000000000 >> mb;
@@ -3096,8 +3093,7 @@ void Simulator::ExecuteExt5(Instruction* instr) {
       int mb = (instr->Bits(10, 6) | (instr->Bit(5) << 5));
       DCHECK(sh >= 0 && sh <= 63);
       DCHECK(mb >= 0 && mb <= 63);
-      // rotate left
-      uintptr_t result = (rs_val << sh) | (rs_val >> (64 - sh));
+      uintptr_t result = base::bits::RotateLeft64(rs_val, sh);
       uintptr_t mask = 0xffffffffffffffff >> mb;
       result &= mask;
       set_register(ra, result);
@@ -3272,8 +3268,7 @@ void Simulator::ExecuteGeneric(Instruction* instr) {
       int sh = instr->Bits(15, 11);
       int mb = instr->Bits(10, 6);
       int me = instr->Bits(5, 1);
-      // rotate left
-      uint32_t result = (rs_val << sh) | (rs_val >> (32 - sh));
+      uint32_t result = base::bits::RotateLeft32(rs_val, sh);
       int mask = 0;
       if (mb < me + 1) {
         int bit = 0x80000000 >> mb;
@@ -3315,8 +3310,7 @@ void Simulator::ExecuteGeneric(Instruction* instr) {
       }
       int mb = instr->Bits(10, 6);
       int me = instr->Bits(5, 1);
-      // rotate left
-      uint32_t result = (rs_val << sh) | (rs_val >> (32 - sh));
+      uint32_t result = base::bits::RotateLeft32(rs_val, sh);
       int mask = 0;
       if (mb < me + 1) {
         int bit = 0x80000000 >> mb;

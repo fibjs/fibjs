@@ -393,6 +393,11 @@ class RelocInfo {
     NONE64,             // never recorded 64-bit value
     CODE_AGE_SEQUENCE,  // Not stored in RelocInfo array, used explictly by
                         // code aging.
+
+    // Encoded internal reference, used only on MIPS and MIPS64.
+    // Re-uses previous ARM-only encoding, to fit in RealRelocMode space.
+    INTERNAL_REFERENCE_ENCODED = CONST_POOL,
+
     FIRST_REAL_RELOC_MODE = CODE_TARGET,
     LAST_REAL_RELOC_MODE = VENEER_POOL,
     FIRST_PSEUDO_RELOC_MODE = CODE_AGE_SEQUENCE,
@@ -465,8 +470,14 @@ class RelocInfo {
   static inline bool IsInternalReference(Mode mode) {
     return mode == INTERNAL_REFERENCE;
   }
+  static inline bool IsInternalReferenceEncoded(Mode mode) {
+    return mode == INTERNAL_REFERENCE_ENCODED;
+  }
   static inline bool IsDebugBreakSlot(Mode mode) {
     return mode == DEBUG_BREAK_SLOT;
+  }
+  static inline bool IsDebuggerStatement(Mode mode) {
+    return mode == DEBUG_BREAK;
   }
   static inline bool IsNone(Mode mode) {
     return mode == NONE32 || mode == NONE64;
@@ -567,9 +578,14 @@ class RelocInfo {
   // place, ready to be patched with the target.
   INLINE(int target_address_size());
 
+  // Read the reference in the instruction this relocation
+  // applies to; can only be called if rmode_ is EXTERNAL_REFERENCE.
+  INLINE(Address target_external_reference());
+
   // Read/modify the reference in the instruction this relocation
-  // applies to; can only be called if rmode_ is external_reference
-  INLINE(Address target_reference());
+  // applies to; can only be called if rmode_ is INTERNAL_REFERENCE.
+  INLINE(Address target_internal_reference());
+  INLINE(void set_target_internal_reference(Address target));
 
   // Read/modify the address of a call instruction. This is used to relocate
   // the break points where straight-line code is patched with a call
@@ -586,9 +602,6 @@ class RelocInfo {
 
   template<typename StaticVisitor> inline void Visit(Heap* heap);
   inline void Visit(Isolate* isolate, ObjectVisitor* v);
-
-  // Patch the code with some other code.
-  void PatchCode(byte* instructions, int instruction_count);
 
   // Patch the code with a call.
   void PatchCodeWithCall(Address target, int guard_bytes);
@@ -647,14 +660,24 @@ class RelocInfo {
 // lower addresses.
 class RelocInfoWriter BASE_EMBEDDED {
  public:
-  RelocInfoWriter() : pos_(NULL),
-                      last_pc_(NULL),
-                      last_id_(0),
-                      last_position_(0) {}
-  RelocInfoWriter(byte* pos, byte* pc) : pos_(pos),
-                                         last_pc_(pc),
-                                         last_id_(0),
-                                         last_position_(0) {}
+  RelocInfoWriter()
+      : pos_(NULL),
+        last_pc_(NULL),
+        last_id_(0),
+        last_position_(0),
+        last_mode_(RelocInfo::NUMBER_OF_MODES),
+        next_position_candidate_pos_delta_(0),
+        next_position_candidate_pc_delta_(0),
+        next_position_candidate_flushed_(true) {}
+  RelocInfoWriter(byte* pos, byte* pc)
+      : pos_(pos),
+        last_pc_(pc),
+        last_id_(0),
+        last_position_(0),
+        last_mode_(RelocInfo::NUMBER_OF_MODES),
+        next_position_candidate_pos_delta_(0),
+        next_position_candidate_pc_delta_(0),
+        next_position_candidate_flushed_(true) {}
 
   byte* pos() const { return pos_; }
   byte* last_pc() const { return last_pc_; }
@@ -667,6 +690,8 @@ class RelocInfoWriter BASE_EMBEDDED {
     pos_ = pos;
     last_pc_ = pc;
   }
+
+  void Finish() { FlushPosition(); }
 
   // Max size (bytes) of a written RelocInfo. Longest encoding is
   // ExtraTag, VariableLengthPCJump, ExtraTag, pc_delta, ExtraTag, data_delta.
@@ -684,11 +709,19 @@ class RelocInfoWriter BASE_EMBEDDED {
   inline void WriteExtraTaggedData(intptr_t data_delta, int top_tag);
   inline void WriteTaggedData(intptr_t data_delta, int tag);
   inline void WriteExtraTag(int extra_tag, int top_tag);
+  inline void WritePosition(int pc_delta, int pos_delta, RelocInfo::Mode rmode);
+
+  void FlushPosition();
 
   byte* pos_;
   byte* last_pc_;
   int last_id_;
   int last_position_;
+  RelocInfo::Mode last_mode_;
+  int next_position_candidate_pos_delta_;
+  uint32_t next_position_candidate_pc_delta_;
+  bool next_position_candidate_flushed_;
+
   DISALLOW_COPY_AND_ASSIGN(RelocInfoWriter);
 };
 

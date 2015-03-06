@@ -21,22 +21,21 @@ namespace internal {
 
 
 void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
-    MacroAssembler* masm, Handle<HeapType> type, Register receiver,
-    Register holder, int accessor_index, int expected_arguments,
-    Register scratch) {
+    MacroAssembler* masm, Handle<Map> map, Register receiver, Register holder,
+    int accessor_index, int expected_arguments, Register scratch) {
   // ----------- S t a t e -------------
   //  -- r3    : receiver
   //  -- r5    : name
   //  -- lr    : return address
   // -----------------------------------
   {
-    FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
+    FrameScope scope(masm, StackFrame::INTERNAL);
 
     if (accessor_index >= 0) {
       DCHECK(!holder.is(scratch));
       DCHECK(!receiver.is(scratch));
       // Call the JavaScript getter with the receiver on the stack.
-      if (IC::TypeToMap(*type, masm->isolate())->IsJSGlobalObjectMap()) {
+      if (map->IsJSGlobalObjectMap()) {
         // Swap in the global receiver.
         __ LoadP(scratch,
                  FieldMemOperand(receiver, JSGlobalObject::kGlobalProxyOffset));
@@ -61,14 +60,13 @@ void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
 
 
 void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
-    MacroAssembler* masm, Handle<HeapType> type, Register receiver,
-    Register holder, int accessor_index, int expected_arguments,
-    Register scratch) {
+    MacroAssembler* masm, Handle<Map> map, Register receiver, Register holder,
+    int accessor_index, int expected_arguments, Register scratch) {
   // ----------- S t a t e -------------
   //  -- lr    : return address
   // -----------------------------------
   {
-    FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
+    FrameScope scope(masm, StackFrame::INTERNAL);
 
     // Save value register, so we can restore it later.
     __ push(value());
@@ -78,7 +76,7 @@ void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
       DCHECK(!receiver.is(scratch));
       DCHECK(!value().is(scratch));
       // Call the JavaScript setter with receiver and value on the stack.
-      if (IC::TypeToMap(*type, masm->isolate())->IsJSGlobalObjectMap()) {
+      if (map->IsJSGlobalObjectMap()) {
         // Swap in the global receiver.
         __ LoadP(scratch,
                  FieldMemOperand(receiver, JSGlobalObject::kGlobalProxyOffset));
@@ -418,7 +416,7 @@ Register PropertyHandlerCompiler::CheckPrototypes(
     Register object_reg, Register holder_reg, Register scratch1,
     Register scratch2, Handle<Name> name, Label* miss,
     PrototypeCheckType check) {
-  Handle<Map> receiver_map(IC::TypeToMap(*type(), isolate()));
+  Handle<Map> receiver_map = map();
 
   // Make sure there's no overlap between holder and object registers.
   DCHECK(!scratch1.is(object_reg) && !scratch1.is(holder_reg));
@@ -430,8 +428,8 @@ Register PropertyHandlerCompiler::CheckPrototypes(
   int depth = 0;
 
   Handle<JSObject> current = Handle<JSObject>::null();
-  if (type()->IsConstant()) {
-    current = Handle<JSObject>::cast(type()->AsConstant()->Value());
+  if (receiver_map->IsJSGlobalObjectMap()) {
+    current = isolate()->global_object();
   }
   Handle<JSObject> prototype = Handle<JSObject>::null();
   Handle<Map> current_map = receiver_map;
@@ -623,7 +621,7 @@ void NamedLoadHandlerCompiler::GenerateLoadInterceptorWithFollowup(
   // Save necessary data before invoking an interceptor.
   // Requires a frame to make GC aware of pushed pointers.
   {
-    FrameAndConstantPoolScope frame_scope(masm(), StackFrame::INTERNAL);
+    FrameScope frame_scope(masm(), StackFrame::INTERNAL);
     if (must_preserve_receiver_reg) {
       __ Push(receiver(), holder_reg, this->name());
     } else {
@@ -675,11 +673,20 @@ void NamedLoadHandlerCompiler::GenerateLoadInterceptor(Register holder_reg) {
 
 
 Handle<Code> NamedStoreHandlerCompiler::CompileStoreCallback(
-    Handle<JSObject> object, Handle<Name> name, int accessor_index) {
+    Handle<JSObject> object, Handle<Name> name,
+    Handle<ExecutableAccessorInfo> callback) {
   Register holder_reg = Frontend(name);
 
   __ Push(receiver(), holder_reg);  // receiver
-  __ LoadSmiLiteral(ip, Smi::FromInt(accessor_index));
+
+  // If the callback cannot leak, then push the callback directly,
+  // otherwise wrap it in a weak cell.
+  if (callback->data()->IsUndefined() || callback->data()->IsSmi()) {
+    __ mov(ip, Operand(callback));
+  } else {
+    Handle<WeakCell> cell = isolate()->factory()->NewWeakCell(callback);
+    __ mov(ip, Operand(cell));
+  }
   __ push(ip);
   __ mov(ip, Operand(name));
   __ Push(ip, value());

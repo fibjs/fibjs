@@ -37,6 +37,7 @@
 #if V8_TARGET_ARCH_ARM
 
 #include "src/arm/constants-arm.h"
+#include "src/base/bits.h"
 #include "src/base/platform/platform.h"
 #include "src/disasm.h"
 #include "src/macro-assembler.h"
@@ -230,7 +231,7 @@ void Decoder::PrintShiftRm(Instruction* instr) {
 void Decoder::PrintShiftImm(Instruction* instr) {
   int rotate = instr->RotateValue() * 2;
   int immed8 = instr->Immed8Value();
-  int imm = (immed8 >> rotate) | (immed8 << (32 - rotate));
+  int imm = base::bits::RotateRight32(immed8, rotate);
   out_buffer_pos_ += SNPrintF(out_buffer_ + out_buffer_pos_, "#%d", imm);
 }
 

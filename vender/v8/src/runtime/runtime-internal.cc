@@ -26,7 +26,6 @@ RUNTIME_FUNCTION(Runtime_CheckIsBootstrapping) {
 RUNTIME_FUNCTION(Runtime_Throw) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1);
-
   return isolate->Throw(args[0]);
 }
 
@@ -34,8 +33,14 @@ RUNTIME_FUNCTION(Runtime_Throw) {
 RUNTIME_FUNCTION(Runtime_ReThrow) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1);
-
   return isolate->ReThrow(args[0]);
+}
+
+
+RUNTIME_FUNCTION(Runtime_FindExceptionHandler) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 0);
+  return isolate->FindHandler();
 }
 
 
@@ -52,6 +57,16 @@ RUNTIME_FUNCTION(Runtime_ThrowReferenceError) {
   CONVERT_ARG_HANDLE_CHECKED(Object, name, 0);
   THROW_NEW_ERROR_RETURN_FAILURE(
       isolate, NewReferenceError("not_defined", HandleVector(&name, 1)));
+}
+
+
+RUNTIME_FUNCTION(Runtime_ThrowIteratorResultNotAnObject) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_HANDLE_CHECKED(Object, value, 0);
+  THROW_NEW_ERROR_RETURN_FAILURE(
+      isolate,
+      NewTypeError("iterator_result_not_an_object", HandleVector(&value, 1)));
 }
 
 
@@ -166,7 +181,7 @@ RUNTIME_FUNCTION(Runtime_RenderCallSite) {
   Zone zone;
   if (location.function()->shared()->is_function()) {
     CompilationInfo info(location.function(), &zone);
-    if (!Parser::Parse(&info)) {
+    if (!Parser::ParseStatic(&info)) {
       isolate->clear_pending_exception();
       return isolate->heap()->empty_string();
     }
@@ -176,7 +191,7 @@ RUNTIME_FUNCTION(Runtime_RenderCallSite) {
   }
 
   CompilationInfo info(location.script(), &zone);
-  if (!Parser::Parse(&info)) {
+  if (!Parser::ParseStatic(&info)) {
     isolate->clear_pending_exception();
     return isolate->heap()->empty_string();
   }
@@ -186,7 +201,7 @@ RUNTIME_FUNCTION(Runtime_RenderCallSite) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_GetFromCache) {
+RUNTIME_FUNCTION(Runtime_GetFromCacheRT) {
   SealHandleScope shs(isolate);
   // This is only called from codegen, so checks might be more lax.
   CONVERT_ARG_CHECKED(JSFunctionResultCache, cache, 0);
@@ -304,12 +319,12 @@ RUNTIME_FUNCTION(Runtime_IS_VAR) {
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_GetFromCache) {
+RUNTIME_FUNCTION(Runtime_GetFromCache) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 2);
   CONVERT_SMI_ARG_CHECKED(id, 0);
   args[0] = isolate->native_context()->jsfunction_result_caches()->get(id);
-  return __RT_impl_Runtime_GetFromCache(args, isolate);
+  return __RT_impl_Runtime_GetFromCacheRT(args, isolate);
 }
 }
 }  // namespace v8::internal

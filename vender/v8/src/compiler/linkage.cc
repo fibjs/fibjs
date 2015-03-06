@@ -104,7 +104,6 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
   // not to call into arbitrary JavaScript, not to throw, and not to deoptimize
   // are blacklisted here and can be called without a FrameState.
   switch (function) {
-    case Runtime::kBooleanize:
     case Runtime::kDeclareGlobals:                 // TODO(jarin): Is it safe?
     case Runtime::kDefineClassMethod:              // TODO(jarin): Is it safe?
     case Runtime::kDefineGetterPropertyUnchecked:  // TODO(jarin): Is it safe?
@@ -115,6 +114,7 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
     case Runtime::kNewArguments:
     case Runtime::kNewClosure:
     case Runtime::kNewFunctionContext:
+    case Runtime::kNewRestParamSlow:
     case Runtime::kPushBlockContext:
     case Runtime::kPushCatchContext:
     case Runtime::kReThrow:

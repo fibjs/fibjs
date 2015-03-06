@@ -324,8 +324,9 @@ void Map::MapVerify() {
     SLOW_DCHECK(transitions()->IsSortedNoDuplicates());
     SLOW_DCHECK(transitions()->IsConsistentWithBackPointers(this));
   }
-  SLOW_DCHECK(!FLAG_unbox_double_fields ||
-              layout_descriptor()->IsConsistentWithMap(this));
+  // TODO(ishell): turn it back to SLOW_DCHECK.
+  CHECK(!FLAG_unbox_double_fields ||
+        layout_descriptor()->IsConsistentWithMap(this));
 }
 
 
@@ -677,6 +678,7 @@ void Code::CodeVerify() {
 
 void Code::VerifyEmbeddedObjectsDependency() {
   if (!CanContainWeakObjects()) return;
+  WeakCell* cell = CachedWeakCell();
   DisallowHeapAllocation no_gc;
   Isolate* isolate = GetIsolate();
   HandleScope scope(isolate);
@@ -687,13 +689,13 @@ void Code::VerifyEmbeddedObjectsDependency() {
       if (obj->IsMap()) {
         Map* map = Map::cast(obj);
         CHECK(map->dependent_code()->Contains(DependentCode::kWeakCodeGroup,
-                                              this));
+                                              cell));
       } else if (obj->IsJSObject()) {
-        Object* raw_table = GetIsolate()->heap()->weak_object_to_code_table();
-        WeakHashTable* table = WeakHashTable::cast(raw_table);
-        Handle<Object> key_obj(obj, isolate);
-        CHECK(DependentCode::cast(table->Lookup(key_obj))->Contains(
-            DependentCode::kWeakCodeGroup, this));
+        WeakHashTable* table =
+            GetIsolate()->heap()->weak_object_to_code_table();
+        Handle<HeapObject> key_obj(HeapObject::cast(obj), isolate);
+        CHECK(DependentCode::cast(table->Lookup(key_obj))
+                  ->Contains(DependentCode::kWeakCodeGroup, cell));
       }
     }
   }
@@ -1165,27 +1167,6 @@ bool DescriptorArray::IsSortedNoDuplicates(int valid_entries) {
       return false;
     }
     current = hash;
-  }
-  return true;
-}
-
-
-bool LayoutDescriptor::IsConsistentWithMap(Map* map) {
-  if (FLAG_unbox_double_fields) {
-    DescriptorArray* descriptors = map->instance_descriptors();
-    int nof_descriptors = map->NumberOfOwnDescriptors();
-    for (int i = 0; i < nof_descriptors; i++) {
-      PropertyDetails details = descriptors->GetDetails(i);
-      if (details.type() != DATA) continue;
-      FieldIndex field_index = FieldIndex::ForDescriptor(map, i);
-      bool tagged_expected =
-          !field_index.is_inobject() || !details.representation().IsDouble();
-      for (int bit = 0; bit < details.field_width_in_words(); bit++) {
-        bool tagged_actual = IsTagged(details.field_index() + bit);
-        DCHECK_EQ(tagged_expected, tagged_actual);
-        if (tagged_actual != tagged_expected) return false;
-      }
-    }
   }
   return true;
 }

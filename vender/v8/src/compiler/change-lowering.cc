@@ -165,7 +165,7 @@ Reduction ChangeLowering::ChangeInt32ToTagged(Node* value, Node* control) {
         machine()->Word64Shl(),
         graph()->NewNode(machine()->ChangeInt32ToInt64(), value),
         SmiShiftBitsConstant()));
-  } else if (NodeProperties::GetBounds(value).upper->Is(Type::Signed31())) {
+  } else if (NodeProperties::GetBounds(value).upper->Is(Type::SignedSmall())) {
     return Replace(
         graph()->NewNode(machine()->WordShl(), value, SmiShiftBitsConstant()));
   }
@@ -202,6 +202,7 @@ bool CanCover(Node* value, IrOpcode::Value opcode) {
   if (value->opcode() != opcode) return false;
   bool first = true;
   for (Edge const edge : value->use_edges()) {
+    if (NodeProperties::IsControlEdge(edge)) continue;
     if (NodeProperties::IsEffectEdge(edge)) continue;
     DCHECK(NodeProperties::IsValueEdge(edge));
     if (!first) return false;

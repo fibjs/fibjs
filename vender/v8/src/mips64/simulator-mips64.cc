@@ -2016,7 +2016,7 @@ void Simulator::ConfigureTypeRegister(Instruction* instr,
             // Logical right-rotate of a word by a fixed number of bits. This
             // is special case of SRL instruction, added in MIPS32 Release 2.
             // RS field is equal to 00001.
-            *alu_out = ((uint32_t)rt_u >> sa) | ((uint32_t)rt_u << (32 - sa));
+            *alu_out = base::bits::RotateRight32((uint32_t)rt_u, sa);
           }
           break;
         case DSRL:
@@ -2049,8 +2049,7 @@ void Simulator::ConfigureTypeRegister(Instruction* instr,
             // Logical right-rotate of a word by a variable number of bits.
             // This is special case od SRLV instruction, added in MIPS32
             // Release 2. SA field is equal to 00001.
-            *alu_out =
-                ((uint32_t)rt_u >> rs_u) | ((uint32_t)rt_u << (32 - rs_u));
+            *alu_out = base::bits::RotateRight32((uint32_t)rt_u, rs_u);
           }
           break;
         case DSRLV:
@@ -2062,7 +2061,7 @@ void Simulator::ConfigureTypeRegister(Instruction* instr,
             // Logical right-rotate of a word by a variable number of bits.
             // This is special case od SRLV instruction, added in MIPS32
             // Release 2. SA field is equal to 00001.
-            *alu_out = (rt_u >> rs_u) | (rt_u << (32 - rs_u));
+            *alu_out = base::bits::RotateRight32(rt_u, rs_u);
           }
           break;
         case SRAV:

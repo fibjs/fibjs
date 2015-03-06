@@ -37,8 +37,10 @@ namespace compiler {
   V(ArchCallCodeObject)     \
   V(ArchCallJSFunction)     \
   V(ArchJmp)                \
-  V(ArchSwitch)             \
+  V(ArchLookupSwitch)       \
+  V(ArchTableSwitch)        \
   V(ArchNop)                \
+  V(ArchDeoptimize)         \
   V(ArchRet)                \
   V(ArchStackPointer)       \
   V(ArchTruncateDoubleToI)  \

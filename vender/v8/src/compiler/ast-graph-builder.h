@@ -31,7 +31,7 @@ class AstGraphBuilder : public AstVisitor {
                   LoopAssignmentAnalysis* loop_assignment = NULL);
 
   // Creates a graph by visiting the entire AST.
-  bool CreateGraph();
+  bool CreateGraph(bool constant_context);
 
   // Helpers to create new control nodes.
   Node* NewIfTrue() { return NewNode(common()->IfTrue()); }
@@ -50,12 +50,6 @@ class AstGraphBuilder : public AstVisitor {
 
   // Visiting function for declarations list is overridden.
   void VisitDeclarations(ZoneList<Declaration*>* declarations) OVERRIDE;
-
-  // Get the node that represents the outer function context.
-  Node* GetFunctionContext();
-
-  // Get the node that represents the outer function closure.
-  Node* GetFunctionClosure();
 
  private:
   class AstContext;
@@ -90,12 +84,12 @@ class AstGraphBuilder : public AstVisitor {
   SetOncePointer<Node> function_closure_;
   SetOncePointer<Node> function_context_;
 
+  // Tracks how many try-blocks are currently entered.
+  int try_nesting_level_;
+
   // Temporary storage for building node input lists.
   int input_buffer_size_;
   Node** input_buffer_;
-
-  // Node representing the control dependency for dead code.
-  SetOncePointer<Node> dead_control_;
 
   // Merge of all control nodes that exit the function body.
   Node* exit_control_;
@@ -108,7 +102,7 @@ class AstGraphBuilder : public AstVisitor {
   static const int kInputBufferSizeIncrement = 64;
 
   Zone* local_zone() const { return local_zone_; }
-  Environment* environment() { return environment_; }
+  Environment* environment() const { return environment_; }
   AstContext* ast_context() const { return ast_context_; }
   ControlScope* execution_control() const { return execution_control_; }
   ContextScope* execution_context() const { return execution_context_; }
@@ -122,7 +116,6 @@ class AstGraphBuilder : public AstVisitor {
   ZoneVector<Handle<Object>>* globals() { return &globals_; }
   Scope* current_scope() const;
   Node* current_context() const;
-  Node* dead_control();
   Node* exit_control() const { return exit_control_; }
 
   void set_environment(Environment* env) { environment_ = env; }
@@ -130,6 +123,15 @@ class AstGraphBuilder : public AstVisitor {
   void set_execution_control(ControlScope* ctrl) { execution_control_ = ctrl; }
   void set_execution_context(ContextScope* ctx) { execution_context_ = ctx; }
   void set_exit_control(Node* exit) { exit_control_ = exit; }
+
+  // Create the main graph body by visiting the AST.
+  void CreateGraphBody();
+
+  // Create the node that represents the outer context of the function.
+  void CreateFunctionContext(bool constant_context);
+
+  // Get or create the node that represents the outer function closure.
+  Node* GetFunctionClosure();
 
   // Node creation helpers.
   Node* NewNode(const Operator* op, bool incomplete = false) {
@@ -176,6 +178,9 @@ class AstGraphBuilder : public AstVisitor {
   Node* NewPhi(int count, Node* input, Node* control);
   Node* NewEffectPhi(int count, Node* input, Node* control);
 
+  Node* NewOuterContextParam();
+  Node* NewCurrentContextOsrValue();
+
   // Helpers for merging control, effect or value dependencies.
   Node* MergeControl(Node* control, Node* other);
   Node* MergeEffect(Node* value, Node* other, Node* control);
@@ -205,6 +210,9 @@ class AstGraphBuilder : public AstVisitor {
   // Builder to create an arguments object if it is used.
   Node* BuildArgumentsObject(Variable* arguments);
 
+  // Builder to create an array of rest parameters if used
+  Node* BuildRestArgumentsArray(Variable* rest, int index);
+
   // Builders for variable load and assignment.
   Node* BuildVariableAssignment(Variable* var, Node* value, Token::Value op,
                                 BailoutId bailout_id,
@@ -227,7 +235,12 @@ class AstGraphBuilder : public AstVisitor {
   Node* BuildToBoolean(Node* value);
   Node* BuildToName(Node* value, BailoutId bailout_id);
 
+  // Builder for adding the [[HomeObject]] to a value if the value came from a
+  // function literal and needs a home object. Do nothing otherwise.
+  Node* BuildSetHomeObject(Node* value, Node* home_object, Expression* expr);
+
   // Builders for error reporting at runtime.
+  Node* BuildThrowError(Node* exception, BailoutId bailout_id);
   Node* BuildThrowReferenceError(Variable* var, BailoutId bailout_id);
   Node* BuildThrowConstAssignError(BailoutId bailout_id);
 
@@ -278,7 +291,7 @@ class AstGraphBuilder : public AstVisitor {
   void VisitForValues(ZoneList<Expression*>* exprs);
 
   // Common for all IterationStatement bodies.
-  void VisitIterationBody(IterationStatement* stmt, LoopBuilder* loop, int);
+  void VisitIterationBody(IterationStatement* stmt, LoopBuilder* loop);
 
   // Dispatched from VisitCallRuntime.
   void VisitCallJSRuntime(CallRuntime* expr);
@@ -354,6 +367,10 @@ class AstGraphBuilder::Environment : public ZoneObject {
     }
   }
 
+  Node* Context() const { return contexts_.back(); }
+  void PushContext(Node* context) { contexts()->push_back(context); }
+  void PopContext() { contexts()->pop_back(); }
+
   // Operations on the operand stack.
   void Push(Node* node) {
     values()->push_back(node);
@@ -384,6 +401,11 @@ class AstGraphBuilder::Environment : public ZoneObject {
     DCHECK(depth >= 0 && depth <= stack_height());
     values()->erase(values()->end() - depth, values()->end());
   }
+  void Trim(int trim_to_height) {
+    int depth = stack_height() - trim_to_height;
+    DCHECK(depth >= 0 && depth <= stack_height());
+    values()->erase(values()->end() - depth, values()->end());
+  }
 
   // Preserve a checkpoint of the environment for the IR graph. Any
   // further mutation of the environment will not affect checkpoints.
@@ -403,7 +425,7 @@ class AstGraphBuilder::Environment : public ZoneObject {
 
   // Mark this environment as being unreachable.
   void MarkAsUnreachable() {
-    UpdateControlDependency(builder()->dead_control());
+    UpdateControlDependency(builder()->jsgraph()->DeadControl());
   }
   bool IsMarkedAsUnreachable() {
     return GetControlDependency()->opcode() == IrOpcode::kDead;
@@ -428,11 +450,14 @@ class AstGraphBuilder::Environment : public ZoneObject {
     return Copy();
   }
 
+  int ContextStackDepth() { return static_cast<int>(contexts_.size()); }
+
  private:
   AstGraphBuilder* builder_;
   int parameters_count_;
   int locals_count_;
   NodeVector values_;
+  NodeVector contexts_;
   Node* control_dependency_;
   Node* effect_dependency_;
   Node* parameters_node_;
@@ -447,6 +472,7 @@ class AstGraphBuilder::Environment : public ZoneObject {
   AstGraphBuilder* builder() const { return builder_; }
   CommonOperatorBuilder* common() { return builder_->common(); }
   NodeVector* values() { return &values_; }
+  NodeVector* contexts() { return &contexts_; }
 
   // Prepare environment to be used as loop header.
   void PrepareForLoop(BitVector* assigned, bool is_osr = false);

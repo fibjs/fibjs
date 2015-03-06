@@ -279,7 +279,7 @@ void TypeFeedbackOracle::BinaryType(TypeFeedbackId id,
     DCHECK(op < BinaryOpICState::FIRST_TOKEN ||
            op > BinaryOpICState::LAST_TOKEN);
     *left = *right = *result = Type::None(zone());
-    *fixed_right_arg = Maybe<int>();
+    *fixed_right_arg = Nothing<int>();
     *allocation_site = Handle<AllocationSite>::null();
     return;
   }
@@ -422,7 +422,7 @@ bool TypeFeedbackOracle::CanRetainOtherContext(Map* map,
                                                Context* native_context) {
   Object* constructor = NULL;
   while (!map->prototype()->IsNull()) {
-    constructor = map->constructor();
+    constructor = map->GetConstructor();
     if (!constructor->IsNull()) {
       // If the constructor is not null or a JSFunction, we have to
       // conservatively assume that it may retain a native context.
@@ -435,7 +435,7 @@ bool TypeFeedbackOracle::CanRetainOtherContext(Map* map,
     }
     map = HeapObject::cast(map->prototype())->map();
   }
-  constructor = map->constructor();
+  constructor = map->GetConstructor();
   if (constructor->IsNull()) return false;
   JSFunction* function = JSFunction::cast(constructor);
   return CanRetainOtherContext(function, native_context);

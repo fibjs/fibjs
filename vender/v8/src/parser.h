@@ -8,6 +8,7 @@
 #include "src/allocation.h"
 #include "src/ast.h"
 #include "src/compiler.h"  // For CachedDataMode
+#include "src/pending-compilation-error-handler.h"
 #include "src/preparse-data.h"
 #include "src/preparse-data-format.h"
 #include "src/preparser.h"
@@ -32,6 +33,7 @@ class FunctionEntry BASE_EMBEDDED {
     kLiteralCountIndex,
     kPropertyCountIndex,
     kLanguageModeIndex,
+    kUsesSuperPropertyIndex,
     kSize
   };
 
@@ -48,6 +50,7 @@ class FunctionEntry BASE_EMBEDDED {
     DCHECK(is_valid_language_mode(backing_[kLanguageModeIndex]));
     return static_cast<LanguageMode>(backing_[kLanguageModeIndex]);
   }
+  bool uses_super_property() { return backing_[kUsesSuperPropertyIndex]; }
 
   bool is_valid() { return !backing_.is_empty(); }
 
@@ -361,7 +364,6 @@ class ParserTraits {
     typedef Variable GeneratorVariable;
 
     typedef v8::internal::AstProperties AstProperties;
-    typedef Vector<VariableProxy*> ParameterIdentifierVector;
 
     // Return types for traversing functions.
     typedef const AstRawString* Identifier;
@@ -382,6 +384,8 @@ class ParserTraits {
   explicit ParserTraits(Parser* parser) : parser_(parser) {}
 
   // Helper functions for recursive descent.
+  bool IsEval(const AstRawString* identifier) const;
+  bool IsArguments(const AstRawString* identifier) const;
   bool IsEvalOrArguments(const AstRawString* identifier) const;
   V8_INLINE bool IsFutureStrictReserved(const AstRawString* identifier) const;
 
@@ -489,20 +493,16 @@ class ParserTraits {
       const AstRawString* arg, int pos);
 
   // Reporting errors.
-  void ReportMessageAt(Scanner::Location source_location,
-                       const char* message,
+  void ReportMessageAt(Scanner::Location source_location, const char* message,
                        const char* arg = NULL,
-                       bool is_reference_error = false);
-  void ReportMessage(const char* message,
-                     const char* arg = NULL,
-                     bool is_reference_error = false);
-  void ReportMessage(const char* message,
-                     const AstRawString* arg,
-                     bool is_reference_error = false);
-  void ReportMessageAt(Scanner::Location source_location,
-                       const char* message,
+                       ParseErrorType error_type = kSyntaxError);
+  void ReportMessage(const char* message, const char* arg = NULL,
+                     ParseErrorType error_type = kSyntaxError);
+  void ReportMessage(const char* message, const AstRawString* arg,
+                     ParseErrorType error_type = kSyntaxError);
+  void ReportMessageAt(Scanner::Location source_location, const char* message,
                        const AstRawString* arg,
-                       bool is_reference_error = false);
+                       ParseErrorType error_type = kSyntaxError);
 
   // "null" return type creators.
   static const AstRawString* EmptyIdentifier() {
@@ -542,7 +542,8 @@ class ParserTraits {
                                  int end_pos);
   Literal* ExpressionFromLiteral(Token::Value token, int pos, Scanner* scanner,
                                  AstNodeFactory* factory);
-  Expression* ExpressionFromIdentifier(const AstRawString* name, int pos,
+  Expression* ExpressionFromIdentifier(const AstRawString* name,
+                                       int start_position, int end_position,
                                        Scope* scope, AstNodeFactory* factory);
   Expression* ExpressionFromString(int pos, Scanner* scanner,
                                    AstNodeFactory* factory);
@@ -635,16 +636,8 @@ class ParserTraits {
 
 class Parser : public ParserBase<ParserTraits> {
  public:
-  // Note that the hash seed in ParseInfo must be the hash seed from the
-  // Isolate's heap, otherwise the heap will be in an inconsistent state once
-  // the strings created by the Parser are internalized.
-  struct ParseInfo {
-    uintptr_t stack_limit;
-    uint32_t hash_seed;
-    UnicodeCache* unicode_cache;
-  };
-
-  Parser(CompilationInfo* info, ParseInfo* parse_info);
+  Parser(CompilationInfo* info, uintptr_t stack_limit, uint32_t hash_seed,
+         UnicodeCache* unicode_cache);
   ~Parser() {
     delete reusable_preparser_;
     reusable_preparser_ = NULL;
@@ -655,26 +648,14 @@ class Parser : public ParserBase<ParserTraits> {
   // Parses the source code represented by the compilation info and sets its
   // function literal.  Returns false (and deallocates any allocated AST
   // nodes) if parsing failed.
-  static bool Parse(CompilationInfo* info,
-                    bool allow_lazy = false) {
-    ParseInfo parse_info = {info->isolate()->stack_guard()->real_climit(),
-                            info->isolate()->heap()->HashSeed(),
-                            info->isolate()->unicode_cache()};
-    Parser parser(info, &parse_info);
-    parser.set_allow_lazy(allow_lazy);
-    if (parser.Parse()) {
-      info->SetLanguageMode(info->function()->language_mode());
-      return true;
-    }
-    return false;
-  }
-  bool Parse();
-  void ParseOnBackground();
+  static bool ParseStatic(CompilationInfo* info, bool allow_lazy = false);
+  bool Parse(CompilationInfo* info);
+  void ParseOnBackground(CompilationInfo* info);
 
   // Handle errors detected during parsing, move statistics to Isolate,
   // internalize strings (move them to the heap).
-  void Internalize();
-  void HandleSourceURLComments();
+  void Internalize(Isolate* isolate, Handle<Script> script, bool error);
+  void HandleSourceURLComments(Isolate* isolate, Handle<Script> script);
 
  private:
   friend class ParserTraits;
@@ -688,44 +669,29 @@ class Parser : public ParserBase<ParserTraits> {
   // https://codereview.chromium.org/7003030/ ).
   static const int kMaxNumFunctionLocals = 4194303;  // 2^22-1
 
-  enum VariableDeclarationContext {
-    kStatementListItem,
-    kStatement,
-    kForStatement
-  };
-
-  // If a list of variable declarations includes any initializers.
-  enum VariableDeclarationProperties {
-    kHasInitializers,
-    kHasNoInitializers
-  };
-
   // Returns NULL if parsing failed.
-  FunctionLiteral* ParseProgram();
+  FunctionLiteral* ParseProgram(Isolate* isolate, CompilationInfo* info);
 
-  FunctionLiteral* ParseLazy();
-  FunctionLiteral* ParseLazy(Utf16CharacterStream* source);
-
-  Isolate* isolate() { return info_->isolate(); }
-  CompilationInfo* info() const { return info_; }
-  Handle<Script> script() const { return info_->script(); }
+  FunctionLiteral* ParseLazy(Isolate* isolate, CompilationInfo* info);
+  FunctionLiteral* ParseLazy(Isolate* isolate, CompilationInfo* info,
+                             Utf16CharacterStream* source);
 
   // Called by ParseProgram after setting up the scanner.
   FunctionLiteral* DoParseProgram(CompilationInfo* info, Scope** scope,
                                   Scope** ad_hoc_eval_scope);
 
-  void SetCachedData();
+  void SetCachedData(CompilationInfo* info);
 
   bool inside_with() const { return scope_->inside_with(); }
   ScriptCompiler::CompileOptions compile_options() const {
-    return info_->compile_options();
+    return compile_options_;
   }
   bool consume_cached_parse_data() const {
-    return compile_options() == ScriptCompiler::kConsumeParserCache &&
+    return compile_options_ == ScriptCompiler::kConsumeParserCache &&
            cached_parse_data_ != NULL;
   }
   bool produce_cached_parse_data() const {
-    return compile_options() == ScriptCompiler::kProduceParserCache;
+    return compile_options_ == ScriptCompiler::kProduceParserCache;
   }
   Scope* DeclarationScope(VariableMode mode) {
     return IsLexicalVariableMode(mode)
@@ -739,16 +705,19 @@ class Parser : public ParserBase<ParserTraits> {
   void* ParseStatementList(ZoneList<Statement*>* body, int end_token,
                            bool is_eval, Scope** ad_hoc_eval_scope, bool* ok);
   Statement* ParseStatementListItem(bool* ok);
-  Statement* ParseModule(bool* ok);
+  void* ParseModuleItemList(ZoneList<Statement*>* body, bool* ok);
   Statement* ParseModuleItem(bool* ok);
-  Literal* ParseModuleSpecifier(bool* ok);
+  const AstRawString* ParseModuleSpecifier(bool* ok);
   Statement* ParseImportDeclaration(bool* ok);
   Statement* ParseExportDeclaration(bool* ok);
   Statement* ParseExportDefault(bool* ok);
-  void* ParseExportClause(ZoneList<const AstRawString*>* names,
+  void* ParseExportClause(ZoneList<const AstRawString*>* export_names,
+                          ZoneList<Scanner::Location>* export_locations,
+                          ZoneList<const AstRawString*>* local_names,
                           Scanner::Location* reserved_loc, bool* ok);
-  void* ParseNamedImports(ZoneList<const AstRawString*>* names, bool* ok);
+  ZoneList<ImportDeclaration*>* ParseNamedImports(int pos, bool* ok);
   Statement* ParseStatement(ZoneList<const AstRawString*>* labels, bool* ok);
+  Statement* ParseSubStatement(ZoneList<const AstRawString*>* labels, bool* ok);
   Statement* ParseFunctionDeclaration(ZoneList<const AstRawString*>* names,
                                       bool* ok);
   Statement* ParseClassDeclaration(ZoneList<const AstRawString*>* names,
@@ -794,8 +763,8 @@ class Parser : public ParserBase<ParserTraits> {
                                   Expression* each,
                                   Expression* subject,
                                   Statement* body);
-  Statement* DesugarLetBindingsInForStatement(
-      Scope* inner_scope, ZoneList<const AstRawString*>* names,
+  Statement* DesugarLexicalBindingsInForStatement(
+      Scope* inner_scope, bool is_const, ZoneList<const AstRawString*>* names,
       ForStatement* loop, Statement* init, Expression* cond, Statement* next,
       Statement* body, bool* ok);
 
@@ -814,8 +783,6 @@ class Parser : public ParserBase<ParserTraits> {
   // Magical syntax support.
   Expression* ParseV8Intrinsic(bool* ok);
 
-  bool CheckInOrOf(bool accept_OF, ForEachStatement::VisitMode* visit_mode);
-
   // Get odd-ball literals.
   Literal* GetLiteralUndefined(int position);
 
@@ -831,14 +798,14 @@ class Parser : public ParserBase<ParserTraits> {
   void CheckConflictingVarDeclarations(Scope* scope, bool* ok);
 
   // Parser support
-  VariableProxy* NewUnresolved(const AstRawString* name,
-                               VariableMode mode,
-                               Interface* interface);
-  void Declare(Declaration* declaration, bool resolve, bool* ok);
+  VariableProxy* NewUnresolved(const AstRawString* name, VariableMode mode);
+  Variable* Declare(Declaration* declaration, bool resolve, bool* ok);
 
   bool TargetStackContainsLabel(const AstRawString* label);
   BreakableStatement* LookupBreakTarget(const AstRawString* label, bool* ok);
   IterationStatement* LookupContinueTarget(const AstRawString* label, bool* ok);
+
+  void AddAssertIsConstruct(ZoneList<Statement*>* body, int pos);
 
   // Factory methods.
   FunctionLiteral* DefaultConstructor(bool call_super, Scope* scope, int pos,
@@ -859,7 +826,7 @@ class Parser : public ParserBase<ParserTraits> {
       const AstRawString* function_name, int pos, Variable* fvar,
       Token::Value fvar_init_op, FunctionKind kind, bool* ok);
 
-  void ThrowPendingError();
+  void ThrowPendingError(Isolate* isolate, Handle<Script> script);
 
   TemplateLiteralState OpenTemplateLiteral(int pos);
   void AddTemplateSpan(TemplateLiteralState* state, bool tail);
@@ -873,24 +840,20 @@ class Parser : public ParserBase<ParserTraits> {
   PreParser* reusable_preparser_;
   Scope* original_scope_;  // for ES5 function declarations in sloppy eval
   Target* target_stack_;  // for break, continue statements
+  ScriptCompiler::CompileOptions compile_options_;
   ParseData* cached_parse_data_;
 
-  CompilationInfo* info_;
   bool parsing_lazy_arrow_parameters_;  // for lazily parsed arrow functions.
 
-  // Pending errors.
-  bool has_pending_error_;
-  Scanner::Location pending_error_location_;
-  const char* pending_error_message_;
-  const AstRawString* pending_error_arg_;
-  const char* pending_error_char_arg_;
-  bool pending_error_is_reference_error_;
+  PendingCompilationErrorHandler pending_error_handler_;
 
   // Other information which will be stored in Parser and moved to Isolate after
   // parsing.
   int use_counts_[v8::Isolate::kUseCounterFeatureCount];
   int total_preparse_skipped_;
   HistogramTimer* pre_parse_timer_;
+
+  bool parsing_on_main_thread_;
 };
 
 

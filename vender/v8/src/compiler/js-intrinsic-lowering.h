@@ -27,9 +27,13 @@ class JSIntrinsicLowering FINAL : public Reducer {
   Reduction Reduce(Node* node) FINAL;
 
  private:
+  Reduction ReduceDeoptimizeNow(Node* node);
   Reduction ReduceInlineIsSmi(Node* node);
   Reduction ReduceInlineIsNonNegativeSmi(Node* node);
   Reduction ReduceInlineIsInstanceType(Node* node, InstanceType instance_type);
+  Reduction ReduceInlineOptimizedConstructDouble(Node* node);
+  Reduction ReduceInlineOptimizedDoubleLo(Node* node);
+  Reduction ReduceInlineOptimizedDoubleHi(Node* node);
   Reduction ReduceInlineValueOf(Node* node);
 
   Reduction Change(Node* node, const Operator* op);

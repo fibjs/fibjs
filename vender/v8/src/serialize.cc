@@ -10,6 +10,7 @@
 #include "src/bootstrapper.h"
 #include "src/code-stubs.h"
 #include "src/compiler.h"
+#include "src/cpu-profiler.h"
 #include "src/deoptimizer.h"
 #include "src/execution.h"
 #include "src/global-handles.h"
@@ -479,16 +480,14 @@ ExternalReferenceDecoder::~ExternalReferenceDecoder() {
 RootIndexMap::RootIndexMap(Isolate* isolate) {
   map_ = new HashMap(HashMap::PointersMatch);
   Object** root_array = isolate->heap()->roots_array_start();
-  for (int i = 0; i < Heap::kStrongRootListLength; i++) {
+  for (uint32_t i = 0; i < Heap::kStrongRootListLength; i++) {
     Object* root = root_array[i];
     if (root->IsHeapObject() && !isolate->heap()->InNewSpace(root)) {
       HeapObject* heap_object = HeapObject::cast(root);
-      if (LookupEntry(map_, heap_object, false) != NULL) {
-        // Some root values are initialized to the empty FixedArray();
-        // Do not add them to the map.
-        // TODO(yangguo): This assert is not true. Some roots like
-        // instanceof_cache_answer can be e.g. null.
-        // DCHECK_EQ(isolate->heap()->empty_fixed_array(), heap_object);
+      HashMap::Entry* entry = LookupEntry(map_, heap_object, false);
+      if (entry != NULL) {
+        // Some are initialized to a previous value in the root list.
+        DCHECK_LT(GetValue(entry), i);
       } else {
         SetValue(LookupEntry(map_, heap_object, true), i);
       }
@@ -679,8 +678,6 @@ void Deserializer::Deserialize(Isolate* isolate) {
     isolate_->heap()->set_allocation_sites_list(
         isolate_->heap()->undefined_value());
   }
-
-  isolate_->heap()->InitializeWeakObjectToCodeTable();
 
   // Update data pointers to the external strings containing natives sources.
   for (int i = 0; i < Natives::GetBuiltinsCount(); i++) {
@@ -901,23 +898,20 @@ void Deserializer::ReadObject(int space_number, Object** write_back) {
     DCHECK(space_number != CODE_SPACE);
   }
 #endif
-#if V8_TARGET_ARCH_PPC && \
-    (ABI_USES_FUNCTION_DESCRIPTORS || V8_OOL_CONSTANT_POOL)
-  // If we're on a platform that uses function descriptors
-  // these jump tables make use of RelocInfo::INTERNAL_REFERENCE.
-  // As the V8 serialization code doesn't handle that relocation type
-  // we use this to fix up code that has function descriptors.
-  if (space_number == CODE_SPACE) {
-    Code* code = reinterpret_cast<Code*>(HeapObject::FromAddress(address));
-    for (RelocIterator it(code); !it.done(); it.next()) {
-      RelocInfo::Mode rmode = it.rinfo()->rmode();
-      if (rmode == RelocInfo::INTERNAL_REFERENCE) {
-        Assembler::RelocateInternalReference(it.rinfo()->pc(), 0,
-                                             code->instruction_start());
-      }
+
+  if (obj->IsCode()) {
+    // Turn internal references encoded as offsets back to absolute addresses.
+    Code* code = Code::cast(obj);
+    Address entry = code->entry();
+    int mode_mask = RelocInfo::ModeMask(RelocInfo::INTERNAL_REFERENCE);
+    for (RelocIterator it(code, mode_mask); !it.done(); it.next()) {
+      RelocInfo* rinfo = it.rinfo();
+      intptr_t offset =
+          reinterpret_cast<intptr_t>(rinfo->target_internal_reference());
+      DCHECK(0 <= offset && offset <= code->instruction_size());
+      rinfo->set_target_internal_reference(entry + offset);
     }
   }
-#endif
 }
 
 
@@ -999,7 +993,7 @@ void Deserializer::ReadData(Object** current, Object** limit, int source_space,
         emit_write_barrier = isolate->heap()->InNewSpace(new_object);          \
       } else if (where == kPartialSnapshotCache) {                             \
         int cache_index = source_.GetInt();                                    \
-        new_object = isolate->serialize_partial_snapshot_cache()[cache_index]; \
+        new_object = isolate->partial_snapshot_cache()->at(cache_index);       \
         emit_write_barrier = isolate->heap()->InNewSpace(new_object);          \
       } else if (where == kExternalReference) {                                \
         int skip = source_.GetInt();                                           \
@@ -1509,43 +1503,35 @@ void Serializer::EncodeReservations(
 void SerializerDeserializer::Iterate(Isolate* isolate,
                                      ObjectVisitor* visitor) {
   if (isolate->serializer_enabled()) return;
-  for (int i = 0; ; i++) {
-    if (isolate->serialize_partial_snapshot_cache_length() <= i) {
-      // Extend the array ready to get a value from the visitor when
-      // deserializing.
-      isolate->PushToPartialSnapshotCache(Smi::FromInt(0));
-    }
-    Object** cache = isolate->serialize_partial_snapshot_cache();
-    visitor->VisitPointers(&cache[i], &cache[i + 1]);
+  List<Object*>* cache = isolate->partial_snapshot_cache();
+  for (int i = 0;; ++i) {
+    // Extend the array ready to get a value when deserializing.
+    if (cache->length() <= i) cache->Add(Smi::FromInt(0));
+    visitor->VisitPointer(&cache->at(i));
     // Sentinel is the undefined object, which is a root so it will not normally
     // be found in the cache.
-    if (cache[i] == isolate->heap()->undefined_value()) {
-      break;
-    }
+    if (cache->at(i)->IsUndefined()) break;
   }
 }
 
 
 int PartialSerializer::PartialSnapshotCacheIndex(HeapObject* heap_object) {
   Isolate* isolate = this->isolate();
+  List<Object*>* cache = isolate->partial_snapshot_cache();
+  int new_index = cache->length();
 
-  for (int i = 0;
-       i < isolate->serialize_partial_snapshot_cache_length();
-       i++) {
-    Object* entry = isolate->serialize_partial_snapshot_cache()[i];
-    if (entry == heap_object) return i;
+  int index = partial_cache_index_map_.LookupOrInsert(heap_object, new_index);
+  if (index == PartialCacheIndexMap::kInvalidIndex) {
+    // We didn't find the object in the cache.  So we add it to the cache and
+    // then visit the pointer so that it becomes part of the startup snapshot
+    // and we can refer to it from the partial snapshot.
+    cache->Add(heap_object);
+    startup_serializer_->VisitPointer(reinterpret_cast<Object**>(&heap_object));
+    // We don't recurse from the startup snapshot generator into the partial
+    // snapshot generator.
+    return new_index;
   }
-
-  // We didn't find the object in the cache.  So we add it to the cache and
-  // then visit the pointer so that it becomes part of the startup snapshot
-  // and we can refer to it from the partial snapshot.
-  int length = isolate->serialize_partial_snapshot_cache_length();
-  isolate->PushToPartialSnapshotCache(heap_object);
-  startup_serializer_->VisitPointer(reinterpret_cast<Object**>(&heap_object));
-  // We don't recurse from the startup snapshot generator into the partial
-  // snapshot generator.
-  DCHECK(length == isolate->serialize_partial_snapshot_cache_length() - 1);
-  return length;
+  return index;
 }
 
 
@@ -1897,7 +1883,9 @@ void Serializer::ObjectSerializer::Serialize() {
 
   int size = object_->Size();
   Map* map = object_->map();
-  SerializePrologue(Serializer::SpaceOfObject(object_), size, map);
+  AllocationSpace space =
+      MemoryChunk::FromAddress(object_->address())->owner()->identity();
+  SerializePrologue(space, size, map);
 
   // Serialize the rest of the object.
   CHECK_EQ(0, bytes_processed_so_far_);
@@ -1979,7 +1967,7 @@ void Serializer::ObjectSerializer::VisitExternalReference(RelocInfo* rinfo) {
   HowToCode how_to_code = rinfo->IsCodedSpecially() ? kFromCode : kPlain;
   sink_->Put(kExternalReference + how_to_code + kStartOfObject, "ExternalRef");
   sink_->PutInt(skip, "SkipB4ExternalRef");
-  Address target = rinfo->target_reference();
+  Address target = rinfo->target_external_reference();
   sink_->PutInt(serializer_->EncodeExternalReference(target), "reference id");
   bytes_processed_so_far_ += rinfo->target_address_size();
 }
@@ -2053,24 +2041,35 @@ void Serializer::ObjectSerializer::VisitExternalOneByteString(
 }
 
 
-static Code* CloneCodeObject(HeapObject* code) {
-  Address copy = new byte[code->Size()];
-  MemCopy(copy, code->address(), code->Size());
-  return Code::cast(HeapObject::FromAddress(copy));
-}
-
-
-static void WipeOutRelocations(Code* code) {
-  int mode_mask =
-      RelocInfo::kCodeTargetMask |
-      RelocInfo::ModeMask(RelocInfo::EMBEDDED_OBJECT) |
-      RelocInfo::ModeMask(RelocInfo::EXTERNAL_REFERENCE) |
-      RelocInfo::ModeMask(RelocInfo::RUNTIME_ENTRY);
+Address Serializer::ObjectSerializer::PrepareCode() {
+  // To make snapshots reproducible, we make a copy of the code object
+  // and wipe all pointers in the copy, which we then serialize.
+  Code* original = Code::cast(object_);
+  Code* code = serializer_->CopyCode(original);
+  // Code age headers are not serializable.
+  code->MakeYoung(serializer_->isolate());
+  Address entry = original->entry();
+  int mode_mask = RelocInfo::kCodeTargetMask |
+                  RelocInfo::ModeMask(RelocInfo::EMBEDDED_OBJECT) |
+                  RelocInfo::ModeMask(RelocInfo::EXTERNAL_REFERENCE) |
+                  RelocInfo::ModeMask(RelocInfo::RUNTIME_ENTRY) |
+                  RelocInfo::ModeMask(RelocInfo::INTERNAL_REFERENCE);
   for (RelocIterator it(code, mode_mask); !it.done(); it.next()) {
-    if (!(FLAG_enable_ool_constant_pool && it.rinfo()->IsInConstantPool())) {
-      it.rinfo()->WipeOut();
+    RelocInfo* rinfo = it.rinfo();
+    if (RelocInfo::IsInternalReference(rinfo->rmode())) {
+      // Convert internal references to relative offsets.
+      Address target = rinfo->target_internal_reference();
+      intptr_t offset = target - entry;
+      DCHECK(0 <= offset && offset <= original->instruction_size());
+      rinfo->set_target_internal_reference(reinterpret_cast<Address>(offset));
+    } else if (!(FLAG_enable_ool_constant_pool && rinfo->IsInConstantPool())) {
+      rinfo->WipeOut();
     }
   }
+  // We need to wipe out the header fields *after* wiping out the
+  // relocations, because some of these fields are needed for the latter.
+  code->WipeOutHeader();
+  return code->address();
 }
 
 
@@ -2108,17 +2107,7 @@ int Serializer::ObjectSerializer::OutputRawData(
       sink_->PutInt(bytes_to_output, "length");
     }
 
-    // To make snapshots reproducible, we need to wipe out all pointers in code.
-    if (code_object_) {
-      Code* code = CloneCodeObject(object_);
-      // Code age headers are not serializable.
-      code->MakeYoung(serializer_->isolate());
-      WipeOutRelocations(code);
-      // We need to wipe out the header fields *after* wiping out the
-      // relocations, because some of these fields are needed for the latter.
-      code->WipeOutHeader();
-      object_start = code->address();
-    }
+    if (code_object_) object_start = PrepareCode();
 
     const char* description = code_object_ ? "Code" : "Byte";
 #ifdef MEMORY_SANITIZER
@@ -2126,7 +2115,6 @@ int Serializer::ObjectSerializer::OutputRawData(
     MSAN_MEMORY_IS_INITIALIZED(object_start + base, bytes_to_output);
 #endif  // MEMORY_SANITIZER
     sink_->PutRaw(object_start + base, bytes_to_output, description);
-    if (code_object_) delete[] object_start;
   }
   if (to_skip != 0 && return_skip == kIgnoringReturn) {
     sink_->Put(kSkip, "Skip");
@@ -2134,19 +2122,6 @@ int Serializer::ObjectSerializer::OutputRawData(
     to_skip = 0;
   }
   return to_skip;
-}
-
-
-AllocationSpace Serializer::SpaceOfObject(HeapObject* object) {
-  for (int i = FIRST_SPACE; i <= LAST_SPACE; i++) {
-    AllocationSpace s = static_cast<AllocationSpace>(i);
-    if (object->GetHeap()->InSpace(object, s)) {
-      DCHECK(i < kNumberOfSpaces);
-      return s;
-    }
-  }
-  UNREACHABLE();
-  return FIRST_SPACE;
 }
 
 
@@ -2195,6 +2170,14 @@ void Serializer::Pad() {
 void Serializer::InitializeCodeAddressMap() {
   isolate_->InitializeLoggingAndCounters();
   code_address_map_ = new CodeAddressMap(isolate_);
+}
+
+
+Code* Serializer::CopyCode(Code* code) {
+  code_buffer_.Rewind(0);  // Clear buffer without deleting backing store.
+  int size = code->CodeSize();
+  code_buffer_.AddAll(Vector<byte>(code->address(), size));
+  return Code::cast(HeapObject::FromAddress(&code_buffer_.first()));
 }
 
 
@@ -2464,12 +2447,11 @@ void SerializedData::AllocateData(int size) {
 }
 
 
-SnapshotData::SnapshotData(const SnapshotByteSink& sink,
-                           const Serializer& ser) {
+SnapshotData::SnapshotData(const Serializer& ser) {
   DisallowHeapAllocation no_gc;
   List<Reservation> reservations;
   ser.EncodeReservations(&reservations);
-  const List<byte>& payload = sink.data();
+  const List<byte>& payload = ser.sink()->data();
 
   // Calculate sizes.
   int reservation_size = reservations.length() * kInt32Size;
@@ -2569,6 +2551,7 @@ SerializedCodeData::SerializedCodeData(const List<byte>& payload,
   AllocateData(size);
 
   // Set header values.
+  SetHeaderValue(kMagicNumberOffset, kMagicNumber);
   SetHeaderValue(kVersionHashOffset, Version::Hash());
   SetHeaderValue(kSourceHashOffset, SourceHash(cs.source()));
   SetHeaderValue(kCpuFeaturesOffset,
@@ -2599,14 +2582,24 @@ SerializedCodeData::SerializedCodeData(const List<byte>& payload,
 }
 
 
-bool SerializedCodeData::IsSane(String* source) const {
-  return GetHeaderValue(kVersionHashOffset) == Version::Hash() &&
-         GetHeaderValue(kSourceHashOffset) == SourceHash(source) &&
-         GetHeaderValue(kCpuFeaturesOffset) ==
-             static_cast<uint32_t>(CpuFeatures::SupportedFeatures()) &&
-         GetHeaderValue(kFlagHashOffset) == FlagList::Hash() &&
-         Checksum(Payload()).Check(GetHeaderValue(kChecksum1Offset),
-                                   GetHeaderValue(kChecksum2Offset));
+SerializedCodeData::SanityCheckResult SerializedCodeData::SanityCheck(
+    String* source) const {
+  uint32_t magic_number = GetHeaderValue(kMagicNumberOffset);
+  uint32_t version_hash = GetHeaderValue(kVersionHashOffset);
+  uint32_t source_hash = GetHeaderValue(kSourceHashOffset);
+  uint32_t cpu_features = GetHeaderValue(kCpuFeaturesOffset);
+  uint32_t flags_hash = GetHeaderValue(kFlagHashOffset);
+  uint32_t c1 = GetHeaderValue(kChecksum1Offset);
+  uint32_t c2 = GetHeaderValue(kChecksum2Offset);
+  if (magic_number != kMagicNumber) return MAGIC_NUMBER_MISMATCH;
+  if (version_hash != Version::Hash()) return VERSION_MISMATCH;
+  if (source_hash != SourceHash(source)) return SOURCE_MISMATCH;
+  if (cpu_features != static_cast<uint32_t>(CpuFeatures::SupportedFeatures())) {
+    return CPU_FEATURES_MISMATCH;
+  }
+  if (flags_hash != FlagList::Hash()) return FLAGS_MISMATCH;
+  if (!Checksum(Payload()).Check(c1, c2)) return CHECKSUM_MISMATCH;
+  return CHECK_SUCCESS;
 }
 
 
@@ -2662,8 +2655,10 @@ SerializedCodeData* SerializedCodeData::FromCachedData(ScriptData* cached_data,
                                                        String* source) {
   DisallowHeapAllocation no_gc;
   SerializedCodeData* scd = new SerializedCodeData(cached_data);
-  if (scd->IsSane(source)) return scd;
+  SanityCheckResult r = scd->SanityCheck(source);
+  if (r == CHECK_SUCCESS) return scd;
   cached_data->Reject();
+  source->GetIsolate()->counters()->code_cache_reject_reason()->AddSample(r);
   delete scd;
   return NULL;
 }

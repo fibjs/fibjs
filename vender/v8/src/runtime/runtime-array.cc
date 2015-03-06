@@ -420,7 +420,7 @@ static void CollectElementIndices(Handle<JSObject> object, uint32_t range,
       uint32_t length = static_cast<uint32_t>(DoubleToInt32(length_num));
       ElementsAccessor* accessor = object->GetElementsAccessor();
       for (uint32_t i = 0; i < length; i++) {
-        if (accessor->HasElement(object, object, i)) {
+        if (accessor->HasElement(object, i)) {
           indices->Add(i);
         }
       }
@@ -444,8 +444,8 @@ static bool IterateElementsSlow(Isolate* isolate, Handle<JSObject> receiver,
   for (uint32_t i = 0; i < length; ++i) {
     HandleScope loop_scope(isolate);
     Maybe<bool> maybe = JSReceiver::HasElement(receiver, i);
-    if (!maybe.has_value) return false;
-    if (maybe.value) {
+    if (!maybe.IsJust()) return false;
+    if (maybe.FromJust()) {
       Handle<Object> element_value;
       ASSIGN_RETURN_ON_EXCEPTION_VALUE(
           isolate, element_value,
@@ -511,8 +511,8 @@ static bool IterateElements(Isolate* isolate, Handle<JSObject> receiver,
           visitor->visit(j, element_value);
         } else {
           Maybe<bool> maybe = JSReceiver::HasElement(receiver, j);
-          if (!maybe.has_value) return false;
-          if (maybe.value) {
+          if (!maybe.IsJust()) return false;
+          if (maybe.FromJust()) {
             // Call GetElement on receiver, not its prototype, or getters won't
             // have the correct receiver.
             ASSIGN_RETURN_ON_EXCEPTION_VALUE(
@@ -547,8 +547,8 @@ static bool IterateElements(Isolate* isolate, Handle<JSObject> receiver,
           visitor->visit(j, element_value);
         } else {
           Maybe<bool> maybe = JSReceiver::HasElement(receiver, j);
-          if (!maybe.has_value) return false;
-          if (maybe.value) {
+          if (!maybe.IsJust()) return false;
+          if (maybe.FromJust()) {
             // Call GetElement on receiver, not its prototype, or getters won't
             // have the correct receiver.
             Handle<Object> element_value;
@@ -687,7 +687,7 @@ static bool IterateElements(Isolate* isolate, Handle<JSObject> receiver,
       ElementsAccessor* accessor = receiver->GetElementsAccessor();
       for (uint32_t index = 0; index < length; index++) {
         HandleScope loop_scope(isolate);
-        if (accessor->HasElement(receiver, receiver, index)) {
+        if (accessor->HasElement(receiver, index)) {
           Handle<Object> element;
           ASSIGN_RETURN_ON_EXCEPTION_VALUE(
               isolate, element, accessor->Get(receiver, receiver, index),
@@ -979,7 +979,7 @@ RUNTIME_FUNCTION(Runtime_EstimateNumberOfElements) {
     ElementsAccessor* accessor = array->GetElementsAccessor();
     int holes = 0;
     for (int i = 0; i < length; i += increment) {
-      if (!accessor->HasElement(array, array, i, elements)) {
+      if (!accessor->HasElement(array, i, elements)) {
         ++holes;
       }
     }
@@ -1038,6 +1038,7 @@ RUNTIME_FUNCTION(Runtime_GetArrayKeys) {
 
 static Object* ArrayConstructorCommon(Isolate* isolate,
                                       Handle<JSFunction> constructor,
+                                      Handle<JSFunction> original_constructor,
                                       Handle<AllocationSite> site,
                                       Arguments* caller_args) {
   Factory* factory = isolate->factory();
@@ -1109,6 +1110,19 @@ static Object* ArrayConstructorCommon(Isolate* isolate,
     // We must mark the allocationsite as un-inlinable.
     site->SetDoNotInlineCall();
   }
+
+  // Set up the prototoype using original function.
+  // TODO(dslomov): instead of setting the __proto__,
+  // use and cache the correct map.
+  if (*original_constructor != *constructor) {
+    if (original_constructor->has_instance_prototype()) {
+      Handle<Object> prototype =
+          handle(original_constructor->instance_prototype(), isolate);
+      RETURN_FAILURE_ON_EXCEPTION(
+          isolate, JSObject::SetPrototype(array, prototype, false));
+    }
+  }
+
   return *array;
 }
 
@@ -1142,7 +1156,27 @@ RUNTIME_FUNCTION(Runtime_ArrayConstructor) {
     DCHECK(!site->SitePointsToLiteral());
   }
 
-  return ArrayConstructorCommon(isolate, constructor, site, caller_args);
+  return ArrayConstructorCommon(isolate, constructor, constructor, site,
+                                caller_args);
+}
+
+
+RUNTIME_FUNCTION(Runtime_ArrayConstructorWithSubclassing) {
+  HandleScope scope(isolate);
+  int args_length = args.length();
+  CHECK(args_length >= 2);
+
+  // This variables and checks work around -Werror=strict-overflow.
+  int pre_last_arg_index = args_length - 2;
+  int last_arg_index = args_length - 1;
+  CHECK(pre_last_arg_index >= 0);
+  CHECK(last_arg_index >= 0);
+
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, constructor, pre_last_arg_index);
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, original_constructor, last_arg_index);
+  Arguments caller_args(args_length - 2, args.arguments());
+  return ArrayConstructorCommon(isolate, constructor, original_constructor,
+                                Handle<AllocationSite>::null(), &caller_args);
 }
 
 
@@ -1161,7 +1195,7 @@ RUNTIME_FUNCTION(Runtime_InternalArrayConstructor) {
     DCHECK(arg_count == caller_args->length());
   }
 #endif
-  return ArrayConstructorCommon(isolate, constructor,
+  return ArrayConstructorCommon(isolate, constructor, constructor,
                                 Handle<AllocationSite>::null(), caller_args);
 }
 
@@ -1288,7 +1322,7 @@ RUNTIME_FUNCTION_RETURN_PAIR(Runtime_ForInNext) {
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_IsArray) {
+RUNTIME_FUNCTION(Runtime_IsArray) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 1);
   CONVERT_ARG_CHECKED(Object, obj, 0);
@@ -1296,21 +1330,21 @@ RUNTIME_FUNCTION(RuntimeReference_IsArray) {
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_HasCachedArrayIndex) {
+RUNTIME_FUNCTION(Runtime_HasCachedArrayIndex) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 1);
   return isolate->heap()->false_value();
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_GetCachedArrayIndex) {
+RUNTIME_FUNCTION(Runtime_GetCachedArrayIndex) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 1);
   return isolate->heap()->undefined_value();
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_FastOneByteArrayJoin) {
+RUNTIME_FUNCTION(Runtime_FastOneByteArrayJoin) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 2);
   return isolate->heap()->undefined_value();

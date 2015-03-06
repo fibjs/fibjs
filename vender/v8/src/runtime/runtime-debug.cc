@@ -913,8 +913,8 @@ static bool SetLocalVariableValue(Isolate* isolate, JavaScriptFrame* frame,
         Handle<JSObject> ext(JSObject::cast(function_context->extension()));
 
         Maybe<bool> maybe = JSReceiver::HasProperty(ext, variable_name);
-        DCHECK(maybe.has_value);
-        if (maybe.value) {
+        DCHECK(maybe.IsJust());
+        if (maybe.FromJust()) {
           // We don't expect this to do anything except replacing
           // property value.
           Runtime::SetObjectProperty(isolate, ext, variable_name, new_value,
@@ -996,8 +996,8 @@ static bool SetClosureVariableValue(Isolate* isolate, Handle<Context> context,
   if (context->has_extension()) {
     Handle<JSObject> ext(JSObject::cast(context->extension()));
     Maybe<bool> maybe = JSReceiver::HasProperty(ext, variable_name);
-    DCHECK(maybe.has_value);
-    if (maybe.value) {
+    DCHECK(maybe.IsJust());
+    if (maybe.FromJust()) {
       // We don't expect this to do anything except replacing property value.
       Runtime::DefineObjectProperty(ext, variable_name, new_value, NONE)
           .Assert();
@@ -1164,18 +1164,19 @@ class ScopeIterator {
     if (!ignore_nested_scopes) {
       Handle<DebugInfo> debug_info = Debug::GetDebugInfo(shared_info);
 
-      // Find the break point where execution has stopped.
-      BreakLocationIterator break_location_iterator(debug_info,
-                                                    ALL_BREAK_LOCATIONS);
-      // pc points to the instruction after the current one, possibly a break
+      // PC points to the instruction after the current one, possibly a break
       // location as well. So the "- 1" to exclude it from the search.
-      break_location_iterator.FindBreakLocationFromAddress(frame->pc() - 1);
+      Address call_pc = frame->pc() - 1;
+
+      // Find the break point where execution has stopped.
+      BreakLocation location =
+          BreakLocation::FromAddress(debug_info, ALL_BREAK_LOCATIONS, call_pc);
 
       // Within the return sequence at the moment it is not possible to
       // get a source position which is consistent with the current scope chain.
       // Thus all nested with, catch and block contexts are skipped and we only
       // provide the function scope.
-      ignore_nested_scopes = break_location_iterator.IsExit();
+      ignore_nested_scopes = location.IsExit();
     }
 
     if (ignore_nested_scopes) {
@@ -1208,14 +1209,14 @@ class ScopeIterator {
           info.MarkAsEval();
           info.SetContext(Handle<Context>(function_->context()));
         }
-        if (Parser::Parse(&info) && Scope::Analyze(&info)) {
+        if (Parser::ParseStatic(&info) && Scope::Analyze(&info)) {
           scope = info.function()->scope();
         }
         RetrieveScopeChain(scope, shared_info);
       } else {
         // Function code
         CompilationInfoWithZone info(shared_info);
-        if (Parser::Parse(&info) && Scope::Analyze(&info)) {
+        if (Parser::ParseStatic(&info) && Scope::Analyze(&info)) {
           scope = info.function()->scope();
         }
         RetrieveScopeChain(scope, shared_info);
@@ -1559,18 +1560,19 @@ RUNTIME_FUNCTION(Runtime_GetStepInPositions) {
 
   Handle<DebugInfo> debug_info = Debug::GetDebugInfo(shared);
 
-  int len = 0;
-  Handle<JSArray> array(isolate->factory()->NewJSArray(10));
-  // Find the break point where execution has stopped.
-  BreakLocationIterator break_location_iterator(debug_info,
-                                                ALL_BREAK_LOCATIONS);
+  // Find range of break points starting from the break point where execution
+  // has stopped.
+  Address call_pc = frame->pc() - 1;
+  List<BreakLocation> locations;
+  BreakLocation::FromAddressSameStatement(debug_info, ALL_BREAK_LOCATIONS,
+                                          call_pc, &locations);
 
-  break_location_iterator.FindBreakLocationFromAddress(frame->pc() - 1);
-  int current_statement_pos = break_location_iterator.statement_position();
+  Handle<JSArray> array = isolate->factory()->NewJSArray(locations.length());
 
-  while (!break_location_iterator.Done()) {
+  int index = 0;
+  for (BreakLocation location : locations) {
     bool accept;
-    if (break_location_iterator.pc() > frame->pc()) {
+    if (location.pc() > frame->pc()) {
       accept = true;
     } else {
       StackFrame::Id break_frame_id = isolate->debug()->break_frame_id();
@@ -1587,19 +1589,14 @@ RUNTIME_FUNCTION(Runtime_GetStepInPositions) {
       }
     }
     if (accept) {
-      if (break_location_iterator.IsStepInLocation(isolate)) {
-        Smi* position_value = Smi::FromInt(break_location_iterator.position());
+      if (location.IsStepInLocation()) {
+        Smi* position_value = Smi::FromInt(location.position());
         RETURN_FAILURE_ON_EXCEPTION(
             isolate, JSObject::SetElement(
-                         array, len, Handle<Object>(position_value, isolate),
+                         array, index, Handle<Object>(position_value, isolate),
                          NONE, SLOPPY));
-        len++;
+        index++;
       }
-    }
-    // Advance iterator.
-    break_location_iterator.Next();
-    if (current_statement_pos != break_location_iterator.statement_position()) {
-      break;
     }
   }
   return *array;
@@ -2113,8 +2110,8 @@ MUST_USE_RESULT static MaybeHandle<JSObject> MaterializeArgumentsObject(
   if (!function->shared()->is_function()) return target;
   Maybe<bool> maybe = JSReceiver::HasOwnProperty(
       target, isolate->factory()->arguments_string());
-  if (!maybe.has_value) return MaybeHandle<JSObject>();
-  if (maybe.value) return target;
+  if (!maybe.IsJust()) return MaybeHandle<JSObject>();
+  if (maybe.FromJust()) return target;
 
   // FunctionGetArguments can't throw an exception.
   Handle<JSObject> arguments =
@@ -2371,7 +2368,7 @@ static int DebugReferencedBy(HeapIterator* iterator, JSObject* target,
       // checked in the context of functions using them.
       JSObject* obj = JSObject::cast(heap_obj);
       if (obj->IsJSContextExtensionObject() ||
-          obj->map()->constructor() == arguments_function) {
+          obj->map()->GetConstructor() == arguments_function) {
         continue;
       }
 
@@ -2434,7 +2431,7 @@ RUNTIME_FUNCTION(Runtime_DebugReferencedBy) {
 
   // Get the constructor function for context extension and arguments array.
   Handle<JSFunction> arguments_function(
-      JSFunction::cast(isolate->sloppy_arguments_map()->constructor()));
+      JSFunction::cast(isolate->sloppy_arguments_map()->GetConstructor()));
 
   // Get the number of referencing objects.
   int count;
@@ -2482,7 +2479,7 @@ static int DebugConstructedBy(HeapIterator* iterator, JSFunction* constructor,
     // Only look at all JSObjects.
     if (heap_obj->IsJSObject()) {
       JSObject* obj = JSObject::cast(heap_obj);
-      if (obj->map()->constructor() == constructor) {
+      if (obj->map()->GetConstructor() == constructor) {
         // Valid reference found add to instance array if supplied an update
         // count.
         if (instances != NULL && count < instances_size) {
@@ -2806,13 +2803,13 @@ RUNTIME_FUNCTION(Runtime_DebugAsyncTaskEvent) {
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_DebugIsActive) {
+RUNTIME_FUNCTION(Runtime_DebugIsActive) {
   SealHandleScope shs(isolate);
   return Smi::FromInt(isolate->debug()->is_active());
 }
 
 
-RUNTIME_FUNCTION(RuntimeReference_DebugBreakInOptimizedCode) {
+RUNTIME_FUNCTION(Runtime_DebugBreakInOptimizedCode) {
   UNIMPLEMENTED();
   return NULL;
 }

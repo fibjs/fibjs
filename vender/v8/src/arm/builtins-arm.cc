@@ -133,6 +133,7 @@ void Builtins::Generate_ArrayCode(MacroAssembler* masm) {
     __ Assert(eq, kUnexpectedInitialMapForArrayFunction);
   }
 
+  __ mov(r3, r1);
   // Run the native code for the Array function called as a normal function.
   // tail call a stub
   __ LoadRoot(r2, Heap::kUndefinedValueRootIndex);
@@ -792,10 +793,29 @@ void Builtins::Generate_JSConstructStubForDerived(MacroAssembler* masm) {
     __ sub(r4, r4, Operand(2), SetCC);
     __ b(ge, &loop);
 
+    __ add(r0, r0, Operand(1));
+
+    // Handle step in.
+    Label skip_step_in;
+    ExternalReference debug_step_in_fp =
+        ExternalReference::debug_step_in_fp_address(masm->isolate());
+    __ mov(r2, Operand(debug_step_in_fp));
+    __ ldr(r2, MemOperand(r2));
+    __ tst(r2, r2);
+    __ b(eq, &skip_step_in);
+
+    __ Push(r0);
+    __ Push(r1);
+    __ Push(r1);
+    __ CallRuntime(Runtime::kHandleStepInForDerivedConstructors, 1);
+    __ Pop(r1);
+    __ Pop(r0);
+
+    __ bind(&skip_step_in);
+
     // Call the function.
     // r0: number of arguments
     // r1: constructor function
-    __ add(r0, r0, Operand(1));
     ParameterCount actual(r0);
     __ InvokeFunction(r1, actual, CALL_FUNCTION, NullCallWrapper());
 
@@ -913,7 +933,9 @@ static void CallCompileOptimized(MacroAssembler* masm, bool concurrent) {
   // Push function as parameter to the runtime call.
   __ Push(r1);
   // Whether to compile in a background thread.
-  __ Push(masm->isolate()->factory()->ToBoolean(concurrent));
+  __ LoadRoot(
+      ip, concurrent ? Heap::kTrueValueRootIndex : Heap::kFalseValueRootIndex);
+  __ push(ip);
 
   __ CallRuntime(Runtime::kCompileOptimized, 2);
   // Restore receiver.

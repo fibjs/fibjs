@@ -876,27 +876,9 @@ void Logger::ApiEvent(const char* format, ...) {
 }
 
 
-void Logger::ApiNamedSecurityCheck(Object* key) {
+void Logger::ApiSecurityCheck() {
   if (!log_->IsEnabled() || !FLAG_log_api) return;
-  if (key->IsString()) {
-    SmartArrayPointer<char> str =
-        String::cast(key)->ToCString(DISALLOW_NULLS, ROBUST_STRING_TRAVERSAL);
-    ApiEvent("api,check-security,\"%s\"", str.get());
-  } else if (key->IsSymbol()) {
-    Symbol* symbol = Symbol::cast(key);
-    if (symbol->name()->IsUndefined()) {
-      ApiEvent("api,check-security,symbol(hash %x)", Symbol::cast(key)->Hash());
-    } else {
-      SmartArrayPointer<char> str = String::cast(symbol->name())->ToCString(
-          DISALLOW_NULLS, ROBUST_STRING_TRAVERSAL);
-      ApiEvent("api,check-security,symbol(\"%s\" hash %x)", str.get(),
-               Symbol::cast(key)->Hash());
-    }
-  } else if (key->IsUndefined()) {
-    ApiEvent("api,check-security,undefined");
-  } else {
-    ApiEvent("api,check-security,['no-name']");
-  }
+  ApiEvent("api,check-security");
 }
 
 
@@ -1026,12 +1008,6 @@ void Logger::RegExpCompileEvent(Handle<JSRegExp> regexp, bool in_cache) {
   LogRegExpSource(regexp);
   msg.Append(in_cache ? ",hit" : ",miss");
   msg.WriteToLogFile();
-}
-
-
-void Logger::ApiIndexedSecurityCheck(uint32_t index) {
-  if (!log_->IsEnabled() || !FLAG_log_api) return;
-  ApiEvent("api,check-security,%u", index);
 }
 
 
@@ -1412,8 +1388,6 @@ void Logger::SnapshotPositionEvent(Address addr, int pos) {
 
 
 void Logger::SharedFunctionInfoMoveEvent(Address from, Address to) {
-  PROFILER_LOG(SharedFunctionInfoMoveEvent(from, to));
-
   if (!is_logging_code_events()) return;
   MoveEventInternal(SHARED_FUNC_MOVE_EVENT, from, to);
 }
@@ -1793,8 +1767,16 @@ static void AddIsolateIdIfNeeded(std::ostream& os,  // NOLINT
 
 static void PrepareLogFileName(std::ostream& os,  // NOLINT
                                Isolate* isolate, const char* file_name) {
-  AddIsolateIdIfNeeded(os, isolate);
+  int dir_separator_count = 0;
   for (const char* p = file_name; *p; p++) {
+    if (base::OS::isDirectorySeparator(*p)) dir_separator_count++;
+  }
+
+  for (const char* p = file_name; *p; p++) {
+    if (dir_separator_count == 0) {
+      AddIsolateIdIfNeeded(os, isolate);
+      dir_separator_count--;
+    }
     if (*p == '%') {
       p++;
       switch (*p) {
@@ -1820,6 +1802,7 @@ static void PrepareLogFileName(std::ostream& os,  // NOLINT
           break;
       }
     } else {
+      if (base::OS::isDirectorySeparator(*p)) dir_separator_count--;
       os << *p;
     }
   }

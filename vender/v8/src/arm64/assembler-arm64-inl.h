@@ -733,9 +733,21 @@ void RelocInfo::set_target_object(Object* target,
 }
 
 
-Address RelocInfo::target_reference() {
+Address RelocInfo::target_external_reference() {
   DCHECK(rmode_ == EXTERNAL_REFERENCE);
   return Assembler::target_address_at(pc_, host_);
+}
+
+
+Address RelocInfo::target_internal_reference() {
+  DCHECK(rmode_ == INTERNAL_REFERENCE);
+  return Memory::Address_at(pc_);
+}
+
+
+void RelocInfo::set_target_internal_reference(Address target) {
+  DCHECK(rmode_ == INTERNAL_REFERENCE);
+  Memory::Address_at(pc_) = target;
 }
 
 
@@ -838,7 +850,7 @@ bool RelocInfo::IsPatchedReturnSequence() {
   // The sequence must be:
   //   ldr ip0, [pc, #offset]
   //   blr ip0
-  // See arm64/debug-arm64.cc BreakLocationIterator::SetDebugBreakAtReturn().
+  // See arm64/debug-arm64.cc BreakLocation::SetDebugBreakAtReturn().
   Instruction* i1 = reinterpret_cast<Instruction*>(pc_);
   Instruction* i2 = i1->following();
   return i1->IsLdrLiteralX() && (i1->Rt() == ip0.code()) &&

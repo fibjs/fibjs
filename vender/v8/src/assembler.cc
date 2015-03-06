@@ -415,7 +415,38 @@ void RelocInfoWriter::WriteExtraTaggedData(intptr_t data_delta, int top_tag) {
 }
 
 
+void RelocInfoWriter::WritePosition(int pc_delta, int pos_delta,
+                                    RelocInfo::Mode rmode) {
+  int pos_type_tag = (rmode == RelocInfo::POSITION) ? kNonstatementPositionTag
+                                                    : kStatementPositionTag;
+  // Check if delta is small enough to fit in a tagged byte.
+  if (is_intn(pos_delta, kSmallDataBits)) {
+    WriteTaggedPC(pc_delta, kLocatableTag);
+    WriteTaggedData(pos_delta, pos_type_tag);
+  } else {
+    // Otherwise, use costly encoding.
+    WriteExtraTaggedPC(pc_delta, kPCJumpExtraTag);
+    WriteExtraTaggedIntData(pos_delta, pos_type_tag);
+  }
+}
+
+
+void RelocInfoWriter::FlushPosition() {
+  if (!next_position_candidate_flushed_) {
+    WritePosition(next_position_candidate_pc_delta_,
+                  next_position_candidate_pos_delta_, RelocInfo::POSITION);
+    next_position_candidate_pos_delta_ = 0;
+    next_position_candidate_pc_delta_ = 0;
+    next_position_candidate_flushed_ = true;
+  }
+}
+
+
 void RelocInfoWriter::Write(const RelocInfo* rinfo) {
+  RelocInfo::Mode rmode = rinfo->rmode();
+  if (rmode != RelocInfo::POSITION) {
+    FlushPosition();
+  }
 #ifdef DEBUG
   byte* begin_pos = pos_;
 #endif
@@ -425,7 +456,6 @@ void RelocInfoWriter::Write(const RelocInfo* rinfo) {
          <= kMaxStandardNonCompactModes);
   // Use unsigned delta-encoding for pc.
   uint32_t pc_delta = static_cast<uint32_t>(rinfo->pc() - last_pc_);
-  RelocInfo::Mode rmode = rinfo->rmode();
 
   // The two most common modes are given small tags, and usually fit in a byte.
   if (rmode == RelocInfo::EMBEDDED_OBJECT) {
@@ -435,7 +465,7 @@ void RelocInfoWriter::Write(const RelocInfo* rinfo) {
     DCHECK(begin_pos - pos_ <= RelocInfo::kMaxCallSize);
   } else if (rmode == RelocInfo::CODE_TARGET_WITH_ID) {
     // Use signed delta-encoding for id.
-    DCHECK(static_cast<int>(rinfo->data()) == rinfo->data());
+    DCHECK_EQ(static_cast<int>(rinfo->data()), rinfo->data());
     int id_delta = static_cast<int>(rinfo->data()) - last_id_;
     // Check if delta is small enough to fit in a tagged byte.
     if (is_intn(id_delta, kSmallDataBits)) {
@@ -453,18 +483,20 @@ void RelocInfoWriter::Write(const RelocInfo* rinfo) {
     WriteTaggedData(rinfo->data(), kDeoptReasonTag);
   } else if (RelocInfo::IsPosition(rmode)) {
     // Use signed delta-encoding for position.
-    DCHECK(static_cast<int>(rinfo->data()) == rinfo->data());
+    DCHECK_EQ(static_cast<int>(rinfo->data()), rinfo->data());
     int pos_delta = static_cast<int>(rinfo->data()) - last_position_;
-    int pos_type_tag = (rmode == RelocInfo::POSITION) ? kNonstatementPositionTag
-                                                      : kStatementPositionTag;
-    // Check if delta is small enough to fit in a tagged byte.
-    if (is_intn(pos_delta, kSmallDataBits)) {
-      WriteTaggedPC(pc_delta, kLocatableTag);
-      WriteTaggedData(pos_delta, pos_type_tag);
+    if (rmode == RelocInfo::STATEMENT_POSITION) {
+      WritePosition(pc_delta, pos_delta, rmode);
     } else {
-      // Otherwise, use costly encoding.
-      WriteExtraTaggedPC(pc_delta, kPCJumpExtraTag);
-      WriteExtraTaggedIntData(pos_delta, pos_type_tag);
+      DCHECK_EQ(rmode, RelocInfo::POSITION);
+      if (pc_delta != 0 || last_mode_ != RelocInfo::POSITION) {
+        FlushPosition();
+        next_position_candidate_pc_delta_ = pc_delta;
+        next_position_candidate_pos_delta_ = pos_delta;
+      } else {
+        next_position_candidate_pos_delta_ += pos_delta;
+      }
+      next_position_candidate_flushed_ = false;
     }
     last_position_ = static_cast<int>(rinfo->data());
   } else if (RelocInfo::IsComment(rmode)) {
@@ -486,6 +518,7 @@ void RelocInfoWriter::Write(const RelocInfo* rinfo) {
     WriteExtraTaggedPC(pc_delta, saved_mode);
   }
   last_pc_ = rinfo->pc();
+  last_mode_ = rmode;
 #ifdef DEBUG
   DCHECK(begin_pos - pos_ <= kMaxSize);
 #endif
@@ -828,8 +861,9 @@ void RelocInfo::Print(Isolate* isolate, std::ostream& os) {  // NOLINT
     os << "  (" << Brief(target_object()) << ")";
   } else if (rmode_ == EXTERNAL_REFERENCE) {
     ExternalReferenceEncoder ref_encoder(isolate);
-    os << " (" << ref_encoder.NameOfAddress(target_reference()) << ")  ("
-       << static_cast<const void*>(target_reference()) << ")";
+    os << " (" << ref_encoder.NameOfAddress(target_external_reference())
+       << ")  (" << static_cast<const void*>(target_external_reference())
+       << ")";
   } else if (IsCodeTarget(rmode_)) {
     Code* code = Code::GetCodeFromTargetAddress(target_address());
     os << " (" << Code::Kind2String(code->kind()) << ")  ("
@@ -1619,4 +1653,39 @@ bool PositionsRecorder::WriteRecordedPositions() {
   return written;
 }
 
+
+// Platform specific but identical code for all the platforms.
+
+
+void Assembler::RecordDeoptReason(const int reason,
+                                  const SourcePosition position) {
+  if (FLAG_trace_deopt || isolate()->cpu_profiler()->is_profiling()) {
+    EnsureSpace ensure_space(this);
+    int raw_position = position.IsUnknown() ? 0 : position.raw();
+    RecordRelocInfo(RelocInfo::POSITION, raw_position);
+    RecordRelocInfo(RelocInfo::DEOPT_REASON, reason);
+  }
+}
+
+
+void Assembler::RecordComment(const char* msg) {
+  if (FLAG_code_comments) {
+    EnsureSpace ensure_space(this);
+    RecordRelocInfo(RelocInfo::COMMENT, reinterpret_cast<intptr_t>(msg));
+  }
+}
+
+
+void Assembler::RecordJSReturn() {
+  positions_recorder()->WriteRecordedPositions();
+  EnsureSpace ensure_space(this);
+  RecordRelocInfo(RelocInfo::JS_RETURN);
+}
+
+
+void Assembler::RecordDebugBreakSlot() {
+  positions_recorder()->WriteRecordedPositions();
+  EnsureSpace ensure_space(this);
+  RecordRelocInfo(RelocInfo::DEBUG_BREAK_SLOT);
+}
 } }  // namespace v8::internal

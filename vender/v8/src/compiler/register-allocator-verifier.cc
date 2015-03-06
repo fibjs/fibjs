@@ -61,8 +61,7 @@ RegisterAllocatorVerifier::RegisterAllocatorVerifier(
   // kSameAsFirst along the way.
   for (const auto* instr : sequence->instructions()) {
     const size_t operand_count = OperandCount(instr);
-    auto* op_constraints =
-        zone->NewArray<OperandConstraint>(static_cast<int>(operand_count));
+    auto* op_constraints = zone->NewArray<OperandConstraint>(operand_count);
     size_t count = 0;
     for (size_t i = 0; i < instr->InputCount(); ++i, ++count) {
       BuildConstraint(instr->InputAt(i), &op_constraints[count]);
@@ -215,7 +214,7 @@ void RegisterAllocatorVerifier::CheckConstraint(
 
 namespace {
 
-typedef BasicBlock::RpoNumber Rpo;
+typedef RpoNumber Rpo;
 
 static const int kInvalidVreg = InstructionOperand::kInvalidVirtualRegister;
 
@@ -246,8 +245,7 @@ class PhiMap : public ZoneMap<int, PhiData*>, public ZoneObject {
 struct OperandLess {
   bool operator()(const InstructionOperand* a,
                   const InstructionOperand* b) const {
-    if (a->kind() == b->kind()) return a->index() < b->index();
-    return a->kind() < b->kind();
+    return *a < *b;
   }
 };
 

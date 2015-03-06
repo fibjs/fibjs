@@ -245,6 +245,25 @@ void FullCodeGenerator::Generate() {
     }
   }
 
+  // Possibly allocate RestParameters
+  int rest_index;
+  Variable* rest_param = scope()->rest_parameter(&rest_index);
+  if (rest_param) {
+    Comment cmnt(masm_, "[ Allocate rest parameter array");
+
+    int num_parameters = info->scope()->num_parameters();
+    int offset = num_parameters * kPointerSize;
+    __ Add(x3, fp, StandardFrameConstants::kCallerSPOffset + offset);
+    __ Mov(x2, Smi::FromInt(num_parameters));
+    __ Mov(x1, Smi::FromInt(rest_index));
+    __ Push(x3, x2, x1);
+
+    RestParamAccessStub stub(isolate());
+    __ CallStub(&stub);
+
+    SetVar(rest_param, x0, x1, x2);
+  }
+
   Variable* arguments = scope()->arguments();
   if (arguments != NULL) {
     // Function uses arguments object.
@@ -271,7 +290,7 @@ void FullCodeGenerator::Generate() {
             ? ArgumentsAccessStub::HAS_NEW_TARGET
             : ArgumentsAccessStub::NO_NEW_TARGET;
     ArgumentsAccessStub::Type type;
-    if (is_strict(language_mode())) {
+    if (is_strict(language_mode()) || !is_simple_parameter_list()) {
       type = ArgumentsAccessStub::NEW_STRICT;
     } else if (function()->has_duplicate_parameters()) {
       type = ArgumentsAccessStub::NEW_SLOPPY_SLOW;
@@ -441,10 +460,10 @@ void FullCodeGenerator::EmitReturnSequence() {
 
     // Make sure that the constant pool is not emitted inside of the return
     // sequence. This sequence can get patched when the debugger is used. See
-    // debug-arm64.cc:BreakLocationIterator::SetDebugBreakAtReturn().
+    // debug-arm64.cc:BreakLocation::SetDebugBreakAtReturn().
     {
       InstructionAccurateScope scope(masm_,
-                                     Assembler::kJSRetSequenceInstructions);
+                                     Assembler::kJSReturnSequenceInstructions);
       CodeGenerator::RecordPositions(masm_, function()->end_position() - 1);
       __ RecordJSReturn();
       // This code is generated using Assembler methods rather than Macro
@@ -464,8 +483,7 @@ void FullCodeGenerator::EmitReturnSequence() {
       __ add(current_sp, current_sp, ip0);
       __ ret();
       int32_t arg_count = info_->scope()->num_parameters() + 1;
-      if (FLAG_experimental_classes &&
-          IsSubclassConstructor(info_->function()->kind())) {
+      if (IsSubclassConstructor(info_->function()->kind())) {
         arg_count++;
       }
       __ dc64(kXRegSize * arg_count);
@@ -940,15 +958,16 @@ void FullCodeGenerator::VisitFunctionDeclaration(
 
 void FullCodeGenerator::VisitModuleDeclaration(ModuleDeclaration* declaration) {
   Variable* variable = declaration->proxy()->var();
+  ModuleDescriptor* descriptor = declaration->module()->descriptor();
   DCHECK(variable->location() == Variable::CONTEXT);
-  DCHECK(variable->interface()->IsFrozen());
+  DCHECK(descriptor->IsFrozen());
 
   Comment cmnt(masm_, "[ ModuleDeclaration");
   EmitDebugCheckDeclarationContext(variable);
 
   // Load instance object.
   __ LoadContext(x1, scope_->ContextChainLength(scope_->ScriptScope()));
-  __ Ldr(x1, ContextMemOperand(x1, variable->interface()->Index()));
+  __ Ldr(x1, ContextMemOperand(x1, descriptor->Index()));
   __ Ldr(x1, ContextMemOperand(x1, Context::EXTENSION_INDEX));
 
   // Assign it.
@@ -1493,7 +1512,7 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
         __ Mov(VectorLoadICDescriptor::SlotRegister(),
                SmiFromSlot(proxy->VariableFeedbackSlot()));
       }
-      CallLoadIC(CONTEXTUAL);
+      CallGlobalLoadIC(var->name());
       context()->Plug(x0);
       break;
     }
@@ -2400,23 +2419,6 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
     __ Ldr(StoreDescriptor::ReceiverRegister(), GlobalObjectMemOperand());
     CallStoreIC();
 
-  } else if (op == Token::INIT_CONST_LEGACY) {
-    // Const initializers need a write barrier.
-    DCHECK(!var->IsParameter());  // No const parameters.
-    if (var->IsLookupSlot()) {
-      __ Mov(x1, Operand(var->name()));
-      __ Push(x0, cp, x1);
-      __ CallRuntime(Runtime::kInitializeLegacyConstLookupSlot, 3);
-    } else {
-      DCHECK(var->IsStackLocal() || var->IsContextSlot());
-      Label skip;
-      MemOperand location = VarOperand(var, x1);
-      __ Ldr(x10, location);
-      __ JumpIfNotRoot(x10, Heap::kTheHoleValueRootIndex, &skip);
-      EmitStoreToStackLocalOrContextSlot(var, location);
-      __ Bind(&skip);
-    }
-
   } else if (var->mode() == LET && op != Token::INIT_LET) {
     // Non-initializing assignment to let variable needs a write barrier.
     DCHECK(!var->IsLookupSlot());
@@ -2431,6 +2433,20 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
     // Perform the assignment.
     __ Bind(&assign);
     EmitStoreToStackLocalOrContextSlot(var, location);
+
+  } else if (var->mode() == CONST && op != Token::INIT_CONST) {
+    // Assignment to const variable needs a write barrier.
+    DCHECK(!var->IsLookupSlot());
+    DCHECK(var->IsStackAllocated() || var->IsContextSlot());
+    Label const_error;
+    MemOperand location = VarOperand(var, x1);
+    __ Ldr(x10, location);
+    __ JumpIfNotRoot(x10, Heap::kTheHoleValueRootIndex, &const_error);
+    __ Mov(x10, Operand(var->name()));
+    __ Push(x10);
+    __ CallRuntime(Runtime::kThrowReferenceError, 1);
+    __ Bind(&const_error);
+    __ CallRuntime(Runtime::kThrowConstAssignError, 0);
 
   } else if (!var->is_const_mode() || op == Token::INIT_CONST) {
     if (var->IsLookupSlot()) {
@@ -2455,8 +2471,31 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
       }
       EmitStoreToStackLocalOrContextSlot(var, location);
     }
-  } else if (IsSignallingAssignmentToConst(var, op, language_mode())) {
-    __ CallRuntime(Runtime::kThrowConstAssignError, 0);
+
+  } else if (op == Token::INIT_CONST_LEGACY) {
+    // Const initializers need a write barrier.
+    DCHECK(var->mode() == CONST_LEGACY);
+    DCHECK(!var->IsParameter());  // No const parameters.
+    if (var->IsLookupSlot()) {
+      __ Mov(x1, Operand(var->name()));
+      __ Push(x0, cp, x1);
+      __ CallRuntime(Runtime::kInitializeLegacyConstLookupSlot, 3);
+    } else {
+      DCHECK(var->IsStackLocal() || var->IsContextSlot());
+      Label skip;
+      MemOperand location = VarOperand(var, x1);
+      __ Ldr(x10, location);
+      __ JumpIfNotRoot(x10, Heap::kTheHoleValueRootIndex, &skip);
+      EmitStoreToStackLocalOrContextSlot(var, location);
+      __ Bind(&skip);
+    }
+
+  } else {
+    DCHECK(var->mode() == CONST_LEGACY && op != Token::INIT_CONST_LEGACY);
+    if (is_strict(language_mode())) {
+      __ CallRuntime(Runtime::kThrowConstAssignError, 0);
+    }
+    // Silently ignore store in sloppy mode.
   }
 }
 
@@ -2588,7 +2627,12 @@ void FullCodeGenerator::EmitCallWithLoadIC(Call* expr) {
     }
     // Push undefined as receiver. This is patched in the method prologue if it
     // is a sloppy mode method.
-    __ Push(isolate()->factory()->undefined_value());
+    {
+      UseScratchRegisterScope temps(masm_);
+      Register temp = temps.AcquireX();
+      __ LoadRoot(temp, Heap::kUndefinedValueRootIndex);
+      __ Push(temp);
+    }
   } else {
     // Load the function from the receiver.
     DCHECK(callee->IsProperty());
@@ -2758,8 +2802,7 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
 }
 
 
-void FullCodeGenerator::EmitLoadSuperConstructor(SuperReference* super_ref) {
-  DCHECK(super_ref != NULL);
+void FullCodeGenerator::EmitLoadSuperConstructor() {
   __ ldr(x0, MemOperand(fp, JavaScriptFrameConstants::kFunctionOffset));
   __ Push(x0);
   __ CallRuntime(Runtime::kGetPrototype, 1);
@@ -2883,15 +2926,7 @@ void FullCodeGenerator::VisitCall(Call* expr) {
       }
     }
   } else if (call_type == Call::SUPER_CALL) {
-    if (FLAG_experimental_classes) {
-      EmitSuperConstructorCall(expr);
-    } else {
-      SuperReference* super_ref = callee->AsSuperReference();
-      EmitLoadSuperConstructor(super_ref);
-      __ Push(result_register());
-      VisitForStackValue(super_ref->this_var());
-      EmitCall(expr, CallICState::METHOD);
-    }
+    EmitSuperConstructorCall(expr);
   } else {
     DCHECK(call_type == Call::OTHER_CALL);
     // Call to an arbitrary expression not handled specially above.
@@ -2956,24 +2991,12 @@ void FullCodeGenerator::VisitCallNew(CallNew* expr) {
 
 
 void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
-  Comment cmnt(masm_, "[ SuperConstructorCall");
   Variable* new_target_var = scope()->DeclarationScope()->new_target_var();
   GetVar(result_register(), new_target_var);
   __ Push(result_register());
 
-  SuperReference* super_ref = expr->expression()->AsSuperReference();
-  EmitLoadSuperConstructor(super_ref);
+  EmitLoadSuperConstructor();
   __ push(result_register());
-
-  Variable* this_var = super_ref->this_var()->var();
-
-  GetVar(x0, this_var);
-  Label uninitialized_this;
-  __ JumpIfRoot(x0, Heap::kTheHoleValueRootIndex, &uninitialized_this);
-  __ Mov(x0, Operand(this_var->name()));
-  __ Push(x0);
-  __ CallRuntime(Runtime::kThrowReferenceError, 1);
-  __ bind(&uninitialized_this);
 
   // Push the arguments ("left-to-right") on the stack.
   ZoneList<Expression*>* args = expr->arguments();
@@ -3009,6 +3032,16 @@ void FullCodeGenerator::EmitSuperConstructorCall(Call* expr) {
   __ Drop(1);
 
   RecordJSReturnSite(expr);
+
+  SuperReference* super_ref = expr->expression()->AsSuperReference();
+  Variable* this_var = super_ref->this_var()->var();
+  GetVar(x1, this_var);
+  Label uninitialized_this;
+  __ JumpIfRoot(x1, Heap::kTheHoleValueRootIndex, &uninitialized_this);
+  __ Mov(x0, Operand(this_var->name()));
+  __ Push(x0);
+  __ CallRuntime(Runtime::kThrowReferenceError, 1);
+  __ bind(&uninitialized_this);
 
   EmitVariableAssignment(this_var, Token::INIT_CONST);
   context()->Plug(x0);
@@ -3478,9 +3511,10 @@ void FullCodeGenerator::EmitClassOf(CallRuntime* expr) {
   STATIC_ASSERT(LAST_NONCALLABLE_SPEC_OBJECT_TYPE == LAST_TYPE - 1);
 
   // Check if the constructor in the map is a JS function.
-  __ Ldr(x12, FieldMemOperand(x10, Map::kConstructorOffset));
-  __ JumpIfNotObjectType(x12, x13, x14, JS_FUNCTION_TYPE,
-                         &non_function_constructor);
+  Register instance_type = x14;
+  __ GetMapConstructor(x12, x10, x13, instance_type);
+  __ Cmp(instance_type, JS_FUNCTION_TYPE);
+  __ B(ne, &non_function_constructor);
 
   // x12 now contains the constructor function. Grab the
   // instance class name from there.
@@ -3888,6 +3922,60 @@ void FullCodeGenerator::EmitCallFunction(CallRuntime* expr) {
 }
 
 
+void FullCodeGenerator::EmitDefaultConstructorCallSuper(CallRuntime* expr) {
+  Variable* new_target_var = scope()->DeclarationScope()->new_target_var();
+  GetVar(result_register(), new_target_var);
+  __ Push(result_register());
+
+  EmitLoadSuperConstructor();
+  __ Push(result_register());
+
+  // Check if the calling frame is an arguments adaptor frame.
+  Label adaptor_frame, args_set_up, runtime;
+  __ Ldr(x11, MemOperand(fp, StandardFrameConstants::kCallerFPOffset));
+  __ Ldr(x12, MemOperand(x11, StandardFrameConstants::kContextOffset));
+  __ Cmp(x12, Smi::FromInt(StackFrame::ARGUMENTS_ADAPTOR));
+  __ B(eq, &adaptor_frame);
+  // default constructor has no arguments, so no adaptor frame means no args.
+  __ Mov(x0, Operand(0));
+  __ B(&args_set_up);
+
+  // Copy arguments from adaptor frame.
+  {
+    __ bind(&adaptor_frame);
+    __ Ldr(x1, MemOperand(x11, ArgumentsAdaptorFrameConstants::kLengthOffset));
+    __ SmiUntag(x1, x1);
+
+    // Subtract 1 from arguments count, for new.target.
+    __ Sub(x1, x1, Operand(1));
+    __ Mov(x0, x1);
+
+    // Get arguments pointer in x11.
+    __ Add(x11, x11, Operand(x1, LSL, kPointerSizeLog2));
+    __ Add(x11, x11, StandardFrameConstants::kCallerSPOffset);
+    Label loop;
+    __ bind(&loop);
+    // Pre-decrement x11 with kPointerSize on each iteration.
+    // Pre-decrement in order to skip receiver.
+    __ Ldr(x10, MemOperand(x11, -kPointerSize, PreIndex));
+    __ Push(x10);
+    __ Sub(x1, x1, Operand(1));
+    __ Cbnz(x1, &loop);
+  }
+
+  __ bind(&args_set_up);
+  __ Peek(x1, Operand(x0, LSL, kPointerSizeLog2));
+  __ LoadRoot(x2, Heap::kUndefinedValueRootIndex);
+
+  CallConstructStub stub(isolate(), SUPER_CONSTRUCTOR_CALL);
+  __ Call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
+
+  __ Drop(1);
+
+  context()->Plug(result_register());
+}
+
+
 void FullCodeGenerator::EmitRegExpConstructResult(CallRuntime* expr) {
   RegExpConstructResultStub stub(isolate());
   ZoneList<Expression*>* args = expr->arguments();
@@ -3942,7 +4030,7 @@ void FullCodeGenerator::EmitGetFromCache(CallRuntime* expr) {
 
   // Call runtime to perform the lookup.
   __ Push(cache, key);
-  __ CallRuntime(Runtime::kGetFromCache, 2);
+  __ CallRuntime(Runtime::kGetFromCacheRT, 2);
 
   __ Bind(&done);
   context()->Plug(x0);

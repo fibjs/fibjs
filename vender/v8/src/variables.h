@@ -6,7 +6,6 @@
 #define V8_VARIABLES_H_
 
 #include "src/ast-value-factory.h"
-#include "src/interface.h"
 #include "src/zone.h"
 
 namespace v8 {
@@ -19,7 +18,7 @@ namespace internal {
 
 class Variable: public ZoneObject {
  public:
-  enum Kind { NORMAL, THIS, NEW_TARGET, ARGUMENTS };
+  enum Kind { NORMAL, FUNCTION, THIS, NEW_TARGET, ARGUMENTS };
 
   enum Location {
     // Before and during variable allocation, a variable whose location is
@@ -50,8 +49,7 @@ class Variable: public ZoneObject {
 
   Variable(Scope* scope, const AstRawString* name, VariableMode mode,
            bool is_valid_ref, Kind kind, InitializationFlag initialization_flag,
-           MaybeAssignedFlag maybe_assigned_flag = kNotAssigned,
-           Interface* interface = Interface::NewValue());
+           MaybeAssignedFlag maybe_assigned_flag = kNotAssigned);
 
   // Printing support
   static const char* Mode2String(VariableMode mode);
@@ -100,6 +98,7 @@ class Variable: public ZoneObject {
     return initialization_flag_ == kNeedsInitialization;
   }
 
+  bool is_function() const { return kind_ == FUNCTION; }
   bool is_this() const { return kind_ == THIS; }
   bool is_new_target() const { return kind_ == NEW_TARGET; }
   bool is_arguments() const { return kind_ == ARGUMENTS; }
@@ -123,7 +122,6 @@ class Variable: public ZoneObject {
   InitializationFlag initialization_flag() const {
     return initialization_flag_;
   }
-  Interface* interface() const { return interface_; }
 
   void AllocateTo(Location location, int index) {
     location_ = location;
@@ -155,9 +153,6 @@ class Variable: public ZoneObject {
   bool is_used_;
   InitializationFlag initialization_flag_;
   MaybeAssignedFlag maybe_assigned_;
-
-  // Module type info.
-  Interface* interface_;
 };
 
 

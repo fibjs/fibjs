@@ -250,27 +250,6 @@ bool RelocInfo::IsInConstantPool() {
 }
 
 
-void RelocInfo::PatchCode(byte* instructions, int instruction_count) {
-  // Patch the code at the current address with the supplied instructions.
-  Instr* pc = reinterpret_cast<Instr*>(pc_);
-  Instr* instr = reinterpret_cast<Instr*>(instructions);
-  for (int i = 0; i < instruction_count; i++) {
-    *(pc + i) = *(instr + i);
-  }
-
-  // Indicate that code has changed.
-  CpuFeatures::FlushICache(pc_, instruction_count * Assembler::kInstrSize);
-}
-
-
-// Patch the code at the current PC with a call to the target address.
-// Additional guard instructions can be added if required.
-void RelocInfo::PatchCodeWithCall(Address target, int guard_bytes) {
-  // Patch the code at the current address with a call to the target.
-  UNIMPLEMENTED();
-}
-
-
 // -----------------------------------------------------------------------------
 // Implementation of Operand and MemOperand
 // See assembler-arm-inl.h for inlined constructors
@@ -496,6 +475,7 @@ Assembler::~Assembler() {
 
 
 void Assembler::GetCode(CodeDesc* desc) {
+  reloc_info_writer.Finish();
   if (!FLAG_enable_ool_constant_pool) {
     // Emit constant pool if necessary.
     CheckConstPool(true, false);
@@ -1014,7 +994,7 @@ static bool fits_shifter(uint32_t imm32,
                          Instr* instr) {
   // imm32 must be unsigned.
   for (int rot = 0; rot < 16; rot++) {
-    uint32_t imm8 = (imm32 << 2*rot) | (imm32 >> (32 - 2*rot));
+    uint32_t imm8 = base::bits::RotateLeft32(imm32, 2 * rot);
     if ((imm8 <= 0xff)) {
       *rotate_imm = rot;
       *immed_8 = imm8;
@@ -3327,7 +3307,7 @@ Instr Assembler::PatchMovwImmediate(Instr instruction, uint32_t immediate) {
 int Assembler::DecodeShiftImm(Instr instr) {
   int rotate = Instruction::RotateValue(instr) * 2;
   int immed8 = Instruction::Immed8Value(instr);
-  return (immed8 >> rotate) | (immed8 << (32 - rotate));
+  return base::bits::RotateRight32(immed8, rotate);
 }
 
 
@@ -3372,37 +3352,6 @@ bool Assembler::ImmediateFitsAddrMode2Instruction(int32_t imm32) {
 
 
 // Debugging.
-void Assembler::RecordJSReturn() {
-  positions_recorder()->WriteRecordedPositions();
-  CheckBuffer();
-  RecordRelocInfo(RelocInfo::JS_RETURN);
-}
-
-
-void Assembler::RecordDebugBreakSlot() {
-  positions_recorder()->WriteRecordedPositions();
-  CheckBuffer();
-  RecordRelocInfo(RelocInfo::DEBUG_BREAK_SLOT);
-}
-
-
-void Assembler::RecordComment(const char* msg) {
-  if (FLAG_code_comments) {
-    CheckBuffer();
-    RecordRelocInfo(RelocInfo::COMMENT, reinterpret_cast<intptr_t>(msg));
-  }
-}
-
-
-void Assembler::RecordDeoptReason(const int reason, const int raw_position) {
-  if (FLAG_trace_deopt) {
-    EnsureSpace ensure_space(this);
-    RecordRelocInfo(RelocInfo::POSITION, raw_position);
-    RecordRelocInfo(RelocInfo::DEOPT_REASON, reason);
-  }
-}
-
-
 void Assembler::RecordConstPool(int size) {
   // We only need this for debugger support, to correctly compute offsets in the
   // code.

@@ -9,6 +9,7 @@
 #include "src/base/atomicops.h"
 #include "src/base/platform/time.h"
 #include "src/circular-queue.h"
+#include "src/compiler.h"
 #include "src/sampler.h"
 #include "src/unbound-queue.h"
 
@@ -28,7 +29,6 @@ class ProfileGenerator;
   V(CODE_MOVE, CodeMoveEventRecord)                      \
   V(CODE_DISABLE_OPT, CodeDisableOptEventRecord)         \
   V(CODE_DEOPT, CodeDeoptEventRecord)                    \
-  V(SHARED_FUNC_MOVE, SharedFunctionInfoMoveEventRecord) \
   V(REPORT_BUILTIN, ReportBuiltinEventRecord)
 
 
@@ -52,7 +52,6 @@ class CodeCreateEventRecord : public CodeEventRecord {
   Address start;
   CodeEntry* entry;
   unsigned size;
-  Address shared;
 
   INLINE(void UpdateCodeMap(CodeMap* code_map));
 };
@@ -80,16 +79,7 @@ class CodeDeoptEventRecord : public CodeEventRecord {
  public:
   Address start;
   const char* deopt_reason;
-  int raw_position;
-
-  INLINE(void UpdateCodeMap(CodeMap* code_map));
-};
-
-
-class SharedFunctionInfoMoveEventRecord : public CodeEventRecord {
- public:
-  Address from;
-  Address to;
+  SourcePosition position;
 
   INLINE(void UpdateCodeMap(CodeMap* code_map));
 };
@@ -251,7 +241,7 @@ class CpuProfiler : public CodeEventListener {
   virtual void GetterCallbackEvent(Name* name, Address entry_point);
   virtual void RegExpCodeCreateEvent(Code* code, String* source);
   virtual void SetterCallbackEvent(Name* name, Address entry_point);
-  virtual void SharedFunctionInfoMoveEvent(Address from, Address to);
+  virtual void SharedFunctionInfoMoveEvent(Address from, Address to) {}
 
   INLINE(bool is_profiling() const) { return is_profiling_; }
   bool* is_profiling_address() {

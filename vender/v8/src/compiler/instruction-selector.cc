@@ -4,10 +4,13 @@
 
 #include "src/compiler/instruction-selector.h"
 
+#include <limits>
+
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
 #include "src/compiler/pipeline.h"
+#include "src/compiler/schedule.h"
 
 namespace v8 {
 namespace internal {
@@ -59,15 +62,15 @@ void InstructionSelector::SelectInstructions() {
   // Schedule the selected instructions.
   for (auto const block : *blocks) {
     InstructionBlock* instruction_block =
-        sequence()->InstructionBlockAt(block->GetRpoNumber());
+        sequence()->InstructionBlockAt(RpoNumber::FromInt(block->rpo_number()));
     size_t end = instruction_block->code_end();
     size_t start = instruction_block->code_start();
     DCHECK_LE(end, start);
-    sequence()->StartBlock(block->GetRpoNumber());
+    sequence()->StartBlock(RpoNumber::FromInt(block->rpo_number()));
     while (start-- > end) {
       sequence()->AddInstruction(instructions_[start]);
     }
-    sequence()->EndBlock(block->GetRpoNumber());
+    sequence()->EndBlock(RpoNumber::FromInt(block->rpo_number()));
   }
 }
 
@@ -396,7 +399,7 @@ void InstructionSelector::InitializeCallBuffer(Node* call, CallBuffer* buffer,
                         buffer->descriptor->GetInputType(0)));
       break;
   }
-  DCHECK_EQ(1, static_cast<int>(buffer->instruction_args.size()));
+  DCHECK_EQ(1u, buffer->instruction_args.size());
 
   // If the call needs a frame state, we insert the state information as
   // follows (n is the number of value inputs to the frame state):
@@ -475,7 +478,7 @@ void InstructionSelector::VisitBlock(BasicBlock* block) {
 
   // We're done with the block.
   InstructionBlock* instruction_block =
-      sequence()->InstructionBlockAt(block->GetRpoNumber());
+      sequence()->InstructionBlockAt(RpoNumber::FromInt(block->rpo_number()));
   instruction_block->set_code_start(static_cast<int>(instructions_.size()));
   instruction_block->set_code_end(current_block_end);
 
@@ -483,34 +486,33 @@ void InstructionSelector::VisitBlock(BasicBlock* block) {
 }
 
 
-namespace {
-
-V8_INLINE void CheckNoPhis(const BasicBlock* block) {
+void InstructionSelector::VisitControl(BasicBlock* block) {
 #ifdef DEBUG
-  // Branch targets should not have phis.
-  for (BasicBlock::const_iterator i = block->begin(); i != block->end(); ++i) {
-    const Node* node = *i;
-    CHECK_NE(IrOpcode::kPhi, node->opcode());
+  // SSA deconstruction requires targets of branches not to have phis.
+  // Edge split form guarantees this property, but is more strict.
+  if (block->SuccessorCount() > 1) {
+    for (BasicBlock* const successor : block->successors()) {
+      for (Node* const node : *successor) {
+        CHECK(!IrOpcode::IsPhiOpcode(node->opcode()));
+      }
+    }
   }
 #endif
-}
 
-}  // namespace
-
-
-void InstructionSelector::VisitControl(BasicBlock* block) {
   Node* input = block->control_input();
   switch (block->control()) {
     case BasicBlock::kGoto:
       return VisitGoto(block->SuccessorAt(0));
+    case BasicBlock::kCall: {
+      DCHECK_EQ(IrOpcode::kCall, input->opcode());
+      BasicBlock* success = block->SuccessorAt(0);
+      BasicBlock* exception = block->SuccessorAt(1);
+      return VisitCall(input, exception), VisitGoto(success);
+    }
     case BasicBlock::kBranch: {
       DCHECK_EQ(IrOpcode::kBranch, input->opcode());
       BasicBlock* tbranch = block->SuccessorAt(0);
       BasicBlock* fbranch = block->SuccessorAt(1);
-      // SSA deconstruction requires targets of branches not to have phis.
-      // Edge split form guarantees this property, but is more strict.
-      CheckNoPhis(tbranch);
-      CheckNoPhis(fbranch);
       if (tbranch == fbranch) return VisitGoto(tbranch);
       // Treat special Branch(Always, IfTrue, IfFalse) as Goto(IfTrue).
       Node* const condition = input->InputAt(0);
@@ -519,22 +521,42 @@ void InstructionSelector::VisitControl(BasicBlock* block) {
     }
     case BasicBlock::kSwitch: {
       DCHECK_EQ(IrOpcode::kSwitch, input->opcode());
-      BasicBlock** const branches = &block->successors().front();
-      size_t const branch_count = block->SuccessorCount();
-      DCHECK_LE(2u, branch_count);
-      // SSA deconstruction requires targets of branches not to have phis.
-      // Edge split form guarantees this property, but is more strict.
-      for (size_t index = 0; index < branch_count; ++index) {
-        CheckNoPhis(branches[index]);
+      // Last successor must be Default.
+      BasicBlock* default_branch = block->successors().back();
+      DCHECK_EQ(IrOpcode::kIfDefault, default_branch->front()->opcode());
+      // All other successors must be cases.
+      size_t case_count = block->SuccessorCount() - 1;
+      DCHECK_LE(1u, case_count);
+      BasicBlock** case_branches = &block->successors().front();
+      // Determine case values and their min/max.
+      int32_t* case_values = zone()->NewArray<int32_t>(case_count);
+      int32_t min_value = std::numeric_limits<int32_t>::max();
+      int32_t max_value = std::numeric_limits<int32_t>::min();
+      for (size_t index = 0; index < case_count; ++index) {
+        BasicBlock* branch = case_branches[index];
+        int32_t value = OpParameter<int32_t>(branch->front()->op());
+        case_values[index] = value;
+        if (min_value > value) min_value = value;
+        if (max_value < value) max_value = value;
       }
-      return VisitSwitch(input, branches, branch_count);
+      DCHECK_LE(min_value, max_value);
+      return VisitSwitch(input, default_branch, case_branches, case_values,
+                         case_count, min_value, max_value);
     }
     case BasicBlock::kReturn: {
       // If the result itself is a return, return its input.
-      Node* value = (input != NULL && input->opcode() == IrOpcode::kReturn)
+      Node* value = (input != nullptr && input->opcode() == IrOpcode::kReturn)
                         ? input->InputAt(0)
                         : input;
       return VisitReturn(value);
+    }
+    case BasicBlock::kDeoptimize: {
+      // If the result itself is a return, return its input.
+      Node* value =
+          (input != nullptr && input->opcode() == IrOpcode::kDeoptimize)
+              ? input->InputAt(0)
+              : input;
+      return VisitDeoptimize(value);
     }
     case BasicBlock::kThrow:
       DCHECK_EQ(IrOpcode::kThrow, input->opcode());
@@ -561,7 +583,8 @@ MachineType InstructionSelector::GetMachineType(Node* node) {
     case IrOpcode::kIfTrue:
     case IrOpcode::kIfFalse:
     case IrOpcode::kSwitch:
-    case IrOpcode::kCase:
+    case IrOpcode::kIfValue:
+    case IrOpcode::kIfDefault:
     case IrOpcode::kEffectPhi:
     case IrOpcode::kEffectSet:
     case IrOpcode::kMerge:
@@ -676,6 +699,12 @@ MachineType InstructionSelector::GetMachineType(Node* node) {
     case IrOpcode::kFloat64LessThan:
     case IrOpcode::kFloat64LessThanOrEqual:
       return kMachBool;
+    case IrOpcode::kFloat64ExtractLowWord32:
+    case IrOpcode::kFloat64ExtractHighWord32:
+      return kMachInt32;
+    case IrOpcode::kFloat64InsertLowWord32:
+    case IrOpcode::kFloat64InsertHighWord32:
+      return kMachFloat64;
     default:
       V8_Fatal(__FILE__, __LINE__, "Unexpected operator #%d:%s @ node #%d",
                node->opcode(), node->op()->mnemonic(), node->id());
@@ -700,8 +729,11 @@ void InstructionSelector::VisitNode(Node* node) {
     case IrOpcode::kBranch:
     case IrOpcode::kIfTrue:
     case IrOpcode::kIfFalse:
+    case IrOpcode::kIfSuccess:
+    case IrOpcode::kIfException:
     case IrOpcode::kSwitch:
-    case IrOpcode::kCase:
+    case IrOpcode::kIfValue:
+    case IrOpcode::kIfDefault:
     case IrOpcode::kEffectPhi:
     case IrOpcode::kMerge:
       // No code needed for these graph artifacts.
@@ -738,7 +770,7 @@ void InstructionSelector::VisitNode(Node* node) {
       return VisitConstant(node);
     }
     case IrOpcode::kCall:
-      return VisitCall(node);
+      return VisitCall(node, nullptr);
     case IrOpcode::kFrameState:
     case IrOpcode::kStateValues:
       return;
@@ -877,6 +909,14 @@ void InstructionSelector::VisitNode(Node* node) {
       return MarkAsDouble(node), VisitFloat64RoundTruncate(node);
     case IrOpcode::kFloat64RoundTiesAway:
       return MarkAsDouble(node), VisitFloat64RoundTiesAway(node);
+    case IrOpcode::kFloat64ExtractLowWord32:
+      return VisitFloat64ExtractLowWord32(node);
+    case IrOpcode::kFloat64ExtractHighWord32:
+      return VisitFloat64ExtractHighWord32(node);
+    case IrOpcode::kFloat64InsertLowWord32:
+      return MarkAsDouble(node), VisitFloat64InsertLowWord32(node);
+    case IrOpcode::kFloat64InsertHighWord32:
+      return MarkAsDouble(node), VisitFloat64InsertHighWord32(node);
     case IrOpcode::kLoadStackPointer:
       return VisitLoadStackPointer(node);
     case IrOpcode::kCheckedLoad: {
@@ -1015,7 +1055,9 @@ void InstructionSelector::VisitPhi(Node* node) {
   PhiInstruction* phi = new (instruction_zone())
       PhiInstruction(instruction_zone(), GetVirtualRegister(node),
                      static_cast<size_t>(input_count));
-  sequence()->InstructionBlockAt(current_block_->GetRpoNumber())->AddPhi(phi);
+  sequence()
+      ->InstructionBlockAt(RpoNumber::FromInt(current_block_->rpo_number()))
+      ->AddPhi(phi);
   for (int i = 0; i < input_count; ++i) {
     Node* const input = node->InputAt(i);
     MarkAsUsed(input);
@@ -1058,22 +1100,6 @@ void InstructionSelector::VisitGoto(BasicBlock* target) {
 }
 
 
-void InstructionSelector::VisitSwitch(Node* node, BasicBlock** branches,
-                                      size_t branch_count) {
-  OperandGenerator g(this);
-  Node* const value = node->InputAt(0);
-  size_t const input_count = branch_count + 1;
-  InstructionOperand* const inputs =
-      zone()->NewArray<InstructionOperand>(static_cast<int>(input_count));
-  inputs[0] = g.UseRegister(value);
-  for (size_t index = 0; index < branch_count; ++index) {
-    inputs[index + 1] = g.Label(branches[index]);
-  }
-  Emit(kArchSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
-      ->MarkAsControl();
-}
-
-
 void InstructionSelector::VisitReturn(Node* value) {
   OperandGenerator g(this);
   if (value != NULL) {
@@ -1083,6 +1109,29 @@ void InstructionSelector::VisitReturn(Node* value) {
   } else {
     Emit(kArchRet, g.NoOutput());
   }
+}
+
+
+void InstructionSelector::VisitDeoptimize(Node* value) {
+  DCHECK(FLAG_turbo_deoptimization);
+
+  OperandGenerator g(this);
+
+  FrameStateDescriptor* desc = GetFrameStateDescriptor(value);
+  size_t arg_count = desc->GetTotalSize() + 1;  // Include deopt id.
+
+  InstructionOperandVector args(instruction_zone());
+  args.reserve(arg_count);
+
+  InstructionSequence::StateId state_id =
+      sequence()->AddFrameStateDescriptor(desc);
+  args.push_back(g.TempImmediate(state_id.ToInt()));
+
+  AddFrameStateInputs(value, &args, desc);
+
+  DCHECK_EQ(args.size(), arg_count);
+
+  Emit(kArchDeoptimize, 0, nullptr, arg_count, &args.front(), 0, nullptr);
 }
 
 
@@ -1199,11 +1248,21 @@ MACHINE_OP_LIST(DECLARE_UNIMPLEMENTED_SELECTOR)
 #undef DECLARE_UNIMPLEMENTED_SELECTOR
 
 
-void InstructionSelector::VisitCall(Node* node) { UNIMPLEMENTED(); }
+void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
+  UNIMPLEMENTED();
+}
 
 
 void InstructionSelector::VisitBranch(Node* branch, BasicBlock* tbranch,
                                       BasicBlock* fbranch) {
+  UNIMPLEMENTED();
+}
+
+
+void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
+                                      BasicBlock** case_branches,
+                                      int32_t* case_values, size_t case_count,
+                                      int32_t min_value, int32_t max_value) {
   UNIMPLEMENTED();
 }
 

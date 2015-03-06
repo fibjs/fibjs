@@ -112,60 +112,16 @@ void CpuFeatures::PrintFeatures() {
 
 
 // -----------------------------------------------------------------------------
-// Implementation of RelocInfo
-
-// Patch the code at the current PC with a call to the target address.
-// Additional guard int3 instructions can be added if required.
-void RelocInfo::PatchCodeWithCall(Address target, int guard_bytes) {
-  int code_size = Assembler::kCallSequenceLength + guard_bytes;
-
-  // Create a code patcher.
-  CodePatcher patcher(pc_, code_size);
-
-  // Add a label for checking the size of the code used for returning.
-#ifdef DEBUG
-  Label check_codesize;
-  patcher.masm()->bind(&check_codesize);
-#endif
-
-  // Patch the code.
-  patcher.masm()->movp(kScratchRegister, reinterpret_cast<void*>(target),
-                       Assembler::RelocInfoNone());
-  patcher.masm()->call(kScratchRegister);
-
-  // Check that the size of the code generated is as expected.
-  DCHECK_EQ(Assembler::kCallSequenceLength,
-            patcher.masm()->SizeOfCodeGeneratedSince(&check_codesize));
-
-  // Add the requested number of int3 instructions after the call.
-  for (int i = 0; i < guard_bytes; i++) {
-    patcher.masm()->int3();
-  }
-}
-
-
-void RelocInfo::PatchCode(byte* instructions, int instruction_count) {
-  // Patch the code at the current address with the supplied instructions.
-  for (int i = 0; i < instruction_count; i++) {
-    *(pc_ + i) = *(instructions + i);
-  }
-
-  // Indicate that code has changed.
-  CpuFeatures::FlushICache(pc_, instruction_count);
-}
-
-
-// -----------------------------------------------------------------------------
 // Register constants.
 
 const int
     Register::kRegisterCodeByAllocationIndex[kMaxNumAllocatableRegisters] = {
-  // rax, rbx, rdx, rcx, rsi, rdi, r8, r9, r11, r14, r15
-  0, 3, 2, 1, 6, 7, 8, 9, 11, 14, 15
+  // rax, rbx, rdx, rcx, rsi, rdi, r8, r9, r11, r12, r14, r15
+  0, 3, 2, 1, 6, 7, 8, 9, 11, 12, 14, 15
 };
 
 const int Register::kAllocationIndexByRegisterCode[kNumRegisters] = {
-  0, 3, 2, 1, -1, -1, 4, 5, 6, 7, -1, 8, -1, -1, 9, 10
+  0, 3, 2, 1, -1, -1, 4, 5, 6, 7, -1, 8, 9, -1, 10, 11
 };
 
 
@@ -336,6 +292,7 @@ Assembler::Assembler(Isolate* isolate, void* buffer, int buffer_size)
 void Assembler::GetCode(CodeDesc* desc) {
   // Finalize code (at this point overflow() may be true, but the gap ensures
   // that we are still not overlapping instructions and relocation info).
+  reloc_info_writer.Finish();
   DCHECK(pc_ <= reloc_info_writer.pos());  // No overlap.
   // Set up code descriptor.
   desc->buffer = buffer_;
@@ -2576,6 +2533,16 @@ void Assembler::movd(XMMRegister dst, Register src) {
 }
 
 
+void Assembler::movd(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  emit(0x66);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x6E);
+  emit_sse_operand(dst, src);
+}
+
+
 void Assembler::movd(Register dst, XMMRegister src) {
   EnsureSpace ensure_space(this);
   emit(0x66);
@@ -2675,6 +2642,45 @@ void Assembler::extractps(Register dst, XMMRegister src, byte imm8) {
   emit(0x3A);
   emit(0x17);
   emit_sse_operand(src, dst);
+  emit(imm8);
+}
+
+
+void Assembler::pextrd(Register dst, XMMRegister src, int8_t imm8) {
+  DCHECK(IsEnabled(SSE4_1));
+  EnsureSpace ensure_space(this);
+  emit(0x66);
+  emit_optional_rex_32(src, dst);
+  emit(0x0F);
+  emit(0x3A);
+  emit(0x16);
+  emit_sse_operand(src, dst);
+  emit(imm8);
+}
+
+
+void Assembler::pinsrd(XMMRegister dst, Register src, int8_t imm8) {
+  DCHECK(IsEnabled(SSE4_1));
+  EnsureSpace ensure_space(this);
+  emit(0x66);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x3A);
+  emit(0x22);
+  emit_sse_operand(dst, src);
+  emit(imm8);
+}
+
+
+void Assembler::pinsrd(XMMRegister dst, const Operand& src, int8_t imm8) {
+  DCHECK(IsEnabled(SSE4_1));
+  EnsureSpace ensure_space(this);
+  emit(0x66);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x3A);
+  emit(0x22);
+  emit_sse_operand(dst, src);
   emit(imm8);
 }
 
@@ -3293,6 +3299,26 @@ void Assembler::pcmpeqd(XMMRegister dst, XMMRegister src) {
 }
 
 
+void Assembler::punpckldq(XMMRegister dst, XMMRegister src) {
+  EnsureSpace ensure_space(this);
+  emit(0x66);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x62);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::punpckhdq(XMMRegister dst, XMMRegister src) {
+  EnsureSpace ensure_space(this);
+  emit(0x66);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x6A);
+  emit_sse_operand(dst, src);
+}
+
+
 // AVX instructions
 void Assembler::vfmasd(byte op, XMMRegister dst, XMMRegister src1,
                        XMMRegister src2) {
@@ -3428,37 +3454,6 @@ void Assembler::RecordRelocInfo(RelocInfo::Mode rmode, intptr_t data) {
   }
   RelocInfo rinfo(pc_, rmode, data, NULL);
   reloc_info_writer.Write(&rinfo);
-}
-
-
-void Assembler::RecordJSReturn() {
-  positions_recorder()->WriteRecordedPositions();
-  EnsureSpace ensure_space(this);
-  RecordRelocInfo(RelocInfo::JS_RETURN);
-}
-
-
-void Assembler::RecordDebugBreakSlot() {
-  positions_recorder()->WriteRecordedPositions();
-  EnsureSpace ensure_space(this);
-  RecordRelocInfo(RelocInfo::DEBUG_BREAK_SLOT);
-}
-
-
-void Assembler::RecordComment(const char* msg, bool force) {
-  if (FLAG_code_comments || force) {
-    EnsureSpace ensure_space(this);
-    RecordRelocInfo(RelocInfo::COMMENT, reinterpret_cast<intptr_t>(msg));
-  }
-}
-
-
-void Assembler::RecordDeoptReason(const int reason, const int raw_position) {
-  if (FLAG_trace_deopt) {
-    EnsureSpace ensure_space(this);
-    RecordRelocInfo(RelocInfo::POSITION, raw_position);
-    RecordRelocInfo(RelocInfo::DEOPT_REASON, reason);
-  }
 }
 
 

@@ -106,7 +106,6 @@ void CallPrinter::VisitModuleDeclaration(ModuleDeclaration* node) {
 
 
 void CallPrinter::VisitImportDeclaration(ImportDeclaration* node) {
-  Find(node->module());
 }
 
 
@@ -115,11 +114,6 @@ void CallPrinter::VisitExportDeclaration(ExportDeclaration* node) {}
 
 void CallPrinter::VisitModuleLiteral(ModuleLiteral* node) {
   VisitBlock(node->body());
-}
-
-
-void CallPrinter::VisitModuleVariable(ModuleVariable* node) {
-  Find(node->proxy());
 }
 
 
@@ -486,7 +480,7 @@ void PrettyPrinter::VisitImportDeclaration(ImportDeclaration* node) {
   Print("import ");
   PrintLiteral(node->proxy()->name(), false);
   Print(" from ");
-  Visit(node->module());
+  PrintLiteral(node->module_specifier()->string(), true);
   Print(";");
 }
 
@@ -500,11 +494,6 @@ void PrettyPrinter::VisitExportDeclaration(ExportDeclaration* node) {
 
 void PrettyPrinter::VisitModuleLiteral(ModuleLiteral* node) {
   VisitBlock(node->body());
-}
-
-
-void PrettyPrinter::VisitModuleVariable(ModuleVariable* node) {
-  Visit(node->proxy());
 }
 
 
@@ -523,8 +512,6 @@ void PrettyPrinter::VisitModuleUrl(ModuleUrl* node) {
 
 void PrettyPrinter::VisitModuleStatement(ModuleStatement* node) {
   Print("module ");
-  PrintLiteral(node->proxy()->name(), false);
-  Print(" ");
   Visit(node->body());
 }
 
@@ -1225,7 +1212,7 @@ void AstPrinter::VisitModuleDeclaration(ModuleDeclaration* node) {
 void AstPrinter::VisitImportDeclaration(ImportDeclaration* node) {
   IndentedScope indent(this, "IMPORT");
   PrintLiteralIndented("NAME", node->proxy()->name(), true);
-  Visit(node->module());
+  PrintLiteralIndented("FROM", node->module_specifier()->string(), true);
 }
 
 
@@ -1238,12 +1225,6 @@ void AstPrinter::VisitExportDeclaration(ExportDeclaration* node) {
 void AstPrinter::VisitModuleLiteral(ModuleLiteral* node) {
   IndentedScope indent(this, "MODULE LITERAL");
   VisitBlock(node->body());
-}
-
-
-void AstPrinter::VisitModuleVariable(ModuleVariable* node) {
-  IndentedScope indent(this, "MODULE VARIABLE");
-  Visit(node->proxy());
 }
 
 
@@ -1261,7 +1242,6 @@ void AstPrinter::VisitModuleUrl(ModuleUrl* node) {
 
 void AstPrinter::VisitModuleStatement(ModuleStatement* node) {
   IndentedScope indent(this, "MODULE STATEMENT");
-  PrintLiteralIndented("NAME", node->proxy()->name(), true);
   PrintStatements(node->body()->statements());
 }
 

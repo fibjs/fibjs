@@ -94,7 +94,8 @@ namespace internal {
   V(StoreField)                             \
   V(StoreGlobal)                            \
   V(StoreTransition)                        \
-  V(StringLength)
+  V(StringLength)                           \
+  V(RestParamAccess)
 
 // List of code stubs only used on ARM 32 bits platforms.
 #if V8_TARGET_ARCH_ARM
@@ -291,6 +292,30 @@ class CodeStub BASE_EMBEDDED {
   friend class BreakPointIterator;
 
   Isolate* isolate_;
+};
+
+
+// TODO(svenpanne) This class is only used to construct a more or less sensible
+// CompilationInfo for testing purposes, basically pretending that we are
+// currently compiling some kind of code stub. Remove this when the pipeline and
+// testing machinery is restructured in such a way that we don't have to come up
+// with a CompilationInfo out of thin air, although we only need a few parts of
+// it.
+struct FakeStubForTesting : public CodeStub {
+  explicit FakeStubForTesting(Isolate* isolate) : CodeStub(isolate) {}
+
+  // Only used by pipeline.cc's GetDebugName in DEBUG mode.
+  Major MajorKey() const OVERRIDE { return CodeStub::NoCache; }
+
+  CallInterfaceDescriptor GetCallInterfaceDescriptor() OVERRIDE {
+    UNREACHABLE();
+    return CallInterfaceDescriptor();
+  }
+
+  Handle<Code> GenerateCode() OVERRIDE {
+    UNREACHABLE();
+    return Handle<Code>();
+  }
 };
 
 
@@ -1623,6 +1648,23 @@ class ArgumentsAccessStub: public PlatformCodeStub {
   class HasNewTargetBits : public BitField<HasNewTarget, 2, 1> {};
 
   DEFINE_PLATFORM_CODE_STUB(ArgumentsAccess, PlatformCodeStub);
+};
+
+
+class RestParamAccessStub: public PlatformCodeStub {
+ public:
+  explicit RestParamAccessStub(Isolate* isolate) : PlatformCodeStub(isolate) { }
+
+  CallInterfaceDescriptor GetCallInterfaceDescriptor() OVERRIDE {
+    return ContextOnlyDescriptor(isolate());
+  }
+
+ private:
+  void GenerateNew(MacroAssembler* masm);
+
+  virtual void PrintName(std::ostream& os) const OVERRIDE;  // NOLINT
+
+  DEFINE_PLATFORM_CODE_STUB(RestParamAccess, PlatformCodeStub);
 };
 
 

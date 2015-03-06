@@ -227,9 +227,8 @@ void PropertyHandlerCompiler::GenerateApiAccessorCall(
 
 
 void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
-    MacroAssembler* masm, Handle<HeapType> type, Register receiver,
-    Register holder, int accessor_index, int expected_arguments,
-    Register scratch) {
+    MacroAssembler* masm, Handle<Map> map, Register receiver, Register holder,
+    int accessor_index, int expected_arguments, Register scratch) {
   // ----------- S t a t e -------------
   //  -- lr    : return address
   // -----------------------------------
@@ -245,7 +244,7 @@ void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
       DCHECK(!AreAliased(receiver, scratch));
       DCHECK(!AreAliased(value(), scratch));
       // Call the JavaScript setter with receiver and value on the stack.
-      if (IC::TypeToMap(*type, masm->isolate())->IsJSGlobalObjectMap()) {
+      if (map->IsJSGlobalObjectMap()) {
         // Swap in the global receiver.
         __ Ldr(scratch,
                FieldMemOperand(receiver, JSGlobalObject::kGlobalProxyOffset));
@@ -273,9 +272,8 @@ void NamedStoreHandlerCompiler::GenerateStoreViaSetter(
 
 
 void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
-    MacroAssembler* masm, Handle<HeapType> type, Register receiver,
-    Register holder, int accessor_index, int expected_arguments,
-    Register scratch) {
+    MacroAssembler* masm, Handle<Map> map, Register receiver, Register holder,
+    int accessor_index, int expected_arguments, Register scratch) {
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
 
@@ -283,7 +281,7 @@ void NamedLoadHandlerCompiler::GenerateLoadViaGetter(
       DCHECK(!AreAliased(holder, scratch));
       DCHECK(!AreAliased(receiver, scratch));
       // Call the JavaScript getter with the receiver on the stack.
-      if (IC::TypeToMap(*type, masm->isolate())->IsJSGlobalObjectMap()) {
+      if (map->IsJSGlobalObjectMap()) {
         // Swap in the global receiver.
         __ Ldr(scratch,
                FieldMemOperand(receiver, JSGlobalObject::kGlobalProxyOffset));
@@ -469,7 +467,7 @@ Register PropertyHandlerCompiler::CheckPrototypes(
     Register object_reg, Register holder_reg, Register scratch1,
     Register scratch2, Handle<Name> name, Label* miss,
     PrototypeCheckType check) {
-  Handle<Map> receiver_map(IC::TypeToMap(*type(), isolate()));
+  Handle<Map> receiver_map = map();
 
   // object_reg and holder_reg registers can alias.
   DCHECK(!AreAliased(object_reg, scratch1, scratch2));
@@ -480,9 +478,21 @@ Register PropertyHandlerCompiler::CheckPrototypes(
   int depth = 0;
 
   Handle<JSObject> current = Handle<JSObject>::null();
-  if (type()->IsConstant()) {
-    current = Handle<JSObject>::cast(type()->AsConstant()->Value());
+  if (receiver_map->IsJSGlobalObjectMap()) {
+    current = isolate()->global_object();
   }
+
+  // Check access rights to the global object.  This has to happen after
+  // the map check so that we know that the object is actually a global
+  // object.
+  // This allows us to install generated handlers for accesses to the
+  // global proxy (as opposed to using slow ICs). See corresponding code
+  // in LookupForRead().
+  if (receiver_map->IsJSGlobalProxyMap()) {
+    UseScratchRegisterScope temps(masm());
+    __ CheckAccessGlobalProxy(reg, scratch2, temps.AcquireX(), miss);
+  }
+
   Handle<JSObject> prototype = Handle<JSObject>::null();
   Handle<Map> current_map = receiver_map;
   Handle<Map> holder_map(holder()->map());
@@ -517,24 +527,13 @@ Register PropertyHandlerCompiler::CheckPrototypes(
       Register map_reg = scratch1;
       __ Ldr(map_reg, FieldMemOperand(reg, HeapObject::kMapOffset));
 
-      if (depth != 1 || check == CHECK_ALL_MAPS) {
+      if (current_map->IsJSGlobalObjectMap()) {
+        GenerateCheckPropertyCell(masm(), Handle<JSGlobalObject>::cast(current),
+                                  name, scratch2, miss);
+      } else if (depth != 1 || check == CHECK_ALL_MAPS) {
         Handle<WeakCell> cell = Map::WeakCellForMap(current_map);
         __ CmpWeakValue(map_reg, cell, scratch2);
         __ B(ne, miss);
-      }
-
-      // Check access rights to the global object.  This has to happen after
-      // the map check so that we know that the object is actually a global
-      // object.
-      // This allows us to install generated handlers for accesses to the
-      // global proxy (as opposed to using slow ICs). See corresponding code
-      // in LookupForRead().
-      if (current_map->IsJSGlobalProxyMap()) {
-        UseScratchRegisterScope temps(masm());
-        __ CheckAccessGlobalProxy(reg, scratch2, temps.AcquireX(), miss);
-      } else if (current_map->IsJSGlobalObjectMap()) {
-        GenerateCheckPropertyCell(masm(), Handle<JSGlobalObject>::cast(current),
-                                  name, scratch2, miss);
       }
 
       reg = holder_reg;  // From now on the object will be in holder_reg.
@@ -547,6 +546,8 @@ Register PropertyHandlerCompiler::CheckPrototypes(
     current_map = handle(current->map());
   }
 
+  DCHECK(!current_map->IsJSGlobalProxyMap());
+
   // Log the check depth.
   LOG(isolate(), IntEvent("check-maps-depth", depth + 1));
 
@@ -557,13 +558,6 @@ Register PropertyHandlerCompiler::CheckPrototypes(
     Handle<WeakCell> cell = Map::WeakCellForMap(current_map);
     __ CmpWeakValue(scratch1, cell, scratch2);
     __ B(ne, miss);
-  }
-
-  // Perform security check for access to the global object.
-  DCHECK(current_map->IsJSGlobalProxyMap() ||
-         !current_map->is_access_check_needed());
-  if (current_map->IsJSGlobalProxyMap()) {
-    __ CheckAccessGlobalProxy(reg, scratch1, scratch2, miss);
   }
 
   // Return the register containing the holder.
@@ -741,7 +735,8 @@ void NamedLoadHandlerCompiler::GenerateLoadInterceptor(Register holder_reg) {
 
 
 Handle<Code> NamedStoreHandlerCompiler::CompileStoreCallback(
-    Handle<JSObject> object, Handle<Name> name, int accessor_index) {
+    Handle<JSObject> object, Handle<Name> name,
+    Handle<ExecutableAccessorInfo> callback) {
   ASM_LOCATION("NamedStoreHandlerCompiler::CompileStoreCallback");
   Register holder_reg = Frontend(name);
 
@@ -751,7 +746,14 @@ Handle<Code> NamedStoreHandlerCompiler::CompileStoreCallback(
   // receiver() and holder_reg can alias.
   DCHECK(!AreAliased(receiver(), scratch1(), scratch2(), value()));
   DCHECK(!AreAliased(holder_reg, scratch1(), scratch2(), value()));
-  __ Mov(scratch1(), Operand(Smi::FromInt(accessor_index)));
+  // If the callback cannot leak, then push the callback directly,
+  // otherwise wrap it in a weak cell.
+  if (callback->data()->IsUndefined() || callback->data()->IsSmi()) {
+    __ Mov(scratch1(), Operand(callback));
+  } else {
+    Handle<WeakCell> cell = isolate()->factory()->NewWeakCell(callback);
+    __ Mov(scratch1(), Operand(cell));
+  }
   __ Mov(scratch2(), Operand(name));
   __ Push(receiver(), holder_reg, scratch1(), scratch2(), value());
 

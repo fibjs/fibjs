@@ -68,45 +68,44 @@ class Verifier::Visitor {
   void CheckNotTyped(Node* node) {
     if (NodeProperties::IsTyped(node)) {
       std::ostringstream str;
-      str << "TypeError: node #" << node->opcode() << ":"
-          << node->op()->mnemonic() << " should never have a type";
-      V8_Fatal(__FILE__, __LINE__, str.str().c_str());
+      str << "TypeError: node #" << node->id() << ":" << *node->op()
+          << " should never have a type";
+      FATAL(str.str().c_str());
     }
   }
   void CheckUpperIs(Node* node, Type* type) {
     if (typing == TYPED && !bounds(node).upper->Is(type)) {
       std::ostringstream str;
-      str << "TypeError: node #" << node->opcode() << ":"
-          << node->op()->mnemonic() << " upper bound ";
+      str << "TypeError: node #" << node->id() << ":" << *node->op()
+          << " upper bound ";
       bounds(node).upper->PrintTo(str);
       str << " is not ";
       type->PrintTo(str);
-      V8_Fatal(__FILE__, __LINE__, str.str().c_str());
+      FATAL(str.str().c_str());
     }
   }
   void CheckUpperMaybe(Node* node, Type* type) {
     if (typing == TYPED && !bounds(node).upper->Maybe(type)) {
       std::ostringstream str;
-      str << "TypeError: node #" << node->opcode() << ":"
-          << node->op()->mnemonic() << " upper bound ";
+      str << "TypeError: node #" << node->id() << ":" << *node->op()
+          << " upper bound ";
       bounds(node).upper->PrintTo(str);
       str << " must intersect ";
       type->PrintTo(str);
-      V8_Fatal(__FILE__, __LINE__, str.str().c_str());
+      FATAL(str.str().c_str());
     }
   }
   void CheckValueInputIs(Node* node, int i, Type* type) {
     Node* input = ValueInput(node, i);
     if (typing == TYPED && !bounds(input).upper->Is(type)) {
       std::ostringstream str;
-      str << "TypeError: node #" << node->opcode() << ":"
-          << node->op()->mnemonic() << "(input @" << i << " = "
-          << input->opcode() << ":" << input->op()->mnemonic()
-          << ") upper bound ";
+      str << "TypeError: node #" << node->id() << ":" << *node->op()
+          << "(input @" << i << " = " << input->opcode() << ":"
+          << input->op()->mnemonic() << ") upper bound ";
       bounds(input).upper->PrintTo(str);
       str << " is not ";
       type->PrintTo(str);
-      V8_Fatal(__FILE__, __LINE__, str.str().c_str());
+      FATAL(str.str().c_str());
     }
   }
 };
@@ -216,7 +215,8 @@ void Verifier::Visitor::Check(Node* node) {
         if (use->opcode() == IrOpcode::kIfTrue) ++count_true;
         if (use->opcode() == IrOpcode::kIfFalse) ++count_false;
       }
-      CHECK(count_true == 1 && count_false == 1);
+      CHECK_EQ(1, count_true);
+      CHECK_EQ(1, count_false);
       // Type is empty.
       CheckNotTyped(node);
       break;
@@ -228,22 +228,49 @@ void Verifier::Visitor::Check(Node* node) {
       // Type is empty.
       CheckNotTyped(node);
       break;
-    case IrOpcode::kSwitch: {
-      // Switch uses are Case.
-      std::vector<bool> uses;
-      uses.resize(node->UseCount());
-      for (auto use : node->uses()) {
-        CHECK_EQ(IrOpcode::kCase, use->opcode());
-        size_t const index = CaseIndexOf(use->op());
-        CHECK_LT(index, uses.size());
-        CHECK(!uses[index]);
-        uses[index] = true;
-      }
+    case IrOpcode::kIfSuccess:
+    case IrOpcode::kIfException: {
+      // IfSuccess and IfException continuation only on throwing nodes.
+      Node* input = NodeProperties::GetControlInput(node, 0);
+      CHECK(!input->op()->HasProperty(Operator::kNoThrow));
       // Type is empty.
       CheckNotTyped(node);
       break;
     }
-    case IrOpcode::kCase:
+    case IrOpcode::kSwitch: {
+      // Switch uses are Case and Default.
+      int count_case = 0, count_default = 0;
+      for (auto use : node->uses()) {
+        switch (use->opcode()) {
+          case IrOpcode::kIfValue: {
+            for (auto user : node->uses()) {
+              if (user != use && user->opcode() == IrOpcode::kIfValue) {
+                CHECK_NE(OpParameter<int32_t>(use->op()),
+                         OpParameter<int32_t>(user->op()));
+              }
+            }
+            ++count_case;
+            break;
+          }
+          case IrOpcode::kIfDefault: {
+            ++count_default;
+            break;
+          }
+          default: {
+            UNREACHABLE();
+            break;
+          }
+        }
+      }
+      CHECK_LE(1, count_case);
+      CHECK_EQ(1, count_default);
+      CHECK_EQ(node->op()->ControlOutputCount(), count_case + count_default);
+      // Type is empty.
+      CheckNotTyped(node);
+      break;
+    }
+    case IrOpcode::kIfValue:
+    case IrOpcode::kIfDefault:
       CHECK_EQ(IrOpcode::kSwitch,
                NodeProperties::GetControlInput(node)->opcode());
       // Type is empty.
@@ -255,6 +282,10 @@ void Verifier::Visitor::Check(Node* node) {
       // Type is empty.
       CheckNotTyped(node);
       break;
+    case IrOpcode::kDeoptimize:
+      // TODO(rossberg): check successor is End
+      // Type is empty.
+      CheckNotTyped(node);
     case IrOpcode::kReturn:
       // TODO(rossberg): check successor is End
       // Type is empty.
@@ -774,13 +805,17 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kChangeFloat32ToFloat64:
     case IrOpcode::kChangeFloat64ToInt32:
     case IrOpcode::kChangeFloat64ToUint32:
+    case IrOpcode::kFloat64ExtractLowWord32:
+    case IrOpcode::kFloat64ExtractHighWord32:
+    case IrOpcode::kFloat64InsertLowWord32:
+    case IrOpcode::kFloat64InsertHighWord32:
     case IrOpcode::kLoadStackPointer:
     case IrOpcode::kCheckedLoad:
     case IrOpcode::kCheckedStore:
       // TODO(rossberg): Check.
       break;
   }
-}
+}  // NOLINT(readability/fn_size)
 
 
 void Verifier::Run(Graph* graph, Typing typing) {
@@ -838,7 +873,7 @@ static void CheckInputsDominate(Schedule* schedule, BasicBlock* block,
                           use_pos)) {
       V8_Fatal(__FILE__, __LINE__,
                "Node #%d:%s in B%d is not dominated by input@%d #%d:%s",
-               node->id(), node->op()->mnemonic(), block->id().ToInt(), j,
+               node->id(), node->op()->mnemonic(), block->rpo_number(), j,
                input->id(), input->op()->mnemonic());
     }
   }
@@ -851,8 +886,8 @@ static void CheckInputsDominate(Schedule* schedule, BasicBlock* block,
     if (!Dominates(schedule, ctl, node)) {
       V8_Fatal(__FILE__, __LINE__,
                "Node #%d:%s in B%d is not dominated by control input #%d:%s",
-               node->id(), node->op()->mnemonic(), block->id(), ctl->id(),
-               ctl->op()->mnemonic());
+               node->id(), node->op()->mnemonic(), block->rpo_number(),
+               ctl->id(), ctl->op()->mnemonic());
     }
   }
 }
@@ -946,7 +981,7 @@ void ScheduleVerifier::Run(Schedule* schedule) {
       BasicBlock* idom = block->dominator();
       if (idom != NULL && !block_doms->Contains(idom->id().ToInt())) {
         V8_Fatal(__FILE__, __LINE__, "Block B%d is not dominated by B%d",
-                 block->id().ToInt(), idom->id().ToInt());
+                 block->rpo_number(), idom->rpo_number());
       }
       for (size_t s = 0; s < block->SuccessorCount(); s++) {
         BasicBlock* succ = block->SuccessorAt(s);
@@ -984,7 +1019,7 @@ void ScheduleVerifier::Run(Schedule* schedule) {
             !dominators[idom->id().ToSize()]->Contains(dom->id().ToInt())) {
           V8_Fatal(__FILE__, __LINE__,
                    "Block B%d is not immediately dominated by B%d",
-                   block->id().ToInt(), idom->id().ToInt());
+                   block->rpo_number(), idom->rpo_number());
         }
       }
     }

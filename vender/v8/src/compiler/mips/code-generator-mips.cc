@@ -43,11 +43,11 @@ class MipsOperandConverter FINAL : public InstructionOperandConverter {
   MipsOperandConverter(CodeGenerator* gen, Instruction* instr)
       : InstructionOperandConverter(gen, instr) {}
 
-  FloatRegister OutputSingleRegister(int index = 0) {
+  FloatRegister OutputSingleRegister(size_t index = 0) {
     return ToSingleRegister(instr_->OutputAt(index));
   }
 
-  FloatRegister InputSingleRegister(int index) {
+  FloatRegister InputSingleRegister(size_t index) {
     return ToSingleRegister(instr_->InputAt(index));
   }
 
@@ -57,7 +57,7 @@ class MipsOperandConverter FINAL : public InstructionOperandConverter {
     return ToDoubleRegister(op);
   }
 
-  Operand InputImmediate(int index) {
+  Operand InputImmediate(size_t index) {
     Constant constant = ToConstant(instr_->InputAt(index));
     switch (constant.type()) {
       case Constant::kInt32:
@@ -82,7 +82,7 @@ class MipsOperandConverter FINAL : public InstructionOperandConverter {
     return Operand(zero_reg);
   }
 
-  Operand InputOperand(int index) {
+  Operand InputOperand(size_t index) {
     InstructionOperand* op = instr_->InputAt(index);
     if (op->IsRegister()) {
       return Operand(ToRegister(op));
@@ -90,8 +90,8 @@ class MipsOperandConverter FINAL : public InstructionOperandConverter {
     return InputImmediate(index);
   }
 
-  MemOperand MemoryOperand(int* first_index) {
-    const int index = *first_index;
+  MemOperand MemoryOperand(size_t* first_index) {
+    const size_t index = *first_index;
     switch (AddressingModeField::decode(instr_->opcode())) {
       case kMode_None:
         break;
@@ -106,7 +106,7 @@ class MipsOperandConverter FINAL : public InstructionOperandConverter {
     return MemOperand(no_reg);
   }
 
-  MemOperand MemoryOperand(int index = 0) { return MemoryOperand(&index); }
+  MemOperand MemoryOperand(size_t index = 0) { return MemoryOperand(&index); }
 
   MemOperand ToMemOperand(InstructionOperand* op) const {
     DCHECK(op != NULL);
@@ -120,7 +120,7 @@ class MipsOperandConverter FINAL : public InstructionOperandConverter {
 };
 
 
-static inline bool HasRegisterInput(Instruction* instr, int index) {
+static inline bool HasRegisterInput(Instruction* instr, size_t index) {
   return instr->InputAt(index)->IsRegister();
 }
 
@@ -412,7 +412,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
         __ addiu(at, i.InputRegister(0), Code::kHeaderSize - kHeapObjectTag);
         __ Call(at);
       }
-      AddSafepointAndDeopt(instr);
+      RecordCallPosition(instr);
       break;
     }
     case kArchCallJSFunction: {
@@ -426,18 +426,27 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
 
       __ lw(at, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
       __ Call(at);
-      AddSafepointAndDeopt(instr);
+      RecordCallPosition(instr);
       break;
     }
     case kArchJmp:
       AssembleArchJump(i.InputRpo(0));
       break;
-    case kArchSwitch:
-      AssembleArchSwitch(instr);
+    case kArchLookupSwitch:
+      AssembleArchLookupSwitch(instr);
+      break;
+    case kArchTableSwitch:
+      AssembleArchTableSwitch(instr);
       break;
     case kArchNop:
       // don't emit code for nops.
       break;
+    case kArchDeoptimize: {
+      int deopt_state_id =
+          BuildTranslation(instr, -1, 0, OutputFrameStateCombine::Ignore());
+      AssembleDeoptimizerCall(deopt_state_id, Deoptimizer::EAGER);
+      break;
+    }
     case kArchRet:
       AssembleReturn();
       break;
@@ -616,6 +625,18 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Trunc_uw_d(i.InputDoubleRegister(0), i.OutputRegister(), scratch);
       break;
     }
+    case kMipsFmoveLowUwD:
+      __ FmoveLow(i.OutputRegister(), i.InputDoubleRegister(0));
+      break;
+    case kMipsFmoveLowDUw:
+      __ FmoveLow(i.OutputDoubleRegister(), i.InputRegister(1));
+      break;
+    case kMipsFmoveHighUwD:
+      __ FmoveHigh(i.OutputRegister(), i.InputDoubleRegister(0));
+      break;
+    case kMipsFmoveHighDUw:
+      __ FmoveHigh(i.OutputDoubleRegister(), i.InputRegister(1));
+      break;
     // ... more basic instructions ...
 
     case kMipsLbu:
@@ -647,7 +668,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kMipsSwc1: {
-      int index = 0;
+      size_t index = 0;
       MemOperand operand = i.MemoryOperand(&index);
       __ swc1(i.InputSingleRegister(index), operand);
       break;
@@ -804,30 +825,8 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
 }
 
 
-void CodeGenerator::AssembleArchJump(BasicBlock::RpoNumber target) {
+void CodeGenerator::AssembleArchJump(RpoNumber target) {
   if (!IsNextInAssemblyOrder(target)) __ Branch(GetLabel(target));
-}
-
-
-void CodeGenerator::AssembleArchSwitch(Instruction* instr) {
-  MipsOperandConverter i(this, instr);
-  int const kNumLabels = static_cast<int>(instr->InputCount() - 1);
-  v8::internal::Assembler::BlockTrampolinePoolScope block_trampoline_pool(
-      masm());
-  Label here;
-
-  __ bal(&here);
-  __ nop();  // Branch delay slot nop.
-  __ bind(&here);
-  __ sll(at, i.InputRegister(0), 2);
-  __ addu(at, at, ra);
-  __ lw(at, MemOperand(at, 5 * v8::internal::Assembler::kInstrSize));
-  __ jr(at);
-  __ nop();  // Branch delay slot nop.
-
-  for (int index = 0; index < kNumLabels; ++index) {
-    __ dd(GetLabel(i.InputRpo(index + 1)));
-  }
 }
 
 
@@ -908,15 +907,49 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
 }
 
 
-void CodeGenerator::AssembleDeoptimizerCall(int deoptimization_id) {
+void CodeGenerator::AssembleArchLookupSwitch(Instruction* instr) {
+  MipsOperandConverter i(this, instr);
+  Register input = i.InputRegister(0);
+  for (size_t index = 2; index < instr->InputCount(); index += 2) {
+    __ li(at, Operand(i.InputInt32(index + 0)));
+    __ beq(input, at, GetLabel(i.InputRpo(index + 1)));
+  }
+  __ nop();  // Branch delay slot of the last beq.
+  AssembleArchJump(i.InputRpo(1));
+}
+
+
+void CodeGenerator::AssembleArchTableSwitch(Instruction* instr) {
+  MipsOperandConverter i(this, instr);
+  Register input = i.InputRegister(0);
+  size_t const case_count = instr->InputCount() - 2;
+  Label here;
+  __ Branch(GetLabel(i.InputRpo(1)), hs, input, Operand(case_count));
+  __ BlockTrampolinePoolFor(case_count + 6);
+  __ bal(&here);
+  __ sll(at, input, 2);  // Branch delay slot.
+  __ bind(&here);
+  __ addu(at, at, ra);
+  __ lw(at, MemOperand(at, 4 * v8::internal::Assembler::kInstrSize));
+  __ jr(at);
+  __ nop();  // Branch delay slot nop.
+  for (size_t index = 0; index < case_count; ++index) {
+    __ dd(GetLabel(i.InputRpo(index + 2)));
+  }
+}
+
+
+void CodeGenerator::AssembleDeoptimizerCall(
+    int deoptimization_id, Deoptimizer::BailoutType bailout_type) {
   Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
-      isolate(), deoptimization_id, Deoptimizer::LAZY);
+      isolate(), deoptimization_id, bailout_type);
   __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
 }
 
 
 void CodeGenerator::AssemblePrologue() {
   CallDescriptor* descriptor = linkage()->GetIncomingDescriptor();
+  int stack_slots = frame()->GetSpillSlotCount();
   if (descriptor->kind() == CallDescriptor::kCallAddress) {
     __ Push(ra, fp);
     __ mov(fp, sp);
@@ -936,12 +969,11 @@ void CodeGenerator::AssemblePrologue() {
     __ Prologue(info->IsCodePreAgingActive());
     frame()->SetRegisterSaveAreaSize(
         StandardFrameConstants::kFixedFrameSizeFromFp);
-  } else {
+  } else if (stack_slots > 0) {
     __ StubPrologue();
     frame()->SetRegisterSaveAreaSize(
         StandardFrameConstants::kFixedFrameSizeFromFp);
   }
-  int stack_slots = frame()->GetSpillSlotCount();
 
   if (info()->is_osr()) {
     // TurboFan OSR-compiled functions cannot be entered directly.
@@ -965,10 +997,10 @@ void CodeGenerator::AssemblePrologue() {
 
 void CodeGenerator::AssembleReturn() {
   CallDescriptor* descriptor = linkage()->GetIncomingDescriptor();
+  int stack_slots = frame()->GetSpillSlotCount();
   if (descriptor->kind() == CallDescriptor::kCallAddress) {
     if (frame()->GetRegisterSaveAreaSize() > 0) {
       // Remove this frame's spill slots first.
-      int stack_slots = frame()->GetSpillSlotCount();
       if (stack_slots > 0) {
         __ Addu(sp, sp, Operand(stack_slots * kPointerSize));
       }
@@ -981,13 +1013,15 @@ void CodeGenerator::AssembleReturn() {
     __ mov(sp, fp);
     __ Pop(ra, fp);
     __ Ret();
-  } else {
+  } else if (descriptor->IsJSFunctionCall() || stack_slots > 0) {
     __ mov(sp, fp);
     __ Pop(ra, fp);
     int pop_count = descriptor->IsJSFunctionCall()
                         ? static_cast<int>(descriptor->JSParameterCount())
                         : 0;
     __ DropAndRet(pop_count);
+  } else {
+    __ Ret();
   }
 }
 

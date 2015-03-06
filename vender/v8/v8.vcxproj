@@ -25,6 +25,7 @@
     <ClInclude Include="include\v8-profiler.h" />
     <ClInclude Include="include\v8-testing.h" />
     <ClInclude Include="include\v8-util.h" />
+    <ClInclude Include="include\v8-version.h" />
     <ClInclude Include="include\v8.h" />
     <ClInclude Include="include\v8config.h" />
     <ClInclude Include="src\accessors.h" />
@@ -37,7 +38,6 @@
     <ClInclude Include="src\assembler.h" />
     <ClInclude Include="src\assert-scope.h" />
     <ClInclude Include="src\ast-numbering.h" />
-    <ClInclude Include="src\ast-this-access-visitor.h" />
     <ClInclude Include="src\ast-value-factory.h" />
     <ClInclude Include="src\ast.h" />
     <ClInclude Include="src\background-parsing-task.h" />
@@ -113,13 +113,12 @@
     <ClInclude Include="src\compiler\common-operator.h" />
     <ClInclude Include="src\compiler\control-builders.h" />
     <ClInclude Include="src\compiler\control-equivalence.h" />
+    <ClInclude Include="src\compiler\control-flow-optimizer.h" />
     <ClInclude Include="src\compiler\control-reducer.h" />
     <ClInclude Include="src\compiler\diamond.h" />
     <ClInclude Include="src\compiler\frame.h" />
     <ClInclude Include="src\compiler\gap-resolver.h" />
-    <ClInclude Include="src\compiler\generic-algorithm.h" />
     <ClInclude Include="src\compiler\graph-builder.h" />
-    <ClInclude Include="src\compiler\graph-inl.h" />
     <ClInclude Include="src\compiler\graph-reducer.h" />
     <ClInclude Include="src\compiler\graph-replay.h" />
     <ClInclude Include="src\compiler\graph-visualizer.h" />
@@ -147,7 +146,6 @@
     <ClInclude Include="src\compiler\machine-operator.h" />
     <ClInclude Include="src\compiler\machine-type.h" />
     <ClInclude Include="src\compiler\move-optimizer.h" />
-    <ClInclude Include="src\compiler\node-aux-data-inl.h" />
     <ClInclude Include="src\compiler\node-aux-data.h" />
     <ClInclude Include="src\compiler\node-cache.h" />
     <ClInclude Include="src\compiler\node-marker.h" />
@@ -285,7 +283,6 @@
     <ClInclude Include="src\ic\stub-cache.h" />
     <ClInclude Include="src\icu_util.h" />
     <ClInclude Include="src\interface-descriptors.h" />
-    <ClInclude Include="src\interface.h" />
     <ClInclude Include="src\interpreter-irregexp.h" />
     <ClInclude Include="src\isolate-inl.h" />
     <ClInclude Include="src\isolate.h" />
@@ -313,6 +310,7 @@
     <ClInclude Include="src\lookup.h" />
     <ClInclude Include="src\macro-assembler.h" />
     <ClInclude Include="src\messages.h" />
+    <ClInclude Include="src\modules.h" />
     <ClInclude Include="src\msan.h" />
     <ClInclude Include="src\natives.h" />
     <ClInclude Include="src\objects-inl.h" />
@@ -320,6 +318,7 @@
     <ClInclude Include="src\optimizing-compiler-thread.h" />
     <ClInclude Include="src\ostreams.h" />
     <ClInclude Include="src\parser.h" />
+    <ClInclude Include="src\pending-compilation-error-handler.h" />
     <ClInclude Include="src\perf-jit.h" />
     <ClInclude Include="src\ppc\assembler-ppc-inl.h" />
     <ClInclude Include="src\ppc\assembler-ppc.h" />
@@ -370,6 +369,7 @@
     <ClInclude Include="src\string-builder.h" />
     <ClInclude Include="src\string-search.h" />
     <ClInclude Include="src\string-stream.h" />
+    <ClInclude Include="src\strings-storage.h" />
     <ClInclude Include="src\strtod.h" />
     <ClInclude Include="src\third_party\fdlibm\fdlibm.h" />
     <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h" />
@@ -436,7 +436,6 @@
     <ClCompile Include="src\assembler.cc" />
     <ClCompile Include="src\assert-scope.cc" />
     <ClCompile Include="src\ast-numbering.cc" />
-    <ClCompile Include="src\ast-this-access-visitor.cc" />
     <ClCompile Include="src\ast-value-factory.cc" />
     <ClCompile Include="src\ast.cc" />
     <ClCompile Include="src\background-parsing-task.cc" />
@@ -491,6 +490,7 @@
     <ClCompile Include="src\compiler\common-operator-reducer.cc" />
     <ClCompile Include="src\compiler\common-operator.cc" />
     <ClCompile Include="src\compiler\control-builders.cc" />
+    <ClCompile Include="src\compiler\control-flow-optimizer.cc" />
     <ClCompile Include="src\compiler\control-reducer.cc" />
     <ClCompile Include="src\compiler\gap-resolver.cc" />
     <ClCompile Include="src\compiler\graph-reducer.cc" />
@@ -521,6 +521,7 @@
     <ClCompile Include="src\compiler\move-optimizer.cc" />
     <ClCompile Include="src\compiler\node-cache.cc" />
     <ClCompile Include="src\compiler\node-marker.cc" />
+    <ClCompile Include="src\compiler\node-matchers.cc" />
     <ClCompile Include="src\compiler\node-properties.cc" />
     <ClCompile Include="src\compiler\node.cc" />
     <ClCompile Include="src\compiler\opcodes.cc" />
@@ -661,7 +662,6 @@
     <ClCompile Include="src\ic\x87\stub-cache-x87.cc" />
     <ClCompile Include="src\icu_util.cc" />
     <ClCompile Include="src\interface-descriptors.cc" />
-    <ClCompile Include="src\interface.cc" />
     <ClCompile Include="src\interpreter-irregexp.cc" />
     <ClCompile Include="src\isolate.cc" />
     <ClCompile Include="src\jsregexp.cc" />
@@ -678,12 +678,14 @@
     <ClCompile Include="src\log.cc" />
     <ClCompile Include="src\lookup.cc" />
     <ClCompile Include="src\messages.cc" />
+    <ClCompile Include="src\modules.cc" />
     <ClCompile Include="src\objects-debug.cc" />
     <ClCompile Include="src\objects-printer.cc" />
     <ClCompile Include="src\objects.cc" />
     <ClCompile Include="src\optimizing-compiler-thread.cc" />
     <ClCompile Include="src\ostreams.cc" />
     <ClCompile Include="src\parser.cc" />
+    <ClCompile Include="src\pending-compilation-error-handler.cc" />
     <ClCompile Include="src\perf-jit.cc" />
     <ClCompile Include="src\ppc\assembler-ppc.cc" />
     <ClCompile Include="src\ppc\builtins-ppc.cc" />
@@ -754,6 +756,7 @@
     <ClCompile Include="src\string-builder.cc" />
     <ClCompile Include="src\string-search.cc" />
     <ClCompile Include="src\string-stream.cc" />
+    <ClCompile Include="src\strings-storage.cc" />
     <ClCompile Include="src\strtod.cc" />
     <ClCompile Include="src\third_party\fdlibm\fdlibm.cc" />
     <ClCompile Include="src\token.cc" />
