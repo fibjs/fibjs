@@ -166,10 +166,12 @@ typedef int result_t;
 #define CALL_E_PATH_NOT_FOUND   (-ERROR_PATH_NOT_FOUND)
 #endif
 
-#if 0
-#define V8_SCOPE()  v8::HandleScope handle_scope(isolate)
+#if 1
+#define V8_SCOPE()  v8::EscapableHandleScope handle_scope(isolate)
+#define V8_RETURN(v)   handle_scope.Escape(v)
 #else
 #define V8_SCOPE()
+#define V8_RETURN(v)   (v)
 #endif
 
 #define PROPERTY_ENTER() \
@@ -219,17 +221,17 @@ typedef int result_t;
     if(hr < 0)ThrowResult(hr);
 
 #define THROW_ERROR() \
-    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(V8_RETURN(v8::Local<v8::Value>())); return;} \
     ThrowResult(hr); return;
 
 #define METHOD_RETURN() \
     CHECK_ARGUMENT() \
     if(hr == CALL_RETURN_NULL){ args.GetReturnValue().SetNull(); return;} \
-    if(hr >= 0){ args.GetReturnValue().Set(GetReturnValue(vr)); return;} \
+    if(hr >= 0){ args.GetReturnValue().Set(V8_RETURN(GetReturnValue(vr))); return;} \
     THROW_ERROR()
 
 #define METHOD_RETURN1() \
-    CHECK_ARGUMENT() args.GetReturnValue().Set(vr); return;
+    CHECK_ARGUMENT() args.GetReturnValue().Set(V8_RETURN(vr)); return;
 
 #define METHOD_VOID() \
     CHECK_ARGUMENT() \
@@ -238,7 +240,7 @@ typedef int result_t;
 
 #define CONSTRUCT_RETURN() \
     CHECK_ARGUMENT() \
-    if(hr >= 0){ args.GetReturnValue().Set(vr->wrap(args.This())); return;} \
+    if(hr >= 0){ args.GetReturnValue().Set(V8_RETURN(vr->wrap(args.This()))); return;} \
     THROW_ERROR()
 
 #define PROPERTY_VAL(t) \

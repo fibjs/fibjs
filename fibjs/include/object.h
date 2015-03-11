@@ -413,19 +413,21 @@ inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &a
 
 inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    v8::Local<v8::Value> vr;
-
     obj_ptr<object_base> pInst = object_base::getInstance(args.This());
     if (pInst == NULL)
     {
+        V8_SCOPE();
+        
         v8::Local<v8::Object> o = args.This();
         v8::Local<v8::Object> o1 = v8::Object::New(isolate);
 
         extend(o, o1);
 
-        args.GetReturnValue().Set(o1);
+        args.GetReturnValue().Set(V8_RETURN(o1));
         return;
     }
+
+    v8::Local<v8::Value> vr;
 
     scope l(pInst);
 

@@ -61,6 +61,8 @@ void _require(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
+    V8_SCOPE();
+
     std::string id;
     result_t hr = GetArgumentValue(args[0], id);
     if (hr < 0)
@@ -87,7 +89,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
-    args.GetReturnValue().Set(v);
+    args.GetReturnValue().Set(V8_RETURN(v));
 }
 
 void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
