@@ -846,7 +846,7 @@ bool LCodeGen::GenerateDeferredCode() {
 
 
 bool LCodeGen::GenerateJumpTable() {
-  Label needs_frame, restore_caller_doubles, call_deopt_entry;
+  Label needs_frame, call_deopt_entry;
 
   if (jump_table_.length() > 0) {
     Comment(";;; -------------------- Jump table --------------------");
@@ -868,55 +868,50 @@ bool LCodeGen::GenerateJumpTable() {
       // address and add an immediate offset.
       __ Mov(entry_offset, entry - base);
 
-      // The last entry can fall through into `call_deopt_entry`, avoiding a
-      // branch.
-      bool last_entry = (i + 1) == length;
-
       if (table_entry->needs_frame) {
         DCHECK(!info()->saves_caller_doubles());
-        if (!needs_frame.is_bound()) {
-          // This variant of deopt can only be used with stubs. Since we don't
-          // have a function pointer to install in the stack frame that we're
-          // building, install a special marker there instead.
-          DCHECK(info()->IsStub());
-
-          UseScratchRegisterScope temps(masm());
-          Register stub_marker = temps.AcquireX();
-          __ Bind(&needs_frame);
-          __ Mov(stub_marker, Smi::FromInt(StackFrame::STUB));
-          __ Push(lr, fp, cp, stub_marker);
-          __ Add(fp, __ StackPointer(), 2 * kPointerSize);
-          if (!last_entry) __ B(&call_deopt_entry);
-        } else {
-          // Reuse the existing needs_frame code.
-          __ B(&needs_frame);
-        }
-      } else if (info()->saves_caller_doubles()) {
-        DCHECK(info()->IsStub());
-        if (!restore_caller_doubles.is_bound()) {
-          __ Bind(&restore_caller_doubles);
-          RestoreCallerDoubles();
-          if (!last_entry) __ B(&call_deopt_entry);
-        } else {
-          // Reuse the existing restore_caller_doubles code.
-          __ B(&restore_caller_doubles);
-        }
+        Comment(";;; call deopt with frame");
+        // Save lr before Bl, fp will be adjusted in the needs_frame code.
+        __ Push(lr, fp);
+        // Reuse the existing needs_frame code.
+        __ Bl(&needs_frame);
       } else {
         // There is nothing special to do, so just continue to the second-level
         // table.
-        if (!last_entry) __ B(&call_deopt_entry);
+        __ Bl(&call_deopt_entry);
       }
 
-      masm()->CheckConstPool(false, last_entry);
+      masm()->CheckConstPool(false, false);
+    }
+
+    if (needs_frame.is_linked()) {
+      // This variant of deopt can only be used with stubs. Since we don't
+      // have a function pointer to install in the stack frame that we're
+      // building, install a special marker there instead.
+      DCHECK(info()->IsStub());
+
+      Comment(";;; needs_frame common code");
+      UseScratchRegisterScope temps(masm());
+      Register stub_marker = temps.AcquireX();
+      __ Bind(&needs_frame);
+      __ Mov(stub_marker, Smi::FromInt(StackFrame::STUB));
+      __ Push(cp, stub_marker);
+      __ Add(fp, __ StackPointer(), 2 * kPointerSize);
     }
 
     // Generate common code for calling the second-level deopt table.
-    Register deopt_entry = temps.AcquireX();
     __ Bind(&call_deopt_entry);
+
+    if (info()->saves_caller_doubles()) {
+      DCHECK(info()->IsStub());
+      RestoreCallerDoubles();
+    }
+
+    Register deopt_entry = temps.AcquireX();
     __ Mov(deopt_entry, Operand(reinterpret_cast<uint64_t>(base),
                                 RelocInfo::RUNTIME_ENTRY));
     __ Add(deopt_entry, deopt_entry, entry_offset);
-    __ Call(deopt_entry);
+    __ Br(deopt_entry);
   }
 
   // Force constant pool emission at the end of the deopt jump table to make
@@ -1062,8 +1057,8 @@ void LCodeGen::DeoptimizeBranch(
     __ Bind(&dont_trap);
   }
 
-  Deoptimizer::DeoptInfo deopt_info(instr->hydrogen_value()->position(),
-                                    instr->Mnemonic(), deopt_reason);
+  Deoptimizer::DeoptInfo deopt_info = MakeDeoptInfo(instr, deopt_reason);
+
   DCHECK(info()->IsStub() || frame_is_built_);
   // Go through jump table if we need to build frame, or restore caller doubles.
   if (branch_type == always &&
@@ -1156,7 +1151,7 @@ void LCodeGen::DeoptimizeIfMinusZero(DoubleRegister input, LInstruction* instr,
 
 void LCodeGen::DeoptimizeIfNotHeapNumber(Register object, LInstruction* instr) {
   __ CompareObjectMap(object, Heap::kHeapNumberMapRootIndex);
-  DeoptimizeIf(ne, instr, Deoptimizer::kNotHeapNumber);
+  DeoptimizeIf(ne, instr, Deoptimizer::kNotAHeapNumber);
 }
 
 

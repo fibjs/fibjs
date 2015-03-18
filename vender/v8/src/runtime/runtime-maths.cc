@@ -112,7 +112,7 @@ RUNTIME_FUNCTION(Runtime_MathExpRT) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_MathFloorRT) {
+RUNTIME_FUNCTION(Runtime_MathFloor) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1);
   isolate->counters()->math_floor()->Increment();
@@ -207,7 +207,7 @@ RUNTIME_FUNCTION(Runtime_RoundNumber) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_MathSqrtRT) {
+RUNTIME_FUNCTION(Runtime_MathSqrt) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1);
   isolate->counters()->math_sqrt()->Increment();

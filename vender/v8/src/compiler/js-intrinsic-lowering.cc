@@ -20,9 +20,10 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
   if (node->opcode() != IrOpcode::kJSCallRuntime) return NoChange();
   const Runtime::Function* const f =
       Runtime::FunctionForId(CallRuntimeParametersOf(node->op()).id());
+  if (f->intrinsic_type != Runtime::IntrinsicType::INLINE) return NoChange();
   switch (f->function_id) {
-    case Runtime::kDeoptimizeNow:
-      return ReduceDeoptimizeNow(node);
+    case Runtime::kInlineDeoptimizeNow:
+      return ReduceInlineDeoptimizeNow(node);
     case Runtime::kInlineIsSmi:
       return ReduceInlineIsSmi(node);
     case Runtime::kInlineIsNonNegativeSmi:
@@ -31,14 +32,18 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
       return ReduceInlineIsInstanceType(node, JS_ARRAY_TYPE);
     case Runtime::kInlineIsFunction:
       return ReduceInlineIsInstanceType(node, JS_FUNCTION_TYPE);
-    case Runtime::kInlineOptimizedConstructDouble:
-      return ReduceInlineOptimizedConstructDouble(node);
-    case Runtime::kInlineOptimizedDoubleLo:
-      return ReduceInlineOptimizedDoubleLo(node);
-    case Runtime::kInlineOptimizedDoubleHi:
-      return ReduceInlineOptimizedDoubleHi(node);
+    case Runtime::kInlineConstructDouble:
+      return ReduceInlineConstructDouble(node);
+    case Runtime::kInlineDoubleLo:
+      return ReduceInlineDoubleLo(node);
+    case Runtime::kInlineDoubleHi:
+      return ReduceInlineDoubleHi(node);
     case Runtime::kInlineIsRegExp:
       return ReduceInlineIsInstanceType(node, JS_REGEXP_TYPE);
+    case Runtime::kInlineMathFloor:
+      return ReduceInlineMathFloor(node);
+    case Runtime::kInlineMathSqrt:
+      return ReduceInlineMathSqrt(node);
     case Runtime::kInlineValueOf:
       return ReduceInlineValueOf(node);
     default:
@@ -48,10 +53,10 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
 }
 
 
-Reduction JSIntrinsicLowering::ReduceDeoptimizeNow(Node* node) {
+Reduction JSIntrinsicLowering::ReduceInlineDeoptimizeNow(Node* node) {
   if (!FLAG_turbo_deoptimization) return NoChange();
 
-  Node* frame_state = NodeProperties::GetFrameStateInput(node);
+  Node* frame_state = NodeProperties::GetFrameStateInput(node, 0);
   DCHECK_EQ(frame_state->opcode(), IrOpcode::kFrameState);
 
   Node* effect = NodeProperties::GetEffectInput(node);
@@ -98,8 +103,7 @@ Reduction JSIntrinsicLowering::ReduceInlineIsNonNegativeSmi(Node* node) {
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineOptimizedConstructDouble(
-    Node* node) {
+Reduction JSIntrinsicLowering::ReduceInlineConstructDouble(Node* node) {
   Node* high = NodeProperties::GetValueInput(node, 0);
   Node* low = NodeProperties::GetValueInput(node, 1);
   Node* value =
@@ -112,12 +116,12 @@ Reduction JSIntrinsicLowering::ReduceInlineOptimizedConstructDouble(
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineOptimizedDoubleLo(Node* node) {
+Reduction JSIntrinsicLowering::ReduceInlineDoubleLo(Node* node) {
   return Change(node, machine()->Float64ExtractLowWord32());
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineOptimizedDoubleHi(Node* node) {
+Reduction JSIntrinsicLowering::ReduceInlineDoubleHi(Node* node) {
   return Change(node, machine()->Float64ExtractHighWord32());
 }
 
@@ -159,6 +163,17 @@ Reduction JSIntrinsicLowering::ReduceInlineIsInstanceType(
 
   // Turn the {node} into a Phi.
   return Change(node, common()->Phi(type, 2), vtrue, vfalse, merge);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceInlineMathFloor(Node* node) {
+  if (!machine()->HasFloat64RoundDown()) return NoChange();
+  return Change(node, machine()->Float64RoundDown());
+}
+
+
+Reduction JSIntrinsicLowering::ReduceInlineMathSqrt(Node* node) {
+  return Change(node, machine()->Float64Sqrt());
 }
 
 

@@ -388,10 +388,10 @@ void Genesis::SetFunctionInstanceDescriptor(
       static_cast<PropertyAttributes>(DONT_ENUM | READ_ONLY);
 
   Handle<AccessorInfo> length =
-      Accessors::FunctionLengthInfo(isolate(), ro_attribs);
+      Accessors::FunctionLengthInfo(isolate(), roc_attribs);
   {  // Add length.
     AccessorConstantDescriptor d(Handle<Name>(Name::cast(length->name())),
-                                 length, ro_attribs);
+                                 length, roc_attribs);
     map->AppendDescriptor(&d);
   }
   Handle<AccessorInfo> name =
@@ -555,9 +555,9 @@ void Genesis::SetStrictFunctionInstanceDescriptor(
            function_mode == FUNCTION_WITH_READONLY_PROTOTYPE ||
            function_mode == FUNCTION_WITHOUT_PROTOTYPE);
     Handle<AccessorInfo> length =
-        Accessors::FunctionLengthInfo(isolate(), ro_attribs);
+        Accessors::FunctionLengthInfo(isolate(), roc_attribs);
     AccessorConstantDescriptor d(Handle<Name>(Name::cast(length->name())),
-                                 length, ro_attribs);
+                                 length, roc_attribs);
     map->AppendDescriptor(&d);
   }
   Handle<AccessorInfo> name =
@@ -1538,7 +1538,7 @@ static Handle<JSObject> ResolveBuiltinIdHolder(Handle<Context> native_context,
 
 void Genesis::InstallNativeFunctions() {
   HandleScope scope(isolate());
-  INSTALL_NATIVE(JSFunction, "CreateDate", create_date_fun);
+  INSTALL_NATIVE(JSFunction, "$createDate", create_date_fun);
 
   INSTALL_NATIVE(JSFunction, "ToNumber", to_number_fun);
   INSTALL_NATIVE(JSFunction, "ToString", to_string_fun);
@@ -1554,7 +1554,7 @@ void Genesis::InstallNativeFunctions() {
   INSTALL_NATIVE(JSFunction, "ToCompletePropertyDescriptor",
                  to_complete_property_descriptor);
 
-  INSTALL_NATIVE(JSFunction, "IsPromise", is_promise);
+  INSTALL_NATIVE(Symbol, "promiseStatus", promise_status);
   INSTALL_NATIVE(JSFunction, "PromiseCreate", promise_create);
   INSTALL_NATIVE(JSFunction, "PromiseResolve", promise_resolve);
   INSTALL_NATIVE(JSFunction, "PromiseReject", promise_reject);
@@ -1651,7 +1651,6 @@ void Genesis::InitializeBuiltinTypedArrays() {
 #define EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(id) \
   void Genesis::InstallNativeFunctions_##id() {}
 
-EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_scoping)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_modules)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_strings)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_arrays)
@@ -1684,7 +1683,6 @@ void Genesis::InstallNativeFunctions_harmony_proxies() {
 #define EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(id) \
   void Genesis::InitializeGlobal_##id() {}
 
-EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_scoping)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_modules)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_strings)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_arrays)
@@ -1706,10 +1704,9 @@ void Genesis::InitializeGlobal_harmony_regexps() {
 
   Handle<HeapObject> flag(FLAG_harmony_regexps ? heap()->true_value()
                                                : heap()->false_value());
-  PropertyAttributes attributes =
-      static_cast<PropertyAttributes>(DONT_DELETE | READ_ONLY);
-  Runtime::DefineObjectProperty(builtins, factory()->harmony_regexps_string(),
-                                flag, attributes).Assert();
+  Runtime::SetObjectProperty(isolate(), builtins,
+                             factory()->harmony_regexps_string(), flag,
+                             STRICT).Assert();
 }
 
 
@@ -1718,11 +1715,9 @@ void Genesis::InitializeGlobal_harmony_unicode_regexps() {
 
   Handle<HeapObject> flag(FLAG_harmony_unicode_regexps ? heap()->true_value()
                                                        : heap()->false_value());
-  PropertyAttributes attributes =
-      static_cast<PropertyAttributes>(DONT_DELETE | READ_ONLY);
-  Runtime::DefineObjectProperty(builtins,
-                                factory()->harmony_unicode_regexps_string(),
-                                flag, attributes).Assert();
+  Runtime::SetObjectProperty(isolate(), builtins,
+                             factory()->harmony_unicode_regexps_string(), flag,
+                             STRICT).Assert();
 }
 
 
@@ -2107,19 +2102,19 @@ bool Genesis::InstallNatives() {
   }
 
   // Install natives.
-  for (int i = Natives::GetDebuggerCount();
-       i < Natives::GetBuiltinsCount();
-       i++) {
+  int i = Natives::GetDebuggerCount();
+  if (!CompileBuiltin(isolate(), i)) return false;
+  if (!InstallJSBuiltins(builtins)) return false;
+
+  for (++i; i < Natives::GetBuiltinsCount(); ++i) {
     if (!CompileBuiltin(isolate(), i)) return false;
-    // TODO(ager): We really only need to install the JS builtin
-    // functions on the builtins object after compiling and running
-    // runtime.js.
-    if (!InstallJSBuiltins(builtins)) return false;
   }
 
   InstallNativeFunctions();
 
-  native_context()->set_function_cache(heap()->empty_fixed_array());
+  auto function_cache =
+      ObjectHashTable::New(isolate(), ApiNatives::kInitialFunctionCacheSize);
+  native_context()->set_function_cache(*function_cache);
 
   // Store the map for the string prototype after the natives has been compiled
   // and the String function has been set up.
@@ -2275,7 +2270,6 @@ bool Genesis::InstallExperimentalNatives() {
                                                   NULL};
   static const char* harmony_classes_natives[] = {NULL};
   static const char* harmony_modules_natives[] = {NULL};
-  static const char* harmony_scoping_natives[] = {NULL};
   static const char* harmony_object_literals_natives[] = {NULL};
   static const char* harmony_regexps_natives[] = {
       "native harmony-regexp.js", NULL};
@@ -2610,15 +2604,7 @@ bool Genesis::InstallJSBuiltins(Handle<JSBuiltinsObject> builtins) {
     Handle<Object> function_object = Object::GetProperty(
         isolate(), builtins, Builtins::GetName(id)).ToHandleChecked();
     Handle<JSFunction> function = Handle<JSFunction>::cast(function_object);
-    // TODO(mstarzinger): This is just a temporary hack to make TurboFan work,
-    // the correct solution is to restore the context register after invoking
-    // builtins from full-codegen.
-    function->shared()->DisableOptimization(kBuiltinFunctionCannotBeOptimized);
     builtins->set_javascript_builtin(id, *function);
-    if (!Compiler::EnsureCompiled(function, CLEAR_EXCEPTION)) {
-      return false;
-    }
-    builtins->set_javascript_builtin_code(id, function->shared()->code());
   }
   return true;
 }
@@ -2898,9 +2884,10 @@ Genesis::Genesis(Isolate* isolate,
   // Install experimental natives. Do not include them into the snapshot as we
   // should be able to turn them off at runtime. Re-installing them after
   // they have already been deserialized would also fail.
-  if (!isolate->serializer_enabled() && !InstallExperimentalNatives()) return;
-
-  InitializeExperimentalGlobal();
+  if (!isolate->serializer_enabled()) {
+    InitializeExperimentalGlobal();
+    if (!InstallExperimentalNatives()) return;
+  }
 
   // The serializer cannot serialize typed arrays. Reset those typed arrays
   // for each new context.

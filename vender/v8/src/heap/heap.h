@@ -159,10 +159,11 @@ namespace internal {
   V(Map, termination_exception_map, TerminationExceptionMap)                   \
   V(Map, message_object_map, JSMessageObjectMap)                               \
   V(Map, foreign_map, ForeignMap)                                              \
+  V(Map, neander_map, NeanderMap)                                              \
+  V(Map, external_map, ExternalMap)                                            \
   V(HeapNumber, nan_value, NanValue)                                           \
   V(HeapNumber, infinity_value, InfinityValue)                                 \
   V(HeapNumber, minus_zero_value, MinusZeroValue)                              \
-  V(Map, neander_map, NeanderMap)                                              \
   V(JSObject, message_listeners, MessageListeners)                             \
   V(UnseededNumberDictionary, code_stubs, CodeStubs)                           \
   V(UnseededNumberDictionary, non_monomorphic_cache, NonMonomorphicCache)      \
@@ -172,9 +173,8 @@ namespace internal {
   V(FixedArray, natives_source_cache, NativesSourceCache)                      \
   V(Script, empty_script, EmptyScript)                                         \
   V(NameDictionary, intrinsic_function_names, IntrinsicFunctionNames)          \
-  V(Cell, undefined_cell, UndefineCell)                                        \
+  V(Cell, undefined_cell, UndefinedCell)                                       \
   V(JSObject, observation_state, ObservationState)                             \
-  V(Map, external_map, ExternalMap)                                            \
   V(Object, symbol_registry, SymbolRegistry)                                   \
   V(SeededNumberDictionary, empty_slow_element_dictionary,                     \
     EmptySlowElementDictionary)                                                \
@@ -183,6 +183,7 @@ namespace internal {
   V(FixedArray, microtask_queue, MicrotaskQueue)                               \
   V(FixedArray, keyed_load_dummy_vector, KeyedLoadDummyVector)                 \
   V(FixedArray, detached_contexts, DetachedContexts)                           \
+  V(ArrayList, retained_maps, RetainedMaps)                                    \
   V(WeakHashTable, weak_object_to_code_table, WeakObjectToCodeTable)
 
 // Entries in this list are limited to Smis and are not visited during GC.
@@ -194,6 +195,7 @@ namespace internal {
   V(Smi, construct_stub_deopt_pc_offset, ConstructStubDeoptPCOffset)       \
   V(Smi, getter_stub_deopt_pc_offset, GetterStubDeoptPCOffset)             \
   V(Smi, setter_stub_deopt_pc_offset, SetterStubDeoptPCOffset)
+
 
 #define ROOT_LIST(V)  \
   STRONG_ROOT_LIST(V) \
@@ -868,6 +870,13 @@ class Heap {
   void set_array_buffers_list(Object* object) { array_buffers_list_ = object; }
   Object* array_buffers_list() const { return array_buffers_list_; }
 
+  void set_new_array_buffer_views_list(Object* object) {
+    new_array_buffer_views_list_ = object;
+  }
+  Object* new_array_buffer_views_list() const {
+    return new_array_buffer_views_list_;
+  }
+
   void set_allocation_sites_list(Object* object) {
     allocation_sites_list_ = object;
   }
@@ -985,10 +994,6 @@ class Heap {
 #ifdef DEBUG
   void Print();
   void PrintHandles();
-
-  void OldPointerSpaceCheckStoreBuffer();
-  void MapSpaceCheckStoreBuffer();
-  void LargeObjectSpaceCheckStoreBuffer();
 
   // Report heap statistics.
   void ReportHeapStatistics(const char* title);
@@ -1314,6 +1319,8 @@ class Heap {
   // Returns the current sweep generation.
   int sweep_generation() { return sweep_generation_; }
 
+  bool concurrent_sweeping_enabled() { return concurrent_sweeping_enabled_; }
+
   inline Isolate* isolate();
 
   void CallGCPrologueCallbacks(GCType gc_type, GCCallbackFlags flags);
@@ -1448,6 +1455,8 @@ class Heap {
 
   DependentCode* LookupWeakObjectToCodeDependency(Handle<HeapObject> obj);
 
+  void AddRetainedMap(Handle<Map> map);
+
   static void FatalProcessOutOfMemory(const char* location,
                                       bool take_snapshot = false);
 
@@ -1462,6 +1471,18 @@ class Heap {
                           int size_in_bytes);
 
   bool deserialization_complete() const { return deserialization_complete_; }
+
+  bool migration_failure() const { return migration_failure_; }
+  void set_migration_failure(bool migration_failure) {
+    migration_failure_ = migration_failure;
+  }
+
+  bool previous_migration_failure() const {
+    return previous_migration_failure_;
+  }
+  void set_previous_migration_failure(bool previous_migration_failure) {
+    previous_migration_failure_ = previous_migration_failure;
+  }
 
  protected:
   // Methods made available to tests.
@@ -1600,6 +1621,8 @@ class Heap {
   inline void set_##name(type* value) {                                       \
     /* The deserializer makes use of the fact that these common roots are */  \
     /* never in new space and never on a page that is being compacted.    */  \
+    DCHECK(!deserialization_complete() ||                                     \
+           RootCanBeWrittenAfterInitialization(k##camel_name##RootIndex));    \
     DCHECK(k##camel_name##RootIndex >= kOldSpaceRoots || !InNewSpace(value)); \
     roots_[k##camel_name##RootIndex] = value;                                 \
   }
@@ -1628,10 +1651,15 @@ class Heap {
   bool inline_allocation_disabled_;
 
   // Weak list heads, threaded through the objects.
-  // List heads are initilized lazily and contain the undefined_value at start.
+  // List heads are initialized lazily and contain the undefined_value at start.
   Object* native_contexts_list_;
   Object* array_buffers_list_;
   Object* allocation_sites_list_;
+
+  // This is a global list of array buffer views in new space. When the views
+  // get promoted, they are removed form the list and added to the corresponding
+  // array buffer.
+  Object* new_array_buffer_views_list_;
 
   // List of encountered weak collections (JSWeakMap and JSWeakSet) during
   // marking. It is initialized during marking, destroyed after marking and
@@ -1965,7 +1993,8 @@ class Heap {
   void MarkCompactEpilogue();
 
   void ProcessNativeContexts(WeakObjectRetainer* retainer);
-  void ProcessArrayBuffers(WeakObjectRetainer* retainer);
+  void ProcessArrayBuffers(WeakObjectRetainer* retainer, bool stop_after_young);
+  void ProcessNewArrayBufferViews(WeakObjectRetainer* retainer);
   void ProcessAllocationSites(WeakObjectRetainer* retainer);
 
   // Deopts all code that contains allocation instruction which are tenured or
@@ -2124,6 +2153,15 @@ class Heap {
   int gc_callbacks_depth_;
 
   bool deserialization_complete_;
+
+  bool concurrent_sweeping_enabled_;
+
+  // A migration failure indicates that a semi-space copy of an object during
+  // a scavenge failed and the object got promoted instead.
+  bool migration_failure_;
+
+  // A migration failure happened in the previous scavenge.
+  bool previous_migration_failure_;
 
   friend class AlwaysAllocateScope;
   friend class Deserializer;

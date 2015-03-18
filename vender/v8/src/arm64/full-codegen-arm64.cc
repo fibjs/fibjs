@@ -200,7 +200,7 @@ void FullCodeGenerator::Generate() {
     // Argument to NewContext is the function, which is still in x1.
     Comment cmnt(masm_, "[ Allocate context");
     bool need_write_barrier = true;
-    if (FLAG_harmony_scoping && info->scope()->is_script_scope()) {
+    if (info->scope()->is_script_scope()) {
       __ Mov(x10, Operand(info->scope()->GetScopeInfo(info->isolate())));
       __ Push(x1, x10);
       __ CallRuntime(Runtime::kNewScriptContext, 2);
@@ -2282,6 +2282,16 @@ void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
     }
     __ Push(scratch);
     EmitPropertyKey(property, lit->GetIdForProperty(i));
+
+    // The static prototype property is read only. We handle the non computed
+    // property name case in the parser. Since this is the only case where we
+    // need to check for an own read only property we special case this so we do
+    // not need to do this for every property.
+    if (property->is_static() && property->is_computed_name()) {
+      __ CallRuntime(Runtime::kThrowIfStaticPrototype, 1);
+      __ Push(x0);
+    }
+
     VisitForStackValue(value);
     EmitSetHomeObjectIfNeeded(value, 2);
 
@@ -4299,18 +4309,11 @@ void FullCodeGenerator::EmitDebugIsActive(CallRuntime* expr) {
 
 
 void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
-  if (expr->function() != NULL &&
-      expr->function()->intrinsic_type == Runtime::INLINE) {
-    Comment cmnt(masm_, "[ InlineRuntimeCall");
-    EmitInlineRuntimeCall(expr);
-    return;
-  }
-
-  Comment cmnt(masm_, "[ CallRunTime");
   ZoneList<Expression*>* args = expr->arguments();
   int arg_count = args->length();
 
   if (expr->is_jsruntime()) {
+    Comment cmnt(masm_, "[ CallRunTime");
     // Push the builtins object as the receiver.
     __ Ldr(x10, GlobalObjectMemOperand());
     __ Ldr(LoadDescriptor::ReceiverRegister(),
@@ -4332,7 +4335,6 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
     __ Pop(x10);
     __ Push(x0, x10);
 
-    int arg_count = args->length();
     for (int i = 0; i < arg_count; i++) {
       VisitForStackValue(args->at(i));
     }
@@ -4347,15 +4349,29 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
     __ Ldr(cp, MemOperand(fp, StandardFrameConstants::kContextOffset));
 
     context()->DropAndPlug(1, x0);
-  } else {
-    // Push the arguments ("left-to-right").
-    for (int i = 0; i < arg_count; i++) {
-      VisitForStackValue(args->at(i));
-    }
 
-    // Call the C runtime function.
-    __ CallRuntime(expr->function(), arg_count);
-    context()->Plug(x0);
+  } else {
+    const Runtime::Function* function = expr->function();
+    switch (function->function_id) {
+#define CALL_INTRINSIC_GENERATOR(Name)     \
+  case Runtime::kInline##Name: {           \
+    Comment cmnt(masm_, "[ Inline" #Name); \
+    return Emit##Name(expr);               \
+  }
+      FOR_EACH_FULL_CODE_INTRINSIC(CALL_INTRINSIC_GENERATOR)
+#undef CALL_INTRINSIC_GENERATOR
+      default: {
+        Comment cmnt(masm_, "[ CallRuntime for unhandled intrinsic");
+        // Push the arguments ("left-to-right").
+        for (int i = 0; i < arg_count; i++) {
+          VisitForStackValue(args->at(i));
+        }
+
+        // Call the C runtime function.
+        __ CallRuntime(expr->function(), arg_count);
+        context()->Plug(x0);
+      }
+    }
   }
 }
 
@@ -5333,20 +5349,6 @@ void FullCodeGenerator::EnterFinallyBlock() {
       ExternalReference::address_of_pending_message_obj(isolate());
   __ Mov(x10, pending_message_obj);
   __ Ldr(x10, MemOperand(x10));
-
-  ExternalReference has_pending_message =
-      ExternalReference::address_of_has_pending_message(isolate());
-  STATIC_ASSERT(sizeof(bool) == 1);   // NOLINT(runtime/sizeof)
-  __ Mov(x11, has_pending_message);
-  __ Ldrb(x11, MemOperand(x11));
-  __ SmiTag(x11);
-
-  __ Push(x10, x11);
-
-  ExternalReference pending_message_script =
-      ExternalReference::address_of_pending_message_script(isolate());
-  __ Mov(x10, pending_message_script);
-  __ Ldr(x10, MemOperand(x10));
   __ Push(x10);
 }
 
@@ -5356,23 +5358,11 @@ void FullCodeGenerator::ExitFinallyBlock() {
   DCHECK(!result_register().is(x10));
 
   // Restore pending message from stack.
-  __ Pop(x10, x11, x12);
-  ExternalReference pending_message_script =
-      ExternalReference::address_of_pending_message_script(isolate());
-  __ Mov(x13, pending_message_script);
-  __ Str(x10, MemOperand(x13));
-
-  __ SmiUntag(x11);
-  ExternalReference has_pending_message =
-      ExternalReference::address_of_has_pending_message(isolate());
-  __ Mov(x13, has_pending_message);
-  STATIC_ASSERT(sizeof(bool) == 1);   // NOLINT(runtime/sizeof)
-  __ Strb(x11, MemOperand(x13));
-
+  __ Pop(x10);
   ExternalReference pending_message_obj =
       ExternalReference::address_of_pending_message_obj(isolate());
   __ Mov(x13, pending_message_obj);
-  __ Str(x12, MemOperand(x13));
+  __ Str(x10, MemOperand(x13));
 
   // Restore result register and cooked return address from the stack.
   __ Pop(x10, result_register());

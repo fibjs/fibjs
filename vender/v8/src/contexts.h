@@ -140,7 +140,7 @@ enum BindingFlags {
   V(MAKE_MESSAGE_FUN_INDEX, JSFunction, make_message_fun)                      \
   V(GET_STACK_TRACE_LINE_INDEX, JSFunction, get_stack_trace_line_fun)          \
   V(CONFIGURE_GLOBAL_INDEX, JSFunction, configure_global_fun)                  \
-  V(FUNCTION_CACHE_INDEX, FixedArray, function_cache)                          \
+  V(FUNCTION_CACHE_INDEX, ObjectHashTable, function_cache)                     \
   V(JSFUNCTION_RESULT_CACHES_INDEX, FixedArray, jsfunction_result_caches)      \
   V(NORMALIZED_MAP_CACHE_INDEX, Object, normalized_map_cache)                  \
   V(RUNTIME_CONTEXT_INDEX, Context, runtime_context)                           \
@@ -155,7 +155,7 @@ enum BindingFlags {
   V(ALLOW_CODE_GEN_FROM_STRINGS_INDEX, Object, allow_code_gen_from_strings)    \
   V(ERROR_MESSAGE_FOR_CODE_GEN_FROM_STRINGS_INDEX, Object,                     \
     error_message_for_code_gen_from_strings)                                   \
-  V(IS_PROMISE_INDEX, JSFunction, is_promise)                                  \
+  V(PROMISE_STATUS_INDEX, Symbol, promise_status)                              \
   V(PROMISE_CREATE_INDEX, JSFunction, promise_create)                          \
   V(PROMISE_RESOLVE_INDEX, JSFunction, promise_resolve)                        \
   V(PROMISE_REJECT_INDEX, JSFunction, promise_reject)                          \
@@ -390,7 +390,7 @@ class Context: public FixedArray {
     ERROR_MESSAGE_FOR_CODE_GEN_FROM_STRINGS_INDEX,
     RUN_MICROTASKS_INDEX,
     ENQUEUE_MICROTASK_INDEX,
-    IS_PROMISE_INDEX,
+    PROMISE_STATUS_INDEX,
     PROMISE_CREATE_INDEX,
     PROMISE_RESOLVE_INDEX,
     PROMISE_REJECT_INDEX,

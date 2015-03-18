@@ -70,6 +70,7 @@ namespace compiler {
   V(Arm64Sxtw)                     \
   V(Arm64Ubfx)                     \
   V(Arm64Ubfx32)                   \
+  V(Arm64Bfi)                      \
   V(Arm64TestAndBranch32)          \
   V(Arm64TestAndBranch)            \
   V(Arm64CompareAndBranch32)       \
@@ -84,10 +85,10 @@ namespace compiler {
   V(Arm64Float64Div)               \
   V(Arm64Float64Mod)               \
   V(Arm64Float64Sqrt)              \
-  V(Arm64Float64Floor)             \
-  V(Arm64Float64Ceil)              \
-  V(Arm64Float64RoundTruncate)     \
+  V(Arm64Float64RoundDown)         \
   V(Arm64Float64RoundTiesAway)     \
+  V(Arm64Float64RoundTruncate)     \
+  V(Arm64Float64RoundUp)           \
   V(Arm64Float32ToFloat64)         \
   V(Arm64Float64ToFloat32)         \
   V(Arm64Float64ToInt32)           \
@@ -98,6 +99,7 @@ namespace compiler {
   V(Arm64Float64ExtractHighWord32) \
   V(Arm64Float64InsertLowWord32)   \
   V(Arm64Float64InsertHighWord32)  \
+  V(Arm64Float64MoveU64)           \
   V(Arm64LdrS)                     \
   V(Arm64StrS)                     \
   V(Arm64LdrD)                     \

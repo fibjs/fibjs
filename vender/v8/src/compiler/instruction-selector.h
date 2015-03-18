@@ -129,6 +129,8 @@ class InstructionSelector FINAL {
   int GetVirtualRegister(const Node* node);
   const std::map<NodeId, int> GetVirtualRegistersForTesting() const;
 
+  Isolate* isolate() const { return sequence()->isolate(); }
+
  private:
   friend class OperandGenerator;
 
@@ -169,8 +171,6 @@ class InstructionSelector FINAL {
                             bool call_address_immediate);
 
   FrameStateDescriptor* GetFrameStateDescriptor(Node* node);
-  void FillTypeVectorFromStateValues(ZoneVector<MachineType>* parameters,
-                                     Node* state_values);
   void AddFrameStateInputs(Node* state, InstructionOperandVector* inputs,
                            FrameStateDescriptor* descriptor);
   MachineType GetMachineType(Node* node);

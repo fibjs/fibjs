@@ -916,7 +916,7 @@ class RepresentationSelector {
         MachineTypeUnion tBase = kRepTagged | kMachPtr;
         LoadRepresentation rep = OpParameter<LoadRepresentation>(node);
         ProcessInput(node, 0, tBase);   // pointer or object
-        ProcessInput(node, 1, kMachInt32);  // index
+        ProcessInput(node, 1, kMachIntPtr);  // index
         ProcessRemainingInputs(node, 2);
         SetOutput(node, rep);
         break;
@@ -926,7 +926,7 @@ class RepresentationSelector {
         MachineTypeUnion tBase = kRepTagged | kMachPtr;
         StoreRepresentation rep = OpParameter<StoreRepresentation>(node);
         ProcessInput(node, 0, tBase);   // pointer or object
-        ProcessInput(node, 1, kMachInt32);  // index
+        ProcessInput(node, 1, kMachIntPtr);  // index
         ProcessInput(node, 2, rep.machine_type());
         ProcessRemainingInputs(node, 3);
         SetOutput(node, 0);
@@ -1028,10 +1028,10 @@ class RepresentationSelector {
       case IrOpcode::kFloat64Mul:
       case IrOpcode::kFloat64Div:
       case IrOpcode::kFloat64Mod:
+      case IrOpcode::kFloat64Min:
         return VisitFloat64Binop(node);
       case IrOpcode::kFloat64Sqrt:
-      case IrOpcode::kFloat64Floor:
-      case IrOpcode::kFloat64Ceil:
+      case IrOpcode::kFloat64RoundDown:
       case IrOpcode::kFloat64RoundTruncate:
       case IrOpcode::kFloat64RoundTiesAway:
         return VisitUnop(node, kMachFloat64, kMachFloat64);
@@ -1323,7 +1323,7 @@ void SimplifiedLowering::DoStringAdd(Node* node) {
 Node* SimplifiedLowering::StringComparison(Node* node, bool requires_ordering) {
   CEntryStub stub(jsgraph()->isolate(), 1);
   Runtime::FunctionId f =
-      requires_ordering ? Runtime::kStringCompare : Runtime::kStringEquals;
+      requires_ordering ? Runtime::kStringCompareRT : Runtime::kStringEquals;
   ExternalReference ref(f, jsgraph()->isolate());
   Operator::Properties props = node->op()->properties();
   // TODO(mstarzinger): We should call StringCompareStub here instead, once an

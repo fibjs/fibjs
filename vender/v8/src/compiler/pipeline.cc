@@ -8,7 +8,6 @@
 #include <sstream>
 
 #include "src/base/platform/elapsed-timer.h"
-#include "src/bootstrapper.h"  // TODO(mstarzinger): Only temporary.
 #include "src/compiler/ast-graph-builder.h"
 #include "src/compiler/ast-loop-assignment-analyzer.h"
 #include "src/compiler/basic-block-instrumentor.h"
@@ -292,20 +291,17 @@ static void TraceSchedule(Schedule* schedule) {
 
 
 static SmartArrayPointer<char> GetDebugName(CompilationInfo* info) {
-  SmartArrayPointer<char> name;
-  if (info->IsStub()) {
-    if (info->code_stub() != NULL) {
-      CodeStub::Major major_key = info->code_stub()->MajorKey();
-      const char* major_name = CodeStub::MajorName(major_key, false);
-      size_t len = strlen(major_name);
-      name.Reset(new char[len]);
-      memcpy(name.get(), major_name, len);
-    }
+  if (info->code_stub() != NULL) {
+    CodeStub::Major major_key = info->code_stub()->MajorKey();
+    const char* major_name = CodeStub::MajorName(major_key, false);
+    size_t len = strlen(major_name) + 1;
+    SmartArrayPointer<char> name(new char[len]);
+    memcpy(name.get(), major_name, len);
+    return name;
   } else {
     AllowHandleDereference allow_deref;
-    name = info->function()->debug_name()->ToCString();
+    return info->function()->debug_name()->ToCString();
   }
-  return name;
 }
 
 
@@ -451,7 +447,10 @@ struct InliningPhase {
   void Run(PipelineData* data, Zone* temp_zone) {
     SourcePositionTable::Scope pos(data->source_positions(),
                                    SourcePosition::Unknown());
-    JSInliner inliner(temp_zone, data->info(), data->jsgraph());
+    JSInliner inliner(data->info()->is_inlining_enabled()
+                          ? JSInliner::kGeneralInlining
+                          : JSInliner::kBuiltinsInlining,
+                      temp_zone, data->info(), data->jsgraph());
     GraphReducer graph_reducer(data->graph(), temp_zone);
     AddReducer(data, &graph_reducer, &inliner);
     graph_reducer.ReduceGraph();
@@ -492,7 +491,7 @@ struct TypedLoweringPhase {
     JSTypedLowering typed_lowering(data->jsgraph(), temp_zone);
     JSIntrinsicLowering intrinsic_lowering(data->jsgraph());
     SimplifiedOperatorReducer simple_reducer(data->jsgraph());
-    CommonOperatorReducer common_reducer;
+    CommonOperatorReducer common_reducer(data->jsgraph());
     GraphReducer graph_reducer(data->graph(), temp_zone);
     AddReducer(data, &graph_reducer, &vn_reducer);
     AddReducer(data, &graph_reducer, &builtin_reducer);
@@ -518,7 +517,7 @@ struct SimplifiedLoweringPhase {
     ValueNumberingReducer vn_reducer(temp_zone);
     SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     MachineOperatorReducer machine_reducer(data->jsgraph());
-    CommonOperatorReducer common_reducer;
+    CommonOperatorReducer common_reducer(data->jsgraph());
     GraphReducer graph_reducer(data->graph(), temp_zone);
     AddReducer(data, &graph_reducer, &vn_reducer);
     AddReducer(data, &graph_reducer, &simple_reducer);
@@ -551,7 +550,7 @@ struct ChangeLoweringPhase {
     SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     ChangeLowering lowering(data->jsgraph());
     MachineOperatorReducer machine_reducer(data->jsgraph());
-    CommonOperatorReducer common_reducer;
+    CommonOperatorReducer common_reducer(data->jsgraph());
     GraphReducer graph_reducer(data->graph(), temp_zone);
     AddReducer(data, &graph_reducer, &vn_reducer);
     AddReducer(data, &graph_reducer, &simple_reducer);
@@ -837,11 +836,10 @@ Handle<Code> Pipeline::GenerateCode() {
   // the correct solution is to restore the context register after invoking
   // builtins from full-codegen.
   Handle<SharedFunctionInfo> shared = info()->shared_info();
-  if (isolate()->bootstrapper()->IsActive() ||
-      shared->disable_optimization_reason() ==
-          kBuiltinFunctionCannotBeOptimized) {
-    shared->DisableOptimization(kBuiltinFunctionCannotBeOptimized);
-    return Handle<Code>::null();
+  for (int i = 0; i < Builtins::NumberOfJavaScriptBuiltins(); i++) {
+    Builtins::JavaScript id = static_cast<Builtins::JavaScript>(i);
+    Object* builtin = isolate()->js_builtins_object()->javascript_builtin(id);
+    if (*info()->closure() == builtin) return Handle<Code>::null();
   }
 
   // TODO(dslomov): support turbo optimization of subclass constructors.
@@ -917,7 +915,7 @@ Handle<Code> Pipeline::GenerateCode() {
     RunPrintAndVerify("Context specialized", true);
   }
 
-  if (info()->is_inlining_enabled()) {
+  if (info()->is_builtin_inlining_enabled() || info()->is_inlining_enabled()) {
     Run<InliningPhase>();
     RunPrintAndVerify("Inlined", true);
   }

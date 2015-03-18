@@ -12,8 +12,7 @@
 namespace v8 {
 namespace internal {
 
-class CompilationInfo;
-
+class ParseInfo;
 
 // A hash map to support fast variable declaration and lookup.
 class VariableMap: public ZoneHashMap {
@@ -73,12 +72,13 @@ class Scope: public ZoneObject {
   // Construction
 
   Scope(Zone* zone, Scope* outer_scope, ScopeType scope_type,
-        AstValueFactory* value_factory);
+        AstValueFactory* value_factory,
+        FunctionKind function_kind = kNormalFunction);
 
   // Compute top scope and allocate variables. For lazy compilation the top
   // scope only contains the single lazily compiled function, so this
   // doesn't re-allocate variables repeatedly.
-  static bool Analyze(CompilationInfo* info);
+  static bool Analyze(ParseInfo* info);
 
   static Scope* DeserializeScopeChain(Isolate* isolate, Zone* zone,
                                       Context* context, Scope* script_scope);
@@ -88,7 +88,7 @@ class Scope: public ZoneObject {
     scope_name_ = scope_name;
   }
 
-  void Initialize(bool subclass_constructor = false);
+  void Initialize();
 
   // Checks if the block scope is redundant, i.e. it does not contain any
   // block scoped declarations. In that case it is removed from the scope
@@ -281,6 +281,13 @@ class Scope: public ZoneObject {
   bool is_block_scope() const { return scope_type_ == BLOCK_SCOPE; }
   bool is_with_scope() const { return scope_type_ == WITH_SCOPE; }
   bool is_arrow_scope() const { return scope_type_ == ARROW_SCOPE; }
+  void tag_as_class_scope() {
+    DCHECK(is_block_scope());
+    block_scope_is_class_scope_ = true;
+  }
+  bool is_class_scope() const {
+    return is_block_scope() && block_scope_is_class_scope_;
+  }
   bool is_declaration_scope() const {
     return is_eval_scope() || is_function_scope() ||
         is_module_scope() || is_script_scope();
@@ -331,6 +338,8 @@ class Scope: public ZoneObject {
 
   // The type of this scope.
   ScopeType scope_type() const { return scope_type_; }
+
+  FunctionKind function_kind() const { return function_kind_; }
 
   // The language mode of this scope.
   LanguageMode language_mode() const { return language_mode_; }
@@ -501,6 +510,10 @@ class Scope: public ZoneObject {
 
   // The scope type.
   ScopeType scope_type_;
+  // Some block scopes are tagged as class scopes.
+  bool block_scope_is_class_scope_;
+  // If the scope is a function scope, this is the function kind.
+  FunctionKind function_kind_;
 
   // Debugging support.
   const AstRawString* scope_name_;
@@ -652,11 +665,16 @@ class Scope: public ZoneObject {
   Variable* LookupRecursive(VariableProxy* proxy, BindingKind* binding_kind,
                             AstNodeFactory* factory);
   MUST_USE_RESULT
-  bool ResolveVariable(CompilationInfo* info, VariableProxy* proxy,
+  bool ResolveVariable(ParseInfo* info, VariableProxy* proxy,
                        AstNodeFactory* factory);
   MUST_USE_RESULT
-  bool ResolveVariablesRecursively(CompilationInfo* info,
-                                   AstNodeFactory* factory);
+  bool ResolveVariablesRecursively(ParseInfo* info, AstNodeFactory* factory);
+
+  bool CheckStrongModeDeclaration(VariableProxy* proxy, Variable* var);
+
+  // If this scope is a method scope of a class, return the corresponding
+  // class variable, otherwise nullptr.
+  Variable* ClassVariableForMethod() const;
 
   // Scope analysis.
   void PropagateScopeInfo(bool outer_scope_calls_sloppy_eval);
@@ -674,7 +692,7 @@ class Scope: public ZoneObject {
   void AllocateNonParameterLocal(Isolate* isolate, Variable* var);
   void AllocateNonParameterLocals(Isolate* isolate);
   void AllocateVariablesRecursively(Isolate* isolate);
-  void AllocateModulesRecursively(Scope* host_scope);
+  void AllocateModules();
 
   // Resolve and fill in the allocation information for all variables
   // in this scopes. Must be called *after* all scopes have been
@@ -685,7 +703,7 @@ class Scope: public ZoneObject {
   // parameter is the context in which eval was called.  In all other
   // cases the context parameter is an empty handle.
   MUST_USE_RESULT
-  bool AllocateVariables(CompilationInfo* info, AstNodeFactory* factory);
+  bool AllocateVariables(ParseInfo* info, AstNodeFactory* factory);
 
  private:
   // Construct a scope based on the scope info.
@@ -703,9 +721,9 @@ class Scope: public ZoneObject {
     }
   }
 
-  void SetDefaults(ScopeType type,
-                   Scope* outer_scope,
-                   Handle<ScopeInfo> scope_info);
+  void SetDefaults(ScopeType type, Scope* outer_scope,
+                   Handle<ScopeInfo> scope_info,
+                   FunctionKind function_kind = kNormalFunction);
 
   AstValueFactory* ast_value_factory_;
   Zone* zone_;

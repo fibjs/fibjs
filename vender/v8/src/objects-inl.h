@@ -51,12 +51,6 @@ Smi* PropertyDetails::AsSmi() const {
 }
 
 
-PropertyDetails PropertyDetails::AsDeleted() const {
-  Smi* smi = Smi::FromInt(value_ | DeletedField::encode(1));
-  return PropertyDetails(smi);
-}
-
-
 int PropertyDetails::field_width_in_words() const {
   DCHECK(location() == kField);
   if (!FLAG_unbox_double_fields) return 1;
@@ -717,6 +711,9 @@ bool Object::IsJSWeakCollection() const {
 bool Object::IsDescriptorArray() const {
   return IsFixedArray();
 }
+
+
+bool Object::IsArrayList() const { return IsFixedArray(); }
 
 
 bool Object::IsLayoutDescriptor() const {
@@ -1877,41 +1874,6 @@ void JSObject::initialize_elements() {
 }
 
 
-Handle<String> Map::ExpectedTransitionKey(Handle<Map> map) {
-  DisallowHeapAllocation no_gc;
-  if (!map->HasTransitionArray()) return Handle<String>::null();
-  TransitionArray* transitions = map->transitions();
-  if (!transitions->IsSimpleTransition()) return Handle<String>::null();
-  int transition = TransitionArray::kSimpleTransitionIndex;
-  PropertyDetails details = transitions->GetTargetDetails(transition);
-  Name* name = transitions->GetKey(transition);
-  if (details.type() != DATA) return Handle<String>::null();
-  if (details.attributes() != NONE) return Handle<String>::null();
-  if (!name->IsString()) return Handle<String>::null();
-  return Handle<String>(String::cast(name));
-}
-
-
-Handle<Map> Map::ExpectedTransitionTarget(Handle<Map> map) {
-  DCHECK(!ExpectedTransitionKey(map).is_null());
-  return Handle<Map>(map->transitions()->GetTarget(
-      TransitionArray::kSimpleTransitionIndex));
-}
-
-
-Handle<Map> Map::FindTransitionToField(Handle<Map> map, Handle<Name> key) {
-  DisallowHeapAllocation no_allocation;
-  if (!map->HasTransitionArray()) return Handle<Map>::null();
-  TransitionArray* transitions = map->transitions();
-  int transition = transitions->Search(kData, *key, NONE);
-  if (transition == TransitionArray::kNotFound) return Handle<Map>::null();
-  PropertyDetails details = transitions->GetTargetDetails(transition);
-  if (details.type() != DATA) return Handle<Map>::null();
-  DCHECK_EQ(NONE, details.attributes());
-  return Handle<Map>(transitions->GetTarget(transition));
-}
-
-
 ACCESSORS(Oddball, to_string, String, kToStringOffset)
 ACCESSORS(Oddball, to_number, Object, kToNumberOffset)
 
@@ -2133,6 +2095,31 @@ void JSObject::FastPropertyAtPut(FieldIndex index, Object* value) {
   if (IsUnboxedDoubleField(index)) {
     DCHECK(value->IsMutableHeapNumber());
     RawFastDoublePropertyAtPut(index, HeapNumber::cast(value)->value());
+  } else {
+    RawFastPropertyAtPut(index, value);
+  }
+}
+
+
+void JSObject::WriteToField(int descriptor, Object* value) {
+  DisallowHeapAllocation no_gc;
+
+  DescriptorArray* desc = map()->instance_descriptors();
+  PropertyDetails details = desc->GetDetails(descriptor);
+
+  DCHECK(details.type() == DATA);
+
+  FieldIndex index = FieldIndex::ForDescriptor(map(), descriptor);
+  if (details.representation().IsDouble()) {
+    // Nothing more to be done.
+    if (value->IsUninitialized()) return;
+    if (IsUnboxedDoubleField(index)) {
+      RawFastDoublePropertyAtPut(index, value->Number());
+    } else {
+      HeapNumber* box = HeapNumber::cast(RawFastPropertyAt(index));
+      DCHECK(box->IsMutableHeapNumber());
+      box->set_value(value->Number());
+    }
   } else {
     RawFastPropertyAtPut(index, value);
   }
@@ -2398,6 +2385,39 @@ int WeakFixedArray::last_used_index() const {
 
 void WeakFixedArray::set_last_used_index(int index) {
   FixedArray::cast(this)->set(kLastUsedIndexIndex, Smi::FromInt(index));
+}
+
+
+int ArrayList::Length() {
+  if (FixedArray::cast(this)->length() == 0) return 0;
+  return Smi::cast(FixedArray::cast(this)->get(kLengthIndex))->value();
+}
+
+
+void ArrayList::SetLength(int length) {
+  return FixedArray::cast(this)->set(kLengthIndex, Smi::FromInt(length));
+}
+
+
+Object* ArrayList::Get(int index) {
+  return FixedArray::cast(this)->get(kFirstIndex + index);
+}
+
+
+Object** ArrayList::Slot(int index) {
+  return data_start() + kFirstIndex + index;
+}
+
+
+void ArrayList::Set(int index, Object* obj) {
+  FixedArray::cast(this)->set(kFirstIndex + index, obj);
+}
+
+
+void ArrayList::Clear(int index, Object* undefined) {
+  DCHECK(undefined->IsUndefined());
+  FixedArray::cast(this)
+      ->set(kFirstIndex + index, undefined, SKIP_WRITE_BARRIER);
 }
 
 
@@ -3037,7 +3057,7 @@ FixedArrayBase* Map::GetInitialElements() {
     return empty_array;
   } else if (has_fixed_typed_array_elements()) {
     FixedTypedArrayBase* empty_array =
-      GetHeap()->EmptyFixedTypedArrayForMap(this);
+        GetHeap()->EmptyFixedTypedArrayForMap(this);
     DCHECK(!GetHeap()->InNewSpace(empty_array));
     return empty_array;
   } else {
@@ -3299,6 +3319,7 @@ void SeededNumberDictionary::set_requires_slow_elements() {
 
 
 CAST_ACCESSOR(AccessorInfo)
+CAST_ACCESSOR(ArrayList)
 CAST_ACCESSOR(ByteArray)
 CAST_ACCESSOR(Cell)
 CAST_ACCESSOR(Code)
@@ -5255,22 +5276,6 @@ void Map::set_prototype(Object* value, WriteBarrierMode mode) {
 }
 
 
-// If the descriptor is using the empty transition array, install a new empty
-// transition array that will have place for an element transition.
-static void EnsureHasTransitionArray(Handle<Map> map) {
-  Handle<TransitionArray> transitions;
-  if (!map->HasTransitionArray()) {
-    transitions = TransitionArray::Allocate(map->GetIsolate(), 0);
-    transitions->set_back_pointer_storage(map->GetBackPointer());
-  } else if (!map->transitions()->IsFullTransitionArray()) {
-    transitions = TransitionArray::ExtendToFullTransitionArray(map);
-  } else {
-    return;
-  }
-  map->set_transitions(*transitions);
-}
-
-
 LayoutDescriptor* Map::layout_descriptor_gc_safe() {
   Object* layout_desc = READ_FIELD(this, kLayoutDecriptorOffset);
   return LayoutDescriptor::cast_gc_safe(layout_desc);
@@ -5373,127 +5378,13 @@ Object* Map::GetBackPointer() {
 }
 
 
-bool Map::HasElementsTransition() {
-  return HasTransitionArray() && transitions()->HasElementsTransition();
+Map* Map::ElementsTransitionMap() {
+  return TransitionArray::SearchSpecial(
+      this, GetHeap()->elements_transition_symbol());
 }
 
 
-bool Map::HasTransitionArray() const {
-  Object* object = READ_FIELD(this, kTransitionsOffset);
-  return object->IsTransitionArray();
-}
-
-
-Map* Map::elements_transition_map() {
-  int index =
-      transitions()->SearchSpecial(GetHeap()->elements_transition_symbol());
-  return transitions()->GetTarget(index);
-}
-
-
-bool Map::CanHaveMoreTransitions() {
-  if (!HasTransitionArray()) return true;
-  return transitions()->number_of_transitions() <
-         TransitionArray::kMaxNumberOfTransitions;
-}
-
-
-Map* Map::GetTransition(int transition_index) {
-  return transitions()->GetTarget(transition_index);
-}
-
-
-int Map::SearchSpecialTransition(Symbol* name) {
-  if (HasTransitionArray()) {
-    return transitions()->SearchSpecial(name);
-  }
-  return TransitionArray::kNotFound;
-}
-
-
-int Map::SearchTransition(PropertyKind kind, Name* name,
-                          PropertyAttributes attributes) {
-  if (HasTransitionArray()) {
-    return transitions()->Search(kind, name, attributes);
-  }
-  return TransitionArray::kNotFound;
-}
-
-
-FixedArray* Map::GetPrototypeTransitions() {
-  if (!HasTransitionArray()) return GetHeap()->empty_fixed_array();
-  if (!transitions()->HasPrototypeTransitions()) {
-    return GetHeap()->empty_fixed_array();
-  }
-  return transitions()->GetPrototypeTransitions();
-}
-
-
-void Map::SetPrototypeTransitions(
-    Handle<Map> map, Handle<FixedArray> proto_transitions) {
-  EnsureHasTransitionArray(map);
-  int old_number_of_transitions = map->NumberOfProtoTransitions();
-  if (Heap::ShouldZapGarbage() && map->HasPrototypeTransitions()) {
-    DCHECK(map->GetPrototypeTransitions() != *proto_transitions);
-    map->ZapPrototypeTransitions();
-  }
-  map->transitions()->SetPrototypeTransitions(*proto_transitions);
-  map->SetNumberOfProtoTransitions(old_number_of_transitions);
-}
-
-
-bool Map::HasPrototypeTransitions() {
-  return HasTransitionArray() && transitions()->HasPrototypeTransitions();
-}
-
-
-TransitionArray* Map::transitions() const {
-  DCHECK(HasTransitionArray());
-  Object* object = READ_FIELD(this, kTransitionsOffset);
-  return TransitionArray::cast(object);
-}
-
-
-void Map::set_transitions(TransitionArray* transition_array,
-                          WriteBarrierMode mode) {
-  // Transition arrays are not shared. When one is replaced, it should not
-  // keep referenced objects alive, so we zap it.
-  // When there is another reference to the array somewhere (e.g. a handle),
-  // not zapping turns from a waste of memory into a source of crashes.
-  if (HasTransitionArray()) {
-#ifdef DEBUG
-    for (int i = 0; i < transitions()->number_of_transitions(); i++) {
-      Map* target = transitions()->GetTarget(i);
-      if (target->instance_descriptors() == instance_descriptors()) {
-        Name* key = transitions()->GetKey(i);
-        int new_target_index;
-        if (TransitionArray::IsSpecialTransition(key)) {
-          new_target_index = transition_array->SearchSpecial(Symbol::cast(key));
-        } else {
-          PropertyDetails details =
-              TransitionArray::GetTargetDetails(key, target);
-          new_target_index = transition_array->Search(details.kind(), key,
-                                                      details.attributes());
-        }
-        DCHECK_NE(TransitionArray::kNotFound, new_target_index);
-        DCHECK_EQ(target, transition_array->GetTarget(new_target_index));
-      }
-    }
-#endif
-    DCHECK(transitions() != transition_array);
-    ZapTransitions();
-  }
-
-  WRITE_FIELD(this, kTransitionsOffset, transition_array);
-  CONDITIONAL_WRITE_BARRIER(GetHeap(), this, kTransitionsOffset,
-                            transition_array, mode);
-}
-
-
-void Map::init_transitions(Object* undefined) {
-  DCHECK(undefined->IsUndefined());
-  WRITE_FIELD(this, kTransitionsOffset, undefined);
-}
+ACCESSORS(Map, raw_transitions, Object, kTransitionsOffset)
 
 
 void Map::SetBackPointer(Object* value, WriteBarrierMode mode) {
@@ -5512,6 +5403,7 @@ ACCESSORS(Map, weak_cell_cache, Object, kWeakCellCacheOffset)
 ACCESSORS(Map, constructor_or_backpointer, Object,
           kConstructorOrBackPointerOffset)
 
+
 Object* Map::GetConstructor() const {
   Object* maybe_constructor = constructor_or_backpointer();
   // Follow any back pointers.
@@ -5521,11 +5413,14 @@ Object* Map::GetConstructor() const {
   }
   return maybe_constructor;
 }
+
+
 void Map::SetConstructor(Object* constructor, WriteBarrierMode mode) {
   // Never overwrite a back pointer with a constructor.
   DCHECK(!constructor_or_backpointer()->IsMap());
   set_constructor_or_backpointer(constructor, mode);
 }
+
 
 ACCESSORS(JSFunction, shared, SharedFunctionInfo, kSharedFunctionInfoOffset)
 ACCESSORS(JSFunction, literals_or_bindings, FixedArray, kLiteralsOffset)
@@ -6283,20 +6178,6 @@ void JSBuiltinsObject::set_javascript_builtin(Builtins::JavaScript id,
   DCHECK(id < kJSBuiltinsCount);  // id is unsigned.
   WRITE_FIELD(this, OffsetOfFunctionWithId(id), value);
   WRITE_BARRIER(GetHeap(), this, OffsetOfFunctionWithId(id), value);
-}
-
-
-Code* JSBuiltinsObject::javascript_builtin_code(Builtins::JavaScript id) {
-  DCHECK(id < kJSBuiltinsCount);  // id is unsigned.
-  return Code::cast(READ_FIELD(this, OffsetOfCodeWithId(id)));
-}
-
-
-void JSBuiltinsObject::set_javascript_builtin_code(Builtins::JavaScript id,
-                                                   Code* value) {
-  DCHECK(id < kJSBuiltinsCount);  // id is unsigned.
-  WRITE_FIELD(this, OffsetOfCodeWithId(id), value);
-  DCHECK(!GetHeap()->InNewSpace(value));
 }
 
 
@@ -7117,9 +6998,7 @@ void Dictionary<Derived, Shape, Key>::SetEntry(int entry,
                                                Handle<Object> key,
                                                Handle<Object> value,
                                                PropertyDetails details) {
-  DCHECK(!key->IsName() ||
-         details.IsDeleted() ||
-         details.dictionary_index() > 0);
+  DCHECK(!key->IsName() || details.dictionary_index() > 0);
   int index = DerivedHashTable::EntryToIndex(entry);
   DisallowHeapAllocation no_gc;
   WriteBarrierMode mode = FixedArray::GetWriteBarrierMode(no_gc);

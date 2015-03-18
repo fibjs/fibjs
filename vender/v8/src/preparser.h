@@ -100,7 +100,6 @@ class ParserBase : public Traits {
     return allow_harmony_arrow_functions_;
   }
   bool allow_harmony_modules() const { return scanner()->HarmonyModules(); }
-  bool allow_harmony_scoping() const { return scanner()->HarmonyScoping(); }
   bool allow_harmony_numeric_literals() const {
     return scanner()->HarmonyNumericLiterals();
   }
@@ -129,9 +128,6 @@ class ParserBase : public Traits {
   }
   void set_allow_harmony_modules(bool allow) {
     scanner()->SetHarmonyModules(allow);
-  }
-  void set_allow_harmony_scoping(bool allow) {
-    scanner()->SetHarmonyScoping(allow);
   }
   void set_allow_harmony_numeric_literals(bool allow) {
     scanner()->SetHarmonyNumericLiterals(allow);
@@ -221,6 +217,13 @@ class ParserBase : public Traits {
     void AddProperty() { expected_property_count_++; }
     int expected_property_count() { return expected_property_count_; }
 
+    Scanner::Location super_call_location() const {
+      return super_call_location_;
+    }
+    void set_super_call_location(Scanner::Location location) {
+      super_call_location_ = location;
+    }
+
     bool is_generator() const { return IsGeneratorFunction(kind_); }
 
     FunctionKind kind() const { return kind_; }
@@ -250,6 +253,9 @@ class ParserBase : public Traits {
 
     // Properties count estimation.
     int expected_property_count_;
+
+    // Location of call to the "super" constructor (invalid if none).
+    Scanner::Location super_call_location_;
 
     FunctionKind kind_;
     // For generators, this variable may hold the generator object. It variable
@@ -317,10 +323,9 @@ class ParserBase : public Traits {
     DCHECK(scope_type != MODULE_SCOPE || allow_harmony_modules());
     DCHECK((scope_type == FUNCTION_SCOPE && IsValidFunctionKind(kind)) ||
            kind == kNormalFunction);
-    Scope* result =
-        new (zone()) Scope(zone(), parent, scope_type, ast_value_factory());
-    bool uninitialized_this = IsSubclassConstructor(kind);
-    result->Initialize(uninitialized_this);
+    Scope* result = new (zone())
+        Scope(zone(), parent, scope_type, ast_value_factory(), kind);
+    result->Initialize();
     return result;
   }
 
@@ -539,6 +544,7 @@ class ParserBase : public Traits {
   }
 
   void ReportUnexpectedToken(Token::Value token);
+  void ReportUnexpectedTokenAt(Scanner::Location location, Token::Value token);
 
   // Recursive descent functions:
 
@@ -1661,6 +1667,7 @@ ParserBase<Traits>::FunctionState::FunctionState(
     : next_materialized_literal_index_(0),
       next_handler_index_(0),
       expected_property_count_(0),
+      super_call_location_(Scanner::Location::invalid()),
       kind_(kind),
       generator_object_variable_(NULL),
       function_state_stack_(function_state_stack),
@@ -1682,7 +1689,13 @@ ParserBase<Traits>::FunctionState::~FunctionState() {
 
 template<class Traits>
 void ParserBase<Traits>::ReportUnexpectedToken(Token::Value token) {
-  Scanner::Location source_location = scanner()->location();
+  return ReportUnexpectedTokenAt(scanner_->location(), token);
+}
+
+
+template<class Traits>
+void ParserBase<Traits>::ReportUnexpectedTokenAt(
+    Scanner::Location source_location, Token::Value token) {
 
   // Four of the tokens are treated specially
   switch (token) {
@@ -2149,6 +2162,8 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralCheckerBase* checker,
                          : FunctionKind::kBaseConstructor;
     }
 
+    if (!in_class) kind = WithObjectLiteralBit(kind);
+
     value = this->ParseFunctionLiteral(
         name, scanner()->location(),
         false,  // reserved words are allowed here
@@ -2180,11 +2195,12 @@ ParserBase<Traits>::ParsePropertyDefinition(ObjectLiteralCheckerBase* checker,
                              CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
     }
 
+    FunctionKind kind = FunctionKind::kAccessorFunction;
+    if (!in_class) kind = WithObjectLiteralBit(kind);
     typename Traits::Type::FunctionLiteral value = this->ParseFunctionLiteral(
         name, scanner()->location(),
         false,  // reserved words are allowed here
-        FunctionKind::kAccessorFunction, RelocInfo::kNoPosition,
-        FunctionLiteral::ANONYMOUS_EXPRESSION,
+        kind, RelocInfo::kNoPosition, FunctionLiteral::ANONYMOUS_EXPRESSION,
         is_get ? FunctionLiteral::GETTER_ARITY : FunctionLiteral::SETTER_ARITY,
         CHECK_OK_CUSTOM(EmptyObjectLiteralProperty));
 
@@ -2308,13 +2324,17 @@ typename Traits::Type::ExpressionList ParserBase<Traits>::ParseArguments(
       *ok = false;
       return this->NullExpressionList();
     }
-    done = (peek() == Token::RPAREN);
+    done = (peek() != Token::COMMA);
     if (!done) {
-      // Need {} because of the CHECK_OK_CUSTOM macro.
-      Expect(Token::COMMA, CHECK_OK_CUSTOM(NullExpressionList));
+      Next();
     }
   }
-  Expect(Token::RPAREN, CHECK_OK_CUSTOM(NullExpressionList));
+  Scanner::Location location = scanner_->location();
+  if (Token::RPAREN != Next()) {
+    ReportMessageAt(location, "unterminated_arg_list");
+    *ok = false;
+    return this->NullExpressionList();
+  }
   return result;
 }
 
@@ -2644,23 +2664,6 @@ ParserBase<Traits>::ParseLeftHandSideExpression(bool* ok) {
         break;
       }
 
-      case Token::TEMPLATE_SPAN:
-      case Token::TEMPLATE_TAIL: {
-        int pos;
-        if (scanner()->current_token() == Token::IDENTIFIER) {
-          pos = position();
-        } else {
-          pos = peek_position();
-          if (result->IsFunctionLiteral() && mode() == PARSE_EAGERLY) {
-            // If the tag function looks like an IIFE, set_parenthesized() to
-            // force eager compilation.
-            result->AsFunctionLiteral()->set_parenthesized();
-          }
-        }
-        result = ParseTemplateLiteral(result, pos, CHECK_OK);
-        break;
-      }
-
       case Token::PERIOD: {
         Consume(Token::PERIOD);
         int pos = position();
@@ -2731,7 +2734,7 @@ typename ParserBase<Traits>::ExpressionT
 ParserBase<Traits>::ParseMemberExpression(bool* ok) {
   // MemberExpression ::
   //   (PrimaryExpression | FunctionLiteral | ClassLiteral)
-  //     ('[' Expression ']' | '.' Identifier | Arguments)*
+  //     ('[' Expression ']' | '.' Identifier | Arguments | TemplateLiteral)*
 
   // The '[' Expression ']' and '.' Identifier parts are parsed by
   // ParseMemberExpressionContinuation, and the Arguments part is parsed by the
@@ -2793,6 +2796,13 @@ ParserBase<Traits>::ParseSuperExpression(bool is_new, bool* ok) {
     // new super() is never allowed.
     // super() is only allowed in derived constructor
     if (!is_new && peek() == Token::LPAREN && IsSubclassConstructor(kind)) {
+      if (is_strong(language_mode()) &&
+          function_state->super_call_location().IsValid()) {
+        ReportMessageAt(scanner()->location(), "strong_super_call_duplicate");
+        *ok = false;
+        return this->EmptyExpression();
+      }
+      function_state->set_super_call_location(scanner()->location());
       return this->SuperReference(scope_, factory());
     }
   }
@@ -2808,7 +2818,7 @@ typename ParserBase<Traits>::ExpressionT
 ParserBase<Traits>::ParseMemberExpressionContinuation(ExpressionT expression,
                                                       bool* ok) {
   // Parses this part of MemberExpression:
-  // ('[' Expression ']' | '.' Identifier)*
+  // ('[' Expression ']' | '.' Identifier | TemplateLiteral)*
   while (true) {
     switch (peek()) {
       case Token::LBRACK: {
@@ -2833,6 +2843,22 @@ ParserBase<Traits>::ParseMemberExpressionContinuation(ExpressionT expression,
         }
         break;
       }
+      case Token::TEMPLATE_SPAN:
+      case Token::TEMPLATE_TAIL: {
+        int pos;
+        if (scanner()->current_token() == Token::IDENTIFIER) {
+          pos = position();
+        } else {
+          pos = peek_position();
+          if (expression->IsFunctionLiteral() && mode() == PARSE_EAGERLY) {
+            // If the tag function looks like an IIFE, set_parenthesized() to
+            // force eager compilation.
+            expression->AsFunctionLiteral()->set_parenthesized();
+          }
+        }
+        expression = ParseTemplateLiteral(expression, pos, CHECK_OK);
+        break;
+      }
       default:
         return expression;
     }
@@ -2847,12 +2873,22 @@ typename ParserBase<Traits>::ExpressionT
 ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
                                               ExpressionT params_ast,
                                               bool* ok) {
+  if (peek() == Token::ARROW && scanner_->HasAnyLineTerminatorBeforeNext()) {
+    // ASI inserts `;` after arrow parameters if a line terminator is found.
+    // `=> ...` is never a valid expression, so report as syntax error.
+    // If next token is not `=>`, it's a syntax error anyways.
+    ReportUnexpectedTokenAt(scanner_->peek_location(), Token::ARROW);
+    *ok = false;
+    return this->EmptyExpression();
+  }
+
   Scope* scope = this->NewScope(scope_, ARROW_SCOPE);
   typename Traits::Type::StatementList body;
   int num_parameters = -1;
   int materialized_literal_count = -1;
   int expected_property_count = -1;
   int handler_count = 0;
+  Scanner::Location super_loc;
 
   {
     typename Traits::Type::Factory function_factory(ast_value_factory());
@@ -2908,6 +2944,7 @@ ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
       expected_property_count = function_state.expected_property_count();
       handler_count = function_state.handler_count();
     }
+    super_loc = function_state.super_call_location();
 
     scope->set_start_position(start_pos);
     scope->set_end_position(scanner()->location().end_pos);
@@ -2925,10 +2962,8 @@ ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
     if (is_strict(language_mode())) {
       CheckStrictOctalLiteral(start_pos, scanner()->location().end_pos,
                               CHECK_OK);
-    }
-
-    if (allow_harmony_scoping() && is_strict(language_mode()))
       this->CheckConflictingVarDeclarations(scope, CHECK_OK);
+    }
   }
 
   FunctionLiteralT function_literal = factory()->NewFunctionLiteral(
@@ -2940,6 +2975,7 @@ ParserBase<Traits>::ParseArrowFunctionLiteral(int start_pos,
       start_pos);
 
   function_literal->set_function_token_position(start_pos);
+  if (super_loc.IsValid()) function_state_->set_super_call_location(super_loc);
 
   if (fni_ != NULL) this->InferFunctionName(fni_, function_literal);
 
@@ -3106,7 +3142,9 @@ void ParserBase<Traits>::ClassLiteralChecker::CheckProperty(
     }
   } else if (IsConstructor()) {
     if (is_generator || type == kAccessorProperty) {
-      this->parser()->ReportMessage("constructor_special_method");
+      const char* msg =
+          is_generator ? "constructor_is_generator" : "constructor_is_accessor";
+      this->parser()->ReportMessage(msg);
       *ok = false;
       return;
     }

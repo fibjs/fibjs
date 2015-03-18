@@ -23,6 +23,77 @@
 namespace v8 {
 namespace internal {
 
+ScriptData::ScriptData(const byte* data, int length)
+    : owns_data_(false), rejected_(false), data_(data), length_(length) {
+  if (!IsAligned(reinterpret_cast<intptr_t>(data), kPointerAlignment)) {
+    byte* copy = NewArray<byte>(length);
+    DCHECK(IsAligned(reinterpret_cast<intptr_t>(copy), kPointerAlignment));
+    CopyBytes(copy, data, length);
+    data_ = copy;
+    AcquireDataOwnership();
+  }
+}
+
+
+ParseInfo::ParseInfo(Zone* zone)
+    : zone_(zone),
+      flags_(0),
+      source_stream_(nullptr),
+      source_stream_encoding_(ScriptCompiler::StreamedSource::ONE_BYTE),
+      extension_(nullptr),
+      compile_options_(ScriptCompiler::kNoCompileOptions),
+      script_scope_(nullptr),
+      unicode_cache_(nullptr),
+      stack_limit_(0),
+      hash_seed_(0),
+      cached_data_(nullptr),
+      ast_value_factory_(nullptr),
+      literal_(nullptr),
+      scope_(nullptr) {}
+
+
+ParseInfo::ParseInfo(Zone* zone, Handle<JSFunction> function)
+    : ParseInfo(zone, Handle<SharedFunctionInfo>(function->shared())) {
+  set_closure(function);
+  set_context(Handle<Context>(function->context()));
+}
+
+
+ParseInfo::ParseInfo(Zone* zone, Handle<SharedFunctionInfo> shared)
+    : ParseInfo(zone) {
+  isolate_ = shared->GetIsolate();
+
+  set_lazy();
+  set_this_has_uses();
+  set_hash_seed(isolate_->heap()->HashSeed());
+  set_stack_limit(isolate_->stack_guard()->real_climit());
+  set_unicode_cache(isolate_->unicode_cache());
+  set_language_mode(shared->language_mode());
+  set_shared_info(shared);
+
+  Handle<Script> script(Script::cast(shared->script()));
+  set_script(script);
+  if (!script.is_null() && script->type()->value() == Script::TYPE_NATIVE) {
+    set_native();
+  }
+}
+
+
+ParseInfo::ParseInfo(Zone* zone, Handle<Script> script) : ParseInfo(zone) {
+  isolate_ = script->GetIsolate();
+
+  set_this_has_uses();
+  set_hash_seed(isolate_->heap()->HashSeed());
+  set_stack_limit(isolate_->stack_guard()->real_climit());
+  set_unicode_cache(isolate_->unicode_cache());
+  set_script(script);
+
+  if (script->type()->value() == Script::TYPE_NATIVE) {
+    set_native();
+  }
+}
+
+
 RegExpBuilder::RegExpBuilder(Zone* zone)
     : zone_(zone),
       pending_empty_(false),
@@ -251,7 +322,7 @@ int ParseData::FunctionsSize() {
 }
 
 
-void Parser::SetCachedData(CompilationInfo* info) {
+void Parser::SetCachedData(ParseInfo* info) {
   if (compile_options_ == ScriptCompiler::kNoCompileOptions) {
     cached_parse_data_ = NULL;
   } else {
@@ -779,12 +850,11 @@ ClassLiteral* ParserTraits::ParseClassLiteral(
 }
 
 
-Parser::Parser(CompilationInfo* info, uintptr_t stack_limit, uint32_t hash_seed,
-               UnicodeCache* unicode_cache)
-    : ParserBase<ParserTraits>(info->zone(), &scanner_, stack_limit,
+Parser::Parser(ParseInfo* info)
+    : ParserBase<ParserTraits>(info->zone(), &scanner_, info->stack_limit(),
                                info->extension(), info->ast_value_factory(),
                                NULL, this),
-      scanner_(unicode_cache),
+      scanner_(info->unicode_cache()),
       reusable_preparser_(NULL),
       original_scope_(NULL),
       target_stack_(NULL),
@@ -794,13 +864,12 @@ Parser::Parser(CompilationInfo* info, uintptr_t stack_limit, uint32_t hash_seed,
       total_preparse_skipped_(0),
       pre_parse_timer_(NULL),
       parsing_on_main_thread_(true) {
-  // Even though we were passed CompilationInfo, we should not store it in
+  // Even though we were passed ParseInfo, we should not store it in
   // Parser - this makes sure that Isolate is not accidentally accessed via
-  // CompilationInfo during background parsing.
+  // ParseInfo during background parsing.
   DCHECK(!info->script().is_null() || info->source_stream() != NULL);
-  set_allow_lazy(false);  // Must be explicitly enabled.
+  set_allow_lazy(info->allow_lazy_parsing());
   set_allow_natives(FLAG_allow_natives_syntax || info->is_native());
-  set_allow_harmony_scoping(!info->is_native() && FLAG_harmony_scoping);
   set_allow_harmony_modules(!info->is_native() && FLAG_harmony_modules);
   set_allow_harmony_arrow_functions(FLAG_harmony_arrow_functions);
   set_allow_harmony_numeric_literals(FLAG_harmony_numeric_literals);
@@ -819,13 +888,14 @@ Parser::Parser(CompilationInfo* info, uintptr_t stack_limit, uint32_t hash_seed,
   }
   if (info->ast_value_factory() == NULL) {
     // info takes ownership of AstValueFactory.
-    info->SetAstValueFactory(new AstValueFactory(zone(), hash_seed));
+    info->set_ast_value_factory(new AstValueFactory(zone(), info->hash_seed()));
+    info->set_ast_value_factory_owned();
     ast_value_factory_ = info->ast_value_factory();
   }
 }
 
 
-FunctionLiteral* Parser::ParseProgram(Isolate* isolate, CompilationInfo* info) {
+FunctionLiteral* Parser::ParseProgram(Isolate* isolate, ParseInfo* info) {
   // TODO(bmeurer): We temporarily need to pass allow_nesting = true here,
   // see comment for HistogramTimerScope class.
 
@@ -896,18 +966,18 @@ FunctionLiteral* Parser::ParseProgram(Isolate* isolate, CompilationInfo* info) {
 }
 
 
-FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info, Scope** scope,
+FunctionLiteral* Parser::DoParseProgram(ParseInfo* info, Scope** scope,
                                         Scope** eval_scope) {
   // Note that this function can be called from the main thread or from a
   // background thread. We should not access anything Isolate / heap dependent
-  // via CompilationInfo, and also not pass it forward.
+  // via ParseInfo, and also not pass it forward.
   DCHECK(scope_ == NULL);
   DCHECK(target_stack_ == NULL);
 
   FunctionLiteral* result = NULL;
   {
     *scope = NewScope(scope_, SCRIPT_SCOPE);
-    info->SetScriptScope(*scope);
+    info->set_script_scope(*scope);
     if (!info->context().is_null() && !info->context()->IsNativeContext()) {
       *scope = Scope::DeserializeScopeChain(info->isolate(), zone(),
                                             *info->context(), *scope);
@@ -923,8 +993,6 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info, Scope** scope,
       if (!(*scope)->is_script_scope() || is_strict(info->language_mode())) {
         *scope = NewScope(*scope, EVAL_SCOPE);
       }
-    } else if (info->is_global()) {
-      *scope = NewScope(*scope, SCRIPT_SCOPE);
     } else if (info->is_module()) {
       *scope = NewScope(*scope, MODULE_SCOPE);
     }
@@ -957,9 +1025,6 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info, Scope** scope,
 
     if (ok && is_strict(language_mode())) {
       CheckStrictOctalLiteral(beg_pos, scanner()->location().end_pos, &ok);
-    }
-
-    if (ok && allow_harmony_scoping() && is_strict(language_mode())) {
       CheckConflictingVarDeclarations(scope_, &ok);
     }
 
@@ -992,7 +1057,7 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info, Scope** scope,
 }
 
 
-FunctionLiteral* Parser::ParseLazy(Isolate* isolate, CompilationInfo* info) {
+FunctionLiteral* Parser::ParseLazy(Isolate* isolate, ParseInfo* info) {
   // It's OK to use the Isolate & counters here, since this function is only
   // called in the main thread.
   DCHECK(parsing_on_main_thread_);
@@ -1030,7 +1095,7 @@ FunctionLiteral* Parser::ParseLazy(Isolate* isolate, CompilationInfo* info) {
 }
 
 
-FunctionLiteral* Parser::ParseLazy(Isolate* isolate, CompilationInfo* info,
+FunctionLiteral* Parser::ParseLazy(Isolate* isolate, ParseInfo* info,
                                    Utf16CharacterStream* source) {
   Handle<SharedFunctionInfo> shared_info = info->shared_info();
   scanner_.Initialize(source);
@@ -1051,7 +1116,7 @@ FunctionLiteral* Parser::ParseLazy(Isolate* isolate, CompilationInfo* info,
   {
     // Parse the function literal.
     Scope* scope = NewScope(scope_, SCRIPT_SCOPE);
-    info->SetScriptScope(scope);
+    info->set_script_scope(scope);
     if (!info->closure().is_null()) {
       // Ok to use Isolate here, since lazy function parsing is only done in the
       // main thread.
@@ -1127,8 +1192,27 @@ void* Parser::ParseStatementList(ZoneList<Statement*>* body, int end_token,
       directive_prologue = false;
     }
 
+    Token::Value token = peek();
     Scanner::Location token_loc = scanner()->peek_location();
+    Scanner::Location old_super_loc = function_state_->super_call_location();
     Statement* stat = ParseStatementListItem(CHECK_OK);
+    Scanner::Location super_loc = function_state_->super_call_location();
+
+    if (is_strong(language_mode()) &&
+        i::IsConstructor(function_state_->kind()) &&
+        !old_super_loc.IsValid() && super_loc.IsValid() &&
+        token != Token::SUPER) {
+      // TODO(rossberg): This is more permissive than spec'ed, it allows e.g.
+      //   super(), 1;
+      //   super() + "";
+      //   super() = 0;
+      // That should still be safe, though, thanks to left-to-right evaluation.
+      // The proper check would be difficult to implement in the preparser.
+      ReportMessageAt(super_loc, "strong_super_call_nested");
+      *ok = false;
+      return NULL;
+    }
+
     if (stat == NULL || stat->IsEmpty()) {
       directive_prologue = false;   // End of directive prologue.
       continue;
@@ -1221,7 +1305,6 @@ Statement* Parser::ParseStatementListItem(bool* ok) {
     case Token::VAR:
       return ParseVariableStatement(kStatementListItem, NULL, ok);
     case Token::LET:
-      DCHECK(allow_harmony_scoping());
       if (is_strict(language_mode())) {
         return ParseVariableStatement(kStatementListItem, NULL, ok);
       }
@@ -1842,7 +1925,7 @@ Variable* Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
       // because the var declaration is hoisted to the function scope where 'x'
       // is already bound.
       DCHECK(IsDeclaredVariableMode(var->mode()));
-      if (allow_harmony_scoping() && is_strict(language_mode())) {
+      if (is_strict(language_mode())) {
         // In harmony we treat re-declarations as early errors. See
         // ES5 16 for a definition of early errors.
         ParserTraits::ReportMessage("var_redeclaration", name);
@@ -1993,12 +2076,13 @@ Statement* Parser::ParseFunctionDeclaration(
   // In ES6, a function behaves as a lexical binding, except in
   // a script scope, or the initial scope of eval or another function.
   VariableMode mode =
-      is_strong(language_mode()) ? CONST :
-      allow_harmony_scoping() && is_strict(language_mode()) &&
-              !(scope_->is_script_scope() || scope_->is_eval_scope() ||
-                scope_->is_function_scope())
-          ? LET
-          : VAR;
+      is_strong(language_mode())
+          ? CONST
+          : is_strict(language_mode()) &&
+                    !(scope_->is_script_scope() || scope_->is_eval_scope() ||
+                      scope_->is_function_scope())
+                ? LET
+                : VAR;
   VariableProxy* proxy = NewUnresolved(name, mode);
   Declaration* declaration =
       factory()->NewFunctionDeclaration(proxy, mode, fun, scope_, pos);
@@ -2055,7 +2139,7 @@ Statement* Parser::ParseClassDeclaration(ZoneList<const AstRawString*>* names,
 
 
 Block* Parser::ParseBlock(ZoneList<const AstRawString*>* labels, bool* ok) {
-  if (allow_harmony_scoping() && is_strict(language_mode())) {
+  if (is_strict(language_mode())) {
     return ParseScopedBlock(labels, ok);
   }
 
@@ -2177,19 +2261,12 @@ Block* Parser::ParseVariableDeclarations(
       init_op = Token::INIT_CONST_LEGACY;
     } else {
       DCHECK(var_context != kStatement);
-      // In ES5 const is not allowed in strict mode.
-      if (!allow_harmony_scoping()) {
-        ReportMessage("strict_const");
-        *ok = false;
-        return NULL;
-      }
       mode = CONST;
       init_op = Token::INIT_CONST;
     }
     is_const = true;
     needs_init = true;
   } else if (peek() == Token::LET && is_strict(language_mode())) {
-    DCHECK(allow_harmony_scoping());
     Consume(Token::LET);
     DCHECK(var_context != kStatement);
     mode = LET;
@@ -2700,8 +2777,8 @@ Statement* Parser::ParseWithStatement(ZoneList<const AstRawString*>* labels,
 
 CaseClause* Parser::ParseCaseClause(bool* default_seen_ptr, bool* ok) {
   // CaseClause ::
-  //   'case' Expression ':' Statement*
-  //   'default' ':' Statement*
+  //   'case' Expression ':' StatementList
+  //   'default' ':' StatementList
 
   Expression* label = NULL;  // NULL expression indicates default case
   if (peek() == Token::CASE) {
@@ -2723,7 +2800,7 @@ CaseClause* Parser::ParseCaseClause(bool* default_seen_ptr, bool* ok) {
   while (peek() != Token::CASE &&
          peek() != Token::DEFAULT &&
          peek() != Token::RBRACE) {
-    Statement* stat = ParseStatement(NULL, CHECK_OK);
+    Statement* stat = ParseStatementListItem(CHECK_OK);
     statements->Add(stat, zone());
   }
 
@@ -3664,13 +3741,12 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
   //   nested function, and hoisting works normally relative to that.
   Scope* declaration_scope = scope_->DeclarationScope();
   Scope* original_declaration_scope = original_scope_->DeclarationScope();
-  Scope* scope =
-      function_type == FunctionLiteral::DECLARATION &&
-              (!allow_harmony_scoping() || is_sloppy(language_mode())) &&
-              (original_scope_ == original_declaration_scope ||
-               declaration_scope != original_declaration_scope)
-          ? NewScope(declaration_scope, FUNCTION_SCOPE, kind)
-          : NewScope(scope_, FUNCTION_SCOPE, kind);
+  Scope* scope = function_type == FunctionLiteral::DECLARATION &&
+                         is_sloppy(language_mode()) &&
+                         (original_scope_ == original_declaration_scope ||
+                          declaration_scope != original_declaration_scope)
+                     ? NewScope(declaration_scope, FUNCTION_SCOPE, kind)
+                     : NewScope(scope_, FUNCTION_SCOPE, kind);
   ZoneList<Statement*>* body = NULL;
   int materialized_literal_count = -1;
   int expected_property_count = -1;
@@ -3778,12 +3854,11 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
     Variable* fvar = NULL;
     Token::Value fvar_init_op = Token::INIT_CONST_LEGACY;
     if (function_type == FunctionLiteral::NAMED_EXPRESSION) {
-      if (allow_harmony_scoping() && is_strict(language_mode())) {
+      if (is_strict(language_mode())) {
         fvar_init_op = Token::INIT_CONST;
       }
       VariableMode fvar_mode =
-          allow_harmony_scoping() && is_strict(language_mode()) ? CONST
-                                                                : CONST_LEGACY;
+          is_strict(language_mode()) ? CONST : CONST_LEGACY;
       DCHECK(function_name != NULL);
       fvar = new (zone())
           Variable(scope_, function_name, fvar_mode, true /* is valid LHS */,
@@ -3857,8 +3932,16 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
       CheckStrictOctalLiteral(scope->start_position(), scope->end_position(),
                               CHECK_OK);
     }
-    if (allow_harmony_scoping() && is_strict(language_mode())) {
+    if (is_strict(language_mode())) {
       CheckConflictingVarDeclarations(scope, CHECK_OK);
+    }
+    if (is_strong(language_mode()) && IsSubclassConstructor(kind)) {
+      if (!function_state.super_call_location().IsValid()) {
+        ReportMessageAt(function_name_location, "strong_super_call_missing",
+                        kReferenceError);
+        *ok = false;
+        return nullptr;
+      }
     }
   }
 
@@ -4057,7 +4140,6 @@ PreParser::PreParseResult Parser::ParseLazyFunctionBodyWithPreParser(
                                         NULL, stack_limit_);
     reusable_preparser_->set_allow_lazy(true);
     reusable_preparser_->set_allow_natives(allow_natives());
-    reusable_preparser_->set_allow_harmony_scoping(allow_harmony_scoping());
     reusable_preparser_->set_allow_harmony_modules(allow_harmony_modules());
     reusable_preparser_->set_allow_harmony_arrow_functions(
         allow_harmony_arrow_functions());
@@ -4100,7 +4182,11 @@ ClassLiteral* Parser::ParseClassLiteral(const AstRawString* name,
     return NULL;
   }
 
+  // Create a block scope which is additionally tagged as class scope; this is
+  // important for resolving variable references to the class name in the strong
+  // mode.
   Scope* block_scope = NewScope(scope_, BLOCK_SCOPE);
+  block_scope->tag_as_class_scope();
   BlockState block_state(&scope_, block_scope);
   scope_->SetLanguageMode(
       static_cast<LanguageMode>(scope_->language_mode() | STRICT_BIT));
@@ -4164,12 +4250,14 @@ ClassLiteral* Parser::ParseClassLiteral(const AstRawString* name,
   }
 
   block_scope->set_end_position(end_pos);
-  block_scope = block_scope->FinalizeBlockScope();
 
   if (name != NULL) {
     DCHECK_NOT_NULL(proxy);
-    DCHECK_NOT_NULL(block_scope);
     proxy->var()->set_initializer_position(end_pos);
+  } else {
+    // Unnamed classes should not have scopes (the scope will be empty).
+    DCHECK_EQ(block_scope->num_var_or_const(), 0);
+    block_scope = nullptr;
   }
 
   return factory()->NewClassLiteral(name, block_scope, proxy, extends,
@@ -5247,20 +5335,17 @@ bool RegExpParser::ParseRegExp(Isolate* isolate, Zone* zone,
 }
 
 
-bool Parser::ParseStatic(CompilationInfo* info, bool allow_lazy) {
-  Parser parser(info, info->isolate()->stack_guard()->real_climit(),
-                info->isolate()->heap()->HashSeed(),
-                info->isolate()->unicode_cache());
-  parser.set_allow_lazy(allow_lazy);
+bool Parser::ParseStatic(ParseInfo* info) {
+  Parser parser(info);
   if (parser.Parse(info)) {
-    info->SetLanguageMode(info->function()->language_mode());
+    info->set_language_mode(info->function()->language_mode());
     return true;
   }
   return false;
 }
 
 
-bool Parser::Parse(CompilationInfo* info) {
+bool Parser::Parse(ParseInfo* info) {
   DCHECK(info->function() == NULL);
   FunctionLiteral* result = NULL;
   // Ok to use Isolate here; this function is only called in the main thread.
@@ -5285,7 +5370,7 @@ bool Parser::Parse(CompilationInfo* info) {
     SetCachedData(info);
     result = ParseProgram(isolate, info);
   }
-  info->SetFunction(result);
+  info->set_literal(result);
 
   Internalize(isolate, info->script(), result == NULL);
   DCHECK(ast_value_factory()->IsInternalized());
@@ -5293,7 +5378,7 @@ bool Parser::Parse(CompilationInfo* info) {
 }
 
 
-void Parser::ParseOnBackground(CompilationInfo* info) {
+void Parser::ParseOnBackground(ParseInfo* info) {
   parsing_on_main_thread_ = false;
 
   DCHECK(info->function() == NULL);
@@ -5324,7 +5409,7 @@ void Parser::ParseOnBackground(CompilationInfo* info) {
     eval_scope->set_end_position(scanner()->location().end_pos);
   }
 
-  info->SetFunction(result);
+  info->set_literal(result);
 
   // We cannot internalize on a background thread; a foreground task will take
   // care of calling Parser::Internalize just before compilation.

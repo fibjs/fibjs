@@ -452,6 +452,13 @@ enum VisitMode {
 enum NativesFlag { NOT_NATIVES_CODE, NATIVES_CODE };
 
 
+// ParseRestriction is used to restrict the set of valid statements in a
+// unit of compilation.  Restriction violations cause a syntax error.
+enum ParseRestriction {
+  NO_PARSE_RESTRICTION,         // All expressions are allowed.
+  ONLY_SINGLE_FUNCTION_LITERAL  // Only a single FunctionLiteral expression.
+};
+
 // A CodeDesc describes a buffer holding instructions and relocation
 // information. The instructions start at the beginning of the buffer
 // and grow forward, the relocation information starts at the end of
@@ -833,8 +840,13 @@ enum FunctionKind {
   kDefaultConstructor = 1 << 4,
   kSubclassConstructor = 1 << 5,
   kBaseConstructor = 1 << 6,
+  kInObjectLiteral = 1 << 7,
   kDefaultBaseConstructor = kDefaultConstructor | kBaseConstructor,
-  kDefaultSubclassConstructor = kDefaultConstructor | kSubclassConstructor
+  kDefaultSubclassConstructor = kDefaultConstructor | kSubclassConstructor,
+  kConciseMethodInObjectLiteral = kConciseMethod | kInObjectLiteral,
+  kConciseGeneratorMethodInObjectLiteral =
+      kConciseGeneratorMethod | kInObjectLiteral,
+  kAccessorFunctionInObjectLiteral = kAccessorFunction | kInObjectLiteral,
 };
 
 
@@ -848,7 +860,10 @@ inline bool IsValidFunctionKind(FunctionKind kind) {
          kind == FunctionKind::kDefaultBaseConstructor ||
          kind == FunctionKind::kDefaultSubclassConstructor ||
          kind == FunctionKind::kBaseConstructor ||
-         kind == FunctionKind::kSubclassConstructor;
+         kind == FunctionKind::kSubclassConstructor ||
+         kind == FunctionKind::kConciseMethodInObjectLiteral ||
+         kind == FunctionKind::kConciseGeneratorMethodInObjectLiteral ||
+         kind == FunctionKind::kAccessorFunctionInObjectLiteral;
 }
 
 
@@ -899,6 +914,19 @@ inline bool IsConstructor(FunctionKind kind) {
   return kind &
          (FunctionKind::kBaseConstructor | FunctionKind::kSubclassConstructor |
           FunctionKind::kDefaultConstructor);
+}
+
+
+inline bool IsInObjectLiteral(FunctionKind kind) {
+  DCHECK(IsValidFunctionKind(kind));
+  return kind & FunctionKind::kInObjectLiteral;
+}
+
+
+inline FunctionKind WithObjectLiteralBit(FunctionKind kind) {
+  kind = static_cast<FunctionKind>(kind | FunctionKind::kInObjectLiteral);
+  DCHECK(IsValidFunctionKind(kind));
+  return kind;
 }
 } }  // namespace v8::internal
 

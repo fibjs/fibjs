@@ -866,8 +866,8 @@ void LCodeGen::DeoptimizeIf(Condition cc, LInstruction* instr,
     __ bind(&done);
   }
 
-  Deoptimizer::DeoptInfo deopt_info(instr->hydrogen_value()->position(),
-                                    instr->Mnemonic(), deopt_reason);
+  Deoptimizer::DeoptInfo deopt_info = MakeDeoptInfo(instr, deopt_reason);
+
   DCHECK(info()->IsStub() || frame_is_built_);
   if (cc == no_condition && frame_is_built_) {
     DeoptComment(deopt_info);
@@ -3702,7 +3702,7 @@ void LCodeGen::DoMathFloor(LMathFloor* instr) {
       DeoptimizeIf(not_zero, instr, Deoptimizer::kMinusZero);
       __ bind(&non_zero);
     }
-    __ roundsd(xmm_scratch, input_reg, Assembler::kRoundDown);
+    __ roundsd(xmm_scratch, input_reg, kRoundDown);
     __ cvttsd2si(output_reg, Operand(xmm_scratch));
     // Overflow is signalled with minint.
     __ cmp(output_reg, 0x1);

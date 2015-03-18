@@ -1874,7 +1874,7 @@ class HGraphBuilder {
   }
 
   void EnterInlinedSource(int start_position, int id) {
-    if (FLAG_hydrogen_track_positions) {
+    if (top_info()->is_tracking_positions()) {
       start_position_ = start_position;
       position_.set_inlining_id(id);
     }
@@ -2118,14 +2118,8 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   DEFINE_AST_VISITOR_SUBCLASS_MEMBERS();
 
  protected:
-  // Type of a member function that generates inline code for a native function.
-  typedef void (HOptimizedGraphBuilder::*InlineFunctionGenerator)
-      (CallRuntime* call);
-
   // Forward declarations for inner scope classes.
   class SubgraphScope;
-
-  static const InlineFunctionGenerator kInlineFunctionGenerators[];
 
   static const int kMaxCallPolymorphism = 4;
   static const int kMaxLoadPolymorphism = 4;
@@ -2168,13 +2162,80 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     return function_state()->compilation_info()->language_mode();
   }
 
-  // Generators for inline runtime functions.
-#define INLINE_FUNCTION_GENERATOR_DECLARATION(Name, argc, ressize)      \
-  void Generate##Name(CallRuntime* call);
+#define FOR_EACH_HYDROGEN_INTRINSIC(F) \
+  F(IsSmi)                             \
+  F(IsArray)                           \
+  F(IsRegExp)                          \
+  F(IsJSProxy)                         \
+  F(IsConstructCall)                   \
+  F(CallFunction)                      \
+  F(ArgumentsLength)                   \
+  F(Arguments)                         \
+  F(ValueOf)                           \
+  F(SetValueOf)                        \
+  F(DateField)                         \
+  F(StringCharFromCode)                \
+  F(StringCharAt)                      \
+  F(OneByteSeqStringSetChar)           \
+  F(TwoByteSeqStringSetChar)           \
+  F(ObjectEquals)                      \
+  F(IsObject)                          \
+  F(IsFunction)                        \
+  F(IsUndetectableObject)              \
+  F(IsSpecObject)                      \
+  F(MathPow)                           \
+  F(IsMinusZero)                       \
+  F(HasCachedArrayIndex)               \
+  F(GetCachedArrayIndex)               \
+  F(FastOneByteArrayJoin)              \
+  F(DebugBreakInOptimizedCode)         \
+  F(StringCharCodeAt)                  \
+  F(StringAdd)                         \
+  F(SubString)                         \
+  F(StringCompare)                     \
+  F(RegExpExec)                        \
+  F(RegExpConstructResult)             \
+  F(GetFromCache)                      \
+  F(NumberToString)                    \
+  F(DebugIsActive)                     \
+  /* Typed Arrays */                   \
+  F(TypedArrayInitialize)              \
+  F(DataViewInitialize)                \
+  F(MaxSmi)                            \
+  F(TypedArrayMaxSizeInHeap)           \
+  F(ArrayBufferViewGetByteLength)      \
+  F(ArrayBufferViewGetByteOffset)      \
+  F(TypedArrayGetLength)               \
+  /* ArrayBuffer */                    \
+  F(ArrayBufferGetByteLength)          \
+  /* Maths */                          \
+  F(ConstructDouble)                   \
+  F(DoubleHi)                          \
+  F(DoubleLo)                          \
+  F(MathFloor)                         \
+  F(MathSqrt)                          \
+  F(MathLogRT)                         \
+  /* ES6 Collections */                \
+  F(MapClear)                          \
+  F(MapDelete)                         \
+  F(MapGet)                            \
+  F(MapGetSize)                        \
+  F(MapHas)                            \
+  F(MapInitialize)                     \
+  F(MapSet)                            \
+  F(SetAdd)                            \
+  F(SetClear)                          \
+  F(SetDelete)                         \
+  F(SetGetSize)                        \
+  F(SetHas)                            \
+  F(SetInitialize)                     \
+  /* Arrays */                         \
+  F(HasFastPackedElements)             \
+  F(GetPrototype)
 
-  INLINE_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_DECLARATION)
-  INLINE_OPTIMIZED_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_DECLARATION)
-#undef INLINE_FUNCTION_GENERATOR_DECLARATION
+#define GENERATOR_DECLARATION(Name) void Generate##Name(CallRuntime* call);
+  FOR_EACH_HYDROGEN_INTRINSIC(GENERATOR_DECLARATION)
+#undef GENERATOR_DECLARATION
 
   void VisitDelete(UnaryOperation* expr);
   void VisitVoid(UnaryOperation* expr);
@@ -2553,10 +2614,11 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
       number_ = number;
     }
     void LookupTransition(Map* map, Name* name, PropertyAttributes attributes) {
-      int transition_index = map->SearchTransition(kData, name, attributes);
-      if (transition_index == TransitionArray::kNotFound) return NotFound();
+      Map* target =
+          TransitionArray::SearchTransition(map, kData, name, attributes);
+      if (target == NULL) return NotFound();
       lookup_type_ = TRANSITION_TYPE;
-      transition_ = handle(map->GetTransition(transition_index));
+      transition_ = handle(target);
       number_ = transition_->LastAdded();
       details_ = transition_->instance_descriptors()->GetDetails(number_);
     }
@@ -2580,6 +2642,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     void LoadFieldMaps(Handle<Map> map);
     bool LookupDescriptor();
     bool LookupInPrototypes();
+    bool IsIntegerIndexedExotic();
     bool IsCompatible(PropertyAccessInfo* other);
 
     void GeneralizeRepresentation(Representation r) {

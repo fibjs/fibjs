@@ -466,6 +466,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kSSEFloat64Div:
       __ divsd(i.InputDoubleRegister(0), i.InputOperand(1));
       break;
+    case kSSEFloat64Max:
+      __ maxsd(i.InputDoubleRegister(0), i.InputOperand(1));
+      break;
+    case kSSEFloat64Min:
+      __ minsd(i.InputDoubleRegister(0), i.InputOperand(1));
+      break;
     case kSSEFloat64Mod: {
       // TODO(dcarney): alignment is wrong.
       __ sub(esp, Immediate(kDoubleSize));
@@ -494,22 +500,11 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kSSEFloat64Sqrt:
       __ sqrtsd(i.OutputDoubleRegister(), i.InputOperand(0));
       break;
-    case kSSEFloat64Floor: {
+    case kSSEFloat64Round: {
       CpuFeatureScope sse_scope(masm(), SSE4_1);
-      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
-                 v8::internal::Assembler::kRoundDown);
-      break;
-    }
-    case kSSEFloat64Ceil: {
-      CpuFeatureScope sse_scope(masm(), SSE4_1);
-      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
-                 v8::internal::Assembler::kRoundUp);
-      break;
-    }
-    case kSSEFloat64RoundTruncate: {
-      CpuFeatureScope sse_scope(masm(), SSE4_1);
-      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
-                 v8::internal::Assembler::kRoundToZero);
+      RoundingMode const mode =
+          static_cast<RoundingMode>(MiscField::decode(instr->opcode()));
+      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0), mode);
       break;
     }
     case kSSECvtss2sd:
@@ -579,6 +574,18 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kAVXFloat64Div: {
       CpuFeatureScope avx_scope(masm(), AVX);
       __ vdivsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+                i.InputOperand(1));
+      break;
+    }
+    case kAVXFloat64Max: {
+      CpuFeatureScope avx_scope(masm(), AVX);
+      __ vmaxsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+                i.InputOperand(1));
+      break;
+    }
+    case kAVXFloat64Min: {
+      CpuFeatureScope avx_scope(masm(), AVX);
+      __ vminsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
                 i.InputOperand(1));
       break;
     }
@@ -734,6 +741,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kCheckedStoreFloat64:
       ASSEMBLE_CHECKED_STORE_FLOAT(movsd);
       break;
+    case kIA32StackCheck: {
+      ExternalReference const stack_limit =
+          ExternalReference::address_of_stack_limit(isolate());
+      __ cmp(esp, Operand::StaticVariable(stack_limit));
+      break;
+    }
   }
 }
 

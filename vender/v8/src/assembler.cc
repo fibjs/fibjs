@@ -292,11 +292,6 @@ int Label::pos() const {
 //               (Bits 6..31 of pc delta, with leading zeroes
 //                dropped, and last non-zero chunk tagged with 1.)
 
-
-#ifdef DEBUG
-const int kMaxStandardNonCompactModes = 14;
-#endif
-
 const int kTagBits = 2;
 const int kTagMask = (1 << kTagBits) - 1;
 const int kExtraTagBits = 4;
@@ -452,8 +447,6 @@ void RelocInfoWriter::Write(const RelocInfo* rinfo) {
 #endif
   DCHECK(rinfo->rmode() < RelocInfo::NUMBER_OF_MODES);
   DCHECK(rinfo->pc() - last_pc_ >= 0);
-  DCHECK(RelocInfo::LAST_STANDARD_NONCOMPACT_ENUM - RelocInfo::LAST_COMPACT_ENUM
-         <= kMaxStandardNonCompactModes);
   // Use unsigned delta-encoding for pc.
   uint32_t pc_delta = static_cast<uint32_t>(rinfo->pc() - last_pc_);
 
@@ -511,10 +504,14 @@ void RelocInfoWriter::Write(const RelocInfo* rinfo) {
                                                              : kVeneerPoolTag);
   } else {
     DCHECK(rmode > RelocInfo::LAST_COMPACT_ENUM);
-    int saved_mode = rmode - RelocInfo::LAST_COMPACT_ENUM;
+    DCHECK(rmode <= RelocInfo::LAST_STANDARD_NONCOMPACT_ENUM);
+    STATIC_ASSERT(RelocInfo::LAST_STANDARD_NONCOMPACT_ENUM -
+                      RelocInfo::LAST_COMPACT_ENUM <=
+                  kPoolExtraTag);
+    int saved_mode = rmode - RelocInfo::LAST_COMPACT_ENUM - 1;
     // For all other modes we simply use the mode as the extra tag.
     // None of these modes need a data component.
-    DCHECK(saved_mode < kPoolExtraTag);
+    DCHECK(0 <= saved_mode && saved_mode < kPoolExtraTag);
     WriteExtraTaggedPC(pc_delta, saved_mode);
   }
   last_pc_ = rinfo->pc();
@@ -721,7 +718,7 @@ void RelocIterator::next() {
         Advance(kIntSize);
       } else {
         AdvanceReadPC();
-        int rmode = extra_tag + RelocInfo::LAST_COMPACT_ENUM;
+        int rmode = extra_tag + RelocInfo::LAST_COMPACT_ENUM + 1;
         if (SetMode(static_cast<RelocInfo::Mode>(rmode))) return;
       }
     }
@@ -832,6 +829,8 @@ const char* RelocInfo::RelocModeName(RelocInfo::Mode rmode) {
       return "external reference";
     case RelocInfo::INTERNAL_REFERENCE:
       return "internal reference";
+    case RelocInfo::INTERNAL_REFERENCE_ENCODED:
+      return "encoded internal reference";
     case RelocInfo::DEOPT_REASON:
       return "deopt reason";
     case RelocInfo::CONST_POOL:
@@ -861,7 +860,8 @@ void RelocInfo::Print(Isolate* isolate, std::ostream& os) {  // NOLINT
     os << "  (" << Brief(target_object()) << ")";
   } else if (rmode_ == EXTERNAL_REFERENCE) {
     ExternalReferenceEncoder ref_encoder(isolate);
-    os << " (" << ref_encoder.NameOfAddress(target_external_reference())
+    os << " ("
+       << ref_encoder.NameOfAddress(isolate, target_external_reference())
        << ")  (" << static_cast<const void*>(target_external_reference())
        << ")";
   } else if (IsCodeTarget(rmode_)) {
@@ -918,6 +918,7 @@ void RelocInfo::Verify(Isolate* isolate) {
     case STATEMENT_POSITION:
     case EXTERNAL_REFERENCE:
     case INTERNAL_REFERENCE:
+    case INTERNAL_REFERENCE_ENCODED:
     case DEOPT_REASON:
     case CONST_POOL:
     case VENEER_POOL:
@@ -1263,18 +1264,6 @@ ExternalReference ExternalReference::scheduled_exception_address(
 ExternalReference ExternalReference::address_of_pending_message_obj(
     Isolate* isolate) {
   return ExternalReference(isolate->pending_message_obj_address());
-}
-
-
-ExternalReference ExternalReference::address_of_has_pending_message(
-    Isolate* isolate) {
-  return ExternalReference(isolate->has_pending_message_address());
-}
-
-
-ExternalReference ExternalReference::address_of_pending_message_script(
-    Isolate* isolate) {
-  return ExternalReference(isolate->pending_message_script_address());
 }
 
 

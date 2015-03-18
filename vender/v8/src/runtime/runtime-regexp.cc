@@ -759,7 +759,7 @@ RUNTIME_FUNCTION(Runtime_StringSplit) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_RegExpExecRT) {
+RUNTIME_FUNCTION(Runtime_RegExpExec) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 4);
   CONVERT_ARG_HANDLE_CHECKED(JSRegExp, regexp, 0);
@@ -779,7 +779,7 @@ RUNTIME_FUNCTION(Runtime_RegExpExecRT) {
 }
 
 
-RUNTIME_FUNCTION(Runtime_RegExpConstructResult) {
+RUNTIME_FUNCTION(Runtime_RegExpConstructResultRT) {
   HandleScope handle_scope(isolate);
   DCHECK(args.length() == 3);
   CONVERT_SMI_ARG_CHECKED(size, 0);
@@ -797,6 +797,12 @@ RUNTIME_FUNCTION(Runtime_RegExpConstructResult) {
   array->InObjectPropertyAtPut(JSRegExpResult::kIndexIndex, *index);
   array->InObjectPropertyAtPut(JSRegExpResult::kInputIndex, *input);
   return *array;
+}
+
+
+RUNTIME_FUNCTION(Runtime_RegExpConstructResult) {
+  SealHandleScope shs(isolate);
+  return __RT_impl_Runtime_RegExpConstructResultRT(args, isolate);
 }
 
 
@@ -1101,12 +1107,6 @@ RUNTIME_FUNCTION(Runtime_RegExpExecMultiple) {
     return SearchRegExpMultiple<true>(isolate, subject, regexp, last_match_info,
                                       result_array);
   }
-}
-
-
-RUNTIME_FUNCTION(Runtime_RegExpExec) {
-  SealHandleScope shs(isolate);
-  return __RT_impl_Runtime_RegExpExecRT(args, isolate);
 }
 
 

@@ -1751,8 +1751,7 @@ HValue* HGraphBuilder::BuildUncheckedDictionaryElementLoad(HValue* receiver,
     details_index->ClearFlag(HValue::kCanOverflow);
     HValue* details =
         Add<HLoadKeyed>(elements, details_index, nullptr, FAST_ELEMENTS);
-    int details_mask = PropertyDetails::TypeField::kMask |
-                       PropertyDetails::DeletedField::kMask;
+    int details_mask = PropertyDetails::TypeField::kMask;
     details = AddUncasted<HBitwise>(Token::BIT_AND, details,
                                     Add<HConstant>(details_mask));
     IfBuilder details_compare(this);
@@ -2320,10 +2319,8 @@ HValue* HGraphBuilder::BuildUncheckedStringAdd(
     {
       // Fallback to the runtime to add the two strings.
       Add<HPushArguments>(left, right);
-      Push(Add<HCallRuntime>(
-            isolate()->factory()->empty_string(),
-            Runtime::FunctionForId(Runtime::kStringAdd),
-            2));
+      Push(Add<HCallRuntime>(isolate()->factory()->empty_string(),
+                             Runtime::FunctionForId(Runtime::kStringAddRT), 2));
     }
     if_sameencodingandsequential.End();
   }
@@ -3348,7 +3345,7 @@ HOptimizedGraphBuilder::HOptimizedGraphBuilder(CompilationInfo* info)
   // to know it's the initial state.
   function_state_ = &initial_function_state_;
   InitializeAstVisitor(info->isolate(), info->zone());
-  if (FLAG_hydrogen_track_positions) {
+  if (top_info()->is_tracking_positions()) {
     SetSourcePosition(info->shared_info()->start_position());
   }
 }
@@ -3453,9 +3450,9 @@ HGraph::HGraph(CompilationInfo* info)
     start_environment_ = new (zone_)
         HEnvironment(zone_, descriptor.GetEnvironmentParameterCount());
   } else {
-    if (FLAG_hydrogen_track_positions) {
-      info->TraceInlinedFunction(info->shared_info(),
-                                 SourcePosition::Unknown());
+    if (info->is_tracking_positions()) {
+      info->TraceInlinedFunction(info->shared_info(), SourcePosition::Unknown(),
+                                 InlinedFunctionInfo::kNoParentId);
     }
     start_environment_ =
         new(zone_) HEnvironment(NULL, info->scope(), info->closure(), zone_);
@@ -3489,9 +3486,8 @@ int HGraph::SourcePositionToScriptPosition(SourcePosition pos) {
     return pos.raw();
   }
 
-  const int id = info()->inlining_id_to_function_id()->at(pos.inlining_id());
-  return info()->inlined_function_infos()->at(id).start_position() +
-         pos.position();
+  return info()->inlined_function_infos()->at(pos.inlining_id())
+      .start_position + pos.position();
 }
 
 
@@ -3915,7 +3911,7 @@ FunctionState::FunctionState(HOptimizedGraphBuilder* owner,
   // Push on the state stack.
   owner->set_function_state(this);
 
-  if (FLAG_hydrogen_track_positions) {
+  if (compilation_info_->is_tracking_positions()) {
     outer_source_position_ = owner->source_position();
     owner->EnterInlinedSource(
       info->shared_info()->start_position(),
@@ -3929,7 +3925,7 @@ FunctionState::~FunctionState() {
   delete test_context_;
   owner_->set_function_state(outer_);
 
-  if (FLAG_hydrogen_track_positions) {
+  if (compilation_info_->is_tracking_positions()) {
     owner_->set_source_position(outer_source_position_);
     owner_->EnterInlinedSource(
       outer_->compilation_info()->shared_info()->start_position(),
@@ -5268,6 +5264,7 @@ HOptimizedGraphBuilder::LookupGlobalProperty(Variable* var, LookupIterator* it,
     case LookupIterator::ACCESSOR:
     case LookupIterator::ACCESS_CHECK:
     case LookupIterator::INTERCEPTOR:
+    case LookupIterator::INTEGER_INDEXED_EXOTIC:
     case LookupIterator::NOT_FOUND:
       return kUseGeneric;
     case LookupIterator::DATA:
@@ -5297,7 +5294,7 @@ HValue* HOptimizedGraphBuilder::BuildContextChainWalk(Variable* var) {
 
 void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
   if (expr->is_this()) {
-    current_info()->set_this_has_uses(true);
+    current_info()->parse_info()->set_this_has_uses(true);
   }
 
   DCHECK(!HasStackOverflow());
@@ -5321,7 +5318,8 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
 
       Handle<GlobalObject> global(current_info()->global_object());
 
-      if (FLAG_harmony_scoping) {
+      // Lookup in script contexts.
+      {
         Handle<ScriptContextTable> script_contexts(
             global->native_context()->script_context_table());
         ScriptContextTable::LookupResult lookup;
@@ -5330,7 +5328,7 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
           Handle<Context> script_context = ScriptContextTable::GetContext(
               script_contexts, lookup.context_index);
           Handle<Object> current_value =
-              FixedArray::get(script_context, lookup.context_index);
+              FixedArray::get(script_context, lookup.slot_index);
 
           // If the values is not the hole, it will stay initialized,
           // so no need to generate a check.
@@ -6073,6 +6071,12 @@ bool HOptimizedGraphBuilder::PropertyAccessInfo::LookupInPrototypes() {
 }
 
 
+bool HOptimizedGraphBuilder::PropertyAccessInfo::IsIntegerIndexedExotic() {
+  InstanceType instance_type = map_->instance_type();
+  return instance_type == JS_TYPED_ARRAY_TYPE && IsNonArrayIndexInteger(*name_);
+}
+
+
 bool HOptimizedGraphBuilder::PropertyAccessInfo::CanAccessMonomorphic() {
   if (!CanInlinePropertyAccess(map_)) return false;
   if (IsJSObjectFieldAccessor()) return IsLoad();
@@ -6082,6 +6086,7 @@ bool HOptimizedGraphBuilder::PropertyAccessInfo::CanAccessMonomorphic() {
   }
   if (!LookupDescriptor()) return false;
   if (IsFound()) return IsLoad() || !IsReadOnly();
+  if (IsIntegerIndexedExotic()) return false;
   if (!LookupInPrototypes()) return false;
   if (IsLoad()) return true;
 
@@ -6474,7 +6479,8 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
     BailoutId ast_id) {
   Handle<GlobalObject> global(current_info()->global_object());
 
-  if (FLAG_harmony_scoping) {
+  // Lookup in script contexts.
+  {
     Handle<ScriptContextTable> script_contexts(
         global->native_context()->script_context_table());
     ScriptContextTable::LookupResult lookup;
@@ -6484,6 +6490,16 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
       }
       Handle<Context> script_context =
           ScriptContextTable::GetContext(script_contexts, lookup.context_index);
+
+      Handle<Object> current_value =
+          FixedArray::get(script_context, lookup.slot_index);
+
+      // If the values is not the hole, it will stay initialized,
+      // so no need to generate a check.
+      if (*current_value == *isolate()->factory()->the_hole_value()) {
+        return Bailout(kReferenceToUninitializedVariable);
+      }
+
       HStoreNamedField* instr = Add<HStoreNamedField>(
           Add<HConstant>(script_context),
           HObjectAccess::ForContextSlot(lookup.slot_index), value);
@@ -6789,7 +6805,7 @@ void HOptimizedGraphBuilder::VisitThrow(Throw* expr) {
   CHECK_ALIVE(VisitForValue(expr->exception()));
 
   HValue* value = environment()->Pop();
-  if (!FLAG_hydrogen_track_positions) SetSourcePosition(expr->position());
+  if (!top_info()->is_tracking_positions()) SetSourcePosition(expr->position());
   Add<HPushArguments>(value);
   Add<HCallRuntime>(isolate()->factory()->empty_string(),
                     Runtime::FunctionForId(Runtime::kThrow), 1);
@@ -6907,9 +6923,6 @@ HInstruction* HOptimizedGraphBuilder::BuildMonomorphicElementAccess(
     PropertyAccessType access_type,
     KeyedAccessStoreMode store_mode) {
   HCheckMaps* checked_object = Add<HCheckMaps>(object, map, dependency);
-  if (dependency) {
-    checked_object->ClearDependsOnFlag(kElementsKind);
-  }
 
   if (access_type == STORE && map->prototype()->IsJSObject()) {
     // monomorphic stores need a prototype chain check because shape
@@ -7841,12 +7854,16 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
   }
 
   // Parse and allocate variables.
-  CompilationInfo target_info(target, zone());
   // Use the same AstValueFactory for creating strings in the sub-compilation
   // step, but don't transfer ownership to target_info.
-  target_info.SetAstValueFactory(top_info()->ast_value_factory(), false);
+  ParseInfo parse_info(zone(), target);
+  parse_info.set_ast_value_factory(
+      top_info()->parse_info()->ast_value_factory());
+  parse_info.set_ast_value_factory_owned(false);
+
+  CompilationInfo target_info(&parse_info);
   Handle<SharedFunctionInfo> target_shared(target->shared());
-  if (!Compiler::ParseAndAnalyze(&target_info)) {
+  if (!Compiler::ParseAndAnalyze(target_info.parse_info())) {
     if (target_info.isolate()->has_pending_exception()) {
       // Parse or scope error, never optimize this function.
       SetStackOverflow();
@@ -7909,17 +7926,17 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
   DCHECK(target_shared->has_deoptimization_support());
   AstTyper::Run(&target_info);
 
-  int function_id = 0;
-  if (FLAG_hydrogen_track_positions) {
-    function_id =
-        top_info()->TraceInlinedFunction(target_shared, source_position());
+  int inlining_id = 0;
+  if (top_info()->is_tracking_positions()) {
+    inlining_id = top_info()->TraceInlinedFunction(
+        target_shared, source_position(), function_state()->inlining_id());
   }
 
   // Save the pending call context. Set up new one for the inlined function.
   // The function state is new-allocated because we need to delete it
   // in two different places.
-  FunctionState* target_state = new FunctionState(
-      this, &target_info, inlining_kind, function_id);
+  FunctionState* target_state =
+      new FunctionState(this, &target_info, inlining_kind, inlining_id);
 
   HConstant* undefined = graph()->GetConstantUndefined();
 
@@ -7962,6 +7979,9 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
       Add<HEnterInlined>(return_id, target, context, arguments_count, function,
                          function_state()->inlining_kind(),
                          function->scope()->arguments(), arguments_object);
+  if (top_info()->is_tracking_positions()) {
+    enter_inlined->set_inlining_id(inlining_id);
+  }
   function_state()->set_entry(enter_inlined);
 
   VisitDeclarations(target_info.scope()->declarations());
@@ -9408,7 +9428,7 @@ void HOptimizedGraphBuilder::VisitCallNew(CallNew* expr) {
   DCHECK(!HasStackOverflow());
   DCHECK(current_block() != NULL);
   DCHECK(current_block()->HasPredecessor());
-  if (!FLAG_hydrogen_track_positions) SetSourcePosition(expr->position());
+  if (!top_info()->is_tracking_positions()) SetSourcePosition(expr->position());
   int argument_count = expr->arguments()->length() + 1;  // Plus constructor.
   Factory* factory = isolate()->factory();
 
@@ -9519,22 +9539,6 @@ void HOptimizedGraphBuilder::VisitCallNew(CallNew* expr) {
     return ast_context()->ReturnInstruction(call, expr->id());
   }
 }
-
-
-// Support for generating inlined runtime functions.
-
-// Lookup table for generators for runtime calls that are generated inline.
-// Elements of the table are member pointers to functions of
-// HOptimizedGraphBuilder.
-#define INLINE_FUNCTION_GENERATOR_ADDRESS(Name, argc, ressize)  \
-    &HOptimizedGraphBuilder::Generate##Name,
-
-const HOptimizedGraphBuilder::InlineFunctionGenerator
-    HOptimizedGraphBuilder::kInlineFunctionGenerators[] = {
-        INLINE_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_ADDRESS)
-        INLINE_OPTIMIZED_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_ADDRESS)
-};
-#undef INLINE_FUNCTION_GENERATOR_ADDRESS
 
 
 template <class ViewClass>
@@ -9915,30 +9919,21 @@ void HOptimizedGraphBuilder::VisitCallRuntime(CallRuntime* expr) {
 
   const Runtime::Function* function = expr->function();
   DCHECK(function != NULL);
+  switch (function->function_id) {
+#define CALL_INTRINSIC_GENERATOR(Name) \
+  case Runtime::kInline##Name:         \
+    return Generate##Name(expr);
 
-  if (function->intrinsic_type == Runtime::INLINE ||
-      function->intrinsic_type == Runtime::INLINE_OPTIMIZED) {
-    DCHECK(expr->name()->length() > 0);
-    DCHECK(expr->name()->Get(0) == '_');
-    // Call to an inline function.
-    int lookup_index = static_cast<int>(function->function_id) -
-        static_cast<int>(Runtime::kFirstInlineFunction);
-    DCHECK(lookup_index >= 0);
-    DCHECK(static_cast<size_t>(lookup_index) <
-           arraysize(kInlineFunctionGenerators));
-    InlineFunctionGenerator generator = kInlineFunctionGenerators[lookup_index];
-
-    // Call the inline code generator using the pointer-to-member.
-    (this->*generator)(expr);
-  } else {
-    DCHECK(function->intrinsic_type == Runtime::RUNTIME);
-    Handle<String> name = expr->name();
-    int argument_count = expr->arguments()->length();
-    CHECK_ALIVE(VisitExpressions(expr->arguments()));
-    PushArgumentsFromEnvironment(argument_count);
-    HCallRuntime* call = New<HCallRuntime>(name, function,
-                                           argument_count);
-    return ast_context()->ReturnInstruction(call, expr->id());
+    FOR_EACH_HYDROGEN_INTRINSIC(CALL_INTRINSIC_GENERATOR)
+#undef CALL_INTRINSIC_GENERATOR
+    default: {
+      Handle<String> name = expr->name();
+      int argument_count = expr->arguments()->length();
+      CHECK_ALIVE(VisitExpressions(expr->arguments()));
+      PushArgumentsFromEnvironment(argument_count);
+      HCallRuntime* call = New<HCallRuntime>(name, function, argument_count);
+      return ast_context()->ReturnInstruction(call, expr->id());
+    }
   }
 }
 
@@ -10112,7 +10107,7 @@ void HOptimizedGraphBuilder::VisitCountOperation(CountOperation* expr) {
   DCHECK(!HasStackOverflow());
   DCHECK(current_block() != NULL);
   DCHECK(current_block()->HasPredecessor());
-  if (!FLAG_hydrogen_track_positions) SetSourcePosition(expr->position());
+  if (!top_info()->is_tracking_positions()) SetSourcePosition(expr->position());
   Expression* target = expr->expression();
   VariableProxy* proxy = target->AsVariableProxy();
   Property* prop = target->AsProperty();
@@ -10768,7 +10763,7 @@ void HOptimizedGraphBuilder::VisitArithmeticExpression(BinaryOperation* expr) {
       BuildBinaryOperation(expr, left, right,
           ast_context()->IsEffect() ? NO_PUSH_BEFORE_SIMULATE
                                     : PUSH_BEFORE_SIMULATE);
-  if (FLAG_hydrogen_track_positions && result->IsBinaryOperation()) {
+  if (top_info()->is_tracking_positions() && result->IsBinaryOperation()) {
     HBinaryOperation::cast(result)->SetOperandPositions(
         zone(),
         ScriptPositionToSourcePosition(expr->left()->position()),
@@ -10806,7 +10801,7 @@ void HOptimizedGraphBuilder::VisitCompareOperation(CompareOperation* expr) {
   DCHECK(current_block() != NULL);
   DCHECK(current_block()->HasPredecessor());
 
-  if (!FLAG_hydrogen_track_positions) SetSourcePosition(expr->position());
+  if (!top_info()->is_tracking_positions()) SetSourcePosition(expr->position());
 
   // Check for a few fast cases. The AST visiting behavior must be in sync
   // with the full codegen: We don't push both left and right values onto
@@ -10948,7 +10943,7 @@ HControlInstruction* HOptimizedGraphBuilder::BuildCompareInstruction(
         AddCheckMap(operand_to_check, map);
         HCompareObjectEqAndBranch* result =
             New<HCompareObjectEqAndBranch>(left, right);
-        if (FLAG_hydrogen_track_positions) {
+        if (top_info()->is_tracking_positions()) {
           result->set_operand_position(zone(), 0, left_position);
           result->set_operand_position(zone(), 1, right_position);
         }
@@ -11014,7 +11009,7 @@ HControlInstruction* HOptimizedGraphBuilder::BuildCompareInstruction(
       HCompareNumericAndBranch* result =
           New<HCompareNumericAndBranch>(left, right, op);
       result->set_observed_input_representation(left_rep, right_rep);
-      if (FLAG_hydrogen_track_positions) {
+      if (top_info()->is_tracking_positions()) {
         result->SetOperandPositions(zone(), left_position, right_position);
       }
       return result;
@@ -11030,7 +11025,7 @@ void HOptimizedGraphBuilder::HandleLiteralCompareNil(CompareOperation* expr,
   DCHECK(current_block() != NULL);
   DCHECK(current_block()->HasPredecessor());
   DCHECK(expr->op() == Token::EQ || expr->op() == Token::EQ_STRICT);
-  if (!FLAG_hydrogen_track_positions) SetSourcePosition(expr->position());
+  if (!top_info()->is_tracking_positions()) SetSourcePosition(expr->position());
   CHECK_ALIVE(VisitForValue(sub_expr));
   HValue* value = Pop();
   if (expr->op() == Token::EQ_STRICT) {
@@ -11628,23 +11623,12 @@ void HOptimizedGraphBuilder::GenerateHasFastPackedElements(CallRuntime* call) {
 }
 
 
-void HOptimizedGraphBuilder::GenerateIsNonNegativeSmi(CallRuntime* call) {
-  return Bailout(kInlinedRuntimeFunctionIsNonNegativeSmi);
-}
-
-
 void HOptimizedGraphBuilder::GenerateIsUndetectableObject(CallRuntime* call) {
   DCHECK(call->arguments()->length() == 1);
   CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   HValue* value = Pop();
   HIsUndetectableAndBranch* result = New<HIsUndetectableAndBranch>(value);
   return ast_context()->ReturnControl(result, call->id());
-}
-
-
-void HOptimizedGraphBuilder::GenerateIsStringWrapperSafeForDefaultValueOf(
-    CallRuntime* call) {
-  return Bailout(kInlinedRuntimeFunctionIsStringWrapperSafeForDefaultValueOf);
 }
 
 
@@ -11703,14 +11687,6 @@ void HOptimizedGraphBuilder::GenerateArguments(CallRuntime* call) {
     result = New<HAccessArgumentsAt>(elements, length, checked_key);
   }
   return ast_context()->ReturnInstruction(result, call->id());
-}
-
-
-// Support for accessing the class and value fields of an object.
-void HOptimizedGraphBuilder::GenerateClassOf(CallRuntime* call) {
-  // The special form detected by IsClassOfTest is detected before we get here
-  // and does not cause a bailout.
-  return Bailout(kInlinedRuntimeFunctionClassOf);
 }
 
 
@@ -12018,12 +11994,6 @@ void HOptimizedGraphBuilder::GenerateCallFunction(CallRuntime* call) {
 }
 
 
-void HOptimizedGraphBuilder::GenerateDefaultConstructorCallSuper(
-    CallRuntime* call) {
-  return Bailout(kSuperReference);
-}
-
-
 // Fast call to math functions.
 void HOptimizedGraphBuilder::GenerateMathPow(CallRuntime* call) {
   DCHECK_EQ(2, call->arguments()->length());
@@ -12032,6 +12002,15 @@ void HOptimizedGraphBuilder::GenerateMathPow(CallRuntime* call) {
   HValue* right = Pop();
   HValue* left = Pop();
   HInstruction* result = NewUncasted<HPower>(left, right);
+  return ast_context()->ReturnInstruction(result, call->id());
+}
+
+
+void HOptimizedGraphBuilder::GenerateMathFloor(CallRuntime* call) {
+  DCHECK(call->arguments()->length() == 1);
+  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
+  HValue* value = Pop();
+  HInstruction* result = NewUncasted<HUnaryMathOperation>(value, kMathFloor);
   return ast_context()->ReturnInstruction(result, call->id());
 }
 
@@ -12045,7 +12024,7 @@ void HOptimizedGraphBuilder::GenerateMathLogRT(CallRuntime* call) {
 }
 
 
-void HOptimizedGraphBuilder::GenerateMathSqrtRT(CallRuntime* call) {
+void HOptimizedGraphBuilder::GenerateMathSqrt(CallRuntime* call) {
   DCHECK(call->arguments()->length() == 1);
   CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   HValue* value = Pop();
@@ -12708,18 +12687,12 @@ void HOptimizedGraphBuilder::GenerateGetCachedArrayIndex(CallRuntime* call) {
 
 
 void HOptimizedGraphBuilder::GenerateFastOneByteArrayJoin(CallRuntime* call) {
+  // Simply returning undefined here would be semantically correct and even
+  // avoid the bailout. Nevertheless, some ancient benchmarks like SunSpider's
+  // string-fasta would tank, because fullcode contains an optimized version.
+  // Obviously the fullcode => Crankshaft => bailout => fullcode dance is
+  // faster... *sigh*
   return Bailout(kInlinedRuntimeFunctionFastOneByteArrayJoin);
-}
-
-
-// Support for generators.
-void HOptimizedGraphBuilder::GenerateGeneratorNext(CallRuntime* call) {
-  return Bailout(kInlinedRuntimeFunctionGeneratorNext);
-}
-
-
-void HOptimizedGraphBuilder::GenerateGeneratorThrow(CallRuntime* call) {
-  return Bailout(kInlinedRuntimeFunctionGeneratorThrow);
 }
 
 
@@ -13213,9 +13186,8 @@ void HTracer::Trace(const char* name, HGraph* graph, LChunk* chunk) {
         PrintIndent();
         std::ostringstream os;
         os << "0 " << uses << " " << NameOf(instruction) << " " << *instruction;
-        if (FLAG_hydrogen_track_positions &&
-            instruction->has_position() &&
-            instruction->position().raw() != 0) {
+        if (graph->info()->is_tracking_positions() &&
+            instruction->has_position() && instruction->position().raw() != 0) {
           const SourcePosition pos = instruction->position();
           os << " pos:";
           if (pos.inlining_id() != 0) os << pos.inlining_id() << "_";

@@ -192,7 +192,7 @@ void FullCodeGenerator::Generate() {
     Comment cmnt(masm_, "[ Allocate context");
     bool need_write_barrier = true;
     // Argument to NewContext is the function, which is still in edi.
-    if (FLAG_harmony_scoping && info->scope()->is_script_scope()) {
+    if (info->scope()->is_script_scope()) {
       __ push(edi);
       __ Push(info->scope()->GetScopeInfo(info->isolate()));
       __ CallRuntime(Runtime::kNewScriptContext, 2);
@@ -4499,17 +4499,11 @@ void FullCodeGenerator::EmitDebugIsActive(CallRuntime* expr) {
 
 
 void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
-  if (expr->function() != NULL &&
-      expr->function()->intrinsic_type == Runtime::INLINE) {
-    Comment cmnt(masm_, "[ InlineRuntimeCall");
-    EmitInlineRuntimeCall(expr);
-    return;
-  }
-
-  Comment cmnt(masm_, "[ CallRuntime");
   ZoneList<Expression*>* args = expr->arguments();
+  int arg_count = args->length();
 
   if (expr->is_jsruntime()) {
+    Comment cmnt(masm_, "[ CallRuntime");
     // Push the builtins object as receiver.
     __ mov(eax, GlobalObjectOperand());
     __ push(FieldOperand(eax, GlobalObject::kBuiltinsOffset));
@@ -4529,9 +4523,7 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
     __ push(Operand(esp, 0));
     __ mov(Operand(esp, kPointerSize), eax);
 
-    // Code common for calls using the IC.
-    ZoneList<Expression*>* args = expr->arguments();
-    int arg_count = args->length();
+    // Push the arguments ("left-to-right").
     for (int i = 0; i < arg_count; i++) {
       VisitForStackValue(args->at(i));
     }
@@ -4546,16 +4538,27 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
     context()->DropAndPlug(1, eax);
 
   } else {
-    // Push the arguments ("left-to-right").
-    int arg_count = args->length();
-    for (int i = 0; i < arg_count; i++) {
-      VisitForStackValue(args->at(i));
+    const Runtime::Function* function = expr->function();
+    switch (function->function_id) {
+#define CALL_INTRINSIC_GENERATOR(Name)     \
+  case Runtime::kInline##Name: {           \
+    Comment cmnt(masm_, "[ Inline" #Name); \
+    return Emit##Name(expr);               \
+  }
+      FOR_EACH_FULL_CODE_INTRINSIC(CALL_INTRINSIC_GENERATOR)
+#undef CALL_INTRINSIC_GENERATOR
+      default: {
+        Comment cmnt(masm_, "[ CallRuntime for unhandled intrinsic");
+        // Push the arguments ("left-to-right").
+        for (int i = 0; i < arg_count; i++) {
+          VisitForStackValue(args->at(i));
+        }
+
+        // Call the C runtime function.
+        __ CallRuntime(expr->function(), arg_count);
+        context()->Plug(eax);
+      }
     }
-
-    // Call the C runtime function.
-    __ CallRuntime(expr->function(), arg_count);
-
-    context()->Plug(eax);
   }
 }
 

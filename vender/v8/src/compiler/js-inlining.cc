@@ -6,16 +6,14 @@
 
 #include "src/ast.h"
 #include "src/ast-numbering.h"
-#include "src/compiler/access-builder.h"
 #include "src/compiler/all-nodes.h"
 #include "src/compiler/ast-graph-builder.h"
 #include "src/compiler/common-operator.h"
-#include "src/compiler/graph-visualizer.h"
+#include "src/compiler/js-context-specialization.h"
 #include "src/compiler/js-operator.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
-#include "src/compiler/simplified-operator.h"
-#include "src/compiler/typer.h"
+#include "src/compiler/operator-properties.h"
 #include "src/full-codegen.h"
 #include "src/parser.h"
 #include "src/rewriter.h"
@@ -49,7 +47,7 @@ class JSCallFunctionAccessor {
     return value_inputs - 2;
   }
 
-  Node* frame_state() { return NodeProperties::GetFrameStateInput(call_); }
+  Node* frame_state() { return NodeProperties::GetFrameStateInput(call_, 0); }
 
  private:
   Node* call_;
@@ -217,16 +215,10 @@ class CopyVisitor {
 
 Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
   // The scheduler is smart enough to place our code; we just ensure {control}
-  // becomes the control input of the start of the inlinee.
+  // becomes the control input of the start of the inlinee, and {effect} becomes
+  // the effect input of the start of the inlinee.
   Node* control = NodeProperties::GetControlInput(call);
-
-  // The inlinee uses the context from the JSFunction object. This will
-  // also be the effect dependency for the inlinee as it produces an effect.
-  SimplifiedOperatorBuilder simplified(jsgraph->zone());
-  Node* context = jsgraph->graph()->NewNode(
-      simplified.LoadField(AccessBuilder::ForJSFunctionContext()),
-      NodeProperties::GetValueInput(call, 0),
-      NodeProperties::GetEffectInput(call), control);
+  Node* effect = NodeProperties::GetEffectInput(call);
 
   // Context is last argument.
   int inlinee_context_index = static_cast<int>(total_parameters()) - 1;
@@ -244,9 +236,9 @@ Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
           // projection but not the context, so rewire the input.
           NodeProperties::ReplaceWithValue(use, call->InputAt(index));
         } else if (index == inlinee_context_index) {
-          // This is the context projection, rewire it to the context from the
-          // JSFunction object.
-          NodeProperties::ReplaceWithValue(use, context);
+          // TODO(turbofan): We always context specialize inlinees currently, so
+          // we should never get here.
+          UNREACHABLE();
         } else if (index < inlinee_context_index) {
           // Call has fewer arguments than required, fill with undefined.
           NodeProperties::ReplaceWithValue(use, jsgraph->UndefinedConstant());
@@ -258,7 +250,7 @@ Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
       }
       default:
         if (NodeProperties::IsEffectEdge(edge)) {
-          edge.UpdateTo(context);
+          edge.UpdateTo(effect);
         } else if (NodeProperties::IsControlEdge(edge)) {
           edge.UpdateTo(control);
         } else {
@@ -268,18 +260,8 @@ Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
     }
   }
 
-  for (Edge edge : call->use_edges()) {
-    if (NodeProperties::IsControlEdge(edge)) {
-      // TODO(turbofan): Handle kIfException uses.
-      DCHECK_EQ(IrOpcode::kIfSuccess, edge.from()->opcode());
-      edge.from()->ReplaceUses(control_output());
-      edge.UpdateTo(nullptr);
-    } else if (NodeProperties::IsEffectEdge(edge)) {
-      edge.UpdateTo(effect_output());
-    } else {
-      edge.UpdateTo(value_output());
-    }
-  }
+  NodeProperties::ReplaceWithValue(call, value_output(), effect_output(),
+                                   control_output());
 
   return Reducer::Replace(value_output());
 }
@@ -328,10 +310,14 @@ Reduction JSInliner::Reduce(Node* node) {
   if (!match.HasValue()) return NoChange();
 
   Handle<JSFunction> function = match.Value().handle();
+  if (!function->IsJSFunction()) return NoChange();
+  if (mode_ == kBuiltinsInlining && !function->shared()->inline_builtin()) {
+    return NoChange();
+  }
 
   CompilationInfoWithZone info(function);
 
-  if (!Compiler::ParseAndAnalyze(&info)) return NoChange();
+  if (!Compiler::ParseAndAnalyze(info.parse_info())) return NoChange();
   if (!Compiler::EnsureDeoptimizationSupport(&info)) return NoChange();
 
   if (info.scope()->arguments() != NULL && is_sloppy(info.language_mode())) {
@@ -356,8 +342,16 @@ Reduction JSInliner::Reduce(Node* node) {
   JSGraph jsgraph(info.isolate(), &graph, jsgraph_->common(),
                   jsgraph_->javascript(), jsgraph_->machine());
 
+  // The inlinee specializes to the context from the JSFunction object.
+  // TODO(turbofan): We might want to load the context from the JSFunction at
+  // runtime in case we only know the SharedFunctionInfo once we have dynamic
+  // type feedback in the compiler.
   AstGraphBuilder graph_builder(local_zone_, &info, &jsgraph);
-  graph_builder.CreateGraph(false);
+  graph_builder.CreateGraph(true, false);
+  JSContextSpecializer context_specializer(&jsgraph);
+  GraphReducer graph_reducer(&graph, local_zone_);
+  graph_reducer.AddReducer(&context_specializer);
+  graph_reducer.ReduceGraph();
   Inlinee::UnifyReturn(&jsgraph);
 
   CopyVisitor visitor(&graph, jsgraph_->graph(), info.zone());
@@ -375,8 +369,9 @@ Reduction JSInliner::Reduce(Node* node) {
 
     for (Node* node : visitor.copies()) {
       if (node && node->opcode() == IrOpcode::kFrameState) {
+        DCHECK_EQ(1, OperatorProperties::GetFrameStateInputCount(node->op()));
         AddClosureToFrameState(node, function);
-        NodeProperties::ReplaceFrameStateInput(node, outer_frame_state);
+        NodeProperties::ReplaceFrameStateInput(node, 0, outer_frame_state);
       }
     }
   }

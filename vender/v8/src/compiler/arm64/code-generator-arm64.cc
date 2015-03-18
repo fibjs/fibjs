@@ -387,17 +387,17 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArchTruncateDoubleToI:
       __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
       break;
-    case kArm64Float64Ceil:
-      __ Frintp(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
-      break;
-    case kArm64Float64Floor:
+    case kArm64Float64RoundDown:
       __ Frintm(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
+    case kArm64Float64RoundTiesAway:
+      __ Frinta(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
       break;
     case kArm64Float64RoundTruncate:
       __ Frintz(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
       break;
-    case kArm64Float64RoundTiesAway:
-      __ Frinta(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+    case kArm64Float64RoundUp:
+      __ Frintp(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
       break;
     case kArm64Add:
       __ Add(i.OutputRegister(), i.InputRegister(0), i.InputOperand2_64(1));
@@ -592,6 +592,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Ubfx(i.OutputRegister32(), i.InputRegister32(0), i.InputInt8(1),
               i.InputInt8(2));
       break;
+    case kArm64Bfi:
+      __ Bfi(i.OutputRegister(), i.InputRegister(1), i.InputInt6(2),
+             i.InputInt6(3));
+      break;
     case kArm64TestAndBranch32:
     case kArm64TestAndBranch:
       // Pseudo instructions turned into tbz/tbnz in AssembleArchBranch.
@@ -701,10 +705,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Fmov(i.OutputRegister32(), i.InputFloat32Register(0));
       break;
     case kArm64Float64ExtractHighWord32:
+      // TODO(arm64): This should use MOV (to general) when NEON is supported.
       __ Fmov(i.OutputRegister(), i.InputFloat64Register(0));
       __ Lsr(i.OutputRegister(), i.OutputRegister(), 32);
       break;
     case kArm64Float64InsertLowWord32: {
+      // TODO(arm64): This should use MOV (from general) when NEON is supported.
       UseScratchRegisterScope scope(masm());
       Register tmp = scope.AcquireX();
       __ Fmov(tmp, i.InputFloat64Register(0));
@@ -713,11 +719,16 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     }
     case kArm64Float64InsertHighWord32: {
+      // TODO(arm64): This should use MOV (from general) when NEON is supported.
       UseScratchRegisterScope scope(masm());
       Register tmp = scope.AcquireX();
       __ Fmov(tmp.W(), i.InputFloat32Register(0));
       __ Bfi(tmp, i.InputRegister(1), 32, 32);
       __ Fmov(i.OutputFloat64Register(), tmp);
+      break;
+    }
+    case kArm64Float64MoveU64: {
+      __ Fmov(i.OutputFloat64Register(), i.InputRegister(0));
       break;
     }
     case kArm64Ldrb:

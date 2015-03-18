@@ -15,10 +15,6 @@ namespace internal {
 // The interface to C++ runtime functions.
 
 // ----------------------------------------------------------------------------
-// RUNTIME_FUNCTION_LIST_ALWAYS defines runtime calls available in both
-// release and debug mode.
-// This macro should only be used by the macro RUNTIME_FUNCTION_LIST.
-
 // WARNING: RUNTIME_FUNCTION_LIST_ALWAYS_* is a very large macro that caused
 // MSVC Intellisense to crash.  It was broken into two macros to work around
 // this problem. Please avoid large recursive macros whenever possible.
@@ -148,7 +144,6 @@ namespace internal {
   F(MathAcos, 1, 1)                            \
   F(MathAsin, 1, 1)                            \
   F(MathAtan, 1, 1)                            \
-  F(MathFloorRT, 1, 1)                         \
   F(MathAtan2, 2, 1)                           \
   F(MathExpRT, 1, 1)                           \
   F(RoundNumber, 1, 1)                         \
@@ -185,22 +180,24 @@ namespace internal {
   F(IsValidSmi, 1, 1)                          \
                                                \
   /* Classes support */                        \
-  F(ToMethod, 2, 1)                            \
-  F(HomeObjectSymbol, 0, 1)                    \
+  F(ClassGetSourceCode, 1, 1)                  \
   F(DefineClass, 6, 1)                         \
   F(DefineClassMethod, 3, 1)                   \
-  F(ClassGetSourceCode, 1, 1)                  \
+  F(HandleStepInForDerivedConstructors, 1, 1)  \
+  F(HomeObjectSymbol, 0, 1)                    \
   F(LoadFromSuper, 3, 1)                       \
   F(LoadKeyedFromSuper, 3, 1)                  \
-  F(ThrowConstructorNonCallableError, 0, 1)    \
-  F(ThrowArrayNotSubclassableError, 0, 1)      \
-  F(ThrowNonMethodError, 0, 1)                 \
-  F(ThrowUnsupportedSuperError, 0, 1)          \
-  F(HandleStepInForDerivedConstructors, 1, 1)  \
-  F(StoreToSuper_Strict, 4, 1)                 \
-  F(StoreToSuper_Sloppy, 4, 1)                 \
+  F(StoreKeyedToSuper_Sloppy, 4, 1)            \
   F(StoreKeyedToSuper_Strict, 4, 1)            \
-  F(StoreKeyedToSuper_Sloppy, 4, 1)
+  F(StoreToSuper_Sloppy, 4, 1)                 \
+  F(StoreToSuper_Strict, 4, 1)                 \
+  F(ThrowArrayNotSubclassableError, 0, 1)      \
+  F(ThrowConstructorNonCallableError, 0, 1)    \
+  F(ThrowIfStaticPrototype, 1, 1)              \
+  F(ThrowNonMethodError, 0, 1)                 \
+  F(ThrowStaticPrototypeError, 0, 1)           \
+  F(ThrowUnsupportedSuperError, 0, 1)          \
+  F(ToMethod, 2, 1)
 
 
 #define RUNTIME_FUNCTION_LIST_ALWAYS_2(F)              \
@@ -429,12 +426,11 @@ namespace internal {
 #define RUNTIME_FUNCTION_LIST_ALWAYS_3(F)                    \
   /* String and Regexp */                                    \
   F(NumberToStringRT, 1, 1)                                  \
-  F(RegExpConstructResult, 3, 1)                             \
-  F(RegExpExecRT, 4, 1)                                      \
-  F(StringAdd, 2, 1)                                         \
-  F(SubString, 3, 1)                                         \
+  F(RegExpConstructResultRT, 3, 1)                           \
+  F(StringAddRT, 2, 1)                                       \
+  F(SubStringRT, 3, 1)                                       \
   F(InternalizeString, 1, 1)                                 \
-  F(StringCompare, 2, 1)                                     \
+  F(StringCompareRT, 2, 1)                                   \
   F(StringCharCodeAtRT, 2, 1)                                \
   F(GetFromCacheRT, 2, 1)                                    \
                                                              \
@@ -513,7 +509,7 @@ namespace internal {
   F(MathPowRT, 2, 1)
 
 
-#define RUNTIME_FUNCTION_LIST_RETURN_PAIR(F)              \
+#define FOR_EACH_INTRINSIC_RETURN_PAIR(F)                 \
   F(LoadLookupSlot, 2, 2)                                 \
   F(LoadLookupSlotNoReferenceError, 2, 2)                 \
   F(ResolvePossiblyDirectEval, 6, 2)                      \
@@ -567,6 +563,7 @@ namespace internal {
   F(DebugDisassembleFunction, 1, 1)                 \
   F(DebugDisassembleConstructor, 1, 1)              \
   F(FunctionGetInferredName, 1, 1)                  \
+  F(FunctionGetDebugName, 1, 1)                     \
   F(LiveEditFindSharedFunctionInfosForScript, 1, 1) \
   F(LiveEditGatherCompileInfo, 2, 1)                \
   F(LiveEditReplaceScript, 3, 1)                    \
@@ -630,26 +627,8 @@ namespace internal {
 
 
 // ----------------------------------------------------------------------------
-// RUNTIME_FUNCTION_LIST defines all runtime functions accessed
-// either directly by id (via the code generator), or indirectly
-// via a native call by name (from within JS code).
-// Entries have the form F(name, number of arguments, number of return values).
-
-#define RUNTIME_FUNCTION_LIST_RETURN_OBJECT(F) \
-  RUNTIME_FUNCTION_LIST_ALWAYS_1(F)            \
-  RUNTIME_FUNCTION_LIST_ALWAYS_2(F)            \
-  RUNTIME_FUNCTION_LIST_ALWAYS_3(F)            \
-  RUNTIME_FUNCTION_LIST_DEBUGGER(F)            \
-  RUNTIME_FUNCTION_LIST_I18N_SUPPORT(F)
-
-
-#define RUNTIME_FUNCTION_LIST(F)         \
-  RUNTIME_FUNCTION_LIST_RETURN_OBJECT(F) \
-  RUNTIME_FUNCTION_LIST_RETURN_PAIR(F)
-
-// ----------------------------------------------------------------------------
-// INLINE_FUNCTION_LIST defines all inlined functions accessed
-// with a native call of the form %_name from within JS code.
+// INLINE_FUNCTION_LIST defines the intrinsics typically handled specially by
+// the various compilers.
 // Entries have the form F(name, number of arguments, number of return values).
 #define INLINE_FUNCTION_LIST(F)                             \
   F(IsSmi, 1, 1)                                            \
@@ -696,11 +675,8 @@ namespace internal {
 
 
 // ----------------------------------------------------------------------------
-// INLINE_OPTIMIZED_FUNCTION_LIST defines all inlined functions accessed
-// with a native call of the form %_name from within JS code that also have
-// a corresponding runtime function, that is called from non-optimized code.
-// For the benefit of (fuzz) tests, the runtime version can also be called
-// directly as %name (i.e. without the leading underscore).
+// INLINE_OPTIMIZED_FUNCTION_LIST defines the intrinsics typically handled
+// specially by Crankshaft.
 // Entries have the form F(name, number of arguments, number of return values).
 #define INLINE_OPTIMIZED_FUNCTION_LIST(F) \
   /* Typed Arrays */                      \
@@ -717,7 +693,8 @@ namespace internal {
   F(ConstructDouble, 2, 1)                \
   F(DoubleHi, 1, 1)                       \
   F(DoubleLo, 1, 1)                       \
-  F(MathSqrtRT, 1, 1)                     \
+  F(MathFloor, 1, 1)                      \
+  F(MathSqrt, 1, 1)                       \
   F(MathLogRT, 1, 1)                      \
   /* ES6 Collections */                   \
   F(MapClear, 1, 1)                       \
@@ -736,6 +713,24 @@ namespace internal {
   /* Arrays */                            \
   F(HasFastPackedElements, 1, 1)          \
   F(GetPrototype, 1, 1)
+
+
+#define FOR_EACH_INTRINSIC_RETURN_OBJECT(F) \
+  RUNTIME_FUNCTION_LIST_ALWAYS_1(F)         \
+  RUNTIME_FUNCTION_LIST_ALWAYS_2(F)         \
+  RUNTIME_FUNCTION_LIST_ALWAYS_3(F)         \
+  RUNTIME_FUNCTION_LIST_DEBUGGER(F)         \
+  RUNTIME_FUNCTION_LIST_I18N_SUPPORT(F)     \
+  INLINE_FUNCTION_LIST(F)                   \
+  INLINE_OPTIMIZED_FUNCTION_LIST(F)
+
+
+// FOR_EACH_INTRINSIC defines the list of all intrinsics, coming in 2 flavors,
+// either returning an object or a pair.
+// Entries have the form F(name, number of arguments, number of values).
+#define FOR_EACH_INTRINSIC(F)       \
+  FOR_EACH_INTRINSIC_RETURN_PAIR(F) \
+  FOR_EACH_INTRINSIC_RETURN_OBJECT(F)
 
 
 //---------------------------------------------------------------------------
@@ -769,19 +764,14 @@ class Runtime : public AllStatic {
  public:
   enum FunctionId {
 #define F(name, nargs, ressize) k##name,
-    RUNTIME_FUNCTION_LIST(F) INLINE_OPTIMIZED_FUNCTION_LIST(F)
+#define I(name, nargs, ressize) kInline##name,
+    FOR_EACH_INTRINSIC(F) FOR_EACH_INTRINSIC(I)
+#undef I
 #undef F
-#define F(name, nargs, ressize) kInline##name,
-    INLINE_FUNCTION_LIST(F)
-#undef F
-#define F(name, nargs, ressize) kInlineOptimized##name,
-    INLINE_OPTIMIZED_FUNCTION_LIST(F)
-#undef F
-    kNumFunctions,
-    kFirstInlineFunction = kInlineIsSmi
+        kNumFunctions,
   };
 
-  enum IntrinsicType { RUNTIME, INLINE, INLINE_OPTIMIZED };
+  enum IntrinsicType { RUNTIME, INLINE };
 
   // Intrinsic function descriptor.
   struct Function {

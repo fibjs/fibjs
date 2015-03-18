@@ -590,11 +590,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Dror(i.OutputRegister(), i.InputRegister(0), i.InputOperand(1));
       break;
     case kMips64Tst:
-    case kMips64Tst32:
       // Pseudo-instruction used for cmp/branch. No opcode emitted here.
       break;
     case kMips64Cmp:
-    case kMips64Cmp32:
       // Pseudo-instruction used for cmp/branch. No opcode emitted here.
       break;
     case kMips64Mov:
@@ -641,16 +639,16 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ MovFromFloatResult(i.OutputDoubleRegister());
       break;
     }
-    case kMips64Float64Floor: {
+    case kMips64Float64RoundDown: {
       ASSEMBLE_ROUND_DOUBLE_TO_DOUBLE(floor_l_d, Floor);
-      break;
-    }
-    case kMips64Float64Ceil: {
-      ASSEMBLE_ROUND_DOUBLE_TO_DOUBLE(ceil_l_d, Ceil);
       break;
     }
     case kMips64Float64RoundTruncate: {
       ASSEMBLE_ROUND_DOUBLE_TO_DOUBLE(trunc_l_d, Truncate);
+      break;
+    }
+    case kMips64Float64RoundUp: {
+      ASSEMBLE_ROUND_DOUBLE_TO_DOUBLE(ceil_l_d, Ceil);
       break;
     }
     case kMips64SqrtD: {
@@ -689,19 +687,16 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Trunc_uw_d(i.InputDoubleRegister(0), i.OutputRegister(), scratch);
       break;
     }
-    case kMips64FmoveLowUwD:
+    case kMips64Float64ExtractLowWord32:
       __ FmoveLow(i.OutputRegister(), i.InputDoubleRegister(0));
-      // remove sign.
-      __ dsll32(i.OutputRegister(), i.OutputRegister(), 0);
-      __ dsrl32(i.OutputRegister(), i.OutputRegister(), 0);
       break;
-    case kMips64FmoveLowDUw:
-      __ FmoveLow(i.OutputDoubleRegister(), i.InputRegister(1));
-      break;
-    case kMips64FmoveHighUwD:
+    case kMips64Float64ExtractHighWord32:
       __ FmoveHigh(i.OutputRegister(), i.InputDoubleRegister(0));
       break;
-    case kMips64FmoveHighDUw:
+    case kMips64Float64InsertLowWord32:
+      __ FmoveLow(i.OutputDoubleRegister(), i.InputRegister(1));
+      break;
+    case kMips64Float64InsertHighWord32:
       __ FmoveHigh(i.OutputDoubleRegister(), i.InputRegister(1));
       break;
     // ... more basic instructions ...
@@ -833,24 +828,12 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
   // implemented differently than on the other arch's. The compare operations
   // emit mips psuedo-instructions, which are handled here by branch
   // instructions that do the actual comparison. Essential that the input
-  // registers to compare psuedo-op are not modified before this branch op, as
+  // registers to compare pseudo-op are not modified before this branch op, as
   // they are tested here.
-  // TODO(plind): Add CHECK() to ensure that test/cmp and this branch were
-  //    not separated by other instructions.
 
   if (instr->arch_opcode() == kMips64Tst) {
     cc = FlagsConditionToConditionTst(branch->condition);
     __ And(at, i.InputRegister(0), i.InputOperand(1));
-    __ Branch(tlabel, cc, at, Operand(zero_reg));
-  } else if (instr->arch_opcode() == kMips64Tst32) {
-    cc = FlagsConditionToConditionTst(branch->condition);
-    // Zero-extend registers on MIPS64 only 64-bit operand
-    // branch and compare op. is available.
-    // This is a disadvantage to perform 32-bit operation on MIPS64.
-    // Try to force globally in front-end Word64 representation to be preferred
-    // for MIPS64 even for Word32.
-    __ And(at, i.InputRegister(0), i.InputOperand(1));
-    __ Dext(at, at, 0, 32);
     __ Branch(tlabel, cc, at, Operand(zero_reg));
   } else if (instr->arch_opcode() == kMips64Dadd ||
              instr->arch_opcode() == kMips64Dsub) {
@@ -861,42 +844,6 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
     __ Branch(tlabel, cc, at, Operand(kScratchReg));
   } else if (instr->arch_opcode() == kMips64Cmp) {
     cc = FlagsConditionToConditionCmp(branch->condition);
-    __ Branch(tlabel, cc, i.InputRegister(0), i.InputOperand(1));
-
-    if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
-
-  } else if (instr->arch_opcode() == kMips64Cmp32) {
-    cc = FlagsConditionToConditionCmp(branch->condition);
-
-    switch (branch->condition) {
-      case kEqual:
-      case kNotEqual:
-      case kSignedLessThan:
-      case kSignedGreaterThanOrEqual:
-      case kSignedLessThanOrEqual:
-      case kSignedGreaterThan:
-        // Sign-extend registers on MIPS64 only 64-bit operand
-        // branch and compare op. is available.
-        __ sll(i.InputRegister(0), i.InputRegister(0), 0);
-        if (instr->InputAt(1)->IsRegister()) {
-          __ sll(i.InputRegister(1), i.InputRegister(1), 0);
-        }
-        break;
-      case kUnsignedLessThan:
-      case kUnsignedGreaterThanOrEqual:
-      case kUnsignedLessThanOrEqual:
-      case kUnsignedGreaterThan:
-        // Zero-extend registers on MIPS64 only 64-bit operand
-        // branch and compare op. is available.
-        __ Dext(i.InputRegister(0), i.InputRegister(0), 0, 32);
-        if (instr->InputAt(1)->IsRegister()) {
-          __ Dext(i.InputRegister(1), i.InputRegister(1), 0, 32);
-        }
-        break;
-      default:
-        UNSUPPORTED_COND(kMips64Cmp, branch->condition);
-        break;
-    }
     __ Branch(tlabel, cc, i.InputRegister(0), i.InputOperand(1));
 
     if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
@@ -973,14 +920,6 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
     __ And(at, i.InputRegister(0), i.InputOperand(1));
     __ Branch(USE_DELAY_SLOT, &done, cc, at, Operand(zero_reg));
     __ li(result, Operand(1));  // In delay slot.
-  } else if (instr->arch_opcode() == kMips64Tst32) {
-    cc = FlagsConditionToConditionTst(condition);
-    // Zero-extend register on MIPS64 only 64-bit operand
-    // branch and compare op. is available.
-    __ And(at, i.InputRegister(0), i.InputOperand(1));
-    __ Dext(at, at, 0, 32);
-    __ Branch(USE_DELAY_SLOT, &done, cc, at, Operand(zero_reg));
-    __ li(result, Operand(1));  // In delay slot.
   } else if (instr->arch_opcode() == kMips64Dadd ||
              instr->arch_opcode() == kMips64Dsub) {
     cc = FlagsConditionToConditionOvf(condition);
@@ -992,42 +931,6 @@ void CodeGenerator::AssembleArchBoolean(Instruction* instr,
     Register left = i.InputRegister(0);
     Operand right = i.InputOperand(1);
     cc = FlagsConditionToConditionCmp(condition);
-    __ Branch(USE_DELAY_SLOT, &done, cc, left, right);
-    __ li(result, Operand(1));  // In delay slot.
-  } else if (instr->arch_opcode() == kMips64Cmp32) {
-    Register left = i.InputRegister(0);
-    Operand right = i.InputOperand(1);
-    cc = FlagsConditionToConditionCmp(condition);
-
-    switch (condition) {
-      case kEqual:
-      case kNotEqual:
-      case kSignedLessThan:
-      case kSignedGreaterThanOrEqual:
-      case kSignedLessThanOrEqual:
-      case kSignedGreaterThan:
-        // Sign-extend registers on MIPS64 only 64-bit operand
-        // branch and compare op. is available.
-        __ sll(left, left, 0);
-        if (instr->InputAt(1)->IsRegister()) {
-          __ sll(i.InputRegister(1), i.InputRegister(1), 0);
-        }
-        break;
-      case kUnsignedLessThan:
-      case kUnsignedGreaterThanOrEqual:
-      case kUnsignedLessThanOrEqual:
-      case kUnsignedGreaterThan:
-        // Zero-extend registers on MIPS64 only 64-bit operand
-        // branch and compare op. is available.
-        __ Dext(left, left, 0, 32);
-        if (instr->InputAt(1)->IsRegister()) {
-          __ Dext(i.InputRegister(1), i.InputRegister(1), 0, 32);
-        }
-        break;
-      default:
-        UNSUPPORTED_COND(kMips64Cmp32, condition);
-        break;
-    }
     __ Branch(USE_DELAY_SLOT, &done, cc, left, right);
     __ li(result, Operand(1));  // In delay slot.
   } else if (instr->arch_opcode() == kMips64CmpD) {

@@ -1506,10 +1506,12 @@ Bounds Typer::Visitor::TypeJSCallRuntime(Node* node) {
     case Runtime::kInlineIsFunction:
     case Runtime::kInlineIsRegExp:
       return Bounds(Type::None(zone()), Type::Boolean(zone()));
-    case Runtime::kInlineOptimizedDoubleLo:
-    case Runtime::kInlineOptimizedDoubleHi:
+    case Runtime::kInlineDoubleLo:
+    case Runtime::kInlineDoubleHi:
       return Bounds(Type::None(zone()), Type::Signed32());
-    case Runtime::kInlineOptimizedConstructDouble:
+    case Runtime::kInlineConstructDouble:
+    case Runtime::kInlineMathFloor:
+    case Runtime::kInlineMathSqrt:
       return Bounds(Type::None(zone()), Type::Number());
     default:
       break;
@@ -1519,6 +1521,12 @@ Bounds Typer::Visitor::TypeJSCallRuntime(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSDebugger(Node* node) {
+  UNREACHABLE();
+  return Bounds();
+}
+
+
+Bounds Typer::Visitor::TypeJSStackCheck(Node* node) {
   return Bounds::Unbounded(zone());
 }
 
@@ -2059,6 +2067,16 @@ Bounds Typer::Visitor::TypeFloat64Mod(Node* node) {
 }
 
 
+Bounds Typer::Visitor::TypeFloat64Max(Node* node) {
+  return Bounds(Type::Number());
+}
+
+
+Bounds Typer::Visitor::TypeFloat64Min(Node* node) {
+  return Bounds(Type::Number());
+}
+
+
 Bounds Typer::Visitor::TypeFloat64Sqrt(Node* node) {
   return Bounds(Type::Number());
 }
@@ -2079,13 +2097,7 @@ Bounds Typer::Visitor::TypeFloat64LessThanOrEqual(Node* node) {
 }
 
 
-Bounds Typer::Visitor::TypeFloat64Floor(Node* node) {
-  // TODO(sigurds): We could have a tighter bound here.
-  return Bounds(Type::Number());
-}
-
-
-Bounds Typer::Visitor::TypeFloat64Ceil(Node* node) {
+Bounds Typer::Visitor::TypeFloat64RoundDown(Node* node) {
   // TODO(sigurds): We could have a tighter bound here.
   return Bounds(Type::Number());
 }

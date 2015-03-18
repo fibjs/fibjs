@@ -343,6 +343,22 @@ Condition FlagsConditionToCondition(FlagsCondition condition) {
   } while (0)
 
 
+#define ASSEMBLE_FLOAT_MAX(scratch_reg)                                       \
+  do {                                                                        \
+    __ fsub(scratch_reg, i.InputDoubleRegister(0), i.InputDoubleRegister(1)); \
+    __ fsel(i.OutputDoubleRegister(), scratch_reg, i.InputDoubleRegister(0),  \
+            i.InputDoubleRegister(1));                                        \
+  } while (0)
+
+
+#define ASSEMBLE_FLOAT_MIN(scratch_reg)                                       \
+  do {                                                                        \
+    __ fsub(scratch_reg, i.InputDoubleRegister(0), i.InputDoubleRegister(1)); \
+    __ fsel(i.OutputDoubleRegister(), scratch_reg, i.InputDoubleRegister(1),  \
+            i.InputDoubleRegister(0));                                        \
+  } while (0)
+
+
 #define ASSEMBLE_LOAD_FLOAT(asm_instr, asm_instrx)    \
   do {                                                \
     DoubleRegister result = i.OutputDoubleRegister(); \
@@ -803,6 +819,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kPPC_Neg64:
       __ neg(i.OutputRegister(), i.InputRegister(0), LeaveOE, i.OutputRCBit());
       break;
+    case kPPC_MaxFloat64:
+      ASSEMBLE_FLOAT_MAX(kScratchDoubleReg);
+      break;
+    case kPPC_MinFloat64:
+      ASSEMBLE_FLOAT_MIN(kScratchDoubleReg);
+      break;
     case kPPC_SqrtFloat64:
       ASSEMBLE_FLOAT_UNOP_RC(fsqrt);
       break;
@@ -905,6 +927,32 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kPPC_Float32ToFloat64:
       // Nothing to do.
       __ Move(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      DCHECK_EQ(LeaveRC, i.OutputRCBit());
+      break;
+    case kPPC_Float64ExtractLowWord32:
+      __ MovDoubleLowToInt(i.OutputRegister(), i.InputDoubleRegister(0));
+      DCHECK_EQ(LeaveRC, i.OutputRCBit());
+      break;
+    case kPPC_Float64ExtractHighWord32:
+      __ MovDoubleHighToInt(i.OutputRegister(), i.InputDoubleRegister(0));
+      DCHECK_EQ(LeaveRC, i.OutputRCBit());
+      break;
+    case kPPC_Float64InsertLowWord32:
+      __ InsertDoubleLow(i.OutputDoubleRegister(), i.InputRegister(1), r0);
+      DCHECK_EQ(LeaveRC, i.OutputRCBit());
+      break;
+    case kPPC_Float64InsertHighWord32:
+      __ InsertDoubleHigh(i.OutputDoubleRegister(), i.InputRegister(1), r0);
+      DCHECK_EQ(LeaveRC, i.OutputRCBit());
+      break;
+    case kPPC_Float64Construct:
+#if V8_TARGET_ARCH_PPC64
+      __ MovInt64ComponentsToDouble(i.OutputDoubleRegister(),
+                                    i.InputRegister(0), i.InputRegister(1), r0);
+#else
+      __ MovInt64ToDouble(i.OutputDoubleRegister(), i.InputRegister(0),
+                          i.InputRegister(1));
+#endif
       DCHECK_EQ(LeaveRC, i.OutputRCBit());
       break;
     case kPPC_LoadWordU8:

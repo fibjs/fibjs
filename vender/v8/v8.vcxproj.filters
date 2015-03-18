@@ -456,6 +456,9 @@
     <ClInclude Include="src\compiler\linkage.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\liveness-analyzer.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\load-elimination.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -550,6 +553,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\source-position.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compiler\state-values-utils.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
     <ClInclude Include="src\compiler\typer.h">
@@ -1571,6 +1577,9 @@
     <ClCompile Include="src\compiler\linkage.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\liveness-analyzer.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\load-elimination.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1665,6 +1674,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\source-position.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\state-values-utils.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\typer.cc">

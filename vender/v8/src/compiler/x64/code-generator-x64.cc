@@ -745,6 +745,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ addq(rsp, Immediate(kDoubleSize));
       break;
     }
+    case kSSEFloat64Max:
+      ASSEMBLE_DOUBLE_BINOP(maxsd);
+      break;
+    case kSSEFloat64Min:
+      ASSEMBLE_DOUBLE_BINOP(minsd);
+      break;
     case kSSEFloat64Sqrt:
       if (instr->InputAt(0)->IsDoubleRegister()) {
         __ sqrtsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
@@ -752,22 +758,11 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
         __ sqrtsd(i.OutputDoubleRegister(), i.InputOperand(0));
       }
       break;
-    case kSSEFloat64Floor: {
+    case kSSEFloat64Round: {
       CpuFeatureScope sse_scope(masm(), SSE4_1);
-      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
-                 v8::internal::Assembler::kRoundDown);
-      break;
-    }
-    case kSSEFloat64Ceil: {
-      CpuFeatureScope sse_scope(masm(), SSE4_1);
-      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
-                 v8::internal::Assembler::kRoundUp);
-      break;
-    }
-    case kSSEFloat64RoundTruncate: {
-      CpuFeatureScope sse_scope(masm(), SSE4_1);
-      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
-                 v8::internal::Assembler::kRoundToZero);
+      RoundingMode const mode =
+          static_cast<RoundingMode>(MiscField::decode(instr->opcode()));
+      __ roundsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0), mode);
       break;
     }
     case kSSECvtss2sd:
@@ -861,6 +856,12 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     case kAVXFloat64Div:
       ASSEMBLE_AVX_DOUBLE_BINOP(vdivsd);
+      break;
+    case kAVXFloat64Max:
+      ASSEMBLE_AVX_DOUBLE_BINOP(vmaxsd);
+      break;
+    case kAVXFloat64Min:
+      ASSEMBLE_AVX_DOUBLE_BINOP(vminsd);
       break;
     case kX64Movsxbl:
       ASSEMBLE_MOVX(movsxbl);
@@ -1054,6 +1055,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     case kCheckedStoreFloat64:
       ASSEMBLE_CHECKED_STORE_FLOAT(movsd);
+      break;
+    case kX64StackCheck:
+      __ CompareRoot(rsp, Heap::kStackLimitRootIndex);
       break;
   }
 }  // NOLINT(readability/fn_size)

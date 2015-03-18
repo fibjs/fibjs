@@ -98,6 +98,23 @@ void CalculateFirstPageSizes(bool is_default_snapshot,
       context_snapshot.Reservations();
   int startup_index = 0;
   int context_index = 0;
+
+  if (FLAG_profile_deserialization) {
+    int startup_total = 0;
+    int context_total = 0;
+    for (auto& reservation : startup_reservations) {
+      startup_total += reservation.chunk_size();
+    }
+    for (auto& reservation : context_reservations) {
+      context_total += reservation.chunk_size();
+    }
+    PrintF(
+        "Deserialization will reserve:\n"
+        "%10d bytes for startup\n"
+        "%10d bytes per context\n",
+        startup_total, context_total);
+  }
+
   for (int space = 0; space < i::Serializer::kNumberOfSpaces; space++) {
     bool single_chunk = true;
     while (!startup_reservations[startup_index].is_last()) {
@@ -118,6 +135,8 @@ void CalculateFirstPageSizes(bool is_default_snapshot,
       required = (startup_reservations[startup_index].chunk_size() +
                   2 * context_reservations[context_index].chunk_size()) +
                  Page::kObjectStartOffset;
+      // Add a small allowance to the code space for small scripts.
+      if (space == CODE_SPACE) required += 32 * KB;
     } else {
       // We expect the vanilla snapshot to only require on page per space.
       DCHECK(!is_default_snapshot);
@@ -166,6 +185,14 @@ v8::StartupData Snapshot::CreateSnapshotBlob(
   memcpy(data + kStartupDataOffset, startup_data.begin(), startup_length);
   memcpy(data + context_offset, context_data.begin(), context_length);
   v8::StartupData result = {data, length};
+
+  if (FLAG_profile_deserialization) {
+    PrintF(
+        "Snapshot blob consists of:\n"
+        "%10d bytes for startup\n"
+        "%10d bytes for context\n",
+        startup_length, context_length);
+  }
   return result;
 }
 

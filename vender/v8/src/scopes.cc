@@ -4,13 +4,12 @@
 
 #include "src/v8.h"
 
-#include "src/scopes.h"
-
 #include "src/accessors.h"
 #include "src/bootstrapper.h"
-#include "src/compiler.h"
 #include "src/messages.h"
+#include "src/parser.h"
 #include "src/scopeinfo.h"
+#include "src/scopes.h"
 
 namespace v8 {
 namespace internal {
@@ -66,7 +65,7 @@ Variable* VariableMap::Lookup(const AstRawString* name) {
 // Implementation of Scope
 
 Scope::Scope(Zone* zone, Scope* outer_scope, ScopeType scope_type,
-             AstValueFactory* ast_value_factory)
+             AstValueFactory* ast_value_factory, FunctionKind function_kind)
     : inner_scopes_(4, zone),
       variables_(zone),
       internals_(4, zone),
@@ -79,7 +78,8 @@ Scope::Scope(Zone* zone, Scope* outer_scope, ScopeType scope_type,
       already_resolved_(false),
       ast_value_factory_(ast_value_factory),
       zone_(zone) {
-  SetDefaults(scope_type, outer_scope, Handle<ScopeInfo>::null());
+  SetDefaults(scope_type, outer_scope, Handle<ScopeInfo>::null(),
+              function_kind);
   // The outermost scope must be a script scope.
   DCHECK(scope_type == SCRIPT_SCOPE || outer_scope != NULL);
   DCHECK(!HasIllegalRedeclaration());
@@ -138,11 +138,13 @@ Scope::Scope(Zone* zone, Scope* inner_scope,
 }
 
 
-void Scope::SetDefaults(ScopeType scope_type,
-                        Scope* outer_scope,
-                        Handle<ScopeInfo> scope_info) {
+void Scope::SetDefaults(ScopeType scope_type, Scope* outer_scope,
+                        Handle<ScopeInfo> scope_info,
+                        FunctionKind function_kind) {
   outer_scope_ = outer_scope;
   scope_type_ = scope_type;
+  function_kind_ = function_kind;
+  block_scope_is_class_scope_ = false;
   scope_name_ = ast_value_factory_->empty_string();
   dynamics_ = NULL;
   receiver_ = NULL;
@@ -181,6 +183,8 @@ void Scope::SetDefaults(ScopeType scope_type,
   if (!scope_info.is_null()) {
     scope_calls_eval_ = scope_info->CallsEval();
     language_mode_ = scope_info->language_mode();
+    block_scope_is_class_scope_ = scope_info->block_scope_is_class_scope();
+    function_kind_ = scope_info->function_kind();
   }
 }
 
@@ -248,8 +252,9 @@ Scope* Scope::DeserializeScopeChain(Isolate* isolate, Zone* zone,
 }
 
 
-bool Scope::Analyze(CompilationInfo* info) {
+bool Scope::Analyze(ParseInfo* info) {
   DCHECK(info->function() != NULL);
+  DCHECK(info->scope() == NULL);
   Scope* scope = info->function()->scope();
   Scope* top = scope;
 
@@ -279,12 +284,13 @@ bool Scope::Analyze(CompilationInfo* info) {
   }
 #endif
 
-  info->PrepareForCompilation(scope);
+  info->set_scope(scope);
   return true;
 }
 
 
-void Scope::Initialize(bool subclass_constructor) {
+void Scope::Initialize() {
+  bool subclass_constructor = IsSubclassConstructor(function_kind_);
   DCHECK(!already_resolved());
 
   // Add this scope as a new inner scope of the outer scope.
@@ -639,7 +645,7 @@ void Scope::CollectStackAndContextLocals(ZoneList<Variable*>* stack_locals,
 }
 
 
-bool Scope::AllocateVariables(CompilationInfo* info, AstNodeFactory* factory) {
+bool Scope::AllocateVariables(ParseInfo* info, AstNodeFactory* factory) {
   // 1) Propagate scope information.
   bool outer_scope_calls_sloppy_eval = false;
   if (outer_scope_ != NULL) {
@@ -650,9 +656,9 @@ bool Scope::AllocateVariables(CompilationInfo* info, AstNodeFactory* factory) {
   PropagateScopeInfo(outer_scope_calls_sloppy_eval);
 
   // 2) Allocate module instances.
-  if (FLAG_harmony_modules && (is_script_scope() || is_module_scope())) {
+  if (FLAG_harmony_modules && is_script_scope()) {
     DCHECK(num_modules_ == 0);
-    AllocateModulesRecursively(this);
+    AllocateModules();
   }
 
   // 3) Resolve variables.
@@ -1055,7 +1061,7 @@ Variable* Scope::LookupRecursive(VariableProxy* proxy,
 }
 
 
-bool Scope::ResolveVariable(CompilationInfo* info, VariableProxy* proxy,
+bool Scope::ResolveVariable(ParseInfo* info, VariableProxy* proxy,
                             AstNodeFactory* factory) {
   DCHECK(info->script_scope()->is_script_scope());
 
@@ -1070,29 +1076,7 @@ bool Scope::ResolveVariable(CompilationInfo* info, VariableProxy* proxy,
     case BOUND:
       // We found a variable binding.
       if (is_strong(language_mode())) {
-        // Check for declaration-after use (for variables) in strong mode. Note
-        // that we can only do this in the case where we have seen the
-        // declaration. And we always allow referencing functions (for now).
-
-        // If both the use and the declaration are inside an eval scope
-        // (possibly indirectly), or one of them is, we need to check whether
-        // they are inside the same eval scope or different
-        // ones.
-
-        // TODO(marja,rossberg): Detect errors across different evals (depends
-        // on the future of eval in strong mode).
-        const Scope* eval_for_use = NearestOuterEvalScope();
-        const Scope* eval_for_declaration =
-            var->scope()->NearestOuterEvalScope();
-
-        if (proxy->position() != RelocInfo::kNoPosition &&
-            proxy->position() < var->initializer_position() &&
-            !var->is_function() && eval_for_use == eval_for_declaration) {
-          DCHECK(proxy->end_position() != RelocInfo::kNoPosition);
-          ReportMessage(proxy->position(), proxy->end_position(),
-                        "strong_use_before_declaration", proxy->raw_name());
-          return false;
-        }
+        if (!CheckStrongModeDeclaration(proxy, var)) return false;
       }
       break;
 
@@ -1137,7 +1121,58 @@ bool Scope::ResolveVariable(CompilationInfo* info, VariableProxy* proxy,
 }
 
 
-bool Scope::ResolveVariablesRecursively(CompilationInfo* info,
+bool Scope::CheckStrongModeDeclaration(VariableProxy* proxy, Variable* var) {
+  // Check for declaration-after use (for variables) in strong mode. Note that
+  // we can only do this in the case where we have seen the declaration. And we
+  // always allow referencing functions (for now).
+
+  // Allow referencing the class name from methods of that class, even though
+  // the initializer position for class names is only after the body.
+  Scope* scope = this;
+  while (scope) {
+    if (scope->ClassVariableForMethod() == var) return true;
+    scope = scope->outer_scope();
+  }
+
+  // If both the use and the declaration are inside an eval scope (possibly
+  // indirectly), or one of them is, we need to check whether they are inside
+  // the same eval scope or different ones.
+
+  // TODO(marja,rossberg): Detect errors across different evals (depends on the
+  // future of eval in strong mode).
+  const Scope* eval_for_use = NearestOuterEvalScope();
+  const Scope* eval_for_declaration = var->scope()->NearestOuterEvalScope();
+
+  if (proxy->position() != RelocInfo::kNoPosition &&
+      proxy->position() < var->initializer_position() && !var->is_function() &&
+      eval_for_use == eval_for_declaration) {
+    DCHECK(proxy->end_position() != RelocInfo::kNoPosition);
+    ReportMessage(proxy->position(), proxy->end_position(),
+                  "strong_use_before_declaration", proxy->raw_name());
+    return false;
+  }
+  return true;
+}
+
+
+Variable* Scope::ClassVariableForMethod() const {
+  if (!is_function_scope()) return nullptr;
+  if (IsInObjectLiteral(function_kind_)) return nullptr;
+  if (!IsConciseMethod(function_kind_) && !IsConstructor(function_kind_) &&
+      !IsAccessorFunction(function_kind_)) {
+    return nullptr;
+  }
+  DCHECK_NOT_NULL(outer_scope_);
+  DCHECK(outer_scope_->is_class_scope());
+  // The class scope contains at most one variable, the class name.
+  DCHECK(outer_scope_->variables_.occupancy() <= 1);
+  if (outer_scope_->variables_.occupancy() == 0) return nullptr;
+  VariableMap::Entry* p = outer_scope_->variables_.Start();
+  return reinterpret_cast<Variable*>(p->value);
+}
+
+
+bool Scope::ResolveVariablesRecursively(ParseInfo* info,
                                         AstNodeFactory* factory) {
   DCHECK(info->script_scope()->is_script_scope());
 
@@ -1402,19 +1437,18 @@ void Scope::AllocateVariablesRecursively(Isolate* isolate) {
 }
 
 
-void Scope::AllocateModulesRecursively(Scope* host_scope) {
-  if (already_resolved()) return;
-  if (is_module_scope()) {
-    DCHECK(module_descriptor_->IsFrozen());
-    DCHECK(module_var_ == NULL);
-    module_var_ =
-        host_scope->NewInternal(ast_value_factory_->dot_module_string());
-    ++host_scope->num_modules_;
-  }
-
+void Scope::AllocateModules() {
+  DCHECK(is_script_scope());
+  DCHECK(!already_resolved());
   for (int i = 0; i < inner_scopes_.length(); i++) {
-    Scope* inner_scope = inner_scopes_.at(i);
-    inner_scope->AllocateModulesRecursively(host_scope);
+    Scope* scope = inner_scopes_.at(i);
+    if (scope->is_module_scope()) {
+      DCHECK(!scope->already_resolved());
+      DCHECK(scope->module_descriptor_->IsFrozen());
+      DCHECK_NULL(scope->module_var_);
+      scope->module_var_ = NewInternal(ast_value_factory_->dot_module_string());
+      ++num_modules_;
+    }
   }
 }
 
@@ -1430,5 +1464,4 @@ int Scope::ContextLocalCount() const {
   return num_heap_slots() - Context::MIN_CONTEXT_SLOTS -
       (function_ != NULL && function_->proxy()->var()->IsContextSlot() ? 1 : 0);
 }
-
 } }  // namespace v8::internal

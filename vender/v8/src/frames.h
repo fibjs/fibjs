@@ -69,17 +69,15 @@ class InnerPointerToCodeCache {
 class StackHandlerConstants : public AllStatic {
  public:
   static const int kNextOffset     = 0 * kPointerSize;
-  static const int kCodeOffset     = 1 * kPointerSize;
-  static const int kStateOffset    = 2 * kPointerSize;
+  static const int kStateOffset    = 1 * kPointerSize;
 #if V8_TARGET_LITTLE_ENDIAN || !V8_HOST_ARCH_64_BIT
   static const int kStateIntOffset = kStateOffset;
 #else
   static const int kStateIntOffset = kStateOffset + kIntSize;
 #endif
-  static const int kContextOffset  = 3 * kPointerSize;
-  static const int kFPOffset       = 4 * kPointerSize;
+  static const int kContextOffset  = 2 * kPointerSize;
 
-  static const int kSize = kFPOffset + kFPOnStackSize;
+  static const int kSize = kContextOffset + kPointerSize;
   static const int kSlotCount = kSize >> kPointerSizeLog2;
 };
 
@@ -116,10 +114,8 @@ class StackHandler BASE_EMBEDDED {
 
   // Accessors.
   inline Context* context() const;
-  inline Code* code() const;
   inline Kind kind() const;
   inline unsigned index() const;
-  inline Address frame_pointer() const;
 
   // Testers.
   inline bool is_js_entry() const;
@@ -133,8 +129,6 @@ class StackHandler BASE_EMBEDDED {
 
  private:
   inline Object** context_address() const;
-  inline Object** code_address() const;
-  inline void SetFp(Address slot, Address fp);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackHandler);
 };

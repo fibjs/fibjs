@@ -6,6 +6,7 @@
 
 #include "src/accessors.h"
 #include "src/arguments.h"
+#include "src/compiler.h"
 #include "src/debug.h"
 #include "src/deoptimizer.h"
 #include "src/isolate-inl.h"
@@ -71,6 +72,7 @@ static Handle<Object> DebugGetProperty(LookupIterator* it,
       case LookupIterator::ACCESS_CHECK:
         // Ignore access checks.
         break;
+      case LookupIterator::INTEGER_INDEXED_EXOTIC:
       case LookupIterator::INTERCEPTOR:
       case LookupIterator::JSPROXY:
         return it->isolate()->factory()->undefined_value();
@@ -1198,16 +1200,17 @@ class ScopeIterator {
 
       // Check whether we are in global, eval or function code.
       Handle<ScopeInfo> scope_info(shared_info->scope_info());
+      Zone zone;
       if (scope_info->scope_type() != FUNCTION_SCOPE &&
           scope_info->scope_type() != ARROW_SCOPE) {
         // Global or eval code.
-        CompilationInfoWithZone info(script);
+        ParseInfo info(&zone, script);
         if (scope_info->scope_type() == SCRIPT_SCOPE) {
-          info.MarkAsGlobal();
+          info.set_global();
         } else {
           DCHECK(scope_info->scope_type() == EVAL_SCOPE);
-          info.MarkAsEval();
-          info.SetContext(Handle<Context>(function_->context()));
+          info.set_eval();
+          info.set_context(Handle<Context>(function_->context()));
         }
         if (Parser::ParseStatic(&info) && Scope::Analyze(&info)) {
           scope = info.function()->scope();
@@ -1215,7 +1218,7 @@ class ScopeIterator {
         RetrieveScopeChain(scope, shared_info);
       } else {
         // Function code
-        CompilationInfoWithZone info(shared_info);
+        ParseInfo info(&zone, shared_info);
         if (Parser::ParseStatic(&info) && Scope::Analyze(&info)) {
           scope = info.function()->scope();
         }
@@ -2607,6 +2610,15 @@ RUNTIME_FUNCTION(Runtime_FunctionGetInferredName) {
 
   CONVERT_ARG_CHECKED(JSFunction, f, 0);
   return f->shared()->inferred_name();
+}
+
+
+RUNTIME_FUNCTION(Runtime_FunctionGetDebugName) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 1);
+
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, f, 0);
+  return *JSFunction::GetDebugName(f);
 }
 
 

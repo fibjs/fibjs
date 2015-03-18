@@ -178,12 +178,8 @@ template <> struct SnapshotSizeConstants<8> {
 }  // namespace
 
 
-HeapSnapshot::HeapSnapshot(HeapProfiler* profiler,
-                           const char* title,
-                           unsigned uid)
+HeapSnapshot::HeapSnapshot(HeapProfiler* profiler)
     : profiler_(profiler),
-      title_(title),
-      uid_(uid),
       root_index_(HeapEntry::kNoEntry),
       gc_roots_index_(HeapEntry::kNoEntry),
       max_snapshot_js_object_id_(0) {
@@ -1286,27 +1282,30 @@ void V8HeapExplorer::ExtractContextReferences(int entry, Context* context) {
 
 
 void V8HeapExplorer::ExtractMapReferences(int entry, Map* map) {
-  if (map->HasTransitionArray()) {
-    TransitionArray* transitions = map->transitions();
+  Object* raw_transitions = map->raw_transitions();
+  if (TransitionArray::IsFullTransitionArray(raw_transitions)) {
+    TransitionArray* transitions = TransitionArray::cast(raw_transitions);
     int transitions_entry = GetEntry(transitions)->index();
 
     if (FLAG_collect_maps && map->CanTransition()) {
-      if (!transitions->IsSimpleTransition()) {
-        if (transitions->HasPrototypeTransitions()) {
-          FixedArray* prototype_transitions =
-              transitions->GetPrototypeTransitions();
-          MarkAsWeakContainer(prototype_transitions);
-          TagObject(prototype_transitions, "(prototype transitions");
-          SetInternalReference(transitions, transitions_entry,
-                               "prototype_transitions", prototype_transitions);
-        }
-        // TODO(alph): transitions keys are strong links.
-        MarkAsWeakContainer(transitions);
+      if (transitions->HasPrototypeTransitions()) {
+        FixedArray* prototype_transitions =
+            transitions->GetPrototypeTransitions();
+        MarkAsWeakContainer(prototype_transitions);
+        TagObject(prototype_transitions, "(prototype transitions");
+        SetInternalReference(transitions, transitions_entry,
+                             "prototype_transitions", prototype_transitions);
       }
+      // TODO(alph): transitions keys are strong links.
+      MarkAsWeakContainer(transitions);
     }
 
     TagObject(transitions, "(transition array)");
     SetInternalReference(map, entry, "transitions", transitions,
+                         Map::kTransitionsOffset);
+  } else if (TransitionArray::IsSimpleTransition(raw_transitions)) {
+    TagObject(raw_transitions, "(transition)");
+    SetInternalReference(map, entry, "transition", raw_transitions,
                          Map::kTransitionsOffset);
   }
   DescriptorArray* descriptors = map->instance_descriptors();
@@ -2880,12 +2879,7 @@ void HeapSnapshotJSONSerializer::SerializeNodes() {
 
 
 void HeapSnapshotJSONSerializer::SerializeSnapshot() {
-  writer_->AddString("\"title\":\"");
-  writer_->AddString(snapshot_->title());
-  writer_->AddString("\"");
-  writer_->AddString(",\"uid\":");
-  writer_->AddNumber(snapshot_->uid());
-  writer_->AddString(",\"meta\":");
+  writer_->AddString("\"meta\":");
   // The object describing node serialization layout.
   // We use a set of macros to improve readability.
 #define JSON_A(s) "[" s "]"

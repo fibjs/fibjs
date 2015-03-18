@@ -341,49 +341,37 @@ bool LCodeGen::GenerateJumpTable() {
 
       if (table_entry->needs_frame) {
         DCHECK(!info()->saves_caller_doubles());
-        if (needs_frame.is_bound()) {
-          __ b(&needs_frame);
-        } else {
-          __ bind(&needs_frame);
-          Comment(";;; call deopt with frame");
-          // This variant of deopt can only be used with stubs. Since we don't
-          // have a function pointer to install in the stack frame that we're
-          // building, install a special marker there instead.
-          DCHECK(info()->IsStub());
-          __ LoadSmiLiteral(ip, Smi::FromInt(StackFrame::STUB));
-          __ PushFixedFrame(ip);
-          __ addi(fp, sp,
-                  Operand(StandardFrameConstants::kFixedFrameSizeFromFp));
-          __ bind(&call_deopt_entry);
-          // Add the base address to the offset previously loaded in
-          // entry_offset.
-          __ mov(ip, Operand(ExternalReference::ForDeoptEntry(base)));
-          __ add(ip, entry_offset, ip);
-          __ Call(ip);
-        }
+        Comment(";;; call deopt with frame");
+        __ PushFixedFrame();
+        __ b(&needs_frame, SetLK);
       } else {
-        // The last entry can fall through into `call_deopt_entry`, avoiding a
-        // branch.
-        bool need_branch = ((i + 1) != length) || call_deopt_entry.is_bound();
-
-        if (need_branch) __ b(&call_deopt_entry);
+        __ b(&call_deopt_entry, SetLK);
       }
     }
 
-    if (!call_deopt_entry.is_bound()) {
-      Comment(";;; call deopt");
-      __ bind(&call_deopt_entry);
-
-      if (info()->saves_caller_doubles()) {
-        DCHECK(info()->IsStub());
-        RestoreCallerDoubles();
-      }
-
-      // Add the base address to the offset previously loaded in entry_offset.
-      __ mov(ip, Operand(ExternalReference::ForDeoptEntry(base)));
-      __ add(ip, entry_offset, ip);
-      __ Call(ip);
+    if (needs_frame.is_linked()) {
+      __ bind(&needs_frame);
+      // This variant of deopt can only be used with stubs. Since we don't
+      // have a function pointer to install in the stack frame that we're
+      // building, install a special marker there instead.
+      DCHECK(info()->IsStub());
+      __ LoadSmiLiteral(ip, Smi::FromInt(StackFrame::STUB));
+      __ push(ip);
+      __ addi(fp, sp, Operand(StandardFrameConstants::kFixedFrameSizeFromFp));
     }
+
+    Comment(";;; call deopt");
+    __ bind(&call_deopt_entry);
+
+    if (info()->saves_caller_doubles()) {
+      DCHECK(info()->IsStub());
+      RestoreCallerDoubles();
+    }
+
+    // Add the base address to the offset previously loaded in entry_offset.
+    __ mov(ip, Operand(ExternalReference::ForDeoptEntry(base)));
+    __ add(ip, entry_offset, ip);
+    __ Jump(ip);
   }
 
   // The deoptimization jump table is the last part of the instruction
@@ -817,8 +805,8 @@ void LCodeGen::DeoptimizeIf(Condition cond, LInstruction* instr,
     __ stop("trap_on_deopt", cond, kDefaultStopCode, cr);
   }
 
-  Deoptimizer::DeoptInfo deopt_info(instr->hydrogen_value()->position(),
-                                    instr->Mnemonic(), deopt_reason);
+  Deoptimizer::DeoptInfo deopt_info = MakeDeoptInfo(instr, deopt_reason);
+
   DCHECK(info()->IsStub() || frame_is_built_);
   // Go through jump table if we need to handle condition, build frame, or
   // restore caller doubles.
@@ -2957,22 +2945,25 @@ void LCodeGen::DoDeferredInstanceOfKnownGlobal(LInstanceOfKnownGlobal* instr,
   LoadContextFromDeferred(instr->context());
 
   __ Move(InstanceofStub::right(), instr->function());
-  // Include instructions below in delta: mov + call = mov + (mov + 2)
-  static const int kAdditionalDelta = 2 * Assembler::kMovInstructions + 2;
-  int delta = masm_->InstructionsGeneratedSince(map_check) + kAdditionalDelta;
   {
     Assembler::BlockTrampolinePoolScope block_trampoline_pool(masm_);
-    if (Assembler::kMovInstructions != 1 &&
-        is_int16(delta * Instruction::kInstrSize)) {
-      // The following mov will be an li rather than a multi-instruction form
-      delta -= Assembler::kMovInstructions - 1;
-    }
+    Handle<Code> code = stub.GetCode();
+    // Include instructions below in delta: bitwise_mov32 + call
+    int delta = (masm_->InstructionsGeneratedSince(map_check) + 2) *
+                    Instruction::kInstrSize +
+                masm_->CallSize(code);
     // r8 is used to communicate the offset to the location of the map check.
-    __ mov(r8, Operand(delta * Instruction::kInstrSize));
+    if (is_int16(delta)) {
+      delta -= Instruction::kInstrSize;
+      __ li(r8, Operand(delta));
+    } else {
+      __ bitwise_mov32(r8, delta);
+    }
+    CallCodeGeneric(code, RelocInfo::CODE_TARGET, instr,
+                    RECORD_SAFEPOINT_WITH_REGISTERS_AND_NO_ARGUMENTS);
+    DCHECK(delta / Instruction::kInstrSize ==
+           masm_->InstructionsGeneratedSince(map_check));
   }
-  CallCodeGeneric(stub.GetCode(), RelocInfo::CODE_TARGET, instr,
-                  RECORD_SAFEPOINT_WITH_REGISTERS_AND_NO_ARGUMENTS);
-  DCHECK(delta == masm_->InstructionsGeneratedSince(map_check));
   LEnvironment* env = instr->GetDeferredLazyDeoptimizationEnvironment();
   safepoints_.RecordLazyDeoptimizationIndex(env->deoptimization_index());
   // Put the result value (r3) into the result register slot and

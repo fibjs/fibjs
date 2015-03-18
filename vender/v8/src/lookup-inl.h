@@ -44,6 +44,10 @@ LookupIterator::State LookupIterator::LookupInHolder(Map* map,
       }
     // Fall through.
     case ACCESS_CHECK:
+      if (exotic_index_state_ != ExoticIndexState::kNoIndex &&
+          IsIntegerIndexedExotic(holder)) {
+        return INTEGER_INDEXED_EXOTIC;
+      }
       if (check_interceptor() && map->has_named_interceptor()) {
         return INTERCEPTOR;
       }
@@ -53,12 +57,11 @@ LookupIterator::State LookupIterator::LookupInHolder(Map* map,
         NameDictionary* dict = JSObject::cast(holder)->property_dictionary();
         number_ = dict->FindEntry(name_);
         if (number_ == NameDictionary::kNotFound) return NOT_FOUND;
-        property_details_ = dict->DetailsAt(number_);
         if (holder->IsGlobalObject()) {
-          if (property_details_.IsDeleted()) return NOT_FOUND;
           PropertyCell* cell = PropertyCell::cast(dict->ValueAt(number_));
           if (cell->value()->IsTheHole()) return NOT_FOUND;
         }
+        property_details_ = dict->DetailsAt(number_);
       } else {
         DescriptorArray* descriptors = map->instance_descriptors();
         number_ = descriptors->SearchWithCache(*name_, map);
@@ -75,6 +78,7 @@ LookupIterator::State LookupIterator::LookupInHolder(Map* map,
     case ACCESSOR:
     case DATA:
       return NOT_FOUND;
+    case INTEGER_INDEXED_EXOTIC:
     case JSPROXY:
     case TRANSITION:
       UNREACHABLE();

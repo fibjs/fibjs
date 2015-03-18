@@ -139,6 +139,7 @@
     <ClInclude Include="src\compiler\jump-threading.h" />
     <ClInclude Include="src\compiler\linkage-impl.h" />
     <ClInclude Include="src\compiler\linkage.h" />
+    <ClInclude Include="src\compiler\liveness-analyzer.h" />
     <ClInclude Include="src\compiler\load-elimination.h" />
     <ClInclude Include="src\compiler\loop-analysis.h" />
     <ClInclude Include="src\compiler\loop-peeling.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="src\compiler\simplified-operator-reducer.h" />
     <ClInclude Include="src\compiler\simplified-operator.h" />
     <ClInclude Include="src\compiler\source-position.h" />
+    <ClInclude Include="src\compiler\state-values-utils.h" />
     <ClInclude Include="src\compiler\typer.h" />
     <ClInclude Include="src\compiler\value-numbering-reducer.h" />
     <ClInclude Include="src\compiler\verifier.h" />
@@ -512,6 +514,7 @@
     <ClCompile Include="src\compiler\js-typed-lowering.cc" />
     <ClCompile Include="src\compiler\jump-threading.cc" />
     <ClCompile Include="src\compiler\linkage.cc" />
+    <ClCompile Include="src\compiler\liveness-analyzer.cc" />
     <ClCompile Include="src\compiler\load-elimination.cc" />
     <ClCompile Include="src\compiler\loop-analysis.cc" />
     <ClCompile Include="src\compiler\loop-peeling.cc" />
@@ -544,6 +547,7 @@
     <ClCompile Include="src\compiler\simplified-operator-reducer.cc" />
     <ClCompile Include="src\compiler\simplified-operator.cc" />
     <ClCompile Include="src\compiler\source-position.cc" />
+    <ClCompile Include="src\compiler\state-values-utils.cc" />
     <ClCompile Include="src\compiler\typer.cc" />
     <ClCompile Include="src\compiler\value-numbering-reducer.cc" />
     <ClCompile Include="src\compiler\verifier.cc" />

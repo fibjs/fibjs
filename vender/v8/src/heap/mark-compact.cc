@@ -99,6 +99,7 @@ static void VerifyMarking(Heap* heap, Address bottom, Address top) {
   for (Address current = bottom; current < top; current += kPointerSize) {
     object = HeapObject::FromAddress(current);
     if (MarkCompactCollector::IsMarked(object)) {
+      CHECK(Marking::IsBlack(Marking::MarkBitFrom(object)));
       CHECK(current >= next_object_must_be_here_or_later);
       object->Iterate(&visitor);
       next_object_must_be_here_or_later = current + object->Size();
@@ -314,6 +315,14 @@ void MarkCompactCollector::CollectGarbage() {
   }
 #endif
 
+  heap_->store_buffer()->ClearInvalidStoreBufferEntries();
+
+#ifdef VERIFY_HEAP
+  if (FLAG_verify_heap) {
+    heap_->store_buffer()->VerifyValidStoreBufferEntries();
+  }
+#endif
+
   SweepSpaces();
 
 #ifdef VERIFY_HEAP
@@ -472,12 +481,12 @@ void MarkCompactCollector::EnsureSweepingCompleted() {
 
   // If sweeping is not completed or not running at all, we try to complete it
   // here.
-  if (!FLAG_concurrent_sweeping || !IsSweepingCompleted()) {
+  if (!heap()->concurrent_sweeping_enabled() || !IsSweepingCompleted()) {
     SweepInParallel(heap()->paged_space(OLD_DATA_SPACE), 0);
     SweepInParallel(heap()->paged_space(OLD_POINTER_SPACE), 0);
   }
   // Wait twice for both jobs.
-  if (FLAG_concurrent_sweeping) {
+  if (heap()->concurrent_sweeping_enabled()) {
     pending_sweeper_jobs_semaphore_.Wait();
     pending_sweeper_jobs_semaphore_.Wait();
   }
@@ -1470,8 +1479,9 @@ class MarkCompactMarkingVisitor::ObjectStatsTracker<
       heap->RecordFixedArraySubTypeStats(DESCRIPTOR_ARRAY_SUB_TYPE,
                                          fixed_array_size);
     }
-    if (map_obj->HasTransitionArray()) {
-      int fixed_array_size = map_obj->transitions()->Size();
+    if (TransitionArray::IsFullTransitionArray(map_obj->raw_transitions())) {
+      int fixed_array_size =
+          TransitionArray::cast(map_obj->raw_transitions())->Size();
       heap->RecordFixedArraySubTypeStats(TRANSITION_ARRAY_SUB_TYPE,
                                          fixed_array_size);
     }
@@ -1967,7 +1977,8 @@ void MarkCompactCollector::MarkRoots(RootMarkingVisitor* visitor) {
 }
 
 
-void MarkCompactCollector::MarkImplicitRefGroups() {
+void MarkCompactCollector::MarkImplicitRefGroups(
+    MarkObjectFunction mark_object) {
   List<ImplicitRefGroup*>* ref_groups =
       isolate()->global_handles()->implicit_ref_groups();
 
@@ -1985,9 +1996,7 @@ void MarkCompactCollector::MarkImplicitRefGroups() {
     // A parent object is marked, so mark all child heap objects.
     for (size_t j = 0; j < entry->length; ++j) {
       if ((*children[j])->IsHeapObject()) {
-        HeapObject* child = HeapObject::cast(*children[j]);
-        MarkBit mark = Marking::MarkBitFrom(child);
-        MarkObject(child, mark);
+        mark_object(heap(), HeapObject::cast(*children[j]));
       }
     }
 
@@ -2086,7 +2095,7 @@ void MarkCompactCollector::ProcessEphemeralMarking(
     if (!only_process_harmony_weak_collections) {
       isolate()->global_handles()->IterateObjectGroups(
           visitor, &IsUnmarkedHeapObjectWithHeap);
-      MarkImplicitRefGroups();
+      MarkImplicitRefGroups(&MarkCompactMarkingVisitor::MarkObject);
     }
     ProcessWeakCollections();
     work_to_do = !marking_deque_.IsEmpty();
@@ -2110,6 +2119,70 @@ void MarkCompactCollector::ProcessTopOptimizedFrame(ObjectVisitor* visitor) {
       return;
     }
   }
+}
+
+
+void MarkCompactCollector::RetainMaps() {
+  if (reduce_memory_footprint_ || abort_incremental_marking_ ||
+      FLAG_retain_maps_for_n_gc == 0) {
+    // Do not retain dead maps if flag disables it or there is
+    // - memory pressure (reduce_memory_footprint_),
+    // - GC is requested by tests or dev-tools (abort_incremental_marking_).
+    return;
+  }
+
+  ArrayList* retained_maps = heap()->retained_maps();
+  int length = retained_maps->Length();
+  int new_length = 0;
+  for (int i = 0; i < length; i += 2) {
+    WeakCell* cell = WeakCell::cast(retained_maps->Get(i));
+    if (cell->cleared()) continue;
+    int age = Smi::cast(retained_maps->Get(i + 1))->value();
+    int new_age;
+    Map* map = Map::cast(cell->value());
+    MarkBit map_mark = Marking::MarkBitFrom(map);
+    if (!map_mark.Get()) {
+      if (age == 0) {
+        // The map has aged. Do not retain this map.
+        continue;
+      }
+      Object* constructor = map->GetConstructor();
+      if (!constructor->IsHeapObject() ||
+          !Marking::MarkBitFrom(HeapObject::cast(constructor)).Get()) {
+        // The constructor is dead, no new objects with this map can
+        // be created. Do not retain this map.
+        continue;
+      }
+      Object* prototype = map->prototype();
+      if (prototype->IsHeapObject() &&
+          !Marking::MarkBitFrom(HeapObject::cast(prototype)).Get()) {
+        // The prototype is not marked, age the map.
+        new_age = age - 1;
+      } else {
+        // The prototype and the constructor are marked, this map keeps only
+        // transition tree alive, not JSObjects. Do not age the map.
+        new_age = age;
+      }
+      MarkObject(map, map_mark);
+    } else {
+      new_age = FLAG_retain_maps_for_n_gc;
+    }
+    if (i != new_length) {
+      retained_maps->Set(new_length, cell);
+      Object** slot = retained_maps->Slot(new_length);
+      RecordSlot(slot, slot, cell);
+      retained_maps->Set(new_length + 1, Smi::FromInt(new_age));
+    } else if (new_age != age) {
+      retained_maps->Set(new_length + 1, Smi::FromInt(new_age));
+    }
+    new_length += 2;
+  }
+  Object* undefined = heap()->undefined_value();
+  for (int i = new_length; i < length; i++) {
+    retained_maps->Clear(i, undefined);
+  }
+  if (new_length != length) retained_maps->SetLength(new_length);
+  ProcessMarkingDeque();
 }
 
 
@@ -2148,21 +2221,6 @@ void MarkCompactCollector::UncommitMarkingDeque() {
     CHECK(success);
     marking_deque_memory_committed_ = false;
   }
-}
-
-
-void MarkCompactCollector::OverApproximateWeakClosure() {
-  GCTracer::Scope gc_scope(heap()->tracer(),
-                           GCTracer::Scope::MC_INCREMENTAL_WEAKCLOSURE);
-
-  RootMarkingVisitor root_visitor(heap());
-  isolate()->global_handles()->IterateObjectGroups(
-      &root_visitor, &IsUnmarkedHeapObjectWithHeap);
-  MarkImplicitRefGroups();
-
-  // Remove object groups after marking phase.
-  heap()->isolate()->global_handles()->RemoveObjectGroups();
-  heap()->isolate()->global_handles()->RemoveImplicitRefGroups();
 }
 
 
@@ -2227,6 +2285,11 @@ void MarkCompactCollector::MarkLiveObjects() {
   MarkRoots(&root_visitor);
 
   ProcessTopOptimizedFrame(&root_visitor);
+
+  // Retaining dying maps should happen before or during ephemeral marking
+  // because a map could keep the key of an ephemeron alive. Note that map
+  // aging is imprecise: maps that are kept alive only by ephemerons will age.
+  RetainMaps();
 
   {
     GCTracer::Scope gc_scope(heap()->tracer(), GCTracer::Scope::MC_WEAKCLOSURE);
@@ -2346,10 +2409,12 @@ void MarkCompactCollector::ClearNonLiveReferences() {
 
 
 void MarkCompactCollector::ClearNonLivePrototypeTransitions(Map* map) {
-  int number_of_transitions = map->NumberOfProtoTransitions();
-  FixedArray* prototype_transitions = map->GetPrototypeTransitions();
+  FixedArray* prototype_transitions =
+      TransitionArray::GetPrototypeTransitions(map);
+  int number_of_transitions =
+      TransitionArray::NumberOfPrototypeTransitions(prototype_transitions);
 
-  const int header = Map::kProtoTransitionHeaderSize;
+  const int header = TransitionArray::kProtoTransitionHeaderSize;
   int new_number_of_transitions = 0;
   for (int i = 0; i < number_of_transitions; i++) {
     Object* cached_map = prototype_transitions->get(header + i);
@@ -2363,7 +2428,8 @@ void MarkCompactCollector::ClearNonLivePrototypeTransitions(Map* map) {
   }
 
   if (new_number_of_transitions != number_of_transitions) {
-    map->SetNumberOfProtoTransitions(new_number_of_transitions);
+    TransitionArray::SetNumberOfPrototypeTransitions(prototype_transitions,
+                                                     new_number_of_transitions);
   }
 
   // Fill slots that became free with undefined value.
@@ -2384,7 +2450,7 @@ void MarkCompactCollector::ClearNonLiveMapTransitions(Map* map,
   bool current_is_alive = map_mark.Get();
   bool parent_is_alive = Marking::MarkBitFrom(parent).Get();
   if (!current_is_alive && parent_is_alive) {
-    ClearMapTransitions(parent);
+    ClearMapTransitions(parent, map);
   }
 }
 
@@ -2398,28 +2464,43 @@ bool MarkCompactCollector::ClearMapBackPointer(Map* target) {
 }
 
 
-void MarkCompactCollector::ClearMapTransitions(Map* map) {
-  // If there are no transitions to be cleared, return.
-  // TODO(verwaest) Should be an assert, otherwise back pointers are not
-  // properly cleared.
-  if (!map->HasTransitionArray()) return;
+void MarkCompactCollector::ClearMapTransitions(Map* map, Map* dead_transition) {
+  Object* transitions = map->raw_transitions();
+  int num_transitions = TransitionArray::NumberOfTransitions(transitions);
 
-  TransitionArray* t = map->transitions();
+  int number_of_own_descriptors = map->NumberOfOwnDescriptors();
+  DescriptorArray* descriptors = map->instance_descriptors();
+
+  // A previously existing simple transition (stored in a WeakCell) may have
+  // been cleared. Clear the useless cell pointer, and take ownership
+  // of the descriptor array.
+  if (transitions->IsWeakCell() && WeakCell::cast(transitions)->cleared()) {
+    map->set_raw_transitions(Smi::FromInt(0));
+  }
+  if (num_transitions == 0 &&
+      descriptors == dead_transition->instance_descriptors() &&
+      number_of_own_descriptors > 0) {
+    TrimDescriptorArray(map, descriptors, number_of_own_descriptors);
+    DCHECK(descriptors->number_of_descriptors() == number_of_own_descriptors);
+    map->set_owns_descriptors(true);
+    return;
+  }
 
   int transition_index = 0;
 
-  DescriptorArray* descriptors = map->instance_descriptors();
   bool descriptors_owner_died = false;
 
   // Compact all live descriptors to the left.
-  for (int i = 0; i < t->number_of_transitions(); ++i) {
-    Map* target = t->GetTarget(i);
+  for (int i = 0; i < num_transitions; ++i) {
+    Map* target = TransitionArray::GetTarget(transitions, i);
     if (ClearMapBackPointer(target)) {
       if (target->instance_descriptors() == descriptors) {
         descriptors_owner_died = true;
       }
     } else {
       if (i != transition_index) {
+        DCHECK(TransitionArray::IsFullTransitionArray(transitions));
+        TransitionArray* t = TransitionArray::cast(transitions);
         Name* key = t->GetKey(i);
         t->SetKey(transition_index, key);
         Object** key_slot = t->GetKeySlot(transition_index);
@@ -2434,9 +2515,7 @@ void MarkCompactCollector::ClearMapTransitions(Map* map) {
   // If there are no transitions to be cleared, return.
   // TODO(verwaest) Should be an assert, otherwise back pointers are not
   // properly cleared.
-  if (transition_index == t->number_of_transitions()) return;
-
-  int number_of_own_descriptors = map->NumberOfOwnDescriptors();
+  if (transition_index == num_transitions) return;
 
   if (descriptors_owner_died) {
     if (number_of_own_descriptors > 0) {
@@ -2452,14 +2531,17 @@ void MarkCompactCollector::ClearMapTransitions(Map* map) {
   // such that number_of_transitions() == 0. If this assumption changes,
   // TransitionArray::Insert() will need to deal with the case that a transition
   // array disappeared during GC.
-  int trim = t->number_of_transitions_storage() - transition_index;
+  int trim = TransitionArray::Capacity(transitions) - transition_index;
   if (trim > 0) {
+    // Non-full-TransitionArray cases can never reach this point.
+    DCHECK(TransitionArray::IsFullTransitionArray(transitions));
+    TransitionArray* t = TransitionArray::cast(transitions);
     heap_->RightTrimFixedArray<Heap::FROM_GC>(
-        t, t->IsSimpleTransition() ? trim
-                                   : trim * TransitionArray::kTransitionSize);
+        t, trim * TransitionArray::kTransitionSize);
     t->SetNumberOfTransitions(transition_index);
+    // The map still has a full transition array.
+    DCHECK(TransitionArray::IsFullTransitionArray(map->raw_transitions()));
   }
-  DCHECK(map->HasTransitionArray());
 }
 
 
@@ -2919,19 +3001,15 @@ void PointersUpdatingVisitor::CheckLayoutDescriptorAndDie(Heap* heap,
 
 
 static void UpdatePointer(HeapObject** address, HeapObject* object) {
-  Address new_addr = Memory::Address_at(object->address());
-
-  // The new space sweep will overwrite the map word of dead objects
-  // with NULL. In this case we do not need to transfer this entry to
-  // the store buffer which we are rebuilding.
-  // We perform the pointer update with a no barrier compare-and-swap. The
-  // compare and swap may fail in the case where the pointer update tries to
-  // update garbage memory which was concurrently accessed by the sweeper.
-  if (new_addr != NULL) {
-    base::NoBarrier_CompareAndSwap(
-        reinterpret_cast<base::AtomicWord*>(address),
-        reinterpret_cast<base::AtomicWord>(object),
-        reinterpret_cast<base::AtomicWord>(HeapObject::FromAddress(new_addr)));
+  MapWord map_word = object->map_word();
+  // The store buffer can still contain stale pointers in dead large objects.
+  // Ignore these pointers here.
+  DCHECK(map_word.IsForwardingAddress() ||
+         object->GetHeap()->lo_space()->FindPage(
+             reinterpret_cast<Address>(address)) != NULL);
+  if (map_word.IsForwardingAddress()) {
+    // Update the corresponding slot.
+    *address = map_word.ToForwardingAddress();
   }
 }
 
@@ -2965,6 +3043,139 @@ bool MarkCompactCollector::TryPromoteObject(HeapObject* object,
   }
 
   return false;
+}
+
+
+bool MarkCompactCollector::IsSlotInBlackObject(Page* p, Address slot) {
+  // This function does not support large objects right now.
+  Space* owner = p->owner();
+  if (owner == heap_->lo_space() || owner == NULL) return true;
+
+  uint32_t mark_bit_index = p->AddressToMarkbitIndex(slot);
+  unsigned int start_index = mark_bit_index >> Bitmap::kBitsPerCellLog2;
+  MarkBit::CellType index_in_cell = 1U
+                                    << (mark_bit_index & Bitmap::kBitIndexMask);
+  MarkBit::CellType* cells = p->markbits()->cells();
+  Address cell_base = p->area_start();
+  unsigned int cell_base_start_index = Bitmap::IndexToCell(
+      Bitmap::CellAlignIndex(p->AddressToMarkbitIndex(cell_base)));
+
+  // First check if the object is in the current cell.
+  MarkBit::CellType slot_mask;
+  if ((cells[start_index] == 0) ||
+      (base::bits::CountTrailingZeros32(cells[start_index]) >
+       base::bits::CountTrailingZeros32(cells[start_index] | index_in_cell))) {
+    // If we are already in the first cell, there is no live object.
+    if (start_index == cell_base_start_index) return false;
+
+    // If not, find a cell in a preceding cell slot that has a mark bit set.
+    do {
+      start_index--;
+    } while (start_index > cell_base_start_index && cells[start_index] == 0);
+
+    // The slot must be in a dead object if there are no preceding cells that
+    // have mark bits set.
+    if (cells[start_index] == 0) {
+      return false;
+    }
+
+    // The object is in a preceding cell. Set the mask to find any object.
+    slot_mask = 0xffffffff;
+  } else {
+    // We are interested in object mark bits right before the slot.
+    slot_mask = index_in_cell - 1;
+  }
+
+  MarkBit::CellType current_cell = cells[start_index];
+  DCHECK(current_cell != 0);
+
+  // Find the last live object in the cell.
+  unsigned int leading_zeros =
+      base::bits::CountLeadingZeros32(current_cell & slot_mask);
+  DCHECK(leading_zeros != 32);
+  unsigned int offset = Bitmap::kBitIndexMask - leading_zeros;
+
+  cell_base += (start_index - cell_base_start_index) * 32 * kPointerSize;
+  Address address = cell_base + offset * kPointerSize;
+  HeapObject* object = HeapObject::FromAddress(address);
+  DCHECK(object->address() < reinterpret_cast<Address>(slot));
+  if (object->address() <= slot &&
+      (object->address() + object->Size()) > slot) {
+    // If the slot is within the last found object in the cell, the slot is
+    // in a live object.
+    return true;
+  }
+  return false;
+}
+
+
+bool MarkCompactCollector::IsSlotInBlackObjectSlow(Page* p, Address slot) {
+  // This function does not support large objects right now.
+  Space* owner = p->owner();
+  if (owner == heap_->lo_space() || owner == NULL) return true;
+
+  for (MarkBitCellIterator it(p); !it.Done(); it.Advance()) {
+    Address cell_base = it.CurrentCellBase();
+    MarkBit::CellType* cell = it.CurrentCell();
+
+    MarkBit::CellType current_cell = *cell;
+    if (current_cell == 0) continue;
+
+    int offset = 0;
+    while (current_cell != 0) {
+      int trailing_zeros = base::bits::CountTrailingZeros32(current_cell);
+      current_cell >>= trailing_zeros;
+      offset += trailing_zeros;
+      Address address = cell_base + offset * kPointerSize;
+
+      HeapObject* object = HeapObject::FromAddress(address);
+      int size = object->Size();
+
+      if (object->address() > slot) return false;
+      if (object->address() <= slot && slot < (object->address() + size)) {
+        return true;
+      }
+
+      offset++;
+      current_cell >>= 1;
+    }
+  }
+  return false;
+}
+
+
+bool MarkCompactCollector::IsSlotInLiveObject(HeapObject** address,
+                                              HeapObject* object) {
+  // If the target object is not black, the source slot must be part
+  // of a non-black (dead) object.
+  if (!Marking::IsBlack(Marking::MarkBitFrom(object))) {
+    return false;
+  }
+
+  // The target object is black but we don't know if the source slot is black.
+  // The source object could have died and the slot could be part of a free
+  // space. Find out based on mark bits if the slot is part of a live object.
+  if (!IsSlotInBlackObject(
+          Page::FromAddress(reinterpret_cast<Address>(address)),
+          reinterpret_cast<Address>(address))) {
+    return false;
+  }
+
+  return true;
+}
+
+
+void MarkCompactCollector::VerifyIsSlotInLiveObject(HeapObject** address,
+                                                    HeapObject* object) {
+  // The target object has to be black.
+  CHECK(Marking::IsBlack(Marking::MarkBitFrom(object)));
+
+  // The target object is black but we don't know if the source slot is black.
+  // The source object could have died and the slot could be part of a free
+  // space. Use the mark bit iterator to find out about liveness of the slot.
+  CHECK(IsSlotInBlackObjectSlow(
+      Page::FromAddress(reinterpret_cast<Address>(address)),
+      reinterpret_cast<Address>(address)));
 }
 
 
@@ -3430,8 +3641,7 @@ void MarkCompactCollector::EvacuateNewSpaceAndCandidates() {
                              GCTracer::Scope::MC_UPDATE_OLD_TO_NEW_POINTERS);
     StoreBufferRebuildScope scope(heap_, heap_->store_buffer(),
                                   &Heap::ScavengeStoreBufferCallback);
-    heap_->store_buffer()->IteratePointersToNewSpaceAndClearMaps(
-        &UpdatePointer);
+    heap_->store_buffer()->IteratePointersToNewSpace(&UpdatePointer);
   }
 
   {
@@ -4150,7 +4360,7 @@ void MarkCompactCollector::SweepSpaces() {
       SweepSpace(heap()->old_data_space(), CONCURRENT_SWEEPING);
     }
     sweeping_in_progress_ = true;
-    if (FLAG_concurrent_sweeping) {
+    if (heap()->concurrent_sweeping_enabled()) {
       StartSweeperThreads();
     }
   }
@@ -4171,7 +4381,7 @@ void MarkCompactCollector::SweepSpaces() {
 
   EvacuateNewSpaceAndCandidates();
 
-  // ClearNonLiveTransitions depends on precise sweeping of map space to
+  // ClearNonLiveReferences depends on precise sweeping of map space to
   // detect whether unmarked map became dead in this collection or in one
   // of the previous ones.
   {

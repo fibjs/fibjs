@@ -41,9 +41,6 @@ class IncrementalMarking {
   bool weak_closure_was_overapproximated() const {
     return weak_closure_was_overapproximated_;
   }
-  void set_weak_closure_was_overapproximated(bool val) {
-    weak_closure_was_overapproximated_ = val;
-  }
 
   inline bool IsStopped() { return state() == STOPPED; }
 
@@ -52,6 +49,10 @@ class IncrementalMarking {
   inline bool IsMarkingIncomplete() { return state() == MARKING; }
 
   inline bool IsComplete() { return state() == COMPLETE; }
+
+  inline bool IsReadyToOverApproximateWeakClosure() const {
+    return request_type_ == OVERAPPROXIMATION;
+  }
 
   GCRequestType request_type() const { return request_type_; }
 
@@ -67,6 +68,8 @@ class IncrementalMarking {
 
   void Stop();
 
+  void MarkObjectGroups();
+
   void PrepareForScavenge();
 
   void UpdateMarkingDequeAfterScavenge();
@@ -77,7 +80,7 @@ class IncrementalMarking {
 
   void Abort();
 
-  void OverApproximateWeakClosure();
+  void OverApproximateWeakClosure(CompletionAction action);
 
   void MarkingComplete(CompletionAction action);
 
@@ -189,6 +192,10 @@ class IncrementalMarking {
 
   bool IsIdleMarkingDelayCounterLimitReached();
 
+  INLINE(static void MarkObject(Heap* heap, HeapObject* object));
+
+  Heap* heap() const { return heap_; }
+
  private:
   int64_t SpaceLeftInOldSpace();
 
@@ -242,6 +249,8 @@ class IncrementalMarking {
   bool was_activated_;
 
   bool weak_closure_was_overapproximated_;
+
+  int weak_closure_approximation_rounds_;
 
   GCRequestType request_type_;
 

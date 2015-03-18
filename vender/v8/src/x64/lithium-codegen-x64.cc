@@ -773,8 +773,8 @@ void LCodeGen::DeoptimizeIf(Condition cc, LInstruction* instr,
     __ bind(&done);
   }
 
-  Deoptimizer::DeoptInfo deopt_info(instr->hydrogen_value()->position(),
-                                    instr->Mnemonic(), deopt_reason);
+  Deoptimizer::DeoptInfo deopt_info = MakeDeoptInfo(instr, deopt_reason);
+
   DCHECK(info()->IsStub() || frame_is_built_);
   // Go through jump table if we need to handle condition, build frame, or
   // restore caller doubles.
@@ -3770,7 +3770,7 @@ void LCodeGen::DoMathFloor(LMathFloor* instr) {
       __ subq(output_reg, Immediate(1));
       DeoptimizeIf(overflow, instr, Deoptimizer::kMinusZero);
     }
-    __ roundsd(xmm_scratch, input_reg, Assembler::kRoundDown);
+    __ roundsd(xmm_scratch, input_reg, kRoundDown);
     __ cvttsd2si(output_reg, xmm_scratch);
     __ cmpl(output_reg, Immediate(0x1));
     DeoptimizeIf(overflow, instr, Deoptimizer::kOverflow);

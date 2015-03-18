@@ -121,7 +121,7 @@ template<class K, class V, class T> class PersistentValueMap;
 template <class K, class V, class T>
 class PersistentValueMapBase;
 template <class K, class V, class T>
-class PhantomPersistentValueMap;
+class GlobalValueMap;
 template<class V, class T> class PersistentValueVector;
 template<class T, class P> class WeakCallbackObject;
 class FunctionTemplate;
@@ -147,20 +147,6 @@ template<typename T> class CustomArguments;
 class PropertyCallbackArguments;
 class FunctionCallbackArguments;
 class GlobalHandles;
-
-template <typename T>
-class CallbackData {
- public:
-  V8_INLINE v8::Isolate* GetIsolate() const { return isolate_; }
-
-  explicit CallbackData(v8::Isolate* isolate, T* parameter)
-      : isolate_(isolate), parameter_(parameter) {}
-  V8_INLINE T* GetParameter() const { return parameter_; }
-
- private:
-  v8::Isolate* isolate_;
-  T* parameter_;
-};
 }
 
 
@@ -443,10 +429,7 @@ class MaybeLocal {
     return !IsEmpty();
   }
 
-  V8_INLINE Local<T> ToLocalChecked() {
-    // TODO(dcarney): add DCHECK.
-    return Local<T>(val_);
-  }
+  V8_INLINE Local<T> ToLocalChecked();
 
   template <class S>
   V8_INLINE Local<S> FromMaybe(Local<S> default_value) const {
@@ -478,41 +461,55 @@ template <class T> class Eternal {
 
 
 template <typename T>
-class PhantomCallbackData : public internal::CallbackData<T> {
+class WeakCallbackInfo {
  public:
-  typedef void (*Callback)(const PhantomCallbackData<T>& data);
+  typedef void (*Callback)(const WeakCallbackInfo<T>& data);
 
-  V8_INLINE void* GetInternalField1() const { return internal_field1_; }
-  V8_INLINE void* GetInternalField2() const { return internal_field2_; }
-
-  PhantomCallbackData(Isolate* isolate, T* parameter, void* internal_field1,
-                      void* internal_field2)
-      : internal::CallbackData<T>(isolate, parameter),
+  WeakCallbackInfo(Isolate* isolate, T* parameter, void* internal_field1,
+                   void* internal_field2)
+      : isolate_(isolate),
+        parameter_(parameter),
         internal_field1_(internal_field1),
         internal_field2_(internal_field2) {}
 
+  V8_INLINE Isolate* GetIsolate() const { return isolate_; }
+  V8_INLINE T* GetParameter() const { return parameter_; }
+  V8_INLINE void* GetInternalField1() const { return internal_field1_; }
+  V8_INLINE void* GetInternalField2() const { return internal_field2_; }
+
  private:
+  Isolate* isolate_;
+  T* parameter_;
   void* internal_field1_;
   void* internal_field2_;
 };
 
 
 template <class T, class P>
-class WeakCallbackData : public internal::CallbackData<P> {
+class WeakCallbackData {
  public:
   typedef void (*Callback)(const WeakCallbackData<T, P>& data);
 
+  WeakCallbackData(Isolate* isolate, P* parameter, Local<T> handle)
+      : isolate_(isolate), parameter_(parameter), handle_(handle) {}
+
+  V8_INLINE Isolate* GetIsolate() const { return isolate_; }
+  V8_INLINE P* GetParameter() const { return parameter_; }
   V8_INLINE Local<T> GetValue() const { return handle_; }
 
  private:
-  friend class internal::GlobalHandles;
-  WeakCallbackData(Isolate* isolate, P* parameter, Local<T> handle)
-      : internal::CallbackData<P>(isolate, parameter), handle_(handle) {}
+  Isolate* isolate_;
+  P* parameter_;
   Local<T> handle_;
 };
 
 
-static const int kNoInternalFieldIndex = -1;
+// TODO(dcarney): delete this with WeakCallbackData
+template <class T>
+using PhantomCallbackData = WeakCallbackInfo<T>;
+
+
+enum class WeakCallbackType { kParameter, kInternalFields };
 
 
 /**
@@ -585,15 +582,17 @@ template <class T> class PersistentBase {
    *  As always, GC-based finalization should *not* be relied upon for any
    *  critical form of resource management!
    */
-  template<typename P>
-  V8_INLINE void SetWeak(
-      P* parameter,
-      typename WeakCallbackData<T, P>::Callback callback);
+  template <typename P>
+  V8_INLINE V8_DEPRECATE_SOON(
+      "use WeakCallbackInfo version",
+      void SetWeak(P* parameter,
+                   typename WeakCallbackData<T, P>::Callback callback));
 
-  template<typename S, typename P>
-  V8_INLINE void SetWeak(
-      P* parameter,
-      typename WeakCallbackData<S, P>::Callback callback);
+  template <typename S, typename P>
+  V8_INLINE V8_DEPRECATE_SOON(
+      "use WeakCallbackInfo version",
+      void SetWeak(P* parameter,
+                   typename WeakCallbackData<S, P>::Callback callback));
 
   // Phantom persistents work like weak persistents, except that the pointer to
   // the object being collected is not available in the finalization callback.
@@ -602,10 +601,17 @@ template <class T> class PersistentBase {
   // specify a parameter for the callback or the location of two internal
   // fields in the dying object.
   template <typename P>
-  V8_INLINE void SetPhantom(P* parameter,
-                            typename PhantomCallbackData<P>::Callback callback,
-                            int internal_field_index1 = kNoInternalFieldIndex,
-                            int internal_field_index2 = kNoInternalFieldIndex);
+  V8_INLINE V8_DEPRECATE_SOON(
+      "use SetWeak",
+      void SetPhantom(P* parameter,
+                      typename WeakCallbackInfo<P>::Callback callback,
+                      int internal_field_index1 = -1,
+                      int internal_field_index2 = -1));
+
+  template <typename P>
+  V8_INLINE void SetWeak(P* parameter,
+                         typename WeakCallbackInfo<P>::Callback callback,
+                         WeakCallbackType type);
 
   template<typename P>
   V8_INLINE P* ClearWeak();
@@ -866,6 +872,11 @@ class Global : public PersistentBase<T> {
    */
   Global Pass() { return static_cast<Global&&>(*this); }
 
+  /*
+   * For compatibility with Chromium's base::Bind (base::Passed).
+   */
+  typedef void MoveOnlyTypeForCPP03;
+
  private:
   Global(Global&) = delete;
   void operator=(Global&) = delete;
@@ -1069,23 +1080,25 @@ class V8_EXPORT Script {
   /**
    * A shorthand for ScriptCompiler::Compile().
    */
-  // TODO(dcarney): deprecate.
-  static Local<Script> Compile(Handle<String> source,
-                               ScriptOrigin* origin = nullptr);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<Script> Compile(Handle<String> source,
+                            ScriptOrigin* origin = nullptr));
   static MaybeLocal<Script> Compile(Local<Context> context,
                                     Handle<String> source,
                                     ScriptOrigin* origin = nullptr);
 
-  // TODO(dcarney): deprecate.
-  static Local<Script> Compile(Handle<String> source,
-                               Handle<String> file_name);
+  static Local<Script> V8_DEPRECATE_SOON("Use maybe version",
+                                         Compile(Handle<String> source,
+                                                 Handle<String> file_name));
 
   /**
    * Runs the script returning the resulting value. It will be run in the
    * context in which it was created (ScriptCompiler::CompileBound or
    * UnboundScript::BindToCurrentContext()).
    */
-  Local<Value> Run();
+  V8_DEPRECATE_SOON("Use maybe version", Local<Value> Run());
+  MaybeLocal<Value> Run(Local<Context> context);
 
   /**
    * Returns the corresponding context-unbound script.
@@ -1273,10 +1286,10 @@ class V8_EXPORT ScriptCompiler {
    * \return Compiled script object (context independent; for running it must be
    *   bound to a context).
    */
-  // TODO(dcarney): deprecate
-  static Local<UnboundScript> CompileUnbound(
-      Isolate* isolate, Source* source,
-      CompileOptions options = kNoCompileOptions);
+  static V8_DEPRECATE_SOON("Use maybe version",
+                           Local<UnboundScript> CompileUnbound(
+                               Isolate* isolate, Source* source,
+                               CompileOptions options = kNoCompileOptions));
   static MaybeLocal<UnboundScript> CompileUnboundScript(
       Isolate* isolate, Source* source,
       CompileOptions options = kNoCompileOptions);
@@ -1292,10 +1305,10 @@ class V8_EXPORT ScriptCompiler {
    *   when this function was called. When run it will always use this
    *   context.
    */
-  // TODO(dcarney): deprecate
-  static Local<Script> Compile(
-      Isolate* isolate, Source* source,
-      CompileOptions options = kNoCompileOptions);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<Script> Compile(Isolate* isolate, Source* source,
+                            CompileOptions options = kNoCompileOptions));
   static MaybeLocal<Script> Compile(Local<Context> context, Source* source,
                                     CompileOptions options = kNoCompileOptions);
 
@@ -1321,10 +1334,11 @@ class V8_EXPORT ScriptCompiler {
    * (ScriptStreamingTask has been run). V8 doesn't construct the source string
    * during streaming, so the embedder needs to pass the full source here.
    */
-  // TODO(dcarney): deprecate
-  static Local<Script> Compile(Isolate* isolate, StreamedSource* source,
-                               Handle<String> full_source_string,
-                               const ScriptOrigin& origin);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<Script> Compile(Isolate* isolate, StreamedSource* source,
+                            Handle<String> full_source_string,
+                            const ScriptOrigin& origin));
   static MaybeLocal<Script> Compile(Local<Context> context,
                                     StreamedSource* source,
                                     Handle<String> full_source_string,
@@ -1358,10 +1372,10 @@ class V8_EXPORT ScriptCompiler {
    * TODO(adamk): Script is likely the wrong return value for this;
    * should return some new Module type.
    */
-  // TODO(dcarney): deprecate.
-  static Local<Script> CompileModule(
-      Isolate* isolate, Source* source,
-      CompileOptions options = kNoCompileOptions);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<Script> CompileModule(Isolate* isolate, Source* source,
+                                  CompileOptions options = kNoCompileOptions));
   static MaybeLocal<Script> CompileModule(
       Local<Context> context, Source* source,
       CompileOptions options = kNoCompileOptions);
@@ -1376,11 +1390,13 @@ class V8_EXPORT ScriptCompiler {
    * It is possible to specify multiple context extensions (obj in the above
    * example).
    */
-  // TODO(dcarney): deprecate.
-  static Local<Function> CompileFunctionInContext(
-      Isolate* isolate, Source* source, Local<Context> context,
-      size_t arguments_count, Local<String> arguments[],
-      size_t context_extension_count, Local<Object> context_extensions[]);
+  static V8_DEPRECATE_SOON("Use maybe version",
+                           Local<Function> CompileFunctionInContext(
+                               Isolate* isolate, Source* source,
+                               Local<Context> context, size_t arguments_count,
+                               Local<String> arguments[],
+                               size_t context_extension_count,
+                               Local<Object> context_extensions[]));
   static MaybeLocal<Function> CompileFunctionInContext(
       Local<Context> context, Source* source, size_t arguments_count,
       Local<String> arguments[], size_t context_extension_count,
@@ -1398,7 +1414,9 @@ class V8_EXPORT ScriptCompiler {
 class V8_EXPORT Message {
  public:
   Local<String> Get() const;
-  Local<String> GetSourceLine() const;
+
+  V8_DEPRECATE_SOON("Use maybe version", Local<String> GetSourceLine()) const;
+  MaybeLocal<String> GetSourceLine(Local<Context> context) const;
 
   /**
    * Returns the origin for the script from where the function causing the
@@ -1422,7 +1440,8 @@ class V8_EXPORT Message {
   /**
    * Returns the number, 1-based, of the line where the error occurred.
    */
-  int GetLineNumber() const;
+  V8_DEPRECATE_SOON("Use maybe version", int GetLineNumber()) const;
+  Maybe<int> GetLineNumber(Local<Context> context) const;
 
   /**
    * Returns the index within the script of the first character where
@@ -1440,13 +1459,15 @@ class V8_EXPORT Message {
    * Returns the index within the line of the first character where
    * the error occurred.
    */
-  int GetStartColumn() const;
+  V8_DEPRECATE_SOON("Use maybe version", int GetStartColumn()) const;
+  Maybe<int> GetStartColumn(Local<Context> context) const;
 
   /**
    * Returns the index within the line of the last character where
    * the error occurred.
    */
-  int GetEndColumn() const;
+  V8_DEPRECATE_SOON("Use maybe version", int GetEndColumn()) const;
+  Maybe<int> GetEndColumn(Local<Context> context) const;
 
   /**
    * Passes on the value set by the embedder when it fed the script from which
@@ -1613,7 +1634,9 @@ class V8_EXPORT JSON {
    * \param json_string The string to parse.
    * \return The corresponding value if successfully parsed.
    */
-  static Local<Value> Parse(Local<String> json_string);
+  static V8_DEPRECATE_SOON("Use maybe version",
+                           Local<Value> Parse(Local<String> json_string));
+  static MaybeLocal<Value> Parse(Isolate* isolate, Local<String> json_string);
 };
 
 
@@ -1902,31 +1925,41 @@ class V8_EXPORT Value : public Data {
   MaybeLocal<Uint32> ToUint32(Local<Context> context) const;
   MaybeLocal<Int32> ToInt32(Local<Context> context) const;
 
-  // TODO(dcarney): deprecate all these.
-  Local<Boolean> ToBoolean(Isolate* isolate) const;
-  Local<Number> ToNumber(Isolate* isolate) const;
-  Local<String> ToString(Isolate* isolate) const;
-  Local<String> ToDetailString(Isolate* isolate) const;
-  Local<Object> ToObject(Isolate* isolate) const;
-  Local<Integer> ToInteger(Isolate* isolate) const;
-  Local<Uint32> ToUint32(Isolate* isolate) const;
-  Local<Int32> ToInt32(Isolate* isolate) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Boolean> ToBoolean(Isolate* isolate)) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Number> ToNumber(Isolate* isolate)) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<String> ToString(Isolate* isolate)) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<String> ToDetailString(Isolate* isolate)) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Object> ToObject(Isolate* isolate)) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Integer> ToInteger(Isolate* isolate)) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Uint32> ToUint32(Isolate* isolate)) const;
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Int32> ToInt32(Isolate* isolate)) const;
 
-  // TODO(dcarney): deprecate all these as well.
-  inline Local<Boolean> ToBoolean() const;
-  inline Local<Number> ToNumber() const;
-  inline Local<String> ToString() const;
-  inline Local<String> ToDetailString() const;
-  inline Local<Object> ToObject() const;
-  inline Local<Integer> ToInteger() const;
-  inline Local<Uint32> ToUint32() const;
-  inline Local<Int32> ToInt32() const;
+  inline V8_DEPRECATE_SOON("Use maybe version",
+                           Local<Boolean> ToBoolean()) const;
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Number> ToNumber()) const;
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<String> ToString()) const;
+  inline V8_DEPRECATE_SOON("Use maybe version",
+                           Local<String> ToDetailString()) const;
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Object> ToObject()) const;
+  inline V8_DEPRECATE_SOON("Use maybe version",
+                           Local<Integer> ToInteger()) const;
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Uint32> ToUint32()) const;
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Int32> ToInt32()) const;
 
   /**
    * Attempts to convert a string to an array index.
    * Returns an empty handle if the conversion fails.
    */
-  Local<Uint32> ToArrayIndex() const;
+  V8_DEPRECATE_SOON("Use maybe version", Local<Uint32> ToArrayIndex()) const;
+  MaybeLocal<Uint32> ToArrayIndex(Local<Context> context) const;
 
   Maybe<bool> BooleanValue(Local<Context> context) const;
   Maybe<double> NumberValue(Local<Context> context) const;
@@ -1934,15 +1967,15 @@ class V8_EXPORT Value : public Data {
   Maybe<uint32_t> Uint32Value(Local<Context> context) const;
   Maybe<int32_t> Int32Value(Local<Context> context) const;
 
-  // TODO(dcarney): deprecate all these.
-  bool BooleanValue() const;
-  double NumberValue() const;
-  int64_t IntegerValue() const;
-  uint32_t Uint32Value() const;
-  int32_t Int32Value() const;
+  V8_DEPRECATE_SOON("Use maybe version", bool BooleanValue()) const;
+  V8_DEPRECATE_SOON("Use maybe version", double NumberValue()) const;
+  V8_DEPRECATE_SOON("Use maybe version", int64_t IntegerValue()) const;
+  V8_DEPRECATE_SOON("Use maybe version", uint32_t Uint32Value()) const;
+  V8_DEPRECATE_SOON("Use maybe version", int32_t Int32Value()) const;
 
   /** JS == */
-  bool Equals(Handle<Value> that) const;
+  V8_DEPRECATE_SOON("Use maybe version", bool Equals(Handle<Value> that)) const;
+  Maybe<bool> Equals(Local<Context> context, Handle<Value> that) const;
   bool StrictEquals(Handle<Value> that) const;
   bool SameValue(Handle<Value> that) const;
 
@@ -1971,7 +2004,10 @@ class V8_EXPORT Primitive : public Value { };
 class V8_EXPORT Boolean : public Primitive {
  public:
   bool Value() const;
+  V8_INLINE static Boolean* Cast(v8::Value* obj);
   V8_INLINE static Handle<Boolean> New(Isolate* isolate, bool value);
+ private:
+  static void CheckCast(v8::Value* obj);
 };
 
 
@@ -1995,11 +2031,16 @@ class V8_EXPORT Name : public Primitive {
 };
 
 
+enum class NewStringType { kNormal, kInternalized };
+
+
 /**
  * A JavaScript string value (ECMA-262, 4.3.17).
  */
 class V8_EXPORT String : public Name {
  public:
+  static const int kMaxLength = (1 << 28) - 16;
+
   enum Encoding {
     UNKNOWN_ENCODING = 0x1,
     TWO_BYTE_ENCODING = 0x0,
@@ -2196,26 +2237,52 @@ class V8_EXPORT String : public Name {
 
   V8_INLINE static String* Cast(v8::Value* obj);
 
-  enum NewStringType { kNormalString, kInternalizedString };
+  // TODO(dcarney): remove with deprecation of New functions.
+  enum NewStringType {
+    kNormalString = static_cast<int>(v8::NewStringType::kNormal),
+    kInternalizedString = static_cast<int>(v8::NewStringType::kInternalized)
+  };
 
   /** Allocates a new string from UTF-8 data.*/
-  static Local<String> NewFromUtf8(Isolate* isolate, const char* data,
-                                   NewStringType type = kNormalString,
-                                   int length = -1);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<String> NewFromUtf8(Isolate* isolate, const char* data,
+                                NewStringType type = kNormalString,
+                                int length = -1));
+
+  /** Allocates a new string from UTF-8 data. Only returns an empty value when
+   * length > kMaxLength. **/
+  static MaybeLocal<String> NewFromUtf8(Isolate* isolate, const char* data,
+                                        v8::NewStringType type,
+                                        int length = -1);
 
   /** Allocates a new string from Latin-1 data.*/
-  static Local<String> NewFromOneByte(
-      Isolate* isolate,
-      const uint8_t* data,
-      NewStringType type = kNormalString,
-      int length = -1);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<String> NewFromOneByte(Isolate* isolate, const uint8_t* data,
+                                   NewStringType type = kNormalString,
+                                   int length = -1));
+
+  /** Allocates a new string from Latin-1 data.  Only returns an empty value
+   * when length > kMaxLength. **/
+  static MaybeLocal<String> NewFromOneByte(Isolate* isolate,
+                                           const uint8_t* data,
+                                           v8::NewStringType type,
+                                           int length = -1);
 
   /** Allocates a new string from UTF-16 data.*/
-  static Local<String> NewFromTwoByte(
-      Isolate* isolate,
-      const uint16_t* data,
-      NewStringType type = kNormalString,
-      int length = -1);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<String> NewFromTwoByte(Isolate* isolate, const uint16_t* data,
+                                   NewStringType type = kNormalString,
+                                   int length = -1));
+
+  /** Allocates a new string from UTF-16 data. Only returns an empty value when
+   * length > kMaxLength. **/
+  static MaybeLocal<String> NewFromTwoByte(Isolate* isolate,
+                                           const uint16_t* data,
+                                           v8::NewStringType type,
+                                           int length = -1);
 
   /**
    * Creates a new string by concatenating the left and the right strings
@@ -2231,8 +2298,12 @@ class V8_EXPORT String : public Name {
    * should the underlying buffer be deallocated or modified except through the
    * destructor of the external string resource.
    */
-  static Local<String> NewExternal(Isolate* isolate,
-                                   ExternalStringResource* resource);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<String> NewExternal(Isolate* isolate,
+                                ExternalStringResource* resource));
+  static MaybeLocal<String> NewExternalTwoByte(
+      Isolate* isolate, ExternalStringResource* resource);
 
   /**
    * Associate an external string resource with this string by transforming it
@@ -2253,8 +2324,12 @@ class V8_EXPORT String : public Name {
    * should the underlying buffer be deallocated or modified except through the
    * destructor of the external string resource.
    */
-  static Local<String> NewExternal(Isolate* isolate,
-                                   ExternalOneByteStringResource* resource);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<String> NewExternal(Isolate* isolate,
+                                ExternalOneByteStringResource* resource));
+  static MaybeLocal<String> NewExternalOneByte(
+      Isolate* isolate, ExternalOneByteStringResource* resource);
 
   /**
    * Associate an external string resource with this string by transforming it
@@ -2426,8 +2501,11 @@ class V8_EXPORT Integer : public Number {
 class V8_EXPORT Int32 : public Integer {
  public:
   int32_t Value() const;
+  V8_INLINE static Int32* Cast(v8::Value* obj);
+
  private:
   Int32();
+  static void CheckCast(v8::Value* obj);
 };
 
 
@@ -2437,8 +2515,11 @@ class V8_EXPORT Int32 : public Integer {
 class V8_EXPORT Uint32 : public Integer {
  public:
   uint32_t Value() const;
+  V8_INLINE static Uint32* Cast(v8::Value* obj);
+
  private:
   Uint32();
+  static void CheckCast(v8::Value* obj);
 };
 
 
@@ -2517,12 +2598,12 @@ enum AccessControl {
  */
 class V8_EXPORT Object : public Value {
  public:
-  // TODO(dcarney): deprecate
-  bool Set(Handle<Value> key, Handle<Value> value);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool Set(Handle<Value> key, Handle<Value> value));
   Maybe<bool> Set(Local<Context> context, Local<Value> key, Local<Value> value);
 
-  // TODO(dcarney): deprecate
-  bool Set(uint32_t index, Handle<Value> value);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool Set(uint32_t index, Handle<Value> value));
   Maybe<bool> Set(Local<Context> context, uint32_t index, Local<Value> value);
 
   // Sets an own property on this object bypassing interceptors and
@@ -2533,19 +2614,16 @@ class V8_EXPORT Object : public Value {
   // will only be returned if the interceptor doesn't return a value.
   //
   // Note also that this only works for named properties.
-  // TODO(dcarney): deprecate
-  bool ForceSet(Handle<Value> key,
-                Handle<Value> value,
-                PropertyAttribute attribs = None);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool ForceSet(Handle<Value> key, Handle<Value> value,
+                                  PropertyAttribute attribs = None));
   Maybe<bool> ForceSet(Local<Context> context, Local<Value> key,
                        Local<Value> value, PropertyAttribute attribs = None);
 
-  // TODO(dcarney): deprecate
-  Local<Value> Get(Handle<Value> key);
+  V8_DEPRECATE_SOON("Use maybe version", Local<Value> Get(Handle<Value> key));
   MaybeLocal<Value> Get(Local<Context> context, Local<Value> key);
 
-  // TODO(dcarney): deprecate
-  Local<Value> Get(uint32_t index);
+  V8_DEPRECATE_SOON("Use maybe version", Local<Value> Get(uint32_t index));
   MaybeLocal<Value> Get(Local<Context> context, uint32_t index);
 
   /**
@@ -2553,48 +2631,45 @@ class V8_EXPORT Object : public Value {
    * any combination of ReadOnly, DontEnum and DontDelete. Returns
    * None when the property doesn't exist.
    */
-  // TODO(dcarney): deprecate
-  PropertyAttribute GetPropertyAttributes(Handle<Value> key);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    PropertyAttribute GetPropertyAttributes(Handle<Value> key));
   Maybe<PropertyAttribute> GetPropertyAttributes(Local<Context> context,
                                                  Local<Value> key);
 
   /**
    * Returns Object.getOwnPropertyDescriptor as per ES5 section 15.2.3.3.
    */
-  // TODO(dcarney): deprecate
-  Local<Value> GetOwnPropertyDescriptor(Local<String> key);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Value> GetOwnPropertyDescriptor(Local<String> key));
   MaybeLocal<Value> GetOwnPropertyDescriptor(Local<Context> context,
                                              Local<String> key);
 
-  // TODO(dcarney): deprecate
-  bool Has(Handle<Value> key);
+  V8_DEPRECATE_SOON("Use maybe version", bool Has(Handle<Value> key));
   Maybe<bool> Has(Local<Context> context, Local<Value> key);
 
-  // TODO(dcarney): deprecate
-  bool Delete(Handle<Value> key);
+  V8_DEPRECATE_SOON("Use maybe version", bool Delete(Handle<Value> key));
   Maybe<bool> Delete(Local<Context> context, Local<Value> key);
 
-  // TODO(dcarney): deprecate
-  bool Has(uint32_t index);
+  V8_DEPRECATE_SOON("Use maybe version", bool Has(uint32_t index));
   Maybe<bool> Has(Local<Context> context, uint32_t index);
 
-  // TODO(dcarney): deprecate
-  bool Delete(uint32_t index);
+  V8_DEPRECATE_SOON("Use maybe version", bool Delete(uint32_t index));
   Maybe<bool> Delete(Local<Context> context, uint32_t index);
 
-  // TODO(dcarney): deprecate
-  bool SetAccessor(Handle<String> name,
-                   AccessorGetterCallback getter,
-                   AccessorSetterCallback setter = 0,
-                   Handle<Value> data = Handle<Value>(),
-                   AccessControl settings = DEFAULT,
-                   PropertyAttribute attribute = None);
-  // TODO(dcarney): deprecate
-  bool SetAccessor(Handle<Name> name, AccessorNameGetterCallback getter,
-                   AccessorNameSetterCallback setter = 0,
-                   Handle<Value> data = Handle<Value>(),
-                   AccessControl settings = DEFAULT,
-                   PropertyAttribute attribute = None);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool SetAccessor(Handle<String> name,
+                                     AccessorGetterCallback getter,
+                                     AccessorSetterCallback setter = 0,
+                                     Handle<Value> data = Handle<Value>(),
+                                     AccessControl settings = DEFAULT,
+                                     PropertyAttribute attribute = None));
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool SetAccessor(Handle<Name> name,
+                                     AccessorNameGetterCallback getter,
+                                     AccessorNameSetterCallback setter = 0,
+                                     Handle<Value> data = Handle<Value>(),
+                                     AccessControl settings = DEFAULT,
+                                     PropertyAttribute attribute = None));
   Maybe<bool> SetAccessor(Local<Context> context, Local<Name> name,
                           AccessorNameGetterCallback getter,
                           AccessorNameSetterCallback setter = 0,
@@ -2626,8 +2701,7 @@ class V8_EXPORT Object : public Value {
    * array returned by this method contains the same values as would
    * be enumerated by a for-in statement over this object.
    */
-  // TODO(dcarney): deprecate
-  Local<Array> GetPropertyNames();
+  V8_DEPRECATE_SOON("Use maybe version", Local<Array> GetPropertyNames());
   MaybeLocal<Array> GetPropertyNames(Local<Context> context);
 
   /**
@@ -2635,8 +2709,7 @@ class V8_EXPORT Object : public Value {
    * the returned array doesn't contain the names of properties from
    * prototype objects.
    */
-  // TODO(dcarney): deprecate
-  Local<Array> GetOwnPropertyNames();
+  V8_DEPRECATE_SOON("Use maybe version", Local<Array> GetOwnPropertyNames());
   MaybeLocal<Array> GetOwnPropertyNames(Local<Context> context);
 
   /**
@@ -2651,8 +2724,8 @@ class V8_EXPORT Object : public Value {
    * be skipped by __proto__ and it does not consult the security
    * handler.
    */
-  // TODO(dcarney): deprecate
-  bool SetPrototype(Handle<Value> prototype);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool SetPrototype(Handle<Value> prototype));
   Maybe<bool> SetPrototype(Local<Context> context, Local<Value> prototype);
 
   /**
@@ -2666,8 +2739,7 @@ class V8_EXPORT Object : public Value {
    * This is different from Value::ToString() that may call
    * user-defined toString function. This one does not.
    */
-  // TODO(dcarney): deprecate
-  Local<String> ObjectProtoToString();
+  V8_DEPRECATE_SOON("Use maybe version", Local<String> ObjectProtoToString());
   MaybeLocal<String> ObjectProtoToString(Local<Context> context);
 
   /**
@@ -2711,17 +2783,17 @@ class V8_EXPORT Object : public Value {
   void SetAlignedPointerInInternalField(int index, void* value);
 
   // Testers for local properties.
-  // TODO(dcarney): deprecate
-  bool HasOwnProperty(Handle<String> key);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool HasOwnProperty(Handle<String> key));
   Maybe<bool> HasOwnProperty(Local<Context> context, Local<Name> key);
-  // TODO(dcarney): deprecate
-  bool HasRealNamedProperty(Handle<String> key);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool HasRealNamedProperty(Handle<String> key));
   Maybe<bool> HasRealNamedProperty(Local<Context> context, Local<Name> key);
-  // TODO(dcarney): deprecate
-  bool HasRealIndexedProperty(uint32_t index);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool HasRealIndexedProperty(uint32_t index));
   Maybe<bool> HasRealIndexedProperty(Local<Context> context, uint32_t index);
-  // TODO(dcarney): deprecate
-  bool HasRealNamedCallbackProperty(Handle<String> key);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    bool HasRealNamedCallbackProperty(Handle<String> key));
   Maybe<bool> HasRealNamedCallbackProperty(Local<Context> context,
                                            Local<Name> key);
 
@@ -2729,8 +2801,9 @@ class V8_EXPORT Object : public Value {
    * If result.IsEmpty() no real property was located in the prototype chain.
    * This means interceptors in the prototype chain are not called.
    */
-  // TODO(dcarney): deprecate
-  Local<Value> GetRealNamedPropertyInPrototypeChain(Handle<String> key);
+  V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<Value> GetRealNamedPropertyInPrototypeChain(Handle<String> key));
   MaybeLocal<Value> GetRealNamedPropertyInPrototypeChain(Local<Context> context,
                                                          Local<Name> key);
 
@@ -2739,9 +2812,10 @@ class V8_EXPORT Object : public Value {
    * which can be None or any combination of ReadOnly, DontEnum and DontDelete.
    * Interceptors in the prototype chain are not called.
    */
-  // TODO(dcarney): deprecate
-  Maybe<PropertyAttribute> GetRealNamedPropertyAttributesInPrototypeChain(
-      Handle<String> key);
+  V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Maybe<PropertyAttribute> GetRealNamedPropertyAttributesInPrototypeChain(
+          Handle<String> key));
   Maybe<PropertyAttribute> GetRealNamedPropertyAttributesInPrototypeChain(
       Local<Context> context, Local<Name> key);
 
@@ -2750,8 +2824,8 @@ class V8_EXPORT Object : public Value {
    * in the prototype chain.
    * This means interceptors in the prototype chain are not called.
    */
-  // TODO(dcarney): deprecate
-  Local<Value> GetRealNamedProperty(Handle<String> key);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Value> GetRealNamedProperty(Handle<String> key));
   MaybeLocal<Value> GetRealNamedProperty(Local<Context> context,
                                          Local<Name> key);
 
@@ -2760,8 +2834,9 @@ class V8_EXPORT Object : public Value {
    * None or any combination of ReadOnly, DontEnum and DontDelete.
    * Interceptors in the prototype chain are not called.
    */
-  // TODO(dcarney): deprecate
-  Maybe<PropertyAttribute> GetRealNamedPropertyAttributes(Handle<String> key);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Maybe<PropertyAttribute> GetRealNamedPropertyAttributes(
+                        Handle<String> key));
   Maybe<PropertyAttribute> GetRealNamedPropertyAttributes(
       Local<Context> context, Local<Name> key);
 
@@ -2776,8 +2851,7 @@ class V8_EXPORT Object : public Value {
    * a template that has access check callbacks. If an object has no
    * access check info, the object cannot be accessed by anyone.
    */
-  // TODO(dcarney): deprecate
-  void TurnOnAccessCheck();
+  V8_DEPRECATE_SOON("No alternative", void TurnOnAccessCheck());
 
   /**
    * Returns the identity hash for this object. The current implementation
@@ -2849,9 +2923,9 @@ class V8_EXPORT Object : public Value {
    * Call an Object as a function if a callback is set by the
    * ObjectTemplate::SetCallAsFunctionHandler method.
    */
-  Local<Value> CallAsFunction(Handle<Value> recv,
-                              int argc,
-                              Handle<Value> argv[]);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Value> CallAsFunction(Handle<Value> recv, int argc,
+                                                Handle<Value> argv[]));
   MaybeLocal<Value> CallAsFunction(Local<Context> context, Handle<Value> recv,
                                    int argc, Handle<Value> argv[]);
 
@@ -2860,15 +2934,16 @@ class V8_EXPORT Object : public Value {
    * ObjectTemplate::SetCallAsFunctionHandler method.
    * Note: This method behaves like the Function::NewInstance method.
    */
-  Local<Value> CallAsConstructor(int argc, Handle<Value> argv[]);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Value> CallAsConstructor(int argc,
+                                                   Handle<Value> argv[]));
   MaybeLocal<Value> CallAsConstructor(Local<Context> context, int argc,
                                       Local<Value> argv[]);
 
   /**
    * Return the isolate to which the Object belongs to.
    */
-  // TODO(dcarney): deprecate - this is an implementation detail.
-  Isolate* GetIsolate();
+  V8_DEPRECATE_SOON("Keep track of isolate correctly", Isolate* GetIsolate());
 
   static Local<Object> New(Isolate* isolate);
 
@@ -2893,7 +2968,9 @@ class V8_EXPORT Array : public Object {
    * Clones an element at index |index|.  Returns an empty
    * handle if cloning fails (for any reason).
    */
-  Local<Object> CloneElementAt(uint32_t index);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Object> CloneElementAt(uint32_t index));
+  MaybeLocal<Object> CloneElementAt(Local<Context> context, uint32_t index);
 
   /**
    * Creates a JavaScript array with the given length. If the length
@@ -3038,9 +3115,23 @@ class V8_EXPORT Function : public Object {
                              Local<Value> data = Local<Value>(),
                              int length = 0);
 
-  Local<Object> NewInstance() const;
-  Local<Object> NewInstance(int argc, Handle<Value> argv[]) const;
-  Local<Value> Call(Handle<Value> recv, int argc, Handle<Value> argv[]);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Object> NewInstance(int argc,
+                                              Handle<Value> argv[])) const;
+  MaybeLocal<Object> NewInstance(Local<Context> context, int argc,
+                                 Handle<Value> argv[]) const;
+
+  V8_DEPRECATE_SOON("Use maybe version", Local<Object> NewInstance()) const;
+  MaybeLocal<Object> NewInstance(Local<Context> context) const {
+    return NewInstance(context, 0, nullptr);
+  }
+
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Value> Call(Handle<Value> recv, int argc,
+                                      Handle<Value> argv[]));
+  MaybeLocal<Value> Call(Local<Context> context, Handle<Value> recv, int argc,
+                         Handle<Value> argv[]);
+
   void SetName(Handle<String> name);
   Handle<Value> GetName() const;
 
@@ -3106,7 +3197,9 @@ class V8_EXPORT Promise : public Object {
     /**
      * Create a new resolver, along with an associated promise in pending state.
      */
-    static Local<Resolver> New(Isolate* isolate);
+    static V8_DEPRECATE_SOON("Use maybe version",
+                             Local<Resolver> New(Isolate* isolate));
+    static MaybeLocal<Resolver> New(Local<Context> context);
 
     /**
      * Extract the associated promise.
@@ -3117,8 +3210,11 @@ class V8_EXPORT Promise : public Object {
      * Resolve/reject the associated promise with a given value.
      * Ignored if the promise is no longer pending.
      */
-    void Resolve(Handle<Value> value);
-    void Reject(Handle<Value> value);
+    V8_DEPRECATE_SOON("Use maybe version", void Resolve(Handle<Value> value));
+    Maybe<bool> Resolve(Local<Context> context, Handle<Value> value);
+
+    V8_DEPRECATE_SOON("Use maybe version", void Reject(Handle<Value> value));
+    Maybe<bool> Reject(Local<Context> context, Handle<Value> value);
 
     V8_INLINE static Resolver* Cast(Value* obj);
 
@@ -3133,9 +3229,17 @@ class V8_EXPORT Promise : public Object {
    * an argument. If the promise is already resolved/rejected, the handler is
    * invoked at the end of turn.
    */
-  Local<Promise> Chain(Handle<Function> handler);
-  Local<Promise> Catch(Handle<Function> handler);
-  Local<Promise> Then(Handle<Function> handler);
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Promise> Chain(Handle<Function> handler));
+  MaybeLocal<Promise> Chain(Local<Context> context, Handle<Function> handler);
+
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Promise> Catch(Handle<Function> handler));
+  MaybeLocal<Promise> Catch(Local<Context> context, Handle<Function> handler);
+
+  V8_DEPRECATE_SOON("Use maybe version",
+                    Local<Promise> Then(Handle<Function> handler));
+  MaybeLocal<Promise> Then(Local<Context> context, Handle<Function> handler);
 
   /**
    * Returns true if the promise has at least one derived promise, and
@@ -3622,7 +3726,11 @@ class V8_EXPORT RegExp : public Object {
    *               static_cast<RegExp::Flags>(kGlobal | kMultiline))
    * is equivalent to evaluating "/foo/gm".
    */
-  static Local<RegExp> New(Handle<String> pattern, Flags flags);
+  static V8_DEPRECATE_SOON("Use maybe version",
+                           Local<RegExp> New(Handle<String> pattern,
+                                             Flags flags));
+  static MaybeLocal<RegExp> New(Local<Context> context, Handle<String> pattern,
+                                Flags flags);
 
   /**
    * Returns the value of the source property: a string representing
@@ -4006,7 +4114,8 @@ class V8_EXPORT FunctionTemplate : public Template {
       int length = 0);
 
   /** Returns the unique function instance in the current execution context.*/
-  Local<Function> GetFunction();
+  V8_DEPRECATE_SOON("Use maybe version", Local<Function> GetFunction());
+  MaybeLocal<Function> GetFunction(Local<Context> context);
 
   /**
    * Set the call-handler callback for a FunctionTemplate.  This
@@ -4146,11 +4255,11 @@ class V8_EXPORT ObjectTemplate : public Template {
  public:
   /** Creates an ObjectTemplate. */
   static Local<ObjectTemplate> New(Isolate* isolate);
-  // Will be deprecated soon.
-  static Local<ObjectTemplate> New();
+  static V8_DEPRECATE_SOON("Use isolate version", Local<ObjectTemplate> New());
 
   /** Creates a new instance of this template.*/
-  Local<Object> NewInstance();
+  V8_DEPRECATE_SOON("Use maybe version", Local<Object> NewInstance());
+  MaybeLocal<Object> NewInstance(Local<Context> context);
 
   /**
    * Sets an accessor on the object template.
@@ -5496,16 +5605,17 @@ typedef uintptr_t (*ReturnAddressLocationResolver)(
 class V8_EXPORT V8 {
  public:
   /** Set the callback to invoke in case of fatal errors. */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void SetFatalErrorHandler(FatalErrorCallback that);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void SetFatalErrorHandler(FatalErrorCallback that));
 
   /**
    * Set the callback to invoke to check if code generation from
    * strings should be allowed.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void SetAllowCodeGenerationFromStringsCallback(
-      AllowCodeGenerationFromStringsCallback that);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version", void SetAllowCodeGenerationFromStringsCallback(
+                                 AllowCodeGenerationFromStringsCallback that));
 
   /**
    * Set allocator to use for ArrayBuffer memory.
@@ -5519,8 +5629,7 @@ class V8_EXPORT V8 {
   * Check if V8 is dead and therefore unusable.  This is the case after
   * fatal errors such as out-of-memory situations.
   */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static bool IsDead();
+  V8_INLINE static V8_DEPRECATE_SOON("no alternative", bool IsDead());
 
   /**
    * Hand startup data to V8, in case the embedder has chosen to build
@@ -5556,24 +5665,26 @@ class V8_EXPORT V8 {
    * If data is specified, it will be passed to the callback when it is called.
    * Otherwise, the exception object will be passed to the callback instead.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static bool AddMessageListener(
-      MessageCallback that, Handle<Value> data = Handle<Value>());
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      bool AddMessageListener(MessageCallback that,
+                              Handle<Value> data = Handle<Value>()));
 
   /**
    * Remove all message listeners from the specified callback function.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void RemoveMessageListeners(MessageCallback that);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version", void RemoveMessageListeners(MessageCallback that));
 
   /**
    * Tells V8 to capture current stack trace when uncaught exception occurs
    * and report it to the message listeners. The option is off by default.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void SetCaptureStackTraceForUncaughtExceptions(
-      bool capture, int frame_limit = 10,
-      StackTrace::StackTraceOptions options = StackTrace::kOverview);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void SetCaptureStackTraceForUncaughtExceptions(
+          bool capture, int frame_limit = 10,
+          StackTrace::StackTraceOptions options = StackTrace::kOverview));
 
   /**
    * Sets V8 flags from a string.
@@ -5591,9 +5702,9 @@ class V8_EXPORT V8 {
   static const char* GetVersion();
 
   /** Callback function for reporting failed access checks.*/
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void SetFailedAccessCheckCallbackFunction(
-      FailedAccessCheckCallback);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void SetFailedAccessCheckCallbackFunction(FailedAccessCheckCallback));
 
   /**
    * Enables the host application to receive a notification before a
@@ -5605,16 +5716,18 @@ class V8_EXPORT V8 {
    * register the same callback function two times with different
    * GCType filters.
    */
-  // TODO(dcarney): deprecate this.
-  static void AddGCPrologueCallback(
-      GCPrologueCallback callback, GCType gc_type_filter = kGCTypeAll);
+  static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void AddGCPrologueCallback(GCPrologueCallback callback,
+                                 GCType gc_type_filter = kGCTypeAll));
 
   /**
    * This function removes callback which was installed by
    * AddGCPrologueCallback function.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void RemoveGCPrologueCallback(GCPrologueCallback callback);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void RemoveGCPrologueCallback(GCPrologueCallback callback));
 
   /**
    * Enables the host application to receive a notification after a
@@ -5626,32 +5739,35 @@ class V8_EXPORT V8 {
    * register the same callback function two times with different
    * GCType filters.
    */
-  // TODO(dcarney): deprecate this.
-  static void AddGCEpilogueCallback(
-      GCEpilogueCallback callback, GCType gc_type_filter = kGCTypeAll);
+  static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void AddGCEpilogueCallback(GCEpilogueCallback callback,
+                                 GCType gc_type_filter = kGCTypeAll));
 
   /**
    * This function removes callback which was installed by
    * AddGCEpilogueCallback function.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void RemoveGCEpilogueCallback(GCEpilogueCallback callback);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void RemoveGCEpilogueCallback(GCEpilogueCallback callback));
 
   /**
    * Enables the host application to provide a mechanism to be notified
    * and perform custom logging when V8 Allocates Executable Memory.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void AddMemoryAllocationCallback(
-      MemoryAllocationCallback callback, ObjectSpace space,
-      AllocationAction action);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void AddMemoryAllocationCallback(MemoryAllocationCallback callback,
+                                       ObjectSpace space,
+                                       AllocationAction action));
 
   /**
    * Removes callback that was installed by AddMemoryAllocationCallback.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void RemoveMemoryAllocationCallback(
-      MemoryAllocationCallback callback);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void RemoveMemoryAllocationCallback(MemoryAllocationCallback callback));
 
   /**
    * Initializes V8. This function needs to be called before the first Isolate
@@ -5681,8 +5797,8 @@ class V8_EXPORT V8 {
    *
    * \param isolate The isolate in which to terminate the current JS execution.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void TerminateExecution(Isolate* isolate);
+  V8_INLINE static V8_DEPRECATE_SOON("Use isolate version",
+                                     void TerminateExecution(Isolate* isolate));
 
   /**
    * Is V8 terminating JavaScript execution.
@@ -5694,8 +5810,9 @@ class V8_EXPORT V8 {
    *
    * \param isolate The isolate in which to check.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static bool IsExecutionTerminating(Isolate* isolate = NULL);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      bool IsExecutionTerminating(Isolate* isolate = NULL));
 
   /**
    * Resume execution capability in the given isolate, whose execution
@@ -5713,8 +5830,8 @@ class V8_EXPORT V8 {
    *
    * \param isolate The isolate in which to resume execution capability.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void CancelTerminateExecution(Isolate* isolate);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version", void CancelTerminateExecution(Isolate* isolate));
 
   /**
    * Releases any resources used by v8 and stops any utility threads
@@ -5732,25 +5849,26 @@ class V8_EXPORT V8 {
    * heap.  GC is not invoked prior to iterating, therefore there is no
    * guarantee that visited objects are still alive.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void VisitExternalResources(
-      ExternalResourceVisitor* visitor);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isoalte version",
+      void VisitExternalResources(ExternalResourceVisitor* visitor));
 
   /**
    * Iterates through all the persistent handles in the current isolate's heap
    * that have class_ids.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void VisitHandlesWithClassIds(
-      PersistentHandleVisitor* visitor);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void VisitHandlesWithClassIds(PersistentHandleVisitor* visitor));
 
   /**
    * Iterates through all the persistent handles in isolate's heap that have
    * class_ids.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void VisitHandlesWithClassIds(
-      Isolate* isolate, PersistentHandleVisitor* visitor);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void VisitHandlesWithClassIds(Isolate* isolate,
+                                    PersistentHandleVisitor* visitor));
 
   /**
    * Iterates through all the persistent handles in the current isolate's heap
@@ -5759,9 +5877,10 @@ class V8_EXPORT V8 {
    * garbage collection but is free to visit an arbitrary superset of these
    * objects.
    */
-  // TODO(dcarney): deprecate this.
-  V8_INLINE static void VisitHandlesForPartialDependence(
-      Isolate* isolate, PersistentHandleVisitor* visitor);
+  V8_INLINE static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void VisitHandlesForPartialDependence(Isolate* isolate,
+                                            PersistentHandleVisitor* visitor));
 
   /**
    * Initialize the ICU library bundled with V8. The embedder should only
@@ -5787,8 +5906,6 @@ class V8_EXPORT V8 {
  private:
   V8();
 
-  enum WeakHandleType { PhantomHandle, NonphantomHandle };
-
   static internal::Object** GlobalizeReference(internal::Isolate* isolate,
                                                internal::Object** handle);
   static internal::Object** CopyPersistent(internal::Object** handle);
@@ -5796,12 +5913,15 @@ class V8_EXPORT V8 {
   typedef WeakCallbackData<Value, void>::Callback WeakCallback;
   static void MakeWeak(internal::Object** global_handle, void* data,
                        WeakCallback weak_callback);
-  static void MakePhantom(internal::Object** global_handle, void* data,
-                          // Must be 0 or kNoInternalFieldIndex.
-                          int internal_field_index1,
-                          // Must be 1 or kNoInternalFieldIndex.
-                          int internal_field_index2,
-                          PhantomCallbackData<void>::Callback weak_callback);
+  static void MakeWeak(internal::Object** global_handle, void* data,
+                       WeakCallbackInfo<void>::Callback weak_callback,
+                       WeakCallbackType type);
+  static void MakeWeak(internal::Object** global_handle, void* data,
+                       // Must be 0 or -1.
+                       int internal_field_index1,
+                       // Must be 1 or -1.
+                       int internal_field_index2,
+                       WeakCallbackInfo<void>::Callback weak_callback);
   static void* ClearWeak(internal::Object** global_handle);
   static void Eternalize(Isolate* isolate,
                          Value* handle,
@@ -5809,9 +5929,12 @@ class V8_EXPORT V8 {
   static Local<Value> GetEternal(Isolate* isolate, int index);
 
   static void CheckIsJust(bool is_just);
+  static void ToLocalEmpty();
 
   template <class T> friend class Handle;
   template <class T> friend class Local;
+  template <class T>
+  friend class MaybeLocal;
   template <class T>
   friend class Maybe;
   template <class T> friend class Eternal;
@@ -5887,8 +6010,7 @@ class V8_EXPORT TryCatch {
    * all TryCatch blocks should be stack allocated because the memory
    * location itself is compared against JavaScript try/catch blocks.
    */
-  // TODO(dcarney): deprecate.
-  TryCatch();
+  V8_DEPRECATE_SOON("Use isolate version", TryCatch());
 
   /**
    * Creates a new try/catch block and registers it with v8.  Note that
@@ -6021,10 +6143,7 @@ class V8_EXPORT TryCatch {
   v8::TryCatch* next_;
   void* exception_;
   void* message_obj_;
-  void* message_script_;
   void* js_stack_comparable_address_;
-  int message_start_pos_;
-  int message_end_pos_;
   bool is_verbose_ : 1;
   bool can_continue_ : 1;
   bool capture_message_ : 1;
@@ -6462,7 +6581,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 155;
+  static const int kEmptyStringRootIndex = 156;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.
@@ -6646,6 +6765,15 @@ Local<T> Eternal<T>::Get(Isolate* isolate) {
 
 
 template <class T>
+Local<T> MaybeLocal<T>::ToLocalChecked() {
+#ifdef V8_ENABLE_CHECKS
+  if (val_ == nullptr) V8::ToLocalEmpty();
+#endif
+  return Local<T>(val_);
+}
+
+
+template <class T>
 T* PersistentBase<T>::New(Isolate* isolate, T* that) {
   if (that == NULL) return NULL;
   internal::Object** p = reinterpret_cast<internal::Object**>(that);
@@ -6749,12 +6877,23 @@ void PersistentBase<T>::SetWeak(
 template <class T>
 template <typename P>
 void PersistentBase<T>::SetPhantom(
-    P* parameter, typename PhantomCallbackData<P>::Callback callback,
+    P* parameter, typename WeakCallbackInfo<P>::Callback callback,
     int internal_field_index1, int internal_field_index2) {
-  typedef typename PhantomCallbackData<void>::Callback Callback;
-  V8::MakePhantom(reinterpret_cast<internal::Object**>(this->val_), parameter,
-                  internal_field_index1, internal_field_index2,
-                  reinterpret_cast<Callback>(callback));
+  typedef typename WeakCallbackInfo<void>::Callback Callback;
+  V8::MakeWeak(reinterpret_cast<internal::Object**>(this->val_), parameter,
+               internal_field_index1, internal_field_index2,
+               reinterpret_cast<Callback>(callback));
+}
+
+
+template <class T>
+template <typename P>
+V8_INLINE void PersistentBase<T>::SetWeak(
+    P* parameter, typename WeakCallbackInfo<P>::Callback callback,
+    WeakCallbackType type) {
+  typedef typename WeakCallbackInfo<void>::Callback Callback;
+  V8::MakeWeak(reinterpret_cast<internal::Object**>(this->val_), parameter,
+               reinterpret_cast<Callback>(callback), type);
 }
 
 
@@ -7239,6 +7378,14 @@ Local<Uint32> Value::ToUint32() const {
 Local<Int32> Value::ToInt32() const { return ToInt32(Isolate::GetCurrent()); }
 
 
+Boolean* Boolean::Cast(v8::Value* value) {
+#ifdef V8_ENABLE_CHECKS
+  CheckCast(value);
+#endif
+  return static_cast<Boolean*>(value);
+}
+
+
 Name* Name::Cast(v8::Value* value) {
 #ifdef V8_ENABLE_CHECKS
   CheckCast(value);
@@ -7268,6 +7415,22 @@ Integer* Integer::Cast(v8::Value* value) {
   CheckCast(value);
 #endif
   return static_cast<Integer*>(value);
+}
+
+
+Int32* Int32::Cast(v8::Value* value) {
+#ifdef V8_ENABLE_CHECKS
+  CheckCast(value);
+#endif
+  return static_cast<Int32*>(value);
+}
+
+
+Uint32* Uint32::Cast(v8::Value* value) {
+#ifdef V8_ENABLE_CHECKS
+  CheckCast(value);
+#endif
+  return static_cast<Uint32*>(value);
 }
 
 

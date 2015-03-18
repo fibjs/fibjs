@@ -238,6 +238,6 @@ patch_samp();
 patch_src('src');
 patch_plat();
 
-fs.unlink('src/version_gen.cc');
+//fs.unlink('src/version_gen.cc');
 
 run('./vsmake.js');

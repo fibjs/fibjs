@@ -406,6 +406,20 @@ void InstructionSelector::VisitFloat64Add(Node* node) {
 
 
 void InstructionSelector::VisitFloat64Sub(Node* node) {
+  MipsOperandGenerator g(this);
+  Float64BinopMatcher m(node);
+  if (m.left().IsMinusZero() && m.right().IsFloat64RoundDown() &&
+      CanCover(m.node(), m.right().node())) {
+    if (m.right().InputAt(0)->opcode() == IrOpcode::kFloat64Sub &&
+        CanCover(m.right().node(), m.right().InputAt(0))) {
+      Float64BinopMatcher mright0(m.right().InputAt(0));
+      if (mright0.left().IsMinusZero()) {
+        Emit(kMipsFloat64RoundUp, g.DefineAsRegister(node),
+             g.UseRegister(mright0.right().node()));
+        return;
+      }
+    }
+  }
   VisitRRR(this, kMipsSubD, node);
 }
 
@@ -427,19 +441,20 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
 }
 
 
+void InstructionSelector::VisitFloat64Max(Node* node) { UNREACHABLE(); }
+
+
+void InstructionSelector::VisitFloat64Min(Node* node) { UNREACHABLE(); }
+
+
 void InstructionSelector::VisitFloat64Sqrt(Node* node) {
   MipsOperandGenerator g(this);
   Emit(kMipsSqrtD, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
 }
 
 
-void InstructionSelector::VisitFloat64Floor(Node* node) {
-  VisitRR(this, kMipsFloat64Floor, node);
-}
-
-
-void InstructionSelector::VisitFloat64Ceil(Node* node) {
-  VisitRR(this, kMipsFloat64Ceil, node);
+void InstructionSelector::VisitFloat64RoundDown(Node* node) {
+  VisitRR(this, kMipsFloat64RoundDown, node);
 }
 
 
@@ -891,14 +906,14 @@ void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
 
 void InstructionSelector::VisitFloat64ExtractLowWord32(Node* node) {
   MipsOperandGenerator g(this);
-  Emit(kMipsFmoveLowUwD, g.DefineAsRegister(node),
+  Emit(kMipsFloat64ExtractLowWord32, g.DefineAsRegister(node),
        g.UseRegister(node->InputAt(0)));
 }
 
 
 void InstructionSelector::VisitFloat64ExtractHighWord32(Node* node) {
   MipsOperandGenerator g(this);
-  Emit(kMipsFmoveHighUwD, g.DefineAsRegister(node),
+  Emit(kMipsFloat64ExtractHighWord32, g.DefineAsRegister(node),
        g.UseRegister(node->InputAt(0)));
 }
 
@@ -907,8 +922,8 @@ void InstructionSelector::VisitFloat64InsertLowWord32(Node* node) {
   MipsOperandGenerator g(this);
   Node* left = node->InputAt(0);
   Node* right = node->InputAt(1);
-  Emit(kMipsFmoveLowDUw, g.DefineSameAsFirst(node), g.UseRegister(left),
-       g.UseRegister(right));
+  Emit(kMipsFloat64InsertLowWord32, g.DefineSameAsFirst(node),
+       g.UseRegister(left), g.UseRegister(right));
 }
 
 
@@ -916,8 +931,8 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
   MipsOperandGenerator g(this);
   Node* left = node->InputAt(0);
   Node* right = node->InputAt(1);
-  Emit(kMipsFmoveHighDUw, g.DefineSameAsFirst(node), g.UseRegister(left),
-       g.UseRegister(right));
+  Emit(kMipsFloat64InsertHighWord32, g.DefineSameAsFirst(node),
+       g.UseRegister(left), g.UseRegister(right));
 }
 
 
@@ -925,8 +940,7 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
   if (IsMipsArchVariant(kMips32r2) || IsMipsArchVariant(kMips32r6)) {
-    return MachineOperatorBuilder::kFloat64Floor |
-           MachineOperatorBuilder::kFloat64Ceil |
+    return MachineOperatorBuilder::kFloat64RoundDown |
            MachineOperatorBuilder::kFloat64RoundTruncate;
   }
   return MachineOperatorBuilder::kNoFlags;

@@ -6,7 +6,6 @@
 
 #include "src/v8.h"
 
-#include "src/base/atomicops.h"
 #include "src/counters.h"
 #include "src/heap/store-buffer-inl.h"
 
@@ -105,26 +104,6 @@ void StoreBuffer::TearDown() {
 void StoreBuffer::StoreBufferOverflow(Isolate* isolate) {
   isolate->heap()->store_buffer()->Compact();
   isolate->counters()->store_buffer_overflows()->Increment();
-}
-
-
-void StoreBuffer::Uniq() {
-  // Remove adjacent duplicates and cells that do not point at new space.
-  Address previous = NULL;
-  Address* write = old_start_;
-  DCHECK(may_move_store_buffer_entries_);
-  for (Address* read = old_start_; read < old_top_; read++) {
-    Address current = *read;
-    if (current != previous) {
-      Object* object = reinterpret_cast<Object*>(
-          base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(current)));
-      if (heap_->InNewSpace(object)) {
-        *write++ = current;
-      }
-    }
-    previous = current;
-  }
-  old_top_ = write;
 }
 
 
@@ -247,20 +226,6 @@ void StoreBuffer::Filter(int flag) {
 }
 
 
-void StoreBuffer::SortUniq() {
-  Compact();
-  if (old_buffer_is_sorted_) return;
-  std::sort(old_start_, old_top_);
-  Uniq();
-
-  old_buffer_is_sorted_ = true;
-
-  // Filtering hash sets are inconsistent with the store buffer after this
-  // operation.
-  ClearFilteringHashSets();
-}
-
-
 bool StoreBuffer::PrepareForIteration() {
   Compact();
   PointerChunkIterator it(heap_);
@@ -283,41 +248,6 @@ bool StoreBuffer::PrepareForIteration() {
 
   return page_has_scan_on_scavenge_flag;
 }
-
-
-#ifdef DEBUG
-void StoreBuffer::Clean() {
-  ClearFilteringHashSets();
-  Uniq();  // Also removes things that no longer point to new space.
-  EnsureSpace(kStoreBufferSize / 2);
-}
-
-
-static Address* in_store_buffer_1_element_cache = NULL;
-
-
-bool StoreBuffer::CellIsInStoreBuffer(Address cell_address) {
-  if (!FLAG_enable_slow_asserts) return true;
-  if (in_store_buffer_1_element_cache != NULL &&
-      *in_store_buffer_1_element_cache == cell_address) {
-    return true;
-  }
-  Address* top = reinterpret_cast<Address*>(heap_->store_buffer_top());
-  for (Address* current = top - 1; current >= start_; current--) {
-    if (*current == cell_address) {
-      in_store_buffer_1_element_cache = current;
-      return true;
-    }
-  }
-  for (Address* current = old_top_ - 1; current >= old_start_; current--) {
-    if (*current == cell_address) {
-      in_store_buffer_1_element_cache = current;
-      return true;
-    }
-  }
-  return false;
-}
-#endif
 
 
 void StoreBuffer::ClearFilteringHashSets() {
@@ -350,8 +280,7 @@ void StoreBuffer::VerifyPointers(LargeObjectSpace* space) {
         // When we are not in GC the Heap::InNewSpace() predicate
         // checks that pointers which satisfy predicate point into
         // the active semispace.
-        Object* object = reinterpret_cast<Object*>(
-            base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
+        Object* object = *slot;
         heap_->InNewSpace(object);
         slot_address += kPointerSize;
       }
@@ -379,23 +308,17 @@ void StoreBuffer::GCEpilogue() {
 
 
 void StoreBuffer::ProcessOldToNewSlot(Address slot_address,
-                                      ObjectSlotCallback slot_callback,
-                                      bool clear_maps) {
+                                      ObjectSlotCallback slot_callback) {
   Object** slot = reinterpret_cast<Object**>(slot_address);
-  Object* object = reinterpret_cast<Object*>(
-      base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
+  Object* object = *slot;
 
   // If the object is not in from space, it must be a duplicate store buffer
   // entry and the slot was already updated.
   if (heap_->InFromSpace(object)) {
     HeapObject* heap_object = reinterpret_cast<HeapObject*>(object);
     DCHECK(heap_object->IsHeapObject());
-    // The new space object was not promoted if it still contains a map
-    // pointer. Clear the map field now lazily (during full GC).
-    if (clear_maps) ClearDeadObject(heap_object);
     slot_callback(reinterpret_cast<HeapObject**>(slot), heap_object);
-    object = reinterpret_cast<Object*>(
-        base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
+    object = *slot;
     // If the object was in from space before and is after executing the
     // callback in to space, the object is still live.
     // Unfortunately, we do not know about the slot. It could be in a
@@ -408,17 +331,16 @@ void StoreBuffer::ProcessOldToNewSlot(Address slot_address,
 
 
 void StoreBuffer::FindPointersToNewSpaceInRegion(
-    Address start, Address end, ObjectSlotCallback slot_callback,
-    bool clear_maps) {
+    Address start, Address end, ObjectSlotCallback slot_callback) {
   for (Address slot_address = start; slot_address < end;
        slot_address += kPointerSize) {
-    ProcessOldToNewSlot(slot_address, slot_callback, clear_maps);
+    ProcessOldToNewSlot(slot_address, slot_callback);
   }
 }
 
 
-void StoreBuffer::IteratePointersInStoreBuffer(ObjectSlotCallback slot_callback,
-                                               bool clear_maps) {
+void StoreBuffer::IteratePointersInStoreBuffer(
+    ObjectSlotCallback slot_callback) {
   Address* limit = old_top_;
   old_top_ = old_start_;
   {
@@ -427,26 +349,55 @@ void StoreBuffer::IteratePointersInStoreBuffer(ObjectSlotCallback slot_callback,
 #ifdef DEBUG
       Address* saved_top = old_top_;
 #endif
-      ProcessOldToNewSlot(*current, slot_callback, clear_maps);
+      ProcessOldToNewSlot(*current, slot_callback);
       DCHECK(old_top_ == saved_top + 1 || old_top_ == saved_top);
     }
   }
 }
 
 
+void StoreBuffer::ClearInvalidStoreBufferEntries() {
+  Compact();
+  Address* new_top = old_start_;
+  for (Address* current = old_start_; current < old_top_; current++) {
+    Address addr = *current;
+    Object** slot = reinterpret_cast<Object**>(*current);
+    Object* object = *slot;
+    if (heap_->InNewSpace(object)) {
+      if (heap_->mark_compact_collector()->IsSlotInLiveObject(
+              reinterpret_cast<HeapObject**>(slot),
+              reinterpret_cast<HeapObject*>(object))) {
+        *new_top++ = addr;
+      }
+    }
+  }
+  old_top_ = new_top;
+  ClearFilteringHashSets();
+
+  // Don't scan on scavenge dead large objects.
+  LargeObjectIterator it(heap_->lo_space());
+  for (HeapObject* object = it.Next(); object != NULL; object = it.Next()) {
+    MemoryChunk* chunk = MemoryChunk::FromAddress(object->address());
+    if (chunk->scan_on_scavenge() && !Marking::MarkBitFrom(object).Get()) {
+      chunk->set_scan_on_scavenge(false);
+    }
+  }
+}
+
+
+void StoreBuffer::VerifyValidStoreBufferEntries() {
+  for (Address* current = old_start_; current < old_top_; current++) {
+    Object** slot = reinterpret_cast<Object**>(*current);
+    Object* object = *slot;
+    CHECK(heap_->InNewSpace(object));
+    heap_->mark_compact_collector()->VerifyIsSlotInLiveObject(
+        reinterpret_cast<HeapObject**>(slot),
+        reinterpret_cast<HeapObject*>(object));
+  }
+}
+
+
 void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback) {
-  IteratePointersToNewSpace(slot_callback, false);
-}
-
-
-void StoreBuffer::IteratePointersToNewSpaceAndClearMaps(
-    ObjectSlotCallback slot_callback) {
-  IteratePointersToNewSpace(slot_callback, true);
-}
-
-
-void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback,
-                                            bool clear_maps) {
   // We do not sort or remove duplicated entries from the store buffer because
   // we expect that callback will rebuild the store buffer thus removing
   // all duplicates and pointers to old space.
@@ -455,7 +406,7 @@ void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback,
   // TODO(gc): we want to skip slots on evacuation candidates
   // but we can't simply figure that out from slot address
   // because slot can belong to a large object.
-  IteratePointersInStoreBuffer(slot_callback, clear_maps);
+  IteratePointersInStoreBuffer(slot_callback);
 
   // We are done scanning all the pointers that were in the store buffer, but
   // there may be some pages marked scan_on_scavenge that have pointers to new
@@ -484,7 +435,7 @@ void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback,
           DCHECK(array->IsFixedArray());
           Address start = array->address();
           Address end = start + array->Size();
-          FindPointersToNewSpaceInRegion(start, end, slot_callback, clear_maps);
+          FindPointersToNewSpaceInRegion(start, end, slot_callback);
         } else {
           Page* page = reinterpret_cast<Page*>(chunk);
           PagedSpace* owner = reinterpret_cast<PagedSpace*>(page->owner());
@@ -499,7 +450,7 @@ void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback,
                 FindPointersToNewSpaceInRegion(
                     heap_object->address() + Map::kPointerFieldsBeginOffset,
                     heap_object->address() + Map::kPointerFieldsEndOffset,
-                    slot_callback, clear_maps);
+                    slot_callback);
               }
             }
           } else {
@@ -534,8 +485,7 @@ void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback,
                                         &end_of_region_offset)) {
                       FindPointersToNewSpaceInRegion(
                           obj_address + offset,
-                          obj_address + end_of_region_offset, slot_callback,
-                          clear_maps);
+                          obj_address + end_of_region_offset, slot_callback);
                     }
                     offset = end_of_region_offset;
                   }
@@ -545,7 +495,7 @@ void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback,
                   Address end_address = obj_address + end_offset;
                   // Object has only tagged fields.
                   FindPointersToNewSpaceInRegion(start_address, end_address,
-                                                 slot_callback, clear_maps);
+                                                 slot_callback);
 #if V8_DOUBLE_FIELDS_UNBOXING
                 }
 #endif

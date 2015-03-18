@@ -3255,8 +3255,7 @@ void Assembler::cmpltsd(XMMRegister dst, XMMRegister src) {
 }
 
 
-void Assembler::roundsd(XMMRegister dst, XMMRegister src,
-                        Assembler::RoundingMode mode) {
+void Assembler::roundsd(XMMRegister dst, XMMRegister src, RoundingMode mode) {
   DCHECK(IsEnabled(SSE4_1));
   EnsureSpace ensure_space(this);
   emit(0x66);
@@ -3315,6 +3314,46 @@ void Assembler::punpckhdq(XMMRegister dst, XMMRegister src) {
   emit_optional_rex_32(dst, src);
   emit(0x0F);
   emit(0x6A);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::maxsd(XMMRegister dst, XMMRegister src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x5F);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::maxsd(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x5F);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::minsd(XMMRegister dst, XMMRegister src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x5D);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::minsd(XMMRegister dst, const Operand& src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0x5D);
   emit_sse_operand(dst, src);
 }
 

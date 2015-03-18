@@ -1037,6 +1037,20 @@ void InstructionSelector::VisitFloat64Add(Node* node) {
 
 
 void InstructionSelector::VisitFloat64Sub(Node* node) {
+  Arm64OperandGenerator g(this);
+  Float64BinopMatcher m(node);
+  if (m.left().IsMinusZero() && m.right().IsFloat64RoundDown() &&
+      CanCover(m.node(), m.right().node())) {
+    if (m.right().InputAt(0)->opcode() == IrOpcode::kFloat64Sub &&
+        CanCover(m.right().node(), m.right().InputAt(0))) {
+      Float64BinopMatcher mright0(m.right().InputAt(0));
+      if (mright0.left().IsMinusZero()) {
+        Emit(kArm64Float64RoundUp, g.DefineAsRegister(node),
+             g.UseRegister(mright0.right().node()));
+        return;
+      }
+    }
+  }
   VisitRRRFloat64(this, kArm64Float64Sub, node);
 }
 
@@ -1059,18 +1073,19 @@ void InstructionSelector::VisitFloat64Mod(Node* node) {
 }
 
 
+void InstructionSelector::VisitFloat64Max(Node* node) { UNREACHABLE(); }
+
+
+void InstructionSelector::VisitFloat64Min(Node* node) { UNREACHABLE(); }
+
+
 void InstructionSelector::VisitFloat64Sqrt(Node* node) {
   VisitRRFloat64(this, kArm64Float64Sqrt, node);
 }
 
 
-void InstructionSelector::VisitFloat64Floor(Node* node) {
-  VisitRRFloat64(this, kArm64Float64Floor, node);
-}
-
-
-void InstructionSelector::VisitFloat64Ceil(Node* node) {
-  VisitRRFloat64(this, kArm64Float64Ceil, node);
+void InstructionSelector::VisitFloat64RoundDown(Node* node) {
+  VisitRRFloat64(this, kArm64Float64RoundDown, node);
 }
 
 
@@ -1595,20 +1610,35 @@ void InstructionSelector::VisitFloat64ExtractHighWord32(Node* node) {
 
 
 void InstructionSelector::VisitFloat64InsertLowWord32(Node* node) {
-  // TODO(arm64): Some AArch64 specialist should be able to improve this.
   Arm64OperandGenerator g(this);
   Node* left = node->InputAt(0);
   Node* right = node->InputAt(1);
+  if (left->opcode() == IrOpcode::kFloat64InsertHighWord32 &&
+      CanCover(node, left)) {
+    Node* right_of_left = left->InputAt(1);
+    Emit(kArm64Bfi, g.DefineSameAsFirst(right), g.UseRegister(right),
+         g.UseRegister(right_of_left), g.TempImmediate(32),
+         g.TempImmediate(32));
+    Emit(kArm64Float64MoveU64, g.DefineAsRegister(node), g.UseRegister(right));
+    return;
+  }
   Emit(kArm64Float64InsertLowWord32, g.DefineAsRegister(node),
        g.UseRegister(left), g.UseRegister(right));
 }
 
 
 void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
-  // TODO(arm64): Some AArch64 specialist should be able to improve this.
   Arm64OperandGenerator g(this);
   Node* left = node->InputAt(0);
   Node* right = node->InputAt(1);
+  if (left->opcode() == IrOpcode::kFloat64InsertLowWord32 &&
+      CanCover(node, left)) {
+    Node* right_of_left = left->InputAt(1);
+    Emit(kArm64Bfi, g.DefineSameAsFirst(left), g.UseRegister(right_of_left),
+         g.UseRegister(right), g.TempImmediate(32), g.TempImmediate(32));
+    Emit(kArm64Float64MoveU64, g.DefineAsRegister(node), g.UseRegister(left));
+    return;
+  }
   Emit(kArm64Float64InsertHighWord32, g.DefineAsRegister(node),
        g.UseRegister(left), g.UseRegister(right));
 }
@@ -1617,8 +1647,7 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
-  return MachineOperatorBuilder::kFloat64Floor |
-         MachineOperatorBuilder::kFloat64Ceil |
+  return MachineOperatorBuilder::kFloat64RoundDown |
          MachineOperatorBuilder::kFloat64RoundTruncate |
          MachineOperatorBuilder::kFloat64RoundTiesAway |
          MachineOperatorBuilder::kWord32ShiftIsSafe |

@@ -182,17 +182,17 @@ DEFINE_IMPLICATION(harmony, es_staging)
 DEFINE_IMPLICATION(es_staging, harmony)
 
 // Features that are still work in progress (behind individual flags).
-#define HARMONY_INPROGRESS(V)                                           \
-  V(harmony_modules, "harmony modules (implies block scoping)")         \
-  V(harmony_arrays, "harmony array methods")                            \
-  V(harmony_array_includes, "harmony Array.prototype.includes")         \
-  V(harmony_regexps, "harmony regular expression extensions")           \
-  V(harmony_arrow_functions, "harmony arrow functions")                 \
-  V(harmony_proxies, "harmony proxies")                                 \
-  V(harmony_sloppy, "harmony features in sloppy mode")                  \
-  V(harmony_unicode, "harmony unicode escapes")                         \
-  V(harmony_unicode_regexps, "harmony unicode regexps")                 \
-  V(harmony_rest_parameters, "harmony rest parameters")                 \
+#define HARMONY_INPROGRESS(V)                                   \
+  V(harmony_modules, "harmony modules")                         \
+  V(harmony_arrays, "harmony array methods")                    \
+  V(harmony_array_includes, "harmony Array.prototype.includes") \
+  V(harmony_regexps, "harmony regular expression extensions")   \
+  V(harmony_arrow_functions, "harmony arrow functions")         \
+  V(harmony_proxies, "harmony proxies")                         \
+  V(harmony_sloppy, "harmony features in sloppy mode")          \
+  V(harmony_unicode, "harmony unicode escapes")                 \
+  V(harmony_unicode_regexps, "harmony unicode regexps")         \
+  V(harmony_rest_parameters, "harmony rest parameters")
 
 // Features that are complete (but still behind --harmony/es-staging flag).
 #define HARMONY_STAGED(V)                                               \
@@ -200,14 +200,12 @@ DEFINE_IMPLICATION(es_staging, harmony)
   V(harmony_tostring, "harmony toString")
 
 // Features that are shipping (turned on by default, but internal flag remains).
-#define HARMONY_SHIPPING(V)                                               \
-  V(harmony_numeric_literals, "harmony numeric literals")                 \
-  V(harmony_strings, "harmony string methods")                            \
-  V(harmony_scoping, "harmony block scoping")                             \
-  V(harmony_templates, "harmony template literals")                       \
-  V(harmony_classes,                                                      \
-    "harmony classes (implies block scoping & object literal extension)") \
-  V(harmony_object_literals, "harmony object literal extensions")         \
+#define HARMONY_SHIPPING(V)                                                \
+  V(harmony_numeric_literals, "harmony numeric literals")                  \
+  V(harmony_strings, "harmony string methods")                             \
+  V(harmony_templates, "harmony template literals")                        \
+  V(harmony_classes, "harmony classes (implies object literal extension)") \
+  V(harmony_object_literals, "harmony object literal extensions")
 
 // Once a shipping feature has proved stable in the wild, it will be dropped
 // from HARMONY_SHIPPING, all occurrences of the FLAG_ variable are removed,
@@ -234,8 +232,6 @@ HARMONY_SHIPPING(FLAG_SHIPPING_FEATURES)
 
 
 // Feature dependencies.
-DEFINE_IMPLICATION(harmony_modules, harmony_scoping)
-DEFINE_IMPLICATION(harmony_classes, harmony_scoping)
 DEFINE_IMPLICATION(harmony_classes, harmony_object_literals)
 DEFINE_IMPLICATION(harmony_unicode_regexps, harmony_unicode)
 
@@ -301,6 +297,8 @@ DEFINE_BOOL(collect_megamorphic_maps_from_stub_cache, true,
             "crankshaft harvests type feedback from stub cache")
 DEFINE_BOOL(hydrogen_stats, false, "print statistics for hydrogen")
 DEFINE_BOOL(trace_check_elimination, false, "trace check elimination phase")
+DEFINE_BOOL(trace_environment_liveness, false,
+            "trace liveness of local variable slots")
 DEFINE_BOOL(trace_hydrogen, false, "trace generated hydrogen to file")
 DEFINE_STRING(trace_hydrogen_filter, "*", "hydrogen tracing filter")
 DEFINE_BOOL(trace_hydrogen_stubs, false, "trace generated hydrogen for stubs")
@@ -408,9 +406,9 @@ DEFINE_BOOL(context_specialization, false,
             "enable context specialization in TurboFan")
 DEFINE_BOOL(turbo_deoptimization, false, "enable deoptimization in TurboFan")
 DEFINE_BOOL(turbo_inlining, false, "enable inlining in TurboFan")
+DEFINE_BOOL(turbo_builtin_inlining, true, "enable builtin inlining in TurboFan")
 DEFINE_BOOL(trace_turbo_inlining, false, "trace TurboFan inlining")
 DEFINE_BOOL(loop_assignment_analysis, true, "perform loop assignment analysis")
-DEFINE_IMPLICATION(turbo_inlining, turbo_types)
 DEFINE_BOOL(turbo_profiling, false, "enable profiling in TurboFan")
 // TODO(dcarney): this is just for experimentation, remove when default.
 DEFINE_BOOL(turbo_delay_ssa_decon, false,
@@ -577,6 +575,8 @@ DEFINE_INT(initial_old_space_size, 0, "initial old space size (in Mbytes)")
 DEFINE_INT(max_executable_size, 0, "max size of executable memory (in Mbytes)")
 DEFINE_BOOL(gc_global, false, "always perform global GCs")
 DEFINE_INT(gc_interval, -1, "garbage collect after <n> allocations")
+DEFINE_INT(retain_maps_for_n_gc, 2,
+           "keeps maps alive for <n> old space garbage collections")
 DEFINE_BOOL(trace_gc, false,
             "print one trace line following each garbage collection")
 DEFINE_BOOL(trace_gc_nvp, false,
@@ -615,6 +615,11 @@ DEFINE_BOOL(incremental_marking, true, "use incremental marking")
 DEFINE_BOOL(incremental_marking_steps, true, "do incremental marking steps")
 DEFINE_BOOL(overapproximate_weak_closure, false,
             "overapproximate weak closer to reduce atomic pause time")
+DEFINE_INT(min_progress_during_object_groups_marking, 128,
+           "keep overapproximating the weak closure as long as we discover at "
+           "least this many unmarked objects")
+DEFINE_INT(max_object_groups_marking_rounds, 3,
+           "at most try this many times to over approximate the weak closure")
 DEFINE_BOOL(concurrent_sweeping, true, "use concurrent sweeping")
 DEFINE_BOOL(trace_incremental_marking, false,
             "trace progress of the incremental marking")

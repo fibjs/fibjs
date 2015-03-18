@@ -125,8 +125,8 @@ void Verifier::Visitor::Check(Node* node) {
   CHECK_EQ(input_count, node->InputCount());
 
   // Verify that frame state has been inserted for the nodes that need it.
-  if (OperatorProperties::HasFrameStateInput(node->op())) {
-    Node* frame_state = NodeProperties::GetFrameStateInput(node);
+  for (int i = 0; i < frame_state_count; i++) {
+    Node* frame_state = NodeProperties::GetFrameStateInput(node, i);
     CHECK(frame_state->opcode() == IrOpcode::kFrameState ||
           // kFrameState uses undefined as a sentinel.
           (node->opcode() == IrOpcode::kFrameState &&
@@ -550,6 +550,11 @@ void Verifier::Visitor::Check(Node* node) {
       CheckUpperIs(node, Type::Any());
       break;
 
+    case IrOpcode::kJSStackCheck:
+      // Type is empty.
+      CheckNotTyped(node);
+      break;
+
     // Simplified operators
     // -------------------------------
     case IrOpcode::kAnyToBoolean:
@@ -787,9 +792,10 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kFloat64Mul:
     case IrOpcode::kFloat64Div:
     case IrOpcode::kFloat64Mod:
+    case IrOpcode::kFloat64Max:
+    case IrOpcode::kFloat64Min:
     case IrOpcode::kFloat64Sqrt:
-    case IrOpcode::kFloat64Floor:
-    case IrOpcode::kFloat64Ceil:
+    case IrOpcode::kFloat64RoundDown:
     case IrOpcode::kFloat64RoundTruncate:
     case IrOpcode::kFloat64RoundTiesAway:
     case IrOpcode::kFloat64Equal:

@@ -360,6 +360,14 @@ inline Condition CommuteCondition(Condition cc) {
 }
 
 
+enum RoundingMode {
+  kRoundToNearest = 0x0,
+  kRoundDown = 0x1,
+  kRoundUp = 0x2,
+  kRoundToZero = 0x3
+};
+
+
 // -----------------------------------------------------------------------------
 // Machine instruction Immediates
 
@@ -1136,6 +1144,11 @@ class Assembler : public AssemblerBase {
   void punpckldq(XMMRegister dst, XMMRegister src);
   void punpckhdq(XMMRegister dst, XMMRegister src);
 
+  void maxsd(XMMRegister dst, XMMRegister src);
+  void maxsd(XMMRegister dst, const Operand& src);
+  void minsd(XMMRegister dst, XMMRegister src);
+  void minsd(XMMRegister dst, const Operand& src);
+
   // SSE 4.1 instruction
   void extractps(Register dst, XMMRegister src, byte imm8);
 
@@ -1143,13 +1156,6 @@ class Assembler : public AssemblerBase {
 
   void pinsrd(XMMRegister dst, Register src, int8_t imm8);
   void pinsrd(XMMRegister dst, const Operand& src, int8_t imm8);
-
-  enum RoundingMode {
-    kRoundToNearest = 0x0,
-    kRoundDown      = 0x1,
-    kRoundUp        = 0x2,
-    kRoundToZero    = 0x3
-  };
 
   void roundsd(XMMRegister dst, XMMRegister src, RoundingMode mode);
 
@@ -1327,6 +1333,18 @@ class Assembler : public AssemblerBase {
   }
   void vdivsd(XMMRegister dst, XMMRegister src1, const Operand& src2) {
     vsd(0x5e, dst, src1, src2);
+  }
+  void vmaxsd(XMMRegister dst, XMMRegister src1, XMMRegister src2) {
+    vsd(0x5f, dst, src1, src2);
+  }
+  void vmaxsd(XMMRegister dst, XMMRegister src1, const Operand& src2) {
+    vsd(0x5f, dst, src1, src2);
+  }
+  void vminsd(XMMRegister dst, XMMRegister src1, XMMRegister src2) {
+    vsd(0x5d, dst, src1, src2);
+  }
+  void vminsd(XMMRegister dst, XMMRegister src1, const Operand& src2) {
+    vsd(0x5d, dst, src1, src2);
   }
   void vsd(byte op, XMMRegister dst, XMMRegister src1, XMMRegister src2);
   void vsd(byte op, XMMRegister dst, XMMRegister src1, const Operand& src2);

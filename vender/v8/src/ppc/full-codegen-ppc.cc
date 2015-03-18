@@ -204,7 +204,7 @@ void FullCodeGenerator::Generate() {
     // Argument to NewContext is the function, which is still in r4.
     Comment cmnt(masm_, "[ Allocate context");
     bool need_write_barrier = true;
-    if (FLAG_harmony_scoping && info->scope()->is_script_scope()) {
+    if (info->scope()->is_script_scope()) {
       __ push(r4);
       __ Push(info->scope()->GetScopeInfo(info->isolate()));
       __ CallRuntime(Runtime::kNewScriptContext, 2);
@@ -1486,7 +1486,7 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
         __ mov(VectorLoadICDescriptor::SlotRegister(),
                Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
       }
-      CallLoadIC(CONTEXTUAL);
+      CallGlobalLoadIC(var->name());
       context()->Plug(r3);
       break;
     }
@@ -2570,6 +2570,16 @@ void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
     }
     __ push(scratch);
     EmitPropertyKey(property, lit->GetIdForProperty(i));
+
+    // The static prototype property is read only. We handle the non computed
+    // property name case in the parser. Since this is the only case where we
+    // need to check for an own read only property we special case this so we do
+    // not need to do this for every property.
+    if (property->is_static() && property->is_computed_name()) {
+      __ CallRuntime(Runtime::kThrowIfStaticPrototype, 1);
+      __ push(r3);
+    }
+
     VisitForStackValue(value);
     EmitSetHomeObjectIfNeeded(value, 2);
 
@@ -2713,25 +2723,6 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var, Token::Value op) {
     __ LoadP(StoreDescriptor::ReceiverRegister(), GlobalObjectOperand());
     CallStoreIC();
 
-  } else if (op == Token::INIT_CONST_LEGACY) {
-    // Const initializers need a write barrier.
-    DCHECK(!var->IsParameter());  // No const parameters.
-    if (var->IsLookupSlot()) {
-      __ push(r3);
-      __ mov(r3, Operand(var->name()));
-      __ Push(cp, r3);  // Context and name.
-      __ CallRuntime(Runtime::kInitializeLegacyConstLookupSlot, 3);
-    } else {
-      DCHECK(var->IsStackAllocated() || var->IsContextSlot());
-      Label skip;
-      MemOperand location = VarOperand(var, r4);
-      __ LoadP(r5, location);
-      __ CompareRoot(r5, Heap::kTheHoleValueRootIndex);
-      __ bne(&skip);
-      EmitStoreToStackLocalOrContextSlot(var, location);
-      __ bind(&skip);
-    }
-
   } else if (var->mode() == LET && op != Token::INIT_LET) {
     // Non-initializing assignment to let variable needs a write barrier.
     DCHECK(!var->IsLookupSlot());
@@ -2747,6 +2738,21 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var, Token::Value op) {
     // Perform the assignment.
     __ bind(&assign);
     EmitStoreToStackLocalOrContextSlot(var, location);
+
+  } else if (var->mode() == CONST && op != Token::INIT_CONST) {
+    // Assignment to const variable needs a write barrier.
+    DCHECK(!var->IsLookupSlot());
+    DCHECK(var->IsStackAllocated() || var->IsContextSlot());
+    Label const_error;
+    MemOperand location = VarOperand(var, r4);
+    __ LoadP(r6, location);
+    __ CompareRoot(r6, Heap::kTheHoleValueRootIndex);
+    __ bne(&const_error);
+    __ mov(r6, Operand(var->name()));
+    __ push(r6);
+    __ CallRuntime(Runtime::kThrowReferenceError, 1);
+    __ bind(&const_error);
+    __ CallRuntime(Runtime::kThrowConstAssignError, 0);
 
   } else if (!var->is_const_mode() || op == Token::INIT_CONST) {
     if (var->IsLookupSlot()) {
@@ -2769,8 +2775,32 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var, Token::Value op) {
       }
       EmitStoreToStackLocalOrContextSlot(var, location);
     }
-  } else if (IsSignallingAssignmentToConst(var, op, language_mode())) {
-    __ CallRuntime(Runtime::kThrowConstAssignError, 0);
+  } else if (op == Token::INIT_CONST_LEGACY) {
+    // Const initializers need a write barrier.
+    DCHECK(var->mode() == CONST_LEGACY);
+    DCHECK(!var->IsParameter());  // No const parameters.
+    if (var->IsLookupSlot()) {
+      __ push(r3);
+      __ mov(r3, Operand(var->name()));
+      __ Push(cp, r3);  // Context and name.
+      __ CallRuntime(Runtime::kInitializeLegacyConstLookupSlot, 3);
+    } else {
+      DCHECK(var->IsStackAllocated() || var->IsContextSlot());
+      Label skip;
+      MemOperand location = VarOperand(var, r4);
+      __ LoadP(r5, location);
+      __ CompareRoot(r5, Heap::kTheHoleValueRootIndex);
+      __ bne(&skip);
+      EmitStoreToStackLocalOrContextSlot(var, location);
+      __ bind(&skip);
+    }
+
+  } else {
+    DCHECK(var->mode() == CONST_LEGACY && op != Token::INIT_CONST_LEGACY);
+    if (is_strict(language_mode())) {
+      __ CallRuntime(Runtime::kThrowConstAssignError, 0);
+    }
+    // Silently ignore store in sloppy mode.
   }
 }
 
@@ -2897,7 +2927,8 @@ void FullCodeGenerator::EmitCallWithLoadIC(Call* expr) {
     }
     // Push undefined as receiver. This is patched in the method prologue if it
     // is a sloppy mode method.
-    __ Push(isolate()->factory()->undefined_value());
+    __ LoadRoot(r0, Heap::kUndefinedValueRootIndex);
+    __ push(r0);
   } else {
     // Load the function from the receiver.
     DCHECK(callee->IsProperty());
@@ -2906,8 +2937,8 @@ void FullCodeGenerator::EmitCallWithLoadIC(Call* expr) {
     EmitNamedPropertyLoad(callee->AsProperty());
     PrepareForBailoutForId(callee->AsProperty()->LoadId(), TOS_REG);
     // Push the target function under the receiver.
-    __ LoadP(ip, MemOperand(sp, 0));
-    __ push(ip);
+    __ LoadP(r0, MemOperand(sp, 0));
+    __ push(r0);
     __ StoreP(r3, MemOperand(sp, kPointerSize));
   }
 
@@ -4222,6 +4253,8 @@ void FullCodeGenerator::EmitDefaultConstructorCallSuper(CallRuntime* expr) {
   }
 
   __ bind(&args_set_up);
+  __ LoadRoot(r5, Heap::kUndefinedValueRootIndex);
+
   CallConstructStub stub(isolate(), SUPER_CONSTRUCTOR_CALL);
   __ Call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
 
@@ -4594,18 +4627,11 @@ void FullCodeGenerator::EmitDebugIsActive(CallRuntime* expr) {
 
 
 void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
-  if (expr->function() != NULL &&
-      expr->function()->intrinsic_type == Runtime::INLINE) {
-    Comment cmnt(masm_, "[ InlineRuntimeCall");
-    EmitInlineRuntimeCall(expr);
-    return;
-  }
-
-  Comment cmnt(masm_, "[ CallRuntime");
   ZoneList<Expression*>* args = expr->arguments();
   int arg_count = args->length();
 
   if (expr->is_jsruntime()) {
+    Comment cmnt(masm_, "[ CallRuntime");
     // Push the builtins object as the receiver.
     Register receiver = LoadDescriptor::ReceiverRegister();
     __ LoadP(receiver, GlobalObjectOperand());
@@ -4629,7 +4655,6 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
     __ StoreP(r3, MemOperand(sp, kPointerSize));
 
     // Push the arguments ("left-to-right").
-    int arg_count = args->length();
     for (int i = 0; i < arg_count; i++) {
       VisitForStackValue(args->at(i));
     }
@@ -4644,15 +4669,29 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
     __ LoadP(cp, MemOperand(fp, StandardFrameConstants::kContextOffset));
 
     context()->DropAndPlug(1, r3);
-  } else {
-    // Push the arguments ("left-to-right").
-    for (int i = 0; i < arg_count; i++) {
-      VisitForStackValue(args->at(i));
-    }
 
-    // Call the C runtime function.
-    __ CallRuntime(expr->function(), arg_count);
-    context()->Plug(r3);
+  } else {
+    const Runtime::Function* function = expr->function();
+    switch (function->function_id) {
+#define CALL_INTRINSIC_GENERATOR(Name)     \
+  case Runtime::kInline##Name: {           \
+    Comment cmnt(masm_, "[ Inline" #Name); \
+    return Emit##Name(expr);               \
+  }
+      FOR_EACH_FULL_CODE_INTRINSIC(CALL_INTRINSIC_GENERATOR)
+#undef CALL_INTRINSIC_GENERATOR
+      default: {
+        Comment cmnt(masm_, "[ CallRuntime for unhandled intrinsic");
+        // Push the arguments ("left-to-right").
+        for (int i = 0; i < arg_count; i++) {
+          VisitForStackValue(args->at(i));
+        }
+
+        // Call the C runtime function.
+        __ CallRuntime(expr->function(), arg_count);
+        context()->Plug(r3);
+      }
+    }
   }
 }
 
@@ -5295,38 +5334,12 @@ void FullCodeGenerator::EnterFinallyBlock() {
   __ mov(ip, Operand(pending_message_obj));
   __ LoadP(r4, MemOperand(ip));
   __ push(r4);
-
-  ExternalReference has_pending_message =
-      ExternalReference::address_of_has_pending_message(isolate());
-  __ mov(ip, Operand(has_pending_message));
-  __ lbz(r4, MemOperand(ip));
-  __ SmiTag(r4);
-  __ push(r4);
-
-  ExternalReference pending_message_script =
-      ExternalReference::address_of_pending_message_script(isolate());
-  __ mov(ip, Operand(pending_message_script));
-  __ LoadP(r4, MemOperand(ip));
-  __ push(r4);
 }
 
 
 void FullCodeGenerator::ExitFinallyBlock() {
   DCHECK(!result_register().is(r4));
   // Restore pending message from stack.
-  __ pop(r4);
-  ExternalReference pending_message_script =
-      ExternalReference::address_of_pending_message_script(isolate());
-  __ mov(ip, Operand(pending_message_script));
-  __ StoreP(r4, MemOperand(ip));
-
-  __ pop(r4);
-  __ SmiUntag(r4);
-  ExternalReference has_pending_message =
-      ExternalReference::address_of_has_pending_message(isolate());
-  __ mov(ip, Operand(has_pending_message));
-  __ stb(r4, MemOperand(ip));
-
   __ pop(r4);
   ExternalReference pending_message_obj =
       ExternalReference::address_of_pending_message_obj(isolate());

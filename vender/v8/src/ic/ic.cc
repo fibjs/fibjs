@@ -262,6 +262,7 @@ static void LookupForRead(LookupIterator* it) {
         }
         return;
       case LookupIterator::ACCESSOR:
+      case LookupIterator::INTEGER_INDEXED_EXOTIC:
       case LookupIterator::DATA:
         return;
     }
@@ -721,7 +722,7 @@ MaybeHandle<Object> LoadIC::Load(Handle<Object> object, Handle<Name> name) {
 
   bool use_ic = MigrateDeprecated(object) ? false : FLAG_use_ic;
 
-  if (FLAG_harmony_scoping && object->IsGlobalObject() && name->IsString()) {
+  if (object->IsGlobalObject() && name->IsString()) {
     // Look up in script context table.
     Handle<String> str_name = Handle<String>::cast(name);
     Handle<GlobalObject> global = Handle<GlobalObject>::cast(object);
@@ -987,7 +988,7 @@ Handle<Code> LoadIC::load_global(Isolate* isolate, Handle<GlobalObject> global,
 Handle<Code> LoadIC::initialize_stub_in_optimized_code(
     Isolate* isolate, ExtraICState extra_state, State initialization_state) {
   if (FLAG_vector_ics) {
-    return VectorLoadStub(isolate, LoadICState(extra_state)).GetCode();
+    return VectorRawLoadStub(isolate, LoadICState(extra_state)).GetCode();
   }
   return PropertyICCompiler::ComputeLoad(isolate, initialization_state,
                                          extra_state);
@@ -1006,7 +1007,7 @@ Handle<Code> KeyedLoadIC::initialize_stub(Isolate* isolate) {
 Handle<Code> KeyedLoadIC::initialize_stub_in_optimized_code(
     Isolate* isolate, State initialization_state) {
   if (FLAG_vector_ics) {
-    return VectorKeyedLoadStub(isolate).GetCode();
+    return VectorRawKeyedLoadStub(isolate).GetCode();
   }
   switch (initialization_state) {
     case UNINITIALIZED:
@@ -1316,6 +1317,8 @@ Handle<Code> LoadIC::CompileHandler(LookupIterator* lookup,
                                           lookup->GetConstantIndex());
     }
 
+    case LookupIterator::INTEGER_INDEXED_EXOTIC:
+      return slow_stub();
     case LookupIterator::ACCESS_CHECK:
     case LookupIterator::JSPROXY:
     case LookupIterator::NOT_FOUND:
@@ -1506,6 +1509,8 @@ bool StoreIC::LookupForWrite(LookupIterator* it, Handle<Object> value,
         break;
       case LookupIterator::ACCESSOR:
         return !it->IsReadOnly();
+      case LookupIterator::INTEGER_INDEXED_EXOTIC:
+        return false;
       case LookupIterator::DATA: {
         if (it->IsReadOnly()) return false;
         Handle<JSObject> holder = it->GetHolder<JSObject>();
@@ -1530,7 +1535,6 @@ bool StoreIC::LookupForWrite(LookupIterator* it, Handle<Object> value,
     }
   }
 
-  if (it->IsSpecialNumericIndex()) return false;
   it->PrepareTransitionToDataProperty(value, NONE, store_mode);
   return it->IsCacheableTransition();
 }
@@ -1539,7 +1543,7 @@ bool StoreIC::LookupForWrite(LookupIterator* it, Handle<Object> value,
 MaybeHandle<Object> StoreIC::Store(Handle<Object> object, Handle<Name> name,
                                    Handle<Object> value,
                                    JSReceiver::StoreFromKeyed store_mode) {
-  if (FLAG_harmony_scoping && object->IsGlobalObject() && name->IsString()) {
+  if (object->IsGlobalObject() && name->IsString()) {
     // Look up in script context table.
     Handle<String> str_name = Handle<String>::cast(name);
     Handle<GlobalObject> global = Handle<GlobalObject>::cast(object);
@@ -1552,6 +1556,15 @@ MaybeHandle<Object> StoreIC::Store(Handle<Object> object, Handle<Name> name,
           script_contexts, lookup_result.context_index);
       if (lookup_result.mode == CONST) {
         return TypeError("const_assign", object, name);
+      }
+
+      Handle<Object> previous_value =
+          FixedArray::get(script_context, lookup_result.slot_index);
+
+      if (*previous_value == *isolate()->factory()->the_hole_value()) {
+        // Do not install stubs and stay pre-monomorphic for
+        // uninitialized accesses.
+        return ReferenceError("not_defined", name);
       }
 
       if (FLAG_use_ic &&
@@ -1835,6 +1848,7 @@ Handle<Code> StoreIC::CompileHandler(LookupIterator* lookup,
       break;
     }
 
+    case LookupIterator::INTEGER_INDEXED_EXOTIC:
     case LookupIterator::ACCESS_CHECK:
     case LookupIterator::JSPROXY:
     case LookupIterator::NOT_FOUND:
@@ -2181,7 +2195,9 @@ MaybeHandle<Object> KeyedStoreIC::Store(Handle<Object> object,
     TRACE_GENERIC_IC(isolate(), "KeyedStoreIC", "slow stub");
   }
   DCHECK(!stub.is_null());
-  set_target(*stub);
+  if (!AddressIsDeoptimizedCode()) {
+    set_target(*stub);
+  }
   TRACE_IC("StoreIC", key);
 
   return store_handle;

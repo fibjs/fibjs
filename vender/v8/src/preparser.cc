@@ -174,7 +174,6 @@ PreParser::Statement PreParser::ParseStatementListItem(bool* ok) {
     case Token::CONST:
       return ParseVariableStatement(kStatementListItem, ok);
     case Token::LET:
-      DCHECK(allow_harmony_scoping());
       if (is_strict(language_mode())) {
         return ParseVariableStatement(kStatementListItem, ok);
       }
@@ -194,8 +193,19 @@ void PreParser::ParseStatementList(int end_token, bool* ok) {
     if (directive_prologue && peek() != Token::STRING) {
       directive_prologue = false;
     }
+    Token::Value token = peek();
+    Scanner::Location old_super_loc = function_state_->super_call_location();
     Statement statement = ParseStatementListItem(ok);
     if (!*ok) return;
+    Scanner::Location super_loc = function_state_->super_call_location();
+    if (is_strong(language_mode()) &&
+        i::IsConstructor(function_state_->kind()) &&
+        !old_super_loc.IsValid() && super_loc.IsValid() &&
+        token != Token::SUPER) {
+      ReportMessageAt(super_loc, "strong_super_call_nested");
+      *ok = false;
+      return;
+    }
     if (directive_prologue) {
       if (statement.IsUseStrictLiteral()) {
         scope_->SetLanguageMode(
@@ -383,7 +393,7 @@ PreParser::Statement PreParser::ParseBlock(bool* ok) {
   //
   Expect(Token::LBRACE, CHECK_OK);
   while (peek() != Token::RBRACE) {
-    if (allow_harmony_scoping() && is_strict(language_mode())) {
+    if (is_strict(language_mode())) {
       ParseStatementListItem(CHECK_OK);
     } else {
       ParseStatement(CHECK_OK);
@@ -456,12 +466,6 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
     Consume(Token::CONST);
     if (is_strict(language_mode())) {
       DCHECK(var_context != kStatement);
-      if (!allow_harmony_scoping()) {
-        Scanner::Location location = scanner()->peek_location();
-        ReportMessageAt(location, "strict_const");
-        *ok = false;
-        return Statement::Default();
-      }
       is_strict_const = true;
       require_initializer = var_context != kForStatement;
     }
@@ -670,7 +674,7 @@ PreParser::Statement PreParser::ParseSwitchStatement(bool* ok) {
     while (token != Token::CASE &&
            token != Token::DEFAULT &&
            token != Token::RBRACE) {
-      ParseStatement(CHECK_OK);
+      ParseStatementListItem(CHECK_OK);
       token = peek();
     }
   }
@@ -943,6 +947,15 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
   if (is_strict(language_mode())) {
     int end_position = scanner()->location().end_pos;
     CheckStrictOctalLiteral(start_position, end_position, CHECK_OK);
+  }
+
+  if (is_strong(language_mode()) && IsSubclassConstructor(kind)) {
+    if (!function_state.super_call_location().IsValid()) {
+      ReportMessageAt(function_name_location, "strong_super_call_missing",
+                      kReferenceError);
+      *ok = false;
+      return Expression::Default();
+    }
   }
 
   return Expression::Default();

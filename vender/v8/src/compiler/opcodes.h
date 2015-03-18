@@ -131,7 +131,8 @@
   V(JSCallFunction)         \
   V(JSCallRuntime)          \
   V(JSYield)                \
-  V(JSDebugger)
+  V(JSDebugger)             \
+  V(JSStackCheck)
 
 #define JS_OP_LIST(V)     \
   JS_SIMPLE_BINOP_LIST(V) \
@@ -247,9 +248,10 @@
   V(Float64Mul)                 \
   V(Float64Div)                 \
   V(Float64Mod)                 \
+  V(Float64Max)                 \
+  V(Float64Min)                 \
   V(Float64Sqrt)                \
-  V(Float64Floor)               \
-  V(Float64Ceil)                \
+  V(Float64RoundDown)           \
   V(Float64RoundTruncate)       \
   V(Float64RoundTiesAway)       \
   V(Float64ExtractLowWord32)    \
@@ -304,7 +306,7 @@ class IrOpcode {
 
   // Returns true if opcode for JavaScript operator.
   static bool IsJsOpcode(Value value) {
-    return kJSEqual <= value && value <= kJSDebugger;
+    return kJSEqual <= value && value <= kJSStackCheck;
   }
 
   // Returns true if opcode for constant operator.
