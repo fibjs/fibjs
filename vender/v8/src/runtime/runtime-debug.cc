@@ -138,7 +138,7 @@ RUNTIME_FUNCTION(Runtime_DebugGetPropertyDetails) {
         isolate, element_or_char,
         Runtime::GetElementOrCharAt(isolate, obj, index));
     details->set(0, *element_or_char);
-    details->set(1, PropertyDetails(NONE, DATA, 0).AsSmi());
+    details->set(1, PropertyDetails::Empty().AsSmi());
     return *isolate->factory()->NewJSArrayWithElements(details);
   }
 
@@ -160,7 +160,7 @@ RUNTIME_FUNCTION(Runtime_DebugGetPropertyDetails) {
   details->set(0, *value);
   // TODO(verwaest): Get rid of this random way of handling interceptors.
   PropertyDetails d = it.state() == LookupIterator::INTERCEPTOR
-                          ? PropertyDetails(NONE, DATA, 0)
+                          ? PropertyDetails::Empty()
                           : it.property_details();
   details->set(1, d.AsSmi());
   details->set(
@@ -1218,7 +1218,7 @@ class ScopeIterator {
         RetrieveScopeChain(scope, shared_info);
       } else {
         // Function code
-        ParseInfo info(&zone, shared_info);
+        ParseInfo info(&zone, function_);
         if (Parser::ParseStatic(&info) && Scope::Analyze(&info)) {
           scope = info.function()->scope();
         }
@@ -1552,9 +1552,11 @@ RUNTIME_FUNCTION(Runtime_GetStepInPositions) {
   JavaScriptFrameIterator frame_it(isolate, id);
   RUNTIME_ASSERT(!frame_it.done());
 
-  JavaScriptFrame* frame = frame_it.frame();
+  List<FrameSummary> frames(FLAG_max_inlining_levels + 1);
+  frame_it.frame()->Summarize(&frames);
+  FrameSummary summary = frames.first();
 
-  Handle<JSFunction> fun = Handle<JSFunction>(frame->function());
+  Handle<JSFunction> fun = Handle<JSFunction>(summary.function());
   Handle<SharedFunctionInfo> shared = Handle<SharedFunctionInfo>(fun->shared());
 
   if (!isolate->debug()->EnsureDebugInfo(shared, fun)) {
@@ -1565,7 +1567,7 @@ RUNTIME_FUNCTION(Runtime_GetStepInPositions) {
 
   // Find range of break points starting from the break point where execution
   // has stopped.
-  Address call_pc = frame->pc() - 1;
+  Address call_pc = summary.pc() - 1;
   List<BreakLocation> locations;
   BreakLocation::FromAddressSameStatement(debug_info, ALL_BREAK_LOCATIONS,
                                           call_pc, &locations);
@@ -1575,7 +1577,7 @@ RUNTIME_FUNCTION(Runtime_GetStepInPositions) {
   int index = 0;
   for (BreakLocation location : locations) {
     bool accept;
-    if (location.pc() > frame->pc()) {
+    if (location.pc() > summary.pc()) {
       accept = true;
     } else {
       StackFrame::Id break_frame_id = isolate->debug()->break_frame_id();
@@ -2738,7 +2740,7 @@ RUNTIME_FUNCTION(Runtime_GetScript) {
 }
 
 
-// Check whether debugger and is about to step into the callback that is passed
+// Check whether debugger is about to step into the callback that is passed
 // to a built-in function such as Array.forEach.
 RUNTIME_FUNCTION(Runtime_DebugCallbackSupportsStepping) {
   DCHECK(args.length() == 1);
@@ -2748,9 +2750,12 @@ RUNTIME_FUNCTION(Runtime_DebugCallbackSupportsStepping) {
     return isolate->heap()->false_value();
   }
   CONVERT_ARG_CHECKED(Object, callback, 0);
-  // We do not step into the callback if it's a builtin or not even a function.
-  return isolate->heap()->ToBoolean(callback->IsJSFunction() &&
-                                    !JSFunction::cast(callback)->IsBuiltin());
+  // We do not step into the callback if it's a builtin other than a bound,
+  // or not even a function.
+  return isolate->heap()->ToBoolean(
+      callback->IsJSFunction() &&
+      (!JSFunction::cast(callback)->IsBuiltin() ||
+       JSFunction::cast(callback)->shared()->bound()));
 }
 
 
@@ -2775,16 +2780,17 @@ RUNTIME_FUNCTION(Runtime_DebugPrepareStepInIfStepping) {
   // if we do not leave the builtin.  To be able to step into the function
   // again, we need to clear the step out at this point.
   debug->ClearStepOut();
-  debug->FloodWithOneShot(fun);
+  debug->FloodWithOneShotGeneric(fun);
   return isolate->heap()->undefined_value();
 }
 
 
 RUNTIME_FUNCTION(Runtime_DebugPushPromise) {
-  DCHECK(args.length() == 1);
+  DCHECK(args.length() == 2);
   HandleScope scope(isolate);
   CONVERT_ARG_HANDLE_CHECKED(JSObject, promise, 0);
-  isolate->PushPromise(promise);
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 1);
+  isolate->PushPromise(promise, function);
   return isolate->heap()->undefined_value();
 }
 

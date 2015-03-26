@@ -72,6 +72,7 @@ public:
     virtual result_t get_cookies(obj_ptr<List_base> &retVal);
     virtual result_t addCookie(HttpCookie_base *cookie);
     virtual result_t redirect(const char *url);
+    virtual result_t sendHeader(Stream_base* stm, exlib::AsyncEvent* ac);
 
 public:
     HttpMessage m_message;

@@ -22,6 +22,7 @@
 #include "src/bootstrapper.h"
 #include "src/code-stubs.h"
 #include "src/compiler.h"
+#include "src/contexts.h"
 #include "src/conversions-inl.h"
 #include "src/counters.h"
 #include "src/cpu-profiler.h"
@@ -36,6 +37,7 @@
 #include "src/messages.h"
 #include "src/natives.h"
 #include "src/parser.h"
+#include "src/pending-compilation-error-handler.h"
 #include "src/profile-generator-inl.h"
 #include "src/property.h"
 #include "src/property-details.h"
@@ -52,30 +54,12 @@
 #include "src/vm-state-inl.h"
 
 
-#define LOG_API(isolate, expr) LOG(isolate, ApiEntryCall(expr))
-
-#define ENTER_V8(isolate)             \
-  i::VMState<v8::OTHER> __state__((isolate))
-
 namespace v8 {
 
-#define EXCEPTION_PREAMBLE(isolate)                                         \
-  (isolate)->handle_scope_implementer()->IncrementCallDepth();              \
-  DCHECK(!(isolate)->external_caught_exception());                          \
-  bool has_pending_exception = false
+#define LOG_API(isolate, expr) LOG(isolate, ApiEntryCall(expr))
 
 
-#define EXCEPTION_BAILOUT_CHECK(isolate, value)                              \
-  do {                                                                       \
-    i::HandleScopeImplementer* handle_scope_implementer =                    \
-        (isolate)->handle_scope_implementer();                               \
-    handle_scope_implementer->DecrementCallDepth();                          \
-    if (has_pending_exception) {                                             \
-      bool call_depth_is_zero = handle_scope_implementer->CallDepthIsZero(); \
-      (isolate)->OptionalRescheduleException(call_depth_is_zero);            \
-      return value;                                                          \
-    }                                                                        \
-  } while (false)
+#define ENTER_V8(isolate) i::VMState<v8::OTHER> __state__((isolate))
 
 
 #define PREPARE_FOR_EXECUTION_GENERIC(isolate, context, function_name, \
@@ -253,10 +237,6 @@ void i::V8::FatalProcessOutOfMemory(const char* location, bool take_snapshot) {
   heap_stats.cell_space_size = &cell_space_size;
   intptr_t cell_space_capacity;
   heap_stats.cell_space_capacity = &cell_space_capacity;
-  intptr_t property_cell_space_size;
-  heap_stats.property_cell_space_size = &property_cell_space_size;
-  intptr_t property_cell_space_capacity;
-  heap_stats.property_cell_space_capacity = &property_cell_space_capacity;
   intptr_t lo_space_size;
   heap_stats.lo_space_size = &lo_space_size;
   int global_handle_count;
@@ -619,6 +599,13 @@ void V8::CheckIsJust(bool is_just) {
 
 void V8::ToLocalEmpty() {
   Utils::ApiCheck(false, "v8::ToLocalChecked", "Empty MaybeLocal.");
+}
+
+
+void V8::InternalFieldOutOfBounds(int index) {
+  Utils::ApiCheck(0 <= index && index < kInternalFieldsInWeakCallback,
+                  "WeakCallbackInfo::GetInternalField",
+                  "Internal field out of bounds.");
 }
 
 
@@ -1306,10 +1293,12 @@ void ObjectTemplate::SetAccessor(v8::Handle<Name> name,
 
 template <typename Getter, typename Setter, typename Query, typename Deleter,
           typename Enumerator>
-static void ObjectTemplateSetNamedPropertyHandler(
-    ObjectTemplate* templ, Getter getter, Setter setter, Query query,
-    Deleter remover, Enumerator enumerator, Handle<Value> data,
-    bool can_intercept_symbols, PropertyHandlerFlags flags) {
+static void ObjectTemplateSetNamedPropertyHandler(ObjectTemplate* templ,
+                                                  Getter getter, Setter setter,
+                                                  Query query, Deleter remover,
+                                                  Enumerator enumerator,
+                                                  Handle<Value> data,
+                                                  PropertyHandlerFlags flags) {
   i::Isolate* isolate = Utils::OpenHandle(templ)->GetIsolate();
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
@@ -1324,9 +1313,13 @@ static void ObjectTemplateSetNamedPropertyHandler(
   if (remover != 0) SET_FIELD_WRAPPED(obj, set_deleter, remover);
   if (enumerator != 0) SET_FIELD_WRAPPED(obj, set_enumerator, enumerator);
   obj->set_flags(0);
-  obj->set_can_intercept_symbols(can_intercept_symbols);
+  obj->set_can_intercept_symbols(
+      !(static_cast<int>(flags) &
+        static_cast<int>(PropertyHandlerFlags::kOnlyInterceptStrings)));
   obj->set_all_can_read(static_cast<int>(flags) &
                         static_cast<int>(PropertyHandlerFlags::kAllCanRead));
+  obj->set_non_masking(static_cast<int>(flags) &
+                       static_cast<int>(PropertyHandlerFlags::kNonMasking));
 
   if (data.IsEmpty()) {
     data = v8::Undefined(reinterpret_cast<v8::Isolate*>(isolate));
@@ -1340,9 +1333,9 @@ void ObjectTemplate::SetNamedPropertyHandler(
     NamedPropertyGetterCallback getter, NamedPropertySetterCallback setter,
     NamedPropertyQueryCallback query, NamedPropertyDeleterCallback remover,
     NamedPropertyEnumeratorCallback enumerator, Handle<Value> data) {
-  ObjectTemplateSetNamedPropertyHandler(this, getter, setter, query, remover,
-                                        enumerator, data, false,
-                                        PropertyHandlerFlags::kNone);
+  ObjectTemplateSetNamedPropertyHandler(
+      this, getter, setter, query, remover, enumerator, data,
+      PropertyHandlerFlags::kOnlyInterceptStrings);
 }
 
 
@@ -1350,7 +1343,7 @@ void ObjectTemplate::SetHandler(
     const NamedPropertyHandlerConfiguration& config) {
   ObjectTemplateSetNamedPropertyHandler(
       this, config.getter, config.setter, config.query, config.deleter,
-      config.enumerator, config.data, true, config.flags);
+      config.enumerator, config.data, config.flags);
 }
 
 
@@ -1506,9 +1499,36 @@ Local<Script> UnboundScript::BindToCurrentContext() {
       i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
   i::Handle<i::SharedFunctionInfo>
       function_info(i::SharedFunctionInfo::cast(*obj), obj->GetIsolate());
+  i::Isolate* isolate = obj->GetIsolate();
+
+  i::ScopeInfo* scope_info = function_info->scope_info();
+  i::Handle<i::JSReceiver> global(isolate->native_context()->global_object());
+  for (int i = 0; i < scope_info->StrongModeFreeVariableCount(); ++i) {
+    i::Handle<i::String> name_string(scope_info->StrongModeFreeVariableName(i));
+    i::ScriptContextTable::LookupResult result;
+    i::Handle<i::ScriptContextTable> script_context_table(
+        isolate->native_context()->script_context_table());
+    if (!i::ScriptContextTable::Lookup(script_context_table, name_string,
+                                       &result)) {
+      i::Handle<i::Name> name(scope_info->StrongModeFreeVariableName(i));
+      Maybe<bool> has = i::JSReceiver::HasProperty(global, name);
+      if (has.IsJust() && !has.FromJust()) {
+        i::PendingCompilationErrorHandler pending_error_handler_;
+        pending_error_handler_.ReportMessageAt(
+            scope_info->StrongModeFreeVariableStartPosition(i),
+            scope_info->StrongModeFreeVariableEndPosition(i),
+            "strong_unbound_global", name_string, i::kReferenceError);
+        i::Handle<i::Script> script(i::Script::cast(function_info->script()));
+        pending_error_handler_.ThrowPendingError(isolate, script);
+        isolate->ReportPendingMessages();
+        isolate->OptionalRescheduleException(true);
+        return Local<Script>();
+      }
+    }
+  }
   i::Handle<i::JSFunction> function =
       obj->GetIsolate()->factory()->NewFunctionFromSharedFunctionInfo(
-          function_info, obj->GetIsolate()->native_context());
+          function_info, isolate->native_context());
   return ToApiHandle<Script>(function);
 }
 
@@ -1956,7 +1976,9 @@ MaybeLocal<Script> ScriptCompiler::Compile(Local<Context> context,
   i::Handle<i::SharedFunctionInfo> result(raw_result, isolate);
   Local<UnboundScript> generic = ToApiHandle<UnboundScript>(result);
   if (generic.IsEmpty()) return Local<Script>();
-  RETURN_ESCAPED(generic->BindToCurrentContext());
+  Local<Script> bound = generic->BindToCurrentContext();
+  if (bound.IsEmpty()) return Local<Script>();
+  RETURN_ESCAPED(bound);
 }
 
 
@@ -2104,28 +2126,28 @@ v8::Local<Value> v8::TryCatch::Exception() const {
 }
 
 
+MaybeLocal<Value> v8::TryCatch::StackTrace(Local<Context> context) const {
+  if (!HasCaught()) return v8::Local<Value>();
+  i::Object* raw_obj = reinterpret_cast<i::Object*>(exception_);
+  if (!raw_obj->IsJSObject()) return v8::Local<Value>();
+  PREPARE_FOR_EXECUTION(context, "v8::TryCatch::StackTrace", Value);
+  i::Handle<i::JSObject> obj(i::JSObject::cast(raw_obj), isolate_);
+  i::Handle<i::String> name = isolate->factory()->stack_string();
+  Maybe<bool> maybe = i::JSReceiver::HasProperty(obj, name);
+  has_pending_exception = !maybe.IsJust();
+  RETURN_ON_FAILED_EXECUTION(Value);
+  if (!maybe.FromJust()) return v8::Local<Value>();
+  Local<Value> result;
+  has_pending_exception =
+      !ToLocal<Value>(i::Object::GetProperty(obj, name), &result);
+  RETURN_ON_FAILED_EXECUTION(Value);
+  RETURN_ESCAPED(result);
+}
+
+
 v8::Local<Value> v8::TryCatch::StackTrace() const {
-  if (HasCaught()) {
-    i::Object* raw_obj = reinterpret_cast<i::Object*>(exception_);
-    if (!raw_obj->IsJSObject()) return v8::Local<Value>();
-    i::HandleScope scope(isolate_);
-    i::Handle<i::JSObject> obj(i::JSObject::cast(raw_obj), isolate_);
-    i::Handle<i::String> name = isolate_->factory()->stack_string();
-    {
-      EXCEPTION_PREAMBLE(isolate_);
-      Maybe<bool> maybe = i::JSReceiver::HasProperty(obj, name);
-      has_pending_exception = !maybe.IsJust();
-      EXCEPTION_BAILOUT_CHECK(isolate_, v8::Local<Value>());
-      if (!maybe.FromJust()) return v8::Local<Value>();
-    }
-    i::Handle<i::Object> value;
-    EXCEPTION_PREAMBLE(isolate_);
-    has_pending_exception = !i::Object::GetProperty(obj, name).ToHandle(&value);
-    EXCEPTION_BAILOUT_CHECK(isolate_, v8::Local<Value>());
-    return v8::Utils::ToLocal(scope.CloseAndEscape(value));
-  } else {
-    return v8::Local<Value>();
-  }
+  auto context = reinterpret_cast<v8::Isolate*>(isolate_)->GetCurrentContext();
+  RETURN_TO_LOCAL_UNCHECKED(StackTrace(context), Value);
 }
 
 
@@ -6012,20 +6034,23 @@ Local<v8::Symbol> v8::SymbolObject::ValueOf() const {
 }
 
 
-Local<v8::Value> v8::Date::New(Isolate* isolate, double time) {
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  LOG_API(i_isolate, "Date::New");
+MaybeLocal<v8::Value> v8::Date::New(Local<Context> context, double time) {
   if (std::isnan(time)) {
     // Introduce only canonical NaN value into the VM, to avoid signaling NaNs.
     time = std::numeric_limits<double>::quiet_NaN();
   }
-  ENTER_V8(i_isolate);
-  EXCEPTION_PREAMBLE(i_isolate);
-  i::Handle<i::Object> obj;
-  has_pending_exception = !i::Execution::NewDate(
-      i_isolate, time).ToHandle(&obj);
-  EXCEPTION_BAILOUT_CHECK(i_isolate, Local<v8::Value>());
-  return Utils::ToLocal(obj);
+  PREPARE_FOR_EXECUTION(context, "Date::New", Value);
+  Local<Value> result;
+  has_pending_exception =
+      !ToLocal<Value>(i::Execution::NewDate(isolate, time), &result);
+  RETURN_ON_FAILED_EXECUTION(Value);
+  RETURN_ESCAPED(result);
+}
+
+
+Local<v8::Value> v8::Date::New(Isolate* isolate, double time) {
+  auto context = isolate->GetCurrentContext();
+  RETURN_TO_LOCAL_UNCHECKED(New(context, time), Value);
 }
 
 
@@ -6762,10 +6787,6 @@ void Isolate::RequestInterrupt(InterruptCallback callback, void* data) {
 }
 
 
-void Isolate::ClearInterrupt() {
-}
-
-
 void Isolate::RequestGarbageCollectionForTesting(GarbageCollectionType type) {
   CHECK(i::FLAG_expose_gc);
   if (type == kMinorGarbageCollection) {
@@ -6802,6 +6823,18 @@ Isolate* Isolate::New(const Isolate::CreateParams& params) {
     isolate->InitializeLoggingAndCounters();
     isolate->logger()->SetCodeEventHandler(kJitCodeEventDefault,
                                            params.code_event_handler);
+  }
+  if (params.counter_lookup_callback) {
+    v8_isolate->SetCounterFunction(params.counter_lookup_callback);
+  }
+
+  if (params.create_histogram_callback) {
+    v8_isolate->SetCreateHistogramFunction(params.create_histogram_callback);
+  }
+
+  if (params.add_histogram_sample_callback) {
+    v8_isolate->SetAddHistogramSampleFunction(
+        params.add_histogram_sample_callback);
   }
   SetResourceConstraints(isolate, params.constraints);
   // TODO(jochen): Once we got rid of Isolate::Current(), we can remove this.

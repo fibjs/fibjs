@@ -1334,7 +1334,10 @@ void AstGraphBuilder::VisitTryCatchStatement(TryCatchStatement* stmt) {
   try_control.BeginTry();
   {
     ControlScopeForCatch scope(this, &try_control);
+    STATIC_ASSERT(TryBlockConstant::kElementCount == 1);
+    environment()->Push(current_context());
     Visit(stmt->try_block());
+    environment()->Pop();
   }
   try_control.EndTry();
 
@@ -1381,7 +1384,10 @@ void AstGraphBuilder::VisitTryFinallyStatement(TryFinallyStatement* stmt) {
   try_control.BeginTry();
   {
     ControlScopeForFinally scope(this, commands, &try_control);
+    STATIC_ASSERT(TryBlockConstant::kElementCount == 1);
+    environment()->Push(current_context());
     Visit(stmt->try_block());
+    environment()->Pop();
   }
   try_control.EndTry(commands->GetFallThroughToken(), fallthrough_result);
 
@@ -1395,9 +1401,10 @@ void AstGraphBuilder::VisitTryFinallyStatement(TryFinallyStatement* stmt) {
 
   // The result value, dispatch token and message is expected on the operand
   // stack (this is in sync with FullCodeGenerator::EnterFinallyBlock).
+  Node* message = BuildLoadExternal(message_object, kMachAnyTagged);
   environment()->Push(token);  // TODO(mstarzinger): Cook token!
   environment()->Push(result);
-  environment()->Push(BuildLoadExternal(message_object, kMachAnyTagged));
+  environment()->Push(message);
 
   // Evaluate the finally-block.
   Visit(stmt->finally_block());
@@ -1405,9 +1412,10 @@ void AstGraphBuilder::VisitTryFinallyStatement(TryFinallyStatement* stmt) {
 
   // The result value, dispatch token and message is restored from the operand
   // stack (this is in sync with FullCodeGenerator::ExitFinallyBlock).
-  BuildStoreExternal(message_object, kMachAnyTagged, environment()->Pop());
+  message = environment()->Pop();
   result = environment()->Pop();
   token = environment()->Pop();  // TODO(mstarzinger): Uncook token!
+  BuildStoreExternal(message_object, kMachAnyTagged, message);
 
   // Dynamic dispatch after the finally-block.
   commands->ApplyDeferredCommands(token, result);
@@ -1418,7 +1426,6 @@ void AstGraphBuilder::VisitTryFinallyStatement(TryFinallyStatement* stmt) {
 
 
 void AstGraphBuilder::VisitDebuggerStatement(DebuggerStatement* stmt) {
-  // TODO(turbofan): Do we really need a separate reloc-info for this?
   Node* node = NewNode(javascript()->CallRuntime(Runtime::kDebugBreak, 0));
   PrepareFrameState(node, stmt->DebugBreakId());
   environment()->MarkAllLocalsLive();
@@ -1495,17 +1502,17 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
     environment()->Push(property->is_static() ? literal : proto);
 
     VisitForValue(property->key());
-    environment()->Push(
-        BuildToName(environment()->Pop(), expr->GetIdForProperty(i)));
+    Node* name = BuildToName(environment()->Pop(), expr->GetIdForProperty(i));
+    environment()->Push(name);
 
     // The static prototype property is read only. We handle the non computed
     // property name case in the parser. Since this is the only case where we
     // need to check for an own read only property we special case this so we do
     // not need to do this for every property.
     if (property->is_static() && property->is_computed_name()) {
-      Node* name = environment()->Pop();
-      environment()->Push(
-          BuildThrowIfStaticPrototype(name, expr->GetIdForProperty(i)));
+      Node* check = BuildThrowIfStaticPrototype(environment()->Pop(),
+                                                expr->GetIdForProperty(i));
+      environment()->Push(check);
     }
 
     VisitForValue(property->value());
@@ -1739,8 +1746,9 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
 
     environment()->Push(literal);  // Duplicate receiver.
     VisitForValue(property->key());
-    environment()->Push(BuildToName(environment()->Pop(),
-                                    expr->GetIdForProperty(property_index)));
+    Node* name = BuildToName(environment()->Pop(),
+                             expr->GetIdForProperty(property_index));
+    environment()->Push(name);
     // TODO(mstarzinger): For ObjectLiteral::Property::PROTOTYPE the key should
     // not be on the operand stack while the value is being evaluated. Come up
     // with a repro for this and fix it. Also find a nice way to do so. :)
@@ -1826,10 +1834,14 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
     if (CompileTimeValue::IsCompileTimeValue(subexpr)) continue;
 
     VisitForValue(subexpr);
+    Node* frame_state_before = environment()->Checkpoint(
+        subexpr->id(), OutputFrameStateCombine::PokeAt(0));
     Node* value = environment()->Pop();
     Node* index = jsgraph()->Constant(i);
     Node* store = BuildKeyedStore(literal, index, value);
-    PrepareFrameState(store, expr->GetIdForElement(i));
+    PrepareFrameStateAfterAndBefore(store, expr->GetIdForElement(i),
+                                    OutputFrameStateCombine::Ignore(),
+                                    frame_state_before);
   }
 
   environment()->Pop();  // Array literal index.
@@ -1870,7 +1882,10 @@ void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value,
       Node* object = environment()->Pop();
       value = environment()->Pop();
       Node* store = BuildKeyedStore(object, key, value);
-      PrepareFrameState(store, bailout_id);
+      // TODO(jarin) Provide a real frame state before.
+      PrepareFrameStateAfterAndBefore(store, bailout_id,
+                                      OutputFrameStateCombine::Ignore(),
+                                      jsgraph()->EmptyFrameState());
       break;
     }
   }
@@ -1901,6 +1916,8 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
 
   // Evaluate the value and potentially handle compound assignments by loading
   // the left-hand side value and performing a binary operation.
+  Node* frame_state_before_store = nullptr;
+  bool needs_frame_state_before = (assign_type == KEYED_PROPERTY);
   if (expr->is_compound()) {
     Node* old_value = NULL;
     switch (assign_type) {
@@ -1942,8 +1959,21 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
                                     OutputFrameStateCombine::Push(),
                                     frame_state_before);
     environment()->Push(value);
+    if (needs_frame_state_before) {
+      frame_state_before_store = environment()->Checkpoint(
+          expr->binary_operation()->id(), OutputFrameStateCombine::PokeAt(0));
+    }
   } else {
     VisitForValue(expr->value());
+    if (needs_frame_state_before) {
+      // This frame state can be used for lazy-deopting from a to-number
+      // conversion if we are storing into a typed array. It is important
+      // that the frame state is usable for such lazy deopt (i.e., it has
+      // to specify how to override the value before the conversion, in this
+      // case, it overwrites the stack top).
+      frame_state_before_store = environment()->Checkpoint(
+          expr->value()->id(), OutputFrameStateCombine::PokeAt(0));
+    }
   }
 
   // Store the value.
@@ -1966,7 +1996,9 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
       Node* key = environment()->Pop();
       Node* object = environment()->Pop();
       Node* store = BuildKeyedStore(object, key, value);
-      PrepareFrameState(store, expr->id(), ast_context()->GetStateCombine());
+      PrepareFrameStateAfterAndBefore(store, expr->id(),
+                                      ast_context()->GetStateCombine(),
+                                      frame_state_before_store);
       break;
     }
   }
@@ -2265,6 +2297,11 @@ void AstGraphBuilder::VisitCountOperation(CountOperation* expr) {
   PrepareFrameState(old_value, expr->ToNumberId(),
                     OutputFrameStateCombine::Push());
 
+  Node* frame_state_before_store =
+      assign_type == KEYED_PROPERTY
+          ? environment()->Checkpoint(expr->ToNumberId())
+          : nullptr;
+
   // Save result for postfix expressions at correct stack depth.
   if (is_postfix) environment()->Poke(stack_depth, old_value);
 
@@ -2301,7 +2338,9 @@ void AstGraphBuilder::VisitCountOperation(CountOperation* expr) {
       Node* object = environment()->Pop();
       Node* store = BuildKeyedStore(object, key, value);
       environment()->Push(value);
-      PrepareFrameState(store, expr->AssignmentId());
+      PrepareFrameStateAfterAndBefore(store, expr->AssignmentId(),
+                                      OutputFrameStateCombine::Ignore(),
+                                      frame_state_before_store);
       environment()->Pop();
       break;
     }
@@ -2564,7 +2603,8 @@ Node* AstGraphBuilder::BuildPatchReceiverToGlobalProxy(Node* receiver) {
   Node* check = NewNode(javascript()->StrictEqual(), receiver, undefined);
   receiver_check.If(check);
   receiver_check.Then();
-  environment()->Push(BuildLoadGlobalProxy());
+  Node* proxy = BuildLoadGlobalProxy();
+  environment()->Push(proxy);
   receiver_check.Else();
   environment()->Push(receiver);
   receiver_check.End();
@@ -2663,7 +2703,8 @@ Node* AstGraphBuilder::BuildHoleCheckThrow(Node* value, Variable* variable,
   Node* check = NewNode(javascript()->StrictEqual(), value, the_hole);
   hole_check.If(check);
   hole_check.Then();
-  environment()->Push(BuildThrowReferenceError(variable, bailout_id));
+  Node* error = BuildThrowReferenceError(variable, bailout_id);
+  environment()->Push(error);
   hole_check.Else();
   environment()->Push(not_hole);
   hole_check.End();

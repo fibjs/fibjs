@@ -542,41 +542,30 @@ void JSObject::SetNormalizedProperty(Handle<JSObject> object,
 
   int entry = property_dictionary->FindEntry(name);
   if (entry == NameDictionary::kNotFound) {
-    Handle<Object> store_value = value;
     if (object->IsGlobalObject()) {
-      store_value = object->GetIsolate()->factory()->NewPropertyCell(value);
+      auto cell = object->GetIsolate()->factory()->NewPropertyCell();
+      cell->set_value(*value);
+      auto cell_type = value->IsUndefined() ? PropertyCellType::kUndefined
+                                            : PropertyCellType::kConstant;
+      details = details.set_cell_type(cell_type);
+      value = cell;
     }
-
-    property_dictionary = NameDictionary::Add(
-        property_dictionary, name, store_value, details);
+    property_dictionary =
+        NameDictionary::Add(property_dictionary, name, value, details);
     object->set_properties(*property_dictionary);
+    return;
+  }
+
+  if (object->IsGlobalObject()) {
+    PropertyCell::UpdateCell(property_dictionary, entry, value, details);
     return;
   }
 
   PropertyDetails original_details = property_dictionary->DetailsAt(entry);
   int enumeration_index = original_details.dictionary_index();
-
-  if (!object->IsGlobalObject()) {
-    DCHECK(enumeration_index > 0);
-    details = PropertyDetails(details.attributes(), details.type(),
-                              enumeration_index);
-    property_dictionary->SetEntry(entry, name, value, details);
-    return;
-  }
-
-  Handle<PropertyCell> cell(
-      PropertyCell::cast(property_dictionary->ValueAt(entry)));
-  // Preserve the enumeration index unless the property was deleted.
-  if (cell->value()->IsTheHole()) {
-    enumeration_index = property_dictionary->NextEnumerationIndex();
-    property_dictionary->SetNextEnumerationIndex(enumeration_index + 1);
-  }
   DCHECK(enumeration_index > 0);
-  details = PropertyDetails(
-      details.attributes(), details.type(), enumeration_index);
-  PropertyCell::SetValueInferType(cell, value);
-  // Please note we have to update the property details.
-  property_dictionary->DetailsAtPut(entry, details);
+  details = details.set_index(enumeration_index);
+  property_dictionary->SetEntry(entry, name, value, details);
 }
 
 
@@ -628,7 +617,7 @@ Maybe<PropertyAttributes> JSObject::GetElementAttributesWithFailedAccessCheck(
         FindIndexedAllCanReadHolder(isolate, holder, where_to_start);
     if (!all_can_read_holder.ToHandle(&holder)) break;
     auto result =
-        JSObject::GetElementAttributeFromInterceptor(object, receiver, index);
+        JSObject::GetElementAttributeFromInterceptor(holder, receiver, index);
     if (isolate->has_scheduled_exception()) break;
     if (result.IsJust() && result.FromJust() != ABSENT) return result;
     where_to_start = PrototypeIterator::START_AT_PROTOTYPE;
@@ -1778,23 +1767,27 @@ void JSObject::AddSlowProperty(Handle<JSObject> object,
   DCHECK(!object->HasFastProperties());
   Isolate* isolate = object->GetIsolate();
   Handle<NameDictionary> dict(object->property_dictionary());
+  PropertyDetails details(attributes, DATA, 0, PropertyCellType::kInvalid);
   if (object->IsGlobalObject()) {
-    // In case name is an orphaned property reuse the cell.
     int entry = dict->FindEntry(name);
+    // If there's a cell there, just invalidate and set the property.
     if (entry != NameDictionary::kNotFound) {
-      Handle<PropertyCell> cell(PropertyCell::cast(dict->ValueAt(entry)));
-      PropertyCell::SetValueInferType(cell, value);
-      // Assign an enumeration index to the property and update
-      // SetNextEnumerationIndex.
+      PropertyCell::UpdateCell(dict, entry, value, details);
+      // TODO(dcarney): move this to UpdateCell.
+      // Need to adjust the details.
       int index = dict->NextEnumerationIndex();
-      PropertyDetails details(attributes, DATA, index);
       dict->SetNextEnumerationIndex(index + 1);
-      dict->SetEntry(entry, name, cell, details);
+      details = dict->DetailsAt(entry).set_index(index);
+      dict->DetailsAtPut(entry, details);
       return;
     }
-    value = isolate->factory()->NewPropertyCell(value);
+    auto cell = isolate->factory()->NewPropertyCell();
+    cell->set_value(*value);
+    auto cell_type = value->IsUndefined() ? PropertyCellType::kUndefined
+                                          : PropertyCellType::kConstant;
+    details = details.set_cell_type(cell_type);
+    value = cell;
   }
-  PropertyDetails details(attributes, DATA, 0);
   Handle<NameDictionary> result =
       NameDictionary::Add(dict, name, value, details);
   if (*dict != *result) object->set_properties(*result);
@@ -4556,7 +4549,8 @@ void JSObject::MigrateFastToSlow(Handle<JSObject> object,
     switch (details.type()) {
       case DATA_CONSTANT: {
         Handle<Object> value(descs->GetConstant(i), isolate);
-        PropertyDetails d(details.attributes(), DATA, i + 1);
+        PropertyDetails d(details.attributes(), DATA, i + 1,
+                          PropertyCellType::kInvalid);
         dictionary = NameDictionary::Add(dictionary, key, value, d);
         break;
       }
@@ -4574,20 +4568,23 @@ void JSObject::MigrateFastToSlow(Handle<JSObject> object,
             value = isolate->factory()->NewHeapNumber(old->value());
           }
         }
-        PropertyDetails d(details.attributes(), DATA, i + 1);
+        PropertyDetails d(details.attributes(), DATA, i + 1,
+                          PropertyCellType::kInvalid);
         dictionary = NameDictionary::Add(dictionary, key, value, d);
         break;
       }
       case ACCESSOR: {
         FieldIndex index = FieldIndex::ForDescriptor(*map, i);
         Handle<Object> value(object->RawFastPropertyAt(index), isolate);
-        PropertyDetails d(details.attributes(), ACCESSOR_CONSTANT, i + 1);
+        PropertyDetails d(details.attributes(), ACCESSOR_CONSTANT, i + 1,
+                          PropertyCellType::kInvalid);
         dictionary = NameDictionary::Add(dictionary, key, value, d);
         break;
       }
       case ACCESSOR_CONSTANT: {
         Handle<Object> value(descs->GetCallbacksObject(i), isolate);
-        PropertyDetails d(details.attributes(), ACCESSOR_CONSTANT, i + 1);
+        PropertyDetails d(details.attributes(), ACCESSOR_CONSTANT, i + 1,
+                          PropertyCellType::kInvalid);
         dictionary = NameDictionary::Add(dictionary, key, value, d);
         break;
       }
@@ -4820,7 +4817,7 @@ static Handle<SeededNumberDictionary> CopyFastElementsToDictionary(
       value = handle(Handle<FixedArray>::cast(array)->get(i), isolate);
     }
     if (!value->IsTheHole()) {
-      PropertyDetails details(NONE, DATA, 0);
+      PropertyDetails details = PropertyDetails::Empty();
       dictionary =
           SeededNumberDictionary::AddNumberEntry(dictionary, i, value, details);
     }
@@ -5294,12 +5291,13 @@ void JSObject::DeleteNormalizedProperty(Handle<JSObject> object,
   int entry = dictionary->FindEntry(name);
   DCHECK_NE(NameDictionary::kNotFound, entry);
 
-  // If we have a global object set the cell to the hole.
+  // If we have a global object, invalidate the cell and swap in a new one.
   if (object->IsGlobalObject()) {
-    DCHECK(dictionary->DetailsAt(entry).IsConfigurable());
-    Handle<PropertyCell> cell(PropertyCell::cast(dictionary->ValueAt(entry)));
-    Handle<Object> value = isolate->factory()->the_hole_value();
-    PropertyCell::SetValueInferType(cell, value);
+    auto cell = PropertyCell::InvalidateEntry(dictionary, entry);
+    cell->set_value(isolate->heap()->the_hole_value());
+    // TODO(dcarney): InvalidateForDelete
+    dictionary->DetailsAtPut(entry, dictionary->DetailsAt(entry).set_cell_type(
+                                        PropertyCellType::kDeleted));
     return;
   }
 
@@ -6372,7 +6370,8 @@ static bool UpdateGetterSetterInDictionary(
       DCHECK(details.IsConfigurable());
       if (details.attributes() != attributes) {
         dictionary->DetailsAtPut(
-            entry, PropertyDetails(attributes, ACCESSOR_CONSTANT, index));
+            entry, PropertyDetails(attributes, ACCESSOR_CONSTANT, index,
+                                   PropertyCellType::kInvalid));
       }
       AccessorPair::cast(result)->SetComponents(getter, setter);
       return true;
@@ -6474,7 +6473,8 @@ void JSObject::SetElementCallback(Handle<JSObject> object,
                                   Handle<Object> structure,
                                   PropertyAttributes attributes) {
   Heap* heap = object->GetHeap();
-  PropertyDetails details = PropertyDetails(attributes, ACCESSOR_CONSTANT, 0);
+  PropertyDetails details = PropertyDetails(attributes, ACCESSOR_CONSTANT, 0,
+                                            PropertyCellType::kInvalid);
 
   // Normalize elements to make this operation simple.
   bool had_dictionary_elements = object->HasDictionaryElements();
@@ -6519,28 +6519,10 @@ void JSObject::SetPropertyCallback(Handle<JSObject> object,
   // Normalize object to make this operation simple.
   NormalizeProperties(object, mode, 0, "SetPropertyCallback");
 
-  // For the global object allocate a new map to invalidate the global inline
-  // caches which have a global property cell reference directly in the code.
-  if (object->IsGlobalObject()) {
-    Handle<Map> new_map = Map::CopyDropDescriptors(handle(object->map()));
-    DCHECK(new_map->is_dictionary_map());
-#if TRACE_MAPS
-    if (FLAG_trace_maps) {
-      PrintF("[TraceMaps: GlobalPropertyCallback from= %p to= %p ]\n",
-             reinterpret_cast<void*>(object->map()),
-             reinterpret_cast<void*>(*new_map));
-    }
-#endif
-    JSObject::MigrateToMap(object, new_map);
-
-    // When running crankshaft, changing the map is not enough. We
-    // need to deoptimize all functions that rely on this global
-    // object.
-    Deoptimizer::DeoptimizeGlobalObject(*object);
-  }
 
   // Update the dictionary with the new ACCESSOR_CONSTANT property.
-  PropertyDetails details = PropertyDetails(attributes, ACCESSOR_CONSTANT, 0);
+  PropertyDetails details = PropertyDetails(attributes, ACCESSOR_CONSTANT, 0,
+                                            PropertyCellType::kMutable);
   SetNormalizedProperty(object, name, structure, details);
 
   ReoptimizeIfPrototype(object);
@@ -8295,9 +8277,14 @@ Handle<WeakFixedArray> WeakFixedArray::Allocate(
 }
 
 
-Handle<ArrayList> ArrayList::Add(Handle<ArrayList> array, Handle<Object> obj) {
+Handle<ArrayList> ArrayList::Add(Handle<ArrayList> array, Handle<Object> obj,
+                                 AddMode mode) {
   int length = array->Length();
   array = EnsureSpace(array, length + 1);
+  if (mode == kReloadLengthAfterAllocation) {
+    DCHECK(array->Length() <= length);
+    length = array->Length();
+  }
   array->Set(length, *obj);
   array->SetLength(length + 1);
   return array;
@@ -8305,9 +8292,12 @@ Handle<ArrayList> ArrayList::Add(Handle<ArrayList> array, Handle<Object> obj) {
 
 
 Handle<ArrayList> ArrayList::Add(Handle<ArrayList> array, Handle<Object> obj1,
-                                 Handle<Object> obj2) {
+                                 Handle<Object> obj2, AddMode mode) {
   int length = array->Length();
   array = EnsureSpace(array, length + 2);
+  if (mode == kReloadLengthAfterAllocation) {
+    length = array->Length();
+  }
   array->Set(length, *obj1);
   array->Set(length + 1, *obj2);
   array->SetLength(length + 2);
@@ -8317,10 +8307,12 @@ Handle<ArrayList> ArrayList::Add(Handle<ArrayList> array, Handle<Object> obj1,
 
 Handle<ArrayList> ArrayList::EnsureSpace(Handle<ArrayList> array, int length) {
   int capacity = array->length();
+  bool empty = (capacity == 0);
   if (capacity < kFirstIndex + length) {
     capacity = kFirstIndex + length;
     capacity = capacity + Max(capacity / 2, 2);
     array = Handle<ArrayList>::cast(FixedArray::CopySize(array, capacity));
+    if (empty) array->SetLength(0);
   }
   return array;
 }
@@ -8473,6 +8465,36 @@ Handle<DeoptimizationOutputData> DeoptimizationOutputData::New(
         LengthOfFixedArray(number_of_deopt_points), pretenure);
   }
   return Handle<DeoptimizationOutputData>::cast(result);
+}
+
+
+int HandlerTable::LookupRange(int pc_offset, int* stack_depth_out) {
+  int innermost_handler = -1, innermost_start = -1;
+  for (int i = 0; i < length(); i += kRangeEntrySize) {
+    int start_offset = Smi::cast(get(i + kRangeStartIndex))->value();
+    int end_offset = Smi::cast(get(i + kRangeEndIndex))->value();
+    int handler_offset = Smi::cast(get(i + kRangeHandlerIndex))->value();
+    int stack_depth = Smi::cast(get(i + kRangeDepthIndex))->value();
+    if (pc_offset > start_offset && pc_offset <= end_offset) {
+      DCHECK_NE(start_offset, innermost_start);
+      if (start_offset < innermost_start) continue;
+      innermost_handler = handler_offset;
+      innermost_start = start_offset;
+      *stack_depth_out = stack_depth;
+    }
+  }
+  return innermost_handler;
+}
+
+
+// TODO(turbofan): Make sure table is sorted and use binary search.
+int HandlerTable::LookupReturn(int pc_offset) {
+  for (int i = 0; i < length(); i += kReturnEntrySize) {
+    int return_offset = Smi::cast(get(i + kReturnOffsetIndex))->value();
+    int handler_offset = Smi::cast(get(i + kReturnHandlerIndex))->value();
+    if (pc_offset == return_offset) return handler_offset;
+  }
+  return -1;
 }
 
 
@@ -9644,7 +9666,6 @@ void JSFunction::JSFunctionIterateBody(int object_size, ObjectVisitor* v) {
 
 void JSFunction::MarkForOptimization() {
   Isolate* isolate = GetIsolate();
-  DCHECK(isolate->use_crankshaft());
   DCHECK(!IsOptimized());
   DCHECK(shared()->allows_lazy_compilation() || code()->optimizable());
   set_code_no_write_barrier(
@@ -9668,7 +9689,6 @@ void JSFunction::AttemptConcurrentOptimization() {
     // recompilation race.  This goes away as soon as OSR becomes one-shot.
     return;
   }
-  DCHECK(isolate->use_crankshaft());
   DCHECK(!IsInOptimizationQueue());
   DCHECK(is_compiled() || isolate->debug()->has_break_points());
   DCHECK(!IsOptimized());
@@ -10406,6 +10426,7 @@ Handle<Object> Script::GetNameOrSourceURL(Handle<Script> script) {
 Handle<JSObject> Script::GetWrapper(Handle<Script> script) {
   Isolate* isolate = script->GetIsolate();
   if (!script->wrapper()->IsUndefined()) {
+    DCHECK(script->wrapper()->IsWeakCell());
     Handle<WeakCell> cell(WeakCell::cast(script->wrapper()));
     if (!cell->cleared()) {
       // Return a handle for the existing script wrapper from the cache.
@@ -11503,6 +11524,30 @@ void DeoptimizationOutputData::DeoptimizationOutputDataPrint(
 }
 
 
+void HandlerTable::HandlerTableRangePrint(std::ostream& os) {
+  os << "   from   to       hdlr\n";
+  for (int i = 0; i < length(); i += kRangeEntrySize) {
+    int pc_start = Smi::cast(get(i + kRangeStartIndex))->value();
+    int pc_end = Smi::cast(get(i + kRangeEndIndex))->value();
+    int handler = Smi::cast(get(i + kRangeHandlerIndex))->value();
+    int depth = Smi::cast(get(i + kRangeDepthIndex))->value();
+    os << "  (" << std::setw(4) << pc_start << "," << std::setw(4) << pc_end
+       << ")  ->  " << std::setw(4) << handler << " (depth=" << depth << ")\n";
+  }
+}
+
+
+void HandlerTable::HandlerTableReturnPrint(std::ostream& os) {
+  os << "   off      hdlr\n";
+  for (int i = 0; i < length(); i += kReturnEntrySize) {
+    int pc_offset = Smi::cast(get(i + kReturnOffsetIndex))->value();
+    int handler = Smi::cast(get(i + kReturnHandlerIndex))->value();
+    os << "  " << std::setw(4) << pc_offset << "  ->  " << std::setw(4)
+       << handler << "\n";
+  }
+}
+
+
 const char* Code::ICState2String(InlineCacheState state) {
   switch (state) {
     case UNINITIALIZED: return "UNINITIALIZED";
@@ -11649,13 +11694,12 @@ void Code::Disassemble(const char* name, std::ostream& os) {  // NOLINT
 #endif
   }
 
-  if (handler_table()->length() > 0 && is_turbofanned()) {
+  if (handler_table()->length() > 0) {
     os << "Handler Table (size = " << handler_table()->Size() << ")\n";
-    for (int i = 0; i < handler_table()->length(); i += 2) {
-      int pc_offset = Smi::cast(handler_table()->get(i))->value();
-      int handler = Smi::cast(handler_table()->get(i + 1))->value();
-      os << static_cast<const void*>(instruction_start() + pc_offset) << "  "
-         << std::setw(4) << pc_offset << " " << std::setw(4) << handler << "\n";
+    if (kind() == FUNCTION) {
+      HandlerTable::cast(handler_table())->HandlerTableRangePrint(os);
+    } else if (kind() == OPTIMIZED_FUNCTION) {
+      HandlerTable::cast(handler_table())->HandlerTableReturnPrint(os);
     }
     os << "\n";
   }
@@ -12733,7 +12777,8 @@ MaybeHandle<Object> JSObject::SetDictionaryElement(
              element->IsTheHole());
       dictionary->UpdateMaxNumberKey(index);
       if (set_mode == DEFINE_PROPERTY) {
-        details = PropertyDetails(attributes, DATA, details.dictionary_index());
+        details = PropertyDetails(attributes, DATA, details.dictionary_index(),
+                                  PropertyCellType::kInvalid);
         dictionary->DetailsAtPut(entry, details);
       }
 
@@ -12776,7 +12821,7 @@ MaybeHandle<Object> JSObject::SetDictionaryElement(
       }
     }
 
-    PropertyDetails details(attributes, DATA, 0);
+    PropertyDetails details(attributes, DATA, 0, PropertyCellType::kInvalid);
     Handle<SeededNumberDictionary> new_dictionary =
         SeededNumberDictionary::AddNumberEntry(dictionary, index, value,
                                                details);
@@ -14861,7 +14906,7 @@ Handle<Object> JSObject::PrepareSlowElementsForSort(
   }
 
   uint32_t result = pos;
-  PropertyDetails no_details(NONE, DATA, 0);
+  PropertyDetails no_details = PropertyDetails::Empty();
   while (undefs > 0) {
     if (pos > static_cast<uint32_t>(Smi::kMaxValue)) {
       // Adding an entry with the key beyond smi-range requires
@@ -15222,46 +15267,37 @@ Handle<Object> ExternalFloat64Array::SetValue(
 void GlobalObject::InvalidatePropertyCell(Handle<GlobalObject> global,
                                           Handle<Name> name) {
   DCHECK(!global->HasFastProperties());
-  Isolate* isolate = global->GetIsolate();
-  int entry = global->property_dictionary()->FindEntry(name);
-  if (entry != NameDictionary::kNotFound) {
-    Handle<PropertyCell> cell(
-        PropertyCell::cast(global->property_dictionary()->ValueAt(entry)));
-
-    Handle<Object> value(cell->value(), isolate);
-    Handle<PropertyCell> new_cell = isolate->factory()->NewPropertyCell(value);
-    global->property_dictionary()->ValueAtPut(entry, *new_cell);
-
-    Handle<Object> hole = isolate->factory()->the_hole_value();
-    if (*hole != *value) {
-      PropertyCell::SetValueInferType(cell, hole);
-    } else {
-      // If property value was the hole, set it to any other value,
-      // to ensure that LoadNonexistent ICs execute a miss.
-      Handle<Object> undefined = isolate->factory()->undefined_value();
-      PropertyCell::SetValueInferType(cell, undefined);
-    }
-  }
+  auto dictionary = handle(global->property_dictionary());
+  int entry = dictionary->FindEntry(name);
+  if (entry == NameDictionary::kNotFound) return;
+  PropertyCell::InvalidateEntry(dictionary, entry);
 }
 
 
+// TODO(dcarney): rename to EnsureEmptyPropertyCell or something.
 Handle<PropertyCell> GlobalObject::EnsurePropertyCell(
     Handle<GlobalObject> global, Handle<Name> name) {
   DCHECK(!global->HasFastProperties());
-  int entry = global->property_dictionary()->FindEntry(name);
-  if (entry == NameDictionary::kNotFound) {
-    Isolate* isolate = global->GetIsolate();
-    Handle<PropertyCell> cell = isolate->factory()->NewPropertyCellWithHole();
-    PropertyDetails details(NONE, DATA, 0);
-    Handle<NameDictionary> dictionary = NameDictionary::Add(
-        handle(global->property_dictionary()), name, cell, details);
-    global->set_properties(*dictionary);
+  auto dictionary = handle(global->property_dictionary());
+  int entry = dictionary->FindEntry(name);
+  Handle<PropertyCell> cell;
+  if (entry != NameDictionary::kNotFound) {
+    // This call should be idempotent.
+    DCHECK(dictionary->DetailsAt(entry).cell_type() ==
+               PropertyCellType::kUninitialized ||
+           dictionary->DetailsAt(entry).cell_type() ==
+               PropertyCellType::kDeleted);
+    DCHECK(dictionary->ValueAt(entry)->IsPropertyCell());
+    cell = handle(PropertyCell::cast(dictionary->ValueAt(entry)));
+    DCHECK(cell->value()->IsTheHole());
     return cell;
-  } else {
-    Object* value = global->property_dictionary()->ValueAt(entry);
-    DCHECK(value->IsPropertyCell());
-    return handle(PropertyCell::cast(value));
   }
+  Isolate* isolate = global->GetIsolate();
+  cell = isolate->factory()->NewPropertyCell();
+  PropertyDetails details(NONE, DATA, 0, PropertyCellType::kUninitialized);
+  dictionary = NameDictionary::Add(dictionary, name, cell, details);
+  global->set_properties(*dictionary);
+  return cell;
 }
 
 
@@ -15671,8 +15707,7 @@ Dictionary<Derived, Shape, Key>::GenerateNewEnumerationIndices(
     int enum_index = PropertyDetails::kInitialIndex + i;
 
     PropertyDetails details = dictionary->DetailsAt(index);
-    PropertyDetails new_details =
-        PropertyDetails(details.attributes(), details.type(), enum_index);
+    PropertyDetails new_details = details.set_index(enum_index);
     dictionary->DetailsAtPut(index, new_details);
   }
 
@@ -15725,7 +15760,7 @@ Handle<Derived> Dictionary<Derived, Shape, Key>::AtPut(
 #ifdef DEBUG
   USE(Shape::AsHandle(dictionary->GetIsolate(), key));
 #endif
-  PropertyDetails details(NONE, DATA, 0);
+  PropertyDetails details = PropertyDetails::Empty();
 
   AddEntry(dictionary, key, value, details, dictionary->Hash(key));
   return dictionary;
@@ -15765,7 +15800,7 @@ void Dictionary<Derived, Shape, Key>::AddEntry(
     // Assign an enumeration index to the property and update
     // SetNextEnumerationIndex.
     int index = dictionary->NextEnumerationIndex();
-    details = PropertyDetails(details.attributes(), details.type(), index);
+    details = details.set_index(index);
     dictionary->SetNextEnumerationIndex(index + 1);
   }
   dictionary->SetEntry(entry, k, value, details);
@@ -15811,7 +15846,7 @@ Handle<UnseededNumberDictionary> UnseededNumberDictionary::AddNumberEntry(
     uint32_t key,
     Handle<Object> value) {
   SLOW_DCHECK(dictionary->FindEntry(key) == kNotFound);
-  return Add(dictionary, key, value, PropertyDetails(NONE, DATA, 0));
+  return Add(dictionary, key, value, PropertyDetails::Empty());
 }
 
 
@@ -15842,9 +15877,7 @@ Handle<SeededNumberDictionary> SeededNumberDictionary::Set(
     return AddNumberEntry(dictionary, key, value, details);
   }
   // Preserve enumeration index.
-  details = PropertyDetails(details.attributes(),
-                            details.type(),
-                            dictionary->DetailsAt(entry).dictionary_index());
+  details = details.set_index(dictionary->DetailsAt(entry).dictionary_index());
   Handle<Object> object_key =
       SeededNumberDictionaryShape::AsHandle(dictionary->GetIsolate(), key);
   dictionary->SetEntry(entry, object_key, value, details);
@@ -15871,6 +15904,7 @@ static inline bool IsDeleted(D d, int i) {
     case DictionaryEntryType::kObjects:
       return false;
     case DictionaryEntryType::kCells:
+      DCHECK(d->ValueAt(i)->IsPropertyCell());
       return PropertyCell::cast(d->ValueAt(i))->value()->IsTheHole();
   }
   UNREACHABLE();
@@ -17022,54 +17056,109 @@ Handle<JSArrayBuffer> JSTypedArray::GetBuffer() {
 }
 
 
-HeapType* PropertyCell::type() {
-  return static_cast<HeapType*>(type_raw());
-}
-
-
-void PropertyCell::set_type(HeapType* type, WriteBarrierMode ignored) {
-  DCHECK(IsPropertyCell());
-  set_type_raw(type, ignored);
-}
-
-
-Handle<HeapType> PropertyCell::UpdatedType(Handle<PropertyCell> cell,
-                                           Handle<Object> value) {
-  Isolate* isolate = cell->GetIsolate();
-  Handle<HeapType> old_type(cell->type(), isolate);
-  Handle<HeapType> new_type = HeapType::Constant(value, isolate);
-
-  if (new_type->Is(old_type)) return old_type;
-
+Handle<PropertyCell> PropertyCell::InvalidateEntry(
+    Handle<NameDictionary> dictionary, int entry) {
+  Isolate* isolate = dictionary->GetIsolate();
+  // Swap with a copy.
+  DCHECK(dictionary->ValueAt(entry)->IsPropertyCell());
+  Handle<PropertyCell> cell(PropertyCell::cast(dictionary->ValueAt(entry)));
+  auto new_cell = isolate->factory()->NewPropertyCell();
+  new_cell->set_value(cell->value());
+  dictionary->ValueAtPut(entry, *new_cell);
+  bool is_the_hole = cell->value()->IsTheHole();
+  // Cell is officially mutable henceforth.
+  auto details = dictionary->DetailsAt(entry);
+  details = details.set_cell_type(is_the_hole ? PropertyCellType::kDeleted
+                                              : PropertyCellType::kMutable);
+  dictionary->DetailsAtPut(entry, details);
+  // Old cell is ready for invalidation.
+  if (is_the_hole) {
+    cell->set_value(isolate->heap()->undefined_value());
+  } else {
+    cell->set_value(isolate->heap()->the_hole_value());
+  }
   cell->dependent_code()->DeoptimizeDependentCodeGroup(
       isolate, DependentCode::kPropertyCellChangedGroup);
-
-  if (old_type->Is(HeapType::None()) || old_type->Is(HeapType::Undefined())) {
-    return new_type;
-  }
-
-  return HeapType::Any(isolate);
+  return new_cell;
 }
 
 
-Handle<Object> PropertyCell::SetValueInferType(Handle<PropertyCell> cell,
-                                               Handle<Object> value) {
+PropertyCellType PropertyCell::UpdatedType(Handle<PropertyCell> cell,
+                                           Handle<Object> value,
+                                           PropertyDetails details) {
+  PropertyCellType type = details.cell_type();
+  DCHECK(!value->IsTheHole());
+  DCHECK_IMPLIES(cell->value()->IsTheHole(),
+                 type == PropertyCellType::kUninitialized ||
+                     type == PropertyCellType::kDeleted);
+  switch (type) {
+    // Only allow a cell to transition once into constant state.
+    case PropertyCellType::kUninitialized:
+      if (value->IsUndefined()) return PropertyCellType::kUndefined;
+      return PropertyCellType::kConstant;
+    case PropertyCellType::kUndefined:
+      return PropertyCellType::kConstant;
+    case PropertyCellType::kConstant:
+      // No transition.
+      if (*value == cell->value()) return PropertyCellType::kConstant;
+    // Fall through.
+    case PropertyCellType::kMutable:
+      return PropertyCellType::kMutable;
+  }
+  UNREACHABLE();
+  return PropertyCellType::kMutable;
+}
+
+
+Handle<Object> PropertyCell::UpdateCell(Handle<NameDictionary> dictionary,
+                                        int entry, Handle<Object> value,
+                                        PropertyDetails details) {
+  DCHECK(!value->IsTheHole());
+  DCHECK(dictionary->ValueAt(entry)->IsPropertyCell());
+  Handle<PropertyCell> cell(PropertyCell::cast(dictionary->ValueAt(entry)));
+  const PropertyDetails original_details = dictionary->DetailsAt(entry);
+  // Data accesses could be cached in ics or optimized code.
+  bool invalidate =
+      original_details.kind() == kData && details.kind() == kAccessor;
+  int index = original_details.dictionary_index();
+  auto old_type = original_details.cell_type();
+  // Preserve the enumeration index unless the property was deleted or never
+  // initialized.
+  if (cell->value()->IsTheHole()) {
+    index = dictionary->NextEnumerationIndex();
+    dictionary->SetNextEnumerationIndex(index + 1);
+    // Negative lookup cells must be invalidated.
+    invalidate = true;
+  }
+  DCHECK(index > 0);
+  details = details.set_index(index);
+
   // Heuristic: if a small-ish string is stored in a previously uninitialized
   // property cell, internalize it.
   const int kMaxLengthForInternalization = 200;
-  if ((cell->type()->Is(HeapType::None()) ||
-       cell->type()->Is(HeapType::Undefined())) &&
+  if ((old_type == PropertyCellType::kUninitialized ||
+       old_type == PropertyCellType::kUndefined) &&
       value->IsString()) {
     auto string = Handle<String>::cast(value);
-    if (string->length() <= kMaxLengthForInternalization &&
-        !string->map()->is_undetectable()) {
+    if (string->length() <= kMaxLengthForInternalization) {
       value = cell->GetIsolate()->factory()->InternalizeString(string);
     }
   }
+
+  auto new_type = UpdatedType(cell, value, original_details);
+  if (invalidate) cell = PropertyCell::InvalidateEntry(dictionary, entry);
+
+  // Install new property details and cell value.
+  details = details.set_cell_type(new_type);
+  dictionary->DetailsAtPut(entry, details);
   cell->set_value(*value);
-  if (!HeapType::Any()->Is(cell->type())) {
-    Handle<HeapType> new_type = UpdatedType(cell, value);
-    cell->set_type(*new_type);
+
+  // Deopt when transitioning from a constant type.
+  if (!invalidate && old_type == PropertyCellType::kConstant &&
+      new_type != PropertyCellType::kConstant) {
+    auto isolate = dictionary->GetIsolate();
+    cell->dependent_code()->DeoptimizeDependentCodeGroup(
+        isolate, DependentCode::kPropertyCellChangedGroup);
   }
   return value;
 }

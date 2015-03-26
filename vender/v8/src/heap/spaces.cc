@@ -45,7 +45,6 @@ HeapObjectIterator::HeapObjectIterator(Page* page,
          owner == page->heap()->old_data_space() ||
          owner == page->heap()->map_space() ||
          owner == page->heap()->cell_space() ||
-         owner == page->heap()->property_cell_space() ||
          owner == page->heap()->code_space());
   Initialize(reinterpret_cast<PagedSpace*>(owner), page->area_start(),
              page->area_end(), kOnePageOnly, size_func);
@@ -935,9 +934,6 @@ STATIC_ASSERT(static_cast<ObjectSpace>(1 << AllocationSpace::CODE_SPACE) ==
               ObjectSpace::kObjectSpaceCodeSpace);
 STATIC_ASSERT(static_cast<ObjectSpace>(1 << AllocationSpace::CELL_SPACE) ==
               ObjectSpace::kObjectSpaceCellSpace);
-STATIC_ASSERT(
-    static_cast<ObjectSpace>(1 << AllocationSpace::PROPERTY_CELL_SPACE) ==
-    ObjectSpace::kObjectSpacePropertyCellSpace);
 STATIC_ASSERT(static_cast<ObjectSpace>(1 << AllocationSpace::MAP_SPACE) ==
               ObjectSpace::kObjectSpaceMapSpace);
 
@@ -1023,7 +1019,8 @@ bool PagedSpace::CanExpand() {
   DCHECK(max_capacity_ % AreaSize() == 0);
   DCHECK(Capacity() <= heap()->MaxOldGenerationSize());
   DCHECK(heap()->CommittedOldGenerationMemory() <=
-         heap()->MaxOldGenerationSize());
+         heap()->MaxOldGenerationSize() +
+             PagedSpace::MaxEmergencyMemoryAllocated());
 
   // Are we going to exceed capacity for this space?
   if (!heap()->CanExpandOldGeneration(Page::kPageSize)) return false;
@@ -1050,7 +1047,8 @@ bool PagedSpace::Expand() {
 
   DCHECK(Capacity() <= heap()->MaxOldGenerationSize());
   DCHECK(heap()->CommittedOldGenerationMemory() <=
-         heap()->MaxOldGenerationSize());
+         heap()->MaxOldGenerationSize() +
+             PagedSpace::MaxEmergencyMemoryAllocated());
 
   p->InsertAfter(anchor_.prev_page());
 
@@ -1129,6 +1127,15 @@ void PagedSpace::ReleasePage(Page* page) {
 
   DCHECK(Capacity() > 0);
   accounting_stats_.ShrinkSpace(AreaSize());
+}
+
+
+intptr_t PagedSpace::MaxEmergencyMemoryAllocated() {
+  // New space and large object space.
+  static const int spaces_without_emergency_memory = 2;
+  static const int spaces_with_emergency_memory =
+      LAST_SPACE - FIRST_SPACE + 1 - spaces_without_emergency_memory;
+  return Page::kPageSize * spaces_with_emergency_memory;
 }
 
 
@@ -2622,7 +2629,7 @@ HeapObject* PagedSpace::SlowAllocateRaw(int size_in_bytes) {
     // If sweeper threads are active, wait for them at that point and steal
     // elements form their free-lists.
     HeapObject* object = WaitForSweeperThreadsAndRetryAllocation(size_in_bytes);
-    if (object != NULL) return object;
+    return object;
   }
 
   // Try to expand the space and allocate in the new next page.
@@ -2795,17 +2802,12 @@ void MapSpace::VerifyObject(HeapObject* object) { CHECK(object->IsMap()); }
 
 
 // -----------------------------------------------------------------------------
-// CellSpace and PropertyCellSpace implementation
+// CellSpace implementation
 // TODO(mvstanton): this is weird...the compiler can't make a vtable unless
 // there is at least one non-inlined virtual function. I would prefer to hide
 // the VerifyObject definition behind VERIFY_HEAP.
 
 void CellSpace::VerifyObject(HeapObject* object) { CHECK(object->IsCell()); }
-
-
-void PropertyCellSpace::VerifyObject(HeapObject* object) {
-  CHECK(object->IsPropertyCell());
-}
 
 
 // -----------------------------------------------------------------------------

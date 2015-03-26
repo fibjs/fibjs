@@ -54,6 +54,7 @@ Handle<Object> TypeFeedbackOracle::GetInfo(FeedbackVectorSlot slot) {
   Object* obj = feedback_vector_->Get(slot);
   if (!obj->IsJSFunction() ||
       !CanRetainOtherContext(JSFunction::cast(obj), *native_context_)) {
+    DCHECK(!obj->IsMap());
     return Handle<Object>(obj, isolate());
   }
   return Handle<Object>::cast(isolate()->factory()->undefined_value());
@@ -74,10 +75,12 @@ Handle<Object> TypeFeedbackOracle::GetInfo(FeedbackVectorICSlot slot) {
     obj = cell->value();
   }
 
-  if (!obj->IsJSFunction() ||
-      !CanRetainOtherContext(JSFunction::cast(obj), *native_context_)) {
+  if ((obj->IsJSFunction() &&
+       !CanRetainOtherContext(JSFunction::cast(obj), *native_context_)) ||
+      obj->IsAllocationSite() || obj->IsSymbol()) {
     return Handle<Object>(obj, isolate());
   }
+
   return undefined;
 }
 
@@ -438,6 +441,9 @@ bool TypeFeedbackOracle::CanRetainOtherContext(Map* map,
   }
   constructor = map->GetConstructor();
   if (constructor->IsNull()) return false;
+  // If the constructor is not null or a JSFunction, we have to conservatively
+  // assume that it may retain a native context.
+  if (!constructor->IsJSFunction()) return true;
   JSFunction* function = JSFunction::cast(constructor);
   return CanRetainOtherContext(function, native_context);
 }

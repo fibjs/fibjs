@@ -63,7 +63,7 @@ namespace internal {
   F(RunningInSimulator, 0, 1)                  \
   F(IsConcurrentRecompilationSupported, 0, 1)  \
   F(OptimizeFunctionOnNextCall, -1, 1)         \
-  F(OptimizeOsr, 0, 1)                         \
+  F(OptimizeOsr, -1, 1)                        \
   F(NeverOptimizeFunction, 1, 1)               \
   F(GetOptimizationStatus, -1, 1)              \
   F(GetOptimizationCount, 1, 1)                \
@@ -75,7 +75,7 @@ namespace internal {
   F(SetInlineBuiltinFlag, 1, 1)                \
   F(StoreArrayLiteralElement, 5, 1)            \
   F(DebugPrepareStepInIfStepping, 1, 1)        \
-  F(DebugPushPromise, 1, 1)                    \
+  F(DebugPushPromise, 2, 1)                    \
   F(DebugPopPromise, 0, 1)                     \
   F(DebugPromiseEvent, 1, 1)                   \
   F(DebugAsyncTaskEvent, 1, 1)                 \
@@ -153,6 +153,7 @@ namespace internal {
   /* Regular expressions */                    \
   F(RegExpInitializeAndCompile, 3, 1)          \
   F(RegExpExecMultiple, 4, 1)                  \
+  F(RegExpExecReThrow, 4, 1)                   \
                                                \
   /* JSON */                                   \
   F(ParseJson, 1, 1)                           \
@@ -456,7 +457,7 @@ namespace internal {
                                                              \
   /* Harmony generators */                                   \
   F(CreateJSGeneratorObject, 0, 1)                           \
-  F(SuspendJSGeneratorObject, 1, 1)                          \
+  F(SuspendJSGeneratorObject, -1, 1)                         \
   F(ResumeJSGeneratorObject, 3, 1)                           \
   F(GeneratorClose, 1, 1)                                    \
                                                              \
@@ -693,6 +694,7 @@ namespace internal {
   F(ConstructDouble, 2, 1)                \
   F(DoubleHi, 1, 1)                       \
   F(DoubleLo, 1, 1)                       \
+  F(MathClz32, 1, 1)                      \
   F(MathFloor, 1, 1)                      \
   F(MathSqrt, 1, 1)                       \
   F(MathLogRT, 1, 1)                      \
@@ -712,7 +714,15 @@ namespace internal {
   F(SetInitialize, 1, 1)                  \
   /* Arrays */                            \
   F(HasFastPackedElements, 1, 1)          \
-  F(GetPrototype, 1, 1)
+  F(GetPrototype, 1, 1)                   \
+  /* Strings */                           \
+  F(StringGetLength, 1, 1)                \
+  /* JSValue */                           \
+  F(JSValueGetValue, 1, 1)                \
+  /* HeapObject */                        \
+  F(HeapObjectGetMap, 1, 1)               \
+  /* Map */                               \
+  F(MapGetInstanceType, 1, 1)
 
 
 #define FOR_EACH_INTRINSIC_RETURN_OBJECT(F) \

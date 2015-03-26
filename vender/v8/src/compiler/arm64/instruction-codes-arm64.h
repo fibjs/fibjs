@@ -18,6 +18,7 @@ namespace compiler {
   V(Arm64And32)                    \
   V(Arm64Bic)                      \
   V(Arm64Bic32)                    \
+  V(Arm64Clz32)                    \
   V(Arm64Cmp)                      \
   V(Arm64Cmp32)                    \
   V(Arm64Cmn)                      \
@@ -100,6 +101,8 @@ namespace compiler {
   V(Arm64Float64InsertLowWord32)   \
   V(Arm64Float64InsertHighWord32)  \
   V(Arm64Float64MoveU64)           \
+  V(Arm64Float64Max)               \
+  V(Arm64Float64Min)               \
   V(Arm64LdrS)                     \
   V(Arm64StrS)                     \
   V(Arm64LdrD)                     \
@@ -130,13 +133,15 @@ namespace compiler {
 // I = immediate (handle, external, int32)
 // MRI = [register + immediate]
 // MRR = [register + register]
-#define TARGET_ADDRESSING_MODE_LIST(V)  \
-  V(MRI)              /* [%r0 + K] */   \
-  V(MRR)              /* [%r0 + %r1] */ \
-  V(Operand2_R_LSL_I) /* %r0 LSL K */   \
-  V(Operand2_R_LSR_I) /* %r0 LSR K */   \
-  V(Operand2_R_ASR_I) /* %r0 ASR K */   \
-  V(Operand2_R_ROR_I) /* %r0 ROR K */
+#define TARGET_ADDRESSING_MODE_LIST(V)                      \
+  V(MRI)              /* [%r0 + K] */                       \
+  V(MRR)              /* [%r0 + %r1] */                     \
+  V(Operand2_R_LSL_I) /* %r0 LSL K */                       \
+  V(Operand2_R_LSR_I) /* %r0 LSR K */                       \
+  V(Operand2_R_ASR_I) /* %r0 ASR K */                       \
+  V(Operand2_R_ROR_I) /* %r0 ROR K */                       \
+  V(Operand2_R_UXTB)  /* %r0 UXTB (unsigned extend byte) */ \
+  V(Operand2_R_UXTH)  /* %r0 UXTH (unsigned extend halfword) */
 
 }  // namespace internal
 }  // namespace compiler

@@ -21,6 +21,7 @@ namespace fibjs
 class HttpMessage_base;
 class List_base;
 class HttpCookie_base;
+class Stream_base;
 
 class HttpResponse_base : public HttpMessage_base
 {
@@ -34,6 +35,7 @@ public:
 	virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
 	virtual result_t addCookie(HttpCookie_base* cookie) = 0;
 	virtual result_t redirect(const char* url) = 0;
+	virtual result_t sendHeader(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
 
 public:
 	template<typename T>
@@ -46,12 +48,17 @@ public:
 	static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+	ASYNC_MEMBER1(HttpResponse_base, sendHeader, Stream_base*);
 };
 
 }
 
 #include "List.h"
 #include "HttpCookie.h"
+#include "Stream.h"
 
 namespace fibjs
 {
@@ -60,7 +67,8 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"addCookie", s_addCookie, false},
-			{"redirect", s_redirect, false}
+			{"redirect", s_redirect, false},
+			{"sendHeader", s_sendHeader, false}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -72,7 +80,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"HttpResponse", s__new, 
-			2, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			3, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&HttpMessage_base::class_info()
 		};
 
@@ -152,6 +160,18 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = pInst->redirect(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(HttpResponse_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Stream_base>, 0);
+
+		hr = pInst->ac_sendHeader(v0);
 
 		METHOD_VOID();
 	}

@@ -38,7 +38,6 @@ namespace internal {
   V(Oddball, true_value, TrueValue)                                            \
   V(Oddball, false_value, FalseValue)                                          \
   V(Oddball, uninitialized_value, UninitializedValue)                          \
-  V(Oddball, exception, Exception)                                             \
   V(Map, cell_map, CellMap)                                                    \
   V(Map, global_property_cell_map, GlobalPropertyCellMap)                      \
   V(Map, shared_function_info_map, SharedFunctionInfoMap)                      \
@@ -53,17 +52,20 @@ namespace internal {
   V(Map, fixed_double_array_map, FixedDoubleArrayMap)                          \
   V(Map, constant_pool_array_map, ConstantPoolArrayMap)                        \
   V(Map, weak_cell_map, WeakCellMap)                                           \
-  V(Oddball, no_interceptor_result_sentinel, NoInterceptorResultSentinel)      \
-  V(Map, hash_table_map, HashTableMap)                                         \
-  V(Map, ordered_hash_table_map, OrderedHashTableMap)                          \
+  V(Map, one_byte_string_map, OneByteStringMap)                                \
+  V(Map, one_byte_internalized_string_map, OneByteInternalizedStringMap)       \
+  V(Map, function_context_map, FunctionContextMap)                             \
   V(FixedArray, empty_fixed_array, EmptyFixedArray)                            \
   V(ByteArray, empty_byte_array, EmptyByteArray)                               \
   V(DescriptorArray, empty_descriptor_array, EmptyDescriptorArray)             \
   V(ConstantPoolArray, empty_constant_pool_array, EmptyConstantPoolArray)      \
-  V(Oddball, arguments_marker, ArgumentsMarker)                                \
   /* The roots above this line should be boring from a GC point of view.    */ \
   /* This means they are never in new space and never on a page that is     */ \
   /* being compacted.                                                       */ \
+  V(Oddball, no_interceptor_result_sentinel, NoInterceptorResultSentinel)      \
+  V(Oddball, arguments_marker, ArgumentsMarker)                                \
+  V(Oddball, exception, Exception)                                             \
+  V(Oddball, termination_exception, TerminationException)                      \
   V(FixedArray, number_string_cache, NumberStringCache)                        \
   V(Object, instanceof_cache_function, InstanceofCacheFunction)                \
   V(Object, instanceof_cache_map, InstanceofCacheMap)                          \
@@ -71,13 +73,13 @@ namespace internal {
   V(FixedArray, single_character_string_cache, SingleCharacterStringCache)     \
   V(FixedArray, string_split_cache, StringSplitCache)                          \
   V(FixedArray, regexp_multiple_cache, RegExpMultipleCache)                    \
-  V(Oddball, termination_exception, TerminationException)                      \
   V(Smi, hash_seed, HashSeed)                                                  \
+  V(Map, hash_table_map, HashTableMap)                                         \
+  V(Map, ordered_hash_table_map, OrderedHashTableMap)                          \
   V(Map, symbol_map, SymbolMap)                                                \
   V(Map, string_map, StringMap)                                                \
-  V(Map, one_byte_string_map, OneByteStringMap)                                \
-  V(Map, cons_string_map, ConsStringMap)                                       \
   V(Map, cons_one_byte_string_map, ConsOneByteStringMap)                       \
+  V(Map, cons_string_map, ConsStringMap)                                       \
   V(Map, sliced_string_map, SlicedStringMap)                                   \
   V(Map, sliced_one_byte_string_map, SlicedOneByteStringMap)                   \
   V(Map, external_string_map, ExternalStringMap)                               \
@@ -89,7 +91,6 @@ namespace internal {
   V(Map, short_external_string_with_one_byte_data_map,                         \
     ShortExternalStringWithOneByteDataMap)                                     \
   V(Map, internalized_string_map, InternalizedStringMap)                       \
-  V(Map, one_byte_internalized_string_map, OneByteInternalizedStringMap)       \
   V(Map, external_internalized_string_map, ExternalInternalizedStringMap)      \
   V(Map, external_internalized_string_with_one_byte_data_map,                  \
     ExternalInternalizedStringWithOneByteDataMap)                              \
@@ -141,7 +142,6 @@ namespace internal {
   V(FixedTypedArrayBase, empty_fixed_uint8_clamped_array,                      \
     EmptyFixedUint8ClampedArray)                                               \
   V(Map, sloppy_arguments_elements_map, SloppyArgumentsElementsMap)            \
-  V(Map, function_context_map, FunctionContextMap)                             \
   V(Map, catch_context_map, CatchContextMap)                                   \
   V(Map, with_context_map, WithContextMap)                                     \
   V(Map, block_context_map, BlockContextMap)                                   \
@@ -646,7 +646,6 @@ class Heap {
   OldSpace* code_space() { return code_space_; }
   MapSpace* map_space() { return map_space_; }
   CellSpace* cell_space() { return cell_space_; }
-  PropertyCellSpace* property_cell_space() { return property_cell_space_; }
   LargeObjectSpace* lo_space() { return lo_space_; }
   PagedSpace* paged_space(int idx) {
     switch (idx) {
@@ -658,8 +657,6 @@ class Heap {
         return map_space();
       case CELL_SPACE:
         return cell_space();
-      case PROPERTY_CELL_SPACE:
-        return property_cell_space();
       case CODE_SPACE:
         return code_space();
       case NEW_SPACE:
@@ -1585,7 +1582,6 @@ class Heap {
   OldSpace* code_space_;
   MapSpace* map_space_;
   CellSpace* cell_space_;
-  PropertyCellSpace* property_cell_space_;
   LargeObjectSpace* lo_space_;
   HeapState gc_state_;
   int gc_post_processing_depth_;
@@ -2209,8 +2205,6 @@ class HeapStats {
   int* size_per_type;                      // 22
   int* os_error;                           // 23
   int* end_marker;                         // 24
-  intptr_t* property_cell_space_size;      // 25
-  intptr_t* property_cell_space_capacity;  // 26
 };
 
 

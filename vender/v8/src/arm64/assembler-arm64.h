@@ -5,6 +5,7 @@
 #ifndef V8_ARM64_ASSEMBLER_ARM64_H_
 #define V8_ARM64_ASSEMBLER_ARM64_H_
 
+#include <deque>
 #include <list>
 #include <map>
 #include <vector>
@@ -901,6 +902,11 @@ class Assembler : public AssemblerBase {
   inline static void deserialization_set_special_target_at(
       Address constant_pool_entry, Code* code, Address target);
 
+  // This sets the internal reference at the pc.
+  inline static void deserialization_set_target_internal_reference_at(
+      Address pc, Address target,
+      RelocInfo::Mode mode = RelocInfo::INTERNAL_REFERENCE);
+
   // All addresses in the constant pool are the same size as pointers.
   static const int kSpecialTargetSize = kPointerSize;
 
@@ -1746,6 +1752,9 @@ class Assembler : public AssemblerBase {
   // Emit 64 bits of data in the instruction stream.
   void dc64(uint64_t data) { EmitData(&data, sizeof(data)); }
 
+  // Emit an address in the instruction stream.
+  void dcptr(Label* label);
+
   // Copy a string into the instruction stream, including the terminating NULL
   // character. The instruction pointer (pc_) is then aligned correctly for
   // subsequent instructions.
@@ -2162,6 +2171,10 @@ class Assembler : public AssemblerBase {
   // Each relocation is encoded as a variable size value
   static const int kMaxRelocSize = RelocInfoWriter::kMaxSize;
   RelocInfoWriter reloc_info_writer;
+  // Internal reference positions, required for (potential) patching in
+  // GrowBuffer(); contains only those internal references whose labels
+  // are already bound.
+  std::deque<int> internal_reference_positions_;
 
   // Relocation info records are also used during code generation as temporary
   // containers for constants and code target addresses until they are emitted

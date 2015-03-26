@@ -2890,6 +2890,28 @@ void MacroAssembler::Pinsrd(XMMRegister dst, const Operand& src, int8_t imm8) {
 }
 
 
+void MacroAssembler::Lzcntl(Register dst, Register src) {
+  // TODO(intel): Add support for LZCNT (BMI1/ABM).
+  Label not_zero_src;
+  bsrl(dst, src);
+  j(not_zero, &not_zero_src, Label::kNear);
+  Set(dst, 63);  // 63^31 == 32
+  bind(&not_zero_src);
+  xorl(dst, Immediate(31));  // for x in [0..31], 31^x == 31 - x
+}
+
+
+void MacroAssembler::Lzcntl(Register dst, const Operand& src) {
+  // TODO(intel): Add support for LZCNT (BMI1/ABM).
+  Label not_zero_src;
+  bsrl(dst, src);
+  j(not_zero, &not_zero_src, Label::kNear);
+  Set(dst, 63);  // 63^31 == 32
+  bind(&not_zero_src);
+  xorl(dst, Immediate(31));  // for x in [0..31], 31^x == 31 - x
+}
+
+
 void MacroAssembler::Pushad() {
   Push(rax);
   Push(rcx);
@@ -2983,37 +3005,21 @@ Operand MacroAssembler::SafepointRegisterSlot(Register reg) {
 }
 
 
-void MacroAssembler::PushTryHandler(StackHandler::Kind kind,
-                                    int handler_index) {
+void MacroAssembler::PushStackHandler() {
   // Adjust this code if not the case.
-  STATIC_ASSERT(StackHandlerConstants::kSize == 3 * kPointerSize);
+  STATIC_ASSERT(StackHandlerConstants::kSize == 1 * kPointerSize);
   STATIC_ASSERT(StackHandlerConstants::kNextOffset == 0);
-  STATIC_ASSERT(StackHandlerConstants::kStateOffset == 1 * kPointerSize);
-  STATIC_ASSERT(StackHandlerConstants::kContextOffset == 2 * kPointerSize);
-
-  // We will build up the handler from the bottom by pushing on the stack.
-  // First push the context.
-  if (kind == StackHandler::JS_ENTRY) {
-    Push(Smi::FromInt(0));  // No context.
-  } else {
-    Push(rsi);
-  }
-
-  // Push the state.
-  unsigned state =
-      StackHandler::IndexField::encode(handler_index) |
-      StackHandler::KindField::encode(kind);
-  Push(Immediate(state));
 
   // Link the current handler as the next handler.
   ExternalReference handler_address(Isolate::kHandlerAddress, isolate());
   Push(ExternalOperand(handler_address));
+
   // Set this new handler as the current one.
   movp(ExternalOperand(handler_address), rsp);
 }
 
 
-void MacroAssembler::PopTryHandler() {
+void MacroAssembler::PopStackHandler() {
   STATIC_ASSERT(StackHandlerConstants::kNextOffset == 0);
   ExternalReference handler_address(Isolate::kHandlerAddress, isolate());
   Pop(ExternalOperand(handler_address));

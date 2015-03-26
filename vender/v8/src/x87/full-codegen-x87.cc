@@ -2486,6 +2486,16 @@ void FullCodeGenerator::EmitClassDefineProperties(ClassLiteral* lit) {
       __ push(Operand(esp, 0));  // prototype
     }
     EmitPropertyKey(property, lit->GetIdForProperty(i));
+
+    // The static prototype property is read only. We handle the non computed
+    // property name case in the parser. Since this is the only case where we
+    // need to check for an own read only property we special case this so we do
+    // not need to do this for every property.
+    if (property->is_static() && property->is_computed_name()) {
+      __ CallRuntime(Runtime::kThrowIfStaticPrototype, 1);
+      __ push(eax);
+    }
+
     VisitForStackValue(value);
     EmitSetHomeObjectIfNeeded(value, 2);
 
@@ -2623,25 +2633,6 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
     __ mov(StoreDescriptor::ReceiverRegister(), GlobalObjectOperand());
     CallStoreIC();
 
-  } else if (op == Token::INIT_CONST_LEGACY) {
-    // Const initializers need a write barrier.
-    DCHECK(!var->IsParameter());  // No const parameters.
-    if (var->IsLookupSlot()) {
-      __ push(eax);
-      __ push(esi);
-      __ push(Immediate(var->name()));
-      __ CallRuntime(Runtime::kInitializeLegacyConstLookupSlot, 3);
-    } else {
-      DCHECK(var->IsStackLocal() || var->IsContextSlot());
-      Label skip;
-      MemOperand location = VarOperand(var, ecx);
-      __ mov(edx, location);
-      __ cmp(edx, isolate()->factory()->the_hole_value());
-      __ j(not_equal, &skip, Label::kNear);
-      EmitStoreToStackLocalOrContextSlot(var, location);
-      __ bind(&skip);
-    }
-
   } else if (var->mode() == LET && op != Token::INIT_LET) {
     // Non-initializing assignment to let variable needs a write barrier.
     DCHECK(!var->IsLookupSlot());
@@ -2655,6 +2646,21 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
     __ CallRuntime(Runtime::kThrowReferenceError, 1);
     __ bind(&assign);
     EmitStoreToStackLocalOrContextSlot(var, location);
+
+  } else if (var->mode() == CONST && op != Token::INIT_CONST) {
+    // Assignment to const variable needs a write barrier.
+    DCHECK(!var->IsLookupSlot());
+    DCHECK(var->IsStackAllocated() || var->IsContextSlot());
+    Label const_error;
+    MemOperand location = VarOperand(var, ecx);
+    __ mov(edx, location);
+    __ cmp(edx, isolate()->factory()->the_hole_value());
+    __ j(not_equal, &const_error, Label::kNear);
+    __ push(Immediate(var->name()));
+    __ CallRuntime(Runtime::kThrowReferenceError, 1);
+    __ bind(&const_error);
+    __ CallRuntime(Runtime::kThrowConstAssignError, 0);
+
   } else if (!var->is_const_mode() || op == Token::INIT_CONST) {
     if (var->IsLookupSlot()) {
       // Assignment to var.
@@ -2676,8 +2682,33 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
       }
       EmitStoreToStackLocalOrContextSlot(var, location);
     }
-  } else if (IsSignallingAssignmentToConst(var, op, language_mode())) {
-    __ CallRuntime(Runtime::kThrowConstAssignError, 0);
+
+  } else if (op == Token::INIT_CONST_LEGACY) {
+    // Const initializers need a write barrier.
+    DCHECK(var->mode() == CONST_LEGACY);
+    DCHECK(!var->IsParameter());  // No const parameters.
+    if (var->IsLookupSlot()) {
+      __ push(eax);
+      __ push(esi);
+      __ push(Immediate(var->name()));
+      __ CallRuntime(Runtime::kInitializeLegacyConstLookupSlot, 3);
+    } else {
+      DCHECK(var->IsStackLocal() || var->IsContextSlot());
+      Label skip;
+      MemOperand location = VarOperand(var, ecx);
+      __ mov(edx, location);
+      __ cmp(edx, isolate()->factory()->the_hole_value());
+      __ j(not_equal, &skip, Label::kNear);
+      EmitStoreToStackLocalOrContextSlot(var, location);
+      __ bind(&skip);
+    }
+
+  } else {
+    DCHECK(var->mode() == CONST_LEGACY && op != Token::INIT_CONST_LEGACY);
+    if (is_strict(language_mode())) {
+      __ CallRuntime(Runtime::kThrowConstAssignError, 0);
+    }
+    // Silently ignore store in sloppy mode.
   }
 }
 
@@ -5210,34 +5241,12 @@ void FullCodeGenerator::EnterFinallyBlock() {
       ExternalReference::address_of_pending_message_obj(isolate());
   __ mov(edx, Operand::StaticVariable(pending_message_obj));
   __ push(edx);
-
-  ExternalReference has_pending_message =
-      ExternalReference::address_of_has_pending_message(isolate());
-  __ mov(edx, Operand::StaticVariable(has_pending_message));
-  __ SmiTag(edx);
-  __ push(edx);
-
-  ExternalReference pending_message_script =
-      ExternalReference::address_of_pending_message_script(isolate());
-  __ mov(edx, Operand::StaticVariable(pending_message_script));
-  __ push(edx);
 }
 
 
 void FullCodeGenerator::ExitFinallyBlock() {
   DCHECK(!result_register().is(edx));
   // Restore pending message from stack.
-  __ pop(edx);
-  ExternalReference pending_message_script =
-      ExternalReference::address_of_pending_message_script(isolate());
-  __ mov(Operand::StaticVariable(pending_message_script), edx);
-
-  __ pop(edx);
-  __ SmiUntag(edx);
-  ExternalReference has_pending_message =
-      ExternalReference::address_of_has_pending_message(isolate());
-  __ mov(Operand::StaticVariable(has_pending_message), edx);
-
   __ pop(edx);
   ExternalReference pending_message_obj =
       ExternalReference::address_of_pending_message_obj(isolate());

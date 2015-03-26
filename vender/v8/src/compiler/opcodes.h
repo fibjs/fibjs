@@ -10,11 +10,11 @@
   V(Dead)                        \
   V(Loop)                        \
   V(Branch)                      \
+  V(Switch)                      \
   V(IfTrue)                      \
   V(IfFalse)                     \
   V(IfSuccess)                   \
   V(IfException)                 \
-  V(Switch)                      \
   V(IfValue)                     \
   V(IfDefault)                   \
   V(Merge)                       \
@@ -48,6 +48,7 @@
   V(Finish)              \
   V(FrameState)          \
   V(StateValues)         \
+  V(TypedStateValues)    \
   V(Call)                \
   V(Parameter)           \
   V(OsrValue)            \
@@ -131,7 +132,6 @@
   V(JSCallFunction)         \
   V(JSCallRuntime)          \
   V(JSYield)                \
-  V(JSDebugger)             \
   V(JSStackCheck)
 
 #define JS_OP_LIST(V)     \
@@ -153,7 +153,6 @@
 
 #define SIMPLIFIED_OP_LIST(V)      \
   SIMPLIFIED_COMPARE_BINOP_LIST(V) \
-  V(AnyToBoolean)                  \
   V(BooleanNot)                    \
   V(BooleanToNumber)               \
   V(NumberAdd)                     \
@@ -208,6 +207,7 @@
   V(Word32Shr)                  \
   V(Word32Sar)                  \
   V(Word32Ror)                  \
+  V(Word32Clz)                  \
   V(Word64And)                  \
   V(Word64Or)                   \
   V(Word64Xor)                  \
@@ -320,6 +320,10 @@ class IrOpcode {
 
   static bool IsMergeOpcode(Value value) {
     return value == kMerge || value == kLoop;
+  }
+
+  static bool IsIfProjectionOpcode(Value value) {
+    return kIfTrue <= value && value <= kIfDefault;
   }
 
   // Returns true if opcode for comparison operator.

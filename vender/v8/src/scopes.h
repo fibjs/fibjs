@@ -22,8 +22,7 @@ class VariableMap: public ZoneHashMap {
   virtual ~VariableMap();
 
   Variable* Declare(Scope* scope, const AstRawString* name, VariableMode mode,
-                    bool is_valid_lhs, Variable::Kind kind,
-                    InitializationFlag initialization_flag,
+                    Variable::Kind kind, InitializationFlag initialization_flag,
                     MaybeAssignedFlag maybe_assigned_flag = kNotAssigned);
 
   Variable* Lookup(const AstRawString* name);
@@ -149,8 +148,8 @@ class Scope: public ZoneObject {
     // the same name because they may be removed selectively via
     // RemoveUnresolved().
     DCHECK(!already_resolved());
-    VariableProxy* proxy =
-        factory->NewVariableProxy(name, false, start_position, end_position);
+    VariableProxy* proxy = factory->NewVariableProxy(
+        name, Variable::NORMAL, start_position, end_position);
     unresolved_.Add(proxy, zone_);
     return proxy;
   }
@@ -415,8 +414,9 @@ class Scope: public ZoneObject {
   // Collect stack and context allocated local variables in this scope. Note
   // that the function variable - if present - is not collected and should be
   // handled separately.
-  void CollectStackAndContextLocals(ZoneList<Variable*>* stack_locals,
-                                    ZoneList<Variable*>* context_locals);
+  void CollectStackAndContextLocals(
+      ZoneList<Variable*>* stack_locals, ZoneList<Variable*>* context_locals,
+      ZoneList<Variable*>* strong_mode_free_variables = nullptr);
 
   // Current number of var or const locals.
   int num_var_or_const() { return num_var_or_const_; }

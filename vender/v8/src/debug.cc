@@ -321,6 +321,10 @@ void BreakLocation::ClearDebugBreak() {
   } else {
     // Restore the IC call.
     rinfo().set_target_address(original_rinfo().target_address());
+    // Some ICs store data in the feedback vector. Clear this to ensure we
+    // won't miss future stepping requirements.
+    SharedFunctionInfo* shared = debug_info_->shared();
+    shared->feedback_vector()->ClearICSlots(shared);
   }
   DCHECK(!IsDebugBreak());
 }
@@ -1181,8 +1185,9 @@ void Debug::FloodHandlerWithOneShot() {
   }
   for (JavaScriptFrameIterator it(isolate_, id); !it.done(); it.Advance()) {
     JavaScriptFrame* frame = it.frame();
-    if (frame->HasHandler()) {
-      // Flood the function with the catch block with break points
+    int stack_slots = 0;  // The computed stack slot count is not used.
+    if (frame->LookupExceptionHandlerInTable(&stack_slots) > 0) {
+      // Flood the function with the catch/finally block with break points.
       FloodWithOneShot(Handle<JSFunction>(frame->function()));
       return;
     }
@@ -1259,8 +1264,12 @@ void Debug::PrepareStep(StepAction step_action,
     return;
   }
 
+  List<FrameSummary> frames(FLAG_max_inlining_levels + 1);
+  frames_it.frame()->Summarize(&frames);
+  FrameSummary summary = frames.first();
+
   // Get the debug info (create it if it does not exist).
-  Handle<JSFunction> function(frame->function());
+  Handle<JSFunction> function(summary.function());
   Handle<SharedFunctionInfo> shared(function->shared());
   if (!EnsureDebugInfo(shared, function)) {
     // Return if ensuring debug info failed.
@@ -1276,7 +1285,7 @@ void Debug::PrepareStep(StepAction step_action,
 
   // PC points to the instruction after the current one, possibly a break
   // location as well. So the "- 1" to exclude it from the search.
-  Address call_pc = frame->pc() - 1;
+  Address call_pc = summary.pc() - 1;
   BreakLocation location =
       BreakLocation::FromAddress(debug_info, ALL_BREAK_LOCATIONS, call_pc);
 
@@ -1343,7 +1352,7 @@ void Debug::PrepareStep(StepAction step_action,
 
     // Remember source position and frame to handle step next.
     thread_local_.last_statement_position_ =
-        debug_info->code()->SourceStatementPosition(frame->pc());
+        debug_info->code()->SourceStatementPosition(summary.pc());
     thread_local_.last_fp_ = frame->UnpaddedFP();
   } else {
     // If there's restarter frame on top of the stack, just get the pointer
@@ -1415,7 +1424,7 @@ void Debug::PrepareStep(StepAction step_action,
       // Object::Get/SetPropertyWithAccessor, otherwise the step action will be
       // propagated on the next Debug::Break.
       thread_local_.last_statement_position_ =
-          debug_info->code()->SourceStatementPosition(frame->pc());
+          debug_info->code()->SourceStatementPosition(summary.pc());
       thread_local_.last_fp_ = frame->UnpaddedFP();
     }
 
@@ -2118,6 +2127,10 @@ bool Debug::EnsureDebugInfo(Handle<SharedFunctionInfo> shared,
     return false;
   }
 
+  // Make sure IC state is clean.
+  shared->code()->ClearInlineCaches();
+  shared->feedback_vector()->ClearICSlots(*shared);
+
   // Create the debug info object.
   Handle<DebugInfo> debug_info = isolate->factory()->NewDebugInfo(shared);
 
@@ -2456,7 +2469,7 @@ MaybeHandle<Object> Debug::MakeAsyncTaskEvent(Handle<JSObject> task_event) {
 }
 
 
-void Debug::OnThrow(Handle<Object> exception, bool uncaught) {
+void Debug::OnThrow(Handle<Object> exception) {
   if (in_debug_scope() || ignore_events()) return;
   // Temporarily clear any scheduled_exception to allow evaluating
   // JavaScript from the debug event handler.
@@ -2466,7 +2479,7 @@ void Debug::OnThrow(Handle<Object> exception, bool uncaught) {
     scheduled_exception = handle(isolate_->scheduled_exception(), isolate_);
     isolate_->clear_scheduled_exception();
   }
-  OnException(exception, uncaught, isolate_->GetPromiseOnStackOnThrow());
+  OnException(exception, isolate_->GetPromiseOnStackOnThrow());
   if (!scheduled_exception.is_null()) {
     isolate_->thread_local_top()->scheduled_exception_ = *scheduled_exception;
   }
@@ -2479,7 +2492,7 @@ void Debug::OnPromiseReject(Handle<JSObject> promise, Handle<Object> value) {
   // Check whether the promise has been marked as having triggered a message.
   Handle<Symbol> key = isolate_->factory()->promise_debug_marker_symbol();
   if (JSObject::GetDataProperty(promise, key)->IsUndefined()) {
-    OnException(value, false, promise);
+    OnException(value, promise);
   }
 }
 
@@ -2494,9 +2507,10 @@ MaybeHandle<Object> Debug::PromiseHasUserDefinedRejectHandler(
 }
 
 
-void Debug::OnException(Handle<Object> exception, bool uncaught,
-                        Handle<Object> promise) {
-  if (!uncaught && promise->IsJSObject()) {
+void Debug::OnException(Handle<Object> exception, Handle<Object> promise) {
+  Isolate::CatchType catch_type = isolate_->PredictExceptionCatcher();
+  bool uncaught = (catch_type == Isolate::NOT_CAUGHT);
+  if (promise->IsJSObject()) {
     Handle<JSObject> jspromise = Handle<JSObject>::cast(promise);
     // Mark the promise as already having triggered a message.
     Handle<Symbol> key = isolate_->factory()->promise_debug_marker_symbol();

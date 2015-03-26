@@ -243,9 +243,8 @@ void VisitBinop(InstructionSelector* selector, Node* node,
   DCHECK_GE(arraysize(outputs), output_count);
   DCHECK_NE(kMode_None, AddressingModeField::decode(opcode));
 
-  Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
-                                      outputs, input_count, inputs);
-  if (cont->IsBranch()) instr->MarkAsControl();
+  selector->Emit(cont->Encode(opcode), output_count, outputs, input_count,
+                 inputs);
 }
 
 
@@ -583,9 +582,8 @@ void VisitShift(InstructionSelector* selector, Node* node,
   DCHECK_GE(arraysize(outputs), output_count);
   DCHECK_NE(kMode_None, AddressingModeField::decode(opcode));
 
-  Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
-                                      outputs, input_count, inputs);
-  if (cont->IsBranch()) instr->MarkAsControl();
+  selector->Emit(cont->Encode(opcode), output_count, outputs, input_count,
+                 inputs);
 }
 
 
@@ -646,6 +644,12 @@ void InstructionSelector::VisitWord32Sar(Node* node) {
 
 void InstructionSelector::VisitWord32Ror(Node* node) {
   VisitShift(this, node, TryMatchROR);
+}
+
+
+void InstructionSelector::VisitWord32Clz(Node* node) {
+  ArmOperandGenerator g(this);
+  Emit(kArmClz, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
 }
 
 
@@ -1101,8 +1105,7 @@ void VisitFloat64Compare(InstructionSelector* selector, Node* node,
   if (cont->IsBranch()) {
     selector->Emit(cont->Encode(kArmVcmpF64), g.NoOutput(),
                    g.UseRegister(m.left().node()), rhs,
-                   g.Label(cont->true_block()),
-                   g.Label(cont->false_block()))->MarkAsControl();
+                   g.Label(cont->true_block()), g.Label(cont->false_block()));
   } else {
     DCHECK(cont->IsSet());
     selector->Emit(cont->Encode(kArmVcmpF64),
@@ -1149,9 +1152,8 @@ void VisitWordCompare(InstructionSelector* selector, Node* node,
   DCHECK_GE(arraysize(inputs), input_count);
   DCHECK_GE(arraysize(outputs), output_count);
 
-  Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
-                                      outputs, input_count, inputs);
-  if (cont->IsBranch()) instr->MarkAsControl();
+  selector->Emit(cont->Encode(opcode), output_count, outputs, input_count,
+                 inputs);
 }
 
 
@@ -1256,8 +1258,7 @@ void VisitWordCompareZero(InstructionSelector* selector, Node* user,
   InstructionOperand const value_operand = g.UseRegister(value);
   if (cont->IsBranch()) {
     selector->Emit(opcode, g.NoOutput(), value_operand, value_operand,
-                   g.Label(cont->true_block()),
-                   g.Label(cont->false_block()))->MarkAsControl();
+                   g.Label(cont->true_block()), g.Label(cont->false_block()));
   } else {
     selector->Emit(opcode, g.DefineAsRegister(cont->result()), value_operand,
                    value_operand);
@@ -1314,8 +1315,7 @@ void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
       DCHECK_LT(value + 2, input_count);
       inputs[value + 2] = g.Label(branch);
     }
-    Emit(kArchTableSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
-        ->MarkAsControl();
+    Emit(kArchTableSwitch, 0, nullptr, input_count, inputs, 0, nullptr);
     return;
   }
 
@@ -1330,8 +1330,7 @@ void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
     inputs[index * 2 + 2 + 0] = g.TempImmediate(value);
     inputs[index * 2 + 2 + 1] = g.Label(branch);
   }
-  Emit(kArchLookupSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
-      ->MarkAsControl();
+  Emit(kArchLookupSwitch, 0, nullptr, input_count, inputs, 0, nullptr);
 }
 
 

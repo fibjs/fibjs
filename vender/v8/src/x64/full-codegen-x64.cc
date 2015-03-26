@@ -99,7 +99,8 @@ class JumpPatchSite BASE_EMBEDDED {
 void FullCodeGenerator::Generate() {
   CompilationInfo* info = info_;
   handler_table_ =
-      isolate()->factory()->NewFixedArray(function()->handler_count(), TENURED);
+      Handle<HandlerTable>::cast(isolate()->factory()->NewFixedArray(
+          HandlerTable::LengthForRange(function()->handler_count()), TENURED));
 
   profiling_counter_ = isolate()->factory()->NewCell(
       Handle<Smi>(Smi::FromInt(FLAG_interrupt_budget), isolate()));
@@ -236,6 +237,11 @@ void FullCodeGenerator::Generate() {
     }
   }
 
+ArgumentsAccessStub::HasNewTarget has_new_target =
+    IsSubclassConstructor(info->function()->kind())
+        ? ArgumentsAccessStub::HAS_NEW_TARGET
+        : ArgumentsAccessStub::NO_NEW_TARGET;
+
   // Possibly allocate RestParameters
   int rest_index;
   Variable* rest_param = scope()->rest_parameter(&rest_index);
@@ -244,6 +250,11 @@ void FullCodeGenerator::Generate() {
 
     int num_parameters = info->scope()->num_parameters();
     int offset = num_parameters * kPointerSize;
+    if (has_new_target == ArgumentsAccessStub::HAS_NEW_TARGET) {
+      --num_parameters;
+      ++rest_index;
+    }
+
     __ leap(rdx,
             Operand(rbp, StandardFrameConstants::kCallerSPOffset + offset));
     __ Push(rdx);
@@ -279,10 +290,6 @@ void FullCodeGenerator::Generate() {
     // The stub will rewrite receiver and parameter count if the previous
     // stack frame was an arguments adapter frame.
 
-    ArgumentsAccessStub::HasNewTarget has_new_target =
-        IsSubclassConstructor(info->function()->kind())
-            ? ArgumentsAccessStub::HAS_NEW_TARGET
-            : ArgumentsAccessStub::NO_NEW_TARGET;
     ArgumentsAccessStub::Type type;
     if (is_strict(language_mode()) || !is_simple_parameter_list()) {
       type = ArgumentsAccessStub::NEW_STRICT;
@@ -2153,7 +2160,6 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       // catch (e) { receiver = iter; f = 'throw'; arg = e; goto l_call; }
       __ bind(&l_catch);
-      handler_table()->set(expr->index(), Smi::FromInt(l_catch.pos()));
       __ LoadRoot(load_name, Heap::kthrow_stringRootIndex);  // "throw"
       __ Push(load_name);
       __ Push(Operand(rsp, 2 * kPointerSize));               // iter
@@ -2165,16 +2171,17 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       // re-boxing.
       __ bind(&l_try);
       __ Pop(rax);                                       // result
-      __ PushTryHandler(StackHandler::CATCH, expr->index());
-      const int handler_size = StackHandlerConstants::kSize;
+      EnterTryBlock(expr->index(), &l_catch);
+      const int try_block_size = TryCatch::kElementCount * kPointerSize;
       __ Push(rax);                                      // result
       __ jmp(&l_suspend);
       __ bind(&l_continuation);
       __ jmp(&l_resume);
       __ bind(&l_suspend);
-      const int generator_object_depth = kPointerSize + handler_size;
+      const int generator_object_depth = kPointerSize + try_block_size;
       __ movp(rax, Operand(rsp, generator_object_depth));
       __ Push(rax);                                      // g
+      __ Push(Smi::FromInt(expr->index()));              // handler-index
       DCHECK(l_continuation.pos() > 0 && Smi::IsValid(l_continuation.pos()));
       __ Move(FieldOperand(rax, JSGeneratorObject::kContinuationOffset),
               Smi::FromInt(l_continuation.pos()));
@@ -2182,13 +2189,13 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       __ movp(rcx, rsi);
       __ RecordWriteField(rax, JSGeneratorObject::kContextOffset, rcx, rdx,
                           kDontSaveFPRegs);
-      __ CallRuntime(Runtime::kSuspendJSGeneratorObject, 1);
+      __ CallRuntime(Runtime::kSuspendJSGeneratorObject, 2);
       __ movp(context_register(),
               Operand(rbp, StandardFrameConstants::kContextOffset));
       __ Pop(rax);                                       // result
       EmitReturnSequence();
       __ bind(&l_resume);                                // received in rax
-      __ PopTryHandler();
+      ExitTryBlock(expr->index());
 
       // receiver = iter; f = 'next'; arg = received;
       __ bind(&l_next);
@@ -3999,7 +4006,7 @@ void FullCodeGenerator::EmitStringCharCodeAt(CallRuntime* expr) {
   __ jmp(&done);
 
   NopRuntimeCallHelper call_helper;
-  generator.GenerateSlow(masm_, call_helper);
+  generator.GenerateSlow(masm_, NOT_PART_OF_IC_HANDLER, call_helper);
 
   __ bind(&done);
   context()->Plug(result);
@@ -4047,7 +4054,7 @@ void FullCodeGenerator::EmitStringCharAt(CallRuntime* expr) {
   __ jmp(&done);
 
   NopRuntimeCallHelper call_helper;
-  generator.GenerateSlow(masm_, call_helper);
+  generator.GenerateSlow(masm_, NOT_PART_OF_IC_HANDLER, call_helper);
 
   __ bind(&done);
   context()->Plug(result);
@@ -5297,34 +5304,6 @@ void FullCodeGenerator::ExitFinallyBlock() {
   __ Move(rcx, masm_->CodeObject());
   __ addp(rdx, rcx);
   __ jmp(rdx);
-}
-
-
-#undef __
-
-#define __ ACCESS_MASM(masm())
-
-FullCodeGenerator::NestedStatement* FullCodeGenerator::TryFinally::Exit(
-    int* stack_depth,
-    int* context_length) {
-  // The macros used here must preserve the result register.
-
-  // Because the handler block contains the context of the finally
-  // code, we can restore it directly from there for the finally code
-  // rather than iteratively unwinding contexts via their previous
-  // links.
-  __ Drop(*stack_depth);  // Down to the handler block.
-  if (*context_length > 0) {
-    // Restore the context to its dedicated register and the stack.
-    __ movp(rsi, Operand(rsp, StackHandlerConstants::kContextOffset));
-    __ movp(Operand(rbp, StandardFrameConstants::kContextOffset), rsi);
-  }
-  __ PopTryHandler();
-  __ call(finally_entry_);
-
-  *stack_depth = 0;
-  *context_length = 0;
-  return previous_;
 }
 
 

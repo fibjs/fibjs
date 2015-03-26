@@ -547,6 +547,11 @@ class Assembler : public AssemblerBase {
         target);
   }
 
+  // This sets the internal reference at the pc.
+  inline static void deserialization_set_target_internal_reference_at(
+      Address pc, Address target,
+      RelocInfo::Mode mode = RelocInfo::INTERNAL_REFERENCE);
+
   // Size of an instruction.
   static const int kInstrSize = sizeof(Instr);
 
@@ -1187,6 +1192,9 @@ class Assembler : public AssemblerBase {
   }
 
  private:
+  inline static void set_target_internal_reference_encoded_at(Address pc,
+                                                              Address target);
+
   // Buffer size and constant pool distance are checked together at regular
   // intervals of kBufferCheckInterval emitted bytes.
   static const int kBufferCheckInterval = 1*KB/2;

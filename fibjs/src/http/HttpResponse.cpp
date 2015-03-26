@@ -406,4 +406,43 @@ result_t HttpResponse::redirect(const char *url)
     return 0;
 }
 
+result_t HttpResponse::sendHeader(Stream_base* stm, exlib::AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_cookies)
+    {
+        int32_t len, i;
+
+        m_cookies->get_length(len);
+
+        for (i = 0; i < len; i ++)
+        {
+            Variant v;
+            obj_ptr<object_base> cookie;
+            std::string str;
+
+            m_cookies->_indexed_getter(i, v);
+            cookie = v.object();
+
+            if (cookie)
+            {
+                cookie->toString(str);
+                addHeader("Set-Cookie", str.c_str());
+            }
+        }
+
+        m_cookies.Release();
+    }
+
+    int pos = shortcut[m_status / 100 - 1] + m_status % 100;
+    std::string strCommand;
+
+    get_protocol(strCommand);
+    strCommand.append(status_lines[pos], status_lines_size[pos]);
+
+    return m_message.sendHeader(stm, strCommand, ac);
+}
+
 } /* namespace fibjs */

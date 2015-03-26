@@ -122,7 +122,7 @@
 //       - Symbol
 //     - HeapNumber
 //     - Cell
-//       - PropertyCell
+//     - PropertyCell
 //     - Code
 //     - Map
 //     - Oddball
@@ -662,7 +662,6 @@ enum InstanceType {
   CODE_TYPE,
   ODDBALL_TYPE,
   CELL_TYPE,
-  PROPERTY_CELL_TYPE,
 
   // "Data", objects that cannot contain non-map-word pointers to heap
   // objects.
@@ -718,6 +717,7 @@ enum InstanceType {
   CONSTANT_POOL_ARRAY_TYPE,
   SHARED_FUNCTION_INFO_TYPE,
   WEAK_CELL_TYPE,
+  PROPERTY_CELL_TYPE,
 
   // All the following types are subtypes of JSReceiver, which corresponds to
   // objects in the JS sense. The first and the last type in this range are
@@ -938,6 +938,7 @@ template <class C> inline bool Is(Object* obj);
   V(DeoptimizationInputData)       \
   V(DeoptimizationOutputData)      \
   V(DependentCode)                 \
+  V(HandlerTable)                  \
   V(FixedArray)                    \
   V(FixedDoubleArray)              \
   V(WeakFixedArray)                \
@@ -2631,9 +2632,15 @@ class WeakFixedArray : public FixedArray {
 // Generic array grows dynamically with O(1) amortized insertion.
 class ArrayList : public FixedArray {
  public:
-  static Handle<ArrayList> Add(Handle<ArrayList> array, Handle<Object> obj);
+  enum AddMode {
+    kNone,
+    // Use this if GC can delete elements from the array.
+    kReloadLengthAfterAllocation,
+  };
+  static Handle<ArrayList> Add(Handle<ArrayList> array, Handle<Object> obj,
+                               AddMode mode = kNone);
   static Handle<ArrayList> Add(Handle<ArrayList> array, Handle<Object> obj1,
-                               Handle<Object> obj2);
+                               Handle<Object> obj2, AddMode = kNone);
   inline int Length();
   inline void SetLength(int length);
   inline Object* Get(int index);
@@ -4306,6 +4313,10 @@ class ScopeInfo : public FixedArray {
   // exposed to the user in a debugger.
   bool LocalIsSynthetic(int var);
 
+  String* StrongModeFreeVariableName(int var);
+  int StrongModeFreeVariableStartPosition(int var);
+  int StrongModeFreeVariableEndPosition(int var);
+
   // Lookup support for serialized scope info. Returns the
   // the stack slot index for a given slot name if the slot is
   // present; otherwise returns a value < 0. The name must be an internalized
@@ -4358,11 +4369,12 @@ class ScopeInfo : public FixedArray {
   // 3. The number of non-parameter variables allocated on the stack.
   // 4. The number of non-parameter and parameter variables allocated in the
   //    context.
-#define FOR_EACH_NUMERIC_FIELD(V)          \
-  V(Flags)                                 \
-  V(ParameterCount)                        \
-  V(StackLocalCount)                       \
-  V(ContextLocalCount)
+#define FOR_EACH_NUMERIC_FIELD(V) \
+  V(Flags)                        \
+  V(ParameterCount)               \
+  V(StackLocalCount)              \
+  V(ContextLocalCount)            \
+  V(StrongModeFreeVariableCount)
 
 #define FIELD_ACCESSORS(name)                            \
   void Set##name(int value) {                            \
@@ -4409,7 +4421,12 @@ class ScopeInfo : public FixedArray {
   //    the context locals in ContextLocalNameEntries. One slot is used per
   //    context local, so in total this part occupies ContextLocalCount()
   //    slots in the array.
-  // 5. FunctionNameEntryIndex:
+  // 5. StrongModeFreeVariableNameEntries:
+  //    Stores the names of strong mode free variables.
+  // 6. StrongModeFreeVariablePositionEntries:
+  //    Stores the locations (start and end position) of strong mode free
+  //    variables.
+  // 7. FunctionNameEntryIndex:
   //    If the scope belongs to a named function expression this part contains
   //    information about the function variable. It always occupies two array
   //    slots:  a. The name of the function variable.
@@ -4418,6 +4435,8 @@ class ScopeInfo : public FixedArray {
   int StackLocalEntriesIndex();
   int ContextLocalNameEntriesIndex();
   int ContextLocalInfoEntriesIndex();
+  int StrongModeFreeVariableNameEntriesIndex();
+  int StrongModeFreeVariablePositionEntriesIndex();
   int FunctionNameEntryIndex();
 
   // Location of the function variable for named function expressions.
@@ -5059,6 +5078,71 @@ class DeoptimizationOutputData: public FixedArray {
 #if defined(OBJECT_PRINT) || defined(ENABLE_DISASSEMBLER)
   void DeoptimizationOutputDataPrint(std::ostream& os);  // NOLINT
 #endif
+};
+
+
+// HandlerTable is a fixed array containing entries for exception handlers in
+// the code object it is associated with. The tables comes in two flavors:
+// 1) Based on ranges: Used for unoptimized code. Contains one entry per
+//    exception handler and a range representing the try-block covered by that
+//    handler. Layout looks as follows:
+//      [ range-start , range-end , handler-offset , stack-depth ]
+// 2) Based on return addresses: Used for turbofanned code. Contains one entry
+//    per call-site that could throw an exception. Layout looks as follows:
+//      [ return-address-offset , handler-offset ]
+class HandlerTable : public FixedArray {
+ public:
+  // Accessors for handler table based on ranges.
+  void SetRangeStart(int index, int value) {
+    set(index * kRangeEntrySize + kRangeStartIndex, Smi::FromInt(value));
+  }
+  void SetRangeEnd(int index, int value) {
+    set(index * kRangeEntrySize + kRangeEndIndex, Smi::FromInt(value));
+  }
+  void SetRangeHandler(int index, int value) {
+    set(index * kRangeEntrySize + kRangeHandlerIndex, Smi::FromInt(value));
+  }
+  void SetRangeDepth(int index, int value) {
+    set(index * kRangeEntrySize + kRangeDepthIndex, Smi::FromInt(value));
+  }
+
+  // Accessors for handler table based on return addresses.
+  void SetReturnOffset(int index, int value) {
+    set(index * kReturnEntrySize + kReturnOffsetIndex, Smi::FromInt(value));
+  }
+  void SetReturnHandler(int index, int value) {
+    set(index * kReturnEntrySize + kReturnHandlerIndex, Smi::FromInt(value));
+  }
+
+  // Lookup handler in a table based on ranges.
+  int LookupRange(int pc_offset, int* stack_depth);
+
+  // Lookup handler in a table based on return addresses.
+  int LookupReturn(int pc_offset);
+
+  // Returns the required length of the underlying fixed array.
+  static int LengthForRange(int entries) { return entries * kRangeEntrySize; }
+  static int LengthForReturn(int entries) { return entries * kReturnEntrySize; }
+
+  DECLARE_CAST(HandlerTable)
+
+#if defined(OBJECT_PRINT) || defined(ENABLE_DISASSEMBLER)
+  void HandlerTableRangePrint(std::ostream& os);   // NOLINT
+  void HandlerTableReturnPrint(std::ostream& os);  // NOLINT
+#endif
+
+ private:
+  // Layout description for handler table based on ranges.
+  static const int kRangeStartIndex = 0;
+  static const int kRangeEndIndex = 1;
+  static const int kRangeHandlerIndex = 2;
+  static const int kRangeDepthIndex = 3;
+  static const int kRangeEntrySize = 4;
+
+  // Layout description for handler table based on return addresses.
+  static const int kReturnOffsetIndex = 0;
+  static const int kReturnHandlerIndex = 1;
+  static const int kReturnEntrySize = 2;
 };
 
 
@@ -7344,11 +7428,6 @@ class JSGeneratorObject: public JSObject {
   // [operand_stack]: Saved operand stack.
   DECL_ACCESSORS(operand_stack, FixedArray)
 
-  // [stack_handler_index]: Index of first stack handler in operand_stack, or -1
-  // if the captured activation had no stack handler.
-  inline int stack_handler_index() const;
-  inline void set_stack_handler_index(int stack_handler_index);
-
   DECLARE_CAST(JSGeneratorObject)
 
   // Dispatched behavior.
@@ -7365,9 +7444,7 @@ class JSGeneratorObject: public JSObject {
   static const int kReceiverOffset = kContextOffset + kPointerSize;
   static const int kContinuationOffset = kReceiverOffset + kPointerSize;
   static const int kOperandStackOffset = kContinuationOffset + kPointerSize;
-  static const int kStackHandlerIndexOffset =
-      kOperandStackOffset + kPointerSize;
-  static const int kSize = kStackHandlerIndexOffset + kPointerSize;
+  static const int kSize = kOperandStackOffset + kPointerSize;
 
   // Resume mode, for use by runtime functions.
   enum ResumeMode { NEXT, THROW };
@@ -9692,14 +9769,14 @@ class Oddball: public HeapObject {
 
 class Cell: public HeapObject {
  public:
-  // [value]: value of the global property.
+  // [value]: value of the cell.
   DECL_ACCESSORS(value, Object)
 
   DECLARE_CAST(Cell)
 
   static inline Cell* FromValueAddress(Address value) {
     Object* result = FromAddress(value - kValueOffset);
-    DCHECK(result->IsCell() || result->IsPropertyCell());
+    DCHECK(result->IsCell());
     return static_cast<Cell*>(result);
   }
 
@@ -9724,46 +9801,38 @@ class Cell: public HeapObject {
 };
 
 
-class PropertyCell: public Cell {
+class PropertyCell : public HeapObject {
  public:
-  // [type]: type of the global property.
-  HeapType* type();
-  void set_type(HeapType* value, WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
-
+  // [value]: value of the global property.
+  DECL_ACCESSORS(value, Object)
   // [dependent_code]: dependent code that depends on the type of the global
   // property.
   DECL_ACCESSORS(dependent_code, DependentCode)
 
-  // Sets the value of the cell and updates the type field to be the union
-  // of the cell's current type and the value's type. If the change causes
-  // a change of the type of the cell's contents, code dependent on the cell
-  // will be deoptimized.
-  // Usually returns the value that was passed in, but may perform
-  // non-observable modifications on it, such as internalize strings.
-  static Handle<Object> SetValueInferType(Handle<PropertyCell> cell,
-                                          Handle<Object> value);
-
   // Computes the new type of the cell's contents for the given value, but
-  // without actually modifying the 'type' field.
-  static Handle<HeapType> UpdatedType(Handle<PropertyCell> cell,
-                                      Handle<Object> value);
+  // without actually modifying the details.
+  static PropertyCellType UpdatedType(Handle<PropertyCell> cell,
+                                      Handle<Object> value,
+                                      PropertyDetails details);
+  static Handle<Object> UpdateCell(Handle<NameDictionary> dictionary, int entry,
+                                   Handle<Object> value,
+                                   PropertyDetails details);
+
+  static Handle<PropertyCell> InvalidateEntry(Handle<NameDictionary> dictionary,
+                                              int entry);
 
   static void AddDependentCompilationInfo(Handle<PropertyCell> cell,
                                           CompilationInfo* info);
 
   DECLARE_CAST(PropertyCell)
 
-  inline Address TypeAddress() {
-    return address() + kTypeOffset;
-  }
-
   // Dispatched behavior.
   DECLARE_PRINTER(PropertyCell)
   DECLARE_VERIFIER(PropertyCell)
 
   // Layout description.
-  static const int kTypeOffset = kValueOffset + kPointerSize;
-  static const int kDependentCodeOffset = kTypeOffset + kPointerSize;
+  static const int kValueOffset = HeapObject::kHeaderSize;
+  static const int kDependentCodeOffset = kValueOffset + kPointerSize;
   static const int kSize = kDependentCodeOffset + kPointerSize;
 
   static const int kPointerFieldsBeginOffset = kValueOffset;
@@ -9774,7 +9843,6 @@ class PropertyCell: public Cell {
                               kSize> BodyDescriptor;
 
  private:
-  DECL_ACCESSORS(type_raw, Object)
   DISALLOW_IMPLICIT_CONSTRUCTORS(PropertyCell);
 };
 
@@ -10585,6 +10653,7 @@ class InterceptorInfo: public Struct {
   DECL_ACCESSORS(data, Object)
   DECL_BOOLEAN_ACCESSORS(can_intercept_symbols)
   DECL_BOOLEAN_ACCESSORS(all_can_read)
+  DECL_BOOLEAN_ACCESSORS(non_masking)
 
   inline int flags() const;
   inline void set_flags(int flags);
@@ -10606,6 +10675,7 @@ class InterceptorInfo: public Struct {
 
   static const int kCanInterceptSymbolsBit = 0;
   static const int kAllCanReadBit = 1;
+  static const int kNonMasking = 2;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InterceptorInfo);
@@ -10955,8 +11025,11 @@ class ObjectVisitor BASE_EMBEDDED {
   // Visits an external reference embedded into a code object.
   virtual void VisitExternalReference(RelocInfo* rinfo);
 
-  // Visits an external reference. The value may be modified on return.
+  // Visits an external reference.
   virtual void VisitExternalReference(Address* p) {}
+
+  // Visits an (encoded) internal reference.
+  virtual void VisitInternalReference(RelocInfo* rinfo) {}
 
   // Visits a handle that has an embedder-assigned class ID.
   virtual void VisitEmbedderReference(Object** p, uint16_t class_id) {}

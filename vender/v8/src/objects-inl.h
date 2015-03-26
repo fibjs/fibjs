@@ -755,6 +755,14 @@ bool Object::IsDeoptimizationOutputData() const {
 }
 
 
+bool Object::IsHandlerTable() const {
+  if (!IsFixedArray()) return false;
+  // There's actually no way to see the difference between a fixed array and
+  // a handler table array.
+  return true;
+}
+
+
 bool Object::IsDependentCode() const {
   if (!IsFixedArray()) return false;
   // There's actually no way to see the difference between a fixed array and
@@ -1900,16 +1908,7 @@ void Cell::set_value(Object* val, WriteBarrierMode ignored) {
 }
 
 ACCESSORS(PropertyCell, dependent_code, DependentCode, kDependentCodeOffset)
-
-Object* PropertyCell::type_raw() const {
-  return READ_FIELD(this, kTypeOffset);
-}
-
-
-void PropertyCell::set_type_raw(Object* val, WriteBarrierMode ignored) {
-  WRITE_FIELD(this, kTypeOffset, val);
-}
-
+ACCESSORS(PropertyCell, value, Object, kValueOffset)
 
 Object* WeakCell::value() const { return READ_FIELD(this, kValueOffset); }
 
@@ -2358,6 +2357,7 @@ void FixedDoubleArray::FillWithHoles(int from, int to) {
 Object* WeakFixedArray::Get(int index) const {
   Object* raw = FixedArray::cast(this)->get(index + kFirstIndex);
   if (raw->IsSmi()) return raw;
+  DCHECK(raw->IsWeakCell());
   return WeakCell::cast(raw)->value();
 }
 
@@ -3158,7 +3158,7 @@ HeapType* DescriptorArray::GetFieldType(int descriptor_number) {
   DCHECK(GetDetails(descriptor_number).location() == kField);
   Object* value = GetValue(descriptor_number);
   if (value->IsWeakCell()) {
-    if (WeakCell::cast(value)->cleared()) return HeapType::Any();
+    if (WeakCell::cast(value)->cleared()) return HeapType::None();
     value = WeakCell::cast(value)->value();
   }
   return HeapType::cast(value);
@@ -3350,6 +3350,7 @@ CAST_ACCESSOR(FixedDoubleArray)
 CAST_ACCESSOR(FixedTypedArrayBase)
 CAST_ACCESSOR(Foreign)
 CAST_ACCESSOR(GlobalObject)
+CAST_ACCESSOR(HandlerTable)
 CAST_ACCESSOR(HeapObject)
 CAST_ACCESSOR(JSArray)
 CAST_ACCESSOR(JSArrayBuffer)
@@ -5461,6 +5462,7 @@ SMI_ACCESSORS(InterceptorInfo, flags, kFlagsOffset)
 BOOL_ACCESSORS(InterceptorInfo, flags, can_intercept_symbols,
                kCanInterceptSymbolsBit)
 BOOL_ACCESSORS(InterceptorInfo, flags, all_can_read, kAllCanReadBit)
+BOOL_ACCESSORS(InterceptorInfo, flags, non_masking, kNonMasking)
 
 ACCESSORS(CallHandlerInfo, callback, Object, kCallbackOffset)
 ACCESSORS(CallHandlerInfo, data, Object, kDataOffset)
@@ -6236,7 +6238,6 @@ ACCESSORS(JSGeneratorObject, context, Context, kContextOffset)
 ACCESSORS(JSGeneratorObject, receiver, Object, kReceiverOffset)
 SMI_ACCESSORS(JSGeneratorObject, continuation, kContinuationOffset)
 ACCESSORS(JSGeneratorObject, operand_stack, FixedArray, kOperandStackOffset)
-SMI_ACCESSORS(JSGeneratorObject, stack_handler_index, kStackHandlerIndexOffset)
 
 bool JSGeneratorObject::is_suspended() {
   DCHECK_LT(kGeneratorExecuting, kGeneratorClosed);

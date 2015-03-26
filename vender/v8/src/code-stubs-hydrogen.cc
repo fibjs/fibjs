@@ -35,7 +35,7 @@ static LChunk* OptimizeGraph(HGraph* graph) {
 
 class CodeStubGraphBuilderBase : public HGraphBuilder {
  public:
-  explicit CodeStubGraphBuilderBase(CompilationInfoWithZone* info)
+  explicit CodeStubGraphBuilderBase(CompilationInfo* info)
       : HGraphBuilder(info),
         arguments_length_(NULL),
         info_(info),
@@ -107,7 +107,7 @@ class CodeStubGraphBuilderBase : public HGraphBuilder {
 
   SmartArrayPointer<HParameter*> parameters_;
   HValue* arguments_length_;
-  CompilationInfoWithZone* info_;
+  CompilationInfo* info_;
   CodeStubDescriptor descriptor_;
   HContext* context_;
 };
@@ -190,7 +190,7 @@ bool CodeStubGraphBuilderBase::BuildGraph() {
 template <class Stub>
 class CodeStubGraphBuilder: public CodeStubGraphBuilderBase {
  public:
-  explicit CodeStubGraphBuilder(CompilationInfoWithZone* info)
+  explicit CodeStubGraphBuilder(CompilationInfo* info)
       : CodeStubGraphBuilderBase(info) {}
 
  protected:
@@ -272,7 +272,8 @@ static Handle<Code> DoGenerateCode(Stub* stub) {
   if (FLAG_profile_hydrogen_code_stub_compilation) {
     timer.Start();
   }
-  CompilationInfoWithZone info(stub, isolate);
+  Zone zone;
+  CompilationInfo info(stub, isolate, &zone);
   CodeStubGraphBuilder<Stub> builder(&info);
   LChunk* chunk = OptimizeGraph(builder.CreateGraph());
   Handle<Code> code = chunk->Codegen();
@@ -1339,7 +1340,8 @@ HValue* CodeStubGraphBuilder<StoreGlobalStub>::BuildCodeInitializedStub() {
       StoreGlobalStub::property_cell_placeholder(isolate())));
   HValue* cell = Add<HLoadNamedField>(weak_cell, nullptr,
                                       HObjectAccess::ForWeakCellValue());
-  HObjectAccess access(HObjectAccess::ForCellPayload(isolate()));
+  Add<HCheckHeapObject>(cell);
+  HObjectAccess access = HObjectAccess::ForPropertyCellValue();
   HValue* cell_contents = Add<HLoadNamedField>(cell, nullptr, access);
 
   if (stub->is_constant()) {
@@ -1359,8 +1361,7 @@ HValue* CodeStubGraphBuilder<StoreGlobalStub>::BuildCodeInitializedStub() {
     builder.Then();
     builder.Deopt(Deoptimizer::kUnexpectedCellContentsInGlobalStore);
     builder.Else();
-    HStoreNamedField* store = Add<HStoreNamedField>(cell, access, value);
-    store->MarkReceiverAsCell();
+    Add<HStoreNamedField>(cell, access, value);
     builder.End();
   }
 
@@ -1711,7 +1712,7 @@ template <>
 class CodeStubGraphBuilder<KeyedLoadGenericStub>
     : public CodeStubGraphBuilderBase {
  public:
-  explicit CodeStubGraphBuilder(CompilationInfoWithZone* info)
+  explicit CodeStubGraphBuilder(CompilationInfo* info)
       : CodeStubGraphBuilderBase(info) {}
 
  protected:

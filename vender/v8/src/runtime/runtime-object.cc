@@ -605,6 +605,7 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
             (dictionary->DetailsAt(entry).type() == DATA)) {
           Object* value = dictionary->ValueAt(entry);
           if (!receiver->IsGlobalObject()) return value;
+          DCHECK(value->IsPropertyCell());
           value = PropertyCell::cast(value)->value();
           if (!value->IsTheHole()) return value;
           // If value is the hole (meaning, absent) do the general lookup.
@@ -1494,6 +1495,30 @@ RUNTIME_FUNCTION(Runtime_SetValueOf) {
   if (!obj->IsJSValue()) return value;
   JSValue::cast(obj)->set_value(value);
   return value;
+}
+
+
+RUNTIME_FUNCTION(Runtime_JSValueGetValue) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_CHECKED(JSValue, obj, 0);
+  return JSValue::cast(obj)->value();
+}
+
+
+RUNTIME_FUNCTION(Runtime_HeapObjectGetMap) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_CHECKED(HeapObject, obj, 0);
+  return obj->map();
+}
+
+
+RUNTIME_FUNCTION(Runtime_MapGetInstanceType) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_CHECKED(Map, map, 0);
+  return Smi::FromInt(map->instance_type());
 }
 
 

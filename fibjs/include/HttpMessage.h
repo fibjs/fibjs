@@ -52,6 +52,8 @@ public:
 public:
     result_t sendTo(Stream_base *stm, std::string &strCommand,
                     exlib::AsyncEvent *ac);
+    result_t sendHeader(Stream_base *stm, std::string &strCommand,
+                        exlib::AsyncEvent *ac);
     result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
 
 public:

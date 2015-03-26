@@ -588,6 +588,17 @@ describe("http", function() {
 			assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 		});
 
+		it("response header only", function() {
+			var ms = new io.MemoryStream();
+
+			var rep = new http.Response();
+			rep.body.write("0123456789");
+
+			rep.sendHeader(ms);
+			ms.rewind();
+			assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n');
+		});
+
 		it("address", function() {
 			var rep = new http.Request();
 			rep.body.write("0123456789");

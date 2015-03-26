@@ -136,9 +136,8 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
   DCHECK_GE(arraysize(inputs), input_count);
   DCHECK_GE(arraysize(outputs), output_count);
 
-  Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
-                                      outputs, input_count, inputs);
-  if (cont->IsBranch()) instr->MarkAsControl();
+  selector->Emit(cont->Encode(opcode), output_count, outputs, input_count,
+                 inputs);
 }
 
 
@@ -741,6 +740,12 @@ void InstructionSelector::VisitWord64Ror(Node* node) {
 #endif
 
 
+void InstructionSelector::VisitWord32Clz(Node* node) {
+  PPCOperandGenerator g(this);
+  Emit(kPPC_Cntlz32, g.DefineAsRegister(node), g.UseRegister(node->InputAt(0)));
+}
+
+
 void InstructionSelector::VisitInt32Add(Node* node) {
   VisitBinop<Int32BinopMatcher>(this, node, kPPC_Add32, kInt16Imm);
 }
@@ -1044,8 +1049,7 @@ static void VisitCompare(InstructionSelector* selector, InstructionCode opcode,
   opcode = cont->Encode(opcode);
   if (cont->IsBranch()) {
     selector->Emit(opcode, g.NoOutput(), left, right,
-                   g.Label(cont->true_block()),
-                   g.Label(cont->false_block()))->MarkAsControl();
+                   g.Label(cont->true_block()), g.Label(cont->false_block()));
   } else {
     DCHECK(cont->IsSet());
     selector->Emit(opcode, g.DefineAsRegister(cont->result()), left, right);
@@ -1289,8 +1293,7 @@ void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
       DCHECK_LT(value + 2, input_count);
       inputs[value + 2] = g.Label(branch);
     }
-    Emit(kArchTableSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
-        ->MarkAsControl();
+    Emit(kArchTableSwitch, 0, nullptr, input_count, inputs, 0, nullptr);
     return;
   }
 
@@ -1305,8 +1308,7 @@ void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
     inputs[index * 2 + 2 + 0] = g.TempImmediate(value);
     inputs[index * 2 + 2 + 1] = g.Label(branch);
   }
-  Emit(kArchLookupSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
-      ->MarkAsControl();
+  Emit(kArchLookupSwitch, 0, nullptr, input_count, inputs, 0, nullptr);
 }
 
 

@@ -1,3 +1,4 @@
+
 // Copyright 2015 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -22,30 +23,40 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
       Runtime::FunctionForId(CallRuntimeParametersOf(node->op()).id());
   if (f->intrinsic_type != Runtime::IntrinsicType::INLINE) return NoChange();
   switch (f->function_id) {
-    case Runtime::kInlineDeoptimizeNow:
-      return ReduceInlineDeoptimizeNow(node);
-    case Runtime::kInlineIsSmi:
-      return ReduceInlineIsSmi(node);
-    case Runtime::kInlineIsNonNegativeSmi:
-      return ReduceInlineIsNonNegativeSmi(node);
-    case Runtime::kInlineIsArray:
-      return ReduceInlineIsInstanceType(node, JS_ARRAY_TYPE);
-    case Runtime::kInlineIsFunction:
-      return ReduceInlineIsInstanceType(node, JS_FUNCTION_TYPE);
     case Runtime::kInlineConstructDouble:
-      return ReduceInlineConstructDouble(node);
-    case Runtime::kInlineDoubleLo:
-      return ReduceInlineDoubleLo(node);
+      return ReduceConstructDouble(node);
+    case Runtime::kInlineDeoptimizeNow:
+      return ReduceDeoptimizeNow(node);
     case Runtime::kInlineDoubleHi:
-      return ReduceInlineDoubleHi(node);
+      return ReduceDoubleHi(node);
+    case Runtime::kInlineDoubleLo:
+      return ReduceDoubleLo(node);
+    case Runtime::kInlineHeapObjectGetMap:
+      return ReduceHeapObjectGetMap(node);
+    case Runtime::kInlineIsArray:
+      return ReduceIsInstanceType(node, JS_ARRAY_TYPE);
+    case Runtime::kInlineIsFunction:
+      return ReduceIsInstanceType(node, JS_FUNCTION_TYPE);
+    case Runtime::kInlineIsNonNegativeSmi:
+      return ReduceIsNonNegativeSmi(node);
     case Runtime::kInlineIsRegExp:
-      return ReduceInlineIsInstanceType(node, JS_REGEXP_TYPE);
+      return ReduceIsInstanceType(node, JS_REGEXP_TYPE);
+    case Runtime::kInlineIsSmi:
+      return ReduceIsSmi(node);
+    case Runtime::kInlineJSValueGetValue:
+      return ReduceJSValueGetValue(node);
+    case Runtime::kInlineMapGetInstanceType:
+      return ReduceMapGetInstanceType(node);
+    case Runtime::kInlineMathClz32:
+      return ReduceMathClz32(node);
     case Runtime::kInlineMathFloor:
-      return ReduceInlineMathFloor(node);
+      return ReduceMathFloor(node);
     case Runtime::kInlineMathSqrt:
-      return ReduceInlineMathSqrt(node);
+      return ReduceMathSqrt(node);
+    case Runtime::kInlineStringGetLength:
+      return ReduceStringGetLength(node);
     case Runtime::kInlineValueOf:
-      return ReduceInlineValueOf(node);
+      return ReduceValueOf(node);
     default:
       break;
   }
@@ -53,7 +64,20 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineDeoptimizeNow(Node* node) {
+Reduction JSIntrinsicLowering::ReduceConstructDouble(Node* node) {
+  Node* high = NodeProperties::GetValueInput(node, 0);
+  Node* low = NodeProperties::GetValueInput(node, 1);
+  Node* value =
+      graph()->NewNode(machine()->Float64InsertHighWord32(),
+                       graph()->NewNode(machine()->Float64InsertLowWord32(),
+                                        jsgraph()->Constant(0), low),
+                       high);
+  NodeProperties::ReplaceWithValue(node, value);
+  return Replace(value);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceDeoptimizeNow(Node* node) {
   if (!FLAG_turbo_deoptimization) return NoChange();
 
   Node* frame_state = NodeProperties::GetFrameStateInput(node, 0);
@@ -93,40 +117,26 @@ Reduction JSIntrinsicLowering::ReduceInlineDeoptimizeNow(Node* node) {
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineIsSmi(Node* node) {
-  return Change(node, simplified()->ObjectIsSmi());
-}
-
-
-Reduction JSIntrinsicLowering::ReduceInlineIsNonNegativeSmi(Node* node) {
-  return Change(node, simplified()->ObjectIsNonNegativeSmi());
-}
-
-
-Reduction JSIntrinsicLowering::ReduceInlineConstructDouble(Node* node) {
-  Node* high = NodeProperties::GetValueInput(node, 0);
-  Node* low = NodeProperties::GetValueInput(node, 1);
-  Node* value =
-      graph()->NewNode(machine()->Float64InsertHighWord32(),
-                       graph()->NewNode(machine()->Float64InsertLowWord32(),
-                                        jsgraph()->Constant(0), low),
-                       high);
-  NodeProperties::ReplaceWithValue(node, value);
-  return Replace(value);
-}
-
-
-Reduction JSIntrinsicLowering::ReduceInlineDoubleLo(Node* node) {
-  return Change(node, machine()->Float64ExtractLowWord32());
-}
-
-
-Reduction JSIntrinsicLowering::ReduceInlineDoubleHi(Node* node) {
+Reduction JSIntrinsicLowering::ReduceDoubleHi(Node* node) {
   return Change(node, machine()->Float64ExtractHighWord32());
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineIsInstanceType(
+Reduction JSIntrinsicLowering::ReduceDoubleLo(Node* node) {
+  return Change(node, machine()->Float64ExtractLowWord32());
+}
+
+
+Reduction JSIntrinsicLowering::ReduceHeapObjectGetMap(Node* node) {
+  Node* value = NodeProperties::GetValueInput(node, 0);
+  Node* effect = NodeProperties::GetEffectInput(node);
+  Node* control = NodeProperties::GetControlInput(node);
+  return Change(node, simplified()->LoadField(AccessBuilder::ForMap()), value,
+                effect, control);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceIsInstanceType(
     Node* node, InstanceType instance_type) {
   // if (%_IsSmi(value)) {
   //   return false;
@@ -166,18 +176,61 @@ Reduction JSIntrinsicLowering::ReduceInlineIsInstanceType(
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineMathFloor(Node* node) {
+Reduction JSIntrinsicLowering::ReduceIsNonNegativeSmi(Node* node) {
+  return Change(node, simplified()->ObjectIsNonNegativeSmi());
+}
+
+
+Reduction JSIntrinsicLowering::ReduceIsSmi(Node* node) {
+  return Change(node, simplified()->ObjectIsSmi());
+}
+
+
+Reduction JSIntrinsicLowering::ReduceJSValueGetValue(Node* node) {
+  Node* value = NodeProperties::GetValueInput(node, 0);
+  Node* effect = NodeProperties::GetEffectInput(node);
+  Node* control = NodeProperties::GetControlInput(node);
+  return Change(node, simplified()->LoadField(AccessBuilder::ForValue()), value,
+                effect, control);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceMapGetInstanceType(Node* node) {
+  Node* value = NodeProperties::GetValueInput(node, 0);
+  Node* effect = NodeProperties::GetEffectInput(node);
+  Node* control = NodeProperties::GetControlInput(node);
+  return Change(node,
+                simplified()->LoadField(AccessBuilder::ForMapInstanceType()),
+                value, effect, control);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceMathClz32(Node* node) {
+  return Change(node, machine()->Word32Clz());
+}
+
+
+Reduction JSIntrinsicLowering::ReduceMathFloor(Node* node) {
   if (!machine()->HasFloat64RoundDown()) return NoChange();
   return Change(node, machine()->Float64RoundDown());
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineMathSqrt(Node* node) {
+Reduction JSIntrinsicLowering::ReduceMathSqrt(Node* node) {
   return Change(node, machine()->Float64Sqrt());
 }
 
 
-Reduction JSIntrinsicLowering::ReduceInlineValueOf(Node* node) {
+Reduction JSIntrinsicLowering::ReduceStringGetLength(Node* node) {
+  Node* value = NodeProperties::GetValueInput(node, 0);
+  Node* effect = NodeProperties::GetEffectInput(node);
+  Node* control = NodeProperties::GetControlInput(node);
+  return Change(node, simplified()->LoadField(AccessBuilder::ForStringLength()),
+                value, effect, control);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceValueOf(Node* node) {
   // if (%_IsSmi(value)) {
   //   return value;
   // } else if (%_GetInstanceType(%_GetMap(value)) == JS_VALUE_TYPE) {
@@ -258,6 +311,7 @@ Reduction JSIntrinsicLowering::Change(Node* node, const Operator* op, Node* a,
   node->ReplaceInput(1, b);
   node->ReplaceInput(2, c);
   node->TrimInputCount(3);
+  NodeProperties::ReplaceWithValue(node, node, node);
   return Changed(node);
 }
 

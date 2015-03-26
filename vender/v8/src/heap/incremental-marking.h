@@ -42,6 +42,10 @@ class IncrementalMarking {
     return weak_closure_was_overapproximated_;
   }
 
+  void SetWeakClosureWasOverApproximatedForTesting(bool val) {
+    weak_closure_was_overapproximated_ = val;
+  }
+
   inline bool IsStopped() { return state() == STOPPED; }
 
   INLINE(bool IsMarking()) { return state() >= MARKING; }
@@ -51,7 +55,8 @@ class IncrementalMarking {
   inline bool IsComplete() { return state() == COMPLETE; }
 
   inline bool IsReadyToOverApproximateWeakClosure() const {
-    return request_type_ == OVERAPPROXIMATION;
+    return request_type_ == OVERAPPROXIMATION &&
+           !weak_closure_was_overapproximated_;
   }
 
   GCRequestType request_type() const { return request_type_; }
@@ -62,9 +67,7 @@ class IncrementalMarking {
 
   bool WasActivated();
 
-  enum CompactionFlag { ALLOW_COMPACTION, PREVENT_COMPACTION };
-
-  void Start(CompactionFlag flag = ALLOW_COMPACTION);
+  void Start();
 
   void Stop();
 
@@ -203,7 +206,7 @@ class IncrementalMarking {
 
   void ResetStepCounters();
 
-  void StartMarking(CompactionFlag flag);
+  void StartMarking();
 
   void ActivateIncrementalWriteBarrier(PagedSpace* space);
   static void ActivateIncrementalWriteBarrier(NewSpace* space);

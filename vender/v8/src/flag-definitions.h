@@ -192,7 +192,8 @@ DEFINE_IMPLICATION(es_staging, harmony)
   V(harmony_sloppy, "harmony features in sloppy mode")          \
   V(harmony_unicode, "harmony unicode escapes")                 \
   V(harmony_unicode_regexps, "harmony unicode regexps")         \
-  V(harmony_rest_parameters, "harmony rest parameters")
+  V(harmony_rest_parameters, "harmony rest parameters")         \
+  V(harmony_reflect, "harmony Reflect API")
 
 // Features that are complete (but still behind --harmony/es-staging flag).
 #define HARMONY_STAGED(V)                                               \
@@ -202,8 +203,6 @@ DEFINE_IMPLICATION(es_staging, harmony)
 // Features that are shipping (turned on by default, but internal flag remains).
 #define HARMONY_SHIPPING(V)                                                \
   V(harmony_numeric_literals, "harmony numeric literals")                  \
-  V(harmony_strings, "harmony string methods")                             \
-  V(harmony_templates, "harmony template literals")                        \
   V(harmony_classes, "harmony classes (implies object literal extension)") \
   V(harmony_object_literals, "harmony object literal extensions")
 
@@ -595,8 +594,9 @@ DEFINE_BOOL(print_max_heap_committed, false,
             "in name=value format on exit")
 DEFINE_BOOL(trace_gc_verbose, false,
             "print more details following each garbage collection")
-DEFINE_BOOL(trace_fragmentation, false,
-            "report fragmentation for old pointer and data pages")
+DEFINE_BOOL(trace_fragmentation, false, "report fragmentation for old space")
+DEFINE_BOOL(trace_fragmentation_verbose, false,
+            "report fragmentation for old space (detailed)")
 DEFINE_BOOL(collect_maps, true,
             "garbage collect maps from which no objects can be reached")
 DEFINE_BOOL(weak_embedded_maps_in_optimized_code, true,
@@ -613,7 +613,7 @@ DEFINE_BOOL(age_code, true,
             "old code (required for code flushing)")
 DEFINE_BOOL(incremental_marking, true, "use incremental marking")
 DEFINE_BOOL(incremental_marking_steps, true, "do incremental marking steps")
-DEFINE_BOOL(overapproximate_weak_closure, false,
+DEFINE_BOOL(overapproximate_weak_closure, true,
             "overapproximate weak closer to reduce atomic pause time")
 DEFINE_INT(min_progress_during_object_groups_marking, 128,
            "keep overapproximating the weak closure as long as we discover at "
@@ -765,6 +765,11 @@ DEFINE_BOOL(force_marking_deque_overflows, false,
 DEFINE_BOOL(stress_compaction, false,
             "stress the GC compactor to flush out bugs (implies "
             "--force_marking_deque_overflows)")
+
+DEFINE_BOOL(manual_evacuation_candidates_selection, false,
+            "Test mode only flag. It allows an unit test to select evacuation "
+            "candidates pages (requires --stress_compaction).")
+
 
 //
 // Dev shell flags

@@ -427,6 +427,7 @@ void Verifier::Visitor::Check(Node* node) {
       // TODO(jarin): what are the constraints on these?
       break;
     case IrOpcode::kStateValues:
+    case IrOpcode::kTypedStateValues:
       // TODO(jarin): what are the constraints on these?
       break;
     case IrOpcode::kCall:
@@ -545,7 +546,6 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kJSCallFunction:
     case IrOpcode::kJSCallRuntime:
     case IrOpcode::kJSYield:
-    case IrOpcode::kJSDebugger:
       // Type can be anything.
       CheckUpperIs(node, Type::Any());
       break;
@@ -557,10 +557,6 @@ void Verifier::Visitor::Check(Node* node) {
 
     // Simplified operators
     // -------------------------------
-    case IrOpcode::kAnyToBoolean:
-      // Type is Boolean.
-      CheckUpperIs(node, Type::Boolean());
-      break;
     case IrOpcode::kBooleanNot:
       // Boolean -> Boolean
       CheckValueInputIs(node, 0, Type::Boolean());
@@ -754,6 +750,7 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kWord32Sar:
     case IrOpcode::kWord32Ror:
     case IrOpcode::kWord32Equal:
+    case IrOpcode::kWord32Clz:
     case IrOpcode::kWord64And:
     case IrOpcode::kWord64Or:
     case IrOpcode::kWord64Xor:
@@ -829,7 +826,23 @@ void Verifier::Run(Graph* graph, Typing typing) {
   CHECK_NOT_NULL(graph->end());
   Zone zone;
   Visitor visitor(&zone, typing);
-  for (Node* node : AllNodes(&zone, graph).live) visitor.Check(node);
+  AllNodes all(&zone, graph);
+  for (Node* node : all.live) visitor.Check(node);
+
+  // Check the uniqueness of projections.
+  for (Node* proj : all.live) {
+    if (proj->opcode() != IrOpcode::kProjection) continue;
+    Node* node = proj->InputAt(0);
+    for (Node* other : node->uses()) {
+      if (all.IsLive(other) && other != proj &&
+          other->opcode() == IrOpcode::kProjection &&
+          ProjectionIndexOf(other->op()) == ProjectionIndexOf(proj->op())) {
+        V8_Fatal(__FILE__, __LINE__,
+                 "Node #%d:%s has duplicate projections #%d and #%d",
+                 node->id(), node->op()->mnemonic(), proj->id(), other->id());
+      }
+    }
+  }
 }
 
 
