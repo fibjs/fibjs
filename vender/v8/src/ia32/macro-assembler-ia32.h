@@ -570,11 +570,11 @@ class MacroAssembler: public Assembler {
   // ---------------------------------------------------------------------------
   // Exception handling
 
-  // Push a new try handler and link it into try handler chain.
-  void PushTryHandler(StackHandler::Kind kind, int handler_index);
+  // Push a new stack handler and link it into stack handler chain.
+  void PushStackHandler();
 
-  // Unlink the stack handler on top of the stack from the try handler chain.
-  void PopTryHandler();
+  // Unlink the stack handler on top of the stack from the stack handler chain.
+  void PopStackHandler();
 
   // ---------------------------------------------------------------------------
   // Inline caching support
@@ -819,6 +819,9 @@ class MacroAssembler: public Assembler {
     Pinsrd(dst, Operand(src), imm8);
   }
   void Pinsrd(XMMRegister dst, const Operand& src, int8_t imm8);
+
+  void Lzcnt(Register dst, Register src) { Lzcnt(dst, Operand(src)); }
+  void Lzcnt(Register dst, const Operand& src);
 
   // Emit call to the code we are currently generating.
   void CallSelf() {

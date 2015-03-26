@@ -75,6 +75,10 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
         return Operand(InputRegister32(index), ASR, InputInt5(index + 1));
       case kMode_Operand2_R_ROR_I:
         return Operand(InputRegister32(index), ROR, InputInt5(index + 1));
+      case kMode_Operand2_R_UXTB:
+        return Operand(InputRegister32(index), UXTB);
+      case kMode_Operand2_R_UXTH:
+        return Operand(InputRegister32(index), UXTH);
       case kMode_MRI:
       case kMode_MRR:
         break;
@@ -95,6 +99,10 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
         return Operand(InputRegister64(index), ASR, InputInt6(index + 1));
       case kMode_Operand2_R_ROR_I:
         return Operand(InputRegister64(index), ROR, InputInt6(index + 1));
+      case kMode_Operand2_R_UXTB:
+        return Operand(InputRegister64(index), UXTB);
+      case kMode_Operand2_R_UXTH:
+        return Operand(InputRegister64(index), UXTH);
       case kMode_MRI:
       case kMode_MRR:
         break;
@@ -111,6 +119,8 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
       case kMode_Operand2_R_LSR_I:
       case kMode_Operand2_R_ASR_I:
       case kMode_Operand2_R_ROR_I:
+      case kMode_Operand2_R_UXTB:
+      case kMode_Operand2_R_UXTH:
         break;
       case kMode_MRI:
         *first_index += 2;
@@ -625,6 +635,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ PokePair(i.InputRegister(1), i.InputRegister(0), slot * kPointerSize);
       break;
     }
+    case kArm64Clz32:
+      __ Clz(i.OutputRegister32(), i.InputRegister32(0));
+      break;
     case kArm64Cmp:
       __ Cmp(i.InputRegister(0), i.InputOperand(1));
       break;
@@ -731,6 +744,14 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Fmov(i.OutputFloat64Register(), i.InputRegister(0));
       break;
     }
+    case kArm64Float64Max:
+      __ Fmax(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+              i.InputDoubleRegister(1));
+      break;
+    case kArm64Float64Min:
+      __ Fmin(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+              i.InputDoubleRegister(1));
+      break;
     case kArm64Ldrb:
       __ Ldrb(i.OutputRegister(), i.MemoryOperand());
       break;
@@ -833,7 +854,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       ASSEMBLE_CHECKED_STORE_FLOAT(64);
       break;
   }
-}
+}  // NOLINT(readability/fn_size)
 
 
 // Assemble branches after this instruction.

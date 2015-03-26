@@ -570,6 +570,11 @@ class Assembler : public AssemblerBase {
     set_target_address_at(instruction_payload, code, target);
   }
 
+  // This sets the internal reference at the pc.
+  inline static void deserialization_set_target_internal_reference_at(
+      Address pc, Address target,
+      RelocInfo::Mode mode = RelocInfo::INTERNAL_REFERENCE);
+
   static inline RelocInfo::Mode RelocInfoNone() {
     if (kPointerSize == kInt64Size) {
       return RelocInfo::NONE64;
@@ -895,6 +900,7 @@ class Assembler : public AssemblerBase {
   void bt(const Operand& dst, Register src);
   void bts(const Operand& dst, Register src);
   void bsrl(Register dst, Register src);
+  void bsrl(Register dst, const Operand& src);
 
   // Miscellaneous
   void clc();

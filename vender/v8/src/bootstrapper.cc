@@ -1652,7 +1652,6 @@ void Genesis::InitializeBuiltinTypedArrays() {
   void Genesis::InstallNativeFunctions_##id() {}
 
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_modules)
-EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_strings)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_arrays)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_array_includes)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_classes)
@@ -1661,12 +1660,12 @@ EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_regexps)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_arrow_functions)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_numeric_literals)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_tostring)
-EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_templates)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_sloppy)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_unicode)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_unicode_regexps)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_computed_property_names)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_rest_parameters)
+EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_reflect)
 
 
 void Genesis::InstallNativeFunctions_harmony_proxies() {
@@ -1684,7 +1683,6 @@ void Genesis::InstallNativeFunctions_harmony_proxies() {
   void Genesis::InitializeGlobal_##id() {}
 
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_modules)
-EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_strings)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_arrays)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_array_includes)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_classes)
@@ -1693,7 +1691,6 @@ EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_arrow_functions)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_numeric_literals)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_tostring)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_proxies)
-EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_templates)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_sloppy)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_unicode)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_computed_property_names)
@@ -1718,6 +1715,48 @@ void Genesis::InitializeGlobal_harmony_unicode_regexps() {
   Runtime::SetObjectProperty(isolate(), builtins,
                              factory()->harmony_unicode_regexps_string(), flag,
                              STRICT).Assert();
+}
+
+
+void Genesis::InitializeGlobal_harmony_reflect() {
+  if (!FLAG_harmony_reflect) return;
+  Handle<JSObject> builtins(native_context()->builtins());
+  // Install references to functions of the Reflect object
+  {
+    Handle<JSFunction> apply =
+        InstallFunction(builtins, "ReflectApply", JS_OBJECT_TYPE,
+                        JSObject::kHeaderSize, MaybeHandle<JSObject>(),
+                        Builtins::kReflectApply);
+    Handle<JSFunction> construct =
+        InstallFunction(builtins, "ReflectConstruct", JS_OBJECT_TYPE,
+                        JSObject::kHeaderSize, MaybeHandle<JSObject>(),
+                        Builtins::kReflectConstruct);
+    if (FLAG_vector_ics) {
+      // Apply embeds an IC, so we need a type vector of size 1 in the shared
+      // function info.
+      FeedbackVectorSpec spec(0, Code::CALL_IC);
+      Handle<TypeFeedbackVector> feedback_vector =
+          factory()->NewTypeFeedbackVector(&spec);
+      apply->shared()->set_feedback_vector(*feedback_vector);
+
+      feedback_vector = factory()->NewTypeFeedbackVector(&spec);
+      construct->shared()->set_feedback_vector(*feedback_vector);
+    }
+
+    apply->shared()->set_internal_formal_parameter_count(3);
+    apply->shared()->set_length(3);
+
+    construct->shared()->set_internal_formal_parameter_count(3);
+    construct->shared()->set_length(2);
+  }
+
+  Handle<JSGlobalObject> global(JSGlobalObject::cast(
+      native_context()->global_object()));
+  Handle<String> reflect_string =
+      factory()->NewStringFromStaticChars("Reflect");
+  Handle<Object> reflect =
+      factory()->NewJSObject(isolate()->object_function(), TENURED);
+  JSObject::AddProperty(global, reflect_string, reflect, DONT_ENUM);
 }
 
 
@@ -2143,10 +2182,9 @@ bool Genesis::InstallNatives() {
     if (FLAG_vector_ics) {
       // Apply embeds an IC, so we need a type vector of size 1 in the shared
       // function info.
-      FeedbackVectorSpec spec(0, 1);
-      spec.SetKind(0, Code::CALL_IC);
+      FeedbackVectorSpec spec(0, Code::CALL_IC);
       Handle<TypeFeedbackVector> feedback_vector =
-          factory()->NewTypeFeedbackVector(spec);
+          factory()->NewTypeFeedbackVector(&spec);
       apply->shared()->set_feedback_vector(*feedback_vector);
     }
 
@@ -2266,8 +2304,6 @@ bool Genesis::InstallExperimentalNatives() {
   static const char* harmony_array_includes_natives[] = {
       "native harmony-array-includes.js", NULL};
   static const char* harmony_proxies_natives[] = {"native proxy.js", NULL};
-  static const char* harmony_strings_natives[] = {"native harmony-string.js",
-                                                  NULL};
   static const char* harmony_classes_natives[] = {NULL};
   static const char* harmony_modules_natives[] = {NULL};
   static const char* harmony_object_literals_natives[] = {NULL};
@@ -2277,13 +2313,13 @@ bool Genesis::InstallExperimentalNatives() {
   static const char* harmony_numeric_literals_natives[] = {NULL};
   static const char* harmony_tostring_natives[] = {"native harmony-tostring.js",
                                                    NULL};
-  static const char* harmony_templates_natives[] = {
-      "native harmony-templates.js", NULL};
   static const char* harmony_sloppy_natives[] = {NULL};
   static const char* harmony_unicode_natives[] = {NULL};
   static const char* harmony_unicode_regexps_natives[] = {NULL};
   static const char* harmony_computed_property_names_natives[] = {NULL};
   static const char* harmony_rest_parameters_natives[] = {NULL};
+  static const char* harmony_reflect_natives[] = {"native harmony-reflect.js",
+                                                  NULL};
 
   for (int i = ExperimentalNatives::GetDebuggerCount();
        i < ExperimentalNatives::GetBuiltinsCount(); i++) {
@@ -2703,7 +2739,8 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
           DCHECK(!to->HasFastProperties());
           // Add to dictionary.
           Handle<Object> callbacks(descs->GetCallbacksObject(i), isolate());
-          PropertyDetails d(details.attributes(), ACCESSOR_CONSTANT, i + 1);
+          PropertyDetails d(details.attributes(), ACCESSOR_CONSTANT, i + 1,
+                            PropertyCellType::kMutable);
           JSObject::SetNormalizedProperty(to, key, callbacks, d);
           break;
         }
@@ -2727,8 +2764,7 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
                                               isolate());
         DCHECK(!value->IsCell());
         if (value->IsPropertyCell()) {
-          value = Handle<Object>(PropertyCell::cast(*value)->value(),
-                                 isolate());
+          value = handle(PropertyCell::cast(*value)->value(), isolate());
         }
         PropertyDetails details = properties->DetailsAt(i);
         DCHECK_EQ(kData, details.kind());

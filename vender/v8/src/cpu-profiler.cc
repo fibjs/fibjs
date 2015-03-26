@@ -251,6 +251,7 @@ void CpuProfiler::CodeCreateEvent(Logger::LogEventsAndTags tag, Code* code,
       NULL, code->instruction_start());
   if (info) {
     rec->entry->set_no_frame_ranges(info->ReleaseNoFrameRanges());
+    rec->entry->set_inlined_function_infos(info->inlined_function_infos());
   }
   rec->entry->FillFunctionInfo(shared);
   rec->size = code->ExecutableSize();
@@ -288,6 +289,7 @@ void CpuProfiler::CodeCreateEvent(Logger::LogEventsAndTags tag, Code* code,
       column, line_table, code->instruction_start());
   if (info) {
     rec->entry->set_no_frame_ranges(info->ReleaseNoFrameRanges());
+    rec->entry->set_inlined_function_infos(info->inlined_function_infos());
   }
   rec->entry->FillFunctionInfo(shared);
   rec->size = code->ExecutableSize();
@@ -336,6 +338,7 @@ void CpuProfiler::CodeDeoptEvent(Code* code, Address pc, int fp_to_sp_delta) {
   rec->start = code->address();
   rec->deopt_reason = Deoptimizer::GetDeoptReason(info.deopt_reason);
   rec->position = info.position;
+  rec->pc_offset = pc - code->instruction_start();
   processor_->Enqueue(evt_rec);
   processor_->AddDeoptStack(isolate_, pc, fp_to_sp_delta);
 }

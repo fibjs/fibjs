@@ -3438,6 +3438,7 @@ HGraph::HGraph(CompilationInfo* info)
       info_(info),
       zone_(info->zone()),
       is_recursive_(false),
+      this_has_uses_(false),
       use_optimistic_licm_(false),
       depends_on_empty_array_proto_elements_(false),
       type_change_checksum_(0),
@@ -3482,12 +3483,9 @@ void HGraph::FinalizeUniqueness() {
 
 
 int HGraph::SourcePositionToScriptPosition(SourcePosition pos) {
-  if (!FLAG_hydrogen_track_positions || pos.IsUnknown()) {
-    return pos.raw();
-  }
-
-  return info()->inlined_function_infos()->at(pos.inlining_id())
-      .start_position + pos.position();
+  return (FLAG_hydrogen_track_positions && !pos.IsUnknown())
+             ? info()->start_position_for(pos.inlining_id()) + pos.position()
+             : pos.raw();
 }
 
 
@@ -5294,7 +5292,7 @@ HValue* HOptimizedGraphBuilder::BuildContextChainWalk(Variable* var) {
 
 void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
   if (expr->is_this()) {
-    current_info()->parse_info()->set_this_has_uses(true);
+    graph()->MarkThisHasUses();
   }
 
   DCHECK(!HasStackOverflow());
@@ -5348,9 +5346,9 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
 
       if (type == kUseCell) {
         Handle<PropertyCell> cell = it.GetPropertyCell();
-        if (cell->type()->IsConstant()) {
-          PropertyCell::AddDependentCompilationInfo(cell, top_info());
-          Handle<Object> constant_object = cell->type()->AsConstant()->Value();
+        PropertyCell::AddDependentCompilationInfo(cell, top_info());
+        if (it.property_details().cell_type() == PropertyCellType::kConstant) {
+          Handle<Object> constant_object(cell->value(), isolate());
           if (constant_object->IsConsString()) {
             constant_object =
                 String::Flatten(Handle<String>::cast(constant_object));
@@ -5358,8 +5356,11 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
           HConstant* constant = New<HConstant>(constant_object);
           return ast_context()->ReturnInstruction(constant, expr->id());
         } else {
-          HLoadGlobalCell* instr =
-              New<HLoadGlobalCell>(cell, it.property_details());
+          HConstant* cell_constant = Add<HConstant>(cell);
+          HLoadNamedField* instr = New<HLoadNamedField>(
+              cell_constant, nullptr, HObjectAccess::ForPropertyCellValue());
+          instr->ClearDependsOnFlag(kInobjectFields);
+          instr->SetDependsOnFlag(kGlobalVars);
           return ast_context()->ReturnInstruction(instr, expr->id());
         }
       } else {
@@ -6514,8 +6515,9 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
   GlobalPropertyAccess type = LookupGlobalProperty(var, &it, STORE);
   if (type == kUseCell) {
     Handle<PropertyCell> cell = it.GetPropertyCell();
-    if (cell->type()->IsConstant()) {
-      Handle<Object> constant = cell->type()->AsConstant()->Value();
+    PropertyCell::AddDependentCompilationInfo(cell, top_info());
+    if (it.property_details().cell_type() == PropertyCellType::kConstant) {
+      Handle<Object> constant(cell->value(), isolate());
       if (value->IsConstant()) {
         HConstant* c_value = HConstant::cast(value);
         if (!constant.is_identical_to(c_value->handle(isolate()))) {
@@ -6537,8 +6539,11 @@ void HOptimizedGraphBuilder::HandleGlobalVariableAssignment(
         builder.End();
       }
     }
-    HInstruction* instr =
-        Add<HStoreGlobalCell>(value, cell, it.property_details());
+    HConstant* cell_constant = Add<HConstant>(cell);
+    HInstruction* instr = Add<HStoreNamedField>(
+        cell_constant, HObjectAccess::ForPropertyCellValue(), value);
+    instr->ClearChangesFlag(kInobjectFields);
+    instr->SetChangesFlag(kGlobalVars);
     if (instr->HasObservableSideEffects()) {
       Add<HSimulate>(ast_id, REMOVABLE_SIMULATE);
     }
@@ -9101,10 +9106,10 @@ bool HOptimizedGraphBuilder::TryHandleArrayCallNew(CallNew* expr,
     return false;
   }
 
-  BuildArrayCall(expr,
-                 expr->arguments()->length(),
-                 function,
-                 expr->allocation_site());
+  Handle<AllocationSite> site = expr->allocation_site();
+  if (site.is_null()) return false;
+
+  BuildArrayCall(expr, expr->arguments()->length(), function, site);
   return true;
 }
 
@@ -9226,58 +9231,21 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
     // evaluation of the arguments.
     CHECK_ALIVE(VisitForValue(expr->expression()));
     HValue* function = Top();
-    if (expr->global_call()) {
-      Variable* var = proxy->var();
-      bool known_global_function = false;
-      // If there is a global property cell for the name at compile time and
-      // access check is not enabled we assume that the function will not change
-      // and generate optimized code for calling the function.
-      Handle<GlobalObject> global(current_info()->global_object());
-      LookupIterator it(global, var->name(),
-                        LookupIterator::OWN_SKIP_INTERCEPTOR);
-      GlobalPropertyAccess type = LookupGlobalProperty(var, &it, LOAD);
-      if (type == kUseCell) {
-        known_global_function = expr->ComputeGlobalTarget(global, &it);
-      }
-      if (known_global_function) {
-        Add<HCheckValue>(function, expr->target());
+    if (function->IsConstant() &&
+        HConstant::cast(function)->handle(isolate())->IsJSFunction()) {
+      Handle<Object> constant = HConstant::cast(function)->handle(isolate());
+      Handle<JSFunction> target = Handle<JSFunction>::cast(constant);
+      expr->SetKnownGlobalTarget(target);
+    }
 
-        // Placeholder for the receiver.
-        Push(graph()->GetConstantUndefined());
-        CHECK_ALIVE(VisitExpressions(expr->arguments()));
+    // Placeholder for the receiver.
+    Push(graph()->GetConstantUndefined());
+    CHECK_ALIVE(VisitExpressions(expr->arguments()));
 
-        // Patch the global object on the stack by the expected receiver.
-        HValue* receiver = ImplicitReceiverFor(function, expr->target());
-        const int receiver_index = argument_count - 1;
-        environment()->SetExpressionStackAt(receiver_index, receiver);
-
-        if (TryInlineBuiltinFunctionCall(expr)) {
-          if (FLAG_trace_inlining) {
-            PrintF("Inlining builtin ");
-            expr->target()->ShortPrint();
-            PrintF("\n");
-          }
-          return;
-        }
-        if (TryInlineApiFunctionCall(expr, receiver)) return;
-        if (TryHandleArrayCall(expr, function)) return;
-        if (TryInlineCall(expr)) return;
-
-        PushArgumentsFromEnvironment(argument_count);
-        call = BuildCallConstantFunction(expr->target(), argument_count);
-      } else {
-        Push(graph()->GetConstantUndefined());
-        CHECK_ALIVE(VisitExpressions(expr->arguments()));
-        PushArgumentsFromEnvironment(argument_count);
-        call = New<HCallFunction>(function, argument_count);
-      }
-
-    } else if (expr->IsMonomorphic()) {
+    if (expr->IsMonomorphic()) {
       Add<HCheckValue>(function, expr->target());
 
-      Push(graph()->GetConstantUndefined());
-      CHECK_ALIVE(VisitExpressions(expr->arguments()));
-
+      // Patch the global object on the stack by the expected receiver.
       HValue* receiver = ImplicitReceiverFor(function, expr->target());
       const int receiver_index = argument_count - 1;
       environment()->SetExpressionStackAt(receiver_index, receiver);
@@ -9291,15 +9259,12 @@ void HOptimizedGraphBuilder::VisitCall(Call* expr) {
         return;
       }
       if (TryInlineApiFunctionCall(expr, receiver)) return;
-
+      if (TryHandleArrayCall(expr, function)) return;
       if (TryInlineCall(expr)) return;
 
-      call = PreProcessCall(New<HInvokeFunction>(
-          function, expr->target(), argument_count));
-
+      PushArgumentsFromEnvironment(argument_count);
+      call = BuildCallConstantFunction(expr->target(), argument_count);
     } else {
-      Push(graph()->GetConstantUndefined());
-      CHECK_ALIVE(VisitExpressions(expr->arguments()));
       PushArgumentsFromEnvironment(argument_count);
       HCallFunction* call_function =
           New<HCallFunction>(function, argument_count);
@@ -9437,6 +9402,12 @@ void HOptimizedGraphBuilder::VisitCallNew(CallNew* expr) {
   CHECK_ALIVE(VisitForValue(expr->expression()));
   HValue* function = Top();
   CHECK_ALIVE(VisitExpressions(expr->arguments()));
+
+  if (function->IsConstant() &&
+      HConstant::cast(function)->handle(isolate())->IsJSFunction()) {
+    Handle<Object> constant = HConstant::cast(function)->handle(isolate());
+    expr->SetKnownGlobalTarget(Handle<JSFunction>::cast(constant));
+  }
 
   if (FLAG_inline_construct &&
       expr->IsMonomorphic() &&
@@ -11718,6 +11689,17 @@ void HOptimizedGraphBuilder::GenerateValueOf(CallRuntime* call) {
 }
 
 
+void HOptimizedGraphBuilder::GenerateJSValueGetValue(CallRuntime* call) {
+  DCHECK(call->arguments()->length() == 1);
+  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
+  HValue* value = Pop();
+  HInstruction* result = Add<HLoadNamedField>(
+      value, nullptr,
+      HObjectAccess::ForObservableJSObjectOffset(JSValue::kValueOffset));
+  return ast_context()->ReturnInstruction(result, call->id());
+}
+
+
 void HOptimizedGraphBuilder::GenerateDateField(CallRuntime* call) {
   DCHECK(call->arguments()->length() == 2);
   DCHECK_NOT_NULL(call->arguments()->at(1)->AsLiteral());
@@ -11879,6 +11861,15 @@ void HOptimizedGraphBuilder::GenerateStringCompare(CallRuntime* call) {
 }
 
 
+void HOptimizedGraphBuilder::GenerateStringGetLength(CallRuntime* call) {
+  DCHECK(call->arguments()->length() == 1);
+  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
+  HValue* string = Pop();
+  HInstruction* result = AddLoadStringLength(string);
+  return ast_context()->ReturnInstruction(result, call->id());
+}
+
+
 // Support for direct calls from JavaScript to native RegExp code.
 void HOptimizedGraphBuilder::GenerateRegExpExec(CallRuntime* call) {
   DCHECK_EQ(4, call->arguments()->length());
@@ -12002,6 +11993,15 @@ void HOptimizedGraphBuilder::GenerateMathPow(CallRuntime* call) {
   HValue* right = Pop();
   HValue* left = Pop();
   HInstruction* result = NewUncasted<HPower>(left, right);
+  return ast_context()->ReturnInstruction(result, call->id());
+}
+
+
+void HOptimizedGraphBuilder::GenerateMathClz32(CallRuntime* call) {
+  DCHECK(call->arguments()->length() == 1);
+  CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
+  HValue* value = Pop();
+  HInstruction* result = NewUncasted<HUnaryMathOperation>(value, kMathClz32);
   return ast_context()->ReturnInstruction(result, call->id());
 }
 

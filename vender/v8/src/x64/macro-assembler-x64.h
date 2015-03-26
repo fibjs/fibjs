@@ -927,6 +927,9 @@ class MacroAssembler: public Assembler {
   void Pinsrd(XMMRegister dst, Register src, int8_t imm8);
   void Pinsrd(XMMRegister dst, const Operand& src, int8_t imm8);
 
+  void Lzcntl(Register dst, Register src);
+  void Lzcntl(Register dst, const Operand& src);
+
   // Non-x64 instructions.
   // Push/pop all general purpose registers.
   // Does not push rsp/rbp nor any of the assembler's special purpose registers
@@ -1106,11 +1109,11 @@ class MacroAssembler: public Assembler {
   // ---------------------------------------------------------------------------
   // Exception handling
 
-  // Push a new try handler and link it into try handler chain.
-  void PushTryHandler(StackHandler::Kind kind, int handler_index);
+  // Push a new stack handler and link it into stack handler chain.
+  void PushStackHandler();
 
-  // Unlink the stack handler on top of the stack from the try handler chain.
-  void PopTryHandler();
+  // Unlink the stack handler on top of the stack from the stack handler chain.
+  void PopStackHandler();
 
   // ---------------------------------------------------------------------------
   // Inline caching support

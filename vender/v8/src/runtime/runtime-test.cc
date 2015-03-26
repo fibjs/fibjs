@@ -89,8 +89,6 @@ RUNTIME_FUNCTION(Runtime_OptimizeFunctionOnNextCall) {
                  (function->code()->kind() == Code::FUNCTION &&
                   function->code()->optimizable()));
 
-  if (!isolate->use_crankshaft()) return isolate->heap()->undefined_value();
-
   // If the function is already optimized, just return.
   if (function->IsOptimized()) return isolate->heap()->undefined_value();
 
@@ -111,10 +109,10 @@ RUNTIME_FUNCTION(Runtime_OptimizeFunctionOnNextCall) {
 
 RUNTIME_FUNCTION(Runtime_OptimizeOsr) {
   HandleScope scope(isolate);
-  RUNTIME_ASSERT(args.length() == 0);
+  RUNTIME_ASSERT(args.length() == 0 || args.length() == 1);
   Handle<JSFunction> function = Handle<JSFunction>::null();
 
-  {
+  if (args.length() == 0) {
     // Find the JavaScript function on the top of the stack.
     JavaScriptFrameIterator it(isolate);
     while (!it.done()) {
@@ -124,6 +122,10 @@ RUNTIME_FUNCTION(Runtime_OptimizeOsr) {
       }
     }
     if (function.is_null()) return isolate->heap()->undefined_value();
+  } else {
+    // Function was passed as an argument.
+    CONVERT_ARG_HANDLE_CHECKED(JSFunction, arg, 0);
+    function = arg;
   }
 
   // The following assertion was lifted from the DCHECK inside
@@ -131,8 +133,6 @@ RUNTIME_FUNCTION(Runtime_OptimizeOsr) {
   RUNTIME_ASSERT(function->shared()->allows_lazy_compilation() ||
                  (function->code()->kind() == Code::FUNCTION &&
                   function->code()->optimizable()));
-
-  if (!isolate->use_crankshaft()) return isolate->heap()->undefined_value();
 
   // If the function is already optimized, just return.
   if (function->IsOptimized()) return isolate->heap()->undefined_value();

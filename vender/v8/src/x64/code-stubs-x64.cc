@@ -934,7 +934,7 @@ void LoadIndexedStringStub::Generate(MacroAssembler* masm) {
   __ ret(0);
 
   StubRuntimeCallHelper call_helper;
-  char_at_generator.GenerateSlow(masm, call_helper);
+  char_at_generator.GenerateSlow(masm, PART_OF_IC_HANDLER, call_helper);
 
   __ bind(&miss);
   PropertyAccessCompiler::TailCallBuiltin(
@@ -1045,54 +1045,6 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
   // Do the runtime call to allocate the arguments object.
   __ bind(&runtime);
   __ TailCallRuntime(Runtime::kNewStrictArguments, 3, 1);
-}
-
-
-static void ThrowPendingException(MacroAssembler* masm) {
-  Isolate* isolate = masm->isolate();
-
-  ExternalReference pending_handler_context_address(
-      Isolate::kPendingHandlerContextAddress, isolate);
-  ExternalReference pending_handler_code_address(
-      Isolate::kPendingHandlerCodeAddress, isolate);
-  ExternalReference pending_handler_offset_address(
-      Isolate::kPendingHandlerOffsetAddress, isolate);
-  ExternalReference pending_handler_fp_address(
-      Isolate::kPendingHandlerFPAddress, isolate);
-  ExternalReference pending_handler_sp_address(
-      Isolate::kPendingHandlerSPAddress, isolate);
-
-  // Ask the runtime for help to determine the handler. This will set rax to
-  // contain the current pending exception, don't clobber it.
-  ExternalReference find_handler(Runtime::kFindExceptionHandler, isolate);
-  {
-    FrameScope scope(masm, StackFrame::MANUAL);
-    __ movp(arg_reg_1, Immediate(0));  // argc.
-    __ movp(arg_reg_2, Immediate(0));  // argv.
-    __ Move(arg_reg_3, ExternalReference::isolate_address(isolate));
-    __ PrepareCallCFunction(3);
-    __ CallCFunction(find_handler, 3);
-  }
-
-  // Retrieve the handler context, SP and FP.
-  __ movp(rsi, masm->ExternalOperand(pending_handler_context_address));
-  __ movp(rsp, masm->ExternalOperand(pending_handler_sp_address));
-  __ movp(rbp, masm->ExternalOperand(pending_handler_fp_address));
-
-  // If the handler is a JS frame, restore the context to the frame.
-  // (kind == ENTRY) == (rbp == 0) == (rsi == 0), so we could test either
-  // rbp or rsi.
-  Label skip;
-  __ testp(rsi, rsi);
-  __ j(zero, &skip, Label::kNear);
-  __ movp(Operand(rbp, StandardFrameConstants::kContextOffset), rsi);
-  __ bind(&skip);
-
-  // Compute the handler entry address and jump to it.
-  __ movp(rdi, masm->ExternalOperand(pending_handler_code_address));
-  __ movp(rdx, masm->ExternalOperand(pending_handler_offset_address));
-  __ leap(rdi, FieldOperand(rdi, rdx, times_1, Code::kHeaderSize));
-  __ jmp(rdi);
 }
 
 
@@ -1484,8 +1436,7 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
   __ j(equal, &runtime);
 
   // For exception, throw the exception again.
-  __ EnterExitFrame(false);
-  ThrowPendingException(masm);
+  __ TailCallRuntime(Runtime::kRegExpExecReThrow, 4, 1);
 
   // Do the runtime call to execute the regexp.
   __ bind(&runtime);
@@ -2496,7 +2447,48 @@ void CEntryStub::Generate(MacroAssembler* masm) {
 
   // Handling of exception.
   __ bind(&exception_returned);
-  ThrowPendingException(masm);
+
+  ExternalReference pending_handler_context_address(
+      Isolate::kPendingHandlerContextAddress, isolate());
+  ExternalReference pending_handler_code_address(
+      Isolate::kPendingHandlerCodeAddress, isolate());
+  ExternalReference pending_handler_offset_address(
+      Isolate::kPendingHandlerOffsetAddress, isolate());
+  ExternalReference pending_handler_fp_address(
+      Isolate::kPendingHandlerFPAddress, isolate());
+  ExternalReference pending_handler_sp_address(
+      Isolate::kPendingHandlerSPAddress, isolate());
+
+  // Ask the runtime for help to determine the handler. This will set rax to
+  // contain the current pending exception, don't clobber it.
+  ExternalReference find_handler(Runtime::kFindExceptionHandler, isolate());
+  {
+    FrameScope scope(masm, StackFrame::MANUAL);
+    __ movp(arg_reg_1, Immediate(0));  // argc.
+    __ movp(arg_reg_2, Immediate(0));  // argv.
+    __ Move(arg_reg_3, ExternalReference::isolate_address(isolate()));
+    __ PrepareCallCFunction(3);
+    __ CallCFunction(find_handler, 3);
+  }
+
+  // Retrieve the handler context, SP and FP.
+  __ movp(rsi, masm->ExternalOperand(pending_handler_context_address));
+  __ movp(rsp, masm->ExternalOperand(pending_handler_sp_address));
+  __ movp(rbp, masm->ExternalOperand(pending_handler_fp_address));
+
+  // If the handler is a JS frame, restore the context to the frame. Note that
+  // the context will be set to (rsi == 0) for non-JS frames.
+  Label skip;
+  __ testp(rsi, rsi);
+  __ j(zero, &skip, Label::kNear);
+  __ movp(Operand(rbp, StandardFrameConstants::kContextOffset), rsi);
+  __ bind(&skip);
+
+  // Compute the handler entry address and jump to it.
+  __ movp(rdi, masm->ExternalOperand(pending_handler_code_address));
+  __ movp(rdx, masm->ExternalOperand(pending_handler_offset_address));
+  __ leap(rdi, FieldOperand(rdi, rdx, times_1, Code::kHeaderSize));
+  __ jmp(rdi);
 }
 
 
@@ -2585,10 +2577,9 @@ void JSEntryStub::Generate(MacroAssembler* masm) {
   __ LoadRoot(rax, Heap::kExceptionRootIndex);
   __ jmp(&exit);
 
-  // Invoke: Link this frame into the handler chain.  There's only one
-  // handler block in this code object, so its index is 0.
+  // Invoke: Link this frame into the handler chain.
   __ bind(&invoke);
-  __ PushTryHandler(StackHandler::JS_ENTRY, 0);
+  __ PushStackHandler();
 
   // Clear any pending exceptions.
   __ LoadRoot(rax, Heap::kTheHoleValueRootIndex);
@@ -2614,7 +2605,7 @@ void JSEntryStub::Generate(MacroAssembler* masm) {
   __ call(kScratchRegister);
 
   // Unlink this frame from the handler chain.
-  __ PopTryHandler();
+  __ PopStackHandler();
 
   __ bind(&exit);
   // Check if the current stack frame is marked as the outermost JS frame.
@@ -2910,7 +2901,7 @@ void StringCharCodeAtGenerator::GenerateFast(MacroAssembler* masm) {
 
 
 void StringCharCodeAtGenerator::GenerateSlow(
-    MacroAssembler* masm,
+    MacroAssembler* masm, EmbedMode embed_mode,
     const RuntimeCallHelper& call_helper) {
   __ Abort(kUnexpectedFallthroughToCharCodeAtSlowCase);
 
@@ -2923,6 +2914,10 @@ void StringCharCodeAtGenerator::GenerateSlow(
               index_not_number_,
               DONT_DO_SMI_CHECK);
   call_helper.BeforeCall(masm);
+  if (FLAG_vector_ics && embed_mode == PART_OF_IC_HANDLER) {
+    __ Push(VectorLoadICDescriptor::VectorRegister());
+    __ Push(VectorLoadICDescriptor::SlotRegister());
+  }
   __ Push(object_);
   __ Push(index_);  // Consumed by runtime conversion function.
   if (index_flags_ == STRING_INDEX_IS_NUMBER) {
@@ -2938,6 +2933,10 @@ void StringCharCodeAtGenerator::GenerateSlow(
     __ movp(index_, rax);
   }
   __ Pop(object_);
+  if (FLAG_vector_ics && embed_mode == PART_OF_IC_HANDLER) {
+    __ Pop(VectorLoadICDescriptor::SlotRegister());
+    __ Pop(VectorLoadICDescriptor::VectorRegister());
+  }
   // Reload the instance type.
   __ movp(result_, FieldOperand(object_, HeapObject::kMapOffset));
   __ movzxbl(result_, FieldOperand(result_, Map::kInstanceTypeOffset));
@@ -4529,7 +4528,6 @@ void VectorRawKeyedLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
   Label not_array, smi_key, key_okay, miss;
   __ CompareRoot(FieldOperand(feedback, 0), Heap::kWeakCellMapRootIndex);
   __ j(not_equal, &try_array);
-  __ JumpIfNotSmi(key, &miss);
   HandleMonomorphicCase(masm, receiver, key, vector, slot, feedback,
                         integer_slot, &miss);
 
@@ -4537,9 +4535,8 @@ void VectorRawKeyedLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
   // Is it a fixed array?
   __ CompareRoot(FieldOperand(feedback, 0), Heap::kFixedArrayMapRootIndex);
   __ j(not_equal, &not_array);
-  // We have a polymorphic element handler.
-  __ JumpIfNotSmi(key, &miss);
 
+  // We have a polymorphic element handler.
   Label polymorphic, try_poly_name;
   __ bind(&polymorphic);
   HandleArrayCases(masm, receiver, key, vector, slot, feedback, integer_slot,

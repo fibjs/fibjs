@@ -411,6 +411,16 @@ template <class T> class Local : public Handle<T> {
 };
 
 
+/**
+ * A MaybeLocal<> is a wrapper around Local<> that enforces a check whether
+ * the Local<> is empty before it can be used.
+ *
+ * If an API method returns a MaybeLocal<>, the API method can potentially fail
+ * either because an exception is thrown, or because an exception is pending,
+ * e.g. because a previous API call threw an exception that hasn't been caught
+ * yet, or because a TerminateExecution exception was thrown. In that case, an
+ * empty MaybeLocal is returned.
+ */
 template <class T>
 class MaybeLocal {
  public:
@@ -429,6 +439,7 @@ class MaybeLocal {
     return !IsEmpty();
   }
 
+  // Will crash when checks are enabled if the MaybeLocal<> is empty.
   V8_INLINE Local<T> ToLocalChecked();
 
   template <class S>
@@ -460,6 +471,9 @@ template <class T> class Eternal {
 };
 
 
+static const int kInternalFieldsInWeakCallback = 2;
+
+
 template <typename T>
 class WeakCallbackInfo {
  public:
@@ -467,21 +481,28 @@ class WeakCallbackInfo {
 
   WeakCallbackInfo(Isolate* isolate, T* parameter, void* internal_field1,
                    void* internal_field2)
-      : isolate_(isolate),
-        parameter_(parameter),
-        internal_field1_(internal_field1),
-        internal_field2_(internal_field2) {}
+      : isolate_(isolate), parameter_(parameter) {
+    internal_fields_[0] = internal_field1;
+    internal_fields_[1] = internal_field2;
+  }
 
   V8_INLINE Isolate* GetIsolate() const { return isolate_; }
   V8_INLINE T* GetParameter() const { return parameter_; }
-  V8_INLINE void* GetInternalField1() const { return internal_field1_; }
-  V8_INLINE void* GetInternalField2() const { return internal_field2_; }
+  V8_INLINE void* GetInternalField(int index) const;
+
+  V8_INLINE V8_DEPRECATE_SOON("use indexed version",
+                              void* GetInternalField1()) const {
+    return internal_fields_[0];
+  }
+  V8_INLINE V8_DEPRECATE_SOON("use indexed version",
+                              void* GetInternalField2()) const {
+    return internal_fields_[1];
+  }
 
  private:
   Isolate* isolate_;
   T* parameter_;
-  void* internal_field1_;
-  void* internal_field2_;
+  void* internal_fields_[2];
 };
 
 
@@ -3605,7 +3626,9 @@ class V8_EXPORT DataView : public ArrayBufferView {
  */
 class V8_EXPORT Date : public Object {
  public:
-  static Local<Value> New(Isolate* isolate, double time);
+  static V8_DEPRECATE_SOON("Use maybe version.",
+                           Local<Value> New(Isolate* isolate, double time));
+  static MaybeLocal<Value> New(Local<Context> context, double time);
 
   /**
    * A specialization of Value::NumberValue that is more efficient
@@ -4186,7 +4209,17 @@ class V8_EXPORT FunctionTemplate : public Template {
 };
 
 
-enum class PropertyHandlerFlags { kNone = 0, kAllCanRead = 1 };
+enum class PropertyHandlerFlags {
+  kNone = 0,
+  // See ALL_CAN_READ above.
+  kAllCanRead = 1,
+  // Will not call into interceptor for properties on the receiver or prototype
+  // chain.  Currently only valid for named interceptors.
+  kNonMasking = 1 << 1,
+  // Will not call into interceptor for symbol lookup.  Only meaningful for
+  // named interceptors.
+  kOnlyInterceptStrings = 1 << 2,
+};
 
 
 struct NamedPropertyHandlerConfiguration {
@@ -4646,8 +4679,7 @@ enum ObjectSpace {
   kObjectSpaceCodeSpace = 1 << 3,
   kObjectSpaceMapSpace = 1 << 4,
   kObjectSpaceCellSpace = 1 << 5,
-  kObjectSpacePropertyCellSpace = 1 << 6,
-  kObjectSpaceLoSpace = 1 << 7,
+  kObjectSpaceLoSpace = 1 << 6,
   kObjectSpaceAll = kObjectSpaceNewSpace | kObjectSpaceOldPointerSpace |
                     kObjectSpaceOldDataSpace | kObjectSpaceCodeSpace |
                     kObjectSpaceMapSpace | kObjectSpaceLoSpace
@@ -4903,7 +4935,12 @@ class V8_EXPORT Isolate {
    */
   struct CreateParams {
     CreateParams()
-        : entry_hook(NULL), code_event_handler(NULL), snapshot_blob(NULL) {}
+        : entry_hook(NULL),
+          code_event_handler(NULL),
+          snapshot_blob(NULL),
+          counter_lookup_callback(NULL),
+          create_histogram_callback(NULL),
+          add_histogram_sample_callback(NULL) {}
 
     /**
      * The optional entry_hook allows the host application to provide the
@@ -4929,6 +4966,22 @@ class V8_EXPORT Isolate {
      * Explicitly specify a startup snapshot blob. The embedder owns the blob.
      */
     StartupData* snapshot_blob;
+
+
+    /**
+     * Enables the host application to provide a mechanism for recording
+     * statistics counters.
+     */
+    CounterLookupCallback counter_lookup_callback;
+
+    /**
+     * Enables the host application to provide a mechanism for recording
+     * histograms. The CreateHistogram function returns a
+     * histogram which will later be passed to the AddHistogramSample
+     * function.
+     */
+    CreateHistogramCallback create_histogram_callback;
+    AddHistogramSampleCallback add_histogram_sample_callback;
   };
 
 
@@ -5027,6 +5080,7 @@ class V8_EXPORT Isolate {
   enum UseCounterFeature {
     kUseAsm = 0,
     kBreakIterator = 1,
+    kLegacyConst = 2,
     kUseCounterFeatureCount  // This enum value must be last.
   };
 
@@ -5294,13 +5348,6 @@ class V8_EXPORT Isolate {
   void RequestInterrupt(InterruptCallback callback, void* data);
 
   /**
-   * Clear interrupt request created by |RequestInterrupt|.
-   * Can be called from another thread without acquiring a |Locker|.
-   */
-  V8_DEPRECATED("There's no way to clear interrupts in flight.",
-                void ClearInterrupt());
-
-  /**
    * Request garbage collection in this Isolate. It is only valid to call this
    * function if --expose_gc was specified.
    *
@@ -5395,7 +5442,9 @@ class V8_EXPORT Isolate {
    *
    * The idle_time_in_ms argument specifies the time V8 has to perform
    * garbage collection. There is no guarantee that the actual work will be
-   * done within the time limit.
+   * done within the time limit. This variant is deprecated and will be removed
+   * in the future.
+   *
    * The deadline_in_seconds argument specifies the deadline V8 has to finish
    * garbage collection work. deadline_in_seconds is compared with
    * MonotonicallyIncreasingTime() and should be based on the same timebase as
@@ -5930,6 +5979,7 @@ class V8_EXPORT V8 {
 
   static void CheckIsJust(bool is_just);
   static void ToLocalEmpty();
+  static void InternalFieldOutOfBounds(int index);
 
   template <class T> friend class Handle;
   template <class T> friend class Local;
@@ -5937,6 +5987,8 @@ class V8_EXPORT V8 {
   friend class MaybeLocal;
   template <class T>
   friend class Maybe;
+  template <class T>
+  friend class WeakCallbackInfo;
   template <class T> friend class Eternal;
   template <class T> friend class PersistentBase;
   template <class T, class M> friend class Persistent;
@@ -5947,6 +5999,12 @@ class V8_EXPORT V8 {
 /**
  * A simple Maybe type, representing an object which may or may not have a
  * value, see https://hackage.haskell.org/package/base/docs/Data-Maybe.html.
+ *
+ * If an API method returns a Maybe<>, the API method can potentially fail
+ * either because an exception is thrown, or because an exception is pending,
+ * e.g. because a previous API call threw an exception that hasn't been caught
+ * yet, or because a TerminateExecution exception was thrown. In that case, a
+ * "Nothing" value is returned.
  */
 template <class T>
 class Maybe {
@@ -5954,6 +6012,7 @@ class Maybe {
   V8_INLINE bool IsNothing() const { return !has_value; }
   V8_INLINE bool IsJust() const { return has_value; }
 
+  // Will crash when checks are enabled if the Maybe<> is nothing.
   V8_INLINE T FromJust() const {
 #ifdef V8_ENABLE_CHECKS
     V8::CheckIsJust(IsJust());
@@ -6074,7 +6133,8 @@ class V8_EXPORT TryCatch {
    * Returns the .stack property of the thrown object.  If no .stack
    * property is present an empty handle is returned.
    */
-  Local<Value> StackTrace() const;
+  V8_DEPRECATE_SOON("Use maybe version.", Local<Value> StackTrace()) const;
+  MaybeLocal<Value> StackTrace(Local<Context> context) const;
 
   /**
    * Returns the message associated with this exception.  If there is
@@ -6253,6 +6313,13 @@ class V8_EXPORT Context {
 
   /** Returns an isolate associated with a current context. */
   v8::Isolate* GetIsolate();
+
+  /**
+   * The field at kDebugIdIndex is reserved for V8 debugger implementation.
+   * The value is propagated to the scripts compiled in given Context and
+   * can be used for filtering scripts.
+   */
+  enum EmbedderDataFields { kDebugIdIndex = 0 };
 
   /**
    * Gets the embedder data with the given index, which must have been set by a
@@ -6599,7 +6666,7 @@ class Internals {
   static const int kJSObjectType = 0xbd;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
-  static const int kForeignType = 0x88;
+  static const int kForeignType = 0x87;
 
   static const int kUndefinedOddballKind = 5;
   static const int kNullOddballKind = 3;
@@ -6770,6 +6837,17 @@ Local<T> MaybeLocal<T>::ToLocalChecked() {
   if (val_ == nullptr) V8::ToLocalEmpty();
 #endif
   return Local<T>(val_);
+}
+
+
+template <class T>
+void* WeakCallbackInfo<T>::GetInternalField(int index) const {
+#ifdef V8_ENABLE_CHECKS
+  if (index < 0 || index >= kInternalFieldsInWeakCallback) {
+    V8::InternalFieldOutOfBounds(index);
+  }
+#endif
+  return internal_fields_[index];
 }
 
 

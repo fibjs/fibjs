@@ -134,12 +134,13 @@ Handle<Code> CodeGenerator::GenerateCode() {
 
   // Emit exception handler table.
   if (!handlers_.empty()) {
-    Handle<FixedArray> table = isolate()->factory()->NewFixedArray(
-        static_cast<int>(handlers_.size()) * 2, TENURED);
+    Handle<HandlerTable> table =
+        Handle<HandlerTable>::cast(isolate()->factory()->NewFixedArray(
+            HandlerTable::LengthForReturn(static_cast<int>(handlers_.size())),
+            TENURED));
     for (size_t i = 0; i < handlers_.size(); ++i) {
-      int table_index = static_cast<int>(i * 2);
-      table->set(table_index + 0, Smi::FromInt(handlers_[i].pc_offset));
-      table->set(table_index + 1, Smi::FromInt(handlers_[i].handler->pos()));
+      table->SetReturnOffset(static_cast<int>(i), handlers_[i].pc_offset);
+      table->SetReturnHandler(static_cast<int>(i), handlers_[i].handler->pos());
     }
     result->set_handler_table(*table);
   }
@@ -509,8 +510,10 @@ void CodeGenerator::AddTranslationForOperand(Translation* translation,
                                              InstructionOperand* op,
                                              MachineType type) {
   if (op->IsStackSlot()) {
-    if (type == kMachBool || type == kMachInt32 || type == kMachInt8 ||
-        type == kMachInt16) {
+    // TODO(jarin) kMachBool and kRepBit should materialize true and false
+    // rather than creating an int value.
+    if (type == kMachBool || type == kRepBit || type == kMachInt32 ||
+        type == kMachInt8 || type == kMachInt16) {
       translation->StoreInt32StackSlot(op->index());
     } else if (type == kMachUint32 || type == kMachUint16 ||
                type == kMachUint8) {
@@ -525,8 +528,10 @@ void CodeGenerator::AddTranslationForOperand(Translation* translation,
     translation->StoreDoubleStackSlot(op->index());
   } else if (op->IsRegister()) {
     InstructionOperandConverter converter(this, instr);
-    if (type == kMachBool || type == kMachInt32 || type == kMachInt8 ||
-        type == kMachInt16) {
+    // TODO(jarin) kMachBool and kRepBit should materialize true and false
+    // rather than creating an int value.
+    if (type == kMachBool || type == kRepBit || type == kMachInt32 ||
+        type == kMachInt8 || type == kMachInt16) {
       translation->StoreInt32Register(converter.ToRegister(op));
     } else if (type == kMachUint32 || type == kMachUint16 ||
                type == kMachUint8) {
@@ -546,12 +551,14 @@ void CodeGenerator::AddTranslationForOperand(Translation* translation,
     Handle<Object> constant_object;
     switch (constant.type()) {
       case Constant::kInt32:
-        DCHECK(type == kMachInt32 || type == kMachUint32);
+        DCHECK(type == kMachInt32 || type == kMachUint32 || type == kRepBit);
         constant_object =
             isolate()->factory()->NewNumberFromInt(constant.ToInt32());
         break;
       case Constant::kFloat64:
-        DCHECK(type == kMachFloat64 || type == kMachAnyTagged);
+        DCHECK(type == kMachFloat64 || type == kMachAnyTagged ||
+               type == kRepTagged || type == (kTypeInt32 | kRepTagged) ||
+               type == (kTypeUint32 | kRepTagged));
         constant_object = isolate()->factory()->NewNumber(constant.ToFloat64());
         break;
       case Constant::kHeapObject:

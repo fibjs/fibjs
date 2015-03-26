@@ -407,13 +407,11 @@ class HGraph FINAL : public ZoneObject {
     use_optimistic_licm_ = value;
   }
 
-  void MarkRecursive() {
-    is_recursive_ = true;
-  }
+  void MarkRecursive() { is_recursive_ = true; }
+  bool is_recursive() const { return is_recursive_; }
 
-  bool is_recursive() const {
-    return is_recursive_;
-  }
+  void MarkThisHasUses() { this_has_uses_ = true; }
+  bool this_has_uses() const { return this_has_uses_; }
 
   void MarkDependsOnEmptyArrayProtoElements() {
     // Add map dependency if not already added.
@@ -499,6 +497,7 @@ class HGraph FINAL : public ZoneObject {
   Zone* zone_;
 
   bool is_recursive_;
+  bool this_has_uses_;
   bool use_optimistic_licm_;
   bool depends_on_empty_array_proto_elements_;
   int type_change_checksum_;
@@ -1869,8 +1868,10 @@ class HGraphBuilder {
 
  protected:
   void SetSourcePosition(int position) {
-    DCHECK(position != RelocInfo::kNoPosition);
-    position_.set_position(position - start_position_);
+    if (position != RelocInfo::kNoPosition) {
+      position_.set_position(position - start_position_);
+    }
+    // Otherwise position remains unknown.
   }
 
   void EnterInlinedSource(int start_position, int id) {
@@ -2212,6 +2213,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   F(ConstructDouble)                   \
   F(DoubleHi)                          \
   F(DoubleLo)                          \
+  F(MathClz32)                         \
   F(MathFloor)                         \
   F(MathSqrt)                          \
   F(MathLogRT)                         \
@@ -2231,7 +2233,11 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   F(SetInitialize)                     \
   /* Arrays */                         \
   F(HasFastPackedElements)             \
-  F(GetPrototype)
+  F(GetPrototype)                      \
+  /* Strings */                        \
+  F(StringGetLength)                   \
+  /* JSValue */                        \
+  F(JSValueGetValue)
 
 #define GENERATOR_DECLARATION(Name) void Generate##Name(CallRuntime* call);
   FOR_EACH_HYDROGEN_INTRINSIC(GENERATOR_DECLARATION)
@@ -2624,7 +2630,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     }
     void NotFound() {
       lookup_type_ = NOT_FOUND;
-      details_ = PropertyDetails(NONE, DATA, 0);
+      details_ = PropertyDetails::Empty();
     }
     Representation representation() const {
       DCHECK(IsFound());

@@ -21,8 +21,13 @@ class IA32OperandGenerator FINAL : public OperandGenerator {
       : OperandGenerator(selector) {}
 
   InstructionOperand UseByteRegister(Node* node) {
-    // TODO(dcarney): relax constraint.
+    // TODO(titzer): encode byte register use constraints.
     return UseFixed(node, edx);
+  }
+
+  InstructionOperand DefineAsByteRegister(Node* node) {
+    // TODO(titzer): encode byte register def constraints.
+    return DefineAsRegister(node);
   }
 
   bool CanBeImmediate(Node* node) {
@@ -136,7 +141,6 @@ void InstructionSelector::VisitLoad(Node* node) {
   MachineType typ = TypeOf(OpParameter<LoadRepresentation>(node));
 
   ArchOpcode opcode;
-  // TODO(titzer): signed/unsigned small loads
   switch (rep) {
     case kRepFloat32:
       opcode = kIA32Movss;
@@ -370,8 +374,7 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
 
   outputs[output_count++] = g.DefineSameAsFirst(node);
   if (cont->IsSet()) {
-    // TODO(turbofan): Use byte register here.
-    outputs[output_count++] = g.DefineAsRegister(cont->result());
+    outputs[output_count++] = g.DefineAsByteRegister(cont->result());
   }
 
   DCHECK_NE(0u, input_count);
@@ -379,9 +382,8 @@ static void VisitBinop(InstructionSelector* selector, Node* node,
   DCHECK_GE(arraysize(inputs), input_count);
   DCHECK_GE(arraysize(outputs), output_count);
 
-  Instruction* instr = selector->Emit(cont->Encode(opcode), output_count,
-                                      outputs, input_count, inputs);
-  if (cont->IsBranch()) instr->MarkAsControl();
+  selector->Emit(cont->Encode(opcode), output_count, outputs, input_count,
+                 inputs);
 }
 
 
@@ -504,6 +506,12 @@ void InstructionSelector::VisitWord32Sar(Node* node) {
 
 void InstructionSelector::VisitWord32Ror(Node* node) {
   VisitShift(this, node, kIA32Ror);
+}
+
+
+void InstructionSelector::VisitWord32Clz(Node* node) {
+  IA32OperandGenerator g(this);
+  Emit(kIA32Lzcnt, g.DefineAsRegister(node), g.Use(node->InputAt(0)));
 }
 
 
@@ -821,12 +829,10 @@ void VisitCompare(InstructionSelector* selector, InstructionCode opcode,
   IA32OperandGenerator g(selector);
   if (cont->IsBranch()) {
     selector->Emit(cont->Encode(opcode), g.NoOutput(), left, right,
-                   g.Label(cont->true_block()),
-                   g.Label(cont->false_block()))->MarkAsControl();
+                   g.Label(cont->true_block()), g.Label(cont->false_block()));
   } else {
     DCHECK(cont->IsSet());
-    // TODO(titzer): Needs byte register.
-    selector->Emit(cont->Encode(opcode), g.DefineAsRegister(cont->result()),
+    selector->Emit(cont->Encode(opcode), g.DefineAsByteRegister(cont->result()),
                    left, right);
   }
 }
@@ -887,7 +893,7 @@ void VisitWordCompare(InstructionSelector* selector, Node* node,
       InstructionCode opcode = cont->Encode(kIA32StackCheck);
       if (cont->IsBranch()) {
         selector->Emit(opcode, g.NoOutput(), g.Label(cont->true_block()),
-                       g.Label(cont->false_block()))->MarkAsControl();
+                       g.Label(cont->false_block()));
       } else {
         DCHECK(cont->IsSet());
         selector->Emit(opcode, g.DefineAsRegister(cont->result()));
@@ -1029,8 +1035,7 @@ void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
       DCHECK_LT(value + 2, input_count);
       inputs[value + 2] = g.Label(branch);
     }
-    Emit(kArchTableSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
-        ->MarkAsControl();
+    Emit(kArchTableSwitch, 0, nullptr, input_count, inputs, 0, nullptr);
     return;
   }
 
@@ -1045,8 +1050,7 @@ void InstructionSelector::VisitSwitch(Node* node, BasicBlock* default_branch,
     inputs[index * 2 + 2 + 0] = g.TempImmediate(value);
     inputs[index * 2 + 2 + 1] = g.Label(branch);
   }
-  Emit(kArchLookupSwitch, 0, nullptr, input_count, inputs, 0, nullptr)
-      ->MarkAsControl();
+  Emit(kArchLookupSwitch, 0, nullptr, input_count, inputs, 0, nullptr);
 }
 
 

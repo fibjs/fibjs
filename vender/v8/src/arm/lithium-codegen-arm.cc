@@ -124,7 +124,7 @@ bool LCodeGen::GeneratePrologue() {
     // Sloppy mode functions and builtins need to replace the receiver with the
     // global proxy when called as functions (without an explicit receiver
     // object).
-    if (info_->this_has_uses() && is_sloppy(info_->language_mode()) &&
+    if (graph()->this_has_uses() && is_sloppy(info_->language_mode()) &&
         !info_->is_native()) {
       Label ok;
       int receiver_offset = info_->scope()->num_parameters() * kPointerSize;
@@ -356,6 +356,8 @@ bool LCodeGen::GenerateJumpTable() {
       } else {
         __ bl(&call_deopt_entry);
       }
+      info()->LogDeoptCallPosition(masm()->pc_offset(),
+                                   table_entry->deopt_info.inlining_id);
       masm()->CheckConstPool(false, false);
     }
 
@@ -891,6 +893,7 @@ void LCodeGen::DeoptimizeIf(Condition condition, LInstruction* instr,
       !info()->saves_caller_doubles()) {
     DeoptComment(deopt_info);
     __ Call(entry, RelocInfo::RUNTIME_ENTRY);
+    info()->LogDeoptCallPosition(masm()->pc_offset(), deopt_info.inlining_id);
   } else {
     Deoptimizer::JumpTableEntry table_entry(entry, deopt_info, bailout_type,
                                             !frame_is_built_);
@@ -2828,8 +2831,8 @@ void LCodeGen::DoInstanceOfKnownGlobal(LInstanceOfKnownGlobal* instr) {
     // root array to force relocation to be able to later patch with
     // the cached map.
     Handle<Cell> cell = factory()->NewCell(factory()->the_hole_value());
-    __ mov(ip, Operand(Handle<Object>(cell)));
-    __ ldr(ip, FieldMemOperand(ip, PropertyCell::kValueOffset));
+    __ mov(ip, Operand(cell));
+    __ ldr(ip, FieldMemOperand(ip, Cell::kValueOffset));
     __ cmp(map, Operand(ip));
     __ b(ne, &cache_miss);
     __ bind(deferred->load_bool());  // Label for calculating code patching.
@@ -2983,18 +2986,6 @@ void LCodeGen::DoReturn(LReturn* instr) {
 }
 
 
-void LCodeGen::DoLoadGlobalCell(LLoadGlobalCell* instr) {
-  Register result = ToRegister(instr->result());
-  __ mov(ip, Operand(Handle<Object>(instr->hydrogen()->cell().handle())));
-  __ ldr(result, FieldMemOperand(ip, Cell::kValueOffset));
-  if (instr->hydrogen()->RequiresHoleCheck()) {
-    __ LoadRoot(ip, Heap::kTheHoleValueRootIndex);
-    __ cmp(result, ip);
-    DeoptimizeIf(eq, instr, Deoptimizer::kHole);
-  }
-}
-
-
 template <class T>
 void LCodeGen::EmitVectorLoadICRegisters(T* instr) {
   DCHECK(FLAG_vector_ics);
@@ -3027,31 +3018,6 @@ void LCodeGen::DoLoadGlobalGeneric(LLoadGlobalGeneric* instr) {
   Handle<Code> ic = CodeFactory::LoadICInOptimizedCode(isolate(), mode,
                                                        PREMONOMORPHIC).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
-}
-
-
-void LCodeGen::DoStoreGlobalCell(LStoreGlobalCell* instr) {
-  Register value = ToRegister(instr->value());
-  Register cell = scratch0();
-
-  // Load the cell.
-  __ mov(cell, Operand(instr->hydrogen()->cell().handle()));
-
-  // If the cell we are storing to contains the hole it could have
-  // been deleted from the property dictionary. In that case, we need
-  // to update the property details in the property dictionary to mark
-  // it as no longer deleted.
-  if (instr->hydrogen()->RequiresHoleCheck()) {
-    // We use a temp to check the payload (CompareRoot might clobber ip).
-    Register payload = ToRegister(instr->temp());
-    __ ldr(payload, FieldMemOperand(cell, Cell::kValueOffset));
-    __ CompareRoot(payload, Heap::kTheHoleValueRootIndex);
-    DeoptimizeIf(eq, instr, Deoptimizer::kHole);
-  }
-
-  // Store the value.
-  __ str(value, FieldMemOperand(cell, Cell::kValueOffset));
-  // Cells are always rescanned, so no write barrier here.
 }
 
 
@@ -5236,7 +5202,7 @@ void LCodeGen::DoCheckValue(LCheckValue* instr) {
   if (isolate()->heap()->InNewSpace(*object)) {
     Register reg = ToRegister(instr->value());
     Handle<Cell> cell = isolate()->factory()->NewCell(object);
-    __ mov(ip, Operand(Handle<Object>(cell)));
+    __ mov(ip, Operand(cell));
     __ ldr(ip, FieldMemOperand(ip, Cell::kValueOffset));
     __ cmp(reg, ip);
   } else {

@@ -25,8 +25,10 @@ namespace internal {
 namespace compiler {
 
 // Macro for outputting trace information from representation inference.
-#define TRACE(x) \
-  if (FLAG_trace_representation) PrintF x
+#define TRACE(...)                                      \
+  do {                                                  \
+    if (FLAG_trace_representation) PrintF(__VA_ARGS__); \
+  } while (false)
 
 // Representation selection and lowering of {Simplified} operators to machine
 // operators are interwined. We use a fixpoint calculation to compute both the
@@ -85,7 +87,7 @@ class RepresentationSelector {
 
   void Run(SimplifiedLowering* lowering) {
     // Run propagation phase to a fixpoint.
-    TRACE(("--{Propagation phase}--\n"));
+    TRACE("--{Propagation phase}--\n");
     phase_ = PROPAGATE;
     Enqueue(jsgraph_->graph()->end());
     // Process nodes from the queue until it is empty.
@@ -94,20 +96,20 @@ class RepresentationSelector {
       NodeInfo* info = GetInfo(node);
       queue_.pop();
       info->queued = false;
-      TRACE((" visit #%d: %s\n", node->id(), node->op()->mnemonic()));
+      TRACE(" visit #%d: %s\n", node->id(), node->op()->mnemonic());
       VisitNode(node, info->use, NULL);
-      TRACE(("  ==> output "));
+      TRACE("  ==> output ");
       PrintInfo(info->output);
-      TRACE(("\n"));
+      TRACE("\n");
     }
 
     // Run lowering and change insertion phase.
-    TRACE(("--{Simplified lowering phase}--\n"));
+    TRACE("--{Simplified lowering phase}--\n");
     phase_ = LOWER;
     // Process nodes from the collected {nodes_} vector.
     for (NodeVector::iterator i = nodes_.begin(); i != nodes_.end(); ++i) {
       Node* node = *i;
-      TRACE((" visit #%d: %s\n", node->id(), node->op()->mnemonic()));
+      TRACE(" visit #%d: %s\n", node->id(), node->op()->mnemonic());
       // Reuse {VisitNode()} so the representation rules are in one place.
       if (FLAG_turbo_source_positions) {
         SourcePositionTable::Scope scope(
@@ -143,21 +145,21 @@ class RepresentationSelector {
       info->queued = true;
       nodes_.push_back(node);
       queue_.push(node);
-      TRACE(("  initial: "));
+      TRACE("  initial: ");
       info->use |= use;
       PrintUseInfo(node);
       return;
     }
-    TRACE(("   queue?: "));
+    TRACE("   queue?: ");
     PrintUseInfo(node);
     if ((info->use & use) != use) {
       // New usage information for the node is available.
       if (!info->queued) {
         queue_.push(node);
         info->queued = true;
-        TRACE(("   added: "));
+        TRACE("   added: ");
       } else {
-        TRACE((" inqueue: "));
+        TRACE(" inqueue: ");
       }
       info->use |= use;
       PrintUseInfo(node);
@@ -195,14 +197,14 @@ class RepresentationSelector {
       MachineTypeUnion output = GetInfo(input)->output;
       if ((output & (kRepBit | kRepWord8 | kRepWord16 | kRepWord32)) == 0) {
         // Output representation doesn't match usage.
-        TRACE(("  truncate-to-int32: #%d:%s(@%d #%d:%s) ", node->id(),
-               node->op()->mnemonic(), index, input->id(),
-               input->op()->mnemonic()));
-        TRACE((" from "));
+        TRACE("  truncate-to-int32: #%d:%s(@%d #%d:%s) ", node->id(),
+              node->op()->mnemonic(), index, input->id(),
+              input->op()->mnemonic());
+        TRACE(" from ");
         PrintInfo(output);
-        TRACE((" to "));
+        TRACE(" to ");
         PrintInfo(use);
-        TRACE(("\n"));
+        TRACE("\n");
         Node* n = changer_->GetTruncatedWord32For(input, output);
         node->ReplaceInput(index, n);
       }
@@ -220,14 +222,14 @@ class RepresentationSelector {
       MachineTypeUnion output = GetInfo(input)->output;
       if ((output & kRepMask & use) == 0) {
         // Output representation doesn't match usage.
-        TRACE(("  change: #%d:%s(@%d #%d:%s) ", node->id(),
-               node->op()->mnemonic(), index, input->id(),
-               input->op()->mnemonic()));
-        TRACE((" from "));
+        TRACE("  change: #%d:%s(@%d #%d:%s) ", node->id(),
+              node->op()->mnemonic(), index, input->id(),
+              input->op()->mnemonic());
+        TRACE(" from ");
         PrintInfo(output);
-        TRACE((" to "));
+        TRACE(" to ");
         PrintInfo(use);
-        TRACE(("\n"));
+        TRACE("\n");
         Node* n = changer_->GetRepresentationFor(input, output, use);
         node->ReplaceInput(index, n);
       }
@@ -248,28 +250,21 @@ class RepresentationSelector {
   }
 
   // The default, most general visitation case. For {node}, process all value,
-  // context, effect, and control inputs, assuming that value inputs should have
-  // {kRepTagged} representation and can observe all output values {kTypeAny}.
+  // context, frame state, effect, and control inputs, assuming that value
+  // inputs should have {kRepTagged} representation and can observe all output
+  // values {kTypeAny}.
   void VisitInputs(Node* node) {
-    auto i = node->input_edges().begin();
-    for (int j = node->op()->ValueInputCount(); j > 0; ++i, j--) {
-      ProcessInput(node, (*i).index(), kMachAnyTagged);  // Value inputs
+    int tagged_count = node->op()->ValueInputCount() +
+                       OperatorProperties::GetContextInputCount(node->op());
+    // Visit value and context inputs as tagged.
+    for (int i = 0; i < tagged_count; i++) {
+      ProcessInput(node, i, kMachAnyTagged);
     }
-    for (int j = OperatorProperties::GetContextInputCount(node->op()); j > 0;
-         ++i, j--) {
-      ProcessInput(node, (*i).index(), kMachAnyTagged);  // Context inputs
+    // Only enqueue other inputs (framestates, effects, control).
+    for (int i = tagged_count; i < node->InputCount(); i++) {
+      Enqueue(node->InputAt(i));
     }
-    for (int j = OperatorProperties::GetFrameStateInputCount(node->op()); j > 0;
-         ++i, j--) {
-      Enqueue((*i).to());  // FrameState inputs: just visit
-    }
-    for (int j = node->op()->EffectInputCount(); j > 0; ++i, j--) {
-      Enqueue((*i).to());  // Effect inputs: just visit
-    }
-    for (int j = node->op()->ControlInputCount(); j > 0; ++i, j--) {
-      Enqueue((*i).to());  // Control inputs: just visit
-    }
-    DCHECK(i == node->input_edges().end());
+    // Assume the output is tagged.
     SetOutput(node, kMachAnyTagged);
   }
 
@@ -405,21 +400,36 @@ class RepresentationSelector {
       }
 
       // Convert inputs to the output representation of this phi.
-      for (Edge const edge : node->input_edges()) {
-        // TODO(titzer): it'd be nice to have distinguished edge kinds here.
-        ProcessInput(node, edge.index(), values > 0 ? output_type : 0);
-        values--;
+      for (int i = 0; i < node->InputCount(); i++) {
+        ProcessInput(node, i, i < values ? output_type : 0);
       }
     } else {
       // Propagate {use} of the phi to value inputs, and 0 to control.
       MachineType use_type =
           static_cast<MachineType>((use & kTypeMask) | output);
-      for (Edge const edge : node->input_edges()) {
-        // TODO(titzer): it'd be nice to have distinguished edge kinds here.
-        ProcessInput(node, edge.index(), values > 0 ? use_type : 0);
-        values--;
+      for (int i = 0; i < node->InputCount(); i++) {
+        ProcessInput(node, i, i < values ? use_type : 0);
       }
     }
+  }
+
+  void VisitStateValues(Node* node) {
+    if (phase_ == PROPAGATE) {
+      for (int i = 0; i < node->InputCount(); i++) {
+        Enqueue(node->InputAt(i), kTypeAny);
+      }
+    } else {
+      Zone* zone = jsgraph_->zone();
+      ZoneVector<MachineType>* types =
+          new (zone->New(sizeof(ZoneVector<MachineType>)))
+              ZoneVector<MachineType>(node->InputCount(), zone);
+      for (int i = 0; i < node->InputCount(); i++) {
+        MachineTypeUnion input_type = GetInfo(node->InputAt(i))->output;
+        (*types)[i] = static_cast<MachineType>(input_type);
+      }
+      node->set_op(jsgraph_->common()->TypedStateValues(types));
+    }
+    SetOutput(node, kMachAnyTagged);
   }
 
   const Operator* Int32Op(Node* node) {
@@ -438,18 +448,8 @@ class RepresentationSelector {
     return BothInputsAre(node, Type::Signed32()) && !CanObserveNonInt32(use);
   }
 
-  bool IsSafeIntAdditiveOperand(Node* node) {
-    Type* type = NodeProperties::GetBounds(node).upper;
-    // TODO(jarin): Unfortunately, bitset types are not subtypes of larger
-    // range types, so we have to explicitly check for Integral32 here
-    // (in addition to the safe integer range). Once we fix subtyping for
-    // ranges, we should simplify this.
-    return type->Is(safe_int_additive_range_) || type->Is(Type::Integral32());
-  }
-
   bool CanLowerToInt32AdditiveBinop(Node* node, MachineTypeUnion use) {
-    return IsSafeIntAdditiveOperand(node->InputAt(0)) &&
-           IsSafeIntAdditiveOperand(node->InputAt(1)) &&
+    return BothInputsAre(node, safe_int_additive_range_) &&
            !CanObserveNonInt32(use);
   }
 
@@ -458,8 +458,7 @@ class RepresentationSelector {
   }
 
   bool CanLowerToUint32AdditiveBinop(Node* node, MachineTypeUnion use) {
-    return IsSafeIntAdditiveOperand(node->InputAt(0)) &&
-           IsSafeIntAdditiveOperand(node->InputAt(1)) &&
+    return BothInputsAre(node, safe_int_additive_range_) &&
            !CanObserveNonUint32(use);
   }
 
@@ -547,24 +546,6 @@ class RepresentationSelector {
       //------------------------------------------------------------------
       // Simplified operators.
       //------------------------------------------------------------------
-      case IrOpcode::kAnyToBoolean: {
-        VisitUnop(node, kMachAnyTagged, kTypeBool | kRepTagged);
-        if (lower()) {
-          // AnyToBoolean(x) => Call(ToBooleanStub, x, no-context)
-          Operator::Properties properties = node->op()->properties();
-          Callable callable = CodeFactory::ToBoolean(
-              jsgraph_->isolate(), ToBooleanStub::RESULT_AS_ODDBALL);
-          CallDescriptor::Flags flags = CallDescriptor::kPatchableCallSite;
-          CallDescriptor* desc = Linkage::GetStubCallDescriptor(
-              jsgraph_->isolate(), jsgraph_->zone(), callable.descriptor(), 0,
-              flags, properties);
-          node->set_op(jsgraph_->common()->Call(desc));
-          node->InsertInput(jsgraph_->zone(), 0,
-                            jsgraph_->HeapConstant(callable.code()));
-          node->AppendInput(jsgraph_->zone(), jsgraph_->NoContextConstant());
-        }
-        break;
-      }
       case IrOpcode::kBooleanNot: {
         if (lower()) {
           MachineTypeUnion input = GetInfo(node->InputAt(0))->output;
@@ -947,6 +928,9 @@ class RepresentationSelector {
       case IrOpcode::kWord32Equal:
         return VisitBinop(node, kRepWord32, kRepBit);
 
+      case IrOpcode::kWord32Clz:
+        return VisitUnop(node, kMachUint32, kMachUint32);
+
       case IrOpcode::kInt32Add:
       case IrOpcode::kInt32Sub:
       case IrOpcode::kInt32Mul:
@@ -1048,10 +1032,7 @@ class RepresentationSelector {
       case IrOpcode::kLoadStackPointer:
         return VisitLeaf(node, kMachPtr);
       case IrOpcode::kStateValues:
-        for (int i = 0; i < node->InputCount(); i++) {
-          ProcessInput(node, i, kTypeAny);
-        }
-        SetOutput(node, kMachAnyTagged);
+        VisitStateValues(node);
         break;
       default:
         VisitInputs(node);
@@ -1060,11 +1041,10 @@ class RepresentationSelector {
   }
 
   void DeferReplacement(Node* node, Node* replacement) {
-    if (FLAG_trace_representation) {
-      TRACE(("defer replacement #%d:%s with #%d:%s\n", node->id(),
-             node->op()->mnemonic(), replacement->id(),
-             replacement->op()->mnemonic()));
-    }
+    TRACE("defer replacement #%d:%s with #%d:%s\n", node->id(),
+          node->op()->mnemonic(), replacement->id(),
+          replacement->op()->mnemonic());
+
     if (replacement->id() < count_ &&
         GetInfo(replacement)->output == GetInfo(node)->output) {
       // Replace with a previously existing node eagerly only if the type is the
@@ -1078,13 +1058,13 @@ class RepresentationSelector {
       replacements_.push_back(node);
       replacements_.push_back(replacement);
     }
-    node->RemoveAllInputs();  // Node is now dead.
+    node->NullAllInputs();  // Node is now dead.
   }
 
   void PrintUseInfo(Node* node) {
-    TRACE(("#%d:%-20s ", node->id(), node->op()->mnemonic()));
+    TRACE("#%d:%-20s ", node->id(), node->op()->mnemonic());
     PrintInfo(GetUseInfo(node));
-    TRACE(("\n"));
+    TRACE("\n");
   }
 
   void PrintInfo(MachineTypeUnion info) {

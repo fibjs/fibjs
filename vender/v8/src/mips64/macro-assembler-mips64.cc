@@ -2126,7 +2126,7 @@ void MacroAssembler::BranchShort(int16_t offset, Condition cond, Register rs,
       // Unsigned comparison.
       case Ugreater:
         if (r2.is(zero_reg)) {
-          bgtz(rs, offset);
+          bne(rs, zero_reg, offset);
         } else {
           sltu(scratch, r2, rs);
           bne(scratch, zero_reg, offset);
@@ -2134,7 +2134,7 @@ void MacroAssembler::BranchShort(int16_t offset, Condition cond, Register rs,
         break;
       case Ugreater_equal:
         if (r2.is(zero_reg)) {
-          bgez(rs, offset);
+          b(offset);
         } else {
           sltu(scratch, rs, r2);
           beq(scratch, zero_reg, offset);
@@ -2151,7 +2151,7 @@ void MacroAssembler::BranchShort(int16_t offset, Condition cond, Register rs,
         break;
       case Uless_equal:
         if (r2.is(zero_reg)) {
-          b(offset);
+          beq(rs, zero_reg, offset);
         } else {
           sltu(scratch, r2, rs);
           beq(scratch, zero_reg, offset);
@@ -2241,7 +2241,7 @@ void MacroAssembler::BranchShort(int16_t offset, Condition cond, Register rs,
       // Unsigned comparison.
       case Ugreater:
         if (rt.imm64_ == 0) {
-          bgtz(rs, offset);
+          bne(rs, zero_reg, offset);
         } else {
           r2 = scratch;
           li(r2, rt);
@@ -2251,7 +2251,7 @@ void MacroAssembler::BranchShort(int16_t offset, Condition cond, Register rs,
         break;
       case Ugreater_equal:
         if (rt.imm64_ == 0) {
-          bgez(rs, offset);
+          b(offset);
         } else if (is_int16(rt.imm64_)) {
           sltiu(scratch, rs, rt.imm64_);
           beq(scratch, zero_reg, offset);
@@ -2278,7 +2278,7 @@ void MacroAssembler::BranchShort(int16_t offset, Condition cond, Register rs,
         break;
       case Uless_equal:
         if (rt.imm64_ == 0) {
-          b(offset);
+          beq(rs, zero_reg, offset);
         } else {
           r2 = scratch;
           li(r2, rt);
@@ -2380,7 +2380,7 @@ void MacroAssembler::BranchShort(Label* L, Condition cond, Register rs,
       case Ugreater:
         if (r2.is(zero_reg)) {
           offset = shifted_branch_offset(L, false);
-           bgtz(rs, offset);
+          bne(rs, zero_reg, offset);
         } else {
           sltu(scratch, r2, rs);
           offset = shifted_branch_offset(L, false);
@@ -2390,7 +2390,7 @@ void MacroAssembler::BranchShort(Label* L, Condition cond, Register rs,
       case Ugreater_equal:
         if (r2.is(zero_reg)) {
           offset = shifted_branch_offset(L, false);
-          bgez(rs, offset);
+          b(offset);
         } else {
           sltu(scratch, rs, r2);
           offset = shifted_branch_offset(L, false);
@@ -2410,7 +2410,7 @@ void MacroAssembler::BranchShort(Label* L, Condition cond, Register rs,
       case Uless_equal:
         if (r2.is(zero_reg)) {
           offset = shifted_branch_offset(L, false);
-          b(offset);
+          beq(rs, zero_reg, offset);
         } else {
           sltu(scratch, r2, rs);
           offset = shifted_branch_offset(L, false);
@@ -2532,7 +2532,7 @@ void MacroAssembler::BranchShort(Label* L, Condition cond, Register rs,
       case Ugreater_equal:
         if (rt.imm64_ == 0) {
           offset = shifted_branch_offset(L, false);
-          bgez(rs, offset);
+          b(offset);
         } else if (is_int16(rt.imm64_)) {
           sltiu(scratch, rs, rt.imm64_);
           offset = shifted_branch_offset(L, false);
@@ -3226,44 +3226,22 @@ void MacroAssembler::DebugBreak() {
 // ---------------------------------------------------------------------------
 // Exception handling.
 
-void MacroAssembler::PushTryHandler(StackHandler::Kind kind,
-                                    int handler_index) {
+void MacroAssembler::PushStackHandler() {
   // Adjust this code if not the case.
-  STATIC_ASSERT(StackHandlerConstants::kSize == 3 * kPointerSize);
+  STATIC_ASSERT(StackHandlerConstants::kSize == 1 * kPointerSize);
   STATIC_ASSERT(StackHandlerConstants::kNextOffset == 0 * kPointerSize);
-  STATIC_ASSERT(StackHandlerConstants::kStateOffset == 1 * kPointerSize);
-  STATIC_ASSERT(StackHandlerConstants::kContextOffset == 2 * kPointerSize);
-
-  // For the JSEntry handler, we must preserve a0-a3 and s0.
-  // a5-a7 are available. We will build up the handler from the bottom by
-  // pushing on the stack.
-  // Set up the the state (r6) for pushing.
-  unsigned state =
-      StackHandler::IndexField::encode(handler_index) |
-      StackHandler::KindField::encode(kind);
-  li(a5, Operand(CodeObject()), CONSTANT_SIZE);
-  li(a6, Operand(state));
-
-  // Push the context and state.
-  if (kind == StackHandler::JS_ENTRY) {
-    DCHECK(Smi::FromInt(0) == 0);
-    // The zero_reg indicates no context.
-    // The operands are reversed to match the order of MultiPush/Pop.
-    Push(zero_reg, a6);
-  } else {
-    MultiPush(a6.bit() | cp.bit());
-  }
 
   // Link the current handler as the next handler.
   li(a6, Operand(ExternalReference(Isolate::kHandlerAddress, isolate())));
   ld(a5, MemOperand(a6));
   push(a5);
+
   // Set this new handler as the current one.
   sd(sp, MemOperand(a6));
 }
 
 
-void MacroAssembler::PopTryHandler() {
+void MacroAssembler::PopStackHandler() {
   STATIC_ASSERT(StackHandlerConstants::kNextOffset == 0);
   pop(a1);
   Daddu(sp, sp, Operand(StackHandlerConstants::kSize - kPointerSize));

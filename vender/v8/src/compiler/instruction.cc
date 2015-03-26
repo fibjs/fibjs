@@ -33,6 +33,8 @@ std::ostream& operator<<(std::ostream& os,
                                    unalloc->fixed_register_index()) << ")";
         case UnallocatedOperand::MUST_HAVE_REGISTER:
           return os << "(R)";
+        case UnallocatedOperand::MUST_HAVE_SLOT:
+          return os << "(S)";
         case UnallocatedOperand::SAME_AS_FIRST_INPUT:
           return os << "(1)";
         case UnallocatedOperand::ANY:
@@ -107,8 +109,7 @@ MoveOperands* ParallelMove::PrepareInsertAfter(MoveOperands* move) const {
 Instruction::Instruction(InstructionCode opcode)
     : opcode_(opcode),
       bit_field_(OutputCountField::encode(0) | InputCountField::encode(0) |
-                 TempCountField::encode(0) | IsCallField::encode(false) |
-                 IsControlField::encode(false)),
+                 TempCountField::encode(0) | IsCallField::encode(false)),
       pointer_map_(NULL) {}
 
 
@@ -120,7 +121,7 @@ Instruction::Instruction(InstructionCode opcode, size_t output_count,
       bit_field_(OutputCountField::encode(output_count) |
                  InputCountField::encode(input_count) |
                  TempCountField::encode(temp_count) |
-                 IsCallField::encode(false) | IsControlField::encode(false)),
+                 IsCallField::encode(false)),
       pointer_map_(NULL) {
   size_t offset = 0;
   for (size_t i = 0; i < output_count; ++i) {

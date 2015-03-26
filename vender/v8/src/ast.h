@@ -188,7 +188,7 @@ class AstProperties FINAL BASE_EMBEDDED {
  public:
   class Flags : public EnumSet<AstPropertiesFlag, int> {};
 
-  AstProperties() : node_count_(0) {}
+  explicit AstProperties(Zone* zone) : node_count_(0), spec_(zone) {}
 
   Flags* flags() { return &flags_; }
   int node_count() { return node_count_; }
@@ -200,12 +200,12 @@ class AstProperties FINAL BASE_EMBEDDED {
   int ic_slots() const { return spec_.ic_slots(); }
   void increase_ic_slots(int count) { spec_.increase_ic_slots(count); }
   void SetKind(int ic_slot, Code::Kind kind) { spec_.SetKind(ic_slot, kind); }
-  const FeedbackVectorSpec& get_spec() const { return spec_; }
+  const ZoneFeedbackVectorSpec* get_spec() const { return &spec_; }
 
  private:
   Flags flags_;
   int node_count_;
-  FeedbackVectorSpec spec_;
+  ZoneFeedbackVectorSpec spec_;
 };
 
 
@@ -1623,9 +1623,7 @@ class VariableProxy FINAL : public Expression {
  public:
   DECLARE_NODE_TYPE(VariableProxy)
 
-  bool IsValidReferenceExpression() const OVERRIDE {
-    return !is_resolved() || var()->IsValidReference();
-  }
+  bool IsValidReferenceExpression() const OVERRIDE { return !is_this(); }
 
   bool IsArguments() const { return is_resolved() && var()->is_arguments(); }
 
@@ -1680,8 +1678,9 @@ class VariableProxy FINAL : public Expression {
   VariableProxy(Zone* zone, Variable* var, int start_position,
                 int end_position);
 
-  VariableProxy(Zone* zone, const AstRawString* name, bool is_this,
-                int start_position, int end_position);
+  VariableProxy(Zone* zone, const AstRawString* name,
+                Variable::Kind variable_kind, int start_position,
+                int end_position);
 
   class IsThisField : public BitField8<bool, 0, 1> {};
   class IsAssignedField : public BitField8<bool, 1, 1> {};
@@ -1847,15 +1846,16 @@ class Call FINAL : public Expression {
 
   Handle<JSFunction> target() { return target_; }
 
-  Handle<Cell> cell() { return cell_; }
-
   Handle<AllocationSite> allocation_site() { return allocation_site_; }
 
+  void SetKnownGlobalTarget(Handle<JSFunction> target) {
+    target_ = target;
+    set_is_uninitialized(false);
+  }
   void set_target(Handle<JSFunction> target) { target_ = target; }
   void set_allocation_site(Handle<AllocationSite> site) {
     allocation_site_ = site;
   }
-  bool ComputeGlobalTarget(Handle<GlobalObject> global, LookupIterator* it);
 
   static int num_ids() { return parent_num_ids() + 2; }
   BailoutId ReturnId() const { return BailoutId(local_id(0)); }
@@ -1910,7 +1910,6 @@ class Call FINAL : public Expression {
   Expression* expression_;
   ZoneList<Expression*>* arguments_;
   Handle<JSFunction> target_;
-  Handle<Cell> cell_;
   Handle<AllocationSite> allocation_site_;
   class IsUninitializedField : public BitField8<bool, 0, 1> {};
   uint8_t bit_field_;
@@ -1957,6 +1956,10 @@ class CallNew FINAL : public Expression {
   }
   void set_is_monomorphic(bool monomorphic) { is_monomorphic_ = monomorphic; }
   void set_target(Handle<JSFunction> target) { target_ = target; }
+  void SetKnownGlobalTarget(Handle<JSFunction> target) {
+    target_ = target;
+    is_monomorphic_ = true;
+  }
 
  protected:
   CallNew(Zone* zone, Expression* expression, ZoneList<Expression*>* arguments,
@@ -2555,7 +2558,7 @@ class FunctionLiteral FINAL : public Expression {
   void set_ast_properties(AstProperties* ast_properties) {
     ast_properties_ = *ast_properties;
   }
-  const FeedbackVectorSpec& feedback_vector_spec() const {
+  const ZoneFeedbackVectorSpec* feedback_vector_spec() const {
     return ast_properties_.get_spec();
   }
   bool dont_optimize() { return dont_optimize_reason_ != kNoReason; }
@@ -2579,6 +2582,7 @@ class FunctionLiteral FINAL : public Expression {
         scope_(scope),
         body_(body),
         raw_inferred_name_(ast_value_factory->empty_string()),
+        ast_properties_(zone),
         dont_optimize_reason_(kNoReason),
         materialized_literal_count_(materialized_literal_count),
         expected_property_count_(expected_property_count),
@@ -3397,11 +3401,12 @@ class AstNodeFactory FINAL BASE_EMBEDDED {
     return new (zone_) VariableProxy(zone_, var, start_position, end_position);
   }
 
-  VariableProxy* NewVariableProxy(const AstRawString* name, bool is_this,
+  VariableProxy* NewVariableProxy(const AstRawString* name,
+                                  Variable::Kind variable_kind,
                                   int start_position = RelocInfo::kNoPosition,
                                   int end_position = RelocInfo::kNoPosition) {
     return new (zone_)
-        VariableProxy(zone_, name, is_this, start_position, end_position);
+        VariableProxy(zone_, name, variable_kind, start_position, end_position);
   }
 
   Property* NewProperty(Expression* obj, Expression* key, int pos) {

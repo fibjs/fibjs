@@ -117,7 +117,6 @@ class LChunkBuilder;
   V(LoadContextSlot)                          \
   V(LoadFieldByIndex)                         \
   V(LoadFunctionPrototype)                    \
-  V(LoadGlobalCell)                           \
   V(LoadGlobalGeneric)                        \
   V(LoadKeyed)                                \
   V(LoadKeyedGeneric)                         \
@@ -146,7 +145,6 @@ class LChunkBuilder;
   V(StoreCodeEntry)                           \
   V(StoreContextSlot)                         \
   V(StoreFrameContext)                        \
-  V(StoreGlobalCell)                          \
   V(StoreKeyed)                               \
   V(StoreKeyedGeneric)                        \
   V(StoreNamedField)                          \
@@ -3501,7 +3499,7 @@ class HConstant FINAL : public HTemplateInstruction<0> {
 
   bool IsCell() const {
     InstanceType instance_type = GetInstanceType();
-    return instance_type == CELL_TYPE || instance_type == PROPERTY_CELL_TYPE;
+    return instance_type == CELL_TYPE;
   }
 
   Representation RequiredInputRepresentation(int index) OVERRIDE {
@@ -5414,46 +5412,6 @@ class HUnknownOSRValue FINAL : public HTemplateInstruction<0> {
 };
 
 
-class HLoadGlobalCell FINAL : public HTemplateInstruction<0> {
- public:
-  DECLARE_INSTRUCTION_FACTORY_P2(HLoadGlobalCell, Handle<Cell>,
-                                 PropertyDetails);
-
-  Unique<Cell> cell() const { return cell_; }
-  bool RequiresHoleCheck() const;
-
-  std::ostream& PrintDataTo(std::ostream& os) const OVERRIDE;  // NOLINT
-
-  intptr_t Hashcode() OVERRIDE { return cell_.Hashcode(); }
-
-  void FinalizeUniqueness() OVERRIDE { cell_ = Unique<Cell>(cell_.handle()); }
-
-  Representation RequiredInputRepresentation(int index) OVERRIDE {
-    return Representation::None();
-  }
-
-  DECLARE_CONCRETE_INSTRUCTION(LoadGlobalCell)
-
- protected:
-  bool DataEquals(HValue* other) OVERRIDE {
-    return cell_ == HLoadGlobalCell::cast(other)->cell_;
-  }
-
- private:
-  HLoadGlobalCell(Handle<Cell> cell, PropertyDetails details)
-    : cell_(Unique<Cell>::CreateUninitialized(cell)), details_(details) {
-    set_representation(Representation::Tagged());
-    SetFlag(kUseGVN);
-    SetDependsOnFlag(kGlobalVars);
-  }
-
-  bool IsDeletable() const OVERRIDE { return !RequiresHoleCheck(); }
-
-  Unique<Cell> cell_;
-  PropertyDetails details_;
-};
-
-
 class HLoadGlobalGeneric FINAL : public HTemplateInstruction<2> {
  public:
   DECLARE_INSTRUCTION_WITH_CONTEXT_FACTORY_P3(HLoadGlobalGeneric, HValue*,
@@ -5627,9 +5585,10 @@ class HAllocate FINAL : public HTemplateInstruction<2> {
   static Flags ComputeFlags(PretenureFlag pretenure_flag,
                             InstanceType instance_type) {
     Flags flags = pretenure_flag == TENURED
-        ? (Heap::TargetSpaceId(instance_type) == OLD_POINTER_SPACE
-            ? ALLOCATE_IN_OLD_POINTER_SPACE : ALLOCATE_IN_OLD_DATA_SPACE)
-        : ALLOCATE_IN_NEW_SPACE;
+                      ? (Heap::TargetSpaceId(instance_type) == OLD_POINTER_SPACE
+                             ? ALLOCATE_IN_OLD_POINTER_SPACE
+                             : ALLOCATE_IN_OLD_DATA_SPACE)
+                      : ALLOCATE_IN_NEW_SPACE;
     if (instance_type == FIXED_DOUBLE_ARRAY_TYPE) {
       flags = static_cast<Flags>(flags | ALLOCATE_DOUBLE_ALIGNED);
     }
@@ -5671,8 +5630,9 @@ class HAllocate FINAL : public HTemplateInstruction<2> {
 
   bool IsFoldable(HAllocate* allocate) {
     return (IsNewSpaceAllocation() && allocate->IsNewSpaceAllocation()) ||
-        (IsOldDataSpaceAllocation() && allocate->IsOldDataSpaceAllocation()) ||
-        (IsOldPointerSpaceAllocation() &&
+           (IsOldDataSpaceAllocation() &&
+            allocate->IsOldDataSpaceAllocation()) ||
+           (IsOldPointerSpaceAllocation() &&
             allocate->IsOldPointerSpaceAllocation());
   }
 
@@ -5803,43 +5763,6 @@ inline PointersToHereCheck PointersToHereCheckForObject(HValue* object,
   }
   return kPointersToHereMaybeInteresting;
 }
-
-
-class HStoreGlobalCell FINAL : public HUnaryOperation {
- public:
-  DECLARE_INSTRUCTION_FACTORY_P3(HStoreGlobalCell, HValue*,
-                                 Handle<PropertyCell>, PropertyDetails);
-
-  Unique<PropertyCell> cell() const { return cell_; }
-  bool RequiresHoleCheck() { return details_.IsConfigurable(); }
-  bool NeedsWriteBarrier() {
-    return StoringValueNeedsWriteBarrier(value());
-  }
-
-  void FinalizeUniqueness() OVERRIDE {
-    cell_ = Unique<PropertyCell>(cell_.handle());
-  }
-
-  Representation RequiredInputRepresentation(int index) OVERRIDE {
-    return Representation::Tagged();
-  }
-  std::ostream& PrintDataTo(std::ostream& os) const OVERRIDE;  // NOLINT
-
-  DECLARE_CONCRETE_INSTRUCTION(StoreGlobalCell)
-
- private:
-  HStoreGlobalCell(HValue* value,
-                   Handle<PropertyCell> cell,
-                   PropertyDetails details)
-      : HUnaryOperation(value),
-        cell_(Unique<PropertyCell>::CreateUninitialized(cell)),
-        details_(details) {
-    SetChangesFlag(kGlobalVars);
-  }
-
-  Unique<PropertyCell> cell_;
-  PropertyDetails details_;
-};
 
 
 class HLoadContextSlot FINAL : public HUnaryOperation {
@@ -6225,9 +6148,6 @@ class HObjectAccess FINAL {
   static HObjectAccess ForField(Handle<Map> map, int index,
                                 Representation representation,
                                 Handle<String> name);
-
-  // Create an access for the payload of a Cell or JSGlobalPropertyCell.
-  static HObjectAccess ForCellPayload(Isolate* isolate);
 
   static HObjectAccess ForJSTypedArrayLength() {
     return HObjectAccess::ForObservableJSObjectOffset(
@@ -6932,14 +6852,6 @@ class HStoreNamedField FINAL : public HTemplateInstruction<3> {
     SetChangesFlag(kMaps);
   }
 
-  void MarkReceiverAsCell() {
-    bit_field_ = ReceiverIsCellField::update(bit_field_, true);
-  }
-
-  bool receiver_is_cell() const {
-    return ReceiverIsCellField::decode(bit_field_);
-  }
-
   bool NeedsWriteBarrier() const {
     DCHECK(!field_representation().IsDouble() ||
            (FLAG_unbox_double_fields && access_.IsInobject()) ||
@@ -6948,7 +6860,6 @@ class HStoreNamedField FINAL : public HTemplateInstruction<3> {
     if (field_representation().IsSmi()) return false;
     if (field_representation().IsInteger32()) return false;
     if (field_representation().IsExternal()) return false;
-    if (receiver_is_cell()) return false;
     return StoringValueNeedsWriteBarrier(value()) &&
         ReceiverObjectNeedsWriteBarrier(object(), value(), dominator());
   }
@@ -7008,7 +6919,6 @@ class HStoreNamedField FINAL : public HTemplateInstruction<3> {
 
   class HasTransitionField : public BitField<bool, 0, 1> {};
   class StoreModeField : public BitField<StoreFieldOrKeyedMode, 1, 1> {};
-  class ReceiverIsCellField : public BitField<bool, 2, 1> {};
 
   HObjectAccess access_;
   HValue* dominator_;

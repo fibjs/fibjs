@@ -113,11 +113,11 @@ void NamedLoadHandlerCompiler::GenerateLoadFunctionPrototype(
 void PropertyHandlerCompiler::GenerateCheckPropertyCell(
     MacroAssembler* masm, Handle<JSGlobalObject> global, Handle<Name> name,
     Register scratch, Label* miss) {
-  Handle<Cell> cell = JSGlobalObject::EnsurePropertyCell(global, name);
+  Handle<PropertyCell> cell = JSGlobalObject::EnsurePropertyCell(global, name);
   DCHECK(cell->value()->IsTheHole());
   Handle<WeakCell> weak_cell = masm->isolate()->factory()->NewWeakCell(cell);
   __ LoadWeakValue(scratch, weak_cell, miss);
-  __ Ldr(scratch, FieldMemOperand(scratch, Cell::kValueOffset));
+  __ Ldr(scratch, FieldMemOperand(scratch, PropertyCell::kValueOffset));
   __ JumpIfNotRoot(scratch, Heap::kTheHoleValueRootIndex, miss);
 }
 
@@ -349,7 +349,7 @@ Handle<Code> NamedLoadHandlerCompiler::CompileLoadGlobal(
   Register result = StoreDescriptor::ValueRegister();
   Handle<WeakCell> weak_cell = factory()->NewWeakCell(cell);
   __ LoadWeakValue(result, weak_cell, &miss);
-  __ Ldr(result, FieldMemOperand(result, Cell::kValueOffset));
+  __ Ldr(result, FieldMemOperand(result, PropertyCell::kValueOffset));
 
   // Check for deleted property if property can actually be deleted.
   if (is_configurable) {

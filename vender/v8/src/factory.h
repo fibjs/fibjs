@@ -292,9 +292,7 @@ class Factory FINAL {
 
   Handle<Cell> NewCell(Handle<Object> value);
 
-  Handle<PropertyCell> NewPropertyCellWithHole();
-
-  Handle<PropertyCell> NewPropertyCell(Handle<Object> value);
+  Handle<PropertyCell> NewPropertyCell();
 
   Handle<WeakCell> NewWeakCell(Handle<HeapObject> value);
 
@@ -618,8 +616,8 @@ class Factory FINAL {
                                                    MaybeHandle<Code> code);
 
   // Allocate a new type feedback vector
-  Handle<TypeFeedbackVector> NewTypeFeedbackVector(
-      const FeedbackVectorSpec& spec);
+  template <typename Spec>
+  Handle<TypeFeedbackVector> NewTypeFeedbackVector(const Spec* spec);
 
   // Allocates a new JSMessageObject object.
   Handle<JSMessageObject> NewJSMessageObject(

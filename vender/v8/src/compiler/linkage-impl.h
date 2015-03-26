@@ -138,11 +138,13 @@ class LinkageHelper {
   }
 
 
+  // TODO(all): Add support for return representations/locations to
+  // CallInterfaceDescriptor.
   // TODO(turbofan): cache call descriptors for code stub calls.
   static CallDescriptor* GetStubCallDescriptor(
       Isolate* isolate, Zone* zone, const CallInterfaceDescriptor& descriptor,
       int stack_parameter_count, CallDescriptor::Flags flags,
-      Operator::Properties properties) {
+      Operator::Properties properties, MachineType return_type) {
     const int register_parameter_count =
         descriptor.GetEnvironmentParameterCount();
     const int js_parameter_count =
@@ -157,20 +159,23 @@ class LinkageHelper {
 
     // Add return location.
     AddReturnLocations(&locations);
-    types.AddReturn(kMachAnyTagged);
+    types.AddReturn(return_type);
 
     // Add parameters in registers and on the stack.
     for (int i = 0; i < js_parameter_count; i++) {
       if (i < register_parameter_count) {
         // The first parameters go in registers.
         Register reg = descriptor.GetEnvironmentParameterRegister(i);
+        Representation rep =
+            descriptor.GetEnvironmentParameterRepresentation(i);
         locations.AddParam(regloc(reg));
+        types.AddParam(reptyp(rep));
       } else {
         // The rest of the parameters go on the stack.
         int stack_slot = i - register_parameter_count - stack_parameter_count;
         locations.AddParam(stackloc(stack_slot));
+        types.AddParam(kMachAnyTagged);
       }
-      types.AddParam(kMachAnyTagged);
     }
     // Add context.
     locations.AddParam(regloc(LinkageTraits::ContextReg()));
@@ -232,6 +237,34 @@ class LinkageHelper {
     DCHECK_LT(i, 0);
     return LinkageLocation(i);
   }
+
+  static MachineType reptyp(Representation representation) {
+    switch (representation.kind()) {
+      case Representation::kInteger8:
+        return kMachInt8;
+      case Representation::kUInteger8:
+        return kMachUint8;
+      case Representation::kInteger16:
+        return kMachInt16;
+      case Representation::kUInteger16:
+        return kMachUint16;
+      case Representation::kInteger32:
+        return kMachInt32;
+      case Representation::kSmi:
+      case Representation::kTagged:
+      case Representation::kHeapObject:
+        return kMachAnyTagged;
+      case Representation::kDouble:
+        return kMachFloat64;
+      case Representation::kExternal:
+        return kMachPtr;
+      case Representation::kNone:
+      case Representation::kNumRepresentations:
+        break;
+    }
+    UNREACHABLE();
+    return kMachNone;
+  }
 };
 
 
@@ -253,7 +286,6 @@ LinkageLocation Linkage::GetOsrValueLocation(int index) const {
     return incoming_->GetInputLocation(parameter_index);
   }
 }
-
 
 }  // namespace compiler
 }  // namespace internal

@@ -493,6 +493,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
                i.InputInt32(2));
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
+    case kArmClz:
+      __ clz(i.OutputRegister(), i.InputRegister(0));
+      DCHECK_EQ(LeaveCC, i.OutputSBit());
+      break;
     case kArmCmp:
       __ cmp(i.InputRegister(0), i.InputOperand2(1));
       DCHECK_EQ(SetCC, i.OutputSBit());
@@ -806,6 +810,7 @@ void CodeGenerator::AssembleArchTableSwitch(Instruction* instr) {
   ArmOperandConverter i(this, instr);
   Register input = i.InputRegister(0);
   size_t const case_count = instr->InputCount() - 2;
+  __ CheckConstPool(true, true);
   __ cmp(input, Operand(case_count));
   __ BlockConstPoolFor(case_count + 2);
   __ ldr(pc, MemOperand(pc, input, LSL, 2), lo);
