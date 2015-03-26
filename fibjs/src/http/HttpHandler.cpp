@@ -213,6 +213,18 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             else if (s == 500)
                 pThis->m_pThis->m_stats->inc(HTTP_ERROR_500);
 
+            std::string str;
+
+            pThis->m_req->get_method(str);
+            bool headOnly = !qstricmp(str.c_str(), "head");
+
+            if (headOnly)
+            {
+                pThis->set(end);
+                pThis->m_rep->set_keepAlive(false);
+                return pThis->m_rep->sendHeader(pThis->m_stm, pThis);
+            }
+
             int64_t len;
 
             pThis->m_rep->get_length(len);
