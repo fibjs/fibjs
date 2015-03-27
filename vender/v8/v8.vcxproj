@@ -135,6 +135,7 @@
     <ClInclude Include="src\compiler\js-inlining.h" />
     <ClInclude Include="src\compiler\js-intrinsic-lowering.h" />
     <ClInclude Include="src\compiler\js-operator.h" />
+    <ClInclude Include="src\compiler\js-type-feedback.h" />
     <ClInclude Include="src\compiler\js-typed-lowering.h" />
     <ClInclude Include="src\compiler\jump-threading.h" />
     <ClInclude Include="src\compiler\linkage-impl.h" />
@@ -511,6 +512,7 @@
     <ClCompile Include="src\compiler\js-inlining.cc" />
     <ClCompile Include="src\compiler\js-intrinsic-lowering.cc" />
     <ClCompile Include="src\compiler\js-operator.cc" />
+    <ClCompile Include="src\compiler\js-type-feedback.cc" />
     <ClCompile Include="src\compiler\js-typed-lowering.cc" />
     <ClCompile Include="src\compiler\jump-threading.cc" />
     <ClCompile Include="src\compiler\linkage.cc" />
