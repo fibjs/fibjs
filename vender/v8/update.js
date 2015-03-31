@@ -240,4 +240,9 @@ patch_plat();
 
 //fs.unlink('src/version_gen.cc');
 
+fs.unlink('src/snapshot/mksnapshot.cc')
+fs.unlink('src/snapshot/natives-external.cc')
+fs.unlink('src/snapshot/snapshot-external.cc')
+
+
 run('./vsmake.js');

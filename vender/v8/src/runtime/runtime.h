@@ -87,6 +87,7 @@ namespace internal {
   F(TryMigrateInstance, 1, 1)                  \
   F(NotifyContextDisposed, 0, 1)               \
   F(ThrowIteratorResultNotAnObject, 1, 1)      \
+  F(IncrementStatsCounter, 1, 1)               \
                                                \
   /* Array join support */                     \
   F(PushIfAbsent, 2, 1)                        \
@@ -171,6 +172,7 @@ namespace internal {
   F(StringToArray, 2, 1)                       \
   F(NewStringWrapper, 1, 1)                    \
   F(NewString, 2, 1)                           \
+  F(NewConsString, 4, 1)                       \
   F(TruncateString, 2, 1)                      \
                                                \
   /* Numbers */                                \

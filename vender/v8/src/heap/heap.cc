@@ -25,11 +25,11 @@
 #include "src/heap/store-buffer.h"
 #include "src/heap-profiler.h"
 #include "src/isolate-inl.h"
-#include "src/natives.h"
 #include "src/runtime-profiler.h"
 #include "src/scopeinfo.h"
-#include "src/serialize.h"
-#include "src/snapshot.h"
+#include "src/snapshot/natives.h"
+#include "src/snapshot/serialize.h"
+#include "src/snapshot/snapshot.h"
 #include "src/utils.h"
 #include "src/v8threads.h"
 #include "src/vm-state-inl.h"
@@ -1903,6 +1903,18 @@ Address Heap::DoScavenge(ObjectVisitor* scavenge_visitor,
         // to new space.
         DCHECK(!target->IsMap());
         Address obj_address = target->address();
+
+        // We are not collecting slots on new space objects during mutation
+        // thus we have to scan for pointers to evacuation candidates when we
+        // promote objects. But we should not record any slots in non-black
+        // objects. Grey object's slots would be rescanned.
+        // White object might not survive until the end of collection
+        // it would be a violation of the invariant to record it's slots.
+        bool record_slots = false;
+        if (incremental_marking()->IsCompacting()) {
+          MarkBit mark_bit = Marking::MarkBitFrom(target);
+          record_slots = Marking::IsBlack(mark_bit);
+        }
 #if V8_DOUBLE_FIELDS_UNBOXING
         LayoutDescriptorHelper helper(target->map());
         bool has_only_tagged_fields = helper.all_fields_tagged();
@@ -1912,15 +1924,15 @@ Address Heap::DoScavenge(ObjectVisitor* scavenge_visitor,
             int end_of_region_offset;
             if (helper.IsTagged(offset, size, &end_of_region_offset)) {
               IterateAndMarkPointersToFromSpace(
-                  obj_address + offset, obj_address + end_of_region_offset,
-                  &ScavengeObject);
+                  record_slots, obj_address + offset,
+                  obj_address + end_of_region_offset, &ScavengeObject);
             }
             offset = end_of_region_offset;
           }
         } else {
 #endif
-          IterateAndMarkPointersToFromSpace(obj_address, obj_address + size,
-                                            &ScavengeObject);
+          IterateAndMarkPointersToFromSpace(
+              record_slots, obj_address, obj_address + size, &ScavengeObject);
 #if V8_DOUBLE_FIELDS_UNBOXING
         }
 #endif
@@ -4702,6 +4714,7 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
 
   if ((FLAG_trace_idle_notification && action.type > DO_NOTHING) ||
       FLAG_trace_idle_notification_verbose) {
+    PrintPID("%8.0f ms: ", isolate()->time_millis_since_init());
     PrintF(
         "Idle notification: requested idle time %.2f ms, used idle time %.2f "
         "ms, deadline usage %.2f ms [",
@@ -4891,21 +4904,10 @@ void Heap::ZapFromSpace() {
 }
 
 
-void Heap::IterateAndMarkPointersToFromSpace(Address start, Address end,
+void Heap::IterateAndMarkPointersToFromSpace(bool record_slots, Address start,
+                                             Address end,
                                              ObjectSlotCallback callback) {
   Address slot_address = start;
-
-  // We are not collecting slots on new space objects during mutation
-  // thus we have to scan for pointers to evacuation candidates when we
-  // promote objects. But we should not record any slots in non-black
-  // objects. Grey object's slots would be rescanned.
-  // White object might not survive until the end of collection
-  // it would be a violation of the invariant to record it's slots.
-  bool record_slots = false;
-  if (incremental_marking()->IsCompacting()) {
-    MarkBit mark_bit = Marking::MarkBitFrom(HeapObject::FromAddress(start));
-    record_slots = Marking::IsBlack(mark_bit);
-  }
 
   while (slot_address < end) {
     Object** slot = reinterpret_cast<Object**>(slot_address);

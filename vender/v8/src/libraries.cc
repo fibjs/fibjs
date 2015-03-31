@@ -5,7 +5,7 @@
 // javascript source files or the GYP script.
 
 #include "src/v8.h"
-#include "src/natives.h"
+#include "src/snapshot/natives.h"
 #include "src/utils.h"
 
 namespace v8 {
