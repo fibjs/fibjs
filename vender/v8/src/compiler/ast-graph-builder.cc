@@ -1627,7 +1627,7 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
       BuildLoadObjectField(closure, JSFunction::kLiteralsOffset);
   Node* literal_index = jsgraph()->Constant(expr->literal_index());
   Node* constants = jsgraph()->Constant(expr->constant_properties());
-  Node* flags = jsgraph()->Constant(expr->ComputeFlags());
+  Node* flags = jsgraph()->Constant(expr->ComputeFlags(true));
   const Operator* op =
       javascript()->CallRuntime(Runtime::kCreateObjectLiteral, 4);
   Node* literal = NewNode(op, literals_array, literal_index, constants, flags);
@@ -1819,7 +1819,7 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
       BuildLoadObjectField(closure, JSFunction::kLiteralsOffset);
   Node* literal_index = jsgraph()->Constant(expr->literal_index());
   Node* constants = jsgraph()->Constant(expr->constant_elements());
-  Node* flags = jsgraph()->Constant(expr->ComputeFlags());
+  Node* flags = jsgraph()->Constant(expr->ComputeFlags(true));
   const Operator* op =
       javascript()->CallRuntime(Runtime::kCreateArrayLiteral, 4);
   Node* literal = NewNode(op, literals_array, literal_index, constants, flags);
@@ -2737,13 +2737,8 @@ Node* AstGraphBuilder::BuildThrowIfStaticPrototype(Node* name,
   Node* check = NewNode(javascript()->StrictEqual(), name, prototype_string);
   prototype_check.If(check);
   prototype_check.Then();
-  {
-    const Operator* op =
-        javascript()->CallRuntime(Runtime::kThrowStaticPrototypeError, 0);
-    Node* call = NewNode(op);
-    PrepareFrameState(call, bailout_id);
-    environment()->Push(call);
-  }
+  Node* error = BuildThrowStaticPrototypeError(bailout_id);
+  environment()->Push(error);
   prototype_check.Else();
   environment()->Push(name);
   prototype_check.End();
@@ -3102,7 +3097,9 @@ Node* AstGraphBuilder::BuildThrowError(Node* exception, BailoutId bailout_id) {
   const Operator* op = javascript()->CallRuntime(Runtime::kThrow, 1);
   Node* call = NewNode(op, exception);
   PrepareFrameState(call, bailout_id);
-  return call;
+  Node* control = NewNode(common()->Throw(), call);
+  UpdateControlDependencyToLeaveFunction(control);
+  return control;
 }
 
 
@@ -3113,7 +3110,9 @@ Node* AstGraphBuilder::BuildThrowReferenceError(Variable* variable,
       javascript()->CallRuntime(Runtime::kThrowReferenceError, 1);
   Node* call = NewNode(op, variable_name);
   PrepareFrameState(call, bailout_id);
-  return call;
+  Node* control = NewNode(common()->Throw(), call);
+  UpdateControlDependencyToLeaveFunction(control);
+  return control;
 }
 
 
@@ -3122,7 +3121,20 @@ Node* AstGraphBuilder::BuildThrowConstAssignError(BailoutId bailout_id) {
       javascript()->CallRuntime(Runtime::kThrowConstAssignError, 0);
   Node* call = NewNode(op);
   PrepareFrameState(call, bailout_id);
-  return call;
+  Node* control = NewNode(common()->Throw(), call);
+  UpdateControlDependencyToLeaveFunction(control);
+  return control;
+}
+
+
+Node* AstGraphBuilder::BuildThrowStaticPrototypeError(BailoutId bailout_id) {
+  const Operator* op =
+      javascript()->CallRuntime(Runtime::kThrowStaticPrototypeError, 0);
+  Node* call = NewNode(op);
+  PrepareFrameState(call, bailout_id);
+  Node* control = NewNode(common()->Throw(), call);
+  UpdateControlDependencyToLeaveFunction(control);
+  return control;
 }
 
 
@@ -3296,7 +3308,7 @@ Node* AstGraphBuilder::MakeNode(const Operator* op, int value_input_count,
       if (!result->op()->HasProperty(Operator::kNoThrow) && inside_try_scope) {
         Node* on_exception = graph()->NewNode(common()->IfException(), result);
         environment_->UpdateControlDependency(on_exception);
-        execution_control()->ThrowValue(result);
+        execution_control()->ThrowValue(on_exception);
       }
       // Add implicit success continuation for throwing nodes.
       if (!result->op()->HasProperty(Operator::kNoThrow)) {

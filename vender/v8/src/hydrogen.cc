@@ -5552,19 +5552,13 @@ void HOptimizedGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
     Handle<FixedArray> closure_literals(closure->literals(), isolate());
     Handle<FixedArray> constant_properties = expr->constant_properties();
     int literal_index = expr->literal_index();
-    int flags = expr->fast_elements()
-        ? ObjectLiteral::kFastElements : ObjectLiteral::kNoFlags;
-    flags |= expr->has_function()
-        ? ObjectLiteral::kHasFunction : ObjectLiteral::kNoFlags;
+    int flags = expr->ComputeFlags(true);
 
     Add<HPushArguments>(Add<HConstant>(closure_literals),
                         Add<HConstant>(literal_index),
                         Add<HConstant>(constant_properties),
                         Add<HConstant>(flags));
 
-    // TODO(mvstanton): Add a flag to turn off creation of any
-    // AllocationMementos for this call: we are in crankshaft and should have
-    // learned enough about transition behavior to stop emitting mementos.
     Runtime::FunctionId function_id = Runtime::kCreateObjectLiteral;
     literal = Add<HCallRuntime>(isolate()->factory()->empty_string(),
                                 Runtime::FunctionForId(function_id),
@@ -5723,10 +5717,7 @@ void HOptimizedGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
     // pass an empty fixed array to the runtime function instead.
     Handle<FixedArray> constants = isolate()->factory()->empty_fixed_array();
     int literal_index = expr->literal_index();
-    int flags = expr->depth() == 1
-        ? ArrayLiteral::kShallowElements
-        : ArrayLiteral::kNoFlags;
-    flags |= ArrayLiteral::kDisableMementos;
+    int flags = expr->ComputeFlags(true);
 
     Add<HPushArguments>(Add<HConstant>(literals),
                         Add<HConstant>(literal_index),
@@ -6075,7 +6066,8 @@ bool HOptimizedGraphBuilder::PropertyAccessInfo::LookupInPrototypes() {
 
 bool HOptimizedGraphBuilder::PropertyAccessInfo::IsIntegerIndexedExotic() {
   InstanceType instance_type = map_->instance_type();
-  return instance_type == JS_TYPED_ARRAY_TYPE && IsNonArrayIndexInteger(*name_);
+  return instance_type == JS_TYPED_ARRAY_TYPE &&
+         IsSpecialIndex(isolate()->unicode_cache(), *name_);
 }
 
 
@@ -6840,13 +6832,18 @@ HInstruction* HGraphBuilder::AddLoadStringInstanceType(HValue* string) {
 
 
 HInstruction* HGraphBuilder::AddLoadStringLength(HValue* string) {
+  return AddInstruction(BuildLoadStringLength(string));
+}
+
+
+HInstruction* HGraphBuilder::BuildLoadStringLength(HValue* string) {
   if (string->IsConstant()) {
     HConstant* c_string = HConstant::cast(string);
     if (c_string->HasStringValue()) {
-      return Add<HConstant>(c_string->StringValue()->length());
+      return New<HConstant>(c_string->StringValue()->length());
     }
   }
-  return Add<HLoadNamedField>(string, nullptr,
+  return New<HLoadNamedField>(string, nullptr,
                               HObjectAccess::ForStringLength());
 }
 
@@ -11879,7 +11876,7 @@ void HOptimizedGraphBuilder::GenerateStringGetLength(CallRuntime* call) {
   DCHECK(call->arguments()->length() == 1);
   CHECK_ALIVE(VisitForValue(call->arguments()->at(0)));
   HValue* string = Pop();
-  HInstruction* result = AddLoadStringLength(string);
+  HInstruction* result = BuildLoadStringLength(string);
   return ast_context()->ReturnInstruction(result, call->id());
 }
 
@@ -12044,6 +12041,17 @@ void HOptimizedGraphBuilder::GenerateMathSqrt(CallRuntime* call) {
   HValue* value = Pop();
   HInstruction* result = NewUncasted<HUnaryMathOperation>(value, kMathSqrt);
   return ast_context()->ReturnInstruction(result, call->id());
+}
+
+
+void HOptimizedGraphBuilder::GenerateLikely(CallRuntime* call) {
+  DCHECK(call->arguments()->length() == 1);
+  Visit(call->arguments()->at(0));
+}
+
+
+void HOptimizedGraphBuilder::GenerateUnlikely(CallRuntime* call) {
+  return GenerateLikely(call);
 }
 
 

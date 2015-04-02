@@ -12,7 +12,6 @@ namespace internal {
 const double GCIdleTimeHandler::kConservativeTimeRatio = 0.9;
 const size_t GCIdleTimeHandler::kMaxMarkCompactTimeInMs = 1000;
 const size_t GCIdleTimeHandler::kMaxFinalIncrementalMarkCompactTimeInMs = 1000;
-const size_t GCIdleTimeHandler::kMinTimeForFinalizeSweeping = 100;
 const int GCIdleTimeHandler::kMaxMarkCompactsInIdleRound = 2;
 const int GCIdleTimeHandler::kIdleScavengeThreshold = 5;
 const double GCIdleTimeHandler::kHighContextDisposalRate = 100;
@@ -132,8 +131,12 @@ bool GCIdleTimeHandler::ShouldDoScavenge(
         static_cast<size_t>(new_space_size * kConservativeTimeRatio);
   } else {
     // We have to trigger scavenge before we reach the end of new space.
-    new_space_allocation_limit -=
-        new_space_allocation_throughput_in_bytes_per_ms * kMaxScheduledIdleTime;
+    size_t adjust_limit = new_space_allocation_throughput_in_bytes_per_ms *
+                          kTimeUntilNextIdleEvent;
+    if (adjust_limit > new_space_allocation_limit)
+      new_space_allocation_limit = 0;
+    else
+      new_space_allocation_limit -= adjust_limit;
   }
 
   if (scavenge_speed_in_bytes_per_ms == 0) {
@@ -184,11 +187,22 @@ bool GCIdleTimeHandler::ShouldDoOverApproximateWeakClosure(
 }
 
 
+GCIdleTimeAction GCIdleTimeHandler::NothingOrDone() {
+  if (idle_times_which_made_no_progress_since_last_idle_round_ >=
+      kMaxNoProgressIdleTimesPerIdleRound) {
+    return GCIdleTimeAction::Done();
+  } else {
+    idle_times_which_made_no_progress_since_last_idle_round_++;
+    return GCIdleTimeAction::Nothing();
+  }
+}
+
+
 // The following logic is implemented by the controller:
 // (1) If we don't have any idle time, do nothing, unless a context was
 // disposed, incremental marking is stopped, and the heap is small. Then do
 // a full GC.
-// (2) If the new space is almost full and we can affort a Scavenge or if the
+// (2) If the new space is almost full and we can afford a Scavenge or if the
 // next Scavenge will very likely take long, then a Scavenge is performed.
 // (3) If there is currently no MarkCompact idle round going on, we start a
 // new idle round if enough garbage was created. Otherwise we do not perform
@@ -240,17 +254,18 @@ GCIdleTimeAction GCIdleTimeHandler::Compute(double idle_time_in_ms,
       return GCIdleTimeAction::FullGC();
     }
   }
-
-  // TODO(hpayer): Estimate finalize sweeping time.
-  if (heap_state.sweeping_in_progress &&
-      static_cast<size_t>(idle_time_in_ms) >= kMinTimeForFinalizeSweeping) {
-    return GCIdleTimeAction::FinalizeSweeping();
+  if (heap_state.sweeping_in_progress) {
+    if (heap_state.sweeping_completed) {
+      return GCIdleTimeAction::FinalizeSweeping();
+    } else {
+      return NothingOrDone();
+    }
   }
-
   if (heap_state.incremental_marking_stopped &&
       !heap_state.can_start_incremental_marking) {
-    return GCIdleTimeAction::Nothing();
+    return NothingOrDone();
   }
+
   size_t step_size = EstimateMarkingStepSize(
       static_cast<size_t>(kIncrementalMarkingStepTimeInMs),
       heap_state.incremental_marking_speed_in_bytes_per_ms);

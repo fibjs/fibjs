@@ -228,13 +228,20 @@ void Verifier::Visitor::Check(Node* node) {
       // Type is empty.
       CheckNotTyped(node);
       break;
-    case IrOpcode::kIfSuccess:
-    case IrOpcode::kIfException: {
+    case IrOpcode::kIfSuccess: {
       // IfSuccess and IfException continuation only on throwing nodes.
       Node* input = NodeProperties::GetControlInput(node, 0);
       CHECK(!input->op()->HasProperty(Operator::kNoThrow));
       // Type is empty.
       CheckNotTyped(node);
+      break;
+    }
+    case IrOpcode::kIfException: {
+      // IfSuccess and IfException continuation only on throwing nodes.
+      Node* input = NodeProperties::GetControlInput(node, 0);
+      CHECK(!input->op()->HasProperty(Operator::kNoThrow));
+      // Type can be anything.
+      CheckUpperIs(node, Type::Any());
       break;
     }
     case IrOpcode::kSwitch: {
@@ -780,6 +787,16 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kUint64Div:
     case IrOpcode::kUint64Mod:
     case IrOpcode::kUint64LessThan:
+    case IrOpcode::kFloat32Add:
+    case IrOpcode::kFloat32Sub:
+    case IrOpcode::kFloat32Mul:
+    case IrOpcode::kFloat32Div:
+    case IrOpcode::kFloat32Max:
+    case IrOpcode::kFloat32Min:
+    case IrOpcode::kFloat32Sqrt:
+    case IrOpcode::kFloat32Equal:
+    case IrOpcode::kFloat32LessThan:
+    case IrOpcode::kFloat32LessThanOrEqual:
     case IrOpcode::kFloat64Add:
     case IrOpcode::kFloat64Sub:
     case IrOpcode::kFloat64Mul:

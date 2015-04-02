@@ -596,7 +596,6 @@ void InstructionSelector::VisitNode(Node* node) {
     case IrOpcode::kIfTrue:
     case IrOpcode::kIfFalse:
     case IrOpcode::kIfSuccess:
-    case IrOpcode::kIfException:
     case IrOpcode::kSwitch:
     case IrOpcode::kIfValue:
     case IrOpcode::kIfDefault:
@@ -604,6 +603,8 @@ void InstructionSelector::VisitNode(Node* node) {
     case IrOpcode::kMerge:
       // No code needed for these graph artifacts.
       return;
+    case IrOpcode::kIfException:
+      return MarkAsReference(node), VisitIfException(node);
     case IrOpcode::kFinish:
       return MarkAsReference(node), VisitFinish(node);
     case IrOpcode::kParameter: {
@@ -751,6 +752,26 @@ void InstructionSelector::VisitNode(Node* node) {
       return VisitTruncateFloat64ToInt32(node);
     case IrOpcode::kTruncateInt64ToInt32:
       return VisitTruncateInt64ToInt32(node);
+    case IrOpcode::kFloat32Add:
+      return MarkAsDouble(node), VisitFloat32Add(node);
+    case IrOpcode::kFloat32Sub:
+      return MarkAsDouble(node), VisitFloat32Sub(node);
+    case IrOpcode::kFloat32Mul:
+      return MarkAsDouble(node), VisitFloat32Mul(node);
+    case IrOpcode::kFloat32Div:
+      return MarkAsDouble(node), VisitFloat32Div(node);
+    case IrOpcode::kFloat32Min:
+      return MarkAsDouble(node), VisitFloat32Min(node);
+    case IrOpcode::kFloat32Max:
+      return MarkAsDouble(node), VisitFloat32Max(node);
+    case IrOpcode::kFloat32Sqrt:
+      return MarkAsDouble(node), VisitFloat32Sqrt(node);
+    case IrOpcode::kFloat32Equal:
+      return VisitFloat32Equal(node);
+    case IrOpcode::kFloat32LessThan:
+      return VisitFloat32LessThan(node);
+    case IrOpcode::kFloat32LessThanOrEqual:
+      return VisitFloat32LessThanOrEqual(node);
     case IrOpcode::kFloat64Add:
       return MarkAsDouble(node), VisitFloat64Add(node);
     case IrOpcode::kFloat64Sub:
@@ -946,6 +967,16 @@ void InstructionSelector::VisitParameter(Node* node) {
   Emit(kArchNop,
        g.DefineAsLocation(node, linkage()->GetParameterLocation(index),
                           linkage()->GetParameterType(index)));
+}
+
+
+void InstructionSelector::VisitIfException(Node* node) {
+  OperandGenerator g(this);
+  Node* call = node->InputAt(0);
+  DCHECK_EQ(IrOpcode::kCall, call->opcode());
+  const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(call);
+  Emit(kArchNop, g.DefineAsLocation(node, descriptor->GetReturnLocation(0),
+                                    descriptor->GetReturnType(0)));
 }
 
 

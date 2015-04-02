@@ -2424,8 +2424,6 @@ void Heap::ScavengeObjectSlow(HeapObject** p, HeapObject* object) {
   MapWord first_word = object->map_word();
   SLOW_DCHECK(!first_word.IsForwardingAddress());
   Map* map = first_word.ToMap();
-  // TODO(jochen): Remove again after fixing http://crbug.com/452095
-  CHECK((*p)->IsHeapObject() == object->IsHeapObject());
   map->GetHeap()->DoScavengeObject(map, p, object);
 }
 
@@ -4628,6 +4626,8 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
       !mark_compact_collector()->sweeping_in_progress();
   heap_state.sweeping_in_progress =
       mark_compact_collector()->sweeping_in_progress();
+  heap_state.sweeping_completed =
+      mark_compact_collector()->IsSweepingCompleted();
   heap_state.mark_compact_speed_in_bytes_per_ms =
       static_cast<size_t>(tracer()->MarkCompactSpeedInBytesPerMillisecond());
   heap_state.incremental_marking_speed_in_bytes_per_ms = static_cast<size_t>(

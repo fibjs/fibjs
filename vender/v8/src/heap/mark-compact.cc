@@ -2103,6 +2103,7 @@ void MarkCompactCollector::EmptyMarkingDeque() {
 // overflowed objects in the heap so the overflow flag on the markings stack
 // is cleared.
 void MarkCompactCollector::RefillMarkingDeque() {
+  isolate()->CountUsage(v8::Isolate::UseCounterFeature::kMarkDequeOverflow);
   DCHECK(marking_deque_.overflowed());
 
   DiscoverGreyObjectsInNewSpace(heap(), &marking_deque_);
@@ -2609,6 +2610,13 @@ void MarkCompactCollector::TrimDescriptorArray(Map* map,
 
   if (descriptors->HasEnumCache()) TrimEnumCache(map, descriptors);
   descriptors->Sort();
+
+  if (FLAG_unbox_double_fields) {
+    LayoutDescriptor* layout_descriptor = map->layout_descriptor();
+    layout_descriptor = layout_descriptor->Trim(heap_, map, descriptors,
+                                                number_of_own_descriptors);
+    SLOW_DCHECK(layout_descriptor->IsConsistentWithMap(map, true));
+  }
 }
 
 
@@ -2884,8 +2892,6 @@ class PointersUpdatingVisitor : public ObjectVisitor {
     // Avoid unnecessary changes that might unnecessary flush the instruction
     // cache.
     if (target != old_target) {
-      // TODO(jochen): Remove again after fixing http://crbug.com/452095
-      CHECK(target->IsHeapObject() == old_target->IsHeapObject());
       rinfo->set_target_object(target);
     }
   }
@@ -2896,8 +2902,6 @@ class PointersUpdatingVisitor : public ObjectVisitor {
     Object* old_target = target;
     VisitPointer(&target);
     if (target != old_target) {
-      // TODO(jochen): Remove again after fixing http://crbug.com/452095
-      CHECK(target->IsHeapObject() == old_target->IsHeapObject());
       rinfo->set_target_address(Code::cast(target)->instruction_start());
     }
   }
@@ -2908,8 +2912,6 @@ class PointersUpdatingVisitor : public ObjectVisitor {
     DCHECK(stub != NULL);
     VisitPointer(&stub);
     if (stub != rinfo->code_age_stub()) {
-      // TODO(jochen): Remove again after fixing http://crbug.com/452095
-      CHECK(stub->IsHeapObject() == rinfo->code_age_stub()->IsHeapObject());
       rinfo->set_code_age_stub(Code::cast(stub));
     }
   }
@@ -2921,9 +2923,6 @@ class PointersUpdatingVisitor : public ObjectVisitor {
             rinfo->IsPatchedDebugBreakSlotSequence()));
     Object* target = Code::GetCodeFromTargetAddress(rinfo->call_address());
     VisitPointer(&target);
-    // TODO(jochen): Remove again after fixing http://crbug.com/452095
-    CHECK(target->IsCode() &&
-          HAS_SMI_TAG(Code::cast(target)->instruction_start()));
     rinfo->set_call_address(Code::cast(target)->instruction_start());
   }
 
@@ -3068,9 +3067,6 @@ static void UpdatePointer(HeapObject** address, HeapObject* object) {
          object->GetHeap()->lo_space()->FindPage(
              reinterpret_cast<Address>(address)) != NULL);
   if (map_word.IsForwardingAddress()) {
-    // TODO(jochen): Remove again after fixing http://crbug.com/452095
-    CHECK((*address)->IsHeapObject() ==
-          map_word.ToForwardingAddress()->IsHeapObject());
     // Update the corresponding slot.
     *address = map_word.ToForwardingAddress();
   }
@@ -3690,6 +3686,7 @@ void MarkCompactCollector::EvacuateNewSpaceAndCandidates() {
     GCTracer::Scope gc_scope(heap()->tracer(),
                              GCTracer::Scope::MC_SWEEP_NEWSPACE);
     code_slots_filtering_required = MarkInvalidatedCode();
+    EvacuationScope evacuation_scope(this);
     EvacuateNewSpace();
   }
 
@@ -4482,6 +4479,12 @@ void MarkCompactCollector::SweepSpaces() {
     heap_->tracer()->AddSweepingTime(base::OS::TimeCurrentMillis() -
                                      start_time);
   }
+
+#ifdef VERIFY_HEAP
+  if (FLAG_verify_heap && !sweeping_in_progress_) {
+    VerifyEvacuation(heap());
+  }
+#endif
 }
 
 
@@ -4669,6 +4672,30 @@ void MarkCompactCollector::RecordRelocSlot(RelocInfo* rinfo, Object* target) {
     if (!success) {
       EvictEvacuationCandidate(target_page);
     }
+  }
+}
+
+
+void MarkCompactCollector::EvictEvacuationCandidate(Page* page) {
+  if (FLAG_trace_fragmentation) {
+    PrintF("Page %p is too popular. Disabling evacuation.\n",
+           reinterpret_cast<void*>(page));
+  }
+
+  isolate()->CountUsage(v8::Isolate::UseCounterFeature::kSlotsBufferOverflow);
+
+  // TODO(gc) If all evacuation candidates are too popular we
+  // should stop slots recording entirely.
+  page->ClearEvacuationCandidate();
+
+  // We were not collecting slots on this page that point
+  // to other evacuation candidates thus we have to
+  // rescan the page after evacuation to discover and update all
+  // pointers to evacuated objects.
+  if (page->owner()->identity() == OLD_DATA_SPACE) {
+    evacuation_candidates_.RemoveElement(page);
+  } else {
+    page->SetFlag(Page::RESCAN_ON_EVACUATION);
   }
 }
 

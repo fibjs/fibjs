@@ -2143,13 +2143,8 @@ void Assembler::seleqz(Register rs, Register rt, Register rd) {
 // FPR.
 void Assembler::seleqz(SecondaryField fmt, FPURegister fd,
     FPURegister ft, FPURegister fs) {
-  DCHECK(kArchVariant == kMips64r6);
-  DCHECK(fmt == D);
-  DCHECK(fmt == S);
-
-  Instr instr = COP1 | fmt << kRsShift | ft.code() << kFtShift |
-      fs.code() << kFsShift | fd.code() << kFdShift | SELEQZ_C;
-  emit(instr);
+  DCHECK((fmt == D) || (fmt == S));
+  GenInstrRegister(COP1, fmt, ft, fs, fd, SELEQZ_C);
 }
 
 
@@ -2164,12 +2159,8 @@ void Assembler::selnez(Register rs, Register rt, Register rd) {
 void Assembler::selnez(SecondaryField fmt, FPURegister fd,
     FPURegister ft, FPURegister fs) {
   DCHECK(kArchVariant == kMips64r6);
-  DCHECK(fmt == D);
-  DCHECK(fmt == S);
-
-  Instr instr = COP1 | fmt << kRsShift | ft.code() << kFtShift |
-      fs.code() << kFsShift | fd.code() << kFdShift | SELNEZ_C;
-  emit(instr);
+  DCHECK((fmt == D) || (fmt == S));
+  GenInstrRegister(COP1, fmt, ft, fs, fd, SELNEZ_C);
 }
 
 
@@ -2290,13 +2281,28 @@ void Assembler::DoubleAsTwoUInt32(double d, uint32_t* lo, uint32_t* hi) {
 
 // Arithmetic.
 
+void Assembler::add_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  GenInstrRegister(COP1, S, ft, fs, fd, ADD_D);
+}
+
+
 void Assembler::add_d(FPURegister fd, FPURegister fs, FPURegister ft) {
   GenInstrRegister(COP1, D, ft, fs, fd, ADD_D);
 }
 
 
+void Assembler::sub_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  GenInstrRegister(COP1, S, ft, fs, fd, SUB_D);
+}
+
+
 void Assembler::sub_d(FPURegister fd, FPURegister fs, FPURegister ft) {
   GenInstrRegister(COP1, D, ft, fs, fd, SUB_D);
+}
+
+
+void Assembler::mul_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  GenInstrRegister(COP1, S, ft, fs, fd, MUL_D);
 }
 
 
@@ -2308,6 +2314,11 @@ void Assembler::mul_d(FPURegister fd, FPURegister fs, FPURegister ft) {
 void Assembler::madd_d(FPURegister fd, FPURegister fr, FPURegister fs,
     FPURegister ft) {
   GenInstrRegister(COP1X, fr, ft, fs, fd, MADD_D);
+}
+
+
+void Assembler::div_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  GenInstrRegister(COP1, S, ft, fs, fd, DIV_D);
 }
 
 
@@ -2326,8 +2337,18 @@ void Assembler::mov_d(FPURegister fd, FPURegister fs) {
 }
 
 
+void Assembler::neg_s(FPURegister fd, FPURegister fs) {
+  GenInstrRegister(COP1, S, f0, fs, fd, NEG_D);
+}
+
+
 void Assembler::neg_d(FPURegister fd, FPURegister fs) {
   GenInstrRegister(COP1, D, f0, fs, fd, NEG_D);
+}
+
+
+void Assembler::sqrt_s(FPURegister fd, FPURegister fs) {
+  GenInstrRegister(COP1, S, f0, fs, fd, SQRT_D);
 }
 
 

@@ -546,6 +546,45 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       }
       break;
 
+    case kMipsCmpS:
+      // Psuedo-instruction used for FP cmp/branch. No opcode emitted here.
+      break;
+    case kMipsAddS:
+      // TODO(plind): add special case: combine mult & add.
+      __ add_s(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+               i.InputDoubleRegister(1));
+      break;
+    case kMipsSubS:
+      __ sub_s(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+               i.InputDoubleRegister(1));
+      break;
+    case kMipsMulS:
+      // TODO(plind): add special case: right op is -1.0, see arm port.
+      __ mul_s(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+               i.InputDoubleRegister(1));
+      break;
+    case kMipsDivS:
+      __ div_s(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
+               i.InputDoubleRegister(1));
+      break;
+    case kMipsModS: {
+      // TODO(bmeurer): We should really get rid of this special instruction,
+      // and generate a CallAddress instruction instead.
+      FrameScope scope(masm(), StackFrame::MANUAL);
+      __ PrepareCallCFunction(0, 2, kScratchReg);
+      __ MovToFloatParameters(i.InputDoubleRegister(0),
+                              i.InputDoubleRegister(1));
+      // TODO(balazs.kilvady): implement mod_two_floats_operation(isolate())
+      __ CallCFunction(ExternalReference::mod_two_doubles_operation(isolate()),
+                       0, 2);
+      // Move the result in the double result register.
+      __ MovFromFloatResult(i.OutputSingleRegister());
+      break;
+    }
+    case kMipsSqrtS: {
+      __ sqrt_s(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
+    }
     case kMipsCmpD:
       // Psuedo-instruction used for FP cmp/branch. No opcode emitted here.
       break;
@@ -580,6 +619,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ MovFromFloatResult(i.OutputDoubleRegister());
       break;
     }
+    case kMipsSqrtD: {
+      __ sqrt_d(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
+    }
     case kMipsFloat64RoundDown: {
       ASSEMBLE_ROUND_DOUBLE_TO_DOUBLE(floor_l_d, Floor);
       break;
@@ -590,10 +633,6 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     }
     case kMipsFloat64RoundUp: {
       ASSEMBLE_ROUND_DOUBLE_TO_DOUBLE(ceil_l_d, Ceil);
-      break;
-    }
-    case kMipsSqrtD: {
-      __ sqrt_d(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
       break;
     }
     case kMipsCvtSD: {
@@ -752,6 +791,38 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   out << "Unsupported " << #opcode << " condition: \"" << condition << "\""; \
   UNIMPLEMENTED();
 
+static bool convertCondition(FlagsCondition condition, Condition& cc,
+                             bool& acceptNaN) {
+  acceptNaN = false;
+  switch (condition) {
+    case kEqual:
+      cc = eq;
+      return true;
+    case kNotEqual:
+      cc = ne;
+      acceptNaN = true;
+      return true;
+    case kUnsignedLessThan:
+      cc = lt;
+      return true;
+    case kUnsignedGreaterThanOrEqual:
+      cc = ge;
+      acceptNaN = true;
+      return true;
+    case kUnsignedLessThanOrEqual:
+      cc = le;
+      return true;
+    case kUnsignedGreaterThan:
+      cc = gt;
+      acceptNaN = true;
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
+
 // Assembles branches after an instruction.
 void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
   MipsOperandConverter i(this, instr);
@@ -785,36 +856,27 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
 
     if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
 
+  } else if (instr->arch_opcode() == kMipsCmpS) {
+    // TODO(dusmil) optimize unordered checks to use fewer instructions
+    // even if we have to unfold BranchF macro.
+    bool acceptNaN = false;
+    if (!convertCondition(branch->condition, cc, acceptNaN)) {
+      UNSUPPORTED_COND(kMips64CmpS, branch->condition);
+    }
+    Label* nan = acceptNaN ? tlabel : flabel;
+    __ BranchFS(tlabel, nan, cc, i.InputSingleRegister(0),
+                i.InputSingleRegister(1));
+
+    if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
+
   } else if (instr->arch_opcode() == kMipsCmpD) {
     // TODO(dusmil) optimize unordered checks to use fewer instructions
     // even if we have to unfold BranchF macro.
-    Label* nan = flabel;
-    switch (branch->condition) {
-      case kEqual:
-        cc = eq;
-        break;
-      case kNotEqual:
-        cc = ne;
-        nan = tlabel;
-        break;
-      case kUnsignedLessThan:
-        cc = lt;
-        break;
-      case kUnsignedGreaterThanOrEqual:
-        cc = ge;
-        nan = tlabel;
-        break;
-      case kUnsignedLessThanOrEqual:
-        cc = le;
-        break;
-      case kUnsignedGreaterThan:
-        cc = gt;
-        nan = tlabel;
-        break;
-      default:
-        UNSUPPORTED_COND(kMipsCmpD, branch->condition);
-        break;
+    bool acceptNaN = false;
+    if (!convertCondition(branch->condition, cc, acceptNaN)) {
+      UNSUPPORTED_COND(kMips64CmpD, branch->condition);
     }
+    Label* nan = acceptNaN ? tlabel : flabel;
     __ BranchF(tlabel, nan, cc, i.InputDoubleRegister(0),
                i.InputDoubleRegister(1));
 

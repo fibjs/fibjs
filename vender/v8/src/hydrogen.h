@@ -1418,6 +1418,7 @@ class HGraphBuilder {
 
   HInstruction* AddLoadStringInstanceType(HValue* string);
   HInstruction* AddLoadStringLength(HValue* string);
+  HInstruction* BuildLoadStringLength(HValue* string);
   HStoreNamedField* AddStoreMapConstant(HValue* object, Handle<Map> map) {
     return Add<HStoreNamedField>(object, HObjectAccess::ForMap(),
                                  Add<HConstant>(map));
@@ -2199,6 +2200,8 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   F(GetFromCache)                      \
   F(NumberToString)                    \
   F(DebugIsActive)                     \
+  F(Likely)                            \
+  F(Unlikely)                          \
   /* Typed Arrays */                   \
   F(TypedArrayInitialize)              \
   F(DataViewInitialize)                \

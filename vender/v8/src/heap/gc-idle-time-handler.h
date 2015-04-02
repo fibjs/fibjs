@@ -111,10 +111,6 @@ class GCIdleTimeHandler {
   // EstimateFinalIncrementalMarkCompactTime.
   static const size_t kMaxFinalIncrementalMarkCompactTimeInMs;
 
-  // Minimum time to finalize sweeping phase. The main thread may wait for
-  // sweeper threads.
-  static const size_t kMinTimeForFinalizeSweeping;
-
   // Number of idle mark-compact events, after which idle handler will finish
   // idle round.
   static const int kMaxMarkCompactsInIdleRound;
@@ -125,6 +121,10 @@ class GCIdleTimeHandler {
   // This is the maximum scheduled idle time. Note that it can be more than
   // 16 ms when there is currently no rendering going on.
   static const size_t kMaxScheduledIdleTime = 50;
+
+  // We conservatively assume that in the next kTimeUntilNextIdleEvent ms
+  // no idle notification happens.
+  static const size_t kTimeUntilNextIdleEvent = 100;
 
   // If we haven't recorded any scavenger events yet, we use a conservative
   // lower bound for the scavenger speed.
@@ -138,6 +138,11 @@ class GCIdleTimeHandler {
 
   static const size_t kMinTimeForOverApproximatingWeakClosureInMs;
 
+  // Number of times we will return a Nothing action per Idle round despite
+  // having idle time available before we returning a Done action to ensure we
+  // don't keep scheduling idle tasks and making no progress.
+  static const int kMaxNoProgressIdleTimesPerIdleRound = 10;
+
   class HeapState {
    public:
     void Print();
@@ -148,6 +153,7 @@ class GCIdleTimeHandler {
     bool incremental_marking_stopped;
     bool can_start_incremental_marking;
     bool sweeping_in_progress;
+    bool sweeping_completed;
     size_t mark_compact_speed_in_bytes_per_ms;
     size_t incremental_marking_speed_in_bytes_per_ms;
     size_t final_incremental_mark_compact_speed_in_bytes_per_ms;
@@ -159,7 +165,8 @@ class GCIdleTimeHandler {
 
   GCIdleTimeHandler()
       : mark_compacts_since_idle_round_started_(0),
-        scavenges_since_last_idle_round_(0) {}
+        scavenges_since_last_idle_round_(0),
+        idle_times_which_made_no_progress_since_last_idle_round_(0) {}
 
   GCIdleTimeAction Compute(double idle_time_in_ms, HeapState heap_state);
 
@@ -203,7 +210,12 @@ class GCIdleTimeHandler {
       size_t new_space_allocation_throughput_in_bytes_per_ms);
 
  private:
-  void StartIdleRound() { mark_compacts_since_idle_round_started_ = 0; }
+  GCIdleTimeAction NothingOrDone();
+
+  void StartIdleRound() {
+    mark_compacts_since_idle_round_started_ = 0;
+    idle_times_which_made_no_progress_since_last_idle_round_ = 0;
+  }
   bool IsMarkCompactIdleRoundFinished() {
     return mark_compacts_since_idle_round_started_ ==
            kMaxMarkCompactsInIdleRound;
@@ -214,6 +226,7 @@ class GCIdleTimeHandler {
 
   int mark_compacts_since_idle_round_started_;
   int scavenges_since_last_idle_round_;
+  int idle_times_which_made_no_progress_since_last_idle_round_;
 
   DISALLOW_COPY_AND_ASSIGN(GCIdleTimeHandler);
 };
