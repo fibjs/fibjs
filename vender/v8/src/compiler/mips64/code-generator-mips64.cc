@@ -793,13 +793,11 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Push(i.InputRegister(0));
       break;
     case kMips64StackClaim: {
-      int words = MiscField::decode(instr->opcode());
-      __ Dsubu(sp, sp, Operand(words << kPointerSizeLog2));
+      __ Dsubu(sp, sp, Operand(i.InputInt32(0)));
       break;
     }
     case kMips64StoreToStackSlot: {
-      int slot = MiscField::decode(instr->opcode());
-      __ sd(i.InputRegister(0), MemOperand(sp, slot << kPointerSizeLog2));
+      __ sd(i.InputRegister(0), MemOperand(sp, i.InputInt32(1)));
       break;
     }
     case kMips64StoreWriteBarrier: {
@@ -929,8 +927,8 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
       UNSUPPORTED_COND(kMips64CmpS, branch->condition);
     }
     Label* nan = acceptNaN ? tlabel : flabel;
-    __ BranchFS(tlabel, nan, cc, i.InputSingleRegister(0),
-                i.InputSingleRegister(1));
+    __ BranchF32(tlabel, nan, cc, i.InputSingleRegister(0),
+                 i.InputSingleRegister(1));
 
     if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
 
@@ -942,8 +940,8 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
       UNSUPPORTED_COND(kMips64CmpD, branch->condition);
     }
     Label* nan = acceptNaN ? tlabel : flabel;
-    __ BranchF(tlabel, nan, cc, i.InputDoubleRegister(0),
-               i.InputDoubleRegister(1));
+    __ BranchF64(tlabel, nan, cc, i.InputDoubleRegister(0),
+                 i.InputDoubleRegister(1));
 
     if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
   } else {

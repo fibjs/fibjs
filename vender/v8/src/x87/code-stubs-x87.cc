@@ -1604,6 +1604,30 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
 }
 
 
+static void CallStubInRecordCallTarget(MacroAssembler* masm, CodeStub* stub) {
+  // eax : number of arguments to the construct function
+  // ebx : Feedback vector
+  // edx : slot in feedback vector (Smi)
+  // edi : the function to call
+  FrameScope scope(masm, StackFrame::INTERNAL);
+
+  // Arguments register must be smi-tagged to call out.
+  __ SmiTag(eax);
+  __ push(eax);
+  __ push(edi);
+  __ push(edx);
+  __ push(ebx);
+
+  __ CallStub(stub);
+
+  __ pop(ebx);
+  __ pop(edx);
+  __ pop(edi);
+  __ pop(eax);
+  __ SmiUntag(eax);
+}
+
+
 static void GenerateRecordCallTarget(MacroAssembler* masm) {
   // Cache the called function in a feedback vector slot.  Cache states
   // are uninitialized, monomorphic (indicated by a JSFunction), and
@@ -1621,18 +1645,26 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 
   // A monomorphic cache hit or an already megamorphic state: invoke the
   // function without changing the state.
-  __ cmp(ecx, edi);
+  Label check_allocation_site;
+  __ cmp(edi, FieldOperand(ecx, WeakCell::kValueOffset));
   __ j(equal, &done, Label::kFar);
-  __ cmp(ecx, Immediate(TypeFeedbackVector::MegamorphicSentinel(isolate)));
+  __ CompareRoot(ecx, Heap::kmegamorphic_symbolRootIndex);
   __ j(equal, &done, Label::kFar);
+  __ CompareRoot(FieldOperand(ecx, 0), Heap::kWeakCellMapRootIndex);
+  __ j(not_equal, FLAG_pretenuring_call_new ? &miss : &check_allocation_site);
+
+  // If edi is not equal to the weak cell value, and the weak cell value is
+  // cleared, we have a new chance to become monomorphic.
+  __ JumpIfSmi(FieldOperand(ecx, WeakCell::kValueOffset), &initialize);
+  __ jmp(&megamorphic);
 
   if (!FLAG_pretenuring_call_new) {
+    __ bind(&check_allocation_site);
     // If we came here, we need to see if we are the array function.
     // If we didn't have a matching function, and we didn't find the megamorph
     // sentinel, then we have in the slot either some other function or an
     // AllocationSite. Do a map check on the object in ecx.
-    Handle<Map> allocation_site_map = isolate->factory()->allocation_site_map();
-    __ cmp(FieldOperand(ecx, 0), Immediate(allocation_site_map));
+    __ CompareRoot(FieldOperand(ecx, 0), Heap::kAllocationSiteMapRootIndex);
     __ j(not_equal, &miss);
 
     // Make sure the function is the Array() function
@@ -1646,7 +1678,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 
   // A monomorphic miss (i.e, here the cache is not uninitialized) goes
   // megamorphic.
-  __ cmp(ecx, Immediate(TypeFeedbackVector::UninitializedSentinel(isolate)));
+  __ CompareRoot(ecx, Heap::kuninitialized_symbolRootIndex);
   __ j(equal, &initialize);
   // MegamorphicSentinel is an immortal immovable object (undefined) so no
   // write-barrier is needed.
@@ -1668,43 +1700,15 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
     // The target function is the Array constructor,
     // Create an AllocationSite if we don't already have it, store it in the
     // slot.
-    {
-      FrameScope scope(masm, StackFrame::INTERNAL);
-
-      // Arguments register must be smi-tagged to call out.
-      __ SmiTag(eax);
-      __ push(eax);
-      __ push(edi);
-      __ push(edx);
-      __ push(ebx);
-
-      CreateAllocationSiteStub create_stub(isolate);
-      __ CallStub(&create_stub);
-
-      __ pop(ebx);
-      __ pop(edx);
-      __ pop(edi);
-      __ pop(eax);
-      __ SmiUntag(eax);
-    }
+    CreateAllocationSiteStub create_stub(isolate);
+    CallStubInRecordCallTarget(masm, &create_stub);
     __ jmp(&done);
 
     __ bind(&not_array_function);
   }
 
-  __ mov(FieldOperand(ebx, edx, times_half_pointer_size,
-                      FixedArray::kHeaderSize),
-         edi);
-  // We won't need edx or ebx anymore, just save edi
-  __ push(edi);
-  __ push(ebx);
-  __ push(edx);
-  __ RecordWriteArray(ebx, edi, edx, kDontSaveFPRegs, EMIT_REMEMBERED_SET,
-                      OMIT_SMI_CHECK);
-  __ pop(edx);
-  __ pop(ebx);
-  __ pop(edi);
-
+  CreateWeakCellStub create_stub(isolate);
+  CallStubInRecordCallTarget(masm, &create_stub);
   __ bind(&done);
 }
 
@@ -2130,6 +2134,7 @@ void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   CreateWeakCellStub::GenerateAheadOfTime(isolate);
   BinaryOpICStub::GenerateAheadOfTime(isolate);
   BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
+  StoreFastElementStub::GenerateAheadOfTime(isolate);
 }
 
 
@@ -3262,7 +3267,7 @@ void CompareICStub::GenerateSmis(MacroAssembler* masm) {
 void CompareICStub::GenerateNumbers(MacroAssembler* masm) {
   DCHECK(state() == CompareICState::NUMBER);
 
-  Label generic_stub;
+  Label generic_stub, check_left;
   Label unordered, maybe_undefined1, maybe_undefined2;
   Label miss;
 
@@ -3275,13 +3280,13 @@ void CompareICStub::GenerateNumbers(MacroAssembler* masm) {
 
   // Inlining the double comparison and falling back to the general compare
   // stub if NaN is involved or SSE2 or CMOV is unsupported.
-  __ mov(ecx, edx);
-  __ and_(ecx, eax);
-  __ JumpIfSmi(ecx, &generic_stub, Label::kNear);
-
+  __ JumpIfSmi(eax, &check_left, Label::kNear);
   __ cmp(FieldOperand(eax, HeapObject::kMapOffset),
          isolate()->factory()->heap_number_map());
   __ j(not_equal, &maybe_undefined1, Label::kNear);
+
+  __ bind(&check_left);
+  __ JumpIfSmi(edx, &generic_stub, Label::kNear);
   __ cmp(FieldOperand(edx, HeapObject::kMapOffset),
          isolate()->factory()->heap_number_map());
   __ j(not_equal, &maybe_undefined2, Label::kNear);

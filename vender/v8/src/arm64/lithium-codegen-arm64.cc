@@ -1556,13 +1556,9 @@ void LCodeGen::DoAllocate(LAllocate* instr) {
     flags = static_cast<AllocationFlags>(flags | DOUBLE_ALIGNMENT);
   }
 
-  if (instr->hydrogen()->IsOldPointerSpaceAllocation()) {
-    DCHECK(!instr->hydrogen()->IsOldDataSpaceAllocation());
+  if (instr->hydrogen()->IsOldSpaceAllocation()) {
     DCHECK(!instr->hydrogen()->IsNewSpaceAllocation());
-    flags = static_cast<AllocationFlags>(flags | PRETENURE_OLD_POINTER_SPACE);
-  } else if (instr->hydrogen()->IsOldDataSpaceAllocation()) {
-    DCHECK(!instr->hydrogen()->IsNewSpaceAllocation());
-    flags = static_cast<AllocationFlags>(flags | PRETENURE_OLD_DATA_SPACE);
+    flags = static_cast<AllocationFlags>(flags | PRETENURE);
   }
 
   if (instr->size()->IsConstantOperand()) {
@@ -1617,13 +1613,9 @@ void LCodeGen::DoDeferredAllocate(LAllocate* instr) {
   }
   int flags = AllocateDoubleAlignFlag::encode(
       instr->hydrogen()->MustAllocateDoubleAligned());
-  if (instr->hydrogen()->IsOldPointerSpaceAllocation()) {
-    DCHECK(!instr->hydrogen()->IsOldDataSpaceAllocation());
+  if (instr->hydrogen()->IsOldSpaceAllocation()) {
     DCHECK(!instr->hydrogen()->IsNewSpaceAllocation());
-    flags = AllocateTargetSpace::update(flags, OLD_POINTER_SPACE);
-  } else if (instr->hydrogen()->IsOldDataSpaceAllocation()) {
-    DCHECK(!instr->hydrogen()->IsNewSpaceAllocation());
-    flags = AllocateTargetSpace::update(flags, OLD_DATA_SPACE);
+    flags = AllocateTargetSpace::update(flags, OLD_SPACE);
   } else {
     flags = AllocateTargetSpace::update(flags, NEW_SPACE);
   }

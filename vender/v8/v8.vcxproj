@@ -317,7 +317,7 @@
     <ClInclude Include="src\msan.h" />
     <ClInclude Include="src\objects-inl.h" />
     <ClInclude Include="src\objects.h" />
-    <ClInclude Include="src\optimizing-compiler-thread.h" />
+    <ClInclude Include="src\optimizing-compile-dispatcher.h" />
     <ClInclude Include="src\ostreams.h" />
     <ClInclude Include="src\parser.h" />
     <ClInclude Include="src\pending-compilation-error-handler.h" />
@@ -688,7 +688,7 @@
     <ClCompile Include="src\objects-debug.cc" />
     <ClCompile Include="src\objects-printer.cc" />
     <ClCompile Include="src\objects.cc" />
-    <ClCompile Include="src\optimizing-compiler-thread.cc" />
+    <ClCompile Include="src\optimizing-compile-dispatcher.cc" />
     <ClCompile Include="src\ostreams.cc" />
     <ClCompile Include="src\parser.cc" />
     <ClCompile Include="src\pending-compilation-error-handler.cc" />

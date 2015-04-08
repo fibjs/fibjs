@@ -1633,9 +1633,9 @@ void MacroAssembler::Madd_d(FPURegister fd, FPURegister fr, FPURegister fs,
 }
 
 
-void MacroAssembler::BranchFSize(SecondaryField sizeField, Label* target,
-                                 Label* nan, Condition cc, FPURegister cmp1,
-                                 FPURegister cmp2, BranchDelaySlot bd) {
+void MacroAssembler::BranchFCommon(SecondaryField sizeField, Label* target,
+                                   Label* nan, Condition cc, FPURegister cmp1,
+                                   FPURegister cmp2, BranchDelaySlot bd) {
   BlockTrampolinePoolScope block_trampoline_pool(this);
   if (cc == al) {
     Branch(bd, target);
@@ -1750,20 +1750,6 @@ void MacroAssembler::BranchFSize(SecondaryField sizeField, Label* target,
   if (bd == PROTECT) {
     nop();
   }
-}
-
-
-void MacroAssembler::BranchF(Label* target, Label* nan, Condition cc,
-                             FPURegister cmp1, FPURegister cmp2,
-                             BranchDelaySlot bd) {
-  BranchFSize(D, target, nan, cc, cmp1, cmp2, bd);
-}
-
-
-void MacroAssembler::BranchFS(Label* target, Label* nan, Condition cc,
-                              FPURegister cmp1, FPURegister cmp2,
-                              BranchDelaySlot bd) {
-  BranchFSize(S, target, nan, cc, cmp1, cmp2, bd);
 }
 
 
@@ -3125,24 +3111,6 @@ void MacroAssembler::Ret(Condition cond,
 }
 
 
-void MacroAssembler::J(Label* L, BranchDelaySlot bdslot) {
-  BlockTrampolinePoolScope block_trampoline_pool(this);
-
-  uint64_t imm28;
-  imm28 = jump_address(L);
-  imm28 &= kImm28Mask;
-  { BlockGrowBufferScope block_buf_growth(this);
-    // Buffer growth (and relocation) must be blocked for internal references
-    // until associated instructions are emitted and available to be patched.
-    RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE_ENCODED);
-    j(imm28);
-  }
-  // Emit a nop in the branch delay slot if required.
-  if (bdslot == PROTECT)
-    nop();
-}
-
-
 void MacroAssembler::Jr(Label* L, BranchDelaySlot bdslot) {
   BlockTrampolinePoolScope block_trampoline_pool(this);
 
@@ -3182,6 +3150,7 @@ void MacroAssembler::Jalr(Label* L, BranchDelaySlot bdslot) {
 
 
 void MacroAssembler::DropAndRet(int drop) {
+  DCHECK(is_int16(drop * kPointerSize));
   Ret(USE_DELAY_SLOT);
   daddiu(sp, sp, drop * kPointerSize);
 }
@@ -3219,7 +3188,7 @@ void MacroAssembler::Drop(int count,
      Branch(&skip, NegateCondition(cond), reg, op);
   }
 
-  daddiu(sp, sp, count * kPointerSize);
+  Daddu(sp, sp, Operand(count * kPointerSize));
 
   if (cond != al) {
     bind(&skip);

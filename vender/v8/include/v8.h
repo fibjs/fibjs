@@ -3482,6 +3482,17 @@ class V8_EXPORT ArrayBufferView : public Object {
    */
   size_t ByteLength();
 
+  /**
+   * Copy the contents of the ArrayBufferView's buffer to an embedder defined
+   * memory without additional overhead that calling ArrayBufferView::Buffer
+   * might incur.
+   *
+   * Will write at most min(|byte_length|, ByteLength) bytes starting at
+   * ByteOffset of the underling buffer to the memory starting at |dest|.
+   * Returns the number of bytes actually written.
+   */
+  size_t CopyContents(void* dest, size_t byte_length);
+
   V8_INLINE static ArrayBufferView* Cast(Value* obj);
 
   static const int kInternalFieldCount =
@@ -4736,15 +4747,14 @@ typedef void (*AddHistogramSampleCallback)(void* histogram, int sample);
 // --- Memory Allocation Callback ---
 enum ObjectSpace {
   kObjectSpaceNewSpace = 1 << 0,
-  kObjectSpaceOldPointerSpace = 1 << 1,
-  kObjectSpaceOldDataSpace = 1 << 2,
-  kObjectSpaceCodeSpace = 1 << 3,
-  kObjectSpaceMapSpace = 1 << 4,
-  kObjectSpaceCellSpace = 1 << 5,
-  kObjectSpaceLoSpace = 1 << 6,
-  kObjectSpaceAll = kObjectSpaceNewSpace | kObjectSpaceOldPointerSpace |
-                    kObjectSpaceOldDataSpace | kObjectSpaceCodeSpace |
-                    kObjectSpaceMapSpace | kObjectSpaceLoSpace
+  kObjectSpaceOldSpace = 1 << 1,
+  kObjectSpaceCodeSpace = 1 << 2,
+  kObjectSpaceMapSpace = 1 << 3,
+  kObjectSpaceCellSpace = 1 << 4,
+  kObjectSpaceLoSpace = 1 << 5,
+  kObjectSpaceAll = kObjectSpaceNewSpace | kObjectSpaceOldSpace |
+                    kObjectSpaceCodeSpace | kObjectSpaceMapSpace |
+                    kObjectSpaceLoSpace
 };
 
   enum AllocationAction {
@@ -6728,7 +6738,7 @@ class Internals {
   static const int kNodeIsIndependentShift = 3;
   static const int kNodeIsPartiallyDependentShift = 4;
 
-  static const int kJSObjectType = 0xbd;
+  static const int kJSObjectType = 0xbe;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
   static const int kForeignType = 0x87;

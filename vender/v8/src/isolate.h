@@ -19,7 +19,7 @@
 #include "src/handles.h"
 #include "src/hashmap.h"
 #include "src/heap/heap.h"
-#include "src/optimizing-compiler-thread.h"
+#include "src/optimizing-compile-dispatcher.h"
 #include "src/regexp-stack.h"
 #include "src/runtime/runtime.h"
 #include "src/runtime-profiler.h"
@@ -986,7 +986,9 @@ class Isolate {
   }
 
   bool serializer_enabled() const { return serializer_enabled_; }
-  bool snapshot_available() const { return snapshot_blob_ != NULL; }
+  bool snapshot_available() const {
+    return snapshot_blob_ != NULL && snapshot_blob_->raw_size != 0;
+  }
 
   bool IsDead() { return has_fatal_error_; }
   void SignalFatalError() { has_fatal_error_ = true; }
@@ -1026,20 +1028,20 @@ class Isolate {
 
   bool concurrent_recompilation_enabled() {
     // Thread is only available with flag enabled.
-    DCHECK(optimizing_compiler_thread_ == NULL ||
+    DCHECK(optimizing_compile_dispatcher_ == NULL ||
            FLAG_concurrent_recompilation);
-    return optimizing_compiler_thread_ != NULL;
+    return optimizing_compile_dispatcher_ != NULL;
   }
 
   bool concurrent_osr_enabled() const {
     // Thread is only available with flag enabled.
-    DCHECK(optimizing_compiler_thread_ == NULL ||
+    DCHECK(optimizing_compile_dispatcher_ == NULL ||
            FLAG_concurrent_recompilation);
-    return optimizing_compiler_thread_ != NULL && FLAG_concurrent_osr;
+    return optimizing_compile_dispatcher_ != NULL && FLAG_concurrent_osr;
   }
 
-  OptimizingCompilerThread* optimizing_compiler_thread() {
-    return optimizing_compiler_thread_;
+  OptimizingCompileDispatcher* optimizing_compile_dispatcher() {
+    return optimizing_compile_dispatcher_;
   }
 
   int id() const { return static_cast<int>(id_); }
@@ -1327,7 +1329,7 @@ class Isolate {
 #endif
 
   DeferredHandles* deferred_handles_head_;
-  OptimizingCompilerThread* optimizing_compiler_thread_;
+  OptimizingCompileDispatcher* optimizing_compile_dispatcher_;
 
   // Counts deopt points if deopt_every_n_times is enabled.
   unsigned int stress_deopt_count_;
@@ -1348,7 +1350,7 @@ class Isolate {
 
   friend class ExecutionAccess;
   friend class HandleScopeImplementer;
-  friend class OptimizingCompilerThread;
+  friend class OptimizingCompileDispatcher;
   friend class SweeperThread;
   friend class ThreadManager;
   friend class Simulator;

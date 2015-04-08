@@ -79,6 +79,10 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
         return Operand(InputRegister32(index), UXTB);
       case kMode_Operand2_R_UXTH:
         return Operand(InputRegister32(index), UXTH);
+      case kMode_Operand2_R_SXTB:
+        return Operand(InputRegister32(index), SXTB);
+      case kMode_Operand2_R_SXTH:
+        return Operand(InputRegister32(index), SXTH);
       case kMode_MRI:
       case kMode_MRR:
         break;
@@ -103,6 +107,10 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
         return Operand(InputRegister64(index), UXTB);
       case kMode_Operand2_R_UXTH:
         return Operand(InputRegister64(index), UXTH);
+      case kMode_Operand2_R_SXTB:
+        return Operand(InputRegister64(index), SXTB);
+      case kMode_Operand2_R_SXTH:
+        return Operand(InputRegister64(index), SXTH);
       case kMode_MRI:
       case kMode_MRR:
         break;
@@ -121,6 +129,8 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
       case kMode_Operand2_R_ROR_I:
       case kMode_Operand2_R_UXTB:
       case kMode_Operand2_R_UXTH:
+      case kMode_Operand2_R_SXTB:
+      case kMode_Operand2_R_SXTH:
         break;
       case kMode_MRI:
         *first_index += 2;

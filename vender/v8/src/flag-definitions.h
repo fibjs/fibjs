@@ -363,9 +363,6 @@ DEFINE_BOOL(optimize_for_in, true, "optimize functions containing for-in loops")
 
 DEFINE_BOOL(concurrent_recompilation, true,
             "optimizing hot functions asynchronously on a separate thread")
-DEFINE_BOOL(job_based_recompilation, true,
-            "post tasks to v8::Platform instead of using a thread for "
-            "concurrent recompilation")
 DEFINE_BOOL(trace_concurrent_recompilation, false,
             "track concurrent recompilation")
 DEFINE_INT(concurrent_recompilation_queue_length, 8,
@@ -843,6 +840,8 @@ DEFINE_BOOL(gc_verbose, false, "print stuff during garbage collection")
 DEFINE_BOOL(heap_stats, false, "report heap statistics before and after GC")
 DEFINE_BOOL(code_stats, false, "report code statistics after GC")
 DEFINE_BOOL(print_handles, false, "report handles after GC")
+DEFINE_BOOL(check_handle_count, false,
+            "Check that there are not too many handles at GC")
 DEFINE_BOOL(print_global_handles, false, "report global handles after GC")
 
 // TurboFan debug-only flags.

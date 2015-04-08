@@ -993,7 +993,7 @@
     <ClInclude Include="src\objects.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\optimizing-compiler-thread.h">
+    <ClInclude Include="src\optimizing-compile-dispatcher.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ostreams.h">
@@ -2102,7 +2102,7 @@
     <ClCompile Include="src\objects.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\optimizing-compiler-thread.cc">
+    <ClCompile Include="src\optimizing-compile-dispatcher.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ostreams.cc">

@@ -416,9 +416,9 @@ class ControlReducerImpl {
       case IrOpcode::kBranch:
         return ReduceBranch(node);
       case IrOpcode::kIfTrue:
-        return ReduceIfTrue(node);
+        return ReduceIfProjection(node, kTrue);
       case IrOpcode::kIfFalse:
-        return ReduceIfFalse(node);
+        return ReduceIfProjection(node, kFalse);
       case IrOpcode::kLoop:
       case IrOpcode::kMerge:
         return ReduceMerge(node);
@@ -433,7 +433,7 @@ class ControlReducerImpl {
   }
 
   // Try to statically fold a condition.
-  Decision DecideCondition(Node* cond) {
+  Decision DecideCondition(Node* cond, bool recurse = true) {
     switch (cond->opcode()) {
       case IrOpcode::kInt32Constant:
         return Int32Matcher(cond).Is(0) ? kFalse : kTrue;
@@ -444,13 +444,28 @@ class ControlReducerImpl {
       case IrOpcode::kHeapConstant: {
         Handle<Object> object =
             HeapObjectMatcher<Object>(cond).Value().handle();
-        if (object->IsTrue()) return kTrue;
-        if (object->IsFalse()) return kFalse;
-        // TODO(turbofan): decide more conditions for heap constants.
-        break;
+        return object->BooleanValue() ? kTrue : kFalse;
+      }
+      case IrOpcode::kPhi: {
+        if (!recurse) return kUnknown;  // Only go one level deep checking phis.
+        Decision result = kUnknown;
+        // Check if all inputs to a phi result in the same decision.
+        for (int i = cond->op()->ValueInputCount() - 1; i >= 0; i--) {
+          // Recurse only one level, since phis can be involved in cycles.
+          Decision decision = DecideCondition(cond->InputAt(i), false);
+          if (decision == kUnknown) return kUnknown;
+          if (result == kUnknown) result = decision;
+          if (result != decision) return kUnknown;
+        }
+        return result;
       }
       default:
         break;
+    }
+    if (NodeProperties::IsTyped(cond)) {
+      // If the node has a range type, check whether the range excludes 0.
+      Type* type = NodeProperties::GetBounds(cond).upper;
+      if (type->IsRange() && (type->Min() > 0 || type->Max() < 0)) return kTrue;
     }
     return kUnknown;
   }
@@ -551,52 +566,30 @@ class ControlReducerImpl {
 
     // Check if it's an unused diamond.
     if (live == 2 && phis.empty()) {
-      Node* node0 = node->InputAt(0);
-      Node* node1 = node->InputAt(1);
-      if (((node0->opcode() == IrOpcode::kIfTrue &&
-            node1->opcode() == IrOpcode::kIfFalse) ||
-           (node1->opcode() == IrOpcode::kIfTrue &&
-            node0->opcode() == IrOpcode::kIfFalse)) &&
-          node0->OwnedBy(node) && node1->OwnedBy(node)) {
-        Node* branch0 = NodeProperties::GetControlInput(node0);
-        Node* branch1 = NodeProperties::GetControlInput(node1);
-        if (branch0 == branch1) {
-          // It's a dead diamond, i.e. neither the IfTrue nor the IfFalse nodes
-          // have users except for the Merge and the Merge has no Phi or
-          // EffectPhi uses, so replace the Merge with the control input of the
-          // diamond.
-          TRACE("  DeadDiamond: #%d:%s #%d:%s #%d:%s\n", node0->id(),
-                node0->op()->mnemonic(), node1->id(), node1->op()->mnemonic(),
-                branch0->id(), branch0->op()->mnemonic());
-          return NodeProperties::GetControlInput(branch0);
-        }
+      DiamondMatcher matcher(node);
+      if (matcher.Matched() && matcher.IfProjectionsAreOwned()) {
+        // It's a dead diamond, i.e. neither the IfTrue nor the IfFalse nodes
+        // have uses except for the Merge and the Merge has no Phi or
+        // EffectPhi uses, so replace the Merge with the control input of the
+        // diamond.
+        TRACE("  DeadDiamond: #%d:Branch #%d:IfTrue #%d:IfFalse\n",
+              matcher.Branch()->id(), matcher.IfTrue()->id(),
+              matcher.IfFalse()->id());
+        // TODO(turbofan): replace single-phi diamonds with selects.
+        return NodeProperties::GetControlInput(matcher.Branch());
       }
     }
 
     return node;
   }
 
-  // Reduce branches if they have constant inputs.
-  Node* ReduceIfTrue(Node* node) {
+  // Reduce if projections if the branch has a constant input.
+  Node* ReduceIfProjection(Node* node, Decision decision) {
     Node* branch = node->InputAt(0);
     DCHECK_EQ(IrOpcode::kBranch, branch->opcode());
     Decision result = DecideCondition(branch->InputAt(0));
-    if (result == kTrue) {
-      // fold a true branch by replacing IfTrue with the branch control.
-      TRACE("  BranchReduce: #%d:%s => #%d:%s\n", branch->id(),
-            branch->op()->mnemonic(), node->id(), node->op()->mnemonic());
-      return branch->InputAt(1);
-    }
-    return result == kUnknown ? node : dead();
-  }
-
-  // Reduce branches if they have constant inputs.
-  Node* ReduceIfFalse(Node* node) {
-    Node* branch = node->InputAt(0);
-    DCHECK_EQ(IrOpcode::kBranch, branch->opcode());
-    Decision result = DecideCondition(branch->InputAt(0));
-    if (result == kFalse) {
-      // fold a false branch by replacing IfFalse with the branch control.
+    if (result == decision) {
+      // Fold a branch by replacing IfTrue/IfFalse with the branch control.
       TRACE("  BranchReduce: #%d:%s => #%d:%s\n", branch->id(),
             branch->op()->mnemonic(), node->id(), node->op()->mnemonic());
       return branch->InputAt(1);
@@ -681,9 +674,9 @@ Node* ControlReducer::ReduceIfNodeForTesting(JSGraph* jsgraph,
   ControlReducerImpl impl(&zone, jsgraph, common);
   switch (node->opcode()) {
     case IrOpcode::kIfTrue:
-      return impl.ReduceIfTrue(node);
+      return impl.ReduceIfProjection(node, kTrue);
     case IrOpcode::kIfFalse:
-      return impl.ReduceIfFalse(node);
+      return impl.ReduceIfProjection(node, kFalse);
     default:
       return node;
   }

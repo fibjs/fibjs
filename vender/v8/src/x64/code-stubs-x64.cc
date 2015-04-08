@@ -1782,6 +1782,31 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
 }
 
 
+static void CallStubInRecordCallTarget(MacroAssembler* masm, CodeStub* stub) {
+  // eax : number of arguments to the construct function
+  // ebx : Feedback vector
+  // edx : slot in feedback vector (Smi)
+  // edi : the function to call
+  FrameScope scope(masm, StackFrame::INTERNAL);
+
+  // Arguments register must be smi-tagged to call out.
+  __ Integer32ToSmi(rax, rax);
+  __ Push(rax);
+  __ Push(rdi);
+  __ Integer32ToSmi(rdx, rdx);
+  __ Push(rdx);
+  __ Push(rbx);
+
+  __ CallStub(stub);
+
+  __ Pop(rbx);
+  __ Pop(rdx);
+  __ Pop(rdi);
+  __ Pop(rax);
+  __ SmiToInteger32(rax, rax);
+}
+
+
 static void GenerateRecordCallTarget(MacroAssembler* masm) {
   // Cache the called function in a feedback vector slot.  Cache states
   // are uninitialized, monomorphic (indicated by a JSFunction), and
@@ -1801,19 +1826,28 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 
   // A monomorphic cache hit or an already megamorphic state: invoke the
   // function without changing the state.
-  __ cmpp(rcx, rdi);
-  __ j(equal, &done);
-  __ Cmp(rcx, TypeFeedbackVector::MegamorphicSentinel(isolate));
-  __ j(equal, &done);
+  Label check_allocation_site;
+  __ cmpp(rdi, FieldOperand(rcx, WeakCell::kValueOffset));
+  __ j(equal, &done, Label::kFar);
+  __ CompareRoot(rcx, Heap::kmegamorphic_symbolRootIndex);
+  __ j(equal, &done, Label::kFar);
+  __ CompareRoot(FieldOperand(rcx, 0), Heap::kWeakCellMapRootIndex);
+  __ j(not_equal, FLAG_pretenuring_call_new ? &miss : &check_allocation_site);
+
+  // If edi is not equal to the weak cell value, and the weak cell value is
+  // cleared, we have a new chance to become monomorphic. Otherwise, we
+  // need to go megamorphic.
+  __ CheckSmi(FieldOperand(rcx, WeakCell::kValueOffset));
+  __ j(equal, &initialize);
+  __ jmp(&megamorphic);
 
   if (!FLAG_pretenuring_call_new) {
+    __ bind(&check_allocation_site);
     // If we came here, we need to see if we are the array function.
     // If we didn't have a matching function, and we didn't find the megamorph
     // sentinel, then we have in the slot either some other function or an
     // AllocationSite. Do a map check on the object in rcx.
-    Handle<Map> allocation_site_map =
-        masm->isolate()->factory()->allocation_site_map();
-    __ Cmp(FieldOperand(rcx, 0), allocation_site_map);
+    __ CompareRoot(FieldOperand(rcx, 0), Heap::kAllocationSiteMapRootIndex);
     __ j(not_equal, &miss);
 
     // Make sure the function is the Array() function
@@ -1827,7 +1861,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 
   // A monomorphic miss (i.e, here the cache is not uninitialized) goes
   // megamorphic.
-  __ Cmp(rcx, TypeFeedbackVector::UninitializedSentinel(isolate));
+  __ CompareRoot(rcx, Heap::kuninitialized_symbolRootIndex);
   __ j(equal, &initialize);
   // MegamorphicSentinel is an immortal immovable object (undefined) so no
   // write-barrier is needed.
@@ -1846,43 +1880,16 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
     __ cmpp(rdi, rcx);
     __ j(not_equal, &not_array_function);
 
-    {
-      FrameScope scope(masm, StackFrame::INTERNAL);
-
-      // Arguments register must be smi-tagged to call out.
-      __ Integer32ToSmi(rax, rax);
-      __ Push(rax);
-      __ Push(rdi);
-      __ Integer32ToSmi(rdx, rdx);
-      __ Push(rdx);
-      __ Push(rbx);
-
-      CreateAllocationSiteStub create_stub(isolate);
-      __ CallStub(&create_stub);
-
-      __ Pop(rbx);
-      __ Pop(rdx);
-      __ Pop(rdi);
-      __ Pop(rax);
-      __ SmiToInteger32(rax, rax);
-    }
+    CreateAllocationSiteStub create_stub(isolate);
+    CallStubInRecordCallTarget(masm, &create_stub);
     __ jmp(&done_no_smi_convert);
 
     __ bind(&not_array_function);
   }
 
-  __ movp(FieldOperand(rbx, rdx, times_pointer_size, FixedArray::kHeaderSize),
-          rdi);
-
-  // We won't need rdx or rbx anymore, just save rdi
-  __ Push(rdi);
-  __ Push(rbx);
-  __ Push(rdx);
-  __ RecordWriteArray(rbx, rdi, rdx, kDontSaveFPRegs,
-                      EMIT_REMEMBERED_SET, OMIT_SMI_CHECK);
-  __ Pop(rdx);
-  __ Pop(rbx);
-  __ Pop(rdi);
+  CreateWeakCellStub create_stub(isolate);
+  CallStubInRecordCallTarget(masm, &create_stub);
+  __ jmp(&done_no_smi_convert);
 
   __ bind(&done);
   __ Integer32ToSmi(rdx, rdx);
@@ -2411,16 +2418,6 @@ void CEntryStub::Generate(MacroAssembler* masm) {
     __ movq(rdx, Operand(rsp, 7 * kRegisterSize));
   }
 #endif  // _WIN64
-
-  // Runtime functions should not return 'the hole'.  Allowing it to escape may
-  // lead to crashes in the IC code later.
-  if (FLAG_debug_code) {
-    Label okay;
-    __ CompareRoot(rax, Heap::kTheHoleValueRootIndex);
-    __ j(not_equal, &okay, Label::kNear);
-    __ int3();
-    __ bind(&okay);
-  }
 
   // Check result for exception sentinel.
   Label exception_returned;
