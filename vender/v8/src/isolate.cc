@@ -285,7 +285,7 @@ void Isolate::PushStackTraceAndDie(unsigned int magic,
                                    Object* object,
                                    Map* map,
                                    unsigned int magic2) {
-  const int kMaxStackTraceSize = 8192;
+  const int kMaxStackTraceSize = 32 * KB;
   Handle<String> trace = StackTraceString();
   uint8_t buffer[kMaxStackTraceSize];
   int length = Min(kMaxStackTraceSize - 1, trace->length());
@@ -414,24 +414,31 @@ Handle<Object> Isolate::CaptureSimpleStackTrace(Handle<JSObject> error_object,
 }
 
 
-void Isolate::CaptureAndSetDetailedStackTrace(Handle<JSObject> error_object) {
+MaybeHandle<JSObject> Isolate::CaptureAndSetDetailedStackTrace(
+    Handle<JSObject> error_object) {
   if (capture_stack_trace_for_uncaught_exceptions_) {
     // Capture stack trace for a detailed exception message.
     Handle<Name> key = factory()->detailed_stack_trace_symbol();
     Handle<JSArray> stack_trace = CaptureCurrentStackTrace(
         stack_trace_for_uncaught_exceptions_frame_limit_,
         stack_trace_for_uncaught_exceptions_options_);
-    JSObject::SetProperty(error_object, key, stack_trace, STRICT).Assert();
+    RETURN_ON_EXCEPTION(
+        this, JSObject::SetProperty(error_object, key, stack_trace, STRICT),
+        JSObject);
   }
+  return error_object;
 }
 
 
-void Isolate::CaptureAndSetSimpleStackTrace(Handle<JSObject> error_object,
-                                            Handle<Object> caller) {
+MaybeHandle<JSObject> Isolate::CaptureAndSetSimpleStackTrace(
+    Handle<JSObject> error_object, Handle<Object> caller) {
   // Capture stack trace for simple stack trace string formatting.
   Handle<Name> key = factory()->stack_trace_symbol();
   Handle<Object> stack_trace = CaptureSimpleStackTrace(error_object, caller);
-  JSObject::SetProperty(error_object, key, stack_trace, STRICT).Assert();
+  RETURN_ON_EXCEPTION(
+      this, JSObject::SetProperty(error_object, key, stack_trace, STRICT),
+      JSObject);
+  return error_object;
 }
 
 
@@ -718,7 +725,9 @@ void Isolate::SetFailedAccessCheckCallback(
 
 static inline AccessCheckInfo* GetAccessCheckInfo(Isolate* isolate,
                                                   Handle<JSObject> receiver) {
-  JSFunction* constructor = JSFunction::cast(receiver->map()->GetConstructor());
+  Object* maybe_constructor = receiver->map()->GetConstructor();
+  if (!maybe_constructor->IsJSFunction()) return NULL;
+  JSFunction* constructor = JSFunction::cast(maybe_constructor);
   if (!constructor->shared()->IsApiFunction()) return NULL;
 
   Object* data_obj =
@@ -729,11 +738,16 @@ static inline AccessCheckInfo* GetAccessCheckInfo(Isolate* isolate,
 }
 
 
+static void ThrowAccessCheckError(Isolate* isolate) {
+  Handle<String> message =
+      isolate->factory()->InternalizeUtf8String("no access");
+  isolate->ScheduleThrow(*isolate->factory()->NewTypeError(message));
+}
+
+
 void Isolate::ReportFailedAccessCheck(Handle<JSObject> receiver) {
   if (!thread_local_top()->failed_access_check_callback_) {
-    Handle<String> message = factory()->InternalizeUtf8String("no access");
-    ScheduleThrow(*factory()->NewTypeError(message));
-    return;
+    return ThrowAccessCheckError(this);
   }
 
   DCHECK(receiver->IsAccessCheckNeeded());
@@ -744,7 +758,10 @@ void Isolate::ReportFailedAccessCheck(Handle<JSObject> receiver) {
   Handle<Object> data;
   { DisallowHeapAllocation no_gc;
     AccessCheckInfo* access_check_info = GetAccessCheckInfo(this, receiver);
-    if (!access_check_info) return;
+    if (!access_check_info) {
+      AllowHeapAllocation doesnt_matter_anymore;
+      return ThrowAccessCheckError(this);
+    }
     data = handle(access_check_info->data(), this);
   }
 
@@ -2122,18 +2139,9 @@ bool Isolate::Init(Deserializer* des) {
     set_event_logger(Logger::DefaultEventLoggerSentinel);
   }
 
-  // Set default value if not yet set.
-  // TODO(yangguo): move this to ResourceConstraints::ConfigureDefaults
-  // once ResourceConstraints becomes an argument to the Isolate constructor.
-  if (max_available_threads_ < 1) {
-    // Choose the default between 1 and 4.
-    max_available_threads_ =
-        Max(Min(base::SysInfo::NumberOfProcessors(), 4), 1);
-  }
-
   if (FLAG_trace_hydrogen || FLAG_trace_hydrogen_stubs) {
     PrintF("Concurrent recompilation has been disabled for tracing.\n");
-  } else if (OptimizingCompileDispatcher::Enabled(max_available_threads_)) {
+  } else if (OptimizingCompileDispatcher::Enabled()) {
     optimizing_compile_dispatcher_ = new OptimizingCompileDispatcher(this);
   }
 
@@ -2635,8 +2643,8 @@ void Isolate::CheckDetachedContextsAfterGC() {
   if (new_length == 0) {
     heap()->set_detached_contexts(heap()->empty_fixed_array());
   } else if (new_length < length) {
-    heap()->RightTrimFixedArray<Heap::FROM_MUTATOR>(*detached_contexts,
-                                                    length - new_length);
+    heap()->RightTrimFixedArray<Heap::CONCURRENT_TO_SWEEPER>(
+        *detached_contexts, length - new_length);
   }
 }
 

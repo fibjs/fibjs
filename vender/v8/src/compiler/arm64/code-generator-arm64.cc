@@ -22,7 +22,7 @@ namespace compiler {
 
 
 // Adds Arm64-specific methods to convert InstructionOperands.
-class Arm64OperandConverter FINAL : public InstructionOperandConverter {
+class Arm64OperandConverter final : public InstructionOperandConverter {
  public:
   Arm64OperandConverter(CodeGenerator* gen, Instruction* instr)
       : InstructionOperandConverter(gen, instr) {}
@@ -192,7 +192,8 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
     DCHECK(!op->IsDoubleRegister());
     DCHECK(op->IsStackSlot() || op->IsDoubleStackSlot());
     // The linkage computes where all spill slots are located.
-    FrameOffset offset = linkage()->GetFrameOffset(op->index(), frame(), 0);
+    FrameOffset offset = linkage()->GetFrameOffset(
+        AllocatedOperand::cast(op)->index(), frame(), 0);
     return MemOperand(offset.from_stack_pointer() ? masm->StackPointer() : fp,
                       offset.offset());
   }
@@ -201,12 +202,12 @@ class Arm64OperandConverter FINAL : public InstructionOperandConverter {
 
 namespace {
 
-class OutOfLineLoadNaN32 FINAL : public OutOfLineCode {
+class OutOfLineLoadNaN32 final : public OutOfLineCode {
  public:
   OutOfLineLoadNaN32(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ Fmov(result_, std::numeric_limits<float>::quiet_NaN());
   }
 
@@ -215,12 +216,12 @@ class OutOfLineLoadNaN32 FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadNaN64 FINAL : public OutOfLineCode {
+class OutOfLineLoadNaN64 final : public OutOfLineCode {
  public:
   OutOfLineLoadNaN64(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ Fmov(result_, std::numeric_limits<double>::quiet_NaN());
   }
 
@@ -229,12 +230,12 @@ class OutOfLineLoadNaN64 FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadZero FINAL : public OutOfLineCode {
+class OutOfLineLoadZero final : public OutOfLineCode {
  public:
   OutOfLineLoadZero(CodeGenerator* gen, Register result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL { __ Mov(result_, 0); }
+  void Generate() final { __ Mov(result_, 0); }
 
  private:
   Register const result_;
@@ -692,6 +693,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ Fmin(i.OutputFloat32Register(), i.InputFloat32Register(0),
               i.InputFloat32Register(1));
       break;
+    case kArm64Float32Abs:
+      __ Fabs(i.OutputFloat32Register(), i.InputFloat32Register(0));
+      break;
     case kArm64Float32Sqrt:
       __ Fsqrt(i.OutputFloat32Register(), i.InputFloat32Register(0));
       break;
@@ -739,6 +743,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Float64Min:
       __ Fmin(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
               i.InputDoubleRegister(1));
+      break;
+    case kArm64Float64Abs:
+      __ Fabs(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
       break;
     case kArm64Float64Neg:
       __ Fneg(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
@@ -1124,7 +1131,16 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       Register dst = destination->IsRegister() ? g.ToRegister(destination)
                                                : scope.AcquireX();
       if (src.type() == Constant::kHeapObject) {
-        __ LoadObject(dst, src.ToHeapObject());
+        Handle<HeapObject> src_object = src.ToHeapObject();
+        Heap::RootListIndex index;
+        int offset;
+        if (IsMaterializableFromFrame(src_object, &offset)) {
+          __ Ldr(dst, MemOperand(fp, offset));
+        } else if (IsMaterializableFromRoot(src_object, &index)) {
+          __ LoadRoot(dst, index);
+        } else {
+          __ LoadObject(dst, src_object);
+        }
       } else {
         __ Mov(dst, g.ToImmediate(source));
       }

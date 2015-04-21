@@ -6,6 +6,7 @@
 
 #include "src/allocation-site-scopes.h"
 #include "src/base/bits.h"
+#include "src/bootstrapper.h"
 #include "src/conversions.h"
 #include "src/isolate-inl.h"
 #include "src/macro-assembler.h"
@@ -1137,15 +1138,63 @@ Handle<Object> Factory::NewError(const char* maker, const char* message,
 }
 
 
+Handle<Object> Factory::NewError(const char* maker,
+                                 MessageTemplate::Template template_index,
+                                 Handle<Object> arg0, Handle<Object> arg1,
+                                 Handle<Object> arg2) {
+  HandleScope scope(isolate());
+  Handle<String> error_maker = InternalizeUtf8String(maker);
+  Handle<Object> fun_obj = Object::GetProperty(isolate()->js_builtins_object(),
+                                               error_maker).ToHandleChecked();
+
+  Handle<JSFunction> fun = Handle<JSFunction>::cast(fun_obj);
+  Handle<Object> message_type(Smi::FromInt(template_index), isolate());
+  if (arg0.is_null()) arg0 = undefined_value();
+  if (arg1.is_null()) arg1 = undefined_value();
+  if (arg2.is_null()) arg2 = undefined_value();
+  Handle<Object> argv[] = {message_type, arg0, arg1, arg2};
+
+  // Invoke the JavaScript factory method. If an exception is thrown while
+  // running the factory method, use the exception as the result.
+  Handle<Object> result;
+  MaybeHandle<Object> exception;
+  if (!Execution::TryCall(fun, isolate()->js_builtins_object(), arraysize(argv),
+                          argv, &exception).ToHandle(&result)) {
+    Handle<Object> exception_obj;
+    if (exception.ToHandle(&exception_obj)) {
+      result = exception_obj;
+    } else {
+      result = undefined_value();
+    }
+  }
+  return scope.CloseAndEscape(result);
+}
+
+
 Handle<Object> Factory::NewEvalError(const char* message,
                                      Vector<Handle<Object> > args) {
   return NewError("MakeEvalError", message, args);
 }
 
 
-Handle<Object> Factory::NewError(const char* message,
-                                 Vector<Handle<Object> > args) {
-  return NewError("MakeError", message, args);
+Handle<Object> Factory::NewError(MessageTemplate::Template template_index,
+                                 Handle<Object> arg0, Handle<Object> arg1,
+                                 Handle<Object> arg2) {
+  return NewError("MakeError", template_index, arg0, arg1, arg2);
+}
+
+
+Handle<Object> Factory::NewTypeError(MessageTemplate::Template template_index,
+                                     Handle<Object> arg0, Handle<Object> arg1,
+                                     Handle<Object> arg2) {
+  return NewError("MakeTypeError", template_index, arg0, arg1, arg2);
+}
+
+
+Handle<Object> Factory::NewEvalError(MessageTemplate::Template template_index,
+                                     Handle<Object> arg0, Handle<Object> arg1,
+                                     Handle<Object> arg2) {
+  return NewError("MakeEvalError", template_index, arg0, arg1, arg2);
 }
 
 
@@ -1280,7 +1329,8 @@ Handle<JSFunction> Factory::NewFunction(Handle<Map> map,
           map.is_identical_to(
               isolate()->sloppy_function_without_prototype_map()) ||
           map.is_identical_to(
-              isolate()->sloppy_function_with_readonly_prototype_map())));
+              isolate()->sloppy_function_with_readonly_prototype_map()) ||
+          map.is_identical_to(isolate()->strict_function_map())));
   return NewFunction(map, info, context);
 }
 
@@ -1292,19 +1342,27 @@ Handle<JSFunction> Factory::NewFunction(Handle<String> name) {
 
 
 Handle<JSFunction> Factory::NewFunctionWithoutPrototype(Handle<String> name,
-                                                        Handle<Code> code) {
-  return NewFunction(
-      isolate()->sloppy_function_without_prototype_map(), name, code);
+                                                        Handle<Code> code,
+                                                        bool is_strict) {
+  Handle<Map> map = is_strict
+                        ? isolate()->strict_function_without_prototype_map()
+                        : isolate()->sloppy_function_without_prototype_map();
+  return NewFunction(map, name, code);
 }
 
 
-Handle<JSFunction> Factory::NewFunction(Handle<String> name,
-                                        Handle<Code> code,
+Handle<JSFunction> Factory::NewFunction(Handle<String> name, Handle<Code> code,
                                         Handle<Object> prototype,
-                                        bool read_only_prototype) {
-  Handle<Map> map = read_only_prototype
-      ? isolate()->sloppy_function_with_readonly_prototype_map()
-      : isolate()->sloppy_function_map();
+                                        bool read_only_prototype,
+                                        bool is_strict) {
+  // In strict mode, readonly strict map is only available during bootstrap
+  DCHECK(!is_strict || !read_only_prototype ||
+         isolate()->bootstrapper()->IsActive());
+  Handle<Map> map =
+      is_strict ? isolate()->strict_function_map()
+                : read_only_prototype
+                      ? isolate()->sloppy_function_with_readonly_prototype_map()
+                      : isolate()->sloppy_function_map();
   Handle<JSFunction> result = NewFunction(map, name, code);
   result->set_prototype_or_initial_map(*prototype);
   return result;
@@ -1315,10 +1373,11 @@ Handle<JSFunction> Factory::NewFunction(Handle<String> name, Handle<Code> code,
                                         Handle<Object> prototype,
                                         InstanceType type, int instance_size,
                                         bool read_only_prototype,
-                                        bool install_constructor) {
+                                        bool install_constructor,
+                                        bool is_strict) {
   // Allocate the function
-  Handle<JSFunction> function = NewFunction(
-      name, code, prototype, read_only_prototype);
+  Handle<JSFunction> function =
+      NewFunction(name, code, prototype, read_only_prototype, is_strict);
 
   ElementsKind elements_kind =
       type == JS_ARRAY_TYPE ? FAST_SMI_ELEMENTS : FAST_HOLEY_SMI_ELEMENTS;
@@ -1375,11 +1434,6 @@ Handle<JSObject> Factory::NewFunctionPrototype(Handle<JSFunction> function) {
 }
 
 
-static bool ShouldOptimizeNewClosure(Handle<SharedFunctionInfo> info) {
-  return !info->is_toplevel() && info->allows_lazy_compilation();
-}
-
-
 Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
     Handle<SharedFunctionInfo> info,
     Handle<Context> context,
@@ -1391,6 +1445,10 @@ Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
 
   if (info->ic_age() != isolate()->heap()->global_ic_age()) {
     info->ResetForNewContext(isolate()->heap()->global_ic_age());
+  }
+
+  if (FLAG_always_opt && info->allows_lazy_compilation()) {
+    result->MarkForOptimization();
   }
 
   int index = info->SearchOptimizedCodeMap(context->native_context(),
@@ -1408,12 +1466,8 @@ Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
     Code* code = info->GetCodeFromOptimizedCodeMap(index);
     DCHECK(!code->marked_for_deoptimization());
     result->ReplaceCode(code);
-    return result;
   }
 
-  if (FLAG_always_opt && ShouldOptimizeNewClosure(info)) {
-    result->MarkForOptimization();
-  }
   return result;
 }
 
@@ -1880,7 +1934,7 @@ Handle<JSProxy> Factory::NewJSProxy(Handle<Object> handler,
   // TODO(rossberg): Once we optimize proxies, think about a scheme to share
   // maps. Will probably depend on the identity of the handler object, too.
   Handle<Map> map = NewMap(JS_PROXY_TYPE, JSProxy::kSize);
-  map->SetPrototype(prototype);
+  Map::SetPrototype(map, prototype);
 
   // Allocate the proxy object.
   Handle<JSProxy> result = New<JSProxy>(map, NEW_SPACE);
@@ -1899,7 +1953,7 @@ Handle<JSProxy> Factory::NewJSFunctionProxy(Handle<Object> handler,
   // TODO(rossberg): Once we optimize proxies, think about a scheme to share
   // maps. Will probably depend on the identity of the handler object, too.
   Handle<Map> map = NewMap(JS_FUNCTION_PROXY_TYPE, JSFunctionProxy::kSize);
-  map->SetPrototype(prototype);
+  Map::SetPrototype(map, prototype);
 
   // Allocate the proxy object.
   Handle<JSFunctionProxy> result = New<JSFunctionProxy>(map, NEW_SPACE);
@@ -1924,7 +1978,8 @@ void Factory::ReinitializeJSProxy(Handle<JSProxy> proxy, InstanceType type,
   int size_difference = proxy->map()->instance_size() - map->instance_size();
   DCHECK(size_difference >= 0);
 
-  map->SetPrototype(handle(proxy->map()->prototype(), proxy->GetIsolate()));
+  Handle<Object> prototype(proxy->map()->prototype(), isolate());
+  Map::SetPrototype(map, prototype);
 
   // Allocate the backing storage for the properties.
   int prop_size = map->InitialPropertiesLength();
@@ -1947,7 +2002,8 @@ void Factory::ReinitializeJSProxy(Handle<JSProxy> proxy, InstanceType type,
   if (size_difference > 0) {
     Address address = proxy->address();
     heap->CreateFillerObjectAt(address + map->instance_size(), size_difference);
-    heap->AdjustLiveBytes(address, -size_difference, Heap::FROM_MUTATOR);
+    heap->AdjustLiveBytes(address, -size_difference,
+                          Heap::CONCURRENT_TO_SWEEPER);
   }
 
   // Reset the map for the object.
@@ -2335,10 +2391,10 @@ void Factory::SetRegExpIrregexpData(Handle<JSRegExp> regexp,
 }
 
 
-Handle<Object> Factory::GlobalConstantFor(Handle<String> name) {
-  if (String::Equals(name, undefined_string())) return undefined_value();
-  if (String::Equals(name, nan_string())) return nan_value();
-  if (String::Equals(name, infinity_string())) return infinity_value();
+Handle<Object> Factory::GlobalConstantFor(Handle<Name> name) {
+  if (Name::Equals(name, undefined_string())) return undefined_value();
+  if (Name::Equals(name, nan_string())) return nan_value();
+  if (Name::Equals(name, infinity_string())) return infinity_value();
   return Handle<Object>::null();
 }
 

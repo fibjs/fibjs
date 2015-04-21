@@ -38,7 +38,7 @@ namespace compiler {
 
 
 // Adds Mips-specific methods to convert InstructionOperands.
-class MipsOperandConverter FINAL : public InstructionOperandConverter {
+class MipsOperandConverter final : public InstructionOperandConverter {
  public:
   MipsOperandConverter(CodeGenerator* gen, Instruction* instr)
       : InstructionOperandConverter(gen, instr) {}
@@ -114,7 +114,8 @@ class MipsOperandConverter FINAL : public InstructionOperandConverter {
     DCHECK(!op->IsDoubleRegister());
     DCHECK(op->IsStackSlot() || op->IsDoubleStackSlot());
     // The linkage computes where all spill slots are located.
-    FrameOffset offset = linkage()->GetFrameOffset(op->index(), frame(), 0);
+    FrameOffset offset = linkage()->GetFrameOffset(
+        AllocatedOperand::cast(op)->index(), frame(), 0);
     return MemOperand(offset.from_stack_pointer() ? sp : fp, offset.offset());
   }
 };
@@ -127,12 +128,12 @@ static inline bool HasRegisterInput(Instruction* instr, size_t index) {
 
 namespace {
 
-class OutOfLineLoadSingle FINAL : public OutOfLineCode {
+class OutOfLineLoadSingle final : public OutOfLineCode {
  public:
   OutOfLineLoadSingle(CodeGenerator* gen, FloatRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ Move(result_, std::numeric_limits<float>::quiet_NaN());
   }
 
@@ -141,12 +142,12 @@ class OutOfLineLoadSingle FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadDouble FINAL : public OutOfLineCode {
+class OutOfLineLoadDouble final : public OutOfLineCode {
  public:
   OutOfLineLoadDouble(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ Move(result_, std::numeric_limits<double>::quiet_NaN());
   }
 
@@ -155,12 +156,12 @@ class OutOfLineLoadDouble FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadInteger FINAL : public OutOfLineCode {
+class OutOfLineLoadInteger final : public OutOfLineCode {
  public:
   OutOfLineLoadInteger(CodeGenerator* gen, Register result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL { __ mov(result_, zero_reg); }
+  void Generate() final { __ mov(result_, zero_reg); }
 
  private:
   Register const result_;
@@ -172,7 +173,7 @@ class OutOfLineRound : public OutOfLineCode {
   OutOfLineRound(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     // Handle rounding to zero case where sign has to be preserved.
     // High bits of double input already in kScratchReg.
     __ srl(at, kScratchReg, 31);
@@ -185,21 +186,21 @@ class OutOfLineRound : public OutOfLineCode {
 };
 
 
-class OutOfLineTruncate FINAL : public OutOfLineRound {
+class OutOfLineTruncate final : public OutOfLineRound {
  public:
   OutOfLineTruncate(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineRound(gen, result) {}
 };
 
 
-class OutOfLineFloor FINAL : public OutOfLineRound {
+class OutOfLineFloor final : public OutOfLineRound {
  public:
   OutOfLineFloor(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineRound(gen, result) {}
 };
 
 
-class OutOfLineCeil FINAL : public OutOfLineRound {
+class OutOfLineCeil final : public OutOfLineRound {
  public:
   OutOfLineCeil(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineRound(gen, result) {}
@@ -581,6 +582,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ MovFromFloatResult(i.OutputSingleRegister());
       break;
     }
+    case kMipsAbsS:
+      __ abs_s(i.OutputSingleRegister(), i.InputSingleRegister(0));
+      break;
     case kMipsSqrtS: {
       __ sqrt_s(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
       break;
@@ -619,6 +623,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ MovFromFloatResult(i.OutputDoubleRegister());
       break;
     }
+    case kMipsAbsD:
+      __ abs_d(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
+      break;
     case kMipsSqrtD: {
       __ sqrt_d(i.OutputDoubleRegister(), i.InputDoubleRegister(0));
       break;
@@ -1135,9 +1142,19 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
         case Constant::kExternalReference:
           __ li(dst, Operand(src.ToExternalReference()));
           break;
-        case Constant::kHeapObject:
-          __ li(dst, src.ToHeapObject());
+        case Constant::kHeapObject: {
+          Handle<HeapObject> src_object = src.ToHeapObject();
+          Heap::RootListIndex index;
+          int offset;
+          if (IsMaterializableFromFrame(src_object, &offset)) {
+            __ lw(dst, MemOperand(fp, offset));
+          } else if (IsMaterializableFromRoot(src_object, &index)) {
+            __ LoadRoot(dst, index);
+          } else {
+            __ li(dst, src_object);
+          }
           break;
+        }
         case Constant::kRpoNumber:
           UNREACHABLE();  // TODO(titzer): loading RPO numbers on mips.
           break;

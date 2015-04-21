@@ -50,7 +50,10 @@ class Marking {
 
   // White markbits: 00 - this is required by the mark bit clearer.
   static const char* kWhiteBitPattern;
-  INLINE(static bool IsWhite(MarkBit mark_bit)) { return !mark_bit.Get(); }
+  INLINE(static bool IsWhite(MarkBit mark_bit)) {
+    DCHECK(!IsImpossible(mark_bit));
+    return !mark_bit.Get();
+  }
 
   // Grey markbits: 11
   static const char* kGreyBitPattern;
@@ -58,19 +61,51 @@ class Marking {
     return mark_bit.Get() && mark_bit.Next().Get();
   }
 
+  // IsBlackOrGrey assumes that the first bit is set for black or grey
+  // objects.
+  INLINE(static bool IsBlackOrGrey(MarkBit mark_bit)) { return mark_bit.Get(); }
+
   INLINE(static void MarkBlack(MarkBit mark_bit)) {
     mark_bit.Set();
     mark_bit.Next().Clear();
   }
 
-  INLINE(static void BlackToGrey(MarkBit markbit)) { markbit.Next().Set(); }
+  INLINE(static void MarkWhite(MarkBit mark_bit)) {
+    mark_bit.Clear();
+    mark_bit.Next().Clear();
+  }
+
+  INLINE(static void BlackToWhite(MarkBit markbit)) {
+    DCHECK(IsBlack(markbit));
+    markbit.Clear();
+  }
+
+  INLINE(static void GreyToWhite(MarkBit markbit)) {
+    DCHECK(IsGrey(markbit));
+    markbit.Clear();
+    markbit.Next().Clear();
+  }
+
+  INLINE(static void BlackToGrey(MarkBit markbit)) {
+    DCHECK(IsBlack(markbit));
+    markbit.Next().Set();
+  }
 
   INLINE(static void WhiteToGrey(MarkBit markbit)) {
+    DCHECK(IsWhite(markbit));
     markbit.Set();
     markbit.Next().Set();
   }
 
-  INLINE(static void GreyToBlack(MarkBit markbit)) { markbit.Next().Clear(); }
+  INLINE(static void WhiteToBlack(MarkBit markbit)) {
+    DCHECK(IsWhite(markbit));
+    markbit.Set();
+  }
+
+  INLINE(static void GreyToBlack(MarkBit markbit)) {
+    DCHECK(IsGrey(markbit));
+    markbit.Next().Clear();
+  }
 
   INLINE(static void BlackToGrey(HeapObject* obj)) {
     BlackToGrey(MarkBitFrom(obj));
@@ -80,6 +115,10 @@ class Marking {
     markbit.Set();
     markbit.Next().Set();
   }
+
+  static void SetAllMarkBitsInRange(MarkBit start, MarkBit end);
+  static void ClearAllMarkBitsOfCellsContainedInRange(MarkBit start,
+                                                      MarkBit end);
 
   void TransferMark(Address old_start, Address new_start);
 
@@ -280,6 +319,7 @@ class SlotsBuffer {
   enum SlotType {
     EMBEDDED_OBJECT_SLOT,
     RELOCATED_CODE_OBJECT,
+    CELL_TARGET_SLOT,
     CODE_TARGET_SLOT,
     CODE_ENTRY_SLOT,
     DEBUG_TARGET_SLOT,
@@ -293,6 +333,8 @@ class SlotsBuffer {
         return "EMBEDDED_OBJECT_SLOT";
       case RELOCATED_CODE_OBJECT:
         return "RELOCATED_CODE_OBJECT";
+      case CELL_TARGET_SLOT:
+        return "CELL_TARGET_SLOT";
       case CODE_TARGET_SLOT:
         return "CODE_TARGET_SLOT";
       case CODE_ENTRY_SLOT:
@@ -682,7 +724,7 @@ class MarkCompactCollector {
   bool WillBeDeoptimized(Code* code);
   void RemoveDeadInvalidatedCode();
   void ProcessInvalidatedCode(ObjectVisitor* visitor);
-  void EvictEvacuationCandidate(Page* page);
+  void EvictPopularEvacuationCandidate(Page* page);
   void ClearInvalidSlotsBufferEntries(PagedSpace* space);
   void ClearInvalidStoreAndSlotsBufferEntries();
 

@@ -6,6 +6,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/base/adapters.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
@@ -15,7 +16,7 @@ namespace internal {
 namespace compiler {
 
 // Adds IA32-specific methods for generating operands.
-class IA32OperandGenerator FINAL : public OperandGenerator {
+class IA32OperandGenerator final : public OperandGenerator {
  public:
   explicit IA32OperandGenerator(InstructionSelector* selector)
       : OperandGenerator(selector) {}
@@ -157,6 +158,18 @@ void VisitRROFloat(InstructionSelector* selector, Node* node,
   }
 }
 
+
+void VisitFloatUnop(InstructionSelector* selector, Node* node, Node* input,
+                    ArchOpcode avx_opcode, ArchOpcode sse_opcode) {
+  IA32OperandGenerator g(selector);
+  if (selector->IsSupported(AVX)) {
+    selector->Emit(avx_opcode, g.DefineAsRegister(node), g.Use(input));
+  } else {
+    selector->Emit(sse_opcode, g.DefineSameAsFirst(node), g.UseRegister(input));
+  }
+}
+
+
 }  // namespace
 
 
@@ -212,11 +225,17 @@ void InstructionSelector::VisitStore(Node* node) {
     DCHECK_EQ(kRepTagged, rep);
     // TODO(dcarney): refactor RecordWrite function to take temp registers
     //                and pass them here instead of using fixed regs
-    // TODO(dcarney): handle immediate indices.
-    InstructionOperand temps[] = {g.TempRegister(ecx), g.TempRegister(edx)};
-    Emit(kIA32StoreWriteBarrier, g.NoOutput(), g.UseFixed(base, ebx),
-         g.UseFixed(index, ecx), g.UseFixed(value, edx), arraysize(temps),
-         temps);
+    if (g.CanBeImmediate(index)) {
+      InstructionOperand temps[] = {g.TempRegister(ecx), g.TempRegister()};
+      Emit(kIA32StoreWriteBarrier, g.NoOutput(), g.UseFixed(base, ebx),
+           g.UseImmediate(index), g.UseFixed(value, ecx), arraysize(temps),
+           temps);
+    } else {
+      InstructionOperand temps[] = {g.TempRegister(ecx), g.TempRegister(edx)};
+      Emit(kIA32StoreWriteBarrier, g.NoOutput(), g.UseFixed(base, ebx),
+           g.UseFixed(index, ecx), g.UseFixed(value, edx), arraysize(temps),
+           temps);
+    }
     return;
   }
   DCHECK_EQ(kNoWriteBarrier, store_rep.write_barrier_kind());
@@ -682,8 +701,8 @@ void InstructionSelector::VisitFloat32Sub(Node* node) {
   IA32OperandGenerator g(this);
   Float32BinopMatcher m(node);
   if (m.left().IsMinusZero()) {
-    Emit(kSSEFloat32Neg, g.DefineSameAsFirst(node),
-         g.UseRegister(m.right().node()));
+    VisitFloatUnop(this, node, m.right().node(), kAVXFloat32Neg,
+                   kSSEFloat32Neg);
     return;
   }
   VisitRROFloat(this, node, kAVXFloat32Sub, kSSEFloat32Sub);
@@ -706,8 +725,8 @@ void InstructionSelector::VisitFloat64Sub(Node* node) {
         }
       }
     }
-    Emit(kSSEFloat64Neg, g.DefineSameAsFirst(node),
-         g.UseRegister(m.right().node()));
+    VisitFloatUnop(this, node, m.right().node(), kAVXFloat64Neg,
+                   kSSEFloat64Neg);
     return;
   }
   VisitRROFloat(this, node, kAVXFloat64Sub, kSSEFloat64Sub);
@@ -763,6 +782,18 @@ void InstructionSelector::VisitFloat64Min(Node* node) {
 }
 
 
+void InstructionSelector::VisitFloat32Abs(Node* node) {
+  IA32OperandGenerator g(this);
+  VisitFloatUnop(this, node, node->InputAt(0), kAVXFloat32Abs, kSSEFloat32Abs);
+}
+
+
+void InstructionSelector::VisitFloat64Abs(Node* node) {
+  IA32OperandGenerator g(this);
+  VisitFloatUnop(this, node, node->InputAt(0), kAVXFloat64Abs, kSSEFloat64Abs);
+}
+
+
 void InstructionSelector::VisitFloat32Sqrt(Node* node) {
   VisitROFloat(this, node, kSSEFloat32Sqrt);
 }
@@ -805,13 +836,12 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   InitializeCallBuffer(node, &buffer, true, true);
 
   // Push any stack arguments.
-  for (auto i = buffer.pushed_nodes.rbegin(); i != buffer.pushed_nodes.rend();
-       ++i) {
+  for (Node* node : base::Reversed(buffer.pushed_nodes)) {
     // TODO(titzer): handle pushing double parameters.
     InstructionOperand value =
-        g.CanBeImmediate(*i) ? g.UseImmediate(*i) : IsSupported(ATOM)
-                                                        ? g.UseRegister(*i)
-                                                        : g.Use(*i);
+        g.CanBeImmediate(node)
+            ? g.UseImmediate(node)
+            : IsSupported(ATOM) ? g.UseRegister(node) : g.Use(node);
     Emit(kIA32Push, g.NoOutput(), value);
   }
 
@@ -1200,8 +1230,10 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
   MachineOperatorBuilder::Flags flags =
+      MachineOperatorBuilder::kFloat32Abs |
       MachineOperatorBuilder::kFloat32Max |
       MachineOperatorBuilder::kFloat32Min |
+      MachineOperatorBuilder::kFloat64Abs |
       MachineOperatorBuilder::kFloat64Max |
       MachineOperatorBuilder::kFloat64Min |
       MachineOperatorBuilder::kWord32ShiftIsSafe;

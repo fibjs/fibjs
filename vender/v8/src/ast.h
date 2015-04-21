@@ -92,6 +92,7 @@ namespace internal {
   V(CountOperation)             \
   V(BinaryOperation)            \
   V(CompareOperation)           \
+  V(Spread)                     \
   V(ThisFunction)               \
   V(SuperReference)             \
   V(CaseClause)
@@ -139,8 +140,8 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
 
 
 #define DECLARE_NODE_TYPE(type)                                          \
-  void Accept(AstVisitor* v) OVERRIDE;                                   \
-  AstNode::NodeType node_type() const FINAL { return AstNode::k##type; } \
+  void Accept(AstVisitor* v) override;                                   \
+  AstNode::NodeType node_type() const final { return AstNode::k##type; } \
   friend class AstNodeFactory;
 
 
@@ -165,7 +166,7 @@ class FeedbackVectorRequirements {
 };
 
 
-class VariableICSlotPair FINAL {
+class VariableICSlotPair final {
  public:
   VariableICSlotPair(Variable* variable, FeedbackVectorICSlot slot)
       : variable_(variable), slot_(slot) {}
@@ -184,7 +185,7 @@ class VariableICSlotPair FINAL {
 typedef List<VariableICSlotPair> ICSlotCache;
 
 
-class AstProperties FINAL BASE_EMBEDDED {
+class AstProperties final BASE_EMBEDDED {
  public:
   class Flags : public EnumSet<AstPropertiesFlag, int> {};
 
@@ -282,7 +283,7 @@ class Statement : public AstNode {
 };
 
 
-class SmallMapList FINAL {
+class SmallMapList final {
  public:
   SmallMapList() {}
   SmallMapList(int capacity, Zone* zone) : list_(capacity, zone) {}
@@ -454,7 +455,7 @@ class BreakableStatement : public Statement {
   ZoneList<const AstRawString*>* labels() const { return labels_; }
 
   // Type testing & conversion.
-  BreakableStatement* AsBreakableStatement() FINAL { return this; }
+  BreakableStatement* AsBreakableStatement() final { return this; }
 
   // Code generation
   Label* break_target() { return &break_target_; }
@@ -495,7 +496,7 @@ class BreakableStatement : public Statement {
 };
 
 
-class Block FINAL : public BreakableStatement {
+class Block final : public BreakableStatement {
  public:
   DECLARE_NODE_TYPE(Block)
 
@@ -509,7 +510,7 @@ class Block FINAL : public BreakableStatement {
   static int num_ids() { return parent_num_ids() + 1; }
   BailoutId DeclsId() const { return BailoutId(local_id(0)); }
 
-  bool IsJump() const OVERRIDE {
+  bool IsJump() const override {
     return !statements_.is_empty() && statements_.last()->IsJump()
         && labels() == NULL;  // Good enough as an approximation...
   }
@@ -559,34 +560,35 @@ class Declaration : public AstNode {
 };
 
 
-class VariableDeclaration FINAL : public Declaration {
+class VariableDeclaration final : public Declaration {
  public:
   DECLARE_NODE_TYPE(VariableDeclaration)
 
-  InitializationFlag initialization() const OVERRIDE {
+  InitializationFlag initialization() const override {
     return mode() == VAR ? kCreatedInitialized : kNeedsInitialization;
   }
 
+  bool is_class_declaration() const { return is_class_declaration_; }
+
  protected:
-  VariableDeclaration(Zone* zone,
-                      VariableProxy* proxy,
-                      VariableMode mode,
-                      Scope* scope,
-                      int pos)
-      : Declaration(zone, proxy, mode, scope, pos) {
-  }
+  VariableDeclaration(Zone* zone, VariableProxy* proxy, VariableMode mode,
+                      Scope* scope, int pos, bool is_class_declaration = false)
+      : Declaration(zone, proxy, mode, scope, pos),
+        is_class_declaration_(is_class_declaration) {}
+
+  bool is_class_declaration_;
 };
 
 
-class FunctionDeclaration FINAL : public Declaration {
+class FunctionDeclaration final : public Declaration {
  public:
   DECLARE_NODE_TYPE(FunctionDeclaration)
 
   FunctionLiteral* fun() const { return fun_; }
-  InitializationFlag initialization() const OVERRIDE {
+  InitializationFlag initialization() const override {
     return kCreatedInitialized;
   }
-  bool IsInlineable() const OVERRIDE;
+  bool IsInlineable() const override;
 
  protected:
   FunctionDeclaration(Zone* zone,
@@ -606,12 +608,12 @@ class FunctionDeclaration FINAL : public Declaration {
 };
 
 
-class ModuleDeclaration FINAL : public Declaration {
+class ModuleDeclaration final : public Declaration {
  public:
   DECLARE_NODE_TYPE(ModuleDeclaration)
 
   Module* module() const { return module_; }
-  InitializationFlag initialization() const OVERRIDE {
+  InitializationFlag initialization() const override {
     return kCreatedInitialized;
   }
 
@@ -625,7 +627,7 @@ class ModuleDeclaration FINAL : public Declaration {
 };
 
 
-class ImportDeclaration FINAL : public Declaration {
+class ImportDeclaration final : public Declaration {
  public:
   DECLARE_NODE_TYPE(ImportDeclaration)
 
@@ -635,7 +637,7 @@ class ImportDeclaration FINAL : public Declaration {
     DCHECK(module_specifier_ == NULL);
     module_specifier_ = module_specifier;
   }
-  InitializationFlag initialization() const OVERRIDE {
+  InitializationFlag initialization() const override {
     return kNeedsInitialization;
   }
 
@@ -653,11 +655,11 @@ class ImportDeclaration FINAL : public Declaration {
 };
 
 
-class ExportDeclaration FINAL : public Declaration {
+class ExportDeclaration final : public Declaration {
  public:
   DECLARE_NODE_TYPE(ExportDeclaration)
 
-  InitializationFlag initialization() const OVERRIDE {
+  InitializationFlag initialization() const override {
     return kCreatedInitialized;
   }
 
@@ -684,7 +686,7 @@ class Module : public AstNode {
 };
 
 
-class ModuleLiteral FINAL : public Module {
+class ModuleLiteral final : public Module {
  public:
   DECLARE_NODE_TYPE(ModuleLiteral)
 
@@ -694,7 +696,7 @@ class ModuleLiteral FINAL : public Module {
 };
 
 
-class ModulePath FINAL : public Module {
+class ModulePath final : public Module {
  public:
   DECLARE_NODE_TYPE(ModulePath)
 
@@ -711,7 +713,7 @@ class ModulePath FINAL : public Module {
 };
 
 
-class ModuleUrl FINAL : public Module {
+class ModuleUrl final : public Module {
  public:
   DECLARE_NODE_TYPE(ModuleUrl)
 
@@ -727,7 +729,7 @@ class ModuleUrl FINAL : public Module {
 };
 
 
-class ModuleStatement FINAL : public Statement {
+class ModuleStatement final : public Statement {
  public:
   DECLARE_NODE_TYPE(ModuleStatement)
 
@@ -745,7 +747,7 @@ class ModuleStatement FINAL : public Statement {
 class IterationStatement : public BreakableStatement {
  public:
   // Type testing & conversion.
-  IterationStatement* AsIterationStatement() FINAL { return this; }
+  IterationStatement* AsIterationStatement() final { return this; }
 
   Statement* body() const { return body_; }
 
@@ -772,7 +774,7 @@ class IterationStatement : public BreakableStatement {
 };
 
 
-class DoWhileStatement FINAL : public IterationStatement {
+class DoWhileStatement final : public IterationStatement {
  public:
   DECLARE_NODE_TYPE(DoWhileStatement)
 
@@ -784,8 +786,8 @@ class DoWhileStatement FINAL : public IterationStatement {
   Expression* cond() const { return cond_; }
 
   static int num_ids() { return parent_num_ids() + 2; }
-  BailoutId ContinueId() const OVERRIDE { return BailoutId(local_id(0)); }
-  BailoutId StackCheckId() const OVERRIDE { return BackEdgeId(); }
+  BailoutId ContinueId() const override { return BailoutId(local_id(0)); }
+  BailoutId StackCheckId() const override { return BackEdgeId(); }
   BailoutId BackEdgeId() const { return BailoutId(local_id(1)); }
 
  protected:
@@ -800,7 +802,7 @@ class DoWhileStatement FINAL : public IterationStatement {
 };
 
 
-class WhileStatement FINAL : public IterationStatement {
+class WhileStatement final : public IterationStatement {
  public:
   DECLARE_NODE_TYPE(WhileStatement)
 
@@ -812,8 +814,8 @@ class WhileStatement FINAL : public IterationStatement {
   Expression* cond() const { return cond_; }
 
   static int num_ids() { return parent_num_ids() + 1; }
-  BailoutId ContinueId() const OVERRIDE { return EntryId(); }
-  BailoutId StackCheckId() const OVERRIDE { return BodyId(); }
+  BailoutId ContinueId() const override { return EntryId(); }
+  BailoutId StackCheckId() const override { return BodyId(); }
   BailoutId BodyId() const { return BailoutId(local_id(0)); }
 
  protected:
@@ -828,7 +830,7 @@ class WhileStatement FINAL : public IterationStatement {
 };
 
 
-class ForStatement FINAL : public IterationStatement {
+class ForStatement final : public IterationStatement {
  public:
   DECLARE_NODE_TYPE(ForStatement)
 
@@ -847,8 +849,8 @@ class ForStatement FINAL : public IterationStatement {
   Statement* next() const { return next_; }
 
   static int num_ids() { return parent_num_ids() + 2; }
-  BailoutId ContinueId() const OVERRIDE { return BailoutId(local_id(0)); }
-  BailoutId StackCheckId() const OVERRIDE { return BodyId(); }
+  BailoutId ContinueId() const override { return BailoutId(local_id(0)); }
+  BailoutId StackCheckId() const override { return BodyId(); }
   BailoutId BodyId() const { return BailoutId(local_id(1)); }
 
  protected:
@@ -894,7 +896,7 @@ class ForEachStatement : public IterationStatement {
 };
 
 
-class ForInStatement FINAL : public ForEachStatement {
+class ForInStatement final : public ForEachStatement {
  public:
   DECLARE_NODE_TYPE(ForInStatement)
 
@@ -904,10 +906,10 @@ class ForInStatement FINAL : public ForEachStatement {
 
   // Type feedback information.
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE {
+      Isolate* isolate, const ICSlotCache* cache) override {
     return FeedbackVectorRequirements(1, 0);
   }
-  void SetFirstFeedbackSlot(FeedbackVectorSlot slot) OVERRIDE {
+  void SetFirstFeedbackSlot(FeedbackVectorSlot slot) override {
     for_in_feedback_slot_ = slot;
   }
 
@@ -920,14 +922,15 @@ class ForInStatement FINAL : public ForEachStatement {
   ForInType for_in_type() const { return for_in_type_; }
   void set_for_in_type(ForInType type) { for_in_type_ = type; }
 
-  static int num_ids() { return parent_num_ids() + 5; }
+  static int num_ids() { return parent_num_ids() + 6; }
   BailoutId BodyId() const { return BailoutId(local_id(0)); }
   BailoutId PrepareId() const { return BailoutId(local_id(1)); }
   BailoutId EnumId() const { return BailoutId(local_id(2)); }
   BailoutId ToObjectId() const { return BailoutId(local_id(3)); }
-  BailoutId AssignmentId() const { return BailoutId(local_id(4)); }
-  BailoutId ContinueId() const OVERRIDE { return EntryId(); }
-  BailoutId StackCheckId() const OVERRIDE { return BodyId(); }
+  BailoutId FilterId() const { return BailoutId(local_id(4)); }
+  BailoutId AssignmentId() const { return BailoutId(local_id(5)); }
+  BailoutId ContinueId() const override { return EntryId(); }
+  BailoutId StackCheckId() const override { return BodyId(); }
 
  protected:
   ForInStatement(Zone* zone, ZoneList<const AstRawString*>* labels, int pos)
@@ -944,7 +947,7 @@ class ForInStatement FINAL : public ForEachStatement {
 };
 
 
-class ForOfStatement FINAL : public ForEachStatement {
+class ForOfStatement final : public ForEachStatement {
  public:
   DECLARE_NODE_TYPE(ForOfStatement)
 
@@ -986,8 +989,8 @@ class ForOfStatement FINAL : public ForEachStatement {
     return assign_each_;
   }
 
-  BailoutId ContinueId() const OVERRIDE { return EntryId(); }
-  BailoutId StackCheckId() const OVERRIDE { return BackEdgeId(); }
+  BailoutId ContinueId() const override { return EntryId(); }
+  BailoutId StackCheckId() const override { return BackEdgeId(); }
 
   static int num_ids() { return parent_num_ids() + 1; }
   BailoutId BackEdgeId() const { return BailoutId(local_id(0)); }
@@ -1011,13 +1014,13 @@ class ForOfStatement FINAL : public ForEachStatement {
 };
 
 
-class ExpressionStatement FINAL : public Statement {
+class ExpressionStatement final : public Statement {
  public:
   DECLARE_NODE_TYPE(ExpressionStatement)
 
   void set_expression(Expression* e) { expression_ = e; }
   Expression* expression() const { return expression_; }
-  bool IsJump() const OVERRIDE { return expression_->IsThrow(); }
+  bool IsJump() const override { return expression_->IsThrow(); }
 
  protected:
   ExpressionStatement(Zone* zone, Expression* expression, int pos)
@@ -1030,14 +1033,14 @@ class ExpressionStatement FINAL : public Statement {
 
 class JumpStatement : public Statement {
  public:
-  bool IsJump() const FINAL { return true; }
+  bool IsJump() const final { return true; }
 
  protected:
   explicit JumpStatement(Zone* zone, int pos) : Statement(zone, pos) {}
 };
 
 
-class ContinueStatement FINAL : public JumpStatement {
+class ContinueStatement final : public JumpStatement {
  public:
   DECLARE_NODE_TYPE(ContinueStatement)
 
@@ -1052,7 +1055,7 @@ class ContinueStatement FINAL : public JumpStatement {
 };
 
 
-class BreakStatement FINAL : public JumpStatement {
+class BreakStatement final : public JumpStatement {
  public:
   DECLARE_NODE_TYPE(BreakStatement)
 
@@ -1067,7 +1070,7 @@ class BreakStatement FINAL : public JumpStatement {
 };
 
 
-class ReturnStatement FINAL : public JumpStatement {
+class ReturnStatement final : public JumpStatement {
  public:
   DECLARE_NODE_TYPE(ReturnStatement)
 
@@ -1082,7 +1085,7 @@ class ReturnStatement FINAL : public JumpStatement {
 };
 
 
-class WithStatement FINAL : public Statement {
+class WithStatement final : public Statement {
  public:
   DECLARE_NODE_TYPE(WithStatement)
 
@@ -1119,7 +1122,7 @@ class WithStatement FINAL : public Statement {
 };
 
 
-class CaseClause FINAL : public Expression {
+class CaseClause final : public Expression {
  public:
   DECLARE_NODE_TYPE(CaseClause)
 
@@ -1153,7 +1156,7 @@ class CaseClause FINAL : public Expression {
 };
 
 
-class SwitchStatement FINAL : public BreakableStatement {
+class SwitchStatement final : public BreakableStatement {
  public:
   DECLARE_NODE_TYPE(SwitchStatement)
 
@@ -1182,7 +1185,7 @@ class SwitchStatement FINAL : public BreakableStatement {
 // the parser implicitly creates an empty statement. Use the
 // HasThenStatement() and HasElseStatement() functions to check if a
 // given if-statement has a then- or an else-part containing code.
-class IfStatement FINAL : public Statement {
+class IfStatement final : public Statement {
  public:
   DECLARE_NODE_TYPE(IfStatement)
 
@@ -1193,7 +1196,7 @@ class IfStatement FINAL : public Statement {
   Statement* then_statement() const { return then_statement_; }
   Statement* else_statement() const { return else_statement_; }
 
-  bool IsJump() const OVERRIDE {
+  bool IsJump() const override {
     return HasThenStatement() && then_statement()->IsJump()
         && HasElseStatement() && else_statement()->IsJump();
   }
@@ -1246,7 +1249,7 @@ class TryStatement : public Statement {
 };
 
 
-class TryCatchStatement FINAL : public TryStatement {
+class TryCatchStatement final : public TryStatement {
  public:
   DECLARE_NODE_TYPE(TryCatchStatement)
 
@@ -1275,7 +1278,7 @@ class TryCatchStatement FINAL : public TryStatement {
 };
 
 
-class TryFinallyStatement FINAL : public TryStatement {
+class TryFinallyStatement final : public TryStatement {
  public:
   DECLARE_NODE_TYPE(TryFinallyStatement)
 
@@ -1292,7 +1295,7 @@ class TryFinallyStatement FINAL : public TryStatement {
 };
 
 
-class DebuggerStatement FINAL : public Statement {
+class DebuggerStatement final : public Statement {
  public:
   DECLARE_NODE_TYPE(DebuggerStatement)
 
@@ -1317,7 +1320,7 @@ class DebuggerStatement FINAL : public Statement {
 };
 
 
-class EmptyStatement FINAL : public Statement {
+class EmptyStatement final : public Statement {
  public:
   DECLARE_NODE_TYPE(EmptyStatement)
 
@@ -1326,11 +1329,11 @@ class EmptyStatement FINAL : public Statement {
 };
 
 
-class Literal FINAL : public Expression {
+class Literal final : public Expression {
  public:
   DECLARE_NODE_TYPE(Literal)
 
-  bool IsPropertyName() const OVERRIDE { return value_->IsPropertyName(); }
+  bool IsPropertyName() const override { return value_->IsPropertyName(); }
 
   Handle<String> AsPropertyName() {
     DCHECK(IsPropertyName());
@@ -1342,8 +1345,8 @@ class Literal FINAL : public Expression {
     return value_->AsString();
   }
 
-  bool ToBooleanIsTrue() const OVERRIDE { return value()->BooleanValue(); }
-  bool ToBooleanIsFalse() const OVERRIDE { return !value()->BooleanValue(); }
+  bool ToBooleanIsTrue() const override { return value()->BooleanValue(); }
+  bool ToBooleanIsFalse() const override { return !value()->BooleanValue(); }
 
   Handle<Object> value() const { return value_->value(); }
   const AstValue* raw_value() const { return value_; }
@@ -1423,7 +1426,7 @@ class MaterializedLiteral : public Expression {
 // Property is used for passing information
 // about an object literal's properties from the parser
 // to the code generator.
-class ObjectLiteralProperty FINAL : public ZoneObject {
+class ObjectLiteralProperty final : public ZoneObject {
  public:
   enum Kind {
     CONSTANT,              // Property with constant value (compile time).
@@ -1473,7 +1476,7 @@ class ObjectLiteralProperty FINAL : public ZoneObject {
 
 // An object literal has a boilerplate object that is used
 // for minimizing the work when constructing it at runtime.
-class ObjectLiteral FINAL : public MaterializedLiteral {
+class ObjectLiteral final : public MaterializedLiteral {
  public:
   typedef ObjectLiteralProperty Property;
 
@@ -1557,7 +1560,7 @@ class ObjectLiteral FINAL : public MaterializedLiteral {
 
 
 // Node for capturing a regexp literal.
-class RegExpLiteral FINAL : public MaterializedLiteral {
+class RegExpLiteral final : public MaterializedLiteral {
  public:
   DECLARE_NODE_TYPE(RegExpLiteral)
 
@@ -1581,7 +1584,7 @@ class RegExpLiteral FINAL : public MaterializedLiteral {
 
 // An array literal has a literals object that is used
 // for minimizing the work when constructing it at runtime.
-class ArrayLiteral FINAL : public MaterializedLiteral {
+class ArrayLiteral final : public MaterializedLiteral {
  public:
   DECLARE_NODE_TYPE(ArrayLiteral)
 
@@ -1635,11 +1638,11 @@ class ArrayLiteral FINAL : public MaterializedLiteral {
 };
 
 
-class VariableProxy FINAL : public Expression {
+class VariableProxy final : public Expression {
  public:
   DECLARE_NODE_TYPE(VariableProxy)
 
-  bool IsValidReferenceExpression() const OVERRIDE { return !is_this(); }
+  bool IsValidReferenceExpression() const override { return !is_this(); }
 
   bool IsArguments() const { return is_resolved() && var()->is_arguments(); }
 
@@ -1680,11 +1683,11 @@ class VariableProxy FINAL : public Expression {
   }
 
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE;
+      Isolate* isolate, const ICSlotCache* cache) override;
 
   void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot,
-                              ICSlotCache* cache) OVERRIDE;
-  Code::Kind FeedbackICSlotKind(int index) OVERRIDE { return Code::LOAD_IC; }
+                              ICSlotCache* cache) override;
+  Code::Kind FeedbackICSlotKind(int index) override { return Code::LOAD_IC; }
   FeedbackVectorICSlot VariableFeedbackSlot() {
     DCHECK(!UsesVariableFeedbackSlot() || !variable_feedback_slot_.IsInvalid());
     return variable_feedback_slot_;
@@ -1717,11 +1720,11 @@ class VariableProxy FINAL : public Expression {
 };
 
 
-class Property FINAL : public Expression {
+class Property final : public Expression {
  public:
   DECLARE_NODE_TYPE(Property)
 
-  bool IsValidReferenceExpression() const OVERRIDE { return true; }
+  bool IsValidReferenceExpression() const override { return true; }
 
   Expression* obj() const { return obj_; }
   Expression* key() const { return key_; }
@@ -1735,26 +1738,29 @@ class Property FINAL : public Expression {
   }
 
   // Type feedback information.
-  bool IsMonomorphic() OVERRIDE { return receiver_types_.length() == 1; }
-  SmallMapList* GetReceiverTypes() OVERRIDE { return &receiver_types_; }
-  KeyedAccessStoreMode GetStoreMode() const OVERRIDE { return STANDARD_STORE; }
-  IcCheckType GetKeyType() const OVERRIDE {
+  bool IsMonomorphic() override { return receiver_types_.length() == 1; }
+  SmallMapList* GetReceiverTypes() override { return &receiver_types_; }
+  KeyedAccessStoreMode GetStoreMode() const override { return STANDARD_STORE; }
+  IcCheckType GetKeyType() const override {
     return KeyTypeField::decode(bit_field_);
   }
   bool IsUninitialized() const {
     return !is_for_call() && HasNoTypeInformation();
   }
   bool HasNoTypeInformation() const {
-    return IsUninitializedField::decode(bit_field_);
+    return GetInlineCacheState() == UNINITIALIZED;
   }
-  void set_is_uninitialized(bool b) {
-    bit_field_ = IsUninitializedField::update(bit_field_, b);
+  InlineCacheState GetInlineCacheState() const {
+    return InlineCacheStateField::decode(bit_field_);
   }
   void set_is_string_access(bool b) {
     bit_field_ = IsStringAccessField::update(bit_field_, b);
   }
   void set_key_type(IcCheckType key_type) {
     bit_field_ = KeyTypeField::update(bit_field_, key_type);
+  }
+  void set_inline_cache_state(InlineCacheState state) {
+    bit_field_ = InlineCacheStateField::update(bit_field_, state);
   }
   void mark_for_call() {
     bit_field_ = IsForCallField::update(bit_field_, true);
@@ -1766,14 +1772,14 @@ class Property FINAL : public Expression {
   }
 
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE {
+      Isolate* isolate, const ICSlotCache* cache) override {
     return FeedbackVectorRequirements(0, FLAG_vector_ics ? 1 : 0);
   }
   void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot,
-                              ICSlotCache* cache) OVERRIDE {
+                              ICSlotCache* cache) override {
     property_feedback_slot_ = slot;
   }
-  Code::Kind FeedbackICSlotKind(int index) OVERRIDE {
+  Code::Kind FeedbackICSlotKind(int index) override {
     return key()->IsPropertyName() ? Code::LOAD_IC : Code::KEYED_LOAD_IC;
   }
 
@@ -1786,8 +1792,8 @@ class Property FINAL : public Expression {
   Property(Zone* zone, Expression* obj, Expression* key, int pos)
       : Expression(zone, pos),
         bit_field_(IsForCallField::encode(false) |
-                   IsUninitializedField::encode(false) |
-                   IsStringAccessField::encode(false)),
+                   IsStringAccessField::encode(false) |
+                   InlineCacheStateField::encode(UNINITIALIZED)),
         property_feedback_slot_(FeedbackVectorICSlot::Invalid()),
         obj_(obj),
         key_(key) {}
@@ -1797,9 +1803,9 @@ class Property FINAL : public Expression {
   int local_id(int n) const { return base_id() + parent_num_ids() + n; }
 
   class IsForCallField : public BitField8<bool, 0, 1> {};
-  class IsUninitializedField : public BitField8<bool, 1, 1> {};
-  class IsStringAccessField : public BitField8<bool, 2, 1> {};
-  class KeyTypeField : public BitField8<IcCheckType, 3, 1> {};
+  class IsStringAccessField : public BitField8<bool, 1, 1> {};
+  class KeyTypeField : public BitField8<IcCheckType, 2, 1> {};
+  class InlineCacheStateField : public BitField8<InlineCacheState, 3, 4> {};
   uint8_t bit_field_;
   FeedbackVectorICSlot property_feedback_slot_;
   Expression* obj_;
@@ -1808,7 +1814,7 @@ class Property FINAL : public Expression {
 };
 
 
-class Call FINAL : public Expression {
+class Call final : public Expression {
  public:
   DECLARE_NODE_TYPE(Call)
 
@@ -1817,15 +1823,15 @@ class Call FINAL : public Expression {
 
   // Type feedback information.
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE;
+      Isolate* isolate, const ICSlotCache* cache) override;
   void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot,
-                              ICSlotCache* cache) OVERRIDE {
+                              ICSlotCache* cache) override {
     ic_slot_or_slot_ = slot.ToInt();
   }
-  void SetFirstFeedbackSlot(FeedbackVectorSlot slot) OVERRIDE {
+  void SetFirstFeedbackSlot(FeedbackVectorSlot slot) override {
     ic_slot_or_slot_ = slot.ToInt();
   }
-  Code::Kind FeedbackICSlotKind(int index) OVERRIDE { return Code::CALL_IC; }
+  Code::Kind FeedbackICSlotKind(int index) override { return Code::CALL_IC; }
 
   FeedbackVectorSlot CallFeedbackSlot() const {
     DCHECK(ic_slot_or_slot_ != FeedbackVectorSlot::Invalid().ToInt());
@@ -1837,14 +1843,14 @@ class Call FINAL : public Expression {
     return FeedbackVectorICSlot(ic_slot_or_slot_);
   }
 
-  SmallMapList* GetReceiverTypes() OVERRIDE {
+  SmallMapList* GetReceiverTypes() override {
     if (expression()->IsProperty()) {
       return expression()->AsProperty()->GetReceiverTypes();
     }
     return NULL;
   }
 
-  bool IsMonomorphic() OVERRIDE {
+  bool IsMonomorphic() override {
     if (expression()->IsProperty()) {
       return expression()->AsProperty()->IsMonomorphic();
     }
@@ -1932,7 +1938,7 @@ class Call FINAL : public Expression {
 };
 
 
-class CallNew FINAL : public Expression {
+class CallNew final : public Expression {
  public:
   DECLARE_NODE_TYPE(CallNew)
 
@@ -1941,10 +1947,10 @@ class CallNew FINAL : public Expression {
 
   // Type feedback information.
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE {
+      Isolate* isolate, const ICSlotCache* cache) override {
     return FeedbackVectorRequirements(FLAG_pretenuring_call_new ? 2 : 1, 0);
   }
-  void SetFirstFeedbackSlot(FeedbackVectorSlot slot) OVERRIDE {
+  void SetFirstFeedbackSlot(FeedbackVectorSlot slot) override {
     callnew_feedback_slot_ = slot;
   }
 
@@ -1957,7 +1963,7 @@ class CallNew FINAL : public Expression {
     return CallNewFeedbackSlot().next();
   }
 
-  bool IsMonomorphic() OVERRIDE { return is_monomorphic_; }
+  bool IsMonomorphic() override { return is_monomorphic_; }
   Handle<JSFunction> target() const { return target_; }
   Handle<AllocationSite> allocation_site() const {
     return allocation_site_;
@@ -2004,7 +2010,7 @@ class CallNew FINAL : public Expression {
 // language construct. Instead it is used to call a C or JS function
 // with a set of arguments. This is used from the builtins that are
 // implemented in JavaScript (see "v8natives.js").
-class CallRuntime FINAL : public Expression {
+class CallRuntime final : public Expression {
  public:
   DECLARE_NODE_TYPE(CallRuntime)
 
@@ -2019,14 +2025,14 @@ class CallRuntime FINAL : public Expression {
     return FLAG_vector_ics && is_jsruntime();
   }
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE {
+      Isolate* isolate, const ICSlotCache* cache) override {
     return FeedbackVectorRequirements(0, HasCallRuntimeFeedbackSlot() ? 1 : 0);
   }
   void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot,
-                              ICSlotCache* cache) OVERRIDE {
+                              ICSlotCache* cache) override {
     callruntime_feedback_slot_ = slot;
   }
-  Code::Kind FeedbackICSlotKind(int index) OVERRIDE { return Code::LOAD_IC; }
+  Code::Kind FeedbackICSlotKind(int index) override { return Code::LOAD_IC; }
 
   FeedbackVectorICSlot CallRuntimeFeedbackSlot() {
     DCHECK(!HasCallRuntimeFeedbackSlot() ||
@@ -2060,7 +2066,7 @@ class CallRuntime FINAL : public Expression {
 };
 
 
-class UnaryOperation FINAL : public Expression {
+class UnaryOperation final : public Expression {
  public:
   DECLARE_NODE_TYPE(UnaryOperation)
 
@@ -2073,8 +2079,7 @@ class UnaryOperation FINAL : public Expression {
   BailoutId MaterializeTrueId() const { return BailoutId(local_id(0)); }
   BailoutId MaterializeFalseId() const { return BailoutId(local_id(1)); }
 
-  virtual void RecordToBooleanTypeFeedback(
-      TypeFeedbackOracle* oracle) OVERRIDE;
+  virtual void RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) override;
 
  protected:
   UnaryOperation(Zone* zone, Token::Value op, Expression* expression, int pos)
@@ -2091,7 +2096,7 @@ class UnaryOperation FINAL : public Expression {
 };
 
 
-class BinaryOperation FINAL : public Expression {
+class BinaryOperation final : public Expression {
  public:
   DECLARE_NODE_TYPE(BinaryOperation)
 
@@ -2119,8 +2124,7 @@ class BinaryOperation FINAL : public Expression {
     if (arg.IsJust()) fixed_right_arg_value_ = arg.FromJust();
   }
 
-  virtual void RecordToBooleanTypeFeedback(
-      TypeFeedbackOracle* oracle) OVERRIDE;
+  virtual void RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) override;
 
  protected:
   BinaryOperation(Zone* zone, Token::Value op, Expression* left,
@@ -2149,7 +2153,7 @@ class BinaryOperation FINAL : public Expression {
 };
 
 
-class CountOperation FINAL : public Expression {
+class CountOperation final : public Expression {
  public:
   DECLARE_NODE_TYPE(CountOperation)
 
@@ -2163,12 +2167,12 @@ class CountOperation FINAL : public Expression {
 
   Expression* expression() const { return expression_; }
 
-  bool IsMonomorphic() OVERRIDE { return receiver_types_.length() == 1; }
-  SmallMapList* GetReceiverTypes() OVERRIDE { return &receiver_types_; }
-  IcCheckType GetKeyType() const OVERRIDE {
+  bool IsMonomorphic() override { return receiver_types_.length() == 1; }
+  SmallMapList* GetReceiverTypes() override { return &receiver_types_; }
+  IcCheckType GetKeyType() const override {
     return KeyTypeField::decode(bit_field_);
   }
-  KeyedAccessStoreMode GetStoreMode() const OVERRIDE {
+  KeyedAccessStoreMode GetStoreMode() const override {
     return StoreModeField::decode(bit_field_);
   }
   Type* type() const { return type_; }
@@ -2219,7 +2223,7 @@ class CountOperation FINAL : public Expression {
 };
 
 
-class CompareOperation FINAL : public Expression {
+class CompareOperation final : public Expression {
  public:
   DECLARE_NODE_TYPE(CompareOperation)
 
@@ -2263,7 +2267,27 @@ class CompareOperation FINAL : public Expression {
 };
 
 
-class Conditional FINAL : public Expression {
+class Spread final : public Expression {
+ public:
+  DECLARE_NODE_TYPE(Spread)
+
+  Expression* expression() const { return expression_; }
+
+  static int num_ids() { return parent_num_ids(); }
+
+ protected:
+  Spread(Zone* zone, Expression* expression, int pos)
+      : Expression(zone, pos), expression_(expression) {}
+  static int parent_num_ids() { return Expression::num_ids(); }
+
+ private:
+  int local_id(int n) const { return base_id() + parent_num_ids() + n; }
+
+  Expression* expression_;
+};
+
+
+class Conditional final : public Expression {
  public:
   DECLARE_NODE_TYPE(Conditional)
 
@@ -2293,7 +2317,7 @@ class Conditional FINAL : public Expression {
 };
 
 
-class Assignment FINAL : public Expression {
+class Assignment final : public Expression {
  public:
   DECLARE_NODE_TYPE(Assignment)
 
@@ -2314,18 +2338,18 @@ class Assignment FINAL : public Expression {
 
   // Type feedback information.
   TypeFeedbackId AssignmentFeedbackId() { return TypeFeedbackId(local_id(1)); }
-  bool IsMonomorphic() OVERRIDE { return receiver_types_.length() == 1; }
+  bool IsMonomorphic() override { return receiver_types_.length() == 1; }
   bool IsUninitialized() const {
     return IsUninitializedField::decode(bit_field_);
   }
   bool HasNoTypeInformation() {
     return IsUninitializedField::decode(bit_field_);
   }
-  SmallMapList* GetReceiverTypes() OVERRIDE { return &receiver_types_; }
-  IcCheckType GetKeyType() const OVERRIDE {
+  SmallMapList* GetReceiverTypes() override { return &receiver_types_; }
+  IcCheckType GetKeyType() const override {
     return KeyTypeField::decode(bit_field_);
   }
-  KeyedAccessStoreMode GetStoreMode() const OVERRIDE {
+  KeyedAccessStoreMode GetStoreMode() const override {
     return StoreModeField::decode(bit_field_);
   }
   void set_is_uninitialized(bool b) {
@@ -2361,7 +2385,7 @@ class Assignment FINAL : public Expression {
 };
 
 
-class Yield FINAL : public Expression {
+class Yield final : public Expression {
  public:
   DECLARE_NODE_TYPE(Yield)
 
@@ -2393,14 +2417,14 @@ class Yield FINAL : public Expression {
     return FLAG_vector_ics && (yield_kind() == kDelegating);
   }
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE {
+      Isolate* isolate, const ICSlotCache* cache) override {
     return FeedbackVectorRequirements(0, HasFeedbackSlots() ? 3 : 0);
   }
   void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot,
-                              ICSlotCache* cache) OVERRIDE {
+                              ICSlotCache* cache) override {
     yield_first_feedback_slot_ = slot;
   }
-  Code::Kind FeedbackICSlotKind(int index) OVERRIDE {
+  Code::Kind FeedbackICSlotKind(int index) override {
     return index == 0 ? Code::KEYED_LOAD_IC : Code::LOAD_IC;
   }
 
@@ -2434,7 +2458,7 @@ class Yield FINAL : public Expression {
 };
 
 
-class Throw FINAL : public Expression {
+class Throw final : public Expression {
  public:
   DECLARE_NODE_TYPE(Throw)
 
@@ -2449,7 +2473,7 @@ class Throw FINAL : public Expression {
 };
 
 
-class FunctionLiteral FINAL : public Expression {
+class FunctionLiteral final : public Expression {
  public:
   enum FunctionType {
     ANONYMOUS_EXPRESSION,
@@ -2643,7 +2667,7 @@ class FunctionLiteral FINAL : public Expression {
 };
 
 
-class ClassLiteral FINAL : public Expression {
+class ClassLiteral final : public Expression {
  public:
   typedef ObjectLiteralProperty Property;
 
@@ -2698,7 +2722,7 @@ class ClassLiteral FINAL : public Expression {
 };
 
 
-class NativeFunctionLiteral FINAL : public Expression {
+class NativeFunctionLiteral final : public Expression {
  public:
   DECLARE_NODE_TYPE(NativeFunctionLiteral)
 
@@ -2716,7 +2740,7 @@ class NativeFunctionLiteral FINAL : public Expression {
 };
 
 
-class ThisFunction FINAL : public Expression {
+class ThisFunction final : public Expression {
  public:
   DECLARE_NODE_TYPE(ThisFunction)
 
@@ -2725,7 +2749,7 @@ class ThisFunction FINAL : public Expression {
 };
 
 
-class SuperReference FINAL : public Expression {
+class SuperReference final : public Expression {
  public:
   DECLARE_NODE_TYPE(SuperReference)
 
@@ -2736,14 +2760,14 @@ class SuperReference FINAL : public Expression {
 
   // Type feedback information.
   virtual FeedbackVectorRequirements ComputeFeedbackRequirements(
-      Isolate* isolate, const ICSlotCache* cache) OVERRIDE {
+      Isolate* isolate, const ICSlotCache* cache) override {
     return FeedbackVectorRequirements(0, FLAG_vector_ics ? 1 : 0);
   }
   void SetFirstFeedbackICSlot(FeedbackVectorICSlot slot,
-                              ICSlotCache* cache) OVERRIDE {
+                              ICSlotCache* cache) override {
     homeobject_feedback_slot_ = slot;
   }
-  Code::Kind FeedbackICSlotKind(int index) OVERRIDE { return Code::LOAD_IC; }
+  Code::Kind FeedbackICSlotKind(int index) override { return Code::LOAD_IC; }
 
   FeedbackVectorICSlot HomeObjectFeedbackSlot() {
     DCHECK(!FLAG_vector_ics || !homeobject_feedback_slot_.IsInvalid());
@@ -2809,19 +2833,19 @@ class RegExpTree : public ZoneObject {
 };
 
 
-class RegExpDisjunction FINAL : public RegExpTree {
+class RegExpDisjunction final : public RegExpTree {
  public:
   explicit RegExpDisjunction(ZoneList<RegExpTree*>* alternatives);
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpDisjunction* AsDisjunction() OVERRIDE;
-  Interval CaptureRegisters() OVERRIDE;
-  bool IsDisjunction() OVERRIDE;
-  bool IsAnchoredAtStart() OVERRIDE;
-  bool IsAnchoredAtEnd() OVERRIDE;
-  int min_match() OVERRIDE { return min_match_; }
-  int max_match() OVERRIDE { return max_match_; }
+                             RegExpNode* on_success) override;
+  RegExpDisjunction* AsDisjunction() override;
+  Interval CaptureRegisters() override;
+  bool IsDisjunction() override;
+  bool IsAnchoredAtStart() override;
+  bool IsAnchoredAtEnd() override;
+  int min_match() override { return min_match_; }
+  int max_match() override { return max_match_; }
   ZoneList<RegExpTree*>* alternatives() { return alternatives_; }
  private:
   ZoneList<RegExpTree*>* alternatives_;
@@ -2830,19 +2854,19 @@ class RegExpDisjunction FINAL : public RegExpTree {
 };
 
 
-class RegExpAlternative FINAL : public RegExpTree {
+class RegExpAlternative final : public RegExpTree {
  public:
   explicit RegExpAlternative(ZoneList<RegExpTree*>* nodes);
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpAlternative* AsAlternative() OVERRIDE;
-  Interval CaptureRegisters() OVERRIDE;
-  bool IsAlternative() OVERRIDE;
-  bool IsAnchoredAtStart() OVERRIDE;
-  bool IsAnchoredAtEnd() OVERRIDE;
-  int min_match() OVERRIDE { return min_match_; }
-  int max_match() OVERRIDE { return max_match_; }
+                             RegExpNode* on_success) override;
+  RegExpAlternative* AsAlternative() override;
+  Interval CaptureRegisters() override;
+  bool IsAlternative() override;
+  bool IsAnchoredAtStart() override;
+  bool IsAnchoredAtEnd() override;
+  int min_match() override { return min_match_; }
+  int max_match() override { return max_match_; }
   ZoneList<RegExpTree*>* nodes() { return nodes_; }
  private:
   ZoneList<RegExpTree*>* nodes_;
@@ -2851,7 +2875,7 @@ class RegExpAlternative FINAL : public RegExpTree {
 };
 
 
-class RegExpAssertion FINAL : public RegExpTree {
+class RegExpAssertion final : public RegExpTree {
  public:
   enum AssertionType {
     START_OF_LINE,
@@ -2862,22 +2886,22 @@ class RegExpAssertion FINAL : public RegExpTree {
     NON_BOUNDARY
   };
   explicit RegExpAssertion(AssertionType type) : assertion_type_(type) { }
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpAssertion* AsAssertion() OVERRIDE;
-  bool IsAssertion() OVERRIDE;
-  bool IsAnchoredAtStart() OVERRIDE;
-  bool IsAnchoredAtEnd() OVERRIDE;
-  int min_match() OVERRIDE { return 0; }
-  int max_match() OVERRIDE { return 0; }
+                             RegExpNode* on_success) override;
+  RegExpAssertion* AsAssertion() override;
+  bool IsAssertion() override;
+  bool IsAnchoredAtStart() override;
+  bool IsAnchoredAtEnd() override;
+  int min_match() override { return 0; }
+  int max_match() override { return 0; }
   AssertionType assertion_type() { return assertion_type_; }
  private:
   AssertionType assertion_type_;
 };
 
 
-class CharacterSet FINAL BASE_EMBEDDED {
+class CharacterSet final BASE_EMBEDDED {
  public:
   explicit CharacterSet(uc16 standard_set_type)
       : ranges_(NULL),
@@ -2900,7 +2924,7 @@ class CharacterSet FINAL BASE_EMBEDDED {
 };
 
 
-class RegExpCharacterClass FINAL : public RegExpTree {
+class RegExpCharacterClass final : public RegExpTree {
  public:
   RegExpCharacterClass(ZoneList<CharacterRange>* ranges, bool is_negated)
       : set_(ranges),
@@ -2908,15 +2932,15 @@ class RegExpCharacterClass FINAL : public RegExpTree {
   explicit RegExpCharacterClass(uc16 type)
       : set_(type),
         is_negated_(false) { }
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpCharacterClass* AsCharacterClass() OVERRIDE;
-  bool IsCharacterClass() OVERRIDE;
-  bool IsTextElement() OVERRIDE { return true; }
-  int min_match() OVERRIDE { return 1; }
-  int max_match() OVERRIDE { return 1; }
-  void AppendToText(RegExpText* text, Zone* zone) OVERRIDE;
+                             RegExpNode* on_success) override;
+  RegExpCharacterClass* AsCharacterClass() override;
+  bool IsCharacterClass() override;
+  bool IsTextElement() override { return true; }
+  int min_match() override { return 1; }
+  int max_match() override { return 1; }
+  void AppendToText(RegExpText* text, Zone* zone) override;
   CharacterSet character_set() { return set_; }
   // TODO(lrn): Remove need for complex version if is_standard that
   // recognizes a mangled standard set and just do { return set_.is_special(); }
@@ -2942,18 +2966,18 @@ class RegExpCharacterClass FINAL : public RegExpTree {
 };
 
 
-class RegExpAtom FINAL : public RegExpTree {
+class RegExpAtom final : public RegExpTree {
  public:
   explicit RegExpAtom(Vector<const uc16> data) : data_(data) { }
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpAtom* AsAtom() OVERRIDE;
-  bool IsAtom() OVERRIDE;
-  bool IsTextElement() OVERRIDE { return true; }
-  int min_match() OVERRIDE { return data_.length(); }
-  int max_match() OVERRIDE { return data_.length(); }
-  void AppendToText(RegExpText* text, Zone* zone) OVERRIDE;
+                             RegExpNode* on_success) override;
+  RegExpAtom* AsAtom() override;
+  bool IsAtom() override;
+  bool IsTextElement() override { return true; }
+  int min_match() override { return data_.length(); }
+  int max_match() override { return data_.length(); }
+  void AppendToText(RegExpText* text, Zone* zone) override;
   Vector<const uc16> data() { return data_; }
   int length() { return data_.length(); }
  private:
@@ -2961,18 +2985,18 @@ class RegExpAtom FINAL : public RegExpTree {
 };
 
 
-class RegExpText FINAL : public RegExpTree {
+class RegExpText final : public RegExpTree {
  public:
   explicit RegExpText(Zone* zone) : elements_(2, zone), length_(0) {}
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpText* AsText() OVERRIDE;
-  bool IsText() OVERRIDE;
-  bool IsTextElement() OVERRIDE { return true; }
-  int min_match() OVERRIDE { return length_; }
-  int max_match() OVERRIDE { return length_; }
-  void AppendToText(RegExpText* text, Zone* zone) OVERRIDE;
+                             RegExpNode* on_success) override;
+  RegExpText* AsText() override;
+  bool IsText() override;
+  bool IsTextElement() override { return true; }
+  int min_match() override { return length_; }
+  int max_match() override { return length_; }
+  void AppendToText(RegExpText* text, Zone* zone) override;
   void AddElement(TextElement elm, Zone* zone)  {
     elements_.Add(elm, zone);
     length_ += elm.length();
@@ -2984,7 +3008,7 @@ class RegExpText FINAL : public RegExpTree {
 };
 
 
-class RegExpQuantifier FINAL : public RegExpTree {
+class RegExpQuantifier final : public RegExpTree {
  public:
   enum QuantifierType { GREEDY, NON_GREEDY, POSSESSIVE };
   RegExpQuantifier(int min, int max, QuantifierType type, RegExpTree* body)
@@ -2999,9 +3023,9 @@ class RegExpQuantifier FINAL : public RegExpTree {
       max_match_ = max * body->max_match();
     }
   }
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
+                             RegExpNode* on_success) override;
   static RegExpNode* ToNode(int min,
                             int max,
                             bool is_greedy,
@@ -3009,11 +3033,11 @@ class RegExpQuantifier FINAL : public RegExpTree {
                             RegExpCompiler* compiler,
                             RegExpNode* on_success,
                             bool not_at_start = false);
-  RegExpQuantifier* AsQuantifier() OVERRIDE;
-  Interval CaptureRegisters() OVERRIDE;
-  bool IsQuantifier() OVERRIDE;
-  int min_match() OVERRIDE { return min_match_; }
-  int max_match() OVERRIDE { return max_match_; }
+  RegExpQuantifier* AsQuantifier() override;
+  Interval CaptureRegisters() override;
+  bool IsQuantifier() override;
+  int min_match() override { return min_match_; }
+  int max_match() override { return max_match_; }
   int min() { return min_; }
   int max() { return max_; }
   bool is_possessive() { return quantifier_type_ == POSSESSIVE; }
@@ -3031,24 +3055,24 @@ class RegExpQuantifier FINAL : public RegExpTree {
 };
 
 
-class RegExpCapture FINAL : public RegExpTree {
+class RegExpCapture final : public RegExpTree {
  public:
   explicit RegExpCapture(RegExpTree* body, int index)
       : body_(body), index_(index) { }
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
+                             RegExpNode* on_success) override;
   static RegExpNode* ToNode(RegExpTree* body,
                             int index,
                             RegExpCompiler* compiler,
                             RegExpNode* on_success);
-  RegExpCapture* AsCapture() OVERRIDE;
-  bool IsAnchoredAtStart() OVERRIDE;
-  bool IsAnchoredAtEnd() OVERRIDE;
-  Interval CaptureRegisters() OVERRIDE;
-  bool IsCapture() OVERRIDE;
-  int min_match() OVERRIDE { return body_->min_match(); }
-  int max_match() OVERRIDE { return body_->max_match(); }
+  RegExpCapture* AsCapture() override;
+  bool IsAnchoredAtStart() override;
+  bool IsAnchoredAtEnd() override;
+  Interval CaptureRegisters() override;
+  bool IsCapture() override;
+  int min_match() override { return body_->min_match(); }
+  int max_match() override { return body_->max_match(); }
   RegExpTree* body() { return body_; }
   int index() { return index_; }
   static int StartRegister(int index) { return index * 2; }
@@ -3060,7 +3084,7 @@ class RegExpCapture FINAL : public RegExpTree {
 };
 
 
-class RegExpLookahead FINAL : public RegExpTree {
+class RegExpLookahead final : public RegExpTree {
  public:
   RegExpLookahead(RegExpTree* body,
                   bool is_positive,
@@ -3071,15 +3095,15 @@ class RegExpLookahead FINAL : public RegExpTree {
         capture_count_(capture_count),
         capture_from_(capture_from) { }
 
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpLookahead* AsLookahead() OVERRIDE;
-  Interval CaptureRegisters() OVERRIDE;
-  bool IsLookahead() OVERRIDE;
-  bool IsAnchoredAtStart() OVERRIDE;
-  int min_match() OVERRIDE { return 0; }
-  int max_match() OVERRIDE { return 0; }
+                             RegExpNode* on_success) override;
+  RegExpLookahead* AsLookahead() override;
+  Interval CaptureRegisters() override;
+  bool IsLookahead() override;
+  bool IsAnchoredAtStart() override;
+  int min_match() override { return 0; }
+  int max_match() override { return 0; }
   RegExpTree* body() { return body_; }
   bool is_positive() { return is_positive_; }
   int capture_count() { return capture_count_; }
@@ -3093,17 +3117,17 @@ class RegExpLookahead FINAL : public RegExpTree {
 };
 
 
-class RegExpBackReference FINAL : public RegExpTree {
+class RegExpBackReference final : public RegExpTree {
  public:
   explicit RegExpBackReference(RegExpCapture* capture)
       : capture_(capture) { }
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpBackReference* AsBackReference() OVERRIDE;
-  bool IsBackReference() OVERRIDE;
-  int min_match() OVERRIDE { return 0; }
-  int max_match() OVERRIDE { return capture_->max_match(); }
+                             RegExpNode* on_success) override;
+  RegExpBackReference* AsBackReference() override;
+  bool IsBackReference() override;
+  int min_match() override { return 0; }
+  int max_match() override { return capture_->max_match(); }
   int index() { return capture_->index(); }
   RegExpCapture* capture() { return capture_; }
  private:
@@ -3111,16 +3135,16 @@ class RegExpBackReference FINAL : public RegExpTree {
 };
 
 
-class RegExpEmpty FINAL : public RegExpTree {
+class RegExpEmpty final : public RegExpTree {
  public:
   RegExpEmpty() { }
-  void* Accept(RegExpVisitor* visitor, void* data) OVERRIDE;
+  void* Accept(RegExpVisitor* visitor, void* data) override;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
-                             RegExpNode* on_success) OVERRIDE;
-  RegExpEmpty* AsEmpty() OVERRIDE;
-  bool IsEmpty() OVERRIDE;
-  int min_match() OVERRIDE { return 0; }
-  int max_match() OVERRIDE { return 0; }
+                             RegExpNode* on_success) override;
+  RegExpEmpty* AsEmpty() override;
+  bool IsEmpty() override;
+  int min_match() override { return 0; }
+  int max_match() override { return 0; }
 };
 
 
@@ -3151,7 +3175,7 @@ class AstVisitor BASE_EMBEDDED {
 
 #define DEFINE_AST_VISITOR_SUBCLASS_MEMBERS()               \
  public:                                                    \
-  void Visit(AstNode* node) FINAL {                         \
+  void Visit(AstNode* node) final {                         \
     if (!CheckStackOverflow()) node->Accept(this);          \
   }                                                         \
                                                             \
@@ -3184,17 +3208,17 @@ class AstVisitor BASE_EMBEDDED {
 // ----------------------------------------------------------------------------
 // AstNode factory
 
-class AstNodeFactory FINAL BASE_EMBEDDED {
+class AstNodeFactory final BASE_EMBEDDED {
  public:
   explicit AstNodeFactory(AstValueFactory* ast_value_factory)
       : zone_(ast_value_factory->zone()),
         ast_value_factory_(ast_value_factory) {}
 
-  VariableDeclaration* NewVariableDeclaration(VariableProxy* proxy,
-                                              VariableMode mode,
-                                              Scope* scope,
-                                              int pos) {
-    return new (zone_) VariableDeclaration(zone_, proxy, mode, scope, pos);
+  VariableDeclaration* NewVariableDeclaration(
+      VariableProxy* proxy, VariableMode mode, Scope* scope, int pos,
+      bool is_class_declaration = false) {
+    return new (zone_) VariableDeclaration(zone_, proxy, mode, scope, pos,
+                                           is_class_declaration);
   }
 
   FunctionDeclaration* NewFunctionDeclaration(VariableProxy* proxy,
@@ -3473,6 +3497,10 @@ class AstNodeFactory FINAL BASE_EMBEDDED {
                                         Expression* right,
                                         int pos) {
     return new (zone_) CompareOperation(zone_, op, left, right, pos);
+  }
+
+  Spread* NewSpread(Expression* expression, int pos) {
+    return new (zone_) Spread(zone_, expression, pos);
   }
 
   Conditional* NewConditional(Expression* condition,

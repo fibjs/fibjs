@@ -2223,10 +2223,8 @@ void Deoptimizer::DoTranslateObject(TranslationIterator* iterator,
                "      object @0x%08" V8PRIxPTR ": [field #%d] <- ",
                reinterpret_cast<intptr_t>(object_slot),
                field_index);
-        PrintF(trace_scope_->file(),
-               "%" V8PRIdPTR " ; uint %s (%s)\n", value,
-               converter.NameOfCPURegister(input_reg),
-               TraceValueType(is_smi));
+        PrintF(trace_scope_->file(), "%" V8PRIuPTR " ; uint %s (%s)\n", value,
+               converter.NameOfCPURegister(input_reg), TraceValueType(is_smi));
       }
       if (is_smi) {
         intptr_t tagged_value =
@@ -2311,8 +2309,7 @@ void Deoptimizer::DoTranslateObject(TranslationIterator* iterator,
                "      object @0x%08" V8PRIxPTR ": [field #%d] <- ",
                reinterpret_cast<intptr_t>(object_slot),
                field_index);
-        PrintF(trace_scope_->file(),
-               "%" V8PRIdPTR " ; [sp + %d] (uint %s)\n",
+        PrintF(trace_scope_->file(), "%" V8PRIuPTR " ; [sp + %d] (uint %s)\n",
                value, input_offset, TraceValueType(is_smi));
       }
       if (is_smi) {
@@ -2806,7 +2803,10 @@ void Deoptimizer::EnsureCodeForDeoptimizationEntry(Isolate* isolate,
   MemoryChunk* chunk = data->deopt_entry_code_[type];
   CHECK(static_cast<int>(Deoptimizer::GetMaxDeoptTableSize()) >=
         desc.instr_size);
-  chunk->CommitArea(desc.instr_size);
+  if (!chunk->CommitArea(desc.instr_size)) {
+    V8::FatalProcessOutOfMemory(
+        "Deoptimizer::EnsureCodeForDeoptimizationEntry");
+  }
   CopyBytes(chunk->area_start(), desc.buffer,
       static_cast<size_t>(desc.instr_size));
   CpuFeatures::FlushICache(chunk->area_start(), desc.instr_size);
@@ -2902,6 +2902,8 @@ Object* FrameDescription::GetExpression(int index) {
 
 
 void TranslationBuffer::Add(int32_t value, Zone* zone) {
+  // This wouldn't handle kMinInt correctly if it ever encountered it.
+  DCHECK(value != kMinInt);
   // Encode the sign bit in the least significant bit.
   bool is_negative = (value < 0);
   uint32_t bits = ((is_negative ? -value : value) << 1) |

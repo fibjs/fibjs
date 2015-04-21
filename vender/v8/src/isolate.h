@@ -386,7 +386,6 @@ typedef List<HeapObject*> DebugObjectCache;
   V(HTracer*, htracer, NULL)                                                   \
   V(CodeTracer*, code_tracer, NULL)                                            \
   V(bool, fp_stubs_generated, false)                                           \
-  V(int, max_available_threads, 0)                                             \
   V(uint32_t, per_isolate_assert_data, 0xFFFFFFFFu)                            \
   V(PromiseRejectCallback, promise_reject_callback, NULL)                      \
   V(const v8::StartupData*, snapshot_blob, NULL)                               \
@@ -726,9 +725,10 @@ class Isolate {
       StackTrace::StackTraceOptions options);
   Handle<Object> CaptureSimpleStackTrace(Handle<JSObject> error_object,
                                          Handle<Object> caller);
-  void CaptureAndSetDetailedStackTrace(Handle<JSObject> error_object);
-  void CaptureAndSetSimpleStackTrace(Handle<JSObject> error_object,
-                                     Handle<Object> caller);
+  MaybeHandle<JSObject> CaptureAndSetDetailedStackTrace(
+      Handle<JSObject> error_object);
+  MaybeHandle<JSObject> CaptureAndSetSimpleStackTrace(
+      Handle<JSObject> error_object, Handle<Object> caller);
   Handle<JSArray> GetDetailedStackTrace(Handle<JSObject> error_object);
   Handle<JSArray> GetDetailedFromSimpleStackTrace(
       Handle<JSObject> error_object);
@@ -1505,7 +1505,7 @@ class PostponeInterruptsScope BASE_EMBEDDED {
 };
 
 
-class CodeTracer FINAL : public Malloced {
+class CodeTracer final : public Malloced {
  public:
   explicit CodeTracer(int isolate_id)
       : file_(NULL),

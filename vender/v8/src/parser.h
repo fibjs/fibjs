@@ -569,6 +569,7 @@ class ParserTraits {
   bool IsEval(const AstRawString* identifier) const;
   bool IsArguments(const AstRawString* identifier) const;
   bool IsEvalOrArguments(const AstRawString* identifier) const;
+  bool IsUndefined(const AstRawString* identifier) const;
   V8_INLINE bool IsFutureStrictReserved(const AstRawString* identifier) const;
 
   // Returns true if the expression is of type "this.foo".
@@ -744,6 +745,7 @@ class ParserTraits {
 
   // Utility functions
   int DeclareArrowParametersFromExpression(Expression* expression, Scope* scope,
+                                           Scanner::Location* undefined_loc,
                                            Scanner::Location* dupe_loc,
                                            bool* ok);
 
@@ -811,6 +813,16 @@ class ParserTraits {
     return tag != NULL;
   }
 
+  V8_INLINE ZoneList<v8::internal::Expression*>* PrepareSpreadArguments(
+      ZoneList<v8::internal::Expression*>* list);
+  V8_INLINE void MaterializeUnspreadArgumentsLiterals(int count) {}
+  V8_INLINE Expression* SpreadCall(Expression* function,
+                                   ZoneList<v8::internal::Expression*>* args,
+                                   int pos);
+  V8_INLINE Expression* SpreadCallNew(Expression* function,
+                                      ZoneList<v8::internal::Expression*>* args,
+                                      int pos);
+
  private:
   Parser* parser_;
 };
@@ -858,8 +870,7 @@ class Parser : public ParserBase<ParserTraits> {
                              Utf16CharacterStream* source);
 
   // Called by ParseProgram after setting up the scanner.
-  FunctionLiteral* DoParseProgram(ParseInfo* info, Scope** scope,
-                                  Scope** ad_hoc_eval_scope);
+  FunctionLiteral* DoParseProgram(ParseInfo* info);
 
   void SetCachedData(ParseInfo* info);
 
@@ -899,6 +910,8 @@ class Parser : public ParserBase<ParserTraits> {
   ZoneList<ImportDeclaration*>* ParseNamedImports(int pos, bool* ok);
   Statement* ParseStatement(ZoneList<const AstRawString*>* labels, bool* ok);
   Statement* ParseSubStatement(ZoneList<const AstRawString*>* labels, bool* ok);
+  Statement* ParseStatementAsUnlabelled(ZoneList<const AstRawString*>* labels,
+                                   bool* ok);
   Statement* ParseFunctionDeclaration(ZoneList<const AstRawString*>* names,
                                       bool* ok);
   Statement* ParseClassDeclaration(ZoneList<const AstRawString*>* names,
@@ -909,10 +922,11 @@ class Parser : public ParserBase<ParserTraits> {
                                 ZoneList<const AstRawString*>* names,
                                 bool* ok);
   Block* ParseVariableDeclarations(VariableDeclarationContext var_context,
-                                   VariableDeclarationProperties* decl_props,
+                                   int* num_decl,
                                    ZoneList<const AstRawString*>* names,
                                    const AstRawString** out,
-                                   bool* ok);
+                                   Scanner::Location* first_initializer_loc,
+                                   Scanner::Location* bindings_loc, bool* ok);
   Statement* ParseExpressionOrLabelledStatement(
       ZoneList<const AstRawString*>* labels, bool* ok);
   IfStatement* ParseIfStatement(ZoneList<const AstRawString*>* labels,
@@ -1016,6 +1030,13 @@ class Parser : public ParserBase<ParserTraits> {
   Expression* CloseTemplateLiteral(TemplateLiteralState* state, int start,
                                    Expression* tag);
   uint32_t ComputeTemplateLiteralHash(const TemplateLiteral* lit);
+
+  ZoneList<v8::internal::Expression*>* PrepareSpreadArguments(
+      ZoneList<v8::internal::Expression*>* list);
+  Expression* SpreadCall(Expression* function,
+                         ZoneList<v8::internal::Expression*>* args, int pos);
+  Expression* SpreadCallNew(Expression* function,
+                            ZoneList<v8::internal::Expression*>* args, int pos);
 
   Scanner scanner_;
   PreParser* reusable_preparser_;
@@ -1125,6 +1146,25 @@ void ParserTraits::AddTemplateExpression(TemplateLiteralState* state,
 Expression* ParserTraits::CloseTemplateLiteral(TemplateLiteralState* state,
                                                int start, Expression* tag) {
   return parser_->CloseTemplateLiteral(state, start, tag);
+}
+
+
+ZoneList<v8::internal::Expression*>* ParserTraits::PrepareSpreadArguments(
+    ZoneList<v8::internal::Expression*>* list) {
+  return parser_->PrepareSpreadArguments(list);
+}
+
+
+Expression* ParserTraits::SpreadCall(Expression* function,
+                                     ZoneList<v8::internal::Expression*>* args,
+                                     int pos) {
+  return parser_->SpreadCall(function, args, pos);
+}
+
+
+Expression* ParserTraits::SpreadCallNew(
+    Expression* function, ZoneList<v8::internal::Expression*>* args, int pos) {
+  return parser_->SpreadCallNew(function, args, pos);
 }
 } }  // namespace v8::internal
 

@@ -37,6 +37,7 @@ namespace internal {
   V(Oddball, null_value, NullValue)                                            \
   V(Oddball, true_value, TrueValue)                                            \
   V(Oddball, false_value, FalseValue)                                          \
+  V(String, empty_string, empty_string)                                        \
   V(Oddball, uninitialized_value, UninitializedValue)                          \
   V(Map, cell_map, CellMap)                                                    \
   V(Map, global_property_cell_map, GlobalPropertyCellMap)                      \
@@ -214,7 +215,6 @@ namespace internal {
   V(constructor_string, "constructor")                         \
   V(dot_result_string, ".result")                              \
   V(eval_string, "eval")                                       \
-  V(empty_string, "")                                          \
   V(function_string, "function")                               \
   V(Function_string, "Function")                               \
   V(length_string, "length")                                   \
@@ -232,6 +232,7 @@ namespace internal {
   V(sticky_string, "sticky")                                   \
   V(unicode_string, "unicode")                                 \
   V(harmony_regexps_string, "harmony_regexps")                 \
+  V(harmony_tostring_string, "harmony_tostring")               \
   V(harmony_unicode_regexps_string, "harmony_unicode_regexps") \
   V(input_string, "input")                                     \
   V(index_string, "index")                                     \
@@ -369,6 +370,7 @@ namespace internal {
   V(JSMessageObjectMap)                 \
   V(ForeignMap)                         \
   V(NeanderMap)                         \
+  V(empty_string)                       \
   PRIVATE_SYMBOL_LIST(V)
 
 // Forward declarations.
@@ -632,6 +634,10 @@ class Heap {
   // Returns of size of all objects residing in the heap.
   intptr_t SizeOfObjects();
 
+  intptr_t old_generation_allocation_limit() const {
+    return old_generation_allocation_limit_;
+  }
+
   // Return the starting address and a mask for the new space.  And-masking an
   // address with the mask will result in the start address of the new space
   // for all addresses in either semispace.
@@ -643,7 +649,6 @@ class Heap {
   OldSpace* old_space() { return old_space_; }
   OldSpace* code_space() { return code_space_; }
   MapSpace* map_space() { return map_space_; }
-  CellSpace* cell_space() { return cell_space_; }
   LargeObjectSpace* lo_space() { return lo_space_; }
   PagedSpace* paged_space(int idx) {
     switch (idx) {
@@ -651,8 +656,6 @@ class Heap {
         return old_space();
       case MAP_SPACE:
         return map_space();
-      case CELL_SPACE:
-        return cell_space();
       case CODE_SPACE:
         return code_space();
       case NEW_SPACE:
@@ -661,6 +664,19 @@ class Heap {
     }
     return NULL;
   }
+  Space* space(int idx) {
+    switch (idx) {
+      case NEW_SPACE:
+        return new_space();
+      case LO_SPACE:
+        return lo_space();
+      default:
+        return paged_space(idx);
+    }
+  }
+
+  // Returns name of the space.
+  const char* GetSpaceName(int idx);
 
   bool always_allocate() { return always_allocate_scope_depth_ != 0; }
   Address always_allocate_scope_depth_address() {
@@ -730,9 +746,11 @@ class Heap {
 
   bool CanMoveObjectStart(HeapObject* object);
 
-  // Indicates whether live bytes adjustment is triggered from within the GC
-  // code or from mutator code.
-  enum InvocationMode { FROM_GC, FROM_MUTATOR };
+  // Indicates whether live bytes adjustment is triggered
+  // - from within the GC code before sweeping started (SEQUENTIAL_TO_SWEEPER),
+  // - or from within GC (CONCURRENT_TO_SWEEPER),
+  // - or mutator code (CONCURRENT_TO_SWEEPER).
+  enum InvocationMode { SEQUENTIAL_TO_SWEEPER, CONCURRENT_TO_SWEEPER };
 
   // Maintain consistency of live bytes during incremental marking.
   void AdjustLiveBytes(Address address, int by, InvocationMode mode);
@@ -855,6 +873,13 @@ class Heap {
 
   void set_array_buffers_list(Object* object) { array_buffers_list_ = object; }
   Object* array_buffers_list() const { return array_buffers_list_; }
+
+  void set_last_array_buffer_in_list(Object* object) {
+    last_array_buffer_in_list_ = object;
+  }
+  Object* last_array_buffer_in_list() const {
+    return last_array_buffer_in_list_;
+  }
 
   void set_new_array_buffer_views_list(Object* object) {
     new_array_buffer_views_list_ = object;
@@ -1112,8 +1137,14 @@ class Heap {
   static const int kMaxExecutableSizeHugeMemoryDevice =
       256 * kPointerMultiplier;
 
-  intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size,
-                                        int freed_global_handles);
+  // Calculates the allocation limit based on a given growing factor and a
+  // given old generation size.
+  intptr_t CalculateOldGenerationAllocationLimit(double factor,
+                                                 intptr_t old_gen_size);
+
+  // Sets the allocation limit to trigger the next full garbage collection.
+  void SetOldGenerationAllocationLimit(intptr_t old_gen_size,
+                                       int freed_global_handles);
 
   // Indicates whether inline bump-pointer allocation has been disabled.
   bool inline_allocation_disabled() { return inline_allocation_disabled_; }
@@ -1157,6 +1188,10 @@ class Heap {
     kStrongRootListLength = kStringTableRootIndex,
     kSmiRootsStart = kStringTableRootIndex + 1
   };
+
+  // Get the root list index for {object} if such a root list index exists.
+  bool GetRootListIndex(Handle<HeapObject> object,
+                        Heap::RootListIndex* index_return);
 
   Object* root(RootListIndex index) { return roots_[index]; }
 
@@ -1219,13 +1254,10 @@ class Heap {
     survived_since_last_expansion_ += survived;
   }
 
-  inline bool NextGCIsLikelyToBeFull() {
-    if (FLAG_gc_global) return true;
-
+  inline bool HeapIsFullEnoughToStartIncrementalMarking(intptr_t limit) {
     if (FLAG_stress_compaction && (gc_count_ & 1) != 0) return true;
 
-    intptr_t adjusted_allocation_limit =
-        old_generation_allocation_limit_ - new_space_.Capacity();
+    intptr_t adjusted_allocation_limit = limit - new_space_.Capacity();
 
     if (PromotedTotalSize() >= adjusted_allocation_limit) return true;
 
@@ -1421,6 +1453,8 @@ class Heap {
     object_sizes_[FIRST_FIXED_ARRAY_SUB_TYPE + array_sub_type] += size;
   }
 
+  void TraceObjectStats();
+  void TraceObjectStat(const char* name, int count, int size, double time);
   void CheckpointObjectStats();
 
   // We don't use a LockGuard here since we want to lock the heap
@@ -1571,7 +1605,6 @@ class Heap {
   OldSpace* old_space_;
   OldSpace* code_space_;
   MapSpace* map_space_;
-  CellSpace* cell_space_;
   LargeObjectSpace* lo_space_;
   HeapState gc_state_;
   int gc_post_processing_depth_;
@@ -1628,6 +1661,10 @@ class Heap {
   // generation and on every allocation in large object space.
   intptr_t old_generation_allocation_limit_;
 
+  // The allocation limit when there is >16.66ms idle time in the idle time
+  // handler.
+  intptr_t idle_old_generation_allocation_limit_;
+
   // Indicates that an allocation has failed in the old generation since the
   // last GC.
   bool old_gen_exhausted_;
@@ -1640,6 +1677,7 @@ class Heap {
   // List heads are initialized lazily and contain the undefined_value at start.
   Object* native_contexts_list_;
   Object* array_buffers_list_;
+  Object* last_array_buffer_in_list_;
   Object* allocation_sites_list_;
 
   // This is a global list of array buffer views in new space. When the views
@@ -2057,8 +2095,6 @@ class Heap {
       double idle_time_in_ms, size_t size_of_objects,
       size_t mark_compact_speed_in_bytes_per_ms);
 
-  bool WorthActivatingIncrementalMarking();
-
   void ClearObjectStats(bool clear_last_time_stats = false);
 
   inline void UpdateAllocationsHash(HeapObject* object);
@@ -2176,20 +2212,18 @@ class HeapStats {
   intptr_t* code_space_capacity;           //  6
   intptr_t* map_space_size;                //  7
   intptr_t* map_space_capacity;            //  8
-  intptr_t* cell_space_size;               //  9
-  intptr_t* cell_space_capacity;           // 10
-  intptr_t* lo_space_size;                 // 11
-  int* global_handle_count;                // 12
-  int* weak_global_handle_count;           // 13
-  int* pending_global_handle_count;        // 14
-  int* near_death_global_handle_count;     // 15
-  int* free_global_handle_count;           // 16
-  intptr_t* memory_allocator_size;         // 17
-  intptr_t* memory_allocator_capacity;     // 18
-  int* objects_per_type;                   // 19
-  int* size_per_type;                      // 20
-  int* os_error;                           // 21
-  int* end_marker;                         // 22
+  intptr_t* lo_space_size;                 //  9
+  int* global_handle_count;                // 10
+  int* weak_global_handle_count;           // 11
+  int* pending_global_handle_count;        // 12
+  int* near_death_global_handle_count;     // 13
+  int* free_global_handle_count;           // 14
+  intptr_t* memory_allocator_size;         // 15
+  intptr_t* memory_allocator_capacity;     // 16
+  int* objects_per_type;                   // 17
+  int* size_per_type;                      // 18
+  int* os_error;                           // 19
+  int* end_marker;                         // 20
 };
 
 

@@ -2381,11 +2381,11 @@ void MacroAssembler::Move(XMMRegister dst, uint32_t src) {
 
 
 void MacroAssembler::Move(XMMRegister dst, uint64_t src) {
-  uint32_t lower = static_cast<uint32_t>(src);
-  uint32_t upper = static_cast<uint32_t>(src >> 32);
-  if (upper == 0) {
-    Move(dst, lower);
+  if (src == 0) {
+    pxor(dst, dst);
   } else {
+    uint32_t lower = static_cast<uint32_t>(src);
+    uint32_t upper = static_cast<uint32_t>(src >> 32);
     unsigned cnt = base::bits::CountPopulation64(src);
     unsigned nlz = base::bits::CountLeadingZeros64(src);
     unsigned ntz = base::bits::CountTrailingZeros64(src);
@@ -2454,7 +2454,11 @@ void MacroAssembler::Pinsrd(XMMRegister dst, const Operand& src, int8_t imm8) {
 
 
 void MacroAssembler::Lzcnt(Register dst, const Operand& src) {
-  // TODO(intel): Add support for LZCNT (with ABM/BMI1).
+  if (CpuFeatures::IsSupported(LZCNT)) {
+    CpuFeatureScope scope(this, LZCNT);
+    lzcnt(dst, src);
+    return;
+  }
   Label not_zero_src;
   bsr(dst, src);
   j(not_zero, &not_zero_src, Label::kNear);

@@ -606,7 +606,7 @@ MemOperand MacroAssembler::SafepointRegistersAndDoublesSlot(Register reg) {
 void MacroAssembler::CanonicalizeNaN(const DoubleRegister dst,
                                      const DoubleRegister src) {
   // Turn potential sNaN into qNaN.
-  fadd(dst, src, kDoubleRegZero);
+  fsub(dst, src, kDoubleRegZero);
 }
 
 
@@ -1372,7 +1372,6 @@ void MacroAssembler::Allocate(int object_size, Register result,
   if ((flags & DOUBLE_ALIGNMENT) != 0) {
     // Align the next allocation. Storing the filler map without checking top is
     // safe in new-space because the limit of the heap is aligned there.
-    DCHECK((flags & PRETENURE_OLD_SPACE) == 0);
 #if V8_TARGET_ARCH_PPC64
     STATIC_ASSERT(kPointerAlignment == kDoubleAlignment);
 #else
@@ -1471,7 +1470,6 @@ void MacroAssembler::Allocate(Register object_size, Register result,
   if ((flags & DOUBLE_ALIGNMENT) != 0) {
     // Align the next allocation. Storing the filler map without checking top is
     // safe in new-space because the limit of the heap is aligned there.
-    DCHECK((flags & PRETENURE_OLD_SPACE) == 0);
 #if V8_TARGET_ARCH_PPC64
     STATIC_ASSERT(kPointerAlignment == kDoubleAlignment);
 #else

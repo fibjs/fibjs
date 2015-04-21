@@ -25,7 +25,7 @@ namespace compiler {
 
 
 // Adds PPC-specific methods to convert InstructionOperands.
-class PPCOperandConverter FINAL : public InstructionOperandConverter {
+class PPCOperandConverter final : public InstructionOperandConverter {
  public:
   PPCOperandConverter(CodeGenerator* gen, Instruction* instr)
       : InstructionOperandConverter(gen, instr) {}
@@ -107,7 +107,8 @@ class PPCOperandConverter FINAL : public InstructionOperandConverter {
     DCHECK(!op->IsDoubleRegister());
     DCHECK(op->IsStackSlot() || op->IsDoubleStackSlot());
     // The linkage computes where all spill slots are located.
-    FrameOffset offset = linkage()->GetFrameOffset(op->index(), frame(), 0);
+    FrameOffset offset = linkage()->GetFrameOffset(
+        AllocatedOperand::cast(op)->index(), frame(), 0);
     return MemOperand(offset.from_stack_pointer() ? sp : fp, offset.offset());
   }
 };
@@ -120,12 +121,12 @@ static inline bool HasRegisterInput(Instruction* instr, size_t index) {
 
 namespace {
 
-class OutOfLineLoadNAN32 FINAL : public OutOfLineCode {
+class OutOfLineLoadNAN32 final : public OutOfLineCode {
  public:
   OutOfLineLoadNAN32(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ LoadDoubleLiteral(result_, std::numeric_limits<float>::quiet_NaN(),
                          kScratchReg);
   }
@@ -135,12 +136,12 @@ class OutOfLineLoadNAN32 FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadNAN64 FINAL : public OutOfLineCode {
+class OutOfLineLoadNAN64 final : public OutOfLineCode {
  public:
   OutOfLineLoadNAN64(CodeGenerator* gen, DoubleRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ LoadDoubleLiteral(result_, std::numeric_limits<double>::quiet_NaN(),
                          kScratchReg);
   }
@@ -150,12 +151,12 @@ class OutOfLineLoadNAN64 FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadZero FINAL : public OutOfLineCode {
+class OutOfLineLoadZero final : public OutOfLineCode {
  public:
   OutOfLineLoadZero(CodeGenerator* gen, Register result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL { __ li(result_, Operand::Zero()); }
+  void Generate() final { __ li(result_, Operand::Zero()); }
 
  private:
   Register const result_;
@@ -860,6 +861,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kPPC_MinDouble:
       ASSEMBLE_FLOAT_MIN(kScratchDoubleReg);
       break;
+    case kPPC_AbsDouble:
+      ASSEMBLE_FLOAT_UNOP_RC(fabs);
+      break;
     case kPPC_SqrtDouble:
       ASSEMBLE_FLOAT_UNOP_RC(fsqrt);
       break;
@@ -1348,9 +1352,19 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
         case Constant::kExternalReference:
           __ mov(dst, Operand(src.ToExternalReference()));
           break;
-        case Constant::kHeapObject:
-          __ Move(dst, src.ToHeapObject());
+        case Constant::kHeapObject: {
+          Handle<HeapObject> src_object = src.ToHeapObject();
+          Heap::RootListIndex index;
+          int offset;
+          if (IsMaterializableFromFrame(src_object, &offset)) {
+            __ LoadP(dst, MemOperand(fp, offset));
+          } else if (IsMaterializableFromRoot(src_object, &index)) {
+            __ LoadRoot(dst, index);
+          } else {
+            __ Move(dst, src_object);
+          }
           break;
+        }
         case Constant::kRpoNumber:
           UNREACHABLE();  // TODO(dcarney): loading RPO constants on PPC.
           break;

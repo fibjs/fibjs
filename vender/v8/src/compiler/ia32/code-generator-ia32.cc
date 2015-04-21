@@ -51,7 +51,8 @@ class IA32OperandConverter : public InstructionOperandConverter {
     }
     DCHECK(op->IsStackSlot() || op->IsDoubleStackSlot());
     // The linkage computes where all spill slots are located.
-    FrameOffset offset = linkage()->GetFrameOffset(op->index(), frame(), extra);
+    FrameOffset offset = linkage()->GetFrameOffset(
+        AllocatedOperand::cast(op)->index(), frame(), extra);
     return Operand(offset.from_stack_pointer() ? esp : ebp, offset.offset());
   }
 
@@ -176,37 +177,37 @@ bool HasImmediateInput(Instruction* instr, size_t index) {
 }
 
 
-class OutOfLineLoadInteger FINAL : public OutOfLineCode {
+class OutOfLineLoadInteger final : public OutOfLineCode {
  public:
   OutOfLineLoadInteger(CodeGenerator* gen, Register result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL { __ xor_(result_, result_); }
+  void Generate() final { __ xor_(result_, result_); }
 
  private:
   Register const result_;
 };
 
 
-class OutOfLineLoadFloat FINAL : public OutOfLineCode {
+class OutOfLineLoadFloat final : public OutOfLineCode {
  public:
   OutOfLineLoadFloat(CodeGenerator* gen, XMMRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL { __ pcmpeqd(result_, result_); }
+  void Generate() final { __ pcmpeqd(result_, result_); }
 
  private:
   XMMRegister const result_;
 };
 
 
-class OutOfLineTruncateDoubleToI FINAL : public OutOfLineCode {
+class OutOfLineTruncateDoubleToI final : public OutOfLineCode {
  public:
   OutOfLineTruncateDoubleToI(CodeGenerator* gen, Register result,
                              XMMRegister input)
       : OutOfLineCode(gen), result_(result), input_(input) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ sub(esp, Immediate(kDoubleSize));
     __ movsd(MemOperand(esp, 0), input_);
     __ SlowTruncateToI(result_, esp, 0);
@@ -471,6 +472,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     case kSSEFloat32Div:
       __ divss(i.InputDoubleRegister(0), i.InputOperand(1));
+      // Don't delete this mov. It may improve performance on some CPUs,
+      // when there is a (v)mulss depending on the result.
+      __ movaps(i.OutputDoubleRegister(), i.OutputDoubleRegister());
       break;
     case kSSEFloat32Max:
       __ maxss(i.InputDoubleRegister(0), i.InputOperand(1));
@@ -481,9 +485,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kSSEFloat32Sqrt:
       __ sqrtss(i.OutputDoubleRegister(), i.InputOperand(0));
       break;
+    case kSSEFloat32Abs: {
+      // TODO(bmeurer): Use 128-bit constants.
+      __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
+      __ psrlq(kScratchDoubleReg, 33);
+      __ andps(i.OutputDoubleRegister(), kScratchDoubleReg);
+      break;
+    }
     case kSSEFloat32Neg: {
       // TODO(bmeurer): Use 128-bit constants.
-      // TODO(turbofan): Add AVX version with relaxed register constraints.
       __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
       __ psllq(kScratchDoubleReg, 31);
       __ xorps(i.OutputDoubleRegister(), kScratchDoubleReg);
@@ -503,6 +513,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     case kSSEFloat64Div:
       __ divsd(i.InputDoubleRegister(0), i.InputOperand(1));
+      // Don't delete this mov. It may improve performance on some CPUs,
+      // when there is a (v)mulsd depending on the result.
+      __ movaps(i.OutputDoubleRegister(), i.OutputDoubleRegister());
       break;
     case kSSEFloat64Max:
       __ maxsd(i.InputDoubleRegister(0), i.InputOperand(1));
@@ -535,9 +548,15 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ add(esp, Immediate(kDoubleSize));
       break;
     }
+    case kSSEFloat64Abs: {
+      // TODO(bmeurer): Use 128-bit constants.
+      __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
+      __ psrlq(kScratchDoubleReg, 1);
+      __ andpd(i.OutputDoubleRegister(), kScratchDoubleReg);
+      break;
+    }
     case kSSEFloat64Neg: {
       // TODO(bmeurer): Use 128-bit constants.
-      // TODO(turbofan): Add AVX version with relaxed register constraints.
       __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
       __ psllq(kScratchDoubleReg, 63);
       __ xorpd(i.OutputDoubleRegister(), kScratchDoubleReg);
@@ -620,6 +639,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       CpuFeatureScope avx_scope(masm(), AVX);
       __ vdivss(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
                 i.InputOperand(1));
+      // Don't delete this mov. It may improve performance on some CPUs,
+      // when there is a (v)mulss depending on the result.
+      __ movaps(i.OutputDoubleRegister(), i.OutputDoubleRegister());
       break;
     }
     case kAVXFloat32Max: {
@@ -656,6 +678,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       CpuFeatureScope avx_scope(masm(), AVX);
       __ vdivsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
                 i.InputOperand(1));
+      // Don't delete this mov. It may improve performance on some CPUs,
+      // when there is a (v)mulsd depending on the result.
+      __ movaps(i.OutputDoubleRegister(), i.OutputDoubleRegister());
       break;
     }
     case kAVXFloat64Max: {
@@ -668,6 +693,38 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       CpuFeatureScope avx_scope(masm(), AVX);
       __ vminsd(i.OutputDoubleRegister(), i.InputDoubleRegister(0),
                 i.InputOperand(1));
+      break;
+    }
+    case kAVXFloat32Abs: {
+      // TODO(bmeurer): Use RIP relative 128-bit constants.
+      __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
+      __ psrlq(kScratchDoubleReg, 33);
+      CpuFeatureScope avx_scope(masm(), AVX);
+      __ vandps(i.OutputDoubleRegister(), kScratchDoubleReg, i.InputOperand(0));
+      break;
+    }
+    case kAVXFloat32Neg: {
+      // TODO(bmeurer): Use RIP relative 128-bit constants.
+      __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
+      __ psllq(kScratchDoubleReg, 31);
+      CpuFeatureScope avx_scope(masm(), AVX);
+      __ vxorps(i.OutputDoubleRegister(), kScratchDoubleReg, i.InputOperand(0));
+      break;
+    }
+    case kAVXFloat64Abs: {
+      // TODO(bmeurer): Use RIP relative 128-bit constants.
+      __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
+      __ psrlq(kScratchDoubleReg, 1);
+      CpuFeatureScope avx_scope(masm(), AVX);
+      __ vandpd(i.OutputDoubleRegister(), kScratchDoubleReg, i.InputOperand(0));
+      break;
+    }
+    case kAVXFloat64Neg: {
+      // TODO(bmeurer): Use RIP relative 128-bit constants.
+      __ pcmpeqd(kScratchDoubleReg, kScratchDoubleReg);
+      __ psllq(kScratchDoubleReg, 63);
+      CpuFeatureScope avx_scope(masm(), AVX);
+      __ vxorpd(i.OutputDoubleRegister(), kScratchDoubleReg, i.InputOperand(0));
       break;
     }
     case kIA32Movsxbl:
@@ -777,13 +834,20 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     case kIA32StoreWriteBarrier: {
       Register object = i.InputRegister(0);
-      Register index = i.InputRegister(1);
       Register value = i.InputRegister(2);
-      __ mov(Operand(object, index, times_1, 0), value);
-      __ lea(index, Operand(object, index, times_1, 0));
       SaveFPRegsMode mode =
           frame()->DidAllocateDoubleRegisters() ? kSaveFPRegs : kDontSaveFPRegs;
-      __ RecordWrite(object, index, value, mode);
+      if (HasImmediateInput(instr, 1)) {
+        int index = i.InputInt32(1);
+        Register scratch = i.TempRegister(1);
+        __ mov(Operand(object, index), value);
+        __ RecordWriteContextSlot(object, index, value, scratch, mode);
+      } else {
+        Register index = i.InputRegister(1);
+        __ mov(Operand(object, index, times_1, 0), value);
+        __ lea(index, Operand(object, index, times_1, 0));
+        __ RecordWrite(object, index, value, mode);
+      }
       break;
     }
     case kCheckedLoadInt8:
@@ -1249,16 +1313,15 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
     Constant src_constant = g.ToConstant(source);
     if (src_constant.type() == Constant::kHeapObject) {
       Handle<HeapObject> src = src_constant.ToHeapObject();
-      if (info()->IsOptimizing() && src.is_identical_to(info()->context())) {
-        // Loading the context from the frame is way cheaper than materializing
-        // the actual context heap object address.
+      int offset;
+      if (IsMaterializableFromFrame(src, &offset)) {
         if (destination->IsRegister()) {
           Register dst = g.ToRegister(destination);
-          __ mov(dst, Operand(ebp, StandardFrameConstants::kContextOffset));
+          __ mov(dst, Operand(ebp, offset));
         } else {
           DCHECK(destination->IsStackSlot());
           Operand dst = g.ToOperand(destination);
-          __ push(Operand(ebp, StandardFrameConstants::kContextOffset));
+          __ push(Operand(ebp, offset));
           __ pop(dst);
         }
       } else if (destination->IsRegister()) {

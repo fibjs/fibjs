@@ -11,8 +11,8 @@ namespace base {
 class ConditionVariableEvent;
 class TimeDelta;
 
-class ConditionVariable FINAL {
- public:
+class ConditionVariable final {
+public:
   ConditionVariable();
   ~ConditionVariable();
 
@@ -30,18 +30,19 @@ class ConditionVariable FINAL {
     return native_handle_;
   }
 
- private:
+private:
   NativeHandle native_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(ConditionVariable);
 };
 
 typedef base::LazyStaticInstance<ConditionVariable,
-                           base::DefaultConstructTrait<ConditionVariable>,
-                           base::ThreadSafeInitOnceTrait>::type LazyConditionVariable;
+        base::DefaultConstructTrait<ConditionVariable>,
+        base::ThreadSafeInitOnceTrait>::type LazyConditionVariable;
 
 #define LAZY_CONDITION_VARIABLE_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 
-} }  // namespace v8::base
+}
+}  // namespace v8::base
 
 #endif  // V8_PLATFORM_CONDITION_VARIABLE_H_

@@ -42,6 +42,7 @@
     <ClInclude Include="src\ast.h" />
     <ClInclude Include="src\background-parsing-task.h" />
     <ClInclude Include="src\bailout-reason.h" />
+    <ClInclude Include="src\base\adapters.h" />
     <ClInclude Include="src\base\atomicops.h" />
     <ClInclude Include="src\base\atomicops_internals_arm64_gcc.h" />
     <ClInclude Include="src\base\atomicops_internals_arm_gcc.h" />
@@ -98,6 +99,7 @@
     <ClInclude Include="src\code.h" />
     <ClInclude Include="src\codegen.h" />
     <ClInclude Include="src\compilation-cache.h" />
+    <ClInclude Include="src\compilation-dependencies.h" />
     <ClInclude Include="src\compilation-statistics.h" />
     <ClInclude Include="src\compiler.h" />
     <ClInclude Include="src\compiler\access-builder.h" />
@@ -480,6 +482,7 @@
     <ClCompile Include="src\code-stubs.cc" />
     <ClCompile Include="src\codegen.cc" />
     <ClCompile Include="src\compilation-cache.cc" />
+    <ClCompile Include="src\compilation-dependencies.cc" />
     <ClCompile Include="src\compilation-statistics.cc" />
     <ClCompile Include="src\compiler.cc" />
     <ClCompile Include="src\compiler\access-builder.cc" />
@@ -493,6 +496,7 @@
     <ClCompile Include="src\compiler\common-operator-reducer.cc" />
     <ClCompile Include="src\compiler\common-operator.cc" />
     <ClCompile Include="src\compiler\control-builders.cc" />
+    <ClCompile Include="src\compiler\control-equivalence.cc" />
     <ClCompile Include="src\compiler\control-flow-optimizer.cc" />
     <ClCompile Include="src\compiler\control-reducer.cc" />
     <ClCompile Include="src\compiler\gap-resolver.cc" />

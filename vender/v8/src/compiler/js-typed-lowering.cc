@@ -59,7 +59,7 @@ Reduction JSTypedLowering::ReplaceEagerly(Node* old, Node* node) {
 // JSOperator. This class manages the rewriting of context, control, and effect
 // dependencies during lowering of a binop and contains numerous helper
 // functions for matching the types of inputs to an operation.
-class JSBinopReduction FINAL {
+class JSBinopReduction final {
  public:
   JSBinopReduction(JSTypedLowering* lowering, Node* node)
       : lowering_(lowering), node_(node) {}
@@ -537,7 +537,7 @@ Reduction JSTypedLowering::ReduceJSUnaryNot(Node* node) {
     // JSUnaryNot(x:number) => NumberEqual(x,#0)
     node->set_op(simplified()->NumberEqual());
     node->ReplaceInput(1, jsgraph()->ZeroConstant());
-    node->TrimInputCount(2);
+    DCHECK_EQ(2, node->InputCount());
     return Changed(node);
   } else if (input_type->Is(Type::String())) {
     // JSUnaryNot(x:string) => NumberEqual(x.length,#0)
@@ -549,8 +549,8 @@ Reduction JSTypedLowering::ReduceJSUnaryNot(Node* node) {
     node->set_op(simplified()->NumberEqual());
     node->ReplaceInput(0, length);
     node->ReplaceInput(1, jsgraph()->ZeroConstant());
-    node->TrimInputCount(2);
     NodeProperties::ReplaceWithValue(node, node, length);
+    DCHECK_EQ(2, node->InputCount());
     return Changed(node);
   }
   return NoChange();
@@ -580,7 +580,7 @@ Reduction JSTypedLowering::ReduceJSToBoolean(Node* node) {
     node->set_op(simplified()->NumberLessThan());
     node->ReplaceInput(0, jsgraph()->ZeroConstant());
     node->ReplaceInput(1, length);
-    node->TrimInputCount(2);
+    DCHECK_EQ(2, node->InputCount());
     return Changed(node);
   }
   return NoChange();
@@ -742,6 +742,23 @@ Reduction JSTypedLowering::ReduceJSToString(Node* node) {
   if (reduction.Changed()) {
     NodeProperties::ReplaceWithValue(node, reduction.replacement());
     return reduction;
+  }
+  return NoChange();
+}
+
+
+Reduction JSTypedLowering::ReduceJSLoadNamed(Node* node) {
+  Node* object = NodeProperties::GetValueInput(node, 0);
+  Type* object_type = NodeProperties::GetBounds(object).upper;
+  if (object_type->Is(Type::GlobalObject())) {
+    // Optimize global constants like "undefined", "Infinity", and "NaN".
+    Handle<Name> name = LoadNamedParametersOf(node->op()).name().handle();
+    Handle<Object> constant_value = factory()->GlobalConstantFor(name);
+    if (!constant_value.is_null()) {
+      Node* constant = jsgraph()->Constant(constant_value);
+      NodeProperties::ReplaceWithValue(node, constant);
+      return Replace(constant);
+    }
   }
   return NoChange();
 }
@@ -996,6 +1013,8 @@ Reduction JSTypedLowering::Reduce(Node* node) {
       return ReduceJSToNumber(node);
     case IrOpcode::kJSToString:
       return ReduceJSToString(node);
+    case IrOpcode::kJSLoadNamed:
+      return ReduceJSLoadNamed(node);
     case IrOpcode::kJSLoadProperty:
       return ReduceJSLoadProperty(node);
     case IrOpcode::kJSStoreProperty:

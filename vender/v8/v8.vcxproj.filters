@@ -168,6 +168,9 @@
     <ClInclude Include="src\bailout-reason.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\base\adapters.h">
+      <Filter>Source Files\base</Filter>
+    </ClInclude>
     <ClInclude Include="src\base\atomicops.h">
       <Filter>Source Files\base</Filter>
     </ClInclude>
@@ -334,6 +337,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\compilation-cache.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compilation-dependencies.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\compilation-statistics.h">
@@ -1478,6 +1484,9 @@
     <ClCompile Include="src\compilation-cache.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\compilation-dependencies.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\compilation-statistics.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1515,6 +1524,9 @@
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\control-builders.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\control-equivalence.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
     <ClCompile Include="src\compiler\control-flow-optimizer.cc">

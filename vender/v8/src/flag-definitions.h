@@ -190,20 +190,21 @@ DEFINE_IMPLICATION(es_staging, harmony)
   V(harmony_arrow_functions, "harmony arrow functions")         \
   V(harmony_proxies, "harmony proxies")                         \
   V(harmony_sloppy, "harmony features in sloppy mode")          \
-  V(harmony_unicode, "harmony unicode escapes")                 \
   V(harmony_unicode_regexps, "harmony unicode regexps")         \
   V(harmony_rest_parameters, "harmony rest parameters")         \
-  V(harmony_reflect, "harmony Reflect API")
+  V(harmony_reflect, "harmony Reflect API")                     \
+  V(harmony_spreadcalls, "harmony spread-calls")
 
 // Features that are complete (but still behind --harmony/es-staging flag).
 #define HARMONY_STAGED(V)                                               \
-  V(harmony_computed_property_names, "harmony computed property names") \
-  V(harmony_tostring, "harmony toString")
+  V(harmony_unicode, "harmony unicode escapes")
 
 // Features that are shipping (turned on by default, but internal flag remains).
 #define HARMONY_SHIPPING(V)                                                \
   V(harmony_classes, "harmony classes (implies object literal extension)") \
-  V(harmony_object_literals, "harmony object literal extensions")
+  V(harmony_computed_property_names, "harmony computed property names")    \
+  V(harmony_object_literals, "harmony object literal extensions")          \
+  V(harmony_tostring, "harmony toString")
 
 // Once a shipping feature has proved stable in the wild, it will be dropped
 // from HARMONY_SHIPPING, all occurrences of the FLAG_ variable are removed,
@@ -257,7 +258,7 @@ DEFINE_BOOL(track_field_types, true, "track field types")
 DEFINE_IMPLICATION(track_field_types, track_fields)
 DEFINE_IMPLICATION(track_field_types, track_heap_object_fields)
 DEFINE_BOOL(smi_binop, true, "support smi representation in binary operations")
-DEFINE_BOOL(vector_ics, false, "support vector-based ics")
+DEFINE_BOOL(vector_ics, true, "support vector-based ics")
 
 // Flags for optimization types.
 DEFINE_BOOL(optimize_for_size, false,
@@ -379,7 +380,9 @@ DEFINE_BOOL(omit_map_checks_for_leaf_maps, true,
             "deoptimize the optimized code if the layout of the maps changes.")
 
 // Flags for TurboFan.
-DEFINE_STRING(turbo_filter, "~", "optimization filter for TurboFan compiler")
+DEFINE_BOOL(turbo, false, "enable TurboFan compiler")
+DEFINE_IMPLICATION(turbo, turbo_deoptimization)
+DEFINE_STRING(turbo_filter, "~~", "optimization filter for TurboFan compiler")
 DEFINE_BOOL(trace_turbo, false, "trace generated TurboFan IR")
 DEFINE_BOOL(trace_turbo_graph, false, "trace generated TurboFan graphs")
 DEFINE_IMPLICATION(trace_turbo_graph, trace_turbo)
@@ -389,6 +392,7 @@ DEFINE_BOOL(trace_turbo_types, true, "trace TurboFan's types")
 DEFINE_BOOL(trace_turbo_scheduler, false, "trace TurboFan's scheduler")
 DEFINE_BOOL(trace_turbo_reduction, false, "trace TurboFan's various reducers")
 DEFINE_BOOL(trace_turbo_jt, false, "trace TurboFan's jump threading")
+DEFINE_BOOL(trace_turbo_ceq, false, "trace TurboFan's control equivalence")
 DEFINE_BOOL(turbo_asm, true, "enable TurboFan for asm.js code")
 DEFINE_BOOL(turbo_verify, DEBUG_BOOL, "verify TurboFan graphs at each phase")
 DEFINE_BOOL(turbo_stats, false, "print TurboFan statistics")
@@ -406,9 +410,6 @@ DEFINE_BOOL(turbo_builtin_inlining, true, "enable builtin inlining in TurboFan")
 DEFINE_BOOL(trace_turbo_inlining, false, "trace TurboFan inlining")
 DEFINE_BOOL(loop_assignment_analysis, true, "perform loop assignment analysis")
 DEFINE_BOOL(turbo_profiling, false, "enable profiling in TurboFan")
-// TODO(dcarney): this is just for experimentation, remove when default.
-DEFINE_BOOL(turbo_delay_ssa_decon, false,
-            "delay ssa deconstruction in TurboFan register allocator")
 DEFINE_BOOL(turbo_verify_allocation, DEBUG_BOOL,
             "verify register allocation in TurboFan")
 DEFINE_BOOL(turbo_move_optimization, true, "optimize gap moves in TurboFan")
@@ -446,6 +447,11 @@ DEFINE_BOOL(enable_sahf, true,
             "enable use of SAHF instruction if available (X64 only)")
 DEFINE_BOOL(enable_avx, true, "enable use of AVX instructions if available")
 DEFINE_BOOL(enable_fma3, true, "enable use of FMA3 instructions if available")
+DEFINE_BOOL(enable_bmi1, true, "enable use of BMI1 instructions if available")
+DEFINE_BOOL(enable_bmi2, true, "enable use of BMI2 instructions if available")
+DEFINE_BOOL(enable_lzcnt, true, "enable use of LZCNT instruction if available")
+DEFINE_BOOL(enable_popcnt, true,
+            "enable use of POPCNT instruction if available")
 DEFINE_BOOL(enable_vfp3, ENABLE_VFP3_DEFAULT,
             "enable use of VFP3 instructions if available")
 DEFINE_BOOL(enable_armv7, ENABLE_ARMV7_DEFAULT,
@@ -622,6 +628,9 @@ DEFINE_BOOL(trace_incremental_marking, false,
             "trace progress of the incremental marking")
 DEFINE_BOOL(track_gc_object_stats, false,
             "track object counts and memory usage")
+DEFINE_BOOL(trace_gc_object_stats, false,
+            "trace object counts and memory usage")
+DEFINE_IMPLICATION(trace_gc_object_stats, track_gc_object_stats)
 DEFINE_BOOL(track_detached_contexts, true,
             "track native contexts that are expected to be garbage collected")
 DEFINE_BOOL(trace_detached_contexts, false,
@@ -669,9 +678,14 @@ DEFINE_INT(random_seed, 0,
            "(0, the default, means to use system random).")
 
 // objects.cc
-DEFINE_BOOL(trace_weak_arrays, false, "trace WeakFixedArray usage")
+DEFINE_BOOL(trace_weak_arrays, false, "Trace WeakFixedArray usage")
 DEFINE_BOOL(track_prototype_users, false,
-            "keep track of which maps refer to a given prototype object")
+            "Keep track of which maps refer to a given prototype object")
+DEFINE_BOOL(trace_prototype_users, false,
+            "Trace updates to prototype user tracking")
+DEFINE_BOOL(eliminate_prototype_chain_checks, true,
+            "Collapse prototype chain checks into single-cell checks")
+DEFINE_IMPLICATION(eliminate_prototype_chain_checks, track_prototype_users)
 DEFINE_BOOL(use_verbose_printer, true, "allows verbose printing")
 #if TRACE_MAPS
 DEFINE_BOOL(trace_maps, false, "trace map creation")
@@ -722,6 +736,8 @@ DEFINE_INT(hash_seed, 0,
 // snapshot-common.cc
 DEFINE_BOOL(profile_deserialization, false,
             "Print the time it takes to deserialize the snapshot.")
+DEFINE_BOOL(serialization_statistics, false,
+            "Collect statistics on serialized objects.")
 
 // Regexp
 DEFINE_BOOL(regexp_optimization, true, "generate optimized regexp code")

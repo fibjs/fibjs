@@ -30,6 +30,7 @@
 #include "src/deoptimizer.h"
 #include "src/execution.h"
 #include "src/global-handles.h"
+#include "src/heap/spaces.h"
 #include "src/heap-profiler.h"
 #include "src/heap-snapshot-generator-inl.h"
 #include "src/icu_util.h"
@@ -229,10 +230,6 @@ void i::V8::FatalProcessOutOfMemory(const char* location, bool take_snapshot) {
   heap_stats.map_space_size = &map_space_size;
   intptr_t map_space_capacity;
   heap_stats.map_space_capacity = &map_space_capacity;
-  intptr_t cell_space_size;
-  heap_stats.cell_space_size = &cell_space_size;
-  intptr_t cell_space_capacity;
-  heap_stats.cell_space_capacity = &cell_space_capacity;
   intptr_t lo_space_size;
   heap_stats.lo_space_size = &lo_space_size;
   int global_handle_count;
@@ -448,6 +445,11 @@ ResourceConstraints::ResourceConstraints()
 void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
                                             uint64_t virtual_memory_limit,
                                             uint32_t number_of_processors) {
+  ConfigureDefaults(physical_memory, virtual_memory_limit);
+}
+
+void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
+                                            uint64_t virtual_memory_limit) {
 #if V8_OS_ANDROID
   // Android has higher physical memory requirements before raising the maximum
   // heap size limits since it has no swap space.
@@ -478,8 +480,6 @@ void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
     set_max_executable_size(i::Heap::kMaxExecutableSizeHugeMemoryDevice);
   }
 
-  set_max_available_threads(i::Max(i::Min(number_of_processors, 4u), 1u));
-
   if (virtual_memory_limit > 0 && i::kRequiresCodeRange) {
     // Reserve no more than 1/8 of the memory for the code range, but at most
     // kMaximalCodeRangeSize.
@@ -505,8 +505,6 @@ void SetResourceConstraints(i::Isolate* isolate,
     uintptr_t limit = reinterpret_cast<uintptr_t>(constraints.stack_limit());
     isolate->stack_guard()->SetStackLimit(limit);
   }
-
-  isolate->set_max_available_threads(constraints.max_available_threads());
 }
 
 
@@ -588,8 +586,8 @@ Local<Value> V8::GetEternal(Isolate* v8_isolate, int index) {
 }
 
 
-void V8::CheckIsJust(bool is_just) {
-  Utils::ApiCheck(is_just, "v8::FromJust", "Maybe value is Nothing.");
+void V8::FromJustIsNothing() {
+  Utils::ApiCheck(false, "v8::FromJust", "Maybe value is Nothing.");
 }
 
 
@@ -675,6 +673,27 @@ i::Object** EscapableHandleScope::Escape(i::Object** escape_value) {
   }
   *escape_slot_ = *escape_value;
   return escape_slot_;
+}
+
+
+SealHandleScope::SealHandleScope(Isolate* isolate) {
+  i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
+
+  isolate_ = internal_isolate;
+  i::HandleScopeData* current = internal_isolate->handle_scope_data();
+  prev_limit_ = current->limit;
+  current->limit = current->next;
+  prev_level_ = current->level;
+  current->level = 0;
+}
+
+
+SealHandleScope::~SealHandleScope() {
+  i::HandleScopeData* current = isolate_->handle_scope_data();
+  DCHECK_EQ(0, current->level);
+  current->level = prev_level_;
+  DCHECK_EQ(current->next, current->limit);
+  current->limit = prev_limit_;
 }
 
 
@@ -2655,11 +2674,11 @@ bool Value::IsTypedArray() const {
 }
 
 
-#define VALUE_IS_TYPED_ARRAY(Type, typeName, TYPE, ctype, size)            \
-  bool Value::Is##Type##Array() const {                                    \
-    i::Handle<i::Object> obj = Utils::OpenHandle(this);                    \
-    return obj->IsJSTypedArray() &&                                        \
-           i::JSTypedArray::cast(*obj)->type() == kExternal##Type##Array;  \
+#define VALUE_IS_TYPED_ARRAY(Type, typeName, TYPE, ctype, size)              \
+  bool Value::Is##Type##Array() const {                                      \
+    i::Handle<i::Object> obj = Utils::OpenHandle(this);                      \
+    return obj->IsJSTypedArray() &&                                          \
+           i::JSTypedArray::cast(*obj)->type() == i::kExternal##Type##Array; \
   }
 
 TYPED_ARRAYS(VALUE_IS_TYPED_ARRAY)
@@ -3073,11 +3092,10 @@ void v8::TypedArray::CheckCast(Value* that) {
 #define CHECK_TYPED_ARRAY_CAST(Type, typeName, TYPE, ctype, size)             \
   void v8::Type##Array::CheckCast(Value* that) {                              \
     i::Handle<i::Object> obj = Utils::OpenHandle(that);                       \
-    Utils::ApiCheck(obj->IsJSTypedArray() &&                                  \
-                    i::JSTypedArray::cast(*obj)->type() ==                    \
-                        kExternal##Type##Array,                               \
-                    "v8::" #Type "Array::Cast()",                             \
-                    "Could not convert to " #Type "Array");                   \
+    Utils::ApiCheck(                                                          \
+        obj->IsJSTypedArray() &&                                              \
+            i::JSTypedArray::cast(*obj)->type() == i::kExternal##Type##Array, \
+        "v8::" #Type "Array::Cast()", "Could not convert to " #Type "Array"); \
   }
 
 
@@ -4177,147 +4195,6 @@ bool v8::Object::DeleteHiddenValue(v8::Handle<v8::String> key) {
       isolate->factory()->InternalizeString(key_obj);
   i::JSObject::DeleteHiddenProperty(self, key_string);
   return true;
-}
-
-
-namespace {
-
-static i::ElementsKind GetElementsKindFromExternalArrayType(
-    ExternalArrayType array_type) {
-  switch (array_type) {
-#define ARRAY_TYPE_TO_ELEMENTS_KIND(Type, type, TYPE, ctype, size)            \
-    case kExternal##Type##Array:                                              \
-      return i::EXTERNAL_##TYPE##_ELEMENTS;
-
-    TYPED_ARRAYS(ARRAY_TYPE_TO_ELEMENTS_KIND)
-#undef ARRAY_TYPE_TO_ELEMENTS_KIND
-  }
-  UNREACHABLE();
-  return i::DICTIONARY_ELEMENTS;
-}
-
-
-void PrepareExternalArrayElements(i::Handle<i::JSObject> object,
-                                  void* data,
-                                  ExternalArrayType array_type,
-                                  int length) {
-  i::Isolate* isolate = object->GetIsolate();
-  i::Handle<i::ExternalArray> array =
-      isolate->factory()->NewExternalArray(length, array_type, data);
-
-  i::Handle<i::Map> external_array_map =
-      i::JSObject::GetElementsTransitionMap(
-          object,
-          GetElementsKindFromExternalArrayType(array_type));
-
-  i::JSObject::SetMapAndElements(object, external_array_map, array);
-}
-
-}  // namespace
-
-
-void v8::Object::SetIndexedPropertiesToPixelData(uint8_t* data, int length) {
-  auto self = Utils::OpenHandle(this);
-  auto isolate = self->GetIsolate();
-  ENTER_V8(isolate);
-  i::HandleScope scope(isolate);
-  if (!Utils::ApiCheck(length >= 0 &&
-                       length <= i::ExternalUint8ClampedArray::kMaxLength,
-                       "v8::Object::SetIndexedPropertiesToPixelData()",
-                       "length exceeds max acceptable value")) {
-    return;
-  }
-  if (!Utils::ApiCheck(!self->IsJSArray(),
-                       "v8::Object::SetIndexedPropertiesToPixelData()",
-                       "JSArray is not supported")) {
-    return;
-  }
-  PrepareExternalArrayElements(self, data, kExternalUint8ClampedArray, length);
-}
-
-
-bool v8::Object::HasIndexedPropertiesInPixelData() {
-  auto self = Utils::OpenHandle(this);
-  return self->HasExternalUint8ClampedElements();
-}
-
-
-uint8_t* v8::Object::GetIndexedPropertiesPixelData() {
-  auto self = Utils::OpenHandle(this);
-  if (self->HasExternalUint8ClampedElements()) {
-    return i::ExternalUint8ClampedArray::cast(self->elements())->
-        external_uint8_clamped_pointer();
-  }
-  return nullptr;
-}
-
-
-int v8::Object::GetIndexedPropertiesPixelDataLength() {
-  auto self = Utils::OpenHandle(this);
-  if (self->HasExternalUint8ClampedElements()) {
-    return i::ExternalUint8ClampedArray::cast(self->elements())->length();
-  }
-  return -1;
-}
-
-
-void v8::Object::SetIndexedPropertiesToExternalArrayData(
-    void* data,
-    ExternalArrayType array_type,
-    int length) {
-  auto self = Utils::OpenHandle(this);
-  auto isolate = self->GetIsolate();
-  ENTER_V8(isolate);
-  i::HandleScope scope(isolate);
-  if (!Utils::ApiCheck(length >= 0 && length <= i::ExternalArray::kMaxLength,
-                       "v8::Object::SetIndexedPropertiesToExternalArrayData()",
-                       "length exceeds max acceptable value")) {
-    return;
-  }
-  if (!Utils::ApiCheck(!self->IsJSArray(),
-                       "v8::Object::SetIndexedPropertiesToExternalArrayData()",
-                       "JSArray is not supported")) {
-    return;
-  }
-  PrepareExternalArrayElements(self, data, array_type, length);
-}
-
-
-bool v8::Object::HasIndexedPropertiesInExternalArrayData() {
-  auto self = Utils::OpenHandle(this);
-  return self->HasExternalArrayElements();
-}
-
-
-void* v8::Object::GetIndexedPropertiesExternalArrayData() {
-  auto self = Utils::OpenHandle(this);
-  if (self->HasExternalArrayElements()) {
-    return i::ExternalArray::cast(self->elements())->external_pointer();
-  }
-  return nullptr;
-}
-
-
-ExternalArrayType v8::Object::GetIndexedPropertiesExternalArrayDataType() {
-  auto self = Utils::OpenHandle(this);
-  switch (self->elements()->map()->instance_type()) {
-#define INSTANCE_TYPE_TO_ARRAY_TYPE(Type, type, TYPE, ctype, size)            \
-    case i::EXTERNAL_##TYPE##_ARRAY_TYPE:                                     \
-      return kExternal##Type##Array;
-    TYPED_ARRAYS(INSTANCE_TYPE_TO_ARRAY_TYPE)
-#undef INSTANCE_TYPE_TO_ARRAY_TYPE
-    default:
-      return static_cast<ExternalArrayType>(-1);
-  }
-}
-
-
-int v8::Object::GetIndexedPropertiesExternalArrayDataLength() {
-  auto self = Utils::OpenHandle(this);
-  if (self->HasExternalArrayElements()) {
-    return i::ExternalArray::cast(self->elements())->length();
-  }
-  return -1;
 }
 
 
@@ -5445,6 +5322,13 @@ HeapStatistics::HeapStatistics(): total_heap_size_(0),
                                   heap_size_limit_(0) { }
 
 
+HeapSpaceStatistics::HeapSpaceStatistics(): space_name_(0),
+                                            space_size_(0),
+                                            space_used_size_(0),
+                                            space_available_size_(0),
+                                            physical_space_size_(0) { }
+
+
 bool v8::V8::InitializeICU(const char* icu_data_file) {
   return i::InitializeICU(icu_data_file);
 }
@@ -6350,14 +6234,19 @@ bool v8::ArrayBuffer::IsNeuterable() const {
 
 
 v8::ArrayBuffer::Contents v8::ArrayBuffer::Externalize() {
-  i::Handle<i::JSArrayBuffer> obj = Utils::OpenHandle(this);
-  Utils::ApiCheck(!obj->is_external(),
-                  "v8::ArrayBuffer::Externalize",
+  i::Handle<i::JSArrayBuffer> self = Utils::OpenHandle(this);
+  Utils::ApiCheck(!self->is_external(), "v8::ArrayBuffer::Externalize",
                   "ArrayBuffer already externalized");
-  obj->set_is_external(true);
-  size_t byte_length = static_cast<size_t>(obj->byte_length()->Number());
+  self->set_is_external(true);
+  return GetContents();
+}
+
+
+v8::ArrayBuffer::Contents v8::ArrayBuffer::GetContents() {
+  i::Handle<i::JSArrayBuffer> self = Utils::OpenHandle(this);
+  size_t byte_length = static_cast<size_t>(self->byte_length()->Number());
   Contents contents;
-  contents.data_ = obj->backing_store();
+  contents.data_ = self->backing_store();
   contents.byte_length_ = byte_length;
   return contents;
 }
@@ -6395,13 +6284,16 @@ Local<ArrayBuffer> v8::ArrayBuffer::New(Isolate* isolate, size_t byte_length) {
 
 
 Local<ArrayBuffer> v8::ArrayBuffer::New(Isolate* isolate, void* data,
-                                        size_t byte_length) {
+                                        size_t byte_length,
+                                        ArrayBufferCreationMode mode) {
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
   LOG_API(i_isolate, "v8::ArrayBuffer::New(void*, size_t)");
   ENTER_V8(i_isolate);
   i::Handle<i::JSArrayBuffer> obj =
       i_isolate->factory()->NewJSArrayBuffer();
-  i::Runtime::SetupArrayBuffer(i_isolate, obj, true, data, byte_length);
+  i::Runtime::SetupArrayBuffer(i_isolate, obj,
+                               mode == ArrayBufferCreationMode::kExternalized,
+                               data, byte_length);
   return Utils::ToLocal(obj);
 }
 
@@ -6454,6 +6346,15 @@ size_t v8::ArrayBufferView::CopyContents(void* dest, size_t byte_length) {
 }
 
 
+bool v8::ArrayBufferView::HasBuffer() const {
+  i::Handle<i::JSArrayBufferView> obj = Utils::OpenHandle(this);
+  if (obj->IsJSDataView()) return true;
+  DCHECK(obj->IsJSTypedArray());
+  i::Handle<i::JSTypedArray> typed_array(i::JSTypedArray::cast(*obj));
+  return !typed_array->buffer()->IsSmi();
+}
+
+
 size_t v8::ArrayBufferView::ByteOffset() {
   i::Handle<i::JSArrayBufferView> obj = Utils::OpenHandle(this);
   return static_cast<size_t>(obj->byte_offset()->Number());
@@ -6487,7 +6388,7 @@ size_t v8::TypedArray::Length() {
     }                                                                        \
     i::Handle<i::JSArrayBuffer> buffer = Utils::OpenHandle(*array_buffer);   \
     i::Handle<i::JSTypedArray> obj = isolate->factory()->NewJSTypedArray(    \
-        v8::kExternal##Type##Array, buffer, byte_offset, length);            \
+        i::kExternal##Type##Array, buffer, byte_offset, length);             \
     return Utils::ToLocal##Type##Array(obj);                                 \
   }
 
@@ -6970,6 +6871,31 @@ void Isolate::GetHeapStatistics(HeapStatistics* heap_statistics) {
   heap_statistics->total_physical_size_ = heap->CommittedPhysicalMemory();
   heap_statistics->used_heap_size_ = heap->SizeOfObjects();
   heap_statistics->heap_size_limit_ = heap->MaxReserved();
+}
+
+
+size_t Isolate::NumberOfHeapSpaces() {
+  return i::LAST_SPACE - i::FIRST_SPACE + 1;
+}
+
+
+bool Isolate::GetHeapSpaceStatistics(HeapSpaceStatistics* space_statistics,
+                                     size_t index) {
+  if (!space_statistics)
+    return false;
+  if (index > i::LAST_SPACE || index < i::FIRST_SPACE)
+    return false;
+
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+  i::Heap* heap = isolate->heap();
+  i::Space* space = heap->space(static_cast<int>(index));
+
+  space_statistics->space_name_ = heap->GetSpaceName(static_cast<int>(index));
+  space_statistics->space_size_ = space->CommittedMemory();
+  space_statistics->space_used_size_ = space->Size();
+  space_statistics->space_available_size_ = space->Available();
+  space_statistics->physical_space_size_ = space->CommittedPhysicalMemory();
+  return true;
 }
 
 
@@ -7532,6 +7458,12 @@ const CpuProfileNode* CpuProfileNode::GetChild(int index) const {
   const i::ProfileNode* child =
       reinterpret_cast<const i::ProfileNode*>(this)->children()->at(index);
   return reinterpret_cast<const CpuProfileNode*>(child);
+}
+
+
+const std::vector<CpuProfileDeoptInfo>& CpuProfileNode::GetDeoptInfos() const {
+  const i::ProfileNode* node = reinterpret_cast<const i::ProfileNode*>(this);
+  return node->deopt_infos();
 }
 
 

@@ -1463,6 +1463,14 @@ void InstanceofStub::Generate(MacroAssembler* masm) {
     // Get the map location in scratch and patch it.
     __ GetRelocatedValue(inline_site, scratch, v1);  // v1 used as scratch.
     __ sd(map, FieldMemOperand(scratch, Cell::kValueOffset));
+
+    __ mov(t0, map);
+    // |scratch| points at the beginning of the cell. Calculate the
+    // field containing the map.
+    __ Daddu(function, scratch, Operand(Cell::kValueOffset - 1));
+    __ RecordWriteField(scratch, Cell::kValueOffset, t0, function,
+                        kRAHasNotBeenSaved, kDontSaveFPRegs,
+                        OMIT_REMEMBERED_SET, OMIT_SMI_CHECK);
   }
 
   // Register mapping: a3 is object map and a4 is function prototype.
@@ -2545,7 +2553,7 @@ static void CallStubInRecordCallTarget(MacroAssembler* masm, CodeStub* stub) {
                              1 << 6 |  // a2
                              1 << 7;   // a3
 
-  // Arguments register must be smi-tagged to call out.
+  // Number-of-arguments register must be smi-tagged to call out.
   __ SmiTag(a0);
   __ MultiPush(kSavedRegs);
 
@@ -2578,6 +2586,8 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 
   // A monomorphic cache hit or an already megamorphic state: invoke the
   // function without changing the state.
+  // We don't know if a4 is a WeakCell or a Symbol, but it's harmless to read at
+  // this position in a symbol (see static asserts in type-feedback-vector.h).
   Label check_allocation_site;
   Register feedback_map = a5;
   Register weak_value = t0;
@@ -2585,13 +2595,12 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
   __ Branch(&done, eq, a1, Operand(weak_value));
   __ LoadRoot(at, Heap::kmegamorphic_symbolRootIndex);
   __ Branch(&done, eq, a4, Operand(at));
-  __ ld(feedback_map, FieldMemOperand(a4, 0));
+  __ ld(feedback_map, FieldMemOperand(a4, HeapObject::kMapOffset));
   __ LoadRoot(at, Heap::kWeakCellMapRootIndex);
   __ Branch(FLAG_pretenuring_call_new ? &miss : &check_allocation_site, ne,
             feedback_map, Operand(at));
 
-  // If a1 is not equal to the weak cell value, and the weak cell value is
-  // cleared, we have a new chance to become monomorphic.
+  // If the weak cell is cleared, we have a new chance to become monomorphic.
   __ JumpIfSmi(weak_value, &initialize);
   __ jmp(&megamorphic);
 
@@ -2600,7 +2609,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
     // If we came here, we need to see if we are the array function.
     // If we didn't have a matching function, and we didn't find the megamorph
     // sentinel, then we have in the slot either some other function or an
-    // AllocationSite. Do a map check on the object in a3.
+    // AllocationSite.
     __ LoadRoot(at, Heap::kAllocationSiteMapRootIndex);
     __ Branch(&miss, ne, feedback_map, Operand(at));
 
@@ -3124,8 +3133,8 @@ void StringCharCodeAtGenerator::GenerateSlow(
 
   __ Move(index_, v0);
   if (FLAG_vector_ics && embed_mode == PART_OF_IC_HANDLER) {
-    __ Pop(VectorLoadICDescriptor::SlotRegister(),
-           VectorLoadICDescriptor::VectorRegister(), object_);
+    __ Pop(VectorLoadICDescriptor::VectorRegister(),
+           VectorLoadICDescriptor::SlotRegister(), object_);
   } else {
     __ pop(object_);
   }
@@ -4641,21 +4650,15 @@ void VectorRawLoadStub::GenerateForTrampoline(MacroAssembler* masm) {
 
 static void HandleArrayCases(MacroAssembler* masm, Register receiver,
                              Register key, Register vector, Register slot,
-                             Register feedback, Register scratch1,
-                             Register scratch2, Register scratch3,
+                             Register feedback, Register receiver_map,
+                             Register scratch1, Register scratch2,
                              bool is_polymorphic, Label* miss) {
   // feedback initially contains the feedback array
   Label next_loop, prepare_next;
-  Label load_smi_map, compare_map;
   Label start_polymorphic;
 
-  Register receiver_map = scratch1;
-  Register cached_map = scratch2;
+  Register cached_map = scratch1;
 
-  // Receiver might not be a heap object.
-  __ JumpIfSmi(receiver, &load_smi_map);
-  __ ld(receiver_map, FieldMemOperand(receiver, HeapObject::kMapOffset));
-  __ bind(&compare_map);
   __ ld(cached_map,
         FieldMemOperand(feedback, FixedArray::OffsetOfElementAt(0)));
   __ ld(cached_map, FieldMemOperand(cached_map, WeakCell::kValueOffset));
@@ -4666,7 +4669,7 @@ static void HandleArrayCases(MacroAssembler* masm, Register receiver,
   __ Daddu(t9, handler, Operand(Code::kHeaderSize - kHeapObjectTag));
   __ Jump(t9);
 
-  Register length = scratch3;
+  Register length = scratch2;
   __ bind(&start_polymorphic);
   __ ld(length, FieldMemOperand(feedback, FixedArray::kLengthOffset));
   if (!is_polymorphic) {
@@ -4685,9 +4688,9 @@ static void HandleArrayCases(MacroAssembler* masm, Register receiver,
   //                              ^              ^
   //                              |              |
   //                         pointer_reg      too_far
-  //                         aka feedback     scratch3
-  // also need receiver_map (aka scratch1)
-  // use cached_map (scratch2) to look in the weak map values.
+  //                         aka feedback     scratch2
+  // also need receiver_map
+  // use cached_map (scratch1) to look in the weak map values.
   __ SmiScale(too_far, length, kPointerSizeLog2);
   __ Daddu(too_far, feedback, Operand(too_far));
   __ Daddu(too_far, too_far, Operand(FixedArray::kHeaderSize - kHeapObjectTag));
@@ -4708,44 +4711,22 @@ static void HandleArrayCases(MacroAssembler* masm, Register receiver,
 
   // We exhausted our array of map handler pairs.
   __ Branch(miss);
-
-  __ bind(&load_smi_map);
-  __ LoadRoot(receiver_map, Heap::kHeapNumberMapRootIndex);
-  __ Branch(&compare_map);
 }
 
 
 static void HandleMonomorphicCase(MacroAssembler* masm, Register receiver,
-                                  Register key, Register vector, Register slot,
-                                  Register weak_cell, Register scratch,
-                                  Label* miss) {
-  // feedback initially contains the feedback array
-  Label compare_smi_map;
-  Register receiver_map = scratch;
-  Register cached_map = weak_cell;
-
-  // Move the weak map into the weak_cell register.
-  __ ld(cached_map, FieldMemOperand(weak_cell, WeakCell::kValueOffset));
-
-  // Receiver might not be a heap object.
-  __ JumpIfSmi(receiver, &compare_smi_map);
+                                  Register receiver_map, Register feedback,
+                                  Register vector, Register slot,
+                                  Register scratch, Label* compare_map,
+                                  Label* load_smi_map, Label* try_array) {
+  __ JumpIfSmi(receiver, load_smi_map);
   __ ld(receiver_map, FieldMemOperand(receiver, HeapObject::kMapOffset));
-  __ Branch(miss, ne, cached_map, Operand(receiver_map));
-
-  Register handler = weak_cell;
-  __ SmiScale(handler, slot, kPointerSizeLog2);
-  __ Daddu(handler, vector, Operand(handler));
-  __ ld(handler,
-        FieldMemOperand(handler, FixedArray::kHeaderSize + kPointerSize));
-  __ Daddu(t9, handler, Code::kHeaderSize - kHeapObjectTag);
-  __ Jump(t9);
-
-  // In microbenchmarks, it made sense to unroll this code so that the call to
-  // the handler is duplicated for a HeapObject receiver and a Smi receiver.
-  // TODO(mvstanton): does this hold on ARM?
-  __ bind(&compare_smi_map);
-  __ LoadRoot(at, Heap::kHeapNumberMapRootIndex);
-  __ Branch(miss, ne, weak_cell, Operand(at));
+  __ bind(compare_map);
+  Register cached_map = scratch;
+  // Move the weak map into the weak_cell register.
+  __ ld(cached_map, FieldMemOperand(feedback, WeakCell::kValueOffset));
+  __ Branch(try_array, ne, cached_map, Operand(receiver_map));
+  Register handler = feedback;
   __ SmiScale(handler, slot, kPointerSizeLog2);
   __ Daddu(handler, vector, Operand(handler));
   __ ld(handler,
@@ -4761,27 +4742,28 @@ void VectorRawLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
   Register vector = VectorLoadICDescriptor::VectorRegister();      // a3
   Register slot = VectorLoadICDescriptor::SlotRegister();          // a0
   Register feedback = a4;
-  Register scratch1 = a5;
+  Register receiver_map = a5;
+  Register scratch1 = a6;
 
   __ SmiScale(feedback, slot, kPointerSizeLog2);
   __ Daddu(feedback, vector, Operand(feedback));
   __ ld(feedback, FieldMemOperand(feedback, FixedArray::kHeaderSize));
 
-  // Is it a weak cell?
-  Label try_array;
-  Label not_array, smi_key, key_okay, miss;
-  __ ld(scratch1, FieldMemOperand(feedback, HeapObject::kMapOffset));
-  __ LoadRoot(at, Heap::kWeakCellMapRootIndex);
-  __ Branch(&try_array, ne, scratch1, Operand(at));
-  HandleMonomorphicCase(masm, receiver, name, vector, slot, feedback, scratch1,
-                        &miss);
+  // Try to quickly handle the monomorphic case without knowing for sure
+  // if we have a weak cell in feedback. We do know it's safe to look
+  // at WeakCell::kValueOffset.
+  Label try_array, load_smi_map, compare_map;
+  Label not_array, miss;
+  HandleMonomorphicCase(masm, receiver, receiver_map, feedback, vector, slot,
+                        scratch1, &compare_map, &load_smi_map, &try_array);
 
   // Is it a fixed array?
   __ bind(&try_array);
+  __ ld(scratch1, FieldMemOperand(feedback, HeapObject::kMapOffset));
   __ LoadRoot(at, Heap::kFixedArrayMapRootIndex);
   __ Branch(&not_array, ne, scratch1, Operand(at));
-  HandleArrayCases(masm, receiver, name, vector, slot, feedback, scratch1, a6,
-                   a7, true, &miss);
+  HandleArrayCases(masm, receiver, name, vector, slot, feedback, receiver_map,
+                   scratch1, a7, true, &miss);
 
   __ bind(&not_array);
   __ LoadRoot(at, Heap::kmegamorphic_symbolRootIndex);
@@ -4790,10 +4772,14 @@ void VectorRawLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
       Code::ComputeHandlerFlags(Code::LOAD_IC));
   masm->isolate()->stub_cache()->GenerateProbe(masm, Code::LOAD_IC, code_flags,
                                                false, receiver, name, feedback,
-                                               scratch1, a6, a7);
+                                               receiver_map, scratch1, a7);
 
   __ bind(&miss);
   LoadIC::GenerateMiss(masm);
+
+  __ bind(&load_smi_map);
+  __ LoadRoot(receiver_map, Heap::kHeapNumberMapRootIndex);
+  __ Branch(&compare_map);
 }
 
 
@@ -4813,24 +4799,24 @@ void VectorRawKeyedLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
   Register vector = VectorLoadICDescriptor::VectorRegister();      // a3
   Register slot = VectorLoadICDescriptor::SlotRegister();          // a0
   Register feedback = a4;
-  Register scratch1 = a5;
+  Register receiver_map = a5;
+  Register scratch1 = a6;
 
   __ SmiScale(feedback, slot, kPointerSizeLog2);
   __ Daddu(feedback, vector, Operand(feedback));
   __ ld(feedback, FieldMemOperand(feedback, FixedArray::kHeaderSize));
 
-  // Is it a weak cell?
-  Label try_array;
-  Label not_array, smi_key, key_okay, miss;
-  __ ld(scratch1, FieldMemOperand(feedback, HeapObject::kMapOffset));
-  __ LoadRoot(at, Heap::kWeakCellMapRootIndex);
-  __ Branch(&try_array, ne, scratch1, Operand(at));
-  __ JumpIfNotSmi(key, &miss);
-  HandleMonomorphicCase(masm, receiver, key, vector, slot, feedback, scratch1,
-                        &miss);
+  // Try to quickly handle the monomorphic case without knowing for sure
+  // if we have a weak cell in feedback. We do know it's safe to look
+  // at WeakCell::kValueOffset.
+  Label try_array, load_smi_map, compare_map;
+  Label not_array, miss;
+  HandleMonomorphicCase(masm, receiver, receiver_map, feedback, vector, slot,
+                        scratch1, &compare_map, &load_smi_map, &try_array);
 
   __ bind(&try_array);
   // Is it a fixed array?
+  __ ld(scratch1, FieldMemOperand(feedback, HeapObject::kMapOffset));
   __ LoadRoot(at, Heap::kFixedArrayMapRootIndex);
   __ Branch(&not_array, ne, scratch1, Operand(at));
   // We have a polymorphic element handler.
@@ -4838,8 +4824,8 @@ void VectorRawKeyedLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
 
   Label polymorphic, try_poly_name;
   __ bind(&polymorphic);
-  HandleArrayCases(masm, receiver, key, vector, slot, feedback, scratch1, a6,
-                   a7, true, &miss);
+  HandleArrayCases(masm, receiver, key, vector, slot, feedback, receiver_map,
+                   scratch1, a7, true, &miss);
 
   __ bind(&not_array);
   // Is it generic?
@@ -4858,11 +4844,15 @@ void VectorRawKeyedLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
   __ Daddu(feedback, vector, Operand(feedback));
   __ ld(feedback,
         FieldMemOperand(feedback, FixedArray::kHeaderSize + kPointerSize));
-  HandleArrayCases(masm, receiver, key, vector, slot, feedback, scratch1, a6,
-                   a7, false, &miss);
+  HandleArrayCases(masm, receiver, key, vector, slot, feedback, receiver_map,
+                   scratch1, a7, false, &miss);
 
   __ bind(&miss);
   KeyedLoadIC::GenerateMiss(masm);
+
+  __ bind(&load_smi_map);
+  __ LoadRoot(receiver_map, Heap::kHeapNumberMapRootIndex);
+  __ Branch(&compare_map);
 }
 
 

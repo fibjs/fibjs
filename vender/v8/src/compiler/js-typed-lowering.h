@@ -6,10 +6,16 @@
 #define V8_COMPILER_JS_TYPED_LOWERING_H_
 
 #include "src/compiler/graph-reducer.h"
+#include "src/compiler/opcodes.h"
 #include "src/compiler/simplified-operator.h"
 
 namespace v8 {
 namespace internal {
+
+// Forward declarations.
+class Factory;
+
+
 namespace compiler {
 
 // Forward declarations.
@@ -20,12 +26,12 @@ class MachineOperatorBuilder;
 
 
 // Lowers JS-level operators to simplified operators based on types.
-class JSTypedLowering FINAL : public Reducer {
+class JSTypedLowering final : public Reducer {
  public:
   JSTypedLowering(JSGraph* jsgraph, Zone* zone);
-  ~JSTypedLowering() FINAL {}
+  ~JSTypedLowering() final {}
 
-  Reduction Reduce(Node* node) FINAL;
+  Reduction Reduce(Node* node) final;
 
  private:
   friend class JSBinopReduction;
@@ -35,6 +41,7 @@ class JSTypedLowering FINAL : public Reducer {
   Reduction ReduceJSBitwiseOr(Node* node);
   Reduction ReduceJSMultiply(Node* node);
   Reduction ReduceJSComparison(Node* node);
+  Reduction ReduceJSLoadNamed(Node* node);
   Reduction ReduceJSLoadProperty(Node* node);
   Reduction ReduceJSStoreProperty(Node* node);
   Reduction ReduceJSLoadContext(Node* node);

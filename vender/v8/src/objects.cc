@@ -15,6 +15,7 @@
 #include "src/bootstrapper.h"
 #include "src/code-stubs.h"
 #include "src/codegen.h"
+#include "src/compilation-dependencies.h"
 #include "src/compiler.h"
 #include "src/cpu-profiler.h"
 #include "src/date.h"
@@ -33,6 +34,7 @@
 #include "src/log.h"
 #include "src/lookup.h"
 #include "src/macro-assembler.h"
+#include "src/messages.h"
 #include "src/objects-inl.h"
 #include "src/prototype.h"
 #include "src/safepoint-table.h"
@@ -297,10 +299,9 @@ MaybeHandle<Object> Object::GetPropertyWithAccessor(Handle<Object> receiver,
   if (structure->IsAccessorInfo()) {
     Handle<AccessorInfo> info = Handle<AccessorInfo>::cast(structure);
     if (!info->IsCompatibleReceiver(*receiver)) {
-      Handle<Object> args[] = {name, receiver};
       THROW_NEW_ERROR(isolate,
-                      NewTypeError("incompatible_method_receiver",
-                                   HandleVector(args, arraysize(args))),
+                      NewTypeError(MessageTemplate::kIncompatibleMethodReceiver,
+                                   name, receiver),
                       Object);
     }
 
@@ -362,10 +363,9 @@ MaybeHandle<Object> Object::SetPropertyWithAccessor(
     // api style callbacks
     ExecutableAccessorInfo* info = ExecutableAccessorInfo::cast(*structure);
     if (!info->IsCompatibleReceiver(*receiver)) {
-      Handle<Object> args[] = {name, receiver};
       THROW_NEW_ERROR(isolate,
-                      NewTypeError("incompatible_method_receiver",
-                                   HandleVector(args, arraysize(args))),
+                      NewTypeError(MessageTemplate::kIncompatibleMethodReceiver,
+                                   name, receiver),
                       Object);
     }
     Object* call_obj = info->setter();
@@ -1030,7 +1030,8 @@ bool String::MakeExternal(v8::String::ExternalStringResource* resource) {
   self->set_resource(resource);
   if (is_internalized) self->Hash();  // Force regeneration of the hash value.
 
-  heap->AdjustLiveBytes(this->address(), new_size - size, Heap::FROM_MUTATOR);
+  heap->AdjustLiveBytes(this->address(), new_size - size,
+                        Heap::CONCURRENT_TO_SWEEPER);
   return true;
 }
 
@@ -1090,7 +1091,8 @@ bool String::MakeExternal(v8::String::ExternalOneByteStringResource* resource) {
   self->set_resource(resource);
   if (is_internalized) self->Hash();  // Force regeneration of the hash value.
 
-  heap->AdjustLiveBytes(this->address(), new_size - size, Heap::FROM_MUTATOR);
+  heap->AdjustLiveBytes(this->address(), new_size - size,
+                        Heap::CONCURRENT_TO_SWEEPER);
   return true;
 }
 
@@ -1905,6 +1907,9 @@ void Map::ConnectElementsTransition(Handle<Map> parent, Handle<Map> child) {
 void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map,
                             int expected_additional_properties) {
   if (object->map() == *new_map) return;
+  // If this object is a prototype (the callee will check), invalidate any
+  // prototype chains involving it.
+  InvalidatePrototypeChains(object->map());
   Handle<Map> old_map(object->map());
   if (object->HasFastProperties()) {
     if (!new_map->is_dictionary_map()) {
@@ -1932,8 +1937,16 @@ void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map,
     object->set_map(*new_map);
   }
   if (old_map->is_prototype_map()) {
+    DCHECK(new_map->is_prototype_map());
+    DCHECK(object->map() == *new_map);
     new_map->set_prototype_info(old_map->prototype_info());
     old_map->set_prototype_info(Smi::FromInt(0));
+    if (FLAG_trace_prototype_users) {
+      PrintF("Moving prototype_info %p from map %p to map %p.\n",
+             reinterpret_cast<void*>(new_map->prototype_info()),
+             reinterpret_cast<void*>(*old_map),
+             reinterpret_cast<void*>(*new_map));
+    }
   }
 }
 
@@ -2113,7 +2126,7 @@ void JSObject::MigrateFastToFast(Handle<JSObject> object, Handle<Map> new_map) {
   // If there are properties in the new backing store, trim it to the correct
   // size and install the backing store into the object.
   if (external > 0) {
-    heap->RightTrimFixedArray<Heap::FROM_MUTATOR>(*array, inobject);
+    heap->RightTrimFixedArray<Heap::CONCURRENT_TO_SWEEPER>(*array, inobject);
     object->set_properties(*array);
   }
 
@@ -2126,7 +2139,8 @@ void JSObject::MigrateFastToFast(Handle<JSObject> object, Handle<Map> new_map) {
     Address address = object->address();
     heap->CreateFillerObjectAt(
         address + new_instance_size, instance_size_delta);
-    heap->AdjustLiveBytes(address, -instance_size_delta, Heap::FROM_MUTATOR);
+    heap->AdjustLiveBytes(address, -instance_size_delta,
+                          Heap::CONCURRENT_TO_SWEEPER);
   }
 
   // We are storing the new map using release store after creating a filler for
@@ -2389,10 +2403,17 @@ void Map::GeneralizeFieldType(Handle<Map> map, int modify_index,
   Handle<DescriptorArray> descriptors(
       field_owner->instance_descriptors(), isolate);
   DCHECK_EQ(*old_field_type, descriptors->GetFieldType(modify_index));
+  bool old_field_type_was_cleared =
+      old_field_type->Is(HeapType::None()) && old_representation.IsHeapObject();
 
-  // Determine the generalized new field type.
-  new_field_type = Map::GeneralizeFieldType(
-      old_field_type, new_field_type, isolate);
+  // Determine the generalized new field type. Conservatively assume type Any
+  // for cleared field types because the cleared type could have been a
+  // deprecated map and there still could be live instances with a non-
+  // deprecated version of the map.
+  new_field_type =
+      old_field_type_was_cleared
+          ? HeapType::Any(isolate)
+          : Map::GeneralizeFieldType(old_field_type, new_field_type, isolate);
 
   PropertyDetails details = descriptors->GetDetails(modify_index);
   Handle<Name> name(descriptors->GetKey(modify_index));
@@ -4631,7 +4652,7 @@ void JSObject::MigrateFastToSlow(Handle<JSObject> object,
     heap->CreateFillerObjectAt(object->address() + new_instance_size,
                                instance_size_delta);
     heap->AdjustLiveBytes(object->address(), -instance_size_delta,
-                          Heap::FROM_MUTATOR);
+                          Heap::CONCURRENT_TO_SWEEPER);
   }
 
   // We are storing the new map using release store after creating a filler for
@@ -4702,6 +4723,18 @@ void JSObject::MigrateSlowToFast(Handle<JSObject> object,
   // Allocate new map.
   Handle<Map> new_map = Map::CopyDropDescriptors(handle(object->map()));
   new_map->set_dictionary_map(false);
+
+  if (object->map()->is_prototype_map()) {
+    DCHECK(new_map->is_prototype_map());
+    new_map->set_prototype_info(object->map()->prototype_info());
+    object->map()->set_prototype_info(Smi::FromInt(0));
+    if (FLAG_trace_prototype_users) {
+      PrintF("Moving prototype_info %p from map %p to map %p.\n",
+             reinterpret_cast<void*>(new_map->prototype_info()),
+             reinterpret_cast<void*>(object->map()),
+             reinterpret_cast<void*>(*new_map));
+    }
+  }
 
 #if TRACE_MAPS
   if (FLAG_trace_maps) {
@@ -6842,9 +6875,11 @@ Object* JSObject::SlowReverseLookup(Object* value) {
 
 
 Handle<Map> Map::RawCopy(Handle<Map> map, int instance_size) {
-  Handle<Map> result = map->GetIsolate()->factory()->NewMap(
-      map->instance_type(), instance_size);
-  result->SetPrototype(handle(map->prototype(), map->GetIsolate()));
+  Isolate* isolate = map->GetIsolate();
+  Handle<Map> result =
+      isolate->factory()->NewMap(map->instance_type(), instance_size);
+  Handle<Object> prototype(map->prototype(), isolate);
+  Map::SetPrototype(result, prototype);
   result->set_constructor_or_backpointer(map->GetConstructor());
   result->set_bit_field(map->bit_field());
   result->set_bit_field2(map->bit_field2());
@@ -6870,7 +6905,7 @@ Handle<Map> Map::Normalize(Handle<Map> fast_map, PropertyNormalizationMode mode,
   Isolate* isolate = fast_map->GetIsolate();
   Handle<Object> maybe_cache(isolate->native_context()->normalized_map_cache(),
                              isolate);
-  bool use_cache = !maybe_cache->IsUndefined();
+  bool use_cache = !fast_map->is_prototype_map() && !maybe_cache->IsUndefined();
   Handle<NormalizedMapCache> cache;
   if (use_cache) cache = Handle<NormalizedMapCache>::cast(maybe_cache);
 
@@ -6886,9 +6921,20 @@ Handle<Map> Map::Normalize(Handle<Map> fast_map, PropertyNormalizationMode mode,
       // applied to the shared map, dependent code and weak cell cache.
       Handle<Map> fresh = Map::CopyNormalized(fast_map, mode);
 
-      DCHECK(memcmp(fresh->address(),
-                    new_map->address(),
-                    Map::kCodeCacheOffset) == 0);
+      if (new_map->is_prototype_map()) {
+        // For prototype maps, the PrototypeInfo is not copied.
+        DCHECK(memcmp(fresh->address(), new_map->address(),
+                      kTransitionsOrPrototypeInfoOffset) == 0);
+        DCHECK(fresh->raw_transitions() == Smi::FromInt(0));
+        STATIC_ASSERT(kDescriptorsOffset ==
+                      kTransitionsOrPrototypeInfoOffset + kPointerSize);
+        DCHECK(memcmp(HeapObject::RawField(*fresh, kDescriptorsOffset),
+                      HeapObject::RawField(*new_map, kDescriptorsOffset),
+                      kCodeCacheOffset - kDescriptorsOffset) == 0);
+      } else {
+        DCHECK(memcmp(fresh->address(), new_map->address(),
+                      Map::kCodeCacheOffset) == 0);
+      }
       STATIC_ASSERT(Map::kDependentCodeOffset ==
                     Map::kCodeCacheOffset + kPointerSize);
       STATIC_ASSERT(Map::kWeakCellCacheOffset ==
@@ -7039,7 +7085,7 @@ void Map::ConnectTransition(Handle<Map> parent, Handle<Map> child,
     TransitionArray::Insert(parent, name, child, flag);
     if (child->prototype()->IsJSObject()) {
       Handle<JSObject> proto(JSObject::cast(child->prototype()));
-      if (!child->ShouldRegisterAsPrototypeUser(proto)) {
+      if (!ShouldRegisterAsPrototypeUser(child, proto)) {
         JSObject::UnregisterPrototypeUser(proto, child);
       }
     }
@@ -7859,7 +7905,7 @@ class CodeCacheHashTableKey : public HashTableKey {
   CodeCacheHashTableKey(Handle<Name> name, Handle<Code> code)
       : name_(name), flags_(code->flags()), code_(code) { }
 
-  bool IsMatch(Object* other) OVERRIDE {
+  bool IsMatch(Object* other) override {
     if (!other->IsFixedArray()) return false;
     FixedArray* pair = FixedArray::cast(other);
     Name* name = Name::cast(pair->get(0));
@@ -7874,16 +7920,16 @@ class CodeCacheHashTableKey : public HashTableKey {
     return name->Hash() ^ flags;
   }
 
-  uint32_t Hash() OVERRIDE { return NameFlagsHashHelper(*name_, flags_); }
+  uint32_t Hash() override { return NameFlagsHashHelper(*name_, flags_); }
 
-  uint32_t HashForObject(Object* obj) OVERRIDE {
+  uint32_t HashForObject(Object* obj) override {
     FixedArray* pair = FixedArray::cast(obj);
     Name* name = Name::cast(pair->get(0));
     Code* code = Code::cast(pair->get(1));
     return NameFlagsHashHelper(name, code->flags());
   }
 
-  MUST_USE_RESULT Handle<Object> AsHandle(Isolate* isolate) OVERRIDE {
+  MUST_USE_RESULT Handle<Object> AsHandle(Isolate* isolate) override {
     Handle<Code> code = code_.ToHandleChecked();
     Handle<FixedArray> pair = isolate->factory()->NewFixedArray(2);
     pair->set(0, *name_);
@@ -7987,7 +8033,7 @@ class PolymorphicCodeCacheHashTableKey : public HashTableKey {
       : maps_(maps),
         code_flags_(code_flags) {}
 
-  bool IsMatch(Object* other) OVERRIDE {
+  bool IsMatch(Object* other) override {
     MapHandleList other_maps(kDefaultListAllocationSize);
     int other_flags;
     FromObject(other, &other_flags, &other_maps);
@@ -8022,18 +8068,16 @@ class PolymorphicCodeCacheHashTableKey : public HashTableKey {
     return hash;
   }
 
-  uint32_t Hash() OVERRIDE {
-    return MapsHashHelper(maps_, code_flags_);
-  }
+  uint32_t Hash() override { return MapsHashHelper(maps_, code_flags_); }
 
-  uint32_t HashForObject(Object* obj) OVERRIDE {
+  uint32_t HashForObject(Object* obj) override {
     MapHandleList other_maps(kDefaultListAllocationSize);
     int other_flags;
     FromObject(obj, &other_flags, &other_maps);
     return MapsHashHelper(&other_maps, other_flags);
   }
 
-  MUST_USE_RESULT Handle<Object> AsHandle(Isolate* isolate) OVERRIDE {
+  MUST_USE_RESULT Handle<Object> AsHandle(Isolate* isolate) override {
     // The maps in |maps_| must be copied to a newly allocated FixedArray,
     // both because the referenced MapList is short-lived, and because C++
     // objects can't be stored in the heap anyway.
@@ -8096,7 +8140,7 @@ Handle<PolymorphicCodeCacheHashTable> PolymorphicCodeCacheHashTable::Put(
 void FixedArray::Shrink(int new_length) {
   DCHECK(0 <= new_length && new_length <= length());
   if (new_length < length()) {
-    GetHeap()->RightTrimFixedArray<Heap::FROM_MUTATOR>(
+    GetHeap()->RightTrimFixedArray<Heap::CONCURRENT_TO_SWEEPER>(
         this, length() - new_length);
   }
 }
@@ -8219,8 +8263,8 @@ Handle<WeakFixedArray> WeakFixedArray::Add(
     for (int i = 0; i < array->Length(); ++i) {
       if (array->Get(i) == *value) return array;
     }
+#if 0  // Enable this if you want to check your search_for_duplicates flags.
   } else {
-#ifdef DEBUG
     for (int i = 0; i < array->Length(); ++i) {
       DCHECK_NE(*value, array->Get(i));
     }
@@ -9459,7 +9503,7 @@ Handle<String> SeqString::Truncate(Handle<SeqString> string, int new_length) {
     // that are a multiple of pointer size.
     heap->CreateFillerObjectAt(start_of_string + new_size, delta);
   }
-  heap->AdjustLiveBytes(start_of_string, -delta, Heap::FROM_MUTATOR);
+  heap->AdjustLiveBytes(start_of_string, -delta, Heap::CONCURRENT_TO_SWEEPER);
 
   // We are storing the new length using release store after creating a filler
   // for the left-over space to avoid races with the sweeper thread.
@@ -9879,7 +9923,8 @@ void SharedFunctionInfo::EvictFromOptimizedCodeMap(Code* optimized_code,
   }
   if (dst != length) {
     // Always trim even when array is cleared because of heap verifier.
-    GetHeap()->RightTrimFixedArray<Heap::FROM_MUTATOR>(code_map, length - dst);
+    GetHeap()->RightTrimFixedArray<Heap::CONCURRENT_TO_SWEEPER>(code_map,
+                                                                length - dst);
     if (code_map->length() == kEntriesStart) ClearOptimizedCodeMap();
   }
 }
@@ -9890,7 +9935,8 @@ void SharedFunctionInfo::TrimOptimizedCodeMap(int shrink_by) {
   DCHECK(shrink_by % kEntryLength == 0);
   DCHECK(shrink_by <= code_map->length() - kEntriesStart);
   // Always trim even when array is cleared because of heap verifier.
-  GetHeap()->RightTrimFixedArray<Heap::FROM_GC>(code_map, shrink_by);
+  GetHeap()->RightTrimFixedArray<Heap::SEQUENTIAL_TO_SWEEPER>(code_map,
+                                                              shrink_by);
   if (code_map->length() == kEntriesStart) {
     ClearOptimizedCodeMap();
   }
@@ -10018,6 +10064,10 @@ void JSObject::RegisterPrototypeUser(Handle<JSObject> prototype,
   if (!maybe_registry.is_identical_to(new_array)) {
     proto_info->set_prototype_users(*new_array);
   }
+  if (FLAG_trace_prototype_users) {
+    PrintF("Registering %p as a user of prototype %p.\n",
+           reinterpret_cast<void*>(*user), reinterpret_cast<void*>(*prototype));
+  }
 }
 
 
@@ -10037,32 +10087,106 @@ void JSObject::UnregisterPrototypeUser(Handle<JSObject> prototype,
   Object* maybe_registry = proto_info->prototype_users();
   if (!maybe_registry->IsWeakFixedArray()) return;
   WeakFixedArray::cast(maybe_registry)->Remove(user);
+  if (FLAG_trace_prototype_users) {
+    PrintF("Unregistering %p as a user of prototype %p.\n",
+           reinterpret_cast<void*>(*user), reinterpret_cast<void*>(*prototype));
+  }
 }
 
 
-void Map::SetPrototype(Handle<Object> prototype,
+static void InvalidatePrototypeChainsInternal(Map* map) {
+  if (!map->is_prototype_map()) return;
+  Object* maybe_proto_info = map->prototype_info();
+  if (!maybe_proto_info->IsPrototypeInfo()) return;
+  PrototypeInfo* proto_info = PrototypeInfo::cast(maybe_proto_info);
+  Object* maybe_cell = proto_info->validity_cell();
+  if (maybe_cell->IsCell()) {
+    // Just set the value; the cell will be replaced lazily.
+    Cell* cell = Cell::cast(maybe_cell);
+    cell->set_value(Smi::FromInt(Map::kPrototypeChainInvalid));
+  }
+
+  Object* maybe_array = proto_info->prototype_users();
+  if (!maybe_array->IsWeakFixedArray()) return;
+
+  WeakFixedArray* users = WeakFixedArray::cast(maybe_array);
+  for (int i = 0; i < users->Length(); ++i) {
+    Object* maybe_user = users->Get(i);
+    if (maybe_user->IsSmi()) continue;
+
+    // For now, only maps register themselves as users.
+    Map* user = Map::cast(maybe_user);
+    // Walk the prototype chain (backwards, towards leaf objects) if necessary.
+    InvalidatePrototypeChainsInternal(user);
+  }
+}
+
+
+// static
+void JSObject::InvalidatePrototypeChains(Map* map) {
+  if (!FLAG_eliminate_prototype_chain_checks) return;
+  DisallowHeapAllocation no_gc;
+  if (map->IsJSGlobalProxyMap()) {
+    PrototypeIterator iter(map);
+    map = JSObject::cast(iter.GetCurrent())->map();
+  }
+  InvalidatePrototypeChainsInternal(map);
+}
+
+
+// static
+Handle<Cell> Map::GetOrCreatePrototypeChainValidityCell(Handle<Map> map,
+                                                        Isolate* isolate) {
+  Handle<Object> maybe_prototype(map->prototype(), isolate);
+  if (!maybe_prototype->IsJSObject()) return Handle<Cell>::null();
+  Handle<JSObject> prototype = Handle<JSObject>::cast(maybe_prototype);
+  if (prototype->IsJSGlobalProxy()) {
+    PrototypeIterator iter(isolate, prototype);
+    prototype = Handle<JSObject>::cast(PrototypeIterator::GetCurrent(iter));
+  }
+  Handle<PrototypeInfo> proto_info(
+      PrototypeInfo::cast(prototype->map()->prototype_info()), isolate);
+  Object* maybe_cell = proto_info->validity_cell();
+  // Return existing cell if it's still valid.
+  if (maybe_cell->IsCell()) {
+    Handle<Cell> cell(Cell::cast(maybe_cell), isolate);
+    if (cell->value() == Smi::FromInt(Map::kPrototypeChainValid)) {
+      return handle(Cell::cast(maybe_cell), isolate);
+    }
+  }
+  // Otherwise create a new cell.
+  Handle<Cell> cell = isolate->factory()->NewCell(
+      handle(Smi::FromInt(Map::kPrototypeChainValid), isolate));
+  proto_info->set_validity_cell(*cell);
+  return cell;
+}
+
+
+void Map::SetPrototype(Handle<Map> map, Handle<Object> prototype,
                        PrototypeOptimizationMode proto_mode) {
-  if (this->prototype()->IsJSObject() && FLAG_track_prototype_users) {
-    Handle<JSObject> old_prototype(JSObject::cast(this->prototype()));
-    JSObject::UnregisterPrototypeUser(old_prototype, handle(this));
+  if (map->prototype()->IsJSObject() && FLAG_track_prototype_users) {
+    Handle<JSObject> old_prototype(JSObject::cast(map->prototype()));
+    JSObject::UnregisterPrototypeUser(old_prototype, map);
   }
   if (prototype->IsJSObject()) {
     Handle<JSObject> prototype_jsobj = Handle<JSObject>::cast(prototype);
-    if (ShouldRegisterAsPrototypeUser(prototype_jsobj)) {
-      JSObject::RegisterPrototypeUser(prototype_jsobj, handle(this));
-    }
     JSObject::OptimizeAsPrototype(prototype_jsobj, proto_mode);
+    if (ShouldRegisterAsPrototypeUser(map, prototype_jsobj)) {
+      JSObject::RegisterPrototypeUser(prototype_jsobj, map);
+    }
   }
   WriteBarrierMode wb_mode =
       prototype->IsNull() ? SKIP_WRITE_BARRIER : UPDATE_WRITE_BARRIER;
-  set_prototype(*prototype, wb_mode);
+  map->set_prototype(*prototype, wb_mode);
 }
 
 
-bool Map::ShouldRegisterAsPrototypeUser(Handle<JSObject> prototype) {
+// static
+bool Map::ShouldRegisterAsPrototypeUser(Handle<Map> map,
+                                        Handle<JSObject> prototype) {
   if (!FLAG_track_prototype_users) return false;
-  if (this->is_prototype_map()) return true;
-  Object* back = GetBackPointer();
+  if (map->is_prototype_map()) return true;
+  Object* back = map->GetBackPointer();
   if (!back->IsMap()) return true;
   if (Map::cast(back)->prototype() != *prototype) return true;
   return false;
@@ -10215,7 +10339,7 @@ bool JSFunction::RemovePrototype() {
 void JSFunction::SetInitialMap(Handle<JSFunction> function, Handle<Map> map,
                                Handle<Object> prototype) {
   if (map->prototype() != *prototype) {
-    map->SetPrototype(prototype, FAST_PROTOTYPE);
+    Map::SetPrototype(map, prototype, FAST_PROTOTYPE);
   }
   function->set_prototype_or_initial_map(*map);
   map->SetConstructor(*function);
@@ -11931,15 +12055,9 @@ MUST_USE_RESULT static MaybeHandle<Object> EndPerformSplice(
 MaybeHandle<Object> JSArray::SetElementsLength(
     Handle<JSArray> array,
     Handle<Object> new_length_handle) {
-  if (array->HasFastElements()) {
-    // If the new array won't fit in a some non-trivial fraction of the max old
-    // space size, then force it to go dictionary mode.
-    int max_fast_array_size = static_cast<int>(
-        (array->GetHeap()->MaxOldGenerationSize() / kDoubleSize) / 4);
-    if (new_length_handle->IsNumber() &&
-        NumberToInt32(*new_length_handle) >= max_fast_array_size) {
-      NormalizeElements(array);
-    }
+  if (array->HasFastElements() &&
+      SetElementsLengthWouldNormalize(array->GetHeap(), new_length_handle)) {
+    NormalizeElements(array);
   }
 
   // We should never end in here with a pixel or external array.
@@ -12038,18 +12156,6 @@ MaybeHandle<Object> JSArray::SetElementsLength(
 
 
 // static
-void Map::AddDependentCompilationInfo(Handle<Map> map,
-                                      DependentCode::DependencyGroup group,
-                                      CompilationInfo* info) {
-  Handle<DependentCode> codes = DependentCode::InsertCompilationInfo(
-      handle(map->dependent_code(), info->isolate()), group,
-      info->object_wrapper());
-  if (*codes != map->dependent_code()) map->set_dependent_code(*codes);
-  info->dependencies(group)->Add(map, info->zone());
-}
-
-
-// static
 void Map::AddDependentCode(Handle<Map> map,
                            DependentCode::DependencyGroup group,
                            Handle<Code> code) {
@@ -12074,20 +12180,7 @@ void DependentCode::GroupStartIndexes::Recompute(DependentCode* entries) {
 }
 
 
-DependentCode* DependentCode::ForObject(Handle<HeapObject> object,
-                                        DependencyGroup group) {
-  AllowDeferredHandleDereference dependencies_are_safe;
-  if (group == DependentCode::kPropertyCellChangedGroup) {
-    return Handle<PropertyCell>::cast(object)->dependent_code();
-  } else if (group == DependentCode::kAllocationSiteTenuringChangedGroup ||
-      group == DependentCode::kAllocationSiteTransitionChangedGroup) {
-    return Handle<AllocationSite>::cast(object)->dependent_code();
-  }
-  return Handle<Map>::cast(object)->dependent_code();
-}
-
-
-Handle<DependentCode> DependentCode::InsertCompilationInfo(
+Handle<DependentCode> DependentCode::InsertCompilationDependencies(
     Handle<DependentCode> entries, DependencyGroup group,
     Handle<Foreign> info) {
   return Insert(entries, group, info);
@@ -12193,8 +12286,8 @@ void DependentCode::UpdateToFinishedCode(DependencyGroup group, Foreign* info,
 }
 
 
-void DependentCode::RemoveCompilationInfo(DependentCode::DependencyGroup group,
-                                          Foreign* info) {
+void DependentCode::RemoveCompilationDependencies(
+    DependentCode::DependencyGroup group, Foreign* info) {
   DisallowHeapAllocation no_allocation;
   GroupStartIndexes starts(this);
   int start = starts.at(group);
@@ -12268,9 +12361,10 @@ bool DependentCode::MarkCodeForDeoptimization(
       }
     } else {
       DCHECK(obj->IsForeign());
-      CompilationInfo* info = reinterpret_cast<CompilationInfo*>(
-          Foreign::cast(obj)->foreign_address());
-      info->AbortDueToDependencyChange();
+      CompilationDependencies* info =
+          reinterpret_cast<CompilationDependencies*>(
+              Foreign::cast(obj)->foreign_address());
+      info->Abort();
     }
   }
   // Compact the array by moving all subsequent groups to fill in the new holes.
@@ -12346,7 +12440,7 @@ Handle<Map> Map::TransitionToPrototype(Handle<Map> map,
   if (new_map.is_null()) {
     new_map = Copy(map, "TransitionToPrototype");
     TransitionArray::PutPrototypeTransition(map, prototype, new_map);
-    new_map->SetPrototype(prototype, mode);
+    Map::SetPrototype(new_map, prototype, mode);
   }
   return new_map;
 }
@@ -12389,9 +12483,7 @@ MaybeHandle<Object> JSObject::SetPrototype(Handle<JSObject> object,
        !iter.IsAtEnd(); iter.Advance()) {
     if (JSReceiver::cast(iter.GetCurrent()) == *object) {
       // Cycle detected.
-      THROW_NEW_ERROR(isolate,
-                      NewError("cyclic_proto", HandleVector<Object>(NULL, 0)),
-                      Object);
+      THROW_NEW_ERROR(isolate, NewError(MessageTemplate::kCyclicProto), Object);
     }
   }
 
@@ -13352,41 +13444,6 @@ void AllocationSite::DigestTransitionFeedback(Handle<AllocationSite> site,
 }
 
 
-// static
-void AllocationSite::RegisterForDeoptOnTenureChange(Handle<AllocationSite> site,
-                                                    CompilationInfo* info) {
-  AddDependentCompilationInfo(
-      site, DependentCode::kAllocationSiteTenuringChangedGroup, info);
-}
-
-
-// static
-void AllocationSite::RegisterForDeoptOnTransitionChange(
-    Handle<AllocationSite> site, CompilationInfo* info) {
-  // Do nothing if the object doesn't have any useful element transitions left.
-  ElementsKind kind =
-      site->SitePointsToLiteral()
-          ? JSObject::cast(site->transition_info())->GetElementsKind()
-          : site->GetElementsKind();
-  if (AllocationSite::GetMode(kind) == TRACK_ALLOCATION_SITE) {
-    AddDependentCompilationInfo(
-        site, DependentCode::kAllocationSiteTransitionChangedGroup, info);
-  }
-}
-
-
-// static
-void AllocationSite::AddDependentCompilationInfo(
-    Handle<AllocationSite> site, DependentCode::DependencyGroup group,
-    CompilationInfo* info) {
-  Handle<DependentCode> dep(site->dependent_code());
-  Handle<DependentCode> codes =
-      DependentCode::InsertCompilationInfo(dep, group, info->object_wrapper());
-  if (*codes != site->dependent_code()) site->set_dependent_code(*codes);
-  info->dependencies(group)->Add(Handle<HeapObject>(*site), info->zone());
-}
-
-
 const char* AllocationSite::PretenureDecisionName(PretenureDecision decision) {
   switch (decision) {
     case kUndecided: return "undecided";
@@ -14292,7 +14349,7 @@ class StringSharedKey : public HashTableKey {
         language_mode_(language_mode),
         scope_position_(scope_position) {}
 
-  bool IsMatch(Object* other) OVERRIDE {
+  bool IsMatch(Object* other) override {
     DisallowHeapAllocation no_allocation;
     if (!other->IsFixedArray()) {
       if (!other->IsNumber()) return false;
@@ -14333,12 +14390,12 @@ class StringSharedKey : public HashTableKey {
     return hash;
   }
 
-  uint32_t Hash() OVERRIDE {
+  uint32_t Hash() override {
     return StringSharedHashHelper(*source_, *shared_, language_mode_,
                                   scope_position_);
   }
 
-  uint32_t HashForObject(Object* obj) OVERRIDE {
+  uint32_t HashForObject(Object* obj) override {
     DisallowHeapAllocation no_allocation;
     if (obj->IsNumber()) {
       return static_cast<uint32_t>(obj->Number());
@@ -14355,7 +14412,7 @@ class StringSharedKey : public HashTableKey {
   }
 
 
-  Handle<Object> AsHandle(Isolate* isolate) OVERRIDE {
+  Handle<Object> AsHandle(Isolate* isolate) override {
     Handle<FixedArray> array = isolate->factory()->NewFixedArray(4);
     array->set(0, *shared_);
     array->set(1, *source_);
@@ -14383,22 +14440,22 @@ class RegExpKey : public HashTableKey {
   // stored value is stored where the key should be.  IsMatch then
   // compares the search key to the found object, rather than comparing
   // a key to a key.
-  bool IsMatch(Object* obj) OVERRIDE {
+  bool IsMatch(Object* obj) override {
     FixedArray* val = FixedArray::cast(obj);
     return string_->Equals(String::cast(val->get(JSRegExp::kSourceIndex)))
         && (flags_ == val->get(JSRegExp::kFlagsIndex));
   }
 
-  uint32_t Hash() OVERRIDE { return RegExpHash(*string_, flags_); }
+  uint32_t Hash() override { return RegExpHash(*string_, flags_); }
 
-  Handle<Object> AsHandle(Isolate* isolate) OVERRIDE {
+  Handle<Object> AsHandle(Isolate* isolate) override {
     // Plain hash maps, which is where regexp keys are used, don't
     // use this function.
     UNREACHABLE();
     return MaybeHandle<Object>().ToHandleChecked();
   }
 
-  uint32_t HashForObject(Object* obj) OVERRIDE {
+  uint32_t HashForObject(Object* obj) override {
     FixedArray* val = FixedArray::cast(obj);
     return RegExpHash(String::cast(val->get(JSRegExp::kSourceIndex)),
                       Smi::cast(val->get(JSRegExp::kFlagsIndex)));
@@ -14444,17 +14501,17 @@ class InternalizedStringKey : public HashTableKey {
   explicit InternalizedStringKey(Handle<String> string)
       : string_(string) { }
 
-  bool IsMatch(Object* string) OVERRIDE {
+  bool IsMatch(Object* string) override {
     return String::cast(string)->Equals(*string_);
   }
 
-  uint32_t Hash() OVERRIDE { return string_->Hash(); }
+  uint32_t Hash() override { return string_->Hash(); }
 
-  uint32_t HashForObject(Object* other) OVERRIDE {
+  uint32_t HashForObject(Object* other) override {
     return String::cast(other)->Hash();
   }
 
-  Handle<Object> AsHandle(Isolate* isolate) OVERRIDE {
+  Handle<Object> AsHandle(Isolate* isolate) override {
     // Internalize the string if possible.
     MaybeHandle<Map> maybe_map =
         isolate->factory()->InternalizedStringMapForString(string_);
@@ -15361,7 +15418,7 @@ class TwoCharHashTableKey : public HashTableKey {
 #endif
   }
 
-  bool IsMatch(Object* o) OVERRIDE {
+  bool IsMatch(Object* o) override {
     if (!o->IsString()) return false;
     String* other = String::cast(o);
     if (other->length() != 2) return false;
@@ -15369,13 +15426,13 @@ class TwoCharHashTableKey : public HashTableKey {
     return other->Get(1) == c2_;
   }
 
-  uint32_t Hash() OVERRIDE { return hash_; }
-  uint32_t HashForObject(Object* key) OVERRIDE {
+  uint32_t Hash() override { return hash_; }
+  uint32_t HashForObject(Object* key) override {
     if (!key->IsString()) return 0;
     return String::cast(key)->Hash();
   }
 
-  Handle<Object> AsHandle(Isolate* isolate) OVERRIDE {
+  Handle<Object> AsHandle(Isolate* isolate) override {
     // The TwoCharHashTableKey is only used for looking in the string
     // table, not for adding to it.
     UNREACHABLE();
@@ -15638,7 +15695,7 @@ class StringsKey : public HashTableKey {
  public:
   explicit StringsKey(Handle<FixedArray> strings) : strings_(strings) { }
 
-  bool IsMatch(Object* strings) OVERRIDE {
+  bool IsMatch(Object* strings) override {
     FixedArray* o = FixedArray::cast(strings);
     int len = strings_->length();
     if (o->length() != len) return false;
@@ -15648,9 +15705,9 @@ class StringsKey : public HashTableKey {
     return true;
   }
 
-  uint32_t Hash() OVERRIDE { return HashForObject(*strings_); }
+  uint32_t Hash() override { return HashForObject(*strings_); }
 
-  uint32_t HashForObject(Object* obj) OVERRIDE {
+  uint32_t HashForObject(Object* obj) override {
     FixedArray* strings = FixedArray::cast(obj);
     int len = strings->length();
     uint32_t hash = 0;
@@ -15660,7 +15717,7 @@ class StringsKey : public HashTableKey {
     return hash;
   }
 
-  Handle<Object> AsHandle(Isolate* isolate) OVERRIDE { return strings_; }
+  Handle<Object> AsHandle(Isolate* isolate) override { return strings_; }
 
  private:
   Handle<FixedArray> strings_;
@@ -17038,18 +17095,6 @@ Handle<Object> PropertyCell::UpdateCell(Handle<NameDictionary> dictionary,
         isolate, DependentCode::kPropertyCellChangedGroup);
   }
   return value;
-}
-
-
-// static
-void PropertyCell::AddDependentCompilationInfo(Handle<PropertyCell> cell,
-                                               CompilationInfo* info) {
-  Handle<DependentCode> codes = DependentCode::InsertCompilationInfo(
-      handle(cell->dependent_code(), info->isolate()),
-      DependentCode::kPropertyCellChangedGroup, info->object_wrapper());
-  if (*codes != cell->dependent_code()) cell->set_dependent_code(*codes);
-  info->dependencies(DependentCode::kPropertyCellChangedGroup)->Add(
-      cell, info->zone());
 }
 
 } }  // namespace v8::internal

@@ -70,7 +70,8 @@ namespace internal {
   F(StoreKeyedToSuper_Strict, 4, 1)           \
   F(StoreKeyedToSuper_Sloppy, 4, 1)           \
   F(HandleStepInForDerivedConstructors, 1, 1) \
-  F(DefaultConstructorCallSuper, 0, 1)
+  F(DefaultConstructorCallSuper, 0, 1)        \
+  F(CallSuperWithSpread, 0, 1)
 
 
 #define FOR_EACH_INTRINSIC_COLLECTIONS(F) \
@@ -286,11 +287,13 @@ namespace internal {
   F(GetFromCacheRT, 2, 1)                 \
   F(MessageGetStartPosition, 1, 1)        \
   F(MessageGetScript, 1, 1)               \
+  F(FormatMessageString, 4, 1)            \
   F(IS_VAR, 1, 1)                         \
   F(GetFromCache, 2, 1)                   \
   F(IncrementStatsCounter, 1, 1)          \
   F(Likely, 1, 1)                         \
-  F(Unlikely, 1, 1)
+  F(Unlikely, 1, 1)                       \
+  F(HarmonyToString, 0, 1)
 
 
 #define FOR_EACH_INTRINSIC_JSON(F) \
@@ -374,7 +377,6 @@ namespace internal {
   F(NumberEquals, 2, 1)                \
   F(NumberCompare, 3, 1)               \
   F(SmiLexicographicCompare, 2, 1)     \
-  F(GetRootNaN, 0, 1)                  \
   F(MaxSmi, 0, 1)                      \
   F(NumberToString, 1, 1)              \
   F(IsSmi, 1, 1)                       \

@@ -25,7 +25,7 @@ namespace compiler {
 
 
 // Adds Arm-specific methods to convert InstructionOperands.
-class ArmOperandConverter FINAL : public InstructionOperandConverter {
+class ArmOperandConverter final : public InstructionOperandConverter {
  public:
   ArmOperandConverter(CodeGenerator* gen, Instruction* instr)
       : InstructionOperandConverter(gen, instr) {}
@@ -155,7 +155,8 @@ class ArmOperandConverter FINAL : public InstructionOperandConverter {
     DCHECK(!op->IsDoubleRegister());
     DCHECK(op->IsStackSlot() || op->IsDoubleStackSlot());
     // The linkage computes where all spill slots are located.
-    FrameOffset offset = linkage()->GetFrameOffset(op->index(), frame(), 0);
+    FrameOffset offset = linkage()->GetFrameOffset(
+        AllocatedOperand::cast(op)->index(), frame(), 0);
     return MemOperand(offset.from_stack_pointer() ? sp : fp, offset.offset());
   }
 };
@@ -163,12 +164,12 @@ class ArmOperandConverter FINAL : public InstructionOperandConverter {
 
 namespace {
 
-class OutOfLineLoadFloat32 FINAL : public OutOfLineCode {
+class OutOfLineLoadFloat32 final : public OutOfLineCode {
  public:
   OutOfLineLoadFloat32(CodeGenerator* gen, SwVfpRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ vmov(result_, std::numeric_limits<float>::quiet_NaN());
   }
 
@@ -177,12 +178,12 @@ class OutOfLineLoadFloat32 FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadFloat64 FINAL : public OutOfLineCode {
+class OutOfLineLoadFloat64 final : public OutOfLineCode {
  public:
   OutOfLineLoadFloat64(CodeGenerator* gen, DwVfpRegister result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL {
+  void Generate() final {
     __ vmov(result_, std::numeric_limits<double>::quiet_NaN(), kScratchReg);
   }
 
@@ -191,12 +192,12 @@ class OutOfLineLoadFloat64 FINAL : public OutOfLineCode {
 };
 
 
-class OutOfLineLoadInteger FINAL : public OutOfLineCode {
+class OutOfLineLoadInteger final : public OutOfLineCode {
  public:
   OutOfLineLoadInteger(CodeGenerator* gen, Register result)
       : OutOfLineCode(gen), result_(result) {}
 
-  void Generate() FINAL { __ mov(result_, Operand::Zero()); }
+  void Generate() final { __ mov(result_, Operand::Zero()); }
 
  private:
   Register const result_;
@@ -558,6 +559,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArmVsqrtF32:
       __ vsqrt(i.OutputFloat32Register(), i.InputFloat32Register(0));
       break;
+    case kArmVabsF32:
+      __ vabs(i.OutputFloat32Register(), i.InputFloat32Register(0));
+      break;
     case kArmVnegF32:
       __ vneg(i.OutputFloat32Register(), i.InputFloat32Register(0));
       break;
@@ -619,6 +623,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     }
     case kArmVsqrtF64:
       __ vsqrt(i.OutputFloat64Register(), i.InputFloat64Register(0));
+      break;
+    case kArmVabsF64:
+      __ vabs(i.OutputFloat64Register(), i.InputFloat64Register(0));
       break;
     case kArmVnegF64:
       __ vneg(i.OutputFloat64Register(), i.InputFloat64Register(0));
@@ -809,7 +816,7 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       ASSEMBLE_CHECKED_STORE_FLOAT(64);
       break;
   }
-}
+}  // NOLINT(readability/fn_size)
 
 
 // Assembles branches after an instruction.
@@ -858,13 +865,14 @@ void CodeGenerator::AssembleArchTableSwitch(Instruction* instr) {
   ArmOperandConverter i(this, instr);
   Register input = i.InputRegister(0);
   size_t const case_count = instr->InputCount() - 2;
+  // Ensure to emit the constant pool first if necessary.
   __ CheckConstPool(true, true);
   __ cmp(input, Operand(case_count));
   __ BlockConstPoolFor(case_count + 2);
-  __ ldr(pc, MemOperand(pc, input, LSL, 2), lo);
+  __ add(pc, pc, Operand(input, LSL, 2), LeaveCC, lo);
   __ b(GetLabel(i.InputRpo(1)));
   for (size_t index = 0; index < case_count; ++index) {
-    __ dd(GetLabel(i.InputRpo(index + 2)));
+    __ b(GetLabel(i.InputRpo(index + 2)));
   }
 }
 
@@ -1012,9 +1020,19 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
         case Constant::kExternalReference:
           __ mov(dst, Operand(src.ToExternalReference()));
           break;
-        case Constant::kHeapObject:
-          __ Move(dst, src.ToHeapObject());
+        case Constant::kHeapObject: {
+          Handle<HeapObject> src_object = src.ToHeapObject();
+          Heap::RootListIndex index;
+          int offset;
+          if (IsMaterializableFromFrame(src_object, &offset)) {
+            __ ldr(dst, MemOperand(fp, offset));
+          } else if (IsMaterializableFromRoot(src_object, &index)) {
+            __ LoadRoot(dst, index);
+          } else {
+            __ Move(dst, src_object);
+          }
           break;
+        }
         case Constant::kRpoNumber:
           UNREACHABLE();  // TODO(dcarney): loading RPO constants on arm.
           break;

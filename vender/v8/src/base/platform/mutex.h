@@ -13,8 +13,8 @@
 namespace v8 {
 namespace base {
 
-class Mutex FINAL {
- public:
+class Mutex final {
+public:
   Mutex();
   ~Mutex();
 
@@ -31,7 +31,7 @@ class Mutex FINAL {
     return native_handle_;
   }
 
- private:
+private:
   NativeHandle native_handle_;
 
   V8_INLINE void AssertHeldAndUnmark() {
@@ -47,14 +47,14 @@ class Mutex FINAL {
 
 
 typedef base::LazyStaticInstance<Mutex,
-                           base::DefaultConstructTrait<Mutex>,
-                           base::ThreadSafeInitOnceTrait>::type LazyMutex;
+        base::DefaultConstructTrait<Mutex>,
+        base::ThreadSafeInitOnceTrait>::type LazyMutex;
 
 #define LAZY_MUTEX_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 
 
-class RecursiveMutex FINAL {
- public:
+class RecursiveMutex final {
+public:
   RecursiveMutex();
   ~RecursiveMutex();
 
@@ -70,7 +70,7 @@ class RecursiveMutex FINAL {
     return native_handle_;
   }
 
- private:
+private:
   NativeHandle native_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(RecursiveMutex);
@@ -78,24 +78,25 @@ class RecursiveMutex FINAL {
 
 
 typedef base::LazyStaticInstance<RecursiveMutex,
-                           base::DefaultConstructTrait<RecursiveMutex>,
-                           base::ThreadSafeInitOnceTrait>::type LazyRecursiveMutex;
+        base::DefaultConstructTrait<RecursiveMutex>,
+        base::ThreadSafeInitOnceTrait>::type LazyRecursiveMutex;
 
 #define LAZY_RECURSIVE_MUTEX_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 
 
 template <typename Mutex>
-class LockGuard FINAL {
- public:
+class LockGuard final {
+public:
   explicit LockGuard(Mutex* mutex) : mutex_(mutex) { mutex_->Lock(); }
   ~LockGuard() { mutex_->Unlock(); }
 
- private:
+private:
   Mutex* mutex_;
 
   DISALLOW_COPY_AND_ASSIGN(LockGuard);
 };
 
-} }  // namespace v8::base
+}
+}  // namespace v8::base
 
 #endif  // V8_PLATFORM_MUTEX_H_

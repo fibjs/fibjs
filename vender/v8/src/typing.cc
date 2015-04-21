@@ -433,7 +433,7 @@ void AstTyper::VisitArrayLiteral(ArrayLiteral* expr) {
     RECURSE(Visit(value));
   }
 
-  NarrowType(expr, Bounds(Type::Array(zone())));
+  NarrowType(expr, Bounds(Type::Object(zone())));
 }
 
 
@@ -495,10 +495,10 @@ void AstTyper::VisitProperty(Property* expr) {
   TypeFeedbackId id(TypeFeedbackId::None());
   if (FLAG_vector_ics) {
     slot = expr->PropertyFeedbackSlot();
-    expr->set_is_uninitialized(oracle()->LoadIsUninitialized(slot));
+    expr->set_inline_cache_state(oracle()->LoadInlineCacheState(slot));
   } else {
     id = expr->PropertyFeedbackId();
-    expr->set_is_uninitialized(oracle()->LoadIsUninitialized(id));
+    expr->set_inline_cache_state(oracle()->LoadInlineCacheState(id));
   }
 
   if (!expr->IsUninitialized()) {
@@ -767,6 +767,9 @@ void AstTyper::VisitCompareOperation(CompareOperation* expr) {
 
   NarrowType(expr, Bounds(Type::Boolean(zone())));
 }
+
+
+void AstTyper::VisitSpread(Spread* expr) { UNREACHABLE(); }
 
 
 void AstTyper::VisitThisFunction(ThisFunction* expr) {

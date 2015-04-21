@@ -6,6 +6,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/base/adapters.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
@@ -26,7 +27,7 @@ enum ImmediateMode {
 
 
 // Adds PPC-specific methods for generating operands.
-class PPCOperandGenerator FINAL : public OperandGenerator {
+class PPCOperandGenerator final : public OperandGenerator {
  public:
   explicit PPCOperandGenerator(InstructionSelector* selector)
       : OperandGenerator(selector) {}
@@ -913,6 +914,13 @@ void InstructionSelector::VisitFloat64Add(Node* node) {
 
 
 void InstructionSelector::VisitFloat32Sub(Node* node) {
+  PPCOperandGenerator g(this);
+  Float32BinopMatcher m(node);
+  if (m.left().IsMinusZero()) {
+    Emit(kPPC_NegDouble, g.DefineAsRegister(node),
+         g.UseRegister(m.right().node()));
+    return;
+  }
   VisitRRR(this, kPPC_SubDouble, node);
 }
 
@@ -921,18 +929,23 @@ void InstructionSelector::VisitFloat64Sub(Node* node) {
   // TODO(mbrandy): detect multiply-subtract
   PPCOperandGenerator g(this);
   Float64BinopMatcher m(node);
-  if (m.left().IsMinusZero() && m.right().IsFloat64RoundDown() &&
-      CanCover(m.node(), m.right().node())) {
-    if (m.right().InputAt(0)->opcode() == IrOpcode::kFloat64Sub &&
-        CanCover(m.right().node(), m.right().InputAt(0))) {
-      Float64BinopMatcher mright0(m.right().InputAt(0));
-      if (mright0.left().IsMinusZero()) {
-        // -floor(-x) = ceil(x)
-        Emit(kPPC_CeilDouble, g.DefineAsRegister(node),
-             g.UseRegister(mright0.right().node()));
-        return;
+  if (m.left().IsMinusZero()) {
+    if (m.right().IsFloat64RoundDown() &&
+        CanCover(m.node(), m.right().node())) {
+      if (m.right().InputAt(0)->opcode() == IrOpcode::kFloat64Sub &&
+          CanCover(m.right().node(), m.right().InputAt(0))) {
+        Float64BinopMatcher mright0(m.right().InputAt(0));
+        if (mright0.left().IsMinusZero()) {
+          // -floor(-x) = ceil(x)
+          Emit(kPPC_CeilDouble, g.DefineAsRegister(node),
+               g.UseRegister(mright0.right().node()));
+          return;
+        }
       }
     }
+    Emit(kPPC_NegDouble, g.DefineAsRegister(node),
+         g.UseRegister(m.right().node()));
+    return;
   }
   VisitRRR(this, kPPC_SubDouble, node);
 }
@@ -984,6 +997,16 @@ void InstructionSelector::VisitFloat32Min(Node* node) {
 
 void InstructionSelector::VisitFloat64Min(Node* node) {
   VisitRRR(this, kPPC_MinDouble, node);
+}
+
+
+void InstructionSelector::VisitFloat32Abs(Node* node) {
+  VisitRR(this, kPPC_AbsDouble, node);
+}
+
+
+void InstructionSelector::VisitFloat64Abs(Node* node) {
+  VisitRR(this, kPPC_AbsDouble, node);
 }
 
 
@@ -1435,9 +1458,8 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
 
   // Push any stack arguments.
   // TODO(mbrandy): reverse order and use push only for first
-  for (auto i = buffer.pushed_nodes.rbegin(); i != buffer.pushed_nodes.rend();
-       i++) {
-    Emit(kPPC_Push, g.NoOutput(), g.UseRegister(*i));
+  for (Node* node : base::Reversed(buffer.pushed_nodes)) {
+    Emit(kPPC_Push, g.NoOutput(), g.UseRegister(node));
   }
 
   // Pass label of exception handler block.
@@ -1522,8 +1544,10 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
-  return MachineOperatorBuilder::kFloat32Max |
+  return MachineOperatorBuilder::kFloat32Abs |
+         MachineOperatorBuilder::kFloat32Max |
          MachineOperatorBuilder::kFloat32Min |
+         MachineOperatorBuilder::kFloat64Abs |
          MachineOperatorBuilder::kFloat64Max |
          MachineOperatorBuilder::kFloat64Min |
          MachineOperatorBuilder::kFloat64RoundDown |

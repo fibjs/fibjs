@@ -163,9 +163,11 @@ RUNTIME_FUNCTION(Runtime_CollectStackTrace) {
 
   if (!isolate->bootstrapper()->IsActive()) {
     // Optionally capture a more detailed stack trace for the message.
-    isolate->CaptureAndSetDetailedStackTrace(error_object);
+    RETURN_FAILURE_ON_EXCEPTION(
+        isolate, isolate->CaptureAndSetDetailedStackTrace(error_object));
     // Capture a simple stack trace for the stack property.
-    isolate->CaptureAndSetSimpleStackTrace(error_object, caller);
+    RETURN_FAILURE_ON_EXCEPTION(
+        isolate, isolate->CaptureAndSetSimpleStackTrace(error_object, caller));
   }
   return isolate->heap()->undefined_value();
 }
@@ -305,6 +307,21 @@ RUNTIME_FUNCTION(Runtime_MessageGetScript) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_FormatMessageString) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 4);
+  CONVERT_INT32_ARG_CHECKED(template_index, 0);
+  CONVERT_ARG_HANDLE_CHECKED(String, arg0, 1);
+  CONVERT_ARG_HANDLE_CHECKED(String, arg1, 2);
+  CONVERT_ARG_HANDLE_CHECKED(String, arg2, 3);
+  Handle<String> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, result,
+      MessageTemplate::FormatMessage(template_index, arg0, arg1, arg2));
+  return *result;
+}
+
+
 RUNTIME_FUNCTION(Runtime_IS_VAR) {
   UNREACHABLE();  // implemented as macro in the parser
   return NULL;
@@ -341,6 +358,12 @@ RUNTIME_FUNCTION(Runtime_Likely) {
 RUNTIME_FUNCTION(Runtime_Unlikely) {
   DCHECK(args.length() == 1);
   return args[0];
+}
+
+
+RUNTIME_FUNCTION(Runtime_HarmonyToString) {
+  // TODO(caitp): Delete this runtime method when removing --harmony-tostring
+  return isolate->heap()->ToBoolean(FLAG_harmony_tostring);
 }
 }
 }  // namespace v8::internal

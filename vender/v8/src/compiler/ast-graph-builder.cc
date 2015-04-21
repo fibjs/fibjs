@@ -71,35 +71,35 @@ class AstGraphBuilder::AstContext BASE_EMBEDDED {
 
 
 // Context to evaluate expression for its side effects only.
-class AstGraphBuilder::AstEffectContext FINAL : public AstContext {
+class AstGraphBuilder::AstEffectContext final : public AstContext {
  public:
   explicit AstEffectContext(AstGraphBuilder* owner)
       : AstContext(owner, Expression::kEffect) {}
-  ~AstEffectContext() FINAL;
-  void ProduceValue(Node* value) FINAL;
-  Node* ConsumeValue() FINAL;
+  ~AstEffectContext() final;
+  void ProduceValue(Node* value) final;
+  Node* ConsumeValue() final;
 };
 
 
 // Context to evaluate expression for its value (and side effects).
-class AstGraphBuilder::AstValueContext FINAL : public AstContext {
+class AstGraphBuilder::AstValueContext final : public AstContext {
  public:
   explicit AstValueContext(AstGraphBuilder* owner)
       : AstContext(owner, Expression::kValue) {}
-  ~AstValueContext() FINAL;
-  void ProduceValue(Node* value) FINAL;
-  Node* ConsumeValue() FINAL;
+  ~AstValueContext() final;
+  void ProduceValue(Node* value) final;
+  Node* ConsumeValue() final;
 };
 
 
 // Context to evaluate expression for a condition value (and side effects).
-class AstGraphBuilder::AstTestContext FINAL : public AstContext {
+class AstGraphBuilder::AstTestContext final : public AstContext {
  public:
   explicit AstTestContext(AstGraphBuilder* owner)
       : AstContext(owner, Expression::kTest) {}
-  ~AstTestContext() FINAL;
-  void ProduceValue(Node* value) FINAL;
-  Node* ConsumeValue() FINAL;
+  ~AstTestContext() final;
+  void ProduceValue(Node* value) final;
+  Node* ConsumeValue() final;
 };
 
 
@@ -279,7 +279,7 @@ class AstGraphBuilder::ControlScopeForBreakable : public ControlScope {
       : ControlScope(owner), target_(target), control_(control) {}
 
  protected:
-  virtual bool Execute(Command cmd, Statement* target, Node* value) OVERRIDE {
+  virtual bool Execute(Command cmd, Statement* target, Node* value) override {
     if (target != target_) return false;  // We are not the command target.
     switch (cmd) {
       case CMD_BREAK:
@@ -307,7 +307,7 @@ class AstGraphBuilder::ControlScopeForIteration : public ControlScope {
       : ControlScope(owner), target_(target), control_(control) {}
 
  protected:
-  virtual bool Execute(Command cmd, Statement* target, Node* value) OVERRIDE {
+  virtual bool Execute(Command cmd, Statement* target, Node* value) override {
     if (target != target_) return false;  // We are not the command target.
     switch (cmd) {
       case CMD_BREAK:
@@ -341,7 +341,7 @@ class AstGraphBuilder::ControlScopeForCatch : public ControlScope {
   }
 
  protected:
-  virtual bool Execute(Command cmd, Statement* target, Node* value) OVERRIDE {
+  virtual bool Execute(Command cmd, Statement* target, Node* value) override {
     switch (cmd) {
       case CMD_THROW:
         control_->Throw(value);
@@ -372,7 +372,7 @@ class AstGraphBuilder::ControlScopeForFinally : public ControlScope {
   }
 
  protected:
-  virtual bool Execute(Command cmd, Statement* target, Node* value) OVERRIDE {
+  virtual bool Execute(Command cmd, Statement* target, Node* value) override {
     Node* token = commands_->RecordCommand(cmd, target, value);
     control_->LeaveTry(token, value);
     return true;
@@ -476,9 +476,7 @@ bool AstGraphBuilder::CreateGraph(bool constant_context, bool stack_check) {
   int heap_slots = info()->num_heap_slots() - Context::MIN_CONTEXT_SLOTS;
   if (heap_slots > 0) {
     // Push a new inner context scope for the function.
-    Node* closure = GetFunctionClosure();
-    Node* inner_context =
-        BuildLocalFunctionContext(function_context_.get(), closure);
+    Node* inner_context = BuildLocalFunctionContext(function_context_.get());
     ContextScope top_context(this, scope, inner_context);
     CreateGraphBody(stack_check);
   } else {
@@ -1272,8 +1270,7 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
     // is gone.
     Node* res = NewNode(javascript()->CallFunction(3, NO_CALL_FUNCTION_FLAGS),
                         function, obj, value);
-    // TODO(jarin): provide real bailout id.
-    PrepareFrameState(res, BailoutId::None());
+    PrepareFrameState(res, stmt->FilterId(), OutputFrameStateCombine::Push());
     Node* property_missing =
         NewNode(javascript()->StrictEqual(), res, jsgraph()->ZeroConstant());
     {
@@ -2444,6 +2441,9 @@ void AstGraphBuilder::VisitCompareOperation(CompareOperation* expr) {
 }
 
 
+void AstGraphBuilder::VisitSpread(Spread* expr) { UNREACHABLE(); }
+
+
 void AstGraphBuilder::VisitThisFunction(ThisFunction* expr) {
   Node* value = GetFunctionClosure();
   ast_context()->ProduceValue(value);
@@ -2474,7 +2474,8 @@ void AstGraphBuilder::VisitDeclarations(ZoneList<Declaration*>* declarations) {
   Node* flags = jsgraph()->Constant(encoded_flags);
   Node* pairs = jsgraph()->Constant(data);
   const Operator* op = javascript()->CallRuntime(Runtime::kDeclareGlobals, 3);
-  NewNode(op, current_context(), pairs, flags);
+  Node* call = NewNode(op, current_context(), pairs, flags);
+  PrepareFrameState(call, BailoutId::Declarations());
   globals()->clear();
 }
 
@@ -2488,6 +2489,12 @@ void AstGraphBuilder::VisitIfNotNull(Statement* stmt) {
 void AstGraphBuilder::VisitIterationBody(IterationStatement* stmt,
                                          LoopBuilder* loop) {
   ControlScopeForIteration scope(this, stmt, loop);
+  // TODO(mstarzinger): For now we only allow to interrupt non-asm.js code,
+  // which is a gigantic hack and should be extended to all code at some point.
+  if (!info()->shared_info()->asm_function()) {
+    Node* node = NewNode(javascript()->StackCheck());
+    PrepareFrameState(node, stmt->StackCheckId());
+  }
   Visit(stmt->body());
 }
 
@@ -2633,10 +2640,14 @@ Node* AstGraphBuilder::BuildPatchReceiverToGlobalProxy(Node* receiver) {
 }
 
 
-Node* AstGraphBuilder::BuildLocalFunctionContext(Node* context, Node* closure) {
+Node* AstGraphBuilder::BuildLocalFunctionContext(Node* context) {
+  Node* closure = GetFunctionClosure();
+
   // Allocate a new local context.
-  const Operator* op = javascript()->CreateFunctionContext();
-  Node* local_context = NewNode(op, closure);
+  Node* local_context =
+      info()->scope()->is_script_scope()
+          ? BuildLocalScriptContext(info()->scope())
+          : NewNode(javascript()->CreateFunctionContext(), closure);
 
   // Copy parameters into context if necessary.
   int num_parameters = info()->scope()->num_parameters();
@@ -2656,12 +2667,25 @@ Node* AstGraphBuilder::BuildLocalFunctionContext(Node* context, Node* closure) {
 }
 
 
+Node* AstGraphBuilder::BuildLocalScriptContext(Scope* scope) {
+  Node* closure = GetFunctionClosure();
+
+  // Allocate a new local context.
+  const Operator* op = javascript()->CreateScriptContext();
+  Node* scope_info = jsgraph()->Constant(scope->GetScopeInfo(isolate()));
+  Node* local_context = NewNode(op, closure, scope_info);
+  PrepareFrameState(local_context, BailoutId::FunctionEntry());
+
+  return local_context;
+}
+
+
 Node* AstGraphBuilder::BuildLocalBlockContext(Scope* scope) {
   Node* closure = GetFunctionClosure();
 
   // Allocate a new local context.
   const Operator* op = javascript()->CreateBlockContext();
-  Node* scope_info = jsgraph()->Constant(scope->GetScopeInfo(info_->isolate()));
+  Node* scope_info = jsgraph()->Constant(scope->GetScopeInfo(isolate()));
   Node* local_context = NewNode(op, scope_info, closure);
 
   return local_context;
@@ -2703,16 +2727,10 @@ Node* AstGraphBuilder::BuildRestArgumentsArray(Variable* rest, int index) {
 
 Node* AstGraphBuilder::BuildHoleCheckSilent(Node* value, Node* for_hole,
                                             Node* not_hole) {
-  IfBuilder hole_check(this);
   Node* the_hole = jsgraph()->TheHoleConstant();
   Node* check = NewNode(javascript()->StrictEqual(), value, the_hole);
-  hole_check.If(check);
-  hole_check.Then();
-  environment()->Push(for_hole);
-  hole_check.Else();
-  environment()->Push(not_hole);
-  hole_check.End();
-  return environment()->Pop();
+  return NewNode(common()->Select(kMachAnyTagged, BranchHint::kFalse), check,
+                 for_hole, not_hole);
 }
 
 

@@ -36,8 +36,9 @@ Variable* VariableMap::Declare(Scope* scope, const AstRawString* name,
   // AstRawStrings are unambiguous, i.e., the same string is always represented
   // by the same AstRawString*.
   // FIXME(marja): fix the type of Lookup.
-  Entry* p = ZoneHashMap::Lookup(const_cast<AstRawString*>(name), name->hash(),
-                                 true, ZoneAllocationPolicy(zone()));
+  Entry* p =
+      ZoneHashMap::LookupOrInsert(const_cast<AstRawString*>(name), name->hash(),
+                                  ZoneAllocationPolicy(zone()));
   if (p->value == NULL) {
     // The variable has not been declared yet -> insert it.
     DCHECK(p->key == name);
@@ -49,8 +50,7 @@ Variable* VariableMap::Declare(Scope* scope, const AstRawString* name,
 
 
 Variable* VariableMap::Lookup(const AstRawString* name) {
-  Entry* p = ZoneHashMap::Lookup(const_cast<AstRawString*>(name), name->hash(),
-                                 false, ZoneAllocationPolicy(NULL));
+  Entry* p = ZoneHashMap::Lookup(const_cast<AstRawString*>(name), name->hash());
   if (p != NULL) {
     DCHECK(reinterpret_cast<const AstRawString*>(p->key) == name);
     DCHECK(p->value != NULL);
@@ -328,8 +328,8 @@ void Scope::Initialize() {
     receiver_ = outer_scope()->receiver();
   }
 
-  if (is_function_scope()) {
-    // Declare 'arguments' variable which exists in all functions.
+  if (is_function_scope() && !is_arrow_scope()) {
+    // Declare 'arguments' variable which exists in all non arrow functions.
     // Note that it might never be accessed, in which case it won't be
     // allocated during variable allocation.
     variables_.Declare(this,
@@ -1138,6 +1138,30 @@ bool Scope::CheckStrongModeDeclaration(VariableProxy* proxy, Variable* var) {
     scope = scope->outer_scope();
   }
 
+  // Allow references from methods to classes declared later, if we detect no
+  // problematic dependency cycles.
+
+  if (ClassVariableForMethod() && var->is_class()) {
+    // A method is referring to some other class, possibly declared
+    // later. Referring to a class declared earlier is always OK and covered by
+    // the code outside this if. Here we only need to allow special cases for
+    // referring to a class which is declared later.
+
+    // Referring to a class C declared later is OK under the following
+    // circumstances:
+
+    // 1. The class declarations are in a consecutive group with no other
+    // declarations or statements in between, and
+
+    // 2. There is no dependency cycle where the first edge is an initialization
+    // time dependency (computed property name or extends clause) from C to
+    // something that depends on this class directly or transitively.
+
+    // TODO(marja,rossberg): implement these checks. Here we undershoot the
+    // target and allow referring to any class.
+    return true;
+  }
+
   // If both the use and the declaration are inside an eval scope (possibly
   // indirectly), or one of them is, we need to check whether they are inside
   // the same eval scope or different ones.
@@ -1295,11 +1319,13 @@ void Scope::AllocateHeapSlot(Variable* var) {
 void Scope::AllocateParameterLocals(Isolate* isolate) {
   DCHECK(is_function_scope());
   Variable* arguments = LookupLocal(ast_value_factory_->arguments_string());
-  DCHECK(arguments != NULL);  // functions have 'arguments' declared implicitly
+  // Functions have 'arguments' declared implicitly in all non arrow functions.
+  DCHECK(arguments != nullptr || is_arrow_scope());
 
   bool uses_sloppy_arguments = false;
 
-  if (MustAllocate(arguments) && !HasArgumentsParameter(isolate)) {
+  if (arguments != nullptr && MustAllocate(arguments) &&
+      !HasArgumentsParameter(isolate)) {
     // 'arguments' is used. Unless there is also a parameter called
     // 'arguments', we must be conservative and allocate all parameters to
     // the context assuming they will be captured by the arguments object.

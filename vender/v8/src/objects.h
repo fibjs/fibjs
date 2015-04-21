@@ -186,6 +186,19 @@ enum MutableMode {
 };
 
 
+enum ExternalArrayType {
+  kExternalInt8Array = 1,
+  kExternalUint8Array,
+  kExternalInt16Array,
+  kExternalUint16Array,
+  kExternalInt32Array,
+  kExternalUint32Array,
+  kExternalFloat32Array,
+  kExternalFloat64Array,
+  kExternalUint8ClampedArray,
+};
+
+
 static const int kGrowICDelta = STORE_AND_GROW_NO_TRANSITION -
     STANDARD_STORE;
 STATIC_ASSERT(STANDARD_STORE == 0);
@@ -665,7 +678,6 @@ enum InstanceType {
   MAP_TYPE,
   CODE_TYPE,
   ODDBALL_TYPE,
-  CELL_TYPE,
 
   // "Data", objects that cannot contain non-map-word pointers to heap
   // objects.
@@ -720,6 +732,7 @@ enum InstanceType {
   FIXED_ARRAY_TYPE,
   CONSTANT_POOL_ARRAY_TYPE,
   SHARED_FUNCTION_INFO_TYPE,
+  CELL_TYPE,
   WEAK_CELL_TYPE,
   PROPERTY_CELL_TYPE,
   PROTOTYPE_INFO_TYPE,
@@ -1832,6 +1845,7 @@ class JSObject: public JSReceiver {
                                     Handle<HeapObject> user);
   static void UnregisterPrototypeUser(Handle<JSObject> prototype,
                                       Handle<HeapObject> user);
+  static void InvalidatePrototypeChains(Map* map);
 
   // Retrieve interceptors.
   InterceptorInfo* GetNamedInterceptor();
@@ -2530,7 +2544,8 @@ class FixedArray: public FixedArrayBase {
   class BodyDescriptor : public FlexibleBodyDescriptor<kHeaderSize> {
    public:
     static inline int SizeOf(Map* map, HeapObject* object) {
-      return SizeFor(reinterpret_cast<FixedArray*>(object)->length());
+      return SizeFor(
+          reinterpret_cast<FixedArray*>(object)->synchronized_length());
     }
   };
 
@@ -5694,8 +5709,6 @@ class Code: public HeapObject {
 };
 
 
-class CompilationInfo;
-
 // This class describes the layout of dependent codes array of a map. The
 // array is partitioned into several groups of dependent codes. Each group
 // contains codes with the same dependency on the map. The array has the
@@ -5765,7 +5778,7 @@ class DependentCode: public FixedArray {
 
   bool Contains(DependencyGroup group, WeakCell* code_cell);
 
-  static Handle<DependentCode> InsertCompilationInfo(
+  static Handle<DependentCode> InsertCompilationDependencies(
       Handle<DependentCode> entries, DependencyGroup group,
       Handle<Foreign> info);
 
@@ -5776,8 +5789,8 @@ class DependentCode: public FixedArray {
   void UpdateToFinishedCode(DependencyGroup group, Foreign* info,
                             WeakCell* code_cell);
 
-  void RemoveCompilationInfo(DependentCode::DependencyGroup group,
-                             Foreign* info);
+  void RemoveCompilationDependencies(DependentCode::DependencyGroup group,
+                                     Foreign* info);
 
   void DeoptimizeDependentCodeGroup(Isolate* isolate,
                                     DependentCode::DependencyGroup group);
@@ -5794,9 +5807,6 @@ class DependentCode: public FixedArray {
   inline void clear_at(int i);
   inline void copy(int from, int to);
   DECLARE_CAST(DependentCode)
-
-  static DependentCode* ForObject(Handle<HeapObject> object,
-                                  DependencyGroup group);
 
   static const char* DependencyGroupName(DependencyGroup group);
   static void SetMarkedForDeoptimization(Code* code, DependencyGroup group);
@@ -6028,6 +6038,15 @@ class Map: public HeapObject {
   // (which prototype maps don't have).
   DECL_ACCESSORS(prototype_info, Object)
 
+  // [prototype chain validity cell]: Associated with a prototype object,
+  // stored in that object's map's PrototypeInfo, indicates that prototype
+  // chains through this object are currently valid. The cell will be
+  // invalidated and replaced when the prototype chain changes.
+  static Handle<Cell> GetOrCreatePrototypeChainValidityCell(Handle<Map> map,
+                                                            Isolate* isolate);
+  static const int kPrototypeChainValid = 0;
+  static const int kPrototypeChainInvalid = 1;
+
   Map* FindRootMap();
   Map* FindFieldOwner(int descriptor);
 
@@ -6087,9 +6106,11 @@ class Map: public HeapObject {
   // [prototype]: implicit prototype object.
   DECL_ACCESSORS(prototype, Object)
   // TODO(jkummerow): make set_prototype private.
-  void SetPrototype(Handle<Object> prototype,
-                    PrototypeOptimizationMode proto_mode = FAST_PROTOTYPE);
-  bool ShouldRegisterAsPrototypeUser(Handle<JSObject> prototype);
+  static void SetPrototype(
+      Handle<Map> map, Handle<Object> prototype,
+      PrototypeOptimizationMode proto_mode = FAST_PROTOTYPE);
+  static bool ShouldRegisterAsPrototypeUser(Handle<Map> map,
+                                            Handle<JSObject> prototype);
   bool CanUseOptimizationsBasedOnPrototypeRegistry();
 
   // [constructor]: points back to the function responsible for this map.
@@ -6344,10 +6365,6 @@ class Map: public HeapObject {
 
   inline bool CanOmitMapChecks();
 
-  static void AddDependentCompilationInfo(Handle<Map> map,
-                                          DependentCode::DependencyGroup group,
-                                          CompilationInfo* info);
-
   static void AddDependentCode(Handle<Map> map,
                                DependentCode::DependencyGroup group,
                                Handle<Code> code);
@@ -6383,8 +6400,8 @@ class Map: public HeapObject {
       kPrototypeOffset + kPointerSize;
   // When there is only one transition, it is stored directly in this field;
   // otherwise a transition array is used.
-  // For prototype maps, this slot is used to store a pointer to the prototype
-  // object using this map.
+  // For prototype maps, this slot is used to store this map's PrototypeInfo
+  // struct.
   static const int kTransitionsOrPrototypeInfoOffset =
       kConstructorOrBackPointerOffset + kPointerSize;
   static const int kDescriptorsOffset =
@@ -8120,11 +8137,12 @@ class JSRegExp: public JSObject {
       FixedArray::kHeaderSize + kIrregexpCaptureCountIndex * kPointerSize;
 
   // In-object fields.
-  static const int kGlobalFieldIndex = 0;
-  static const int kIgnoreCaseFieldIndex = 1;
-  static const int kMultilineFieldIndex = 2;
-  static const int kLastIndexFieldIndex = 3;
-  static const int kInObjectFieldCount = 4;
+  static const int kSourceFieldIndex = 0;
+  static const int kGlobalFieldIndex = 1;
+  static const int kIgnoreCaseFieldIndex = 2;
+  static const int kMultilineFieldIndex = 3;
+  static const int kLastIndexFieldIndex = 4;
+  static const int kInObjectFieldCount = 5;
 
   // The uninitialized value for a regexp code object.
   static const int kUninitializedValue = -1;
@@ -8549,12 +8567,6 @@ class AllocationSite: public Struct {
   static void DigestTransitionFeedback(Handle<AllocationSite> site,
                                        ElementsKind to_kind);
 
-  static void RegisterForDeoptOnTenureChange(Handle<AllocationSite> site,
-                                             CompilationInfo* info);
-
-  static void RegisterForDeoptOnTransitionChange(Handle<AllocationSite> site,
-                                                 CompilationInfo* info);
-
   DECLARE_PRINTER(AllocationSite)
   DECLARE_VERIFIER(AllocationSite)
 
@@ -8585,10 +8597,6 @@ class AllocationSite: public Struct {
                               kSize> BodyDescriptor;
 
  private:
-  static void AddDependentCompilationInfo(Handle<AllocationSite> site,
-                                          DependentCode::DependencyGroup group,
-                                          CompilationInfo* info);
-
   bool PretenuringDecisionMade() {
     return pretenure_decision() != kUndecided;
   }
@@ -9777,7 +9785,6 @@ class Cell: public HeapObject {
 
   static inline Cell* FromValueAddress(Address value) {
     Object* result = FromAddress(value - kValueOffset);
-    DCHECK(result->IsCell());
     return static_cast<Cell*>(result);
   }
 
@@ -9821,9 +9828,6 @@ class PropertyCell : public HeapObject {
 
   static Handle<PropertyCell> InvalidateEntry(Handle<NameDictionary> dictionary,
                                               int entry);
-
-  static void AddDependentCompilationInfo(Handle<PropertyCell> cell,
-                                          CompilationInfo* info);
 
   DECLARE_CAST(PropertyCell)
 
@@ -10403,6 +10407,11 @@ class JSArray: public JSObject {
   // fail due to out-of-memory situations, but only if the requested
   // capacity is non-zero.
   static void Initialize(Handle<JSArray> array, int capacity, int length = 0);
+
+  // If the JSArray has fast elements, and new_length would result in
+  // normalization, returns true.
+  static inline bool SetElementsLengthWouldNormalize(
+      Heap* heap, Handle<Object> new_length_handle);
 
   // Initializes the array to a certain length.
   inline bool AllowsSetElementsLength();

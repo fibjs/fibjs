@@ -6,6 +6,7 @@
 
 #include <limits>
 
+#include "src/base/adapters.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
@@ -465,9 +466,7 @@ void InstructionSelector::VisitBlock(BasicBlock* block) {
 
   // Visit code in reverse control flow order, because architecture-specific
   // matching may cover more than one node at a time.
-  for (BasicBlock::reverse_iterator i = block->rbegin(); i != block->rend();
-       ++i) {
-    Node* node = *i;
+  for (auto node : base::Reversed(*block)) {
     // Skip nodes that are unused or already defined.
     if (!IsUsed(node) || IsDefined(node)) continue;
     // Generate code for this node "top down", but schedule the code "bottom
@@ -475,6 +474,15 @@ void InstructionSelector::VisitBlock(BasicBlock* block) {
     size_t current_node_end = instructions_.size();
     VisitNode(node);
     std::reverse(instructions_.begin() + current_node_end, instructions_.end());
+    if (instructions_.size() == current_node_end) continue;
+    // Mark source position on first instruction emitted.
+    SourcePosition source_position = source_positions_->GetSourcePosition(node);
+    if (source_position.IsUnknown()) continue;
+    DCHECK(!source_position.IsInvalid());
+    if (FLAG_turbo_source_positions || node->opcode() == IrOpcode::kCall) {
+      sequence()->SetSourcePosition(instructions_[current_node_end],
+                                    source_position);
+    }
   }
 
   // We're done with the block.
@@ -581,13 +589,6 @@ void InstructionSelector::VisitControl(BasicBlock* block) {
 
 void InstructionSelector::VisitNode(Node* node) {
   DCHECK_NOT_NULL(schedule()->block(node));  // should only use scheduled nodes.
-  SourcePosition source_position = source_positions_->GetSourcePosition(node);
-  if (!source_position.IsUnknown()) {
-    DCHECK(!source_position.IsInvalid());
-    if (FLAG_turbo_source_positions || node->opcode() == IrOpcode::kCall) {
-      Emit(SourcePositionInstruction::New(instruction_zone(), source_position));
-    }
-  }
   switch (node->opcode()) {
     case IrOpcode::kStart:
     case IrOpcode::kLoop:
@@ -764,6 +765,8 @@ void InstructionSelector::VisitNode(Node* node) {
       return MarkAsDouble(node), VisitFloat32Min(node);
     case IrOpcode::kFloat32Max:
       return MarkAsDouble(node), VisitFloat32Max(node);
+    case IrOpcode::kFloat32Abs:
+      return MarkAsDouble(node), VisitFloat32Abs(node);
     case IrOpcode::kFloat32Sqrt:
       return MarkAsDouble(node), VisitFloat32Sqrt(node);
     case IrOpcode::kFloat32Equal:
@@ -786,6 +789,8 @@ void InstructionSelector::VisitNode(Node* node) {
       return MarkAsDouble(node), VisitFloat64Min(node);
     case IrOpcode::kFloat64Max:
       return MarkAsDouble(node), VisitFloat64Max(node);
+    case IrOpcode::kFloat64Abs:
+      return MarkAsDouble(node), VisitFloat64Abs(node);
     case IrOpcode::kFloat64Sqrt:
       return MarkAsDouble(node), VisitFloat64Sqrt(node);
     case IrOpcode::kFloat64Equal:

@@ -141,7 +141,6 @@ static inline void MarkBlackOrKeepBlack(HeapObject* heap_object,
   if (Marking::IsBlack(mark_bit)) return;
   Marking::MarkBlack(mark_bit);
   MemoryChunk::IncrementLiveBytesFromGC(heap_object->address(), size);
-  DCHECK(Marking::IsBlack(mark_bit));
 }
 
 
@@ -251,7 +250,7 @@ class IncrementalMarkingMarkingVisitor
     HeapObject* heap_object = HeapObject::cast(obj);
     MarkBit mark_bit = Marking::MarkBitFrom(heap_object);
     if (Marking::IsWhite(mark_bit)) {
-      mark_bit.Set();
+      Marking::MarkBlack(mark_bit);
       MemoryChunk::IncrementLiveBytesFromGC(heap_object->address(),
                                             heap_object->Size());
       return true;
@@ -302,10 +301,6 @@ void IncrementalMarking::SetOldSpacePageFlags(MemoryChunk* chunk,
         chunk->size() > static_cast<size_t>(Page::kPageSize) && is_compacting) {
       chunk->SetFlag(MemoryChunk::RESCAN_ON_EVACUATION);
     }
-  } else if (chunk->owner()->identity() == CELL_SPACE ||
-             chunk->scan_on_scavenge()) {
-    chunk->ClearFlag(MemoryChunk::POINTERS_TO_HERE_ARE_INTERESTING);
-    chunk->ClearFlag(MemoryChunk::POINTERS_FROM_HERE_ARE_INTERESTING);
   } else {
     chunk->ClearFlag(MemoryChunk::POINTERS_TO_HERE_ARE_INTERESTING);
     chunk->SetFlag(MemoryChunk::POINTERS_FROM_HERE_ARE_INTERESTING);
@@ -347,7 +342,6 @@ void IncrementalMarking::DeactivateIncrementalWriteBarrierForSpace(
 
 void IncrementalMarking::DeactivateIncrementalWriteBarrier() {
   DeactivateIncrementalWriteBarrierForSpace(heap_->old_space());
-  DeactivateIncrementalWriteBarrierForSpace(heap_->cell_space());
   DeactivateIncrementalWriteBarrierForSpace(heap_->map_space());
   DeactivateIncrementalWriteBarrierForSpace(heap_->code_space());
   DeactivateIncrementalWriteBarrierForSpace(heap_->new_space());
@@ -380,7 +374,6 @@ void IncrementalMarking::ActivateIncrementalWriteBarrier(NewSpace* space) {
 
 void IncrementalMarking::ActivateIncrementalWriteBarrier() {
   ActivateIncrementalWriteBarrier(heap_->old_space());
-  ActivateIncrementalWriteBarrier(heap_->cell_space());
   ActivateIncrementalWriteBarrier(heap_->map_space());
   ActivateIncrementalWriteBarrier(heap_->code_space());
   ActivateIncrementalWriteBarrier(heap_->new_space());
@@ -393,15 +386,17 @@ void IncrementalMarking::ActivateIncrementalWriteBarrier() {
 }
 
 
-bool IncrementalMarking::ShouldActivate() {
-  return WorthActivating() && heap_->NextGCIsLikelyToBeFull();
+bool IncrementalMarking::ShouldActivateEvenWithoutIdleNotification() {
+  return CanBeActivated() &&
+         heap_->HeapIsFullEnoughToStartIncrementalMarking(
+             heap_->old_generation_allocation_limit());
 }
 
 
 bool IncrementalMarking::WasActivated() { return was_activated_; }
 
 
-bool IncrementalMarking::WorthActivating() {
+bool IncrementalMarking::CanBeActivated() {
 #ifndef DEBUG
   static const intptr_t kActivationThreshold = 8 * MB;
 #else
@@ -412,6 +407,7 @@ bool IncrementalMarking::WorthActivating() {
   // Only start incremental marking in a safe state: 1) when incremental
   // marking is turned on, 2) when we are currently not in a GC, and
   // 3) when we are currently not serializing or deserializing the heap.
+  // Don't switch on for very small heaps.
   return FLAG_incremental_marking && FLAG_incremental_marking_steps &&
          heap_->gc_state() == Heap::NOT_IN_GC &&
          heap_->deserialization_complete() &&
@@ -819,7 +815,7 @@ void IncrementalMarking::Epilogue() {
 
 
 void IncrementalMarking::OldSpaceStep(intptr_t allocated) {
-  if (IsStopped() && ShouldActivate()) {
+  if (IsStopped() && ShouldActivateEvenWithoutIdleNotification()) {
     Start();
   } else {
     Step(allocated * kFastMarking / kInitialMarkingSpeed, GC_VIA_STACK_GUARD);

@@ -52,7 +52,7 @@ class OptimizingCompileDispatcher::CompileTask : public v8::Task {
 
  private:
   // v8::Task overrides.
-  void Run() OVERRIDE {
+  void Run() override {
     DisallowHeapAllocation no_allocation;
     DisallowHandleAllocation no_handles;
     DisallowHandleDereference no_deref;
@@ -141,10 +141,14 @@ void OptimizingCompileDispatcher::CompileNext(OptimizedCompileJob* job) {
 
 
 void OptimizingCompileDispatcher::FlushOutputQueue(bool restore_function_code) {
-  base::LockGuard<base::Mutex> access_output_queue_(&output_queue_mutex_);
-  while (!output_queue_.empty()) {
-    OptimizedCompileJob* job = output_queue_.front();
-    output_queue_.pop();
+  for (;;) {
+    OptimizedCompileJob* job = NULL;
+    {
+      base::LockGuard<base::Mutex> access_output_queue_(&output_queue_mutex_);
+      if (output_queue_.empty()) return;
+      job = output_queue_.front();
+      output_queue_.pop();
+    }
 
     // OSR jobs are dealt with separately.
     if (!job->info()->is_osr()) {
@@ -210,10 +214,14 @@ void OptimizingCompileDispatcher::Stop() {
 void OptimizingCompileDispatcher::InstallOptimizedFunctions() {
   HandleScope handle_scope(isolate_);
 
-  base::LockGuard<base::Mutex> access_output_queue_(&output_queue_mutex_);
-  while (!output_queue_.empty()) {
-    OptimizedCompileJob* job = output_queue_.front();
-    output_queue_.pop();
+  for (;;) {
+    OptimizedCompileJob* job = NULL;
+    {
+      base::LockGuard<base::Mutex> access_output_queue_(&output_queue_mutex_);
+      if (output_queue_.empty()) return;
+      job = output_queue_.front();
+      output_queue_.pop();
+    }
     CompilationInfo* info = job->info();
     Handle<JSFunction> function(*info->closure());
     if (info->is_osr()) {

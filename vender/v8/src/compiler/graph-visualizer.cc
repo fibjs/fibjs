@@ -129,6 +129,15 @@ class JSONGraphNodeWriter {
     os_ << ",\"opcode\":\"" << IrOpcode::Mnemonic(node->opcode()) << "\"";
     os_ << ",\"control\":" << (NodeProperties::IsControl(node) ? "true"
                                                                : "false");
+    if (NodeProperties::IsTyped(node)) {
+      Bounds bounds = NodeProperties::GetBounds(node);
+      std::ostringstream upper;
+      bounds.upper->PrintTo(upper);
+      std::ostringstream lower;
+      bounds.lower->PrintTo(lower);
+      os_ << ",\"upper_type\":\"" << Escaped(upper, "\"") << "\"";
+      os_ << ",\"lower_type\":\"" << Escaped(lower, "\"") << "\"";
+    }
     os_ << "}";
   }
 
@@ -398,7 +407,7 @@ class GraphC1Visualizer {
   void PrintSchedule(const char* phase, const Schedule* schedule,
                      const SourcePositionTable* positions,
                      const InstructionSequence* instructions);
-  void PrintAllocator(const char* phase, const RegisterAllocator* allocator);
+  void PrintLiveRanges(const char* phase, const RegisterAllocationData* data);
   Zone* zone() const { return zone_; }
 
  private:
@@ -415,7 +424,7 @@ class GraphC1Visualizer {
   void PrintType(Node* node);
 
   void PrintLiveRange(LiveRange* range, const char* type);
-  class Tag FINAL BASE_EMBEDDED {
+  class Tag final BASE_EMBEDDED {
    public:
     Tag(GraphC1Visualizer* visualizer, const char* name) {
       name_ = name;
@@ -684,20 +693,20 @@ void GraphC1Visualizer::PrintSchedule(const char* phase,
 }
 
 
-void GraphC1Visualizer::PrintAllocator(const char* phase,
-                                       const RegisterAllocator* allocator) {
+void GraphC1Visualizer::PrintLiveRanges(const char* phase,
+                                        const RegisterAllocationData* data) {
   Tag tag(this, "intervals");
   PrintStringProperty("name", phase);
 
-  for (auto range : allocator->fixed_double_live_ranges()) {
+  for (auto range : data->fixed_double_live_ranges()) {
     PrintLiveRange(range, "fixed");
   }
 
-  for (auto range : allocator->fixed_live_ranges()) {
+  for (auto range : data->fixed_live_ranges()) {
     PrintLiveRange(range, "fixed");
   }
 
-  for (auto range : allocator->live_ranges()) {
+  for (auto range : data->live_ranges()) {
     PrintLiveRange(range, "object");
   }
 }
@@ -708,7 +717,7 @@ void GraphC1Visualizer::PrintLiveRange(LiveRange* range, const char* type) {
     PrintIndent();
     os_ << range->id() << " " << type;
     if (range->HasRegisterAssigned()) {
-      InstructionOperand op = range->GetAssignedOperand();
+      AllocatedOperand op = AllocatedOperand::cast(range->GetAssignedOperand());
       int assigned_reg = op.index();
       if (op.IsDoubleRegister()) {
         os_ << " \"" << DoubleRegister::AllocationIndexToString(assigned_reg)
@@ -718,18 +727,21 @@ void GraphC1Visualizer::PrintLiveRange(LiveRange* range, const char* type) {
         os_ << " \"" << Register::AllocationIndexToString(assigned_reg) << "\"";
       }
     } else if (range->IsSpilled()) {
+      auto top = range->TopLevel();
       int index = -1;
-      if (range->TopLevel()->HasSpillRange()) {
+      if (top->HasSpillRange()) {
         index = kMaxInt;  // This hasn't been set yet.
+      } else if (top->GetSpillOperand()->IsConstant()) {
+        os_ << " \"const(nostack):"
+            << ConstantOperand::cast(top->GetSpillOperand())->virtual_register()
+            << "\"";
       } else {
-        index = range->TopLevel()->GetSpillOperand()->index();
-      }
-      if (range->TopLevel()->Kind() == DOUBLE_REGISTERS) {
-        os_ << " \"double_stack:" << index << "\"";
-      } else if (range->TopLevel()->Kind() == GENERAL_REGISTERS) {
-        os_ << " \"stack:" << index << "\"";
-      } else {
-        os_ << " \"const(nostack):" << index << "\"";
+        index = AllocatedOperand::cast(top->GetSpillOperand())->index();
+        if (top->Kind() == DOUBLE_REGISTERS) {
+          os_ << " \"double_stack:" << index << "\"";
+        } else if (top->Kind() == GENERAL_REGISTERS) {
+          os_ << " \"stack:" << index << "\"";
+        }
       }
     }
     int parent_index = -1;
@@ -779,9 +791,10 @@ std::ostream& operator<<(std::ostream& os, const AsC1V& ac) {
 }
 
 
-std::ostream& operator<<(std::ostream& os, const AsC1VAllocator& ac) {
+std::ostream& operator<<(std::ostream& os,
+                         const AsC1VRegisterAllocationData& ac) {
   Zone tmp_zone;
-  GraphC1Visualizer(os, &tmp_zone).PrintAllocator(ac.phase_, ac.allocator_);
+  GraphC1Visualizer(os, &tmp_zone).PrintLiveRanges(ac.phase_, ac.data_);
   return os;
 }
 

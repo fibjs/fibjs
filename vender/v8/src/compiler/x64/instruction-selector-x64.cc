@@ -8,6 +8,7 @@
 
 #include <algorithm>
 
+#include "src/base/adapters.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
@@ -17,7 +18,7 @@ namespace internal {
 namespace compiler {
 
 // Adds X64-specific methods for generating operands.
-class X64OperandGenerator FINAL : public OperandGenerator {
+class X64OperandGenerator final : public OperandGenerator {
  public:
   explicit X64OperandGenerator(InstructionSelector* selector)
       : OperandGenerator(selector) {}
@@ -158,17 +159,24 @@ void InstructionSelector::VisitStore(Node* node) {
   StoreRepresentation store_rep = OpParameter<StoreRepresentation>(node);
   MachineType rep = RepresentationOf(store_rep.machine_type());
   if (store_rep.write_barrier_kind() == kFullWriteBarrier) {
-    DCHECK(rep == kRepTagged);
+    DCHECK_EQ(kRepTagged, rep);
     // TODO(dcarney): refactor RecordWrite function to take temp registers
     //                and pass them here instead of using fixed regs
-    // TODO(dcarney): handle immediate indices.
-    InstructionOperand temps[] = {g.TempRegister(rcx), g.TempRegister(rdx)};
-    Emit(kX64StoreWriteBarrier, g.NoOutput(), g.UseFixed(base, rbx),
-         g.UseFixed(index, rcx), g.UseFixed(value, rdx), arraysize(temps),
-         temps);
+    if (g.CanBeImmediate(index)) {
+      InstructionOperand temps[] = {g.TempRegister(rcx), g.TempRegister()};
+      Emit(kX64StoreWriteBarrier, g.NoOutput(), g.UseFixed(base, rbx),
+           g.UseImmediate(index), g.UseFixed(value, rcx), arraysize(temps),
+           temps);
+    } else {
+      InstructionOperand temps[] = {g.TempRegister(rcx), g.TempRegister(rdx)};
+      Emit(kX64StoreWriteBarrier, g.NoOutput(), g.UseFixed(base, rbx),
+           g.UseFixed(index, rcx), g.UseFixed(value, rdx), arraysize(temps),
+           temps);
+    }
     return;
   }
   DCHECK_EQ(kNoWriteBarrier, store_rep.write_barrier_kind());
+
   ArchOpcode opcode;
   switch (rep) {
     case kRepFloat32:
@@ -853,6 +861,18 @@ void VisitFloatBinop(InstructionSelector* selector, Node* node,
   }
 }
 
+
+void VisitFloatUnop(InstructionSelector* selector, Node* node, Node* input,
+                    ArchOpcode avx_opcode, ArchOpcode sse_opcode) {
+  X64OperandGenerator g(selector);
+  if (selector->IsSupported(AVX)) {
+    selector->Emit(avx_opcode, g.DefineAsRegister(node), g.Use(input));
+  } else {
+    selector->Emit(sse_opcode, g.DefineSameAsFirst(node), g.UseRegister(input));
+  }
+}
+
+
 }  // namespace
 
 
@@ -865,8 +885,8 @@ void InstructionSelector::VisitFloat32Sub(Node* node) {
   X64OperandGenerator g(this);
   Float32BinopMatcher m(node);
   if (m.left().IsMinusZero()) {
-    Emit(kSSEFloat32Neg, g.DefineSameAsFirst(node),
-         g.UseRegister(m.right().node()));
+    VisitFloatUnop(this, node, m.right().node(), kAVXFloat32Neg,
+                   kSSEFloat32Neg);
     return;
   }
   VisitFloatBinop(this, node, kAVXFloat32Sub, kSSEFloat32Sub);
@@ -890,6 +910,12 @@ void InstructionSelector::VisitFloat32Max(Node* node) {
 
 void InstructionSelector::VisitFloat32Min(Node* node) {
   VisitFloatBinop(this, node, kAVXFloat32Min, kSSEFloat32Min);
+}
+
+
+void InstructionSelector::VisitFloat32Abs(Node* node) {
+  X64OperandGenerator g(this);
+  VisitFloatUnop(this, node, node->InputAt(0), kAVXFloat32Abs, kSSEFloat32Abs);
 }
 
 
@@ -920,8 +946,8 @@ void InstructionSelector::VisitFloat64Sub(Node* node) {
         }
       }
     }
-    Emit(kSSEFloat64Neg, g.DefineSameAsFirst(node),
-         g.UseRegister(m.right().node()));
+    VisitFloatUnop(this, node, m.right().node(), kAVXFloat64Neg,
+                   kSSEFloat64Neg);
     return;
   }
   VisitFloatBinop(this, node, kAVXFloat64Sub, kSSEFloat64Sub);
@@ -954,6 +980,12 @@ void InstructionSelector::VisitFloat64Max(Node* node) {
 
 void InstructionSelector::VisitFloat64Min(Node* node) {
   VisitFloatBinop(this, node, kAVXFloat64Min, kSSEFloat64Min);
+}
+
+
+void InstructionSelector::VisitFloat64Abs(Node* node) {
+  X64OperandGenerator g(this);
+  VisitFloatUnop(this, node, node->InputAt(0), kAVXFloat64Abs, kSSEFloat64Abs);
 }
 
 
@@ -1007,13 +1039,12 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   InitializeCallBuffer(node, &buffer, true, true);
 
   // Push any stack arguments.
-  for (auto i = buffer.pushed_nodes.rbegin(); i != buffer.pushed_nodes.rend();
-       ++i) {
+  for (Node* node : base::Reversed(buffer.pushed_nodes)) {
     // TODO(titzer): handle pushing double parameters.
     InstructionOperand value =
-        g.CanBeImmediate(*i) ? g.UseImmediate(*i) : IsSupported(ATOM)
-                                                        ? g.UseRegister(*i)
-                                                        : g.Use(*i);
+        g.CanBeImmediate(node)
+            ? g.UseImmediate(node)
+            : IsSupported(ATOM) ? g.UseRegister(node) : g.Use(node);
     Emit(kX64Push, g.NoOutput(), value);
   }
 
@@ -1512,8 +1543,10 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
   MachineOperatorBuilder::Flags flags =
+      MachineOperatorBuilder::kFloat32Abs |
       MachineOperatorBuilder::kFloat32Max |
       MachineOperatorBuilder::kFloat32Min |
+      MachineOperatorBuilder::kFloat64Abs |
       MachineOperatorBuilder::kFloat64Max |
       MachineOperatorBuilder::kFloat64Min |
       MachineOperatorBuilder::kWord32ShiftIsSafe;

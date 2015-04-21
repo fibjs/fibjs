@@ -339,11 +339,11 @@ inline bool ToLocal(v8::internal::MaybeHandle<v8::internal::Object> maybe,
   }
 
 
-#define MAKE_TO_LOCAL_TYPED_ARRAY(Type, typeName, TYPE, ctype, size)        \
-  Local<v8::Type##Array> Utils::ToLocal##Type##Array(                       \
-      v8::internal::Handle<v8::internal::JSTypedArray> obj) {               \
-    DCHECK(obj->type() == kExternal##Type##Array);                          \
-    return Convert<v8::internal::JSTypedArray, v8::Type##Array>(obj);       \
+#define MAKE_TO_LOCAL_TYPED_ARRAY(Type, typeName, TYPE, ctype, size)  \
+  Local<v8::Type##Array> Utils::ToLocal##Type##Array(                 \
+      v8::internal::Handle<v8::internal::JSTypedArray> obj) {         \
+    DCHECK(obj->type() == v8::internal::kExternal##Type##Array);      \
+    return Convert<v8::internal::JSTypedArray, v8::Type##Array>(obj); \
   }
 
 
@@ -661,7 +661,7 @@ void HandleScopeImplementer::DeleteExtensions(internal::Object** prev_limit) {
   while (!blocks_.is_empty()) {
     internal::Object** block_start = blocks_.last();
     internal::Object** block_limit = block_start + kHandleBlockSize;
-#ifdef DEBUG
+
     // SealHandleScope may make the prev_limit to point inside the block.
     if (block_start <= prev_limit && prev_limit <= block_limit) {
 #ifdef ENABLE_HANDLE_ZAPPING
@@ -669,9 +669,6 @@ void HandleScopeImplementer::DeleteExtensions(internal::Object** prev_limit) {
 #endif
       break;
     }
-#else
-    if (prev_limit == block_limit) break;
-#endif
 
     blocks_.RemoveLast();
 #ifdef ENABLE_HANDLE_ZAPPING

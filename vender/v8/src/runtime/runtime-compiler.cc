@@ -10,6 +10,7 @@
 #include "src/frames.h"
 #include "src/full-codegen.h"
 #include "src/isolate-inl.h"
+#include "src/messages.h"
 #include "src/runtime/runtime-utils.h"
 #include "src/v8threads.h"
 #include "src/vm-state-inl.h"
@@ -232,9 +233,9 @@ RUNTIME_FUNCTION(Runtime_CompileForOnStackReplacement) {
     // Gate the OSR entry with a stack check.
     BackEdgeTable::AddStackCheck(caller_code, pc_offset);
     // Poll already queued compilation jobs.
-    OptimizingCompileDispatcher* thread =
+    OptimizingCompileDispatcher* dispatcher =
         isolate->optimizing_compile_dispatcher();
-    if (thread->IsQueuedForOSR(function, ast_id)) {
+    if (dispatcher->IsQueuedForOSR(function, ast_id)) {
       if (FLAG_trace_osr) {
         PrintF("[OSR - Still waiting for queued: ");
         function->PrintName();
@@ -243,7 +244,7 @@ RUNTIME_FUNCTION(Runtime_CompileForOnStackReplacement) {
       return NULL;
     }
 
-    job = thread->FindReadyOSRCandidate(function, ast_id);
+    job = dispatcher->FindReadyOSRCandidate(function, ast_id);
   }
 
   if (job != NULL) {
@@ -364,8 +365,8 @@ RUNTIME_FUNCTION(Runtime_CompileString) {
     Handle<Object> error_message =
         context->ErrorMessageForCodeGenerationFromStrings();
     THROW_NEW_ERROR_RETURN_FAILURE(
-        isolate, NewEvalError("code_gen_from_strings",
-                              HandleVector<Object>(&error_message, 1)));
+        isolate,
+        NewEvalError(MessageTemplate::kCodeGenFromStrings, error_message));
   }
 
   // Compile source string in the native context.
@@ -398,7 +399,7 @@ static ObjectPair CompileGlobalEval(Isolate* isolate, Handle<String> source,
         native_context->ErrorMessageForCodeGenerationFromStrings();
     Handle<Object> error;
     MaybeHandle<Object> maybe_error = isolate->factory()->NewEvalError(
-        "code_gen_from_strings", HandleVector<Object>(&error_message, 1));
+        MessageTemplate::kCodeGenFromStrings, error_message);
     if (maybe_error.ToHandle(&error)) isolate->Throw(*error);
     return MakePair(isolate->heap()->exception(), NULL);
   }

@@ -58,7 +58,7 @@ class JSTypeFeedbackSpecializer : public Reducer {
     CHECK(js_type_feedback);
   }
 
-  Reduction Reduce(Node* node) OVERRIDE;
+  Reduction Reduce(Node* node) override;
 
   // Visible for unit testing.
   Reduction ReduceJSLoadNamed(Node* node);
@@ -74,6 +74,7 @@ class JSTypeFeedbackSpecializer : public Reducer {
 
   TypeFeedbackOracle* oracle() { return oracle_; }
   Graph* graph() { return jsgraph_->graph(); }
+  JSGraph* jsgraph() { return jsgraph_; }
   CommonOperatorBuilder* common() { return jsgraph_->common(); }
   SimplifiedOperatorBuilder* simplified() { return &simplified_; }
 

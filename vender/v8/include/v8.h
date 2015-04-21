@@ -439,7 +439,7 @@ class MaybeLocal {
     return !IsEmpty();
   }
 
-  // Will crash when checks are enabled if the MaybeLocal<> is empty.
+  // Will crash if the MaybeLocal<> is empty.
   V8_INLINE Local<T> ToLocalChecked();
 
   template <class S>
@@ -1016,6 +1016,24 @@ class V8_EXPORT EscapableHandleScope : public HandleScope {
   void operator delete(void*, size_t);
 
   internal::Object** escape_slot_;
+};
+
+class V8_EXPORT SealHandleScope {
+ public:
+  SealHandleScope(Isolate* isolate);
+  ~SealHandleScope();
+
+ private:
+  // Make it hard to create heap-allocated or illegal handle scopes by
+  // disallowing certain operations.
+  SealHandleScope(const SealHandleScope&);
+  void operator=(const SealHandleScope&);
+  void* operator new(size_t size);
+  void operator delete(void*, size_t);
+
+  internal::Isolate* isolate_;
+  int prev_level_;
+  internal::Object** prev_limit_;
 };
 
 
@@ -2575,29 +2593,6 @@ enum PropertyAttribute {
   DontDelete = 1 << 2
 };
 
-enum ExternalArrayType {
-  kExternalInt8Array = 1,
-  kExternalUint8Array,
-  kExternalInt16Array,
-  kExternalUint16Array,
-  kExternalInt32Array,
-  kExternalUint32Array,
-  kExternalFloat32Array,
-  kExternalFloat64Array,
-  kExternalUint8ClampedArray,
-
-  // Legacy constant names
-  kExternalByteArray = kExternalInt8Array,
-  kExternalUnsignedByteArray = kExternalUint8Array,
-  kExternalShortArray = kExternalInt16Array,
-  kExternalUnsignedShortArray = kExternalUint16Array,
-  kExternalIntArray = kExternalInt32Array,
-  kExternalUnsignedIntArray = kExternalUint32Array,
-  kExternalFloatArray = kExternalFloat32Array,
-  kExternalDoubleArray = kExternalFloat64Array,
-  kExternalPixelArray = kExternalUint8ClampedArray
-};
-
 /**
  * Accessor[Getter|Setter] are used as callback functions when
  * setting|getting a particular property. See Object and ObjectTemplate's
@@ -2946,33 +2941,6 @@ class V8_EXPORT Object : public Value {
    * Returns the context in which the object was created.
    */
   Local<Context> CreationContext();
-
-  /**
-   * Set the backing store of the indexed properties to be managed by the
-   * embedding layer. Access to the indexed properties will follow the rules
-   * spelled out in CanvasPixelArray.
-   * Note: The embedding program still owns the data and needs to ensure that
-   *       the backing store is preserved while V8 has a reference.
-   */
-  void SetIndexedPropertiesToPixelData(uint8_t* data, int length);
-  bool HasIndexedPropertiesInPixelData();
-  uint8_t* GetIndexedPropertiesPixelData();
-  int GetIndexedPropertiesPixelDataLength();
-
-  /**
-   * Set the backing store of the indexed properties to be managed by the
-   * embedding layer. Access to the indexed properties will follow the rules
-   * spelled out for the CanvasArray subtypes in the WebGL specification.
-   * Note: The embedding program still owns the data and needs to ensure that
-   *       the backing store is preserved while V8 has a reference.
-   */
-  void SetIndexedPropertiesToExternalArrayData(void* data,
-                                               ExternalArrayType array_type,
-                                               int number_of_elements);
-  bool HasIndexedPropertiesInExternalArrayData();
-  void* GetIndexedPropertiesExternalArrayData();
-  ExternalArrayType GetIndexedPropertiesExternalArrayDataType();
-  int GetIndexedPropertiesExternalArrayDataLength();
 
   /**
    * Checks whether a callback is set by the
@@ -3333,6 +3301,10 @@ class V8_EXPORT Promise : public Object {
 #define V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT 2
 #endif
 
+
+enum class ArrayBufferCreationMode { kInternalized, kExternalized };
+
+
 /**
  * An instance of the built-in ArrayBuffer constructor (ES6 draft 15.13.5).
  * This API is experimental and may change significantly.
@@ -3408,12 +3380,13 @@ class V8_EXPORT ArrayBuffer : public Object {
 
   /**
    * Create a new ArrayBuffer over an existing memory block.
-   * The created array buffer is immediately in externalized state.
+   * The created array buffer is by default immediately in externalized state.
    * The memory block will not be reclaimed when a created ArrayBuffer
    * is garbage-collected.
    */
-  static Local<ArrayBuffer> New(Isolate* isolate, void* data,
-                                size_t byte_length);
+  static Local<ArrayBuffer> New(
+      Isolate* isolate, void* data, size_t byte_length,
+      ArrayBufferCreationMode mode = ArrayBufferCreationMode::kExternalized);
 
   /**
    * Returns true if ArrayBuffer is extrenalized, that is, does not
@@ -3444,6 +3417,18 @@ class V8_EXPORT ArrayBuffer : public Object {
    * that has been set with V8::SetArrayBufferAllocator.
    */
   Contents Externalize();
+
+  /**
+   * Get a pointer to the ArrayBuffer's underlying memory block without
+   * externalizing it. If the ArrayBuffer is not externalized, this pointer
+   * will become invalid as soon as the ArrayBuffer became garbage collected.
+   *
+   * The embedder should make sure to hold a strong reference to the
+   * ArrayBuffer while accessing this pointer.
+   *
+   * The memory block is guaranteed to be allocated with |Allocator::Allocate|.
+   */
+  Contents GetContents();
 
   V8_INLINE static ArrayBuffer* Cast(Value* obj);
 
@@ -3492,6 +3477,12 @@ class V8_EXPORT ArrayBufferView : public Object {
    * Returns the number of bytes actually written.
    */
   size_t CopyContents(void* dest, size_t byte_length);
+
+  /**
+   * Returns true if ArrayBufferView's backing ArrayBuffer has already been
+   * allocated.
+   */
+  bool HasBuffer() const;
 
   V8_INLINE static ArrayBufferView* Cast(Value* obj);
 
@@ -4658,12 +4649,15 @@ class V8_EXPORT ResourceConstraints {
    *   device, in bytes.
    * \param virtual_memory_limit The amount of virtual memory on the current
    *   device, in bytes, or zero, if there is no limit.
-   * \param number_of_processors The number of CPUs available on the current
-   *   device.
    */
   void ConfigureDefaults(uint64_t physical_memory,
-                         uint64_t virtual_memory_limit,
-                         uint32_t number_of_processors);
+                         uint64_t virtual_memory_limit);
+
+  // Deprecated, will be removed soon.
+  V8_DEPRECATED("Use two-args version instead",
+                void ConfigureDefaults(uint64_t physical_memory,
+                                       uint64_t virtual_memory_limit,
+                                       uint32_t number_of_processors));
 
   int max_semi_space_size() const { return max_semi_space_size_; }
   void set_max_semi_space_size(int value) { max_semi_space_size_ = value; }
@@ -4674,9 +4668,12 @@ class V8_EXPORT ResourceConstraints {
   uint32_t* stack_limit() const { return stack_limit_; }
   // Sets an address beyond which the VM's stack may not grow.
   void set_stack_limit(uint32_t* value) { stack_limit_ = value; }
-  int max_available_threads() const { return max_available_threads_; }
+  V8_DEPRECATED("Unused, will be removed", int max_available_threads() const) {
+    return max_available_threads_;
+  }
   // Set the number of threads available to V8, assuming at least 1.
-  void set_max_available_threads(int value) {
+  V8_DEPRECATED("Unused, will be removed",
+                void set_max_available_threads(int value)) {
     max_available_threads_ = value;
   }
   size_t code_range_size() const { return code_range_size_; }
@@ -4750,8 +4747,7 @@ enum ObjectSpace {
   kObjectSpaceOldSpace = 1 << 1,
   kObjectSpaceCodeSpace = 1 << 2,
   kObjectSpaceMapSpace = 1 << 3,
-  kObjectSpaceCellSpace = 1 << 4,
-  kObjectSpaceLoSpace = 1 << 5,
+  kObjectSpaceLoSpace = 1 << 4,
   kObjectSpaceAll = kObjectSpaceNewSpace | kObjectSpaceOldSpace |
                     kObjectSpaceCodeSpace | kObjectSpaceMapSpace |
                     kObjectSpaceLoSpace
@@ -4868,6 +4864,26 @@ class V8_EXPORT HeapStatistics {
   size_t heap_size_limit_;
 
   friend class V8;
+  friend class Isolate;
+};
+
+
+class V8_EXPORT HeapSpaceStatistics {
+ public:
+  HeapSpaceStatistics();
+  const char* space_name() { return space_name_; }
+  size_t space_size() { return space_size_; }
+  size_t space_used_size() { return space_used_size_; }
+  size_t space_available_size() { return space_available_size_; }
+  size_t physical_space_size() { return physical_space_size_; }
+
+ private:
+  const char* space_name_;
+  size_t space_size_;
+  size_t space_used_size_;
+  size_t space_available_size_;
+  size_t physical_space_size_;
+
   friend class Isolate;
 };
 
@@ -5232,6 +5248,23 @@ class V8_EXPORT Isolate {
    * Get statistics about the heap memory usage.
    */
   void GetHeapStatistics(HeapStatistics* heap_statistics);
+
+  /**
+   * Returns the number of spaces in the heap.
+   */
+  size_t NumberOfHeapSpaces();
+
+  /**
+   * Get the memory usage of a space in the heap.
+   *
+   * \param space_statistics The HeapSpaceStatistics object to fill in
+   *   statistics.
+   * \param index The index of the space to get statistics from, which ranges
+   *   from 0 to NumberOfHeapSpaces() - 1.
+   * \returns true on success.
+   */
+  bool GetHeapSpaceStatistics(HeapSpaceStatistics* space_statistics,
+                              size_t index);
 
   /**
    * Get a call stack sample from the isolate.
@@ -6051,7 +6084,7 @@ class V8_EXPORT V8 {
                          int* index);
   static Local<Value> GetEternal(Isolate* isolate, int index);
 
-  static void CheckIsJust(bool is_just);
+  static void FromJustIsNothing();
   static void ToLocalEmpty();
   static void InternalFieldOutOfBounds(int index);
 
@@ -6086,11 +6119,9 @@ class Maybe {
   V8_INLINE bool IsNothing() const { return !has_value; }
   V8_INLINE bool IsJust() const { return has_value; }
 
-  // Will crash when checks are enabled if the Maybe<> is nothing.
+  // Will crash if the Maybe<> is nothing.
   V8_INLINE T FromJust() const {
-#ifdef V8_ENABLE_CHECKS
-    V8::CheckIsJust(IsJust());
-#endif
+    if (V8_UNLIKELY(!IsJust())) V8::FromJustIsNothing();
     return value;
   }
 
@@ -6723,7 +6754,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 156;
+  static const int kEmptyStringRootIndex = 10;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.
@@ -6741,7 +6772,7 @@ class Internals {
   static const int kJSObjectType = 0xbe;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
-  static const int kForeignType = 0x87;
+  static const int kForeignType = 0x86;
 
   static const int kUndefinedOddballKind = 5;
   static const int kNullOddballKind = 3;
@@ -6908,9 +6939,7 @@ Local<T> Eternal<T>::Get(Isolate* isolate) {
 
 template <class T>
 Local<T> MaybeLocal<T>::ToLocalChecked() {
-#ifdef V8_ENABLE_CHECKS
-  if (val_ == nullptr) V8::ToLocalEmpty();
-#endif
+  if (V8_UNLIKELY(val_ == nullptr)) V8::ToLocalEmpty();
   return Local<T>(val_);
 }
 

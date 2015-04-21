@@ -43,7 +43,6 @@ HeapObjectIterator::HeapObjectIterator(Page* page,
   Space* owner = page->owner();
   DCHECK(owner == page->heap()->old_space() ||
          owner == page->heap()->map_space() ||
-         owner == page->heap()->cell_space() ||
          owner == page->heap()->code_space());
   Initialize(reinterpret_cast<PagedSpace*>(owner), page->area_start(),
              page->area_end(), kOnePageOnly, size_func);
@@ -876,30 +875,28 @@ bool MemoryAllocator::CommitExecutableMemory(base::VirtualMemory* vm,
                                              Address start, size_t commit_size,
                                              size_t reserved_size) {
   // Commit page header (not executable).
-  if (!vm->Commit(start, CodePageGuardStartOffset(), false)) {
-    return false;
+  Address header = start;
+  size_t header_size = CodePageGuardStartOffset();
+  if (vm->Commit(header, header_size, false)) {
+    // Create guard page after the header.
+    if (vm->Guard(start + CodePageGuardStartOffset())) {
+      // Commit page body (executable).
+      Address body = start + CodePageAreaStartOffset();
+      size_t body_size = commit_size - CodePageGuardStartOffset();
+      if (vm->Commit(body, body_size, true)) {
+        // Create guard page before the end.
+        if (vm->Guard(start + reserved_size - CodePageGuardSize())) {
+          UpdateAllocatedSpaceLimits(start, start + CodePageAreaStartOffset() +
+                                                commit_size -
+                                                CodePageGuardStartOffset());
+          return true;
+        }
+        vm->Uncommit(body, body_size);
+      }
+    }
+    vm->Uncommit(header, header_size);
   }
-
-  // Create guard page after the header.
-  if (!vm->Guard(start + CodePageGuardStartOffset())) {
-    return false;
-  }
-
-  // Commit page body (executable).
-  if (!vm->Commit(start + CodePageAreaStartOffset(),
-                  commit_size - CodePageGuardStartOffset(), true)) {
-    return false;
-  }
-
-  // Create guard page before the end.
-  if (!vm->Guard(start + reserved_size - CodePageGuardSize())) {
-    return false;
-  }
-
-  UpdateAllocatedSpaceLimits(start, start + CodePageAreaStartOffset() +
-                                        commit_size -
-                                        CodePageGuardStartOffset());
-  return true;
+  return false;
 }
 
 
@@ -924,8 +921,6 @@ STATIC_ASSERT(static_cast<ObjectSpace>(1 << AllocationSpace::OLD_SPACE) ==
               ObjectSpace::kObjectSpaceOldSpace);
 STATIC_ASSERT(static_cast<ObjectSpace>(1 << AllocationSpace::CODE_SPACE) ==
               ObjectSpace::kObjectSpaceCodeSpace);
-STATIC_ASSERT(static_cast<ObjectSpace>(1 << AllocationSpace::CELL_SPACE) ==
-              ObjectSpace::kObjectSpaceCellSpace);
 STATIC_ASSERT(static_cast<ObjectSpace>(1 << AllocationSpace::MAP_SPACE) ==
               ObjectSpace::kObjectSpaceMapSpace);
 
@@ -1009,7 +1004,8 @@ Object* PagedSpace::FindObject(Address addr) {
 
 bool PagedSpace::CanExpand() {
   DCHECK(max_capacity_ % AreaSize() == 0);
-  DCHECK(Capacity() <= heap()->MaxOldGenerationSize());
+  DCHECK(heap()->mark_compact_collector()->is_compacting() ||
+         Capacity() <= heap()->MaxOldGenerationSize());
   DCHECK(heap()->CommittedOldGenerationMemory() <=
          heap()->MaxOldGenerationSize() +
              PagedSpace::MaxEmergencyMemoryAllocated());
@@ -1152,6 +1148,11 @@ void PagedSpace::FreeEmergencyMemory() {
 
 
 void PagedSpace::UseEmergencyMemory() {
+  // Page::Initialize makes the chunk into a real page and adds it to the
+  // accounting for this space.  Unlike PagedSpace::Expand, we don't check
+  // CanExpand first, so we can go over the limits a little here.  That's OK,
+  // because we are in the process of compacting which will free up at least as
+  // much memory as it allocates.
   Page* page = Page::Initialize(heap(), emergency_memory_, executable(), this);
   page->InsertAfter(anchor_.prev_page());
   emergency_memory_ = NULL;
@@ -2790,15 +2791,6 @@ void MapSpace::VerifyObject(HeapObject* object) { CHECK(object->IsMap()); }
 
 
 // -----------------------------------------------------------------------------
-// CellSpace implementation
-// TODO(mvstanton): this is weird...the compiler can't make a vtable unless
-// there is at least one non-inlined virtual function. I would prefer to hide
-// the VerifyObject definition behind VERIFY_HEAP.
-
-void CellSpace::VerifyObject(HeapObject* object) { CHECK(object->IsCell()); }
-
-
-// -----------------------------------------------------------------------------
 // LargeObjectIterator
 
 LargeObjectIterator::LargeObjectIterator(LargeObjectSpace* space) {
@@ -2896,8 +2888,8 @@ AllocationResult LargeObjectSpace::AllocateRaw(int object_size,
   uintptr_t base = reinterpret_cast<uintptr_t>(page) / MemoryChunk::kAlignment;
   uintptr_t limit = base + (page->size() - 1) / MemoryChunk::kAlignment;
   for (uintptr_t key = base; key <= limit; key++) {
-    HashMap::Entry* entry = chunk_map_.Lookup(reinterpret_cast<void*>(key),
-                                              static_cast<uint32_t>(key), true);
+    HashMap::Entry* entry = chunk_map_.LookupOrInsert(
+        reinterpret_cast<void*>(key), static_cast<uint32_t>(key));
     DCHECK(entry != NULL);
     entry->value = page;
   }
@@ -2944,7 +2936,7 @@ Object* LargeObjectSpace::FindObject(Address a) {
 LargePage* LargeObjectSpace::FindPage(Address a) {
   uintptr_t key = reinterpret_cast<uintptr_t>(a) / MemoryChunk::kAlignment;
   HashMap::Entry* e = chunk_map_.Lookup(reinterpret_cast<void*>(key),
-                                        static_cast<uint32_t>(key), false);
+                                        static_cast<uint32_t>(key));
   if (e != NULL) {
     DCHECK(e->value != NULL);
     LargePage* page = reinterpret_cast<LargePage*>(e->value);
@@ -2966,8 +2958,8 @@ void LargeObjectSpace::FreeUnmarkedObjects() {
     // pointer object is this big.
     bool is_pointer_object = object->IsFixedArray();
     MarkBit mark_bit = Marking::MarkBitFrom(object);
-    if (mark_bit.Get()) {
-      mark_bit.Clear();
+    if (Marking::IsBlackOrGrey(mark_bit)) {
+      Marking::BlackToWhite(mark_bit);
       Page::FromAddress(object->address())->ResetProgressBar();
       Page::FromAddress(object->address())->ResetLiveBytes();
       previous = current;
@@ -3122,7 +3114,7 @@ void Page::Print() {
   unsigned mark_size = 0;
   for (HeapObject* object = objects.Next(); object != NULL;
        object = objects.Next()) {
-    bool is_marked = Marking::MarkBitFrom(object).Get();
+    bool is_marked = Marking::IsBlackOrGrey(Marking::MarkBitFrom(object));
     PrintF(" %c ", (is_marked ? '!' : ' '));  // Indent a little.
     if (is_marked) {
       mark_size += heap()->GcSafeSizeOfOldObjectFunction()(object);

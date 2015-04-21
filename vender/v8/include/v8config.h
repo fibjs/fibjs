@@ -124,6 +124,7 @@
 //  V8_LIBC_BIONIC  - Bionic libc
 //  V8_LIBC_BSD     - BSD libc derivate
 //  V8_LIBC_GLIBC   - GNU C library
+//  V8_LIBC_UCLIBC  - uClibc
 //
 // Note that testing for libc must be done using #if not #ifdef. For example,
 // to test for the GNU C library, use:
@@ -136,6 +137,9 @@
 #elif defined(__BIONIC__)
 # define V8_LIBC_BIONIC 1
 # define V8_LIBC_BSD 1
+#elif defined(__UCLIBC__)
+// Must test for UCLIBC before GLIBC, as UCLIBC pretends to be GLIBC.
+# define V8_LIBC_UCLIBC 1
 #elif defined(__GLIBC__) || defined(__GNU_LIBRARY__)
 # define V8_LIBC_GLIBC 1
 #else
@@ -159,8 +163,6 @@
 //  V8_HAS_CXX11_ALIGNOF        - alignof(type) operator supported
 //  V8_HAS_CXX11_STATIC_ASSERT  - static_assert() supported
 //  V8_HAS_CXX11_DELETE         - deleted functions supported
-//  V8_HAS_CXX11_FINAL          - final marker supported
-//  V8_HAS_CXX11_OVERRIDE       - override marker supported
 //
 // Compiler-specific feature detection
 //
@@ -227,8 +229,6 @@
 # define V8_HAS_CXX11_ALIGNAS (__has_feature(cxx_alignas))
 # define V8_HAS_CXX11_STATIC_ASSERT (__has_feature(cxx_static_assert))
 # define V8_HAS_CXX11_DELETE (__has_feature(cxx_deleted_functions))
-# define V8_HAS_CXX11_FINAL (__has_feature(cxx_override_control))
-# define V8_HAS_CXX11_OVERRIDE (__has_feature(cxx_override_control))
 
 #elif defined(__GNUC__)
 

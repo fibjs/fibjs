@@ -15,7 +15,7 @@ namespace base
 
 class TimeDelta;
 
-class Semaphore FINAL
+class Semaphore final
 {
 public:
     explicit Semaphore(int count);

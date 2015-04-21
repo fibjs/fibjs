@@ -42,7 +42,7 @@ enum LazyCachedType {
 
 // Constructs and caches types lazily.
 // TODO(turbofan): these types could be globally cached or cached per isolate.
-class LazyTypeCache FINAL : public ZoneObject {
+class LazyTypeCache final : public ZoneObject {
  public:
   explicit LazyTypeCache(Isolate* isolate, Zone* zone)
       : isolate_(isolate), zone_(zone) {
@@ -141,10 +141,10 @@ class LazyTypeCache FINAL : public ZoneObject {
 };
 
 
-class Typer::Decorator FINAL : public GraphDecorator {
+class Typer::Decorator final : public GraphDecorator {
  public:
   explicit Decorator(Typer* typer) : typer_(typer) {}
-  void Decorate(Node* node, bool incomplete) FINAL;
+  void Decorate(Node* node, bool incomplete) final;
 
  private:
   Typer* typer_;
@@ -215,7 +215,7 @@ class Typer::Visitor : public Reducer {
   explicit Visitor(Typer* typer)
       : typer_(typer), weakened_nodes_(typer->zone()) {}
 
-  Reduction Reduce(Node* node) OVERRIDE {
+  Reduction Reduce(Node* node) override {
     if (node->op()->ValueOutputCount() == 0) return NoChange();
     switch (node->opcode()) {
 #define DECLARE_CASE(x) \
@@ -1444,18 +1444,21 @@ Bounds Typer::Visitor::TypeJSInstanceOf(Node* node) {
 
 
 Bounds Typer::Visitor::TypeJSLoadContext(Node* node) {
+  ContextAccess access = OpParameter<ContextAccess>(node);
   Bounds outer = Operand(node, 0);
   Type* context_type = outer.upper;
+  Type* upper = (access.index() == Context::GLOBAL_OBJECT_INDEX)
+                    ? Type::GlobalObject()
+                    : Type::Any();
   if (context_type->Is(Type::None())) {
     // Upper bound of context is not yet known.
-    return Bounds(Type::None(), Type::Any());
+    return Bounds(Type::None(), upper);
   }
 
   DCHECK(context_type->Maybe(Type::Internal()));
   // TODO(rossberg): More precisely, instead of the above assertion, we should
   // back-propagate the constraint that it has to be a subtype of Internal.
 
-  ContextAccess access = OpParameter<ContextAccess>(node);
   MaybeHandle<Context> context;
   if (context_type->IsConstant()) {
     context = Handle<Context>::cast(context_type->AsConstant()->Value());
@@ -1463,8 +1466,6 @@ Bounds Typer::Visitor::TypeJSLoadContext(Node* node) {
   // Walk context chain (as far as known), mirroring dynamic lookup.
   // Since contexts are mutable, the information is only useful as a lower
   // bound.
-  // TODO(rossberg): Could use scope info to fix upper bounds for constant
-  // bindings if we know that this code is never shared.
   for (size_t i = access.depth(); i > 0; --i) {
     if (context_type->IsContext()) {
       context_type = context_type->AsContext()->Outer();
@@ -1475,15 +1476,13 @@ Bounds Typer::Visitor::TypeJSLoadContext(Node* node) {
       context = handle(context.ToHandleChecked()->previous(), isolate());
     }
   }
-  if (context.is_null()) {
-    return Bounds::Unbounded(zone());
-  } else {
-    Handle<Object> value =
+  Type* lower = Type::None();
+  if (!context.is_null()) {
+    lower = TypeConstant(
         handle(context.ToHandleChecked()->get(static_cast<int>(access.index())),
-               isolate());
-    Type* lower = TypeConstant(value);
-    return Bounds(lower, Type::Any());
+               isolate()));
   }
+  return Bounds(lower, upper);
 }
 
 
@@ -2134,6 +2133,12 @@ Bounds Typer::Visitor::TypeFloat32Min(Node* node) {
 }
 
 
+Bounds Typer::Visitor::TypeFloat32Abs(Node* node) {
+  // TODO(turbofan): We should be able to infer a better type here.
+  return Bounds(Type::Number());
+}
+
+
 Bounds Typer::Visitor::TypeFloat32Sqrt(Node* node) {
   return Bounds(Type::Number());
 }
@@ -2185,6 +2190,12 @@ Bounds Typer::Visitor::TypeFloat64Max(Node* node) {
 
 
 Bounds Typer::Visitor::TypeFloat64Min(Node* node) {
+  return Bounds(Type::Number());
+}
+
+
+Bounds Typer::Visitor::TypeFloat64Abs(Node* node) {
+  // TODO(turbofan): We should be able to infer a better type here.
   return Bounds(Type::Number());
 }
 

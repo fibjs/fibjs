@@ -6,6 +6,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/base/adapters.h"
 #include "src/base/bits.h"
 #include "src/compiler/instruction-selector-impl.h"
 #include "src/compiler/node-matchers.h"
@@ -22,7 +23,7 @@ namespace compiler {
 
 
 // Adds Mips-specific methods for generating InstructionOperands.
-class MipsOperandGenerator FINAL : public OperandGenerator {
+class MipsOperandGenerator final : public OperandGenerator {
  public:
   explicit MipsOperandGenerator(InstructionSelector* selector)
       : OperandGenerator(selector) {}
@@ -467,6 +468,16 @@ void InstructionSelector::VisitFloat32Min(Node* node) { UNREACHABLE(); }
 void InstructionSelector::VisitFloat64Min(Node* node) { UNREACHABLE(); }
 
 
+void InstructionSelector::VisitFloat32Abs(Node* node) {
+  VisitRR(this, kMipsAbsS, node);
+}
+
+
+void InstructionSelector::VisitFloat64Abs(Node* node) {
+  VisitRR(this, kMipsAbsD, node);
+}
+
+
 void InstructionSelector::VisitFloat32Sqrt(Node* node) {
   VisitRR(this, kMipsSqrtS, node);
 }
@@ -513,9 +524,8 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
          g.TempImmediate(push_count << kPointerSizeLog2));
   }
   int slot = buffer.pushed_nodes.size() - 1;
-  for (auto i = buffer.pushed_nodes.rbegin(); i != buffer.pushed_nodes.rend();
-       ++i) {
-    Emit(kMipsStoreToStackSlot, g.NoOutput(), g.UseRegister(*i),
+  for (Node* node : base::Reversed(buffer.pushed_nodes)) {
+    Emit(kMipsStoreToStackSlot, g.NoOutput(), g.UseRegister(node),
          g.TempImmediate(slot << kPointerSizeLog2));
     slot--;
   }
@@ -968,11 +978,14 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
+  MachineOperatorBuilder::Flags flags =
+      MachineOperatorBuilder::kFloat32Abs | MachineOperatorBuilder::kFloat64Abs;
+
   if (IsMipsArchVariant(kMips32r2) || IsMipsArchVariant(kMips32r6)) {
-    return MachineOperatorBuilder::kFloat64RoundDown |
-           MachineOperatorBuilder::kFloat64RoundTruncate;
+    flags |= MachineOperatorBuilder::kFloat64RoundDown |
+             MachineOperatorBuilder::kFloat64RoundTruncate;
   }
-  return MachineOperatorBuilder::kNoFlags;
+  return flags;
 }
 
 }  // namespace compiler

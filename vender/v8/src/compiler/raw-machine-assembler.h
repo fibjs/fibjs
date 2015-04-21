@@ -47,7 +47,7 @@ class RawMachineAssembler : public GraphBuilder {
                       MachineType word = kMachPtr,
                       MachineOperatorBuilder::Flags flags =
                           MachineOperatorBuilder::Flag::kNoFlags);
-  ~RawMachineAssembler() OVERRIDE {}
+  ~RawMachineAssembler() override {}
 
   Zone* zone() const { return graph()->zone(); }
   MachineOperatorBuilder* machine() { return &machine_; }
@@ -340,6 +340,7 @@ class RawMachineAssembler : public GraphBuilder {
   Node* Float32Div(Node* a, Node* b) {
     return NewNode(machine()->Float32Div(), a, b);
   }
+  Node* Float32Abs(Node* a) { return NewNode(machine()->Float32Abs(), a); }
   Node* Float32Sqrt(Node* a) { return NewNode(machine()->Float32Sqrt(), a); }
   Node* Float32Equal(Node* a, Node* b) {
     return NewNode(machine()->Float32Equal(), a, b);
@@ -373,6 +374,7 @@ class RawMachineAssembler : public GraphBuilder {
   Node* Float64Mod(Node* a, Node* b) {
     return NewNode(machine()->Float64Mod(), a, b);
   }
+  Node* Float64Abs(Node* a) { return NewNode(machine()->Float64Abs(), a); }
   Node* Float64Sqrt(Node* a) { return NewNode(machine()->Float64Sqrt(), a); }
   Node* Float64Equal(Node* a, Node* b) {
     return NewNode(machine()->Float64Equal(), a, b);
@@ -487,7 +489,7 @@ class RawMachineAssembler : public GraphBuilder {
 
  protected:
   Node* MakeNode(const Operator* op, int input_count, Node** inputs,
-                 bool incomplete) FINAL;
+                 bool incomplete) final;
 
   bool ScheduleValid() { return schedule_ != NULL; }
 
