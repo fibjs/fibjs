@@ -10,7 +10,7 @@ namespace fibjs
 BlockedAsyncQueue s_acPool;
 
 static int32_t s_threads;
-static volatile int32_t s_idleThreads;
+static exlib::atomic s_idleThreads;
 static int32_t s_idleCount;
 
 static class _acThread: public exlib::OSThread
@@ -45,14 +45,14 @@ public:
 
         while (1)
         {
-            if (exlib::atom_inc(&s_idleThreads) > s_threads * 3)
+            if (s_idleThreads.inc() > s_threads * 3)
             {
-                exlib::atom_dec(&s_idleThreads);
+                s_idleThreads.dec();
                 break;
             }
 
             p = (asyncEvent *)s_acPool.wait();
-            exlib::atom_dec(&s_idleThreads);
+            s_idleThreads.dec();
 
             p->invoke();
         }

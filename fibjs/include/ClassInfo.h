@@ -176,12 +176,12 @@ public:
 public:
     void Ref()
     {
-        exlib::atom_inc(&refs_);
+        refs_.inc();
     }
 
     void Unref()
     {
-        exlib::atom_dec(&refs_);
+        refs_.dec();
     }
 
     int32_t dump(v8::Local<v8::Object> &o)
@@ -297,7 +297,7 @@ private:
     v8::Persistent<v8::Function> m_function;
     v8::Persistent<v8::Object> m_cache;
     ClassData &m_cd;
-    int32_t refs_;
+    exlib::atomic refs_;
     ClassInfo *m_next;
     ClassInfo *m_Inherit;
 };

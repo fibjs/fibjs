@@ -53,8 +53,8 @@ public:
 
 private:
     asyncWaiter *m_as;
-    volatile int32_t m_stat;
-    int32_t m_invoked;
+    exlib::atomic m_stat;
+    exlib::atomic m_invoked;
 };
 
 } /* namespace fibjs */

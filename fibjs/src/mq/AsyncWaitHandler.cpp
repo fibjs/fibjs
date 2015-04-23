@@ -20,11 +20,11 @@ result_t AsyncWaitHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (exlib::atom_xchg(&m_invoked, 1) != 0)
+    if (m_invoked.xchg(1) != 0)
         return 0;
 
     m_as = new asyncWaiter(ac);
-    if (exlib::CompareAndSwap(&m_stat, AC_INIT, AC_WAIT) == AC_INIT)
+    if (m_stat.CompareAndSwap(AC_INIT, AC_WAIT) == AC_INIT)
         return CHECK_ERROR(CALL_E_PENDDING);
 
     delete m_as;
@@ -35,7 +35,7 @@ result_t AsyncWaitHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
 result_t AsyncWaitHandler::end()
 {
-    if (exlib::atom_xchg(&m_stat, AC_END) == AC_WAIT)
+    if (m_stat.xchg(AC_END) == AC_WAIT)
     {
         s_acPool.put(m_as);
         m_as = NULL;

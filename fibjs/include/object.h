@@ -49,7 +49,7 @@ class object_base: public obj_base
 {
 public:
     object_base() :
-        m_fast_lock(0), m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
+        m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
     {
         object_base::class_info().Ref();
     }
@@ -91,7 +91,7 @@ public:
             return;
         }
 
-        while (exlib::CompareAndSwap(&m_fast_lock, 0, -1));
+        m_fast_lock.lock();
 
         if (internalUnref() == 0)
         {
@@ -99,10 +99,10 @@ public:
             m_ar.post(0);
         }
 
-        exlib::atom_xchg(&m_fast_lock, 0);
+        m_fast_lock.unlock();
     }
 
-    volatile int32_t m_fast_lock;
+    exlib::spinlock m_fast_lock;
 
     virtual bool isJSObject()
     {
@@ -417,7 +417,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
     if (pInst == NULL)
     {
         V8_SCOPE();
-        
+
         v8::Local<v8::Object> o = args.This();
         v8::Local<v8::Object> o1 = v8::Object::New(isolate);
 
