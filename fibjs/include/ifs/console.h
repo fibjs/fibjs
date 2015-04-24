@@ -64,7 +64,7 @@ public:
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
-	static result_t assert(v8::Local<v8::Value> value, const char* msg);
+	static result_t _assert(v8::Local<v8::Value> value, const char* msg);
 	static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t readLine(const char* msg, std::string& retVal, exlib::AsyncEvent* ac);
@@ -451,7 +451,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG(arg_string, 1, "");
 
-		hr = assert(v0, v1);
+		hr = _assert(v0, v1);
 
 		METHOD_VOID();
 	}

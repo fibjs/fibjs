@@ -182,7 +182,8 @@ function parserIDL(fname) {
 			"and": true,
 			"or": true,
 			"xor": true,
-			"new": true
+			"new": true,
+			"assert": true
 		};
 
 		return ckws.hasOwnProperty(fname) ? "_" + fname : fname;

@@ -214,7 +214,7 @@ result_t console_base::trace(const char *label)
 #undef assert
 #endif
 
-result_t console_base::assert(v8::Local<v8::Value> value, const char *msg)
+result_t console_base::_assert(v8::Local<v8::Value> value, const char *msg)
 {
     return assert_base::ok(value, msg);
 }
