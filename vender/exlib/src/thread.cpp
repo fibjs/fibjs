@@ -32,7 +32,7 @@ OSThread::~OSThread()
 
 OSSemaphore::OSSemaphore(int start_val)
 {
-    m_sem = ::CreateSemaphore(NULL, start_val, 1, NULL);
+    m_sem = ::CreateSemaphore(NULL, start_val, LONG_MAX, NULL);
 }
 
 void OSThread::detach()
