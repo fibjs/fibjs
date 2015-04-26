@@ -28,17 +28,16 @@ namespace exlib
 class atomic
 {
 public:
-	atomic() : m_v(0) {
+	atomic() : m_v(0)
+	{
 	}
 
-	atomic(int32_t new_value)
+	atomic(int32_t new_value) : m_v(new_value)
 	{
-		operator=(new_value);
 	}
 
-	atomic(const atomic &new_value)
+	atomic(const atomic &new_value) : m_v(new_value.m_v)
 	{
-		operator=(new_value);
 	}
 
 public:
@@ -99,17 +98,16 @@ template<class T>
 class atomic_ptr
 {
 public:
-	atomic_ptr() : m_v(0) {
+	atomic_ptr() : m_v(0)
+	{
 	}
 
-	atomic_ptr(T* new_value)
+	atomic_ptr(T* new_value) : m_v(new_value)
 	{
-		operator=(new_value);
 	}
 
-	atomic_ptr(const atomic_ptr &new_value)
+	atomic_ptr(const atomic_ptr &new_value) : m_v(new_value.m_v)
 	{
-		operator=(new_value);
 	}
 
 public:
