@@ -289,7 +289,6 @@
     <ClInclude Include="src\icu_util.h" />
     <ClInclude Include="src\interface-descriptors.h" />
     <ClInclude Include="src\interpreter-irregexp.h" />
-    <ClInclude Include="src\isolate-inl.h" />
     <ClInclude Include="src\isolate.h" />
     <ClInclude Include="src\json-parser.h" />
     <ClInclude Include="src\json-stringifier.h" />
@@ -342,7 +341,6 @@
     <ClInclude Include="src\prettyprinter.h" />
     <ClInclude Include="src\profile-generator-inl.h" />
     <ClInclude Include="src\profile-generator.h" />
-    <ClInclude Include="src\property-details-inl.h" />
     <ClInclude Include="src\property-details.h" />
     <ClInclude Include="src\property.h" />
     <ClInclude Include="src\prototype.h" />
@@ -394,7 +392,6 @@
     <ClInclude Include="src\unicode-inl.h" />
     <ClInclude Include="src\unicode.h" />
     <ClInclude Include="src\unique.h" />
-    <ClInclude Include="src\utils-inl.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\v8.h" />
     <ClInclude Include="src\v8memory.h" />

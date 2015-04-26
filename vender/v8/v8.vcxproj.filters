@@ -909,9 +909,6 @@
     <ClInclude Include="src\interpreter-irregexp.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\isolate-inl.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\isolate.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1068,9 +1065,6 @@
     <ClInclude Include="src\profile-generator.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\property-details-inl.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\property-details.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1222,9 +1216,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\unique.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils-inl.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utils.h">

@@ -123,6 +123,15 @@ PreParser::PreParseResult PreParser::PreParseLazyFunction(
     if (is_strict(scope_->language_mode())) {
       int end_pos = scanner()->location().end_pos;
       CheckStrictOctalLiteral(start_position, end_pos, &ok);
+      if (!ok) return kPreParseSuccess;
+
+      if (is_strong(scope_->language_mode()) && IsSubclassConstructor(kind)) {
+        if (!function_state.super_location().IsValid()) {
+          ReportMessageAt(Scanner::Location(start_position, start_position + 1),
+                          "strong_super_call_missing", kReferenceError);
+          return kPreParseSuccess;
+        }
+      }
     }
   }
   return kPreParseSuccess;
@@ -196,19 +205,31 @@ void PreParser::ParseStatementList(int end_token, bool* ok) {
     if (directive_prologue && peek() != Token::STRING) {
       directive_prologue = false;
     }
-    Token::Value token = peek();
-    Scanner::Location old_super_loc = function_state_->super_call_location();
+    Scanner::Location token_loc = scanner()->peek_location();
+    Scanner::Location old_this_loc = function_state_->this_location();
+    Scanner::Location old_super_loc = function_state_->super_location();
     Statement statement = ParseStatementListItem(ok);
     if (!*ok) return;
-    Scanner::Location super_loc = function_state_->super_call_location();
+
     if (is_strong(language_mode()) &&
-        i::IsConstructor(function_state_->kind()) &&
-        !old_super_loc.IsValid() && super_loc.IsValid() &&
-        token != Token::SUPER) {
-      ReportMessageAt(super_loc, "strong_super_call_nested");
-      *ok = false;
-      return;
+        scope_->is_function_scope() &&
+        i::IsConstructor(function_state_->kind())) {
+      Scanner::Location this_loc = function_state_->this_location();
+      Scanner::Location super_loc = function_state_->super_location();
+      if (this_loc.beg_pos != old_this_loc.beg_pos &&
+          this_loc.beg_pos != token_loc.beg_pos) {
+        ReportMessageAt(this_loc, "strong_constructor_this");
+        *ok = false;
+        return;
+      }
+      if (super_loc.beg_pos != old_super_loc.beg_pos &&
+          super_loc.beg_pos != token_loc.beg_pos) {
+        ReportMessageAt(super_loc, "strong_constructor_super");
+        *ok = false;
+        return;
+      }
     }
+
     if (directive_prologue) {
       if (statement.IsUseStrictLiteral()) {
         scope_->SetLanguageMode(
@@ -499,7 +520,10 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
         // require initializers for multiple consts.
         (is_strict_const && peek() == Token::COMMA)) {
       Expect(Token::ASSIGN, CHECK_OK);
-      ParseAssignmentExpression(var_context != kForStatement, CHECK_OK);
+      ExpressionClassifier classifier;
+      ParseAssignmentExpression(var_context != kForStatement, &classifier,
+                                CHECK_OK);
+      // TODO(dslomov): report error if not valid expression.
 
       variable_loc.end_pos = scanner()->location().end_pos;
       if (first_initializer_loc && !first_initializer_loc->IsValid()) {
@@ -532,6 +556,39 @@ PreParser::Statement PreParser::ParseExpressionOrLabelledStatement(bool* ok) {
       *ok = false;
       return Statement::Default();
 
+    case Token::THIS:
+    case Token::SUPER:
+      if (is_strong(language_mode()) &&
+          i::IsConstructor(function_state_->kind())) {
+        bool is_this = peek() == Token::THIS;
+        Expression expr = Expression::Default();
+        ExpressionClassifier classifier;
+        if (is_this) {
+          expr = ParseStrongInitializationExpression(&classifier, CHECK_OK);
+        } else {
+          expr = ParseStrongSuperCallExpression(&classifier, CHECK_OK);
+        }
+        // TODO(dslomov): report error if not a valid expression.
+        switch (peek()) {
+          case Token::SEMICOLON:
+            Consume(Token::SEMICOLON);
+            break;
+          case Token::RBRACE:
+          case Token::EOS:
+            break;
+          default:
+            if (!scanner()->HasAnyLineTerminatorBeforeNext()) {
+              ReportMessageAt(function_state_->this_location(),
+                              is_this ? "strong_constructor_this"
+                                      : "strong_constructor_super");
+              *ok = false;
+              return Statement::Default();
+            }
+        }
+        return Statement::ExpressionStatement(expr);
+      }
+      break;
+
     // TODO(arv): Handle `let [`
     // https://code.google.com/p/v8/issues/detail?id=3847
 
@@ -540,7 +597,10 @@ PreParser::Statement PreParser::ParseExpressionOrLabelledStatement(bool* ok) {
   }
 
   bool starts_with_identifier = peek_any_identifier();
-  Expression expr = ParseExpression(true, CHECK_OK);
+  ExpressionClassifier classifier;
+  Expression expr = ParseExpression(true, &classifier, CHECK_OK);
+  // TODO(dslomov): report error if not a valid expression.
+
   // Even if the expression starts with an identifier, it is not necessarily an
   // identifier. For example, "foo + bar" starts with an identifier but is not
   // an identifier.
@@ -926,62 +986,23 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
   PreParserFactory factory(NULL);
   FunctionState function_state(&function_state_, &scope_, function_scope, kind,
                                &factory);
-  //  FormalParameterList ::
-  //    '(' (Identifier)*[','] ')'
-  Expect(Token::LPAREN, CHECK_OK);
-  int start_position = position();
-  DuplicateFinder duplicate_finder(scanner()->unicode_cache());
-  // We don't yet know if the function will be strict, so we cannot yet produce
-  // errors for parameter names or duplicates. However, we remember the
-  // locations of these errors if they occur and produce the errors later.
-  Scanner::Location eval_args_loc = Scanner::Location::invalid();
-  Scanner::Location dupe_loc = Scanner::Location::invalid();
-  Scanner::Location reserved_loc = Scanner::Location::invalid();
-
-  // Similarly for strong mode.
-  Scanner::Location undefined_loc = Scanner::Location::invalid();
+  FormalParameterErrorLocations error_locs;
 
   bool is_rest = false;
-  bool done = arity_restriction == FunctionLiteral::GETTER_ARITY ||
-      (peek() == Token::RPAREN &&
-       arity_restriction != FunctionLiteral::SETTER_ARITY);
-  while (!done) {
-    bool is_strict_reserved = false;
-    is_rest = peek() == Token::ELLIPSIS && allow_harmony_rest_params();
-    if (is_rest) {
-      Consume(Token::ELLIPSIS);
-    }
-
-    Identifier param_name =
-        ParseIdentifierOrStrictReservedWord(&is_strict_reserved, CHECK_OK);
-    if (!eval_args_loc.IsValid() && param_name.IsEvalOrArguments()) {
-      eval_args_loc = scanner()->location();
-    }
-    if (!undefined_loc.IsValid() && param_name.IsUndefined()) {
-      undefined_loc = scanner()->location();
-    }
-    if (!reserved_loc.IsValid() && is_strict_reserved) {
-      reserved_loc = scanner()->location();
-    }
-
-    int prev_value = scanner()->FindSymbol(&duplicate_finder, 1);
-
-    if (!dupe_loc.IsValid() && prev_value != 0) {
-      dupe_loc = scanner()->location();
-    }
-
-    if (arity_restriction == FunctionLiteral::SETTER_ARITY) break;
-    done = (peek() == Token::RPAREN);
-    if (!done) {
-      if (is_rest) {
-        ReportMessageAt(scanner()->peek_location(), "param_after_rest");
-        *ok = false;
-        return Expression::Default();
-      }
-      Expect(Token::COMMA, CHECK_OK);
-    }
+  Expect(Token::LPAREN, CHECK_OK);
+  int start_position = scanner()->location().beg_pos;
+  function_scope->set_start_position(start_position);
+  int num_parameters;
+  {
+    DuplicateFinder duplicate_finder(scanner()->unicode_cache());
+    num_parameters = ParseFormalParameterList(&duplicate_finder, &error_locs,
+                                              &is_rest, CHECK_OK);
   }
   Expect(Token::RPAREN, CHECK_OK);
+  int formals_end_position = scanner()->location().end_pos;
+
+  CheckArityRestrictions(num_parameters, arity_restriction, start_position,
+                         formals_end_position, CHECK_OK);
 
   // See Parser::ParseFunctionLiteral for more information about lazy parsing
   // and lazy compilation.
@@ -1002,8 +1023,8 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
   CheckFunctionName(language_mode(), kind, function_name,
                     name_is_strict_reserved, function_name_location, CHECK_OK);
   const bool use_strict_params = is_rest || IsConciseMethod(kind);
-  CheckFunctionParameterNames(language_mode(), use_strict_params, eval_args_loc,
-                              undefined_loc, dupe_loc, reserved_loc, CHECK_OK);
+  CheckFunctionParameterNames(language_mode(), use_strict_params, error_locs,
+                              CHECK_OK);
 
   if (is_strict(language_mode())) {
     int end_position = scanner()->location().end_pos;
@@ -1011,7 +1032,7 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
   }
 
   if (is_strong(language_mode()) && IsSubclassConstructor(kind)) {
-    if (!function_state.super_call_location().IsValid()) {
+    if (!function_state.super_location().IsValid()) {
       ReportMessageAt(function_name_location, "strong_super_call_missing",
                       kReferenceError);
       *ok = false;
@@ -1068,7 +1089,9 @@ PreParserExpression PreParser::ParseClassLiteral(
 
   bool has_extends = Check(Token::EXTENDS);
   if (has_extends) {
-    ParseLeftHandSideExpression(CHECK_OK);
+    ExpressionClassifier classifier;
+    ParseLeftHandSideExpression(&classifier, CHECK_OK);
+    // TODO(dslomov): report error if not a valid expression.
   }
 
   ClassLiteralChecker checker(this);
@@ -1081,8 +1104,11 @@ PreParserExpression PreParser::ParseClassLiteral(
     const bool is_static = false;
     bool is_computed_name = false;  // Classes do not care about computed
                                     // property names here.
+    ExpressionClassifier classifier;
     ParsePropertyDefinition(&checker, in_class, has_extends, is_static,
-                            &is_computed_name, &has_seen_constructor, CHECK_OK);
+                            &is_computed_name, &has_seen_constructor,
+                            &classifier, CHECK_OK);
+    // TODO(dslomov): report error if not a valid expression.
   }
 
   Expect(Token::RBRACE, CHECK_OK);
@@ -1102,7 +1128,9 @@ PreParser::Expression PreParser::ParseV8Intrinsic(bool* ok) {
   // Allow "eval" or "arguments" for backward compatibility.
   ParseIdentifier(kAllowRestrictedIdentifiers, CHECK_OK);
   Scanner::Location spread_pos;
-  ParseArguments(&spread_pos, ok);
+  ExpressionClassifier classifier;
+  ParseArguments(&spread_pos, &classifier, ok);
+  // TODO(dslomov): report error if not a valid expression.
 
   DCHECK(!spread_pos.IsValid());
 

@@ -372,16 +372,16 @@ class Expression : public AstNode {
   void set_bounds(Bounds bounds) { bounds_ = bounds; }
 
   // Whether the expression is parenthesized
-  bool is_parenthesized() const {
-    return IsParenthesizedField::decode(bit_field_);
+  bool is_single_parenthesized() const {
+    return IsSingleParenthesizedField::decode(bit_field_);
   }
   bool is_multi_parenthesized() const {
     return IsMultiParenthesizedField::decode(bit_field_);
   }
   void increase_parenthesization_level() {
-    bit_field_ =
-        IsMultiParenthesizedField::update(bit_field_, is_parenthesized());
-    bit_field_ = IsParenthesizedField::update(bit_field_, true);
+    bit_field_ = IsMultiParenthesizedField::update(bit_field_,
+                                                   is_single_parenthesized());
+    bit_field_ = IsSingleParenthesizedField::update(bit_field_, true);
   }
 
   // Type feedback information for assignments and properties.
@@ -435,7 +435,7 @@ class Expression : public AstNode {
   int base_id_;
   Bounds bounds_;
   class ToBooleanTypesField : public BitField16<byte, 0, 8> {};
-  class IsParenthesizedField : public BitField16<bool, 8, 1> {};
+  class IsSingleParenthesizedField : public BitField16<bool, 8, 1> {};
   class IsMultiParenthesizedField : public BitField16<bool, 9, 1> {};
   uint16_t bit_field_;
   // Ends with 16-bit field; deriving classes in turn begin with
@@ -570,13 +570,22 @@ class VariableDeclaration final : public Declaration {
 
   bool is_class_declaration() const { return is_class_declaration_; }
 
+  // VariableDeclarations can be grouped into consecutive declaration
+  // groups. Each VariableDeclaration is associated with the start position of
+  // the group it belongs to. The positions are used for strong mode scope
+  // checks for classes and functions.
+  int declaration_group_start() const { return declaration_group_start_; }
+
  protected:
   VariableDeclaration(Zone* zone, VariableProxy* proxy, VariableMode mode,
-                      Scope* scope, int pos, bool is_class_declaration = false)
+                      Scope* scope, int pos, bool is_class_declaration = false,
+                      int declaration_group_start = -1)
       : Declaration(zone, proxy, mode, scope, pos),
-        is_class_declaration_(is_class_declaration) {}
+        is_class_declaration_(is_class_declaration),
+        declaration_group_start_(declaration_group_start) {}
 
   bool is_class_declaration_;
+  int declaration_group_start_;
 };
 
 
@@ -1507,6 +1516,9 @@ class ObjectLiteral final : public MaterializedLiteral {
   int ComputeFlags(bool disable_mementos = false) const {
     int flags = fast_elements() ? kFastElements : kNoFlags;
     flags |= has_function() ? kHasFunction : kNoFlags;
+    if (depth() == 1 && !has_elements() && !may_store_doubles()) {
+      flags |= kShallowProperties;
+    }
     if (disable_mementos) {
       flags |= kDisableMementos;
     }
@@ -1517,7 +1529,8 @@ class ObjectLiteral final : public MaterializedLiteral {
     kNoFlags = 0,
     kFastElements = 1,
     kHasFunction = 1 << 1,
-    kDisableMementos = 1 << 2
+    kShallowProperties = 1 << 2,
+    kDisableMementos = 1 << 3
   };
 
   struct Accessors: public ZoneObject {
@@ -2491,10 +2504,7 @@ class FunctionLiteral final : public Expression {
     kIsFunction
   };
 
-  enum IsParenthesizedFlag {
-    kIsParenthesized,
-    kNotParenthesized
-  };
+  enum EagerCompileHint { kShouldEagerCompile, kShouldLazyCompile };
 
   enum ArityRestriction {
     NORMAL_ARITY,
@@ -2584,11 +2594,11 @@ class FunctionLiteral final : public Expression {
   // function will be called immediately:
   // - (function() { ... })();
   // - var x = function() { ... }();
-  bool is_parenthesized() {
-    return IsParenthesized::decode(bitfield_) == kIsParenthesized;
+  bool should_eager_compile() const {
+    return EagerCompileHintBit::decode(bitfield_) == kShouldEagerCompile;
   }
-  void set_parenthesized() {
-    bitfield_ = IsParenthesized::update(bitfield_, kIsParenthesized);
+  void set_should_eager_compile() {
+    bitfield_ = EagerCompileHintBit::update(bitfield_, kShouldEagerCompile);
   }
 
   FunctionKind kind() { return FunctionKindBits::decode(bitfield_); }
@@ -2615,7 +2625,7 @@ class FunctionLiteral final : public Expression {
                   int parameter_count, FunctionType function_type,
                   ParameterFlag has_duplicate_parameters,
                   IsFunctionFlag is_function,
-                  IsParenthesizedFlag is_parenthesized, FunctionKind kind,
+                  EagerCompileHint eager_compile_hint, FunctionKind kind,
                   int position)
       : Expression(zone, position),
         raw_name_(name),
@@ -2634,7 +2644,7 @@ class FunctionLiteral final : public Expression {
                 Pretenure::encode(false) |
                 HasDuplicateParameters::encode(has_duplicate_parameters) |
                 IsFunction::encode(is_function) |
-                IsParenthesized::encode(is_parenthesized) |
+                EagerCompileHintBit::encode(eager_compile_hint) |
                 FunctionKindBits::encode(kind);
     DCHECK(IsValidFunctionKind(kind));
   }
@@ -2662,7 +2672,7 @@ class FunctionLiteral final : public Expression {
   class Pretenure : public BitField<bool, 2, 1> {};
   class HasDuplicateParameters : public BitField<ParameterFlag, 3, 1> {};
   class IsFunction : public BitField<IsFunctionFlag, 4, 1> {};
-  class IsParenthesized : public BitField<IsParenthesizedFlag, 5, 1> {};
+  class EagerCompileHintBit : public BitField<EagerCompileHint, 5, 1> {};
   class FunctionKindBits : public BitField<FunctionKind, 6, 8> {};
 };
 
@@ -2686,13 +2696,14 @@ class ClassLiteral final : public Expression {
   BailoutId EntryId() const { return BailoutId(local_id(0)); }
   BailoutId DeclsId() const { return BailoutId(local_id(1)); }
   BailoutId ExitId() { return BailoutId(local_id(2)); }
+  BailoutId CreateLiteralId() const { return BailoutId(local_id(3)); }
 
   // Return an AST id for a property that is used in simulate instructions.
-  BailoutId GetIdForProperty(int i) { return BailoutId(local_id(i + 3)); }
+  BailoutId GetIdForProperty(int i) { return BailoutId(local_id(i + 4)); }
 
   // Unlike other AST nodes, this number of bailout IDs allocated for an
   // ClassLiteral can vary, so num_ids() is not a static method.
-  int num_ids() const { return parent_num_ids() + 3 + properties()->length(); }
+  int num_ids() const { return parent_num_ids() + 4 + properties()->length(); }
 
  protected:
   ClassLiteral(Zone* zone, const AstRawString* name, Scope* scope,
@@ -3216,9 +3227,10 @@ class AstNodeFactory final BASE_EMBEDDED {
 
   VariableDeclaration* NewVariableDeclaration(
       VariableProxy* proxy, VariableMode mode, Scope* scope, int pos,
-      bool is_class_declaration = false) {
-    return new (zone_) VariableDeclaration(zone_, proxy, mode, scope, pos,
-                                           is_class_declaration);
+      bool is_class_declaration = false, int declaration_group_start = -1) {
+    return new (zone_)
+        VariableDeclaration(zone_, proxy, mode, scope, pos,
+                            is_class_declaration, declaration_group_start);
   }
 
   FunctionDeclaration* NewFunctionDeclaration(VariableProxy* proxy,
@@ -3545,12 +3557,12 @@ class AstNodeFactory final BASE_EMBEDDED {
       FunctionLiteral::ParameterFlag has_duplicate_parameters,
       FunctionLiteral::FunctionType function_type,
       FunctionLiteral::IsFunctionFlag is_function,
-      FunctionLiteral::IsParenthesizedFlag is_parenthesized, FunctionKind kind,
+      FunctionLiteral::EagerCompileHint eager_compile_hint, FunctionKind kind,
       int position) {
     return new (zone_) FunctionLiteral(
         zone_, name, ast_value_factory, scope, body, materialized_literal_count,
         expected_property_count, handler_count, parameter_count, function_type,
-        has_duplicate_parameters, is_function, is_parenthesized, kind,
+        has_duplicate_parameters, is_function, eager_compile_hint, kind,
         position);
   }
 

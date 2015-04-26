@@ -14,6 +14,7 @@
 #include "src/compiler/common-operator.h"
 #include "src/compiler/node-aux-data.h"
 #include "src/compiler/node-matchers.h"
+#include "src/compiler/operator-properties.h"
 #include "src/compiler/simplified-operator.h"
 
 namespace v8 {
@@ -21,6 +22,8 @@ namespace internal {
 namespace compiler {
 
 enum LoadOrStore { LOAD, STORE };
+
+#define EAGER_DEOPT_LOCATIONS_FOR_PROPERTY_ACCESS_ARE_CORRECT false
 
 JSTypeFeedbackTable::JSTypeFeedbackTable(Zone* zone)
     : map_(TypeFeedbackIdMap::key_compare(),
@@ -41,7 +44,8 @@ Reduction JSTypeFeedbackSpecializer::Reduce(Node* node) {
         Unique<Name> name = match.Value();
         const VectorSlotPair& feedback =
             LoadPropertyParametersOf(node->op()).feedback();
-        node->set_op(jsgraph()->javascript()->LoadNamed(name, feedback));
+        node->set_op(jsgraph()->javascript()->LoadNamed(name, feedback,
+                                                        NOT_CONTEXTUAL, KEYED));
         node->RemoveInput(1);
         return ReduceJSLoadNamed(node);
       }
@@ -57,7 +61,11 @@ Reduction JSTypeFeedbackSpecializer::Reduce(Node* node) {
         // StoreProperty(o, "constant", v) => StoreNamed["constant"](o, v).
         Unique<Name> name = match.Value();
         LanguageMode language_mode = OpParameter<LanguageMode>(node);
-        node->set_op(jsgraph()->javascript()->StoreNamed(language_mode, name));
+        // StoreProperty has 2 frame state inputs, but StoreNamed only 1.
+        DCHECK_EQ(2, OperatorProperties::GetFrameStateInputCount(node->op()));
+        node->RemoveInput(NodeProperties::FirstFrameStateIndex(node) + 1);
+        node->set_op(
+            jsgraph()->javascript()->StoreNamed(language_mode, name, KEYED));
         node->RemoveInput(1);
         return ReduceJSStoreNamed(node);
       }
@@ -138,8 +146,8 @@ static bool GetInObjectFieldAccess(LoadOrStore mode, Handle<Map> map,
 
 Reduction JSTypeFeedbackSpecializer::ReduceJSLoadNamed(Node* node) {
   DCHECK(node->opcode() == IrOpcode::kJSLoadNamed);
-  // TODO(turbofan): type feedback currently requires deoptimization.
-  if (!FLAG_turbo_deoptimization) return NoChange();
+  // TODO(titzer): deopt locations are wrong for property accesses
+  if (!EAGER_DEOPT_LOCATIONS_FOR_PROPERTY_ACCESS_ARE_CORRECT) return NoChange();
 
   // TODO(turbofan): handle vector-based type feedback.
   TypeFeedbackId id = js_type_feedback_->find(node);
@@ -190,8 +198,8 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSLoadProperty(Node* node) {
 
 Reduction JSTypeFeedbackSpecializer::ReduceJSStoreNamed(Node* node) {
   DCHECK(node->opcode() == IrOpcode::kJSStoreNamed);
-  // TODO(turbofan): type feedback currently requires deoptimization.
-  if (!FLAG_turbo_deoptimization) return NoChange();
+  // TODO(titzer): deopt locations are wrong for property accesses
+  if (!EAGER_DEOPT_LOCATIONS_FOR_PROPERTY_ACCESS_ARE_CORRECT) return NoChange();
 
   TypeFeedbackId id = js_type_feedback_->find(node);
   if (id.IsNone() || oracle()->StoreIsUninitialized(id)) return NoChange();

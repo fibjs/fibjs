@@ -115,23 +115,34 @@ class VectorSlotPair {
 bool operator==(VectorSlotPair const& lhs, VectorSlotPair const& rhs);
 
 
+// For (Load|Store)Named operators, the mode of the IC that needs
+// to be called. This is needed because (Load|Store)Property nodes can be
+// reduced to named versions, but still need to call the correct original
+// IC mode because of the layout of feedback vectors.
+enum PropertyICMode { NAMED, KEYED };
+
 // Defines the property being loaded from an object by a named load. This is
 // used as a parameter by JSLoadNamed operators.
 class LoadNamedParameters final {
  public:
   LoadNamedParameters(const Unique<Name>& name, const VectorSlotPair& feedback,
-                      ContextualMode contextual_mode)
-      : name_(name), contextual_mode_(contextual_mode), feedback_(feedback) {}
+                      ContextualMode contextual_mode, PropertyICMode load_ic)
+      : name_(name),
+        feedback_(feedback),
+        contextual_mode_(contextual_mode),
+        load_ic_(load_ic) {}
 
   const Unique<Name>& name() const { return name_; }
   ContextualMode contextual_mode() const { return contextual_mode_; }
+  PropertyICMode load_ic() const { return load_ic_; }
 
   const VectorSlotPair& feedback() const { return feedback_; }
 
  private:
   const Unique<Name> name_;
-  const ContextualMode contextual_mode_;
   const VectorSlotPair feedback_;
+  const ContextualMode contextual_mode_;
+  const PropertyICMode load_ic_;
 };
 
 bool operator==(LoadNamedParameters const&, LoadNamedParameters const&);
@@ -171,15 +182,18 @@ const LoadPropertyParameters& LoadPropertyParametersOf(const Operator* op);
 // used as a parameter by JSStoreNamed operators.
 class StoreNamedParameters final {
  public:
-  StoreNamedParameters(LanguageMode language_mode, const Unique<Name>& name)
-      : language_mode_(language_mode), name_(name) {}
+  StoreNamedParameters(LanguageMode language_mode, const Unique<Name>& name,
+                       PropertyICMode store_ic)
+      : language_mode_(language_mode), name_(name), store_ic_(store_ic) {}
 
   LanguageMode language_mode() const { return language_mode_; }
   const Unique<Name>& name() const { return name_; }
+  PropertyICMode store_ic() const { return store_ic_; }
 
  private:
   const LanguageMode language_mode_;
   const Unique<Name> name_;
+  const PropertyICMode store_ic_;
 };
 
 bool operator==(StoreNamedParameters const&, StoreNamedParameters const&);
@@ -203,21 +217,21 @@ class JSOperatorBuilder final : public ZoneObject {
   const Operator* NotEqual();
   const Operator* StrictEqual();
   const Operator* StrictNotEqual();
-  const Operator* LessThan();
-  const Operator* GreaterThan();
-  const Operator* LessThanOrEqual();
-  const Operator* GreaterThanOrEqual();
-  const Operator* BitwiseOr();
-  const Operator* BitwiseXor();
-  const Operator* BitwiseAnd();
-  const Operator* ShiftLeft();
-  const Operator* ShiftRight();
-  const Operator* ShiftRightLogical();
-  const Operator* Add();
-  const Operator* Subtract();
-  const Operator* Multiply();
-  const Operator* Divide();
-  const Operator* Modulus();
+  const Operator* LessThan(LanguageMode language_mode);
+  const Operator* GreaterThan(LanguageMode language_mode);
+  const Operator* LessThanOrEqual(LanguageMode language_mode);
+  const Operator* GreaterThanOrEqual(LanguageMode language_mode);
+  const Operator* BitwiseOr(LanguageMode language_mode);
+  const Operator* BitwiseXor(LanguageMode language_mode);
+  const Operator* BitwiseAnd(LanguageMode language_mode);
+  const Operator* ShiftLeft(LanguageMode language_mode);
+  const Operator* ShiftRight(LanguageMode language_mode);
+  const Operator* ShiftRightLogical(LanguageMode language_mode);
+  const Operator* Add(LanguageMode language_mode);
+  const Operator* Subtract(LanguageMode language_mode);
+  const Operator* Multiply(LanguageMode language_mode);
+  const Operator* Divide(LanguageMode language_mode);
+  const Operator* Modulus(LanguageMode language_mode);
 
   const Operator* UnaryNot();
   const Operator* ToBoolean();
@@ -237,11 +251,13 @@ class JSOperatorBuilder final : public ZoneObject {
   const Operator* LoadProperty(const VectorSlotPair& feedback);
   const Operator* LoadNamed(const Unique<Name>& name,
                             const VectorSlotPair& feedback,
-                            ContextualMode contextual_mode = NOT_CONTEXTUAL);
+                            ContextualMode contextual_mode = NOT_CONTEXTUAL,
+                            PropertyICMode load_ic = NAMED);
 
   const Operator* StoreProperty(LanguageMode language_mode);
   const Operator* StoreNamed(LanguageMode language_mode,
-                             const Unique<Name>& name);
+                             const Unique<Name>& name,
+                             PropertyICMode store_ic = NAMED);
 
   const Operator* DeleteProperty(LanguageMode language_mode);
 

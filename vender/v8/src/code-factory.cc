@@ -112,8 +112,9 @@ Callable CodeFactory::CompareIC(Isolate* isolate, Token::Value op) {
 
 
 // static
-Callable CodeFactory::BinaryOpIC(Isolate* isolate, Token::Value op) {
-  BinaryOpICStub stub(isolate, op);
+Callable CodeFactory::BinaryOpIC(Isolate* isolate, Token::Value op,
+                                 LanguageMode language_mode) {
+  BinaryOpICStub stub(isolate, op, language_mode);
   return Callable(stub.GetCode(), stub.GetCallInterfaceDescriptor());
 }
 
@@ -138,6 +139,21 @@ Callable CodeFactory::ToNumber(Isolate* isolate) {
 Callable CodeFactory::StringAdd(Isolate* isolate, StringAddFlags flags,
                                 PretenureFlag pretenure_flag) {
   StringAddStub stub(isolate, flags, pretenure_flag);
+  return Callable(stub.GetCode(), stub.GetCallInterfaceDescriptor());
+}
+
+
+// static
+Callable CodeFactory::FastCloneShallowArray(Isolate* isolate) {
+  // TODO(mstarzinger): Thread through AllocationSiteMode at some point.
+  FastCloneShallowArrayStub stub(isolate, DONT_TRACK_ALLOCATION_SITE);
+  return Callable(stub.GetCode(), stub.GetCallInterfaceDescriptor());
+}
+
+
+// static
+Callable CodeFactory::FastCloneShallowObject(Isolate* isolate, int length) {
+  FastCloneShallowObjectStub stub(isolate, length);
   return Callable(stub.GetCode(), stub.GetCallInterfaceDescriptor());
 }
 

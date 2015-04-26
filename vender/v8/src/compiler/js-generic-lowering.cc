@@ -56,7 +56,8 @@ Reduction JSGenericLowering::Reduce(Node* node) {
 
 #define REPLACE_BINARY_OP_IC_CALL(op, token)                             \
   void JSGenericLowering::Lower##op(Node* node) {                        \
-    ReplaceWithStubCall(node, CodeFactory::BinaryOpIC(isolate(), token), \
+    ReplaceWithStubCall(node, CodeFactory::BinaryOpIC(isolate(), token,  \
+                        OpParameter<LanguageMode>(node)),                \
                         CallDescriptor::kPatchableCallSiteWithNop);      \
   }
 REPLACE_BINARY_OP_IC_CALL(JSBitwiseOr, Token::BIT_OR)
@@ -138,11 +139,7 @@ void JSGenericLowering::ReplaceWithCompareIC(Node* node, Token::Value token) {
     inputs.push_back(graph()->start());
     inputs.push_back(graph()->start());
   } else {
-    DCHECK((OperatorProperties::GetFrameStateInputCount(node->op()) == 1) ==
-           FLAG_turbo_deoptimization);
-    if (FLAG_turbo_deoptimization) {
-      inputs.push_back(NodeProperties::GetFrameStateInput(node, 0));
-    }
+    inputs.push_back(NodeProperties::GetFrameStateInput(node, 0));
     inputs.push_back(NodeProperties::GetEffectInput(node));
     inputs.push_back(NodeProperties::GetControlInput(node));
   }
@@ -320,8 +317,11 @@ void JSGenericLowering::LowerJSLoadProperty(Node* node) {
 
 void JSGenericLowering::LowerJSLoadNamed(Node* node) {
   const LoadNamedParameters& p = LoadNamedParametersOf(node->op());
-  Callable callable = CodeFactory::LoadICInOptimizedCode(
-      isolate(), p.contextual_mode(), UNINITIALIZED);
+  Callable callable =
+      p.load_ic() == NAMED
+          ? CodeFactory::LoadICInOptimizedCode(isolate(), p.contextual_mode(),
+                                               UNINITIALIZED)
+          : CodeFactory::KeyedLoadICInOptimizedCode(isolate(), UNINITIALIZED);
   node->InsertInput(zone(), 1, jsgraph()->HeapConstant(p.name()));
   if (FLAG_vector_ics) {
     node->InsertInput(zone(), 2, jsgraph()->SmiConstant(p.feedback().index()));
@@ -342,7 +342,10 @@ void JSGenericLowering::LowerJSStoreProperty(Node* node) {
 
 void JSGenericLowering::LowerJSStoreNamed(Node* node) {
   const StoreNamedParameters& p = StoreNamedParametersOf(node->op());
-  Callable callable = CodeFactory::StoreIC(isolate(), p.language_mode());
+  Callable callable = p.store_ic() == NAMED
+                          ? CodeFactory::StoreIC(isolate(), p.language_mode())
+                          : CodeFactory::KeyedStoreICInOptimizedCode(
+                                isolate(), p.language_mode(), UNINITIALIZED);
   node->InsertInput(zone(), 1, jsgraph()->HeapConstant(p.name()));
   ReplaceWithStubCall(node, callable, CallDescriptor::kPatchableCallSite);
 }

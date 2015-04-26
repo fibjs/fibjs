@@ -96,10 +96,6 @@ FrameOffset Linkage::GetFrameOffset(int spill_slot, Frame* frame,
 
 // static
 bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
-  if (!FLAG_turbo_deoptimization) {
-    return false;
-  }
-
   // Most runtime functions need a FrameState. A few chosen ones that we know
   // not to call into arbitrary JavaScript, not to throw, and not to deoptimize
   // are blacklisted here and can be called without a FrameState.
@@ -127,6 +123,8 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
       return false;
     case Runtime::kInlineArguments:
     case Runtime::kInlineCallFunction:
+    case Runtime::kInlineCreateArrayLiteral:
+    case Runtime::kInlineCreateObjectLiteral:
     case Runtime::kInlineDateField:
     case Runtime::kInlineDeoptimizeNow:
     case Runtime::kInlineGetPrototype:

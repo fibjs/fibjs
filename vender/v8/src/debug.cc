@@ -16,7 +16,6 @@
 #include "src/execution.h"
 #include "src/full-codegen.h"
 #include "src/global-handles.h"
-#include "src/isolate-inl.h"
 #include "src/list.h"
 #include "src/log.h"
 #include "src/messages.h"
@@ -2519,7 +2518,7 @@ MaybeHandle<Object> Debug::PromiseHasUserDefinedRejectHandler(
   Handle<JSFunction> fun = Handle<JSFunction>::cast(
       JSObject::GetDataProperty(isolate_->js_builtins_object(),
                                 isolate_->factory()->NewStringFromStaticChars(
-                                    "PromiseHasUserDefinedRejectHandler")));
+                                    "$promiseHasUserDefinedRejectHandler")));
   return Execution::Call(isolate_, fun, promise, 0, NULL);
 }
 

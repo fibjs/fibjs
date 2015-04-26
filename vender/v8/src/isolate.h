@@ -1016,6 +1016,24 @@ class Isolate {
 
   bool IsFastArrayConstructorPrototypeChainIntact();
 
+  // On intent to set an element in object, make sure that appropriate
+  // notifications occur if the set is on the elements of the array or
+  // object prototype. Also ensure that changes to prototype chain between
+  // Array and Object fire notifications.
+  void UpdateArrayProtectorOnSetElement(Handle<JSObject> object);
+  void UpdateArrayProtectorOnSetLength(Handle<JSObject> object) {
+    UpdateArrayProtectorOnSetElement(object);
+  }
+  void UpdateArrayProtectorOnSetPrototype(Handle<JSObject> object) {
+    UpdateArrayProtectorOnSetElement(object);
+  }
+  void UpdateArrayProtectorOnNormalizeElements(Handle<JSObject> object) {
+    UpdateArrayProtectorOnSetElement(object);
+  }
+
+  // Returns true if array is the initial array prototype in any native context.
+  bool IsAnyInitialArrayPrototype(Handle<JSArray> array);
+
   CallInterfaceDescriptorData* call_descriptor_data(int index);
 
   void IterateDeferredHandles(ObjectVisitor* visitor);
@@ -1060,7 +1078,7 @@ class Isolate {
 
   void* stress_deopt_count_address() { return &stress_deopt_count_; }
 
-  inline base::RandomNumberGenerator* random_number_generator();
+  base::RandomNumberGenerator* random_number_generator();
 
   // Given an address occupied by a live code object, return that object.
   Object* FindCodeObject(Address a);
@@ -1392,7 +1410,7 @@ class PromiseOnStack {
 // versions of GCC. See V8 issue 122 for details.
 class SaveContext BASE_EMBEDDED {
  public:
-  inline explicit SaveContext(Isolate* isolate);
+  explicit SaveContext(Isolate* isolate);
 
   ~SaveContext() {
     isolate_->set_context(context_.is_null() ? NULL : *context_);

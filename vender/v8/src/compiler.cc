@@ -17,7 +17,6 @@
 #include "src/full-codegen.h"
 #include "src/gdb-jit.h"
 #include "src/hydrogen.h"
-#include "src/isolate-inl.h"
 #include "src/lithium.h"
 #include "src/liveedit.h"
 #include "src/messages.h"
@@ -116,6 +115,7 @@ CompilationInfo::CompilationInfo(ParseInfo* parse_info)
   if (isolate_->debug()->is_active()) MarkAsDebug();
   if (FLAG_context_specialization) MarkAsContextSpecializing();
   if (FLAG_turbo_builtin_inlining) MarkAsBuiltinInliningEnabled();
+  if (FLAG_turbo_deoptimization) MarkAsDeoptimizationEnabled();
   if (FLAG_turbo_inlining) MarkAsInliningEnabled();
   if (FLAG_turbo_splitting) MarkAsSplittingEnabled();
   if (FLAG_turbo_types) MarkAsTypingEnabled();
@@ -393,6 +393,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
       info()->MarkAsContextSpecializing();
     } else if (FLAG_turbo_type_feedback) {
       info()->MarkAsTypeFeedbackEnabled();
+      info()->EnsureFeedbackVector();
     }
 
     Timer t(this, &time_taken_to_create_graph_);
@@ -1347,7 +1348,7 @@ Handle<SharedFunctionInfo> Compiler::BuildFunctionInfo(
 
   // Generate code
   Handle<ScopeInfo> scope_info;
-  if (FLAG_lazy && allow_lazy && !literal->is_parenthesized()) {
+  if (FLAG_lazy && allow_lazy && !literal->should_eager_compile()) {
     Handle<Code> code = isolate->builtins()->CompileLazy();
     info.SetCode(code);
     // There's no need in theory for a lazy-compiled function to have a type

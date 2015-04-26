@@ -557,6 +557,8 @@ class ParserTraits {
     typedef ObjectLiteral::Property* ObjectLiteralProperty;
     typedef ZoneList<v8::internal::Expression*>* ExpressionList;
     typedef ZoneList<ObjectLiteral::Property*>* PropertyList;
+    typedef const v8::internal::AstRawString* FormalParameter;
+    typedef Scope FormalParameterScope;
     typedef ZoneList<v8::internal::Statement*>* StatementList;
 
     // For constructing objects returned by the traversing functions.
@@ -694,7 +696,6 @@ class ParserTraits {
   static Expression* EmptyExpression() {
     return NULL;
   }
-  static Expression* EmptyArrowParamList() { return NULL; }
   static Literal* EmptyLiteral() {
     return NULL;
   }
@@ -705,6 +706,7 @@ class ParserTraits {
   static ZoneList<Expression*>* NullExpressionList() {
     return NULL;
   }
+  static const AstRawString* EmptyFormalParameter() { return NULL; }
 
   // Non-NULL empty string.
   V8_INLINE const AstRawString* EmptyIdentifierString();
@@ -743,11 +745,26 @@ class ParserTraits {
   V8_INLINE Scope* NewScope(Scope* parent_scope, ScopeType scope_type,
                             FunctionKind kind = kNormalFunction);
 
-  // Utility functions
-  int DeclareArrowParametersFromExpression(Expression* expression, Scope* scope,
-                                           Scanner::Location* undefined_loc,
-                                           Scanner::Location* dupe_loc,
-                                           bool* ok);
+  bool DeclareFormalParameter(Scope* scope, const AstRawString* name,
+                              bool is_rest) {
+    bool is_duplicate = false;
+    Variable* var = scope->DeclareParameter(name, VAR, is_rest, &is_duplicate);
+    if (is_sloppy(scope->language_mode())) {
+      // TODO(sigurds) Mark every parameter as maybe assigned. This is a
+      // conservative approximation necessary to account for parameters
+      // that are assigned via the arguments array.
+      var->set_maybe_assigned();
+    }
+    return is_duplicate;
+  }
+
+  void DeclareArrowFunctionParameters(Scope* scope, Expression* expr,
+                                      const Scanner::Location& params_loc,
+                                      FormalParameterErrorLocations* error_locs,
+                                      bool* ok);
+  void ParseArrowFunctionFormalParameters(
+      Scope* scope, Expression* params, const Scanner::Location& params_loc,
+      FormalParameterErrorLocations* error_locs, bool* is_rest, bool* ok);
 
   // Temporary glue; these functions will move to ParserBase.
   Expression* ParseV8Intrinsic(bool* ok);
@@ -756,8 +773,7 @@ class ParserTraits {
       bool name_is_strict_reserved, FunctionKind kind,
       int function_token_position, FunctionLiteral::FunctionType type,
       FunctionLiteral::ArityRestriction arity_restriction, bool* ok);
-  V8_INLINE void SkipLazyFunctionBody(const AstRawString* name,
-                                      int* materialized_literal_count,
+  V8_INLINE void SkipLazyFunctionBody(int* materialized_literal_count,
                                       int* expected_property_count, bool* ok);
   V8_INLINE ZoneList<Statement*>* ParseEagerFunctionBody(
       const AstRawString* name, int pos, Variable* fvar,
@@ -1008,8 +1024,7 @@ class Parser : public ParserBase<ParserTraits> {
 
   // Skip over a lazy function, either using cached data if we have it, or
   // by parsing the function with PreParser. Consumes the ending }.
-  void SkipLazyFunctionBody(const AstRawString* function_name,
-                            int* materialized_literal_count,
+  void SkipLazyFunctionBody(int* materialized_literal_count,
                             int* expected_property_count,
                             bool* ok);
 
@@ -1045,8 +1060,6 @@ class Parser : public ParserBase<ParserTraits> {
   ScriptCompiler::CompileOptions compile_options_;
   ParseData* cached_parse_data_;
 
-  bool parsing_lazy_arrow_parameters_;  // for lazily parsed arrow functions.
-
   PendingCompilationErrorHandler pending_error_handler_;
 
   // Other information which will be stored in Parser and moved to Isolate after
@@ -1076,12 +1089,11 @@ const AstRawString* ParserTraits::EmptyIdentifierString() {
 }
 
 
-void ParserTraits::SkipLazyFunctionBody(const AstRawString* function_name,
-                                        int* materialized_literal_count,
+void ParserTraits::SkipLazyFunctionBody(int* materialized_literal_count,
                                         int* expected_property_count,
                                         bool* ok) {
   return parser_->SkipLazyFunctionBody(
-      function_name, materialized_literal_count, expected_property_count, ok);
+      materialized_literal_count, expected_property_count, ok);
 }
 
 

@@ -42,6 +42,7 @@ MarkCompactCollector::MarkCompactCollector(Heap* heap)
 #endif
       reduce_memory_footprint_(false),
       abort_incremental_marking_(false),
+      finalize_incremental_marking_(false),
       marking_parity_(ODD_MARKING_PARITY),
       compacting_(false),
       was_marked_incrementally_(false),
@@ -4607,24 +4608,9 @@ void MarkCompactCollector::RecordRelocSlot(RelocInfo* rinfo, Object* target) {
   if (target_page->IsEvacuationCandidate() &&
       (rinfo->host() == NULL ||
        !ShouldSkipEvacuationSlotRecording(rinfo->host()))) {
-    bool success;
-    if (RelocInfo::IsEmbeddedObject(rmode) && rinfo->IsInConstantPool()) {
-      // This doesn't need to be typed since it is just a normal heap pointer.
-      Object** target_pointer =
-          reinterpret_cast<Object**>(rinfo->constant_pool_entry_address());
-      success = SlotsBuffer::AddTo(
-          &slots_buffer_allocator_, target_page->slots_buffer_address(),
-          target_pointer, SlotsBuffer::FAIL_ON_OVERFLOW);
-    } else if (RelocInfo::IsCodeTarget(rmode) && rinfo->IsInConstantPool()) {
-      success = SlotsBuffer::AddTo(
-          &slots_buffer_allocator_, target_page->slots_buffer_address(),
-          SlotsBuffer::CODE_ENTRY_SLOT, rinfo->constant_pool_entry_address(),
-          SlotsBuffer::FAIL_ON_OVERFLOW);
-    } else {
-      success = SlotsBuffer::AddTo(
-          &slots_buffer_allocator_, target_page->slots_buffer_address(),
-          SlotTypeForRMode(rmode), rinfo->pc(), SlotsBuffer::FAIL_ON_OVERFLOW);
-    }
+    bool success = SlotsBuffer::AddTo(
+        &slots_buffer_allocator_, target_page->slots_buffer_address(),
+        SlotTypeForRMode(rmode), rinfo->pc(), SlotsBuffer::FAIL_ON_OVERFLOW);
     if (!success) {
       EvictPopularEvacuationCandidate(target_page);
     }

@@ -410,8 +410,8 @@ AstGraphBuilder::AstGraphBuilder(Zone* local_zone, CompilationInfo* info,
 
 Node* AstGraphBuilder::GetFunctionClosure() {
   if (!function_closure_.is_set()) {
-    const Operator* op =
-        common()->Parameter(Linkage::kJSFunctionCallClosureParamIndex);
+    const Operator* op = common()->Parameter(
+        Linkage::kJSFunctionCallClosureParamIndex, "%closure");
     Node* node = NewNode(op, graph()->start());
     function_closure_.set(node);
   }
@@ -428,7 +428,8 @@ void AstGraphBuilder::CreateFunctionContext(bool constant_context) {
 
 Node* AstGraphBuilder::NewOuterContextParam() {
   // Parameter (arity + 1) is special for the outer context of the function
-  const Operator* op = common()->Parameter(info()->num_parameters() + 1);
+  const Operator* op =
+      common()->Parameter(info()->num_parameters() + 1, "%context");
   return NewNode(op, graph()->start());
 }
 
@@ -436,7 +437,8 @@ Node* AstGraphBuilder::NewOuterContextParam() {
 Node* AstGraphBuilder::NewCurrentContextOsrValue() {
   // TODO(titzer): use a real OSR value here; a parameter works by accident.
   // Parameter (arity + 1) is special for the outer context of the function
-  const Operator* op = common()->Parameter(info()->num_parameters() + 1);
+  const Operator* op =
+      common()->Parameter(info()->num_parameters() + 1, "%osr-context");
   return NewNode(op, graph()->start());
 }
 
@@ -575,6 +577,20 @@ static LhsKind DetermineLhsKind(Expression* expr) {
 }
 
 
+static const char* GetDebugParameterName(Zone* zone, Scope* scope, int index) {
+#if DEBUG
+  const AstRawString* name = scope->parameter(index)->raw_name();
+  if (name && name->length() > 0) {
+    char* data = zone->NewArray<char>(name->length() + 1);
+    data[name->length()] = 0;
+    memcpy(data, name->raw_data(), name->length());
+    return data;
+  }
+#endif
+  return nullptr;
+}
+
+
 AstGraphBuilder::Environment::Environment(AstGraphBuilder* builder,
                                           Scope* scope,
                                           Node* control_dependency)
@@ -592,15 +608,16 @@ AstGraphBuilder::Environment::Environment(AstGraphBuilder* builder,
   DCHECK_EQ(scope->num_parameters() + 1, parameters_count());
 
   // Bind the receiver variable.
-  Node* receiver = builder->graph()->NewNode(common()->Parameter(0),
+  Node* receiver = builder->graph()->NewNode(common()->Parameter(0, "%this"),
                                              builder->graph()->start());
   values()->push_back(receiver);
 
   // Bind all parameter variables. The parameter indices are shifted by 1
   // (receiver is parameter index -1 but environment index 0).
   for (int i = 0; i < scope->num_parameters(); ++i) {
-    Node* parameter = builder->graph()->NewNode(common()->Parameter(i + 1),
-                                                builder->graph()->start());
+    const char* debug_name = GetDebugParameterName(graph()->zone(), scope, i);
+    Node* parameter = builder->graph()->NewNode(
+        common()->Parameter(i + 1, debug_name), builder->graph()->start());
     values()->push_back(parameter);
   }
 
@@ -721,7 +738,9 @@ void AstGraphBuilder::Environment::UpdateStateValuesWithCache(
 
 Node* AstGraphBuilder::Environment::Checkpoint(
     BailoutId ast_id, OutputFrameStateCombine combine) {
-  if (!FLAG_turbo_deoptimization) return nullptr;
+  if (!builder()->info()->is_deoptimization_enabled()) {
+    return builder()->jsgraph()->EmptyFrameState();
+  }
 
   UpdateStateValues(&parameters_node_, 0, parameters_count());
   UpdateStateValuesWithCache(&locals_node_, parameters_count(), locals_count());
@@ -1005,10 +1024,15 @@ void AstGraphBuilder::VisitBlock(Block* stmt) {
     VisitStatements(stmt->statements());
   } else {
     // Visit declarations and statements in a block scope.
-    Node* context = BuildLocalBlockContext(stmt->scope());
-    ContextScope scope(this, stmt->scope(), context);
-    VisitDeclarations(stmt->scope()->declarations());
-    VisitStatements(stmt->statements());
+    if (stmt->scope()->ContextLocalCount() > 0) {
+      Node* context = BuildLocalBlockContext(stmt->scope());
+      ContextScope scope(this, stmt->scope(), context);
+      VisitDeclarations(stmt->scope()->declarations());
+      VisitStatements(stmt->statements());
+    } else {
+      VisitDeclarations(stmt->scope()->declarations());
+      VisitStatements(stmt->statements());
+    }
   }
   if (stmt->labels() != NULL) block.EndBlock();
 }
@@ -1245,7 +1269,8 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
   Node* obj = environment()->Peek(4);
 
   // Check loop termination condition.
-  Node* exit_cond = NewNode(javascript()->LessThan(), index, cache_length);
+  Node* exit_cond = NewNode(javascript()->LessThan(LanguageMode::SLOPPY),
+                            index, cache_length);
   // TODO(jarin): provide real bailout id.
   PrepareFrameState(exit_cond, BailoutId::None());
   for_loop.BreakUnless(exit_cond);
@@ -1279,7 +1304,8 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
       is_property_missing.Then();
       // Inc counter and continue.
       Node* index_inc =
-          NewNode(javascript()->Add(), index, jsgraph()->OneConstant());
+          NewNode(javascript()->Add(LanguageMode::SLOPPY), index,
+                  jsgraph()->OneConstant());
       // TODO(jarin): provide real bailout id.
       PrepareFrameStateAfterAndBefore(index_inc, BailoutId::None(),
                                       OutputFrameStateCombine::Ignore(),
@@ -1303,7 +1329,8 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
 
   // Inc counter and continue.
   Node* index_inc =
-      NewNode(javascript()->Add(), index, jsgraph()->OneConstant());
+      NewNode(javascript()->Add(LanguageMode::SLOPPY), index,
+              jsgraph()->OneConstant());
   // TODO(jarin): provide real bailout id.
   PrepareFrameStateAfterAndBefore(index_inc, BailoutId::None(),
                                   OutputFrameStateCombine::Ignore(),
@@ -1463,10 +1490,15 @@ void AstGraphBuilder::VisitClassLiteral(ClassLiteral* expr) {
     VisitClassLiteralContents(expr);
   } else {
     // Visit declarations and class literal in a block scope.
-    Node* context = BuildLocalBlockContext(expr->scope());
-    ContextScope scope(this, expr->scope(), context);
-    VisitDeclarations(expr->scope()->declarations());
-    VisitClassLiteralContents(expr);
+    if (expr->scope()->ContextLocalCount() > 0) {
+      Node* context = BuildLocalBlockContext(expr->scope());
+      ContextScope scope(this, expr->scope(), context);
+      VisitDeclarations(expr->scope()->declarations());
+      VisitClassLiteralContents(expr);
+    } else {
+      VisitDeclarations(expr->scope()->declarations());
+      VisitClassLiteralContents(expr);
+    }
   }
 }
 
@@ -1489,6 +1521,8 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
   Node* end = jsgraph()->Constant(expr->end_position());
   const Operator* opc = javascript()->CallRuntime(Runtime::kDefineClass, 6);
   Node* literal = NewNode(opc, name, extends, constructor, script, start, end);
+  PrepareFrameState(literal, expr->CreateLiteralId(),
+                    OutputFrameStateCombine::Push());
 
   // The prototype is ensured to exist by Runtime_DefineClass. No access check
   // is needed here since the constructor is created by the class literal.
@@ -1565,7 +1599,6 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
     BuildVariableAssignment(var, literal, Token::INIT_CONST, BailoutId::None());
   }
 
-  PrepareFrameState(literal, expr->id(), ast_context()->GetStateCombine());
   ast_context()->ProduceValue(literal);
 }
 
@@ -1630,7 +1663,7 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
   Node* constants = jsgraph()->Constant(expr->constant_properties());
   Node* flags = jsgraph()->Constant(expr->ComputeFlags(true));
   const Operator* op =
-      javascript()->CallRuntime(Runtime::kCreateObjectLiteral, 4);
+      javascript()->CallRuntime(Runtime::kInlineCreateObjectLiteral, 4);
   Node* literal = NewNode(op, literals_array, literal_index, constants, flags);
   PrepareFrameState(literal, expr->CreateLiteralId(),
                     OutputFrameStateCombine::Push());
@@ -1822,7 +1855,7 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
   Node* constants = jsgraph()->Constant(expr->constant_elements());
   Node* flags = jsgraph()->Constant(expr->ComputeFlags(true));
   const Operator* op =
-      javascript()->CallRuntime(Runtime::kCreateArrayLiteral, 4);
+      javascript()->CallRuntime(Runtime::kInlineCreateArrayLiteral, 4);
   Node* literal = NewNode(op, literals_array, literal_index, constants, flags);
   PrepareFrameState(literal, expr->CreateLiteralId(),
                     OutputFrameStateCombine::Push());
@@ -2410,16 +2443,16 @@ void AstGraphBuilder::VisitCompareOperation(CompareOperation* expr) {
       op = javascript()->StrictNotEqual();
       break;
     case Token::LT:
-      op = javascript()->LessThan();
+      op = javascript()->LessThan(language_mode());
       break;
     case Token::GT:
-      op = javascript()->GreaterThan();
+      op = javascript()->GreaterThan(language_mode());
       break;
     case Token::LTE:
-      op = javascript()->LessThanOrEqual();
+      op = javascript()->LessThanOrEqual(language_mode());
       break;
     case Token::GTE:
-      op = javascript()->GreaterThanOrEqual();
+      op = javascript()->GreaterThanOrEqual(language_mode());
       break;
     case Token::INSTANCEOF:
       op = javascript()->InstanceOf();
@@ -3179,37 +3212,37 @@ Node* AstGraphBuilder::BuildBinaryOp(Node* left, Node* right, Token::Value op) {
   const Operator* js_op;
   switch (op) {
     case Token::BIT_OR:
-      js_op = javascript()->BitwiseOr();
+      js_op = javascript()->BitwiseOr(language_mode());
       break;
     case Token::BIT_AND:
-      js_op = javascript()->BitwiseAnd();
+      js_op = javascript()->BitwiseAnd(language_mode());
       break;
     case Token::BIT_XOR:
-      js_op = javascript()->BitwiseXor();
+      js_op = javascript()->BitwiseXor(language_mode());
       break;
     case Token::SHL:
-      js_op = javascript()->ShiftLeft();
+      js_op = javascript()->ShiftLeft(language_mode());
       break;
     case Token::SAR:
-      js_op = javascript()->ShiftRight();
+      js_op = javascript()->ShiftRight(language_mode());
       break;
     case Token::SHR:
-      js_op = javascript()->ShiftRightLogical();
+      js_op = javascript()->ShiftRightLogical(language_mode());
       break;
     case Token::ADD:
-      js_op = javascript()->Add();
+      js_op = javascript()->Add(language_mode());
       break;
     case Token::SUB:
-      js_op = javascript()->Subtract();
+      js_op = javascript()->Subtract(language_mode());
       break;
     case Token::MUL:
-      js_op = javascript()->Multiply();
+      js_op = javascript()->Multiply(language_mode());
       break;
     case Token::DIV:
-      js_op = javascript()->Divide();
+      js_op = javascript()->Divide(language_mode());
       break;
     case Token::MOD:
-      js_op = javascript()->Modulus();
+      js_op = javascript()->Modulus(language_mode());
       break;
     default:
       UNREACHABLE();
