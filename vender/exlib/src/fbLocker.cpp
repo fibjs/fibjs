@@ -19,6 +19,9 @@ void Locker::lock()
     {
         Fiber *current = pService->m_running;
 
+        if (!m_recursive && current == m_locker)
+            return;
+
         if (m_locker && current != m_locker)
         {
             m_blocks.put(current);

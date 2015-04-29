@@ -4,7 +4,7 @@
 namespace v8 {
 namespace base {
 
-Mutex::Mutex() {
+Mutex::Mutex() : native_handle_(false) {
 }
 
 
@@ -13,17 +13,17 @@ Mutex::~Mutex() {
 
 
 void Mutex::Lock() {
-  native_handle_.lock();
+	native_handle_.lock();
 }
 
 
 void Mutex::Unlock() {
-  native_handle_.unlock();
+	native_handle_.unlock();
 }
 
 
 bool Mutex::TryLock() {
-  return native_handle_.trylock();
+	return native_handle_.trylock();
 }
 
 
@@ -36,17 +36,18 @@ RecursiveMutex::~RecursiveMutex() {
 
 
 void RecursiveMutex::Lock() {
-  native_handle_.lock();
+	native_handle_.lock();
 }
 
 
 void RecursiveMutex::Unlock() {
-  native_handle_.unlock();
+	native_handle_.unlock();
 }
 
 
 bool RecursiveMutex::TryLock() {
-  return native_handle_.trylock();
+	return native_handle_.trylock();
 }
 
-} }  // namespace v8::base
+}
+}  // namespace v8::base

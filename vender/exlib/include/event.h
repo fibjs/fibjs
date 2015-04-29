@@ -84,7 +84,8 @@ class Fiber;
 class Locker
 {
 public:
-    Locker() : m_count(0), m_locker(0)
+    Locker(bool recursive = true) :
+        m_recursive(recursive), m_count(0), m_locker(0)
     {
     }
 
@@ -100,6 +101,7 @@ public:
     }
 
 private:
+    bool m_recursive;
     int m_count;
     Fiber *m_locker;
     List<Fiber> m_blocks;
