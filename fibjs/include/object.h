@@ -18,10 +18,6 @@
 #undef min
 #undef max
 
-#ifdef assert
-#undef assert
-#endif
-
 namespace fibjs
 {
 

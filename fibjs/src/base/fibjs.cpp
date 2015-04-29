@@ -1,10 +1,6 @@
 
 #include <locale.h>
 
-#ifdef assert
-#undef assert
-#endif
-
 #include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/global.h"

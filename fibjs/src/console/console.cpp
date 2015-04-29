@@ -210,10 +210,6 @@ result_t console_base::trace(const char *label)
     return 0;
 }
 
-#ifdef assert
-#undef assert
-#endif
-
 result_t console_base::_assert(v8::Local<v8::Value> value, const char *msg)
 {
     return assert_base::ok(value, msg);
