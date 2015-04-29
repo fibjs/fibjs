@@ -10,6 +10,7 @@
 #define _ex_utils_h__
 
 #include <stdint.h>
+#include <assert.h>
 #include "osconfig.h"
 
 #ifdef WIN32
