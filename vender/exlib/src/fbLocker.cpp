@@ -19,7 +19,7 @@ void Locker::lock()
     {
         Fiber *current = pService->m_running;
 
-        assert(!m_recursive && current == m_locker);
+        assert(m_recursive || current != m_locker);
 
         if (!m_recursive && current == m_locker)
             return;
@@ -60,8 +60,9 @@ void Locker::unlock()
     {
         Fiber *current = pService->m_running;
 
-        assert(current != m_locker);
-        assert(!m_recursive && m_count != 1);
+        assert(current == m_locker);
+        assert(m_recursive || m_count == 1);
+        assert(m_count >= 1);
 
         if (current == m_locker)
         {
