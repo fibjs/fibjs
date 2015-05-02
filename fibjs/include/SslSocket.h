@@ -148,7 +148,8 @@ public:
         if (!m_s)
             return;
 
-        m_lock.unlock();
+        if (m_lock.owned())
+            m_lock.unlock();
     }
 
 public:
