@@ -167,7 +167,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                     break;
                 }
 
-                v8::Local<v8::Value> toArray = obj->Get(v8::String::NewFromUtf8(isolate, "toArray"));
+                v8::Local<v8::Value> toArray = obj->Get(v8::String::NewFromUtf8(Isolate::now().isolate, "toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction())
                 {
                     v = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
@@ -492,7 +492,7 @@ result_t util_base::has(v8::Local<v8::Value> v, const char *key, bool &retVal)
         return CHECK_ERROR(CALL_E_TYPEMISMATCH);
 
     v8::Local<v8::Object> obj = v->ToObject();
-    retVal = obj->HasOwnProperty(v8::String::NewFromUtf8(isolate, key));
+    retVal = obj->HasOwnProperty(v8::String::NewFromUtf8(Isolate::now().isolate, key));
     return 0;
 }
 
@@ -513,18 +513,19 @@ result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array> &retVal)
         }
     }
     else
-        retVal = v8::Array::New(isolate);
+        retVal = v8::Array::New(Isolate::now().isolate);
 
     return 0;
 }
 
 result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array> &retVal)
 {
+    Isolate &isolate = Isolate::now();
     if (v->IsObject())
     {
         v8::Local<v8::Object> obj = v->ToObject();
         v8::Local<v8::Array> keys = obj->GetPropertyNames();
-        v8::Local<v8::Array> arr = v8::Array::New(isolate);
+        v8::Local<v8::Array> arr = v8::Array::New(isolate.isolate);
 
         int32_t len = keys->Length();
         int32_t i, n = 0;
@@ -538,23 +539,24 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array> &retVal)
         retVal = arr;
     }
     else
-        retVal = v8::Array::New(isolate);
+        retVal = v8::Array::New(isolate.isolate);
 
     return 0;
 }
 
 result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 {
+    Isolate &isolate = Isolate::now();
     if (v->IsObject() && !object_base::getInstance(v))
     {
         if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
             retVal = v;
         else if (v->IsDate())
-            retVal = v8::Date::New(isolate, v->NumberValue());
+            retVal = v8::Date::New(isolate.isolate, v->NumberValue());
         else if (v->IsBooleanObject())
             retVal = v8::BooleanObject::New(v->BooleanValue());
         else if (v->IsNumberObject())
-            retVal = v8::NumberObject::New(isolate, v->NumberValue());
+            retVal = v8::NumberObject::New(isolate.isolate, v->NumberValue());
         else if (v->IsStringObject())
             retVal = v8::StringObject::New(v->ToString());
         else if (v->IsRegExp())
@@ -618,9 +620,10 @@ result_t util_base::pick(v8::Local<v8::Value> v,
                          const v8::FunctionCallbackInfo<v8::Value> &args,
                          v8::Local<v8::Object> &retVal)
 {
+    Isolate &isolate = Isolate::now();
     if (v->IsUndefined() || v->IsNull())
     {
-        retVal = v8::Object::New(isolate);
+        retVal = v8::Object::New(isolate.isolate);
         return 0;
     }
 
@@ -628,7 +631,7 @@ result_t util_base::pick(v8::Local<v8::Value> v,
         return CHECK_ERROR(CALL_E_TYPEMISMATCH);
 
     v8::Local<v8::Object> obj = v->ToObject();
-    v8::Local<v8::Object> obj1 = v8::Object::New(isolate);
+    v8::Local<v8::Object> obj1 = v8::Object::New(isolate.isolate);
     int32_t argc = args.Length();
     int32_t i, j;
 
@@ -665,9 +668,10 @@ result_t util_base::omit(v8::Local<v8::Value> v,
                          const v8::FunctionCallbackInfo<v8::Value> &args,
                          v8::Local<v8::Object> &retVal)
 {
+    Isolate &isolate = Isolate::now();
     if (v->IsUndefined() || v->IsNull())
     {
-        retVal = v8::Object::New(isolate);
+        retVal = v8::Object::New(isolate.isolate);
         return 0;
     }
 
@@ -711,7 +715,7 @@ result_t util_base::omit(v8::Local<v8::Value> v,
 
     v8::Local<v8::Array> keys = obj->GetPropertyNames();
     int32_t len = keys->Length();
-    v8::Local<v8::Object> obj1 = v8::Object::New(isolate);
+    v8::Local<v8::Object> obj1 = v8::Object::New(isolate.isolate);
 
     for (i = 0; i < len; i ++)
     {
@@ -729,7 +733,7 @@ result_t util_base::omit(v8::Local<v8::Value> v,
 result_t util_base::intersection(const v8::FunctionCallbackInfo<v8::Value> &args,
                                  v8::Local<v8::Array> &retVal)
 {
-    v8::Local<v8::Array> arr = v8::Array::New(isolate);
+    v8::Local<v8::Array> arr = v8::Array::New(Isolate::now().isolate);
     int32_t argc = args.Length();
     int32_t i, j, k, n = 0;
 
@@ -794,9 +798,11 @@ result_t util_base::intersection(const v8::FunctionCallbackInfo<v8::Value> &args
 
 result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 {
+    Isolate &isolate = Isolate::now();
+
     if (v->IsUndefined() || v->IsNull())
     {
-        retVal = v8::Undefined(isolate);
+        retVal = v8::Undefined(isolate.isolate);
         return 0;
     }
 
@@ -808,7 +814,7 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 
     if (len == 0)
     {
-        retVal = v8::Undefined(isolate);
+        retVal = v8::Undefined(isolate.isolate);
         return 0;
     }
 
@@ -819,9 +825,11 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 
 result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value> &retVal)
 {
+    Isolate &isolate = Isolate::now();
+
     if (v->IsUndefined() || v->IsNull() || n <= 0)
     {
-        retVal = v8::Array::New(isolate);
+        retVal = v8::Array::New(isolate.isolate);
         return 0;
     }
 
@@ -835,7 +843,7 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
     if (n > len)
         n = len;
 
-    v8::Local<v8::Array> arr1 = v8::Array::New(isolate);
+    v8::Local<v8::Array> arr1 = v8::Array::New(isolate.isolate);
 
     for (i = 0; i < n; i ++)
         arr1->Set(i, arr->Get(i));
@@ -847,9 +855,11 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
 
 result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 {
+    Isolate &isolate = Isolate::now();
+
     if (v->IsUndefined() || v->IsNull())
     {
-        retVal = v8::Undefined(isolate);
+        retVal = v8::Undefined(isolate.isolate);
         return 0;
     }
 
@@ -861,7 +871,7 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 
     if (len == 0)
     {
-        retVal = v8::Undefined(isolate);
+        retVal = v8::Undefined(isolate.isolate);
         return 0;
     }
 
@@ -871,9 +881,10 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 
 result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value> &retVal)
 {
+    Isolate &isolate = Isolate::now();
     if (v->IsUndefined() || v->IsNull() || n <= 0)
     {
-        retVal = v8::Array::New(isolate);
+        retVal = v8::Array::New(isolate.isolate);
         return 0;
     }
 
@@ -887,7 +898,7 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
     if (n > len)
         n = len;
 
-    v8::Local<v8::Array> arr1 = v8::Array::New(isolate);
+    v8::Local<v8::Array> arr1 = v8::Array::New(isolate.isolate);
 
     for (i = 0; i < n; i ++)
         arr1->Set(i, arr->Get(len - n + i));
@@ -899,16 +910,17 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
 
 result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Array> &retVal)
 {
+    Isolate &isolate = Isolate::now();
     if (v->IsUndefined() || v->IsNull())
     {
-        retVal = v8::Array::New(isolate);
+        retVal = v8::Array::New(isolate.isolate);
         return 0;
     }
 
     if (!v->IsArray())
         return CHECK_ERROR(CALL_E_TYPEMISMATCH);
 
-    v8::Local<v8::Array> arr1 = v8::Array::New(isolate);
+    v8::Local<v8::Array> arr1 = v8::Array::New(isolate.isolate);
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     int32_t len = arr->Length();
     QuickArray<v8::Local<v8::Value> > vals;
@@ -948,7 +960,7 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
 result_t util_base::_union(const v8::FunctionCallbackInfo<v8::Value> &args,
                            v8::Local<v8::Array> &retVal)
 {
-    v8::Local<v8::Array> arr = v8::Array::New(isolate);
+    v8::Local<v8::Array> arr = v8::Array::New(Isolate::now().isolate);
     int32_t argc = args.Length();
     int32_t i, j, k, n = 0;
 
@@ -988,13 +1000,15 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
 
     bool bNext = true;
 
+    Isolate &isolate = Isolate::now();
+
     if (retVal.IsEmpty())
-        retVal = v8::Array::New(isolate);
+        retVal = v8::Array::New(isolate.isolate);
     else if (shallow)
         bNext = false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate.isolate, "length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_TYPEMISMATCH);
 
@@ -1008,7 +1022,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
         if (bNext && v->IsObject())
         {
             v8::Local<v8::Object> o1 = v8::Local<v8::Object>::Cast(v);
-            v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+            v = o->Get(v8::String::NewFromUtf8(isolate.isolate, "length"));
             if (IsEmpty(v))
                 retVal->Set(cnt ++, o->Get(i));
             else
@@ -1031,14 +1045,16 @@ result_t util_base::without(v8::Local<v8::Value> arr,
     if (!arr->IsObject())
         return CHECK_ERROR(CALL_E_TYPEMISMATCH);
 
+    Isolate &isolate = Isolate::now();
+
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(arr);
-    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate.isolate, "length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_TYPEMISMATCH);
 
     int32_t len = v->Int32Value();
 
-    v8::Local<v8::Array> arr1 = v8::Array::New(isolate);
+    v8::Local<v8::Array> arr1 = v8::Array::New(isolate.isolate);
     int32_t argc = args.Length();
     int32_t i, j, n = 0;
 
@@ -1063,7 +1079,7 @@ result_t util_base::difference(v8::Local<v8::Array> arr,
                                const v8::FunctionCallbackInfo<v8::Value> &args,
                                v8::Local<v8::Array> &retVal)
 {
-    v8::Local<v8::Array> arr1 = v8::Array::New(isolate);
+    v8::Local<v8::Array> arr1 = v8::Array::New(Isolate::now().isolate);
     int32_t len = arr->Length();
     int32_t argc = args.Length();
     int32_t i, j, k, n = 0, len1;
@@ -1110,8 +1126,9 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
     v8::Local<v8::Value> args[3];
     args[2] = list;
 
+    Isolate &isolate = Isolate::now();
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate.isolate, "length"));
 
     if (IsEmpty(v))
     {
@@ -1137,7 +1154,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
 
         for (i = 0; i < len; i ++)
         {
-            args[1] = v8::Int32::New(isolate, i);
+            args[1] = v8::Int32::New(isolate.isolate, i);
             args[0] = o->Get(args[1]);
 
             v = iterator->Call(context, 3, args);
@@ -1154,7 +1171,8 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
 result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator,
                         v8::Local<v8::Value> context, v8::Local<v8::Array> &retVal)
 {
-    v8::Local<v8::Array> arr = v8::Array::New(isolate);
+    Isolate &isolate = Isolate::now();
+    v8::Local<v8::Array> arr = v8::Array::New(isolate.isolate);
 
     if (!list->IsObject())
     {
@@ -1166,7 +1184,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
     args[2] = list;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate.isolate, "length"));
     int32_t cnt = 0;
 
     if (IsEmpty(v))
@@ -1195,7 +1213,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
 
         for (i = 0; i < len; i ++)
         {
-            args[1] = v8::Int32::New(isolate, i);
+            args[1] = v8::Int32::New(isolate.isolate, i);
             args[0] = o->Get(args[1]);
 
             v = iterator->Call(context, 3, args);
@@ -1224,8 +1242,9 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
     v8::Local<v8::Value> args[4];
     args[3] = list;
 
+    Isolate &isolate = Isolate::now();
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "length"));
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate.isolate, "length"));
 
     if (IsEmpty(v))
     {
@@ -1253,7 +1272,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
         for (i = 0; i < len; i ++)
         {
-            args[2] = v8::Int32::New(isolate, i);
+            args[2] = v8::Int32::New(isolate.isolate, i);
             args[1] = o->Get(args[2]);
 
             args[0] = memo;
@@ -1276,51 +1295,52 @@ static const char s_version[] = "0.1.2";
 
 result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
 {
-    retVal = v8::Object::New(isolate);
+    Isolate &isolate = Isolate::now();
+    retVal = v8::Object::New(isolate.isolate);
 
-    retVal->Set(v8::String::NewFromUtf8(isolate, "fibjs"), v8::String::NewFromUtf8(isolate, s_version));
+    retVal->Set(v8::String::NewFromUtf8(isolate.isolate, "fibjs"), v8::String::NewFromUtf8(isolate.isolate, s_version));
 
 #ifdef GIT_INFO
-    retVal->Set(v8::String::NewFromUtf8(isolate, "git"), v8::String::NewFromUtf8(isolate, GIT_INFO));
+    retVal->Set(v8::String::NewFromUtf8(isolate.isolate, "git"), v8::String::NewFromUtf8(isolate.isolate, GIT_INFO));
 #endif
 
-    retVal->Set(v8::String::NewFromUtf8(isolate, "build"),
-                v8::String::NewFromUtf8(isolate, __DATE__ " " __TIME__));
+    retVal->Set(v8::String::NewFromUtf8(isolate.isolate, "build"),
+                v8::String::NewFromUtf8(isolate.isolate, __DATE__ " " __TIME__));
 
 #ifndef NDEBUG
-    retVal->Set(v8::String::NewFromUtf8(isolate, "debug"), v8::True(isolate));
+    retVal->Set(v8::String::NewFromUtf8(isolate.isolate, "debug"), v8::True(isolate.isolate));
 #endif
 
     {
-        v8::Local<v8::Object> vender = v8::Object::New(isolate);
+        v8::Local<v8::Object> vender = v8::Object::New(isolate.isolate);
         char str[64];
 
-        retVal->Set(v8::String::NewFromUtf8(isolate, "vender"), vender);
+        retVal->Set(v8::String::NewFromUtf8(isolate.isolate, "vender"), vender);
 
-        vender->Set(v8::String::NewFromUtf8(isolate, "ev"),
-                    v8::String::NewFromUtf8(isolate,  STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "ev"),
+                    v8::String::NewFromUtf8(isolate.isolate,  STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
 
-        vender->Set(v8::String::NewFromUtf8(isolate, "expat"),
-                    v8::String::NewFromUtf8(isolate,  STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION)));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "expat"),
+                    v8::String::NewFromUtf8(isolate.isolate,  STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION)));
 
-        vender->Set(v8::String::NewFromUtf8(isolate, "gd"), v8::String::NewFromUtf8(isolate, GD_VERSION_STRING));
-        vender->Set(v8::String::NewFromUtf8(isolate, "jpeg"), v8::String::NewFromUtf8(isolate,
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "gd"), v8::String::NewFromUtf8(isolate.isolate, GD_VERSION_STRING));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "jpeg"), v8::String::NewFromUtf8(isolate.isolate,
                     STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
         sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-        vender->Set(v8::String::NewFromUtf8(isolate, "leveldb"), v8::String::NewFromUtf8(isolate,  str));
-        vender->Set(v8::String::NewFromUtf8(isolate, "mongo"), v8::String::NewFromUtf8(isolate,
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "leveldb"), v8::String::NewFromUtf8(isolate.isolate,  str));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "mongo"), v8::String::NewFromUtf8(isolate.isolate,
                     STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "pcre"), v8::String::NewFromUtf8(isolate,
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "pcre"), v8::String::NewFromUtf8(isolate.isolate,
                     STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "png"), v8::String::NewFromUtf8(isolate, PNG_LIBPNG_VER_STRING));
-        vender->Set(v8::String::NewFromUtf8(isolate, "polarssl"), v8::String::NewFromUtf8(isolate, POLARSSL_VERSION_STRING));
-        vender->Set(v8::String::NewFromUtf8(isolate, "snappy"),
-                    v8::String::NewFromUtf8(isolate,  STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "sqlite"), v8::String::NewFromUtf8(isolate, SQLITE_VERSION));
-        vender->Set(v8::String::NewFromUtf8(isolate, "tiff"), v8::String::NewFromUtf8(isolate, TIFFLIB_VERSION_STR));
-        vender->Set(v8::String::NewFromUtf8(isolate, "uuid"), v8::String::NewFromUtf8(isolate, "1.6.2"));
-        vender->Set(v8::String::NewFromUtf8(isolate, "v8"), v8::String::NewFromUtf8(isolate, v8::V8::GetVersion()));
-        vender->Set(v8::String::NewFromUtf8(isolate, "zlib"), v8::String::NewFromUtf8(isolate, ZLIB_VERSION));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "png"), v8::String::NewFromUtf8(isolate.isolate, PNG_LIBPNG_VER_STRING));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "polarssl"), v8::String::NewFromUtf8(isolate.isolate, POLARSSL_VERSION_STRING));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "snappy"),
+                    v8::String::NewFromUtf8(isolate.isolate,  STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL)));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "sqlite"), v8::String::NewFromUtf8(isolate.isolate, SQLITE_VERSION));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "tiff"), v8::String::NewFromUtf8(isolate.isolate, TIFFLIB_VERSION_STR));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "uuid"), v8::String::NewFromUtf8(isolate.isolate, "1.6.2"));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "v8"), v8::String::NewFromUtf8(isolate.isolate, v8::V8::GetVersion()));
+        vender->Set(v8::String::NewFromUtf8(isolate.isolate, "zlib"), v8::String::NewFromUtf8(isolate.isolate, ZLIB_VERSION));
     }
 
     return 0;

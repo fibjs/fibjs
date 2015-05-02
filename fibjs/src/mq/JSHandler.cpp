@@ -49,10 +49,11 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         return CHECK_ERROR(CALL_E_NOASYNC);
 
     v8::Local<v8::Object> o = v->wrap();
+    Isolate &isolate = Isolate::now();
 
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
-    v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate, o);
-    v8::Local<v8::Value> hdlr = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate, "handler"));
+    v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate.isolate, o);
+    v8::Local<v8::Value> hdlr = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate.isolate, "handler"));
 
     result_t hr;
     bool bResult = false;
@@ -92,11 +93,11 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             {
                 v8::TryCatch try_catch;
-                hdlr = func->Call(v8::Undefined(isolate), len + 1, pargv);
+                hdlr = func->Call(v8::Undefined(isolate.isolate), len + 1, pargv);
                 if (try_catch.HasCaught())
                 {
                     v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                            isolate, 1, v8::StackTrace::kScriptId);
+                            isolate.isolate, 1, v8::StackTrace::kScriptId);
                     if (stackTrace->GetFrameCount() > 0)
                     {
                         try_catch.ReThrow();
@@ -132,7 +133,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 return hr;
 
             hdlr = v8::Local<v8::Object>::Cast(hdlr)->Get(
-                       v8::String::NewFromUtf8(isolate, method.c_str(),
+                       v8::String::NewFromUtf8(isolate.isolate, method.c_str(),
                                                v8::String::kNormalString,
                                                (int) method.length()));
             if (IsEmpty (hdlr))

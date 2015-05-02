@@ -27,7 +27,7 @@ result_t Lock::acquire(bool blocking, bool &retVal)
 
     if (!m_lock.trylock())
     {
-        v8::Unlocker unlocker(isolate);
+        v8::Unlocker unlocker(Isolate::now().isolate);
         m_lock.lock();
     }
 

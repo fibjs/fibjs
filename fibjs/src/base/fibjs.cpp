@@ -12,10 +12,6 @@
 
 namespace fibjs
 {
-v8::Isolate *isolate;
-v8::Persistent<v8::Context> s_context;
-v8::Persistent<v8::Object> s_global;
-obj_ptr<SandBox> s_topSandbox;
 
 void init_argv(int argc, char **argv);
 
@@ -26,45 +22,50 @@ void _main(const char *fname)
 
     v8::V8::Initialize();
 
-    isolate = v8::Isolate::New();
-    v8::Locker locker(isolate);
-    v8::Isolate::Scope isolate_scope(isolate);
+    Isolate is;
+    Isolate::reg(&is);
 
-    v8::HandleScope handle_scope(isolate);
+    Isolate& isolate = Isolate::now();
 
-    v8::Local<v8::Context> _context = v8::Context::New(isolate);
+    isolate.isolate = v8::Isolate::New();
+    v8::Locker locker(isolate.isolate);
+    v8::Isolate::Scope isolate_scope(isolate.isolate);
+
+    v8::HandleScope handle_scope(isolate.isolate);
+
+    v8::Local<v8::Context> _context = v8::Context::New(isolate.isolate);
     v8::Context::Scope context_scope(_context);
 
     v8::Local<v8::Object> glob = _context->Global();
     global_base::class_info().Attach(glob, NULL);
 
     Function_base::class_info().Attach(
-        glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject(),
+        glob->Get(v8::String::NewFromUtf8(isolate.isolate, "Function"))->ToObject()->GetPrototype()->ToObject(),
         NULL);
 
-    s_context.Reset(isolate, _context);
-    s_global.Reset(isolate, glob);
+    isolate.s_context.Reset(isolate.isolate, _context);
+    isolate.s_global.Reset(isolate.isolate, glob);
 
     JSFiber *fb = new JSFiber();
     {
         JSFiber::scope s(fb);
-        s_topSandbox = new SandBox();
+        isolate.s_topSandbox = new SandBox();
 
-        s_topSandbox->initRoot();
+        isolate.s_topSandbox->initRoot();
         if (fname)
-            s.m_hr = s_topSandbox->run(fname);
+            s.m_hr = isolate.s_topSandbox->run(fname);
         else
-            s.m_hr = s_topSandbox->repl();
+            s.m_hr = isolate.s_topSandbox->repl();
     }
 
     process_base::exit(0);
 
-    isolate->Dispose();
+    isolate.isolate->Dispose();
 
     v8::V8::ShutdownPlatform();
     delete platform;
 
-    s_context.Reset();
+    isolate.s_context.Reset();
 }
 
 }

@@ -98,11 +98,12 @@ result_t Regex::exec(const char *str, v8::Local<v8::Array> &retVal)
 
     if (rc)
     {
-        retVal = v8::Array::New(isolate, rc);
+        Isolate &isolate = Isolate::now();
+        retVal = v8::Array::New(isolate.isolate, rc);
 
         for (i = 0; i < rc; i++)
             retVal->Set(i,
-                        v8::String::NewFromUtf8(isolate, str + ovector[2 * i],
+                        v8::String::NewFromUtf8(isolate.isolate, str + ovector[2 * i],
                                                 v8::String::kNormalString,
                                                 ovector[2 * i + 1] - ovector[2 * i]));
 

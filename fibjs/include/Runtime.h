@@ -18,7 +18,7 @@ class Runtime
 {
 public:
     static Runtime &now();
-    static void reg(Runtime *rt);
+    static void reg(void *rt);
 
     static result_t setError(result_t hr)
     {

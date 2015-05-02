@@ -228,7 +228,7 @@ v8::Local<v8::Value> List::array::_call(v8::Local<v8::Function> func,
                                         v8::Local<v8::Object> thisp, int i)
 {
     v8::Local<v8::Value> args[] =
-    { m_array[i], v8::Number::New(isolate, i) };
+    { m_array[i], v8::Number::New(Isolate::now().isolate, i) };
 
     return func->Call(thisp, 2, args);
 }
@@ -349,7 +349,7 @@ result_t List::array::map(v8::Local<v8::Function> func,
 
 result_t List::array::toArray(v8::Local<v8::Array> &retVal)
 {
-    v8::Local<v8::Array> a = v8::Array::New(isolate, (int) m_array.size());
+    v8::Local<v8::Array> a = v8::Array::New(Isolate::now().isolate, (int) m_array.size());
     int i;
 
     for (i = 0; i < (int) m_array.size(); i++)

@@ -33,7 +33,7 @@ public:
     {
         if (!m_quit.isSet())
         {
-            v8::Unlocker unlocker(isolate);
+            v8::Unlocker unlocker(Isolate::now().isolate);
             m_quit.wait();
         }
 
@@ -106,12 +106,13 @@ public:
     void New(v8::Local<v8::Function> func, T &args, int nArgStart,
              int nArgCount)
     {
+        Isolate &isolate = Isolate::now();
         int i;
 
         m_argv.resize(nArgCount - nArgStart);
         for (i = nArgStart; i < nArgCount; i++)
-            m_argv[i - nArgStart].Reset(isolate, args[i]);
-        m_func.Reset(isolate, func);
+            m_argv[i - nArgStart].Reset(isolate.isolate, args[i]);
+        m_func.Reset(isolate.isolate, func);
 
         start();
     }
@@ -153,7 +154,7 @@ public:
         if (m_result.IsEmpty())
             return CALL_RETURN_NULL;
 
-        retVal = v8::Local<v8::Value>::New(isolate, m_result);
+        retVal = v8::Local<v8::Value>::New(Isolate::now().isolate, m_result);
         return 0;
     }
 

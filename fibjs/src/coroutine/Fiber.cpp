@@ -14,7 +14,6 @@ namespace fibjs
 {
 
 #define MAX_FIBER   10000
-extern v8::Persistent<v8::Context> s_context;
 
 static exlib::Queue<asyncEvent> g_jobs;
 static exlib::IDLE_PROC s_oldIdle;
@@ -75,12 +74,13 @@ inline void fiber_init()
 
 void *FiberBase::fiber_proc(void *p)
 {
-    v8::Locker locker(isolate);
-    v8::Isolate::Scope isolate_scope(isolate);
+    Isolate &isolate = Isolate::now();
+    v8::Locker locker(isolate.isolate);
+    v8::Isolate::Scope isolate_scope(isolate.isolate);
 
-    v8::HandleScope handle_scope(isolate);
+    v8::HandleScope handle_scope(isolate.isolate);
     v8::Context::Scope context_scope(
-        v8::Local<v8::Context>::New(isolate, s_context));
+        v8::Local<v8::Context>::New(isolate.isolate, isolate.s_context));
 
     while (1)
     {
@@ -88,7 +88,7 @@ void *FiberBase::fiber_proc(void *p)
 
         if ((ae = g_jobs.tryget()) == NULL)
         {
-            v8::Unlocker unlocker(isolate);
+            v8::Unlocker unlocker(isolate.isolate);
             ae = g_jobs.get();
         }
 
@@ -96,7 +96,7 @@ void *FiberBase::fiber_proc(void *p)
             break;
 
         {
-            v8::HandleScope handle_scope(isolate);
+            v8::HandleScope handle_scope(isolate.isolate);
             ae->js_callback();
         }
     }
@@ -145,18 +145,18 @@ void JSFiber::callFunction1(v8::Local<v8::Function> func,
 void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
 {
     size_t i;
-
+    Isolate &isolate = Isolate::now();
     std::vector<v8::Local<v8::Value> > argv;
 
     argv.resize(m_argv.size());
     for (i = 0; i < m_argv.size(); i++)
-        argv[i] = v8::Local<v8::Value>::New(isolate, m_argv[i]);
+        argv[i] = v8::Local<v8::Value>::New(isolate.isolate, m_argv[i]);
 
-    callFunction1(v8::Local<v8::Function>::New(isolate, m_func),
+    callFunction1(v8::Local<v8::Function>::New(isolate.isolate, m_func),
                   argv.data(), (int) argv.size(), retVal);
 
     if (!IsEmpty(retVal))
-        m_result.Reset(isolate, retVal);
+        m_result.Reset(isolate.isolate, retVal);
 }
 
 JSFiber *JSFiber::current()

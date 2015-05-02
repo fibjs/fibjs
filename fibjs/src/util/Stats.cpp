@@ -173,12 +173,13 @@ result_t Stats::_named_getter(const char *property, int32_t &retVal)
 result_t Stats::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int i;
+    Isolate &isolate = Isolate::now();
 
-    retVal = v8::Array::New(isolate);
+    retVal = v8::Array::New(isolate.isolate);
 
     for (i = 0; i < m_size; i++)
         retVal->Set(i,
-                    v8::String::NewFromUtf8(isolate, m_keys[i].c_str(),
+                    v8::String::NewFromUtf8(isolate.isolate, m_keys[i].c_str(),
                                             v8::String::kNormalString,
                                             (int) m_keys[i].length()));
 

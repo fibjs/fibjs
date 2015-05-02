@@ -499,11 +499,12 @@ result_t Buffer::toString(const char *codec, std::string &retVal)
 
 result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
-    v8::Local<v8::Array> a = v8::Array::New(isolate, (int) m_data.length());
+    Isolate &isolate = Isolate::now();
+    v8::Local<v8::Array> a = v8::Array::New(isolate.isolate, (int) m_data.length());
     int i;
 
     for (i = 0; i < (int) m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate, (unsigned char) m_data[i]));
+        a->Set(i, v8::Number::New(isolate.isolate, (unsigned char) m_data[i]));
 
     retVal = a;
 

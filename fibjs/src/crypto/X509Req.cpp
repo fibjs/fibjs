@@ -254,6 +254,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
 
     if (!ac)
     {
+        Isolate &isolate = Isolate::now();
         mpi serial;
         v8::Local<v8::Value> v;
 
@@ -273,7 +274,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
 
         x509write_crt_set_md_alg(&m_crt, POLARSSL_MD_SHA1);
 
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "serial",
+        v = opts->Get(v8::String::NewFromUtf8(isolate.isolate, "serial",
                                               v8::String::kNormalString, 6));
         if (!IsEmpty(v))
         {
@@ -361,7 +362,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
             goto exit;
         }
 
-        int key_usage = parseString(opts->Get(v8::String::NewFromUtf8(isolate, "usage",
+        int key_usage = parseString(opts->Get(v8::String::NewFromUtf8(isolate.isolate, "usage",
                                               v8::String::kNormalString, 5)), X509Cert::g_usages);
         if (key_usage < 0)
         {
@@ -378,7 +379,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
             }
         }
 
-        int cert_type = parseString(opts->Get(v8::String::NewFromUtf8(isolate, "type",
+        int cert_type = parseString(opts->Get(v8::String::NewFromUtf8(isolate.isolate, "type",
                                               v8::String::kNormalString, 4)), X509Cert::g_types);
         if (cert_type < 0)
         {

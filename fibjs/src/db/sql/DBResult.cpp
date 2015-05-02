@@ -139,12 +139,13 @@ result_t DBResult::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     if (m_size)
         return m_array.toJSON(key, retVal);
 
-    v8::Local<v8::Object> o = v8::Object::New(isolate);
+    Isolate &isolate = Isolate::now();
+    v8::Local<v8::Object> o = v8::Object::New(isolate.isolate);
 
-    o->Set(v8::String::NewFromUtf8(isolate, "affected", v8::String::kNormalString, 8),
-           v8::Number::New(isolate, (double) m_affected));
-    o->Set(v8::String::NewFromUtf8(isolate, "insertId", v8::String::kNormalString, 8),
-           v8::Number::New(isolate, (double) m_insertId));
+    o->Set(v8::String::NewFromUtf8(isolate.isolate, "affected", v8::String::kNormalString, 8),
+           v8::Number::New(isolate.isolate, (double) m_affected));
+    o->Set(v8::String::NewFromUtf8(isolate.isolate, "insertId", v8::String::kNormalString, 8),
+           v8::Number::New(isolate.isolate, (double) m_insertId));
 
     retVal = o;
 

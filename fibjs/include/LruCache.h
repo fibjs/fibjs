@@ -86,7 +86,7 @@ private:
                 m_end = prev1;
         }
 
-        v8::Local<v8::String> name = v8::String::NewFromUtf8(isolate, it->first.c_str(),
+        v8::Local<v8::String> name = v8::String::NewFromUtf8(Isolate::now().isolate, it->first.c_str(),
                                      v8::String::kNormalString,
                                      (int) it->first.length());
         wrap()->DeleteHiddenValue(name);

@@ -27,8 +27,6 @@ public:
 namespace fibjs
 {
 
-extern v8::Isolate *isolate;
-
 class date_t
 {
 public:
@@ -91,7 +89,7 @@ public:
 
     operator v8::Local<v8::Value>() const
     {
-        return v8::Date::New(isolate, d);
+        return v8::Date::New(Isolate::now().isolate, d);
     }
 
     bool empty() const

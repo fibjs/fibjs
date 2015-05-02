@@ -89,7 +89,7 @@ result_t Queue::clear()
 
 result_t Queue::toArray(v8::Local<v8::Array> &retVal)
 {
-    v8::Local<v8::Array> a = v8::Array::New(isolate, (int) m_list.size());
+    v8::Local<v8::Array> a = v8::Array::New(Isolate::now().isolate, (int) m_list.size());
     int32_t i = 0;
 
     for (std::list<VariantEx>::iterator it = m_list.begin(); it != m_list.end();

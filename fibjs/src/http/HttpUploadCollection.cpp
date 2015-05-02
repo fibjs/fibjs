@@ -385,11 +385,12 @@ result_t HttpUploadCollection::_named_getter(const char *property,
 result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i;
+    Isolate &isolate = Isolate::now();
 
-    retVal = v8::Array::New(isolate);
+    retVal = v8::Array::New(isolate.isolate);
     for (i = 0; i < m_count; i++)
         retVal->Set(i,
-                    v8::String::NewFromUtf8(isolate, m_names[i].c_str(),
+                    v8::String::NewFromUtf8(isolate.isolate, m_names[i].c_str(),
                                             v8::String::kNormalString,
                                             (int) m_names[i].length()));
 

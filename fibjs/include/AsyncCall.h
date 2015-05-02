@@ -52,7 +52,7 @@ public:
             r = result();
         else
         {
-            v8::Unlocker unlocker(isolate);
+            v8::Unlocker unlocker(Isolate::now().isolate);
             r = asyncEvent::wait();
         }
 

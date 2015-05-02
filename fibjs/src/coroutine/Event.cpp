@@ -66,7 +66,7 @@ result_t Event::wait()
     if (m_event.isSet())
         return 0;
 
-    v8::Unlocker unlocker(isolate);
+    v8::Unlocker unlocker(Isolate::now().isolate);
     m_event.wait();
     return 0;
 }

@@ -731,6 +731,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
+    Isolate &isolate = Isolate::now();
     v8::Local<v8::Object> v = object->ToObject();
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
@@ -738,7 +739,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     p = *s;
     while ((p1 = qstrchr(p, '.')) != NULL)
     {
-        object = v->Get(v8::String::NewFromUtf8(isolate, p,
+        object = v->Get(v8::String::NewFromUtf8(isolate.isolate, p,
                                                 v8::String::kNormalString,
                                                 (int)(p1 - p)));
 
@@ -752,7 +753,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    retVal = v->Has(v8::String::NewFromUtf8(isolate, p));
+    retVal = v->Has(v8::String::NewFromUtf8(isolate.isolate, p));
 
     return 0;
 }
@@ -836,6 +837,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
+    Isolate &isolate = Isolate::now();
     v8::Local<v8::Object> v = object->ToObject();
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
@@ -843,7 +845,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     p = *s;
     while ((p1 = qstrchr(p, '.')) != NULL)
     {
-        object = v->Get(v8::String::NewFromUtf8(isolate, p,
+        object = v->Get(v8::String::NewFromUtf8(isolate.isolate, p,
                                                 v8::String::kNormalString,
                                                 (int)(p1 - p)));
 
@@ -857,7 +859,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    got = v->Get(v8::String::NewFromUtf8(isolate, p));
+    got = v->Get(v8::String::NewFromUtf8(isolate.isolate, p));
     retVal = value->Equals(got);
 
     return 0;
@@ -902,7 +904,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
     bool err;
     {
         v8::TryCatch try_catch;
-        block->Call(v8::Undefined(isolate), 0, NULL);
+        block->Call(v8::Undefined(Isolate::now().isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(err, _msg(msg, "Missing expected exception."));
@@ -916,7 +918,7 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     bool err;
     {
         v8::TryCatch try_catch;
-        block->Call(v8::Undefined(isolate), 0, NULL);
+        block->Call(v8::Undefined(Isolate::now().isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(!err, _msg(msg, "Got unwanted exception."));

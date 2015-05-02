@@ -75,7 +75,7 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
             if (isPersistent())
             {
                 new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
-                jsValEx().Reset(isolate, v);
+                jsValEx().Reset(Isolate::now().isolate, v);
             }
             else
                 new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>(v);
@@ -89,22 +89,24 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
 
 Variant::operator v8::Local<v8::Value>() const
 {
+    Isolate & isolate = Isolate::now();
+
     switch (type())
     {
     case VT_Undefined:
-        return v8::Undefined(isolate);
+        return v8::Undefined(isolate.isolate);
     case VT_Null:
     case VT_Type:
     case VT_Persistent:
-        return v8::Null(isolate);
+        return v8::Null(isolate.isolate);
     case VT_Boolean:
-        return m_Val.boolVal ? v8::True(isolate) : v8::False(isolate);
+        return m_Val.boolVal ? v8::True(isolate.isolate) : v8::False(isolate.isolate);
     case VT_Integer:
-        return v8::Int32::New(isolate, m_Val.intVal);
+        return v8::Int32::New(isolate.isolate, m_Val.intVal);
     case VT_Long:
-        return v8::Number::New(isolate, (double) m_Val.longVal);
+        return v8::Number::New(isolate.isolate, (double) m_Val.longVal);
     case VT_Number:
-        return v8::Number::New(isolate, m_Val.dblVal);
+        return v8::Number::New(isolate.isolate, m_Val.dblVal);
     case VT_Date:
         return dateVal();
     case VT_Object:
@@ -118,19 +120,19 @@ Variant::operator v8::Local<v8::Value>() const
     }
     case VT_JSValue:
         if (isPersistent())
-            return v8::Local<v8::Value>::New(isolate, jsValEx());
+            return v8::Local<v8::Value>::New(isolate.isolate, jsValEx());
         else
             return jsVal();
     case VT_String:
     {
         std::string &str = strVal();
-        return v8::String::NewFromUtf8(isolate, str.c_str(),
+        return v8::String::NewFromUtf8(isolate.isolate, str.c_str(),
                                        v8::String::kNormalString,
                                        (int) str.length());
     }
     }
 
-    return v8::Null(isolate);
+    return v8::Null(isolate.isolate);
 }
 
 inline void next(int &len, int &pos)

@@ -22,8 +22,10 @@ result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object>
 v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
         bool autoDelete)
 {
+    Isolate &isolate = Isolate::now();
+
     v8::Local<v8::Object> o = wrap();
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, k);
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate.isolate, k);
     v8::Local<v8::Value> es = o->GetHiddenValue(s);
     v8::Local<v8::Object> esa;
 
@@ -31,7 +33,7 @@ v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
     {
         if (create)
         {
-            esa = v8::Object::New(isolate);
+            esa = v8::Object::New(isolate.isolate);
             o->SetHiddenValue(s, esa);
         }
     }
@@ -48,7 +50,8 @@ static uint64_t s_fid = 0;
 
 inline int32_t putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
 {
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
+    Isolate &isolate = Isolate::now();
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate.isolate, "_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
     char buf[64];
     const int32_t base = 26;
@@ -67,7 +70,7 @@ inline int32_t putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> fu
 
         buf[p++] = 0;
 
-        fid = v8::String::NewFromUtf8(isolate, buf);
+        fid = v8::String::NewFromUtf8(isolate.isolate, buf);
         func->SetHiddenValue(s, fid);
     }
 
@@ -86,7 +89,7 @@ inline int32_t removeFunction(v8::Local<v8::Object> esa,
     if (esa.IsEmpty())
         return 0;
 
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(Isolate::now().isolate, "_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
 
     if (!fid.IsEmpty() && esa->Has(fid))
@@ -291,7 +294,7 @@ result_t object_base::_trigger(const char *ev, Variant *args, int argCount)
 
             argv.resize(m_args.size());
             for (i = 0; i < m_args.size(); i++)
-                argv[i] = v8::Local<v8::Value>::New(isolate, m_args[i]);
+                argv[i] = v8::Local<v8::Value>::New(Isolate::now().isolate, m_args[i]);
 
             m_obj->_trigger(m_ev.c_str(), argv.data(), (int) argv.size());
 

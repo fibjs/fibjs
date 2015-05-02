@@ -75,7 +75,7 @@ static void once_run(void)
     pthread_key_create(&keyRuntime, NULL);
 }
 
-void Runtime::reg(Runtime *rt)
+void Runtime::reg(void *rt)
 {
     pthread_once(&once, once_run);
     pthread_setspecific(keyRuntime, rt);
@@ -91,7 +91,7 @@ static void once_run(void)
     pthread_key_create(&keyRuntime, NULL);
 }
 
-void Runtime::reg(Runtime *rt)
+void Runtime::reg(void *rt)
 {
     pthread_once(&once, once_run);
     pthread_setspecific(keyRuntime, rt);
@@ -100,12 +100,12 @@ void Runtime::reg(Runtime *rt)
 #else
 
 #if defined(_MSC_VER)
-__declspec(thread) Runtime *th_rt = NULL;
+__declspec(thread) void *th_rt = NULL;
 #else
-__thread Runtime *th_rt = NULL;
+__thread void *th_rt = NULL;
 #endif
 
-void Runtime::reg(Runtime *rt)
+void Runtime::reg(void *rt)
 {
     th_rt = rt;
 }
@@ -122,8 +122,33 @@ Runtime &Runtime::now()
 #elif defined(OpenBSD)
     return *(Runtime *) pthread_getspecific(keyRuntime);
 #else
-    return *th_rt;
+    return *(Runtime *)th_rt;
 #endif
+}
+
+Isolate &Isolate::now()
+{
+    assert(exlib::Service::hasService());
+
+    if (exlib::Service::hasService())
+    {
+#ifdef MacOS
+        return *(Isolate *) FastThreadLocal(keyRuntime);
+#elif defined(OpenBSD)
+        return *(Isolate *) pthread_getspecific(keyRuntime);
+#else
+        return *(Isolate *)th_rt;
+#endif
+    }
+
+    return *(Isolate *)NULL;
+}
+
+void Isolate::reg(void *rt)
+{
+    assert(exlib::Service::hasService());
+
+    Runtime::reg(rt);
 }
 
 } /* namespace fibjs */
