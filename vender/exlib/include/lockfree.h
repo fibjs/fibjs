@@ -56,6 +56,8 @@ public:
 
     void put(T *o)
     {
+        assert(o->m_next == NULL);
+
         m_lock.lock();
 
         o->m_next = m_first;
@@ -75,6 +77,8 @@ public:
         {
             m_first = (T *)p->m_next;
             p->m_next = 0;
+
+            assert(p != m_first);
         }
 
         m_lock.unlock();
