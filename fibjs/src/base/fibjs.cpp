@@ -1,6 +1,7 @@
 
 #include <locale.h>
 
+#include <string.h>
 #include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/global.h"
@@ -15,6 +16,26 @@ namespace fibjs
 
 void init_argv(int argc, char **argv);
 
+class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
+{
+public:
+    virtual void* Allocate(size_t length)
+    {
+        void* data = AllocateUninitialized(length);
+        return data == NULL ? data : memset(data, 0, length);
+    }
+
+    virtual void* AllocateUninitialized(size_t length)
+    {
+        return malloc(length);
+    }
+
+    virtual void Free(void* data, size_t)
+    {
+        free(data);
+    }
+};
+
 void _main(const char *fname)
 {
     v8::Platform *platform = v8::platform::CreateDefaultPlatform();
@@ -27,7 +48,11 @@ void _main(const char *fname)
 
     Isolate& isolate = Isolate::now();
 
-    isolate.isolate = v8::Isolate::New();
+    v8::Isolate::CreateParams create_params;
+    ShellArrayBufferAllocator array_buffer_allocator;
+    create_params.array_buffer_allocator = &array_buffer_allocator;
+
+    isolate.isolate = v8::Isolate::New(create_params);
     v8::Locker locker(isolate.isolate);
     v8::Isolate::Scope isolate_scope(isolate.isolate);
 
