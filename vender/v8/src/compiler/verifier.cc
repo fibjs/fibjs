@@ -168,16 +168,6 @@ void Verifier::Visitor::Check(Node* node) {
   }
 
   switch (node->opcode()) {
-    case IrOpcode::kAlways:
-      // Always has no inputs.
-      CHECK_EQ(0, input_count);
-      // Always uses are Branch.
-      for (auto use : node->uses()) {
-        CHECK(use->opcode() == IrOpcode::kBranch);
-      }
-      // Type is boolean.
-      CheckUpperIs(node, Type::Boolean());
-      break;
     case IrOpcode::kStart:
       // Start has no inputs.
       CHECK_EQ(0, input_count);
@@ -292,6 +282,15 @@ void Verifier::Visitor::Check(Node* node) {
       // TODO(rossberg): what are the constraints on these?
       // Type is empty.
       CheckNotTyped(node);
+      break;
+    case IrOpcode::kTerminate:
+      CHECK_EQ(IrOpcode::kLoop,
+               NodeProperties::GetControlInput(node)->opcode());
+      // Type is empty.
+      CheckNotTyped(node);
+      CHECK_EQ(1, control_count);
+      CHECK_EQ(1, effect_count);
+      CHECK_EQ(2, input_count);
       break;
     case IrOpcode::kOsrNormalEntry:
     case IrOpcode::kOsrLoopEntry:
@@ -430,6 +429,9 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kCall:
       // TODO(rossberg): what are the constraints on these?
       break;
+    case IrOpcode::kTailCall:
+      // TODO(bmeurer): what are the constraints on these?
+      break;
 
     // JavaScript operators
     // --------------------
@@ -491,6 +493,15 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kJSCreate:
       // Type is Object.
       CheckUpperIs(node, Type::Object());
+      break;
+    case IrOpcode::kJSCreateClosure:
+      // Type is Function.
+      CheckUpperIs(node, Type::OtherObject());
+      break;
+    case IrOpcode::kJSCreateLiteralArray:
+    case IrOpcode::kJSCreateLiteralObject:
+      // Type is OtherObject.
+      CheckUpperIs(node, Type::OtherObject());
       break;
     case IrOpcode::kJSLoadProperty:
     case IrOpcode::kJSLoadNamed:
@@ -625,6 +636,10 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kObjectIsNonNegativeSmi:
       CheckValueInputIs(node, 0, Type::Any());
       CheckUpperIs(node, Type::Boolean());
+      break;
+    case IrOpcode::kAllocate:
+      CheckValueInputIs(node, 0, Type::PlainNumber());
+      CheckUpperIs(node, Type::TaggedPointer());
       break;
 
     case IrOpcode::kChangeTaggedToInt32: {

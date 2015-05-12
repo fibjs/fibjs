@@ -192,20 +192,21 @@ DEFINE_IMPLICATION(es_staging, harmony)
   V(harmony_sloppy, "harmony features in sloppy mode")          \
   V(harmony_unicode_regexps, "harmony unicode regexps")         \
   V(harmony_reflect, "harmony Reflect API")                     \
-  V(harmony_destructuring, "harmony destructuring")
+  V(harmony_destructuring, "harmony destructuring")             \
+  V(harmony_object, "harmony Object methods")
 
 // Features that are complete (but still behind --harmony/es-staging flag).
 #define HARMONY_STAGED(V)                               \
   V(harmony_rest_parameters, "harmony rest parameters") \
   V(harmony_spreadcalls, "harmony spread-calls")        \
-  V(harmony_unicode, "harmony unicode escapes")
 
 // Features that are shipping (turned on by default, but internal flag remains).
 #define HARMONY_SHIPPING(V)                                                \
   V(harmony_classes, "harmony classes (implies object literal extension)") \
   V(harmony_computed_property_names, "harmony computed property names")    \
   V(harmony_object_literals, "harmony object literal extensions")          \
-  V(harmony_tostring, "harmony toString")
+  V(harmony_tostring, "harmony toString")                                  \
+  V(harmony_unicode, "harmony unicode escapes")                            \
 
 // Once a shipping feature has proved stable in the wild, it will be dropped
 // from HARMONY_SHIPPING, all occurrences of the FLAG_ variable are removed,
@@ -402,6 +403,7 @@ DEFINE_BOOL(turbo_stats, false, "print TurboFan statistics")
 DEFINE_BOOL(turbo_splitting, true, "split nodes during scheduling in TurboFan")
 DEFINE_BOOL(turbo_types, true, "use typed lowering in TurboFan")
 DEFINE_BOOL(turbo_type_feedback, false, "use type feedback in TurboFan")
+DEFINE_BOOL(turbo_allocate, false, "enable inline allocations in TurboFan")
 DEFINE_BOOL(turbo_source_positions, false,
             "track source code positions when building TurboFan IR")
 DEFINE_IMPLICATION(trace_turbo, turbo_source_positions)
@@ -422,6 +424,7 @@ DEFINE_BOOL(turbo_exceptions, false, "enable exception handling in TurboFan")
 DEFINE_BOOL(turbo_stress_loop_peeling, false,
             "stress loop peeling optimization")
 DEFINE_BOOL(turbo_cf_optimization, true, "optimize control flow in TurboFan")
+DEFINE_BOOL(turbo_frame_elision, true, "elide frames in TurboFan")
 
 DEFINE_INT(typed_array_max_size_in_heap, 64,
            "threshold for in-heap typed array")
@@ -600,6 +603,8 @@ DEFINE_BOOL(print_max_heap_committed, false,
             "in name=value format on exit")
 DEFINE_BOOL(trace_gc_verbose, false,
             "print more details following each garbage collection")
+DEFINE_INT(trace_allocation_stack_interval, -1,
+           "print stack trace after <n> free-list allocations")
 DEFINE_BOOL(trace_fragmentation, false, "report fragmentation for old space")
 DEFINE_BOOL(trace_fragmentation_verbose, false,
             "report fragmentation for old space (detailed)")
@@ -642,6 +647,10 @@ DEFINE_IMPLICATION(trace_detached_contexts, track_detached_contexts)
 #ifdef VERIFY_HEAP
 DEFINE_BOOL(verify_heap, false, "verify heap pointers before and after GC")
 #endif
+
+// counters.cc
+DEFINE_INT(histogram_interval, 600000,
+           "time interval in ms for aggregating memory histograms")
 
 
 // heap-snapshot-generator.cc

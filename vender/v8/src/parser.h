@@ -773,8 +773,9 @@ class ParserTraits {
       bool name_is_strict_reserved, FunctionKind kind,
       int function_token_position, FunctionLiteral::FunctionType type,
       FunctionLiteral::ArityRestriction arity_restriction, bool* ok);
-  V8_INLINE void SkipLazyFunctionBody(int* materialized_literal_count,
-                                      int* expected_property_count, bool* ok);
+  V8_INLINE void SkipLazyFunctionBody(
+      int* materialized_literal_count, int* expected_property_count, bool* ok,
+      Scanner::BookmarkScope* bookmark = nullptr);
   V8_INLINE ZoneList<Statement*>* ParseEagerFunctionBody(
       const AstRawString* name, int pos, Variable* fvar,
       Token::Value fvar_init_op, FunctionKind kind, bool* ok);
@@ -910,8 +911,7 @@ class Parser : public ParserBase<ParserTraits> {
   // which is set to false if parsing failed; it is unchanged otherwise.
   // By making the 'exception handling' explicit, we are forced to check
   // for failure at the call sites.
-  void* ParseStatementList(ZoneList<Statement*>* body, int end_token,
-                           bool is_eval, Scope** ad_hoc_eval_scope, bool* ok);
+  void* ParseStatementList(ZoneList<Statement*>* body, int end_token, bool* ok);
   Statement* ParseStatementListItem(bool* ok);
   void* ParseModuleItemList(ZoneList<Statement*>* body, bool* ok);
   Statement* ParseModuleItem(bool* ok);
@@ -1024,12 +1024,16 @@ class Parser : public ParserBase<ParserTraits> {
 
   // Skip over a lazy function, either using cached data if we have it, or
   // by parsing the function with PreParser. Consumes the ending }.
+  //
+  // If bookmark is set, the (pre-)parser may decide to abort skipping
+  // in order to force the function to be eagerly parsed, after all.
+  // In this case, it'll reset the scanner using the bookmark.
   void SkipLazyFunctionBody(int* materialized_literal_count,
-                            int* expected_property_count,
-                            bool* ok);
+                            int* expected_property_count, bool* ok,
+                            Scanner::BookmarkScope* bookmark = nullptr);
 
   PreParser::PreParseResult ParseLazyFunctionBodyWithPreParser(
-      SingletonLogger* logger);
+      SingletonLogger* logger, Scanner::BookmarkScope* bookmark = nullptr);
 
   // Consumes the ending }.
   ZoneList<Statement*>* ParseEagerFunctionBody(
@@ -1090,10 +1094,10 @@ const AstRawString* ParserTraits::EmptyIdentifierString() {
 
 
 void ParserTraits::SkipLazyFunctionBody(int* materialized_literal_count,
-                                        int* expected_property_count,
-                                        bool* ok) {
-  return parser_->SkipLazyFunctionBody(
-      materialized_literal_count, expected_property_count, ok);
+                                        int* expected_property_count, bool* ok,
+                                        Scanner::BookmarkScope* bookmark) {
+  return parser_->SkipLazyFunctionBody(materialized_literal_count,
+                                       expected_property_count, ok, bookmark);
 }
 
 

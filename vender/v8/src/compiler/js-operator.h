@@ -21,19 +21,35 @@ struct JSOperatorGlobalCache;
 // used as a parameter by JSCallFunction operators.
 class CallFunctionParameters final {
  public:
-  CallFunctionParameters(size_t arity, CallFunctionFlags flags)
-      : arity_(arity), flags_(flags) {}
+  CallFunctionParameters(size_t arity, CallFunctionFlags flags,
+                         LanguageMode language_mode)
+      : bit_field_(ArityField::encode(arity) | FlagsField::encode(flags) |
+                   LanguageModeField::encode(language_mode)) {}
 
-  size_t arity() const { return arity_; }
-  CallFunctionFlags flags() const { return flags_; }
+  size_t arity() const { return ArityField::decode(bit_field_); }
+  CallFunctionFlags flags() const { return FlagsField::decode(bit_field_); }
+  LanguageMode language_mode() const {
+    return LanguageModeField::decode(bit_field_);
+  }
+
+  bool operator==(CallFunctionParameters const& that) const {
+    return this->bit_field_ == that.bit_field_;
+  }
+  bool operator!=(CallFunctionParameters const& that) const {
+    return !(*this == that);
+  }
 
  private:
-  const size_t arity_;
-  const CallFunctionFlags flags_;
-};
+  friend size_t hash_value(CallFunctionParameters const& p) {
+    return p.bit_field_;
+  }
 
-bool operator==(CallFunctionParameters const&, CallFunctionParameters const&);
-bool operator!=(CallFunctionParameters const&, CallFunctionParameters const&);
+  typedef BitField<size_t, 0, 28> ArityField;
+  typedef BitField<CallFunctionFlags, 28, 2> FlagsField;
+  typedef BitField<LanguageMode, 30, 2> LanguageModeField;
+
+  const uint32_t bit_field_;
+};
 
 size_t hash_value(CallFunctionParameters const&);
 
@@ -206,6 +222,32 @@ std::ostream& operator<<(std::ostream&, StoreNamedParameters const&);
 const StoreNamedParameters& StoreNamedParametersOf(const Operator* op);
 
 
+// Defines shared information for the closure that should be created. This is
+// used as a parameter by JSCreateClosure operators.
+class CreateClosureParameters final {
+ public:
+  CreateClosureParameters(Handle<SharedFunctionInfo> shared_info,
+                          PretenureFlag pretenure)
+      : shared_info_(shared_info), pretenure_(pretenure) {}
+
+  Handle<SharedFunctionInfo> shared_info() const { return shared_info_; }
+  PretenureFlag pretenure() const { return pretenure_; }
+
+ private:
+  const Handle<SharedFunctionInfo> shared_info_;
+  const PretenureFlag pretenure_;
+};
+
+bool operator==(CreateClosureParameters const&, CreateClosureParameters const&);
+bool operator!=(CreateClosureParameters const&, CreateClosureParameters const&);
+
+size_t hash_value(CreateClosureParameters const&);
+
+std::ostream& operator<<(std::ostream&, CreateClosureParameters const&);
+
+const CreateClosureParameters& CreateClosureParametersOf(const Operator* op);
+
+
 // Interface for building JavaScript-level operators, e.g. directly from the
 // AST. Most operators have no parameters, thus can be globally shared for all
 // graphs.
@@ -242,8 +284,13 @@ class JSOperatorBuilder final : public ZoneObject {
   const Operator* Yield();
 
   const Operator* Create();
+  const Operator* CreateClosure(Handle<SharedFunctionInfo> shared_info,
+                                PretenureFlag pretenure);
+  const Operator* CreateLiteralArray(int literal_flags);
+  const Operator* CreateLiteralObject(int literal_flags);
 
-  const Operator* CallFunction(size_t arity, CallFunctionFlags flags);
+  const Operator* CallFunction(size_t arity, CallFunctionFlags flags,
+                               LanguageMode language_mode);
   const Operator* CallRuntime(Runtime::FunctionId id, size_t arity);
 
   const Operator* CallConstruct(int arguments);

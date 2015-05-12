@@ -712,9 +712,11 @@ class Isolate {
       int frame_limit,
       StackTrace::StackTraceOptions options);
 
+  enum PrintStackMode { kPrintStackConcise, kPrintStackVerbose };
   void PrintCurrentStackTrace(FILE* out);
-  void PrintStack(StringStream* accumulator);
-  void PrintStack(FILE* out);
+  void PrintStack(StringStream* accumulator,
+                  PrintStackMode mode = kPrintStackVerbose);
+  void PrintStack(FILE* out, PrintStackMode mode = kPrintStackVerbose);
   Handle<String> StackTraceString();
   NO_INLINE(void PushStackTraceAndDie(unsigned int magic,
                                       Object* object,
@@ -762,7 +764,7 @@ class Isolate {
 
   // Find the correct handler for the current pending exception. This also
   // clears and returns the current pending exception.
-  Object* FindHandler();
+  Object* UnwindAndFindHandler();
 
   // Tries to predict whether an exception will be caught. Note that this can
   // only produce an estimate, because it is undecidable whether a finally
@@ -1014,6 +1016,9 @@ class Isolate {
 
   Map* get_initial_js_array_map(ElementsKind kind);
 
+  static const int kArrayProtectorValid = 1;
+  static const int kArrayProtectorInvalid = 0;
+
   bool IsFastArrayConstructorPrototypeChainIntact();
 
   // On intent to set an element in object, make sure that appropriate
@@ -1111,8 +1116,6 @@ class Isolate {
   BasicBlockProfiler* GetOrCreateBasicBlockProfiler();
   BasicBlockProfiler* basic_block_profiler() { return basic_block_profiler_; }
 
-  static Isolate* NewForTesting() { return new Isolate(false); }
-
   std::string GetTurboCfgFileName();
 
 #if TRACE_MAPS
@@ -1141,6 +1144,13 @@ class Isolate {
   void CheckDetachedContextsAfterGC();
 
   List<Object*>* partial_snapshot_cache() { return &partial_snapshot_cache_; }
+
+  void set_array_buffer_allocator(v8::ArrayBuffer::Allocator* allocator) {
+    array_buffer_allocator_ = allocator;
+  }
+  v8::ArrayBuffer::Allocator* array_buffer_allocator() const {
+    return array_buffer_allocator_;
+  }
 
  protected:
   explicit Isolate(bool enable_serializer);
@@ -1243,6 +1253,10 @@ class Isolate {
   // If there is no external try-catch or message was successfully propagated,
   // then return true.
   bool PropagatePendingExceptionToExternalTryCatch();
+
+  // Remove per-frame stored materialized objects when we are unwinding
+  // the frame.
+  void RemoveMaterializedObjectsOnUnwind(StackFrame* frame);
 
   // Traverse prototype chain to find out whether the object is derived from
   // the Error object.
@@ -1365,6 +1379,8 @@ class Isolate {
   BasicBlockProfiler* basic_block_profiler_;
 
   List<Object*> partial_snapshot_cache_;
+
+  v8::ArrayBuffer::Allocator* array_buffer_allocator_;
 
   friend class ExecutionAccess;
   friend class HandleScopeImplementer;

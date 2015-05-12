@@ -966,10 +966,17 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
   __ movp(rcx, Operand(rdx, ArgumentsAdaptorFrameConstants::kLengthOffset));
 
   if (has_new_target()) {
+    // If the constructor was [[Call]]ed, the call will not push a new.target
+    // onto the stack. In that case the arguments array we construct is bogus,
+    // bu we do not care as the constructor throws immediately.
+    __ Cmp(rcx, Smi::FromInt(0));
+    Label skip_decrement;
+    __ j(equal, &skip_decrement);
     // Subtract 1 from smi-tagged arguments count.
     __ SmiToInteger32(rcx, rcx);
     __ decl(rcx);
     __ Integer32ToSmi(rcx, rcx);
+    __ bind(&skip_decrement);
   }
   __ movp(args.GetArgumentOperand(2), rcx);
   __ SmiToInteger64(rcx, rcx);
@@ -1582,6 +1589,9 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
       // Call runtime on identical objects.  Otherwise return equal.
       __ CmpObjectType(rax, FIRST_SPEC_OBJECT_TYPE, rcx);
       __ j(above_equal, &not_identical, Label::kNear);
+      // Call runtime on identical symbols since we need to throw a TypeError.
+      __ CmpObjectType(rax, SYMBOL_TYPE, rcx);
+      __ j(equal, &not_identical, Label::kNear);
     }
     __ Set(rax, EQUAL);
     __ ret(0);
@@ -2332,6 +2342,7 @@ void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   BinaryOpICStub::GenerateAheadOfTime(isolate);
   BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
   StoreFastElementStub::GenerateAheadOfTime(isolate);
+  TypeofStub::GenerateAheadOfTime(isolate);
 }
 
 
@@ -2461,7 +2472,8 @@ void CEntryStub::Generate(MacroAssembler* masm) {
 
   // Ask the runtime for help to determine the handler. This will set rax to
   // contain the current pending exception, don't clobber it.
-  ExternalReference find_handler(Runtime::kFindExceptionHandler, isolate());
+  ExternalReference find_handler(Runtime::kUnwindAndFindExceptionHandler,
+                                 isolate());
   {
     FrameScope scope(masm, StackFrame::MANUAL);
     __ movp(arg_reg_1, Immediate(0));  // argc.

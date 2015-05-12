@@ -147,7 +147,7 @@ bool LCodeGen::GeneratePrologue() {
     // Sloppy mode functions and builtins need to replace the receiver with the
     // global proxy when called as functions (without an explicit receiver
     // object).
-    if (graph()->this_has_uses() && is_sloppy(info_->language_mode()) &&
+    if (is_sloppy(info_->language_mode()) && info()->MayUseThis() &&
         !info_->is_native()) {
       Label ok;
       int receiver_offset = info_->scope()->num_parameters() * kPointerSize;
@@ -2064,7 +2064,7 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
   DCHECK(ToRegister(instr->result()).is(v0));
 
   Handle<Code> code = CodeFactory::BinaryOpIC(
-      isolate(), instr->op(), language_mode()).code();
+      isolate(), instr->op(), instr->language_mode()).code();
   CallCode(code, RelocInfo::CODE_TARGET, instr);
   // Other arch use a nop here, to signal that there is no inlined
   // patchable code. Mips does not need the nop, since our marker
@@ -2108,7 +2108,7 @@ void LCodeGen::EmitBranchF(InstrType instr,
     EmitGoto(left_block);
   } else if (left_block == next_block) {
     __ BranchF(chunk_->GetAssemblyLabel(right_block), NULL,
-               NegateCondition(condition), src1, src2);
+               NegateFpuCondition(condition), src1, src2);
   } else if (right_block == next_block) {
     __ BranchF(chunk_->GetAssemblyLabel(left_block), NULL,
                condition, src1, src2);
@@ -2156,7 +2156,7 @@ void LCodeGen::DoBranch(LBranch* instr) {
     DCHECK(!info()->IsStub());
     DoubleRegister reg = ToDoubleRegister(instr->value());
     // Test the double value. Zero and NaN are false.
-    EmitBranchF(instr, nue, reg, kDoubleRegZero);
+    EmitBranchF(instr, ogl, reg, kDoubleRegZero);
   } else {
     DCHECK(r.IsTagged());
     Register reg = ToRegister(instr->value());
@@ -2176,7 +2176,7 @@ void LCodeGen::DoBranch(LBranch* instr) {
       DoubleRegister dbl_scratch = double_scratch0();
       __ ldc1(dbl_scratch, FieldMemOperand(reg, HeapNumber::kValueOffset));
       // Test the double value. Zero and NaN are false.
-      EmitBranchF(instr, nue, dbl_scratch, kDoubleRegZero);
+      EmitBranchF(instr, ogl, dbl_scratch, kDoubleRegZero);
     } else if (type.IsString()) {
       DCHECK(!info()->IsStub());
       __ lw(at, FieldMemOperand(reg, String::kLengthOffset));
@@ -3289,6 +3289,22 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
       __ LoadRoot(scratch, Heap::kTheHoleValueRootIndex);
       DeoptimizeIf(eq, instr, Deoptimizer::kHole, result, Operand(scratch));
     }
+  } else if (instr->hydrogen()->hole_mode() == CONVERT_HOLE_TO_UNDEFINED) {
+    DCHECK(instr->hydrogen()->elements_kind() == FAST_HOLEY_ELEMENTS);
+    Label done;
+    __ LoadRoot(scratch, Heap::kTheHoleValueRootIndex);
+    __ Branch(&done, ne, result, Operand(scratch));
+    if (info()->IsStub()) {
+      // A stub can safely convert the hole to undefined only if the array
+      // protector cell contains (Smi) Isolate::kArrayProtectorValid. Otherwise
+      // it needs to bail out.
+      __ LoadRoot(result, Heap::kArrayProtectorRootIndex);
+      __ lw(result, FieldMemOperand(result, Cell::kValueOffset));
+      DeoptimizeIf(ne, instr, Deoptimizer::kHole, result,
+                   Operand(Smi::FromInt(Isolate::kArrayProtectorValid)));
+    }
+    __ LoadRoot(result, Heap::kUndefinedValueRootIndex);
+    __ bind(&done);
   }
 }
 
@@ -5156,6 +5172,18 @@ void LCodeGen::DoCheckNonSmi(LCheckNonSmi* instr) {
 }
 
 
+void LCodeGen::DoCheckArrayBufferNotNeutered(
+    LCheckArrayBufferNotNeutered* instr) {
+  Register view = ToRegister(instr->view());
+  Register scratch = scratch0();
+
+  __ lw(scratch, FieldMemOperand(view, JSArrayBufferView::kBufferOffset));
+  __ lw(scratch, FieldMemOperand(scratch, JSArrayBuffer::kBitFieldOffset));
+  __ And(at, scratch, 1 << JSArrayBuffer::WasNeutered::kShift);
+  DeoptimizeIf(ne, instr, Deoptimizer::kOutOfBounds, at, Operand(zero_reg));
+}
+
+
 void LCodeGen::DoCheckInstanceType(LCheckInstanceType* instr) {
   Register input = ToRegister(instr->value());
   Register scratch = scratch0();
@@ -5541,10 +5569,17 @@ void LCodeGen::DoFunctionLiteral(LFunctionLiteral* instr) {
 
 
 void LCodeGen::DoTypeof(LTypeof* instr) {
+  DCHECK(ToRegister(instr->value()).is(a3));
   DCHECK(ToRegister(instr->result()).is(v0));
-  Register input = ToRegister(instr->value());
-  __ push(input);
-  CallRuntime(Runtime::kTypeof, 1, instr);
+  Label end, do_call;
+  Register value_register = ToRegister(instr->value());
+  __ JumpIfNotSmi(value_register, &do_call);
+  __ li(v0, Operand(isolate()->factory()->number_string()));
+  __ jmp(&end);
+  __ bind(&do_call);
+  TypeofStub stub(isolate());
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  __ bind(&end);
 }
 
 

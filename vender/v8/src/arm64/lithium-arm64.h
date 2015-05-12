@@ -40,6 +40,7 @@ class LCodeGen;
   V(CallRuntime)                             \
   V(CallStub)                                \
   V(CallWithDescriptor)                      \
+  V(CheckArrayBufferNotNeutered)             \
   V(CheckInstanceType)                       \
   V(CheckMapValue)                           \
   V(CheckMaps)                               \
@@ -736,6 +737,10 @@ class LArithmeticT final : public LTemplateInstruction<1, 3, 0> {
   void CompileToNative(LCodeGen* generator) override;
   const char* Mnemonic() const override;
 
+  DECLARE_HYDROGEN_ACCESSOR(BinaryOperation)
+
+  LanguageMode language_mode() { return hydrogen()->language_mode(); }
+
  private:
   Token::Value op_;
 };
@@ -932,6 +937,19 @@ class LCallStub final : public LTemplateInstruction<1, 1, 0> {
 
   DECLARE_CONCRETE_INSTRUCTION(CallStub, "call-stub")
   DECLARE_HYDROGEN_ACCESSOR(CallStub)
+};
+
+
+class LCheckArrayBufferNotNeutered final
+    : public LTemplateInstruction<0, 1, 0> {
+ public:
+  explicit LCheckArrayBufferNotNeutered(LOperand* view) { inputs_[0] = view; }
+
+  LOperand* view() { return inputs_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(CheckArrayBufferNotNeutered,
+                               "check-array-buffer-not-neutered")
+  DECLARE_HYDROGEN_ACCESSOR(CheckArrayBufferNotNeutered)
 };
 
 

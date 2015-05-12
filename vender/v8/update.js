@@ -111,12 +111,14 @@ function cp_folder(path) {
 
 var gens = [
 	'libraries.cc',
-	'experimental-libraries.cc'
+	'experimental-libraries.cc',
+	'extras-libraries.cc'
 ];
 
 function cp_gen() {
+	fs.mkdir('src/gen');
 	gens.forEach(function(f) {
-		fs.writeFile('src/' + f, fs.readFile(v8Folder + '/out/ia32.release/obj/gen/' + f));
+		fs.writeFile('src/gen/' + f, fs.readFile(v8Folder + '/out/ia32.release/obj/gen/' + f));
 	});
 }
 
@@ -179,16 +181,13 @@ function patch_plat() {
 		var txt1;
 		var val = plats1[f];
 
-		if (txt.indexOf(val) >= 0)
-			return;
-
 		console.log("patch", fname);
 		txt = '#include <exlib/include/osconfig.h>\n\n' + val + '\n\n' + txt + '\n\n#endif';
 		txt1 = txt.replace('void OS::Sleep', 'void OS_Sleep');
 		txt1 = txt1.replace('class Thread::PlatformData {', '#if 0\nclass Thread::PlatformData {');
 
 		if (txt != txt1) {
-			var idx = txt1.indexOf('} }', txt1.lastIndexOf('Thread::'));
+			var idx = txt1.indexOf('}  // namespace base', txt1.lastIndexOf('Thread::'));
 
 			txt1 = txt1.substr(0, idx) + '#endif\n\n' + txt1.substr(idx);
 		}

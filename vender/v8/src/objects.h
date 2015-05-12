@@ -1841,9 +1841,11 @@ class JSObject: public JSReceiver {
   static void OptimizeAsPrototype(Handle<JSObject> object,
                                   PrototypeOptimizationMode mode);
   static void ReoptimizeIfPrototype(Handle<JSObject> object);
-  static void RegisterPrototypeUser(Handle<JSObject> prototype,
-                                    Handle<HeapObject> user);
-  static void UnregisterPrototypeUser(Handle<JSObject> prototype,
+  static void LazyRegisterPrototypeUser(Handle<Map> user, Isolate* isolate);
+  static bool RegisterPrototypeUserIfNotRegistered(Handle<JSObject> prototype,
+                                                   Handle<HeapObject> user,
+                                                   Isolate* isolate);
+  static bool UnregisterPrototypeUser(Handle<JSObject> prototype,
                                       Handle<HeapObject> user);
   static void InvalidatePrototypeChains(Map* map);
 
@@ -1940,7 +1942,8 @@ class JSObject: public JSReceiver {
 
   // Would we convert a fast elements array to dictionary mode given
   // an access at key?
-  bool WouldConvertToSlowElements(Handle<Object> key);
+  bool WouldConvertToSlowElements(uint32_t index);
+  inline bool WouldConvertToSlowElements(Handle<Object> key);
   // Do we want to keep the elements in fast case when increasing the
   // capacity?
   bool ShouldConvertToSlowElements(int new_capacity);
@@ -1994,6 +1997,12 @@ class JSObject: public JSReceiver {
     kDontAllowSmiElements
   };
 
+  static Handle<FixedArray> SetFastElementsCapacity(
+      Handle<JSObject> object, int capacity,
+      SetFastElementsCapacitySmiMode smi_mode);
+  static Handle<FixedArrayBase> SetFastDoubleElementsCapacity(
+      Handle<JSObject> object, int capacity);
+
   // Replace the elements' backing store with fast elements of the given
   // capacity.  Update the length for JSArrays.  Returns the new backing
   // store.
@@ -2002,10 +2011,8 @@ class JSObject: public JSReceiver {
       int capacity,
       int length,
       SetFastElementsCapacitySmiMode smi_mode);
-  static void SetFastDoubleElementsCapacityAndLength(
-      Handle<JSObject> object,
-      int capacity,
-      int length);
+  static Handle<FixedArrayBase> SetFastDoubleElementsCapacityAndLength(
+      Handle<JSObject> object, int capacity, int length);
 
   // Lookup interceptors are used for handling properties controlled by host
   // objects.
@@ -2061,6 +2068,9 @@ class JSObject: public JSReceiver {
   // them to any storage.
   // Returns the number of enumerable elements.
   int GetEnumElementKeys(FixedArray* storage);
+
+  static Handle<FixedArray> GetEnumPropertyKeys(Handle<JSObject> object,
+                                                bool cache_result);
 
   // Returns a new map with all transitions dropped from the object's current
   // map and the ElementsKind set.
@@ -2235,8 +2245,8 @@ class JSObject: public JSReceiver {
   // permissible values (see the DCHECK in heap.cc).
   static const int kInitialMaxFastElementArray = 100000;
 
-  // This constant applies only to the initial map of "$Object" aka
-  // "global.Object" and not to arbitrary other JSObject maps.
+  // This constant applies only to the initial map of "global.Object" and
+  // not to arbitrary other JSObject maps.
   static const int kInitialGlobalObjectUnusedPropertiesCount = 4;
 
   static const int kMaxInstanceSize = 255 * kPointerSize;
@@ -2621,15 +2631,19 @@ class WeakFixedArray : public FixedArray {
   // If |maybe_array| is not a WeakFixedArray, a fresh one will be allocated.
   static Handle<WeakFixedArray> Add(
       Handle<Object> maybe_array, Handle<HeapObject> value,
-      SearchForDuplicates search_for_duplicates = kAlwaysAdd);
+      SearchForDuplicates search_for_duplicates = kAlwaysAdd,
+      bool* was_present = NULL);
 
-  void Remove(Handle<HeapObject> value);
+  // Returns true if an entry was found and removed.
+  bool Remove(Handle<HeapObject> value);
 
   void Compact();
 
   inline Object* Get(int index) const;
+  inline void Clear(int index);
   inline int Length() const;
 
+  inline bool IsEmptySlot(int index) const;
   static Object* Empty() { return Smi::FromInt(0); }
 
   DECLARE_CAST(WeakFixedArray)
@@ -2644,7 +2658,6 @@ class WeakFixedArray : public FixedArray {
   static void Set(Handle<WeakFixedArray> array, int index,
                   Handle<HeapObject> value);
   inline void clear(int index);
-  inline bool IsEmptySlot(int index) const;
 
   inline int last_used_index() const;
   inline void set_last_used_index(int index);
@@ -4632,8 +4645,7 @@ class ExternalArray: public FixedArrayBase {
   // ExternalArray headers are not quadword aligned.
   static const int kExternalPointerOffset =
       POINTER_SIZE_ALIGN(FixedArrayBase::kLengthOffset + kPointerSize);
-  static const int kHeaderSize = kExternalPointerOffset + kPointerSize;
-  static const int kAlignedSize = OBJECT_POINTER_ALIGN(kHeaderSize);
+  static const int kSize = kExternalPointerOffset + kPointerSize;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ExternalArray);
@@ -4660,9 +4672,9 @@ class ExternalUint8ClampedArray: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined and clamps the converted value between 0 and 255.
-  static Handle<Object> SetValue(Handle<ExternalUint8ClampedArray> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalUint8ClampedArray> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalUint8ClampedArray)
 
@@ -4684,9 +4696,9 @@ class ExternalInt8Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalInt8Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalInt8Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalInt8Array)
 
@@ -4708,9 +4720,9 @@ class ExternalUint8Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalUint8Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalUint8Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalUint8Array)
 
@@ -4732,9 +4744,9 @@ class ExternalInt16Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalInt16Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalInt16Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalInt16Array)
 
@@ -4757,9 +4769,9 @@ class ExternalUint16Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalUint16Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalUint16Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalUint16Array)
 
@@ -4781,9 +4793,9 @@ class ExternalInt32Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalInt32Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalInt32Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalInt32Array)
 
@@ -4806,9 +4818,9 @@ class ExternalUint32Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalUint32Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalUint32Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalUint32Array)
 
@@ -4831,9 +4843,9 @@ class ExternalFloat32Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalFloat32Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalFloat32Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalFloat32Array)
 
@@ -4856,9 +4868,9 @@ class ExternalFloat64Array: public ExternalArray {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<ExternalFloat64Array> array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<ExternalFloat64Array> array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_CAST(ExternalFloat64Array)
 
@@ -4875,7 +4887,7 @@ class FixedTypedArrayBase: public FixedArrayBase {
  public:
   DECLARE_CAST(FixedTypedArrayBase)
 
-  static const int kDataOffset = kHeaderSize;
+  static const int kDataOffset = DOUBLE_POINTER_ALIGN(kHeaderSize);
 
   inline int size();
 
@@ -4904,14 +4916,6 @@ class FixedTypedArray: public FixedTypedArrayBase {
 
   DECLARE_CAST(FixedTypedArray<Traits>)
 
-  static inline int ElementOffset(int index) {
-    return kDataOffset + index * sizeof(ElementType);
-  }
-
-  static inline int SizeFor(int length) {
-    return ElementOffset(length);
-  }
-
   inline ElementType get_scalar(int index);
   static inline Handle<Object> get(Handle<FixedTypedArray> array, int index);
   inline void set(int index, ElementType value);
@@ -4921,9 +4925,9 @@ class FixedTypedArray: public FixedTypedArrayBase {
 
   // This accessor applies the correct conversion from Smi, HeapNumber
   // and undefined.
-  static Handle<Object> SetValue(Handle<FixedTypedArray<Traits> > array,
-                                 uint32_t index,
-                                 Handle<Object> value);
+  static Handle<Object> SetValue(Handle<JSObject> holder,
+                                 Handle<FixedTypedArray<Traits> > array,
+                                 uint32_t index, Handle<Object> value);
 
   DECLARE_PRINTER(FixedTypedArray)
   DECLARE_VERIFIER(FixedTypedArray)
@@ -5536,14 +5540,15 @@ class Code: public HeapObject {
 
 #define DECLARE_CODE_AGE_ENUM(X) k##X##CodeAge,
   enum Age {
+    kToBeExecutedOnceCodeAge = -3,
     kNotExecutedCodeAge = -2,
     kExecutedOnceCodeAge = -1,
     kNoAgeCodeAge = 0,
     CODE_AGE_LIST(DECLARE_CODE_AGE_ENUM)
     kAfterLastCodeAge,
-    kFirstCodeAge = kNotExecutedCodeAge,
+    kFirstCodeAge = kToBeExecutedOnceCodeAge,
     kLastCodeAge = kAfterLastCodeAge - 1,
-    kCodeAgeCount = kAfterLastCodeAge - kNotExecutedCodeAge - 1,
+    kCodeAgeCount = kAfterLastCodeAge - kFirstCodeAge - 1,
     kIsOldCodeAge = kSexagenarianCodeAge,
     kPreAgedCodeAge = kIsOldCodeAge - 1
   };
@@ -5556,13 +5561,11 @@ class Code: public HeapObject {
   static void MakeCodeAgeSequenceYoung(byte* sequence, Isolate* isolate);
   static void MarkCodeAsExecuted(byte* sequence, Isolate* isolate);
   void MakeYoung(Isolate* isolate);
+  void MarkToBeExecutedOnce(Isolate* isolate);
   void MakeOlder(MarkingParity);
   static bool IsYoungSequence(Isolate* isolate, byte* sequence);
   bool IsOld();
   Age GetAge();
-  // Gets the raw code age, including psuedo code-age values such as
-  // kNotExecutedCodeAge and kExecutedOnceCodeAge.
-  Age GetRawAge();
   static inline Code* GetPreAgedCodeAgeStub(Isolate* isolate) {
     return GetCodeAgeStub(isolate, kNotExecutedCodeAge, NO_MARKING_PARITY);
   }
@@ -5844,6 +5847,9 @@ class DependentCode: public FixedArray {
 };
 
 
+class PrototypeInfo;
+
+
 // All heap objects have a Map that describes their structure.
 //  A Map contains information about:
 //  - Size information about the object
@@ -6051,6 +6057,10 @@ class Map: public HeapObject {
   // [prototype_info]: Per-prototype metadata. Aliased with transitions
   // (which prototype maps don't have).
   DECL_ACCESSORS(prototype_info, Object)
+  // PrototypeInfo is created lazily using this helper (which installs it on
+  // the given prototype's map).
+  static Handle<PrototypeInfo> GetOrCreatePrototypeInfo(
+      Handle<JSObject> prototype, Isolate* isolate);
 
   // [prototype chain validity cell]: Associated with a prototype object,
   // stored in that object's map's PrototypeInfo, indicates that prototype
@@ -6123,9 +6133,6 @@ class Map: public HeapObject {
   static void SetPrototype(
       Handle<Map> map, Handle<Object> prototype,
       PrototypeOptimizationMode proto_mode = FAST_PROTOTYPE);
-  static bool ShouldRegisterAsPrototypeUser(Handle<Map> map,
-                                            Handle<JSObject> prototype);
-  bool CanUseOptimizationsBasedOnPrototypeRegistry();
 
   // [constructor]: points back to the function responsible for this map.
   // The field overlaps with the back pointer. All maps in a transition tree
@@ -6633,6 +6640,8 @@ class PrototypeInfo : public Struct {
   // [validity_cell]: Cell containing the validity bit for prototype chains
   // going through this object, or Smi(0) if uninitialized.
   DECL_ACCESSORS(validity_cell, Object)
+  // [constructor_name]: User-friendly name of the original constructor.
+  DECL_ACCESSORS(constructor_name, Object)
 
   DECLARE_CAST(PrototypeInfo)
 
@@ -6642,7 +6651,8 @@ class PrototypeInfo : public Struct {
 
   static const int kPrototypeUsersOffset = HeapObject::kHeaderSize;
   static const int kValidityCellOffset = kPrototypeUsersOffset + kPointerSize;
-  static const int kSize = kValidityCellOffset + kPointerSize;
+  static const int kConstructorNameOffset = kValidityCellOffset + kPointerSize;
+  static const int kSize = kConstructorNameOffset + kPointerSize;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(PrototypeInfo);
@@ -9829,14 +9839,15 @@ class PropertyCell : public HeapObject {
   // property.
   DECL_ACCESSORS(dependent_code, DependentCode)
 
+  PropertyCellConstantType GetConstantType();
+
   // Computes the new type of the cell's contents for the given value, but
   // without actually modifying the details.
   static PropertyCellType UpdatedType(Handle<PropertyCell> cell,
                                       Handle<Object> value,
                                       PropertyDetails details);
-  static Handle<Object> UpdateCell(Handle<NameDictionary> dictionary, int entry,
-                                   Handle<Object> value,
-                                   PropertyDetails details);
+  static void UpdateCell(Handle<NameDictionary> dictionary, int entry,
+                         Handle<Object> value, PropertyDetails details);
 
   static Handle<PropertyCell> InvalidateEntry(Handle<NameDictionary> dictionary,
                                               int entry);
@@ -10232,27 +10243,20 @@ class JSArrayBuffer: public JSObject {
   // [byte_length]: length in bytes
   DECL_ACCESSORS(byte_length, Object)
 
-  // [flags]
-  DECL_ACCESSORS(flag, Smi)
+  inline uint32_t bit_field() const;
+  inline void set_bit_field(uint32_t bits);
 
   inline bool is_external();
   inline void set_is_external(bool value);
 
-  inline bool should_be_freed();
-  inline void set_should_be_freed(bool value);
-
   inline bool is_neuterable();
   inline void set_is_neuterable(bool value);
 
-  // [weak_next]: linked list of array buffers.
-  DECL_ACCESSORS(weak_next, Object)
-
-  // [weak_first_array]: weak linked list of views.
-  DECL_ACCESSORS(weak_first_view, Object)
+  inline bool was_neutered();
+  inline void set_was_neutered(bool value);
 
   DECLARE_CAST(JSArrayBuffer)
 
-  // Neutering. Only neuters the buffer, not associated typed arrays.
   void Neuter();
 
   // Dispatched behavior.
@@ -10261,20 +10265,22 @@ class JSArrayBuffer: public JSObject {
 
   static const int kBackingStoreOffset = JSObject::kHeaderSize;
   static const int kByteLengthOffset = kBackingStoreOffset + kPointerSize;
-  static const int kFlagOffset = kByteLengthOffset + kPointerSize;
-  static const int kWeakNextOffset = kFlagOffset + kPointerSize;
-  static const int kWeakFirstViewOffset = kWeakNextOffset + kPointerSize;
-  static const int kSize = kWeakFirstViewOffset + kPointerSize;
+  static const int kBitFieldSlot = kByteLengthOffset + kPointerSize;
+#if V8_TARGET_LITTLE_ENDIAN || !V8_HOST_ARCH_64_BIT
+  static const int kBitFieldOffset = kBitFieldSlot;
+#else
+  static const int kBitFieldOffset = kBitFieldSlot + kIntSize;
+#endif
+  static const int kSize = kBitFieldSlot + kPointerSize;
 
   static const int kSizeWithInternalFields =
       kSize + v8::ArrayBuffer::kInternalFieldCount * kPointerSize;
 
- private:
-  // Bit position in a flag
-  static const int kIsExternalBit = 0;
-  static const int kShouldBeFreed = 1;
-  static const int kIsNeuterableBit = 2;
+  class IsExternal : public BitField<bool, 1, 1> {};
+  class IsNeuterable : public BitField<bool, 2, 1> {};
+  class WasNeutered : public BitField<bool, 3, 1> {};
 
+ private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(JSArrayBuffer);
 };
 
@@ -10284,29 +10290,29 @@ class JSArrayBufferView: public JSObject {
   // [buffer]: ArrayBuffer that this typed array views.
   DECL_ACCESSORS(buffer, Object)
 
-  // [byte_length]: offset of typed array in bytes.
+  // [byte_offset]: offset of typed array in bytes.
   DECL_ACCESSORS(byte_offset, Object)
 
   // [byte_length]: length of typed array in bytes.
   DECL_ACCESSORS(byte_length, Object)
 
-  // [weak_next]: linked list of typed arrays over the same array buffer.
-  DECL_ACCESSORS(weak_next, Object)
-
   DECLARE_CAST(JSArrayBufferView)
 
   DECLARE_VERIFIER(JSArrayBufferView)
 
+  inline bool WasNeutered() const;
+
   static const int kBufferOffset = JSObject::kHeaderSize;
   static const int kByteOffsetOffset = kBufferOffset + kPointerSize;
   static const int kByteLengthOffset = kByteOffsetOffset + kPointerSize;
-  static const int kWeakNextOffset = kByteLengthOffset + kPointerSize;
-  static const int kViewSize = kWeakNextOffset + kPointerSize;
-
- protected:
-  void NeuterView();
+  static const int kViewSize = kByteLengthOffset + kPointerSize;
 
  private:
+#ifdef VERIFY_HEAP
+  DECL_ACCESSORS(raw_byte_offset, Object)
+  DECL_ACCESSORS(raw_byte_length, Object)
+#endif
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(JSArrayBufferView);
 };
 
@@ -10315,9 +10321,6 @@ class JSTypedArray: public JSArrayBufferView {
  public:
   // [length]: length of typed array in elements.
   DECL_ACCESSORS(length, Object)
-
-  // Neutering. Only neuters this typed array.
-  void Neuter();
 
   DECLARE_CAST(JSTypedArray)
 
@@ -10339,6 +10342,9 @@ class JSTypedArray: public JSArrayBufferView {
  private:
   static Handle<JSArrayBuffer> MaterializeArrayBuffer(
       Handle<JSTypedArray> typed_array);
+#ifdef VERIFY_HEAP
+  DECL_ACCESSORS(raw_length, Object)
+#endif
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(JSTypedArray);
 };
@@ -10346,9 +10352,6 @@ class JSTypedArray: public JSArrayBufferView {
 
 class JSDataView: public JSArrayBufferView {
  public:
-  // Only neuters this DataView
-  void Neuter();
-
   DECLARE_CAST(JSDataView)
 
   // Dispatched behavior.
@@ -10567,7 +10570,7 @@ class ExecutableAccessorInfo: public AccessorInfo {
   static const int kDataOffset = kSetterOffset + kPointerSize;
   static const int kSize = kDataOffset + kPointerSize;
 
-  inline void clear_setter();
+  static inline void ClearSetter(Handle<ExecutableAccessorInfo> info);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ExecutableAccessorInfo);
@@ -10969,22 +10972,23 @@ class BreakPointInfo: public Struct {
 #undef DECLARE_CAST
 #undef DECLARE_VERIFIER
 
-#define VISITOR_SYNCHRONIZATION_TAGS_LIST(V)                            \
-  V(kStringTable, "string_table", "(Internalized strings)")             \
+#define VISITOR_SYNCHRONIZATION_TAGS_LIST(V)                               \
+  V(kStringTable, "string_table", "(Internalized strings)")                \
   V(kExternalStringsTable, "external_strings_table", "(External strings)") \
-  V(kStrongRootList, "strong_root_list", "(Strong roots)")              \
-  V(kSmiRootList, "smi_root_list", "(Smi roots)")                       \
-  V(kInternalizedString, "internalized_string", "(Internal string)")    \
-  V(kBootstrapper, "bootstrapper", "(Bootstrapper)")                    \
-  V(kTop, "top", "(Isolate)")                                           \
-  V(kRelocatable, "relocatable", "(Relocatable)")                       \
-  V(kDebug, "debug", "(Debugger)")                                      \
-  V(kCompilationCache, "compilationcache", "(Compilation cache)")       \
-  V(kHandleScope, "handlescope", "(Handle scope)")                      \
-  V(kBuiltins, "builtins", "(Builtins)")                                \
-  V(kGlobalHandles, "globalhandles", "(Global handles)")                \
-  V(kEternalHandles, "eternalhandles", "(Eternal handles)")             \
-  V(kThreadManager, "threadmanager", "(Thread manager)")                \
+  V(kStrongRootList, "strong_root_list", "(Strong roots)")                 \
+  V(kSmiRootList, "smi_root_list", "(Smi roots)")                          \
+  V(kInternalizedString, "internalized_string", "(Internal string)")       \
+  V(kBootstrapper, "bootstrapper", "(Bootstrapper)")                       \
+  V(kTop, "top", "(Isolate)")                                              \
+  V(kRelocatable, "relocatable", "(Relocatable)")                          \
+  V(kDebug, "debug", "(Debugger)")                                         \
+  V(kCompilationCache, "compilationcache", "(Compilation cache)")          \
+  V(kHandleScope, "handlescope", "(Handle scope)")                         \
+  V(kBuiltins, "builtins", "(Builtins)")                                   \
+  V(kGlobalHandles, "globalhandles", "(Global handles)")                   \
+  V(kEternalHandles, "eternalhandles", "(Eternal handles)")                \
+  V(kThreadManager, "threadmanager", "(Thread manager)")                   \
+  V(kStrongRoots, "strong roots", "(Strong roots)")                        \
   V(kExtensions, "Extensions", "(Extensions)")
 
 class VisitorSynchronization : public AllStatic {

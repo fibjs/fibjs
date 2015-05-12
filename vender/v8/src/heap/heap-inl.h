@@ -156,7 +156,8 @@ AllocationResult Heap::CopyConstantPoolArray(ConstantPoolArray* src) {
 
 
 AllocationResult Heap::AllocateRaw(int size_in_bytes, AllocationSpace space,
-                                   AllocationSpace retry_space) {
+                                   AllocationSpace retry_space,
+                                   Alignment alignment) {
   DCHECK(AllowHandleAllocation::IsAllowed());
   DCHECK(AllowHeapAllocation::IsAllowed());
   DCHECK(gc_state_ == NOT_IN_GC);
@@ -172,7 +173,15 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes, AllocationSpace space,
   HeapObject* object;
   AllocationResult allocation;
   if (NEW_SPACE == space) {
+#ifndef V8_HOST_ARCH_64_BIT
+    if (alignment == kDoubleAligned) {
+      allocation = new_space_.AllocateRawDoubleAligned(size_in_bytes);
+    } else {
+      allocation = new_space_.AllocateRaw(size_in_bytes);
+    }
+#else
     allocation = new_space_.AllocateRaw(size_in_bytes);
+#endif
     if (always_allocate() && allocation.IsRetry() && retry_space != NEW_SPACE) {
       space = retry_space;
     } else {
@@ -184,7 +193,15 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes, AllocationSpace space,
   }
 
   if (OLD_SPACE == space) {
+#ifndef V8_HOST_ARCH_64_BIT
+    if (alignment == kDoubleAligned) {
+      allocation = old_space_->AllocateRawDoubleAligned(size_in_bytes);
+    } else {
+      allocation = old_space_->AllocateRaw(size_in_bytes);
+    }
+#else
     allocation = old_space_->AllocateRaw(size_in_bytes);
+#endif
   } else if (CODE_SPACE == space) {
     if (size_in_bytes <= code_space()->AreaSize()) {
       allocation = code_space_->AllocateRaw(size_in_bytes);
@@ -213,9 +230,9 @@ void Heap::OnAllocationEvent(HeapObject* object, int size_in_bytes) {
     profiler->AllocationEvent(object->address(), size_in_bytes);
   }
 
-  if (FLAG_verify_predictable) {
-    ++allocations_count_;
+  ++allocations_count_;
 
+  if (FLAG_verify_predictable) {
     UpdateAllocationsHash(object);
     UpdateAllocationsHash(size_in_bytes);
 
@@ -223,6 +240,12 @@ void Heap::OnAllocationEvent(HeapObject* object, int size_in_bytes) {
         (--dump_allocations_hash_countdown_ == 0)) {
       dump_allocations_hash_countdown_ = FLAG_dump_allocations_digest_at_alloc;
       PrintAlloctionsHash();
+    }
+  }
+
+  if (FLAG_trace_allocation_stack_interval > 0) {
+    if (allocations_count_ % FLAG_trace_allocation_stack_interval == 0) {
+      isolate()->PrintStack(stdout, Isolate::kPrintStackConcise);
     }
   }
 }
@@ -538,10 +561,13 @@ Isolate* Heap::isolate() {
     AllocationResult __allocation__ = FUNCTION_CALL;                          \
     Object* __object__ = NULL;                                                \
     RETURN_OBJECT_UNLESS_RETRY(ISOLATE, RETURN_VALUE)                         \
-    (ISOLATE)->heap()->CollectGarbage(__allocation__.RetrySpace(),            \
-                                      "allocation failure");                  \
-    __allocation__ = FUNCTION_CALL;                                           \
-    RETURN_OBJECT_UNLESS_RETRY(ISOLATE, RETURN_VALUE)                         \
+    /* Two GCs before panicking.  In newspace will almost always succeed. */  \
+    for (int __i__ = 0; __i__ < 2; __i__++) {                                 \
+      (ISOLATE)->heap()->CollectGarbage(__allocation__.RetrySpace(),          \
+                                        "allocation failure");                \
+      __allocation__ = FUNCTION_CALL;                                         \
+      RETURN_OBJECT_UNLESS_RETRY(ISOLATE, RETURN_VALUE)                       \
+    }                                                                         \
     (ISOLATE)->counters()->gc_last_resort_from_handles()->Increment();        \
     (ISOLATE)->heap()->CollectAllAvailableGarbage("last resort gc");          \
     {                                                                         \

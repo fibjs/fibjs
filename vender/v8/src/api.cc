@@ -320,8 +320,25 @@ bool RunExtraCode(Isolate* isolate, const char* utf8_source) {
 }
 
 
+namespace {
+
+class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+ public:
+  virtual void* Allocate(size_t length) {
+    void* data = AllocateUninitialized(length);
+    return data == NULL ? data : memset(data, 0, length);
+  }
+  virtual void* AllocateUninitialized(size_t length) { return malloc(length); }
+  virtual void Free(void* data, size_t) { free(data); }
+};
+
+}  // namespace
+
+
 StartupData V8::CreateSnapshotDataBlob(const char* custom_source) {
   i::Isolate* internal_isolate = new i::Isolate(true);
+  ArrayBufferAllocator allocator;
+  internal_isolate->set_array_buffer_allocator(&allocator);
   Isolate* isolate = reinterpret_cast<Isolate*>(internal_isolate);
   StartupData result = {NULL, 0};
   {
@@ -346,7 +363,7 @@ StartupData V8::CreateSnapshotDataBlob(const char* custom_source) {
       {
         HandleScope scope(isolate);
         for (int i = 0; i < i::Natives::GetBuiltinsCount(); i++) {
-          internal_isolate->bootstrapper()->NativesSourceLookup(i);
+          internal_isolate->bootstrapper()->SourceLookup<i::Natives>(i);
         }
       }
       // If we don't do this then we end up with a stray root pointing at the
@@ -1181,8 +1198,9 @@ void FunctionTemplate::RemovePrototype() {
 // --- O b j e c t T e m p l a t e ---
 
 
-Local<ObjectTemplate> ObjectTemplate::New(Isolate* isolate) {
-  return New(reinterpret_cast<i::Isolate*>(isolate), Local<FunctionTemplate>());
+Local<ObjectTemplate> ObjectTemplate::New(
+    Isolate* isolate, v8::Handle<FunctionTemplate> constructor) {
+  return New(reinterpret_cast<i::Isolate*>(isolate), constructor);
 }
 
 
@@ -2271,8 +2289,8 @@ Maybe<int> Message::GetLineNumber(Local<Context> context) const {
   PREPARE_FOR_EXECUTION_PRIMITIVE(context, "v8::Message::GetLineNumber()", int);
   i::Handle<i::Object> result;
   has_pending_exception =
-      !CallV8HeapFunction(isolate, "GetLineNumber", Utils::OpenHandle(this))
-           .ToHandle(&result);
+      !CallV8HeapFunction(isolate, "$messageGetLineNumber",
+                          Utils::OpenHandle(this)).ToHandle(&result);
   RETURN_ON_FAILED_EXECUTION_PRIMITIVE(int);
   return Just(static_cast<int>(result->Number()));
 }
@@ -2301,8 +2319,9 @@ Maybe<int> Message::GetStartColumn(Local<Context> context) const {
                                   int);
   auto self = Utils::OpenHandle(this);
   i::Handle<i::Object> start_col_obj;
-  has_pending_exception = !CallV8HeapFunction(isolate, "GetPositionInLine",
-                                              self).ToHandle(&start_col_obj);
+  has_pending_exception =
+      !CallV8HeapFunction(isolate, "$messageGetPositionInLine", self)
+           .ToHandle(&start_col_obj);
   RETURN_ON_FAILED_EXECUTION_PRIMITIVE(int);
   return Just(static_cast<int>(start_col_obj->Number()));
 }
@@ -2319,8 +2338,9 @@ Maybe<int> Message::GetEndColumn(Local<Context> context) const {
   PREPARE_FOR_EXECUTION_PRIMITIVE(context, "v8::Message::GetEndColumn()", int);
   auto self = Utils::OpenHandle(this);
   i::Handle<i::Object> start_col_obj;
-  has_pending_exception = !CallV8HeapFunction(isolate, "GetPositionInLine",
-                                              self).ToHandle(&start_col_obj);
+  has_pending_exception =
+      !CallV8HeapFunction(isolate, "$messageGetPositionInLine", self)
+           .ToHandle(&start_col_obj);
   RETURN_ON_FAILED_EXECUTION_PRIMITIVE(int);
   int start = self->start_position();
   int end = self->end_position();
@@ -2349,8 +2369,8 @@ MaybeLocal<String> Message::GetSourceLine(Local<Context> context) const {
   PREPARE_FOR_EXECUTION(context, "v8::Message::GetSourceLine()", String);
   i::Handle<i::Object> result;
   has_pending_exception =
-      !CallV8HeapFunction(isolate, "GetSourceLine", Utils::OpenHandle(this))
-           .ToHandle(&result);
+      !CallV8HeapFunction(isolate, "$messageGetSourceLine",
+                          Utils::OpenHandle(this)).ToHandle(&result);
   RETURN_ON_FAILED_EXECUTION(String);
   Local<String> str;
   if (result->IsString()) {
@@ -3570,7 +3590,7 @@ MaybeLocal<Value> v8::Object::GetOwnPropertyDescriptor(Local<Context> context,
   i::Handle<i::Object> args[] = { obj, key_name };
   i::Handle<i::Object> result;
   has_pending_exception =
-      !CallV8HeapFunction(isolate, "ObjectGetOwnPropertyDescriptor",
+      !CallV8HeapFunction(isolate, "$objectGetOwnPropertyDescriptor",
                           isolate->factory()->undefined_value(),
                           arraysize(args), args).ToHandle(&result);
   RETURN_ON_FAILED_EXECUTION(Value);
@@ -5472,6 +5492,14 @@ void Context::DetachGlobal() {
 }
 
 
+Local<v8::Object> Context::GetExtrasExportsObject() {
+  i::Handle<i::Context> context = Utils::OpenHandle(this);
+  i::Isolate* isolate = context->GetIsolate();
+  i::Handle<i::JSObject> exports(context->extras_exports_object(), isolate);
+  return Utils::ToLocal(exports);
+}
+
+
 void Context::AllowCodeGenerationFromStrings(bool allow) {
   i::Handle<i::Context> context = Utils::OpenHandle(this);
   i::Isolate* isolate = context->GetIsolate();
@@ -6235,9 +6263,12 @@ bool v8::ArrayBuffer::IsNeuterable() const {
 
 v8::ArrayBuffer::Contents v8::ArrayBuffer::Externalize() {
   i::Handle<i::JSArrayBuffer> self = Utils::OpenHandle(this);
+  i::Isolate* isolate = self->GetIsolate();
   Utils::ApiCheck(!self->is_external(), "v8::ArrayBuffer::Externalize",
                   "ArrayBuffer already externalized");
   self->set_is_external(true);
+  isolate->heap()->UnregisterArrayBuffer(self->backing_store());
+
   return GetContents();
 }
 
@@ -6314,31 +6345,21 @@ Local<ArrayBuffer> v8::ArrayBufferView::Buffer() {
 
 
 size_t v8::ArrayBufferView::CopyContents(void* dest, size_t byte_length) {
-  i::Handle<i::JSArrayBufferView> obj = Utils::OpenHandle(this);
-  i::Isolate* isolate = obj->GetIsolate();
-  size_t byte_offset = i::NumberToSize(isolate, obj->byte_offset());
+  i::Handle<i::JSArrayBufferView> self = Utils::OpenHandle(this);
+  i::Isolate* isolate = self->GetIsolate();
+  size_t byte_offset = i::NumberToSize(isolate, self->byte_offset());
   size_t bytes_to_copy =
-      i::Min(byte_length, i::NumberToSize(isolate, obj->byte_length()));
+      i::Min(byte_length, i::NumberToSize(isolate, self->byte_length()));
   if (bytes_to_copy) {
     i::DisallowHeapAllocation no_gc;
-    const char* source = nullptr;
-    if (obj->IsJSDataView()) {
-      i::Handle<i::JSDataView> data_view(i::JSDataView::cast(*obj));
-      i::Handle<i::JSArrayBuffer> buffer(
-          i::JSArrayBuffer::cast(data_view->buffer()));
-      source = reinterpret_cast<char*>(buffer->backing_store());
-    } else {
-      DCHECK(obj->IsJSTypedArray());
-      i::Handle<i::JSTypedArray> typed_array(i::JSTypedArray::cast(*obj));
-      if (typed_array->buffer()->IsSmi()) {
-        i::Handle<i::FixedTypedArrayBase> fixed_array(
-            i::FixedTypedArrayBase::cast(typed_array->elements()));
-        source = reinterpret_cast<char*>(fixed_array->DataPtr());
-      } else {
-        i::Handle<i::JSArrayBuffer> buffer(
-            i::JSArrayBuffer::cast(typed_array->buffer()));
-        source = reinterpret_cast<char*>(buffer->backing_store());
-      }
+    i::Handle<i::JSArrayBuffer> buffer(i::JSArrayBuffer::cast(self->buffer()));
+    const char* source = reinterpret_cast<char*>(buffer->backing_store());
+    if (source == nullptr) {
+      DCHECK(self->IsJSTypedArray());
+      i::Handle<i::JSTypedArray> typed_array(i::JSTypedArray::cast(*self));
+      i::Handle<i::FixedTypedArrayBase> fixed_array(
+          i::FixedTypedArrayBase::cast(typed_array->elements()));
+      source = reinterpret_cast<char*>(fixed_array->DataPtr());
     }
     memcpy(dest, source + byte_offset, bytes_to_copy);
   }
@@ -6347,11 +6368,9 @@ size_t v8::ArrayBufferView::CopyContents(void* dest, size_t byte_length) {
 
 
 bool v8::ArrayBufferView::HasBuffer() const {
-  i::Handle<i::JSArrayBufferView> obj = Utils::OpenHandle(this);
-  if (obj->IsJSDataView()) return true;
-  DCHECK(obj->IsJSTypedArray());
-  i::Handle<i::JSTypedArray> typed_array(i::JSTypedArray::cast(*obj));
-  return !typed_array->buffer()->IsSmi();
+  i::Handle<i::JSArrayBufferView> self = Utils::OpenHandle(this);
+  i::Handle<i::JSArrayBuffer> buffer(i::JSArrayBuffer::cast(self->buffer()));
+  return buffer->backing_store() != nullptr;
 }
 
 
@@ -6740,9 +6759,20 @@ Isolate* Isolate::GetCurrent() {
 }
 
 
+Isolate* Isolate::New() {
+  Isolate::CreateParams create_params;
+  return New(create_params);
+}
+
+
 Isolate* Isolate::New(const Isolate::CreateParams& params) {
   i::Isolate* isolate = new i::Isolate(false);
   Isolate* v8_isolate = reinterpret_cast<Isolate*>(isolate);
+  if (params.array_buffer_allocator != NULL) {
+    isolate->set_array_buffer_allocator(params.array_buffer_allocator);
+  } else {
+    isolate->set_array_buffer_allocator(i::V8::ArrayBufferAllocator());
+  }
   if (params.snapshot_blob != NULL) {
     isolate->set_snapshot_blob(params.snapshot_blob);
   } else {
@@ -6869,6 +6899,7 @@ void Isolate::GetHeapStatistics(HeapStatistics* heap_statistics) {
   heap_statistics->total_heap_size_executable_ =
       heap->CommittedMemoryExecutable();
   heap_statistics->total_physical_size_ = heap->CommittedPhysicalMemory();
+  heap_statistics->total_available_size_ = heap->Available();
   heap_statistics->used_heap_size_ = heap->SizeOfObjects();
   heap_statistics->heap_size_limit_ = heap->MaxReserved();
 }
@@ -6892,7 +6923,7 @@ bool Isolate::GetHeapSpaceStatistics(HeapSpaceStatistics* space_statistics,
 
   space_statistics->space_name_ = heap->GetSpaceName(static_cast<int>(index));
   space_statistics->space_size_ = space->CommittedMemory();
-  space_statistics->space_used_size_ = space->Size();
+  space_statistics->space_used_size_ = space->SizeOfObjects();
   space_statistics->space_available_size_ = space->Available();
   space_statistics->physical_space_size_ = space->CommittedPhysicalMemory();
   return true;

@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <ostream>
+
 #include "src/base/build_config.h"
 #include "src/base/logging.h"
 #include "src/base/macros.h"
@@ -236,6 +238,20 @@ enum LanguageMode {
   STRICT = STRICT_BIT,
   STRONG = STRICT_BIT | STRONG_BIT
 };
+
+
+inline std::ostream& operator<<(std::ostream& os, LanguageMode mode) {
+  switch (mode) {
+    case SLOPPY:
+      return os << "sloppy";
+    case STRICT:
+      return os << "strict";
+    case STRONG:
+      return os << "strong";
+    default:
+      return os << "unknown";
+  }
+}
 
 
 inline bool is_sloppy(LanguageMode language_mode) {
@@ -623,6 +639,10 @@ struct AccessorDescriptor {
 // CODE_POINTER_ALIGN returns the value aligned as a generated code segment.
 #define CODE_POINTER_ALIGN(value)                               \
   (((value) + kCodeAlignmentMask) & ~kCodeAlignmentMask)
+
+// DOUBLE_POINTER_ALIGN returns the value algined for double pointers.
+#define DOUBLE_POINTER_ALIGN(value) \
+  (((value) + kDoubleAlignmentMask) & ~kDoubleAlignmentMask)
 
 // Support for tracking C++ memory allocation.  Insert TRACK_MEMORY("Fisk")
 // inside a C++ class and new and delete will be overloaded so logging is

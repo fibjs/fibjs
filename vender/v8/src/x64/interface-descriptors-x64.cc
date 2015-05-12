@@ -60,6 +60,11 @@ const Register MathPowIntegerDescriptor::exponent() {
 }
 
 
+const Register GrowArrayElementsDescriptor::ObjectRegister() { return rax; }
+const Register GrowArrayElementsDescriptor::KeyRegister() { return rbx; }
+const Register GrowArrayElementsDescriptor::CapacityRegister() { return rcx; }
+
+
 void FastNewClosureDescriptor::Initialize(CallInterfaceDescriptorData* data) {
   Register registers[] = {rsi, rbx};
   data->Initialize(arraysize(registers), registers, NULL);
@@ -68,6 +73,12 @@ void FastNewClosureDescriptor::Initialize(CallInterfaceDescriptorData* data) {
 
 void FastNewContextDescriptor::Initialize(CallInterfaceDescriptorData* data) {
   Register registers[] = {rsi, rdi};
+  data->Initialize(arraysize(registers), registers, NULL);
+}
+
+
+void TypeofDescriptor::Initialize(CallInterfaceDescriptorData* data) {
+  Register registers[] = {rsi, rbx};
   data->Initialize(arraysize(registers), registers, NULL);
 }
 

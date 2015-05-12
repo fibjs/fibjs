@@ -31,6 +31,9 @@ class AccessBuilder final : public AllStatic {
   // Provides access to JSArrayBuffer::backing_store() field.
   static FieldAccess ForJSArrayBufferBackingStore();
 
+  // Provides access to FixedArray::length() field.
+  static FieldAccess ForFixedArrayLength();
+
   // Provides access to ExternalArray::external_pointer() field.
   static FieldAccess ForExternalArrayPointer();
 
@@ -48,6 +51,9 @@ class AccessBuilder final : public AllStatic {
 
   // Provides access to the backing store of a StatsCounter.
   static FieldAccess ForStatsCounter();
+
+  // Provides access to PropertyCell::value() field.
+  static FieldAccess ForPropertyCellValue();
 
   // Provides access to FixedArray elements.
   static ElementAccess ForFixedArrayElement();

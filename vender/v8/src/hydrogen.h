@@ -410,9 +410,6 @@ class HGraph final : public ZoneObject {
   void MarkRecursive() { is_recursive_ = true; }
   bool is_recursive() const { return is_recursive_; }
 
-  void MarkThisHasUses() { this_has_uses_ = true; }
-  bool this_has_uses() const { return this_has_uses_; }
-
   void MarkDependsOnEmptyArrayProtoElements() {
     // Add map dependency if not already added.
     if (depends_on_empty_array_proto_elements_) return;
@@ -493,7 +490,6 @@ class HGraph final : public ZoneObject {
   Zone* zone_;
 
   bool is_recursive_;
-  bool this_has_uses_;
   bool use_optimistic_licm_;
   bool depends_on_empty_array_proto_elements_;
   int type_change_checksum_;
@@ -1316,6 +1312,10 @@ class HGraphBuilder {
                                     bool is_js_array,
                                     PropertyAccessType access_type);
 
+  HValue* BuildCheckAndGrowElementsCapacity(HValue* object, HValue* elements,
+                                            ElementsKind kind, HValue* length,
+                                            HValue* capacity, HValue* key);
+
   HValue* BuildCopyElementsOnWrite(HValue* object,
                                    HValue* elements,
                                    ElementsKind kind,
@@ -1437,7 +1437,7 @@ class HGraphBuilder {
                                Type* result_type,
                                Maybe<int> fixed_right_arg,
                                HAllocationMode allocation_mode,
-                               LanguageMode language_mode = SLOPPY);
+                               LanguageMode language_mode);
 
   HLoadNamedField* AddLoadFixedArrayLength(HValue *object,
                                            HValue *dependency = NULL);
@@ -1863,6 +1863,10 @@ class HGraphBuilder {
   HInstruction* BuildGetNativeContext();
   HInstruction* BuildGetScriptContext(int context_index);
   HInstruction* BuildGetArrayFunction();
+  HValue* BuildArrayBufferViewFieldAccessor(HValue* object,
+                                            HValue* checked_object,
+                                            FieldIndex index);
+
 
  protected:
   void SetSourcePosition(int position) {
@@ -1891,6 +1895,7 @@ class HGraphBuilder {
   SourcePosition source_position() { return position_; }
   void set_source_position(SourcePosition position) { position_ = position; }
 
+  HValue* BuildAllocateEmptyArrayBuffer(HValue* byte_length);
   template <typename ViewClass>
   void BuildArrayBufferViewInitialization(HValue* obj,
                                           HValue* buffer,
@@ -2555,6 +2560,20 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
       return false;
     }
 
+    bool IsJSArrayBufferViewFieldAccessor() {
+      int offset;  // unused
+      return Accessors::IsJSArrayBufferViewFieldAccessor(map_, name_, &offset);
+    }
+
+    bool GetJSArrayBufferViewFieldAccess(HObjectAccess* access) {
+      int offset;
+      if (Accessors::IsJSArrayBufferViewFieldAccessor(map_, name_, &offset)) {
+        *access = HObjectAccess::ForMapAndOffset(map_, offset);
+        return true;
+      }
+      return false;
+    }
+
     bool has_holder() { return !holder_.is_null(); }
     bool IsLoad() const { return access_type_ == LOAD; }
 
@@ -2679,22 +2698,15 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     PropertyDetails details_;
   };
 
-  HInstruction* BuildMonomorphicAccess(PropertyAccessInfo* info,
-                                       HValue* object,
-                                       HValue* checked_object,
-                                       HValue* value,
-                                       BailoutId ast_id,
-                                       BailoutId return_id,
-                                       bool can_inline_accessor = true);
+  HValue* BuildMonomorphicAccess(PropertyAccessInfo* info, HValue* object,
+                                 HValue* checked_object, HValue* value,
+                                 BailoutId ast_id, BailoutId return_id,
+                                 bool can_inline_accessor = true);
 
-  HInstruction* BuildNamedAccess(PropertyAccessType access,
-                                 BailoutId ast_id,
-                                 BailoutId reutrn_id,
-                                 Expression* expr,
-                                 HValue* object,
-                                 Handle<String> name,
-                                 HValue* value,
-                                 bool is_uninitialized = false);
+  HValue* BuildNamedAccess(PropertyAccessType access, BailoutId ast_id,
+                           BailoutId reutrn_id, Expression* expr,
+                           HValue* object, Handle<String> name, HValue* value,
+                           bool is_uninitialized = false);
 
   void HandlePolymorphicCallNamed(Call* expr,
                                   HValue* receiver,
@@ -2805,10 +2817,6 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
 
   void BuildEmitObjectHeader(Handle<JSObject> boilerplate_object,
                              HInstruction* object);
-
-  void BuildInitElementsInObjectHeader(Handle<JSObject> boilerplate_object,
-                                       HInstruction* object,
-                                       HInstruction* object_elements);
 
   void BuildEmitInObjectProperties(Handle<JSObject> boilerplate_object,
                                    HInstruction* object,

@@ -101,6 +101,7 @@ enum BindingFlags {
   V(TO_LENGTH_FUN_INDEX, JSFunction, to_length_fun)                            \
   V(GLOBAL_EVAL_FUN_INDEX, JSFunction, global_eval_fun)                        \
   V(ARRAY_BUFFER_FUN_INDEX, JSFunction, array_buffer_fun)                      \
+  V(ARRAY_BUFFER_MAP_INDEX, Map, array_buffer_map)                             \
   V(UINT8_ARRAY_FUN_INDEX, JSFunction, uint8_array_fun)                        \
   V(INT8_ARRAY_FUN_INDEX, JSFunction, int8_array_fun)                          \
   V(UINT16_ARRAY_FUN_INDEX, JSFunction, uint16_array_fun)                      \
@@ -184,7 +185,8 @@ enum BindingFlags {
   V(MAP_ITERATOR_MAP_INDEX, Map, map_iterator_map)                             \
   V(SET_ITERATOR_MAP_INDEX, Map, set_iterator_map)                             \
   V(ARRAY_VALUES_ITERATOR_INDEX, JSFunction, array_values_iterator)            \
-  V(SCRIPT_CONTEXT_TABLE_INDEX, ScriptContextTable, script_context_table)
+  V(SCRIPT_CONTEXT_TABLE_INDEX, ScriptContextTable, script_context_table)      \
+  V(EXTRAS_EXPORTS_OBJECT_INDEX, JSObject, extras_exports_object)
 
 
 // A table of all script contexts. Every loaded top-level script with top-level
@@ -352,6 +354,7 @@ class Context: public FixedArray {
     TO_BOOLEAN_FUN_INDEX,
     GLOBAL_EVAL_FUN_INDEX,
     ARRAY_BUFFER_FUN_INDEX,
+    ARRAY_BUFFER_MAP_INDEX,
     UINT8_ARRAY_FUN_INDEX,
     INT8_ARRAY_FUN_INDEX,
     UINT16_ARRAY_FUN_INDEX,
@@ -420,6 +423,7 @@ class Context: public FixedArray {
     SCRIPT_CONTEXT_TABLE_INDEX,
     MAP_CACHE_INDEX,
     TO_LENGTH_FUN_INDEX,
+    EXTRAS_EXPORTS_OBJECT_INDEX,
 
     // Properties from here are treated as weak references by the full GC.
     // Scavenge treats them as strong references.

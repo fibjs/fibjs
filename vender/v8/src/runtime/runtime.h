@@ -43,6 +43,7 @@ namespace internal {
   F(ArrayConstructorWithSubclassing, -1, 1)                           \
   F(InternalArrayConstructor, -1, 1)                                  \
   F(NormalizeElements, 1, 1)                                          \
+  F(GrowArrayElements, 3, 1)                                          \
   F(HasComplexElements, 1, 1)                                         \
   F(ForInCacheArrayLength, 2, 1) /* TODO(turbofan): Only temporary */ \
   F(IsArray, 1, 1)                                                    \
@@ -170,7 +171,6 @@ namespace internal {
   F(DebugGetPrototype, 1, 1)                   \
   F(DebugSetScriptSource, 2, 1)                \
   F(FunctionGetInferredName, 1, 1)             \
-  F(FunctionGetDebugName, 1, 1)                \
   F(GetFunctionCodePositionFromSource, 2, 1)   \
   F(ExecuteInDebugContext, 1, 1)               \
   F(GetDebugContext, 0, 1)                     \
@@ -189,7 +189,6 @@ namespace internal {
 
 #define FOR_EACH_INTRINSIC_FUNCTION(F)                      \
   F(IsSloppyModeFunction, 1, 1)                             \
-  F(GetDefaultReceiver, 1, 1)                               \
   F(FunctionGetName, 1, 1)                                  \
   F(FunctionSetName, 2, 1)                                  \
   F(FunctionNameShouldPrintAsAnonymous, 1, 1)               \
@@ -267,32 +266,42 @@ namespace internal {
 #endif
 
 
-#define FOR_EACH_INTRINSIC_INTERNAL(F)    \
-  F(CheckIsBootstrapping, 0, 1)           \
-  F(Throw, 1, 1)                          \
-  F(ReThrow, 1, 1)                        \
-  F(FindExceptionHandler, 0, 1)           \
-  F(PromoteScheduledException, 0, 1)      \
-  F(ThrowReferenceError, 1, 1)            \
-  F(ThrowIteratorResultNotAnObject, 1, 1) \
-  F(PromiseRejectEvent, 3, 1)             \
-  F(PromiseRevokeReject, 1, 1)            \
-  F(PromiseHasHandlerSymbol, 0, 1)        \
-  F(StackGuard, 0, 1)                     \
-  F(Interrupt, 0, 1)                      \
-  F(AllocateInNewSpace, 1, 1)             \
-  F(AllocateInTargetSpace, 2, 1)          \
-  F(CollectStackTrace, 2, 1)              \
-  F(RenderCallSite, 0, 1)                 \
-  F(GetFromCacheRT, 2, 1)                 \
-  F(MessageGetStartPosition, 1, 1)        \
-  F(MessageGetScript, 1, 1)               \
-  F(FormatMessageString, 4, 1)            \
-  F(IS_VAR, 1, 1)                         \
-  F(GetFromCache, 2, 1)                   \
-  F(IncrementStatsCounter, 1, 1)          \
-  F(Likely, 1, 1)                         \
-  F(Unlikely, 1, 1)                       \
+#define FOR_EACH_INTRINSIC_INTERNAL(F)        \
+  F(CheckIsBootstrapping, 0, 1)               \
+  F(Throw, 1, 1)                              \
+  F(ReThrow, 1, 1)                            \
+  F(UnwindAndFindExceptionHandler, 0, 1)      \
+  F(PromoteScheduledException, 0, 1)          \
+  F(ThrowReferenceError, 1, 1)                \
+  F(ThrowIteratorResultNotAnObject, 1, 1)     \
+  F(PromiseRejectEvent, 3, 1)                 \
+  F(PromiseRevokeReject, 1, 1)                \
+  F(PromiseHasHandlerSymbol, 0, 1)            \
+  F(StackGuard, 0, 1)                         \
+  F(Interrupt, 0, 1)                          \
+  F(AllocateInNewSpace, 1, 1)                 \
+  F(AllocateInTargetSpace, 2, 1)              \
+  F(CollectStackTrace, 2, 1)                  \
+  F(RenderCallSite, 0, 1)                     \
+  F(GetFromCacheRT, 2, 1)                     \
+  F(MessageGetStartPosition, 1, 1)            \
+  F(MessageGetScript, 1, 1)                   \
+  F(FormatMessageString, 4, 1)                \
+  F(CallSiteGetFileNameRT, 3, 1)              \
+  F(CallSiteGetFunctionNameRT, 3, 1)          \
+  F(CallSiteGetScriptNameOrSourceUrlRT, 3, 1) \
+  F(CallSiteGetMethodNameRT, 3, 1)            \
+  F(CallSiteGetLineNumberRT, 3, 1)            \
+  F(CallSiteGetColumnNumberRT, 3, 1)          \
+  F(CallSiteIsNativeRT, 3, 1)                 \
+  F(CallSiteIsToplevelRT, 3, 1)               \
+  F(CallSiteIsEvalRT, 3, 1)                   \
+  F(CallSiteIsConstructorRT, 3, 1)            \
+  F(IS_VAR, 1, 1)                             \
+  F(GetFromCache, 2, 1)                       \
+  F(IncrementStatsCounter, 1, 1)              \
+  F(Likely, 1, 1)                             \
+  F(Unlikely, 1, 1)                           \
   F(HarmonyToString, 0, 1)
 
 
@@ -417,7 +426,6 @@ namespace internal {
   F(OwnKeys, 1, 1)                                   \
   F(ToFastProperties, 1, 1)                          \
   F(ToBool, 1, 1)                                    \
-  F(Typeof, 1, 1)                                    \
   F(NewStringWrapper, 1, 1)                          \
   F(AllocateHeapNumber, 0, 1)                        \
   F(NewObject, 2, 1)                                 \
@@ -584,6 +592,7 @@ namespace internal {
   F(Abort, 1, 1)                              \
   F(AbortJS, 1, 1)                            \
   F(NativeScriptsCount, 0, 1)                 \
+  F(NativeExtrasCount, 0, 1)                  \
   F(GetV8Version, 0, 1)                       \
   F(DisassembleFunction, 1, 1)                \
   F(TraceEnter, 0, 1)                         \
@@ -809,9 +818,6 @@ class Runtime : public AllStatic {
                                              bool initialize = true);
 
   static void NeuterArrayBuffer(Handle<JSArrayBuffer> array_buffer);
-
-  static void FreeArrayBuffer(Isolate* isolate,
-                              JSArrayBuffer* phantom_array_buffer);
 
   static int FindIndexedNonNativeFrame(JavaScriptFrameIterator* it, int index);
 

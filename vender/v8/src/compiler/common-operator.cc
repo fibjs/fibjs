@@ -142,7 +142,6 @@ std::ostream& operator<<(std::ostream& os, ParameterInfo const& i) {
 
 
 #define CACHED_OP_LIST(V)                                  \
-  V(Always, Operator::kPure, 0, 0, 0, 1, 0, 0)             \
   V(Dead, Operator::kFoldable, 0, 0, 0, 0, 0, 1)           \
   V(End, Operator::kKontrol, 0, 0, 1, 0, 0, 0)             \
   V(IfTrue, Operator::kKontrol, 0, 0, 1, 0, 0, 1)          \
@@ -153,6 +152,7 @@ std::ostream& operator<<(std::ostream& os, ParameterInfo const& i) {
   V(Throw, Operator::kKontrol, 1, 1, 1, 0, 0, 1)           \
   V(Deoptimize, Operator::kNoThrow, 1, 1, 1, 0, 0, 1)      \
   V(Return, Operator::kNoThrow, 1, 1, 1, 0, 0, 1)          \
+  V(Terminate, Operator::kNoThrow, 0, 1, 1, 0, 0, 1)       \
   V(OsrNormalEntry, Operator::kFoldable, 0, 1, 1, 0, 1, 1) \
   V(OsrLoopEntry, Operator::kFoldable, 0, 1, 1, 0, 1, 1)
 
@@ -662,9 +662,9 @@ const Operator* CommonOperatorBuilder::FrameState(
 const Operator* CommonOperatorBuilder::Call(const CallDescriptor* descriptor) {
   class CallOperator final : public Operator1<const CallDescriptor*> {
    public:
-    CallOperator(const CallDescriptor* descriptor, const char* mnemonic)
+    explicit CallOperator(const CallDescriptor* descriptor)
         : Operator1<const CallDescriptor*>(
-              IrOpcode::kCall, descriptor->properties(), mnemonic,
+              IrOpcode::kCall, descriptor->properties(), "Call",
               descriptor->InputCount() + descriptor->FrameStateCount(),
               Operator::ZeroIfPure(descriptor->properties()),
               Operator::ZeroIfEliminatable(descriptor->properties()),
@@ -676,7 +676,25 @@ const Operator* CommonOperatorBuilder::Call(const CallDescriptor* descriptor) {
       os << "[" << *parameter() << "]";
     }
   };
-  return new (zone()) CallOperator(descriptor, "Call");
+  return new (zone()) CallOperator(descriptor);
+}
+
+
+const Operator* CommonOperatorBuilder::TailCall(
+    const CallDescriptor* descriptor) {
+  class TailCallOperator final : public Operator1<const CallDescriptor*> {
+   public:
+    explicit TailCallOperator(const CallDescriptor* descriptor)
+        : Operator1<const CallDescriptor*>(
+              IrOpcode::kTailCall, descriptor->properties(), "TailCall",
+              descriptor->InputCount() + descriptor->FrameStateCount(), 1, 1, 0,
+              0, 1, descriptor) {}
+
+    void PrintParameter(std::ostream& os) const override {
+      os << "[" << *parameter() << "]";
+    }
+  };
+  return new (zone()) TailCallOperator(descriptor);
 }
 
 

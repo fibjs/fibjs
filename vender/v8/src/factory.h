@@ -448,10 +448,16 @@ class Factory final {
 
   Handle<JSTypedArray> NewJSTypedArray(ExternalArrayType type);
 
+  Handle<JSTypedArray> NewJSTypedArray(ElementsKind elements_kind);
+
   // Creates a new JSTypedArray with the specified buffer.
   Handle<JSTypedArray> NewJSTypedArray(ExternalArrayType type,
                                        Handle<JSArrayBuffer> buffer,
                                        size_t byte_offset, size_t length);
+
+  // Creates a new on-heap JSTypedArray.
+  Handle<JSTypedArray> NewJSTypedArray(ElementsKind elements_kind,
+                                       size_t number_of_elements);
 
   Handle<JSDataView> NewJSDataView();
   Handle<JSDataView> NewJSDataView(Handle<JSArrayBuffer> buffer,
@@ -550,20 +556,14 @@ class Factory final {
   Handle<Object> NewRangeError(Handle<String> message);
 
   Handle<Object> NewInvalidStringLengthError() {
-    return NewRangeError("invalid_string_length",
-                         HandleVector<Object>(NULL, 0));
+    return NewRangeError(MessageTemplate::kInvalidStringLength);
   }
 
   Handle<Object> NewSyntaxError(const char* message, Handle<JSArray> args);
   Handle<Object> NewSyntaxError(Handle<String> message);
 
-  Handle<Object> NewReferenceError(const char* message,
-                                   Vector<Handle<Object> > args);
   Handle<Object> NewReferenceError(const char* message, Handle<JSArray> args);
   Handle<Object> NewReferenceError(Handle<String> message);
-
-  Handle<Object> NewEvalError(const char* message,
-                              Vector<Handle<Object> > args);
 
   Handle<Object> NewError(const char* maker,
                           MessageTemplate::Template template_index,
@@ -579,6 +579,16 @@ class Factory final {
                               Handle<Object> arg0 = Handle<Object>(),
                               Handle<Object> arg1 = Handle<Object>(),
                               Handle<Object> arg2 = Handle<Object>());
+
+  Handle<Object> NewReferenceError(MessageTemplate::Template template_index,
+                                   Handle<Object> arg0 = Handle<Object>(),
+                                   Handle<Object> arg1 = Handle<Object>(),
+                                   Handle<Object> arg2 = Handle<Object>());
+
+  Handle<Object> NewRangeError(MessageTemplate::Template template_index,
+                               Handle<Object> arg0 = Handle<Object>(),
+                               Handle<Object> arg1 = Handle<Object>(),
+                               Handle<Object> arg2 = Handle<Object>());
 
   Handle<Object> NewEvalError(MessageTemplate::Template template_index,
                               Handle<Object> arg0 = Handle<Object>(),
@@ -636,6 +646,10 @@ class Factory final {
 
   inline void set_string_table(Handle<StringTable> table) {
     isolate()->heap()->set_string_table(*table);
+  }
+
+  inline void set_weak_stack_trace_list(Handle<WeakFixedArray> list) {
+    isolate()->heap()->set_weak_stack_trace_list(*list);
   }
 
   Handle<String> hidden_string() {

@@ -127,7 +127,8 @@ void FullCodeGenerator::Generate() {
   // Sloppy mode functions and builtins need to replace the receiver with the
   // global proxy when called as functions (without an explicit receiver
   // object).
-  if (is_sloppy(info->language_mode()) && !info->is_native()) {
+  if (is_sloppy(info->language_mode()) && !info->is_native() &&
+      info->MayUseThis()) {
     Label ok;
     int receiver_offset = info->scope()->num_parameters() * kPointerSize;
     __ LoadP(r5, MemOperand(sp, receiver_offset), r0);
@@ -920,33 +921,6 @@ void FullCodeGenerator::VisitFunctionDeclaration(
       break;
     }
   }
-}
-
-
-void FullCodeGenerator::VisitModuleDeclaration(ModuleDeclaration* declaration) {
-  Variable* variable = declaration->proxy()->var();
-  ModuleDescriptor* descriptor = declaration->module()->descriptor();
-  DCHECK(variable->location() == Variable::CONTEXT);
-  DCHECK(descriptor->IsFrozen());
-
-  Comment cmnt(masm_, "[ ModuleDeclaration");
-  EmitDebugCheckDeclarationContext(variable);
-
-  // Load instance object.
-  __ LoadContext(r4, scope_->ContextChainLength(scope_->ScriptScope()));
-  __ LoadP(r4, ContextOperand(r4, descriptor->Index()));
-  __ LoadP(r4, ContextOperand(r4, Context::EXTENSION_INDEX));
-
-  // Assign it.
-  __ StoreP(r4, ContextOperand(cp, variable->index()), r0);
-  // We know that we have written a module, which is not a smi.
-  __ RecordWriteContextSlot(cp, Context::SlotOffset(variable->index()), r4, r6,
-                            kLRHasBeenSaved, kDontSaveFPRegs,
-                            EMIT_REMEMBERED_SET, OMIT_SMI_CHECK);
-  PrepareForBailoutForId(declaration->proxy()->id(), NO_REGISTERS);
-
-  // Traverse into body.
-  Visit(declaration->module());
 }
 
 
@@ -4841,10 +4815,12 @@ void FullCodeGenerator::VisitUnaryOperation(UnaryOperation* expr) {
     case Token::TYPEOF: {
       Comment cmnt(masm_, "[ UnaryOperation (TYPEOF)");
       {
-        StackValueContext context(this);
+        AccumulatorValueContext context(this);
         VisitForTypeofValue(expr->expression());
       }
-      __ CallRuntime(Runtime::kTypeof, 1);
+      __ mr(r6, r3);
+      TypeofStub typeof_stub(isolate());
+      __ CallStub(&typeof_stub);
       context()->Plug(r3);
       break;
     }

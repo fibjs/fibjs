@@ -29,15 +29,26 @@ Handle<String> LiteralBuffer::Internalize(Isolate* isolate) const {
 }
 
 
+// Default implementation for streams that do not support bookmarks.
+bool Utf16CharacterStream::SetBookmark() { return false; }
+void Utf16CharacterStream::ResetToBookmark() { UNREACHABLE(); }
+
+
 // ----------------------------------------------------------------------------
 // Scanner
 
 Scanner::Scanner(UnicodeCache* unicode_cache)
     : unicode_cache_(unicode_cache),
+      bookmark_c0_(kNoBookmark),
       octal_pos_(Location::invalid()),
       harmony_modules_(false),
       harmony_classes_(false),
-      harmony_unicode_(false) {}
+      harmony_unicode_(false) {
+  bookmark_current_.literal_chars = &bookmark_current_literal_;
+  bookmark_current_.raw_literal_chars = &bookmark_current_raw_literal_;
+  bookmark_next_.literal_chars = &bookmark_next_literal_;
+  bookmark_next_.raw_literal_chars = &bookmark_next_raw_literal_;
+}
 
 
 void Scanner::Initialize(Utf16CharacterStream* source) {
@@ -225,6 +236,10 @@ static const byte one_char_tokens[] = {
 
 
 Token::Value Scanner::Next() {
+  if (next_.token == Token::EOS) {
+    next_.location.beg_pos = current_.location.beg_pos;
+    next_.location.end_pos = current_.location.end_pos;
+  }
   current_ = next_;
   has_line_terminator_before_next_ = false;
   has_multiline_comment_before_next_ = false;
@@ -1006,7 +1021,7 @@ Token::Value Scanner::ScanNumber(bool seen_period) {
 
         if (next_.literal_chars->one_byte_literal().length() <= 10 &&
             value <= Smi::kMaxValue && c0_ != '.' && c0_ != 'e' && c0_ != 'E') {
-          smi_value_ = static_cast<int>(value);
+          next_.smi_value_ = static_cast<int>(value);
           literal.Complete();
           HandleLeadSurrogate();
 
@@ -1423,6 +1438,56 @@ int Scanner::FindSymbol(DuplicateFinder* finder, int value) {
     return finder->AddOneByteSymbol(literal_one_byte_string(), value);
   }
   return finder->AddTwoByteSymbol(literal_two_byte_string(), value);
+}
+
+
+bool Scanner::SetBookmark() {
+  if (c0_ != kNoBookmark && bookmark_c0_ == kNoBookmark &&
+      source_->SetBookmark()) {
+    bookmark_c0_ = c0_;
+    CopyTokenDesc(&bookmark_current_, &current_);
+    CopyTokenDesc(&bookmark_next_, &next_);
+    return true;
+  }
+  return false;
+}
+
+
+void Scanner::ResetToBookmark() {
+  DCHECK(BookmarkHasBeenSet());  // Caller hasn't called SetBookmark.
+
+  source_->ResetToBookmark();
+  c0_ = bookmark_c0_;
+  StartLiteral();
+  StartRawLiteral();
+  CopyTokenDesc(&next_, &bookmark_current_);
+  current_ = next_;
+  StartLiteral();
+  StartRawLiteral();
+  CopyTokenDesc(&next_, &bookmark_next_);
+
+  bookmark_c0_ = kBookmarkWasApplied;
+}
+
+
+bool Scanner::BookmarkHasBeenSet() { return bookmark_c0_ >= 0; }
+
+
+bool Scanner::BookmarkHasBeenReset() {
+  return bookmark_c0_ == kBookmarkWasApplied;
+}
+
+
+void Scanner::DropBookmark() { bookmark_c0_ = kNoBookmark; }
+
+
+void Scanner::CopyTokenDesc(TokenDesc* to, TokenDesc* from) {
+  DCHECK_NOT_NULL(to);
+  DCHECK_NOT_NULL(from);
+  to->token = from->token;
+  to->location = from->location;
+  to->literal_chars->CopyFrom(from->literal_chars);
+  to->raw_literal_chars->CopyFrom(from->raw_literal_chars);
 }
 
 

@@ -514,6 +514,13 @@ void AstGraphBuilder::CreateGraphBody(bool stack_check) {
     NewNode(javascript()->CallRuntime(Runtime::kTraceEnter, 0));
   }
 
+  // Visit illegal re-declaration and bail out if it exists.
+  if (scope->HasIllegalRedeclaration()) {
+    AstEffectContext for_effect(this);
+    scope->VisitIllegalRedeclaration(this);
+    return;
+  }
+
   // Visit implicit declaration of the function name.
   if (scope->is_function_scope() && scope->function() != NULL) {
     VisitVariableDeclaration(scope->function());
@@ -991,11 +998,6 @@ void AstGraphBuilder::VisitFunctionDeclaration(FunctionDeclaration* decl) {
 }
 
 
-void AstGraphBuilder::VisitModuleDeclaration(ModuleDeclaration* decl) {
-  UNREACHABLE();
-}
-
-
 void AstGraphBuilder::VisitImportDeclaration(ImportDeclaration* decl) {
   UNREACHABLE();
 }
@@ -1004,15 +1006,6 @@ void AstGraphBuilder::VisitImportDeclaration(ImportDeclaration* decl) {
 void AstGraphBuilder::VisitExportDeclaration(ExportDeclaration* decl) {
   UNREACHABLE();
 }
-
-
-void AstGraphBuilder::VisitModuleLiteral(ModuleLiteral* modl) { UNREACHABLE(); }
-
-
-void AstGraphBuilder::VisitModulePath(ModulePath* modl) { UNREACHABLE(); }
-
-
-void AstGraphBuilder::VisitModuleUrl(ModuleUrl* modl) { UNREACHABLE(); }
 
 
 void AstGraphBuilder::VisitBlock(Block* stmt) {
@@ -1035,11 +1028,6 @@ void AstGraphBuilder::VisitBlock(Block* stmt) {
     }
   }
   if (stmt->labels() != NULL) block.EndBlock();
-}
-
-
-void AstGraphBuilder::VisitModuleStatement(ModuleStatement* stmt) {
-  UNREACHABLE();
 }
 
 
@@ -1293,8 +1281,9 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
         JSBuiltinsObject::OffsetOfFunctionWithId(Builtins::FILTER_KEY));
     // result is either the string key or Smi(0) indicating the property
     // is gone.
-    Node* res = NewNode(javascript()->CallFunction(3, NO_CALL_FUNCTION_FLAGS),
-                        function, obj, value);
+    Node* res = NewNode(
+        javascript()->CallFunction(3, NO_CALL_FUNCTION_FLAGS, language_mode()),
+        function, obj, value);
     PrepareFrameState(res, stmt->FilterId(), OutputFrameStateCombine::Push());
     Node* property_missing =
         NewNode(javascript()->StrictEqual(), res, jsgraph()->ZeroConstant());
@@ -1476,10 +1465,9 @@ void AstGraphBuilder::VisitFunctionLiteral(FunctionLiteral* expr) {
   }
 
   // Create node to instantiate a new closure.
-  Node* info = jsgraph()->Constant(shared_info);
-  Node* pretenure = jsgraph()->BooleanConstant(expr->pretenure());
-  const Operator* op = javascript()->CallRuntime(Runtime::kNewClosure, 3);
-  Node* value = NewNode(op, context, info, pretenure);
+  PretenureFlag pretenure = expr->pretenure() ? TENURED : NOT_TENURED;
+  const Operator* op = javascript()->CreateClosure(shared_info, pretenure);
+  Node* value = NewNode(op, context);
   ast_context()->ProduceValue(value);
 }
 
@@ -1661,10 +1649,9 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
       BuildLoadObjectField(closure, JSFunction::kLiteralsOffset);
   Node* literal_index = jsgraph()->Constant(expr->literal_index());
   Node* constants = jsgraph()->Constant(expr->constant_properties());
-  Node* flags = jsgraph()->Constant(expr->ComputeFlags(true));
   const Operator* op =
-      javascript()->CallRuntime(Runtime::kInlineCreateObjectLiteral, 4);
-  Node* literal = NewNode(op, literals_array, literal_index, constants, flags);
+      javascript()->CreateLiteralObject(expr->ComputeFlags(true));
+  Node* literal = NewNode(op, literals_array, literal_index, constants);
   PrepareFrameState(literal, expr->CreateLiteralId(),
                     OutputFrameStateCombine::Push());
 
@@ -1853,10 +1840,9 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
       BuildLoadObjectField(closure, JSFunction::kLiteralsOffset);
   Node* literal_index = jsgraph()->Constant(expr->literal_index());
   Node* constants = jsgraph()->Constant(expr->constant_elements());
-  Node* flags = jsgraph()->Constant(expr->ComputeFlags(true));
   const Operator* op =
-      javascript()->CallRuntime(Runtime::kInlineCreateArrayLiteral, 4);
-  Node* literal = NewNode(op, literals_array, literal_index, constants, flags);
+      javascript()->CreateLiteralArray(expr->ComputeFlags(true));
+  Node* literal = NewNode(op, literals_array, literal_index, constants);
   PrepareFrameState(literal, expr->CreateLiteralId(),
                     OutputFrameStateCombine::Push());
 
@@ -2199,7 +2185,8 @@ void AstGraphBuilder::VisitCall(Call* expr) {
   }
 
   // Create node to perform the function call.
-  const Operator* call = javascript()->CallFunction(args->length() + 2, flags);
+  const Operator* call =
+      javascript()->CallFunction(args->length() + 2, flags, language_mode());
   Node* value = ProcessArguments(call, args->length() + 2);
   PrepareFrameState(value, expr->id(), ast_context()->GetStateCombine());
   ast_context()->ProduceValue(value);
@@ -2243,7 +2230,8 @@ void AstGraphBuilder::VisitCallJSRuntime(CallRuntime* expr) {
   VisitForValues(args);
 
   // Create node to perform the JS runtime call.
-  const Operator* call = javascript()->CallFunction(args->length() + 2, flags);
+  const Operator* call =
+      javascript()->CallFunction(args->length() + 2, flags, language_mode());
   Node* value = ProcessArguments(call, args->length() + 2);
   PrepareFrameState(value, expr->id(), ast_context()->GetStateCombine());
   ast_context()->ProduceValue(value);
@@ -2654,10 +2642,7 @@ Node* AstGraphBuilder::BuildPatchReceiverToGlobalProxy(Node* receiver) {
   // There is no need to perform patching if the receiver is never used. Note
   // that scope predicates are purely syntactical, a call to eval might still
   // inspect the receiver value.
-  if (!info()->scope()->uses_this() && !info()->scope()->inner_uses_this() &&
-      !info()->scope()->calls_sloppy_eval()) {
-    return receiver;
-  }
+  if (!info()->MayUseThis()) return receiver;
 
   IfBuilder receiver_check(this);
   Node* undefined = jsgraph()->UndefinedConstant();

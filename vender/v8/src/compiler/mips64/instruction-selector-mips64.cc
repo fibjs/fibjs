@@ -656,7 +656,7 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   Mips64OperandGenerator g(this);
   const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(node);
 
-  FrameStateDescriptor* frame_state_descriptor = NULL;
+  FrameStateDescriptor* frame_state_descriptor = nullptr;
   if (descriptor->NeedsFrameState()) {
     frame_state_descriptor =
         GetFrameStateDescriptor(node->InputAt(descriptor->InputCount()));
@@ -681,7 +681,7 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
 
   // Pass label of exception handler block.
   CallDescriptor::Flags flags = descriptor->flags();
-  if (handler != nullptr) {
+  if (handler) {
     flags |= CallDescriptor::kHasExceptionHandler;
     buffer.instruction_args.push_back(g.Label(handler));
   }
@@ -703,11 +703,96 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   opcode |= MiscField::encode(flags);
 
   // Emit the call instruction.
-  Instruction* call_instr =
-      Emit(opcode, buffer.outputs.size(), &buffer.outputs.front(),
-           buffer.instruction_args.size(), &buffer.instruction_args.front());
+  size_t const output_count = buffer.outputs.size();
+  auto* outputs = output_count ? &buffer.outputs.front() : nullptr;
+  Emit(opcode, output_count, outputs, buffer.instruction_args.size(),
+       &buffer.instruction_args.front())->MarkAsCall();
+}
 
-  call_instr->MarkAsCall();
+
+void InstructionSelector::VisitTailCall(Node* node) {
+  Mips64OperandGenerator g(this);
+  const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(node);
+  DCHECK_NE(0, descriptor->flags() & CallDescriptor::kSupportsTailCalls);
+  DCHECK_EQ(0, descriptor->flags() & CallDescriptor::kPatchableCallSite);
+  DCHECK_EQ(0, descriptor->flags() & CallDescriptor::kNeedsNopAfterCall);
+
+  // TODO(turbofan): Relax restriction for stack parameters.
+  if (descriptor->UsesOnlyRegisters() &&
+      descriptor->HasSameReturnLocationsAs(
+          linkage()->GetIncomingDescriptor())) {
+    CallBuffer buffer(zone(), descriptor, nullptr);
+
+    // Compute InstructionOperands for inputs and outputs.
+    InitializeCallBuffer(node, &buffer, true, false);
+
+    DCHECK_EQ(0u, buffer.pushed_nodes.size());
+
+    // Select the appropriate opcode based on the call type.
+    InstructionCode opcode;
+    switch (descriptor->kind()) {
+      case CallDescriptor::kCallCodeObject:
+        opcode = kArchTailCallCodeObject;
+        break;
+      case CallDescriptor::kCallJSFunction:
+        opcode = kArchTailCallJSFunction;
+        break;
+      default:
+        UNREACHABLE();
+        return;
+    }
+    opcode |= MiscField::encode(descriptor->flags());
+
+    // Emit the tailcall instruction.
+    Emit(opcode, 0, nullptr, buffer.instruction_args.size(),
+         &buffer.instruction_args.front());
+  } else {
+    FrameStateDescriptor* frame_state_descriptor =
+        descriptor->NeedsFrameState()
+            ? GetFrameStateDescriptor(
+                  node->InputAt(static_cast<int>(descriptor->InputCount())))
+            : nullptr;
+
+    CallBuffer buffer(zone(), descriptor, frame_state_descriptor);
+
+    // Compute InstructionOperands for inputs and outputs.
+    InitializeCallBuffer(node, &buffer, true, false);
+
+    int push_count = buffer.pushed_nodes.size();
+    if (push_count > 0) {
+      Emit(kMips64StackClaim, g.NoOutput(),
+           g.TempImmediate(push_count << kPointerSizeLog2));
+    }
+    int slot = buffer.pushed_nodes.size() - 1;
+    for (Node* node : base::Reversed(buffer.pushed_nodes)) {
+      Emit(kMips64StoreToStackSlot, g.NoOutput(), g.UseRegister(node),
+           g.TempImmediate(slot << kPointerSizeLog2));
+      slot--;
+    }
+
+    // Select the appropriate opcode based on the call type.
+    InstructionCode opcode;
+    switch (descriptor->kind()) {
+      case CallDescriptor::kCallCodeObject: {
+        opcode = kArchCallCodeObject;
+        break;
+      }
+      case CallDescriptor::kCallJSFunction:
+        opcode = kArchCallJSFunction;
+        break;
+      default:
+        UNREACHABLE();
+        return;
+    }
+    opcode |= MiscField::encode(descriptor->flags());
+
+    // Emit the call instruction.
+    size_t const output_count = buffer.outputs.size();
+    auto* outputs = output_count ? &buffer.outputs.front() : nullptr;
+    Emit(opcode, output_count, outputs, buffer.instruction_args.size(),
+         &buffer.instruction_args.front())->MarkAsCall();
+    Emit(kArchRet, 0, nullptr, output_count, outputs);
+  }
 }
 
 
@@ -1190,9 +1275,7 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
-  return MachineOperatorBuilder::kFloat32Abs |
-         MachineOperatorBuilder::kFloat64Abs |
-         MachineOperatorBuilder::kFloat64RoundDown |
+  return MachineOperatorBuilder::kFloat64RoundDown |
          MachineOperatorBuilder::kFloat64RoundTruncate;
 }
 

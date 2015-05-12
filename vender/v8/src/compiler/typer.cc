@@ -252,6 +252,8 @@ class Typer::Visitor : public Reducer {
       DECLARE_CASE(Merge)
       DECLARE_CASE(Deoptimize)
       DECLARE_CASE(Return)
+      DECLARE_CASE(TailCall)
+      DECLARE_CASE(Terminate)
       DECLARE_CASE(OsrNormalEntry)
       DECLARE_CASE(OsrLoopEntry)
       DECLARE_CASE(Throw)
@@ -295,6 +297,8 @@ class Typer::Visitor : public Reducer {
       DECLARE_CASE(Merge)
       DECLARE_CASE(Deoptimize)
       DECLARE_CASE(Return)
+      DECLARE_CASE(TailCall)
+      DECLARE_CASE(Terminate)
       DECLARE_CASE(OsrNormalEntry)
       DECLARE_CASE(OsrLoopEntry)
       DECLARE_CASE(Throw)
@@ -639,11 +643,6 @@ Bounds Typer::Visitor::TypeIfException(Node* node) {
 
 
 // Common operators.
-
-
-Bounds Typer::Visitor::TypeAlways(Node* node) {
-  return Bounds(Type::None(zone()), Type::Boolean(zone()));
-}
 
 
 Bounds Typer::Visitor::TypeParameter(Node* node) {
@@ -1311,6 +1310,21 @@ Bounds Typer::Visitor::TypeJSCreate(Node* node) {
 }
 
 
+Bounds Typer::Visitor::TypeJSCreateClosure(Node* node) {
+  return Bounds(Type::None(), Type::OtherObject());
+}
+
+
+Bounds Typer::Visitor::TypeJSCreateLiteralArray(Node* node) {
+  return Bounds(Type::None(), Type::OtherObject());
+}
+
+
+Bounds Typer::Visitor::TypeJSCreateLiteralObject(Node* node) {
+  return Bounds(Type::None(), Type::OtherObject());
+}
+
+
 Type* Typer::Visitor::JSLoadPropertyTyper(Type* object, Type* name, Typer* t) {
   // TODO(rossberg): Use range types and sized array types to filter undefined.
   if (object->IsArray() && name->Is(Type::Integral32())) {
@@ -1766,6 +1780,11 @@ Bounds Typer::Visitor::TypeChangeBitToBool(Node* node) {
   // TODO(neis): DCHECK(arg.upper->Is(Type::Boolean()));
   return Bounds(ChangeRepresentation(arg.lower, Type::TaggedPointer(), zone()),
                 ChangeRepresentation(arg.upper, Type::TaggedPointer(), zone()));
+}
+
+
+Bounds Typer::Visitor::TypeAllocate(Node* node) {
+  return Bounds(Type::TaggedPointer());
 }
 
 

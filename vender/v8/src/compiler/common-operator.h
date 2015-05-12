@@ -183,11 +183,6 @@ class CommonOperatorBuilder final : public ZoneObject {
  public:
   explicit CommonOperatorBuilder(Zone* zone);
 
-  // Special operator used only in Branches to mark them as always taken, but
-  // still unfoldable. This is required to properly connect non terminating
-  // loops to end (in both the sea of nodes and the CFG).
-  const Operator* Always();
-
   const Operator* Dead();
   const Operator* End();
   const Operator* Branch(BranchHint = BranchHint::kNone);
@@ -201,6 +196,7 @@ class CommonOperatorBuilder final : public ZoneObject {
   const Operator* Throw();
   const Operator* Deoptimize();
   const Operator* Return();
+  const Operator* Terminate();
 
   const Operator* Start(int num_formal_parameters);
   const Operator* Loop(int control_input_count);
@@ -232,6 +228,7 @@ class CommonOperatorBuilder final : public ZoneObject {
       OutputFrameStateCombine state_combine,
       MaybeHandle<JSFunction> jsfunction = MaybeHandle<JSFunction>());
   const Operator* Call(const CallDescriptor* descriptor);
+  const Operator* TailCall(const CallDescriptor* descriptor);
   const Operator* Projection(size_t index);
 
   // Constructs a new merge or phi operator with the same opcode as {op}, but

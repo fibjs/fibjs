@@ -124,7 +124,7 @@ bool LCodeGen::GeneratePrologue() {
     // Sloppy mode functions and builtins need to replace the receiver with the
     // global proxy when called as functions (without an explicit receiver
     // object).
-    if (graph()->this_has_uses() && is_sloppy(info_->language_mode()) &&
+    if (is_sloppy(info_->language_mode()) && info()->MayUseThis() &&
         !info_->is_native()) {
       Label ok;
       int receiver_offset = info_->scope()->num_parameters() * kPointerSize;
@@ -2179,7 +2179,7 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
   DCHECK(ToRegister(instr->result()).is(r0));
 
   Handle<Code> code = CodeFactory::BinaryOpIC(
-      isolate(), instr->op(), language_mode()).code();
+      isolate(), instr->op(), instr->language_mode()).code();
   // Block literal pool emission to ensure nop indicating no inlined smi code
   // is in the correct position.
   Assembler::BlockConstPoolScope block_const_pool(masm());
@@ -3352,6 +3352,23 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
       __ cmp(result, scratch);
       DeoptimizeIf(eq, instr, Deoptimizer::kHole);
     }
+  } else if (instr->hydrogen()->hole_mode() == CONVERT_HOLE_TO_UNDEFINED) {
+    DCHECK(instr->hydrogen()->elements_kind() == FAST_HOLEY_ELEMENTS);
+    Label done;
+    __ LoadRoot(scratch, Heap::kTheHoleValueRootIndex);
+    __ cmp(result, scratch);
+    __ b(ne, &done);
+    if (info()->IsStub()) {
+      // A stub can safely convert the hole to undefined only if the array
+      // protector cell contains (Smi) Isolate::kArrayProtectorValid. Otherwise
+      // it needs to bail out.
+      __ LoadRoot(result, Heap::kArrayProtectorRootIndex);
+      __ ldr(result, FieldMemOperand(result, Cell::kValueOffset));
+      __ cmp(result, Operand(Smi::FromInt(Isolate::kArrayProtectorValid)));
+      DeoptimizeIf(ne, instr, Deoptimizer::kHole);
+    }
+    __ LoadRoot(result, Heap::kUndefinedValueRootIndex);
+    __ bind(&done);
   }
 }
 
@@ -4004,8 +4021,12 @@ void LCodeGen::DoCallWithDescriptor(LCallWithDescriptor* instr) {
       generator.BeforeCall(__ CallSize(code, RelocInfo::CODE_TARGET));
       PlatformInterfaceDescriptor* call_descriptor =
           instr->descriptor().platform_specific_descriptor();
-      __ Call(code, RelocInfo::CODE_TARGET, TypeFeedbackId::None(), al,
-              call_descriptor->storage_mode());
+      if (call_descriptor != NULL) {
+        __ Call(code, RelocInfo::CODE_TARGET, TypeFeedbackId::None(), al,
+                call_descriptor->storage_mode());
+      } else {
+        __ Call(code, RelocInfo::CODE_TARGET, TypeFeedbackId::None(), al);
+      }
     } else {
       DCHECK(instr->target()->IsRegister());
       Register target = ToRegister(instr->target());
@@ -5141,6 +5162,18 @@ void LCodeGen::DoCheckNonSmi(LCheckNonSmi* instr) {
 }
 
 
+void LCodeGen::DoCheckArrayBufferNotNeutered(
+    LCheckArrayBufferNotNeutered* instr) {
+  Register view = ToRegister(instr->view());
+  Register scratch = scratch0();
+
+  __ ldr(scratch, FieldMemOperand(view, JSArrayBufferView::kBufferOffset));
+  __ ldr(scratch, FieldMemOperand(scratch, JSArrayBuffer::kBitFieldOffset));
+  __ tst(scratch, Operand(1 << JSArrayBuffer::WasNeutered::kShift));
+  DeoptimizeIf(ne, instr, Deoptimizer::kOutOfBounds);
+}
+
+
 void LCodeGen::DoCheckInstanceType(LCheckInstanceType* instr) {
   Register input = ToRegister(instr->value());
   Register scratch = scratch0();
@@ -5521,9 +5554,17 @@ void LCodeGen::DoFunctionLiteral(LFunctionLiteral* instr) {
 
 
 void LCodeGen::DoTypeof(LTypeof* instr) {
-  Register input = ToRegister(instr->value());
-  __ push(input);
-  CallRuntime(Runtime::kTypeof, 1, instr);
+  DCHECK(ToRegister(instr->value()).is(r3));
+  DCHECK(ToRegister(instr->result()).is(r0));
+  Label end, do_call;
+  Register value_register = ToRegister(instr->value());
+  __ JumpIfNotSmi(value_register, &do_call);
+  __ mov(r0, Operand(isolate()->factory()->number_string()));
+  __ jmp(&end);
+  __ bind(&do_call);
+  TypeofStub stub(isolate());
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  __ bind(&end);
 }
 
 

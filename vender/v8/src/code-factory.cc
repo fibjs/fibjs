@@ -144,6 +144,13 @@ Callable CodeFactory::StringAdd(Isolate* isolate, StringAddFlags flags,
 
 
 // static
+Callable CodeFactory::Typeof(Isolate* isolate) {
+  TypeofStub stub(isolate);
+  return Callable(stub.GetCode(), stub.GetCallInterfaceDescriptor());
+}
+
+
+// static
 Callable CodeFactory::FastCloneShallowArray(Isolate* isolate) {
   // TODO(mstarzinger): Thread through AllocationSiteMode at some point.
   FastCloneShallowArrayStub stub(isolate, DONT_TRACK_ALLOCATION_SITE);
@@ -154,6 +161,15 @@ Callable CodeFactory::FastCloneShallowArray(Isolate* isolate) {
 // static
 Callable CodeFactory::FastCloneShallowObject(Isolate* isolate, int length) {
   FastCloneShallowObjectStub stub(isolate, length);
+  return Callable(stub.GetCode(), stub.GetCallInterfaceDescriptor());
+}
+
+
+// static
+Callable CodeFactory::FastNewClosure(Isolate* isolate,
+                                     LanguageMode language_mode,
+                                     FunctionKind kind) {
+  FastNewClosureStub stub(isolate, language_mode, kind);
   return Callable(stub.GetCode(), stub.GetCallInterfaceDescriptor());
 }
 

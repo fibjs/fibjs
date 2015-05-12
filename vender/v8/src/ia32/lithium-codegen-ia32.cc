@@ -145,7 +145,7 @@ bool LCodeGen::GeneratePrologue() {
     // Sloppy mode functions and builtins need to replace the receiver with the
     // global proxy when called as functions (without an explicit receiver
     // object).
-    if (graph()->this_has_uses() && is_sloppy(info_->language_mode()) &&
+    if (is_sloppy(info_->language_mode()) && info()->MayUseThis() &&
         !info_->is_native()) {
       Label ok;
       // +1 for return address.
@@ -2080,7 +2080,7 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
   DCHECK(ToRegister(instr->result()).is(eax));
 
   Handle<Code> code = CodeFactory::BinaryOpIC(
-      isolate(), instr->op(), language_mode()).code();
+      isolate(), instr->op(), instr->language_mode()).code();
   CallCode(code, RelocInfo::CODE_TARGET, instr);
 }
 
@@ -3189,6 +3189,22 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
       __ cmp(result, factory()->the_hole_value());
       DeoptimizeIf(equal, instr, Deoptimizer::kHole);
     }
+  } else if (instr->hydrogen()->hole_mode() == CONVERT_HOLE_TO_UNDEFINED) {
+    DCHECK(instr->hydrogen()->elements_kind() == FAST_HOLEY_ELEMENTS);
+    Label done;
+    __ cmp(result, factory()->the_hole_value());
+    __ j(not_equal, &done);
+    if (info()->IsStub()) {
+      // A stub can safely convert the hole to undefined only if the array
+      // protector cell contains (Smi) Isolate::kArrayProtectorValid. Otherwise
+      // it needs to bail out.
+      __ mov(result, isolate()->factory()->array_protector());
+      __ cmp(FieldOperand(result, PropertyCell::kValueOffset),
+             Immediate(Smi::FromInt(Isolate::kArrayProtectorValid)));
+      DeoptimizeIf(not_equal, instr, Deoptimizer::kHole);
+    }
+    __ mov(result, isolate()->factory()->undefined_value());
+    __ bind(&done);
   }
 }
 
@@ -4961,6 +4977,18 @@ void LCodeGen::DoCheckNonSmi(LCheckNonSmi* instr) {
 }
 
 
+void LCodeGen::DoCheckArrayBufferNotNeutered(
+    LCheckArrayBufferNotNeutered* instr) {
+  Register view = ToRegister(instr->view());
+  Register scratch = ToRegister(instr->scratch());
+
+  __ mov(scratch, FieldOperand(view, JSArrayBufferView::kBufferOffset));
+  __ test_b(FieldOperand(scratch, JSArrayBuffer::kBitFieldOffset),
+            1 << JSArrayBuffer::WasNeutered::kShift);
+  DeoptimizeIf(not_zero, instr, Deoptimizer::kOutOfBounds);
+}
+
+
 void LCodeGen::DoCheckInstanceType(LCheckInstanceType* instr) {
   Register input = ToRegister(instr->value());
   Register temp = ToRegister(instr->temp());
@@ -5362,9 +5390,16 @@ void LCodeGen::DoFunctionLiteral(LFunctionLiteral* instr) {
 
 void LCodeGen::DoTypeof(LTypeof* instr) {
   DCHECK(ToRegister(instr->context()).is(esi));
-  LOperand* input = instr->value();
-  EmitPushTaggedOperand(input);
-  CallRuntime(Runtime::kTypeof, 1, instr);
+  DCHECK(ToRegister(instr->value()).is(ebx));
+  Label end, do_call;
+  Register value_register = ToRegister(instr->value());
+  __ JumpIfNotSmi(value_register, &do_call);
+  __ mov(eax, Immediate(isolate()->factory()->number_string()));
+  __ jmp(&end);
+  __ bind(&do_call);
+  TypeofStub stub(isolate());
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
+  __ bind(&end);
 }
 
 

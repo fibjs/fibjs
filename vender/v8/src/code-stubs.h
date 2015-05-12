@@ -69,6 +69,7 @@ namespace internal {
   V(FastCloneShallowObject)                 \
   V(FastNewClosure)                         \
   V(FastNewContext)                         \
+  V(GrowArrayElements)                      \
   V(InternalArrayNArgumentsConstructor)     \
   V(InternalArrayNoArgumentConstructor)     \
   V(InternalArraySingleArgumentConstructor) \
@@ -79,6 +80,7 @@ namespace internal {
   V(MegamorphicLoad)                        \
   V(NameDictionaryLookup)                   \
   V(NumberToString)                         \
+  V(Typeof)                                 \
   V(RegExpConstructResult)                  \
   V(StoreFastElement)                       \
   V(StoreScriptContextField)                \
@@ -88,6 +90,7 @@ namespace internal {
   V(VectorRawKeyedLoad)                     \
   V(VectorRawLoad)                          \
   /* IC Handler stubs */                    \
+  V(ArrayBufferViewLoadField)               \
   V(LoadConstant)                           \
   V(LoadField)                              \
   V(KeyedLoadSloppyArguments)               \
@@ -593,6 +596,20 @@ class NumberToStringStub final : public HydrogenCodeStub {
 };
 
 
+class TypeofStub final : public HydrogenCodeStub {
+ public:
+  explicit TypeofStub(Isolate* isolate) : HydrogenCodeStub(isolate) {}
+
+  // Parameters accessed via CodeStubGraphBuilder::GetParameter()
+  static const int kObject = 0;
+
+  static void GenerateAheadOfTime(Isolate* isolate);
+
+  DEFINE_CALL_INTERFACE_DESCRIPTOR(Typeof);
+  DEFINE_HYDROGEN_CODE_STUB(Typeof, HydrogenCodeStub);
+};
+
+
 class FastNewClosureStub : public HydrogenCodeStub {
  public:
   FastNewClosureStub(Isolate* isolate, LanguageMode language_mode,
@@ -707,6 +724,28 @@ class CreateWeakCellStub : public HydrogenCodeStub {
   DEFINE_HYDROGEN_CODE_STUB(CreateWeakCell, HydrogenCodeStub);
 };
 
+
+class GrowArrayElementsStub : public HydrogenCodeStub {
+ public:
+  GrowArrayElementsStub(Isolate* isolate, bool is_js_array, ElementsKind kind)
+      : HydrogenCodeStub(isolate) {
+    set_sub_minor_key(ElementsKindBits::encode(kind) |
+                      IsJsArrayBits::encode(is_js_array));
+  }
+
+  ElementsKind elements_kind() const {
+    return ElementsKindBits::decode(sub_minor_key());
+  }
+
+  bool is_js_array() const { return IsJsArrayBits::decode(sub_minor_key()); }
+
+ private:
+  class ElementsKindBits : public BitField<ElementsKind, 0, 8> {};
+  class IsJsArrayBits : public BitField<bool, ElementsKindBits::kNext, 1> {};
+
+  DEFINE_CALL_INTERFACE_DESCRIPTOR(GrowArrayElements);
+  DEFINE_HYDROGEN_CODE_STUB(GrowArrayElements, HydrogenCodeStub);
+};
 
 class InstanceofStub: public PlatformCodeStub {
  public:
@@ -973,6 +1012,32 @@ class LoadFieldStub: public HandlerStub {
 };
 
 
+class ArrayBufferViewLoadFieldStub : public HandlerStub {
+ public:
+  ArrayBufferViewLoadFieldStub(Isolate* isolate, FieldIndex index)
+      : HandlerStub(isolate) {
+    int property_index_key = index.GetFieldAccessStubKey();
+    set_sub_minor_key(
+        ArrayBufferViewLoadFieldByIndexBits::encode(property_index_key));
+  }
+
+  FieldIndex index() const {
+    int property_index_key =
+        ArrayBufferViewLoadFieldByIndexBits::decode(sub_minor_key());
+    return FieldIndex::FromFieldAccessStubKey(property_index_key);
+  }
+
+ protected:
+  Code::Kind kind() const override { return Code::LOAD_IC; }
+  Code::StubType GetStubType() const override { return Code::FAST; }
+
+ private:
+  class ArrayBufferViewLoadFieldByIndexBits : public BitField<int, 0, 13> {};
+
+  DEFINE_HANDLER_CODE_STUB(ArrayBufferViewLoadField, HandlerStub);
+};
+
+
 class KeyedLoadSloppyArgumentsStub : public HandlerStub {
  public:
   explicit KeyedLoadSloppyArgumentsStub(Isolate* isolate)
@@ -1110,9 +1175,14 @@ class StoreTransitionStub : public HandlerStub {
 
 class StoreGlobalStub : public HandlerStub {
  public:
-  StoreGlobalStub(Isolate* isolate, bool is_constant, bool check_global)
+  StoreGlobalStub(Isolate* isolate, PropertyCellType type,
+                  Maybe<PropertyCellConstantType> constant_type,
+                  bool check_global)
       : HandlerStub(isolate) {
-    set_sub_minor_key(IsConstantBits::encode(is_constant) |
+    PropertyCellConstantType encoded_constant_type =
+        constant_type.FromMaybe(PropertyCellConstantType::kSmi);
+    set_sub_minor_key(CellTypeBits::encode(type) |
+                      ConstantTypeBits::encode(encoded_constant_type) |
                       CheckGlobalBits::encode(check_global));
   }
 
@@ -1120,32 +1190,34 @@ class StoreGlobalStub : public HandlerStub {
     return isolate->factory()->uninitialized_value();
   }
 
+  static Handle<HeapObject> global_map_placeholder(Isolate* isolate) {
+    return isolate->factory()->termination_exception();
+  }
+
   Handle<Code> GetCodeCopyFromTemplate(Handle<GlobalObject> global,
                                        Handle<PropertyCell> cell) {
+    Code::FindAndReplacePattern pattern;
     if (check_global()) {
-      Code::FindAndReplacePattern pattern;
-      pattern.Add(isolate()->factory()->meta_map(),
+      pattern.Add(handle(global_map_placeholder(isolate())->map()),
                   Map::WeakCellForMap(Handle<Map>(global->map())));
-      pattern.Add(Handle<Map>(property_cell_placeholder(isolate())->map()),
-                  isolate()->factory()->NewWeakCell(cell));
-      return CodeStub::GetCodeCopy(pattern);
-    } else {
-      Code::FindAndReplacePattern pattern;
-      pattern.Add(Handle<Map>(property_cell_placeholder(isolate())->map()),
-                  isolate()->factory()->NewWeakCell(cell));
-      return CodeStub::GetCodeCopy(pattern);
     }
+    pattern.Add(handle(property_cell_placeholder(isolate())->map()),
+                isolate()->factory()->NewWeakCell(cell));
+    return CodeStub::GetCodeCopy(pattern);
   }
 
   Code::Kind kind() const override { return Code::STORE_IC; }
 
-  bool is_constant() const { return IsConstantBits::decode(sub_minor_key()); }
+  PropertyCellType cell_type() const {
+    return CellTypeBits::decode(sub_minor_key());
+  }
+
+  PropertyCellConstantType constant_type() const {
+    DCHECK(PropertyCellType::kConstantType == cell_type());
+    return ConstantTypeBits::decode(sub_minor_key());
+  }
 
   bool check_global() const { return CheckGlobalBits::decode(sub_minor_key()); }
-
-  void set_is_constant(bool value) {
-    set_sub_minor_key(IsConstantBits::update(sub_minor_key(), value));
-  }
 
   Representation representation() {
     return Representation::FromKind(
@@ -1157,9 +1229,10 @@ class StoreGlobalStub : public HandlerStub {
   }
 
  private:
-  class IsConstantBits: public BitField<bool, 0, 1> {};
-  class RepresentationBits: public BitField<Representation::Kind, 1, 8> {};
-  class CheckGlobalBits: public BitField<bool, 9, 1> {};
+  class CellTypeBits : public BitField<PropertyCellType, 0, 2> {};
+  class ConstantTypeBits : public BitField<PropertyCellConstantType, 2, 2> {};
+  class RepresentationBits : public BitField<Representation::Kind, 4, 8> {};
+  class CheckGlobalBits : public BitField<bool, 12, 1> {};
 
   DEFINE_HANDLER_CODE_STUB(StoreGlobal, HandlerStub);
 };
@@ -2228,13 +2301,19 @@ class StoreScriptContextFieldStub : public ScriptContextFieldStub {
 class LoadFastElementStub : public HydrogenCodeStub {
  public:
   LoadFastElementStub(Isolate* isolate, bool is_js_array,
-                      ElementsKind elements_kind)
+                      ElementsKind elements_kind,
+                      bool convert_hole_to_undefined = false)
       : HydrogenCodeStub(isolate) {
-    set_sub_minor_key(ElementsKindBits::encode(elements_kind) |
-                      IsJSArrayBits::encode(is_js_array));
+    set_sub_minor_key(
+        ElementsKindBits::encode(elements_kind) |
+        IsJSArrayBits::encode(is_js_array) |
+        CanConvertHoleToUndefined::encode(convert_hole_to_undefined));
   }
 
   bool is_js_array() const { return IsJSArrayBits::decode(sub_minor_key()); }
+  bool convert_hole_to_undefined() const {
+    return CanConvertHoleToUndefined::decode(sub_minor_key());
+  }
 
   ElementsKind elements_kind() const {
     return ElementsKindBits::decode(sub_minor_key());
@@ -2243,6 +2322,7 @@ class LoadFastElementStub : public HydrogenCodeStub {
  private:
   class ElementsKindBits: public BitField<ElementsKind, 0, 8> {};
   class IsJSArrayBits: public BitField<bool, 8, 1> {};
+  class CanConvertHoleToUndefined : public BitField<bool, 9, 1> {};
 
   CallInterfaceDescriptor GetCallInterfaceDescriptor() override {
     if (FLAG_vector_ics) {

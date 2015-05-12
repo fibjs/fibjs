@@ -531,7 +531,7 @@ class FrameDescription {
   }
 
 // Bug in VS2015 RC, reported fixed in RTM. Microsoft bug: 1153909.
-#if !defined(_MSC_FULL_VER) || _MSC_FULL_VER != 190022720
+#if !defined(_MSC_FULL_VER) || _MSC_FULL_VER != 190022816
   void operator delete(void* pointer, uint32_t frame_size) {
     free(pointer);
   }
@@ -966,7 +966,7 @@ class MaterializedObjectStore {
 
   Handle<FixedArray> Get(Address fp);
   void Set(Address fp, Handle<FixedArray> materialized_objects);
-  void Remove(Address fp);
+  bool Remove(Address fp);
 
  private:
   Isolate* isolate() { return isolate_; }

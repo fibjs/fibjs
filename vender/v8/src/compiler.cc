@@ -62,7 +62,7 @@ PARSE_INFO_GETTER(Handle<Script>, script)
 PARSE_INFO_GETTER(bool, is_eval)
 PARSE_INFO_GETTER(bool, is_native)
 PARSE_INFO_GETTER(bool, is_module)
-PARSE_INFO_GETTER(LanguageMode, language_mode)
+PARSE_INFO_GETTER_WITH_DEFAULT(LanguageMode, language_mode, STRICT)
 PARSE_INFO_GETTER_WITH_DEFAULT(Handle<JSFunction>, closure,
                                Handle<JSFunction>::null())
 PARSE_INFO_GETTER(FunctionLiteral*, function)
@@ -117,6 +117,7 @@ CompilationInfo::CompilationInfo(ParseInfo* parse_info)
   if (FLAG_turbo_builtin_inlining) MarkAsBuiltinInliningEnabled();
   if (FLAG_turbo_deoptimization) MarkAsDeoptimizationEnabled();
   if (FLAG_turbo_inlining) MarkAsInliningEnabled();
+  if (FLAG_turbo_source_positions) MarkAsSourcePositionsEnabled();
   if (FLAG_turbo_splitting) MarkAsSplittingEnabled();
   if (FLAG_turbo_types) MarkAsTypingEnabled();
 
@@ -213,6 +214,12 @@ bool CompilationInfo::is_simple_parameter_list() {
 }
 
 
+bool CompilationInfo::MayUseThis() const {
+  return scope()->uses_this() || scope()->inner_uses_this() ||
+         scope()->calls_sloppy_eval();
+}
+
+
 int CompilationInfo::TraceInlinedFunction(Handle<SharedFunctionInfo> shared,
                                           SourcePosition position,
                                           int parent_id) {
@@ -306,7 +313,6 @@ class HOptimizedGraphBuilderWithPositions: public HOptimizedGraphBuilder {
   void Visit##type(type* node) override {      \
     HOptimizedGraphBuilder::Visit##type(node); \
   }
-  MODULE_NODE_LIST(DEF_VISIT)
   DECLARATION_NODE_LIST(DEF_VISIT)
 #undef DEF_VISIT
 };
@@ -321,35 +327,11 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
     return RetryOptimization(kDebuggerHasBreakPoints);
   }
 
-  // Limit the number of times we re-compile a functions with
-  // the optimizing compiler.
+  // Limit the number of times we try to optimize functions.
   const int kMaxOptCount =
       FLAG_deopt_every_n_times == 0 ? FLAG_max_opt_count : 1000;
   if (info()->opt_count() > kMaxOptCount) {
     return AbortOptimization(kOptimizedTooManyTimes);
-  }
-
-  // Due to an encoding limit on LUnallocated operands in the Lithium
-  // language, we cannot optimize functions with too many formal parameters
-  // or perform on-stack replacement for function with too many
-  // stack-allocated local variables.
-  //
-  // The encoding is as a signed value, with parameters and receiver using
-  // the negative indices and locals the non-negative ones.
-  const int parameter_limit = -LUnallocated::kMinFixedSlotIndex;
-  Scope* scope = info()->scope();
-  if ((scope->num_parameters() + 1) > parameter_limit) {
-    return AbortOptimization(kTooManyParameters);
-  }
-
-  const int locals_limit = LUnallocated::kMaxFixedSlotIndex;
-  if (info()->is_osr() &&
-      scope->num_parameters() + 1 + scope->num_stack_slots() > locals_limit) {
-    return AbortOptimization(kTooManyParametersLocals);
-  }
-
-  if (scope->HasIllegalRedeclaration()) {
-    return AbortOptimization(kFunctionWithIllegalRedeclaration);
   }
 
   // Check the whitelist for Crankshaft.
@@ -357,7 +339,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
     return AbortOptimization(kHydrogenFilter);
   }
 
-  // Crankshaft requires a version of fullcode with deoptimization support.
+  // Optimization requires a version of fullcode with deoptimization support.
   // Recompile the unoptimized version of the code if the current version
   // doesn't have deoptimization support already.
   // Otherwise, if we are gathering compilation time and space statistics
@@ -378,9 +360,11 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
 
   DCHECK(info()->shared_info()->has_deoptimization_support());
 
-  // Check the whitelist for TurboFan.
-  if ((FLAG_turbo_asm && info()->shared_info()->asm_function()) ||
-      info()->closure()->PassesFilter(FLAG_turbo_filter)) {
+  // Check the enabling conditions for TurboFan.
+  if (((FLAG_turbo_asm && info()->shared_info()->asm_function()) ||
+       info()->closure()->PassesFilter(FLAG_turbo_filter)) &&
+      (FLAG_turbo_osr || !info()->is_osr())) {
+    // Use TurboFan for the compilation.
     if (FLAG_trace_opt) {
       OFStream os(stdout);
       os << "[compiling method " << Brief(*info()->closure())
@@ -404,8 +388,28 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
     }
   }
 
-  // Do not use Crankshaft if the code is intended to be serialized.
-  if (!isolate()->use_crankshaft()) return SetLastStatus(FAILED);
+  if (!isolate()->use_crankshaft()) {
+    // Crankshaft is entirely disabled.
+    return SetLastStatus(FAILED);
+  }
+
+  Scope* scope = info()->scope();
+  if (LUnallocated::TooManyParameters(scope->num_parameters())) {
+    // Crankshaft would require too many Lithium operands.
+    return AbortOptimization(kTooManyParameters);
+  }
+
+  if (info()->is_osr() &&
+      LUnallocated::TooManyParametersOrStackSlots(scope->num_parameters(),
+                                                  scope->num_stack_slots())) {
+    // Crankshaft would require too many Lithium operands.
+    return AbortOptimization(kTooManyParametersLocals);
+  }
+
+  if (scope->HasIllegalRedeclaration()) {
+    // Crankshaft cannot handle illegal redeclarations.
+    return AbortOptimization(kFunctionWithIllegalRedeclaration);
+  }
 
   if (FLAG_trace_opt) {
     OFStream os(stdout);
@@ -483,6 +487,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::GenerateCode() {
   DCHECK(last_status() == SUCCEEDED);
   // TODO(turbofan): Currently everything is done in the first phase.
   if (!info()->code().is_null()) {
+    info()->dependencies()->Commit(info()->code());
     if (FLAG_turbo_deoptimization) {
       info()->parse_info()->context()->native_context()->AddOptimizedCode(
           *info()->code());
@@ -1366,6 +1371,10 @@ Handle<SharedFunctionInfo> Compiler::BuildFunctionInfo(
     // appropriately sized.
     DCHECK(!info.code().is_null());
     scope_info = ScopeInfo::Create(info.isolate(), info.zone(), info.scope());
+    if (literal->should_eager_compile() &&
+        literal->should_be_used_once_hint()) {
+      info.code()->MarkToBeExecutedOnce(isolate);
+    }
   } else {
     return Handle<SharedFunctionInfo>::null();
   }

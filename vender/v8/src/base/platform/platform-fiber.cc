@@ -114,14 +114,9 @@ void Thread::SetThreadLocal(LocalStorageKey key, void *value)
     exlib::Fiber::tlsPut(static_cast<int>(key), value);
 }
 
-void Thread::YieldCPU()
+void OS::Sleep(TimeDelta interval)
 {
-    exlib::Fiber::yield();
-}
-
-void OS::Sleep(int milliseconds)
-{
-    exlib::Fiber::sleep(milliseconds);
+    exlib::Fiber::sleep(interval.InMicroseconds());
 }
 
 }

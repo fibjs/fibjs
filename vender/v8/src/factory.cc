@@ -56,6 +56,7 @@ Handle<PrototypeInfo> Factory::NewPrototypeInfo() {
       Handle<PrototypeInfo>::cast(NewStruct(PROTOTYPE_INFO_TYPE));
   result->set_prototype_users(WeakFixedArray::Empty());
   result->set_validity_cell(Smi::FromInt(0));
+  result->set_constructor_name(Smi::FromInt(0));
   return result;
 }
 
@@ -942,6 +943,8 @@ Handle<PropertyCell> Factory::NewPropertyCell() {
 
 
 Handle<WeakCell> Factory::NewWeakCell(Handle<HeapObject> value) {
+  // It is safe to dereference the value because we are embedding it
+  // in cell and not inspecting its fields.
   AllowDeferredHandleDereference convert_to_cell;
   CALL_HEAP_FUNCTION(isolate(), isolate()->heap()->AllocateWeakCell(*value),
                      WeakCell);
@@ -1107,12 +1110,6 @@ Handle<Object> Factory::NewSyntaxError(Handle<String> message) {
 
 
 Handle<Object> Factory::NewReferenceError(const char* message,
-                                          Vector<Handle<Object> > args) {
-  return NewError("MakeReferenceError", message, args);
-}
-
-
-Handle<Object> Factory::NewReferenceError(const char* message,
                                           Handle<JSArray> args) {
   return NewError("MakeReferenceError", message, args);
 }
@@ -1170,12 +1167,6 @@ Handle<Object> Factory::NewError(const char* maker,
 }
 
 
-Handle<Object> Factory::NewEvalError(const char* message,
-                                     Vector<Handle<Object> > args) {
-  return NewError("MakeEvalError", message, args);
-}
-
-
 Handle<Object> Factory::NewError(MessageTemplate::Template template_index,
                                  Handle<Object> arg0, Handle<Object> arg1,
                                  Handle<Object> arg2) {
@@ -1187,6 +1178,20 @@ Handle<Object> Factory::NewTypeError(MessageTemplate::Template template_index,
                                      Handle<Object> arg0, Handle<Object> arg1,
                                      Handle<Object> arg2) {
   return NewError("MakeTypeError", template_index, arg0, arg1, arg2);
+}
+
+
+Handle<Object> Factory::NewReferenceError(
+    MessageTemplate::Template template_index, Handle<Object> arg0,
+    Handle<Object> arg1, Handle<Object> arg2) {
+  return NewError("MakeReferenceError", template_index, arg0, arg1, arg2);
+}
+
+
+Handle<Object> Factory::NewRangeError(MessageTemplate::Template template_index,
+                                      Handle<Object> arg0, Handle<Object> arg1,
+                                      Handle<Object> arg2) {
+  return NewError("MakeRangeError", template_index, arg0, arg1, arg2);
 }
 
 
@@ -1825,9 +1830,38 @@ size_t GetExternalArrayElementSize(ExternalArrayType type) {
   case kExternal##Type##Array:                          \
     return size;
     TYPED_ARRAYS(TYPED_ARRAY_CASE)
+    default:
+      UNREACHABLE();
+      return 0;
   }
-  UNREACHABLE();
-  return 0;
+#undef TYPED_ARRAY_CASE
+}
+
+
+size_t GetFixedTypedArraysElementSize(ElementsKind kind) {
+  switch (kind) {
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype, size) \
+  case TYPE##_ELEMENTS:                                 \
+    return size;
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+#undef TYPED_ARRAY_CASE
+}
+
+
+ExternalArrayType GetArrayTypeFromElementsKind(ElementsKind kind) {
+  switch (kind) {
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype, size) \
+  case TYPE##_ELEMENTS:                                 \
+    return kExternal##Type##Array;
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
+    default:
+      UNREACHABLE();
+      return kExternalInt8Array;
+  }
 #undef TYPED_ARRAY_CASE
 }
 
@@ -1849,6 +1883,23 @@ JSFunction* GetTypedArrayFun(ExternalArrayType type, Isolate* isolate) {
 }
 
 
+JSFunction* GetTypedArrayFun(ElementsKind elements_kind, Isolate* isolate) {
+  Context* native_context = isolate->context()->native_context();
+  switch (elements_kind) {
+#define TYPED_ARRAY_FUN(Type, type, TYPE, ctype, size) \
+  case TYPE##_ELEMENTS:                                \
+    return native_context->type##_array_fun();
+
+    TYPED_ARRAYS(TYPED_ARRAY_FUN)
+#undef TYPED_ARRAY_FUN
+
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
+}
+
+
 void SetupArrayBufferView(i::Isolate* isolate,
                           i::Handle<i::JSArrayBufferView> obj,
                           i::Handle<i::JSArrayBuffer> buffer,
@@ -1857,15 +1908,6 @@ void SetupArrayBufferView(i::Isolate* isolate,
          static_cast<size_t>(buffer->byte_length()->Number()));
 
   obj->set_buffer(*buffer);
-
-  Heap* heap = isolate->heap();
-  if (heap->InNewSpace(*obj)) {
-    obj->set_weak_next(heap->new_array_buffer_views_list());
-    heap->set_new_array_buffer_views_list(*obj);
-  } else {
-    obj->set_weak_next(buffer->weak_first_view());
-    buffer->set_weak_first_view(*obj);
-  }
 
   i::Handle<i::Object> byte_offset_object =
       isolate->factory()->NewNumberFromSize(byte_offset);
@@ -1886,6 +1928,16 @@ Handle<JSTypedArray> Factory::NewJSTypedArray(ExternalArrayType type) {
   CALL_HEAP_FUNCTION(
       isolate(),
       isolate()->heap()->AllocateJSObject(*typed_array_fun_handle),
+      JSTypedArray);
+}
+
+
+Handle<JSTypedArray> Factory::NewJSTypedArray(ElementsKind elements_kind) {
+  Handle<JSFunction> typed_array_fun_handle(
+      GetTypedArrayFun(elements_kind, isolate()));
+
+  CALL_HEAP_FUNCTION(
+      isolate(), isolate()->heap()->AllocateJSObject(*typed_array_fun_handle),
       JSTypedArray);
 }
 
@@ -1914,6 +1966,36 @@ Handle<JSTypedArray> Factory::NewJSTypedArray(ExternalArrayType type,
       static_cast<uint8_t*>(buffer->backing_store()) + byte_offset);
   Handle<Map> map = JSObject::GetElementsTransitionMap(obj, elements_kind);
   JSObject::SetMapAndElements(obj, map, elements);
+  return obj;
+}
+
+
+Handle<JSTypedArray> Factory::NewJSTypedArray(ElementsKind elements_kind,
+                                              size_t number_of_elements) {
+  Handle<JSTypedArray> obj = NewJSTypedArray(elements_kind);
+
+  size_t element_size = GetFixedTypedArraysElementSize(elements_kind);
+  ExternalArrayType array_type = GetArrayTypeFromElementsKind(elements_kind);
+
+  CHECK(number_of_elements <=
+        (std::numeric_limits<size_t>::max() / element_size));
+  CHECK(number_of_elements <= static_cast<size_t>(Smi::kMaxValue));
+  size_t byte_length = number_of_elements * element_size;
+
+  obj->set_byte_offset(Smi::FromInt(0));
+  i::Handle<i::Object> byte_length_object =
+      isolate()->factory()->NewNumberFromSize(byte_length);
+  obj->set_byte_length(*byte_length_object);
+  Handle<Object> length_object = NewNumberFromSize(number_of_elements);
+  obj->set_length(*length_object);
+
+  Handle<JSArrayBuffer> buffer = isolate()->factory()->NewJSArrayBuffer();
+  Runtime::SetupArrayBuffer(isolate(), buffer, true, NULL, byte_length);
+  obj->set_buffer(*buffer);
+  Handle<FixedTypedArrayBase> elements =
+      isolate()->factory()->NewFixedTypedArray(
+          static_cast<int>(number_of_elements), array_type);
+  obj->set_elements(*elements);
   return obj;
 }
 
@@ -2319,7 +2401,9 @@ Handle<Map> Factory::ObjectLiteralMapFromCache(Handle<Context> context,
                                                bool* is_result_from_cache) {
   const int kMapCacheSize = 128;
 
-  if (number_of_properties > kMapCacheSize) {
+  // We do not cache maps for too many properties or when running builtin code.
+  if (number_of_properties > kMapCacheSize ||
+      isolate()->bootstrapper()->IsActive()) {
     *is_result_from_cache = false;
     return Map::Create(isolate(), number_of_properties);
   }

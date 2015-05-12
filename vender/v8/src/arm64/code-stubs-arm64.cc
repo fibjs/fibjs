@@ -225,18 +225,22 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm,
   // so we do the second best thing - test it ourselves.
   // They are both equal and they are not both Smis so both of them are not
   // Smis.  If it's not a heap number, then return equal.
+  Register right_type = scratch;
   if ((cond == lt) || (cond == gt)) {
-    __ JumpIfObjectType(right, scratch, scratch, FIRST_SPEC_OBJECT_TYPE, slow,
-                        ge);
+    __ JumpIfObjectType(right, right_type, right_type, FIRST_SPEC_OBJECT_TYPE,
+                        slow, ge);
+    __ Cmp(right_type, SYMBOL_TYPE);
+    __ B(eq, slow);
   } else if (cond == eq) {
     __ JumpIfHeapNumber(right, &heap_number);
   } else {
-    Register right_type = scratch;
     __ JumpIfObjectType(right, right_type, right_type, HEAP_NUMBER_TYPE,
                         &heap_number);
     // Comparing JS objects with <=, >= is complicated.
     __ Cmp(right_type, FIRST_SPEC_OBJECT_TYPE);
     __ B(ge, slow);
+    __ Cmp(right_type, SYMBOL_TYPE);
+    __ B(eq, slow);
     // Normally here we fall through to return_equal, but undefined is
     // special: (undefined == undefined) == true, but
     // (undefined <= undefined) == false!  See ECMAScript 11.8.5.
@@ -984,6 +988,7 @@ void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   RestoreRegistersStateStub::GenerateAheadOfTime(isolate);
   BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
   StoreFastElementStub::GenerateAheadOfTime(isolate);
+  TypeofStub::GenerateAheadOfTime(isolate);
 }
 
 
@@ -1207,7 +1212,8 @@ void CEntryStub::Generate(MacroAssembler* masm) {
 
   // Ask the runtime for help to determine the handler. This will set x0 to
   // contain the current pending exception, don't clobber it.
-  ExternalReference find_handler(Runtime::kFindExceptionHandler, isolate());
+  ExternalReference find_handler(Runtime::kUnwindAndFindExceptionHandler,
+                                 isolate());
   DCHECK(csp.Is(masm->StackPointer()));
   {
     FrameScope scope(masm, StackFrame::MANUAL);
@@ -2086,9 +2092,13 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
                     ArgumentsAdaptorFrameConstants::kLengthOffset));
   __ SmiUntag(param_count, param_count_smi);
   if (has_new_target()) {
+    __ Cmp(param_count, Operand(0));
+    Label skip_decrement;
+    __ B(eq, &skip_decrement);
     // Skip new.target: it is not a part of arguments.
     __ Sub(param_count, param_count, Operand(1));
     __ SmiTag(param_count_smi, param_count);
+    __ Bind(&skip_decrement);
   }
   __ Add(x10, caller_fp, Operand(param_count, LSL, kPointerSizeLog2));
   __ Add(params, x10, StandardFrameConstants::kCallerSPOffset);

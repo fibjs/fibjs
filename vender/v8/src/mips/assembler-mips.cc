@@ -1986,7 +1986,12 @@ void Assembler::pref(int32_t hint, const MemOperand& rs) {
 
 // Load, store, move.
 void Assembler::lwc1(FPURegister fd, const MemOperand& src) {
-  GenInstrImmediate(LWC1, src.rm(), fd, src.offset_);
+  if (is_int16(src.offset_)) {
+    GenInstrImmediate(LWC1, src.rm(), fd, src.offset_);
+  } else {  // Offset > 16 bits, use multiple instructions to load.
+    LoadRegPlusOffsetToAt(src);
+    GenInstrImmediate(LWC1, at, fd, 0);
+  }
 }
 
 
@@ -1994,24 +1999,44 @@ void Assembler::ldc1(FPURegister fd, const MemOperand& src) {
   // Workaround for non-8-byte alignment of HeapNumber, convert 64-bit
   // load to two 32-bit loads.
   if (IsFp64Mode()) {
-    GenInstrImmediate(LWC1, src.rm(), fd, src.offset_ +
-        Register::kMantissaOffset);
-    GenInstrImmediate(LW, src.rm(), at, src.offset_ +
-        Register::kExponentOffset);
-    mthc1(at, fd);
-  } else {
-    GenInstrImmediate(LWC1, src.rm(), fd, src.offset_ +
-        Register::kMantissaOffset);
-    FPURegister nextfpreg;
-    nextfpreg.setcode(fd.code() + 1);
-    GenInstrImmediate(LWC1, src.rm(), nextfpreg, src.offset_ +
-        Register::kExponentOffset);
+    if (is_int16(src.offset_) && is_int16(src.offset_ + kIntSize)) {
+      GenInstrImmediate(LWC1, src.rm(), fd,
+                        src.offset_ + Register::kMantissaOffset);
+      GenInstrImmediate(LW, src.rm(), at,
+                        src.offset_ + Register::kExponentOffset);
+      mthc1(at, fd);
+    } else {  // Offset > 16 bits, use multiple instructions to load.
+      LoadRegPlusOffsetToAt(src);
+      GenInstrImmediate(LWC1, at, fd, Register::kMantissaOffset);
+      GenInstrImmediate(LW, at, at, Register::kExponentOffset);
+      mthc1(at, fd);
+    }
+  } else {  // fp32 mode.
+    if (is_int16(src.offset_) && is_int16(src.offset_ + kIntSize)) {
+      GenInstrImmediate(LWC1, src.rm(), fd,
+                        src.offset_ + Register::kMantissaOffset);
+      FPURegister nextfpreg;
+      nextfpreg.setcode(fd.code() + 1);
+      GenInstrImmediate(LWC1, src.rm(), nextfpreg,
+                        src.offset_ + Register::kExponentOffset);
+    } else {  // Offset > 16 bits, use multiple instructions to load.
+      LoadRegPlusOffsetToAt(src);
+      GenInstrImmediate(LWC1, at, fd, Register::kMantissaOffset);
+      FPURegister nextfpreg;
+      nextfpreg.setcode(fd.code() + 1);
+      GenInstrImmediate(LWC1, at, nextfpreg, Register::kExponentOffset);
+    }
   }
 }
 
 
 void Assembler::swc1(FPURegister fd, const MemOperand& src) {
-  GenInstrImmediate(SWC1, src.rm(), fd, src.offset_);
+  if (is_int16(src.offset_)) {
+    GenInstrImmediate(SWC1, src.rm(), fd, src.offset_);
+  } else {  // Offset > 16 bits, use multiple instructions to load.
+    LoadRegPlusOffsetToAt(src);
+    GenInstrImmediate(SWC1, at, fd, 0);
+  }
 }
 
 
@@ -2019,18 +2044,33 @@ void Assembler::sdc1(FPURegister fd, const MemOperand& src) {
   // Workaround for non-8-byte alignment of HeapNumber, convert 64-bit
   // store to two 32-bit stores.
   if (IsFp64Mode()) {
-    GenInstrImmediate(SWC1, src.rm(), fd, src.offset_ +
-        Register::kMantissaOffset);
-    mfhc1(at, fd);
-    GenInstrImmediate(SW, src.rm(), at, src.offset_ +
-        Register::kExponentOffset);
-  } else {
-    GenInstrImmediate(SWC1, src.rm(), fd, src.offset_ +
-        Register::kMantissaOffset);
-    FPURegister nextfpreg;
-    nextfpreg.setcode(fd.code() + 1);
-    GenInstrImmediate(SWC1, src.rm(), nextfpreg, src.offset_ +
-        Register::kExponentOffset);
+    if (is_int16(src.offset_) && is_int16(src.offset_ + kIntSize)) {
+      GenInstrImmediate(SWC1, src.rm(), fd,
+                        src.offset_ + Register::kMantissaOffset);
+      mfhc1(at, fd);
+      GenInstrImmediate(SW, src.rm(), at,
+                        src.offset_ + Register::kExponentOffset);
+    } else {  // Offset > 16 bits, use multiple instructions to load.
+      LoadRegPlusOffsetToAt(src);
+      GenInstrImmediate(SWC1, at, fd, Register::kMantissaOffset);
+      mfhc1(t8, fd);
+      GenInstrImmediate(SW, at, t8, Register::kExponentOffset);
+    }
+  } else {  // fp32 mode.
+    if (is_int16(src.offset_) && is_int16(src.offset_ + kIntSize)) {
+      GenInstrImmediate(SWC1, src.rm(), fd,
+                        src.offset_ + Register::kMantissaOffset);
+      FPURegister nextfpreg;
+      nextfpreg.setcode(fd.code() + 1);
+      GenInstrImmediate(SWC1, src.rm(), nextfpreg,
+                        src.offset_ + Register::kExponentOffset);
+    } else {  // Offset > 16 bits, use multiple instructions to load.
+      LoadRegPlusOffsetToAt(src);
+      GenInstrImmediate(SWC1, at, fd, Register::kMantissaOffset);
+      FPURegister nextfpreg;
+      nextfpreg.setcode(fd.code() + 1);
+      GenInstrImmediate(SWC1, at, nextfpreg, Register::kExponentOffset);
+    }
   }
 }
 
@@ -2210,6 +2250,18 @@ void Assembler::ceil_w_d(FPURegister fd, FPURegister fs) {
 }
 
 
+void Assembler::rint_s(FPURegister fd, FPURegister fs) { rint(S, fd, fs); }
+
+
+void Assembler::rint(SecondaryField fmt, FPURegister fd, FPURegister fs) {
+  DCHECK(IsMipsArchVariant(kMips32r6));
+  GenInstrRegister(COP1, fmt, f0, fs, fd, RINT);
+}
+
+
+void Assembler::rint_d(FPURegister fd, FPURegister fs) { rint(D, fd, fs); }
+
+
 void Assembler::cvt_l_s(FPURegister fd, FPURegister fs) {
   DCHECK(IsMipsArchVariant(kMips32r2));
   GenInstrRegister(COP1, S, f0, fs, fd, CVT_L_S);
@@ -2293,6 +2345,46 @@ void Assembler::maxa(SecondaryField fmt, FPURegister fd, FPURegister fs,
   DCHECK(IsMipsArchVariant(kMips32r6));
   DCHECK((fmt == D) || (fmt == S));
   GenInstrRegister(COP1, fmt, ft, fs, fd, MAXA);
+}
+
+
+void Assembler::min_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  min(S, fd, fs, ft);
+}
+
+
+void Assembler::min_d(FPURegister fd, FPURegister fs, FPURegister ft) {
+  min(D, fd, fs, ft);
+}
+
+
+void Assembler::max_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  max(S, fd, fs, ft);
+}
+
+
+void Assembler::max_d(FPURegister fd, FPURegister fs, FPURegister ft) {
+  max(D, fd, fs, ft);
+}
+
+
+void Assembler::mina_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  mina(S, fd, fs, ft);
+}
+
+
+void Assembler::mina_d(FPURegister fd, FPURegister fs, FPURegister ft) {
+  mina(D, fd, fs, ft);
+}
+
+
+void Assembler::maxa_s(FPURegister fd, FPURegister fs, FPURegister ft) {
+  maxa(S, fd, fs, ft);
+}
+
+
+void Assembler::maxa_d(FPURegister fd, FPURegister fs, FPURegister ft) {
+  maxa(D, fd, fs, ft);
 }
 
 
@@ -2492,15 +2584,15 @@ void Assembler::dd(uint32_t data) {
 void Assembler::dd(Label* label) {
   CheckBuffer();
   RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE);
+  uint32_t data;
   if (label->is_bound()) {
-    uint32_t data = reinterpret_cast<uint32_t>(buffer_ + label->pos());
-    *reinterpret_cast<uint32_t*>(pc_) = data;
-    pc_ += sizeof(uint32_t);
+    data = reinterpret_cast<uint32_t>(buffer_ + label->pos());
   } else {
-    uint32_t target_pos = jump_address(label);
-    emit(target_pos);
+    data = jump_address(label);
     internal_reference_positions_.insert(label->pos());
   }
+  *reinterpret_cast<uint32_t*>(pc_) = data;
+  pc_ += sizeof(uint32_t);
 }
 
 

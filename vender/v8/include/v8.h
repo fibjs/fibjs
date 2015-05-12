@@ -3236,8 +3236,8 @@ class V8_EXPORT ArrayBuffer : public Object {
  public:
   /**
    * Allocator that V8 uses to allocate |ArrayBuffer|'s memory.
-   * The allocator is a global V8 setting. It should be set with
-   * V8::SetArrayBufferAllocator prior to creation of a first ArrayBuffer.
+   * The allocator is a global V8 setting. It has to be set via
+   * Isolate::CreateParams.
    *
    * This API is experimental and may change significantly.
    */
@@ -3269,7 +3269,7 @@ class V8_EXPORT ArrayBuffer : public Object {
    * and byte length.
    *
    * The Data pointer of ArrayBuffer::Contents is always allocated with
-   * Allocator::Allocate that is set with V8::SetArrayBufferAllocator.
+   * Allocator::Allocate that is set via Isolate::CreateParams.
    *
    * This API is experimental and may change significantly.
    */
@@ -3337,7 +3337,7 @@ class V8_EXPORT ArrayBuffer : public Object {
    * should take steps to free memory when it is no longer needed.
    *
    * The memory block is guaranteed to be allocated with |Allocator::Allocate|
-   * that has been set with V8::SetArrayBufferAllocator.
+   * that has been set via Isolate::CreateParams.
    */
   Contents Externalize();
 
@@ -4274,7 +4274,9 @@ struct IndexedPropertyHandlerConfiguration {
 class V8_EXPORT ObjectTemplate : public Template {
  public:
   /** Creates an ObjectTemplate. */
-  static Local<ObjectTemplate> New(Isolate* isolate);
+  static Local<ObjectTemplate> New(
+      Isolate* isolate,
+      Handle<FunctionTemplate> constructor = Handle<FunctionTemplate>());
   static V8_DEPRECATE_SOON("Use isolate version", Local<ObjectTemplate> New());
 
   /** Creates a new instance of this template.*/
@@ -4776,6 +4778,7 @@ class V8_EXPORT HeapStatistics {
   size_t total_heap_size() { return total_heap_size_; }
   size_t total_heap_size_executable() { return total_heap_size_executable_; }
   size_t total_physical_size() { return total_physical_size_; }
+  size_t total_available_size() { return total_available_size_; }
   size_t used_heap_size() { return used_heap_size_; }
   size_t heap_size_limit() { return heap_size_limit_; }
 
@@ -4783,6 +4786,7 @@ class V8_EXPORT HeapStatistics {
   size_t total_heap_size_;
   size_t total_heap_size_executable_;
   size_t total_physical_size_;
+  size_t total_available_size_;
   size_t used_heap_size_;
   size_t heap_size_limit_;
 
@@ -4951,7 +4955,8 @@ class V8_EXPORT Isolate {
           snapshot_blob(NULL),
           counter_lookup_callback(NULL),
           create_histogram_callback(NULL),
-          add_histogram_sample_callback(NULL) {}
+          add_histogram_sample_callback(NULL),
+          array_buffer_allocator(NULL) {}
 
     /**
      * The optional entry_hook allows the host application to provide the
@@ -4993,6 +4998,12 @@ class V8_EXPORT Isolate {
      */
     CreateHistogramCallback create_histogram_callback;
     AddHistogramSampleCallback add_histogram_sample_callback;
+
+    /**
+     * The ArrayBuffer::Allocator to use for allocating and freeing the backing
+     * store of ArrayBuffers.
+     */
+    ArrayBuffer::Allocator* array_buffer_allocator;
   };
 
 
@@ -5112,7 +5123,9 @@ class V8_EXPORT Isolate {
    *
    * V8::Initialize() must have run prior to this.
    */
-  static Isolate* New(const CreateParams& params = CreateParams());
+  static Isolate* New(const CreateParams& params);
+
+  static V8_DEPRECATE_SOON("Always pass CreateParams", Isolate* New());
 
   /**
    * Returns the entered isolate for the current thread or NULL in
@@ -5702,7 +5715,9 @@ class V8_EXPORT V8 {
    * before any code tha uses ArrayBuffers is executed.
    * This allocator is used in all isolates.
    */
-  static void SetArrayBufferAllocator(ArrayBuffer::Allocator* allocator);
+  static V8_DEPRECATE_SOON(
+      "Use isolate version",
+      void SetArrayBufferAllocator(ArrayBuffer::Allocator* allocator));
 
   /**
   * Check if V8 is dead and therefore unusable.  This is the case after
@@ -6356,6 +6371,12 @@ class V8_EXPORT Context {
   V8_INLINE Local<Value> GetEmbedderData(int index);
 
   /**
+   * Gets the exports object used by V8 extras. Extra natives get a reference
+   * to this object and can use it to export functionality.
+   */
+  Local<Object> GetExtrasExportsObject();
+
+  /**
    * Sets the embedder data with the given index, growing the data as
    * needed. Note that index 0 currently has a special meaning for Chrome's
    * debugger.
@@ -6657,7 +6678,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 76;
+  static const int kContextEmbedderDataIndex = 77;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;

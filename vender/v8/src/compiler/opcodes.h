@@ -21,6 +21,8 @@
   V(Merge)                 \
   V(Deoptimize)            \
   V(Return)                \
+  V(TailCall)              \
+  V(Terminate)             \
   V(OsrNormalEntry)        \
   V(OsrLoopEntry)          \
   V(Throw)                 \
@@ -53,8 +55,7 @@
 
 #define COMMON_OP_LIST(V) \
   CONSTANT_OP_LIST(V)     \
-  INNER_OP_LIST(V)        \
-  V(Always)
+  INNER_OP_LIST(V)
 
 // Opcodes for JavaScript operators.
 #define JS_COMPARE_BINOP_LIST(V) \
@@ -106,6 +107,9 @@
 
 #define JS_OBJECT_OP_LIST(V) \
   V(JSCreate)                \
+  V(JSCreateClosure)         \
+  V(JSCreateLiteralArray)    \
+  V(JSCreateLiteralObject)   \
   V(JSLoadProperty)          \
   V(JSLoadNamed)             \
   V(JSStoreProperty)         \
@@ -169,6 +173,7 @@
   V(ChangeFloat64ToTagged)         \
   V(ChangeBoolToBit)               \
   V(ChangeBitToBool)               \
+  V(Allocate)                      \
   V(LoadField)                     \
   V(LoadBuffer)                    \
   V(LoadElement)                   \
@@ -305,7 +310,7 @@ class IrOpcode {
 
   // Returns true if opcode for common operator.
   static bool IsCommonOpcode(Value value) {
-    return kStart <= value && value <= kAlways;
+    return kStart <= value && value <= kProjection;
   }
 
   // Returns true if opcode for control operator.

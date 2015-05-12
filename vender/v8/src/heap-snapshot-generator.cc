@@ -1175,8 +1175,6 @@ void V8HeapExplorer::ExtractJSObjectReferences(
     JSArrayBufferView* view = JSArrayBufferView::cast(obj);
     SetInternalReference(view, entry, "buffer", view->buffer(),
                          JSArrayBufferView::kBufferOffset);
-    SetWeakReference(view, entry, "weak_next", view->weak_next(),
-                     JSArrayBufferView::kWeakNextOffset);
   }
   TagObject(js_obj->properties(), "(object properties)");
   SetInternalReference(obj, entry,
@@ -1568,11 +1566,6 @@ class JSArrayBufferDataEntryAllocator : public HeapEntriesAllocator {
 
 void V8HeapExplorer::ExtractJSArrayBufferReferences(
     int entry, JSArrayBuffer* buffer) {
-  SetWeakReference(buffer, entry, "weak_next", buffer->weak_next(),
-                   JSArrayBuffer::kWeakNextOffset);
-  SetWeakReference(buffer, entry,
-                   "weak_first_view", buffer->weak_first_view(),
-                   JSArrayBuffer::kWeakFirstViewOffset);
   // Setup a reference to a native memory backing_store object.
   if (!buffer->backing_store())
     return;
@@ -2476,6 +2469,9 @@ void NativeObjectsExplorer::SetNativeRootReference(
       FindOrAddGroupInfo(info->GetGroupLabel());
   HeapEntry* group_entry =
       filler_->FindOrAddEntry(group_info, synthetic_entries_allocator_);
+  // |FindOrAddEntry| can move and resize the entries backing store. Reload
+  // potentially-stale pointer.
+  child_entry = filler_->FindEntry(info);
   filler_->SetNamedAutoIndexReference(
       HeapGraphEdge::kInternal,
       group_entry->index(),

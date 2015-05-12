@@ -127,7 +127,8 @@ class CompilationInfo {
     kSplittingEnabled = 1 << 13,
     kBuiltinInliningEnabled = 1 << 14,
     kTypeFeedbackEnabled = 1 << 15,
-    kDeoptimizationEnabled = 1 << 16
+    kDeoptimizationEnabled = 1 << 16,
+    kSourcePositionsEnabled = 1 << 17
   };
 
   explicit CompilationInfo(ParseInfo* parse_info);
@@ -147,6 +148,7 @@ class CompilationInfo {
   Handle<JSFunction> closure() const;
   FunctionLiteral* function() const;
   Scope* scope() const;
+  bool MayUseThis() const;
   Handle<Context> context() const;
   Handle<SharedFunctionInfo> shared_info() const;
   bool has_shared_info() const;
@@ -222,6 +224,12 @@ class CompilationInfo {
 
   bool is_deoptimization_enabled() const {
     return GetFlag(kDeoptimizationEnabled);
+  }
+
+  void MarkAsSourcePositionsEnabled() { SetFlag(kSourcePositionsEnabled); }
+
+  bool is_source_positions_enabled() const {
+    return GetFlag(kSourcePositionsEnabled);
   }
 
   void MarkAsInliningEnabled() { SetFlag(kInliningEnabled); }

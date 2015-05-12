@@ -41,6 +41,7 @@ class LCodeGen;
   V(CallNewArray)                            \
   V(CallRuntime)                             \
   V(CallStub)                                \
+  V(CheckArrayBufferNotNeutered)             \
   V(CheckInstanceType)                       \
   V(CheckMaps)                               \
   V(CheckMapValue)                           \
@@ -1558,12 +1559,15 @@ class LArithmeticT final : public LTemplateInstruction<1, 3, 0> {
   LOperand* context() { return inputs_[0]; }
   LOperand* left() { return inputs_[1]; }
   LOperand* right() { return inputs_[2]; }
+  Token::Value op() const { return op_; }
 
   Opcode opcode() const override { return LInstruction::kArithmeticT; }
   void CompileToNative(LCodeGen* generator) override;
   const char* Mnemonic() const override;
 
-  Token::Value op() const { return op_; }
+  DECLARE_HYDROGEN_ACCESSOR(BinaryOperation)
+
+  LanguageMode language_mode() { return hydrogen()->language_mode(); }
 
  private:
   Token::Value op_;
@@ -2378,6 +2382,23 @@ class LCheckValue final : public LTemplateInstruction<0, 1, 0> {
 
   DECLARE_CONCRETE_INSTRUCTION(CheckValue, "check-value")
   DECLARE_HYDROGEN_ACCESSOR(CheckValue)
+};
+
+
+class LCheckArrayBufferNotNeutered final
+    : public LTemplateInstruction<0, 1, 1> {
+ public:
+  explicit LCheckArrayBufferNotNeutered(LOperand* view, LOperand* scratch) {
+    inputs_[0] = view;
+    temps_[0] = scratch;
+  }
+
+  LOperand* view() { return inputs_[0]; }
+  LOperand* scratch() { return temps_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(CheckArrayBufferNotNeutered,
+                               "check-array-buffer-not-neutered")
+  DECLARE_HYDROGEN_ACCESSOR(CheckArrayBufferNotNeutered)
 };
 
 

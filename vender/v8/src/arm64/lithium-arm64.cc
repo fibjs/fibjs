@@ -1225,6 +1225,15 @@ LInstruction* LChunkBuilder::DoCheckValue(HCheckValue* instr) {
 }
 
 
+LInstruction* LChunkBuilder::DoCheckArrayBufferNotNeutered(
+    HCheckArrayBufferNotNeutered* instr) {
+  LOperand* view = UseRegisterAtStart(instr->value());
+  LCheckArrayBufferNotNeutered* result =
+      new (zone()) LCheckArrayBufferNotNeutered(view);
+  return AssignEnvironment(result);
+}
+
+
 LInstruction* LChunkBuilder::DoCheckInstanceType(HCheckInstanceType* instr) {
   LOperand* value = UseRegisterAtStart(instr->value());
   LOperand* temp = TempRegister();
@@ -1716,21 +1725,24 @@ LInstruction* LChunkBuilder::DoLoadKeyed(HLoadKeyed* instr) {
                         instr->RequiresHoleCheck())
              ? TempRegister()
              : NULL;
-
-      LLoadKeyedFixedDouble* result =
-          new(zone()) LLoadKeyedFixedDouble(elements, key, temp);
-      return instr->RequiresHoleCheck()
-          ? AssignEnvironment(DefineAsRegister(result))
-          : DefineAsRegister(result);
+      LInstruction* result = DefineAsRegister(
+          new (zone()) LLoadKeyedFixedDouble(elements, key, temp));
+      if (instr->RequiresHoleCheck()) {
+        result = AssignEnvironment(result);
+      }
+      return result;
     } else {
       DCHECK(instr->representation().IsSmiOrTagged() ||
              instr->representation().IsInteger32());
       LOperand* temp = instr->key()->IsConstant() ? NULL : TempRegister();
-      LLoadKeyedFixed* result =
-          new(zone()) LLoadKeyedFixed(elements, key, temp);
-      return instr->RequiresHoleCheck()
-          ? AssignEnvironment(DefineAsRegister(result))
-          : DefineAsRegister(result);
+      LInstruction* result =
+          DefineAsRegister(new (zone()) LLoadKeyedFixed(elements, key, temp));
+      if (instr->RequiresHoleCheck() ||
+          (instr->hole_mode() == CONVERT_HOLE_TO_UNDEFINED &&
+           info()->IsStub())) {
+        result = AssignEnvironment(result);
+      }
+      return result;
     }
   } else {
     DCHECK((instr->representation().IsInteger32() &&
@@ -2561,12 +2573,8 @@ LInstruction* LChunkBuilder::DoTrapAllocationMemento(
 
 LInstruction* LChunkBuilder::DoTypeof(HTypeof* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
-  // TODO(jbramley): In ARM, this uses UseFixed to force the input to x0.
-  // However, LCodeGen::DoTypeof just pushes it to the stack (for CallRuntime)
-  // anyway, so the input doesn't have to be in x0. We might be able to improve
-  // the ARM back-end a little by relaxing this restriction.
-  LTypeof* result =
-      new(zone()) LTypeof(context, UseRegisterAtStart(instr->value()));
+  LOperand* value = UseFixed(instr->value(), x3);
+  LTypeof* result = new (zone()) LTypeof(context, value);
   return MarkAsCall(DefineFixed(result, x0), instr);
 }
 

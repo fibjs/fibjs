@@ -13,6 +13,7 @@
 #include "src/frames-inl.h"
 #include "src/isolate.h"
 #include "src/list-inl.h"
+#include "src/messages.h"
 #include "src/property-details.h"
 #include "src/prototype.h"
 
@@ -78,6 +79,26 @@ bool Accessors::IsJSObjectFieldAccessor(Handle<Map> map, Handle<Name> name,
       return
         CheckForName(name, isolate->factory()->length_string(),
                      JSArray::kLengthOffset, object_offset);
+    case JS_ARRAY_BUFFER_TYPE:
+      return CheckForName(name, isolate->factory()->byte_length_string(),
+                          JSArrayBuffer::kByteLengthOffset, object_offset);
+    default:
+      if (map->instance_type() < FIRST_NONSTRING_TYPE) {
+        return CheckForName(name, isolate->factory()->length_string(),
+                            String::kLengthOffset, object_offset);
+      }
+
+      return false;
+  }
+}
+
+
+bool Accessors::IsJSArrayBufferViewFieldAccessor(Handle<Map> map,
+                                                 Handle<Name> name,
+                                                 int* object_offset) {
+  Isolate* isolate = name->GetIsolate();
+
+  switch (map->instance_type()) {
     case JS_TYPED_ARRAY_TYPE:
       // %TypedArray%.prototype is non-configurable, and so are the following
       // named properties on %TypedArray%.prototype, so we can directly inline
@@ -87,29 +108,19 @@ bool Accessors::IsJSObjectFieldAccessor(Handle<Map> map, Handle<Name> name,
           map->prototype()) {
         return false;
       }
-      return
-        CheckForName(name, isolate->factory()->length_string(),
-                     JSTypedArray::kLengthOffset, object_offset) ||
-        CheckForName(name, isolate->factory()->byte_length_string(),
-                     JSTypedArray::kByteLengthOffset, object_offset) ||
-        CheckForName(name, isolate->factory()->byte_offset_string(),
-                     JSTypedArray::kByteOffsetOffset, object_offset);
-    case JS_ARRAY_BUFFER_TYPE:
-      return
-        CheckForName(name, isolate->factory()->byte_length_string(),
-                     JSArrayBuffer::kByteLengthOffset, object_offset);
-    case JS_DATA_VIEW_TYPE:
-      return
-        CheckForName(name, isolate->factory()->byte_length_string(),
-                     JSDataView::kByteLengthOffset, object_offset) ||
-        CheckForName(name, isolate->factory()->byte_offset_string(),
-                     JSDataView::kByteOffsetOffset, object_offset);
-    default:
-      if (map->instance_type() < FIRST_NONSTRING_TYPE) {
-        return CheckForName(name, isolate->factory()->length_string(),
-                            String::kLengthOffset, object_offset);
-      }
+      return CheckForName(name, isolate->factory()->length_string(),
+                          JSTypedArray::kLengthOffset, object_offset) ||
+             CheckForName(name, isolate->factory()->byte_length_string(),
+                          JSTypedArray::kByteLengthOffset, object_offset) ||
+             CheckForName(name, isolate->factory()->byte_offset_string(),
+                          JSTypedArray::kByteOffsetOffset, object_offset);
 
+    case JS_DATA_VIEW_TYPE:
+      return CheckForName(name, isolate->factory()->byte_length_string(),
+                          JSDataView::kByteLengthOffset, object_offset) ||
+             CheckForName(name, isolate->factory()->byte_offset_string(),
+                          JSDataView::kByteOffsetOffset, object_offset);
+    default:
       return false;
   }
 }
@@ -250,8 +261,8 @@ void Accessors::ArrayLengthSetter(
     return;
   }
 
-  Handle<Object> exception = isolate->factory()->NewRangeError(
-      "invalid_array_length", HandleVector<Object>(NULL, 0));
+  Handle<Object> exception =
+      isolate->factory()->NewRangeError(MessageTemplate::kInvalidArrayLength);
   isolate->ScheduleThrow(*exception);
 }
 
@@ -1018,7 +1029,7 @@ MUST_USE_RESULT static MaybeHandle<Object> ReplaceAccessorWithDataProperty(
   CHECK_EQ(LookupIterator::ACCESSOR, it.state());
   DCHECK(it.HolderIsReceiverOrHiddenPrototype());
   it.ReconfigureDataProperty(value, it.property_details().attributes());
-  value = it.WriteDataValue(value);
+  it.WriteDataValue(value);
 
   if (is_observed && !old_value->SameValue(*value)) {
     return JSObject::EnqueueChangeRecord(object, "update", name, old_value);
@@ -1433,7 +1444,7 @@ static void ModuleGetExport(
     Handle<String> name = v8::Utils::OpenHandle(*property);
 
     Handle<Object> exception = isolate->factory()->NewReferenceError(
-        "not_defined", HandleVector(&name, 1));
+        MessageTemplate::kNotDefined, name);
     isolate->ScheduleThrow(*exception);
     return;
   }
@@ -1454,7 +1465,7 @@ static void ModuleSetExport(
   if (old_value->IsTheHole()) {
     Handle<String> name = v8::Utils::OpenHandle(*property);
     Handle<Object> exception = isolate->factory()->NewReferenceError(
-        "not_defined", HandleVector(&name, 1));
+        MessageTemplate::kNotDefined, name);
     isolate->ScheduleThrow(*exception);
     return;
   }

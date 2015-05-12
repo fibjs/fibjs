@@ -226,6 +226,7 @@ static void VerifyEvacuation(Heap* heap) {
 
 void MarkCompactCollector::SetUp() {
   free_list_old_space_.Reset(new FreeList(heap_->old_space()));
+  EnsureMarkingDequeIsCommittedAndInitialize(256 * KB);
 }
 
 
@@ -1571,7 +1572,7 @@ class MarkCompactMarkingVisitor::ObjectStatsTracker<
     int object_size = obj->Size();
     DCHECK(map->instance_type() == CODE_TYPE);
     Code* code_obj = Code::cast(obj);
-    heap->RecordCodeSubTypeStats(code_obj->kind(), code_obj->GetRawAge(),
+    heap->RecordCodeSubTypeStats(code_obj->kind(), code_obj->GetAge(),
                                  object_size);
     ObjectStatsVisitBase(kVisitCode, map, obj);
   }
@@ -1940,7 +1941,16 @@ int MarkCompactCollector::DiscoverAndEvacuateBlackObjectsOnPage(
         continue;
       }
 
-      AllocationResult allocation = new_space->AllocateRaw(size);
+      AllocationResult allocation;
+#ifndef V8_HOST_ARCH_64_BIT
+      if (object->NeedsToEnsureDoubleAlignment()) {
+        allocation = new_space->AllocateRawDoubleAligned(size);
+      } else {
+        allocation = new_space->AllocateRaw(size);
+      }
+#else
+      allocation = new_space->AllocateRaw(size);
+#endif
       if (allocation.IsRetry()) {
         if (!new_space->AddFreshPage()) {
           // Shouldn't happen. We are sweeping linearly, and to-space
@@ -1948,7 +1958,15 @@ int MarkCompactCollector::DiscoverAndEvacuateBlackObjectsOnPage(
           // always room.
           UNREACHABLE();
         }
+#ifndef V8_HOST_ARCH_64_BIT
+        if (object->NeedsToEnsureDoubleAlignment()) {
+          allocation = new_space->AllocateRawDoubleAligned(size);
+        } else {
+          allocation = new_space->AllocateRaw(size);
+        }
+#else
         allocation = new_space->AllocateRaw(size);
+#endif
         DCHECK(!allocation.IsRetry());
       }
       Object* target = allocation.ToObjectChecked();
@@ -2240,20 +2258,44 @@ void MarkCompactCollector::RetainMaps() {
 }
 
 
-void MarkCompactCollector::EnsureMarkingDequeIsCommittedAndInitialize() {
-  if (marking_deque_memory_ == NULL) {
-    marking_deque_memory_ = new base::VirtualMemory(4 * MB);
-  }
-  if (!marking_deque_memory_committed_) {
-    if (!marking_deque_memory_->Commit(
-            reinterpret_cast<Address>(marking_deque_memory_->address()),
-            marking_deque_memory_->size(),
-            false)) {  // Not executable.
-      V8::FatalProcessOutOfMemory("EnsureMarkingDequeIsCommitted");
+void MarkCompactCollector::EnsureMarkingDequeIsCommittedAndInitialize(
+    size_t max_size) {
+  // If the marking deque is too small, we try to allocate a bigger one.
+  // If that fails, make do with a smaller one.
+  for (size_t size = max_size; size >= 256 * KB; size >>= 1) {
+    base::VirtualMemory* memory = marking_deque_memory_;
+    bool is_committed = marking_deque_memory_committed_;
+
+    if (memory == NULL || memory->size() < size) {
+      // If we don't have memory or we only have small memory, then
+      // try to reserve a new one.
+      memory = new base::VirtualMemory(size);
+      is_committed = false;
     }
-    marking_deque_memory_committed_ = true;
-    InitializeMarkingDeque();
+    if (is_committed) return;
+    if (memory->IsReserved() &&
+        memory->Commit(reinterpret_cast<Address>(memory->address()),
+                       memory->size(),
+                       false)) {  // Not executable.
+      if (marking_deque_memory_ != NULL && marking_deque_memory_ != memory) {
+        delete marking_deque_memory_;
+      }
+      marking_deque_memory_ = memory;
+      marking_deque_memory_committed_ = true;
+      InitializeMarkingDeque();
+      return;
+    } else {
+      // Commit failed, so we are under memory pressure.  If this was the
+      // previously reserved area we tried to commit, then remove references
+      // to it before deleting it and unreserving it.
+      if (marking_deque_memory_ == memory) {
+        marking_deque_memory_ = NULL;
+        marking_deque_memory_committed_ = false;
+      }
+      delete memory;  // Will also unreserve the virtual allocation.
+    }
   }
+  V8::FatalProcessOutOfMemory("EnsureMarkingDequeIsCommitted");
 }
 
 
@@ -3077,7 +3119,16 @@ bool MarkCompactCollector::TryPromoteObject(HeapObject* object,
   OldSpace* old_space = heap()->old_space();
 
   HeapObject* target;
-  AllocationResult allocation = old_space->AllocateRaw(object_size);
+  AllocationResult allocation;
+#ifndef V8_HOST_ARCH_64_BIT
+  if (object->NeedsToEnsureDoubleAlignment()) {
+    allocation = old_space->AllocateRawDoubleAligned(object_size);
+  } else {
+    allocation = old_space->AllocateRaw(object_size);
+  }
+#else
+  allocation = old_space->AllocateRaw(object_size);
+#endif
   if (allocation.To(&target)) {
     MigrateObject(target, object, object_size, old_space->identity());
     heap()->IncrementPromotedObjectsSize(object_size);
@@ -4386,6 +4437,8 @@ void MarkCompactCollector::SweepSpaces() {
 #ifdef DEBUG
   state_ = SWEEP_SPACES;
 #endif
+  heap()->FreeDeadArrayBuffers();
+
   MoveEvacuationCandidatesToEndOfPagesList();
 
   // Noncompacting collections simply sweep the spaces to clear the mark

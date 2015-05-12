@@ -313,12 +313,19 @@ class CFGBuilder : public ZoneObject {
       case IrOpcode::kMerge:
         BuildBlockForNode(node);
         break;
+      case IrOpcode::kTerminate: {
+        // Put Terminate in the loop to which it refers.
+        Node* loop = NodeProperties::GetControlInput(node);
+        BasicBlock* block = BuildBlockForNode(loop);
+        FixNode(block, node);
+        break;
+      }
       case IrOpcode::kBranch:
       case IrOpcode::kSwitch:
         BuildBlocksForSuccessors(node);
         break;
       case IrOpcode::kCall:
-        if (IsExceptionalCall(node)) {
+        if (NodeProperties::IsExceptionalCall(node)) {
           BuildBlocksForSuccessors(node);
         }
         break;
@@ -345,6 +352,10 @@ class CFGBuilder : public ZoneObject {
         scheduler_->UpdatePlacement(node, Scheduler::kFixed);
         ConnectDeoptimize(node);
         break;
+      case IrOpcode::kTailCall:
+        scheduler_->UpdatePlacement(node, Scheduler::kFixed);
+        ConnectTailCall(node);
+        break;
       case IrOpcode::kReturn:
         scheduler_->UpdatePlacement(node, Scheduler::kFixed);
         ConnectReturn(node);
@@ -354,7 +365,7 @@ class CFGBuilder : public ZoneObject {
         ConnectThrow(node);
         break;
       case IrOpcode::kCall:
-        if (IsExceptionalCall(node)) {
+        if (NodeProperties::IsExceptionalCall(node)) {
           scheduler_->UpdatePlacement(node, Scheduler::kFixed);
           ConnectCall(node);
         }
@@ -487,6 +498,13 @@ class CFGBuilder : public ZoneObject {
     }
   }
 
+  void ConnectTailCall(Node* call) {
+    Node* call_control = NodeProperties::GetControlInput(call);
+    BasicBlock* call_block = FindPredecessorBlock(call_control);
+    TraceConnect(call, call_block, NULL);
+    schedule_->AddTailCall(call_block, call);
+  }
+
   void ConnectReturn(Node* ret) {
     Node* return_control = NodeProperties::GetControlInput(ret);
     BasicBlock* return_block = FindPredecessorBlock(return_control);
@@ -517,13 +535,6 @@ class CFGBuilder : public ZoneObject {
       TRACE("Connect #%d:%s, id:%d -> id:%d\n", node->id(),
             node->op()->mnemonic(), block->id().ToInt(), succ->id().ToInt());
     }
-  }
-
-  bool IsExceptionalCall(Node* node) {
-    for (Node* const use : node->uses()) {
-      if (use->opcode() == IrOpcode::kIfException) return true;
-    }
-    return false;
   }
 
   bool IsFinalMerge(Node* node) {
@@ -634,7 +645,7 @@ class SpecialRPONumberer : public ZoneObject {
 #endif
   }
 
-  const ZoneList<BasicBlock*>& GetOutgoingBlocks(BasicBlock* block) {
+  const ZoneVector<BasicBlock*>& GetOutgoingBlocks(BasicBlock* block) {
     if (HasLoopNumber(block)) {
       LoopInfo const& loop = loops_[GetLoopNumber(block)];
       if (loop.outgoing) return *loop.outgoing;
@@ -659,7 +670,7 @@ class SpecialRPONumberer : public ZoneObject {
 
   struct LoopInfo {
     BasicBlock* header;
-    ZoneList<BasicBlock*>* outgoing;
+    ZoneVector<BasicBlock*>* outgoing;
     BitVector* members;
     LoopInfo* prev;
     BasicBlock* end;
@@ -667,9 +678,10 @@ class SpecialRPONumberer : public ZoneObject {
 
     void AddOutgoing(Zone* zone, BasicBlock* block) {
       if (outgoing == NULL) {
-        outgoing = new (zone) ZoneList<BasicBlock*>(2, zone);
+        outgoing = new (zone->New(sizeof(ZoneVector<BasicBlock*>)))
+            ZoneVector<BasicBlock*>(zone);
       }
-      outgoing->Add(block, zone);
+      outgoing->push_back(block);
     }
   };
 
@@ -798,12 +810,11 @@ class SpecialRPONumberer : public ZoneObject {
           }
 
           // Use the next outgoing edge if there are any.
-          int outgoing_index =
-              static_cast<int>(frame->index - block->SuccessorCount());
+          size_t outgoing_index = frame->index - block->SuccessorCount();
           LoopInfo* info = &loops_[GetLoopNumber(block)];
           DCHECK(loop != info);
           if (block != entry && info->outgoing != NULL &&
-              outgoing_index < info->outgoing->length()) {
+              outgoing_index < info->outgoing->size()) {
             succ = info->outgoing->at(outgoing_index);
             frame->index++;
           }
@@ -1062,7 +1073,7 @@ class SpecialRPONumberer : public ZoneObject {
   ZoneVector<Backedge> backedges_;
   ZoneVector<SpecialRPOStackFrame> stack_;
   size_t previous_block_count_;
-  ZoneList<BasicBlock*> const empty_;
+  ZoneVector<BasicBlock*> const empty_;
 };
 
 

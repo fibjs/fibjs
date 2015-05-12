@@ -1440,9 +1440,9 @@ void InstructionSelector::VisitFloat64LessThanOrEqual(Node* node) {
 
 void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   PPCOperandGenerator g(this);
-  const CallDescriptor* descriptor = OpParameter<CallDescriptor*>(node);
+  const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(node);
 
-  FrameStateDescriptor* frame_state_descriptor = NULL;
+  FrameStateDescriptor* frame_state_descriptor = nullptr;
   if (descriptor->NeedsFrameState()) {
     frame_state_descriptor =
         GetFrameStateDescriptor(node->InputAt(descriptor->InputCount()));
@@ -1464,7 +1464,7 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
 
   // Pass label of exception handler block.
   CallDescriptor::Flags flags = descriptor->flags();
-  if (handler != nullptr) {
+  if (handler) {
     flags |= CallDescriptor::kHasExceptionHandler;
     buffer.instruction_args.push_back(g.Label(handler));
   }
@@ -1486,12 +1486,95 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   opcode |= MiscField::encode(flags);
 
   // Emit the call instruction.
-  InstructionOperand* first_output =
-      buffer.outputs.size() > 0 ? &buffer.outputs.front() : NULL;
-  Instruction* call_instr =
-      Emit(opcode, buffer.outputs.size(), first_output,
-           buffer.instruction_args.size(), &buffer.instruction_args.front());
-  call_instr->MarkAsCall();
+  size_t const output_count = buffer.outputs.size();
+  auto* outputs = output_count ? &buffer.outputs.front() : nullptr;
+  Emit(opcode, output_count, outputs, buffer.instruction_args.size(),
+       &buffer.instruction_args.front())->MarkAsCall();
+}
+
+
+void InstructionSelector::VisitTailCall(Node* node) {
+  PPCOperandGenerator g(this);
+  CallDescriptor const* descriptor = OpParameter<CallDescriptor const*>(node);
+  DCHECK_NE(0, descriptor->flags() & CallDescriptor::kSupportsTailCalls);
+  DCHECK_EQ(0, descriptor->flags() & CallDescriptor::kPatchableCallSite);
+  DCHECK_EQ(0, descriptor->flags() & CallDescriptor::kNeedsNopAfterCall);
+
+  // TODO(turbofan): Relax restriction for stack parameters.
+  if (descriptor->UsesOnlyRegisters() &&
+      descriptor->HasSameReturnLocationsAs(
+          linkage()->GetIncomingDescriptor())) {
+    CallBuffer buffer(zone(), descriptor, nullptr);
+
+    // Compute InstructionOperands for inputs and outputs.
+    // TODO(turbofan): on PPC it's probably better to use the code object in a
+    // register if there are multiple uses of it. Improve constant pool and the
+    // heuristics in the register allocator for where to emit constants.
+    InitializeCallBuffer(node, &buffer, true, false);
+
+    DCHECK_EQ(0u, buffer.pushed_nodes.size());
+
+    // Select the appropriate opcode based on the call type.
+    InstructionCode opcode;
+    switch (descriptor->kind()) {
+      case CallDescriptor::kCallCodeObject:
+        opcode = kArchTailCallCodeObject;
+        break;
+      case CallDescriptor::kCallJSFunction:
+        opcode = kArchTailCallJSFunction;
+        break;
+      default:
+        UNREACHABLE();
+        return;
+    }
+    opcode |= MiscField::encode(descriptor->flags());
+
+    // Emit the tailcall instruction.
+    Emit(opcode, 0, nullptr, buffer.instruction_args.size(),
+         &buffer.instruction_args.front());
+  } else {
+    FrameStateDescriptor* frame_state_descriptor = nullptr;
+    if (descriptor->NeedsFrameState()) {
+      frame_state_descriptor =
+          GetFrameStateDescriptor(node->InputAt(descriptor->InputCount()));
+    }
+
+    CallBuffer buffer(zone(), descriptor, frame_state_descriptor);
+
+    // Compute InstructionOperands for inputs and outputs.
+    // TODO(turbofan): on PPC it's probably better to use the code object in a
+    // register if there are multiple uses of it. Improve constant pool and the
+    // heuristics in the register allocator for where to emit constants.
+    InitializeCallBuffer(node, &buffer, true, false);
+
+    // Push any stack arguments.
+    for (Node* node : base::Reversed(buffer.pushed_nodes)) {
+      Emit(kPPC_Push, g.NoOutput(), g.UseRegister(node));
+    }
+
+    // Select the appropriate opcode based on the call type.
+    InstructionCode opcode;
+    switch (descriptor->kind()) {
+      case CallDescriptor::kCallCodeObject: {
+        opcode = kArchCallCodeObject;
+        break;
+      }
+      case CallDescriptor::kCallJSFunction:
+        opcode = kArchCallJSFunction;
+        break;
+      default:
+        UNREACHABLE();
+        return;
+    }
+    opcode |= MiscField::encode(descriptor->flags());
+
+    // Emit the call instruction.
+    size_t const output_count = buffer.outputs.size();
+    auto* outputs = output_count ? &buffer.outputs.front() : nullptr;
+    Emit(opcode, output_count, outputs, buffer.instruction_args.size(),
+         &buffer.instruction_args.front())->MarkAsCall();
+    Emit(kArchRet, 0, nullptr, output_count, outputs);
+  }
 }
 
 
@@ -1544,10 +1627,8 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
-  return MachineOperatorBuilder::kFloat32Abs |
-         MachineOperatorBuilder::kFloat32Max |
+  return MachineOperatorBuilder::kFloat32Max |
          MachineOperatorBuilder::kFloat32Min |
-         MachineOperatorBuilder::kFloat64Abs |
          MachineOperatorBuilder::kFloat64Max |
          MachineOperatorBuilder::kFloat64Min |
          MachineOperatorBuilder::kFloat64RoundDown |

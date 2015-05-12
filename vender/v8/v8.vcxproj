@@ -118,6 +118,7 @@
     <ClInclude Include="src\compiler\control-flow-optimizer.h" />
     <ClInclude Include="src\compiler\control-reducer.h" />
     <ClInclude Include="src\compiler\diamond.h" />
+    <ClInclude Include="src\compiler\frame-elider.h" />
     <ClInclude Include="src\compiler\frame.h" />
     <ClInclude Include="src\compiler\gap-resolver.h" />
     <ClInclude Include="src\compiler\graph-builder.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="src\compiler\simplified-operator.h" />
     <ClInclude Include="src\compiler\source-position.h" />
     <ClInclude Include="src\compiler\state-values-utils.h" />
+    <ClInclude Include="src\compiler\tail-call-optimization.h" />
     <ClInclude Include="src\compiler\typer.h" />
     <ClInclude Include="src\compiler\value-numbering-reducer.h" />
     <ClInclude Include="src\compiler\verifier.h" />
@@ -230,6 +232,7 @@
     <ClInclude Include="src\heap\gc-tracer.h" />
     <ClInclude Include="src\heap\heap-inl.h" />
     <ClInclude Include="src\heap\heap.h" />
+    <ClInclude Include="src\heap\identity-map.h" />
     <ClInclude Include="src\heap\incremental-marking-inl.h" />
     <ClInclude Include="src\heap\incremental-marking.h" />
     <ClInclude Include="src\heap\mark-compact-inl.h" />
@@ -359,6 +362,7 @@
     <ClInclude Include="src\scanner.h" />
     <ClInclude Include="src\scopeinfo.h" />
     <ClInclude Include="src\scopes.h" />
+    <ClInclude Include="src\signature.h" />
     <ClInclude Include="src\simulator.h" />
     <ClInclude Include="src\small-pointer-list.h" />
     <ClInclude Include="src\smart-pointers.h" />
@@ -496,6 +500,7 @@
     <ClCompile Include="src\compiler\control-equivalence.cc" />
     <ClCompile Include="src\compiler\control-flow-optimizer.cc" />
     <ClCompile Include="src\compiler\control-reducer.cc" />
+    <ClCompile Include="src\compiler\frame-elider.cc" />
     <ClCompile Include="src\compiler\gap-resolver.cc" />
     <ClCompile Include="src\compiler\graph-reducer.cc" />
     <ClCompile Include="src\compiler\graph-replay.cc" />
@@ -551,6 +556,7 @@
     <ClCompile Include="src\compiler\simplified-operator.cc" />
     <ClCompile Include="src\compiler\source-position.cc" />
     <ClCompile Include="src\compiler\state-values-utils.cc" />
+    <ClCompile Include="src\compiler\tail-call-optimization.cc" />
     <ClCompile Include="src\compiler\typer.cc" />
     <ClCompile Include="src\compiler\value-numbering-reducer.cc" />
     <ClCompile Include="src\compiler\verifier.cc" />
@@ -572,7 +578,6 @@
     <ClCompile Include="src\elements-kind.cc" />
     <ClCompile Include="src\elements.cc" />
     <ClCompile Include="src\execution.cc" />
-    <ClCompile Include="src\experimental-libraries.cc" />
     <ClCompile Include="src\extensions\externalize-string-extension.cc" />
     <ClCompile Include="src\extensions\free-buffer-extension.cc" />
     <ClCompile Include="src\extensions\gc-extension.cc" />
@@ -586,6 +591,9 @@
     <ClCompile Include="src\full-codegen.cc" />
     <ClCompile Include="src\func-name-inferrer.cc" />
     <ClCompile Include="src\gdb-jit.cc" />
+    <ClCompile Include="src\gen\experimental-libraries.cc" />
+    <ClCompile Include="src\gen\extras-libraries.cc" />
+    <ClCompile Include="src\gen\libraries.cc" />
     <ClCompile Include="src\global-handles.cc" />
     <ClCompile Include="src\handles.cc" />
     <ClCompile Include="src\heap-profiler.cc" />
@@ -593,6 +601,7 @@
     <ClCompile Include="src\heap\gc-idle-time-handler.cc" />
     <ClCompile Include="src\heap\gc-tracer.cc" />
     <ClCompile Include="src\heap\heap.cc" />
+    <ClCompile Include="src\heap\identity-map.cc" />
     <ClCompile Include="src\heap\incremental-marking.cc" />
     <ClCompile Include="src\heap\mark-compact.cc" />
     <ClCompile Include="src\heap\objects-visiting.cc" />
@@ -676,7 +685,6 @@
     <ClCompile Include="src\libplatform\default-platform.cc" />
     <ClCompile Include="src\libplatform\task-queue.cc" />
     <ClCompile Include="src\libplatform\worker-thread.cc" />
-    <ClCompile Include="src\libraries.cc" />
     <ClCompile Include="src\lithium-allocator.cc" />
     <ClCompile Include="src\lithium-codegen.cc" />
     <ClCompile Include="src\lithium.cc" />

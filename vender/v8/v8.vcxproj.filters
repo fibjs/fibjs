@@ -37,6 +37,9 @@
     <Filter Include="Source Files\extensions">
       <UniqueIdentifier>{799570e2-a10f-51ed-083a-05a77b0687f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\gen">
+      <UniqueIdentifier>{1050797c-185f-d58a-6936-837871f7749c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\heap">
       <UniqueIdentifier>{4ada9795-970e-476b-ea26-c93a5cd3800b}</UniqueIdentifier>
     </Filter>
@@ -396,6 +399,9 @@
     <ClInclude Include="src\compiler\diamond.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\frame-elider.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\frame.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -570,6 +576,9 @@
     <ClInclude Include="src\compiler\state-values-utils.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\tail-call-optimization.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\typer.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -730,6 +739,9 @@
       <Filter>Source Files\heap</Filter>
     </ClInclude>
     <ClInclude Include="src\heap\heap.h">
+      <Filter>Source Files\heap</Filter>
+    </ClInclude>
+    <ClInclude Include="src\heap\identity-map.h">
       <Filter>Source Files\heap</Filter>
     </ClInclude>
     <ClInclude Include="src\heap\incremental-marking-inl.h">
@@ -1117,6 +1129,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\scopes.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\signature.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\simulator.h">
@@ -1526,6 +1541,9 @@
     <ClCompile Include="src\compiler\control-reducer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\frame-elider.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\gap-resolver.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1691,6 +1709,9 @@
     <ClCompile Include="src\compiler\state-values-utils.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\tail-call-optimization.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\typer.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -1754,9 +1775,6 @@
     <ClCompile Include="src\execution.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\experimental-libraries.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\extensions\externalize-string-extension.cc">
       <Filter>Source Files\extensions</Filter>
     </ClCompile>
@@ -1796,6 +1814,15 @@
     <ClCompile Include="src\gdb-jit.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\gen\experimental-libraries.cc">
+      <Filter>Source Files\gen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gen\extras-libraries.cc">
+      <Filter>Source Files\gen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gen\libraries.cc">
+      <Filter>Source Files\gen</Filter>
+    </ClCompile>
     <ClCompile Include="src\global-handles.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1815,6 +1842,9 @@
       <Filter>Source Files\heap</Filter>
     </ClCompile>
     <ClCompile Include="src\heap\heap.cc">
+      <Filter>Source Files\heap</Filter>
+    </ClCompile>
+    <ClCompile Include="src\heap\identity-map.cc">
       <Filter>Source Files\heap</Filter>
     </ClCompile>
     <ClCompile Include="src\heap\incremental-marking.cc">
@@ -2065,9 +2095,6 @@
     </ClCompile>
     <ClCompile Include="src\libplatform\worker-thread.cc">
       <Filter>Source Files\libplatform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\libraries.cc">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\lithium-allocator.cc">
       <Filter>Source Files</Filter>

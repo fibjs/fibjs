@@ -54,15 +54,17 @@ class JSTypedLowering final : public Reducer {
   Reduction ReduceJSToNumber(Node* node);
   Reduction ReduceJSToStringInput(Node* input);
   Reduction ReduceJSToString(Node* node);
+  Reduction ReduceJSCreateClosure(Node* node);
+  Reduction ReduceJSCreateLiteralArray(Node* node);
+  Reduction ReduceJSCreateLiteralObject(Node* node);
+  Reduction ReduceJSCreateWithContext(Node* node);
+  Reduction ReduceJSCreateBlockContext(Node* node);
   Reduction ReduceNumberBinop(Node* node, const Operator* numberOp);
   Reduction ReduceInt32Binop(Node* node, const Operator* intOp);
   Reduction ReduceUI32Shift(Node* node, Signedness left_signedness,
                             const Operator* shift_op);
 
   Node* ConvertPrimitiveToNumber(Node* input);
-  template <IrOpcode::Value>
-  Node* FindConversion(Node* input);
-  void InsertConversion(Node* conversion);
 
   Node* Word32Shl(Node* const lhs, int32_t const rhs);
 
@@ -74,9 +76,11 @@ class JSTypedLowering final : public Reducer {
   SimplifiedOperatorBuilder* simplified() { return &simplified_; }
   MachineOperatorBuilder* machine() const;
 
+  // Limits up to which context allocations are inlined.
+  static const int kBlockContextAllocationLimit = 16;
+
   JSGraph* jsgraph_;
   SimplifiedOperatorBuilder simplified_;
-  ZoneVector<Node*> conversions_;  // Cache inserted JSToXXX() conversions.
   Type* zero_range_;
   Type* one_range_;
   Type* zero_thirtyone_range_;

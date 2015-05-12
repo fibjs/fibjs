@@ -99,7 +99,8 @@ PreParserExpression PreParserTraits::ParseFunctionLiteral(
 
 
 PreParser::PreParseResult PreParser::PreParseLazyFunction(
-    LanguageMode language_mode, FunctionKind kind, ParserRecorder* log) {
+    LanguageMode language_mode, FunctionKind kind, ParserRecorder* log,
+    Scanner::BookmarkScope* bookmark) {
   log_ = log;
   // Lazy functions always have trivial outer scopes (no with/catch scopes).
   Scope* top_scope = NewScope(scope_, SCRIPT_SCOPE);
@@ -114,9 +115,12 @@ PreParser::PreParseResult PreParser::PreParseLazyFunction(
   DCHECK_EQ(Token::LBRACE, scanner()->current_token());
   bool ok = true;
   int start_position = peek_position();
-  ParseLazyFunctionLiteralBody(&ok);
-  if (stack_overflow()) return kPreParseStackOverflow;
-  if (!ok) {
+  ParseLazyFunctionLiteralBody(&ok, bookmark);
+  if (bookmark && bookmark->HasBeenReset()) {
+    ;  // Do nothing, as we've just aborted scanning this function.
+  } else if (stack_overflow()) {
+    return kPreParseStackOverflow;
+  } else if (!ok) {
     ReportUnexpectedToken(scanner()->current_token());
   } else {
     DCHECK_EQ(Token::RBRACE, scanner()->peek());
@@ -196,15 +200,22 @@ PreParser::Statement PreParser::ParseStatementListItem(bool* ok) {
 }
 
 
-void PreParser::ParseStatementList(int end_token, bool* ok) {
+void PreParser::ParseStatementList(int end_token, bool* ok,
+                                   Scanner::BookmarkScope* bookmark) {
   // SourceElements ::
   //   (Statement)* <end_token>
+
+  // Bookkeeping for trial parse if bookmark is set:
+  DCHECK_IMPLIES(bookmark, bookmark->HasBeenSet());
+  bool maybe_reset = bookmark != nullptr;
+  int count_statements = 0;
 
   bool directive_prologue = true;
   while (peek() != end_token) {
     if (directive_prologue && peek() != Token::STRING) {
       directive_prologue = false;
     }
+    bool starts_with_identifier = peek() == Token::IDENTIFIER;
     Scanner::Location token_loc = scanner()->peek_location();
     Scanner::Location old_this_loc = function_state_->this_location();
     Scanner::Location old_super_loc = function_state_->super_location();
@@ -240,6 +251,20 @@ void PreParser::ParseStatementList(int end_token, bool* ok) {
       } else if (!statement.IsStringLiteral()) {
         directive_prologue = false;
       }
+    }
+
+    // If we're allowed to reset to a bookmark, we will do so when we see a long
+    // and trivial function.
+    // Our current definition of 'long and trivial' is:
+    // - over 200 statements
+    // - all starting with an identifier (i.e., no if, for, while, etc.)
+    if (maybe_reset && (!starts_with_identifier ||
+                        ++count_statements > kLazyParseTrialLimit)) {
+      if (count_statements > kLazyParseTrialLimit) {
+        bookmark->Reset();
+        return;
+      }
+      maybe_reset = false;
     }
   }
 }
@@ -511,9 +536,22 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
   int nvars = 0;  // the number of variables declared
   int bindings_start = peek_position();
   do {
-    // Parse variable name.
+    // Parse binding pattern.
     if (nvars > 0) Consume(Token::COMMA);
-    ParseIdentifier(kDontAllowRestrictedIdentifiers, CHECK_OK);
+    {
+      ExpressionClassifier pattern_classifier;
+      Token::Value next = peek();
+      PreParserExpression pattern =
+          ParsePrimaryExpression(&pattern_classifier, CHECK_OK);
+      ValidateBindingPattern(&pattern_classifier, CHECK_OK);
+
+      if (!FLAG_harmony_destructuring && !pattern.IsIdentifier()) {
+        ReportUnexpectedToken(next);
+        *ok = false;
+        return Statement::Default();
+      }
+    }
+
     Scanner::Location variable_loc = scanner()->location();
     nvars++;
     if (peek() == Token::ASSIGN || require_initializer ||
@@ -523,7 +561,7 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
       ExpressionClassifier classifier;
       ParseAssignmentExpression(var_context != kForStatement, &classifier,
                                 CHECK_OK);
-      // TODO(dslomov): report error if not valid expression.
+      ValidateExpression(&classifier, CHECK_OK);
 
       variable_loc.end_pos = scanner()->location().end_pos;
       if (first_initializer_loc && !first_initializer_loc->IsValid()) {
@@ -568,7 +606,7 @@ PreParser::Statement PreParser::ParseExpressionOrLabelledStatement(bool* ok) {
         } else {
           expr = ParseStrongSuperCallExpression(&classifier, CHECK_OK);
         }
-        // TODO(dslomov): report error if not a valid expression.
+        ValidateExpression(&classifier, CHECK_OK);
         switch (peek()) {
           case Token::SEMICOLON:
             Consume(Token::SEMICOLON);
@@ -599,7 +637,7 @@ PreParser::Statement PreParser::ParseExpressionOrLabelledStatement(bool* ok) {
   bool starts_with_identifier = peek_any_identifier();
   ExpressionClassifier classifier;
   Expression expr = ParseExpression(true, &classifier, CHECK_OK);
-  // TODO(dslomov): report error if not a valid expression.
+  ValidateExpression(&classifier, CHECK_OK);
 
   // Even if the expression starts with an identifier, it is not necessarily an
   // identifier. For example, "foo + bar" starts with an identifier but is not
@@ -1044,10 +1082,12 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
 }
 
 
-void PreParser::ParseLazyFunctionLiteralBody(bool* ok) {
+void PreParser::ParseLazyFunctionLiteralBody(bool* ok,
+                                             Scanner::BookmarkScope* bookmark) {
   int body_start = position();
-  ParseStatementList(Token::RBRACE, ok);
+  ParseStatementList(Token::RBRACE, ok, bookmark);
   if (!*ok) return;
+  if (bookmark && bookmark->HasBeenReset()) return;
 
   // Position right after terminal '}'.
   DCHECK_EQ(Token::RBRACE, scanner()->peek());
@@ -1091,7 +1131,7 @@ PreParserExpression PreParser::ParseClassLiteral(
   if (has_extends) {
     ExpressionClassifier classifier;
     ParseLeftHandSideExpression(&classifier, CHECK_OK);
-    // TODO(dslomov): report error if not a valid expression.
+    ValidateExpression(&classifier, CHECK_OK);
   }
 
   ClassLiteralChecker checker(this);
@@ -1108,7 +1148,7 @@ PreParserExpression PreParser::ParseClassLiteral(
     ParsePropertyDefinition(&checker, in_class, has_extends, is_static,
                             &is_computed_name, &has_seen_constructor,
                             &classifier, CHECK_OK);
-    // TODO(dslomov): report error if not a valid expression.
+    ValidateExpression(&classifier, CHECK_OK);
   }
 
   Expect(Token::RBRACE, CHECK_OK);
@@ -1130,7 +1170,7 @@ PreParser::Expression PreParser::ParseV8Intrinsic(bool* ok) {
   Scanner::Location spread_pos;
   ExpressionClassifier classifier;
   ParseArguments(&spread_pos, &classifier, ok);
-  // TODO(dslomov): report error if not a valid expression.
+  ValidateExpression(&classifier, CHECK_OK);
 
   DCHECK(!spread_pos.IsValid());
 

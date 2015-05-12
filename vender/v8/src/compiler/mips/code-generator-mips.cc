@@ -398,6 +398,19 @@ FPUCondition FlagsConditionToConditionCmpD(bool& predicate,
   } while (0)
 
 
+void CodeGenerator::AssembleDeconstructActivationRecord() {
+  CallDescriptor* descriptor = linkage()->GetIncomingDescriptor();
+  int stack_slots = frame()->GetSpillSlotCount();
+  if (descriptor->IsJSFunctionCall() || stack_slots > 0) {
+    __ LeaveFrame(StackFrame::MANUAL);
+    int pop_count = descriptor->IsJSFunctionCall()
+                        ? static_cast<int>(descriptor->JSParameterCount())
+                        : 0;
+    __ Drop(pop_count);
+  }
+}
+
+
 // Assembles an instruction after register allocation, producing machine code.
 void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   MipsOperandConverter i(this, instr);
@@ -416,6 +429,17 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       RecordCallPosition(instr);
       break;
     }
+    case kArchTailCallCodeObject: {
+      AssembleDeconstructActivationRecord();
+      if (instr->InputAt(0)->IsImmediate()) {
+        __ Jump(Handle<Code>::cast(i.InputHeapObject(0)),
+                RelocInfo::CODE_TARGET);
+      } else {
+        __ addiu(at, i.InputRegister(0), Code::kHeaderSize - kHeapObjectTag);
+        __ Jump(at);
+      }
+      break;
+    }
     case kArchCallJSFunction: {
       EnsureSpaceForLazyDeopt();
       Register func = i.InputRegister(0);
@@ -428,6 +452,19 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       __ lw(at, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
       __ Call(at);
       RecordCallPosition(instr);
+      break;
+    }
+    case kArchTailCallJSFunction: {
+      Register func = i.InputRegister(0);
+      if (FLAG_debug_code) {
+        // Check the function's context matches the context argument.
+        __ lw(kScratchReg, FieldMemOperand(func, JSFunction::kContextOffset));
+        __ Assert(eq, kWrongFunctionContext, cp, Operand(kScratchReg));
+      }
+
+      AssembleDeconstructActivationRecord();
+      __ lw(at, FieldMemOperand(func, JSFunction::kCodeEntryOffset));
+      __ Jump(at);
       break;
     }
     case kArchJmp:
@@ -796,30 +833,25 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
   out << "Unsupported " << #opcode << " condition: \"" << condition << "\""; \
   UNIMPLEMENTED();
 
-static bool convertCondition(FlagsCondition condition, Condition& cc,
-                             bool& acceptNaN) {
-  acceptNaN = false;
+static bool convertCondition(FlagsCondition condition, Condition& cc) {
   switch (condition) {
     case kEqual:
       cc = eq;
       return true;
     case kNotEqual:
       cc = ne;
-      acceptNaN = true;
       return true;
     case kUnsignedLessThan:
       cc = lt;
       return true;
     case kUnsignedGreaterThanOrEqual:
-      cc = ge;
-      acceptNaN = true;
+      cc = uge;
       return true;
     case kUnsignedLessThanOrEqual:
       cc = le;
       return true;
     case kUnsignedGreaterThan:
-      cc = gt;
-      acceptNaN = true;
+      cc = ugt;
       return true;
     default:
       break;
@@ -862,27 +894,19 @@ void CodeGenerator::AssembleArchBranch(Instruction* instr, BranchInfo* branch) {
     if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
 
   } else if (instr->arch_opcode() == kMipsCmpS) {
-    // TODO(dusmil) optimize unordered checks to use fewer instructions
-    // even if we have to unfold BranchF macro.
-    bool acceptNaN = false;
-    if (!convertCondition(branch->condition, cc, acceptNaN)) {
+    if (!convertCondition(branch->condition, cc)) {
       UNSUPPORTED_COND(kMips64CmpS, branch->condition);
     }
-    Label* nan = acceptNaN ? tlabel : flabel;
-    __ BranchF32(tlabel, nan, cc, i.InputSingleRegister(0),
+    __ BranchF32(tlabel, NULL, cc, i.InputSingleRegister(0),
                  i.InputSingleRegister(1));
 
     if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.
 
   } else if (instr->arch_opcode() == kMipsCmpD) {
-    // TODO(dusmil) optimize unordered checks to use fewer instructions
-    // even if we have to unfold BranchF macro.
-    bool acceptNaN = false;
-    if (!convertCondition(branch->condition, cc, acceptNaN)) {
+    if (!convertCondition(branch->condition, cc)) {
       UNSUPPORTED_COND(kMips64CmpD, branch->condition);
     }
-    Label* nan = acceptNaN ? tlabel : flabel;
-    __ BranchF64(tlabel, nan, cc, i.InputDoubleRegister(0),
+    __ BranchF64(tlabel, NULL, cc, i.InputDoubleRegister(0),
                  i.InputDoubleRegister(1));
 
     if (!branch->fallthru) __ Branch(flabel);  // no fallthru to flabel.

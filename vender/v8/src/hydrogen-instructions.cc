@@ -854,6 +854,7 @@ bool HInstruction::CanDeoptimize() {
     case HValue::kCallRuntime:
     case HValue::kCallWithDescriptor:
     case HValue::kChange:
+    case HValue::kCheckArrayBufferNotNeutered:
     case HValue::kCheckHeapObject:
     case HValue::kCheckInstanceType:
     case HValue::kCheckMapValue:
@@ -3197,13 +3198,18 @@ Range* HLoadNamedField::InferRange(Zone* zone) {
 Range* HLoadKeyed::InferRange(Zone* zone) {
   switch (elements_kind()) {
     case EXTERNAL_INT8_ELEMENTS:
+    case INT8_ELEMENTS:
       return new(zone) Range(kMinInt8, kMaxInt8);
     case EXTERNAL_UINT8_ELEMENTS:
     case EXTERNAL_UINT8_CLAMPED_ELEMENTS:
+    case UINT8_ELEMENTS:
+    case UINT8_CLAMPED_ELEMENTS:
       return new(zone) Range(kMinUInt8, kMaxUInt8);
     case EXTERNAL_INT16_ELEMENTS:
+    case INT16_ELEMENTS:
       return new(zone) Range(kMinInt16, kMaxInt16);
     case EXTERNAL_UINT16_ELEMENTS:
+    case UINT16_ELEMENTS:
       return new(zone) Range(kMinUInt16, kMaxUInt16);
     default:
       return HValue::InferRange(zone);
@@ -3525,6 +3531,10 @@ bool HLoadKeyed::RequiresHoleCheck() const {
   }
 
   if (IsExternalArrayElementsKind(elements_kind())) {
+    return false;
+  }
+
+  if (hole_mode() == CONVERT_HOLE_TO_UNDEFINED) {
     return false;
   }
 
@@ -3974,7 +3984,8 @@ bool HStoreKeyed::NeedsCanonicalization() {
 
 #define DEFINE_NEW_H_SIMPLE_ARITHMETIC_INSTR(HInstr, op)                     \
   HInstruction* HInstr::New(Isolate* isolate, Zone* zone, HValue* context,   \
-                            HValue* left, HValue* right) {                   \
+                            HValue* left, HValue* right,                     \
+                            LanguageMode language_mode) {                    \
     if (FLAG_fold_constants && left->IsConstant() && right->IsConstant()) {  \
       HConstant* c_left = HConstant::cast(left);                             \
       HConstant* c_right = HConstant::cast(right);                           \
@@ -3986,7 +3997,7 @@ bool HStoreKeyed::NeedsCanonicalization() {
         return H_CONSTANT_DOUBLE(double_res);                                \
       }                                                                      \
     }                                                                        \
-    return new (zone) HInstr(context, left, right);                          \
+    return new (zone) HInstr(context, left, right, language_mode);           \
   }
 
 
@@ -3999,6 +4010,7 @@ DEFINE_NEW_H_SIMPLE_ARITHMETIC_INSTR(HSub, -)
 
 HInstruction* HStringAdd::New(Isolate* isolate, Zone* zone, HValue* context,
                               HValue* left, HValue* right,
+                              LanguageMode language_mode,
                               PretenureFlag pretenure_flag,
                               StringAddFlags flags,
                               Handle<AllocationSite> allocation_site) {
@@ -4017,7 +4029,8 @@ HInstruction* HStringAdd::New(Isolate* isolate, Zone* zone, HValue* context,
     }
   }
   return new(zone) HStringAdd(
-      context, left, right, pretenure_flag, flags, allocation_site);
+      context, left, right, language_mode, pretenure_flag, flags,
+      allocation_site);
 }
 
 
@@ -4215,7 +4228,8 @@ HInstruction* HMathMinMax::New(Isolate* isolate, Zone* zone, HValue* context,
 
 
 HInstruction* HMod::New(Isolate* isolate, Zone* zone, HValue* context,
-                        HValue* left, HValue* right) {
+                        HValue* left, HValue* right,
+                        LanguageMode language_mode) {
   if (FLAG_fold_constants && left->IsConstant() && right->IsConstant()) {
     HConstant* c_left = HConstant::cast(left);
     HConstant* c_right = HConstant::cast(right);
@@ -4234,12 +4248,13 @@ HInstruction* HMod::New(Isolate* isolate, Zone* zone, HValue* context,
       }
     }
   }
-  return new(zone) HMod(context, left, right);
+  return new(zone) HMod(context, left, right, language_mode);
 }
 
 
 HInstruction* HDiv::New(Isolate* isolate, Zone* zone, HValue* context,
-                        HValue* left, HValue* right) {
+                        HValue* left, HValue* right,
+                        LanguageMode language_mode) {
   // If left and right are constant values, try to return a constant value.
   if (FLAG_fold_constants && left->IsConstant() && right->IsConstant()) {
     HConstant* c_left = HConstant::cast(left);
@@ -4258,12 +4273,13 @@ HInstruction* HDiv::New(Isolate* isolate, Zone* zone, HValue* context,
       }
     }
   }
-  return new(zone) HDiv(context, left, right);
+  return new(zone) HDiv(context, left, right, language_mode);
 }
 
 
 HInstruction* HBitwise::New(Isolate* isolate, Zone* zone, HValue* context,
-                            Token::Value op, HValue* left, HValue* right) {
+                            Token::Value op, HValue* left, HValue* right,
+                            LanguageMode language_mode) {
   if (FLAG_fold_constants && left->IsConstant() && right->IsConstant()) {
     HConstant* c_left = HConstant::cast(left);
     HConstant* c_right = HConstant::cast(right);
@@ -4288,13 +4304,14 @@ HInstruction* HBitwise::New(Isolate* isolate, Zone* zone, HValue* context,
       return H_CONSTANT_INT(result);
     }
   }
-  return new(zone) HBitwise(context, op, left, right);
+  return new(zone) HBitwise(context, op, left, right, language_mode);
 }
 
 
 #define DEFINE_NEW_H_BITWISE_INSTR(HInstr, result)                          \
   HInstruction* HInstr::New(Isolate* isolate, Zone* zone, HValue* context,  \
-                            HValue* left, HValue* right) {                  \
+                            HValue* left, HValue* right,                    \
+                            LanguageMode language_mode) {                   \
     if (FLAG_fold_constants && left->IsConstant() && right->IsConstant()) { \
       HConstant* c_left = HConstant::cast(left);                            \
       HConstant* c_right = HConstant::cast(right);                          \
@@ -4302,7 +4319,7 @@ HInstruction* HBitwise::New(Isolate* isolate, Zone* zone, HValue* context,
         return H_CONSTANT_INT(result);                                      \
       }                                                                     \
     }                                                                       \
-    return new (zone) HInstr(context, left, right);                         \
+    return new (zone) HInstr(context, left, right, language_mode);          \
   }
 
 
@@ -4315,7 +4332,8 @@ c_left->NumberValueAsInteger32() << (c_right->NumberValueAsInteger32() & 0x1f))
 
 
 HInstruction* HShr::New(Isolate* isolate, Zone* zone, HValue* context,
-                        HValue* left, HValue* right) {
+                        HValue* left, HValue* right,
+                        LanguageMode language_mode) {
   if (FLAG_fold_constants && left->IsConstant() && right->IsConstant()) {
     HConstant* c_left = HConstant::cast(left);
     HConstant* c_right = HConstant::cast(right);
@@ -4328,7 +4346,7 @@ HInstruction* HShr::New(Isolate* isolate, Zone* zone, HValue* context,
       return H_CONSTANT_INT(static_cast<uint32_t>(left_val) >> right_val);
     }
   }
-  return new(zone) HShr(context, left, right);
+  return new(zone) HShr(context, left, right, language_mode);
 }
 
 

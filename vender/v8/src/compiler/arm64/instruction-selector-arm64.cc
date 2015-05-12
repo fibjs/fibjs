@@ -664,8 +664,36 @@ void InstructionSelector::VisitWord64Shl(Node* node) {
 }
 
 
+namespace {
+
+bool TryEmitBitfieldExtract32(InstructionSelector* selector, Node* node) {
+  Arm64OperandGenerator g(selector);
+  Int32BinopMatcher m(node);
+  if (selector->CanCover(node, m.left().node()) && m.left().IsWord32Shl()) {
+    // Select Ubfx or Sbfx for (x << (K & 0x1f)) OP (K & 0x1f), where
+    // OP is >>> or >> and (K & 0x1f) != 0.
+    Int32BinopMatcher mleft(m.left().node());
+    if (mleft.right().HasValue() && m.right().HasValue() &&
+        (mleft.right().Value() & 0x1f) == (m.right().Value() & 0x1f)) {
+      DCHECK(m.IsWord32Shr() || m.IsWord32Sar());
+      ArchOpcode opcode = m.IsWord32Sar() ? kArm64Sbfx32 : kArm64Ubfx32;
+
+      int right_val = m.right().Value() & 0x1f;
+      DCHECK_NE(right_val, 0);
+
+      selector->Emit(opcode, g.DefineAsRegister(node),
+                     g.UseRegister(mleft.left().node()), g.TempImmediate(0),
+                     g.TempImmediate(32 - right_val));
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace
+
+
 void InstructionSelector::VisitWord32Shr(Node* node) {
-  Arm64OperandGenerator g(this);
   Int32BinopMatcher m(node);
   if (m.left().IsWord32And() && m.right().IsInRange(0, 31)) {
     uint32_t lsb = m.right().Value();
@@ -677,6 +705,7 @@ void InstructionSelector::VisitWord32Shr(Node* node) {
       // Select Ubfx for Shr(And(x, mask), imm) where the result of the mask is
       // shifted into the least-significant bits.
       if ((mask_msb + mask_width + lsb) == 32) {
+        Arm64OperandGenerator g(this);
         DCHECK_EQ(lsb, base::bits::CountTrailingZeros32(mask));
         Emit(kArm64Ubfx32, g.DefineAsRegister(node),
              g.UseRegister(mleft.left().node()), g.TempImmediate(lsb),
@@ -684,6 +713,8 @@ void InstructionSelector::VisitWord32Shr(Node* node) {
         return;
       }
     }
+  } else if (TryEmitBitfieldExtract32(this, node)) {
+    return;
   }
   VisitRRO(this, kArm64Lsr32, node, kShift32Imm);
 }
@@ -715,20 +746,8 @@ void InstructionSelector::VisitWord64Shr(Node* node) {
 
 
 void InstructionSelector::VisitWord32Sar(Node* node) {
-  Arm64OperandGenerator g(this);
-  Int32BinopMatcher m(node);
-  // Select Sxth/Sxtb for (x << K) >> K where K is 16 or 24.
-  if (CanCover(node, m.left().node()) && m.left().IsWord32Shl()) {
-    Int32BinopMatcher mleft(m.left().node());
-    if (mleft.right().Is(16) && m.right().Is(16)) {
-      Emit(kArm64Sxth32, g.DefineAsRegister(node),
-           g.UseRegister(mleft.left().node()));
-      return;
-    } else if (mleft.right().Is(24) && m.right().Is(24)) {
-      Emit(kArm64Sxtb32, g.DefineAsRegister(node),
-           g.UseRegister(mleft.left().node()));
-      return;
-    }
+  if (TryEmitBitfieldExtract32(this, node)) {
+    return;
   }
   VisitRRO(this, kArm64Asr32, node, kShift32Imm);
 }
@@ -1212,7 +1231,7 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   Arm64OperandGenerator g(this);
   const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(node);
 
-  FrameStateDescriptor* frame_state_descriptor = NULL;
+  FrameStateDescriptor* frame_state_descriptor = nullptr;
   if (descriptor->NeedsFrameState()) {
     frame_state_descriptor =
         GetFrameStateDescriptor(node->InputAt(descriptor->InputCount()));
@@ -1280,12 +1299,120 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   opcode |= MiscField::encode(flags);
 
   // Emit the call instruction.
-  InstructionOperand* first_output =
-      buffer.outputs.size() > 0 ? &buffer.outputs.front() : NULL;
-  Instruction* call_instr =
-      Emit(opcode, buffer.outputs.size(), first_output,
-           buffer.instruction_args.size(), &buffer.instruction_args.front());
-  call_instr->MarkAsCall();
+  size_t const output_count = buffer.outputs.size();
+  auto* outputs = output_count ? &buffer.outputs.front() : nullptr;
+  Emit(opcode, output_count, outputs, buffer.instruction_args.size(),
+       &buffer.instruction_args.front())->MarkAsCall();
+}
+
+
+void InstructionSelector::VisitTailCall(Node* node) {
+  Arm64OperandGenerator g(this);
+  const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(node);
+  DCHECK_NE(0, descriptor->flags() & CallDescriptor::kSupportsTailCalls);
+  DCHECK_EQ(0, descriptor->flags() & CallDescriptor::kPatchableCallSite);
+  DCHECK_EQ(0, descriptor->flags() & CallDescriptor::kNeedsNopAfterCall);
+
+  // TODO(turbofan): Relax restriction for stack parameters.
+  if (descriptor->UsesOnlyRegisters() &&
+      descriptor->HasSameReturnLocationsAs(
+          linkage()->GetIncomingDescriptor())) {
+    CallBuffer buffer(zone(), descriptor, nullptr);
+
+    // Compute InstructionOperands for inputs and outputs.
+    // TODO(turbofan): on ARM64 it's probably better to use the code object in a
+    // register if there are multiple uses of it. Improve constant pool and the
+    // heuristics in the register allocator for where to emit constants.
+    InitializeCallBuffer(node, &buffer, true, false);
+
+    DCHECK_EQ(0u, buffer.pushed_nodes.size());
+
+    // Select the appropriate opcode based on the call type.
+    InstructionCode opcode;
+    switch (descriptor->kind()) {
+      case CallDescriptor::kCallCodeObject:
+        opcode = kArchTailCallCodeObject;
+        break;
+      case CallDescriptor::kCallJSFunction:
+        opcode = kArchTailCallJSFunction;
+        break;
+      default:
+        UNREACHABLE();
+        return;
+    }
+    opcode |= MiscField::encode(descriptor->flags());
+
+    // Emit the tailcall instruction.
+    Emit(opcode, 0, nullptr, buffer.instruction_args.size(),
+         &buffer.instruction_args.front());
+  } else {
+    FrameStateDescriptor* frame_state_descriptor = nullptr;
+    if (descriptor->NeedsFrameState()) {
+      frame_state_descriptor =
+          GetFrameStateDescriptor(node->InputAt(descriptor->InputCount()));
+    }
+
+    CallBuffer buffer(zone(), descriptor, frame_state_descriptor);
+
+    // Compute InstructionOperands for inputs and outputs.
+    // TODO(turbofan): on ARM64 it's probably better to use the code object in a
+    // register if there are multiple uses of it. Improve constant pool and the
+    // heuristics in the register allocator for where to emit constants.
+    InitializeCallBuffer(node, &buffer, true, false);
+
+    // Push the arguments to the stack.
+    bool pushed_count_uneven = buffer.pushed_nodes.size() & 1;
+    int aligned_push_count = buffer.pushed_nodes.size();
+    // TODO(dcarney): claim and poke probably take small immediates,
+    //                loop here or whatever.
+    // Bump the stack pointer(s).
+    if (aligned_push_count > 0) {
+      // TODO(dcarney): it would be better to bump the csp here only
+      //                and emit paired stores with increment for non c frames.
+      Emit(kArm64Claim, g.NoOutput(), g.TempImmediate(aligned_push_count));
+    }
+    // Move arguments to the stack.
+    {
+      int slot = buffer.pushed_nodes.size() - 1;
+      // Emit the uneven pushes.
+      if (pushed_count_uneven) {
+        Node* input = buffer.pushed_nodes[slot];
+        Emit(kArm64Poke, g.NoOutput(), g.UseRegister(input),
+             g.TempImmediate(slot));
+        slot--;
+      }
+      // Now all pushes can be done in pairs.
+      for (; slot >= 0; slot -= 2) {
+        Emit(kArm64PokePair, g.NoOutput(),
+             g.UseRegister(buffer.pushed_nodes[slot]),
+             g.UseRegister(buffer.pushed_nodes[slot - 1]),
+             g.TempImmediate(slot));
+      }
+    }
+
+    // Select the appropriate opcode based on the call type.
+    InstructionCode opcode;
+    switch (descriptor->kind()) {
+      case CallDescriptor::kCallCodeObject: {
+        opcode = kArchCallCodeObject;
+        break;
+      }
+      case CallDescriptor::kCallJSFunction:
+        opcode = kArchCallJSFunction;
+        break;
+      default:
+        UNREACHABLE();
+        return;
+    }
+    opcode |= MiscField::encode(descriptor->flags());
+
+    // Emit the call instruction.
+    size_t const output_count = buffer.outputs.size();
+    auto* outputs = output_count ? &buffer.outputs.front() : nullptr;
+    Emit(opcode, output_count, outputs, buffer.instruction_args.size(),
+         &buffer.instruction_args.front())->MarkAsCall();
+    Emit(kArchRet, 0, nullptr, output_count, outputs);
+  }
 }
 
 
@@ -1767,10 +1894,8 @@ void InstructionSelector::VisitFloat64InsertHighWord32(Node* node) {
 // static
 MachineOperatorBuilder::Flags
 InstructionSelector::SupportedMachineOperatorFlags() {
-  return MachineOperatorBuilder::kFloat32Abs |
-         MachineOperatorBuilder::kFloat32Max |
+  return MachineOperatorBuilder::kFloat32Max |
          MachineOperatorBuilder::kFloat32Min |
-         MachineOperatorBuilder::kFloat64Abs |
          MachineOperatorBuilder::kFloat64Max |
          MachineOperatorBuilder::kFloat64Min |
          MachineOperatorBuilder::kFloat64RoundDown |

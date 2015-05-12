@@ -942,6 +942,10 @@ class Assembler : public AssemblerBase {
   void floor_w_d(FPURegister fd, FPURegister fs);
   void ceil_w_s(FPURegister fd, FPURegister fs);
   void ceil_w_d(FPURegister fd, FPURegister fs);
+  void rint_s(FPURegister fd, FPURegister fs);
+  void rint_d(FPURegister fd, FPURegister fs);
+  void rint(SecondaryField fmt, FPURegister fd, FPURegister fs);
+
 
   void cvt_l_s(FPURegister fd, FPURegister fs);
   void cvt_l_d(FPURegister fd, FPURegister fs);
@@ -958,6 +962,14 @@ class Assembler : public AssemblerBase {
   void mina(SecondaryField fmt, FPURegister fd, FPURegister fs, FPURegister ft);
   void max(SecondaryField fmt, FPURegister fd, FPURegister fs, FPURegister ft);
   void maxa(SecondaryField fmt, FPURegister fd, FPURegister fs, FPURegister ft);
+  void min_s(FPURegister fd, FPURegister fs, FPURegister ft);
+  void min_d(FPURegister fd, FPURegister fs, FPURegister ft);
+  void max_s(FPURegister fd, FPURegister fs, FPURegister ft);
+  void max_d(FPURegister fd, FPURegister fs, FPURegister ft);
+  void mina_s(FPURegister fd, FPURegister fs, FPURegister ft);
+  void mina_d(FPURegister fd, FPURegister fs, FPURegister ft);
+  void maxa_s(FPURegister fd, FPURegister fs, FPURegister ft);
+  void maxa_d(FPURegister fd, FPURegister fs, FPURegister ft);
 
   void cvt_s_w(FPURegister fd, FPURegister fs);
   void cvt_s_l(FPURegister fd, FPURegister fs);

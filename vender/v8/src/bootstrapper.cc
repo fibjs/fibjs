@@ -26,12 +26,35 @@ Bootstrapper::Bootstrapper(Isolate* isolate)
       extensions_cache_(Script::TYPE_EXTENSION) {}
 
 
-Handle<String> Bootstrapper::NativesSourceLookup(int index) {
-  DCHECK(0 <= index && index < Natives::GetBuiltinsCount());
+template <class Source>
+inline FixedArray* GetCache(Heap* heap);
+
+
+template <>
+FixedArray* GetCache<Natives>(Heap* heap) {
+  return heap->natives_source_cache();
+}
+
+
+template <>
+FixedArray* GetCache<ExperimentalNatives>(Heap* heap) {
+  return heap->experimental_natives_source_cache();
+}
+
+
+template <>
+FixedArray* GetCache<ExtraNatives>(Heap* heap) {
+  return heap->extra_natives_source_cache();
+}
+
+
+template <class Source>
+Handle<String> Bootstrapper::SourceLookup(int index) {
+  DCHECK(0 <= index && index < Source::GetBuiltinsCount());
   Heap* heap = isolate_->heap();
-  if (heap->natives_source_cache()->get(index)->IsUndefined()) {
+  if (GetCache<Source>(heap)->get(index)->IsUndefined()) {
     // We can use external strings for the natives.
-    Vector<const char> source = Natives::GetScriptSource(index);
+    Vector<const char> source = Source::GetScriptSource(index);
     NativesExternalStringResource* resource =
         new NativesExternalStringResource(source.start(), source.length());
     // We do not expect this to throw an exception. Change this if it does.
@@ -40,12 +63,17 @@ Handle<String> Bootstrapper::NativesSourceLookup(int index) {
                                      .ToHandleChecked();
     // Mark this external string with a special map.
     source_code->set_map(isolate_->heap()->native_source_string_map());
-    heap->natives_source_cache()->set(index, *source_code);
+    GetCache<Source>(heap)->set(index, *source_code);
   }
-  Handle<Object> cached_source(heap->natives_source_cache()->get(index),
-                               isolate_);
+  Handle<Object> cached_source(GetCache<Source>(heap)->get(index), isolate_);
   return Handle<String>::cast(cached_source);
 }
+
+
+template Handle<String> Bootstrapper::SourceLookup<Natives>(int index);
+template Handle<String> Bootstrapper::SourceLookup<ExperimentalNatives>(
+    int index);
+template Handle<String> Bootstrapper::SourceLookup<ExtraNatives>(int index);
 
 
 void Bootstrapper::Initialize(bool create_heap_objects) {
@@ -94,12 +122,11 @@ void Bootstrapper::TearDownExtensions() {
 }
 
 
-void Bootstrapper::TearDown() {
-  Object* natives_source_cache = isolate_->heap()->natives_source_cache();
-  if (natives_source_cache->IsFixedArray()) {
-    FixedArray* natives_source_array = FixedArray::cast(natives_source_cache);
-    for (int i = 0; i < Natives::GetBuiltinsCount(); i++) {
-      Object* natives_source = natives_source_array->get(i);
+void DeleteNativeSources(Object* maybe_array) {
+  if (maybe_array->IsFixedArray()) {
+    FixedArray* array = FixedArray::cast(maybe_array);
+    for (int i = 0; i < array->length(); i++) {
+      Object* natives_source = array->get(i);
       if (!natives_source->IsUndefined()) {
         const NativesExternalStringResource* resource =
             reinterpret_cast<const NativesExternalStringResource*>(
@@ -108,7 +135,13 @@ void Bootstrapper::TearDown() {
       }
     }
   }
+}
 
+
+void Bootstrapper::TearDown() {
+  DeleteNativeSources(isolate_->heap()->natives_source_cache());
+  DeleteNativeSources(isolate_->heap()->experimental_natives_source_cache());
+  DeleteNativeSources(isolate_->heap()->extra_natives_source_cache());
   extensions_cache_.Initialize(isolate_, false);  // Yes, symmetrical
 }
 
@@ -168,6 +201,7 @@ class Genesis BASE_EMBEDDED {
   void InitializeGlobal(Handle<GlobalObject> global_object,
                         Handle<JSFunction> empty_function);
   void InitializeExperimentalGlobal();
+  void InitializeExtrasExportsObject();
   // Installs the contents of the native .js files on the global objects.
   // Used for creating a context from scratch.
   void InstallNativeFunctions();
@@ -195,6 +229,7 @@ class Genesis BASE_EMBEDDED {
       Handle<JSFunction>* fun,
       Handle<Map>* external_map);
   bool InstallExperimentalNatives();
+  bool InstallExtraNatives();
   void InstallBuiltinFunctionIds();
   void InstallJSFunctionResultCaches();
   void InitializeNormalizedMapCaches();
@@ -275,6 +310,7 @@ class Genesis BASE_EMBEDDED {
 
   static bool CompileBuiltin(Isolate* isolate, int index);
   static bool CompileExperimentalBuiltin(Isolate* isolate, int index);
+  static bool CompileExtraBuiltin(Isolate* isolate, int index);
   static bool CompileNative(Isolate* isolate,
                             Vector<const char> name,
                             Handle<String> source);
@@ -1151,6 +1187,7 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> global_object,
             isolate->initial_object_prototype(),
             Builtins::kIllegal);
     native_context()->set_array_buffer_fun(*array_buffer_fun);
+    native_context()->set_array_buffer_map(array_buffer_fun->initial_map());
   }
 
   {  // -- T y p e d A r r a y s
@@ -1405,22 +1442,40 @@ void Genesis::InitializeExperimentalGlobal() {
 }
 
 
+void Genesis::InitializeExtrasExportsObject() {
+  Handle<JSObject> exports =
+      factory()->NewJSObject(isolate()->object_function(), TENURED);
+
+  native_context()->set_extras_exports_object(*exports);
+
+  Handle<JSBuiltinsObject> builtins(native_context()->builtins());
+  Handle<String> exports_string =
+      factory()->InternalizeOneByteString(STATIC_CHAR_VECTOR("extrasExports"));
+  Runtime::SetObjectProperty(isolate(), builtins, exports_string, exports,
+                             STRICT).Assert();
+}
+
+
 bool Genesis::CompileBuiltin(Isolate* isolate, int index) {
   Vector<const char> name = Natives::GetScriptName(index);
   Handle<String> source_code =
-      isolate->bootstrapper()->NativesSourceLookup(index);
+      isolate->bootstrapper()->SourceLookup<Natives>(index);
   return CompileNative(isolate, name, source_code);
 }
 
 
 bool Genesis::CompileExperimentalBuiltin(Isolate* isolate, int index) {
   Vector<const char> name = ExperimentalNatives::GetScriptName(index);
-  Factory* factory = isolate->factory();
-  Handle<String> source_code;
-  ASSIGN_RETURN_ON_EXCEPTION_VALUE(
-      isolate, source_code,
-      factory->NewStringFromAscii(ExperimentalNatives::GetScriptSource(index)),
-      false);
+  Handle<String> source_code =
+      isolate->bootstrapper()->SourceLookup<ExperimentalNatives>(index);
+  return CompileNative(isolate, name, source_code);
+}
+
+
+bool Genesis::CompileExtraBuiltin(Isolate* isolate, int index) {
+  Vector<const char> name = ExtraNatives::GetScriptName(index);
+  Handle<String> source_code =
+      isolate->bootstrapper()->SourceLookup<ExtraNatives>(index);
   return CompileNative(isolate, name, source_code);
 }
 
@@ -1542,18 +1597,18 @@ void Genesis::InstallNativeFunctions() {
   HandleScope scope(isolate());
   INSTALL_NATIVE(JSFunction, "$createDate", create_date_fun);
 
-  INSTALL_NATIVE(JSFunction, "ToNumber", to_number_fun);
-  INSTALL_NATIVE(JSFunction, "ToString", to_string_fun);
-  INSTALL_NATIVE(JSFunction, "ToDetailString", to_detail_string_fun);
-  INSTALL_NATIVE(JSFunction, "ToObject", to_object_fun);
-  INSTALL_NATIVE(JSFunction, "ToInteger", to_integer_fun);
-  INSTALL_NATIVE(JSFunction, "ToUint32", to_uint32_fun);
-  INSTALL_NATIVE(JSFunction, "ToInt32", to_int32_fun);
-  INSTALL_NATIVE(JSFunction, "ToLength", to_length_fun);
+  INSTALL_NATIVE(JSFunction, "$toNumber", to_number_fun);
+  INSTALL_NATIVE(JSFunction, "$toString", to_string_fun);
+  INSTALL_NATIVE(JSFunction, "$toDetailString", to_detail_string_fun);
+  INSTALL_NATIVE(JSFunction, "$toObject", to_object_fun);
+  INSTALL_NATIVE(JSFunction, "$toInteger", to_integer_fun);
+  INSTALL_NATIVE(JSFunction, "$toUint32", to_uint32_fun);
+  INSTALL_NATIVE(JSFunction, "$toInt32", to_int32_fun);
+  INSTALL_NATIVE(JSFunction, "$toLength", to_length_fun);
 
-  INSTALL_NATIVE(JSFunction, "GlobalEval", global_eval_fun);
-  INSTALL_NATIVE(JSFunction, "GetStackTraceLine", get_stack_trace_line_fun);
-  INSTALL_NATIVE(JSFunction, "ToCompletePropertyDescriptor",
+  INSTALL_NATIVE(JSFunction, "$globalEval", global_eval_fun);
+  INSTALL_NATIVE(JSFunction, "$getStackTraceLine", get_stack_trace_line_fun);
+  INSTALL_NATIVE(JSFunction, "$toCompletePropertyDescriptor",
                  to_complete_property_descriptor);
 
   INSTALL_NATIVE(Symbol, "$promiseStatus", promise_status);
@@ -1603,13 +1658,12 @@ Data* SetBuiltinTypedArray(Isolate* isolate, Handle<JSBuiltinsObject> builtins,
                            size_t num_elements, const char* name) {
   size_t byte_length = num_elements * sizeof(*data);
   Handle<JSArrayBuffer> buffer = isolate->factory()->NewJSArrayBuffer();
-  bool should_be_freed = false;
-  if (data == NULL) {
-    data = reinterpret_cast<Data*>(malloc(byte_length));
-    should_be_freed = true;
+  bool is_external = data != nullptr;
+  if (!is_external) {
+    data = reinterpret_cast<Data*>(
+        isolate->array_buffer_allocator()->Allocate(byte_length));
   }
-  Runtime::SetupArrayBuffer(isolate, buffer, true, data, byte_length);
-  buffer->set_should_be_freed(should_be_freed);
+  Runtime::SetupArrayBuffer(isolate, buffer, is_external, data, byte_length);
 
   Handle<JSTypedArray> typed_array =
       isolate->factory()->NewJSTypedArray(type, buffer, 0, num_elements);
@@ -1645,8 +1699,10 @@ void Genesis::InitializeBuiltinTypedArrays() {
 
   {  // Initialize a result array for rempio2 calculation
     const size_t num_elements = 2;
-    SetBuiltinTypedArray<double>(isolate(), builtins, kExternalFloat64Array,
-                                 NULL, num_elements, "rempio2result");
+    double* data =
+        SetBuiltinTypedArray<double>(isolate(), builtins, kExternalFloat64Array,
+                                     NULL, num_elements, "rempio2result");
+    for (size_t i = 0; i < num_elements; i++) data[i] = 0;
   }
 }
 
@@ -1670,6 +1726,7 @@ EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_rest_parameters)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_reflect)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_spreadcalls)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_destructuring)
+EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_object)
 
 
 void Genesis::InstallNativeFunctions_harmony_proxies() {
@@ -1699,6 +1756,7 @@ EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_computed_property_names)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_rest_parameters)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_spreadcalls)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_destructuring)
+EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_object)
 
 void Genesis::InitializeGlobal_harmony_regexps() {
   Handle<JSObject> builtins(native_context()->builtins());
@@ -1732,18 +1790,6 @@ void Genesis::InitializeGlobal_harmony_reflect() {
     Handle<JSFunction> construct = InstallFunction(
         builtins, "$reflectConstruct", JS_OBJECT_TYPE, JSObject::kHeaderSize,
         MaybeHandle<JSObject>(), Builtins::kReflectConstruct);
-    if (FLAG_vector_ics) {
-      // Apply embeds an IC, so we need a type vector of size 1 in the shared
-      // function info.
-      FeedbackVectorSpec spec(0, Code::CALL_IC);
-      Handle<TypeFeedbackVector> feedback_vector =
-          factory()->NewTypeFeedbackVector(&spec);
-      apply->shared()->set_feedback_vector(*feedback_vector);
-
-      feedback_vector = factory()->NewTypeFeedbackVector(&spec);
-      construct->shared()->set_feedback_vector(*feedback_vector);
-    }
-
     apply->shared()->set_internal_formal_parameter_count(3);
     apply->shared()->set_length(3);
 
@@ -2182,14 +2228,6 @@ bool Genesis::InstallNatives() {
     Handle<JSFunction> apply =
         InstallFunction(proto, "apply", JS_OBJECT_TYPE, JSObject::kHeaderSize,
                         MaybeHandle<JSObject>(), Builtins::kFunctionApply);
-    if (FLAG_vector_ics) {
-      // Apply embeds an IC, so we need a type vector of size 1 in the shared
-      // function info.
-      FeedbackVectorSpec spec(0, Code::CALL_IC);
-      Handle<TypeFeedbackVector> feedback_vector =
-          factory()->NewTypeFeedbackVector(&spec);
-      apply->shared()->set_feedback_vector(*feedback_vector);
-    }
 
     // Make sure that Function.prototype.call appears to be compiled.
     // The code will never be called, but inline caching for call will
@@ -2325,6 +2363,8 @@ bool Genesis::InstallExperimentalNatives() {
   static const char* harmony_spreadcalls_natives[] = {
       "native harmony-spread.js", nullptr};
   static const char* harmony_destructuring_natives[] = {nullptr};
+  static const char* harmony_object_natives[] = {"native harmony-object.js",
+                                                 NULL};
 
   for (int i = ExperimentalNatives::GetDebuggerCount();
        i < ExperimentalNatives::GetBuiltinsCount(); i++) {
@@ -2345,6 +2385,16 @@ bool Genesis::InstallExperimentalNatives() {
   }
 
   InstallExperimentalNativeFunctions();
+  return true;
+}
+
+
+bool Genesis::InstallExtraNatives() {
+  for (int i = ExtraNatives::GetDebuggerCount();
+       i < ExtraNatives::GetBuiltinsCount(); i++) {
+    if (!CompileExtraBuiltin(isolate(), i)) return false;
+  }
+
   return true;
 }
 
@@ -2475,7 +2525,7 @@ bool Genesis::InstallSpecialObjects(Handle<Context> native_context) {
                             JSObject::SetOwnPropertyIgnoreAttributes(
                                 handle(native_context->builtins(), isolate),
                                 factory->InternalizeOneByteString(
-                                    STATIC_CHAR_VECTOR("stack_trace_symbol")),
+                                    STATIC_CHAR_VECTOR("$stackTraceSymbol")),
                                 factory->stack_trace_symbol(), NONE),
                             false);
 
@@ -2922,12 +2972,14 @@ Genesis::Genesis(Isolate* isolate,
     isolate->counters()->contexts_created_from_scratch()->Increment();
   }
 
-  // Install experimental natives. Do not include them into the snapshot as we
-  // should be able to turn them off at runtime. Re-installing them after
-  // they have already been deserialized would also fail.
+  // Install experimental and extra natives. Do not include them into the
+  // snapshot as we should be able to turn them off at runtime. Re-installing
+  // them after they have already been deserialized would also fail.
   if (!isolate->serializer_enabled()) {
     InitializeExperimentalGlobal();
+    InitializeExtrasExportsObject();
     if (!InstallExperimentalNatives()) return;
+    if (!InstallExtraNatives()) return;
   }
 
   // The serializer cannot serialize typed arrays. Reset those typed arrays

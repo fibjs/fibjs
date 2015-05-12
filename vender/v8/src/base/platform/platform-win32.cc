@@ -816,8 +816,8 @@ void OS::Guard(void* address, const size_t size) {
 }
 
 
-void OS_Sleep(int milliseconds) {
-  ::Sleep(milliseconds);
+void OS_Sleep(TimeDelta interval) {
+  ::Sleep(static_cast<DWORD>(interval.InMilliseconds()));
 }
 
 
@@ -842,38 +842,38 @@ void OS::DebugBreak() {
 }
 
 
-class Win32MemoryMappedFile : public OS::MemoryMappedFile {
+class Win32MemoryMappedFile final : public OS::MemoryMappedFile {
  public:
-  Win32MemoryMappedFile(HANDLE file,
-                        HANDLE file_mapping,
-                        void* memory,
-                        int size)
+  Win32MemoryMappedFile(HANDLE file, HANDLE file_mapping, void* memory,
+                        size_t size)
       : file_(file),
         file_mapping_(file_mapping),
         memory_(memory),
-        size_(size) { }
-  virtual ~Win32MemoryMappedFile();
-  virtual void* memory() { return memory_; }
-  virtual int size() { return size_; }
+        size_(size) {}
+  ~Win32MemoryMappedFile() final;
+  void* memory() const final { return memory_; }
+  size_t size() const final { return size_; }
+
  private:
-  HANDLE file_;
-  HANDLE file_mapping_;
-  void* memory_;
-  int size_;
+  HANDLE const file_;
+  HANDLE const file_mapping_;
+  void* const memory_;
+  size_t const size_;
 };
 
 
+// static
 OS::MemoryMappedFile* OS::MemoryMappedFile::open(const char* name) {
   // Open a physical file
   HANDLE file = CreateFileA(name, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
   if (file == INVALID_HANDLE_VALUE) return NULL;
 
-  int size = static_cast<int>(GetFileSize(file, NULL));
+  DWORD size = GetFileSize(file, NULL);
 
   // Create a file mapping for the physical file
-  HANDLE file_mapping = CreateFileMapping(file, NULL,
-      PAGE_READWRITE, 0, static_cast<DWORD>(size), NULL);
+  HANDLE file_mapping =
+      CreateFileMapping(file, NULL, PAGE_READWRITE, 0, size, NULL);
   if (file_mapping == NULL) return NULL;
 
   // Map a view of the file into memory
@@ -882,15 +882,17 @@ OS::MemoryMappedFile* OS::MemoryMappedFile::open(const char* name) {
 }
 
 
-OS::MemoryMappedFile* OS::MemoryMappedFile::create(const char* name, int size,
-    void* initial) {
+// static
+OS::MemoryMappedFile* OS::MemoryMappedFile::create(const char* name,
+                                                   size_t size, void* initial) {
   // Open a physical file
   HANDLE file = CreateFileA(name, GENERIC_READ | GENERIC_WRITE,
-      FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, 0, NULL);
+                            FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+                            OPEN_ALWAYS, 0, NULL);
   if (file == NULL) return NULL;
   // Create a file mapping for the physical file
-  HANDLE file_mapping = CreateFileMapping(file, NULL,
-      PAGE_READWRITE, 0, static_cast<DWORD>(size), NULL);
+  HANDLE file_mapping = CreateFileMapping(file, NULL, PAGE_READWRITE, 0,
+                                          static_cast<DWORD>(size), NULL);
   if (file_mapping == NULL) return NULL;
   // Map a view of the file into memory
   void* memory = MapViewOfFile(file_mapping, FILE_MAP_ALL_ACCESS, 0, 0, size);
@@ -900,8 +902,7 @@ OS::MemoryMappedFile* OS::MemoryMappedFile::create(const char* name, int size,
 
 
 Win32MemoryMappedFile::~Win32MemoryMappedFile() {
-  if (memory_ != NULL)
-    UnmapViewOfFile(memory_);
+  if (memory_) UnmapViewOfFile(memory_);
   CloseHandle(file_mapping_);
   CloseHandle(file_);
 }
@@ -1388,15 +1389,10 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
   DCHECK(result);
 }
 
-
-
-void Thread::YieldCPU() {
-  Sleep(0);
-}
-
 #endif
 
-} }  // namespace v8::base
+}  // namespace base
+}  // namespace v8
 
 
 #endif

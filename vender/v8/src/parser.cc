@@ -872,6 +872,7 @@ Parser::Parser(ParseInfo* info)
       FLAG_harmony_computed_property_names);
   set_allow_harmony_rest_params(FLAG_harmony_rest_parameters);
   set_allow_harmony_spreadcalls(FLAG_harmony_spreadcalls);
+  set_allow_harmony_destructuring(FLAG_harmony_destructuring);
   set_allow_strong_mode(FLAG_strong_mode);
   for (int feature = 0; feature < v8::Isolate::kUseCounterFeatureCount;
        ++feature) {
@@ -961,6 +962,9 @@ FunctionLiteral* Parser::DoParseProgram(ParseInfo* info) {
   DCHECK(scope_ == NULL);
   DCHECK(target_stack_ == NULL);
 
+  Mode parsing_mode = FLAG_lazy && allow_lazy() ? PARSE_LAZILY : PARSE_EAGERLY;
+  if (allow_natives() || extension_ != NULL) parsing_mode = PARSE_EAGERLY;
+
   FunctionLiteral* result = NULL;
   {
     Scope* scope = NewScope(scope_, SCRIPT_SCOPE);
@@ -978,22 +982,17 @@ FunctionLiteral* Parser::DoParseProgram(ParseInfo* info) {
     original_scope_ = scope;
     if (info->is_eval()) {
       if (!scope->is_script_scope() || is_strict(info->language_mode())) {
-        scope = NewScope(scope, EVAL_SCOPE);
+        parsing_mode = PARSE_EAGERLY;
       }
+      scope = NewScope(scope, EVAL_SCOPE);
     } else if (info->is_module()) {
       scope = NewScope(scope, MODULE_SCOPE);
     }
 
     scope->set_start_position(0);
 
-    // Compute the parsing mode.
-    Mode mode = (FLAG_lazy && allow_lazy()) ? PARSE_LAZILY : PARSE_EAGERLY;
-    if (allow_natives() || extension_ != NULL || scope->is_eval_scope()) {
-      mode = PARSE_EAGERLY;
-    }
-    ParsingModeScope parsing_mode(this, mode);
-
-    // Enters 'scope'.
+    // Enter 'scope' with the given parsing mode.
+    ParsingModeScope parsing_mode_scope(this, parsing_mode);
     AstNodeFactory function_factory(ast_value_factory());
     FunctionState function_state(&function_state_, &scope_, scope,
                                  kNormalFunction, &function_factory);
@@ -1006,10 +1005,7 @@ FunctionLiteral* Parser::DoParseProgram(ParseInfo* info) {
       DCHECK(allow_harmony_modules());
       ParseModuleItemList(body, &ok);
     } else {
-      Scope* eval_scope = nullptr;
-      ParseStatementList(body, Token::EOS, info->is_eval(), &eval_scope, &ok);
-      if (eval_scope != nullptr)
-        eval_scope->set_end_position(scanner()->peek_location().beg_pos);
+      ParseStatementList(body, Token::EOS, &ok);
     }
 
     // The parser will peek but not consume EOS.  Our scope logically goes all
@@ -1151,7 +1147,7 @@ FunctionLiteral* Parser::ParseLazy(Isolate* isolate, ParseInfo* info,
         ExpressionClassifier classifier;
         Expression* expression = ParseArrowFunctionLiteral(
             scope, error_locs, has_rest, &classifier, &ok);
-        // TODO(dslomov): report error if not a valid expression.
+        ValidateExpression(&classifier, &ok);
         if (ok) {
           // Scanning must end at the same position that was recorded
           // previously. If not, parsing has been interrupted due to a stack
@@ -1196,7 +1192,7 @@ FunctionLiteral* Parser::ParseLazy(Isolate* isolate, ParseInfo* info,
 
 
 void* Parser::ParseStatementList(ZoneList<Statement*>* body, int end_token,
-                                 bool is_eval, Scope** eval_scope, bool* ok) {
+                                 bool* ok) {
   // StatementList ::
   //   (StatementListItem)* <end_token>
 
@@ -1268,23 +1264,6 @@ void* Parser::ParseStatementList(ZoneList<Statement*>* body, int end_token,
           // Strong mode implies strict mode. If there are several "use strict"
           // / "use strong" directives, do the strict mode changes only once.
           if (is_sloppy(scope_->language_mode())) {
-            // TODO(mstarzinger): Global strict eval calls, need their own scope
-            // as specified in ES5 10.4.2(3). The correct fix would be to always
-            // add this scope in DoParseProgram(), but that requires adaptations
-            // all over the code base, so we go with a quick-fix for now.
-            // In the same manner, we have to patch the parsing mode.
-            if (is_eval && !scope_->is_eval_scope()) {
-              DCHECK(scope_->is_script_scope());
-              Scope* scope = NewScope(scope_, EVAL_SCOPE);
-              scope->set_start_position(scope_->start_position());
-              scope->set_end_position(scope_->end_position());
-              scope_ = scope;
-              if (eval_scope != NULL) {
-                // Caller will correct the positions of the ad hoc eval scope.
-                *eval_scope = scope;
-              }
-              mode_ = PARSE_EAGERLY;
-            }
             scope_->SetLanguageMode(static_cast<LanguageMode>(
                 scope_->language_mode() | STRICT_BIT));
           }
@@ -1293,6 +1272,14 @@ void* Parser::ParseStatementList(ZoneList<Statement*>* body, int end_token,
             scope_->SetLanguageMode(static_cast<LanguageMode>(
                 scope_->language_mode() | STRONG_BIT));
           }
+          // Because declarations in strict eval code don't leak into the scope
+          // of the eval call, it is likely that functions declared in strict
+          // eval code will be used within the eval code, so lazy parsing is
+          // probably not a win.  Also, resolution of "var" bindings defined in
+          // strict eval code from within nested functions is currently broken
+          // with the pre-parser; lazy parsing of strict eval code causes
+          // regress/regress-crbug-135066.js to fail.
+          if (scope_->is_eval_scope()) mode_ = PARSE_EAGERLY;
         } else if (literal->raw_value()->AsString() ==
                        ast_value_factory()->use_asm_string() &&
                    token_loc.end_pos - token_loc.beg_pos ==
@@ -1630,7 +1617,7 @@ Statement* Parser::ParseExportDefault(bool* ok) {
       int pos = peek_position();
       ExpressionClassifier classifier;
       Expression* expr = ParseAssignmentExpression(true, &classifier, CHECK_OK);
-      // TODO(dslomov): report error if not a valid expression.
+      ValidateExpression(&classifier, CHECK_OK);
 
       ExpectSemicolon(CHECK_OK);
       result = factory()->NewExpressionStatement(expr, pos);
@@ -2390,7 +2377,27 @@ Block* Parser::ParseVariableDeclarations(
 
     // Parse variable name.
     if (nvars > 0) Consume(Token::COMMA);
-    name = ParseIdentifier(kDontAllowRestrictedIdentifiers, CHECK_OK);
+
+    {
+      ExpressionClassifier pattern_classifier;
+      Token::Value next = peek();
+      Expression* pattern =
+          ParsePrimaryExpression(&pattern_classifier, CHECK_OK);
+      ValidateBindingPattern(&pattern_classifier, CHECK_OK);
+      if (pattern->IsVariableProxy() &&
+          pattern->AsVariableProxy()->IsValidReferenceExpression()) {
+        scope_->RemoveUnresolved(pattern->AsVariableProxy());
+        name = pattern->AsVariableProxy()->raw_name();
+      } else if (allow_harmony_destructuring()) {
+        // TODO(dslomov): really destructure.
+        name = ast_value_factory()->GetOneByteString(".temp.variable");
+      } else {
+        ReportUnexpectedToken(next);
+        *ok = false;
+        return nullptr;
+      }
+    }
+
     if (!first_name) first_name = name;
     Scanner::Location variable_loc = scanner()->location();
     if (fni_ != NULL) fni_->PushVariableName(name);
@@ -2469,7 +2476,7 @@ Block* Parser::ParseVariableDeclarations(
       ExpressionClassifier classifier;
       value = ParseAssignmentExpression(var_context != kForStatement,
                                         &classifier, CHECK_OK);
-      // TODO(dslomov): check that expression is valid.
+      ValidateExpression(&classifier, CHECK_OK);
       variable_loc.end_pos = scanner()->location().end_pos;
 
       if (first_initializer_loc && !first_initializer_loc->IsValid()) {
@@ -2660,7 +2667,7 @@ Statement* Parser::ParseExpressionOrLabelledStatement(
         } else {
           expr = ParseStrongSuperCallExpression(&classifier, CHECK_OK);
         }
-        // TODO(dslomov): report error if not a valid expression.
+        ValidateExpression(&classifier, CHECK_OK);
         switch (peek()) {
           case Token::SEMICOLON:
             Consume(Token::SEMICOLON);
@@ -2866,7 +2873,53 @@ Statement* Parser::ParseReturnStatement(bool* ok) {
       *ok = false;
       return NULL;
     }
+
+    int pos = peek_position();
     return_value = ParseExpression(true, CHECK_OK);
+
+    if (IsSubclassConstructor(function_state_->kind())) {
+      // For subclass constructors we need to return this in case of undefined
+      // and throw an exception in case of a non object.
+      //
+      //   return expr;
+      //
+      // Is rewritten as:
+      //
+      //   return (temp = expr) === undefined ? this :
+      //       %_IsSpecObject(temp) ? temp : throw new TypeError(...);
+      Variable* temp = scope_->DeclarationScope()->NewTemporary(
+          ast_value_factory()->empty_string());
+      Assignment* assign = factory()->NewAssignment(
+          Token::ASSIGN, factory()->NewVariableProxy(temp), return_value, pos);
+
+      Expression* throw_expression =
+          NewThrowTypeError("derived_constructor_return",
+                            ast_value_factory()->empty_string(), pos);
+
+      // %_IsSpecObject(temp)
+      ZoneList<Expression*>* is_spec_object_args =
+          new (zone()) ZoneList<Expression*>(1, zone());
+      is_spec_object_args->Add(factory()->NewVariableProxy(temp), zone());
+      Expression* is_spec_object_call = factory()->NewCallRuntime(
+          ast_value_factory()->is_spec_object_string(),
+          Runtime::FunctionForId(Runtime::kInlineIsSpecObject),
+          is_spec_object_args, pos);
+
+      // %_IsSpecObject(temp) ? temp : throw_expression
+      Expression* is_object_conditional = factory()->NewConditional(
+          is_spec_object_call, factory()->NewVariableProxy(temp),
+          throw_expression, pos);
+
+      // temp === undefined
+      Expression* is_undefined = factory()->NewCompareOperation(
+          Token::EQ_STRICT, assign,
+          factory()->NewUndefinedLiteral(RelocInfo::kNoPosition), pos);
+
+      // is_undefined ? this : is_object_conditional
+      return_value = factory()->NewConditional(
+          is_undefined, ThisExpression(scope_, factory(), pos),
+          is_object_conditional, pos);
+    }
   }
   ExpectSemicolon(CHECK_OK);
 
@@ -3983,6 +4036,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
   FunctionLiteral::EagerCompileHint eager_compile_hint =
       parenthesized_function_ ? FunctionLiteral::kShouldEagerCompile
                               : FunctionLiteral::kShouldLazyCompile;
+  bool should_be_used_once_hint = false;
   // Parse function body.
   {
     AstNodeFactory function_factory(ast_value_factory());
@@ -4080,14 +4134,36 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
                              !parenthesized_function_);
     parenthesized_function_ = false;  // The bit was set for this function only.
 
+    // Eager or lazy parse?
+    // If is_lazily_parsed, we'll parse lazy. If we can set a bookmark, we'll
+    // pass it to SkipLazyFunctionBody, which may use it to abort lazy
+    // parsing if it suspect that wasn't a good idea. If so, or if we didn't
+    // try to lazy parse in the first place, we'll have to parse eagerly.
+    Scanner::BookmarkScope bookmark(scanner());
     if (is_lazily_parsed) {
       for (Scope* s = scope_->outer_scope();
            s != nullptr && (s != s->DeclarationScope()); s = s->outer_scope()) {
         s->ForceContextAllocation();
       }
+
+      Scanner::BookmarkScope* maybe_bookmark =
+          bookmark.Set() ? &bookmark : nullptr;
       SkipLazyFunctionBody(&materialized_literal_count,
-                           &expected_property_count, CHECK_OK);
-    } else {
+                           &expected_property_count, /*CHECK_OK*/ ok,
+                           maybe_bookmark);
+
+      if (bookmark.HasBeenReset()) {
+        // Trigger eager (re-)parsing, just below this block.
+        is_lazily_parsed = false;
+
+        // This is probably an initialization function. Inform the compiler it
+        // should also eager-compile this function, and that we expect it to be
+        // used once.
+        eager_compile_hint = FunctionLiteral::kShouldEagerCompile;
+        should_be_used_once_hint = true;
+      }
+    }
+    if (!is_lazily_parsed) {
       body = ParseEagerFunctionBody(function_name, pos, fvar, fvar_init_op,
                                     kind, CHECK_OK);
       materialized_literal_count = function_state.materialized_literal_count();
@@ -4130,6 +4206,8 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
       num_parameters, duplicate_parameters, function_type,
       FunctionLiteral::kIsFunction, eager_compile_hint, kind, pos);
   function_literal->set_function_token_position(function_token_pos);
+  if (should_be_used_once_hint)
+    function_literal->set_should_be_used_once_hint();
 
   if (scope->has_rest_parameter()) {
     // TODO(caitp): enable optimization of functions with rest params
@@ -4142,8 +4220,9 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
 
 
 void Parser::SkipLazyFunctionBody(int* materialized_literal_count,
-                                  int* expected_property_count,
-                                  bool* ok) {
+                                  int* expected_property_count, bool* ok,
+                                  Scanner::BookmarkScope* bookmark) {
+  DCHECK_IMPLIES(bookmark, bookmark->HasBeenSet());
   if (produce_cached_parse_data()) CHECK(log_);
 
   int function_block_pos = position();
@@ -4176,7 +4255,10 @@ void Parser::SkipLazyFunctionBody(int* materialized_literal_count,
   // AST. This gathers the data needed to build a lazy function.
   SingletonLogger logger;
   PreParser::PreParseResult result =
-      ParseLazyFunctionBodyWithPreParser(&logger);
+      ParseLazyFunctionBodyWithPreParser(&logger, bookmark);
+  if (bookmark && bookmark->HasBeenReset()) {
+    return;  // Return immediately if pre-parser devided to abort parsing.
+  }
   if (result == PreParser::kPreParseStackOverflow) {
     // Propagate stack overflow.
     set_stack_overflow();
@@ -4276,7 +4358,7 @@ ZoneList<Statement*>* Parser::ParseEagerFunctionBody(
         yield, RelocInfo::kNoPosition), zone());
   }
 
-  ParseStatementList(body, Token::RBRACE, false, NULL, CHECK_OK);
+  ParseStatementList(body, Token::RBRACE, CHECK_OK);
 
   if (IsGeneratorFunction(kind)) {
     VariableProxy* get_proxy = factory()->NewVariableProxy(
@@ -4305,7 +4387,7 @@ ZoneList<Statement*>* Parser::ParseEagerFunctionBody(
 
 
 PreParser::PreParseResult Parser::ParseLazyFunctionBodyWithPreParser(
-    SingletonLogger* logger) {
+    SingletonLogger* logger, Scanner::BookmarkScope* bookmark) {
   // This function may be called on a background thread too; record only the
   // main thread preparse times.
   if (pre_parse_timer_ != NULL) {
@@ -4332,10 +4414,12 @@ PreParser::PreParseResult Parser::ParseLazyFunctionBodyWithPreParser(
         allow_harmony_rest_params());
     reusable_preparser_->set_allow_harmony_spreadcalls(
         allow_harmony_spreadcalls());
+    reusable_preparser_->set_allow_harmony_destructuring(
+        allow_harmony_destructuring());
     reusable_preparser_->set_allow_strong_mode(allow_strong_mode());
   }
   PreParser::PreParseResult result = reusable_preparser_->PreParseLazyFunction(
-      language_mode(), function_state_->kind(), logger);
+      language_mode(), function_state_->kind(), logger, bookmark);
   if (pre_parse_timer_ != NULL) {
     pre_parse_timer_->Stop();
   }
@@ -4389,7 +4473,7 @@ ClassLiteral* Parser::ParseClassLiteral(const AstRawString* name,
     block_scope->set_start_position(scanner()->location().end_pos);
     ExpressionClassifier classifier;
     extends = ParseLeftHandSideExpression(&classifier, CHECK_OK);
-    // TODO(dslomov): report error if not a valid expression.
+    ValidateExpression(&classifier, CHECK_OK);
   } else {
     block_scope->set_start_position(scanner()->location().end_pos);
   }
@@ -4414,7 +4498,7 @@ ClassLiteral* Parser::ParseClassLiteral(const AstRawString* name,
     ObjectLiteral::Property* property = ParsePropertyDefinition(
         &checker, in_class, has_extends, is_static, &is_computed_name,
         &has_seen_constructor, &classifier, CHECK_OK);
-    // TODO(dslomov): report error if not a valid expression.
+    ValidateExpression(&classifier, CHECK_OK);
 
     if (has_seen_constructor && constructor == NULL) {
       constructor = GetPropertyValue(property)->AsFunctionLiteral();
@@ -4466,7 +4550,7 @@ Expression* Parser::ParseV8Intrinsic(bool* ok) {
   ExpressionClassifier classifier;
   ZoneList<Expression*>* args =
       ParseArguments(&spread_pos, &classifier, CHECK_OK);
-  // TODO(dslomov): report error if not a valid expression.
+  ValidateExpression(&classifier, CHECK_OK);
 
   DCHECK(!spread_pos.IsValid());
 
