@@ -645,8 +645,9 @@ bool Debug::CompileDebuggerScript(Isolate* isolate, int index) {
   // Compile the script.
   Handle<SharedFunctionInfo> function_info;
   function_info = Compiler::CompileScript(
-      source_code, script_name, 0, 0, false, false, Handle<Object>(), context,
-      NULL, NULL, ScriptCompiler::kNoCompileOptions, NATIVES_CODE, false);
+      source_code, script_name, 0, 0, ScriptOriginOptions(), Handle<Object>(),
+      context, NULL, NULL, ScriptCompiler::kNoCompileOptions, NATIVES_CODE,
+      false);
 
   // Silently ignore stack overflows during compilation.
   if (function_info.is_null()) {
@@ -669,8 +670,8 @@ bool Debug::CompileDebuggerScript(Isolate* isolate, int index) {
     MessageLocation computed_location;
     isolate->ComputeLocation(&computed_location);
     Handle<Object> message = MessageHandler::MakeMessageObject(
-        isolate, "error_loading_debugger", &computed_location,
-        Vector<Handle<Object> >::empty(), Handle<JSArray>());
+        isolate, MessageTemplate::kDebuggerLoading, &computed_location,
+        isolate->factory()->undefined_value(), Handle<JSArray>());
     DCHECK(!isolate->has_pending_exception());
     Handle<Object> exception;
     if (maybe_exception.ToHandle(&exception)) {
@@ -2507,7 +2508,7 @@ void Debug::OnPromiseReject(Handle<JSObject> promise, Handle<Object> value) {
   HandleScope scope(isolate_);
   // Check whether the promise has been marked as having triggered a message.
   Handle<Symbol> key = isolate_->factory()->promise_debug_marker_symbol();
-  if (JSObject::GetDataProperty(promise, key)->IsUndefined()) {
+  if (JSReceiver::GetDataProperty(promise, key)->IsUndefined()) {
     OnException(value, promise);
   }
 }
@@ -2516,9 +2517,9 @@ void Debug::OnPromiseReject(Handle<JSObject> promise, Handle<Object> value) {
 MaybeHandle<Object> Debug::PromiseHasUserDefinedRejectHandler(
     Handle<JSObject> promise) {
   Handle<JSFunction> fun = Handle<JSFunction>::cast(
-      JSObject::GetDataProperty(isolate_->js_builtins_object(),
-                                isolate_->factory()->NewStringFromStaticChars(
-                                    "$promiseHasUserDefinedRejectHandler")));
+      JSReceiver::GetDataProperty(isolate_->js_builtins_object(),
+                                  isolate_->factory()->NewStringFromStaticChars(
+                                      "$promiseHasUserDefinedRejectHandler")));
   return Execution::Call(isolate_, fun, promise, 0, NULL);
 }
 
@@ -2803,6 +2804,7 @@ void Debug::ProcessCompileEventInDebugScope(v8::DebugEvent event,
 
 
 Handle<Context> Debug::GetDebugContext() {
+  if (!is_loaded()) return Handle<Context>();
   DebugScope debug_scope(this);
   if (debug_scope.failed()) return Handle<Context>();
   // The global handle may be destroyed soon after.  Return it reboxed.

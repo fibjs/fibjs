@@ -402,6 +402,9 @@
     <ClInclude Include="src\compiler\frame-elider.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
+    <ClInclude Include="src\compiler\frame-states.h">
+      <Filter>Source Files\compiler</Filter>
+    </ClInclude>
     <ClInclude Include="src\compiler\frame.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -1544,6 +1547,9 @@
     <ClCompile Include="src\compiler\frame-elider.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\frame-states.cc">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\gap-resolver.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -2139,6 +2145,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\parser.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pattern-rewriter.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pending-compilation-error-handler.cc">

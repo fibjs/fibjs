@@ -59,13 +59,10 @@ class JSCallFunctionAccessor {
 };
 
 
-namespace {
-
-// A facade on a JSFunction's graph to facilitate inlining. It assumes the
+// A facade on a JSFunction's graph to facilitate inlining. It assumes
 // that the function graph has only one return statement, and provides
 // {UnifyReturn} to convert a function graph to that end.
-class Inlinee {
- public:
+struct Inlinee {
   Inlinee(Node* start, Node* end) : start_(start), end_(end) {}
 
   // Returns the last regular control node, that is
@@ -103,14 +100,9 @@ class Inlinee {
     return total_parameters() - 3;
   }
 
-  // Inline this graph at {call}, use {jsgraph} and its zone to create
-  // any new nodes.
-  Reduction InlineAtCall(JSGraph* jsgraph, Node* call);
-
   // Ensure that only a single return reaches the end node.
   static void UnifyReturn(JSGraph* jsgraph);
 
- private:
   Node* start_;
   Node* end_;
 };
@@ -218,7 +210,7 @@ class CopyVisitor {
 };
 
 
-Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
+Reduction JSInliner::InlineCall(Node* call, Inlinee& inlinee) {
   // The scheduler is smart enough to place our code; we just ensure {control}
   // becomes the control input of the start of the inlinee, and {effect} becomes
   // the effect input of the start of the inlinee.
@@ -226,12 +218,12 @@ Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
   Node* effect = NodeProperties::GetEffectInput(call);
 
   // Context is last argument.
-  int inlinee_context_index = static_cast<int>(total_parameters()) - 1;
+  int inlinee_context_index = static_cast<int>(inlinee.total_parameters()) - 1;
   // {inliner_inputs} counts JSFunction, Receiver, arguments, but not
   // context, effect, control.
   int inliner_inputs = call->op()->ValueInputCount();
   // Iterate over all uses of the start node.
-  for (Edge edge : start_->use_edges()) {
+  for (Edge edge : inlinee.start_->use_edges()) {
     Node* use = edge.from();
     switch (use->opcode()) {
       case IrOpcode::kParameter: {
@@ -239,14 +231,14 @@ Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
         if (index < inliner_inputs && index < inlinee_context_index) {
           // There is an input from the call, and the index is a value
           // projection but not the context, so rewire the input.
-          NodeProperties::ReplaceWithValue(use, call->InputAt(index));
+          ReplaceWithValue(use, call->InputAt(index));
         } else if (index == inlinee_context_index) {
           // TODO(turbofan): We always context specialize inlinees currently, so
           // we should never get here.
           UNREACHABLE();
         } else if (index < inlinee_context_index) {
           // Call has fewer arguments than required, fill with undefined.
-          NodeProperties::ReplaceWithValue(use, jsgraph->UndefinedConstant());
+          ReplaceWithValue(use, jsgraph_->UndefinedConstant());
         } else {
           // We got too many arguments, discard for now.
           // TODO(sigurds): Fix to treat arguments array correctly.
@@ -265,31 +257,18 @@ Reduction Inlinee::InlineAtCall(JSGraph* jsgraph, Node* call) {
     }
   }
 
-  NodeProperties::ReplaceWithValue(call, value_output(), effect_output(),
-                                   control_output());
+  ReplaceWithValue(call, inlinee.value_output(), inlinee.effect_output(),
+                   inlinee.control_output());
 
-  return Reducer::Replace(value_output());
-}
-
-}  // namespace
-
-
-void JSInliner::AddClosureToFrameState(Node* frame_state,
-                                       Handle<JSFunction> jsfunction) {
-  FrameStateCallInfo call_info = OpParameter<FrameStateCallInfo>(frame_state);
-  const Operator* op = jsgraph_->common()->FrameState(
-      FrameStateType::JS_FRAME, call_info.bailout_id(),
-      call_info.state_combine(), jsfunction);
-  frame_state->set_op(op);
+  return Replace(inlinee.value_output());
 }
 
 
 Node* JSInliner::CreateArgumentsAdaptorFrameState(JSCallFunctionAccessor* call,
-                                                  Handle<JSFunction> jsfunction,
                                                   Zone* temp_zone) {
   const Operator* op = jsgraph_->common()->FrameState(
       FrameStateType::ARGUMENTS_ADAPTOR, BailoutId(-1),
-      OutputFrameStateCombine::Ignore(), jsfunction);
+      OutputFrameStateCombine::Ignore());
   const Operator* op0 = jsgraph_->common()->StateValues(0);
   Node* node0 = jsgraph_->graph()->NewNode(op0);
   NodeVector params(temp_zone);
@@ -303,7 +282,7 @@ Node* JSInliner::CreateArgumentsAdaptorFrameState(JSCallFunctionAccessor* call,
       op_param, static_cast<int>(params.size()), &params.front());
   return jsgraph_->graph()->NewNode(op, params_node, node0, node0,
                                     jsgraph_->UndefinedConstant(),
-                                    call->frame_state());
+                                    call->jsfunction(), call->frame_state());
 }
 
 
@@ -363,19 +342,28 @@ Reduction JSInliner::Reduce(Node* node) {
   Node* outer_frame_state = call.frame_state();
   // Insert argument adaptor frame if required.
   if (call.formal_arguments() != inlinee.formal_parameters()) {
-    outer_frame_state =
-        CreateArgumentsAdaptorFrameState(&call, function, info.zone());
+    // In strong mode, in case of too few arguments we need to throw a
+    // TypeError so we must not inline this call.
+    if (is_strong(info.language_mode()) &&
+        call.formal_arguments() < inlinee.formal_parameters()) {
+      return NoChange();
+    }
+    outer_frame_state = CreateArgumentsAdaptorFrameState(&call, info.zone());
   }
 
-  for (Node* node : visitor.copies()) {
-    if (node && node->opcode() == IrOpcode::kFrameState) {
+  // Fix up all outer frame states from the inlinee.
+  for (Node* const node : visitor.copies()) {
+    if (node->opcode() == IrOpcode::kFrameState) {
       DCHECK_EQ(1, OperatorProperties::GetFrameStateInputCount(node->op()));
-      AddClosureToFrameState(node, function);
-      NodeProperties::ReplaceFrameStateInput(node, 0, outer_frame_state);
+      // Don't touch this frame state, if it already has an "outer frame state".
+      if (NodeProperties::GetFrameStateInput(node, 0)->opcode() !=
+          IrOpcode::kFrameState) {
+        NodeProperties::ReplaceFrameStateInput(node, 0, outer_frame_state);
+      }
     }
   }
 
-  return inlinee.InlineAtCall(jsgraph_, node);
+  return InlineCall(node, inlinee);
 }
 
 }  // namespace compiler

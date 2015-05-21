@@ -1764,12 +1764,18 @@ class PagedSpace : public Space {
 
   // Allocate the requested number of bytes in the space if possible, return a
   // failure object if not.
-  MUST_USE_RESULT inline AllocationResult AllocateRaw(int size_in_bytes);
+  MUST_USE_RESULT inline AllocationResult AllocateRawUnaligned(
+      int size_in_bytes);
 
   // Allocate the requested number of bytes in the space double aligned if
   // possible, return a failure object if not.
-  MUST_USE_RESULT inline AllocationResult AllocateRawDoubleAligned(
-      int size_in_bytes);
+  MUST_USE_RESULT inline AllocationResult AllocateRawAligned(
+      int size_in_bytes, AllocationAlignment alignment);
+
+  // Allocate the requested number of bytes in the space and consider allocation
+  // alignment if needed.
+  MUST_USE_RESULT inline AllocationResult AllocateRaw(
+      int size_in_bytes, AllocationAlignment alignment);
 
   // Give a block of memory to the space's free list.  It might be added to
   // the free list or accounted as waste.
@@ -1933,7 +1939,8 @@ class PagedSpace : public Space {
 
   // Generic fast case allocation function that tries double aligned linear
   // allocation at the address denoted by top in allocation_info_.
-  inline HeapObject* AllocateLinearlyDoubleAlign(int size_in_bytes);
+  inline HeapObject* AllocateLinearlyAligned(int size_in_bytes,
+                                             AllocationAlignment alignment);
 
   // If sweeping is still in progress try to sweep unswept pages. If that is
   // not successful, wait for the sweeper threads and re-try free-list
@@ -2252,9 +2259,6 @@ class SemiSpace : public Space {
 
   friend class SemiSpaceIterator;
   friend class NewSpacePageIterator;
-
- public:
-  TRACK_MEMORY("SemiSpace")
 };
 
 
@@ -2500,10 +2504,14 @@ class NewSpace : public Space {
     return allocation_info_.limit_address();
   }
 
-  MUST_USE_RESULT INLINE(
-      AllocationResult AllocateRawDoubleAligned(int size_in_bytes));
+  MUST_USE_RESULT INLINE(AllocationResult AllocateRawAligned(
+      int size_in_bytes, AllocationAlignment alignment));
 
-  MUST_USE_RESULT INLINE(AllocationResult AllocateRaw(int size_in_bytes));
+  MUST_USE_RESULT INLINE(
+      AllocationResult AllocateRawUnaligned(int size_in_bytes));
+
+  MUST_USE_RESULT INLINE(AllocationResult AllocateRaw(
+      int size_in_bytes, AllocationAlignment alignment));
 
   // Reset the allocation pointer to the beginning of the active semispace.
   void ResetAllocationInfo();
@@ -2621,12 +2629,9 @@ class NewSpace : public Space {
   HistogramInfo* promoted_histogram_;
 
   MUST_USE_RESULT AllocationResult
-  SlowAllocateRaw(int size_in_bytes, bool double_aligned);
+  SlowAllocateRaw(int size_in_bytes, AllocationAlignment alignment);
 
   friend class SemiSpaceIterator;
-
- public:
-  TRACK_MEMORY("NewSpace")
 };
 
 
@@ -2640,9 +2645,6 @@ class OldSpace : public PagedSpace {
   OldSpace(Heap* heap, intptr_t max_capacity, AllocationSpace id,
            Executability executable)
       : PagedSpace(heap, max_capacity, id, executable) {}
-
- public:
-  TRACK_MEMORY("OldSpace")
 };
 
 
@@ -2688,9 +2690,6 @@ class MapSpace : public PagedSpace {
   }
 
   const int max_map_space_pages_;
-
- public:
-  TRACK_MEMORY("MapSpace")
 };
 
 
@@ -2784,9 +2783,6 @@ class LargeObjectSpace : public Space {
   HashMap chunk_map_;
 
   friend class LargeObjectIterator;
-
- public:
-  TRACK_MEMORY("LargeObjectSpace")
 };
 
 

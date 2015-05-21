@@ -17,17 +17,15 @@ namespace internal {
 
 static Object* ThrowRedeclarationError(Isolate* isolate, Handle<String> name) {
   HandleScope scope(isolate);
-  Handle<Object> args[1] = {name};
   THROW_NEW_ERROR_RETURN_FAILURE(
-      isolate, NewTypeError("var_redeclaration", HandleVector(args, 1)));
+      isolate, NewTypeError(MessageTemplate::kVarRedeclaration, name));
 }
 
 
 RUNTIME_FUNCTION(Runtime_ThrowConstAssignError) {
   HandleScope scope(isolate);
-  THROW_NEW_ERROR_RETURN_FAILURE(
-      isolate,
-      NewTypeError("const_assign", HandleVector<Object>(NULL, 0)));
+  THROW_NEW_ERROR_RETURN_FAILURE(isolate,
+                                 NewTypeError(MessageTemplate::kConstAssign));
 }
 
 
@@ -250,6 +248,12 @@ RUNTIME_FUNCTION(Runtime_DeclareLookupSlot) {
         JSGlobalObject::cast(context_arg->extension()), isolate);
     return DeclareGlobals(isolate, global, name, value, attr, is_var, is_const,
                           is_function);
+  } else if (context->IsScriptContext()) {
+    DCHECK(context->global_object()->IsJSGlobalObject());
+    Handle<JSGlobalObject> global(
+        JSGlobalObject::cast(context->global_object()), isolate);
+    return DeclareGlobals(isolate, global, name, value, attr, is_var, is_const,
+                          is_function);
   }
 
   if (attributes != ABSENT) {
@@ -325,8 +329,12 @@ RUNTIME_FUNCTION(Runtime_InitializeLegacyConstLookupSlot) {
   // meanwhile. If so, re-introduce the variable in the context extension.
   if (attributes == ABSENT) {
     Handle<Context> declaration_context(context_arg->declaration_context());
-    DCHECK(declaration_context->has_extension());
-    holder = handle(declaration_context->extension(), isolate);
+    if (declaration_context->IsScriptContext()) {
+      holder = handle(declaration_context->global_object(), isolate);
+    } else {
+      DCHECK(declaration_context->has_extension());
+      holder = handle(declaration_context->extension(), isolate);
+    }
     CHECK(holder->IsJSObject());
   } else {
     // For JSContextExtensionObjects, the initializer can be run multiple times
@@ -630,8 +638,12 @@ RUNTIME_FUNCTION(Runtime_NewScriptContext) {
       FindNameClash(scope_info, global_object, script_context_table);
   if (isolate->has_pending_exception()) return name_clash_result;
 
+  // Script contexts have a canonical empty function as their closure, not the
+  // anonymous closure containing the global code.  See
+  // FullCodeGenerator::PushFunctionArgumentForContextAllocation.
+  Handle<JSFunction> closure(native_context->closure());
   Handle<Context> result =
-      isolate->factory()->NewScriptContext(function, scope_info);
+      isolate->factory()->NewScriptContext(closure, scope_info);
 
   DCHECK(function->context() == isolate->context());
   DCHECK(function->context()->global_object() == result->global_object());
@@ -1005,8 +1017,7 @@ RUNTIME_FUNCTION(Runtime_StoreLookupSlot) {
     } else if (is_strict(language_mode)) {
       // Setting read only property in strict mode.
       THROW_NEW_ERROR_RETURN_FAILURE(
-          isolate,
-          NewTypeError("strict_cannot_assign", HandleVector(&name, 1)));
+          isolate, NewTypeError(MessageTemplate::kStrictCannotAssign, name));
     }
     return *value;
   }
@@ -1097,8 +1108,7 @@ RUNTIME_FUNCTION(Runtime_GetArgumentsProperty) {
     JSFunction* function = frame->function();
     if (is_strict(function->shared()->language_mode())) {
       THROW_NEW_ERROR_RETURN_FAILURE(
-          isolate, NewTypeError("strict_arguments_callee",
-                                HandleVector<Object>(NULL, 0)));
+          isolate, NewTypeError(MessageTemplate::kStrictPoisonPill));
     }
     return function;
   }
@@ -1125,5 +1135,5 @@ RUNTIME_FUNCTION(Runtime_Arguments) {
   SealHandleScope shs(isolate);
   return __RT_impl_Runtime_GetArgumentsProperty(args, isolate);
 }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

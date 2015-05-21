@@ -395,6 +395,20 @@ void Heap::ReportStatisticsAfterGC() {
 #else
   if (FLAG_log_gc) new_space_.ReportStatistics();
 #endif  // DEBUG
+  for (int i = 0; i < static_cast<int>(v8::Isolate::kUseCounterFeatureCount);
+       ++i) {
+    int count = deferred_counters_[i];
+    deferred_counters_[i] = 0;
+    while (count > 0) {
+      count--;
+      isolate()->CountUsage(static_cast<v8::Isolate::UseCounterFeature>(i));
+    }
+  }
+}
+
+
+void Heap::IncrementDeferredCount(v8::Isolate::UseCounterFeature feature) {
+  deferred_counters_[feature]++;
 }
 
 
@@ -711,6 +725,7 @@ void Heap::GarbageCollectionEpilogue() {
   // Remember the last top pointer so that we can later find out
   // whether we allocated in new space since the last GC.
   new_space_top_after_last_gc_ = new_space()->top();
+  last_gc_time_ = MonotonicallyIncreasingTimeInMs();
 }
 
 
@@ -917,12 +932,17 @@ bool Heap::CollectGarbage(GarbageCollector collector, const char* gc_reason,
     }
 
     if (collector == MARK_COMPACTOR) {
-      gc_idle_time_handler_.NotifyMarkCompact();
+      gc_idle_time_handler_.NotifyMarkCompact(next_gc_likely_to_collect_more);
     } else {
       gc_idle_time_handler_.NotifyScavenge();
     }
 
     tracer()->Stop(collector);
+  }
+
+  if (collector == MARK_COMPACTOR &&
+      (gc_callback_flags & kGCCallbackFlagForced) != 0) {
+    isolate()->CountUsage(v8::Isolate::kForcedGC);
   }
 
   // Start incremental marking for the next cycle. The heap snapshot
@@ -1017,9 +1037,9 @@ bool Heap::ReserveSpace(Reservation* reservations) {
           DCHECK_LE(size, MemoryAllocator::PageAreaSize(
                               static_cast<AllocationSpace>(space)));
           if (space == NEW_SPACE) {
-            allocation = new_space()->AllocateRaw(size);
+            allocation = new_space()->AllocateRawUnaligned(size);
           } else {
-            allocation = paged_space(space)->AllocateRaw(size);
+            allocation = paged_space(space)->AllocateRawUnaligned(size);
           }
           HeapObject* free_space;
           if (allocation.To(&free_space)) {
@@ -1946,10 +1966,20 @@ STATIC_ASSERT((ConstantPoolArray::kExtendedFirstOffset &
                kDoubleAlignmentMask) == 0);  // NOLINT
 STATIC_ASSERT((FixedTypedArrayBase::kDataOffset & kDoubleAlignmentMask) ==
               0);  // NOLINT
+#ifdef V8_HOST_ARCH_32_BIT
+STATIC_ASSERT((HeapNumber::kValueOffset & kDoubleAlignmentMask) !=
+              0);  // NOLINT
+#endif
 
 
-HeapObject* Heap::EnsureDoubleAligned(HeapObject* object, int size) {
-  if ((OffsetFrom(object->address()) & kDoubleAlignmentMask) != 0) {
+HeapObject* Heap::EnsureAligned(HeapObject* object, int size,
+                                AllocationAlignment alignment) {
+  if (alignment == kDoubleAligned &&
+      (OffsetFrom(object->address()) & kDoubleAlignmentMask) != 0) {
+    CreateFillerObjectAt(object->address(), kPointerSize);
+    return HeapObject::FromAddress(object->address() + kPointerSize);
+  } else if (alignment == kDoubleUnaligned &&
+             (OffsetFrom(object->address()) & kDoubleAlignmentMask) == 0) {
     CreateFillerObjectAt(object->address(), kPointerSize);
     return HeapObject::FromAddress(object->address() + kPointerSize);
   } else {
@@ -1959,8 +1989,14 @@ HeapObject* Heap::EnsureDoubleAligned(HeapObject* object, int size) {
 }
 
 
+HeapObject* Heap::PrecedeWithFiller(HeapObject* object) {
+  CreateFillerObjectAt(object->address(), kPointerSize);
+  return HeapObject::FromAddress(object->address() + kPointerSize);
+}
+
+
 HeapObject* Heap::DoubleAlignForDeserialization(HeapObject* object, int size) {
-  return EnsureDoubleAligned(object, size);
+  return EnsureAligned(object, size, kDoubleAligned);
 }
 
 
@@ -2111,16 +2147,10 @@ class ScavengingVisitor : public StaticVisitorBase {
     Heap* heap = map->GetHeap();
 
     DCHECK(heap->AllowedToBeMigrated(object, NEW_SPACE));
-    AllocationResult allocation;
-#ifndef V8_HOST_ARCH_64_BIT
-    if (alignment == kDoubleAlignment) {
-      allocation = heap->new_space()->AllocateRawDoubleAligned(object_size);
-    } else {
-      allocation = heap->new_space()->AllocateRaw(object_size);
-    }
-#else
-    allocation = heap->new_space()->AllocateRaw(object_size);
-#endif
+    AllocationAlignment align =
+        alignment == kDoubleAlignment ? kDoubleAligned : kWordAligned;
+    AllocationResult allocation =
+        heap->new_space()->AllocateRaw(object_size, align);
 
     HeapObject* target = NULL;  // Initialization to please compiler.
     if (allocation.To(&target)) {
@@ -2147,16 +2177,10 @@ class ScavengingVisitor : public StaticVisitorBase {
                                    HeapObject* object, int object_size) {
     Heap* heap = map->GetHeap();
 
-    AllocationResult allocation;
-#ifndef V8_HOST_ARCH_64_BIT
-    if (alignment == kDoubleAlignment) {
-      allocation = heap->old_space()->AllocateRawDoubleAligned(object_size);
-    } else {
-      allocation = heap->old_space()->AllocateRaw(object_size);
-    }
-#else
-    allocation = heap->old_space()->AllocateRaw(object_size);
-#endif
+    AllocationAlignment align =
+        alignment == kDoubleAlignment ? kDoubleAligned : kWordAligned;
+    AllocationResult allocation =
+        heap->old_space()->AllocateRaw(object_size, align);
 
     HeapObject* target = NULL;  // Initialization to please compiler.
     if (allocation.To(&target)) {
@@ -2497,7 +2521,8 @@ AllocationResult Heap::AllocateFillerObject(int size, bool double_align,
                                             AllocationSpace space) {
   HeapObject* obj;
   {
-    AllocationResult allocation = AllocateRaw(size, space, space);
+    AllocationAlignment align = double_align ? kDoubleAligned : kWordAligned;
+    AllocationResult allocation = AllocateRaw(size, space, space, align);
     if (!allocation.To(&obj)) return allocation;
   }
 #ifdef DEBUG
@@ -2821,7 +2846,8 @@ AllocationResult Heap::AllocateHeapNumber(double value, MutableMode mode,
 
   HeapObject* result;
   {
-    AllocationResult allocation = AllocateRaw(size, space, OLD_SPACE);
+    AllocationResult allocation =
+        AllocateRaw(size, space, OLD_SPACE, kDoubleUnaligned);
     if (!allocation.To(&result)) return allocation;
   }
 
@@ -3096,17 +3122,13 @@ void Heap::CreateInitialObjects() {
   // Number of queued microtasks stored in Isolate::pending_microtask_count().
   set_microtask_queue(empty_fixed_array());
 
-  if (FLAG_vector_ics) {
-    FeedbackVectorSpec spec(0, Code::KEYED_LOAD_IC);
-    Handle<TypeFeedbackVector> dummy_vector =
-        factory->NewTypeFeedbackVector(&spec);
-    dummy_vector->Set(FeedbackVectorICSlot(0),
-                      *TypeFeedbackVector::MegamorphicSentinel(isolate()),
-                      SKIP_WRITE_BARRIER);
-    set_keyed_load_dummy_vector(*dummy_vector);
-  } else {
-    set_keyed_load_dummy_vector(empty_fixed_array());
-  }
+  FeedbackVectorSpec spec(0, Code::KEYED_LOAD_IC);
+  Handle<TypeFeedbackVector> dummy_vector =
+      factory->NewTypeFeedbackVector(&spec);
+  dummy_vector->Set(FeedbackVectorICSlot(0),
+                    *TypeFeedbackVector::MegamorphicSentinel(isolate()),
+                    SKIP_WRITE_BARRIER);
+  set_keyed_load_dummy_vector(*dummy_vector);
 
   set_detached_contexts(empty_fixed_array());
   set_retained_maps(ArrayList::cast(empty_fixed_array()));
@@ -4539,18 +4561,8 @@ void Heap::MakeHeapIterable() {
   DCHECK(IsHeapIterable());
 }
 
-
-void Heap::ReduceNewSpaceSize(bool is_long_idle_notification) {
-  if (is_long_idle_notification) {
-    new_space_.Shrink();
-    UncommitFromSpace();
-  }
-}
-
-
 bool Heap::TryFinalizeIdleIncrementalMarking(
-    bool is_long_idle_notification, double idle_time_in_ms,
-    size_t size_of_objects,
+    double idle_time_in_ms, size_t size_of_objects,
     size_t final_incremental_mark_compact_speed_in_bytes_per_ms) {
   if (FLAG_overapproximate_weak_closure &&
       (incremental_marking()->IsReadyToOverApproximateWeakClosure() ||
@@ -4568,7 +4580,6 @@ bool Heap::TryFinalizeIdleIncrementalMarking(
                   final_incremental_mark_compact_speed_in_bytes_per_ms))) {
     CollectAllGarbage(kNoGCFlags, "idle notification: finalize incremental");
     gc_idle_time_handler_.NotifyIdleMarkCompact();
-    ReduceNewSpaceSize(is_long_idle_notification);
     return true;
   }
   return false;
@@ -4602,6 +4613,8 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
       static_cast<size_t>(idle_time_in_ms) >
       GCIdleTimeHandler::kMaxFrameRenderingIdleTime;
 
+  static const double kLastGCTimeTreshold = 1000;
+
   GCIdleTimeHandler::HeapState heap_state;
   heap_state.contexts_disposed = contexts_disposed_;
   heap_state.contexts_disposal_rate =
@@ -4610,7 +4623,8 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
   heap_state.incremental_marking_stopped = incremental_marking()->IsStopped();
   // TODO(ulan): Start incremental marking only for large heaps.
   intptr_t limit = old_generation_allocation_limit_;
-  if (is_long_idle_notification) {
+  if (is_long_idle_notification &&
+      (start_ms - last_gc_time_ > kLastGCTimeTreshold)) {
     limit = idle_old_generation_allocation_limit_;
   }
 
@@ -4675,8 +4689,7 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
                !mark_compact_collector_.marking_deque()->IsEmpty());
       if (remaining_idle_time_in_ms > 0.0) {
         action.additional_work = TryFinalizeIdleIncrementalMarking(
-            is_long_idle_notification, remaining_idle_time_in_ms,
-            heap_state.size_of_objects,
+            remaining_idle_time_in_ms, heap_state.size_of_objects,
             heap_state.final_incremental_mark_compact_speed_in_bytes_per_ms);
       }
       break;
@@ -4693,19 +4706,22 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
                           "idle notification: finalize idle round");
       }
       gc_count_at_last_idle_gc_ = gc_count_;
-      ReduceNewSpaceSize(is_long_idle_notification);
       gc_idle_time_handler_.NotifyIdleMarkCompact();
       break;
     }
     case DO_SCAVENGE:
       CollectGarbage(NEW_SPACE, "idle notification: scavenge");
-      ReduceNewSpaceSize(is_long_idle_notification);
       break;
     case DO_FINALIZE_SWEEPING:
       mark_compact_collector()->EnsureSweepingCompleted();
       break;
     case DO_NOTHING:
       break;
+  }
+
+  if (action.reduce_memory) {
+    new_space_.Shrink();
+    UncommitFromSpace();
   }
 
   double current_time = MonotonicallyIncreasingTimeInMs();
@@ -5421,6 +5437,12 @@ bool Heap::SetUp() {
       set_hash_seed(Smi::FromInt(FLAG_hash_seed));
     }
   }
+
+  for (int i = 0; i < static_cast<int>(v8::Isolate::kUseCounterFeatureCount);
+       i++) {
+    deferred_counters_[i] = 0;
+  }
+
 
   LOG(isolate_, IntPtrTEvent("heap-capacity", Capacity()));
   LOG(isolate_, IntPtrTEvent("heap-available", Available()));
@@ -6489,6 +6511,44 @@ void Heap::UnregisterStrongRoots(Object** start) {
     }
     list = next;
   }
+}
+
+
+bool Heap::GetObjectTypeName(size_t index, const char** object_type,
+                             const char** object_sub_type) {
+  if (index >= OBJECT_STATS_COUNT) return false;
+
+  switch (static_cast<int>(index)) {
+#define COMPARE_AND_RETURN_NAME(name) \
+  case name:                          \
+    *object_type = #name;             \
+    *object_sub_type = "";            \
+    return true;
+    INSTANCE_TYPE_LIST(COMPARE_AND_RETURN_NAME)
+#undef COMPARE_AND_RETURN_NAME
+#define COMPARE_AND_RETURN_NAME(name)         \
+  case FIRST_CODE_KIND_SUB_TYPE + Code::name: \
+    *object_type = "CODE_TYPE";               \
+    *object_sub_type = "CODE_KIND/" #name;    \
+    return true;
+    CODE_KIND_LIST(COMPARE_AND_RETURN_NAME)
+#undef COMPARE_AND_RETURN_NAME
+#define COMPARE_AND_RETURN_NAME(name)     \
+  case FIRST_FIXED_ARRAY_SUB_TYPE + name: \
+    *object_type = "FIXED_ARRAY_TYPE";    \
+    *object_sub_type = #name;             \
+    return true;
+    FIXED_ARRAY_SUB_INSTANCE_TYPE_LIST(COMPARE_AND_RETURN_NAME)
+#undef COMPARE_AND_RETURN_NAME
+#define COMPARE_AND_RETURN_NAME(name)                                          \
+  case FIRST_CODE_AGE_SUB_TYPE + Code::k##name##CodeAge - Code::kFirstCodeAge: \
+    *object_type = "CODE_TYPE";                                                \
+    *object_sub_type = "CODE_AGE/" #name;                                      \
+    return true;
+    CODE_AGE_LIST_COMPLETE(COMPARE_AND_RETURN_NAME)
+#undef COMPARE_AND_RETURN_NAME
+  }
+  return false;
 }
 }
 }  // namespace v8::internal

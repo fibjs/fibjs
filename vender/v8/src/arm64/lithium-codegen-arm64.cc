@@ -673,7 +673,7 @@ bool LCodeGen::GeneratePrologue() {
     // global proxy when called as functions (without an explicit receiver
     // object).
     if (is_sloppy(info_->language_mode()) && info()->MayUseThis() &&
-        !info_->is_native()) {
+        !info()->is_native() && info()->scope()->has_this_declaration()) {
       Label ok;
       int receiver_offset = info_->scope()->num_parameters() * kXRegSize;
       __ Peek(x10, receiver_offset);
@@ -732,8 +732,9 @@ bool LCodeGen::GeneratePrologue() {
     __ Str(x0, MemOperand(fp, StandardFrameConstants::kContextOffset));
     // Copy any necessary parameters into the context.
     int num_parameters = scope()->num_parameters();
-    for (int i = 0; i < num_parameters; i++) {
-      Variable* var = scope()->parameter(i);
+    int first_parameter = scope()->has_this_declaration() ? -1 : 0;
+    for (int i = first_parameter; i < num_parameters; i++) {
+      Variable* var = (i == -1) ? scope()->receiver() : scope()->parameter(i);
       if (var->IsContextSlot()) {
         Register value = x0;
         Register scratch = x3;
@@ -747,8 +748,9 @@ bool LCodeGen::GeneratePrologue() {
         __ Str(value, target);
         // Update the write barrier. This clobbers value and scratch.
         if (need_write_barrier) {
-          __ RecordWriteContextSlot(cp, target.offset(), value, scratch,
-                                    GetLinkRegisterState(), kSaveFPRegs);
+          __ RecordWriteContextSlot(cp, static_cast<int>(target.offset()),
+                                    value, scratch, GetLinkRegisterState(),
+                                    kSaveFPRegs);
         } else if (FLAG_debug_code) {
           Label done;
           __ JumpIfInNewSpace(cp, &done);
@@ -2025,29 +2027,6 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
 }
 
 
-void LCodeGen::DoTailCallThroughMegamorphicCache(
-    LTailCallThroughMegamorphicCache* instr) {
-  Register receiver = ToRegister(instr->receiver());
-  Register name = ToRegister(instr->name());
-  DCHECK(receiver.is(LoadDescriptor::ReceiverRegister()));
-  DCHECK(name.is(LoadDescriptor::NameRegister()));
-  DCHECK(receiver.is(x1));
-  DCHECK(name.is(x2));
-  Register scratch = x4;
-  Register extra = x5;
-  Register extra2 = x6;
-  Register extra3 = x7;
-
-  // The probe will tail call to a handler if found.
-  isolate()->stub_cache()->GenerateProbe(
-      masm(), Code::LOAD_IC, instr->hydrogen()->flags(), false, receiver, name,
-      scratch, extra, extra2, extra3);
-
-  // Tail call to miss if we ended up here.
-  LoadIC::GenerateMiss(masm());
-}
-
-
 void LCodeGen::DoCallWithDescriptor(LCallWithDescriptor* instr) {
   DCHECK(instr->IsMarkedAsCall());
   DCHECK(ToRegister(instr->result()).Is(x0));
@@ -2558,7 +2537,8 @@ void LCodeGen::DoCmpT(LCmpT* instr) {
 
   DCHECK(ToRegister(instr->left()).Is(x1));
   DCHECK(ToRegister(instr->right()).Is(x0));
-  Handle<Code> ic = CodeFactory::CompareIC(isolate(), op).code();
+  Handle<Code> ic =
+      CodeFactory::CompareIC(isolate(), op, instr->language_mode()).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
   // Signal that we don't inline smi code before this stub.
   InlineSmiCheckInfo::EmitNotInlined(masm());
@@ -3365,7 +3345,6 @@ void LCodeGen::DoLoadFunctionPrototype(LLoadFunctionPrototype* instr) {
 
 template <class T>
 void LCodeGen::EmitVectorLoadICRegisters(T* instr) {
-  DCHECK(FLAG_vector_ics);
   Register vector_register = ToRegister(instr->temp_vector());
   Register slot_register = VectorLoadICDescriptor::SlotRegister();
   DCHECK(vector_register.is(VectorLoadICDescriptor::VectorRegister()));
@@ -3387,9 +3366,7 @@ void LCodeGen::DoLoadGlobalGeneric(LLoadGlobalGeneric* instr) {
              .is(LoadDescriptor::ReceiverRegister()));
   DCHECK(ToRegister(instr->result()).Is(x0));
   __ Mov(LoadDescriptor::NameRegister(), Operand(instr->name()));
-  if (FLAG_vector_ics) {
-    EmitVectorLoadICRegisters<LLoadGlobalGeneric>(instr);
-  }
+  EmitVectorLoadICRegisters<LLoadGlobalGeneric>(instr);
   ContextualMode mode = instr->for_typeof() ? NOT_CONTEXTUAL : CONTEXTUAL;
   Handle<Code> ic = CodeFactory::LoadICInOptimizedCode(isolate(), mode,
                                                        PREMONOMORPHIC).code();
@@ -3716,9 +3693,7 @@ void LCodeGen::DoLoadNamedGeneric(LLoadNamedGeneric* instr) {
   // LoadIC expects name and receiver in registers.
   DCHECK(ToRegister(instr->object()).is(LoadDescriptor::ReceiverRegister()));
   __ Mov(LoadDescriptor::NameRegister(), Operand(instr->name()));
-  if (FLAG_vector_ics) {
-    EmitVectorLoadICRegisters<LLoadNamedGeneric>(instr);
-  }
+  EmitVectorLoadICRegisters<LLoadNamedGeneric>(instr);
 
   Handle<Code> ic = CodeFactory::LoadICInOptimizedCode(
                         isolate(), NOT_CONTEXTUAL,
@@ -5141,14 +5116,9 @@ void LCodeGen::DoStoreContextSlot(LStoreContextSlot* instr) {
     SmiCheck check_needed =
         instr->hydrogen()->value()->type().IsHeapObject()
             ? OMIT_SMI_CHECK : INLINE_SMI_CHECK;
-    __ RecordWriteContextSlot(context,
-                              target.offset(),
-                              value,
-                              scratch,
-                              GetLinkRegisterState(),
-                              kSaveFPRegs,
-                              EMIT_REMEMBERED_SET,
-                              check_needed);
+    __ RecordWriteContextSlot(context, static_cast<int>(target.offset()), value,
+                              scratch, GetLinkRegisterState(), kSaveFPRegs,
+                              EMIT_REMEMBERED_SET, check_needed);
   }
   __ Bind(&skip_assignment);
 }
@@ -5330,6 +5300,91 @@ void LCodeGen::DoStoreKeyedGeneric(LStoreKeyedGeneric* instr) {
                         isolate(), instr->language_mode(),
                         instr->hydrogen()->initialization_state()).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
+}
+
+
+void LCodeGen::DoMaybeGrowElements(LMaybeGrowElements* instr) {
+  class DeferredMaybeGrowElements final : public LDeferredCode {
+   public:
+    DeferredMaybeGrowElements(LCodeGen* codegen, LMaybeGrowElements* instr)
+        : LDeferredCode(codegen), instr_(instr) {}
+    void Generate() override { codegen()->DoDeferredMaybeGrowElements(instr_); }
+    LInstruction* instr() override { return instr_; }
+
+   private:
+    LMaybeGrowElements* instr_;
+  };
+
+  Register result = x0;
+  DeferredMaybeGrowElements* deferred =
+      new (zone()) DeferredMaybeGrowElements(this, instr);
+  LOperand* key = instr->key();
+  LOperand* current_capacity = instr->current_capacity();
+
+  DCHECK(instr->hydrogen()->key()->representation().IsInteger32());
+  DCHECK(instr->hydrogen()->current_capacity()->representation().IsInteger32());
+  DCHECK(key->IsConstantOperand() || key->IsRegister());
+  DCHECK(current_capacity->IsConstantOperand() ||
+         current_capacity->IsRegister());
+
+  if (key->IsConstantOperand() && current_capacity->IsConstantOperand()) {
+    int32_t constant_key = ToInteger32(LConstantOperand::cast(key));
+    int32_t constant_capacity =
+        ToInteger32(LConstantOperand::cast(current_capacity));
+    if (constant_key >= constant_capacity) {
+      // Deferred case.
+      __ B(deferred->entry());
+    }
+  } else if (key->IsConstantOperand()) {
+    int32_t constant_key = ToInteger32(LConstantOperand::cast(key));
+    __ Cmp(ToRegister(current_capacity), Operand(constant_key));
+    __ B(le, deferred->entry());
+  } else if (current_capacity->IsConstantOperand()) {
+    int32_t constant_capacity =
+        ToInteger32(LConstantOperand::cast(current_capacity));
+    __ Cmp(ToRegister(key), Operand(constant_capacity));
+    __ B(ge, deferred->entry());
+  } else {
+    __ Cmp(ToRegister(key), ToRegister(current_capacity));
+    __ B(ge, deferred->entry());
+  }
+
+  __ Mov(result, ToRegister(instr->elements()));
+
+  __ Bind(deferred->exit());
+}
+
+
+void LCodeGen::DoDeferredMaybeGrowElements(LMaybeGrowElements* instr) {
+  // TODO(3095996): Get rid of this. For now, we need to make the
+  // result register contain a valid pointer because it is already
+  // contained in the register pointer map.
+  Register result = x0;
+  __ Mov(result, 0);
+
+  // We have to call a stub.
+  {
+    PushSafepointRegistersScope scope(this);
+    __ Move(result, ToRegister(instr->object()));
+
+    LOperand* key = instr->key();
+    if (key->IsConstantOperand()) {
+      __ Mov(x3, Operand(ToSmi(LConstantOperand::cast(key))));
+    } else {
+      __ Mov(x3, ToRegister(key));
+      __ SmiTag(x3);
+    }
+
+    GrowArrayElementsStub stub(isolate(), instr->hydrogen()->is_js_array(),
+                               instr->hydrogen()->kind());
+    __ CallStub(&stub);
+    RecordSafepointWithLazyDeopt(
+        instr, RECORD_SAFEPOINT_WITH_REGISTERS_AND_NO_ARGUMENTS);
+    __ StoreToSafepointRegisterSlot(result, result);
+  }
+
+  // Deopt on smi, which means the elements array changed to dictionary mode.
+  DeoptimizeIfSmi(result, instr, Deoptimizer::kSmi);
 }
 
 
@@ -5552,7 +5607,7 @@ void LCodeGen::DoStringCompareAndBranch(LStringCompareAndBranch* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
   Token::Value op = instr->op();
 
-  Handle<Code> ic = CodeFactory::CompareIC(isolate(), op).code();
+  Handle<Code> ic = CodeFactory::CompareIC(isolate(), op, SLOPPY).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
   InlineSmiCheckInfo::EmitNotInlined(masm());
 

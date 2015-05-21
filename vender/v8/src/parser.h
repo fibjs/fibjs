@@ -659,33 +659,36 @@ class ParserTraits {
                                    int pos, AstNodeFactory* factory);
 
   // Generate AST node that throws a ReferenceError with the given type.
-  Expression* NewThrowReferenceError(const char* type, int pos);
+  Expression* NewThrowReferenceError(MessageTemplate::Template message,
+                                     int pos);
 
   // Generate AST node that throws a SyntaxError with the given
   // type. The first argument may be null (in the handle sense) in
   // which case no arguments are passed to the constructor.
-  Expression* NewThrowSyntaxError(
-      const char* type, const AstRawString* arg, int pos);
+  Expression* NewThrowSyntaxError(MessageTemplate::Template message,
+                                  const AstRawString* arg, int pos);
 
   // Generate AST node that throws a TypeError with the given
   // type. Both arguments must be non-null (in the handle sense).
-  Expression* NewThrowTypeError(const char* type, const AstRawString* arg,
-                                int pos);
+  Expression* NewThrowTypeError(MessageTemplate::Template message,
+                                const AstRawString* arg, int pos);
 
   // Generic AST generator for throwing errors from compiled code.
-  Expression* NewThrowError(
-      const AstRawString* constructor, const char* type,
-      const AstRawString* arg, int pos);
+  Expression* NewThrowError(const AstRawString* constructor,
+                            MessageTemplate::Template message,
+                            const AstRawString* arg, int pos);
 
   // Reporting errors.
-  void ReportMessageAt(Scanner::Location source_location, const char* message,
+  void ReportMessageAt(Scanner::Location source_location,
+                       MessageTemplate::Template message,
                        const char* arg = NULL,
                        ParseErrorType error_type = kSyntaxError);
-  void ReportMessage(const char* message, const char* arg = NULL,
+  void ReportMessage(MessageTemplate::Template message, const char* arg = NULL,
                      ParseErrorType error_type = kSyntaxError);
-  void ReportMessage(const char* message, const AstRawString* arg,
+  void ReportMessage(MessageTemplate::Template message, const AstRawString* arg,
                      ParseErrorType error_type = kSyntaxError);
-  void ReportMessageAt(Scanner::Location source_location, const char* message,
+  void ReportMessageAt(Scanner::Location source_location,
+                       MessageTemplate::Template message,
                        const AstRawString* arg,
                        ParseErrorType error_type = kSyntaxError);
 
@@ -760,11 +763,13 @@ class ParserTraits {
 
   void DeclareArrowFunctionParameters(Scope* scope, Expression* expr,
                                       const Scanner::Location& params_loc,
-                                      FormalParameterErrorLocations* error_locs,
+                                      Scanner::Location* duplicate_loc,
                                       bool* ok);
-  void ParseArrowFunctionFormalParameters(
-      Scope* scope, Expression* params, const Scanner::Location& params_loc,
-      FormalParameterErrorLocations* error_locs, bool* is_rest, bool* ok);
+  void ParseArrowFunctionFormalParameters(Scope* scope, Expression* params,
+                                          const Scanner::Location& params_loc,
+                                          bool* is_rest,
+                                          Scanner::Location* duplicate_loc,
+                                          bool* ok);
 
   // Temporary glue; these functions will move to ParserBase.
   Expression* ParseV8Intrinsic(bool* ok);
@@ -937,12 +942,93 @@ class Parser : public ParserBase<ParserTraits> {
   Block* ParseVariableStatement(VariableDeclarationContext var_context,
                                 ZoneList<const AstRawString*>* names,
                                 bool* ok);
-  Block* ParseVariableDeclarations(VariableDeclarationContext var_context,
-                                   int* num_decl,
-                                   ZoneList<const AstRawString*>* names,
-                                   const AstRawString** out,
-                                   Scanner::Location* first_initializer_loc,
-                                   Scanner::Location* bindings_loc, bool* ok);
+
+  struct DeclarationDescriptor {
+    Parser* parser;
+    Scope* declaration_scope;
+    Scope* scope;
+    VariableMode mode;
+    bool is_const;
+    bool needs_init;
+    int pos;
+    Token::Value init_op;
+  };
+
+  struct DeclarationParsingResult {
+    struct Declaration {
+      Declaration(Expression* pattern, int initializer_position,
+                  Expression* initializer)
+          : pattern(pattern),
+            initializer_position(initializer_position),
+            initializer(initializer) {}
+
+      Expression* pattern;
+      int initializer_position;
+      Expression* initializer;
+    };
+
+    DeclarationParsingResult()
+        : declarations(4),
+          first_initializer_loc(Scanner::Location::invalid()),
+          bindings_loc(Scanner::Location::invalid()) {}
+
+    Block* BuildInitializationBlock(ZoneList<const AstRawString*>* names,
+                                    bool* ok);
+    const AstRawString* SingleName() const;
+
+    DeclarationDescriptor descriptor;
+    List<Declaration> declarations;
+    Scanner::Location first_initializer_loc;
+    Scanner::Location bindings_loc;
+  };
+
+  class PatternRewriter : private AstVisitor {
+   public:
+    static void DeclareAndInitializeVariables(
+        Block* block, const DeclarationDescriptor* declaration_descriptor,
+        const DeclarationParsingResult::Declaration* declaration,
+        ZoneList<const AstRawString*>* names, bool* ok);
+
+    void set_initializer_position(int pos) { initializer_position_ = pos; }
+
+   private:
+    PatternRewriter() {}
+
+#define DECLARE_VISIT(type) void Visit##type(v8::internal::type* node) override;
+    // Visiting functions for AST nodes make this an AstVisitor.
+    AST_NODE_LIST(DECLARE_VISIT)
+#undef DECLARE_VISIT
+    virtual void Visit(AstNode* node) override;
+
+    void RecurseIntoSubpattern(AstNode* pattern, Expression* value) {
+      Expression* old_value = current_value_;
+      current_value_ = value;
+      pattern->Accept(this);
+      current_value_ = old_value;
+    }
+
+    Variable* CreateTempVar(Expression* value = nullptr);
+
+    AstNodeFactory* factory() const { return descriptor_->parser->factory(); }
+    AstValueFactory* ast_value_factory() const {
+      return descriptor_->parser->ast_value_factory();
+    }
+    bool inside_with() const { return descriptor_->parser->inside_with(); }
+    Zone* zone() const { return descriptor_->parser->zone(); }
+
+    Expression* pattern_;
+    int initializer_position_;
+    Block* block_;
+    const DeclarationDescriptor* descriptor_;
+    ZoneList<const AstRawString*>* names_;
+    Expression* current_value_;
+    bool* ok_;
+  };
+
+
+  void ParseVariableDeclarations(VariableDeclarationContext var_context,
+                                 DeclarationParsingResult* parsing_result,
+                                 bool* ok);
   Statement* ParseExpressionOrLabelledStatement(
       ZoneList<const AstRawString*>* labels, bool* ok);
   IfStatement* ParseIfStatement(ZoneList<const AstRawString*>* labels,
@@ -968,6 +1054,12 @@ class Parser : public ParserBase<ParserTraits> {
 
   // Support for hamony block scoped bindings.
   Block* ParseScopedBlock(ZoneList<const AstRawString*>* labels, bool* ok);
+
+  // !%_IsSpecObject(result = iterator.next()) &&
+  //     %ThrowIteratorResultNotAnObject(result)
+  Expression* BuildIteratorNextResult(Expression* iterator, Variable* result,
+                                      int pos);
+
 
   // Initialize the components of a for-in / for-of statement.
   void InitializeForEachStatement(ForEachStatement* stmt,
@@ -1017,6 +1109,7 @@ class Parser : public ParserBase<ParserTraits> {
   IterationStatement* LookupContinueTarget(const AstRawString* label, bool* ok);
 
   void AddAssertIsConstruct(ZoneList<Statement*>* body, int pos);
+  Statement* BuildAssertIsCoercible(Variable* var);
 
   // Factory methods.
   FunctionLiteral* DefaultConstructor(bool call_super, Scope* scope, int pos,

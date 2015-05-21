@@ -54,6 +54,26 @@ RUNTIME_FUNCTION(Runtime_SpecialArrayFunctions) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_FixedArrayGet) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 2);
+  CONVERT_ARG_CHECKED(FixedArray, object, 0);
+  CONVERT_SMI_ARG_CHECKED(index, 1);
+  return object->get(index);
+}
+
+
+RUNTIME_FUNCTION(Runtime_FixedArraySet) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 3);
+  CONVERT_ARG_CHECKED(FixedArray, object, 0);
+  CONVERT_SMI_ARG_CHECKED(index, 1);
+  CONVERT_ARG_CHECKED(Object, value, 2);
+  object->set(index, value);
+  return isolate->heap()->undefined_value();
+}
+
+
 RUNTIME_FUNCTION(Runtime_TransitionElementsKind) {
   HandleScope scope(isolate);
   RUNTIME_ASSERT(args.length() == 2);
@@ -1221,9 +1241,9 @@ RUNTIME_FUNCTION(Runtime_NormalizeElements) {
 // GrowArrayElements returns a sentinel Smi if the object was normalized.
 RUNTIME_FUNCTION(Runtime_GrowArrayElements) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 3);
+  DCHECK(args.length() == 2);
   CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
-  CONVERT_SMI_ARG_CHECKED(key, 1);
+  CONVERT_NUMBER_CHECKED(int, key, Int32, args[1]);
 
   if (key < 0) {
     return object->elements();
@@ -1234,7 +1254,8 @@ RUNTIME_FUNCTION(Runtime_GrowArrayElements) {
 
   if (index >= capacity) {
     if (object->WouldConvertToSlowElements(index)) {
-      JSObject::NormalizeElements(object);
+      // We don't want to allow operations that cause lazy deopt. Return a Smi
+      // as a signal that optimized code should eagerly deoptimize.
       return Smi::FromInt(0);
     }
 
@@ -1397,5 +1418,5 @@ RUNTIME_FUNCTION(Runtime_FastOneByteArrayJoin) {
   // to a slow path.
   return isolate->heap()->undefined_value();
 }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

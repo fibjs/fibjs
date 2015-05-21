@@ -70,10 +70,10 @@ MaybeHandle<Object> Runtime::GetObjectProperty(Isolate* isolate,
                                                Handle<Object> object,
                                                Handle<Object> key) {
   if (object->IsUndefined() || object->IsNull()) {
-    Handle<Object> args[2] = {key, object};
-    THROW_NEW_ERROR(isolate, NewTypeError("non_object_property_load",
-                                          HandleVector(args, 2)),
-                    Object);
+    THROW_NEW_ERROR(
+        isolate,
+        NewTypeError(MessageTemplate::kNonObjectPropertyLoad, key, object),
+        Object);
   }
 
   // Check if the given key is an array index.
@@ -102,10 +102,10 @@ MaybeHandle<Object> Runtime::SetObjectProperty(Isolate* isolate,
                                                Handle<Object> value,
                                                LanguageMode language_mode) {
   if (object->IsUndefined() || object->IsNull()) {
-    Handle<Object> args[2] = {key, object};
-    THROW_NEW_ERROR(isolate, NewTypeError("non_object_property_store",
-                                          HandleVector(args, 2)),
-                    Object);
+    THROW_NEW_ERROR(
+        isolate,
+        NewTypeError(MessageTemplate::kNonObjectPropertyStore, key, object),
+        Object);
   }
 
   if (object->IsJSProxy()) {
@@ -1278,9 +1278,8 @@ RUNTIME_FUNCTION(Runtime_FinalizeInstanceSize) {
 RUNTIME_FUNCTION(Runtime_GlobalProxy) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 1);
-  CONVERT_ARG_CHECKED(Object, global, 0);
-  if (!global->IsJSGlobalObject()) return isolate->heap()->null_value();
-  return JSGlobalObject::cast(global)->global_proxy();
+  CONVERT_ARG_CHECKED(JSFunction, function, 0);
+  return function->context()->global_proxy();
 }
 
 
@@ -1420,9 +1419,9 @@ RUNTIME_FUNCTION(Runtime_DefineDataPropertyUnchecked) {
 RUNTIME_FUNCTION(Runtime_GetDataProperty) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 2);
-  CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
+  CONVERT_ARG_HANDLE_CHECKED(JSReceiver, object, 0);
   CONVERT_ARG_HANDLE_CHECKED(Name, key, 1);
-  return *JSObject::GetDataProperty(object, key);
+  return *JSReceiver::GetDataProperty(object, key);
 }
 
 
@@ -1519,6 +1518,15 @@ RUNTIME_FUNCTION(Runtime_IsSpecObject) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_IsStrong) {
+  SealHandleScope shs(isolate);
+  DCHECK(args.length() == 1);
+  CONVERT_ARG_CHECKED(Object, obj, 0);
+  return isolate->heap()->ToBoolean(obj->IsJSReceiver() &&
+                                    JSReceiver::cast(obj)->map()->is_strong());
+}
+
+
 RUNTIME_FUNCTION(Runtime_ClassOf) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 1);
@@ -1558,5 +1566,5 @@ RUNTIME_FUNCTION(Runtime_DefineSetterPropertyUnchecked) {
                                setter, attrs));
   return isolate->heap()->undefined_value();
 }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

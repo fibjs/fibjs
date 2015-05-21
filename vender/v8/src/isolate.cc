@@ -280,9 +280,7 @@ Handle<String> Isolate::StackTraceString() {
 }
 
 
-void Isolate::PushStackTraceAndDie(unsigned int magic,
-                                   Object* object,
-                                   Map* map,
+void Isolate::PushStackTraceAndDie(unsigned int magic, void* ptr1, void* ptr2,
                                    unsigned int magic2) {
   const int kMaxStackTraceSize = 32 * KB;
   Handle<String> trace = StackTraceString();
@@ -291,9 +289,8 @@ void Isolate::PushStackTraceAndDie(unsigned int magic,
   String::WriteToFlat(*trace, buffer, 0, length);
   buffer[length] = '\0';
   // TODO(dcarney): convert buffer to utf8?
-  base::OS::PrintError("Stacktrace (%x-%x) %p %p: %s\n", magic, magic2,
-                       static_cast<void*>(object), static_cast<void*>(map),
-                       reinterpret_cast<char*>(buffer));
+  base::OS::PrintError("Stacktrace (%x-%x) %p %p: %s\n", magic, magic2, ptr1,
+                       ptr2, reinterpret_cast<char*>(buffer));
   base::OS::Abort();
 }
 
@@ -341,9 +338,8 @@ Handle<Object> Isolate::CaptureSimpleStackTrace(Handle<JSObject> error_object,
   Handle<String> stackTraceLimit =
       factory()->InternalizeUtf8String("stackTraceLimit");
   DCHECK(!stackTraceLimit.is_null());
-  Handle<Object> stack_trace_limit =
-      JSObject::GetDataProperty(Handle<JSObject>::cast(error),
-                                stackTraceLimit);
+  Handle<Object> stack_trace_limit = JSReceiver::GetDataProperty(
+      Handle<JSObject>::cast(error), stackTraceLimit);
   if (!stack_trace_limit->IsNumber()) return factory()->undefined_value();
   int limit = FastD2IChecked(stack_trace_limit->Number());
   limit = Max(limit, 0);  // Ensure that limit is not negative.
@@ -446,7 +442,7 @@ MaybeHandle<JSObject> Isolate::CaptureAndSetSimpleStackTrace(
 Handle<JSArray> Isolate::GetDetailedStackTrace(Handle<JSObject> error_object) {
   Handle<Name> key_detailed = factory()->detailed_stack_trace_symbol();
   Handle<Object> stack_trace =
-      JSObject::GetDataProperty(error_object, key_detailed);
+      JSReceiver::GetDataProperty(error_object, key_detailed);
   if (stack_trace->IsJSArray()) return Handle<JSArray>::cast(stack_trace);
 
   if (!capture_stack_trace_for_uncaught_exceptions_) return Handle<JSArray>();
@@ -600,7 +596,7 @@ int PositionFromStackTrace(Handle<FixedArray> elements, int index) {
 Handle<JSArray> Isolate::GetDetailedFromSimpleStackTrace(
     Handle<JSObject> error_object) {
   Handle<Name> key = factory()->stack_trace_symbol();
-  Handle<Object> property = JSObject::GetDataProperty(error_object, key);
+  Handle<Object> property = JSReceiver::GetDataProperty(error_object, key);
   if (!property->IsJSArray()) return Handle<JSArray>();
   Handle<JSArray> simple_stack_trace = Handle<JSArray>::cast(property);
 
@@ -748,16 +744,9 @@ static inline AccessCheckInfo* GetAccessCheckInfo(Isolate* isolate,
 }
 
 
-static void ThrowAccessCheckError(Isolate* isolate) {
-  Handle<String> message =
-      isolate->factory()->InternalizeUtf8String("no access");
-  isolate->ScheduleThrow(*isolate->factory()->NewTypeError(message));
-}
-
-
 void Isolate::ReportFailedAccessCheck(Handle<JSObject> receiver) {
   if (!thread_local_top()->failed_access_check_callback_) {
-    return ThrowAccessCheckError(this);
+    return ScheduleThrow(*factory()->NewTypeError(MessageTemplate::kNoAccess));
   }
 
   DCHECK(receiver->IsAccessCheckNeeded());
@@ -770,7 +759,8 @@ void Isolate::ReportFailedAccessCheck(Handle<JSObject> receiver) {
     AccessCheckInfo* access_check_info = GetAccessCheckInfo(this, receiver);
     if (!access_check_info) {
       AllowHeapAllocation doesnt_matter_anymore;
-      return ThrowAccessCheckError(this);
+      return ScheduleThrow(
+          *factory()->NewTypeError(MessageTemplate::kNoAccess));
     }
     data = handle(access_check_info->data(), this);
   }
@@ -783,11 +773,18 @@ void Isolate::ReportFailedAccessCheck(Handle<JSObject> receiver) {
 
 
 bool Isolate::IsInternallyUsedPropertyName(Handle<Object> name) {
+  if (name->IsSymbol()) {
+    return Handle<Symbol>::cast(name)->is_private() &&
+           Handle<Symbol>::cast(name)->is_own();
+  }
   return name.is_identical_to(factory()->hidden_string());
 }
 
 
 bool Isolate::IsInternallyUsedPropertyName(Object* name) {
+  if (name->IsSymbol()) {
+    return Symbol::cast(name)->is_private() && Symbol::cast(name)->is_own();
+  }
   return name == heap()->hidden_string();
 }
 
@@ -1272,19 +1269,19 @@ bool Isolate::ComputeLocationFromException(MessageLocation* target,
   if (!exception->IsJSObject()) return false;
 
   Handle<Name> start_pos_symbol = factory()->error_start_pos_symbol();
-  Handle<Object> start_pos = JSObject::GetDataProperty(
+  Handle<Object> start_pos = JSReceiver::GetDataProperty(
       Handle<JSObject>::cast(exception), start_pos_symbol);
   if (!start_pos->IsSmi()) return false;
   int start_pos_value = Handle<Smi>::cast(start_pos)->value();
 
   Handle<Name> end_pos_symbol = factory()->error_end_pos_symbol();
-  Handle<Object> end_pos = JSObject::GetDataProperty(
+  Handle<Object> end_pos = JSReceiver::GetDataProperty(
       Handle<JSObject>::cast(exception), end_pos_symbol);
   if (!end_pos->IsSmi()) return false;
   int end_pos_value = Handle<Smi>::cast(end_pos)->value();
 
   Handle<Name> script_symbol = factory()->error_script_symbol();
-  Handle<Object> script = JSObject::GetDataProperty(
+  Handle<Object> script = JSReceiver::GetDataProperty(
       Handle<JSObject>::cast(exception), script_symbol);
   if (!script->IsScript()) return false;
 
@@ -1301,7 +1298,7 @@ bool Isolate::ComputeLocationFromStackTrace(MessageLocation* target,
   if (!exception->IsJSObject()) return false;
   Handle<Name> key = factory()->stack_trace_symbol();
   Handle<Object> property =
-      JSObject::GetDataProperty(Handle<JSObject>::cast(exception), key);
+      JSReceiver::GetDataProperty(Handle<JSObject>::cast(exception), key);
   if (!property->IsJSArray()) return false;
   Handle<JSArray> simple_stack_trace = Handle<JSArray>::cast(property);
 
@@ -1391,9 +1388,9 @@ Handle<JSMessageObject> Isolate::CreateMessage(Handle<Object> exception,
           factory()->InternalizeOneByteString(STATIC_CHAR_VECTOR("exception"));
     }
   }
-  return MessageHandler::MakeMessageObject(this, "uncaught_exception", location,
-                                           HandleVector<Object>(&exception, 1),
-                                           stack_trace_object);
+  return MessageHandler::MakeMessageObject(
+      this, MessageTemplate::kUncaughtException, location, exception,
+      stack_trace_object);
 }
 
 
@@ -2004,6 +2001,12 @@ Isolate::~Isolate() {
 
   delete debug_;
   debug_ = NULL;
+
+#if USE_SIMULATOR
+  Simulator::TearDown(simulator_i_cache_, simulator_redirection_);
+  simulator_i_cache_ = nullptr;
+  simulator_redirection_ = nullptr;
+#endif
 }
 
 
@@ -2669,8 +2672,15 @@ void Isolate::SetUseCounterCallback(v8::Isolate::UseCounterCallback callback) {
 
 
 void Isolate::CountUsage(v8::Isolate::UseCounterFeature feature) {
-  if (use_counter_callback_) {
-    use_counter_callback_(reinterpret_cast<v8::Isolate*>(this), feature);
+  // The counter callback may cause the embedder to call into V8, which is not
+  // generally possible during GC.
+  if (heap_.gc_state() == Heap::NOT_IN_GC) {
+    if (use_counter_callback_) {
+      HandleScope handle_scope(this);
+      use_counter_callback_(reinterpret_cast<v8::Isolate*>(this), feature);
+    }
+  } else {
+    heap_.IncrementDeferredCount(feature);
   }
 }
 

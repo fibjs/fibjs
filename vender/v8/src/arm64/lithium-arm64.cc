@@ -1592,20 +1592,6 @@ LInstruction* LChunkBuilder::DoInstanceOfKnownGlobal(
 }
 
 
-LInstruction* LChunkBuilder::DoTailCallThroughMegamorphicCache(
-    HTailCallThroughMegamorphicCache* instr) {
-  LOperand* context = UseFixed(instr->context(), cp);
-  LOperand* receiver_register =
-      UseFixed(instr->receiver(), LoadDescriptor::ReceiverRegister());
-  LOperand* name_register =
-      UseFixed(instr->name(), LoadDescriptor::NameRegister());
-
-  // Not marked as call. It can't deoptimize, and it never returns.
-  return new (zone()) LTailCallThroughMegamorphicCache(
-      context, receiver_register, name_register);
-}
-
-
 LInstruction* LChunkBuilder::DoInvokeFunction(HInvokeFunction* instr) {
   LOperand* context = UseFixed(instr->context(), cp);
   // The function is required (by MacroAssembler::InvokeFunction) to be in x1.
@@ -2568,6 +2554,21 @@ LInstruction* LChunkBuilder::DoTrapAllocationMemento(
   LTrapAllocationMemento* result =
       new(zone()) LTrapAllocationMemento(object, temp1, temp2);
   return AssignEnvironment(result);
+}
+
+
+LInstruction* LChunkBuilder::DoMaybeGrowElements(HMaybeGrowElements* instr) {
+  info()->MarkAsDeferredCalling();
+  LOperand* context = UseFixed(instr->context(), cp);
+  LOperand* object = UseRegister(instr->object());
+  LOperand* elements = UseRegister(instr->elements());
+  LOperand* key = UseRegisterOrConstant(instr->key());
+  LOperand* current_capacity = UseRegisterOrConstant(instr->current_capacity());
+
+  LMaybeGrowElements* result = new (zone())
+      LMaybeGrowElements(context, object, elements, key, current_capacity);
+  DefineFixed(result, x0);
+  return AssignPointerMap(AssignEnvironment(result));
 }
 
 

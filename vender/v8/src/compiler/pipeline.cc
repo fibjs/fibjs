@@ -488,8 +488,6 @@ struct ContextSpecializerPhase {
   static const char* phase_name() { return "context specializing"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     JSContextSpecializer spec(data->jsgraph());
     GraphReducer graph_reducer(data->graph(), temp_zone);
     AddReducer(data, &graph_reducer, &spec);
@@ -502,13 +500,11 @@ struct InliningPhase {
   static const char* phase_name() { return "inlining"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
-    JSInliner inliner(data->info()->is_inlining_enabled()
-                          ? JSInliner::kGeneralInlining
-                          : JSInliner::kBuiltinsInlining,
-                      temp_zone, data->info(), data->jsgraph());
     GraphReducer graph_reducer(data->graph(), temp_zone);
+    JSInliner inliner(&graph_reducer, data->info()->is_inlining_enabled()
+                                          ? JSInliner::kGeneralInlining
+                                          : JSInliner::kBuiltinsInlining,
+                      temp_zone, data->info(), data->jsgraph());
     AddReducer(data, &graph_reducer, &inliner);
     graph_reducer.ReduceGraph();
   }
@@ -526,8 +522,6 @@ struct OsrDeconstructionPhase {
   static const char* phase_name() { return "OSR deconstruction"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     OsrHelper osr_helper(data->info());
     osr_helper.Deconstruct(data->jsgraph(), data->common(), temp_zone);
   }
@@ -538,8 +532,6 @@ struct JSTypeFeedbackPhase {
   static const char* phase_name() { return "type feedback specializing"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     Handle<Context> native_context(data->info()->context()->native_context());
     TypeFeedbackOracle oracle(data->isolate(), temp_zone,
                               data->info()->unoptimized_code(),
@@ -553,8 +545,8 @@ struct JSTypeFeedbackPhase {
     // TODO(titzer): introduce a specialization mode/flags enum to control
     // specializing to the global object here.
     JSTypeFeedbackSpecializer specializer(
-        data->jsgraph(), data->js_type_feedback(), &oracle, global_object,
-        data->info()->dependencies());
+        &graph_reducer, data->jsgraph(), data->js_type_feedback(), &oracle,
+        global_object, data->info()->dependencies());
     AddReducer(data, &graph_reducer, &specializer);
     graph_reducer.ReduceGraph();
   }
@@ -565,15 +557,13 @@ struct TypedLoweringPhase {
   static const char* phase_name() { return "typed lowering"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
+    GraphReducer graph_reducer(data->graph(), temp_zone);
     LoadElimination load_elimination;
     JSBuiltinReducer builtin_reducer(data->jsgraph());
-    JSTypedLowering typed_lowering(data->jsgraph(), temp_zone);
-    JSIntrinsicLowering intrinsic_lowering(data->jsgraph());
+    JSTypedLowering typed_lowering(&graph_reducer, data->jsgraph(), temp_zone);
+    JSIntrinsicLowering intrinsic_lowering(&graph_reducer, data->jsgraph());
     SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     CommonOperatorReducer common_reducer(data->jsgraph());
-    GraphReducer graph_reducer(data->graph(), temp_zone);
     AddReducer(data, &graph_reducer, &builtin_reducer);
     AddReducer(data, &graph_reducer, &typed_lowering);
     AddReducer(data, &graph_reducer, &intrinsic_lowering);
@@ -589,8 +579,6 @@ struct SimplifiedLoweringPhase {
   static const char* phase_name() { return "simplified lowering"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     SimplifiedLowering lowering(data->jsgraph(), temp_zone,
                                 data->source_positions());
     lowering.LowerAllNodes();
@@ -612,8 +600,6 @@ struct ControlFlowOptimizationPhase {
   static const char* phase_name() { return "control flow optimization"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     ControlFlowOptimizer optimizer(data->jsgraph(), temp_zone);
     optimizer.Optimize();
   }
@@ -624,8 +610,6 @@ struct ChangeLoweringPhase {
   static const char* phase_name() { return "change lowering"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     ValueNumberingReducer vn_reducer(temp_zone);
     SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     ChangeLowering lowering(data->jsgraph());
@@ -645,8 +629,6 @@ struct ChangeLoweringPhase {
 struct EarlyControlReductionPhase {
   static const char* phase_name() { return "early control reduction"; }
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     ControlReducer::ReduceGraph(temp_zone, data->jsgraph(), 0);
   }
 };
@@ -655,8 +637,6 @@ struct EarlyControlReductionPhase {
 struct LateControlReductionPhase {
   static const char* phase_name() { return "late control reduction"; }
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     ControlReducer::ReduceGraph(temp_zone, data->jsgraph(), 0);
   }
 };
@@ -666,8 +646,6 @@ struct StressLoopPeelingPhase {
   static const char* phase_name() { return "stress loop peeling"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     // Peel the first outer loop for testing.
     // TODO(titzer): peel all loops? the N'th loop? Innermost loops?
     LoopTree* loop_tree = LoopFinder::BuildLoopTree(data->graph(), temp_zone);
@@ -683,8 +661,6 @@ struct GenericLoweringPhase {
   static const char* phase_name() { return "generic lowering"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    SourcePositionTable::Scope pos(data->source_positions(),
-                                   SourcePosition::Unknown());
     JSGenericLowering generic(data->info()->is_typing_enabled(),
                               data->jsgraph());
     SelectLowering select(data->jsgraph()->graph(), data->jsgraph()->common());

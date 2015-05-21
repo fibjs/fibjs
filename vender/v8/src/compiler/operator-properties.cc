@@ -40,13 +40,9 @@ int OperatorProperties::GetFrameStateInputCount(const Operator* op) {
 
     // Compare operations
     case IrOpcode::kJSEqual:
-    case IrOpcode::kJSGreaterThan:
-    case IrOpcode::kJSGreaterThanOrEqual:
+    case IrOpcode::kJSNotEqual:
     case IrOpcode::kJSHasProperty:
     case IrOpcode::kJSInstanceOf:
-    case IrOpcode::kJSLessThan:
-    case IrOpcode::kJSLessThanOrEqual:
-    case IrOpcode::kJSNotEqual:
 
     // Object operations
     case IrOpcode::kJSCreateLiteralArray:
@@ -63,17 +59,14 @@ int OperatorProperties::GetFrameStateInputCount(const Operator* op) {
 
     // Misc operations
     case IrOpcode::kJSStackCheck:
-
-    // Properties
-    case IrOpcode::kJSLoadNamed:
-    case IrOpcode::kJSStoreNamed:
-    case IrOpcode::kJSLoadProperty:
     case IrOpcode::kJSDeleteProperty:
       return 1;
 
-    // StoreProperty provides a second frame state just before
-    // the operation. This is used to lazy-deoptimize a to-number
-    // conversion for typed arrays.
+    // We record the frame state immediately before and immediately after
+    // every property access.
+    case IrOpcode::kJSLoadNamed:
+    case IrOpcode::kJSStoreNamed:
+    case IrOpcode::kJSLoadProperty:
     case IrOpcode::kJSStoreProperty:
       return 2;
 
@@ -91,6 +84,15 @@ int OperatorProperties::GetFrameStateInputCount(const Operator* op) {
     case IrOpcode::kJSShiftRight:
     case IrOpcode::kJSShiftRightLogical:
     case IrOpcode::kJSSubtract:
+      return 2;
+
+    // Compare operators that can deopt in the middle the operation (e.g.,
+    // as a result of lazy deopt in ToNumber conversion) need a second frame
+    // state so that we can resume before the operation.
+    case IrOpcode::kJSGreaterThan:
+    case IrOpcode::kJSGreaterThanOrEqual:
+    case IrOpcode::kJSLessThan:
+    case IrOpcode::kJSLessThanOrEqual:
       return 2;
 
     default:

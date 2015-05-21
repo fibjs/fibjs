@@ -1076,64 +1076,6 @@ Handle<HeapNumber> Factory::NewHeapNumber(double value,
 }
 
 
-Handle<Object> Factory::NewTypeError(const char* message,
-                                     Vector<Handle<Object> > args) {
-  return NewError("MakeTypeError", message, args);
-}
-
-
-Handle<Object> Factory::NewTypeError(Handle<String> message) {
-  return NewError("$TypeError", message);
-}
-
-
-Handle<Object> Factory::NewRangeError(const char* message,
-                                      Vector<Handle<Object> > args) {
-  return NewError("MakeRangeError", message, args);
-}
-
-
-Handle<Object> Factory::NewRangeError(Handle<String> message) {
-  return NewError("$RangeError", message);
-}
-
-
-Handle<Object> Factory::NewSyntaxError(const char* message,
-                                       Handle<JSArray> args) {
-  return NewError("MakeSyntaxError", message, args);
-}
-
-
-Handle<Object> Factory::NewSyntaxError(Handle<String> message) {
-  return NewError("$SyntaxError", message);
-}
-
-
-Handle<Object> Factory::NewReferenceError(const char* message,
-                                          Handle<JSArray> args) {
-  return NewError("MakeReferenceError", message, args);
-}
-
-
-Handle<Object> Factory::NewReferenceError(Handle<String> message) {
-  return NewError("$ReferenceError", message);
-}
-
-
-Handle<Object> Factory::NewError(const char* maker, const char* message,
-                                 Vector<Handle<Object> > args) {
-  // Instantiate a closeable HandleScope for EscapeFrom.
-  v8::EscapableHandleScope scope(reinterpret_cast<v8::Isolate*>(isolate()));
-  Handle<FixedArray> array = NewFixedArray(args.length());
-  for (int i = 0; i < args.length(); i++) {
-    array->set(i, *args[i]);
-  }
-  Handle<JSArray> object = NewJSArrayWithElements(array);
-  Handle<Object> result = NewError(maker, message, object);
-  return result.EscapeFrom(&scope);
-}
-
-
 Handle<Object> Factory::NewError(const char* maker,
                                  MessageTemplate::Template template_index,
                                  Handle<Object> arg0, Handle<Object> arg1,
@@ -1178,6 +1120,13 @@ Handle<Object> Factory::NewTypeError(MessageTemplate::Template template_index,
                                      Handle<Object> arg0, Handle<Object> arg1,
                                      Handle<Object> arg2) {
   return NewError("MakeTypeError", template_index, arg0, arg1, arg2);
+}
+
+
+Handle<Object> Factory::NewSyntaxError(MessageTemplate::Template template_index,
+                                       Handle<Object> arg0, Handle<Object> arg1,
+                                       Handle<Object> arg2) {
+  return NewError("MakeSyntaxError", template_index, arg0, arg1, arg2);
 }
 
 
@@ -1266,11 +1215,6 @@ Handle<Object> Factory::NewError(const char* maker, const char* message,
     return undefined_value();
   }
   return result;
-}
-
-
-Handle<Object> Factory::NewError(Handle<String> message) {
-  return NewError("$Error", message);
 }
 
 
@@ -2196,24 +2140,21 @@ Handle<SharedFunctionInfo> Factory::NewSharedFunctionInfo(
 
 
 Handle<JSMessageObject> Factory::NewJSMessageObject(
-    Handle<String> type,
-    Handle<JSArray> arguments,
-    int start_position,
-    int end_position,
-    Handle<Object> script,
+    MessageTemplate::Template message, Handle<Object> argument,
+    int start_position, int end_position, Handle<Object> script,
     Handle<Object> stack_frames) {
   Handle<Map> map = message_object_map();
-  Handle<JSMessageObject> message = New<JSMessageObject>(map, NEW_SPACE);
-  message->set_properties(*empty_fixed_array(), SKIP_WRITE_BARRIER);
-  message->initialize_elements();
-  message->set_elements(*empty_fixed_array(), SKIP_WRITE_BARRIER);
-  message->set_type(*type);
-  message->set_arguments(*arguments);
-  message->set_start_position(start_position);
-  message->set_end_position(end_position);
-  message->set_script(*script);
-  message->set_stack_frames(*stack_frames);
-  return message;
+  Handle<JSMessageObject> message_obj = New<JSMessageObject>(map, NEW_SPACE);
+  message_obj->set_properties(*empty_fixed_array(), SKIP_WRITE_BARRIER);
+  message_obj->initialize_elements();
+  message_obj->set_elements(*empty_fixed_array(), SKIP_WRITE_BARRIER);
+  message_obj->set_type(message);
+  message_obj->set_argument(*argument);
+  message_obj->set_start_position(start_position);
+  message_obj->set_end_position(end_position);
+  message_obj->set_script(*script);
+  message_obj->set_stack_frames(*stack_frames);
+  return message_obj;
 }
 
 
@@ -2398,14 +2339,18 @@ Handle<JSWeakMap> Factory::NewJSWeakMap() {
 
 Handle<Map> Factory::ObjectLiteralMapFromCache(Handle<Context> context,
                                                int number_of_properties,
+                                               bool is_strong,
                                                bool* is_result_from_cache) {
   const int kMapCacheSize = 128;
 
   // We do not cache maps for too many properties or when running builtin code.
-  if (number_of_properties > kMapCacheSize ||
+  // TODO(rossberg): cache strong maps properly
+  if (number_of_properties > kMapCacheSize || is_strong ||
       isolate()->bootstrapper()->IsActive()) {
     *is_result_from_cache = false;
-    return Map::Create(isolate(), number_of_properties);
+    Handle<Map> map = Map::Create(isolate(), number_of_properties);
+    if (is_strong) map->set_is_strong(true);
+    return map;
   }
   *is_result_from_cache = true;
   if (number_of_properties == 0) {

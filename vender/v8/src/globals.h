@@ -438,6 +438,7 @@ enum AllocationSpace {
 const int kSpaceTagSize = 3;
 const int kSpaceTagMask = (1 << kSpaceTagSize) - 1;
 
+enum AllocationAlignment { kWordAligned, kDoubleAligned, kDoubleUnaligned };
 
 // A flag that indicates whether objects should be pretenured when
 // allocated (allocated directly into the old generation) or not
@@ -643,26 +644,6 @@ struct AccessorDescriptor {
 // DOUBLE_POINTER_ALIGN returns the value algined for double pointers.
 #define DOUBLE_POINTER_ALIGN(value) \
   (((value) + kDoubleAlignmentMask) & ~kDoubleAlignmentMask)
-
-// Support for tracking C++ memory allocation.  Insert TRACK_MEMORY("Fisk")
-// inside a C++ class and new and delete will be overloaded so logging is
-// performed.
-// This file (globals.h) is included before log.h, so we use direct calls to
-// the Logger rather than the LOG macro.
-#ifdef DEBUG
-#define TRACK_MEMORY(name) \
-  void* operator new(size_t size) { \
-    void* result = ::operator new(size); \
-    Logger::NewEventStatic(name, result, size); \
-    return result; \
-  } \
-  void operator delete(void* object) { \
-    Logger::DeleteEventStatic(name, object); \
-    ::operator delete(object); \
-  }
-#else
-#define TRACK_MEMORY(name)
-#endif
 
 
 // CPU feature flags.

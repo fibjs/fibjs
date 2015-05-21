@@ -188,14 +188,16 @@ static ScriptOrigin GetScriptOriginForScript(i::Isolate* isolate,
   i::Handle<i::Object> source_map_url(script->source_mapping_url(), isolate);
   v8::Isolate* v8_isolate =
       reinterpret_cast<v8::Isolate*>(script->GetIsolate());
+  ScriptOriginOptions options(script->origin_options());
   v8::ScriptOrigin origin(
       Utils::ToLocal(scriptName),
       v8::Integer::New(v8_isolate, script->line_offset()->value()),
       v8::Integer::New(v8_isolate, script->column_offset()->value()),
-      v8::Boolean::New(v8_isolate, script->is_shared_cross_origin()),
+      v8::Boolean::New(v8_isolate, options.IsSharedCrossOrigin()),
       v8::Integer::New(v8_isolate, script->id()->value()),
-      v8::Boolean::New(v8_isolate, script->is_embedder_debug_script()),
-      Utils::ToLocal(source_map_url));
+      v8::Boolean::New(v8_isolate, options.IsEmbedderDebugScript()),
+      Utils::ToLocal(source_map_url),
+      v8::Boolean::New(v8_isolate, options.IsOpaque()));
   return origin;
 }
 
@@ -379,7 +381,7 @@ StartupData V8::CreateSnapshotDataBlob(const char* custom_source) {
       i::SnapshotByteSink context_sink;
       i::PartialSerializer context_ser(internal_isolate, &ser, &context_sink);
       context_ser.Serialize(&raw_context);
-      ser.SerializeWeakReferences();
+      ser.SerializeWeakReferencesAndDeferred();
 
       result = i::Snapshot::CreateSnapshotBlob(ser, context_ser, metadata);
     }
@@ -1560,7 +1562,8 @@ Local<Script> UnboundScript::BindToCurrentContext() {
         pending_error_handler_.ReportMessageAt(
             scope_info->StrongModeFreeVariableStartPosition(i),
             scope_info->StrongModeFreeVariableEndPosition(i),
-            "strong_unbound_global", name_string, i::kReferenceError);
+            i::MessageTemplate::kStrongUnboundGlobal, name_string,
+            i::kReferenceError);
         i::Handle<i::Script> script(i::Script::cast(function_info->script()));
         pending_error_handler_.ThrowPendingError(isolate, script);
         isolate->ReportPendingMessages();
@@ -1715,8 +1718,6 @@ MaybeLocal<UnboundScript> ScriptCompiler::CompileUnboundInternal(
     i::Handle<i::Object> source_map_url;
     int line_offset = 0;
     int column_offset = 0;
-    bool is_embedder_debug_script = false;
-    bool is_shared_cross_origin = false;
     if (!source->resource_name.IsEmpty()) {
       name_obj = Utils::OpenHandle(*(source->resource_name));
     }
@@ -1727,21 +1728,13 @@ MaybeLocal<UnboundScript> ScriptCompiler::CompileUnboundInternal(
       column_offset =
           static_cast<int>(source->resource_column_offset->Value());
     }
-    if (!source->resource_is_shared_cross_origin.IsEmpty()) {
-      is_shared_cross_origin =
-          source->resource_is_shared_cross_origin->IsTrue();
-    }
-    if (!source->resource_is_embedder_debug_script.IsEmpty()) {
-      is_embedder_debug_script =
-          source->resource_is_embedder_debug_script->IsTrue();
-    }
     if (!source->source_map_url.IsEmpty()) {
       source_map_url = Utils::OpenHandle(*(source->source_map_url));
     }
     result = i::Compiler::CompileScript(
-        str, name_obj, line_offset, column_offset, is_embedder_debug_script,
-        is_shared_cross_origin, source_map_url, isolate->native_context(), NULL,
-        &script_data, options, i::NOT_NATIVES_CODE, is_module);
+        str, name_obj, line_offset, column_offset, source->resource_options,
+        source_map_url, isolate->native_context(), NULL, &script_data, options,
+        i::NOT_NATIVES_CODE, is_module);
     has_pending_exception = result.is_null();
     if (has_pending_exception && script_data != NULL) {
       // This case won't happen during normal operation; we have compiled
@@ -1975,14 +1968,7 @@ MaybeLocal<Script> ScriptCompiler::Compile(Local<Context> context,
     script->set_column_offset(i::Smi::FromInt(
         static_cast<int>(origin.ResourceColumnOffset()->Value())));
   }
-  if (!origin.ResourceIsSharedCrossOrigin().IsEmpty()) {
-    script->set_is_shared_cross_origin(
-        origin.ResourceIsSharedCrossOrigin()->IsTrue());
-  }
-  if (!origin.ResourceIsEmbedderDebugScript().IsEmpty()) {
-    script->set_is_embedder_debug_script(
-        origin.ResourceIsEmbedderDebugScript()->IsTrue());
-  }
+  script->set_origin_options(origin.Options());
   if (!origin.SourceMapUrl().IsEmpty()) {
     script->set_source_mapping_url(
         *Utils::OpenHandle(*(origin.SourceMapUrl())));
@@ -2361,7 +2347,18 @@ bool Message::IsSharedCrossOrigin() const {
   auto self = Utils::OpenHandle(this);
   auto script = i::Handle<i::JSValue>::cast(
       i::Handle<i::Object>(self->script(), isolate));
-  return i::Script::cast(script->value())->is_shared_cross_origin();
+  return i::Script::cast(script->value())
+      ->origin_options()
+      .IsSharedCrossOrigin();
+}
+
+bool Message::IsOpaque() const {
+  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  ENTER_V8(isolate);
+  auto self = Utils::OpenHandle(this);
+  auto script = i::Handle<i::JSValue>::cast(
+      i::Handle<i::Object>(self->script(), isolate));
+  return i::Script::cast(script->value())->origin_options().IsOpaque();
 }
 
 
@@ -4400,7 +4397,7 @@ Handle<Value> Function::GetDisplayName() const {
   i::Handle<i::String> property_name =
       isolate->factory()->NewStringFromStaticChars("displayName");
   i::Handle<i::Object> value =
-      i::JSObject::GetDataProperty(func, property_name);
+      i::JSReceiver::GetDataProperty(func, property_name);
   if (value->IsString()) {
     i::Handle<i::String> name = i::Handle<i::String>::cast(value);
     if (name->length() > 0) return Utils::ToLocal(name);
@@ -5349,6 +5346,12 @@ HeapSpaceStatistics::HeapSpaceStatistics(): space_name_(0),
                                             physical_space_size_(0) { }
 
 
+HeapObjectStatistics::HeapObjectStatistics()
+    : object_type_(nullptr),
+      object_sub_type_(nullptr),
+      object_count_(0),
+      object_size_(0) {}
+
 bool v8::V8::InitializeICU(const char* icu_data_file) {
   return i::InitializeICU(icu_data_file);
 }
@@ -6083,8 +6086,9 @@ MaybeLocal<Object> Array::CloneElementAt(Local<Context> context,
   if (!paragon->IsJSObject()) return Local<Object>();
   i::Handle<i::JSObject> paragon_handle(i::JSObject::cast(paragon));
   Local<Object> result;
-  has_pending_exception = ToLocal<Object>(
-      isolate->factory()->CopyJSObject(paragon_handle), &result);
+  has_pending_exception =
+      !ToLocal<Object>(isolate->factory()->CopyJSObject(paragon_handle),
+                       &result);
   RETURN_ON_FAILED_EXECUTION(Object);
   RETURN_ESCAPED(result);
 }
@@ -6098,16 +6102,7 @@ Local<Object> Array::CloneElementAt(uint32_t index) {
 
 bool Value::IsPromise() const {
   auto self = Utils::OpenHandle(this);
-  if (!self->IsJSObject()) return false;
-  auto js_object = i::Handle<i::JSObject>::cast(self);
-  // Promises can't have access checks.
-  if (js_object->map()->is_access_check_needed()) return false;
-  auto isolate = js_object->GetIsolate();
-  // TODO(dcarney): this should just be read from the symbol registry so as not
-  // to be context dependent.
-  auto key = isolate->promise_status();
-  // Shouldn't be possible to throw here.
-  return i::JSObject::HasRealNamedProperty(js_object, key).FromJust();
+  return i::Object::IsPromise(self);
 }
 
 
@@ -6247,7 +6242,7 @@ bool Promise::HasHandler() {
   LOG_API(isolate, "Promise::HasRejectHandler");
   ENTER_V8(isolate);
   i::Handle<i::Symbol> key = isolate->factory()->promise_has_handler_symbol();
-  return i::JSObject::GetDataProperty(promise, key)->IsTrue();
+  return i::JSReceiver::GetDataProperty(promise, key)->IsTrue();
 }
 
 
@@ -6930,6 +6925,38 @@ bool Isolate::GetHeapSpaceStatistics(HeapSpaceStatistics* space_statistics,
 }
 
 
+size_t Isolate::NumberOfTrackedHeapObjectTypes() {
+  return i::Heap::OBJECT_STATS_COUNT;
+}
+
+
+bool Isolate::GetHeapObjectStatisticsAtLastGC(
+    HeapObjectStatistics* object_statistics, size_t type_index) {
+  if (!object_statistics) return false;
+  if (type_index >= i::Heap::OBJECT_STATS_COUNT) return false;
+  if (!i::FLAG_track_gc_object_stats) return false;
+
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+  i::Heap* heap = isolate->heap();
+  const char* object_type;
+  const char* object_sub_type;
+  size_t object_count = heap->object_count_last_gc(type_index);
+  size_t object_size = heap->object_size_last_gc(type_index);
+  if (!heap->GetObjectTypeName(type_index, &object_type, &object_sub_type)) {
+    // There should be no objects counted when the type is unknown.
+    DCHECK_EQ(object_count, 0U);
+    DCHECK_EQ(object_size, 0U);
+    return false;
+  }
+
+  object_statistics->object_type_ = object_type;
+  object_statistics->object_sub_type_ = object_sub_type;
+  object_statistics->object_count_ = object_count;
+  object_statistics->object_size_ = object_size;
+  return true;
+}
+
+
 void Isolate::GetStackSample(const RegisterState& state, void** frames,
                              size_t frames_limit, SampleInfo* sample_info) {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
@@ -7238,19 +7265,19 @@ String::Value::~Value() {
 }
 
 
-#define DEFINE_ERROR(NAME)                                                    \
-  Local<Value> Exception::NAME(v8::Handle<v8::String> raw_message) {          \
-    i::Isolate* isolate = i::Isolate::Current();                              \
-    LOG_API(isolate, #NAME);                                                  \
-    ENTER_V8(isolate);                                                        \
-    i::Object* error;                                                         \
-    {                                                                         \
-      i::HandleScope scope(isolate);                                          \
-      i::Handle<i::String> message = Utils::OpenHandle(*raw_message);         \
-      error = *isolate->factory()->New##NAME(message);                        \
-    }                                                                         \
-    i::Handle<i::Object> result(error, isolate);                              \
-    return Utils::ToLocal(result);                                            \
+#define DEFINE_ERROR(NAME)                                            \
+  Local<Value> Exception::NAME(v8::Handle<v8::String> raw_message) {  \
+    i::Isolate* isolate = i::Isolate::Current();                      \
+    LOG_API(isolate, #NAME);                                          \
+    ENTER_V8(isolate);                                                \
+    i::Object* error;                                                 \
+    {                                                                 \
+      i::HandleScope scope(isolate);                                  \
+      i::Handle<i::String> message = Utils::OpenHandle(*raw_message); \
+      error = *isolate->factory()->NewError("$" #NAME, message);      \
+    }                                                                 \
+    i::Handle<i::Object> result(error, isolate);                      \
+    return Utils::ToLocal(result);                                    \
   }
 
 DEFINE_ERROR(RangeError)
@@ -7392,13 +7419,25 @@ void Debug::ProcessDebugMessages() {
 Local<Context> Debug::GetDebugContext() {
   i::Isolate* isolate = i::Isolate::Current();
   ENTER_V8(isolate);
-  return Utils::ToLocal(i::Isolate::Current()->debug()->GetDebugContext());
+  return Utils::ToLocal(isolate->debug()->GetDebugContext());
 }
 
 
 void Debug::SetLiveEditEnabled(Isolate* isolate, bool enable) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
   internal_isolate->debug()->set_live_edit_enabled(enable);
+}
+
+
+MaybeLocal<Array> Debug::GetInternalProperties(Isolate* v8_isolate,
+                                               Local<Value> value) {
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
+  ENTER_V8(isolate);
+  i::Handle<i::Object> val = Utils::OpenHandle(*value);
+  i::Handle<i::JSArray> result;
+  if (!i::Runtime::GetInternalProperties(isolate, val).ToHandle(&result))
+    return MaybeLocal<Array>();
+  return Utils::ToLocal(result);
 }
 
 

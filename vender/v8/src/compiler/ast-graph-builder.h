@@ -67,6 +67,7 @@ class AstGraphBuilder : public AstVisitor {
   class ControlScopeForCatch;
   class ControlScopeForFinally;
   class Environment;
+  class FrameStateBeforeAndAfter;
   friend class ControlBuilder;
 
   Zone* local_zone_;
@@ -212,9 +213,6 @@ class AstGraphBuilder : public AstVisitor {
   void PrepareFrameState(
       Node* node, BailoutId ast_id,
       OutputFrameStateCombine combine = OutputFrameStateCombine::Ignore());
-  void PrepareFrameStateAfterAndBefore(Node* node, BailoutId ast_id,
-                                       OutputFrameStateCombine combine,
-                                       Node* frame_state_before);
 
   BitVector* GetVariablesAssignedInLoop(IterationStatement* stmt);
 
@@ -246,7 +244,7 @@ class AstGraphBuilder : public AstVisitor {
   Node* BuildPatchReceiverToGlobalProxy(Node* receiver);
 
   // Builders to create local function, script and block contexts.
-  Node* BuildLocalFunctionContext(Node* context);
+  Node* BuildLocalFunctionContext(Node* context, Node* patched_receiver);
   Node* BuildLocalScriptContext(Scope* scope);
   Node* BuildLocalBlockContext(Scope* scope);
 
@@ -257,14 +255,15 @@ class AstGraphBuilder : public AstVisitor {
   Node* BuildRestArgumentsArray(Variable* rest, int index);
 
   // Builders for variable load and assignment.
-  Node* BuildVariableAssignment(Variable* var, Node* value, Token::Value op,
-                                BailoutId bailout_id,
-                                OutputFrameStateCombine state_combine =
-                                    OutputFrameStateCombine::Ignore());
+  Node* BuildVariableAssignment(
+      FrameStateBeforeAndAfter& states, Variable* var, Node* value,
+      Token::Value op, BailoutId bailout_id,
+      OutputFrameStateCombine combine = OutputFrameStateCombine::Ignore());
   Node* BuildVariableDelete(Variable* var, BailoutId bailout_id,
-                            OutputFrameStateCombine state_combine);
-  Node* BuildVariableLoad(Variable* var, BailoutId bailout_id,
-                          const VectorSlotPair& feedback,
+                            OutputFrameStateCombine combine);
+  Node* BuildVariableLoad(FrameStateBeforeAndAfter& states, Variable* var,
+                          BailoutId bailout_id, const VectorSlotPair& feedback,
+                          OutputFrameStateCombine combine,
                           ContextualMode mode = CONTEXTUAL);
 
   // Builders for property loads and stores.

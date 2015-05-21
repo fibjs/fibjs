@@ -341,7 +341,8 @@ Condition FlagsConditionToCondition(FlagsCondition condition) {
       __ asm_instr(i.OutputRegister##width(), i.InputRegister##width(0),       \
                    i.InputRegister##width(1));                                 \
     } else {                                                                   \
-      int64_t imm = i.InputOperand##width(1).immediate().value();              \
+      int imm =                                                                \
+          static_cast<int>(i.InputOperand##width(1).immediate().value());      \
       __ asm_instr(i.OutputRegister##width(), i.InputRegister##width(0), imm); \
     }                                                                          \
   } while (0)
@@ -561,12 +562,11 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
               i.InputRegister32(0));
       break;
     }
-    // TODO(dcarney): use mvn instr??
     case kArm64Not:
-      __ Orn(i.OutputRegister(), xzr, i.InputOperand(0));
+      __ Mvn(i.OutputRegister(), i.InputOperand(0));
       break;
     case kArm64Not32:
-      __ Orn(i.OutputRegister32(), wzr, i.InputOperand32(0));
+      __ Mvn(i.OutputRegister32(), i.InputOperand32(0));
       break;
     case kArm64Neg:
       __ Neg(i.OutputRegister(), i.InputOperand(0));

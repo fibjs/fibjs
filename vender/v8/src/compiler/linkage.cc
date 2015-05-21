@@ -51,11 +51,11 @@ bool CallDescriptor::HasSameReturnLocationsAs(
 CallDescriptor* Linkage::ComputeIncoming(Zone* zone, CompilationInfo* info) {
   if (info->code_stub() != NULL) {
     // Use the code stub interface descriptor.
-    CallInterfaceDescriptor descriptor =
-        info->code_stub()->GetCallInterfaceDescriptor();
-    return GetStubCallDescriptor(info->isolate(), zone, descriptor, 0,
-                                 CallDescriptor::kNoFlags,
-                                 Operator::kNoProperties);
+    CodeStub* stub = info->code_stub();
+    CallInterfaceDescriptor descriptor = stub->GetCallInterfaceDescriptor();
+    return GetStubCallDescriptor(
+        info->isolate(), zone, descriptor, stub->GetStackParameterCount(),
+        CallDescriptor::kNoFlags, Operator::kNoProperties);
   }
   if (info->function() != NULL) {
     // If we already have the function literal, use the number of parameters
@@ -203,6 +203,6 @@ CallDescriptor* Linkage::GetSimplifiedCDescriptor(Zone* zone,
   return NULL;
 }
 #endif  // !V8_TURBOFAN_BACKEND
-}
-}
-}  // namespace v8::internal::compiler
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

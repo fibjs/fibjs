@@ -62,7 +62,6 @@ const Register MathPowIntegerDescriptor::exponent() {
 
 const Register GrowArrayElementsDescriptor::ObjectRegister() { return eax; }
 const Register GrowArrayElementsDescriptor::KeyRegister() { return ebx; }
-const Register GrowArrayElementsDescriptor::CapacityRegister() { return ecx; }
 
 
 void FastNewClosureDescriptor::Initialize(CallInterfaceDescriptorData* data) {
@@ -371,6 +370,21 @@ void ApiAccessorDescriptor::Initialize(CallInterfaceDescriptorData* data) {
       Representation::Tagged(),    // call_data
       Representation::Tagged(),    // holder
       Representation::External(),  // api_function_address
+  };
+  data->Initialize(arraysize(registers), registers, representations);
+}
+
+
+void MathRoundVariantDescriptor::Initialize(CallInterfaceDescriptorData* data) {
+  Register registers[] = {
+      esi,  // context
+      edi,  // math rounding function
+      edx,  // vector slot id
+  };
+  Representation representations[] = {
+      Representation::Tagged(),  //
+      Representation::Tagged(),  //
+      Representation::Tagged(),  //
   };
   data->Initialize(arraysize(registers), registers, representations);
 }

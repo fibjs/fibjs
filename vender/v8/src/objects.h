@@ -1056,6 +1056,7 @@ class Object {
   INLINE(bool IsOrderedHashSet() const);
   INLINE(bool IsOrderedHashMap() const);
   bool IsCallable() const;
+  static bool IsPromise(Handle<Object> object);
 
   // Oddball testing.
   INLINE(bool IsUndefined() const);
@@ -1481,6 +1482,7 @@ class HeapObject: public Object {
 #endif
 
   inline bool NeedsToEnsureDoubleAlignment();
+  inline bool NeedsToEnsureDoubleUnalignment();
 
   // Layout description.
   // First field in a heap object is map.
@@ -1670,6 +1672,11 @@ class JSReceiver: public HeapObject {
   MUST_USE_RESULT static inline Maybe<PropertyAttributes>
       GetOwnElementAttribute(Handle<JSReceiver> object, uint32_t index);
 
+  static Handle<Object> GetDataProperty(Handle<JSReceiver> object,
+                                        Handle<Name> key);
+  static Handle<Object> GetDataProperty(LookupIterator* it);
+
+
   // Retrieves a permanent object identity hash code. The undefined value might
   // be returned in case no hash was created yet.
   inline Object* GetIdentityHash();
@@ -1693,9 +1700,6 @@ class JSReceiver: public HeapObject {
 
 // Forward declaration for JSObject::GetOrCreateHiddenPropertiesHashTable.
 class ObjectHashTable;
-
-// Forward declaration for JSObject::Copy.
-class AllocationSite;
 
 
 // The JSObject describes real heap allocated JavaScript objects with
@@ -2157,7 +2161,6 @@ class JSObject: public JSReceiver {
   // Copy object.
   enum DeepCopyHints { kNoHints = 0, kObjectIsShallow = 1 };
 
-  static Handle<JSObject> Copy(Handle<JSObject> object);
   MUST_USE_RESULT static MaybeHandle<JSObject> DeepCopy(
       Handle<JSObject> object,
       AllocationSiteUsageContext* site_context,
@@ -2165,10 +2168,6 @@ class JSObject: public JSReceiver {
   MUST_USE_RESULT static MaybeHandle<JSObject> DeepWalk(
       Handle<JSObject> object,
       AllocationSiteCreationContext* site_context);
-
-  static Handle<Object> GetDataProperty(Handle<JSObject> object,
-                                        Handle<Name> key);
-  static Handle<Object> GetDataProperty(LookupIterator* it);
 
   DECLARE_CAST(JSObject)
 
@@ -4270,6 +4269,13 @@ class ScopeInfo : public FixedArray {
   // no contexts are allocated for this scope ContextLength returns 0.
   int ContextLength();
 
+  // Does this scope declare a "this" binding?
+  bool HasReceiver();
+
+  // Does this scope declare a "this" binding, and the "this" binding is stack-
+  // or context-allocated?
+  bool HasAllocatedReceiver();
+
   // Is this scope the scope of a named function expression?
   bool HasFunctionName();
 
@@ -4349,6 +4355,11 @@ class ScopeInfo : public FixedArray {
   // function expressions, only), otherwise returns a value < 0. The name
   // must be an internalized string.
   int FunctionContextSlotIndex(String* name, VariableMode* mode);
+
+  // Lookup support for serialized scope info.  Returns the receiver context
+  // slot index if scope has a "this" binding, and the binding is
+  // context-allocated.  Otherwise returns a value < 0.
+  int ReceiverContextSlotIndex();
 
   bool block_scope_is_class_scope();
   FunctionKind function_kind();
@@ -4437,7 +4448,10 @@ class ScopeInfo : public FixedArray {
   // 7. StrongModeFreeVariablePositionEntries:
   //    Stores the locations (start and end position) of strong mode free
   //    variables.
-  // 8. FunctionNameEntryIndex:
+  // 8. RecieverEntryIndex:
+  //    If the scope binds a "this" value, one slot is reserved to hold the
+  //    context or stack slot index for the variable.
+  // 9. FunctionNameEntryIndex:
   //    If the scope belongs to a named function expression this part contains
   //    information about the function variable. It always occupies two array
   //    slots:  a. The name of the function variable.
@@ -4449,25 +4463,29 @@ class ScopeInfo : public FixedArray {
   int ContextLocalInfoEntriesIndex();
   int StrongModeFreeVariableNameEntriesIndex();
   int StrongModeFreeVariablePositionEntriesIndex();
+  int ReceiverEntryIndex();
   int FunctionNameEntryIndex();
 
-  // Location of the function variable for named function expressions.
-  enum FunctionVariableInfo {
-    NONE,     // No function name present.
-    STACK,    // Function
-    CONTEXT,
-    UNUSED
-  };
+  // Used for the function name variable for named function expressions, and for
+  // the receiver.
+  enum VariableAllocationInfo { NONE, STACK, CONTEXT, UNUSED };
 
   // Properties of scopes.
   class ScopeTypeField : public BitField<ScopeType, 0, 4> {};
-  class CallsEvalField : public BitField<bool, 4, 1> {};
+  class CallsEvalField : public BitField<bool, ScopeTypeField::kNext, 1> {};
   STATIC_ASSERT(LANGUAGE_END == 3);
-  class LanguageModeField : public BitField<LanguageMode, 5, 2> {};
-  class FunctionVariableField : public BitField<FunctionVariableInfo, 7, 2> {};
-  class FunctionVariableMode : public BitField<VariableMode, 9, 3> {};
-  class AsmModuleField : public BitField<bool, 12, 1> {};
-  class AsmFunctionField : public BitField<bool, 13, 1> {};
+  class LanguageModeField
+      : public BitField<LanguageMode, CallsEvalField::kNext, 2> {};
+  class ReceiverVariableField
+      : public BitField<VariableAllocationInfo, LanguageModeField::kNext, 2> {};
+  class FunctionVariableField
+      : public BitField<VariableAllocationInfo, ReceiverVariableField::kNext,
+                        2> {};
+  class FunctionVariableMode
+      : public BitField<VariableMode, FunctionVariableField::kNext, 3> {};
+  class AsmModuleField : public BitField<bool, FunctionVariableMode::kNext, 1> {
+  };
+  class AsmFunctionField : public BitField<bool, AsmModuleField::kNext, 1> {};
   class IsSimpleParameterListField
       : public BitField<bool, AsmFunctionField::kNext, 1> {};
   class BlockScopeIsClassScopeField
@@ -5902,7 +5920,8 @@ class Map: public HeapObject {
   class Deprecated : public BitField<bool, 23, 1> {};
   class IsUnstable : public BitField<bool, 24, 1> {};
   class IsMigrationTarget : public BitField<bool, 25, 1> {};
-  // Bits 26 and 27 are free.
+  class IsStrong : public BitField<bool, 26, 1> {};
+  // Bit 27 is free.
 
   // Keep this bit field at the very end for better code in
   // Builtins::kJSConstructStubGeneric stub.
@@ -5980,6 +5999,8 @@ class Map: public HeapObject {
     return ((1 << kIsObserved) & bit_field()) != 0;
   }
 
+  inline void set_is_strong(bool value);
+  inline bool is_strong();
   inline void set_is_extensible(bool value);
   inline bool is_extensible();
   inline void set_is_prototype_map(bool value);
@@ -6736,17 +6757,11 @@ class Script: public Struct {
   inline CompilationState compilation_state();
   inline void set_compilation_state(CompilationState state);
 
-  // [is_embedder_debug_script]: An opaque boolean set by the embedder via
-  // ScriptOrigin, and used by the embedder to make decisions about the
-  // script's origin. V8 just passes this through. Encoded in
-  // the 'flags' field.
-  DECL_BOOLEAN_ACCESSORS(is_embedder_debug_script)
-
-  // [is_shared_cross_origin]: An opaque boolean set by the embedder via
-  // ScriptOrigin, and used by the embedder to make decisions about the
-  // script's level of privilege. V8 just passes this through. Encoded in
-  // the 'flags' field.
-  DECL_BOOLEAN_ACCESSORS(is_shared_cross_origin)
+  // [origin_options]: optional attributes set by the embedder via ScriptOrigin,
+  // and used by the embedder to make decisions about the script. V8 just passes
+  // this through. Encoded in the 'flags' field.
+  inline v8::ScriptOriginOptions origin_options();
+  inline void set_origin_options(ScriptOriginOptions origin_options);
 
   DECLARE_CAST(Script)
 
@@ -6798,8 +6813,10 @@ class Script: public Struct {
   // Bit positions in the flags field.
   static const int kCompilationTypeBit = 0;
   static const int kCompilationStateBit = 1;
-  static const int kIsEmbedderDebugScriptBit = 2;
-  static const int kIsSharedCrossOriginBit = 3;
+  static const int kOriginOptionsShift = 2;
+  static const int kOriginOptionsSize = 3;
+  static const int kOriginOptionsMask = ((1 << kOriginOptionsSize) - 1)
+                                        << kOriginOptionsShift;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Script);
 };
@@ -7406,6 +7423,8 @@ class SharedFunctionInfo: public HeapObject {
   // Allows to use byte-width instructions.
   static const int kStrictModeBitWithinByte =
       (kStrictModeFunction + kCompilerHintsSmiTagSize) % kBitsPerByte;
+  static const int kStrongModeBitWithinByte =
+      (kStrongModeFunction + kCompilerHintsSmiTagSize) % kBitsPerByte;
 
   static const int kNativeBitWithinByte =
       (kNative + kCompilerHintsSmiTagSize) % kBitsPerByte;
@@ -7413,12 +7432,18 @@ class SharedFunctionInfo: public HeapObject {
 #if defined(V8_TARGET_LITTLE_ENDIAN)
   static const int kStrictModeByteOffset = kCompilerHintsOffset +
       (kStrictModeFunction + kCompilerHintsSmiTagSize) / kBitsPerByte;
+  static const int kStrongModeByteOffset =
+      kCompilerHintsOffset +
+      (kStrongModeFunction + kCompilerHintsSmiTagSize) / kBitsPerByte;
   static const int kNativeByteOffset = kCompilerHintsOffset +
       (kNative + kCompilerHintsSmiTagSize) / kBitsPerByte;
 #elif defined(V8_TARGET_BIG_ENDIAN)
   static const int kStrictModeByteOffset = kCompilerHintsOffset +
       (kCompilerHintsSize - 1) -
       ((kStrictModeFunction + kCompilerHintsSmiTagSize) / kBitsPerByte);
+  static const int kStrongModeByteOffset =
+      kCompilerHintsOffset + (kCompilerHintsSize - 1) -
+      ((kStrongModeFunction + kCompilerHintsSmiTagSize) / kBitsPerByte);
   static const int kNativeByteOffset = kCompilerHintsOffset +
       (kCompilerHintsSize - 1) -
       ((kNative + kCompilerHintsSmiTagSize) / kBitsPerByte);
@@ -7992,10 +8017,11 @@ class JSDate: public JSObject {
 class JSMessageObject: public JSObject {
  public:
   // [type]: the type of error message.
-  DECL_ACCESSORS(type, String)
+  inline int type() const;
+  inline void set_type(int value);
 
   // [arguments]: the arguments for formatting the error message.
-  DECL_ACCESSORS(arguments, JSArray)
+  DECL_ACCESSORS(argument, Object)
 
   // [script]: the script from which the error message originated.
   DECL_ACCESSORS(script, Object)
@@ -10506,6 +10532,9 @@ class AccessorInfo: public Struct {
   inline bool all_can_write();
   inline void set_all_can_write(bool value);
 
+  inline bool is_special_data_property();
+  inline void set_is_special_data_property(bool value);
+
   inline PropertyAttributes property_attributes();
   inline void set_property_attributes(PropertyAttributes attributes);
 
@@ -10538,7 +10567,8 @@ class AccessorInfo: public Struct {
   // Bit positions in flag.
   static const int kAllCanReadBit = 0;
   static const int kAllCanWriteBit = 1;
-  class AttributesField: public BitField<PropertyAttributes, 2, 3> {};
+  static const int kSpecialDataProperty = 2;
+  class AttributesField : public BitField<PropertyAttributes, 3, 3> {};
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(AccessorInfo);
 };

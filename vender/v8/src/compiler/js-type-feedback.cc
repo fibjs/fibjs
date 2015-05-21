@@ -13,6 +13,7 @@
 
 #include "src/compiler/access-builder.h"
 #include "src/compiler/common-operator.h"
+#include "src/compiler/frame-states.h"
 #include "src/compiler/node-aux-data.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/operator-properties.h"
@@ -24,15 +25,24 @@ namespace compiler {
 
 enum LoadOrStore { LOAD, STORE };
 
-#define EAGER_DEOPT_LOCATIONS_FOR_PROPERTY_ACCESS_ARE_CORRECT false
+// TODO(turbofan): fix deoptimization problems
+#define ENABLE_FAST_PROPERTY_LOADS false
+#define ENABLE_FAST_PROPERTY_STORES false
 
 JSTypeFeedbackTable::JSTypeFeedbackTable(Zone* zone)
-    : map_(TypeFeedbackIdMap::key_compare(),
-           TypeFeedbackIdMap::allocator_type(zone)) {}
+    : type_feedback_id_map_(TypeFeedbackIdMap::key_compare(),
+                            TypeFeedbackIdMap::allocator_type(zone)),
+      feedback_vector_ic_slot_map_(TypeFeedbackIdMap::key_compare(),
+                                   TypeFeedbackIdMap::allocator_type(zone)) {}
 
 
 void JSTypeFeedbackTable::Record(Node* node, TypeFeedbackId id) {
-  map_.insert(std::make_pair(node->id(), id));
+  type_feedback_id_map_.insert(std::make_pair(node->id(), id));
+}
+
+
+void JSTypeFeedbackTable::Record(Node* node, FeedbackVectorICSlot slot) {
+  feedback_vector_ic_slot_map_.insert(std::make_pair(node->id(), slot));
 }
 
 
@@ -62,9 +72,6 @@ Reduction JSTypeFeedbackSpecializer::Reduce(Node* node) {
         // StoreProperty(o, "constant", v) => StoreNamed["constant"](o, v).
         Unique<Name> name = match.Value();
         LanguageMode language_mode = OpParameter<LanguageMode>(node);
-        // StoreProperty has 2 frame state inputs, but StoreNamed only 1.
-        DCHECK_EQ(2, OperatorProperties::GetFrameStateInputCount(node->op()));
-        node->RemoveInput(NodeProperties::FirstFrameStateIndex(node) + 1);
         node->set_op(
             jsgraph()->javascript()->StoreNamed(language_mode, name, KEYED));
         node->RemoveInput(1);
@@ -140,6 +147,10 @@ static bool GetInObjectFieldAccess(LoadOrStore mode, Handle<Map> map,
   FieldIndex field_index = FieldIndex::ForPropertyIndex(*map, index, is_double);
 
   if (field_index.is_inobject()) {
+    if (is_double && !map->IsUnboxedDoubleField(field_index)) {
+      // TODO(turbofan): support for out-of-line (MutableHeapNumber) loads.
+      return false;
+    }
     access->offset = field_index.offset();
     return true;
   }
@@ -163,22 +174,32 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSLoadNamed(Node* node) {
   }
 
   if (!FLAG_turbo_deoptimization) return NoChange();
-  // TODO(titzer): deopt locations are wrong for property accesses
-  if (!EAGER_DEOPT_LOCATIONS_FOR_PROPERTY_ACCESS_ARE_CORRECT) return NoChange();
-
-  // TODO(turbofan): handle vector-based type feedback.
-  TypeFeedbackId id = js_type_feedback_->find(node);
-  if (id.IsNone() || oracle()->LoadInlineCacheState(id) == UNINITIALIZED) {
-    return NoChange();
-  }
+  Node* frame_state_before = GetFrameStateBefore(node);
+  if (frame_state_before == nullptr) return NoChange();
 
   const LoadNamedParameters& p = LoadNamedParametersOf(node->op());
-  SmallMapList maps;
   Handle<Name> name = p.name().handle();
+  SmallMapList maps;
+
+  FeedbackVectorICSlot slot = js_type_feedback_->FindFeedbackVectorICSlot(node);
+  if (slot.IsInvalid() ||
+      oracle()->LoadInlineCacheState(slot) == UNINITIALIZED) {
+    // No type feedback ids or the load is uninitialized.
+    return NoChange();
+  }
+  if (p.load_ic() == NAMED) {
+    oracle()->PropertyReceiverTypes(slot, name, &maps);
+  } else {
+    // The load named was originally a load property.
+    bool is_string;        // Unused.
+    IcCheckType key_type;  // Unused.
+    oracle()->KeyedPropertyReceiverTypes(slot, &maps, &is_string, &key_type);
+  }
+
   Node* effect = NodeProperties::GetEffectInput(node);
-  GatherReceiverTypes(receiver, effect, id, name, &maps);
 
   if (maps.length() != 1) return NoChange();  // TODO(turbofan): polymorphism
+  if (!ENABLE_FAST_PROPERTY_LOADS) return NoChange();
 
   Handle<Map> map = maps.first();
   FieldAccess field_access;
@@ -197,12 +218,10 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSLoadNamed(Node* node) {
                                 effect, check_success);
 
   // TODO(turbofan): handle slow case instead of deoptimizing.
-  // TODO(titzer): frame state should be from before the load.
-  Node* frame_state = NodeProperties::GetFrameStateInput(node, 0);
-  Node* deopt = graph()->NewNode(common()->Deoptimize(), frame_state, effect,
-                                 check_failed);
+  Node* deopt = graph()->NewNode(common()->Deoptimize(), frame_state_before,
+                                 effect, check_failed);
   NodeProperties::MergeControlToEnd(graph(), common(), deopt);
-  NodeProperties::ReplaceWithValue(node, load, load, check_success);
+  ReplaceWithValue(node, load, load, check_success);
   return Replace(load);
 }
 
@@ -217,7 +236,7 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSLoadNamedForGlobalVariable(
   if (!constant_value.is_null()) {
     // Always optimize global constants.
     Node* constant = jsgraph()->Constant(constant_value);
-    NodeProperties::ReplaceWithValue(node, constant);
+    ReplaceWithValue(node, constant);
     return Replace(constant);
   }
 
@@ -253,7 +272,7 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSLoadNamedForGlobalVariable(
               String::Flatten(Handle<String>::cast(constant_value));
         }
         Node* constant = jsgraph()->Constant(constant_value);
-        NodeProperties::ReplaceWithValue(node, constant);
+        ReplaceWithValue(node, constant);
         return Replace(constant);
       } else {
         // Load directly from the property cell.
@@ -262,7 +281,7 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSLoadNamedForGlobalVariable(
         Node* load_field = graph()->NewNode(
             simplified()->LoadField(access), jsgraph()->Constant(cell),
             NodeProperties::GetEffectInput(node), control);
-        NodeProperties::ReplaceWithValue(node, load_field, load_field, control);
+        ReplaceWithValue(node, load_field, load_field, control);
         return Replace(load_field);
       }
     }
@@ -282,20 +301,34 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSLoadProperty(Node* node) {
 
 Reduction JSTypeFeedbackSpecializer::ReduceJSStoreNamed(Node* node) {
   DCHECK(node->opcode() == IrOpcode::kJSStoreNamed);
-  // TODO(titzer): deopt locations are wrong for property accesses
-  if (!EAGER_DEOPT_LOCATIONS_FOR_PROPERTY_ACCESS_ARE_CORRECT) return NoChange();
-
-  TypeFeedbackId id = js_type_feedback_->find(node);
-  if (id.IsNone() || oracle()->StoreIsUninitialized(id)) return NoChange();
+  Node* frame_state_before = GetFrameStateBefore(node);
+  if (frame_state_before == nullptr) return NoChange();
 
   const StoreNamedParameters& p = StoreNamedParametersOf(node->op());
-  SmallMapList maps;
   Handle<Name> name = p.name().handle();
+  SmallMapList maps;
+  TypeFeedbackId id = js_type_feedback_->FindTypeFeedbackId(node);
+  if (id.IsNone() || oracle()->StoreIsUninitialized(id) == UNINITIALIZED) {
+    // No type feedback ids or the store is uninitialized.
+    // TODO(titzer): no feedback from vector ICs from stores.
+    return NoChange();
+  } else {
+    if (p.store_ic() == NAMED) {
+      oracle()->PropertyReceiverTypes(id, name, &maps);
+    } else {
+      // The named store was originally a store property.
+      bool is_string;        // Unused.
+      IcCheckType key_type;  // Unused.
+      oracle()->KeyedPropertyReceiverTypes(id, &maps, &is_string, &key_type);
+    }
+  }
+
   Node* receiver = node->InputAt(0);
   Node* effect = NodeProperties::GetEffectInput(node);
-  GatherReceiverTypes(receiver, effect, id, name, &maps);
 
   if (maps.length() != 1) return NoChange();  // TODO(turbofan): polymorphism
+
+  if (!ENABLE_FAST_PROPERTY_STORES) return NoChange();
 
   Handle<Map> map = maps.first();
   FieldAccess field_access;
@@ -315,12 +348,10 @@ Reduction JSTypeFeedbackSpecializer::ReduceJSStoreNamed(Node* node) {
                                  receiver, value, effect, check_success);
 
   // TODO(turbofan): handle slow case instead of deoptimizing.
-  // TODO(titzer): frame state should be from before the store.
-  Node* frame_state = NodeProperties::GetFrameStateInput(node, 0);
-  Node* deopt = graph()->NewNode(common()->Deoptimize(), frame_state, effect,
-                                 check_failed);
+  Node* deopt = graph()->NewNode(common()->Deoptimize(), frame_state_before,
+                                 effect, check_failed);
   NodeProperties::MergeControlToEnd(graph(), common(), deopt);
-  NodeProperties::ReplaceWithValue(node, store, store, check_success);
+  ReplaceWithValue(node, store, store, check_success);
   return Replace(store);
 }
 
@@ -360,17 +391,20 @@ void JSTypeFeedbackSpecializer::BuildMapCheck(Node* receiver, Handle<Map> map,
 }
 
 
-void JSTypeFeedbackSpecializer::GatherReceiverTypes(Node* receiver,
-                                                    Node* effect,
-                                                    TypeFeedbackId id,
-                                                    Handle<Name> name,
-                                                    SmallMapList* maps) {
-  // TODO(turbofan): filter maps by initial receiver map if known
-  // TODO(turbofan): filter maps by native context (if specializing)
-  // TODO(turbofan): filter maps by effect chain
-  oracle()->PropertyReceiverTypes(id, name, maps);
+// Get the frame state before an operation if it exists and has a valid
+// bailout id.
+Node* JSTypeFeedbackSpecializer::GetFrameStateBefore(Node* node) {
+  int count = OperatorProperties::GetFrameStateInputCount(node->op());
+  DCHECK_LE(count, 2);
+  if (count == 2) {
+    Node* frame_state = NodeProperties::GetFrameStateInput(node, 1);
+    if (frame_state->opcode() == IrOpcode::kFrameState) {
+      BailoutId id = OpParameter<FrameStateCallInfo>(node).bailout_id();
+      if (id != BailoutId::None()) return frame_state;
+    }
+  }
+  return nullptr;
 }
-
 
 }  // namespace compiler
 }  // namespace internal

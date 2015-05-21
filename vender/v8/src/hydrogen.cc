@@ -1331,37 +1331,22 @@ HValue* HGraphBuilder::BuildCheckForCapacityGrow(
 
   HValue* current_capacity = AddLoadFixedArrayLength(elements);
 
-  IfBuilder capacity_checker(this);
-
-  capacity_checker.If<HCompareNumericAndBranch>(key, current_capacity,
-                                                Token::GTE);
-  capacity_checker.Then();
-
-  // BuildCheckAndGrowElementsCapacity could de-opt without profitable feedback
-  // therefore we defer calling it to a stub in optimized functions. It is
-  // okay to call directly in a code stub though, because a bailout to the
-  // runtime is tolerable in the corner cases.
   if (top_info()->IsStub()) {
+    IfBuilder capacity_checker(this);
+    capacity_checker.If<HCompareNumericAndBranch>(key, current_capacity,
+                                                  Token::GTE);
+    capacity_checker.Then();
     HValue* new_elements = BuildCheckAndGrowElementsCapacity(
         object, elements, kind, length, current_capacity, key);
     environment()->Push(new_elements);
+    capacity_checker.Else();
+    environment()->Push(elements);
+    capacity_checker.End();
   } else {
-    GrowArrayElementsStub stub(isolate(), is_js_array, kind);
-    GrowArrayElementsDescriptor descriptor(isolate());
-    HConstant* target = Add<HConstant>(stub.GetCode());
-    HValue* op_vals[] = {context(), object, key, current_capacity};
-    HValue* new_elements = Add<HCallWithDescriptor>(
-        target, 0, descriptor, Vector<HValue*>(op_vals, 4));
-    // If the object changed to a dictionary, GrowArrayElements will return a
-    // smi to signal that deopt is required.
-    Add<HCheckHeapObject>(new_elements);
-    environment()->Push(new_elements);
+    HValue* result = Add<HMaybeGrowElements>(
+        object, elements, key, current_capacity, is_js_array, kind);
+    environment()->Push(result);
   }
-
-  capacity_checker.Else();
-
-  environment()->Push(elements);
-  capacity_checker.End();
 
   if (is_js_array) {
     HValue* new_length = AddUncasted<HAdd>(key, graph_->GetConstant1());
@@ -5506,10 +5491,8 @@ void HOptimizedGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
             New<HLoadGlobalGeneric>(global_object,
                                     variable->name(),
                                     ast_context()->is_for_typeof());
-        if (FLAG_vector_ics) {
-          instr->SetVectorAndSlot(handle(current_feedback_vector(), isolate()),
-                                  expr->VariableFeedbackSlot());
-        }
+        instr->SetVectorAndSlot(handle(current_feedback_vector(), isolate()),
+                                expr->VariableFeedbackSlot());
         return ast_context()->ReturnInstruction(instr, expr->id());
       }
     }
@@ -5807,7 +5790,8 @@ void HOptimizedGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
     ASSIGN_RETURN_ON_EXCEPTION_VALUE(
         isolate(), raw_boilerplate,
         Runtime::CreateArrayLiteralBoilerplate(
-            isolate(), literals, expr->constant_elements()),
+            isolate(), literals, expr->constant_elements(),
+            is_strong(function_language_mode())),
         Bailout(kArrayBoilerplateCreationFailed));
 
     boilerplate_object = Handle<JSObject>::cast(raw_boilerplate);
@@ -5932,7 +5916,7 @@ HInstruction* HOptimizedGraphBuilder::BuildLoadNamedField(
     if (object->IsJSObject()) {
       LookupIterator it(object, info->name(),
                         LookupIterator::OWN_SKIP_INTERCEPTOR);
-      Handle<Object> value = JSObject::GetDataProperty(&it);
+      Handle<Object> value = JSReceiver::GetDataProperty(&it);
       if (it.IsFound() && it.IsReadOnly() && !it.IsConfigurable()) {
         return New<HConstant>(value);
       }
@@ -7033,29 +7017,26 @@ HInstruction* HOptimizedGraphBuilder::BuildNamedGeneric(
         Deoptimizer::SOFT);
   }
   if (access_type == LOAD) {
-    if (FLAG_vector_ics) {
-      Handle<TypeFeedbackVector> vector =
-          handle(current_feedback_vector(), isolate());
-      FeedbackVectorICSlot slot = expr->AsProperty()->PropertyFeedbackSlot();
+    Handle<TypeFeedbackVector> vector =
+        handle(current_feedback_vector(), isolate());
+    FeedbackVectorICSlot slot = expr->AsProperty()->PropertyFeedbackSlot();
 
-      if (!expr->AsProperty()->key()->IsPropertyName()) {
-        // It's possible that a keyed load of a constant string was converted
-        // to a named load. Here, at the last minute, we need to make sure to
-        // use a generic Keyed Load if we are using the type vector, because
-        // it has to share information with full code.
-        HConstant* key = Add<HConstant>(name);
-        HLoadKeyedGeneric* result =
-            New<HLoadKeyedGeneric>(object, key, PREMONOMORPHIC);
-        result->SetVectorAndSlot(vector, slot);
-        return result;
-      }
-
-      HLoadNamedGeneric* result =
-          New<HLoadNamedGeneric>(object, name, PREMONOMORPHIC);
+    if (!expr->AsProperty()->key()->IsPropertyName()) {
+      // It's possible that a keyed load of a constant string was converted
+      // to a named load. Here, at the last minute, we need to make sure to
+      // use a generic Keyed Load if we are using the type vector, because
+      // it has to share information with full code.
+      HConstant* key = Add<HConstant>(name);
+      HLoadKeyedGeneric* result =
+          New<HLoadKeyedGeneric>(object, key, PREMONOMORPHIC);
       result->SetVectorAndSlot(vector, slot);
       return result;
     }
-    return New<HLoadNamedGeneric>(object, name, PREMONOMORPHIC);
+
+    HLoadNamedGeneric* result =
+        New<HLoadNamedGeneric>(object, name, PREMONOMORPHIC);
+    result->SetVectorAndSlot(vector, slot);
+    return result;
   } else {
     return New<HStoreNamedGeneric>(object, name, value,
                                    function_language_mode(), PREMONOMORPHIC);
@@ -7071,14 +7052,12 @@ HInstruction* HOptimizedGraphBuilder::BuildKeyedGeneric(
     HValue* key,
     HValue* value) {
   if (access_type == LOAD) {
-    InlineCacheState initial_state =
-        FLAG_vector_ics ? expr->AsProperty()->GetInlineCacheState()
-                        : PREMONOMORPHIC;
+    InlineCacheState initial_state = expr->AsProperty()->GetInlineCacheState();
     HLoadKeyedGeneric* result =
         New<HLoadKeyedGeneric>(object, key, initial_state);
     // HLoadKeyedGeneric with vector ics benefits from being encoded as
     // MEGAMORPHIC because the vector/slot combo becomes unnecessary.
-    if (FLAG_vector_ics && initial_state != MEGAMORPHIC) {
+    if (initial_state != MEGAMORPHIC) {
       // We need to pass vector information.
       Handle<TypeFeedbackVector> vector =
           handle(current_feedback_vector(), isolate());
@@ -8118,6 +8097,15 @@ bool HOptimizedGraphBuilder::TryInline(Handle<JSFunction> target,
   // the target function if we don't already have it.
   if (!Compiler::EnsureDeoptimizationSupport(&target_info)) {
     TraceInline(target, caller, "could not generate deoptimization info");
+    return false;
+  }
+
+  // In strong mode it is an error to call a function with too few arguments.
+  // In that case do not inline because then the arity check would be skipped.
+  if (is_strong(function->language_mode()) &&
+      arguments_count < function->parameter_count()) {
+    TraceInline(target, caller,
+                "too few arguments passed to a strong function");
     return false;
   }
 
@@ -11207,7 +11195,8 @@ HControlInstruction* HOptimizedGraphBuilder::BuildCompareInstruction(
     return result;
   } else {
     if (combined_rep.IsTagged() || combined_rep.IsNone()) {
-      HCompareGeneric* result = Add<HCompareGeneric>(left, right, op);
+      HCompareGeneric* result =
+          Add<HCompareGeneric>(left, right, op, function_language_mode());
       result->set_observed_input_representation(1, left_rep);
       result->set_observed_input_representation(2, right_rep);
       if (result->HasObservableSideEffects()) {

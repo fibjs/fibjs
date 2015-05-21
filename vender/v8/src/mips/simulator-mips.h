@@ -178,6 +178,9 @@ class Simulator {
   void set_fcsr_rounding_mode(FPURoundingMode mode);
   unsigned int get_fcsr_rounding_mode();
   bool set_fcsr_round_error(double original, double rounded);
+  bool set_fcsr_round_error(float original, float rounded);
+  bool set_fcsr_round64_error(double original, double rounded);
+  bool set_fcsr_round64_error(float original, float rounded);
   void round_according_to_fcsr(double toRound, double& rounded,
                                int32_t& rounded_int, double fs);
   // Special case of set_register and get_register to access the raw PC value.
@@ -196,6 +199,8 @@ class Simulator {
 
   // Call on program start.
   static void Initialize(Isolate* isolate);
+
+  static void TearDown(HashMap* i_cache, Redirection* first);
 
   // V8 generally calls into generated JS code with 5 parameters and into
   // generated RegExp code with 7 parameters. This is a convenience function,

@@ -131,7 +131,7 @@ void FullCodeGenerator::Generate() {
   // global proxy when called as functions (without an explicit receiver
   // object).
   if (is_sloppy(info->language_mode()) && !info->is_native() &&
-      info->MayUseThis()) {
+      info->MayUseThis() && info->scope()->has_this_declaration()) {
     Label ok;
     int receiver_offset = info->scope()->num_parameters() * kPointerSize;
     __ ldr(r2, MemOperand(sp, receiver_offset));
@@ -220,8 +220,9 @@ void FullCodeGenerator::Generate() {
     __ str(r0, MemOperand(fp, StandardFrameConstants::kContextOffset));
     // Copy any necessary parameters into the context.
     int num_parameters = info->scope()->num_parameters();
-    for (int i = 0; i < num_parameters; i++) {
-      Variable* var = scope()->parameter(i);
+    int first_parameter = info->scope()->has_this_declaration() ? -1 : 0;
+    for (int i = first_parameter; i < num_parameters; i++) {
+      Variable* var = (i == -1) ? scope()->receiver() : scope()->parameter(i);
       if (var->IsContextSlot()) {
         int parameter_offset = StandardFrameConstants::kCallerSPOffset +
             (num_parameters - 1 - i) * kPointerSize;
@@ -1062,8 +1063,8 @@ void FullCodeGenerator::VisitSwitchStatement(SwitchStatement* stmt) {
 
     // Record position before stub call for type feedback.
     SetSourcePosition(clause->position());
-    Handle<Code> ic =
-        CodeFactory::CompareIC(isolate(), Token::EQ_STRICT).code();
+    Handle<Code> ic = CodeFactory::CompareIC(isolate(), Token::EQ_STRICT,
+                                             language_mode()).code();
     CallIC(ic, clause->CompareId());
     patch_site.EmitPatchInfo();
 
@@ -1337,13 +1338,9 @@ void FullCodeGenerator::EmitLoadHomeObject(SuperReference* expr) {
   Handle<Symbol> home_object_symbol(isolate()->heap()->home_object_symbol());
   __ Move(LoadDescriptor::NameRegister(), home_object_symbol);
 
-  if (FLAG_vector_ics) {
-    __ mov(VectorLoadICDescriptor::SlotRegister(),
-           Operand(SmiFromSlot(expr->HomeObjectFeedbackSlot())));
-    CallLoadIC(NOT_CONTEXTUAL);
-  } else {
-    CallLoadIC(NOT_CONTEXTUAL, expr->HomeObjectFeedbackId());
-  }
+  __ mov(VectorLoadICDescriptor::SlotRegister(),
+         Operand(SmiFromSlot(expr->HomeObjectFeedbackSlot())));
+  CallLoadIC(NOT_CONTEXTUAL);
 
   __ cmp(r0, Operand(isolate()->factory()->undefined_value()));
   Label done;
@@ -1416,10 +1413,8 @@ void FullCodeGenerator::EmitLoadGlobalCheckExtensions(VariableProxy* proxy,
 
   __ ldr(LoadDescriptor::ReceiverRegister(), GlobalObjectOperand());
   __ mov(LoadDescriptor::NameRegister(), Operand(proxy->var()->name()));
-  if (FLAG_vector_ics) {
-    __ mov(VectorLoadICDescriptor::SlotRegister(),
-           Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
-  }
+  __ mov(VectorLoadICDescriptor::SlotRegister(),
+         Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
 
   ContextualMode mode = (typeof_state == INSIDE_TYPEOF)
       ? NOT_CONTEXTUAL
@@ -1496,6 +1491,7 @@ void FullCodeGenerator::EmitDynamicLookupFastCase(VariableProxy* proxy,
 void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
   // Record position before possible IC call.
   SetSourcePosition(proxy->position());
+  PrepareForBailoutForId(proxy->BeforeId(), NO_REGISTERS);
   Variable* var = proxy->var();
 
   // Three cases: global variables, lookup variables, and all other types of
@@ -1505,10 +1501,8 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
       Comment cmnt(masm_, "[ Global variable");
       __ ldr(LoadDescriptor::ReceiverRegister(), GlobalObjectOperand());
       __ mov(LoadDescriptor::NameRegister(), Operand(var->name()));
-      if (FLAG_vector_ics) {
-        __ mov(VectorLoadICDescriptor::SlotRegister(),
-               Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
-      }
+      __ mov(VectorLoadICDescriptor::SlotRegister(),
+             Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
       CallGlobalLoadIC(var->name());
       context()->Plug(r0);
       break;
@@ -2203,10 +2197,8 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       __ bind(&l_call);
       __ ldr(load_receiver, MemOperand(sp, kPointerSize));
       __ ldr(load_name, MemOperand(sp, 2 * kPointerSize));
-      if (FLAG_vector_ics) {
-        __ mov(VectorLoadICDescriptor::SlotRegister(),
-               Operand(SmiFromSlot(expr->KeyedLoadFeedbackSlot())));
-      }
+      __ mov(VectorLoadICDescriptor::SlotRegister(),
+             Operand(SmiFromSlot(expr->KeyedLoadFeedbackSlot())));
       Handle<Code> ic = CodeFactory::KeyedLoadIC(isolate()).code();
       CallIC(ic, TypeFeedbackId::None());
       __ mov(r1, r0);
@@ -2223,10 +2215,8 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       __ push(load_receiver);                               // save result
       __ LoadRoot(load_name, Heap::kdone_stringRootIndex);  // "done"
-      if (FLAG_vector_ics) {
-        __ mov(VectorLoadICDescriptor::SlotRegister(),
-               Operand(SmiFromSlot(expr->DoneFeedbackSlot())));
-      }
+      __ mov(VectorLoadICDescriptor::SlotRegister(),
+             Operand(SmiFromSlot(expr->DoneFeedbackSlot())));
       CallLoadIC(NOT_CONTEXTUAL);                           // r0=result.done
       Handle<Code> bool_ic = ToBooleanStub::GetUninitialized(isolate());
       CallIC(bool_ic);
@@ -2236,10 +2226,8 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       // result.value
       __ pop(load_receiver);                                 // result
       __ LoadRoot(load_name, Heap::kvalue_stringRootIndex);  // "value"
-      if (FLAG_vector_ics) {
-        __ mov(VectorLoadICDescriptor::SlotRegister(),
-               Operand(SmiFromSlot(expr->ValueFeedbackSlot())));
-      }
+      __ mov(VectorLoadICDescriptor::SlotRegister(),
+             Operand(SmiFromSlot(expr->ValueFeedbackSlot())));
       CallLoadIC(NOT_CONTEXTUAL);                            // r0=result.value
       context()->DropAndPlug(2, r0);                         // drop iter and g
       break;
@@ -2391,13 +2379,9 @@ void FullCodeGenerator::EmitNamedPropertyLoad(Property* prop) {
   DCHECK(!prop->IsSuperAccess());
 
   __ mov(LoadDescriptor::NameRegister(), Operand(key->value()));
-  if (FLAG_vector_ics) {
-    __ mov(VectorLoadICDescriptor::SlotRegister(),
-           Operand(SmiFromSlot(prop->PropertyFeedbackSlot())));
-    CallLoadIC(NOT_CONTEXTUAL);
-  } else {
-    CallLoadIC(NOT_CONTEXTUAL, prop->PropertyFeedbackId());
-  }
+  __ mov(VectorLoadICDescriptor::SlotRegister(),
+         Operand(SmiFromSlot(prop->PropertyFeedbackSlot())));
+  CallLoadIC(NOT_CONTEXTUAL);
 }
 
 
@@ -2416,13 +2400,9 @@ void FullCodeGenerator::EmitNamedSuperPropertyLoad(Property* prop) {
 void FullCodeGenerator::EmitKeyedPropertyLoad(Property* prop) {
   SetSourcePosition(prop->position());
   Handle<Code> ic = CodeFactory::KeyedLoadIC(isolate()).code();
-  if (FLAG_vector_ics) {
-    __ mov(VectorLoadICDescriptor::SlotRegister(),
-           Operand(SmiFromSlot(prop->PropertyFeedbackSlot())));
-    CallIC(ic);
-  } else {
-    CallIC(ic, prop->PropertyFeedbackId());
-  }
+  __ mov(VectorLoadICDescriptor::SlotRegister(),
+         Operand(SmiFromSlot(prop->PropertyFeedbackSlot())));
+  CallIC(ic);
 }
 
 
@@ -3070,8 +3050,9 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
   __ ldr(r4, MemOperand(fp, JavaScriptFrameConstants::kFunctionOffset));
 
   // r3: the receiver of the enclosing function.
-  int receiver_offset = 2 + info_->scope()->num_parameters();
-  __ ldr(r3, MemOperand(fp, receiver_offset * kPointerSize));
+  Variable* this_var = scope()->LookupThis();
+  DCHECK_NOT_NULL(this_var);
+  __ ldr(r3, VarOperand(this_var, r3));
 
   // r2: language mode.
   __ mov(r2, Operand(Smi::FromInt(language_mode())));
@@ -4634,13 +4615,9 @@ void FullCodeGenerator::EmitLoadJSRuntimeFunction(CallRuntime* expr) {
 
   // Load the function from the receiver.
   __ mov(LoadDescriptor::NameRegister(), Operand(expr->name()));
-  if (FLAG_vector_ics) {
-    __ mov(VectorLoadICDescriptor::SlotRegister(),
-           Operand(SmiFromSlot(expr->CallRuntimeFeedbackSlot())));
-    CallLoadIC(NOT_CONTEXTUAL);
-  } else {
-    CallLoadIC(NOT_CONTEXTUAL, expr->CallRuntimeFeedbackId());
-  }
+  __ mov(VectorLoadICDescriptor::SlotRegister(),
+         Operand(SmiFromSlot(expr->CallRuntimeFeedbackSlot())));
+  CallLoadIC(NOT_CONTEXTUAL);
 }
 
 
@@ -5073,10 +5050,8 @@ void FullCodeGenerator::VisitForTypeofValue(Expression* expr) {
     Comment cmnt(masm_, "[ Global variable");
     __ ldr(LoadDescriptor::ReceiverRegister(), GlobalObjectOperand());
     __ mov(LoadDescriptor::NameRegister(), Operand(proxy->name()));
-    if (FLAG_vector_ics) {
-      __ mov(VectorLoadICDescriptor::SlotRegister(),
-             Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
-    }
+    __ mov(VectorLoadICDescriptor::SlotRegister(),
+           Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
     // Use a regular load, not a contextual load, to avoid a reference
     // error.
     CallLoadIC(NOT_CONTEXTUAL);
@@ -5239,7 +5214,8 @@ void FullCodeGenerator::VisitCompareOperation(CompareOperation* expr) {
 
       // Record position and call the compare IC.
       SetSourcePosition(expr->position());
-      Handle<Code> ic = CodeFactory::CompareIC(isolate(), op).code();
+      Handle<Code> ic =
+          CodeFactory::CompareIC(isolate(), op, language_mode()).code();
       CallIC(ic, expr->CompareOperationFeedbackId());
       patch_site.EmitPatchInfo();
       PrepareForBailoutBeforeSplit(expr, true, if_true, if_false);

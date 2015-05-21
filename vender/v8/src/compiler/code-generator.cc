@@ -38,7 +38,7 @@ CodeGenerator::CodeGenerator(Frame* frame, Linkage* linkage,
       info_(info),
       labels_(zone()->NewArray<Label>(code->InstructionBlockCount())),
       current_block_(RpoNumber::Invalid()),
-      current_source_position_(SourcePosition::Invalid()),
+      current_source_position_(SourcePosition::Unknown()),
       masm_(info->isolate(), NULL, 0),
       resolver_(this),
       safepoints_(code->zone()),
@@ -256,11 +256,10 @@ void CodeGenerator::AssembleSourcePosition(Instruction* instr) {
   SourcePosition source_position;
   if (!code()->GetSourcePosition(instr, &source_position)) return;
   if (source_position == current_source_position_) return;
-  DCHECK(!source_position.IsInvalid());
   current_source_position_ = source_position;
   if (source_position.IsUnknown()) return;
   int code_pos = source_position.raw();
-  masm()->positions_recorder()->RecordPosition(source_position.raw());
+  masm()->positions_recorder()->RecordPosition(code_pos);
   masm()->positions_recorder()->WriteRecordedPositions();
   if (FLAG_code_comments) {
     Vector<char> buffer = Vector<char>::New(256);
@@ -427,17 +426,20 @@ FrameStateDescriptor* CodeGenerator::GetFrameStateDescriptor(
   return code()->GetFrameStateDescriptor(state_id);
 }
 
-struct OperandAndType {
-  OperandAndType(InstructionOperand* operand, MachineType type)
-      : operand_(operand), type_(type) {}
 
-  InstructionOperand* operand_;
-  MachineType type_;
+namespace {
+
+struct OperandAndType {
+  InstructionOperand* const operand;
+  MachineType const type;
 };
 
-static OperandAndType TypedOperandForFrameState(
-    FrameStateDescriptor* descriptor, Instruction* instr,
-    size_t frame_state_offset, size_t index, OutputFrameStateCombine combine) {
+
+OperandAndType TypedOperandForFrameState(FrameStateDescriptor* descriptor,
+                                         Instruction* instr,
+                                         size_t frame_state_offset,
+                                         size_t index,
+                                         OutputFrameStateCombine combine) {
   DCHECK(index < descriptor->GetSize(combine));
   switch (combine.kind()) {
     case OutputFrameStateCombine::kPushOutput: {
@@ -446,8 +448,7 @@ static OperandAndType TypedOperandForFrameState(
           descriptor->GetSize(OutputFrameStateCombine::Ignore());
       // If the index is past the existing stack items, return the output.
       if (index >= size_without_output) {
-        return OperandAndType(instr->OutputAt(index - size_without_output),
-                              kMachAnyTagged);
+        return {instr->OutputAt(index - size_without_output), kMachAnyTagged};
       }
       break;
     }
@@ -456,14 +457,15 @@ static OperandAndType TypedOperandForFrameState(
           descriptor->GetSize(combine) - 1 - combine.GetOffsetToPokeAt();
       if (index >= index_from_top &&
           index < index_from_top + instr->OutputCount()) {
-        return OperandAndType(instr->OutputAt(index - index_from_top),
-                              kMachAnyTagged);
+        return {instr->OutputAt(index - index_from_top), kMachAnyTagged};
       }
       break;
   }
-  return OperandAndType(instr->InputAt(frame_state_offset + index),
-                        descriptor->GetType(index));
+  return {instr->InputAt(frame_state_offset + index),
+          descriptor->GetType(index)};
 }
+
+}  // namespace
 
 
 void CodeGenerator::BuildTranslationForFrameStateDescriptor(
@@ -471,16 +473,19 @@ void CodeGenerator::BuildTranslationForFrameStateDescriptor(
     Translation* translation, size_t frame_state_offset,
     OutputFrameStateCombine state_combine) {
   // Outer-most state must be added to translation first.
-  if (descriptor->outer_state() != NULL) {
+  if (descriptor->outer_state() != nullptr) {
     BuildTranslationForFrameStateDescriptor(descriptor->outer_state(), instr,
                                             translation, frame_state_offset,
                                             OutputFrameStateCombine::Ignore());
   }
+  frame_state_offset += descriptor->outer_state()->GetTotalSize();
 
+  // TODO(bmeurer): Fix this special case here.
   int id = Translation::kSelfLiteralId;
-  if (!descriptor->jsfunction().is_null()) {
-    id = DefineDeoptimizationLiteral(
-        Handle<Object>::cast(descriptor->jsfunction().ToHandleChecked()));
+  if (descriptor->outer_state() != nullptr) {
+    InstructionOperandConverter converter(this, instr);
+    Handle<HeapObject> function(converter.InputHeapObject(frame_state_offset));
+    id = DefineDeoptimizationLiteral(function);
   }
 
   switch (descriptor->type()) {
@@ -488,7 +493,7 @@ void CodeGenerator::BuildTranslationForFrameStateDescriptor(
       translation->BeginJSFrame(
           descriptor->bailout_id(), id,
           static_cast<unsigned int>(descriptor->GetSize(state_combine) -
-                                    descriptor->parameters_count()));
+                                    (1 + descriptor->parameters_count())));
       break;
     case ARGUMENTS_ADAPTOR:
       translation->BeginArgumentsAdaptorFrame(
@@ -496,11 +501,10 @@ void CodeGenerator::BuildTranslationForFrameStateDescriptor(
       break;
   }
 
-  frame_state_offset += descriptor->outer_state()->GetTotalSize();
-  for (size_t i = 0; i < descriptor->GetSize(state_combine); i++) {
+  for (size_t i = 1; i < descriptor->GetSize(state_combine); i++) {
     OperandAndType op = TypedOperandForFrameState(
         descriptor, instr, frame_state_offset, i, state_combine);
-    AddTranslationForOperand(translation, instr, op.operand_, op.type_);
+    AddTranslationForOperand(translation, instr, op.operand, op.type);
   }
 }
 
@@ -577,10 +581,7 @@ void CodeGenerator::AddTranslationForOperand(Translation* translation,
             isolate()->factory()->NewNumberFromInt(constant.ToInt32());
         break;
       case Constant::kFloat64:
-        DCHECK(type == kMachFloat64 || type == kMachAnyTagged ||
-               type == kRepTagged || type == (kTypeNumber | kRepTagged) ||
-               type == (kTypeInt32 | kRepTagged) ||
-               type == (kTypeUint32 | kRepTagged));
+        DCHECK((type & (kRepFloat64 | kRepTagged)) != 0);
         constant_object = isolate()->factory()->NewNumber(constant.ToFloat64());
         break;
       case Constant::kHeapObject:

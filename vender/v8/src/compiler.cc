@@ -175,6 +175,14 @@ int CompilationInfo::num_parameters() const {
 }
 
 
+int CompilationInfo::num_parameters_including_this() const {
+  return num_parameters() + (is_this_defined() ? 1 : 0);
+}
+
+
+bool CompilationInfo::is_this_defined() const { return !IsStub(); }
+
+
 int CompilationInfo::num_heap_slots() const {
   return has_scope() ? scope()->num_heap_slots() : 0;
 }
@@ -215,8 +223,7 @@ bool CompilationInfo::is_simple_parameter_list() {
 
 
 bool CompilationInfo::MayUseThis() const {
-  return scope()->uses_this() || scope()->inner_uses_this() ||
-         scope()->calls_sloppy_eval();
+  return scope()->has_this_declaration() && scope()->receiver()->is_used();
 }
 
 
@@ -270,6 +277,14 @@ void CompilationInfo::LogDeoptCallPosition(int pc_offset, int inlining_id) {
   if (!track_positions_ || IsStub()) return;
   DCHECK_LT(static_cast<size_t>(inlining_id), inlined_function_infos_.size());
   inlined_function_infos_.at(inlining_id).deopt_pc_offsets.push_back(pc_offset);
+}
+
+
+Handle<Code> CompilationInfo::GenerateCodeStub() {
+  // Run a "mini pipeline", extracted from compiler.cc.
+  CHECK(Parser::ParseStatic(parse_info()));
+  CHECK(Compiler::Analyze(parse_info()));
+  return compiler::Pipeline(this).GenerateCode();
 }
 
 
@@ -1169,9 +1184,9 @@ MaybeHandle<JSFunction> Compiler::GetFunctionFromEval(
 
 Handle<SharedFunctionInfo> Compiler::CompileScript(
     Handle<String> source, Handle<Object> script_name, int line_offset,
-    int column_offset, bool is_embedder_debug_script,
-    bool is_shared_cross_origin, Handle<Object> source_map_url,
-    Handle<Context> context, v8::Extension* extension, ScriptData** cached_data,
+    int column_offset, ScriptOriginOptions resource_options,
+    Handle<Object> source_map_url, Handle<Context> context,
+    v8::Extension* extension, ScriptData** cached_data,
     ScriptCompiler::CompileOptions compile_options, NativesFlag natives,
     bool is_module) {
   Isolate* isolate = source->GetIsolate();
@@ -1206,9 +1221,8 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
   if (extension == NULL) {
     // First check per-isolate compilation cache.
     maybe_result = compilation_cache->LookupScript(
-        source, script_name, line_offset, column_offset,
-        is_embedder_debug_script, is_shared_cross_origin, context,
-        language_mode);
+        source, script_name, line_offset, column_offset, resource_options,
+        context, language_mode);
     if (maybe_result.is_null() && FLAG_serialize_toplevel &&
         compile_options == ScriptCompiler::kConsumeCodeCache &&
         !isolate->debug()->is_loaded()) {
@@ -1245,8 +1259,7 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
       script->set_line_offset(Smi::FromInt(line_offset));
       script->set_column_offset(Smi::FromInt(column_offset));
     }
-    script->set_is_shared_cross_origin(is_shared_cross_origin);
-    script->set_is_embedder_debug_script(is_embedder_debug_script);
+    script->set_origin_options(resource_options);
     if (!source_map_url.is_null()) {
       script->set_source_mapping_url(*source_map_url);
     }

@@ -96,9 +96,8 @@ void InternalArrayNArgumentsConstructorStub::InitializeDescriptor(
 #define __ ACCESS_MASM(masm)
 
 
-static void EmitIdenticalObjectComparison(MacroAssembler* masm,
-                                          Label* slow,
-                                          Condition cc);
+static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
+                                          Condition cc, bool strong);
 static void EmitSmiNonsmiComparison(MacroAssembler* masm,
                                     Register lhs,
                                     Register rhs,
@@ -276,9 +275,8 @@ void DoubleToIStub::Generate(MacroAssembler* masm) {
 // Handle the case where the lhs and rhs are the same object.
 // Equality is almost reflexive (everything but NaN), so this is a test
 // for "identity and not NaN".
-static void EmitIdenticalObjectComparison(MacroAssembler* masm,
-                                          Label* slow,
-                                          Condition cc) {
+static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
+                                          Condition cc, bool strong) {
   Label not_identical;
   Label heap_number, return_equal;
   Register exp_mask_reg = t1;
@@ -293,14 +291,31 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm,
   // Smis. If it's not a heap number, then return equal.
   __ GetObjectType(a0, t0, t0);
   if (cc == less || cc == greater) {
+    // Call runtime on identical JSObjects.
     __ Branch(slow, greater, t0, Operand(FIRST_SPEC_OBJECT_TYPE));
+    // Call runtime on identical symbols since we need to throw a TypeError.
     __ Branch(slow, eq, t0, Operand(SYMBOL_TYPE));
+    if (strong) {
+      // Call the runtime on anything that is converted in the semantics, since
+      // we need to throw a TypeError. Smis have already been ruled out.
+      __ Branch(&return_equal, eq, t0, Operand(HEAP_NUMBER_TYPE));
+      __ And(t0, t0, Operand(kIsNotStringMask));
+      __ Branch(slow, ne, t0, Operand(zero_reg));
+    }
   } else {
     __ Branch(&heap_number, eq, t0, Operand(HEAP_NUMBER_TYPE));
     // Comparing JS objects with <=, >= is complicated.
     if (cc != eq) {
     __ Branch(slow, greater, t0, Operand(FIRST_SPEC_OBJECT_TYPE));
+    // Call runtime on identical symbols since we need to throw a TypeError.
     __ Branch(slow, eq, t0, Operand(SYMBOL_TYPE));
+    if (strong) {
+      // Call the runtime on anything that is converted in the semantics,
+      // since we need to throw a TypeError. Smis and heap numbers have
+      // already been ruled out.
+      __ And(t0, t0, Operand(kIsNotStringMask));
+      __ Branch(slow, ne, t0, Operand(zero_reg));
+    }
       // Normally here we fall through to return_equal, but undefined is
       // special: (undefined == undefined) == true, but
       // (undefined <= undefined) == false!  See ECMAScript 11.8.5.
@@ -584,7 +599,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
 
   // Handle the case where the objects are identical.  Either returns the answer
   // or goes to slow.  Only falls through if the objects were not identical.
-  EmitIdenticalObjectComparison(masm, &slow, cc);
+  EmitIdenticalObjectComparison(masm, &slow, cc, strong());
 
   // If either is a Smi (we know that not both are), then they can only
   // be strictly equal if the other is a HeapNumber.
@@ -712,7 +727,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
   if (cc == eq) {
     native = strict() ? Builtins::STRICT_EQUALS : Builtins::EQUALS;
   } else {
-    native = Builtins::COMPARE;
+    native = strong() ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
     int ncr;  // NaN compare result.
     if (cc == lt || cc == le) {
       ncr = GREATER;
@@ -1375,8 +1390,7 @@ void LoadIndexedStringStub::Generate(MacroAssembler* masm) {
   Register scratch = a5;
   Register result = v0;
   DCHECK(!scratch.is(receiver) && !scratch.is(index));
-  DCHECK(!FLAG_vector_ics ||
-         !scratch.is(VectorLoadICDescriptor::VectorRegister()));
+  DCHECK(!scratch.is(VectorLoadICDescriptor::VectorRegister()));
 
   StringCharAtGenerator char_at_generator(receiver, index, scratch, result,
                                           &miss,  // When not a string.
@@ -1600,8 +1614,7 @@ void FunctionPrototypeStub::Generate(MacroAssembler* masm) {
   Register receiver = LoadDescriptor::ReceiverRegister();
   // Ensure that the vector and slot registers won't be clobbered before
   // calling the miss handler.
-  DCHECK(!FLAG_vector_ics ||
-         !AreAliased(a4, a5, VectorLoadICDescriptor::VectorRegister(),
+  DCHECK(!AreAliased(a4, a5, VectorLoadICDescriptor::VectorRegister(),
                      VectorLoadICDescriptor::SlotRegister()));
 
   NamedLoadHandlerCompiler::GenerateLoadFunctionPrototype(masm, receiver, a4,
@@ -3120,7 +3133,7 @@ void StringCharCodeAtGenerator::GenerateSlow(
               DONT_DO_SMI_CHECK);
   call_helper.BeforeCall(masm);
   // Consumed by runtime conversion function:
-  if (FLAG_vector_ics && embed_mode == PART_OF_IC_HANDLER) {
+  if (embed_mode == PART_OF_IC_HANDLER) {
     __ Push(VectorLoadICDescriptor::VectorRegister(),
             VectorLoadICDescriptor::SlotRegister(), object_, index_);
   } else {
@@ -3138,7 +3151,7 @@ void StringCharCodeAtGenerator::GenerateSlow(
   // have a chance to overwrite it.
 
   __ Move(index_, v0);
-  if (FLAG_vector_ics && embed_mode == PART_OF_IC_HANDLER) {
+  if (embed_mode == PART_OF_IC_HANDLER) {
     __ Pop(VectorLoadICDescriptor::VectorRegister(),
            VectorLoadICDescriptor::SlotRegister(), object_);
   } else {
@@ -3790,7 +3803,7 @@ void CompareICStub::GenerateNumbers(MacroAssembler* masm) {
 
   __ bind(&unordered);
   __ bind(&generic_stub);
-  CompareICStub stub(isolate(), op(), CompareICState::GENERIC,
+  CompareICStub stub(isolate(), op(), strong(), CompareICState::GENERIC,
                      CompareICState::GENERIC, CompareICState::GENERIC);
   __ Jump(stub.GetCode(), RelocInfo::CODE_TARGET);
 

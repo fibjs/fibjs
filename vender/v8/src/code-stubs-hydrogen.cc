@@ -696,10 +696,11 @@ HValue* CodeStubGraphBuilder<GrowArrayElementsStub>::BuildCodeStub() {
 
   HValue* object = GetParameter(GrowArrayElementsDescriptor::kObjectIndex);
   HValue* key = GetParameter(GrowArrayElementsDescriptor::kKeyIndex);
-  HValue* current_capacity =
-      GetParameter(GrowArrayElementsDescriptor::kCapacityIndex);
 
   HValue* elements = AddLoadElements(object);
+  HValue* current_capacity = Add<HLoadNamedField>(
+      elements, nullptr, HObjectAccess::ForFixedArrayLength());
+
   HValue* length =
       casted_stub()->is_js_array()
           ? Add<HLoadNamedField>(object, static_cast<HValue*>(NULL),
@@ -2204,29 +2205,4 @@ Handle<Code> KeyedLoadGenericStub::GenerateCode() {
   return DoGenerateCode(this);
 }
 
-
-Handle<Code> MegamorphicLoadStub::GenerateCode() {
-  return DoGenerateCode(this);
-}
-
-
-template <>
-HValue* CodeStubGraphBuilder<MegamorphicLoadStub>::BuildCodeStub() {
-  HValue* receiver = GetParameter(LoadDescriptor::kReceiverIndex);
-  HValue* name = GetParameter(LoadDescriptor::kNameIndex);
-
-  // We shouldn't generate this when FLAG_vector_ics is true because the
-  // megamorphic case is handled as part of the default stub.
-  DCHECK(!FLAG_vector_ics);
-
-  // This stub tail calls, and an erected frame presents complications we don't
-  // need.
-  info()->MarkMustNotHaveEagerFrame();
-
-  // Probe the stub cache.
-  Add<HTailCallThroughMegamorphicCache>(receiver, name);
-
-  // We never continue.
-  return graph()->GetConstant0();
-}
 } }  // namespace v8::internal

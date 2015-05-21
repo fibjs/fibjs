@@ -7,6 +7,7 @@
 
 #include "src/ic/ic-state.h"
 #include "src/macro-assembler.h"
+#include "src/messages.h"
 
 namespace v8 {
 namespace internal {
@@ -113,8 +114,7 @@ class IC {
   }
 
   static bool ICUseVector(Code::Kind kind) {
-    return (FLAG_vector_ics &&
-            (kind == Code::LOAD_IC || kind == Code::KEYED_LOAD_IC)) ||
+    return kind == Code::LOAD_IC || kind == Code::KEYED_LOAD_IC ||
            kind == Code::CALL_IC;
   }
 
@@ -162,8 +162,8 @@ class IC {
   void TraceIC(const char* type, Handle<Object> name, State old_state,
                State new_state);
 
-  MaybeHandle<Object> TypeError(const char* type, Handle<Object> object,
-                                Handle<Object> key);
+  MaybeHandle<Object> TypeError(MessageTemplate::Template,
+                                Handle<Object> object, Handle<Object> key);
   MaybeHandle<Object> ReferenceError(Handle<Name> name);
 
   // Access the target code for the given IC address.
@@ -361,7 +361,7 @@ class LoadIC : public IC {
 
   LoadIC(FrameDepth depth, Isolate* isolate, FeedbackNexus* nexus = NULL)
       : IC(depth, isolate, nexus) {
-    DCHECK(!FLAG_vector_ics || nexus != NULL);
+    DCHECK(nexus != NULL);
     DCHECK(IsLoadStub());
   }
 
@@ -387,9 +387,6 @@ class LoadIC : public IC {
 
   // Code generator routines.
   static void GenerateInitialize(MacroAssembler* masm) { GenerateMiss(masm); }
-  static void GeneratePreMonomorphic(MacroAssembler* masm) {
-    GenerateMiss(masm);
-  }
   static void GenerateMiss(MacroAssembler* masm);
   static void GenerateNormal(MacroAssembler* masm);
   static void GenerateRuntimeGetProperty(MacroAssembler* masm);
@@ -398,8 +395,6 @@ class LoadIC : public IC {
                                       ExtraICState extra_state);
   static Handle<Code> initialize_stub_in_optimized_code(
       Isolate* isolate, ExtraICState extra_state, State initialization_state);
-  static Handle<Code> load_global(Isolate* isolate, Handle<GlobalObject> global,
-                                  Handle<String> name);
 
   MUST_USE_RESULT MaybeHandle<Object> Load(Handle<Object> object,
                                            Handle<Name> name);
@@ -429,10 +424,6 @@ class LoadIC : public IC {
                                       CacheHolderFlag cache_holder) override;
 
  private:
-  virtual Handle<Code> pre_monomorphic_stub() const;
-  static Handle<Code> pre_monomorphic_stub(Isolate* isolate,
-                                           ExtraICState extra_state);
-
   Handle<Code> SimpleFieldLoad(FieldIndex index);
 
   static void Clear(Isolate* isolate, Address address, Code* target,
@@ -460,7 +451,7 @@ class KeyedLoadIC : public LoadIC {
   KeyedLoadIC(FrameDepth depth, Isolate* isolate,
               KeyedLoadICNexus* nexus = NULL)
       : LoadIC(depth, isolate, nexus) {
-    DCHECK(!FLAG_vector_ics || nexus != NULL);
+    DCHECK(nexus != NULL);
     DCHECK(target()->is_keyed_load_stub());
   }
 
@@ -471,9 +462,6 @@ class KeyedLoadIC : public LoadIC {
   static void GenerateMiss(MacroAssembler* masm);
   static void GenerateRuntimeGetProperty(MacroAssembler* masm);
   static void GenerateInitialize(MacroAssembler* masm) { GenerateMiss(masm); }
-  static void GeneratePreMonomorphic(MacroAssembler* masm) {
-    GenerateMiss(masm);
-  }
   static void GenerateMegamorphic(MacroAssembler* masm);
 
   // Bit mask to be tested against bit field for the cases when
@@ -487,16 +475,12 @@ class KeyedLoadIC : public LoadIC {
   static Handle<Code> initialize_stub_in_optimized_code(
       Isolate* isolate, State initialization_state);
   static Handle<Code> ChooseMegamorphicStub(Isolate* isolate);
-  static Handle<Code> pre_monomorphic_stub(Isolate* isolate);
 
   static void Clear(Isolate* isolate, Code* host, KeyedLoadICNexus* nexus);
 
  protected:
   // receiver is HeapObject because it could be a String or a JSObject
   Handle<Code> LoadElementStub(Handle<HeapObject> receiver);
-  virtual Handle<Code> pre_monomorphic_stub() const {
-    return pre_monomorphic_stub(isolate());
-  }
 
  private:
   static void Clear(Isolate* isolate, Address address, Code* target,
@@ -703,7 +687,8 @@ class CompareIC : public IC {
   static Condition ComputeCondition(Token::Value op);
 
   // Factory method for getting an uninitialized compare stub.
-  static Handle<Code> GetUninitialized(Isolate* isolate, Token::Value op);
+  static Handle<Code> GetUninitialized(Isolate* isolate, Token::Value op,
+                                       bool strong);
 
  private:
   static bool HasInlinedSmiCode(Address address);
@@ -711,7 +696,8 @@ class CompareIC : public IC {
   bool strict() const { return op_ == Token::EQ_STRICT; }
   Condition GetCondition() const { return ComputeCondition(op_); }
 
-  static Code* GetRawUninitialized(Isolate* isolate, Token::Value op);
+  static Code* GetRawUninitialized(Isolate* isolate, Token::Value op,
+                                   bool strong);
 
   static void Clear(Isolate* isolate, Address address, Code* target,
                     ConstantPoolArray* constant_pool);

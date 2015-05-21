@@ -835,8 +835,11 @@ class Global : public PersistentBase<T> {
   typedef void MoveOnlyTypeForCPP03;
 
  private:
+  template <class F>
+  friend class ReturnValue;
   Global(Global&) = delete;
   void operator=(Global&) = delete;
+  V8_INLINE T* operator*() const { return this->val_; }
 };
 
 
@@ -973,6 +976,38 @@ class V8_EXPORT Data {
 
 
 /**
+ * The optional attributes of ScriptOrigin.
+ */
+class ScriptOriginOptions {
+ public:
+  V8_INLINE ScriptOriginOptions(bool is_embedder_debug_script = false,
+                                bool is_shared_cross_origin = false,
+                                bool is_opaque = false)
+      : flags_((is_embedder_debug_script ? kIsEmbedderDebugScript : 0) |
+               (is_shared_cross_origin ? kIsSharedCrossOrigin : 0) |
+               (is_opaque ? kIsOpaque : 0)) {}
+  V8_INLINE ScriptOriginOptions(int flags)
+      : flags_(flags &
+               (kIsEmbedderDebugScript | kIsSharedCrossOrigin | kIsOpaque)) {}
+  bool IsEmbedderDebugScript() const {
+    return (flags_ & kIsEmbedderDebugScript) != 0;
+  }
+  bool IsSharedCrossOrigin() const {
+    return (flags_ & kIsSharedCrossOrigin) != 0;
+  }
+  bool IsOpaque() const { return (flags_ & kIsOpaque) != 0; }
+  int Flags() const { return flags_; }
+
+ private:
+  enum {
+    kIsEmbedderDebugScript = 1,
+    kIsSharedCrossOrigin = 1 << 1,
+    kIsOpaque = 1 << 2
+  };
+  const int flags_;
+};
+
+/**
  * The origin, within a file, of a script.
  */
 class ScriptOrigin {
@@ -984,31 +1019,23 @@ class ScriptOrigin {
       Handle<Boolean> resource_is_shared_cross_origin = Handle<Boolean>(),
       Handle<Integer> script_id = Handle<Integer>(),
       Handle<Boolean> resource_is_embedder_debug_script = Handle<Boolean>(),
-      Handle<Value> source_map_url = Handle<Value>())
-      : resource_name_(resource_name),
-        resource_line_offset_(resource_line_offset),
-        resource_column_offset_(resource_column_offset),
-        resource_is_embedder_debug_script_(resource_is_embedder_debug_script),
-        resource_is_shared_cross_origin_(resource_is_shared_cross_origin),
-        script_id_(script_id),
-        source_map_url_(source_map_url) {}
+      Handle<Value> source_map_url = Handle<Value>(),
+      Handle<Boolean> resource_is_opaque = Handle<Boolean>());
   V8_INLINE Handle<Value> ResourceName() const;
   V8_INLINE Handle<Integer> ResourceLineOffset() const;
   V8_INLINE Handle<Integer> ResourceColumnOffset() const;
   /**
     * Returns true for embedder's debugger scripts
     */
-  V8_INLINE Handle<Boolean> ResourceIsEmbedderDebugScript() const;
-  V8_INLINE Handle<Boolean> ResourceIsSharedCrossOrigin() const;
   V8_INLINE Handle<Integer> ScriptID() const;
   V8_INLINE Handle<Value> SourceMapUrl() const;
+  V8_INLINE ScriptOriginOptions Options() const { return options_; }
 
  private:
   Handle<Value> resource_name_;
   Handle<Integer> resource_line_offset_;
   Handle<Integer> resource_column_offset_;
-  Handle<Boolean> resource_is_embedder_debug_script_;
-  Handle<Boolean> resource_is_shared_cross_origin_;
+  ScriptOriginOptions options_;
   Handle<Integer> script_id_;
   Handle<Value> source_map_url_;
 };
@@ -1160,8 +1187,7 @@ class V8_EXPORT ScriptCompiler {
     Handle<Value> resource_name;
     Handle<Integer> resource_line_offset;
     Handle<Integer> resource_column_offset;
-    Handle<Boolean> resource_is_embedder_debug_script;
-    Handle<Boolean> resource_is_shared_cross_origin;
+    ScriptOriginOptions resource_options;
     Handle<Value> source_map_url;
 
     // Cached data from previous compilation (if a kConsume*Cache flag is
@@ -1390,7 +1416,7 @@ class V8_EXPORT Message {
  public:
   Local<String> Get() const;
 
-  V8_DEPRECATE_SOON("Use maybe version", Local<String> GetSourceLine()) const;
+  V8_DEPRECATE_SOON("Use maybe version", Local<String> GetSourceLine() const);
   V8_WARN_UNUSED_RESULT MaybeLocal<String> GetSourceLine(
       Local<Context> context) const;
 
@@ -1416,7 +1442,7 @@ class V8_EXPORT Message {
   /**
    * Returns the number, 1-based, of the line where the error occurred.
    */
-  V8_DEPRECATE_SOON("Use maybe version", int GetLineNumber()) const;
+  V8_DEPRECATE_SOON("Use maybe version", int GetLineNumber() const);
   V8_WARN_UNUSED_RESULT Maybe<int> GetLineNumber(Local<Context> context) const;
 
   /**
@@ -1435,14 +1461,14 @@ class V8_EXPORT Message {
    * Returns the index within the line of the first character where
    * the error occurred.
    */
-  V8_DEPRECATE_SOON("Use maybe version", int GetStartColumn()) const;
+  V8_DEPRECATE_SOON("Use maybe version", int GetStartColumn() const);
   V8_WARN_UNUSED_RESULT Maybe<int> GetStartColumn(Local<Context> context) const;
 
   /**
    * Returns the index within the line of the last character where
    * the error occurred.
    */
-  V8_DEPRECATE_SOON("Use maybe version", int GetEndColumn()) const;
+  V8_DEPRECATE_SOON("Use maybe version", int GetEndColumn() const);
   V8_WARN_UNUSED_RESULT Maybe<int> GetEndColumn(Local<Context> context) const;
 
   /**
@@ -1450,6 +1476,7 @@ class V8_EXPORT Message {
    * this Message was generated to V8.
    */
   bool IsSharedCrossOrigin() const;
+  bool IsOpaque() const;
 
   // TODO(1245381): Print to a string instead of on a FILE.
   static void PrintCurrentStackTrace(Isolate* isolate, FILE* out);
@@ -1910,39 +1937,39 @@ class V8_EXPORT Value : public Data {
   V8_WARN_UNUSED_RESULT MaybeLocal<Int32> ToInt32(Local<Context> context) const;
 
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<Boolean> ToBoolean(Isolate* isolate)) const;
+                    Local<Boolean> ToBoolean(Isolate* isolate) const);
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<Number> ToNumber(Isolate* isolate)) const;
+                    Local<Number> ToNumber(Isolate* isolate) const);
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<String> ToString(Isolate* isolate)) const;
+                    Local<String> ToString(Isolate* isolate) const);
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<String> ToDetailString(Isolate* isolate)) const;
+                    Local<String> ToDetailString(Isolate* isolate) const);
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<Object> ToObject(Isolate* isolate)) const;
+                    Local<Object> ToObject(Isolate* isolate) const);
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<Integer> ToInteger(Isolate* isolate)) const;
+                    Local<Integer> ToInteger(Isolate* isolate) const);
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<Uint32> ToUint32(Isolate* isolate)) const;
+                    Local<Uint32> ToUint32(Isolate* isolate) const);
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<Int32> ToInt32(Isolate* isolate)) const;
+                    Local<Int32> ToInt32(Isolate* isolate) const);
 
   inline V8_DEPRECATE_SOON("Use maybe version",
-                           Local<Boolean> ToBoolean()) const;
-  inline V8_DEPRECATE_SOON("Use maybe version", Local<Number> ToNumber()) const;
-  inline V8_DEPRECATE_SOON("Use maybe version", Local<String> ToString()) const;
+                           Local<Boolean> ToBoolean() const);
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Number> ToNumber() const);
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<String> ToString() const);
   inline V8_DEPRECATE_SOON("Use maybe version",
-                           Local<String> ToDetailString()) const;
-  inline V8_DEPRECATE_SOON("Use maybe version", Local<Object> ToObject()) const;
+                           Local<String> ToDetailString() const);
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Object> ToObject() const);
   inline V8_DEPRECATE_SOON("Use maybe version",
-                           Local<Integer> ToInteger()) const;
-  inline V8_DEPRECATE_SOON("Use maybe version", Local<Uint32> ToUint32()) const;
-  inline V8_DEPRECATE_SOON("Use maybe version", Local<Int32> ToInt32()) const;
+                           Local<Integer> ToInteger() const);
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Uint32> ToUint32() const);
+  inline V8_DEPRECATE_SOON("Use maybe version", Local<Int32> ToInt32() const);
 
   /**
    * Attempts to convert a string to an array index.
    * Returns an empty handle if the conversion fails.
    */
-  V8_DEPRECATE_SOON("Use maybe version", Local<Uint32> ToArrayIndex()) const;
+  V8_DEPRECATE_SOON("Use maybe version", Local<Uint32> ToArrayIndex() const);
   V8_WARN_UNUSED_RESULT MaybeLocal<Uint32> ToArrayIndex(
       Local<Context> context) const;
 
@@ -1954,14 +1981,14 @@ class V8_EXPORT Value : public Data {
       Local<Context> context) const;
   V8_WARN_UNUSED_RESULT Maybe<int32_t> Int32Value(Local<Context> context) const;
 
-  V8_DEPRECATE_SOON("Use maybe version", bool BooleanValue()) const;
-  V8_DEPRECATE_SOON("Use maybe version", double NumberValue()) const;
-  V8_DEPRECATE_SOON("Use maybe version", int64_t IntegerValue()) const;
-  V8_DEPRECATE_SOON("Use maybe version", uint32_t Uint32Value()) const;
-  V8_DEPRECATE_SOON("Use maybe version", int32_t Int32Value()) const;
+  V8_DEPRECATE_SOON("Use maybe version", bool BooleanValue() const);
+  V8_DEPRECATE_SOON("Use maybe version", double NumberValue() const);
+  V8_DEPRECATE_SOON("Use maybe version", int64_t IntegerValue() const);
+  V8_DEPRECATE_SOON("Use maybe version", uint32_t Uint32Value() const);
+  V8_DEPRECATE_SOON("Use maybe version", int32_t Int32Value() const);
 
   /** JS == */
-  V8_DEPRECATE_SOON("Use maybe version", bool Equals(Handle<Value> that)) const;
+  V8_DEPRECATE_SOON("Use maybe version", bool Equals(Handle<Value> that) const);
   V8_WARN_UNUSED_RESULT Maybe<bool> Equals(Local<Context> context,
                                            Handle<Value> that) const;
   bool StrictEquals(Handle<Value> that) const;
@@ -2949,8 +2976,13 @@ class ReturnValue {
     TYPE_CHECK(T, S);
   }
   // Handle setters
-  template <typename S> V8_INLINE void Set(const Persistent<S>& handle);
-  template <typename S> V8_INLINE void Set(const Handle<S> handle);
+  template <typename S>
+  V8_INLINE V8_DEPRECATE_SOON("Use Global<> instead",
+                              void Set(const Persistent<S>& handle));
+  template <typename S>
+  V8_INLINE void Set(const Global<S>& handle);
+  template <typename S>
+  V8_INLINE void Set(const Local<S> handle);
   // Fast primitive setters
   V8_INLINE void Set(bool value);
   V8_INLINE void Set(double i);
@@ -3077,7 +3109,7 @@ class V8_EXPORT Function : public Object {
   V8_WARN_UNUSED_RESULT MaybeLocal<Object> NewInstance(
       Local<Context> context, int argc, Handle<Value> argv[]) const;
 
-  V8_DEPRECATE_SOON("Use maybe version", Local<Object> NewInstance()) const;
+  V8_DEPRECATE_SOON("Use maybe version", Local<Object> NewInstance() const);
   V8_WARN_UNUSED_RESULT MaybeLocal<Object> NewInstance(
       Local<Context> context) const {
     return NewInstance(context, 0, nullptr);
@@ -4815,6 +4847,24 @@ class V8_EXPORT HeapSpaceStatistics {
 };
 
 
+class V8_EXPORT HeapObjectStatistics {
+ public:
+  HeapObjectStatistics();
+  const char* object_type() { return object_type_; }
+  const char* object_sub_type() { return object_sub_type_; }
+  size_t object_count() { return object_count_; }
+  size_t object_size() { return object_size_; }
+
+ private:
+  const char* object_type_;
+  const char* object_sub_type_;
+  size_t object_count_;
+  size_t object_size_;
+
+  friend class Isolate;
+};
+
+
 class RetainedObjectInfo;
 
 
@@ -5107,6 +5157,7 @@ class V8_EXPORT Isolate {
     kStoreBufferOverflow = 4,
     kSlotsBufferOverflow = 5,
     kObjectObserve = 6,
+    kForcedGC = 7,
     kUseCounterFeatureCount  // This enum value must be last.
   };
 
@@ -5125,7 +5176,7 @@ class V8_EXPORT Isolate {
    */
   static Isolate* New(const CreateParams& params);
 
-  static V8_DEPRECATE_SOON("Always pass CreateParams", Isolate* New());
+  static V8_DEPRECATED("Always pass CreateParams", Isolate* New());
 
   /**
    * Returns the entered isolate for the current thread or NULL in
@@ -5201,6 +5252,23 @@ class V8_EXPORT Isolate {
    */
   bool GetHeapSpaceStatistics(HeapSpaceStatistics* space_statistics,
                               size_t index);
+
+  /**
+   * Returns the number of types of objects tracked in the heap at GC.
+   */
+  size_t NumberOfTrackedHeapObjectTypes();
+
+  /**
+   * Get statistics about objects in the heap.
+   *
+   * \param object_statistics The HeapObjectStatistics object to fill in
+   *   statistics of objects of given type, which were live in the previous GC.
+   * \param type_index The index of the type of object to fill details about,
+   *   which ranges from 0 to NumberOfTrackedHeapObjectTypes() - 1.
+   * \returns true on success.
+   */
+  bool GetHeapObjectStatisticsAtLastGC(HeapObjectStatistics* object_statistics,
+                                       size_t type_index);
 
   /**
    * Get a call stack sample from the isolate.
@@ -6174,7 +6242,7 @@ class V8_EXPORT TryCatch {
    * Returns the .stack property of the thrown object.  If no .stack
    * property is present an empty handle is returned.
    */
-  V8_DEPRECATE_SOON("Use maybe version.", Local<Value> StackTrace()) const;
+  V8_DEPRECATE_SOON("Use maybe version.", Local<Value> StackTrace() const);
   V8_WARN_UNUSED_RESULT MaybeLocal<Value> StackTrace(
       Local<Context> context) const;
 
@@ -6678,7 +6746,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 77;
+  static const int kContextEmbedderDataIndex = 78;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -7070,9 +7138,20 @@ void ReturnValue<T>::Set(const Persistent<S>& handle) {
   }
 }
 
-template<typename T>
-template<typename S>
-void ReturnValue<T>::Set(const Handle<S> handle) {
+template <typename T>
+template <typename S>
+void ReturnValue<T>::Set(const Global<S>& handle) {
+  TYPE_CHECK(T, S);
+  if (V8_UNLIKELY(handle.IsEmpty())) {
+    *value_ = GetDefaultValue();
+  } else {
+    *value_ = *reinterpret_cast<internal::Object**>(*handle);
+  }
+}
+
+template <typename T>
+template <typename S>
+void ReturnValue<T>::Set(const Local<S> handle) {
   TYPE_CHECK(T, S);
   if (V8_UNLIKELY(handle.IsEmpty())) {
     *value_ = GetDefaultValue();
@@ -7231,6 +7310,24 @@ int FunctionCallbackInfo<T>::Length() const {
   return length_;
 }
 
+ScriptOrigin::ScriptOrigin(Handle<Value> resource_name,
+                           Handle<Integer> resource_line_offset,
+                           Handle<Integer> resource_column_offset,
+                           Handle<Boolean> resource_is_shared_cross_origin,
+                           Handle<Integer> script_id,
+                           Handle<Boolean> resource_is_embedder_debug_script,
+                           Handle<Value> source_map_url,
+                           Handle<Boolean> resource_is_opaque)
+    : resource_name_(resource_name),
+      resource_line_offset_(resource_line_offset),
+      resource_column_offset_(resource_column_offset),
+      options_(!resource_is_embedder_debug_script.IsEmpty() &&
+                   resource_is_embedder_debug_script->IsTrue(),
+               !resource_is_shared_cross_origin.IsEmpty() &&
+                   resource_is_shared_cross_origin->IsTrue(),
+               !resource_is_opaque.IsEmpty() && resource_is_opaque->IsTrue()),
+      script_id_(script_id),
+      source_map_url_(source_map_url) {}
 
 Handle<Value> ScriptOrigin::ResourceName() const {
   return resource_name_;
@@ -7244,16 +7341,6 @@ Handle<Integer> ScriptOrigin::ResourceLineOffset() const {
 
 Handle<Integer> ScriptOrigin::ResourceColumnOffset() const {
   return resource_column_offset_;
-}
-
-
-Handle<Boolean> ScriptOrigin::ResourceIsEmbedderDebugScript() const {
-  return resource_is_embedder_debug_script_;
-}
-
-
-Handle<Boolean> ScriptOrigin::ResourceIsSharedCrossOrigin() const {
-  return resource_is_shared_cross_origin_;
 }
 
 
@@ -7271,8 +7358,7 @@ ScriptCompiler::Source::Source(Local<String> string, const ScriptOrigin& origin,
       resource_name(origin.ResourceName()),
       resource_line_offset(origin.ResourceLineOffset()),
       resource_column_offset(origin.ResourceColumnOffset()),
-      resource_is_embedder_debug_script(origin.ResourceIsEmbedderDebugScript()),
-      resource_is_shared_cross_origin(origin.ResourceIsSharedCrossOrigin()),
+      resource_options(origin.Options()),
       source_map_url(origin.SourceMapUrl()),
       cached_data(data) {}
 
@@ -7299,7 +7385,9 @@ Handle<Boolean> Boolean::New(Isolate* isolate, bool value) {
 
 
 void Template::Set(Isolate* isolate, const char* name, v8::Handle<Data> value) {
-  Set(v8::String::NewFromUtf8(isolate, name), value);
+  Set(v8::String::NewFromUtf8(isolate, name, NewStringType::kNormal)
+          .ToLocalChecked(),
+      value);
 }
 
 

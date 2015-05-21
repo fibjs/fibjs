@@ -165,6 +165,8 @@ class CompilationInfo {
   Handle<Code> unoptimized_code() const { return unoptimized_code_; }
   int opt_count() const { return opt_count_; }
   int num_parameters() const;
+  int num_parameters_including_this() const;
+  bool is_this_defined() const;
   int num_heap_slots() const;
   Code::Flags flags() const;
   bool has_scope() const { return scope() != nullptr; }
@@ -386,6 +388,8 @@ class CompilationInfo {
 #endif
 
   bool is_simple_parameter_list();
+
+  Handle<Code> GenerateCodeStub();
 
  protected:
   ParseInfo* parse_info_;
@@ -620,7 +624,7 @@ class Compiler : public AllStatic {
   // Compile a String source within a context.
   static Handle<SharedFunctionInfo> CompileScript(
       Handle<String> source, Handle<Object> script_name, int line_offset,
-      int column_offset, bool is_debugger_script, bool is_shared_cross_origin,
+      int column_offset, ScriptOriginOptions resource_options,
       Handle<Object> source_map_url, Handle<Context> context,
       v8::Extension* extension, ScriptData** cached_data,
       ScriptCompiler::CompileOptions compile_options,

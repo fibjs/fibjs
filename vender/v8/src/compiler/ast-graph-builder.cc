@@ -384,6 +384,48 @@ class AstGraphBuilder::ControlScopeForFinally : public ControlScope {
 };
 
 
+// Helper for generating before and after frame states.
+class AstGraphBuilder::FrameStateBeforeAndAfter {
+ public:
+  FrameStateBeforeAndAfter(AstGraphBuilder* builder, BailoutId id_before)
+      : builder_(builder), frame_state_before_(nullptr) {
+    frame_state_before_ = id_before == BailoutId::None()
+                              ? builder_->jsgraph()->EmptyFrameState()
+                              : builder_->environment()->Checkpoint(id_before);
+  }
+
+  void AddToNode(Node* node, BailoutId id_after,
+                 OutputFrameStateCombine combine) {
+    int count = OperatorProperties::GetFrameStateInputCount(node->op());
+    DCHECK_LE(count, 2);
+
+    if (count >= 1) {
+      // Add the frame state for after the operation.
+      DCHECK_EQ(IrOpcode::kDead,
+                NodeProperties::GetFrameStateInput(node, 0)->opcode());
+
+      Node* frame_state_after =
+          id_after == BailoutId::None()
+              ? builder_->jsgraph()->EmptyFrameState()
+              : builder_->environment()->Checkpoint(id_after, combine);
+
+      NodeProperties::ReplaceFrameStateInput(node, 0, frame_state_after);
+    }
+
+    if (count >= 2) {
+      // Add the frame state for before the operation.
+      DCHECK_EQ(IrOpcode::kDead,
+                NodeProperties::GetFrameStateInput(node, 1)->opcode());
+      NodeProperties::ReplaceFrameStateInput(node, 1, frame_state_before_);
+    }
+  }
+
+ private:
+  AstGraphBuilder* builder_;
+  Node* frame_state_before_;
+};
+
+
 AstGraphBuilder::AstGraphBuilder(Zone* local_zone, CompilationInfo* info,
                                  JSGraph* jsgraph, LoopAssignmentAnalysis* loop,
                                  JSTypeFeedbackTable* js_type_feedback)
@@ -429,7 +471,7 @@ void AstGraphBuilder::CreateFunctionContext(bool constant_context) {
 Node* AstGraphBuilder::NewOuterContextParam() {
   // Parameter (arity + 1) is special for the outer context of the function
   const Operator* op =
-      common()->Parameter(info()->num_parameters() + 1, "%context");
+      common()->Parameter(info()->num_parameters_including_this(), "%context");
   return NewNode(op, graph()->start());
 }
 
@@ -437,8 +479,8 @@ Node* AstGraphBuilder::NewOuterContextParam() {
 Node* AstGraphBuilder::NewCurrentContextOsrValue() {
   // TODO(titzer): use a real OSR value here; a parameter works by accident.
   // Parameter (arity + 1) is special for the outer context of the function
-  const Operator* op =
-      common()->Parameter(info()->num_parameters() + 1, "%osr-context");
+  const Operator* op = common()->Parameter(
+      info()->num_parameters_including_this(), "%osr-context");
   return NewNode(op, graph()->start());
 }
 
@@ -470,15 +512,21 @@ bool AstGraphBuilder::CreateGraph(bool constant_context, bool stack_check) {
 
   // Build receiver check for sloppy mode if necessary.
   // TODO(mstarzinger/verwaest): Should this be moved back into the CallIC?
-  Node* original_receiver = env.Lookup(scope->receiver());
-  Node* patched_receiver = BuildPatchReceiverToGlobalProxy(original_receiver);
-  env.Bind(scope->receiver(), patched_receiver);
+  Node* patched_receiver = nullptr;
+  if (scope->has_this_declaration()) {
+    Node* original_receiver = NewNode(common()->Parameter(0), graph()->start());
+    patched_receiver = BuildPatchReceiverToGlobalProxy(original_receiver);
+    if (scope->receiver()->IsStackAllocated()) {
+      env.Bind(scope->receiver(), patched_receiver);
+    }
+  }
 
   // Build function context only if there are context allocated variables.
   int heap_slots = info()->num_heap_slots() - Context::MIN_CONTEXT_SLOTS;
   if (heap_slots > 0) {
     // Push a new inner context scope for the function.
-    Node* inner_context = BuildLocalFunctionContext(function_context_.get());
+    Node* inner_context =
+        BuildLocalFunctionContext(function_context_.get(), patched_receiver);
     ContextScope top_context(this, scope, inner_context);
     CreateGraphBody(stack_check);
   } else {
@@ -584,6 +632,14 @@ static LhsKind DetermineLhsKind(Expression* expr) {
 }
 
 
+// Gets the bailout id just before reading a variable proxy, but only for
+// unallocated variables.
+static BailoutId BeforeId(VariableProxy* proxy) {
+  return proxy->var()->location() == Variable::UNALLOCATED ? proxy->BeforeId()
+                                                           : BailoutId::None();
+}
+
+
 static const char* GetDebugParameterName(Zone* zone, Scope* scope, int index) {
 #if DEBUG
   const AstRawString* name = scope->parameter(index)->raw_name();
@@ -615,16 +671,22 @@ AstGraphBuilder::Environment::Environment(AstGraphBuilder* builder,
   DCHECK_EQ(scope->num_parameters() + 1, parameters_count());
 
   // Bind the receiver variable.
-  Node* receiver = builder->graph()->NewNode(common()->Parameter(0, "%this"),
-                                             builder->graph()->start());
-  values()->push_back(receiver);
+  int param_num = 0;
+  if (builder->info()->is_this_defined()) {
+    Node* receiver = builder->graph()->NewNode(
+        common()->Parameter(param_num++, "%this"), builder->graph()->start());
+    values()->push_back(receiver);
+  } else {
+    values()->push_back(builder->jsgraph()->UndefinedConstant());
+  }
 
   // Bind all parameter variables. The parameter indices are shifted by 1
   // (receiver is parameter index -1 but environment index 0).
   for (int i = 0; i < scope->num_parameters(); ++i) {
     const char* debug_name = GetDebugParameterName(graph()->zone(), scope, i);
-    Node* parameter = builder->graph()->NewNode(
-        common()->Parameter(i + 1, debug_name), builder->graph()->start());
+    Node* parameter =
+        builder->graph()->NewNode(common()->Parameter(param_num++, debug_name),
+                                  builder->graph()->start());
     values()->push_back(parameter);
   }
 
@@ -758,6 +820,7 @@ Node* AstGraphBuilder::Environment::Checkpoint(
 
   Node* result = graph()->NewNode(op, parameters_node_, locals_node_,
                                   stack_node_, builder()->current_context(),
+                                  builder()->GetFunctionClosure(),
                                   builder()->jsgraph()->UndefinedConstant());
   if (FLAG_analyze_environment_liveness) {
     liveness_block()->Checkpoint(result);
@@ -1257,10 +1320,12 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
   Node* obj = environment()->Peek(4);
 
   // Check loop termination condition.
+  FrameStateBeforeAndAfter states(this, BailoutId::None());
   Node* exit_cond = NewNode(javascript()->LessThan(LanguageMode::SLOPPY),
                             index, cache_length);
   // TODO(jarin): provide real bailout id.
-  PrepareFrameState(exit_cond, BailoutId::None());
+  states.AddToNode(exit_cond, BailoutId::None(),
+                   OutputFrameStateCombine::Ignore());
   for_loop.BreakUnless(exit_cond);
   Node* pair = NewNode(javascript()->CallRuntime(Runtime::kForInNext, 4), obj,
                        cache_array, cache_type, index);
@@ -1292,14 +1357,15 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
       is_property_missing.If(property_missing);
       is_property_missing.Then();
       // Inc counter and continue.
-      Node* index_inc =
-          NewNode(javascript()->Add(LanguageMode::SLOPPY), index,
-                  jsgraph()->OneConstant());
-      // TODO(jarin): provide real bailout id.
-      PrepareFrameStateAfterAndBefore(index_inc, BailoutId::None(),
-                                      OutputFrameStateCombine::Ignore(),
-                                      jsgraph()->EmptyFrameState());
-      environment()->Poke(0, index_inc);
+      {
+        // TODO(jarin): provide real bailout id.
+        FrameStateBeforeAndAfter states(this, BailoutId::None());
+        Node* index_inc = NewNode(javascript()->Add(LanguageMode::SLOPPY),
+                                  index, jsgraph()->OneConstant());
+        states.AddToNode(index_inc, BailoutId::None(),
+                         OutputFrameStateCombine::Ignore());
+        environment()->Poke(0, index_inc);
+      }
       for_loop.Continue();
       is_property_missing.Else();
       is_property_missing.End();
@@ -1320,10 +1386,12 @@ void AstGraphBuilder::VisitForInBody(ForInStatement* stmt) {
   Node* index_inc =
       NewNode(javascript()->Add(LanguageMode::SLOPPY), index,
               jsgraph()->OneConstant());
-  // TODO(jarin): provide real bailout id.
-  PrepareFrameStateAfterAndBefore(index_inc, BailoutId::None(),
-                                  OutputFrameStateCombine::Ignore(),
-                                  jsgraph()->EmptyFrameState());
+  {
+    // TODO(jarin): provide real bailout ids.
+    FrameStateBeforeAndAfter states(this, BailoutId::None());
+    states.AddToNode(index_inc, BailoutId::None(),
+                     OutputFrameStateCombine::Ignore());
+  }
   environment()->Poke(0, index_inc);
   for_loop.EndLoop();
   environment()->Drop(5);
@@ -1584,7 +1652,9 @@ void AstGraphBuilder::VisitClassLiteralContents(ClassLiteral* expr) {
   if (expr->scope() != NULL) {
     DCHECK_NOT_NULL(expr->class_variable_proxy());
     Variable* var = expr->class_variable_proxy()->var();
-    BuildVariableAssignment(var, literal, Token::INIT_CONST, BailoutId::None());
+    FrameStateBeforeAndAfter states(this, BailoutId::None());
+    BuildVariableAssignment(states, var, literal, Token::INIT_CONST,
+                            BailoutId::None());
   }
 
   ast_context()->ProduceValue(literal);
@@ -1612,7 +1682,9 @@ void AstGraphBuilder::VisitConditional(Conditional* expr) {
 
 void AstGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
   VectorSlotPair pair = CreateVectorSlotPair(expr->VariableFeedbackSlot());
-  Node* value = BuildVariableLoad(expr->var(), expr->id(), pair);
+  FrameStateBeforeAndAfter states(this, BeforeId(expr));
+  Node* value = BuildVariableLoad(states, expr->var(), expr->id(), pair,
+                                  ast_context()->GetStateCombine());
   ast_context()->ProduceValue(value);
 }
 
@@ -1685,11 +1757,13 @@ void AstGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
         if (key->value()->IsInternalizedString()) {
           if (property->emit_store()) {
             VisitForValue(property->value());
+            FrameStateBeforeAndAfter states(this, property->value()->id());
             Node* value = environment()->Pop();
             Handle<Name> name = key->AsPropertyName();
             Node* store =
                 BuildNamedStore(literal, name, value, TypeFeedbackId::None());
-            PrepareFrameState(store, key->id());
+            states.AddToNode(store, key->id(),
+                             OutputFrameStateCombine::Ignore());
             BuildSetHomeObject(value, literal, property->value());
           } else {
             VisitForEffect(property->value());
@@ -1858,15 +1932,15 @@ void AstGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
     if (CompileTimeValue::IsCompileTimeValue(subexpr)) continue;
 
     VisitForValue(subexpr);
-    Node* frame_state_before = environment()->Checkpoint(
-        subexpr->id(), OutputFrameStateCombine::PokeAt(0));
-    Node* value = environment()->Pop();
-    Node* index = jsgraph()->Constant(i);
-    Node* store =
-        BuildKeyedStore(literal, index, value, TypeFeedbackId::None());
-    PrepareFrameStateAfterAndBefore(store, expr->GetIdForElement(i),
-                                    OutputFrameStateCombine::Ignore(),
-                                    frame_state_before);
+    {
+      FrameStateBeforeAndAfter states(this, subexpr->id());
+      Node* value = environment()->Pop();
+      Node* index = jsgraph()->Constant(i);
+      Node* store =
+          BuildKeyedStore(literal, index, value, TypeFeedbackId::None());
+      states.AddToNode(store, expr->GetIdForElement(i),
+                       OutputFrameStateCombine::Ignore());
+    }
   }
 
   environment()->Pop();  // Array literal index.
@@ -1886,32 +1960,32 @@ void AstGraphBuilder::VisitForInAssignment(Expression* expr, Node* value,
   switch (assign_type) {
     case VARIABLE: {
       Variable* var = expr->AsVariableProxy()->var();
-      BuildVariableAssignment(var, value, Token::ASSIGN, bailout_id);
+      FrameStateBeforeAndAfter states(this, BailoutId::None());
+      BuildVariableAssignment(states, var, value, Token::ASSIGN, bailout_id);
       break;
     }
     case NAMED_PROPERTY: {
       environment()->Push(value);
       VisitForValue(property->obj());
+      FrameStateBeforeAndAfter states(this, property->obj()->id());
       Node* object = environment()->Pop();
       value = environment()->Pop();
       Handle<Name> name = property->key()->AsLiteral()->AsPropertyName();
       Node* store =
           BuildNamedStore(object, name, value, TypeFeedbackId::None());
-      PrepareFrameState(store, bailout_id);
+      states.AddToNode(store, bailout_id, OutputFrameStateCombine::Ignore());
       break;
     }
     case KEYED_PROPERTY: {
       environment()->Push(value);
       VisitForValue(property->obj());
       VisitForValue(property->key());
+      FrameStateBeforeAndAfter states(this, property->key()->id());
       Node* key = environment()->Pop();
       Node* object = environment()->Pop();
       value = environment()->Pop();
       Node* store = BuildKeyedStore(object, key, value, TypeFeedbackId::None());
-      // TODO(jarin) Provide a real frame state before.
-      PrepareFrameStateAfterAndBefore(store, bailout_id,
-                                      OutputFrameStateCombine::Ignore(),
-                                      jsgraph()->EmptyFrameState());
+      states.AddToNode(store, bailout_id, OutputFrameStateCombine::Ignore());
       break;
     }
   }
@@ -1924,12 +1998,19 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
   // Left-hand side can only be a property, a global or a variable slot.
   Property* property = expr->target()->AsProperty();
   LhsKind assign_type = DetermineLhsKind(expr->target());
+  bool needs_frame_state_before = true;
 
   // Evaluate LHS expression.
   switch (assign_type) {
-    case VARIABLE:
-      // Nothing to do here.
+    case VARIABLE: {
+      Variable* variable = expr->target()->AsVariableProxy()->var();
+      if (variable->location() == Variable::PARAMETER ||
+          variable->location() == Variable::LOCAL ||
+          variable->location() == Variable::CONTEXT) {
+        needs_frame_state_before = false;
+      }
       break;
+    }
     case NAMED_PROPERTY:
       VisitForValue(property->obj());
       break;
@@ -1940,10 +2021,9 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
     }
   }
 
+  BailoutId before_store_id = BailoutId::None();
   // Evaluate the value and potentially handle compound assignments by loading
   // the left-hand side value and performing a binary operation.
-  Node* frame_state_before_store = nullptr;
-  bool needs_frame_state_before = (assign_type == KEYED_PROPERTY);
   if (expr->is_compound()) {
     Node* old_value = NULL;
     switch (assign_type) {
@@ -1951,7 +2031,10 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
         VariableProxy* proxy = expr->target()->AsVariableProxy();
         VectorSlotPair pair =
             CreateVectorSlotPair(proxy->VariableFeedbackSlot());
-        old_value = BuildVariableLoad(proxy->var(), expr->target()->id(), pair);
+        FrameStateBeforeAndAfter states(this, BeforeId(proxy));
+        old_value =
+            BuildVariableLoad(states, proxy->var(), expr->target()->id(), pair,
+                              OutputFrameStateCombine::Push());
         break;
       }
       case NAMED_PROPERTY: {
@@ -1959,10 +2042,11 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
         Handle<Name> name = property->key()->AsLiteral()->AsPropertyName();
         VectorSlotPair pair =
             CreateVectorSlotPair(property->PropertyFeedbackSlot());
+        FrameStateBeforeAndAfter states(this, property->obj()->id());
         old_value =
             BuildNamedLoad(object, name, pair, property->PropertyFeedbackId());
-        PrepareFrameState(old_value, property->LoadId(),
-                          OutputFrameStateCombine::Push());
+        states.AddToNode(old_value, property->LoadId(),
+                         OutputFrameStateCombine::Push());
         break;
       }
       case KEYED_PROPERTY: {
@@ -1970,47 +2054,44 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
         Node* object = environment()->Peek(1);
         VectorSlotPair pair =
             CreateVectorSlotPair(property->PropertyFeedbackSlot());
+        FrameStateBeforeAndAfter states(this, property->key()->id());
         old_value =
             BuildKeyedLoad(object, key, pair, property->PropertyFeedbackId());
-        PrepareFrameState(old_value, property->LoadId(),
-                          OutputFrameStateCombine::Push());
+        states.AddToNode(old_value, property->LoadId(),
+                         OutputFrameStateCombine::Push());
         break;
       }
     }
     environment()->Push(old_value);
     VisitForValue(expr->value());
-    Node* frame_state_before = environment()->Checkpoint(expr->value()->id());
-    Node* right = environment()->Pop();
-    Node* left = environment()->Pop();
-    Node* value = BuildBinaryOp(left, right, expr->binary_op());
-    PrepareFrameStateAfterAndBefore(value, expr->binary_operation()->id(),
-                                    OutputFrameStateCombine::Push(),
-                                    frame_state_before);
+    Node* value;
+    {
+      FrameStateBeforeAndAfter states(this, expr->value()->id());
+      Node* right = environment()->Pop();
+      Node* left = environment()->Pop();
+      value = BuildBinaryOp(left, right, expr->binary_op());
+      states.AddToNode(value, expr->binary_operation()->id(),
+                       OutputFrameStateCombine::Push());
+    }
     environment()->Push(value);
     if (needs_frame_state_before) {
-      frame_state_before_store = environment()->Checkpoint(
-          expr->binary_operation()->id(), OutputFrameStateCombine::PokeAt(0));
+      before_store_id = expr->binary_operation()->id();
     }
   } else {
     VisitForValue(expr->value());
     if (needs_frame_state_before) {
-      // This frame state can be used for lazy-deopting from a to-number
-      // conversion if we are storing into a typed array. It is important
-      // that the frame state is usable for such lazy deopt (i.e., it has
-      // to specify how to override the value before the conversion, in this
-      // case, it overwrites the stack top).
-      frame_state_before_store = environment()->Checkpoint(
-          expr->value()->id(), OutputFrameStateCombine::PokeAt(0));
+      before_store_id = expr->value()->id();
     }
   }
 
+  FrameStateBeforeAndAfter store_states(this, before_store_id);
   // Store the value.
   Node* value = environment()->Pop();
   switch (assign_type) {
     case VARIABLE: {
       Variable* variable = expr->target()->AsVariableProxy()->var();
-      BuildVariableAssignment(variable, value, expr->op(), expr->id(),
-                              ast_context()->GetStateCombine());
+      BuildVariableAssignment(store_states, variable, value, expr->op(),
+                              expr->id(), ast_context()->GetStateCombine());
       break;
     }
     case NAMED_PROPERTY: {
@@ -2018,7 +2099,8 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
       Handle<Name> name = property->key()->AsLiteral()->AsPropertyName();
       Node* store =
           BuildNamedStore(object, name, value, expr->AssignmentFeedbackId());
-      PrepareFrameState(store, expr->id(), ast_context()->GetStateCombine());
+      store_states.AddToNode(store, expr->id(),
+                             ast_context()->GetStateCombine());
       break;
     }
     case KEYED_PROPERTY: {
@@ -2026,9 +2108,8 @@ void AstGraphBuilder::VisitAssignment(Assignment* expr) {
       Node* object = environment()->Pop();
       Node* store =
           BuildKeyedStore(object, key, value, expr->AssignmentFeedbackId());
-      PrepareFrameStateAfterAndBefore(store, expr->id(),
-                                      ast_context()->GetStateCombine(),
-                                      frame_state_before_store);
+      store_states.AddToNode(store, expr->id(),
+                             ast_context()->GetStateCombine());
       break;
     }
   }
@@ -2057,17 +2138,20 @@ void AstGraphBuilder::VisitProperty(Property* expr) {
   VectorSlotPair pair = CreateVectorSlotPair(expr->PropertyFeedbackSlot());
   if (expr->key()->IsPropertyName()) {
     VisitForValue(expr->obj());
+    FrameStateBeforeAndAfter states(this, expr->obj()->id());
     Node* object = environment()->Pop();
     Handle<Name> name = expr->key()->AsLiteral()->AsPropertyName();
     value = BuildNamedLoad(object, name, pair, expr->PropertyFeedbackId());
+    states.AddToNode(value, expr->id(), ast_context()->GetStateCombine());
   } else {
     VisitForValue(expr->obj());
     VisitForValue(expr->key());
+    FrameStateBeforeAndAfter states(this, expr->key()->id());
     Node* key = environment()->Pop();
     Node* object = environment()->Pop();
     value = BuildKeyedLoad(object, key, pair, expr->PropertyFeedbackId());
+    states.AddToNode(value, expr->id(), ast_context()->GetStateCombine());
   }
-  PrepareFrameState(value, expr->id(), ast_context()->GetStateCombine());
   ast_context()->ProduceValue(value);
 }
 
@@ -2086,8 +2170,10 @@ void AstGraphBuilder::VisitCall(Call* expr) {
     case Call::GLOBAL_CALL: {
       VariableProxy* proxy = callee->AsVariableProxy();
       VectorSlotPair pair = CreateVectorSlotPair(proxy->VariableFeedbackSlot());
+      FrameStateBeforeAndAfter states(this, BeforeId(proxy));
       callee_value =
-          BuildVariableLoad(proxy->var(), expr->expression()->id(), pair);
+          BuildVariableLoad(states, proxy->var(), expr->expression()->id(),
+                            pair, OutputFrameStateCombine::Push());
       receiver_value = jsgraph()->UndefinedConstant();
       break;
     }
@@ -2112,17 +2198,21 @@ void AstGraphBuilder::VisitCall(Call* expr) {
       VectorSlotPair pair =
           CreateVectorSlotPair(property->PropertyFeedbackSlot());
       if (property->key()->IsPropertyName()) {
+        FrameStateBeforeAndAfter states(this, property->obj()->id());
         Handle<Name> name = property->key()->AsLiteral()->AsPropertyName();
         callee_value =
             BuildNamedLoad(object, name, pair, property->PropertyFeedbackId());
+        states.AddToNode(callee_value, property->LoadId(),
+                         OutputFrameStateCombine::Push());
       } else {
         VisitForValue(property->key());
+        FrameStateBeforeAndAfter states(this, property->key()->id());
         Node* key = environment()->Pop();
         callee_value =
             BuildKeyedLoad(object, key, pair, property->PropertyFeedbackId());
+        states.AddToNode(callee_value, property->LoadId(),
+                         OutputFrameStateCombine::Push());
       }
-      PrepareFrameState(callee_value, property->LoadId(),
-                        OutputFrameStateCombine::Push());
       receiver_value = environment()->Pop();
       // Note that a PROPERTY_CALL requires the receiver to be wrapped into an
       // object for sloppy callees. This could also be modeled explicitly here,
@@ -2167,7 +2257,23 @@ void AstGraphBuilder::VisitCall(Call* expr) {
     // Create node to ask for help resolving potential eval call. This will
     // provide a fully resolved callee and the corresponding receiver.
     Node* function = GetFunctionClosure();
-    Node* receiver = environment()->Lookup(info()->scope()->receiver());
+    // TODO(wingo): ResolvePossibleDirectEval doesn't really need a receiver,
+    // now that eval scopes don't have "this" declarations.  Remove this hack
+    // once ResolvePossibleDirectEval changes.
+    Node* receiver;
+    {
+      Variable* variable = info()->scope()->LookupThis();
+      if (variable->IsStackAllocated()) {
+        receiver = environment()->Lookup(variable);
+      } else {
+        DCHECK(variable->IsContextSlot());
+        int depth = current_scope()->ContextChainLength(variable->scope());
+        bool immutable = variable->maybe_assigned() == kNotAssigned;
+        const Operator* op =
+            javascript()->LoadContext(depth, variable->index(), immutable);
+        receiver = NewNode(op, current_context());
+      }
+    }
     Node* language = jsgraph()->Constant(language_mode());
     Node* position = jsgraph()->Constant(info()->scope()->start_position());
     const Operator* op =
@@ -2216,12 +2322,12 @@ void AstGraphBuilder::VisitCallJSRuntime(CallRuntime* expr) {
   CallFunctionFlags flags = NO_CALL_FUNCTION_FLAGS;
   Node* receiver_value = BuildLoadBuiltinsObject();
   VectorSlotPair pair = CreateVectorSlotPair(expr->CallRuntimeFeedbackSlot());
+  // TODO(jarin): bailout ids for runtime calls.
+  FrameStateBeforeAndAfter states(this, BailoutId::None());
   Node* callee_value =
       BuildNamedLoad(receiver_value, name, pair, expr->CallRuntimeFeedbackId());
-  // TODO(jarin): Find/create a bailout id to deoptimize to (crankshaft
-  // refuses to optimize functions with jsruntime calls).
-  PrepareFrameState(callee_value, BailoutId::None(),
-                    OutputFrameStateCombine::Push());
+  states.AddToNode(callee_value, BailoutId::None(),
+                   OutputFrameStateCombine::Push());
   environment()->Push(callee_value);
   environment()->Push(receiver_value);
 
@@ -2295,35 +2401,39 @@ void AstGraphBuilder::VisitCountOperation(CountOperation* expr) {
     case VARIABLE: {
       VariableProxy* proxy = expr->expression()->AsVariableProxy();
       VectorSlotPair pair = CreateVectorSlotPair(proxy->VariableFeedbackSlot());
+      FrameStateBeforeAndAfter states(this, BeforeId(proxy));
       old_value =
-          BuildVariableLoad(proxy->var(), expr->expression()->id(), pair);
+          BuildVariableLoad(states, proxy->var(), expr->expression()->id(),
+                            pair, OutputFrameStateCombine::Push());
       stack_depth = 0;
       break;
     }
     case NAMED_PROPERTY: {
       VisitForValue(property->obj());
+      FrameStateBeforeAndAfter states(this, property->obj()->id());
       Node* object = environment()->Top();
       Handle<Name> name = property->key()->AsLiteral()->AsPropertyName();
       VectorSlotPair pair =
           CreateVectorSlotPair(property->PropertyFeedbackSlot());
       old_value =
           BuildNamedLoad(object, name, pair, property->PropertyFeedbackId());
-      PrepareFrameState(old_value, property->LoadId(),
-                        OutputFrameStateCombine::Push());
+      states.AddToNode(old_value, property->LoadId(),
+                       OutputFrameStateCombine::Push());
       stack_depth = 1;
       break;
     }
     case KEYED_PROPERTY: {
       VisitForValue(property->obj());
       VisitForValue(property->key());
+      FrameStateBeforeAndAfter states(this, property->key()->id());
       Node* key = environment()->Top();
       Node* object = environment()->Peek(1);
       VectorSlotPair pair =
           CreateVectorSlotPair(property->PropertyFeedbackSlot());
       old_value =
           BuildKeyedLoad(object, key, pair, property->PropertyFeedbackId());
-      PrepareFrameState(old_value, property->LoadId(),
-                        OutputFrameStateCombine::Push());
+      states.AddToNode(old_value, property->LoadId(),
+                       OutputFrameStateCombine::Push());
       stack_depth = 2;
       break;
     }
@@ -2334,29 +2444,32 @@ void AstGraphBuilder::VisitCountOperation(CountOperation* expr) {
   PrepareFrameState(old_value, expr->ToNumberId(),
                     OutputFrameStateCombine::Push());
 
-  Node* frame_state_before_store =
-      assign_type == KEYED_PROPERTY
-          ? environment()->Checkpoint(expr->ToNumberId())
-          : nullptr;
+  // TODO(titzer): combine this framestate with the above?
+  FrameStateBeforeAndAfter store_states(this, assign_type == KEYED_PROPERTY
+                                                  ? expr->ToNumberId()
+                                                  : BailoutId::None());
 
   // Save result for postfix expressions at correct stack depth.
   if (is_postfix) environment()->Poke(stack_depth, old_value);
 
   // Create node to perform +1/-1 operation.
-  Node* value =
-      BuildBinaryOp(old_value, jsgraph()->OneConstant(), expr->binary_op());
-  // This should never deoptimize because we have converted to number
-  // before.
-  PrepareFrameStateAfterAndBefore(value, BailoutId::None(),
-                                  OutputFrameStateCombine::Ignore(),
-                                  jsgraph()->EmptyFrameState());
+  Node* value;
+  {
+    FrameStateBeforeAndAfter states(this, BailoutId::None());
+    value =
+        BuildBinaryOp(old_value, jsgraph()->OneConstant(), expr->binary_op());
+    // This should never deoptimize because we have converted to number
+    // before.
+    states.AddToNode(value, BailoutId::None(),
+                     OutputFrameStateCombine::Ignore());
+  }
 
   // Store the value.
   switch (assign_type) {
     case VARIABLE: {
       Variable* variable = expr->expression()->AsVariableProxy()->var();
       environment()->Push(value);
-      BuildVariableAssignment(variable, value, expr->op(),
+      BuildVariableAssignment(store_states, variable, value, expr->op(),
                               expr->AssignmentId());
       environment()->Pop();
       break;
@@ -2367,7 +2480,8 @@ void AstGraphBuilder::VisitCountOperation(CountOperation* expr) {
       Node* store =
           BuildNamedStore(object, name, value, expr->CountStoreFeedbackId());
       environment()->Push(value);
-      PrepareFrameState(store, expr->AssignmentId());
+      store_states.AddToNode(store, expr->AssignmentId(),
+                             OutputFrameStateCombine::Ignore());
       environment()->Pop();
       break;
     }
@@ -2377,9 +2491,8 @@ void AstGraphBuilder::VisitCountOperation(CountOperation* expr) {
       Node* store =
           BuildKeyedStore(object, key, value, expr->CountStoreFeedbackId());
       environment()->Push(value);
-      PrepareFrameStateAfterAndBefore(store, expr->AssignmentId(),
-                                      OutputFrameStateCombine::Ignore(),
-                                      frame_state_before_store);
+      store_states.AddToNode(store, expr->AssignmentId(),
+                             OutputFrameStateCombine::Ignore());
       environment()->Pop();
       break;
     }
@@ -2402,13 +2515,11 @@ void AstGraphBuilder::VisitBinaryOperation(BinaryOperation* expr) {
     default: {
       VisitForValue(expr->left());
       VisitForValue(expr->right());
-      Node* frame_state_before = environment()->Checkpoint(expr->right()->id());
+      FrameStateBeforeAndAfter states(this, expr->right()->id());
       Node* right = environment()->Pop();
       Node* left = environment()->Pop();
       Node* value = BuildBinaryOp(left, right, expr->op());
-      PrepareFrameStateAfterAndBefore(value, expr->id(),
-                                      ast_context()->GetStateCombine(),
-                                      frame_state_before);
+      states.AddToNode(value, expr->id(), ast_context()->GetStateCombine());
       ast_context()->ProduceValue(value);
     }
   }
@@ -2454,10 +2565,11 @@ void AstGraphBuilder::VisitCompareOperation(CompareOperation* expr) {
   }
   VisitForValue(expr->left());
   VisitForValue(expr->right());
+  FrameStateBeforeAndAfter states(this, expr->right()->id());
   Node* right = environment()->Pop();
   Node* left = environment()->Pop();
   Node* value = NewNode(op, left, right);
-  PrepareFrameState(value, expr->id(), ast_context()->GetStateCombine());
+  states.AddToNode(value, expr->id(), ast_context()->GetStateCombine());
   ast_context()->ProduceValue(value);
 }
 
@@ -2559,8 +2671,10 @@ void AstGraphBuilder::VisitTypeof(UnaryOperation* expr) {
     // perform a non-contextual load in case the operand is a variable proxy.
     VariableProxy* proxy = expr->expression()->AsVariableProxy();
     VectorSlotPair pair = CreateVectorSlotPair(proxy->VariableFeedbackSlot());
-    operand = BuildVariableLoad(proxy->var(), expr->expression()->id(), pair,
-                                NOT_CONTEXTUAL);
+    FrameStateBeforeAndAfter states(this, BeforeId(proxy));
+    operand =
+        BuildVariableLoad(states, proxy->var(), expr->expression()->id(), pair,
+                          OutputFrameStateCombine::Push(), NOT_CONTEXTUAL);
   } else {
     VisitForValue(expr->expression());
     operand = environment()->Pop();
@@ -2639,9 +2753,7 @@ Node* AstGraphBuilder::BuildPatchReceiverToGlobalProxy(Node* receiver) {
   // object). Otherwise there is nothing left to do here.
   if (is_strict(language_mode()) || info()->is_native()) return receiver;
 
-  // There is no need to perform patching if the receiver is never used. Note
-  // that scope predicates are purely syntactical, a call to eval might still
-  // inspect the receiver value.
+  // There is no need to perform patching if the receiver will never be used.
   if (!info()->MayUseThis()) return receiver;
 
   IfBuilder receiver_check(this);
@@ -2658,25 +2770,36 @@ Node* AstGraphBuilder::BuildPatchReceiverToGlobalProxy(Node* receiver) {
 }
 
 
-Node* AstGraphBuilder::BuildLocalFunctionContext(Node* context) {
+Node* AstGraphBuilder::BuildLocalFunctionContext(Node* context,
+                                                 Node* patched_receiver) {
+  Scope* scope = info()->scope();
   Node* closure = GetFunctionClosure();
 
   // Allocate a new local context.
   Node* local_context =
-      info()->scope()->is_script_scope()
-          ? BuildLocalScriptContext(info()->scope())
+      scope->is_script_scope()
+          ? BuildLocalScriptContext(scope)
           : NewNode(javascript()->CreateFunctionContext(), closure);
 
+  if (scope->has_this_declaration() && scope->receiver()->IsContextSlot()) {
+    DCHECK_NOT_NULL(patched_receiver);
+    // Context variable (at bottom of the context chain).
+    Variable* variable = scope->receiver();
+    DCHECK_EQ(0, scope->ContextChainLength(variable->scope()));
+    const Operator* op = javascript()->StoreContext(0, variable->index());
+    NewNode(op, local_context, patched_receiver);
+  }
+
   // Copy parameters into context if necessary.
-  int num_parameters = info()->scope()->num_parameters();
+  int num_parameters = scope->num_parameters();
   for (int i = 0; i < num_parameters; i++) {
-    Variable* variable = info()->scope()->parameter(i);
+    Variable* variable = scope->parameter(i);
     if (!variable->IsContextSlot()) continue;
     // Temporary parameter node. The parameter indices are shifted by 1
     // (receiver is parameter index -1 but environment index 0).
     Node* parameter = NewNode(common()->Parameter(i + 1), graph()->start());
     // Context variable (at bottom of the context chain).
-    DCHECK_EQ(0, info()->scope()->ContextChainLength(variable->scope()));
+    DCHECK_EQ(0, scope->ContextChainLength(variable->scope()));
     const Operator* op = javascript()->StoreContext(0, variable->index());
     NewNode(op, local_context, parameter);
   }
@@ -2721,7 +2844,9 @@ Node* AstGraphBuilder::BuildArgumentsObject(Variable* arguments) {
   // Assign the object to the arguments variable.
   DCHECK(arguments->IsContextSlot() || arguments->IsStackAllocated());
   // This should never lazy deopt, so it is fine to send invalid bailout id.
-  BuildVariableAssignment(arguments, object, Token::ASSIGN, BailoutId::None());
+  FrameStateBeforeAndAfter states(this, BailoutId::None());
+  BuildVariableAssignment(states, arguments, object, Token::ASSIGN,
+                          BailoutId::None());
 
   return object;
 }
@@ -2737,7 +2862,9 @@ Node* AstGraphBuilder::BuildRestArgumentsArray(Variable* rest, int index) {
   // Assign the object to the rest array
   DCHECK(rest->IsContextSlot() || rest->IsStackAllocated());
   // This should never lazy deopt, so it is fine to send invalid bailout id.
-  BuildVariableAssignment(rest, object, Token::ASSIGN, BailoutId::None());
+  FrameStateBeforeAndAfter states(this, BailoutId::None());
+  BuildVariableAssignment(states, rest, object, Token::ASSIGN,
+                          BailoutId::None());
 
   return object;
 }
@@ -2786,9 +2913,11 @@ Node* AstGraphBuilder::BuildThrowIfStaticPrototype(Node* name,
 }
 
 
-Node* AstGraphBuilder::BuildVariableLoad(Variable* variable,
+Node* AstGraphBuilder::BuildVariableLoad(FrameStateBeforeAndAfter& states,
+                                         Variable* variable,
                                          BailoutId bailout_id,
                                          const VectorSlotPair& feedback,
+                                         OutputFrameStateCombine combine,
                                          ContextualMode contextual_mode) {
   Node* the_hole = jsgraph()->TheHoleConstant();
   VariableMode mode = variable->mode();
@@ -2799,7 +2928,7 @@ Node* AstGraphBuilder::BuildVariableLoad(Variable* variable,
       Handle<Name> name = variable->name();
       Node* node = BuildNamedLoad(global, name, feedback,
                                   TypeFeedbackId::None(), contextual_mode);
-      PrepareFrameState(node, bailout_id, OutputFrameStateCombine::Push());
+      states.AddToNode(node, bailout_id, combine);
       return node;
     }
     case Variable::PARAMETER:
@@ -2862,9 +2991,9 @@ Node* AstGraphBuilder::BuildVariableLoad(Variable* variable,
 }
 
 
-Node* AstGraphBuilder::BuildVariableDelete(
-    Variable* variable, BailoutId bailout_id,
-    OutputFrameStateCombine state_combine) {
+Node* AstGraphBuilder::BuildVariableDelete(Variable* variable,
+                                           BailoutId bailout_id,
+                                           OutputFrameStateCombine combine) {
   switch (variable->location()) {
     case Variable::UNALLOCATED: {
       // Global var, const, or let variable.
@@ -2872,7 +3001,7 @@ Node* AstGraphBuilder::BuildVariableDelete(
       Node* name = jsgraph()->Constant(variable->name());
       const Operator* op = javascript()->DeleteProperty(language_mode());
       Node* result = NewNode(op, global, name);
-      PrepareFrameState(result, bailout_id, state_combine);
+      PrepareFrameState(result, bailout_id, combine);
       return result;
     }
     case Variable::PARAMETER:
@@ -2886,7 +3015,7 @@ Node* AstGraphBuilder::BuildVariableDelete(
       const Operator* op =
           javascript()->CallRuntime(Runtime::kDeleteLookupSlot, 2);
       Node* result = NewNode(op, current_context(), name);
-      PrepareFrameState(result, bailout_id, state_combine);
+      PrepareFrameState(result, bailout_id, combine);
       return result;
     }
   }
@@ -2896,8 +3025,8 @@ Node* AstGraphBuilder::BuildVariableDelete(
 
 
 Node* AstGraphBuilder::BuildVariableAssignment(
-    Variable* variable, Node* value, Token::Value op, BailoutId bailout_id,
-    OutputFrameStateCombine combine) {
+    FrameStateBeforeAndAfter& states, Variable* variable, Node* value,
+    Token::Value op, BailoutId bailout_id, OutputFrameStateCombine combine) {
   Node* the_hole = jsgraph()->TheHoleConstant();
   VariableMode mode = variable->mode();
   switch (variable->location()) {
@@ -2907,7 +3036,7 @@ Node* AstGraphBuilder::BuildVariableAssignment(
       Handle<Name> name = variable->name();
       Node* store =
           BuildNamedStore(global, name, value, TypeFeedbackId::None());
-      PrepareFrameState(store, bailout_id, combine);
+      states.AddToNode(store, bailout_id, combine);
       return store;
     }
     case Variable::PARAMETER:
@@ -3003,8 +3132,11 @@ Node* AstGraphBuilder::BuildVariableAssignment(
 
 
 static inline Node* Record(JSTypeFeedbackTable* js_type_feedback, Node* node,
-                           TypeFeedbackId id) {
-  if (js_type_feedback) js_type_feedback->Record(node, id);
+                           TypeFeedbackId id, FeedbackVectorICSlot slot) {
+  if (js_type_feedback) {
+    js_type_feedback->Record(node, id);
+    js_type_feedback->Record(node, slot);
+  }
   return node;
 }
 
@@ -3013,7 +3145,8 @@ Node* AstGraphBuilder::BuildKeyedLoad(Node* object, Node* key,
                                       const VectorSlotPair& feedback,
                                       TypeFeedbackId id) {
   const Operator* op = javascript()->LoadProperty(feedback);
-  return Record(js_type_feedback_, NewNode(op, object, key), id);
+  return Record(js_type_feedback_, NewNode(op, object, key), id,
+                feedback.slot());
 }
 
 
@@ -3022,14 +3155,15 @@ Node* AstGraphBuilder::BuildNamedLoad(Node* object, Handle<Name> name,
                                       TypeFeedbackId id, ContextualMode mode) {
   const Operator* op =
       javascript()->LoadNamed(MakeUnique(name), feedback, mode);
-  return Record(js_type_feedback_, NewNode(op, object), id);
+  return Record(js_type_feedback_, NewNode(op, object), id, feedback.slot());
 }
 
 
 Node* AstGraphBuilder::BuildKeyedStore(Node* object, Node* key, Node* value,
                                        TypeFeedbackId id) {
   const Operator* op = javascript()->StoreProperty(language_mode());
-  return Record(js_type_feedback_, NewNode(op, object, key, value), id);
+  return Record(js_type_feedback_, NewNode(op, object, key, value), id,
+                FeedbackVectorICSlot::Invalid());
 }
 
 
@@ -3037,7 +3171,8 @@ Node* AstGraphBuilder::BuildNamedStore(Node* object, Handle<Name> name,
                                        Node* value, TypeFeedbackId id) {
   const Operator* op =
       javascript()->StoreNamed(language_mode(), MakeUnique(name));
-  return Record(js_type_feedback_, NewNode(op, object, value), id);
+  return Record(js_type_feedback_, NewNode(op, object, value), id,
+                FeedbackVectorICSlot::Invalid());
 }
 
 
@@ -3126,9 +3261,10 @@ Node* AstGraphBuilder::BuildSetHomeObject(Node* value, Node* home_object,
                                           Expression* expr) {
   if (!FunctionLiteral::NeedsHomeObject(expr)) return value;
   Handle<Name> name = isolate()->factory()->home_object_symbol();
+  FrameStateBeforeAndAfter states(this, BailoutId::None());
   Node* store =
       BuildNamedStore(value, name, home_object, TypeFeedbackId::None());
-  PrepareFrameState(store, BailoutId::None());
+  states.AddToNode(store, BailoutId::None(), OutputFrameStateCombine::Ignore());
   return store;
 }
 
@@ -3256,24 +3392,6 @@ void AstGraphBuilder::PrepareFrameState(Node* node, BailoutId ast_id,
               NodeProperties::GetFrameStateInput(node, 0)->opcode());
     NodeProperties::ReplaceFrameStateInput(
         node, 0, environment()->Checkpoint(ast_id, combine));
-  }
-}
-
-
-void AstGraphBuilder::PrepareFrameStateAfterAndBefore(
-    Node* node, BailoutId ast_id, OutputFrameStateCombine combine,
-    Node* frame_state_before) {
-  if (OperatorProperties::GetFrameStateInputCount(node->op()) > 0) {
-    DCHECK_EQ(2, OperatorProperties::GetFrameStateInputCount(node->op()));
-
-    DCHECK_EQ(IrOpcode::kDead,
-              NodeProperties::GetFrameStateInput(node, 0)->opcode());
-    NodeProperties::ReplaceFrameStateInput(
-        node, 0, environment()->Checkpoint(ast_id, combine));
-
-    DCHECK_EQ(IrOpcode::kDead,
-              NodeProperties::GetFrameStateInput(node, 1)->opcode());
-    NodeProperties::ReplaceFrameStateInput(node, 1, frame_state_before);
   }
 }
 

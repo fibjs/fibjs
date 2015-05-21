@@ -212,6 +212,18 @@ RUNTIME_FUNCTION(Runtime_GetOptimizationCount) {
 }
 
 
+RUNTIME_FUNCTION(Runtime_GetUndetectable) {
+  HandleScope scope(isolate);
+  DCHECK(args.length() == 0);
+
+  Local<v8::ObjectTemplate> desc =
+      v8::ObjectTemplate::New((v8::Isolate*)isolate);
+  desc->MarkAsUndetectable();  // undetectable
+  Local<v8::Object> obj = desc->NewInstance();
+  return *Utils::OpenHandle(*obj);
+}
+
+
 RUNTIME_FUNCTION(Runtime_ClearFunctionTypeFeedback) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1);
@@ -360,13 +372,8 @@ RUNTIME_FUNCTION(Runtime_AbortJS) {
 
 RUNTIME_FUNCTION(Runtime_NativeScriptsCount) {
   DCHECK(args.length() == 0);
-  return Smi::FromInt(Natives::GetBuiltinsCount());
-}
-
-
-RUNTIME_FUNCTION(Runtime_NativeExtrasCount) {
-  DCHECK(args.length() == 0);
-  return Smi::FromInt(ExtraNatives::GetBuiltinsCount());
+  return Smi::FromInt(Natives::GetBuiltinsCount() +
+                      ExtraNatives::GetBuiltinsCount());
 }
 
 
@@ -494,5 +501,5 @@ TYPED_ARRAYS(TYPED_ARRAYS_CHECK_RUNTIME_FUNCTION)
 TYPED_ARRAYS(FIXED_TYPED_ARRAYS_CHECK_RUNTIME_FUNCTION)
 
 #undef FIXED_TYPED_ARRAYS_CHECK_RUNTIME_FUNCTION
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

@@ -2812,13 +2812,22 @@ WriteBarrierMode HeapObject::GetWriteBarrierMode(
 
 
 bool HeapObject::NeedsToEnsureDoubleAlignment() {
-#ifndef V8_HOST_ARCH_64_BIT
+#ifdef V8_HOST_ARCH_32_BIT
   return (IsFixedFloat64Array() || IsFixedDoubleArray() ||
           IsConstantPoolArray()) &&
          FixedArrayBase::cast(this)->length() != 0;
 #else
   return false;
-#endif  // V8_HOST_ARCH_64_BIT
+#endif  // V8_HOST_ARCH_32_BIT
+}
+
+
+bool HeapObject::NeedsToEnsureDoubleUnalignment() {
+#ifdef V8_HOST_ARCH_32_BIT
+  return IsHeapNumber();
+#else
+  return false;
+#endif  // V8_HOST_ARCH_32_BIT
 }
 
 
@@ -4706,6 +4715,16 @@ bool Map::is_migration_target() {
 }
 
 
+void Map::set_is_strong(bool value) {
+  set_bit_field3(IsStrong::update(bit_field3(), value));
+}
+
+
+bool Map::is_strong() {
+  return IsStrong::decode(bit_field3());
+}
+
+
 void Map::set_counter(int value) {
   set_bit_field3(Counter::update(bit_field3(), value));
 }
@@ -5532,9 +5551,6 @@ ACCESSORS(Script, eval_from_shared, Object, kEvalFromSharedOffset)
 ACCESSORS_TO_SMI(Script, eval_from_instructions_offset,
                  kEvalFrominstructionsOffsetOffset)
 ACCESSORS_TO_SMI(Script, flags, kFlagsOffset)
-BOOL_ACCESSORS(Script, flags, is_embedder_debug_script,
-               kIsEmbedderDebugScriptBit)
-BOOL_ACCESSORS(Script, flags, is_shared_cross_origin, kIsSharedCrossOriginBit)
 ACCESSORS(Script, source_url, Object, kSourceUrlOffset)
 ACCESSORS(Script, source_mapping_url, Object, kSourceMappingUrlOffset)
 
@@ -5553,6 +5569,15 @@ Script::CompilationState Script::compilation_state() {
 void Script::set_compilation_state(CompilationState state) {
   set_flags(BooleanBit::set(flags(), kCompilationStateBit,
       state == COMPILATION_STATE_COMPILED));
+}
+ScriptOriginOptions Script::origin_options() {
+  return ScriptOriginOptions((flags()->value() & kOriginOptionsMask) >>
+                             kOriginOptionsShift);
+}
+void Script::set_origin_options(ScriptOriginOptions origin_options) {
+  DCHECK(!(origin_options.Flags() & ~((1 << kOriginOptionsSize) - 1)));
+  set_flags(Smi::FromInt((flags()->value() & ~kOriginOptionsMask) |
+                         (origin_options.Flags() << kOriginOptionsShift)));
 }
 
 
@@ -6304,8 +6329,8 @@ ACCESSORS(JSDate, min, Object, kMinOffset)
 ACCESSORS(JSDate, sec, Object, kSecOffset)
 
 
-ACCESSORS(JSMessageObject, type, String, kTypeOffset)
-ACCESSORS(JSMessageObject, arguments, JSArray, kArgumentsOffset)
+SMI_ACCESSORS(JSMessageObject, type, kTypeOffset)
+ACCESSORS(JSMessageObject, argument, Object, kArgumentsOffset)
 ACCESSORS(JSMessageObject, script, Object, kScriptOffset)
 ACCESSORS(JSMessageObject, stack_frames, Object, kStackFramesOffset)
 SMI_ACCESSORS(JSMessageObject, start_position, kStartPositionOffset)
@@ -7033,6 +7058,16 @@ bool AccessorInfo::all_can_write() {
 
 void AccessorInfo::set_all_can_write(bool value) {
   set_flag(BooleanBit::set(flag(), kAllCanWriteBit, value));
+}
+
+
+bool AccessorInfo::is_special_data_property() {
+  return BooleanBit::get(flag(), kSpecialDataProperty);
+}
+
+
+void AccessorInfo::set_is_special_data_property(bool value) {
+  set_flag(BooleanBit::set(flag(), kSpecialDataProperty, value));
 }
 
 

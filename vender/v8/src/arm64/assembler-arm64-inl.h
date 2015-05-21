@@ -867,8 +867,8 @@ bool RelocInfo::IsPatchedReturnSequence() {
   // See arm64/debug-arm64.cc BreakLocation::SetDebugBreakAtReturn().
   Instruction* i1 = reinterpret_cast<Instruction*>(pc_);
   Instruction* i2 = i1->following();
-  return i1->IsLdrLiteralX() && (i1->Rt() == ip0.code()) &&
-         i2->IsBranchAndLinkToRegister() && (i2->Rn() == ip0.code());
+  return i1->IsLdrLiteralX() && (i1->Rt() == kIp0Code) &&
+         i2->IsBranchAndLinkToRegister() && (i2->Rn() == kIp0Code);
 }
 
 
@@ -1084,13 +1084,14 @@ Instr Assembler::SF(Register rd) {
 }
 
 
-Instr Assembler::ImmAddSub(int64_t imm) {
+Instr Assembler::ImmAddSub(int imm) {
   DCHECK(IsImmAddSub(imm));
   if (is_uint12(imm)) {  // No shift required.
-    return imm << ImmAddSub_offset;
+    imm <<= ImmAddSub_offset;
   } else {
-    return ((imm >> 12) << ImmAddSub_offset) | (1 << ShiftAddSub_offset);
+    imm = ((imm >> 12) << ImmAddSub_offset) | (1 << ShiftAddSub_offset);
   }
+  return imm;
 }
 
 
@@ -1239,13 +1240,13 @@ LSDataSize Assembler::CalcLSDataSize(LoadStoreOp op) {
 }
 
 
-Instr Assembler::ImmMoveWide(uint64_t imm) {
+Instr Assembler::ImmMoveWide(int imm) {
   DCHECK(is_uint16(imm));
   return imm << ImmMoveWide_offset;
 }
 
 
-Instr Assembler::ShiftMoveWide(int64_t shift) {
+Instr Assembler::ShiftMoveWide(int shift) {
   DCHECK(is_uint2(shift));
   return shift << ShiftMoveWide_offset;
 }

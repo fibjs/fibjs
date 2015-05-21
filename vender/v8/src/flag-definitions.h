@@ -193,12 +193,12 @@ DEFINE_IMPLICATION(es_staging, harmony)
   V(harmony_unicode_regexps, "harmony unicode regexps")         \
   V(harmony_reflect, "harmony Reflect API")                     \
   V(harmony_destructuring, "harmony destructuring")             \
-  V(harmony_object, "harmony Object methods")
 
 // Features that are complete (but still behind --harmony/es-staging flag).
 #define HARMONY_STAGED(V)                               \
   V(harmony_rest_parameters, "harmony rest parameters") \
   V(harmony_spreadcalls, "harmony spread-calls")        \
+  V(harmony_object, "harmony Object methods")
 
 // Features that are shipping (turned on by default, but internal flag remains).
 #define HARMONY_SHIPPING(V)                                                \
@@ -260,7 +260,6 @@ DEFINE_BOOL(track_field_types, true, "track field types")
 DEFINE_IMPLICATION(track_field_types, track_fields)
 DEFINE_IMPLICATION(track_field_types, track_heap_object_fields)
 DEFINE_BOOL(smi_binop, true, "support smi representation in binary operations")
-DEFINE_BOOL(vector_ics, true, "support vector-based ics")
 
 // Flags for optimization types.
 DEFINE_BOOL(optimize_for_size, false,

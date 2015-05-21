@@ -232,6 +232,7 @@ namespace internal {
   V(source_string, "source")                                   \
   V(source_url_string, "source_url")                           \
   V(source_mapping_url_string, "source_mapping_url")           \
+  V(this_string, "this")                                       \
   V(global_string, "global")                                   \
   V(ignore_case_string, "ignoreCase")                          \
   V(multiline_string, "multiline")                             \
@@ -718,7 +719,10 @@ class Heap {
   // This method assumes overallocation of one word. It will store a filler
   // before the object if the given object is not double aligned, otherwise
   // it will place the filler after the object.
-  MUST_USE_RESULT HeapObject* EnsureDoubleAligned(HeapObject* object, int size);
+  MUST_USE_RESULT HeapObject* EnsureAligned(HeapObject* object, int size,
+                                            AllocationAlignment alignment);
+
+  MUST_USE_RESULT HeapObject* PrecedeWithFiller(HeapObject* object);
 
   // Clear the Instanceof cache (used when a prototype changes).
   inline void ClearInstanceofCache();
@@ -1023,6 +1027,13 @@ class Heap {
   // Print short heap statistics.
   void PrintShortHeapStatistics();
 
+  size_t object_count_last_gc(size_t index) {
+    return index < OBJECT_STATS_COUNT ? object_counts_last_time_[index] : 0;
+  }
+  size_t object_size_last_gc(size_t index) {
+    return index < OBJECT_STATS_COUNT ? object_sizes_last_time_[index] : 0;
+  }
+
   // Write barrier support for address[offset] = o.
   INLINE(void RecordWrite(Address address, int offset));
 
@@ -1082,7 +1093,10 @@ class Heap {
 
   inline intptr_t PromotedTotalSize() {
     int64_t total = PromotedSpaceSizeOfObjects() + PromotedExternalMemorySize();
-    if (total > kMaxInt) return static_cast<intptr_t>(kMaxInt);
+    if (total > std::numeric_limits<intptr_t>::max()) {
+      // TODO(erikcorry): Use uintptr_t everywhere we do heap size calculations.
+      return std::numeric_limits<intptr_t>::max();
+    }
     if (total < 0) return 0;
     return static_cast<intptr_t>(total);
   }
@@ -1311,6 +1325,8 @@ class Heap {
   // Returns minimal interval between two subsequent collections.
   double get_min_in_mutator() { return min_in_mutator_; }
 
+  void IncrementDeferredCount(v8::Isolate::UseCounterFeature feature);
+
   MarkCompactCollector* mark_compact_collector() {
     return &mark_compact_collector_;
   }
@@ -1453,6 +1469,8 @@ class Heap {
   void TraceObjectStats();
   void TraceObjectStat(const char* name, int count, int size, double time);
   void CheckpointObjectStats();
+  bool GetObjectTypeName(size_t index, const char** object_type,
+                         const char** object_sub_type);
 
   void RegisterStrongRoots(Object** start, Object** end);
   void UnregisterStrongRoots(Object** start);
@@ -1816,15 +1834,13 @@ class Heap {
 
   HeapObject* DoubleAlignForDeserialization(HeapObject* object, int size);
 
-  enum Alignment { kWordAligned, kDoubleAligned };
-
   // Allocate an uninitialized object.  The memory is non-executable if the
   // hardware and OS allow.  This is the single choke-point for allocations
   // performed by the runtime and should not be bypassed (to extend this to
   // inlined allocations, use the Heap::DisableInlineAllocation() support).
   MUST_USE_RESULT inline AllocationResult AllocateRaw(
       int size_in_bytes, AllocationSpace space, AllocationSpace retry_space,
-      Alignment aligment = kWordAligned);
+      AllocationAlignment aligment = kWordAligned);
 
   // Allocates a heap object based on the map.
   MUST_USE_RESULT AllocationResult
@@ -2047,6 +2063,8 @@ class Heap {
   // Total RegExp code ever generated
   double total_regexp_code_generated_;
 
+  int deferred_counters_[v8::Isolate::kUseCounterFeatureCount];
+
   GCTracer tracer_;
 
   // Creates and installs the full-sized number string cache.
@@ -2096,11 +2114,9 @@ class Heap {
 
   void SelectScavengingVisitorsTable();
 
-  void ReduceNewSpaceSize(bool is_long_idle_notification);
-
   bool TryFinalizeIdleIncrementalMarking(
-      bool is_long_idle_notification, double idle_time_in_ms,
-      size_t size_of_objects, size_t mark_compact_speed_in_bytes_per_ms);
+      double idle_time_in_ms, size_t size_of_objects,
+      size_t mark_compact_speed_in_bytes_per_ms);
 
   void ClearObjectStats(bool clear_last_time_stats = false);
 
@@ -2126,14 +2142,17 @@ class Heap {
   // Minimal interval between two subsequent collections.
   double min_in_mutator_;
 
-  // Cumulative GC time spent in marking
+  // Cumulative GC time spent in marking.
   double marking_time_;
 
-  // Cumulative GC time spent in sweeping
+  // Cumulative GC time spent in sweeping.
   double sweeping_time_;
 
-  // Last time an idle notification happened
+  // Last time an idle notification happened.
   double last_idle_notification_time_;
+
+  // Last time a garbage collection happened.
+  double last_gc_time_;
 
   MarkCompactCollector mark_compact_collector_;
 

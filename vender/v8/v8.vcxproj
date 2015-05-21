@@ -119,6 +119,7 @@
     <ClInclude Include="src\compiler\control-reducer.h" />
     <ClInclude Include="src\compiler\diamond.h" />
     <ClInclude Include="src\compiler\frame-elider.h" />
+    <ClInclude Include="src\compiler\frame-states.h" />
     <ClInclude Include="src\compiler\frame.h" />
     <ClInclude Include="src\compiler\gap-resolver.h" />
     <ClInclude Include="src\compiler\graph-builder.h" />
@@ -501,6 +502,7 @@
     <ClCompile Include="src\compiler\control-flow-optimizer.cc" />
     <ClCompile Include="src\compiler\control-reducer.cc" />
     <ClCompile Include="src\compiler\frame-elider.cc" />
+    <ClCompile Include="src\compiler\frame-states.cc" />
     <ClCompile Include="src\compiler\gap-resolver.cc" />
     <ClCompile Include="src\compiler\graph-reducer.cc" />
     <ClCompile Include="src\compiler\graph-replay.cc" />
@@ -700,6 +702,7 @@
     <ClCompile Include="src\optimizing-compile-dispatcher.cc" />
     <ClCompile Include="src\ostreams.cc" />
     <ClCompile Include="src\parser.cc" />
+    <ClCompile Include="src\pattern-rewriter.cc" />
     <ClCompile Include="src\pending-compilation-error-handler.cc" />
     <ClCompile Include="src\perf-jit.cc" />
     <ClCompile Include="src\ppc\assembler-ppc.cc" />

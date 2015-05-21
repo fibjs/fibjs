@@ -837,7 +837,6 @@ bool HInstruction::CanDeoptimize() {
     case HValue::kStoreNamedGeneric:
     case HValue::kStringCharCodeAt:
     case HValue::kStringCharFromCode:
-    case HValue::kTailCallThroughMegamorphicCache:
     case HValue::kThisFunction:
     case HValue::kTypeofIsAndBranch:
     case HValue::kUnknownOSRValue:
@@ -874,6 +873,7 @@ bool HInstruction::CanDeoptimize() {
     case HValue::kLoadKeyed:
     case HValue::kLoadKeyedGeneric:
     case HValue::kMathFloorOfDiv:
+    case HValue::kMaybeGrowElements:
     case HValue::kMod:
     case HValue::kMul:
     case HValue::kOsrEntry:
@@ -1713,22 +1713,6 @@ std::ostream& HCheckInstanceType::PrintDataTo(
 std::ostream& HCallStub::PrintDataTo(std::ostream& os) const {  // NOLINT
   os << CodeStub::MajorName(major_key_, false) << " ";
   return HUnaryCall::PrintDataTo(os);
-}
-
-
-Code::Flags HTailCallThroughMegamorphicCache::flags() const {
-  Code::Flags code_flags = Code::RemoveTypeAndHolderFromFlags(
-      Code::ComputeHandlerFlags(Code::LOAD_IC));
-  return code_flags;
-}
-
-
-std::ostream& HTailCallThroughMegamorphicCache::PrintDataTo(
-    std::ostream& os) const {  // NOLINT
-  for (int i = 0; i < OperandCount(); i++) {
-    os << NameOf(OperandAt(i)) << " ";
-  }
-  return os << "flags: " << flags();
 }
 
 
@@ -2975,7 +2959,7 @@ std::ostream& HConstant::PrintDataTo(std::ostream& os) const {  // NOLINT
     os << reinterpret_cast<void*>(external_reference_value_.address()) << " ";
   } else {
     // The handle() method is silently and lazily mutating the object.
-    Handle<Object> h = const_cast<HConstant*>(this)->handle(Isolate::Current());
+    Handle<Object> h = const_cast<HConstant*>(this)->handle(isolate());
     os << Brief(*h) << " ";
     if (HasStableMapValue()) os << "[stable-map] ";
     if (HasObjectMap()) os << "[map " << *ObjectMap().handle() << "] ";

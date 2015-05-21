@@ -13,6 +13,7 @@
 #include "src/ic/handler-compiler.h"
 #include "src/ic/ic.h"
 #include "src/macro-assembler.h"
+#include "src/parser.h"
 
 namespace v8 {
 namespace internal {
@@ -453,6 +454,35 @@ void CompareNilICStub::UpdateStatus(Handle<Object> object) {
 }
 
 
+namespace {
+
+Handle<JSFunction> GetFunction(Isolate* isolate, const char* name) {
+  v8::ExtensionConfiguration no_extensions;
+  Handle<Context> ctx = isolate->bootstrapper()->CreateEnvironment(
+      MaybeHandle<JSGlobalProxy>(), v8::Handle<v8::ObjectTemplate>(),
+      &no_extensions);
+  Handle<JSBuiltinsObject> builtins = handle(ctx->builtins());
+  MaybeHandle<Object> fun = Object::GetProperty(isolate, builtins, name);
+  Handle<JSFunction> function = Handle<JSFunction>::cast(fun.ToHandleChecked());
+  DCHECK(!function->IsUndefined() &&
+         "JavaScript implementation of stub not found");
+  // Just to make sure nobody calls this...
+  function->set_code(isolate->builtins()->builtin(Builtins::kIllegal));
+  return function;
+}
+}  // namespace
+
+
+Handle<Code> TurboFanCodeStub::GenerateCode() {
+  Zone zone;
+  // Build a "hybrid" CompilationInfo for a JSFunction/CodeStub pair.
+  ParseInfo parse_info(&zone, GetFunction(isolate(), GetFunctionName()));
+  CompilationInfo info(&parse_info);
+  info.SetStub(this);
+  return info.GenerateCodeStub();
+}
+
+
 template<class StateType>
 void HydrogenCodeStub::TraceTransition(StateType from, StateType to) {
   // Note: Although a no-op transition is semantically OK, it is hinting at a
@@ -564,11 +594,6 @@ void JSEntryStub::FinishCode(Handle<Code> code) {
 }
 
 
-void LoadFastElementStub::InitializeDescriptor(CodeStubDescriptor* descriptor) {
-  descriptor->Initialize(FUNCTION_ADDR(KeyedLoadIC_MissFromStubFailure));
-}
-
-
 void LoadDictionaryElementStub::InitializeDescriptor(
     CodeStubDescriptor* descriptor) {
   descriptor->Initialize(FUNCTION_ADDR(KeyedLoadIC_MissFromStubFailure));
@@ -593,10 +618,7 @@ void HandlerStub::InitializeDescriptor(CodeStubDescriptor* descriptor) {
 
 CallInterfaceDescriptor HandlerStub::GetCallInterfaceDescriptor() {
   if (kind() == Code::LOAD_IC || kind() == Code::KEYED_LOAD_IC) {
-    if (FLAG_vector_ics) {
-      return VectorLoadICDescriptor(isolate());
-    }
-    return LoadDescriptor(isolate());
+    return VectorLoadICDescriptor(isolate());
   } else {
     DCHECK_EQ(Code::STORE_IC, kind());
     return StoreDescriptor(isolate());
@@ -619,9 +641,6 @@ void ElementsTransitionAndStoreStub::InitializeDescriptor(
 CallInterfaceDescriptor StoreTransitionStub::GetCallInterfaceDescriptor() {
   return StoreTransitionDescriptor(isolate());
 }
-
-
-void MegamorphicLoadStub::InitializeDescriptor(CodeStubDescriptor* d) {}
 
 
 void FastNewClosureStub::InitializeDescriptor(CodeStubDescriptor* descriptor) {
