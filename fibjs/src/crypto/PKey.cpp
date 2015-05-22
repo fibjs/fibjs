@@ -39,7 +39,7 @@ void PKey::clear()
 result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
 {
     if (size < 128 || size > 8192)
-        return CHECK_ERROR(Runtime::setError("Invalid key size"));
+        return CHECK_ERROR(Runtime::setError("PKey: Invalid key size"));
 
     if (switchToAsync(ac))
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -69,7 +69,7 @@ result_t PKey::genEcKey(const char *curve, exlib::AsyncEvent *ac)
     const ecp_curve_info *curve_info;
     curve_info = ecp_curve_info_from_name(curve);
     if (curve_info == NULL)
-        return CHECK_ERROR(Runtime::setError("Unknown curve"));
+        return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
     int ret;
 

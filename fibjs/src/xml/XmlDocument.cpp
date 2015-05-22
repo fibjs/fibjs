@@ -128,7 +128,7 @@ result_t XmlDocument::checkNode(XmlNode_base *newChild)
         if (m_element)
         {
             if (m_element != newChild)
-                return Runtime::setError("The document node contains only one element node.");
+                return Runtime::setError("XmlDocument: The document node contains only one element node.");
         }
         else
             m_element = (XmlElement_base *)newChild;
@@ -138,7 +138,7 @@ result_t XmlDocument::checkNode(XmlNode_base *newChild)
         if (m_doctype)
         {
             if (m_doctype != newChild)
-                return Runtime::setError("The document node contains only one element node.");
+                return Runtime::setError("XmlDocument: The document node contains only one element node.");
         }
         else
             m_doctype = (XmlDocumentType_base *)newChild;

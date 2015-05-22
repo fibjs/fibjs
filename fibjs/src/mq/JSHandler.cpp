@@ -31,7 +31,7 @@ inline result_t msgMethod(Message_base *msg, std::string &method)
         if (p != p1)
             break;
         if (!*p)
-            return CHECK_ERROR(Runtime::setError("method \"" + method + "\" not found."));
+            return CHECK_ERROR(Runtime::setError("JSHandler: method \"" + method + "\" not found."));
         p++;
         p1 = p;
     }
@@ -137,7 +137,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                                v8::String::kNormalString,
                                                (int) method.length()));
             if (IsEmpty (hdlr))
-                return CHECK_ERROR(Runtime::setError("method \"" + method + "\" not found."));
+                return CHECK_ERROR(Runtime::setError("JSHandler: method \"" + method + "\" not found."));
 
             bResult = false;
         }

@@ -142,10 +142,10 @@ result_t http_base::request(const char *method, const char *url,
             else if (!qstrcmp(u->m_protocol.c_str(), "http:"))
                 connUrl = "tcp://";
             else
-                return CHECK_ERROR(Runtime::setError("unknown protocol"));
+                return CHECK_ERROR(Runtime::setError("http: unknown protocol"));
 
             if (u->m_host.empty())
-                return CHECK_ERROR(Runtime::setError("unknown host"));
+                return CHECK_ERROR(Runtime::setError("http: unknown host"));
 
             connUrl.append(u->m_host);
 
@@ -199,7 +199,7 @@ result_t http_base::request(const char *method, const char *url,
         location = v.string();
 
         if (urls.find(location) != urls.end())
-            return CHECK_ERROR(Runtime::setError("redirect cycle"));
+            return CHECK_ERROR(Runtime::setError("http: redirect cycle"));
 
         url = location.c_str();
     }

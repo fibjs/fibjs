@@ -60,7 +60,7 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     };
 
     if (m_array.size() == 0)
-        return CHECK_ERROR(Runtime::setError("empty chain."));
+        return CHECK_ERROR(Runtime::setError("Chain: empty chain."));
 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);

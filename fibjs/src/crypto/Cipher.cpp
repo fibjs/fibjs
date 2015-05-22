@@ -87,9 +87,9 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
                            v8::Local<v8::Object> This)
 {
     if (provider < crypto_base::_AES || provider > crypto_base::_ARC4)
-        return CHECK_ERROR(Runtime::setError("Invalid provider"));
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid provider"));
     if (mode < crypto_base::_ECB || mode > crypto_base::_CCM)
-        return CHECK_ERROR(Runtime::setError("Invalid mode"));
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
 
     std::string strKey;
     const cipher_info_t *info = NULL;
@@ -98,7 +98,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
     size_t keylen = strKey.length();
 
     if (keylen == 0)
-        return CHECK_ERROR(Runtime::setError("Invalid key size"));
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid key size"));
 
     if (keylen == 16 && provider == crypto_base::_DES_EDE3)
     {
@@ -111,12 +111,12 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
         {
             info = s_sizes[provider - crypto_base::_AES][i].cis[mode];
             if (info == NULL)
-                return CHECK_ERROR(Runtime::setError("Invalid mode"));
+                return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
             break;
         }
 
     if (info == NULL)
-        return CHECK_ERROR(Runtime::setError("Invalid key size"));
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid key size"));
 
     obj_ptr<Cipher> ci = new Cipher(info);
 
@@ -178,7 +178,7 @@ result_t Cipher::init(std::string &key, std::string &iv)
                                        m_iv.length()))
     {
         m_iv.resize(0);
-        return CHECK_ERROR(Runtime::setError("Invalid iv size"));
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid iv size"));
     }
 
     return 0;

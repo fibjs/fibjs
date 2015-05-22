@@ -301,7 +301,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         return 0;
     }
     else
-        return CHECK_ERROR(Runtime::setError("Invalid file format."));
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
 
     return 0;
 }
@@ -385,7 +385,7 @@ result_t SandBox::require(std::string base, std::string id,
                 return hr;
 
             if (v.IsEmpty() || !v->IsObject())
-                return CHECK_ERROR(Runtime::setError("Invalid package.json"));
+                return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
             v8::Local<v8::Value> main = o->Get(v8::String::NewFromUtf8(Isolate::now().isolate, "main",
@@ -393,7 +393,7 @@ result_t SandBox::require(std::string base, std::string id,
             if (!IsEmpty(main))
             {
                 if (!main->IsString() && !main->IsStringObject())
-                    return CHECK_ERROR(Runtime::setError("Invalid package.json"));
+                    return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
                 fname = strId + PATH_SLASH;
                 fname += *v8::String::Utf8Value(main);
 

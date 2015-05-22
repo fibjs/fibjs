@@ -105,7 +105,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         }
     }
 
-    return CHECK_ERROR(Runtime::setError("unknown routing."));
+    return CHECK_ERROR(Runtime::setError("Routing: unknown routing."));
 }
 
 result_t Routing::append(const char *pattern, Handler_base *hdlr)
@@ -122,7 +122,7 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
     {
         char buf[1024];
 
-        sprintf(buf, "Compilation failed at offset %d: %s.", erroffset, error);
+        sprintf(buf, "Routing: Compilation failed at offset %d: %s.", erroffset, error);
         return CHECK_ERROR(Runtime::setError(buf));
     }
 

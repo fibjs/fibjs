@@ -294,7 +294,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
                     || !qisdigit(pThis->m_strLine[11])
                     || (pThis->m_strLine.length() > 12
                         && qisdigit(pThis->m_strLine[12])))
-                return CHECK_ERROR(Runtime::setError("bad protocol: " + pThis->m_strLine));
+                return CHECK_ERROR(Runtime::setError("HttpResponse: bad protocol: " + pThis->m_strLine));
 
             pThis->m_pThis->set_status(atoi(pThis->m_strLine.c_str() + 8));
             pThis->m_strLine.resize(8);

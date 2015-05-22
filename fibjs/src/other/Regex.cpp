@@ -61,7 +61,7 @@ result_t Regex::compile(const char *pattern, const char *opt)
     {
         char buf[1024];
 
-        sprintf(buf, "Compilation failed at offset %d: %s.", erroffset, error);
+        sprintf(buf, "Regex: Compilation failed at offset %d: %s.", erroffset, error);
         return CHECK_ERROR(Runtime::setError(buf));
     }
 
