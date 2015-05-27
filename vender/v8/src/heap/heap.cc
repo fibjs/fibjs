@@ -133,6 +133,7 @@ Heap::Heap()
       marking_time_(0.0),
       sweeping_time_(0.0),
       last_idle_notification_time_(0.0),
+      last_gc_time_(0.0),
       mark_compact_collector_(this),
       store_buffer_(this),
       marking_(this),
@@ -140,6 +141,9 @@ Heap::Heap()
       gc_count_at_last_idle_gc_(0),
       full_codegen_bytes_generated_(0),
       crankshaft_codegen_bytes_generated_(0),
+      new_space_allocation_counter_(0),
+      old_generation_allocation_counter_(0),
+      old_generation_size_at_last_gc_(0),
       gcs_since_last_deopt_(0),
       allocation_sites_scratchpad_length_(0),
       promotion_queue_(this),
@@ -227,8 +231,12 @@ void Heap::UpdateMaximumCommitted() {
 intptr_t Heap::Available() {
   if (!HasBeenSetUp()) return 0;
 
-  return new_space_.Available() + old_space_->Available() +
-         code_space_->Available() + map_space_->Available();
+  intptr_t total = 0;
+  AllSpaces spaces(this);
+  for (Space* space = spaces.next(); space != NULL; space = spaces.next()) {
+    total += space->Available();
+  }
+  return total;
 }
 
 
@@ -460,6 +468,8 @@ void Heap::GarbageCollectionPrologue() {
     maximum_size_scavenges_ = 0;
   }
   CheckNewSpaceExpansionCriteria();
+  UpdateNewSpaceAllocationCounter();
+  UpdateOldGenerationAllocationCounter();
 }
 
 
@@ -726,6 +736,9 @@ void Heap::GarbageCollectionEpilogue() {
   // whether we allocated in new space since the last GC.
   new_space_top_after_last_gc_ = new_space()->top();
   last_gc_time_ = MonotonicallyIncreasingTimeInMs();
+
+  ReduceNewSpaceSize(
+      tracer()->CurrentAllocationThroughputInBytesPerMillisecond());
 }
 
 
@@ -950,7 +963,7 @@ bool Heap::CollectGarbage(GarbageCollector collector, const char* gc_reason,
   if (!mark_compact_collector()->abort_incremental_marking() &&
       incremental_marking()->IsStopped() &&
       incremental_marking()->ShouldActivateEvenWithoutIdleNotification()) {
-    incremental_marking()->Start();
+    incremental_marking()->Start(kNoGCFlags);
   }
 
   return next_gc_likely_to_collect_more;
@@ -1212,6 +1225,10 @@ bool Heap::PerformGarbageCollection(
   } else {
     Scavenge();
   }
+
+  // This should be updated before PostGarbageCollectionProcessing, which can
+  // cause another GC.
+  old_generation_size_at_last_gc_ = PromotedSpaceSizeOfObjects();
 
   UpdateSurvivalStatistics(start_new_space_size);
   ConfigureInitialOldGenerationSize();
@@ -2141,16 +2158,14 @@ class ScavengingVisitor : public StaticVisitorBase {
     }
   }
 
-  template <int alignment>
+  template <AllocationAlignment alignment>
   static inline bool SemiSpaceCopyObject(Map* map, HeapObject** slot,
                                          HeapObject* object, int object_size) {
     Heap* heap = map->GetHeap();
 
     DCHECK(heap->AllowedToBeMigrated(object, NEW_SPACE));
-    AllocationAlignment align =
-        alignment == kDoubleAlignment ? kDoubleAligned : kWordAligned;
     AllocationResult allocation =
-        heap->new_space()->AllocateRaw(object_size, align);
+        heap->new_space()->AllocateRaw(object_size, alignment);
 
     HeapObject* target = NULL;  // Initialization to please compiler.
     if (allocation.To(&target)) {
@@ -2172,15 +2187,13 @@ class ScavengingVisitor : public StaticVisitorBase {
   }
 
 
-  template <ObjectContents object_contents, int alignment>
+  template <ObjectContents object_contents, AllocationAlignment alignment>
   static inline bool PromoteObject(Map* map, HeapObject** slot,
                                    HeapObject* object, int object_size) {
     Heap* heap = map->GetHeap();
 
-    AllocationAlignment align =
-        alignment == kDoubleAlignment ? kDoubleAligned : kWordAligned;
     AllocationResult allocation =
-        heap->old_space()->AllocateRaw(object_size, align);
+        heap->old_space()->AllocateRaw(object_size, alignment);
 
     HeapObject* target = NULL;  // Initialization to please compiler.
     if (allocation.To(&target)) {
@@ -2204,7 +2217,7 @@ class ScavengingVisitor : public StaticVisitorBase {
   }
 
 
-  template <ObjectContents object_contents, int alignment>
+  template <ObjectContents object_contents, AllocationAlignment alignment>
   static inline void EvacuateObject(Map* map, HeapObject** slot,
                                     HeapObject* object, int object_size) {
     SLOW_DCHECK(object_size <= Page::kMaxRegularHeapObjectSize);
@@ -2258,8 +2271,8 @@ class ScavengingVisitor : public StaticVisitorBase {
   static inline void EvacuateFixedArray(Map* map, HeapObject** slot,
                                         HeapObject* object) {
     int object_size = FixedArray::BodyDescriptor::SizeOf(map, object);
-    EvacuateObject<POINTER_OBJECT, kObjectAlignment>(map, slot, object,
-                                                     object_size);
+    EvacuateObject<POINTER_OBJECT, kWordAligned>(map, slot, object,
+                                                 object_size);
   }
 
 
@@ -2267,32 +2280,28 @@ class ScavengingVisitor : public StaticVisitorBase {
                                               HeapObject* object) {
     int length = reinterpret_cast<FixedDoubleArray*>(object)->length();
     int object_size = FixedDoubleArray::SizeFor(length);
-    EvacuateObject<DATA_OBJECT, kDoubleAlignment>(map, slot, object,
-                                                  object_size);
+    EvacuateObject<DATA_OBJECT, kDoubleAligned>(map, slot, object, object_size);
   }
 
 
   static inline void EvacuateFixedTypedArray(Map* map, HeapObject** slot,
                                              HeapObject* object) {
     int object_size = reinterpret_cast<FixedTypedArrayBase*>(object)->size();
-    EvacuateObject<DATA_OBJECT, kObjectAlignment>(map, slot, object,
-                                                  object_size);
+    EvacuateObject<DATA_OBJECT, kWordAligned>(map, slot, object, object_size);
   }
 
 
   static inline void EvacuateFixedFloat64Array(Map* map, HeapObject** slot,
                                                HeapObject* object) {
     int object_size = reinterpret_cast<FixedFloat64Array*>(object)->size();
-    EvacuateObject<DATA_OBJECT, kDoubleAlignment>(map, slot, object,
-                                                  object_size);
+    EvacuateObject<DATA_OBJECT, kDoubleAligned>(map, slot, object, object_size);
   }
 
 
   static inline void EvacuateByteArray(Map* map, HeapObject** slot,
                                        HeapObject* object) {
     int object_size = reinterpret_cast<ByteArray*>(object)->ByteArraySize();
-    EvacuateObject<DATA_OBJECT, kObjectAlignment>(map, slot, object,
-                                                  object_size);
+    EvacuateObject<DATA_OBJECT, kWordAligned>(map, slot, object, object_size);
   }
 
 
@@ -2300,8 +2309,7 @@ class ScavengingVisitor : public StaticVisitorBase {
                                               HeapObject* object) {
     int object_size = SeqOneByteString::cast(object)
                           ->SeqOneByteStringSize(map->instance_type());
-    EvacuateObject<DATA_OBJECT, kObjectAlignment>(map, slot, object,
-                                                  object_size);
+    EvacuateObject<DATA_OBJECT, kWordAligned>(map, slot, object, object_size);
   }
 
 
@@ -2309,8 +2317,7 @@ class ScavengingVisitor : public StaticVisitorBase {
                                               HeapObject* object) {
     int object_size = SeqTwoByteString::cast(object)
                           ->SeqTwoByteStringSize(map->instance_type());
-    EvacuateObject<DATA_OBJECT, kObjectAlignment>(map, slot, object,
-                                                  object_size);
+    EvacuateObject<DATA_OBJECT, kWordAligned>(map, slot, object, object_size);
   }
 
 
@@ -2347,8 +2354,8 @@ class ScavengingVisitor : public StaticVisitorBase {
     }
 
     int object_size = ConsString::kSize;
-    EvacuateObject<POINTER_OBJECT, kObjectAlignment>(map, slot, object,
-                                                     object_size);
+    EvacuateObject<POINTER_OBJECT, kWordAligned>(map, slot, object,
+                                                 object_size);
   }
 
   template <ObjectContents object_contents>
@@ -2357,14 +2364,14 @@ class ScavengingVisitor : public StaticVisitorBase {
     template <int object_size>
     static inline void VisitSpecialized(Map* map, HeapObject** slot,
                                         HeapObject* object) {
-      EvacuateObject<object_contents, kObjectAlignment>(map, slot, object,
-                                                        object_size);
+      EvacuateObject<object_contents, kWordAligned>(map, slot, object,
+                                                    object_size);
     }
 
     static inline void Visit(Map* map, HeapObject** slot, HeapObject* object) {
       int object_size = map->instance_size();
-      EvacuateObject<object_contents, kObjectAlignment>(map, slot, object,
-                                                        object_size);
+      EvacuateObject<object_contents, kWordAligned>(map, slot, object,
+                                                    object_size);
     }
   };
 
@@ -3060,9 +3067,12 @@ void Heap::CreateInitialObjects() {
 
   {
     HandleScope scope(isolate());
-#define SYMBOL_INIT(name)                               \
-  Handle<Symbol> name = factory->NewPrivateOwnSymbol(); \
-  roots_[k##name##RootIndex] = *name;
+#define SYMBOL_INIT(name)                                                      \
+  {                                                                            \
+    Handle<String> name##d = factory->NewStringFromStaticChars(#name);         \
+    Handle<Object> symbol(isolate()->factory()->NewPrivateOwnSymbol(name##d)); \
+    roots_[k##name##RootIndex] = *symbol;                                      \
+  }
     PRIVATE_SYMBOL_LIST(SYMBOL_INIT)
 #undef SYMBOL_INIT
   }
@@ -3168,6 +3178,19 @@ void Heap::CreateInitialObjects() {
 
   // Initialize compilation cache.
   isolate_->compilation_cache()->Clear();
+}
+
+
+void Heap::AddPrivateGlobalSymbols(Handle<Object> private_intern_table) {
+#define ADD_SYMBOL_TO_PRIVATE_INTERN_TABLE(name_arg)                     \
+  {                                                                      \
+    Handle<Symbol> symbol(Symbol::cast(roots_[k##name_arg##RootIndex])); \
+    Handle<String> name_arg##d(String::cast(symbol->name()));            \
+    JSObject::AddProperty(Handle<JSObject>::cast(private_intern_table),  \
+                          name_arg##d, symbol, NONE);                    \
+  }
+  PRIVATE_SYMBOL_LIST(ADD_SYMBOL_TO_PRIVATE_INTERN_TABLE)
+#undef ADD_SYMBOL_TO_PRIVATE_INTERN_TABLE
 }
 
 
@@ -4561,6 +4584,22 @@ void Heap::MakeHeapIterable() {
   DCHECK(IsHeapIterable());
 }
 
+
+bool Heap::HasLowAllocationRate(size_t allocation_rate) {
+  static const size_t kLowAllocationRate = 1000;
+  if (allocation_rate == 0) return false;
+  return allocation_rate < kLowAllocationRate;
+}
+
+
+void Heap::ReduceNewSpaceSize(size_t allocation_rate) {
+  if (!FLAG_predictable && HasLowAllocationRate(allocation_rate)) {
+    new_space_.Shrink();
+    UncommitFromSpace();
+  }
+}
+
+
 bool Heap::TryFinalizeIdleIncrementalMarking(
     double idle_time_in_ms, size_t size_of_objects,
     size_t final_incremental_mark_compact_speed_in_bytes_per_ms) {
@@ -4586,52 +4625,13 @@ bool Heap::TryFinalizeIdleIncrementalMarking(
 }
 
 
-double Heap::MonotonicallyIncreasingTimeInMs() {
-  return V8::GetCurrentPlatform()->MonotonicallyIncreasingTime() *
-         static_cast<double>(base::Time::kMillisecondsPerSecond);
-}
-
-
-bool Heap::IdleNotification(int idle_time_in_ms) {
-  return IdleNotification(
-      V8::GetCurrentPlatform()->MonotonicallyIncreasingTime() +
-      (static_cast<double>(idle_time_in_ms) /
-       static_cast<double>(base::Time::kMillisecondsPerSecond)));
-}
-
-
-bool Heap::IdleNotification(double deadline_in_seconds) {
-  CHECK(HasBeenSetUp());  // http://crbug.com/425035
-  double deadline_in_ms =
-      deadline_in_seconds *
-      static_cast<double>(base::Time::kMillisecondsPerSecond);
-  HistogramTimerScope idle_notification_scope(
-      isolate_->counters()->gc_idle_notification());
-  double start_ms = MonotonicallyIncreasingTimeInMs();
-  double idle_time_in_ms = deadline_in_ms - start_ms;
-  bool is_long_idle_notification =
-      static_cast<size_t>(idle_time_in_ms) >
-      GCIdleTimeHandler::kMaxFrameRenderingIdleTime;
-
-  static const double kLastGCTimeTreshold = 1000;
-
+GCIdleTimeHandler::HeapState Heap::ComputeHeapState() {
   GCIdleTimeHandler::HeapState heap_state;
   heap_state.contexts_disposed = contexts_disposed_;
   heap_state.contexts_disposal_rate =
       tracer()->ContextDisposalRateInMilliseconds();
   heap_state.size_of_objects = static_cast<size_t>(SizeOfObjects());
   heap_state.incremental_marking_stopped = incremental_marking()->IsStopped();
-  // TODO(ulan): Start incremental marking only for large heaps.
-  intptr_t limit = old_generation_allocation_limit_;
-  if (is_long_idle_notification &&
-      (start_ms - last_gc_time_ > kLastGCTimeTreshold)) {
-    limit = idle_old_generation_allocation_limit_;
-  }
-
-  heap_state.can_start_incremental_marking =
-      incremental_marking()->CanBeActivated() &&
-      HeapIsFullEnoughToStartIncrementalMarking(limit) &&
-      !mark_compact_collector()->sweeping_in_progress();
   heap_state.sweeping_in_progress =
       mark_compact_collector()->sweeping_in_progress();
   heap_state.sweeping_completed =
@@ -4648,23 +4648,26 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
   heap_state.used_new_space_size = new_space_.Size();
   heap_state.new_space_capacity = new_space_.Capacity();
   heap_state.new_space_allocation_throughput_in_bytes_per_ms =
-      static_cast<size_t>(
-          tracer()->NewSpaceAllocationThroughputInBytesPerMillisecond());
-
-  GCIdleTimeAction action =
-      gc_idle_time_handler_.Compute(idle_time_in_ms, heap_state);
-
-  isolate()->counters()->gc_idle_time_allotted_in_ms()->AddSample(
-      static_cast<int>(idle_time_in_ms));
-  if (is_long_idle_notification) {
-    int committed_memory = static_cast<int>(CommittedMemory() / KB);
-    int used_memory = static_cast<int>(heap_state.size_of_objects / KB);
-    isolate()->counters()->aggregated_memory_heap_committed()->AddSample(
-        start_ms, committed_memory);
-    isolate()->counters()->aggregated_memory_heap_used()->AddSample(
-        start_ms, used_memory);
+      tracer()->NewSpaceAllocationThroughputInBytesPerMillisecond();
+  heap_state.current_allocation_throughput_in_bytes_per_ms =
+      tracer()->CurrentAllocationThroughputInBytesPerMillisecond();
+  intptr_t limit = old_generation_allocation_limit_;
+  if (HasLowAllocationRate(
+          heap_state.current_allocation_throughput_in_bytes_per_ms)) {
+    limit = idle_old_generation_allocation_limit_;
   }
+  heap_state.can_start_incremental_marking =
+      incremental_marking()->CanBeActivated() &&
+      HeapIsFullEnoughToStartIncrementalMarking(limit) &&
+      !mark_compact_collector()->sweeping_in_progress();
+  return heap_state;
+}
 
+
+bool Heap::PerformIdleTimeAction(GCIdleTimeAction action,
+                                 GCIdleTimeHandler::HeapState heap_state,
+                                 double deadline_in_ms,
+                                 bool is_long_idle_notification) {
   bool result = false;
   switch (action.type) {
     case DONE:
@@ -4672,8 +4675,8 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
       break;
     case DO_INCREMENTAL_MARKING: {
       if (incremental_marking()->IsStopped()) {
-        // TODO(ulan): take reduce_memory into account.
-        incremental_marking()->Start();
+        incremental_marking()->Start(
+            action.reduce_memory ? kReduceMemoryFootprintMask : kNoGCFlags);
       }
       double remaining_idle_time_in_ms = 0.0;
       do {
@@ -4719,14 +4722,32 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
       break;
   }
 
-  if (action.reduce_memory) {
-    new_space_.Shrink();
-    UncommitFromSpace();
-  }
+  return result;
+}
 
+
+void Heap::IdleNotificationEpilogue(GCIdleTimeAction action,
+                                    GCIdleTimeHandler::HeapState heap_state,
+                                    double start_ms, double deadline_in_ms,
+                                    bool is_long_idle_notification) {
+  double idle_time_in_ms = deadline_in_ms - start_ms;
   double current_time = MonotonicallyIncreasingTimeInMs();
   last_idle_notification_time_ = current_time;
   double deadline_difference = deadline_in_ms - current_time;
+
+  contexts_disposed_ = 0;
+
+  isolate()->counters()->gc_idle_time_allotted_in_ms()->AddSample(
+      static_cast<int>(idle_time_in_ms));
+
+  if (is_long_idle_notification) {
+    int committed_memory = static_cast<int>(CommittedMemory() / KB);
+    int used_memory = static_cast<int>(heap_state.size_of_objects / KB);
+    isolate()->counters()->aggregated_memory_heap_committed()->AddSample(
+        start_ms, committed_memory);
+    isolate()->counters()->aggregated_memory_heap_used()->AddSample(
+        start_ms, used_memory);
+  }
 
   if (deadline_difference >= 0) {
     if (action.type != DONE && action.type != DO_NOTHING) {
@@ -4755,8 +4776,51 @@ bool Heap::IdleNotification(double deadline_in_seconds) {
     }
     PrintF("\n");
   }
+}
 
-  contexts_disposed_ = 0;
+
+double Heap::MonotonicallyIncreasingTimeInMs() {
+  return V8::GetCurrentPlatform()->MonotonicallyIncreasingTime() *
+         static_cast<double>(base::Time::kMillisecondsPerSecond);
+}
+
+
+bool Heap::IdleNotification(int idle_time_in_ms) {
+  return IdleNotification(
+      V8::GetCurrentPlatform()->MonotonicallyIncreasingTime() +
+      (static_cast<double>(idle_time_in_ms) /
+       static_cast<double>(base::Time::kMillisecondsPerSecond)));
+}
+
+
+bool Heap::IdleNotification(double deadline_in_seconds) {
+  CHECK(HasBeenSetUp());
+  double deadline_in_ms =
+      deadline_in_seconds *
+      static_cast<double>(base::Time::kMillisecondsPerSecond);
+  HistogramTimerScope idle_notification_scope(
+      isolate_->counters()->gc_idle_notification());
+  double start_ms = MonotonicallyIncreasingTimeInMs();
+  double idle_time_in_ms = deadline_in_ms - start_ms;
+  bool is_long_idle_notification =
+      static_cast<size_t>(idle_time_in_ms) >
+      GCIdleTimeHandler::kMaxFrameRenderingIdleTime;
+
+  if (is_long_idle_notification) {
+    tracer()->SampleAllocation(start_ms, NewSpaceAllocationCounter(),
+                               OldGenerationAllocationCounter());
+  }
+
+  GCIdleTimeHandler::HeapState heap_state = ComputeHeapState();
+
+  GCIdleTimeAction action =
+      gc_idle_time_handler_.Compute(idle_time_in_ms, heap_state);
+
+  bool result = PerformIdleTimeAction(action, heap_state, deadline_in_ms,
+                                      is_long_idle_notification);
+
+  IdleNotificationEpilogue(action, heap_state, start_ms, deadline_in_ms,
+                           is_long_idle_notification);
   return result;
 }
 
@@ -4920,6 +4984,7 @@ void Heap::Verify() {
 
 
 void Heap::ZapFromSpace() {
+  if (!new_space_.IsFromSpaceCommitted()) return;
   NewSpacePageIterator it(new_space_.FromSpaceStart(),
                           new_space_.FromSpaceEnd());
   while (it.has_next()) {
@@ -5270,7 +5335,7 @@ intptr_t Heap::CalculateOldGenerationAllocationLimit(double factor,
   CHECK(factor > 1.0);
   CHECK(old_gen_size > 0);
   intptr_t limit = static_cast<intptr_t>(old_gen_size * factor);
-  limit = Max(limit, kMinimumOldGenerationAllocationLimit);
+  limit = Max(limit, old_gen_size + kMinimumOldGenerationAllocationLimit);
   limit += new_space_.Capacity();
   intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
   return Min(limit, halfway_to_the_max);

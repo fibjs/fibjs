@@ -33,18 +33,12 @@ class ReachabilityMarker : public NodeMarker<uint8_t> {
     return before & kFromEnd;
   }
   bool IsReachableFromEnd(Node* node) { return Get(node) & kFromEnd; }
-  bool SetReachableFromStart(Node* node) {
-    uint8_t before = Get(node);
-    Set(node, before | kFromStart);
-    return before & kFromStart;
-  }
-  bool IsReachableFromStart(Node* node) { return Get(node) & kFromStart; }
   void Push(Node* node) { Set(node, Get(node) | kFwStack); }
   void Pop(Node* node) { Set(node, Get(node) & ~kFwStack); }
   bool IsOnStack(Node* node) { return Get(node) & kFwStack; }
 
  private:
-  enum Bit { kFromEnd = 1, kFromStart = 2, kFwStack = 4 };
+  enum Bit { kFromEnd = 1, kFwStack = 2 };
 };
 
 
@@ -64,146 +58,11 @@ class ControlReducerImpl final : public AdvancedReducer {
   CommonOperatorBuilder* common() { return jsgraph_->common(); }
   Node* dead() { return jsgraph_->DeadControl(); }
 
-  // Finish reducing the graph by trimming nodes and/or connecting NTLs.
+  // Finish reducing the graph by trimming nodes.
   bool Finish() final {
-    bool done = true;
-    // Gather all nodes backwards-reachable from end (through inputs).
-    ReachabilityMarker marked(graph());
-    NodeVector nodes(zone_);
-    AddNodesReachableFromRoots(marked, nodes);
-
-    // Walk forward through control nodes, looking for back edges to nodes
-    // that are not connected to end. Those are non-terminating loops (NTLs).
-    Node* start = graph()->start();
-    marked.Push(start);
-    marked.SetReachableFromStart(start);
-
-    // We use a stack of (Node, Node::UseEdges::iterator) pairs to avoid
-    // O(n^2) traversal.
-    typedef std::pair<Node*, Node::UseEdges::iterator> FwIter;
-    ZoneVector<FwIter> fw_stack(zone_);
-    fw_stack.push_back(FwIter(start, start->use_edges().begin()));
-
-    while (!fw_stack.empty()) {
-      Node* node = fw_stack.back().first;
-      TRACE("ControlFw: #%d:%s\n", node->id(), node->op()->mnemonic());
-      bool pop = true;
-      while (fw_stack.back().second != node->use_edges().end()) {
-        Edge edge = *(fw_stack.back().second);
-        Node* succ = edge.from();
-        if (NodeProperties::IsControlEdge(edge) &&
-            succ->op()->ControlOutputCount() > 0) {
-          // Only walk control edges to control nodes.
-          if (marked.IsOnStack(succ) && !marked.IsReachableFromEnd(succ)) {
-            // {succ} is on stack and not reachable from end.
-            Node* added = ConnectNTL(succ);
-            nodes.push_back(added);
-            marked.SetReachableFromEnd(added);
-            AddBackwardsReachableNodes(marked, nodes, nodes.size() - 1);
-
-            // Reset the use iterators for the entire stack.
-            for (size_t i = 0; i < fw_stack.size(); i++) {
-              FwIter& iter = fw_stack[i];
-              fw_stack[i] = FwIter(iter.first, iter.first->use_edges().begin());
-            }
-            pop = false;  // restart traversing successors of this node.
-            break;
-          }
-          if (!marked.IsReachableFromStart(succ)) {
-            // {succ} is not yet reached from start.
-            marked.SetReachableFromStart(succ);
-            if (succ->opcode() != IrOpcode::kOsrLoopEntry) {
-              // Skip OsrLoopEntry; forms a confusing irredducible loop.
-              marked.Push(succ);
-              fw_stack.push_back(FwIter(succ, succ->use_edges().begin()));
-              pop = false;  // "recurse" into successor control node.
-              break;
-            }
-          }
-        }
-        ++fw_stack.back().second;
-      }
-      if (pop) {
-        marked.Pop(node);
-        fw_stack.pop_back();
-      }
-    }
-
-    // Trim references from dead nodes to live nodes first.
-    TrimNodes(marked, nodes);
-
-    // Any control nodes not reachable from start are dead, even loops.
-    for (size_t i = 0; i < nodes.size(); i++) {
-      Node* node = nodes[i];
-      if (node->op()->ControlOutputCount() > 0 &&
-          !marked.IsReachableFromStart(node) &&
-          node->opcode() != IrOpcode::kDead) {
-        TRACE("Dead: #%d:%s\n", node->id(), node->op()->mnemonic());
-        node->ReplaceUses(dead());
-        done = false;
-      }
-    }
-
-    return done;
-  }
-
-  // Connect {loop}, the header of a non-terminating loop, to the end node.
-  Node* ConnectNTL(Node* loop) {
-    TRACE("ConnectNTL: #%d:%s\n", loop->id(), loop->op()->mnemonic());
-    DCHECK_EQ(IrOpcode::kLoop, loop->opcode());
-
-    // Collect all loop effects.
-    NodeVector effects(zone_);
-    for (auto edge : loop->use_edges()) {
-      DCHECK_EQ(loop, edge.to());
-      DCHECK(NodeProperties::IsControlEdge(edge));
-      switch (edge.from()->opcode()) {
-        case IrOpcode::kPhi:
-          break;
-        case IrOpcode::kEffectPhi:
-          effects.push_back(edge.from());
-          break;
-        default:
-          break;
-      }
-    }
-
-    // Compute effects for the Return.
-    Node* effect = graph()->start();
-    int const effects_count = static_cast<int>(effects.size());
-    if (effects_count == 1) {
-      effect = effects[0];
-    } else if (effects_count > 1) {
-      effect = graph()->NewNode(common()->EffectSet(effects_count),
-                                effects_count, &effects.front());
-    }
-
-    // Add a terminate to connect the NTL to the end.
-    Node* terminate = graph()->NewNode(common()->Terminate(), effect, loop);
-
-    Node* end = graph()->end();
-    if (end->opcode() == IrOpcode::kDead) {
-      // End is actually the dead node. Make a new end.
-      end = graph()->NewNode(common()->End(), terminate);
-      graph()->SetEnd(end);
-      return end;
-    }
-    // End is not dead.
-    Node* merge = end->InputAt(0);
-    if (merge == NULL || merge->opcode() == IrOpcode::kDead) {
-      // The end node died; just connect end to {terminate}.
-      end->ReplaceInput(0, terminate);
-    } else if (merge->opcode() != IrOpcode::kMerge) {
-      // Introduce a final merge node for {end->InputAt(0)} and {terminate}.
-      merge = graph()->NewNode(common()->Merge(2), merge, terminate);
-      end->ReplaceInput(0, merge);
-      terminate = merge;
-    } else {
-      // Append a new input to the final merge at the end.
-      merge->AppendInput(graph()->zone(), terminate);
-      merge->set_op(common()->Merge(merge->InputCount()));
-    }
-    return terminate;
+    // TODO(bmeurer): Move this to the GraphReducer.
+    Trim();
+    return true;
   }
 
   void AddNodesReachableFromRoots(ReachabilityMarker& marked,
@@ -313,6 +172,9 @@ class ControlReducerImpl final : public AdvancedReducer {
       case IrOpcode::kEffectPhi:
         result = ReducePhi(node);
         break;
+      case IrOpcode::kEnd:
+        result = ReduceEnd(node);
+        break;
       default:
         break;
     }
@@ -375,14 +237,6 @@ class ControlReducerImpl final : public AdvancedReducer {
     if (n <= 1) return dead();            // No non-control inputs.
     if (n == 2) return node->InputAt(0);  // Only one non-control input.
 
-    // Never remove an effect phi from a (potentially non-terminating) loop.
-    // Otherwise, we might end up eliminating effect nodes, such as calls,
-    // before the loop.
-    if (node->opcode() == IrOpcode::kEffectPhi &&
-        NodeProperties::GetControlInput(node)->opcode() == IrOpcode::kLoop) {
-      return node;
-    }
-
     Node* replacement = NULL;
     auto const inputs = node->inputs();
     for (auto it = inputs.begin(); n > 1; --n, ++it) {
@@ -404,6 +258,31 @@ class ControlReducerImpl final : public AdvancedReducer {
     return branch;
   }
 
+  // Reduce end by trimming away dead inputs.
+  Node* ReduceEnd(Node* node) {
+    // Count the number of live inputs.
+    int live = 0;
+    for (int index = 0; index < node->InputCount(); ++index) {
+      // Skip dead inputs.
+      if (node->InputAt(index)->opcode() == IrOpcode::kDead) continue;
+      // Compact live inputs.
+      if (index != live) node->ReplaceInput(live, node->InputAt(index));
+      ++live;
+    }
+
+    TRACE("ReduceEnd: #%d:%s (%d of %d live)\n", node->id(),
+          node->op()->mnemonic(), live, node->InputCount());
+
+    if (live == 0) return dead();  // No remaining inputs.
+
+    if (live < node->InputCount()) {
+      node->set_op(common()->End(live));
+      node->TrimInputCount(live);
+    }
+
+    return node;
+  }
+
   // Reduce merges by trimming away dead inputs from the merge and phis.
   Node* ReduceMerge(Node* node) {
     // Count the number of live inputs.
@@ -423,10 +302,16 @@ class ControlReducerImpl final : public AdvancedReducer {
 
     if (live == 0) return dead();  // no remaining inputs.
 
-    // Gather phis and effect phis to be edited.
+    // Gather terminates, phis and effect phis to be edited.
     NodeVector phis(zone_);
+    Node* terminate = nullptr;
     for (Node* const use : node->uses()) {
-      if (NodeProperties::IsPhi(use)) phis.push_back(use);
+      if (NodeProperties::IsPhi(use)) {
+        phis.push_back(use);
+      } else if (use->opcode() == IrOpcode::kTerminate) {
+        DCHECK_NULL(terminate);
+        terminate = use;
+      }
     }
 
     if (live == 1) {
@@ -434,6 +319,8 @@ class ControlReducerImpl final : public AdvancedReducer {
       for (Node* const phi : phis) {
         Replace(phi, phi->InputAt(live_index));
       }
+      // The terminate is not needed anymore.
+      if (terminate) Replace(terminate, dead());
       // The merge itself is redundant.
       return node->InputAt(live_index);
     }

@@ -59,100 +59,6 @@ class JSCallFunctionAccessor {
 };
 
 
-// A facade on a JSFunction's graph to facilitate inlining. It assumes
-// that the function graph has only one return statement, and provides
-// {UnifyReturn} to convert a function graph to that end.
-struct Inlinee {
-  Inlinee(Node* start, Node* end) : start_(start), end_(end) {}
-
-  // Returns the last regular control node, that is
-  // the last control node before the end node.
-  Node* end_block() { return NodeProperties::GetControlInput(unique_return()); }
-
-  // Return the effect output of the graph,
-  // that is the effect input of the return statement of the inlinee.
-  Node* effect_output() {
-    return NodeProperties::GetEffectInput(unique_return());
-  }
-  // Return the value output of the graph,
-  // that is the value input of the return statement of the inlinee.
-  Node* value_output() {
-    return NodeProperties::GetValueInput(unique_return(), 0);
-  }
-  // Return the control output of the graph,
-  // that is the control input of the return statement of the inlinee.
-  Node* control_output() {
-    return NodeProperties::GetControlInput(unique_return(), 0);
-  }
-  // Return the unique return statement of the graph.
-  Node* unique_return() {
-    Node* unique_return = NodeProperties::GetControlInput(end_);
-    DCHECK_EQ(IrOpcode::kReturn, unique_return->opcode());
-    return unique_return;
-  }
-
-  // Counts JSFunction, Receiver, arguments, context but not effect, control.
-  size_t total_parameters() { return start_->op()->ValueOutputCount(); }
-
-  // Counts only formal parameters.
-  size_t formal_parameters() {
-    DCHECK_GE(total_parameters(), 3u);
-    return total_parameters() - 3;
-  }
-
-  // Ensure that only a single return reaches the end node.
-  static void UnifyReturn(JSGraph* jsgraph);
-
-  Node* start_;
-  Node* end_;
-};
-
-
-void Inlinee::UnifyReturn(JSGraph* jsgraph) {
-  Graph* graph = jsgraph->graph();
-
-  Node* final_merge = NodeProperties::GetControlInput(graph->end(), 0);
-  if (final_merge->opcode() == IrOpcode::kReturn) {
-    // nothing to do
-    return;
-  }
-  DCHECK_EQ(IrOpcode::kMerge, final_merge->opcode());
-
-  int predecessors = final_merge->op()->ControlInputCount();
-
-  const Operator* op_phi = jsgraph->common()->Phi(kMachAnyTagged, predecessors);
-  const Operator* op_ephi = jsgraph->common()->EffectPhi(predecessors);
-
-  NodeVector values(jsgraph->zone());
-  NodeVector effects(jsgraph->zone());
-  // Iterate over all control flow predecessors,
-  // which must be return statements.
-  for (Edge edge : final_merge->input_edges()) {
-    Node* input = edge.to();
-    switch (input->opcode()) {
-      case IrOpcode::kReturn:
-        values.push_back(NodeProperties::GetValueInput(input, 0));
-        effects.push_back(NodeProperties::GetEffectInput(input));
-        edge.UpdateTo(NodeProperties::GetControlInput(input));
-        input->NullAllInputs();
-        break;
-      default:
-        UNREACHABLE();
-        break;
-    }
-  }
-  values.push_back(final_merge);
-  effects.push_back(final_merge);
-  Node* phi =
-      graph->NewNode(op_phi, static_cast<int>(values.size()), &values.front());
-  Node* ephi = graph->NewNode(op_ephi, static_cast<int>(effects.size()),
-                              &effects.front());
-  Node* new_return =
-      graph->NewNode(jsgraph->common()->Return(), phi, ephi, final_merge);
-  graph->end()->ReplaceInput(0, new_return);
-}
-
-
 class CopyVisitor {
  public:
   CopyVisitor(Graph* source_graph, Graph* target_graph, Zone* temp_zone)
@@ -210,7 +116,7 @@ class CopyVisitor {
 };
 
 
-Reduction JSInliner::InlineCall(Node* call, Inlinee& inlinee) {
+Reduction JSInliner::InlineCall(Node* call, Node* start, Node* end) {
   // The scheduler is smart enough to place our code; we just ensure {control}
   // becomes the control input of the start of the inlinee, and {effect} becomes
   // the effect input of the start of the inlinee.
@@ -218,12 +124,14 @@ Reduction JSInliner::InlineCall(Node* call, Inlinee& inlinee) {
   Node* effect = NodeProperties::GetEffectInput(call);
 
   // Context is last argument.
-  int inlinee_context_index = static_cast<int>(inlinee.total_parameters()) - 1;
+  int const inlinee_context_index =
+      static_cast<int>(start->op()->ValueOutputCount()) - 1;
+
   // {inliner_inputs} counts JSFunction, Receiver, arguments, but not
   // context, effect, control.
   int inliner_inputs = call->op()->ValueInputCount();
   // Iterate over all uses of the start node.
-  for (Edge edge : inlinee.start_->use_edges()) {
+  for (Edge edge : start->use_edges()) {
     Node* use = edge.from();
     switch (use->opcode()) {
       case IrOpcode::kParameter: {
@@ -257,10 +165,46 @@ Reduction JSInliner::InlineCall(Node* call, Inlinee& inlinee) {
     }
   }
 
-  ReplaceWithValue(call, inlinee.value_output(), inlinee.effect_output(),
-                   inlinee.control_output());
+  NodeVector values(local_zone_);
+  NodeVector effects(local_zone_);
+  NodeVector controls(local_zone_);
+  for (Node* const input : end->inputs()) {
+    switch (input->opcode()) {
+      case IrOpcode::kReturn:
+        values.push_back(NodeProperties::GetValueInput(input, 0));
+        effects.push_back(NodeProperties::GetEffectInput(input));
+        controls.push_back(NodeProperties::GetControlInput(input));
+        break;
+      case IrOpcode::kDeoptimize:
+      case IrOpcode::kTerminate:
+      case IrOpcode::kThrow:
+        jsgraph_->graph()->end()->AppendInput(jsgraph_->zone(), input);
+        jsgraph_->graph()->end()->set_op(
+            jsgraph_->common()->End(jsgraph_->graph()->end()->InputCount()));
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+  DCHECK_NE(0u, values.size());
+  DCHECK_EQ(values.size(), effects.size());
+  DCHECK_EQ(values.size(), controls.size());
+  int const input_count = static_cast<int>(controls.size());
+  Node* control_output = jsgraph_->graph()->NewNode(
+      jsgraph_->common()->Merge(input_count), input_count, &controls.front());
+  values.push_back(control_output);
+  effects.push_back(control_output);
+  Node* value_output = jsgraph_->graph()->NewNode(
+      jsgraph_->common()->Phi(kMachAnyTagged, input_count),
+      static_cast<int>(values.size()), &values.front());
+  Node* effect_output = jsgraph_->graph()->NewNode(
+      jsgraph_->common()->EffectPhi(input_count),
+      static_cast<int>(effects.size()), &effects.front());
 
-  return Replace(inlinee.value_output());
+  ReplaceWithValue(call, value_output, effect_output, control_output);
+
+  return Changed(value_output);
 }
 
 
@@ -295,13 +239,14 @@ Reduction JSInliner::Reduce(Node* node) {
 
   Handle<JSFunction> function = match.Value().handle();
   if (!function->IsJSFunction()) return NoChange();
-  if (mode_ == kBuiltinsInlining && !function->shared()->inline_builtin()) {
+  if (mode_ == kRestrictedInlining && !function->shared()->force_inline()) {
     return NoChange();
   }
 
   Zone zone;
   ParseInfo parse_info(&zone, function);
   CompilationInfo info(&parse_info);
+  if (info_->is_deoptimization_enabled()) info.MarkAsDeoptimizationEnabled();
 
   if (!Compiler::ParseAndAnalyze(info.parse_info())) return NoChange();
   if (!Compiler::EnsureDeoptimizationSupport(&info)) return NoChange();
@@ -332,20 +277,21 @@ Reduction JSInliner::Reduce(Node* node) {
   GraphReducer graph_reducer(&graph, local_zone_);
   graph_reducer.AddReducer(&context_specializer);
   graph_reducer.ReduceGraph();
-  Inlinee::UnifyReturn(&jsgraph);
 
   CopyVisitor visitor(&graph, jsgraph_->graph(), info.zone());
   visitor.CopyGraph();
 
-  Inlinee inlinee(visitor.GetCopy(graph.start()), visitor.GetCopy(graph.end()));
+  Node* start = visitor.GetCopy(graph.start());
+  Node* end = visitor.GetCopy(graph.end());
 
   Node* outer_frame_state = call.frame_state();
+  size_t const inlinee_formal_parameters = start->op()->ValueOutputCount() - 3;
   // Insert argument adaptor frame if required.
-  if (call.formal_arguments() != inlinee.formal_parameters()) {
+  if (call.formal_arguments() != inlinee_formal_parameters) {
     // In strong mode, in case of too few arguments we need to throw a
     // TypeError so we must not inline this call.
     if (is_strong(info.language_mode()) &&
-        call.formal_arguments() < inlinee.formal_parameters()) {
+        call.formal_arguments() < inlinee_formal_parameters) {
       return NoChange();
     }
     outer_frame_state = CreateArgumentsAdaptorFrameState(&call, info.zone());
@@ -363,7 +309,7 @@ Reduction JSInliner::Reduce(Node* node) {
     }
   }
 
-  return InlineCall(node, inlinee);
+  return InlineCall(node, start, end);
 }
 
 }  // namespace compiler

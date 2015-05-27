@@ -1326,7 +1326,7 @@ void FullCodeGenerator::EmitLoadHomeObject(SuperReference* expr) {
   Handle<Symbol> home_object_symbol(isolate()->heap()->home_object_symbol());
   __ li(LoadDescriptor::NameRegister(), home_object_symbol);
 
-  __ li(VectorLoadICDescriptor::SlotRegister(),
+  __ li(LoadDescriptor::SlotRegister(),
         Operand(SmiFromSlot(expr->HomeObjectFeedbackSlot())));
   CallLoadIC(NOT_CONTEXTUAL);
 
@@ -1397,7 +1397,7 @@ void FullCodeGenerator::EmitLoadGlobalCheckExtensions(VariableProxy* proxy,
 
   __ lw(LoadDescriptor::ReceiverRegister(), GlobalObjectOperand());
   __ li(LoadDescriptor::NameRegister(), Operand(proxy->var()->name()));
-  __ li(VectorLoadICDescriptor::SlotRegister(),
+  __ li(LoadDescriptor::SlotRegister(),
         Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
 
   ContextualMode mode = (typeof_state == INSIDE_TYPEOF)
@@ -1485,7 +1485,7 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
       Comment cmnt(masm_, "[ Global variable");
       __ lw(LoadDescriptor::ReceiverRegister(), GlobalObjectOperand());
       __ li(LoadDescriptor::NameRegister(), Operand(var->name()));
-      __ li(VectorLoadICDescriptor::SlotRegister(),
+      __ li(LoadDescriptor::SlotRegister(),
             Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
       CallGlobalLoadIC(var->name());
       context()->Plug(v0);
@@ -1664,11 +1664,6 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
   // If result_saved is true the result is on top of the stack.  If
   // result_saved is false the result is in v0.
   bool result_saved = false;
-
-  // Mark all computed expressions that are bound to a key that
-  // is shadowed by a later occurrence of the same key. For the
-  // marked expressions, no store code is emitted.
-  expr->CalculateEmitStore(zone());
 
   AccessorTable accessor_table(zone());
   int property_index = 0;
@@ -1881,8 +1876,11 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
 
   // Emit code to evaluate all the non-constant subexpressions and to store
   // them into the newly cloned array.
-  for (int i = 0; i < length; i++) {
-    Expression* subexpr = subexprs->at(i);
+  int array_index = 0;
+  for (; array_index < length; array_index++) {
+    Expression* subexpr = subexprs->at(array_index);
+    if (subexpr->IsSpread()) break;
+
     // If the subexpression is a literal or a simple materialized literal it
     // is already set in the cloned array.
     if (CompileTimeValue::IsCompileTimeValue(subexpr)) continue;
@@ -1896,7 +1894,7 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
     VisitForAccumulatorValue(subexpr);
 
     if (has_fast_elements) {
-      int offset = FixedArray::kHeaderSize + (i * kPointerSize);
+      int offset = FixedArray::kHeaderSize + (array_index * kPointerSize);
       __ lw(t2, MemOperand(sp, kPointerSize));  // Copy of array literal.
       __ lw(a1, FieldMemOperand(t2, JSObject::kElementsOffset));
       __ sw(result_register(), FieldMemOperand(a1, offset));
@@ -1905,14 +1903,40 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
                           kRAHasBeenSaved, kDontSaveFPRegs,
                           EMIT_REMEMBERED_SET, INLINE_SMI_CHECK);
     } else {
-      __ li(a3, Operand(Smi::FromInt(i)));
+      __ li(a3, Operand(Smi::FromInt(array_index)));
       __ mov(a0, result_register());
       StoreArrayLiteralElementStub stub(isolate());
       __ CallStub(&stub);
     }
 
-    PrepareForBailoutForId(expr->GetIdForElement(i), NO_REGISTERS);
+    PrepareForBailoutForId(expr->GetIdForElement(array_index), NO_REGISTERS);
   }
+
+  // In case the array literal contains spread expressions it has two parts. The
+  // first part is  the "static" array which has a literal index is  handled
+  // above. The second part is the part after the first spread expression
+  // (inclusive) and these elements gets appended to the array. Note that the
+  // number elements an iterable produces is unknown ahead of time.
+  if (array_index < length && result_saved) {
+    __ Pop();  // literal index
+    __ Pop(v0);
+    result_saved = false;
+  }
+  for (; array_index < length; array_index++) {
+    Expression* subexpr = subexprs->at(array_index);
+
+    __ Push(v0);
+    if (subexpr->IsSpread()) {
+      VisitForStackValue(subexpr->AsSpread()->expression());
+      __ InvokeBuiltin(Builtins::CONCAT_ITERABLE_TO_ARRAY, CALL_FUNCTION);
+    } else {
+      VisitForStackValue(subexpr);
+      __ CallRuntime(Runtime::kAppendElement, 2);
+    }
+
+    PrepareForBailoutForId(expr->GetIdForElement(array_index), NO_REGISTERS);
+  }
+
   if (result_saved) {
     __ Pop();  // literal index
     context()->PlugTOS();
@@ -2183,7 +2207,7 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       __ bind(&l_call);
       __ lw(load_receiver, MemOperand(sp, kPointerSize));
       __ lw(load_name, MemOperand(sp, 2 * kPointerSize));
-      __ li(VectorLoadICDescriptor::SlotRegister(),
+      __ li(LoadDescriptor::SlotRegister(),
             Operand(SmiFromSlot(expr->KeyedLoadFeedbackSlot())));
       Handle<Code> ic = CodeFactory::KeyedLoadIC(isolate()).code();
       CallIC(ic, TypeFeedbackId::None());
@@ -2201,7 +2225,7 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       __ push(load_receiver);                               // save result
       __ LoadRoot(load_name, Heap::kdone_stringRootIndex);  // "done"
-      __ li(VectorLoadICDescriptor::SlotRegister(),
+      __ li(LoadDescriptor::SlotRegister(),
             Operand(SmiFromSlot(expr->DoneFeedbackSlot())));
       CallLoadIC(NOT_CONTEXTUAL);                           // v0=result.done
       __ mov(a0, v0);
@@ -2212,7 +2236,7 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       // result.value
       __ pop(load_receiver);                                 // result
       __ LoadRoot(load_name, Heap::kvalue_stringRootIndex);  // "value"
-      __ li(VectorLoadICDescriptor::SlotRegister(),
+      __ li(LoadDescriptor::SlotRegister(),
             Operand(SmiFromSlot(expr->ValueFeedbackSlot())));
       CallLoadIC(NOT_CONTEXTUAL);                            // v0=result.value
       context()->DropAndPlug(2, v0);                         // drop iter and g
@@ -2354,7 +2378,7 @@ void FullCodeGenerator::EmitNamedPropertyLoad(Property* prop) {
   DCHECK(!prop->IsSuperAccess());
 
   __ li(LoadDescriptor::NameRegister(), Operand(key->value()));
-  __ li(VectorLoadICDescriptor::SlotRegister(),
+  __ li(LoadDescriptor::SlotRegister(),
         Operand(SmiFromSlot(prop->PropertyFeedbackSlot())));
   CallLoadIC(NOT_CONTEXTUAL);
 }
@@ -2375,7 +2399,7 @@ void FullCodeGenerator::EmitNamedSuperPropertyLoad(Property* prop) {
 void FullCodeGenerator::EmitKeyedPropertyLoad(Property* prop) {
   SetSourcePosition(prop->position());
   Handle<Code> ic = CodeFactory::KeyedLoadIC(isolate()).code();
-  __ li(VectorLoadICDescriptor::SlotRegister(),
+  __ li(LoadDescriptor::SlotRegister(),
         Operand(SmiFromSlot(prop->PropertyFeedbackSlot())));
   CallIC(ic);
 }
@@ -4618,7 +4642,7 @@ void FullCodeGenerator::EmitLoadJSRuntimeFunction(CallRuntime* expr) {
 
   // Load the function from the receiver.
   __ li(LoadDescriptor::NameRegister(), Operand(expr->name()));
-  __ li(VectorLoadICDescriptor::SlotRegister(),
+  __ li(LoadDescriptor::SlotRegister(),
         Operand(SmiFromSlot(expr->CallRuntimeFeedbackSlot())));
   CallLoadIC(NOT_CONTEXTUAL);
 }
@@ -5055,7 +5079,7 @@ void FullCodeGenerator::VisitForTypeofValue(Expression* expr) {
     Comment cmnt(masm_, "[ Global variable");
     __ lw(LoadDescriptor::ReceiverRegister(), GlobalObjectOperand());
     __ li(LoadDescriptor::NameRegister(), Operand(proxy->name()));
-    __ li(VectorLoadICDescriptor::SlotRegister(),
+    __ li(LoadDescriptor::SlotRegister(),
           Operand(SmiFromSlot(proxy->VariableFeedbackSlot())));
     // Use a regular load, not a contextual load, to avoid a reference
     // error.
@@ -5328,6 +5352,8 @@ void FullCodeGenerator::EnterFinallyBlock() {
   __ li(at, Operand(pending_message_obj));
   __ lw(a1, MemOperand(at));
   __ push(a1);
+
+  ClearPendingMessage();
 }
 
 
@@ -5349,6 +5375,16 @@ void FullCodeGenerator::ExitFinallyBlock() {
   __ sra(a1, a1, 1);  // Un-smi-tag value.
   __ Addu(at, a1, Operand(masm_->CodeObject()));
   __ Jump(at);
+}
+
+
+void FullCodeGenerator::ClearPendingMessage() {
+  DCHECK(!result_register().is(a1));
+  ExternalReference pending_message_obj =
+      ExternalReference::address_of_pending_message_obj(isolate());
+  __ LoadRoot(a1, Heap::kTheHoleValueRootIndex);
+  __ li(at, Operand(pending_message_obj));
+  __ sw(a1, MemOperand(at));
 }
 
 

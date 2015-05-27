@@ -100,10 +100,10 @@ namespace internal {
   F(GetWeakMapEntries, 2, 1)              \
   F(MapIteratorNext, 2, 1)                \
   F(WeakCollectionInitialize, 1, 1)       \
-  F(WeakCollectionGet, 2, 1)              \
-  F(WeakCollectionHas, 2, 1)              \
-  F(WeakCollectionDelete, 2, 1)           \
-  F(WeakCollectionSet, 3, 1)              \
+  F(WeakCollectionGet, 3, 1)              \
+  F(WeakCollectionHas, 3, 1)              \
+  F(WeakCollectionDelete, 3, 1)           \
+  F(WeakCollectionSet, 4, 1)              \
   F(GetWeakSetValues, 2, 1)               \
   F(ObservationWeakMapCreate, 0, 1)
 
@@ -210,7 +210,7 @@ namespace internal {
   F(SetNativeFlag, 1, 1)                                    \
   F(ThrowStrongModeTooFewArguments, 0, 1)                   \
   F(IsConstructor, 1, 1)                                    \
-  F(SetInlineBuiltinFlag, 1, 1)                             \
+  F(SetForceInlineFlag, 1, 1)                               \
   F(FunctionBindArguments, 4, 1)                            \
   F(BoundFunctionGetBindings, 1, 1)                         \
   F(NewObjectFromBound, 1, 1)                               \
@@ -414,6 +414,7 @@ namespace internal {
   F(AddNamedProperty, 4, 1)                          \
   F(SetProperty, 4, 1)                               \
   F(AddElement, 4, 1)                                \
+  F(AppendElement, 2, 1)                             \
   F(DeleteProperty, 3, 1)                            \
   F(HasOwnProperty, 2, 1)                            \
   F(HasProperty, 2, 1)                               \
@@ -632,7 +633,7 @@ namespace internal {
 
 
 #define FOR_EACH_INTRINSIC_TYPEDARRAY(F)     \
-  F(ArrayBufferInitialize, 2, 1)             \
+  F(ArrayBufferInitialize, 3, 1)             \
   F(ArrayBufferGetByteLength, 1, 1)          \
   F(ArrayBufferSliceImpl, 3, 1)              \
   F(ArrayBufferIsView, 1, 1)                 \
@@ -814,12 +815,13 @@ class Runtime : public AllStatic {
   static void SetupArrayBuffer(Isolate* isolate,
                                Handle<JSArrayBuffer> array_buffer,
                                bool is_external, void* data,
-                               size_t allocated_length);
+                               size_t allocated_length,
+                               SharedFlag shared = SharedFlag::kNotShared);
 
-  static bool SetupArrayBufferAllocatingData(Isolate* isolate,
-                                             Handle<JSArrayBuffer> array_buffer,
-                                             size_t allocated_length,
-                                             bool initialize = true);
+  static bool SetupArrayBufferAllocatingData(
+      Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
+      size_t allocated_length, bool initialize = true,
+      SharedFlag shared = SharedFlag::kNotShared);
 
   static void NeuterArrayBuffer(Handle<JSArrayBuffer> array_buffer);
 
@@ -853,9 +855,12 @@ class Runtime : public AllStatic {
   static void WeakCollectionInitialize(
       Isolate* isolate, Handle<JSWeakCollection> weak_collection);
   static void WeakCollectionSet(Handle<JSWeakCollection> weak_collection,
-                                Handle<Object> key, Handle<Object> value);
+                                Handle<Object> key, Handle<Object> value,
+                                int32_t hash);
   static bool WeakCollectionDelete(Handle<JSWeakCollection> weak_collection,
                                    Handle<Object> key);
+  static bool WeakCollectionDelete(Handle<JSWeakCollection> weak_collection,
+                                   Handle<Object> key, int32_t hash);
 
   static MaybeHandle<JSArray> GetInternalProperties(Isolate* isolate,
                                                     Handle<Object>);

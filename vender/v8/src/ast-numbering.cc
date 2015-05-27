@@ -52,6 +52,13 @@ class AstNumberingVisitor final : public AstVisitor {
     dont_optimize_reason_ = reason;
     DisableSelfOptimization();
   }
+  void DisableCrankshaft(BailoutReason reason) {
+    if (FLAG_turbo_shipping) {
+      return properties_.flags()->Add(kDontCrankshaft);
+    }
+    dont_optimize_reason_ = reason;
+    DisableSelfOptimization();
+  }
   void DisableCaching(BailoutReason reason) {
     dont_optimize_reason_ = reason;
     DisableSelfOptimization();
@@ -148,7 +155,7 @@ void AstNumberingVisitor::VisitRegExpLiteral(RegExpLiteral* node) {
 void AstNumberingVisitor::VisitVariableProxy(VariableProxy* node) {
   IncrementNodeCount();
   if (node->var()->IsLookupSlot()) {
-    DisableOptimization(kReferenceToAVariableWhichRequiresDynamicLookup);
+    DisableCrankshaft(kReferenceToAVariableWhichRequiresDynamicLookup);
   }
   ReserveFeedbackSlots(node);
   node->set_base_id(ReserveIdRange(VariableProxy::num_ids()));
@@ -249,7 +256,7 @@ void AstNumberingVisitor::VisitCallRuntime(CallRuntime* node) {
 
 void AstNumberingVisitor::VisitWithStatement(WithStatement* node) {
   IncrementNodeCount();
-  DisableOptimization(kWithStatement);
+  DisableCrankshaft(kWithStatement);
   node->set_base_id(ReserveIdRange(WithStatement::num_ids()));
   Visit(node->expression());
   Visit(node->statement());
@@ -324,7 +331,11 @@ void AstNumberingVisitor::VisitCompareOperation(CompareOperation* node) {
 }
 
 
-void AstNumberingVisitor::VisitSpread(Spread* node) { UNREACHABLE(); }
+void AstNumberingVisitor::VisitSpread(Spread* node) {
+  IncrementNodeCount();
+  DisableOptimization(kSpread);
+  Visit(node->expression());
+}
 
 
 void AstNumberingVisitor::VisitForInStatement(ForInStatement* node) {
@@ -340,7 +351,7 @@ void AstNumberingVisitor::VisitForInStatement(ForInStatement* node) {
 
 void AstNumberingVisitor::VisitForOfStatement(ForOfStatement* node) {
   IncrementNodeCount();
-  DisableOptimization(kForOfStatement);
+  DisableCrankshaft(kForOfStatement);
   node->set_base_id(ReserveIdRange(ForOfStatement::num_ids()));
   Visit(node->assign_iterator());
   Visit(node->next_result());
@@ -421,6 +432,10 @@ void AstNumberingVisitor::VisitObjectLiteral(ObjectLiteral* node) {
   for (int i = 0; i < node->properties()->length(); i++) {
     VisitObjectLiteralProperty(node->properties()->at(i));
   }
+  // Mark all computed expressions that are bound to a key that
+  // is shadowed by a later occurrence of the same key. For the
+  // marked expressions, no store code will be is emitted.
+  node->CalculateEmitStore(zone());
 }
 
 
@@ -507,7 +522,7 @@ bool AstNumberingVisitor::Renumber(FunctionLiteral* node) {
   }
   if (scope->calls_eval()) DisableOptimization(kFunctionCallsEval);
   if (scope->arguments() != NULL && !scope->arguments()->IsStackAllocated()) {
-    DisableOptimization(kContextAllocatedArguments);
+    DisableCrankshaft(kContextAllocatedArguments);
   }
 
   VisitDeclarations(scope->declarations());

@@ -114,8 +114,6 @@ CompilationInfo::CompilationInfo(ParseInfo* parse_info)
 
   if (isolate_->debug()->is_active()) MarkAsDebug();
   if (FLAG_context_specialization) MarkAsContextSpecializing();
-  if (FLAG_turbo_builtin_inlining) MarkAsBuiltinInliningEnabled();
-  if (FLAG_turbo_deoptimization) MarkAsDeoptimizationEnabled();
   if (FLAG_turbo_inlining) MarkAsInliningEnabled();
   if (FLAG_turbo_source_positions) MarkAsSourcePositionsEnabled();
   if (FLAG_turbo_splitting) MarkAsSplittingEnabled();
@@ -376,7 +374,9 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
   DCHECK(info()->shared_info()->has_deoptimization_support());
 
   // Check the enabling conditions for TurboFan.
+  bool dont_crankshaft = info()->shared_info()->dont_crankshaft();
   if (((FLAG_turbo_asm && info()->shared_info()->asm_function()) ||
+       (dont_crankshaft && strcmp(FLAG_turbo_filter, "~~") == 0) ||
        info()->closure()->PassesFilter(FLAG_turbo_filter)) &&
       (FLAG_turbo_osr || !info()->is_osr())) {
     // Use TurboFan for the compilation.
@@ -394,6 +394,10 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
       info()->MarkAsTypeFeedbackEnabled();
       info()->EnsureFeedbackVector();
     }
+    if (!info()->shared_info()->asm_function() ||
+        FLAG_turbo_asm_deoptimization) {
+      info()->MarkAsDeoptimizationEnabled();
+    }
 
     Timer t(this, &time_taken_to_create_graph_);
     compiler::Pipeline pipeline(info());
@@ -403,7 +407,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
     }
   }
 
-  if (!isolate()->use_crankshaft()) {
+  if (!isolate()->use_crankshaft() || dont_crankshaft) {
     // Crankshaft is entirely disabled.
     return SetLastStatus(FAILED);
   }
@@ -503,7 +507,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::GenerateCode() {
   // TODO(turbofan): Currently everything is done in the first phase.
   if (!info()->code().is_null()) {
     info()->dependencies()->Commit(info()->code());
-    if (FLAG_turbo_deoptimization) {
+    if (info()->is_deoptimization_enabled()) {
       info()->parse_info()->context()->native_context()->AddOptimizedCode(
           *info()->code());
     }
@@ -675,7 +679,6 @@ MUST_USE_RESULT static MaybeHandle<Code> GetUnoptimizedCodeCommon(
 
   // Update the code and feedback vector for the shared function info.
   shared->ReplaceCode(*info->code());
-  if (shared->optimization_disabled()) info->code()->set_optimizable(false);
   shared->set_feedback_vector(*info->feedback_vector());
 
   return info->code();
@@ -740,6 +743,7 @@ static bool Renumber(ParseInfo* parse_info) {
     FunctionLiteral* lit = parse_info->function();
     shared_info->set_ast_node_count(lit->ast_node_count());
     MaybeDisableOptimization(shared_info, lit->dont_optimize_reason());
+    shared_info->set_dont_crankshaft(lit->flags()->Contains(kDontCrankshaft));
     shared_info->set_dont_cache(lit->flags()->Contains(kDontCache));
   }
   return true;
@@ -850,7 +854,7 @@ MaybeHandle<Code> Compiler::GetLazyCode(Handle<JSFunction> function) {
   // If the debugger is active, do not compile with turbofan unless we can
   // deopt from turbofan code.
   if (FLAG_turbo_asm && function->shared()->asm_function() &&
-      (FLAG_turbo_deoptimization || !isolate->debug()->is_active()) &&
+      (FLAG_turbo_asm_deoptimization || !isolate->debug()->is_active()) &&
       !FLAG_turbo_osr) {
     CompilationInfoWithZone info(function);
 

@@ -712,8 +712,8 @@ void LoadIndexedStringStub::Generate(MacroAssembler* masm) {
   DCHECK(!scratch.is(receiver) && !scratch.is(index));
   Register result = eax;
   DCHECK(!result.is(scratch));
-  DCHECK(!scratch.is(VectorLoadICDescriptor::VectorRegister()) &&
-         result.is(VectorLoadICDescriptor::SlotRegister()));
+  DCHECK(!scratch.is(LoadWithVectorDescriptor::VectorRegister()) &&
+         result.is(LoadDescriptor::SlotRegister()));
 
   // StringCharAtGenerator doesn't use the result register until it's passed
   // the different miss possibilities. If it did, we would have a conflict
@@ -2973,8 +2973,8 @@ void StringCharCodeAtGenerator::GenerateSlow(
               DONT_DO_SMI_CHECK);
   call_helper.BeforeCall(masm);
   if (embed_mode == PART_OF_IC_HANDLER) {
-    __ push(VectorLoadICDescriptor::VectorRegister());
-    __ push(VectorLoadICDescriptor::SlotRegister());
+    __ push(LoadWithVectorDescriptor::VectorRegister());
+    __ push(LoadDescriptor::SlotRegister());
   }
   __ push(object_);
   __ push(index_);  // Consumed by runtime conversion function.
@@ -2992,8 +2992,8 @@ void StringCharCodeAtGenerator::GenerateSlow(
   }
   __ pop(object_);
   if (embed_mode == PART_OF_IC_HANDLER) {
-    __ pop(VectorLoadICDescriptor::SlotRegister());
-    __ pop(VectorLoadICDescriptor::VectorRegister());
+    __ pop(LoadDescriptor::SlotRegister());
+    __ pop(LoadWithVectorDescriptor::VectorRegister());
   }
   // Reload the instance type.
   __ mov(result_, FieldOperand(object_, HeapObject::kMapOffset));
@@ -4424,15 +4424,15 @@ void StubFailureTrampolineStub::Generate(MacroAssembler* masm) {
 
 
 void LoadICTrampolineStub::Generate(MacroAssembler* masm) {
-  EmitLoadTypeFeedbackVector(masm, VectorLoadICDescriptor::VectorRegister());
-  VectorRawLoadStub stub(isolate(), state());
+  EmitLoadTypeFeedbackVector(masm, LoadWithVectorDescriptor::VectorRegister());
+  LoadICStub stub(isolate(), state());
   stub.GenerateForTrampoline(masm);
 }
 
 
 void KeyedLoadICTrampolineStub::Generate(MacroAssembler* masm) {
-  EmitLoadTypeFeedbackVector(masm, VectorLoadICDescriptor::VectorRegister());
-  VectorRawKeyedLoadStub stub(isolate());
+  EmitLoadTypeFeedbackVector(masm, LoadWithVectorDescriptor::VectorRegister());
+  KeyedLoadICStub stub(isolate());
   stub.GenerateForTrampoline(masm);
 }
 
@@ -4549,21 +4549,19 @@ static void HandleMonomorphicCase(MacroAssembler* masm, Register receiver,
 }
 
 
-void VectorRawLoadStub::Generate(MacroAssembler* masm) {
-  GenerateImpl(masm, false);
-}
+void LoadICStub::Generate(MacroAssembler* masm) { GenerateImpl(masm, false); }
 
 
-void VectorRawLoadStub::GenerateForTrampoline(MacroAssembler* masm) {
+void LoadICStub::GenerateForTrampoline(MacroAssembler* masm) {
   GenerateImpl(masm, true);
 }
 
 
-void VectorRawLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
-  Register receiver = VectorLoadICDescriptor::ReceiverRegister();  // edx
-  Register name = VectorLoadICDescriptor::NameRegister();          // ecx
-  Register vector = VectorLoadICDescriptor::VectorRegister();      // ebx
-  Register slot = VectorLoadICDescriptor::SlotRegister();          // eax
+void LoadICStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
+  Register receiver = LoadWithVectorDescriptor::ReceiverRegister();  // edx
+  Register name = LoadWithVectorDescriptor::NameRegister();          // ecx
+  Register vector = LoadWithVectorDescriptor::VectorRegister();      // ebx
+  Register slot = LoadWithVectorDescriptor::SlotRegister();          // eax
   Register scratch = edi;
   __ mov(scratch, FieldOperand(vector, slot, times_half_pointer_size,
                                FixedArray::kHeaderSize));
@@ -4598,21 +4596,21 @@ void VectorRawLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
 }
 
 
-void VectorRawKeyedLoadStub::Generate(MacroAssembler* masm) {
+void KeyedLoadICStub::Generate(MacroAssembler* masm) {
   GenerateImpl(masm, false);
 }
 
 
-void VectorRawKeyedLoadStub::GenerateForTrampoline(MacroAssembler* masm) {
+void KeyedLoadICStub::GenerateForTrampoline(MacroAssembler* masm) {
   GenerateImpl(masm, true);
 }
 
 
-void VectorRawKeyedLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
-  Register receiver = VectorLoadICDescriptor::ReceiverRegister();  // edx
-  Register key = VectorLoadICDescriptor::NameRegister();           // ecx
-  Register vector = VectorLoadICDescriptor::VectorRegister();      // ebx
-  Register slot = VectorLoadICDescriptor::SlotRegister();          // eax
+void KeyedLoadICStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
+  Register receiver = LoadWithVectorDescriptor::ReceiverRegister();  // edx
+  Register key = LoadWithVectorDescriptor::NameRegister();           // ecx
+  Register vector = LoadWithVectorDescriptor::VectorRegister();      // ebx
+  Register slot = LoadWithVectorDescriptor::SlotRegister();          // eax
   Register feedback = edi;
   __ mov(feedback, FieldOperand(vector, slot, times_half_pointer_size,
                                 FixedArray::kHeaderSize));
@@ -4653,6 +4651,58 @@ void VectorRawKeyedLoadStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
 
   __ bind(&miss);
   KeyedLoadIC::GenerateMiss(masm);
+}
+
+
+void VectorStoreICTrampolineStub::Generate(MacroAssembler* masm) {
+  EmitLoadTypeFeedbackVector(masm, VectorStoreICDescriptor::VectorRegister());
+  VectorStoreICStub stub(isolate(), state());
+  stub.GenerateForTrampoline(masm);
+}
+
+
+void VectorKeyedStoreICTrampolineStub::Generate(MacroAssembler* masm) {
+  EmitLoadTypeFeedbackVector(masm, VectorStoreICDescriptor::VectorRegister());
+  VectorKeyedStoreICStub stub(isolate(), state());
+  stub.GenerateForTrampoline(masm);
+}
+
+
+void VectorStoreICStub::Generate(MacroAssembler* masm) {
+  GenerateImpl(masm, false);
+}
+
+
+void VectorStoreICStub::GenerateForTrampoline(MacroAssembler* masm) {
+  GenerateImpl(masm, true);
+}
+
+
+void VectorStoreICStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
+  Label miss;
+
+  // TODO(mvstanton): Implement.
+  __ bind(&miss);
+  StoreIC::GenerateMiss(masm);
+}
+
+
+void VectorKeyedStoreICStub::Generate(MacroAssembler* masm) {
+  GenerateImpl(masm, false);
+}
+
+
+void VectorKeyedStoreICStub::GenerateForTrampoline(MacroAssembler* masm) {
+  GenerateImpl(masm, true);
+}
+
+
+void VectorKeyedStoreICStub::GenerateImpl(MacroAssembler* masm, bool in_frame) {
+  Label miss;
+
+  // TODO(mvstanton): Implement.
+  __ bind(&miss);
+  KeyedStoreIC::GenerateMiss(masm);
 }
 
 

@@ -315,18 +315,29 @@ void BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(
 }
 
 
+std::ostream& operator<<(std::ostream& os, const StringAddFlags& flags) {
+  switch (flags) {
+    case STRING_ADD_CHECK_NONE:
+      return os << "CheckNone";
+    case STRING_ADD_CHECK_LEFT:
+      return os << "CheckLeft";
+    case STRING_ADD_CHECK_RIGHT:
+      return os << "CheckRight";
+    case STRING_ADD_CHECK_BOTH:
+      return os << "CheckBoth";
+  }
+  UNREACHABLE();
+  return os;
+}
+
+
 void StringAddStub::PrintBaseName(std::ostream& os) const {  // NOLINT
-  os << "StringAddStub";
-  if ((flags() & STRING_ADD_CHECK_BOTH) == STRING_ADD_CHECK_BOTH) {
-    os << "_CheckBoth";
-  } else if ((flags() & STRING_ADD_CHECK_LEFT) == STRING_ADD_CHECK_LEFT) {
-    os << "_CheckLeft";
-  } else if ((flags() & STRING_ADD_CHECK_RIGHT) == STRING_ADD_CHECK_RIGHT) {
-    os << "_CheckRight";
-  }
-  if (pretenure_flag() == TENURED) {
-    os << "_Tenured";
-  }
+  os << "StringAddStub_" << flags() << "_" << pretenure_flag();
+}
+
+
+void StringAddTFStub::PrintBaseName(std::ostream& os) const {  // NOLINT
+  os << "StringAddTFStub_" << flags() << "_" << pretenure_flag();
 }
 
 
@@ -466,17 +477,31 @@ Handle<JSFunction> GetFunction(Isolate* isolate, const char* name) {
   Handle<JSFunction> function = Handle<JSFunction>::cast(fun.ToHandleChecked());
   DCHECK(!function->IsUndefined() &&
          "JavaScript implementation of stub not found");
-  // Just to make sure nobody calls this...
-  function->set_code(isolate->builtins()->builtin(Builtins::kIllegal));
   return function;
 }
 }  // namespace
 
 
 Handle<Code> TurboFanCodeStub::GenerateCode() {
+  // Get the outer ("stub generator") function.
+  const char* name = CodeStub::MajorName(MajorKey(), false);
+  Handle<JSFunction> outer = GetFunction(isolate(), name);
+  DCHECK_EQ(2, outer->shared()->length());
+
+  // Invoke the outer function to get the stub itself.
+  Factory* factory = isolate()->factory();
+  Handle<Object> call_conv = factory->InternalizeUtf8String(name);
+  Handle<Object> minor_key = factory->NewNumber(MinorKey());
+  Handle<Object> args[] = {call_conv, minor_key};
+  MaybeHandle<Object> result = Execution::Call(
+      isolate(), outer, factory->undefined_value(), 2, args, false);
+  Handle<JSFunction> inner = Handle<JSFunction>::cast(result.ToHandleChecked());
+  // Just to make sure nobody calls this...
+  inner->set_code(isolate()->builtins()->builtin(Builtins::kIllegal));
+
   Zone zone;
   // Build a "hybrid" CompilationInfo for a JSFunction/CodeStub pair.
-  ParseInfo parse_info(&zone, GetFunction(isolate(), GetFunctionName()));
+  ParseInfo parse_info(&zone, inner);
   CompilationInfo info(&parse_info);
   info.SetStub(this);
   return info.GenerateCodeStub();
@@ -618,7 +643,7 @@ void HandlerStub::InitializeDescriptor(CodeStubDescriptor* descriptor) {
 
 CallInterfaceDescriptor HandlerStub::GetCallInterfaceDescriptor() {
   if (kind() == Code::LOAD_IC || kind() == Code::KEYED_LOAD_IC) {
-    return VectorLoadICDescriptor(isolate());
+    return LoadWithVectorDescriptor(isolate());
   } else {
     DCHECK_EQ(Code::STORE_IC, kind());
     return StoreDescriptor(isolate());

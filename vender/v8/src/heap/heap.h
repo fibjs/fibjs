@@ -271,7 +271,6 @@ namespace internal {
   V(illegal_access_string, "illegal access")                   \
   V(cell_value_string, "%cell_value")                          \
   V(illegal_argument_string, "illegal argument")               \
-  V(identity_hash_string, "v8::IdentityHash")                  \
   V(closure_string, "(closure)")                               \
   V(dot_string, ".")                                           \
   V(compare_ic_string, "==")                                   \
@@ -294,6 +293,7 @@ namespace internal {
 #define PRIVATE_SYMBOL_LIST(V)      \
   V(nonextensible_symbol)           \
   V(sealed_symbol)                  \
+  V(hash_code_symbol)               \
   V(frozen_symbol)                  \
   V(nonexistent_symbol)             \
   V(elements_transition_symbol)     \
@@ -1312,6 +1312,36 @@ class Heap {
     }
   }
 
+  void UpdateNewSpaceAllocationCounter() {
+    new_space_allocation_counter_ = NewSpaceAllocationCounter();
+  }
+
+  size_t NewSpaceAllocationCounter() {
+    return new_space_allocation_counter_ + new_space()->AllocatedSinceLastGC();
+  }
+
+  // This should be used only for testing.
+  void set_new_space_allocation_counter(size_t new_value) {
+    new_space_allocation_counter_ = new_value;
+  }
+
+  void UpdateOldGenerationAllocationCounter() {
+    old_generation_allocation_counter_ = OldGenerationAllocationCounter();
+  }
+
+  size_t OldGenerationAllocationCounter() {
+    return old_generation_allocation_counter_ + PromotedSinceLastGC();
+  }
+
+  // This should be used only for testing.
+  void set_old_generation_allocation_counter(size_t new_value) {
+    old_generation_allocation_counter_ = new_value;
+  }
+
+  size_t PromotedSinceLastGC() {
+    return PromotedSpaceSizeOfObjects() - old_generation_size_at_last_gc_;
+  }
+
   // Update GC statistics that are tracked on the Heap.
   void UpdateCumulativeGCStatistics(double duration, double spent_in_mutator,
                                     double marking_time);
@@ -1741,6 +1771,8 @@ class Heap {
   // any string when looked up in properties.
   String* hidden_string_;
 
+  void AddPrivateGlobalSymbols(Handle<Object> private_intern_table);
+
   // GC callback function, called before and after mark-compact GC.
   // Allocations in the callback function are disallowed.
   struct GCPrologueCallbackPair {
@@ -2114,9 +2146,25 @@ class Heap {
 
   void SelectScavengingVisitorsTable();
 
+  bool HasLowAllocationRate(size_t allocaion_rate);
+
+  void ReduceNewSpaceSize(size_t allocaion_rate);
+
   bool TryFinalizeIdleIncrementalMarking(
       double idle_time_in_ms, size_t size_of_objects,
       size_t mark_compact_speed_in_bytes_per_ms);
+
+  GCIdleTimeHandler::HeapState ComputeHeapState();
+
+  bool PerformIdleTimeAction(GCIdleTimeAction action,
+                             GCIdleTimeHandler::HeapState heap_state,
+                             double deadline_in_ms,
+                             bool is_long_idle_notification);
+
+  void IdleNotificationEpilogue(GCIdleTimeAction action,
+                                GCIdleTimeHandler::HeapState heap_state,
+                                double start_ms, double deadline_in_ms,
+                                bool is_long_idle_notification);
 
   void ClearObjectStats(bool clear_last_time_stats = false);
 
@@ -2169,6 +2217,19 @@ class Heap {
   // These two counters are monotomically increasing and never reset.
   size_t full_codegen_bytes_generated_;
   size_t crankshaft_codegen_bytes_generated_;
+
+  // This counter is increased before each GC and never reset.
+  // To account for the bytes allocated since the last GC, use the
+  // NewSpaceAllocationCounter() function.
+  size_t new_space_allocation_counter_;
+
+  // This counter is increased before each GC and never reset. To
+  // account for the bytes allocated since the last GC, use the
+  // OldGenerationAllocationCounter() function.
+  size_t old_generation_allocation_counter_;
+
+  // The size of objects in old generation after the last MarkCompact GC.
+  size_t old_generation_size_at_last_gc_;
 
   // If the --deopt_every_n_garbage_collections flag is set to a positive value,
   // this variable holds the number of garbage collections since the last

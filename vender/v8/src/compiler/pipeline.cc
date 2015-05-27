@@ -503,7 +503,7 @@ struct InliningPhase {
     GraphReducer graph_reducer(data->graph(), temp_zone);
     JSInliner inliner(&graph_reducer, data->info()->is_inlining_enabled()
                                           ? JSInliner::kGeneralInlining
-                                          : JSInliner::kBuiltinsInlining,
+                                          : JSInliner::kRestrictedInlining,
                       temp_zone, data->info(), data->jsgraph());
     AddReducer(data, &graph_reducer, &inliner);
     graph_reducer.ReduceGraph();
@@ -546,7 +546,10 @@ struct JSTypeFeedbackPhase {
     // specializing to the global object here.
     JSTypeFeedbackSpecializer specializer(
         &graph_reducer, data->jsgraph(), data->js_type_feedback(), &oracle,
-        global_object, data->info()->dependencies());
+        global_object, data->info()->is_deoptimization_enabled()
+                           ? JSTypeFeedbackSpecializer::kDeoptimizationEnabled
+                           : JSTypeFeedbackSpecializer::kDeoptimizationDisabled,
+        data->info()->dependencies());
     AddReducer(data, &graph_reducer, &specializer);
     graph_reducer.ReduceGraph();
   }
@@ -561,7 +564,11 @@ struct TypedLoweringPhase {
     LoadElimination load_elimination;
     JSBuiltinReducer builtin_reducer(data->jsgraph());
     JSTypedLowering typed_lowering(&graph_reducer, data->jsgraph(), temp_zone);
-    JSIntrinsicLowering intrinsic_lowering(&graph_reducer, data->jsgraph());
+    JSIntrinsicLowering intrinsic_lowering(
+        &graph_reducer, data->jsgraph(),
+        data->info()->is_deoptimization_enabled()
+            ? JSIntrinsicLowering::kDeoptimizationEnabled
+            : JSIntrinsicLowering::kDeoptimizationDisabled);
     SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     CommonOperatorReducer common_reducer(data->jsgraph());
     AddReducer(data, &graph_reducer, &builtin_reducer);
@@ -1010,10 +1017,8 @@ Handle<Code> Pipeline::GenerateCode() {
     RunPrintAndVerify("Context specialized", true);
   }
 
-  if (info()->is_builtin_inlining_enabled() || info()->is_inlining_enabled()) {
-    Run<InliningPhase>();
-    RunPrintAndVerify("Inlined", true);
-  }
+  Run<InliningPhase>();
+  RunPrintAndVerify("Inlined", true);
 
   if (FLAG_print_turbo_replay) {
     // Print a replay of the initial graph.
@@ -1046,9 +1051,7 @@ Handle<Code> Pipeline::GenerateCode() {
       RunPrintAndVerify("OSR deconstruction");
     }
 
-    // TODO(turbofan): Type feedback currently requires deoptimization.
-    if (info()->is_deoptimization_enabled() &&
-        info()->is_type_feedback_enabled()) {
+    if (info()->is_type_feedback_enabled()) {
       Run<JSTypeFeedbackPhase>();
       RunPrintAndVerify("JSType feedback");
     }

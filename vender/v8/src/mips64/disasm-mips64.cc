@@ -618,6 +618,9 @@ bool Decoder::DecodeTypeRegisterRsType(Instruction* instr) {
     case CEIL_L_D:
       Format(instr, "ceil.l.'t 'fd, 'fs");
       break;
+    case CLASS_D:
+      Format(instr, "class.'t 'fd, 'fs");
+      break;
     case CVT_S_D:
       Format(instr, "cvt.s.'t 'fd, 'fs");
       break;
@@ -680,6 +683,9 @@ void Decoder::DecodeTypeRegisterLRsType(Instruction* instr) {
       break;
     case CVT_S_L:
       Format(instr, "cvt.s.l 'fd, 'fs");
+      break;
+    case CMP_AF:
+      Format(instr, "cmp.af.d  'fd,  'fs, 'ft");
       break;
     case CMP_UN:
       Format(instr, "cmp.un.d  'fd,  'fs, 'ft");
@@ -1131,6 +1137,20 @@ void Decoder::DecodeTypeRegisterSPECIAL3(Instruction* instr) {
     }
     case DEXT: {
       Format(instr, "dext    'rt, 'rs, 'sa, 'ss1");
+      break;
+    }
+    case BITSWAP: {
+      Format(instr, "bitswap 'rd, 'rt");
+      break;
+    }
+    case DBITSWAP: {
+      switch (instr->SaFieldRaw()) {
+        case DBITSWAP_SA:
+          Format(instr, "dbitswap 'rd, 'rt");
+          break;
+        default:
+          UNREACHABLE();
+      }
       break;
     }
     default:

@@ -20,17 +20,21 @@ const Register CallInterfaceDescriptor::ContextRegister() { return rsi; }
 
 const Register LoadDescriptor::ReceiverRegister() { return rdx; }
 const Register LoadDescriptor::NameRegister() { return rcx; }
+const Register LoadDescriptor::SlotRegister() { return rax; }
 
 
-const Register VectorLoadICTrampolineDescriptor::SlotRegister() { return rax; }
-
-
-const Register VectorLoadICDescriptor::VectorRegister() { return rbx; }
+const Register LoadWithVectorDescriptor::VectorRegister() { return rbx; }
 
 
 const Register StoreDescriptor::ReceiverRegister() { return rdx; }
 const Register StoreDescriptor::NameRegister() { return rcx; }
 const Register StoreDescriptor::ValueRegister() { return rax; }
+
+
+const Register VectorStoreICTrampolineDescriptor::SlotRegister() { return rdi; }
+
+
+const Register VectorStoreICDescriptor::VectorRegister() { return rbx; }
 
 
 const Register StoreTransitionDescriptor::MapRegister() { return rbx; }

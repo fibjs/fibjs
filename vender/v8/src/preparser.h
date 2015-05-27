@@ -123,6 +123,9 @@ class ParserBase : public Traits {
   bool allow_harmony_destructuring() const {
     return allow_harmony_destructuring_;
   }
+  bool allow_harmony_spread_arrays() const {
+    return allow_harmony_spread_arrays_;
+  }
 
   bool allow_strong_mode() const { return allow_strong_mode_; }
 
@@ -161,7 +164,9 @@ class ParserBase : public Traits {
   void set_allow_harmony_destructuring(bool allow) {
     allow_harmony_destructuring_ = allow;
   }
-
+  void set_allow_harmony_spread_arrays(bool allow) {
+    allow_harmony_spread_arrays_ = allow;
+  }
 
  protected:
   enum AllowRestrictedIdentifiers {
@@ -1011,6 +1016,7 @@ class ParserBase : public Traits {
   bool allow_harmony_rest_params_;
   bool allow_harmony_spreadcalls_;
   bool allow_harmony_destructuring_;
+  bool allow_harmony_spread_arrays_;
   bool allow_strong_mode_;
 };
 
@@ -2497,6 +2503,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseArrayLiteral(
       this->NewExpressionList(4, zone_);
   Expect(Token::LBRACK, CHECK_OK);
   while (peek() != Token::RBRACK) {
+    bool seen_spread = false;
     ExpressionT elem = this->EmptyExpression();
     if (peek() == Token::COMMA) {
       if (is_strong(language_mode())) {
@@ -2506,11 +2513,24 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseArrayLiteral(
         return this->EmptyExpression();
       }
       elem = this->GetLiteralTheHole(peek_position(), factory());
+    } else if (peek() == Token::ELLIPSIS) {
+      if (!allow_harmony_spread_arrays()) {
+        ExpressionUnexpectedToken(classifier);
+      }
+      int start_pos = peek_position();
+      Consume(Token::ELLIPSIS);
+      ExpressionT argument =
+          this->ParseAssignmentExpression(true, classifier, CHECK_OK);
+      elem = factory()->NewSpread(argument, start_pos);
+      seen_spread = true;
     } else {
       elem = this->ParseAssignmentExpression(true, classifier, CHECK_OK);
     }
     values->Add(elem, zone_);
     if (peek() != Token::RBRACK) {
+      if (seen_spread) {
+        BindingPatternUnexpectedToken(classifier);
+      }
       Expect(Token::COMMA, CHECK_OK);
     }
   }

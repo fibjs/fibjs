@@ -95,6 +95,8 @@ Code* IC::GetTargetAtAddress(Address address,
 
 void IC::SetTargetAtAddress(Address address, Code* target,
                             ConstantPoolArray* constant_pool) {
+  if (AddressIsDeoptimizedCode(target->GetIsolate(), address)) return;
+
   DCHECK(target->is_inline_cache_stub() || target->is_compare_ic_stub());
 
   // Don't use this for load_ics when --vector-ics is turned on.
@@ -109,8 +111,8 @@ void IC::SetTargetAtAddress(Address address, Code* target,
   // ICs as language mode. The language mode of the IC must be preserved.
   if (old_target->kind() == Code::STORE_IC ||
       old_target->kind() == Code::KEYED_STORE_IC) {
-    DCHECK(StoreIC::GetLanguageMode(old_target->extra_ic_state()) ==
-           StoreIC::GetLanguageMode(target->extra_ic_state()));
+    DCHECK(StoreICState::GetLanguageMode(old_target->extra_ic_state()) ==
+           StoreICState::GetLanguageMode(target->extra_ic_state()));
   }
 #endif
   Assembler::set_target_address_at(address, constant_pool,
@@ -141,15 +143,16 @@ void LoadIC::set_target(Code* code) {
 
 void StoreIC::set_target(Code* code) {
   // Language mode must be preserved across IC patching.
-  DCHECK(GetLanguageMode(code->extra_ic_state()) ==
-         GetLanguageMode(target()->extra_ic_state()));
+  DCHECK(StoreICState::GetLanguageMode(code->extra_ic_state()) ==
+         StoreICState::GetLanguageMode(target()->extra_ic_state()));
   IC::set_target(code);
 }
 
 
 void KeyedStoreIC::set_target(Code* code) {
   // Language mode must be preserved across IC patching.
-  DCHECK(GetLanguageMode(code->extra_ic_state()) == language_mode());
+  DCHECK(StoreICState::GetLanguageMode(code->extra_ic_state()) ==
+         language_mode());
   IC::set_target(code);
 }
 
@@ -211,11 +214,24 @@ Handle<Map> IC::GetICCacheHolder(Handle<Map> map, Isolate* isolate,
 }
 
 
-inline Code* IC::get_host() {
+Code* IC::get_host() {
   return isolate()
       ->inner_pointer_to_code_cache()
       ->GetCacheEntry(address())
       ->code;
+}
+
+
+bool IC::AddressIsDeoptimizedCode() const {
+  return AddressIsDeoptimizedCode(isolate(), address());
+}
+
+
+bool IC::AddressIsDeoptimizedCode(Isolate* isolate, Address address) {
+  Code* host =
+      isolate->inner_pointer_to_code_cache()->GetCacheEntry(address)->code;
+  return (host->kind() == Code::OPTIMIZED_FUNCTION &&
+          host->marked_for_deoptimization());
 }
 }
 }  // namespace v8::internal

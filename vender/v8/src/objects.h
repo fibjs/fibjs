@@ -1012,6 +1012,7 @@ template <class C> inline bool Is(Object* obj);
   V(WeakCell)                      \
   V(ObjectHashTable)               \
   V(WeakHashTable)                 \
+  V(WeakValueHashTable)            \
   V(OrderedHashTable)
 
 // Object is the abstract superclass for all classes in the
@@ -1107,6 +1108,11 @@ class Object {
     return true;
   }
 
+  // Checks whether two valid primitive encodings of a property name resolve to
+  // the same logical property. E.g., the smi 1, the string "1" and the double
+  // 1 all refer to the same property, so this helper will return true.
+  inline bool KeyEquals(Object* other);
+
   Handle<HeapType> OptimalType(Isolate* isolate, Representation representation);
 
   inline static Handle<Object> NewStorageFor(Isolate* isolate,
@@ -1181,10 +1187,7 @@ class Object {
       Handle<Name> key);
 
   MUST_USE_RESULT static MaybeHandle<Object> GetPropertyWithAccessor(
-      Handle<Object> receiver,
-      Handle<Name> name,
-      Handle<JSObject> holder,
-      Handle<Object> structure);
+      LookupIterator* it);
   MUST_USE_RESULT static MaybeHandle<Object> SetPropertyWithAccessor(
       Handle<Object> receiver, Handle<Name> name, Handle<Object> value,
       Handle<JSObject> holder, Handle<Object> structure,
@@ -1219,6 +1222,11 @@ class Object {
   // Returns the permanent hash code associated with this object. May return
   // undefined if not yet created.
   Object* GetHash();
+
+  // Returns undefined for JSObjects, but returns the hash code for simple
+  // objects.  This avoids a double lookup in the cases where we know we will
+  // add the hash to the JSObject if it does not already exist.
+  Object* GetSimpleHash();
 
   // Returns the permanent hash code associated with this object depending on
   // the actual object type. May create and store a hash code if needed and none
@@ -1481,8 +1489,7 @@ class HeapObject: public Object {
   static void VerifyHeapPointer(Object* p);
 #endif
 
-  inline bool NeedsToEnsureDoubleAlignment();
-  inline bool NeedsToEnsureDoubleUnalignment();
+  inline AllocationAlignment RequiredAlignment();
 
   // Layout description.
   // First field in a heap object is map.
@@ -1859,9 +1866,7 @@ class JSObject: public JSReceiver {
 
   // Used from JSReceiver.
   MUST_USE_RESULT static Maybe<PropertyAttributes>
-      GetPropertyAttributesWithInterceptor(Handle<JSObject> holder,
-                                           Handle<Object> receiver,
-                                           Handle<Name> name);
+  GetPropertyAttributesWithInterceptor(LookupIterator* it);
   MUST_USE_RESULT static Maybe<PropertyAttributes>
       GetPropertyAttributesWithFailedAccessCheck(LookupIterator* it);
   MUST_USE_RESULT static Maybe<PropertyAttributes>
@@ -1890,9 +1895,7 @@ class JSObject: public JSReceiver {
       Handle<AccessorInfo> info);
 
   MUST_USE_RESULT static MaybeHandle<Object> GetPropertyWithInterceptor(
-      Handle<JSObject> object,
-      Handle<Object> receiver,
-      Handle<Name> name);
+      LookupIterator* it);
 
   // Accessors for hidden properties object.
   //
@@ -3436,6 +3439,7 @@ class HashTable : public HashTableBase {
 
   // Find entry for key otherwise return kNotFound.
   inline int FindEntry(Key key);
+  inline int FindEntry(Isolate* isolate, Key key, int32_t hash);
   int FindEntry(Isolate* isolate, Key key);
 
   // Rehashes the table in-place.
@@ -3942,18 +3946,26 @@ class ObjectHashTable: public HashTable<ObjectHashTable,
   // Looks up the value associated with the given key. The hole value is
   // returned in case the key is not present.
   Object* Lookup(Handle<Object> key);
+  Object* Lookup(Handle<Object> key, int32_t hash);
+  Object* Lookup(Isolate* isolate, Handle<Object> key, int32_t hash);
 
   // Adds (or overwrites) the value associated with the given key.
   static Handle<ObjectHashTable> Put(Handle<ObjectHashTable> table,
                                      Handle<Object> key,
                                      Handle<Object> value);
+  static Handle<ObjectHashTable> Put(Handle<ObjectHashTable> table,
+                                     Handle<Object> key, Handle<Object> value,
+                                     int32_t hash);
 
   // Returns an ObjectHashTable (possibly |table|) where |key| has been removed.
   static Handle<ObjectHashTable> Remove(Handle<ObjectHashTable> table,
                                         Handle<Object> key,
                                         bool* was_present);
+  static Handle<ObjectHashTable> Remove(Handle<ObjectHashTable> table,
+                                        Handle<Object> key, bool* was_present,
+                                        int32_t hash);
 
- private:
+ protected:
   friend class MarkCompactCollector;
 
   void AddEntry(int entry, Object* key, Object* value);
@@ -4180,6 +4192,8 @@ class WeakHashTable: public HashTable<WeakHashTable,
                                                    Handle<HeapObject> key,
                                                    Handle<HeapObject> value);
 
+  static Handle<FixedArray> GetValues(Handle<WeakHashTable> table);
+
  private:
   friend class MarkCompactCollector;
 
@@ -4192,6 +4206,26 @@ class WeakHashTable: public HashTable<WeakHashTable,
 };
 
 
+class WeakValueHashTable : public ObjectHashTable {
+ public:
+  DECLARE_CAST(WeakValueHashTable)
+
+#ifdef DEBUG
+  // Looks up the value associated with the given key. The hole value is
+  // returned in case the key is not present.
+  Object* LookupWeak(Handle<Object> key);
+#endif  // DEBUG
+
+  // Adds (or overwrites) the value associated with the given key. Mapping a
+  // key to the hole value causes removal of the whole entry.
+  MUST_USE_RESULT static Handle<WeakValueHashTable> PutWeak(
+      Handle<WeakValueHashTable> table, Handle<Object> key,
+      Handle<HeapObject> value);
+
+  static Handle<FixedArray> GetWeakValues(Handle<WeakValueHashTable> table);
+};
+
+
 // JSFunctionResultCache caches results of some JSFunction invocation.
 // It is a fixed array with fixed structure:
 //   [0]: factory function
@@ -4199,7 +4233,7 @@ class WeakHashTable: public HashTable<WeakHashTable,
 //   [2]: current cache size
 //   [3]: dummy field.
 // The rest of array are key/value pairs.
-class JSFunctionResultCache: public FixedArray {
+class JSFunctionResultCache : public FixedArray {
  public:
   static const int kFactoryIndex = 0;
   static const int kFingerIndex = kFactoryIndex + 1;
@@ -5341,10 +5375,6 @@ class Code: public HeapObject {
   inline bool can_have_weak_objects();
   inline void set_can_have_weak_objects(bool value);
 
-  // [optimizable]: For FUNCTION kind, tells if it is optimizable.
-  inline bool optimizable();
-  inline void set_optimizable(bool value);
-
   // [has_deoptimization_support]: For FUNCTION kind, tells if it has
   // deoptimization support.
   inline bool has_deoptimization_support();
@@ -5650,9 +5680,7 @@ class Code: public HeapObject {
   STATIC_ASSERT((kConstantPoolOffset & kPointerAlignmentMask) == 0);
 
   // Byte offsets within kKindSpecificFlags1Offset.
-  static const int kOptimizableOffset = kKindSpecificFlags1Offset;
-
-  static const int kFullCodeFlags = kOptimizableOffset + 1;
+  static const int kFullCodeFlags = kKindSpecificFlags1Offset;
   class FullCodeFlagsHasDeoptimizationSupportField:
       public BitField<bool, 0, 1> {};  // NOLINT
   class FullCodeFlagsHasDebugBreakSlotsField: public BitField<bool, 1, 1> {};
@@ -5999,7 +6027,7 @@ class Map: public HeapObject {
     return ((1 << kIsObserved) & bit_field()) != 0;
   }
 
-  inline void set_is_strong(bool value);
+  inline void set_is_strong();
   inline bool is_strong();
   inline void set_is_extensible(bool value);
   inline bool is_extensible();
@@ -7093,8 +7121,8 @@ class SharedFunctionInfo: public HeapObject {
   // global object.
   DECL_BOOLEAN_ACCESSORS(native)
 
-  // Indicate that this builtin needs to be inlined in crankshaft.
-  DECL_BOOLEAN_ACCESSORS(inline_builtin)
+  // Indicate that this function should always be inlined in optimized code.
+  DECL_BOOLEAN_ACCESSORS(force_inline)
 
   // Indicates that the function was created by the Function function.
   // Though it's anonymous, toString should treat it as if it had the name
@@ -7112,6 +7140,9 @@ class SharedFunctionInfo: public HeapObject {
 
   // Is this a function or top-level/eval code.
   DECL_BOOLEAN_ACCESSORS(is_function)
+
+  // Indicates that code for this function cannot be compiled with Crankshaft.
+  DECL_BOOLEAN_ACCESSORS(dont_crankshaft)
 
   // Indicates that code for this function cannot be cached.
   DECL_BOOLEAN_ACCESSORS(dont_cache)
@@ -7372,11 +7403,12 @@ class SharedFunctionInfo: public HeapObject {
     kUsesSuperProperty,
     kHasDuplicateParameters,
     kNative,
-    kInlineBuiltin,
+    kForceInline,
     kBoundFunction,
     kIsAnonymous,
     kNameShouldPrintAsAnonymous,
     kIsFunction,
+    kDontCrankshaft,
     kDontCache,
     kDontFlush,
     kIsArrow,
@@ -7593,9 +7625,6 @@ class JSFunction: public JSObject {
 
   // Tells whether or not this function has been optimized.
   inline bool IsOptimized();
-
-  // Tells whether or not this function can be optimized.
-  inline bool IsOptimizable();
 
   // Mark this function for lazy recompilation. The function will be
   // recompiled the next time it is executed.
@@ -10261,6 +10290,10 @@ class JSWeakSet: public JSWeakCollection {
 };
 
 
+// Whether a JSArrayBuffer is a SharedArrayBuffer or not.
+enum class SharedFlag { kNotShared, kShared };
+
+
 class JSArrayBuffer: public JSObject {
  public:
   // [backing_store]: backing memory for this array
@@ -10280,6 +10313,9 @@ class JSArrayBuffer: public JSObject {
 
   inline bool was_neutered();
   inline void set_was_neutered(bool value);
+
+  inline bool is_shared();
+  inline void set_is_shared(bool value);
 
   DECLARE_CAST(JSArrayBuffer)
 
@@ -10305,6 +10341,7 @@ class JSArrayBuffer: public JSObject {
   class IsExternal : public BitField<bool, 1, 1> {};
   class IsNeuterable : public BitField<bool, 2, 1> {};
   class WasNeutered : public BitField<bool, 3, 1> {};
+  class IsShared : public BitField<bool, 4, 1> {};
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(JSArrayBuffer);

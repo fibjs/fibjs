@@ -82,6 +82,7 @@ enum BindingFlags {
   V(STRING_FUNCTION_PROTOTYPE_MAP_INDEX, Map, string_function_prototype_map)   \
   V(SYMBOL_FUNCTION_INDEX, JSFunction, symbol_function)                        \
   V(OBJECT_FUNCTION_INDEX, JSFunction, object_function)                        \
+  V(JS_OBJECT_STRONG_MAP_INDEX, Map, js_object_strong_map)                     \
   V(INTERNAL_ARRAY_FUNCTION_INDEX, JSFunction, internal_array_function)        \
   V(ARRAY_FUNCTION_INDEX, JSFunction, array_function)                          \
   V(JS_ARRAY_MAPS_INDEX, Object, js_array_maps)                                \
@@ -102,6 +103,7 @@ enum BindingFlags {
   V(TO_LENGTH_FUN_INDEX, JSFunction, to_length_fun)                            \
   V(GLOBAL_EVAL_FUN_INDEX, JSFunction, global_eval_fun)                        \
   V(ARRAY_BUFFER_FUN_INDEX, JSFunction, array_buffer_fun)                      \
+  V(SHARED_ARRAY_BUFFER_FUN_INDEX, JSFunction, shared_array_buffer_fun)        \
   V(ARRAY_BUFFER_MAP_INDEX, Map, array_buffer_map)                             \
   V(UINT8_ARRAY_FUN_INDEX, JSFunction, uint8_array_fun)                        \
   V(INT8_ARRAY_FUN_INDEX, JSFunction, int8_array_fun)                          \
@@ -153,6 +155,7 @@ enum BindingFlags {
   V(OPAQUE_REFERENCE_FUNCTION_INDEX, JSFunction, opaque_reference_function)    \
   V(CONTEXT_EXTENSION_FUNCTION_INDEX, JSFunction, context_extension_function)  \
   V(MAP_CACHE_INDEX, Object, map_cache)                                        \
+  V(STRONG_MAP_CACHE_INDEX, Object, strong_map_cache)                          \
   V(EMBEDDER_DATA_INDEX, FixedArray, embedder_data)                            \
   V(ALLOW_CODE_GEN_FROM_STRINGS_INDEX, Object, allow_code_gen_from_strings)    \
   V(ERROR_MESSAGE_FOR_CODE_GEN_FROM_STRINGS_INDEX, Object,                     \
@@ -188,7 +191,7 @@ enum BindingFlags {
   V(SET_ITERATOR_MAP_INDEX, Map, set_iterator_map)                             \
   V(ARRAY_VALUES_ITERATOR_INDEX, JSFunction, array_values_iterator)            \
   V(SCRIPT_CONTEXT_TABLE_INDEX, ScriptContextTable, script_context_table)      \
-  V(BUILTIN_EXPORTS_OBJECT_INDEX, Object, builtin_exports_object)              \
+  V(NATIVES_UTILS_OBJECT_INDEX, Object, natives_utils_object)                  \
   V(EXTRAS_EXPORTS_OBJECT_INDEX, JSObject, extras_exports_object)
 
 
@@ -340,6 +343,7 @@ class Context: public FixedArray {
     STRING_FUNCTION_PROTOTYPE_MAP_INDEX,
     SYMBOL_FUNCTION_INDEX,
     OBJECT_FUNCTION_INDEX,
+    JS_OBJECT_STRONG_MAP_INDEX,
     INTERNAL_ARRAY_FUNCTION_INDEX,
     ARRAY_FUNCTION_INDEX,
     JS_ARRAY_MAPS_INDEX,
@@ -378,6 +382,7 @@ class Context: public FixedArray {
     FLOAT64_ARRAY_EXTERNAL_MAP_INDEX,
     UINT8_CLAMPED_ARRAY_EXTERNAL_MAP_INDEX,
     DATA_VIEW_FUN_INDEX,
+    SHARED_ARRAY_BUFFER_FUN_INDEX,
     MESSAGE_LISTENERS_INDEX,
     MAKE_MESSAGE_FUN_INDEX,
     GET_STACK_TRACE_LINE_INDEX,
@@ -427,8 +432,9 @@ class Context: public FixedArray {
     ARRAY_VALUES_ITERATOR_INDEX,
     SCRIPT_CONTEXT_TABLE_INDEX,
     MAP_CACHE_INDEX,
+    STRONG_MAP_CACHE_INDEX,
     TO_LENGTH_FUN_INDEX,
-    BUILTIN_EXPORTS_OBJECT_INDEX,
+    NATIVES_UTILS_OBJECT_INDEX,
     EXTRAS_EXPORTS_OBJECT_INDEX,
 
     // Properties from here are treated as weak references by the full GC.

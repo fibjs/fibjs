@@ -275,6 +275,24 @@ bool Object::HasValidElements() {
 }
 
 
+bool Object::KeyEquals(Object* second) {
+  Object* first = this;
+  if (second->IsNumber()) {
+    if (first->IsNumber()) return first->Number() == second->Number();
+    Object* temp = first;
+    first = second;
+    second = temp;
+  }
+  if (first->IsNumber()) {
+    DCHECK_LE(0, first->Number());
+    uint32_t expected = static_cast<uint32_t>(first->Number());
+    uint32_t index;
+    return Name::cast(second)->AsArrayIndex(&index) && index == expected;
+  }
+  return Name::cast(first)->Equals(Name::cast(second));
+}
+
+
 Handle<Object> Object::NewStorageFor(Isolate* isolate,
                                      Handle<Object> object,
                                      Representation representation) {
@@ -871,6 +889,9 @@ bool Object::IsHashTable() const {
 bool Object::IsWeakHashTable() const {
   return IsHashTable();
 }
+
+
+bool Object::IsWeakValueHashTable() const { return IsHashTable(); }
 
 
 bool Object::IsDictionary() const {
@@ -2811,23 +2832,16 @@ WriteBarrierMode HeapObject::GetWriteBarrierMode(
 }
 
 
-bool HeapObject::NeedsToEnsureDoubleAlignment() {
+AllocationAlignment HeapObject::RequiredAlignment() {
 #ifdef V8_HOST_ARCH_32_BIT
-  return (IsFixedFloat64Array() || IsFixedDoubleArray() ||
-          IsConstantPoolArray()) &&
-         FixedArrayBase::cast(this)->length() != 0;
-#else
-  return false;
+  if ((IsFixedFloat64Array() || IsFixedDoubleArray() ||
+       IsConstantPoolArray()) &&
+      FixedArrayBase::cast(this)->length() != 0) {
+    return kDoubleAligned;
+  }
+  if (IsHeapNumber()) return kDoubleUnaligned;
 #endif  // V8_HOST_ARCH_32_BIT
-}
-
-
-bool HeapObject::NeedsToEnsureDoubleUnalignment() {
-#ifdef V8_HOST_ARCH_32_BIT
-  return IsHeapNumber();
-#else
-  return false;
-#endif  // V8_HOST_ARCH_32_BIT
+  return kWordAligned;
 }
 
 
@@ -3286,11 +3300,18 @@ int HashTable<Derived, Shape, Key>::FindEntry(Key key) {
 }
 
 
-// Find entry for key otherwise return kNotFound.
 template<typename Derived, typename Shape, typename Key>
 int HashTable<Derived, Shape, Key>::FindEntry(Isolate* isolate, Key key) {
+  return FindEntry(isolate, key, HashTable::Hash(key));
+}
+
+
+// Find entry for key otherwise return kNotFound.
+template <typename Derived, typename Shape, typename Key>
+int HashTable<Derived, Shape, Key>::FindEntry(Isolate* isolate, Key key,
+                                              int32_t hash) {
   uint32_t capacity = Capacity();
-  uint32_t entry = FirstProbe(HashTable::Hash(key), capacity);
+  uint32_t entry = FirstProbe(hash, capacity);
   uint32_t count = 1;
   // EnsureCapacity will guarantee the hash table is never full.
   while (true) {
@@ -3418,6 +3439,7 @@ CAST_ACCESSOR(UnseededNumberDictionary)
 CAST_ACCESSOR(WeakCell)
 CAST_ACCESSOR(WeakFixedArray)
 CAST_ACCESSOR(WeakHashTable)
+CAST_ACCESSOR(WeakValueHashTable)
 
 
 // static
@@ -4715,8 +4737,8 @@ bool Map::is_migration_target() {
 }
 
 
-void Map::set_is_strong(bool value) {
-  set_bit_field3(IsStrong::update(bit_field3(), value));
+void Map::set_is_strong() {
+  set_bit_field3(IsStrong::update(bit_field3(), true));
 }
 
 
@@ -4915,18 +4937,6 @@ inline void Code::set_can_have_weak_objects(bool value) {
   int previous = READ_UINT32_FIELD(this, kKindSpecificFlags1Offset);
   int updated = CanHaveWeakObjectsField::update(previous, value);
   WRITE_UINT32_FIELD(this, kKindSpecificFlags1Offset, updated);
-}
-
-
-bool Code::optimizable() {
-  DCHECK_EQ(FUNCTION, kind());
-  return READ_BYTE_FIELD(this, kOptimizableOffset) == 1;
-}
-
-
-void Code::set_optimizable(bool value) {
-  DCHECK_EQ(FUNCTION, kind());
-  WRITE_BYTE_FIELD(this, kOptimizableOffset, value ? 1 : 0);
 }
 
 
@@ -5741,11 +5751,6 @@ void SharedFunctionInfo::set_optimization_disabled(bool disable) {
   set_compiler_hints(BooleanBit::set(compiler_hints(),
                                      kOptimizationDisabled,
                                      disable));
-  // If disabling optimizations we reflect that in the code object so
-  // it will not be counted as optimizable code.
-  if ((code()->kind() == Code::FUNCTION) && disable) {
-    code()->set_optimizable(false);
-  }
 }
 
 
@@ -5785,14 +5790,15 @@ void SharedFunctionInfo::set_kind(FunctionKind kind) {
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, uses_super_property,
                kUsesSuperProperty)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, native, kNative)
-BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, inline_builtin,
-               kInlineBuiltin)
+BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, force_inline, kForceInline)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints,
                name_should_print_as_anonymous,
                kNameShouldPrintAsAnonymous)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, bound, kBoundFunction)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_anonymous, kIsAnonymous)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_function, kIsFunction)
+BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_crankshaft,
+               kDontCrankshaft)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_cache, kDontCache)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_flush, kDontFlush)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_arrow, kIsArrow)
@@ -5987,7 +5993,6 @@ void SharedFunctionInfo::TryReenableOptimization() {
     set_optimization_disabled(false);
     set_opt_count(0);
     set_deopt_count(0);
-    code()->set_optimizable(true);
   }
 }
 
@@ -6021,11 +6026,6 @@ bool JSFunction::NeedsArgumentsAdaption() {
 
 bool JSFunction::IsOptimized() {
   return code()->kind() == Code::OPTIMIZED_FUNCTION;
-}
-
-
-bool JSFunction::IsOptimizable() {
-  return code()->kind() == Code::FUNCTION && code()->optimizable();
 }
 
 
@@ -6487,6 +6487,14 @@ bool JSArrayBuffer::was_neutered() { return WasNeutered::decode(bit_field()); }
 
 void JSArrayBuffer::set_was_neutered(bool value) {
   set_bit_field(WasNeutered::update(bit_field(), value));
+}
+
+
+bool JSArrayBuffer::is_shared() { return IsShared::decode(bit_field()); }
+
+
+void JSArrayBuffer::set_is_shared(bool value) {
+  set_bit_field(IsShared::update(bit_field(), value));
 }
 
 

@@ -96,8 +96,8 @@ class AstGraphBuilder : public AstVisitor {
   int input_buffer_size_;
   Node** input_buffer_;
 
-  // Merge of all control nodes that exit the function body.
-  Node* exit_control_;
+  // Control nodes that exit the function body.
+  ZoneVector<Node*> exit_controls_;
 
   // Result of loop assignment analysis performed before graph creation.
   LoopAssignmentAnalysis* loop_assignment_analysis_;
@@ -130,14 +130,12 @@ class AstGraphBuilder : public AstVisitor {
   ZoneVector<Handle<Object>>* globals() { return &globals_; }
   Scope* current_scope() const;
   Node* current_context() const;
-  Node* exit_control() const { return exit_control_; }
   LivenessAnalyzer* liveness_analyzer() { return &liveness_analyzer_; }
 
   void set_environment(Environment* env) { environment_ = env; }
   void set_ast_context(AstContext* ctx) { ast_context_ = ctx; }
   void set_execution_control(ControlScope* ctrl) { execution_control_ = ctrl; }
   void set_execution_context(ContextScope* ctx) { execution_context_ = ctx; }
-  void set_exit_control(Node* exit) { exit_control_ = exit; }
 
   // Create the main graph body by visiting the AST.
   void CreateGraphBody(bool stack_check);
@@ -268,9 +266,9 @@ class AstGraphBuilder : public AstVisitor {
 
   // Builders for property loads and stores.
   Node* BuildKeyedLoad(Node* receiver, Node* key,
-                       const VectorSlotPair& feedback, TypeFeedbackId id);
+                       const VectorSlotPair& feedback);
   Node* BuildNamedLoad(Node* receiver, Handle<Name> name,
-                       const VectorSlotPair& feedback, TypeFeedbackId id,
+                       const VectorSlotPair& feedback,
                        ContextualMode mode = NOT_CONTEXTUAL);
   Node* BuildKeyedStore(Node* receiver, Node* key, Node* value,
                         TypeFeedbackId id);
@@ -459,6 +457,7 @@ class AstGraphBuilder::Environment : public ZoneObject {
   // Mark this environment as being unreachable.
   void MarkAsUnreachable() {
     UpdateControlDependency(builder()->jsgraph()->DeadControl());
+    liveness_block_ = nullptr;
   }
   bool IsMarkedAsUnreachable() {
     return GetControlDependency()->opcode() == IrOpcode::kDead;
@@ -468,20 +467,13 @@ class AstGraphBuilder::Environment : public ZoneObject {
   void Merge(Environment* other);
 
   // Copies this environment at a control-flow split point.
-  Environment* CopyForConditional() { return Copy(); }
+  Environment* CopyForConditional();
 
   // Copies this environment to a potentially unreachable control-flow point.
-  Environment* CopyAsUnreachable() {
-    Environment* env = Copy();
-    env->MarkAsUnreachable();
-    return env;
-  }
+  Environment* CopyAsUnreachable();
 
   // Copies this environment at a loop header control-flow point.
-  Environment* CopyForLoop(BitVector* assigned, bool is_osr = false) {
-    PrepareForLoop(assigned, is_osr);
-    return CopyAndShareLiveness();
-  }
+  Environment* CopyForLoop(BitVector* assigned, bool is_osr = false);
 
  private:
   AstGraphBuilder* builder_;
@@ -496,8 +488,8 @@ class AstGraphBuilder::Environment : public ZoneObject {
   Node* locals_node_;
   Node* stack_node_;
 
-  explicit Environment(Environment* copy);
-  Environment* Copy() { return new (zone()) Environment(this); }
+  explicit Environment(Environment* copy,
+                       LivenessAnalyzerBlock* liveness_block);
   Environment* CopyAndShareLiveness();
   void UpdateStateValues(Node** state_values, int offset, int count);
   void UpdateStateValuesWithCache(Node** state_values, int offset, int count);
@@ -508,6 +500,8 @@ class AstGraphBuilder::Environment : public ZoneObject {
   NodeVector* values() { return &values_; }
   NodeVector* contexts() { return &contexts_; }
   LivenessAnalyzerBlock* liveness_block() { return liveness_block_; }
+  bool IsLivenessAnalysisEnabled();
+  bool IsLivenessBlockConsistent();
 
   // Prepare environment to be used as loop header.
   void PrepareForLoop(BitVector* assigned, bool is_osr = false);

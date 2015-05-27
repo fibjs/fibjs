@@ -199,8 +199,6 @@
 
 #if defined(__GNUC__)  // Clang in gcc mode.
 # define V8_CC_GNU 1
-#elif defined(_MSC_VER)  // Clang in cl mode.
-# define V8_CC_MSVC 1
 #endif
 
 // Clang defines __alignof__ as alias for __alignof
@@ -268,11 +266,10 @@
 #  define V8_HAS_CXX11_ALIGNOF (V8_GNUC_PREREQ(4, 8, 0))
 #  define V8_HAS_CXX11_STATIC_ASSERT (V8_GNUC_PREREQ(4, 3, 0))
 # endif
+#endif
 
-#elif defined(_MSC_VER)
-
+#if defined(_MSC_VER)
 # define V8_CC_MSVC 1
-
 # define V8_HAS___ALIGNOF 1
 
 # define V8_HAS_DECLSPEC_ALIGN 1
@@ -313,22 +310,33 @@
 #endif
 
 
-// A macro to mark classes or functions as deprecated.
+// A macro (V8_DEPRECATED) to mark classes or functions as deprecated.
 #if defined(V8_DEPRECATION_WARNINGS) && V8_HAS_ATTRIBUTE_DEPRECATED_MESSAGE
-# define V8_DEPRECATED(message, declarator) \
-declarator __attribute__((deprecated(message)))
+#define V8_DEPRECATED(message, declarator) \
+  declarator __attribute__((deprecated(message)))
 #elif defined(V8_DEPRECATION_WARNINGS) && V8_HAS_ATTRIBUTE_DEPRECATED
-# define V8_DEPRECATED(message, declarator) \
-declarator __attribute__((deprecated))
+#define V8_DEPRECATED(message, declarator) \
+  declarator __attribute__((deprecated))
 #elif defined(V8_DEPRECATION_WARNINGS) && V8_HAS_DECLSPEC_DEPRECATED
-# define V8_DEPRECATED(message, declarator) __declspec(deprecated) declarator
+#define V8_DEPRECATED(message, declarator) __declspec(deprecated) declarator
 #else
-# define V8_DEPRECATED(message, declarator) declarator
+#define V8_DEPRECATED(message, declarator) declarator
 #endif
 
 
-// a macro to make it easier to see what will be deprecated.
+// A macro (V8_DEPRECATE_SOON) to make it easier to see what will be deprecated.
+#if defined(V8_IMMINENT_DEPRECATION_WARNINGS) && \
+    V8_HAS_ATTRIBUTE_DEPRECATED_MESSAGE
+#define V8_DEPRECATE_SOON(message, declarator) \
+  declarator __attribute__((deprecated(message)))
+#elif defined(V8_IMMINENT_DEPRECATION_WARNINGS) && V8_HAS_ATTRIBUTE_DEPRECATED
+#define V8_DEPRECATE_SOON(message, declarator) \
+  declarator __attribute__((deprecated))
+#elif defined(V8_IMMINENT_DEPRECATION_WARNINGS) && V8_HAS_DECLSPEC_DEPRECATED
+#define V8_DEPRECATE_SOON(message, declarator) __declspec(deprecated) declarator
+#else
 #define V8_DEPRECATE_SOON(message, declarator) declarator
+#endif
 
 
 // A macro to provide the compiler with branch prediction information.

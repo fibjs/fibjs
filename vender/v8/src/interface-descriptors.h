@@ -18,9 +18,10 @@ class PlatformInterfaceDescriptor;
   V(Store)                                    \
   V(StoreTransition)                          \
   V(ElementTransitionAndStore)                \
+  V(VectorStoreICTrampoline)                  \
+  V(VectorStoreIC)                            \
   V(Instanceof)                               \
-  V(VectorLoadICTrampoline)                   \
-  V(VectorLoadIC)                             \
+  V(LoadWithVector)                           \
   V(FastNewClosure)                           \
   V(FastNewContext)                           \
   V(ToNumber)                                 \
@@ -200,9 +201,10 @@ class LoadDescriptor : public CallInterfaceDescriptor {
  public:
   DECLARE_DESCRIPTOR(LoadDescriptor, CallInterfaceDescriptor)
 
-  enum ParameterIndices { kReceiverIndex, kNameIndex };
+  enum ParameterIndices { kReceiverIndex, kNameIndex, kSlotIndex };
   static const Register ReceiverRegister();
   static const Register NameRegister();
+  static const Register SlotRegister();
 };
 
 
@@ -256,19 +258,35 @@ class InstanceofDescriptor : public CallInterfaceDescriptor {
 };
 
 
-class VectorLoadICTrampolineDescriptor : public LoadDescriptor {
+class VectorStoreICTrampolineDescriptor : public StoreDescriptor {
  public:
-  DECLARE_DESCRIPTOR(VectorLoadICTrampolineDescriptor, LoadDescriptor)
+  DECLARE_DESCRIPTOR(VectorStoreICTrampolineDescriptor, StoreDescriptor)
 
-  enum ParameterIndices { kReceiverIndex, kNameIndex, kSlotIndex };
+  enum ParameterIndices { kReceiverIndex, kNameIndex, kValueIndex, kSlotIndex };
 
   static const Register SlotRegister();
 };
 
 
-class VectorLoadICDescriptor : public VectorLoadICTrampolineDescriptor {
+class VectorStoreICDescriptor : public VectorStoreICTrampolineDescriptor {
  public:
-  DECLARE_DESCRIPTOR(VectorLoadICDescriptor, VectorLoadICTrampolineDescriptor)
+  DECLARE_DESCRIPTOR(VectorStoreICDescriptor, VectorStoreICTrampolineDescriptor)
+
+  enum ParameterIndices {
+    kReceiverIndex,
+    kNameIndex,
+    kValueIndex,
+    kSlotIndex,
+    kVectorIndex
+  };
+
+  static const Register VectorRegister();
+};
+
+
+class LoadWithVectorDescriptor : public LoadDescriptor {
+ public:
+  DECLARE_DESCRIPTOR(LoadWithVectorDescriptor, LoadDescriptor)
 
   enum ParameterIndices {
     kReceiverIndex,

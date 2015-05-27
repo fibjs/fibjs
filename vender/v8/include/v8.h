@@ -102,7 +102,6 @@ class String;
 class StringObject;
 class Symbol;
 class SymbolObject;
-class Private;
 class Uint32;
 class Utils;
 class Value;
@@ -311,7 +310,6 @@ class Local {
   friend class String;
   friend class Object;
   friend class Context;
-  friend class Private;
   template<class F> friend class internal::CustomArguments;
   friend Local<Primitive> Undefined(Isolate* isolate);
   friend Local<Primitive> Null(Isolate* isolate);
@@ -418,11 +416,11 @@ class WeakCallbackInfo {
   V8_INLINE void* GetInternalField(int index) const;
 
   V8_INLINE V8_DEPRECATE_SOON("use indexed version",
-                              void* GetInternalField1()) const {
+                              void* GetInternalField1() const) {
     return internal_fields_[0];
   }
   V8_INLINE V8_DEPRECATE_SOON("use indexed version",
-                              void* GetInternalField2()) const {
+                              void* GetInternalField2() const) {
     return internal_fields_[1];
   }
 
@@ -1222,6 +1220,23 @@ class V8_EXPORT ScriptCompiler {
      * V8 has parsed the data it received so far.
      */
     virtual size_t GetMoreData(const uint8_t** src) = 0;
+
+    /**
+     * V8 calls this method to set a 'bookmark' at the current position in
+     * the source stream, for the purpose of (maybe) later calling
+     * ResetToBookmark. If ResetToBookmark is called later, then subsequent
+     * calls to GetMoreData should return the same data as they did when
+     * SetBookmark was called earlier.
+     *
+     * The embedder may return 'false' to indicate it cannot provide this
+     * functionality.
+     */
+    virtual bool SetBookmark();
+
+    /**
+     * V8 calls this to return to a previously set bookmark.
+     */
+    virtual void ResetToBookmark();
   };
 
 
@@ -1920,6 +1935,13 @@ class V8_EXPORT Value : public Data {
    */
   bool IsDataView() const;
 
+  /**
+   * Returns true if this value is a SharedArrayBuffer.
+   * This is an experimental feature.
+   */
+  bool IsSharedArrayBuffer() const;
+
+
   V8_WARN_UNUSED_RESULT MaybeLocal<Boolean> ToBoolean(
       Local<Context> context) const;
   V8_WARN_UNUSED_RESULT MaybeLocal<Number> ToNumber(
@@ -2452,34 +2474,6 @@ class V8_EXPORT Symbol : public Name {
 
 
 /**
- * A private symbol
- *
- * This is an experimental feature. Use at your own risk.
- */
-class V8_EXPORT Private : public Data {
- public:
-  // Returns the print name string of the private symbol, or undefined if none.
-  Local<Value> Name() const;
-
-  // Create a private symbol. If name is not empty, it will be the description.
-  static Local<Private> New(
-      Isolate *isolate, Local<String> name = Local<String>());
-
-  // Retrieve a global private symbol. If a symbol with this name has not
-  // been retrieved in the same isolate before, it is created.
-  // Note that private symbols created this way are never collected, so
-  // they should only be used for statically fixed properties.
-  // Also, there is only one global name space for the names used as keys.
-  // To minimize the potential for clashes, use qualified names as keys,
-  // e.g., "Class#property".
-  static Local<Private> ForApi(Isolate *isolate, Local<String> name);
-
- private:
-  Private();
-};
-
-
-/**
  * A JavaScript number value (ECMA-262, 4.3.20)
  */
 class V8_EXPORT Number : public Primitive {
@@ -2681,18 +2675,6 @@ class V8_EXPORT Object : public Value {
                            Handle<Function> setter = Handle<Function>(),
                            PropertyAttribute attribute = None,
                            AccessControl settings = DEFAULT);
-
-  /**
-   * Functionality for private properties.
-   * This is an experimental feature, use at your own risk.
-   * Note: Private properties are inherited. Do not rely on this, since it may
-   * change.
-   */
-  // TODO(dcarney): convert these or remove?
-  bool HasPrivate(Handle<Private> key);
-  bool SetPrivate(Handle<Private> key, Handle<Value> value);
-  bool DeletePrivate(Handle<Private> key);
-  Local<Value> GetPrivate(Handle<Private> key);
 
   /**
    * Returns an array containing the names of the enumerable properties
@@ -3098,14 +3080,18 @@ class V8_EXPORT Function : public Object {
    * Create a function in the current execution context
    * for a given FunctionCallback.
    */
-  static Local<Function> New(Isolate* isolate,
-                             FunctionCallback callback,
-                             Local<Value> data = Local<Value>(),
-                             int length = 0);
+  static MaybeLocal<Function> New(Local<Context> context,
+                                  FunctionCallback callback,
+                                  Local<Value> data = Local<Value>(),
+                                  int length = 0);
+  static V8_DEPRECATE_SOON(
+      "Use maybe version",
+      Local<Function> New(Isolate* isolate, FunctionCallback callback,
+                          Local<Value> data = Local<Value>(), int length = 0));
 
   V8_DEPRECATE_SOON("Use maybe version",
-                    Local<Object> NewInstance(int argc,
-                                              Handle<Value> argv[])) const;
+                    Local<Object> NewInstance(int argc, Handle<Value> argv[])
+                        const);
   V8_WARN_UNUSED_RESULT MaybeLocal<Object> NewInstance(
       Local<Context> context, int argc, Handle<Value> argv[]) const;
 
@@ -3344,7 +3330,7 @@ class V8_EXPORT ArrayBuffer : public Object {
       ArrayBufferCreationMode mode = ArrayBufferCreationMode::kExternalized);
 
   /**
-   * Returns true if ArrayBuffer is extrenalized, that is, does not
+   * Returns true if ArrayBuffer is externalized, that is, does not
    * own its memory block.
    */
   bool IsExternal() const;
@@ -3626,6 +3612,105 @@ class V8_EXPORT DataView : public ArrayBufferView {
 
  private:
   DataView();
+  static void CheckCast(Value* obj);
+};
+
+
+/**
+ * An instance of the built-in SharedArrayBuffer constructor.
+ * This API is experimental and may change significantly.
+ */
+class V8_EXPORT SharedArrayBuffer : public Object {
+ public:
+  /**
+   * The contents of an |SharedArrayBuffer|. Externalization of
+   * |SharedArrayBuffer| returns an instance of this class, populated, with a
+   * pointer to data and byte length.
+   *
+   * The Data pointer of SharedArrayBuffer::Contents is always allocated with
+   * |ArrayBuffer::Allocator::Allocate| by the allocator specified in
+   * v8::Isolate::CreateParams::array_buffer_allocator.
+   *
+   * This API is experimental and may change significantly.
+   */
+  class V8_EXPORT Contents {  // NOLINT
+   public:
+    Contents() : data_(NULL), byte_length_(0) {}
+
+    void* Data() const { return data_; }
+    size_t ByteLength() const { return byte_length_; }
+
+   private:
+    void* data_;
+    size_t byte_length_;
+
+    friend class SharedArrayBuffer;
+  };
+
+
+  /**
+   * Data length in bytes.
+   */
+  size_t ByteLength() const;
+
+  /**
+   * Create a new SharedArrayBuffer. Allocate |byte_length| bytes.
+   * Allocated memory will be owned by a created SharedArrayBuffer and
+   * will be deallocated when it is garbage-collected,
+   * unless the object is externalized.
+   */
+  static Local<SharedArrayBuffer> New(Isolate* isolate, size_t byte_length);
+
+  /**
+   * Create a new SharedArrayBuffer over an existing memory block.  The created
+   * array buffer is immediately in externalized state unless otherwise
+   * specified. The memory block will not be reclaimed when a created
+   * SharedArrayBuffer is garbage-collected.
+   */
+  static Local<SharedArrayBuffer> New(
+      Isolate* isolate, void* data, size_t byte_length,
+      ArrayBufferCreationMode mode = ArrayBufferCreationMode::kExternalized);
+
+  /**
+   * Returns true if SharedArrayBuffer is externalized, that is, does not
+   * own its memory block.
+   */
+  bool IsExternal() const;
+
+  /**
+   * Make this SharedArrayBuffer external. The pointer to underlying memory
+   * block and byte length are returned as |Contents| structure. After
+   * SharedArrayBuffer had been etxrenalized, it does no longer owns the memory
+   * block. The caller should take steps to free memory when it is no longer
+   * needed.
+   *
+   * The memory block is guaranteed to be allocated with |Allocator::Allocate|
+   * by the allocator specified in
+   * v8::Isolate::CreateParams::array_buffer_allocator.
+   *
+   */
+  Contents Externalize();
+
+  /**
+   * Get a pointer to the ArrayBuffer's underlying memory block without
+   * externalizing it. If the ArrayBuffer is not externalized, this pointer
+   * will become invalid as soon as the ArrayBuffer became garbage collected.
+   *
+   * The embedder should make sure to hold a strong reference to the
+   * ArrayBuffer while accessing this pointer.
+   *
+   * The memory block is guaranteed to be allocated with |Allocator::Allocate|
+   * by the allocator specified in
+   * v8::Isolate::CreateParams::array_buffer_allocator.
+   */
+  Contents GetContents();
+
+  V8_INLINE static SharedArrayBuffer* Cast(Value* obj);
+
+  static const int kInternalFieldCount = V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT;
+
+ private:
+  SharedArrayBuffer();
   static void CheckCast(Value* obj);
 };
 
@@ -6746,7 +6831,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 78;
+  static const int kContextEmbedderDataIndex = 80;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -7814,6 +7899,14 @@ DataView* DataView::Cast(v8::Value* value) {
   CheckCast(value);
 #endif
   return static_cast<DataView*>(value);
+}
+
+
+SharedArrayBuffer* SharedArrayBuffer::Cast(v8::Value* value) {
+#ifdef V8_ENABLE_CHECKS
+  CheckCast(value);
+#endif
+  return static_cast<SharedArrayBuffer*>(value);
 }
 
 
