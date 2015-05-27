@@ -54,6 +54,9 @@ public:
     ctr_drbg_context ctr_drbg;
     int32_t m_authmode;
 
+    obj_ptr<X509Cert_base> m_crt;
+    obj_ptr<PKey_base> m_key;
+
 private:
     obj_ptr<X509Cert> m_ca;
 };

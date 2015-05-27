@@ -57,6 +57,14 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
             pThis->set(ok);
 
             pThis->m_ssl_sock = new SslSocket();
+
+            if (g_ssl.m_crt && g_ssl.m_key)
+            {
+                result_t hr = pThis->m_ssl_sock->setCert(g_ssl.m_crt, g_ssl.m_key);
+                if (hr < 0)
+                    return hr;
+            }
+
             return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis);
         }
 
@@ -97,6 +105,13 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
 
     return (new asyncConnect(u->m_hostname.c_str(), nPort, u->m_ipv6,
                              retVal, ac))->post(0);
+}
+
+result_t ssl_base::setClientCert(X509Cert_base* crt, PKey_base* key)
+{
+    g_ssl.m_crt = crt;
+    g_ssl.m_key = key;
+    return 0;
 }
 
 result_t ssl_base::get_ca(obj_ptr<X509Cert_base> &retVal)
