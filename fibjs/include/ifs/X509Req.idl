@@ -29,7 +29,7 @@ interface X509Req : object
     */
     load(String pemReq);
 
-    /*! @brief 加载一个 PEM 格式的证书请求，可多次调用
+    /*! @brief 加载一个 PEM/DER 格式的证书请求，可多次调用
      @param filename 证书请求文件名
     */
     loadFile(String filename);

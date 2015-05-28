@@ -55,6 +55,10 @@ public:
 
 public:
 	// crypto_base
+	static result_t loadPKey(const char* filename, const char* password, obj_ptr<PKey_base>& retVal);
+	static result_t loadCert(const char* filename, obj_ptr<X509Cert_base>& retVal);
+	static result_t loadCrl(const char* filename, obj_ptr<X509Crl_base>& retVal);
+	static result_t loadReq(const char* filename, obj_ptr<X509Req_base>& retVal);
 	static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t randomArt(Buffer_base* data, const char* title, int32_t size, std::string& retVal);
@@ -81,6 +85,10 @@ public:
 	static void s_get_ZEROS_AND_LEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_NOPADDING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -105,6 +113,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
+			{"loadPKey", s_loadPKey, true},
+			{"loadCert", s_loadCert, true},
+			{"loadCrl", s_loadCrl, true},
+			{"loadReq", s_loadReq, true},
 			{"randomBytes", s_randomBytes, true},
 			{"pseudoRandomBytes", s_pseudoRandomBytes, true},
 			{"randomArt", s_randomArt, true}
@@ -147,7 +159,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"crypto", NULL, 
-			3, s_method, 5, s_object, 21, s_property, NULL, NULL,
+			7, s_method, 5, s_object, 21, s_property, NULL, NULL,
 			NULL
 		};
 
@@ -299,6 +311,59 @@ namespace fibjs
 	{
 		int32_t vr = _NOPADDING;
 		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<PKey_base> vr;
+
+		METHOD_ENTER(2, 1);
+
+		ARG(arg_string, 0);
+		OPT_ARG(arg_string, 1, "");
+
+		hr = loadPKey(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<X509Cert_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = loadCert(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<X509Crl_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = loadCrl(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<X509Req_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = loadReq(v0, vr);
+
 		METHOD_RETURN();
 	}
 

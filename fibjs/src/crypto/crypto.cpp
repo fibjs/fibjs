@@ -8,11 +8,64 @@
 #include "ifs/crypto.h"
 #include "Cipher.h"
 #include "Buffer.h"
+#include "PKey.h"
+#include "X509Cert.h"
+#include "X509Crl.h"
+#include "X509Req.h"
 #include "ssl.h"
 #include <time.h>
 
 namespace fibjs
 {
+
+result_t crypto_base::loadPKey(const char* filename, const char* password,
+                               obj_ptr<PKey_base>& retVal)
+{
+    obj_ptr<PKey_base> key = new PKey();
+    result_t hr = key->importFile(filename, password);
+    if (hr < 0)
+        return hr;
+
+    retVal = key;
+
+    return 0;
+}
+
+result_t crypto_base::loadCert(const char* filename, obj_ptr<X509Cert_base>& retVal)
+{
+    obj_ptr<X509Cert_base> cert = new X509Cert();
+    result_t hr = cert->loadFile(filename);
+    if (hr < 0)
+        return hr;
+
+    retVal = cert;
+
+    return 0;
+}
+
+result_t crypto_base::loadCrl(const char* filename, obj_ptr<X509Crl_base>& retVal)
+{
+    obj_ptr<X509Crl_base> crl = new X509Crl();
+    result_t hr = crl->loadFile(filename);
+    if (hr < 0)
+        return hr;
+
+    retVal = crl;
+
+    return 0;
+}
+
+result_t crypto_base::loadReq(const char* filename, obj_ptr<X509Req_base>& retVal)
+{
+    obj_ptr<X509Req_base> req = new X509Req();
+    result_t hr = req->loadFile(filename);
+    if (hr < 0)
+        return hr;
+
+    retVal = req;
+
+    return 0;
+}
 
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
                                   exlib::AsyncEvent *ac)

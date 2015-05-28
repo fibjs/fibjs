@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "ifs/fs.h"
 #include "ifs/crypto.h"
 #include "PKey.h"
 #include "Cipher.h"
@@ -276,6 +277,32 @@ result_t PKey::importKey(const char *pemKey, const char *password)
 
     if (ret == POLARSSL_ERR_PK_KEY_INVALID_FORMAT)
         ret = pk_parse_public_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey));
+
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    return 0;
+}
+
+result_t PKey::importFile(const char* filename, const char* password)
+{
+    result_t hr;
+    std::string data;
+    int ret;
+
+    hr = fs_base::ac_readFile(filename, data);
+    if (hr < 0)
+        return hr;
+
+    clear();
+
+    ret = pk_parse_key(&m_key, (const unsigned char *)data.c_str(),
+                       data.length(), *password ? (unsigned char *)password : NULL,
+                       qstrlen(password));
+
+    if (ret == POLARSSL_ERR_PK_KEY_INVALID_FORMAT)
+        ret = pk_parse_public_key(&m_key, (const unsigned char *)data.c_str(),
+                                  data.length());
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));

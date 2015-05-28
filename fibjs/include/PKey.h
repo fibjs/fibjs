@@ -36,6 +36,7 @@ public:
     virtual result_t clone(obj_ptr<PKey_base> &retVal);
     virtual result_t importKey(Buffer_base *DerKey, const char *password);
     virtual result_t importKey(const char *pemKey, const char *password);
+    virtual result_t importFile(const char* filename, const char* password);
     virtual result_t exportPem(std::string &retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
     virtual result_t encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
