@@ -10,6 +10,7 @@
 
 #include "ifs/BlockQueue.h"
 #include <list>
+#include "Semaph.h"
 
 namespace fibjs
 {
@@ -18,7 +19,7 @@ class BlockQueue: public BlockQueue_base
 {
 public:
     BlockQueue(int32_t size) :
-        m_size(size), m_semPut(size)
+        m_size(size), m_semPut(size), m_semTake(0)
     {
     }
 
@@ -48,8 +49,8 @@ public:
 private:
     std::list<VariantEx> m_list;
     int32_t m_size;
-    exlib::Semaphore m_semPut;
-    exlib::Semaphore m_semTake;
+    Semaphore m_semPut;
+    Semaphore m_semTake;
 };
 
 } /* namespace fibjs */
