@@ -1,16 +1,27 @@
-/*! @brief 信号量对象
+/*! @brief 事件对象
+
+通过一个事件达到对一组纤程进行控制的目的（事件对象的状态为bool类型）
 
  */
 interface Event : Lock
 {
+    /*! @brief 事件对象构造函数 
+     @param value 指定是否等待，为 true 时等待，缺省为 false
+     */
     Event(Boolean value = false);
 
+    /*! @brief 判断事件对象是否为true */
     Boolean isSet();
 
+    /*! @brief 激活事件（将事件状态改为true），并调用pulse() */
     set();
+
+    /*! @brief 激活等待该事件的所有纤程 */
     pulse();
 
+    /*! @brief 重置事件（将事件状态改为false） */
     clear();
 
+    /*! @brief 等待一个事件 */
     wait();
 };
