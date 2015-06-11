@@ -26,7 +26,7 @@ interface Lock : object
      */
     Boolean acquire(Boolean blocking = true);
 
-    /*! 释放锁拥有权
+    /*! @brief 释放锁的拥有权
 
      此方法将释放对锁的拥有权，如果当前纤程未拥有锁，此方法将抛出错误。
      */
