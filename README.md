@@ -69,6 +69,12 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	pkg install system/header
 	pkg install developer/build/cmake
 
+## Download
+	git clone https://github.com/xicilion/fibjs.git
+	cd fibjs
+	git submodule init
+	git submodule update
+
 ## Build
 
 ### on unix:
