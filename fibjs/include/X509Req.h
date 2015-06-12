@@ -6,7 +6,7 @@
  */
 
 #include "ifs/X509Req.h"
-#include <polarssl/polarssl/x509_csr.h>
+#include <mbedtls/polarssl/x509_csr.h>
 #include "X509Cert.h"
 
 #ifndef _fj_X509REQ_H

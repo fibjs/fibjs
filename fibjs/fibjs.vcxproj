@@ -49,7 +49,7 @@
     <ProjectReference Include="$(SolutionDir)vender\png\png.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-0000000009C9}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)vender\polarssl\polarssl.vcxproj">
+    <ProjectReference Include="$(SolutionDir)vender\mbedtls\mbedtls.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-0000901A2331}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\snappy\snappy.vcxproj">

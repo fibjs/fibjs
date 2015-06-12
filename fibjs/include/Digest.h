@@ -6,7 +6,7 @@
  */
 
 #include "ifs/Digest.h"
-#include <polarssl/polarssl/md.h>
+#include <mbedtls/polarssl/md.h>
 
 #ifndef DIGEST_H_
 #define DIGEST_H_

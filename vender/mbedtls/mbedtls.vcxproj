@@ -158,7 +158,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1F77AB58-706B-4BB5-BE73-0000901a2331}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>polarssl</RootNamespace>
+    <RootNamespace>mbedtls</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -205,19 +205,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)bin\Windows_Debug32\vender\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Debug32\polarssl\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Debug32\mbedtls\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)bin\Windows_Release32\vender\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Release32\polarssl\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Release32\mbedtls\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin\Windows_Debug\vender\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Debug\polarssl\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Debug\mbedtls\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\Windows_Release\vender\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Release\polarssl\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_Release\mbedtls\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

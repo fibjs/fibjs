@@ -17,7 +17,7 @@
 #include <pcre/pcre.h>
 #include <tiff/include/tiffvers.h>
 #include <mongo/include/mongo.h>
-#include <polarssl/polarssl/version.h>
+#include <mbedtls/polarssl/version.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
