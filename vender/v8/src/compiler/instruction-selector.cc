@@ -761,6 +761,8 @@ void InstructionSelector::VisitNode(Node* node) {
       return MarkAsFloat64(node), VisitFloat64InsertHighWord32(node);
     case IrOpcode::kLoadStackPointer:
       return VisitLoadStackPointer(node);
+    case IrOpcode::kLoadFramePointer:
+      return VisitLoadFramePointer(node);
     case IrOpcode::kCheckedLoad: {
       MachineType rep = OpParameter<MachineType>(node);
       MarkAsRepresentation(rep, node);
@@ -788,6 +790,12 @@ void InstructionSelector::VisitTruncateFloat64ToInt32(Node* node) {
 void InstructionSelector::VisitLoadStackPointer(Node* node) {
   OperandGenerator g(this);
   Emit(kArchStackPointer, g.DefineAsRegister(node));
+}
+
+
+void InstructionSelector::VisitLoadFramePointer(Node* node) {
+  OperandGenerator g(this);
+  Emit(kArchFramePointer, g.DefineAsRegister(node));
 }
 
 
@@ -923,7 +931,7 @@ void InstructionSelector::VisitParameter(Node* node) {
 
 void InstructionSelector::VisitIfException(Node* node) {
   OperandGenerator g(this);
-  Node* call = node->InputAt(0);
+  Node* call = node->InputAt(1);
   DCHECK_EQ(IrOpcode::kCall, call->opcode());
   const CallDescriptor* descriptor = OpParameter<const CallDescriptor*>(call);
   Emit(kArchNop, g.DefineAsLocation(node, descriptor->GetReturnLocation(0),
@@ -1052,7 +1060,8 @@ FrameStateDescriptor* InstructionSelector::GetFrameStateDescriptor(
 
   return new (instruction_zone()) FrameStateDescriptor(
       instruction_zone(), state_info.type(), state_info.bailout_id(),
-      state_info.state_combine(), parameters, locals, stack, outer_state);
+      state_info.state_combine(), parameters, locals, stack,
+      state_info.shared_info(), outer_state);
 }
 
 

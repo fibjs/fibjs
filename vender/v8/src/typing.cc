@@ -761,7 +761,10 @@ void AstTyper::VisitThisFunction(ThisFunction* expr) {
 }
 
 
-void AstTyper::VisitSuperReference(SuperReference* expr) {}
+void AstTyper::VisitSuperPropertyReference(SuperPropertyReference* expr) {}
+
+
+void AstTyper::VisitSuperCallReference(SuperCallReference* expr) {}
 
 
 void AstTyper::VisitDeclarations(ZoneList<Declaration*>* decls) {
@@ -789,4 +792,5 @@ void AstTyper::VisitExportDeclaration(ExportDeclaration* declaration) {
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

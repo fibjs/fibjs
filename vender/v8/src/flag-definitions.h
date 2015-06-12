@@ -184,30 +184,32 @@ DEFINE_IMPLICATION(es_staging, harmony)
 // Features that are still work in progress (behind individual flags).
 #define HARMONY_INPROGRESS(V)                                   \
   V(harmony_modules, "harmony modules")                         \
-  V(harmony_arrays, "harmony array methods")                    \
   V(harmony_array_includes, "harmony Array.prototype.includes") \
   V(harmony_regexps, "harmony regular expression extensions")   \
-  V(harmony_arrow_functions, "harmony arrow functions")         \
   V(harmony_proxies, "harmony proxies")                         \
   V(harmony_sloppy, "harmony features in sloppy mode")          \
   V(harmony_unicode_regexps, "harmony unicode regexps")         \
   V(harmony_reflect, "harmony Reflect API")                     \
   V(harmony_destructuring, "harmony destructuring")             \
-  V(harmony_spread_arrays, "harmony spread in array literals")  \
-  V(harmony_sharedarraybuffer, "harmony sharedarraybuffer")
+  V(harmony_sharedarraybuffer, "harmony sharedarraybuffer")     \
+  V(harmony_atomics, "harmony atomics")                         \
+  V(harmony_new_target, "harmony new.target")
 
 // Features that are complete (but still behind --harmony/es-staging flag).
-#define HARMONY_STAGED(V)                               \
-  V(harmony_rest_parameters, "harmony rest parameters") \
-  V(harmony_spreadcalls, "harmony spread-calls")        \
-  V(harmony_object, "harmony Object methods")
+#define HARMONY_STAGED(V)                                      \
+  V(harmony_arrays, "harmony array methods")                   \
+  V(harmony_arrow_functions, "harmony arrow functions")        \
+  V(harmony_rest_parameters, "harmony rest parameters")        \
+  V(harmony_spreadcalls, "harmony spread-calls")               \
+  V(harmony_object, "harmony Object methods")                  \
+  V(harmony_spread_arrays, "harmony spread in array literals") \
+  V(harmony_tostring, "harmony toString")
 
 // Features that are shipping (turned on by default, but internal flag remains).
 #define HARMONY_SHIPPING(V)                                                \
   V(harmony_classes, "harmony classes (implies object literal extension)") \
   V(harmony_computed_property_names, "harmony computed property names")    \
   V(harmony_object_literals, "harmony object literal extensions")          \
-  V(harmony_tostring, "harmony toString")                                  \
   V(harmony_unicode, "harmony unicode escapes")                            \
 
 // Once a shipping feature has proved stable in the wild, it will be dropped
@@ -421,7 +423,8 @@ DEFINE_BOOL(turbo_verify_allocation, DEBUG_BOOL,
 DEFINE_BOOL(turbo_move_optimization, true, "optimize gap moves in TurboFan")
 DEFINE_BOOL(turbo_jt, true, "enable jump threading in TurboFan")
 DEFINE_BOOL(turbo_osr, true, "enable OSR in TurboFan")
-DEFINE_BOOL(turbo_exceptions, false, "enable exception handling in TurboFan")
+DEFINE_BOOL(turbo_try_catch, true, "enable try-catch support in TurboFan")
+DEFINE_BOOL(turbo_try_finally, false, "enable try-finally support in TurboFan")
 DEFINE_BOOL(turbo_stress_loop_peeling, false,
             "stress loop peeling optimization")
 DEFINE_BOOL(turbo_cf_optimization, true, "optimize control flow in TurboFan")
@@ -725,7 +728,7 @@ DEFINE_INT(sim_stack_alignment, 8,
            "Stack alingment in bytes in simulator (4 or 8, 8 is default)")
 #endif
 DEFINE_INT(sim_stack_size, 2 * MB / KB,
-           "Stack size of the ARM64 and MIPS64 simulator "
+           "Stack size of the ARM64, MIPS64 and PPC64 simulator "
            "in kBytes (default is 2 MB)")
 DEFINE_BOOL(log_regs_modified, true,
             "When logging register values, only print modified registers.")
@@ -931,9 +934,6 @@ DEFINE_BOOL(ll_prof, false, "Enable low-level linux profiler.")
 DEFINE_BOOL(perf_basic_prof, false,
             "Enable perf linux profiler (basic support).")
 DEFINE_NEG_IMPLICATION(perf_basic_prof, compact_code_space)
-DEFINE_BOOL(perf_jit_prof, false,
-            "Enable perf linux profiler (experimental annotate support).")
-DEFINE_NEG_IMPLICATION(perf_jit_prof, compact_code_space)
 DEFINE_STRING(gc_fake_mmap, "/tmp/__v8_gc__",
               "Specify the name of the file for fake gc mmap used in ll_prof")
 DEFINE_BOOL(log_internal_timer_events, false, "Time internal events.")
@@ -1039,8 +1039,8 @@ DEFINE_INT(dump_allocations_digest_at_alloc, 0,
 #define FLAG FLAG_READONLY
 
 // assembler.h
-DEFINE_BOOL(enable_ool_constant_pool, V8_OOL_CONSTANT_POOL,
-            "enable use of out-of-line constant pools (ARM only)")
+DEFINE_BOOL(enable_embedded_constant_pool, V8_EMBEDDED_CONSTANT_POOL,
+            "enable use of embedded constant pools (ARM/PPC only)")
 
 DEFINE_BOOL(unbox_double_fields, V8_DOUBLE_FIELDS_UNBOXING,
             "enable in-object double fields unboxing (64-bit only)")

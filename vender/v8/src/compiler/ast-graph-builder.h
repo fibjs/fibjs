@@ -88,8 +88,10 @@ class AstGraphBuilder : public AstVisitor {
   // Nodes representing values in the activation record.
   SetOncePointer<Node> function_closure_;
   SetOncePointer<Node> function_context_;
+  SetOncePointer<Node> feedback_vector_;
 
   // Tracks how many try-blocks are currently entered.
+  int try_catch_nesting_level_;
   int try_nesting_level_;
 
   // Temporary storage for building node input lists.
@@ -144,7 +146,11 @@ class AstGraphBuilder : public AstVisitor {
   void CreateFunctionContext(bool constant_context);
 
   // Get or create the node that represents the outer function closure.
+  Node* GetFunctionClosureForContext();
   Node* GetFunctionClosure();
+
+  // Get or create the node that represents the functions type feedback vector.
+  Node* GetFeedbackVector();
 
   // Node creation helpers.
   Node* NewNode(const Operator* op, bool incomplete = false) {
@@ -208,9 +214,9 @@ class AstGraphBuilder : public AstVisitor {
   void UpdateControlDependencyToLeaveFunction(Node* exit);
 
   // Builds deoptimization for a given node.
-  void PrepareFrameState(
-      Node* node, BailoutId ast_id,
-      OutputFrameStateCombine combine = OutputFrameStateCombine::Ignore());
+  void PrepareFrameState(Node* node, BailoutId ast_id,
+                         OutputFrameStateCombine framestate_combine =
+                             OutputFrameStateCombine::Ignore());
 
   BitVector* GetVariablesAssignedInLoop(IterationStatement* stmt);
 
@@ -230,8 +236,14 @@ class AstGraphBuilder : public AstVisitor {
 
   Node** EnsureInputBufferSize(int size);
 
-  // Named and keyed loads require a VectorSlotPair for successful lowering.
-  VectorSlotPair CreateVectorSlotPair(FeedbackVectorICSlot slot) const;
+  // Named and keyed loads require a ResolvedFeedbackSlot for successful
+  // lowering.
+  ResolvedFeedbackSlot ResolveFeedbackSlot(FeedbackVectorICSlot slot) const;
+
+  // Determine which contexts need to be checked for extension objects that
+  // might shadow the optimistic declaration of dynamic lookup variables.
+  uint32_t ComputeBitsetForDynamicGlobal(Variable* variable);
+  uint32_t ComputeBitsetForDynamicContext(Variable* variable);
 
   // ===========================================================================
   // The following build methods all generate graph fragments and return one
@@ -252,28 +264,44 @@ class AstGraphBuilder : public AstVisitor {
   // Builder to create an array of rest parameters if used
   Node* BuildRestArgumentsArray(Variable* rest, int index);
 
+  // Builder that assigns to the .this_function internal variable if needed.
+  Node* BuildThisFunctionVar(Variable* this_function_var);
+
   // Builders for variable load and assignment.
-  Node* BuildVariableAssignment(
-      FrameStateBeforeAndAfter& states, Variable* var, Node* value,
-      Token::Value op, BailoutId bailout_id,
-      OutputFrameStateCombine combine = OutputFrameStateCombine::Ignore());
-  Node* BuildVariableDelete(Variable* var, BailoutId bailout_id,
-                            OutputFrameStateCombine combine);
-  Node* BuildVariableLoad(FrameStateBeforeAndAfter& states, Variable* var,
-                          BailoutId bailout_id, const VectorSlotPair& feedback,
-                          OutputFrameStateCombine combine,
+  Node* BuildVariableAssignment(Variable* variable, Node* value,
+                                Token::Value op, BailoutId bailout_id,
+                                FrameStateBeforeAndAfter& states,
+                                OutputFrameStateCombine framestate_combine =
+                                    OutputFrameStateCombine::Ignore());
+  Node* BuildVariableDelete(Variable* variable, BailoutId bailout_id,
+                            OutputFrameStateCombine framestate_combine);
+  Node* BuildVariableLoad(Variable* variable, BailoutId bailout_id,
+                          FrameStateBeforeAndAfter& states,
+                          const ResolvedFeedbackSlot& feedback,
+                          OutputFrameStateCombine framestate_combine,
                           ContextualMode mode = CONTEXTUAL);
 
   // Builders for property loads and stores.
   Node* BuildKeyedLoad(Node* receiver, Node* key,
-                       const VectorSlotPair& feedback);
+                       const ResolvedFeedbackSlot& feedback);
   Node* BuildNamedLoad(Node* receiver, Handle<Name> name,
-                       const VectorSlotPair& feedback,
+                       const ResolvedFeedbackSlot& feedback,
                        ContextualMode mode = NOT_CONTEXTUAL);
   Node* BuildKeyedStore(Node* receiver, Node* key, Node* value,
                         TypeFeedbackId id);
   Node* BuildNamedStore(Node* receiver, Handle<Name>, Node* value,
                         TypeFeedbackId id);
+
+  // Builders for super property loads and stores.
+  Node* BuildKeyedSuperStore(Node* receiver, Node* home_object, Node* key,
+                             Node* value, TypeFeedbackId id);
+  Node* BuildNamedSuperStore(Node* receiver, Node* home_object,
+                             Handle<Name> name, Node* value, TypeFeedbackId id);
+  Node* BuildNamedSuperLoad(Node* receiver, Node* home_object,
+                            Handle<Name> name,
+                            const ResolvedFeedbackSlot& feedback);
+  Node* BuildKeyedSuperLoad(Node* receiver, Node* home_object, Node* key,
+                            const ResolvedFeedbackSlot& feedback);
 
   // Builders for accessing the function context.
   Node* BuildLoadBuiltinsObject();
@@ -287,8 +315,9 @@ class AstGraphBuilder : public AstVisitor {
   Node* BuildStoreExternal(ExternalReference ref, MachineType type, Node* val);
 
   // Builders for automatic type conversion.
-  Node* BuildToBoolean(Node* value);
-  Node* BuildToName(Node* value, BailoutId bailout_id);
+  Node* BuildToBoolean(Node* input);
+  Node* BuildToName(Node* input, BailoutId bailout_id);
+  Node* BuildToObject(Node* input, BailoutId bailout_id);
 
   // Builder for adding the [[HomeObject]] to a value if the value came from a
   // function literal and needs a home object. Do nothing otherwise.
@@ -328,6 +357,7 @@ class AstGraphBuilder : public AstVisitor {
 
   // Visit statements.
   void VisitIfNotNull(Statement* stmt);
+  void VisitInScope(Statement* stmt, Scope* scope, Node* context);
 
   // Visit expressions.
   void Visit(Expression* expr);
@@ -358,7 +388,6 @@ class AstGraphBuilder : public AstVisitor {
   // Dispatched from VisitForInStatement.
   void VisitForInAssignment(Expression* expr, Node* value,
                             BailoutId bailout_id);
-  void VisitForInBody(ForInStatement* stmt);
 
   // Dispatched from VisitClassLiteral.
   void VisitClassLiteralContents(ClassLiteral* expr);

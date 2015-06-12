@@ -302,15 +302,6 @@ class RawMachineAssembler : public GraphBuilder {
     return NewNode(machine()->Uint64Mod(), a, b);
   }
 
-  // TODO(turbofan): What is this used for?
-  Node* ConvertIntPtrToInt32(Node* a) {
-    return kPointerSize == 8 ? NewNode(machine()->TruncateInt64ToInt32(), a)
-                             : a;
-  }
-  Node* ConvertInt32ToIntPtr(Node* a) {
-    return kPointerSize == 8 ? NewNode(machine()->ChangeInt32ToInt64(), a) : a;
-  }
-
 #define INTPTR_BINOP(prefix, name)                     \
   Node* IntPtr##name(Node* a, Node* b) {               \
     return kPointerSize == 8 ? prefix##64##name(a, b)  \
@@ -450,12 +441,23 @@ class RawMachineAssembler : public GraphBuilder {
 
   // Stack operations.
   Node* LoadStackPointer() { return NewNode(machine()->LoadStackPointer()); }
+  Node* LoadFramePointer() { return NewNode(machine()->LoadFramePointer()); }
 
   // Parameters.
   Node* Parameter(size_t index);
 
+  // Pointer utilities.
+  Node* LoadFromPointer(void* address, MachineType rep, int32_t offset = 0) {
+    return Load(rep, PointerConstant(address), Int32Constant(offset));
+  }
+  void StoreToPointer(void* address, MachineType rep, Node* node) {
+    Store(rep, PointerConstant(address), node);
+  }
+  Node* StringConstant(const char* string) {
+    return HeapConstant(isolate()->factory()->InternalizeUtf8String(string));
+  }
+
   // Control flow.
-  Label* Exit();
   void Goto(Label* label);
   void Branch(Node* condition, Label* true_val, Label* false_val);
   void Switch(Node* index, Label* default_label, int32_t* case_values,
@@ -509,7 +511,6 @@ class RawMachineAssembler : public GraphBuilder {
   const MachineSignature* machine_sig_;
   CallDescriptor* call_descriptor_;
   Node** parameters_;
-  Label exit_label_;
   BasicBlock* current_block_;
 
   DISALLOW_COPY_AND_ASSIGN(RawMachineAssembler);

@@ -58,14 +58,14 @@ void HeapObject::HeapObjectVerify() {
     case MUTABLE_HEAP_NUMBER_TYPE:
       HeapNumber::cast(this)->HeapNumberVerify();
       break;
+    case FLOAT32X4_TYPE:
+      Float32x4::cast(this)->Float32x4Verify();
+      break;
     case FIXED_ARRAY_TYPE:
       FixedArray::cast(this)->FixedArrayVerify();
       break;
     case FIXED_DOUBLE_ARRAY_TYPE:
       FixedDoubleArray::cast(this)->FixedDoubleArrayVerify();
-      break;
-    case CONSTANT_POOL_ARRAY_TYPE:
-      ConstantPoolArray::cast(this)->ConstantPoolArrayVerify();
       break;
     case BYTE_ARRAY_TYPE:
       ByteArray::cast(this)->ByteArrayVerify();
@@ -212,6 +212,9 @@ void Symbol::SymbolVerify() {
 void HeapNumber::HeapNumberVerify() {
   CHECK(IsHeapNumber() || IsMutableHeapNumber());
 }
+
+
+void Float32x4::Float32x4Verify() { CHECK(IsFloat32x4()); }
 
 
 void ByteArray::ByteArrayVerify() {
@@ -394,20 +397,6 @@ void FixedDoubleArray::FixedDoubleArrayVerify() {
       CHECK((value & V8_UINT64_C(0x7FF8000000000000)) != unexpected ||
             (value & V8_UINT64_C(0x0007FFFFFFFFFFFF)) == V8_UINT64_C(0));
     }
-  }
-}
-
-
-void ConstantPoolArray::ConstantPoolArrayVerify() {
-  CHECK(IsConstantPoolArray());
-  ConstantPoolArray::Iterator code_iter(this, ConstantPoolArray::CODE_PTR);
-  while (!code_iter.is_finished()) {
-    Address code_entry = get_code_ptr_entry(code_iter.next_index());
-    VerifyPointer(Code::GetCodeFromTargetAddress(code_entry));
-  }
-  ConstantPoolArray::Iterator heap_iter(this, ConstantPoolArray::HEAP_PTR);
-  while (!heap_iter.is_finished()) {
-    VerifyObjectField(OffsetOfElementAt(heap_iter.next_index()));
   }
 }
 
@@ -1064,6 +1053,11 @@ void JSObject::IncrementSpillStatistics(SpillInformation* info) {
     info->number_of_objects_with_fast_properties_++;
     info->number_of_fast_used_fields_   += map()->NextFreePropertyIndex();
     info->number_of_fast_unused_fields_ += map()->unused_property_fields();
+  } else if (IsGlobalObject()) {
+    GlobalDictionary* dict = global_dictionary();
+    info->number_of_slow_used_properties_ += dict->NumberOfElements();
+    info->number_of_slow_unused_properties_ +=
+        dict->Capacity() - dict->NumberOfElements();
   } else {
     NameDictionary* dict = property_dictionary();
     info->number_of_slow_used_properties_ += dict->NumberOfElements();
@@ -1282,4 +1276,5 @@ void Code::VerifyEmbeddedObjects(VerifyMode mode) {
 
 #endif  // DEBUG
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

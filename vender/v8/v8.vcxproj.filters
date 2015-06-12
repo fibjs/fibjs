@@ -79,18 +79,6 @@
     <Filter Include="Source Files\third_party\fdlibm">
       <UniqueIdentifier>{150701b7-2672-7bd0-aace-02cbfb72715d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\third_party\kernel">
-      <UniqueIdentifier>{8d80d09c-1f8c-ae2d-f57a-12f0757989f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\third_party\kernel\tools">
-      <UniqueIdentifier>{eccc9899-350f-be01-c1ca-f3ecdb714b62}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\third_party\kernel\tools\perf">
-      <UniqueIdentifier>{0f3c9cb7-7f79-b885-bb17-6cf2a06f2706}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\third_party\kernel\tools\perf\util">
-      <UniqueIdentifier>{b334b13f-ff2e-2bce-0b2d-176343913941}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\third_party\valgrind">
       <UniqueIdentifier>{d995e528-12ff-117d-98c4-5a4e21697a61}</UniqueIdentifier>
     </Filter>
@@ -567,9 +555,6 @@
     <ClInclude Include="src\compiler\simplified-lowering.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\simplified-operator-reducer.h">
-      <Filter>Source Files\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="src\compiler\simplified-operator.h">
       <Filter>Source Files\compiler</Filter>
     </ClInclude>
@@ -655,6 +640,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\execution.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\expression-classifier.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\extensions\externalize-string-extension.h">
@@ -1023,9 +1011,6 @@
     <ClInclude Include="src\pending-compilation-error-handler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\perf-jit.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\ppc\assembler-ppc-inl.h">
       <Filter>Source Files\ppc</Filter>
     </ClInclude>
@@ -1184,9 +1169,6 @@
     </ClInclude>
     <ClInclude Include="src\third_party\fdlibm\fdlibm.h">
       <Filter>Source Files\third_party\fdlibm</Filter>
-    </ClInclude>
-    <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h">
-      <Filter>Source Files\third_party\kernel\tools\perf\util</Filter>
     </ClInclude>
     <ClInclude Include="src\third_party\valgrind\valgrind.h">
       <Filter>Source Files\third_party\valgrind</Filter>
@@ -1703,9 +1685,6 @@
     <ClCompile Include="src\compiler\simplified-lowering.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\simplified-operator-reducer.cc">
-      <Filter>Source Files\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="src\compiler\simplified-operator.cc">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
@@ -2153,9 +2132,6 @@
     <ClCompile Include="src\pending-compilation-error-handler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\perf-jit.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ppc\assembler-ppc.cc">
       <Filter>Source Files\ppc</Filter>
     </ClCompile>
@@ -2246,6 +2222,9 @@
     <ClCompile Include="src\runtime\runtime-array.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="src\runtime\runtime-atomics.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
     <ClCompile Include="src\runtime\runtime-classes.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
@@ -2259,6 +2238,9 @@
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-debug.cc">
+      <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\runtime-forin.cc">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
     <ClCompile Include="src\runtime\runtime-function.cc">

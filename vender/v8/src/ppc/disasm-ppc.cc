@@ -1296,8 +1296,8 @@ int Decoder::InstructionDecode(byte* instr_ptr) {
 
   return Instruction::kInstrSize;
 }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 
 //------------------------------------------------------------------------------

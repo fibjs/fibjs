@@ -59,6 +59,12 @@ class LookupIterator final BASE_EMBEDDED {
         holder_map_(holder_->map(), isolate_),
         initial_holder_(holder_),
         number_(DescriptorArray::kNotFound) {
+#if 0  // TODO(verwaest): Enable once blocking hacks are removed.
+#ifdef DEBUG
+    uint32_t index;  // Assert that the name is not an array index.
+    DCHECK(!name->AsArrayIndex(&index));
+#endif  // DEBUG
+#endif
     Next();
   }
 
@@ -79,6 +85,12 @@ class LookupIterator final BASE_EMBEDDED {
         holder_map_(holder_->map(), isolate_),
         initial_holder_(holder_),
         number_(DescriptorArray::kNotFound) {
+#if 0  // TODO(verwaest): Enable once blocking hacks are removed.
+#ifdef DEBUG
+    uint32_t index;  // Assert that the name is not an array index.
+    DCHECK(!name->AsArrayIndex(&index));
+#endif  // DEBUG
+#endif
     Next();
   }
 
@@ -86,7 +98,7 @@ class LookupIterator final BASE_EMBEDDED {
                  Configuration configuration = PROTOTYPE_CHAIN)
       : configuration_(configuration),
         state_(NOT_FOUND),
-        exotic_index_state_(ExoticIndexState::kNotExotic),
+        exotic_index_state_(ExoticIndexState::kUninitialized),
         interceptor_state_(InterceptorState::kUninitialized),
         property_details_(PropertyDetails::Empty()),
         isolate_(isolate),
@@ -107,7 +119,7 @@ class LookupIterator final BASE_EMBEDDED {
                  Configuration configuration = PROTOTYPE_CHAIN)
       : configuration_(configuration),
         state_(NOT_FOUND),
-        exotic_index_state_(ExoticIndexState::kNotExotic),
+        exotic_index_state_(ExoticIndexState::kUninitialized),
         interceptor_state_(InterceptorState::kUninitialized),
         property_details_(PropertyDetails::Empty()),
         isolate_(isolate),
@@ -222,6 +234,8 @@ class LookupIterator final BASE_EMBEDDED {
   void ReloadPropertyInformation();
   bool SkipInterceptor(JSObject* holder);
   bool HasInterceptor(Map* map) const;
+  bool InternalHolderIsReceiverOrHiddenPrototype() const;
+  InterceptorInfo* GetInterceptor(JSObject* holder) const;
 
   bool IsBootstrapping() const;
 

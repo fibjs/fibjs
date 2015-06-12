@@ -272,7 +272,7 @@ LChunk::LChunk(CompilationInfo* info, HGraph* graph)
       graph_(graph),
       instructions_(32, info->zone()),
       pointer_maps_(8, info->zone()),
-      inlined_closures_(1, info->zone()),
+      inlined_functions_(1, info->zone()),
       deprecation_dependencies_(MapLess(), MapAllocator(info->zone())),
       stability_dependencies_(MapLess(), MapAllocator(info->zone())) {}
 
@@ -455,10 +455,6 @@ void LChunk::RegisterWeakObjectsInOptimizedCode(Handle<Code> code) const {
   }
   for (int i = 0; i < objects.length(); i++) {
     AddWeakObjectToCodeDependency(isolate(), objects.at(i), code);
-  }
-  if (FLAG_enable_ool_constant_pool) {
-    code->constant_pool()->set_weak_object_state(
-        ConstantPoolArray::WEAK_OBJECTS_IN_OPTIMIZED_CODE);
   }
   code->set_can_have_weak_objects(true);
 }
@@ -726,4 +722,5 @@ LPhase::~LPhase() {
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

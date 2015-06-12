@@ -150,10 +150,10 @@ IC::IC(FrameDepth depth, Isolate* isolate, FeedbackNexus* nexus,
   // levels of the stack frame iteration code. This yields a ~35% speedup when
   // running DeltaBlue and a ~25% speedup of gbemu with the '--nouse-ic' flag.
   const Address entry = Isolate::c_entry_fp(isolate->thread_local_top());
-  Address constant_pool = NULL;
-  if (FLAG_enable_ool_constant_pool) {
-    constant_pool =
-        Memory::Address_at(entry + ExitFrameConstants::kConstantPoolOffset);
+  Address* constant_pool = NULL;
+  if (FLAG_enable_embedded_constant_pool) {
+    constant_pool = reinterpret_cast<Address*>(
+        entry + ExitFrameConstants::kConstantPoolOffset);
   }
   Address* pc_address =
       reinterpret_cast<Address*>(entry + ExitFrameConstants::kCallerPCOffset);
@@ -162,9 +162,9 @@ IC::IC(FrameDepth depth, Isolate* isolate, FeedbackNexus* nexus,
   // StubFailureTrampoline, we need to look one frame further down the stack to
   // find the frame pointer and the return address stack slot.
   if (depth == EXTRA_CALL_FRAME) {
-    if (FLAG_enable_ool_constant_pool) {
-      constant_pool =
-          Memory::Address_at(fp + StandardFrameConstants::kConstantPoolOffset);
+    if (FLAG_enable_embedded_constant_pool) {
+      constant_pool = reinterpret_cast<Address*>(
+          fp + StandardFrameConstants::kConstantPoolOffset);
     }
     const int kCallerPCOffset = StandardFrameConstants::kCallerPCOffset;
     pc_address = reinterpret_cast<Address*>(fp + kCallerPCOffset);
@@ -177,10 +177,8 @@ IC::IC(FrameDepth depth, Isolate* isolate, FeedbackNexus* nexus,
   DCHECK(fp == frame->fp() && pc_address == frame->pc_address());
 #endif
   fp_ = fp;
-  if (FLAG_enable_ool_constant_pool) {
-    raw_constant_pool_ = handle(
-        ConstantPoolArray::cast(reinterpret_cast<Object*>(constant_pool)),
-        isolate);
+  if (FLAG_enable_embedded_constant_pool) {
+    constant_pool_address_ = constant_pool;
   }
   pc_address_ = StackFrame::ResolveReturnAddressLocation(pc_address);
   target_ = handle(raw_target(), isolate);
@@ -479,8 +477,7 @@ void IC::PostPatching(Address address, Code* target, Code* old_target) {
 }
 
 
-void IC::Clear(Isolate* isolate, Address address,
-               ConstantPoolArray* constant_pool) {
+void IC::Clear(Isolate* isolate, Address address, Address constant_pool) {
   Code* target = GetTargetAtAddress(address, constant_pool);
 
   // Don't clear debug break inline cache as it will remove the break point.
@@ -543,7 +540,7 @@ void LoadIC::Clear(Isolate* isolate, Code* host, LoadICNexus* nexus) {
 
 
 void StoreIC::Clear(Isolate* isolate, Address address, Code* target,
-                    ConstantPoolArray* constant_pool) {
+                    Address constant_pool) {
   if (IsCleared(target)) return;
   Code* code = PropertyICCompiler::FindPreMonomorphic(isolate, Code::STORE_IC,
                                                       target->extra_ic_state());
@@ -552,7 +549,7 @@ void StoreIC::Clear(Isolate* isolate, Address address, Code* target,
 
 
 void KeyedStoreIC::Clear(Isolate* isolate, Address address, Code* target,
-                         ConstantPoolArray* constant_pool) {
+                         Address constant_pool) {
   if (IsCleared(target)) return;
   Handle<Code> code = pre_monomorphic_stub(
       isolate, StoreICState::GetLanguageMode(target->extra_ic_state()));
@@ -561,13 +558,13 @@ void KeyedStoreIC::Clear(Isolate* isolate, Address address, Code* target,
 
 
 void CompareIC::Clear(Isolate* isolate, Address address, Code* target,
-                      ConstantPoolArray* constant_pool) {
+                      Address constant_pool) {
   DCHECK(CodeStub::GetMajorKey(target) == CodeStub::CompareIC);
   CompareICStub stub(target->stub_key(), isolate);
   // Only clear CompareICs that can retain objects.
   if (stub.state() != CompareICState::KNOWN_OBJECT) return;
   SetTargetAtAddress(address,
-                     GetRawUninitialized(isolate, stub.op(), stub.strong()),
+                     GetRawUninitialized(isolate, stub.op(), stub.strength()),
                      constant_pool);
   PatchInlinedSmiCode(address, DISABLE_INLINED_SMI_CHECK);
 }
@@ -2047,14 +2044,10 @@ MaybeHandle<Object> KeyedStoreIC::Store(Handle<Object> object,
       Handle<JSObject> receiver = Handle<JSObject>::cast(object);
       bool key_is_smi_like = !Object::ToSmi(isolate(), key).is_null();
       if (receiver->elements()->map() ==
-          isolate()->heap()->sloppy_arguments_elements_map()) {
-        if (is_sloppy(language_mode())) {
-          stub = sloppy_arguments_stub();
-        } else {
-          TRACE_GENERIC_IC(isolate(), "KeyedStoreIC", "arguments receiver");
-        }
-      } else if (key_is_smi_like &&
-                 !(target().is_identical_to(sloppy_arguments_stub()))) {
+              isolate()->heap()->sloppy_arguments_elements_map() &&
+          !is_sloppy(language_mode())) {
+        TRACE_GENERIC_IC(isolate(), "KeyedStoreIC", "arguments receiver");
+      } else if (key_is_smi_like) {
         // We should go generic if receiver isn't a dictionary, but our
         // prototype chain does have dictionary elements. This ensures that
         // other non-dictionary receivers in the polymorphic case benefit
@@ -2438,7 +2431,7 @@ MaybeHandle<Object> BinaryOpIC::Transition(
 
   // Compute the actual result using the builtin for the binary operation.
   Object* builtin = isolate()->js_builtins_object()->javascript_builtin(
-      TokenToJSBuiltin(state.op(), state.language_mode()));
+      TokenToJSBuiltin(state.op(), state.strength()));
   Handle<JSFunction> function = handle(JSFunction::cast(builtin), isolate());
   Handle<Object> result;
   ASSIGN_RETURN_ON_EXCEPTION(
@@ -2539,8 +2532,8 @@ RUNTIME_FUNCTION(BinaryOpIC_MissWithAllocationSite) {
 
 
 Code* CompareIC::GetRawUninitialized(Isolate* isolate, Token::Value op,
-                                     bool strong) {
-  CompareICStub stub(isolate, op, strong, CompareICState::UNINITIALIZED,
+                                     Strength strength) {
+  CompareICStub stub(isolate, op, strength, CompareICState::UNINITIALIZED,
                      CompareICState::UNINITIALIZED,
                      CompareICState::UNINITIALIZED);
   Code* code = NULL;
@@ -2550,8 +2543,8 @@ Code* CompareIC::GetRawUninitialized(Isolate* isolate, Token::Value op,
 
 
 Handle<Code> CompareIC::GetUninitialized(Isolate* isolate, Token::Value op,
-                                         bool strong) {
-  CompareICStub stub(isolate, op, strong, CompareICState::UNINITIALIZED,
+                                         Strength strength) {
+  CompareICStub stub(isolate, op, strength, CompareICState::UNINITIALIZED,
                      CompareICState::UNINITIALIZED,
                      CompareICState::UNINITIALIZED);
   return stub.GetCode();
@@ -2568,7 +2561,7 @@ Code* CompareIC::UpdateCaches(Handle<Object> x, Handle<Object> y) {
   CompareICState::State state = CompareICState::TargetState(
       old_stub.state(), old_stub.left(), old_stub.right(), op_,
       HasInlinedSmiCode(address()), x, y);
-  CompareICStub stub(isolate(), op_, old_stub.strong(), new_left, new_right,
+  CompareICStub stub(isolate(), op_, old_stub.strength(), new_left, new_right,
                      state);
   if (state == CompareICState::KNOWN_OBJECT) {
     stub.set_known_map(
@@ -2609,8 +2602,7 @@ RUNTIME_FUNCTION(CompareIC_Miss) {
 }
 
 
-void CompareNilIC::Clear(Address address, Code* target,
-                         ConstantPoolArray* constant_pool) {
+void CompareNilIC::Clear(Address address, Code* target, Address constant_pool) {
   if (IsCleared(target)) return;
   ExtraICState state = target->extra_ic_state();
 
@@ -2679,8 +2671,8 @@ RUNTIME_FUNCTION(Unreachable) {
 
 
 Builtins::JavaScript BinaryOpIC::TokenToJSBuiltin(Token::Value op,
-                                                  LanguageMode language_mode) {
-  if (is_strong(language_mode)) {
+                                                  Strength strength) {
+  if (is_strong(strength)) {
     switch (op) {
       default: UNREACHABLE();
       case Token::ADD: return Builtins::ADD_STRONG;
@@ -2859,14 +2851,14 @@ RUNTIME_FUNCTION(StorePropertyWithInterceptor) {
 
 
 RUNTIME_FUNCTION(LoadElementWithInterceptor) {
+  // TODO(verwaest): This should probably get the holder and receiver as input.
   HandleScope scope(isolate);
   Handle<JSObject> receiver = args.at<JSObject>(0);
   DCHECK(args.smi_at(1) >= 0);
   uint32_t index = args.smi_at(1);
   Handle<Object> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, result,
-      JSObject::GetElementWithInterceptor(receiver, receiver, index, true));
+      isolate, result, Object::GetElement(isolate, receiver, index));
   return *result;
 }
 
@@ -2910,5 +2902,5 @@ static const Address IC_utilities[] = {
 
 
 Address IC::AddressFromUtilityId(IC::UtilityId id) { return IC_utilities[id]; }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

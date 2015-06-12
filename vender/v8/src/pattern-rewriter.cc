@@ -404,7 +404,8 @@ NOT_A_PATTERN(NativeFunctionLiteral)
 NOT_A_PATTERN(Property)
 NOT_A_PATTERN(RegExpLiteral)
 NOT_A_PATTERN(ReturnStatement)
-NOT_A_PATTERN(SuperReference)
+NOT_A_PATTERN(SuperPropertyReference)
+NOT_A_PATTERN(SuperCallReference)
 NOT_A_PATTERN(SwitchStatement)
 NOT_A_PATTERN(ThisFunction)
 NOT_A_PATTERN(Throw)
@@ -417,5 +418,5 @@ NOT_A_PATTERN(WithStatement)
 NOT_A_PATTERN(Yield)
 
 #undef NOT_A_PATTERN
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

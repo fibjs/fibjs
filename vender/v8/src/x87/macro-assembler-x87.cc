@@ -1118,6 +1118,7 @@ void MacroAssembler::GetNumberHash(Register r0, Register scratch) {
   mov(scratch, r0);
   shr(scratch, 16);
   xor_(r0, scratch);
+  and_(r0, 0x3fffffff);
 }
 
 
@@ -3105,7 +3106,8 @@ void MacroAssembler::TruncatingDiv(Register dividend, int32_t divisor) {
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_X87
 

@@ -17,12 +17,10 @@ namespace internal {
 // Returns a single character string where first character equals
 // string->Get(index).
 static Handle<Object> GetCharAt(Handle<String> string, uint32_t index) {
-  if (index < static_cast<uint32_t>(string->length())) {
-    Factory* factory = string->GetIsolate()->factory();
-    return factory->LookupSingleCharacterStringFromCode(
-        String::Flatten(string)->Get(index));
-  }
-  return Execution::CharAt(string, index);
+  DCHECK_LT(index, static_cast<uint32_t>(string->length()));
+  Factory* factory = string->GetIsolate()->factory();
+  return factory->LookupSingleCharacterStringFromCode(
+      String::Flatten(string)->Get(index));
 }
 
 
@@ -30,27 +28,13 @@ MaybeHandle<Object> Runtime::GetElementOrCharAt(Isolate* isolate,
                                                 Handle<Object> object,
                                                 uint32_t index) {
   // Handle [] indexing on Strings
-  if (object->IsString()) {
+  if (object->IsString() &&
+      index < static_cast<uint32_t>(String::cast(*object)->length())) {
     Handle<Object> result = GetCharAt(Handle<String>::cast(object), index);
     if (!result->IsUndefined()) return result;
   }
 
-  // Handle [] indexing on String objects
-  if (object->IsStringObjectWithCharacterAt(index)) {
-    Handle<JSValue> js_value = Handle<JSValue>::cast(object);
-    Handle<Object> result =
-        GetCharAt(Handle<String>(String::cast(js_value->value())), index);
-    if (!result->IsUndefined()) return result;
-  }
-
-  Handle<Object> result;
-  if (object->IsString() || object->IsNumber() || object->IsBoolean()) {
-    PrototypeIterator iter(isolate, object);
-    return Object::GetElement(isolate, PrototypeIterator::GetCurrent(iter),
-                              index);
-  } else {
-    return Object::GetElement(isolate, object, index);
-  }
+  return Object::GetElement(isolate, object, index);
 }
 
 
@@ -77,7 +61,7 @@ MaybeHandle<Object> Runtime::GetObjectProperty(Isolate* isolate,
   }
 
   // Check if the given key is an array index.
-  uint32_t index;
+  uint32_t index = 0;
   if (key->ToArrayIndex(&index)) {
     return GetElementOrCharAt(isolate, object, index);
   }
@@ -122,7 +106,7 @@ MaybeHandle<Object> Runtime::SetObjectProperty(Isolate* isolate,
   }
 
   // Check if the given key is an array index.
-  uint32_t index;
+  uint32_t index = 0;
   if (key->ToArrayIndex(&index)) {
     // TODO(verwaest): Support non-JSObject receivers.
     if (!object->IsJSObject()) return value;
@@ -198,7 +182,7 @@ MaybeHandle<Object> Runtime::DefineObjectProperty(Handle<JSObject> js_object,
                                                   PropertyAttributes attrs) {
   Isolate* isolate = js_object->GetIsolate();
   // Check if the given key is an array index.
-  uint32_t index;
+  uint32_t index = 0;
   if (key->ToArrayIndex(&index)) {
     // In Firefox/SpiderMonkey, Safari and Opera you can access the characters
     // of a string using [] notation.  We need to support this too in
@@ -360,61 +344,38 @@ MUST_USE_RESULT static MaybeHandle<Object> GetOwnProperty(Isolate* isolate,
   Factory* factory = isolate->factory();
 
   PropertyAttributes attrs;
-  uint32_t index = 0;
-  Handle<Object> value;
-  MaybeHandle<AccessorPair> maybe_accessors;
-  // TODO(verwaest): Unify once indexed properties can be handled by the
-  // LookupIterator.
-  if (name->AsArrayIndex(&index)) {
-    // Get attributes.
-    Maybe<PropertyAttributes> maybe =
-        JSReceiver::GetOwnElementAttribute(obj, index);
-    if (!maybe.IsJust()) return MaybeHandle<Object>();
-    attrs = maybe.FromJust();
-    if (attrs == ABSENT) return factory->undefined_value();
+  uint32_t index;
+  // Get attributes.
+  LookupIterator it =
+      name->AsArrayIndex(&index)
+          ? LookupIterator(isolate, obj, index, LookupIterator::HIDDEN)
+          : LookupIterator(obj, name, LookupIterator::HIDDEN);
+  Maybe<PropertyAttributes> maybe = JSObject::GetPropertyAttributes(&it);
 
-    // Get AccessorPair if present.
-    maybe_accessors = JSObject::GetOwnElementAccessorPair(obj, index);
+  if (!maybe.IsJust()) return MaybeHandle<Object>();
+  attrs = maybe.FromJust();
+  if (attrs == ABSENT) return factory->undefined_value();
 
-    // Get value if not an AccessorPair.
-    if (maybe_accessors.is_null()) {
-      ASSIGN_RETURN_ON_EXCEPTION(
-          isolate, value, Runtime::GetElementOrCharAt(isolate, obj, index),
-          Object);
-    }
-  } else {
-    // Get attributes.
-    LookupIterator it(obj, name, LookupIterator::HIDDEN);
-    Maybe<PropertyAttributes> maybe = JSObject::GetPropertyAttributes(&it);
-    if (!maybe.IsJust()) return MaybeHandle<Object>();
-    attrs = maybe.FromJust();
-    if (attrs == ABSENT) return factory->undefined_value();
-
-    // Get AccessorPair if present.
-    if (it.state() == LookupIterator::ACCESSOR &&
-        it.GetAccessors()->IsAccessorPair()) {
-      maybe_accessors = Handle<AccessorPair>::cast(it.GetAccessors());
-    }
-
-    // Get value if not an AccessorPair.
-    if (maybe_accessors.is_null()) {
-      ASSIGN_RETURN_ON_EXCEPTION(isolate, value, Object::GetProperty(&it),
-                                 Object);
-    }
-  }
   DCHECK(!isolate->has_pending_exception());
   Handle<FixedArray> elms = factory->NewFixedArray(DESCRIPTOR_SIZE);
   elms->set(ENUMERABLE_INDEX, heap->ToBoolean((attrs & DONT_ENUM) == 0));
   elms->set(CONFIGURABLE_INDEX, heap->ToBoolean((attrs & DONT_DELETE) == 0));
-  elms->set(IS_ACCESSOR_INDEX, heap->ToBoolean(!maybe_accessors.is_null()));
 
-  Handle<AccessorPair> accessors;
-  if (maybe_accessors.ToHandle(&accessors)) {
+  bool is_accessor_pair = it.state() == LookupIterator::ACCESSOR &&
+                          it.GetAccessors()->IsAccessorPair();
+  elms->set(IS_ACCESSOR_INDEX, heap->ToBoolean(is_accessor_pair));
+
+  if (is_accessor_pair) {
+    Handle<AccessorPair> accessors =
+        Handle<AccessorPair>::cast(it.GetAccessors());
     Handle<Object> getter(accessors->GetComponent(ACCESSOR_GETTER), isolate);
     Handle<Object> setter(accessors->GetComponent(ACCESSOR_SETTER), isolate);
     elms->set(GETTER_INDEX, *getter);
     elms->set(SETTER_INDEX, *setter);
   } else {
+    Handle<Object> value;
+    ASSIGN_RETURN_ON_EXCEPTION(isolate, value, Object::GetProperty(&it),
+                               Object);
     elms->set(WRITABLE_INDEX, heap->ToBoolean((attrs & READ_ONLY) == 0));
     elms->set(VALUE_INDEX, *value);
   }
@@ -457,13 +418,7 @@ RUNTIME_FUNCTION(Runtime_IsExtensible) {
   SealHandleScope shs(isolate);
   DCHECK(args.length() == 1);
   CONVERT_ARG_CHECKED(JSObject, obj, 0);
-  if (obj->IsJSGlobalProxy()) {
-    PrototypeIterator iter(isolate, obj);
-    if (iter.IsAtEnd()) return isolate->heap()->false_value();
-    DCHECK(iter.GetCurrent()->IsJSGlobalObject());
-    obj = JSObject::cast(iter.GetCurrent());
-  }
-  return isolate->heap()->ToBoolean(obj->map()->is_extensible());
+  return isolate->heap()->ToBoolean(obj->IsExtensible());
 }
 
 
@@ -598,18 +553,27 @@ RUNTIME_FUNCTION(Runtime_KeyedGetProperty) {
       DisallowHeapAllocation no_allocation;
       Handle<JSObject> receiver = Handle<JSObject>::cast(receiver_obj);
       Handle<Name> key = Handle<Name>::cast(key_obj);
-      if (!receiver->HasFastProperties()) {
+      if (receiver->IsGlobalObject()) {
+        // Attempt dictionary lookup.
+        GlobalDictionary* dictionary = receiver->global_dictionary();
+        int entry = dictionary->FindEntry(key);
+        if (entry != GlobalDictionary::kNotFound) {
+          DCHECK(dictionary->ValueAt(entry)->IsPropertyCell());
+          PropertyCell* cell = PropertyCell::cast(dictionary->ValueAt(entry));
+          if (cell->property_details().type() == DATA) {
+            Object* value = cell->value();
+            if (!value->IsTheHole()) return value;
+            // If value is the hole (meaning, absent) do the general lookup.
+          }
+        }
+      } else if (!receiver->HasFastProperties()) {
         // Attempt dictionary lookup.
         NameDictionary* dictionary = receiver->property_dictionary();
         int entry = dictionary->FindEntry(key);
         if ((entry != NameDictionary::kNotFound) &&
             (dictionary->DetailsAt(entry).type() == DATA)) {
           Object* value = dictionary->ValueAt(entry);
-          if (!receiver->IsGlobalObject()) return value;
-          DCHECK(value->IsPropertyCell());
-          value = PropertyCell::cast(value)->value();
-          if (!value->IsTheHole()) return value;
-          // If value is the hole (meaning, absent) do the general lookup.
+          return value;
         }
       }
     } else if (key_obj->IsSmi()) {

@@ -222,8 +222,11 @@ void DebugCodegen::GenerateStoreICDebugBreak(MacroAssembler* masm) {
   Register receiver = StoreDescriptor::ReceiverRegister();
   Register name = StoreDescriptor::NameRegister();
   Register value = StoreDescriptor::ValueRegister();
-  Generate_DebugBreakCallHelper(
-      masm, receiver.Bit() | name.Bit() | value.Bit(), 0, x10);
+  RegList regs = receiver.Bit() | name.Bit() | value.Bit();
+  if (FLAG_vector_stores) {
+    regs |= VectorStoreICDescriptor::SlotRegister().Bit();
+  }
+  Generate_DebugBreakCallHelper(masm, regs, 0, x10);
 }
 
 
@@ -235,11 +238,7 @@ void DebugCodegen::GenerateKeyedLoadICDebugBreak(MacroAssembler* masm) {
 
 void DebugCodegen::GenerateKeyedStoreICDebugBreak(MacroAssembler* masm) {
   // Calling convention for IC keyed store call (from ic-arm64.cc).
-  Register receiver = StoreDescriptor::ReceiverRegister();
-  Register name = StoreDescriptor::NameRegister();
-  Register value = StoreDescriptor::ValueRegister();
-  Generate_DebugBreakCallHelper(
-      masm, receiver.Bit() | name.Bit() | value.Bit(), 0, x10);
+  GenerateStoreICDebugBreak(masm);
 }
 
 
@@ -348,7 +347,8 @@ void DebugCodegen::GenerateFrameDropperLiveEdit(MacroAssembler* masm) {
 
 const bool LiveEdit::kFrameDropperSupported = true;
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_ARM64
 

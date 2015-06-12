@@ -110,7 +110,8 @@ PreParser::PreParseResult PreParser::PreParseLazyFunction(
   FunctionState top_state(&function_state_, &scope_, top_scope, kNormalFunction,
                           &top_factory);
   scope_->SetLanguageMode(language_mode);
-  Scope* function_scope = NewScope(scope_, FUNCTION_SCOPE);
+  Scope* function_scope = NewScope(
+      scope_, IsArrowFunction(kind) ? ARROW_SCOPE : FUNCTION_SCOPE, kind);
   PreParserFactory function_factory(NULL);
   FunctionState function_state(&function_state_, &scope_, function_scope, kind,
                                &function_factory);
@@ -1028,22 +1029,19 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
 
   // Parse function body.
   bool outer_is_script_scope = scope_->is_script_scope();
-  Scope* function_scope = NewScope(scope_, FUNCTION_SCOPE);
+  Scope* function_scope = NewScope(scope_, FUNCTION_SCOPE, kind);
   PreParserFactory factory(NULL);
   FunctionState function_state(&function_state_, &scope_, function_scope, kind,
                                &factory);
-  ExpressionClassifier formals_classifier;
+  DuplicateFinder duplicate_finder(scanner()->unicode_cache());
+  ExpressionClassifier formals_classifier(&duplicate_finder);
 
   bool has_rest = false;
   Expect(Token::LPAREN, CHECK_OK);
   int start_position = scanner()->location().beg_pos;
   function_scope->set_start_position(start_position);
-  int num_parameters;
-  {
-    DuplicateFinder duplicate_finder(scanner()->unicode_cache());
-    num_parameters = ParseFormalParameterList(&duplicate_finder, &has_rest,
-                                              &formals_classifier, CHECK_OK);
-  }
+  int num_parameters = ParseFormalParameterList(nullptr, &has_rest,
+                                                &formals_classifier, CHECK_OK);
   Expect(Token::RPAREN, CHECK_OK);
   int formals_end_position = scanner()->location().end_pos;
 
@@ -1106,7 +1104,7 @@ void PreParser::ParseLazyFunctionLiteralBody(bool* ok,
   log_->LogFunction(body_start, body_end,
                     function_state_->materialized_literal_count(),
                     function_state_->expected_property_count(), language_mode(),
-                    scope_->uses_super_property());
+                    scope_->uses_super_property(), scope_->calls_eval());
 }
 
 

@@ -1597,7 +1597,7 @@ LInstruction* LChunkBuilder::DoAdd(HAdd* instr) {
     DCHECK(instr->left()->representation().Equals(instr->representation()));
     DCHECK(instr->right()->representation().Equals(instr->representation()));
     LOperand* left = UseRegisterAtStart(instr->BetterLeftOperand());
-    LOperand* right = UseOrConstantAtStart(instr->BetterRightOperand());
+    LOperand* right = UseRegisterOrConstantAtStart(instr->BetterRightOperand());
     LAddI* add = new(zone()) LAddI(left, right);
     LInstruction* result = DefineAsRegister(add);
     if (instr->CheckFlag(HValue::kCanOverflow)) {
@@ -1609,10 +1609,8 @@ LInstruction* LChunkBuilder::DoAdd(HAdd* instr) {
     DCHECK(instr->right()->representation().IsInteger32());
     DCHECK(!instr->CheckFlag(HValue::kCanOverflow));
     LOperand* left = UseRegisterAtStart(instr->left());
-    LOperand* right = UseOrConstantAtStart(instr->right());
-    LAddI* add = new(zone()) LAddI(left, right);
-    LInstruction* result = DefineAsRegister(add);
-    return result;
+    LOperand* right = UseRegisterOrConstantAtStart(instr->right());
+    return DefineAsRegister(new (zone()) LAddE(left, right));
   } else if (instr->representation().IsDouble()) {
     if (kArchVariant == kMips64r2) {
       if (instr->left()->IsMul())
@@ -1807,7 +1805,7 @@ LInstruction* LChunkBuilder::DoDateField(HDateField* instr) {
   LOperand* object = UseFixed(instr->value(), a0);
   LDateField* result =
       new(zone()) LDateField(object, FixedTemp(a1), instr->index());
-  return MarkAsCall(DefineFixed(result, v0), instr, CAN_DEOPTIMIZE_EAGERLY);
+  return MarkAsCall(DefineFixed(result, v0), instr, CANNOT_DEOPTIMIZE_EAGERLY);
 }
 
 
@@ -2554,7 +2552,7 @@ LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
   inner->BindContext(instr->closure_context());
   inner->set_entry(instr);
   current_block_->UpdateEnvironment(inner);
-  chunk_->AddInlinedClosure(instr->closure());
+  chunk_->AddInlinedFunction(instr->shared());
   return NULL;
 }
 
@@ -2624,7 +2622,8 @@ LInstruction* LChunkBuilder::DoAllocateBlockContext(
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_MIPS64
 

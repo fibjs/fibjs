@@ -2673,7 +2673,7 @@ LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
   inner->BindContext(instr->closure_context());
   inner->set_entry(instr);
   current_block_->UpdateEnvironment(inner);
-  chunk_->AddInlinedClosure(instr->closure());
+  chunk_->AddInlinedFunction(instr->shared());
   return NULL;
 }
 
@@ -2743,7 +2743,8 @@ LInstruction* LChunkBuilder::DoAllocateBlockContext(
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_X87
 

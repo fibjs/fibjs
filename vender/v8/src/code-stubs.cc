@@ -269,8 +269,7 @@ MaybeHandle<Code> CodeStub::GetCode(Isolate* isolate, uint32_t key) {
 void BinaryOpICStub::GenerateAheadOfTime(Isolate* isolate) {
   // Generate the uninitialized versions of the stub.
   for (int op = Token::BIT_OR; op <= Token::MOD; ++op) {
-    BinaryOpICStub stub(isolate, static_cast<Token::Value>(op),
-                        LanguageMode::SLOPPY);
+    BinaryOpICStub stub(isolate, static_cast<Token::Value>(op), Strength::WEAK);
     stub.GetCode();
   }
 
@@ -637,6 +636,8 @@ void HandlerStub::InitializeDescriptor(CodeStubDescriptor* descriptor) {
     descriptor->Initialize(FUNCTION_ADDR(StoreIC_MissFromStubFailure));
   } else if (kind() == Code::KEYED_LOAD_IC) {
     descriptor->Initialize(FUNCTION_ADDR(KeyedLoadIC_MissFromStubFailure));
+  } else if (kind() == Code::KEYED_STORE_IC) {
+    descriptor->Initialize(FUNCTION_ADDR(KeyedStoreIC_MissFromStubFailure));
   }
 }
 
@@ -645,7 +646,7 @@ CallInterfaceDescriptor HandlerStub::GetCallInterfaceDescriptor() {
   if (kind() == Code::LOAD_IC || kind() == Code::KEYED_LOAD_IC) {
     return LoadWithVectorDescriptor(isolate());
   } else {
-    DCHECK_EQ(Code::STORE_IC, kind());
+    DCHECK(kind() == Code::STORE_IC || kind() == Code::KEYED_STORE_IC);
     return StoreDescriptor(isolate());
   }
 }
@@ -1045,4 +1046,5 @@ InternalArrayConstructorStub::InternalArrayConstructorStub(
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

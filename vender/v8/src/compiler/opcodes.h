@@ -123,6 +123,8 @@
 #define JS_CONTEXT_OP_LIST(V) \
   V(JSLoadContext)            \
   V(JSStoreContext)           \
+  V(JSLoadDynamicGlobal)      \
+  V(JSLoadDynamicContext)     \
   V(JSCreateFunctionContext)  \
   V(JSCreateCatchContext)     \
   V(JSCreateWithContext)      \
@@ -134,6 +136,10 @@
   V(JSCallConstruct)        \
   V(JSCallFunction)         \
   V(JSCallRuntime)          \
+  V(JSForInDone)            \
+  V(JSForInNext)            \
+  V(JSForInPrepare)         \
+  V(JSForInStep)            \
   V(JSYield)                \
   V(JSStackCheck)
 
@@ -166,7 +172,6 @@
   V(NumberToInt32)                 \
   V(NumberToUint32)                \
   V(PlainPrimitiveToNumber)        \
-  V(StringAdd)                     \
   V(ChangeTaggedToInt32)           \
   V(ChangeTaggedToUint32)          \
   V(ChangeTaggedToFloat64)         \
@@ -275,6 +280,7 @@
   V(Float64InsertLowWord32)     \
   V(Float64InsertHighWord32)    \
   V(LoadStackPointer)           \
+  V(LoadFramePointer)           \
   V(CheckedLoad)                \
   V(CheckedStore)
 

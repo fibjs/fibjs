@@ -94,6 +94,7 @@ class Primitive;
 class Promise;
 class RawOperationDescriptor;
 class Script;
+class SharedArrayBuffer;
 class Signature;
 class StartupData;
 class StackFrame;
@@ -1198,7 +1199,7 @@ class V8_EXPORT ScriptCompiler {
    * For streaming incomplete script data to V8. The embedder should implement a
    * subclass of this class.
    */
-  class ExternalSourceStream {
+  class V8_EXPORT ExternalSourceStream {
    public:
     virtual ~ExternalSourceStream() {}
 
@@ -1823,37 +1824,31 @@ class V8_EXPORT Value : public Data {
 
   /**
    * Returns true if this value is a Map.
-   * This is an experimental feature.
    */
   bool IsMap() const;
 
   /**
    * Returns true if this value is a Set.
-   * This is an experimental feature.
    */
   bool IsSet() const;
 
   /**
    * Returns true if this value is a Map Iterator.
-   * This is an experimental feature.
    */
   bool IsMapIterator() const;
 
   /**
    * Returns true if this value is a Set Iterator.
-   * This is an experimental feature.
    */
   bool IsSetIterator() const;
 
   /**
    * Returns true if this value is a WeakMap.
-   * This is an experimental feature.
    */
   bool IsWeakMap() const;
 
   /**
    * Returns true if this value is a WeakSet.
-   * This is an experimental feature.
    */
   bool IsWeakSet() const;
 
@@ -1928,6 +1923,12 @@ class V8_EXPORT Value : public Data {
    * This is an experimental feature.
    */
   bool IsFloat64Array() const;
+
+  /**
+   * Returns true if this value is a SIMD Float32x4.
+   * This is an experimental feature.
+   */
+  bool IsFloat32x4() const;
 
   /**
    * Returns true if this value is a DataView.
@@ -2592,6 +2593,30 @@ class V8_EXPORT Object : public Value {
   V8_WARN_UNUSED_RESULT Maybe<bool> Set(Local<Context> context, uint32_t index,
                                         Local<Value> value);
 
+  // Implements CreateDataProperty (ECMA-262, 7.3.4).
+  //
+  // Defines a configurable, writable, enumerable property with the given value
+  // on the object unless the property already exists and is not configurable
+  // or the object is not extensible.
+  //
+  // Returns true on success.
+  V8_WARN_UNUSED_RESULT Maybe<bool> CreateDataProperty(Local<Context> context,
+                                                       Local<Name> key,
+                                                       Local<Value> value);
+  V8_WARN_UNUSED_RESULT Maybe<bool> CreateDataProperty(Local<Context> context,
+                                                       uint32_t index,
+                                                       Local<Value> value);
+
+  // Implements DefineOwnProperty.
+  //
+  // In general, CreateDataProperty will be faster, however, does not allow
+  // for specifying attributes.
+  //
+  // Returns true on success.
+  V8_WARN_UNUSED_RESULT Maybe<bool> DefineOwnProperty(
+      Local<Context> context, Local<Name> key, Local<Value> value,
+      PropertyAttribute attributes = None);
+
   // Sets an own property on this object bypassing interceptors and
   // overriding accessors or read-only properties.
   //
@@ -2600,12 +2625,13 @@ class V8_EXPORT Object : public Value {
   // will only be returned if the interceptor doesn't return a value.
   //
   // Note also that this only works for named properties.
-  V8_DEPRECATE_SOON("Use maybe version",
+  V8_DEPRECATE_SOON("Use CreateDataProperty",
                     bool ForceSet(Handle<Value> key, Handle<Value> value,
                                   PropertyAttribute attribs = None));
-  // TODO(dcarney): mark V8_WARN_UNUSED_RESULT
-  Maybe<bool> ForceSet(Local<Context> context, Local<Value> key,
-                       Local<Value> value, PropertyAttribute attribs = None);
+  V8_DEPRECATE_SOON("Use CreateDataProperty",
+                    Maybe<bool> ForceSet(Local<Context> context,
+                                         Local<Value> key, Local<Value> value,
+                                         PropertyAttribute attribs = None));
 
   V8_DEPRECATE_SOON("Use maybe version", Local<Value> Get(Handle<Value> key));
   V8_WARN_UNUSED_RESULT MaybeLocal<Value> Get(Local<Context> context,
@@ -2946,6 +2972,72 @@ class V8_EXPORT Array : public Object {
   V8_INLINE static Array* Cast(Value* obj);
  private:
   Array();
+  static void CheckCast(Value* obj);
+};
+
+
+/**
+ * An instance of the built-in Map constructor (ECMA-262, 6th Edition, 23.1.1).
+ */
+class V8_EXPORT Map : public Object {
+ public:
+  size_t Size() const;
+
+  /**
+   * Returns an array of length Size() * 2, where index N is the Nth key and
+   * index N + 1 is the Nth value.
+   */
+  Local<Array> AsArray() const;
+
+  /**
+   * Creates a new empty Map.
+   */
+  static Local<Map> New(Isolate* isolate);
+
+  /**
+   * Creates a new Map containing the elements of array, which must be formatted
+   * in the same manner as the array returned from AsArray().
+   * Guaranteed to be side-effect free if the array contains no holes.
+   */
+  static V8_WARN_UNUSED_RESULT MaybeLocal<Map> FromArray(Local<Context> context,
+                                                         Local<Array> array);
+
+  V8_INLINE static Map* Cast(Value* obj);
+
+ private:
+  Map();
+  static void CheckCast(Value* obj);
+};
+
+
+/**
+ * An instance of the built-in Set constructor (ECMA-262, 6th Edition, 23.2.1).
+ */
+class V8_EXPORT Set : public Object {
+ public:
+  size_t Size() const;
+
+  /**
+   * Returns an array of the keys in this Set.
+   */
+  Local<Array> AsArray() const;
+
+  /**
+   * Creates a new empty Set.
+   */
+  static Local<Set> New(Isolate* isolate);
+
+  /**
+   * Creates a new Set containing the items in array.
+   * Guaranteed to be side-effect free if the array contains no holes.
+   */
+  static V8_WARN_UNUSED_RESULT MaybeLocal<Set> FromArray(Local<Context> context,
+                                                         Local<Array> array);
+
+  V8_INLINE static Set* Cast(Value* obj);
+
+ private:
+  Set();
   static void CheckCast(Value* obj);
 };
 
@@ -3465,6 +3557,8 @@ class V8_EXPORT Uint8Array : public TypedArray {
  public:
   static Local<Uint8Array> New(Handle<ArrayBuffer> array_buffer,
                                size_t byte_offset, size_t length);
+  static Local<Uint8Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
+                               size_t byte_offset, size_t length);
   V8_INLINE static Uint8Array* Cast(Value* obj);
 
  private:
@@ -3481,6 +3575,9 @@ class V8_EXPORT Uint8ClampedArray : public TypedArray {
  public:
   static Local<Uint8ClampedArray> New(Handle<ArrayBuffer> array_buffer,
                                size_t byte_offset, size_t length);
+  static Local<Uint8ClampedArray> New(
+      Handle<SharedArrayBuffer> shared_array_buffer, size_t byte_offset,
+      size_t length);
   V8_INLINE static Uint8ClampedArray* Cast(Value* obj);
 
  private:
@@ -3496,6 +3593,8 @@ class V8_EXPORT Int8Array : public TypedArray {
  public:
   static Local<Int8Array> New(Handle<ArrayBuffer> array_buffer,
                                size_t byte_offset, size_t length);
+  static Local<Int8Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
+                              size_t byte_offset, size_t length);
   V8_INLINE static Int8Array* Cast(Value* obj);
 
  private:
@@ -3512,6 +3611,8 @@ class V8_EXPORT Uint16Array : public TypedArray {
  public:
   static Local<Uint16Array> New(Handle<ArrayBuffer> array_buffer,
                                size_t byte_offset, size_t length);
+  static Local<Uint16Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
+                                size_t byte_offset, size_t length);
   V8_INLINE static Uint16Array* Cast(Value* obj);
 
  private:
@@ -3527,6 +3628,8 @@ class V8_EXPORT Uint16Array : public TypedArray {
 class V8_EXPORT Int16Array : public TypedArray {
  public:
   static Local<Int16Array> New(Handle<ArrayBuffer> array_buffer,
+                               size_t byte_offset, size_t length);
+  static Local<Int16Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
                                size_t byte_offset, size_t length);
   V8_INLINE static Int16Array* Cast(Value* obj);
 
@@ -3544,6 +3647,8 @@ class V8_EXPORT Uint32Array : public TypedArray {
  public:
   static Local<Uint32Array> New(Handle<ArrayBuffer> array_buffer,
                                size_t byte_offset, size_t length);
+  static Local<Uint32Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
+                                size_t byte_offset, size_t length);
   V8_INLINE static Uint32Array* Cast(Value* obj);
 
  private:
@@ -3559,6 +3664,8 @@ class V8_EXPORT Uint32Array : public TypedArray {
 class V8_EXPORT Int32Array : public TypedArray {
  public:
   static Local<Int32Array> New(Handle<ArrayBuffer> array_buffer,
+                               size_t byte_offset, size_t length);
+  static Local<Int32Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
                                size_t byte_offset, size_t length);
   V8_INLINE static Int32Array* Cast(Value* obj);
 
@@ -3576,6 +3683,8 @@ class V8_EXPORT Float32Array : public TypedArray {
  public:
   static Local<Float32Array> New(Handle<ArrayBuffer> array_buffer,
                                size_t byte_offset, size_t length);
+  static Local<Float32Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
+                                 size_t byte_offset, size_t length);
   V8_INLINE static Float32Array* Cast(Value* obj);
 
  private:
@@ -3592,6 +3701,8 @@ class V8_EXPORT Float64Array : public TypedArray {
  public:
   static Local<Float64Array> New(Handle<ArrayBuffer> array_buffer,
                                size_t byte_offset, size_t length);
+  static Local<Float64Array> New(Handle<SharedArrayBuffer> shared_array_buffer,
+                                 size_t byte_offset, size_t length);
   V8_INLINE static Float64Array* Cast(Value* obj);
 
  private:
@@ -3607,6 +3718,8 @@ class V8_EXPORT Float64Array : public TypedArray {
 class V8_EXPORT DataView : public ArrayBufferView {
  public:
   static Local<DataView> New(Handle<ArrayBuffer> array_buffer,
+                             size_t byte_offset, size_t length);
+  static Local<DataView> New(Handle<SharedArrayBuffer> shared_array_buffer,
                              size_t byte_offset, size_t length);
   V8_INLINE static DataView* Cast(Value* obj);
 
@@ -6867,7 +6980,7 @@ class Internals {
   static const int kJSObjectType = 0xbe;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
-  static const int kForeignType = 0x86;
+  static const int kForeignType = 0x87;
 
   static const int kUndefinedOddballKind = 5;
   static const int kNullOddballKind = 3;
@@ -7625,41 +7738,51 @@ template <class T> Value* Value::Cast(T* value) {
 
 
 Local<Boolean> Value::ToBoolean() const {
-  return ToBoolean(Isolate::GetCurrent());
+  return ToBoolean(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<Boolean>());
 }
 
 
 Local<Number> Value::ToNumber() const {
-  return ToNumber(Isolate::GetCurrent());
+  return ToNumber(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<Number>());
 }
 
 
 Local<String> Value::ToString() const {
-  return ToString(Isolate::GetCurrent());
+  return ToString(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<String>());
 }
 
 
 Local<String> Value::ToDetailString() const {
-  return ToDetailString(Isolate::GetCurrent());
+  return ToDetailString(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<String>());
 }
 
 
 Local<Object> Value::ToObject() const {
-  return ToObject(Isolate::GetCurrent());
+  return ToObject(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<Object>());
 }
 
 
 Local<Integer> Value::ToInteger() const {
-  return ToInteger(Isolate::GetCurrent());
+  return ToInteger(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<Integer>());
 }
 
 
 Local<Uint32> Value::ToUint32() const {
-  return ToUint32(Isolate::GetCurrent());
+  return ToUint32(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<Uint32>());
 }
 
 
-Local<Int32> Value::ToInt32() const { return ToInt32(Isolate::GetCurrent()); }
+Local<Int32> Value::ToInt32() const {
+  return ToInt32(Isolate::GetCurrent()->GetCurrentContext())
+      .FromMaybe(Local<Int32>());
+}
 
 
 Boolean* Boolean::Cast(v8::Value* value) {
@@ -7779,6 +7902,22 @@ Array* Array::Cast(v8::Value* value) {
   CheckCast(value);
 #endif
   return static_cast<Array*>(value);
+}
+
+
+Map* Map::Cast(v8::Value* value) {
+#ifdef V8_ENABLE_CHECKS
+  CheckCast(value);
+#endif
+  return static_cast<Map*>(value);
+}
+
+
+Set* Set::Cast(v8::Value* value) {
+#ifdef V8_ENABLE_CHECKS
+  CheckCast(value);
+#endif
+  return static_cast<Set*>(value);
 }
 
 

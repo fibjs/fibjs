@@ -19,7 +19,6 @@
 #include "src/log-inl.h"
 #include "src/log-utils.h"
 #include "src/macro-assembler.h"
-#include "src/perf-jit.h"
 #include "src/runtime-profiler.h"
 #include "src/string-stream.h"
 #include "src/vm-state-inl.h"
@@ -778,7 +777,6 @@ Logger::Logger(Isolate* isolate)
     is_logging_(false),
     log_(new Log(this)),
     perf_basic_logger_(NULL),
-    perf_jit_logger_(NULL),
     ll_logger_(NULL),
     jit_logger_(NULL),
     listeners_(5),
@@ -1819,11 +1817,6 @@ bool Logger::SetUp(Isolate* isolate) {
     addCodeEventListener(perf_basic_logger_);
   }
 
-  if (FLAG_perf_jit_prof) {
-    perf_jit_logger_ = new PerfJitLogger();
-    addCodeEventListener(perf_jit_logger_);
-  }
-
   if (FLAG_ll_prof) {
     ll_logger_ = new LowLevelLogger(log_file_name.str().c_str());
     addCodeEventListener(ll_logger_);
@@ -1892,12 +1885,6 @@ FILE* Logger::TearDown() {
     perf_basic_logger_ = NULL;
   }
 
-  if (perf_jit_logger_) {
-    removeCodeEventListener(perf_jit_logger_);
-    delete perf_jit_logger_;
-    perf_jit_logger_ = NULL;
-  }
-
   if (ll_logger_) {
     removeCodeEventListener(ll_logger_);
     delete ll_logger_;
@@ -1913,4 +1900,5 @@ FILE* Logger::TearDown() {
   return log_->Close();
 }
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

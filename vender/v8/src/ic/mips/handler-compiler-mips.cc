@@ -782,8 +782,8 @@ Handle<Code> NamedLoadHandlerCompiler::CompileLoadGlobal(
 
 
 #undef __
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_MIPS
 

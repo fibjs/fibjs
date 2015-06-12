@@ -160,6 +160,7 @@ class CodeGenerator final : public GapResolver::Assembler {
   };
 
   struct HandlerInfo {
+    bool caught_locally;
     Label* handler;
     int pc_offset;
   };
@@ -179,6 +180,7 @@ class CodeGenerator final : public GapResolver::Assembler {
   ZoneVector<HandlerInfo> handlers_;
   ZoneDeque<DeoptimizationState*> deoptimization_states_;
   ZoneDeque<Handle<Object>> deoptimization_literals_;
+  size_t inlined_function_count_;
   TranslationBuffer translations_;
   int last_lazy_deopt_pc_;
   JumpTable* jump_tables_;

@@ -43,7 +43,6 @@
 #include "src/compiler/scheduler.h"
 #include "src/compiler/select-lowering.h"
 #include "src/compiler/simplified-lowering.h"
-#include "src/compiler/simplified-operator-reducer.h"
 #include "src/compiler/tail-call-optimization.h"
 #include "src/compiler/typer.h"
 #include "src/compiler/value-numbering-reducer.h"
@@ -411,6 +410,15 @@ class SourcePositionWrapper final : public Reducer {
 };
 
 
+class JSGraphReducer final : public GraphReducer {
+ public:
+  JSGraphReducer(JSGraph* jsgraph, Zone* zone)
+      : GraphReducer(zone, jsgraph->graph(), jsgraph->TheHoleConstant(),
+                     jsgraph->DeadControl()) {}
+  ~JSGraphReducer() final {}
+};
+
+
 void AddReducer(PipelineData* data, GraphReducer* graph_reducer,
                 Reducer* reducer) {
   if (data->info()->is_source_positions_enabled()) {
@@ -488,8 +496,8 @@ struct ContextSpecializerPhase {
   static const char* phase_name() { return "context specializing"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    JSContextSpecializer spec(data->jsgraph());
-    GraphReducer graph_reducer(data->graph(), temp_zone);
+    JSGraphReducer graph_reducer(data->jsgraph(), temp_zone);
+    JSContextSpecializer spec(&graph_reducer, data->jsgraph());
     AddReducer(data, &graph_reducer, &spec);
     graph_reducer.ReduceGraph();
   }
@@ -500,7 +508,7 @@ struct InliningPhase {
   static const char* phase_name() { return "inlining"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    GraphReducer graph_reducer(data->graph(), temp_zone);
+    JSGraphReducer graph_reducer(data->jsgraph(), temp_zone);
     JSInliner inliner(&graph_reducer, data->info()->is_inlining_enabled()
                                           ? JSInliner::kGeneralInlining
                                           : JSInliner::kRestrictedInlining,
@@ -536,7 +544,7 @@ struct JSTypeFeedbackPhase {
     TypeFeedbackOracle oracle(data->isolate(), temp_zone,
                               data->info()->unoptimized_code(),
                               data->info()->feedback_vector(), native_context);
-    GraphReducer graph_reducer(data->graph(), temp_zone);
+    JSGraphReducer graph_reducer(data->jsgraph(), temp_zone);
     Handle<GlobalObject> global_object = Handle<GlobalObject>::null();
     if (data->info()->has_global_object()) {
       global_object =
@@ -560,22 +568,20 @@ struct TypedLoweringPhase {
   static const char* phase_name() { return "typed lowering"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    GraphReducer graph_reducer(data->graph(), temp_zone);
-    LoadElimination load_elimination;
-    JSBuiltinReducer builtin_reducer(data->jsgraph());
+    JSGraphReducer graph_reducer(data->jsgraph(), temp_zone);
+    LoadElimination load_elimination(&graph_reducer);
+    JSBuiltinReducer builtin_reducer(&graph_reducer, data->jsgraph());
     JSTypedLowering typed_lowering(&graph_reducer, data->jsgraph(), temp_zone);
     JSIntrinsicLowering intrinsic_lowering(
         &graph_reducer, data->jsgraph(),
         data->info()->is_deoptimization_enabled()
             ? JSIntrinsicLowering::kDeoptimizationEnabled
             : JSIntrinsicLowering::kDeoptimizationDisabled);
-    SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     CommonOperatorReducer common_reducer(data->jsgraph());
     AddReducer(data, &graph_reducer, &builtin_reducer);
     AddReducer(data, &graph_reducer, &typed_lowering);
     AddReducer(data, &graph_reducer, &intrinsic_lowering);
     AddReducer(data, &graph_reducer, &load_elimination);
-    AddReducer(data, &graph_reducer, &simple_reducer);
     AddReducer(data, &graph_reducer, &common_reducer);
     graph_reducer.ReduceGraph();
   }
@@ -590,12 +596,10 @@ struct SimplifiedLoweringPhase {
                                 data->source_positions());
     lowering.LowerAllNodes();
     ValueNumberingReducer vn_reducer(temp_zone);
-    SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     MachineOperatorReducer machine_reducer(data->jsgraph());
     CommonOperatorReducer common_reducer(data->jsgraph());
-    GraphReducer graph_reducer(data->graph(), temp_zone);
+    JSGraphReducer graph_reducer(data->jsgraph(), temp_zone);
     AddReducer(data, &graph_reducer, &vn_reducer);
-    AddReducer(data, &graph_reducer, &simple_reducer);
     AddReducer(data, &graph_reducer, &machine_reducer);
     AddReducer(data, &graph_reducer, &common_reducer);
     graph_reducer.ReduceGraph();
@@ -607,7 +611,8 @@ struct ControlFlowOptimizationPhase {
   static const char* phase_name() { return "control flow optimization"; }
 
   void Run(PipelineData* data, Zone* temp_zone) {
-    ControlFlowOptimizer optimizer(data->jsgraph(), temp_zone);
+    ControlFlowOptimizer optimizer(data->graph(), data->common(),
+                                   data->machine(), temp_zone);
     optimizer.Optimize();
   }
 };
@@ -618,13 +623,11 @@ struct ChangeLoweringPhase {
 
   void Run(PipelineData* data, Zone* temp_zone) {
     ValueNumberingReducer vn_reducer(temp_zone);
-    SimplifiedOperatorReducer simple_reducer(data->jsgraph());
     ChangeLowering lowering(data->jsgraph());
     MachineOperatorReducer machine_reducer(data->jsgraph());
     CommonOperatorReducer common_reducer(data->jsgraph());
-    GraphReducer graph_reducer(data->graph(), temp_zone);
+    JSGraphReducer graph_reducer(data->jsgraph(), temp_zone);
     AddReducer(data, &graph_reducer, &vn_reducer);
-    AddReducer(data, &graph_reducer, &simple_reducer);
     AddReducer(data, &graph_reducer, &lowering);
     AddReducer(data, &graph_reducer, &machine_reducer);
     AddReducer(data, &graph_reducer, &common_reducer);
@@ -672,7 +675,7 @@ struct GenericLoweringPhase {
                               data->jsgraph());
     SelectLowering select(data->jsgraph()->graph(), data->jsgraph()->common());
     TailCallOptimization tco(data->common(), data->graph());
-    GraphReducer graph_reducer(data->graph(), temp_zone);
+    JSGraphReducer graph_reducer(data->jsgraph(), temp_zone);
     AddReducer(data, &graph_reducer, &generic);
     AddReducer(data, &graph_reducer, &select);
     // TODO(turbofan): TCO is currently limited to stubs.

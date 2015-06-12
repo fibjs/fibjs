@@ -1806,7 +1806,7 @@ LInstruction* LChunkBuilder::DoDateField(HDateField* instr) {
   LOperand* object = UseFixed(instr->value(), a0);
   LDateField* result =
       new(zone()) LDateField(object, FixedTemp(a1), instr->index());
-  return MarkAsCall(DefineFixed(result, v0), instr, CAN_DEOPTIMIZE_EAGERLY);
+  return MarkAsCall(DefineFixed(result, v0), instr, CANNOT_DEOPTIMIZE_EAGERLY);
 }
 
 
@@ -2554,7 +2554,7 @@ LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
   inner->BindContext(instr->closure_context());
   inner->set_entry(instr);
   current_block_->UpdateEnvironment(inner);
-  chunk_->AddInlinedClosure(instr->closure());
+  chunk_->AddInlinedFunction(instr->shared());
   return NULL;
 }
 
@@ -2624,7 +2624,8 @@ LInstruction* LChunkBuilder::DoAllocateBlockContext(
   return MarkAsCall(DefineFixed(result, cp), instr);
 }
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_MIPS
 

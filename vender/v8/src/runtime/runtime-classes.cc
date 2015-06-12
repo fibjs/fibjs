@@ -281,10 +281,9 @@ static Object* LoadElementFromSuper(Isolate* isolate, Handle<Object> receiver,
   Handle<Object> proto = PrototypeIterator::GetCurrent(iter);
   if (!proto->IsJSReceiver()) return isolate->heap()->undefined_value();
 
+  LookupIterator it(isolate, receiver, index, Handle<JSReceiver>::cast(proto));
   Handle<Object> result;
-  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, result,
-      Object::GetElementWithReceiver(isolate, proto, receiver, index));
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, result, Object::GetProperty(&it));
   return *result;
 }
 
@@ -307,7 +306,7 @@ RUNTIME_FUNCTION(Runtime_LoadKeyedFromSuper) {
   CONVERT_ARG_HANDLE_CHECKED(JSObject, home_object, 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, key, 2);
 
-  uint32_t index;
+  uint32_t index = 0;
   if (key->ToArrayIndex(&index)) {
     return LoadElementFromSuper(isolate, receiver, home_object, index);
   }
@@ -395,7 +394,7 @@ static Object* StoreKeyedToSuper(Isolate* isolate, Handle<JSObject> home_object,
                                  Handle<Object> receiver, Handle<Object> key,
                                  Handle<Object> value,
                                  LanguageMode language_mode) {
-  uint32_t index;
+  uint32_t index = 0;
 
   if (key->ToArrayIndex(&index)) {
     return StoreElementToSuper(isolate, home_object, receiver, index, value,

@@ -114,7 +114,14 @@ bool CodeRange::SetUp(size_t requested) {
   }
 
   DCHECK(!kRequiresCodeRange || requested <= kMaximalCodeRangeSize);
+#ifdef V8_TARGET_ARCH_MIPS64
+  // To use pseudo-relative jumps such as j/jal instructions which have 28-bit
+  // encoded immediate, the addresses have to be in range of 256Mb aligned
+  // region.
+  code_range_ = new base::VirtualMemory(requested, kMaximalCodeRangeSize);
+#else
   code_range_ = new base::VirtualMemory(requested);
+#endif
   CHECK(code_range_ != NULL);
   if (!code_range_->IsReserved()) {
     delete code_range_;
@@ -645,7 +652,14 @@ MemoryChunk* MemoryAllocator::AllocateChunk(intptr_t reserve_area_size,
                                  base::OS::CommitPageSize());
     // Allocate executable memory either from code range or from the
     // OS.
+#ifdef V8_TARGET_ARCH_MIPS64
+    // Use code range only for large object space on mips64 to keep address
+    // range within 256-MB memory region.
+    if (isolate_->code_range() != NULL && isolate_->code_range()->valid() &&
+        commit_area_size > CodePageAreaSize()) {
+#else
     if (isolate_->code_range() != NULL && isolate_->code_range()->valid()) {
+#endif
       base = isolate_->code_range()->AllocateRawMemory(chunk_size, commit_size,
                                                        &chunk_size);
       DCHECK(
@@ -1055,14 +1069,6 @@ int PagedSpace::CountTotalPages() {
 }
 
 
-void PagedSpace::ObtainFreeListStatistics(Page* page, SizeStats* sizes) {
-  sizes->huge_size_ = page->available_in_huge_free_list();
-  sizes->small_size_ = page->available_in_small_free_list();
-  sizes->medium_size_ = page->available_in_medium_free_list();
-  sizes->large_size_ = page->available_in_large_free_list();
-}
-
-
 void PagedSpace::ResetFreeListStatistics() {
   PageIterator page_iterator(this);
   while (page_iterator.has_next()) {
@@ -1463,33 +1469,28 @@ AllocationResult NewSpace::SlowAllocateRaw(int size_in_bytes,
   Address old_top = allocation_info_.top();
   Address high = to_space_.page_high();
   if (allocation_info_.limit() < high) {
+    int alignment_size = Heap::GetFillToAlign(old_top, alignment);
+    int aligned_size_in_bytes = size_in_bytes + alignment_size;
+
     // Either the limit has been lowered because linear allocation was disabled
     // or because incremental marking wants to get a chance to do a step. Set
     // the new limit accordingly.
-    int aligned_size = size_in_bytes;
-    aligned_size += (alignment != kWordAligned) ? kPointerSize : 0;
-    Address new_top = old_top + aligned_size;
+    Address new_top = old_top + aligned_size_in_bytes;
     int bytes_allocated = static_cast<int>(new_top - top_on_previous_step_);
     heap()->incremental_marking()->Step(bytes_allocated,
                                         IncrementalMarking::GC_VIA_STACK_GUARD);
-    UpdateInlineAllocationLimit(aligned_size);
+    UpdateInlineAllocationLimit(aligned_size_in_bytes);
     top_on_previous_step_ = new_top;
-    if (alignment == kDoubleAligned)
-      return AllocateRawAligned(size_in_bytes, kDoubleAligned);
-    else if (alignment == kDoubleUnaligned)
-      return AllocateRawAligned(size_in_bytes, kDoubleUnaligned);
-    return AllocateRawUnaligned(size_in_bytes);
+    if (alignment == kWordAligned) return AllocateRawUnaligned(size_in_bytes);
+    return AllocateRawAligned(size_in_bytes, alignment);
   } else if (AddFreshPage()) {
     // Switched to new page. Try allocating again.
     int bytes_allocated = static_cast<int>(old_top - top_on_previous_step_);
     heap()->incremental_marking()->Step(bytes_allocated,
                                         IncrementalMarking::GC_VIA_STACK_GUARD);
     top_on_previous_step_ = to_space_.page_low();
-    if (alignment == kDoubleAligned)
-      return AllocateRawAligned(size_in_bytes, kDoubleAligned);
-    else if (alignment == kDoubleUnaligned)
-      return AllocateRawAligned(size_in_bytes, kDoubleUnaligned);
-    return AllocateRawUnaligned(size_in_bytes);
+    if (alignment == kWordAligned) return AllocateRawUnaligned(size_in_bytes);
+    return AllocateRawAligned(size_in_bytes, alignment);
   } else {
     return AllocationResult::Retry();
   }
@@ -3050,8 +3051,7 @@ void LargeObjectSpace::Verify() {
     // large object space.
     CHECK(object->IsCode() || object->IsSeqString() ||
           object->IsExternalString() || object->IsFixedArray() ||
-          object->IsFixedDoubleArray() || object->IsByteArray() ||
-          object->IsConstantPoolArray());
+          object->IsFixedDoubleArray() || object->IsByteArray());
 
     // The object itself should look OK.
     object->ObjectVerify();
@@ -3138,5 +3138,5 @@ void Page::Print() {
 }
 
 #endif  // DEBUG
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

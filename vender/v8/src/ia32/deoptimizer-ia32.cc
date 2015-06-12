@@ -427,7 +427,7 @@ void FrameDescription::SetCallerFp(unsigned offset, intptr_t value) {
 
 
 void FrameDescription::SetCallerConstantPool(unsigned offset, intptr_t value) {
-  // No out-of-line constant pool support.
+  // No embedded constant pool support.
   UNREACHABLE();
 }
 
@@ -435,7 +435,8 @@ void FrameDescription::SetCallerConstantPool(unsigned offset, intptr_t value) {
 #undef __
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_IA32
 

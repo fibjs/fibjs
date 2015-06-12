@@ -645,6 +645,38 @@ void InstructionSelector::VisitWord64Xor(Node* node) {
 
 
 void InstructionSelector::VisitWord32Shl(Node* node) {
+  Int32BinopMatcher m(node);
+  if (m.left().IsWord32And() && CanCover(node, m.left().node()) &&
+      m.right().IsInRange(1, 31)) {
+    Arm64OperandGenerator g(this);
+    Int32BinopMatcher mleft(m.left().node());
+    if (mleft.right().HasValue()) {
+      uint32_t mask = mleft.right().Value();
+      uint32_t mask_width = base::bits::CountPopulation32(mask);
+      uint32_t mask_msb = base::bits::CountLeadingZeros32(mask);
+      if ((mask_width != 0) && (mask_msb + mask_width == 32)) {
+        uint32_t shift = m.right().Value();
+        DCHECK_EQ(0u, base::bits::CountTrailingZeros32(mask));
+        DCHECK_NE(0u, shift);
+
+        if ((shift + mask_width) >= 32) {
+          // If the mask is contiguous and reaches or extends beyond the top
+          // bit, only the shift is needed.
+          Emit(kArm64Lsl32, g.DefineAsRegister(node),
+               g.UseRegister(mleft.left().node()),
+               g.UseImmediate(m.right().node()));
+          return;
+        } else {
+          // Select Ubfiz for Shl(And(x, mask), imm) where the mask is
+          // contiguous, and the shift immediate non-zero.
+          Emit(kArm64Ubfiz32, g.DefineAsRegister(node),
+               g.UseRegister(mleft.left().node()),
+               g.UseImmediate(m.right().node()), g.TempImmediate(mask_width));
+          return;
+        }
+      }
+    }
+  }
   VisitRRO(this, kArm64Lsl32, node, kShift32Imm);
 }
 
@@ -1280,6 +1312,11 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   // Pass label of exception handler block.
   CallDescriptor::Flags flags = descriptor->flags();
   if (handler != nullptr) {
+    DCHECK_EQ(IrOpcode::kIfException, handler->front()->opcode());
+    IfExceptionHint hint = OpParameter<IfExceptionHint>(handler->front());
+    if (hint == IfExceptionHint::kLocallyCaught) {
+      flags |= CallDescriptor::kHasLocalCatchHandler;
+    }
     flags |= CallDescriptor::kHasExceptionHandler;
     buffer.instruction_args.push_back(g.Label(handler));
   }

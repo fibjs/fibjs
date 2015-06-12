@@ -46,13 +46,13 @@ namespace internal {
   V(Map, meta_map, MetaMap)                                                    \
   V(Map, heap_number_map, HeapNumberMap)                                       \
   V(Map, mutable_heap_number_map, MutableHeapNumberMap)                        \
+  V(Map, float32x4_map, Float32x4Map)                                          \
   V(Map, native_context_map, NativeContextMap)                                 \
   V(Map, fixed_array_map, FixedArrayMap)                                       \
   V(Map, code_map, CodeMap)                                                    \
   V(Map, scope_info_map, ScopeInfoMap)                                         \
   V(Map, fixed_cow_array_map, FixedCOWArrayMap)                                \
   V(Map, fixed_double_array_map, FixedDoubleArrayMap)                          \
-  V(Map, constant_pool_array_map, ConstantPoolArrayMap)                        \
   V(Map, weak_cell_map, WeakCellMap)                                           \
   V(Map, one_byte_string_map, OneByteStringMap)                                \
   V(Map, one_byte_internalized_string_map, OneByteInternalizedStringMap)       \
@@ -60,7 +60,6 @@ namespace internal {
   V(FixedArray, empty_fixed_array, EmptyFixedArray)                            \
   V(ByteArray, empty_byte_array, EmptyByteArray)                               \
   V(DescriptorArray, empty_descriptor_array, EmptyDescriptorArray)             \
-  V(ConstantPoolArray, empty_constant_pool_array, EmptyConstantPoolArray)      \
   /* The roots above this line should be boring from a GC point of view.    */ \
   /* This means they are never in new space and never on a page that is     */ \
   /* being compacted.                                                       */ \
@@ -344,13 +343,13 @@ namespace internal {
   V(MetaMap)                            \
   V(HeapNumberMap)                      \
   V(MutableHeapNumberMap)               \
+  V(Float32x4Map)                       \
   V(NativeContextMap)                   \
   V(FixedArrayMap)                      \
   V(CodeMap)                            \
   V(ScopeInfoMap)                       \
   V(FixedCOWArrayMap)                   \
   V(FixedDoubleArrayMap)                \
-  V(ConstantPoolArrayMap)               \
   V(WeakCellMap)                        \
   V(NoInterceptorResultSentinel)        \
   V(HashTableMap)                       \
@@ -358,7 +357,6 @@ namespace internal {
   V(EmptyFixedArray)                    \
   V(EmptyByteArray)                     \
   V(EmptyDescriptorArray)               \
-  V(EmptyConstantPoolArray)             \
   V(ArgumentsMarker)                    \
   V(SymbolMap)                          \
   V(SloppyArgumentsElementsMap)         \
@@ -716,13 +714,23 @@ class Heap {
   MUST_USE_RESULT AllocationResult
       CopyJSObject(JSObject* source, AllocationSite* site = NULL);
 
-  // This method assumes overallocation of one word. It will store a filler
-  // before the object if the given object is not double aligned, otherwise
-  // it will place the filler after the object.
-  MUST_USE_RESULT HeapObject* EnsureAligned(HeapObject* object, int size,
-                                            AllocationAlignment alignment);
+  // Calculates the maximum amount of filler that could be required by the
+  // given alignment.
+  static int GetMaximumFillToAlign(AllocationAlignment alignment);
+  // Calculates the actual amount of filler required for a given address at the
+  // given alignment.
+  static int GetFillToAlign(Address address, AllocationAlignment alignment);
 
-  MUST_USE_RESULT HeapObject* PrecedeWithFiller(HeapObject* object);
+  // Creates a filler object and returns a heap object immediately after it.
+  MUST_USE_RESULT HeapObject* PrecedeWithFiller(HeapObject* object,
+                                                int filler_size);
+  // Creates a filler object if needed for alignment and returns a heap object
+  // immediately after it. If any space is left after the returned object,
+  // another filler object is created so the over allocated memory is iterable.
+  MUST_USE_RESULT HeapObject* AlignWithFiller(HeapObject* object,
+                                              int object_size,
+                                              int allocation_size,
+                                              AllocationAlignment alignment);
 
   // Clear the Instanceof cache (used when a prototype changes).
   inline void ClearInstanceofCache();
@@ -1146,6 +1154,9 @@ class Heap {
   static const int kMaxExecutableSizeHugeMemoryDevice =
       256 * kPointerMultiplier;
 
+  static const int kTraceRingBufferSize = 512;
+  static const int kStacktraceBufferSize = 512;
+
   // Calculates the allocation limit based on a given growing factor and a
   // given old generation size.
   intptr_t CalculateOldGenerationAllocationLimit(double factor,
@@ -1153,7 +1164,7 @@ class Heap {
 
   // Sets the allocation limit to trigger the next full garbage collection.
   void SetOldGenerationAllocationLimit(intptr_t old_gen_size,
-                                       int freed_global_handles);
+                                       size_t current_allocation_throughput);
 
   // Indicates whether inline bump-pointer allocation has been disabled.
   bool inline_allocation_disabled() { return inline_allocation_disabled_; }
@@ -1199,10 +1210,6 @@ class Heap {
     kStrongRootListLength = kStringTableRootIndex,
     kSmiRootsStart = kStringTableRootIndex + 1
   };
-
-  // Get the root list index for {object} if such a root list index exists.
-  bool GetRootListIndex(Handle<HeapObject> object,
-                        Heap::RootListIndex* index_return);
 
   Object* root(RootListIndex index) { return roots_[index]; }
 
@@ -1590,12 +1597,17 @@ class Heap {
                               bool alloc_props = true,
                               AllocationSite* allocation_site = NULL);
 
-  // Allocated a HeapNumber from value.
+  // Allocates a HeapNumber from value.
   MUST_USE_RESULT AllocationResult
       AllocateHeapNumber(double value, MutableMode mode = IMMUTABLE,
                          PretenureFlag pretenure = NOT_TENURED);
 
-  // Allocate a byte array of the specified length
+  // Allocates a Float32x4 from the given lane values.
+  MUST_USE_RESULT AllocationResult
+  AllocateFloat32x4(float w, float x, float y, float z,
+                    PretenureFlag pretenure = NOT_TENURED);
+
+  // Allocates a byte array of the specified length
   MUST_USE_RESULT AllocationResult
       AllocateByteArray(int length, PretenureFlag pretenure = NOT_TENURED);
 
@@ -1955,12 +1967,6 @@ class Heap {
   MUST_USE_RESULT inline AllocationResult CopyFixedDoubleArray(
       FixedDoubleArray* src);
 
-  // Make a copy of src and return it. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT inline AllocationResult CopyConstantPoolArray(
-      ConstantPoolArray* src);
-
-
   // Computes a single character string where the character has code.
   // A cache is used for one-byte (Latin1) codes.
   MUST_USE_RESULT AllocationResult
@@ -1969,17 +1975,6 @@ class Heap {
   // Allocate a symbol in old space.
   MUST_USE_RESULT AllocationResult AllocateSymbol();
 
-  // Make a copy of src, set the map, and return the copy.
-  MUST_USE_RESULT AllocationResult
-      CopyConstantPoolArrayWithMap(ConstantPoolArray* src, Map* map);
-
-  MUST_USE_RESULT AllocationResult AllocateConstantPoolArray(
-      const ConstantPoolArray::NumberOfEntries& small);
-
-  MUST_USE_RESULT AllocationResult AllocateExtendedConstantPoolArray(
-      const ConstantPoolArray::NumberOfEntries& small,
-      const ConstantPoolArray::NumberOfEntries& extended);
-
   // Allocates an external array of the specified length and type.
   MUST_USE_RESULT AllocationResult
       AllocateExternalArray(int length, ExternalArrayType array_type,
@@ -1987,8 +1982,8 @@ class Heap {
 
   // Allocates a fixed typed array of the specified length and type.
   MUST_USE_RESULT AllocationResult
-      AllocateFixedTypedArray(int length, ExternalArrayType array_type,
-                              PretenureFlag pretenure);
+  AllocateFixedTypedArray(int length, ExternalArrayType array_type,
+                          bool initialize, PretenureFlag pretenure);
 
   // Make a copy of src and return it.
   MUST_USE_RESULT AllocationResult CopyAndTenureFixedCOWArray(FixedArray* src);
@@ -2018,9 +2013,6 @@ class Heap {
   // Allocate empty fixed typed array of given type.
   MUST_USE_RESULT AllocationResult
       AllocateEmptyFixedTypedArray(ExternalArrayType array_type);
-
-  // Allocate empty constant pool array.
-  MUST_USE_RESULT AllocationResult AllocateEmptyConstantPoolArray();
 
   // Allocate a tenured simple cell.
   MUST_USE_RESULT AllocationResult AllocateCell(Object* value);
@@ -2116,13 +2108,19 @@ class Heap {
 
   void UpdateSurvivalStatistics(int start_new_space_size);
 
+  enum SurvivalRateTrend { INCREASING, STABLE, DECREASING, FLUCTUATING };
+
   static const int kYoungSurvivalRateHighThreshold = 90;
+  static const int kYoungSurvivalRateLowThreshold = 10;
   static const int kYoungSurvivalRateAllowedDeviation = 15;
 
   static const int kOldSurvivalRateLowThreshold = 10;
 
+  bool new_space_high_promotion_mode_active_;
   int high_survival_rate_period_length_;
   intptr_t promoted_objects_size_;
+  int low_survival_rate_period_length_;
+  double survival_rate_;
   double promotion_ratio_;
   double promotion_rate_;
   intptr_t semi_space_copied_object_size_;
@@ -2138,17 +2136,68 @@ class Heap {
   // of the allocation site.
   unsigned int maximum_size_scavenges_;
 
+  SurvivalRateTrend previous_survival_rate_trend_;
+  SurvivalRateTrend survival_rate_trend_;
+
+  void set_survival_rate_trend(SurvivalRateTrend survival_rate_trend) {
+    DCHECK(survival_rate_trend != FLUCTUATING);
+    previous_survival_rate_trend_ = survival_rate_trend_;
+    survival_rate_trend_ = survival_rate_trend;
+  }
+
+  SurvivalRateTrend survival_rate_trend() {
+    if (survival_rate_trend_ == STABLE) {
+      return STABLE;
+    } else if (previous_survival_rate_trend_ == STABLE) {
+      return survival_rate_trend_;
+    } else if (survival_rate_trend_ != previous_survival_rate_trend_) {
+      return FLUCTUATING;
+    } else {
+      return survival_rate_trend_;
+    }
+  }
+
+  bool IsStableOrIncreasingSurvivalTrend() {
+    switch (survival_rate_trend()) {
+      case STABLE:
+      case INCREASING:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool IsStableOrDecreasingSurvivalTrend() {
+    switch (survival_rate_trend()) {
+      case STABLE:
+      case DECREASING:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool IsIncreasingSurvivalTrend() {
+    return survival_rate_trend() == INCREASING;
+  }
+
+  bool IsLowSurvivalRate() { return low_survival_rate_period_length_ > 0; }
+
   // TODO(hpayer): Allocation site pretenuring may make this method obsolete.
   // Re-visit incremental marking heuristics.
   bool IsHighSurvivalRate() { return high_survival_rate_period_length_ > 0; }
 
   void ConfigureInitialOldGenerationSize();
 
+  void ConfigureNewGenerationSize();
+
   void SelectScavengingVisitorsTable();
 
-  bool HasLowAllocationRate(size_t allocaion_rate);
+  bool HasLowYoungGenerationAllocationRate();
+  bool HasLowOldGenerationAllocationRate();
+  bool HasLowAllocationRate();
 
-  void ReduceNewSpaceSize(size_t allocaion_rate);
+  void ReduceNewSpaceSize();
 
   bool TryFinalizeIdleIncrementalMarking(
       double idle_time_in_ms, size_t size_of_objects,
@@ -2158,19 +2207,20 @@ class Heap {
 
   bool PerformIdleTimeAction(GCIdleTimeAction action,
                              GCIdleTimeHandler::HeapState heap_state,
-                             double deadline_in_ms,
-                             bool is_long_idle_notification);
+                             double deadline_in_ms);
 
   void IdleNotificationEpilogue(GCIdleTimeAction action,
                                 GCIdleTimeHandler::HeapState heap_state,
-                                double start_ms, double deadline_in_ms,
-                                bool is_long_idle_notification);
+                                double start_ms, double deadline_in_ms);
 
   void ClearObjectStats(bool clear_last_time_stats = false);
 
   inline void UpdateAllocationsHash(HeapObject* object);
   inline void UpdateAllocationsHash(uint32_t value);
   inline void PrintAlloctionsHash();
+
+  void AddToRingBuffer(const char* string);
+  void GetFromRingBuffer(char* buffer);
 
   // Object counts and used memory by InstanceType
   size_t object_counts_[OBJECT_STATS_COUNT];
@@ -2212,8 +2262,6 @@ class Heap {
 
   GCIdleTimeHandler gc_idle_time_handler_;
 
-  unsigned int gc_count_at_last_idle_gc_;
-
   // These two counters are monotomically increasing and never reset.
   size_t full_codegen_bytes_generated_;
   size_t crankshaft_codegen_bytes_generated_;
@@ -2238,6 +2286,13 @@ class Heap {
 
   static const int kAllocationSiteScratchpadSize = 256;
   int allocation_sites_scratchpad_length_;
+
+  char trace_ring_buffer_[kTraceRingBufferSize];
+  // If it's not full then the data is from 0 to ring_buffer_end_.  If it's
+  // full then the data is from ring_buffer_end_ to the end of the buffer and
+  // from 0 to ring_buffer_end_.
+  bool ring_buffer_full_;
+  size_t ring_buffer_end_;
 
   static const int kMaxMarkCompactsInIdleRound = 7;
   static const int kIdleScavengeThreshold = 5;
@@ -2310,7 +2365,9 @@ class HeapStats {
   int* objects_per_type;                   // 17
   int* size_per_type;                      // 18
   int* os_error;                           // 19
-  int* end_marker;                         // 20
+  char* last_few_messages;                 // 20
+  char* js_stacktrace;                     // 21
+  int* end_marker;                         // 22
 };
 
 

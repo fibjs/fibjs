@@ -230,6 +230,7 @@ class Genesis BASE_EMBEDDED {
   bool InstallExperimentalNatives();
   bool InstallExtraNatives();
   void InstallBuiltinFunctionIds();
+  void InstallExperimentalBuiltinFunctionIds();
   void InstallJSFunctionResultCaches();
   void InitializeNormalizedMapCaches();
 
@@ -534,7 +535,7 @@ Handle<JSFunction> Genesis::CreateEmptyFunction(Isolate* isolate) {
 
     // Allocate initial strong object map.
     Handle<Map> strong_object_map =
-        Map::Copy(object_function_map, "EmptyStrongObject");
+        Map::Copy(Handle<Map>(object_fun->initial_map()), "EmptyStrongObject");
     strong_object_map->set_is_strong();
     native_context()->set_js_object_strong_map(*strong_object_map);
   }
@@ -790,7 +791,8 @@ static void AddToWeakNativeContextList(Context* context) {
     }
   }
 #endif
-  context->set(Context::NEXT_CONTEXT_LINK, heap->native_contexts_list());
+  context->set(Context::NEXT_CONTEXT_LINK, heap->native_contexts_list(),
+               UPDATE_WEAK_WRITE_BARRIER);
   heap->set_native_contexts_list(context);
 }
 
@@ -1194,7 +1196,6 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> global_object,
             isolate->initial_object_prototype(),
             Builtins::kIllegal);
     native_context()->set_array_buffer_fun(*array_buffer_fun);
-    native_context()->set_array_buffer_map(array_buffer_fun->initial_map());
   }
 
   {  // -- T y p e d A r r a y s
@@ -1221,13 +1222,19 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> global_object,
     native_context()->set_data_view_fun(*data_view_fun);
   }
 
-  // -- M a p
-  InstallFunction(global, "Map", JS_MAP_TYPE, JSMap::kSize,
-                  isolate->initial_object_prototype(), Builtins::kIllegal);
+  {  // -- M a p
+    Handle<JSFunction> js_map_fun = InstallFunction(
+        global, "Map", JS_MAP_TYPE, JSMap::kSize,
+        isolate->initial_object_prototype(), Builtins::kIllegal);
+    native_context()->set_js_map_fun(*js_map_fun);
+  }
 
-  // -- S e t
-  InstallFunction(global, "Set", JS_SET_TYPE, JSSet::kSize,
-                  isolate->initial_object_prototype(), Builtins::kIllegal);
+  {  // -- S e t
+    Handle<JSFunction> js_set_fun = InstallFunction(
+        global, "Set", JS_SET_TYPE, JSSet::kSize,
+        isolate->initial_object_prototype(), Builtins::kIllegal);
+    native_context()->set_js_set_fun(*js_set_fun);
+  }
 
   {  // Set up the iterator result object
     STATIC_ASSERT(JSGeneratorObject::kResultPropertyCount == 2);
@@ -1492,7 +1499,10 @@ bool Genesis::CompileNative(Isolate* isolate, Vector<const char> name,
   // environment has been at least partially initialized. Add a stack check
   // before entering JS code to catch overflow early.
   StackLimitCheck check(isolate);
-  if (check.HasOverflowed()) return false;
+  if (check.HasOverflowed()) {
+    isolate->StackOverflow();
+    return false;
+  }
 
   Handle<Context> context(isolate->context());
 
@@ -1659,6 +1669,8 @@ void Genesis::InstallNativeFunctions() {
   INSTALL_NATIVE(JSFunction, "$observeNativeObjectNotifierPerformChange",
                  native_object_notifier_perform_change);
   INSTALL_NATIVE(JSFunction, "$arrayValues", array_values_iterator);
+  INSTALL_NATIVE(JSFunction, "$mapFromArray", map_from_array);
+  INSTALL_NATIVE(JSFunction, "$setFromArray", set_from_array);
 }
 
 
@@ -1755,6 +1767,8 @@ EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_destructuring)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_object)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_spread_arrays)
 EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_sharedarraybuffer)
+EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_atomics)
+EMPTY_NATIVE_FUNCTIONS_FOR_FEATURE(harmony_new_target)
 
 
 void Genesis::InstallNativeFunctions_harmony_proxies() {
@@ -1765,6 +1779,7 @@ void Genesis::InstallNativeFunctions_harmony_proxies() {
     INSTALL_NATIVE(JSFunction, "$proxyEnumerate", proxy_enumerate);
   }
 }
+
 
 #undef INSTALL_NATIVE
 
@@ -1786,6 +1801,8 @@ EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_spreadcalls)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_destructuring)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_object)
 EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_spread_arrays)
+EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_atomics)
+EMPTY_INITIALIZE_GLOBAL_FOR_FEATURE(harmony_new_target)
 
 void Genesis::InitializeGlobal_harmony_regexps() {
   Handle<JSObject> builtins(native_context()->builtins());
@@ -2199,9 +2216,11 @@ bool Genesis::InstallNatives() {
                     Builtins::kIllegal, kUseStrictFunctionMap);
 
     // Create maps for generator functions and their prototypes.  Store those
-    // maps in the native context. Generator functions do not have writable
-    // prototypes, nor do they have "caller" or "arguments" accessors.
-    Handle<Map> strict_function_map(native_context()->strict_function_map());
+    // maps in the native context. The "prototype" property descriptor is
+    // writable, non-enumerable, and non-configurable (as per ES6 draft
+    // 04-14-15, section 25.2.4.3).
+    Handle<Map> strict_function_map(strict_function_map_writable_prototype_);
+    // Generator functions do not have "caller" or "arguments" accessors.
     Handle<Map> sloppy_generator_function_map =
         Map::Copy(strict_function_map, "SloppyGeneratorFunction");
     Map::SetPrototype(sloppy_generator_function_map,
@@ -2428,6 +2447,9 @@ bool Genesis::InstallExperimentalNatives() {
   static const char* harmony_spread_arrays_natives[] = {nullptr};
   static const char* harmony_sharedarraybuffer_natives[] = {
       "native harmony-sharedarraybuffer.js", NULL};
+  static const char* harmony_atomics_natives[] = {"native harmony-atomics.js",
+                                                  nullptr};
+  static const char* harmony_new_target_natives[] = {nullptr};
 
   for (int i = ExperimentalNatives::GetDebuggerCount();
        i < ExperimentalNatives::GetBuiltinsCount(); i++) {
@@ -2447,9 +2469,10 @@ bool Genesis::InstallExperimentalNatives() {
 #undef INSTALL_EXPERIMENTAL_NATIVES
   }
 
-  CallUtilsFunction(isolate(), "PostExperimentals");
+  if (!CallUtilsFunction(isolate(), "PostExperimentals")) return false;
 
   InstallExperimentalNativeFunctions();
+  InstallExperimentalBuiltinFunctionIds();
   return true;
 }
 
@@ -2475,6 +2498,11 @@ static void InstallBuiltinFunctionId(Handle<JSObject> holder,
 }
 
 
+#define INSTALL_BUILTIN_ID(holder_expr, fun_name, name) \
+  { #holder_expr, #fun_name, k##name }                  \
+  ,
+
+
 void Genesis::InstallBuiltinFunctionIds() {
   HandleScope scope(isolate());
   struct BuiltinFunctionIds {
@@ -2483,12 +2511,8 @@ void Genesis::InstallBuiltinFunctionIds() {
     BuiltinFunctionId id;
   };
 
-#define INSTALL_BUILTIN_ID(holder_expr, fun_name, name) \
-  { #holder_expr, #fun_name, k##name }                  \
-  ,
   const BuiltinFunctionIds builtins[] = {
       FUNCTIONS_WITH_ID_LIST(INSTALL_BUILTIN_ID)};
-#undef INSTALL_BUILTIN_ID
 
   for (const BuiltinFunctionIds& builtin : builtins) {
     Handle<JSObject> holder =
@@ -2496,6 +2520,29 @@ void Genesis::InstallBuiltinFunctionIds() {
     InstallBuiltinFunctionId(holder, builtin.fun_name, builtin.id);
   }
 }
+
+
+void Genesis::InstallExperimentalBuiltinFunctionIds() {
+  if (FLAG_harmony_atomics) {
+    struct BuiltinFunctionIds {
+      const char* holder_expr;
+      const char* fun_name;
+      BuiltinFunctionId id;
+    };
+
+    const BuiltinFunctionIds atomic_builtins[] = {
+        ATOMIC_FUNCTIONS_WITH_ID_LIST(INSTALL_BUILTIN_ID)};
+
+    for (const BuiltinFunctionIds& builtin : atomic_builtins) {
+      Handle<JSObject> holder =
+          ResolveBuiltinIdHolder(native_context(), builtin.holder_expr);
+      InstallBuiltinFunctionId(holder, builtin.fun_name, builtin.id);
+    }
+  }
+}
+
+
+#undef INSTALL_BUILTIN_ID
 
 
 // Do not forget to update macros.py with named constant
@@ -2786,6 +2833,12 @@ bool Genesis::ConfigureGlobalObjects(
 
   native_context()->set_initial_array_prototype(
       JSArray::cast(native_context()->array_function()->prototype()));
+  native_context()->set_array_buffer_map(
+      native_context()->array_buffer_fun()->initial_map());
+  native_context()->set_js_map_map(
+      native_context()->js_map_fun()->initial_map());
+  native_context()->set_js_set_map(
+      native_context()->js_set_fun()->initial_map());
 
   return true;
 }
@@ -2859,6 +2912,29 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
         }
       }
     }
+  } else if (from->IsGlobalObject()) {
+    Handle<GlobalDictionary> properties =
+        Handle<GlobalDictionary>(from->global_dictionary());
+    int capacity = properties->Capacity();
+    for (int i = 0; i < capacity; i++) {
+      Object* raw_key(properties->KeyAt(i));
+      if (properties->IsKey(raw_key)) {
+        DCHECK(raw_key->IsName());
+        // If the property is already there we skip it.
+        Handle<Name> key(Name::cast(raw_key));
+        LookupIterator it(to, key, LookupIterator::OWN_SKIP_INTERCEPTOR);
+        CHECK_NE(LookupIterator::ACCESS_CHECK, it.state());
+        if (it.IsFound()) continue;
+        // Set the property.
+        DCHECK(properties->ValueAt(i)->IsPropertyCell());
+        Handle<PropertyCell> cell(PropertyCell::cast(properties->ValueAt(i)));
+        Handle<Object> value(cell->value(), isolate());
+        if (value->IsTheHole()) continue;
+        PropertyDetails details = cell->property_details();
+        DCHECK_EQ(kData, details.kind());
+        JSObject::AddProperty(to, key, value, details.attributes());
+      }
+    }
   } else {
     Handle<NameDictionary> properties =
         Handle<NameDictionary>(from->property_dictionary());
@@ -2876,10 +2952,7 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
         Handle<Object> value = Handle<Object>(properties->ValueAt(i),
                                               isolate());
         DCHECK(!value->IsCell());
-        if (value->IsPropertyCell()) {
-          value = handle(PropertyCell::cast(*value)->value(), isolate());
-        }
-        if (value->IsTheHole()) continue;
+        DCHECK(!value->IsTheHole());
         PropertyDetails details = properties->DetailsAt(i);
         DCHECK_EQ(kData, details.kind());
         JSObject::AddProperty(to, key, value, details.attributes());
@@ -2969,7 +3042,10 @@ Genesis::Genesis(Isolate* isolate,
   // environment has been at least partially initialized. Add a stack check
   // before entering JS code to catch overflow early.
   StackLimitCheck check(isolate);
-  if (check.HasOverflowed()) return;
+  if (check.HasOverflowed()) {
+    isolate->StackOverflow();
+    return;
+  }
 
   // The deserializer needs to hook up references to the global proxy.
   // Create an uninitialized global proxy now if we don't have one
@@ -3077,4 +3153,5 @@ void Bootstrapper::FreeThreadResources() {
   DCHECK(!IsActive());
 }
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

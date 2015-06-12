@@ -1734,7 +1734,8 @@ void PrintDisassembler::ProcessOutput(Instruction* instr) {
           GetOutput());
 }
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 
 namespace disasm {

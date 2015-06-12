@@ -42,7 +42,12 @@ class X64OperandConverter : public InstructionOperandConverter {
   Operand OutputOperand() { return ToOperand(instr_->Output()); }
 
   Immediate ToImmediate(InstructionOperand* operand) {
-    return Immediate(ToConstant(operand).ToInt32());
+    Constant constant = ToConstant(operand);
+    if (constant.type() == Constant::kFloat64) {
+      DCHECK_EQ(0, bit_cast<int64_t>(constant.ToFloat64()));
+      return Immediate(0);
+    }
+    return Immediate(constant.ToInt32());
   }
 
   Operand ToOperand(InstructionOperand* op, int extra = 0) {
@@ -624,6 +629,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
       break;
     case kArchStackPointer:
       __ movq(i.OutputRegister(), rsp);
+      break;
+    case kArchFramePointer:
+      __ movq(i.OutputRegister(), rbp);
       break;
     case kArchTruncateDoubleToI: {
       auto result = i.OutputRegister();

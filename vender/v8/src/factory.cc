@@ -126,28 +126,6 @@ Handle<FixedArrayBase> Factory::NewFixedDoubleArrayWithHoles(
 }
 
 
-Handle<ConstantPoolArray> Factory::NewConstantPoolArray(
-    const ConstantPoolArray::NumberOfEntries& small) {
-  DCHECK(small.total_count() > 0);
-  CALL_HEAP_FUNCTION(
-      isolate(),
-      isolate()->heap()->AllocateConstantPoolArray(small),
-      ConstantPoolArray);
-}
-
-
-Handle<ConstantPoolArray> Factory::NewExtendedConstantPoolArray(
-    const ConstantPoolArray::NumberOfEntries& small,
-    const ConstantPoolArray::NumberOfEntries& extended) {
-  DCHECK(small.total_count() > 0);
-  DCHECK(extended.total_count() > 0);
-  CALL_HEAP_FUNCTION(
-      isolate(),
-      isolate()->heap()->AllocateExtendedConstantPoolArray(small, extended),
-      ConstantPoolArray);
-}
-
-
 Handle<OrderedHashSet> Factory::NewOrderedHashSet() {
   return OrderedHashSet::Allocate(isolate(), OrderedHashSet::kMinCapacity);
 }
@@ -917,16 +895,12 @@ Handle<ExternalArray> Factory::NewExternalArray(int length,
 
 
 Handle<FixedTypedArrayBase> Factory::NewFixedTypedArray(
-    int length,
-    ExternalArrayType array_type,
+    int length, ExternalArrayType array_type, bool initialize,
     PretenureFlag pretenure) {
   DCHECK(0 <= length && length <= Smi::kMaxValue);
-  CALL_HEAP_FUNCTION(
-      isolate(),
-      isolate()->heap()->AllocateFixedTypedArray(length,
-                                                 array_type,
-                                                 pretenure),
-      FixedTypedArrayBase);
+  CALL_HEAP_FUNCTION(isolate(), isolate()->heap()->AllocateFixedTypedArray(
+                                    length, array_type, initialize, pretenure),
+                     FixedTypedArrayBase);
 }
 
 
@@ -1028,14 +1002,6 @@ Handle<FixedDoubleArray> Factory::CopyFixedDoubleArray(
 }
 
 
-Handle<ConstantPoolArray> Factory::CopyConstantPoolArray(
-    Handle<ConstantPoolArray> array) {
-  CALL_HEAP_FUNCTION(isolate(),
-                     isolate()->heap()->CopyConstantPoolArray(*array),
-                     ConstantPoolArray);
-}
-
-
 Handle<Object> Factory::NewNumber(double value,
                                   PretenureFlag pretenure) {
   // We need to distinguish the minus zero value and this cannot be
@@ -1081,12 +1047,27 @@ Handle<HeapNumber> Factory::NewHeapNumber(double value,
 }
 
 
+Handle<Float32x4> Factory::NewFloat32x4(float w, float x, float y, float z,
+                                        PretenureFlag pretenure) {
+  CALL_HEAP_FUNCTION(
+      isolate(), isolate()->heap()->AllocateFloat32x4(w, x, y, z, pretenure),
+      Float32x4);
+}
+
+
 Handle<Object> Factory::NewError(const char* maker,
                                  MessageTemplate::Template template_index,
                                  Handle<Object> arg0, Handle<Object> arg1,
                                  Handle<Object> arg2) {
   HandleScope scope(isolate());
   Handle<String> error_maker = InternalizeUtf8String(maker);
+  if (isolate()->bootstrapper()->IsActive()) {
+    // If this exception is being thrown during bootstrapping,
+    // js_builtins_object is unavailable. We return the error maker
+    // name's string as the exception since we have nothing better
+    // to do.
+    return scope.CloseAndEscape(error_maker);
+  }
   Handle<Object> fun_obj = Object::GetProperty(isolate()->js_builtins_object(),
                                                error_maker).ToHandleChecked();
 
@@ -1257,7 +1238,7 @@ void Factory::InitializeFunction(Handle<JSFunction> function,
   function->set_context(*context);
   function->set_prototype_or_initial_map(*the_hole_value());
   function->set_literals_or_bindings(*empty_fixed_array());
-  function->set_next_function_link(*undefined_value());
+  function->set_next_function_link(*undefined_value(), SKIP_WRITE_BARRIER);
 }
 
 
@@ -1456,8 +1437,6 @@ Handle<Code> Factory::NewCode(const CodeDesc& desc,
                               int prologue_offset,
                               bool is_debug) {
   Handle<ByteArray> reloc_info = NewByteArray(desc.reloc_size, TENURED);
-  Handle<ConstantPoolArray> constant_pool =
-      desc.origin->NewConstantPool(isolate());
 
   // Compute size.
   int body_size = RoundUp(desc.instr_size, kObjectAlignment);
@@ -1484,6 +1463,9 @@ Handle<Code> Factory::NewCode(const CodeDesc& desc,
   code->set_next_code_link(*undefined_value());
   code->set_handler_table(*empty_fixed_array(), SKIP_WRITE_BARRIER);
   code->set_prologue_offset(prologue_offset);
+  if (FLAG_enable_embedded_constant_pool) {
+    code->set_constant_pool_offset(desc.instr_size - desc.constant_pool_size);
+  }
   if (code->kind() == Code::OPTIMIZED_FUNCTION) {
     code->set_marked_for_deoptimization(false);
   }
@@ -1492,9 +1474,6 @@ Handle<Code> Factory::NewCode(const CodeDesc& desc,
     DCHECK(code->kind() == Code::FUNCTION);
     code->set_has_debug_break_slots(true);
   }
-
-  desc.origin->PopulateConstantPool(*constant_pool);
-  code->set_constant_pool(*constant_pool);
 
   // Allow self references to created code object by patching the handle to
   // point to the newly allocated Code object.
@@ -1583,8 +1562,8 @@ Handle<GlobalObject> Factory::NewGlobalObject(Handle<JSFunction> constructor) {
 
   // Allocate a dictionary object for backing storage.
   int at_least_space_for = map->NumberOfOwnDescriptors() * 2 + initial_size;
-  Handle<NameDictionary> dictionary =
-      NameDictionary::New(isolate(), at_least_space_for);
+  Handle<GlobalDictionary> dictionary =
+      GlobalDictionary::New(isolate(), at_least_space_for);
 
   // The global object might be created from an object template with accessors.
   // Fill these accessors into the dictionary.
@@ -1599,7 +1578,7 @@ Handle<GlobalObject> Factory::NewGlobalObject(Handle<JSFunction> constructor) {
     Handle<PropertyCell> cell = NewPropertyCell();
     cell->set_value(descs->GetCallbacksObject(i));
     // |dictionary| already contains enough space for all properties.
-    USE(NameDictionary::Add(dictionary, name, cell, d));
+    USE(GlobalDictionary::Add(dictionary, name, cell, d));
   }
 
   // Allocate the global object and initialize it with the backing store.
@@ -1637,22 +1616,24 @@ Handle<JSObject> Factory::NewJSObjectFromMap(
 
 
 Handle<JSArray> Factory::NewJSArray(ElementsKind elements_kind,
+                                    Strength strength,
                                     PretenureFlag pretenure) {
-  Context* native_context = isolate()->context()->native_context();
-  JSFunction* array_function = native_context->array_function();
-  Map* map = array_function->initial_map();
-  Map* transition_map = isolate()->get_initial_js_array_map(elements_kind);
-  if (transition_map != NULL) map = transition_map;
+  Map* map = isolate()->get_initial_js_array_map(elements_kind, strength);
+  if (map == nullptr) {
+    DCHECK(strength == Strength::WEAK);
+    Context* native_context = isolate()->context()->native_context();
+    JSFunction* array_function = native_context->array_function();
+    map = array_function->initial_map();
+  }
   return Handle<JSArray>::cast(NewJSObjectFromMap(handle(map), pretenure));
 }
 
 
-Handle<JSArray> Factory::NewJSArray(ElementsKind elements_kind,
-                                    int length,
-                                    int capacity,
+Handle<JSArray> Factory::NewJSArray(ElementsKind elements_kind, int length,
+                                    int capacity, Strength strength,
                                     ArrayStorageAllocationMode mode,
                                     PretenureFlag pretenure) {
-  Handle<JSArray> array = NewJSArray(elements_kind, pretenure);
+  Handle<JSArray> array = NewJSArray(elements_kind, strength, pretenure);
   NewJSArrayStorage(array, length, capacity, mode);
   return array;
 }
@@ -1660,10 +1641,10 @@ Handle<JSArray> Factory::NewJSArray(ElementsKind elements_kind,
 
 Handle<JSArray> Factory::NewJSArrayWithElements(Handle<FixedArrayBase> elements,
                                                 ElementsKind elements_kind,
-                                                int length,
+                                                int length, Strength strength,
                                                 PretenureFlag pretenure) {
   DCHECK(length <= elements->length());
-  Handle<JSArray> array = NewJSArray(elements_kind, pretenure);
+  Handle<JSArray> array = NewJSArray(elements_kind, strength, pretenure);
 
   array->set_elements(*elements);
   array->set_length(Smi::FromInt(length));
@@ -1741,6 +1722,22 @@ Handle<JSDataView> Factory::NewJSDataView() {
       isolate(),
       isolate()->heap()->AllocateJSObject(*data_view_fun),
       JSDataView);
+}
+
+
+Handle<JSMap> Factory::NewJSMap() {
+  Handle<Map> map(isolate()->native_context()->js_map_map());
+  Handle<JSMap> js_map = Handle<JSMap>::cast(NewJSObjectFromMap(map));
+  Runtime::JSMapInitialize(isolate(), js_map);
+  return js_map;
+}
+
+
+Handle<JSSet> Factory::NewJSSet() {
+  Handle<Map> map(isolate()->native_context()->js_set_map());
+  Handle<JSSet> js_set = Handle<JSSet>::cast(NewJSObjectFromMap(map));
+  Runtime::JSSetInitialize(isolate(), js_set);
+  return js_set;
 }
 
 
@@ -1946,7 +1943,7 @@ Handle<JSTypedArray> Factory::NewJSTypedArray(ElementsKind elements_kind,
   obj->set_buffer(*buffer);
   Handle<FixedTypedArrayBase> elements =
       isolate()->factory()->NewFixedTypedArray(
-          static_cast<int>(number_of_elements), array_type);
+          static_cast<int>(number_of_elements), array_type, true);
   obj->set_elements(*elements);
   return obj;
 }
@@ -2003,16 +2000,12 @@ void Factory::ReinitializeJSProxy(Handle<JSProxy> proxy, InstanceType type,
                                   int size) {
   DCHECK(type == JS_OBJECT_TYPE || type == JS_FUNCTION_TYPE);
 
-  // Allocate fresh map.
-  // TODO(rossberg): Once we optimize proxies, cache these maps.
-  Handle<Map> map = NewMap(type, size);
+  Handle<Map> proxy_map(proxy->map());
+  Handle<Map> map = Map::FixProxy(proxy_map, type, size);
 
   // Check that the receiver has at least the size of the fresh object.
-  int size_difference = proxy->map()->instance_size() - map->instance_size();
+  int size_difference = proxy_map->instance_size() - map->instance_size();
   DCHECK(size_difference >= 0);
-
-  Handle<Object> prototype(proxy->map()->prototype(), isolate());
-  Map::SetPrototype(map, prototype);
 
   // Allocate the backing storage for the properties.
   int prop_size = map->InitialPropertiesLength();
@@ -2368,29 +2361,20 @@ Handle<Map> Factory::ObjectLiteralMapFromCache(Handle<Context> context,
                       : context->object_function()->initial_map(), isolate());
   }
 
-  // Create a new map and add it to the cache.
-  Handle<Map> map = Map::Create(isolate(), number_of_properties);
   int cache_index = number_of_properties - 1;
-  Handle<FixedArray> cache;
-  if (is_strong) {
-    map->set_is_strong();
-    if (context->strong_map_cache()->IsUndefined()) {
-      // Allocate the new map cache for the native context.
-      Handle<FixedArray> new_cache = NewFixedArray(kMapCacheSize, TENURED);
-      context->set_strong_map_cache(*new_cache);
+  Handle<Object> maybe_cache(is_strong ? context->strong_map_cache()
+                                       : context->map_cache(), isolate());
+  if (maybe_cache->IsUndefined()) {
+    // Allocate the new map cache for the native context.
+    maybe_cache = NewFixedArray(kMapCacheSize, TENURED);
+    if (is_strong) {
+      context->set_strong_map_cache(*maybe_cache);
+    } else {
+      context->set_map_cache(*maybe_cache);
     }
-    // Check to see whether there is a matching element in the cache.
-    cache = handle(FixedArray::cast(context->strong_map_cache()));
   } else {
-    if (context->map_cache()->IsUndefined()) {
-      // Allocate the new map cache for the native context.
-      Handle<FixedArray> new_cache = NewFixedArray(kMapCacheSize, TENURED);
-      context->set_map_cache(*new_cache);
-    }
     // Check to see whether there is a matching element in the cache.
-    cache = handle(FixedArray::cast(context->map_cache()));
-  }
-  {
+    Handle<FixedArray> cache = Handle<FixedArray>::cast(maybe_cache);
     Object* result = cache->get(cache_index);
     if (result->IsWeakCell()) {
       WeakCell* cell = WeakCell::cast(result);
@@ -2399,6 +2383,10 @@ Handle<Map> Factory::ObjectLiteralMapFromCache(Handle<Context> context,
       }
     }
   }
+  // Create a new map and add it to the cache.
+  Handle<FixedArray> cache = Handle<FixedArray>::cast(maybe_cache);
+  Handle<Map> map = Map::Create(isolate(), number_of_properties);
+  if (is_strong) map->set_is_strong();
   Handle<WeakCell> cell = NewWeakCell(map);
   cache->set(cache_index, *cell);
   return map;
@@ -2454,4 +2442,5 @@ Handle<Object> Factory::ToBoolean(bool value) {
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

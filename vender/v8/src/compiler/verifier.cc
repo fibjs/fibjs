@@ -98,6 +98,15 @@ class Verifier::Visitor {
       FATAL(str.str().c_str());
     }
   }
+  void CheckOutput(Node* node, Node* use, int count, const char* kind) {
+    if (count <= 0) {
+      std::ostringstream str;
+      str << "GraphError: node #" << node->id() << ":" << *node->op()
+          << " does not produce " << kind << " output used by node #"
+          << use->id() << ":" << *use->op();
+      FATAL(str.str().c_str());
+    }
+  }
 };
 
 
@@ -118,9 +127,9 @@ void Verifier::Visitor::Check(Node* node) {
   for (int i = 0; i < frame_state_count; i++) {
     Node* frame_state = NodeProperties::GetFrameStateInput(node, i);
     CHECK(frame_state->opcode() == IrOpcode::kFrameState ||
-          // kFrameState uses undefined as a sentinel.
+          // kFrameState uses Start as a sentinel.
           (node->opcode() == IrOpcode::kFrameState &&
-           frame_state->opcode() == IrOpcode::kHeapConstant));
+           frame_state->opcode() == IrOpcode::kStart));
     CHECK(IsDefUseChainLinkPresent(frame_state, node));
     CHECK(IsUseDefChainLinkPresent(frame_state, node));
   }
@@ -128,7 +137,7 @@ void Verifier::Visitor::Check(Node* node) {
   // Verify all value inputs actually produce a value.
   for (int i = 0; i < value_count; ++i) {
     Node* value = NodeProperties::GetValueInput(node, i);
-    CHECK(value->op()->ValueOutputCount() > 0);
+    CheckOutput(value, node, value->op()->ValueOutputCount(), "value");
     CHECK(IsDefUseChainLinkPresent(value, node));
     CHECK(IsUseDefChainLinkPresent(value, node));
   }
@@ -136,7 +145,7 @@ void Verifier::Visitor::Check(Node* node) {
   // Verify all context inputs are value nodes.
   for (int i = 0; i < context_count; ++i) {
     Node* context = NodeProperties::GetContextInput(node);
-    CHECK(context->op()->ValueOutputCount() > 0);
+    CheckOutput(context, node, context->op()->ValueOutputCount(), "context");
     CHECK(IsDefUseChainLinkPresent(context, node));
     CHECK(IsUseDefChainLinkPresent(context, node));
   }
@@ -144,7 +153,7 @@ void Verifier::Visitor::Check(Node* node) {
   // Verify all effect inputs actually have an effect.
   for (int i = 0; i < effect_count; ++i) {
     Node* effect = NodeProperties::GetEffectInput(node);
-    CHECK(effect->op()->EffectOutputCount() > 0);
+    CheckOutput(effect, node, effect->op()->EffectOutputCount(), "effect");
     CHECK(IsDefUseChainLinkPresent(effect, node));
     CHECK(IsUseDefChainLinkPresent(effect, node));
   }
@@ -152,7 +161,7 @@ void Verifier::Visitor::Check(Node* node) {
   // Verify all control inputs are control nodes.
   for (int i = 0; i < control_count; ++i) {
     Node* control = NodeProperties::GetControlInput(node, i);
-    CHECK(control->op()->ControlOutputCount() > 0);
+    CheckOutput(control, node, control->op()->ControlOutputCount(), "control");
     CHECK(IsDefUseChainLinkPresent(control, node));
     CHECK(IsUseDefChainLinkPresent(control, node));
   }
@@ -185,7 +194,11 @@ void Verifier::Visitor::Check(Node* node) {
       break;
     case IrOpcode::kDead:
       // Dead is never connected to the graph.
-      UNREACHABLE();
+      // TODO(mstarzinger): Make the GraphReducer immediately perform control
+      // reduction in case control is killed. This will prevent {Dead} from
+      // being reachable after a phase finished. Then re-enable below assert.
+      // UNREACHABLE();
+      break;
     case IrOpcode::kBranch: {
       // Branch uses are IfTrue and IfFalse.
       int count_true = 0, count_false = 0;
@@ -270,22 +283,12 @@ void Verifier::Visitor::Check(Node* node) {
       CheckNotTyped(node);
       break;
     case IrOpcode::kDeoptimize:
-      // Deoptimize uses are End.
-      for (auto use : node->uses()) {
-        CHECK_EQ(IrOpcode::kEnd, use->opcode());
-      }
-      // Type is empty.
-      CheckNotTyped(node);
     case IrOpcode::kReturn:
-      // Return uses are End.
+    case IrOpcode::kThrow:
+      // Deoptimize, Return and Throw uses are End.
       for (auto use : node->uses()) {
         CHECK_EQ(IrOpcode::kEnd, use->opcode());
       }
-      // Type is empty.
-      CheckNotTyped(node);
-      break;
-    case IrOpcode::kThrow:
-      // TODO(rossberg): what are the constraints on these?
       // Type is empty.
       CheckNotTyped(node);
       break;
@@ -541,6 +544,8 @@ void Verifier::Visitor::Check(Node* node) {
       break;
 
     case IrOpcode::kJSLoadContext:
+    case IrOpcode::kJSLoadDynamicGlobal:
+    case IrOpcode::kJSLoadDynamicContext:
       // Type can be anything.
       CheckUpperIs(node, Type::Any());
       break;
@@ -573,6 +578,25 @@ void Verifier::Visitor::Check(Node* node) {
       // Type can be anything.
       CheckUpperIs(node, Type::Any());
       break;
+
+    case IrOpcode::kJSForInPrepare: {
+      // TODO(bmeurer): What are the constraints on thse?
+      CheckUpperIs(node, Type::Any());
+      break;
+    }
+    case IrOpcode::kJSForInDone: {
+      CheckValueInputIs(node, 0, Type::UnsignedSmall());
+      break;
+    }
+    case IrOpcode::kJSForInNext: {
+      CheckUpperIs(node, Type::Union(Type::Name(), Type::Undefined()));
+      break;
+    }
+    case IrOpcode::kJSForInStep: {
+      CheckValueInputIs(node, 0, Type::UnsignedSmall());
+      CheckUpperIs(node, Type::UnsignedSmall());
+      break;
+    }
 
     case IrOpcode::kJSStackCheck:
       // Type is empty.
@@ -632,12 +656,6 @@ void Verifier::Visitor::Check(Node* node) {
       CheckValueInputIs(node, 0, Type::String());
       CheckValueInputIs(node, 1, Type::String());
       CheckUpperIs(node, Type::Boolean());
-      break;
-    case IrOpcode::kStringAdd:
-      // (String, String) -> String
-      CheckValueInputIs(node, 0, Type::String());
-      CheckValueInputIs(node, 1, Type::String());
-      CheckUpperIs(node, Type::String());
       break;
     case IrOpcode::kReferenceEqual: {
       // (Unique, Any) -> Boolean  and
@@ -849,6 +867,7 @@ void Verifier::Visitor::Check(Node* node) {
     case IrOpcode::kFloat64InsertLowWord32:
     case IrOpcode::kFloat64InsertHighWord32:
     case IrOpcode::kLoadStackPointer:
+    case IrOpcode::kLoadFramePointer:
     case IrOpcode::kCheckedLoad:
     case IrOpcode::kCheckedStore:
       // TODO(rossberg): Check.

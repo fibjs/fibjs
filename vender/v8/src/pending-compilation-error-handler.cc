@@ -41,6 +41,11 @@ void PendingCompilationErrorHandler::ThrowPendingError(Isolate* isolate,
       break;
   }
 
+  if (!error->IsJSObject()) {
+    isolate->Throw(*error, &location);
+    return;
+  }
+
   Handle<JSObject> jserror = Handle<JSObject>::cast(error);
 
   Handle<Name> key_start_pos = factory->error_start_pos_symbol();
@@ -58,5 +63,5 @@ void PendingCompilationErrorHandler::ThrowPendingError(Isolate* isolate,
 
   isolate->Throw(*error, &location);
 }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

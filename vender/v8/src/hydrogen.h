@@ -1429,15 +1429,11 @@ class HGraphBuilder {
                         HValue** operand,
                         HValue** shift_amount);
 
-  HValue* BuildBinaryOperation(Token::Value op,
-                               HValue* left,
-                               HValue* right,
-                               Type* left_type,
-                               Type* right_type,
-                               Type* result_type,
-                               Maybe<int> fixed_right_arg,
+  HValue* BuildBinaryOperation(Token::Value op, HValue* left, HValue* right,
+                               Type* left_type, Type* right_type,
+                               Type* result_type, Maybe<int> fixed_right_arg,
                                HAllocationMode allocation_mode,
-                               LanguageMode language_mode);
+                               Strength strength);
 
   HLoadNamedField* AddLoadFixedArrayLength(HValue *object,
                                            HValue *dependency = NULL);
@@ -2183,6 +2179,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   F(Arguments)                         \
   F(ValueOf)                           \
   F(SetValueOf)                        \
+  F(ThrowIfNotADate)                   \
   F(DateField)                         \
   F(StringCharFromCode)                \
   F(StringCharAt)                      \
@@ -2466,10 +2463,11 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
       ExternalArrayType array_type,
       bool is_zero_byte_offset,
       HValue* buffer, HValue* byte_offset, HValue* length);
-  HValue* BuildAllocateFixedTypedArray(
-      ExternalArrayType array_type, size_t element_size,
-      ElementsKind fixed_elements_kind,
-      HValue* byte_length, HValue* length);
+  HValue* BuildAllocateFixedTypedArray(ExternalArrayType array_type,
+                                       size_t element_size,
+                                       ElementsKind fixed_elements_kind,
+                                       HValue* byte_length, HValue* length,
+                                       bool initialize);
 
   // TODO(adamk): Move all OrderedHashTable functions to their own class.
   HValue* BuildOrderedHashTableHashToBucket(HValue* hash, HValue* num_buckets);

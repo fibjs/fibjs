@@ -46,13 +46,6 @@ class Factory final {
       int size,
       PretenureFlag pretenure = NOT_TENURED);
 
-  Handle<ConstantPoolArray> NewConstantPoolArray(
-      const ConstantPoolArray::NumberOfEntries& small);
-
-  Handle<ConstantPoolArray> NewExtendedConstantPoolArray(
-      const ConstantPoolArray::NumberOfEntries& small,
-      const ConstantPoolArray::NumberOfEntries& extended);
-
   Handle<OrderedHashSet> NewOrderedHashSet();
   Handle<OrderedHashMap> NewOrderedHashMap();
 
@@ -298,8 +291,7 @@ class Factory final {
       PretenureFlag pretenure = NOT_TENURED);
 
   Handle<FixedTypedArrayBase> NewFixedTypedArray(
-      int length,
-      ExternalArrayType array_type,
+      int length, ExternalArrayType array_type, bool initialize,
       PretenureFlag pretenure = NOT_TENURED);
 
   Handle<Cell> NewCell(Handle<Object> value);
@@ -339,9 +331,6 @@ class Factory final {
   Handle<FixedDoubleArray> CopyFixedDoubleArray(
       Handle<FixedDoubleArray> array);
 
-  Handle<ConstantPoolArray> CopyConstantPoolArray(
-      Handle<ConstantPoolArray> array);
-
   // Numbers (e.g. literals) are pretenured by the parser.
   // The return value may be a smi or a heap number.
   Handle<Object> NewNumber(double value,
@@ -362,6 +351,8 @@ class Factory final {
   Handle<HeapNumber> NewHeapNumber(double value,
                                    MutableMode mode = IMMUTABLE,
                                    PretenureFlag pretenure = NOT_TENURED);
+  Handle<Float32x4> NewFloat32x4(float w, float x, float y, float z,
+                                 PretenureFlag pretenure = NOT_TENURED);
 
   // These objects are used by the api to create env-independent data
   // structures in the heap.
@@ -399,41 +390,42 @@ class Factory final {
   // JS arrays are pretenured when allocated by the parser.
 
   // Create a JSArray with no elements.
-  Handle<JSArray> NewJSArray(
-      ElementsKind elements_kind,
-      PretenureFlag pretenure = NOT_TENURED);
+  Handle<JSArray> NewJSArray(ElementsKind elements_kind,
+                             Strength strength = Strength::WEAK,
+                             PretenureFlag pretenure = NOT_TENURED);
 
   // Create a JSArray with a specified length and elements initialized
   // according to the specified mode.
   Handle<JSArray> NewJSArray(
       ElementsKind elements_kind, int length, int capacity,
+      Strength strength = Strength::WEAK,
       ArrayStorageAllocationMode mode = DONT_INITIALIZE_ARRAY_ELEMENTS,
       PretenureFlag pretenure = NOT_TENURED);
 
   Handle<JSArray> NewJSArray(
-      int capacity,
-      ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND,
+      int capacity, ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND,
+      Strength strength = Strength::WEAK,
       PretenureFlag pretenure = NOT_TENURED) {
     if (capacity != 0) {
       elements_kind = GetHoleyElementsKind(elements_kind);
     }
-    return NewJSArray(elements_kind, 0, capacity,
+    return NewJSArray(elements_kind, 0, capacity, strength,
                       INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE, pretenure);
   }
 
   // Create a JSArray with the given elements.
-  Handle<JSArray> NewJSArrayWithElements(
-      Handle<FixedArrayBase> elements,
-      ElementsKind elements_kind,
-      int length,
-      PretenureFlag pretenure = NOT_TENURED);
+  Handle<JSArray> NewJSArrayWithElements(Handle<FixedArrayBase> elements,
+                                         ElementsKind elements_kind, int length,
+                                         Strength strength = Strength::WEAK,
+                                         PretenureFlag pretenure = NOT_TENURED);
 
   Handle<JSArray> NewJSArrayWithElements(
       Handle<FixedArrayBase> elements,
       ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND,
+      Strength strength = Strength::WEAK,
       PretenureFlag pretenure = NOT_TENURED) {
-    return NewJSArrayWithElements(
-        elements, elements_kind, elements->length(), pretenure);
+    return NewJSArrayWithElements(elements, elements_kind, elements->length(),
+                                  strength, pretenure);
   }
 
   void NewJSArrayStorage(
@@ -463,6 +455,9 @@ class Factory final {
   Handle<JSDataView> NewJSDataView();
   Handle<JSDataView> NewJSDataView(Handle<JSArrayBuffer> buffer,
                                    size_t byte_offset, size_t byte_length);
+
+  Handle<JSMap> NewJSMap();
+  Handle<JSSet> NewJSSet();
 
   // TODO(aandrey): Maybe these should take table, index and kind arguments.
   Handle<JSMapIterator> NewJSMapIterator();

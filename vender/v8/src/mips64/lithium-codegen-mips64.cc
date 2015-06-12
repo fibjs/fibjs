@@ -586,52 +586,17 @@ void LCodeGen::WriteTranslation(LEnvironment* environment,
 
   // The translation includes one command per value in the environment.
   int translation_size = environment->translation_size();
-  // The output frame height does not include the parameters.
-  int height = translation_size - environment->parameter_count();
 
   WriteTranslation(environment->outer(), translation);
-  bool has_closure_id = !info()->closure().is_null() &&
-      !info()->closure().is_identical_to(environment->closure());
-  int closure_id = has_closure_id
-      ? DefineDeoptimizationLiteral(environment->closure())
-      : Translation::kSelfLiteralId;
-
-  switch (environment->frame_type()) {
-    case JS_FUNCTION:
-      translation->BeginJSFrame(environment->ast_id(), closure_id, height);
-      break;
-    case JS_CONSTRUCT:
-      translation->BeginConstructStubFrame(closure_id, translation_size);
-      break;
-    case JS_GETTER:
-      DCHECK(translation_size == 1);
-      DCHECK(height == 0);
-      translation->BeginGetterStubFrame(closure_id);
-      break;
-    case JS_SETTER:
-      DCHECK(translation_size == 2);
-      DCHECK(height == 0);
-      translation->BeginSetterStubFrame(closure_id);
-      break;
-    case STUB:
-      translation->BeginCompiledStubFrame();
-      break;
-    case ARGUMENTS_ADAPTOR:
-      translation->BeginArgumentsAdaptorFrame(closure_id, translation_size);
-      break;
-  }
+  WriteTranslationFrame(environment, translation);
 
   int object_index = 0;
   int dematerialized_index = 0;
   for (int i = 0; i < translation_size; ++i) {
     LOperand* value = environment->values()->at(i);
-    AddToTranslation(environment,
-                     translation,
-                     value,
-                     environment->HasTaggedValueAt(i),
-                     environment->HasUint32ValueAt(i),
-                     &object_index,
-                     &dematerialized_index);
+    AddToTranslation(
+        environment, translation, value, environment->HasTaggedValueAt(i),
+        environment->HasUint32ValueAt(i), &object_index, &dematerialized_index);
   }
 }
 
@@ -921,28 +886,11 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
 }
 
 
-int LCodeGen::DefineDeoptimizationLiteral(Handle<Object> literal) {
-  int result = deoptimization_literals_.length();
-  for (int i = 0; i < deoptimization_literals_.length(); ++i) {
-    if (deoptimization_literals_[i].is_identical_to(literal)) return i;
-  }
-  deoptimization_literals_.Add(literal, zone());
-  return result;
-}
-
-
 void LCodeGen::PopulateDeoptimizationLiteralsWithInlinedFunctions() {
-  DCHECK(deoptimization_literals_.length() == 0);
-
-  const ZoneList<Handle<JSFunction> >* inlined_closures =
-      chunk()->inlined_closures();
-
-  for (int i = 0, length = inlined_closures->length();
-       i < length;
-       i++) {
-    DefineDeoptimizationLiteral(inlined_closures->at(i));
+  DCHECK_EQ(0, deoptimization_literals_.length());
+  for (auto function : chunk()->inlined_functions()) {
+    DefineDeoptimizationLiteral(function);
   }
-
   inlined_function_count_ = deoptimization_literals_.length();
 }
 
@@ -1529,7 +1477,7 @@ void LCodeGen::DoMulI(LMulI* instr) {
           int32_t shift = WhichPowerOf2(constant_abs);
           __ dsll(result, left, shift);
           // Correct the sign of the result if the constant is negative.
-          if (constant < 0)  __ Dsubu(result, zero_reg, result);
+          if (constant < 0) __ Dsubu(result, zero_reg, result);
         } else if (base::bits::IsPowerOfTwo32(constant_abs - 1)) {
           int32_t shift = WhichPowerOf2(constant_abs - 1);
           __ dsll(scratch, left, shift);
@@ -1794,21 +1742,15 @@ void LCodeGen::DoDateField(LDateField* instr) {
   Register result = ToRegister(instr->result());
   Register scratch = ToRegister(instr->temp());
   Smi* index = instr->index();
-  Label runtime, done;
   DCHECK(object.is(a0));
   DCHECK(result.is(v0));
   DCHECK(!scratch.is(scratch0()));
   DCHECK(!scratch.is(object));
 
-  __ SmiTst(object, at);
-  DeoptimizeIf(eq, instr, Deoptimizer::kSmi, at, Operand(zero_reg));
-  __ GetObjectType(object, scratch, scratch);
-  DeoptimizeIf(ne, instr, Deoptimizer::kNotADateObject, scratch,
-               Operand(JS_DATE_TYPE));
-
   if (index->value() == 0) {
     __ ld(result, FieldMemOperand(object, JSDate::kValueOffset));
   } else {
+    Label runtime, done;
     if (index->value() < JSDate::kFirstUncachedField) {
       ExternalReference stamp = ExternalReference::date_cache_stamp(isolate());
       __ li(scratch, Operand(stamp));
@@ -1906,6 +1848,17 @@ void LCodeGen::DoSeqStringSetChar(LSeqStringSetChar* instr) {
 }
 
 
+void LCodeGen::DoAddE(LAddE* instr) {
+  LOperand* result = instr->result();
+  LOperand* left = instr->left();
+  LOperand* right = instr->right();
+
+  DCHECK(!instr->hydrogen()->CheckFlag(HValue::kCanOverflow));
+  DCHECK(right->IsRegister() || right->IsConstantOperand());
+  __ Daddu(ToRegister(result), ToRegister(left), ToOperand(right));
+}
+
+
 void LCodeGen::DoAddI(LAddI* instr) {
   LOperand* left = instr->left();
   LOperand* right = instr->right();
@@ -1913,18 +1866,12 @@ void LCodeGen::DoAddI(LAddI* instr) {
   bool can_overflow = instr->hydrogen()->CheckFlag(HValue::kCanOverflow);
 
   if (!can_overflow) {
-    if (right->IsStackSlot()) {
-      Register right_reg = EmitLoadRegister(right, at);
-      __ Daddu(ToRegister(result), ToRegister(left), Operand(right_reg));
-    } else {
-      DCHECK(right->IsRegister() || right->IsConstantOperand());
-      __ Daddu(ToRegister(result), ToRegister(left), ToOperand(right));
-    }
+    DCHECK(right->IsRegister() || right->IsConstantOperand());
+    __ Daddu(ToRegister(result), ToRegister(left), ToOperand(right));
   } else {  // can_overflow.
     Register overflow = scratch0();
     Register scratch = scratch1();
-    if (right->IsStackSlot() ||
-        right->IsConstantOperand()) {
+    if (right->IsConstantOperand()) {
       Register right_reg = EmitLoadRegister(right, scratch);
       __ AdduAndCheckForOverflow(ToRegister(result),
                                  ToRegister(left),
@@ -2060,8 +2007,8 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
   DCHECK(ToRegister(instr->right()).is(a0));
   DCHECK(ToRegister(instr->result()).is(v0));
 
-  Handle<Code> code = CodeFactory::BinaryOpIC(
-      isolate(), instr->op(), instr->language_mode()).code();
+  Handle<Code> code =
+      CodeFactory::BinaryOpIC(isolate(), instr->op(), instr->strength()).code();
   CallCode(code, RelocInfo::CODE_TARGET, instr);
   // Other arch use a nop here, to signal that there is no inlined
   // patchable code. Mips does not need the nop, since our marker
@@ -2546,7 +2493,8 @@ void LCodeGen::DoStringCompareAndBranch(LStringCompareAndBranch* instr) {
   DCHECK(ToRegister(instr->context()).is(cp));
   Token::Value op = instr->op();
 
-  Handle<Code> ic = CodeFactory::CompareIC(isolate(), op, SLOPPY).code();
+  Handle<Code> ic =
+      CodeFactory::CompareIC(isolate(), op, Strength::WEAK).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 
   Condition condition = ComputeCompareCondition(op);
@@ -2849,7 +2797,7 @@ void LCodeGen::DoCmpT(LCmpT* instr) {
   Token::Value op = instr->op();
 
   Handle<Code> ic =
-      CodeFactory::CompareIC(isolate(), op, instr->language_mode()).code();
+      CodeFactory::CompareIC(isolate(), op, instr->strength()).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
   // On MIPS there is no need for a "no inlined smi code" marker (nop).
 
@@ -6139,7 +6087,8 @@ void LCodeGen::DoAllocateBlockContext(LAllocateBlockContext* instr) {
 
 #undef __
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 
 #endif  // V8_TARGET_ARCH_MIPS64

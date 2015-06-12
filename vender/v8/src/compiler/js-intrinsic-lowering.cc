@@ -32,6 +32,8 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
   switch (f->function_id) {
     case Runtime::kInlineConstructDouble:
       return ReduceConstructDouble(node);
+    case Runtime::kInlineDateField:
+      return ReduceDateField(node);
     case Runtime::kInlineDeoptimizeNow:
       return ReduceDeoptimizeNow(node);
     case Runtime::kInlineDoubleHi:
@@ -84,6 +86,8 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
       return ReduceFixedArraySet(node);
     case Runtime::kInlineGetTypeFeedbackVector:
       return ReduceGetTypeFeedbackVector(node);
+    case Runtime::kInlineGetCallerJSFunction:
+      return ReduceGetCallerJSFunction(node);
     default:
       break;
   }
@@ -101,6 +105,24 @@ Reduction JSIntrinsicLowering::ReduceConstructDouble(Node* node) {
                        high);
   ReplaceWithValue(node, value);
   return Replace(value);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceDateField(Node* node) {
+  Node* const value = NodeProperties::GetValueInput(node, 0);
+  Node* const index = NodeProperties::GetValueInput(node, 1);
+  Node* const effect = NodeProperties::GetEffectInput(node);
+  Node* const control = NodeProperties::GetControlInput(node);
+  NumberMatcher mindex(index);
+  if (mindex.Is(JSDate::kDateValue)) {
+    return Change(
+        node,
+        simplified()->LoadField(AccessBuilder::ForJSDateField(
+            static_cast<JSDate::FieldIndex>(static_cast<int>(mindex.Value())))),
+        value, effect, control);
+  }
+  // TODO(turbofan): Optimize more patterns.
+  return NoChange();
 }
 
 
@@ -452,6 +474,31 @@ Reduction JSIntrinsicLowering::ReduceGetTypeFeedbackVector(Node* node) {
       graph()->NewNode(simplified()->LoadField(access), func, effect, control);
   access = AccessBuilder::ForSharedFunctionInfoTypeFeedbackVector();
   return Change(node, simplified()->LoadField(access), load, load, control);
+}
+
+
+Reduction JSIntrinsicLowering::ReduceGetCallerJSFunction(Node* node) {
+  Node* effect = NodeProperties::GetEffectInput(node);
+  Node* control = NodeProperties::GetControlInput(node);
+
+  Node* const frame_state = NodeProperties::GetFrameStateInput(node, 0);
+  Node* outer_frame = frame_state->InputAt(kFrameStateOuterStateInput);
+  if (outer_frame->opcode() == IrOpcode::kFrameState) {
+    // Use the runtime implementation to throw the appropriate error if the
+    // containing function is inlined.
+    return NoChange();
+  }
+
+  // TODO(danno): This implementation forces intrinsic lowering to happen after
+  // inlining, which is fine for now, but eventually the frame-querying logic
+  // probably should go later, e.g. in instruction selection, so that there is
+  // no phase-ordering dependency.
+  FieldAccess access = AccessBuilder::ForFrameCallerFramePtr();
+  Node* fp = graph()->NewNode(machine()->LoadFramePointer());
+  Node* next_fp =
+      graph()->NewNode(simplified()->LoadField(access), fp, effect, control);
+  return Change(node, simplified()->LoadField(AccessBuilder::ForFrameMarker()),
+                next_fp, effect, control);
 }
 
 

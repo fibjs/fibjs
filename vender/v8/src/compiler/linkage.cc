@@ -111,12 +111,12 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
   // are blacklisted here and can be called without a FrameState.
   switch (function) {
     case Runtime::kAllocateInTargetSpace:
+    case Runtime::kDateField:
     case Runtime::kDefineClassMethod:              // TODO(jarin): Is it safe?
     case Runtime::kDefineGetterPropertyUnchecked:  // TODO(jarin): Is it safe?
     case Runtime::kDefineSetterPropertyUnchecked:  // TODO(jarin): Is it safe?
-    case Runtime::kForInCacheArrayLength:
-    case Runtime::kForInInit:
-    case Runtime::kForInNext:
+    case Runtime::kForInDone:
+    case Runtime::kForInStep:
     case Runtime::kNewArguments:
     case Runtime::kNewClosure:
     case Runtime::kNewFunctionContext:
@@ -124,7 +124,6 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
     case Runtime::kPushBlockContext:
     case Runtime::kPushCatchContext:
     case Runtime::kReThrow:
-    case Runtime::kSetProperty:  // TODO(jarin): Is it safe?
     case Runtime::kStringCompareRT:
     case Runtime::kStringEquals:
     case Runtime::kToFastProperties:  // TODO(jarin): Is it safe?
@@ -133,10 +132,11 @@ bool Linkage::NeedsFrameState(Runtime::FunctionId function) {
       return false;
     case Runtime::kInlineArguments:
     case Runtime::kInlineCallFunction:
-    case Runtime::kInlineDateField:
     case Runtime::kInlineDeoptimizeNow:
+    case Runtime::kInlineGetCallerJSFunction:
     case Runtime::kInlineGetPrototype:
     case Runtime::kInlineRegExpExec:
+    case Runtime::kInlineThrowIfNotADate:
       return true;
     default:
       break;

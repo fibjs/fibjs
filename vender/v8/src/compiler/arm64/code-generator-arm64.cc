@@ -447,6 +447,9 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArchStackPointer:
       __ mov(i.OutputRegister(), masm()->StackPointer());
       break;
+    case kArchFramePointer:
+      __ mov(i.OutputRegister(), fp);
+      break;
     case kArchTruncateDoubleToI:
       __ TruncateDoubleToI(i.OutputRegister(), i.InputDoubleRegister(0));
       break;
@@ -657,6 +660,10 @@ void CodeGenerator::AssembleArchInstruction(Instruction* instr) {
     case kArm64Ubfx32:
       __ Ubfx(i.OutputRegister32(), i.InputRegister32(0), i.InputInt5(1),
               i.InputInt5(2));
+      break;
+    case kArm64Ubfiz32:
+      __ Ubfiz(i.OutputRegister32(), i.InputRegister32(0), i.InputInt5(1),
+               i.InputInt5(2));
       break;
     case kArm64Bfi:
       __ Bfi(i.OutputRegister(), i.InputRegister(1), i.InputInt6(2),

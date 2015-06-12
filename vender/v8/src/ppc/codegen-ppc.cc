@@ -681,8 +681,8 @@ void Code::PatchPlatformCodeAge(Isolate* isolate, byte* sequence, Code::Age age,
     }
   }
 }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_PPC
 

@@ -394,8 +394,9 @@ void Context::AddOptimizedFunction(JSFunction* function) {
 
   DCHECK(function->next_function_link()->IsUndefined());
 
-  function->set_next_function_link(get(OPTIMIZED_FUNCTIONS_LIST));
-  set(OPTIMIZED_FUNCTIONS_LIST, function);
+  function->set_next_function_link(get(OPTIMIZED_FUNCTIONS_LIST),
+                                   UPDATE_WEAK_WRITE_BARRIER);
+  set(OPTIMIZED_FUNCTIONS_LIST, function, UPDATE_WEAK_WRITE_BARRIER);
 }
 
 
@@ -409,11 +410,14 @@ void Context::RemoveOptimizedFunction(JSFunction* function) {
            element_function->next_function_link()->IsJSFunction());
     if (element_function == function) {
       if (prev == NULL) {
-        set(OPTIMIZED_FUNCTIONS_LIST, element_function->next_function_link());
+        set(OPTIMIZED_FUNCTIONS_LIST, element_function->next_function_link(),
+            UPDATE_WEAK_WRITE_BARRIER);
       } else {
-        prev->set_next_function_link(element_function->next_function_link());
+        prev->set_next_function_link(element_function->next_function_link(),
+                                     UPDATE_WEAK_WRITE_BARRIER);
       }
-      element_function->set_next_function_link(GetHeap()->undefined_value());
+      element_function->set_next_function_link(GetHeap()->undefined_value(),
+                                               UPDATE_WEAK_WRITE_BARRIER);
       return;
     }
     prev = element_function;
@@ -425,7 +429,7 @@ void Context::RemoveOptimizedFunction(JSFunction* function) {
 
 void Context::SetOptimizedFunctionsListHead(Object* head) {
   DCHECK(IsNativeContext());
-  set(OPTIMIZED_FUNCTIONS_LIST, head);
+  set(OPTIMIZED_FUNCTIONS_LIST, head, UPDATE_WEAK_WRITE_BARRIER);
 }
 
 
@@ -440,13 +444,13 @@ void Context::AddOptimizedCode(Code* code) {
   DCHECK(code->kind() == Code::OPTIMIZED_FUNCTION);
   DCHECK(code->next_code_link()->IsUndefined());
   code->set_next_code_link(get(OPTIMIZED_CODE_LIST));
-  set(OPTIMIZED_CODE_LIST, code);
+  set(OPTIMIZED_CODE_LIST, code, UPDATE_WEAK_WRITE_BARRIER);
 }
 
 
 void Context::SetOptimizedCodeListHead(Object* head) {
   DCHECK(IsNativeContext());
-  set(OPTIMIZED_CODE_LIST, head);
+  set(OPTIMIZED_CODE_LIST, head, UPDATE_WEAK_WRITE_BARRIER);
 }
 
 
@@ -458,7 +462,7 @@ Object* Context::OptimizedCodeListHead() {
 
 void Context::SetDeoptimizedCodeListHead(Object* head) {
   DCHECK(IsNativeContext());
-  set(DEOPTIMIZED_CODE_LIST, head);
+  set(DEOPTIMIZED_CODE_LIST, head, UPDATE_WEAK_WRITE_BARRIER);
 }
 
 
@@ -499,4 +503,5 @@ bool Context::IsBootstrappingOrGlobalObject(Isolate* isolate, Object* object) {
 }
 #endif
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

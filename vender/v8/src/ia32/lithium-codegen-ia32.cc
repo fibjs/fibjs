@@ -622,53 +622,17 @@ void LCodeGen::WriteTranslation(LEnvironment* environment,
 
   // The translation includes one command per value in the environment.
   int translation_size = environment->translation_size();
-  // The output frame height does not include the parameters.
-  int height = translation_size - environment->parameter_count();
 
   WriteTranslation(environment->outer(), translation);
-  bool has_closure_id = !info()->closure().is_null() &&
-      !info()->closure().is_identical_to(environment->closure());
-  int closure_id = has_closure_id
-      ? DefineDeoptimizationLiteral(environment->closure())
-      : Translation::kSelfLiteralId;
-  switch (environment->frame_type()) {
-    case JS_FUNCTION:
-      translation->BeginJSFrame(environment->ast_id(), closure_id, height);
-      break;
-    case JS_CONSTRUCT:
-      translation->BeginConstructStubFrame(closure_id, translation_size);
-      break;
-    case JS_GETTER:
-      DCHECK(translation_size == 1);
-      DCHECK(height == 0);
-      translation->BeginGetterStubFrame(closure_id);
-      break;
-    case JS_SETTER:
-      DCHECK(translation_size == 2);
-      DCHECK(height == 0);
-      translation->BeginSetterStubFrame(closure_id);
-      break;
-    case ARGUMENTS_ADAPTOR:
-      translation->BeginArgumentsAdaptorFrame(closure_id, translation_size);
-      break;
-    case STUB:
-      translation->BeginCompiledStubFrame();
-      break;
-    default:
-      UNREACHABLE();
-  }
+  WriteTranslationFrame(environment, translation);
 
   int object_index = 0;
   int dematerialized_index = 0;
   for (int i = 0; i < translation_size; ++i) {
     LOperand* value = environment->values()->at(i);
-    AddToTranslation(environment,
-                     translation,
-                     value,
-                     environment->HasTaggedValueAt(i),
-                     environment->HasUint32ValueAt(i),
-                     &object_index,
-                     &dematerialized_index);
+    AddToTranslation(
+        environment, translation, value, environment->HasTaggedValueAt(i),
+        environment->HasUint32ValueAt(i), &object_index, &dematerialized_index);
   }
 }
 
@@ -970,28 +934,11 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
 }
 
 
-int LCodeGen::DefineDeoptimizationLiteral(Handle<Object> literal) {
-  int result = deoptimization_literals_.length();
-  for (int i = 0; i < deoptimization_literals_.length(); ++i) {
-    if (deoptimization_literals_[i].is_identical_to(literal)) return i;
-  }
-  deoptimization_literals_.Add(literal, zone());
-  return result;
-}
-
-
 void LCodeGen::PopulateDeoptimizationLiteralsWithInlinedFunctions() {
-  DCHECK(deoptimization_literals_.length() == 0);
-
-  const ZoneList<Handle<JSFunction> >* inlined_closures =
-      chunk()->inlined_closures();
-
-  for (int i = 0, length = inlined_closures->length();
-       i < length;
-       i++) {
-    DefineDeoptimizationLiteral(inlined_closures->at(i));
+  DCHECK_EQ(0, deoptimization_literals_.length());
+  for (auto function : chunk()->inlined_functions()) {
+    DefineDeoptimizationLiteral(function);
   }
-
   inlined_function_count_ = deoptimization_literals_.length();
 }
 
@@ -1801,18 +1748,13 @@ void LCodeGen::DoDateField(LDateField* instr) {
   Register result = ToRegister(instr->result());
   Register scratch = ToRegister(instr->temp());
   Smi* index = instr->index();
-  Label runtime, done;
   DCHECK(object.is(result));
   DCHECK(object.is(eax));
-
-  __ test(object, Immediate(kSmiTagMask));
-  DeoptimizeIf(zero, instr, Deoptimizer::kSmi);
-  __ CmpObjectType(object, JS_DATE_TYPE, scratch);
-  DeoptimizeIf(not_equal, instr, Deoptimizer::kNotADateObject);
 
   if (index->value() == 0) {
     __ mov(result, FieldOperand(object, JSDate::kValueOffset));
   } else {
+    Label runtime, done;
     if (index->value() < JSDate::kFirstUncachedField) {
       ExternalReference stamp = ExternalReference::date_cache_stamp(isolate());
       __ mov(scratch, Operand::StaticVariable(stamp));
@@ -2080,8 +2022,8 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
   DCHECK(ToRegister(instr->right()).is(eax));
   DCHECK(ToRegister(instr->result()).is(eax));
 
-  Handle<Code> code = CodeFactory::BinaryOpIC(
-      isolate(), instr->op(), instr->language_mode()).code();
+  Handle<Code> code =
+      CodeFactory::BinaryOpIC(isolate(), instr->op(), instr->strength()).code();
   CallCode(code, RelocInfo::CODE_TARGET, instr);
 }
 
@@ -2507,7 +2449,8 @@ static Condition ComputeCompareCondition(Token::Value op) {
 void LCodeGen::DoStringCompareAndBranch(LStringCompareAndBranch* instr) {
   Token::Value op = instr->op();
 
-  Handle<Code> ic = CodeFactory::CompareIC(isolate(), op, SLOPPY).code();
+  Handle<Code> ic =
+      CodeFactory::CompareIC(isolate(), op, Strength::WEAK).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 
   Condition condition = ComputeCompareCondition(op);
@@ -2779,7 +2722,7 @@ void LCodeGen::DoCmpT(LCmpT* instr) {
   Token::Value op = instr->op();
 
   Handle<Code> ic =
-      CodeFactory::CompareIC(isolate(), op, instr->language_mode()).code();
+      CodeFactory::CompareIC(isolate(), op, instr->strength()).code();
   CallCode(ic, RelocInfo::CODE_TARGET, instr);
 
   Condition condition = ComputeCompareCondition(op);
@@ -5847,7 +5790,8 @@ void LCodeGen::DoAllocateBlockContext(LAllocateBlockContext* instr) {
 
 #undef __
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_IA32
 

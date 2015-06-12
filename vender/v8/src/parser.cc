@@ -336,7 +336,6 @@ FunctionLiteral* Parser::DefaultConstructor(bool call_super, Scope* scope,
                                             int pos, int end_pos) {
   int materialized_literal_count = -1;
   int expected_property_count = -1;
-  int handler_count = 0;
   int parameter_count = 0;
   const AstRawString* name = ast_value_factory()->empty_string();
 
@@ -359,8 +358,17 @@ FunctionLiteral* Parser::DefaultConstructor(bool call_super, Scope* scope,
     body = new (zone()) ZoneList<Statement*>(call_super ? 2 : 1, zone());
     AddAssertIsConstruct(body, pos);
     if (call_super) {
+      // %_DefaultConstructorCallSuper(new.target, .this_function)
       ZoneList<Expression*>* args =
-          new (zone()) ZoneList<Expression*>(0, zone());
+          new (zone()) ZoneList<Expression*>(2, zone());
+      VariableProxy* new_target_proxy = scope_->NewUnresolved(
+          factory(), ast_value_factory()->new_target_string(), Variable::NORMAL,
+          pos);
+      args->Add(new_target_proxy, zone());
+      VariableProxy* this_function_proxy = scope_->NewUnresolved(
+          factory(), ast_value_factory()->this_function_string(),
+          Variable::NORMAL, pos);
+      args->Add(this_function_proxy, zone());
       CallRuntime* call = factory()->NewCallRuntime(
           ast_value_factory()->empty_string(),
           Runtime::FunctionForId(Runtime::kInlineDefaultConstructorCallSuper),
@@ -370,13 +378,12 @@ FunctionLiteral* Parser::DefaultConstructor(bool call_super, Scope* scope,
 
     materialized_literal_count = function_state.materialized_literal_count();
     expected_property_count = function_state.expected_property_count();
-    handler_count = function_state.handler_count();
   }
 
   FunctionLiteral* function_literal = factory()->NewFunctionLiteral(
       name, ast_value_factory(), function_scope, body,
-      materialized_literal_count, expected_property_count, handler_count,
-      parameter_count, FunctionLiteral::kNoDuplicateParameters,
+      materialized_literal_count, expected_property_count, parameter_count,
+      FunctionLiteral::kNoDuplicateParameters,
       FunctionLiteral::ANONYMOUS_EXPRESSION, FunctionLiteral::kIsFunction,
       FunctionLiteral::kShouldLazyCompile, kind, pos);
 
@@ -747,11 +754,44 @@ Expression* ParserTraits::ThisExpression(Scope* scope, AstNodeFactory* factory,
                               Variable::THIS, pos, pos + 4);
 }
 
-Expression* ParserTraits::SuperReference(Scope* scope, AstNodeFactory* factory,
-                                         int pos) {
-  return factory->NewSuperReference(
-      ThisExpression(scope, factory, pos)->AsVariableProxy(),
-      pos);
+
+Expression* ParserTraits::SuperPropertyReference(Scope* scope,
+                                                 AstNodeFactory* factory,
+                                                 int pos) {
+  // this_function[home_object_symbol]
+  VariableProxy* this_function_proxy = scope->NewUnresolved(
+      factory, parser_->ast_value_factory()->this_function_string(),
+      Variable::NORMAL, pos);
+  Expression* home_object_symbol_literal =
+      factory->NewSymbolLiteral("home_object_symbol", RelocInfo::kNoPosition);
+  Expression* home_object = factory->NewProperty(
+      this_function_proxy, home_object_symbol_literal, pos);
+  return factory->NewSuperPropertyReference(
+      ThisExpression(scope, factory, pos)->AsVariableProxy(), home_object, pos);
+}
+
+
+Expression* ParserTraits::SuperCallReference(Scope* scope,
+                                             AstNodeFactory* factory, int pos) {
+  VariableProxy* new_target_proxy = scope->NewUnresolved(
+      factory, parser_->ast_value_factory()->new_target_string(),
+      Variable::NORMAL, pos);
+  VariableProxy* this_function_proxy = scope->NewUnresolved(
+      factory, parser_->ast_value_factory()->this_function_string(),
+      Variable::NORMAL, pos);
+  return factory->NewSuperCallReference(
+      ThisExpression(scope, factory, pos)->AsVariableProxy(), new_target_proxy,
+      this_function_proxy, pos);
+}
+
+
+Expression* ParserTraits::NewTargetExpression(Scope* scope,
+                                              AstNodeFactory* factory,
+                                              int pos) {
+  static const int kNewTargetStringLength = 10;
+  return scope->NewUnresolved(
+      factory, parser_->ast_value_factory()->new_target_string(),
+      Variable::NORMAL, pos, pos + kNewTargetStringLength);
 }
 
 
@@ -879,6 +919,7 @@ Parser::Parser(ParseInfo* info)
   set_allow_harmony_spreadcalls(FLAG_harmony_spreadcalls);
   set_allow_harmony_destructuring(FLAG_harmony_destructuring);
   set_allow_harmony_spread_arrays(FLAG_harmony_spread_arrays);
+  set_allow_harmony_new_target(FLAG_harmony_new_target);
   set_allow_strong_mode(FLAG_strong_mode);
   for (int feature = 0; feature < v8::Isolate::kUseCounterFeatureCount;
        ++feature) {
@@ -1039,8 +1080,7 @@ FunctionLiteral* Parser::DoParseProgram(ParseInfo* info) {
       result = factory()->NewFunctionLiteral(
           ast_value_factory()->empty_string(), ast_value_factory(), scope_,
           body, function_state.materialized_literal_count(),
-          function_state.expected_property_count(),
-          function_state.handler_count(), 0,
+          function_state.expected_property_count(), 0,
           FunctionLiteral::kNoDuplicateParameters,
           FunctionLiteral::ANONYMOUS_EXPRESSION, FunctionLiteral::kGlobalOrEval,
           FunctionLiteral::kShouldLazyCompile, FunctionKind::kNormalFunction,
@@ -1138,7 +1178,8 @@ FunctionLiteral* Parser::ParseLazy(Isolate* isolate, ParseInfo* info,
     bool ok = true;
 
     if (shared_info->is_arrow()) {
-      Scope* scope = NewScope(scope_, ARROW_SCOPE);
+      Scope* scope =
+          NewScope(scope_, ARROW_SCOPE, FunctionKind::kArrowFunction);
       scope->set_start_position(shared_info->start_position());
       ExpressionClassifier formals_classifier;
       bool has_rest = false;
@@ -2988,10 +3029,9 @@ TryStatement* Parser::ParseTryStatement(bool* ok) {
   if (catch_block != NULL && finally_block != NULL) {
     // If we have both, create an inner try/catch.
     DCHECK(catch_scope != NULL && catch_variable != NULL);
-    int index = function_state_->NextHandlerIndex();
-    TryCatchStatement* statement = factory()->NewTryCatchStatement(
-        index, try_block, catch_scope, catch_variable, catch_block,
-        RelocInfo::kNoPosition);
+    TryCatchStatement* statement =
+        factory()->NewTryCatchStatement(try_block, catch_scope, catch_variable,
+                                        catch_block, RelocInfo::kNoPosition);
     try_block = factory()->NewBlock(NULL, 1, false, RelocInfo::kNoPosition);
     try_block->AddStatement(statement, zone());
     catch_block = NULL;  // Clear to indicate it's been handled.
@@ -3001,14 +3041,11 @@ TryStatement* Parser::ParseTryStatement(bool* ok) {
   if (catch_block != NULL) {
     DCHECK(finally_block == NULL);
     DCHECK(catch_scope != NULL && catch_variable != NULL);
-    int index = function_state_->NextHandlerIndex();
-    result = factory()->NewTryCatchStatement(
-        index, try_block, catch_scope, catch_variable, catch_block, pos);
+    result = factory()->NewTryCatchStatement(try_block, catch_scope,
+                                             catch_variable, catch_block, pos);
   } else {
     DCHECK(finally_block != NULL);
-    int index = function_state_->NextHandlerIndex();
-    result = factory()->NewTryFinallyStatement(
-        index, try_block, finally_block, pos);
+    result = factory()->NewTryFinallyStatement(try_block, finally_block, pos);
   }
 
   return result;
@@ -3722,9 +3759,9 @@ Handle<FixedArray> CompileTimeValue::GetElements(Handle<FixedArray> value) {
 }
 
 
-void ParserTraits::DeclareArrowFunctionParameters(
+void ParserTraits::ParseArrowFunctionFormalParameters(
     Scope* scope, Expression* expr, const Scanner::Location& params_loc,
-    Scanner::Location* duplicate_loc, bool* ok) {
+    bool* has_rest, Scanner::Location* duplicate_loc, bool* ok) {
   if (scope->num_parameters() >= Code::kMaxArguments) {
     ReportMessageAt(params_loc, MessageTemplate::kMalformedArrowFunParamList);
     *ok = false;
@@ -3732,15 +3769,18 @@ void ParserTraits::DeclareArrowFunctionParameters(
   }
 
   // ArrowFunctionFormals ::
-  //    Binary(Token::COMMA, ArrowFunctionFormals, VariableProxy)
+  //    Binary(Token::COMMA, NonTailArrowFunctionFormals, Tail)
+  //    Tail
+  // NonTailArrowFunctionFormals ::
+  //    Binary(Token::COMMA, NonTailArrowFunctionFormals, VariableProxy)
   //    VariableProxy
+  // Tail ::
+  //    VariableProxy
+  //    Spread(VariableProxy)
   //
   // As we need to visit the parameters in left-to-right order, we recurse on
   // the left-hand side of comma expressions.
   //
-  // Sadly, for the various malformed_arrow_function_parameter_list errors, we
-  // can't be more specific on the error message or on the location because we
-  // need to match the pre-parser's behavior.
   if (expr->IsBinaryOperation()) {
     BinaryOperation* binop = expr->AsBinaryOperation();
     // The classifier has already run, so we know that the expression is a valid
@@ -3748,13 +3788,21 @@ void ParserTraits::DeclareArrowFunctionParameters(
     DCHECK_EQ(binop->op(), Token::COMMA);
     Expression* left = binop->left();
     Expression* right = binop->right();
-    DeclareArrowFunctionParameters(scope, left, params_loc, duplicate_loc, ok);
+    ParseArrowFunctionFormalParameters(scope, left, params_loc, has_rest,
+                                       duplicate_loc, ok);
     if (!*ok) return;
     // LHS of comma expression should be unparenthesized.
     expr = right;
   }
 
-  // TODO(wingo): Support rest parameters.
+  // Only the right-most expression may be a rest parameter.
+  DCHECK(!*has_rest);
+
+  if (expr->IsSpread()) {
+    *has_rest = true;
+    expr = expr->AsSpread()->expression();
+  }
+
   DCHECK(expr->IsVariableProxy());
   DCHECK(!expr->AsVariableProxy()->is_this());
 
@@ -3767,19 +3815,11 @@ void ParserTraits::DeclareArrowFunctionParameters(
   // parse-time side-effect.
   parser_->scope_->RemoveUnresolved(expr->AsVariableProxy());
 
-  bool is_rest = false;
-  bool is_duplicate = DeclareFormalParameter(scope, raw_name, is_rest);
-
-  if (is_duplicate && !duplicate_loc->IsValid()) {
-    *duplicate_loc = param_location;
+  ExpressionClassifier classifier;
+  DeclareFormalParameter(scope, raw_name, &classifier, *has_rest);
+  if (!duplicate_loc->IsValid()) {
+    *duplicate_loc = classifier.duplicate_formal_parameter_error().location;
   }
-}
-
-
-void ParserTraits::ParseArrowFunctionFormalParameters(
-    Scope* scope, Expression* params, const Scanner::Location& params_loc,
-    bool* is_rest, Scanner::Location* duplicate_loc, bool* ok) {
-  DeclareArrowFunctionParameters(scope, params, params_loc, duplicate_loc, ok);
 }
 
 
@@ -3851,7 +3891,6 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
   ZoneList<Statement*>* body = NULL;
   int materialized_literal_count = -1;
   int expected_property_count = -1;
-  int handler_count = 0;
   ExpressionClassifier formals_classifier;
   FunctionLiteral::EagerCompileHint eager_compile_hint =
       parenthesized_function_ ? FunctionLiteral::kShouldEagerCompile
@@ -3988,7 +4027,6 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
                                     kind, CHECK_OK);
       materialized_literal_count = function_state.materialized_literal_count();
       expected_property_count = function_state.expected_property_count();
-      handler_count = function_state.handler_count();
 
       if (is_strong(language_mode()) && IsSubclassConstructor(kind)) {
         if (!function_state.super_location().IsValid()) {
@@ -4027,9 +4065,9 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
 
   FunctionLiteral* function_literal = factory()->NewFunctionLiteral(
       function_name, ast_value_factory(), scope, body,
-      materialized_literal_count, expected_property_count, handler_count,
-      num_parameters, duplicate_parameters, function_type,
-      FunctionLiteral::kIsFunction, eager_compile_hint, kind, pos);
+      materialized_literal_count, expected_property_count, num_parameters,
+      duplicate_parameters, function_type, FunctionLiteral::kIsFunction,
+      eager_compile_hint, kind, pos);
   function_literal->set_function_token_position(function_token_pos);
   if (should_be_used_once_hint)
     function_literal->set_should_be_used_once_hint();
@@ -4072,6 +4110,7 @@ void Parser::SkipLazyFunctionBody(int* materialized_literal_count,
       *expected_property_count = entry.property_count();
       scope_->SetLanguageMode(entry.language_mode());
       if (entry.uses_super_property()) scope_->RecordSuperPropertyUsage();
+      if (entry.calls_eval()) scope_->RecordEvalCall();
       return;
     }
     cached_parse_data_->Reject();
@@ -4106,8 +4145,11 @@ void Parser::SkipLazyFunctionBody(int* materialized_literal_count,
   *materialized_literal_count = logger.literals();
   *expected_property_count = logger.properties();
   scope_->SetLanguageMode(logger.language_mode());
-  if (logger.scope_uses_super_property()) {
+  if (logger.uses_super_property()) {
     scope_->RecordSuperPropertyUsage();
+  }
+  if (logger.calls_eval()) {
+    scope_->RecordEvalCall();
   }
   if (produce_cached_parse_data()) {
     DCHECK(log_);
@@ -4115,7 +4157,7 @@ void Parser::SkipLazyFunctionBody(int* materialized_literal_count,
     int body_end = scanner()->location().end_pos;
     log_->LogFunction(function_block_pos, body_end, *materialized_literal_count,
                       *expected_property_count, scope_->language_mode(),
-                      scope_->uses_super_property());
+                      scope_->uses_super_property(), scope_->calls_eval());
   }
 }
 
@@ -4250,26 +4292,22 @@ PreParser::PreParseResult Parser::ParseLazyFunctionBodyWithPreParser(
     reusable_preparser_ = new PreParser(zone(), &scanner_, ast_value_factory(),
                                         NULL, stack_limit_);
     reusable_preparser_->set_allow_lazy(true);
-    reusable_preparser_->set_allow_natives(allow_natives());
-    reusable_preparser_->set_allow_harmony_modules(allow_harmony_modules());
-    reusable_preparser_->set_allow_harmony_arrow_functions(
-        allow_harmony_arrow_functions());
-    reusable_preparser_->set_allow_harmony_classes(allow_harmony_classes());
-    reusable_preparser_->set_allow_harmony_object_literals(
-        allow_harmony_object_literals());
-    reusable_preparser_->set_allow_harmony_sloppy(allow_harmony_sloppy());
-    reusable_preparser_->set_allow_harmony_unicode(allow_harmony_unicode());
-    reusable_preparser_->set_allow_harmony_computed_property_names(
-        allow_harmony_computed_property_names());
-    reusable_preparser_->set_allow_harmony_rest_params(
-        allow_harmony_rest_params());
-    reusable_preparser_->set_allow_harmony_spreadcalls(
-        allow_harmony_spreadcalls());
-    reusable_preparser_->set_allow_harmony_destructuring(
-        allow_harmony_destructuring());
-    reusable_preparser_->set_allow_harmony_spread_arrays(
-        allow_harmony_spread_arrays());
-    reusable_preparser_->set_allow_strong_mode(allow_strong_mode());
+#define SET_ALLOW(name) reusable_preparser_->set_allow_##name(allow_##name());
+    SET_ALLOW(natives);
+    SET_ALLOW(harmony_modules);
+    SET_ALLOW(harmony_arrow_functions);
+    SET_ALLOW(harmony_classes);
+    SET_ALLOW(harmony_object_literals);
+    SET_ALLOW(harmony_sloppy);
+    SET_ALLOW(harmony_unicode);
+    SET_ALLOW(harmony_computed_property_names);
+    SET_ALLOW(harmony_rest_params);
+    SET_ALLOW(harmony_spreadcalls);
+    SET_ALLOW(harmony_destructuring);
+    SET_ALLOW(harmony_spread_arrays);
+    SET_ALLOW(harmony_new_target);
+    SET_ALLOW(strong_mode);
+#undef SET_ALLOW
   }
   PreParser::PreParseResult result = reusable_preparser_->PreParseLazyFunction(
       language_mode(), function_state_->kind(), logger, bookmark);
@@ -5738,13 +5776,14 @@ ZoneList<v8::internal::Expression*>* Parser::PrepareSpreadArguments(
 Expression* Parser::SpreadCall(Expression* function,
                                ZoneList<v8::internal::Expression*>* args,
                                int pos) {
-  if (function->IsSuperReference()) {
+  if (function->IsSuperCallReference()) {
     // Super calls
+    // %_CallSuperWithSpread(%ReflectConstruct(<super>, args, new.target))
     args->InsertAt(0, function, zone());
-    args->Add(factory()->NewVariableProxy(scope_->new_target_var()), zone());
+    args->Add(function->AsSuperCallReference()->new_target_var(), zone());
     Expression* result = factory()->NewCallRuntime(
         ast_value_factory()->reflect_construct_string(), NULL, args, pos);
-    args = new (zone()) ZoneList<Expression*>(0, zone());
+    args = new (zone()) ZoneList<Expression*>(1, zone());
     args->Add(result, zone());
     return factory()->NewCallRuntime(
         ast_value_factory()->empty_string(),
@@ -5790,4 +5829,5 @@ Expression* Parser::SpreadCallNew(Expression* function,
   return factory()->NewCallRuntime(
       ast_value_factory()->reflect_construct_string(), NULL, args, pos);
 }
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

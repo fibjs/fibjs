@@ -317,9 +317,12 @@ class Scope: public ZoneObject {
   bool inner_uses_arguments() const { return inner_scope_uses_arguments_; }
   // Does this scope access "super" property (super.foo).
   bool uses_super_property() const { return scope_uses_super_property_; }
-  // Does any inner scope access "super" property.
-  bool inner_uses_super_property() const {
-    return inner_scope_uses_super_property_;
+
+  bool NeedsHomeObject() const {
+    return scope_uses_super_property_ ||
+           (scope_calls_eval_ && (IsConciseMethod(function_kind()) ||
+                                  IsAccessorFunction(function_kind()) ||
+                                  IsConstructor(function_kind())));
   }
 
   const Scope* NearestOuterEvalScope() const {
@@ -407,6 +410,15 @@ class Scope: public ZoneObject {
   Variable* arguments() const {
     DCHECK(!is_arrow_scope() || arguments_ == nullptr);
     return arguments_;
+  }
+
+  Variable* this_function_var() const {
+    // This is only used in derived constructors atm.
+    DCHECK(this_function_ == nullptr ||
+           (is_function_scope() && (IsConstructor(function_kind()) ||
+                                    IsConciseMethod(function_kind()) ||
+                                    IsAccessorFunction(function_kind()))));
+    return this_function_;
   }
 
   // Declarations list.
@@ -567,6 +579,8 @@ class Scope: public ZoneObject {
   Variable* new_target_;
   // Convenience variable; function scopes only.
   Variable* arguments_;
+  // Convenience variable; Subclass constructor only
+  Variable* this_function_;
   // Module descriptor; module scopes only.
   ModuleDescriptor* module_descriptor_;
 
@@ -600,7 +614,6 @@ class Scope: public ZoneObject {
   bool outer_scope_calls_sloppy_eval_;
   bool inner_scope_calls_eval_;
   bool inner_scope_uses_arguments_;
-  bool inner_scope_uses_super_property_;
   bool force_eager_compilation_;
   bool force_context_allocation_;
 

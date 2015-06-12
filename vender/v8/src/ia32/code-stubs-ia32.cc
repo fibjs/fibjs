@@ -1167,9 +1167,10 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
 
 void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
   // esp[0] : return address
-  // esp[4] : index of rest parameter
-  // esp[8] : number of parameters
-  // esp[12] : receiver displacement
+  // esp[4] : language mode
+  // esp[8] : index of rest parameter
+  // esp[12] : number of parameters
+  // esp[16] : receiver displacement
 
   // Check if the calling frame is an arguments adaptor frame.
   Label runtime;
@@ -1180,13 +1181,13 @@ void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
 
   // Patch the arguments.length and the parameters pointer.
   __ mov(ecx, Operand(edx, ArgumentsAdaptorFrameConstants::kLengthOffset));
-  __ mov(Operand(esp, 2 * kPointerSize), ecx);
+  __ mov(Operand(esp, 3 * kPointerSize), ecx);
   __ lea(edx, Operand(edx, ecx, times_2,
                       StandardFrameConstants::kCallerSPOffset));
-  __ mov(Operand(esp, 3 * kPointerSize), edx);
+  __ mov(Operand(esp, 4 * kPointerSize), edx);
 
   __ bind(&runtime);
-  __ TailCallRuntime(Runtime::kNewRestParam, 3, 1);
+  __ TailCallRuntime(Runtime::kNewRestParam, 4, 1);
 }
 
 
@@ -1699,7 +1700,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
       // Check for undefined.  undefined OP undefined is false even though
       // undefined == undefined.
       __ cmp(edx, isolate()->factory()->undefined_value());
-      if (strong()) {
+      if (is_strong(strength())) {
         // In strong mode, this comparison must throw, so call the runtime.
         __ j(equal, &runtime_call, Label::kFar);
       } else {
@@ -1725,7 +1726,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
       // Call runtime on identical symbols since we need to throw a TypeError.
       __ cmpb(ecx, static_cast<uint8_t>(SYMBOL_TYPE));
       __ j(equal, &runtime_call, Label::kFar);
-      if (strong()) {
+      if (is_strong(strength())) {
         // We have already tested for smis and heap numbers, so if both
         // arguments are not strings we must proceed to the slow case.
         __ test(ecx, Immediate(kIsNotStringMask));
@@ -1917,7 +1918,8 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
   if (cc == equal) {
     builtin = strict() ? Builtins::STRICT_EQUALS : Builtins::EQUALS;
   } else {
-    builtin = strong() ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
+    builtin =
+        is_strong(strength()) ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
     __ push(Immediate(Smi::FromInt(NegativeComparisonResult(cc))));
   }
 
@@ -3648,7 +3650,7 @@ void CompareICStub::GenerateNumbers(MacroAssembler* masm) {
 
   __ bind(&unordered);
   __ bind(&generic_stub);
-  CompareICStub stub(isolate(), op(), strong(), CompareICState::GENERIC,
+  CompareICStub stub(isolate(), op(), strength(), CompareICState::GENERIC,
                      CompareICState::GENERIC, CompareICState::GENERIC);
   __ jmp(stub.GetCode(), RelocInfo::CODE_TARGET);
 
@@ -5483,7 +5485,8 @@ void CallApiGetterStub::Generate(MacroAssembler* masm) {
 
 #undef __
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_IA32
 

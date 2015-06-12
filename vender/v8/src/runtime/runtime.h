@@ -29,29 +29,41 @@ namespace internal {
 
 // Entries have the form F(name, number of arguments, number of values):
 
-#define FOR_EACH_INTRINSIC_ARRAY(F)                                   \
-  F(FinishArrayPrototypeSetup, 1, 1)                                  \
-  F(SpecialArrayFunctions, 0, 1)                                      \
-  F(TransitionElementsKind, 2, 1)                                     \
-  F(PushIfAbsent, 2, 1)                                               \
-  F(ArrayConcat, 1, 1)                                                \
-  F(RemoveArrayHoles, 2, 1)                                           \
-  F(MoveArrayContents, 2, 1)                                          \
-  F(EstimateNumberOfElements, 1, 1)                                   \
-  F(GetArrayKeys, 2, 1)                                               \
-  F(ArrayConstructor, -1, 1)                                          \
-  F(ArrayConstructorWithSubclassing, -1, 1)                           \
-  F(InternalArrayConstructor, -1, 1)                                  \
-  F(NormalizeElements, 1, 1)                                          \
-  F(GrowArrayElements, 2, 1)                                          \
-  F(HasComplexElements, 1, 1)                                         \
-  F(ForInCacheArrayLength, 2, 1) /* TODO(turbofan): Only temporary */ \
-  F(IsArray, 1, 1)                                                    \
-  F(HasCachedArrayIndex, 1, 1)                                        \
-  F(GetCachedArrayIndex, 1, 1)                                        \
-  F(FixedArrayGet, 2, 1)                                              \
-  F(FixedArraySet, 3, 1)                                              \
+#define FOR_EACH_INTRINSIC_ARRAY(F)         \
+  F(FinishArrayPrototypeSetup, 1, 1)        \
+  F(SpecialArrayFunctions, 0, 1)            \
+  F(TransitionElementsKind, 2, 1)           \
+  F(PushIfAbsent, 2, 1)                     \
+  F(ArrayConcat, 1, 1)                      \
+  F(RemoveArrayHoles, 2, 1)                 \
+  F(MoveArrayContents, 2, 1)                \
+  F(EstimateNumberOfElements, 1, 1)         \
+  F(GetArrayKeys, 2, 1)                     \
+  F(ArrayConstructor, -1, 1)                \
+  F(ArrayConstructorWithSubclassing, -1, 1) \
+  F(InternalArrayConstructor, -1, 1)        \
+  F(NormalizeElements, 1, 1)                \
+  F(GrowArrayElements, 2, 1)                \
+  F(HasComplexElements, 1, 1)               \
+  F(IsArray, 1, 1)                          \
+  F(HasCachedArrayIndex, 1, 1)              \
+  F(GetCachedArrayIndex, 1, 1)              \
+  F(FixedArrayGet, 2, 1)                    \
+  F(FixedArraySet, 3, 1)                    \
   F(FastOneByteArrayJoin, 2, 1)
+
+
+#define FOR_EACH_INTRINSIC_ATOMICS(F) \
+  F(AtomicsCompareExchange, 4, 1)     \
+  F(AtomicsLoad, 2, 1)                \
+  F(AtomicsStore, 3, 1)               \
+  F(AtomicsAdd, 3, 1)                 \
+  F(AtomicsSub, 3, 1)                 \
+  F(AtomicsAnd, 3, 1)                 \
+  F(AtomicsOr, 3, 1)                  \
+  F(AtomicsXor, 3, 1)                 \
+  F(AtomicsExchange, 3, 1)            \
+  F(AtomicsIsLockFree, 1, 1)
 
 
 #define FOR_EACH_INTRINSIC_CLASSES(F)         \
@@ -73,8 +85,8 @@ namespace internal {
   F(StoreKeyedToSuper_Strict, 4, 1)           \
   F(StoreKeyedToSuper_Sloppy, 4, 1)           \
   F(HandleStepInForDerivedConstructors, 1, 1) \
-  F(DefaultConstructorCallSuper, 0, 1)        \
-  F(CallSuperWithSpread, 0, 1)
+  F(DefaultConstructorCallSuper, 2, 1)        \
+  F(CallSuperWithSpread, 1, 1)
 
 
 #define FOR_EACH_INTRINSIC_COLLECTIONS(F) \
@@ -121,6 +133,7 @@ namespace internal {
 #define FOR_EACH_INTRINSIC_DATE(F) \
   F(DateMakeDay, 2, 1)             \
   F(DateSetValue, 3, 1)            \
+  F(ThrowIfNotADate, 1, 1)         \
   F(ThrowNotDateError, 0, 1)       \
   F(DateCurrentTime, 0, 1)         \
   F(DateParseString, 2, 1)         \
@@ -186,6 +199,13 @@ namespace internal {
   F(DebugAsyncTaskEvent, 1, 1)                 \
   F(DebugIsActive, 0, 1)                       \
   F(DebugBreakInOptimizedCode, 0, 1)
+
+
+#define FOR_EACH_INTRINSIC_FORIN(F) \
+  F(ForInDone, 2, 1)                \
+  F(ForInFilter, 2, 1)              \
+  F(ForInNext, 4, 1)                \
+  F(ForInStep, 1, 1)
 
 
 #define FOR_EACH_INTRINSIC_FUNCTION(F)                      \
@@ -305,7 +325,8 @@ namespace internal {
   F(Likely, 1, 1)                             \
   F(Unlikely, 1, 1)                           \
   F(HarmonyToString, 0, 1)                    \
-  F(GetTypeFeedbackVector, 1, 1)
+  F(GetTypeFeedbackVector, 1, 1)              \
+  F(GetCallerJSFunction, 0, 1)
 
 
 #define FOR_EACH_INTRINSIC_JSON(F) \
@@ -507,8 +528,8 @@ namespace internal {
   F(NewArguments, 1, 1) /* TODO(turbofan): Only temporary */ \
   F(NewSloppyArguments, 3, 1)                                \
   F(NewStrictArguments, 3, 1)                                \
-  F(NewRestParam, 3, 1)                                      \
-  F(NewRestParamSlow, 1, 1)                                  \
+  F(NewRestParam, 4, 1)                                      \
+  F(NewRestParamSlow, 2, 1)                                  \
   F(NewClosureFromStubFailure, 1, 1)                         \
   F(NewClosure, 3, 1)                                        \
   F(NewScriptContext, 2, 1)                                  \
@@ -638,7 +659,7 @@ namespace internal {
   F(ArrayBufferSliceImpl, 3, 1)              \
   F(ArrayBufferIsView, 1, 1)                 \
   F(ArrayBufferNeuter, 1, 1)                 \
-  F(TypedArrayInitialize, 5, 1)              \
+  F(TypedArrayInitialize, 6, 1)              \
   F(TypedArrayInitializeFromArrayLike, 4, 1) \
   F(ArrayBufferViewGetByteLength, 1, 1)      \
   F(ArrayBufferViewGetByteOffset, 1, 1)      \
@@ -648,6 +669,8 @@ namespace internal {
   F(TypedArraySetFastCases, 3, 1)            \
   F(TypedArrayMaxSizeInHeap, 0, 1)           \
   F(IsTypedArray, 1, 1)                      \
+  F(IsSharedTypedArray, 1, 1)                \
+  F(IsSharedIntegerTypedArray, 1, 1)         \
   F(DataViewInitialize, 4, 1)                \
   F(DataViewGetUint8, 3, 1)                  \
   F(DataViewGetInt8, 3, 1)                   \
@@ -672,21 +695,21 @@ namespace internal {
   F(URIUnescape, 1, 1)
 
 
-#define FOR_EACH_INTRINSIC_RETURN_PAIR(F)                 \
-  F(LoadLookupSlot, 2, 2)                                 \
-  F(LoadLookupSlotNoReferenceError, 2, 2)                 \
-  F(ResolvePossiblyDirectEval, 6, 2)                      \
-  F(ForInInit, 2, 2) /* TODO(turbofan): Only temporary */ \
-  F(ForInNext, 4, 2) /* TODO(turbofan): Only temporary */
+#define FOR_EACH_INTRINSIC_RETURN_PAIR(F) \
+  F(LoadLookupSlot, 2, 2)                 \
+  F(LoadLookupSlotNoReferenceError, 2, 2) \
+  F(ResolvePossiblyDirectEval, 6, 2)
 
 
 #define FOR_EACH_INTRINSIC_RETURN_OBJECT(F) \
   FOR_EACH_INTRINSIC_ARRAY(F)               \
+  FOR_EACH_INTRINSIC_ATOMICS(F)             \
   FOR_EACH_INTRINSIC_CLASSES(F)             \
   FOR_EACH_INTRINSIC_COLLECTIONS(F)         \
   FOR_EACH_INTRINSIC_COMPILER(F)            \
   FOR_EACH_INTRINSIC_DATE(F)                \
   FOR_EACH_INTRINSIC_DEBUG(F)               \
+  FOR_EACH_INTRINSIC_FORIN(F)               \
   FOR_EACH_INTRINSIC_FUNCTION(F)            \
   FOR_EACH_INTRINSIC_GENERATOR(F)           \
   FOR_EACH_INTRINSIC_I18N(F)                \
@@ -852,6 +875,10 @@ class Runtime : public AllStatic {
       Isolate* isolate, Handle<FixedArray> literals,
       Handle<FixedArray> elements, bool is_strong);
 
+
+  static void JSMapInitialize(Isolate* isolate, Handle<JSMap> map);
+  static void JSSetInitialize(Isolate* isolate, Handle<JSSet> set);
+
   static void WeakCollectionInitialize(
       Isolate* isolate, Handle<JSWeakCollection> weak_collection);
   static void WeakCollectionSet(Handle<JSWeakCollection> weak_collection,
@@ -864,6 +891,8 @@ class Runtime : public AllStatic {
 
   static MaybeHandle<JSArray> GetInternalProperties(Isolate* isolate,
                                                     Handle<Object>);
+
+  static bool AtomicIsLockFree(uint32_t size);
 };
 
 
@@ -879,6 +908,29 @@ class DeclareGlobalsEvalFlag : public BitField<bool, 0, 1> {};
 class DeclareGlobalsNativeFlag : public BitField<bool, 1, 1> {};
 STATIC_ASSERT(LANGUAGE_END == 3);
 class DeclareGlobalsLanguageMode : public BitField<LanguageMode, 2, 2> {};
+
+//---------------------------------------------------------------------------
+// Inline functions
+
+// Assume that 32-bit architectures don't have 64-bit atomic ops.
+// TODO(binji): can we do better here?
+#if V8_TARGET_ARCH_64_BIT && V8_HOST_ARCH_64_BIT
+
+#define ATOMICS_REQUIRE_LOCK_64_BIT 0
+
+inline bool Runtime::AtomicIsLockFree(uint32_t size) {
+  return size == 1 || size == 2 || size == 4 || size == 8;
+}
+
+#else
+
+#define ATOMICS_REQUIRE_LOCK_64_BIT 1
+
+inline bool Runtime::AtomicIsLockFree(uint32_t size) {
+  return size == 1 || size == 2 || size == 4;
+}
+
+#endif
 
 }  // namespace internal
 }  // namespace v8

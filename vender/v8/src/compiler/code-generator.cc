@@ -45,6 +45,7 @@ CodeGenerator::CodeGenerator(Frame* frame, Linkage* linkage,
       handlers_(code->zone()),
       deoptimization_states_(code->zone()),
       deoptimization_literals_(code->zone()),
+      inlined_function_count_(0),
       translations_(code->zone()),
       last_lazy_deopt_pc_(0),
       jump_tables_(nullptr),
@@ -72,6 +73,15 @@ Handle<Code> CodeGenerator::GenerateCode() {
   // Architecture-specific, linkage-specific prologue.
   info->set_prologue_offset(masm()->pc_offset());
   AssemblePrologue();
+
+  // Define deoptimization literals for all inlined functions.
+  DCHECK_EQ(0u, deoptimization_literals_.size());
+  for (auto shared_info : info->inlined_functions()) {
+    if (!shared_info.is_identical_to(info->shared_info())) {
+      DefineDeoptimizationLiteral(shared_info);
+    }
+  }
+  inlined_function_count_ = deoptimization_literals_.size();
 
   // Assemble all non-deferred blocks, followed by deferred ones.
   for (int deferred = 0; deferred < 2; ++deferred) {
@@ -144,8 +154,12 @@ Handle<Code> CodeGenerator::GenerateCode() {
             HandlerTable::LengthForReturn(static_cast<int>(handlers_.size())),
             TENURED));
     for (size_t i = 0; i < handlers_.size(); ++i) {
+      int position = handlers_[i].handler->pos();
+      HandlerTable::CatchPrediction prediction = handlers_[i].caught_locally
+                                                     ? HandlerTable::CAUGHT
+                                                     : HandlerTable::UNCAUGHT;
       table->SetReturnOffset(static_cast<int>(i), handlers_[i].pc_offset);
-      table->SetReturnHandler(static_cast<int>(i), handlers_[i].handler->pos());
+      table->SetReturnHandler(static_cast<int>(i), position, prediction);
     }
     result->set_handler_table(*table);
   }
@@ -207,7 +221,16 @@ bool CodeGenerator::IsMaterializableFromFrame(Handle<HeapObject> object,
 bool CodeGenerator::IsMaterializableFromRoot(
     Handle<HeapObject> object, Heap::RootListIndex* index_return) {
   if (linkage()->GetIncomingDescriptor()->IsJSFunctionCall()) {
-    return isolate()->heap()->GetRootListIndex(object, index_return);
+    // Check if {object} is one of the non-smi roots that cannot be written
+    // after initialization.
+    for (int i = 0; i < Heap::kSmiRootsStart; ++i) {
+      Heap::RootListIndex const index = static_cast<Heap::RootListIndex>(i);
+      if (!Heap::RootCanBeWrittenAfterInitialization(index) &&
+          *object == isolate()->heap()->root(index)) {
+        *index_return = index;
+        return true;
+      }
+    }
   }
   return false;
 }
@@ -302,7 +325,8 @@ void CodeGenerator::PopulateDeoptimizationData(Handle<Code> code_object) {
       translations_.CreateByteArray(isolate()->factory());
 
   data->SetTranslationByteArray(*translation_array);
-  data->SetInlinedFunctionCount(Smi::FromInt(0));
+  data->SetInlinedFunctionCount(
+      Smi::FromInt(static_cast<int>(inlined_function_count_)));
   data->SetOptimizationId(Smi::FromInt(info->optimization_id()));
   // TODO(jarin) The following code was copied over from Lithium, not sure
   // whether the scope or the IsOptimizing condition are really needed.
@@ -366,9 +390,9 @@ void CodeGenerator::RecordCallPosition(Instruction* instr) {
 
   if (flags & CallDescriptor::kHasExceptionHandler) {
     InstructionOperandConverter i(this, instr);
-    RpoNumber handler_rpo =
-        i.InputRpo(static_cast<int>(instr->InputCount()) - 1);
-    handlers_.push_back({GetLabel(handler_rpo), masm()->pc_offset()});
+    bool caught = flags & CallDescriptor::kHasLocalCatchHandler;
+    RpoNumber handler_rpo = i.InputRpo(instr->InputCount() - 1);
+    handlers_.push_back({caught, GetLabel(handler_rpo), masm()->pc_offset()});
   }
 
   if (flags & CallDescriptor::kNeedsNopAfterCall) {
@@ -481,28 +505,27 @@ void CodeGenerator::BuildTranslationForFrameStateDescriptor(
   }
   frame_state_offset += descriptor->outer_state()->GetTotalSize();
 
-  // TODO(bmeurer): Fix this special case here.
-  int id = Translation::kSelfLiteralId;
-  if (descriptor->outer_state() != nullptr) {
-    InstructionOperandConverter converter(this, instr);
-    Handle<HeapObject> function(converter.InputHeapObject(frame_state_offset));
-    id = DefineDeoptimizationLiteral(function);
+  Handle<SharedFunctionInfo> shared_info;
+  if (!descriptor->shared_info().ToHandle(&shared_info)) {
+    shared_info = info()->shared_info();
   }
+  int shared_info_id = DefineDeoptimizationLiteral(shared_info);
 
   switch (descriptor->type()) {
     case JS_FRAME:
       translation->BeginJSFrame(
-          descriptor->bailout_id(), id,
+          descriptor->bailout_id(), shared_info_id,
           static_cast<unsigned int>(descriptor->GetSize(state_combine) -
                                     (1 + descriptor->parameters_count())));
       break;
     case ARGUMENTS_ADAPTOR:
       translation->BeginArgumentsAdaptorFrame(
-          id, static_cast<unsigned int>(descriptor->parameters_count()));
+          shared_info_id,
+          static_cast<unsigned int>(descriptor->parameters_count()));
       break;
   }
 
-  for (size_t i = 1; i < descriptor->GetSize(state_combine); i++) {
+  for (size_t i = 0; i < descriptor->GetSize(state_combine); i++) {
     OperandAndType op = TypedOperandForFrameState(
         descriptor, instr, frame_state_offset, i, state_combine);
     AddTranslationForOperand(translation, instr, op.operand, op.type);
@@ -592,8 +615,12 @@ void CodeGenerator::AddTranslationForOperand(Translation* translation,
       default:
         CHECK(false);
     }
-    int literal_id = DefineDeoptimizationLiteral(constant_object);
-    translation->StoreLiteral(literal_id);
+    if (constant_object.is_identical_to(info()->closure())) {
+      translation->StoreJSFrameFunction();
+    } else {
+      int literal_id = DefineDeoptimizationLiteral(constant_object);
+      translation->StoreLiteral(literal_id);
+    }
   } else {
     CHECK(false);
   }

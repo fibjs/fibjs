@@ -161,6 +161,8 @@ class CallSite {
   T(NotGeneric, "% is not generic")                                            \
   T(NotIterable, "% is not iterable")                                          \
   T(NotTypedArray, "this is not a typed array.")                               \
+  T(NotSharedTypedArray, "% is not a shared typed array.")                     \
+  T(NotIntegerSharedTypedArray, "% is not an integer shared typed array.")     \
   T(ObjectGetterExpectingFunction,                                             \
     "Object.prototype.__defineGetter__: Expecting function")                   \
   T(ObjectGetterCallable, "Getter must be a function: %")                      \
@@ -226,7 +228,14 @@ class CallSite {
   T(StrictReadOnlyProperty, "Cannot assign to read only property '%' of %")    \
   T(StrongArity,                                                               \
     "In strong mode, calling a function with too few arguments is deprecated") \
+  T(StrongDeleteProperty,                                                      \
+    "On strong object %, deletion of property % is deprecated")                \
   T(StrongImplicitCast, "In strong mode, implicit conversions are deprecated") \
+  T(StrongRedefineDisallowed,                                                  \
+    "On strong object %, redefining writable, non-configurable property '%' "  \
+    "to be non-writable is deprecated")                                        \
+  T(StrongSetProto,                                                            \
+    "On strong object %, redefining the internal prototype is deprecated")     \
   T(SymbolKeyFor, "% is not a symbol")                                         \
   T(SymbolToPrimitive,                                                         \
     "Cannot convert a Symbol wrapper object to a primitive value")             \
@@ -391,6 +400,7 @@ class CallSite {
   T(UnexpectedReserved, "Unexpected reserved word")                            \
   T(UnexpectedStrictReserved, "Unexpected strict mode reserved word")          \
   T(UnexpectedSuper, "'super' keyword unexpected here")                        \
+  T(UnexpectedNewTarget, "new.target expression is not allowed here")          \
   T(UnexpectedTemplateString, "Unexpected template string")                    \
   T(UnexpectedToken, "Unexpected token %")                                     \
   T(UnexpectedTokenIdentifier, "Unexpected identifier")                        \
@@ -436,7 +446,7 @@ class MessageHandler {
 
   // Report a formatted message (needs JS allocation).
   static void ReportMessage(Isolate* isolate, MessageLocation* loc,
-                            Handle<Object> message);
+                            Handle<JSMessageObject> message);
 
   static void DefaultMessageReport(Isolate* isolate, const MessageLocation* loc,
                                    Handle<Object> message_obj);

@@ -516,10 +516,18 @@ void Deserializer::DecodeReservation(
 
 
 void Deserializer::FlushICacheForNewCodeObjects() {
-  PageIterator it(isolate_->heap()->code_space());
-  while (it.has_next()) {
-    Page* p = it.next();
-    CpuFeatures::FlushICache(p->area_start(), p->area_end() - p->area_start());
+  if (!deserializing_user_code_) {
+    // The entire isolate is newly deserialized. Simply flush all code pages.
+    PageIterator it(isolate_->heap()->code_space());
+    while (it.has_next()) {
+      Page* p = it.next();
+      CpuFeatures::FlushICache(p->area_start(),
+                               p->area_end() - p->area_start());
+    }
+  }
+  for (Code* code : new_code_objects_) {
+    CpuFeatures::FlushICache(code->instruction_start(),
+                             code->instruction_size());
   }
 }
 
@@ -612,9 +620,9 @@ MaybeHandle<Object> Deserializer::DeserializePartial(
   VisitPointer(&outdated_contexts);
   DeserializeDeferredObjects();
 
-  // There's no code deserialized here. If this assert fires
-  // then that's changed and logging should be added to notify
-  // the profiler et al of the new code.
+  // There's no code deserialized here. If this assert fires then that's
+  // changed and logging should be added to notify the profiler et al of the
+  // new code, which also has to be flushed from instruction cache.
   CHECK_EQ(start_address, code_space->top());
   CHECK(outdated_contexts->IsFixedArray());
   *outdated_contexts_out =
@@ -667,9 +675,8 @@ void Deserializer::DeserializeDeferredObjects() {
     Object** end = reinterpret_cast<Object**>(obj_address + size);
     bool filled = ReadData(start, end, space, obj_address);
     CHECK(filled);
-    if (object->IsAllocationSite()) {
-      RelinkAllocationSite(AllocationSite::cast(object));
-    }
+    DCHECK(CanBeDeferred(object));
+    PostProcessNewObject(object, space);
   }
 }
 
@@ -705,43 +712,52 @@ class StringTableInsertionKey : public HashTableKey {
 };
 
 
-HeapObject* Deserializer::PostProcessNewObject(HeapObject* obj) {
-  DCHECK(deserializing_user_code());
-  if (obj->IsString()) {
-    String* string = String::cast(obj);
-    // Uninitialize hash field as the hash seed may have changed.
-    string->set_hash_field(String::kEmptyHashField);
-    if (string->IsInternalizedString()) {
-      DisallowHeapAllocation no_gc;
-      HandleScope scope(isolate_);
-      StringTableInsertionKey key(string);
-      String* canonical = *StringTable::LookupKey(isolate_, &key);
-      string->SetForwardedInternalizedString(canonical);
-      return canonical;
+HeapObject* Deserializer::PostProcessNewObject(HeapObject* obj, int space) {
+  if (deserializing_user_code()) {
+    if (obj->IsString()) {
+      String* string = String::cast(obj);
+      // Uninitialize hash field as the hash seed may have changed.
+      string->set_hash_field(String::kEmptyHashField);
+      if (string->IsInternalizedString()) {
+        // Canonicalize the internalized string. If it already exists in the
+        // string table, set it to forward to the existing one.
+        DisallowHeapAllocation no_gc;
+        HandleScope scope(isolate_);
+        StringTableInsertionKey key(string);
+        String* canonical = *StringTable::LookupKey(isolate_, &key);
+        string->SetForwardedInternalizedString(canonical);
+        return canonical;
+      }
+    } else if (obj->IsScript()) {
+      // Assign a new script id to avoid collision.
+      Script::cast(obj)->set_id(isolate_->heap()->NextScriptId());
+    } else {
+      DCHECK(CanBeDeferred(obj));
     }
-  } else if (obj->IsScript()) {
-    Script::cast(obj)->set_id(isolate_->heap()->NextScriptId());
-  } else {
-    DCHECK(CanBeDeferred(obj));
+  }
+  if (obj->IsAllocationSite()) {
+    DCHECK(obj->IsAllocationSite());
+    // Allocation sites are present in the snapshot, and must be linked into
+    // a list at deserialization time.
+    AllocationSite* site = AllocationSite::cast(obj);
+    // TODO(mvstanton): consider treating the heap()->allocation_sites_list()
+    // as a (weak) root. If this root is relocated correctly, this becomes
+    // unnecessary.
+    if (isolate_->heap()->allocation_sites_list() == Smi::FromInt(0)) {
+      site->set_weak_next(isolate_->heap()->undefined_value());
+    } else {
+      site->set_weak_next(isolate_->heap()->allocation_sites_list());
+    }
+    isolate_->heap()->set_allocation_sites_list(site);
+  } else if (obj->IsCode()) {
+    // We flush all code pages after deserializing the startup snapshot. In that
+    // case, we only need to remember code objects in the large object space.
+    // When deserializing user code, remember each individual code object.
+    if (deserializing_user_code() || space == LO_SPACE) {
+      new_code_objects_.Add(Code::cast(obj));
+    }
   }
   return obj;
-}
-
-
-void Deserializer::RelinkAllocationSite(AllocationSite* obj) {
-  DCHECK(obj->IsAllocationSite());
-  // Allocation sites are present in the snapshot, and must be linked into
-  // a list at deserialization time.
-  AllocationSite* site = AllocationSite::cast(obj);
-  // TODO(mvstanton): consider treating the heap()->allocation_sites_list()
-  // as a (weak) root. If this root is relocated correctly,
-  // RelinkAllocationSite() isn't necessary.
-  if (isolate_->heap()->allocation_sites_list() == Smi::FromInt(0)) {
-    site->set_weak_next(isolate_->heap()->undefined_value());
-  } else {
-    site->set_weak_next(isolate_->heap()->allocation_sites_list());
-  }
-  isolate_->heap()->set_allocation_sites_list(site);
 }
 
 
@@ -803,11 +819,7 @@ void Deserializer::ReadObject(int space_number, Object** write_back) {
 
   if (ReadData(current, limit, space_number, address)) {
     // Only post process if object content has not been deferred.
-    if (obj->IsAllocationSite()) {
-      RelinkAllocationSite(AllocationSite::cast(obj));
-    }
-
-    if (deserializing_user_code()) obj = PostProcessNewObject(obj);
+    obj = PostProcessNewObject(obj, space_number);
   }
 
   Object* write_back_obj = obj;
@@ -1006,15 +1018,15 @@ bool Deserializer::ReadData(Object** current, Object** limit, int source_space,
       ALL_SPACES(kBackref, kPlain, kStartOfObject)
       ALL_SPACES(kBackrefWithSkip, kPlain, kStartOfObject)
 #if defined(V8_TARGET_ARCH_MIPS) || defined(V8_TARGET_ARCH_MIPS64) || \
-    defined(V8_TARGET_ARCH_PPC) || V8_OOL_CONSTANT_POOL
+    defined(V8_TARGET_ARCH_PPC) || V8_EMBEDDED_CONSTANT_POOL
       // Deserialize a new object from pointer found in code and write
       // a pointer to it to the current object. Required only for MIPS, PPC or
-      // ARM with ool constant pool, and omitted on the other architectures
+      // ARM with embedded constant pool, and omitted on the other architectures
       // because it is fully unrolled and would cause bloat.
       ALL_SPACES(kNewObject, kFromCode, kStartOfObject)
       // Find a recently deserialized code object using its offset from the
       // current allocation point and write a pointer to it to the current
-      // object. Required only for MIPS, PPC or ARM with ool constant pool.
+      // object. Required only for MIPS, PPC or ARM with embedded constant pool.
       ALL_SPACES(kBackref, kFromCode, kStartOfObject)
       ALL_SPACES(kBackrefWithSkip, kFromCode, kStartOfObject)
 #endif
@@ -1030,8 +1042,8 @@ bool Deserializer::ReadData(Object** current, Object** limit, int source_space,
       // current object.
       CASE_STATEMENT(kRootArray, kPlain, kStartOfObject, 0)
       CASE_BODY(kRootArray, kPlain, kStartOfObject, 0)
-#if defined(V8_TARGET_ARCH_MIPS) || V8_OOL_CONSTANT_POOL || \
-    defined(V8_TARGET_ARCH_MIPS64) || defined(V8_TARGET_ARCH_PPC)
+#if defined(V8_TARGET_ARCH_MIPS) || defined(V8_TARGET_ARCH_MIPS64) || \
+    defined(V8_TARGET_ARCH_PPC) || V8_EMBEDDED_CONSTANT_POOL
       // Find an object in the roots array and write a pointer to it to in code.
       CASE_STATEMENT(kRootArray, kFromCode, kStartOfObject, 0)
       CASE_BODY(kRootArray, kFromCode, kStartOfObject, 0)
@@ -1950,9 +1962,6 @@ void Serializer::ObjectSerializer::VisitPointers(Object** start,
 
 
 void Serializer::ObjectSerializer::VisitEmbeddedPointer(RelocInfo* rinfo) {
-  // Out-of-line constant pool entries will be visited by the ConstantPoolArray.
-  if (FLAG_enable_ool_constant_pool && rinfo->IsInConstantPool()) return;
-
   int skip = OutputRawData(rinfo->target_address_address(),
                            kCanReturnSkipInsteadOfSkipping);
   HowToCode how_to_code = rinfo->IsCodedSpecially() ? kFromCode : kPlain;
@@ -2024,9 +2033,6 @@ void Serializer::ObjectSerializer::VisitRuntimeEntry(RelocInfo* rinfo) {
 
 
 void Serializer::ObjectSerializer::VisitCodeTarget(RelocInfo* rinfo) {
-  // Out-of-line constant pool entries will be visited by the ConstantPoolArray.
-  if (FLAG_enable_ool_constant_pool && rinfo->IsInConstantPool()) return;
-
   int skip = OutputRawData(rinfo->target_address_address(),
                            kCanReturnSkipInsteadOfSkipping);
   Code* object = Code::GetCodeFromTargetAddress(rinfo->target_address());
@@ -2044,9 +2050,6 @@ void Serializer::ObjectSerializer::VisitCodeEntry(Address entry_address) {
 
 
 void Serializer::ObjectSerializer::VisitCell(RelocInfo* rinfo) {
-  // Out-of-line constant pool entries will be visited by the ConstantPoolArray.
-  if (FLAG_enable_ool_constant_pool && rinfo->IsInConstantPool()) return;
-
   int skip = OutputRawData(rinfo->pc(), kCanReturnSkipInsteadOfSkipping);
   Cell* object = Cell::cast(rinfo->target_cell());
   serializer_->SerializeObject(object, kPlain, kInnerPointer, skip);
@@ -2094,9 +2097,7 @@ Address Serializer::ObjectSerializer::PrepareCode() {
                   RelocInfo::ModeMask(RelocInfo::INTERNAL_REFERENCE_ENCODED);
   for (RelocIterator it(code, mode_mask); !it.done(); it.next()) {
     RelocInfo* rinfo = it.rinfo();
-    if (!(FLAG_enable_ool_constant_pool && rinfo->IsInConstantPool())) {
-      rinfo->WipeOut();
-    }
+    rinfo->WipeOut();
   }
   // We need to wipe out the header fields *after* wiping out the
   // relocations, because some of these fields are needed for the latter.
@@ -2139,10 +2140,6 @@ int Serializer::ObjectSerializer::OutputRawData(
     if (is_code_object_) object_start = PrepareCode();
 
     const char* description = is_code_object_ ? "Code" : "Byte";
-#ifdef MEMORY_SANITIZER
-    // Object sizes are usually rounded up with uninitialized padding space.
-    MSAN_MEMORY_IS_INITIALIZED(object_start + base, bytes_to_output);
-#endif  // MEMORY_SANITIZER
     sink_->PutRaw(object_start + base, bytes_to_output, description);
   }
   if (to_skip != 0 && return_skip == kIgnoringReturn) {
@@ -2529,6 +2526,11 @@ Vector<const byte> SnapshotData::Payload() const {
 class Checksum {
  public:
   explicit Checksum(Vector<const byte> payload) {
+#ifdef MEMORY_SANITIZER
+    // Computing the checksum includes padding bytes for objects like strings.
+    // Mark every object as initialized in the code serializer.
+    MSAN_MEMORY_IS_INITIALIZED(payload.start(), payload.length());
+#endif  // MEMORY_SANITIZER
     // Fletcher's checksum. Modified to reduce 64-bit sums to 32-bit.
     uintptr_t a = 1;
     uintptr_t b = 0;
@@ -2693,4 +2695,5 @@ SerializedCodeData* SerializedCodeData::FromCachedData(Isolate* isolate,
   delete scd;
   return NULL;
 }
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

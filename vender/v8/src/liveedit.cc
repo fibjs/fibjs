@@ -844,7 +844,7 @@ MaybeHandle<JSArray> LiveEdit::GatherCompileInfo(Handle<Script> script,
   {
     // Creating verbose TryCatch from public API is currently the only way to
     // force code save location. We do not use this the object directly.
-    v8::TryCatch try_catch;
+    v8::TryCatch try_catch(reinterpret_cast<v8::Isolate*>(isolate));
     try_catch.SetVerbose(true);
 
     // A logical 'try' section.
@@ -1089,36 +1089,35 @@ class LiteralFixer {
 };
 
 
+namespace {
+
 // Check whether the code is natural function code (not a lazy-compile stub
 // code).
-static bool IsJSFunctionCode(Code* code) {
-  return code->kind() == Code::FUNCTION;
-}
+bool IsJSFunctionCode(Code* code) { return code->kind() == Code::FUNCTION; }
 
 
 // Returns true if an instance of candidate were inlined into function's code.
-static bool IsInlined(JSFunction* function, SharedFunctionInfo* candidate) {
+bool IsInlined(JSFunction* function, SharedFunctionInfo* candidate) {
   DisallowHeapAllocation no_gc;
 
   if (function->code()->kind() != Code::OPTIMIZED_FUNCTION) return false;
 
-  DeoptimizationInputData* data =
+  DeoptimizationInputData* const data =
       DeoptimizationInputData::cast(function->code()->deoptimization_data());
-
-  if (data == function->GetIsolate()->heap()->empty_fixed_array()) {
-    return false;
-  }
-
-  FixedArray* literals = data->LiteralArray();
-
-  int inlined_count = data->InlinedFunctionCount()->value();
-  for (int i = 0; i < inlined_count; ++i) {
-    JSFunction* inlined = JSFunction::cast(literals->get(i));
-    if (inlined->shared() == candidate) return true;
+  if (data != function->GetIsolate()->heap()->empty_fixed_array()) {
+    FixedArray* const literals = data->LiteralArray();
+    int const inlined_count = data->InlinedFunctionCount()->value();
+    for (int i = 0; i < inlined_count; ++i) {
+      if (SharedFunctionInfo::cast(literals->get(i)) == candidate) {
+        return true;
+      }
+    }
   }
 
   return false;
 }
+
+}  // namespace
 
 
 // Marks code that shares the same shared function info or has inlined
@@ -2061,4 +2060,5 @@ bool LiveEditFunctionTracker::IsActive(Isolate* isolate) {
   return isolate->active_function_info_listener() != NULL;
 }
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

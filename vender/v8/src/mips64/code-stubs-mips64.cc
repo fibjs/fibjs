@@ -97,7 +97,7 @@ void InternalArrayNArgumentsConstructorStub::InitializeDescriptor(
 
 
 static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
-                                          Condition cc, bool strong);
+                                          Condition cc, Strength strength);
 static void EmitSmiNonsmiComparison(MacroAssembler* masm,
                                     Register lhs,
                                     Register rhs,
@@ -276,7 +276,7 @@ void DoubleToIStub::Generate(MacroAssembler* masm) {
 // Equality is almost reflexive (everything but NaN), so this is a test
 // for "identity and not NaN".
 static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
-                                          Condition cc, bool strong) {
+                                          Condition cc, Strength strength) {
   Label not_identical;
   Label heap_number, return_equal;
   Register exp_mask_reg = t1;
@@ -295,7 +295,7 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
     __ Branch(slow, greater, t0, Operand(FIRST_SPEC_OBJECT_TYPE));
     // Call runtime on identical symbols since we need to throw a TypeError.
     __ Branch(slow, eq, t0, Operand(SYMBOL_TYPE));
-    if (strong) {
+    if (is_strong(strength)) {
       // Call the runtime on anything that is converted in the semantics, since
       // we need to throw a TypeError. Smis have already been ruled out.
       __ Branch(&return_equal, eq, t0, Operand(HEAP_NUMBER_TYPE));
@@ -309,7 +309,7 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
     __ Branch(slow, greater, t0, Operand(FIRST_SPEC_OBJECT_TYPE));
     // Call runtime on identical symbols since we need to throw a TypeError.
     __ Branch(slow, eq, t0, Operand(SYMBOL_TYPE));
-    if (strong) {
+    if (is_strong(strength)) {
       // Call the runtime on anything that is converted in the semantics,
       // since we need to throw a TypeError. Smis and heap numbers have
       // already been ruled out.
@@ -599,7 +599,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
 
   // Handle the case where the objects are identical.  Either returns the answer
   // or goes to slow.  Only falls through if the objects were not identical.
-  EmitIdenticalObjectComparison(masm, &slow, cc, strong());
+  EmitIdenticalObjectComparison(masm, &slow, cc, strength());
 
   // If either is a Smi (we know that not both are), then they can only
   // be strictly equal if the other is a HeapNumber.
@@ -727,7 +727,8 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
   if (cc == eq) {
     native = strict() ? Builtins::STRICT_EQUALS : Builtins::EQUALS;
   } else {
-    native = strong() ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
+    native =
+        is_strong(strength()) ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
     int ncr;  // NaN compare result.
     if (cc == lt || cc == le) {
       ncr = GREATER;
@@ -2070,9 +2071,10 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
 
 
 void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
-  // sp[0] : index of rest parameter
-  // sp[4] : number of parameters
-  // sp[8] : receiver displacement
+  // sp[0] : language mode
+  // sp[4] : index of rest parameter
+  // sp[8] : number of parameters
+  // sp[12] : receiver displacement
   // Check if the calling frame is an arguments adaptor frame.
 
   Label runtime;
@@ -2083,17 +2085,17 @@ void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
 
   // Patch the arguments.length and the parameters pointer.
   __ ld(a1, MemOperand(a2, ArgumentsAdaptorFrameConstants::kLengthOffset));
-  __ sd(a1, MemOperand(sp, 1 * kPointerSize));
+  __ sd(a1, MemOperand(sp, 2 * kPointerSize));
   __ SmiScale(at, a1, kPointerSizeLog2);
 
   __ Daddu(a3, a2, Operand(at));
 
   __ Daddu(a3, a3, Operand(StandardFrameConstants::kCallerSPOffset));
-  __ sd(a3, MemOperand(sp, 2 * kPointerSize));
+  __ sd(a3, MemOperand(sp, 3 * kPointerSize));
 
   // Do the runtime call to allocate the arguments object.
   __ bind(&runtime);
-  __ TailCallRuntime(Runtime::kNewRestParam, 3, 1);
+  __ TailCallRuntime(Runtime::kNewRestParam, 4, 1);
 }
 
 
@@ -3803,7 +3805,7 @@ void CompareICStub::GenerateNumbers(MacroAssembler* masm) {
 
   __ bind(&unordered);
   __ bind(&generic_stub);
-  CompareICStub stub(isolate(), op(), strong(), CompareICState::GENERIC,
+  CompareICStub stub(isolate(), op(), strength(), CompareICState::GENERIC,
                      CompareICState::GENERIC, CompareICState::GENERIC);
   __ Jump(stub.GetCode(), RelocInfo::CODE_TARGET);
 
@@ -5614,7 +5616,8 @@ void CallApiGetterStub::Generate(MacroAssembler* masm) {
 
 #undef __
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_MIPS64
 

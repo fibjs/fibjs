@@ -779,4 +779,5 @@ void Sampler::DoSample() {
 #endif  // USE_SIGNALS
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

@@ -103,8 +103,6 @@ enum BuiltinExtraArguments {
     StoreICState::kStrictModeState)                                          \
   V(KeyedStoreIC_Megamorphic_Strict, KEYED_STORE_IC, MEGAMORPHIC,            \
     StoreICState::kStrictModeState)                                          \
-  V(KeyedStoreIC_SloppyArguments, KEYED_STORE_IC, MONOMORPHIC,               \
-    kNoExtraICState)                                                         \
                                                                              \
   /* Uses KeyedLoadIC_Initialize; must be after in list. */                  \
   V(FunctionCall, BUILTIN, UNINITIALIZED, kNoExtraICState)                   \
@@ -196,7 +194,6 @@ enum BuiltinExtraArguments {
   V(DELETE, 2)                             \
   V(IN, 1)                                 \
   V(INSTANCE_OF, 1)                        \
-  V(FILTER_KEY, 1)                         \
   V(CALL_NON_FUNCTION, 0)                  \
   V(CALL_NON_FUNCTION_AS_CONSTRUCTOR, 0)   \
   V(CALL_FUNCTION_PROXY, 1)                \

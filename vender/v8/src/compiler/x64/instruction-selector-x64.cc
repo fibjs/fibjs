@@ -31,6 +31,10 @@ class X64OperandGenerator final : public OperandGenerator {
         const int64_t value = OpParameter<int64_t>(node);
         return value == static_cast<int64_t>(static_cast<int32_t>(value));
       }
+      case IrOpcode::kNumberConstant: {
+        const double value = OpParameter<double>(node);
+        return bit_cast<int64_t>(value) == 0;
+      }
       default:
         return false;
     }
@@ -1051,6 +1055,11 @@ void InstructionSelector::VisitCall(Node* node, BasicBlock* handler) {
   // Pass label of exception handler block.
   CallDescriptor::Flags flags = descriptor->flags();
   if (handler) {
+    DCHECK_EQ(IrOpcode::kIfException, handler->front()->opcode());
+    IfExceptionHint hint = OpParameter<IfExceptionHint>(handler->front());
+    if (hint == IfExceptionHint::kLocallyCaught) {
+      flags |= CallDescriptor::kHasLocalCatchHandler;
+    }
     flags |= CallDescriptor::kHasExceptionHandler;
     buffer.instruction_args.push_back(g.Label(handler));
   }

@@ -438,7 +438,7 @@ BUILTIN(ArrayPop) {
   Handle<JSArray> array = Handle<JSArray>::cast(receiver);
   DCHECK(!array->map()->is_observed());
 
-  int len = Smi::cast(array->length())->value();
+  uint32_t len = static_cast<uint32_t>(Smi::cast(array->length())->value());
   if (len == 0) return isolate->heap()->undefined_value();
 
   if (JSArray::HasReadOnlyLength(array)) {
@@ -446,12 +446,11 @@ BUILTIN(ArrayPop) {
   }
 
   ElementsAccessor* accessor = array->GetElementsAccessor();
-  int new_length = len - 1;
-  Handle<Object> element =
-      accessor->Get(array, array, new_length, elms_obj).ToHandleChecked();
-  if (element->IsTheHole()) {
-    return CallJsBuiltin(isolate, "$arrayPop", args);
-  }
+  uint32_t new_length = len - 1;
+  Handle<Object> element;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, element, Object::GetElement(isolate, array, new_length));
+
   RETURN_FAILURE_ON_EXCEPTION(
       isolate,
       accessor->SetLength(array, handle(Smi::FromInt(new_length), isolate)));
@@ -481,12 +480,9 @@ BUILTIN(ArrayShift) {
   }
 
   // Get first element
-  ElementsAccessor* accessor = array->GetElementsAccessor();
-  Handle<Object> first =
-    accessor->Get(array, array, 0, elms_obj).ToHandleChecked();
-  if (first->IsTheHole()) {
-    return CallJsBuiltin(isolate, "$arrayShift", args);
-  }
+  Handle<Object> first;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, first,
+                                     Object::GetElement(isolate, array, 0));
 
   if (heap->CanMoveObjectStart(*elms_obj)) {
     array->set_elements(heap->LeftTrimFixedArray(*elms_obj, 1));
@@ -992,11 +988,8 @@ BUILTIN(ArrayConcat) {
   ArrayStorageAllocationMode mode =
       has_double && IsFastObjectElementsKind(elements_kind)
       ? INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE : DONT_INITIALIZE_ARRAY_ELEMENTS;
-  Handle<JSArray> result_array =
-      isolate->factory()->NewJSArray(elements_kind,
-                                     result_len,
-                                     result_len,
-                                     mode);
+  Handle<JSArray> result_array = isolate->factory()->NewJSArray(
+      elements_kind, result_len, result_len, Strength::WEAK, mode);
   if (result_len == 0) return *result_array;
 
   int j = 0;
@@ -1369,11 +1362,6 @@ static void Generate_KeyedStoreIC_PreMonomorphic_Strict(MacroAssembler* masm) {
 }
 
 
-static void Generate_KeyedStoreIC_SloppyArguments(MacroAssembler* masm) {
-  KeyedStoreIC::GenerateSloppyArguments(masm);
-}
-
-
 static void Generate_CallICStub_DebugBreak(MacroAssembler* masm) {
   DebugCodegen::GenerateCallICStubDebugBreak(masm);
 }
@@ -1671,4 +1659,5 @@ BUILTIN_LIST_DEBUG_A(DEFINE_BUILTIN_ACCESSOR_A)
 #undef DEFINE_BUILTIN_ACCESSOR_A
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

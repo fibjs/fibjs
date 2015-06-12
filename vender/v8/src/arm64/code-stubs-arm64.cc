@@ -211,7 +211,7 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm, Register left,
                                           Register right, Register scratch,
                                           FPRegister double_scratch,
                                           Label* slow, Condition cond,
-                                          bool strong) {
+                                          Strength strength) {
   DCHECK(!AreAliased(left, right, scratch));
   Label not_identical, return_equal, heap_number;
   Register result = x0;
@@ -231,7 +231,7 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm, Register left,
     // Call runtime on identical symbols since we need to throw a TypeError.
     __ Cmp(right_type, SYMBOL_TYPE);
     __ B(eq, slow);
-    if (strong) {
+    if (is_strong(strength)) {
       // Call the runtime on anything that is converted in the semantics, since
       // we need to throw a TypeError. Smis have already been ruled out.
       __ Cmp(right_type, Operand(HEAP_NUMBER_TYPE));
@@ -250,7 +250,7 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm, Register left,
     // Call runtime on identical symbols since we need to throw a TypeError.
     __ Cmp(right_type, SYMBOL_TYPE);
     __ B(eq, slow);
-    if (strong) {
+    if (is_strong(strength)) {
       // Call the runtime on anything that is converted in the semantics,
       // since we need to throw a TypeError. Smis and heap numbers have
       // already been ruled out.
@@ -533,7 +533,8 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
 
   // Handle the case where the objects are identical. Either returns the answer
   // or goes to slow. Only falls through if the objects were not identical.
-  EmitIdenticalObjectComparison(masm, lhs, rhs, x10, d0, &slow, cond, strong());
+  EmitIdenticalObjectComparison(masm, lhs, rhs, x10, d0, &slow, cond,
+                                strength());
 
   // If either is a smi (we know that at least one is not a smi), then they can
   // only be strictly equal if the other is a HeapNumber.
@@ -652,7 +653,8 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
   if (cond == eq) {
     native = strict() ? Builtins::STRICT_EQUALS : Builtins::EQUALS;
   } else {
-    native = strong() ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
+    native =
+        is_strong(strength()) ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
     int ncr;  // NaN compare result
     if ((cond == lt) || (cond == le)) {
       ncr = GREATER;
@@ -2210,19 +2212,21 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
 
 void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
   // Stack layout on entry.
-  //  jssp[0]:  index of rest parameter (tagged)
-  //  jssp[8]:  number of parameters (tagged)
-  //  jssp[16]: address of receiver argument
+  //  jssp[0]:  language mode (tagged)
+  //  jssp[8]:  index of rest parameter (tagged)
+  //  jssp[16]: number of parameters (tagged)
+  //  jssp[24]: address of receiver argument
   //
   // Returns pointer to result object in x0.
 
   // Get the stub arguments from the frame, and make an untagged copy of the
   // parameter count.
-  Register rest_index_smi = x1;
-  Register param_count_smi = x2;
-  Register params = x3;
+  Register language_mode_smi = x1;
+  Register rest_index_smi = x2;
+  Register param_count_smi = x3;
+  Register params = x4;
   Register param_count = x13;
-  __ Pop(rest_index_smi, param_count_smi, params);
+  __ Pop(language_mode_smi, rest_index_smi, param_count_smi, params);
   __ SmiUntag(param_count, param_count_smi);
 
   // Test if arguments adaptor needed.
@@ -2235,11 +2239,12 @@ void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
   __ Cmp(caller_ctx, Smi::FromInt(StackFrame::ARGUMENTS_ADAPTOR));
   __ B(ne, &runtime);
 
-  //   x1   rest_index_smi    index of rest parameter
-  //   x2   param_count_smi   number of parameters passed to function (smi)
-  //   x3   params            pointer to parameters
-  //   x11  caller_fp         caller's frame pointer
-  //   x13  param_count       number of parameters passed to function
+  //   x1   language_mode_smi  language mode
+  //   x2   rest_index_smi     index of rest parameter
+  //   x3   param_count_smi    number of parameters passed to function (smi)
+  //   x4   params             pointer to parameters
+  //   x11  caller_fp          caller's frame pointer
+  //   x13  param_count        number of parameters passed to function
 
   // Patch the argument length and parameters pointer.
   __ Ldr(param_count_smi,
@@ -2250,8 +2255,8 @@ void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
   __ Add(params, x10, StandardFrameConstants::kCallerSPOffset);
 
   __ Bind(&runtime);
-  __ Push(params, param_count_smi, rest_index_smi);
-  __ TailCallRuntime(Runtime::kNewRestParam, 3, 1);
+  __ Push(params, param_count_smi, rest_index_smi, language_mode_smi);
+  __ TailCallRuntime(Runtime::kNewRestParam, 4, 1);
 }
 
 
@@ -3503,7 +3508,7 @@ void CompareICStub::GenerateNumbers(MacroAssembler* masm) {
   __ Ret();
 
   __ Bind(&unordered);
-  CompareICStub stub(isolate(), op(), strong(), CompareICState::GENERIC,
+  CompareICStub stub(isolate(), op(), strength(), CompareICState::GENERIC,
                      CompareICState::GENERIC, CompareICState::GENERIC);
   __ Jump(stub.GetCode(), RelocInfo::CODE_TARGET);
 
@@ -5833,7 +5838,8 @@ void CallApiGetterStub::Generate(MacroAssembler* masm) {
 
 #undef __
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_ARM64
 

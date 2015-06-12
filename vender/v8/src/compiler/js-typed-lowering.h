@@ -37,6 +37,7 @@ class JSTypedLowering final : public AdvancedReducer {
   friend class JSBinopReduction;
 
   Reduction ReduceJSAdd(Node* node);
+  Reduction ReduceJSModulus(Node* node);
   Reduction ReduceJSBitwiseOr(Node* node);
   Reduction ReduceJSMultiply(Node* node);
   Reduction ReduceJSComparison(Node* node);
@@ -45,6 +46,8 @@ class JSTypedLowering final : public AdvancedReducer {
   Reduction ReduceJSStoreProperty(Node* node);
   Reduction ReduceJSLoadContext(Node* node);
   Reduction ReduceJSStoreContext(Node* node);
+  Reduction ReduceJSLoadDynamicGlobal(Node* node);
+  Reduction ReduceJSLoadDynamicContext(Node* node);
   Reduction ReduceJSEqual(Node* node, bool invert);
   Reduction ReduceJSStrictEqual(Node* node, bool invert);
   Reduction ReduceJSUnaryNot(Node* node);
@@ -58,6 +61,10 @@ class JSTypedLowering final : public AdvancedReducer {
   Reduction ReduceJSCreateLiteralObject(Node* node);
   Reduction ReduceJSCreateWithContext(Node* node);
   Reduction ReduceJSCreateBlockContext(Node* node);
+  Reduction ReduceJSForInDone(Node* node);
+  Reduction ReduceJSForInNext(Node* node);
+  Reduction ReduceJSForInPrepare(Node* node);
+  Reduction ReduceJSForInStep(Node* node);
   Reduction ReduceNumberBinop(Node* node, const Operator* numberOp);
   Reduction ReduceInt32Binop(Node* node, const Operator* intOp);
   Reduction ReduceUI32Shift(Node* node, Signedness left_signedness,
@@ -68,6 +75,7 @@ class JSTypedLowering final : public AdvancedReducer {
   Factory* factory() const;
   Graph* graph() const;
   JSGraph* jsgraph() const { return jsgraph_; }
+  Isolate* isolate() const;
   JSOperatorBuilder* javascript() const;
   CommonOperatorBuilder* common() const;
   SimplifiedOperatorBuilder* simplified() { return &simplified_; }

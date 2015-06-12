@@ -3146,20 +3146,6 @@ void Assembler::RecordConstPool(int size) {
 }
 
 
-Handle<ConstantPoolArray> Assembler::NewConstantPool(Isolate* isolate) {
-  // No out-of-line constant pool support.
-  DCHECK(!FLAG_enable_ool_constant_pool);
-  return isolate->factory()->empty_constant_pool_array();
-}
-
-
-void Assembler::PopulateConstantPool(ConstantPoolArray* constant_pool) {
-  // No out-of-line constant pool support.
-  DCHECK(!FLAG_enable_ool_constant_pool);
-  return;
-}
-
-
 void PatchingAssembler::PatchAdrFar(int64_t target_offset) {
   // The code at the current instruction should be:
   //   adr  rd, 0
@@ -3193,7 +3179,8 @@ void PatchingAssembler::PatchAdrFar(int64_t target_offset) {
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_ARM64
 

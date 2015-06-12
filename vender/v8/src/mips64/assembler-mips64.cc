@@ -641,7 +641,7 @@ int Assembler::target_at(int pos, bool is_internal) {
      }
   }
   // Check we have a branch or jump instruction.
-  DCHECK(IsBranch(instr) || IsLui(instr));
+  DCHECK(IsBranch(instr) || IsJ(instr) || IsJal(instr) || IsLui(instr));
   // Do NOT change this to <<2. We rely on arithmetic shifts here, assuming
   // the compiler uses arithmetic shifts for signed integers.
   if (IsBranch(instr)) {
@@ -677,8 +677,18 @@ int Assembler::target_at(int pos, bool is_internal) {
       return pos - delta;
     }
   } else {
-    UNREACHABLE();
-    return 0;
+    DCHECK(IsJ(instr) || IsJal(instr));
+    int32_t imm28 = (instr & static_cast<int32_t>(kImm26Mask)) << 2;
+    if (imm28 == kEndOfJumpChain) {
+      // EndOfChain sentinel is returned directly, not relative to pc or pos.
+      return kEndOfChain;
+    } else {
+      uint64_t instr_address = reinterpret_cast<int64_t>(buffer_ + pos);
+      instr_address &= kImm28Mask;
+      int delta = static_cast<int>(instr_address - imm28);
+      DCHECK(pos > delta);
+      return pos - delta;
+    }
   }
 }
 
@@ -698,7 +708,7 @@ void Assembler::target_at_put(int pos, int target_pos, bool is_internal) {
     return;
   }
 
-  DCHECK(IsBranch(instr) || IsLui(instr));
+  DCHECK(IsBranch(instr) || IsJ(instr) || IsJal(instr) || IsLui(instr));
   if (IsBranch(instr)) {
     int32_t imm18 = target_pos - (pos + kBranchPCOffset);
     DCHECK((imm18 & 3) == 0);
@@ -729,7 +739,16 @@ void Assembler::target_at_put(int pos, int target_pos, bool is_internal) {
     instr_at_put(pos + 3 * Assembler::kInstrSize,
                  instr_ori2 | (imm & kImm16Mask));
   } else {
-    UNREACHABLE();
+    DCHECK(IsJ(instr) || IsJal(instr));
+    uint64_t imm28 = reinterpret_cast<uint64_t>(buffer_) + target_pos;
+    imm28 &= kImm28Mask;
+    DCHECK((imm28 & 3) == 0);
+
+    instr &= ~kImm26Mask;
+    uint32_t imm26 = imm28 >> 2;
+    DCHECK(is_uint26(imm26));
+
+    instr_at_put(pos, instr | (imm26 & kImm26Mask));
   }
 }
 
@@ -791,7 +810,8 @@ void Assembler::bind_to(Label* L, int pos) {
       }
       target_at_put(fixup_pos, pos, false);
     } else {
-      DCHECK(IsJ(instr) || IsLui(instr) || IsEmittedConstant(instr));
+      DCHECK(IsJ(instr) || IsJal(instr) || IsLui(instr) ||
+             IsEmittedConstant(instr));
       target_at_put(fixup_pos, pos, false);
     }
   }
@@ -988,7 +1008,6 @@ uint64_t Assembler::jump_address(Label* L) {
       return kEndOfJumpChain;
     }
   }
-
   uint64_t imm = reinterpret_cast<uint64_t>(buffer_) + target_pos;
   DCHECK((imm & 3) == 0);
 
@@ -1363,12 +1382,14 @@ void Assembler::bnezc(Register rs, int32_t offset) {
 void Assembler::j(int64_t target) {
 #if DEBUG
   // Get pc of delay slot.
-  uint64_t ipc = reinterpret_cast<uint64_t>(pc_ + 1 * kInstrSize);
-  bool in_range = (ipc ^ static_cast<uint64_t>(target) >>
-                  (kImm26Bits + kImmFieldShift)) == 0;
-  DCHECK(in_range && ((target & 3) == 0));
+  if (target != kEndOfJumpChain) {
+    uint64_t ipc = reinterpret_cast<uint64_t>(pc_ + 1 * kInstrSize);
+    bool in_range = ((ipc ^ static_cast<uint64_t>(target)) >>
+                     (kImm26Bits + kImmFieldShift)) == 0;
+    DCHECK(in_range && ((target & 3) == 0));
+  }
 #endif
-  GenInstrJump(J, target >> 2);
+  GenInstrJump(J, (target >> 2) & kImm26Mask);
 }
 
 
@@ -1389,13 +1410,15 @@ void Assembler::jr(Register rs) {
 void Assembler::jal(int64_t target) {
 #ifdef DEBUG
   // Get pc of delay slot.
-  uint64_t ipc = reinterpret_cast<uint64_t>(pc_ + 1 * kInstrSize);
-  bool in_range = (ipc ^ static_cast<uint64_t>(target) >>
-                  (kImm26Bits + kImmFieldShift)) == 0;
-  DCHECK(in_range && ((target & 3) == 0));
+  if (target != kEndOfJumpChain) {
+    uint64_t ipc = reinterpret_cast<uint64_t>(pc_ + 1 * kInstrSize);
+    bool in_range = ((ipc ^ static_cast<uint64_t>(target)) >>
+                     (kImm26Bits + kImmFieldShift)) == 0;
+    DCHECK(in_range && ((target & 3) == 0));
+  }
 #endif
   positions_recorder()->WriteRecordedPositions();
-  GenInstrJump(JAL, target >> 2);
+  GenInstrJump(JAL, (target >> 2) & kImm26Mask);
 }
 
 
@@ -2815,6 +2838,7 @@ int Assembler::RelocateInternalReference(RelocInfo::Mode rmode, byte* pc,
   }
   Instr instr = instr_at(pc);
   DCHECK(RelocInfo::IsInternalReferenceEncoded(rmode));
+  DCHECK(IsJ(instr) || IsLui(instr) || IsJal(instr));
   if (IsLui(instr)) {
     Instr instr_lui = instr_at(pc + 0 * Assembler::kInstrSize);
     Instr instr_ori = instr_at(pc + 1 * Assembler::kInstrSize);
@@ -2846,8 +2870,21 @@ int Assembler::RelocateInternalReference(RelocInfo::Mode rmode, byte* pc,
                  instr_ori2 | (imm & kImm16Mask));
     return 4;  // Number of instructions patched.
   } else {
-    UNREACHABLE();
-    return 0;  // Number of instructions patched.
+    uint32_t imm28 = (instr & static_cast<int32_t>(kImm26Mask)) << 2;
+    if (static_cast<int32_t>(imm28) == kEndOfJumpChain) {
+      return 0;  // Number of instructions patched.
+    }
+
+    imm28 += pc_delta;
+    imm28 &= kImm28Mask;
+    DCHECK((imm28 & 3) == 0);
+
+    instr &= ~kImm26Mask;
+    uint32_t imm26 = imm28 >> 2;
+    DCHECK(is_uint26(imm26));
+
+    instr_at_put(pc, instr | (imm26 & kImm26Mask));
+    return 1;  // Number of instructions patched.
   }
 }
 
@@ -2910,6 +2947,13 @@ void Assembler::dd(uint32_t data) {
   CheckBuffer();
   *reinterpret_cast<uint32_t*>(pc_) = data;
   pc_ += sizeof(uint32_t);
+}
+
+
+void Assembler::dq(uint64_t data) {
+  CheckBuffer();
+  *reinterpret_cast<uint64_t*>(pc_) = data;
+  pc_ += sizeof(uint64_t);
 }
 
 
@@ -3009,14 +3053,8 @@ void Assembler::CheckTrampolinePool() {
           // references until associated instructions are emitted and available
           // to be patched.
           RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE_ENCODED);
-          // TODO(plind): Verify this, presume I cannot use macro-assembler
-          // here.
-          lui(at, (imm64 >> 32) & kImm16Mask);
-          ori(at, at, (imm64 >> 16) & kImm16Mask);
-          dsll(at, at, 16);
-          ori(at, at, imm64 & kImm16Mask);
+          j(imm64);
         }
-        jr(at);
         nop();
       }
       bind(&after_pool);
@@ -3121,21 +3159,8 @@ void Assembler::set_target_address_at(Address pc,
 }
 
 
-Handle<ConstantPoolArray> Assembler::NewConstantPool(Isolate* isolate) {
-  // No out-of-line constant pool support.
-  DCHECK(!FLAG_enable_ool_constant_pool);
-  return isolate->factory()->empty_constant_pool_array();
-}
-
-
-void Assembler::PopulateConstantPool(ConstantPoolArray* constant_pool) {
-  // No out-of-line constant pool support.
-  DCHECK(!FLAG_enable_ool_constant_pool);
-  return;
-}
-
-
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_MIPS64
 

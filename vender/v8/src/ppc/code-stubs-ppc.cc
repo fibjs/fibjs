@@ -98,7 +98,7 @@ void InternalArrayNArgumentsConstructorStub::InitializeDescriptor(
 
 
 static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
-                                          Condition cond, bool strong);
+                                          Condition cond, Strength strength);
 static void EmitSmiNonsmiComparison(MacroAssembler* masm, Register lhs,
                                     Register rhs, Label* lhs_not_nan,
                                     Label* slow, bool strict);
@@ -115,7 +115,7 @@ void HydrogenCodeStub::GenerateLightweightMiss(MacroAssembler* masm,
   int param_count = descriptor.GetEnvironmentParameterCount();
   {
     // Call the runtime system in a fresh internal frame.
-    FrameScope scope(masm, StackFrame::INTERNAL);
+    FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
     DCHECK(param_count == 0 ||
            r3.is(descriptor.GetEnvironmentParameterRegister(param_count - 1)));
     // Push arguments
@@ -253,7 +253,7 @@ void DoubleToIStub::Generate(MacroAssembler* masm) {
 // Equality is almost reflexive (everything but NaN), so this is a test
 // for "identity and not NaN".
 static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
-                                          Condition cond, bool strong) {
+                                          Condition cond, Strength strength) {
   Label not_identical;
   Label heap_number, return_equal;
   __ cmp(r3, r4);
@@ -270,7 +270,7 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
     // Call runtime on identical symbols since we need to throw a TypeError.
     __ cmpi(r7, Operand(SYMBOL_TYPE));
     __ beq(slow);
-    if (strong) {
+    if (is_strong(strength)) {
       // Call the runtime on anything that is converted in the semantics, since
       // we need to throw a TypeError. Smis have already been ruled out.
       __ cmpi(r7, Operand(HEAP_NUMBER_TYPE));
@@ -288,7 +288,7 @@ static void EmitIdenticalObjectComparison(MacroAssembler* masm, Label* slow,
       // Call runtime on identical symbols since we need to throw a TypeError.
       __ cmpi(r7, Operand(SYMBOL_TYPE));
       __ beq(slow);
-      if (strong) {
+      if (is_strong(strength)) {
         // Call the runtime on anything that is converted in the semantics,
         // since we need to throw a TypeError. Smis and heap numbers have
         // already been ruled out.
@@ -598,7 +598,7 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
 
   // Handle the case where the objects are identical.  Either returns the answer
   // or goes to slow.  Only falls through if the objects were not identical.
-  EmitIdenticalObjectComparison(masm, &slow, cc, strong());
+  EmitIdenticalObjectComparison(masm, &slow, cc, strength());
 
   // If either is a Smi (we know that not both are), then they can only
   // be strictly equal if the other is a HeapNumber.
@@ -709,7 +709,8 @@ void CompareICStub::GenerateGeneric(MacroAssembler* masm) {
   if (cc == eq) {
     native = strict() ? Builtins::STRICT_EQUALS : Builtins::EQUALS;
   } else {
-    native = strong() ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
+    native =
+        is_strong(strength()) ? Builtins::COMPARE_STRONG : Builtins::COMPARE;
     int ncr;  // NaN compare result
     if (cc == lt || cc == le) {
       ncr = GREATER;
@@ -1186,11 +1187,15 @@ void CEntryStub::Generate(MacroAssembler* masm) {
   __ bind(&skip);
 
   // Compute the handler entry address and jump to it.
+  ConstantPoolUnavailableScope constant_pool_unavailable(masm);
   __ mov(r4, Operand(pending_handler_code_address));
   __ LoadP(r4, MemOperand(r4));
   __ mov(r5, Operand(pending_handler_offset_address));
   __ LoadP(r5, MemOperand(r5));
   __ addi(r4, r4, Operand(Code::kHeaderSize - kHeapObjectTag));  // Code start
+  if (FLAG_enable_embedded_constant_pool) {
+    __ LoadConstantPoolPointerRegisterFromCodeTargetAddress(r4);
+  }
   __ add(ip, r4, r5);
   __ Jump(ip);
 }
@@ -1232,6 +1237,10 @@ void JSEntryStub::Generate(MacroAssembler* masm) {
   // r7: argv
   __ li(r0, Operand(-1));  // Push a bad frame pointer to fail if it is used.
   __ push(r0);
+  if (FLAG_enable_embedded_constant_pool) {
+    __ li(kConstantPoolRegister, Operand::Zero());
+    __ push(kConstantPoolRegister);
+  }
   int marker = type();
   __ LoadSmiLiteral(r0, Smi::FromInt(marker));
   __ push(r0);
@@ -1546,7 +1555,7 @@ void InstanceofStub::Generate(MacroAssembler* masm) {
     __ InvokeBuiltin(Builtins::INSTANCE_OF, JUMP_FUNCTION);
   } else {
     {
-      FrameScope scope(masm, StackFrame::INTERNAL);
+      FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
       __ Push(r3, r4);
       __ InvokeBuiltin(Builtins::INSTANCE_OF, CALL_FUNCTION);
     }
@@ -2096,9 +2105,10 @@ void ArgumentsAccessStub::GenerateNewStrict(MacroAssembler* masm) {
 
 void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
   // Stack layout on entry.
-  //  sp[0] : index of rest parameter
-  //  sp[4] : number of parameters
-  //  sp[8] : receiver displacement
+  //  sp[0] : language mode
+  //  sp[4] : index of rest parameter
+  //  sp[8] : number of parameters
+  //  sp[12] : receiver displacement
 
   Label runtime;
   __ LoadP(r5, MemOperand(fp, StandardFrameConstants::kCallerFPOffset));
@@ -2108,14 +2118,14 @@ void RestParamAccessStub::GenerateNew(MacroAssembler* masm) {
 
   // Patch the arguments.length and the parameters pointer.
   __ LoadP(r4, MemOperand(r5, ArgumentsAdaptorFrameConstants::kLengthOffset));
-  __ StoreP(r4, MemOperand(sp, 1 * kPointerSize));
+  __ StoreP(r4, MemOperand(sp, 2 * kPointerSize));
   __ SmiToPtrArrayOffset(r6, r4);
   __ add(r6, r5, r6);
   __ addi(r6, r6, Operand(StandardFrameConstants::kCallerSPOffset));
-  __ StoreP(r6, MemOperand(sp, 2 * kPointerSize));
+  __ StoreP(r6, MemOperand(sp, 3 * kPointerSize));
 
   __ bind(&runtime);
-  __ TailCallRuntime(Runtime::kNewRestParam, 3, 1);
+  __ TailCallRuntime(Runtime::kNewRestParam, 4, 1);
 }
 
 
@@ -2556,7 +2566,7 @@ static void CallStubInRecordCallTarget(MacroAssembler* masm, CodeStub* stub) {
   // r5 : Feedback vector
   // r6 : slot in feedback vector (Smi)
   // r4 : the function to call
-  FrameScope scope(masm, StackFrame::INTERNAL);
+  FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
 
   // Number-of-arguments register must be smi-tagged to call out.
   __ SmiTag(r3);
@@ -2720,7 +2730,7 @@ static void EmitSlowCase(MacroAssembler* masm, int argc, Label* non_function) {
 static void EmitWrapCase(MacroAssembler* masm, int argc, Label* cont) {
   // Wrap the receiver and patch it back onto the stack.
   {
-    FrameScope frame_scope(masm, StackFrame::INTERNAL);
+    FrameAndConstantPoolScope frame_scope(masm, StackFrame::INTERNAL);
     __ Push(r4, r6);
     __ InvokeBuiltin(Builtins::TO_OBJECT, CALL_FUNCTION);
     __ pop(r4);
@@ -3038,7 +3048,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
   // r6 - slot
   // r4 - function
   {
-    FrameScope scope(masm, StackFrame::INTERNAL);
+    FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
     CreateWeakCellStub create_stub(masm->isolate());
     __ Push(r4);
     __ CallStub(&create_stub);
@@ -3066,7 +3076,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
 
 void CallICStub::GenerateMiss(MacroAssembler* masm) {
-  FrameScope scope(masm, StackFrame::INTERNAL);
+  FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
 
   // Push the function and feedback info.
   __ Push(r4, r5, r6);
@@ -3800,7 +3810,7 @@ void CompareICStub::GenerateNumbers(MacroAssembler* masm) {
 
   __ bind(&unordered);
   __ bind(&generic_stub);
-  CompareICStub stub(isolate(), op(), strong(), CompareICState::GENERIC,
+  CompareICStub stub(isolate(), op(), strength(), CompareICState::GENERIC,
                      CompareICState::GENERIC, CompareICState::GENERIC);
   __ Jump(stub.GetCode(), RelocInfo::CODE_TARGET);
 
@@ -4035,7 +4045,7 @@ void CompareICStub::GenerateMiss(MacroAssembler* masm) {
     ExternalReference miss =
         ExternalReference(IC_Utility(IC::kCompareIC_Miss), isolate());
 
-    FrameScope scope(masm, StackFrame::INTERNAL);
+    FrameAndConstantPoolScope scope(masm, StackFrame::INTERNAL);
     __ Push(r4, r3);
     __ Push(r4, r3);
     __ LoadSmiLiteral(r0, Smi::FromInt(op()));
@@ -5662,8 +5672,8 @@ void CallApiGetterStub::Generate(MacroAssembler* masm) {
 
 
 #undef __
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 #endif  // V8_TARGET_ARCH_PPC
 

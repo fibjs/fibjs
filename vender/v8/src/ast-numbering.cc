@@ -168,12 +168,23 @@ void AstNumberingVisitor::VisitThisFunction(ThisFunction* node) {
 }
 
 
-void AstNumberingVisitor::VisitSuperReference(SuperReference* node) {
+void AstNumberingVisitor::VisitSuperPropertyReference(
+    SuperPropertyReference* node) {
   IncrementNodeCount();
   DisableOptimization(kSuperReference);
-  ReserveFeedbackSlots(node);
-  node->set_base_id(ReserveIdRange(SuperReference::num_ids()));
+  node->set_base_id(ReserveIdRange(SuperPropertyReference::num_ids()));
   Visit(node->this_var());
+  Visit(node->home_object());
+}
+
+
+void AstNumberingVisitor::VisitSuperCallReference(SuperCallReference* node) {
+  IncrementNodeCount();
+  DisableOptimization(kSuperReference);
+  node->set_base_id(ReserveIdRange(SuperCallReference::num_ids()));
+  Visit(node->this_var());
+  Visit(node->new_target_var());
+  Visit(node->this_function_var());
 }
 
 
@@ -224,6 +235,7 @@ void AstNumberingVisitor::VisitCountOperation(CountOperation* node) {
   IncrementNodeCount();
   node->set_base_id(ReserveIdRange(CountOperation::num_ids()));
   Visit(node->expression());
+  ReserveFeedbackSlots(node);
 }
 
 
@@ -312,6 +324,7 @@ void AstNumberingVisitor::VisitAssignment(Assignment* node) {
   if (node->is_compound()) VisitBinaryOperation(node->binary_operation());
   Visit(node->target());
   Visit(node->value());
+  ReserveFeedbackSlots(node);
 }
 
 
@@ -341,11 +354,11 @@ void AstNumberingVisitor::VisitSpread(Spread* node) {
 void AstNumberingVisitor::VisitForInStatement(ForInStatement* node) {
   IncrementNodeCount();
   DisableSelfOptimization();
-  ReserveFeedbackSlots(node);
   node->set_base_id(ReserveIdRange(ForInStatement::num_ids()));
   Visit(node->each());
   Visit(node->enumerable());
   Visit(node->body());
+  ReserveFeedbackSlots(node);
 }
 
 
@@ -358,6 +371,7 @@ void AstNumberingVisitor::VisitForOfStatement(ForOfStatement* node) {
   Visit(node->result_done());
   Visit(node->assign_each());
   Visit(node->body());
+  ReserveFeedbackSlots(node);
 }
 
 
@@ -413,7 +427,7 @@ void AstNumberingVisitor::VisitForStatement(ForStatement* node) {
 
 void AstNumberingVisitor::VisitClassLiteral(ClassLiteral* node) {
   IncrementNodeCount();
-  DisableOptimization(kClassLiteral);
+  DisableCrankshaft(kClassLiteral);
   node->set_base_id(ReserveIdRange(node->num_ids()));
   if (node->extends()) Visit(node->extends());
   if (node->constructor()) Visit(node->constructor());
@@ -423,6 +437,7 @@ void AstNumberingVisitor::VisitClassLiteral(ClassLiteral* node) {
   for (int i = 0; i < node->properties()->length(); i++) {
     VisitObjectLiteralProperty(node->properties()->at(i));
   }
+  ReserveFeedbackSlots(node);
 }
 
 
@@ -432,16 +447,18 @@ void AstNumberingVisitor::VisitObjectLiteral(ObjectLiteral* node) {
   for (int i = 0; i < node->properties()->length(); i++) {
     VisitObjectLiteralProperty(node->properties()->at(i));
   }
+  node->BuildConstantProperties(isolate());
   // Mark all computed expressions that are bound to a key that
   // is shadowed by a later occurrence of the same key. For the
   // marked expressions, no store code will be is emitted.
   node->CalculateEmitStore(zone());
+  ReserveFeedbackSlots(node);
 }
 
 
 void AstNumberingVisitor::VisitObjectLiteralProperty(
     ObjectLiteralProperty* node) {
-  if (node->is_computed_name()) DisableOptimization(kComputedPropertyName);
+  if (node->is_computed_name()) DisableCrankshaft(kComputedPropertyName);
   Visit(node->key());
   Visit(node->value());
 }
@@ -541,5 +558,5 @@ bool AstNumbering::Renumber(Isolate* isolate, Zone* zone,
   AstNumberingVisitor visitor(isolate, zone);
   return visitor.Renumber(function);
 }
-}
-}  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8

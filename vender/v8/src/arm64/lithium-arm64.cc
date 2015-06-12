@@ -1395,7 +1395,7 @@ LInstruction* LChunkBuilder::DoContext(HContext* instr) {
 LInstruction* LChunkBuilder::DoDateField(HDateField* instr) {
   LOperand* object = UseFixed(instr->value(), x0);
   LDateField* result = new(zone()) LDateField(object, instr->index());
-  return MarkAsCall(DefineFixed(result, x0), instr, CAN_DEOPTIMIZE_EAGERLY);
+  return MarkAsCall(DefineFixed(result, x0), instr, CANNOT_DEOPTIMIZE_EAGERLY);
 }
 
 
@@ -1508,7 +1508,7 @@ LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
   inner->BindContext(instr->closure_context());
   inner->set_entry(instr);
   current_block_->UpdateEnvironment(inner);
-  chunk_->AddInlinedClosure(instr->closure());
+  chunk_->AddInlinedFunction(instr->shared());
   return NULL;
 }
 
@@ -2768,7 +2768,8 @@ LInstruction* LChunkBuilder::DoAllocateBlockContext(
 }
 
 
-} }  // namespace v8::internal
+}  // namespace internal
+}  // namespace v8
 
 
 #endif  // V8_TARGET_ARCH_ARM64

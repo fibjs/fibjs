@@ -34,6 +34,14 @@ std::ostream& operator<<(std::ostream&, BranchHint);
 BranchHint BranchHintOf(const Operator* const);
 
 
+// Prediction whether throw-site is surrounded by any local catch-scope.
+enum class IfExceptionHint { kLocallyUncaught, kLocallyCaught };
+
+size_t hash_value(IfExceptionHint hint);
+
+std::ostream& operator<<(std::ostream&, IfExceptionHint);
+
+
 class SelectParameters final {
  public:
   explicit SelectParameters(MachineType type,
@@ -94,7 +102,7 @@ class CommonOperatorBuilder final : public ZoneObject {
   const Operator* IfTrue();
   const Operator* IfFalse();
   const Operator* IfSuccess();
-  const Operator* IfException();
+  const Operator* IfException(IfExceptionHint hint);
   const Operator* Switch(size_t control_output_count);
   const Operator* IfValue(int32_t value);
   const Operator* IfDefault();
@@ -129,7 +137,9 @@ class CommonOperatorBuilder final : public ZoneObject {
   const Operator* StateValues(int arguments);
   const Operator* TypedStateValues(const ZoneVector<MachineType>* types);
   const Operator* FrameState(FrameStateType type, BailoutId bailout_id,
-                             OutputFrameStateCombine state_combine);
+                             OutputFrameStateCombine state_combine,
+                             MaybeHandle<SharedFunctionInfo> shared_info =
+                                 MaybeHandle<SharedFunctionInfo>());
   const Operator* Call(const CallDescriptor* descriptor);
   const Operator* TailCall(const CallDescriptor* descriptor);
   const Operator* Projection(size_t index);

@@ -174,7 +174,6 @@
     <ClInclude Include="src\compiler\scheduler.h" />
     <ClInclude Include="src\compiler\select-lowering.h" />
     <ClInclude Include="src\compiler\simplified-lowering.h" />
-    <ClInclude Include="src\compiler\simplified-operator-reducer.h" />
     <ClInclude Include="src\compiler\simplified-operator.h" />
     <ClInclude Include="src\compiler\source-position.h" />
     <ClInclude Include="src\compiler\state-values-utils.h" />
@@ -204,6 +203,7 @@
     <ClInclude Include="src\elements-kind.h" />
     <ClInclude Include="src\elements.h" />
     <ClInclude Include="src\execution.h" />
+    <ClInclude Include="src\expression-classifier.h" />
     <ClInclude Include="src\extensions\externalize-string-extension.h" />
     <ClInclude Include="src\extensions\free-buffer-extension.h" />
     <ClInclude Include="src\extensions\gc-extension.h" />
@@ -326,7 +326,6 @@
     <ClInclude Include="src\ostreams.h" />
     <ClInclude Include="src\parser.h" />
     <ClInclude Include="src\pending-compilation-error-handler.h" />
-    <ClInclude Include="src\perf-jit.h" />
     <ClInclude Include="src\ppc\assembler-ppc-inl.h" />
     <ClInclude Include="src\ppc\assembler-ppc.h" />
     <ClInclude Include="src\ppc\code-stubs-ppc.h" />
@@ -380,7 +379,6 @@
     <ClInclude Include="src\strings-storage.h" />
     <ClInclude Include="src\strtod.h" />
     <ClInclude Include="src\third_party\fdlibm\fdlibm.h" />
-    <ClInclude Include="src\third_party\kernel\tools\perf\util\jitdump.h" />
     <ClInclude Include="src\third_party\valgrind\valgrind.h" />
     <ClInclude Include="src\token.h" />
     <ClInclude Include="src\transitions-inl.h" />
@@ -554,7 +552,6 @@
     <ClCompile Include="src\compiler\scheduler.cc" />
     <ClCompile Include="src\compiler\select-lowering.cc" />
     <ClCompile Include="src\compiler\simplified-lowering.cc" />
-    <ClCompile Include="src\compiler\simplified-operator-reducer.cc" />
     <ClCompile Include="src\compiler\simplified-operator.cc" />
     <ClCompile Include="src\compiler\source-position.cc" />
     <ClCompile Include="src\compiler\state-values-utils.cc" />
@@ -704,7 +701,6 @@
     <ClCompile Include="src\parser.cc" />
     <ClCompile Include="src\pattern-rewriter.cc" />
     <ClCompile Include="src\pending-compilation-error-handler.cc" />
-    <ClCompile Include="src\perf-jit.cc" />
     <ClCompile Include="src\ppc\assembler-ppc.cc" />
     <ClCompile Include="src\ppc\builtins-ppc.cc" />
     <ClCompile Include="src\ppc\code-stubs-ppc.cc" />
@@ -735,11 +731,13 @@
     <ClCompile Include="src\rewriter.cc" />
     <ClCompile Include="src\runtime-profiler.cc" />
     <ClCompile Include="src\runtime\runtime-array.cc" />
+    <ClCompile Include="src\runtime\runtime-atomics.cc" />
     <ClCompile Include="src\runtime\runtime-classes.cc" />
     <ClCompile Include="src\runtime\runtime-collections.cc" />
     <ClCompile Include="src\runtime\runtime-compiler.cc" />
     <ClCompile Include="src\runtime\runtime-date.cc" />
     <ClCompile Include="src\runtime\runtime-debug.cc" />
+    <ClCompile Include="src\runtime\runtime-forin.cc" />
     <ClCompile Include="src\runtime\runtime-function.cc" />
     <ClCompile Include="src\runtime\runtime-generator.cc" />
     <ClCompile Include="src\runtime\runtime-i18n.cc" />

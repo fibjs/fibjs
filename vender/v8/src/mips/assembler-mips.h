@@ -500,19 +500,16 @@ class Assembler : public AssemblerBase {
                                     ICacheFlushMode icache_flush_mode =
                                         FLUSH_ICACHE_IF_NEEDED);
   // On MIPS there is no Constant Pool so we skip that parameter.
-  INLINE(static Address target_address_at(Address pc,
-                                          ConstantPoolArray* constant_pool)) {
+  INLINE(static Address target_address_at(Address pc, Address constant_pool)) {
     return target_address_at(pc);
   }
-  INLINE(static void set_target_address_at(Address pc,
-                                           ConstantPoolArray* constant_pool,
-                                           Address target,
-                                           ICacheFlushMode icache_flush_mode =
-                                               FLUSH_ICACHE_IF_NEEDED)) {
+  INLINE(static void set_target_address_at(
+      Address pc, Address constant_pool, Address target,
+      ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED)) {
     set_target_address_at(pc, target, icache_flush_mode);
   }
   INLINE(static Address target_address_at(Address pc, Code* code)) {
-    ConstantPoolArray* constant_pool = code ? code->constant_pool() : NULL;
+    Address constant_pool = code ? code->constant_pool() : NULL;
     return target_address_at(pc, constant_pool);
   }
   INLINE(static void set_target_address_at(Address pc,
@@ -520,7 +517,7 @@ class Assembler : public AssemblerBase {
                                            Address target,
                                            ICacheFlushMode icache_flush_mode =
                                                FLUSH_ICACHE_IF_NEEDED)) {
-    ConstantPoolArray* constant_pool = code ? code->constant_pool() : NULL;
+    Address constant_pool = code ? code->constant_pool() : NULL;
     set_target_address_at(pc, constant_pool, target, icache_flush_mode);
   }
 
@@ -609,6 +606,9 @@ class Assembler : public AssemblerBase {
   // possible to align the pc offset to a multiple
   // of m. m must be a power of 2 (>= 4).
   void Align(int m);
+  // Insert the smallest number of zero bytes possible to align the pc offset
+  // to a mulitple of m. m must be a power of 2 (>= 2).
+  void DataAlign(int m);
   // Aligns code to something that's optimal for a jump target for the platform.
   void CodeTargetAlign();
 
@@ -1081,6 +1081,8 @@ class Assembler : public AssemblerBase {
   // inline tables, e.g., jump-tables.
   void db(uint8_t data);
   void dd(uint32_t data);
+  void dq(uint64_t data);
+  void dp(uintptr_t data) { dd(data); }
   void dd(Label* label);
 
   // Emits the address of the code stub's first instruction.
@@ -1165,11 +1167,12 @@ class Assembler : public AssemblerBase {
 
   void CheckTrampolinePool();
 
-  // Allocate a constant pool of the correct size for the generated code.
-  Handle<ConstantPoolArray> NewConstantPool(Isolate* isolate);
-
-  // Generate the constant pool for the generated code.
-  void PopulateConstantPool(ConstantPoolArray* constant_pool);
+  void PatchConstantPoolAccessInstruction(int pc_offset, int offset,
+                                          ConstantPoolEntry::Access access,
+                                          ConstantPoolEntry::Type type) {
+    // No embedded constant pool support.
+    UNREACHABLE();
+  }
 
  protected:
   // Relocation for a type-recording IC has the AST id added to it.  This

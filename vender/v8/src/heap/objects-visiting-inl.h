@@ -5,6 +5,7 @@
 #ifndef V8_OBJECTS_VISITING_INL_H_
 #define V8_OBJECTS_VISITING_INL_H_
 
+#include "src/heap/objects-visiting.h"
 
 namespace v8 {
 namespace internal {
@@ -135,8 +136,6 @@ void StaticMarkingVisitor<StaticVisitor>::Initialize() {
   table_.Register(kVisitFixedTypedArray, &DataObjectVisitor::Visit);
 
   table_.Register(kVisitFixedFloat64Array, &DataObjectVisitor::Visit);
-
-  table_.Register(kVisitConstantPoolArray, &VisitConstantPoolArray);
 
   table_.Register(kVisitNativeContext, &VisitNativeContext);
 
@@ -331,7 +330,8 @@ void StaticMarkingVisitor<StaticVisitor>::VisitWeakCell(Map* map,
   // We can ignore weak cells with cleared values because they will always
   // contain smi zero.
   if (weak_cell->next() == undefined && !weak_cell->cleared()) {
-    weak_cell->set_next(heap->encountered_weak_cells());
+    weak_cell->set_next(heap->encountered_weak_cells(),
+                        UPDATE_WEAK_WRITE_BARRIER);
     heap->set_encountered_weak_cells(weak_cell);
   }
 }
@@ -442,34 +442,6 @@ void StaticMarkingVisitor<StaticVisitor>::VisitSharedFunctionInfo(
     }
   }
   VisitSharedFunctionInfoStrongCode(heap, object);
-}
-
-
-template <typename StaticVisitor>
-void StaticMarkingVisitor<StaticVisitor>::VisitConstantPoolArray(
-    Map* map, HeapObject* object) {
-  Heap* heap = map->GetHeap();
-  ConstantPoolArray* array = ConstantPoolArray::cast(object);
-  ConstantPoolArray::Iterator code_iter(array, ConstantPoolArray::CODE_PTR);
-  while (!code_iter.is_finished()) {
-    Address code_entry = reinterpret_cast<Address>(
-        array->RawFieldOfElementAt(code_iter.next_index()));
-    StaticVisitor::VisitCodeEntry(heap, code_entry);
-  }
-
-  ConstantPoolArray::Iterator heap_iter(array, ConstantPoolArray::HEAP_PTR);
-  while (!heap_iter.is_finished()) {
-    Object** slot = array->RawFieldOfElementAt(heap_iter.next_index());
-    HeapObject* object = HeapObject::cast(*slot);
-    heap->mark_compact_collector()->RecordSlot(slot, slot, object);
-    bool is_weak_object =
-        (array->get_weak_object_state() ==
-             ConstantPoolArray::WEAK_OBJECTS_IN_OPTIMIZED_CODE &&
-         Code::IsWeakObjectInOptimizedCode(object));
-    if (!is_weak_object) {
-      StaticVisitor::MarkObject(heap, object);
-    }
-  }
 }
 
 
@@ -599,13 +571,8 @@ void StaticMarkingVisitor<StaticVisitor>::MarkTransitionArray(
   if (!StaticVisitor::MarkObjectWithoutPush(heap, transitions)) return;
 
   if (transitions->HasPrototypeTransitions()) {
-    // Mark prototype transitions array but do not push it onto marking
-    // stack, this will make references from it weak. We will clean dead
-    // prototype transitions in ClearNonLiveReferences.
-    Object** slot = transitions->GetPrototypeTransitionsSlot();
-    HeapObject* obj = HeapObject::cast(*slot);
-    heap->mark_compact_collector()->RecordSlot(slot, slot, obj);
-    StaticVisitor::MarkObjectWithoutPush(heap, obj);
+    StaticVisitor::VisitPointer(heap,
+                                transitions->GetPrototypeTransitionsSlot());
   }
 
   int num_transitions = TransitionArray::NumberOfTransitions(transitions);
@@ -618,19 +585,16 @@ void StaticMarkingVisitor<StaticVisitor>::MarkTransitionArray(
 template <typename StaticVisitor>
 void StaticMarkingVisitor<StaticVisitor>::MarkInlinedFunctionsCode(Heap* heap,
                                                                    Code* code) {
-  // Skip in absence of inlining.
-  // TODO(turbofan): Revisit once we support inlining.
-  if (code->is_turbofanned()) return;
   // For optimized functions we should retain both non-optimized version
   // of its code and non-optimized version of all inlined functions.
   // This is required to support bailing out from inlined code.
-  DeoptimizationInputData* data =
+  DeoptimizationInputData* const data =
       DeoptimizationInputData::cast(code->deoptimization_data());
-  FixedArray* literals = data->LiteralArray();
-  for (int i = 0, count = data->InlinedFunctionCount()->value(); i < count;
-       i++) {
-    JSFunction* inlined = JSFunction::cast(literals->get(i));
-    StaticVisitor::MarkObject(heap, inlined->shared()->code());
+  FixedArray* const literals = data->LiteralArray();
+  int const inlined_count = data->InlinedFunctionCount()->value();
+  for (int i = 0; i < inlined_count; ++i) {
+    StaticVisitor::MarkObject(
+        heap, SharedFunctionInfo::cast(literals->get(i))->code());
   }
 }
 
@@ -827,7 +791,6 @@ void Code::CodeIterateBody(ObjectVisitor* v) {
   IteratePointer(v, kDeoptimizationDataOffset);
   IteratePointer(v, kTypeFeedbackInfoOffset);
   IterateNextCodeLink(v, kNextCodeLinkOffset);
-  IteratePointer(v, kConstantPoolOffset);
 
   RelocIterator it(this, mode_mask);
   Isolate* isolate = this->GetIsolate();
@@ -864,8 +827,6 @@ void Code::CodeIterateBody(Heap* heap) {
       reinterpret_cast<Object**>(this->address() + kTypeFeedbackInfoOffset));
   StaticVisitor::VisitNextCodeLink(
       heap, reinterpret_cast<Object**>(this->address() + kNextCodeLinkOffset));
-  StaticVisitor::VisitPointer(
-      heap, reinterpret_cast<Object**>(this->address() + kConstantPoolOffset));
 
 
   RelocIterator it(this, mode_mask);
