@@ -5,7 +5,7 @@ cd ../../../source/js/v8/v8
 V8_PATH=`pwd`
 
 # git pull
-make ia32.release
+make ia32.release -j
 
 cd $WORK_PATH
 
