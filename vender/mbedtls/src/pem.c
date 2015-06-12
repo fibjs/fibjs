@@ -1,12 +1,9 @@
 /*
  *  Privacy Enhanced Mail (PEM) decoding
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
- *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
- *
- *  All rights reserved.
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +27,7 @@
 #endif
 
 #if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
+
 #include "polarssl/pem.h"
 #include "polarssl/base64.h"
 #include "polarssl/des.h"
@@ -37,14 +35,15 @@
 #include "polarssl/md5.h"
 #include "polarssl/cipher.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -322,7 +321,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
     if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
 
-    if( ( buf = (unsigned char *) polarssl_malloc( len ) ) == NULL )
+    if( ( buf = polarssl_malloc( len ) ) == NULL )
         return( POLARSSL_ERR_PEM_MALLOC_FAILED );
 
     if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )

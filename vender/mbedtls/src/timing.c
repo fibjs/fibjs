@@ -1,12 +1,9 @@
 /*
  *  Portable interface to the CPU cycle counter
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
- *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
- *
- *  All rights reserved.
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,8 +77,10 @@ unsigned long hardclock( void )
 #endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
           ( _MSC_VER && _M_IX86 ) || __WATCOMC__ */
 
+/* some versions of mingw-64 have 32-bit longs even on x84_64 */
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && defined(__i386__)
+    defined(__GNUC__) && ( defined(__i386__) || (                       \
+    ( defined(__amd64__) || defined( __x86_64__) ) && __SIZEOF_LONG__ == 4 ) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -252,9 +251,13 @@ unsigned long get_timer( struct hr_time *val, int reset )
     return( delta );
 }
 
-DWORD WINAPI TimerProc( LPVOID uElapse )
+/* It's OK to use a global because alarm() is supposed to be global anyway */
+static DWORD alarmMs;
+
+static DWORD WINAPI TimerProc( LPVOID TimerContext )
 {
-    Sleep( (DWORD) uElapse );
+    ((void) TimerContext);
+    Sleep( alarmMs );
     alarmed = 1;
     return( TRUE );
 }
@@ -264,8 +267,8 @@ void set_alarm( int seconds )
     DWORD ThreadId;
 
     alarmed = 0;
-    CloseHandle( CreateThread( NULL, 0, TimerProc,
-        (LPVOID) ( seconds * 1000 ), 0, &ThreadId ) );
+    alarmMs = seconds * 1000;
+    CloseHandle( CreateThread( NULL, 0, TimerProc, NULL, 0, &ThreadId ) );
 }
 
 void m_sleep( int milliseconds )

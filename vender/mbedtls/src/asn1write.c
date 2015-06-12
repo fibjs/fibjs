@@ -1,12 +1,9 @@
 /*
  * ASN.1 buffer writing functionality
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
- *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
- *
- *  All rights reserved.
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +29,8 @@
 #if defined(POLARSSL_ASN1_WRITE_C)
 
 #include "polarssl/asn1write.h"
+
+#include <string.h>
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -327,6 +326,8 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
             return( NULL );
         }
 
+        memcpy( cur->oid.p, oid, oid_len );
+
         cur->val.len = val_len;
         cur->val.p = polarssl_malloc( val_len );
         if( cur->val.p == NULL )
@@ -335,8 +336,6 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
             polarssl_free( cur );
             return( NULL );
         }
-
-        memcpy( cur->oid.p, oid, oid_len );
 
         cur->next = *head;
         *head = cur;

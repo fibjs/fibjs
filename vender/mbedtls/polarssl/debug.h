@@ -3,12 +3,9 @@
  *
  * \brief Debug functions
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
- *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
- *
- *  All rights reserved.
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +29,9 @@
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
+
 #include "ssl.h"
+
 #if defined(POLARSSL_ECP_C)
 #include "ecp.h"
 #endif
