@@ -150,13 +150,14 @@ public:
     void Attach(v8::Local<v8::Object> o, const char **skips)
     {
         Isolate &isolate = Isolate::now();
+        v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate.isolate, isolate.s_context);
 
         _init();
         int i;
 
         for (i = 0; i < m_cd.mc; i++)
             if (!is_skip(m_cd.cms[i].name, skips))
-                o->ForceSet(v8::String::NewFromUtf8(isolate.isolate, m_cd.cms[i].name),
+                o->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, m_cd.cms[i].name),
                             v8::Function::New(isolate.isolate, m_cd.cms[i].invoker),
                             v8::ReadOnly);
 
@@ -164,15 +165,16 @@ public:
             if (!is_skip(m_cd.cos[i].name, skips))
             {
                 m_cd.cos[i].invoker()._init();
-                o->ForceSet(v8::String::NewFromUtf8(isolate.isolate, m_cd.cos[i].name),
+                o->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, m_cd.cos[i].name),
                             v8::Local<v8::Function>::New(isolate.isolate, m_cd.cos[i].invoker().m_function),
                             v8::ReadOnly);
             }
 
-        for (i = 0; i < m_cd.pc; i++)
-            if (!is_skip(m_cd.cps[i].name, skips))
-                o->SetAccessor(v8::String::NewFromUtf8(isolate.isolate, m_cd.cps[i].name),
-                               m_cd.cps[i].getter, m_cd.cps[i].setter);
+        /*        for (i = 0; i < m_cd.pc; i++)
+                    if (!is_skip(m_cd.cps[i].name, skips))
+                        o->SetAccessor(v8::String::NewFromUtf8(isolate.isolate, m_cd.cps[i].name),
+                                       m_cd.cps[i].getter, m_cd.cps[i].setter);
+        */
     }
 
 public:
