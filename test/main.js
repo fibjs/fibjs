@@ -1,6 +1,7 @@
 #!/bin/js
 
 var test = require("test");
+var coroutine = require('coroutine');
 
 run("assert_test.js");
 run("expect_test.js");
@@ -39,6 +40,6 @@ run("db_test.js");
 
 run('BUG_simple_api_call.js');
 
-(function() {
+coroutine.start(function() {
 	test.run();
-}).start().join();
+}).join();

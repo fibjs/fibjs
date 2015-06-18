@@ -3,6 +3,7 @@
  */
 
 var net = require('net');
+var coroutine = require('coroutine');
 var b = new Buffer("HTTP/1.0 200 ok\r\nConnection: keep-alive\r\nContent-Length: 6\r\n\r\nhello.");
 
 function connect(c) {
@@ -21,6 +22,6 @@ while (1) {
 	//	console.log('wait accept..');
 	var s1 = s.accept();
 	//	console.log('accept..');
-	connect.start(s1);
+	coroutine.start(connect, s1);
 	//	console.log('start fiber..');
 }

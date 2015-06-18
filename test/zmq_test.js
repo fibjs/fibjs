@@ -12,7 +12,7 @@ function s1() {
 	s.close();
 }
 
-s1.start();
+coroutine.start(s1);
 
 var c = new zmq.Socket(zmq.REQ);
 c.connect('tcp://localhost:5555');

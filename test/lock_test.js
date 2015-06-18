@@ -21,7 +21,7 @@ describe('lock', function() {
 			l.release();
 		}
 
-		f.start();
+		coroutine.start(f);
 		coroutine.sleep();
 		l.acquire();
 		assert.equal(300, v);
@@ -43,7 +43,7 @@ describe('lock', function() {
 			}
 		}
 
-		f1.start();
+		coroutine.start(f1);
 		coroutine.sleep();
 		assert.equal(100, v);
 
@@ -74,7 +74,7 @@ describe('lock', function() {
 			cond.release();
 		}
 
-		f3.start();
+		coroutine.start(f3);
 
 		cond.acquire();
 		coroutine.sleep();

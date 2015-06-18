@@ -23,6 +23,7 @@ describe("vm", function() {
 
 		sbox.add('a', new Number(100));
 		sbox.add('a', 100);
+		sbox.add('coroutine', require('coroutine'));
 
 		sbox.require('./vm_test/t1').fun();
 		assert.equal(1000, b.a);

@@ -5,6 +5,7 @@ var fs = require('fs');
 var io = require('io');
 var net = require('net');
 var mq = require('mq');
+var coroutine = require('coroutine');
 
 describe("buffered stream", function() {
 	var s;
@@ -59,7 +60,7 @@ describe("buffered stream", function() {
 		var s1 = new net.Socket();
 		s1.bind(8182);
 		s1.listen();
-		accept1.start(s1);
+		coroutine.start(accept1, s1);
 
 		for (var i = 3; i < 100000; i *= 3) {
 			var conn = new net.Socket();

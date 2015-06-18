@@ -14,7 +14,7 @@ describe('coroutine', function() {
 	it('start', function() {
 		n = 123;
 
-		var f = t_fiber.start(100, 200);
+		var f = coroutine.start(t_fiber, 100, 200);
 		assert.equal(n, 123);
 		coroutine.sleep();
 		assert.equal(n, 300);
@@ -33,7 +33,7 @@ describe('coroutine', function() {
 	it("Memory Leak detect", function() {
 		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
-		var f = (function(v) {}).start(new Buffer());
+		var f = coroutine.start(function(v) {}, new Buffer());
 		GC();
 		assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 		f.join();
@@ -48,7 +48,7 @@ describe('coroutine', function() {
 
 		n = 323;
 
-		var f = t_fiber1.start(100, 200);
+		var f = coroutine.start(t_fiber1, 100, 200);
 		assert.equal(n, 323);
 		f.v = 1000;
 		f.join();
@@ -62,13 +62,13 @@ describe('coroutine', function() {
 
 		n = 1300;
 
-		var f = t_fiber2.start(100, 200);
+		var f = coroutine.start(t_fiber2, 100, 200);
 		assert.equal(n, 1300);
 		f.v = 2000;
 		f.join();
 		assert.equal(n, 2300);
 
-		f = t_fiber2.start(100, 200);
+		f = coroutine.start(t_fiber2, 100, 200);
 		assert.equal(n, 2300);
 		f.v = 1000;
 		coroutine.sleep(100);
@@ -83,7 +83,7 @@ describe('coroutine', function() {
 
 		n = 1300;
 
-		var f = t_fiber3.start(100, 200);
+		var f = coroutine.start(t_fiber3, 100, 200);
 		assert.equal(n, 1300);
 		coroutine.current().v = 1234;
 		f.join();
@@ -99,7 +99,7 @@ describe('coroutine', function() {
 
 		coroutine.current().v = 1000;
 
-		var f = t_fiber4.start();
+		var f = coroutine.start(t_fiber4);
 		assert.equal(n, 0);
 
 		coroutine.current().v = 2000;
@@ -174,8 +174,7 @@ describe('coroutine', function() {
 				t();
 			});
 		}
-
-		stack_size.start();
+		coroutine.start(stack_size);
 		coroutine.sleep();
 	});
 
@@ -287,9 +286,9 @@ describe('coroutine', function() {
 			q.put(300);
 			assert.deepEqual(q.toArray(), [100, 200, 300]);
 
-			(function() {
+			coroutine.start(function() {
 				q.put(400);
-			}).start();
+			});
 			coroutine.sleep(10);
 			assert.deepEqual(q.toArray(), [100, 200, 300]);
 			q.remove();
@@ -302,9 +301,9 @@ describe('coroutine', function() {
 			var q = new coroutine.BlockQueue(3);
 			var e;
 
-			(function() {
+			coroutine.start(function() {
 				e = q.take();
-			}).start();
+			});
 			coroutine.sleep(10);
 
 			q.add(100);
