@@ -4,6 +4,7 @@ test.setup();
 var mq = require('mq');
 var net = require('net');
 var io = require('io');
+var coroutine = require('coroutine');
 
 var m = new mq.Message();
 var v = new Buffer('abcd');
@@ -329,7 +330,7 @@ describe("mq", function() {
 				n = 200;
 				aw.end();
 			}
-			delayend.start();
+			coroutine.start(delayend);
 
 			return aw;
 		}), m);

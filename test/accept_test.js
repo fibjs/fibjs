@@ -24,7 +24,7 @@ function f() {
 }
 
 for (var j = 0; j < 100; j++)
-	f.start();
+	coroutine.start(f);
 
 while (cnt < 10000000)
 	coroutine.sleep(1);

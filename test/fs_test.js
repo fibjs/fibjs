@@ -1,4 +1,5 @@
 var test = require("test");
+var coroutine = require('coroutine');
 test.setup();
 
 var fs = require('fs');
@@ -113,9 +114,9 @@ describe('fs', function() {
 		var f = fs.open('fs_test.js');
 		var num = 0;
 
-		(function() {
+		coroutine.start(function() {
 			num = 1;
-		}).start();
+		});
 		f = undefined;
 		assert.equal(num, 0);
 		GC();

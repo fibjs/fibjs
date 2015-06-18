@@ -934,9 +934,9 @@ describe('util', function() {
 			assert.equal(c.get("a", updater), "a_value");
 			assert.equal(call_num, 1);
 
-			(function() {
+			coroutine.start(function() {
 				c.get("b", updater);
-			}).start();
+			});
 			coroutine.sleep(1);
 			assert.equal(c.get("b"), "b_value");
 			assert.equal(call_num, 2);
@@ -945,9 +945,9 @@ describe('util', function() {
 				c.get("c", updater);
 			}
 
-			test_c.start();
-			test_c.start();
-			test_c.start();
+			coroutine.start(test_c);
+			coroutine.start(test_c);
+			coroutine.start(test_c);
 			coroutine.sleep(1);
 			assert.equal(c.get("c"), "c_value");
 			assert.equal(call_num, 3);

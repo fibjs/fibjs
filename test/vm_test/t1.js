@@ -1,4 +1,5 @@
 var assert = require('assert');
+var coroutine = require('coroutine');
 
 assert.equal(100, require('a'));
 assert.equal(300, require('c'));
@@ -13,6 +14,6 @@ function fun() {
 }
 
 fun();
-fun.start().join();
+coroutine.start(fun).join();
 
 exports.fun = fun;
