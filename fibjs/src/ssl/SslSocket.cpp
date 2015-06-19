@@ -8,6 +8,7 @@
 #include "SslSocket.h"
 #include "Stream.h"
 #include "PKey.h"
+#include <string.h>
 
 namespace fibjs
 {

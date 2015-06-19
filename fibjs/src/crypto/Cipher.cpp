@@ -9,6 +9,7 @@
 #include "Cipher.h"
 #include "Buffer.h"
 #include "ssl.h"
+#include <string.h>
 
 namespace fibjs
 {

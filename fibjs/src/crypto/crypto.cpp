@@ -14,6 +14,7 @@
 #include "X509Req.h"
 #include "ssl.h"
 #include <time.h>
+#include <string.h>
 
 namespace fibjs
 {
