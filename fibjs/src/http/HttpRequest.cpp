@@ -360,7 +360,7 @@ void HttpRequest::parse(std::string &str, char split,
         }
 
         if (pstr > pstrTemp)
-            Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strKey);
+            Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strKey, true);
         else
             strKey.clear();
 
@@ -380,7 +380,7 @@ void HttpRequest::parse(std::string &str, char split,
         if (!strKey.empty())
         {
             if (pstr > pstrTemp)
-                Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue);
+                Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue, true);
             else
                 strValue.clear();
         }
