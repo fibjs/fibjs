@@ -57,7 +57,7 @@ function dang(n){
 }
 
 for(var i = 0; i < 5; i ++)
-  dang.start(i);
+  coroutine.start(dang,i);
 
 while(true)
   coroutine.sleep(1000);
@@ -91,7 +91,7 @@ function dang(n){
 }
 
 for(var i = 0; i < 5; i ++){
-  dang.start(i);
+  coroutine.start(dang,i);
   coroutine.sleep(200);
 }
 
@@ -129,9 +129,9 @@ var coroutine = require("coroutine");
 function func(){
   ...
 
-  (function(){
+  coroutine.start(function(){
     ...
-  }).start();
+  });
 
   ...
 }

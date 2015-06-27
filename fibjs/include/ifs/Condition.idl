@@ -10,7 +10,7 @@
 
  以下是两个纤程调度的实例：
  @code
- var coroutine = require("coroutine")
+ var coroutine = require("coroutine");
  var cond = new coroutine.Condition();
  var ready = false;
  var state = "ready";
@@ -23,7 +23,7 @@
 	cond.release();
  }
 
- funcwait.start();
+ coroutine.start(funcwait);
 
  cond.acquire();
  console.log(state)
