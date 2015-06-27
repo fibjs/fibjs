@@ -35,6 +35,30 @@ describe('Buffer', function() {
 		assert.equal(buf.toString("base64"), "MTIzNA==");
 	});
 
+	it("concat", function(){
+		assert.equal(Buffer.concat([]).length, 0);
+
+		var a = [new Buffer('abcd')];
+		var b = Buffer.concat(a);
+		assert.equal(b.toString(), "abcd");
+		assert.equal(a[0], b);
+		assert.equal(b.length, 4);
+		assert.throws(function() {
+			Buffer.concat("a");
+		});
+
+		var c = [new Buffer('abc'), new Buffer('def')];
+		c = Buffer.concat(c);
+		assert.equal(c.toString(), "abcdef");
+		assert.equal(c.length, 6);
+
+		var d = [new Buffer('abc'), new Buffer('def')];
+		d = Buffer.concat(d, 6);
+		assert.equal(d.toString(), "abcdef");
+		assert.equal(d.length, 6);
+
+	});
+
 	it('write', function() {
 		var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
 		assert.equal(buf.toString(), "1234");
