@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+#define LOGTIME true
+
 class logger : public obj_base,
     public exlib::OSThread
 {
@@ -51,7 +53,7 @@ public:
             }
         }
 
-        std::string full()
+        std::string full(bool type = LOGTIME)
         {
             static const char *s_levels[] =
             {
@@ -68,10 +70,11 @@ public:
                 " "
             };
             std::string s;
+            if (type) {
+                m_d.sqlString(s);
+                s.append(" ", 1);
+            }
 
-            m_d.sqlString(s);
-
-            s.append(" ", 1);
             s.append(m_source);
 
             s.append(s_levels[m_priority]);
