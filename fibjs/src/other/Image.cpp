@@ -1388,7 +1388,7 @@ result_t Image::copyResampled(Image_base *source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyRotated(Image_base *source, double dstX, double dstY,
                             int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                            int32_t angle, exlib::AsyncEvent *ac)
+                            double angle, exlib::AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);

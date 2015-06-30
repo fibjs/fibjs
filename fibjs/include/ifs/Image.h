@@ -87,7 +87,7 @@ public:
 	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, double angle, exlib::AsyncEvent* ac) = 0;
 
 public:
 	static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -158,7 +158,7 @@ public:
 	ASYNC_MEMBER8(Image_base, copyMergeGray, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_MEMBER9(Image_base, copyResized, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_MEMBER9(Image_base, copyResampled, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
-	ASYNC_MEMBER8(Image_base, copyRotated, Image_base*, double, double, int32_t, int32_t, int32_t, int32_t, int32_t);
+	ASYNC_MEMBER8(Image_base, copyRotated, Image_base*, double, double, int32_t, int32_t, int32_t, int32_t, double);
 };
 
 }
@@ -1053,7 +1053,7 @@ namespace fibjs
 		ARG(int32_t, 4);
 		ARG(int32_t, 5);
 		ARG(int32_t, 6);
-		ARG(int32_t, 7);
+		ARG(double, 7);
 
 		hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
 
