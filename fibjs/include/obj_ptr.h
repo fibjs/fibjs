@@ -90,12 +90,12 @@ public:
     }
 
 protected:
-    int32_t internalRef()
+    exlib::atomic_t internalRef()
     {
         return refs_.inc();
     }
 
-    int32_t internalUnref()
+    exlib::atomic_t internalUnref()
     {
         return refs_.dec();
     }

@@ -188,10 +188,10 @@ public:
         refs_.dec();
     }
 
-    int32_t dump(v8::Local<v8::Object> &o)
+    exlib::atomic_t dump(v8::Local<v8::Object> &o)
     {
         Isolate &isolate = Isolate::now();
-        int32_t cnt = refs_;
+        exlib::atomic_t cnt = refs_;
 
         if (cnt)
         {
@@ -199,19 +199,19 @@ public:
             o->Set(v8::String::NewFromUtf8(isolate.isolate, "class"),
                    v8::String::NewFromUtf8(isolate.isolate, m_cd.name));
             o->Set(v8::String::NewFromUtf8(isolate.isolate, "objects"),
-                   v8::Integer::New(isolate.isolate, cnt));
+                   v8::Integer::New(isolate.isolate, (int32_t)cnt));
 
             v8::Local<v8::Array> inherits = v8::Array::New(isolate.isolate);
 
             ClassInfo *p = m_Inherit;
-            int32_t icnt = 0;
+            exlib::atomic_t icnt = 0;
 
             while (p)
             {
                 v8::Local<v8::Object> o1;
-                int32_t cnt1 = p->dump(o1);
+                exlib::atomic_t cnt1 = p->dump(o1);
                 if (cnt1)
-                    inherits->Set(icnt ++, o1);
+                    inherits->Set((int32_t)(icnt ++), o1);
                 p = p->m_next;
             }
 

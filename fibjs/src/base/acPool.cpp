@@ -77,7 +77,7 @@ public:
                 {
                     s_idleCount = 0;
 
-                    for (int i = s_idleThreads; i < s_threads; i++)
+                    for (int32_t i = (int32_t)s_idleThreads; i < s_threads; i++)
                     {
                         s_ac.start();
                         s_ac.detach();

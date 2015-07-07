@@ -42,7 +42,7 @@ HANDLE s_hIocp;
 class asyncProc: public OVERLAPPED
 {
 public:
-    asyncProc(SOCKET s, exlib::AsyncEvent *ac, int32_t &guard) :
+    asyncProc(SOCKET s, exlib::AsyncEvent *ac, exlib::atomic_t &guard) :
         m_s(s), m_ac(ac), m_guard(guard), m_next(NULL)
     {
         memset((OVERLAPPED *) this, 0, sizeof(OVERLAPPED));
@@ -74,7 +74,7 @@ public:
 public:
     SOCKET m_s;
     exlib::AsyncEvent *m_ac;
-    int32_t &m_guard;
+    exlib::atomic_t &m_guard;
     asyncProc *m_next;
 };
 
@@ -140,7 +140,7 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
     class asyncConnect: public asyncProc
     {
     public:
-        asyncConnect(SOCKET s, inetAddr &ai, exlib::AsyncEvent *ac, int32_t &guard) :
+        asyncConnect(SOCKET s, inetAddr &ai, exlib::AsyncEvent *ac, exlib::atomic_t &guard) :
             asyncProc(s, ac, guard), m_ai(ai)
         {
         }
@@ -227,7 +227,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
     {
     public:
         asyncAccept(SOCKET s, SOCKET sListen, obj_ptr<Socket_base> &retVal,
-                    exlib::AsyncEvent *ac, int32_t &guard) :
+                    exlib::AsyncEvent *ac, exlib::atomic_t &guard) :
             asyncProc(s, ac, guard), m_sListen(sListen), m_retVal(retVal)
         {
         }
@@ -307,7 +307,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  exlib::AsyncEvent *ac, bool bRead, int32_t &guard) :
+                  exlib::AsyncEvent *ac, bool bRead, exlib::atomic_t &guard) :
             asyncProc(s, ac, guard), m_retVal(retVal), m_pos(0), m_bRead(bRead)
         {
             m_buf.resize(bytes > 0 ? bytes : STREAM_BUFF_SIZE);
@@ -387,7 +387,7 @@ result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
     class asyncSend: public asyncProc
     {
     public:
-        asyncSend(SOCKET s, Buffer_base *data, exlib::AsyncEvent *ac, int32_t &guard) :
+        asyncSend(SOCKET s, Buffer_base *data, exlib::AsyncEvent *ac, exlib::atomic_t &guard) :
             asyncProc(s, ac, guard)
         {
             data->toString(m_buf);

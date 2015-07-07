@@ -88,8 +88,8 @@ private:
     int32_t m_family;
     int32_t m_type;
 
-    int32_t m_inRecv;
-    int32_t m_inSend;
+    exlib::atomic_t m_inRecv;
+    exlib::atomic_t m_inSend;
 
 #ifdef _WIN32
     BOOL m_bBind;
