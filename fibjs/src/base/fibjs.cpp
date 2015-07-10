@@ -37,6 +37,8 @@ public:
     }
 };
 
+static exlib::lockfree<Isolate> s_isolates;
+
 void _main(const char *fname)
 {
     v8::Platform *platform = v8::platform::CreateDefaultPlatform();
@@ -46,6 +48,7 @@ void _main(const char *fname)
 
     Isolate is;
     Isolate::reg(&is);
+    s_isolates.put(&is);
 
     Isolate& isolate = Isolate::now();
 
@@ -97,6 +100,42 @@ void _main(const char *fname)
     isolate.s_context.Reset();
 }
 
+}
+
+void InterruptCallback(v8::Isolate *isolate, void *data)
+{
+    std::string msg;
+
+    msg.append("User interrupt.", 15);
+    msg.append(fibjs::traceInfo());
+
+    fibjs::asyncLog(fibjs::console_base::_ERROR, msg);
+    fibjs::process_base::exit(1);
+}
+
+void on_break(int s) {
+    class delay_exit: public exlib::OSThread
+    {
+    public:
+        delay_exit()
+        {
+            start();
+        }
+
+        virtual void Run()
+        {
+            Sleep(10);
+            exit(1);
+        }
+    };
+
+    puts("");
+
+    fibjs::Isolate *p;
+    while ((p = fibjs::s_isolates.get()) != 0)
+        p->isolate->RequestInterrupt(InterruptCallback, NULL);
+
+    new delay_exit();
 }
 
 #ifdef _WIN32
@@ -176,6 +215,17 @@ void enableDump()
     }
 }
 
+BOOL WINAPI win_breakEvent(DWORD dwCtrlType)
+{
+    on_break(0);
+    return TRUE;
+}
+
+void catchBreak()
+{
+    SetConsoleCtrlHandler(win_breakEvent, TRUE);
+}
+
 #else
 
 #include <pwd.h>
@@ -188,6 +238,17 @@ void enableDump()
     { RLIM_INFINITY, RLIM_INFINITY };
 
     setrlimit(RLIMIT_CORE, &corelimit);
+}
+
+void catchBreak()
+{
+    struct sigaction sigIntHandler;
+
+    sigIntHandler.sa_handler = on_break;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+
+    sigaction(SIGINT, &sigIntHandler, NULL);
 }
 
 #endif
@@ -205,6 +266,7 @@ int main(int argc, char *argv[])
                                " --use_strict"
                                " --nologfile_per_isolate";
     enableDump();
+    catchBreak();
 
     exlib::OSThread::Sleep(1);
 
