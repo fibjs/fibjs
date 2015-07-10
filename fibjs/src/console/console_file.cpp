@@ -200,12 +200,12 @@ result_t file_logger::initFile()
     return 0;
 }
 
-void file_logger::write(item *pn)
+void file_logger::write(exlib::List<item> &logs)
 {
     item *p1;
     exlib::AsyncEvent ac;
 
-    while (pn)
+    while (!logs.empty())
     {
         std::string outBuffer;
         result_t hr;
@@ -213,24 +213,17 @@ void file_logger::write(item *pn)
         hr = initFile();
         if (hr < 0)
         {
-            while (pn)
-            {
-                p1 = pn;
-                pn = (logger::item *) p1->m_next;
+            while ((p1 = logs.getHead()) != 0)
                 delete p1;
-            }
 
             break;
         }
 
-        while (pn)
+        while ((p1 = logs.getHead()) != 0)
         {
-            p1 = pn;
-
             outBuffer.append(p1->full());
             outBuffer.append("\n", 1);
 
-            pn = (logger::item *) p1->m_next;
             delete p1;
 
             if (outBuffer.length() > STREAM_BUFF_SIZE)

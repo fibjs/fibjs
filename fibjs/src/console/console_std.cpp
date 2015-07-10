@@ -174,14 +174,12 @@ void std_logger::out(const char *txt)
     fflush(stdout);
 }
 
-void std_logger::write(item *pn)
+void std_logger::write(exlib::List<item> &logs)
 {
     item *p1;
 
-    while (pn)
+    while ((p1 = logs.getHead()) != 0)
     {
-        p1 = pn;
-
         std::string txt;
         if (p1->m_priority == console_base::_NOTICE)
             txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";
@@ -194,7 +192,6 @@ void std_logger::write(item *pn)
 
         out(txt.c_str());
 
-        pn = (logger::item *) p1->m_next;
         delete p1;
     }
 }

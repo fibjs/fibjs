@@ -148,7 +148,7 @@ public:
 
         Runtime::reg(&rt);
 
-        logger::item *p1, *p2, *pn;
+        exlib::List<item> logs;
 
         while (!m_bStop)
         {
@@ -156,19 +156,9 @@ public:
 
             m_logEmpty = false;
 
-            p1 = (logger::item *)m_acLog.getList();
-            pn = NULL;
-
-            while (p1)
-            {
-                p2 = p1;
-                p1 = (logger::item *) p1->m_next;
-                p2->m_next = pn;
-                pn = p2;
-            }
-
-            if (pn)
-                write(pn);
+            m_acLog.getList(logs);
+            if (!logs.empty())
+                write(logs);
 
             m_logEmpty = true;
         }
@@ -177,7 +167,7 @@ public:
     }
 
 public:
-    virtual void write(item *pn) = 0;
+    virtual void write(exlib::List<item> &logs) = 0;
 
     void log(int priority, std::string msg)
     {
@@ -224,7 +214,7 @@ public:
     static TextColor *get_std_color();
 
 private:
-    exlib::AsyncQueue m_acLog;
+    exlib::lockfree<item> m_acLog;
     exlib::OSSemaphore m_sem;
     bool m_logEmpty;
     bool m_bStop;
@@ -234,21 +224,21 @@ private:
 class std_logger : public logger
 {
 public:
-    virtual void write(item *pn);
+    virtual void write(exlib::List<item> &logs);
     static void out(const char *txt);
 };
 
 class sys_logger : public logger
 {
 public:
-    virtual void write(item *pn);
+    virtual void write(exlib::List<item> &logs);
 };
 
 class file_logger : public logger
 {
 public:
     virtual result_t config(v8::Local<v8::Object> o);
-    virtual void write(item *pn);
+    virtual void write(exlib::List<item> &logs);
 
 private:
     void clearFile();

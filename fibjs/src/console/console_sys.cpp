@@ -14,19 +14,15 @@
 namespace fibjs
 {
 
-void sys_logger::write(item *pn)
+void sys_logger::write(exlib::List<item> &logs)
 {
-    item *p1;
+	item *p1;
 
-    while (pn)
-    {
-        p1 = pn;
-
-        ::syslog(p1->m_priority, "%s", p1->full(false).c_str());
-
-        pn = (logger::item *) p1->m_next;
-        delete p1;
-    }
+	while ((p1 = logs.getHead()) != 0)
+	{
+		::syslog(p1->m_priority, "%s", p1->full(false).c_str());
+		delete p1;
+	}
 }
 
 }
