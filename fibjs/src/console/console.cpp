@@ -217,7 +217,7 @@ result_t console_base::_assert(v8::Local<v8::Value> value, const char *msg)
 
 result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    flushLog();
+    flushLog(true);
 
     std::string str;
     util_base::format(fmt, args, str);
@@ -288,7 +288,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 
     if (!ac)
     {
-        flushLog();
+        flushLog(true);
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 

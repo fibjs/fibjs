@@ -49,7 +49,7 @@ result_t process_base::get_execPath(std::string &retVal)
 
 result_t process_base::exit(int32_t code)
 {
-    flushLog();
+    flushLog(false);
 
     ::_exit(code);
     return 0;

@@ -38,7 +38,7 @@ void asyncLog(int priority, std::string msg)
     }
 }
 
-void flushLog()
+void flushLog(bool bFiber)
 {
     int32_t i;
 
@@ -47,12 +47,12 @@ void flushLog()
         obj_ptr<logger> lgr = s_logs[i];
 
         if (lgr)
-            lgr->flush();
+            lgr->flush(bFiber);
         else
             break;
     }
 
-    s_std.flush();
+    s_std.flush(bFiber);
 }
 
 result_t console_base::get_loglevel(int32_t &retVal)

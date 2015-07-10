@@ -774,7 +774,7 @@ inline std::string dump_str(std::string str)
     return strHex;
 }
 
-void flushLog();
+void flushLog(bool bFiber);
 
 }
 
