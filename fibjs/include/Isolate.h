@@ -9,6 +9,7 @@
 #define ISOLATE_H_
 
 #include <exlib/include/list.h>
+#include <exlib/include/service.h>
 
 namespace fibjs
 {
@@ -21,6 +22,7 @@ public:
 	static void reg(void *rt);
 
 public:
+	exlib::Service *service;
 	v8::Isolate *isolate;
 	v8::Persistent<v8::Context> s_context;
 	v8::Persistent<v8::Object> s_global;

@@ -181,7 +181,7 @@ public:
     void flush()
     {
         while (!m_acLog.empty() || !m_logEmpty)
-            coroutine_base::sleep(1);
+            exlib::OSThread::Sleep(1);
     }
 
     void stop()

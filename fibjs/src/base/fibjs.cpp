@@ -56,6 +56,7 @@ void _main(const char *fname)
     ShellArrayBufferAllocator array_buffer_allocator;
     create_params.array_buffer_allocator = &array_buffer_allocator;
 
+    isolate.service = exlib::Service::getFiberService();
     isolate.isolate = v8::Isolate::New(create_params);
     v8::Locker locker(isolate.isolate);
     v8::Isolate::Scope isolate_scope(isolate.isolate);
@@ -113,6 +114,17 @@ void InterruptCallback(v8::Isolate *isolate, void *data)
     fibjs::process_base::exit(1);
 }
 
+void InterruptCallbackEx()
+{
+    if (fibjs::JSFiber::current())
+    {
+        v8::Isolate *isolate = fibjs::Isolate::now().isolate;
+        v8::Locker locker(isolate);
+
+        InterruptCallback(isolate, NULL);
+    }
+}
+
 void on_break(int s) {
     class delay_exit: public exlib::OSThread
     {
@@ -124,7 +136,7 @@ void on_break(int s) {
 
         virtual void Run()
         {
-            Sleep(10);
+            Sleep(200);
             exit(1);
         }
     };
@@ -132,8 +144,10 @@ void on_break(int s) {
     puts("");
 
     fibjs::Isolate *p;
-    while ((p = fibjs::s_isolates.get()) != 0)
+    while ((p = fibjs::s_isolates.get()) != 0) {
         p->isolate->RequestInterrupt(InterruptCallback, NULL);
+        p->service->RequestInterrupt(InterruptCallbackEx);
+    }
 
     new delay_exit();
 }
