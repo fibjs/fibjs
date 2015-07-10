@@ -2,6 +2,10 @@
 
 var test = require("test");
 var coroutine = require('coroutine');
+var process = require('process');
+var common = require('./common.js');
+
+process.chdir(common.basedir);
 
 run("assert_test.js");
 run("expect_test.js");
