@@ -8,11 +8,13 @@
 #ifndef ISOLATE_H_
 #define ISOLATE_H_
 
+#include <exlib/include/list.h>
+
 namespace fibjs
 {
 
 class SandBox;
-class Isolate
+class Isolate : public exlib::linkitem
 {
 public:
 	static Isolate &now();
