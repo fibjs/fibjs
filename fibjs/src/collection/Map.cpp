@@ -63,7 +63,7 @@ result_t Map::get(const char *name, v8::Local<v8::Value> &retVal)
 
 result_t Map::put(const char *name, v8::Local<v8::Value> value)
 {
-    m_datas.insert(std::pair<std::string, Variant>(name, value));
+    m_datas.insert(std::pair<std::string, VariantEx>(name, value));
     return 0;
 }
 
