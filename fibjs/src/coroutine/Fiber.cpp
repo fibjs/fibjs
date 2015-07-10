@@ -14,10 +14,12 @@ namespace fibjs
 {
 
 #define MAX_FIBER   10000
+#define MAX_IDLE   10
 
 static exlib::Queue<asyncEvent> g_jobs;
 static exlib::IDLE_PROC s_oldIdle;
 static int32_t s_fibers;
+static int32_t s_idleFibers;
 
 static int g_tlsCurrent;
 DateCache FiberBase::g_dc;
@@ -66,6 +68,7 @@ inline void fiber_init()
         s_null = new null_fiber_data();
 
         s_fibers = 0;
+        s_idleFibers = 0;
 
         g_tlsCurrent = exlib::Fiber::tlsAlloc();
         s_oldIdle = exlib::Service::root->onIdle(onIdle);
@@ -88,18 +91,25 @@ void *FiberBase::fiber_proc(void *p)
 
         if ((ae = g_jobs.tryget()) == NULL)
         {
+            s_idleFibers ++;
+            if (s_idleFibers > MAX_IDLE) {
+                s_idleFibers --;
+                break;
+            }
+
             v8::Unlocker unlocker(isolate.isolate);
             ae = g_jobs.get();
-        }
 
-        if (ae == NULL)
-            break;
+            s_idleFibers --;
+        }
 
         {
             v8::HandleScope handle_scope(isolate.isolate);
             ae->js_callback();
         }
     }
+
+    s_fibers --;
 
     return NULL;
 }
