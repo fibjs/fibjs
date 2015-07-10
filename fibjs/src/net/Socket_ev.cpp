@@ -76,12 +76,10 @@ class asyncEv;
 static ev_async s_asEvent;
 static exlib::lockfree<asyncEv> s_evWait;
 
-class asyncEv: public ev_io
+class asyncEv: public ev_io,
+    public exlib::linkitem
 {
 public:
-    asyncEv() : m_next(NULL)
-    {}
-
     virtual ~asyncEv()
     {
     }
@@ -95,9 +93,6 @@ public:
     virtual void start()
     {
     }
-
-public:
-    asyncEv *m_next;
 };
 
 class asyncProc: public asyncEv
@@ -197,16 +192,13 @@ public:
 private:
     static void doAsync()
     {
-        asyncEv *p = s_evWait.getList(), *p1;
+        exlib::List<asyncEv> jobs;
+        asyncEv *p1;
 
-        while (p)
-        {
-            p1 = (asyncEv *) p->m_next;
-            p->m_next = NULL;
-            p->start();
+        s_evWait.getList(jobs);
 
-            p = p1;
-        }
+        while ((p1 = jobs.getHead()) != 0)
+            p1->start();
     }
 
     static void tm_cb(struct ev_loop *loop, struct ev_timer *watcher,
