@@ -101,5 +101,4 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 
 ## Test
 
-	cd test
-	fibjs main.js
+	fibjs test/main.js
