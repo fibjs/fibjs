@@ -3,9 +3,9 @@
 var test = require("test");
 var coroutine = require('coroutine');
 var process = require('process');
-var common = require('./common.js');
+var path = require('path');
 
-process.chdir(common.basedir);
+process.chdir(path.dirname(path.fullpath(process.argv[1])));
 
 run("assert_test.js");
 run("expect_test.js");
