@@ -204,7 +204,7 @@ result_t console_base::trace(const char *label)
 
     strBuffer.append("console.trace: ", 15);
     strBuffer.append(label);
-    strBuffer.append(traceInfo());
+    strBuffer.append(traceInfo(10));
 
     asyncLog(_WARN, strBuffer);
     return 0;

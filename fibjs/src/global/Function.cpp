@@ -13,7 +13,7 @@ result_t Function_base::start(const v8::FunctionCallbackInfo<v8::Value> &args, o
 	std::string strBuffer;
 
 	strBuffer.append("Function.start has been deprecated. Please use coroutine.start instead.");
-	strBuffer.append(traceInfo());
+	strBuffer.append(traceInfo(10));
 
 	asyncLog(console_base::_ERROR, strBuffer);
 

@@ -698,7 +698,7 @@ inline result_t SocketError()
 #endif
 }
 
-std::string traceInfo();
+std::string traceInfo(int32_t deep);
 std::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
 void ReportException(v8::TryCatch &try_catch, result_t hr);

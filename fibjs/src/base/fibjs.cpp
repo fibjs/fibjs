@@ -108,7 +108,7 @@ void InterruptCallback(v8::Isolate *isolate, void *data)
     std::string msg;
 
     msg.append("User interrupt.", 15);
-    msg.append(fibjs::traceInfo());
+    msg.append(fibjs::traceInfo(300));
 
     fibjs::asyncLog(fibjs::console_base::_ERROR, msg);
     fibjs::process_base::exit(1);

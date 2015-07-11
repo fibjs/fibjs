@@ -221,10 +221,10 @@ void ReportException(v8::TryCatch &try_catch, result_t hr)
         asyncLog(console_base::_ERROR, GetException(try_catch, hr));
 }
 
-std::string traceInfo()
+std::string traceInfo(int32_t deep)
 {
     v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-            Isolate::now().isolate, 10, v8::StackTrace::kOverview);
+            Isolate::now().isolate, deep, v8::StackTrace::kOverview);
     int count = stackTrace->GetFrameCount();
     int i;
     std::string strBuffer;
