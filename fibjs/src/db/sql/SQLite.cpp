@@ -20,7 +20,7 @@ namespace fibjs
 result_t db_base::openSQLite(const char *connString,
                              obj_ptr<SQLite_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -59,7 +59,7 @@ result_t SQLite::close(exlib::AsyncEvent *ac)
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     sqlite3_close(m_db);
@@ -73,7 +73,7 @@ result_t SQLite::begin(exlib::AsyncEvent *ac)
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
@@ -85,7 +85,7 @@ result_t SQLite::commit(exlib::AsyncEvent *ac)
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
@@ -97,7 +97,7 @@ result_t SQLite::rollback(exlib::AsyncEvent *ac)
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
@@ -251,7 +251,7 @@ result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib:
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return execute(sql, (int) qstrlen(sql), retVal);

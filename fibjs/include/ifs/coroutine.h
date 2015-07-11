@@ -37,16 +37,12 @@ public:
 	static result_t parallel(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
-	static result_t get_singleUserMode(bool& retVal);
-	static result_t set_singleUserMode(bool newVal);
 
 public:
 	static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_get_singleUserMode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_set_singleUserMode(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 };
 
 }
@@ -81,15 +77,10 @@ namespace fibjs
 			{"BlockQueue", BlockQueue_base::class_info}
 		};
 
-		static ClassData::ClassProperty s_property[] = 
-		{
-			{"singleUserMode", s_get_singleUserMode, s_set_singleUserMode}
-		};
-
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			4, s_method, 6, s_object, 1, s_property, NULL, NULL,
+			4, s_method, 6, s_object, 0, NULL, NULL, NULL,
 			NULL
 		};
 
@@ -97,26 +88,6 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline void coroutine_base::s_get_singleUserMode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		bool vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_singleUserMode(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void coroutine_base::s_set_singleUserMode(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-	{
-		PROPERTY_ENTER();
-		PROPERTY_VAL(bool);
-
-		hr = set_singleUserMode(v0);
-
-		PROPERTY_SET_LEAVE();
-	}
 
 	inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{

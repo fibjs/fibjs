@@ -123,17 +123,6 @@ public:
     exlib::Locker m_lock;
 
 public:
-    static bool switchToAsync(exlib::AsyncEvent *ac)
-    {
-        if (m_singleUserMode)
-            return false;
-
-        return !ac;
-    }
-
-    static bool m_singleUserMode;
-
-public:
     class asyncRelease: public asyncCallBack
     {
     public:

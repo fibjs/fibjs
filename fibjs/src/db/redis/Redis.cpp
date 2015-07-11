@@ -21,7 +21,7 @@ namespace fibjs
 result_t db_base::openRedis(const char *connString,
                             obj_ptr<Redis_base> &retVal, exlib::AsyncEvent *ac)
 {
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string host;
@@ -303,7 +303,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *a
         int32_t m_subMode;
     };
 
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_subMode == 1)

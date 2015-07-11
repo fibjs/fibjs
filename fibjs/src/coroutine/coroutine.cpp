@@ -13,8 +13,6 @@
 namespace fibjs
 {
 
-bool object_base::m_singleUserMode;
-
 result_t coroutine_base::start(v8::Local<v8::Function> func,
                                const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<Fiber_base> &retVal)
 {
@@ -178,18 +176,6 @@ result_t coroutine_base::sleep(int32_t ms)
 {
     v8::Unlocker unlocker(Isolate::now().isolate);
     exlib::Fiber::sleep(ms);
-    return 0;
-}
-
-result_t coroutine_base::get_singleUserMode(bool &retVal)
-{
-    retVal = object_base::m_singleUserMode;
-    return 0;
-}
-
-result_t coroutine_base::set_singleUserMode(bool newVal)
-{
-    object_base::m_singleUserMode = newVal;
     return 0;
 }
 

@@ -272,7 +272,7 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
 result_t Cipher::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          exlib::AsyncEvent *ac)
 {
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return process(POLARSSL_ENCRYPT, data, retVal);
@@ -281,7 +281,7 @@ result_t Cipher::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
 result_t Cipher::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          exlib::AsyncEvent *ac)
 {
-    if (switchToAsync(ac))
+    if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return process(POLARSSL_DECRYPT, data, retVal);
