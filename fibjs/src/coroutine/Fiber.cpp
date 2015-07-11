@@ -172,27 +172,15 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
 JSFiber *JSFiber::current()
 {
     fiber_init();
-
     return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
 void JSFiber::js_callback()
 {
-    v8::Local<v8::Value> retVal;
-
     scope s(this);
-
+    v8::Local<v8::Value> retVal;
+    callFunction(retVal);
     Unref();
-
-    callFunction (retVal);
-
-    v8::Local<v8::Object> o = wrap();
-
-    m_quit.set();
-    dispose();
-
-    s_null->Ref();
-    o->SetAlignedPointerInInternalField(0, s_null);
 }
 
 JSFiber::scope::scope(JSFiber *fb) :
@@ -203,14 +191,21 @@ JSFiber::scope::scope(JSFiber *fb) :
     if (fb == NULL)
         m_pFiber = new JSFiber();
 
-    m_pNext = JSFiber::current();
     exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
 }
 
 JSFiber::scope::~scope()
 {
+    v8::Local<v8::Object> o = m_pFiber->wrap();
+
+    m_pFiber->m_quit.set();
+    m_pFiber->dispose();
+
+    s_null->Ref();
+    o->SetAlignedPointerInInternalField(0, s_null);
+
     ReportException(try_catch, m_hr);
-    exlib::Fiber::tlsPut(g_tlsCurrent, m_pNext);
+    exlib::Fiber::tlsPut(g_tlsCurrent, 0);
 }
 
 void asyncCallBack::callback()
