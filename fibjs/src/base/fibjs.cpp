@@ -2,11 +2,11 @@
 #include <locale.h>
 
 #include <string.h>
-#include "ifs/console.h"
 #include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/global.h"
 #include "ifs/Function.h"
+#include "console.h"
 #include "SandBox.h"
 #include "Fiber.h"
 #include "utf8.h"
@@ -112,24 +112,18 @@ std::string traceFiber()
     char buf[128];
     int32_t n = 0;
 
-    if (fibjs::Isolate::rt::g_trace)
+    while (p)
     {
-        while (p)
-        {
-            fibjs::JSFiber* fb = (fibjs::JSFiber*)p;
+        fibjs::JSFiber* fb = (fibjs::JSFiber*)p;
 
-            sprintf(buf, "\nFiber %d:", n++);
-            msg.append(buf);
+        sprintf(buf, "\nFiber %d:", n++);
+        msg.append(buf);
 
-            if (fb == now)
-                msg.append(fibjs::traceInfo(300));
-            else
-                msg.append(fb->m_traceInfo);
-            p = p->m_next;
-        }
-    } else
-    {
-        msg.append(fibjs::traceInfo(300));
+        if (fb == now && fb->m_traceInfo.empty())
+            msg.append(fibjs::traceInfo(300));
+        else
+            msg.append(fb->m_traceInfo);
+        p = p->m_next;
     }
 
     return msg;
@@ -139,22 +133,23 @@ void InterruptCallback(v8::Isolate *isolate, void *data)
 {
     std::string msg;
 
-    msg.append("User interrupt.", 15);
+    msg.append(COLOR_LIGHTRED "User interrupt.");
     msg.append(traceFiber());
+    msg.append(COLOR_RESET "\n");
 
-    fibjs::asyncLog(fibjs::console_base::_ERROR, msg);
-    fibjs::process_base::exit(1);
+    fibjs::std_logger::out(msg.c_str());
+    _exit(1);
 }
 
 void InterruptCallbackEx()
 {
-    if (fibjs::JSFiber::current())
-    {
-        v8::Isolate *isolate = fibjs::Isolate::now().isolate;
-        v8::Locker locker(isolate);
+    fibjs::JSFiber* now = fibjs::JSFiber::current();
+    fibjs::Isolate &is = fibjs::Isolate::now();
 
-        InterruptCallback(isolate, NULL);
-    }
+    if (!now || now->m_traceInfo.empty())
+        is.service->RequestInterrupt(InterruptCallbackEx);
+    else
+        InterruptCallback(is.isolate, NULL);
 }
 
 void on_break(int s) {
@@ -326,7 +321,6 @@ int main(int argc, char *argv[])
                                " --use_strict"
                                " --nologfile_per_isolate";
     enableDump();
-    catchBreak();
 
     exlib::OSThread::Sleep(1);
 
@@ -341,6 +335,9 @@ int main(int argc, char *argv[])
     fibjs::init_argv(argc, argv);
 
     ::setlocale(LC_ALL, "");
+
+    if (fibjs::Isolate::rt::g_trace)
+        catchBreak();
 
     if (argc >= 2 && argv[1][0] != '-')
         fibjs::_main(argv[1]);
