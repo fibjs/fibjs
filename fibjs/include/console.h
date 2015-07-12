@@ -23,7 +23,7 @@ class logger : public obj_base,
     public exlib::OSThread
 {
 public:
-    class item : public asyncEvent
+    class item : public exlib::linkitem
     {
     public:
         item(int32_t priority, std::string msg) :
