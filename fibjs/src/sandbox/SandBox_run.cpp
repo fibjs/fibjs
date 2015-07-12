@@ -167,7 +167,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     Isolate &isolate = Isolate::now();
     v8::Local<v8::Script> script;
     {
-        v8::TryCatch try_catch;
+        TryCatch try_catch;
         v8::Local<v8::String> sname = v8::String::NewFromUtf8(isolate.isolate, name);
 
         {

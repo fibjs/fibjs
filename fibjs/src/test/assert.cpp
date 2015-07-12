@@ -903,7 +903,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
 {
     bool err;
     {
-        v8::TryCatch try_catch;
+        TryCatch try_catch;
         block->Call(v8::Undefined(Isolate::now().isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
@@ -917,7 +917,7 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
 {
     bool err;
     {
-        v8::TryCatch try_catch;
+        TryCatch try_catch;
         block->Call(v8::Undefined(Isolate::now().isolate), 0, NULL);
         err = try_catch.HasCaught();
     }

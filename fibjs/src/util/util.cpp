@@ -253,7 +253,7 @@ std::string json_format(v8::Local<v8::Value> obj)
 
             if (!it->obj.IsEmpty())
             {
-                v8::TryCatch try_catch;
+                TryCatch try_catch;
 
                 string_format(strBuffer, v);
                 strBuffer += ": ";

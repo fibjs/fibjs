@@ -80,7 +80,7 @@ result_t SandBox::Context::repl()
 
         {
             v8::Local<v8::Script> script;
-            v8::TryCatch try_catch;
+            TryCatch try_catch;
 
             script = v8::Script::Compile(
                          v8::String::NewFromUtf8(isolate.isolate, buf.c_str(),

@@ -178,7 +178,7 @@ public:
 
                 cnt++;
                 {
-                    v8::TryCatch try_catch;
+                    TryCatch try_catch;
                     date_t d1, d2;
 
                     d1.now();

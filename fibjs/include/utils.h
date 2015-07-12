@@ -510,7 +510,7 @@ result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict =
         if (bStrict)
             return CALL_E_INVALIDARG;
 
-        v8::TryCatch try_catch;
+        TryCatch try_catch;
 
         v8::Local<v8::Value> vr1;
         Value2Args a(v, vr1);
@@ -701,9 +701,9 @@ inline result_t SocketError()
 std::string traceInfo(int32_t deep);
 std::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
-void ReportException(v8::TryCatch &try_catch, result_t hr);
-std::string GetException(v8::TryCatch &try_catch, result_t hr);
-result_t throwSyntaxError(v8::TryCatch &try_catch);
+void ReportException(TryCatch &try_catch, result_t hr);
+std::string GetException(TryCatch &try_catch, result_t hr);
+result_t throwSyntaxError(TryCatch &try_catch);
 
 #ifdef _WIN32
 

@@ -92,7 +92,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 pargv = &a;
 
             {
-                v8::TryCatch try_catch;
+                TryCatch try_catch;
                 hdlr = func->Call(v8::Undefined(isolate.isolate), len + 1, pargv);
                 if (try_catch.HasCaught())
                 {

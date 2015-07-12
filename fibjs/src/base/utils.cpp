@@ -114,7 +114,7 @@ inline const char *ToCString(const v8::String::Utf8Value &value)
     return *value ? *value : "<string conversion failed>";
 }
 
-std::string GetException(v8::TryCatch &try_catch, result_t hr)
+std::string GetException(TryCatch &try_catch, result_t hr)
 {
     if (try_catch.HasCaught())
     {
@@ -171,7 +171,7 @@ std::string GetException(v8::TryCatch &try_catch, result_t hr)
     return "";
 }
 
-result_t throwSyntaxError(v8::TryCatch &try_catch)
+result_t throwSyntaxError(TryCatch &try_catch)
 {
     v8::String::Utf8Value exception(try_catch.Exception());
 
@@ -215,7 +215,7 @@ result_t throwSyntaxError(v8::TryCatch &try_catch)
     return CALL_E_JAVASCRIPT;
 }
 
-void ReportException(v8::TryCatch &try_catch, result_t hr)
+void ReportException(TryCatch &try_catch, result_t hr)
 {
     if (try_catch.HasCaught() ||  hr < 0)
         asyncLog(console_base::_ERROR, GetException(try_catch, hr));

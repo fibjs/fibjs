@@ -86,7 +86,7 @@ public:
 
     private:
         obj_ptr<JSFiber> m_pFiber;
-        v8::TryCatch try_catch;
+        TryCatch try_catch;
     };
 
 public:
