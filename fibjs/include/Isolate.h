@@ -27,6 +27,7 @@ public:
 	v8::Persistent<v8::Context> s_context;
 	v8::Persistent<v8::Object> s_global;
 	obj_ptr<SandBox> s_topSandbox;
+	exlib::List<exlib::linkitem> m_fibers;
 };
 
 } /* namespace fibjs */
