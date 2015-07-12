@@ -103,12 +103,44 @@ void _main(const char *fname)
 
 }
 
+std::string traceFiber()
+{
+    fibjs::JSFiber* now = fibjs::JSFiber::current();
+    exlib::linkitem* p = fibjs::Isolate::now().m_fibers.head();
+
+    std::string msg;
+    char buf[128];
+    int32_t n = 0;
+
+    if (fibjs::Isolate::rt::g_trace)
+    {
+        while (p)
+        {
+            fibjs::JSFiber* fb = (fibjs::JSFiber*)p;
+
+            sprintf(buf, "\nFiber %d:", n++);
+            msg.append(buf);
+
+            if (fb == now)
+                msg.append(fibjs::traceInfo(300));
+            else
+                msg.append(fb->m_traceInfo);
+            p = p->m_next;
+        }
+    } else
+    {
+        msg.append(fibjs::traceInfo(300));
+    }
+
+    return msg;
+}
+
 void InterruptCallback(v8::Isolate *isolate, void *data)
 {
     std::string msg;
 
     msg.append("User interrupt.", 15);
-    msg.append(fibjs::traceInfo(300));
+    msg.append(traceFiber());
 
     fibjs::asyncLog(fibjs::console_base::_ERROR, msg);
     fibjs::process_base::exit(1);
@@ -126,30 +158,21 @@ void InterruptCallbackEx()
 }
 
 void on_break(int s) {
-    class delay_exit: public exlib::OSThread
-    {
-    public:
-        delay_exit()
-        {
-            start();
-        }
-
-        virtual void Run()
-        {
-            Sleep(200);
-            exit(1);
-        }
-    };
-
     puts("");
+
+    static bool s_double = false;
+    if (s_double)
+    {
+        puts("User interrupt.");
+        _exit(1);
+    }
+    s_double = true;
 
     fibjs::Isolate *p;
     while ((p = fibjs::s_isolates.get()) != 0) {
         p->isolate->RequestInterrupt(InterruptCallback, NULL);
         p->service->RequestInterrupt(InterruptCallbackEx);
     }
-
-    new delay_exit();
 }
 
 #ifdef _WIN32
@@ -267,6 +290,29 @@ void catchBreak()
 
 #endif
 
+void options(int* argc, char *argv[])
+{
+    int df = 0;
+
+    for (int i = 0; i < *argc; i ++)
+    {
+        char* arg = argv[i];
+
+        if (df)
+            argv[i - df] = arg;
+
+        if (!fibjs::qstrcmp(arg, "--trace_fiber")) {
+            df ++;
+            fibjs::Isolate::rt::g_trace = true;
+        } else if (false) {
+
+        }
+    }
+
+    if (df)
+        *argc -= df;
+}
+
 #ifdef x64
 int stack_size = 512;
 #else
@@ -287,6 +333,8 @@ int main(int argc, char *argv[])
     v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
     v8::V8::SetFlagsFromString(s_opts,
                                sprintf(s_opts, "--stack_size=%d", stack_size - 16));
+
+    options(&argc, argv);
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 

@@ -15,11 +15,12 @@
 namespace fibjs
 {
 
-class FiberBase: public Fiber_base, asyncEvent
+class FiberBase: public Fiber_base,
+    public asyncEvent
 {
     FIBER_FREE();
 
-public:
+protected:
     FiberBase()
     {
         m_rt.m_pDateCache = &g_dc;
@@ -29,11 +30,12 @@ public:
     {
     }
 
+public:
     result_t join()
     {
         if (!m_quit.isSet())
         {
-            v8::Unlocker unlocker(Isolate::now().isolate);
+            Isolate::rt _rt;
             m_quit.wait();
         }
 
@@ -179,6 +181,9 @@ private:
     void callFunction1(v8::Local<v8::Function> func,
                        v8::Local<v8::Value> *args, int argCount,
                        v8::Local<v8::Value> &retVal);
+
+public:
+    std::string m_traceInfo;
 
 private:
     v8::Persistent<v8::Function> m_func;

@@ -40,7 +40,7 @@ result_t Condition::wait()
     if (!m_lockCond->m_lock.owned())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    v8::Unlocker unlocker(Isolate::now().isolate);
+    Isolate::rt _rt;
     m_cond.wait(m_lockCond->m_lock);
 
     return 0;

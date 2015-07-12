@@ -151,5 +151,26 @@ void Isolate::reg(void *rt)
     Runtime::reg(rt);
 }
 
+bool Isolate::rt::g_trace = false;
+
+inline JSFiber* saveTrace()
+{
+    JSFiber* fiber = JSFiber::current();
+    fiber->m_traceInfo = traceInfo(300);
+    return fiber;
+}
+
+Isolate::rt::rt() :
+    m_fiber(g_trace ? saveTrace() : NULL),
+    unlocker(Isolate::now().isolate)
+{
+}
+
+Isolate::rt::~rt()
+{
+    if (m_fiber)
+        m_fiber->m_traceInfo.resize(0);
+}
+
 } /* namespace fibjs */
 

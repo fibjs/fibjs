@@ -138,7 +138,7 @@ public:
 
         if (!m_lock.trylock())
         {
-            v8::Unlocker unlocker(Isolate::now().isolate);
+            Isolate::rt _rt;
             m_lock.lock();
         }
     }

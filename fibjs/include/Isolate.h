@@ -15,8 +15,24 @@ namespace fibjs
 {
 
 class SandBox;
+class JSFiber;
 class Isolate : public exlib::linkitem
 {
+public:
+	class rt
+	{
+	public:
+		rt();
+		~rt();
+
+	public:
+		static bool g_trace;
+
+	private:
+		JSFiber *m_fiber;
+		v8::Unlocker unlocker;
+	};
+
 public:
 	static Isolate &now();
 	static void reg(void *rt);

@@ -174,7 +174,7 @@ result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
 
 result_t coroutine_base::sleep(int32_t ms)
 {
-    v8::Unlocker unlocker(Isolate::now().isolate);
+    Isolate::rt _rt;
     exlib::Fiber::sleep(ms);
     return 0;
 }

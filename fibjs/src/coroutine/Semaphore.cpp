@@ -45,7 +45,7 @@ result_t Semaphore::wait()
     if (m_sem.trywait())
         return 0;
 
-    v8::Unlocker unlocker(Isolate::now().isolate);
+    Isolate::rt _rt;
     m_sem.wait();
 
     return 0;
