@@ -338,6 +338,10 @@ int main(int argc, char *argv[])
 
     options(&argc, argv);
 
+#ifdef DEBUG
+    fibjs::Isolate::rt::g_trace = true;
+#endif
+
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
     fibjs::init_argv(argc, argv);
