@@ -17,7 +17,7 @@ check_include_files(iconv.h HAVE_ICONV_H)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
 
-set(flags "-std=gnu++0x -Wall -Wno-overloaded-virtual -Wno-strict-aliasing -fshort-wchar -fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -fvisibility=hidden -D_FILE_OFFSET_BITS=64")
+set(flags "-std=gnu++0x -Wall -Wno-overloaded-virtual -Wno-strict-aliasing -fshort-wchar -fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
 set(link_flags " ")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -42,7 +42,7 @@ endif()
 
 
 if(${BUILD_TYPE} STREQUAL "Release")
-	set(flags "${flags} -O3")
+	set(flags "${flags} -O3 -fvisibility=hidden")
 	add_definitions(-DNDEBUG=1)
 
 	if(${OS} STREQUAL "Linux" AND ${ARCH} STREQUAL "x64")
@@ -56,7 +56,7 @@ if(${BUILD_TYPE} STREQUAL "Debug")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Release32")
-	set(flags "${flags} -O3 -m32")
+	set(flags "${flags} -O3 -m32 -fvisibility=hidden")
 	set(link_flags "${link_flags} -m32")
 	add_definitions(-DNDEBUG=1)
 endif()
