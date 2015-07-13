@@ -165,6 +165,14 @@ void on_break(int s) {
 
     fibjs::Isolate *p;
     while ((p = fibjs::s_isolates.get()) != 0) {
+#ifdef DEBUG
+        exlib::Fiber* fb = p->service->firstFiber();
+        while (fb)
+        {
+            puts(fb->m_traceInfo.c_str());
+            fb = p->service->nextFiber(fb);
+        }
+#endif
         p->isolate->RequestInterrupt(InterruptCallback, NULL);
         p->service->RequestInterrupt(InterruptCallbackEx);
     }
