@@ -72,7 +72,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                 if (!qstrcmp(str.c_str(), "gzip"))
                     return zlib_base::gunzipTo(pThis->m_body,
                                                pThis->m_unzip, pThis);
-                else if (!qstrcmp(str.c_str(), "defalte"))
+                else if (!qstrcmp(str.c_str(), "deflate"))
                     return zlib_base::inflateTo(pThis->m_body,
                                                 pThis->m_unzip, pThis);
             }
