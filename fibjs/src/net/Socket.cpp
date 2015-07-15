@@ -33,12 +33,9 @@ Socket::~Socket()
     if (m_sock != INVALID_SOCKET)
     {
         if (exlib::Service::hasService())
-            ac_close();
+            AsyncClose(m_sock, ::closesocket);
         else
-        {
-            asyncEvent ac;
-            close(&ac);
-        }
+            ::closesocket(m_sock);
     }
 }
 

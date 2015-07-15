@@ -38,19 +38,6 @@ describe("net", function() {
 		assert.equal(net.backend(), backend);
 	});
 
-	it("async gc", function() {
-		var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
-		var num = 0;
-
-		coroutine.start(function() {
-			num = 1;
-		});
-		s1 = undefined;
-		assert.equal(num, 0);
-		GC();
-		assert.equal(num, 1);
-	});
-
 	it("echo", function() {
 		function connect(c) {
 			console.log(c.remoteAddress, c.remotePort, "->",

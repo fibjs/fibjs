@@ -24,24 +24,7 @@ public:
     {
     }
 
-    ~LevelDB()
-    {
-        if (m_batch)
-        {
-            asyncEvent ac;
-            close(&ac);
-        }
-        else if (m_db)
-        {
-            if (exlib::Service::hasService())
-                ac_close();
-            else
-            {
-                asyncEvent ac;
-                close(&ac);
-            }
-        }
-    }
+    ~LevelDB();
 
 public:
     // LevelDB_base

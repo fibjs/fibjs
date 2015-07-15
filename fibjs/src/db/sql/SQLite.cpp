@@ -54,6 +54,17 @@ result_t SQLite::open(const char *file)
     return 0;
 }
 
+SQLite::~SQLite()
+{
+    if (m_db)
+    {
+        if (exlib::Service::hasService())
+            AsyncClose(m_db, sqlite3_close);
+        else
+            sqlite3_close(m_db);
+    }
+}
+
 result_t SQLite::close(exlib::AsyncEvent *ac)
 {
     if (!m_db)

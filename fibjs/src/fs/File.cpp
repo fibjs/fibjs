@@ -22,6 +22,26 @@
 namespace fibjs
 {
 
+File::~File()
+{
+    if (m_fd != -1)
+    {
+        if (exlib::Service::hasService()) {
+            if (m_pipe)
+                AsyncClose(m_pipe, pclose);
+            else
+                AsyncClose(m_fd, ::_close);
+        }
+        else
+        {
+            if (m_pipe)
+                pclose(m_pipe);
+            else
+                ::_close(m_fd);
+        }
+    }
+}
+
 result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                     exlib::AsyncEvent *ac)
 {

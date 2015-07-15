@@ -45,6 +45,27 @@ result_t LevelDB::open(const char *connString)
     return 0;
 }
 
+void close_ldb(leveldb::DB *db)
+{
+    delete db;
+}
+
+LevelDB::~LevelDB()
+{
+    if (m_batch)
+    {
+        m_batch->Clear();
+        delete m_batch;
+    }
+    else if (m_db)
+    {
+        if (exlib::Service::hasService())
+            AsyncClose(m_db, close_ldb);
+        else
+            delete m_db;
+    }
+}
+
 result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
 {
     if (!db())

@@ -22,16 +22,7 @@ public:
     {
     }
 
-    ~SQLite()
-    {
-        if (exlib::Service::hasService())
-            ac_close();
-        else
-        {
-            asyncEvent ac;
-            close(&ac);
-        }
-    }
+    ~SQLite();
 
 public:
     // DbConnection_base

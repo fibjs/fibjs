@@ -18,19 +18,7 @@ public:
     {
     }
 
-    ~File()
-    {
-        if (m_fd != -1)
-        {
-            if (exlib::Service::hasService())
-                ac_close();
-            else
-            {
-                asyncEvent ac;
-                close(&ac);
-            }
-        }
-    }
+    ~File();
 
 public:
     // Stream_base

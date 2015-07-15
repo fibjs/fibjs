@@ -110,19 +110,6 @@ describe('fs', function() {
 		});
 	}
 
-	it("async gc", function() {
-		var f = fs.open('fs_test.js');
-		var num = 0;
-
-		coroutine.start(function() {
-			num = 1;
-		});
-		f = undefined;
-		assert.equal(num, 0);
-		GC();
-		assert.equal(num, 1);
-	});
-
 	it("file read & write", function() {
 		var f = fs.open('fs_test.js');
 
