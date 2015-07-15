@@ -277,7 +277,7 @@ public:
 public:
     virtual int init()
     {
-        return deflateInit(&strm, m_level);
+        return deflateInit2(&strm, m_level, Z_DEFLATED, -15, 8, 0);
     }
 
     virtual int put()
@@ -310,7 +310,7 @@ class inf: public zlibWorker
 public:
     virtual int init()
     {
-        return inflateInit(&strm);
+        return inflateInit2(&strm, -15);
     }
 
     virtual int put()
@@ -320,6 +320,10 @@ public:
         {
             inflateReset(&strm);
             return Z_OK;
+        }
+        if(ret == Z_DATA_ERROR)
+        {
+            ret = inflateSync(&strm);
         }
         return ret;
     }
