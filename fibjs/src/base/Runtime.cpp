@@ -128,7 +128,7 @@ Runtime &Runtime::now()
 
 Isolate &Isolate::now()
 {
-    assert(exlib::Service::hasService());
+    trace_assert(exlib::Service::hasService());
 
     if (exlib::Service::hasService())
     {
@@ -146,7 +146,7 @@ Isolate &Isolate::now()
 
 void Isolate::reg(void *rt)
 {
-    assert(exlib::Service::hasService());
+    trace_assert(exlib::Service::hasService());
 
     Runtime::reg(rt);
 }
