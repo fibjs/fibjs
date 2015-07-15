@@ -3,6 +3,7 @@ test.setup();
 
 var zlib = require('zlib');
 var io = require('io');
+var fs = require('fs');
 
 var M = 102400;
 var b = new Buffer();
@@ -90,6 +91,18 @@ describe("zlib", function() {
 		zlib.gunzipTo(stm, stm1);
 		stm1.rewind();
 		assert.equal(stm1.read().toString(), b.toString());
+	});
+
+	it("gunzip (from file)", function() {
+		var f1 = fs.openTextStream('./zlib_files/gzip');
+		var f2 = fs.openTextStream('./zlib_files/original.js');
+		assert.equal(zlib.gunzip(f1.read()).toString(), f2.read().toString());
+	});
+
+	it("inflate (from file)", function() {
+		var f1 = fs.openTextStream('./zlib_files/deflate');
+		var f2 = fs.openTextStream('./zlib_files/original.js');
+		assert.equal(zlib.inflate(f1.read()).toString(), f2.read().toString());
 	});
 });
 
