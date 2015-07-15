@@ -299,9 +299,9 @@ public:
     {
         deflateEnd(&strm);
     }
-
-private:
+protected:
     int m_level;
+private:
     int flush;
 };
 
@@ -321,6 +321,10 @@ public:
             inflateReset(&strm);
             return Z_OK;
         }
+        if(ret == Z_DATA_ERROR)
+        {
+            ret = inflateSync(&strm);
+        }
         return ret;
     }
 
@@ -329,6 +333,31 @@ public:
         inflateEnd(&strm);
     }
 };
+
+class defraw: public def
+{
+public:
+    defraw(int level = -1) : 
+        def(level)
+    {
+    }
+
+public:
+    virtual int init()
+    {
+        return deflateInit2(&strm, m_level, Z_DEFLATED, -15, 8, 0);
+    }
+};
+
+class infraw: public inf
+{
+public:
+    virtual int init()
+    {
+        return inflateInit2(&strm, -15);
+    }
+};
+
 
 class gunz: public inf
 {
@@ -354,7 +383,7 @@ result_t zlib_base::deflate(Buffer_base *data, int32_t level,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return def(level).process(data, retVal);
+    return defraw(level).process(data, retVal);
 }
 
 result_t zlib_base::deflateTo(Buffer_base *data, Stream_base *stm,
@@ -363,7 +392,7 @@ result_t zlib_base::deflateTo(Buffer_base *data, Stream_base *stm,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return def(level).process(data, stm, ac);
+    return defraw(level).process(data, stm, ac);
 }
 
 result_t zlib_base::deflateTo(Stream_base *src, Stream_base *stm, int32_t level,
@@ -372,7 +401,7 @@ result_t zlib_base::deflateTo(Stream_base *src, Stream_base *stm, int32_t level,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return def(level).process(src, stm, ac);
+    return defraw(level).process(src, stm, ac);
 }
 
 result_t zlib_base::inflate(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
@@ -381,7 +410,7 @@ result_t zlib_base::inflate(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return inf().process(data, retVal);
+    return infraw().process(data, retVal);
 }
 
 result_t zlib_base::inflateTo(Buffer_base *data, Stream_base *stm,
@@ -390,7 +419,7 @@ result_t zlib_base::inflateTo(Buffer_base *data, Stream_base *stm,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return inf().process(data, stm, ac);
+    return infraw().process(data, stm, ac);
 }
 
 result_t zlib_base::inflateTo(Stream_base *src, Stream_base *stm,
@@ -399,7 +428,7 @@ result_t zlib_base::inflateTo(Stream_base *src, Stream_base *stm,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return inf().process(src, stm, ac);
+    return infraw().process(src, stm, ac);
 }
 
 result_t zlib_base::gzip(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
