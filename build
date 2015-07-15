@@ -11,6 +11,17 @@ usage()
 	exit 0
 }
 
+inform()
+{
+	echo ""
+	echo "submodule vender is not existed!"
+	echo "you can execute the given command to init and update it."
+	echo " \$ git submodule init"
+	echo " \$ git submodule update"
+	echo ""
+	exit 0
+}
+
 BUILD_TYPE=$1; shift 1;
 
 if [ "$BUILD_TYPE" = "" ]; then
@@ -61,12 +72,16 @@ fi
 export BUILD_JOBS
 export BUILD_VERBOSE
 
-cd vender
-sh build $BUILD_TYPE
-if [ $? != 0 ]; then
-	exit 1
+if [ -d vender ]; then 
+	cd vender
+	sh build $BUILD_TYPE
+	if [ $? != 0 ]; then
+		exit 1
+	fi
+	cd ..
+else
+	inform
 fi
-cd ..
 
 cd fibjs
 sh build $BUILD_TYPE
