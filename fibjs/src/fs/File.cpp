@@ -19,6 +19,10 @@
 #include "utf8.h"
 #include "Stream.h"
 
+#ifdef _WIN32
+#define pclose _pclose
+#endif
+
 namespace fibjs
 {
 
@@ -368,10 +372,6 @@ result_t File::flush(exlib::AsyncEvent *ac)
 
     return 0;
 }
-
-#ifdef _WIN32
-#define pclose _pclose
-#endif
 
 result_t File::close(exlib::AsyncEvent *ac)
 {
