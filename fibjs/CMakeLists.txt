@@ -53,6 +53,10 @@ endif()
 if(${BUILD_TYPE} STREQUAL "Debug")
 	set(flags "${flags} -g -O0")
 	add_definitions(-DDEBUG=1)
+
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
+	endif()
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Release32")
@@ -65,6 +69,10 @@ if(${BUILD_TYPE} STREQUAL "Debug32")
 	set(flags "${flags} -g -O0 -m32")
 	set(link_flags "${link_flags} -m32")
 	add_definitions(-DDEBUG=1)
+
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
+	endif()
 endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
