@@ -20,10 +20,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BI
 set(flags "-std=gnu++0x -Wall -Wno-overloaded-virtual -Wno-strict-aliasing -fshort-wchar -fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
 set(link_flags " ")
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
-endif()
-
 if(${OS} STREQUAL "Darwin")
 	set(link_flags "${link_flags} -mmacosx-version-min=10.6")
 	set(flags "${flags} -mmacosx-version-min=10.6")
@@ -48,6 +44,10 @@ if(${BUILD_TYPE} STREQUAL "Release")
 	if(${OS} STREQUAL "Linux" AND ${ARCH} STREQUAL "x64")
 		set(link_flags "${link_flags} -Wl,--wrap=memcpy")
 	endif()
+
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
+	endif()
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug")
@@ -63,6 +63,10 @@ if(${BUILD_TYPE} STREQUAL "Release32")
 	set(flags "${flags} -O3 -m32 -fvisibility=hidden")
 	set(link_flags "${link_flags} -m32")
 	add_definitions(-DNDEBUG=1)
+
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
+	endif()
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug32")

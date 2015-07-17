@@ -79,6 +79,8 @@ void _main(const char *fname)
     isolate.s_context.Reset(isolate.isolate, _context);
     isolate.s_global.Reset(isolate.isolate, glob);
 
+    exlib::mem_check();
+
     JSFiber *fb = new JSFiber();
     {
         JSFiber::scope s(fb);
@@ -167,6 +169,7 @@ void on_break(int s) {
     while ((p = fibjs::s_isolates.get()) != 0) {
 #ifdef DEBUG
         p->service->dumpFibers();
+        exlib::mem_diff();
 #endif
         p->isolate->RequestInterrupt(InterruptCallback, NULL);
         p->service->RequestInterrupt(InterruptCallbackEx);
