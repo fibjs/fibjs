@@ -16,7 +16,6 @@ namespace socket
 
 void *create();
 void destroy(void *sock);
-void close(void *sock);
 int connect(void *sock, const char *host, int port);
 void *connect(const char *host, int port);
 int recv(void *sock, void *buffer, int cbBuffer);

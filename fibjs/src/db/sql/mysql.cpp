@@ -27,7 +27,6 @@ void API_deleteSocket(void *sock)
 
 void API_closeSocket(void *sock)
 {
-    fibjs::socket::close(sock);
 }
 
 int API_connectSocket(void *sock, const char *host, int port)
