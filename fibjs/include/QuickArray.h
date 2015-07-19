@@ -101,7 +101,7 @@ public:
             for (i = s; i < m_size; i++)
             {
                 ptr[p2].~T();
-                if (++p2 == BlockSize())
+                if (i < m_size - 1 && ++p2 == BlockSize())
                 {
                     p1++;
                     p2 = 0;
@@ -133,7 +133,7 @@ public:
             for (size_t i = m_size; i < s; i++)
             {
                 new (&ptr[p2]) T();
-                if (++p2 == BlockSize())
+                if (i < s - 1 && ++p2 == BlockSize())
                 {
                     p1++;
                     p2 = 0;
@@ -186,7 +186,7 @@ public:
                 new (&ptr[p2]) T(rhs[pos]);
                 pos++;
 
-                if (++p2 == BlockSize())
+                if (i < s - 1 && ++p2 == BlockSize())
                 {
                     p1++;
                     p2 = 0;
@@ -223,18 +223,21 @@ public:
             {
                 new (&ptr[p2]) T(ptr1[p21]);
 
-                if (++p21 == BlockSize())
+                if (i < s - 1)
                 {
-                    p11++;
-                    p21 = 0;
-                    ptr1 = rhs.m_p[p11];
-                }
+                    if (++p21 == BlockSize())
+                    {
+                        p11++;
+                        p21 = 0;
+                        ptr1 = rhs.m_p[p11];
+                    }
 
-                if (++p2 == BlockSize())
-                {
-                    p1++;
-                    p2 = 0;
-                    ptr = m_p[p1];
+                    if (++p2 == BlockSize())
+                    {
+                        p1++;
+                        p2 = 0;
+                        ptr = m_p[p1];
+                    }
                 }
             }
 
