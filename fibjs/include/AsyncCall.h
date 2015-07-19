@@ -67,31 +67,6 @@ public:
     std::string m_error;
 };
 
-template<typename T, typename T1>
-void AsyncClose(T hd, T1 func)
-{
-    class _AsyncClose: public asyncEvent
-    {
-    public:
-        _AsyncClose(T hd, T1 func) :
-            m_hd(hd), m_func(func)
-        {
-        }
-
-        virtual void invoke()
-        {
-            m_func(m_hd);
-            delete this;
-        }
-
-    private:
-        T m_hd;
-        T1 m_func;
-    };
-
-    s_acPool.put(new _AsyncClose(hd, func));
-}
-
 class asyncState: public asyncCallBack
 {
 public:

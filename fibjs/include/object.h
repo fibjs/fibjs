@@ -33,6 +33,8 @@ public:
     virtual void invoke()
     {
     }
+
+    void async();
 };
 
 class asyncCallBack: public asyncEvent
@@ -136,6 +138,56 @@ public:
             pThis->Unref();
         }
     };
+
+    template<typename T, typename T1>
+    void AsyncClose(T hd, T1 func)
+    {
+        class _AsyncClose: public asyncEvent
+        {
+        public:
+            _AsyncClose(T hd, T1 func) :
+                m_hd(hd), m_func(func)
+            {
+            }
+
+            virtual void invoke()
+            {
+                m_func(m_hd);
+                delete this;
+            }
+
+        private:
+            T m_hd;
+            T1 m_func;
+        };
+
+        (new _AsyncClose(hd, func))->async();
+    }
+
+    template<typename T, typename T1>
+    void DelayClose(T hd, T1 func)
+    {
+        class _DelayClose: public asyncCallBack
+        {
+        public:
+            _DelayClose(T hd, T1 func) :
+                m_hd(hd), m_func(func)
+            {
+            }
+
+            virtual void js_callback()
+            {
+                m_func(m_hd);
+                delete this;
+            }
+
+        private:
+            T m_hd;
+            T1 m_func;
+        };
+
+        (new _DelayClose(hd, func))->post(0);
+    }
 
 private:
 

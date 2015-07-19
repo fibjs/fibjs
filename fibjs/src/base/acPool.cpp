@@ -59,6 +59,11 @@ public:
     }
 } s_ac;
 
+void asyncEvent::async()
+{
+    s_acPool.put(this);
+}
+
 static class _acThreadDog: public exlib::OSThread
 {
 public:
