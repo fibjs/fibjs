@@ -67,6 +67,27 @@ public:
         }
     }
 
+    void append(const char* s, int32_t sz)
+    {
+        if (sz < 0)
+            sz = (int32_t)qstrlen(s);
+
+        if (sz > 0)
+        {
+            m_size += sz;
+            m_array.append(std::string(s, sz));
+        }
+    }
+
+    void append(char ch)
+    {
+        if (m_size == 0)
+            m_array.resize(1);
+
+        m_array[m_array.size() - 1] += ch;
+        m_size ++;
+    }
+
 private:
     QuickArray<std::string> m_array;
     size_t m_size;
