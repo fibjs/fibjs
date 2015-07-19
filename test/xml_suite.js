@@ -59,10 +59,9 @@ function dump_dom(dom) {
 }
 
 describe('xml', function() {
-	it("test suite", function() {
-		for (var i = 1; i <= 1180; i++) {
-			var id = ("000" + i).slice(-4);
-			console.log("xml_files/xml/" + id + ".xml");
+	function _test(i) {
+		var id = ("000" + i).slice(-4);
+		it("xml_files/xml/" + id + ".xml", function() {
 			var txt = fs.readFile("xml_files/xml/" + id + ".xml");
 			var json = fs.readFile("xml_files/json/" + id + ".json");
 			var out = fs.readFile("xml_files/out/" + id + ".xml");
@@ -79,12 +78,11 @@ describe('xml', function() {
 			xdoc1.normalize();
 			assert.equal(xdoc1.toString(), out);
 			assert.equal(JSON.stringify(dump_dom(xdoc1)), json);
-		}
-	});
+		});
+	}
+
+	for (var i = 1; i <= 1180; i++)
+		_test(i);
 });
 
 test.run(console.DEBUG);
-
-GC();
-GC();
-console.log(require("os").memoryUsage());
