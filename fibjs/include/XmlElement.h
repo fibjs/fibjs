@@ -9,6 +9,7 @@
 #include "XmlNodeImpl.h"
 #include "XmlNodeList.h"
 #include "XmlNamedNodeMap.h"
+#include "StringBuffer.h"
 
 #ifndef XMLELEMENT_H_
 #define XMLELEMENT_H_
@@ -180,7 +181,7 @@ public:
         return CALL_RETURN_NULL;
     }
 
-    void getTextContent(std::vector<std::string> &retVal)
+    void getTextContent(StringBuffer &retVal)
     {
         std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
         int32_t sz = (int32_t)childs.size();
@@ -196,7 +197,7 @@ public:
             {
                 std::string value;
                 childs[i]->m_node->get_nodeValue(value);
-                retVal.push_back(value);
+                retVal.append(value);
             }
     }
 

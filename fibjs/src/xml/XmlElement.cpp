@@ -10,6 +10,7 @@
 #include "XmlAttr.h"
 #include "XmlText.h"
 #include "XmlDocument.h"
+#include "StringBuffer.h"
 
 namespace fibjs
 {
@@ -198,24 +199,9 @@ result_t XmlElement::set_id(const char *newVal)
 
 result_t XmlElement::get_textContent(std::string &retVal)
 {
-    std::vector<std::string> strs;
-
+    StringBuffer strs;
     getTextContent(strs);
-
-    int32_t sz = (int32_t)strs.size();
-    int32_t len = 0, pos = 0;
-    int32_t i;
-
-    for (i = 0; i < sz; i ++)
-        len += (int32_t)strs[i].length();
-
-    retVal.resize(len);
-    for (i = 0; i < sz; i ++)
-    {
-        int32_t l = (int32_t)strs[i].length();
-        memcpy(&retVal[pos], strs[i].c_str(), l);
-        pos += l;
-    }
+    retVal = strs.str();
 
     return 0;
 }

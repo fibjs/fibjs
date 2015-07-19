@@ -8,6 +8,7 @@
 #include "XmlNamedNodeMap.h"
 #include "XmlNodeImpl.h"
 #include <string.h>
+#include "StringBuffer.h"
 
 namespace fibjs
 {
@@ -36,11 +37,10 @@ result_t XmlNamedNodeMap::_indexed_getter(uint32_t index, obj_ptr<XmlAttr_base> 
 
 result_t XmlNamedNodeMap::toString(std::string &retVal)
 {
-    std::vector<std::string> strs;
+    StringBuffer strs;
 
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
-    int32_t len = 0, pos = 0;
 
     if (sz == 0)
     {
@@ -60,17 +60,10 @@ result_t XmlNamedNodeMap::toString(std::string &retVal)
         std::string str;
 
         m_childs[i]->toString(str);
-        len += (int32_t)str.length();
-        strs.push_back(str);
+        strs.append(str);
     }
 
-    retVal.resize(len);
-    for (i = 0; i < sz; i ++)
-    {
-        int32_t l = (int32_t)strs[i].length();
-        memcpy(&retVal[pos], strs[i].c_str(), l);
-        pos += l;
-    }
+    retVal = strs.str();
 
     return 0;
 }
