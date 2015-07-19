@@ -156,6 +156,7 @@ bool Isolate::rt::g_trace = false;
 inline JSFiber* saveTrace()
 {
     JSFiber* fiber = JSFiber::current();
+    trace_assert(fiber != 0);
     fiber->m_traceInfo = traceInfo(300);
     return fiber;
 }
