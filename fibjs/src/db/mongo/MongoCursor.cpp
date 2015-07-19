@@ -8,6 +8,7 @@
 #include "MongoCursor.h"
 #include "encoding_bson.h"
 #include "ifs/util.h"
+#include "Fiber.h"
 
 namespace fibjs
 {
@@ -17,31 +18,41 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
                          v8::Local<v8::Object> projection)
 {
     m_state = CUR_NONE;
-    m_db = db;
 
     m_ns = ns;
     m_name = name;
 
-    mongo_cursor_init(&m_cursor, &db->m_conn, ns.c_str());
+    m_cursor = new cursor;
+    m_cursor->m_db = db;
+
+    mongo_cursor_init(m_cursor, &db->m_conn, ns.c_str());
 
     v8::Local<v8::Value> _query;
     util_base::clone(query, _query);
     m_query.Reset(Isolate::now().isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
 
-    mongo_cursor_set_query(&m_cursor, &m_bbq);
+    mongo_cursor_set_query(m_cursor, &m_bbq);
 
     encodeObject(&m_bbp, projection);
 
-    mongo_cursor_set_fields(&m_cursor, &m_bbp);
+    mongo_cursor_set_fields(m_cursor, &m_bbp);
 
     m_bInit = false;
     m_bSpecial = false;
 }
 
+static void close_cursor(MongoCursor::cursor* cur)
+{
+    JSFiber::scope s;
+
+    mongo_cursor_destroy(cur);
+    delete cur;
+}
+
 MongoCursor::~MongoCursor()
 {
     m_query.Reset();
-    mongo_cursor_destroy(&m_cursor);
+    DelayClose(m_cursor, close_cursor);
     if (m_bInit)
         bson_destroy(&m_bbq);
     bson_destroy(&m_bbp);
@@ -74,7 +85,7 @@ result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base> &retVal)
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    mongo_cursor_set_limit(&m_cursor, size);
+    mongo_cursor_set_limit(m_cursor, size);
     retVal = this;
     return 0;
 }
@@ -95,17 +106,17 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 
     if (applySkipLimit)
     {
-        if (m_cursor.limit)
-            bson_append_int(&bbq, "limit", m_cursor.limit);
-        if (m_cursor.skip)
-            bson_append_int(&bbq, "skip", m_cursor.skip);
+        if (m_cursor->limit)
+            bson_append_int(&bbq, "limit", m_cursor->limit);
+        if (m_cursor->skip)
+            bson_append_int(&bbq, "skip", m_cursor->skip);
     }
 
     bson_finish(&bbq);
 
     v8::Local<v8::Object> res;
 
-    result_t hr = m_db->run_command(&bbq, res);
+    result_t hr = m_cursor->m_db->run_command(&bbq, res);
     if (hr < 0)
         return hr;
 
@@ -172,12 +183,12 @@ result_t MongoCursor::hasNext(bool &retVal)
 
     if (m_state == CUR_NONE)
         m_state =
-            mongo_cursor_next(&m_cursor) == MONGO_OK ?
+            mongo_cursor_next(m_cursor) == MONGO_OK ?
             CUR_DATA : CUR_NODATA;
 
     retVal = m_state == CUR_DATA;
 
-    return CHECK_ERROR(m_db->error());
+    return CHECK_ERROR(m_cursor->m_db->error());
 }
 
 result_t MongoCursor::next(v8::Local<v8::Object> &retVal)
@@ -191,7 +202,7 @@ result_t MongoCursor::next(v8::Local<v8::Object> &retVal)
     if (!has)
         return CALL_RETURN_NULL;
 
-    retVal = decodeObject(mongo_cursor_bson(&m_cursor));
+    retVal = decodeObject(mongo_cursor_bson(m_cursor));
     m_state = CUR_NONE;
 
     return 0;
@@ -207,7 +218,7 @@ result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal)
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    mongo_cursor_set_skip(&m_cursor, num);
+    mongo_cursor_set_skip(m_cursor, num);
     retVal = this;
 
     return 0;

@@ -24,12 +24,12 @@ public:
 public:
     virtual void enter()
     {
-        m_db->enter();
+        m_cursor->m_db->enter();
     }
 
     virtual void leave()
     {
-        m_db->leave();
+        m_cursor->m_db->leave();
     }
 
 public:
@@ -55,11 +55,17 @@ private:
     result_t _addSpecial(const char *name, v8::Local<v8::Value> opts,
                          obj_ptr<MongoCursor_base> &retVal);
 
+public:
+    class cursor : public mongo_cursor
+    {
+    public:
+        obj_ptr<MongoDB> m_db;
+    };
+
 private:
-    obj_ptr<MongoDB> m_db;
     std::string m_ns;
     std::string m_name;
-    mongo_cursor m_cursor;
+    cursor* m_cursor;
     bson m_bbq, m_bbp;
     bool m_bInit;
     bool m_bSpecial;
