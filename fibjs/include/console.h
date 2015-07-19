@@ -26,7 +26,7 @@ public:
     class item : public exlib::linkitem
     {
     public:
-        item(int32_t priority, std::string msg) :
+        item(int32_t priority, std::string& msg) :
             m_priority(priority), m_msg(msg)
         {
             m_d.now();
@@ -163,13 +163,19 @@ public:
             m_logEmpty = true;
         }
 
+        item *p1;
+        m_acLog.getList(logs);
+
+        while ((p1 = logs.getHead()) != 0)
+            delete p1;
+
         Unref();
     }
 
 public:
     virtual void write(exlib::List<item> &logs) = 0;
 
-    void log(int priority, std::string msg)
+    void log(int priority, std::string& msg)
     {
         if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
         {

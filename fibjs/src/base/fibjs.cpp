@@ -93,6 +93,10 @@ void _main(const char *fname)
             s.m_hr = isolate.s_topSandbox->repl();
     }
 
+#ifdef DEBUG
+    global_base::GC();
+#endif
+
     process_base::exit(0);
 
     isolate.isolate->Dispose();

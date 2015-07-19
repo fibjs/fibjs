@@ -200,15 +200,7 @@ result_t TcpServer::asyncRun()
         static int accept(asyncState *pState, int n)
         {
             asyncCall *pThis = (asyncCall *) pState;
-
-            pThis->set(end);
             return pThis->m_pThis->run(pThis);
-        }
-
-        static int end(asyncState *pState, int n)
-        {
-            asyncCall *pThis = (asyncCall *) pState;
-            return pThis->done();
         }
 
     private:

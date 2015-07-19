@@ -33,8 +33,7 @@ Digest::Digest(md_type_t algo, const char *key, int sz)
 
 Digest::~Digest()
 {
-    if (m_iAlgo >= 0)
-        md_hmac_reset(&m_ctx);
+    md_free(&m_ctx);
 }
 
 result_t Digest::update(Buffer_base *data)

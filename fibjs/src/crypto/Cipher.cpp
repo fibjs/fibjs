@@ -149,7 +149,10 @@ result_t Cipher_base::_new(int32_t provider, Buffer_base *key,
 
 Cipher::Cipher(const cipher_info_t *info) : m_info(info)
 {
-    reset();
+    cipher_init_ctx(&m_ctx, m_info);
+
+    if (m_iv.length())
+        cipher_set_iv(&m_ctx, (unsigned char *)m_iv.c_str(), m_iv.length());
 }
 
 Cipher::~Cipher()
@@ -159,11 +162,13 @@ Cipher::~Cipher()
 
     if (m_iv.length())
         memset(&m_iv[0], 0, m_iv.length());
+
+    cipher_free(&m_ctx);
 }
 
 void Cipher::reset()
 {
-    memset(&m_ctx, 0, sizeof(m_ctx));
+    cipher_free(&m_ctx);
     cipher_init_ctx(&m_ctx, m_info);
 
     if (m_iv.length())

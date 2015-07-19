@@ -168,7 +168,7 @@ typedef int result_t;
 #define CALL_E_PATH_NOT_FOUND   (-ERROR_PATH_NOT_FOUND)
 #endif
 
-#if 1
+#if 0
 #define V8_SCOPE()  v8::EscapableHandleScope handle_scope(Isolate::now().isolate)
 #define V8_RETURN(v)   handle_scope.Escape(v)
 #else

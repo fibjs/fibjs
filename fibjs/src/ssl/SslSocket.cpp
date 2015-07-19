@@ -267,6 +267,11 @@ result_t SslSocket::close(exlib::AsyncEvent *ac)
         {
         }
 
+        ~asyncClose()
+        {
+            m_pThis->m_s.Release();
+        }
+
     public:
         virtual int process()
         {
