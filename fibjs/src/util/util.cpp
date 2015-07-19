@@ -22,6 +22,7 @@
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
 #include "QuickArray.h"
+#include "StringBuffer.h"
 #include <map>
 
 #ifndef _WIN32
@@ -31,12 +32,12 @@
 namespace fibjs
 {
 
-inline void newline(std::string &strBuffer, int32_t padding)
+inline void newline(StringBuffer &strBuffer, int32_t padding)
 {
     static char s_spc[] = "                                                                ";
     int32_t n, n1;
 
-    strBuffer.append("\n", 1);
+    strBuffer.append('\n');
     if (padding > 0)
     {
         n = padding;
@@ -77,16 +78,16 @@ public:
     int32_t mode;
 };
 
-void string_format(std::string &strBuffer, v8::Local<v8::Value> v)
+void string_format(StringBuffer &strBuffer, v8::Local<v8::Value> v)
 {
     std::string s;
     encoding_base::jsonEncode(v, s);
-    strBuffer += s;
+    strBuffer.append(s);
 }
 
 std::string json_format(v8::Local<v8::Value> obj)
 {
-    std::string strBuffer;
+    StringBuffer strBuffer;
 
     QuickArray<_item> stk;
     v8::Local<v8::Value> v = obj;
@@ -97,14 +98,14 @@ std::string json_format(v8::Local<v8::Value> obj)
     while (true)
     {
         if (v.IsEmpty())
-            strBuffer += "undefined";
+            strBuffer.append("undefined");
         else if (v->IsUndefined() || v->IsNull() || v->IsDate() ||
                  v->IsBoolean() || v->IsBooleanObject())
-            strBuffer += *v8::String::Utf8Value(v);
+            strBuffer.append(*v8::String::Utf8Value(v));
         else if (v->IsFunction())
-            strBuffer += "[Function]";
+            strBuffer.append("[Function]");
         else if (v->IsNumber() || v->IsNumberObject())
-            strBuffer += *v8::String::Utf8Value(v->ToNumber());
+            strBuffer.append(*v8::String::Utf8Value(v->ToNumber()));
         else if (v->IsString() || v->IsStringObject())
             string_format(strBuffer, v);
         else if (v->IsRegExp())
@@ -113,16 +114,16 @@ std::string json_format(v8::Local<v8::Value> obj)
             v8::Local<v8::String> src = re->GetSource();
             v8::RegExp::Flags flgs = re->GetFlags();
 
-            strBuffer += '/';
-            strBuffer += *v8::String::Utf8Value(src);
-            strBuffer += '/';
+            strBuffer.append('/');
+            strBuffer.append(*v8::String::Utf8Value(src));
+            strBuffer.append('/');
 
             if (flgs & v8::RegExp::kIgnoreCase)
-                strBuffer += 'i';
+                strBuffer.append('i');
             if (flgs & v8::RegExp::kGlobal)
-                strBuffer += 'g';
+                strBuffer.append('g');
             if (flgs & v8::RegExp::kMultiline)
-                strBuffer += 'm';
+                strBuffer.append('m');
         }
         else if (v->IsObject())
         {
@@ -143,7 +144,7 @@ std::string json_format(v8::Local<v8::Value> obj)
             {
                 if (bCircular)
                 {
-                    strBuffer += "[Circular]";
+                    strBuffer.append("[Circular]");
                     break;
                 }
 
@@ -154,7 +155,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                 {
                     std::string s;
                     buf->base64(s);
-                    strBuffer += s;
+                    strBuffer.append(s);
                     break;
                 }
 
@@ -163,7 +164,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                 {
                     std::string s;
                     int64Val->toString(10, s);
-                    strBuffer += s;
+                    strBuffer.append(s);
                     break;
                 }
 
@@ -180,11 +181,11 @@ std::string json_format(v8::Local<v8::Value> obj)
                     int32_t len = keys->Length();
 
                     if (len == 0)
-                        strBuffer += "[]";
+                        strBuffer.append("[]");
                     else
                     {
                         if (len == 1 && v->StrictEquals(keys->Get(0)))
-                            strBuffer += "[Circular]";
+                            strBuffer.append("[Circular]");
                         else
                         {
                             stk.resize(sz + 1);
@@ -195,7 +196,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                             it->keys = keys;
                             it->len = len;
 
-                            strBuffer += '[';
+                            strBuffer.append('[');
                             padding += tab_size;
                         }
                     }
@@ -206,11 +207,11 @@ std::string json_format(v8::Local<v8::Value> obj)
                 int32_t len = keys->Length();
 
                 if (len == 0)
-                    strBuffer += "{}";
+                    strBuffer.append("{}");
                 else
                 {
                     if (len == 1 && v->StrictEquals(obj->Get(keys->Get(0))))
-                        strBuffer += "[Circular]";
+                        strBuffer.append("[Circular]");
                     else
                     {
                         stk.resize(sz + 1);
@@ -222,7 +223,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                         it->keys = keys;
                         it->len = len;
 
-                        strBuffer += '{';
+                        strBuffer.append('{');
                         padding += tab_size;
                     }
                 }
@@ -236,17 +237,18 @@ std::string json_format(v8::Local<v8::Value> obj)
             {
                 padding -= tab_size;
                 newline(strBuffer, padding);
-                strBuffer += it->obj.IsEmpty() ? ']' : '}';
+                strBuffer.append(it->obj.IsEmpty() ? ']' : '}');
 
                 int32_t sz = (int32_t)stk.size();
                 if (sz == 1)
-                    return strBuffer;
+                    return strBuffer.str();
+
                 stk.resize(sz - 1);
                 it = &stk[sz - 2];
             }
 
             if (it->pos)
-                strBuffer += ',';
+                strBuffer.append(',');
             newline(strBuffer, padding);
 
             v = it->keys->Get(it->pos ++);
@@ -256,7 +258,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                 TryCatch try_catch;
 
                 string_format(strBuffer, v);
-                strBuffer += ": ";
+                strBuffer.append(": ");
                 v = it->obj->Get(v);
             }
         }
@@ -264,7 +266,7 @@ std::string json_format(v8::Local<v8::Value> obj)
             break;
     }
 
-    return strBuffer;
+    return strBuffer.str();
 }
 
 result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args,
