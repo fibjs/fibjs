@@ -90,6 +90,7 @@ std::string json_format(v8::Local<v8::Value> obj)
     StringBuffer strBuffer;
 
     QuickArray<_item> stk;
+    QuickArray<v8::Local<v8::Value>> vals;
     v8::Local<v8::Value> v = obj;
     int32_t padding = 0;
     const int32_t tab_size = 2;
@@ -127,27 +128,8 @@ std::string json_format(v8::Local<v8::Value> obj)
         }
         else if (v->IsObject())
         {
-            int32_t sz = (int32_t)stk.size();
-            int32_t i;
-            bool bCircular = false;
-
-            for (i = 0; i < sz; i ++)
-            {
-                if (v->StrictEquals(stk[i].val))
-                {
-                    bCircular = true;
-                    break;
-                }
-            }
-
             do
             {
-                if (bCircular)
-                {
-                    strBuffer.append("[Circular]");
-                    break;
-                }
-
                 v8::Local<v8::Object> obj = v->ToObject();
 
                 obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
@@ -168,12 +150,35 @@ std::string json_format(v8::Local<v8::Value> obj)
                     break;
                 }
 
+
+                bool bCircular = false;
+                int32_t sz1 = (int32_t)vals.size();
+                int32_t i;
+
+                for (i = 0; i < sz1; i ++)
+                    if (v->StrictEquals(vals[i]))
+                    {
+                        bCircular = true;
+                        break;
+                    }
+
+                if (bCircular)
+                {
+                    strBuffer.append("[Circular]");
+                    break;
+                }
+
+                vals.append(v);
+
+
                 v8::Local<v8::Value> toArray = obj->Get(v8::String::NewFromUtf8(Isolate::now().isolate, "toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction())
                 {
                     v = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
                     obj = v->ToObject();
                 }
+
+                int32_t sz = (int32_t)stk.size();
 
                 if (v->IsArray())
                 {
