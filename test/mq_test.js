@@ -28,6 +28,14 @@ describe("mq", function() {
 		var m = new mq.Message();
 	});
 
+	var ss = [];
+
+	after(function() {
+		ss.forEach(function(s) {
+			s.close();
+		});
+	});
+
 	describe("function handler", function() {
 		var n = 0;
 
@@ -355,6 +363,7 @@ describe("mq", function() {
 			r.clear();
 			r.response.body.write(d.toString().toUpperCase());
 		}));
+		ss.push(s.socket)
 
 		s.asyncRun();
 

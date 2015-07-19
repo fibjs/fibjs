@@ -10,6 +10,7 @@ var coroutine = require('coroutine');
 describe("buffered stream", function() {
 	var s;
 	var f;
+	var ss;
 
 	before(function() {
 		s = '0123456789\r\n';
@@ -24,6 +25,7 @@ describe("buffered stream", function() {
 
 	after(function() {
 		fs.unlink("test0000");
+		ss.close();
 	});
 
 	function t_read(f, sz) {
@@ -37,6 +39,7 @@ describe("buffered stream", function() {
 				break;
 			assert.equal(d.toString(), s.substring(p, p + sz));
 			p += sz;
+			d.dispose();
 		}
 		f.close();
 	}
@@ -57,10 +60,10 @@ describe("buffered stream", function() {
 			}
 		}
 
-		var s1 = new net.Socket();
-		s1.bind(8182);
-		s1.listen();
-		coroutine.start(accept1, s1);
+		ss = new net.Socket();
+		ss.bind(8182);
+		ss.listen();
+		coroutine.start(accept1, ss);
 
 		for (var i = 3; i < 100000; i *= 3) {
 			var conn = new net.Socket();

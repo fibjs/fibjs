@@ -35,9 +35,10 @@ describe('lock', function() {
 		assert.equal(false, sem.trywait());
 
 		var v = 100;
+		var run = true;
 
 		function f1() {
-			while (1) {
+			while (run) {
 				sem.wait();
 				v++;
 			}
@@ -55,6 +56,8 @@ describe('lock', function() {
 			sem.post();
 		coroutine.sleep();
 		assert.equal(111, v);
+		run = false;
+		sem.post();
 	});
 
 	it("Condition", function() {

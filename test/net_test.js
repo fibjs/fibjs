@@ -38,6 +38,14 @@ describe("net", function() {
 		assert.equal(net.backend(), backend);
 	});
 
+	var ss = [];
+
+	after(function() {
+		ss.forEach(function(s) {
+			s.close();
+		});
+	});
+
 	it("echo", function() {
 		function connect(c) {
 			console.log(c.remoteAddress, c.remotePort, "->",
@@ -60,6 +68,8 @@ describe("net", function() {
 
 		var s = new net.Socket(net_config.family,
 			net.SOCK_STREAM);
+		ss.push(s);
+
 		s.bind(8080);
 		s.listen();
 		coroutine.start(accept, s);
@@ -121,6 +131,8 @@ describe("net", function() {
 		}
 
 		var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+		ss.push(s1);
+
 		s1.bind(8081);
 		s1.listen();
 		coroutine.start(accept1, s1);
@@ -170,6 +182,8 @@ describe("net", function() {
 		}
 
 		var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+		ss.push(s2);
+
 		s2.bind(8082);
 		s2.listen();
 		coroutine.start(accept2, s2);
@@ -190,6 +204,8 @@ describe("net", function() {
 		}
 
 		var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+		ss.push(s2);
+
 		s2.bind(8083);
 		s2.listen();
 		coroutine.start(accept2, s2);
@@ -269,6 +285,8 @@ describe("net", function() {
 			while (d = c.read(100))
 				c.write(d);
 		});
+
+		ss.push(svr.socket);
 		svr.asyncRun();
 
 		assert.deepEqual({

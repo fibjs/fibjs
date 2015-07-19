@@ -22,6 +22,14 @@ m.body.write(encoding.jsonEncode({
 }));
 
 describe("rpc", function() {
+	var ss = [];
+
+	after(function() {
+		ss.forEach(function(s) {
+			s.close();
+		});
+	});
+
 	it("function", function() {
 		jr = rpc.json(function(m, p1, p2) {
 			m.value = '';
@@ -106,7 +114,9 @@ describe("rpc", function() {
 			}
 		}));
 		hdlr.crossDomain = true;
-		new net.TcpServer(8090, hdlr).asyncRun();
+		var svr = new net.TcpServer(8090, hdlr);
+		ss.push(svr.socket);
+		svr.asyncRun();
 
 		var s = new net.Socket();
 		s.connect('127.0.0.1', 8090);

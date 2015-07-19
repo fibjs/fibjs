@@ -666,6 +666,10 @@ describe("http", function() {
 			svr.asyncRun();
 		});
 
+		after(function() {
+			svr.socket.close();
+		});
+
 		beforeEach(function() {
 			c = new net.Socket();
 			c.connect('127.0.0.1', 8881);
@@ -910,8 +914,10 @@ describe("http", function() {
 	});
 
 	describe("server/request", function() {
-		it("server", function() {
-			new http.Server(8882, function(r) {
+		var svr;
+
+		before(function() {
+			svr = new http.Server(8882, function(r) {
 				if (r.address != "/gzip_test") {
 					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
@@ -921,7 +927,12 @@ describe("http", function() {
 					r.response.addHeader("Content-Type", "text/html");
 					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 				}
-			}).asyncRun();
+			});
+			svr.asyncRun();
+		});
+
+		after(function() {
+			svr.socket.close();
 		});
 
 		describe("request", function() {
@@ -975,10 +986,13 @@ describe("http", function() {
 	});
 
 	describe("https server/https request", function() {
-		ssl.ca.load(ca_pem);
 
-		it("server", function() {
-			new http.HttpsServer(crt, pk, 8883, function(r) {
+		var svr;
+
+		before(function() {
+			ssl.ca.load(ca_pem);
+
+			svr = new http.HttpsServer(crt, pk, 8883, function(r) {
 				if (r.address != "/gzip_test") {
 					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
@@ -988,7 +1002,13 @@ describe("http", function() {
 					r.response.addHeader("Content-Type", "text/html");
 					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 				}
-			}).asyncRun();
+			});
+			svr.asyncRun();
+		});
+
+		after(function() {
+			svr.socket.close();
+			ssl.ca.clear();
 		});
 
 		describe("request", function() {
