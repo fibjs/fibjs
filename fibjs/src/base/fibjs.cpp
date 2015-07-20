@@ -112,25 +112,30 @@ void _main(const char *fname)
 std::string traceFiber()
 {
     fibjs::JSFiber* now = fibjs::JSFiber::current();
-    exlib::linkitem* p = fibjs::Isolate::now().m_fibers.head();
-
     std::string msg;
-    char buf[128];
-    int32_t n = 0;
 
-    while (p)
+    if (fibjs::Isolate::rt::g_trace)
     {
-        fibjs::JSFiber* fb = (fibjs::JSFiber*)p;
+        exlib::linkitem* p = fibjs::Isolate::now().m_fibers.head();
 
-        sprintf(buf, "\nFiber %d:", n++);
-        msg.append(buf);
+        char buf[128];
+        int32_t n = 0;
 
-        if (fb == now && fb->m_traceInfo.empty())
-            msg.append(fibjs::traceInfo(300));
-        else
-            msg.append(fb->m_traceInfo);
-        p = p->m_next;
-    }
+        while (p)
+        {
+            fibjs::JSFiber* fb = (fibjs::JSFiber*)p;
+
+            sprintf(buf, "\nFiber %d:", n++);
+            msg.append(buf);
+
+            if (fb == now && fb->m_traceInfo.empty())
+                msg.append(fibjs::traceInfo(300));
+            else
+                msg.append(fb->m_traceInfo);
+            p = p->m_next;
+        }
+    } else
+        msg.append(fibjs::traceInfo(300));
 
     return msg;
 }
@@ -350,8 +355,7 @@ int main(int argc, char *argv[])
 
     ::setlocale(LC_ALL, "");
 
-    if (fibjs::Isolate::rt::g_trace)
-        catchBreak();
+    catchBreak();
 
     if (argc >= 2 && argv[1][0] != '-')
         fibjs::_main(argv[1]);
