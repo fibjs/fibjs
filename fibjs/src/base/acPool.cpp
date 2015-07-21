@@ -13,24 +13,12 @@ static int32_t s_threads;
 static exlib::atomic s_idleThreads;
 static int32_t s_idleCount;
 
-static class _acThread: public exlib::OSThread
+class _acThread: public exlib::OSThread
 {
 public:
     _acThread()
     {
-        int32_t cpus = 0;
-
-        os_base::CPUs(cpus);
-        if (cpus < 3)
-            cpus = 3;
-
-        s_threads = cpus;
-
-        for (int i = 0; i < s_threads; i++)
-        {
-            start();
-            detach();
-        }
+        start();
     }
 
     virtual void Run()
@@ -57,7 +45,7 @@ public:
             p->invoke();
         }
     }
-} s_ac;
+};
 
 void asyncEvent::async()
 {
@@ -74,6 +62,15 @@ public:
 
     virtual void Run()
     {
+        int32_t cpus = 0;
+
+        os_base::CPUs(cpus);
+        if (cpus < 3)
+            cpus = 3;
+
+        s_threads = cpus;
+        s_idleCount = 100;
+
         while (1)
         {
             if (s_idleThreads < s_threads)
@@ -83,10 +80,7 @@ public:
                     s_idleCount = 0;
 
                     for (int32_t i = (int32_t)s_idleThreads; i < s_threads; i++)
-                    {
-                        s_ac.start();
-                        s_ac.detach();
-                    }
+                        new _acThread();
                 }
             }
             else

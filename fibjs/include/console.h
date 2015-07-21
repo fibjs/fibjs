@@ -19,8 +19,7 @@ namespace fibjs
 
 #define LOGTIME true
 
-class logger : public obj_base,
-    public exlib::OSThread
+class logger : public exlib::OSThread
 {
 public:
     class item : public exlib::linkitem
@@ -98,7 +97,6 @@ public:
         for (i = 0; i < console_base::_NOTSET; i ++)
             m_levels[i] = true;
 
-        Ref();
         start();
     }
 
@@ -168,8 +166,6 @@ public:
 
         while ((p1 = logs.getHead()) != 0)
             delete p1;
-
-        Unref();
     }
 
 public:

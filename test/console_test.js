@@ -1,16 +1,25 @@
 var test = require("test");
 test.setup();
 
+var os = require('os');
+
 describe("console", function() {
 	it("add", function() {
 		console.add({
 			type: "console"
 		});
-		console.add("syslog");
 
-		console.add(["console", {
-			type: "syslog"
-		}]);
+		if (os.type == 'Windows') {
+			assert.throws(function() {
+				console.add("syslog");
+			});
+		} else {
+			console.add("syslog");
+
+			console.add(["console", {
+				type: "syslog"
+			}]);
+		}
 
 		console.reset();
 	});
