@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 
-include(../tools/arch.cmake)
-include(../tools/os.cmake)
-include(../tools/subdirs.cmake)
+include(tools/arch.cmake)
+include(tools/os.cmake)
+include(tools/subdirs.cmake)
 
 project(fibjs)
 
