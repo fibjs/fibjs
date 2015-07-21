@@ -306,6 +306,7 @@
     <ClCompile Include="src\base\date.cpp" />
     <ClCompile Include="src\base\fibjs.cpp" />
     <ClCompile Include="src\base\fuck_sym.cpp" />
+    <ClCompile Include="src\base\profile.cpp" />
     <ClCompile Include="src\base\Runtime.cpp" />
     <ClCompile Include="src\base\utf8.cpp" />
     <ClCompile Include="src\base\utils.cpp" />

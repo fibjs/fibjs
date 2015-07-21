@@ -763,6 +763,9 @@
     <ClCompile Include="src\base\fuck_sym.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
+    <ClCompile Include="src\base\profile.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
     <ClCompile Include="src\base\Runtime.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
