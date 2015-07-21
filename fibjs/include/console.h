@@ -179,7 +179,7 @@ public:
     {
         if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
         {
-            m_acLog.put(new item(priority, msg));
+            m_acLog.putTail(new item(priority, msg));
             m_sem.Post();
         }
     }
@@ -223,7 +223,7 @@ public:
     static TextColor *get_std_color();
 
 private:
-    exlib::lockfree<item> m_acLog;
+    exlib::LockedList<item> m_acLog;
     exlib::OSSemaphore m_sem;
     bool m_logEmpty;
     bool m_bStop;

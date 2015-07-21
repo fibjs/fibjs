@@ -74,7 +74,7 @@ result_t net_base::backend(std::string &retVal)
 class asyncEv;
 
 static ev_async s_asEvent;
-static exlib::lockfree<asyncEv> s_evWait;
+static exlib::LockedList<asyncEv> s_evWait;
 
 class asyncEv: public ev_io,
     public exlib::linkitem
@@ -86,7 +86,7 @@ public:
 
     void post()
     {
-        s_evWait.put(this);
+        s_evWait.putTail(this);
         ev_async_send(s_loop, &s_asEvent);
     }
 

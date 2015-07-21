@@ -12,14 +12,14 @@ class BlockedAsyncQueue: public exlib::AsyncQueue
 public:
     void put(exlib::AsyncEvent *o)
     {
-        exlib::AsyncQueue::put(o);
+        exlib::AsyncQueue::putTail(o);
         m_sem.Post();
     }
 
     exlib::AsyncEvent *wait()
     {
         m_sem.Wait();
-        return exlib::AsyncQueue::get();
+        return exlib::AsyncQueue::getHead();
     }
 
 private:

@@ -11,7 +11,7 @@
 namespace fibjs
 {
 
-extern exlib::lockfree<Isolate> s_isolates;
+extern exlib::LockedList<Isolate> s_isolates;
 
 static std::string traceFiber()
 {
@@ -79,14 +79,16 @@ void userBreak()
     }
     s_double = true;
 
-    Isolate *p;
-    while ((p = s_isolates.get()) != 0) {
+    Isolate *p = s_isolates.head();
+    while (p != 0) {
 #ifdef DEBUG
         p->service->dumpFibers();
         exlib::mem_diff();
 #endif
         p->isolate->RequestInterrupt(InterruptCallback, NULL);
         p->service->RequestInterrupt(InterruptCallbackEx);
+
+        p = s_isolates.next(p);
     }
 }
 

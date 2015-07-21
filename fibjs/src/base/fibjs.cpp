@@ -38,7 +38,7 @@ public:
     }
 };
 
-exlib::lockfree<Isolate> s_isolates;
+exlib::LockedList<Isolate> s_isolates;
 
 void _main(const char *fname)
 {
@@ -49,7 +49,7 @@ void _main(const char *fname)
 
     Isolate is;
     Isolate::reg(&is);
-    s_isolates.put(&is);
+    s_isolates.putTail(&is);
 
     Isolate& isolate = Isolate::now();
 
