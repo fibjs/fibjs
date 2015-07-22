@@ -134,7 +134,6 @@
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
     <ClInclude Include="include\ifs\fs.h" />
-    <ClInclude Include="include\ifs\Function.h" />
     <ClInclude Include="include\ifs\gd.h" />
     <ClInclude Include="include\ifs\global.h" />
     <ClInclude Include="include\ifs\GridFS.h" />
@@ -361,7 +360,6 @@
     <ClCompile Include="src\fs\path.cpp" />
     <ClCompile Include="src\fs\Stat.cpp" />
     <ClCompile Include="src\global\Buffer.cpp" />
-    <ClCompile Include="src\global\Function.cpp" />
     <ClCompile Include="src\global\global.cpp" />
     <ClCompile Include="src\global\Int64.cpp" />
     <ClCompile Include="src\http\http.cpp" />

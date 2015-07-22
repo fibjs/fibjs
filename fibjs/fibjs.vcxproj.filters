@@ -102,9 +102,6 @@
     <ClInclude Include="include\ifs\Fiber.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\Function.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\global.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -923,9 +920,6 @@
       <Filter>Source Files\fs</Filter>
     </ClCompile>
     <ClCompile Include="src\global\Buffer.cpp">
-      <Filter>Source Files\global</Filter>
-    </ClCompile>
-    <ClCompile Include="src\global\Function.cpp">
       <Filter>Source Files\global</Filter>
     </ClCompile>
     <ClCompile Include="src\global\global.cpp">
