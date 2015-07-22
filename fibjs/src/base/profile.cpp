@@ -13,7 +13,7 @@ namespace fibjs
 
 extern exlib::LockedList<Isolate> s_isolates;
 
-static std::string traceFiber()
+static std::string traceFiber(bool bTraceNow)
 {
     JSFiber* now = JSFiber::current();
     std::string msg;
@@ -32,7 +32,7 @@ static std::string traceFiber()
             sprintf(buf, "\nFiber %d:", n++);
             msg.append(buf);
 
-            if (fb == now && fb->m_traceInfo.empty())
+            if (bTraceNow && fb == now && fb->m_traceInfo.empty())
                 msg.append(traceInfo(300));
             else
                 msg.append(fb->m_traceInfo);
@@ -44,27 +44,37 @@ static std::string traceFiber()
     return msg;
 }
 
-static void InterruptCallback(v8::Isolate *isolate, void *data)
+static void dumpFibers(bool bTraceNow)
 {
     std::string msg;
 
     msg.append(COLOR_LIGHTRED "User interrupt.");
-    msg.append(traceFiber());
+    msg.append(traceFiber(bTraceNow));
     msg.append(COLOR_RESET "\n");
 
     std_logger::out(msg.c_str());
     _exit(1);
 }
 
+static void InterruptCallback(v8::Isolate *isolate, void *data)
+{
+    dumpFibers(true);
+}
+
 static void InterruptCallbackEx()
 {
-    JSFiber* now = JSFiber::current();
+    if (Isolate::rt::g_trace)
+        dumpFibers(false);
+
     Isolate &is = Isolate::now();
 
-    if (!now || now->m_traceInfo.empty())
+    if (!JSFiber::current())
         is.service->RequestInterrupt(InterruptCallbackEx);
     else
-        InterruptCallback(is.isolate, NULL);
+    {
+        v8::Locker locker(is.isolate);
+        dumpFibers(false);
+    }
 }
 
 void userBreak()
