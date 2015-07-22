@@ -199,7 +199,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             date_t d;
 
             d.now();
-            pThis->m_pThis->m_stats->add(HTTP_TOTAL_TIME, d.diff(pThis->m_d));
+            pThis->m_pThis->m_stats->add(HTTP_TOTAL_TIME, (int32_t)d.diff(pThis->m_d));
 
             pThis->m_rep->get_status(s);
             if (s == 200)
