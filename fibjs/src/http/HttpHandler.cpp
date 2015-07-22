@@ -21,7 +21,7 @@ namespace fibjs
 static const char *s_staticCounter[] =
 { "total", "pendding" };
 static const char *s_Counter[] =
-{ "request", "response", "error", "error_400", "error_404", "error_500" };
+{ "request", "response", "error", "error_400", "error_404", "error_500", "totalTime" };
 
 enum
 {
@@ -32,7 +32,8 @@ enum
     HTTP_ERROR,
     HTTP_ERROR_400,
     HTTP_ERROR_404,
-    HTTP_ERROR_500
+    HTTP_ERROR_500,
+    HTTP_TOTAL_TIME
 };
 
 result_t HttpHandler_base::_new(v8::Local<v8::Value> hdlr,
@@ -58,7 +59,7 @@ HttpHandler::HttpHandler() :
         128), m_maxUploadSize(67108864)
 {
     m_stats = new Stats();
-    m_stats->init(s_staticCounter, 2, s_Counter, 6);
+    m_stats->init(s_staticCounter, 2, s_Counter, 7);
 }
 
 static std::string s_crossdomain;
@@ -125,6 +126,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             pThis->m_rep->set_keepAlive(bKeepAlive);
 
             pThis->set(send);
+            pThis->m_d.now();
 
             if (pThis->m_pThis->m_crossDomain)
             {
@@ -194,6 +196,10 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             asyncInvoke *pThis = (asyncInvoke *) pState;
             int32_t s;
             bool t = false;
+            date_t d;
+
+            d.now();
+            pThis->m_pThis->m_stats->add(HTTP_TOTAL_TIME, d.diff(pThis->m_d));
 
             pThis->m_rep->get_status(s);
             if (s == 200)
@@ -342,6 +348,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 m_rep->set_keepAlive(false);
                 m_rep->set_status(400);
                 set(send);
+                m_d.now();
                 return 0;
             }
 
@@ -357,6 +364,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<HttpResponse_base> m_rep;
         obj_ptr<MemoryStream> m_zip;
         obj_ptr<SeekableStream_base> m_body;
+        date_t m_d;
     };
 
     if (!ac)

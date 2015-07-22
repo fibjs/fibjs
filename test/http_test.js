@@ -689,12 +689,19 @@ describe("http", function() {
 			return req;
 		}
 
+		function getStats(hdr)
+		{
+			var o = hdr.stats.toJSON();
+			delete o.totalTime;
+			return o;
+		}
+
 		it("normal request", function() {
 			c.write("GET / HTTP/1.0\r\n\r\n");
 			var req = get_response();
 			assert.equal(req.status, 200);
 
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 1,
 				"pendding": 0,
 				"request": 1,
@@ -711,7 +718,7 @@ describe("http", function() {
 			var req = get_response();
 			assert.equal(req.status, 400);
 
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 2,
 				"pendding": 0,
 				"request": 2,
@@ -728,7 +735,7 @@ describe("http", function() {
 			var req = get_response();
 			assert.equal(req.status, 404);
 
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 3,
 				"pendding": 0,
 				"request": 3,
@@ -745,7 +752,7 @@ describe("http", function() {
 			var req = get_response();
 			assert.equal(req.status, 500);
 
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 4,
 				"pendding": 0,
 				"request": 4,
@@ -765,7 +772,7 @@ describe("http", function() {
 
 			st.wait(1);
 
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 5,
 				"pendding": 1,
 				"request": 5,
@@ -778,7 +785,7 @@ describe("http", function() {
 
 			st.wait(3);
 			coroutine.sleep(50);
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 5,
 				"pendding": 0,
 				"request": 5,
@@ -795,7 +802,7 @@ describe("http", function() {
 			c.close();
 
 			coroutine.sleep(10);
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 6,
 				"pendding": 0,
 				"request": 6,
@@ -809,7 +816,7 @@ describe("http", function() {
 
 		it("reset stats", function() {
 			hdr.stats.reset();
-			assert.deepEqual(hdr.stats.toJSON(), {
+			assert.deepEqual(getStats(hdr), {
 				"total": 6,
 				"pendding": 0,
 				"request": 0,
