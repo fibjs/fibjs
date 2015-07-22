@@ -5,7 +5,6 @@
 #include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/global.h"
-#include "ifs/Function.h"
 #include "console.h"
 #include "SandBox.h"
 #include "Fiber.h"
@@ -72,10 +71,6 @@ void _main(const char *fname)
 
     obj_ptr<console_base> s_console = new console_base();
     glob->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, "console"), s_console->wrap());
-
-    Function_base::class_info().Attach(
-        glob->Get(v8::String::NewFromUtf8(isolate.isolate, "Function"))->ToObject()->GetPrototype()->ToObject(),
-        NULL);
 
     isolate.s_context.Reset(isolate.isolate, _context);
     isolate.s_global.Reset(isolate.isolate, glob);
