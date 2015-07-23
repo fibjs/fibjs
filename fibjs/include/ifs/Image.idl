@@ -24,8 +24,11 @@ interface Image : object
     /*! @brief 查询图像颜色表内的颜色总数 */
     readonly Integer colorsTotal;
 
-    /*! @brief查询和设定指定的颜色为透明色 */
+    /*! @brief 查询和设定指定的颜色为透明色 */
     Integer transparent;
+
+    /*! @brief 查询和设定图像是否渐进式，仅支持 jpeg 格式时 */
+    Boolean progressive;
 
     /*! @brief查询和设定绘图时是否计算 alpha 层，缺省为 true */
     Boolean alphaBlending;

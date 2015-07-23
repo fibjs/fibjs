@@ -933,6 +933,24 @@ result_t Image::set_transparent(int32_t newVal)
     return 0;
 }
 
+result_t Image::get_progressive(bool& retVal)
+{
+    if (!m_image)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = gdImageGetInterlaced(m_image) != 0;
+    return 0;
+}
+
+result_t Image::set_progressive(bool newVal)
+{
+    if (!m_image)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    gdImageInterlace(m_image, newVal);
+    return 0;
+}
+
 result_t Image::get_alphaBlending(bool &retVal)
 {
     if (!m_image)

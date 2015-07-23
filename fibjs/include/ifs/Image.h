@@ -34,6 +34,8 @@ public:
 	virtual result_t get_colorsTotal(int32_t& retVal) = 0;
 	virtual result_t get_transparent(int32_t& retVal) = 0;
 	virtual result_t set_transparent(int32_t newVal) = 0;
+	virtual result_t get_progressive(bool& retVal) = 0;
+	virtual result_t set_progressive(bool newVal) = 0;
 	virtual result_t get_alphaBlending(bool& retVal) = 0;
 	virtual result_t set_alphaBlending(bool newVal) = 0;
 	virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
@@ -97,6 +99,8 @@ public:
 	static void s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_getData(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -225,13 +229,14 @@ namespace fibjs
 			{"type", s_get_type, block_set},
 			{"colorsTotal", s_get_colorsTotal, block_set},
 			{"transparent", s_get_transparent, s_set_transparent},
+			{"progressive", s_get_progressive, s_set_progressive},
 			{"alphaBlending", s_get_alphaBlending, s_set_alphaBlending}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Image", NULL, 
-			42, s_method, 0, NULL, 7, s_property, NULL, NULL,
+			42, s_method, 0, NULL, 8, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -318,6 +323,29 @@ namespace fibjs
 
 		PROPERTY_VAL(int32_t);
 		hr = pInst->set_transparent(v0);
+
+		PROPERTY_SET_LEAVE();
+	}
+
+	inline void Image_base::s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		bool vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Image_base);
+
+		hr = pInst->get_progressive(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Image_base::s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Image_base);
+
+		PROPERTY_VAL(bool);
+		hr = pInst->set_progressive(v0);
 
 		PROPERTY_SET_LEAVE();
 	}
