@@ -14,8 +14,9 @@
 namespace fibjs
 {
 
-void userBreak();
 void init_argv(int argc, char **argv);
+void init_prof();
+void options(int* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
 {
@@ -105,184 +106,21 @@ void _main(const char *fname)
 
 }
 
-void on_break(int s) {
-    fibjs::userBreak();
-}
-
-#ifdef _WIN32
-#include <DbgHelp.h>
-
-typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)(HANDLE hProcess, DWORD dwPid, HANDLE hFile, MINIDUMP_TYPE DumpType,
-        CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam, CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
-        CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
-
-static MINIDUMPWRITEDUMP s_pDump;
-
-HANDLE CreateUniqueDumpFile()
-{
-    char fname[MAX_PATH];
-    int l, i;
-    HANDLE hFile;
-
-    puts("core dump....");
-    l = GetCurrentDirectory(MAX_PATH, fname);
-    memcpy(fname + l, "\\core.", 6);
-    l += 6;
-
-    for (i = 0; i < 104; i++)
-    {
-        _itoa_s(i, fname + l, 10, 10);
-        memcpy(fname + l + (i > 999 ? 4 : (i > 99 ? 3 : (i > 9 ? 2 : 1))),
-               ".dmp", 5);
-
-        hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
-                           CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-        if (hFile != INVALID_HANDLE_VALUE)
-            return hFile;
-
-        if (GetLastError() != ERROR_FILE_EXISTS)
-            return INVALID_HANDLE_VALUE;
-    };
-
-    return INVALID_HANDLE_VALUE;
-}
-
-static void CreateMiniDump(LPEXCEPTION_POINTERS lpExceptionInfo)
-{
-    HANDLE hFile = CreateUniqueDumpFile();
-
-    if (hFile != NULL && hFile != INVALID_HANDLE_VALUE)
-    {
-        MINIDUMP_EXCEPTION_INFORMATION mdei;
-
-        mdei.ThreadId = GetCurrentThreadId();
-        mdei.ExceptionPointers = lpExceptionInfo;
-        mdei.ClientPointers = FALSE;
-
-        MINIDUMP_TYPE mdt = MiniDumpNormal;
-        BOOL retv = s_pDump(GetCurrentProcess(), GetCurrentProcessId(), hFile,
-                            mdt, (lpExceptionInfo != 0) ? &mdei : 0, 0, 0);
-
-        CloseHandle(hFile);
-    }
-}
-
-static LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo)
-{
-    CreateMiniDump(pExceptionInfo);
-    exit(pExceptionInfo->ExceptionRecord->ExceptionCode);
-    return EXCEPTION_EXECUTE_HANDLER;
-}
-
-void enableDump()
-{
-    HMODULE hDll;
-    if (hDll = ::LoadLibrary("DBGHELP.DLL"))
-    {
-        s_pDump = (MINIDUMPWRITEDUMP) ::GetProcAddress(hDll,
-                  "MiniDumpWriteDump");
-        if (s_pDump)
-            SetUnhandledExceptionFilter (GPTUnhandledExceptionFilter);
-    }
-}
-
-BOOL WINAPI win_breakEvent(DWORD dwCtrlType)
-{
-    on_break(0);
-    return TRUE;
-}
-
-void catchBreak()
-{
-    SetConsoleCtrlHandler(win_breakEvent, TRUE);
-}
-
-#else
-
-#include <pwd.h>
-#include <sys/resource.h>
-#include <signal.h>
-
-void enableDump()
-{
-    struct rlimit corelimit =
-    { RLIM_INFINITY, RLIM_INFINITY };
-
-    setrlimit(RLIMIT_CORE, &corelimit);
-}
-
-void catchBreak()
-{
-    struct sigaction sigIntHandler;
-
-    sigIntHandler.sa_handler = on_break;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-
-    sigaction(SIGINT, &sigIntHandler, NULL);
-}
-
-#endif
-
-void options(int* argc, char *argv[])
-{
-    int df = 0;
-
-    for (int i = 0; i < *argc; i ++)
-    {
-        char* arg = argv[i];
-
-        if (df)
-            argv[i - df] = arg;
-
-        if (!fibjs::qstrcmp(arg, "--trace_fiber")) {
-            df ++;
-            fibjs::Isolate::rt::g_trace = true;
-        } else if (false) {
-
-        }
-    }
-
-    if (df)
-        *argc -= df;
-}
-
-#ifdef x64
-int stack_size = 512;
-#else
-int stack_size = 256;
-#endif
-
 int main(int argc, char *argv[])
 {
-    static char s_opts[64];
-    static char s_sharmony[] = " --harmony --harmony_proxies"
-                               " --use_strict"
-                               " --nologfile_per_isolate";
-    enableDump();
+    ::setlocale(LC_ALL, "");
 
-    exlib::OSThread::Sleep(1);
-
-    v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
-    v8::V8::SetFlagsFromString(s_opts,
-                               sprintf(s_opts, "--stack_size=%d", stack_size - 16));
-
-    options(&argc, argv);
-
-#ifdef DEBUG
-    fibjs::Isolate::rt::g_trace = true;
-#endif
-
-    v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
+    fibjs::options(&argc, argv);
+    fibjs::init_prof();
 
     fibjs::init_argv(argc, argv);
 
-    ::setlocale(LC_ALL, "");
+    int i;
 
-    catchBreak();
+    for (i = 1; (i < argc) && (argv[i][0] == '-'); i ++);
 
-    if (argc >= 2 && argv[1][0] != '-')
-        fibjs::_main(argv[1]);
+    if (i < argc)
+        fibjs::_main(argv[i]);
     else
         fibjs::_main(NULL);
 

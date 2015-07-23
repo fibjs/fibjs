@@ -8,10 +8,10 @@
 #include "Fiber.h"
 #include "ifs/os.h"
 
-extern int stack_size;
-
 namespace fibjs
 {
+
+extern int stack_size;
 
 #define MAX_FIBER   10000
 #define MAX_IDLE   10
