@@ -257,6 +257,76 @@ result_t gd_base::hsla(double hue, double saturation, double lightness,
     return 0;
 }
 
+inline int32_t hsb2rgb(double h, double s, double b)
+{
+    double cr = 0, cg = 0, cb = 0;
+    int32_t i = (int32_t)(h / 60) % 6;
+    double f = (h / 60) - i;
+    double p = b * (1 - s);
+    double q = b * (1 - f * s);
+    double t = b * (1 - (1 - f) * s);
+
+    switch (i) {
+    case 0:
+        cr = b;
+        cg = t;
+        cb = p;
+        break;
+    case 1:
+        cr = q;
+        cg = b;
+        cb = p;
+        break;
+    case 2:
+        cr = p;
+        cg = b;
+        cb = t;
+        break;
+    case 3:
+        cr = p;
+        cg = q;
+        cb = b;
+        break;
+    case 4:
+        cr = t;
+        cg = p;
+        cb = b;
+        break;
+    case 5:
+        cr = b;
+        cg = p;
+        cb = q;
+        break;
+    default:
+        break;
+    }
+
+    return gdTrueColor((int32_t) (cr * 255.0),
+                       (int32_t) (cg * 255.0),
+                       (int32_t) (cb * 255.0));
+}
+
+result_t gd_base::hsb(double hue, double saturation, double brightness, int32_t& retVal)
+{
+    if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || brightness < 0
+            || brightness > 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = hsb2rgb(hue, saturation, brightness);
+    return 0;
+}
+
+result_t gd_base::hsba(double hue, double saturation, double brightness,
+                       double alpha, int32_t& retVal)
+{
+    if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || brightness < 0
+            || brightness > 1 || alpha < 0 || alpha > 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = ((int32_t)(alpha * 127) << 24) | hsb2rgb(hue, saturation, brightness);
+    return 0;
+}
+
 result_t gd_base::color(const char *color, int32_t &retVal)
 {
     if (*color == '#')

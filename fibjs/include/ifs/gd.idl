@@ -126,6 +126,23 @@ module gd
      */
     static Integer hsla(Number hue, Number saturation, Number lightness, Number alpha);
 
+    /*! @brief 通过 hsl 颜色分量生成组合颜色
+     @param hue 色相分量，范围为 0-360
+     @param saturation 饱和度分量，范围为 0.0-1.0
+     @param brightness 明亮程度分量，范围为 0.0-1.0
+     @return 返回组合颜色
+     */
+    static Integer hsb(Number hue, Number saturation, Number brightness);
+
+    /*! @brief 通过 hsl 颜色分量生成组合颜色
+     @param hue 色相分量，范围为 0-360
+     @param saturation 饱和度分量，范围为 0.0-1.0
+     @param brightness 明亮程度分量，范围为 0.0-1.0
+     @param alpha 透明分量，范围为 0.0-1.0
+     @return 返回组合颜色
+     */
+    static Integer hsba(Number hue, Number saturation, Number brightness, Number alpha);
+
     /*! @brief 通过字符串生成组合颜色
      @param color 指定颜色的字符串，如："#ff0000", "ff0000", "#f00", "f00"
      @return 返回组合颜色

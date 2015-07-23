@@ -58,6 +58,8 @@ public:
 	static result_t rgba(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal);
 	static result_t hsl(double hue, double saturation, double lightness, int32_t& retVal);
 	static result_t hsla(double hue, double saturation, double lightness, double alpha, int32_t& retVal);
+	static result_t hsb(double hue, double saturation, double brightness, int32_t& retVal);
+	static result_t hsba(double hue, double saturation, double brightness, double alpha, int32_t& retVal);
 	static result_t color(const char* color, int32_t& retVal);
 
 public:
@@ -86,6 +88,8 @@ public:
 	static void s_rgba(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hsl(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hsla(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hsb(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hsba(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_color(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -113,6 +117,8 @@ namespace fibjs
 			{"rgba", s_rgba, true},
 			{"hsl", s_hsl, true},
 			{"hsla", s_hsla, true},
+			{"hsb", s_hsb, true},
+			{"hsba", s_hsba, true},
 			{"color", s_color, true}
 		};
 
@@ -142,7 +148,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"gd", NULL, 
-			7, s_method, 0, NULL, 19, s_property, NULL, NULL,
+			9, s_method, 0, NULL, 19, s_property, NULL, NULL,
 			NULL
 		};
 
@@ -381,6 +387,37 @@ namespace fibjs
 		ARG(double, 3);
 
 		hr = hsla(v0, v1, v2, v3, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void gd_base::s_hsb(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(3, 3);
+
+		ARG(double, 0);
+		ARG(double, 1);
+		ARG(double, 2);
+
+		hr = hsb(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void gd_base::s_hsba(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(4, 4);
+
+		ARG(double, 0);
+		ARG(double, 1);
+		ARG(double, 2);
+		ARG(double, 3);
+
+		hr = hsba(v0, v1, v2, v3, vr);
 
 		METHOD_RETURN();
 	}
