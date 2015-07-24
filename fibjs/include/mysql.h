@@ -22,10 +22,7 @@ public:
     {
     }
 
-    virtual ~mysql()
-    {
-        close(NULL);
-    }
+    virtual ~mysql();
 
 public:
     // DbConnection_base

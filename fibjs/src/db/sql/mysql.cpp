@@ -11,6 +11,7 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
+#include "Fiber.h"
 
 namespace fibjs
 {
@@ -174,6 +175,24 @@ result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal,
     retVal = conn;
 
     return 0;
+}
+
+static void close_conn(UMConnection conn)
+{
+    JSFiber::scope s;
+
+    puts("close_conn");
+    UMConnection_Close(conn);
+    UMConnection_Destroy(conn);
+}
+
+mysql::~mysql()
+{
+    if (m_conn)
+    {
+        DelayClose(m_conn, close_conn);
+        m_conn = NULL;
+    }
 }
 
 result_t mysql::connect(const char *host, int port, const char *username,
