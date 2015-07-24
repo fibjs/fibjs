@@ -181,7 +181,6 @@ static void close_conn(UMConnection conn)
 {
     JSFiber::scope s;
 
-    puts("close_conn");
     UMConnection_Close(conn);
     UMConnection_Destroy(conn);
 }
