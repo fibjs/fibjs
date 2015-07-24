@@ -154,10 +154,10 @@ std::string GetException(TryCatch &try_catch, result_t hr)
             {
                 char numStr[32];
 
-                strError.append(":", 1);
+                strError.append(1, ':');
                 sprintf(numStr, "%d", lineNumber);
                 strError.append(numStr);
-                strError.append(":", 1);
+                strError.append(1, ':');
                 sprintf(numStr, "%d", message->GetStartColumn() + 1);
                 strError.append(numStr);
             }
@@ -201,10 +201,10 @@ result_t throwSyntaxError(TryCatch &try_catch)
         {
             char numStr[32];
 
-            strError.append(":", 1);
+            strError.append(1, ':');
             sprintf(numStr, "%d", lineNumber);
             strError.append(numStr);
-            strError.append(":", 1);
+            strError.append(1, ':');
             sprintf(numStr, "%d", message->GetStartColumn() + 1);
             strError.append(numStr);
         }
@@ -248,14 +248,14 @@ std::string traceInfo(int32_t deep)
         if (*filename)
         {
             strBuffer.append(*filename);
-            strBuffer.append(":", 1);
+            strBuffer.append(1, ':');
         }
         else
             strBuffer.append("[eval]:", 7);
 
         sprintf(numStr, "%d", f->GetLineNumber());
         strBuffer.append(numStr);
-        strBuffer.append(":", 1);
+        strBuffer.append(1, ':');
         sprintf(numStr, "%d", f->GetColumn());
         strBuffer.append(numStr);
 

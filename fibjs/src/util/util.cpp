@@ -34,20 +34,9 @@ namespace fibjs
 
 inline void newline(StringBuffer &strBuffer, int32_t padding)
 {
-    static char s_spc[] = "                                                                ";
-    int32_t n, n1;
-
     strBuffer.append('\n');
     if (padding > 0)
-    {
-        n = padding;
-        while (n)
-        {
-            n1 = n > 64 ? 64 : n;
-            strBuffer.append(s_spc, n1);
-            n -= n1;
-        }
-    }
+        strBuffer.append(std::string(padding, ' '));
 }
 
 class _item

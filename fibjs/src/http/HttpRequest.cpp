@@ -190,16 +190,16 @@ result_t HttpRequest::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
     std::string strCommand = m_method;
     std::string strProtocol;
 
-    strCommand += ' ';
+    strCommand.append(1, ' ');
     strCommand.append(m_address);
     if (!m_queryString.empty())
     {
-        strCommand += '?';
+        strCommand.append(1, '?');
         strCommand.append(m_queryString);
     }
 
     get_protocol(strProtocol);
-    strCommand += ' ';
+    strCommand.append(1, ' ');
     strCommand.append(strProtocol);
 
     return m_message.sendTo(stm, strCommand, ac);

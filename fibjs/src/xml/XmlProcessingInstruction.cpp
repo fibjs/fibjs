@@ -145,7 +145,7 @@ result_t XmlProcessingInstruction::toString(std::string &retVal)
 {
     retVal = "<?";
     retVal.append(m_target);
-    retVal += ' ';
+    retVal.append(1, ' ');
     retVal.append(m_data);
     retVal.append("?>");
 
