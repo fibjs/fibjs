@@ -50,7 +50,7 @@ static void onIdle()
     {
         s_fibers++;
         exlib::Fiber::Create(FiberBase::fiber_proc, NULL,
-                             stack_size * 1024)->Unref();
+                             stack_size * 1024);
     }
 
     if (s_oldIdle)
