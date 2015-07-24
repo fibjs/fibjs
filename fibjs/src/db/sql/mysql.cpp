@@ -54,7 +54,7 @@ int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
     return fibjs::socket::send(sock, buffer, cbBuffer);
 }
 
-void *API_createResult(int columns, void *opt)
+void *API_createResult(int columns)
 {
     DBResult *res = new DBResult(columns);
     res->Ref();
@@ -62,19 +62,19 @@ void *API_createResult(int columns, void *opt)
 }
 
 void API_resultSetField(void *result, int ifield, UMTypeInfo *ti, void *name,
-                        size_t cbName, void *opt)
+                        size_t cbName)
 {
     std::string s((char *) name, cbName);
     ((DBResult *) result)->setField(ifield, s);
 }
 
-void API_resultRowBegin(void *result, void *opt)
+void API_resultRowBegin(void *result)
 {
     ((DBResult *) result)->beginRow();
 }
 
 int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
-                       size_t cbValue, void *opt)
+                       size_t cbValue)
 {
     Variant v;
 
@@ -116,22 +116,18 @@ int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
     return true;
 }
 
-int API_resultRowEnd(void *result, void *opt)
+void API_resultRowEnd(void *result)
 {
-    DBResult *res = (DBResult *) result;
-
-    res->endRow();
-
-    return 1;
+    ((DBResult *) result)->endRow();
 }
 
-void API_destroyResult(void *result, void *opt)
+void API_destroyResult(void *result)
 {
     ((DBResult *) result)->Unref();
 }
 
 void *API_resultOK(UINT64 affected, UINT64 insertId, int serverStatus,
-                   const char *message, size_t len, void *opt)
+                   const char *message, size_t len)
 {
     DBResult *res = new DBResult(affected, insertId);
     res->Ref();
@@ -214,7 +210,6 @@ result_t mysql::connect(const char *host, int port, const char *username,
 
     return 0;
 }
-
 result_t mysql::close(exlib::AsyncEvent *ac)
 {
     if (m_conn)
@@ -259,7 +254,7 @@ result_t mysql::execute(const char *sql, int sLen,
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    DBResult *res = (DBResult *) UMConnection_Query(m_conn, sql, sLen, this);
+    DBResult *res = (DBResult *) UMConnection_Query(m_conn, sql, sLen);
     if (!res)
         return CHECK_ERROR(error());
 
