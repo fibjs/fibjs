@@ -33,12 +33,7 @@ result_t DBRow::_named_getter(const char *property,
 
 result_t DBRow::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
-    int32_t i;
-
-    retVal = v8::Array::New(Isolate::now().isolate);
-    for (i = 0; i < (int)m_cols.size(); i++)
-        retVal->Set(i, m_cols[i]);
-
+    m_fields->names(retVal);
     return 0;
 }
 

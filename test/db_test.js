@@ -71,6 +71,13 @@ describe("db", function() {
 			assert.strictEqual(r['t2'], 'aaaaa');
 			assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
 			assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
+
+			assert.deepEqual(Object.keys(r), [
+				"t1",
+				"t2",
+				"t3",
+				"t4"
+			]);
 		});
 
 		it("binary", function() {
