@@ -57,7 +57,7 @@ void _main(const char *fname)
     ShellArrayBufferAllocator array_buffer_allocator;
     create_params.array_buffer_allocator = &array_buffer_allocator;
 
-    isolate.service = exlib::Service::getFiberService();
+    isolate.service = exlib::Service::current();
     isolate.isolate = v8::Isolate::New(create_params);
     v8::Locker locker(isolate.isolate);
     v8::Isolate::Scope isolate_scope(isolate.isolate);

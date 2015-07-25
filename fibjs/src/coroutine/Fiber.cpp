@@ -71,7 +71,7 @@ inline void fiber_init()
         s_idleFibers = 0;
 
         g_tlsCurrent = exlib::Fiber::tlsAlloc();
-        s_oldIdle = exlib::Service::root->onIdle(onIdle);
+        s_oldIdle = exlib::Service::current()->onIdle(onIdle);
     }
 }
 
