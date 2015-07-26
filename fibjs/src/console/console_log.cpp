@@ -12,10 +12,15 @@ namespace fibjs
 
 static int32_t s_loglevel = console_base::_NOTSET;
 
-std_logger s_std;
+obj_ptr<std_logger> s_std;
+
+void init_logger()
+{
+    s_std = new std_logger;
+}
 
 #define MAX_LOGGER  10
-static logger* s_logs[MAX_LOGGER];
+static obj_ptr<logger> s_logs[MAX_LOGGER];
 
 void asyncLog(int priority, std::string msg)
 {
@@ -25,7 +30,7 @@ void asyncLog(int priority, std::string msg)
 
         for (i = 0; i < MAX_LOGGER; i ++)
         {
-            logger* lgr = s_logs[i];
+            obj_ptr<logger> lgr = s_logs[i];
 
             if (lgr)
                 lgr->log(priority, msg);
@@ -34,7 +39,7 @@ void asyncLog(int priority, std::string msg)
         }
 
         if (i == 0)
-            s_std.log(priority, msg);
+            s_std->log(priority, msg);
     }
 }
 
@@ -44,7 +49,7 @@ void flushLog(bool bFiber)
 
     for (i = 0; i < MAX_LOGGER; i ++)
     {
-        logger* lgr = s_logs[i];
+        obj_ptr<logger> lgr = s_logs[i];
 
         if (lgr)
             lgr->flush(bFiber);
@@ -52,7 +57,7 @@ void flushLog(bool bFiber)
             break;
     }
 
-    s_std.flush(bFiber);
+    s_std->flush(bFiber);
 }
 
 result_t console_base::get_loglevel(int32_t &retVal)
@@ -107,7 +112,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
     if (!*s)
         return CHECK_ERROR(Runtime::setError("Unknown log type."));
 
-    logger* lgr = 0;
+    obj_ptr<logger> lgr;
 
     if (!qstrcmp(*s, "console"))
         lgr = new std_logger();
@@ -125,7 +130,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
         result_t hr = lgr->config(o);
         if (hr < 0)
         {
-            lgr->stop();
+            //lgr->stop();
             return hr;
         }
 
@@ -157,7 +162,7 @@ result_t console_base::reset()
 
     for (i = 0; i < MAX_LOGGER; i ++)
     {
-        logger* lgr = s_logs[i];
+        obj_ptr<logger> lgr = s_logs[i];
 
         if (lgr)
         {

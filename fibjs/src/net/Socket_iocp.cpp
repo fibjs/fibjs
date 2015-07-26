@@ -94,7 +94,6 @@ public:
         }
 
         s_hIocp = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
-        start();
     }
 
     virtual void Run()
@@ -128,6 +127,11 @@ public:
     }
 
 } s_acSock;
+
+void init_net()
+{
+    s_acSock.start();
+}
 
 result_t net_base::backend(std::string &retVal)
 {

@@ -16,6 +16,9 @@ namespace fibjs
 
 void init_argv(int argc, char **argv);
 void init_prof();
+void init_acThread();
+void init_logger();
+void init_net();
 void options(int* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
@@ -42,6 +45,11 @@ exlib::LockedList<Isolate> s_isolates;
 
 void _main(const char *fname)
 {
+    exlib::Service::init();
+    init_acThread();
+    init_logger();
+    init_net();
+
     v8::Platform *platform = v8::platform::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform);
 

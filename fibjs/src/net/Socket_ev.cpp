@@ -169,7 +169,6 @@ public:
     _acSocket()
     {
         s_loop = EV_DEFAULT;
-        start();
     }
 
     virtual void Run()
@@ -216,6 +215,11 @@ private:
         doAsync();
     }
 } s_acSock;
+
+void init_net()
+{
+    s_acSock.start();
+}
 
 void Socket::cancel_socket(exlib::AsyncEvent *ac)
 {

@@ -55,11 +55,6 @@ void asyncEvent::async()
 static class _acThreadDog: public exlib::OSThread
 {
 public:
-    _acThreadDog()
-    {
-        start();
-    }
-
     virtual void Run()
     {
         int32_t cpus = 0;
@@ -90,5 +85,10 @@ public:
         }
     }
 } s_dog;
+
+void init_acThread()
+{
+    s_dog.start();
+}
 
 }

@@ -50,7 +50,7 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-extern std_logger s_std;
+extern obj_ptr<std_logger> s_std;
 
 void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
@@ -221,7 +221,7 @@ result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8:
 
     std::string str;
     util_base::format(fmt, args, str);
-    s_std.out(str.c_str());
+    s_std->out(str.c_str());
 
     return 0;
 }
@@ -310,7 +310,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     else
 #endif
     {
-        s_std.out(msg);
+        s_std->out(msg);
         char *line = read_line();
 
         if (!line)
