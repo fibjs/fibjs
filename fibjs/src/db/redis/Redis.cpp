@@ -67,11 +67,11 @@ result_t Redis::connect(const char *host, int port, AsyncEvent *ac)
 #define REDIS_MAX_LINE 1024
 result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
 {
-    class asyncCommand: public asyncState
+    class asyncCommand: public AsyncState
     {
     public:
         asyncCommand(Redis *pThis, std::string &req, Variant &retVal, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_req(req), m_retVal(retVal)
+            AsyncState(ac), m_pThis(pThis), m_req(req), m_retVal(retVal)
         {
             m_subMode = pThis->m_subMode;
 
@@ -79,7 +79,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             set(send);
         }
 
-        asyncCommand(Redis *pThis) : asyncState(NULL), m_pThis(pThis), m_retVal(m_val)
+        asyncCommand(Redis *pThis) : AsyncState(NULL), m_pThis(pThis), m_retVal(m_val)
         {
             m_subMode = pThis->m_subMode;
 
@@ -87,7 +87,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             set(read);
         }
 
-        static int send(asyncState *pState, int n)
+        static int send(AsyncState *pState, int n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
@@ -97,7 +97,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             return pThis->m_stmBuffered->write(pThis->m_buffer, pThis);
         }
 
-        static int read(asyncState *pState, int n)
+        static int read(AsyncState *pState, int n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
@@ -202,7 +202,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             return 0;
         }
 
-        static int read_ok(asyncState *pState, int n)
+        static int read_ok(AsyncState *pState, int n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
@@ -266,7 +266,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             return CHECK_ERROR(Runtime::setError("Redis: Invalid response."));
         }
 
-        static int bulk_ok(asyncState *pState, int n)
+        static int bulk_ok(AsyncState *pState, int n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 

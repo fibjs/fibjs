@@ -106,7 +106,7 @@ public:
     exlib::Locker m_lock;
 
 public:
-    class asyncRelease: public AsyncEvent
+    class AsyncRelease: public AsyncEvent
     {
     public:
         virtual void js_invoke()
@@ -119,60 +119,8 @@ public:
             pThis->Unref();
         }
     };
-
-    template<typename T, typename T1>
-    void AsyncClose(T hd, T1 func)
-    {
-        class _AsyncClose: public AsyncEvent
-        {
-        public:
-            _AsyncClose(T hd, T1 func) :
-                m_hd(hd), m_func(func)
-            {
-            }
-
-            virtual void invoke()
-            {
-                m_func(m_hd);
-                delete this;
-            }
-
-        private:
-            T m_hd;
-            T1 m_func;
-        };
-
-        (new _AsyncClose(hd, func))->async();
-    }
-
-    template<typename T, typename T1>
-    void DelayClose(T hd, T1 func)
-    {
-        class _DelayClose: public AsyncEvent
-        {
-        public:
-            _DelayClose(T hd, T1 func) :
-                m_hd(hd), m_func(func)
-            {
-            }
-
-            virtual void js_invoke()
-            {
-                m_func(m_hd);
-                delete this;
-            }
-
-        private:
-            T m_hd;
-            T1 m_func;
-        };
-
-        (new _DelayClose(hd, func))->sync();
-    }
-
 private:
-
-    asyncRelease m_ar;
+    AsyncRelease m_ar;
     v8::Persistent<v8::Object> handle_;
 
 private:

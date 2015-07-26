@@ -15,13 +15,13 @@ namespace fibjs
 
 #define TINY_SIZE   32768
 
-class asyncSendTo: public asyncState
+class asyncSendTo: public AsyncState
 {
 public:
     asyncSendTo(HttpMessage *pThis, Stream_base *stm,
                 std::string &strCommand, AsyncEvent *ac,
                 bool headerOnly = false) :
-        asyncState(ac), m_pThis(pThis), m_stm(stm), m_strCommand(
+        AsyncState(ac), m_pThis(pThis), m_stm(stm), m_strCommand(
             strCommand), m_headerOnly(headerOnly)
     {
         m_contentLength = 0;
@@ -33,7 +33,7 @@ public:
             set(header);
     }
 
-    static int tinybody(asyncState *pState, int n)
+    static int tinybody(AsyncState *pState, int n)
     {
         asyncSendTo *pThis = (asyncSendTo *) pState;
 
@@ -44,7 +44,7 @@ public:
                    (int32_t) pThis->m_contentLength, pThis->m_buffer, pThis);
     }
 
-    static int header(asyncState *pState, int n)
+    static int header(AsyncState *pState, int n)
     {
         asyncSendTo *pThis = (asyncSendTo *) pState;
         size_t sz = pThis->m_strCommand.length();
@@ -84,7 +84,7 @@ public:
         return pThis->m_stm->write(pThis->m_buffer, pThis);
     }
 
-    static int body(asyncState *pState, int n)
+    static int body(AsyncState *pState, int n)
     {
         asyncSendTo *pThis = (asyncSendTo *) pState;
 
@@ -98,7 +98,7 @@ public:
                                               pThis->m_contentLength, pThis->m_copySize, pThis);
     }
 
-    static int body_ok(asyncState *pState, int n)
+    static int body_ok(AsyncState *pState, int n)
     {
         asyncSendTo *pThis = (asyncSendTo *) pState;
 
@@ -141,18 +141,18 @@ result_t HttpMessage::sendHeader(Stream_base *stm, std::string &strCommand,
 
 result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
 {
-    class asyncReadFrom: public asyncState
+    class asyncReadFrom: public AsyncState
     {
     public:
         asyncReadFrom(HttpMessage *pThis, BufferedStream_base *stm,
                       AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0), m_bChunked(
+            AsyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0), m_bChunked(
                 false), m_headCount(0)
         {
             set(begin);
         }
 
-        static int begin(asyncState *pState, int n)
+        static int begin(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -161,7 +161,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                           pThis);
         }
 
-        static int header(asyncState *pState, int n)
+        static int header(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -225,7 +225,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             return pThis->done();
         }
 
-        static int body(asyncState *pState, int n)
+        static int body(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -237,7 +237,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             return pThis->done();
         }
 
-        static int chunk_head(asyncState *pState, int n)
+        static int chunk_head(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -246,7 +246,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                           pThis);
         }
 
-        static int chunk_body(asyncState *pState, int n)
+        static int chunk_body(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
             _parser p(pThis->m_strLine);
@@ -276,7 +276,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                           pThis);
         }
 
-        static int chunk_body_end(asyncState *pState, int n)
+        static int chunk_body_end(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -285,7 +285,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                           pThis);
         }
 
-        static int chunk_end(asyncState *pState, int n)
+        static int chunk_end(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 

@@ -13,19 +13,19 @@ namespace fibjs
 result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
                     int64_t &retVal, AsyncEvent *ac)
 {
-    class asyncCopy: public asyncState
+    class asyncCopy: public AsyncState
     {
     public:
         asyncCopy(Stream_base *from, Stream_base *to, int64_t bytes,
                   int64_t &retVal, AsyncEvent *ac) :
-            asyncState(ac), m_from(from), m_to(to), m_bytes(bytes), m_retVal(
+            AsyncState(ac), m_from(from), m_to(to), m_bytes(bytes), m_retVal(
                 retVal)
         {
             m_retVal = 0;
             set(read);
         }
 
-        static int read(asyncState *pState, int n)
+        static int read(AsyncState *pState, int n)
         {
             asyncCopy *pThis = (asyncCopy *) pState;
             int64_t len;
@@ -44,7 +44,7 @@ result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
             return pThis->m_from->read((int32_t) len, pThis->m_buf, pThis);
         }
 
-        static int write(asyncState *pState, int n)
+        static int write(AsyncState *pState, int n)
         {
             asyncCopy *pThis = (asyncCopy *) pState;
             int blen;

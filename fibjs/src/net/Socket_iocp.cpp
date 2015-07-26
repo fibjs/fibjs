@@ -67,7 +67,7 @@ public:
     virtual void ready(DWORD dwBytes, int nError)
     {
         m_guard = 0;
-        m_ac->apost(nError);
+        m_ac->async(nError);
         delete this;
     }
 

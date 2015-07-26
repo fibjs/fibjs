@@ -83,16 +83,16 @@ result_t SslHandler::init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Valu
 result_t SslHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                             AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(SslHandler *pThis, Stream_base *stm, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_stm(stm)
+            AsyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             set(accept);
         }
 
-        static int accept(asyncState *pState, int n)
+        static int accept(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -100,7 +100,7 @@ result_t SslHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_pThis->m_socket->accept(pThis->m_stm, pThis->m_socket, pThis);
         }
 
-        static int invoke(asyncState *pState, int n)
+        static int invoke(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -108,7 +108,7 @@ result_t SslHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_socket, pThis);
         }
 
-        static int close(asyncState *pState, int n)
+        static int close(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -116,7 +116,7 @@ result_t SslHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_socket->close(pThis);
         }
 
-        static int exit(asyncState *pState, int n)
+        static int exit(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             return pThis->done(CALL_RETURN_NULL);

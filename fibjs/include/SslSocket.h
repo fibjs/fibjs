@@ -20,11 +20,11 @@ namespace fibjs
 class SslSocket: public SslSocket_base
 {
 private:
-    class asyncSsl: public asyncState
+    class asyncSsl: public AsyncState
     {
     public:
         asyncSsl(SslSocket *pThis, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_ret(0)
+            AsyncState(ac), m_pThis(pThis), m_ret(0)
         {
             set(process);
         }
@@ -36,7 +36,7 @@ private:
             return 0;
         }
 
-        static int process(asyncState *pState, int n)
+        static int process(AsyncState *pState, int n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -72,7 +72,7 @@ private:
             return CHECK_ERROR(_ssl::setError(pThis->m_ret));
         }
 
-        static int send(asyncState *pState, int n)
+        static int send(AsyncState *pState, int n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -88,7 +88,7 @@ private:
             return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
         }
 
-        static int recv(asyncState *pState, int n)
+        static int recv(AsyncState *pState, int n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -101,7 +101,7 @@ private:
             return pThis->m_pThis->m_s->read(-1, pThis->m_buf, pThis);
         }
 
-        static int flush(asyncState *pState, int n)
+        static int flush(AsyncState *pState, int n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -114,7 +114,7 @@ private:
             return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
         }
 
-        static int end(asyncState *pState, int n)
+        static int end(AsyncState *pState, int n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
             return pThis->done(pThis->finally());

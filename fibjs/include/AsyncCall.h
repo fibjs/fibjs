@@ -7,25 +7,60 @@
 namespace fibjs
 {
 
-class AsyncEvent: public exlib::AsyncEvent
+class AsyncEvent: public exlib::linkitem
 {
 public:
-    void sync();
+    virtual ~AsyncEvent()
+    {}
+
+public:
+    void sync(int32_t v = 0);
     virtual void js_invoke()
     {
     }
 
-    void async();
+    void async(int32_t v = 0);
     virtual void invoke()
     {
     }
+
+public:
+    virtual int post(int v)
+    {
+        m_v = v;
+        weak.set();
+
+        return 0;
+    }
+
+    int wait()
+    {
+        weak.wait();
+        return m_v;
+    }
+
+    bool isSet()
+    {
+        return weak.isSet();
+    }
+
+    int result()
+    {
+        return m_v;
+    }
+
+    void sleep(int ms);
+
+private:
+    exlib::Event weak;
+    int32_t m_v;
 };
 
 class AsyncCall: public AsyncEvent
 {
 public:
     AsyncCall(void **a) :
-        args(a)
+        args(a), invoke_once(0)
     {
     }
 
@@ -58,23 +93,24 @@ public:
 public:
     void **args;
     std::string m_error;
+    int32_t invoke_once;
 };
 
-class asyncState: public AsyncEvent
+class AsyncState: public AsyncEvent
 {
 public:
-    asyncState(AsyncEvent *ac) :
+    AsyncState(AsyncEvent *ac) :
         m_ac(ac), m_bAsyncState(false), m_state(NULL)
     {
     }
 
 public:
-    void set(int (*fn)(asyncState *, int))
+    void set(int (*fn)(AsyncState *, int))
     {
         m_state = fn;
     }
 
-    bool is(int (*fn)(asyncState *, int))
+    bool is(int (*fn)(AsyncState *, int))
     {
         return m_state == fn;
     }
@@ -116,15 +152,7 @@ public:
 
     virtual void invoke()
     {
-        post(m_av);
-    }
-
-    virtual int apost(int v)
-    {
-        m_av = v;
-
-        async();
-        return 0;
+        post(result());
     }
 
     virtual int error(int v)
@@ -135,9 +163,58 @@ public:
 private:
     AsyncEvent *m_ac;
     bool m_bAsyncState;
-    int m_av;
-    int (*m_state)(asyncState *, int);
+    int (*m_state)(AsyncState *, int);
 };
+
+template<typename T, typename T1>
+void AsyncClose(T hd, T1 func)
+{
+    class _AsyncClose: public AsyncEvent
+    {
+    public:
+        _AsyncClose(T hd, T1 func) :
+            m_hd(hd), m_func(func)
+        {
+        }
+
+        virtual void invoke()
+        {
+            m_func(m_hd);
+            delete this;
+        }
+
+    private:
+        T m_hd;
+        T1 m_func;
+    };
+
+    (new _AsyncClose(hd, func))->async();
+}
+
+template<typename T, typename T1>
+void DelayClose(T hd, T1 func)
+{
+    class _DelayClose: public AsyncEvent
+    {
+    public:
+        _DelayClose(T hd, T1 func) :
+            m_hd(hd), m_func(func)
+        {
+        }
+
+        virtual void js_invoke()
+        {
+            m_func(m_hd);
+            delete this;
+        }
+
+    private:
+        T m_hd;
+        T1 m_func;
+    };
+
+    (new _DelayClose(hd, func))->sync();
+}
 
 }
 

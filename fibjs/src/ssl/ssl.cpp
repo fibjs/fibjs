@@ -29,17 +29,17 @@ result_t _ssl::setError(int ret)
 result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
                            AsyncEvent *ac)
 {
-    class asyncConnect: public asyncState
+    class asyncConnect: public AsyncState
     {
     public:
         asyncConnect(const char *host, int32_t port, bool ipv6,
                      obj_ptr<Stream_base> &retVal, AsyncEvent *ac) :
-            asyncState(ac), m_host(host), m_port(port), m_ipv6(ipv6), m_retVal(retVal)
+            AsyncState(ac), m_host(host), m_port(port), m_ipv6(ipv6), m_retVal(retVal)
         {
             set(connect);
         }
 
-        static int connect(asyncState *pState, int n)
+        static int connect(AsyncState *pState, int n)
         {
             asyncConnect *pThis = (asyncConnect *) pState;
 
@@ -51,7 +51,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
             return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis);
         }
 
-        static int handshake(asyncState *pState, int n)
+        static int handshake(AsyncState *pState, int n)
         {
             asyncConnect *pThis = (asyncConnect *) pState;
 
@@ -69,7 +69,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
             return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis);
         }
 
-        static int ok(asyncState *pState, int n)
+        static int ok(AsyncState *pState, int n)
         {
             asyncConnect *pThis = (asyncConnect *) pState;
 

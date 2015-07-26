@@ -31,17 +31,17 @@ result_t Chain_base::_new(v8::Local<v8::Array> hdlrs,
 result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                        AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(Chain *pThis, object_base *v, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_v(v), m_pos(0)
+            AsyncState(ac), m_pThis(pThis), m_v(v), m_pos(0)
         {
             set(invoke);
         }
 
     public:
-        static int invoke(asyncState *pState, int n)
+        static int invoke(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 

@@ -13,11 +13,11 @@
 namespace fibjs
 {
 
-class asyncBuffer: public asyncState
+class asyncBuffer: public AsyncState
 {
 public:
     asyncBuffer(BufferedStream *pThis, AsyncEvent *ac) :
-        asyncState(ac), m_streamEnd(false), m_pThis(pThis)
+        AsyncState(ac), m_streamEnd(false), m_pThis(pThis)
     {
         set(process);
     }
@@ -27,7 +27,7 @@ public:
         return CALL_RETURN_NULL;
     }
 
-    static int process(asyncState *pState, int n)
+    static int process(AsyncState *pState, int n)
     {
         asyncBuffer *pThis = (asyncBuffer *) pState;
 
@@ -39,7 +39,7 @@ public:
         return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis);
     }
 
-    static int ready(asyncState *pState, int n)
+    static int ready(AsyncState *pState, int n)
     {
         asyncBuffer *pThis = (asyncBuffer *) pState;
 

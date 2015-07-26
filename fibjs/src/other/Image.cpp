@@ -64,17 +64,17 @@ result_t gd_base::load(Buffer_base *data, obj_ptr<Image_base> &retVal,
 result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
                        AsyncEvent *ac)
 {
-    class asyncLoad: public asyncState
+    class asyncLoad: public AsyncState
     {
     public:
         asyncLoad(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
                   AsyncEvent *ac) :
-            asyncState(ac), m_stm(stm), m_retVal(retVal)
+            AsyncState(ac), m_stm(stm), m_retVal(retVal)
         {
             set(read);
         }
 
-        static int read(asyncState *pState, int n)
+        static int read(AsyncState *pState, int n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
             result_t hr;
@@ -92,7 +92,7 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
             return pThis->m_stm->read((int32_t) len, pThis->m_buffer, pThis);
         }
 
-        static int load(asyncState *pState, int n)
+        static int load(AsyncState *pState, int n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -123,17 +123,17 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
 result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
                        AsyncEvent *ac)
 {
-    class asyncLoad: public asyncState
+    class asyncLoad: public AsyncState
     {
     public:
         asyncLoad(const char *fname, obj_ptr<Image_base> &retVal,
                   AsyncEvent *ac) :
-            asyncState(ac), m_fname(fname), m_retVal(retVal)
+            AsyncState(ac), m_fname(fname), m_retVal(retVal)
         {
             set(open);
         }
 
-        static int open(asyncState *pState, int n)
+        static int open(AsyncState *pState, int n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -141,7 +141,7 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
             return fs_base::open(pThis->m_fname.c_str(), "r", pThis->m_file, pThis);
         }
 
-        static int read(asyncState *pState, int n)
+        static int read(AsyncState *pState, int n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -149,7 +149,7 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
             return load(pThis->m_file, pThis->m_retVal, pThis);
         }
 
-        static int close(asyncState *pState, int n)
+        static int close(AsyncState *pState, int n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -551,17 +551,17 @@ result_t Image::getData(int32_t format, int32_t quality,
 result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
                      AsyncEvent *ac)
 {
-    class asyncSave: public asyncState
+    class asyncSave: public AsyncState
     {
     public:
         asyncSave(Image *img, Stream_base *stm, int32_t format, int32_t quality,
                   AsyncEvent *ac) :
-            asyncState(ac), m_pThis(img), m_stm(stm), m_format(format), m_quality(quality)
+            AsyncState(ac), m_pThis(img), m_stm(stm), m_format(format), m_quality(quality)
         {
             set(getData);
         }
 
-        static int getData(asyncState *pState, int n)
+        static int getData(AsyncState *pState, int n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -569,7 +569,7 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
             return pThis->m_pThis->getData(pThis->m_format, pThis->m_quality, pThis->m_buf, pThis);
         }
 
-        static int save(asyncState *pState, int n)
+        static int save(AsyncState *pState, int n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -597,17 +597,17 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
 result_t Image::save(const char *fname, int32_t format, int32_t quality,
                      AsyncEvent *ac)
 {
-    class asyncSave: public asyncState
+    class asyncSave: public AsyncState
     {
     public:
         asyncSave(Image *img, const char *fname, int32_t format, int32_t quality,
                   AsyncEvent *ac) :
-            asyncState(ac), m_pThis(img), m_fname(fname), m_format(format), m_quality(quality)
+            AsyncState(ac), m_pThis(img), m_fname(fname), m_format(format), m_quality(quality)
         {
             set(open);
         }
 
-        static int open(asyncState *pState, int n)
+        static int open(AsyncState *pState, int n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -615,7 +615,7 @@ result_t Image::save(const char *fname, int32_t format, int32_t quality,
             return fs_base::open(pThis->m_fname.c_str(), "w", pThis->m_file, pThis);
         }
 
-        static int save(asyncState *pState, int n)
+        static int save(AsyncState *pState, int n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -623,7 +623,7 @@ result_t Image::save(const char *fname, int32_t format, int32_t quality,
             return pThis->m_pThis->save(pThis->m_file, pThis->m_format, pThis->m_quality, pThis);
         }
 
-        static int close(asyncState *pState, int n)
+        static int close(AsyncState *pState, int n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 

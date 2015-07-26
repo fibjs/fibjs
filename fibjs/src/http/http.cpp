@@ -21,17 +21,17 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                             obj_ptr<HttpResponse_base> &retVal,
                             AsyncEvent *ac)
 {
-    class asyncRequest: public asyncState
+    class asyncRequest: public AsyncState
     {
     public:
         asyncRequest(Stream_base *conn, HttpRequest_base *req,
                      obj_ptr<HttpResponse_base> &retVal, AsyncEvent *ac) :
-            asyncState(ac), m_conn(conn), m_req(req), m_retVal(retVal)
+            AsyncState(ac), m_conn(conn), m_req(req), m_retVal(retVal)
         {
             set(send);
         }
 
-        static int send(asyncState *pState, int n)
+        static int send(AsyncState *pState, int n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 
@@ -39,7 +39,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
             return pThis->m_req->sendTo(pThis->m_conn, pThis);
         }
 
-        static int recv(asyncState *pState, int n)
+        static int recv(AsyncState *pState, int n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 
@@ -51,7 +51,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
             return pThis->m_retVal->readFrom(pThis->m_bs, pThis);
         }
 
-        static int unzip(asyncState *pState, int n)
+        static int unzip(AsyncState *pState, int n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 
@@ -80,7 +80,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
             return 0;
         }
 
-        static int close(asyncState *pState, int n)
+        static int close(AsyncState *pState, int n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 

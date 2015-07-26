@@ -50,6 +50,7 @@ function gen_stub(argn, bInst, bRet) {
 	txt.push('	class _t : public AsyncCall { public: \\');
 	txt.push('		_t(void ** a) : AsyncCall(a) {} \\');
 	txt.push('		virtual void invoke() { \\');
+	txt.push('			if(invoke_once == 0) { invoke_once = 1;\\');
 	txt.push('			result_t hr = ' + (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
 
 	s = '				';
@@ -61,7 +62,7 @@ function gen_stub(argn, bInst, bRet) {
 	s += '); \\'
 	txt.push(s);
 
-	txt.push('			if(hr != CALL_E_PENDDING)post(hr); } }; \\');
+	txt.push('			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \\');
 
 	s = '	result_t hr = m(';
 	if (argn > 0) {

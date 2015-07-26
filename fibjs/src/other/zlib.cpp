@@ -67,17 +67,17 @@ public:
 
     result_t process(Buffer_base *data, Stream_base *stm, AsyncEvent *ac)
     {
-        class asyncProcess: public asyncState
+        class asyncProcess: public AsyncState
         {
         public:
             asyncProcess(zlibWorker *pThis, Stream_base *stm,
                          AsyncEvent *ac) :
-                asyncState(ac), m_pThis(pThis), m_stm(stm)
+                AsyncState(ac), m_pThis(pThis), m_stm(stm)
             {
                 set(process);
             }
 
-            static int process(asyncState *pState, int n)
+            static int process(AsyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
                 int err;
@@ -135,17 +135,17 @@ public:
 
     result_t process(Stream_base *src, Stream_base *stm, AsyncEvent *ac)
     {
-        class asyncProcess: public asyncState
+        class asyncProcess: public AsyncState
         {
         public:
             asyncProcess(zlibWorker *pThis, Stream_base *src, Stream_base *stm,
                          AsyncEvent *ac) :
-                asyncState(ac), m_pThis(pThis), m_src(src), m_stm(stm)
+                AsyncState(ac), m_pThis(pThis), m_src(src), m_stm(stm)
             {
                 set(read);
             }
 
-            static int read(asyncState *pState, int n)
+            static int read(AsyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 
@@ -153,7 +153,7 @@ public:
                 return pThis->m_src->read(-1, pThis->m_buffer, pThis);
             }
 
-            static int read_ok(asyncState *pState, int n)
+            static int read_ok(AsyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 
@@ -176,7 +176,7 @@ public:
                 return 0;
             }
 
-            static int process(asyncState *pState, int n)
+            static int process(AsyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
                 int err;
@@ -196,7 +196,7 @@ public:
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
             }
 
-            static int write_ok(asyncState *pState, int n)
+            static int write_ok(AsyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 
@@ -210,7 +210,7 @@ public:
                 return 0;
             }
 
-            static int end(asyncState *pState, int n)
+            static int end(AsyncState *pState, int n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 

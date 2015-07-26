@@ -20,24 +20,24 @@ result_t Smtp_base::_new(obj_ptr<Smtp_base> &retVal, v8::Local<v8::Object> This)
 
 #define SMTP_MAX_LINE 1024
 
-class asyncSmtp: public asyncState
+class asyncSmtp: public AsyncState
 {
 public:
     asyncSmtp(Smtp *pThis, std::string &retVal, AsyncEvent *ac) :
-        asyncState(ac), m_pThis(pThis), m_retVal(retVal)
+        AsyncState(ac), m_pThis(pThis), m_retVal(retVal)
     {
         m_stmBuffered = pThis->m_stmBuffered;
         set(ok);
     }
 
     asyncSmtp(Smtp *pThis, AsyncEvent *ac) :
-        asyncState(ac), m_pThis(pThis), m_retVal(m_strLine)
+        AsyncState(ac), m_pThis(pThis), m_retVal(m_strLine)
     {
         m_stmBuffered = pThis->m_stmBuffered;
         set(ok);
     }
 
-    static int ok(asyncState *pState, int n)
+    static int ok(AsyncState *pState, int n)
     {
         asyncSmtp *pThis = (asyncSmtp *) pState;
 
@@ -46,7 +46,7 @@ public:
                                               pThis);
     }
 
-    static int recv(asyncState *pState, int n)
+    static int recv(AsyncState *pState, int n)
     {
         asyncSmtp *pThis = (asyncSmtp *) pState;
 
@@ -179,7 +179,7 @@ result_t Smtp::login(const char *username, const char *password,
             set(begin);
         }
 
-        static int begin(asyncState *pState, int n)
+        static int begin(AsyncState *pState, int n)
         {
             asyncLogin *pThis = (asyncLogin *) pState;
 
@@ -204,13 +204,13 @@ result_t Smtp::login(const char *username, const char *password,
             return m_stmBuffered->write(buf, this);
         }
 
-        static int send_username(asyncState *pState, int n)
+        static int send_username(AsyncState *pState, int n)
         {
             asyncLogin *pThis = (asyncLogin *) pState;
             return pThis->send_base64(pThis->m_username);
         }
 
-        static int send_password(asyncState *pState, int n)
+        static int send_password(AsyncState *pState, int n)
         {
             asyncLogin *pThis = (asyncLogin *) pState;
             return pThis->send_base64(pThis->m_password);
@@ -268,7 +268,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
             set(begin);
         }
 
-        static int begin(asyncState *pState, int n)
+        static int begin(AsyncState *pState, int n)
         {
             asyncData *pThis = (asyncData *) pState;
 
@@ -279,7 +279,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
             return pThis->m_stmBuffered->write(buf, pThis);
         }
 
-        static int send_data(asyncState *pState, int n)
+        static int send_data(AsyncState *pState, int n)
         {
             asyncData *pThis = (asyncData *) pState;
 

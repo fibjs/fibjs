@@ -22,17 +22,17 @@ namespace fibjs
 result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
                          AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(Handler_base *hdlr, object_base *v, AsyncEvent *ac) :
-            asyncState(ac), m_next(hdlr), m_v(v)
+            AsyncState(ac), m_next(hdlr), m_v(v)
         {
             set(call);
         }
 
     public:
-        static int call(asyncState *pState, int n)
+        static int call(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             result_t hr;

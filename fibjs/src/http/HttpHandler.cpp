@@ -67,11 +67,11 @@ static std::string s_crossdomain;
 result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                              AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(HttpHandler *pThis, Stream_base *stm, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_stm(stm)
+            AsyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             m_stmBuffered = new BufferedStream(stm);
             m_stmBuffered->set_EOL("\r\n");
@@ -88,7 +88,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             set(read);
         }
 
-        static int read(asyncState *pState, int n)
+        static int read(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             bool bKeepAlive = false;
@@ -104,7 +104,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis);
         }
 
-        static int invoke(asyncState *pState, int n)
+        static int invoke(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -191,7 +191,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
         }
 
-        static int send(asyncState *pState, int n)
+        static int send(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             int32_t s;
@@ -301,7 +301,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_rep->sendTo(pThis->m_stm, pThis);
         }
 
-        static int zip(asyncState *pState, int n)
+        static int zip(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -311,7 +311,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_rep->sendTo(pThis->m_stm, pThis);
         }
 
-        static int end(asyncState *pState, int n)
+        static int end(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 

@@ -144,12 +144,12 @@ static int mt_cmp(const void *p, const void *q)
 result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                  AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(HttpFileHandler *pThis, HttpRequest_base *req,
                     AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_req(req), m_gzip(false)
+            AsyncState(ac), m_pThis(pThis), m_req(req), m_gzip(false)
         {
             obj_ptr<Message_base> m;
             req->get_response(m);
@@ -179,7 +179,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             set(start);
         }
 
-        static int start(asyncState *pState, int n)
+        static int start(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -211,7 +211,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                  pThis);
         }
 
-        static int check(asyncState *pState, int n)
+        static int check(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -232,7 +232,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                  pThis);
         }
 
-        static int open(asyncState *pState, int n)
+        static int open(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             std::string ext;
@@ -265,7 +265,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_file->stat(pThis->m_stat, pThis);
         }
 
-        static int stat(asyncState *pState, int n)
+        static int stat(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             date_t d;

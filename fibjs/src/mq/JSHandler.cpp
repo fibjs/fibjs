@@ -156,18 +156,18 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
                               obj_ptr<Handler_base> &retVal, AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(Handler_base *pThis, object_base *v,
                     obj_ptr<Handler_base> &retVal, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
+            AsyncState(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
         {
             set(call);
         }
 
     public:
-        static int call(asyncState *pState, int n)
+        static int call(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             pThis->sync();

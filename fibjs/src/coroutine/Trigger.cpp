@@ -275,7 +275,7 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
 
 result_t object_base::_trigger(const char *ev, Variant *args, int argCount)
 {
-    class jsTrigger: public asyncRelease
+    class jsTrigger: public AsyncEvent
     {
     public:
         jsTrigger(object_base *obj, const char *ev, Variant *args, int argCount) :

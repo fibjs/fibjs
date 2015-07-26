@@ -263,18 +263,18 @@ result_t HttpResponse::sendTo(Stream_base *stm, AsyncEvent *ac)
 
 result_t HttpResponse::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
 {
-    class asyncReadFrom: public asyncState
+    class asyncReadFrom: public AsyncState
     {
     public:
         asyncReadFrom(HttpResponse *pThis, BufferedStream_base *stm,
                       AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_stm(stm)
+            AsyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             m_pThis->clear();
             set(begin);
         }
 
-        static int begin(asyncState *pState, int n)
+        static int begin(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -283,7 +283,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                           pThis);
         }
 
-        static int command(asyncState *pState, int n)
+        static int command(AsyncState *pState, int n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
             result_t hr;

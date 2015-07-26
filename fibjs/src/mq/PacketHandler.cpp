@@ -57,11 +57,11 @@ PacketHandler::PacketHandler() :
 result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(PacketHandler *pThis, Stream_base *stm, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis), m_stm(stm)
+            AsyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             m_stmBuffered = new BufferedStream(stm);
             m_msg = new PacketMessage(pThis->m_maxSize);
@@ -70,7 +70,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             set(read);
         }
 
-        static int read(asyncState *pState, int n)
+        static int read(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -79,7 +79,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_msg->readFrom(pThis->m_stmBuffered, pThis);
         }
 
-        static int invoke(asyncState *pState, int n)
+        static int invoke(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -94,7 +94,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_msg, pThis);
         }
 
-        static int send(asyncState *pState, int n)
+        static int send(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -102,7 +102,7 @@ result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_rep->sendTo(pThis->m_stm, pThis);
         }
 
-        static int end(asyncState *pState, int n)
+        static int end(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 

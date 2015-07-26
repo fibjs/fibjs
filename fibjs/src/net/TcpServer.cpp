@@ -90,17 +90,17 @@ result_t TcpServer::create(const char *addr, int32_t port,
 
 result_t TcpServer::run(AsyncEvent *ac)
 {
-    class asyncInvoke: public asyncState
+    class asyncInvoke: public AsyncState
     {
     public:
         asyncInvoke(TcpServer *pThis, Socket_base *pSock) :
-            asyncState(NULL), m_pThis(pThis), m_sock(pSock), m_obj(pSock)
+            AsyncState(NULL), m_pThis(pThis), m_sock(pSock), m_obj(pSock)
         {
             set(invoke);
         }
 
     public:
-        static int invoke(asyncState *pState, int n)
+        static int invoke(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -108,7 +108,7 @@ result_t TcpServer::run(AsyncEvent *ac)
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_obj, pThis);
         }
 
-        static int close(asyncState *pState, int n)
+        static int close(AsyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -131,17 +131,17 @@ result_t TcpServer::run(AsyncEvent *ac)
         obj_ptr<object_base> m_obj;
     };
 
-    class asyncAccept: public asyncState
+    class asyncAccept: public AsyncState
     {
     public:
         asyncAccept(TcpServer *pThis, AsyncEvent *ac) :
-            asyncState(ac), m_pThis(pThis)
+            AsyncState(ac), m_pThis(pThis)
         {
             set(accept);
         }
 
     public:
-        static int accept(asyncState *pState, int n)
+        static int accept(AsyncState *pState, int n)
         {
             asyncAccept *pThis = (asyncAccept *) pState;
 
@@ -149,14 +149,14 @@ result_t TcpServer::run(AsyncEvent *ac)
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
 
-        static int invoke(asyncState *pState, int n)
+        static int invoke(AsyncState *pState, int n)
         {
             asyncAccept *pThis = (asyncAccept *) pState;
 
             pThis->m_pThis->m_stats->inc(TCPS_TOTAL);
             pThis->m_pThis->m_stats->inc(TCPS_ACCEPT);
             pThis->m_pThis->m_stats->inc(TCPS_CONNECTIONS);
-            (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
+            (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->async(0);
 
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
@@ -187,17 +187,17 @@ result_t TcpServer::run(AsyncEvent *ac)
 
 result_t TcpServer::asyncRun()
 {
-    class asyncCall: public asyncState
+    class asyncCall: public AsyncState
     {
     public:
         asyncCall(TcpServer *pThis) :
-            asyncState(NULL), m_pThis(pThis)
+            AsyncState(NULL), m_pThis(pThis)
         {
             set(accept);
         }
 
     public:
-        static int accept(asyncState *pState, int n)
+        static int accept(AsyncState *pState, int n)
         {
             asyncCall *pThis = (asyncCall *) pState;
             return pThis->m_pThis->run(pThis);
@@ -213,7 +213,7 @@ result_t TcpServer::asyncRun()
     if (m_running)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    (new asyncCall(this))->apost(0);
+    (new asyncCall(this))->async(0);
     return 0;
 }
 
