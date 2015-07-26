@@ -186,7 +186,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
                     m_message = Runtime::errMessage();
             }
 
-            s_acPool.put(this);
+            async();
         }
 
         virtual void invoke()

@@ -7,27 +7,6 @@
 namespace fibjs
 {
 
-class BlockedAsyncQueue: public exlib::AsyncQueue
-{
-public:
-    void put(exlib::AsyncEvent *o)
-    {
-        exlib::AsyncQueue::putTail(o);
-        m_sem.Post();
-    }
-
-    exlib::AsyncEvent *wait()
-    {
-        m_sem.Wait();
-        return exlib::AsyncQueue::getHead();
-    }
-
-private:
-    exlib::OSSemaphore m_sem;
-};
-
-extern BlockedAsyncQueue s_acPool;
-
 class AsyncCall: public asyncEvent
 {
 public:
@@ -130,7 +109,7 @@ public:
     {
         m_av = v;
 
-        s_acPool.put(this);
+        async();
         return 0;
     }
 

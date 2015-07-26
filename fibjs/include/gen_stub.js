@@ -92,6 +92,6 @@ function gen_stub(argn, bInst, bRet) {
 	} else
 		txt.push('	_t ac(NULL); \\');
 
-	txt.push('	s_acPool.put(&ac); \\\n	return ac.wait();}\n');
+	txt.push('	ac.async(); \\\n	return ac.wait();}\n');
 
 }

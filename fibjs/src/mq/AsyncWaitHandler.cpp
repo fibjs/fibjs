@@ -37,7 +37,7 @@ result_t AsyncWaitHandler::end()
 {
     if (m_stat.xchg(AC_END) == AC_WAIT)
     {
-        s_acPool.put(m_as);
+        m_as->async();
         m_as = NULL;
     }
 
