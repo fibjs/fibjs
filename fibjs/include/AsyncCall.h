@@ -46,7 +46,7 @@ public:
     std::string m_error;
 };
 
-class asyncState: public asyncCallBack
+class asyncState: public AsyncEvent
 {
 public:
     asyncState(AsyncEvent *ac) :

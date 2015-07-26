@@ -26,21 +26,15 @@ namespace fibjs
 class AsyncEvent: public exlib::AsyncEvent
 {
 public:
-    virtual void js_callback()
-    {
-    }
-
-    virtual void invoke()
+    void sync();
+    virtual void js_invoke()
     {
     }
 
     void async();
-};
-
-class asyncCallBack: public AsyncEvent
-{
-public:
-    virtual void callback();
+    virtual void invoke()
+    {
+    }
 };
 
 class object_base: public obj_base
@@ -94,7 +88,7 @@ public:
         if (internalUnref() == 0)
         {
             internalRef();
-            m_ar.post(0);
+            m_ar.sync();
         }
 
         m_fast_lock.unlock();
@@ -125,10 +119,10 @@ public:
     exlib::Locker m_lock;
 
 public:
-    class asyncRelease: public asyncCallBack
+    class asyncRelease: public AsyncEvent
     {
     public:
-        virtual void js_callback()
+        virtual void js_invoke()
         {
             object_base *pThis = NULL;
 
@@ -167,7 +161,7 @@ public:
     template<typename T, typename T1>
     void DelayClose(T hd, T1 func)
     {
-        class _DelayClose: public asyncCallBack
+        class _DelayClose: public AsyncEvent
         {
         public:
             _DelayClose(T hd, T1 func) :
@@ -175,7 +169,7 @@ public:
             {
             }
 
-            virtual void js_callback()
+            virtual void js_invoke()
             {
                 m_func(m_hd);
                 delete this;
@@ -186,7 +180,7 @@ public:
             T1 m_func;
         };
 
-        (new _DelayClose(hd, func))->post(0);
+        (new _DelayClose(hd, func))->sync();
     }
 
 private:

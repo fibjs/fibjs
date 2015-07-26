@@ -285,7 +285,7 @@ result_t object_base::_trigger(const char *ev, Variant *args, int argCount)
         }
 
     public:
-        virtual void js_callback()
+        virtual void js_invoke()
         {
             JSFiber::scope s;
             size_t i;

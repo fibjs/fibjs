@@ -105,7 +105,7 @@ void *FiberBase::fiber_proc(void *p)
 
         {
             v8::HandleScope handle_scope(isolate.isolate);
-            ae->js_callback();
+            ae->js_invoke();
         }
     }
 
@@ -175,7 +175,7 @@ JSFiber *JSFiber::current()
     return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
-void JSFiber::js_callback()
+void JSFiber::js_invoke()
 {
     scope s(this);
     v8::Local<v8::Value> retVal;
@@ -210,7 +210,7 @@ JSFiber::scope::~scope()
     exlib::Fiber::tlsPut(g_tlsCurrent, 0);
 }
 
-void asyncCallBack::callback()
+void AsyncEvent::sync()
 {
     g_jobs.put(this);
 }

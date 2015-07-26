@@ -170,18 +170,16 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         static int call(asyncState *pState, int n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
-
-            int v = pThis->done(CALL_E_PENDDING);
-            pThis->AsyncEvent::post(0);
-            return v;
+            pThis->sync();
+            return pThis->done(CALL_E_PENDDING);
         }
 
     public:
-        virtual void js_callback()
+        virtual void js_invoke()
         {
             {
                 JSFiber::scope s;
-                m_hr = js_invoke(m_pThis, m_v, m_retVal, NULL);
+                m_hr = JSHandler::js_invoke(m_pThis, m_v, m_retVal, NULL);
                 if (m_hr == CALL_E_EXCEPTION)
                     m_message = Runtime::errMessage();
             }

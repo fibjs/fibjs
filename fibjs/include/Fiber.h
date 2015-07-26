@@ -101,7 +101,7 @@ public:
     }
 
     static JSFiber *current();
-    virtual void js_callback();
+    virtual void js_invoke();
 
     template<typename T>
     void New(v8::Local<v8::Function> func, T &args, int nArgStart,
