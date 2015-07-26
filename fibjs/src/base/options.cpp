@@ -24,7 +24,7 @@ void options(int* argc, char *argv[])
 	static char s_opts[64];
 	static char s_sharmony[] = " --harmony --harmony_proxies"
 	                           " --use_strict"
-	                           " --nologfile_per_isolate";
+	                           " --gc_global";
 
 	v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
 	v8::V8::SetFlagsFromString(s_opts,
