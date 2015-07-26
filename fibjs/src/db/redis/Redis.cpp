@@ -19,7 +19,7 @@ namespace fibjs
 {
 
 result_t db_base::openRedis(const char *connString,
-                            obj_ptr<Redis_base> &retVal, exlib::AsyncEvent *ac)
+                            obj_ptr<Redis_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -48,7 +48,7 @@ result_t db_base::openRedis(const char *connString,
     return conn->connect(connString, nPort, ac);
 }
 
-result_t Redis::connect(const char *host, int port, exlib::AsyncEvent *ac)
+result_t Redis::connect(const char *host, int port, AsyncEvent *ac)
 {
     result_t hr;
 
@@ -65,12 +65,12 @@ result_t Redis::connect(const char *host, int port, exlib::AsyncEvent *ac)
 }
 
 #define REDIS_MAX_LINE 1024
-result_t Redis::_command(std::string &req, Variant &retVal, exlib::AsyncEvent *ac)
+result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
 {
     class asyncCommand: public asyncState
     {
     public:
-        asyncCommand(Redis *pThis, std::string &req, Variant &retVal, exlib::AsyncEvent *ac) :
+        asyncCommand(Redis *pThis, std::string &req, Variant &retVal, AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_req(req), m_retVal(retVal)
         {
             m_subMode = pThis->m_subMode;

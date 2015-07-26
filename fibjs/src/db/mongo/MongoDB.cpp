@@ -150,7 +150,7 @@ result_t MongoDB::error()
 }
 
 result_t db_base::openMongoDB(const char *connString,
-                              obj_ptr<MongoDB_base> &retVal, exlib::AsyncEvent *ac)
+                              obj_ptr<MongoDB_base> &retVal, AsyncEvent *ac)
 {
     if (qstrcmp(connString, "mongodb:", 8))
         return CHECK_ERROR(CALL_E_INVALIDARG);

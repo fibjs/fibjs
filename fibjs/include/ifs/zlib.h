@@ -34,18 +34,18 @@ public:
 
 public:
 	// zlib_base
-	static result_t deflate(Buffer_base* data, int32_t level, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t deflateTo(Buffer_base* data, Stream_base* stm, int32_t level, exlib::AsyncEvent* ac);
-	static result_t deflateTo(Stream_base* src, Stream_base* stm, int32_t level, exlib::AsyncEvent* ac);
-	static result_t inflate(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t inflateTo(Buffer_base* data, Stream_base* stm, exlib::AsyncEvent* ac);
-	static result_t inflateTo(Stream_base* src, Stream_base* stm, exlib::AsyncEvent* ac);
-	static result_t gzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t gzipTo(Buffer_base* data, Stream_base* stm, exlib::AsyncEvent* ac);
-	static result_t gzipTo(Stream_base* src, Stream_base* stm, exlib::AsyncEvent* ac);
-	static result_t gunzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t gunzipTo(Buffer_base* data, Stream_base* stm, exlib::AsyncEvent* ac);
-	static result_t gunzipTo(Stream_base* src, Stream_base* stm, exlib::AsyncEvent* ac);
+	static result_t deflate(Buffer_base* data, int32_t level, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+	static result_t deflateTo(Buffer_base* data, Stream_base* stm, int32_t level, AsyncEvent* ac);
+	static result_t deflateTo(Stream_base* src, Stream_base* stm, int32_t level, AsyncEvent* ac);
+	static result_t inflate(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+	static result_t inflateTo(Buffer_base* data, Stream_base* stm, AsyncEvent* ac);
+	static result_t inflateTo(Stream_base* src, Stream_base* stm, AsyncEvent* ac);
+	static result_t gzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+	static result_t gzipTo(Buffer_base* data, Stream_base* stm, AsyncEvent* ac);
+	static result_t gzipTo(Stream_base* src, Stream_base* stm, AsyncEvent* ac);
+	static result_t gunzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+	static result_t gunzipTo(Buffer_base* data, Stream_base* stm, AsyncEvent* ac);
+	static result_t gunzipTo(Stream_base* src, Stream_base* stm, AsyncEvent* ac);
 
 public:
 	static void s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

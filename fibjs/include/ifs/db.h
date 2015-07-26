@@ -30,12 +30,12 @@ class db_base : public object_base
 
 public:
 	// db_base
-	static result_t open(const char* connString, obj_ptr<object_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openLevelDB(const char* connString, obj_ptr<LevelDB_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openRedis(const char* connString, obj_ptr<Redis_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t open(const char* connString, obj_ptr<object_base>& retVal, AsyncEvent* ac);
+	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal, AsyncEvent* ac);
+	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal, AsyncEvent* ac);
+	static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
+	static result_t openLevelDB(const char* connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
+	static result_t openRedis(const char* connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
 	static result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t escape(const char* str, bool mysql, std::string& retVal);

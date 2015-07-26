@@ -29,17 +29,17 @@ public:
 
 public:
     // DbConnection_base
-    virtual result_t close(exlib::AsyncEvent *ac);
-    virtual result_t begin(exlib::AsyncEvent *ac);
-    virtual result_t commit(exlib::AsyncEvent *ac);
-    virtual result_t rollback(exlib::AsyncEvent *ac);
-    virtual result_t execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t close(AsyncEvent *ac);
+    virtual result_t begin(AsyncEvent *ac);
+    virtual result_t commit(AsyncEvent *ac);
+    virtual result_t rollback(AsyncEvent *ac);
+    virtual result_t execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac);
     virtual result_t execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<DBResult_base> &retVal);
     virtual result_t format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal);
 
 public:
     // MySQL_base
-    virtual result_t use(const char *dbName, exlib::AsyncEvent *ac);
+    virtual result_t use(const char *dbName, AsyncEvent *ac);
     virtual result_t get_rxBufferSize(int32_t &retVal);
     virtual result_t set_rxBufferSize(int32_t newVal);
     virtual result_t get_txBufferSize(int32_t &retVal);

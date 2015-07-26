@@ -19,7 +19,7 @@ class asyncSendTo: public asyncState
 {
 public:
     asyncSendTo(HttpMessage *pThis, Stream_base *stm,
-                std::string &strCommand, exlib::AsyncEvent *ac,
+                std::string &strCommand, AsyncEvent *ac,
                 bool headerOnly = false) :
         asyncState(ac), m_pThis(pThis), m_stm(stm), m_strCommand(
             strCommand), m_headerOnly(headerOnly)
@@ -122,7 +122,7 @@ public:
 };
 
 result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
-                             exlib::AsyncEvent *ac)
+                             AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -131,7 +131,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
 }
 
 result_t HttpMessage::sendHeader(Stream_base *stm, std::string &strCommand,
-                                 exlib::AsyncEvent *ac)
+                                 AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -139,13 +139,13 @@ result_t HttpMessage::sendHeader(Stream_base *stm, std::string &strCommand,
     return (new asyncSendTo(this, stm, strCommand, ac, true))->post(0);
 }
 
-result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
+result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
 {
     class asyncReadFrom: public asyncState
     {
     public:
         asyncReadFrom(HttpMessage *pThis, BufferedStream_base *stm,
-                      exlib::AsyncEvent *ac) :
+                      AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0), m_bChunked(
                 false), m_headCount(0)
         {

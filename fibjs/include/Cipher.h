@@ -27,8 +27,8 @@ public:
     virtual result_t get_ivSize(int32_t &retVal);
     virtual result_t get_blockSize(int32_t &retVal);
     virtual result_t paddingMode(int32_t mode);
-    virtual result_t encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
 
 public:
     result_t init(std::string &key, std::string &iv);

@@ -16,7 +16,7 @@ namespace fibjs
 {
 
 class FiberBase: public Fiber_base,
-    public asyncEvent
+    public AsyncEvent
 {
     FIBER_FREE();
 

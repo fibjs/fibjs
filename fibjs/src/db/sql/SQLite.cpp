@@ -18,7 +18,7 @@ namespace fibjs
     SQLITE_OPEN_SHAREDCACHE | SQLITE_OPEN_NOMUTEX
 
 result_t db_base::openSQLite(const char *connString,
-                             obj_ptr<SQLite_base> &retVal, exlib::AsyncEvent *ac)
+                             obj_ptr<SQLite_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -65,7 +65,7 @@ SQLite::~SQLite()
     }
 }
 
-result_t SQLite::close(exlib::AsyncEvent *ac)
+result_t SQLite::close(AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -79,7 +79,7 @@ result_t SQLite::close(exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t SQLite::begin(exlib::AsyncEvent *ac)
+result_t SQLite::begin(AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -91,7 +91,7 @@ result_t SQLite::begin(exlib::AsyncEvent *ac)
     return execute("BEGIN", 5, retVal);
 }
 
-result_t SQLite::commit(exlib::AsyncEvent *ac)
+result_t SQLite::commit(AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -103,7 +103,7 @@ result_t SQLite::commit(exlib::AsyncEvent *ac)
     return execute("COMMIT", 6, retVal);
 }
 
-result_t SQLite::rollback(exlib::AsyncEvent *ac)
+result_t SQLite::rollback(AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -257,7 +257,7 @@ result_t SQLite::execute(const char *sql, int sLen,
     return 0;
 }
 
-result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
+result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -313,7 +313,7 @@ result_t SQLite::set_timeout(int32_t newVal)
     return 0;
 }
 
-result_t SQLite::backup(const char *fileName, exlib::AsyncEvent *ac)
+result_t SQLite::backup(const char *fileName, AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

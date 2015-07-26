@@ -19,7 +19,7 @@ class Chain: public Chain_base
 public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            exlib::AsyncEvent *ac);
+                            AsyncEvent *ac);
 
 public:
     // object_base

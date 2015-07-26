@@ -17,7 +17,7 @@ namespace fibjs
 class SslHandler: public SslHandler_base
 {
     FIBER_FREE();
-    
+
 public:
     // object_base
     virtual result_t dispose()
@@ -28,7 +28,7 @@ public:
 public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            exlib::AsyncEvent *ac);
+                            AsyncEvent *ac);
 
 public:
     // SslHandler_base

@@ -7,7 +7,7 @@
 namespace fibjs
 {
 
-class AsyncCall: public asyncEvent
+class AsyncCall: public AsyncEvent
 {
 public:
     AsyncCall(void **a) :
@@ -20,7 +20,7 @@ public:
         if (v == CALL_E_EXCEPTION)
             m_error = Runtime::errMessage();
 
-        return asyncEvent::post(v);
+        return AsyncEvent::post(v);
     }
 
     int wait()
@@ -32,7 +32,7 @@ public:
         else
         {
             Isolate::rt _rt;
-            r = asyncEvent::wait();
+            r = AsyncEvent::wait();
         }
 
         if (r == CALL_E_EXCEPTION)
@@ -49,7 +49,7 @@ public:
 class asyncState: public asyncCallBack
 {
 public:
-    asyncState(exlib::AsyncEvent *ac) :
+    asyncState(AsyncEvent *ac) :
         m_ac(ac), m_bAsyncState(false), m_state(NULL)
     {
     }
@@ -119,7 +119,7 @@ public:
     }
 
 private:
-    exlib::AsyncEvent *m_ac;
+    AsyncEvent *m_ac;
     bool m_bAsyncState;
     int m_av;
     int (*m_state)(asyncState *, int);

@@ -30,10 +30,10 @@ public:
 
     public:
         // Stream_base
-        virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-        virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
-        virtual result_t close(exlib::AsyncEvent *ac);
-        virtual result_t copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, exlib::AsyncEvent *ac);
+        virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+        virtual result_t write(Buffer_base *data, AsyncEvent *ac);
+        virtual result_t close(AsyncEvent *ac);
+        virtual result_t copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, AsyncEvent *ac);
 
     public:
         // SeekableStream_base
@@ -41,8 +41,8 @@ public:
         virtual result_t tell(int64_t &retVal);
         virtual result_t rewind();
         virtual result_t size(int64_t &retVal);
-        virtual result_t readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-        virtual result_t stat(obj_ptr<Stat_base> &retVal, exlib::AsyncEvent *ac);
+        virtual result_t readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+        virtual result_t stat(obj_ptr<Stat_base> &retVal, AsyncEvent *ac);
 
     public:
         // MemoryStream_base
@@ -64,10 +64,10 @@ public:
 
 public:
     // Stream_base
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
-    virtual result_t close(exlib::AsyncEvent *ac);
-    virtual result_t copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, exlib::AsyncEvent *ac);
+    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t write(Buffer_base *data, AsyncEvent *ac);
+    virtual result_t close(AsyncEvent *ac);
+    virtual result_t copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, AsyncEvent *ac);
 
 public:
     // SeekableStream_base
@@ -75,8 +75,8 @@ public:
     virtual result_t tell(int64_t &retVal);
     virtual result_t rewind();
     virtual result_t size(int64_t &retVal);
-    virtual result_t readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t stat(obj_ptr<Stat_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t stat(obj_ptr<Stat_base> &retVal, AsyncEvent *ac);
 
 public:
     // MemoryStream_base

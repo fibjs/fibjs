@@ -35,7 +35,7 @@ class http_base : public object_base
 public:
 	// http_base
 	static result_t fileHandler(const char* root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
-	static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 	static result_t request(const char* method, const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);

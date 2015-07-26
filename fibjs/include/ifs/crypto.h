@@ -59,8 +59,8 @@ public:
 	static result_t loadCert(const char* filename, obj_ptr<X509Cert_base>& retVal);
 	static result_t loadCrl(const char* filename, obj_ptr<X509Crl_base>& retVal);
 	static result_t loadReq(const char* filename, obj_ptr<X509Req_base>& retVal);
-	static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+	static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
 	static result_t randomArt(Buffer_base* data, const char* title, int32_t size, std::string& retVal);
 
 public:

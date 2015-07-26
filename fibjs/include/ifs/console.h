@@ -67,7 +67,7 @@ public:
 	static result_t _assert(v8::Local<v8::Value> value, const char* msg);
 	static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static result_t readLine(const char* msg, std::string& retVal, exlib::AsyncEvent* ac);
+	static result_t readLine(const char* msg, std::string& retVal, AsyncEvent* ac);
 
 public:
 	static void s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

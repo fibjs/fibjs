@@ -61,7 +61,7 @@ result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value>
     return m_server->create(addr, port, m_handler);
 }
 
-result_t HttpServer::run(exlib::AsyncEvent *ac)
+result_t HttpServer::run(AsyncEvent *ac)
 {
     return m_server->run(ac);
 }
@@ -71,7 +71,7 @@ result_t HttpServer::asyncRun()
     return m_server->asyncRun();
 }
 
-result_t HttpServer::stop(exlib::AsyncEvent *ac)
+result_t HttpServer::stop(AsyncEvent *ac)
 {
     return m_server->stop(ac);
 }

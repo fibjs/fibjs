@@ -35,13 +35,13 @@ public:
     virtual result_t set_result(Variant newVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
+    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t write(Buffer_base *data, AsyncEvent *ac);
     virtual result_t get_length(int64_t &retVal);
     virtual result_t clear();
-    virtual result_t sendTo(Stream_base *stm, exlib::AsyncEvent *ac);
-    virtual result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
+    virtual result_t sendTo(Stream_base *stm, AsyncEvent *ac);
+    virtual result_t readFrom(BufferedStream_base *stm, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_response(obj_ptr<Message_base> &retVal);
 
@@ -72,7 +72,7 @@ public:
     virtual result_t get_cookies(obj_ptr<List_base> &retVal);
     virtual result_t addCookie(HttpCookie_base *cookie);
     virtual result_t redirect(const char *url);
-    virtual result_t sendHeader(Stream_base* stm, exlib::AsyncEvent* ac);
+    virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac);
 
 public:
     HttpMessage m_message;

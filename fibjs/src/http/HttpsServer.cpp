@@ -112,7 +112,7 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
     return 0;
 }
 
-result_t HttpsServer::run(exlib::AsyncEvent *ac)
+result_t HttpsServer::run(AsyncEvent *ac)
 {
     return m_server->run(ac);
 }
@@ -122,7 +122,7 @@ result_t HttpsServer::asyncRun()
     return m_server->asyncRun();
 }
 
-result_t HttpsServer::stop(exlib::AsyncEvent *ac)
+result_t HttpsServer::stop(AsyncEvent *ac)
 {
     return m_server->stop(ac);
 }

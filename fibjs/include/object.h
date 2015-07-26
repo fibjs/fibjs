@@ -23,7 +23,7 @@ namespace fibjs
 
 #include "object_async.inl"
 
-class asyncEvent: public exlib::AsyncEvent
+class AsyncEvent: public exlib::AsyncEvent
 {
 public:
     virtual void js_callback()
@@ -37,7 +37,7 @@ public:
     void async();
 };
 
-class asyncCallBack: public asyncEvent
+class asyncCallBack: public AsyncEvent
 {
 public:
     virtual void callback();
@@ -142,7 +142,7 @@ public:
     template<typename T, typename T1>
     void AsyncClose(T hd, T1 func)
     {
-        class _AsyncClose: public asyncEvent
+        class _AsyncClose: public AsyncEvent
         {
         public:
             _AsyncClose(T hd, T1 func) :

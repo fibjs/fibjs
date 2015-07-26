@@ -20,12 +20,12 @@ namespace fibjs
 {
 
 result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
-                         exlib::AsyncEvent *ac)
+                         AsyncEvent *ac)
 {
     class asyncInvoke: public asyncState
     {
     public:
-        asyncInvoke(Handler_base *hdlr, object_base *v, exlib::AsyncEvent *ac) :
+        asyncInvoke(Handler_base *hdlr, object_base *v, AsyncEvent *ac) :
             asyncState(ac), m_next(hdlr), m_v(v)
         {
             set(call);

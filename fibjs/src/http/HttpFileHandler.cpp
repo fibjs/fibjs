@@ -142,13 +142,13 @@ static int mt_cmp(const void *p, const void *q)
 }
 
 result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                                 exlib::AsyncEvent *ac)
+                                 AsyncEvent *ac)
 {
     class asyncInvoke: public asyncState
     {
     public:
         asyncInvoke(HttpFileHandler *pThis, HttpRequest_base *req,
-                    exlib::AsyncEvent *ac) :
+                    AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_req(req), m_gzip(false)
         {
             obj_ptr<Message_base> m;

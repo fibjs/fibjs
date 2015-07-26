@@ -31,7 +31,7 @@ public:
 public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            exlib::AsyncEvent *ac);
+                            AsyncEvent *ac);
 
 public:
     // HttpHandler_base

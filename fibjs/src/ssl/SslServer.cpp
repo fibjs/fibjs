@@ -111,7 +111,7 @@ result_t SslServer::create(v8::Local<v8::Array> certs, const char *addr, int32_t
     return 0;
 }
 
-result_t SslServer::run(exlib::AsyncEvent *ac)
+result_t SslServer::run(AsyncEvent *ac)
 {
     return m_server->run(ac);
 }
@@ -121,7 +121,7 @@ result_t SslServer::asyncRun()
     return m_server->asyncRun();
 }
 
-result_t SslServer::stop(exlib::AsyncEvent *ac)
+result_t SslServer::stop(AsyncEvent *ac)
 {
     return m_server->stop(ac);
 }

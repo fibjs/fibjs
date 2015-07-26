@@ -29,12 +29,12 @@ result_t Chain_base::_new(v8::Local<v8::Array> hdlrs,
 }
 
 result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     class asyncInvoke: public asyncState
     {
     public:
-        asyncInvoke(Chain *pThis, object_base *v, exlib::AsyncEvent *ac) :
+        asyncInvoke(Chain *pThis, object_base *v, AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_v(v), m_pos(0)
         {
             set(invoke);

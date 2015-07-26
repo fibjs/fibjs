@@ -27,14 +27,14 @@ class Smtp_base : public object_base
 public:
 	// Smtp_base
 	static result_t _new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	virtual result_t connect(const char* host, int32_t port, int32_t family, exlib::AsyncEvent* ac) = 0;
-	virtual result_t command(const char* cmd, const char* arg, std::string& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t hello(const char* hostname, exlib::AsyncEvent* ac) = 0;
-	virtual result_t login(const char* username, const char* password, exlib::AsyncEvent* ac) = 0;
-	virtual result_t from(const char* address, exlib::AsyncEvent* ac) = 0;
-	virtual result_t to(const char* address, exlib::AsyncEvent* ac) = 0;
-	virtual result_t data(const char* txt, exlib::AsyncEvent* ac) = 0;
-	virtual result_t quit(exlib::AsyncEvent* ac) = 0;
+	virtual result_t connect(const char* host, int32_t port, int32_t family, AsyncEvent* ac) = 0;
+	virtual result_t command(const char* cmd, const char* arg, std::string& retVal, AsyncEvent* ac) = 0;
+	virtual result_t hello(const char* hostname, AsyncEvent* ac) = 0;
+	virtual result_t login(const char* username, const char* password, AsyncEvent* ac) = 0;
+	virtual result_t from(const char* address, AsyncEvent* ac) = 0;
+	virtual result_t to(const char* address, AsyncEvent* ac) = 0;
+	virtual result_t data(const char* txt, AsyncEvent* ac) = 0;
+	virtual result_t quit(AsyncEvent* ac) = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
 
 public:

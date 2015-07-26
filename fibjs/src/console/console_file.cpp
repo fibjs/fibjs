@@ -93,7 +93,7 @@ result_t file_logger::config(v8::Local<v8::Object> o)
 
 void file_logger::clearFile()
 {
-    exlib::AsyncEvent ac;
+    AsyncEvent ac;
     obj_ptr<List_base> fd;
     result_t hr;
 
@@ -163,7 +163,7 @@ result_t file_logger::initFile()
     }
 
     result_t hr;
-    exlib::AsyncEvent ac;
+    AsyncEvent ac;
 
     if (!m_file)
     {
@@ -203,7 +203,7 @@ result_t file_logger::initFile()
 void file_logger::write(exlib::List<item> &logs)
 {
     item *p1;
-    exlib::AsyncEvent ac;
+    AsyncEvent ac;
 
     while (!logs.empty())
     {

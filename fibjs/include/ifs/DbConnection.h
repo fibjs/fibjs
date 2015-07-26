@@ -25,11 +25,11 @@ class DbConnection_base : public object_base
 
 public:
 	// DbConnection_base
-	virtual result_t close(exlib::AsyncEvent* ac) = 0;
-	virtual result_t begin(exlib::AsyncEvent* ac) = 0;
-	virtual result_t commit(exlib::AsyncEvent* ac) = 0;
-	virtual result_t rollback(exlib::AsyncEvent* ac) = 0;
-	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t close(AsyncEvent* ac) = 0;
+	virtual result_t begin(AsyncEvent* ac) = 0;
+	virtual result_t commit(AsyncEvent* ac) = 0;
+	virtual result_t rollback(AsyncEvent* ac) = 0;
+	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
 	virtual result_t execute(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
 	virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal) = 0;
 

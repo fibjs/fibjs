@@ -50,11 +50,11 @@ public:
 public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                          exlib::AsyncEvent *ac);
-    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
-    virtual result_t close(exlib::AsyncEvent *ac);
+                          AsyncEvent *ac);
+    virtual result_t write(Buffer_base *data, AsyncEvent *ac);
+    virtual result_t close(AsyncEvent *ac);
     virtual result_t copyTo(Stream_base *stm, int64_t bytes,
-                            int64_t &retVal, exlib::AsyncEvent *ac);
+                            int64_t &retVal, AsyncEvent *ac);
 
 public:
     // Socket_base
@@ -65,23 +65,23 @@ public:
     virtual result_t get_localAddress(std::string &retVal);
     virtual result_t get_localPort(int32_t &retVal);
     virtual result_t connect(const char *host, int32_t port,
-                             exlib::AsyncEvent *ac);
+                             AsyncEvent *ac);
     virtual result_t bind(const char *addr, int32_t port, bool allowIPv4);
     virtual result_t bind(int32_t port, bool allowIPv4);
-    virtual result_t listen(int32_t backlog, exlib::AsyncEvent *ac);
+    virtual result_t listen(int32_t backlog, AsyncEvent *ac);
     virtual result_t accept(obj_ptr<Socket_base> &retVal,
-                            exlib::AsyncEvent *ac);
+                            AsyncEvent *ac);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                          exlib::AsyncEvent *ac);
+                          AsyncEvent *ac);
     virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base> &retVal);
-    virtual result_t send(Buffer_base *data, exlib::AsyncEvent *ac);
+    virtual result_t send(Buffer_base *data, AsyncEvent *ac);
     virtual result_t sendto(Buffer_base *data, const char *host,
                             int32_t port);
 
 public:
     result_t create(int32_t family, int32_t type);
     result_t recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  exlib::AsyncEvent *ac, bool bRead);
+                  AsyncEvent *ac, bool bRead);
 
 private:
     SOCKET m_sock;
@@ -97,7 +97,7 @@ private:
     void *m_RecvOpt;
     void *m_SendOpt;
 
-    void cancel_socket(exlib::AsyncEvent *ac);
+    void cancel_socket(AsyncEvent *ac);
 #endif
 };
 

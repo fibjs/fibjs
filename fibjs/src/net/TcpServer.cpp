@@ -88,7 +88,7 @@ result_t TcpServer::create(const char *addr, int32_t port,
     return 0;
 }
 
-result_t TcpServer::run(exlib::AsyncEvent *ac)
+result_t TcpServer::run(AsyncEvent *ac)
 {
     class asyncInvoke: public asyncState
     {
@@ -134,7 +134,7 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
     class asyncAccept: public asyncState
     {
     public:
-        asyncAccept(TcpServer *pThis, exlib::AsyncEvent *ac) :
+        asyncAccept(TcpServer *pThis, AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis)
         {
             set(accept);
@@ -217,7 +217,7 @@ result_t TcpServer::asyncRun()
     return 0;
 }
 
-result_t TcpServer::stop(exlib::AsyncEvent *ac)
+result_t TcpServer::stop(AsyncEvent *ac)
 {
     if (!m_socket)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

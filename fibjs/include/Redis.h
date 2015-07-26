@@ -77,8 +77,8 @@ public:
     virtual result_t close();
 
 public:
-    result_t connect(const char *host, int port, exlib::AsyncEvent *ac);
-    result_t _command(std::string &req, Variant &retVal, exlib::AsyncEvent *ac);
+    result_t connect(const char *host, int port, AsyncEvent *ac);
+    result_t _command(std::string &req, Variant &retVal, AsyncEvent *ac);
     ASYNC_MEMBERVALUE2(Redis, _command, std::string, Variant);
 
     class _arg

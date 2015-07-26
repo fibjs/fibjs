@@ -36,7 +36,7 @@ public:
 	static result_t jsHandler(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t await(obj_ptr<AsyncWait_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
-	static result_t invoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac);
+	static result_t invoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac);
 
 public:
 	static void s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args);

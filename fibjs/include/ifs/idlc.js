@@ -678,11 +678,11 @@ function parserIDL(fname) {
 					ifStr += ", ";
 
 				if (attr == "static") {
-					ifStr += "exlib::AsyncEvent* ac);";
+					ifStr += "AsyncEvent* ac);";
 					fnStr += "		hr = ac_" + fname + "(";
 					afs.push('	ASYNC_STATIC' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
 				} else {
-					ifStr += "exlib::AsyncEvent* ac) = 0;";
+					ifStr += "AsyncEvent* ac) = 0;";
 					fnStr += "		hr = pInst->ac_" + fname + "(";
 					afs.push('	ASYNC_MEMBER' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
 				}

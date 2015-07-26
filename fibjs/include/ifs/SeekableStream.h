@@ -32,8 +32,8 @@ public:
 	virtual result_t tell(int64_t& retVal) = 0;
 	virtual result_t rewind() = 0;
 	virtual result_t size(int64_t& retVal) = 0;
-	virtual result_t readAll(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
 	static void s_seek(const v8::FunctionCallbackInfo<v8::Value>& args);

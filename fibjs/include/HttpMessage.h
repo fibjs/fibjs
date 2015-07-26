@@ -51,10 +51,10 @@ public:
 
 public:
     result_t sendTo(Stream_base *stm, std::string &strCommand,
-                    exlib::AsyncEvent *ac);
+                    AsyncEvent *ac);
     result_t sendHeader(Stream_base *stm, std::string &strCommand,
-                        exlib::AsyncEvent *ac);
-    result_t readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac);
+                        AsyncEvent *ac);
+    result_t readFrom(BufferedStream_base *stm, AsyncEvent *ac);
 
 public:
     void addHeader(const char *name, int szName, const char *value,

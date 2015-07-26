@@ -233,7 +233,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNa
 
 result_t X509Req::sign(const char *issuer, PKey_base *key,
                        v8::Local<v8::Object> opts, obj_ptr<X509Cert_base> &retVal,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     result_t hr;
     bool priv;

@@ -23,14 +23,14 @@ result_t Smtp_base::_new(obj_ptr<Smtp_base> &retVal, v8::Local<v8::Object> This)
 class asyncSmtp: public asyncState
 {
 public:
-    asyncSmtp(Smtp *pThis, std::string &retVal, exlib::AsyncEvent *ac) :
+    asyncSmtp(Smtp *pThis, std::string &retVal, AsyncEvent *ac) :
         asyncState(ac), m_pThis(pThis), m_retVal(retVal)
     {
         m_stmBuffered = pThis->m_stmBuffered;
         set(ok);
     }
 
-    asyncSmtp(Smtp *pThis, exlib::AsyncEvent *ac) :
+    asyncSmtp(Smtp *pThis, AsyncEvent *ac) :
         asyncState(ac), m_pThis(pThis), m_retVal(m_strLine)
     {
         m_stmBuffered = pThis->m_stmBuffered;
@@ -114,7 +114,7 @@ protected:
 };
 
 result_t Smtp::connect(const char *host, int32_t port, int32_t family,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     if (m_sock)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -138,7 +138,7 @@ result_t Smtp::connect(const char *host, int32_t port, int32_t family,
 }
 
 result_t Smtp::command(const char *cmd, const char *arg, std::string &retVal,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     if (!m_sock)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -149,7 +149,7 @@ result_t Smtp::command(const char *cmd, const char *arg, std::string &retVal,
     return (new asyncSmtp(this, retVal, ac))->command(cmd, arg);
 }
 
-result_t Smtp::command(const char *cmd, const char *arg, exlib::AsyncEvent *ac)
+result_t Smtp::command(const char *cmd, const char *arg, AsyncEvent *ac)
 {
     if (!m_sock)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -160,19 +160,19 @@ result_t Smtp::command(const char *cmd, const char *arg, exlib::AsyncEvent *ac)
     return (new asyncSmtp(this, ac))->command(cmd, arg);
 }
 
-result_t Smtp::hello(const char *hostname, exlib::AsyncEvent *ac)
+result_t Smtp::hello(const char *hostname, AsyncEvent *ac)
 {
     return command("HELO", hostname, ac);
 }
 
 result_t Smtp::login(const char *username, const char *password,
-                     exlib::AsyncEvent *ac)
+                     AsyncEvent *ac)
 {
     class asyncLogin: public asyncSmtp
     {
     public:
         asyncLogin(Smtp *pThis, const char *username, const char *password,
-                   exlib::AsyncEvent *ac) :
+                   AsyncEvent *ac) :
             asyncSmtp(pThis, ac), m_username(username), m_password(
                 password), step(0)
         {
@@ -247,22 +247,22 @@ result_t Smtp::login(const char *username, const char *password,
     return (new asyncLogin(this, username, password, ac))->post(0);
 }
 
-result_t Smtp::from(const char *address, exlib::AsyncEvent *ac)
+result_t Smtp::from(const char *address, AsyncEvent *ac)
 {
     return command("MAIL FROM", address, ac);
 }
 
-result_t Smtp::to(const char *address, exlib::AsyncEvent *ac)
+result_t Smtp::to(const char *address, AsyncEvent *ac)
 {
     return command("RCPT TO", address, ac);
 }
 
-result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
+result_t Smtp::data(const char *txt, AsyncEvent *ac)
 {
     class asyncData: public asyncSmtp
     {
     public:
-        asyncData(Smtp *pThis, const char *txt, exlib::AsyncEvent *ac) :
+        asyncData(Smtp *pThis, const char *txt, AsyncEvent *ac) :
             asyncSmtp(pThis, ac), m_txt(txt), step(0)
         {
             set(begin);
@@ -318,7 +318,7 @@ result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
     return (new asyncData(this, txt, ac))->post(0);
 }
 
-result_t Smtp::quit(exlib::AsyncEvent *ac)
+result_t Smtp::quit(AsyncEvent *ac)
 {
     return command("QUIT", "", ac);
 }

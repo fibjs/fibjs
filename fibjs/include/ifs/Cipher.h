@@ -33,8 +33,8 @@ public:
 	virtual result_t get_ivSize(int32_t& retVal) = 0;
 	virtual result_t get_blockSize(int32_t& retVal) = 0;
 	virtual result_t paddingMode(int32_t mode) = 0;
-	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
 	template<typename T>

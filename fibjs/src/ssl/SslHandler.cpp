@@ -81,12 +81,12 @@ result_t SslHandler::init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Valu
 }
 
 result_t SslHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            exlib::AsyncEvent *ac)
+                            AsyncEvent *ac)
 {
     class asyncInvoke: public asyncState
     {
     public:
-        asyncInvoke(SslHandler *pThis, Stream_base *stm, exlib::AsyncEvent *ac) :
+        asyncInvoke(SslHandler *pThis, Stream_base *stm, AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             set(accept);

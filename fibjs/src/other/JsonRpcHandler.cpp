@@ -32,7 +32,7 @@ result_t rpc_base::json(v8::Local<v8::Value> hdlr,
 }
 
 result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                                exlib::AsyncEvent *ac)
+                                AsyncEvent *ac)
 {
     if (ac)
         return CHECK_ERROR(CALL_E_NOASYNC);

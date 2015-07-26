@@ -59,17 +59,17 @@ result_t PacketMessage::set_body(SeekableStream_base *newVal)
 }
 
 result_t PacketMessage::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                            exlib::AsyncEvent *ac)
+                             AsyncEvent *ac)
 {
     return m_message.read(bytes, retVal, ac);
 }
 
-result_t PacketMessage::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+result_t PacketMessage::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
     return m_message.readAll(retVal, ac);
 }
 
-result_t PacketMessage::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t PacketMessage::write(Buffer_base *data, AsyncEvent *ac)
 {
     return m_message.write(data, ac);
 }
@@ -89,13 +89,13 @@ result_t PacketMessage::clear()
     return 0;
 }
 
-result_t PacketMessage::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
+result_t PacketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
 {
     class asyncSendTo: public asyncState
     {
     public:
         asyncSendTo(PacketMessage *pThis, Stream_base *stm,
-                    exlib::AsyncEvent *ac) :
+                    AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             m_pThis->get_body(m_body);
@@ -151,14 +151,14 @@ result_t PacketMessage::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
     return (new asyncSendTo(this, stm, ac))->post(0);
 }
 
-result_t PacketMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
+result_t PacketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
 {
 
     class asyncReadFrom: public asyncState
     {
     public:
         asyncReadFrom(PacketMessage *pThis, BufferedStream_base *stm,
-                      exlib::AsyncEvent *ac) :
+                      AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             m_pThis->get_body(m_body);

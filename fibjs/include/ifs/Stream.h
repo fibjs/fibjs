@@ -25,10 +25,10 @@ class Stream_base : public object_base
 
 public:
 	// Stream_base
-	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t write(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
-	virtual result_t close(exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
+	virtual result_t close(AsyncEvent* ac) = 0;
+	virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
 
 public:
 	static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);

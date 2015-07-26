@@ -10,13 +10,13 @@ namespace fibjs
 class BlockedAsyncQueue
 {
 public:
-    void put(asyncEvent *o)
+    void put(AsyncEvent *o)
     {
         m_q.putTail(o);
         m_sem.Post();
     }
 
-    asyncEvent *wait()
+    AsyncEvent *wait()
     {
         m_sem.Wait();
         return m_q.getHead();
@@ -24,7 +24,7 @@ public:
 
 private:
     exlib::OSSemaphore m_sem;
-    exlib::LockedList<asyncEvent> m_q;
+    exlib::LockedList<AsyncEvent> m_q;
 } s_acPool;
 
 static int32_t s_threads;
@@ -41,7 +41,7 @@ public:
 
     virtual void Run()
     {
-        asyncEvent *p;
+        AsyncEvent *p;
 
         Runtime rt;
         DateCache dc;
@@ -65,7 +65,7 @@ public:
     }
 };
 
-void asyncEvent::async()
+void AsyncEvent::async()
 {
     s_acPool.put(this);
 }

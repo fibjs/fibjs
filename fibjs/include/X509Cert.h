@@ -27,7 +27,7 @@ public:
     virtual result_t load(const char *txtCert);
     virtual result_t loadFile(const char *filename);
     virtual result_t loadRootCerts();
-    virtual result_t verify(X509Cert_base *cert, bool &retVal, exlib::AsyncEvent *ac);
+    virtual result_t verify(X509Cert_base *cert, bool &retVal, AsyncEvent *ac);
     virtual result_t dump(v8::Local<v8::Array> &retVal);
     virtual result_t clear();
     virtual result_t get_version(int32_t &retVal);

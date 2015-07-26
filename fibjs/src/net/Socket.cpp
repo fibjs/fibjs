@@ -51,7 +51,7 @@ result_t Socket::create(int32_t family, int32_t type)
             ac_close();
         else
         {
-            asyncEvent ac;
+            AsyncEvent ac;
             close(&ac);
         }
     }
@@ -104,18 +104,18 @@ result_t Socket::create(int32_t family, int32_t type)
 }
 
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                      exlib::AsyncEvent *ac)
+                      AsyncEvent *ac)
 {
     return recv(bytes, retVal, ac, bytes > 0);
 }
 
-result_t Socket::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t Socket::write(Buffer_base *data, AsyncEvent *ac)
 {
     return send(data, ac);
 }
 
 result_t Socket::copyTo(Stream_base *stm, int64_t bytes,
-                        int64_t &retVal, exlib::AsyncEvent *ac)
+                        int64_t &retVal, AsyncEvent *ac)
 {
     if (m_sock == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -123,7 +123,7 @@ result_t Socket::copyTo(Stream_base *stm, int64_t bytes,
     return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t Socket::close(exlib::AsyncEvent *ac)
+result_t Socket::close(AsyncEvent *ac)
 {
     if (m_sock == INVALID_SOCKET)
         return 0;
@@ -273,7 +273,7 @@ result_t Socket::bind(int32_t port, bool allowIPv4)
     return bind(NULL, port, allowIPv4);
 }
 
-result_t Socket::listen(int32_t backlog, exlib::AsyncEvent *ac)
+result_t Socket::listen(int32_t backlog, AsyncEvent *ac)
 {
     if (m_sock == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -288,7 +288,7 @@ result_t Socket::listen(int32_t backlog, exlib::AsyncEvent *ac)
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                      exlib::AsyncEvent *ac)
+                      AsyncEvent *ac)
 {
     return recv(bytes, retVal, ac, false);
 }

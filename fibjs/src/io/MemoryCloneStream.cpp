@@ -14,7 +14,7 @@ namespace fibjs
 {
 
 result_t MemoryStream::CloneStream::read(int32_t bytes,
-        obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+        obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
     std::string strBuf;
 
@@ -47,30 +47,30 @@ result_t MemoryStream::CloneStream::read(int32_t bytes,
 }
 
 result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base> &retVal,
-        exlib::AsyncEvent *ac)
+        AsyncEvent *ac)
 {
     return read(-1, retVal, ac);
 }
 
 result_t MemoryStream::CloneStream::write(Buffer_base *data,
-        exlib::AsyncEvent *ac)
+        AsyncEvent *ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t MemoryStream::CloneStream::close(exlib::AsyncEvent *ac)
+result_t MemoryStream::CloneStream::close(AsyncEvent *ac)
 {
     return 0;
 }
 
 result_t MemoryStream::CloneStream::copyTo(Stream_base *stm, int64_t bytes,
-        int64_t &retVal, exlib::AsyncEvent *ac)
+        int64_t &retVal, AsyncEvent *ac)
 {
     return copyStream(this, stm, bytes, retVal, ac);
 }
 
 result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base> &retVal,
-        exlib::AsyncEvent *ac)
+        AsyncEvent *ac)
 {
     obj_ptr<Stat> st = new Stat();
 

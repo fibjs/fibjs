@@ -248,7 +248,7 @@ char *read_line()
 }
 
 result_t console_base::readLine(const char *msg, std::string &retVal,
-                                exlib::AsyncEvent *ac)
+                                AsyncEvent *ac)
 {
 #ifndef _WIN32
     static bool _init = false;

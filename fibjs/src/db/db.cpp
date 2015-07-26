@@ -11,7 +11,7 @@
 namespace fibjs
 {
 
-result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal, exlib::AsyncEvent *ac)
+result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal, AsyncEvent *ac)
 {
     if (!qstrcmp(connString, "mysql:", 6))
         return openMySQL(connString, (obj_ptr<MySQL_base> &)retVal, ac);

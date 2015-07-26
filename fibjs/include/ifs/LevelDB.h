@@ -26,18 +26,18 @@ class LevelDB_base : public object_base
 
 public:
 	// LevelDB_base
-	virtual result_t has(Buffer_base* key, bool& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t has(Buffer_base* key, bool& retVal, AsyncEvent* ac) = 0;
+	virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 	virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
-	virtual result_t set(Buffer_base* key, Buffer_base* value, exlib::AsyncEvent* ac) = 0;
+	virtual result_t set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac) = 0;
 	virtual result_t mset(v8::Local<v8::Object> map) = 0;
 	virtual result_t remove(v8::Local<v8::Array> keys) = 0;
-	virtual result_t remove(Buffer_base* key, exlib::AsyncEvent* ac) = 0;
+	virtual result_t remove(Buffer_base* key, AsyncEvent* ac) = 0;
 	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
 	virtual result_t between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func) = 0;
 	virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
 	virtual result_t commit() = 0;
-	virtual result_t close(exlib::AsyncEvent* ac) = 0;
+	virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
 	static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);

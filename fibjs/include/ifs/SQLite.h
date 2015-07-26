@@ -29,7 +29,7 @@ public:
 	virtual result_t get_fileName(std::string& retVal) = 0;
 	virtual result_t get_timeout(int32_t& retVal) = 0;
 	virtual result_t set_timeout(int32_t newVal) = 0;
-	virtual result_t backup(const char* fileName, exlib::AsyncEvent* ac) = 0;
+	virtual result_t backup(const char* fileName, AsyncEvent* ac) = 0;
 
 public:
 	static void s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

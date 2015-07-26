@@ -27,13 +27,13 @@ result_t _ssl::setError(int ret)
 }
 
 result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
-                           exlib::AsyncEvent *ac)
+                           AsyncEvent *ac)
 {
     class asyncConnect: public asyncState
     {
     public:
         asyncConnect(const char *host, int32_t port, bool ipv6,
-                     obj_ptr<Stream_base> &retVal, exlib::AsyncEvent *ac) :
+                     obj_ptr<Stream_base> &retVal, AsyncEvent *ac) :
             asyncState(ac), m_host(host), m_port(port), m_ipv6(ipv6), m_retVal(retVal)
         {
             set(connect);

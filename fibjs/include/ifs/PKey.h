@@ -29,8 +29,8 @@ public:
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t get_keySize(int32_t& retVal) = 0;
 	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
-	virtual result_t genRsaKey(int32_t size, exlib::AsyncEvent* ac) = 0;
-	virtual result_t genEcKey(const char* curve, exlib::AsyncEvent* ac) = 0;
+	virtual result_t genRsaKey(int32_t size, AsyncEvent* ac) = 0;
+	virtual result_t genEcKey(const char* curve, AsyncEvent* ac) = 0;
 	virtual result_t isPrivate(bool& retVal) = 0;
 	virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
 	virtual result_t importKey(Buffer_base* DerKey, const char* password) = 0;
@@ -38,10 +38,10 @@ public:
 	virtual result_t importFile(const char* filename, const char* password) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t verify(Buffer_base* sign, Buffer_base* data, bool& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t verify(Buffer_base* sign, Buffer_base* data, bool& retVal, AsyncEvent* ac) = 0;
 
 public:
 	template<typename T>

@@ -161,13 +161,13 @@ int SslSocket::my_send(void *ctx, const unsigned char *buf, size_t len)
 }
 
 result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                         exlib::AsyncEvent *ac)
+                         AsyncEvent *ac)
 {
     class asyncRead: public asyncSsl
     {
     public:
         asyncRead(SslSocket *pThis, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  exlib::AsyncEvent *ac) :
+                  AsyncEvent *ac) :
             asyncSsl(pThis, ac), m_bytes(bytes), m_retVal(retVal)
         {
             if (m_bytes == -1)
@@ -215,12 +215,12 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
 
-result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t SslSocket::write(Buffer_base *data, AsyncEvent *ac)
 {
     class asyncWrite: public asyncSsl
     {
     public:
-        asyncWrite(SslSocket *pThis, Buffer_base *data, exlib::AsyncEvent *ac) :
+        asyncWrite(SslSocket *pThis, Buffer_base *data, AsyncEvent *ac) :
             asyncSsl(pThis, ac)
         {
             data->toString(m_buf);
@@ -257,12 +257,12 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
     return (new asyncWrite(this, data, ac))->post(0);
 }
 
-result_t SslSocket::close(exlib::AsyncEvent *ac)
+result_t SslSocket::close(AsyncEvent *ac)
 {
     class asyncClose: public asyncSsl
     {
     public:
-        asyncClose(SslSocket *pThis, exlib::AsyncEvent *ac) :
+        asyncClose(SslSocket *pThis, AsyncEvent *ac) :
             asyncSsl(pThis, ac)
         {
         }
@@ -289,7 +289,7 @@ result_t SslSocket::close(exlib::AsyncEvent *ac)
 }
 
 result_t SslSocket::copyTo(Stream_base *stm, int64_t bytes,
-                           int64_t &retVal, exlib::AsyncEvent *ac)
+                           int64_t &retVal, AsyncEvent *ac)
 {
     return copyStream(this, stm, bytes, retVal, ac);
 }
@@ -336,12 +336,12 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base> &retVal)
     return 0;
 }
 
-result_t SslSocket::handshake(int32_t *retVal, exlib::AsyncEvent *ac)
+result_t SslSocket::handshake(int32_t *retVal, AsyncEvent *ac)
 {
     class asyncHandshake: public asyncSsl
     {
     public:
-        asyncHandshake(SslSocket *pThis, int32_t *retVal, exlib::AsyncEvent *ac) :
+        asyncHandshake(SslSocket *pThis, int32_t *retVal, AsyncEvent *ac) :
             asyncSsl(pThis, ac), m_retVal(retVal)
         {
         }
@@ -368,7 +368,7 @@ result_t SslSocket::handshake(int32_t *retVal, exlib::AsyncEvent *ac)
 }
 
 result_t SslSocket::connect(Stream_base *s, const char *server_name,
-                            int32_t &retVal, exlib::AsyncEvent *ac)
+                            int32_t &retVal, AsyncEvent *ac)
 {
     if (m_s)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -392,7 +392,7 @@ result_t SslSocket::connect(Stream_base *s, const char *server_name,
 }
 
 result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
-                           exlib::AsyncEvent *ac)
+                           AsyncEvent *ac)
 {
     if (m_s)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

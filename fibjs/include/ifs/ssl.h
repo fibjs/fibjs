@@ -41,7 +41,7 @@ public:
 
 public:
 	// ssl_base
-	static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
 	static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
 	static result_t loadClientCertFile(const char* crtFile, const char* keyFile, const char* password);
 	static result_t get_ca(obj_ptr<X509Cert_base>& retVal);

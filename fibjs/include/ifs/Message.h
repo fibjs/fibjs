@@ -38,13 +38,13 @@ public:
 	virtual result_t set_result(Variant newVal) = 0;
 	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
 	virtual result_t set_body(SeekableStream_base* newVal) = 0;
-	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t readAll(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t write(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
 	virtual result_t get_length(int64_t& retVal) = 0;
 	virtual result_t clear() = 0;
-	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
-	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac) = 0;
+	virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac) = 0;
+	virtual result_t readFrom(BufferedStream_base* stm, AsyncEvent* ac) = 0;
 	virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
 	virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
 

@@ -65,12 +65,12 @@ HttpHandler::HttpHandler() :
 static std::string s_crossdomain;
 
 result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                             exlib::AsyncEvent *ac)
+                             AsyncEvent *ac)
 {
     class asyncInvoke: public asyncState
     {
     public:
-        asyncInvoke(HttpHandler *pThis, Stream_base *stm, exlib::AsyncEvent *ac) :
+        asyncInvoke(HttpHandler *pThis, Stream_base *stm, AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             m_stmBuffered = new BufferedStream(stm);

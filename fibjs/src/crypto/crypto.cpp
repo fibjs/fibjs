@@ -69,7 +69,7 @@ result_t crypto_base::loadReq(const char* filename, obj_ptr<X509Req_base>& retVa
 }
 
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
-                                  exlib::AsyncEvent *ac)
+                                  AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -104,7 +104,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
 }
 
 result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
-                                        exlib::AsyncEvent *ac)
+                                        AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);

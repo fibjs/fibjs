@@ -31,21 +31,21 @@ public:
 
 public:
     // Stream_base
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
-    virtual result_t close(exlib::AsyncEvent *ac);
-    virtual result_t copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, exlib::AsyncEvent *ac);
+    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t write(Buffer_base *data, AsyncEvent *ac);
+    virtual result_t close(AsyncEvent *ac);
+    virtual result_t copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, AsyncEvent *ac);
 
 public:
     // BufferedStream_base
-    virtual result_t readText(int32_t size, std::string &retVal, exlib::AsyncEvent *ac);
-    virtual result_t readLine(int32_t maxlen, std::string &retVal, exlib::AsyncEvent *ac);
+    virtual result_t readText(int32_t size, std::string &retVal, AsyncEvent *ac);
+    virtual result_t readLine(int32_t maxlen, std::string &retVal, AsyncEvent *ac);
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array> &retVal);
-    virtual result_t readUntil(const char *mk, int32_t maxlen, std::string &retVal, exlib::AsyncEvent *ac);
-    virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
-    virtual result_t writeText(const char *txt, exlib::AsyncEvent *ac);
-    virtual result_t writeLine(const char *txt, exlib::AsyncEvent *ac);
-    virtual result_t writePacket(Buffer_base *data, exlib::AsyncEvent *ac);
+    virtual result_t readUntil(const char *mk, int32_t maxlen, std::string &retVal, AsyncEvent *ac);
+    virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t writeText(const char *txt, AsyncEvent *ac);
+    virtual result_t writeLine(const char *txt, AsyncEvent *ac);
+    virtual result_t writePacket(Buffer_base *data, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_charset(std::string &retVal);
     virtual result_t set_charset(const char *newVal);

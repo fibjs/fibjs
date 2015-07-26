@@ -28,18 +28,18 @@ public:
 
 public:
     // LevelDB_base
-    virtual result_t has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac);
-    virtual result_t get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t has(Buffer_base *key, bool &retVal, AsyncEvent *ac);
+    virtual result_t get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal);
-    virtual result_t set(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *ac);
+    virtual result_t set(Buffer_base *key, Buffer_base *value, AsyncEvent *ac);
     virtual result_t mset(v8::Local<v8::Object> map);
     virtual result_t remove(v8::Local<v8::Array> keys);
-    virtual result_t remove(Buffer_base *key, exlib::AsyncEvent *ac);
+    virtual result_t remove(Buffer_base *key, AsyncEvent *ac);
     virtual result_t forEach(v8::Local<v8::Function> func);
     virtual result_t between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base> &retVal);
     virtual result_t commit();
-    virtual result_t close(exlib::AsyncEvent *ac);
+    virtual result_t close(AsyncEvent *ac);
 
 public:
     result_t open(const char *connString);
@@ -54,10 +54,10 @@ public:
     }
 
 private:
-    result_t _commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac);
+    result_t _commit(leveldb::WriteBatch *batch, AsyncEvent *ac);
     ASYNC_MEMBER1(LevelDB, _commit, leveldb::WriteBatch *);
 
-    result_t _mget(std::vector<std::string> *keys, obj_ptr<List_base> &retVal, exlib::AsyncEvent *ac);
+    result_t _mget(std::vector<std::string> *keys, obj_ptr<List_base> &retVal, AsyncEvent *ac);
     ASYNC_MEMBERVALUE2(LevelDB, _mget, std::vector<std::string> *, obj_ptr<List_base>);
 
     leveldb::DB *db()
@@ -104,7 +104,7 @@ private:
             delete m_it;
         }
 
-        result_t _iter(exlib::AsyncEvent *ac);
+        result_t _iter(AsyncEvent *ac);
         ASYNC_MEMBER0(LevelDB::Iter, _iter);
 
         result_t iter(v8::Local<v8::Function> func);

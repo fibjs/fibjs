@@ -26,7 +26,7 @@ class MySQL_base : public DbConnection_base
 
 public:
 	// MySQL_base
-	virtual result_t use(const char* dbName, exlib::AsyncEvent* ac) = 0;
+	virtual result_t use(const char* dbName, AsyncEvent* ac) = 0;
 	virtual result_t get_rxBufferSize(int32_t& retVal) = 0;
 	virtual result_t set_rxBufferSize(int32_t newVal) = 0;
 	virtual result_t get_txBufferSize(int32_t& retVal) = 0;

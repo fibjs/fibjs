@@ -33,7 +33,7 @@ public:
 
 public:
     // Handler_base
-    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal, AsyncEvent *ac);
 
 private:
     naked_ptr<Handler_base> m_handler;

@@ -62,7 +62,7 @@ result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
 }
 
 result_t process_base::system(const char *cmd, int32_t &retVal,
-                              exlib::AsyncEvent *ac)
+                              AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -77,7 +77,7 @@ result_t process_base::system(const char *cmd, int32_t &retVal,
 }
 
 result_t process_base::popen(const char *cmd,
-                             obj_ptr<BufferedStream_base> &retVal, exlib::AsyncEvent *ac)
+                             obj_ptr<BufferedStream_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);

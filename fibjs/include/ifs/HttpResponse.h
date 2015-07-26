@@ -35,7 +35,7 @@ public:
 	virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
 	virtual result_t addCookie(HttpCookie_base* cookie) = 0;
 	virtual result_t redirect(const char* url) = 0;
-	virtual result_t sendHeader(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
+	virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac) = 0;
 
 public:
 	template<typename T>

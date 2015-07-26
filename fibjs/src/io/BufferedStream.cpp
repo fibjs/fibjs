@@ -16,7 +16,7 @@ namespace fibjs
 class asyncBuffer: public asyncState
 {
 public:
-    asyncBuffer(BufferedStream *pThis, exlib::AsyncEvent *ac) :
+    asyncBuffer(BufferedStream *pThis, AsyncEvent *ac) :
         asyncState(ac), m_streamEnd(false), m_pThis(pThis)
     {
         set(process);
@@ -72,13 +72,13 @@ result_t BufferedStream_base::_new(Stream_base *stm,
 }
 
 result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                              exlib::AsyncEvent *ac)
+                              AsyncEvent *ac)
 {
     class asyncRead: public asyncBuffer
     {
     public:
         asyncRead(BufferedStream *pThis, int32_t bytes,
-                  obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac) :
+                  obj_ptr<Buffer_base> &retVal, AsyncEvent *ac) :
             asyncBuffer(pThis, ac), m_bytes(bytes), m_retVal(retVal)
         {
         }
@@ -149,30 +149,30 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
 
-result_t BufferedStream::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t BufferedStream::write(Buffer_base *data, AsyncEvent *ac)
 {
     return m_stm->write(data, ac);
 }
 
-result_t BufferedStream::close(exlib::AsyncEvent *ac)
+result_t BufferedStream::close(AsyncEvent *ac)
 {
     return m_stm->close(ac);
 }
 
 result_t BufferedStream::copyTo(Stream_base *stm, int64_t bytes,
-                                int64_t &retVal, exlib::AsyncEvent *ac)
+                                int64_t &retVal, AsyncEvent *ac)
 {
     return copyStream(this, stm, bytes, retVal, ac);
 }
 
 result_t BufferedStream::readText(int32_t size, std::string &retVal,
-                                  exlib::AsyncEvent *ac)
+                                  AsyncEvent *ac)
 {
     class asyncRead: public asyncBuffer
     {
     public:
         asyncRead(BufferedStream *pThis, int32_t size,
-                  std::string &retVal, exlib::AsyncEvent *ac) :
+                  std::string &retVal, AsyncEvent *ac) :
             asyncBuffer(pThis, ac), m_size(size), m_retVal(retVal)
         {
         }
@@ -224,7 +224,7 @@ result_t BufferedStream::readText(int32_t size, std::string &retVal,
 }
 
 result_t BufferedStream::readLine(int32_t maxlen, std::string &retVal,
-                                  exlib::AsyncEvent *ac)
+                                  AsyncEvent *ac)
 {
     return readUntil(m_eol.c_str(), maxlen, retVal, ac);
 }
@@ -263,13 +263,13 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
 }
 
 result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
-                                   std::string &retVal, exlib::AsyncEvent *ac)
+                                   std::string &retVal, AsyncEvent *ac)
 {
     class asyncRead: public asyncBuffer
     {
     public:
         asyncRead(BufferedStream *pThis, const char *mk, int32_t maxlen,
-                  std::string &retVal, exlib::AsyncEvent *ac) :
+                  std::string &retVal, AsyncEvent *ac) :
             asyncBuffer(pThis, ac), m_mk(mk), m_maxlen(maxlen), m_retVal(
                 retVal)
         {
@@ -367,13 +367,13 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
 }
 
 result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
-                                    exlib::AsyncEvent *ac)
+                                    AsyncEvent *ac)
 {
     class asyncReadPacket: public asyncBuffer
     {
     public:
         asyncReadPacket(BufferedStream *pThis, int32_t limit,
-                        obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac) :
+                        obj_ptr<Buffer_base> &retVal, AsyncEvent *ac) :
             asyncBuffer(pThis, ac), m_limit(limit), m_retVal(retVal)
         {
         }
@@ -483,7 +483,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
     return (new asyncReadPacket(this, limit, retVal, ac))->post(0);
 }
 
-result_t BufferedStream::writeText(const char *txt, exlib::AsyncEvent *ac)
+result_t BufferedStream::writeText(const char *txt, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -498,7 +498,7 @@ result_t BufferedStream::writeText(const char *txt, exlib::AsyncEvent *ac)
     return write(data, ac);
 }
 
-result_t BufferedStream::writeLine(const char *txt, exlib::AsyncEvent *ac)
+result_t BufferedStream::writeLine(const char *txt, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -514,7 +514,7 @@ result_t BufferedStream::writeLine(const char *txt, exlib::AsyncEvent *ac)
     return write(data, ac);
 }
 
-result_t BufferedStream::writePacket(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t BufferedStream::writePacket(Buffer_base *data, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);

@@ -45,17 +45,17 @@ result_t HttpResponse::set_body(SeekableStream_base *newVal)
 }
 
 result_t HttpResponse::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                            exlib::AsyncEvent *ac)
+                            AsyncEvent *ac)
 {
     return m_message.read(bytes, retVal, ac);
 }
 
-result_t HttpResponse::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+result_t HttpResponse::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
     return m_message.readAll(retVal, ac);
 }
 
-result_t HttpResponse::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t HttpResponse::write(Buffer_base *data, AsyncEvent *ac)
 {
     return m_message.write(data, ac);
 }
@@ -222,7 +222,7 @@ public:
     }
 } s_init_status_line;
 
-result_t HttpResponse::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
+result_t HttpResponse::sendTo(Stream_base *stm, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -261,13 +261,13 @@ result_t HttpResponse::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
     return m_message.sendTo(stm, strCommand, ac);
 }
 
-result_t HttpResponse::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
+result_t HttpResponse::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
 {
     class asyncReadFrom: public asyncState
     {
     public:
         asyncReadFrom(HttpResponse *pThis, BufferedStream_base *stm,
-                      exlib::AsyncEvent *ac) :
+                      AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_stm(stm)
         {
             m_pThis->clear();
@@ -406,7 +406,7 @@ result_t HttpResponse::redirect(const char *url)
     return 0;
 }
 
-result_t HttpResponse::sendHeader(Stream_base* stm, exlib::AsyncEvent* ac)
+result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);

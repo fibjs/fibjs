@@ -31,7 +31,7 @@ public:
 	virtual result_t load(const char* txtCert) = 0;
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t loadRootCerts() = 0;
-	virtual result_t verify(X509Cert_base* cert, bool& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac) = 0;
 	virtual result_t dump(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t get_version(int32_t& retVal) = 0;

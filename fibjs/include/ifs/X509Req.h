@@ -35,7 +35,7 @@ public:
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t sign(const char* issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t sign(const char* issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, AsyncEvent* ac) = 0;
 	virtual result_t get_subject(std::string& retVal) = 0;
 	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 

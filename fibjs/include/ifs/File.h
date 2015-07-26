@@ -27,10 +27,10 @@ class File_base : public SeekableStream_base
 public:
 	// File_base
 	virtual result_t get_name(std::string& retVal) = 0;
-	virtual result_t truncate(int64_t bytes, exlib::AsyncEvent* ac) = 0;
+	virtual result_t truncate(int64_t bytes, AsyncEvent* ac) = 0;
 	virtual result_t eof(bool& retVal) = 0;
-	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
-	virtual result_t chmod(int32_t mode, exlib::AsyncEvent* ac) = 0;
+	virtual result_t flush(AsyncEvent* ac) = 0;
+	virtual result_t chmod(int32_t mode, AsyncEvent* ac) = 0;
 
 public:
 	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

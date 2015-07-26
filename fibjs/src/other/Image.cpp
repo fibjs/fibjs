@@ -29,7 +29,7 @@ void Image::setExtMemory(int add)
 }
 
 result_t gd_base::create(int32_t width, int32_t height, int32_t color,
-                         obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
+                         obj_ptr<Image_base> &retVal, AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -47,7 +47,7 @@ result_t gd_base::create(int32_t width, int32_t height, int32_t color,
 }
 
 result_t gd_base::load(Buffer_base *data, obj_ptr<Image_base> &retVal,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -62,13 +62,13 @@ result_t gd_base::load(Buffer_base *data, obj_ptr<Image_base> &retVal,
 }
 
 result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     class asyncLoad: public asyncState
     {
     public:
         asyncLoad(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
-                  exlib::AsyncEvent *ac) :
+                  AsyncEvent *ac) :
             asyncState(ac), m_stm(stm), m_retVal(retVal)
         {
             set(read);
@@ -121,13 +121,13 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
 }
 
 result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     class asyncLoad: public asyncState
     {
     public:
         asyncLoad(const char *fname, obj_ptr<Image_base> &retVal,
-                  exlib::AsyncEvent *ac) :
+                  AsyncEvent *ac) :
             asyncState(ac), m_fname(fname), m_retVal(retVal)
         {
             set(open);
@@ -482,7 +482,7 @@ int my_replacer(gdImagePtr im, int src)
 }
 
 result_t Image::getData(int32_t format, int32_t quality,
-                        obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+                        obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -549,13 +549,13 @@ result_t Image::getData(int32_t format, int32_t quality,
 }
 
 result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
-                     exlib::AsyncEvent *ac)
+                     AsyncEvent *ac)
 {
     class asyncSave: public asyncState
     {
     public:
         asyncSave(Image *img, Stream_base *stm, int32_t format, int32_t quality,
-                  exlib::AsyncEvent *ac) :
+                  AsyncEvent *ac) :
             asyncState(ac), m_pThis(img), m_stm(stm), m_format(format), m_quality(quality)
         {
             set(getData);
@@ -595,13 +595,13 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
 }
 
 result_t Image::save(const char *fname, int32_t format, int32_t quality,
-                     exlib::AsyncEvent *ac)
+                     AsyncEvent *ac)
 {
     class asyncSave: public asyncState
     {
     public:
         asyncSave(Image *img, const char *fname, int32_t format, int32_t quality,
-                  exlib::AsyncEvent *ac) :
+                  AsyncEvent *ac) :
             asyncState(ac), m_pThis(img), m_fname(fname), m_format(format), m_quality(quality)
         {
             set(open);
@@ -1176,7 +1176,7 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image> &retVal)
     return 0;
 }
 
-result_t Image::colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent *ac)
+result_t Image::colorReplace(int32_t src, int32_t dst, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1189,7 +1189,7 @@ result_t Image::colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent *ac)
 }
 
 result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
-                     obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
+                     obj_ptr<Image_base> &retVal, AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1214,7 +1214,7 @@ result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
     return 0;
 }
 
-result_t Image::clone(obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
+result_t Image::clone(obj_ptr<Image_base> &retVal, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1229,7 +1229,7 @@ result_t Image::clone(obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
 }
 
 result_t Image::resample(int32_t width, int32_t height,
-                         obj_ptr<Image_base> &retVal, exlib::AsyncEvent *ac)
+                         obj_ptr<Image_base> &retVal, AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1254,7 +1254,7 @@ result_t Image::resample(int32_t width, int32_t height,
     return 0;
 }
 
-result_t Image::flip(int32_t dir, exlib::AsyncEvent *ac)
+result_t Image::flip(int32_t dir, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1315,7 +1315,7 @@ result_t Image::rotate(int32_t dir)
     return 0;
 }
 
-result_t Image::rotate(int32_t dir, exlib::AsyncEvent *ac)
+result_t Image::rotate(int32_t dir, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1326,7 +1326,7 @@ result_t Image::rotate(int32_t dir, exlib::AsyncEvent *ac)
     return rotate(dir);
 }
 
-result_t Image::convert(int32_t color, exlib::AsyncEvent *ac)
+result_t Image::convert(int32_t color, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1373,7 +1373,7 @@ result_t Image::convert(int32_t color, exlib::AsyncEvent *ac)
 
 result_t Image::copy(Image_base *source, int32_t dstX, int32_t dstY,
                      int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                     exlib::AsyncEvent *ac)
+                     AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1394,7 +1394,7 @@ result_t Image::copy(Image_base *source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyMerge(Image_base *source, int32_t dstX, int32_t dstY,
                           int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                          int32_t percent, exlib::AsyncEvent *ac)
+                          int32_t percent, AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1416,7 +1416,7 @@ result_t Image::copyMerge(Image_base *source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyMergeGray(Image_base *source, int32_t dstX, int32_t dstY,
                               int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                              int32_t percent, exlib::AsyncEvent *ac)
+                              int32_t percent, AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1438,7 +1438,7 @@ result_t Image::copyMergeGray(Image_base *source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyResized(Image_base *source, int32_t dstX, int32_t dstY,
                             int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
-                            int32_t srcH, exlib::AsyncEvent *ac)
+                            int32_t srcH, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1457,7 +1457,7 @@ result_t Image::copyResized(Image_base *source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyResampled(Image_base *source, int32_t dstX, int32_t dstY,
                               int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
-                              int32_t srcH, exlib::AsyncEvent *ac)
+                              int32_t srcH, AsyncEvent *ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1476,7 +1476,7 @@ result_t Image::copyResampled(Image_base *source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyRotated(Image_base *source, double dstX, double dstY,
                             int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                            double angle, exlib::AsyncEvent *ac)
+                            double angle, AsyncEvent *ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);

@@ -98,7 +98,7 @@ public:
 class asyncProc: public asyncEv
 {
 public:
-    asyncProc(SOCKET s, int op, exlib::AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+    asyncProc(SOCKET s, int op, AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
         m_s(s), m_op(op), m_ac(ac), m_guard(guard), m_opt(opt)
     {
     }
@@ -152,7 +152,7 @@ public:
 public:
     SOCKET m_s;
     int m_op;
-    exlib::AsyncEvent *m_ac;
+    AsyncEvent *m_ac;
     exlib::atomic_t &m_guard;
     void *&m_opt;
 
@@ -221,12 +221,12 @@ void init_net()
     s_acSock.start();
 }
 
-void Socket::cancel_socket(exlib::AsyncEvent *ac)
+void Socket::cancel_socket(AsyncEvent *ac)
 {
     class asyncCancel: public asyncEv
     {
     public:
-        asyncCancel(void *&opt1, void *&opt2, exlib::AsyncEvent *ac) :
+        asyncCancel(void *&opt1, void *&opt2, AsyncEvent *ac) :
             m_ac(ac), m_opt1(opt1), m_opt2(opt2)
         {
         }
@@ -244,7 +244,7 @@ void Socket::cancel_socket(exlib::AsyncEvent *ac)
         }
 
     public:
-        exlib::AsyncEvent *m_ac;
+        AsyncEvent *m_ac;
         void *&m_opt1;
         void *&m_opt2;
     };
@@ -252,12 +252,12 @@ void Socket::cancel_socket(exlib::AsyncEvent *ac)
     (new asyncCancel(m_RecvOpt, m_SendOpt, ac))->post();
 }
 
-result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
+result_t Socket::connect(const char *host, int32_t port, AsyncEvent *ac)
 {
     class asyncConnect: public asyncProc
     {
     public:
-        asyncConnect(SOCKET s, inetAddr &ai, exlib::AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
             asyncProc(s, EV_WRITE, ac, guard, opt), m_ai(ai)
         {
         }
@@ -319,13 +319,13 @@ result_t Socket::connect(const char *host, int32_t port, exlib::AsyncEvent *ac)
     return (new asyncConnect(m_sock, addr_info, ac, m_inRecv, m_RecvOpt))->call();
 }
 
-result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
+result_t Socket::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
 {
     class asyncAccept: public asyncProc
     {
     public:
         asyncAccept(SOCKET s, obj_ptr<Socket_base> &retVal,
-                    exlib::AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+                    AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
             asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal)
         {
         }
@@ -376,13 +376,13 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, exlib::AsyncEvent *ac)
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                      exlib::AsyncEvent *ac, bool bRead)
+                      AsyncEvent *ac, bool bRead)
 {
     class asyncRecv: public asyncProc
     {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  exlib::AsyncEvent *ac, bool bRead, exlib::atomic_t &guard, void *&opt) :
+                  AsyncEvent *ac, bool bRead, exlib::atomic_t &guard, void *&opt) :
             asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal), m_pos(0), m_bRead(
                 bRead)
         {
@@ -449,12 +449,12 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     return (new asyncRecv(m_sock, bytes, retVal, ac, bRead, m_inRecv, m_RecvOpt))->call();
 }
 
-result_t Socket::send(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t Socket::send(Buffer_base *data, AsyncEvent *ac)
 {
     class asyncSend: public asyncProc
     {
     public:
-        asyncSend(SOCKET s, Buffer_base *data, exlib::AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+        asyncSend(SOCKET s, Buffer_base *data, AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
             asyncProc(s, EV_WRITE, ac, guard, opt)
         {
             data->toString(m_buf);

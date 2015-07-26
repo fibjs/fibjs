@@ -16,7 +16,7 @@ extern int stack_size;
 #define MAX_FIBER   10000
 #define MAX_IDLE   10
 
-static exlib::Queue<asyncEvent> g_jobs;
+static exlib::Queue<AsyncEvent> g_jobs;
 static exlib::IDLE_PROC s_oldIdle;
 static int32_t s_fibers;
 static int32_t s_idleFibers;
@@ -87,7 +87,7 @@ void *FiberBase::fiber_proc(void *p)
 
     while (1)
     {
-        asyncEvent *ae;
+        AsyncEvent *ae;
 
         if ((ae = g_jobs.tryget()) == NULL)
         {

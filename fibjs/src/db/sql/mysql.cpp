@@ -145,7 +145,7 @@ UMConnectionCAPI capi =
 // ----------------------------------------------------------------------------------
 
 result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal,
-                            exlib::AsyncEvent *ac)
+                            AsyncEvent *ac)
 {
     if (qstrcmp(connString, "mysql:", 6))
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -210,7 +210,7 @@ result_t mysql::connect(const char *host, int port, const char *username,
 
     return 0;
 }
-result_t mysql::close(exlib::AsyncEvent *ac)
+result_t mysql::close(AsyncEvent *ac)
 {
     if (m_conn)
     {
@@ -222,7 +222,7 @@ result_t mysql::close(exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t mysql::use(const char *dbName, exlib::AsyncEvent *ac)
+result_t mysql::use(const char *dbName, AsyncEvent *ac)
 {
     obj_ptr<DBResult_base> retVal;
     std::string s("USE ", 4);
@@ -230,19 +230,19 @@ result_t mysql::use(const char *dbName, exlib::AsyncEvent *ac)
     return execute(s.c_str(), (int) s.length(), retVal);
 }
 
-result_t mysql::begin(exlib::AsyncEvent *ac)
+result_t mysql::begin(AsyncEvent *ac)
 {
     obj_ptr<DBResult_base> retVal;
     return execute("BEGIN", 5, retVal);
 }
 
-result_t mysql::commit(exlib::AsyncEvent *ac)
+result_t mysql::commit(AsyncEvent *ac)
 {
     obj_ptr<DBResult_base> retVal;
     return execute("COMMIT", 6, retVal);
 }
 
-result_t mysql::rollback(exlib::AsyncEvent *ac)
+result_t mysql::rollback(AsyncEvent *ac)
 {
     obj_ptr<DBResult_base> retVal;
     return execute("ROLLBACK", 8, retVal);
@@ -264,7 +264,7 @@ result_t mysql::execute(const char *sql, int sLen,
     return 0;
 }
 
-result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
+result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
 {
     return execute(sql, (int) qstrlen(sql), retVal);
 }

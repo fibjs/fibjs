@@ -35,21 +35,21 @@ public:
 
 public:
 	// fs_base
-	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
-	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
-	static result_t umask(int32_t mask, int32_t& retVal, exlib::AsyncEvent* ac);
-	static result_t mkdir(const char* path, int32_t mode, exlib::AsyncEvent* ac);
-	static result_t rmdir(const char* path, exlib::AsyncEvent* ac);
-	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
-	static result_t chmod(const char* path, int32_t mode, exlib::AsyncEvent* ac);
-	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t open(const char* fname, const char* flags, obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t tmpFile(obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openTextStream(const char* fname, const char* flags, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac);
+	static result_t exists(const char* path, bool& retVal, AsyncEvent* ac);
+	static result_t unlink(const char* path, AsyncEvent* ac);
+	static result_t umask(int32_t mask, int32_t& retVal, AsyncEvent* ac);
+	static result_t mkdir(const char* path, int32_t mode, AsyncEvent* ac);
+	static result_t rmdir(const char* path, AsyncEvent* ac);
+	static result_t rename(const char* from, const char* to, AsyncEvent* ac);
+	static result_t chmod(const char* path, int32_t mode, AsyncEvent* ac);
+	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
+	static result_t open(const char* fname, const char* flags, obj_ptr<File_base>& retVal, AsyncEvent* ac);
+	static result_t tmpFile(obj_ptr<File_base>& retVal, AsyncEvent* ac);
+	static result_t openTextStream(const char* fname, const char* flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
+	static result_t readFile(const char* fname, std::string& retVal, AsyncEvent* ac);
 	static result_t readLines(const char* fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
-	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
+	static result_t writeFile(const char* fname, const char* txt, AsyncEvent* ac);
 
 public:
 	static void s_get_SEEK_SET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);

@@ -328,7 +328,7 @@ result_t X509Cert::loadRootCerts()
     return 0;
 }
 
-result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, exlib::AsyncEvent *ac)
+result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, AsyncEvent *ac)
 {
     int ret;
     int flags;

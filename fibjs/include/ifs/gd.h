@@ -50,10 +50,10 @@ public:
 
 public:
 	// gd_base
-	static result_t create(int32_t width, int32_t height, int32_t color, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t load(Buffer_base* data, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t load(const char* fname, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t create(int32_t width, int32_t height, int32_t color, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
+	static result_t load(Buffer_base* data, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
+	static result_t load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
+	static result_t load(const char* fname, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
 	static result_t rgb(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
 	static result_t rgba(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal);
 	static result_t hsl(double hue, double saturation, double lightness, int32_t& retVal);

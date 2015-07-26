@@ -30,7 +30,7 @@ result_t Routing_base::_new(v8::Local<v8::Object> map,
 
 #define RE_SIZE 64
 result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                         exlib::AsyncEvent *ac)
+                         AsyncEvent *ac)
 {
     int i, j;
     int rc = 0;

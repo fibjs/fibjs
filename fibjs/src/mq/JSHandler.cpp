@@ -43,7 +43,7 @@ inline result_t msgMethod(Message_base *msg, std::string &method)
 }
 
 result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                           exlib::AsyncEvent *ac)
+                           AsyncEvent *ac)
 {
     if (ac)
         return CHECK_ERROR(CALL_E_NOASYNC);
@@ -154,13 +154,13 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 }
 
 result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
-                              obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac)
+                              obj_ptr<Handler_base> &retVal, AsyncEvent *ac)
 {
     class asyncInvoke: public asyncState
     {
     public:
         asyncInvoke(Handler_base *pThis, object_base *v,
-                    obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac) :
+                    obj_ptr<Handler_base> &retVal, AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
         {
             set(call);
@@ -172,7 +172,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
             int v = pThis->done(CALL_E_PENDDING);
-            pThis->asyncEvent::post(0);
+            pThis->AsyncEvent::post(0);
             return v;
         }
 

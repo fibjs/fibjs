@@ -34,8 +34,8 @@ public:
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
 	virtual result_t get_peerCert(obj_ptr<X509Cert_base>& retVal) = 0;
-	virtual result_t connect(Stream_base* s, const char* server_name, int32_t& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t connect(Stream_base* s, const char* server_name, int32_t& retVal, AsyncEvent* ac) = 0;
+	virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
 	template<typename T>

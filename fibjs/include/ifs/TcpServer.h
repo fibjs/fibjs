@@ -29,9 +29,9 @@ public:
 	// TcpServer_base
 	static result_t _new(int32_t port, v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* addr, int32_t port, v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	virtual result_t run(exlib::AsyncEvent* ac) = 0;
+	virtual result_t run(AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
-	virtual result_t stop(exlib::AsyncEvent* ac) = 0;
+	virtual result_t stop(AsyncEvent* ac) = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
 	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
 	virtual result_t set_handler(Handler_base* newVal) = 0;

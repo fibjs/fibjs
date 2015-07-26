@@ -79,7 +79,7 @@ result_t Message::_msg::set_body(SeekableStream_base *newVal)
 }
 
 result_t Message::_msg::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                             exlib::AsyncEvent *ac)
+                             AsyncEvent *ac)
 {
     if (m_body == NULL)
         return CALL_RETURN_NULL;
@@ -87,7 +87,7 @@ result_t Message::_msg::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     return m_body->read(bytes, retVal, ac);
 }
 
-result_t Message::_msg::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+result_t Message::_msg::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
     if (m_body == NULL)
         return CALL_RETURN_NULL;
@@ -95,7 +95,7 @@ result_t Message::_msg::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent 
     return m_body->readAll(retVal, ac);
 }
 
-result_t Message::_msg::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t Message::_msg::write(Buffer_base *data, AsyncEvent *ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
@@ -160,17 +160,17 @@ result_t Message::set_body(SeekableStream_base *newVal)
 }
 
 result_t Message::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                       exlib::AsyncEvent *ac)
+                       AsyncEvent *ac)
 {
     return m_message.read(bytes, retVal, ac);
 }
 
-result_t Message::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+result_t Message::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
     return m_message.readAll(retVal, ac);
 }
 
-result_t Message::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t Message::write(Buffer_base *data, AsyncEvent *ac)
 {
     return m_message.write(data, ac);
 }
@@ -186,12 +186,12 @@ result_t Message::clear()
     return 0;
 }
 
-result_t Message::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
+result_t Message::sendTo(Stream_base *stm, AsyncEvent *ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t Message::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
+result_t Message::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }

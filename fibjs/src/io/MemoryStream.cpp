@@ -20,7 +20,7 @@ result_t MemoryStream_base::_new(obj_ptr<MemoryStream_base> &retVal, v8::Local<v
 }
 
 result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                            exlib::AsyncEvent *ac)
+                            AsyncEvent *ac)
 {
     std::string strBuf;
 
@@ -60,12 +60,12 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 }
 
 result_t MemoryStream::readAll(obj_ptr<Buffer_base> &retVal,
-                               exlib::AsyncEvent *ac)
+                               AsyncEvent *ac)
 {
     return read(-1, retVal, ac);
 }
 
-result_t MemoryStream::write(Buffer_base *data, exlib::AsyncEvent *ac)
+result_t MemoryStream::write(Buffer_base *data, AsyncEvent *ac)
 {
     std::string strBuf;
     int64_t sz1, sz2;
@@ -85,18 +85,18 @@ result_t MemoryStream::write(Buffer_base *data, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t MemoryStream::close(exlib::AsyncEvent *ac)
+result_t MemoryStream::close(AsyncEvent *ac)
 {
     return 0;
 }
 
 result_t MemoryStream::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
-                              exlib::AsyncEvent *ac)
+                              AsyncEvent *ac)
 {
     return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t MemoryStream::stat(obj_ptr<Stat_base> &retVal, exlib::AsyncEvent *ac)
+result_t MemoryStream::stat(obj_ptr<Stat_base> &retVal, AsyncEvent *ac)
 {
     obj_ptr<Stat> st = new Stat();
 

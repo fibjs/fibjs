@@ -31,8 +31,8 @@ public:
 	static result_t cwd(std::string& retVal);
 	static result_t chdir(const char* directory);
 	static result_t memoryUsage(v8::Local<v8::Object>& retVal);
-	static result_t system(const char* cmd, int32_t& retVal, exlib::AsyncEvent* ac);
-	static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t system(const char* cmd, int32_t& retVal, AsyncEvent* ac);
+	static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
 	static result_t exec(const char* cmd);
 
 public:

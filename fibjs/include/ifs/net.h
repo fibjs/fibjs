@@ -37,12 +37,12 @@ public:
 
 public:
 	// net_base
-	static result_t resolve(const char* name, int32_t family, std::string& retVal, exlib::AsyncEvent* ac);
-	static result_t ip(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
-	static result_t ipv6(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
-	static result_t connect(const char* host, int32_t port, int32_t family, obj_ptr<Stream_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openSmtp(const char* host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t resolve(const char* name, int32_t family, std::string& retVal, AsyncEvent* ac);
+	static result_t ip(const char* name, std::string& retVal, AsyncEvent* ac);
+	static result_t ipv6(const char* name, std::string& retVal, AsyncEvent* ac);
+	static result_t connect(const char* host, int32_t port, int32_t family, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+	static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+	static result_t openSmtp(const char* host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
 	static result_t backend(std::string& retVal);
 
 public:

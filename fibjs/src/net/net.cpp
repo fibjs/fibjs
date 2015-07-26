@@ -14,7 +14,7 @@ namespace fibjs
 {
 
 result_t net_base::resolve(const char *name, int32_t family,
-                           std::string &retVal, exlib::AsyncEvent *ac)
+                           std::string &retVal, AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -58,19 +58,19 @@ result_t net_base::resolve(const char *name, int32_t family,
 }
 
 result_t net_base::ip(const char *name, std::string &retVal,
-                      exlib::AsyncEvent *ac)
+                      AsyncEvent *ac)
 {
     return resolve(name, net_base::_AF_INET, retVal, ac);
 }
 
 result_t net_base::ipv6(const char *name, std::string &retVal,
-                        exlib::AsyncEvent *ac)
+                        AsyncEvent *ac)
 {
     return resolve(name, net_base::_AF_INET6, retVal, ac);
 }
 
 result_t net_base::connect(const char *host, int32_t port, int32_t family,
-                           obj_ptr<Stream_base> &retVal, exlib::AsyncEvent *ac)
+                           obj_ptr<Stream_base> &retVal, AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -90,7 +90,7 @@ result_t net_base::connect(const char *host, int32_t port, int32_t family,
 }
 
 result_t net_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
-                           exlib::AsyncEvent *ac)
+                           AsyncEvent *ac)
 {
     if (!qstrcmp(url, "ssl:", 4))
         return ssl_base::connect(url, retVal, ac);
@@ -117,7 +117,7 @@ result_t net_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
 }
 
 result_t net_base::openSmtp(const char *host, int32_t port, int32_t family,
-                            obj_ptr<Smtp_base> &retVal, exlib::AsyncEvent *ac)
+                            obj_ptr<Smtp_base> &retVal, AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);

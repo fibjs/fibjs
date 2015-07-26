@@ -23,7 +23,7 @@ private:
     class asyncSsl: public asyncState
     {
     public:
-        asyncSsl(SslSocket *pThis, exlib::AsyncEvent *ac) :
+        asyncSsl(SslSocket *pThis, AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_ret(0)
         {
             set(process);
@@ -155,11 +155,11 @@ public:
 public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                          exlib::AsyncEvent *ac);
-    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
-    virtual result_t close(exlib::AsyncEvent *ac);
+                          AsyncEvent *ac);
+    virtual result_t write(Buffer_base *data, AsyncEvent *ac);
+    virtual result_t close(AsyncEvent *ac);
     virtual result_t copyTo(Stream_base *stm, int64_t bytes,
-                            int64_t &retVal, exlib::AsyncEvent *ac);
+                            int64_t &retVal, AsyncEvent *ac);
 
 public:
     // SslSocket_base
@@ -167,8 +167,8 @@ public:
     virtual result_t set_verification(int32_t newVal);
     virtual result_t get_ca(obj_ptr<X509Cert_base> &retVal);
     virtual result_t get_peerCert(obj_ptr<X509Cert_base> &retVal);
-    virtual result_t connect(Stream_base *s, const char *server_name, int32_t &retVal, exlib::AsyncEvent *ac);
-    virtual result_t accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t connect(Stream_base *s, const char *server_name, int32_t &retVal, AsyncEvent *ac);
+    virtual result_t accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal, AsyncEvent *ac);
 
 private:
     int my_recv(unsigned char *buf, size_t len);
@@ -177,7 +177,7 @@ private:
     int my_send(const unsigned char *buf, size_t len);
     static int my_send(void *ctx, const unsigned char *buf, size_t len);
 
-    result_t handshake(int32_t *retVal, exlib::AsyncEvent *ac);
+    result_t handshake(int32_t *retVal, AsyncEvent *ac);
 
 public:
     result_t setCert(X509Cert_base *crt, PKey_base *key);

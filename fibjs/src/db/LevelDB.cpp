@@ -14,7 +14,7 @@ namespace fibjs
 {
 
 result_t db_base::openLevelDB(const char *connString,
-                              obj_ptr<LevelDB_base> &retVal, exlib::AsyncEvent *ac)
+                              obj_ptr<LevelDB_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -66,7 +66,7 @@ LevelDB::~LevelDB()
     }
 }
 
-result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
+result_t LevelDB::has(Buffer_base *key, bool &retVal, AsyncEvent *ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -92,7 +92,7 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
+result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -116,7 +116,7 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, exlib::Asy
 }
 
 result_t LevelDB::_mget(std::vector<std::string> *keys,
-                        obj_ptr<List_base> &retVal, exlib::AsyncEvent *ac)
+                        obj_ptr<List_base> &retVal, AsyncEvent *ac)
 {
     std::vector<std::string> &ks = *keys;
     obj_ptr<List> list = new List();
@@ -173,7 +173,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
     return ac__mget(&ks, retVal);
 }
 
-result_t LevelDB::_commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac)
+result_t LevelDB::_commit(leveldb::WriteBatch *batch, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -185,7 +185,7 @@ result_t LevelDB::_commit(leveldb::WriteBatch *batch, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t LevelDB::set(Buffer_base *key, Buffer_base *value, exlib::AsyncEvent *ac)
+result_t LevelDB::set(Buffer_base *key, Buffer_base *value, AsyncEvent *ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -267,7 +267,7 @@ result_t LevelDB::remove(v8::Local<v8::Array> keys)
     return ac__commit(&batch);
 }
 
-result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
+result_t LevelDB::remove(Buffer_base *key, AsyncEvent *ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -286,7 +286,7 @@ result_t LevelDB::remove(Buffer_base *key, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t LevelDB::Iter::_iter(exlib::AsyncEvent *ac)
+result_t LevelDB::Iter::_iter(AsyncEvent *ac)
 {
     m_count = 0;
 
@@ -414,7 +414,7 @@ result_t LevelDB::commit()
     return hr;
 }
 
-result_t LevelDB::close(exlib::AsyncEvent *ac)
+result_t LevelDB::close(AsyncEvent *ac)
 {
     if (m_batch)
     {

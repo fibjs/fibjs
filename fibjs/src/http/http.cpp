@@ -19,13 +19,13 @@ namespace fibjs
 
 result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                             obj_ptr<HttpResponse_base> &retVal,
-                            exlib::AsyncEvent *ac)
+                            AsyncEvent *ac)
 {
     class asyncRequest: public asyncState
     {
     public:
         asyncRequest(Stream_base *conn, HttpRequest_base *req,
-                     obj_ptr<HttpResponse_base> &retVal, exlib::AsyncEvent *ac) :
+                     obj_ptr<HttpResponse_base> &retVal, AsyncEvent *ac) :
             asyncState(ac), m_conn(conn), m_req(req), m_retVal(retVal)
         {
             set(send);

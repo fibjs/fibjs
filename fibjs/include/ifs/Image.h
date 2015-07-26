@@ -38,9 +38,9 @@ public:
 	virtual result_t set_progressive(bool newVal) = 0;
 	virtual result_t get_alphaBlending(bool& retVal) = 0;
 	virtual result_t set_alphaBlending(bool newVal) = 0;
-	virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t save(Stream_base* stm, int32_t format, int32_t quality, exlib::AsyncEvent* ac) = 0;
-	virtual result_t save(const char* fname, int32_t format, int32_t quality, exlib::AsyncEvent* ac) = 0;
+	virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t save(Stream_base* stm, int32_t format, int32_t quality, AsyncEvent* ac) = 0;
+	virtual result_t save(const char* fname, int32_t format, int32_t quality, AsyncEvent* ac) = 0;
 	virtual result_t colorAllocate(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
 	virtual result_t colorAllocate(int32_t color, int32_t& retVal) = 0;
 	virtual result_t colorAllocateAlpha(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal) = 0;
@@ -77,19 +77,19 @@ public:
 	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style) = 0;
 	virtual result_t fill(int32_t x, int32_t y, int32_t color) = 0;
 	virtual result_t fillToBorder(int32_t x, int32_t y, int32_t borderColor, int32_t color) = 0;
-	virtual result_t colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent* ac) = 0;
-	virtual result_t clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t crop(int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t flip(int32_t dir, exlib::AsyncEvent* ac) = 0;
-	virtual result_t rotate(int32_t dir, exlib::AsyncEvent* ac) = 0;
-	virtual result_t convert(int32_t color, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, double angle, exlib::AsyncEvent* ac) = 0;
+	virtual result_t colorReplace(int32_t src, int32_t dst, AsyncEvent* ac) = 0;
+	virtual result_t clone(obj_ptr<Image_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t crop(int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, AsyncEvent* ac) = 0;
+	virtual result_t flip(int32_t dir, AsyncEvent* ac) = 0;
+	virtual result_t rotate(int32_t dir, AsyncEvent* ac) = 0;
+	virtual result_t convert(int32_t color, AsyncEvent* ac) = 0;
+	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, AsyncEvent* ac) = 0;
+	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, AsyncEvent* ac) = 0;
+	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, AsyncEvent* ac) = 0;
+	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, AsyncEvent* ac) = 0;
+	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, AsyncEvent* ac) = 0;
+	virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, double angle, AsyncEvent* ac) = 0;
 
 public:
 	static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
