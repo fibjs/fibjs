@@ -31,7 +31,7 @@ describe("gd", function() {
 		assert.equal(gd.rgb(0, 255, 0), 0x00ff00);
 		assert.equal(gd.rgb(0, 0, 255), 0x0000ff);
 
-		assert.equal(gd.rgba(0, 255, 0, .5), 0x3f00ff00);
+		assert.equal(gd.rgba(0, 255, 0, .5), 0x4000ff00);
 	});
 
 	it("hsl color", function() {
@@ -42,18 +42,18 @@ describe("gd", function() {
 		assert.equal(gd.hsl(0, 0, .8), 0xcccccc);
 		assert.equal(gd.hsl(210, .5, .6), 0x6699cc);
 
-		assert.equal(gd.hsla(120, 1, .5, .5), 0x3f00ff00);
+		assert.equal(gd.hsla(120, 1, .5, .5), 0x4000ff00);
 	});
 
 	it("hsb color", function() {
-		assert.equal(gd.hsb(0, 1, .5), 0x7f0000);
-		assert.equal(gd.hsb(120, 1, .5), 0x007f00);
-		assert.equal(gd.hsb(240, 1, .5), 0x00007f);
+		assert.equal(gd.hsb(0, 1, .5), 0x800000);
+		assert.equal(gd.hsb(120, 1, .5), 0x8000);
+		assert.equal(gd.hsb(240, 1, .5), 0x000080);
 
 		assert.equal(gd.hsb(0, 0, .8), 0xcccccc);
-		assert.equal(gd.hsb(210, .5, .6), 0x4c7299);
+		assert.equal(gd.hsb(210, .5, .6), 0x264d99);
 
-		assert.equal(gd.hsba(120, 1, .5, .5), 0x3f007f00);
+		assert.equal(gd.hsba(120, 1, .5, .5), 0x40008000);
 	});
 
 	it("color string", function() {
