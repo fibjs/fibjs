@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "ClassInfo.h"
 #include "Runtime.h"
+#include "AsyncCall.h"
 
 #undef min
 #undef max
@@ -22,20 +23,6 @@ namespace fibjs
 {
 
 #include "object_async.inl"
-
-class AsyncEvent: public exlib::AsyncEvent
-{
-public:
-    void sync();
-    virtual void js_invoke()
-    {
-    }
-
-    void async();
-    virtual void invoke()
-    {
-    }
-};
 
 class object_base: public obj_base
 {
@@ -388,13 +375,6 @@ private:
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
     static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &args);
 };
-
-}
-
-#include "AsyncCall.h"
-
-namespace fibjs
-{
 
 inline void *ClassInfo::getInstance(void *o)
 {

@@ -7,6 +7,20 @@
 namespace fibjs
 {
 
+class AsyncEvent: public exlib::AsyncEvent
+{
+public:
+    void sync();
+    virtual void js_invoke()
+    {
+    }
+
+    void async();
+    virtual void invoke()
+    {
+    }
+};
+
 class AsyncCall: public AsyncEvent
 {
 public:
