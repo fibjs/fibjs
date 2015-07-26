@@ -77,7 +77,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
 {
     int32_t n = 0;
 
-    for (n = 0; s_logs[n]; n ++);
+    for (n = 0; n < MAX_LOGGER && s_logs[n]; n ++);
 
     if (n >= MAX_LOGGER)
         return CHECK_ERROR(Runtime::setError("Too many items."));
