@@ -134,7 +134,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     uint32_t ticks = (uint32_t) sysconf(_SC_CLK_TCK), multiplier =
                          ((uint64_t) 1000L / ticks), cpuspeed;
     int32_t numcpus = 0, i = 0;
-    uint64_t ticks_user, ticks_sys, ticks_idle, ticks_nice,
+    unsigned long long ticks_user, ticks_sys, ticks_idle, ticks_nice,
              ticks_intr;
     char line[512], speedPath[256], model[512] = "";
     FILE *fpStat = fopen("/proc/stat", "r");

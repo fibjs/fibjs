@@ -270,7 +270,7 @@ bool Variant::toString(std::string &retVal)
 #ifdef _WIN32
         sprintf(str, "%lld", m_Val.longVal);
 #else
-        sprintf(str, "%lld", (int64_t) m_Val.longVal);
+        sprintf(str, "%lld", (long long) m_Val.longVal);
 #endif
 
         retVal = str;

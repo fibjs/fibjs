@@ -134,7 +134,7 @@ public:
 #ifdef _WIN32
             sprintf(numStr, "%I64d", v);
 #else
-            sprintf(numStr, "%lld", (int64_t)v);
+            sprintf(numStr, "%lld", (long long)v);
 #endif
             return add(numStr);
         }
