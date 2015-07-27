@@ -117,8 +117,8 @@ result_t http_base::fileHandler(const char *root, v8::Local<v8::Object> mimes,
 result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
 {
     v8::Local<v8::Array> keys = mimes->GetPropertyNames();
-    int len = keys->Length();
-    int i;
+    int32_t len = keys->Length();
+    int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++)
@@ -136,7 +136,7 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
     return 0;
 }
 
-static int mt_cmp(const void *p, const void *q)
+static int32_t mt_cmp(const void *p, const void *q)
 {
     return qstricmp(*(const char **) p, *(const char **) q);
 }
@@ -169,7 +169,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             m_req->get_value(value);
 
-            Url::decodeURI(value.c_str(), (int) value.length(), value);
+            Url::decodeURI(value.c_str(), (int32_t) value.length(), value);
 
             if (value.length() > 0 && isPathSlash(value[value.length() - 1]))
                 value.append("index.html", 10);
@@ -179,7 +179,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             set(start);
         }
 
-        static int start(AsyncState *pState, int n)
+        static int32_t start(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -199,7 +199,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                           v) != CALL_RETURN_NULL)
             {
                 std::string str = v.string();
-                pThis->m_time.parse(str.c_str(), (int) str.length());
+                pThis->m_time.parse(str.c_str(), (int32_t) str.length());
 
                 pThis->set(check);
                 return fs_base::stat(pThis->m_path.c_str(), pThis->m_stat,
@@ -211,7 +211,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                  pThis);
         }
 
-        static int check(AsyncState *pState, int n)
+        static int32_t check(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -232,7 +232,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                  pThis);
         }
 
-        static int open(AsyncState *pState, int n)
+        static int32_t open(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             std::string ext;
@@ -265,7 +265,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_file->stat(pThis->m_stat, pThis);
         }
 
-        static int stat(AsyncState *pState, int n)
+        static int32_t stat(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             date_t d;
@@ -284,7 +284,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->done(CALL_RETURN_NULL);
         }
 
-        virtual int error(int v)
+        virtual int32_t error(int32_t v)
         {
             if (m_gzip)
             {

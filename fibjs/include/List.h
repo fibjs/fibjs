@@ -74,7 +74,7 @@ public:
 
     private:
         v8::Local<v8::Value> _call(v8::Local<v8::Function> func,
-                                   v8::Local<v8::Object> thisp, int i);
+                                   v8::Local<v8::Object> thisp, int32_t i);
 
     private:
         QuickArray<VariantEx> m_array;

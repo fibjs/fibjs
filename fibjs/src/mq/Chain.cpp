@@ -41,7 +41,7 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         }
 
     public:
-        static int invoke(AsyncState *pState, int n)
+        static int32_t invoke(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 

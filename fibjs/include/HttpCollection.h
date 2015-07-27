@@ -39,7 +39,7 @@ public:
     virtual result_t _named_deleter(const char *property, v8::Local<v8::Boolean> &retVal);
 
 public:
-    void add(const char *name, int szName, const char *value, int szValue)
+    void add(const char *name, int32_t szName, const char *value, int32_t szValue)
     {
         m_names[m_count].assign(name, szName);
         m_values[m_count].assign(value, szValue);

@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#include <stdint.h>
+
 #ifndef SOCKET_API_H_
 #define SOCKET_API_H_
 
@@ -16,11 +18,11 @@ namespace socket
 
 void *create();
 void destroy(void *sock);
-int connect(void *sock, const char *host, int port);
-void *connect(const char *host, int port);
-int recv(void *sock, void *buffer, int cbBuffer);
-int read(void *sock, void *buffer, int cbBuffer);
-int send(void *sock, const void *buffer, int cbBuffer);
+int32_t connect(void *sock, const char *host, int32_t port);
+void *connect(const char *host, int32_t port);
+int32_t recv(void *sock, void *buffer, int32_t cbBuffer);
+int32_t read(void *sock, void *buffer, int32_t cbBuffer);
+int32_t send(void *sock, const void *buffer, int32_t cbBuffer);
 
 }
 

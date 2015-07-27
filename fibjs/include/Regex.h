@@ -56,7 +56,7 @@ private:
     bool m_bGlobal;
     bool m_bIgnoreCase;
     bool m_bMultiline;
-    int m_nlastIndex;
+    int32_t m_nlastIndex;
     pcre *m_re;
 };
 

@@ -103,8 +103,8 @@ result_t SslSocket::setCert(X509Cert_base *crt, PKey_base *key)
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int ret = ssl_set_own_cert(&m_ssl, &((X509Cert *)crt)->m_crt,
-                               &((PKey *)key)->m_key);
+    int32_t ret = ssl_set_own_cert(&m_ssl, &((X509Cert *)crt)->m_crt,
+                                   &((PKey *)key)->m_key);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -114,7 +114,7 @@ result_t SslSocket::setCert(X509Cert_base *crt, PKey_base *key)
     return 0;
 }
 
-int SslSocket::my_recv(unsigned char *buf, size_t len)
+int32_t SslSocket::my_recv(unsigned char *buf, size_t len)
 {
     if (!len)
         return 0;
@@ -122,7 +122,7 @@ int SslSocket::my_recv(unsigned char *buf, size_t len)
     if (m_recv_pos < 0)
         return POLARSSL_ERR_NET_CONN_RESET;
 
-    if (m_recv_pos == (int)m_recv.length())
+    if (m_recv_pos == (int32_t)m_recv.length())
     {
         m_recv_pos = 0;
         m_recv.resize(0);
@@ -133,17 +133,17 @@ int SslSocket::my_recv(unsigned char *buf, size_t len)
         len = m_recv.length() - m_recv_pos;
 
     memcpy(buf, m_recv.c_str() + m_recv_pos, len);
-    m_recv_pos += (int)len;
+    m_recv_pos += (int32_t)len;
 
-    return (int)len;
+    return (int32_t)len;
 }
 
-int SslSocket::my_recv(void *ctx, unsigned char *buf, size_t len)
+int32_t SslSocket::my_recv(void *ctx, unsigned char *buf, size_t len)
 {
     return ((SslSocket *)ctx)->my_recv(buf, len);
 }
 
-int SslSocket::my_send(const unsigned char *buf, size_t len)
+int32_t SslSocket::my_send(const unsigned char *buf, size_t len)
 {
     if (!len)
         return 0;
@@ -152,10 +152,10 @@ int SslSocket::my_send(const unsigned char *buf, size_t len)
         return POLARSSL_ERR_NET_WANT_WRITE;
 
     m_send.append((const char *)buf, len);
-    return (int)len;
+    return (int32_t)len;
 }
 
-int SslSocket::my_send(void *ctx, const unsigned char *buf, size_t len)
+int32_t SslSocket::my_send(void *ctx, const unsigned char *buf, size_t len)
 {
     return ((SslSocket *)ctx)->my_send(buf, len);
 }
@@ -177,9 +177,9 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         }
 
     public:
-        virtual int process()
+        virtual int32_t process()
         {
-            int ret = ssl_read(&m_pThis->m_ssl, (unsigned char *)&m_buf[0], m_bytes);
+            int32_t ret = ssl_read(&m_pThis->m_ssl, (unsigned char *)&m_buf[0], m_bytes);
             if (ret > 0)
             {
                 m_buf.resize(ret);
@@ -195,7 +195,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
             return 0;
         }
 
-        virtual int finally()
+        virtual int32_t finally()
         {
             return m_retVal ? 0 : CALL_RETURN_NULL;
         }
@@ -228,15 +228,15 @@ result_t SslSocket::write(Buffer_base *data, AsyncEvent *ac)
         }
 
     public:
-        virtual int process()
+        virtual int32_t process()
         {
-            int ret;
+            int32_t ret;
 
             while ((ret = ssl_write(&m_pThis->m_ssl, (const unsigned char *)m_buf.c_str() + m_pos,
                                     m_buf.length() - m_pos)) > 0)
             {
                 m_pos += ret;
-                if (m_pos == (int)m_buf.length())
+                if (m_pos == (int32_t)m_buf.length())
                     return 0;
             }
 
@@ -273,7 +273,7 @@ result_t SslSocket::close(AsyncEvent *ac)
         }
 
     public:
-        virtual int process()
+        virtual int32_t process()
         {
             return ssl_close_notify(&m_pThis->m_ssl);
         }
@@ -347,12 +347,12 @@ result_t SslSocket::handshake(int32_t *retVal, AsyncEvent *ac)
         }
 
     public:
-        virtual int process()
+        virtual int32_t process()
         {
             return ssl_handshake(&m_pThis->m_ssl);
         }
 
-        virtual int finally()
+        virtual int32_t finally()
         {
             if (m_retVal)
                 *m_retVal = ssl_get_verify_result(&m_pThis->m_ssl);
@@ -402,8 +402,8 @@ result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
 
     obj_ptr<SslSocket> ss = new SslSocket();
     retVal = ss;
-    int sz = (int)m_crts.size();
-    int i;
+    int32_t sz = (int32_t)m_crts.size();
+    int32_t i;
     result_t hr;
 
     for (i = 0; i < sz; i ++)

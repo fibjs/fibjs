@@ -27,7 +27,7 @@ public:
         return CALL_RETURN_NULL;
     }
 
-    static int process(AsyncState *pState, int n)
+    static int32_t process(AsyncState *pState, int32_t n)
     {
         asyncBuffer *pThis = (asyncBuffer *) pState;
 
@@ -39,7 +39,7 @@ public:
         return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis);
     }
 
-    static int ready(AsyncState *pState, int n)
+    static int32_t ready(AsyncState *pState, int32_t n)
     {
         asyncBuffer *pThis = (asyncBuffer *) pState;
 
@@ -86,15 +86,15 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         static result_t process(BufferedStream *pThis, int32_t bytes,
                                 obj_ptr<Buffer_base> &retVal, bool streamEnd)
         {
-            int n = bytes - (int) pThis->m_strbuf.size();
-            int n1 = (int) pThis->m_buf.length() - pThis->m_pos;
+            int32_t n = bytes - (int32_t) pThis->m_strbuf.size();
+            int32_t n1 = (int32_t) pThis->m_buf.length() - pThis->m_pos;
 
             if (n > n1)
                 n = n1;
 
             pThis->append(n);
 
-            if (streamEnd || bytes == (int) pThis->m_strbuf.size())
+            if (streamEnd || bytes == (int32_t) pThis->m_strbuf.size())
             {
                 std::string s = pThis->m_strbuf.str();
 
@@ -121,7 +121,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
     if (bytes < 0)
     {
-        int n = (int) m_buf.length() - m_pos;
+        int32_t n = (int32_t) m_buf.length() - m_pos;
         if (n > 0)
         {
             if (m_pos == 0)
@@ -180,15 +180,15 @@ result_t BufferedStream::readText(int32_t size, std::string &retVal,
         static result_t process(BufferedStream *pThis, int32_t size,
                                 std::string &retVal, bool streamEnd)
         {
-            int n = size - (int) pThis->m_strbuf.size();
-            int n1 = (int) pThis->m_buf.length() - pThis->m_pos;
+            int32_t n = size - (int32_t) pThis->m_strbuf.size();
+            int32_t n1 = (int32_t) pThis->m_buf.length() - pThis->m_pos;
 
             if (n > n1)
                 n = n1;
 
             pThis->append(n);
 
-            if (streamEnd || size == (int) pThis->m_strbuf.size())
+            if (streamEnd || size == (int32_t) pThis->m_strbuf.size())
             {
                 result_t hr = pThis->m_iconv.decode(pThis->m_strbuf.str(), retVal);
                 if (hr < 0)
@@ -250,7 +250,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
             return 0;
 
         retVal->Set(n ++, v8::String::NewFromUtf8(isolate.isolate, str.c_str(),
-                    v8::String::kNormalString, (int)str.length()));
+                    v8::String::kNormalString, (int32_t)str.length()));
         if (maxlines > 0)
         {
             maxlines --;
@@ -278,20 +278,20 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
         static result_t process(BufferedStream *pThis, const char *mk,
                                 int32_t maxlen, std::string &retVal, bool streamEnd)
         {
-            int pos = pThis->m_pos;
-            int mklen = (int) qstrlen(mk);
+            int32_t pos = pThis->m_pos;
+            int32_t mklen = (int32_t) qstrlen(mk);
 
             if (mklen == 0)
                 mklen = 1;
 
-            while ((pos < (int) pThis->m_buf.length())
+            while ((pos < (int32_t) pThis->m_buf.length())
                     && (pThis->m_temp < mklen))
             {
                 if (pThis->m_temp == 0)
                 {
                     char ch = mk[0];
 
-                    while (pos < (int) pThis->m_buf.length())
+                    while (pos < (int32_t) pThis->m_buf.length())
                         if (pThis->m_buf[pos++] == ch)
                         {
                             pThis->m_temp++;
@@ -301,7 +301,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
 
                 if (pThis->m_temp > 0)
                 {
-                    while ((pos < (int) pThis->m_buf.length())
+                    while ((pos < (int32_t) pThis->m_buf.length())
                             && (pThis->m_temp < mklen))
                     {
                         if (pThis->m_buf[pos] != mk[pThis->m_temp])
@@ -318,7 +318,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
             }
 
             if (maxlen > 0
-                    && ((int) pThis->m_strbuf.size() + (pos - pThis->m_pos)
+                    && ((int32_t) pThis->m_strbuf.size() + (pos - pThis->m_pos)
                         > maxlen + mklen))
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
 
@@ -381,17 +381,17 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
         static result_t process(BufferedStream *pThis, int32_t limit,
                                 obj_ptr<Buffer_base> &retVal, bool streamEnd)
         {
-            int n1 = (int) pThis->m_buf.length() - pThis->m_pos;
+            int32_t n1 = (int32_t) pThis->m_buf.length() - pThis->m_pos;
 
             if (pThis->m_temp == 0)
             {
-                int n2 = (int) pThis->m_strbuf.size();
-                int n3 = 0;
+                int32_t n2 = (int32_t) pThis->m_strbuf.size();
+                int32_t n3 = 0;
 
                 while (n3 < n1 && ((unsigned char)pThis->m_buf[pThis->m_pos + n3] & 0x80))
                     n3 ++;
 
-                if (n2 + n3 > (int)sizeof(int32_t))
+                if (n2 + n3 > (int32_t)sizeof(int32_t))
                     return CHECK_ERROR(CALL_E_INVALID_DATA);
 
                 if (n3 == n1)
@@ -438,15 +438,15 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
             }
 
-            int bytes = pThis->m_temp;
-            int n = bytes - (int) pThis->m_strbuf.size();
+            int32_t bytes = pThis->m_temp;
+            int32_t n = bytes - (int32_t) pThis->m_strbuf.size();
 
             if (n > n1)
                 n = n1;
 
             pThis->append(n);
 
-            if (bytes == (int) pThis->m_strbuf.size())
+            if (bytes == (int32_t) pThis->m_strbuf.size())
             {
                 std::string s = pThis->m_strbuf.str();
                 retVal = new Buffer(s);

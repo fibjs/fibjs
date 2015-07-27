@@ -23,10 +23,10 @@ inline result_t _parallel(std::vector<v8::Local<v8::Function> > &funs,
                           v8::Local<v8::Array> &retVal)
 {
     std::vector<obj_ptr<JSFiber> > fibers;
-    int i;
+    int32_t i;
 
     fibers.resize(funs.size());
-    for (i = 1; i < (int) funs.size(); i++)
+    for (i = 1; i < (int32_t) funs.size(); i++)
         JSFiber::New(funs[i], NULL, 0, fibers[i]);
 
     v8::Local<v8::Value> r;
@@ -35,11 +35,11 @@ inline result_t _parallel(std::vector<v8::Local<v8::Function> > &funs,
 
     if (!bError)
     {
-        retVal = v8::Array::New(Isolate::now().isolate, (int) funs.size());
+        retVal = v8::Array::New(Isolate::now().isolate, (int32_t) funs.size());
         retVal->Set(0, r);
     }
 
-    for (i = 1; i < (int) funs.size(); i++)
+    for (i = 1; i < (int32_t) funs.size(); i++)
     {
         JSFiber *fb = fibers[i];
         fb->join();
@@ -59,8 +59,8 @@ inline result_t _parallel(std::vector<v8::Local<v8::Function> > &funs,
 result_t coroutine_base::parallel(v8::Local<v8::Array> func,
                                   v8::Local<v8::Array> &retVal)
 {
-    int l = func->Length();
-    int i;
+    int32_t l = func->Length();
+    int32_t i;
 
     if (l == 0)
     {
@@ -87,8 +87,8 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> func,
 result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &args,
                                   v8::Local<v8::Array> &retVal)
 {
-    int l = args.Length();
-    int i;
+    int32_t l = args.Length();
+    int32_t i;
 
     if (l == 0)
     {
@@ -116,8 +116,8 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> data,
                                   v8::Local<v8::Function> func, v8::Local<v8::Array> &retVal)
 {
     std::vector<obj_ptr<JSFiber> > fibers;
-    int i;
-    int len = data->Length();
+    int32_t i;
+    int32_t len = data->Length();
 
     if (len == 0)
     {
@@ -126,7 +126,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> data,
     }
 
     fibers.resize(len);
-    for (i = 1; i < (int) len; i++)
+    for (i = 1; i < (int32_t) len; i++)
     {
         v8::Local<v8::Value> v = data->Get(i);
         JSFiber::New(func, &v, 1, fibers[i]);

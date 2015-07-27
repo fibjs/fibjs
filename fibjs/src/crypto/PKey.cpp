@@ -45,7 +45,7 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int ret;
+    int32_t ret;
 
     clear();
 
@@ -72,7 +72,7 @@ result_t PKey::genEcKey(const char *curve, AsyncEvent *ac)
     if (curve_info == NULL)
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
-    int ret;
+    int32_t ret;
 
     clear();
 
@@ -122,7 +122,7 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
         return CALL_RETURN_NULL;
 
     pk_type_t type = pk_get_type(&m_key);
-    int ret;
+    int32_t ret;
 
     if (type == POLARSSL_PK_RSA)
     {
@@ -183,7 +183,7 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
 result_t PKey::copy(const pk_context &key)
 {
     pk_type_t type = pk_get_type(&key);
-    int ret;
+    int32_t ret;
 
     if (type == POLARSSL_PK_RSA)
     {
@@ -245,7 +245,7 @@ result_t PKey::clone(obj_ptr<PKey_base> &retVal)
 
 result_t PKey::importKey(Buffer_base *DerKey, const char *password)
 {
-    int ret;
+    int32_t ret;
 
     std::string key;
     DerKey->toString(key);
@@ -267,7 +267,7 @@ result_t PKey::importKey(Buffer_base *DerKey, const char *password)
 
 result_t PKey::importKey(const char *pemKey, const char *password)
 {
-    int ret;
+    int32_t ret;
 
     clear();
 
@@ -288,7 +288,7 @@ result_t PKey::importFile(const char* filename, const char* password)
 {
     result_t hr;
     std::string data;
-    int ret;
+    int32_t ret;
 
     hr = fs_base::ac_readFile(filename, data);
     if (hr < 0)
@@ -319,7 +319,7 @@ result_t PKey::exportPem(std::string &retVal)
     if (hr < 0)
         return hr;
 
-    int ret;
+    int32_t ret;
     std::string buf;
 
     buf.resize(pk_get_len(&m_key) * 8 + 128);
@@ -345,7 +345,7 @@ result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
     if (hr < 0)
         return hr;
 
-    int ret;
+    int32_t ret;
     std::string buf;
 
     buf.resize(8192);
@@ -367,7 +367,7 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int ret;
+    int32_t ret;
     std::string str;
     std::string output;
     size_t olen;
@@ -403,7 +403,7 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
     std::string str;
     std::string output;
     size_t olen;
@@ -439,7 +439,7 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
     std::string str;
     std::string output;
     size_t olen;
@@ -466,7 +466,7 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int ret;
+    int32_t ret;
     std::string str;
     std::string strsign;
 

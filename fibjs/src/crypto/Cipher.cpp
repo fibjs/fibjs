@@ -107,7 +107,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
         keylen = 24;
     }
 
-    for (int i = 0; i < SIZE_COUNT; i ++)
+    for (int32_t i = 0; i < SIZE_COUNT; i ++)
         if (s_sizes[provider - crypto_base::_AES][i].size == keylen * 8)
         {
             info = s_sizes[provider - crypto_base::_AES][i].cis[mode];
@@ -216,7 +216,7 @@ result_t Cipher::get_blockSize(int32_t &retVal)
 
 result_t Cipher::paddingMode(int32_t mode)
 {
-    int ret = cipher_set_padding_mode(&m_ctx, (cipher_padding_t)mode);
+    int32_t ret = cipher_set_padding_mode(&m_ctx, (cipher_padding_t)mode);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -226,9 +226,9 @@ result_t Cipher::paddingMode(int32_t mode)
 result_t Cipher::process(const operation_t operation, Buffer_base *data,
                          obj_ptr<Buffer_base> &retVal)
 {
-    int ret;
+    int32_t ret;
 
-    ret = cipher_setkey(&m_ctx, (unsigned char *)m_key.c_str(), (int)m_key.length() * 8,
+    ret = cipher_setkey(&m_ctx, (unsigned char *)m_key.c_str(), (int32_t)m_key.length() * 8,
                         operation);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -248,8 +248,8 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
 
     for (offset = 0; offset < data_size; offset += block_size)
     {
-        ilen = ((unsigned int)data_size - offset > block_size) ?
-               block_size : (unsigned int)(data_size - offset);
+        ilen = ((uint32_t)data_size - offset > block_size) ?
+               block_size : (uint32_t)(data_size - offset);
 
         ret = cipher_update(&m_ctx, (unsigned char *)input.c_str() + offset,
                             ilen, buffer, &olen);

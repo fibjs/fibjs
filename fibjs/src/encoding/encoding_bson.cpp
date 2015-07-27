@@ -43,7 +43,7 @@ void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
         if (value == (double) num)
         {
             if (num >= -2147483648ll && num <= 2147483647ll)
-                bson_append_int(bb, name, (int) num);
+                bson_append_int(bb, name, (int32_t) num);
             else
                 bson_append_long(bb, name, num);
         }
@@ -79,7 +79,7 @@ void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
             if (num)
             {
                 if (num->m_num >= -2147483648ll && num->m_num <= 2147483647ll)
-                    bson_append_int(bb, name, (int) num->m_num);
+                    bson_append_int(bb, name, (int32_t) num->m_num);
                 else
                     bson_append_long(bb, name, num->m_num);
                 return;
@@ -95,7 +95,7 @@ void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
 
                 buf->toString(strBuf);
                 bson_append_binary(bb, name, BSON_BIN_BINARY, strBuf.c_str(),
-                                   (int) strBuf.length());
+                                   (int32_t) strBuf.length());
 
                 return;
             }
@@ -132,7 +132,7 @@ void encodeArray(bson *bb, const char *name, v8::Local<v8::Value> element)
 
     bson_append_start_array(bb, name);
 
-    for (int i = 0, l = a->Length(); i < l; i++)
+    for (int32_t i = 0, l = a->Length(); i < l; i++)
     {
         v8::Local<v8::Value> val = a->Get(i);
         char numStr[32];
@@ -185,7 +185,7 @@ bool encodeObject(bson *bb, const char *name, v8::Local<v8::Value> element,
 
     v8::Local<v8::Array> properties = object->GetPropertyNames();
 
-    for (int i = 0; i < (int) properties->Length(); i++)
+    for (int32_t i = 0; i < (int32_t) properties->Length(); i++)
     {
         v8::Local<v8::Value> prop_name = properties->Get(i);
         v8::Local<v8::Value> prop_val = object->Get(prop_name);

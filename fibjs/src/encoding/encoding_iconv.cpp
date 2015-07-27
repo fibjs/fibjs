@@ -57,7 +57,7 @@ static iconv_t iconv_open(const char *tocode, const char *fromcode)
     return (iconv_t) - 1;
 }
 
-static int iconv_close(iconv_t cd)
+static int32_t iconv_close(iconv_t cd)
 {
     return 0;
 }
@@ -72,7 +72,7 @@ static size_t iconv(iconv_t cd, const char **inbuf, size_t *inbytesleft,
 
 static size_t (*_iconv)(iconv_t, const char **, size_t *, char **, size_t *);
 static iconv_t (*_iconv_open)(const char *, const char *);
-static int (*_iconv_close)(iconv_t);
+static int32_t (*_iconv_close)(iconv_t);
 
 inline void init_iconv()
 {
@@ -94,9 +94,9 @@ inline void init_iconv()
             if (!_iconv_open)
                 _iconv_open = (iconv_t (*)(const char *, const char *))dlsym(handle, "libiconv_open");
 
-            _iconv_close = (int (*)(iconv_t))dlsym(handle, "iconv_close");
+            _iconv_close = (int32_t (*)(iconv_t))dlsym(handle, "iconv_close");
             if (!_iconv_close)
-                _iconv_close = (int (*)(iconv_t))dlsym(handle, "libiconv_close");
+                _iconv_close = (int32_t (*)(iconv_t))dlsym(handle, "libiconv_close");
         }
 
         if (!_iconv || !_iconv_open || !_iconv_close)

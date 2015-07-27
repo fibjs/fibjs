@@ -47,7 +47,7 @@ public:
 
         toString(str);
         retVal = v8::String::NewFromUtf8(Isolate::now().isolate, str.c_str(), v8::String::kNormalString,
-                                         (int) str.length());
+                                         (int32_t) str.length());
 
         return 0;
     }

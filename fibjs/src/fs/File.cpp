@@ -86,12 +86,12 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (bytes > 0)
     {
         strBuf.resize(bytes);
-        int sz = bytes;
+        int32_t sz = bytes;
         char *p = &strBuf[0];
 
         while (sz)
         {
-            int n = (int) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+            int32_t n = (int32_t) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
                 return CHECK_ERROR(LastError());
             if (n == 0)
@@ -144,12 +144,12 @@ result_t File::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
     if (bytes > 0)
     {
         strBuf.resize(bytes);
-        int sz = bytes;
+        int32_t sz = bytes;
         char *p = &strBuf[0];
 
         while (sz)
         {
-            int n = (int) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+            int32_t n = (int32_t) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
                 return CHECK_ERROR(LastError());
             if (n == 0)
@@ -170,14 +170,14 @@ result_t File::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
     return 0;
 }
 
-result_t File::Write(const char *p, int sz)
+result_t File::Write(const char *p, int32_t sz)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     while (sz)
     {
-        int n = (int) ::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+        int32_t n = (int32_t) ::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
         if (n < 0)
             return CHECK_ERROR(LastError());
 
@@ -199,7 +199,7 @@ result_t File::write(Buffer_base *data, AsyncEvent *ac)
     std::string strBuf;
     data->toString(strBuf);
 
-    return Write(strBuf.c_str(), (int) strBuf.length());
+    return Write(strBuf.c_str(), (int32_t) strBuf.length());
 }
 
 result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
@@ -217,9 +217,9 @@ result_t File::open(const char *fname, const char *flags, AsyncEvent *ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
 #ifdef _WIN32
-    int _flags = _O_BINARY;
+    int32_t _flags = _O_BINARY;
 #else
-    int _flags = 0;
+    int32_t _flags = 0;
 #endif
 
     if (!qstrcmp(flags, "r" ))

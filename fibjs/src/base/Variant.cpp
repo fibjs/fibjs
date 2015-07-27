@@ -128,21 +128,21 @@ Variant::operator v8::Local<v8::Value>() const
         std::string &str = strVal();
         return v8::String::NewFromUtf8(isolate.isolate, str.c_str(),
                                        v8::String::kNormalString,
-                                       (int) str.length());
+                                       (int32_t) str.length());
     }
     }
 
     return v8::Null(isolate.isolate);
 }
 
-inline void next(int &len, int &pos)
+inline void next(int32_t &len, int32_t &pos)
 {
     pos++;
     if (len > 0)
         len--;
 }
 
-inline int64_t getInt(const char *s, int &len, int &pos)
+inline int64_t getInt(const char *s, int32_t &len, int32_t &pos)
 {
     char ch;
     int64_t n = 0;
@@ -156,17 +156,17 @@ inline int64_t getInt(const char *s, int &len, int &pos)
     return n;
 }
 
-inline char pick(const char *s, int &len, int &pos)
+inline char pick(const char *s, int32_t &len, int32_t &pos)
 {
     return len == 0 ? 0 : s[pos];
 }
 
-void Variant::parseNumber(const char *str, int len)
+void Variant::parseNumber(const char *str, int32_t len)
 {
     int64_t digit, frac = 0, exp = 0;
     double v, div = 1.0;
     bool bNeg, bExpNeg;
-    int pos = 0;
+    int32_t pos = 0;
     char ch;
 
     bNeg = (pick(str, len, pos) == '-');
@@ -214,7 +214,7 @@ void Variant::parseNumber(const char *str, int len)
             v = -v;
 
         if (exp != 0)
-            v *= pow((double) 10, (int) exp);
+            v *= pow((double) 10, (int32_t) exp);
 
         set_type(VT_Number);
         m_Val.dblVal = v;
@@ -270,7 +270,7 @@ bool Variant::toString(std::string &retVal)
 #ifdef _WIN32
         sprintf(str, "%lld", m_Val.longVal);
 #else
-        sprintf(str, "%lld", (long long) m_Val.longVal);
+        sprintf(str, "%lld", (int64_t) m_Val.longVal);
 #endif
 
         retVal = str;

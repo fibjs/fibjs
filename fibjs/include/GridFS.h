@@ -51,7 +51,7 @@ public:
     virtual result_t get_chunks(obj_ptr<MongoCollection_base> &retVal);
 
 private:
-    int check_fs()
+    int32_t check_fs()
     {
         if (!m_bgridfs)
         {

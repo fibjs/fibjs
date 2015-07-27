@@ -22,7 +22,7 @@ result_t os_base::uptime(double &retVal)
     time_t now;
     struct timeval info;
     size_t size = sizeof(info);
-    static int which[] =
+    static int32_t which[] =
     { CTL_KERN, KERN_BOOTTIME };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
@@ -42,7 +42,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 
     struct loadavg info;
     size_t size = sizeof(info);
-    int which[] =
+    int32_t which[] =
     { CTL_VM, VM_LOADAVG };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
@@ -63,7 +63,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 result_t os_base::totalmem(int64_t &retVal)
 {
     uint64_t info;
-    int which[] =
+    int32_t which[] =
     { CTL_HW, HW_MEMSIZE };
     size_t size = sizeof(info);
 
@@ -90,7 +90,7 @@ result_t os_base::freemem(int64_t &retVal)
 
 result_t os_base::CPUs(int32_t &retVal)
 {
-    static int cpus = 0;
+    static int32_t cpus = 0;
 
     if (cpus > 0)
     {
@@ -120,8 +120,8 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     v8::Local<v8::Object> cpuinfo;
     v8::Local<v8::Object> cputimes;
-    unsigned int ticks = (unsigned int) sysconf(_SC_CLK_TCK), multiplier =
-                             ((uint64_t) 1000L / ticks);
+    uint32_t ticks = (uint32_t) sysconf(_SC_CLK_TCK), multiplier =
+                         ((uint64_t) 1000L / ticks);
     char model[512];
     uint64_t cpuspeed;
     size_t size;
@@ -143,7 +143,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
         return CHECK_ERROR(LastError());
 
     retVal = v8::Array::New(isolate.isolate, numcpus);
-    for (unsigned int i = 0; i < numcpus; i++)
+    for (uint32_t i = 0; i < numcpus; i++)
     {
         cpuinfo = v8::Object::New(isolate.isolate);
         cputimes = v8::Object::New(isolate.isolate);

@@ -267,7 +267,7 @@ result_t XmlDocument::load(Buffer_base *source)
             bool bContentType = false;
             std::string content;
 
-            p.pos = (int)(ptr - p.string + 5);
+            p.pos = (int32_t)(ptr - p.string + 5);
             while (true)
             {
                 std::string key, value;

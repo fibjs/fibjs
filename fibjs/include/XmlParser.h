@@ -27,17 +27,17 @@ public:
     static result_t parse(XmlDocument *doc, const char *source);
     static result_t parseHtml(XmlDocument *doc, const char *source);
 
-    void OnXmlDecl(const char *version, const char *encoding, int standalone);
+    void OnXmlDecl(const char *version, const char *encoding, int32_t standalone);
     void OnStartElement(const char *name, const char **atts);
     void OnEndElement(const char *name);
-    void OnCharacterData(const char *s, int len);
+    void OnCharacterData(const char *s, int32_t len);
     void OnProcessingInstruction(const char *target, const char *data);
     void OnComment(const char *data);
     void OnStartCdataSection();
     void OnEndCdataSection();
 
     void OnStartDoctypeDecl(const char *doctypeName, const char *sysid,
-                            const char *pubid, int has_internal_subset);
+                            const char *pubid, int32_t has_internal_subset);
 
 private:
     void leaveNode();
@@ -45,7 +45,7 @@ private:
 
 private:
     static void XmlDeclHandler(void *userData, const char *version,
-                               const char *encoding, int standalone)
+                               const char *encoding, int32_t standalone)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnXmlDecl(version, encoding, standalone);
@@ -64,7 +64,7 @@ private:
         pThis->OnEndElement(name);
     }
 
-    static void CharacterDataHandler(void *userData, const char *s, int len)
+    static void CharacterDataHandler(void *userData, const char *s, int32_t len)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnCharacterData(s, len);
@@ -97,7 +97,7 @@ private:
 
     static void StartDoctypeDeclHandler(void *userData,
                                         const char *doctypeName, const char *sysid,
-                                        const char *pubid, int has_internal_subset)
+                                        const char *pubid, int32_t has_internal_subset)
     {
         XmlParser *pThis = static_cast <XmlParser *>(userData);
         pThis->OnStartDoctypeDecl(doctypeName, sysid, pubid, has_internal_subset);

@@ -61,7 +61,7 @@ result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
     clear();
 
     x509write_csr csr;
-    int ret;
+    int32_t ret;
 
     x509write_csr_init(&csr);
 
@@ -92,7 +92,7 @@ result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
 
 result_t X509Req::load(Buffer_base *derReq)
 {
-    int ret;
+    int32_t ret;
 
     clear();
 
@@ -109,7 +109,7 @@ result_t X509Req::load(Buffer_base *derReq)
 
 result_t X509Req::load(const char *pemReq)
 {
-    int ret;
+    int32_t ret;
 
     clear();
 
@@ -125,7 +125,7 @@ result_t X509Req::loadFile(const char *filename)
 {
     result_t hr;
     std::string data;
-    int ret;
+    int32_t ret;
 
     clear();
 
@@ -154,7 +154,7 @@ result_t X509Req::exportPem(std::string &retVal)
 
     std::string buf;
     size_t olen;
-    int ret;
+    int32_t ret;
 
     buf.resize(m_csr.raw.len * 2 + 64);
     ret = pem_write_buffer(PEM_BEGIN_CSR, PEM_END_CSR,
@@ -186,7 +186,7 @@ result_t X509Req::toString(std::string &retVal)
 
 result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNames)
 {
-    int num = 0;
+    int32_t num = 0;
 
     if (!IsEmpty(v))
     {
@@ -196,7 +196,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNa
         if (!ptr)
             return CHECK_ERROR(_ssl::setError(POLARSSL_ERR_MPI_BAD_INPUT_DATA));
 
-        _parser p(ptr, (int)qstrlen(ptr));
+        _parser p(ptr, (int32_t)qstrlen(ptr));
 
         while (!p.end())
         {
@@ -245,7 +245,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int ret;
+    int32_t ret;
     std::string subject;
     pk_context *pk;
     int32_t hash;
@@ -362,8 +362,8 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
             goto exit;
         }
 
-        int key_usage = parseString(opts->Get(v8::String::NewFromUtf8(isolate.isolate, "usage",
-                                              v8::String::kNormalString, 5)), X509Cert::g_usages);
+        int32_t key_usage = parseString(opts->Get(v8::String::NewFromUtf8(isolate.isolate, "usage",
+                                        v8::String::kNormalString, 5)), X509Cert::g_usages);
         if (key_usage < 0)
         {
             hr = key_usage;
@@ -379,8 +379,8 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
             }
         }
 
-        int cert_type = parseString(opts->Get(v8::String::NewFromUtf8(isolate.isolate, "type",
-                                              v8::String::kNormalString, 4)), X509Cert::g_types);
+        int32_t cert_type = parseString(opts->Get(v8::String::NewFromUtf8(isolate.isolate, "type",
+                                        v8::String::kNormalString, 4)), X509Cert::g_types);
         if (cert_type < 0)
         {
             hr = cert_type;
@@ -461,7 +461,7 @@ exit:
 
 result_t X509Req::get_subject(std::string &retVal)
 {
-    int ret;
+    int32_t ret;
     std::string buf;
 
     buf.resize(1024);

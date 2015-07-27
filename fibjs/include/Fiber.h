@@ -104,11 +104,11 @@ public:
     virtual void js_invoke();
 
     template<typename T>
-    void New(v8::Local<v8::Function> func, T &args, int nArgStart,
-             int nArgCount)
+    void New(v8::Local<v8::Function> func, T &args, int32_t nArgStart,
+             int32_t nArgCount)
     {
         Isolate &isolate = Isolate::now();
-        int i;
+        int32_t i;
 
         m_argv.resize(nArgCount - nArgStart);
         for (i = nArgStart; i < nArgCount; i++)
@@ -120,7 +120,7 @@ public:
 
     template<typename T>
     static result_t New(v8::Local<v8::Function> func,
-                        const v8::FunctionCallbackInfo<v8::Value> &args, int nArgStart,
+                        const v8::FunctionCallbackInfo<v8::Value> &args, int32_t nArgStart,
                         obj_ptr<T> &retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
@@ -132,7 +132,7 @@ public:
 
     template<typename T>
     static result_t New(v8::Local<v8::Function> func,
-                        v8::Local<v8::Value> *args, int argCount, obj_ptr<T> &retVal)
+                        v8::Local<v8::Value> *args, int32_t argCount, obj_ptr<T> &retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
         fb->New(func, args, 0, argCount);
@@ -142,7 +142,7 @@ public:
     }
 
     static void call(v8::Local<v8::Function> func, v8::Local<v8::Value> *args,
-                     int argCount, v8::Local<v8::Value> &retVal)
+                     int32_t argCount, v8::Local<v8::Value> &retVal)
     {
         JSFiber *fb = (JSFiber *) current();
 
@@ -179,7 +179,7 @@ public:
 private:
     void callFunction(v8::Local<v8::Value> &retVal);
     void callFunction1(v8::Local<v8::Function> func,
-                       v8::Local<v8::Value> *args, int argCount,
+                       v8::Local<v8::Value> *args, int32_t argCount,
                        v8::Local<v8::Value> &retVal);
 
 public:

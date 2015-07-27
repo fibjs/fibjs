@@ -37,11 +37,11 @@ class _case: public obj_base
 
     ~_case()
     {
-        int i, j;
+        int32_t i, j;
 
         m_block.Reset();
         for (i = 0; i < 4; i++)
-            for (j = 0; j < (int) m_hooks[i].size(); j++)
+            for (j = 0; j < (int32_t) m_hooks[i].size(); j++)
                 m_hooks[i][j].Reset();
     }
 
@@ -77,7 +77,7 @@ public:
     }
 
 public:
-    static result_t set_hook(int type, v8::Local<v8::Function> func)
+    static result_t set_hook(int32_t type, v8::Local<v8::Function> func)
     {
         _case *now = s_now;
         if (!s_now)
@@ -105,7 +105,7 @@ public:
         QuickArray<obj_ptr<_case> > stack;
         QuickArray<std::string> names;
         QuickArray<std::string> msgs;
-        int i, j;
+        int32_t i, j;
         int32_t oldlevel = 0;
         int32_t cnt = 0, errcnt = 0;
         char buf[128];
@@ -127,7 +127,7 @@ public:
 
             if (p->m_pos == 0)
             {
-                for (i = 0; i < (int) p->m_hooks[HOOK_BEFORE].size(); i++)
+                for (i = 0; i < (int32_t) p->m_hooks[HOOK_BEFORE].size(); i++)
                     if (v8::Local<v8::Function>::New(isolate.isolate,
                                                      p->m_hooks[HOOK_BEFORE][i])->Call(v8::Undefined(isolate.isolate),
                                                              0, NULL).IsEmpty())
@@ -138,7 +138,7 @@ public:
                     }
             }
 
-            if (p->m_pos < (int) p->m_subs.size())
+            if (p->m_pos < (int32_t) p->m_subs.size())
             {
                 std::string str(stack.size() * 2, ' ');
 
@@ -161,10 +161,10 @@ public:
                     continue;
                 }
 
-                for (j = 0; j < (int) stack.size(); j++)
+                for (j = 0; j < (int32_t) stack.size(); j++)
                 {
                     p2 = stack[j];
-                    for (i = 0; i < (int) p2->m_hooks[HOOK_BEFORECASE].size();
+                    for (i = 0; i < (int32_t) p2->m_hooks[HOOK_BEFORECASE].size();
                             i++)
                         if (v8::Local<v8::Function>::New(isolate.isolate,
                                                          p2->m_hooks[HOOK_BEFORECASE][i])->Call(v8::Undefined(isolate.isolate),
@@ -197,7 +197,7 @@ public:
                         {
                             std::string str1(buf);
 
-                            for (i = 1; i < (int)stack.size(); i ++)
+                            for (i = 1; i < (int32_t)stack.size(); i ++)
                             {
                                 str1.append(stack[i]->m_name);
                                 str1.append(" ", 1);
@@ -219,7 +219,7 @@ public:
                         str.append(p1->m_name);
                         if (n > s_slow / 2)
                         {
-                            sprintf(buf, " (%dms) ", (int) n);
+                            sprintf(buf, " (%dms) ", (int32_t) n);
 
                             if (n > s_slow)
                                 str.append(logger::error());
@@ -239,10 +239,10 @@ public:
                     console_base::_INFO, str);
                 console_base::set_loglevel(loglevel);
 
-                for (j = (int) stack.size() - 1; j >= 0; j--)
+                for (j = (int32_t) stack.size() - 1; j >= 0; j--)
                 {
                     p2 = stack[j];
-                    for (i = (int) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
+                    for (i = (int32_t) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
                             i >= 0; i--)
                         if (v8::Local<v8::Function>::New(isolate.isolate,
                                                          p2->m_hooks[HOOK_AFTERCASE][i])->Call(v8::Undefined(isolate.isolate),
@@ -255,9 +255,9 @@ public:
                 }
             }
 
-            if (p->m_pos == (int)p->m_subs.size())
+            if (p->m_pos == (int32_t)p->m_subs.size())
             {
-                for (i = (int) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
+                for (i = (int32_t) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
                     if (v8::Local<v8::Function>::New(isolate.isolate,
                                                      p->m_hooks[HOOK_AFTER][i])->Call(v8::Undefined(isolate.isolate),
                                                              0, NULL).IsEmpty())
@@ -279,10 +279,10 @@ public:
 
             sprintf(buf,
                     (logger::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
-                    cnt, (int) da2.diff(da1));
+                    cnt, (int32_t) da2.diff(da1));
             asyncLog(console_base::_INFO, buf);
 
-            sprintf(buf, "  \xe2\x88\x9a %d tests completed (%dms)\n\n", cnt, (int) da2.diff(da1));
+            sprintf(buf, "  \xe2\x88\x9a %d tests completed (%dms)\n\n", cnt, (int32_t) da2.diff(da1));
             retVal.append(buf);
         }
         else
@@ -297,7 +297,7 @@ public:
 
         asyncLog(console_base::_INFO, "");
 
-        for (i = 0; i < (int) msgs.size(); i++)
+        for (i = 0; i < (int32_t) msgs.size(); i++)
         {
             asyncLog(console_base::_INFO, logger::highLight() + names[i] + COLOR_RESET);
             asyncLog(console_base::_ERROR, msgs[i]);
@@ -323,7 +323,7 @@ private:
     v8::Persistent<v8::Function> m_block;
     QuickArray<obj_ptr<_case> > m_subs;
     QuickArray<v8::Persistent<v8::Function> > m_hooks[4];
-    int m_pos;
+    int32_t m_pos;
     bool m_error;
 };
 

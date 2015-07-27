@@ -37,7 +37,7 @@ public:
         set(ok);
     }
 
-    static int ok(AsyncState *pState, int n)
+    static int32_t ok(AsyncState *pState, int32_t n)
     {
         asyncSmtp *pThis = (asyncSmtp *) pState;
 
@@ -46,7 +46,7 @@ public:
                                               pThis);
     }
 
-    static int recv(AsyncState *pState, int n)
+    static int32_t recv(AsyncState *pState, int32_t n)
     {
         asyncSmtp *pThis = (asyncSmtp *) pState;
 
@@ -71,25 +71,25 @@ public:
         return pThis->m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, pThis);
     }
 
-    int connect(const char *host, int32_t port)
+    int32_t connect(const char *host, int32_t port)
     {
-        int r = m_pThis->m_sock->connect(host, port, this);
+        int32_t r = m_pThis->m_sock->connect(host, port, this);
 
         if (r == CALL_E_PENDDING)
             return r;
         return post(r);
     }
 
-    int send(Buffer_base *data)
+    int32_t send(Buffer_base *data)
     {
-        int r = m_stmBuffered->write(data, this);
+        int32_t r = m_stmBuffered->write(data, this);
 
         if (r == CALL_E_PENDDING)
             return r;
         return post(r);
     }
 
-    int command(const char *cmd, const char *arg)
+    int32_t command(const char *cmd, const char *arg)
     {
         std::string s(cmd);
 
@@ -101,7 +101,7 @@ public:
         return send(buf);
     }
 
-    virtual int recv_ok()
+    virtual int32_t recv_ok()
     {
         return done();
     }
@@ -179,7 +179,7 @@ result_t Smtp::login(const char *username, const char *password,
             set(begin);
         }
 
-        static int begin(AsyncState *pState, int n)
+        static int32_t begin(AsyncState *pState, int32_t n)
         {
             asyncLogin *pThis = (asyncLogin *) pState;
 
@@ -190,7 +190,7 @@ result_t Smtp::login(const char *username, const char *password,
             return pThis->m_stmBuffered->write(buf, pThis);
         }
 
-        int send_base64(const char *str)
+        int32_t send_base64(const char *str)
         {
             obj_ptr<Buffer> buf = new Buffer(str);
             std::string s;
@@ -204,19 +204,19 @@ result_t Smtp::login(const char *username, const char *password,
             return m_stmBuffered->write(buf, this);
         }
 
-        static int send_username(AsyncState *pState, int n)
+        static int32_t send_username(AsyncState *pState, int32_t n)
         {
             asyncLogin *pThis = (asyncLogin *) pState;
             return pThis->send_base64(pThis->m_username);
         }
 
-        static int send_password(AsyncState *pState, int n)
+        static int32_t send_password(AsyncState *pState, int32_t n)
         {
             asyncLogin *pThis = (asyncLogin *) pState;
             return pThis->send_base64(pThis->m_password);
         }
 
-        virtual int recv_ok()
+        virtual int32_t recv_ok()
         {
             switch (step)
             {
@@ -235,7 +235,7 @@ result_t Smtp::login(const char *username, const char *password,
     private:
         const char *m_username;
         const char *m_password;
-        int step;
+        int32_t step;
     };
 
     if (!m_sock)
@@ -268,7 +268,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
             set(begin);
         }
 
-        static int begin(AsyncState *pState, int n)
+        static int32_t begin(AsyncState *pState, int32_t n)
         {
             asyncData *pThis = (asyncData *) pState;
 
@@ -279,7 +279,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
             return pThis->m_stmBuffered->write(buf, pThis);
         }
 
-        static int send_data(AsyncState *pState, int n)
+        static int32_t send_data(AsyncState *pState, int32_t n)
         {
             asyncData *pThis = (asyncData *) pState;
 
@@ -292,7 +292,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
             return pThis->m_stmBuffered->write(buf, pThis);
         }
 
-        virtual int recv_ok()
+        virtual int32_t recv_ok()
         {
             switch (step)
             {
@@ -306,7 +306,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
 
     private:
         const char *m_txt;
-        int step;
+        int32_t step;
     };
 
     if (!m_sock)

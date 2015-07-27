@@ -18,7 +18,7 @@ namespace fibjs
 
 _ssl g_ssl;
 
-result_t _ssl::setError(int ret)
+result_t _ssl::setError(int32_t ret)
 {
     char msg[128];
 
@@ -39,7 +39,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
             set(connect);
         }
 
-        static int connect(AsyncState *pState, int n)
+        static int32_t connect(AsyncState *pState, int32_t n)
         {
             asyncConnect *pThis = (asyncConnect *) pState;
 
@@ -51,7 +51,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
             return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis);
         }
 
-        static int handshake(AsyncState *pState, int n)
+        static int32_t handshake(AsyncState *pState, int32_t n)
         {
             asyncConnect *pThis = (asyncConnect *) pState;
 
@@ -69,7 +69,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
             return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis);
         }
 
-        static int ok(AsyncState *pState, int n)
+        static int32_t ok(AsyncState *pState, int32_t n)
         {
             asyncConnect *pThis = (asyncConnect *) pState;
 
@@ -84,7 +84,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
         obj_ptr<Stream_base> &m_retVal;
         obj_ptr<Socket> m_sock;
         obj_ptr<SslSocket> m_ssl_sock;
-        int m_temp;
+        int32_t m_temp;
     };
 
     if (qstrcmp(url, "ssl:", 4))

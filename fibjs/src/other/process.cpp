@@ -20,10 +20,10 @@
 namespace fibjs
 {
 
-static int s_argc;
+static int32_t s_argc;
 static char **s_argv;
 
-void init_argv(int argc, char **argv)
+void init_argv(int32_t argc, char **argv)
 {
     s_argc = argc;
     s_argv = argv;
@@ -34,7 +34,7 @@ result_t process_base::get_argv(v8::Local<v8::Array> &retVal)
     Isolate &isolate = Isolate::now();
     v8::Local<v8::Array> args = v8::Array::New(isolate.isolate, s_argc);
 
-    for (int i = 0; i < s_argc; i ++)
+    for (int32_t i = 0; i < s_argc; i ++)
         args->Set(i, v8::String::NewFromUtf8(isolate.isolate, s_argv[i]));
 
     retVal = args;

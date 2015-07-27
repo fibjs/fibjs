@@ -150,7 +150,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
     Isolate &isolate = Isolate::now();
     v8::Local<v8::Object> o;
     v8::Local<v8::Array> as = v8::Array::New(isolate.isolate);
-    int n = 0;
+    int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
@@ -249,7 +249,7 @@ result_t MongoCursor::toArray(v8::Local<v8::Array> &retVal)
     result_t hr;
     v8::Local<v8::Object> o;
     v8::Local<v8::Array> as = v8::Array::New(Isolate::now().isolate);
-    int n = 0;
+    int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {

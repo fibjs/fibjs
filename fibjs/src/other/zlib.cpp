@@ -31,7 +31,7 @@ public:
         unsigned char out[CHUNK];
         std::string strBuf;
         std::stringstream outBuf;
-        int err;
+        int32_t err;
 
         err = init();
         if (err != Z_OK)
@@ -39,7 +39,7 @@ public:
 
         data->toString(strBuf);
 
-        strm.avail_in = (int) strBuf.length();
+        strm.avail_in = (int32_t) strBuf.length();
         strm.next_in = (unsigned char *) strBuf.c_str();
 
         do
@@ -77,10 +77,10 @@ public:
                 set(process);
             }
 
-            static int process(AsyncState *pState, int n)
+            static int32_t process(AsyncState *pState, int32_t n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
-                int err;
+                int32_t err;
 
                 if (pThis->m_pThis->strm.avail_out != 0
                         && pThis->m_pThis->fin())
@@ -103,7 +103,7 @@ public:
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
             }
 
-            virtual int error(int v)
+            virtual int32_t error(int32_t v)
             {
                 m_pThis->end();
                 return v;
@@ -116,7 +116,7 @@ public:
             obj_ptr<Buffer_base> m_buffer;
         };
 
-        int err;
+        int32_t err;
 
         err = init();
         if (err != Z_OK)
@@ -126,7 +126,7 @@ public:
 
         data->toString(strBuf);
 
-        strm.avail_in = (int) strBuf.length();
+        strm.avail_in = (int32_t) strBuf.length();
         strm.next_in = (unsigned char *) strBuf.c_str();
         strm.avail_out = 0;
 
@@ -145,7 +145,7 @@ public:
                 set(read);
             }
 
-            static int read(AsyncState *pState, int n)
+            static int32_t read(AsyncState *pState, int32_t n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 
@@ -153,7 +153,7 @@ public:
                 return pThis->m_src->read(-1, pThis->m_buffer, pThis);
             }
 
-            static int read_ok(AsyncState *pState, int n)
+            static int32_t read_ok(AsyncState *pState, int32_t n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 
@@ -161,7 +161,7 @@ public:
                 {
                     pThis->m_buffer->toString(pThis->m_strBuf);
                     pThis->m_pThis->strm.avail_in =
-                        (int) pThis->m_strBuf.length();
+                        (int32_t) pThis->m_strBuf.length();
                     pThis->m_pThis->strm.next_in =
                         (unsigned char *) pThis->m_strBuf.c_str();
                     pThis->m_pThis->strm.avail_out = 0;
@@ -176,10 +176,10 @@ public:
                 return 0;
             }
 
-            static int process(AsyncState *pState, int n)
+            static int32_t process(AsyncState *pState, int32_t n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
-                int err;
+                int32_t err;
 
                 pThis->m_pThis->strm.avail_out = CHUNK;
                 pThis->m_pThis->strm.next_out = pThis->out;
@@ -196,7 +196,7 @@ public:
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
             }
 
-            static int write_ok(AsyncState *pState, int n)
+            static int32_t write_ok(AsyncState *pState, int32_t n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 
@@ -210,7 +210,7 @@ public:
                 return 0;
             }
 
-            static int end(AsyncState *pState, int n)
+            static int32_t end(AsyncState *pState, int32_t n)
             {
                 asyncProcess *pThis = (asyncProcess *) pState;
 
@@ -218,7 +218,7 @@ public:
                 return pThis->done();
             }
 
-            virtual int error(int v)
+            virtual int32_t error(int32_t v)
             {
                 m_pThis->end();
                 return v;
@@ -233,7 +233,7 @@ public:
             std::string m_strBuf;
         };
 
-        int err;
+        int32_t err;
 
         err = init();
         if (err != Z_OK)
@@ -243,12 +243,12 @@ public:
     }
 
 public:
-    virtual int init()
+    virtual int32_t init()
     {
         return Z_OK;
     }
 
-    virtual int put()
+    virtual int32_t put()
     {
         return Z_OK;
     }
@@ -269,18 +269,18 @@ protected:
 class def: public zlibWorker
 {
 public:
-    def(int level = -1) :
+    def(int32_t level = -1) :
         m_level(level), flush(Z_NO_FLUSH)
     {
     }
 
 public:
-    virtual int init()
+    virtual int32_t init()
     {
         return deflateInit2(&strm, m_level, Z_DEFLATED, -15, 8, 0);
     }
 
-    virtual int put()
+    virtual int32_t put()
     {
         ::deflate(&strm, flush);
         return Z_OK;
@@ -301,21 +301,21 @@ public:
     }
 
 private:
-    int m_level;
-    int flush;
+    int32_t m_level;
+    int32_t flush;
 };
 
 class inf: public zlibWorker
 {
 public:
-    virtual int init()
+    virtual int32_t init()
     {
         return inflateInit2(&strm, -15);
     }
 
-    virtual int put()
+    virtual int32_t put()
     {
-        int ret = ::inflate(&strm, Z_NO_FLUSH);
+        int32_t ret = ::inflate(&strm, Z_NO_FLUSH);
         if (ret == Z_STREAM_END)
         {
             inflateReset(&strm);
@@ -337,7 +337,7 @@ public:
 class gunz: public inf
 {
 public:
-    virtual int init()
+    virtual int32_t init()
     {
         return inflateInit2(&strm, 15 + 16);
     }
@@ -346,7 +346,7 @@ public:
 class gz: public def
 {
 public:
-    virtual int init()
+    virtual int32_t init()
     {
         return deflateInit2(&strm, -1, 8, 15 + 16, 8, 0);
     }

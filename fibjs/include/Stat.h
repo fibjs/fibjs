@@ -16,7 +16,7 @@
 #define MINGW_HAS_SECURE_API
 #include <io.h>
 
-inline int ftruncate64(int fd, __int64 where)
+inline int32_t ftruncate64(int32_t fd, __int64 where)
 {
     if (_lseeki64(fd, where, SEEK_SET) < 0)
         return -1;

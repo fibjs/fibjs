@@ -65,15 +65,15 @@ private:
     void parseHash(const char *&url);
 
 public:
-    inline static void decodeURI(const char *url, int sz, std::string &retVal, bool space = false)
+    inline static void decodeURI(const char *url, int32_t sz, std::string &retVal, bool space = false)
     {
         if (sz < 0)
-            sz = (int) qstrlen(url);
+            sz = (int32_t) qstrlen(url);
 
         if (sz == 0)
             return;
 
-        int len, l;
+        int32_t len, l;
         const char *src;
         unsigned char ch;
         char *bstr;
@@ -135,18 +135,18 @@ public:
         retVal = str;
     }
 
-    inline static void encodeURI(const char *url, int sz, std::string &retVal,
+    inline static void encodeURI(const char *url, int32_t sz, std::string &retVal,
                                  const char *tab)
     {
         static const char *hex = "0123456789ABCDEF";
 
         if (sz < 0)
-            sz = (int) qstrlen(url);
+            sz = (int32_t) qstrlen(url);
 
         if (sz == 0)
             return;
 
-        int len, l;
+        int32_t len, l;
         const char *src;
         unsigned char ch;
         char *bstr;

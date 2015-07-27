@@ -38,13 +38,13 @@ void XmlParser::leaveNode()
     m_now = m_list.back();
 }
 
-void XmlParser::OnXmlDecl(const XML_Char *version, const XML_Char *encoding, int standalone)
+void XmlParser::OnXmlDecl(const XML_Char *version, const XML_Char *encoding, int32_t standalone)
 {
     m_document->setDecl(version, encoding, standalone);
 }
 
 void XmlParser::OnStartDoctypeDecl(const XML_Char *doctypeName, const XML_Char *sysid,
-                                   const XML_Char *pubid, int has_internal_subset)
+                                   const XML_Char *pubid, int32_t has_internal_subset)
 {
     obj_ptr<XmlDocumentType> doctype = new XmlDocumentType(m_document, doctypeName,
             sysid ? sysid : "", pubid ? pubid : "");
@@ -151,7 +151,7 @@ void XmlParser::OnProcessingInstruction(const XML_Char *target, const XML_Char *
     newNode(pi);
 }
 
-void XmlParser::OnCharacterData(const XML_Char *s, int len)
+void XmlParser::OnCharacterData(const XML_Char *s, int32_t len)
 {
     std::string data(s, len);
     int32_t type;
@@ -210,7 +210,7 @@ result_t XmlParser::parse(XmlDocument *doc, const char *source)
     XML_SetCdataSectionHandler(xml_parser, StartCdataSectionHandler, EndCdataSectionHandler);
     XML_SetStartDoctypeDeclHandler(xml_parser, StartDoctypeDeclHandler);
 
-    if (XML_Parse(xml_parser, source, (int)qstrlen(source), true) != XML_STATUS_OK)
+    if (XML_Parse(xml_parser, source, (int32_t)qstrlen(source), true) != XML_STATUS_OK)
     {
         char msg[128];
         sprintf(msg, "XmlParser: error on line %lu at colum %lu: %s", XML_GetCurrentLineNumber(xml_parser),

@@ -86,7 +86,7 @@ static void InterruptCallbackEx()
     }
 }
 
-void on_break(int s) {
+void on_break(int32_t s) {
     puts("");
 
     static bool s_double = false;
@@ -121,7 +121,7 @@ static MINIDUMPWRITEDUMP s_pDump;
 HANDLE CreateUniqueDumpFile()
 {
     char fname[MAX_PATH];
-    int l, i;
+    int32_t l, i;
     HANDLE hFile;
 
     puts("core dump....");

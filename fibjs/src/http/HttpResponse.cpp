@@ -206,7 +206,7 @@ static const char *const status_lines[] =
     " 508 unused", " 509 unused", " 510 Not Extended"
 #define RESPONSE_CODES 55
 };
-static int shortcut[6] =
+static int32_t shortcut[6] =
 { LEVEL_100, LEVEL_200, LEVEL_300, LEVEL_400, LEVEL_500, RESPONSE_CODES };
 static unsigned char status_lines_size[RESPONSE_CODES];
 
@@ -215,7 +215,7 @@ static class _init_status_line
 public:
     _init_status_line()
     {
-        int i;
+        int32_t i;
 
         for (i = 0; i < RESPONSE_CODES; i++)
             status_lines_size[i] = (unsigned char) qstrlen(status_lines[i]);
@@ -252,7 +252,7 @@ result_t HttpResponse::sendTo(Stream_base *stm, AsyncEvent *ac)
         m_cookies.Release();
     }
 
-    int pos = shortcut[m_status / 100 - 1] + m_status % 100;
+    int32_t pos = shortcut[m_status / 100 - 1] + m_status % 100;
     std::string strCommand;
 
     get_protocol(strCommand);
@@ -274,7 +274,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             set(begin);
         }
 
-        static int begin(AsyncState *pState, int n)
+        static int32_t begin(AsyncState *pState, int32_t n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -283,7 +283,7 @@ result_t HttpResponse::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                           pThis);
         }
 
-        static int command(AsyncState *pState, int n)
+        static int32_t command(AsyncState *pState, int32_t n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
             result_t hr;
@@ -341,7 +341,7 @@ result_t HttpResponse::set_status(int32_t newVal)
         newVal = 500;
     else
     {
-        int n = newVal / 100;
+        int32_t n = newVal / 100;
         if (shortcut[n - 1] + newVal % 100 >= shortcut[n])
             newVal = 500;
     }
@@ -436,7 +436,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
         m_cookies.Release();
     }
 
-    int pos = shortcut[m_status / 100 - 1] + m_status % 100;
+    int32_t pos = shortcut[m_status / 100 - 1] + m_status % 100;
     std::string strCommand;
 
     get_protocol(strCommand);

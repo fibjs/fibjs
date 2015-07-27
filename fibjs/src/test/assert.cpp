@@ -192,11 +192,11 @@ bool deepEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
 static QuickArray<v8::Local<v8::Object> > s_acts;
 static QuickArray<v8::Local<v8::Object> > s_exps;
 
-int checkStack(v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
+int32_t checkStack(v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
 {
-    int i;
+    int32_t i;
 
-    for (i = 0; i < (int)s_acts.size(); i++)
+    for (i = 0; i < (int32_t)s_acts.size(); i++)
         if (actual->Equals(s_acts[i]))
         {
             if (expected->Equals(s_exps[i]))
@@ -214,8 +214,8 @@ bool arrayEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     v8::Local<v8::Array> act = v8::Local<v8::Array>::Cast(actual);
     v8::Local<v8::Array> exp = v8::Local<v8::Array>::Cast(expected);
-    int len = (int) act->Length();
-    int i;
+    int32_t len = (int32_t) act->Length();
+    int32_t i;
 
     i = checkStack(act, exp);
     if (i == 0)
@@ -223,7 +223,7 @@ bool arrayEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
     if (i == -1)
         return false;
 
-    if (len != (int) exp->Length())
+    if (len != (int32_t) exp->Length())
     {
         s_acts.pop();
         s_exps.pop();
@@ -248,7 +248,7 @@ bool objectEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
     v8::Local<v8::Object> act = v8::Local<v8::Object>::Cast(actual);
     v8::Local<v8::Object> exp = v8::Local<v8::Object>::Cast(expected);
 
-    int i;
+    int32_t i;
 
     i = checkStack(act, exp);
     if (i == 0)
@@ -257,9 +257,9 @@ bool objectEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
         return false;
 
     v8::Local<v8::Array> keys = act->GetPropertyNames();
-    int len = (int) keys->Length();
+    int32_t len = (int32_t) keys->Length();
 
-    if (len != (int) exp->GetPropertyNames()->Length())
+    if (len != (int32_t) exp->GetPropertyNames()->Length())
     {
         s_acts.pop();
         s_exps.pop();
@@ -741,7 +741,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     {
         object = v->Get(v8::String::NewFromUtf8(isolate.isolate, p,
                                                 v8::String::kNormalString,
-                                                (int)(p1 - p)));
+                                                (int32_t)(p1 - p)));
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
         {
@@ -847,7 +847,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     {
         object = v->Get(v8::String::NewFromUtf8(isolate.isolate, p,
                                                 v8::String::kNormalString,
-                                                (int)(p1 - p)));
+                                                (int32_t)(p1 - p)));
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
         {

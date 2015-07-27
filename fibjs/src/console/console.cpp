@@ -237,7 +237,7 @@ char *read_line()
 
     if (fgets(text, 1024, stdin) != NULL)
     {
-        int textLen = (int)qstrlen(text);
+        int32_t textLen = (int32_t)qstrlen(text);
         if (textLen > 0 && text[textLen - 1] == '\n')
             text[textLen - 1] = '\0';     // getting rid of newline character
         return text;

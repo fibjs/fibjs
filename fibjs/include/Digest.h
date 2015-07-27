@@ -18,7 +18,7 @@ class Digest : public Digest_base
 {
 public:
     Digest(md_type_t algo);
-    Digest(md_type_t algo, const char *key, int sz);
+    Digest(md_type_t algo, const char *key, int32_t sz);
     ~Digest();
 
 public:
@@ -30,7 +30,7 @@ public:
 
 private:
     md_context_t m_ctx;
-    int m_iAlgo;
+    int32_t m_iAlgo;
     bool m_bMac;
 };
 

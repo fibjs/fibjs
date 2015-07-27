@@ -15,14 +15,14 @@
 #include "encoding_bson.h"
 #include "MongoID.h"
 
-int mongo_env_set_socket_op_timeout(mongo *conn, int millis)
+int32_t mongo_env_set_socket_op_timeout(mongo *conn, int32_t millis)
 {
     return MONGO_OK;
 }
 
-int mongo_env_read_socket(mongo *conn, void *buf, size_t len)
+int32_t mongo_env_read_socket(mongo *conn, void *buf, size_t len)
 {
-    if (fibjs::socket::read(conn->sock, buf, (int)len) < 0)
+    if (fibjs::socket::read(conn->sock, buf, (int32_t)len) < 0)
     {
         __mongo_set_error(conn, MONGO_IO_ERROR, NULL,
                           fibjs::Runtime::errNumber());
@@ -32,9 +32,9 @@ int mongo_env_read_socket(mongo *conn, void *buf, size_t len)
     return MONGO_OK;
 }
 
-int mongo_env_write_socket(mongo *conn, const void *buf, size_t len)
+int32_t mongo_env_write_socket(mongo *conn, const void *buf, size_t len)
 {
-    if (fibjs::socket::send(conn->sock, buf, (int)len) < 0)
+    if (fibjs::socket::send(conn->sock, buf, (int32_t)len) < 0)
     {
         __mongo_set_error(conn, MONGO_IO_ERROR, NULL,
                           fibjs::Runtime::errNumber());
@@ -44,7 +44,7 @@ int mongo_env_write_socket(mongo *conn, const void *buf, size_t len)
     return MONGO_OK;
 }
 
-int mongo_env_socket_connect(mongo *conn, const char *host, int port)
+int32_t mongo_env_socket_connect(mongo *conn, const char *host, int32_t port)
 {
     if (!(conn->sock = fibjs::socket::connect(host, port)))
     {
@@ -57,25 +57,25 @@ int mongo_env_socket_connect(mongo *conn, const char *host, int port)
     return MONGO_OK;
 }
 
-int mongo_env_sock_init(void)
+int32_t mongo_env_sock_init(void)
 {
     return 0;
 }
 
-int mongo_env_close_socket(void *socket)
+int32_t mongo_env_close_socket(void *socket)
 {
     fibjs::socket::destroy(socket);
     return 0;
 }
 
-MONGO_EXPORT int mongo_run_command(mongo *conn, const char *db,
-                                   const bson *command, bson *out)
+MONGO_EXPORT int32_t mongo_run_command(mongo *conn, const char *db,
+                                       const bson *command, bson *out)
 {
     bson response[1];
     bson_iterator it[1];
     size_t sl = strlen(db);
     char *ns = (char *) bson_malloc(sl + 5 + 1);
-    int res = 0;
+    int32_t res = 0;
 
     strcpy(ns, db);
     strcpy(ns + sl, ".$cmd");
@@ -88,9 +88,9 @@ MONGO_EXPORT int mongo_run_command(mongo *conn, const char *db,
     {
         if (bson_find(it, response, "errmsg"))
         {
-            int result_len = bson_iterator_string_len(it);
+            int32_t result_len = bson_iterator_string_len(it);
             const char *result_string = bson_iterator_string(it);
-            int len = result_len < MONGO_ERR_LEN ? result_len : MONGO_ERR_LEN;
+            int32_t len = result_len < MONGO_ERR_LEN ? result_len : MONGO_ERR_LEN;
             memcpy(conn->lasterrstr, result_string, len);
             conn->lasterrcode = -1;
         }
@@ -168,8 +168,8 @@ result_t db_base::openMongoDB(const char *connString,
 result_t MongoDB::open(const char *connString)
 {
     obj_ptr<Url> u = new Url();
-    int result;
-    int nPort;
+    int32_t result;
+    int32_t nPort;
 
     result_t hr = u->parse(connString);
     if (hr < 0)

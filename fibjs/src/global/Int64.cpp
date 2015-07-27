@@ -210,7 +210,7 @@ result_t Int64::toString(int32_t base, std::string &retVal)
     static char __base64_map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     const char *__base;
     char buf[64] = {0};
-    int pos = 64;
+    int32_t pos = 64;
     uint64_t val;
 
     if (base == 64)
@@ -277,7 +277,7 @@ result_t Int64::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 
     toString(16, str);
     retVal = v8::String::NewFromUtf8(Isolate::now().isolate, str.c_str(),
-                                     v8::String::kNormalString, (int) str.length());
+                                     v8::String::kNormalString, (int32_t) str.length());
 
     return 0;
 }

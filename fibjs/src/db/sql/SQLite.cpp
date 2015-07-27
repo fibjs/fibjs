@@ -115,11 +115,11 @@ result_t SQLite::rollback(AsyncEvent *ac)
     return execute("ROLLBACK", 8, retVal);
 }
 
-int sqlite3_step_sleep(sqlite3_stmt *stmt, int ms)
+int32_t sqlite3_step_sleep(sqlite3_stmt *stmt, int32_t ms)
 {
     while (true)
     {
-        int r = sqlite3_step(stmt);
+        int32_t r = sqlite3_step(stmt);
         if (r != SQLITE_LOCKED || ms <= 0)
             return r;
 
@@ -130,7 +130,7 @@ int sqlite3_step_sleep(sqlite3_stmt *stmt, int ms)
 
 #define SQLITE_SLEEP_TIME   10000
 
-result_t SQLite::execute(const char *sql, int sLen,
+result_t SQLite::execute(const char *sql, int32_t sLen,
                          obj_ptr<DBResult_base> &retVal)
 {
     if (!m_db)
@@ -150,12 +150,12 @@ result_t SQLite::execute(const char *sql, int sLen,
     if (!stmt)
         return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
 
-    int columns = sqlite3_column_count(stmt);
+    int32_t columns = sqlite3_column_count(stmt);
     obj_ptr<DBResult> res;
 
     if (columns > 0)
     {
-        int i;
+        int32_t i;
         res = new DBResult(columns);
 
         for (i = 0; i < columns; i++)
@@ -166,7 +166,7 @@ result_t SQLite::execute(const char *sql, int sLen,
 
         while (true)
         {
-            int r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
+            int32_t r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
             if (r == SQLITE_ROW)
             {
                 res->beginRow();
@@ -197,7 +197,7 @@ result_t SQLite::execute(const char *sql, int sLen,
                         {
                             const char *data =
                                 (const char *) sqlite3_column_blob(stmt, i);
-                            int size = sqlite3_column_bytes(stmt, i);
+                            int32_t size = sqlite3_column_bytes(stmt, i);
 
                             v = new Buffer(std::string(data, size));
                         }
@@ -208,7 +208,7 @@ result_t SQLite::execute(const char *sql, int sLen,
                         {
                             const char *data =
                                 (const char *) sqlite3_column_text(stmt, i);
-                            int size = sqlite3_column_bytes(stmt, i);
+                            int32_t size = sqlite3_column_bytes(stmt, i);
 
                             v.parseDate(data, size);
                         }
@@ -216,7 +216,7 @@ result_t SQLite::execute(const char *sql, int sLen,
                         {
                             const char *data =
                                 (const char *) sqlite3_column_text(stmt, i);
-                            int size = sqlite3_column_bytes(stmt, i);
+                            int32_t size = sqlite3_column_bytes(stmt, i);
 
                             v = std::string(data, size);
                         }
@@ -239,7 +239,7 @@ result_t SQLite::execute(const char *sql, int sLen,
     }
     else
     {
-        int r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
+        int32_t r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
         if (r == SQLITE_DONE)
             res = new DBResult(sqlite3_changes(m_db),
                                sqlite3_last_insert_rowid(m_db));
@@ -265,7 +265,7 @@ result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncE
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return execute(sql, (int) qstrlen(sql), retVal);
+    return execute(sql, (int32_t) qstrlen(sql), retVal);
 }
 
 result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
@@ -321,7 +321,7 @@ result_t SQLite::backup(const char *fileName, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int rc;
+    int32_t rc;
     struct sqlite3 *db2 = NULL;
     sqlite3_backup *pBackup;
 

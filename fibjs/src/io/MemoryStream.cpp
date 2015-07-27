@@ -73,12 +73,12 @@ result_t MemoryStream::write(Buffer_base *data, AsyncEvent *ac)
     data->toString(strBuf);
 
     size(sz1);
-    m_buffer.write(strBuf.c_str(), (int) strBuf.length());
+    m_buffer.write(strBuf.c_str(), (int32_t) strBuf.length());
     m_buffer.seekg(m_buffer.tellp());
     size(sz2);
 
     if (sz2 > sz1)
-        extMemory((int) (sz2 - sz1));
+        extMemory((int32_t) (sz2 - sz1));
 
     m_time.now();
 

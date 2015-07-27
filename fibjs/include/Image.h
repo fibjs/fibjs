@@ -102,7 +102,7 @@ public:
 
 private:
     result_t New(int32_t width, int32_t height, obj_ptr<Image> &retVal);
-    void setExtMemory(int add = 1);
+    void setExtMemory(int32_t add = 1);
 
 private:
     gdImagePtr m_image;

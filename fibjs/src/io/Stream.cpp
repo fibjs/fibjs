@@ -25,7 +25,7 @@ result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
             set(read);
         }
 
-        static int read(AsyncState *pState, int n)
+        static int32_t read(AsyncState *pState, int32_t n)
         {
             asyncCopy *pThis = (asyncCopy *) pState;
             int64_t len;
@@ -44,10 +44,10 @@ result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
             return pThis->m_from->read((int32_t) len, pThis->m_buf, pThis);
         }
 
-        static int write(AsyncState *pState, int n)
+        static int32_t write(AsyncState *pState, int32_t n)
         {
             asyncCopy *pThis = (asyncCopy *) pState;
-            int blen;
+            int32_t blen;
 
             pThis->set(read);
 

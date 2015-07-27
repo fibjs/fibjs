@@ -37,7 +37,7 @@ inline result_t msgMethod(Message_base *msg, std::string &method)
     }
 
     msg->set_value(*p ? p + 1 : "");
-    method.assign(p1, (int) (p - p1));
+    method.assign(p1, (int32_t) (p - p1));
 
     return 0;
 }
@@ -135,7 +135,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             hdlr = v8::Local<v8::Object>::Cast(hdlr)->Get(
                        v8::String::NewFromUtf8(isolate.isolate, method.c_str(),
                                                v8::String::kNormalString,
-                                               (int) method.length()));
+                                               (int32_t) method.length()));
             if (IsEmpty (hdlr))
                 return CHECK_ERROR(Runtime::setError("JSHandler: method \"" + method + "\" not found."));
 
@@ -167,7 +167,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         }
 
     public:
-        static int call(AsyncState *pState, int n)
+        static int32_t call(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             pThis->sync();

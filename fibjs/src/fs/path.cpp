@@ -34,7 +34,7 @@ result_t path_base::basename(const char *path, const char *ext,
 {
     char ch;
     const char *p1 = path;
-    int extlen = (int)qstrlen(ext);
+    int32_t extlen = (int32_t)qstrlen(ext);
 
     while (*path)
     {
@@ -43,11 +43,11 @@ result_t path_base::basename(const char *path, const char *ext,
             p1 = path;
     }
 
-    if (extlen && ((int) (path - p1) >= extlen)
+    if (extlen && ((int32_t) (path - p1) >= extlen)
             && !pathcmp(ext, path - extlen, extlen))
         path -= extlen;
 
-    retVal.assign(p1, (int) (path - p1));
+    retVal.assign(p1, (int32_t) (path - p1));
 
     return 0;
 }
@@ -74,7 +74,7 @@ result_t path_base::extname(const char *path, std::string &retVal)
     }
 
     if (p1)
-        retVal.assign(p1, (int) (path - p1));
+        retVal.assign(p1, (int32_t) (path - p1));
 
     return 0;
 }
@@ -127,7 +127,7 @@ result_t path_base::dirname(const char *path, std::string &retVal)
     if (isPathSlash(*p2) && p2 == p1)
         p2++;
 
-    retVal.assign(p1, (int) (p2 - p1));
+    retVal.assign(p1, (int32_t) (p2 - p1));
 
     return 0;
 }
@@ -142,8 +142,8 @@ result_t path_base::normalize(const char *path, std::string &retVal)
     std::string str;
     const char *p1 = path;
     char *pstr;
-    int pos = 0;
-    int root = 0;
+    int32_t pos = 0;
+    int32_t root = 0;
     bool bRoot = false;
 
     str.resize(qstrlen(p1));
@@ -261,8 +261,8 @@ result_t path_base::normalize(const char *path, std::string &retVal)
 result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal)
 {
     std::string strBuffer;
-    int argc = args.Length();
-    int i;
+    int32_t argc = args.Length();
+    int32_t i;
     bool bRoot;
 
 #ifdef _WIN32

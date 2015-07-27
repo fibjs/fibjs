@@ -106,8 +106,8 @@ inline result_t _map(object_base *o, v8::Local<v8::Object> m,
                      int32_t &retVal)
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
-    int len = ks->Length();
-    int i;
+    int32_t len = ks->Length();
+    int32_t i;
 
     retVal = 0;
     for (i = 0; i < len; i++)
@@ -211,28 +211,28 @@ result_t object_base::off(v8::Local<v8::Object> map, int32_t &retVal)
 }
 
 inline result_t _fire(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value> &args,
-                      int argCount)
+                      int32_t argCount)
 {
     obj_ptr<Fiber_base> retVal;
     return JSFiber::New(func, args, 1, retVal);
 }
 
 inline result_t _fire(v8::Local<v8::Function> func,
-                      v8::Local<v8::Value> *args, int argCount)
+                      v8::Local<v8::Value> *args, int32_t argCount)
 {
     obj_ptr<Fiber_base> retVal;
     return JSFiber::New(func, args, argCount, retVal);
 }
 
 template<typename T>
-result_t fireTrigger(v8::Local<v8::Object> esa, T args, int argCount)
+result_t fireTrigger(v8::Local<v8::Object> esa, T args, int32_t argCount)
 {
     if (esa.IsEmpty())
         return 0;
 
     v8::Local<v8::Array> ks = esa->GetPropertyNames();
-    int len = ks->Length();
-    int i;
+    int32_t len = ks->Length();
+    int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++)
@@ -250,7 +250,7 @@ result_t fireTrigger(v8::Local<v8::Object> esa, T args, int argCount)
 }
 
 result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
-                               int argCount)
+                               int32_t argCount)
 {
     extMemory(0);
 
@@ -273,12 +273,12 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
     return 0;
 }
 
-result_t object_base::_trigger(const char *ev, Variant *args, int argCount)
+result_t object_base::_trigger(const char *ev, Variant *args, int32_t argCount)
 {
     class jsTrigger: public AsyncEvent
     {
     public:
-        jsTrigger(object_base *obj, const char *ev, Variant *args, int argCount) :
+        jsTrigger(object_base *obj, const char *ev, Variant *args, int32_t argCount) :
             m_obj(obj), m_ev(ev)
         {
             m_args.append((VariantEx *)args, argCount);
@@ -296,7 +296,7 @@ result_t object_base::_trigger(const char *ev, Variant *args, int argCount)
             for (i = 0; i < m_args.size(); i++)
                 argv[i] = v8::Local<v8::Value>::New(Isolate::now().isolate, m_args[i]);
 
-            m_obj->_trigger(m_ev.c_str(), argv.data(), (int) argv.size());
+            m_obj->_trigger(m_ev.c_str(), argv.data(), (int32_t) argv.size());
 
             delete this;
         }

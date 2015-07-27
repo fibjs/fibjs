@@ -42,13 +42,13 @@ public:
     virtual result_t backup(const char *fileName, AsyncEvent *ac);
 
 public:
-    result_t execute(const char *sql, int sLen, obj_ptr<DBResult_base> &retVal);
+    result_t execute(const char *sql, int32_t sLen, obj_ptr<DBResult_base> &retVal);
     result_t open(const char *file);
 
 private:
     std::string m_file;
     sqlite3 *m_db;
-    int m_nCmdTimeout;
+    int32_t m_nCmdTimeout;
 };
 
 } /* namespace fibjs */

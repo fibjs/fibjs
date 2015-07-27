@@ -143,8 +143,8 @@ result_t List::array::push(Variant v)
 
 result_t List::array::push(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    int len = args.Length();
-    int i;
+    int32_t len = args.Length();
+    int32_t i;
 
     for (i = 0; i < len; i++)
         m_array.append(args[i]);
@@ -166,7 +166,7 @@ result_t List::array::slice(int32_t start, int32_t end,
                             obj_ptr<List_base> &retVal)
 {
     if (end < 0)
-        end = (int)m_array.size();
+        end = (int32_t)m_array.size();
 
     retVal = new List();
     while (start < end)
@@ -179,11 +179,11 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
                              obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
-    int i, len;
+    int32_t i, len;
 
     a = new List();
 
-    len = (int)m_array.size();
+    len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
         a->push(m_array[i]);
 
@@ -225,7 +225,7 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
 }
 
 v8::Local<v8::Value> List::array::_call(v8::Local<v8::Function> func,
-                                        v8::Local<v8::Object> thisp, int i)
+                                        v8::Local<v8::Object> thisp, int32_t i)
 {
     v8::Local<v8::Value> args[] =
     { m_array[i], v8::Number::New(Isolate::now().isolate, i) };
@@ -236,9 +236,9 @@ v8::Local<v8::Value> List::array::_call(v8::Local<v8::Function> func,
 result_t List::array::every(v8::Local<v8::Function> func,
                             v8::Local<v8::Object> thisp, bool &retVal)
 {
-    int i, len;
+    int32_t i, len;
 
-    len = (int)m_array.size();
+    len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> r = _call(func, thisp, i);
@@ -260,9 +260,9 @@ result_t List::array::every(v8::Local<v8::Function> func,
 result_t List::array::some(v8::Local<v8::Function> func,
                            v8::Local<v8::Object> thisp, bool &retVal)
 {
-    int i, len;
+    int32_t i, len;
 
-    len = (int)m_array.size();
+    len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> r = _call(func, thisp, i);
@@ -285,11 +285,11 @@ result_t List::array::filter(v8::Local<v8::Function> func,
                              v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
-    int i, len;
+    int32_t i, len;
 
     a = new List();
 
-    len = (int)m_array.size();
+    len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> r = _call(func, thisp, i);
@@ -309,9 +309,9 @@ result_t List::array::filter(v8::Local<v8::Function> func,
 result_t List::array::forEach(v8::Local<v8::Function> func,
                               v8::Local<v8::Object> thisp)
 {
-    int i, len;
+    int32_t i, len;
 
-    len = (int)m_array.size();
+    len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> r = _call(func, thisp, i);
@@ -327,11 +327,11 @@ result_t List::array::map(v8::Local<v8::Function> func,
                           v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
-    int i, len;
+    int32_t i, len;
 
     a = new List();
 
-    len = (int)m_array.size();
+    len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> r = _call(func, thisp, i);
@@ -349,10 +349,10 @@ result_t List::array::map(v8::Local<v8::Function> func,
 
 result_t List::array::toArray(v8::Local<v8::Array> &retVal)
 {
-    v8::Local<v8::Array> a = v8::Array::New(Isolate::now().isolate, (int) m_array.size());
-    int i;
+    v8::Local<v8::Array> a = v8::Array::New(Isolate::now().isolate, (int32_t) m_array.size());
+    int32_t i;
 
-    for (i = 0; i < (int) m_array.size(); i++)
+    for (i = 0; i < (int32_t) m_array.size(); i++)
         a->Set(i, m_array[i]);
 
     retVal = a;

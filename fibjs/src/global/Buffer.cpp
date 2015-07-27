@@ -63,7 +63,7 @@ result_t Buffer::resize(int32_t sz)
     if (sz < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    extMemory(sz - (int) m_data.length());
+    extMemory(sz - (int32_t) m_data.length());
     m_data.resize(sz);
 
     return 0;
@@ -95,7 +95,7 @@ result_t Buffer::write(v8::Local<v8::Array> datas)
             str[i] = num;
         }
 
-        extMemory((int) sz);
+        extMemory((int32_t) sz);
         m_data.append(str);
     }
 
@@ -107,7 +107,7 @@ result_t Buffer::write(Buffer_base *data)
     std::string strBuf;
     data->toString(strBuf);
 
-    extMemory((int) strBuf.length());
+    extMemory((int32_t) strBuf.length());
     m_data.append(strBuf);
     return 0;
 }
@@ -118,7 +118,7 @@ result_t Buffer::write(const char *str, const char *codec)
     {
         size_t sz = qstrlen(str);
 
-        extMemory((int) sz);
+        extMemory((int32_t) sz);
         m_data.append(str, sz);
         return 0;
     }
@@ -454,7 +454,7 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
     if (start < end)
     {
         pNew->m_data.append(m_data, start, end - start);
-        pNew->extMemory((int) (end - start));
+        pNew->extMemory((int32_t) (end - start));
     }
     retVal = pNew;
 
@@ -500,10 +500,10 @@ result_t Buffer::toString(const char *codec, std::string &retVal)
 result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     Isolate &isolate = Isolate::now();
-    v8::Local<v8::Array> a = v8::Array::New(isolate.isolate, (int) m_data.length());
-    int i;
+    v8::Local<v8::Array> a = v8::Array::New(isolate.isolate, (int32_t) m_data.length());
+    int32_t i;
 
-    for (i = 0; i < (int) m_data.length(); i++)
+    for (i = 0; i < (int32_t) m_data.length(); i++)
         a->Set(i, v8::Number::New(isolate.isolate, (unsigned char) m_data[i]));
 
     retVal = a;

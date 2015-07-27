@@ -102,7 +102,7 @@ result_t PacketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
             set(read);
         }
 
-        static int read(AsyncState *pState, int n)
+        static int32_t read(AsyncState *pState, int32_t n)
         {
             asyncSendTo *pThis = (asyncSendTo *) pState;
 
@@ -112,7 +112,7 @@ result_t PacketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
             return pThis->m_body->readAll(pThis->m_buffer, pThis);
         }
 
-        static int sendPacket(AsyncState *pState, int n)
+        static int32_t sendPacket(AsyncState *pState, int32_t n)
         {
             asyncSendTo *pThis = (asyncSendTo *) pState;
 
@@ -165,7 +165,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             set(begin);
         }
 
-        static int begin(AsyncState *pState, int n)
+        static int32_t begin(AsyncState *pState, int32_t n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -174,7 +174,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                             pThis->m_buffer, pThis);
         }
 
-        static int body(AsyncState *pState, int n)
+        static int32_t body(AsyncState *pState, int32_t n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -185,7 +185,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             return pThis->m_body->write(pThis->m_buffer, pThis);
         }
 
-        static int body_end(AsyncState *pState, int n)
+        static int32_t body_end(AsyncState *pState, int32_t n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 

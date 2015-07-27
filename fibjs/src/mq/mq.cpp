@@ -32,7 +32,7 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
         }
 
     public:
-        static int call(AsyncState *pState, int n)
+        static int32_t call(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             result_t hr;

@@ -218,7 +218,7 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             set(begin);
         }
 
-        static int begin(AsyncState *pState, int n)
+        static int32_t begin(AsyncState *pState, int32_t n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -227,7 +227,7 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
                                           pThis);
         }
 
-        static int command(AsyncState *pState, int n)
+        static int32_t command(AsyncState *pState, int32_t n)
         {
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
@@ -340,7 +340,7 @@ void HttpRequest::parse(std::string &str, char split,
     obj_ptr<HttpCollection> c = new HttpCollection();
 
     const char *pstr = str.c_str();
-    int nSize = (int) str.length();
+    int32_t nSize = (int32_t) str.length();
     const char *pstrTemp;
     std::string strKey, strValue;
 
@@ -360,7 +360,7 @@ void HttpRequest::parse(std::string &str, char split,
         }
 
         if (pstr > pstrTemp)
-            Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strKey, true);
+            Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strKey, true);
         else
             strKey.clear();
 
@@ -380,7 +380,7 @@ void HttpRequest::parse(std::string &str, char split,
         if (!strKey.empty())
         {
             if (pstr > pstrTemp)
-                Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue, true);
+                Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strValue, true);
             else
                 strValue.clear();
         }

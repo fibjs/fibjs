@@ -100,7 +100,7 @@ result_t TcpServer::run(AsyncEvent *ac)
         }
 
     public:
-        static int invoke(AsyncState *pState, int n)
+        static int32_t invoke(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -108,7 +108,7 @@ result_t TcpServer::run(AsyncEvent *ac)
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_obj, pThis);
         }
 
-        static int close(AsyncState *pState, int n)
+        static int32_t close(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -118,7 +118,7 @@ result_t TcpServer::run(AsyncEvent *ac)
             return pThis->m_sock->close(pThis);
         }
 
-        virtual int error(int v)
+        virtual int32_t error(int32_t v)
         {
             asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
             set(close);
@@ -141,7 +141,7 @@ result_t TcpServer::run(AsyncEvent *ac)
         }
 
     public:
-        static int accept(AsyncState *pState, int n)
+        static int32_t accept(AsyncState *pState, int32_t n)
         {
             asyncAccept *pThis = (asyncAccept *) pState;
 
@@ -149,7 +149,7 @@ result_t TcpServer::run(AsyncEvent *ac)
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
 
-        static int invoke(AsyncState *pState, int n)
+        static int32_t invoke(AsyncState *pState, int32_t n)
         {
             asyncAccept *pThis = (asyncAccept *) pState;
 
@@ -161,7 +161,7 @@ result_t TcpServer::run(AsyncEvent *ac)
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
 
-        virtual int error(int v)
+        virtual int32_t error(int32_t v)
         {
             asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
             return v;
@@ -197,7 +197,7 @@ result_t TcpServer::asyncRun()
         }
 
     public:
-        static int accept(AsyncState *pState, int n)
+        static int32_t accept(AsyncState *pState, int32_t n)
         {
             asyncCall *pThis = (asyncCall *) pState;
             return pThis->m_pThis->run(pThis);

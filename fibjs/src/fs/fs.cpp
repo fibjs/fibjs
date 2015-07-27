@@ -114,7 +114,7 @@ result_t fs_base::writeFile(const char *fname, const char *txt,
     if (hr < 0)
         return hr;
 
-    hr = f->Write(txt, (int) qstrlen(txt));
+    hr = f->Write(txt, (int32_t) qstrlen(txt));
     f->close(ac);
 
     return hr;

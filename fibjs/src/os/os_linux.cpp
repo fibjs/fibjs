@@ -24,16 +24,16 @@ namespace fibjs
 
 result_t os_base::uptime(double &retVal)
 {
-    static volatile int no_clock_boottime;
+    static volatile int32_t no_clock_boottime;
     struct timespec now;
-    int r;
-    int (*fngettime)(clockid_t, struct timespec *);
+    int32_t r;
+    int32_t (*fngettime)(clockid_t, struct timespec *);
 
     void *handle = dlopen ("librt.so", RTLD_LAZY);
     if (!handle)
         return CHECK_ERROR(LastError());
 
-    fngettime = (int (*)(clockid_t, struct timespec *))dlsym(handle, "clock_gettime");
+    fngettime = (int32_t (*)(clockid_t, struct timespec *))dlsym(handle, "clock_gettime");
     if (!fngettime)
     {
         dlclose(handle);
@@ -97,7 +97,7 @@ result_t os_base::freemem(int64_t &retVal)
 
 result_t os_base::CPUs(int32_t &retVal)
 {
-    static int cpus = 0;
+    static int32_t cpus = 0;
 
     if (cpus > 0)
     {
@@ -105,7 +105,7 @@ result_t os_base::CPUs(int32_t &retVal)
         return 0;
     }
 
-    int numcpus = 0;
+    int32_t numcpus = 0;
     char line[512];
     FILE *fpModel = fopen("/proc/cpuinfo", "r");
 
@@ -131,10 +131,10 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     v8::Local<v8::Object> cpuinfo;
     v8::Local<v8::Object> cputimes;
-    unsigned int ticks = (unsigned int) sysconf(_SC_CLK_TCK), multiplier =
-                             ((uint64_t) 1000L / ticks), cpuspeed;
-    int numcpus = 0, i = 0;
-    unsigned long long ticks_user, ticks_sys, ticks_idle, ticks_nice,
+    uint32_t ticks = (uint32_t) sysconf(_SC_CLK_TCK), multiplier =
+                         ((uint64_t) 1000L / ticks), cpuspeed;
+    int32_t numcpus = 0, i = 0;
+    uint64_t ticks_user, ticks_sys, ticks_idle, ticks_nice,
              ticks_intr;
     char line[512], speedPath[256], model[512] = "";
     FILE *fpStat = fopen("/proc/stat", "r");
@@ -236,12 +236,12 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     size_t rss = 0;
 
     FILE *f;
-    int itmp;
+    int32_t itmp;
     char ctmp;
-    unsigned int utmp;
+    uint32_t utmp;
     size_t page_size = getpagesize();
     char *cbuf;
-    int foundExeEnd;
+    int32_t foundExeEnd;
     static char buf[MAXPATHLEN + 1];
 
     f = fopen("/proc/self/stat", "r");

@@ -26,29 +26,29 @@ public:
     virtual result_t _named_enumerator(v8::Local<v8::Array> &retVal);
 
 public:
-    void inc(int n)
+    void inc(int32_t n)
     {
         m_counters[n].inc();
     }
 
-    void dec(int n)
+    void dec(int32_t n)
     {
         m_counters[n].dec();
     }
 
-    void add(int n, int32_t value)
+    void add(int32_t n, int32_t value)
     {
         m_counters[n].add(value);
     }
 
 public:
-    void init(int sn, int n);
-    void set_key(int n, const char *key);
-    result_t set_key(int n, v8::Local<v8::Value> key);
+    void init(int32_t sn, int32_t n);
+    void set_key(int32_t n, const char *key);
+    result_t set_key(int32_t n, v8::Local<v8::Value> key);
 
-    void init(const char **staticKeys, int sn, const char **keys, int n)
+    void init(const char **staticKeys, int32_t sn, const char **keys, int32_t n)
     {
-        int i;
+        int32_t i;
 
         init(sn, sn + n);
 
@@ -59,16 +59,16 @@ public:
             set_key(sn + i, keys[i]);
     }
 
-    void init(const char **keys, int n)
+    void init(const char **keys, int32_t n)
     {
         init(NULL, 0, keys, n);
     }
 
 private:
-    int find(const char *key);
+    int32_t find(const char *key);
 
 private:
-    int m_static, m_size;
+    int32_t m_static, m_size;
     std::vector<std::string> m_keys;
     std::vector<exlib::atomic> m_counters;
     date_t m_date;

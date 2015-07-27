@@ -51,7 +51,7 @@ X509Cert::X509Cert()
     x509_crt_init(&m_crt);
 }
 
-X509Cert::X509Cert(X509Cert *root, int no)
+X509Cert::X509Cert(X509Cert *root, int32_t no)
 {
     m_root = root;
     m_no = no;
@@ -68,7 +68,7 @@ result_t X509Cert::load(Buffer_base *derCert)
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
 
     std::string crt;
     derCert->toString(crt);
@@ -86,7 +86,7 @@ result_t X509Cert::load(const x509_crt *crt)
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
 
     ret = x509_crt_parse_der(&m_crt, crt->raw.p, crt->raw.len);
     if (ret != 0)
@@ -100,7 +100,7 @@ result_t X509Cert::load(const char *txtCert)
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
 
     if (qstrstr(txtCert, "BEGIN CERTIFICATE"))
     {
@@ -112,7 +112,7 @@ result_t X509Cert::load(const char *txtCert)
         return 0;
     }
 
-    _parser p(txtCert, (int)qstrlen(txtCert));
+    _parser p(txtCert, (int32_t)qstrlen(txtCert));
     QuickArray<std::pair<std::string, std::string> > values;
     std::map<std::string, bool> verifies;
     std::map<std::string, bool> certs;
@@ -291,7 +291,7 @@ result_t X509Cert::loadFile(const char *filename)
 
     result_t hr;
     std::string data;
-    int ret;
+    int32_t ret;
 
     hr = fs_base::ac_readFile(filename, data);
     if (hr < 0)
@@ -312,7 +312,7 @@ result_t X509Cert::loadFile(const char *filename)
 result_t X509Cert::loadRootCerts()
 {
     _cert *pca = g_root_ca;
-    int ret;
+    int32_t ret;
 
     while (pca->size)
     {
@@ -330,8 +330,8 @@ result_t X509Cert::loadRootCerts()
 
 result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, AsyncEvent *ac)
 {
-    int ret;
-    int flags;
+    int32_t ret;
+    int32_t flags;
 
     ret = x509_crt_verify(&(((X509Cert *)cert)->m_crt), &m_crt, NULL, NULL, &flags,
                           NULL, NULL);
@@ -359,7 +359,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
     retVal = v8::Array::New(isolate.isolate);
 
     const x509_crt *pCert = &m_crt;
-    int ret, n = 0;
+    int32_t ret, n = 0;
     std::string buf;
     size_t olen;
 
@@ -375,7 +375,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
                 return CHECK_ERROR(_ssl::setError(ret));
 
             retVal->Set(n ++, v8::String::NewFromUtf8(isolate.isolate, buf.c_str(),
-                        v8::String::kNormalString, (int) olen - 1));
+                        v8::String::kNormalString, (int32_t) olen - 1));
         }
         pCert = pCert->next;
     }
@@ -398,7 +398,7 @@ x509_crt *X509Cert::get_crt()
     if (!m_root)
         return &m_crt;
 
-    int n = m_no;
+    int32_t n = m_no;
     x509_crt *crt = &m_root->m_crt;
 
     while (n && (crt = crt->next))
@@ -423,7 +423,7 @@ result_t X509Cert::get_serial(std::string &retVal)
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
     mpi serial;
 
     mpi_init(&serial);
@@ -450,7 +450,7 @@ result_t X509Cert::get_issuer(std::string &retVal)
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
     std::string buf;
 
     buf.resize(1024);
@@ -471,7 +471,7 @@ result_t X509Cert::get_subject(std::string &retVal)
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int ret;
+    int32_t ret;
     std::string buf;
 
     buf.resize(1024);
@@ -538,10 +538,10 @@ result_t X509Cert::get_usage(std::string &retVal)
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int key_usage = crt->key_usage;
+    int32_t key_usage = crt->key_usage;
 
     int32_t i;
-    for (i = 0; i < (int)ARRAYSIZE(g_usages); i ++)
+    for (i = 0; i < (int32_t)ARRAYSIZE(g_usages); i ++)
     {
         if (key_usage & g_usages[i].id)
         {
@@ -560,10 +560,10 @@ result_t X509Cert::get_type(std::string &retVal)
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int cert_type = crt->ns_cert_type;
+    int32_t cert_type = crt->ns_cert_type;
 
     int32_t i;
-    for (i = 0; i < (int)ARRAYSIZE(g_types); i ++)
+    for (i = 0; i < (int32_t)ARRAYSIZE(g_types); i ++)
     {
         if (cert_type & g_types[i].id)
         {

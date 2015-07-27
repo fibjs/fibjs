@@ -19,19 +19,19 @@ union inetAddr
     struct sockaddr_in addr4;
     struct sockaddr_in6 addr6;
 
-    int size()
+    int32_t size()
     {
         return addr6.sin6_family == PF_INET6 ?
-               (int) sizeof(addr6) : (int) sizeof(addr4);
+               (int32_t) sizeof(addr6) : (int32_t) sizeof(addr4);
     }
 
-    int family()
+    int32_t family()
     {
         return addr6.sin6_family == PF_INET6 ?
                net_base::_AF_INET6 : net_base::_AF_INET;
     }
 
-    int port()
+    int32_t port()
     {
         return addr4.sin_port;
     }
@@ -51,7 +51,7 @@ union inetAddr
         addr4.sin_port = htons(port);
     }
 
-    int addr(const char *s);
+    int32_t addr(const char *s);
     std::string str();
 };
 

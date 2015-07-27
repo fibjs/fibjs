@@ -40,7 +40,7 @@ public:
     }
 
 public:
-    static result_t setError(int ret);
+    static result_t setError(int32_t ret);
     obj_ptr<X509Cert> &ca()
     {
         if (!m_ca)

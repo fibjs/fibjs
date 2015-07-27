@@ -41,7 +41,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-typedef int SOCKET;
+typedef int32_t SOCKET;
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET -1
 #define closesocket close
@@ -107,7 +107,7 @@ typedef int SOCKET;
 namespace fibjs
 {
 
-typedef int result_t;
+typedef int32_t result_t;
 
 #define CALL_RETURN_NULL        100000
 
@@ -190,7 +190,7 @@ typedef int result_t;
 #define METHOD_ENTER(c, o) \
     V8_SCOPE(); \
     result_t hr = CALL_E_BADPARAMCOUNT; \
-    int argc = args.Length(); \
+    int32_t argc = args.Length(); \
     bool bStrict=true;do{do{\
             METHOD_OVER(c, o)
 
@@ -617,7 +617,7 @@ inline v8::Local<v8::Value> GetReturnValue(int64_t v)
 inline v8::Local<v8::Value> GetReturnValue(std::string &str)
 {
     return v8::String::NewFromUtf8(Isolate::now().isolate, str.c_str(),
-                                   v8::String::kNormalString, (int) str.length());
+                                   v8::String::kNormalString, (int32_t) str.length());
 }
 
 inline v8::Local<v8::Value> GetReturnValue(date_t &v)
@@ -683,7 +683,7 @@ inline v8::Local<v8::Value> ThrowRangeError(const char *msg)
 inline result_t LastError()
 {
 #ifdef _WIN32
-    return - (int)GetLastError();
+    return - (int32_t)GetLastError();
 #else
     return -errno;
 #endif
@@ -734,9 +734,9 @@ inline bool isUrlSlash(char ch)
     return ch == '/';
 }
 
-void asyncLog(int priority, std::string msg);
+void asyncLog(int32_t priority, std::string msg);
 
-inline result_t _error_checker(result_t hr, const char *file, int line)
+inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 {
     if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_PENDDING)
     {
@@ -764,7 +764,7 @@ inline std::string dump_str(std::string str)
     std::string strHex;
     int32_t i;
 
-    for (i = 0; i < (int)str.length(); i ++)
+    for (i = 0; i < (int32_t)str.length(); i ++)
     {
         unsigned char ch = (unsigned char)str[i];
         strHex += hexs[ch >> 4];

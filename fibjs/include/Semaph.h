@@ -16,7 +16,7 @@ namespace fibjs
 class Semaphore: public Semaphore_base
 {
 public:
-    Semaphore(int count) :
+    Semaphore(int32_t count) :
         m_sem(count)
     {
     }

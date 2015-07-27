@@ -22,7 +22,7 @@ Digest::Digest(md_type_t algo)
     md_starts(&m_ctx);
 }
 
-Digest::Digest(md_type_t algo, const char *key, int sz)
+Digest::Digest(md_type_t algo, const char *key, int32_t sz)
 {
     m_bMac = true;
     m_iAlgo = algo;
@@ -46,10 +46,10 @@ result_t Digest::update(Buffer_base *data)
 
     if (m_bMac)
         md_hmac_update(&m_ctx, (const unsigned char *) str.c_str(),
-                       (int)str.length());
+                       (int32_t)str.length());
     else
         md_update(&m_ctx, (const unsigned char *) str.c_str(),
-                  (int)str.length());
+                  (int32_t)str.length());
 
     return 0;
 }

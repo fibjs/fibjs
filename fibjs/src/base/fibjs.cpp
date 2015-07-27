@@ -14,12 +14,12 @@
 namespace fibjs
 {
 
-void init_argv(int argc, char **argv);
+void init_argv(int32_t argc, char **argv);
 void init_prof();
 void init_acThread();
 void init_logger();
 void init_net();
-void options(int* argc, char *argv[]);
+void options(int32_t* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
 {
@@ -114,7 +114,7 @@ void _main(const char *fname)
 
 }
 
-int main(int argc, char *argv[])
+int32_t main(int32_t argc, char *argv[])
 {
     ::setlocale(LC_ALL, "");
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 
     fibjs::init_argv(argc, argv);
 
-    int i;
+    int32_t i;
 
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i ++);
 

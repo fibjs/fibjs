@@ -51,8 +51,8 @@ public:
     static void packetSize(int32_t sz, std::string &strBuf)
     {
         unsigned char buf[sizeof(int32_t) + 1] = {0};
-        int n = sizeof(int32_t) + 1;
-        int m = 0;
+        int32_t n = sizeof(int32_t) + 1;
+        int32_t m = 0;
 
         while (sz)
         {

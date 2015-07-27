@@ -48,7 +48,7 @@ public:
         int32_t i;
 
         retVal = v8::Array::New(Isolate::now().isolate);
-        for (i = 0; i < (int)m_fields.size(); i++)
+        for (i = 0; i < (int32_t)m_fields.size(); i++)
             retVal->Set(i, GetReturnValue(m_fields[i]));
     }
 

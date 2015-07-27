@@ -57,11 +57,11 @@ struct ClassData
 
     const char *name;
     v8::FunctionCallback cor;
-    int mc;
+    int32_t mc;
     const ClassMethod *cms;
-    int oc;
+    int32_t oc;
     const ClassObject *cos;
-    int pc;
+    int32_t pc;
     const ClassProperty *cps;
     const ClassIndexed *cis;
     const ClassNamed *cns;
@@ -111,7 +111,7 @@ public:
 
     bool has(const char *name)
     {
-        int i;
+        int32_t i;
 
         for (i = 0; i < m_cd.mc; i++)
             if (!qstrcmp(name, m_cd.cms[i].name))
@@ -153,7 +153,7 @@ public:
         v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate.isolate, isolate.s_context);
 
         _init();
-        int i;
+        int32_t i;
 
         for (i = 0; i < m_cd.mc; i++)
             if (!is_skip(m_cd.cms[i].name, skips))
@@ -244,7 +244,7 @@ private:
             }
 
             v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
-            int i;
+            int32_t i;
 
             pt->MarkAsUndetectable();
 

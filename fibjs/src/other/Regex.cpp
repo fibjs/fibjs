@@ -26,10 +26,10 @@ result_t re_base::compile(const char *pattern, const char *opt,
 
 result_t Regex::compile(const char *pattern, const char *opt)
 {
-    int o = PCRE_JAVASCRIPT_COMPAT | PCRE_EXTRA | PCRE_UTF8
-            | PCRE_NEWLINE_ANYCRLF | PCRE_UCP;
+    int32_t o = PCRE_JAVASCRIPT_COMPAT | PCRE_EXTRA | PCRE_UTF8
+                | PCRE_NEWLINE_ANYCRLF | PCRE_UCP;
     const char *error;
-    int erroffset;
+    int32_t erroffset;
     char ch;
 
     reset();
@@ -71,22 +71,22 @@ result_t Regex::compile(const char *pattern, const char *opt)
 #define RE_SIZE 32
 result_t Regex::exec(const char *str, v8::Local<v8::Array> &retVal)
 {
-    int rc = 0;
-    int ovector[RE_SIZE];
-    int len = (int) qstrlen(str);
+    int32_t rc = 0;
+    int32_t ovector[RE_SIZE];
+    int32_t len = (int32_t) qstrlen(str);
     const char *end = str + len;
-    int i;
+    int32_t i;
 
     if (m_bGlobal)
     {
-        int n = m_nlastIndex;
+        int32_t n = m_nlastIndex;
         while (n > 0 && utf8_getchar(str, end))
             n--;
     }
 
     if (*str)
     {
-        len = (int) qstrlen(str);
+        len = (int32_t) qstrlen(str);
 
         rc = pcre_exec(m_re, NULL, str, len, 0, 0, ovector, RE_SIZE);
         if (rc < 0)
@@ -116,21 +116,21 @@ result_t Regex::exec(const char *str, v8::Local<v8::Array> &retVal)
 
 result_t Regex::test(const char *str, bool &retVal)
 {
-    int rc = 0;
-    int ovector[RE_SIZE];
-    int len = (int) qstrlen(str);
+    int32_t rc = 0;
+    int32_t ovector[RE_SIZE];
+    int32_t len = (int32_t) qstrlen(str);
     const char *end = str + len;
 
     if (m_bGlobal)
     {
-        int n = m_nlastIndex;
+        int32_t n = m_nlastIndex;
         while (n > 0 && utf8_getchar(str, end))
             n--;
     }
 
     if (*str)
     {
-        len = (int) qstrlen(str);
+        len = (int32_t) qstrlen(str);
 
         rc = pcre_exec(m_re, NULL, str, len, 0, 0, ovector, RE_SIZE);
         if (rc < 0)

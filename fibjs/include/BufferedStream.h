@@ -53,11 +53,11 @@ public:
     virtual result_t set_EOL(const char *newVal);
 
 public:
-    void append(int n)
+    void append(int32_t n)
     {
         if (n > 0)
         {
-            if (m_pos == 0 && n == (int) m_buf.length())
+            if (m_pos == 0 && n == (int32_t) m_buf.length())
                 m_strbuf.append(m_buf);
             else
             {
@@ -71,8 +71,8 @@ public:
 public:
     obj_ptr<Stream_base> m_stm;
     std::string m_buf;
-    int m_pos;
-    int m_temp;
+    int32_t m_pos;
+    int32_t m_temp;
     std::string m_eol;
     StringBuffer m_strbuf;
     encoding_iconv m_iconv;

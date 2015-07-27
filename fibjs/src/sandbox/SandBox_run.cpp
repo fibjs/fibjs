@@ -150,7 +150,7 @@ SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
 {
     Isolate &isolate = Isolate::now();
     m_id = v8::String::NewFromUtf8(isolate.isolate, id, v8::String::kNormalString,
-                                   (int) qstrlen(id));
+                                   (int32_t) qstrlen(id));
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate.isolate);
 
@@ -173,7 +173,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
         {
             v8::ScriptCompiler::Source script_source(
                 v8::String::NewFromUtf8(isolate.isolate, src.c_str(),
-                                        v8::String::kNormalString, (int) src.length()),
+                                        v8::String::kNormalString, (int32_t) src.length()),
                 v8::ScriptOrigin(sname));
 
             if (v8::ScriptCompiler::CompileUnbound(
@@ -195,7 +195,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
 
         script = v8::Script::Compile(
                      v8::String::NewFromUtf8(isolate.isolate, src.c_str(),
-                                             v8::String::kNormalString, (int) src.length()),
+                                             v8::String::kNormalString, (int32_t) src.length()),
                      sname);
         if (script.IsEmpty())
             return throwSyntaxError(try_catch);
@@ -329,7 +329,7 @@ result_t SandBox::require(std::string base, std::string id,
 
     retVal = _mods->Get(v8::String::NewFromUtf8(isolate.isolate, strId.c_str(),
                         v8::String::kNormalString,
-                        (int)strId.length()));
+                        (int32_t)strId.length()));
     if (!IsEmpty(retVal))
         return 1;
 

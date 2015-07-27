@@ -22,7 +22,7 @@ void init_logger()
 #define MAX_LOGGER  10
 static obj_ptr<logger> s_logs[MAX_LOGGER];
 
-void asyncLog(int priority, std::string msg)
+void asyncLog(int32_t priority, std::string msg)
 {
     if (priority <= s_loglevel)
     {

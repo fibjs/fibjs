@@ -18,7 +18,7 @@ static const char utf8_length[128] =
 static const unsigned char utf8_mask[6] =
 { 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
 
-int utf8_getchar(const char *&src, const char *end)
+int32_t utf8_getchar(const char *&src, const char *end)
 {
     if (src >= end)
         return 0;
@@ -27,8 +27,8 @@ int utf8_getchar(const char *&src, const char *end)
     if (ch < 0x80)
         return ch;
 
-    int len = utf8_length[ch - 0x80];
-    int res = ch & utf8_mask[len];
+    int32_t len = utf8_length[ch - 0x80];
+    int32_t res = ch & utf8_mask[len];
 
     switch (len)
     {
@@ -67,13 +67,13 @@ int utf8_getchar(const char *&src, const char *end)
     return res;
 }
 
-int utf8_putchar(int ch, char *&dst, const char *end)
+int32_t utf8_putchar(int32_t ch, char *&dst, const char *end)
 {
     if (dst && dst >= end)
         return 0;
 
-    int count;
-    int i;
+    int32_t count;
+    int32_t i;
 
     if (ch < 0)
         ch = '?';
@@ -137,9 +137,9 @@ int utf8_putchar(int ch, char *&dst, const char *end)
     return 0;
 }
 
-int utf16_getchar(const wchar *&src, const wchar *end)
+int32_t utf16_getchar(const wchar *&src, const wchar *end)
 {
-    int ch;
+    int32_t ch;
 
     if (src >= end)
         return 0;
@@ -155,7 +155,7 @@ int utf16_getchar(const wchar *&src, const wchar *end)
     return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff);
 }
 
-int utf16_putchar(int ch, wchar *&dst, const wchar *end)
+int32_t utf16_putchar(int32_t ch, wchar *&dst, const wchar *end)
 {
     if (!dst)
         return ch >= 0x10000 ? 2 : 1;
@@ -184,12 +184,12 @@ int utf16_putchar(int ch, wchar *&dst, const wchar *end)
     return 1;
 }
 
-int utf8_mbstowcs(const char *src, int srclen, wchar *dst, int dstlen)
+int32_t utf8_mbstowcs(const char *src, int32_t srclen, wchar *dst, int32_t dstlen)
 {
-    int count = 0;
+    int32_t count = 0;
     const char *src_end = src + srclen;
     const wchar *dst_end = dst + dstlen;
-    int ch;
+    int32_t ch;
 
     while (src < src_end)
     {
@@ -200,12 +200,12 @@ int utf8_mbstowcs(const char *src, int srclen, wchar *dst, int dstlen)
     return count;
 }
 
-int utf8_wcstombs(const wchar *src, int srclen, char *dst, int dstlen)
+int32_t utf8_wcstombs(const wchar *src, int32_t srclen, char *dst, int32_t dstlen)
 {
-    int count = 0;
+    int32_t count = 0;
     const wchar *src_end = src + srclen;
     const char *dst_end = dst + dstlen;
-    int ch;
+    int32_t ch;
 
     while (src < src_end)
     {

@@ -26,7 +26,7 @@ public:
 public:
     std::string str()
     {
-        int i, p = 0;
+        int32_t i, p = 0;
         std::string s;
 
         if (m_size > 0)
@@ -36,13 +36,13 @@ public:
             else
             {
                 s.resize(m_size);
-                for (i = 0; i < (int) m_array.size(); i++)
+                for (i = 0; i < (int32_t) m_array.size(); i++)
                 {
                     std::string &s1 = m_array[i];
                     size_t len = s1.length();
 
                     memcpy(&s[p], s1.c_str(), len);
-                    p += (int) len;
+                    p += (int32_t) len;
                 }
             }
 

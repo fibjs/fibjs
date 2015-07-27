@@ -12,25 +12,25 @@
 namespace fibjs
 {
 
-inline void baseEncode(const char *pEncodingTable, int dwBits,
+inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
                        Buffer_base *data, std::string &retVal)
 {
     std::string strData;
-    int i, len = 0, bits = 0;
-    int dwData = 0;
-    int dwSize = 0;
+    int32_t i, len = 0, bits = 0;
+    int32_t dwData = 0;
+    int32_t dwSize = 0;
     char bMask = 0xff >> (8 - dwBits);
 
     data->toString(strData);
 
     if (dwBits == 6)
-        dwSize = ((int) strData.length() + 2) / 3 * 4;
+        dwSize = ((int32_t) strData.length() + 2) / 3 * 4;
     else if (dwBits == 5)
-        dwSize = ((int) strData.length() + 4) / 5 * 8;
+        dwSize = ((int32_t) strData.length() + 4) / 5 * 8;
 
     retVal.resize(dwSize);
 
-    for (i = 0; i < (int) strData.length(); i++)
+    for (i = 0; i < (int32_t) strData.length(); i++)
     {
         dwData <<= 8;
         dwData |= (unsigned char) strData[i];
@@ -52,22 +52,22 @@ inline void baseEncode(const char *pEncodingTable, int dwBits,
     retVal.resize(len);
 }
 
-inline void baseDecode(const char *pdecodeTable, int dwBits,
+inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
                        const char *baseString, obj_ptr<Buffer_base> &retVal)
 {
-    int nWritten = 0, len = (int) qstrlen(baseString);
+    int32_t nWritten = 0, len = (int32_t) qstrlen(baseString);
     const char *end = baseString + len;
     std::string strBuf;
 
     strBuf.resize(len * dwBits / 8);
 
-    int dwCurr = 0;
-    int nBits = 0;
+    int32_t dwCurr = 0;
+    int32_t nBits = 0;
     uint32_t ch;
 
     while ((ch = utf8_getchar(baseString, end)) != 0)
     {
-        int nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
+        int32_t nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
 
         if (nCh != -1)
         {
@@ -140,17 +140,17 @@ result_t encoding_base::hexEncode(Buffer_base *data, std::string &retVal)
 {
     std::string strData;
     static char HexChar[] = "0123456789abcdef";
-    int i, pos, len1;
+    int32_t i, pos, len1;
 
     data->toString(strData);
 
-    i = (int) strData.length() * 2;
+    i = (int32_t) strData.length() * 2;
     retVal.resize(i);
 
     len1 = 0;
     pos = 0;
 
-    for (i = 0; i < (int) strData.length(); i++)
+    for (i = 0; i < (int32_t) strData.length(); i++)
     {
         retVal[pos * 2] = HexChar[(unsigned char) strData[i] >> 4];
         retVal[pos * 2 + 1] = HexChar[(unsigned char) strData[i] & 0xf];
@@ -164,7 +164,7 @@ result_t encoding_base::hexEncode(Buffer_base *data, std::string &retVal)
 result_t encoding_base::hexDecode(const char *data,
                                   obj_ptr<Buffer_base> &retVal)
 {
-    int pos, len = (int) qstrlen(data);
+    int32_t pos, len = (int32_t) qstrlen(data);
     const char *end = data + len;
     std::string strBuf;
     uint32_t ch1, ch2;
@@ -215,7 +215,7 @@ result_t encoding_base::jsstr(const char *str, std::string &retVal)
 {
     const char *p;
     char *p1;
-    int len;
+    int32_t len;
     char ch;
     std::string s;
 

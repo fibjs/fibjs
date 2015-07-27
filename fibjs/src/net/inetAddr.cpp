@@ -14,9 +14,9 @@ namespace fibjs
 #define NS_IN6ADDRSZ 16
 #define NS_INT16SZ 2
 
-static int inet_pton4(const char *src, void *dst)
+static int32_t inet_pton4(const char *src, void *dst)
 {
-    int saw_digit, octets, ch;
+    int32_t saw_digit, octets, ch;
     unsigned char tmp[NS_INADDRSZ], *tp;
 
     saw_digit = 0;
@@ -64,11 +64,11 @@ static int inet_pton4(const char *src, void *dst)
     return 0;
 }
 
-static int inet_pton6(const char *src, void *dst)
+static int32_t inet_pton6(const char *src, void *dst)
 {
     unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
     const char *curtok;
-    int ch, saw_xdigit;
+    int32_t ch, saw_xdigit;
     unsigned val;
 
     tp = (unsigned char *) memset(tmp, '\0', NS_IN6ADDRSZ);
@@ -149,8 +149,8 @@ static int inet_pton6(const char *src, void *dst)
 
     if (colonp != NULL)
     {
-        const int n = (int) (tp - colonp);
-        int i;
+        const int32_t n = (int32_t) (tp - colonp);
+        int32_t i;
 
         if (tp == endp)
             return -1;
@@ -182,7 +182,7 @@ static const char *inet_ntop4(const struct in_addr *addr, char *buf,
 {
     const unsigned char *ap = (const unsigned char *) &addr->s_addr;
     char tmp[MAX_IPv4_STR_LEN]; /* max length of ipv4 addr string */
-    int fulllen;
+    int32_t fulllen;
 
     /*
      * snprintf returns number of bytes printed (not including NULL) or
@@ -190,7 +190,7 @@ static const char *inet_ntop4(const struct in_addr *addr, char *buf,
      * fit
      */
     fulllen = sprintf(tmp, "%d.%d.%d.%d", ap[0], ap[1], ap[2], ap[3]);
-    if (fulllen >= (int) len)
+    if (fulllen >= (int32_t) len)
     {
         return NULL;
     }
@@ -204,7 +204,7 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
                               socklen_t size)
 {
     char hexa[8][5], tmp[MAX_IPv6_STR_LEN];
-    int zr[8];
+    int32_t zr[8];
     size_t len;
     int32_t i, j, k, skip;
     uint8_t x8, hx8;
@@ -329,7 +329,7 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
     return dst;
 }
 
-int inetAddr::addr(const char *s)
+int32_t inetAddr::addr(const char *s)
 {
     if (!s || !*s)
         return 0;

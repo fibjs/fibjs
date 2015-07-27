@@ -8,11 +8,11 @@
 namespace fibjs
 {
 
-static std::string fmtString(result_t hr, const char *str, int len = -1)
+static std::string fmtString(result_t hr, const char *str, int32_t len = -1)
 {
     std::string s;
     if (len < 0)
-        len = (int) qstrlen(str);
+        len = (int32_t) qstrlen(str);
 
     s.resize(len + 16);
     s.resize(sprintf(&s[0], "[%d] %s", hr, str));
@@ -149,7 +149,7 @@ std::string GetException(TryCatch &try_catch, result_t hr)
             }
 
             strError.append(ToCString(filename));
-            int lineNumber = message->GetLineNumber();
+            int32_t lineNumber = message->GetLineNumber();
             if (lineNumber > 0)
             {
                 char numStr[32];
@@ -196,7 +196,7 @@ result_t throwSyntaxError(TryCatch &try_catch)
         }
 
         strError.append(ToCString(filename));
-        int lineNumber = message->GetLineNumber();
+        int32_t lineNumber = message->GetLineNumber();
         if (lineNumber > 0)
         {
             char numStr[32];
@@ -225,8 +225,8 @@ std::string traceInfo(int32_t deep)
 {
     v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
             Isolate::now().isolate, deep, v8::StackTrace::kOverview);
-    int count = stackTrace->GetFrameCount();
-    int i;
+    int32_t count = stackTrace->GetFrameCount();
+    int32_t i;
     std::string strBuffer;
 
     for (i = 0; i < count; i++)

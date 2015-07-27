@@ -171,7 +171,7 @@ public:
 public:
     virtual void write(exlib::List<item> &logs) = 0;
 
-    void log(int priority, std::string& msg)
+    void log(int32_t priority, std::string& msg)
     {
         if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
         {

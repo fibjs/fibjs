@@ -18,7 +18,7 @@ class X509Cert : public X509Cert_base
 {
 public:
     X509Cert();
-    X509Cert(X509Cert *root, int no);
+    X509Cert(X509Cert *root, int32_t no);
     ~X509Cert();
 
 public:
@@ -74,7 +74,7 @@ private:
 
 private:
     obj_ptr<X509Cert> m_root;
-    int m_no;
+    int32_t m_no;
 };
 
 }

@@ -14,12 +14,12 @@ namespace fibjs
 bool g_perf;
 
 #ifdef x64
-int stack_size = 512;
+int32_t stack_size = 512;
 #else
-int stack_size = 256;
+int32_t stack_size = 256;
 #endif
 
-void options(int* argc, char *argv[])
+void options(int32_t* argc, char *argv[])
 {
 	static char s_opts[64];
 	static char s_sharmony[] = " --harmony --harmony_proxies"
@@ -30,9 +30,9 @@ void options(int* argc, char *argv[])
 	v8::V8::SetFlagsFromString(s_opts,
 	                           sprintf(s_opts, "--stack_size=%d", stack_size - 16));
 
-	int df = 0;
+	int32_t df = 0;
 
-	for (int i = 0; i < *argc; i ++)
+	for (int32_t i = 0; i < *argc; i ++)
 	{
 		char* arg = argv[i];
 

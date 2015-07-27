@@ -42,7 +42,7 @@ void close(void *sock)
         ((Socket *) sock)->ac_close();
 }
 
-int connect(void *sock, const char *host, int port)
+int32_t connect(void *sock, const char *host, int32_t port)
 {
     if (!sock)
     {
@@ -60,7 +60,7 @@ int connect(void *sock, const char *host, int port)
     return 1;
 }
 
-void *connect(const char *host, int port)
+void *connect(const char *host, int32_t port)
 {
     void *socket;
 
@@ -74,7 +74,7 @@ void *connect(const char *host, int port)
     return socket;
 }
 
-int recv(void *sock, void *buffer, int cbBuffer)
+int32_t recv(void *sock, void *buffer, int32_t cbBuffer)
 {
     if (!sock)
     {
@@ -99,10 +99,10 @@ int recv(void *sock, void *buffer, int cbBuffer)
         memcpy(buffer, strBuf.c_str(), strBuf.length());
     }
 
-    return (int) strBuf.length();
+    return (int32_t) strBuf.length();
 }
 
-int read(void *sock, void *buffer, int cbBuffer)
+int32_t read(void *sock, void *buffer, int32_t cbBuffer)
 {
     if (!sock)
     {
@@ -127,15 +127,15 @@ int read(void *sock, void *buffer, int cbBuffer)
     if (hr != CALL_RETURN_NULL)
     {
         retVal->toString(strBuf);
-        if ((int) strBuf.length() < cbBuffer)
+        if ((int32_t) strBuf.length() < cbBuffer)
             return -1;
         memcpy(buffer, strBuf.c_str(), strBuf.length());
     }
 
-    return (int) strBuf.length();
+    return (int32_t) strBuf.length();
 }
 
-int send(void *sock, const void *buffer, int cbBuffer)
+int32_t send(void *sock, const void *buffer, int32_t cbBuffer)
 {
     if (!sock)
     {
@@ -158,7 +158,7 @@ int send(void *sock, const void *buffer, int cbBuffer)
         return -1;
     }
 
-    return (int) strBuf.length();
+    return (int32_t) strBuf.length();
 }
 
 }

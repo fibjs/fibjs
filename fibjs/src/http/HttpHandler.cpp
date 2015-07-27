@@ -88,7 +88,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             set(read);
         }
 
-        static int read(AsyncState *pState, int n)
+        static int32_t read(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             bool bKeepAlive = false;
@@ -104,7 +104,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis);
         }
 
-        static int invoke(AsyncState *pState, int n)
+        static int32_t invoke(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -191,7 +191,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
         }
 
-        static int send(AsyncState *pState, int n)
+        static int32_t send(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             int32_t s;
@@ -243,7 +243,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                               hdr) != CALL_RETURN_NULL)
                 {
                     std::string str = hdr.string();
-                    int type = 0;
+                    int32_t type = 0;
 
                     if (qstristr(str.c_str(), "gzip"))
                         type = 1;
@@ -301,7 +301,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_rep->sendTo(pThis->m_stm, pThis);
         }
 
-        static int zip(AsyncState *pState, int n)
+        static int32_t zip(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -311,7 +311,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_rep->sendTo(pThis->m_stm, pThis);
         }
 
-        static int end(AsyncState *pState, int n)
+        static int32_t end(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
@@ -328,7 +328,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_body->close(pThis);
         }
 
-        virtual int error(int v)
+        virtual int32_t error(int32_t v)
         {
             m_pThis->m_stats->inc(HTTP_ERROR);
 

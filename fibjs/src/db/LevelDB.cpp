@@ -215,8 +215,8 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     leveldb::WriteBatch *batch_ = m_batch ? m_batch : &batch;
 
     v8::Local<v8::Array> ks = map->GetPropertyNames();
-    int len = ks->Length();
-    int i;
+    int32_t len = ks->Length();
+    int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++)
@@ -247,8 +247,8 @@ result_t LevelDB::remove(v8::Local<v8::Array> keys)
     leveldb::WriteBatch batch;
     leveldb::WriteBatch *batch_ = m_batch ? m_batch : &batch;
 
-    int len = keys->Length();
-    int i;
+    int32_t len = keys->Length();
+    int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++)

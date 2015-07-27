@@ -30,12 +30,12 @@ void API_closeSocket(void *sock)
 {
 }
 
-int API_connectSocket(void *sock, const char *host, int port)
+int32_t API_connectSocket(void *sock, const char *host, int32_t port)
 {
     return fibjs::socket::connect(sock, host, port);
 }
 
-int API_setTimeout(void *sock, int timeoutSec)
+int32_t API_setTimeout(void *sock, int32_t timeoutSec)
 {
     return 1;
 }
@@ -44,24 +44,24 @@ void API_clearException(void)
 {
 }
 
-int API_recvSocket(void *sock, char *buffer, int cbBuffer)
+int32_t API_recvSocket(void *sock, char *buffer, int32_t cbBuffer)
 {
     return fibjs::socket::recv(sock, buffer, cbBuffer);
 }
 
-int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
+int32_t API_sendSocket(void *sock, const char *buffer, int32_t cbBuffer)
 {
     return fibjs::socket::send(sock, buffer, cbBuffer);
 }
 
-void *API_createResult(int columns)
+void *API_createResult(int32_t columns)
 {
     DBResult *res = new DBResult(columns);
     res->Ref();
     return res;
 }
 
-void API_resultSetField(void *result, int ifield, UMTypeInfo *ti, void *name,
+void API_resultSetField(void *result, int32_t ifield, UMTypeInfo *ti, void *name,
                         size_t cbName)
 {
     std::string s((char *) name, cbName);
@@ -73,8 +73,8 @@ void API_resultRowBegin(void *result)
     ((DBResult *) result)->beginRow();
 }
 
-int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
-                       size_t cbValue)
+int32_t API_resultRowValue(void *result, int32_t icolumn, UMTypeInfo *ti, void *value,
+                           size_t cbValue)
 {
     Variant v;
 
@@ -91,13 +91,13 @@ int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
         case MFTYPE_LONGLONG:
         case MFTYPE_FLOAT:
         case MFTYPE_DOUBLE:
-            v.parseNumber((const char *) value, (int) cbValue);
+            v.parseNumber((const char *) value, (int32_t) cbValue);
             break;
 
         case MFTYPE_DATE:
         case MFTYPE_TIME:
         case MFTYPE_DATETIME:
-            v.parseDate((const char *) value, (int) cbValue);
+            v.parseDate((const char *) value, (int32_t) cbValue);
             break;
 
         case MFTYPE_TINY_BLOB:
@@ -126,7 +126,7 @@ void API_destroyResult(void *result)
     ((DBResult *) result)->Unref();
 }
 
-void *API_resultOK(UINT64 affected, UINT64 insertId, int serverStatus,
+void *API_resultOK(UINT64 affected, UINT64 insertId, int32_t serverStatus,
                    const char *message, size_t len)
 {
     DBResult *res = new DBResult(affected, insertId);
@@ -156,7 +156,7 @@ result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal,
     if (hr < 0)
         return hr;
 
-    int nPort = 3306;
+    int32_t nPort = 3306;
     if (u->m_port.length() > 0)
         nPort = atoi(u->m_port.c_str());
 
@@ -190,7 +190,7 @@ mysql::~mysql()
     }
 }
 
-result_t mysql::connect(const char *host, int port, const char *username,
+result_t mysql::connect(const char *host, int32_t port, const char *username,
                         const char *password, const char *dbName)
 {
     if (m_conn)
@@ -227,7 +227,7 @@ result_t mysql::use(const char *dbName, AsyncEvent *ac)
     obj_ptr<DBResult_base> retVal;
     std::string s("USE ", 4);
     s.append(dbName);
-    return execute(s.c_str(), (int) s.length(), retVal);
+    return execute(s.c_str(), (int32_t) s.length(), retVal);
 }
 
 result_t mysql::begin(AsyncEvent *ac)
@@ -248,7 +248,7 @@ result_t mysql::rollback(AsyncEvent *ac)
     return execute("ROLLBACK", 8, retVal);
 }
 
-result_t mysql::execute(const char *sql, int sLen,
+result_t mysql::execute(const char *sql, int32_t sLen,
                         obj_ptr<DBResult_base> &retVal)
 {
     if (!m_conn)
@@ -266,7 +266,7 @@ result_t mysql::execute(const char *sql, int sLen,
 
 result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
 {
-    return execute(sql, (int) qstrlen(sql), retVal);
+    return execute(sql, (int32_t) qstrlen(sql), retVal);
 }
 
 result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
@@ -277,7 +277,7 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
     if (hr < 0)
         return hr;
 
-    return execute(str.c_str(), (int) str.length(), retVal);
+    return execute(str.c_str(), (int32_t) str.length(), retVal);
 }
 
 result_t mysql::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,

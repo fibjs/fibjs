@@ -34,8 +34,8 @@ inline void extend(const v8::Local<v8::Object> src,
 {
     TryCatch try_catch;
     v8::Local<v8::Array> ks = src->GetPropertyNames();
-    int len = ks->Length();
-    int i;
+    int32_t len = ks->Length();
+    int32_t i;
 
     for (i = 0; i < len; i++)
     {
@@ -293,8 +293,8 @@ public:
         return m_Val.intVal;
     }
 
-    void parseNumber(const char *str, int len = -1);
-    void parseDate(const char *str, int len = -1)
+    void parseNumber(const char *str, int32_t len = -1);
+    void parseDate(const char *str, int32_t len = -1)
     {
         set_type(VT_Date);
         dateVal().parse(str, len);

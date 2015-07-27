@@ -54,8 +54,8 @@ result_t os_base::get_version(std::string &retVal)
     if (GetVersionEx(&info) == 0)
         return CHECK_ERROR(LastError());
 
-    sprintf(release, "%d.%d.%d", static_cast<int>(info.dwMajorVersion),
-            static_cast<int>(info.dwMinorVersion), static_cast<int>(info.dwBuildNumber));
+    sprintf(release, "%d.%d.%d", static_cast<int32_t>(info.dwMajorVersion),
+            static_cast<int32_t>(info.dwMinorVersion), static_cast<int32_t>(info.dwBuildNumber));
     retVal = release;
 
     return 0;
@@ -202,7 +202,7 @@ result_t os_base::freemem(int64_t &retVal)
 
 result_t os_base::CPUs(int32_t &retVal)
 {
-    static int cpus = 0;
+    static int32_t cpus = 0;
 
     if (cpus > 0)
     {

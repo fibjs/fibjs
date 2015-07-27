@@ -45,7 +45,7 @@ result_t os_base::uptime(double &retVal)
     time_t now;
     struct timeval info;
     size_t size = sizeof(info);
-    static int which[] = { CTL_KERN, KERN_BOOTTIME };
+    static int32_t which[] = { CTL_KERN, KERN_BOOTTIME };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
         return CHECK_ERROR(LastError());
@@ -63,7 +63,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 
     struct loadavg info;
     size_t size = sizeof(info);
-    int which[] = { CTL_VM, VM_LOADAVG };
+    int32_t which[] = { CTL_VM, VM_LOADAVG };
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
         return CHECK_ERROR(LastError());
@@ -83,7 +83,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 result_t os_base::totalmem(int64_t &retVal)
 {
     uint64_t info;
-    int which[] = { CTL_HW, HW_PHYSMEM };
+    int32_t which[] = { CTL_HW, HW_PHYSMEM };
     size_t size = sizeof(info);
 
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
@@ -96,7 +96,7 @@ result_t os_base::totalmem(int64_t &retVal)
 
 result_t os_base::freemem(int64_t &retVal)
 {
-    int freecount;
+    int32_t freecount;
     size_t size = sizeof(freecount);
 
     if (sysctlbyname("vm.stats.vm.v_free_count", &freecount, &size, NULL, 0)
@@ -110,7 +110,7 @@ result_t os_base::freemem(int64_t &retVal)
 
 result_t os_base::CPUs(int32_t &retVal)
 {
-    static int cpus = 0;
+    static int32_t cpus = 0;
 
     if (cpus > 0)
     {
@@ -118,7 +118,7 @@ result_t os_base::CPUs(int32_t &retVal)
         return 0;
     }
 
-    int numcpus;
+    int32_t numcpus;
     size_t size;
 
     size = sizeof(numcpus);
@@ -139,13 +139,13 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     v8::Local<v8::Object> cpuinfo;
     v8::Local<v8::Object> cputimes;
 
-    unsigned int ticks = (unsigned int) sysconf(_SC_CLK_TCK), multiplier =
-                             ((uint64_t) 1000L / ticks), cpuspeed, maxcpus, cur = 0;
+    uint32_t ticks = (uint32_t) sysconf(_SC_CLK_TCK), multiplier =
+                         ((uint64_t) 1000L / ticks), cpuspeed, maxcpus, cur = 0;
     char model[512];
     long *cp_times;
-    int numcpus;
+    int32_t numcpus;
     size_t size;
-    int i;
+    int32_t i;
 
     size = sizeof(model);
     if (sysctlbyname("hw.model", &model, &size, NULL, 0) < 0)
@@ -170,7 +170,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     size = maxcpus * CPUSTATES * sizeof(long);
 
-    cp_times = (long int *) malloc(size);
+    cp_times = (long int32_t *) malloc(size);
     if (cp_times == NULL)
         return CHECK_ERROR(LastError());
 
@@ -223,7 +223,7 @@ result_t os_base::get_execPath(std::string &retVal)
     char exeName[1024] = "";
     size_t size = sizeof(exeName);
 
-    int mib[4];
+    int32_t mib[4];
 
 #ifdef __DragonFly__
     mib[0] = CTL_KERN;
@@ -251,13 +251,13 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     kvm_t *kd = NULL;
     struct kinfo_proc *kinfo = NULL;
     pid_t pid;
-    int nprocs;
+    int32_t nprocs;
     size_t page_size = getpagesize();
 
     static bool _init = false;
-    static kvm_t *(*_kvm_open)(char *, const char *, char *, int, const char *);
+    static kvm_t *(*_kvm_open)(char *, const char *, char *, int32_t, const char *);
     static void (*_kvm_close)(kvm_t *);
-    static struct kinfo_proc* (*_kvm_getprocs)(kvm_t *, int, int, int *);
+    static struct kinfo_proc* (*_kvm_getprocs)(kvm_t *, int32_t, int32_t, int32_t *);
 
     if (!_init)
     {
@@ -265,8 +265,8 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
         if (handle)
         {
-            _kvm_open = (kvm_t * (*)(char *, const char *, char *, int, const char *))dlsym(handle, "kvm_open");
-            _kvm_getprocs = (struct kinfo_proc * (*)(kvm_t *, int, int, int *))dlsym(handle, "kvm_getprocs");
+            _kvm_open = (kvm_t * (*)(char *, const char *, char *, int32_t, const char *))dlsym(handle, "kvm_open");
+            _kvm_getprocs = (struct kinfo_proc * (*)(kvm_t *, int32_t, int32_t, int32_t *))dlsym(handle, "kvm_getprocs");
             _kvm_close = (void (*)(kvm_t *))dlsym(handle, "kvm_close");
         }
     }

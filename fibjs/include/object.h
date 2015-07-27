@@ -186,10 +186,10 @@ public:
     result_t off(const char *ev, int32_t &retVal);
     result_t off(v8::Local<v8::Object> map, int32_t &retVal);
     result_t trigger(const char *ev, const v8::FunctionCallbackInfo<v8::Value> &args);
-    result_t _trigger(const char *ev, v8::Local<v8::Value> *args, int argCount);
-    result_t _trigger(const char *ev, Variant *args, int argCount);
+    result_t _trigger(const char *ev, v8::Local<v8::Value> *args, int32_t argCount);
+    result_t _trigger(const char *ev, Variant *args, int32_t argCount);
 
-    void extMemory(int ext)
+    void extMemory(int32_t ext)
     {
         if (handle_.IsEmpty())
             m_nExtMemory += ext;
@@ -216,8 +216,8 @@ private:
                                         bool autoDelete = false);
 
 private:
-    int m_nExtMemory;
-    int m_nExtMemoryDelay;
+    int32_t m_nExtMemory;
+    int32_t m_nExtMemoryDelay;
 
     result_t internalDispose()
     {
@@ -284,7 +284,7 @@ public:
         strError += "\' is read-only.";
         isolate.isolate->ThrowException(
             v8::String::NewFromUtf8(isolate.isolate, strError.c_str(),
-                                    v8::String::kNormalString, (int) strError.length()));
+                                    v8::String::kNormalString, (int32_t) strError.length()));
     }
 
     static void i_IndexedSetter(uint32_t index,

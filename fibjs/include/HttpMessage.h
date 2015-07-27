@@ -57,8 +57,8 @@ public:
     result_t readFrom(BufferedStream_base *stm, AsyncEvent *ac);
 
 public:
-    void addHeader(const char *name, int szName, const char *value,
-                   int szValue);
+    void addHeader(const char *name, int32_t szName, const char *value,
+                   int32_t szValue);
     result_t addHeader(std::string &strLine);
     size_t size();
     size_t getData(char *buf, size_t sz);

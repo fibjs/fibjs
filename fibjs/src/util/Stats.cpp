@@ -14,8 +14,8 @@ result_t Stats_base::_new(v8::Local<v8::Array> keys,
                           obj_ptr<Stats_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Stats> pStats = new Stats();
-    int n = keys->Length();
-    int i;
+    int32_t n = keys->Length();
+    int32_t i;
     result_t hr;
 
     pStats->init(0, n);
@@ -36,9 +36,9 @@ result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
                           v8::Local<v8::Object> This)
 {
     obj_ptr<Stats> pStats = new Stats();
-    int sn = staticKeys->Length();
-    int n = keys->Length();
-    int i;
+    int32_t sn = staticKeys->Length();
+    int32_t n = keys->Length();
+    int32_t i;
     result_t hr;
 
     pStats->init(sn, n + sn);
@@ -61,7 +61,7 @@ result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
     return 0;
 }
 
-void Stats::init(int sn, int n)
+void Stats::init(int32_t sn, int32_t n)
 {
     m_static = sn;
     m_size = n;
@@ -69,18 +69,18 @@ void Stats::init(int sn, int n)
     m_keys.resize(n);
     m_counters.resize(n);
 
-    for (int i = 0; i < m_size; i++)
+    for (int32_t i = 0; i < m_size; i++)
         m_counters[i] = 0;
 
     m_date.now();
 }
 
-void Stats::set_key(int n, const char *key)
+void Stats::set_key(int32_t n, const char *key)
 {
     m_keys[n] = key;
 }
 
-result_t Stats::set_key(int n, v8::Local<v8::Value> key)
+result_t Stats::set_key(int32_t n, v8::Local<v8::Value> key)
 {
     v8::String::Utf8Value str(key);
     const char *p = *str;
@@ -92,9 +92,9 @@ result_t Stats::set_key(int n, v8::Local<v8::Value> key)
     return 0;
 }
 
-int Stats::find(const char *key)
+int32_t Stats::find(const char *key)
 {
-    int i;
+    int32_t i;
 
     for (i = 0; i < m_size; i++)
         if (!qstrcmp(key, m_keys[i].c_str()))
@@ -105,7 +105,7 @@ int Stats::find(const char *key)
 
 result_t Stats::inc(const char *key)
 {
-    int i = find(key);
+    int32_t i = find(key);
 
     if (i < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -117,7 +117,7 @@ result_t Stats::inc(const char *key)
 
 result_t Stats::dec(const char *key)
 {
-    int i = find(key);
+    int32_t i = find(key);
 
     if (i < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -129,7 +129,7 @@ result_t Stats::dec(const char *key)
 
 result_t Stats::add(const char *key, int32_t value)
 {
-    int i = find(key);
+    int32_t i = find(key);
 
     if (i < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -141,7 +141,7 @@ result_t Stats::add(const char *key, int32_t value)
 
 result_t Stats::reset()
 {
-    for (int i = m_static; i < m_size; i++)
+    for (int32_t i = m_static; i < m_size; i++)
         m_counters[i] = 0;
 
     m_date.now();
@@ -154,13 +154,13 @@ result_t Stats::uptime(int32_t &retVal)
 
     d1.now();
 
-    retVal = (int)d1.diff(m_date);
+    retVal = (int32_t)d1.diff(m_date);
     return 0;
 }
 
 result_t Stats::_named_getter(const char *property, int32_t &retVal)
 {
-    int i = find(property);
+    int32_t i = find(property);
 
     if (i < 0)
         return CALL_RETURN_NULL;
@@ -172,7 +172,7 @@ result_t Stats::_named_getter(const char *property, int32_t &retVal)
 
 result_t Stats::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
-    int i;
+    int32_t i;
     Isolate &isolate = Isolate::now();
 
     retVal = v8::Array::New(isolate.isolate);
@@ -181,7 +181,7 @@ result_t Stats::_named_enumerator(v8::Local<v8::Array> &retVal)
         retVal->Set(i,
                     v8::String::NewFromUtf8(isolate.isolate, m_keys[i].c_str(),
                                             v8::String::kNormalString,
-                                            (int) m_keys[i].length()));
+                                            (int32_t) m_keys[i].length()));
 
     return 0;
 }

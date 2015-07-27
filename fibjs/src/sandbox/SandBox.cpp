@@ -49,7 +49,7 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
 void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
     mods()->Set(v8::String::NewFromUtf8(Isolate::now().isolate, fname.c_str(), v8::String::kNormalString,
-                                        (int)fname.length()), o);
+                                        (int32_t)fname.length()), o);
 }
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
@@ -63,8 +63,8 @@ result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
 result_t SandBox::add(v8::Local<v8::Object> mods)
 {
     v8::Local<v8::Array> ks = mods->GetPropertyNames();
-    int len = ks->Length();
-    int i;
+    int32_t len = ks->Length();
+    int32_t i;
 
     for (i = 0; i < len; i++)
     {

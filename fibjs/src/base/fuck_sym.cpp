@@ -31,10 +31,10 @@ extern "C"
         return 0;
     }
 
-    int __isoc99_sscanf(const char *s, const char *format, ...)
+    int32_t __isoc99_sscanf(const char *s, const char *format, ...)
     {
         va_list arg;
-        int done;
+        int32_t done;
 
         va_start(arg, format);
         done = vsscanf(s, format, arg);

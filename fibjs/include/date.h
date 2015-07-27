@@ -67,7 +67,7 @@ public:
         d = v8::base::OS::TimeCurrentMillis();
     }
 
-    void create(int Y, int M, int D, int h, int m, int s, int ms);
+    void create(int32_t Y, int32_t M, int32_t D, int32_t h, int32_t m, int32_t s, int32_t ms);
 
     date_t &operator=(double v)
     {
@@ -102,13 +102,13 @@ public:
         return d - d1.d;
     }
 
-    void add(int num, int part = _SECOND);
-    void fix(int part = _SECOND);
+    void add(int32_t num, int32_t part = _SECOND);
+    void fix(int32_t part = _SECOND);
 
     void toLocal();
     void toUTC();
 
-    void parse(const char *str, int len = -1);
+    void parse(const char *str, int32_t len = -1);
     void toGMTString(std::string &retVal);
     void toX509String(std::string &retVal);
     void sqlString(std::string &retVal);

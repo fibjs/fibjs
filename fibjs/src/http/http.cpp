@@ -31,7 +31,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
             set(send);
         }
 
-        static int send(AsyncState *pState, int n)
+        static int32_t send(AsyncState *pState, int32_t n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 
@@ -39,7 +39,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
             return pThis->m_req->sendTo(pThis->m_conn, pThis);
         }
 
-        static int recv(AsyncState *pState, int n)
+        static int32_t recv(AsyncState *pState, int32_t n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 
@@ -51,7 +51,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
             return pThis->m_retVal->readFrom(pThis->m_bs, pThis);
         }
 
-        static int unzip(AsyncState *pState, int n)
+        static int32_t unzip(AsyncState *pState, int32_t n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 
@@ -80,7 +80,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
             return 0;
         }
 
-        static int close(AsyncState *pState, int n)
+        static int32_t close(AsyncState *pState, int32_t n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
 

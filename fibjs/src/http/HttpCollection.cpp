@@ -110,8 +110,8 @@ inline result_t _map(HttpCollection *o, v8::Local<v8::Object> m,
                      result_t (HttpCollection::*fn)(const char *name, Variant value))
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
-    int len = ks->Length();
-    int i;
+    int32_t len = ks->Length();
+    int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++)
@@ -227,7 +227,7 @@ result_t HttpCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
     for (i = 0; i < m_count; i++)
         retVal->Set(i,
                     v8::String::NewFromUtf8(isolate.isolate, m_names[i].c_str(),
-                                            v8::String::kNormalString, (int) m_names[i].length()));
+                                            v8::String::kNormalString, (int32_t) m_names[i].length()));
 
     return 0;
 }

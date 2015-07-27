@@ -16,14 +16,14 @@
 namespace fibjs
 {
 
-void Image::setExtMemory(int add)
+void Image::setExtMemory(int32_t add)
 {
     if (m_image)
     {
-        int psize =
-            gdImageTrueColor(m_image) ? sizeof(int) : sizeof(unsigned char);
-        int sx = gdImageSX(m_image);
-        int sy = gdImageSY(m_image);
+        int32_t psize =
+            gdImageTrueColor(m_image) ? sizeof(int32_t) : sizeof(unsigned char);
+        int32_t sx = gdImageSX(m_image);
+        int32_t sy = gdImageSY(m_image);
         extMemory(
             (sizeof(gdImage) + sizeof(void *) * sy + psize * sx * sy) * add);
     }
@@ -75,7 +75,7 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
             set(read);
         }
 
-        static int read(AsyncState *pState, int n)
+        static int32_t read(AsyncState *pState, int32_t n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
             result_t hr;
@@ -93,7 +93,7 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
             return pThis->m_stm->read((int32_t) len, pThis->m_buffer, pThis);
         }
 
-        static int load(AsyncState *pState, int n)
+        static int32_t load(AsyncState *pState, int32_t n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -134,7 +134,7 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
             set(open);
         }
 
-        static int open(AsyncState *pState, int n)
+        static int32_t open(AsyncState *pState, int32_t n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -142,7 +142,7 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
             return fs_base::open(pThis->m_fname.c_str(), "r", pThis->m_file, pThis);
         }
 
-        static int read(AsyncState *pState, int n)
+        static int32_t read(AsyncState *pState, int32_t n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -150,7 +150,7 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
             return load(pThis->m_file, pThis->m_retVal, pThis);
         }
 
-        static int close(AsyncState *pState, int n)
+        static int32_t close(AsyncState *pState, int32_t n)
         {
             asyncLoad *pThis = (asyncLoad *) pState;
 
@@ -406,21 +406,21 @@ result_t Image::load(Buffer_base *data)
     switch (format)
     {
     case gd_base::_GIF:
-        m_image = gdImageCreateFromGifPtr((int) strBuf.length(),
+        m_image = gdImageCreateFromGifPtr((int32_t) strBuf.length(),
                                           (void *) strBuf.c_str());
         break;
     case gd_base::_PNG:
-        m_image = gdImageCreateFromPngPtr((int) strBuf.length(),
+        m_image = gdImageCreateFromPngPtr((int32_t) strBuf.length(),
                                           (void *) strBuf.c_str());
         break;
     case gd_base::_JPEG:
-        m_image = gdImageCreateFromJpegPtr((int) strBuf.length(),
+        m_image = gdImageCreateFromJpegPtr((int32_t) strBuf.length(),
                                            (void *) strBuf.c_str());
         if (m_image != NULL)
         {
             EXIFInfo result;
             result.parseFrom((const unsigned char *) strBuf.c_str(),
-                             (unsigned int)strBuf.length());
+                             (uint32_t)strBuf.length());
 
             switch (result.Orientation)
             {
@@ -448,19 +448,19 @@ result_t Image::load(Buffer_base *data)
 
         break;
     case gd_base::_TIFF:
-        m_image = gdImageCreateFromTiffPtr((int) strBuf.length(),
+        m_image = gdImageCreateFromTiffPtr((int32_t) strBuf.length(),
                                            (void *) strBuf.c_str());
         break;
     case gd_base::_BMP:
-        m_image = gdImageCreateFromBmpPtr((int) strBuf.length(),
+        m_image = gdImageCreateFromBmpPtr((int32_t) strBuf.length(),
                                           (void *) strBuf.c_str());
         break;
     case gd_base::_GD:
-        m_image = gdImageCreateFromGdPtr((int) strBuf.length(),
+        m_image = gdImageCreateFromGdPtr((int32_t) strBuf.length(),
                                          (void *) strBuf.c_str());
         break;
     case gd_base::_GD2:
-        m_image = gdImageCreateFromGd2Ptr((int) strBuf.length(),
+        m_image = gdImageCreateFromGd2Ptr((int32_t) strBuf.length(),
                                           (void *) strBuf.c_str());
         break;
     }
@@ -474,7 +474,7 @@ result_t Image::load(Buffer_base *data)
     return 0;
 }
 
-int my_replacer(gdImagePtr im, int src)
+int32_t my_replacer(gdImagePtr im, int32_t src)
 {
     if (src == gdImageGetTransparent(im))
         return gdTrueColor(255, 255, 255);
@@ -491,7 +491,7 @@ result_t Image::getData(int32_t format, int32_t quality,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int size = 0;
+    int32_t size = 0;
     void *data = NULL;
 
     if (format == gd_base::_JPEG || format == gd_base::_TIFF
@@ -518,7 +518,7 @@ result_t Image::getData(int32_t format, int32_t quality,
     case gd_base::_JPEG:
     {
         unsigned char *ed_data = NULL;
-        unsigned int  ed_size = 0;
+        uint32_t  ed_size = 0;
 
         data = gdImageJpegPtr(m_image, &size, quality, ed_data, ed_size);
 
@@ -562,7 +562,7 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
             set(getData);
         }
 
-        static int getData(AsyncState *pState, int n)
+        static int32_t getData(AsyncState *pState, int32_t n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -570,7 +570,7 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
             return pThis->m_pThis->getData(pThis->m_format, pThis->m_quality, pThis->m_buf, pThis);
         }
 
-        static int save(AsyncState *pState, int n)
+        static int32_t save(AsyncState *pState, int32_t n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -608,7 +608,7 @@ result_t Image::save(const char *fname, int32_t format, int32_t quality,
             set(open);
         }
 
-        static int open(AsyncState *pState, int n)
+        static int32_t open(AsyncState *pState, int32_t n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -616,7 +616,7 @@ result_t Image::save(const char *fname, int32_t format, int32_t quality,
             return fs_base::open(pThis->m_fname.c_str(), "w", pThis->m_file, pThis);
         }
 
-        static int save(AsyncState *pState, int n)
+        static int32_t save(AsyncState *pState, int32_t n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -624,7 +624,7 @@ result_t Image::save(const char *fname, int32_t format, int32_t quality,
             return pThis->m_pThis->save(pThis->m_file, pThis->m_format, pThis->m_quality, pThis);
         }
 
-        static int close(AsyncState *pState, int n)
+        static int32_t close(AsyncState *pState, int32_t n)
         {
             asyncSave *pThis = (asyncSave *) pState;
 
@@ -1045,7 +1045,7 @@ result_t Image::polygon(v8::Local<v8::Array> points, int32_t color)
     if (hr < 0)
         return hr;
 
-    gdImagePolygon(m_image, pts.data(), (int) pts.size(), color);
+    gdImagePolygon(m_image, pts.data(), (int32_t) pts.size(), color);
     return 0;
 }
 
@@ -1060,7 +1060,7 @@ result_t Image::openPolygon(v8::Local<v8::Array> points, int32_t color)
     if (hr < 0)
         return hr;
 
-    gdImageOpenPolygon(m_image, pts.data(), (int) pts.size(), color);
+    gdImageOpenPolygon(m_image, pts.data(), (int32_t) pts.size(), color);
     return 0;
 }
 
@@ -1075,7 +1075,7 @@ result_t Image::filledPolygon(v8::Local<v8::Array> points, int32_t color)
     if (hr < 0)
         return hr;
 
-    gdImageFilledPolygon(m_image, pts.data(), (int) pts.size(), color);
+    gdImageFilledPolygon(m_image, pts.data(), (int32_t) pts.size(), color);
     return 0;
 }
 
@@ -1280,9 +1280,9 @@ result_t Image::rotate(int32_t dir)
     if (dir != gd_base::_LEFT && dir != gd_base::_RIGHT)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int sx = gdImageSX(m_image);
-    int sy = gdImageSY(m_image);
-    int i, j;
+    int32_t sx = gdImageSX(m_image);
+    int32_t sy = gdImageSY(m_image);
+    int32_t i, j;
     gdImagePtr newImage;
 
     if (gdImageTrueColor(m_image))
@@ -1340,10 +1340,10 @@ result_t Image::convert(int32_t color, AsyncEvent *ac)
 
     if (color == gd_base::_TRUECOLOR && !gdImageTrueColor(m_image))
     {
-        int sx = gdImageSX(m_image);
-        int sy = gdImageSY(m_image);
+        int32_t sx = gdImageSX(m_image);
+        int32_t sy = gdImageSY(m_image);
         gdImagePtr newImage = gdImageCreateTrueColor(sx, sy);
-        int trans = gdImageGetTransparent(m_image);
+        int32_t trans = gdImageGetTransparent(m_image);
 
         if (trans != -1)
         {

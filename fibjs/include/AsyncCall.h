@@ -29,7 +29,7 @@ public:
     {
     }
 
-    virtual int post(int v)
+    virtual int32_t post(int32_t v)
     {
         if (v == CALL_E_EXCEPTION)
             m_error = Runtime::errMessage();
@@ -37,9 +37,9 @@ public:
         return AsyncEvent::post(v);
     }
 
-    int wait()
+    int32_t wait()
     {
-        int r;
+        int32_t r;
 
         if (isSet())
             r = result();
@@ -69,23 +69,23 @@ public:
     }
 
 public:
-    void set(int (*fn)(AsyncState *, int))
+    void set(int32_t (*fn)(AsyncState *, int32_t))
     {
         m_state = fn;
     }
 
-    bool is(int (*fn)(AsyncState *, int))
+    bool is(int32_t (*fn)(AsyncState *, int32_t))
     {
         return m_state == fn;
     }
 
-    int done(int v = 0)
+    int32_t done(int32_t v = 0)
     {
         m_state = NULL;
         return v;
     }
 
-    virtual int post(int v)
+    virtual int32_t post(int32_t v)
     {
         result_t hr = v;
         bool bAsyncState = m_bAsyncState;
@@ -119,7 +119,7 @@ public:
         post(m_av);
     }
 
-    virtual int apost(int v)
+    virtual int32_t apost(int32_t v)
     {
         m_av = v;
 
@@ -127,7 +127,7 @@ public:
         return 0;
     }
 
-    virtual int error(int v)
+    virtual int32_t error(int32_t v)
     {
         return v;
     }
@@ -135,8 +135,8 @@ public:
 private:
     AsyncEvent *m_ac;
     bool m_bAsyncState;
-    int m_av;
-    int (*m_state)(AsyncState *, int);
+    int32_t m_av;
+    int32_t (*m_state)(AsyncState *, int32_t);
 };
 
 template<typename T, typename T1>

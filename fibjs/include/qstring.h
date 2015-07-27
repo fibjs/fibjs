@@ -43,7 +43,7 @@ bool qisxdigit(T ch)
 }
 
 template<typename T>
-int qhex(T ch)
+int32_t qhex(T ch)
 {
     return (ch >= '0' && ch <= '9' ? ch - '0' :
             ch >= 'a' && ch <= 'f' ? ch - 'a' + 10 :
@@ -79,15 +79,15 @@ T qtoupper(T c)
 }
 
 template<typename T>
-int qchricmp(T ch1, T ch2)
+int32_t qchricmp(T ch1, T ch2)
 {
     return qtolower(ch1) - qtolower(ch2);
 }
 
 template<typename T>
-int qstricmp(const T *s1, const T *s2, int sz = -1)
+int32_t qstricmp(const T *s1, const T *s2, int32_t sz = -1)
 {
-    int n = 0;
+    int32_t n = 0;
 
     while (*s1 && !(n = qchricmp(*s1++, *s2++)))
         if ((sz > 0) && (!--sz))
@@ -97,9 +97,9 @@ int qstricmp(const T *s1, const T *s2, int sz = -1)
 }
 
 template<typename T>
-int qstrcmp(const T *s1, const T *s2, int sz = -1)
+int32_t qstrcmp(const T *s1, const T *s2, int32_t sz = -1)
 {
-    int n = 0;
+    int32_t n = 0;
 
     while (*s1 && !(n = *s1++ - *s2++))
         if ((sz > 0) && (!--sz))
@@ -153,7 +153,7 @@ const T *qstristr(const T *in, const T *str)
     if (!c)
         return NULL;
 
-    int len = (int) qstrlen(str);
+    int32_t len = (int32_t) qstrlen(str);
 
     while ((in = qstrichr(in, c)) && qstricmp(in, str, len))
         in++;
@@ -169,7 +169,7 @@ const T *qstrstr(const T *in, const T *str)
     if (!c)
         return NULL;
 
-    int len = (int) qstrlen(str);
+    int32_t len = (int32_t) qstrlen(str);
 
     while ((in = qstrchr(in, c)) && qstrcmp(in, str, len))
         in++;

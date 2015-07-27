@@ -25,7 +25,7 @@ result_t db_base::openRedis(const char *connString,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     std::string host;
-    int nPort = 6379;
+    int32_t nPort = 6379;
 
     if (!qstrcmp(connString, "redis:", 6))
     {
@@ -48,7 +48,7 @@ result_t db_base::openRedis(const char *connString,
     return conn->connect(connString, nPort, ac);
 }
 
-result_t Redis::connect(const char *host, int port, AsyncEvent *ac)
+result_t Redis::connect(const char *host, int32_t port, AsyncEvent *ac)
 {
     result_t hr;
 
@@ -87,7 +87,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             set(read);
         }
 
-        static int send(AsyncState *pState, int n)
+        static int32_t send(AsyncState *pState, int32_t n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
@@ -97,7 +97,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             return pThis->m_stmBuffered->write(pThis->m_buffer, pThis);
         }
 
-        static int read(AsyncState *pState, int n)
+        static int32_t read(AsyncState *pState, int32_t n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
@@ -164,7 +164,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             }
         }
 
-        int setResult(int hr = 0)
+        int32_t setResult(int32_t hr = 0)
         {
             while (m_lists.size())
             {
@@ -202,7 +202,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             return 0;
         }
 
-        static int read_ok(AsyncState *pState, int n)
+        static int32_t read_ok(AsyncState *pState, int32_t n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
@@ -266,7 +266,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             return CHECK_ERROR(Runtime::setError("Redis: Invalid response."));
         }
 
-        static int bulk_ok(AsyncState *pState, int n)
+        static int32_t bulk_ok(AsyncState *pState, int32_t n)
         {
             asyncCommand *pThis = (asyncCommand *) pState;
 
@@ -282,7 +282,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
             return pThis->setResult();
         }
 
-        virtual int error(int v)
+        virtual int32_t error(int32_t v)
         {
             if (m_subMode == 1)
                 m_pThis->_trigger("suberror", (Variant *)NULL, 0);

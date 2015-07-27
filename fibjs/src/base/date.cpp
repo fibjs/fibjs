@@ -13,14 +13,14 @@
 namespace fibjs
 {
 
-inline void next(int &len, int &pos)
+inline void next(int32_t &len, int32_t &pos)
 {
     pos++;
     if (len > 0)
         len--;
 }
 
-inline int64_t getInt(const char *str, int &len, int &pos)
+inline int64_t getInt(const char *str, int32_t &len, int32_t &pos)
 {
     char ch;
     int64_t n = 0;
@@ -34,7 +34,7 @@ inline int64_t getInt(const char *str, int &len, int &pos)
     return n;
 }
 
-inline char pick(const char *str, int &len, int &pos)
+inline char pick(const char *str, int32_t &len, int32_t &pos)
 {
     return len == 0 ? 0 : str[pos];
 }
@@ -117,7 +117,7 @@ const unsigned char NormalYearDayToMonth[365] =
     11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
 };
 
-const unsigned short LeapYearDaysPrecedingMonth[13] =
+const uint16_t LeapYearDaysPrecedingMonth[13] =
 {
     0, // January
     31, // February
@@ -134,7 +134,7 @@ const unsigned short LeapYearDaysPrecedingMonth[13] =
     31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30 + 31
 };
 
-const unsigned short NormalYearDaysPrecedingMonth[13] =
+const uint16_t NormalYearDaysPrecedingMonth[13] =
 {
     0, // January
     31, // February
@@ -174,9 +174,9 @@ const unsigned short NormalYearDaysPrecedingMonth[13] =
         ((YEARS) * 365) + NumberOfLeapYears(YEARS)  \
                                   )
 
-int inline checkmask(const char *data, int len, const char *mask)
+int32_t inline checkmask(const char *data, int32_t len, const char *mask)
 {
-    int i, j;
+    int32_t i, j;
     char d;
 
     for (i = j = 0; i < len; i++)
@@ -224,7 +224,7 @@ int inline checkmask(const char *data, int len, const char *mask)
     return mask[i] == '*';
 }
 
-void date_t::create(int Y, int M, int D, int h, int m, int s, int ms)
+void date_t::create(int32_t Y, int32_t M, int32_t D, int32_t h, int32_t m, int32_t s, int32_t ms)
 {
     if (M < 1 || D < 1)
     {
@@ -241,7 +241,7 @@ void date_t::create(int Y, int M, int D, int h, int m, int s, int ms)
         return;
     }
 
-    unsigned int ElapsedDays = ElapsedYearsToDays(Y - 1);
+    uint32_t ElapsedDays = ElapsedYearsToDays(Y - 1);
 
     if (IsLeapYear(Y))
         ElapsedDays += LeapYearDaysPrecedingMonth[M];
@@ -254,18 +254,18 @@ void date_t::create(int Y, int M, int D, int h, int m, int s, int ms)
         + ((h * 60 + m) * 60 + s) * 1000 + ms - 62135596800000.0;
 }
 
-void date_t::parse(const char *str, int len)
+void date_t::parse(const char *str, int32_t len)
 {
-    int wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0,
-        wMicroSecond = 0;
-    int pos = 0;
+    int32_t wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0,
+            wMicroSecond = 0;
+    int32_t pos = 0;
     bool bTime = false;
     char ch;
-    int mint, mon;
-    int tz = 0;
+    int32_t mint, mon;
+    int32_t tz = 0;
     bool bLocal = true;
     const char *monstr, *timstr = NULL, *tzstr = NULL;
-    static const int months[12] =
+    static const int32_t months[12] =
     {
         ('J' << 16) | ('a' << 8) | 'n', ('F' << 16) | ('e' << 8) | 'b',
         ('M' << 16) | ('a' << 8) | 'r', ('A' << 16) | ('p' << 8) | 'r', ('M'
@@ -276,7 +276,7 @@ void date_t::parse(const char *str, int len)
     };
 
     if (len < 0)
-        len = (int) qstrlen(str);
+        len = (int32_t) qstrlen(str);
 
     if (!str || !*str)
         return;
@@ -289,7 +289,7 @@ void date_t::parse(const char *str, int len)
 
     if (qisdigit(*str))
     {
-        wYear = (short) getInt(str, len, pos);
+        wYear = (int16_t) getInt(str, len, pos);
         ch = pick(str, len, pos);
 
         if (ch == '/' || ch == '-')
@@ -297,13 +297,13 @@ void date_t::parse(const char *str, int len)
             wMonth = wYear;
 
             next(len, pos);
-            wDay = (short) getInt(str, len, pos);
+            wDay = (int16_t) getInt(str, len, pos);
 
             ch = pick(str, len, pos);
             if (ch == '/' || ch == '-')
             {
                 next(len, pos);
-                wYear = (short) getInt(str, len, pos);
+                wYear = (int16_t) getInt(str, len, pos);
 
                 ch = pick(str, len, pos);
                 if (ch == ' ' || ch == 'T' || ch == 't')
@@ -312,7 +312,7 @@ void date_t::parse(const char *str, int len)
                         bLocal = false;
 
                     next(len, pos);
-                    wHour = (short) getInt(str, len, pos);
+                    wHour = (int16_t) getInt(str, len, pos);
                     bTime = true;
                 }
             }
@@ -329,7 +329,7 @@ void date_t::parse(const char *str, int len)
             if (wMonth
                     > 12 && wDay <= 12 && wYear <= MaxDaysInMonth(wMonth, wDay - 1))
             {
-                int n = wYear;
+                int32_t n = wYear;
                 wYear = wMonth;
                 wMonth = wDay;
                 wDay = n;
@@ -353,16 +353,16 @@ void date_t::parse(const char *str, int len)
             if (pick(str, len, pos) == ':')
             {
                 next(len, pos);
-                wMinute = (short) getInt(str, len, pos);
+                wMinute = (int16_t) getInt(str, len, pos);
 
                 if (pick(str, len, pos) == ':')
                 {
                     next(len, pos);
-                    wSecond = (short) getInt(str, len, pos);
+                    wSecond = (int16_t) getInt(str, len, pos);
 
                     if (pick(str, len, pos) == '.')
                     {
-                        int i, p = 100;
+                        int32_t i, p = 100;
 
                         next(len, pos);
                         for (i = 0; i < 3; i++)
@@ -490,15 +490,15 @@ void date_t::parse(const char *str, int len)
         d += tz * 36000;
 }
 
-void inline putStr(char  *&ptrBuf, const char *ptr, int n)
+void inline putStr(char  *&ptrBuf, const char *ptr, int32_t n)
 {
     memcpy(ptrBuf, ptr, n);
     ptrBuf += n;
 }
 
-void inline putInt(char  *&ptrBuf, int v, int n)
+void inline putInt(char  *&ptrBuf, int32_t v, int32_t n)
 {
-    int n1 = n;
+    int32_t n1 = n;
     while (n--)
     {
         ptrBuf[n] = (v % 10) + '0';
@@ -520,12 +520,12 @@ public:
         wDayOfWeek = 0;
 
         int64_t d1 = (int64_t) (d + 62135596800000ll);
-        int NumberOf400s, NumberOf100s, NumberOf4s;
+        int32_t NumberOf400s, NumberOf100s, NumberOf4s;
 
-        wDay = (int) (d1 / 86400000);
+        wDay = (int32_t) (d1 / 86400000);
         wMillisecond = d1 % 86400000;
 
-        wDayOfWeek = (short) ((wDay + 1) % 7);
+        wDayOfWeek = (int16_t) ((wDay + 1) % 7);
 
         NumberOf400s = wDay / 146097;
         wDay -= NumberOf400s * 146097;
@@ -564,8 +564,8 @@ public:
     }
 
 public:
-    int wYear, wMonth, wHour, wMinute,
-        wSecond, wDayOfWeek, wDay, wMillisecond;
+    int32_t wYear, wMonth, wHour, wMinute,
+            wSecond, wDayOfWeek, wDay, wMillisecond;
 };
 
 
@@ -662,7 +662,7 @@ void date_t::stamp(std::string &retVal)
     putInt(ptrBuf, ds.wSecond, 2);
 }
 
-void date_t::add(int num, int part)
+void date_t::add(int32_t num, int32_t part)
 {
     if (isnan(d))
         return;
@@ -678,7 +678,7 @@ void date_t::add(int num, int part)
     else
     {
         _date_split ds(d);
-        int day = MaxDaysInMonth(ds.wYear, ds.wMonth) - 1;
+        int32_t day = MaxDaysInMonth(ds.wYear, ds.wMonth) - 1;
         bool isLastday = ds.wDay == day;
 
         if (part == _MONTH)
@@ -710,7 +710,7 @@ void date_t::add(int num, int part)
     }
 }
 
-void date_t::fix(int part)
+void date_t::fix(int32_t part)
 {
     if (isnan(d))
         return;

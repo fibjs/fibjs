@@ -30,13 +30,13 @@ private:
         }
 
     public:
-        virtual int process() = 0;
-        virtual int finally()
+        virtual int32_t process() = 0;
+        virtual int32_t finally()
         {
             return 0;
         }
 
-        static int process(AsyncState *pState, int n)
+        static int32_t process(AsyncState *pState, int32_t n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -72,7 +72,7 @@ private:
             return CHECK_ERROR(_ssl::setError(pThis->m_ret));
         }
 
-        static int send(AsyncState *pState, int n)
+        static int32_t send(AsyncState *pState, int32_t n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -88,7 +88,7 @@ private:
             return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
         }
 
-        static int recv(AsyncState *pState, int n)
+        static int32_t recv(AsyncState *pState, int32_t n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -101,7 +101,7 @@ private:
             return pThis->m_pThis->m_s->read(-1, pThis->m_buf, pThis);
         }
 
-        static int flush(AsyncState *pState, int n)
+        static int32_t flush(AsyncState *pState, int32_t n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
@@ -114,7 +114,7 @@ private:
             return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
         }
 
-        static int end(AsyncState *pState, int n)
+        static int32_t end(AsyncState *pState, int32_t n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
             return pThis->done(pThis->finally());
@@ -123,7 +123,7 @@ private:
     protected:
         obj_ptr<SslSocket> m_pThis;
         obj_ptr<Buffer_base> m_buf;
-        int m_ret;
+        int32_t m_ret;
     };
 
 public:
@@ -171,11 +171,11 @@ public:
     virtual result_t accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal, AsyncEvent *ac);
 
 private:
-    int my_recv(unsigned char *buf, size_t len);
-    static int my_recv(void *ctx, unsigned char *buf, size_t len);
+    int32_t my_recv(unsigned char *buf, size_t len);
+    static int32_t my_recv(void *ctx, unsigned char *buf, size_t len);
 
-    int my_send(const unsigned char *buf, size_t len);
-    static int my_send(void *ctx, const unsigned char *buf, size_t len);
+    int32_t my_send(const unsigned char *buf, size_t len);
+    static int32_t my_send(void *ctx, const unsigned char *buf, size_t len);
 
     result_t handshake(int32_t *retVal, AsyncEvent *ac);
 
@@ -191,7 +191,7 @@ private:
     std::vector<obj_ptr<PKey_base> > m_keys;
     obj_ptr<Stream_base> m_s;
     std::string m_recv;
-    int m_recv_pos;
+    int32_t m_recv_pos;
     std::string m_send;
 };
 

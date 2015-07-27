@@ -41,8 +41,8 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
 {
     std::vector<bson> bbs;
     std::vector<const bson *> pbbs;
-    int n = documents->Length();
-    int i;
+    int32_t n = documents->Length();
+    int32_t i;
     result_t hr;
 
     if (n > 0)
@@ -64,8 +64,8 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
             pbbs[i] = &bbs[i];
         }
 
-        int result = mongo_insert_batch(&m_db->m_conn, m_ns.c_str(),
-                                        pbbs.data(), n, NULL, 0);
+        int32_t result = mongo_insert_batch(&m_db->m_conn, m_ns.c_str(),
+                                            pbbs.data(), n, NULL, 0);
 
         for (i = 0; i < n; i++)
             bson_destroy (&bbs[i]);
@@ -86,7 +86,7 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
     if (hr < 0)
         return hr;
 
-    int result = mongo_insert(&m_db->m_conn, m_ns.c_str(), &bb, NULL);
+    int32_t result = mongo_insert(&m_db->m_conn, m_ns.c_str(), &bb, NULL);
     bson_destroy(&bb);
 
     if (result != MONGO_OK)
@@ -118,8 +118,8 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
                                  v8::Local<v8::Object> document, bool upsert, bool multi)
 {
     bson bbq, bbd;
-    int flags = (upsert ? MONGO_UPDATE_UPSERT : 0)
-                + (multi ? MONGO_UPDATE_MULTI : 0);
+    int32_t flags = (upsert ? MONGO_UPDATE_UPSERT : 0)
+                    + (multi ? MONGO_UPDATE_MULTI : 0);
 
     result_t hr;
 
@@ -134,8 +134,8 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
         return hr;
     }
 
-    int result = mongo_update(&m_db->m_conn, m_ns.c_str(), &bbq, &bbd, flags,
-                              NULL);
+    int32_t result = mongo_update(&m_db->m_conn, m_ns.c_str(), &bbq, &bbd, flags,
+                                  NULL);
 
     bson_destroy(&bbq);
     bson_destroy(&bbd);
@@ -166,7 +166,7 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
     if (hr < 0)
         return hr;
 
-    int result = mongo_remove(&m_db->m_conn, m_ns.c_str(), &bbq, NULL);
+    int32_t result = mongo_remove(&m_db->m_conn, m_ns.c_str(), &bbq, NULL);
 
     bson_destroy(&bbq);
 
@@ -220,7 +220,7 @@ result_t MongoCollection::drop()
     v8::Local<v8::Object> r;
     return m_db->runCommand("drop",
                             v8::String::NewFromUtf8(Isolate::now().isolate, m_name.c_str(),
-                                    v8::String::kNormalString, (int) m_name.length()), r);
+                                    v8::String::kNormalString, (int32_t) m_name.length()), r);
 }
 
 result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
@@ -229,8 +229,8 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     std::string name;
 
     v8::Local<v8::Array> ks = keys->GetPropertyNames();
-    int len = (int) ks->Length();
-    int i;
+    int32_t len = (int32_t) ks->Length();
+    int32_t i;
 
     for (i = 0; i < len; i++)
     {
@@ -256,12 +256,12 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 
     idx->Set(v8::String::NewFromUtf8(isolate.isolate, "ns"),
              v8::String::NewFromUtf8(isolate.isolate, m_ns.c_str(),
-                                     v8::String::kNormalString, (int) m_ns.length()));
+                                     v8::String::kNormalString, (int32_t) m_ns.length()));
     idx->Set(v8::String::NewFromUtf8(isolate.isolate, "key"), keys);
 
     idx->Set(v8::String::NewFromUtf8(isolate.isolate, "name"),
              v8::String::NewFromUtf8(isolate.isolate, name.c_str(),
-                                     v8::String::kNormalString, (int) name.length()));
+                                     v8::String::kNormalString, (int32_t) name.length()));
 
     extend(idx, options);
 
@@ -305,7 +305,7 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
     v8::Local<v8::Object> q = v8::Object::New(isolate.isolate);
     q->Set(v8::String::NewFromUtf8(isolate.isolate, "ns"),
            v8::String::NewFromUtf8(isolate.isolate, m_ns.c_str(),
-                                   v8::String::kNormalString, (int) m_ns.length()));
+                                   v8::String::kNormalString, (int32_t) m_ns.length()));
 
     return coll->find(q, f, retVal);
 }

@@ -94,7 +94,7 @@ result_t Socket::create(int32_t family, int32_t type)
 
 #ifdef MacOS
 
-    int set_option = 1;
+    int32_t set_option = 1;
     setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
                sizeof(set_option));
 
@@ -243,7 +243,7 @@ result_t Socket::bind(const char *addr, int32_t port, bool allowIPv4)
     if (addr_info.addr(addr) < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int on = 1;
+    int32_t on = 1;
 #ifndef _WIN32
     setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char *) &on, sizeof(on));
 #endif

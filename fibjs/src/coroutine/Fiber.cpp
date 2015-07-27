@@ -11,7 +11,7 @@
 namespace fibjs
 {
 
-extern int stack_size;
+extern int32_t stack_size;
 
 #define MAX_FIBER   10000
 #define MAX_IDLE   10
@@ -21,7 +21,7 @@ static exlib::IDLE_PROC s_oldIdle;
 static int32_t s_fibers;
 static int32_t s_idleFibers;
 
-static int g_tlsCurrent;
+static int32_t g_tlsCurrent;
 DateCache FiberBase::g_dc;
 
 static class null_fiber_data: public Fiber_base
@@ -124,9 +124,9 @@ void FiberBase::start()
         v8::Local<v8::Object> o = wrap();
 
         v8::Local<v8::Array> ks = co->GetOwnPropertyNames();
-        int len = ks->Length();
+        int32_t len = ks->Length();
 
-        int i;
+        int32_t i;
 
         for (i = 0; i < len; i++)
         {
@@ -140,7 +140,7 @@ void FiberBase::start()
 }
 
 void JSFiber::callFunction1(v8::Local<v8::Function> func,
-                            v8::Local<v8::Value> *args, int argCount,
+                            v8::Local<v8::Value> *args, int32_t argCount,
                             v8::Local<v8::Value> &retVal)
 {
     TryCatch try_catch;
@@ -163,7 +163,7 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
         argv[i] = v8::Local<v8::Value>::New(isolate.isolate, m_argv[i]);
 
     callFunction1(v8::Local<v8::Function>::New(isolate.isolate, m_func),
-                  argv.data(), (int) argv.size(), retVal);
+                  argv.data(), (int32_t) argv.size(), retVal);
 
     if (!IsEmpty(retVal))
         m_result.Reset(isolate.isolate, retVal);

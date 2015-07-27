@@ -46,16 +46,16 @@ public:
     virtual result_t set_txBufferSize(int32_t newVal);
 
 public:
-    result_t connect(const char *host, int port, const char *username,
+    result_t connect(const char *host, int32_t port, const char *username,
                      const char *password, const char *dbName);
-    result_t execute(const char *sql, int sLen, obj_ptr<DBResult_base> &retVal);
+    result_t execute(const char *sql, int32_t sLen, obj_ptr<DBResult_base> &retVal);
 
 private:
     inline result_t error()
     {
         const char *errorMessage = NULL;
-        int errCode;
-        int errType;
+        int32_t errCode;
+        int32_t errType;
 
         if (UMConnection_GetLastError(m_conn, &errorMessage, &errCode,
                                       &errType))

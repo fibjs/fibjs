@@ -46,12 +46,12 @@ public:
 
 public:
     result_t open(const char *fname, const char *flags, AsyncEvent *ac);
-    result_t Write(const char *p, int sz);
+    result_t Write(const char *p, int32_t sz);
 
 protected:
     std::string name;
     FILE *m_pipe;
-    int m_fd;
+    int32_t m_fd;
 };
 
 }
