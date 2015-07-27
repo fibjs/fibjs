@@ -210,9 +210,8 @@ JSFiber::scope::~scope()
     exlib::Fiber::tlsPut(g_tlsCurrent, 0);
 }
 
-void AsyncEvent::sync(int32_t v)
+void AsyncEvent::sync()
 {
-    m_v = v;
     g_jobs.put(this);
 }
 

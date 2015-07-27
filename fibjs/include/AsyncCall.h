@@ -7,60 +7,25 @@
 namespace fibjs
 {
 
-class AsyncEvent: public exlib::linkitem
+class AsyncEvent: public exlib::AsyncEvent
 {
 public:
-    virtual ~AsyncEvent()
-    {}
-
-public:
-    void sync(int32_t v = 0);
+    void sync();
     virtual void js_invoke()
     {
     }
 
-    void async(int32_t v = 0);
+    void async();
     virtual void invoke()
     {
     }
-
-public:
-    virtual int post(int v)
-    {
-        m_v = v;
-        weak.set();
-
-        return 0;
-    }
-
-    int wait()
-    {
-        weak.wait();
-        return m_v;
-    }
-
-    bool isSet()
-    {
-        return weak.isSet();
-    }
-
-    int result()
-    {
-        return m_v;
-    }
-
-    void sleep(int ms);
-
-private:
-    exlib::Event weak;
-    int32_t m_v;
 };
 
 class AsyncCall: public AsyncEvent
 {
 public:
     AsyncCall(void **a) :
-        args(a), invoke_once(0)
+        args(a)
     {
     }
 
@@ -93,7 +58,6 @@ public:
 public:
     void **args;
     std::string m_error;
-    int32_t invoke_once;
 };
 
 class AsyncState: public AsyncEvent
@@ -152,7 +116,15 @@ public:
 
     virtual void invoke()
     {
-        post(result());
+        post(m_av);
+    }
+
+    virtual int apost(int v)
+    {
+        m_av = v;
+
+        async();
+        return 0;
     }
 
     virtual int error(int v)
@@ -163,6 +135,7 @@ public:
 private:
     AsyncEvent *m_ac;
     bool m_bAsyncState;
+    int m_av;
     int (*m_state)(AsyncState *, int);
 };
 

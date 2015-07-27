@@ -3,10 +3,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	_t ac(NULL); \
@@ -18,10 +17,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[0])->m( \
 				this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {this}; \
@@ -35,10 +33,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0}; \
@@ -52,10 +49,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[1])->m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, this}; \
@@ -69,10 +65,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0}; \
@@ -86,10 +81,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[1])->m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, this}; \
@@ -103,10 +97,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1}; \
@@ -120,10 +113,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[2])->m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, this}; \
@@ -137,10 +129,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1}; \
@@ -154,10 +145,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[2])->m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, this}; \
@@ -171,10 +161,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
@@ -188,10 +177,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[3])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
@@ -205,10 +193,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
@@ -222,10 +209,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[3])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
@@ -239,10 +225,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
@@ -256,10 +241,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[4])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
@@ -273,10 +257,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
@@ -290,10 +273,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[4])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
@@ -307,10 +289,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
@@ -324,10 +305,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[5])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
@@ -341,10 +321,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
@@ -358,10 +337,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[5])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
@@ -375,10 +353,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
@@ -392,10 +369,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[6])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
@@ -409,10 +385,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
@@ -426,10 +401,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[6])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
@@ -443,10 +417,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
@@ -460,10 +433,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[7])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
@@ -477,10 +449,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
@@ -494,10 +465,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[7])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
@@ -511,10 +481,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
@@ -528,10 +497,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[8])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
@@ -545,10 +513,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
@@ -562,10 +529,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[8])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
@@ -579,10 +545,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
@@ -596,10 +561,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[9])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
@@ -613,10 +577,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
@@ -630,10 +593,9 @@
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
 		virtual void invoke() { \
-			if(invoke_once == 0) { invoke_once = 1;\
 			result_t hr = ((cls*)args[9])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); } else post(result()); } }; \
+			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
 	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \

@@ -139,7 +139,7 @@ public:
     {
         m_opt = NULL;
         m_guard = 0;
-        m_ac->async(v);
+        m_ac->apost(v);
         delete this;
     }
 
@@ -239,7 +239,7 @@ void Socket::cancel_socket(AsyncEvent *ac)
             if (m_opt2)
                 ((asyncProc *) m_opt2)->onready();
 
-            m_ac->async(0);
+            m_ac->apost(0);
             delete this;
         }
 

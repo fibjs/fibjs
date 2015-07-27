@@ -65,9 +65,8 @@ public:
     }
 };
 
-void AsyncEvent::async(int32_t v)
+void AsyncEvent::async()
 {
-    m_v = v;
     s_acPool.put(this);
 }
 

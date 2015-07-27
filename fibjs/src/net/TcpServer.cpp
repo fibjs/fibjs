@@ -156,7 +156,7 @@ result_t TcpServer::run(AsyncEvent *ac)
             pThis->m_pThis->m_stats->inc(TCPS_TOTAL);
             pThis->m_pThis->m_stats->inc(TCPS_ACCEPT);
             pThis->m_pThis->m_stats->inc(TCPS_CONNECTIONS);
-            (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->async(0);
+            (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
 
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
@@ -213,7 +213,7 @@ result_t TcpServer::asyncRun()
     if (m_running)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    (new asyncCall(this))->async(0);
+    (new asyncCall(this))->apost(0);
     return 0;
 }
 
