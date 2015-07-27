@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "utils.h"
 #include "Image.h"
 #include "Buffer.h"
 #include "ifs/fs.h"
@@ -186,7 +187,7 @@ result_t gd_base::rgba(int32_t red, int32_t green, int32_t blue,
             || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = gdTrueColorAlpha(red, green, blue, (int32_t)(alpha * 127));
+    retVal = gdTrueColorAlpha(red, green, blue, doubleToInt(alpha * 127));
     return 0;
 }
 
@@ -199,15 +200,15 @@ inline int32_t rgb_quant(double p, double q, double h)
         h -= 360;
 
     if (h < 60)
-        return (int32_t)((p + (q - p) * h / 60) * 255 + .5);
+        return doubleToInt((p + (q - p) * h / 60) * 255);
 
     if (h < 180)
-        return (int32_t)(q * 255 + .5);
+        return doubleToInt(q * 255 );
 
     if (h < 240)
-        return (int32_t)((p + (q - p) * (240 - h) / 60) * 255 + .5);
+        return doubleToInt((p + (q - p) * (240 - h) / 60) * 255);
 
-    return (int32_t)(p * 255 + .5);
+    return doubleToInt(p * 255);
 }
 
 inline int32_t hsl2rgb(double h, double s, double l)
@@ -216,7 +217,7 @@ inline int32_t hsl2rgb(double h, double s, double l)
 
     if (s == 0)
     {
-        int32_t c = (int32_t)(l * 255);
+        int32_t c = doubleToInt(l * 255);
         return gdTrueColor(c, c, c);
     }
 
@@ -253,14 +254,14 @@ result_t gd_base::hsla(double hue, double saturation, double lightness,
             || lightness > 1 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = ((int32_t)(alpha * 127) << 24) | hsl2rgb(hue, saturation, lightness);
+    retVal = (doubleToInt(alpha * 127) << 24) | hsl2rgb(hue, saturation, lightness);
     return 0;
 }
 
 inline int32_t hsb2rgb(double h, double s, double b)
 {
     double cr = 0, cg = 0, cb = 0;
-    int32_t i = (int32_t)(h / 60) % 6;
+    int32_t i = doubleToInt(h / 60) % 6;
     double f = (h / 60) - i;
     double p = b * (1 - s);
     double q = b * (1 - f * s);
@@ -301,9 +302,9 @@ inline int32_t hsb2rgb(double h, double s, double b)
         break;
     }
 
-    return gdTrueColor((int32_t) (cr * 255.0),
-                       (int32_t) (cg * 255.0),
-                       (int32_t) (cb * 255.0));
+    return gdTrueColor(doubleToInt (cr * 255.0),
+                       doubleToInt (cg * 255.0),
+                       doubleToInt (cb * 255.0));
 }
 
 result_t gd_base::hsb(double hue, double saturation, double brightness, int32_t& retVal)
@@ -323,7 +324,7 @@ result_t gd_base::hsba(double hue, double saturation, double brightness,
             || brightness > 1 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = ((int32_t)(alpha * 127) << 24) | hsb2rgb(hue, saturation, brightness);
+    retVal = (doubleToInt(alpha * 127) << 24) | hsb2rgb(hue, saturation, brightness);
     return 0;
 }
 
@@ -724,7 +725,7 @@ result_t Image::colorAllocateAlpha(int32_t red, int32_t green, int32_t blue,
             || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = gdImageColorAllocateAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
+    retVal = gdImageColorAllocateAlpha(m_image, red, green, blue, doubleToInt(alpha * 127));
     return 0;
 }
 
@@ -782,7 +783,7 @@ result_t Image::colorClosestAlpha(int32_t red, int32_t green, int32_t blue,
             || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = gdImageColorClosestAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
+    retVal = gdImageColorClosestAlpha(m_image, red, green, blue, doubleToInt(alpha * 127));
     return 0;
 }
 
@@ -821,7 +822,7 @@ result_t Image::colorExactAlpha(int32_t red, int32_t green, int32_t blue,
             || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = gdImageColorExactAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
+    retVal = gdImageColorExactAlpha(m_image, red, green, blue, doubleToInt(alpha * 127));
     return 0;
 }
 
@@ -860,7 +861,7 @@ result_t Image::colorResolveAlpha(int32_t red, int32_t green, int32_t blue,
             || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = gdImageColorResolveAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
+    retVal = gdImageColorResolveAlpha(m_image, red, green, blue, doubleToInt(alpha * 127));
     return 0;
 }
 

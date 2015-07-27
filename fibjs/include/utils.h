@@ -778,5 +778,8 @@ void flushLog(bool bFiber);
 
 }
 
+inline int32_t doubleToInt(double num) {
+    return (int32_t)(num + 0.5);
+}
 #endif
 
