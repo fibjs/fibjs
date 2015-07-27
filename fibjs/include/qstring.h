@@ -5,6 +5,9 @@
  *      Author: lion
  */
 
+#include <string>
+#include <stdint.h>
+
 #ifndef QSTRING_H_
 #define QSTRING_H_
 

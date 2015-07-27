@@ -6,6 +6,7 @@
  */
 
 #include <string>
+#include <stdint.h>
 
 #ifndef DATE_H_
 #define DATE_H_
