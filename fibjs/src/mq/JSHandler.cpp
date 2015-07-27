@@ -156,22 +156,13 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
                               obj_ptr<Handler_base> &retVal, AsyncEvent *ac)
 {
-    class asyncInvoke: public AsyncState
+    class asyncInvoke: public AsyncEvent
     {
     public:
         asyncInvoke(Handler_base *pThis, object_base *v,
                     obj_ptr<Handler_base> &retVal, AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
+            m_ac(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
         {
-            set(call);
-        }
-
-    public:
-        static int32_t call(AsyncState *pState, int32_t n)
-        {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
-            pThis->sync();
-            return pThis->done(CALL_E_PENDDING);
         }
 
     public:
@@ -191,10 +182,12 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         {
             if (m_hr == CALL_E_EXCEPTION)
                 Runtime::setError(m_message);
-            post(m_hr);
+            m_ac->post(m_hr);
+            delete this;
         }
 
     private:
+        AsyncEvent *m_ac;
         obj_ptr<Handler_base> m_pThis;
         obj_ptr<object_base> m_v;
         obj_ptr<Handler_base> &m_retVal;
@@ -226,7 +219,8 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         return 0;
     }
 
-    return (new asyncInvoke(hdlr, v, retVal, ac))->post(0);
+    (new asyncInvoke(hdlr, v, retVal, ac))->sync();
+    return CALL_E_PENDDING;
 }
 
 } /* namespace fibjs */
