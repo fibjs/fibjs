@@ -2,13 +2,17 @@
 #define _fj_ASYNCCALL_H
 
 #include <string>
-#include <exlib/include/thread.h>
+#include <exlib/include/fiber.h>
 
 namespace fibjs
 {
 
-class AsyncEvent: public exlib::AsyncEvent
+class AsyncEvent: public exlib::linkitem
 {
+public:
+    virtual ~AsyncEvent()
+    {}
+
 public:
     void sync();
     virtual void js_invoke()
@@ -18,6 +22,16 @@ public:
     void async();
     virtual void invoke()
     {
+    }
+
+    virtual int32_t post(int32_t v)
+    {
+        return 0;
+    }
+
+    virtual void apost(int32_t v)
+    {
+        post(v);
     }
 };
 
@@ -29,35 +43,43 @@ public:
     {
     }
 
+    virtual void js_invoke()
+    {
+        weak.set();
+    }
+
     virtual int32_t post(int32_t v)
     {
         if (v == CALL_E_EXCEPTION)
             m_error = Runtime::errMessage();
 
-        return AsyncEvent::post(v);
+        m_v = v;
+
+        sync();
+        return 0;
     }
 
     int32_t wait()
     {
-        int32_t r;
-
-        if (isSet())
-            r = result();
-        else
+        if (!weak.isSet())
         {
             Isolate::rt _rt;
-            r = AsyncEvent::wait();
+            weak.wait();
         }
 
-        if (r == CALL_E_EXCEPTION)
+        if (m_v == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
 
-        return r;
+        return m_v;
     }
 
-public:
+protected:
+    exlib::Event weak;
     void **args;
+
+private:
     std::string m_error;
+    int32_t m_v;
 };
 
 class AsyncState: public AsyncEvent
@@ -116,15 +138,13 @@ public:
 
     virtual void invoke()
     {
-        post(m_av);
+        post(m_v);
     }
 
-    virtual int32_t apost(int32_t v)
+    virtual void apost(int32_t v)
     {
-        m_av = v;
-
+        m_v = v;
         async();
-        return 0;
     }
 
     virtual int32_t error(int32_t v)
@@ -135,7 +155,7 @@ public:
 private:
     AsyncEvent *m_ac;
     bool m_bAsyncState;
-    int32_t m_av;
+    int32_t m_v;
     int32_t (*m_state)(AsyncState *, int32_t);
 };
 
