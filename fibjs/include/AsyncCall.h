@@ -43,19 +43,14 @@ public:
     {
     }
 
-    virtual void js_invoke()
-    {
-        weak.set();
-    }
-
     virtual int32_t post(int32_t v)
     {
         if (v == CALL_E_EXCEPTION)
             m_error = Runtime::errMessage();
 
         m_v = v;
+        weak.set();
 
-        sync();
         return 0;
     }
 
