@@ -75,7 +75,10 @@ public:
         if (internalUnref() == 0)
         {
             internalRef();
+            m_fast_lock.unlock();
+
             m_ar.sync();
+            return;
         }
 
         m_fast_lock.unlock();
