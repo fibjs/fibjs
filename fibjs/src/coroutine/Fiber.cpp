@@ -46,9 +46,10 @@ public:
 
 static void onIdle()
 {
-    if (!g_jobs.empty() && (s_fibers < MAX_FIBER))
+    if (!g_jobs.empty() && (s_idleFibers == 0) &&  (s_fibers < MAX_FIBER))
     {
         s_fibers++;
+        s_idleFibers ++;
         exlib::Fiber::Create(FiberBase::fiber_proc, NULL,
                              stack_size * 1024);
     }
@@ -85,6 +86,7 @@ void *FiberBase::fiber_proc(void *p)
     v8::Context::Scope context_scope(
         v8::Local<v8::Context>::New(isolate.isolate, isolate.s_context));
 
+    s_idleFibers --;
     while (1)
     {
         AsyncEvent *ae;
