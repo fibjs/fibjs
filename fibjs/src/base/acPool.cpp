@@ -81,7 +81,7 @@ public:
             else
                 s_idleCount = 0;
 
-            Sleep(100);
+            sleep(100);
         }
     }
 } s_dog;

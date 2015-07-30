@@ -186,7 +186,7 @@ public:
             if (bFiber)
                 coroutine_base::sleep(1);
             else
-                exlib::OSThread::Sleep(1);
+                exlib::OSThread::sleep(1);
     }
 
     void stop()

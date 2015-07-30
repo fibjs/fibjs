@@ -247,7 +247,7 @@ void file_logger::write(exlib::List<item> &logs)
         }
     }
 
-    Sleep(20);
+    sleep(20);
 }
 
 }
