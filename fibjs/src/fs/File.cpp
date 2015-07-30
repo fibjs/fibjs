@@ -32,9 +32,9 @@ File::~File()
     {
         if (exlib::Service::hasService()) {
             if (m_pipe)
-                AsyncClose(m_pipe, pclose);
+                asyncCall(pclose, m_pipe);
             else
-                AsyncClose(m_fd, ::_close);
+                asyncCall(::_close, m_fd);
         }
         else
         {

@@ -33,7 +33,7 @@ Socket::~Socket()
     if (m_sock != INVALID_SOCKET)
     {
         if (exlib::Service::hasService())
-            AsyncClose(m_sock, ::closesocket);
+            asyncCall(::closesocket, m_sock);
         else
             ::closesocket(m_sock);
     }

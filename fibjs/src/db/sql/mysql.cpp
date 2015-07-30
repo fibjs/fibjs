@@ -185,7 +185,7 @@ mysql::~mysql()
 {
     if (m_conn)
     {
-        DelayClose(m_conn, close_conn);
+        syncCall(close_conn, m_conn);
         m_conn = NULL;
     }
 }

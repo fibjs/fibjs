@@ -60,7 +60,7 @@ LevelDB::~LevelDB()
     else if (m_db)
     {
         if (exlib::Service::hasService())
-            AsyncClose(m_db, close_ldb);
+            asyncCall(close_ldb, m_db);
         else
             delete m_db;
     }

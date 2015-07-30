@@ -155,53 +155,35 @@ private:
 };
 
 template<typename T, typename T1>
-void AsyncClose(T hd, T1 func)
+class AsyncFunc: public AsyncEvent
 {
-    class _AsyncClose: public AsyncEvent
+public:
+    AsyncFunc(T func, T1 v) :
+        m_func(func), m_v(v)
     {
-    public:
-        _AsyncClose(T hd, T1 func) :
-            m_hd(hd), m_func(func)
-        {
-        }
+    }
 
-        virtual void invoke()
-        {
-            m_func(m_hd);
-            delete this;
-        }
+    virtual void invoke()
+    {
+        m_func(m_v);
+        delete this;
+    }
 
-    private:
-        T m_hd;
-        T1 m_func;
-    };
+private:
+    T m_func;
+    T1 m_v;
+};
 
-    (new _AsyncClose(hd, func))->async();
+template<typename T, typename T1>
+void asyncCall(T func, T1 v)
+{
+    (new AsyncFunc<T, T1>(func, v))->async();
 }
 
 template<typename T, typename T1>
-void DelayClose(T hd, T1 func)
+void syncCall(T func, T1 v)
 {
-    class _DelayClose: public AsyncEvent
-    {
-    public:
-        _DelayClose(T hd, T1 func) :
-            m_hd(hd), m_func(func)
-        {
-        }
-
-        virtual void js_invoke()
-        {
-            m_func(m_hd);
-            delete this;
-        }
-
-    private:
-        T m_hd;
-        T1 m_func;
-    };
-
-    (new _DelayClose(hd, func))->sync();
+    (new AsyncFunc<T, T1>(func, v))->sync();
 }
 
 }
