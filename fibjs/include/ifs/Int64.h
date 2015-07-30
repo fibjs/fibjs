@@ -25,8 +25,8 @@ public:
 	// Int64_base
 	static result_t _new(int64_t num, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(int64_t hi, int64_t lo, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	static result_t _new(const char* num, int32_t base, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(Int64_base* num, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(const char* num, int32_t base, obj_ptr<Int64_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	virtual result_t get_hi(int64_t& retVal) = 0;
 	virtual result_t set_hi(int64_t newVal) = 0;
 	virtual result_t get_lo(int64_t& retVal) = 0;
@@ -173,18 +173,18 @@ namespace fibjs
 
 		hr = _new(v0, v1, vr, args.This());
 
+		METHOD_OVER(1, 1);
+
+		STRICT_ARG(obj_ptr<Int64_base>, 0);
+
+		hr = _new(v0, vr, args.This());
+
 		METHOD_OVER(2, 1);
 
 		ARG(arg_string, 0);
 		OPT_ARG(int32_t, 1, 10);
 
 		hr = _new(v0, v1, vr, args.This());
-
-		METHOD_OVER(1, 1);
-
-		ARG(obj_ptr<Int64_base>, 0);
-
-		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
 	}

@@ -2,20 +2,28 @@ var test = require("test");
 test.setup();
 
 describe('Int64', function() {
-	it('can be constructed', function testConstructor() {
+	it('can be constructed', function() {
 		var x = new Int64(),
 			y = new Int64(42),
 			z = new Int64(0xfedcba98, 0x76543210),
 			w = new Int64('0xfedcba9876543210'),
-			r = new Int64('372528006791240803');
+			r = new Int64('372528006791240803'),
+			k = new Int64(w);
 		assert.equal(x.toString(16), '0x0');
 		assert.equal(y.toString(16), '0x2a');
 		assert.equal(z.toString(16), '0xfedcba9876543210');
 		assert.equal(w.toString(16), '0xfedcba9876543210');
 		assert.equal(r.toString(16), '0x52b7c3f99ad1c63');
+		assert.equal(k.toString(16), '0xfedcba9876543210');
 	});
 
-	it('can be converted to Number', function testNumberConversion() {
+	it('can not be constructed from object', function() {
+		assert.throws(function() {
+			var x = new Int64({});
+		});
+	});
+
+	it('can be converted to Number', function() {
 		var a = new Int64(2),
 			b = new Int64(3);
 		assert.equal(a + b, 5);
@@ -29,7 +37,7 @@ describe('Int64', function() {
 		assert.equal(+w, Infinity);
 	});
 
-	it('can be compared', function testComparison() {
+	it('can be compared', function() {
 		var a = new Int64(2),
 			b = new Int64(3);
 		assert.isTrue(a.equal(a));
@@ -39,7 +47,7 @@ describe('Int64', function() {
 		assert.equal(b.compare(a), 1);
 	});
 
-	it('can be bit-manipulated', function testBitManipulation() {
+	it('can be bit-manipulated', function() {
 		var x = new Int64('0x1edcba9876543210');
 		assert.equal(x.hi, 0x1edcba98);
 		assert.equal(x.lo, 0x76543210);
@@ -62,7 +70,7 @@ describe('Int64', function() {
 		assert.equal(c.toString(16), '0x3');
 	});
 
-	it('can be converted to a decimal string', function testDecimalString() {
+	it('can be converted to a decimal string', function() {
 		var positive = new Int64('0x52B7C3F99AD1C63');
 		assert.equal(positive.toString(), '372528006791240803');
 
@@ -76,7 +84,7 @@ describe('Int64', function() {
 		assert.equal(decimal.toString(), '13510798882111487');
 	});
 
-	it('can be added', function testAdd() {
+	it('can be added', function() {
 		var a = new Int64(3),
 			b = new Int64(2),
 			c = new Int64('0xfffffffffffffffe');
@@ -90,7 +98,7 @@ describe('Int64', function() {
 		assert.equal(a.add(0x100000000).toString(16), '0x100000003');
 	});
 
-	it('can be subtracted', function testSub() {
+	it('can be subtracted', function() {
 		var a = new Int64(3),
 			b = new Int64(2),
 			c = new Int64('0xffffffffffffffff');

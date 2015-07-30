@@ -19,15 +19,15 @@ interface Int64 : object
     Int64(Long hi, Long lo);
 
     /*! @brief Int64 构造函数
+     @param num 初始化的值
+    */
+    Int64(Int64 num);
+
+    /*! @brief Int64 构造函数
      @param num 数字字符串
      @param base 数字字符串的编码方式，可以接受 2-16, 32, 64，默认为 10，为 10 时自动识别 0x 编码
     */
     Int64(String num, Integer base = 10);
-
-    /*! @brief Int64 构造函数
-     @param num 初始化的值
-    */
-    Int64(Int64 num);
 
     /*! @brief 高 32 位数值 */
     Long hi;

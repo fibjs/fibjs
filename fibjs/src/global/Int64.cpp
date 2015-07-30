@@ -190,7 +190,7 @@ result_t Int64::fromString(const char *numStr, int32_t base)
         else
             ch = qhex(ch);
         if (ch < 0 || ch >= base)
-            break;
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         val = val * base + ch;
     }
