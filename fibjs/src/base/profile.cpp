@@ -26,24 +26,20 @@ static std::string traceFiber()
 {
     std::string msg;
 
-    if (Isolate::rt::g_trace)
+    exlib::linkitem* p = Isolate::now().m_fibers.head();
+
+    char buf[128];
+    int32_t n = 0;
+
+    while (p)
     {
-        exlib::linkitem* p = Isolate::now().m_fibers.head();
+        JSFiber* fb = (JSFiber*)p;
 
-        char buf[128];
-        int32_t n = 0;
-
-        while (p)
-        {
-            JSFiber* fb = (JSFiber*)p;
-
-            sprintf(buf, "\nFiber %d:", n++);
-            msg.append(buf);
-            msg.append(fb->m_traceInfo);
-            p = p->m_next;
-        }
-    } else
-        msg.append(JSFiber::current()->m_traceInfo);
+        sprintf(buf, "\nFiber %d:", n++);
+        msg.append(buf);
+        msg.append(fb->m_traceInfo);
+        p = p->m_next;
+    }
 
     return msg;
 }
@@ -53,7 +49,12 @@ static void dumpFibers()
     std::string msg;
 
     msg.append(COLOR_LIGHTRED "User interrupt.");
-    msg.append(traceFiber());
+
+    if (Isolate::rt::g_trace)
+        msg.append(traceFiber());
+    else if (JSFiber::current())
+        msg.append(traceInfo(300));
+
     msg.append(COLOR_RESET "\n");
 
     std_logger::out(msg.c_str());
@@ -62,7 +63,6 @@ static void dumpFibers()
 
 static void InterruptCallback(v8::Isolate *isolate, void *data)
 {
-    JSFiber::current()->m_traceInfo = traceInfo(300);
     dumpFibers();
 }
 
@@ -70,14 +70,9 @@ static void InterruptCallbackEx()
 {
     if (Isolate::rt::g_trace)
         dumpFibers();
-
-    Isolate &is = Isolate::now();
-
-    if (!JSFiber::current())
-        is.service->RequestInterrupt(InterruptCallbackEx);
     else
     {
-        v8::Locker locker(is.isolate);
+        v8::Locker locker(Isolate::now().isolate);
         dumpFibers();
     }
 }
