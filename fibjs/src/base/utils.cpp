@@ -90,6 +90,10 @@ std::string getResultMessage(result_t hr)
                        NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL ))
     {
         std::string s = fmtString(hr, UTF8_A(MsgBuf));
+        size_t sz = s.length();
+
+        if (sz > 0 && s[sz - 1] == '\n')
+            s.resize(sz - 1);
         return s;
     }
 
