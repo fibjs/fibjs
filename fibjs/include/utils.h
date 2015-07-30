@@ -255,6 +255,11 @@ typedef int32_t result_t;
     hr = GetArgumentValue(args[n], v##n, bStrict); \
     if(hr < 0)break;
 
+#define STRICT_ARG(t, n) \
+    t v##n; \
+    hr = GetArgumentValue(args[n], v##n, true); \
+    if(hr < 0)break;
+
 #define OPT_ARG(t, n, d) \
     t v##n = (d); \
     if((n) < argc && !args[n]->IsUndefined()){ \

@@ -659,6 +659,9 @@ function parserIDL(fname) {
 					fnStr += "		CONSTRUCT_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 			}
 
+			if (argCount == 1 && fname === "_new")
+				argVars = argVars.replace("ARG(" + map_type(ftype) + ", 0)", "STRICT_ARG(" + map_type(ftype) + ", 0)");
+
 			if (argCount)
 				fnStr += argVars + "\n";
 
