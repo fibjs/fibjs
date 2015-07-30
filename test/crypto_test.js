@@ -481,6 +481,35 @@ describe('crypto', function() {
 			assert.deepEqual(s, s1.slice(23));
 		});
 
+		it("load root ca times", function() {
+			function count(ca) {
+				var cnt = 1;
+				var ca1;
+
+				while (ca1 = ca.next) {
+					cnt++;
+					ca = ca1;
+				}
+
+				return cnt;
+			}
+
+			cert.clear();
+			assert.deepEqual(cert.dump(), []);
+
+			cert.loadRootCerts();
+			var cnt1 = count(cert);
+
+			cert.loadRootCerts();
+			assert.equal(cnt1, count(cert));
+
+			cert.clear();
+			assert.deepEqual(cert.dump(), []);
+
+			cert.loadRootCerts();
+			assert.equal(cnt1, count(cert));
+		});
+
 		it("unknown format", function() {
 			assert.throws(function() {
 				cert.load('cert_files/certdata.txt');

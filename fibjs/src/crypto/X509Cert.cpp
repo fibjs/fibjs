@@ -46,7 +46,7 @@ result_t X509Cert_base::_new(obj_ptr<X509Cert_base> &retVal, v8::Local<v8::Objec
     return 0;
 }
 
-X509Cert::X509Cert()
+X509Cert::X509Cert() : m_rootLoaded(false)
 {
     x509_crt_init(&m_crt);
 }
@@ -311,6 +311,10 @@ result_t X509Cert::loadFile(const char *filename)
 
 result_t X509Cert::loadRootCerts()
 {
+    if (m_rootLoaded)
+        return 0;
+    m_rootLoaded = true;
+
     _cert *pca = g_root_ca;
     int32_t ret;
 
@@ -390,6 +394,8 @@ result_t X509Cert::clear()
 
     x509_crt_free(&m_crt);
     x509_crt_init(&m_crt);
+    m_rootLoaded = false;
+
     return 0;
 }
 

@@ -75,6 +75,7 @@ private:
 private:
     obj_ptr<X509Cert> m_root;
     int32_t m_no;
+    bool m_rootLoaded;
 };
 
 }
