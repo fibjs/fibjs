@@ -150,7 +150,7 @@ public:
 
         while (!m_bStop)
         {
-            m_sem.Wait();
+            m_sem.wait();
 
             m_logEmpty = false;
 
@@ -176,7 +176,7 @@ public:
         if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
         {
             m_acLog.putTail(new item(priority, msg));
-            m_sem.Post();
+            m_sem.post();
         }
     }
 
@@ -192,7 +192,7 @@ public:
     void stop()
     {
         m_bStop = true;
-        m_sem.Post();
+        m_sem.post();
     }
 
 public:
@@ -220,7 +220,7 @@ public:
 
 private:
     exlib::LockedList<item> m_acLog;
-    exlib::OSSemaphore m_sem;
+    exlib::Semaphore m_sem;
     bool m_logEmpty;
     bool m_bStop;
     bool m_levels[console_base::_NOTSET];

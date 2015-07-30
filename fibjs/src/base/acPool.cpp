@@ -7,25 +7,7 @@
 namespace fibjs
 {
 
-class BlockedAsyncQueue
-{
-public:
-    void put(AsyncEvent *o)
-    {
-        m_q.putTail(o);
-        m_sem.Post();
-    }
-
-    AsyncEvent *wait()
-    {
-        m_sem.Wait();
-        return m_q.getHead();
-    }
-
-private:
-    exlib::OSSemaphore m_sem;
-    exlib::LockedList<AsyncEvent> m_q;
-} s_acPool;
+static exlib::Queue<AsyncEvent> s_acPool;
 
 static int32_t s_threads;
 static exlib::atomic s_idleThreads;
@@ -57,7 +39,7 @@ public:
                 break;
             }
 
-            p = s_acPool.wait();
+            p = s_acPool.get();
             s_idleThreads.dec();
 
             p->invoke();
