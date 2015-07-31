@@ -104,13 +104,13 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"value", s_get_value, s_set_value},
-			{"params", s_get_params, s_set_params},
-			{"result", s_get_result, s_set_result},
-			{"body", s_get_body, s_set_body},
-			{"length", s_get_length, block_set},
-			{"stream", s_get_stream, block_set},
-			{"response", s_get_response, block_set}
+			{"value", s_get_value, s_set_value, false},
+			{"params", s_get_params, s_set_params, false},
+			{"result", s_get_result, s_set_result, false},
+			{"body", s_get_body, s_set_body, false},
+			{"length", s_get_length, block_set, false},
+			{"stream", s_get_stream, block_set, false},
+			{"response", s_get_response, block_set, false}
 		};
 
 		static ClassData s_cd = 

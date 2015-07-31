@@ -27,13 +27,11 @@ class global_base : public object_base
 
 public:
 	// global_base
-	static result_t get_console(obj_ptr<console_base>& retVal);
 	static result_t run(const char* fname);
 	static result_t require(const char* id, v8::Local<v8::Value>& retVal);
 	static result_t GC();
 
 public:
-	static void s_get_console(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -59,18 +57,14 @@ namespace fibjs
 		static ClassData::ClassObject s_object[] = 
 		{
 			{"Buffer", Buffer_base::class_info},
-			{"Int64", Int64_base::class_info}
-		};
-
-		static ClassData::ClassProperty s_property[] = 
-		{
-			{"console", s_get_console, block_set}
+			{"Int64", Int64_base::class_info},
+			{"console", console_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			3, s_method, 2, s_object, 1, s_property, NULL, NULL,
+			3, s_method, 3, s_object, 0, NULL, NULL, NULL,
 			NULL
 		};
 
@@ -78,16 +72,6 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline void global_base::s_get_console(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<console_base> vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_console(vr);
-
-		METHOD_RETURN();
-	}
 
 	inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{

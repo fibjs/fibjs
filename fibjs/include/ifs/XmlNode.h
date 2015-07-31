@@ -97,16 +97,16 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"nodeType", s_get_nodeType, block_set},
-			{"nodeName", s_get_nodeName, block_set},
-			{"nodeValue", s_get_nodeValue, s_set_nodeValue},
-			{"ownerDocument", s_get_ownerDocument, block_set},
-			{"parentNode", s_get_parentNode, block_set},
-			{"childNodes", s_get_childNodes, block_set},
-			{"firstChild", s_get_firstChild, block_set},
-			{"lastChild", s_get_lastChild, block_set},
-			{"previousSibling", s_get_previousSibling, block_set},
-			{"nextSibling", s_get_nextSibling, block_set}
+			{"nodeType", s_get_nodeType, block_set, false},
+			{"nodeName", s_get_nodeName, block_set, false},
+			{"nodeValue", s_get_nodeValue, s_set_nodeValue, false},
+			{"ownerDocument", s_get_ownerDocument, block_set, false},
+			{"parentNode", s_get_parentNode, block_set, false},
+			{"childNodes", s_get_childNodes, block_set, false},
+			{"firstChild", s_get_firstChild, block_set, false},
+			{"lastChild", s_get_lastChild, block_set, false},
+			{"previousSibling", s_get_previousSibling, block_set, false},
+			{"nextSibling", s_get_nextSibling, block_set, false}
 		};
 
 		static ClassData s_cd = 

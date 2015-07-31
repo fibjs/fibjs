@@ -18,6 +18,7 @@ describe('os', function() {
 	});
 
 	it("nativeObjects", function() {
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 		var b = new Buffer();
 		assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);

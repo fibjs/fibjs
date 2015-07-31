@@ -133,27 +133,27 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"AES", s_get_AES, block_set},
-			{"CAMELLIA", s_get_CAMELLIA, block_set},
-			{"DES", s_get_DES, block_set},
-			{"DES_EDE", s_get_DES_EDE, block_set},
-			{"DES_EDE3", s_get_DES_EDE3, block_set},
-			{"BLOWFISH", s_get_BLOWFISH, block_set},
-			{"ARC4", s_get_ARC4, block_set},
-			{"ECB", s_get_ECB, block_set},
-			{"CBC", s_get_CBC, block_set},
-			{"CFB64", s_get_CFB64, block_set},
-			{"CFB128", s_get_CFB128, block_set},
-			{"OFB", s_get_OFB, block_set},
-			{"CTR", s_get_CTR, block_set},
-			{"GCM", s_get_GCM, block_set},
-			{"STREAM", s_get_STREAM, block_set},
-			{"CCM", s_get_CCM, block_set},
-			{"PKCS7", s_get_PKCS7, block_set},
-			{"ONE_AND_ZEROS", s_get_ONE_AND_ZEROS, block_set},
-			{"ZEROS_AND_LEN", s_get_ZEROS_AND_LEN, block_set},
-			{"ZEROS", s_get_ZEROS, block_set},
-			{"NOPADDING", s_get_NOPADDING, block_set}
+			{"AES", s_get_AES, block_set, true},
+			{"CAMELLIA", s_get_CAMELLIA, block_set, true},
+			{"DES", s_get_DES, block_set, true},
+			{"DES_EDE", s_get_DES_EDE, block_set, true},
+			{"DES_EDE3", s_get_DES_EDE3, block_set, true},
+			{"BLOWFISH", s_get_BLOWFISH, block_set, true},
+			{"ARC4", s_get_ARC4, block_set, true},
+			{"ECB", s_get_ECB, block_set, true},
+			{"CBC", s_get_CBC, block_set, true},
+			{"CFB64", s_get_CFB64, block_set, true},
+			{"CFB128", s_get_CFB128, block_set, true},
+			{"OFB", s_get_OFB, block_set, true},
+			{"CTR", s_get_CTR, block_set, true},
+			{"GCM", s_get_GCM, block_set, true},
+			{"STREAM", s_get_STREAM, block_set, true},
+			{"CCM", s_get_CCM, block_set, true},
+			{"PKCS7", s_get_PKCS7, block_set, true},
+			{"ONE_AND_ZEROS", s_get_ONE_AND_ZEROS, block_set, true},
+			{"ZEROS_AND_LEN", s_get_ZEROS_AND_LEN, block_set, true},
+			{"ZEROS", s_get_ZEROS, block_set, true},
+			{"NOPADDING", s_get_NOPADDING, block_set, true}
 		};
 
 		static ClassData s_cd = 

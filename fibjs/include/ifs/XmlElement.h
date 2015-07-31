@@ -105,15 +105,15 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"namespaceURI", s_get_namespaceURI, block_set},
-			{"prefix", s_get_prefix, s_set_prefix},
-			{"localName", s_get_localName, block_set},
-			{"tagName", s_get_tagName, block_set},
-			{"id", s_get_id, s_set_id},
-			{"textContent", s_get_textContent, s_set_textContent},
-			{"innerHTML", s_get_innerHTML, s_set_innerHTML},
-			{"className", s_get_className, s_set_className},
-			{"attributes", s_get_attributes, block_set}
+			{"namespaceURI", s_get_namespaceURI, block_set, false},
+			{"prefix", s_get_prefix, s_set_prefix, false},
+			{"localName", s_get_localName, block_set, false},
+			{"tagName", s_get_tagName, block_set, false},
+			{"id", s_get_id, s_set_id, false},
+			{"textContent", s_get_textContent, s_set_textContent, false},
+			{"innerHTML", s_get_innerHTML, s_set_innerHTML, false},
+			{"className", s_get_className, s_set_className, false},
+			{"attributes", s_get_attributes, block_set, false}
 		};
 
 		static ClassData s_cd = 

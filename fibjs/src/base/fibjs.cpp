@@ -76,10 +76,7 @@ void _main(const char *fname)
     v8::Context::Scope context_scope(_context);
 
     v8::Local<v8::Object> glob = _context->Global();
-    global_base::class_info().Attach(glob, NULL);
-
-    obj_ptr<console_base> s_console = new console_base();
-    glob->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, "console"), s_console->wrap());
+    global_base::class_info().Attach(glob);
 
     isolate.s_context.Reset(isolate.isolate, _context);
     isolate.s_global.Reset(isolate.isolate, glob);

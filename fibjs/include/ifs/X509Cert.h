@@ -97,18 +97,18 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"version", s_get_version, block_set},
-			{"serial", s_get_serial, block_set},
-			{"issuer", s_get_issuer, block_set},
-			{"subject", s_get_subject, block_set},
-			{"notBefore", s_get_notBefore, block_set},
-			{"notAfter", s_get_notAfter, block_set},
-			{"ca", s_get_ca, block_set},
-			{"pathlen", s_get_pathlen, block_set},
-			{"usage", s_get_usage, block_set},
-			{"type", s_get_type, block_set},
-			{"publicKey", s_get_publicKey, block_set},
-			{"next", s_get_next, block_set}
+			{"version", s_get_version, block_set, false},
+			{"serial", s_get_serial, block_set, false},
+			{"issuer", s_get_issuer, block_set, false},
+			{"subject", s_get_subject, block_set, false},
+			{"notBefore", s_get_notBefore, block_set, false},
+			{"notAfter", s_get_notAfter, block_set, false},
+			{"ca", s_get_ca, block_set, false},
+			{"pathlen", s_get_pathlen, block_set, false},
+			{"usage", s_get_usage, block_set, false},
+			{"type", s_get_type, block_set, false},
+			{"publicKey", s_get_publicKey, block_set, false},
+			{"next", s_get_next, block_set, false}
 		};
 
 		static ClassData s_cd = 

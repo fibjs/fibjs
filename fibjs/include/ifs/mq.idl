@@ -3,22 +3,22 @@
 module mq
 {
     /*! @brief 创建一个消息对象，参见 Message */
-    static Message new Message();
+    static Message;
 
     /*! @brief 创建一个包处理消息对象，参见 PacketMessage */
-    static PacketMessage new PacketMessage();
+    static PacketMessage;
 
     /*! @brief 创建一个 Packet 包处理器，参见 PacketHandler */
-    static PacketHandler new PacketHandler();
+    static PacketHandler;
 
     /*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
-    static HttpHandler new HttpHandler();
+    static HttpHandler;
 
     /*! @brief 创建一个消息处理器链处理对象，参见 Chain */
-    static Chain new Chain();
+    static Chain;
 
     /*! @brief 创建一个消息处理器路由对象，参见 Routing*/
-    static Routing new Routing();
+    static Routing;
 
     /*! @brief 创建一个 javascript 消息处理器对象，传递值内置处理器则直接返回
      @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，处理器将自动映射子对象及函数

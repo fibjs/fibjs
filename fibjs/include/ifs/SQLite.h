@@ -55,8 +55,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"fileName", s_get_fileName, block_set},
-			{"timeout", s_get_timeout, s_set_timeout}
+			{"fileName", s_get_fileName, block_set, false},
+			{"timeout", s_get_timeout, s_set_timeout, false}
 		};
 
 		static ClassData s_cd = 

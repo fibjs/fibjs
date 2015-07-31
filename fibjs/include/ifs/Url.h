@@ -86,20 +86,20 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"href", s_get_href, block_set},
-			{"protocol", s_get_protocol, block_set},
-			{"slashes", s_get_slashes, block_set},
-			{"auth", s_get_auth, block_set},
-			{"username", s_get_username, block_set},
-			{"password", s_get_password, block_set},
-			{"host", s_get_host, block_set},
-			{"hostname", s_get_hostname, block_set},
-			{"port", s_get_port, block_set},
-			{"path", s_get_path, block_set},
-			{"pathname", s_get_pathname, block_set},
-			{"search", s_get_search, block_set},
-			{"query", s_get_query, block_set},
-			{"hash", s_get_hash, block_set}
+			{"href", s_get_href, block_set, false},
+			{"protocol", s_get_protocol, block_set, false},
+			{"slashes", s_get_slashes, block_set, false},
+			{"auth", s_get_auth, block_set, false},
+			{"username", s_get_username, block_set, false},
+			{"password", s_get_password, block_set, false},
+			{"host", s_get_host, block_set, false},
+			{"hostname", s_get_hostname, block_set, false},
+			{"port", s_get_port, block_set, false},
+			{"path", s_get_path, block_set, false},
+			{"pathname", s_get_pathname, block_set, false},
+			{"search", s_get_search, block_set, false},
+			{"query", s_get_query, block_set, false},
+			{"hash", s_get_hash, block_set, false}
 		};
 
 		static ClassData s_cd = 

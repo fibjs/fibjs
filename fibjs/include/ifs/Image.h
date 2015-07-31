@@ -223,14 +223,14 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"width", s_get_width, block_set},
-			{"height", s_get_height, block_set},
-			{"format", s_get_format, block_set},
-			{"type", s_get_type, block_set},
-			{"colorsTotal", s_get_colorsTotal, block_set},
-			{"transparent", s_get_transparent, s_set_transparent},
-			{"progressive", s_get_progressive, s_set_progressive},
-			{"alphaBlending", s_get_alphaBlending, s_set_alphaBlending}
+			{"width", s_get_width, block_set, false},
+			{"height", s_get_height, block_set, false},
+			{"format", s_get_format, block_set, false},
+			{"type", s_get_type, block_set, false},
+			{"colorsTotal", s_get_colorsTotal, block_set, false},
+			{"transparent", s_get_transparent, s_set_transparent, false},
+			{"progressive", s_get_progressive, s_set_progressive, false},
+			{"alphaBlending", s_get_alphaBlending, s_set_alphaBlending, false}
 		};
 
 		static ClassData s_cd = 

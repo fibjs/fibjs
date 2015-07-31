@@ -73,10 +73,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"DNS", s_get_DNS, block_set},
-			{"URL", s_get_URL, block_set},
-			{"OID", s_get_OID, block_set},
-			{"X509", s_get_X509, block_set}
+			{"DNS", s_get_DNS, block_set, true},
+			{"URL", s_get_URL, block_set, true},
+			{"OID", s_get_OID, block_set, true},
+			{"X509", s_get_X509, block_set, true}
 		};
 
 		static ClassData s_cd = 

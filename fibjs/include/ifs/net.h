@@ -98,10 +98,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"AF_INET", s_get_AF_INET, block_set},
-			{"AF_INET6", s_get_AF_INET6, block_set},
-			{"SOCK_STREAM", s_get_SOCK_STREAM, block_set},
-			{"SOCK_DGRAM", s_get_SOCK_DGRAM, block_set}
+			{"AF_INET", s_get_AF_INET, block_set, true},
+			{"AF_INET6", s_get_AF_INET6, block_set, true},
+			{"SOCK_STREAM", s_get_SOCK_STREAM, block_set, true},
+			{"SOCK_DGRAM", s_get_SOCK_DGRAM, block_set, true}
 		};
 
 		static ClassData s_cd = 

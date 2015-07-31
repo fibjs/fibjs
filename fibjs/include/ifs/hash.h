@@ -128,15 +128,15 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"MD2", s_get_MD2, block_set},
-			{"MD4", s_get_MD4, block_set},
-			{"MD5", s_get_MD5, block_set},
-			{"SHA1", s_get_SHA1, block_set},
-			{"SHA224", s_get_SHA224, block_set},
-			{"SHA256", s_get_SHA256, block_set},
-			{"SHA384", s_get_SHA384, block_set},
-			{"SHA512", s_get_SHA512, block_set},
-			{"RIPEMD160", s_get_RIPEMD160, block_set}
+			{"MD2", s_get_MD2, block_set, true},
+			{"MD4", s_get_MD4, block_set, true},
+			{"MD5", s_get_MD5, block_set, true},
+			{"SHA1", s_get_SHA1, block_set, true},
+			{"SHA224", s_get_SHA224, block_set, true},
+			{"SHA256", s_get_SHA256, block_set, true},
+			{"SHA384", s_get_SHA384, block_set, true},
+			{"SHA512", s_get_SHA512, block_set, true},
+			{"RIPEMD160", s_get_RIPEMD160, block_set, true}
 		};
 
 		static ClassData s_cd = 

@@ -113,14 +113,14 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"inputEncoding", s_get_inputEncoding, block_set},
-			{"xmlStandalone", s_get_xmlStandalone, s_set_xmlStandalone},
-			{"xmlVersion", s_get_xmlVersion, s_set_xmlVersion},
-			{"doctype", s_get_doctype, block_set},
-			{"documentElement", s_get_documentElement, block_set},
-			{"head", s_get_head, block_set},
-			{"title", s_get_title, block_set},
-			{"body", s_get_body, block_set}
+			{"inputEncoding", s_get_inputEncoding, block_set, false},
+			{"xmlStandalone", s_get_xmlStandalone, s_set_xmlStandalone, false},
+			{"xmlVersion", s_get_xmlVersion, s_set_xmlVersion, false},
+			{"doctype", s_get_doctype, block_set, false},
+			{"documentElement", s_get_documentElement, block_set, false},
+			{"head", s_get_head, block_set, false},
+			{"title", s_get_title, block_set, false},
+			{"body", s_get_body, block_set, false}
 		};
 
 		static ClassData s_cd = 

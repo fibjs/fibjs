@@ -49,7 +49,7 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"maxSize", s_get_maxSize, s_set_maxSize}
+			{"maxSize", s_get_maxSize, s_set_maxSize, false}
 		};
 
 		static ClassData s_cd = 

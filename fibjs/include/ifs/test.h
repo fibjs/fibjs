@@ -94,10 +94,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"BDD", s_get_BDD, block_set},
-			{"TDD", s_get_TDD, block_set},
-			{"assert", s_get_assert, block_set},
-			{"slow", s_get_slow, s_set_slow}
+			{"BDD", s_get_BDD, block_set, true},
+			{"TDD", s_get_TDD, block_set, true},
+			{"assert", s_get_assert, block_set, true},
+			{"slow", s_get_slow, s_set_slow, true}
 		};
 
 		static ClassData s_cd = 

@@ -85,11 +85,11 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"protocol", s_get_protocol, s_set_protocol},
-			{"headers", s_get_headers, block_set},
-			{"keepAlive", s_get_keepAlive, s_set_keepAlive},
-			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount},
-			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize}
+			{"protocol", s_get_protocol, s_set_protocol, false},
+			{"headers", s_get_headers, block_set, false},
+			{"keepAlive", s_get_keepAlive, s_set_keepAlive, false},
+			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false},
+			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false}
 		};
 
 		static ClassData s_cd = 

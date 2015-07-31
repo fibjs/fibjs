@@ -26,6 +26,7 @@ struct ClassData
         const char *name;
         v8::AccessorGetterCallback getter;
         v8::AccessorSetterCallback setter;
+        bool is_static;
     };
 
     struct ClassMethod
@@ -97,16 +98,22 @@ public:
         return getInstance(obj->GetAlignedPointerFromInternalField(0));
     }
 
-    v8::Local<v8::ObjectTemplate> getTemplate()
+    v8::Local<v8::Function> getFunction()
     {
         _init();
-        return v8::Local<v8::FunctionTemplate>::New(Isolate::now().isolate, m_class)->InstanceTemplate();
+        return v8::Local<v8::Function>::New(Isolate::now().isolate, m_function);
     }
 
     v8::Local<v8::Object> CreateInstance()
     {
         _init();
-        return v8::Local<v8::Object>::New(Isolate::now().isolate, m_cache)->Clone();
+
+        if (m_cd.cor)
+            return v8::Local<v8::Object>::New(Isolate::now().isolate, m_cache)->Clone();
+
+        v8::Local<v8::Object> o = v8::Local<v8::Function>::New(Isolate::now().isolate, m_function)->NewInstance();
+        o->SetAlignedPointerInInternalField(0, 0);
+        return o;
     }
 
     bool has(const char *name)
@@ -136,18 +143,7 @@ public:
         return m_cd.name;
     }
 
-    inline bool is_skip(const char *name, const char **skips)
-    {
-        if (!skips)
-            return false;
-
-        while (*skips && qstrcmp(*skips, name))
-            skips++;
-
-        return !!*skips;
-    }
-
-    void Attach(v8::Local<v8::Object> o, const char **skips)
+    void Attach(v8::Local<v8::Object> o)
     {
         Isolate &isolate = Isolate::now();
         v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate.isolate, isolate.s_context);
@@ -156,25 +152,23 @@ public:
         int32_t i;
 
         for (i = 0; i < m_cd.mc; i++)
-            if (!is_skip(m_cd.cms[i].name, skips))
+            if (m_cd.cms[i].is_static)
                 o->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, m_cd.cms[i].name),
                             v8::Function::New(isolate.isolate, m_cd.cms[i].invoker),
                             v8::ReadOnly);
 
         for (i = 0; i < m_cd.oc; i++)
-            if (!is_skip(m_cd.cos[i].name, skips))
-            {
-                m_cd.cos[i].invoker()._init();
-                o->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, m_cd.cos[i].name),
-                            v8::Local<v8::Function>::New(isolate.isolate, m_cd.cos[i].invoker().m_function),
-                            v8::ReadOnly);
-            }
+        {
+            m_cd.cos[i].invoker()._init();
+            o->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, m_cd.cos[i].name),
+                        v8::Local<v8::Function>::New(isolate.isolate, m_cd.cos[i].invoker().m_function),
+                        v8::ReadOnly);
+        }
 
-        /*        for (i = 0; i < m_cd.pc; i++)
-                    if (!is_skip(m_cd.cps[i].name, skips))
-                        o->SetAccessor(v8::String::NewFromUtf8(isolate.isolate, m_cd.cps[i].name),
-                                       m_cd.cps[i].getter, m_cd.cps[i].setter);
-        */
+        for (i = 0; i < m_cd.pc; i++)
+            if (m_cd.cps[i].is_static)
+                o->SetAccessor(v8::String::NewFromUtf8(isolate.isolate, m_cd.cps[i].name),
+                               m_cd.cps[i].getter, m_cd.cps[i].setter);
     }
 
 public:
@@ -249,14 +243,8 @@ private:
             pt->MarkAsUndetectable();
 
             for (i = 0; i < m_cd.mc; i++)
-            {
                 pt->Set(v8::String::NewFromUtf8(isolate.isolate, m_cd.cms[i].name),
                         v8::FunctionTemplate::New(isolate.isolate, m_cd.cms[i].invoker));
-                if (m_cd.cms[i].is_static)
-                    _class->Set(v8::String::NewFromUtf8(isolate.isolate, m_cd.cms[i].name),
-                                v8::Function::New(isolate.isolate, m_cd.cms[i].invoker),
-                                v8::ReadOnly);
-            }
 
             for (i = 0; i < m_cd.oc; i++)
             {
@@ -291,11 +279,15 @@ private:
                                             NULL, pcd->cns->remover, pcd->cns->enumerator);
 
             v8::Local<v8::Function> _function = _class->GetFunction();
+            Attach(_function);
             m_function.Reset(isolate.isolate, _function);
 
-            v8::Local<v8::Object> o = _function->NewInstance();
-            o->SetAlignedPointerInInternalField(0, 0);
-            m_cache.Reset(isolate.isolate, o);
+            if (m_cd.cor)
+            {
+                v8::Local<v8::Object> o = _function->NewInstance();
+                o->SetAlignedPointerInInternalField(0, 0);
+                m_cache.Reset(isolate.isolate, o);
+            }
         }
     }
 

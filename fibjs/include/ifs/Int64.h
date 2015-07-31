@@ -89,8 +89,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"hi", s_get_hi, s_set_hi},
-			{"lo", s_get_lo, s_set_lo}
+			{"hi", s_get_hi, s_set_hi, false},
+			{"lo", s_get_lo, s_set_lo, false}
 		};
 
 		static ClassData s_cd = 

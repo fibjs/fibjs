@@ -135,17 +135,17 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"FATAL", s_get_FATAL, block_set},
-			{"ALERT", s_get_ALERT, block_set},
-			{"CRIT", s_get_CRIT, block_set},
-			{"ERROR", s_get_ERROR, block_set},
-			{"WARN", s_get_WARN, block_set},
-			{"NOTICE", s_get_NOTICE, block_set},
-			{"INFO", s_get_INFO, block_set},
-			{"DEBUG", s_get_DEBUG, block_set},
-			{"NOTSET", s_get_NOTSET, block_set},
-			{"loglevel", s_get_loglevel, s_set_loglevel},
-			{"colors", s_get_colors, block_set}
+			{"FATAL", s_get_FATAL, block_set, true},
+			{"ALERT", s_get_ALERT, block_set, true},
+			{"CRIT", s_get_CRIT, block_set, true},
+			{"ERROR", s_get_ERROR, block_set, true},
+			{"WARN", s_get_WARN, block_set, true},
+			{"NOTICE", s_get_NOTICE, block_set, true},
+			{"INFO", s_get_INFO, block_set, true},
+			{"DEBUG", s_get_DEBUG, block_set, true},
+			{"NOTSET", s_get_NOTSET, block_set, true},
+			{"loglevel", s_get_loglevel, s_set_loglevel, true},
+			{"colors", s_get_colors, block_set, true}
 		};
 
 		static ClassData s_cd = 

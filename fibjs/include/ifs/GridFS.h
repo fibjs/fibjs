@@ -66,8 +66,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"files", s_get_files, block_set},
-			{"chunks", s_get_chunks, block_set}
+			{"files", s_get_files, block_set, false},
+			{"chunks", s_get_chunks, block_set, false}
 		};
 
 		static ClassData s_cd = 

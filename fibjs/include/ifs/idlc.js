@@ -511,6 +511,25 @@ function parserIDL(fname) {
 
 			attr = 'new';
 			fname = st[pos++];
+
+			if (st[pos] != "(" || st[pos + 1] != ")")
+				return reportErr();
+			pos += 2;
+		}
+
+		if (fname == ';') {
+			if (attr != 'static')
+				return reportErr();
+
+			if (clsName[ftype] && ftype != ns)
+				refCls[ftype] = true;
+			else
+				return reportErr();
+
+			attr = 'new';
+			fname = ftype;
+
+			pos--;
 		}
 
 		if (fname == "operator") {
@@ -524,10 +543,6 @@ function parserIDL(fname) {
 		}
 
 		if (attr == 'new') {
-			if (st[pos] != "(" || st[pos + 1] != ")")
-				return reportErr();
-			pos += 2;
-
 			difos
 				.push("			{\"" + fname + "\", " + ftype + "_base::class_info}");
 		} else if (st[pos] == "(") {
@@ -667,6 +682,7 @@ function parserIDL(fname) {
 
 			if (ftype != "") {
 				if (argCount || argArray)
+
 					ifStr += ", ";
 
 				ifStr += map_type(ftype) + "& retVal";
@@ -760,7 +776,7 @@ function parserIDL(fname) {
 
 				svs.push(ifStr);
 
-				difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set}");
+				difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, true}");
 			} else if (attr == "static") {
 				if (st[pos] != ";")
 					return reportErr();
@@ -794,9 +810,9 @@ function parserIDL(fname) {
 				}
 
 				if (attr1 == "readonly")
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set}");
+					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, true}");
 				else
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + "}");
+					difps.push("			{\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + ", true}");
 
 			} else if (fname === "operator") {
 				if ((st[pos] === "[") && (st[pos + 1] === "]") && (st[pos + 2] === ";")) {
@@ -935,9 +951,9 @@ function parserIDL(fname) {
 				}
 
 				if (attr == "readonly")
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set}");
+					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, false}");
 				else
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + "}");
+					difps.push("			{\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + ", false}");
 			}
 		} else
 			return reportErr();
