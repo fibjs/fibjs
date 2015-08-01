@@ -44,8 +44,12 @@ public:
 
 } *s_null;
 
+static exlib::atomic s_running;
+
 static void onIdle()
 {
+    s_running.xchg(0);
+
     if (!g_jobs.empty() && (s_idleFibers == 0) &&  (s_fibers < MAX_FIBER))
     {
         s_fibers++;
@@ -57,6 +61,35 @@ static void onIdle()
     if (s_oldIdle)
         s_oldIdle();
 }
+
+extern exlib::LockedList<Isolate> s_isolates;
+class _grabThread: public exlib::OSThread
+{
+public:
+    virtual void Run()
+    {
+        while (true)
+        {
+            sleep(100);
+
+            if (s_running.inc() == 2)
+            {
+                s_running.xchg(0);
+
+                Isolate *p = s_isolates.head();
+                if (p != 0)
+                    p->isolate->RequestInterrupt(InterruptCallback, NULL);
+            }
+        }
+    }
+
+private:
+    static void InterruptCallback(v8::Isolate *isolate, void *data)
+    {
+        onIdle();
+        coroutine_base::sleep(0);
+    }
+} s_grabThread;
 
 inline void fiber_init()
 {
@@ -73,6 +106,8 @@ inline void fiber_init()
 
         g_tlsCurrent = exlib::Fiber::tlsAlloc();
         s_oldIdle = exlib::Service::current()->onIdle(onIdle);
+
+        s_grabThread.start();
     }
 }
 
