@@ -36,12 +36,6 @@ void destroy(void *sock)
         ((Socket *) sock)->Unref();
 }
 
-void close(void *sock)
-{
-    if (sock)
-        ((Socket *) sock)->ac_close();
-}
-
 int32_t connect(void *sock, const char *host, int32_t port)
 {
     if (!sock)
@@ -67,7 +61,7 @@ void *connect(const char *host, int32_t port)
     socket = create();
     if (!connect(socket, host, port))
     {
-        close(socket);
+        destroy(socket);
         return NULL;
     }
 
