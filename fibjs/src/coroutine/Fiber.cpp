@@ -181,6 +181,36 @@ void FiberBase::start()
     Ref();
 }
 
+result_t FiberBase::join()
+{
+    if (!m_quit.isSet())
+    {
+        Isolate::rt _rt;
+        m_quit.wait();
+    }
+
+    return 0;
+}
+
+result_t FiberBase::get_traceInfo(std::string& retVal)
+{
+    if (JSFiber::current() == this)
+        retVal = traceInfo(300);
+    else
+        retVal = m_traceInfo;
+
+    return 0;
+}
+
+result_t FiberBase::get_caller(obj_ptr<Fiber_base> &retVal)
+{
+    if (m_caller == NULL)
+        return CALL_RETURN_NULL;
+
+    retVal = m_caller;
+    return 0;
+}
+
 void JSFiber::callFunction1(v8::Local<v8::Function> func,
                             v8::Local<v8::Value> *args, int32_t argCount,
                             v8::Local<v8::Value> &retVal)

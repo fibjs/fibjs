@@ -32,31 +32,9 @@ protected:
 
 public:
     // Fiber_base
-    virtual result_t join()
-    {
-        if (!m_quit.isSet())
-        {
-            Isolate::rt _rt;
-            m_quit.wait();
-        }
-
-        return 0;
-    }
-
-    virtual result_t get_traceInfo(std::string& retVal)
-    {
-        retVal = m_traceInfo;
-        return 0;
-    }
-
-    virtual result_t get_caller(obj_ptr<Fiber_base> &retVal)
-    {
-        if (m_caller == NULL)
-            return CALL_RETURN_NULL;
-
-        retVal = m_caller;
-        return 0;
-    }
+    virtual result_t join();
+    virtual result_t get_traceInfo(std::string& retVal);
+    virtual result_t get_caller(obj_ptr<Fiber_base> &retVal);
 
 public:
     static void *fiber_proc(void *p);
