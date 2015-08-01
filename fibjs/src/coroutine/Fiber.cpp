@@ -32,12 +32,17 @@ public:
         Ref();
     }
 
-    result_t join()
+    virtual result_t join()
     {
         return 0;
     }
 
-    result_t get_caller(obj_ptr<Fiber_base> &retVal)
+    virtual result_t get_traceInfo(std::string& retVal)
+    {
+        return 0;
+    }
+
+    virtual result_t get_caller(obj_ptr<Fiber_base> &retVal)
     {
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     }

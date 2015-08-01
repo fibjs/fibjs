@@ -48,9 +48,12 @@
  */
 interface Fiber : object
 {
-    /*! @brief 等待纤程结束 */
-    join();
+	/*! @brief 等待纤程结束 */
+	join();
 
-    /*! @brief 查询纤程的调用纤程 */
-    readonly Fiber caller;
+	/*! @brief 查询纤程的调用纤程 */
+	readonly Fiber caller;
+
+	/*! @brief 查询纤程的调用堆栈 */
+	readonly String traceInfo;
 };

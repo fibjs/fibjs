@@ -31,7 +31,8 @@ protected:
     }
 
 public:
-    result_t join()
+    // Fiber_base
+    virtual result_t join()
     {
         if (!m_quit.isSet())
         {
@@ -42,7 +43,13 @@ public:
         return 0;
     }
 
-    result_t get_caller(obj_ptr<Fiber_base> &retVal)
+    virtual result_t get_traceInfo(std::string& retVal)
+    {
+        retVal = m_traceInfo;
+        return 0;
+    }
+
+    virtual result_t get_caller(obj_ptr<Fiber_base> &retVal)
     {
         if (m_caller == NULL)
             return CALL_RETURN_NULL;
@@ -61,6 +68,7 @@ public:
     }
 
 public:
+    std::string m_traceInfo;
     exlib::Event m_quit;
     Runtime m_rt;
     static DateCache g_dc;
@@ -181,9 +189,6 @@ private:
     void callFunction1(v8::Local<v8::Function> func,
                        v8::Local<v8::Value> *args, int32_t argCount,
                        v8::Local<v8::Value> &retVal);
-
-public:
-    std::string m_traceInfo;
 
 private:
     v8::Persistent<v8::Function> m_func;
