@@ -182,4 +182,20 @@ result_t coroutine_base::sleep(int32_t ms)
     return 0;
 }
 
+result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
+{
+    exlib::linkitem* p = Isolate::now().m_fibers.head();
+    int32_t n = 0;
+
+    retVal = v8::Array::New(Isolate::now().isolate);
+
+    while (p)
+    {
+        retVal->Set(n ++, ((JSFiber*)p)->wrap());
+        p = p->m_next;
+    }
+
+    return 0;
+}
+
 }
