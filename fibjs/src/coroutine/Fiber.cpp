@@ -12,6 +12,7 @@ namespace fibjs
 {
 
 extern int32_t stack_size;
+extern bool g_preemptive;
 
 #define MAX_FIBER   10000
 #define MAX_IDLE   10
@@ -68,7 +69,7 @@ static void onIdle()
 }
 
 extern exlib::LockedList<Isolate> s_isolates;
-class _grabThread: public exlib::OSThread
+class _preemptThread: public exlib::OSThread
 {
 public:
     virtual void Run()
@@ -94,7 +95,7 @@ private:
         onIdle();
         coroutine_base::sleep(0);
     }
-} s_grabThread;
+} s_preemptThread;
 
 inline void fiber_init()
 {
@@ -112,7 +113,8 @@ inline void fiber_init()
         g_tlsCurrent = exlib::Fiber::tlsAlloc();
         s_oldIdle = exlib::Service::current()->onIdle(onIdle);
 
-        s_grabThread.start();
+        if (g_preemptive)
+            s_preemptThread.start();
     }
 }
 
