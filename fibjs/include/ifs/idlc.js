@@ -37,7 +37,9 @@ function clean_folder(path) {
 }
 
 clean_folder("../../../docs/html");
+process.system('doxygen');
 
+process.chdir("../../../docs/src");
 process.system('doxygen');
 
 function preparserIDL(fname) {
