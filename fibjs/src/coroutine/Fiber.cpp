@@ -50,12 +50,8 @@ public:
 
 } *s_null;
 
-static exlib::atomic s_running;
-
 static void onIdle()
 {
-    s_running.xchg(0);
-
     if (!g_jobs.empty() && (s_idleFibers == 0) &&  (s_fibers < MAX_FIBER))
     {
         s_fibers++;
@@ -74,17 +70,32 @@ class _preemptThread: public exlib::OSThread
 public:
     virtual void Run()
     {
+        Isolate& isolate = *s_isolates.head();
+        exlib::atomic_t lastTimes = isolate.service->m_switchTimes;
+        int32_t cnt = 0;
+
         while (true)
         {
             sleep(100);
 
-            if (s_running.inc() == 2)
+            if (isolate.service->m_resume.empty())
             {
-                s_running.xchg(0);
+                cnt = 0;
+                continue;
+            }
 
-                Isolate *p = s_isolates.head();
-                if (p != 0)
-                    p->isolate->RequestInterrupt(InterruptCallback, NULL);
+            if (lastTimes != isolate.service->m_switchTimes)
+            {
+                cnt = 0;
+                lastTimes = isolate.service->m_switchTimes;
+                continue;
+            }
+
+            cnt ++;
+            if (cnt == 2)
+            {
+                cnt = 0;
+                isolate.isolate->RequestInterrupt(InterruptCallback, NULL);
             }
         }
     }
@@ -92,30 +103,23 @@ public:
 private:
     static void InterruptCallback(v8::Isolate *isolate, void *data)
     {
-        onIdle();
         coroutine_base::sleep(0);
     }
+
 } s_preemptThread;
 
-inline void fiber_init()
+void init_fiber()
 {
-    static bool bInit = false;
+    s_null = new null_fiber_data();
 
-    if (!bInit)
-    {
-        bInit = true;
+    s_fibers = 0;
+    s_idleFibers = 0;
 
-        s_null = new null_fiber_data();
+    g_tlsCurrent = exlib::Fiber::tlsAlloc();
+    s_oldIdle = exlib::Service::current()->onIdle(onIdle);
 
-        s_fibers = 0;
-        s_idleFibers = 0;
-
-        g_tlsCurrent = exlib::Fiber::tlsAlloc();
-        s_oldIdle = exlib::Service::current()->onIdle(onIdle);
-
-        if (g_preemptive)
-            s_preemptThread.start();
-    }
+    if (g_preemptive)
+        s_preemptThread.start();
 }
 
 void *FiberBase::fiber_proc(void *p)
@@ -245,7 +249,6 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
 
 JSFiber *JSFiber::current()
 {
-    fiber_init();
     return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
@@ -260,8 +263,6 @@ void JSFiber::js_invoke()
 JSFiber::scope::scope(JSFiber *fb) :
     m_hr(0), m_pFiber(fb)
 {
-    fiber_init();
-
     if (fb == NULL)
         m_pFiber = new JSFiber();
 

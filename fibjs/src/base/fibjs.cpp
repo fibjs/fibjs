@@ -19,6 +19,7 @@ void init_prof();
 void init_acThread();
 void init_logger();
 void init_net();
+void init_fiber();
 void options(int32_t* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
@@ -80,6 +81,8 @@ void _main(const char *fname)
 
     isolate.s_context.Reset(isolate.isolate, _context);
     isolate.s_global.Reset(isolate.isolate, glob);
+
+    init_fiber();
 
     exlib::mem_check();
 
