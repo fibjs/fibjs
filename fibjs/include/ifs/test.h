@@ -41,7 +41,7 @@ public:
 	static result_t after(v8::Local<v8::Function> func);
 	static result_t beforeEach(v8::Local<v8::Function> func);
 	static result_t afterEach(v8::Local<v8::Function> func);
-	static result_t run(int32_t loglevel, std::string& retVal);
+	static result_t run(int32_t loglevel, int32_t& retVal);
 	static result_t get_assert(obj_ptr<assert_base>& retVal);
 	static result_t expect(v8::Local<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
 	static result_t setup(int32_t mode);
@@ -251,7 +251,7 @@ namespace fibjs
 
 	inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		std::string vr;
+		int32_t vr;
 
 		METHOD_ENTER(1, 0);
 
