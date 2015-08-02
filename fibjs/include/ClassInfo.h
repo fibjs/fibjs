@@ -111,19 +111,16 @@ public:
         Isolate &isolate = Isolate::now();
         v8::Local<v8::Object> o;
 
-        if (m_cd.cor)
+        if (m_cache.IsEmpty())
         {
-            v8::Local<v8::String> key = v8::String::NewFromUtf8(isolate.isolate, "_in_wrap");
-            v8::Local<v8::Object> _data = v8::Local<v8::Object>::New(isolate.isolate, m_data);
+            o = v8::Local<v8::Function>::New(isolate.isolate, m_function)->NewInstance();
+            o->SetAlignedPointerInInternalField(0, 0);
+            m_cache.Reset(isolate.isolate, o);
 
-            _data->Set(key, v8::True(isolate.isolate));
-            o = v8::Local<v8::Function>::New(Isolate::now().isolate, m_function)->NewInstance();
-            _data->Set(key, v8::False(isolate.isolate));
-        }
-        else
-            o = v8::Local<v8::Function>::New(Isolate::now().isolate, m_function)->NewInstance();
+            o = o->Clone();
+        } else
+            o = v8::Local<v8::Object>::New(isolate.isolate, m_cache)->Clone();
 
-        o->SetAlignedPointerInInternalField(0, 0);
         return o;
     }
 
@@ -233,14 +230,9 @@ private:
         if (m_class.IsEmpty())
         {
             Isolate &isolate = Isolate::now();
-            v8::Local<v8::Object> _data = v8::Object::New(isolate.isolate);
-            m_data.Reset(isolate.isolate, _data);
-
-            _data->Set(v8::String::NewFromUtf8(isolate.isolate, "_in_wrap"),
-                       v8::False(isolate.isolate));
 
             v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
-                        isolate.isolate, m_cd.cor, _data);
+                        isolate.isolate, m_cd.cor);
             m_class.Reset(isolate.isolate, _class);
 
             _class->SetClassName(v8::String::NewFromUtf8(isolate.isolate, m_cd.name));
@@ -297,13 +289,20 @@ private:
             v8::Local<v8::Function> _function = _class->GetFunction();
             Attach(_function);
             m_function.Reset(isolate.isolate, _function);
+
+            if (m_cd.cor)
+            {
+                v8::Local<v8::Object> o = _function->NewInstance();
+                o->SetAlignedPointerInInternalField(0, 0);
+                m_cache.Reset(isolate.isolate, o);
+            }
         }
     }
 
 private:
     v8::Persistent<v8::FunctionTemplate> m_class;
     v8::Persistent<v8::Function> m_function;
-    v8::Persistent<v8::Object> m_data;
+    v8::Persistent<v8::Object> m_cache;
     ClassData &m_cd;
     exlib::atomic refs_;
     ClassInfo *m_next;

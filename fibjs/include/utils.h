@@ -195,8 +195,8 @@ typedef int32_t result_t;
             METHOD_OVER(c, o)
 
 #define CONSTRUCT_INIT() \
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());\
-    if(_data->Get(v8::String::NewFromUtf8(Isolate::now().isolate, "_in_wrap"))->IsTrue())return;
+    static bool s_bInit = false; \
+    if(!s_bInit){s_bInit = true; return;}
 
 #define CONSTRUCT_ENTER(c, o) \
     if (!args.IsConstructCall()){ThrowResult(CALL_E_CONSTRUCTOR); return;} \
