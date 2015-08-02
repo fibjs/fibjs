@@ -85,6 +85,7 @@ void _main(const char *fname)
     init_fiber();
 
     exlib::mem_check();
+    result_t hr;
 
     JSFiber *fb = new JSFiber();
     {
@@ -93,16 +94,16 @@ void _main(const char *fname)
 
         isolate.s_topSandbox->initRoot();
         if (fname)
-            s.m_hr = isolate.s_topSandbox->run(fname);
+            hr = s.m_hr = isolate.s_topSandbox->run(fname);
         else
-            s.m_hr = isolate.s_topSandbox->repl();
+            hr = s.m_hr = isolate.s_topSandbox->repl();
     }
 
 #ifdef DEBUG
     global_base::GC();
 #endif
 
-    process_base::exit(0);
+    process_base::exit(hr);
 
     isolate.isolate->Dispose();
 
