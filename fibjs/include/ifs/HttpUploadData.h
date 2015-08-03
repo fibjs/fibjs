@@ -47,10 +47,10 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"fileName", s_get_fileName, block_set},
-			{"contentType", s_get_contentType, block_set},
-			{"contentTransferEncoding", s_get_contentTransferEncoding, block_set},
-			{"body", s_get_body, block_set}
+			{"fileName", s_get_fileName, block_set, false},
+			{"contentType", s_get_contentType, block_set, false},
+			{"contentTransferEncoding", s_get_contentTransferEncoding, block_set, false},
+			{"body", s_get_body, block_set, false}
 		};
 
 		static ClassData s_cd = 

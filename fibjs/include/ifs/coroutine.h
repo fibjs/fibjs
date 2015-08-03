@@ -37,12 +37,14 @@ public:
 	static result_t parallel(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
+	static result_t get_fibers(v8::Local<v8::Array>& retVal);
 
 public:
 	static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_fibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -77,10 +79,15 @@ namespace fibjs
 			{"BlockQueue", BlockQueue_base::class_info}
 		};
 
+		static ClassData::ClassProperty s_property[] = 
+		{
+			{"fibers", s_get_fibers, block_set, true}
+		};
+
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			4, s_method, 6, s_object, 0, NULL, NULL, NULL,
+			4, s_method, 6, s_object, 1, s_property, NULL, NULL,
 			NULL
 		};
 
@@ -88,6 +95,16 @@ namespace fibjs
 		return s_ci;
 	}
 
+	inline void coroutine_base::s_get_fibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		v8::Local<v8::Array> vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_fibers(vr);
+
+		METHOD_RETURN();
+	}
 
 	inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{

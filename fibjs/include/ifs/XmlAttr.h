@@ -55,13 +55,13 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"localName", s_get_localName, block_set},
-			{"value", s_get_value, s_set_value},
-			{"name", s_get_name, block_set},
-			{"namespaceURI", s_get_namespaceURI, block_set},
-			{"prefix", s_get_prefix, s_set_prefix},
-			{"nodeName", s_get_nodeName, block_set},
-			{"nodeValue", s_get_nodeValue, s_set_nodeValue}
+			{"localName", s_get_localName, block_set, false},
+			{"value", s_get_value, s_set_value, false},
+			{"name", s_get_name, block_set, false},
+			{"namespaceURI", s_get_namespaceURI, block_set, false},
+			{"prefix", s_get_prefix, s_set_prefix, false},
+			{"nodeName", s_get_nodeName, block_set, false},
+			{"nodeValue", s_get_nodeValue, s_set_nodeValue, false}
 		};
 
 		static ClassData s_cd = 

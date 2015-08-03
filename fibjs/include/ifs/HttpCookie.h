@@ -80,13 +80,13 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"name", s_get_name, s_set_name},
-			{"value", s_get_value, s_set_value},
-			{"domain", s_get_domain, s_set_domain},
-			{"path", s_get_path, s_set_path},
-			{"expires", s_get_expires, s_set_expires},
-			{"httpOnly", s_get_httpOnly, s_set_httpOnly},
-			{"secure", s_get_secure, s_set_secure}
+			{"name", s_get_name, s_set_name, false},
+			{"value", s_get_value, s_set_value, false},
+			{"domain", s_get_domain, s_set_domain, false},
+			{"path", s_get_path, s_set_path, false},
+			{"expires", s_get_expires, s_set_expires, false},
+			{"httpOnly", s_get_httpOnly, s_set_httpOnly, false},
+			{"secure", s_get_secure, s_set_secure, false}
 		};
 
 		static ClassData s_cd = 

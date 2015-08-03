@@ -40,7 +40,7 @@ module net
     static String ipv6(String name) async;
 
     /*! @brief 创建一个 Socket 对象，参见 Socket */
-    static Socket new Socket();
+    static Socket;
 
     /*! @brief 创建一个 Socket 对象并建立连接，参见 Socket
      @param host 指定对方地址或主机名
@@ -57,7 +57,7 @@ module net
     static Stream connect(String url) async;
 
     /*! @brief 创建一个 Smtp 对象，参见 Smtp */
-    static Smtp new Smtp();
+    static Smtp;
 
     /*! @brief 创建一个 Smtp 对象并建立连接，参见 Smtp
      @param host 指定对方地址或主机名
@@ -68,10 +68,10 @@ module net
     static Smtp openSmtp(String host, Integer port, Integer family = net.AF_INET) async;
 
     /*! @brief 创建一个 TcpServer 对象，参见 TcpServer */
-    static TcpServer new TcpServer();
+    static TcpServer;
 
     /*! @brief 创建一个 Url 对象，参见 Url */
-    static Url new Url();
+    static Url;
 
     /*! @brief 查询当前系统异步网络引擎
      @return 返回网络引擎名称

@@ -99,10 +99,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"NO_COMPRESSION", s_get_NO_COMPRESSION, block_set},
-			{"BEST_SPEED", s_get_BEST_SPEED, block_set},
-			{"BEST_COMPRESSION", s_get_BEST_COMPRESSION, block_set},
-			{"DEFAULT_COMPRESSION", s_get_DEFAULT_COMPRESSION, block_set}
+			{"NO_COMPRESSION", s_get_NO_COMPRESSION, block_set, true},
+			{"BEST_SPEED", s_get_BEST_SPEED, block_set, true},
+			{"BEST_COMPRESSION", s_get_BEST_COMPRESSION, block_set, true},
+			{"DEFAULT_COMPRESSION", s_get_DEFAULT_COMPRESSION, block_set, true}
 		};
 
 		static ClassData s_cd = 

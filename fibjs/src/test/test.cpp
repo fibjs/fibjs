@@ -92,7 +92,7 @@ public:
         return 0;
     }
 
-    static result_t run(int32_t loglevel, std::string& retVal)
+    static result_t run(int32_t loglevel, int32_t& retVal)
     {
         if (!s_root)
             return 0;
@@ -203,7 +203,7 @@ public:
                                 str1.append(" ", 1);
                             }
                             str1.append(p1->m_name);
-                            names.append(str1);
+                            names.append(logger::highLight() + str1 + COLOR_RESET);
 
                             msgs.append(GetException(try_catch, 0));
                         }
@@ -281,34 +281,26 @@ public:
                     (logger::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
                     cnt, (int32_t) da2.diff(da1));
             asyncLog(console_base::_INFO, buf);
-
-            sprintf(buf, "  \xe2\x88\x9a %d tests completed (%dms)\n\n", cnt, (int32_t) da2.diff(da1));
-            retVal.append(buf);
         }
         else
         {
             sprintf(buf, (logger::error() + "  × %d of %d tests failed" COLOR_RESET).c_str(),
                     errcnt, cnt);
             asyncLog(console_base::_ERROR, buf);
-
-            sprintf(buf, "  × %d of %d tests failed\n\n", errcnt, cnt);
-            retVal.append(buf);
         }
 
         asyncLog(console_base::_INFO, "");
 
         for (i = 0; i < (int32_t) msgs.size(); i++)
         {
-            asyncLog(console_base::_INFO, logger::highLight() + names[i] + COLOR_RESET);
+            asyncLog(console_base::_INFO, names[i]);
             asyncLog(console_base::_ERROR, msgs[i]);
-
-            retVal.append(names[i]);
-            retVal.append(1, '\n');
-            retVal.append(msgs[i]);
-            retVal.append(1, '\n');
         }
 
         clear();
+
+        retVal = errcnt;
+
         return 0;
     }
 
@@ -378,7 +370,7 @@ result_t test_base::afterEach(v8::Local<v8::Function> func)
     return _case::set_hook(HOOK_AFTERCASE, func);
 }
 
-result_t test_base::run(int32_t loglevel, std::string& retVal)
+result_t test_base::run(int32_t loglevel, int32_t& retVal)
 {
     return _case::run(loglevel, retVal);
 }

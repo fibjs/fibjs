@@ -65,7 +65,7 @@ public:
     void InstallModule(std::string fname, v8::Local<v8::Value> o);
     inline void InstallNativeModule(const char *fname, ClassInfo &ci)
     {
-        InstallModule(fname, ci.CreateInstance());
+        InstallModule(fname, ci.getFunction());
     }
 
     result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);

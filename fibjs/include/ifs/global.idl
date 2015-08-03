@@ -3,13 +3,13 @@
 module global
 {
     /*! @brief 二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。*/
-    static Buffer new Buffer();
+    static Buffer;
 
     /*! @brief 64位整数对象，参见 Int64 对象。*/
-    static Int64 new Int64();
+    static Int64;
 
     /*! @brief 控制台访问对象 */
-    static readonly console console;
+    static console;
 
     /*! @brief 运行一个脚本
      @param fname 指定要运行的脚本路径

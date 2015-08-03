@@ -79,14 +79,14 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"ELEMENT_NODE", s_get_ELEMENT_NODE, block_set},
-			{"ATTRIBUTE_NODE", s_get_ATTRIBUTE_NODE, block_set},
-			{"TEXT_NODE", s_get_TEXT_NODE, block_set},
-			{"CDATA_SECTION_NODE", s_get_CDATA_SECTION_NODE, block_set},
-			{"PROCESSING_INSTRUCTION_NODE", s_get_PROCESSING_INSTRUCTION_NODE, block_set},
-			{"COMMENT_NODE", s_get_COMMENT_NODE, block_set},
-			{"DOCUMENT_NODE", s_get_DOCUMENT_NODE, block_set},
-			{"DOCUMENT_TYPE_NODE", s_get_DOCUMENT_TYPE_NODE, block_set}
+			{"ELEMENT_NODE", s_get_ELEMENT_NODE, block_set, true},
+			{"ATTRIBUTE_NODE", s_get_ATTRIBUTE_NODE, block_set, true},
+			{"TEXT_NODE", s_get_TEXT_NODE, block_set, true},
+			{"CDATA_SECTION_NODE", s_get_CDATA_SECTION_NODE, block_set, true},
+			{"PROCESSING_INSTRUCTION_NODE", s_get_PROCESSING_INSTRUCTION_NODE, block_set, true},
+			{"COMMENT_NODE", s_get_COMMENT_NODE, block_set, true},
+			{"DOCUMENT_NODE", s_get_DOCUMENT_NODE, block_set, true},
+			{"DOCUMENT_TYPE_NODE", s_get_DOCUMENT_TYPE_NODE, block_set, true}
 		};
 
 		static ClassData s_cd = 

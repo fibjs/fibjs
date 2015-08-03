@@ -72,10 +72,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"name", s_get_name, block_set},
-			{"keySize", s_get_keySize, block_set},
-			{"ivSize", s_get_ivSize, block_set},
-			{"blockSize", s_get_blockSize, block_set}
+			{"name", s_get_name, block_set, false},
+			{"keySize", s_get_keySize, block_set, false},
+			{"ivSize", s_get_ivSize, block_set, false},
+			{"blockSize", s_get_blockSize, block_set, false}
 		};
 
 		static ClassData s_cd = 

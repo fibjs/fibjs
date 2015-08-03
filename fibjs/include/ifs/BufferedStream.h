@@ -94,9 +94,9 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"stream", s_get_stream, block_set},
-			{"charset", s_get_charset, s_set_charset},
-			{"EOL", s_get_EOL, s_set_EOL}
+			{"stream", s_get_stream, block_set, false},
+			{"charset", s_get_charset, s_set_charset, false},
+			{"EOL", s_get_EOL, s_set_EOL, false}
 		};
 
 		static ClassData s_cd = 

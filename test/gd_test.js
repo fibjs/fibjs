@@ -175,6 +175,23 @@ describe("gd", function() {
 		var img1 = img.resample(220, 120);
 		img1.flip();
 	});
+
+	it("progressive", function() {
+		var img = gd.create(100, 100);
+
+		var data = img.getData(gd.JPEG);
+		var img1 = gd.load(data);
+
+		assert.equal(img1.format, gd.JPEG);
+		assert.equal(img1.progressive, false);
+
+		img.progressive = true;
+		var data1 = img.getData(gd.JPEG);
+		var img2 = gd.load(data1);
+
+		assert.equal(img2.format, gd.JPEG);
+		assert.equal(img2.progressive, true);
+	});
 });
 
 //test.run(console.DEBUG);

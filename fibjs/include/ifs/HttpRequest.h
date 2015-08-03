@@ -65,12 +65,12 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"method", s_get_method, s_set_method},
-			{"address", s_get_address, s_set_address},
-			{"queryString", s_get_queryString, s_set_queryString},
-			{"cookies", s_get_cookies, block_set},
-			{"form", s_get_form, block_set},
-			{"query", s_get_query, block_set}
+			{"method", s_get_method, s_set_method, false},
+			{"address", s_get_address, s_set_address, false},
+			{"queryString", s_get_queryString, s_set_queryString, false},
+			{"cookies", s_get_cookies, block_set, false},
+			{"form", s_get_form, block_set, false},
+			{"query", s_get_query, block_set, false}
 		};
 
 		static ClassData s_cd = 

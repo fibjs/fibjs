@@ -53,7 +53,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"length", s_get_length, block_set}
+			{"length", s_get_length, block_set, false}
 		};
 
 		static ClassData::ClassIndexed s_indexed = 

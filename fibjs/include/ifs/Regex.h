@@ -55,10 +55,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"lastIndex", s_get_lastIndex, s_set_lastIndex},
-			{"global", s_get_global, block_set},
-			{"ignoreCase", s_get_ignoreCase, block_set},
-			{"multiline", s_get_multiline, block_set}
+			{"lastIndex", s_get_lastIndex, s_set_lastIndex, false},
+			{"global", s_get_global, block_set, false},
+			{"ignoreCase", s_get_ignoreCase, block_set, false},
+			{"multiline", s_get_multiline, block_set, false}
 		};
 
 		static ClassData s_cd = 

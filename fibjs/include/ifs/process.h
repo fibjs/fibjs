@@ -72,8 +72,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"argv", s_get_argv, block_set},
-			{"execPath", s_get_execPath, block_set}
+			{"argv", s_get_argv, block_set, true},
+			{"execPath", s_get_execPath, block_set, true}
 		};
 
 		static ClassData s_cd = 

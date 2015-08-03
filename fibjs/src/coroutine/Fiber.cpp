@@ -12,6 +12,7 @@ namespace fibjs
 {
 
 extern int32_t stack_size;
+extern bool g_preemptive;
 
 #define MAX_FIBER   10000
 #define MAX_IDLE   10
@@ -32,12 +33,17 @@ public:
         Ref();
     }
 
-    result_t join()
+    virtual result_t join()
     {
         return 0;
     }
 
-    result_t get_caller(obj_ptr<Fiber_base> &retVal)
+    virtual result_t get_traceInfo(std::string& retVal)
+    {
+        return 0;
+    }
+
+    virtual result_t get_caller(obj_ptr<Fiber_base> &retVal)
     {
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
@@ -58,22 +64,62 @@ static void onIdle()
         s_oldIdle();
 }
 
-inline void fiber_init()
+extern exlib::LockedList<Isolate> s_isolates;
+class _preemptThread: public exlib::OSThread
 {
-    static bool bInit = false;
-
-    if (!bInit)
+public:
+    virtual void Run()
     {
-        bInit = true;
+        Isolate& isolate = *s_isolates.head();
+        exlib::atomic_t lastTimes = isolate.service->m_switchTimes;
+        int32_t cnt = 0;
 
-        s_null = new null_fiber_data();
+        while (true)
+        {
+            sleep(100);
 
-        s_fibers = 0;
-        s_idleFibers = 0;
+            if (isolate.service->m_resume.empty())
+            {
+                cnt = 0;
+                continue;
+            }
 
-        g_tlsCurrent = exlib::Fiber::tlsAlloc();
-        s_oldIdle = exlib::Service::current()->onIdle(onIdle);
+            if (lastTimes != isolate.service->m_switchTimes)
+            {
+                cnt = 0;
+                lastTimes = isolate.service->m_switchTimes;
+                continue;
+            }
+
+            cnt ++;
+            if (cnt == 2)
+            {
+                cnt = 0;
+                isolate.isolate->RequestInterrupt(InterruptCallback, NULL);
+            }
+        }
     }
+
+private:
+    static void InterruptCallback(v8::Isolate *isolate, void *data)
+    {
+        coroutine_base::sleep(0);
+    }
+
+} s_preemptThread;
+
+void init_fiber()
+{
+    s_null = new null_fiber_data();
+
+    s_fibers = 0;
+    s_idleFibers = 0;
+
+    g_tlsCurrent = exlib::Fiber::tlsAlloc();
+    s_oldIdle = exlib::Service::current()->onIdle(onIdle);
+
+    if (g_preemptive)
+        s_preemptThread.start();
 }
 
 void *FiberBase::fiber_proc(void *p)
@@ -141,6 +187,36 @@ void FiberBase::start()
     Ref();
 }
 
+result_t FiberBase::join()
+{
+    if (!m_quit.isSet())
+    {
+        Isolate::rt _rt;
+        m_quit.wait();
+    }
+
+    return 0;
+}
+
+result_t FiberBase::get_traceInfo(std::string& retVal)
+{
+    if (JSFiber::current() == this)
+        retVal = traceInfo(300);
+    else
+        retVal = m_traceInfo;
+
+    return 0;
+}
+
+result_t FiberBase::get_caller(obj_ptr<Fiber_base> &retVal)
+{
+    if (m_caller == NULL)
+        return CALL_RETURN_NULL;
+
+    retVal = m_caller;
+    return 0;
+}
+
 void JSFiber::callFunction1(v8::Local<v8::Function> func,
                             v8::Local<v8::Value> *args, int32_t argCount,
                             v8::Local<v8::Value> &retVal)
@@ -173,7 +249,6 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
 
 JSFiber *JSFiber::current()
 {
-    fiber_init();
     return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
@@ -188,8 +263,6 @@ void JSFiber::js_invoke()
 JSFiber::scope::scope(JSFiber *fb) :
     m_hr(0), m_pFiber(fb)
 {
-    fiber_init();
-
     if (fb == NULL)
         m_pFiber = new JSFiber();
 

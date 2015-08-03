@@ -69,12 +69,12 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"crossDomain", s_get_crossDomain, s_set_crossDomain},
-			{"forceGZIP", s_get_forceGZIP, s_set_forceGZIP},
-			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount},
-			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize},
-			{"handler", s_get_handler, s_set_handler},
-			{"stats", s_get_stats, block_set}
+			{"crossDomain", s_get_crossDomain, s_set_crossDomain, false},
+			{"forceGZIP", s_get_forceGZIP, s_set_forceGZIP, false},
+			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false},
+			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false},
+			{"handler", s_get_handler, s_set_handler, false},
+			{"stats", s_get_stats, block_set, false}
 		};
 
 		static ClassData s_cd = 

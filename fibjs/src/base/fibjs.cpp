@@ -19,6 +19,7 @@ void init_prof();
 void init_acThread();
 void init_logger();
 void init_net();
+void init_fiber();
 void options(int32_t* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
@@ -76,15 +77,15 @@ void _main(const char *fname)
     v8::Context::Scope context_scope(_context);
 
     v8::Local<v8::Object> glob = _context->Global();
-    global_base::class_info().Attach(glob, NULL);
-
-    obj_ptr<console_base> s_console = new console_base();
-    glob->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, "console"), s_console->wrap());
+    global_base::class_info().Attach(glob);
 
     isolate.s_context.Reset(isolate.isolate, _context);
     isolate.s_global.Reset(isolate.isolate, glob);
 
+    init_fiber();
+
     exlib::mem_check();
+    result_t hr;
 
     JSFiber *fb = new JSFiber();
     {
@@ -93,16 +94,16 @@ void _main(const char *fname)
 
         isolate.s_topSandbox->initRoot();
         if (fname)
-            s.m_hr = isolate.s_topSandbox->run(fname);
+            hr = s.m_hr = isolate.s_topSandbox->run(fname);
         else
-            s.m_hr = isolate.s_topSandbox->repl();
+            hr = s.m_hr = isolate.s_topSandbox->repl();
     }
 
 #ifdef DEBUG
     global_base::GC();
 #endif
 
-    process_base::exit(0);
+    process_base::exit(hr);
 
     isolate.isolate->Dispose();
 

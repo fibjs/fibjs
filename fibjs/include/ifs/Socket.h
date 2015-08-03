@@ -97,12 +97,12 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"family", s_get_family, block_set},
-			{"type", s_get_type, block_set},
-			{"remoteAddress", s_get_remoteAddress, block_set},
-			{"remotePort", s_get_remotePort, block_set},
-			{"localAddress", s_get_localAddress, block_set},
-			{"localPort", s_get_localPort, block_set}
+			{"family", s_get_family, block_set, false},
+			{"type", s_get_type, block_set, false},
+			{"remoteAddress", s_get_remoteAddress, block_set, false},
+			{"remotePort", s_get_remotePort, block_set, false},
+			{"localAddress", s_get_localAddress, block_set, false},
+			{"localPort", s_get_localPort, block_set, false}
 		};
 
 		static ClassData s_cd = 

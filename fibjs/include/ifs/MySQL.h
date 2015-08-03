@@ -57,8 +57,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"rxBufferSize", s_get_rxBufferSize, s_set_rxBufferSize},
-			{"txBufferSize", s_get_txBufferSize, s_set_txBufferSize}
+			{"rxBufferSize", s_get_rxBufferSize, s_set_rxBufferSize, false},
+			{"txBufferSize", s_get_txBufferSize, s_set_txBufferSize, false}
 		};
 
 		static ClassData s_cd = 

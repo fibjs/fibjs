@@ -51,10 +51,10 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"notice", s_get_notice, s_set_notice},
-			{"warn", s_get_warn, s_set_warn},
-			{"error", s_get_error, s_set_error},
-			{"highLight", s_get_highLight, s_set_highLight}
+			{"notice", s_get_notice, s_set_notice, false},
+			{"warn", s_get_warn, s_set_warn, false},
+			{"error", s_get_error, s_set_error, false},
+			{"highLight", s_get_highLight, s_set_highLight, false}
 		};
 
 		static ClassData s_cd = 

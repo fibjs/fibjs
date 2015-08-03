@@ -81,12 +81,12 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"hostname", s_get_hostname, block_set},
-			{"type", s_get_type, block_set},
-			{"version", s_get_version, block_set},
-			{"arch", s_get_arch, block_set},
-			{"timezone", s_get_timezone, block_set},
-			{"execPath", s_get_execPath, block_set}
+			{"hostname", s_get_hostname, block_set, true},
+			{"type", s_get_type, block_set, true},
+			{"version", s_get_version, block_set, true},
+			{"arch", s_get_arch, block_set, true},
+			{"timezone", s_get_timezone, block_set, true},
+			{"execPath", s_get_execPath, block_set, true}
 		};
 
 		static ClassData s_cd = 

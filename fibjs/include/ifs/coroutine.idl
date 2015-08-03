@@ -6,22 +6,22 @@
 module coroutine
 {
     /*! @brief 锁对象，参见 Lock */
-    static Lock new Lock();
+    static Lock;
 
     /*! @brief 信号量对象，参见 Semaphore */
-    static Semaphore new Semaphore();
+    static Semaphore;
 
     /*! @brief 条件变量对象，参见 Condition */
-    static Condition new Condition();
+    static Condition;
 
     /*! @brief 信号量对象，参见 Event */
-    static Event new Event();
+    static Event;
 
     /*! @brief 事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，参见 Trigger 对象。 */
-    static Trigger new Trigger();
+    static Trigger;
 
     /*! @brief 阻塞队列对象，参见 BlockQueue */
-    static BlockQueue new BlockQueue();
+    static BlockQueue;
 
     /*! @brief 启动一个纤程并返回纤程对象
      @param func 制定纤程执行的函数
@@ -58,4 +58,7 @@ module coroutine
      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
      */
     static sleep(Integer ms = 0);
+
+    /*! @brief 返回当前正在运行的全部 fiber 数组 */
+    static readonly Array fibers;
 };

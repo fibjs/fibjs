@@ -72,19 +72,19 @@ module crypto
     const Integer NOPADDING = 4;
 
     /*! @brief Cipher 构造函数，参见 Cipher */
-    static Cipher new Cipher();
+    static Cipher;
 
     /*! @brief PKey 构造函数，参见 PKey */
-    static PKey new PKey();
+    static PKey;
 
     /*! @brief X509Cert 构造函数，参见 X509Cert */
-    static X509Cert new X509Cert();
+    static X509Cert;
 
     /*! @brief X509Crl 构造函数，参见 X509Crl */
-    static X509Crl new X509Crl();
+    static X509Crl;
 
     /*! @brief X509Req 构造函数，参见 X509Req */
-    static X509Req new X509Req();
+    static X509Req;
 
     /*! @brief 加载一个 PEM/DER 格式的密钥文件
      @param filename 密钥文件名

@@ -169,6 +169,11 @@ public:
         delete this;
     }
 
+    virtual void js_invoke()
+    {
+        invoke();
+    }
+
 private:
     T m_func;
     T1 m_v;

@@ -45,5 +45,5 @@ run("db_test.js");
 run('BUG_simple_api_call.js');
 
 coroutine.start(function() {
-	test.run();
+	process.exit(-test.run());
 }).join();

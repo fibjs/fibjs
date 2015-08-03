@@ -120,9 +120,9 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"SEEK_SET", s_get_SEEK_SET, block_set},
-			{"SEEK_CUR", s_get_SEEK_CUR, block_set},
-			{"SEEK_END", s_get_SEEK_END, block_set}
+			{"SEEK_SET", s_get_SEEK_SET, block_set, true},
+			{"SEEK_CUR", s_get_SEEK_CUR, block_set, true},
+			{"SEEK_END", s_get_SEEK_END, block_set, true}
 		};
 
 		static ClassData s_cd = 

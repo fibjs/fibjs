@@ -61,8 +61,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"sep", s_get_sep, block_set},
-			{"delimiter", s_get_delimiter, block_set}
+			{"sep", s_get_sep, block_set, true},
+			{"delimiter", s_get_delimiter, block_set, true}
 		};
 
 		static ClassData s_cd = 

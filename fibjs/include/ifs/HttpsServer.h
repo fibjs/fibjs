@@ -58,8 +58,8 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"verification", s_get_verification, s_set_verification},
-			{"ca", s_get_ca, block_set}
+			{"verification", s_get_verification, s_set_verification, false},
+			{"ca", s_get_ca, block_set, false}
 		};
 
 		static ClassData s_cd = 

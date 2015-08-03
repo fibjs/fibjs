@@ -12,6 +12,7 @@ namespace fibjs
 {
 
 bool g_perf;
+bool g_preemptive;
 
 #ifdef x64
 int32_t stack_size = 512;
@@ -39,25 +40,27 @@ void options(int32_t* argc, char *argv[])
 		if (df)
 			argv[i - df] = arg;
 
-		if (!fibjs::qstrcmp(arg, "--trace_fiber")) {
+		if (!qstrcmp(arg, "--trace_fiber")) {
 			df ++;
-			fibjs::Isolate::rt::g_trace = true;
-		} else if (!fibjs::qstrcmp(arg, "--perf")) {
+			Isolate::rt::g_trace = true;
+		} else if (!qstrcmp(arg, "--perf")) {
 			df ++;
-			fibjs::g_perf = true;
+			g_perf = true;
+		} else if (!qstrcmp(arg, "--preemptive")) {
+			df ++;
+			g_preemptive = true;
 		} else if (false) {
-
 		}
 	}
 
 	if (df)
 		*argc -= df;
 
-	if (fibjs::g_perf)
-		fibjs::Isolate::rt::g_trace = true;
+	if (g_perf)
+		Isolate::rt::g_trace = true;
 
 #ifdef DEBUG
-	fibjs::Isolate::rt::g_trace = true;
+	Isolate::rt::g_trace = true;
 #endif
 
 	v8::V8::SetFlagsFromCommandLine(argc, argv, true);

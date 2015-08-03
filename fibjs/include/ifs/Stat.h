@@ -78,12 +78,12 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"name", s_get_name, block_set},
-			{"size", s_get_size, block_set},
-			{"mode", s_get_mode, block_set},
-			{"mtime", s_get_mtime, block_set},
-			{"atime", s_get_atime, block_set},
-			{"ctime", s_get_ctime, block_set}
+			{"name", s_get_name, block_set, false},
+			{"size", s_get_size, block_set, false},
+			{"mode", s_get_mode, block_set, false},
+			{"mtime", s_get_mtime, block_set, false},
+			{"atime", s_get_atime, block_set, false},
+			{"ctime", s_get_ctime, block_set, false}
 		};
 
 		static ClassData s_cd = 
