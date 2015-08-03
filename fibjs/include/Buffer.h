@@ -37,6 +37,9 @@ public:
     virtual result_t write(v8::Local<v8::Array> datas);
     virtual result_t write(Buffer_base *data);
     virtual result_t write(const char *str, const char *codec);
+    virtual result_t fill(v8::Local<v8::Value> v, int32_t offset, int32_t end);
+    virtual result_t equals(Buffer_base *buf, bool& retVal);
+    virtual result_t compare(Buffer_base *buf, int32_t& retVal);
     virtual result_t copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t &retVal);
     virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t &retVal);
@@ -73,7 +76,7 @@ public:
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal);
     virtual result_t hex(std::string &retVal);
     virtual result_t base64(std::string &retVal);
-    virtual result_t toString(const char *codec, std::string &retVal);
+    virtual result_t toString(const char* codec, int32_t offset, int32_t end, std::string &retVal);
     virtual result_t toString(std::string &retVal);
 
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);

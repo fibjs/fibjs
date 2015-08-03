@@ -14,6 +14,11 @@ interface Buffer : object
     Buffer(Array datas);
 
     /*! @brief 缓存对象构造函数
+     @param buffer 初始化Buffer对象
+     */
+    Buffer(Buffer buffer);
+
+    /*! @brief 缓存对象构造函数
      @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      */
@@ -23,6 +28,19 @@ interface Buffer : object
      @param size 初始化缓冲区大小
      */
     Buffer(Integer size = 0);
+
+    /*! @brief 检测给定的变量是否是 Buffer 对象
+     @param v 给定需要检测的变量
+     @return 传入对象是否是 Buffer 对象
+    */
+    static Boolean isBuffer(Value v);
+
+    /*! @brief 拼接多个缓存区中的数据
+     @param buflist 
+     @param totalLength 截取多少个Buffer对象
+     @return 拼接后产生的新 Buffer 对象
+    */
+    static Buffer concat(Array buflist, Integer totalLength = -1);
 
     /*! @brief 缓存对象可使用下标直接访问二进制数据*/
     Integer operator[];
@@ -50,6 +68,31 @@ interface Buffer : object
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      */
     write(String str, String codec = "utf8");
+
+    /*! @brief 向缓存对象写入字符串，字符串将以 utf-8 格式写入
+     @param str 要写入的字符串
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
+     */
+    write(String str, String codec = "utf8");
+
+    /*! @brief 为Buffer对象填充指定内容数据
+     @param v 需要填充的数据，如果未指定offset和end，将填充满整个buffer
+     @param offset 填充起始位置
+     @param end 填充终止位置
+     */
+    fill(Value v, Integer offset = 0, Integer end = -1);
+
+    /*! @brief 判断缓存区内容是否相等
+     @param buf 待比较缓存对象
+     @return 内容是否相等
+     */
+    Boolean equals(Buffer buf);
+
+    /*! @brief 判断缓存区内容是否相等
+     @param buf 待比较缓存对象
+     @return 内容比较结果
+     */
+    Integer compare(Buffer buf);
 
     /*! @brief 从源缓存对象区域拷贝数据到目标缓存对象区域
      @param targetBuffer 目标缓存对象
@@ -303,9 +346,11 @@ interface Buffer : object
 
     /*! @brief 返回二进制数据的编码字符串
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
+     @param offset 填充起始位置
+     @param end 填充终止位置
      @return 返回对象的字符串表示
     */
-    String toString(String codec);
+    String toString(String codec, Integer offset = 0, Integer end = -1);
 
     /*! @brief 返回二进制数据的 utf8 编码字符串
      @return 返回对象的字符串表示

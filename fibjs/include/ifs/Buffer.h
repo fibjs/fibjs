@@ -26,8 +26,11 @@ class Buffer_base : public object_base
 public:
 	// Buffer_base
 	static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t _new(Buffer_base* buffer, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* str, const char* codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+	static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
+	static result_t concat(v8::Local<v8::Array> buflist, int32_t totalLength, obj_ptr<Buffer_base>& retVal);
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
@@ -35,6 +38,9 @@ public:
 	virtual result_t write(v8::Local<v8::Array> datas) = 0;
 	virtual result_t write(Buffer_base* data) = 0;
 	virtual result_t write(const char* str, const char* codec) = 0;
+	virtual result_t fill(v8::Local<v8::Value> v, int32_t offset, int32_t end) = 0;
+	virtual result_t equals(Buffer_base* buf, bool& retVal) = 0;
+	virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
 	virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
 	virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
 	virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -71,7 +77,7 @@ public:
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t hex(std::string& retVal) = 0;
 	virtual result_t base64(std::string& retVal) = 0;
-	virtual result_t toString(const char* codec, std::string& retVal) = 0;
+	virtual result_t toString(const char* codec, int32_t offset, int32_t end, std::string& retVal) = 0;
 	virtual result_t toString(std::string& retVal) = 0;
 
 public:
@@ -80,11 +86,16 @@ public:
 
 public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -134,8 +145,13 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
+			{"isBuffer", s_isBuffer, true},
+			{"concat", s_concat, true},
 			{"resize", s_resize, false},
 			{"write", s_write, false},
+			{"fill", s_fill, false},
+			{"equals", s_equals, false},
+			{"compare", s_compare, false},
 			{"copy", s_copy, false},
 			{"readUInt8", s_readUInt8, false},
 			{"readUInt16LE", s_readUInt16LE, false},
@@ -188,7 +204,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			39, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			44, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -247,6 +263,12 @@ namespace fibjs
 
 		hr = _new(v0, vr, args.This());
 
+		METHOD_OVER(1, 1);
+
+		STRICT_ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = _new(v0, vr, args.This());
+
 		METHOD_OVER(2, 1);
 
 		ARG(arg_string, 0);
@@ -261,6 +283,33 @@ namespace fibjs
 		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
+	}
+
+	inline void Buffer_base::s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Value>, 0);
+
+		hr = isBuffer(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Buffer_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+		OPT_ARG(int32_t, 1, -1);
+
+		hr = concat(v0, v1, vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void Buffer_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -298,6 +347,48 @@ namespace fibjs
 		hr = pInst->write(v0, v1);
 
 		METHOD_VOID();
+	}
+
+	inline void Buffer_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(3, 1);
+
+		ARG(v8::Local<v8::Value>, 0);
+		OPT_ARG(int32_t, 1, 0);
+		OPT_ARG(int32_t, 2, -1);
+
+		hr = pInst->fill(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->equals(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->compare(v0, vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void Buffer_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -825,11 +916,13 @@ namespace fibjs
 		std::string vr;
 
 		METHOD_INSTANCE(Buffer_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(3, 1);
 
 		ARG(arg_string, 0);
+		OPT_ARG(int32_t, 1, 0);
+		OPT_ARG(int32_t, 2, -1);
 
-		hr = pInst->toString(v0, vr);
+		hr = pInst->toString(v0, v1, v2, vr);
 
 		METHOD_OVER(0, 0);
 

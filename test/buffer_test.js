@@ -23,6 +23,35 @@ describe('Buffer', function() {
 		assert.equal(buf.toString(), "1234");
 	});
 
+	it('new Buffer(Buffer)', function() {
+		var buf = new Buffer(new Buffer("abcd"));
+		assert.equal(buf.length, 4);
+		assert.equal(buf.toString(), "abcd");
+		var buf = new Buffer({});
+	});
+
+	it('isBuffer', function() {
+		var buf = new Buffer("abcd");
+		var str = "abcd"
+		assert.equal(Buffer.isBuffer(buf), true);
+		assert.equal(Buffer.isBuffer(str), false);
+	});
+
+	it('concat', function() {
+		var buf1 = new Buffer("abcd");
+		var buf2 = new Buffer("efg");
+		var bufArray = [buf1];
+		var bufRes = Buffer.concat(bufArray);
+		assert.equal(bufRes.toString(), "abcd")
+
+		bufArray = [buf1, buf2];
+		bufRes = Buffer.concat(bufArray);
+		assert.equal(bufRes.toString(), "abcdefg")
+
+		bufRes = Buffer.concat(bufArray, 6);
+		assert.equal(bufRes.toString(), "abcdef")
+	});
+
 	it('toJSON', function() {
 		var buf = new Buffer([1, 2, 3, 4]);
 		assert.deepEqual(buf.toJSON(), [1, 2, 3, 4]);
@@ -33,6 +62,14 @@ describe('Buffer', function() {
 		assert.equal(buf.toString("utf8"), "1234");
 		assert.equal(buf.toString("hex"), "31323334");
 		assert.equal(buf.toString("base64"), "MTIzNA==");
+		assert.equal(buf.toString("utf8", 1), "234");
+		assert.equal(buf.toString("utf8", 1, 3), "23");
+		assert.equal(buf.toString("hex", 2), "323334");
+		assert.equal(buf.toString("base64", 2), "IzNA==");
+
+		buf = new Buffer(5)
+		buf.write("abcd");
+		assert.equal(buf.toString("utf8", 5), "abcd");
 	});
 
 	it('write', function() {
@@ -50,6 +87,36 @@ describe('Buffer', function() {
 
 		buf.write("MTIzNA==", "base64");
 		assert.equal(buf.toString(), "1234abcd1234121234");
+	});
+
+	it('fill', function() {
+		var buf = new Buffer(5);
+		buf.fill(10);
+		for (var i = 0; i < 5; i++)
+			assert.equal(buf[i], 10);
+
+		buf = new Buffer(10);
+		buf.fill("abc");
+		assert.equal(buf.toString(), "abcabcabca");
+
+		buf.fill("abcabcabcabc");
+		assert.equal(buf.toString(), "abcabcabca");
+		assert.throws(function() {
+			buf.fill("abcabcabcabc", 1, 11);
+		})
+		assert.throws(function() {
+			buf.fill("abcabcabcabc", 6, 5);
+		})
+	});
+
+	it('equals & compare', function() {
+		var buf = new Buffer("abcd");
+		assert.equal(buf.equals(new Buffer("abcd")), true);
+		assert.equal(buf.equals(new Buffer("abc")), false);
+
+		assert.equal(buf.compare(new Buffer("abcd")), 0);
+		assert.greaterThan(buf.compare(new Buffer("abc")), 0);
+		assert.lessThan(buf.compare(new Buffer("abcde")), 0);
 	});
 
 	it('copy', function() {

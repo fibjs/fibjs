@@ -1,7 +1,8 @@
 #include "Buffer.h"
 #include "ifs/encoding.h"
 #include "Int64.h"
-#include <string.h>
+#include <cstring>
+#include <string>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -29,6 +30,63 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas,
 {
     retVal = new Buffer();
     return retVal->write(datas);
+}
+
+result_t Buffer_base::_new(Buffer_base* buffer,
+                           obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
+{
+    retVal = new Buffer();
+    return retVal->write(buffer);
+}
+
+
+result_t Buffer_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = !!Buffer_base::getInstance(v);
+    return 0;
+}
+
+result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t totalLength, obj_ptr<Buffer_base>& retVal)
+{
+    result_t hr = 0;
+    int32_t i;
+    int32_t bufLength;
+    int32_t totalLengthBak = totalLength;
+    int32_t offset = 0;
+    int32_t sz = buflist->Length();
+
+    if (sz)
+    {
+        if (totalLength < -1)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+
+        retVal = new Buffer();
+        for (i = 0; i < sz; i ++)
+        {
+            v8::Local<v8::Value> v = buflist->Get(i);
+            obj_ptr<Buffer_base> buf;
+            hr = GetArgumentValue(v, buf);
+
+            buf->get_length(bufLength);
+
+            if (-1 == totalLength)
+                totalLengthBak = offset + bufLength + 1;
+
+            if (offset + bufLength <=  totalLengthBak) {
+                hr = retVal->write(buf);
+                offset += bufLength;
+            }
+            else
+            {
+                std::string str;
+                buf->toString(str);
+                hr = retVal->write(str.substr(0, totalLengthBak - offset).c_str(), "utf8");
+                break;
+            }
+        }
+    }
+    return hr;
 }
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
@@ -139,7 +197,57 @@ result_t Buffer::write(const char *str, const char *codec)
     return write(data);
 }
 
-result_t Buffer::copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t &retVal)
+result_t Buffer::fill(v8::Local<v8::Value> v, int32_t offset, int32_t end)
+{
+    int32_t bufferLength = (int32_t)m_data.length();
+    if (end < 0)
+        end = bufferLength + end + 1;
+
+    if (offset < 0 || end < 0 || offset > end)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (end > bufferLength)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    int32_t length = end - offset;
+
+    if (v->IsNumber() || v->IsNumberObject())
+    {
+        int32_t value = v->IntegerValue() & 255;
+        memset(&m_data[offset], value, length);
+    }
+    else if (v->IsString() || v->IsStringObject())
+    {
+        std::string str = *v8::String::Utf8Value(v);
+        size_t str_length = str.length();
+
+        if (str_length == 0)
+            return 0;
+        while (length > 0) {
+            m_data.replace(offset, MIN(str_length, length), str.c_str(), MIN(str_length, length));
+            length -= str_length;
+            offset += str_length;
+        }
+    }
+    else
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    return 0;
+}
+
+result_t Buffer::equals(Buffer_base * buf, bool & retVal)
+{
+    retVal = !qstrcmp(m_data.c_str(), dynamic_cast<Buffer *>(buf)->m_data.c_str());
+    return 0;
+}
+
+result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
+{
+    retVal = qstrcmp(m_data.c_str(), dynamic_cast<Buffer *>(buf)->m_data.c_str());
+    return 0;
+}
+
+result_t Buffer::copy(Buffer_base * targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t &retVal)
 {
     if (targetStart < 0 || sourceStart < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -479,22 +587,41 @@ result_t Buffer::base64(std::string &retVal)
     return encoding_base::base64Encode(data, retVal);
 }
 
-result_t Buffer::toString(const char *codec, std::string &retVal)
+result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::string &retVal)
 {
+    result_t hr;
+    std::string fullstr;
+    int32_t fullstrLength;
+
     if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
     {
-        retVal = m_data;
-        return 0;
+        fullstr = m_data;
+        hr = 0;
     }
 
-    if (!qstrcmp(codec, "hex"))
-        return hex(retVal);
+    else
+    {
+        obj_ptr<Buffer_base> data = this;
+        if (!qstrcmp(codec, "hex"))
+            hr = encoding_base::hexEncode(data, fullstr);
+        else if (!qstrcmp(codec, "base64"))
+            hr = encoding_base::base64Encode(data, fullstr);
+        else
+            hr = encoding_base::iconvDecode(codec, data, fullstr);
+    }
 
-    if (!qstrcmp(codec, "base64"))
-        return base64(retVal);
+    fullstrLength = fullstr.length();
+    if (end < 0)
+        end = fullstrLength + end + 1;
 
-    obj_ptr<Buffer_base> data = this;
-    return encoding_base::iconvDecode(codec, data, retVal);
+    if (offset < 0 || end < 0 || offset > end)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (end > fullstrLength)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    retVal = fullstr.substr(offset, end - offset);
+    return hr;
 }
 
 result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
