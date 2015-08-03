@@ -68,25 +68,49 @@ describe('Buffer', function() {
 		assert.equal(buf.toString("base64", 2), "IzNA==");
 
 		buf = new Buffer(5)
-		buf.write("abcd");
+		buf.append("abcd");
 		assert.equal(buf.toString("utf8", 5), "abcd");
+	});
+
+	it('append', function() {
+		var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
+		assert.equal(buf.toString(), "1234");
+
+		buf.append("abcd");
+		assert.equal(buf.toString(), "1234abcd");
+
+		buf.append([0x31, 0x32, 0x33, 0x34]);
+		assert.equal(buf.toString(), "1234abcd1234");
+
+		buf.append("3132", "hex");
+		assert.equal(buf.toString(), "1234abcd123412");
+
+		buf.append("MTIzNA==", "base64");
+		assert.equal(buf.toString(), "1234abcd1234121234");
 	});
 
 	it('write', function() {
 		var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
 		assert.equal(buf.toString(), "1234");
 
-		buf.write("abcd");
-		assert.equal(buf.toString(), "1234abcd");
+		buf = new Buffer(10);
+		assert.equal(buf.write("abcd", 0, 4), 4);
+		assert.equal(buf.toString('utf8', 0, 4), "abcd");
+		assert.equal(buf.toString('utf8', 0, 3), "abc");
 
-		buf.write([0x31, 0x32, 0x33, 0x34]);
-		assert.equal(buf.toString(), "1234abcd1234");
+		buf = new Buffer(10);
+		assert.equal(buf.write("MTIzNA==", 0, 4, "base64"), 4);
+		assert.equal(buf.toString("utf8", 0, 4), "1234");
 
-		buf.write("3132", "hex");
-		assert.equal(buf.toString(), "1234abcd123412");
+		assert.equal(buf.write("31323334", 0, 20, "hex"), 8);
+		assert.equal(buf.toString("utf8", 0, 4), "1234");
 
-		buf.write("MTIzNA==", "base64");
-		assert.equal(buf.toString(), "1234abcd1234121234");
+		assert.equal(buf.write("abcde", 1, 4), 4);
+		assert.equal(buf.toString('utf8', 1, 4), "abc");
+
+		buf = new Buffer(3);
+		assert.equal(buf.write("abcd", 0, 4), 3);
+		assert.equal(buf.toString('utf8', 0, 3), "abc");
 	});
 
 	it('fill', function() {
