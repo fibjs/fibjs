@@ -143,7 +143,6 @@ public:
 
 namespace fibjs
 {
-<<< <<< < HEAD
 inline ClassInfo& Buffer_base::class_info()
 {
 	static ClassData::ClassMethod s_method[] =
