@@ -23,19 +23,21 @@ set(link_flags " ")
 if(${OS} STREQUAL "Darwin")
 	set(link_flags "${link_flags} -mmacosx-version-min=10.6")
 	set(flags "${flags} -mmacosx-version-min=10.6")
-	target_link_libraries(fibjs dl iconv pthread)
+	target_link_libraries(fibjs dl iconv)
 endif()
 
 if(${OS} STREQUAL "Linux")
-	target_link_libraries(fibjs dl rt pthread)
+	target_link_libraries(fibjs dl rt)
 endif()
 
 if(${OS} STREQUAL "FreeBSD")
 	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
 	target_link_libraries(fibjs ${execinfo})
-	target_link_libraries(fibjs pthread)
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
+endif()
 
 if(${BUILD_TYPE} STREQUAL "Release")
 	set(flags "${flags} -O3 -fvisibility=hidden")
@@ -53,10 +55,6 @@ endif()
 if(${BUILD_TYPE} STREQUAL "Debug")
 	set(flags "${flags} -g -O0")
 	add_definitions(-DDEBUG=1)
-
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
-	endif()
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Release32")
@@ -73,20 +71,18 @@ if(${BUILD_TYPE} STREQUAL "Debug32")
 	set(flags "${flags} -g -O0 -m32")
 	set(link_flags "${link_flags} -m32")
 	add_definitions(-DDEBUG=1)
-
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
-	endif()
 endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${PROJECT_SOURCE_DIR}/../vender/v8" "${CMAKE_CURRENT_BINARY_DIR}")
 
-set(libs exlib expat gumbo gd tiff jpeg png zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls v8)
+set(libs jemalloc exlib expat gumbo gd tiff jpeg png zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls v8)
 
 foreach(lib ${libs})
 	target_link_libraries(fibjs "${BIN_DIR}/vender/lib${lib}.a")
 endforeach()
+
+target_link_libraries(fibjs pthread)
 
 set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})

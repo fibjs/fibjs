@@ -247,6 +247,10 @@ char *read_line()
     return NULL;
 }
 
+#if !defined(__clang__)
+extern "C" void __real_free(void*);
+#endif
+
 result_t console_base::readLine(const char *msg, std::string &retVal,
                                 AsyncEvent *ac)
 {
@@ -254,14 +258,20 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     static bool _init = false;
     static char *(*_readline)(const char *);
     static void (*_add_history)(char *);
+    static void (*_free)(void*);
 
     if (!_init)
     {
         _init = true;
 
-#ifdef MacOS
+#ifdef __clang__
         void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
+
+        if (_free == 0)
+            _free = (void (*)(void*))dlsym(RTLD_NEXT, "free");
 #else
+        _free = __real_free;
+
         const char *readline_dylib_names[] =
         {
             "libreadline.so.6",
@@ -305,7 +315,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
             _add_history(line);
             retVal = line;
         }
-        free(line);
+        _free(line);
     }
     else
 #endif
