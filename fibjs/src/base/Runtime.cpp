@@ -7,6 +7,7 @@
 
 #include "Runtime.h"
 #include "Fiber.h"
+#include <assert.h>
 
 namespace fibjs
 {
@@ -28,7 +29,7 @@ Runtime &Runtime::now()
 
 Isolate &Isolate::now()
 {
-    trace_assert(exlib::Service::hasService());
+    assert(exlib::Service::hasService());
 
     if (exlib::Service::hasService())
     {
@@ -40,7 +41,7 @@ Isolate &Isolate::now()
 
 void Isolate::reg(void *rt)
 {
-    trace_assert(exlib::Service::hasService());
+    assert(exlib::Service::hasService());
 
     Runtime::reg(rt);
 }
@@ -50,7 +51,7 @@ bool Isolate::rt::g_trace = false;
 inline JSFiber* saveTrace()
 {
     JSFiber* fiber = JSFiber::current();
-    trace_assert(fiber != 0);
+    assert(fiber != 0);
     fiber->m_traceInfo = traceInfo(300);
     return fiber;
 }

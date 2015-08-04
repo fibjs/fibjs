@@ -90,10 +90,6 @@ void on_break(int32_t s) {
 
     Isolate *p = s_isolates.head();
     while (p != 0) {
-#ifdef DEBUG
-        p->service->dumpFibers();
-        exlib::mem_diff();
-#endif
         p->isolate->RequestInterrupt(InterruptCallback, NULL);
         p->service->RequestInterrupt(InterruptCallbackEx);
 
