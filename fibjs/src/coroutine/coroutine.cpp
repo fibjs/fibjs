@@ -13,6 +13,8 @@
 namespace fibjs
 {
 
+extern int32_t g_spareFibers;
+
 result_t coroutine_base::start(v8::Local<v8::Function> func,
                                const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<Fiber_base> &retVal)
 {
@@ -195,6 +197,18 @@ result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
         p = p->m_next;
     }
 
+    return 0;
+}
+
+result_t coroutine_base::get_spareFibers(int32_t& retVal)
+{
+    retVal = g_spareFibers;
+    return 0;
+}
+
+result_t coroutine_base::set_spareFibers(int32_t newVal)
+{
+    g_spareFibers = newVal;
     return 0;
 }
 

@@ -15,12 +15,13 @@ extern int32_t stack_size;
 extern bool g_preemptive;
 
 #define MAX_FIBER   10000
-#define MAX_IDLE   10
+#define MAX_IDLE   256
 
 static exlib::Queue<AsyncEvent> g_jobs;
 static exlib::IDLE_PROC s_oldIdle;
 static int32_t s_fibers;
 static int32_t s_idleFibers;
+int32_t g_spareFibers;
 
 static int32_t g_tlsCurrent;
 DateCache FiberBase::g_dc;
@@ -110,6 +111,7 @@ private:
 
 void init_fiber()
 {
+    g_spareFibers = MAX_IDLE;
     s_null = new null_fiber_data();
 
     s_fibers = 0;
@@ -140,7 +142,7 @@ void *FiberBase::fiber_proc(void *p)
         if ((ae = g_jobs.tryget()) == NULL)
         {
             s_idleFibers ++;
-            if (s_idleFibers > MAX_IDLE) {
+            if (s_idleFibers > g_spareFibers) {
                 s_idleFibers --;
                 break;
             }
