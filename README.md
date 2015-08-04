@@ -24,7 +24,7 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 
 ## Prerequisites (unix)
 
-	GCC 4.6 or newer
+	GCC 4.8 or newer
 	CMake 2.6 or newer
 	GNU Make 3.81 or newer
 	libexecinfo (FreeBSD and OpenBSD only)
