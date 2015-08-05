@@ -40,8 +40,8 @@ public:
 	virtual result_t append(const char* str, const char* codec) = 0;
 	virtual result_t write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal) = 0;
 	virtual result_t fill(int32_t v, int32_t offset, int32_t end) = 0;
-	virtual result_t fill(const char* v, int32_t offset, int32_t end) = 0;
 	virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end) = 0;
+	virtual result_t fill(const char* v, int32_t offset, int32_t end) = 0;
 	virtual result_t equals(Buffer_base* buf, bool& retVal) = 0;
 	virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
 	virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
@@ -384,7 +384,7 @@ namespace fibjs
 
 		METHOD_OVER(3, 1);
 
-		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 		OPT_ARG(int32_t, 1, 0);
 		OPT_ARG(int32_t, 2, -1);
 
@@ -392,7 +392,7 @@ namespace fibjs
 
 		METHOD_OVER(3, 1);
 
-		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(arg_string, 0);
 		OPT_ARG(int32_t, 1, 0);
 		OPT_ARG(int32_t, 2, -1);
 

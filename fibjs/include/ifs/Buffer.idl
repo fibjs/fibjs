@@ -90,14 +90,14 @@ interface Buffer : object
      @param offset 填充起始位置
      @param end 填充终止位置
      */
-    fill(String v, Integer offset = 0, Integer end = -1);
+    fill(Buffer v, Integer offset = 0, Integer end = -1);
 
     /*! @brief 为Buffer对象填充指定内容数据
      @param v 需要填充的数据，如果未指定offset和end，将填充满整个buffer
      @param offset 填充起始位置
      @param end 填充终止位置
      */
-    fill(Buffer v, Integer offset = 0, Integer end = -1);
+    fill(String v, Integer offset = 0, Integer end = -1);
 
     /*! @brief 判断缓存区内容是否相等
      @param buf 待比较缓存对象
