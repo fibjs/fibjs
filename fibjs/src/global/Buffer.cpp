@@ -51,8 +51,8 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
 {
     result_t hr = 0;
     int32_t buf_length;
-    int32_t total_length = cutLength;
     int32_t offset = 0;
+    int32_t total_length = cutLength;
     int32_t sz = buflist->Length();
 
     if (!sz)
@@ -60,30 +60,30 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     if (cutLength < -1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new Buffer();
+    std::string str;
+
     for (int32_t i = 0; i < sz; i ++)
     {
         v8::Local<v8::Value> v = buflist->Get(i);
-        obj_ptr<Buffer_base> buf;
-        hr = GetArgumentValue(v, buf);
-
-        buf->get_length(buf_length);
+        buf_length = (int32_t) v8::String::Utf8Value(v).length();
 
         if (-1 == cutLength)
             total_length = offset + buf_length;
 
         if (offset + buf_length <=  total_length) {
-            hr = retVal->append(buf);
+            str.append(*v8::String::Utf8Value(v));
             offset += buf_length;
         }
         else
         {
-            std::string str;
-            buf->toString(str);
-            hr = retVal->append(str.substr(0, total_length - offset).c_str(), "utf8");
+            str.append(*v8::String::Utf8Value(v), 0, total_length - offset);
+            offset = total_length;
             break;
         }
     }
+    obj_ptr<Buffer> pNew = new Buffer(str);
+    pNew->extMemory(offset);
+    retVal = pNew;
     return hr;
 }
 
@@ -261,13 +261,12 @@ result_t Buffer::fill(v8::Local<v8::Value> v, int32_t offset, int32_t end)
     }
     else if (v->IsString() || v->IsStringObject())
     {
-        std::string str = *v8::String::Utf8Value(v);
-        int32_t str_length = (int32_t)str.length();
+        int32_t str_length = (int32_t) v8::String::Utf8Value(v).length();
 
         if (str_length == 0)
             return 0;
         while (length > 0) {
-            m_data.replace(offset, MIN(str_length, length), str.c_str(), MIN(str_length, length));
+            m_data.replace(offset, MIN(str_length, length), *v8::String::Utf8Value(v), MIN(str_length, length));
             length -= str_length;
             offset += str_length;
         }
@@ -280,13 +279,36 @@ result_t Buffer::fill(v8::Local<v8::Value> v, int32_t offset, int32_t end)
 
 result_t Buffer::equals(Buffer_base * buf, bool & retVal)
 {
-    retVal = !qstrcmp(m_data.c_str(), dynamic_cast<Buffer *>(buf)->m_data.c_str());
+    int32_t cmp;
+    this->compare(buf, cmp);
+    retVal = !cmp;
     return 0;
 }
 
 result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
 {
-    retVal = qstrcmp(m_data.c_str(), dynamic_cast<Buffer *>(buf)->m_data.c_str());
+    int32_t cursor = 0;
+    obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer *>(buf);
+    retVal = 0;
+
+    while (cursor < m_data.length())
+    {
+        if ((int32_t)m_data[cursor] != (int32_t)cmpdata->m_data[cursor])
+        {
+            retVal =  (int32_t)m_data[cursor] - (int32_t)cmpdata->m_data[cursor];
+            return 0;
+        }
+        cursor++;
+    }
+    while (cursor < cmpdata->m_data.length())
+    {
+        if (cmpdata->m_data[cursor])
+        {
+            retVal = 0 - (int32_t)cmpdata->m_data[cursor];
+            return 0;
+        }
+        cursor++;
+    }
     return 0;
 }
 

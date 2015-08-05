@@ -50,6 +50,24 @@ describe('Buffer', function() {
 
 		bufRes = Buffer.concat(bufArray, 6);
 		assert.equal(bufRes.toString(), "abcdef")
+
+		buf1 = new Buffer([0x31, 0x32, 0x33, 0x34]);
+		buf2 = new Buffer([0x35, 0x36, 0x37, 0x38]);
+		bufArray = [buf1, buf2];
+		bufRes = Buffer.concat(bufArray);
+		assert.equal(bufRes.length, 8);
+		assert.equal(bufRes.toString(), "12345678");
+		bufRes = Buffer.concat(bufArray, 7);
+		assert.equal(bufRes.length, 7);
+		assert.equal(bufRes.toString(), "1234567");
+
+		buf1 = new Buffer([1, 2, 3, 4]);
+		buf2 = new Buffer([5, 6, 7, 8]);
+		bufArray = [buf1, buf2];
+		bufRes = Buffer.concat(bufArray);
+		for (var i = 0; i < 8; i++) {
+			assert.equal(bufRes[i], i + 1);
+		}
 	});
 
 	it('toJSON', function() {
@@ -137,10 +155,13 @@ describe('Buffer', function() {
 		var buf = new Buffer("abcd");
 		assert.equal(buf.equals(new Buffer("abcd")), true);
 		assert.equal(buf.equals(new Buffer("abc")), false);
-
 		assert.equal(buf.compare(new Buffer("abcd")), 0);
 		assert.greaterThan(buf.compare(new Buffer("abc")), 0);
 		assert.lessThan(buf.compare(new Buffer("abcde")), 0);
+
+		buf = new Buffer([1, 0, 1]);
+		assert.equal(buf.equals(new Buffer([1, 0, 1])), true);
+		assert.equal(buf.equals(new Buffer([1, 0, 2])), false);
 	});
 
 	it('copy', function() {
