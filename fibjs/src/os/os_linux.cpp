@@ -390,11 +390,11 @@ error: fclose(f);
 
     v8::HeapStatistics v8_heap_stats;
     isolate.isolate->GetHeapStatistics(&v8_heap_stats);
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "rss"), v8::Integer::New(isolate.isolate, (int32_t)rss));
+    info->Set(v8::String::NewFromUtf8(isolate.isolate, "rss"), v8::Number::New(isolate.isolate, (double)rss));
     info->Set(v8::String::NewFromUtf8(isolate.isolate, "heapTotal"),
-              v8::Integer::New(isolate.isolate, (int32_t)v8_heap_stats.total_heap_size()));
+              v8::Number::New(isolate.isolate, (double)v8_heap_stats.total_heap_size()));
     info->Set(v8::String::NewFromUtf8(isolate.isolate, "heapUsed"),
-              v8::Integer::New(isolate.isolate, (int32_t)v8_heap_stats.used_heap_size()));
+              v8::Number::New(isolate.isolate, (double)v8_heap_stats.used_heap_size()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
