@@ -38,7 +38,9 @@ public:
     virtual result_t append(Buffer_base *data);
     virtual result_t append(const char *str, const char *codec);
     virtual result_t write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal);
-    virtual result_t fill(v8::Local<v8::Value> v, int32_t offset, int32_t end);
+    virtual result_t fill(int32_t v, int32_t offset, int32_t end);
+    virtual result_t fill(const char* v, int32_t offset, int32_t end);
+    virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end);
     virtual result_t equals(Buffer_base *buf, bool& retVal);
     virtual result_t compare(Buffer_base *buf, int32_t& retVal);
     virtual result_t copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);

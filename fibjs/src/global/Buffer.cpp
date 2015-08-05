@@ -9,6 +9,20 @@
 namespace fibjs
 {
 
+inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, int32_t &end)
+{
+    if (end < 0)
+        end = buffer_length + end + 1;
+
+    if (offset < 0 || end < 0 || offset > end)
+        return CALL_E_INVALIDARG;
+
+    if (end > buffer_length)
+        return CALL_E_OUTRANGE;
+
+    return 0;
+}
+
 result_t Buffer_base::_new(const char *str, const char *codec,
                            obj_ptr<Buffer_base> &retVal,
                            v8::Local<v8::Object> This)
@@ -65,18 +79,23 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     for (int32_t i = 0; i < sz; i ++)
     {
         v8::Local<v8::Value> v = buflist->Get(i);
-        buf_length = (int32_t) v8::String::Utf8Value(v).length();
+
+        v8::String::Utf8Value vstr(v);
+        if (!*vstr)
+            return 0;
+
+        buf_length = (int32_t) vstr.length();
 
         if (-1 == cutLength)
             total_length = offset + buf_length;
 
         if (offset + buf_length <=  total_length) {
-            str.append(*v8::String::Utf8Value(v));
+            str.append(*vstr, buf_length);
             offset += buf_length;
         }
         else
         {
-            str.append(*v8::String::Utf8Value(v), 0, total_length - offset);
+            str.append(*vstr, total_length - offset);
             offset = total_length;
             break;
         }
@@ -240,40 +259,54 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     return hr;
 }
 
-result_t Buffer::fill(v8::Local<v8::Value> v, int32_t offset, int32_t end)
+result_t Buffer::fill(int32_t v, int32_t offset, int32_t end)
 {
-    int32_t buffer_length = (int32_t)m_data.length();
-    if (end < 0)
-        end = buffer_length + end + 1;
+    result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
 
-    if (offset < 0 || end < 0 || offset > end)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+    memset(&m_data[offset], v & 255, end - offset);
+    return 0;
+}
 
-    if (end > buffer_length)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+result_t Buffer::fill(const char* v, int32_t offset, int32_t end)
+{
+    result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
 
     int32_t length = end - offset;
+    int32_t str_length = (int32_t) strlen(v);
 
-    if (v->IsNumber() || v->IsNumberObject())
+    if (str_length == 0)
+        return 0;
+    while (length > 0)
     {
-        int32_t value = v->IntegerValue() & 255;
-        memset(&m_data[offset], value, length);
+        m_data.replace(offset, MIN(str_length, length), v, MIN(str_length, length));
+        length -= str_length;
+        offset += str_length;
     }
-    else if (v->IsString() || v->IsStringObject())
+    return 0;
+}
+
+result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
+{
+    result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    obj_ptr<Buffer> v_data = dynamic_cast<Buffer *>(v);
+    int32_t length = end - offset;
+    int32_t v_length = v_data->m_data.length();
+
+    if (v_length == 0)
+        return 0;
+    while (length > 0)
     {
-        int32_t str_length = (int32_t) v8::String::Utf8Value(v).length();
-
-        if (str_length == 0)
-            return 0;
-        while (length > 0) {
-            m_data.replace(offset, MIN(str_length, length), *v8::String::Utf8Value(v), MIN(str_length, length));
-            length -= str_length;
-            offset += str_length;
-        }
+        memcpy(&m_data[offset], &v_data->m_data[0], MIN(v_length, length));
+        length -= v_length;
+        offset += v_length;
     }
-    else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
     return 0;
 }
 
@@ -287,28 +320,15 @@ result_t Buffer::equals(Buffer_base * buf, bool & retVal)
 
 result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
 {
-    int32_t cursor = 0;
     obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer *>(buf);
-    retVal = 0;
+    int32_t pos_length = m_data.length();
+    int32_t neg_length = cmpdata->m_data.length();
 
-    while (cursor < m_data.length())
-    {
-        if ((int32_t)m_data[cursor] != (int32_t)cmpdata->m_data[cursor])
-        {
-            retVal =  (int32_t)m_data[cursor] - (int32_t)cmpdata->m_data[cursor];
-            return 0;
-        }
-        cursor++;
-    }
-    while (cursor < cmpdata->m_data.length())
-    {
-        if (cmpdata->m_data[cursor])
-        {
-            retVal = 0 - (int32_t)cmpdata->m_data[cursor];
-            return 0;
-        }
-        cursor++;
-    }
+    retVal =  memcmp(&m_data[0], &cmpdata->m_data[0], MIN(pos_length, neg_length));
+    if (retVal)
+        return 0;
+
+    retVal = pos_length - neg_length;
     return 0;
 }
 
@@ -665,13 +685,12 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
     }
     else
     {
-        obj_ptr<Buffer_base> data = this;
         if (!qstrcmp(codec, "hex"))
-            hr = encoding_base::hexEncode(data, str);
+            hr = encoding_base::hexEncode(this, str);
         else if (!qstrcmp(codec, "base64"))
-            hr = encoding_base::base64Encode(data, str);
+            hr = encoding_base::base64Encode(this, str);
         else
-            hr = encoding_base::iconvDecode(codec, data, str);
+            hr = encoding_base::iconvDecode(codec, this, str);
     }
 
     if (hr < 0)

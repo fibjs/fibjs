@@ -68,6 +68,10 @@ describe('Buffer', function() {
 		for (var i = 0; i < 8; i++) {
 			assert.equal(bufRes[i], i + 1);
 		}
+
+		buf1 = new Buffer('');
+		bufArray = [buf1];
+		bufRes = Buffer.concat([function() {}, {}, undefined, '']);
 	});
 
 	it('toJSON', function() {
@@ -143,11 +147,24 @@ describe('Buffer', function() {
 
 		buf.fill("abcabcabcabc");
 		assert.equal(buf.toString(), "abcabcabca");
+
 		assert.throws(function() {
-			buf.fill("abcabcabcabc", 1, 11);
+			buf.fill("abcabcabcabc", 1, 12);
 		})
 		assert.throws(function() {
 			buf.fill("abcabcabcabc", 6, 5);
+		})
+
+		buf = new Buffer(10);
+		buf.fill(new Buffer([0, 1, 2]));
+		for (var i = 0; i < 3; i++) {
+			assert.equal(buf[i], i);
+			assert.equal(buf[i + 3], i);
+			assert.equal(buf[i + 6], i);
+		}
+		assert.equal(buf[9], 0);
+		assert.throws(function() {
+			buf[10];
 		})
 	});
 
