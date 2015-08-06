@@ -47,9 +47,15 @@ result_t process_base::get_execPath(std::string &retVal)
     return os_base::get_execPath(retVal);
 }
 
+void dump_memory(int32_t serial);
+
 result_t process_base::exit(int32_t code)
 {
     flushLog(false);
+
+#ifdef DEBUG
+    dump_memory(0);
+#endif
 
     ::_exit(code);
     return 0;
