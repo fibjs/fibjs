@@ -50,7 +50,6 @@ result_t process_base::get_execPath(std::string &retVal)
 result_t process_base::exit(int32_t code)
 {
     flushLog(false);
-    exlib::mem_diff();
 
     ::_exit(code);
     return 0;

@@ -38,6 +38,8 @@ public:
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
 	static result_t get_fibers(v8::Local<v8::Array>& retVal);
+	static result_t get_spareFibers(int32_t& retVal);
+	static result_t set_spareFibers(int32_t newVal);
 
 public:
 	static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -45,6 +47,8 @@ public:
 	static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_fibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_spareFibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_spareFibers(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 };
 
 }
@@ -81,13 +85,14 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"fibers", s_get_fibers, block_set, true}
+			{"fibers", s_get_fibers, block_set, true},
+			{"spareFibers", s_get_spareFibers, s_set_spareFibers, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			4, s_method, 6, s_object, 1, s_property, NULL, NULL,
+			4, s_method, 6, s_object, 2, s_property, NULL, NULL,
 			NULL
 		};
 
@@ -104,6 +109,27 @@ namespace fibjs
 		hr = get_fibers(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void coroutine_base::s_get_spareFibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_spareFibers(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void coroutine_base::s_set_spareFibers(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_VAL(int32_t);
+
+		hr = set_spareFibers(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)

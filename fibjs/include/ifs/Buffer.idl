@@ -30,7 +30,7 @@ interface Buffer : object
     Buffer(Integer size = 0);
 
     /*! @brief 拼接多个缓存区中的数据
-     @param buflist 
+     @param buflist 待拼接的Buffer数组
      @param cutLength 截取多少个Buffer对象
      @return 拼接后产生的新 Buffer 对象
     */
@@ -99,7 +99,7 @@ interface Buffer : object
      */
     Boolean equals(Buffer buf);
 
-    /*! @brief 判断缓存区内容是否相等
+    /*! @brief 比较缓存区的内容
      @param buf 待比较缓存对象
      @return 内容比较结果
      */
