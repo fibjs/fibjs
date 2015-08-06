@@ -1,19 +1,34 @@
 #include "Buffer.h"
 #include "ifs/encoding.h"
 #include "Int64.h"
-#include <string.h>
+#include <cstring>
+#include <string>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 namespace fibjs
 {
 
+inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, int32_t &end)
+{
+    if (end < 0)
+        end = buffer_length + end + 1;
+
+    if (offset < 0 || end < 0 || offset > end)
+        return CALL_E_INVALIDARG;
+
+    if (end > buffer_length)
+        return CALL_E_OUTRANGE;
+
+    return 0;
+}
+
 result_t Buffer_base::_new(const char *str, const char *codec,
                            obj_ptr<Buffer_base> &retVal,
                            v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
-    return retVal->write(str, codec);
+    return retVal->append(str, codec);
 }
 
 result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal,
@@ -28,7 +43,67 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas,
                            v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
-    return retVal->write(datas);
+    return retVal->append(datas);
+}
+
+result_t Buffer_base::_new(Buffer_base* buffer,
+                           obj_ptr<Buffer_base> &retVal,
+                           v8::Local<v8::Object> This)
+{
+    retVal = new Buffer();
+    return retVal->append(buffer);
+}
+
+
+result_t Buffer_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = !!Buffer_base::getInstance(v);
+    return 0;
+}
+
+result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal)
+{
+    result_t hr = 0;
+    int32_t buf_length;
+    int32_t offset = 0;
+    int32_t total_length = cutLength;
+    int32_t sz = buflist->Length();
+
+    if (!sz)
+        return 0;
+    if (cutLength < -1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    std::string str;
+
+    for (int32_t i = 0; i < sz; i ++)
+    {
+        v8::Local<v8::Value> v = buflist->Get(i);
+
+        v8::String::Utf8Value vstr(v);
+        if (!*vstr)
+            return 0;
+
+        buf_length = (int32_t) vstr.length();
+
+        if (-1 == cutLength)
+            total_length = offset + buf_length;
+
+        if (offset + buf_length <=  total_length) {
+            str.append(*vstr, buf_length);
+            offset += buf_length;
+        }
+        else
+        {
+            str.append(*vstr, total_length - offset);
+            offset = total_length;
+            break;
+        }
+    }
+    obj_ptr<Buffer> pNew = new Buffer(str);
+    pNew->extMemory(offset);
+    retVal = pNew;
+    return hr;
 }
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
@@ -69,7 +144,7 @@ result_t Buffer::resize(int32_t sz)
     return 0;
 }
 
-result_t Buffer::write(v8::Local<v8::Array> datas)
+result_t Buffer::append(v8::Local<v8::Array> datas)
 {
     int32_t sz = datas->Length();
 
@@ -102,7 +177,7 @@ result_t Buffer::write(v8::Local<v8::Array> datas)
     return 0;
 }
 
-result_t Buffer::write(Buffer_base *data)
+result_t Buffer::append(Buffer_base *data)
 {
     std::string strBuf;
     data->toString(strBuf);
@@ -112,7 +187,7 @@ result_t Buffer::write(Buffer_base *data)
     return 0;
 }
 
-result_t Buffer::write(const char *str, const char *codec)
+result_t Buffer::append(const char *str, const char *codec)
 {
     if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
     {
@@ -136,10 +211,128 @@ result_t Buffer::write(const char *str, const char *codec)
     if (hr < 0)
         return hr;
 
-    return write(data);
+    return append(data);
 }
 
-result_t Buffer::copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t &retVal)
+result_t Buffer::write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal)
+{
+    int32_t max_length = 0;
+    int32_t buffer_length = (int32_t)m_data.length();
+
+    if (offset < 0 || length < -1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    if (buffer_length < offset)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    max_length = MIN(qstrlen(str),  buffer_length - offset);
+    if (0 == length)
+        return 0;
+    else if (0 < length)
+        max_length = MIN(max_length,  length);
+
+    if (max_length < 0)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    retVal = max_length;
+    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
+    {
+        m_data.replace(offset, max_length, str, max_length);
+        return 0;
+    }
+
+    result_t hr;
+    obj_ptr<Buffer_base> data;
+    std::string strBuf;
+
+    if (!qstrcmp(codec, "hex"))
+        hr = encoding_base::hexDecode(str, data);
+    else if (!qstrcmp(codec, "base64"))
+        hr = encoding_base::base64Decode(str, data);
+    else
+        hr = encoding_base::iconvEncode(codec, str, data);
+
+    if (hr < 0)
+        return hr;
+    data->toString(strBuf);
+    m_data.replace(offset, max_length, strBuf.c_str(), max_length);
+
+    return hr;
+}
+
+result_t Buffer::fill(int32_t v, int32_t offset, int32_t end)
+{
+    result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    memset(&m_data[offset], v & 255, end - offset);
+    return 0;
+}
+
+result_t Buffer::fill(const char* v, int32_t offset, int32_t end)
+{
+    result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    int32_t length = end - offset;
+    int32_t str_length = (int32_t) strlen(v);
+
+    if (str_length == 0)
+        return 0;
+    while (length > 0)
+    {
+        m_data.replace(offset, MIN(str_length, length), v, MIN(str_length, length));
+        length -= str_length;
+        offset += str_length;
+    }
+    return 0;
+}
+
+result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
+{
+    result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    obj_ptr<Buffer> v_data = dynamic_cast<Buffer *>(v);
+    int32_t length = end - offset;
+    int32_t v_length = v_data->m_data.length();
+
+    if (v_length == 0)
+        return 0;
+    while (length > 0)
+    {
+        memcpy(&m_data[offset], &v_data->m_data[0], MIN(v_length, length));
+        length -= v_length;
+        offset += v_length;
+    }
+    return 0;
+}
+
+result_t Buffer::equals(Buffer_base * buf, bool & retVal)
+{
+    int32_t cmp;
+    this->compare(buf, cmp);
+    retVal = !cmp;
+    return 0;
+}
+
+result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
+{
+    obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer *>(buf);
+    int32_t pos_length = m_data.length();
+    int32_t neg_length = cmpdata->m_data.length();
+
+    retVal =  memcmp(&m_data[0], &cmpdata->m_data[0], MIN(pos_length, neg_length));
+    if (retVal)
+        return 0;
+
+    retVal = pos_length - neg_length;
+    return 0;
+}
+
+result_t Buffer::copy(Buffer_base * targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t &retVal)
 {
     if (targetStart < 0 || sourceStart < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -479,22 +672,42 @@ result_t Buffer::base64(std::string &retVal)
     return encoding_base::base64Encode(data, retVal);
 }
 
-result_t Buffer::toString(const char *codec, std::string &retVal)
+result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::string &retVal)
 {
+    result_t hr;
+    std::string str;
+    int32_t str_length;
+
     if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
     {
-        retVal = m_data;
-        return 0;
+        str = m_data;
+        hr = 0;
+    }
+    else
+    {
+        if (!qstrcmp(codec, "hex"))
+            hr = encoding_base::hexEncode(this, str);
+        else if (!qstrcmp(codec, "base64"))
+            hr = encoding_base::base64Encode(this, str);
+        else
+            hr = encoding_base::iconvDecode(codec, this, str);
     }
 
-    if (!qstrcmp(codec, "hex"))
-        return hex(retVal);
+    if (hr < 0)
+        return hr;
 
-    if (!qstrcmp(codec, "base64"))
-        return base64(retVal);
+    str_length = str.length();
+    if (end < 0)
+        end = str_length + end + 1;
 
-    obj_ptr<Buffer_base> data = this;
-    return encoding_base::iconvDecode(codec, data, retVal);
+    if (offset < 0 || end < 0 || offset > end)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (end > str_length)
+        end = str_length;
+
+    retVal = str.substr(offset, end - offset);
+    return hr;
 }
 
 result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
