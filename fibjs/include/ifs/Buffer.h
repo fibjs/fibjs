@@ -29,7 +29,6 @@ public:
 	static result_t _new(Buffer_base* buffer, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(const char* str, const char* codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 	static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
 	static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
@@ -89,7 +88,6 @@ public:
 
 public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -149,7 +147,6 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"isBuffer", s_isBuffer, true},
 			{"concat", s_concat, true},
 			{"resize", s_resize, false},
 			{"append", s_append, false},
@@ -209,7 +206,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			45, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			44, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -288,19 +285,6 @@ namespace fibjs
 		hr = _new(v0, vr, args.This());
 
 		CONSTRUCT_RETURN();
-	}
-
-	inline void Buffer_base::s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		bool vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Local<v8::Value>, 0);
-
-		hr = isBuffer(v0, vr);
-
-		METHOD_RETURN();
 	}
 
 	inline void Buffer_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -29,12 +29,6 @@ interface Buffer : object
      */
     Buffer(Integer size = 0);
 
-    /*! @brief 检测给定的变量是否是 Buffer 对象
-     @param v 给定需要检测的变量
-     @return 传入对象是否 Buffer 对象
-    */
-    static Boolean isBuffer(Value v);
-
     /*! @brief 拼接多个缓存区中的数据
      @param buflist 
      @param cutLength 截取多少个Buffer对象
