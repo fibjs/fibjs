@@ -35,6 +35,7 @@ public:
 
     virtual ~object_base()
     {
+        assert(handle_.IsEmpty());
         object_base::class_info().Unref();
     }
 
@@ -129,6 +130,7 @@ private:
 private:
     static void WeakCallback(const v8::WeakCallbackData<v8::Object, object_base> &data)
     {
+        assert(!data.GetParameter()->handle_.IsEmpty());
         data.GetParameter()->internalDispose(true);
     }
 
