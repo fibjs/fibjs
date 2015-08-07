@@ -168,6 +168,24 @@ describe('Buffer', function() {
 		})
 	});
 
+	it('slice', function() {
+		var buf = new Buffer(5);
+		buf.fill(10);
+		var sli = buf.slice(1, 4);
+		for (var i = 0; i < 3; i++)
+			assert.equal(sli[i], 10);
+
+		buf = new Buffer(10);
+		buf.write("abcdefghih");
+		assert.equal(buf.slice(0, 3), "abc");
+		assert.throws(function() {
+			buf.slice(6, 5);
+		})
+		assert.throws(function() {
+			buf.slice(0, 11);
+		})
+	});
+
 	it('equals & compare', function() {
 		var buf = new Buffer("abcd");
 		assert.equal(buf.equals(new Buffer("abcd")), true);
