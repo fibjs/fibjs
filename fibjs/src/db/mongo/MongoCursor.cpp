@@ -52,7 +52,14 @@ static void close_cursor(MongoCursor::cursor* cur)
 MongoCursor::~MongoCursor()
 {
     m_query.Reset();
-    syncCall(close_cursor, m_cursor);
+    if (in_gc())
+        syncCall(close_cursor, m_cursor);
+    else
+    {
+        mongo_cursor_destroy(m_cursor);
+        delete m_cursor;
+    }
+
     if (m_bInit)
         bson_destroy(&m_bbq);
     bson_destroy(&m_bbp);
