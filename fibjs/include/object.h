@@ -129,7 +129,7 @@ private:
 private:
     static void WeakCallback(const v8::WeakCallbackData<v8::Object, object_base> &data)
     {
-        data.GetParameter()->internalDispose();
+        data.GetParameter()->internalDispose(true);
     }
 
 public:
@@ -222,7 +222,7 @@ private:
     int32_t m_nExtMemory;
     int32_t m_nExtMemoryDelay;
 
-    result_t internalDispose()
+    result_t internalDispose(bool gc)
     {
         if (!handle_.IsEmpty())
         {
@@ -235,7 +235,7 @@ private:
 
             isolate.isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 
-            obj_base::dispose();
+            obj_base::dispose(gc);
         }
 
         return 0;
@@ -249,7 +249,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        return internalDispose();
+        return internalDispose(false);
     }
 
     virtual result_t toString(std::string &retVal)
