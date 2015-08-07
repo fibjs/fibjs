@@ -187,14 +187,14 @@ describe("http", function() {
 			[{
 				name: "test",
 				value: "value",
-				expires: new Date("2020-12-21T13:31:30")
+				expires: new Date("2020-12-21T13:31:30Z")
 			}, "test=value; expires=Mon, 21 Dec 2020 13:31:30 GMT"],
 			[{
 				name: "test",
 				value: "value",
 				domain: ".baoz.me",
 				path: "/rpc",
-				expires: new Date("2020-12-21T13:31:30"),
+				expires: new Date("2020-12-21T13:31:30Z"),
 				secure: true,
 				httpOnly: true
 			}, "test=value; expires=Mon, 21 Dec 2020 13:31:30 GMT; domain=.baoz.me; path=/rpc; secure; HttpOnly"]
@@ -689,8 +689,7 @@ describe("http", function() {
 			return req;
 		}
 
-		function getStats(hdr)
-		{
+		function getStats(hdr) {
 			var o = hdr.stats.toJSON();
 			delete o.totalTime;
 			return o;
