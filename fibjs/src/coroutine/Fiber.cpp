@@ -237,13 +237,14 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
     size_t i;
     Isolate &isolate = Isolate::now();
     std::vector<v8::Local<v8::Value> > argv;
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate.isolate, m_func);
 
     argv.resize(m_argv.size());
     for (i = 0; i < m_argv.size(); i++)
         argv[i] = v8::Local<v8::Value>::New(isolate.isolate, m_argv[i]);
 
-    callFunction1(v8::Local<v8::Function>::New(isolate.isolate, m_func),
-                  argv.data(), (int32_t) argv.size(), retVal);
+    clear();
+    callFunction1(func, argv.data(), (int32_t) argv.size(), retVal);
 
     if (!IsEmpty(retVal))
         m_result.Reset(isolate.isolate, retVal);
