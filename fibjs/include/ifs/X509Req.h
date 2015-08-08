@@ -66,152 +66,152 @@ public:
 
 namespace fibjs
 {
-	inline ClassInfo& X509Req_base::class_info()
+inline ClassInfo& X509Req_base::class_info()
+{
+	static ClassData::ClassMethod s_method[] =
 	{
-		static ClassData::ClassMethod s_method[] = 
-		{
-			{"load", s_load, false},
-			{"loadFile", s_loadFile, false},
-			{"exportPem", s_exportPem, false},
-			{"exportDer", s_exportDer, false},
-			{"sign", s_sign, false}
-		};
+		{"load", s_load, false},
+		{"loadFile", s_loadFile, false},
+		{"exportPem", s_exportPem, false},
+		{"exportDer", s_exportDer, false},
+		{"sign", s_sign, false}
+	};
 
-		static ClassData::ClassProperty s_property[] = 
-		{
-			{"subject", s_get_subject, block_set, false},
-			{"publicKey", s_get_publicKey, block_set, false}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"X509Req", s__new, 
-			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
-
-	inline void X509Req_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	static ClassData::ClassProperty s_property[] =
 	{
-		std::string vr;
+		{"subject", s_get_subject, block_set, false},
+		{"publicKey", s_get_publicKey, block_set, false}
+	};
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(X509Req_base);
-
-		hr = pInst->get_subject(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void X509Req_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	static ClassData s_cd =
 	{
-		obj_ptr<PKey_base> vr;
+		"X509Req", s__new,
+		5, s_method, 0, NULL, 2, s_property, NULL, NULL,
+		&object_base::class_info()
+	};
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(X509Req_base);
+	static ClassInfo s_ci(s_cd);
+	return s_ci;
+}
 
-		hr = pInst->get_publicKey(vr);
+inline void X509Req_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+{
+	std::string vr;
 
-		METHOD_RETURN();
-	}
+	PROPERTY_ENTER();
+	PROPERTY_INSTANCE(X509Req_base);
 
-	inline void X509Req_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		CONSTRUCT_INIT();
-		__new(args);
-	}
+	hr = pInst->get_subject(vr);
 
-	template<typename T>void X509Req_base::__new(const T& args)
-	{
-		obj_ptr<X509Req_base> vr;
+	METHOD_RETURN();
+}
 
-		CONSTRUCT_ENTER(0, 0);
+inline void X509Req_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+{
+	obj_ptr<PKey_base> vr;
 
-		hr = _new(vr, args.This());
+	PROPERTY_ENTER();
+	PROPERTY_INSTANCE(X509Req_base);
 
-		METHOD_OVER(3, 2);
+	hr = pInst->get_publicKey(vr);
 
-		ARG(arg_string, 0);
-		ARG(obj_ptr<PKey_base>, 1);
-		OPT_ARG(int32_t, 2, hash_base::_SHA1);
+	METHOD_RETURN();
+}
 
-		hr = _new(v0, v1, v2, vr, args.This());
+inline void X509Req_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	CONSTRUCT_INIT();
+	__new(args);
+}
 
-		CONSTRUCT_RETURN();
-	}
+template<typename T>void X509Req_base::__new(const T& args)
+{
+	obj_ptr<X509Req_base> vr;
 
-	inline void X509Req_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(X509Req_base);
-		METHOD_ENTER(1, 1);
+	CONSTRUCT_ENTER(0, 0);
 
-		ARG(obj_ptr<Buffer_base>, 0);
+	hr = _new(vr, args.This());
 
-		hr = pInst->load(v0);
+	METHOD_OVER(3, 2);
 
-		METHOD_OVER(1, 1);
+	ARG(arg_string, 0);
+	ARG(obj_ptr<PKey_base>, 1);
+	OPT_ARG(int32_t, 2, hash_base::_SHA1);
 
-		ARG(arg_string, 0);
+	hr = _new(v0, v1, v2, vr, args.This());
 
-		hr = pInst->load(v0);
+	CONSTRUCT_RETURN();
+}
 
-		METHOD_VOID();
-	}
+inline void X509Req_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	METHOD_INSTANCE(X509Req_base);
+	METHOD_ENTER(1, 1);
 
-	inline void X509Req_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(X509Req_base);
-		METHOD_ENTER(1, 1);
+	ARG(obj_ptr<Buffer_base>, 0);
 
-		ARG(arg_string, 0);
+	hr = pInst->load(v0);
 
-		hr = pInst->loadFile(v0);
+	METHOD_OVER(1, 1);
 
-		METHOD_VOID();
-	}
+	ARG(arg_string, 0);
 
-	inline void X509Req_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		std::string vr;
+	hr = pInst->load(v0);
 
-		METHOD_INSTANCE(X509Req_base);
-		METHOD_ENTER(0, 0);
+	METHOD_VOID();
+}
 
-		hr = pInst->exportPem(vr);
+inline void X509Req_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	METHOD_INSTANCE(X509Req_base);
+	METHOD_ENTER(1, 1);
 
-		METHOD_RETURN();
-	}
+	ARG(arg_string, 0);
 
-	inline void X509Req_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Buffer_base> vr;
+	hr = pInst->loadFile(v0);
 
-		METHOD_INSTANCE(X509Req_base);
-		METHOD_ENTER(0, 0);
+	METHOD_VOID();
+}
 
-		hr = pInst->exportDer(vr);
+inline void X509Req_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	std::string vr;
 
-		METHOD_RETURN();
-	}
+	METHOD_INSTANCE(X509Req_base);
+	METHOD_ENTER(0, 0);
 
-	inline void X509Req_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<X509Cert_base> vr;
+	hr = pInst->exportPem(vr);
 
-		METHOD_INSTANCE(X509Req_base);
-		METHOD_ENTER(3, 2);
+	METHOD_RETURN();
+}
 
-		ARG(arg_string, 0);
-		ARG(obj_ptr<PKey_base>, 1);
-		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now().isolate));
+inline void X509Req_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	obj_ptr<Buffer_base> vr;
 
-		hr = pInst->ac_sign(v0, v1, v2, vr);
+	METHOD_INSTANCE(X509Req_base);
+	METHOD_ENTER(0, 0);
 
-		METHOD_RETURN();
-	}
+	hr = pInst->exportDer(vr);
+
+	METHOD_RETURN();
+}
+
+inline void X509Req_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	obj_ptr<X509Cert_base> vr;
+
+	METHOD_INSTANCE(X509Req_base);
+	METHOD_ENTER(3, 2);
+
+	ARG(arg_string, 0);
+	ARG(obj_ptr<PKey_base>, 1);
+	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->isolate));
+
+	hr = pInst->ac_sign(v0, v1, v2, vr);
+
+	METHOD_RETURN();
+}
 
 }
 

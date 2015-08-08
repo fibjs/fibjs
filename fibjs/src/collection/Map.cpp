@@ -92,14 +92,14 @@ result_t Map::_named_getter(const char *property, v8::Local<v8::Value> &retVal)
 result_t Map::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i = 0;
-    Isolate &isolate = Isolate::now();
+    Isolate* isolate = Isolate::now();
 
-    retVal = v8::Array::New(isolate.isolate, (int32_t)m_datas.size());
+    retVal = v8::Array::New(isolate->isolate, (int32_t)m_datas.size());
     std::map<std::string, VariantEx>::iterator iter;
 
     for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
         retVal->Set(i++,
-                    v8::String::NewFromUtf8(isolate.isolate, iter->first.c_str(),
+                    v8::String::NewFromUtf8(isolate->isolate, iter->first.c_str(),
                                             v8::String::kNormalString,
                                             (int32_t) iter->first.length()));
 

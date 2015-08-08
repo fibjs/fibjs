@@ -59,192 +59,192 @@ public:
 
 namespace fibjs
 {
-	inline ClassInfo& HttpCollection_base::class_info()
+inline ClassInfo& HttpCollection_base::class_info()
+{
+	static ClassData::ClassMethod s_method[] =
 	{
-		static ClassData::ClassMethod s_method[] = 
-		{
-			{"clear", s_clear, false},
-			{"has", s_has, false},
-			{"first", s_first, false},
-			{"all", s_all, false},
-			{"add", s_add, false},
-			{"set", s_set, false},
-			{"remove", s_remove, false}
-		};
+		{"clear", s_clear, false},
+		{"has", s_has, false},
+		{"first", s_first, false},
+		{"all", s_all, false},
+		{"add", s_add, false},
+		{"set", s_set, false},
+		{"remove", s_remove, false}
+	};
 
-		static ClassData::ClassNamed s_named = 
-		{
-			i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"HttpCollection", NULL, 
-			7, s_method, 0, NULL, 0, NULL, NULL, &s_named,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
-
-	inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	static ClassData::ClassNamed s_named =
 	{
-		Variant vr;
+		i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
+	};
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpCollection_base);
-
-		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return;
-
-		hr = pInst->_named_getter(*k, vr);
-		if(hr == CALL_RETURN_NULL)return;
-
-		METHOD_RETURN();
-	}
-
-	inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
+	static ClassData s_cd =
 	{
-		v8::Local<v8::Array> vr;
+		"HttpCollection", NULL,
+		7, s_method, 0, NULL, 0, NULL, NULL, &s_named,
+		&object_base::class_info()
+	};
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpCollection_base);
+	static ClassInfo s_ci(s_cd);
+	return s_ci;
+}
 
-		hr = pInst->_named_enumerator(vr);
+inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+{
+	Variant vr;
 
-		METHOD_RETURN1();
-	}
+	PROPERTY_ENTER();
+	PROPERTY_INSTANCE(HttpCollection_base);
 
-	inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpCollection_base);
+	v8::String::Utf8Value k(property);
+	if (class_info().has(*k))return;
 
-		PROPERTY_VAL(Variant);
-		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return;
+	hr = pInst->_named_getter(*k, vr);
+	if (hr == CALL_RETURN_NULL)return;
 
-		hr = pInst->_named_setter(*k, v0);
+	METHOD_RETURN();
+}
 
-		METHOD_VOID();
-	}
+inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
+{
+	v8::Local<v8::Array> vr;
 
-	inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)
-	{
-		v8::Local<v8::Boolean> vr;
+	PROPERTY_ENTER();
+	PROPERTY_INSTANCE(HttpCollection_base);
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpCollection_base);
+	hr = pInst->_named_enumerator(vr);
 
-		v8::String::Utf8Value k(property);
-		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(Isolate::now().isolate));return;}
+	METHOD_RETURN1();
+}
 
-		hr = pInst->_named_deleter(*k, vr);
-		METHOD_RETURN1();
-	}
+inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
+{
+	PROPERTY_ENTER();
+	PROPERTY_INSTANCE(HttpCollection_base);
 
-	inline void HttpCollection_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(HttpCollection_base);
-		METHOD_ENTER(0, 0);
+	PROPERTY_VAL(Variant);
+	v8::String::Utf8Value k(property);
+	if (class_info().has(*k))return;
 
-		hr = pInst->clear();
+	hr = pInst->_named_setter(*k, v0);
 
-		METHOD_VOID();
-	}
+	METHOD_VOID();
+}
 
-	inline void HttpCollection_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		bool vr;
+inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)
+{
+	v8::Local<v8::Boolean> vr;
 
-		METHOD_INSTANCE(HttpCollection_base);
-		METHOD_ENTER(1, 1);
+	PROPERTY_ENTER();
+	PROPERTY_INSTANCE(HttpCollection_base);
 
-		ARG(arg_string, 0);
+	v8::String::Utf8Value k(property);
+	if (class_info().has(*k)) {args.GetReturnValue().Set(v8::False(Isolate::now()->isolate)); return;}
 
-		hr = pInst->has(v0, vr);
+	hr = pInst->_named_deleter(*k, vr);
+	METHOD_RETURN1();
+}
 
-		METHOD_RETURN();
-	}
+inline void HttpCollection_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	METHOD_INSTANCE(HttpCollection_base);
+	METHOD_ENTER(0, 0);
 
-	inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		Variant vr;
+	hr = pInst->clear();
 
-		METHOD_INSTANCE(HttpCollection_base);
-		METHOD_ENTER(1, 1);
+	METHOD_VOID();
+}
 
-		ARG(arg_string, 0);
+inline void HttpCollection_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	bool vr;
 
-		hr = pInst->first(v0, vr);
+	METHOD_INSTANCE(HttpCollection_base);
+	METHOD_ENTER(1, 1);
 
-		METHOD_RETURN();
-	}
+	ARG(arg_string, 0);
 
-	inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<List_base> vr;
+	hr = pInst->has(v0, vr);
 
-		METHOD_INSTANCE(HttpCollection_base);
-		METHOD_ENTER(1, 1);
+	METHOD_RETURN();
+}
 
-		ARG(arg_string, 0);
+inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	Variant vr;
 
-		hr = pInst->all(v0, vr);
+	METHOD_INSTANCE(HttpCollection_base);
+	METHOD_ENTER(1, 1);
 
-		METHOD_RETURN();
-	}
+	ARG(arg_string, 0);
 
-	inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(HttpCollection_base);
-		METHOD_ENTER(1, 1);
+	hr = pInst->first(v0, vr);
 
-		ARG(v8::Local<v8::Object>, 0);
+	METHOD_RETURN();
+}
 
-		hr = pInst->add(v0);
+inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	obj_ptr<List_base> vr;
 
-		METHOD_OVER(2, 2);
+	METHOD_INSTANCE(HttpCollection_base);
+	METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
-		ARG(Variant, 1);
+	ARG(arg_string, 0);
 
-		hr = pInst->add(v0, v1);
+	hr = pInst->all(v0, vr);
 
-		METHOD_VOID();
-	}
+	METHOD_RETURN();
+}
 
-	inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(HttpCollection_base);
-		METHOD_ENTER(1, 1);
+inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	METHOD_INSTANCE(HttpCollection_base);
+	METHOD_ENTER(1, 1);
 
-		ARG(v8::Local<v8::Object>, 0);
+	ARG(v8::Local<v8::Object>, 0);
 
-		hr = pInst->set(v0);
+	hr = pInst->add(v0);
 
-		METHOD_OVER(2, 2);
+	METHOD_OVER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(Variant, 1);
+	ARG(arg_string, 0);
+	ARG(Variant, 1);
 
-		hr = pInst->set(v0, v1);
+	hr = pInst->add(v0, v1);
 
-		METHOD_VOID();
-	}
+	METHOD_VOID();
+}
 
-	inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(HttpCollection_base);
-		METHOD_ENTER(1, 1);
+inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	METHOD_INSTANCE(HttpCollection_base);
+	METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+	ARG(v8::Local<v8::Object>, 0);
 
-		hr = pInst->remove(v0);
+	hr = pInst->set(v0);
 
-		METHOD_VOID();
-	}
+	METHOD_OVER(2, 2);
+
+	ARG(arg_string, 0);
+	ARG(Variant, 1);
+
+	hr = pInst->set(v0, v1);
+
+	METHOD_VOID();
+}
+
+inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	METHOD_INSTANCE(HttpCollection_base);
+	METHOD_ENTER(1, 1);
+
+	ARG(arg_string, 0);
+
+	hr = pInst->remove(v0);
+
+	METHOD_VOID();
+}
 
 }
 

@@ -101,25 +101,25 @@ public:
     v8::Local<v8::Function> getFunction()
     {
         _init();
-        return v8::Local<v8::Function>::New(Isolate::now().isolate, m_function);
+        return v8::Local<v8::Function>::New(Isolate::now()->isolate, m_function);
     }
 
     v8::Local<v8::Object> CreateInstance()
     {
         _init();
 
-        Isolate &isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
         v8::Local<v8::Object> o;
 
         if (m_cache.IsEmpty())
         {
-            o = v8::Local<v8::Function>::New(isolate.isolate, m_function)->NewInstance();
+            o = v8::Local<v8::Function>::New(isolate->isolate, m_function)->NewInstance();
             o->SetAlignedPointerInInternalField(0, 0);
-            m_cache.Reset(isolate.isolate, o);
+            m_cache.Reset(isolate->isolate, o);
 
             o = o->Clone();
         } else
-            o = v8::Local<v8::Object>::New(isolate.isolate, m_cache)->Clone();
+            o = v8::Local<v8::Object>::New(isolate->isolate, m_cache)->Clone();
 
         return o;
     }
@@ -153,29 +153,29 @@ public:
 
     void Attach(v8::Local<v8::Object> o)
     {
-        Isolate &isolate = Isolate::now();
-        v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate.isolate, isolate.s_context);
+        Isolate* isolate = Isolate::now();
+        v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate->isolate, isolate->s_context);
 
         _init();
         int32_t i;
 
         for (i = 0; i < m_cd.mc; i++)
             if (m_cd.cms[i].is_static)
-                o->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, m_cd.cms[i].name),
-                            v8::Function::New(isolate.isolate, m_cd.cms[i].invoker),
+                o->ForceSet(_context, v8::String::NewFromUtf8(isolate->isolate, m_cd.cms[i].name),
+                            v8::Function::New(isolate->isolate, m_cd.cms[i].invoker),
                             v8::ReadOnly);
 
         for (i = 0; i < m_cd.oc; i++)
         {
             m_cd.cos[i].invoker()._init();
-            o->ForceSet(_context, v8::String::NewFromUtf8(isolate.isolate, m_cd.cos[i].name),
-                        v8::Local<v8::Function>::New(isolate.isolate, m_cd.cos[i].invoker().m_function),
+            o->ForceSet(_context, v8::String::NewFromUtf8(isolate->isolate, m_cd.cos[i].name),
+                        v8::Local<v8::Function>::New(isolate->isolate, m_cd.cos[i].invoker().m_function),
                         v8::ReadOnly);
         }
 
         for (i = 0; i < m_cd.pc; i++)
             if (m_cd.cps[i].is_static)
-                o->SetAccessor(v8::String::NewFromUtf8(isolate.isolate, m_cd.cps[i].name),
+                o->SetAccessor(v8::String::NewFromUtf8(isolate->isolate, m_cd.cps[i].name),
                                m_cd.cps[i].getter, m_cd.cps[i].setter);
     }
 
@@ -192,18 +192,18 @@ public:
 
     exlib::atomic_t dump(v8::Local<v8::Object> &o)
     {
-        Isolate &isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
         exlib::atomic_t cnt = refs_;
 
         if (cnt)
         {
-            o = v8::Object::New(isolate.isolate);
-            o->Set(v8::String::NewFromUtf8(isolate.isolate, "class"),
-                   v8::String::NewFromUtf8(isolate.isolate, m_cd.name));
-            o->Set(v8::String::NewFromUtf8(isolate.isolate, "objects"),
-                   v8::Integer::New(isolate.isolate, (int32_t)cnt));
+            o = v8::Object::New(isolate->isolate);
+            o->Set(v8::String::NewFromUtf8(isolate->isolate, "class"),
+                   v8::String::NewFromUtf8(isolate->isolate, m_cd.name));
+            o->Set(v8::String::NewFromUtf8(isolate->isolate, "objects"),
+                   v8::Integer::New(isolate->isolate, (int32_t)cnt));
 
-            v8::Local<v8::Array> inherits = v8::Array::New(isolate.isolate);
+            v8::Local<v8::Array> inherits = v8::Array::New(isolate->isolate);
 
             ClassInfo *p = m_Inherit;
             exlib::atomic_t icnt = 0;
@@ -218,7 +218,7 @@ public:
             }
 
             if (icnt)
-                o->Set(v8::String::NewFromUtf8(isolate.isolate, "inherits"), inherits);
+                o->Set(v8::String::NewFromUtf8(isolate->isolate, "inherits"), inherits);
         }
 
         return cnt;
@@ -229,19 +229,19 @@ private:
     {
         if (m_class.IsEmpty())
         {
-            Isolate &isolate = Isolate::now();
+            Isolate* isolate = Isolate::now();
 
             v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
-                        isolate.isolate, m_cd.cor);
-            m_class.Reset(isolate.isolate, _class);
+                        isolate->isolate, m_cd.cor);
+            m_class.Reset(isolate->isolate, _class);
 
-            _class->SetClassName(v8::String::NewFromUtf8(isolate.isolate, m_cd.name));
+            _class->SetClassName(v8::String::NewFromUtf8(isolate->isolate, m_cd.name));
 
             if (m_cd.base)
             {
                 m_cd.base->_init();
                 _class->Inherit(
-                    v8::Local<v8::FunctionTemplate>::New(isolate.isolate,
+                    v8::Local<v8::FunctionTemplate>::New(isolate->isolate,
                             m_cd.base->m_class));
             }
 
@@ -251,19 +251,19 @@ private:
             pt->MarkAsUndetectable();
 
             for (i = 0; i < m_cd.mc; i++)
-                pt->Set(v8::String::NewFromUtf8(isolate.isolate, m_cd.cms[i].name),
-                        v8::FunctionTemplate::New(isolate.isolate, m_cd.cms[i].invoker));
+                pt->Set(v8::String::NewFromUtf8(isolate->isolate, m_cd.cms[i].name),
+                        v8::FunctionTemplate::New(isolate->isolate, m_cd.cms[i].invoker));
 
             for (i = 0; i < m_cd.oc; i++)
             {
                 m_cd.cos[i].invoker()._init();
-                pt->Set(v8::String::NewFromUtf8(isolate.isolate, m_cd.cos[i].name),
-                        v8::Local<v8::FunctionTemplate>::New(isolate.isolate,
+                pt->Set(v8::String::NewFromUtf8(isolate->isolate, m_cd.cos[i].name),
+                        v8::Local<v8::FunctionTemplate>::New(isolate->isolate,
                                 m_cd.cos[i].invoker().m_class));
             }
 
             for (i = 0; i < m_cd.pc; i++)
-                pt->SetAccessor(v8::String::NewFromUtf8(isolate.isolate, m_cd.cps[i].name),
+                pt->SetAccessor(v8::String::NewFromUtf8(isolate->isolate, m_cd.cps[i].name),
                                 m_cd.cps[i].getter, m_cd.cps[i].setter);
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
@@ -288,13 +288,13 @@ private:
 
             v8::Local<v8::Function> _function = _class->GetFunction();
             Attach(_function);
-            m_function.Reset(isolate.isolate, _function);
+            m_function.Reset(isolate->isolate, _function);
 
             if (m_cd.cor)
             {
                 v8::Local<v8::Object> o = _function->NewInstance();
                 o->SetAlignedPointerInInternalField(0, 0);
-                m_cache.Reset(isolate.isolate, o);
+                m_cache.Reset(isolate->isolate, o);
             }
         }
     }

@@ -257,7 +257,7 @@ result_t Int64::valueOf(v8::Local<v8::Value> &retVal)
     double num;
 
     toNumber(num);
-    retVal = v8::Number::New(Isolate::now().isolate, num);
+    retVal = v8::Number::New(Isolate::now()->isolate, num);
     return 0;
 }
 
@@ -276,7 +276,7 @@ result_t Int64::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     std::string str;
 
     toString(16, str);
-    retVal = v8::String::NewFromUtf8(Isolate::now().isolate, str.c_str(),
+    retVal = v8::String::NewFromUtf8(Isolate::now()->isolate, str.c_str(),
                                      v8::String::kNormalString, (int32_t) str.length());
 
     return 0;

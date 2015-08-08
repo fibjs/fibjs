@@ -167,11 +167,11 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 {
     double avg[3] = {0, 0, 0};
 
-    Isolate &isolate = Isolate::now();
-    retVal = v8::Array::New(isolate.isolate, 3);
-    retVal->Set(0, v8::Number::New(isolate.isolate, avg[0]));
-    retVal->Set(1, v8::Number::New(isolate.isolate, avg[1]));
-    retVal->Set(2, v8::Number::New(isolate.isolate, avg[2]));
+    Isolate* isolate = Isolate::now();
+    retVal = v8::Array::New(isolate->isolate, 3);
+    retVal->Set(0, v8::Number::New(isolate->isolate, avg[0]));
+    retVal->Set(1, v8::Number::New(isolate->isolate, avg[1]));
+    retVal->Set(2, v8::Number::New(isolate->isolate, avg[2]));
 
     return 0;
 }
@@ -222,8 +222,8 @@ result_t os_base::CPUs(int32_t &retVal)
 
 result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 {
-    Isolate &isolate = Isolate::now();
-    retVal = v8::Array::New(isolate.isolate);
+    Isolate* isolate = Isolate::now();
+    retVal = v8::Array::New(isolate->isolate);
 
     SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION *sppi;
     DWORD sppi_size;
@@ -297,26 +297,26 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
         RegCloseKey(processor_key);
 
-        v8::Local<v8::Object> times_info = v8::Object::New(isolate.isolate);
-        times_info->Set(v8::String::NewFromUtf8(isolate.isolate, "user"),
-                        v8::Integer::New(isolate.isolate,
+        v8::Local<v8::Object> times_info = v8::Object::New(isolate->isolate);
+        times_info->Set(v8::String::NewFromUtf8(isolate->isolate, "user"),
+                        v8::Integer::New(isolate->isolate,
                                          (int32_t) (sppi[i].UserTime.QuadPart / 10000)));
-        times_info->Set(v8::String::NewFromUtf8(isolate.isolate, "nice"), v8::Integer::New(isolate.isolate, 0));
-        times_info->Set(v8::String::NewFromUtf8(isolate.isolate, "sys"),
-                        v8::Integer::New(isolate.isolate,
+        times_info->Set(v8::String::NewFromUtf8(isolate->isolate, "nice"), v8::Integer::New(isolate->isolate, 0));
+        times_info->Set(v8::String::NewFromUtf8(isolate->isolate, "sys"),
+                        v8::Integer::New(isolate->isolate,
                                          (int32_t) (sppi[i].KernelTime.QuadPart
                                                  - sppi[i].IdleTime.QuadPart) / 10000));
-        times_info->Set(v8::String::NewFromUtf8(isolate.isolate, "idle"),
-                        v8::Integer::New(isolate.isolate,
+        times_info->Set(v8::String::NewFromUtf8(isolate->isolate, "idle"),
+                        v8::Integer::New(isolate->isolate,
                                          (int32_t) (sppi[i].IdleTime.QuadPart / 10000)));
-        times_info->Set(v8::String::NewFromUtf8(isolate.isolate, "irq"),
-                        v8::Integer::New(isolate.isolate,
+        times_info->Set(v8::String::NewFromUtf8(isolate->isolate, "irq"),
+                        v8::Integer::New(isolate->isolate,
                                          (int32_t) (sppi[i].InterruptTime.QuadPart / 10000)));
 
-        v8::Local<v8::Object> cpu_info = v8::Object::New(isolate.isolate);
-        cpu_info->Set(v8::String::NewFromUtf8(isolate.isolate, "model"), v8::String::NewFromUtf8(isolate.isolate, cpu_brand));
-        cpu_info->Set(v8::String::NewFromUtf8(isolate.isolate, "speed"), v8::Integer::New(isolate.isolate, cpu_speed));
-        cpu_info->Set(v8::String::NewFromUtf8(isolate.isolate, "times"), times_info);
+        v8::Local<v8::Object> cpu_info = v8::Object::New(isolate->isolate);
+        cpu_info->Set(v8::String::NewFromUtf8(isolate->isolate, "model"), v8::String::NewFromUtf8(isolate->isolate, cpu_brand));
+        cpu_info->Set(v8::String::NewFromUtf8(isolate->isolate, "speed"), v8::Integer::New(isolate->isolate, cpu_speed));
+        cpu_info->Set(v8::String::NewFromUtf8(isolate->isolate, "times"), times_info);
         retVal->Set(i, cpu_info);
     }
 
@@ -342,8 +342,8 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
             != ERROR_SUCCESS)
         return CHECK_ERROR(LastError());
 
-    Isolate &isolate = Isolate::now();
-    retVal = v8::Object::New(isolate.isolate);
+    Isolate* isolate = Isolate::now();
+    retVal = v8::Object::New(isolate->isolate);
 
     for (adapter_address = adapter_addresses; adapter_address != NULL;
             adapter_address = adapter_address->Next)
@@ -355,9 +355,9 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
         if (adapter_address->OperStatus != IfOperStatusUp)
             continue;
 
-        name = v8::String::NewFromUtf8(isolate.isolate, UTF8_A(adapter_address->FriendlyName));
+        name = v8::String::NewFromUtf8(isolate->isolate, UTF8_A(adapter_address->FriendlyName));
 
-        ret = v8::Array::New(isolate.isolate);
+        ret = v8::Array::New(isolate->isolate);
         retVal->Set(name, ret);
 
         unicast_address =
@@ -366,13 +366,13 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
         {
             inetAddr *sock_addr = (inetAddr *) unicast_address->Address.lpSockaddr;
 
-            o = v8::Object::New(isolate.isolate);
-            o->Set(v8::String::NewFromUtf8(isolate.isolate, "address"), v8::String::NewFromUtf8(isolate.isolate, sock_addr->str().c_str()));
-            o->Set(v8::String::NewFromUtf8(isolate.isolate, "family"), sock_addr->family() == net_base::_AF_INET6 ?
-                   v8::String::NewFromUtf8(isolate.isolate, "IPv6") : v8::String::NewFromUtf8(isolate.isolate, "IPv4"));
-            o->Set(v8::String::NewFromUtf8(isolate.isolate, "internal"),
+            o = v8::Object::New(isolate->isolate);
+            o->Set(v8::String::NewFromUtf8(isolate->isolate, "address"), v8::String::NewFromUtf8(isolate->isolate, sock_addr->str().c_str()));
+            o->Set(v8::String::NewFromUtf8(isolate->isolate, "family"), sock_addr->family() == net_base::_AF_INET6 ?
+                   v8::String::NewFromUtf8(isolate->isolate, "IPv6") : v8::String::NewFromUtf8(isolate->isolate, "IPv4"));
+            o->Set(v8::String::NewFromUtf8(isolate->isolate, "internal"),
                    adapter_address->IfType == IF_TYPE_SOFTWARE_LOOPBACK ?
-                   v8::True(isolate.isolate) : v8::False(isolate.isolate));
+                   v8::True(isolate->isolate) : v8::False(isolate->isolate));
 
             ret->Set(ret->Length(), o);
 
@@ -408,20 +408,20 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
     rss = pmc.WorkingSetSize;
 
-    Isolate &isolate = Isolate::now();
-    v8::Local<v8::Object> info = v8::Object::New(isolate.isolate);
+    Isolate* isolate = Isolate::now();
+    v8::Local<v8::Object> info = v8::Object::New(isolate->isolate);
 
     v8::HeapStatistics v8_heap_stats;
-    isolate.isolate->GetHeapStatistics(&v8_heap_stats);
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "rss"), v8::Number::New(isolate.isolate, (double)rss));
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "heapTotal"),
-              v8::Number::New(isolate.isolate, (double)v8_heap_stats.total_heap_size()));
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "heapUsed"),
-              v8::Number::New(isolate.isolate, (double)v8_heap_stats.used_heap_size()));
+    isolate->isolate->GetHeapStatistics(&v8_heap_stats);
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "rss"), v8::Number::New(isolate->isolate, (double)rss));
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "heapTotal"),
+              v8::Number::New(isolate->isolate, (double)v8_heap_stats.total_heap_size()));
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "heapUsed"),
+              v8::Number::New(isolate->isolate, (double)v8_heap_stats.used_heap_size()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "nativeObjects"), objs);
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "nativeObjects"), objs);
 
     retVal = info;
 

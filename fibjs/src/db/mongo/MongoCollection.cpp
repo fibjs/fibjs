@@ -97,9 +97,9 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
 
 result_t MongoCollection::save(v8::Local<v8::Object> document)
 {
-    Isolate &isolate = Isolate::now();
+    Isolate* isolate = Isolate::now();
 
-    v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate.isolate, "_id",
+    v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate->isolate, "_id",
                                   v8::String::kNormalString, 3);
     v8::Local<v8::Value> id = document->Get(strId);
 
@@ -107,7 +107,7 @@ result_t MongoCollection::save(v8::Local<v8::Object> document)
         return insert(document);
     else
     {
-        v8::Local<v8::Object> query = v8::Object::New(isolate.isolate);
+        v8::Local<v8::Object> query = v8::Object::New(isolate->isolate);
 
         query->Set(strId, id);
         return update(query, document, true, false);
@@ -149,11 +149,11 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
 result_t MongoCollection::update(v8::Local<v8::Object> query,
                                  v8::Local<v8::Object> document, v8::Local<v8::Object> options)
 {
-    Isolate &isolate = Isolate::now();
+    Isolate* isolate = Isolate::now();
     return update(query, document,
-                  options->Get(v8::String::NewFromUtf8(isolate.isolate, "upsert",
+                  options->Get(v8::String::NewFromUtf8(isolate->isolate, "upsert",
                                v8::String::kNormalString, 6))->BooleanValue(),
-                  options->Get(v8::String::NewFromUtf8(isolate.isolate, "multi",
+                  options->Get(v8::String::NewFromUtf8(isolate->isolate, "multi",
                                v8::String::kNormalString, 5))->BooleanValue());
 }
 
@@ -219,7 +219,7 @@ result_t MongoCollection::drop()
 {
     v8::Local<v8::Object> r;
     return m_db->runCommand("drop",
-                            v8::String::NewFromUtf8(Isolate::now().isolate, m_name.c_str(),
+                            v8::String::NewFromUtf8(Isolate::now()->isolate, m_name.c_str(),
                                     v8::String::kNormalString, (int32_t) m_name.length()), r);
 }
 
@@ -251,16 +251,16 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
         name.append(*sv, sv.length());
     }
 
-    Isolate &isolate = Isolate::now();
-    v8::Local<v8::Object> idx = v8::Object::New(isolate.isolate);
+    Isolate* isolate = Isolate::now();
+    v8::Local<v8::Object> idx = v8::Object::New(isolate->isolate);
 
-    idx->Set(v8::String::NewFromUtf8(isolate.isolate, "ns"),
-             v8::String::NewFromUtf8(isolate.isolate, m_ns.c_str(),
+    idx->Set(v8::String::NewFromUtf8(isolate->isolate, "ns"),
+             v8::String::NewFromUtf8(isolate->isolate, m_ns.c_str(),
                                      v8::String::kNormalString, (int32_t) m_ns.length()));
-    idx->Set(v8::String::NewFromUtf8(isolate.isolate, "key"), keys);
+    idx->Set(v8::String::NewFromUtf8(isolate->isolate, "key"), keys);
 
-    idx->Set(v8::String::NewFromUtf8(isolate.isolate, "name"),
-             v8::String::NewFromUtf8(isolate.isolate, name.c_str(),
+    idx->Set(v8::String::NewFromUtf8(isolate->isolate, "name"),
+             v8::String::NewFromUtf8(isolate->isolate, name.c_str(),
                                      v8::String::kNormalString, (int32_t) name.length()));
 
     extend(idx, options);
@@ -300,11 +300,11 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
     if (hr < 0)
         return hr;
 
-    Isolate &isolate = Isolate::now();
-    v8::Local<v8::Object> f = v8::Object::New(isolate.isolate);
-    v8::Local<v8::Object> q = v8::Object::New(isolate.isolate);
-    q->Set(v8::String::NewFromUtf8(isolate.isolate, "ns"),
-           v8::String::NewFromUtf8(isolate.isolate, m_ns.c_str(),
+    Isolate* isolate = Isolate::now();
+    v8::Local<v8::Object> f = v8::Object::New(isolate->isolate);
+    v8::Local<v8::Object> q = v8::Object::New(isolate->isolate);
+    q->Set(v8::String::NewFromUtf8(isolate->isolate, "ns"),
+           v8::String::NewFromUtf8(isolate->isolate, m_ns.c_str(),
                                    v8::String::kNormalString, (int32_t) m_ns.length()));
 
     return coll->find(q, f, retVal);

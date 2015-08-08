@@ -31,11 +31,11 @@ void init_argv(int32_t argc, char **argv)
 
 result_t process_base::get_argv(v8::Local<v8::Array> &retVal)
 {
-    Isolate &isolate = Isolate::now();
-    v8::Local<v8::Array> args = v8::Array::New(isolate.isolate, s_argc);
+    Isolate* isolate = Isolate::now();
+    v8::Local<v8::Array> args = v8::Array::New(isolate->isolate, s_argc);
 
     for (int32_t i = 0; i < s_argc; i ++)
-        args->Set(i, v8::String::NewFromUtf8(isolate.isolate, s_argv[i]));
+        args->Set(i, v8::String::NewFromUtf8(isolate->isolate, s_argv[i]));
 
     retVal = args;
 

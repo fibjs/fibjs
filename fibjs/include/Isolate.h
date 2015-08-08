@@ -34,7 +34,7 @@ public:
 	};
 
 public:
-	static Isolate &now();
+	static Isolate* now();
 	static void reg(void *rt);
 
 public:

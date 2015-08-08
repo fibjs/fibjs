@@ -37,7 +37,7 @@ inline result_t _parallel(std::vector<v8::Local<v8::Function> > &funs,
 
     if (!bError)
     {
-        retVal = v8::Array::New(Isolate::now().isolate, (int32_t) funs.size());
+        retVal = v8::Array::New(Isolate::now()->isolate, (int32_t) funs.size());
         retVal->Set(0, r);
     }
 
@@ -66,7 +66,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> func,
 
     if (l == 0)
     {
-        retVal = v8::Array::New(Isolate::now().isolate);
+        retVal = v8::Array::New(Isolate::now()->isolate);
         return 0;
     }
 
@@ -94,7 +94,7 @@ result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &arg
 
     if (l == 0)
     {
-        retVal = v8::Array::New(Isolate::now().isolate);
+        retVal = v8::Array::New(Isolate::now()->isolate);
         return 0;
     }
 
@@ -123,7 +123,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> data,
 
     if (len == 0)
     {
-        retVal = v8::Array::New(Isolate::now().isolate);
+        retVal = v8::Array::New(Isolate::now()->isolate);
         return 0;
     }
 
@@ -141,7 +141,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> data,
 
     if (!bError)
     {
-        retVal = v8::Array::New(Isolate::now().isolate, len);
+        retVal = v8::Array::New(Isolate::now()->isolate, len);
         retVal->Set(0, r);
     }
 
@@ -186,10 +186,10 @@ result_t coroutine_base::sleep(int32_t ms)
 
 result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
 {
-    exlib::linkitem* p = Isolate::now().m_fibers.head();
+    exlib::linkitem* p = Isolate::now()->m_fibers.head();
     int32_t n = 0;
 
-    retVal = v8::Array::New(Isolate::now().isolate);
+    retVal = v8::Array::New(Isolate::now()->isolate);
 
     while (p)
     {

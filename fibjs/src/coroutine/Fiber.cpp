@@ -71,24 +71,24 @@ class _preemptThread: public exlib::OSThread
 public:
     virtual void Run()
     {
-        Isolate& isolate = *s_isolates.head();
-        exlib::atomic_t lastTimes = isolate.service->m_switchTimes;
+        Isolate* isolate = s_isolates.head();
+        exlib::atomic_t lastTimes = isolate->service->m_switchTimes;
         int32_t cnt = 0;
 
         while (true)
         {
             sleep(100);
 
-            if (isolate.service->m_resume.empty())
+            if (isolate->service->m_resume.empty())
             {
                 cnt = 0;
                 continue;
             }
 
-            if (lastTimes != isolate.service->m_switchTimes)
+            if (lastTimes != isolate->service->m_switchTimes)
             {
                 cnt = 0;
-                lastTimes = isolate.service->m_switchTimes;
+                lastTimes = isolate->service->m_switchTimes;
                 continue;
             }
 
@@ -96,7 +96,7 @@ public:
             if (cnt == 2)
             {
                 cnt = 0;
-                isolate.isolate->RequestInterrupt(InterruptCallback, NULL);
+                isolate->isolate->RequestInterrupt(InterruptCallback, NULL);
             }
         }
     }
@@ -126,13 +126,13 @@ void init_fiber()
 
 void *FiberBase::fiber_proc(void *p)
 {
-    Isolate &isolate = Isolate::now();
-    v8::Locker locker(isolate.isolate);
-    v8::Isolate::Scope isolate_scope(isolate.isolate);
+    Isolate* isolate = Isolate::now();
+    v8::Locker locker(isolate->isolate);
+    v8::Isolate::Scope isolate_scope(isolate->isolate);
 
-    v8::HandleScope handle_scope(isolate.isolate);
+    v8::HandleScope handle_scope(isolate->isolate);
     v8::Context::Scope context_scope(
-        v8::Local<v8::Context>::New(isolate.isolate, isolate.s_context));
+        v8::Local<v8::Context>::New(isolate->isolate, isolate->s_context));
 
     s_idleFibers --;
     while (1)
@@ -147,14 +147,14 @@ void *FiberBase::fiber_proc(void *p)
                 break;
             }
 
-            v8::Unlocker unlocker(isolate.isolate);
+            v8::Unlocker unlocker(isolate->isolate);
             ae = g_jobs.get();
 
             s_idleFibers --;
         }
 
         {
-            v8::HandleScope handle_scope(isolate.isolate);
+            v8::HandleScope handle_scope(isolate->isolate);
             ae->js_invoke();
         }
     }
@@ -235,19 +235,19 @@ void JSFiber::callFunction1(v8::Local<v8::Function> func,
 void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
 {
     size_t i;
-    Isolate &isolate = Isolate::now();
+    Isolate* isolate = Isolate::now();
     std::vector<v8::Local<v8::Value> > argv;
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate.isolate, m_func);
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->isolate, m_func);
 
     argv.resize(m_argv.size());
     for (i = 0; i < m_argv.size(); i++)
-        argv[i] = v8::Local<v8::Value>::New(isolate.isolate, m_argv[i]);
+        argv[i] = v8::Local<v8::Value>::New(isolate->isolate, m_argv[i]);
 
     clear();
     callFunction1(func, argv.data(), (int32_t) argv.size(), retVal);
 
     if (!IsEmpty(retVal))
-        m_result.Reset(isolate.isolate, retVal);
+        m_result.Reset(isolate->isolate, retVal);
 }
 
 JSFiber *JSFiber::current()
@@ -270,7 +270,7 @@ JSFiber::scope::scope(JSFiber *fb) :
         m_pFiber = new JSFiber();
 
     exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
-    Isolate::now().m_fibers.putTail(m_pFiber);
+    Isolate::now()->m_fibers.putTail(m_pFiber);
 }
 
 JSFiber::scope::~scope()
@@ -284,7 +284,7 @@ JSFiber::scope::~scope()
     o->SetAlignedPointerInInternalField(0, s_null);
 
     ReportException(try_catch, m_hr);
-    Isolate::now().m_fibers.remove(m_pFiber);
+    Isolate::now()->m_fibers.remove(m_pFiber);
     exlib::Fiber::tlsPut(g_tlsCurrent, 0);
 }
 

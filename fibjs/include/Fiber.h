@@ -93,13 +93,13 @@ public:
     void New(v8::Local<v8::Function> func, T &args, int32_t nArgStart,
              int32_t nArgCount)
     {
-        Isolate &isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
         int32_t i;
 
         m_argv.resize(nArgCount - nArgStart);
         for (i = nArgStart; i < nArgCount; i++)
-            m_argv[i - nArgStart].Reset(isolate.isolate, args[i]);
-        m_func.Reset(isolate.isolate, func);
+            m_argv[i - nArgStart].Reset(isolate->isolate, args[i]);
+        m_func.Reset(isolate->isolate, func);
 
         start();
     }
@@ -141,7 +141,7 @@ public:
         if (m_result.IsEmpty())
             return CALL_RETURN_NULL;
 
-        retVal = v8::Local<v8::Value>::New(Isolate::now().isolate, m_result);
+        retVal = v8::Local<v8::Value>::New(Isolate::now()->isolate, m_result);
         return 0;
     }
 

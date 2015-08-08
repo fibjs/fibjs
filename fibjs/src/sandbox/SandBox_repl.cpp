@@ -50,8 +50,8 @@ result_t SandBox::Context::repl()
     result_t hr;
     std::string buf;
     v8::Local<v8::Value> v, v1;
-    Isolate &isolate = Isolate::now();
-    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate.isolate, "repl",
+    Isolate* isolate = Isolate::now();
+    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate->isolate, "repl",
                                      v8::String::kNormalString, 4);
 
     while (true)
@@ -83,7 +83,7 @@ result_t SandBox::Context::repl()
             TryCatch try_catch;
 
             script = v8::Script::Compile(
-                         v8::String::NewFromUtf8(isolate.isolate, buf.c_str(),
+                         v8::String::NewFromUtf8(isolate->isolate, buf.c_str(),
                                                  v8::String::kNormalString, (int32_t) buf.length()),
                          strFname);
             if (script.IsEmpty())

@@ -335,7 +335,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
 {
     result_t hr;
     int32_t i;
-    Isolate &isolate = Isolate::now();
+    Isolate* isolate = Isolate::now();
 
     do
     {
@@ -353,7 +353,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
             m_kvs[i * 2].Release();
             m_kvs[i * 2 + 1].Release();
 
-            v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate.isolate), 2, args);
+            v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->isolate), 2, args);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 

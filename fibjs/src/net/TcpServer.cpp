@@ -242,7 +242,7 @@ result_t TcpServer::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t TcpServer::set_handler(Handler_base *newVal)
 {
-    wrap()->SetHiddenValue(v8::String::NewFromUtf8(Isolate::now().isolate, "handler"), newVal->wrap());
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(Isolate::now()->isolate, "handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }

@@ -137,21 +137,21 @@ private:
 public:
     v8::Local<v8::Object> wrap(v8::Local<v8::Object> o)
     {
-        Isolate & isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
 
         if (handle_.IsEmpty())
         {
             if (o.IsEmpty())
                 o = Classinfo().CreateInstance();
-            handle_.Reset(isolate.isolate, o);
+            handle_.Reset(isolate->isolate, o);
             o->SetAlignedPointerInInternalField(0, this);
 
-            isolate.isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
+            isolate->isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
             return o;
         }
 
-        return v8::Local<v8::Object>::New(isolate.isolate, handle_);
+        return v8::Local<v8::Object>::New(isolate->isolate, handle_);
     }
 
     v8::Local<v8::Object> wrap()
@@ -159,7 +159,7 @@ public:
         if (handle_.IsEmpty())
             return wrap(Classinfo().CreateInstance());
 
-        return v8::Local<v8::Object>::New(Isolate::now().isolate, handle_);
+        return v8::Local<v8::Object>::New(Isolate::now()->isolate, handle_);
     }
 
 public:
@@ -207,7 +207,7 @@ public:
             {
                 if (exlib::Service::hasService())
                 {
-                    Isolate::now().isolate->AdjustAmountOfExternalAllocatedMemory(ext);
+                    Isolate::now()->isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;
                 }
                 else
@@ -228,14 +228,14 @@ private:
     {
         if (!handle_.IsEmpty())
         {
-            Isolate & isolate = Isolate::now();
+            Isolate* isolate = Isolate::now();
 
             handle_.ClearWeak();
-            v8::Local<v8::Object>::New(isolate.isolate, handle_)->SetAlignedPointerInInternalField(
+            v8::Local<v8::Object>::New(isolate->isolate, handle_)->SetAlignedPointerInInternalField(
                 0, 0);
             handle_.Reset();
 
-            isolate.isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
+            isolate->isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 
             obj_base::dispose(gc);
         }
@@ -263,7 +263,7 @@ public:
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
     {
         v8::Local<v8::Object> o = wrap();
-        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now().isolate);
+        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->isolate);
 
         extend(o, o1);
         retVal = o1;
@@ -281,42 +281,42 @@ public:
     static void block_set(v8::Local<v8::String> property,
                           v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
     {
-        Isolate & isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
 
         std::string strError = "Property \'";
 
         strError += *v8::String::Utf8Value(property);
         strError += "\' is read-only.";
-        isolate.isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate.isolate, strError.c_str(),
+        isolate->isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->isolate, strError.c_str(),
                                     v8::String::kNormalString, (int32_t) strError.length()));
     }
 
     static void i_IndexedSetter(uint32_t index,
                                 v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &info)
     {
-        Isolate & isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
 
-        isolate.isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate.isolate, "Indexed Property is read-only."));
+        isolate->isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->isolate, "Indexed Property is read-only."));
     }
 
     static void i_NamedSetter(v8::Local<v8::String> property,
                               v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &info)
     {
-        Isolate & isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
 
-        isolate.isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate.isolate, "Named Property is read-only."));
+        isolate->isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->isolate, "Named Property is read-only."));
     }
 
     static void i_NamedDeleter(
         v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &info)
     {
-        Isolate & isolate = Isolate::now();
+        Isolate* isolate = Isolate::now();
 
-        isolate.isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate.isolate, "Named Property is read-only."));
+        isolate->isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->isolate, "Named Property is read-only."));
     }
 
     //------------------------------------------------------------------
@@ -395,7 +395,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
         V8_SCOPE();
 
         v8::Local<v8::Object> o = args.This();
-        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now().isolate);
+        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->isolate);
 
         extend(o, o1);
 

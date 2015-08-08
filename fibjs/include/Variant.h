@@ -138,7 +138,7 @@ public:
         if (v.type() == VT_JSValue)
         {
             if (v.isPersistent())
-                return operator=(v8::Local<v8::Value>::New(Isolate::now().isolate, v.jsValEx()));
+                return operator=(v8::Local<v8::Value>::New(Isolate::now()->isolate, v.jsValEx()));
             else
                 return operator=(v.jsVal());
         }

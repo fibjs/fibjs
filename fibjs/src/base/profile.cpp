@@ -26,7 +26,7 @@ static std::string traceFiber()
 {
     std::string msg;
 
-    exlib::linkitem* p = Isolate::now().m_fibers.head();
+    exlib::linkitem* p = Isolate::now()->m_fibers.head();
 
     char buf[128];
     int32_t n = 0;
@@ -72,7 +72,7 @@ static void InterruptCallbackEx()
         dumpFibers();
     else
     {
-        v8::Locker locker(Isolate::now().isolate);
+        v8::Locker locker(Isolate::now()->isolate);
         dumpFibers();
     }
 }

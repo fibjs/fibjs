@@ -29,11 +29,10 @@ Runtime &Runtime::now()
 
 OSTls th_vm;
 
-Isolate &Isolate::now()
+Isolate* Isolate::now()
 {
     assert(exlib::Service::hasService());
-    return *(Isolate *)th_vm;
-
+    return (Isolate *)th_vm;
 }
 
 void Isolate::reg(void *rt)
@@ -54,7 +53,7 @@ inline JSFiber* saveTrace()
 
 Isolate::rt::rt() :
     m_fiber(g_trace ? saveTrace() : NULL),
-    unlocker(Isolate::now().isolate)
+    unlocker(Isolate::now()->isolate)
 {
 }
 

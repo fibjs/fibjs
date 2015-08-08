@@ -39,14 +39,14 @@ result_t DBRow::_named_enumerator(v8::Local<v8::Array> &retVal)
 
 result_t DBRow::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
-    Isolate &isolate = Isolate::now();
-    v8::Local<v8::Object> o = v8::Object::New(isolate.isolate);
+    Isolate* isolate = Isolate::now();
+    v8::Local<v8::Object> o = v8::Object::New(isolate->isolate);
     int32_t i;
 
     for (i = 0; i < (int32_t) m_cols.size(); i++)
     {
         std::string &s = m_fields->name(i);
-        o->Set(v8::String::NewFromUtf8(isolate.isolate, s.c_str(), v8::String::kNormalString,
+        o->Set(v8::String::NewFromUtf8(isolate->isolate, s.c_str(), v8::String::kNormalString,
                                        (int32_t)s.length()), m_cols[i]);
     }
 

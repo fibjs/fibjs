@@ -59,7 +59,7 @@ result_t os_base::uptime(double &retVal)
 result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 {
     double avg[3] = { 0, 0, 0 };
-    Isolate &isolate = Isolate::now();
+    Isolate* isolate = Isolate::now();
 
     struct loadavg info;
     size_t size = sizeof(info);
@@ -72,10 +72,10 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
     avg[1] = (double) info.ldavg[1] / info.fscale;
     avg[2] = (double) info.ldavg[2] / info.fscale;
 
-    retVal = v8::Array::New(isolate.isolate, 3);
-    retVal->Set(0, v8::Number::New(isolate.isolate, avg[0]));
-    retVal->Set(1, v8::Number::New(isolate.isolate, avg[1]));
-    retVal->Set(2, v8::Number::New(isolate.isolate, avg[2]));
+    retVal = v8::Array::New(isolate->isolate, 3);
+    retVal->Set(0, v8::Number::New(isolate->isolate, avg[0]));
+    retVal->Set(1, v8::Number::New(isolate->isolate, avg[1]));
+    retVal->Set(2, v8::Number::New(isolate->isolate, avg[2]));
 
     return 0;
 }
@@ -132,9 +132,9 @@ result_t os_base::CPUs(int32_t &retVal)
 
 result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 {
-    Isolate &isolate = Isolate::now();
+    Isolate* isolate = Isolate::now();
 
-    retVal = v8::Array::New(isolate.isolate);
+    retVal = v8::Array::New(isolate->isolate);
 
     v8::Local<v8::Object> cpuinfo;
     v8::Local<v8::Object> cputimes;
@@ -182,32 +182,32 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     for (i = 0; i < numcpus; i++)
     {
-        cpuinfo = v8::Object::New(isolate.isolate);
-        cputimes = v8::Object::New(isolate.isolate);
+        cpuinfo = v8::Object::New(isolate->isolate);
+        cputimes = v8::Object::New(isolate->isolate);
         cputimes->Set(
-            v8::String::NewFromUtf8(isolate.isolate, "user"),
-            v8::Number::New(isolate.isolate,
+            v8::String::NewFromUtf8(isolate->isolate, "user"),
+            v8::Number::New(isolate->isolate,
                             (uint64_t)(cp_times[CP_USER + cur]) * multiplier));
         cputimes->Set(
-            v8::String::NewFromUtf8(isolate.isolate, "nice"),
-            v8::Number::New(isolate.isolate,
+            v8::String::NewFromUtf8(isolate->isolate, "nice"),
+            v8::Number::New(isolate->isolate,
                             (uint64_t)(cp_times[CP_NICE + cur]) * multiplier));
         cputimes->Set(
-            v8::String::NewFromUtf8(isolate.isolate, "sys"),
-            v8::Number::New(isolate.isolate, (uint64_t)(cp_times[CP_SYS + cur]) * multiplier));
+            v8::String::NewFromUtf8(isolate->isolate, "sys"),
+            v8::Number::New(isolate->isolate, (uint64_t)(cp_times[CP_SYS + cur]) * multiplier));
         cputimes->Set(
-            v8::String::NewFromUtf8(isolate.isolate, "idle"),
-            v8::Number::New(isolate.isolate,
+            v8::String::NewFromUtf8(isolate->isolate, "idle"),
+            v8::Number::New(isolate->isolate,
                             (uint64_t)(cp_times[CP_IDLE + cur]) * multiplier));
         cputimes->Set(
-            v8::String::NewFromUtf8(isolate.isolate, "irq"),
-            v8::Number::New(isolate.isolate,
+            v8::String::NewFromUtf8(isolate->isolate, "irq"),
+            v8::Number::New(isolate->isolate,
                             (uint64_t)(cp_times[CP_INTR + cur]) * multiplier));
 
-        cpuinfo->Set(v8::String::NewFromUtf8(isolate.isolate, "model"), v8::String::NewFromUtf8(isolate.isolate, model));
-        cpuinfo->Set(v8::String::NewFromUtf8(isolate.isolate, "speed"), v8::Number::New(isolate.isolate, cpuspeed));
+        cpuinfo->Set(v8::String::NewFromUtf8(isolate->isolate, "model"), v8::String::NewFromUtf8(isolate->isolate, model));
+        cpuinfo->Set(v8::String::NewFromUtf8(isolate->isolate, "speed"), v8::Number::New(isolate->isolate, cpuspeed));
 
-        cpuinfo->Set(v8::String::NewFromUtf8(isolate.isolate, "times"), cputimes);
+        cpuinfo->Set(v8::String::NewFromUtf8(isolate->isolate, "times"), cputimes);
         retVal->Set(i, cpuinfo);
 
         cur += CPUSTATES;
@@ -294,20 +294,20 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 #endif
     _kvm_close(kd);
 
-    Isolate &isolate = Isolate::now();
-    v8::Local<v8::Object> info = v8::Object::New(isolate.isolate);
+    Isolate* isolate = Isolate::now();
+    v8::Local<v8::Object> info = v8::Object::New(isolate->isolate);
 
     v8::HeapStatistics v8_heap_stats;
-    isolate.isolate->GetHeapStatistics(&v8_heap_stats);
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "rss"), v8::Number::New(isolate.isolate, (double)rss));
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "heapTotal"),
-              v8::Number::New(isolate.isolate, (double)v8_heap_stats.total_heap_size()));
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "heapUsed"),
-              v8::Number::New(isolate.isolate, (double)v8_heap_stats.used_heap_size()));
+    isolate->isolate->GetHeapStatistics(&v8_heap_stats);
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "rss"), v8::Number::New(isolate->isolate, (double)rss));
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "heapTotal"),
+              v8::Number::New(isolate->isolate, (double)v8_heap_stats.total_heap_size()));
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "heapUsed"),
+              v8::Number::New(isolate->isolate, (double)v8_heap_stats.used_heap_size()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(v8::String::NewFromUtf8(isolate.isolate, "nativeObjects"), objs);
+    info->Set(v8::String::NewFromUtf8(isolate->isolate, "nativeObjects"), objs);
 
     retVal = info;
 
