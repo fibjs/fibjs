@@ -147,8 +147,10 @@ void *FiberBase::fiber_proc(void *p)
                 break;
             }
 
-            v8::Unlocker unlocker(isolate->isolate);
-            ae = g_jobs.get();
+            {
+                v8::Unlocker unlocker(isolate->isolate);
+                ae = g_jobs.get();
+            }
 
             s_idleFibers --;
         }
