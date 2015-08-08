@@ -90,7 +90,7 @@ public:
 
     operator v8::Local<v8::Value>() const
     {
-        return v8::Date::New(Isolate::now()->isolate, d);
+        return v8::Date::New(Isolate::now()->m_isolate, d);
     }
 
     bool empty() const

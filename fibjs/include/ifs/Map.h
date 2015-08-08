@@ -155,7 +155,7 @@ inline void Map_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::P
 	PROPERTY_INSTANCE(Map_base);
 
 	v8::String::Utf8Value k(property);
-	if (class_info().has(*k)) {args.GetReturnValue().Set(v8::False(Isolate::now()->isolate)); return;}
+	if (class_info().has(*k)) {args.GetReturnValue().Set(v8::False(Isolate::now()->m_isolate)); return;}
 
 	hr = pInst->_named_deleter(*k, vr);
 	METHOD_RETURN1();

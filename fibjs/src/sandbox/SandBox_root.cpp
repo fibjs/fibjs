@@ -57,7 +57,7 @@ void SandBox::initRoot()
 
     InstallNativeModule("test", test_base::class_info());
     InstallNativeModule("assert", assert_base::class_info());
-    InstallModule("expect", v8::Function::New(Isolate::now()->isolate, test_base::s_expect));
+    InstallModule("expect", v8::Function::New(Isolate::now()->m_isolate, test_base::s_expect));
 
     InstallNativeModule("path", path_base::class_info());
 

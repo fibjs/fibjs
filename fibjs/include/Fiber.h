@@ -98,8 +98,8 @@ public:
 
         m_argv.resize(nArgCount - nArgStart);
         for (i = nArgStart; i < nArgCount; i++)
-            m_argv[i - nArgStart].Reset(isolate->isolate, args[i]);
-        m_func.Reset(isolate->isolate, func);
+            m_argv[i - nArgStart].Reset(isolate->m_isolate, args[i]);
+        m_func.Reset(isolate->m_isolate, func);
 
         start();
     }
@@ -141,7 +141,7 @@ public:
         if (m_result.IsEmpty())
             return CALL_RETURN_NULL;
 
-        retVal = v8::Local<v8::Value>::New(Isolate::now()->isolate, m_result);
+        retVal = v8::Local<v8::Value>::New(Isolate::now()->m_isolate, m_result);
         return 0;
     }
 

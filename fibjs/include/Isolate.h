@@ -38,11 +38,11 @@ public:
 	static void reg(void *rt);
 
 public:
-	exlib::Service *service;
-	v8::Isolate *isolate;
-	v8::Persistent<v8::Context> s_context;
-	v8::Persistent<v8::Object> s_global;
-	obj_ptr<SandBox> s_topSandbox;
+	exlib::Service *m_service;
+	v8::Isolate *m_isolate;
+	v8::Persistent<v8::Context> m_context;
+	v8::Persistent<v8::Object> m_global;
+	obj_ptr<SandBox> m_topSandbox;
 	exlib::List<exlib::linkitem> m_fibers;
 };
 

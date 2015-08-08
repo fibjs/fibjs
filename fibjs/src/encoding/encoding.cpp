@@ -296,8 +296,8 @@ inline void initJSON()
     if (s_json.IsEmpty())
     {
         Isolate* isolate = Isolate::now();
-        v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->isolate, isolate->s_global);
-        s_json.Reset(isolate->isolate, glob->Get(v8::String::NewFromUtf8(isolate->isolate, "JSON"))->ToObject());
+        v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+        s_json.Reset(isolate->m_isolate, glob->Get(v8::String::NewFromUtf8(isolate->m_isolate, "JSON"))->ToObject());
     }
 }
 
@@ -307,14 +307,14 @@ result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
     initJSON();
 
     Isolate* isolate = Isolate::now();
-    v8::Local<v8::Object> _json = v8::Local<v8::Object>::New(isolate->isolate, s_json);
+    v8::Local<v8::Object> _json = v8::Local<v8::Object>::New(isolate->m_isolate, s_json);
 
     if (s_stringify.IsEmpty())
-        s_stringify.Reset(isolate->isolate,
-                          v8::Local<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate->isolate, "stringify"))));
+        s_stringify.Reset(isolate->m_isolate,
+                          v8::Local<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate->m_isolate, "stringify"))));
 
     TryCatch try_catch;
-    v8::Local<v8::Value> str = v8::Local<v8::Function>::New(isolate->isolate, s_stringify)->Call(_json, 1, &data);
+    v8::Local<v8::Value> str = v8::Local<v8::Function>::New(isolate->m_isolate, s_stringify)->Call(_json, 1, &data);
     if (try_catch.HasCaught())
         return CHECK_ERROR(Runtime::setError(*v8::String::Utf8Value(try_catch.Exception())));
 
@@ -328,7 +328,7 @@ result_t encoding_base::jsonDecode(const char *data,
                                    v8::Local<v8::Value> &retVal)
 {
     TryCatch try_catch;
-    retVal = v8::JSON::Parse(v8::String::NewFromUtf8(Isolate::now()->isolate, data));
+    retVal = v8::JSON::Parse(v8::String::NewFromUtf8(Isolate::now()->m_isolate, data));
     if (try_catch.HasCaught())
         return CHECK_ERROR(Runtime::setError(*v8::String::Utf8Value(try_catch.Exception())));
 

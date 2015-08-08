@@ -134,13 +134,13 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
     }
 
     Isolate* isolate = Isolate::now();
-    v8::Local<v8::String> k = v8::String::NewFromUtf8(isolate->isolate, "handler");
+    v8::Local<v8::String> k = v8::String::NewFromUtf8(isolate->m_isolate, "handler");
     v8::Local<v8::Value> v = wrap()->GetHiddenValue(k);
     v8::Local<v8::Array> a;
 
     if (IsEmpty(v))
     {
-        a = v8::Array::New(isolate->isolate);
+        a = v8::Array::New(isolate->m_isolate);
         wrap()->SetHiddenValue(k, a);
     }
     else

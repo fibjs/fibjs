@@ -94,12 +94,12 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
     if (cfg->IsString() || cfg->IsStringObject())
     {
         type = cfg;
-        o = v8::Object::New(isolate->isolate);
+        o = v8::Object::New(isolate->m_isolate);
     }
     else if (cfg->IsObject())
     {
         o = v8::Local<v8::Object>::Cast(cfg);
-        type = o->Get( v8::String::NewFromUtf8(isolate->isolate, "type",
+        type = o->Get( v8::String::NewFromUtf8(isolate->m_isolate, "type",
                                                v8::String::kNormalString, 4));
 
         if (IsEmpty(type))

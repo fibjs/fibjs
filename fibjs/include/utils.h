@@ -169,7 +169,7 @@ typedef int32_t result_t;
 #endif
 
 #if 0
-#define V8_SCOPE()  v8::EscapableHandleScope handle_scope(Isolate::now()->isolate)
+#define V8_SCOPE()  v8::EscapableHandleScope handle_scope(Isolate::now()->m_isolate)
 #define V8_RETURN(v)   handle_scope.Escape(v)
 #else
 #define V8_SCOPE()
@@ -545,11 +545,11 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &
     v8::Local<v8::Value> proto;
     if (s_proto.IsEmpty())
     {
-        proto = v8::Object::New(isolate->isolate)->GetPrototype();
-        s_proto.Reset(isolate->isolate, proto);
+        proto = v8::Object::New(isolate->m_isolate)->GetPrototype();
+        s_proto.Reset(isolate->m_isolate, proto);
     }
     else
-        proto = v8::Local<v8::Value>::New(isolate->isolate, s_proto);
+        proto = v8::Local<v8::Value>::New(isolate->m_isolate, s_proto);
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     if (!proto->Equals(o->GetPrototype()))
@@ -592,7 +592,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Function>
 template<typename T>
 result_t GetConfigValue(v8::Local<v8::Object> o, const char *key, T &n, bool bStrict = false)
 {
-    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(Isolate::now()->isolate, key));
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(Isolate::now()->m_isolate, key));
     if (IsEmpty(v))
         return CALL_E_PARAMNOTOPTIONAL;
 
@@ -601,27 +601,27 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char *key, T &n, bool bSt
 
 inline v8::Local<v8::Value> GetReturnValue(int32_t v)
 {
-    return v8::Int32::New(Isolate::now()->isolate, v);
+    return v8::Int32::New(Isolate::now()->m_isolate, v);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(bool v)
 {
-    return v ? v8::True(Isolate::now()->isolate) : v8::False(Isolate::now()->isolate);
+    return v ? v8::True(Isolate::now()->m_isolate) : v8::False(Isolate::now()->m_isolate);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(double v)
 {
-    return v8::Number::New(Isolate::now()->isolate, v);
+    return v8::Number::New(Isolate::now()->m_isolate, v);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(int64_t v)
 {
-    return v8::Number::New(Isolate::now()->isolate, (double) v);
+    return v8::Number::New(Isolate::now()->m_isolate, (double) v);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(std::string &str)
 {
-    return v8::String::NewFromUtf8(Isolate::now()->isolate, str.c_str(),
+    return v8::String::NewFromUtf8(Isolate::now()->m_isolate, str.c_str(),
                                    v8::String::kNormalString, (int32_t) str.length());
 }
 
@@ -665,24 +665,24 @@ inline v8::Local<v8::Value> ThrowError(const char *msg)
 {
     Isolate* isolate = Isolate::now();
 
-    return isolate->isolate->ThrowException(v8::Exception::Error(
-            v8::String::NewFromUtf8(isolate->isolate, msg)));
+    return isolate->m_isolate->ThrowException(v8::Exception::Error(
+                v8::String::NewFromUtf8(isolate->m_isolate, msg)));
 }
 
 inline v8::Local<v8::Value> ThrowTypeError(const char *msg)
 {
     Isolate* isolate = Isolate::now();
 
-    return isolate->isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate->isolate, msg)));
+    return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(isolate->m_isolate, msg)));
 }
 
 inline v8::Local<v8::Value> ThrowRangeError(const char *msg)
 {
     Isolate* isolate = Isolate::now();
 
-    return isolate->isolate->ThrowException(v8::Exception::RangeError(
-            v8::String::NewFromUtf8(isolate->isolate, msg)));
+    return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
+                v8::String::NewFromUtf8(isolate->m_isolate, msg)));
 }
 
 inline result_t LastError()

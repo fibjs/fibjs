@@ -53,7 +53,7 @@ inline JSFiber* saveTrace()
 
 Isolate::rt::rt() :
     m_fiber(g_trace ? saveTrace() : NULL),
-    unlocker(Isolate::now()->isolate)
+    unlocker(Isolate::now()->m_isolate)
 {
 }
 

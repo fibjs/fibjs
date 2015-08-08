@@ -72,7 +72,7 @@ static void InterruptCallbackEx()
         dumpFibers();
     else
     {
-        v8::Locker locker(Isolate::now()->isolate);
+        v8::Locker locker(Isolate::now()->m_isolate);
         dumpFibers();
     }
 }
@@ -90,8 +90,8 @@ void on_break(int32_t s) {
 
     Isolate *p = s_isolates.head();
     while (p != 0) {
-        p->isolate->RequestInterrupt(InterruptCallback, NULL);
-        p->service->RequestInterrupt(InterruptCallbackEx);
+        p->m_isolate->RequestInterrupt(InterruptCallback, NULL);
+        p->m_service->RequestInterrupt(InterruptCallbackEx);
 
         p = s_isolates.next(p);
     }

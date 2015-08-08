@@ -387,10 +387,10 @@ result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
     int32_t i;
     Isolate* isolate = Isolate::now();
 
-    retVal = v8::Array::New(isolate->isolate);
+    retVal = v8::Array::New(isolate->m_isolate);
     for (i = 0; i < m_count; i++)
         retVal->Set(i,
-                    v8::String::NewFromUtf8(isolate->isolate, m_names[i].c_str(),
+                    v8::String::NewFromUtf8(isolate->m_isolate, m_names[i].c_str(),
                                             v8::String::kNormalString,
                                             (int32_t) m_names[i].length()));
 

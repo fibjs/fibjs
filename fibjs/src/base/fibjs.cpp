@@ -66,21 +66,21 @@ void _main(const char *fname)
     ShellArrayBufferAllocator array_buffer_allocator;
     create_params.array_buffer_allocator = &array_buffer_allocator;
 
-    isolate->service = exlib::Service::current();
-    isolate->isolate = v8::Isolate::New(create_params);
-    v8::Locker locker(isolate->isolate);
-    v8::Isolate::Scope isolate_scope(isolate->isolate);
+    isolate->m_service = exlib::Service::current();
+    isolate->m_isolate = v8::Isolate::New(create_params);
+    v8::Locker locker(isolate->m_isolate);
+    v8::Isolate::Scope isolate_scope(isolate->m_isolate);
 
-    v8::HandleScope handle_scope(isolate->isolate);
+    v8::HandleScope handle_scope(isolate->m_isolate);
 
-    v8::Local<v8::Context> _context = v8::Context::New(isolate->isolate);
+    v8::Local<v8::Context> _context = v8::Context::New(isolate->m_isolate);
     v8::Context::Scope context_scope(_context);
 
     v8::Local<v8::Object> glob = _context->Global();
     global_base::class_info().Attach(glob);
 
-    isolate->s_context.Reset(isolate->isolate, _context);
-    isolate->s_global.Reset(isolate->isolate, glob);
+    isolate->m_context.Reset(isolate->m_isolate, _context);
+    isolate->m_global.Reset(isolate->m_isolate, glob);
 
     init_fiber();
 
@@ -89,23 +89,23 @@ void _main(const char *fname)
     JSFiber *fb = new JSFiber();
     {
         JSFiber::scope s(fb);
-        isolate->s_topSandbox = new SandBox();
+        isolate->m_topSandbox = new SandBox();
 
-        isolate->s_topSandbox->initRoot();
+        isolate->m_topSandbox->initRoot();
         if (fname)
-            hr = s.m_hr = isolate->s_topSandbox->run(fname);
+            hr = s.m_hr = isolate->m_topSandbox->run(fname);
         else
-            hr = s.m_hr = isolate->s_topSandbox->repl();
+            hr = s.m_hr = isolate->m_topSandbox->repl();
     }
 
     process_base::exit(hr);
 
-    isolate->isolate->Dispose();
+    isolate->m_isolate->Dispose();
 
     v8::V8::ShutdownPlatform();
     delete platform;
 
-    isolate->s_context.Reset();
+    isolate->m_context.Reset();
 }
 
 }

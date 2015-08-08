@@ -360,7 +360,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     Isolate* isolate = Isolate::now();
-    retVal = v8::Array::New(isolate->isolate);
+    retVal = v8::Array::New(isolate->m_isolate);
 
     const x509_crt *pCert = &m_crt;
     int32_t ret, n = 0;
@@ -378,7 +378,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
-            retVal->Set(n ++, v8::String::NewFromUtf8(isolate->isolate, buf.c_str(),
+            retVal->Set(n ++, v8::String::NewFromUtf8(isolate->m_isolate, buf.c_str(),
                         v8::String::kNormalString, (int32_t) olen - 1));
         }
         pCert = pCert->next;

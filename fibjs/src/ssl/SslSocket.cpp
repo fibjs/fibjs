@@ -37,9 +37,9 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
     if (sz)
     {
         Isolate* isolate = Isolate::now();
-        v8::Local<v8::Value> sCrt = v8::String::NewFromUtf8(isolate->isolate, "crt",
+        v8::Local<v8::Value> sCrt = v8::String::NewFromUtf8(isolate->m_isolate, "crt",
                                     v8::String::kNormalString, 3);
-        v8::Local<v8::Value> sKey = v8::String::NewFromUtf8(isolate->isolate, "key",
+        v8::Local<v8::Value> sKey = v8::String::NewFromUtf8(isolate->m_isolate, "key",
                                     v8::String::kNormalString, 3);
         int32_t i;
 

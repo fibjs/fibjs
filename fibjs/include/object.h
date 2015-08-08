@@ -143,15 +143,15 @@ public:
         {
             if (o.IsEmpty())
                 o = Classinfo().CreateInstance();
-            handle_.Reset(isolate->isolate, o);
+            handle_.Reset(isolate->m_isolate, o);
             o->SetAlignedPointerInInternalField(0, this);
 
-            isolate->isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
+            isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
             return o;
         }
 
-        return v8::Local<v8::Object>::New(isolate->isolate, handle_);
+        return v8::Local<v8::Object>::New(isolate->m_isolate, handle_);
     }
 
     v8::Local<v8::Object> wrap()
@@ -159,7 +159,7 @@ public:
         if (handle_.IsEmpty())
             return wrap(Classinfo().CreateInstance());
 
-        return v8::Local<v8::Object>::New(Isolate::now()->isolate, handle_);
+        return v8::Local<v8::Object>::New(Isolate::now()->m_isolate, handle_);
     }
 
 public:
@@ -207,7 +207,7 @@ public:
             {
                 if (exlib::Service::hasService())
                 {
-                    Isolate::now()->isolate->AdjustAmountOfExternalAllocatedMemory(ext);
+                    Isolate::now()->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;
                 }
                 else
@@ -231,11 +231,11 @@ private:
             Isolate* isolate = Isolate::now();
 
             handle_.ClearWeak();
-            v8::Local<v8::Object>::New(isolate->isolate, handle_)->SetAlignedPointerInInternalField(
+            v8::Local<v8::Object>::New(isolate->m_isolate, handle_)->SetAlignedPointerInInternalField(
                 0, 0);
             handle_.Reset();
 
-            isolate->isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
+            isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 
             obj_base::dispose(gc);
         }
@@ -263,7 +263,7 @@ public:
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
     {
         v8::Local<v8::Object> o = wrap();
-        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->isolate);
+        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->m_isolate);
 
         extend(o, o1);
         retVal = o1;
@@ -287,8 +287,8 @@ public:
 
         strError += *v8::String::Utf8Value(property);
         strError += "\' is read-only.";
-        isolate->isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->isolate, strError.c_str(),
+        isolate->m_isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->m_isolate, strError.c_str(),
                                     v8::String::kNormalString, (int32_t) strError.length()));
     }
 
@@ -297,8 +297,8 @@ public:
     {
         Isolate* isolate = Isolate::now();
 
-        isolate->isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->isolate, "Indexed Property is read-only."));
+        isolate->m_isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->m_isolate, "Indexed Property is read-only."));
     }
 
     static void i_NamedSetter(v8::Local<v8::String> property,
@@ -306,8 +306,8 @@ public:
     {
         Isolate* isolate = Isolate::now();
 
-        isolate->isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->isolate, "Named Property is read-only."));
+        isolate->m_isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->m_isolate, "Named Property is read-only."));
     }
 
     static void i_NamedDeleter(
@@ -315,8 +315,8 @@ public:
     {
         Isolate* isolate = Isolate::now();
 
-        isolate->isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->isolate, "Named Property is read-only."));
+        isolate->m_isolate->ThrowException(
+            v8::String::NewFromUtf8(isolate->m_isolate, "Named Property is read-only."));
     }
 
     //------------------------------------------------------------------
@@ -395,7 +395,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
         V8_SCOPE();
 
         v8::Local<v8::Object> o = args.This();
-        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->isolate);
+        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->m_isolate);
 
         extend(o, o1);
 

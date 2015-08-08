@@ -717,11 +717,11 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
 result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     Isolate* isolate = Isolate::now();
-    v8::Local<v8::Array> a = v8::Array::New(isolate->isolate, (int32_t) m_data.length());
+    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
     int32_t i;
 
     for (i = 0; i < (int32_t) m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->isolate, (unsigned char) m_data[i]));
+        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) m_data[i]));
 
     retVal = a;
 

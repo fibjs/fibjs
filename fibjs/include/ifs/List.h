@@ -231,7 +231,7 @@ inline void List_base::s_every(const v8::FunctionCallbackInfo<v8::Value>& args)
 	METHOD_ENTER(2, 1);
 
 	ARG(v8::Local<v8::Function>, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->every(v0, v1, vr);
 
@@ -246,7 +246,7 @@ inline void List_base::s_some(const v8::FunctionCallbackInfo<v8::Value>& args)
 	METHOD_ENTER(2, 1);
 
 	ARG(v8::Local<v8::Function>, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->some(v0, v1, vr);
 
@@ -261,7 +261,7 @@ inline void List_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
 	METHOD_ENTER(2, 1);
 
 	ARG(v8::Local<v8::Function>, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->filter(v0, v1, vr);
 
@@ -274,7 +274,7 @@ inline void List_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args
 	METHOD_ENTER(2, 1);
 
 	ARG(v8::Local<v8::Function>, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->forEach(v0, v1);
 
@@ -289,7 +289,7 @@ inline void List_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
 	METHOD_ENTER(2, 1);
 
 	ARG(v8::Local<v8::Function>, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->map(v0, v1, vr);
 

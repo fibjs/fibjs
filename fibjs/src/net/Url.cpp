@@ -281,7 +281,7 @@ std::string getValue(v8::Local<v8::Object> &args, const char *key)
 {
     std::string s;
 
-    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(Isolate::now()->isolate, key));
+    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(Isolate::now()->m_isolate, key));
 
     if (!v.IsEmpty() && v->IsString())
         s = *v8::String::Utf8Value(v);
@@ -315,7 +315,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(Isolate::now()->isolate, "slashes"));
+    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(Isolate::now()->m_isolate, "slashes"));
 
     if (!IsEmpty(v))
         m_slashes = v->BooleanValue();

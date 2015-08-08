@@ -235,7 +235,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
     std::string str;
     int32_t n = 0;
     Isolate* isolate = Isolate::now();
-    retVal = v8::Array::New(isolate->isolate);
+    retVal = v8::Array::New(isolate->m_isolate);
 
     if (maxlines == 0)
         return 0;
@@ -249,7 +249,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
         if (hr > 0)
             return 0;
 
-        retVal->Set(n ++, v8::String::NewFromUtf8(isolate->isolate, str.c_str(),
+        retVal->Set(n ++, v8::String::NewFromUtf8(isolate->m_isolate, str.c_str(),
                     v8::String::kNormalString, (int32_t)str.length()));
         if (maxlines > 0)
         {

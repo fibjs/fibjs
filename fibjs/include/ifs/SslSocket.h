@@ -147,7 +147,7 @@ template<typename T>void SslSocket_base::__new(const T& args)
 
 	CONSTRUCT_ENTER(1, 0);
 
-	OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(Isolate::now()->m_isolate));
 
 	hr = _new(v0, vr, args.This());
 

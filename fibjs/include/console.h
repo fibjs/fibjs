@@ -33,7 +33,7 @@ public:
             if (exlib::Service::hasService())
             {
                 v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                        Isolate::now()->isolate, 1, v8::StackTrace::kOverview);
+                        Isolate::now()->m_isolate, 1, v8::StackTrace::kOverview);
 
                 if (stackTrace->GetFrameCount() > 0)
                 {

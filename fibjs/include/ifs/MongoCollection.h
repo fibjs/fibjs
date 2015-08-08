@@ -144,8 +144,8 @@ inline void MongoCollection_base::s_find(const v8::FunctionCallbackInfo<v8::Valu
 	METHOD_INSTANCE(MongoCollection_base);
 	METHOD_ENTER(2, 0);
 
-	OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(Isolate::now()->isolate));
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(Isolate::now()->m_isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->find(v0, v1, vr);
 
@@ -159,8 +159,8 @@ inline void MongoCollection_base::s_findOne(const v8::FunctionCallbackInfo<v8::V
 	METHOD_INSTANCE(MongoCollection_base);
 	METHOD_ENTER(2, 0);
 
-	OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(Isolate::now()->isolate));
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(Isolate::now()->m_isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->findOne(v0, v1, vr);
 
@@ -260,7 +260,7 @@ inline void MongoCollection_base::s_runCommand(const v8::FunctionCallbackInfo<v8
 	METHOD_OVER(2, 1);
 
 	ARG(arg_string, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->runCommand(v0, v1, vr);
 
@@ -283,7 +283,7 @@ inline void MongoCollection_base::s_ensureIndex(const v8::FunctionCallbackInfo<v
 	METHOD_ENTER(2, 1);
 
 	ARG(v8::Local<v8::Object>, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = pInst->ensureIndex(v0, v1);
 

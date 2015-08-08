@@ -107,7 +107,7 @@ inline void http_base::s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& 
 	METHOD_ENTER(2, 1);
 
 	ARG(arg_string, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = fileHandler(v0, v1, vr);
 
@@ -129,7 +129,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 
 	ARG(arg_string, 0);
 	ARG(arg_string, 1);
-	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = request(v0, v1, v2, vr);
 
@@ -138,7 +138,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 	ARG(arg_string, 0);
 	ARG(arg_string, 1);
 	ARG(obj_ptr<SeekableStream_base>, 2);
-	OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = request(v0, v1, v2, v3, vr);
 
@@ -147,7 +147,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 	ARG(arg_string, 0);
 	ARG(arg_string, 1);
 	ARG(obj_ptr<Buffer_base>, 2);
-	OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = request(v0, v1, v2, v3, vr);
 
@@ -161,7 +161,7 @@ inline void http_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 	METHOD_ENTER(2, 1);
 
 	ARG(arg_string, 0);
-	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = get(v0, v1, vr);
 
@@ -176,7 +176,7 @@ inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	ARG(arg_string, 0);
 	ARG(obj_ptr<SeekableStream_base>, 1);
-	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = post(v0, v1, v2, vr);
 
@@ -184,7 +184,7 @@ inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	ARG(arg_string, 0);
 	ARG(obj_ptr<Buffer_base>, 1);
-	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = post(v0, v1, v2, vr);
 

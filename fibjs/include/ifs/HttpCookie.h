@@ -273,7 +273,7 @@ template<typename T>void HttpCookie_base::__new(const T& args)
 
 	CONSTRUCT_ENTER(1, 0);
 
-	OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = _new(v0, vr, args.This());
 
@@ -281,7 +281,7 @@ template<typename T>void HttpCookie_base::__new(const T& args)
 
 	ARG(arg_string, 0);
 	ARG(arg_string, 1);
-	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->isolate));
+	OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
 
 	hr = _new(v0, v1, v2, vr, args.This());
 

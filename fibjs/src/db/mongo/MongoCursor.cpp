@@ -29,7 +29,7 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
 
     v8::Local<v8::Value> _query;
     util_base::clone(query, _query);
-    m_query.Reset(Isolate::now()->isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
+    m_query.Reset(Isolate::now()->m_isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
 
     mongo_cursor_set_query(m_cursor, &m_bbq);
 
@@ -70,13 +70,13 @@ void MongoCursor::ensureSpecial()
     if (!m_bSpecial)
     {
         Isolate* isolate = Isolate::now();
-        v8::Local<v8::Object> o = v8::Object::New(isolate->isolate);
+        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(v8::String::NewFromUtf8(isolate->isolate, "query"),
-               v8::Local<v8::Object>::New(isolate->isolate, m_query));
+        o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "query"),
+               v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
         m_query.Reset();
 
-        m_query.Reset(isolate->isolate, o);
+        m_query.Reset(isolate->m_isolate, o);
         m_bSpecial = true;
     }
 }
@@ -107,9 +107,9 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     Isolate* isolate = Isolate::now();
     if (m_bSpecial)
         encodeValue(&bbq, "query",
-                    v8::Local<v8::Object>::New(isolate->isolate, m_query)->Get(v8::String::NewFromUtf8(isolate->isolate, "query")));
+                    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(v8::String::NewFromUtf8(isolate->m_isolate, "query")));
     else
-        encodeValue(&bbq, "query", v8::Local<v8::Object>::New(isolate->isolate, m_query));
+        encodeValue(&bbq, "query", v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
 
     if (applySkipLimit)
     {
@@ -127,7 +127,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     if (hr < 0)
         return hr;
 
-    retVal = res->Get(v8::String::NewFromUtf8(isolate->isolate, "n"))->Int32Value();
+    retVal = res->Get(v8::String::NewFromUtf8(isolate->m_isolate, "n"))->Int32Value();
 
     return 0;
 }
@@ -141,7 +141,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->isolate), 1, &a);
+        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -156,13 +156,13 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
     result_t hr;
     Isolate* isolate = Isolate::now();
     v8::Local<v8::Object> o;
-    v8::Local<v8::Array> as = v8::Array::New(isolate->isolate);
+    v8::Local<v8::Array> as = v8::Array::New(isolate->m_isolate);
     int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->isolate), 1, &a);
+        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -181,7 +181,7 @@ result_t MongoCursor::hasNext(bool &retVal)
     {
         result_t hr;
 
-        hr = encodeObject(&m_bbq, v8::Local<v8::Object>::New(Isolate::now()->isolate, m_query));
+        hr = encodeObject(&m_bbq, v8::Local<v8::Object>::New(Isolate::now()->m_isolate, m_query));
         if (hr < 0)
             return hr;
 
@@ -245,7 +245,7 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Local<v8::Value> opts,
 
     ensureSpecial();
     Isolate* isolate = Isolate::now();
-    v8::Local<v8::Object>::New(isolate->isolate, m_query)->Set(v8::String::NewFromUtf8(isolate->isolate, name), opts);
+    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Set(v8::String::NewFromUtf8(isolate->m_isolate, name), opts);
 
     retVal = this;
     return 0;
@@ -255,7 +255,7 @@ result_t MongoCursor::toArray(v8::Local<v8::Array> &retVal)
 {
     result_t hr;
     v8::Local<v8::Object> o;
-    v8::Local<v8::Array> as = v8::Array::New(Isolate::now()->isolate);
+    v8::Local<v8::Array> as = v8::Array::New(Isolate::now()->m_isolate);
     int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
