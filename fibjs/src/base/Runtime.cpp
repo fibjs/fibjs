@@ -27,23 +27,19 @@ Runtime &Runtime::now()
     return *(Runtime *)th_rt;
 }
 
+OSTls th_vm;
+
 Isolate &Isolate::now()
 {
     assert(exlib::Service::hasService());
+    return *(Isolate *)th_vm;
 
-    if (exlib::Service::hasService())
-    {
-        return *(Isolate *)th_rt;
-    }
-
-    return *(Isolate *)NULL;
 }
 
 void Isolate::reg(void *rt)
 {
     assert(exlib::Service::hasService());
-
-    Runtime::reg(rt);
+    th_vm = rt;
 }
 
 bool Isolate::rt::g_trace = false;
