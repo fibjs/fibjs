@@ -224,7 +224,7 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     if (buffer_length < offset)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    max_length = MIN(qstrlen(str),  buffer_length - offset);
+    max_length = (int32_t)MIN(qstrlen(str),  buffer_length - offset);
     if (0 == length)
         return 0;
     else if (0 < length)
@@ -297,7 +297,7 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
 
     obj_ptr<Buffer> v_data = dynamic_cast<Buffer *>(v);
     int32_t length = end - offset;
-    int32_t v_length = v_data->m_data.length();
+    int32_t v_length = (int32_t)v_data->m_data.length();
 
     if (v_length == 0)
         return 0;
@@ -321,8 +321,8 @@ result_t Buffer::equals(Buffer_base * buf, bool & retVal)
 result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
 {
     obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer *>(buf);
-    int32_t pos_length = m_data.length();
-    int32_t neg_length = cmpdata->m_data.length();
+    int32_t pos_length = (int32_t)m_data.length();
+    int32_t neg_length = (int32_t)cmpdata->m_data.length();
 
     retVal =  memcmp(&m_data[0], &cmpdata->m_data[0], MIN(pos_length, neg_length));
     if (retVal)
@@ -700,7 +700,7 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
     if (hr < 0)
         return hr;
 
-    str_length = str.length();
+    str_length = (int32_t)str.length();
     if (end < 0)
         end = str_length + end + 1;
 
