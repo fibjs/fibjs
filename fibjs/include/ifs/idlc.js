@@ -42,6 +42,24 @@ process.system('doxygen');
 process.chdir("../../../docs/src");
 process.system('doxygen');
 
+function replace_dot(path) {
+	var dir = fs.readdir(path);
+	dir.forEach(function(f) {
+		var name = f.name;
+		if (name !== '.' && name !== '..') {
+			var fname = path + '/' + name;
+			if (f.isDirectory()) {
+				replace_dot(fname);
+
+			} else if (name.substr(name.length - 5) == ".html")
+				fs.writeFile(fname, fs.readFile(fname).replace(/::/g, "."));
+		}
+	});
+}
+
+process.chdir("../html");
+replace_dot(".");
+
 function preparserIDL(fname) {
 	var f, line = 0,
 		st, isRem;
