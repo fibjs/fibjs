@@ -98,7 +98,7 @@ public:
 class asyncProc: public asyncEv
 {
 public:
-    asyncProc(SOCKET s, int32_t op, AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+    asyncProc(SOCKET s, int32_t op, AsyncEvent *ac, intptr_t &guard, void *&opt) :
         m_s(s), m_op(op), m_ac(ac), m_guard(guard), m_opt(opt)
     {
     }
@@ -153,7 +153,7 @@ public:
     SOCKET m_s;
     int32_t m_op;
     AsyncEvent *m_ac;
-    exlib::atomic_t &m_guard;
+    intptr_t &m_guard;
     void *&m_opt;
 
 private:
@@ -257,7 +257,7 @@ result_t Socket::connect(const char *host, int32_t port, AsyncEvent *ac)
     class asyncConnect: public asyncProc
     {
     public:
-        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, intptr_t &guard, void *&opt) :
             asyncProc(s, EV_WRITE, ac, guard, opt), m_ai(ai)
         {
         }
@@ -325,7 +325,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
     {
     public:
         asyncAccept(SOCKET s, obj_ptr<Socket_base> &retVal,
-                    AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+                    AsyncEvent *ac, intptr_t &guard, void *&opt) :
             asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal)
         {
         }
@@ -382,7 +382,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  AsyncEvent *ac, bool bRead, exlib::atomic_t &guard, void *&opt) :
+                  AsyncEvent *ac, bool bRead, intptr_t &guard, void *&opt) :
             asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal), m_pos(0), m_bRead(
                 bRead)
         {
@@ -454,7 +454,7 @@ result_t Socket::send(Buffer_base *data, AsyncEvent *ac)
     class asyncSend: public asyncProc
     {
     public:
-        asyncSend(SOCKET s, Buffer_base *data, AsyncEvent *ac, exlib::atomic_t &guard, void *&opt) :
+        asyncSend(SOCKET s, Buffer_base *data, AsyncEvent *ac, intptr_t &guard, void *&opt) :
             asyncProc(s, EV_WRITE, ac, guard, opt)
         {
             data->toString(m_buf);

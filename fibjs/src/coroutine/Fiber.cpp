@@ -72,7 +72,7 @@ public:
     virtual void Run()
     {
         Isolate* isolate = s_isolates.head();
-        exlib::atomic_t lastTimes = isolate->m_service->m_switchTimes;
+        intptr_t lastTimes = isolate->m_service->m_switchTimes;
         int32_t cnt = 0;
 
         while (true)

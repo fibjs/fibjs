@@ -97,12 +97,12 @@ public:
     }
 
 protected:
-    exlib::atomic_t internalRef()
+    intptr_t internalRef()
     {
         return refs_.inc();
     }
 
-    exlib::atomic_t internalUnref()
+    intptr_t internalUnref()
     {
         return refs_.dec();
     }
