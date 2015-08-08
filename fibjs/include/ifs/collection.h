@@ -23,7 +23,7 @@ class Queue_base;
 
 class collection_base : public object_base
 {
-	DECLARE_CLASS(collection_base);
+    DECLARE_CLASS(collection_base);
 
 public:
 
@@ -37,25 +37,25 @@ public:
 
 namespace fibjs
 {
-	inline ClassInfo& collection_base::class_info()
-	{
-		static ClassData::ClassObject s_object[] = 
-		{
-			{"Map", Map_base::class_info},
-			{"List", List_base::class_info},
-			{"Queue", Queue_base::class_info}
-		};
+    inline ClassInfo& collection_base::class_info()
+    {
+        static ClassData::ClassObject s_object[] = 
+        {
+            {"Map", Map_base::class_info},
+            {"List", List_base::class_info},
+            {"Queue", Queue_base::class_info}
+        };
 
-		static ClassData s_cd = 
-		{ 
-			"collection", NULL, 
-			0, NULL, 3, s_object, 0, NULL, NULL, NULL,
-			NULL
-		};
+        static ClassData s_cd = 
+        { 
+            "collection", NULL, 
+            0, NULL, 3, s_object, 0, NULL, NULL, NULL,
+            NULL
+        };
 
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+        static ClassInfo s_ci(s_cd);
+        return s_ci;
+    }
 
 
 }

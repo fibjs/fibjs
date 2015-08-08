@@ -19,173 +19,173 @@ namespace fibjs
 
 class SandBox_base : public object_base
 {
-	DECLARE_CLASS(SandBox_base);
+    DECLARE_CLASS(SandBox_base);
 
 public:
-	// SandBox_base
-	static result_t _new(v8::Local<v8::Object> mods, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	virtual result_t add(const char* id, v8::Local<v8::Value> mod) = 0;
-	virtual result_t add(v8::Local<v8::Object> mods) = 0;
-	virtual result_t addScript(const char* srcname, const char* script, v8::Local<v8::Value>& retVal) = 0;
-	virtual result_t remove(const char* id) = 0;
-	virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
-	virtual result_t run(const char* fname) = 0;
-	virtual result_t require(const char* id, v8::Local<v8::Value>& retVal) = 0;
+    // SandBox_base
+    static result_t _new(v8::Local<v8::Object> mods, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t add(const char* id, v8::Local<v8::Value> mod) = 0;
+    virtual result_t add(v8::Local<v8::Object> mods) = 0;
+    virtual result_t addScript(const char* srcname, const char* script, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t remove(const char* id) = 0;
+    virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
+    virtual result_t run(const char* fname) = 0;
+    virtual result_t require(const char* id, v8::Local<v8::Value>& retVal) = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args);
+    template<typename T>
+    static void __new(const T &args);
 
 public:
-	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
 
 namespace fibjs
 {
-	inline ClassInfo& SandBox_base::class_info()
-	{
-		static ClassData::ClassMethod s_method[] = 
-		{
-			{"add", s_add, false},
-			{"addScript", s_addScript, false},
-			{"remove", s_remove, false},
-			{"clone", s_clone, false},
-			{"run", s_run, false},
-			{"require", s_require, false}
-		};
+    inline ClassInfo& SandBox_base::class_info()
+    {
+        static ClassData::ClassMethod s_method[] = 
+        {
+            {"add", s_add, false},
+            {"addScript", s_addScript, false},
+            {"remove", s_remove, false},
+            {"clone", s_clone, false},
+            {"run", s_run, false},
+            {"require", s_require, false}
+        };
 
-		static ClassData s_cd = 
-		{ 
-			"SandBox", s__new, 
-			6, s_method, 0, NULL, 0, NULL, NULL, NULL,
-			&object_base::class_info()
-		};
+        static ClassData s_cd = 
+        { 
+            "SandBox", s__new, 
+            6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            &object_base::class_info()
+        };
 
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+        static ClassInfo s_ci(s_cd);
+        return s_ci;
+    }
 
 
-	inline void SandBox_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		CONSTRUCT_INIT();
-		__new(args);
-	}
+    inline void SandBox_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
 
-	template<typename T>void SandBox_base::__new(const T& args)
-	{
-		obj_ptr<SandBox_base> vr;
+    template<typename T>void SandBox_base::__new(const T& args)
+    {
+        obj_ptr<SandBox_base> vr;
 
-		CONSTRUCT_ENTER(2, 1);
+        CONSTRUCT_ENTER(2, 1);
 
-		ARG(v8::Local<v8::Object>, 0);
-		OPT_ARG(arg_string, 1, "");
+        ARG(v8::Local<v8::Object>, 0);
+        OPT_ARG(arg_string, 1, "");
 
-		hr = _new(v0, v1, vr, args.This());
+        hr = _new(v0, v1, vr, args.This());
 
-		METHOD_OVER(3, 2);
+        METHOD_OVER(3, 2);
 
-		ARG(v8::Local<v8::Object>, 0);
-		ARG(v8::Local<v8::Function>, 1);
-		OPT_ARG(arg_string, 2, "");
+        ARG(v8::Local<v8::Object>, 0);
+        ARG(v8::Local<v8::Function>, 1);
+        OPT_ARG(arg_string, 2, "");
 
-		hr = _new(v0, v1, v2, vr, args.This());
+        hr = _new(v0, v1, v2, vr, args.This());
 
-		CONSTRUCT_RETURN();
-	}
+        CONSTRUCT_RETURN();
+    }
 
-	inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(SandBox_base);
-		METHOD_ENTER(2, 2);
+    inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(SandBox_base);
+        METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(v8::Local<v8::Value>, 1);
+        ARG(arg_string, 0);
+        ARG(v8::Local<v8::Value>, 1);
 
-		hr = pInst->add(v0, v1);
+        hr = pInst->add(v0, v1);
 
-		METHOD_OVER(1, 1);
+        METHOD_OVER(1, 1);
 
-		ARG(v8::Local<v8::Object>, 0);
+        ARG(v8::Local<v8::Object>, 0);
 
-		hr = pInst->add(v0);
+        hr = pInst->add(v0);
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
-	inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		v8::Local<v8::Value> vr;
+    inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Value> vr;
 
-		METHOD_INSTANCE(SandBox_base);
-		METHOD_ENTER(2, 2);
+        METHOD_INSTANCE(SandBox_base);
+        METHOD_ENTER(2, 2);
 
-		ARG(arg_string, 0);
-		ARG(arg_string, 1);
+        ARG(arg_string, 0);
+        ARG(arg_string, 1);
 
-		hr = pInst->addScript(v0, v1, vr);
+        hr = pInst->addScript(v0, v1, vr);
 
-		METHOD_RETURN();
-	}
+        METHOD_RETURN();
+    }
 
-	inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(SandBox_base);
-		METHOD_ENTER(1, 1);
+    inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(SandBox_base);
+        METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+        ARG(arg_string, 0);
 
-		hr = pInst->remove(v0);
+        hr = pInst->remove(v0);
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
-	inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<SandBox_base> vr;
+    inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<SandBox_base> vr;
 
-		METHOD_INSTANCE(SandBox_base);
-		METHOD_ENTER(0, 0);
+        METHOD_INSTANCE(SandBox_base);
+        METHOD_ENTER(0, 0);
 
-		hr = pInst->clone(vr);
+        hr = pInst->clone(vr);
 
-		METHOD_RETURN();
-	}
+        METHOD_RETURN();
+    }
 
-	inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(SandBox_base);
-		METHOD_ENTER(1, 1);
+    inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(SandBox_base);
+        METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+        ARG(arg_string, 0);
 
-		hr = pInst->run(v0);
+        hr = pInst->run(v0);
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
-	inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		v8::Local<v8::Value> vr;
+    inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Value> vr;
 
-		METHOD_INSTANCE(SandBox_base);
-		METHOD_ENTER(1, 1);
+        METHOD_INSTANCE(SandBox_base);
+        METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+        ARG(arg_string, 0);
 
-		hr = pInst->require(v0, vr);
+        hr = pInst->require(v0, vr);
 
-		METHOD_RETURN();
-	}
+        METHOD_RETURN();
+    }
 
 }
 

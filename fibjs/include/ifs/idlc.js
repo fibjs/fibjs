@@ -318,21 +318,21 @@ function parserIDL(fname) {
 
 		txt.push("class " + ns + "_base : public " + baseClass + "_base\n{");
 
-		txt.push("	DECLARE_CLASS(" + ns + "_base);\n")
+		txt.push("    DECLARE_CLASS(" + ns + "_base);\n")
 
 		if (svs.length) {
-			txt.push("public:\n	enum{");
+			txt.push("public:\n    enum{");
 			txt.push(svs.join(",\n"));
-			txt.push("	};\n");
+			txt.push("    };\n");
 		}
 
 		if (ifs.length) {
-			txt.push("public:\n	// " + ns + "_base");
+			txt.push("public:\n    // " + ns + "_base");
 			txt.push(ifs.join("\n") + "\n");
 		}
 
 		if (hasNew)
-			txt.push("public:\n	template<typename T>\n	static void __new(const T &args);\n");
+			txt.push("public:\n    template<typename T>\n    static void __new(const T &args);\n");
 
 		txt.push("public:");
 		txt.push(iffs.join("\n"));
@@ -353,39 +353,39 @@ function parserIDL(fname) {
 
 		txt.push("namespace fibjs\n{");
 
-		txt.push("	inline ClassInfo& " + ns + "_base::class_info()\n	{")
+		txt.push("    inline ClassInfo& " + ns + "_base::class_info()\n    {")
 
 		if (difms.length) {
-			txt.push("		static ClassData::ClassMethod s_method[] = \n		{");
+			txt.push("        static ClassData::ClassMethod s_method[] = \n        {");
 			txt.push(difms.join(",\n"));
-			txt.push("		};\n");
+			txt.push("        };\n");
 		}
 
 		if (difos.length) {
-			txt.push("		static ClassData::ClassObject s_object[] = \n		{");
+			txt.push("        static ClassData::ClassObject s_object[] = \n        {");
 			txt.push(difos.join(",\n"));
-			txt.push("		};\n");
+			txt.push("        };\n");
 		}
 
 		if (difps.length) {
-			txt.push("		static ClassData::ClassProperty s_property[] = \n		{");
+			txt.push("        static ClassData::ClassProperty s_property[] = \n        {");
 			txt.push(difps.join(",\n"));
-			txt.push("		};\n");
+			txt.push("        };\n");
 		}
 
 		if (hasIndexed) {
-			txt.push("		static ClassData::ClassIndexed s_indexed = \n		{");
-			txt.push("			i_IndexedGetter, i_IndexedSetter");
-			txt.push("		};\n");
+			txt.push("        static ClassData::ClassIndexed s_indexed = \n        {");
+			txt.push("            i_IndexedGetter, i_IndexedSetter");
+			txt.push("        };\n");
 		}
 
 		if (hasNamed) {
-			txt.push("		static ClassData::ClassNamed s_named = \n		{");
-			txt.push("			i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator");
-			txt.push("		};\n");
+			txt.push("        static ClassData::ClassNamed s_named = \n        {");
+			txt.push("            i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator");
+			txt.push("        };\n");
 		}
 
-		var strClass = "		static ClassData s_cd = \n		{ \n			\"" + ns + "\"";
+		var strClass = "        static ClassData s_cd = \n        { \n            \"" + ns + "\"";
 
 		if (hasNew)
 			strClass += ", s__new"
@@ -393,9 +393,9 @@ function parserIDL(fname) {
 			strClass += ", NULL"
 
 		if (difms.length)
-			strClass += ", \n			" + difms.length + ", s_method";
+			strClass += ", \n            " + difms.length + ", s_method";
 		else
-			strClass += ", \n			0, NULL";
+			strClass += ", \n            0, NULL";
 
 		if (difos.length)
 			strClass += ", " + difos.length + ", s_object";
@@ -418,13 +418,13 @@ function parserIDL(fname) {
 			strClass += ", NULL";
 
 		if (ns != "object" && modType == "interface")
-			strClass += ",\n			&" + baseClass + "_base::class_info()";
+			strClass += ",\n            &" + baseClass + "_base::class_info()";
 		else
-			strClass += ",\n			NULL";
+			strClass += ",\n            NULL";
 
-		txt.push(strClass + "\n		};\n");
-		txt.push("		static ClassInfo s_ci(s_cd);");
-		txt.push("		return s_ci;\n	}\n");
+		txt.push(strClass + "\n        };\n");
+		txt.push("        static ClassInfo s_ci(s_cd);");
+		txt.push("        return s_ci;\n    }\n");
 
 		txt.push(ffs.join("\n"));
 
@@ -432,11 +432,11 @@ function parserIDL(fname) {
 			if (ids[fname].length > 0) {
 				txt.push(ids[fname][1]);
 				if (ids[fname][0] == "")
-					txt.push("		METHOD_VOID();\n	}\n");
+					txt.push("        METHOD_VOID();\n    }\n");
 				else if (fname !== "_new")
-					txt.push("		METHOD_RETURN();\n	}\n");
+					txt.push("        METHOD_RETURN();\n    }\n");
 				else
-					txt.push("		CONSTRUCT_RETURN();\n	}\n");
+					txt.push("        CONSTRUCT_RETURN();\n    }\n");
 			}
 
 		txt.push("}\n");
@@ -546,7 +546,7 @@ function parserIDL(fname) {
 
 		if (attr == 'new') {
 			difos
-				.push("			{\"" + fname + "\", " + ftype + "_base::class_info}");
+				.push("            {\"" + fname + "\", " + ftype + "_base::class_info}");
 		} else if (st[pos] == "(") {
 			if (attr == "const" || attr == "readonly")
 				return reportErr();
@@ -555,9 +555,9 @@ function parserIDL(fname) {
 				return reportErr();
 
 			if (attr == "static")
-				ifStr = "	static result_t " + cxxSafe(fname) + "(";
+				ifStr = "    static result_t " + cxxSafe(fname) + "(";
 			else
-				ifStr = "	virtual result_t " + cxxSafe(fname) + "(";
+				ifStr = "    virtual result_t " + cxxSafe(fname) + "(";
 
 			pos++;
 
@@ -636,14 +636,14 @@ function parserIDL(fname) {
 
 				if (type === "String") {
 					if (value == "")
-						argVars += "		ARG(arg_string, " + argCount + ");\n";
+						argVars += "        ARG(arg_string, " + argCount + ");\n";
 					else
-						argVars += "		OPT_ARG(arg_string, " + argCount + ", " + defMap(value) + ");\n";
+						argVars += "        OPT_ARG(arg_string, " + argCount + ", " + defMap(value) + ");\n";
 				} else {
 					if (value == "")
-						argVars += "		ARG(" + map_type(type) + ", " + argCount + ");\n";
+						argVars += "        ARG(" + map_type(type) + ", " + argCount + ");\n";
 					else
-						argVars += "		OPT_ARG(" + map_type(type) + ", " + argCount + ", " + defMap(value) + ");\n";
+						argVars += "        OPT_ARG(" + map_type(type) + ", " + argCount + ", " + defMap(value) + ");\n";
 				}
 
 				argCount++;
@@ -654,26 +654,26 @@ function parserIDL(fname) {
 			pos++;
 
 			if (ids.hasOwnProperty(fname)) {
-				fnStr = ids[fname][1] + "\n		METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+				fnStr = ids[fname][1] + "\n        METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 			} else {
-				iffs.push("	static void s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args);");
+				iffs.push("    static void s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args);");
 
-				fnStr = "	inline void " + ns + "_base::s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args)\n	{\n";
+				fnStr = "    inline void " + ns + "_base::s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n";
 
 				if (fname === "_new") {
-					fnStr += "		CONSTRUCT_INIT();\n		__new(args);\n	}\n\n";
-					fnStr += "	template<typename T>void " + ns + "_base::__new(const T& args)\n	{\n";
+					fnStr += "        CONSTRUCT_INIT();\n        __new(args);\n    }\n\n";
+					fnStr += "    template<typename T>void " + ns + "_base::__new(const T& args)\n    {\n";
 				}
 
 				if (ftype != "")
-					fnStr += "		" + map_type(ftype) + " vr;\n\n";
+					fnStr += "        " + map_type(ftype) + " vr;\n\n";
 
 				if (attr == "")
-					fnStr += "		METHOD_INSTANCE(" + ns + "_base);\n		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+					fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 				else if (fname !== "_new")
-					fnStr += "		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+					fnStr += "        METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 				else
-					fnStr += "		CONSTRUCT_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+					fnStr += "        CONSTRUCT_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 			}
 
 			if (argCount == 1 && fname === "_new")
@@ -700,12 +700,12 @@ function parserIDL(fname) {
 
 				if (attr == "static") {
 					ifStr += "AsyncEvent* ac);";
-					fnStr += "		hr = ac_" + fname + "(";
-					afs.push('	ASYNC_STATIC' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
+					fnStr += "        hr = ac_" + fname + "(";
+					afs.push('    ASYNC_STATIC' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
 				} else {
 					ifStr += "AsyncEvent* ac) = 0;";
-					fnStr += "		hr = pInst->ac_" + fname + "(";
-					afs.push('	ASYNC_MEMBER' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
+					fnStr += "        hr = pInst->ac_" + fname + "(";
+					afs.push('    ASYNC_MEMBER' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
 				}
 
 				// if (argArray || (ftype != "") || (argCount > 0))
@@ -716,10 +716,10 @@ function parserIDL(fname) {
 						ifStr += ", v8::Local<v8::Object> This = v8::Local<v8::Object>());";
 					else
 						ifStr += ");";
-					fnStr += "		hr = " + cxxSafe(fname) + "(";
+					fnStr += "        hr = " + cxxSafe(fname) + "(";
 				} else {
 					ifStr += ") = 0;";
-					fnStr += "		hr = pInst->" + cxxSafe(fname) + "(";
+					fnStr += "        hr = pInst->" + cxxSafe(fname) + "(";
 				}
 			}
 
@@ -752,9 +752,9 @@ function parserIDL(fname) {
 			if (!ids.hasOwnProperty(fname)) {
 				if (attr == "static") {
 					if (fname !== "_new")
-						difms.push("			{\"" + fname + "\", s_" + fname + ", true}");
+						difms.push("            {\"" + fname + "\", s_" + fname + ", true}");
 				} else
-					difms.push("			{\"" + fname + "\", s_" + fname + ", false}");
+					difms.push("            {\"" + fname + "\", s_" + fname + ", false}");
 			}
 
 			ids[fname] = [ftype, fnStr];
@@ -768,53 +768,53 @@ function parserIDL(fname) {
 				value = st[pos++];
 
 				iffs
-					.push("	static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
-				fnStr = "	inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
-				fnStr += "		" + map_type(ftype) + " vr = _" + fname + ";\n";
-				fnStr += "		PROPERTY_ENTER();\n		METHOD_RETURN();\n	}\n";
+					.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+				fnStr = "    inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+				fnStr += "        " + map_type(ftype) + " vr = _" + fname + ";\n";
+				fnStr += "        PROPERTY_ENTER();\n        METHOD_RETURN();\n    }\n";
 				ffs.push(fnStr)
 
-				ifStr = "		_" + fname + " = " + value;
+				ifStr = "        _" + fname + " = " + value;
 
 				svs.push(ifStr);
 
-				difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, true}");
+				difps.push("            {\"" + fname + "\", s_get_" + fname + ", block_set, true}");
 			} else if (attr == "static") {
 				if (st[pos] != ";")
 					return reportErr();
 
 				iffs
-					.push("	static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
-				fnStr = "	inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
-				fnStr += "		" + map_type(ftype) + " vr;\n\n		PROPERTY_ENTER();\n\n";
+					.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+				fnStr = "    inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+				fnStr += "        " + map_type(ftype) + " vr;\n\n        PROPERTY_ENTER();\n\n";
 
-				fnStr += "		hr = get_" + fname + "(";
+				fnStr += "        hr = get_" + fname + "(";
 				fnStr += "vr";
-				fnStr += ");\n\n		METHOD_RETURN();\n	}\n";
+				fnStr += ");\n\n        METHOD_RETURN();\n    }\n";
 				ffs.push(fnStr)
 
-				ifStr = "	static result_t get_" + fname + "(" + map_type(ftype) + "& retVal);";
+				ifStr = "    static result_t get_" + fname + "(" + map_type(ftype) + "& retVal);";
 				ifs.push(ifStr);
 
 				if (attr1 != "readonly") {
 					iffs
-						.push("	static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
-					fnStr = "	inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n	{\n		PROPERTY_ENTER();\n";
+						.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
+					fnStr = "    inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n    {\n        PROPERTY_ENTER();\n";
 					if (ftype === "String")
-						fnStr += "		PROPERTY_VAL(arg_string);\n";
+						fnStr += "        PROPERTY_VAL(arg_string);\n";
 					else
-						fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n\n";
-					fnStr += "		hr = set_" + fname + "(v0);\n\n		PROPERTY_SET_LEAVE();\n	}\n";
+						fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n\n";
+					fnStr += "        hr = set_" + fname + "(v0);\n\n        PROPERTY_SET_LEAVE();\n    }\n";
 					ffs.push(fnStr)
 
-					ifStr = "	static result_t set_" + fname + "(" + arg_type(ftype) + " newVal);";
+					ifStr = "    static result_t set_" + fname + "(" + arg_type(ftype) + " newVal);";
 					ifs.push(ifStr);
 				}
 
 				if (attr1 == "readonly")
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, true}");
+					difps.push("            {\"" + fname + "\", s_get_" + fname + ", block_set, true}");
 				else
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + ", true}");
+					difps.push("            {\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + ", true}");
 
 			} else if (fname === "operator") {
 				if ((st[pos] === "[") && (st[pos + 1] === "]") && (st[pos + 2] === ";")) {
@@ -822,30 +822,30 @@ function parserIDL(fname) {
 					hasIndexed = true;
 
 					iffs
-						.push("	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);");
-					fnStr = "	inline void " + ns + "_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
-					fnStr += "		" + map_type(ftype) + " vr;\n\n";
-					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+						.push("    static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);");
+					fnStr = "    inline void " + ns + "_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+					fnStr += "        " + map_type(ftype) + " vr;\n\n";
+					fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
-					fnStr += "		hr = pInst->_indexed_getter(index, vr);\n\n		METHOD_RETURN();\n	}\n";
+					fnStr += "        hr = pInst->_indexed_getter(index, vr);\n\n        METHOD_RETURN();\n    }\n";
 					ffs.push(fnStr)
 
-					ifStr = "	virtual result_t _indexed_getter(uint32_t index, " + map_type(ftype) + "& retVal) = 0;";
+					ifStr = "    virtual result_t _indexed_getter(uint32_t index, " + map_type(ftype) + "& retVal) = 0;";
 					ifs.push(ifStr);
 
 					if (attr != "readonly") {
 						iffs
-							.push("	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
-						fnStr = "	inline void " + ns + "_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n		PROPERTY_ENTER();\n";
-						fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+							.push("    static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
+						fnStr = "    inline void " + ns + "_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n        PROPERTY_ENTER();\n";
+						fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
-							fnStr += "		PROPERTY_VAL(arg_string);\n";
+							fnStr += "        PROPERTY_VAL(arg_string);\n";
 						else
-							fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
-						fnStr += "		hr = pInst->_indexed_setter(index, v0);\n\n		METHOD_VOID();\n	}\n";
+							fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n";
+						fnStr += "        hr = pInst->_indexed_setter(index, v0);\n\n        METHOD_VOID();\n    }\n";
 						ffs.push(fnStr);
 
-						ifStr = "	virtual result_t _indexed_setter(uint32_t index, " + arg_type(ftype) + " newVal) = 0;";
+						ifStr = "    virtual result_t _indexed_setter(uint32_t index, " + arg_type(ftype) + " newVal) = 0;";
 						ifs.push(ifStr);
 					}
 				} else if ((st[pos] === "[") && (st[pos + 1] === "String") && (st[pos + 2] === "]") && (st[pos + 3] === ";")) {
@@ -853,60 +853,60 @@ function parserIDL(fname) {
 					hasNamed = true;
 
 					iffs
-						.push("	static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
-					fnStr = "	inline void " + ns + "_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
-					fnStr += "		" + map_type(ftype) + " vr;\n\n";
-					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+						.push("    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+					fnStr = "    inline void " + ns + "_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+					fnStr += "        " + map_type(ftype) + " vr;\n\n";
+					fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
-					fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return;\n\n"
-					fnStr += "		hr = pInst->_named_getter(*k, vr);\n		if(hr == CALL_RETURN_NULL)return;\n\n		METHOD_RETURN();\n	}\n";
+					fnStr += "        v8::String::Utf8Value k(property);\n        if(class_info().has(*k))return;\n\n"
+					fnStr += "        hr = pInst->_named_getter(*k, vr);\n        if(hr == CALL_RETURN_NULL)return;\n\n        METHOD_RETURN();\n    }\n";
 
 					ffs.push(fnStr)
 
-					ifStr = "	virtual result_t _named_getter(const char* property, " + map_type(ftype) + "& retVal) = 0;";
+					ifStr = "    virtual result_t _named_getter(const char* property, " + map_type(ftype) + "& retVal) = 0;";
 					ifs.push(ifStr);
 
 					iffs
-						.push("	static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);");
-					fnStr = "	inline void " + ns + "_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)\n	{\n";
-					fnStr += "		v8::Local<v8::Array> vr;\n\n";
-					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+						.push("    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);");
+					fnStr = "    inline void " + ns + "_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)\n    {\n";
+					fnStr += "        v8::Local<v8::Array> vr;\n\n";
+					fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
-					fnStr += "		hr = pInst->_named_enumerator(vr);\n\n		METHOD_RETURN1();\n	}\n";
+					fnStr += "        hr = pInst->_named_enumerator(vr);\n\n        METHOD_RETURN1();\n    }\n";
 
 					ffs.push(fnStr)
 
-					ifStr = "	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;";
+					ifStr = "    virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;";
 					ifs.push(ifStr);
 
 					if (attr != "readonly") {
 						iffs
-							.push("	static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
-						fnStr = "	inline void " + ns + "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n		PROPERTY_ENTER();\n";
-						fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+							.push("    static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
+						fnStr = "    inline void " + ns + "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n        PROPERTY_ENTER();\n";
+						fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
-							fnStr += "		PROPERTY_VAL(arg_string);\n";
+							fnStr += "        PROPERTY_VAL(arg_string);\n";
 						else
-							fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
-						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return;\n\n"
-						fnStr += "		hr = pInst->_named_setter(*k, v0);\n\n		METHOD_VOID();\n	}\n";
+							fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n";
+						fnStr += "        v8::String::Utf8Value k(property);\n        if(class_info().has(*k))return;\n\n"
+						fnStr += "        hr = pInst->_named_setter(*k, v0);\n\n        METHOD_VOID();\n    }\n";
 						ffs.push(fnStr);
 
-						ifStr = "	virtual result_t _named_setter(const char* property, " + arg_type(ftype) + " newVal) = 0;";
+						ifStr = "    virtual result_t _named_setter(const char* property, " + arg_type(ftype) + " newVal) = 0;";
 						ifs.push(ifStr);
 
 						iffs
-							.push("	static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args);");
-						fnStr = "	inline void " + ns + "_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)\n	{\n";
-						fnStr += "		v8::Local<v8::Boolean> vr;\n\n";
-						fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+							.push("    static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args);");
+						fnStr = "    inline void " + ns + "_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)\n    {\n";
+						fnStr += "        v8::Local<v8::Boolean> vr;\n\n";
+						fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
-						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(Isolate::now()->m_isolate));return;}\n\n"
-						fnStr += "		hr = pInst->_named_deleter(*k, vr);\n		METHOD_RETURN1();\n	}\n";
+						fnStr += "        v8::String::Utf8Value k(property);\n        if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(Isolate::now()->m_isolate));return;}\n\n"
+						fnStr += "        hr = pInst->_named_deleter(*k, vr);\n        METHOD_RETURN1();\n    }\n";
 
 						ffs.push(fnStr)
 
-						ifStr = "	virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;";
+						ifStr = "    virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;";
 						ifs.push(ifStr);
 					}
 				} else
@@ -916,46 +916,46 @@ function parserIDL(fname) {
 					return reportErr();
 
 				if (ftype === "String")
-					tjfs.push("		CLONE_String(" + fname + ");");
+					tjfs.push("        CLONE_String(" + fname + ");");
 				else if (typeMap[ftype])
-					tjfs.push("		CLONE(" + fname + ", " + map_type(ftype) + ");");
+					tjfs.push("        CLONE(" + fname + ", " + map_type(ftype) + ");");
 				else if (clsName[ftype])
-					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype + "_base);");
+					tjfs.push("        CLONE_CLASS(" + fname + ", " + ftype + "_base);");
 
 				iffs
-					.push("	static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
-				fnStr = "	inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
-				fnStr += "		" + map_type(ftype) + " vr;\n\n";
-				fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+					.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+				fnStr = "    inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+				fnStr += "        " + map_type(ftype) + " vr;\n\n";
+				fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
-				fnStr += "		hr = pInst->get_" + fname + "(";
+				fnStr += "        hr = pInst->get_" + fname + "(";
 				fnStr += "vr";
-				fnStr += ");\n\n		METHOD_RETURN();\n	}\n";
+				fnStr += ");\n\n        METHOD_RETURN();\n    }\n";
 				ffs.push(fnStr)
 
-				ifStr = "	virtual result_t get_" + fname + "(" + map_type(ftype) + "& retVal) = 0;";
+				ifStr = "    virtual result_t get_" + fname + "(" + map_type(ftype) + "& retVal) = 0;";
 				ifs.push(ifStr);
 
 				if (attr != "readonly") {
 					iffs
-						.push("	static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
-					fnStr = "	inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n	{\n		PROPERTY_ENTER();\n";
-					fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+						.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
+					fnStr = "    inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n    {\n        PROPERTY_ENTER();\n";
+					fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 					if (ftype === "String")
-						fnStr += "		PROPERTY_VAL(arg_string);\n";
+						fnStr += "        PROPERTY_VAL(arg_string);\n";
 					else
-						fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
-					fnStr += "		hr = pInst->set_" + fname + "(v0);\n\n		PROPERTY_SET_LEAVE();\n	}\n";
+						fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n";
+					fnStr += "        hr = pInst->set_" + fname + "(v0);\n\n        PROPERTY_SET_LEAVE();\n    }\n";
 					ffs.push(fnStr)
 
-					ifStr = "	virtual result_t set_" + fname + "(" + arg_type(ftype) + " newVal) = 0;";
+					ifStr = "    virtual result_t set_" + fname + "(" + arg_type(ftype) + " newVal) = 0;";
 					ifs.push(ifStr);
 				}
 
 				if (attr == "readonly")
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set, false}");
+					difps.push("            {\"" + fname + "\", s_get_" + fname + ", block_set, false}");
 				else
-					difps.push("			{\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + ", false}");
+					difps.push("            {\"" + fname + "\", s_get_" + fname + ", s_set_" + fname + ", false}");
 			}
 		} else
 			return reportErr();

@@ -19,88 +19,88 @@ namespace fibjs
 
 class Lock_base : public object_base
 {
-	DECLARE_CLASS(Lock_base);
+    DECLARE_CLASS(Lock_base);
 
 public:
-	// Lock_base
-	static result_t _new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-	virtual result_t acquire(bool blocking, bool& retVal) = 0;
-	virtual result_t release() = 0;
+    // Lock_base
+    static result_t _new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t acquire(bool blocking, bool& retVal) = 0;
+    virtual result_t release() = 0;
 
 public:
-	template<typename T>
-	static void __new(const T &args);
+    template<typename T>
+    static void __new(const T &args);
 
 public:
-	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_release(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_release(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
 
 namespace fibjs
 {
-	inline ClassInfo& Lock_base::class_info()
-	{
-		static ClassData::ClassMethod s_method[] = 
-		{
-			{"acquire", s_acquire, false},
-			{"release", s_release, false}
-		};
+    inline ClassInfo& Lock_base::class_info()
+    {
+        static ClassData::ClassMethod s_method[] = 
+        {
+            {"acquire", s_acquire, false},
+            {"release", s_release, false}
+        };
 
-		static ClassData s_cd = 
-		{ 
-			"Lock", s__new, 
-			2, s_method, 0, NULL, 0, NULL, NULL, NULL,
-			&object_base::class_info()
-		};
+        static ClassData s_cd = 
+        { 
+            "Lock", s__new, 
+            2, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            &object_base::class_info()
+        };
 
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+        static ClassInfo s_ci(s_cd);
+        return s_ci;
+    }
 
 
-	inline void Lock_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		CONSTRUCT_INIT();
-		__new(args);
-	}
+    inline void Lock_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
 
-	template<typename T>void Lock_base::__new(const T& args)
-	{
-		obj_ptr<Lock_base> vr;
+    template<typename T>void Lock_base::__new(const T& args)
+    {
+        obj_ptr<Lock_base> vr;
 
-		CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER(0, 0);
 
-		hr = _new(vr, args.This());
+        hr = _new(vr, args.This());
 
-		CONSTRUCT_RETURN();
-	}
+        CONSTRUCT_RETURN();
+    }
 
-	inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		bool vr;
+    inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
 
-		METHOD_INSTANCE(Lock_base);
-		METHOD_ENTER(1, 0);
+        METHOD_INSTANCE(Lock_base);
+        METHOD_ENTER(1, 0);
 
-		OPT_ARG(bool, 0, true);
+        OPT_ARG(bool, 0, true);
 
-		hr = pInst->acquire(v0, vr);
+        hr = pInst->acquire(v0, vr);
 
-		METHOD_RETURN();
-	}
+        METHOD_RETURN();
+    }
 
-	inline void Lock_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Lock_base);
-		METHOD_ENTER(0, 0);
+    inline void Lock_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Lock_base);
+        METHOD_ENTER(0, 0);
 
-		hr = pInst->release();
+        hr = pInst->release();
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
 }
 

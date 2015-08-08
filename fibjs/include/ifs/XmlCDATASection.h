@@ -22,7 +22,7 @@ class XmlText_base;
 
 class XmlCDATASection_base : public XmlText_base
 {
-	DECLARE_CLASS(XmlCDATASection_base);
+    DECLARE_CLASS(XmlCDATASection_base);
 
 public:
 
@@ -33,18 +33,18 @@ public:
 
 namespace fibjs
 {
-	inline ClassInfo& XmlCDATASection_base::class_info()
-	{
-		static ClassData s_cd = 
-		{ 
-			"XmlCDATASection", NULL, 
-			0, NULL, 0, NULL, 0, NULL, NULL, NULL,
-			&XmlText_base::class_info()
-		};
+    inline ClassInfo& XmlCDATASection_base::class_info()
+    {
+        static ClassData s_cd = 
+        { 
+            "XmlCDATASection", NULL, 
+            0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+            &XmlText_base::class_info()
+        };
 
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+        static ClassInfo s_ci(s_cd);
+        return s_ci;
+    }
 
 
 }

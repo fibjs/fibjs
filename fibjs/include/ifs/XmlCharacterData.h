@@ -22,28 +22,28 @@ class XmlNode_base;
 
 class XmlCharacterData_base : public XmlNode_base
 {
-	DECLARE_CLASS(XmlCharacterData_base);
+    DECLARE_CLASS(XmlCharacterData_base);
 
 public:
-	// XmlCharacterData_base
-	virtual result_t get_data(std::string& retVal) = 0;
-	virtual result_t set_data(const char* newVal) = 0;
-	virtual result_t get_length(int32_t& retVal) = 0;
-	virtual result_t substringData(int32_t offset, int32_t count, std::string& retVal) = 0;
-	virtual result_t appendData(const char* arg) = 0;
-	virtual result_t insertData(int32_t offset, const char* arg) = 0;
-	virtual result_t deleteData(int32_t offset, int32_t count) = 0;
-	virtual result_t replaceData(int32_t offset, int32_t count, const char* arg) = 0;
+    // XmlCharacterData_base
+    virtual result_t get_data(std::string& retVal) = 0;
+    virtual result_t set_data(const char* newVal) = 0;
+    virtual result_t get_length(int32_t& retVal) = 0;
+    virtual result_t substringData(int32_t offset, int32_t count, std::string& retVal) = 0;
+    virtual result_t appendData(const char* arg) = 0;
+    virtual result_t insertData(int32_t offset, const char* arg) = 0;
+    virtual result_t deleteData(int32_t offset, int32_t count) = 0;
+    virtual result_t replaceData(int32_t offset, int32_t count, const char* arg) = 0;
 
 public:
-	static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_substringData(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_deleteData(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_replaceData(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_substringData(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_deleteData(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_replaceData(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -51,135 +51,135 @@ public:
 
 namespace fibjs
 {
-	inline ClassInfo& XmlCharacterData_base::class_info()
-	{
-		static ClassData::ClassMethod s_method[] = 
-		{
-			{"substringData", s_substringData, false},
-			{"appendData", s_appendData, false},
-			{"insertData", s_insertData, false},
-			{"deleteData", s_deleteData, false},
-			{"replaceData", s_replaceData, false}
-		};
+    inline ClassInfo& XmlCharacterData_base::class_info()
+    {
+        static ClassData::ClassMethod s_method[] = 
+        {
+            {"substringData", s_substringData, false},
+            {"appendData", s_appendData, false},
+            {"insertData", s_insertData, false},
+            {"deleteData", s_deleteData, false},
+            {"replaceData", s_replaceData, false}
+        };
 
-		static ClassData::ClassProperty s_property[] = 
-		{
-			{"data", s_get_data, s_set_data, false},
-			{"length", s_get_length, block_set, false}
-		};
+        static ClassData::ClassProperty s_property[] = 
+        {
+            {"data", s_get_data, s_set_data, false},
+            {"length", s_get_length, block_set, false}
+        };
 
-		static ClassData s_cd = 
-		{ 
-			"XmlCharacterData", NULL, 
-			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
-			&XmlNode_base::class_info()
-		};
+        static ClassData s_cd = 
+        { 
+            "XmlCharacterData", NULL, 
+            5, s_method, 0, NULL, 2, s_property, NULL, NULL,
+            &XmlNode_base::class_info()
+        };
 
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+        static ClassInfo s_ci(s_cd);
+        return s_ci;
+    }
 
-	inline void XmlCharacterData_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		std::string vr;
+    inline void XmlCharacterData_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        std::string vr;
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(XmlCharacterData_base);
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(XmlCharacterData_base);
 
-		hr = pInst->get_data(vr);
+        hr = pInst->get_data(vr);
 
-		METHOD_RETURN();
-	}
+        METHOD_RETURN();
+    }
 
-	inline void XmlCharacterData_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-	{
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(XmlCharacterData_base);
+    inline void XmlCharacterData_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(XmlCharacterData_base);
 
-		PROPERTY_VAL(arg_string);
-		hr = pInst->set_data(v0);
+        PROPERTY_VAL(arg_string);
+        hr = pInst->set_data(v0);
 
-		PROPERTY_SET_LEAVE();
-	}
+        PROPERTY_SET_LEAVE();
+    }
 
-	inline void XmlCharacterData_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		int32_t vr;
+    inline void XmlCharacterData_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
 
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(XmlCharacterData_base);
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(XmlCharacterData_base);
 
-		hr = pInst->get_length(vr);
+        hr = pInst->get_length(vr);
 
-		METHOD_RETURN();
-	}
+        METHOD_RETURN();
+    }
 
-	inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		std::string vr;
+    inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        std::string vr;
 
-		METHOD_INSTANCE(XmlCharacterData_base);
-		METHOD_ENTER(2, 2);
+        METHOD_INSTANCE(XmlCharacterData_base);
+        METHOD_ENTER(2, 2);
 
-		ARG(int32_t, 0);
-		ARG(int32_t, 1);
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
 
-		hr = pInst->substringData(v0, v1, vr);
+        hr = pInst->substringData(v0, v1, vr);
 
-		METHOD_RETURN();
-	}
+        METHOD_RETURN();
+    }
 
-	inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(XmlCharacterData_base);
-		METHOD_ENTER(1, 1);
+    inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(XmlCharacterData_base);
+        METHOD_ENTER(1, 1);
 
-		ARG(arg_string, 0);
+        ARG(arg_string, 0);
 
-		hr = pInst->appendData(v0);
+        hr = pInst->appendData(v0);
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
-	inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(XmlCharacterData_base);
-		METHOD_ENTER(2, 2);
+    inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(XmlCharacterData_base);
+        METHOD_ENTER(2, 2);
 
-		ARG(int32_t, 0);
-		ARG(arg_string, 1);
+        ARG(int32_t, 0);
+        ARG(arg_string, 1);
 
-		hr = pInst->insertData(v0, v1);
+        hr = pInst->insertData(v0, v1);
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
-	inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(XmlCharacterData_base);
-		METHOD_ENTER(2, 2);
+    inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(XmlCharacterData_base);
+        METHOD_ENTER(2, 2);
 
-		ARG(int32_t, 0);
-		ARG(int32_t, 1);
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
 
-		hr = pInst->deleteData(v0, v1);
+        hr = pInst->deleteData(v0, v1);
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
-	inline void XmlCharacterData_base::s_replaceData(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(XmlCharacterData_base);
-		METHOD_ENTER(3, 3);
+    inline void XmlCharacterData_base::s_replaceData(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(XmlCharacterData_base);
+        METHOD_ENTER(3, 3);
 
-		ARG(int32_t, 0);
-		ARG(int32_t, 1);
-		ARG(arg_string, 2);
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
+        ARG(arg_string, 2);
 
-		hr = pInst->replaceData(v0, v1, v2);
+        hr = pInst->replaceData(v0, v1, v2);
 
-		METHOD_VOID();
-	}
+        METHOD_VOID();
+    }
 
 }
 
