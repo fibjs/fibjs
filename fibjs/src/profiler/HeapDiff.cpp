@@ -17,7 +17,9 @@ inline std::string handleToStr(const v8::Local<v8::Value>& str)
 	return *utfString;
 }
 
-inline void buildIDSet(std::set<uint64_t> * seen,
+typedef std::set<v8::SnapshotObjectId> idset;
+
+inline void buildIDSet(idset* seen,
                        const v8::HeapGraphNode* cur, intptr_t& s)
 {
 	if (seen->find(cur->GetId()) != seen->end())
@@ -35,9 +37,7 @@ inline void buildIDSet(std::set<uint64_t> * seen,
 		buildIDSet(seen, cur->GetChild(i)->GetToNode(), s);
 }
 
-typedef std::set<uint64_t> idset;
-
-void setDiff(idset a, idset b, std::vector<uint64_t> &c)
+void setDiff(idset a, idset b, std::vector<v8::SnapshotObjectId> &c)
 {
 	for (idset::iterator i = a.begin(); i != a.end(); i++)
 		if (b.find(*i) == b.end()) c.push_back(*i);
@@ -138,13 +138,13 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "type"),
 		       v8::String::NewFromUtf8(isolate->m_isolate, i->first.c_str()));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size_bytes"),
-		       v8::Integer::New(isolate->m_isolate, i->second.size));
+		       v8::Integer::New(isolate->m_isolate, (int32_t)i->second.size));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size"),
 		       v8::String::NewFromUtf8(isolate->m_isolate, niceSize(i->second.size).c_str()));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "+"),
-		       v8::Integer::New(isolate->m_isolate, i->second.added));
+		       v8::Integer::New(isolate->m_isolate, (int32_t)i->second.added));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "-"),
-		       v8::Integer::New(isolate->m_isolate, i->second.released));
+		       v8::Integer::New(isolate->m_isolate, (int32_t)i->second.released));
 		a->Set(a->Length(), d);
 	}
 
@@ -174,11 +174,11 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "time"), m_time);
 	o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "after"), a);
 
-	std::set<uint64_t> beforeIDs, afterIDs;
+	idset beforeIDs, afterIDs;
 	s = 0;
 	buildIDSet(&beforeIDs, old_snap->m_snapshot->GetRoot(), s);
 	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size_bytes"),
-	       v8::Integer::New(isolate->m_isolate, s));
+	       v8::Integer::New(isolate->m_isolate, (int32_t)s));
 	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size"),
 	       v8::String::NewFromUtf8(isolate->m_isolate, niceSize(s).c_str()));
 
@@ -186,7 +186,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 	s = 0;
 	buildIDSet(&afterIDs, m_snapshot->GetRoot(), s);
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size_bytes"),
-	       v8::Integer::New(isolate->m_isolate, s));
+	       v8::Integer::New(isolate->m_isolate, (int32_t)s));
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size"),
 	       v8::String::NewFromUtf8(isolate->m_isolate, niceSize(s).c_str()));
 
@@ -194,15 +194,15 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 
 	v8::Local<v8::Object> c = v8::Object::New(isolate->m_isolate);
 	c->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size_bytes"),
-	       v8::Integer::New(isolate->m_isolate, diffBytes));
+	       v8::Integer::New(isolate->m_isolate, (int32_t)diffBytes));
 	c->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size"),
 	       v8::String::NewFromUtf8(isolate->m_isolate, niceSize(diffBytes).c_str()));
 	o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "change"), c);
 
-	std::vector<uint64_t> changedIDs;
+	std::vector<v8::SnapshotObjectId> changedIDs;
 	setDiff(beforeIDs, afterIDs, changedIDs);
 	c->Set(v8::String::NewFromUtf8(isolate->m_isolate, "freed_nodes"),
-	       v8::Integer::New(isolate->m_isolate, changedIDs.size()));
+	       v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()));
 
 	changeset changes;
 
@@ -216,7 +216,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 	setDiff(afterIDs, beforeIDs, changedIDs);
 
 	c->Set(v8::String::NewFromUtf8(isolate->m_isolate, "allocated_nodes"),
-	       v8::Integer::New(isolate->m_isolate, changedIDs.size()));
+	       v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()));
 
 	for (size_t i = 0; i < changedIDs.size(); i++) {
 		const v8::HeapGraphNode * n = m_snapshot->GetNodeById(changedIDs[i]);

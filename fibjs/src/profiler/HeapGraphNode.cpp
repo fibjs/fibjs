@@ -89,7 +89,7 @@ result_t HeapGraphNode::get_shallowSize(int32_t& retVal)
 	if (!m_snapshot->is_alive())
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-	retVal = m_graphnode->GetShallowSize();
+	retVal = (int32_t)m_graphnode->GetShallowSize();
 	return 0;
 }
 

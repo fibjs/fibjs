@@ -101,6 +101,9 @@
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\GridFS.h" />
+    <ClInclude Include="include\HeapGraphEdge.h" />
+    <ClInclude Include="include\HeapGraphNode.h" />
+    <ClInclude Include="include\HeapSnapshot.h" />
     <ClInclude Include="include\HttpCollection.h" />
     <ClInclude Include="include\HttpCookie.h" />
     <ClInclude Include="include\HttpFileHandler.h" />
@@ -109,6 +112,7 @@
     <ClInclude Include="include\HttpRequest.h" />
     <ClInclude Include="include\HttpResponse.h" />
     <ClInclude Include="include\HttpServer.h" />
+    <ClInclude Include="include\HttpsServer.h" />
     <ClInclude Include="include\HttpUploadCollection.h" />
     <ClInclude Include="include\HttpUploadData.h" />
     <ClInclude Include="include\ifs\assert.h" />
@@ -139,6 +143,9 @@
     <ClInclude Include="include\ifs\GridFS.h" />
     <ClInclude Include="include\ifs\Handler.h" />
     <ClInclude Include="include\ifs\hash.h" />
+    <ClInclude Include="include\ifs\HeapGraphEdge.h" />
+    <ClInclude Include="include\ifs\HeapGraphNode.h" />
+    <ClInclude Include="include\ifs\HeapSnapshot.h" />
     <ClInclude Include="include\ifs\http.h" />
     <ClInclude Include="include\ifs\HttpCollection.h" />
     <ClInclude Include="include\ifs\HttpCookie.h" />
@@ -174,6 +181,7 @@
     <ClInclude Include="include\ifs\path.h" />
     <ClInclude Include="include\ifs\PKey.h" />
     <ClInclude Include="include\ifs\process.h" />
+    <ClInclude Include="include\ifs\profiler.h" />
     <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\re.h" />
     <ClInclude Include="include\ifs\Redis.h" />
@@ -226,6 +234,7 @@
     <ClInclude Include="include\Image.h" />
     <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\Int64.h" />
+    <ClInclude Include="include\Isolate.h" />
     <ClInclude Include="include\JSHandler.h" />
     <ClInclude Include="include\JsonRpcHandler.h" />
     <ClInclude Include="include\LevelDB.h" />
@@ -411,6 +420,10 @@
     <ClCompile Include="src\other\Regex.cpp" />
     <ClCompile Include="src\other\uuidVar.cpp" />
     <ClCompile Include="src\other\zlib.cpp" />
+    <ClCompile Include="src\profiler\HeapDiff.cpp" />
+    <ClCompile Include="src\profiler\HeapGraphEdge.cpp" />
+    <ClCompile Include="src\profiler\HeapGraphNode.cpp" />
+    <ClCompile Include="src\profiler\HeapSnapshot.cpp" />
     <ClCompile Include="src\sandbox\SandBox.cpp" />
     <ClCompile Include="src\sandbox\SandBox_repl.cpp" />
     <ClCompile Include="src\sandbox\SandBox_root.cpp" />
