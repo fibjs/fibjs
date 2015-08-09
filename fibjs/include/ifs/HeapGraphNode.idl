@@ -1,0 +1,11 @@
+interface HeapGraphNode : object
+{
+	readonly String type;
+	readonly String name;
+	readonly Integer id;
+	readonly Integer shallowSize;
+
+	readonly Integer childsCount;
+
+	readonly List childs;
+};

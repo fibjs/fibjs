@@ -33,6 +33,7 @@
 #include "ifs/zlib.h"
 
 #include "ifs/gd.h"
+#include "ifs/profiler.h"
 
 #include "ifs/uuid.h"
 #include "ifs/re.h"
@@ -85,6 +86,7 @@ void SandBox::initRoot()
 
     InstallNativeModule("gd", gd_base::class_info());
 
+    InstallNativeModule("profiler", profiler_base::class_info());
     InstallNativeModule("util", util_base::class_info());
 }
 

@@ -1,0 +1,13 @@
+interface HeapSnapshot : object
+{
+	delete();
+	Object diff(HeapSnapshot before);
+	HeapGraphNode getNodeById(Integer id);
+	String serialize();
+
+	readonly Date time;
+
+	readonly HeapGraphNode root;
+	readonly Integer nodesCount;
+	readonly List nodes;
+};

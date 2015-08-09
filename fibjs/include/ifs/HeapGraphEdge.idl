@@ -1,0 +1,7 @@
+interface HeapGraphEdge : object
+{
+	readonly String type;
+	readonly String name;
+	HeapGraphNode getFromNode();
+	HeapGraphNode getToNode();
+};
