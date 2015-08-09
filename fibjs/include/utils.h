@@ -763,6 +763,25 @@ inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 #define CHECK_ERROR(hr) (hr)
 #endif
 
+inline std::string niceSize(intptr_t sz)
+{
+    char buf[64];
+    double num = (double)sz;
+    double test = abs(num);
+    int32_t cnt;
+
+    if (test < 1024)
+        cnt = sprintf(buf, "%ld bytes", sz);
+    else if (test < 1024 * 1024)
+        cnt = sprintf(buf, "%.1f KB", num / 1024);
+    else if (test < 1024 * 1024 * 1024)
+        cnt = sprintf(buf, "%.1f MB", num / (1024 * 1024));
+    else
+        cnt = sprintf(buf, "%.1f GB", num / (1024 * 1024 * 1024));
+
+    return std::string(buf, cnt);
+}
+
 inline std::string dump_str(std::string str)
 {
     static const char hexs[] = "0123456789abcdef";
