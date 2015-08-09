@@ -79,8 +79,9 @@ std::string json_format(v8::Local<v8::Value> obj)
     StringBuffer strBuffer;
 
     QuickArray<_item> stk;
-    QuickArray<v8::Local<v8::Value>> vals;
+    QuickArray<v8::Local<v8::Object>> vals;
     v8::Local<v8::Value> v = obj;
+    v8::Local<v8::String> mark_name = v8::String::NewFromUtf8(Isolate::now()->m_isolate, "_util_format_mark");
     int32_t padding = 0;
     const int32_t tab_size = 2;
     _item *it = NULL;
@@ -139,26 +140,15 @@ std::string json_format(v8::Local<v8::Value> obj)
                     break;
                 }
 
-
-                bool bCircular = false;
-                int32_t sz1 = (int32_t)vals.size();
-                int32_t i;
-
-                for (i = 0; i < sz1; i ++)
-                    if (v->StrictEquals(vals[i]))
-                    {
-                        bCircular = true;
-                        break;
-                    }
-
-                if (bCircular)
+                v8::Local<v8::Value> mk = obj->GetHiddenValue(mark_name);
+                if (!mk.IsEmpty())
                 {
                     strBuffer.append("[Circular]");
                     break;
                 }
 
-                vals.append(v);
-
+                vals.append(obj);
+                obj->SetHiddenValue(mark_name, obj);
 
                 v8::Local<v8::Value> toArray = obj->Get(v8::String::NewFromUtf8(Isolate::now()->m_isolate, "toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction())
@@ -227,19 +217,23 @@ std::string json_format(v8::Local<v8::Value> obj)
 
         if (it)
         {
-            while (it->pos == it->len)
+            while (it && it->pos == it->len)
             {
                 padding -= tab_size;
                 newline(strBuffer, padding);
                 strBuffer.append(it->obj.IsEmpty() ? ']' : '}');
 
                 int32_t sz = (int32_t)stk.size();
-                if (sz == 1)
-                    return strBuffer.str();
 
                 stk.resize(sz - 1);
-                it = &stk[sz - 2];
+                if (sz > 1)
+                    it = &stk[sz - 2];
+                else
+                    it = NULL;
             }
+
+            if (!it)
+                break;
 
             if (it->pos)
                 strBuffer.append(',');
@@ -259,6 +253,12 @@ std::string json_format(v8::Local<v8::Value> obj)
         else
             break;
     }
+
+    int32_t sz1 = (int32_t)vals.size();
+    int32_t i;
+
+    for (i = 0; i < sz1; i ++)
+        vals[i]->DeleteHiddenValue(mark_name);
 
     return strBuffer.str();
 }
