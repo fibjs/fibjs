@@ -129,22 +129,37 @@ inline void manageChange(changeset& changes, const v8::HeapGraphNode * node,
 	return;
 }
 
+static int32_t compare (const void * a, const void * b)
+{
+	return (int32_t)((*(changeset::iterator*)b)->second.size -
+	                 (*(changeset::iterator*)a)->second.size);
+}
+
 inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& changes)
 {
 	v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate);
+	std::vector<changeset::iterator> its;
+	int32_t n = 0;
 
-	for (changeset::iterator i = changes.begin(); i != changes.end(); i++) {
+	its.resize(changes.size());
+	for (changeset::iterator i = changes.begin(); i != changes.end(); i++)
+		its[n ++] = i;
+
+	qsort(&its[0], its.size(), sizeof(changeset::iterator), compare);
+
+	for (int32_t i = 0; i < n; i++) {
+		changeset::iterator it = its[i];
 		v8::Local<v8::Object> d = v8::Object::New(isolate->m_isolate);
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "type"),
-		       v8::String::NewFromUtf8(isolate->m_isolate, i->first.c_str()));
+		       v8::String::NewFromUtf8(isolate->m_isolate, it->first.c_str()));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size_bytes"),
-		       v8::Integer::New(isolate->m_isolate, (int32_t)i->second.size));
+		       v8::Integer::New(isolate->m_isolate, (int32_t)it->second.size));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size"),
-		       v8::String::NewFromUtf8(isolate->m_isolate, niceSize(i->second.size).c_str()));
+		       v8::String::NewFromUtf8(isolate->m_isolate, niceSize(it->second.size).c_str()));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "+"),
-		       v8::Integer::New(isolate->m_isolate, (int32_t)i->second.added));
+		       v8::Integer::New(isolate->m_isolate, (int32_t)it->second.added));
 		d->Set(v8::String::NewFromUtf8(isolate->m_isolate, "-"),
-		       v8::Integer::New(isolate->m_isolate, (int32_t)i->second.released));
+		       v8::Integer::New(isolate->m_isolate, (int32_t)it->second.released));
 		a->Set(a->Length(), d);
 	}
 
