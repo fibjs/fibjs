@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-void repl_command(std::string &line)
+bool repl_command(std::string &line)
 {
     if (!qstrcmp(line.c_str(), ".help"))
     {
@@ -23,11 +23,11 @@ void repl_command(std::string &line)
                  ".help   Show repl options\n"
                  ".info   Show fibjs build information"
                 );
-        return;
+        return true;
     }
 
     if (!qstrcmp(line.c_str(), ".exit"))
-        process_base::exit(0);
+        return false;
 
     if (!qstrcmp(line.c_str(), ".info"))
     {
@@ -35,8 +35,11 @@ void repl_command(std::string &line)
 
         util_base::buildInfo(o);
         console_base::dir(o);
-        return;
+        return true;
     }
+
+    asyncLog(console_base::_ERROR, line + ": command not found.");
+    return true;
 }
 
 result_t SandBox::repl()
@@ -71,7 +74,8 @@ result_t SandBox::Context::repl()
 
         if (line[0] == '.')
         {
-            repl_command(line);
+            if (!repl_command(line))
+                break;
             continue;
         }
 
