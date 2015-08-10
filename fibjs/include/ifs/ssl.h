@@ -36,7 +36,11 @@ public:
         _BADCERT_EXPIRED = 1,
         _BADCERT_REVOKED = 2,
         _BADCERT_CN_MISMATCH = 4,
-        _BADCERT_NOT_TRUSTED = 8
+        _BADCERT_NOT_TRUSTED = 8,
+        _ssl3 = 0,
+        _tls1 = 1,
+        _tls1_1 = 2,
+        _tls1_2 = 3
     };
 
 public:
@@ -47,6 +51,10 @@ public:
     static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
     static result_t get_verification(int32_t& retVal);
     static result_t set_verification(int32_t newVal);
+    static result_t get_min_version(int32_t& retVal);
+    static result_t set_min_version(int32_t newVal);
+    static result_t get_max_version(int32_t& retVal);
+    static result_t set_max_version(int32_t newVal);
 
 public:
     static void s_get_VERIFY_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -56,12 +64,20 @@ public:
     static void s_get_BADCERT_REVOKED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_BADCERT_CN_MISMATCH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_BADCERT_NOT_TRUSTED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_ssl3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_tls1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_tls1_1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_tls1_2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadClientCertFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_min_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_min_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_max_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_max_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
     ASYNC_STATICVALUE2(ssl_base, connect, const char*, obj_ptr<Stream_base>);
@@ -103,14 +119,20 @@ namespace fibjs
             {"BADCERT_REVOKED", s_get_BADCERT_REVOKED, block_set, true},
             {"BADCERT_CN_MISMATCH", s_get_BADCERT_CN_MISMATCH, block_set, true},
             {"BADCERT_NOT_TRUSTED", s_get_BADCERT_NOT_TRUSTED, block_set, true},
+            {"ssl3", s_get_ssl3, block_set, true},
+            {"tls1", s_get_tls1, block_set, true},
+            {"tls1_1", s_get_tls1_1, block_set, true},
+            {"tls1_2", s_get_tls1_2, block_set, true},
             {"ca", s_get_ca, block_set, true},
-            {"verification", s_get_verification, s_set_verification, true}
+            {"verification", s_get_verification, s_set_verification, true},
+            {"min_version", s_get_min_version, s_set_min_version, true},
+            {"max_version", s_get_max_version, s_set_max_version, true}
         };
 
         static ClassData s_cd = 
         { 
             "ssl", NULL, 
-            3, s_method, 3, s_object, 9, s_property, NULL, NULL,
+            3, s_method, 3, s_object, 15, s_property, NULL, NULL,
             NULL
         };
 
@@ -167,6 +189,34 @@ namespace fibjs
         METHOD_RETURN();
     }
 
+    inline void ssl_base::s_get_ssl3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _ssl3;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void ssl_base::s_get_tls1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _tls1;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void ssl_base::s_get_tls1_1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _tls1_1;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void ssl_base::s_get_tls1_2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _tls1_2;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
     inline void ssl_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<X509Cert_base> vr;
@@ -195,6 +245,48 @@ namespace fibjs
         PROPERTY_VAL(int32_t);
 
         hr = set_verification(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void ssl_base::s_get_min_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_min_version(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void ssl_base::s_set_min_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_min_version(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void ssl_base::s_get_max_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_max_version(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void ssl_base::s_set_max_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_max_version(v0);
 
         PROPERTY_SET_LEAVE();
     }

@@ -82,6 +82,9 @@ SslSocket::SslSocket()
     ssl_set_rng(&m_ssl, ctr_drbg_random, &g_ssl.ctr_drbg);
     ssl_set_bio(&m_ssl, my_recv, this, my_send, this);
 
+    ssl_set_min_version(&m_ssl, SSL_MINOR_VERSION_3, g_ssl.m_min_version);
+    ssl_set_max_version(&m_ssl, SSL_MINOR_VERSION_3, g_ssl.m_max_version);
+
     m_recv_pos = 0;
 }
 

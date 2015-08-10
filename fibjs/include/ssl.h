@@ -30,6 +30,9 @@ public:
 
         ssl_cache_init(&m_cache);
         m_authmode = ssl_base::_VERIFY_REQUIRED;
+
+        m_min_version = SSL_MINOR_VERSION_0;
+        m_max_version = SSL_MINOR_VERSION_2;
     }
 
     ~_ssl()
@@ -53,6 +56,8 @@ public:
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     int32_t m_authmode;
+    int32_t m_min_version;
+    int32_t m_max_version;
 
     obj_ptr<X509Cert_base> m_crt;
     obj_ptr<PKey_base> m_key;

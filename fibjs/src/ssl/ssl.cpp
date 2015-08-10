@@ -155,4 +155,25 @@ result_t ssl_base::set_verification(int32_t newVal)
     return 0;
 }
 
+result_t ssl_base::get_min_version(int32_t& retVal)
+{
+    retVal = g_ssl.m_min_version;
+}
+
+result_t ssl_base::set_min_version(int32_t newVal)
+{
+    g_ssl.m_min_version = newVal;
+}
+
+result_t ssl_base::get_max_version(int32_t& retVal)
+{
+    retVal = g_ssl.m_max_version;
+}
+
+result_t ssl_base::set_max_version(int32_t newVal)
+{
+    g_ssl.m_max_version = newVal;
+}
+
+
 }
