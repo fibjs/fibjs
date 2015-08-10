@@ -8,6 +8,12 @@
  */
 module profiler
 {
+    /*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态
+     @return 返回获取到的堆信息快照
+     */
 	static HeapSnapshot takeSnapshot();
+
+	/*! @brief 删除所有的堆快照
+    */
 	static DeleteAllHeapSnapshots();
 };
