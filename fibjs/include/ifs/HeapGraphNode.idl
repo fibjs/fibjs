@@ -3,35 +3,35 @@
 interface HeapGraphNode : object
 {
     /*! @brief 节点类型，可能的值：
-     -	Hidden,         隐藏节点，当显示给用户时可以被过滤掉
-     -	Array,          数组
-     -	String,         字符串
-     -	Object,         JS对象（字符串和数组除外）
-     -	Code,           编译后的代码
-     -	Closure,        函数闭包
-     -	RegExp,         正则表达式
-     -	HeapNumber,     堆中排好序的数字
-     -	Native,         Native对象（非v8堆上的）
-     -	Synthetic,      Synthetic对象
-     -	ConsString,     拼接的字符串
-     -	SlicedString,   分割的字符串
-     -	Symbol,         符号（ES6）
-     -	SimdValue,      堆中排好序的SIMD值(ES7)
+     -  Hidden,         隐藏节点，当显示给用户时可以被过滤掉
+     -  Array,          数组
+     -  String,         字符串
+     -  Object,         JS对象（字符串和数组除外）
+     -  Code,           编译后的代码
+     -  Closure,        函数闭包
+     -  RegExp,         正则表达式
+     -  HeapNumber,     堆中排好序的数字
+     -  Native,         Native对象（非v8堆上的）
+     -  Synthetic,      Synthetic对象
+     -  ConsString,     拼接的字符串
+     -  SlicedString,   分割的字符串
+     -  Symbol,         符号（ES6）
+     -  SimdValue,      堆中排好序的SIMD值(ES7)
     */
-	readonly String type;
+    readonly String type;
 
-	/*! @brief 节点名称 */
-	readonly String name;
+    /*! @brief 节点名称 */
+    readonly String name;
 
-	/*! @brief 节点ID */
-	readonly Integer id;
+    /*! @brief 节点ID */
+    readonly Integer id;
 
-	/*! @brief 节点大小，单位为字节 */
-	readonly Integer shallowSize;
+    /*! @brief 节点大小，单位为字节 */
+    readonly Integer shallowSize;
 
     /*! @brief 子节点数量 */
-	readonly Integer childsCount;
+    readonly Integer childsCount;
 
     /*! @brief 子节点列表，由HeapGraphEdge类型对象组成 */
-	readonly List childs;
+    readonly List childs;
 };
