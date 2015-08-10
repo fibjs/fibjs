@@ -22,4 +22,9 @@ result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 	return Isolate::now()->m_topSandbox->require(id, retVal);
 }
 
+result_t global_base::repl()
+{
+	return Isolate::now()->m_topSandbox->repl();
+}
+
 }

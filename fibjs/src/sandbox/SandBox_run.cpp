@@ -212,12 +212,19 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     return 0;
 }
 
-result_t SandBox::Context::run(std::string src, const char *name)
+result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::Value> replFunc)
 {
-    static const char *names[] = {"require", "run"};
-    v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun};
+    static const char *names[] = {"require", "run", "repl"};
 
-    return run(src, name, names, args, ARRAYSIZE(names));
+    if (replFunc.IsEmpty())
+    {
+        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun};
+        return run(src, name, names, args, ARRAYSIZE(names) - 1);
+    } else
+    {
+        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun, replFunc};
+        return run(src, name, names, args, ARRAYSIZE(names));
+    }
 }
 
 result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::Object> module,
@@ -471,7 +478,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
     return require("", sid, retVal, FULL_SEARCH);
 }
 
-result_t SandBox::run(const char *fname)
+result_t SandBox::run(const char *fname, v8::Local<v8::Value> replFunc)
 {
     result_t hr;
 
@@ -500,7 +507,12 @@ result_t SandBox::run(const char *fname)
         pname = sname.c_str();
     }
 
-    return context.run(buf, pname);
+    return context.run(buf, pname, replFunc);
+}
+
+result_t SandBox::run(const char *fname)
+{
+    return run(fname, v8::Local<v8::Value>());
 }
 
 }

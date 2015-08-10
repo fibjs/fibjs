@@ -86,6 +86,9 @@ void _main(const char *fname)
 
     result_t hr;
 
+    v8::Local<v8::Value> replFunc = glob->Get(v8::String::NewFromUtf8(isolate->m_isolate, "repl"));
+    glob->Delete(v8::String::NewFromUtf8(isolate->m_isolate, "repl"));
+
     JSFiber *fb = new JSFiber();
     {
         JSFiber::scope s(fb);
@@ -93,7 +96,7 @@ void _main(const char *fname)
 
         isolate->m_topSandbox->initRoot();
         if (fname)
-            hr = s.m_hr = isolate->m_topSandbox->run(fname);
+            hr = s.m_hr = isolate->m_topSandbox->run(fname, replFunc);
         else
             hr = s.m_hr = isolate->m_topSandbox->repl();
     }

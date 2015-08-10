@@ -71,6 +71,8 @@ public:
     result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);
     result_t repl();
 
+    result_t run(const char *fname, v8::Local<v8::Value> replFunc);
+
     std::string name()
     {
         return m_name;
@@ -84,7 +86,7 @@ public:
 
         result_t run(std::string src, const char *name, const char **argNames,
                      v8::Local<v8::Value> *args, int32_t argCount);
-        result_t run(std::string src, const char *name);
+        result_t run(std::string src, const char *name, v8::Local<v8::Value> replFunc);
         result_t run(std::string src, const char *name, v8::Local<v8::Object> module,
                      v8::Local<v8::Object> exports);
 

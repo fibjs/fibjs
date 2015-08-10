@@ -30,11 +30,13 @@ public:
     static result_t run(const char* fname);
     static result_t require(const char* id, v8::Local<v8::Value>& retVal);
     static result_t GC();
+    static result_t repl();
 
 public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_repl(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -51,7 +53,8 @@ namespace fibjs
         {
             {"run", s_run, true},
             {"require", s_require, true},
-            {"GC", s_GC, true}
+            {"GC", s_GC, true},
+            {"repl", s_repl, true}
         };
 
         static ClassData::ClassObject s_object[] = 
@@ -64,7 +67,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "global", NULL, 
-            3, s_method, 3, s_object, 0, NULL, NULL, NULL,
+            4, s_method, 3, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -102,6 +105,15 @@ namespace fibjs
         METHOD_ENTER(0, 0);
 
         hr = GC();
+
+        METHOD_VOID();
+    }
+
+    inline void global_base::s_repl(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(0, 0);
+
+        hr = repl();
 
         METHOD_VOID();
     }
