@@ -19,8 +19,8 @@ class HeapSnapshot;
 class HeapGraphNode : public HeapGraphNode_base
 {
 public:
-    HeapGraphNode(HeapSnapshot* snapshot, const v8::HeapGraphNode* graphnode)
-        : m_graphnode(graphnode), m_snapshot(snapshot)
+    HeapGraphNode(const v8::HeapGraphNode* graphnode)
+        : m_graphnode(graphnode)
     {}
 
 public:
@@ -32,15 +32,9 @@ public:
     virtual result_t get_childsCount(int32_t& retVal);
     virtual result_t get_childs(obj_ptr<List_base>& retVal);
 
-    void disable()
-    {
-        m_snapshot = NULL;
-    }
-
 private:
     const v8::HeapGraphNode* m_graphnode;
     obj_ptr<List> m_childs;
-    HeapSnapshot* m_snapshot;
 };
 
 }

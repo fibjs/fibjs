@@ -26,9 +26,11 @@ class profiler_base : public object_base
 public:
     // profiler_base
     static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
+    static result_t DeleteAllHeapSnapshots();
 
 public:
     static void s_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_DeleteAllHeapSnapshots(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -41,13 +43,14 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"takeSnapshot", s_takeSnapshot, true}
+            {"takeSnapshot", s_takeSnapshot, true},
+            {"DeleteAllHeapSnapshots", s_DeleteAllHeapSnapshots, true}
         };
 
         static ClassData s_cd = 
         { 
             "profiler", NULL, 
-            1, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            2, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -65,6 +68,15 @@ namespace fibjs
         hr = takeSnapshot(vr);
 
         METHOD_RETURN();
+    }
+
+    inline void profiler_base::s_DeleteAllHeapSnapshots(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(0, 0);
+
+        hr = DeleteAllHeapSnapshots();
+
+        METHOD_VOID();
     }
 
 }

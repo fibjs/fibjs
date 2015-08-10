@@ -19,44 +19,28 @@ result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 	const v8::HeapSnapshot* snapshot;
 
 	snapshot = isolate->m_isolate->GetHeapProfiler()->TakeHeapSnapshot();
-	retVal = new HeapSnapshot((v8::HeapSnapshot*)snapshot);
+	retVal = new HeapSnapshot(snapshot);
 
+	return 0;
+}
+
+result_t profiler_base::DeleteAllHeapSnapshots()
+{
+	Isolate* isolate = Isolate::now();
+	const v8::HeapSnapshot* snapshot;
+
+	isolate->m_isolate->GetHeapProfiler()->DeleteAllHeapSnapshots();
 	return 0;
 }
 
 result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal)
 {
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-	retVal = Node(m_snapshot->GetNodeById(id));
-	return 0;
-}
-
-result_t HeapSnapshot::_delete()
-{
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-	m_snapshot->Delete();
-	m_snapshot = NULL;
-
-	for (std::map<const v8::HeapGraphNode*, obj_ptr<HeapGraphNode> >::iterator it = _nodes.begin(); it != _nodes.end(); ++it)
-		it->second->disable();
-	_nodes.clear();
-
-	for (std::map<const v8::HeapGraphEdge*, obj_ptr<HeapGraphEdge> >::iterator it = _edges.begin(); it != _edges.end(); ++it)
-		it->second->disable();
-	_edges.clear();
-
+	retVal = new HeapGraphNode(m_snapshot->GetNodeById(id));
 	return 0;
 }
 
 result_t HeapSnapshot::serialize(std::string& retVal)
 {
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
 	class BufferStream : public v8::OutputStream {
 	public:
 		virtual void EndOfStream()
@@ -93,27 +77,18 @@ result_t HeapSnapshot::get_time(date_t& retVal)
 
 result_t HeapSnapshot::get_nodesCount(int32_t& retVal)
 {
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
 	retVal = m_snapshot->GetNodesCount();
 	return 0;
 }
 
 result_t HeapSnapshot::get_root(obj_ptr<HeapGraphNode_base>& retVal)
 {
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-	retVal = Node(m_snapshot->GetRoot());
+	retVal = new HeapGraphNode(m_snapshot->GetRoot());
 	return 0;
 }
 
 result_t HeapSnapshot::get_nodes(obj_ptr<List_base>& retVal)
 {
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
 	if (m_nodes == 0)
 	{
 		m_nodes = new List();
@@ -122,7 +97,7 @@ result_t HeapSnapshot::get_nodes(obj_ptr<List_base>& retVal)
 		int32_t i;
 
 		for (i = 0; i < cnt; i ++)
-			m_nodes->append(Node(m_snapshot->GetNode(i)));
+			m_nodes->append(new HeapGraphNode(m_snapshot->GetNode(i)));
 	}
 
 	retVal = m_nodes;

@@ -767,7 +767,7 @@ inline std::string niceSize(intptr_t sz)
 {
     char buf[64];
     double num = (double)sz;
-    double test = abs(num);
+    double test = num >= 0 ? num : -num;
     int32_t cnt;
 
     if (test < 1024)

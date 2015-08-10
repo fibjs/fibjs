@@ -18,8 +18,8 @@ class HeapSnapshot;
 class HeapGraphEdge : public HeapGraphEdge_base
 {
 public:
-	HeapGraphEdge(HeapSnapshot* snapshot, const v8::HeapGraphEdge* graphedge)
-		: m_graphedge(graphedge), m_snapshot(snapshot)
+	HeapGraphEdge(const v8::HeapGraphEdge* graphedge)
+		: m_graphedge(graphedge)
 	{}
 
 public:
@@ -29,14 +29,8 @@ public:
 	virtual result_t getFromNode(obj_ptr<HeapGraphNode_base>& retVal);
 	virtual result_t getToNode(obj_ptr<HeapGraphNode_base>& retVal);
 
-	void disable()
-	{
-		m_snapshot = NULL;
-	}
-
 private:
 	const v8::HeapGraphEdge* m_graphedge;
-	HeapSnapshot* m_snapshot;
 };
 
 }

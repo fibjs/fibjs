@@ -169,9 +169,6 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
 result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal)
 {
 	obj_ptr<HeapSnapshot> old_snap = (HeapSnapshot*)before;
-	if (!is_alive() || !old_snap->is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
 	Isolate* isolate = Isolate::now();
 	intptr_t s, diffBytes;
 

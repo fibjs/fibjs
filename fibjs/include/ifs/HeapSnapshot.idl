@@ -1,6 +1,5 @@
 interface HeapSnapshot : object
 {
-	delete();
 	Object diff(HeapSnapshot before);
 	HeapGraphNode getNodeById(Integer id);
 	String serialize();

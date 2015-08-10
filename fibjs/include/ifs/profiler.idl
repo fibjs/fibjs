@@ -9,4 +9,5 @@
 module profiler
 {
 	static HeapSnapshot takeSnapshot();
+	static DeleteAllHeapSnapshots();
 };
