@@ -42,7 +42,6 @@ public:
     static result_t beforeEach(v8::Local<v8::Function> func);
     static result_t afterEach(v8::Local<v8::Function> func);
     static result_t run(int32_t loglevel, int32_t& retVal);
-    static result_t get_assert(obj_ptr<assert_base>& retVal);
     static result_t expect(v8::Local<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
     static result_t setup(int32_t mode);
     static result_t get_slow(int32_t& retVal);
@@ -60,7 +59,6 @@ public:
     static void s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_assert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_expect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setup(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -92,18 +90,22 @@ namespace fibjs
             {"setup", s_setup, true}
         };
 
+        static ClassData::ClassObject s_object[] = 
+        {
+            {"assert", assert_base::class_info}
+        };
+
         static ClassData::ClassProperty s_property[] = 
         {
             {"BDD", s_get_BDD, block_set, true},
             {"TDD", s_get_TDD, block_set, true},
-            {"assert", s_get_assert, block_set, true},
             {"slow", s_get_slow, s_set_slow, true}
         };
 
         static ClassData s_cd = 
         { 
             "test", NULL, 
-            11, s_method, 0, NULL, 4, s_property, NULL, NULL,
+            11, s_method, 1, s_object, 3, s_property, NULL, NULL,
             NULL
         };
 
@@ -122,17 +124,6 @@ namespace fibjs
     {
         int32_t vr = _TDD;
         PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
-
-    inline void test_base::s_get_assert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<assert_base> vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_assert(vr);
-
         METHOD_RETURN();
     }
 

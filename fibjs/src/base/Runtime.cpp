@@ -7,6 +7,7 @@
 
 #include "Runtime.h"
 #include "Fiber.h"
+#include "SandBox.h"
 #include <assert.h>
 
 namespace fibjs
@@ -28,6 +29,10 @@ Runtime &Runtime::now()
 }
 
 OSTls th_vm;
+
+Isolate::Isolate() : m_test_setup_bbd(false), m_test_setup_tdd(false)
+{
+}
 
 Isolate* Isolate::now()
 {

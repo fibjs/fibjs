@@ -34,6 +34,9 @@ public:
 	};
 
 public:
+	Isolate();
+
+public:
 	static Isolate* now();
 	static void reg(void *rt);
 
@@ -44,6 +47,7 @@ public:
 	v8::Persistent<v8::Object> m_global;
 	obj_ptr<SandBox> m_topSandbox;
 	exlib::List<exlib::linkitem> m_fibers;
+	bool m_test_setup_bbd, m_test_setup_tdd;
 };
 
 } /* namespace fibjs */

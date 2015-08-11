@@ -375,17 +375,6 @@ result_t test_base::run(int32_t loglevel, int32_t& retVal)
     return _case::run(loglevel, retVal);
 }
 
-result_t test_base::get_assert(obj_ptr<assert_base> &retVal)
-{
-    static obj_ptr<assert_base> s_assert;
-
-    if (s_assert == NULL)
-        s_assert = new assert_base();
-
-    retVal = s_assert;
-    return 0;
-}
-
 result_t test_base::expect(v8::Local<v8::Value> actual, const char *msg,
                            obj_ptr<Expect_base> &retVal)
 {
@@ -396,55 +385,69 @@ result_t test_base::expect(v8::Local<v8::Value> actual, const char *msg,
 result_t test_base::setup(int32_t mode)
 {
     Isolate* isolate = Isolate::now();
+    if (isolate->m_test_setup_bbd && isolate->m_test_setup_tdd)
+        return 0;
+
     v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+    if (!isolate->m_test_setup_bbd && !isolate->m_test_setup_tdd)
+    {
+        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "expect"),
+                  v8::Function::New(isolate->m_isolate, s_expect));
+
+        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "assert"),
+                  assert_base::class_info().getFunction());
+    }
 
     if (mode == _BDD)
     {
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "describe"),
-                  v8::Function::New(isolate->m_isolate, s_describe));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xdescribe"),
-                  v8::Function::New(isolate->m_isolate, s_xdescribe));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "it"),
-                  v8::Function::New(isolate->m_isolate, s_it));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xit"),
-                  v8::Function::New(isolate->m_isolate, s_xit));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "before"),
-                  v8::Function::New(isolate->m_isolate, s_before));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "after"),
-                  v8::Function::New(isolate->m_isolate, s_after));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "beforeEach"),
-                  v8::Function::New(isolate->m_isolate, s_beforeEach));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "afterEach"),
-                  v8::Function::New(isolate->m_isolate, s_afterEach));
+        if (!isolate->m_test_setup_bbd)
+        {
+            isolate->m_test_setup_bbd = true;
+
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "describe"),
+                      v8::Function::New(isolate->m_isolate, s_describe));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xdescribe"),
+                      v8::Function::New(isolate->m_isolate, s_xdescribe));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "it"),
+                      v8::Function::New(isolate->m_isolate, s_it));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xit"),
+                      v8::Function::New(isolate->m_isolate, s_xit));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "before"),
+                      v8::Function::New(isolate->m_isolate, s_before));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "after"),
+                      v8::Function::New(isolate->m_isolate, s_after));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "beforeEach"),
+                      v8::Function::New(isolate->m_isolate, s_beforeEach));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "afterEach"),
+                      v8::Function::New(isolate->m_isolate, s_afterEach));
+        }
     }
     else if (mode == _TDD)
     {
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "suite"),
-                  v8::Function::New(isolate->m_isolate, s_describe));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xsuite"),
-                  v8::Function::New(isolate->m_isolate, s_xdescribe));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "test"),
-                  v8::Function::New(isolate->m_isolate, s_it));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xtest"),
-                  v8::Function::New(isolate->m_isolate, s_xit));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "suiteSetup"),
-                  v8::Function::New(isolate->m_isolate, s_before));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "suiteTeardown"),
-                  v8::Function::New(isolate->m_isolate, s_after));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "setup"),
-                  v8::Function::New(isolate->m_isolate, s_beforeEach));
-        glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "teardown"),
-                  v8::Function::New(isolate->m_isolate, s_afterEach));
+        if (!isolate->m_test_setup_tdd)
+        {
+            isolate->m_test_setup_tdd = true;
+
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "suite"),
+                      v8::Function::New(isolate->m_isolate, s_describe));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xsuite"),
+                      v8::Function::New(isolate->m_isolate, s_xdescribe));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "test"),
+                      v8::Function::New(isolate->m_isolate, s_it));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "xtest"),
+                      v8::Function::New(isolate->m_isolate, s_xit));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "suiteSetup"),
+                      v8::Function::New(isolate->m_isolate, s_before));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "suiteTeardown"),
+                      v8::Function::New(isolate->m_isolate, s_after));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "setup"),
+                      v8::Function::New(isolate->m_isolate, s_beforeEach));
+            glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "teardown"),
+                      v8::Function::New(isolate->m_isolate, s_afterEach));
+        }
     }
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "expect"),
-              v8::Function::New(isolate->m_isolate, s_expect));
-
-    obj_ptr<assert_base> assert;
-    get_assert (assert);
-    glob->Set(v8::String::NewFromUtf8(isolate->m_isolate, "assert"), assert->wrap());
 
     return 0;
 }

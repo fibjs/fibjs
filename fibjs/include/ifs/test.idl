@@ -67,7 +67,7 @@ module test
     static Integer run(Integer loglevel = console.ERROR);
 
     /*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 */
-    static readonly assert assert;
+    static assert;
 
     /*! @brief expect 语法测试引擎
      @param actual 指定要测试的数值
