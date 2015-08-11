@@ -161,16 +161,16 @@ public:
 
         for (i = 0; i < m_cd.mc; i++)
             if (m_cd.cms[i].is_static)
-                o->ForceSet(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
-                            v8::Function::New(isolate->m_isolate, m_cd.cms[i].invoker),
-                            v8::ReadOnly);
+                o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
+                                     v8::Function::New(isolate->m_isolate, m_cd.cms[i].invoker),
+                                     (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
 
         for (i = 0; i < m_cd.oc; i++)
         {
             m_cd.cos[i].invoker()._init();
-            o->ForceSet(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
-                        v8::Local<v8::Function>::New(isolate->m_isolate, m_cd.cos[i].invoker().m_function),
-                        v8::ReadOnly);
+            o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
+                                 v8::Local<v8::Function>::New(isolate->m_isolate, m_cd.cos[i].invoker().m_function),
+                                 (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
         }
 
         for (i = 0; i < m_cd.pc; i++)
@@ -248,23 +248,24 @@ private:
             v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
             int32_t i;
 
-            pt->MarkAsUndetectable();
-
             for (i = 0; i < m_cd.mc; i++)
                 pt->Set(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
-                        v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker));
+                        v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker),
+                        (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
 
             for (i = 0; i < m_cd.oc; i++)
             {
                 m_cd.cos[i].invoker()._init();
                 pt->Set(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
                         v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate,
-                                m_cd.cos[i].invoker().m_class));
+                                m_cd.cos[i].invoker().m_class),
+                        (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
             }
 
             for (i = 0; i < m_cd.pc; i++)
                 pt->SetAccessor(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cps[i].name),
-                                m_cd.cps[i].getter, m_cd.cps[i].setter);
+                                m_cd.cps[i].getter, m_cd.cps[i].setter,
+                                v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
             ot->SetInternalFieldCount(1);
