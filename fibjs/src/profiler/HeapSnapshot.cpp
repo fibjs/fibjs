@@ -15,21 +15,13 @@ namespace fibjs
 
 result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 {
-	Isolate* isolate = Isolate::now();
-	const v8::HeapSnapshot* snapshot;
-
-	snapshot = isolate->m_isolate->GetHeapProfiler()->TakeHeapSnapshot();
-	retVal = new HeapSnapshot(snapshot);
-
+	retVal = new HeapSnapshot(Isolate::now()->m_isolate->GetHeapProfiler()->TakeHeapSnapshot());
 	return 0;
 }
 
 result_t profiler_base::deleteAllHeapSnapshots()
 {
-	Isolate* isolate = Isolate::now();
-	const v8::HeapSnapshot* snapshot;
-
-	isolate->m_isolate->GetHeapProfiler()->DeleteAllHeapSnapshots();
+	Isolate::now()->m_isolate->GetHeapProfiler()->DeleteAllHeapSnapshots();
 	return 0;
 }
 
