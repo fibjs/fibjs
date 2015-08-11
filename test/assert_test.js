@@ -5,10 +5,6 @@ describe('assert', function() {
 	it('assert', function() {
 		var foo = 'bar';
 		assert.ok(foo == 'bar', "expected foo to equal `bar`");
-
-		assert.throws(function() {
-			assert(foo == 'baz', "expected foo to equal `bar`");
-		}, "expected foo to equal `bar`");
 	});
 
 	it('isTrue', function() {
