@@ -24,12 +24,27 @@ result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 	return 0;
 }
 
-result_t profiler_base::DeleteAllHeapSnapshots()
+result_t profiler_base::deleteAllHeapSnapshots()
 {
 	Isolate* isolate = Isolate::now();
 	const v8::HeapSnapshot* snapshot;
 
 	isolate->m_isolate->GetHeapProfiler()->DeleteAllHeapSnapshots();
+	return 0;
+}
+
+result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
+{
+	obj_ptr<HeapSnapshot_base> s1, s2;
+
+	takeSnapshot(s1);
+	test->Call(v8::Undefined(Isolate::now()->m_isolate), 0, NULL);
+	takeSnapshot(s2);
+
+	s2->diff(s1, retVal);
+
+	deleteAllHeapSnapshots();
+
 	return 0;
 }
 
