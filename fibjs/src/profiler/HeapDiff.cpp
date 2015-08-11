@@ -81,40 +81,46 @@ inline void manageChange(changeset& changes, const v8::HeapGraphNode * node,
 
 	switch (node->GetType()) {
 	case v8::HeapGraphNode::kArray:
-		type.append("Array");
+		type.assign("Array");
 		break;
 	case v8::HeapGraphNode::kString:
-		type.append("String");
+		type.assign("String");
 		break;
 	case v8::HeapGraphNode::kObject:
-		type.append(handleToStr(node->GetName()));
+		type.assign(handleToStr(node->GetName()));
 		break;
 	case v8::HeapGraphNode::kCode:
-		type.append("Code");
+		type.assign("Code");
 		break;
 	case v8::HeapGraphNode::kClosure:
-		type.append("Closure");
+	{
+		type = handleToStr(node->GetName());
+		if (!type.empty())
+			type.append("(Closure)");
+		else
+			type.assign("Closure");
 		break;
+	}
 	case v8::HeapGraphNode::kRegExp:
-		type.append("RegExp");
+		type.assign("RegExp");
 		break;
 	case v8::HeapGraphNode::kHeapNumber:
-		type.append("Number");
+		type.assign("Number");
 		break;
 	case v8::HeapGraphNode::kNative:
-		type.append("Native");
+		type.assign("Native");
 		break;
 	case v8::HeapGraphNode::kSynthetic :
-		type.append("Synthetic");
+		type.assign("Synthetic");
 		break;
 	case v8::HeapGraphNode::kConsString :
-		type.append("ConsString");
+		type.assign("ConsString");
 		break;
 	case v8::HeapGraphNode::kSlicedString :
-		type.append("SlicedString");
+		type.assign("SlicedString");
 		break;
 	default :
-		type.append("Hidden");
+		type.assign("Hidden");
 	}
 
 	if (changes.find(type) == changes.end())
