@@ -45,7 +45,7 @@ if [ ! -e ${OUT_PATH} ]; then
 	mkdir ${OUT_PATH}
 fi
 
-GIT_INFO=`git log -n 1 --pretty=format:"%H"`
+GIT_INFO=`git describe`
 
 cd ${OUT_PATH}
 cmake -DBUILD_TYPE=$1 -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
