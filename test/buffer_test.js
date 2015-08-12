@@ -40,6 +40,7 @@ describe('Buffer', function() {
 	it('concat', function() {
 		var buf1 = new Buffer("abcd");
 		var buf2 = new Buffer("efg");
+		var buf3 = new Buffer();
 		var bufArray = [buf1];
 		var bufRes = Buffer.concat(bufArray);
 		assert.equal(bufRes.toString(), "abcd")
@@ -63,15 +64,19 @@ describe('Buffer', function() {
 
 		buf1 = new Buffer([1, 2, 3, 4]);
 		buf2 = new Buffer([5, 6, 7, 8]);
-		bufArray = [buf1, buf2];
+		buf3 = new Buffer([135, 136]);
+		bufArray = [buf1, buf2, buf3];
 		bufRes = Buffer.concat(bufArray);
 		for (var i = 0; i < 8; i++) {
 			assert.equal(bufRes[i], i + 1);
 		}
-
+		assert.equal(bufRes[8], 135);
+		assert.equal(bufRes[9], 136);
 		buf1 = new Buffer('');
 		bufArray = [buf1];
-		bufRes = Buffer.concat([function() {}, {}, undefined, '']);
+		assert.doesNotThrow(function() {
+			bufRes = Buffer.concat([function() {}, {}, undefined, '']);
+		});
 	});
 
 	it('toJSON', function() {
