@@ -79,30 +79,33 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     for (int32_t i = 0; i < sz; i ++)
     {
         v8::Local<v8::Value> v = buflist->Get(i);
+        obj_ptr<Buffer_base> vdata;
 
-        v8::String::Utf8Value vstr(v);
-        if (!*vstr)
-            return 0;
+        hr = GetArgumentValue(v, vdata);
+        if (hr < 0)
+            return CHECK_ERROR(hr);
 
+        std::string vstr;
+        vdata -> toString(vstr);
         buf_length = (int32_t) vstr.length();
 
         if (-1 == cutLength)
             total_length = offset + buf_length;
 
         if (offset + buf_length <=  total_length) {
-            str.append(*vstr, buf_length);
+            str.append(vstr.c_str(), buf_length);
             offset += buf_length;
         }
         else
         {
-            str.append(*vstr, total_length - offset);
+            str.append(vstr.c_str(), total_length - offset);
             offset = total_length;
             break;
         }
     }
-    obj_ptr<Buffer> pNew = new Buffer(str);
-    pNew->extMemory(offset);
-    retVal = pNew;
+    obj_ptr<Buffer> bNew = new Buffer(str);
+    bNew->extMemory(offset);
+    retVal = bNew;
     return hr;
 }
 
