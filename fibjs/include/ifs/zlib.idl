@@ -20,40 +20,40 @@ module zlib
     /*! @brief deflate 压缩级别，设定缺省设置 */
     const Integer DEFAULT_COMPRESSION = -1;
 
-    /*! @brief 使用 deflate 算法压缩数据
+    /*! @brief 使用 deflate 算法压缩数据(zlib格式)
      @param data 给定要压缩的数据
      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
      @return 返回压缩后的二进制数据
      */
     static Buffer deflate(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief 使用 deflate 算法压缩数据到流对象中
+    /*! @brief 使用 deflate 算法压缩数据到流对象中(zlib格式)
      @param data 给定要压缩的数据
      @param stm 指定存储压缩数据的流
      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
      */
     static deflateTo(Buffer data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief 使用 deflate 算法压缩源流中的数据到流对象中
+    /*! @brief 使用 deflate 算法压缩源流中的数据到流对象中(zlib格式)
      @param src 给定要压缩的数据所在的流
      @param stm 指定存储压缩数据的流
      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
      */
     static deflateTo(Stream src, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief 解压缩 deflate 算法压缩的数据
+    /*! @brief 解压缩 deflate 算法压缩的数据(zlib格式)
      @param data 给定压缩后的数据
      @return 返回解压缩后的二进制数据
      */
     static Buffer inflate(Buffer data) async;
 
-    /*! @brief 解压缩 deflate 算法压缩的数据到流对象中
+    /*! @brief 解压缩 deflate 算法压缩的数据到流对象中(zlib格式)
      @param data 给定要解压缩的数据
      @param stm 指定存储解压缩数据的流
      */
     static inflateTo(Buffer data, Stream stm) async;
 
-    /*! @brief 解压缩源流中 deflate 算法压缩的数据到流对象中
+    /*! @brief 解压缩源流中 deflate 算法压缩的数据到流对象中(zlib格式)
      @param src 给定要解压缩的数据所在的流
      @param stm 指定存储解压缩数据的流
      */
@@ -94,4 +94,43 @@ module zlib
      @param stm 指定存储解压缩数据的流
      */
     static gunzipTo(Stream src, Stream stm) async;
+
+    /*! @brief 使用 deflate 算法压缩数据(deflateRaw)
+     @param data 给定要压缩的数据
+     @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     @return 返回压缩后的二进制数据
+     */
+    static Buffer deflateRaw(Buffer data, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief 使用 deflate 算法压缩数据到流对象中(deflateRaw)
+     @param data 给定要压缩的数据
+     @param stm 指定存储压缩数据的流
+     @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     */
+    static deflateRawTo(Buffer data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief 使用 deflate 算法压缩源流中的数据到流对象中(deflateRaw)
+     @param src 给定要压缩的数据所在的流
+     @param stm 指定存储压缩数据的流
+     @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     */
+    static deflateRawTo(Stream src, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
+
+    /*! @brief 解压缩 deflate 算法压缩的数据(inflateRaw)
+     @param data 给定压缩后的数据
+     @return 返回解压缩后的二进制数据
+     */
+    static Buffer inflateRaw(Buffer data) async;
+
+    /*! @brief 解压缩 deflate 算法压缩的数据到流对象中(inflateRaw)
+     @param data 给定要解压缩的数据
+     @param stm 指定存储解压缩数据的流
+     */
+    static inflateRawTo(Buffer data, Stream stm) async;
+
+    /*! @brief 解压缩源流中 deflate 算法压缩的数据到流对象中(inflateRaw)
+     @param src 给定要解压缩的数据所在的流
+     @param stm 指定存储解压缩数据的流
+     */
+    static inflateRawTo(Stream src, Stream stm) async;
 };

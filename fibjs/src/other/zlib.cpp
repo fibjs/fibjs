@@ -277,7 +277,7 @@ public:
 public:
     virtual int32_t init()
     {
-        return deflateInit2(&strm, m_level, Z_DEFLATED, -15, 8, 0);
+        return deflateInit(&strm, m_level);
     }
 
     virtual int32_t put()
@@ -310,7 +310,7 @@ class inf: public zlibWorker
 public:
     virtual int32_t init()
     {
-        return inflateInit2(&strm, -15);
+        return inflateInit(&strm);
     }
 
     virtual int32_t put()
@@ -349,6 +349,24 @@ public:
     virtual int32_t init()
     {
         return deflateInit2(&strm, -1, 8, 15 + 16, 8, 0);
+    }
+};
+
+class infraw: public inf
+{
+public:
+    virtual int32_t init()
+    {
+        return inflateInit2(&strm, -15);
+    }
+};
+
+class defraw: public def
+{
+public:
+    virtual int32_t init()
+    {
+        return deflateInit2(&strm, -1, Z_DEFLATED, -15, 8, 0);
     }
 };
 
@@ -458,6 +476,60 @@ result_t zlib_base::gunzipTo(Stream_base *src, Stream_base *stm,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gunz().process(src, stm, ac);
+}
+
+result_t zlib_base::deflateRaw(Buffer_base *data, int32_t level,
+                               obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return defraw().process(data, retVal);
+}
+
+result_t zlib_base::deflateRawTo(Buffer_base *data, Stream_base *stm,
+                                 int32_t level, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return defraw().process(data, stm, ac);
+}
+
+result_t zlib_base::deflateRawTo(Stream_base *src, Stream_base *stm, int32_t level,
+                                 AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return defraw().process(src, stm, ac);
+}
+
+result_t zlib_base::inflateRaw(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+                               AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return infraw().process(data, retVal);
+}
+
+result_t zlib_base::inflateRawTo(Buffer_base *data, Stream_base *stm,
+                                 AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return infraw().process(data, stm, ac);
+}
+
+result_t zlib_base::inflateRawTo(Stream_base *src, Stream_base *stm,
+                                 AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return infraw().process(src, stm, ac);
 }
 
 }

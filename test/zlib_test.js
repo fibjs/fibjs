@@ -102,7 +102,7 @@ describe("zlib", function() {
 	it("inflate (from file)", function() {
 		var f1 = fs.openTextStream('./zlib_files/deflate');
 		var f2 = fs.openTextStream('./zlib_files/original.js');
-		assert.equal(zlib.inflate(f1.read()).toString(), f2.read().toString());
+		assert.equal(zlib.inflateRaw(f1.read()).toString(), f2.read().toString());
 	});
 });
 
