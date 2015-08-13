@@ -88,6 +88,11 @@ void on_break(int32_t s) {
     }
     s_double = true;
 
+#ifdef WIN32
+    exlib::OSThread _thread;
+    _thread.bindCurrent();
+#endif
+
     Isolate *p = s_isolates.head();
     while (p != 0) {
         p->m_isolate->RequestInterrupt(InterruptCallback, NULL);
