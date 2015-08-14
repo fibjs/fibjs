@@ -28,6 +28,7 @@ public:
     // HeapSnapshot_base
     virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal) = 0;
+    virtual result_t _delete() = 0;
     virtual result_t serialize(std::string& retVal) = 0;
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
@@ -37,6 +38,7 @@ public:
 public:
     static void s_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getNodeById(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_delete(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -57,6 +59,7 @@ namespace fibjs
         {
             {"diff", s_diff, false},
             {"getNodeById", s_getNodeById, false},
+            {"delete", s_delete, false},
             {"serialize", s_serialize, false}
         };
 
@@ -71,7 +74,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "HeapSnapshot", NULL, 
-            3, s_method, 0, NULL, 4, s_property, NULL, NULL,
+            4, s_method, 0, NULL, 4, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -153,6 +156,16 @@ namespace fibjs
         hr = pInst->getNodeById(v0, vr);
 
         METHOD_RETURN();
+    }
+
+    inline void HeapSnapshot_base::s_delete(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(HeapSnapshot_base);
+        METHOD_ENTER(0, 0);
+
+        hr = pInst->_delete();
+
+        METHOD_VOID();
     }
 
     inline void HeapSnapshot_base::s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args)

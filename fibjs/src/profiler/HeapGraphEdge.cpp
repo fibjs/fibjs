@@ -14,6 +14,9 @@ namespace fibjs
 
 result_t HeapGraphEdge::get_type(std::string& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	switch (m_graphedge->GetType()) {
 	case v8::HeapGraphEdge::kContextVariable :
 		retVal = "ContextVariable";
@@ -45,19 +48,29 @@ result_t HeapGraphEdge::get_type(std::string& retVal)
 
 result_t HeapGraphEdge::get_name(std::string& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	v8::Local<v8::Value> v = m_graphedge->GetName();
 	return GetArgumentValue(v, retVal);
 }
 
 result_t HeapGraphEdge::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)
 {
-	retVal = new HeapGraphNode(m_graphedge->GetFromNode());
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+	retVal = m_snapshot->Node(m_graphedge->GetFromNode());
+
 	return 0;
 }
 
 result_t HeapGraphEdge::getToNode(obj_ptr<HeapGraphNode_base>& retVal)
 {
-	retVal = new HeapGraphNode(m_graphedge->GetToNode());
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+	retVal = m_snapshot->Node(m_graphedge->GetToNode());
 	return 0;
 }
 

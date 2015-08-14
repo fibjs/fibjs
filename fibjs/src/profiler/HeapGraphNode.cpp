@@ -20,6 +20,9 @@ inline std::string handleToStr(const v8::Local<v8::Value> & str)
 
 result_t HeapGraphNode::get_type(std::string& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	switch (m_graphnode->GetType()) {
 	case v8::HeapGraphNode::kArray :
 		retVal = "Array";
@@ -64,30 +67,46 @@ result_t HeapGraphNode::get_type(std::string& retVal)
 
 result_t HeapGraphNode::get_name(std::string& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	v8::Local<v8::Value> v = m_graphnode->GetName();
 	return GetArgumentValue(v, retVal);
 }
 
 result_t HeapGraphNode::get_id(int32_t& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	retVal = m_graphnode->GetId();
+
 	return 0;
 }
 
 result_t HeapGraphNode::get_shallowSize(int32_t& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	retVal = (int32_t)m_graphnode->GetShallowSize();
 	return 0;
 }
 
 result_t HeapGraphNode::get_childsCount(int32_t& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	retVal = m_graphnode->GetChildrenCount();
 	return 0;
 }
 
 result_t HeapGraphNode::get_childs(obj_ptr<List_base>& retVal)
 {
+	if (!is_alive())
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
 	if (m_childs == 0)
 	{
 		m_childs = new List();
@@ -96,7 +115,7 @@ result_t HeapGraphNode::get_childs(obj_ptr<List_base>& retVal)
 		int32_t i;
 
 		for (i = 0; i < cnt; i ++)
-			m_childs->append(new HeapGraphEdge(m_graphnode->GetChild(i)));
+			m_childs->append(m_snapshot->Edge(m_graphnode->GetChild(i)));
 	}
 
 	retVal = m_childs;

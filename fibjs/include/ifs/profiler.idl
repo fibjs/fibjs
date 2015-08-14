@@ -13,9 +13,6 @@ module profiler
 	 */
 	static HeapSnapshot takeSnapshot();
 
-	/*! @brief 删除所有的堆快照 */
-	static deleteAllHeapSnapshots();
-
 	/*! @brief 执行给定的函数，并对比执行前后 v8 堆的变化
 	 @param test 给定要测试的函数
 	 @return 返回对比的结果

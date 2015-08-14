@@ -14,6 +14,8 @@ interface HeapSnapshot : object
      */
     HeapGraphNode getNodeById(Integer id);
 
+    delete();
+
     /*! @brief 获取堆快照序列化后的字符串
      @return 返回堆快照序列化后的字符串
      */
