@@ -34,6 +34,8 @@ HeapGraphNode::HeapGraphNode(HeapSnapshot* snapshot, const v8::HeapGraphNode* gr
 
 	for (i = 0; i < cnt; i ++)
 		m_childs->append(new HeapGraphEdge(snapshot, graphnode->GetChild(i)));
+
+	m_childs->freeze();
 }
 
 result_t HeapGraphNode::get_type(int32_t& retVal)

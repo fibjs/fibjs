@@ -79,6 +79,8 @@ HeapSnapshot::HeapSnapshot(const v8::HeapSnapshot* snapshot, bool debug)
 		m_nodes->append(pNode);
 	}
 
+	m_nodes->freeze();
+
 	if (debug)
 	{
 		BufferStream bs;
