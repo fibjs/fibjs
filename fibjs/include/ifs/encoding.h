@@ -33,7 +33,7 @@ public:
     static result_t hexDecode(const char* data, obj_ptr<Buffer_base>& retVal);
     static result_t iconvEncode(const char* charset, const char* data, obj_ptr<Buffer_base>& retVal);
     static result_t iconvDecode(const char* charset, Buffer_base* data, std::string& retVal);
-    static result_t jsstr(const char* str, std::string& retVal);
+    static result_t jsstr(const char* str, bool json, std::string& retVal);
     static result_t encodeURI(const char* url, std::string& retVal);
     static result_t encodeURIComponent(const char* url, std::string& retVal);
     static result_t decodeURI(const char* url, std::string& retVal);
@@ -211,11 +211,12 @@ namespace fibjs
     {
         std::string vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
+        OPT_ARG(bool, 1, false);
 
-        hr = jsstr(v0, vr);
+        hr = jsstr(v0, v1, vr);
 
         METHOD_RETURN();
     }

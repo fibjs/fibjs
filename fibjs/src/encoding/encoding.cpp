@@ -211,7 +211,7 @@ result_t encoding_base::iconvDecode(const char *charset, Buffer_base *data,
     return encoding_iconv(charset).decode(data, retVal);
 }
 
-result_t encoding_base::jsstr(const char *str, std::string &retVal)
+result_t encoding_base::jsstr(const char *str, bool json, std::string &retVal)
 {
     const char *p;
     char *p1;
@@ -223,8 +223,8 @@ result_t encoding_base::jsstr(const char *str, std::string &retVal)
         return 0;
 
     for (len = 0, p = str; (ch = *p) != 0; p++, len++)
-        if (ch == '\\' || ch == '\r' || ch == '\n' || ch == '\t' || ch == '\''
-                || ch == '\"')
+        if (ch == '\\' || ch == '\r' || ch == '\n' || ch == '\t'  || ch == '\"'
+                || (!json && ch == '\''))
             len++;
 
     s.resize(len);
@@ -248,14 +248,17 @@ result_t encoding_base::jsstr(const char *str, std::string &retVal)
             *p1++ = '\\';
             *p1++ = 't';
             break;
-        case '\'':
-            *p1++ = '\\';
-            *p1++ = '\'';
-            break;
         case '\"':
             *p1++ = '\\';
             *p1++ = '\"';
             break;
+        case '\'':
+            if (!json)
+            {
+                *p1++ = '\\';
+                *p1++ = '\'';
+                break;
+            }
         default:
             *p1++ = ch;
             break;

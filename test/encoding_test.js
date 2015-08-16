@@ -22,8 +22,8 @@ describe('encoding', function() {
 
 		// check that the base64 decoder ignores illegal chars
 		var expectedIllegal = expected.slice(0, 60) + ' \x80' + expected.slice(60, 120) + ' \xff' + expected.slice(120, 180) + ' \x01' + // '
-		// \x00'
-		expected.slice(180, 240) + ' \x98' + expected.slice(240, 300) + '\x03' + expected.slice(300, 360);
+			// \x00'
+			expected.slice(180, 240) + ' \x98' + expected.slice(240, 300) + '\x03' + expected.slice(300, 360);
 		b = encoding.base64Decode(expectedIllegal);
 		assert.equal(quote, b.toString());
 
@@ -126,9 +126,13 @@ describe('encoding', function() {
 			'{"a":100,"b":200}');
 	});
 
-	it('js', function() {
+	it('jsstr', function() {
 		assert.equal(encoding.jsstr("[\r\n\t\\\'\"]"), "[\\r\\n\\t\\\\\\'\\\"]");
 		assert.equal(encoding.jsstr("[abcd汉字]"), "[abcd汉字]");
+	});
+
+	it('json jsstr', function() {
+		assert.equal(encoding.jsstr("[\r\n\t\\\'\"]", true), "[\\r\\n\\t\\\\'\\\"]");
 	});
 
 	it('bson', function() {
@@ -153,4 +157,4 @@ describe('encoding', function() {
 	});
 });
 
-//test.run();
+//test.run(console.DEBUG);

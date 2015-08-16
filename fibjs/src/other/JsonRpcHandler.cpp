@@ -183,7 +183,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             "<html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><script>window.name=\"",
             94);
 
-        encoding_base::jsstr(str.c_str(), str);
+        encoding_base::jsstr(str.c_str(), false, str);
         strTemp.append(str);
 
         strTemp.append("\";</script></html>", 18);
