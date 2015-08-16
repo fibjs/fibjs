@@ -252,6 +252,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
 
     sqlite3_finalize(stmt);
 
+    res->freeze();
     retVal = res;
 
     return 0;

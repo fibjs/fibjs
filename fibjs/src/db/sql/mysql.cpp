@@ -258,6 +258,7 @@ result_t mysql::execute(const char *sql, int32_t sLen,
     if (!res)
         return CHECK_ERROR(error());
 
+    res->freeze();
     retVal = res;
     res->Unref();
 
