@@ -26,6 +26,7 @@ public:
     static result_t _new(obj_ptr<List_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t _indexed_getter(uint32_t index, Variant& retVal) = 0;
     virtual result_t _indexed_setter(uint32_t index, Variant newVal) = 0;
+    virtual result_t freeze() = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t resize(int32_t sz) = 0;
     virtual result_t push(Variant v) = 0;
@@ -48,6 +49,7 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_push(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -70,6 +72,7 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
+            {"freeze", s_freeze, false},
             {"resize", s_resize, false},
             {"push", s_push, false},
             {"pop", s_pop, false},
@@ -96,7 +99,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "List", s__new, 
-            11, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+            12, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
             &object_base::class_info()
         };
 
@@ -154,6 +157,16 @@ namespace fibjs
         hr = _new(vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void List_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER(0, 0);
+
+        hr = pInst->freeze();
+
+        METHOD_VOID();
     }
 
     inline void List_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)

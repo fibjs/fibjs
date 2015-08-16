@@ -26,6 +26,11 @@ result_t DBResult::_indexed_setter(uint32_t index, Variant newVal)
     return m_array._indexed_setter(index, newVal);
 }
 
+result_t DBResult::freeze()
+{
+    return m_array.freeze();
+}
+
 result_t DBResult::get_length(int32_t &retVal)
 {
     if (!m_size)
@@ -47,8 +52,7 @@ result_t DBResult::push(Variant v)
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    m_array.push(v);
-    return 0;
+    return m_array.push(v);
 }
 
 result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -56,8 +60,7 @@ result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value> &args)
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    m_array.push(args);
-    return 0;
+    return m_array.push(args);
 }
 
 result_t DBResult::pop(Variant &retVal)

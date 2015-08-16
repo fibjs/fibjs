@@ -16,6 +16,11 @@ result_t List_base::_new(obj_ptr<List_base> &retVal, v8::Local<v8::Object> This)
     return 0;
 }
 
+result_t List::freeze()
+{
+    return m_array.freeze();
+}
+
 result_t List::_indexed_getter(uint32_t index, Variant &retVal)
 {
     return m_array._indexed_getter(index, retVal);
@@ -38,14 +43,12 @@ result_t List::resize(int32_t sz)
 
 result_t List::push(Variant v)
 {
-    m_array.push(v);
-    return 0;
+    return m_array.push(v);
 }
 
 result_t List::push(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    m_array.push(args);
-    return 0;
+    return m_array.push(args);
 }
 
 result_t List::pop(Variant &retVal)
@@ -118,8 +121,17 @@ result_t List::array::_indexed_setter(uint32_t index, Variant newVal)
     if (index >= m_array.size())
         return CHECK_ERROR(CALL_E_BADINDEX);
 
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     m_array[index] = newVal;
 
+    return 0;
+}
+
+result_t List::array::freeze()
+{
+    m_freeze = true;
     return 0;
 }
 
@@ -131,18 +143,27 @@ result_t List::array::get_length(int32_t &retVal)
 
 result_t List::array::resize(int32_t sz)
 {
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     m_array.resize(sz);
     return 0;
 }
 
 result_t List::array::push(Variant v)
 {
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     m_array.append(v);
     return 0;
 }
 
 result_t List::array::push(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     int32_t len = args.Length();
     int32_t i;
 
@@ -155,6 +176,9 @@ result_t List::array::pop(Variant &retVal)
 {
     if (!m_array.size())
         return CALL_RETURN_NULL;
+
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_array[m_array.size() - 1];
     m_array.pop();
@@ -178,6 +202,9 @@ result_t List::array::slice(int32_t start, int32_t end,
 result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
                              obj_ptr<List_base> &retVal)
 {
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     obj_ptr<List> a;
     int32_t i, len;
 

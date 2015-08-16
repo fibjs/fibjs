@@ -15,6 +15,9 @@ interface List : object
     /*! @brief 数组可使用下标直接访问 Variant 数据*/
     Variant operator[];
 
+    /*! @brief 冻结数组内容，禁止一些修改操作 */
+    freeze();
+
     /*! @brief 获取数组的尺寸 */
     readonly Integer length;
 

@@ -38,6 +38,7 @@ public:
     // ObjectArray_base
     virtual result_t _indexed_getter(uint32_t index, Variant &retVal);
     virtual result_t _indexed_setter(uint32_t index, Variant newVal);
+    virtual result_t freeze();
     virtual result_t get_length(int32_t &retVal);
     virtual result_t resize(int32_t sz);
     virtual result_t push(Variant v);
