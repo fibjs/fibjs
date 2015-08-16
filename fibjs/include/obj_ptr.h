@@ -84,7 +84,7 @@ public:
         }
     }
 
-    weak_stub *weak_ptr()
+    weak_stub *get_stub()
     {
         if (weak_)
             return weak_;
@@ -306,7 +306,7 @@ public:
 private:
     T *_assign(T *p2)
     {
-        obj_base::weak_stub *p2_ = p2 ? p2->weak_ptr() : (obj_base::weak_stub *)NULL;
+        obj_base::weak_stub *p2_ = p2 ? p2->get_stub() : (obj_base::weak_stub *)NULL;
         if (p2_)
             p2_->Ref();
 
