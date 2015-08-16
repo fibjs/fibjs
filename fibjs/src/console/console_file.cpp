@@ -233,7 +233,7 @@ void file_logger::write(exlib::List<item> &logs)
 
         if (m_file)
         {
-            hr = m_file->Write(outBuffer.c_str(), outBuffer.length());
+            hr = m_file->Write(outBuffer.c_str(), (int32_t)outBuffer.length());
             if (hr < 0)
                 m_file.Release();
 

@@ -156,7 +156,7 @@ result_t HeapSnapshot::write(const char* fname, AsyncEvent* ac)
 		result_t flush()
 		{
 			std::string str = bufs.str();
-			return file->Write(str.c_str(), str.length());
+			return file->Write(str.c_str(), (int32_t)str.length());
 		}
 
 	public:
@@ -181,7 +181,7 @@ result_t HeapSnapshot::write(const char* fname, AsyncEvent* ac)
 			it = mapNames.find(_name);
 			if (it == mapNames.end())
 			{
-				_name_id = names.size();
+				_name_id = (int32_t)names.size();
 				mapNames.insert(std::pair<std::string, int32_t>(_name, _name_id));
 				names.append(_name);
 			} else
@@ -333,7 +333,7 @@ result_t HeapSnapshot::write(const char* fname, AsyncEvent* ac)
 	if (hr < 0)
 		return hr;
 
-	count = _ids.names.size();
+	count = (int32_t)_ids.names.size();
 	for (i = 0; i < count; i ++)
 	{
 		if (i == 0)
