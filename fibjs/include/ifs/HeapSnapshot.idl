@@ -14,12 +14,7 @@ interface HeapSnapshot : object
      */
     HeapGraphNode getNodeById(Integer id);
 
-    delete();
-
-    /*! @brief 获取堆快照序列化后的字符串
-     @return 返回堆快照序列化后的字符串
-     */
-    String serialize();
+    write(String fname) async;
 
     /*! @brief 时间信息 */
     readonly Date time;
@@ -27,9 +22,9 @@ interface HeapSnapshot : object
     /*! @brief 堆视图的根节点 */
     readonly HeapGraphNode root;
 
-    /*! @brief 堆视图列表的长度 */
-    readonly Integer nodesCount;
-
     /*! @brief 堆视图节点组成的列表 */
     readonly List nodes;
+
+    /*! @brief 获取堆快照序列化后的字符串，仅用于测试*/
+    readonly String serialize;
 };

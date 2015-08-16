@@ -28,22 +28,23 @@ public:
     // HeapSnapshot_base
     virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal) = 0;
-    virtual result_t _delete() = 0;
-    virtual result_t serialize(std::string& retVal) = 0;
+    virtual result_t write(const char* fname, AsyncEvent* ac) = 0;
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
-    virtual result_t get_nodesCount(int32_t& retVal) = 0;
     virtual result_t get_nodes(obj_ptr<List_base>& retVal) = 0;
+    virtual result_t get_serialize(std::string& retVal) = 0;
 
 public:
     static void s_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getNodeById(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_delete(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_nodesCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_serialize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+
+public:
+    ASYNC_MEMBER1(HeapSnapshot_base, write, const char*);
 };
 
 }
@@ -59,22 +60,21 @@ namespace fibjs
         {
             {"diff", s_diff, false},
             {"getNodeById", s_getNodeById, false},
-            {"delete", s_delete, false},
-            {"serialize", s_serialize, false}
+            {"write", s_write, false}
         };
 
         static ClassData::ClassProperty s_property[] = 
         {
             {"time", s_get_time, block_set, false},
             {"root", s_get_root, block_set, false},
-            {"nodesCount", s_get_nodesCount, block_set, false},
-            {"nodes", s_get_nodes, block_set, false}
+            {"nodes", s_get_nodes, block_set, false},
+            {"serialize", s_get_serialize, block_set, false}
         };
 
         static ClassData s_cd = 
         { 
             "HeapSnapshot", NULL, 
-            4, s_method, 0, NULL, 4, s_property, NULL, NULL,
+            3, s_method, 0, NULL, 4, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -106,18 +106,6 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void HeapSnapshot_base::s_get_nodesCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapSnapshot_base);
-
-        hr = pInst->get_nodesCount(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<List_base> vr;
@@ -126,6 +114,18 @@ namespace fibjs
         PROPERTY_INSTANCE(HeapSnapshot_base);
 
         hr = pInst->get_nodes(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HeapSnapshot_base::s_get_serialize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        std::string vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(HeapSnapshot_base);
+
+        hr = pInst->get_serialize(vr);
 
         METHOD_RETURN();
     }
@@ -158,26 +158,16 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void HeapSnapshot_base::s_delete(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void HeapSnapshot_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HeapSnapshot_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER(1, 1);
 
-        hr = pInst->_delete();
+        ARG(arg_string, 0);
+
+        hr = pInst->ac_write(v0);
 
         METHOD_VOID();
-    }
-
-    inline void HeapSnapshot_base::s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        std::string vr;
-
-        METHOD_INSTANCE(HeapSnapshot_base);
-        METHOD_ENTER(0, 0);
-
-        hr = pInst->serialize(vr);
-
-        METHOD_RETURN();
     }
 
 }

@@ -7,8 +7,6 @@
 
 #include "ifs/HeapSnapshot.h"
 #include <v8/include/v8-profiler.h>
-#include "HeapGraphEdge.h"
-#include "HeapGraphNode.h"
 #include "List.h"
 #include <map>
 
@@ -21,66 +19,26 @@ namespace fibjs
 class HeapSnapshot : public HeapSnapshot_base
 {
 public:
-    HeapSnapshot(const v8::HeapSnapshot* snapshot)
-        : m_snapshot((v8::HeapSnapshot*)snapshot)
-    {
-        m_time.now();
-    }
-
-    ~HeapSnapshot()
-    {
-        _delete();
-    }
+    HeapSnapshot(const v8::HeapSnapshot* snapshot, bool debug);
 
 public:
     // HeapSnapshot_base
     virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal);
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal);
-    virtual result_t _delete();
-    virtual result_t serialize(std::string& retVal);
+    virtual result_t write(const char* fname, AsyncEvent* ac);
     virtual result_t get_time(date_t& retVal);
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal);
-    virtual result_t get_nodesCount(int32_t& retVal);
     virtual result_t get_nodes(obj_ptr<List_base>& retVal);
-
-public:
-    bool is_alive()
-    {
-        return m_snapshot != NULL;
-    }
-
-    HeapGraphNode* Node(const v8::HeapGraphNode* graphnode)
-    {
-        std::map<const v8::HeapGraphNode*, obj_ptr<HeapGraphNode> >::iterator it;
-
-        it = _nodes.find(graphnode);
-        if (it != _nodes.end())
-            return it->second;
-
-        obj_ptr<HeapGraphNode> pNode = new HeapGraphNode(this, graphnode);
-        _nodes[graphnode] = pNode;
-        return pNode;
-    }
-
-    HeapGraphEdge* Edge(const v8::HeapGraphEdge* graphedge)
-    {
-        std::map<const v8::HeapGraphEdge*, obj_ptr<HeapGraphEdge> >::iterator it;
-
-        it = _edges.find(graphedge);
-        if (it != _edges.end())
-            return it->second;
-
-        obj_ptr<HeapGraphEdge> pEdge = new HeapGraphEdge(this, graphedge);
-        _edges[graphedge] = pEdge;
-        return pEdge;
-    }
+    virtual result_t get_serialize(std::string& retVal);
 
 private:
-    v8::HeapSnapshot* m_snapshot;
     date_t m_time;
     obj_ptr<List> m_nodes;
-    std::map<const v8::HeapGraphNode*, obj_ptr<HeapGraphNode> > _nodes;
-    std::map<const v8::HeapGraphEdge*, obj_ptr<HeapGraphEdge> > _edges;
+    std::map<int32_t, int32_t> _nodes;
+    obj_ptr<List> m_edges;
+    std::map<std::string, int32_t> mapNames;
+    QuickArray<std::string> names;
+    std::string m_serialize;
 };
 
 }

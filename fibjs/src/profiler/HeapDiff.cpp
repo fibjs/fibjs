@@ -6,48 +6,53 @@
  */
 
 #include "HeapSnapshot.h"
+#include "ifs/HeapGraphEdge.h"
 #include <set>
+#include <map>
 
 namespace fibjs
 {
 
-inline std::string handleToStr(const v8::Local<v8::Value>& str)
+typedef std::set<int32_t> idset;
+
+inline void buildIDSet(idset* seen, HeapSnapshot_base* snapshot, intptr_t& s)
 {
-	v8::String::Utf8Value utfString(str->ToString());
-	return *utfString;
+	obj_ptr<List_base> nodes;
+	int32_t _count;
+
+	snapshot->get_nodes(nodes);
+	nodes->get_length(_count);
+
+	for (int32_t i = 0; i < _count; i++)
+	{
+		Variant v;
+		obj_ptr<HeapGraphNode_base> cur;
+
+		nodes->_indexed_getter(i, v);
+		cur = HeapGraphNode_base::getInstance(v.object());
+
+		int32_t _id;
+		int32_t _size;
+
+		cur->get_id(_id);
+		cur->get_shallowSize(_size);
+
+		s += _size;
+		seen->insert(_id);
+	}
 }
 
-typedef std::set<v8::SnapshotObjectId> idset;
-
-inline void buildIDSet(idset* seen,
-                       const v8::HeapGraphNode* cur, intptr_t& s)
-{
-	if (seen->find(cur->GetId()) != seen->end())
-		return;
-
-	if (cur->GetType() == v8::HeapGraphNode::kObject &&
-	        handleToStr(cur->GetName()).compare("HeapSnapshot") == 0)
-		return;
-
-	s += cur->GetShallowSize();
-
-	seen->insert(cur->GetId());
-
-	for (int i = 0; i < cur->GetChildrenCount(); i++)
-		buildIDSet(seen, cur->GetChild(i)->GetToNode(), s);
-}
-
-void setDiff(idset a, idset b, std::vector<v8::SnapshotObjectId> &c)
+void setDiff(idset a, idset b, std::vector<int32_t> &c)
 {
 	for (idset::iterator i = a.begin(); i != a.end(); i++)
-		if (b.find(*i) == b.end()) c.push_back(*i);
+		if (b.find(*i) == b.end())
+			c.push_back(*i);
 }
 
 class example
 {
 public:
-	v8::HeapGraphEdge::Type context;
-	v8::HeapGraphNode::Type type;
+	int32_t type;
 	std::string name;
 	std::string value;
 	std::string heap_value;
@@ -55,8 +60,7 @@ public:
 	intptr_t retained_size;
 	intptr_t retainers;
 
-	example() : context(v8::HeapGraphEdge::kHidden),
-		type(v8::HeapGraphNode::kHidden),
+	example() : type(HeapGraphNode_base::_Hidden),
 		self_size(0), retained_size(0), retainers(0)
 	{};
 };
@@ -74,49 +78,51 @@ public:
 
 typedef std::map<std::string, change>changeset;
 
-inline void manageChange(changeset& changes, const v8::HeapGraphNode * node,
+inline void manageChange(changeset& changes, HeapGraphNode_base* node,
                          bool added)
 {
 	std::string type;
+	int32_t _type;
 
-	switch (node->GetType()) {
-	case v8::HeapGraphNode::kArray:
+	node->get_type(_type);
+	switch (_type) {
+	case HeapGraphNode_base::_Array:
 		type.assign("Array");
 		break;
-	case v8::HeapGraphNode::kString:
+	case HeapGraphNode_base::_String:
 		type.assign("String");
 		break;
-	case v8::HeapGraphNode::kObject:
-		type.assign(handleToStr(node->GetName()));
+	case HeapGraphNode_base::_Object:
+		node->get_name(type);
 		break;
-	case v8::HeapGraphNode::kCode:
+	case HeapGraphNode_base::_Code:
 		type.assign("Code");
 		break;
-	case v8::HeapGraphNode::kClosure:
+	case HeapGraphNode_base::_Closure:
 	{
-		type = handleToStr(node->GetName());
+		node->get_name(type);
 		if (!type.empty())
 			type.append("(Closure)");
 		else
 			type.assign("Closure");
 		break;
 	}
-	case v8::HeapGraphNode::kRegExp:
+	case HeapGraphNode_base::_RegExp:
 		type.assign("RegExp");
 		break;
-	case v8::HeapGraphNode::kHeapNumber:
+	case HeapGraphNode_base::_HeapNumber:
 		type.assign("Number");
 		break;
-	case v8::HeapGraphNode::kNative:
+	case HeapGraphNode_base::_Native:
 		type.assign("Native");
 		break;
-	case v8::HeapGraphNode::kSynthetic :
+	case HeapGraphNode_base::_Synthetic :
 		type.assign("Synthetic");
 		break;
-	case v8::HeapGraphNode::kConsString :
+	case HeapGraphNode_base::_ConsString :
 		type.assign("ConsString");
 		break;
-	case v8::HeapGraphNode::kSlicedString :
+	case HeapGraphNode_base::_SlicedString :
 		type.assign("SlicedString");
 		break;
 	default :
@@ -128,7 +134,10 @@ inline void manageChange(changeset& changes, const v8::HeapGraphNode * node,
 
 	changeset::iterator i = changes.find(type);
 
-	i->second.size += node->GetShallowSize() * (added ? 1 : -1);
+	int32_t _size;
+	node->get_shallowSize(_size);
+
+	i->second.size += _size * (added ? 1 : -1);
 	if (added) i->second.added++;
 	else i->second.released++;
 
@@ -175,29 +184,35 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
 result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal)
 {
 	obj_ptr<HeapSnapshot> old_snap = (HeapSnapshot*)before;
-	if (!is_alive() || !old_snap->is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
 	Isolate* isolate = Isolate::now();
 	intptr_t s, diffBytes;
+	obj_ptr<List_base> nodes;
+	int32_t _count;
 
 	v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
 	v8::Local<v8::Object> b = v8::Object::New(isolate->m_isolate);
+	old_snap->get_nodes(nodes);
+	nodes->get_length(_count);
 	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "nodes"),
-	       v8::Integer::New(isolate->m_isolate, old_snap->m_snapshot->GetNodesCount()));
+	       v8::Integer::New(isolate->m_isolate, _count));
 	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "time"), old_snap->m_time);
 	o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "before"), b);
 
 	v8::Local<v8::Object> a = v8::Object::New(isolate->m_isolate);
+	get_nodes(nodes);
+	nodes->get_length(_count);
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "nodes"),
-	       v8::Integer::New(isolate->m_isolate, m_snapshot->GetNodesCount()));
+	       v8::Integer::New(isolate->m_isolate, _count));
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "time"), m_time);
 	o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "after"), a);
 
 	idset beforeIDs, afterIDs;
+
 	s = 0;
-	buildIDSet(&beforeIDs, old_snap->m_snapshot->GetRoot(), s);
+	buildIDSet(&beforeIDs, old_snap, s);
+
 	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size_bytes"),
 	       v8::Integer::New(isolate->m_isolate, (int32_t)s));
 	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size"),
@@ -205,7 +220,8 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 
 	diffBytes = s;
 	s = 0;
-	buildIDSet(&afterIDs, m_snapshot->GetRoot(), s);
+	buildIDSet(&afterIDs, this, s);
+
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size_bytes"),
 	       v8::Integer::New(isolate->m_isolate, (int32_t)s));
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "size"),
@@ -220,7 +236,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 	       v8::String::NewFromUtf8(isolate->m_isolate, niceSize(diffBytes).c_str()));
 	o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "change"), c);
 
-	std::vector<v8::SnapshotObjectId> changedIDs;
+	std::vector<int32_t> changedIDs;
 	setDiff(beforeIDs, afterIDs, changedIDs);
 	c->Set(v8::String::NewFromUtf8(isolate->m_isolate, "freed_nodes"),
 	       v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()));
@@ -228,7 +244,9 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 	changeset changes;
 
 	for (size_t i = 0; i < changedIDs.size(); i++) {
-		const v8::HeapGraphNode * n = old_snap->m_snapshot->GetNodeById(changedIDs[i]);
+		obj_ptr<HeapGraphNode_base> n;
+
+		old_snap->getNodeById(changedIDs[i], n);
 		manageChange(changes, n, false);
 	}
 
@@ -240,7 +258,9 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& re
 	       v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()));
 
 	for (size_t i = 0; i < changedIDs.size(); i++) {
-		const v8::HeapGraphNode * n = m_snapshot->GetNodeById(changedIDs[i]);
+		obj_ptr<HeapGraphNode_base> n;
+
+		getNodeById(changedIDs[i], n);
 		manageChange(changes, n, true);
 	}
 

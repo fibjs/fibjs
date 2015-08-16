@@ -12,66 +12,42 @@
 namespace fibjs
 {
 
-result_t HeapGraphEdge::get_type(std::string& retVal)
+HeapGraphEdge::HeapGraphEdge(HeapSnapshot_base* snapshot, const v8::HeapGraphEdge* graphedge)
+	: m_snapshot(snapshot)
 {
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
+	m_type = (int32_t)graphedge->GetType();
+	v8::Local<v8::Value> v = graphedge->GetName();
+	GetArgumentValue(v, m_name);
+	m_fromId = graphedge->GetFromNode()->GetId();
+	m_toId = graphedge->GetToNode()->GetId();
+}
 
-	switch (m_graphedge->GetType()) {
-	case v8::HeapGraphEdge::kContextVariable :
-		retVal = "ContextVariable";
-		break;
-	case v8::HeapGraphEdge::kElement :
-		retVal = "Element";
-		break;
-	case v8::HeapGraphEdge::kProperty :
-		retVal = "Property";
-		break;
-	case v8::HeapGraphEdge::kInternal :
-		retVal = "Internal";
-		break;
-	case v8::HeapGraphEdge::kHidden :
-		retVal = "Hidden";
-		break;
-	case v8::HeapGraphEdge::kShortcut :
-		retVal = "Shortcut";
-		break;
-	case v8::HeapGraphEdge::kWeak :
-		retVal = "Weak";
-		break;
-	default :
-		retVal = "Undefined";
-	}
-
+result_t HeapGraphEdge::get_type(int32_t& retVal)
+{
+	retVal = m_type;
 	return 0;
 }
 
 result_t HeapGraphEdge::get_name(std::string& retVal)
 {
-	if (!is_alive())
-		return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-	v8::Local<v8::Value> v = m_graphedge->GetName();
-	return GetArgumentValue(v, retVal);
+	retVal = m_name;
+	return 0;
 }
 
 result_t HeapGraphEdge::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)
 {
-	if (!is_alive())
+	if (!m_snapshot)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-	retVal = m_snapshot->Node(m_graphedge->GetFromNode());
-
-	return 0;
+	return m_snapshot->getNodeById(m_fromId, retVal);
 }
 
 result_t HeapGraphEdge::getToNode(obj_ptr<HeapGraphNode_base>& retVal)
 {
-	if (!is_alive())
+	if (!m_snapshot)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-	retVal = m_snapshot->Node(m_graphedge->GetToNode());
-	return 0;
+	return m_snapshot->getNodeById(m_toId, retVal);
 }
 
 }

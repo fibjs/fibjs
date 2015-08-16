@@ -25,7 +25,7 @@ class profiler_base : public object_base
 
 public:
     // profiler_base
-    static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
+    static result_t takeSnapshot(bool debug, obj_ptr<HeapSnapshot_base>& retVal);
     static result_t diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal);
 
 public:
@@ -63,9 +63,11 @@ namespace fibjs
     {
         obj_ptr<HeapSnapshot_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER(1, 0);
 
-        hr = takeSnapshot(vr);
+        OPT_ARG(bool, 0, false);
+
+        hr = takeSnapshot(v0, vr);
 
         METHOD_RETURN();
     }
