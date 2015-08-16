@@ -395,11 +395,11 @@ result_t test_base::setup(int32_t mode)
     {
         glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "expect"),
                                 v8::Function::New(isolate->m_isolate, s_expect),
-                                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
 
         glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "assert"),
                                 assert_base::class_info().getFunction(),
-                                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
     }
 
     if (mode == _BDD)
@@ -410,28 +410,28 @@ result_t test_base::setup(int32_t mode)
 
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "describe"),
                                     v8::Function::New(isolate->m_isolate, s_describe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "xdescribe"),
                                     v8::Function::New(isolate->m_isolate, s_xdescribe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "it"),
                                     v8::Function::New(isolate->m_isolate, s_it),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "xit"),
                                     v8::Function::New(isolate->m_isolate, s_xit),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "before"),
                                     v8::Function::New(isolate->m_isolate, s_before),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "after"),
                                     v8::Function::New(isolate->m_isolate, s_after),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "beforeEach"),
                                     v8::Function::New(isolate->m_isolate, s_beforeEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "afterEach"),
                                     v8::Function::New(isolate->m_isolate, s_afterEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
         }
     }
     else if (mode == _TDD)
@@ -442,28 +442,28 @@ result_t test_base::setup(int32_t mode)
 
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "suite"),
                                     v8::Function::New(isolate->m_isolate, s_describe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "xsuite"),
                                     v8::Function::New(isolate->m_isolate, s_xdescribe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "test"),
                                     v8::Function::New(isolate->m_isolate, s_it),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "xtest"),
                                     v8::Function::New(isolate->m_isolate, s_xit),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "suiteSetup"),
                                     v8::Function::New(isolate->m_isolate, s_before),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "suiteTeardown"),
                                     v8::Function::New(isolate->m_isolate, s_after),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "setup"),
                                     v8::Function::New(isolate->m_isolate, s_beforeEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
             glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "teardown"),
                                     v8::Function::New(isolate->m_isolate, s_afterEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
         }
     }
     else

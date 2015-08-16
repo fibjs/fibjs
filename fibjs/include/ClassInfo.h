@@ -163,14 +163,14 @@ public:
             if (m_cd.cms[i].is_static)
                 o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
                                      v8::Function::New(isolate->m_isolate, m_cd.cms[i].invoker),
-                                     (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                     (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
 
         for (i = 0; i < m_cd.oc; i++)
         {
             m_cd.cos[i].invoker()._init();
             o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
                                  v8::Local<v8::Function>::New(isolate->m_isolate, m_cd.cos[i].invoker().m_function),
-                                 (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                                 (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
         }
 
         for (i = 0; i < m_cd.pc; i++)
