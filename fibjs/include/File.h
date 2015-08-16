@@ -45,7 +45,8 @@ public:
     virtual result_t chmod(int32_t mode, AsyncEvent *ac);
 
 public:
-    result_t open(const char *fname, const char *flags, AsyncEvent *ac);
+    result_t open(const char *fname, const char *flags);
+    result_t close();
     result_t Write(const char *p, int32_t sz);
 
 protected:

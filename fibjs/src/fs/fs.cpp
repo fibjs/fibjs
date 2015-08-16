@@ -32,7 +32,7 @@ result_t fs_base::open(const char *fname, const char *flags,
     obj_ptr<File> pFile = new File();
     result_t hr;
 
-    hr = pFile->open(fname, flags, ac);
+    hr = pFile->open(fname, flags);
     if (hr < 0)
         return hr;
 
@@ -75,7 +75,7 @@ result_t fs_base::readFile(const char *fname, std::string &retVal,
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = f->open(fname, "r", ac);
+    hr = f->open(fname, "r");
     if (hr < 0)
         return hr;
 
@@ -110,7 +110,7 @@ result_t fs_base::writeFile(const char *fname, const char *txt,
     obj_ptr<File> f = new File();
     result_t hr;
 
-    hr = f->open(fname, "w", ac);
+    hr = f->open(fname, "w");
     if (hr < 0)
         return hr;
 

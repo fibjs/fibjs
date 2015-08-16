@@ -211,11 +211,8 @@ result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
     return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t File::open(const char *fname, const char *flags, AsyncEvent *ac)
+result_t File::open(const char *fname, const char *flags)
 {
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
 #ifdef _WIN32
     int32_t _flags = _O_BINARY;
 #else
@@ -235,7 +232,7 @@ result_t File::open(const char *fname, const char *flags, AsyncEvent *ac)
     else if (!qstrcmp(flags, "a+" ))
         _flags |= O_APPEND | O_CREAT | O_RDWR;
 
-    close(ac);
+    close();
 
 #ifdef _WIN32
     m_fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
@@ -373,13 +370,10 @@ result_t File::flush(AsyncEvent *ac)
     return 0;
 }
 
-result_t File::close(AsyncEvent *ac)
+result_t File::close()
 {
     if (m_fd != -1)
     {
-        if (!ac)
-            return CHECK_ERROR(CALL_E_NOSYNC);
-
         if (m_pipe)
             pclose(m_pipe);
         else
@@ -387,6 +381,19 @@ result_t File::close(AsyncEvent *ac)
 
         m_fd = -1;
         m_pipe = NULL;
+    }
+
+    return 0;
+}
+
+result_t File::close(AsyncEvent *ac)
+{
+    if (m_fd != -1)
+    {
+        if (!ac)
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        return close();
     }
 
     return 0;

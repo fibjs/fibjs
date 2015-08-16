@@ -163,7 +163,6 @@ result_t file_logger::initFile()
     }
 
     result_t hr;
-    AsyncEvent ac;
 
     if (!m_file)
     {
@@ -186,7 +185,7 @@ result_t file_logger::initFile()
                 clearFile();
         }
 
-        hr = f->open(name.c_str(), "a+", &ac);
+        hr = f->open(name.c_str(), "a+");
         if (hr < 0)
             return hr;
 
@@ -203,7 +202,6 @@ result_t file_logger::initFile()
 void file_logger::write(exlib::List<item> &logs)
 {
     item *p1;
-    AsyncEvent ac;
 
     while (!logs.empty())
     {
@@ -235,9 +233,7 @@ void file_logger::write(exlib::List<item> &logs)
 
         if (m_file)
         {
-            obj_ptr<Buffer_base> buf = new Buffer(outBuffer);
-
-            hr = m_file->write(buf, &ac);
+            hr = m_file->Write(outBuffer.c_str(), outBuffer.length());
             if (hr < 0)
                 m_file.Release();
 

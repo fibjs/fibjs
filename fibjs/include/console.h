@@ -13,6 +13,7 @@
 #include "ifs/console.h"
 #include "ifs/coroutine.h"
 #include "ifs/fs.h"
+#include "File.h"
 
 namespace fibjs
 {
@@ -256,7 +257,7 @@ private:
     int64_t m_split_size;
     int32_t m_count;
 
-    obj_ptr<Stream_base> m_file;
+    obj_ptr<File> m_file;
     int64_t m_size;
     date_t m_date;
 };
