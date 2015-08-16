@@ -120,6 +120,33 @@ describe("collection", function() {
 				assert.equal(passed[i], v);
 			});
 		});
+
+		it("freeze", function() {
+			var passed = new collection.List();
+			passed.push(1, 4, 9);
+			passed.freeze();
+
+			assert.throws(function() {
+				passed[0] = 100;
+			});
+
+			assert.throws(function() {
+				passed.resize(10);
+			});
+
+			assert.throws(function() {
+				passed.push(10);
+			});
+
+			assert.throws(function() {
+				passed.pop();
+			});
+
+			assert.throws(function() {
+				passed.concat([4, 5, 6]);
+			});
+		});
+
 	});
 
 	describe("Queue", function() {
