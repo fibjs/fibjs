@@ -28,7 +28,7 @@ public:
     // HeapSnapshot_base
     virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal) = 0;
-    virtual result_t write(const char* fname, AsyncEvent* ac) = 0;
+    virtual result_t save(const char* fname, AsyncEvent* ac) = 0;
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
     virtual result_t get_nodes(obj_ptr<List_base>& retVal) = 0;
@@ -37,14 +37,14 @@ public:
 public:
     static void s_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getNodeById(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_save(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_serialize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
-    ASYNC_MEMBER1(HeapSnapshot_base, write, const char*);
+    ASYNC_MEMBER1(HeapSnapshot_base, save, const char*);
 };
 
 }
@@ -60,7 +60,7 @@ namespace fibjs
         {
             {"diff", s_diff, false},
             {"getNodeById", s_getNodeById, false},
-            {"write", s_write, false}
+            {"save", s_save, false}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -158,14 +158,14 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void HeapSnapshot_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HeapSnapshot_base);
         METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_write(v0);
+        hr = pInst->ac_save(v0);
 
         METHOD_VOID();
     }

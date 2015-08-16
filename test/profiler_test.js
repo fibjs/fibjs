@@ -18,7 +18,7 @@ describe("profiler", function() {
 		ss = profiler.takeSnapshot(true);
 		assert.notEqual(ss.serialize, "");
 
-		ss.write("test.heapsnapshot");
+		ss.save("test.heapsnapshot");
 		assert.equal(ss.serialize, fs.readFile("test.heapsnapshot"));
 		fs.unlink("test.heapsnapshot");
 	});

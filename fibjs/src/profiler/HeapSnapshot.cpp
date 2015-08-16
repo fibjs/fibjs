@@ -108,7 +108,7 @@ result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retV
 }
 
 #define BUF_SIZE	1024
-result_t HeapSnapshot::write(const char* fname, AsyncEvent* ac)
+result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);

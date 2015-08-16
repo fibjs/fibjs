@@ -14,7 +14,7 @@ interface HeapSnapshot : object
      */
     HeapGraphNode getNodeById(Integer id);
 
-    write(String fname) async;
+    save(String fname) async;
 
     /*! @brief 时间信息 */
     readonly Date time;
