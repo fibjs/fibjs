@@ -7,6 +7,7 @@
 
 #include "HeapSnapshot.h"
 #include "ifs/HeapGraphEdge.h"
+#include "ifs/profiler.h"
 #include <set>
 #include <map>
 
@@ -60,7 +61,7 @@ public:
 	intptr_t retained_size;
 	intptr_t retainers;
 
-	example() : type(HeapGraphNode_base::_Hidden),
+	example() : type(profiler_base::_Node_Hidden),
 		self_size(0), retained_size(0), retainers(0)
 	{};
 };
@@ -86,19 +87,19 @@ inline void manageChange(changeset& changes, HeapGraphNode_base* node,
 
 	node->get_type(_type);
 	switch (_type) {
-	case HeapGraphNode_base::_Array:
+	case profiler_base::_Node_Array:
 		type.assign("Array");
 		break;
-	case HeapGraphNode_base::_String:
+	case profiler_base::_Node_String:
 		type.assign("String");
 		break;
-	case HeapGraphNode_base::_Object:
+	case profiler_base::_Node_Object:
 		node->get_name(type);
 		break;
-	case HeapGraphNode_base::_Code:
+	case profiler_base::_Node_Code:
 		type.assign("Code");
 		break;
-	case HeapGraphNode_base::_Closure:
+	case profiler_base::_Node_Closure:
 	{
 		node->get_name(type);
 		if (!type.empty())
@@ -107,22 +108,22 @@ inline void manageChange(changeset& changes, HeapGraphNode_base* node,
 			type.assign("Closure");
 		break;
 	}
-	case HeapGraphNode_base::_RegExp:
+	case profiler_base::_Node_RegExp:
 		type.assign("RegExp");
 		break;
-	case HeapGraphNode_base::_HeapNumber:
+	case profiler_base::_Node_HeapNumber:
 		type.assign("Number");
 		break;
-	case HeapGraphNode_base::_Native:
+	case profiler_base::_Node_Native:
 		type.assign("Native");
 		break;
-	case HeapGraphNode_base::_Synthetic :
+	case profiler_base::_Node_Synthetic :
 		type.assign("Synthetic");
 		break;
-	case HeapGraphNode_base::_ConsString :
+	case profiler_base::_Node_ConsString :
 		type.assign("ConsString");
 		break;
-	case HeapGraphNode_base::_SlicedString :
+	case profiler_base::_Node_SlicedString :
 		type.assign("SlicedString");
 		break;
 	default :

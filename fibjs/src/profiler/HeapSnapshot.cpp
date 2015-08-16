@@ -17,15 +17,43 @@
 namespace fibjs
 {
 
-result_t profiler_base::takeSnapshot(bool debug, obj_ptr<HeapSnapshot_base>& retVal)
+class BufferStream : public v8::OutputStream {
+public:
+	virtual void EndOfStream()
+	{}
+
+	virtual WriteResult WriteAsciiChunk(char* data, int size)
+	{
+		m_buf.append(data, size);
+		return kContinue;
+	}
+
+	std::string result()
+	{
+		return m_buf.str();
+	}
+
+private:
+	StringBuffer m_buf;
+};
+
+result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 {
 	v8::HeapProfiler* profiler = Isolate::now()->m_isolate->GetHeapProfiler();
 
 	assert(profiler != 0);
 	assert(profiler->GetSnapshotCount() == 0);
 
-	retVal = new HeapSnapshot(profiler->TakeHeapSnapshot(), debug);
+	BufferStream bs;
+	profiler->TakeHeapSnapshot()->Serialize(&bs);
 	profiler->DeleteAllHeapSnapshots();
+
+	obj_ptr<HeapSnapshot> _node = new HeapSnapshot();
+	result_t hr = _node->load(bs.result().c_str());
+	if (hr < 0)
+		return hr;
+
+	retVal = _node;
 
 	return 0;
 }
@@ -34,59 +62,43 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
 {
 	obj_ptr<HeapSnapshot_base> s1, s2;
 
-	takeSnapshot(false, s1);
+	takeSnapshot(s1);
 	test->Call(v8::Undefined(Isolate::now()->m_isolate), 0, NULL);
-	takeSnapshot(false, s2);
+	takeSnapshot(s2);
 
 	return s2->diff(s1, retVal);
 }
 
-HeapSnapshot::HeapSnapshot(const v8::HeapSnapshot* snapshot, bool debug)
+result_t profiler_base::saveSnapshot(const char* fname)
 {
-	class BufferStream : public v8::OutputStream {
-	public:
-		virtual void EndOfStream()
-		{}
+	v8::HeapProfiler* profiler = Isolate::now()->m_isolate->GetHeapProfiler();
 
-		virtual WriteResult WriteAsciiChunk(char* data, int size)
-		{
-			m_buf.append(data, size);
-			return kContinue;
-		}
+	assert(profiler != 0);
+	assert(profiler->GetSnapshotCount() == 0);
 
-		std::string result()
-		{
-			return m_buf.str();
-		}
+	BufferStream bs;
+	profiler->TakeHeapSnapshot()->Serialize(&bs);
+	profiler->DeleteAllHeapSnapshots();
 
-	private:
-		StringBuffer m_buf;
-	};
+	return fs_base::ac_writeFile(fname, bs.result().c_str());
+}
 
-	m_time.now();
+result_t profiler_base::loadSnapshot(const char* fname, obj_ptr<HeapSnapshot_base>& retVal)
+{
+	std::string data;
+	result_t hr;
 
-	m_nodes = new List();
+	hr = fs_base::ac_readFile(fname, data);
+	if (hr < 0)
+		return hr;
 
-	int32_t cnt = snapshot->GetNodesCount();
-	int32_t i;
+	obj_ptr<HeapSnapshot> hs = new HeapSnapshot();
+	hr = hs->load(data.c_str());
+	if (hr < 0)
+		return hr;
 
-	for (i = 0; i < cnt; i ++) {
-		const v8::HeapGraphNode* graphnode = snapshot->GetNode(i);
-		int32_t id = (int32_t)graphnode->GetId();
-
-		obj_ptr<HeapGraphNode> pNode = new HeapGraphNode(this, graphnode);
-		_nodes.insert(std::pair<int32_t, int32_t>(id, i));
-		m_nodes->append(pNode);
-	}
-
-	m_nodes->freeze();
-
-	if (debug)
-	{
-		BufferStream bs;
-		snapshot->Serialize(&bs);
-		m_serialize = bs.result();
-	}
+	retVal = hs;
+	return 0;
 }
 
 result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal)
@@ -103,6 +115,209 @@ result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retV
 	}
 	else
 		return CALL_RETURN_NULL;
+
+	return 0;
+}
+
+template<typename T>
+inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T> &n)
+{
+	if (v.IsEmpty() || !v->IsArray())
+		return CALL_E_INVALIDARG;
+
+	v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
+	result_t hr;
+
+	for (int32_t i = 0; i < (int32_t)a->Length(); i ++)
+	{
+		T vr;
+		hr = GetArgumentValue(a->Get(i), vr, true);
+		if (hr < 0)
+			return hr;
+
+		n.append(vr);
+	}
+
+	return 0;
+}
+
+inline bool checkArray(QuickArray<std::string>& a, const char* chks[], int32_t sz)
+{
+	int32_t i;
+
+	if (a.size() < sz)
+		return false;
+
+	for (i = 0; i < sz; i ++)
+		if (!qstrcmp(a[i].c_str(), chks[i]))
+			return false;
+
+	return true;
+}
+
+inline bool is_num_type(int32_t _type)
+{
+	return _type == profiler_base::_Edge_Element ||
+	       _type == profiler_base::_Edge_Hidden;
+}
+
+result_t HeapSnapshot::load(const char* serialize)
+{
+	Isolate* isolate = Isolate::now();
+	result_t hr;
+	v8::Local<v8::Value> v;
+	v8::Local<v8::Object> o;
+
+	QuickArray<int32_t> nodes;
+	QuickArray<int32_t> edges;
+	QuickArray<std::string> names;
+	QuickArray<std::string> node_fields;
+	QuickArray<std::string> node_types;
+	QuickArray<std::string> edge_fields;
+	QuickArray<std::string> edge_types;
+	int32_t node_count, edge_count;
+	static const char* node_fields_chk[] = {"type", "name", "id", "self_size",
+	                                        "edge_count", "trace_node_id"
+	                                       };
+	static const char* node_types_chk[] = {"hidden", "array", "string", "object",
+	                                       "code", "closure", "regexp", "number",
+	                                       "native", "synthetic", "concatenated string",
+	                                       "sliced string"
+	                                      };
+	static const char* edge_fields_chk[] = {"type", "name_or_index", "to_node"};
+	static const char* edge_types_chk[] = {"context", "element", "property",
+	                                       "internal", "hidden", "shortcut", "weak"
+	                                      };
+
+	hr = encoding_base::jsonDecode(serialize, v);
+	if (hr < 0)
+		return hr;
+
+	if (!v->IsObject())
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	o = v8::Local<v8::Object>::Cast(v);
+	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "nodes")),
+	              nodes);
+	if (hr < 0)
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "edges")),
+	              edges);
+	if (hr < 0)
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "strings")),
+	              names);
+	if (hr < 0)
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "snapshot"));
+	if (v.IsEmpty() || !v->IsObject())
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	o = v8::Local<v8::Object>::Cast(v);
+	hr = GetConfigValue(o, "node_count", node_count);
+	if (hr < 0)
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	hr = GetConfigValue(o, "edge_count", edge_count);
+	if (hr < 0)
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "meta"));
+	if (v.IsEmpty() || !v->IsObject())
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	o = v8::Local<v8::Object>::Cast(v);
+	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "node_fields")),
+	              node_fields);
+	if (hr < 0 || checkArray(node_fields, node_fields_chk, ARRAYSIZE(node_fields_chk)))
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "edge_fields")),
+	              edge_fields);
+	if (hr < 0 || checkArray(edge_fields, edge_fields_chk, ARRAYSIZE(edge_fields_chk)))
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	if (node_fields.size() * node_count != nodes.size())
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	if (edge_fields.size() * edge_count != edges.size())
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "node_types"));
+	if (v.IsEmpty() || !v->IsArray())
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	hr = GetArray(v8::Local<v8::Array>::Cast(v)->Get(0), node_types);
+	if (hr < 0 || checkArray(node_types, node_types_chk, ARRAYSIZE(node_types_chk)))
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "edge_types"));
+	if (v.IsEmpty() || !v->IsArray())
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	hr = GetArray(v8::Local<v8::Array>::Cast(v)->Get(0), edge_types);
+	if (hr < 0 || checkArray(edge_types, edge_types_chk, ARRAYSIZE(edge_types_chk)))
+		return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+	int32_t node_pos = 0, edge_pos = 0;
+
+	m_nodes = new List();
+	while (node_pos < node_count)
+	{
+		int32_t _base = node_pos * (int32_t)node_fields.size();
+		int32_t _node_type = nodes[_base];
+		int32_t _node_name_id = nodes[_base + 1];
+		if (_node_name_id < 0 || _node_name_id >= names.size())
+			return CHECK_ERROR(CALL_E_INVALID_DATA);
+		std::string _node_name = names[_node_name_id];
+		int32_t _node_id = nodes[_base + 2];
+		int32_t _node_size = nodes[_base + 3];
+		int32_t _node_edge = nodes[_base + 4];
+		obj_ptr<List> _edges = new List();
+
+		if (edge_pos + _node_edge > edge_count)
+			return CHECK_ERROR(CALL_E_INVALID_DATA);
+
+		while (_node_edge --)
+		{
+			int32_t _base = edge_pos * (int32_t)edge_fields.size();
+			int32_t _edge_type = edges[_base];
+			int32_t _edge_name_id = edges[_base + 1];
+			int32_t _edge_toid = edges[_base + 2];
+			std::string _edge_name;
+
+			if (is_num_type(_edge_type))
+			{
+				char buf[64];
+
+				sprintf(buf, "%d", _edge_name_id);
+				_edge_name = buf;
+			}
+			else
+				_edge_name = names[_edge_name_id];
+
+			if (_edge_toid % node_fields.size() != 0 || _edge_toid >= edges.size())
+				return CHECK_ERROR(CALL_E_INVALID_DATA);
+			_edge_toid = nodes[_edge_toid + 2];
+
+			obj_ptr<HeapGraphEdge> _edge = new HeapGraphEdge(this, _edge_type,
+			        _edge_name, _node_id, _edge_toid);
+			_edges->append(_edge);
+
+			edge_pos ++;
+		}
+
+		obj_ptr<HeapGraphNode> _node = new HeapGraphNode(_node_type,
+		        _node_name, _node_id, _node_size, _edges);
+
+		_nodes.insert(std::pair<int32_t, int32_t>(_node_id, node_pos));
+		m_nodes->append(_node);
+
+		node_pos ++;
+	}
 
 	return 0;
 }
@@ -311,8 +526,7 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 			edge->get_type(_type);
 			edge->get_name(_name);
 
-			if (_type == HeapGraphEdge_base::_Element ||
-			        _type == HeapGraphEdge_base::_Hidden)
+			if (is_num_type(_type))
 				_name_id = atoi(_name.c_str());
 			else
 				_name_id = _ids.id(_name);

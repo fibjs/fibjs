@@ -5,22 +5,44 @@ var profiler = require("profiler");
 var fs = require("fs");
 var os = require("os");
 
+function unlink(pathname) {
+	try {
+		fs.unlink(pathname);
+	} catch (e) {}
+}
+
 describe("profiler", function() {
+	after(function() {
+		unlink("test.heapsnapshot");
+		unlink("test1.heapsnapshot");
+	});
+
 	it("take snapshot & dispose", function() {
 		var ss = profiler.takeSnapshot();
 		ss.dispose();
 	});
 
 	it("serialize", function() {
-		var ss = profiler.takeSnapshot();
-		assert.equal(ss.serialize, "");
+		profiler.saveSnapshot("test.heapsnapshot");
 
-		ss = profiler.takeSnapshot(true);
-		assert.notEqual(ss.serialize, "");
+		var ss = profiler.loadSnapshot("test.heapsnapshot");
+		ss.save("test1.heapsnapshot");
 
-		ss.save("test.heapsnapshot");
-		assert.equal(ss.serialize, fs.readFile("test.heapsnapshot"));
-		fs.unlink("test.heapsnapshot");
+		assert.equal(fs.readFile("test.heapsnapshot"),
+			fs.readFile("test1.heapsnapshot"));
+	});
+
+	it("diff", function() {
+		var ss = profiler.loadSnapshot("test.heapsnapshot");
+		var ss1 = profiler.loadSnapshot("test.heapsnapshot");
+
+		assert.deepEqual(ss.diff(ss1).change, {
+			"size_bytes": 0,
+			"size": "0 bytes",
+			"freed_nodes": 0,
+			"allocated_nodes": 0,
+			"details": []
+		});
 	});
 });
 

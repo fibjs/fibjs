@@ -19,7 +19,8 @@ namespace fibjs
 class HeapSnapshot : public HeapSnapshot_base
 {
 public:
-    HeapSnapshot(const v8::HeapSnapshot* snapshot, bool debug);
+    HeapSnapshot()
+    {}
 
 public:
     // HeapSnapshot_base
@@ -31,13 +32,13 @@ public:
     virtual result_t get_nodes(obj_ptr<List_base>& retVal);
     virtual result_t get_serialize(std::string& retVal);
 
+public:
+    result_t load(const char* serialize);
+
 private:
     date_t m_time;
     obj_ptr<List> m_nodes;
     std::map<int32_t, int32_t> _nodes;
-    obj_ptr<List> m_edges;
-    std::map<std::string, int32_t> mapNames;
-    QuickArray<std::string> names;
     std::string m_serialize;
 };
 

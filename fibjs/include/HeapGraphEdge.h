@@ -18,7 +18,12 @@ namespace fibjs
 class HeapGraphEdge : public HeapGraphEdge_base
 {
 public:
-	HeapGraphEdge(HeapSnapshot_base* snapshot, const v8::HeapGraphEdge* graphedge);
+	HeapGraphEdge(HeapSnapshot_base* snapshot, int32_t _type,
+	              std::string& _name, int32_t _fromid, int32_t _toid) :
+		m_snapshot(snapshot), m_type(_type), m_name(_name),
+		m_fromId(_fromid), m_toId(_toid)
+	{
+	}
 
 public:
 	// HeapGraphEdge_base

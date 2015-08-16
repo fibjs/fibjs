@@ -8,10 +8,77 @@
  */
 module profiler
 {
-	/*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态
+	/*! @brief 隐藏节点，当显示给用户时可以被过滤掉 */
+	const Integer Node_Hidden = 0;
+
+	/*! @brief 数组 */
+	const Integer Node_Array = 1;
+
+	/*! @brief 字符串 */
+	const Integer Node_String = 2;
+
+	/*! @brief JS对象（字符串和数组除外） */
+	const Integer Node_Object = 3;
+
+	/*! @brief 编译后的代码 */
+	const Integer Node_Code = 4;
+
+	/*! @brief 函数闭包 */
+	const Integer Node_Closure = 5;
+
+	/*! @brief 正则表达式 */
+	const Integer Node_RegExp = 6;
+
+	/*! @brief 堆中排好序的数字 */
+	const Integer Node_HeapNumber = 7;
+
+	/*! @brief Native对象（非v8堆上的） */
+	const Integer Node_Native = 8;
+
+	/*! @brief Synthetic对象 */
+	const Integer Node_Synthetic = 9;
+
+	/*! @brief 拼接的字符串 */
+	const Integer Node_ConsString = 10;
+
+	/*! @brief 分割的字符串 */
+	const Integer Node_SlicedString = 11;
+
+	/*! @brief 符号（ES6） */
+	const Integer Node_Symbol = 12;
+
+	/*! @brief 堆中排好序的SIMD值(ES7) */
+	const Integer Node_SimdValue = 13;
+
+	/*! @brief 函数中的变量 */
+	const Integer Edge_ContextVariable = 0;
+
+	/*! @brief 数组中的元素 */
+	const Integer Edge_Element = 1;
+
+	/*! @brief 有名对象的属性 */
+	const Integer Edge_Property = 2;
+
+	/*! @brief JS无法进入的链接 */
+	const Integer Edge_Internal = 3;
+
+	/*! @brief 指向需要事先计算出空间大小的节点 */
+	const Integer Edge_Hidden = 4;
+
+	/*! @brief 指向无法事先计算出空间大小的节点 */
+	const Integer Edge_Shortcut = 5;
+
+	/*! @brief 一个弱引用（被GC忽视） */
+	const Integer Edge_Weak = 6;
+
+	static saveSnapshot(String fname);
+
+	static HeapSnapshot loadSnapshot(String fname);
+
+	/*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态，生产环境不建议在内存重建快照，建议使用 saveSnapshot 直接保存快照
 	 @return 返回获取到的堆信息快照
 	 */
-	static HeapSnapshot takeSnapshot(Boolean debug = false);
+	static HeapSnapshot takeSnapshot();
 
 	/*! @brief 执行给定的函数，并对比执行前后 v8 堆的变化
 	 @param test 给定要测试的函数

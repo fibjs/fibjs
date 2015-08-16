@@ -2,63 +2,21 @@
 /*! @brief HeapGraphNode表示堆视图中的一个节点 */
 interface HeapGraphNode : object
 {
-    /*! @brief 隐藏节点，当显示给用户时可以被过滤掉 */
-    const Integer Hidden = 0;
-
-    /*! @brief 数组 */
-    const Integer Array = 1;
-
-    /*! @brief 字符串 */
-    const Integer String = 2;
-
-    /*! @brief JS对象（字符串和数组除外） */
-    const Integer Object = 3;
-
-    /*! @brief 编译后的代码 */
-    const Integer Code = 4;
-
-    /*! @brief 函数闭包 */
-    const Integer Closure = 5;
-
-    /*! @brief 正则表达式 */
-    const Integer RegExp = 6;
-
-    /*! @brief 堆中排好序的数字 */
-    const Integer HeapNumber = 7;
-
-    /*! @brief Native对象（非v8堆上的） */
-    const Integer Native = 8;
-
-    /*! @brief Synthetic对象 */
-    const Integer Synthetic = 9;
-
-    /*! @brief 拼接的字符串 */
-    const Integer ConsString = 10;
-
-    /*! @brief 分割的字符串 */
-    const Integer SlicedString = 11;
-
-    /*! @brief 符号（ES6） */
-    const Integer Symbol = 12;
-
-    /*! @brief 堆中排好序的SIMD值(ES7) */
-    const Integer SimdValue = 13;
-
     /*! @brief 节点类型，可能的值：
-     -  Hidden,         隐藏节点，当显示给用户时可以被过滤掉
-     -  Array,          数组
-     -  String,         字符串
-     -  Object,         JS对象（字符串和数组除外）
-     -  Code,           编译后的代码
-     -  Closure,        函数闭包
-     -  RegExp,         正则表达式
-     -  HeapNumber,     堆中排好序的数字
-     -  Native,         Native对象（非v8堆上的）
-     -  Synthetic,      Synthetic对象
-     -  ConsString,     拼接的字符串
-     -  SlicedString,   分割的字符串
-     -  Symbol,         符号（ES6）
-     -  SimdValue,      堆中排好序的SIMD值(ES7)
+     - profiler.Node_Hidden,         隐藏节点，当显示给用户时可以被过滤掉
+     - profiler.Node_Array,          数组
+     - profiler.Node_String,         字符串
+     - profiler.Node_Object,         JS对象（字符串和数组除外）
+     - profiler.Node_Code,           编译后的代码
+     - profiler.Node_Closure,        函数闭包
+     - profiler.Node_RegExp,         正则表达式
+     - profiler.Node_HeapNumber,     堆中排好序的数字
+     - profiler.Node_Native,         Native对象（非v8堆上的）
+     - profiler.Node_Synthetic,      Synthetic对象
+     - profiler.Node_ConsString,     拼接的字符串
+     - profiler.Node_SlicedString,   分割的字符串
+     - profiler.Node_Symbol,         符号（ES6）
+     - profiler.Node_SimdValue,      堆中排好序的SIMD值(ES7)
     */
     readonly Integer type;
 

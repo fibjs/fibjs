@@ -12,16 +12,6 @@
 namespace fibjs
 {
 
-HeapGraphEdge::HeapGraphEdge(HeapSnapshot_base* snapshot, const v8::HeapGraphEdge* graphedge)
-	: m_snapshot(snapshot)
-{
-	m_type = (int32_t)graphedge->GetType();
-	v8::Local<v8::Value> v = graphedge->GetName();
-	GetArgumentValue(v, m_name);
-	m_fromId = graphedge->GetFromNode()->GetId();
-	m_toId = graphedge->GetToNode()->GetId();
-}
-
 result_t HeapGraphEdge::get_type(int32_t& retVal)
 {
 	retVal = m_type;
