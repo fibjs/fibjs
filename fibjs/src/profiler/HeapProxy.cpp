@@ -34,6 +34,8 @@ void HeapSnapshotProxy::fill_nodes()
 			_nodes.insert(std::pair<int32_t, int32_t>(_node->GetId(), i));
 			m_nodes->append(new HeapGraphNodeProxy(this, _node));
 		}
+
+		m_nodes->freeze();
 	}
 }
 
@@ -149,6 +151,8 @@ result_t HeapGraphNodeProxy::get_childs(obj_ptr<List_base>& retVal)
 
 		for (int32_t i = 0; i < cnt; i ++)
 			m_childs->append(new HeapGraphEdgeProxy(m_snapshot, m_node->GetChild(i)));
+
+		m_childs->freeze();
 	}
 
 	retVal = m_childs;

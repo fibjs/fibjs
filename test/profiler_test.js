@@ -22,6 +22,23 @@ describe("profiler", function() {
 		ss.dispose();
 	});
 
+	it("crash when double take", function() {
+		profiler.takeSnapshot();
+		profiler.takeSnapshot();
+	});
+
+	it("disable change on proxy", function() {
+		var ss = profiler.takeSnapshot();
+		assert.throws(function() {
+			ss.nodes[0] = 100;
+		});
+
+		assert.throws(function() {
+			ss.nodes[0].childs[0] = 100;
+		});
+		ss.dispose();
+	});
+
 	it("serialize", function() {
 		profiler.saveSnapshot("test.heapsnapshot");
 
@@ -32,9 +49,16 @@ describe("profiler", function() {
 			fs.readFile("test1.heapsnapshot"));
 	});
 
-	it("crash when double take", function() {
-		profiler.takeSnapshot();
-		profiler.takeSnapshot();
+	it("disable change", function() {
+		var ss = profiler.loadSnapshot("test.heapsnapshot");
+		assert.throws(function() {
+			ss.nodes[0] = 100;
+		});
+
+		assert.throws(function() {
+			ss.nodes[0].childs[0] = 100;
+		});
+		ss.dispose();
 	});
 
 	it("diff", function() {

@@ -290,6 +290,8 @@ result_t HeapSnapshot::load(const char* serialize)
 			edge_pos ++;
 		}
 
+		_edges->freeze();
+
 		obj_ptr<HeapGraphNode> _node = new HeapGraphNode(_node_type,
 		        _node_name, _node_id, _node_size, _edges);
 
@@ -298,6 +300,8 @@ result_t HeapSnapshot::load(const char* serialize)
 
 		node_pos ++;
 	}
+
+	m_nodes->freeze();
 
 	return 0;
 }
