@@ -322,7 +322,7 @@ result_t HeapSnapshot::load(const char* serialize)
 	return 0;
 }
 
-#define BUF_SIZE	1024
+#define BUF_SIZE	8192
 result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 {
 	if (!ac)
@@ -433,7 +433,6 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 	                     "[\"timestamp_us\",\"last_assigned_id\"]},";
 
 	name_ids _ids;
-	std::map<int32_t, int32_t> mapNodes;
 	QuickArray<HeapGraphNode_base*> nodes;
 	obj_ptr<List_base> childs;
 	buf_file bufs;
@@ -488,8 +487,6 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 		cur->get_name(_name);
 		_name_id = _ids.id(_name);
 
-		mapNodes.insert(std::pair<int32_t, int32_t>(_id, i * 6));
-
 		cur->get_childs(childs);
 		childs->get_length(_child);
 
@@ -532,7 +529,7 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 				_name_id = _ids.id(_name);
 
 			_toid = edge->toid();
-			_toindex = mapNodes.find(_toid)->second;
+			_toindex = _nodes.find(_toid)->second * 6;
 
 			if (i == 0 && j == 0)
 				n = sprintf(buf, "%d,%d,%d\n", _type, _name_id, _toindex);
