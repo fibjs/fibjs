@@ -100,12 +100,12 @@ public:
 
             for (i = s; i < m_size; i++)
             {
-                ptr[p2].~T();
-                if (i < m_size - 1 && ++p2 == BlockSize())
+                ptr[p2++].~T();
+                if (i < m_size - 1 && p2 == BlockSize())
                 {
                     p1++;
-                    p2 = 0;
                     ptr = m_p[p1];
+                    p2 = 0;
                 }
             }
 
@@ -132,12 +132,12 @@ public:
 
             for (size_t i = m_size; i < s; i++)
             {
-                new (&ptr[p2]) T();
-                if (i < s - 1 && ++p2 == BlockSize())
+                new (&ptr[p2++]) T();
+                if (i < s - 1 && p2 == BlockSize())
                 {
                     p1++;
-                    p2 = 0;
                     ptr = m_p[p1];
+                    p2 = 0;
                 }
             }
         }
@@ -178,19 +178,19 @@ public:
             size_t s = m_size + n;
             _grow(n);
 
-            size_t pos = 0, p1 = m_size / BlockSize(), p2 = m_size
-                                 % BlockSize();
+            size_t pos = 0, p1 = m_size / BlockSize(),
+                   p2 = m_size % BlockSize();
             T *ptr = m_p[p1];
+
             for (size_t i = m_size; i < s; i++)
             {
-                new (&ptr[p2]) T(rhs[pos]);
-                pos++;
+                new (&ptr[p2++]) T(rhs[pos++]);
 
-                if (i < s - 1 && ++p2 == BlockSize())
+                if (i < s - 1 && p2 == BlockSize())
                 {
                     p1++;
-                    p2 = 0;
                     ptr = m_p[p1];
+                    p2 = 0;
                 }
             }
 
@@ -202,47 +202,6 @@ public:
     void append(const V &t)
     {
         append(&t, 1);
-    }
-
-    void append(const QuickArray<T> &rhs, size_t pos = 0, size_t n = -1)
-    {
-        if (n < 0 || n > rhs.m_size - pos)
-            n = rhs.m_size - pos;
-
-        if (n > 0)
-        {
-            size_t s = m_size + n;
-            _grow(n);
-
-            size_t p1 = m_size / BlockSize(), p2 = m_size % BlockSize();
-            size_t p11 = pos / BlockSize(), p21 = pos % BlockSize();
-
-            T *ptr = m_p[p1], *ptr1 = rhs.m_p[p11];
-
-            for (size_t i = m_size; i < s; i++)
-            {
-                new (&ptr[p2]) T(ptr1[p21]);
-
-                if (i < s - 1)
-                {
-                    if (++p21 == BlockSize())
-                    {
-                        p11++;
-                        p21 = 0;
-                        ptr1 = rhs.m_p[p11];
-                    }
-
-                    if (++p2 == BlockSize())
-                    {
-                        p1++;
-                        p2 = 0;
-                        ptr = m_p[p1];
-                    }
-                }
-            }
-
-            m_size = s;
-        }
     }
 
     void clear()
