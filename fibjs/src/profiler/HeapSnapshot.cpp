@@ -8,6 +8,7 @@
 #include "HeapSnapshot.h"
 #include "HeapGraphNode.h"
 #include "HeapGraphEdge.h"
+#include "HeapProxy.h"
 #include "ifs/profiler.h"
 #include "File.h"
 #include "ifs/fs.h"
@@ -40,21 +41,7 @@ private:
 result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 {
 	v8::HeapProfiler* profiler = Isolate::now()->m_isolate->GetHeapProfiler();
-
-	assert(profiler != 0);
-	assert(profiler->GetSnapshotCount() == 0);
-
-	BufferStream bs;
-	profiler->TakeHeapSnapshot()->Serialize(&bs);
-	profiler->DeleteAllHeapSnapshots();
-
-	obj_ptr<HeapSnapshot> _node = new HeapSnapshot();
-	result_t hr = _node->load(bs.result().c_str());
-	if (hr < 0)
-		return hr;
-
-	retVal = _node;
-
+	retVal = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 	return 0;
 }
 
@@ -71,16 +58,9 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
 
 result_t profiler_base::saveSnapshot(const char* fname)
 {
-	v8::HeapProfiler* profiler = Isolate::now()->m_isolate->GetHeapProfiler();
-
-	assert(profiler != 0);
-	assert(profiler->GetSnapshotCount() == 0);
-
-	BufferStream bs;
-	profiler->TakeHeapSnapshot()->Serialize(&bs);
-	profiler->DeleteAllHeapSnapshots();
-
-	return fs_base::ac_writeFile(fname, bs.result().c_str());
+	obj_ptr<HeapSnapshot_base> snapshot;
+	takeSnapshot(snapshot);
+	return snapshot->save(fname, NULL);
 }
 
 result_t profiler_base::loadSnapshot(const char* fname, obj_ptr<HeapSnapshot_base>& retVal)
@@ -583,12 +563,6 @@ result_t HeapSnapshot::get_root(obj_ptr<HeapGraphNode_base>& retVal)
 result_t HeapSnapshot::get_nodes(obj_ptr<List_base>& retVal)
 {
 	retVal = m_nodes;
-	return 0;
-}
-
-result_t HeapSnapshot::get_serialize(std::string& retVal)
-{
-	retVal = m_serialize;
 	return 0;
 }
 

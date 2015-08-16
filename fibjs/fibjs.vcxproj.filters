@@ -750,6 +750,9 @@
     <ClInclude Include="include\ifs\HeapGraphNode.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\HeapProxy.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\HeapSnapshot.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -1196,6 +1199,9 @@
       <Filter>Source Files\profiler</Filter>
     </ClCompile>
     <ClCompile Include="src\profiler\HeapGraphNode.cpp">
+      <Filter>Source Files\profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\profiler\HeapProxy.cpp">
       <Filter>Source Files\profiler</Filter>
     </ClCompile>
     <ClCompile Include="src\profiler\HeapSnapshot.cpp">

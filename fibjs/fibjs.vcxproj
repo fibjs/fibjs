@@ -103,6 +103,7 @@
     <ClInclude Include="include\GridFS.h" />
     <ClInclude Include="include\HeapGraphEdge.h" />
     <ClInclude Include="include\HeapGraphNode.h" />
+    <ClInclude Include="include\HeapProxy.h" />
     <ClInclude Include="include\HeapSnapshot.h" />
     <ClInclude Include="include\HttpCollection.h" />
     <ClInclude Include="include\HttpCookie.h" />
@@ -423,6 +424,7 @@
     <ClCompile Include="src\profiler\HeapDiff.cpp" />
     <ClCompile Include="src\profiler\HeapGraphEdge.cpp" />
     <ClCompile Include="src\profiler\HeapGraphNode.cpp" />
+    <ClCompile Include="src\profiler\HeapProxy.cpp" />
     <ClCompile Include="src\profiler\HeapSnapshot.cpp" />
     <ClCompile Include="src\sandbox\SandBox.cpp" />
     <ClCompile Include="src\sandbox\SandBox_repl.cpp" />

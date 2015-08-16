@@ -24,7 +24,4 @@ interface HeapSnapshot : object
 
     /*! @brief 堆视图节点组成的列表 */
     readonly List nodes;
-
-    /*! @brief 获取堆快照序列化后的字符串，仅用于测试*/
-    readonly String serialize;
 };

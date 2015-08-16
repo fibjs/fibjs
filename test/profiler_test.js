@@ -32,6 +32,11 @@ describe("profiler", function() {
 			fs.readFile("test1.heapsnapshot"));
 	});
 
+	it("crash when double take", function() {
+		profiler.takeSnapshot();
+		profiler.takeSnapshot();
+	});
+
 	it("diff", function() {
 		var ss = profiler.loadSnapshot("test.heapsnapshot");
 		var ss1 = profiler.loadSnapshot("test.heapsnapshot");

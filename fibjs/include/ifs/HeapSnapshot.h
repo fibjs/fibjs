@@ -32,7 +32,6 @@ public:
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
     virtual result_t get_nodes(obj_ptr<List_base>& retVal) = 0;
-    virtual result_t get_serialize(std::string& retVal) = 0;
 
 public:
     static void s_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -41,7 +40,6 @@ public:
     static void s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_serialize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
     ASYNC_MEMBER1(HeapSnapshot_base, save, const char*);
@@ -67,14 +65,13 @@ namespace fibjs
         {
             {"time", s_get_time, block_set, false},
             {"root", s_get_root, block_set, false},
-            {"nodes", s_get_nodes, block_set, false},
-            {"serialize", s_get_serialize, block_set, false}
+            {"nodes", s_get_nodes, block_set, false}
         };
 
         static ClassData s_cd = 
         { 
             "HeapSnapshot", NULL, 
-            3, s_method, 0, NULL, 4, s_property, NULL, NULL,
+            3, s_method, 0, NULL, 3, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -114,18 +111,6 @@ namespace fibjs
         PROPERTY_INSTANCE(HeapSnapshot_base);
 
         hr = pInst->get_nodes(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HeapSnapshot_base::s_get_serialize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        std::string vr;
-
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapSnapshot_base);
-
-        hr = pInst->get_serialize(vr);
 
         METHOD_RETURN();
     }
