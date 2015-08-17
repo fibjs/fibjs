@@ -59,6 +59,7 @@ module encoding
 
     /*! @brief 将字符串编码为 javascript 转义字符串，用以在 javascript 代码中包含文本
      @param str 要编码的字符串
+     @param json 是否生成json兼容字符串
      @return 返回编码的字符串
      */
     static String jsstr(String str, Boolean json = false);
