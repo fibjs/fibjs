@@ -162,7 +162,7 @@ public:
         for (i = 0; i < m_cd.mc; i++)
             if (m_cd.cms[i].is_static)
                 o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
-                                     v8::Function::New(isolate->m_isolate, m_cd.cms[i].invoker),
+                                     createV8Function(m_cd.name, isolate->m_isolate, m_cd.cms[i].invoker),
                                      (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
 
         for (i = 0; i < m_cd.oc; i++)
