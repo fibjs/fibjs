@@ -47,11 +47,13 @@ result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 
 result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
 {
+	Isolate* isolate = Isolate::now();
+	v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
 	obj_ptr<HeapSnapshot_base> s1, s2;
 
-	takeSnapshot(s1);
-	test->Call(v8::Undefined(Isolate::now()->m_isolate), 0, NULL);
-	takeSnapshot(s2);
+	s1 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
+	test->Call(v8::Undefined(isolate->m_isolate), 0, NULL);
+	s2 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
 	return s2->diff(s1, retVal);
 }
