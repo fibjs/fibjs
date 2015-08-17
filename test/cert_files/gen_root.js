@@ -8,8 +8,6 @@ var a1 = [];
 
 for (var i = 0; i < a.length; i++) {
 	var txt = a[i];
-	cert.clear();
-	cert.load(txt);
 	txt = txt.replace('-----BEGIN CERTIFICATE-----', '').replace('-----END CERTIFICATE-----', '');
 
 	var buf = new Buffer(txt, 'base64');
