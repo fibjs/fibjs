@@ -158,9 +158,7 @@ result_t HeapSnapshot::load(const char* serialize)
 	QuickArray<std::string> edge_fields;
 	QuickArray<std::string> edge_types;
 	int32_t node_count, edge_count;
-	static const char* node_fields_chk[] = {"type", "name", "id", "self_size",
-	                                        "edge_count", "trace_node_id"
-	                                       };
+	static const char* node_fields_chk[] = {"type", "name", "id", "self_size", "edge_count"};
 	static const char* node_types_chk[] = {"hidden", "array", "string", "object",
 	                                       "code", "closure", "regexp", "number",
 	                                       "native", "synthetic", "concatenated string",
