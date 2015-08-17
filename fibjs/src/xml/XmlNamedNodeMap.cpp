@@ -174,7 +174,7 @@ result_t XmlNamedNodeMap::setNamedItem(XmlAttr *newNode)
         }
     }
 
-    m_childs.push_back((XmlAttr *)newNode);
+    m_childs.append((XmlAttr *)newNode);
     return 0;
 }
 

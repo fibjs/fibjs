@@ -174,7 +174,7 @@ public:
 
 				if (i == (int32_t)subs.size()) {
 					sub = new caller(p);
-					subs.insert(subs.end(), sub);
+					subs.push_back(sub);
 				}
 				sub->put(sz, frames + 1, level - 1);
 			}

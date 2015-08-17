@@ -145,7 +145,7 @@ public:
 
     void getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList> &retVal)
     {
-        std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
+        QuickArray<XmlNodeImpl *> &childs = m_childs->m_childs;
         int32_t sz = (int32_t)childs.size();
         int32_t i;
 
@@ -166,7 +166,7 @@ public:
             return 0;
         }
 
-        std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
+        QuickArray<XmlNodeImpl *> &childs = m_childs->m_childs;
         int32_t sz = (int32_t)childs.size();
         int32_t i;
 
@@ -183,7 +183,7 @@ public:
 
     void getTextContent(StringBuffer &retVal)
     {
-        std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
+        QuickArray<XmlNodeImpl *> &childs = m_childs->m_childs;
         int32_t sz = (int32_t)childs.size();
         int32_t i;
 
@@ -216,7 +216,7 @@ public:
     void getElementsByTagNameNS(const char *namespaceURI, const char *localName,
                                 obj_ptr<XmlNodeList> &retVal)
     {
-        std::vector<XmlNodeImpl *> &childs = m_childs->m_childs;
+        QuickArray<XmlNodeImpl *> &childs = m_childs->m_childs;
         int32_t sz = (int32_t)childs.size();
         int32_t i;
 

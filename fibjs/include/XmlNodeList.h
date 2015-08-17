@@ -7,6 +7,7 @@
 
 #include "ifs/XmlNodeList.h"
 #include "ifs/XmlDocument.h"
+#include "QuickArray.h"
 
 #ifndef XMLNODELIST_H_
 #define XMLNODELIST_H_
@@ -53,7 +54,7 @@ public:
 public:
     void appendChild(XmlNodeImpl *newChild)
     {
-        m_childs.push_back(newChild);
+        m_childs.append(newChild);
     }
 
     bool hasChildNodes()
@@ -70,7 +71,7 @@ private:
 
 public:
     XmlNodeImpl *m_this;
-    std::vector<XmlNodeImpl *> m_childs;
+    QuickArray<XmlNodeImpl *> m_childs;
 };
 
 } /* namespace fibjs */
