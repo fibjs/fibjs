@@ -75,7 +75,7 @@ module profiler
 
 	static HeapSnapshot loadSnapshot(String fname);
 
-	/*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态，生产环境不建议在内存重建快照，建议使用 saveSnapshot 直接保存快照
+	/*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态
 	 @return 返回获取到的堆信息快照
 	 */
 	static HeapSnapshot takeSnapshot();
