@@ -157,8 +157,8 @@ SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
     _mod->Set(v8::String::NewFromUtf8(isolate->m_isolate, "_sbox"), m_sb->wrap());
     _mod->Set(v8::String::NewFromUtf8(isolate->m_isolate, "_id"), m_id);
 
-    m_fnRequest = v8::Function::New(isolate->m_isolate, _require, _mod);
-    m_fnRun = v8::Function::New(isolate->m_isolate, _run, _mod);
+    m_fnRequest = createV8Function("require", isolate->m_isolate, _require, _mod);
+    m_fnRun = createV8Function("run", isolate->m_isolate, _run, _mod);
 }
 
 result_t SandBox::Context::run(std::string src, const char *name, const char **argNames,
