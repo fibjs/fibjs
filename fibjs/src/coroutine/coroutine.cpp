@@ -36,14 +36,16 @@ private:
             v8::Local<v8::Value> v;
             int32_t pos = m_pos;
 
+            s->set_caller(m_caller);
+
             m_pos ++;
             if (func.IsEmpty())
                 v = v8::Local<v8::Function>::Cast(datas->Get(pos))
-                    ->Call(v8::Undefined(m_isolate), 0, NULL);
+                    ->Call(s->wrap(), 0, NULL);
             else
             {
                 v8::Local<v8::Value> a = datas->Get(pos);
-                v = func->Call(v8::Undefined(m_isolate), 1, &a);
+                v = func->Call(s->wrap(), 1, &a);
             }
 
             if (!v.IsEmpty())
@@ -72,6 +74,7 @@ private:
         m_event = new Event();
         m_error = false;
         m_pos = 0;
+        m_caller = JSFiber::current();
 
         for (i = 0; i < m_fibers; i ++)
             syncCall(worker, this);
@@ -140,6 +143,7 @@ public:
     v8::Persistent<v8::Function> m_func;
     v8::Persistent<v8::Array> m_retVal;
     obj_ptr<Event> m_event;
+    obj_ptr<Fiber_base> m_caller;
     bool m_error;
 };
 

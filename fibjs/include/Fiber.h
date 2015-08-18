@@ -40,6 +40,8 @@ public:
     static void *fiber_proc(void *p);
     void start();
 
+    void set_caller(Fiber_base* caller);
+
     Runtime &runtime()
     {
         return m_rt;

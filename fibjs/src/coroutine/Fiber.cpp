@@ -166,9 +166,9 @@ void *FiberBase::fiber_proc(void *p)
     return NULL;
 }
 
-void FiberBase::start()
+void FiberBase::set_caller(Fiber_base* caller)
 {
-    m_caller = JSFiber::current();
+    m_caller = caller;
 
     if (m_caller)
     {
@@ -186,7 +186,11 @@ void FiberBase::start()
             o->Set(k, co->Get(k));
         }
     }
+}
 
+void FiberBase::start()
+{
+    set_caller(JSFiber::current());
     g_jobs.put(this);
     Ref();
 }
