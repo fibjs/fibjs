@@ -102,7 +102,7 @@ public:
             return 0;
         }
 
-        m_fibers = fibers > 0 ? fibers : m_count;
+        m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
 
         for (i = 0; i < m_count; i++)
         {
@@ -128,7 +128,7 @@ public:
             return 0;
         }
 
-        m_fibers = fibers > 0 ? fibers : m_count;
+        m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
 
         m_datas.Reset(m_isolate, datas);
         m_func.Reset(m_isolate, func);
