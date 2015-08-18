@@ -31,17 +31,19 @@ module coroutine
     static Fiber start(Function func, ...);
 
     /*! @brief 并行执行一组函数，并等待返回
-     @param func 并行执行的函数数组
+     @param funcs 并行执行的函数数组
+     @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 funcs 数量相同 fiber
      @return 返回函数执行结果的数组
      */
-    static Array parallel(Array func);
+    static Array parallel(Array funcs, Integer fibers = -1);
 
     /*! @brief 并行执行一个函数处理一组数据，并等待返回
-     @param data 并行执行的数据数组
+     @param datas 并行执行的数据数组
      @param func 并行执行的函数
+     @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 datas 数量相同 fiber
      @return 返回函数执行结果的数组
      */
-    static Array parallel(Array data, Function func);
+    static Array parallel(Array datas, Function func, Integer fibers = -1);
 
     /*! @brief 并行执行一组函数，并等待返回
      @param ... 一组并行执行的函数

@@ -16,7 +16,7 @@ describe('coroutine', function() {
 
 		var f = coroutine.start(t_fiber, 100, 200);
 		assert.equal(n, 123);
-		coroutine.sleep();
+		coroutine.sleep(1);
 		assert.equal(n, 300);
 
 	});
@@ -71,7 +71,7 @@ describe('coroutine', function() {
 		f = coroutine.start(t_fiber2, 100, 200);
 		assert.equal(n, 2300);
 		f.v = 1000;
-		coroutine.sleep(100);
+		coroutine.sleep(10);
 		f.join();
 		assert.equal(n, 1300);
 	});
@@ -110,24 +110,23 @@ describe('coroutine', function() {
 
 	it('parallel', function() {
 		var funs = [
-
 			function() {
-				coroutine.sleep(100);
+				coroutine.sleep(10);
 				return 1;
 			},
 			function() {
-				coroutine.sleep(100);
+				coroutine.sleep(10);
 				return 2;
 			},
 			function() {
-				coroutine.sleep(100);
+				coroutine.sleep(10);
 				return 3;
 			},
 			function() {
-				coroutine.sleep(100);
+				coroutine.sleep(10);
 			},
 			function() {
-				coroutine.sleep(100);
+				coroutine.sleep(10);
 			}
 		];
 
@@ -162,6 +161,84 @@ describe('coroutine', function() {
 		assert.deepEqual(coroutine.parallel([1, 2, 3, 4, 5], function(v) {
 			return v + 1;
 		}), [2, 3, 4, 5, 6]);
+	});
+
+	it('parallel fibers limit', function() {
+		var num = 0;
+		var funs = [
+			function() {
+				var v = num++;
+				coroutine.sleep(10);
+				num--;
+				return v;
+			},
+			function() {
+				var v = num++;
+				coroutine.sleep(10);
+				num--;
+				return v;
+			},
+			function() {
+				var v = num++;
+				coroutine.sleep(10);
+				num--;
+				return v;
+			},
+			function() {
+				var v = num++;
+				coroutine.sleep(10);
+				num--;
+				return v;
+			},
+			function() {
+				var v = num++;
+				coroutine.sleep(10);
+				num--;
+				return v;
+			},
+			function() {
+				var v = num++;
+				coroutine.sleep(10);
+				num--;
+				return v;
+			}
+		];
+
+		var rs = coroutine.parallel(funs);
+		assert.deepEqual(rs, [0, 1, 2, 3, 4, 5]);
+
+		var rs = coroutine.parallel(funs, 2);
+		assert.deepEqual(rs, [0, 1, 1, 1, 1, 1]);
+
+		var rs = coroutine.parallel(funs, 3);
+		assert.deepEqual(rs, [0, 1, 2, 2, 2, 2]);
+
+		var rs = coroutine.parallel(funs, 4);
+		assert.deepEqual(rs, [0, 1, 2, 3, 3, 3]);
+
+		var num = 0;
+		assert.deepEqual(coroutine.parallel([1, 2, 3, 4, 5], function(v) {
+			var n = num++;
+			coroutine.sleep(10);
+			num--;
+			return v + n;
+		}), [1, 3, 5, 7, 9]);
+
+		var num = 0;
+		assert.deepEqual(coroutine.parallel([1, 2, 3, 4, 5], function(v) {
+			var n = num++;
+			coroutine.sleep(10);
+			num--;
+			return v + n;
+		}, 2), [1, 3, 4, 5, 6]);
+
+		var num = 0;
+		assert.deepEqual(coroutine.parallel([1, 2, 3, 4, 5], function(v) {
+			var n = num++;
+			coroutine.sleep(10);
+			num--;
+			return v + n;
+		}, 3), [1, 3, 5, 6, 7]);
 	});
 
 	it('stack overflow', function() {
@@ -317,4 +394,4 @@ describe('coroutine', function() {
 	});
 });
 
-// test.run(console.DEBUG);
+//test.run(console.DEBUG);
