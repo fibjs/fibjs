@@ -50,7 +50,7 @@ public:
     exlib::Event m_quit;
     Runtime m_rt;
     static DateCache g_dc;
-    obj_ptr<Fiber_base> m_caller;
+    weak_ptr<Fiber_base> m_caller;
 };
 
 class JSFiber: public FiberBase
