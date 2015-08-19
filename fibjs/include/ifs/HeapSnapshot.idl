@@ -14,6 +14,9 @@ interface HeapSnapshot : object
      */
     HeapGraphNode getNodeById(Integer id);
 
+    /*! @brief 根据指定名称保存HeapSnapshot
+     @param fname 快照名称
+    */
     save(String fname) async;
 
     /*! @brief 时间信息 */
