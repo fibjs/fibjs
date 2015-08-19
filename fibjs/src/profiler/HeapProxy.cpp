@@ -7,6 +7,8 @@
 
 #include "HeapProxy.h"
 #include "HeapSnapshot.h"
+#include "HeapGraphNode.h"
+#include "HeapGraphEdge.h"
 #include "StringBuffer.h"
 #include "ifs/fs.h"
 
@@ -121,6 +123,12 @@ result_t HeapGraphNodeProxy::get_name(std::string& retVal)
 	return GetArgumentValue(m_node->GetName(), retVal);
 }
 
+result_t HeapGraphNodeProxy::get_description(std::string& retVal)
+{
+	HeapGraphNode::get_description(this, retVal);
+	return 0;
+}
+
 result_t HeapGraphNodeProxy::get_id(int32_t& retVal)
 {
 	if (m_snapshot == 0)
@@ -174,6 +182,12 @@ result_t HeapGraphEdgeProxy::get_name(std::string& retVal)
 		return CHECK_ERROR(CALL_E_INVALIDARG);
 
 	return GetArgumentValue(m_edge->GetName(), retVal);
+}
+
+result_t HeapGraphEdgeProxy::get_description(std::string& retVal)
+{
+	HeapGraphEdge::get_description(this, retVal);
+	return 0;
 }
 
 result_t HeapGraphEdgeProxy::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)

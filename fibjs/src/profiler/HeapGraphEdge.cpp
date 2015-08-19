@@ -24,6 +24,12 @@ result_t HeapGraphEdge::get_name(std::string& retVal)
 	return 0;
 }
 
+result_t HeapGraphEdge::get_description(std::string& retVal)
+{
+	get_description(this, retVal);
+	return 0;
+}
+
 result_t HeapGraphEdge::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)
 {
 	if (!m_snapshot)

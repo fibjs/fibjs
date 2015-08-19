@@ -83,52 +83,8 @@ inline void manageChange(changeset& changes, HeapGraphNode_base* node,
                          bool added)
 {
 	std::string type;
-	int32_t _type;
 
-	node->get_type(_type);
-	switch (_type) {
-	case profiler_base::_Node_Array:
-		type.assign("Array");
-		break;
-	case profiler_base::_Node_String:
-		type.assign("String");
-		break;
-	case profiler_base::_Node_Object:
-		node->get_name(type);
-		break;
-	case profiler_base::_Node_Code:
-		type.assign("Code");
-		break;
-	case profiler_base::_Node_Closure:
-	{
-		node->get_name(type);
-		if (!type.empty())
-			type.append("(Closure)");
-		else
-			type.assign("Closure");
-		break;
-	}
-	case profiler_base::_Node_RegExp:
-		type.assign("RegExp");
-		break;
-	case profiler_base::_Node_HeapNumber:
-		type.assign("Number");
-		break;
-	case profiler_base::_Node_Native:
-		type.assign("Native");
-		break;
-	case profiler_base::_Node_Synthetic :
-		type.assign("Synthetic");
-		break;
-	case profiler_base::_Node_ConsString :
-		type.assign("ConsString");
-		break;
-	case profiler_base::_Node_SlicedString :
-		type.assign("SlicedString");
-		break;
-	default :
-		type.assign("Hidden");
-	}
+	node->get_description(type);
 
 	if (changes.find(type) == changes.end())
 		changes[type] = change();

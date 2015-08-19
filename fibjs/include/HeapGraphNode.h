@@ -30,9 +30,44 @@ public:
     // HeapGraphNode_base
     virtual result_t get_type(int32_t& retVal);
     virtual result_t get_name(std::string& retVal);
+    virtual result_t get_description(std::string& retVal);
     virtual result_t get_id(int32_t& retVal);
     virtual result_t get_shallowSize(int32_t& retVal);
     virtual result_t get_childs(obj_ptr<List_base>& retVal);
+
+public:
+    static void get_description(HeapGraphNode_base* node, std::string& retVal)
+    {
+        static char* types[] = {
+            "Hidden",
+            "Array",
+            "String",
+            "Object",
+            "Code",
+            "Closure",
+            "RegExp",
+            "HeapNumber",
+            "Native",
+            "Synthetic",
+            "ConsString",
+            "SlicedString",
+            "Symbol",
+            "SimdValue"
+        };
+
+        int32_t type;
+        std::string name;
+
+        node->get_type(type);
+        node->get_name(retVal);
+
+        retVal.append(1, '[');
+        if (type >= 0 && type < ARRAYSIZE(types))
+            retVal.append(types[type]);
+        else
+            retVal.append("Unknown");
+        retVal.append(1, ']');
+    }
 
 private:
     int32_t m_type;

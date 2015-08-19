@@ -29,6 +29,7 @@ public:
 	// HeapGraphEdge_base
 	virtual result_t get_type(int32_t& retVal);
 	virtual result_t get_name(std::string& retVal);
+	virtual result_t get_description(std::string& retVal);
 	virtual result_t getFromNode(obj_ptr<HeapGraphNode_base>& retVal);
 	virtual result_t getToNode(obj_ptr<HeapGraphNode_base>& retVal);
 
@@ -36,6 +37,32 @@ public:
 	int32_t toid()
 	{
 		return m_toId;
+	}
+
+	static void get_description(HeapGraphEdge_base* edge, std::string& retVal)
+	{
+		static char* types[] = {
+			"ContextVariable",
+			"Element",
+			"Property",
+			"Internal",
+			"Hidden",
+			"Shortcut",
+			"Weak"
+		};
+
+		int32_t type;
+		std::string name;
+
+		edge->get_type(type);
+		edge->get_name(retVal);
+
+		retVal.append(1, '[');
+		if (type >= 0 && type < ARRAYSIZE(types))
+			retVal.append(types[type]);
+		else
+			retVal.append("Unknown");
+		retVal.append(1, ']');
 	}
 
 private:

@@ -69,6 +69,7 @@ public:
     // HeapGraphNode_base
     virtual result_t get_type(int32_t& retVal);
     virtual result_t get_name(std::string& retVal);
+    virtual result_t get_description(std::string& retVal);
     virtual result_t get_id(int32_t& retVal);
     virtual result_t get_shallowSize(int32_t& retVal);
     virtual result_t get_childs(obj_ptr<List_base>& retVal);
@@ -91,6 +92,7 @@ public:
     // HeapGraphEdge_base
     virtual result_t get_type(int32_t& retVal);
     virtual result_t get_name(std::string& retVal);
+    virtual result_t get_description(std::string& retVal);
     virtual result_t getFromNode(obj_ptr<HeapGraphNode_base>& retVal);
     virtual result_t getToNode(obj_ptr<HeapGraphNode_base>& retVal);
 

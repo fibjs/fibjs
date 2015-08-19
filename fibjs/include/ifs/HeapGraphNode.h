@@ -27,6 +27,7 @@ public:
     // HeapGraphNode_base
     virtual result_t get_type(int32_t& retVal) = 0;
     virtual result_t get_name(std::string& retVal) = 0;
+    virtual result_t get_description(std::string& retVal) = 0;
     virtual result_t get_id(int32_t& retVal) = 0;
     virtual result_t get_shallowSize(int32_t& retVal) = 0;
     virtual result_t get_childs(obj_ptr<List_base>& retVal) = 0;
@@ -34,6 +35,7 @@ public:
 public:
     static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_id(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_shallowSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_childs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -51,6 +53,7 @@ namespace fibjs
         {
             {"type", s_get_type, block_set, false},
             {"name", s_get_name, block_set, false},
+            {"description", s_get_description, block_set, false},
             {"id", s_get_id, block_set, false},
             {"shallowSize", s_get_shallowSize, block_set, false},
             {"childs", s_get_childs, block_set, false}
@@ -59,7 +62,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "HeapGraphNode", NULL, 
-            0, NULL, 0, NULL, 5, s_property, NULL, NULL,
+            0, NULL, 0, NULL, 6, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -87,6 +90,18 @@ namespace fibjs
         PROPERTY_INSTANCE(HeapGraphNode_base);
 
         hr = pInst->get_name(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HeapGraphNode_base::s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        std::string vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(HeapGraphNode_base);
+
+        hr = pInst->get_description(vr);
 
         METHOD_RETURN();
     }

@@ -24,6 +24,12 @@ result_t HeapGraphNode::get_name(std::string& retVal)
 	return 0;
 }
 
+result_t HeapGraphNode::get_description(std::string& retVal)
+{
+	get_description(this, retVal);
+	return 0;
+}
+
 result_t HeapGraphNode::get_id(int32_t& retVal)
 {
 	retVal = m_id;

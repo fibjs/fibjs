@@ -23,6 +23,9 @@ interface HeapGraphNode : object
     /*! @brief 节点名称 */
     readonly String name;
 
+    /*! @brief 节点的描述 */
+    readonly String description;
+
     /*! @brief 节点ID */
     readonly Integer id;
 
