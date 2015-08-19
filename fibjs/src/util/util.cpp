@@ -93,8 +93,6 @@ std::string json_format(v8::Local<v8::Value> obj)
         else if (v->IsUndefined() || v->IsNull() || v->IsDate() ||
                  v->IsBoolean() || v->IsBooleanObject())
             strBuffer.append(*v8::String::Utf8Value(v));
-        else if (v->IsFunction())
-            strBuffer.append("[Function]");
         else if (v->IsNumber() || v->IsNumberObject())
             strBuffer.append(*v8::String::Utf8Value(v->ToNumber()));
         else if (v->IsString() || v->IsStringObject())
@@ -118,6 +116,9 @@ std::string json_format(v8::Local<v8::Value> obj)
         }
         else if (v->IsObject())
         {
+            if (v->IsFunction())
+                strBuffer.append("Function ");
+
             do
             {
                 v8::Local<v8::Object> obj = v->ToObject();
