@@ -12,6 +12,7 @@
 #include "ifs/profiler.h"
 #include "File.h"
 #include "ifs/fs.h"
+#include "ifs/global.h"
 #include "ifs/encoding.h"
 #include "StringBuffer.h"
 
@@ -40,6 +41,8 @@ private:
 
 result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 {
+	global_base::GC();
+
 	v8::HeapProfiler* profiler = Isolate::now()->m_isolate->GetHeapProfiler();
 	retVal = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 	return 0;
@@ -51,8 +54,12 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
 	v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
 	obj_ptr<HeapSnapshot_base> s1, s2;
 
+	global_base::GC();
 	s1 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
+
 	test->Call(v8::Undefined(isolate->m_isolate), 0, NULL);
+
+	global_base::GC();
 	s2 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
 	return s2->diff(s1, retVal);
