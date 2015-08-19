@@ -116,12 +116,15 @@ std::string json_format(v8::Local<v8::Value> obj)
         }
         else if (v->IsObject())
         {
-            if (v->IsFunction())
-                strBuffer.append("Function ");
-
             do
             {
                 v8::Local<v8::Object> obj = v->ToObject();
+
+                if (v->IsFunction() && obj->GetPropertyNames()->Length() == 0)
+                {
+                    strBuffer.append("[Function]");
+                    break;
+                }
 
                 obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
                 if (buf)
