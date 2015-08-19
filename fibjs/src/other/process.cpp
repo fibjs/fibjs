@@ -7,6 +7,7 @@
 
 #include "ifs/process.h"
 #include "ifs/os.h"
+#include "ifs/global.h"
 #include "File.h"
 #include "BufferedStream.h"
 
@@ -54,6 +55,7 @@ result_t process_base::exit(int32_t code)
     flushLog(false);
 
 #ifdef DEBUG
+    global_base::GC();
     dump_memory(0);
 #endif
 
