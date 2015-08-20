@@ -1304,7 +1304,18 @@ result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
     retVal->Set(v8::String::NewFromUtf8(isolate->m_isolate, "git"), v8::String::NewFromUtf8(isolate->m_isolate, GIT_INFO));
 #endif
 
-    retVal->Set(v8::String::NewFromUtf8(isolate->m_isolate, "build"),
+#if defined(__clang__)
+    retVal->Set(v8::String::NewFromUtf8(isolate->m_isolate, "clang"),
+                v8::String::NewFromUtf8(isolate->m_isolate,  STR(__clang_major__) "." STR(__clang_minor__)));
+#elif defined(__GNUC__)
+    retVal->Set(v8::String::NewFromUtf8(isolate->m_isolate, "gcc"),
+                v8::String::NewFromUtf8(isolate->m_isolate,  STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__)));
+#elif defined(_MSC_VER)
+    retVal->Set(v8::String::NewFromUtf8(isolate->m_isolate, "msvc"),
+                v8::String::NewFromUtf8(isolate->m_isolate,  STR(_MSC_VER)));
+#endif
+
+    retVal->Set(v8::String::NewFromUtf8(isolate->m_isolate, "date"),
                 v8::String::NewFromUtf8(isolate->m_isolate, __DATE__ " " __TIME__));
 
 #ifndef NDEBUG
