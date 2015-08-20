@@ -38,7 +38,7 @@ public:
 public:
     static void get_description(HeapGraphNode_base* node, std::string& retVal)
     {
-        static char* types[] = {
+        static const char* types[] = {
             "Hidden",
             "Array",
             "String",

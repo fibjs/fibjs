@@ -41,7 +41,7 @@ public:
 
 	static void get_description(HeapGraphEdge_base* edge, std::string& retVal)
 	{
-		static char* types[] = {
+		static const char* types[] = {
 			"ContextVariable",
 			"Element",
 			"Property",
