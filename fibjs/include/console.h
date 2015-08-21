@@ -20,7 +20,7 @@ namespace fibjs
 
 #define LOGTIME true
 
-class logger : public exlib::OSThread
+class logger : public AsyncEvent
 {
 public:
     class item : public exlib::linkitem
@@ -91,14 +91,12 @@ public:
     };
 
 public:
-    logger() : m_logEmpty(true), m_bStop(false)
+    logger() : m_bWorking(false), m_bStop(false)
     {
         int32_t i;
 
         for (i = 0; i < console_base::_NOTSET; i ++)
             m_levels[i] = true;
-
-        start();
     }
 
     virtual result_t config(v8::Local<v8::Object> o)
@@ -139,51 +137,73 @@ public:
         return 0;
     }
 
-    virtual void Run()
+    virtual int32_t post(int32_t v)
     {
-        Runtime rt;
-        DateCache dc;
-        rt.m_pDateCache = &dc;
+        result_t hr = v;
+        bool bStop = false;
 
-        Runtime::reg(&rt);
-
-        exlib::List<item> logs;
-
-        while (!m_bStop)
+        do
         {
-            m_sem.wait();
+            if (hr < 0)
+            {
+                m_lock.lock();
+                m_bWorking = false;
+                bStop = m_bStop;
+                m_lock.unlock();
 
-            m_logEmpty = false;
+                break;
+            }
 
-            m_acLog.getList(logs);
-            if (!logs.empty())
-                write(logs);
+            m_lock.lock();
 
-            m_logEmpty = true;
-        }
+            m_acLog.getList(m_workinglogs);
+            if (m_workinglogs.empty()) {
+                m_bWorking = false;
+                bStop = m_bStop;
+                m_lock.unlock();
 
-        item *p1;
-        m_acLog.getList(logs);
+                break;
+            }
 
-        while ((p1 = logs.getHead()) != 0)
-            delete p1;
+            m_lock.unlock();
+
+            hr = write(this);
+        } while (hr != CALL_E_PENDDING);
+
+        if (bStop)
+            destroy();
+
+        return hr;
+    }
+
+    virtual void invoke()
+    {
+        post(0);
     }
 
 public:
-    virtual void write(exlib::List<item> &logs) = 0;
+    virtual result_t write(AsyncEvent *ac) = 0;
 
     void log(int32_t priority, std::string& msg)
     {
         if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
         {
-            m_acLog.putTail(new item(priority, msg));
-            m_sem.post();
+            item* i = new item(priority, msg);
+
+            m_lock.lock();
+            m_acLog.putTail(i);
+            if (!m_bWorking)
+            {
+                m_bWorking = true;
+                async();
+            }
+            m_lock.unlock();
         }
     }
 
     void flush(bool bFiber)
     {
-        while (!m_acLog.empty() || !m_logEmpty)
+        while (!m_acLog.empty() || m_bWorking)
             if (bFiber)
                 coroutine_base::sleep(1);
             else
@@ -192,8 +212,15 @@ public:
 
     void stop()
     {
-        m_bStop = true;
-        m_sem.post();
+        m_lock.lock();
+        if (!m_bWorking)
+        {
+            destroy();
+            return;
+        }
+        else
+            m_bStop = true;
+        m_lock.unlock();
     }
 
 public:
@@ -219,32 +246,43 @@ public:
 
     static TextColor *get_std_color();
 
+protected:
+    exlib::List<item> m_workinglogs;
+
+    void destroy()
+    {
+        item* p1;
+        while ((p1 = m_acLog.getHead()) != 0)
+            delete p1;
+        delete this;
+    }
+
 private:
-    exlib::LockedList<item> m_acLog;
-    exlib::Semaphore m_sem;
-    bool m_logEmpty;
+    exlib::List<item> m_acLog;
+    bool m_bWorking;
     bool m_bStop;
+    exlib::spinlock m_lock;
     bool m_levels[console_base::_NOTSET];
 };
 
 class std_logger : public logger
 {
 public:
-    virtual void write(exlib::List<item> &logs);
+    virtual result_t write(AsyncEvent *ac);
     static void out(const char *txt);
 };
 
 class sys_logger : public logger
 {
 public:
-    virtual void write(exlib::List<item> &logs);
+    virtual result_t write(AsyncEvent *ac);
 };
 
 class file_logger : public logger
 {
 public:
     virtual result_t config(v8::Local<v8::Object> o);
-    virtual void write(exlib::List<item> &logs);
+    virtual result_t write(AsyncEvent *ac);
 
 private:
     void clearFile();

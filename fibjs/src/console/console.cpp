@@ -50,7 +50,7 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-extern obj_ptr<std_logger> s_std;
+extern std_logger* s_std;
 
 void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {

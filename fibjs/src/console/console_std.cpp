@@ -174,11 +174,11 @@ void std_logger::out(const char *txt)
     fflush(stdout);
 }
 
-void std_logger::write(exlib::List<item> &logs)
+result_t std_logger::write(AsyncEvent *ac)
 {
     item *p1;
 
-    while ((p1 = logs.getHead()) != 0)
+    while ((p1 = m_workinglogs.getHead()) != 0)
     {
         std::string txt;
         if (p1->m_priority == console_base::_NOTICE)
@@ -194,6 +194,8 @@ void std_logger::write(exlib::List<item> &logs)
 
         delete p1;
     }
+
+    return 0;
 }
 
 }

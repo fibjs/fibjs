@@ -199,11 +199,11 @@ result_t file_logger::initFile()
     return 0;
 }
 
-void file_logger::write(exlib::List<item> &logs)
+result_t file_logger::write(AsyncEvent *ac)
 {
     item *p1;
 
-    while (!logs.empty())
+    while (!m_workinglogs.empty())
     {
         std::string outBuffer;
         result_t hr;
@@ -211,13 +211,13 @@ void file_logger::write(exlib::List<item> &logs)
         hr = initFile();
         if (hr < 0)
         {
-            while ((p1 = logs.getHead()) != 0)
+            while ((p1 = m_workinglogs.getHead()) != 0)
                 delete p1;
 
             break;
         }
 
-        while ((p1 = logs.getHead()) != 0)
+        while ((p1 = m_workinglogs.getHead()) != 0)
         {
             outBuffer.append(p1->full());
             outBuffer.append("\n", 1);
@@ -243,7 +243,7 @@ void file_logger::write(exlib::List<item> &logs)
         }
     }
 
-    sleep(20);
+    return 0;
 }
 
 }
