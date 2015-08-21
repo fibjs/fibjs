@@ -61,7 +61,8 @@ bool options(int32_t* argc, char *argv[])
 			printHelp();
 			return true;
 		} else if (!qstrcmp(arg, "--v8-options")) {
-			argv[i] = "--help";
+			v8::V8::SetFlagsFromString("--help", 6);
+			return true;
 		}
 	}
 
