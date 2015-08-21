@@ -20,7 +20,7 @@ void init_acThread();
 void init_logger();
 void init_net();
 void init_fiber();
-void options(int32_t* argc, char *argv[]);
+bool options(int32_t* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
 {
@@ -117,7 +117,8 @@ int32_t main(int32_t argc, char *argv[])
 {
     ::setlocale(LC_ALL, "");
 
-    fibjs::options(&argc, argv);
+    if ( fibjs::options(&argc, argv) )
+        return 0;
     fibjs::init_prof();
 
     fibjs::init_argv(argc, argv);
