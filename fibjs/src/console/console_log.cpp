@@ -11,16 +11,16 @@ namespace fibjs
 {
 
 static int32_t s_loglevel = console_base::_NOTSET;
-
 std_logger* s_std;
+stream_logger* s_stream;
+
+#define MAX_LOGGER  10
+static logger* s_logs[MAX_LOGGER];
 
 void init_logger()
 {
     s_std = new std_logger;
 }
-
-#define MAX_LOGGER  10
-static logger* s_logs[MAX_LOGGER];
 
 void asyncLog(int32_t priority, std::string msg)
 {
@@ -40,6 +40,9 @@ void asyncLog(int32_t priority, std::string msg)
 
         if (i == 0)
             s_std->log(priority, msg);
+
+        if (s_stream)
+            s_stream->log(priority, msg);
     }
 }
 

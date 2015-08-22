@@ -278,6 +278,24 @@ public:
     virtual result_t write(AsyncEvent *ac);
 };
 
+class stream_logger : public logger
+{
+public:
+    stream_logger(Stream_base* out) : m_out(out)
+    {}
+
+public:
+    virtual result_t write(AsyncEvent *ac);
+
+    void close()
+    {
+        m_out->ac_close();
+    }
+
+private:
+    obj_ptr<Stream_base> m_out;
+};
+
 class file_logger : public logger
 {
 public:

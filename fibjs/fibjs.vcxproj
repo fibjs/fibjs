@@ -329,6 +329,7 @@
     <ClCompile Include="src\console\console_file.cpp" />
     <ClCompile Include="src\console\console_log.cpp" />
     <ClCompile Include="src\console\console_std.cpp" />
+    <ClCompile Include="src\console\console_stream.cpp" />
     <ClCompile Include="src\console\console_sys.cpp" />
     <ClCompile Include="src\console\TextColor.cpp" />
     <ClCompile Include="src\coroutine\BlockQueue.cpp" />

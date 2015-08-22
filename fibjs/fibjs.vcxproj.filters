@@ -835,6 +835,9 @@
     <ClCompile Include="src\console\console_std.cpp">
       <Filter>Source Files\console</Filter>
     </ClCompile>
+    <ClCompile Include="src\console\console_stream.cpp">
+      <Filter>Source Files\console</Filter>
+    </ClCompile>
     <ClCompile Include="src\console\console_sys.cpp">
       <Filter>Source Files\console</Filter>
     </ClCompile>
