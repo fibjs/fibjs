@@ -61,7 +61,7 @@ extern std_logger* s_std;
 
 result_t SandBox::Context::repl(Stream_base* out)
 {
-    result_t hr;
+    result_t hr = 0;
     std::string buf;
     v8::Local<v8::Value> v, v1;
     Isolate* isolate = Isolate::now();
@@ -98,8 +98,9 @@ result_t SandBox::Context::repl(Stream_base* out)
                 s_std->log(console_base::_INFO, line);
         } else
             hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
+
         if (hr < 0)
-            return hr;
+            break;
 
         if (line.empty())
             continue;
@@ -149,7 +150,7 @@ result_t SandBox::Context::repl(Stream_base* out)
         delete logger;
     }
 
-    return 0;
+    return hr;
 }
 
 }
