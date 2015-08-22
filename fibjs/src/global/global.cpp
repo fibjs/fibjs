@@ -27,4 +27,9 @@ result_t global_base::repl()
 	return Isolate::now()->m_topSandbox->repl();
 }
 
+result_t global_base::repl(Stream_base* out)
+{
+	return Isolate::now()->m_topSandbox->repl(out);
+}
+
 }

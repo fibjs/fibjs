@@ -6,6 +6,7 @@
  */
 
 #include "ifs/SandBox.h"
+#include "ifs/Stream.h"
 #include <map>
 
 #ifndef SANDBOX_H_
@@ -69,7 +70,7 @@ public:
     }
 
     result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);
-    result_t repl();
+    result_t repl(Stream_base* out = NULL);
 
     result_t run(const char *fname, v8::Local<v8::Value> replFunc);
 
@@ -90,7 +91,7 @@ public:
         result_t run(std::string src, const char *name, v8::Local<v8::Object> module,
                      v8::Local<v8::Object> exports);
 
-        static result_t repl();
+        static result_t repl(Stream_base* out);
 
     public:
         obj_ptr<SandBox> m_sb;

@@ -20,6 +20,7 @@ namespace fibjs
 class Buffer_base;
 class Int64_base;
 class console_base;
+class Stream_base;
 
 class global_base : public object_base
 {
@@ -31,6 +32,7 @@ public:
     static result_t require(const char* id, v8::Local<v8::Value>& retVal);
     static result_t GC();
     static result_t repl();
+    static result_t repl(Stream_base* out);
 
 public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,6 +46,7 @@ public:
 #include "Buffer.h"
 #include "Int64.h"
 #include "console.h"
+#include "Stream.h"
 
 namespace fibjs
 {
@@ -114,6 +117,12 @@ namespace fibjs
         METHOD_ENTER(0, 0);
 
         hr = repl();
+
+        METHOD_OVER(1, 1);
+
+        ARG(obj_ptr<Stream_base>, 0);
+
+        hr = repl(v0);
 
         METHOD_VOID();
     }

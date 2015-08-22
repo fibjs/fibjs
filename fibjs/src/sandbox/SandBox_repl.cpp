@@ -6,17 +6,25 @@
  */
 
 #include "SandBox.h"
-
 #include "ifs/process.h"
 #include "ifs/console.h"
 #include "ifs/util.h"
+#include "BufferedStream.h"
+#include "console.h"
+#include "parse.h"
 
 namespace fibjs
 {
 
 bool repl_command(std::string &line)
 {
-    if (!qstrcmp(line.c_str(), ".help"))
+    _parser p(line);
+    std::string cmd;
+
+    p.skipSpace();
+    p.getWord(cmd);
+
+    if (!qstrcmp(cmd.c_str(), ".help"))
     {
         asyncLog(console_base::_INFO,
                  ".exit   Exit the repl\n"
@@ -26,10 +34,10 @@ bool repl_command(std::string &line)
         return true;
     }
 
-    if (!qstrcmp(line.c_str(), ".exit"))
+    if (!qstrcmp(cmd.c_str(), ".exit"))
         return false;
 
-    if (!qstrcmp(line.c_str(), ".info"))
+    if (!qstrcmp(cmd.c_str(), ".info"))
     {
         v8::Local<v8::Object> o;
 
@@ -38,17 +46,20 @@ bool repl_command(std::string &line)
         return true;
     }
 
-    asyncLog(console_base::_ERROR, line + ": command not found.");
+    asyncLog(console_base::_ERROR, cmd + ": command not found.");
     return true;
 }
 
-result_t SandBox::repl()
+result_t SandBox::repl(Stream_base* out)
 {
     Context context(this, "repl");
-    return Context::repl();
+    return Context::repl(out);
 }
 
-result_t SandBox::Context::repl()
+extern stream_logger* s_stream;
+extern std_logger* s_std;
+
+result_t SandBox::Context::repl(Stream_base* out)
 {
     result_t hr;
     std::string buf;
@@ -56,6 +67,20 @@ result_t SandBox::Context::repl()
     Isolate* isolate = Isolate::now();
     v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate->m_isolate, "repl",
                                      v8::String::kNormalString, 4);
+    obj_ptr<BufferedStream_base> bs;
+    stream_logger* logger = NULL;
+
+    if (out)
+    {
+        if (logger = s_stream)
+        {
+            s_stream = NULL;
+            logger->close();
+        }
+
+        s_stream = logger = new stream_logger(out);
+        bs = new BufferedStream(out);
+    }
 
     while (true)
     {
@@ -65,7 +90,14 @@ result_t SandBox::Context::repl()
         v = v1;
 
         std::string line;
-        hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
+        if (out)
+        {
+            asyncLog(console_base::_PRINT, buf.empty() ? "> " : " ... ");
+            hr = bs->ac_readLine(-1, line);
+            if (hr >= 0)
+                s_std->log(console_base::_INFO, line);
+        } else
+            hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
         if (hr < 0)
             return hr;
 
@@ -107,6 +139,14 @@ result_t SandBox::Context::repl()
             if (v.IsEmpty())
                 ReportException(try_catch, 0);
         }
+    }
+
+    if (out)
+    {
+        if (logger == s_stream)
+            s_stream = NULL;
+
+        delete logger;
     }
 
     return 0;
