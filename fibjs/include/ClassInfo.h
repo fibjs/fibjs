@@ -151,32 +151,50 @@ public:
         return m_cd.name;
     }
 
-    void Attach(v8::Local<v8::Object> o)
+    void Attach(v8::Local<v8::Object> o, const char** skips = NULL)
     {
         Isolate* isolate = Isolate::now();
         v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context);
 
         _init();
-        int32_t i;
+        int32_t i, j;
 
         for (i = 0; i < m_cd.mc; i++)
+        {
             if (m_cd.cms[i].is_static)
-                o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
-                                     createV8Function(m_cd.name, isolate->m_isolate, m_cd.cms[i].invoker),
-                                     (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+            {
+                if (skips)
+                    for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cms[i].name); j ++);
+
+                if (!skips || !skips[j])
+                    o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
+                                         createV8Function(m_cd.name, isolate->m_isolate, m_cd.cms[i].invoker),
+                                         (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+            }
+        }
 
         for (i = 0; i < m_cd.oc; i++)
         {
             m_cd.cos[i].invoker()._init();
-            o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
-                                 v8::Local<v8::Function>::New(isolate->m_isolate, m_cd.cos[i].invoker().m_function),
-                                 (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+            if (skips)
+                for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cms[i].name); j ++);
+
+            if (!skips || !skips[j])
+                o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
+                                     v8::Local<v8::Function>::New(isolate->m_isolate, m_cd.cos[i].invoker().m_function),
+                                     (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
         }
 
         for (i = 0; i < m_cd.pc; i++)
             if (m_cd.cps[i].is_static)
-                o->SetAccessor(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cps[i].name),
-                               m_cd.cps[i].getter, m_cd.cps[i].setter);
+            {
+                if (skips)
+                    for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cms[i].name); j ++);
+
+                if (!skips || !skips[j])
+                    o->SetAccessor(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cps[i].name),
+                                   m_cd.cps[i].getter, m_cd.cps[i].setter);
+            }
     }
 
 public:
