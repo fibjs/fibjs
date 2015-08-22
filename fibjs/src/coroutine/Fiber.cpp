@@ -225,21 +225,16 @@ result_t FiberBase::get_caller(obj_ptr<Fiber_base> &retVal)
     return 0;
 }
 
-void JSFiber::callFunction1(v8::Local<v8::Function> func,
-                            v8::Local<v8::Value> *args, int32_t argCount,
-                            v8::Local<v8::Value> &retVal)
+JSFiber *JSFiber::current()
 {
-    TryCatch try_catch;
-    retVal = func->Call(wrap(), argCount, args);
-    if (try_catch.HasCaught())
-    {
-        m_error = true;
-        ReportException(try_catch, 0);
-    }
+    return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
-void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
+void JSFiber::js_invoke()
 {
+    scope s(this);
+    v8::Local<v8::Value> retVal;
+
     size_t i;
     Isolate* isolate = Isolate::now();
     std::vector<v8::Local<v8::Value> > argv;
@@ -250,22 +245,12 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
         argv[i] = v8::Local<v8::Value>::New(isolate->m_isolate, m_argv[i]);
 
     clear();
-    callFunction1(func, argv.data(), (int32_t) argv.size(), retVal);
+
+    retVal = func->Call(wrap(), (int32_t) argv.size(), argv.data());
 
     if (!IsEmpty(retVal))
         m_result.Reset(isolate->m_isolate, retVal);
-}
 
-JSFiber *JSFiber::current()
-{
-    return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
-}
-
-void JSFiber::js_invoke()
-{
-    scope s(this);
-    v8::Local<v8::Value> retVal;
-    callFunction(retVal);
     Unref();
 }
 

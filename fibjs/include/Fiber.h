@@ -78,11 +78,6 @@ public:
     };
 
 public:
-    JSFiber() :
-        m_error(false)
-    {
-    }
-
     ~JSFiber()
     {
         clear();
@@ -129,15 +124,6 @@ public:
         return 0;
     }
 
-    static void call(v8::Local<v8::Function> func, v8::Local<v8::Value> *args,
-                     int32_t argCount, v8::Local<v8::Value> &retVal)
-    {
-        JSFiber *fb = (JSFiber *) current();
-
-        if (fb)
-            fb->callFunction1(func, args, argCount, retVal);
-    }
-
     result_t get_result(v8::Local<v8::Value> &retVal)
     {
         if (m_result.IsEmpty())
@@ -145,11 +131,6 @@ public:
 
         retVal = v8::Local<v8::Value>::New(Isolate::now()->m_isolate, m_result);
         return 0;
-    }
-
-    bool isError()
-    {
-        return m_error;
     }
 
     void clear()
@@ -165,16 +146,9 @@ public:
     }
 
 private:
-    void callFunction(v8::Local<v8::Value> &retVal);
-    void callFunction1(v8::Local<v8::Function> func,
-                       v8::Local<v8::Value> *args, int32_t argCount,
-                       v8::Local<v8::Value> &retVal);
-
-private:
     v8::Persistent<v8::Function> m_func;
     QuickArray<v8::Persistent<v8::Value> > m_argv;
     v8::Persistent<v8::Value> m_result;
-    bool m_error;
 };
 
 } /* namespace fibjs */
