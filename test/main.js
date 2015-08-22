@@ -1,4 +1,4 @@
-#!/bin/js
+#!/usr/local/bin/fibjs
 
 var test = require("test");
 var coroutine = require('coroutine');
