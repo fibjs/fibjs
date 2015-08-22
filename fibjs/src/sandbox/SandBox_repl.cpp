@@ -72,7 +72,7 @@ result_t SandBox::Context::repl(Stream_base* out)
 
     if (out)
     {
-        if (logger = s_stream)
+        if ((logger = s_stream) != NULL)
         {
             s_stream = NULL;
             logger->close();
