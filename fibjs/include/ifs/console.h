@@ -33,6 +33,7 @@ public:
         _NOTICE = 5,
         _INFO = 6,
         _DEBUG = 7,
+        _PRINT = 9,
         _NOTSET = 10
     };
 
@@ -78,6 +79,7 @@ public:
     static void s_get_NOTICE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_INFO(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_DEBUG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_PRINT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -143,6 +145,7 @@ namespace fibjs
             {"NOTICE", s_get_NOTICE, block_set, true},
             {"INFO", s_get_INFO, block_set, true},
             {"DEBUG", s_get_DEBUG, block_set, true},
+            {"PRINT", s_get_PRINT, block_set, true},
             {"NOTSET", s_get_NOTSET, block_set, true},
             {"loglevel", s_get_loglevel, s_set_loglevel, true},
             {"colors", s_get_colors, block_set, true}
@@ -151,7 +154,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "console", NULL, 
-            17, s_method, 0, NULL, 11, s_property, NULL, NULL,
+            17, s_method, 0, NULL, 12, s_property, NULL, NULL,
             NULL
         };
 
@@ -211,6 +214,13 @@ namespace fibjs
     inline void console_base::s_get_DEBUG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _DEBUG;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void console_base::s_get_PRINT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _PRINT;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }

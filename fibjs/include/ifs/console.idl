@@ -38,6 +38,9 @@ module console
     /*! @brief loglevel 级别常量 */
     const Integer DEBUG = 7;
 
+    /*! @brief loglevel 仅用于输出，信息输出后不换行，file 和 syslog 不保存此级别信息 */
+    const Integer PRINT = 9;
+
     /*! @brief loglevel 级别常量 */
     const Integer NOTSET = 10;
 

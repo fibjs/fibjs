@@ -187,6 +187,8 @@ result_t std_logger::write(AsyncEvent *ac)
             txt = logger::warn() + p1->m_msg + COLOR_RESET + "\n";
         else if (p1->m_priority <= console_base::_ERROR)
             txt = logger::error() + p1->m_msg + COLOR_RESET + "\n";
+        else if (p1->m_priority == console_base::_PRINT)
+            txt = p1->m_msg;
         else
             txt = p1->m_msg + "\n";
 

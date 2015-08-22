@@ -20,7 +20,9 @@ result_t sys_logger::write(AsyncEvent *ac)
 
 	while ((p1 = m_workinglogs.getHead()) != 0)
 	{
-		::syslog(p1->m_priority, "%s", p1->full(false).c_str());
+		if (p1->m_priority != console_base::_PRINT)
+			::syslog(p1->m_priority, "%s", p1->full(false).c_str());
+
 		delete p1;
 	}
 

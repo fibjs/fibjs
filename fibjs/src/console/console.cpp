@@ -217,12 +217,7 @@ result_t console_base::_assert(v8::Local<v8::Value> value, const char *msg)
 
 result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    flushLog(true);
-
-    std::string str;
-    util_base::format(fmt, args, str);
-    s_std->out(str.c_str());
-
+    _log(_PRINT, fmt, args);
     return 0;
 }
 
