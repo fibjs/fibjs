@@ -123,6 +123,17 @@ describe("vm", function() {
 		});
 	});
 
+	it("block global repl&argv", function() {
+		sbox = new vm.SandBox({});
+		assert.throws(function() {
+			sbox.addScript("t1.js", "repl;");
+		});
+
+		assert.throws(function() {
+			sbox.addScript("t2.js", "argv;");
+		});
+	});
+
 	it("block function return", function() {
 		sbox = new vm.SandBox({});
 		assert.throws(function() {

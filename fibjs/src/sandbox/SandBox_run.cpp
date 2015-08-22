@@ -95,12 +95,15 @@ void _require(const v8::FunctionCallbackInfo<v8::Value> &args)
 
 void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
+    Isolate* isolate = Isolate::now();
     int32_t argc = args.Length();
-    if (argc > 1)
+
+    if (argc > 2)
     {
         ThrowResult(CALL_E_BADPARAMCOUNT);
         return;
     }
+
     if (argc < 1)
     {
         ThrowResult(CALL_E_PARAMNOTOPTIONAL);
@@ -115,7 +118,18 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
-    Isolate* isolate = Isolate::now();
+    v8::Local<v8::Array> argv;
+    if (argc == 2)
+    {
+        result_t hr = GetArgumentValue(args[1], argv);
+        if (hr < 0)
+        {
+            ThrowResult(hr);
+            return;
+        }
+    } else
+        argv = v8::Array::New(isolate->m_isolate);
+
     v8::Local<v8::Object> _mod = args.Data()->ToObject();
     obj_ptr<SandBox> sbox = (SandBox *)SandBox_base::getInstance(
                                 _mod->Get(v8::String::NewFromUtf8(isolate->m_isolate, "_sbox")));
@@ -133,7 +147,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
         id = strPath + id;
     }
 
-    hr = sbox->run(id.c_str());
+    hr = sbox->run(id.c_str(), argv);
     if (hr < 0)
     {
         if (hr == CALL_E_JAVASCRIPT)
@@ -212,17 +226,18 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     return 0;
 }
 
-result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::Value> replFunc)
+result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::Array> argv,
+                               v8::Local<v8::Value> replFunc)
 {
-    static const char *names[] = {"require", "run", "repl"};
+    static const char *names[] = {"require", "run", "argv", "repl"};
 
     if (replFunc.IsEmpty())
     {
-        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun};
+        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun, argv};
         return run(src, name, names, args, ARRAYSIZE(names) - 1);
     } else
     {
-        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun, replFunc};
+        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun, argv, replFunc};
         return run(src, name, names, args, ARRAYSIZE(names));
     }
 }
@@ -478,7 +493,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
     return require("", sid, retVal, FULL_SEARCH);
 }
 
-result_t SandBox::run(const char *fname, v8::Local<v8::Value> replFunc)
+result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8::Value> replFunc)
 {
     result_t hr;
 
@@ -507,12 +522,12 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Value> replFunc)
         pname = sname.c_str();
     }
 
-    return context.run(buf, pname, replFunc);
+    return context.run(buf, pname, argv, replFunc);
 }
 
-result_t SandBox::run(const char *fname)
+result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv)
 {
-    return run(fname, v8::Local<v8::Value>());
+    return run(fname, argv, v8::Local<v8::Value>());
 }
 
 }

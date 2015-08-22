@@ -77,7 +77,7 @@ void _main(const char *fname)
     v8::Context::Scope context_scope(_context);
 
     v8::Local<v8::Object> glob = _context->Global();
-    static const char* skips[] = {"repl", NULL};
+    static const char* skips[] = {"repl", "argv", NULL};
     global_base::class_info().Attach(glob, skips);
 
     isolate->m_context.Reset(isolate->m_isolate, _context);
@@ -98,8 +98,12 @@ void _main(const char *fname)
         isolate->m_topSandbox = new SandBox();
 
         isolate->m_topSandbox->initRoot();
-        if (fname)
-            hr = s.m_hr = isolate->m_topSandbox->run(fname, replFunc);
+        if (fname) {
+            v8::Local<v8::Array> argv;
+
+            global_base::get_argv(argv);
+            hr = s.m_hr = isolate->m_topSandbox->run(fname, argv, replFunc);
+        }
         else
             hr = s.m_hr = isolate->m_topSandbox->repl();
     }

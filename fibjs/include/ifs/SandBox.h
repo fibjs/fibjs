@@ -30,7 +30,7 @@ public:
     virtual result_t addScript(const char* srcname, const char* script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t remove(const char* id) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
-    virtual result_t run(const char* fname) = 0;
+    virtual result_t run(const char* fname, v8::Local<v8::Array> argv) = 0;
     virtual result_t require(const char* id, v8::Local<v8::Value>& retVal) = 0;
 
 public:
@@ -164,11 +164,12 @@ namespace fibjs
     inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
+        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(Isolate::now()->m_isolate));
 
-        hr = pInst->run(v0);
+        hr = pInst->run(v0, v1);
 
         METHOD_VOID();
     }

@@ -177,7 +177,7 @@ public:
         {
             m_cd.cos[i].invoker()._init();
             if (skips)
-                for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cms[i].name); j ++);
+                for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cos[i].name); j ++);
 
             if (!skips || !skips[j])
                 o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
@@ -189,7 +189,7 @@ public:
             if (m_cd.cps[i].is_static)
             {
                 if (skips)
-                    for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cms[i].name); j ++);
+                    for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cps[i].name); j ++);
 
                 if (!skips || !skips[j])
                     o->SetAccessor(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cps[i].name),

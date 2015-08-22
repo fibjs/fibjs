@@ -34,7 +34,7 @@ public:
     virtual result_t addScript(const char *srcname, const char *script, v8::Local<v8::Value> &retVal);
     virtual result_t remove(const char *id);
     virtual result_t clone(obj_ptr<SandBox_base> &retVal);
-    virtual result_t run(const char *fname);
+    virtual result_t run(const char *fname, v8::Local<v8::Array> argv);
     virtual result_t require(const char *id, v8::Local<v8::Value> &retVal);
 
 public:
@@ -72,7 +72,7 @@ public:
     result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);
     result_t repl(Stream_base* out = NULL);
 
-    result_t run(const char *fname, v8::Local<v8::Value> replFunc);
+    result_t run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8::Value> replFunc);
 
     std::string name()
     {
@@ -87,7 +87,7 @@ public:
 
         result_t run(std::string src, const char *name, const char **argNames,
                      v8::Local<v8::Value> *args, int32_t argCount);
-        result_t run(std::string src, const char *name, v8::Local<v8::Value> replFunc);
+        result_t run(std::string src, const char *name, v8::Local<v8::Array> argv, v8::Local<v8::Value> replFunc);
         result_t run(std::string src, const char *name, v8::Local<v8::Object> module,
                      v8::Local<v8::Object> exports);
 

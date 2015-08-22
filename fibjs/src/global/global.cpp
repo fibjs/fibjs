@@ -1,6 +1,7 @@
 #include "ifs/global.h"
 #include "ifs/coroutine.h"
 #include "ifs/vm.h"
+#include "ifs/process.h"
 #include "SandBox.h"
 
 namespace fibjs
@@ -12,9 +13,14 @@ result_t global_base::GC()
 	return 0;
 }
 
-result_t global_base::run(const char *fname)
+result_t global_base::run(const char *fname, v8::Local<v8::Array> argv)
 {
-	return Isolate::now()->m_topSandbox->run(fname);
+	return Isolate::now()->m_topSandbox->run(fname, argv);
+}
+
+result_t global_base::get_argv(v8::Local<v8::Array>& retVal)
+{
+	return process_base::get_argv(retVal);
 }
 
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)

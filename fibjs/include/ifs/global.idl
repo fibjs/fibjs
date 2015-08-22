@@ -13,8 +13,12 @@ module global
 
     /*! @brief 运行一个脚本
      @param fname 指定要运行的脚本路径
+     @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      */
-    static run(String fname);
+    static run(String fname, Array argv = []);
+
+    /*! @brief 获取当前脚本的运行参数，启动 js 获取进程启动参数，run 执行的脚本获取传递的参数 */
+    static readonly Array argv;
 
     /*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
 
