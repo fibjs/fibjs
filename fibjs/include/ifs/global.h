@@ -32,8 +32,8 @@ public:
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t require(const char* id, v8::Local<v8::Value>& retVal);
     static result_t GC();
-    static result_t repl();
-    static result_t repl(Stream_base* out);
+    static result_t repl(v8::Local<v8::Array> cmds);
+    static result_t repl(Stream_base* out, v8::Local<v8::Array> cmds);
 
 public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -132,15 +132,18 @@ namespace fibjs
 
     inline void global_base::s_repl(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER(1, 0);
 
-        hr = repl();
-
-        METHOD_OVER(1, 1);
-
-        ARG(obj_ptr<Stream_base>, 0);
+        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(Isolate::now()->m_isolate));
 
         hr = repl(v0);
+
+        METHOD_OVER(2, 1);
+
+        ARG(obj_ptr<Stream_base>, 0);
+        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(Isolate::now()->m_isolate));
+
+        hr = repl(v0, v1);
 
         METHOD_VOID();
     }

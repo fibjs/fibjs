@@ -98,14 +98,18 @@ void _main(const char *fname)
         isolate->m_topSandbox = new SandBox();
 
         isolate->m_topSandbox->initRoot();
-        if (fname) {
+        if (fname)
+        {
             v8::Local<v8::Array> argv;
 
             global_base::get_argv(argv);
             hr = s.m_hr = isolate->m_topSandbox->run(fname, argv, replFunc);
         }
         else
-            hr = s.m_hr = isolate->m_topSandbox->repl();
+        {
+            v8::Local<v8::Array> cmds = v8::Array::New(isolate->m_isolate);
+            hr = s.m_hr = isolate->m_topSandbox->repl(cmds);
+        }
     }
 
     process_base::exit(hr);

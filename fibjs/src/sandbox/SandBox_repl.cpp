@@ -16,28 +16,56 @@
 namespace fibjs
 {
 
-bool repl_command(std::string &line)
+bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
 {
     _parser p(line);
-    std::string cmd;
+    std::string cmd_word;
+    result_t hr;
+    int32_t len = cmds->Length();
+    int32_t i;
 
     p.skipSpace();
-    p.getWord(cmd);
+    p.getWord(cmd_word);
 
-    if (!qstrcmp(cmd.c_str(), ".help"))
+    if (!qstrcmp(cmd_word.c_str(), ".help"))
     {
-        asyncLog(console_base::_INFO,
-                 ".exit   Exit the repl\n"
-                 ".help   Show repl options\n"
-                 ".info   Show fibjs build information"
-                );
+        std::string help_str = ".exit   Exit the repl\n"
+                               ".help   Show repl options\n"
+                               ".info   Show fibjs build information";
+
+        for (i = 0; i < len; i ++)
+        {
+            v8::Local<v8::Value> v = cmds->Get(i);
+            v8::Local<v8::Object> o;
+            std::string cmd;
+            std::string help;
+
+            hr = GetArgumentValue(v, o, true);
+            if (hr >= 0)
+            {
+                hr = GetConfigValue(o, "cmd", cmd, true);
+                if (hr >= 0)
+                    hr = GetConfigValue(o, "help", help, true);
+            }
+
+            if (hr < 0)
+            {
+                asyncLog(console_base::_ERROR, "Invalid cmds argument.");
+                return false;
+            }
+
+            cmd.append(8, ' ');
+            help_str = help_str + "\n" + cmd.substr(0, 8) + help;
+        }
+
+        asyncLog(console_base::_INFO, help_str);
         return true;
     }
 
-    if (!qstrcmp(cmd.c_str(), ".exit"))
+    if (!qstrcmp(cmd_word.c_str(), ".exit"))
         return false;
 
-    if (!qstrcmp(cmd.c_str(), ".info"))
+    if (!qstrcmp(cmd_word.c_str(), ".info"))
     {
         v8::Local<v8::Object> o;
 
@@ -46,20 +74,62 @@ bool repl_command(std::string &line)
         return true;
     }
 
-    asyncLog(console_base::_ERROR, cmd + ": command not found.");
+    for (i = 0; i < len; i ++)
+    {
+        v8::Local<v8::Value> v = cmds->Get(i);
+        v8::Local<v8::Object> o;
+        std::string cmd;
+        v8::Local<v8::Function> exec;
+
+        hr = GetArgumentValue(v, o, true);
+        if (hr >= 0)
+        {
+            hr = GetConfigValue(o, "cmd", cmd, true);
+            if (hr >= 0)
+                hr = GetConfigValue(o, "exec", exec, true);
+        }
+
+        if (hr < 0)
+        {
+            asyncLog(console_base::_ERROR, "Invalid cmds argument.");
+            return false;
+        }
+
+        if (!qstrcmp(cmd_word.c_str(), cmd.c_str()))
+        {
+            v8::Local<v8::Array> argv = v8::Array::New(Isolate::now()->m_isolate);
+            int32_t n = 0;
+
+            while (!cmd_word.empty())
+            {
+                argv->Set(n ++, GetReturnValue(cmd_word));
+                p.skipSpace();
+                p.getWord(cmd_word);
+            }
+
+            TryCatch try_catch;
+            v = argv;
+            v = exec->Call(o, 1, &v);
+            if (v.IsEmpty())
+                ReportException(try_catch, 0);
+            return true;
+        }
+    }
+
+    asyncLog(console_base::_ERROR, cmd_word + ": command not found.");
     return true;
 }
 
-result_t SandBox::repl(Stream_base* out)
+result_t SandBox::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 {
     Context context(this, "repl");
-    return Context::repl(out);
+    return Context::repl(cmds, out);
 }
 
 extern stream_logger* s_stream;
 extern std_logger* s_std;
 
-result_t SandBox::Context::repl(Stream_base* out)
+result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 {
     result_t hr = 0;
     std::string buf;
@@ -81,6 +151,8 @@ result_t SandBox::Context::repl(Stream_base* out)
         s_stream = logger = new stream_logger(out);
         bs = new BufferedStream(out);
     }
+
+    asyncLog(console_base::_INFO, "Type \".help\" for more information.");
 
     while (true)
     {
@@ -107,7 +179,7 @@ result_t SandBox::Context::repl(Stream_base* out)
 
         if (line[0] == '.')
         {
-            if (!repl_command(line))
+            if (!repl_command(line, cmds))
                 break;
             continue;
         }

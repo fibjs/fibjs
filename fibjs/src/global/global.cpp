@@ -28,14 +28,14 @@ result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 	return Isolate::now()->m_topSandbox->require(id, retVal);
 }
 
-result_t global_base::repl()
+result_t global_base::repl(v8::Local<v8::Array> cmds)
 {
-	return Isolate::now()->m_topSandbox->repl();
+	return Isolate::now()->m_topSandbox->repl(cmds);
 }
 
-result_t global_base::repl(Stream_base* out)
+result_t global_base::repl(Stream_base* out, v8::Local<v8::Array> cmds)
 {
-	return Isolate::now()->m_topSandbox->repl(out);
+	return Isolate::now()->m_topSandbox->repl(cmds, out);
 }
 
 }
