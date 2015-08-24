@@ -368,6 +368,7 @@
     <ClCompile Include="src\encoding\encoding.cpp" />
     <ClCompile Include="src\encoding\encoding_bson.cpp" />
     <ClCompile Include="src\encoding\encoding_iconv.cpp" />
+    <ClCompile Include="src\encoding\encoding_json.cpp" />
     <ClCompile Include="src\fs\File.cpp" />
     <ClCompile Include="src\fs\fs.cpp" />
     <ClCompile Include="src\fs\path.cpp" />

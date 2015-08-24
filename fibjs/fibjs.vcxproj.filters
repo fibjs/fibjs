@@ -949,6 +949,9 @@
     <ClCompile Include="src\encoding\encoding_iconv.cpp">
       <Filter>Source Files\encoding</Filter>
     </ClCompile>
+    <ClCompile Include="src\encoding\encoding_json.cpp">
+      <Filter>Source Files\encoding</Filter>
+    </ClCompile>
     <ClCompile Include="src\fs\File.cpp">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
