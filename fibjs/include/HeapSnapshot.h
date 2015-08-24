@@ -28,7 +28,7 @@ public:
     virtual result_t get_nodes(obj_ptr<List_base>& retVal);
 
 public:
-    result_t load(const char* serialize);
+    result_t load(const char* fname);
     static result_t diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
                          v8::Local<v8::Object>& retVal);
 

@@ -74,15 +74,10 @@ result_t profiler_base::saveSnapshot(const char* fname)
 
 result_t profiler_base::loadSnapshot(const char* fname, obj_ptr<HeapSnapshot_base>& retVal)
 {
-	std::string data;
 	result_t hr;
 
-	hr = fs_base::ac_readFile(fname, data);
-	if (hr < 0)
-		return hr;
-
 	obj_ptr<HeapSnapshot> hs = new HeapSnapshot();
-	hr = hs->load(data.c_str());
+	hr = hs->load(fname);
 	if (hr < 0)
 		return hr;
 
@@ -150,7 +145,7 @@ inline bool is_num_type(int32_t _type)
 	       _type == profiler_base::_Edge_Hidden;
 }
 
-result_t HeapSnapshot::load(const char* serialize)
+result_t HeapSnapshot::load(const char* fname)
 {
 	Isolate* isolate = Isolate::now();
 	result_t hr;
@@ -176,9 +171,15 @@ result_t HeapSnapshot::load(const char* serialize)
 	                                       "internal", "hidden", "shortcut", "weak"
 	                                      };
 
-	hr = encoding_base::jsonDecode(serialize, v);
+	std::string data;
+	hr = fs_base::ac_readFile(fname, data);
 	if (hr < 0)
 		return hr;
+
+	hr = encoding_base::jsonDecode(data.c_str(), v);
+	if (hr < 0)
+		return hr;
+	data.resize(0);
 
 	if (!v->IsObject())
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
