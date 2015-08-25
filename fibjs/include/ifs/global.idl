@@ -44,7 +44,7 @@ module global
      @param cmds 补充命令，格式如下：
      @code
         [
-            cmd: "test",
+            cmd: ".test",
             help: "this is a test",
             exec: function(argv) {
                 console.log(argv);
@@ -61,7 +61,7 @@ module global
      @param cmds 补充命令，格式如下：
      @code
         [
-            cmd: "test",
+            cmd: ".test",
             help: "this is a test",
             exec: function(argv) {
                 console.log(argv);
