@@ -98,6 +98,43 @@ private:
     int32_t m_v;
 };
 
+class CAsyncCall: public AsyncEvent
+{
+public:
+    CAsyncCall(void **a) :
+        args(a)
+    {
+    }
+
+    virtual int32_t post(int32_t v)
+    {
+        if (v == CALL_E_EXCEPTION)
+            m_error = Runtime::errMessage();
+
+        m_v = v;
+        weak.set();
+
+        return 0;
+    }
+
+    int32_t wait()
+    {
+        weak.wait();
+        if (m_v == CALL_E_EXCEPTION)
+            Runtime::setError(m_error);
+
+        return m_v;
+    }
+
+protected:
+    exlib::Event weak;
+    void **args;
+
+private:
+    std::string m_error;
+    int32_t m_v;
+};
+
 class AsyncState: public AsyncEvent
 {
 public:
