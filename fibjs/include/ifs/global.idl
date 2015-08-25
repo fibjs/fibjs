@@ -44,10 +44,19 @@ module global
      @param cmds 补充命令，格式如下：
      @code
         [
-            cmd: ".test",
-            help: "this is a test",
-            exec: function(argv) {
-                console.log(argv);
+            {
+                cmd: ".test",
+                help: "this is a test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
+            },
+            {
+                cmd: ".test1",
+                help: "this is an other test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
             }
         ]
      @endcode
@@ -61,10 +70,19 @@ module global
      @param cmds 补充命令，格式如下：
      @code
         [
-            cmd: ".test",
-            help: "this is a test",
-            exec: function(argv) {
-                console.log(argv);
+            {
+                cmd: ".test",
+                help: "this is a test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
+            },
+            {
+                cmd: ".test1",
+                help: "this is an other test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
             }
         ]
      @endcode
