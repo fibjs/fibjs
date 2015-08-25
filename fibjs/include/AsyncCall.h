@@ -35,6 +35,27 @@ public:
     }
 };
 
+class AsyncTask : public exlib::Task_base
+{
+public:
+    AsyncTask(AsyncEvent *ac) : m_ac(ac)
+    {}
+
+public:
+    virtual void suspend()
+    {
+    }
+
+    virtual void resume()
+    {
+        m_ac->post(0);
+        delete this;
+    }
+
+private:
+    AsyncEvent *m_ac;
+};
+
 class AsyncCall: public AsyncEvent
 {
 public:

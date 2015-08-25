@@ -104,7 +104,7 @@ public:
 private:
     static void InterruptCallback(v8::Isolate *isolate, void *data)
     {
-        coroutine_base::sleep(0);
+        coroutine_base::ac_sleep(0);
     }
 
 } s_preemptThread;
