@@ -32,7 +32,7 @@ void API_closeSocket(void *sock)
 
 int32_t API_connectSocket(void *sock, const char *host, int32_t port)
 {
-    return fibjs::socket::connect(sock, host, port);
+    return fibjs::socket::c_connect(sock, host, port);
 }
 
 int32_t API_setTimeout(void *sock, int32_t timeoutSec)
@@ -46,12 +46,12 @@ void API_clearException(void)
 
 int32_t API_recvSocket(void *sock, char *buffer, int32_t cbBuffer)
 {
-    return fibjs::socket::recv(sock, buffer, cbBuffer);
+    return fibjs::socket::c_recv(sock, buffer, cbBuffer);
 }
 
 int32_t API_sendSocket(void *sock, const char *buffer, int32_t cbBuffer)
 {
-    return fibjs::socket::send(sock, buffer, cbBuffer);
+    return fibjs::socket::c_send(sock, buffer, cbBuffer);
 }
 
 void *API_createResult(int32_t columns)
@@ -147,6 +147,9 @@ UMConnectionCAPI capi =
 result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal,
                             AsyncEvent *ac)
 {
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     if (qstrcmp(connString, "mysql:", 6))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -175,8 +178,6 @@ result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal,
 
 static void close_conn(UMConnection conn)
 {
-    JSFiber::scope s;
-
     UMConnection_Close(conn);
     UMConnection_Destroy(conn);
 }
@@ -185,7 +186,7 @@ mysql::~mysql()
 {
     if (m_conn)
     {
-        syncCall(close_conn, m_conn);
+        asyncCall(close_conn, m_conn);
         m_conn = NULL;
     }
 }
@@ -212,6 +213,12 @@ result_t mysql::connect(const char *host, int32_t port, const char *username,
 }
 result_t mysql::close(AsyncEvent *ac)
 {
+    if (!m_conn)
+        return 0;
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     if (m_conn)
     {
         UMConnection_Close(m_conn);
@@ -224,6 +231,12 @@ result_t mysql::close(AsyncEvent *ac)
 
 result_t mysql::use(const char *dbName, AsyncEvent *ac)
 {
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     obj_ptr<DBResult_base> retVal;
     std::string s("USE ", 4);
     s.append(dbName);
@@ -232,18 +245,36 @@ result_t mysql::use(const char *dbName, AsyncEvent *ac)
 
 result_t mysql::begin(AsyncEvent *ac)
 {
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     obj_ptr<DBResult_base> retVal;
     return execute("BEGIN", 5, retVal);
 }
 
 result_t mysql::commit(AsyncEvent *ac)
 {
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     obj_ptr<DBResult_base> retVal;
     return execute("COMMIT", 6, retVal);
 }
 
 result_t mysql::rollback(AsyncEvent *ac)
 {
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     obj_ptr<DBResult_base> retVal;
     return execute("ROLLBACK", 8, retVal);
 }
@@ -267,6 +298,12 @@ result_t mysql::execute(const char *sql, int32_t sLen,
 
 result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
 {
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     return execute(sql, (int32_t) qstrlen(sql), retVal);
 }
 
