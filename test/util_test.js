@@ -884,13 +884,13 @@ describe('util', function() {
 		});
 
 		it("timeout", function() {
-			c = new util.LruCache(3, 100);
+			c = new util.LruCache(3, 200);
 
 			c.put('f', 100);
 			c.put('d', 300);
 			c.put('e', 400);
 
-			coroutine.sleep(50);
+			coroutine.sleep(100);
 			c.put('f', 500);
 			deepEqual(c.toJSON(), {
 				"f": 500,
@@ -898,7 +898,7 @@ describe('util', function() {
 				"d": 300
 			});
 
-			coroutine.sleep(20);
+			coroutine.sleep(40);
 			deepEqual(c.toJSON(), {
 				"f": 500,
 				"e": 400,
@@ -908,14 +908,14 @@ describe('util', function() {
 			c.put('e', 700);
 
 			assert.equal(c.get('d'), 300);
-			coroutine.sleep(51);
+			coroutine.sleep(101);
 			deepEqual(c.toJSON(), {
 				"e": 700,
 				"f": 500
 			});
 
 			assert.equal(c.get('f'), 500);
-			coroutine.sleep(30);
+			coroutine.sleep(60);
 			deepEqual(c.toJSON(), {
 				"e": 700
 			});
