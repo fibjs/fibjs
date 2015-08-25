@@ -247,7 +247,7 @@ result_t Int64::toString(int32_t base, std::string &retVal)
     if (64 - pos > 0)
         retVal.assign(buf + pos, 64 - pos);
     else
-        retVal.assign("0", 1);
+        retVal.assign(__base, 1);
 
     return 0;
 }

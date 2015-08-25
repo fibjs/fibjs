@@ -140,6 +140,17 @@ describe('Int64', function() {
 		assert.equal(n.toString(64), "P7cuph2VDIQ");
 		assert.isTrue(n.equal(new Int64("P7cuph2VDIQ", 64)));
 
+		n = new Int64(0);
+
+		assert.equal(n.toString(16), "0x0");
+		assert.isTrue(n.equal(new Int64("0x0", 16)));
+
+		assert.equal(n.toString(32), "a");
+		assert.isTrue(n.equal(new Int64("a", 32)));
+
+		assert.equal(n.toString(64), "A");
+		assert.isTrue(n.equal(new Int64("A", 64)));
+
 		assert.throws(function() {
 			n.toString(17);
 		});
