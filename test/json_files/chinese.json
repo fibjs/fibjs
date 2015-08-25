@@ -1,0 +1,16 @@
+{
+	"home": {
+		"name": "首页",
+		"type": "public"
+	},
+	"bbs": {
+		"name": "讨论区",
+		"icon": "824e96de9bf50201723460bd02617693",
+		"type": "public"
+	},
+	"cool": {
+		"name": "精华区",
+		"icon": "b0664edec12f8a92eed73f5d36c09f28",
+		"type": "public"
+	}
+}

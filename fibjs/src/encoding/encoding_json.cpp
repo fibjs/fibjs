@@ -184,7 +184,7 @@ result_t encoding_base::jsonDecode(const char *data,
 
 			Advance();
 			while (c0_ != '"') {
-				if (c0_ < 0x20)
+				if (c0_ >= 0 && c0_ < 0x20)
 					return ReportUnexpectedCharacter();
 
 				if (c0_ != '\\') {
@@ -193,7 +193,7 @@ result_t encoding_base::jsonDecode(const char *data,
 					while (c0_ != '"' && c0_ != '\\')
 					{
 						Advance();
-						if (c0_ < 0x20)
+						if (c0_ >= 0 && c0_ < 0x20)
 							return ReportUnexpectedCharacter();
 					}
 					str.append(utf8to16String(source_ + beg_pos, position_ - beg_pos));
