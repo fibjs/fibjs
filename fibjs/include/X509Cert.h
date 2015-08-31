@@ -6,7 +6,7 @@
  */
 
 #include "ifs/X509Cert.h"
-#include <mbedtls/polarssl/x509_crt.h>
+#include <mbedtls/mbedtls/x509_crt.h>
 
 #ifndef _fj_X509CERT_H
 #define _fj_X509CERT_H
@@ -45,7 +45,7 @@ public:
 
 
 public:
-    result_t load(const x509_crt *crt);
+    result_t load(const mbedtls_x509_crt *crt);
 
 public:
     struct _name
@@ -58,10 +58,10 @@ public:
     static _name g_types[];
 
 public:
-    x509_crt m_crt;
+    mbedtls_x509_crt m_crt;
 
 private:
-    x509_crt *get_crt();
+    mbedtls_x509_crt *get_crt();
 
 private:
     struct _cert

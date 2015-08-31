@@ -11,7 +11,7 @@
 #include "Socket.h"
 #include "Url.h"
 #include "X509Cert.h"
-#include <mbedtls/polarssl/error.h>
+#include <mbedtls/mbedtls/error.h>
 
 namespace fibjs
 {
@@ -22,7 +22,7 @@ result_t _ssl::setError(int32_t ret)
 {
     char msg[128];
 
-    polarssl_strerror(ret, msg, sizeof(msg));
+    mbedtls_strerror(ret, msg, sizeof(msg));
     return CHECK_ERROR(Runtime::setError(msg));
 }
 

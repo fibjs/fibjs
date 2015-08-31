@@ -10,6 +10,10 @@
 #include "Buffer.h"
 #include "Cipher.h"
 #include "ssl.h"
+#include <mbedtls/mbedtls/net.h>
+#include <mbedtls/mbedtls/ssl_cookie.h>
+#include <mbedtls/mbedtls/timing.h>
+
 
 #ifndef SSLSOCKET_H_
 #define SSLSOCKET_H_
@@ -40,7 +44,7 @@ private:
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
-            if (pThis->m_ret == POLARSSL_ERR_NET_WANT_READ)
+            if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_READ)
             {
                 if (pThis->m_buf)
                 {
@@ -51,8 +55,9 @@ private:
                 else
                     pThis->m_pThis->m_recv_pos = -1;
             }
-
+            printf("SslSocket.h process begin:%d\n", pThis->m_ret);
             pThis->m_ret = pThis->process();
+            printf("SslSocket.h process end:%d\n", pThis->m_ret);
             if (pThis->m_ret == 0)
             {
                 if (pThis->m_pThis->m_send.length() > 0)
@@ -65,8 +70,8 @@ private:
             }
 
             pThis->set(send);
-            if (pThis->m_ret == POLARSSL_ERR_NET_WANT_READ ||
-                    pThis->m_ret == POLARSSL_ERR_NET_WANT_WRITE)
+            if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                    pThis->m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
                 return 0;
 
             return CHECK_ERROR(_ssl::setError(pThis->m_ret));
@@ -84,7 +89,7 @@ private:
 
             pThis->m_buf = new Buffer(m_send);
             m_send.resize(0);
-
+            printf("SslSocket.h send:%d\n", pThis->m_ret);
             return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
         }
 
@@ -95,7 +100,8 @@ private:
             pThis->m_buf.Release();
 
             pThis->set(process);
-            if (pThis->m_ret == POLARSSL_ERR_NET_WANT_WRITE)
+            printf("SslSocket.h recv:%d\n", pThis->m_ret);
+            if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
                 return 0;
 
             return pThis->m_pThis->m_s->read(-1, pThis->m_buf, pThis);
@@ -111,12 +117,14 @@ private:
             m_send.resize(0);
 
             pThis->set(end);
+            printf("SslSocket.h flush:%d\n", pThis->m_ret);
             return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
         }
 
         static int32_t end(AsyncState *pState, int32_t n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
+            printf("SslSocket.h end:%d\n", pThis->m_ret);
             return pThis->done(pThis->finally());
         }
 
@@ -183,7 +191,10 @@ public:
     result_t setCert(X509Cert_base *crt, PKey_base *key);
 
 public:
-    ssl_context m_ssl;
+    mbedtls_ssl_context m_ssl;
+    mbedtls_ssl_config m_ssl_conf;
+    mbedtls_ssl_cookie_ctx cookie_ctx;
+    mbedtls_timing_delay_context timer;
 
 private:
     obj_ptr<X509Cert> m_ca;
@@ -193,6 +204,7 @@ private:
     std::string m_recv;
     int32_t m_recv_pos;
     std::string m_send;
+    int32_t verification;
 };
 
 }

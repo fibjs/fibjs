@@ -76,19 +76,19 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
 
     time_t t;
     int32_t i, ret;
-    havege_state hs;
+    mbedtls_havege_state hs;
     unsigned char buf[1024];
     std::string strBuf;
 
     strBuf.resize(size);
 
-    havege_init(&hs);
+    mbedtls_havege_init(&hs);
 
     t = time(NULL);
 
     for (i = 0; i < size; i += sizeof(buf))
     {
-        ret = havege_random(&hs, buf, sizeof(buf));
+        ret = mbedtls_havege_random(&hs, buf, sizeof(buf));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -110,27 +110,27 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retV
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t i, ret;
-    entropy_context entropy;
-    unsigned char buf[ENTROPY_BLOCK_SIZE];
+    mbedtls_entropy_context entropy;
+    unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
     std::string strBuf;
 
     strBuf.resize(size);
 
-    entropy_init(&entropy);
+    mbedtls_entropy_init(&entropy);
 
     for (i = 0; i < size; i += sizeof(buf))
     {
-        ret = entropy_func(&entropy, buf, sizeof(buf));
+        ret = mbedtls_entropy_func(&entropy, buf, sizeof(buf));
         if (ret != 0)
         {
-            entropy_free(&entropy);
+            mbedtls_entropy_free(&entropy);
             return CHECK_ERROR(_ssl::setError(ret));
         }
 
         memcpy(&strBuf[i], buf, size - i > (int32_t)sizeof(buf) ? (int32_t)sizeof(buf) : size - i);
     }
 
-    entropy_free(&entropy);
+    mbedtls_entropy_free(&entropy);
     retVal = new Buffer(strBuf);
 
     return 0;

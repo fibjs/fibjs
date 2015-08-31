@@ -6,8 +6,8 @@
  */
 
 #include "ifs/PKey.h"
-#include <mbedtls/polarssl/config.h>
-#include <mbedtls/polarssl/pk.h>
+#include <mbedtls/mbedtls/config.h>
+#include <mbedtls/mbedtls/pk.h>
 
 #ifndef _fj_PKEY_H
 #define _fj_PKEY_H
@@ -45,13 +45,13 @@ public:
     virtual result_t verify(Buffer_base *sign, Buffer_base *data, bool &retVal, AsyncEvent *ac);
 
 public:
-    result_t copy(const pk_context &key);
+    result_t copy(const mbedtls_pk_context &key);
 
 private:
     void clear();
 
 public:
-    pk_context m_key;
+    mbedtls_pk_context m_key;
 };
 
 }
