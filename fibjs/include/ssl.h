@@ -9,11 +9,11 @@
 #define _fj_SSL_H_
 
 #include "ifs/ssl.h"
-#include <mbedtls/polarssl/config.h>
-#include <mbedtls/polarssl/entropy.h>
-#include <mbedtls/polarssl/ctr_drbg.h>
-#include <mbedtls/polarssl/ssl.h>
-#include <mbedtls/polarssl/ssl_cache.h>
+#include <mbedtls/mbedtls/config.h>
+#include <mbedtls/mbedtls/entropy.h>
+#include <mbedtls/mbedtls/ctr_drbg.h>
+#include <mbedtls/mbedtls/ssl.h>
+#include <mbedtls/mbedtls/ssl_cache.h>
 #include "X509Cert.h"
 
 namespace fibjs
@@ -24,22 +24,24 @@ class _ssl
 public:
     _ssl()
     {
-        entropy_init(&entropy);
-        ctr_drbg_init(&ctr_drbg, entropy_func, &entropy,
-                      (const unsigned char *) "fibjs", 5);
+        mbedtls_entropy_init(&entropy);
 
-        ssl_cache_init(&m_cache);
+        mbedtls_ctr_drbg_init(&ctr_drbg);
+        mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                              (const unsigned char *) "fibjs", 5);
+
+        mbedtls_ssl_cache_init(&m_cache);
         m_authmode = ssl_base::_VERIFY_REQUIRED;
 
-        m_min_version = SSL_MINOR_VERSION_0;
-        m_max_version = SSL_MINOR_VERSION_2;
+        m_min_version = MBEDTLS_SSL_MINOR_VERSION_0;
+        m_max_version = MBEDTLS_SSL_MINOR_VERSION_2;
     }
 
     ~_ssl()
     {
-        ssl_cache_free(&m_cache);
+        mbedtls_ssl_cache_free(&m_cache);
 
-        entropy_free(&entropy);
+        mbedtls_entropy_free(&entropy);
     }
 
 public:
@@ -52,9 +54,9 @@ public:
     }
 
 public:
-    ssl_cache_context m_cache;
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
+    mbedtls_ssl_cache_context m_cache;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
     int32_t m_authmode;
     int32_t m_min_version;
     int32_t m_max_version;
