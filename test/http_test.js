@@ -1019,35 +1019,35 @@ describe("http", function() {
 
 		describe("request", function() {
 			it("simple", function() {
-				assert.equal(http.request("GET", "https://127.0.0.1:8883/request").body.read().toString(),
+				assert.equal(http.request("GET", "https://localhost:8883/request").body.read().toString(),
 					"/request");
 			});
 
 			it("body", function() {
-				assert.equal(http.request("GET", "https://127.0.0.1:8883/request:", "body").body.read().toString(),
+				assert.equal(http.request("GET", "https://localhost:8883/request:", "body").body.read().toString(),
 					"/request:body");
 			});
 
 			it("header", function() {
-				assert.equal(http.request("GET", "https://127.0.0.1:8883/request:", {
+				assert.equal(http.request("GET", "https://localhost:8883/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
 
 			it("gzip", function() {
-				assert.equal(http.get("https://127.0.0.1:8883/gzip_test").body.read().toString(),
+				assert.equal(http.get("https://localhost:8883/gzip_test").body.read().toString(),
 					"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 			});
 		});
 
 		describe("get", function() {
 			it("simple", function() {
-				assert.equal(http.get("https://127.0.0.1:8883/request").body.read().toString(),
+				assert.equal(http.get("https://localhost:8883/request").body.read().toString(),
 					"/request");
 			});
 
 			it("header", function() {
-				assert.equal(http.get("https://127.0.0.1:8883/request:", {
+				assert.equal(http.get("https://localhost:8883/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
@@ -1056,13 +1056,13 @@ describe("http", function() {
 		describe("post", function() {
 			it("body", function() {
 				assert.equal(http.post(
-						"https://127.0.0.1:8883/request:", "body").body
+						"https://localhost:8883/request:", "body").body
 					.read().toString(), "/request:body");
 			});
 
 			it("header", function() {
 				assert.equal(http.post(
-					"https://127.0.0.1:8883/request:", "", {
+					"https://localhost:8883/request:", "", {
 						"test_header": "header"
 					}).body.read().toString(), "/request:header");
 			});

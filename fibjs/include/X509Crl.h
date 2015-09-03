@@ -6,7 +6,7 @@
  */
 
 #include "ifs/X509Crl.h"
-#include <mbedtls/polarssl/x509_crl.h>
+#include <mbedtls/mbedtls/x509_crl.h>
 
 #ifndef _fj_X509CRL_H
 #define _fj_X509CRL_H
@@ -29,7 +29,7 @@ public:
 	virtual result_t clear();
 
 private:
-	x509_crl m_crl;
+	mbedtls_x509_crl m_crl;
 };
 
 }

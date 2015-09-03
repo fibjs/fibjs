@@ -17,7 +17,7 @@
 #include <pcre/pcre.h>
 #include <tiff/include/tiffvers.h>
 #include <mongo/include/mongo.h>
-#include <mbedtls/polarssl/version.h>
+#include <mbedtls/mbedtls/version.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
@@ -1344,7 +1344,7 @@ result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
         vender->Set(v8::String::NewFromUtf8(isolate->m_isolate, "pcre"), v8::String::NewFromUtf8(isolate->m_isolate,
                     STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
         vender->Set(v8::String::NewFromUtf8(isolate->m_isolate, "png"), v8::String::NewFromUtf8(isolate->m_isolate, PNG_LIBPNG_VER_STRING));
-        vender->Set(v8::String::NewFromUtf8(isolate->m_isolate, "mbedtls"), v8::String::NewFromUtf8(isolate->m_isolate, POLARSSL_VERSION_STRING));
+        vender->Set(v8::String::NewFromUtf8(isolate->m_isolate, "mbedtls"), v8::String::NewFromUtf8(isolate->m_isolate, MBEDTLS_VERSION_STRING));
         vender->Set(v8::String::NewFromUtf8(isolate->m_isolate, "snappy"),
                     v8::String::NewFromUtf8(isolate->m_isolate,  STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL)));
         vender->Set(v8::String::NewFromUtf8(isolate->m_isolate, "sqlite"), v8::String::NewFromUtf8(isolate->m_isolate, SQLITE_VERSION));

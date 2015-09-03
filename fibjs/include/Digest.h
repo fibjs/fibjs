@@ -6,7 +6,7 @@
  */
 
 #include "ifs/Digest.h"
-#include <mbedtls/polarssl/md.h>
+#include <mbedtls/mbedtls/md.h>
 
 #ifndef DIGEST_H_
 #define DIGEST_H_
@@ -17,8 +17,8 @@ namespace fibjs
 class Digest : public Digest_base
 {
 public:
-    Digest(md_type_t algo);
-    Digest(md_type_t algo, const char *key, int32_t sz);
+    Digest(mbedtls_md_type_t algo);
+    Digest(mbedtls_md_type_t algo, const char *key, int32_t sz);
     ~Digest();
 
 public:
@@ -29,7 +29,7 @@ public:
     virtual result_t get_size(int32_t &retVal);
 
 private:
-    md_context_t m_ctx;
+    mbedtls_md_context_t m_ctx;
     int32_t m_iAlgo;
     bool m_bMac;
 };
