@@ -23,7 +23,7 @@ result_t PKey_base::_new(obj_ptr<PKey_base> &retVal, v8::Local<v8::Object> This)
 
 PKey::PKey()
 {
-    pk_init(&m_key);
+    mbedtls_pk_init(&m_key);
 }
 
 PKey::~PKey()
@@ -33,8 +33,8 @@ PKey::~PKey()
 
 void PKey::clear()
 {
-    if (pk_get_type(&m_key))
-        pk_free(&m_key);
+    if (mbedtls_pk_get_type(&m_key))
+        mbedtls_pk_free(&m_key);
 }
 
 result_t PKey::genRsaKey(int32_t size, AsyncEvent *ac)
@@ -49,12 +49,12 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent *ac)
 
     clear();
 
-    ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_RSA));
+    ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    ret = rsa_gen_key(pk_rsa(m_key), ctr_drbg_random, &g_ssl.ctr_drbg,
-                      size, 65537);
+    ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(m_key), mbedtls_ctr_drbg_random,
+                              &g_ssl.ctr_drbg, size, 65537);
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -67,8 +67,8 @@ result_t PKey::genEcKey(const char *curve, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    const ecp_curve_info *curve_info;
-    curve_info = ecp_curve_info_from_name(curve);
+    const mbedtls_ecp_curve_info *curve_info;
+    curve_info = mbedtls_ecp_curve_info_from_name(curve);
     if (curve_info == NULL)
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
@@ -76,12 +76,12 @@ result_t PKey::genEcKey(const char *curve, AsyncEvent *ac)
 
     clear();
 
-    ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
+    ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    ret = ecp_gen_key(curve_info->grp_id, pk_ec(m_key),
-                      ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = mbedtls_ecp_gen_key(curve_info->grp_id, mbedtls_pk_ec(m_key),
+                              mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -91,18 +91,18 @@ result_t PKey::genEcKey(const char *curve, AsyncEvent *ac)
 
 result_t PKey::isPrivate(bool &retVal)
 {
-    pk_type_t type = pk_get_type(&m_key);
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
 
-    if (type == POLARSSL_PK_RSA)
+    if (type == MBEDTLS_PK_RSA)
     {
-        retVal = rsa_check_privkey(pk_rsa(m_key)) == 0;
+        retVal = mbedtls_rsa_check_privkey(mbedtls_pk_rsa(m_key)) == 0;
         return 0;
     }
 
-    if (type == POLARSSL_PK_ECKEY)
+    if (type == MBEDTLS_PK_ECKEY)
     {
-        ecp_keypair *ecp = pk_ec(m_key);
-        retVal = ecp_check_privkey(&ecp->grp, &ecp->d) == 0;
+        mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(m_key);
+        retVal = mbedtls_ecp_check_privkey(&ecp->grp, &ecp->d) == 0;
         return 0;
     }
 
@@ -121,29 +121,29 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
     if (!priv)
         return CALL_RETURN_NULL;
 
-    pk_type_t type = pk_get_type(&m_key);
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
     int32_t ret;
 
-    if (type == POLARSSL_PK_RSA)
+    if (type == MBEDTLS_PK_RSA)
     {
-        rsa_context *rsa = pk_rsa(m_key);
+        mbedtls_rsa_context *rsa = mbedtls_pk_rsa(m_key);
         obj_ptr<PKey> pk1 = new PKey();
 
-        ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_RSA));
+        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        rsa_context *rsa1 = pk_rsa(pk1->m_key);
+        mbedtls_rsa_context *rsa1 = mbedtls_pk_rsa(pk1->m_key);
 
         rsa1->len = rsa->len;
         rsa1->padding = rsa->padding;
         rsa1->hash_id = rsa->hash_id;
 
-        ret = mpi_copy(&rsa1->N, &rsa->N);
+        ret = mbedtls_mpi_copy(&rsa1->N, &rsa->N);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        ret = mpi_copy(&rsa1->E, &rsa->E);
+        ret = mbedtls_mpi_copy(&rsa1->E, &rsa->E);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -152,23 +152,23 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
         return 0;
     }
 
-    if (type == POLARSSL_PK_ECKEY)
+    if (type == MBEDTLS_PK_ECKEY)
     {
-        ecp_keypair *ecp = pk_ec(m_key);
+        mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(m_key);
 
         obj_ptr<PKey> pk1 = new PKey();
 
-        ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
+        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        ecp_keypair *ecp1 = pk_ec(pk1->m_key);
+        mbedtls_ecp_keypair *ecp1 = mbedtls_pk_ec(pk1->m_key);
 
-        ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
+        ret = mbedtls_ecp_group_copy(&ecp1->grp, &ecp->grp);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        ret = ecp_copy(&ecp1->Q, &ecp->Q);
+        ret = mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -180,47 +180,47 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t PKey::copy(const pk_context &key)
+result_t PKey::copy(const mbedtls_pk_context &key)
 {
-    pk_type_t type = pk_get_type(&key);
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&key);
     int32_t ret;
 
-    if (type == POLARSSL_PK_RSA)
+    if (type == MBEDTLS_PK_RSA)
     {
-        rsa_context *rsa = pk_rsa(key);
+        mbedtls_rsa_context *rsa = mbedtls_pk_rsa(key);
 
-        ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_RSA));
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        rsa_context *rsa1 = pk_rsa(m_key);
+        mbedtls_rsa_context *rsa1 = mbedtls_pk_rsa(m_key);
 
-        ret = rsa_copy(rsa1, rsa);
+        ret = mbedtls_rsa_copy(rsa1, rsa);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
         return 0;
     }
 
-    if (type == POLARSSL_PK_ECKEY)
+    if (type == MBEDTLS_PK_ECKEY)
     {
-        ecp_keypair *ecp = pk_ec(key);
+        mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(key);
 
-        ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        ecp_keypair *ecp1 = pk_ec(m_key);
+        mbedtls_ecp_keypair *ecp1 = mbedtls_pk_ec(m_key);
 
-        ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
+        ret = mbedtls_ecp_group_copy(&ecp1->grp, &ecp->grp);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        ret = mpi_copy(&ecp1->d, &ecp->d);
+        ret = mbedtls_mpi_copy(&ecp1->d, &ecp->d);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        ret = ecp_copy(&ecp1->Q, &ecp->Q);
+        ret = mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -252,12 +252,12 @@ result_t PKey::importKey(Buffer_base *DerKey, const char *password)
 
     clear();
 
-    ret = pk_parse_key(&m_key, (unsigned char *)key.c_str(), key.length(),
-                       *password ? (unsigned char *)password : NULL,
-                       qstrlen(password));
+    ret = mbedtls_pk_parse_key(&m_key, (unsigned char *)key.c_str(), key.length() + 1,
+                               *password ? (unsigned char *)password : NULL,
+                               qstrlen(password));
 
-    if (ret == POLARSSL_ERR_PK_KEY_INVALID_FORMAT)
-        ret = pk_parse_public_key(&m_key, (unsigned char *)key.c_str(), key.length());
+    if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
+        ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char *)key.c_str(), key.length() + 1);
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -271,12 +271,12 @@ result_t PKey::importKey(const char *pemKey, const char *password)
 
     clear();
 
-    ret = pk_parse_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey),
-                       *password ? (unsigned char *)password : NULL,
-                       qstrlen(password));
+    ret = mbedtls_pk_parse_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey) + 1,
+                               *password ? (unsigned char *)password : NULL,
+                               qstrlen(password) );
 
-    if (ret == POLARSSL_ERR_PK_KEY_INVALID_FORMAT)
-        ret = pk_parse_public_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey));
+    if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
+        ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey) + 1);
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -296,13 +296,13 @@ result_t PKey::importFile(const char* filename, const char* password)
 
     clear();
 
-    ret = pk_parse_key(&m_key, (const unsigned char *)data.c_str(),
-                       data.length(), *password ? (unsigned char *)password : NULL,
-                       qstrlen(password));
+    ret = mbedtls_pk_parse_key(&m_key, (const unsigned char *)data.c_str(),
+                               data.length() + 1, *password ? (unsigned char *)password : NULL,
+                               qstrlen(password));
 
-    if (ret == POLARSSL_ERR_PK_KEY_INVALID_FORMAT)
-        ret = pk_parse_public_key(&m_key, (const unsigned char *)data.c_str(),
-                                  data.length());
+    if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
+        ret = mbedtls_pk_parse_public_key(&m_key, (const unsigned char *)data.c_str(),
+                                          data.length() + 1);
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -322,11 +322,11 @@ result_t PKey::exportPem(std::string &retVal)
     int32_t ret;
     std::string buf;
 
-    buf.resize(pk_get_len(&m_key) * 8 + 128);
+    buf.resize(mbedtls_pk_get_len(&m_key) * 8 + 128);
     if (priv)
-        ret = pk_write_key_pem(&m_key, (unsigned char *)&buf[0], buf.length());
+        ret = mbedtls_pk_write_key_pem(&m_key, (unsigned char *)&buf[0], buf.length());
     else
-        ret = pk_write_pubkey_pem(&m_key, (unsigned char *)&buf[0], buf.length());
+        ret = mbedtls_pk_write_pubkey_pem(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -350,9 +350,9 @@ result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
 
     buf.resize(8192);
     if (priv)
-        ret = pk_write_key_der(&m_key, (unsigned char *)&buf[0], buf.length());
+        ret = mbedtls_pk_write_key_der(&m_key, (unsigned char *)&buf[0], buf.length());
     else
-        ret = pk_write_pubkey_der(&m_key, (unsigned char *)&buf[0], buf.length());
+        ret = mbedtls_pk_write_pubkey_der(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -373,11 +373,11 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     size_t olen;
 
     data->toString(str);
-    output.resize(POLARSSL_PREMASTER_SIZE);
+    output.resize(MBEDTLS_PREMASTER_SIZE);
 
-    ret = pk_encrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
-                     (unsigned char *)&output[0], &olen, output.length(),
-                     ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = mbedtls_pk_encrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
+                             (unsigned char *)&output[0], &olen, output.length(),
+                             mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -409,11 +409,11 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     size_t olen;
 
     data->toString(str);
-    output.resize(POLARSSL_PREMASTER_SIZE * 2);
+    output.resize(MBEDTLS_PREMASTER_SIZE * 2);
 
-    ret = pk_decrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
-                     (unsigned char *)&output[0], &olen, output.length(),
-                     ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = mbedtls_pk_decrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
+                             (unsigned char *)&output[0], &olen, output.length(),
+                             mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -445,12 +445,12 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     size_t olen;
 
     data->toString(str);
-    output.resize(POLARSSL_PREMASTER_SIZE);
+    output.resize(MBEDTLS_PREMASTER_SIZE);
 
-    ret = pk_sign(&m_key, POLARSSL_MD_NONE,
-                  (const unsigned char *)str.c_str(), str.length(),
-                  (unsigned char *)&output[0], &olen,
-                  ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = mbedtls_pk_sign(&m_key, MBEDTLS_MD_NONE,
+                          (const unsigned char *)str.c_str(), str.length(),
+                          (unsigned char *)&output[0], &olen,
+                          mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -473,11 +473,11 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
     data->toString(str);
     sign->toString(strsign);
 
-    ret = pk_verify(&m_key, POLARSSL_MD_NONE,
-                    (const unsigned char *)str.c_str(), str.length(),
-                    (const unsigned char *)strsign.c_str(), strsign.length());
-    if (ret == POLARSSL_ERR_ECP_VERIFY_FAILED ||
-            ret == POLARSSL_ERR_RSA_VERIFY_FAILED)
+    ret = mbedtls_pk_verify(&m_key, MBEDTLS_MD_NONE,
+                            (const unsigned char *)str.c_str(), str.length(),
+                            (const unsigned char *)strsign.c_str(), strsign.length());
+    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED ||
+            ret == MBEDTLS_ERR_RSA_VERIFY_FAILED)
     {
         retVal = false;
         return 0;
@@ -493,13 +493,13 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
 
 result_t PKey::get_name(std::string &retVal)
 {
-    retVal = pk_get_name(&m_key);
+    retVal = mbedtls_pk_get_name(&m_key);
     return 0;
 }
 
 result_t PKey::get_keySize(int32_t &retVal)
 {
-    retVal = (int32_t)pk_get_size(&m_key);
+    retVal = (int32_t)mbedtls_pk_get_bitlen(&m_key);
     return 0;
 }
 

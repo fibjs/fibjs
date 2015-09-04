@@ -6,7 +6,7 @@
  */
 
 #include "ifs/X509Req.h"
-#include <mbedtls/polarssl/x509_csr.h>
+#include <mbedtls/mbedtls/x509_csr.h>
 #include "X509Cert.h"
 
 #ifndef _fj_X509REQ_H
@@ -44,10 +44,10 @@ private:
     result_t parseString(v8::Local<v8::Value> v, const X509Cert::_name* p);
 
 private:
-    x509write_cert m_crt;
+    mbedtls_x509write_cert m_crt;
 
 private:
-    x509_csr m_csr;
+    mbedtls_x509_csr m_csr;
 };
 
 }

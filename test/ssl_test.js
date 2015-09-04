@@ -134,7 +134,7 @@ describe('ssl', function() {
 	});
 
 	it("ssl.connect", function() {
-		var ss = ssl.connect('ssl://127.0.0.1:9080');
+		var ss = ssl.connect('ssl://localhost:9080');
 
 		ss.write("GET / HTTP/1.0");
 		assert.equal("GET / HTTP/1.0", ss.read());
@@ -143,7 +143,7 @@ describe('ssl', function() {
 	});
 
 	it("net.connect", function() {
-		var ss = net.connect('ssl://127.0.0.1:9080');
+		var ss = net.connect('ssl://localhost:9080');
 
 		ss.write("GET / HTTP/1.0");
 		assert.equal("GET / HTTP/1.0", ss.read());

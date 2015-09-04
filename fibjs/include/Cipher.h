@@ -6,7 +6,7 @@
  */
 
 #include "ifs/Cipher.h"
-#include <mbedtls/polarssl/cipher.h>
+#include <mbedtls/mbedtls/cipher.h>
 
 #ifndef _fj_CIPHER_H
 #define _fj_CIPHER_H
@@ -17,7 +17,7 @@ namespace fibjs
 class Cipher : public Cipher_base
 {
 public:
-    Cipher(const cipher_info_t *ci);
+    Cipher(const mbedtls_cipher_info_t *ci);
     ~Cipher();
 
 public:
@@ -35,11 +35,11 @@ public:
 
 private:
     void reset();
-    result_t process(const operation_t operation, Buffer_base *data, obj_ptr<Buffer_base> &retVal);
+    result_t process(const mbedtls_operation_t operation, Buffer_base *data, obj_ptr<Buffer_base> &retVal);
 
 private:
-    const cipher_info_t *m_info;
-    cipher_context_t m_ctx;
+    const mbedtls_cipher_info_t *m_info;
+    mbedtls_cipher_context_t m_ctx;
     std::string m_key;
     std::string m_iv;
 };
