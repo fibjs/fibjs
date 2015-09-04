@@ -384,7 +384,7 @@ result_t SslSocket::connect(Stream_base *s, const char *server_name,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr;
+    int32_t ret;
     m_s = s;
 
     if (!m_ca)
@@ -392,8 +392,10 @@ result_t SslSocket::connect(Stream_base *s, const char *server_name,
 
     mbedtls_ssl_conf_ca_chain(&m_ssl_conf, &m_ca->m_crt, NULL);
 
-    if ( (hr = mbedtls_ssl_setup(&m_ssl, &m_ssl_conf)) != 0 )
-        return hr;
+    ret = mbedtls_ssl_setup(&m_ssl, &m_ssl_conf);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
     mbedtls_ssl_set_bio(&m_ssl, this, my_send, my_recv, NULL);
 
     if (server_name && *server_name)
@@ -416,6 +418,7 @@ result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
     int32_t sz = (int32_t)m_crts.size();
     int32_t i;
     result_t hr;
+    int32_t ret;
 
     for (i = 0; i < sz; i ++)
     {
@@ -428,10 +431,11 @@ result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
     mbedtls_ssl_conf_authmode(&ss->m_ssl_conf, m_ssl_conf.authmode);
     mbedtls_ssl_conf_endpoint(&ss->m_ssl_conf, MBEDTLS_SSL_IS_SERVER);
 
-    if ( (hr = mbedtls_ssl_conf_dh_param( &ss->m_ssl_conf,
-                                          MBEDTLS_DHM_RFC5114_MODP_2048_P,
-                                          MBEDTLS_DHM_RFC5114_MODP_2048_G)) != 0)
-        return hr;
+    ret = mbedtls_ssl_conf_dh_param( &ss->m_ssl_conf,
+                                     MBEDTLS_DHM_RFC5114_MODP_2048_P,
+                                     MBEDTLS_DHM_RFC5114_MODP_2048_G);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
 
     if (m_ca)
     {
@@ -442,8 +446,10 @@ result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
     mbedtls_ssl_conf_session_cache(&ss->m_ssl_conf, &g_ssl.m_cache,
                                    mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
 
-    if ( (hr = mbedtls_ssl_setup(&ss->m_ssl, &ss->m_ssl_conf)) != 0 )
-        return hr;
+    ret = mbedtls_ssl_setup(&ss->m_ssl, &ss->m_ssl_conf);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
     mbedtls_ssl_set_bio(&ss->m_ssl, ss, my_send, my_recv, NULL);
 
     return ss->handshake(NULL, ac);
