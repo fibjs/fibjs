@@ -117,7 +117,7 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
 	for (changeset::iterator i = changes.begin(); i != changes.end(); i++)
 		its[n ++] = i;
 
-	qsort(&its[0], its.size(), sizeof(changeset::iterator), compare);
+	qsort(its.data(), its.size(), sizeof(changeset::iterator), compare);
 
 	for (int32_t i = 0; i < n; i++) {
 		changeset::iterator it = its[i];
