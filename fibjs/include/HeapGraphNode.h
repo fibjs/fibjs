@@ -62,7 +62,7 @@ public:
         node->get_name(retVal);
 
         retVal.append(1, '[');
-        if (type >= 0 && type < ARRAYSIZE(types))
+        if (type >= 0 && type < (int32_t)ARRAYSIZE(types))
             retVal.append(types[type]);
         else
             retVal.append("Unknown");

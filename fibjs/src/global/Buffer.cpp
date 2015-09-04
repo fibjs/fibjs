@@ -227,7 +227,8 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     if (buffer_length < offset)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    max_length = (int32_t)MIN(qstrlen(str),  buffer_length - offset);
+    max_length = (int32_t)qstrlen(str);
+    max_length = MIN(max_length,  buffer_length - offset);
     if (0 == length)
         return 0;
     else if (0 < length)

@@ -129,7 +129,7 @@ inline bool checkArray(QuickArray<std::string>& a, const char* chks[], int32_t s
 {
 	int32_t i;
 
-	if (a.size() < sz)
+	if ((int32_t)a.size() < sz)
 		return false;
 
 	for (i = 0; i < sz; i ++)
@@ -258,7 +258,7 @@ result_t HeapSnapshot::load(const char* fname)
 		int32_t _base = node_pos * (int32_t)node_fields.size();
 		int32_t _node_type = nodes[_base];
 		int32_t _node_name_id = nodes[_base + 1];
-		if (_node_name_id < 0 || _node_name_id >= names.size())
+		if (_node_name_id < 0 || _node_name_id >= (int32_t)names.size())
 			return CHECK_ERROR(CALL_E_INVALID_DATA);
 		std::string _node_name = names[_node_name_id];
 		int32_t _node_id = nodes[_base + 2];
@@ -287,7 +287,8 @@ result_t HeapSnapshot::load(const char* fname)
 			else
 				_edge_name = names[_edge_name_id];
 
-			if (_edge_toid % node_fields.size() != 0 || _edge_toid >= edges.size())
+			if (_edge_toid % node_fields.size() != 0 ||
+			        _edge_toid >= (int32_t)edges.size())
 				return CHECK_ERROR(CALL_E_INVALID_DATA);
 			_edge_toid = nodes[_edge_toid + 2];
 
