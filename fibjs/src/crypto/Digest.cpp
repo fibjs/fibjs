@@ -18,7 +18,8 @@ Digest::Digest(mbedtls_md_type_t algo)
     m_bMac = false;
     m_iAlgo = algo;
 
-    mbedtls_md_init_ctx(&m_ctx, mbedtls_md_info_from_type(algo));
+    mbedtls_md_init(&m_ctx);
+    mbedtls_md_setup(&m_ctx, mbedtls_md_info_from_type(algo), 0);
     mbedtls_md_starts(&m_ctx);
 }
 
@@ -27,7 +28,8 @@ Digest::Digest(mbedtls_md_type_t algo, const char *key, int32_t sz)
     m_bMac = true;
     m_iAlgo = algo;
 
-    mbedtls_md_init_ctx(&m_ctx, mbedtls_md_info_from_type(algo));
+    mbedtls_md_init(&m_ctx);
+    mbedtls_md_setup(&m_ctx, mbedtls_md_info_from_type(algo), 1);
     mbedtls_md_hmac_starts(&m_ctx, (unsigned char *)key, sz);
 }
 
