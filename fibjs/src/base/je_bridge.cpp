@@ -6,9 +6,11 @@
  *  lion@9465.net
  */
 
+#include <stdlib.h>
+#include <stdint.h>
+
 #if !defined(_WIN32)
 
-#include <stdlib.h>
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <unistd.h>
@@ -189,7 +191,7 @@ public:
 		{
 			int32_t i;
 
-			qsort(&subs[0], subs.size(), sizeof(caller*), compare);
+			qsort(subs.data(), subs.size(), sizeof(caller*), compare);
 			for (i = 0; i < (int32_t)subs.size(); i ++)
 				subs[i]->dump(fp, level);
 		}
@@ -462,5 +464,16 @@ void operator delete[] (void* p) throw()
 
 
 #endif
+
+#else
+
+namespace fibjs
+{
+
+void dump_memory(int32_t serial)
+{
+}
+
+}
 
 #endif
