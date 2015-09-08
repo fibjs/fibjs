@@ -32,7 +32,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
     class asyncConnect: public AsyncState
     {
     public:
-        asyncConnect(const char *host, int32_t port, bool ipv6,
+        asyncConnect(const std::string host, int32_t port, bool ipv6,
                      obj_ptr<Stream_base> &retVal, AsyncEvent *ac) :
             AsyncState(ac), m_host(host), m_port(port), m_ipv6(ipv6), m_retVal(retVal)
         {
@@ -48,7 +48,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
                                   net_base::_SOCK_STREAM);
 
             pThis->set(handshake);
-            return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis);
+            return pThis->m_sock->connect(pThis->m_host.c_str(), pThis->m_port, pThis);
         }
 
         static int32_t handshake(AsyncState *pState, int32_t n)
@@ -66,7 +66,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
                     return hr;
             }
 
-            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis);
+            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host.c_str(), pThis->m_temp, pThis);
         }
 
         static int32_t ok(AsyncState *pState, int32_t n)
@@ -78,7 +78,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
         }
 
     private:
-        const char *m_host;
+        const std::string m_host;
         int32_t m_port;
         bool m_ipv6;
         obj_ptr<Stream_base> &m_retVal;
@@ -104,7 +104,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
 
     int32_t nPort = atoi(u->m_port.c_str());
 
-    return (new asyncConnect(u->m_hostname.c_str(), nPort, u->m_ipv6,
+    return (new asyncConnect(u->m_hostname, nPort, u->m_ipv6,
                              retVal, ac))->post(0);
 }
 
