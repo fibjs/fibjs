@@ -924,12 +924,19 @@ describe("http", function() {
 
 		before(function() {
 			svr = new http.Server(8882, function(r) {
-				if (r.address != "/gzip_test") {
+				if (r.address == "/redirect")
+				{
+					r.response.redirect("http://127.0.0.1:8882/request");
+				} else if (r.address == "/redirect1")
+				{
+					r.response.redirect("http://127.0.0.1:8882/redirect1");
+				} else if (r.address != "/gzip_test") {
 					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
 					if (r.hasHeader("test_header"))
 						r.response.body.write(r.firstHeader("test_header"));
-				} else {
+				} else
+				{
 					r.response.addHeader("Content-Type", "text/html");
 					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 				}
@@ -945,6 +952,15 @@ describe("http", function() {
 			it("simple", function() {
 				assert.equal(http.request("GET", "http://127.0.0.1:8882/request").body.read().toString(),
 					"/request");
+			});
+
+			it("redirect", function() {
+				assert.equal(http.request("GET", "http://127.0.0.1:8882/redirect").body.read().toString(),
+					"/request");
+
+				assert.throws(function(){
+					http.request("GET", "http://127.0.0.1:8882/redirect1")	
+				});
 			});
 
 			it("body", function() {

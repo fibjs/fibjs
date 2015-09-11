@@ -31,6 +31,24 @@ public:
     virtual result_t _named_setter(const char *property, v8::Local<v8::Value> newVal);
     virtual result_t _named_deleter(const char *property, v8::Local<v8::Boolean> &retVal);
 
+public:
+    template<typename T>
+    inline result_t map(T *o, result_t (T::*fn)(const char *name, Variant value))
+    {
+        std::map<std::string, VariantEx>::iterator iter;
+        result_t hr;
+
+        for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
+        {
+            hr = (o->*fn)(iter->first.c_str(), iter->second);
+            if (hr < 0)
+                return hr;
+        }
+
+        return 0;
+    }
+
+
 private:
     std::map<std::string, VariantEx> m_datas;
 };

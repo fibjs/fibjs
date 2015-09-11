@@ -26,6 +26,7 @@ class HttpHandler_base;
 class Handler_base;
 class Stream_base;
 class SeekableStream_base;
+class Map_base;
 class Buffer_base;
 
 class http_base : public object_base
@@ -37,6 +38,7 @@ public:
     static result_t fileHandler(const char* root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(const char* method, const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t request(const char* method, const char* url, SeekableStream_base* body, Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
     static result_t request(const char* method, const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
     static result_t get(const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
@@ -51,6 +53,7 @@ public:
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE5(http_base, request, const char*, const char*, SeekableStream_base*, Map_base*, obj_ptr<HttpResponse_base>);
 };
 
 }
@@ -64,6 +67,7 @@ public:
 #include "Handler.h"
 #include "Stream.h"
 #include "SeekableStream.h"
+#include "Map.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -132,6 +136,15 @@ namespace fibjs
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
 
         hr = request(v0, v1, v2, vr);
+
+        METHOD_OVER(4, 4);
+
+        ARG(arg_string, 0);
+        ARG(arg_string, 1);
+        ARG(obj_ptr<SeekableStream_base>, 2);
+        ARG(obj_ptr<Map_base>, 3);
+
+        hr = ac_request(v0, v1, v2, v3, vr);
 
         METHOD_OVER(4, 3);
 

@@ -59,9 +59,9 @@ public:
     virtual result_t hasHeader(const char *name, bool &retVal);
     virtual result_t firstHeader(const char *name, Variant &retVal);
     virtual result_t allHeader(const char *name, obj_ptr<List_base> &retVal);
-    virtual result_t addHeader(v8::Local<v8::Object> map);
+    virtual result_t addHeader(Map_base* map);
     virtual result_t addHeader(const char *name, Variant value);
-    virtual result_t setHeader(v8::Local<v8::Object> map);
+    virtual result_t setHeader(Map_base* map);
     virtual result_t setHeader(const char *name, Variant value);
     virtual result_t removeHeader(const char *name);
 

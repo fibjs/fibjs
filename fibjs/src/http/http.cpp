@@ -9,6 +9,7 @@
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "Url.h"
+#include "Map.h"
 #include "HttpRequest.h"
 #include "BufferedStream.h"
 #include "map"
@@ -108,103 +109,152 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
     return (new asyncRequest(conn, req, retVal, ac))->post(0);
 }
 
-result_t http_base::request(const char *method, const char *url,
-                            SeekableStream_base *body, v8::Local<v8::Object> headers,
-                            obj_ptr<HttpResponse_base> &retVal)
+result_t http_base::request(const char* method, const char* url,
+                            SeekableStream_base* body, Map_base* headers,
+                            obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    std::string location;
-    std::map<std::string, bool> urls;
 
-    while (true)
+    class asyncRequest: public AsyncState
     {
-        urls[url] = true;
-
-        result_t hr;
-        int32_t status;
-        bool ssl = false;
-        obj_ptr<HttpRequest> req;
-        Variant v;
-        std::string connUrl;
-
+    public:
+        asyncRequest(const char* method, const char* url,
+                     SeekableStream_base* body, Map_base* headers,
+                     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) :
+            AsyncState(ac), m_method(method), m_url(url), m_body(body),
+            m_headers(headers), m_retVal(retVal)
         {
+            set(prepare);
+        }
+
+        static int32_t prepare(AsyncState *pState, int32_t n)
+        {
+            asyncRequest *pThis = (asyncRequest *) pState;
+
+            result_t hr;
+            bool ssl = false;
+
+            pThis->m_urls[pThis->m_url] = true;
+
             obj_ptr<Url> u = new Url();
             std::string path;
 
-            hr = u->parse(url);
+            hr = u->parse(pThis->m_url.c_str());
             if (hr < 0)
                 return hr;
 
             if (!qstrcmp(u->m_protocol.c_str(), "https:"))
             {
                 ssl = true;
-                connUrl = "ssl://";
+                pThis->m_connUrl = "ssl://";
             }
             else if (!qstrcmp(u->m_protocol.c_str(), "http:"))
-                connUrl = "tcp://";
+                pThis->m_connUrl = "tcp://";
             else
                 return CHECK_ERROR(Runtime::setError("http: unknown protocol"));
 
             if (u->m_host.empty())
                 return CHECK_ERROR(Runtime::setError("http: unknown host"));
 
-            connUrl.append(u->m_host);
+            pThis->m_connUrl.append(u->m_host);
 
             if (!u->m_port.empty())
             {
-                connUrl.append(":", 1);
-                connUrl.append(u->m_port);
+                pThis->m_connUrl.append(":", 1);
+                pThis->m_connUrl.append(u->m_port);
             }
             else
-                connUrl.append(ssl ? ":443" : ":80");
+                pThis->m_connUrl.append(ssl ? ":443" : ":80");
 
-            req = new HttpRequest();
+            pThis->m_req = new HttpRequest();
 
-            req->set_method(method);
+            pThis->m_req->set_method(pThis->m_method.c_str());
 
             u->get_path(path);
-            req->set_address(path.c_str());
+            pThis->m_req->set_address(path.c_str());
 
-            req->addHeader("host", u->m_host.c_str());
-            req->setHeader("Accept-Encoding", "gzip,deflate");
-            req->addHeader(headers);
+            pThis->m_req->addHeader("host", u->m_host.c_str());
+            pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
+            pThis->m_req->addHeader(pThis->m_headers);
 
-            if (body)
-                req->set_body(body);
+            if (pThis->m_body)
+                pThis->m_req->set_body(pThis->m_body);
+
+            pThis->set(connected);
+            return net_base::connect(pThis->m_connUrl.c_str(), pThis->m_conn, pThis);
         }
 
+        static int32_t connected(AsyncState *pState, int32_t n)
         {
-            obj_ptr<Stream_base> conn;
-            hr = net_base::ac_connect(connUrl.c_str(), conn);
-            if (hr < 0)
-                return hr;
+            asyncRequest *pThis = (asyncRequest *) pState;
 
-            hr = ac_request(conn, req, retVal);
-            if (hr < 0)
-                return hr;
-
-            conn->ac_close();
+            pThis->set(requested);
+            return request(pThis->m_conn, pThis->m_req, pThis->m_retVal, pThis);
         }
 
-        hr = retVal->get_status(status);
-        if (hr < 0)
-            return hr;
+        static int32_t requested(AsyncState *pState, int32_t n)
+        {
+            asyncRequest *pThis = (asyncRequest *) pState;
 
-        if (status != 302 && status != 301)
+            pThis->set(closed);
+            return pThis->m_conn->close(pThis);
+        }
+
+        static int32_t closed(AsyncState *pState, int32_t n)
+        {
+            asyncRequest *pThis = (asyncRequest *) pState;
+
+            result_t hr;
+            int32_t status;
+            std::string location;
+            Variant v;
+
+            hr = pThis->m_retVal->get_status(status);
+            if (hr < 0)
+                return hr;
+
+            if (status != 302 && status != 301)
+                return pThis->done(0);
+
+            hr = pThis->m_retVal->firstHeader("location", v);
+            if (hr < 0)
+                return hr;
+
+            location = v.string();
+
+            if (pThis->m_urls.find(location) != pThis->m_urls.end())
+                return CHECK_ERROR(Runtime::setError("http: redirect cycle"));
+
+            pThis->m_url = location;
+
+            pThis->set(prepare);
             return 0;
+        }
 
-        hr = retVal->firstHeader("location", v);
-        if (hr < 0)
-            return hr;
+    private:
+        std::string m_method;
+        std::string m_url;
+        obj_ptr<SeekableStream_base> m_body;
+        obj_ptr<Map_base> m_headers;
+        obj_ptr<HttpResponse_base>& m_retVal;
+        std::map<std::string, bool> m_urls;
+        obj_ptr<Stream_base> m_conn;
+        obj_ptr<HttpRequest> m_req;
+        std::string m_connUrl;
+    };
 
-        location = v.string();
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
-        if (urls.find(location) != urls.end())
-            return CHECK_ERROR(Runtime::setError("http: redirect cycle"));
+    return (new asyncRequest(method, url, body, headers, retVal, ac))->post(0);
+}
 
-        url = location.c_str();
-    }
-
-    return 0;
+result_t http_base::request(const char *method, const char *url,
+                            SeekableStream_base *body, v8::Local<v8::Object> headers,
+                            obj_ptr<HttpResponse_base> &retVal)
+{
+    obj_ptr<Map_base> map = new Map();
+    map->put(headers);
+    return ac_request(method, url, body, map, retVal);
 }
 
 result_t http_base::request(const char *method, const char *url,

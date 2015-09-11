@@ -9,6 +9,7 @@
 #include "HttpUploadData.h"
 #include "MemoryStream.h"
 #include "List.h"
+#include "Map.h"
 #include <string.h>
 
 namespace fibjs
@@ -275,29 +276,6 @@ result_t HttpUploadCollection::all(const char *name, obj_ptr<List_base> &retVal)
     return 0;
 }
 
-inline result_t _map(HttpUploadCollection *o, v8::Local<v8::Object> m,
-                     result_t (HttpUploadCollection::*fn)(const char *name, Variant value))
-{
-    v8::Local<v8::Array> ks = m->GetPropertyNames();
-    int32_t len = ks->Length();
-    int32_t i;
-    result_t hr;
-
-    for (i = 0; i < len; i++)
-    {
-        v8::Local<v8::Value> k = ks->Get(i);
-
-        if (!k->IsNumber())
-        {
-            hr = (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
-            if (hr < 0)
-                return hr;
-        }
-    }
-
-    return 0;
-}
-
 result_t HttpUploadCollection::add(const char *name, Variant value)
 {
     m_names[m_count] = name;
@@ -307,9 +285,9 @@ result_t HttpUploadCollection::add(const char *name, Variant value)
     return 0;
 }
 
-result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
+result_t HttpUploadCollection::add(Map_base* map)
 {
-    return _map(this, map, &HttpUploadCollection::add);
+    return ((Map*)map)->map(this, &HttpUploadCollection::add);
 }
 
 result_t HttpUploadCollection::set(const char *name, Variant value)
@@ -349,9 +327,9 @@ result_t HttpUploadCollection::set(const char *name, Variant value)
     return 0;
 }
 
-result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
+result_t HttpUploadCollection::set(Map_base* map)
 {
-    return _map(this, map, &HttpUploadCollection::set);
+    return ((Map*)map)->map(this, &HttpUploadCollection::set);
 }
 
 result_t HttpUploadCollection::remove(const char *name)

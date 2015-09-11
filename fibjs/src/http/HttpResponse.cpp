@@ -110,7 +110,7 @@ result_t HttpResponse::allHeader(const char *name, obj_ptr<List_base> &retVal)
     return m_message.allHeader(name, retVal);
 }
 
-result_t HttpResponse::addHeader(v8::Local<v8::Object> map)
+result_t HttpResponse::addHeader(Map_base* map)
 {
     return m_message.addHeader(map);
 }
@@ -120,7 +120,7 @@ result_t HttpResponse::addHeader(const char *name, Variant value)
     return m_message.addHeader(name, value);
 }
 
-result_t HttpResponse::setHeader(v8::Local<v8::Object> map)
+result_t HttpResponse::setHeader(Map_base* map)
 {
     return m_message.setHeader(map);
 }

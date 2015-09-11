@@ -16,6 +16,14 @@ result_t Map_base::_new(obj_ptr<Map_base> &retVal, v8::Local<v8::Object> This)
     return 0;
 }
 
+result_t Map_base::_new(v8::Local<v8::Object> map, obj_ptr<Map_base>& retVal,
+                        v8::Local<v8::Object> This)
+{
+    retVal = new Map();
+    retVal->put(map);
+    return 0;
+}
+
 result_t Map::get_size(int32_t &retVal)
 {
     retVal = (int32_t) m_datas.size();

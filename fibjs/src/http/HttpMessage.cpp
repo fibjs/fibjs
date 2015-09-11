@@ -502,7 +502,7 @@ result_t HttpMessage::allHeader(const char *name, obj_ptr<List_base> &retVal)
     return m_headers->all(name, retVal);
 }
 
-result_t HttpMessage::addHeader(v8::Local<v8::Object> map)
+result_t HttpMessage::addHeader(Map_base* map)
 {
     return m_headers->add(map);
 }
@@ -512,7 +512,7 @@ result_t HttpMessage::addHeader(const char *name, Variant value)
     return m_headers->add(name, value);
 }
 
-result_t HttpMessage::setHeader(v8::Local<v8::Object> map)
+result_t HttpMessage::setHeader(Map_base* map)
 {
     return m_headers->set(map);
 }

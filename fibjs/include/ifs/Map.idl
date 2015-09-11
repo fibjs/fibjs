@@ -12,6 +12,11 @@ interface Map : object
     /*! @brief Map 构造函数 */
     Map();
 
+    /*! @brief Map 构造函数
+     @param map 用于初始化的 js 字典对象
+     */
+    Map(Object map);
+
     /*! @brief 查询容器内数值个数
      */
     readonly Integer size;
