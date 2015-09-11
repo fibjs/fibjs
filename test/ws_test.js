@@ -155,17 +155,17 @@ describe('websocket', function() {
 			assert.equal(msg.body.readAll().toString(), buf.toString());
 		}
 
-		var httpd = new http.Server(8810, new websocket.Handler(function(v){
+		var httpd = new http.Server(8810, new websocket.Handler(function(v) {
 			v.response.body = v.body;
 		}));
 		ss.push(httpd.socket);
 		httpd.asyncRun();
 
 		var rep = http.get("http://127.0.0.1:8810/", {
-	        "Upgrade": "websocket",
-	        "Connection": "Upgrade",
-	        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-	        "Sec-WebSocket-Version": "13"
+			"Upgrade": "websocket",
+			"Connection": "Upgrade",
+			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+			"Sec-WebSocket-Version": "13"
 		});
 
 		assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
@@ -174,51 +174,48 @@ describe('websocket', function() {
 
 		var bs = new io.BufferedStream(rep.stream);
 
-		test_msg(10);
 		test_msg(10, true);
-		test_msg(100);
 		test_msg(100, true);
-		test_msg(125);
 		test_msg(125, true);
-		test_msg(126);
 		test_msg(126, true);
-		test_msg(65535);
 		test_msg(65535, true);
-		test_msg(65536);
 		test_msg(65536, true);
 
 		var rep = http.get("http://127.0.0.1:8810/", {
-	        "Connection": "Upgrade",
-	        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-	        "Sec-WebSocket-Version": "13"
+			"Connection": "Upgrade",
+			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+			"Sec-WebSocket-Version": "13"
 		});
 
 		assert.equal(rep.status, 500);
 
 		var rep = http.get("http://127.0.0.1:8810/", {
-	        "Upgrade": "websocket",
-	        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-	        "Sec-WebSocket-Version": "13"
+			"Upgrade": "websocket",
+			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+			"Sec-WebSocket-Version": "13"
 		});
 
 		assert.equal(rep.status, 500);
 
 		var rep = http.get("http://127.0.0.1:8810/", {
-	        "Upgrade": "websocket",
-	        "Connection": "Upgrade",
-	        "Sec-WebSocket-Version": "13"
+			"Upgrade": "websocket",
+			"Connection": "Upgrade",
+			"Sec-WebSocket-Version": "13"
 		});
 
 		assert.equal(rep.status, 500);
 
 		var rep = http.get("http://127.0.0.1:8810/", {
-	        "Upgrade": "websocket",
-	        "Connection": "Upgrade",
-	        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
+			"Upgrade": "websocket",
+			"Connection": "Upgrade",
+			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
 		});
 
 		assert.equal(rep.status, 500);
 
+		assert.throws(function() {
+			test_msg(10);
+		});
 	});
 });
 

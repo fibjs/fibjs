@@ -157,6 +157,11 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (n == CALL_RETURN_NULL)
                 return pThis->done(CALL_RETURN_NULL);
 
+            bool masked;
+            pThis->m_msg->get_masked(masked);
+            if (!masked)
+                return CHECK_ERROR(Runtime::setError("WebSocketHandler: Payload data is not masked."));
+
             pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
             pThis->m_pThis->m_stats->inc(PACKET_REQUEST);
             pThis->m_pThis->m_stats->inc(PACKET_PENDDING);
@@ -212,7 +217,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<HttpResponse_base> m_httprep;
         obj_ptr<Stream_base> m_stm;
         obj_ptr<BufferedStream_base> m_stmBuffered;
-        obj_ptr<Message_base> m_msg;
+        obj_ptr<WebSocketMessage_base> m_msg;
         obj_ptr<Message_base> m_rep;
     };
 
