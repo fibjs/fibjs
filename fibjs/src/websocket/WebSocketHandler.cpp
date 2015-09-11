@@ -126,12 +126,11 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             unsigned char output[20];
             mbedtls_sha1((const unsigned char*)key.data(), key.size(), output);
 
-            std::string hash((const char*)output, 20);
             std::string out;
 
             baseEncode(
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-                6, hash, out);
+                6, (const char*)output, 20, out);
 
             pThis->m_httprep->addHeader("Sec-WebSocket-Accept", out.c_str());
             pThis->m_httprep->addHeader("Upgrade", "websocket");

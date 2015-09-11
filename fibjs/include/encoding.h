@@ -15,7 +15,7 @@ namespace fibjs
 {
 
 inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
-                       std::string &data, std::string &retVal)
+                       const char* data, int32_t sz, std::string &retVal)
 {
 	int32_t i, len = 0, bits = 0;
 	int32_t dwData = 0;
@@ -23,13 +23,13 @@ inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
 	char bMask = 0xff >> (8 - dwBits);
 
 	if (dwBits == 6)
-		dwSize = ((int32_t) data.length() + 2) / 3 * 4;
+		dwSize = (sz + 2) / 3 * 4;
 	else if (dwBits == 5)
-		dwSize = ((int32_t) data.length() + 4) / 5 * 8;
+		dwSize = (sz + 4) / 5 * 8;
 
 	retVal.resize(dwSize);
 
-	for (i = 0; i < (int32_t) data.length(); i++)
+	for (i = 0; i < sz; i++)
 	{
 		dwData <<= 8;
 		dwData |= (unsigned char) data[i];
@@ -49,6 +49,13 @@ inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
 		retVal[len++] = '=';
 
 	retVal.resize(len);
+}
+
+inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
+                       std::string &data, std::string &retVal)
+{
+	baseEncode(pEncodingTable, dwBits, data.c_str(),
+	           (int32_t)data.length(), retVal);
 }
 
 inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
