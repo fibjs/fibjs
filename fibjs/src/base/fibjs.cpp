@@ -2,6 +2,7 @@
 #include <locale.h>
 
 #include <string.h>
+#include <time.h>
 #include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/global.h"
@@ -133,6 +134,8 @@ int32_t main(int32_t argc, char *argv[])
     fibjs::init_prof();
 
     fibjs::init_argv(argc, argv);
+
+    srand((unsigned int)time(0));
 
     int32_t i;
 

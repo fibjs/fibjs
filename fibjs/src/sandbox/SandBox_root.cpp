@@ -26,6 +26,8 @@
 #include "ifs/crypto.h"
 #include "ifs/ssl.h"
 
+#include "ifs/websocket.h"
+
 #include "ifs/mq.h"
 #include "ifs/xml.h"
 
@@ -70,6 +72,8 @@ void SandBox::initRoot()
     InstallNativeModule("fs", fs_base::class_info());
     InstallNativeModule("os", os_base::class_info());
     InstallNativeModule("net", net_base::class_info());
+
+    InstallNativeModule("websocket", websocket_base::class_info());
 
     InstallNativeModule("hash", hash_base::class_info());
     InstallNativeModule("crypto", crypto_base::class_info());

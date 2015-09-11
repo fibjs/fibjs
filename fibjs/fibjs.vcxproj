@@ -215,6 +215,9 @@
     <ClInclude Include="include\ifs\uuid.h" />
     <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\vm.h" />
+    <ClInclude Include="include\ifs\websocket.h" />
+    <ClInclude Include="include\ifs\WebSocketHandler.h" />
+    <ClInclude Include="include\ifs\WebSocketMessage.h" />
     <ClInclude Include="include\ifs\X509Cert.h" />
     <ClInclude Include="include\ifs\X509Crl.h" />
     <ClInclude Include="include\ifs\X509Req.h" />
@@ -290,6 +293,8 @@
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\uuidVar.h" />
     <ClInclude Include="include\Variant.h" />
+    <ClInclude Include="include\WebSocketHandler.h" />
+    <ClInclude Include="include\WebSocketMessage.h" />
     <ClInclude Include="include\X509Cert.h" />
     <ClInclude Include="include\X509Crl.h" />
     <ClInclude Include="include\X509Req.h" />
@@ -442,6 +447,9 @@
     <ClCompile Include="src\util\LruCache.cpp" />
     <ClCompile Include="src\util\Stats.cpp" />
     <ClCompile Include="src\util\util.cpp" />
+    <ClCompile Include="src\websocket\WebSocketHandler.cpp" />
+    <ClCompile Include="src\websocket\WebSocketMessage.cpp" />
+    <ClCompile Include="src\websocket\websocket.cpp" />
     <ClCompile Include="src\xml\XmlAttr.cpp" />
     <ClCompile Include="src\xml\XmlCDATASection.cpp" />
     <ClCompile Include="src\xml\XmlComment.cpp" />

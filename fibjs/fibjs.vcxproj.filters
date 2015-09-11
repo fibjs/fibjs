@@ -88,6 +88,9 @@
     <Filter Include="Source Files\profiler">
       <UniqueIdentifier>{85b70cf4-a7fa-4ff4-bfd0-c67c1a59802f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\websocket">
+      <UniqueIdentifier>{232f65a2-2152-4311-bdc2-fd62de813074}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -271,6 +274,15 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\vm.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\websocket.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\WebSocketHandler.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\WebSocketMessage.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MongoCollection.h">
@@ -750,9 +762,6 @@
     <ClInclude Include="include\ifs\HeapGraphNode.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\HeapProxy.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\HeapSnapshot.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -772,6 +781,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Isolate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HeapProxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\WebSocketHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\WebSocketMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1212,6 +1230,15 @@
     </ClCompile>
     <ClCompile Include="src\profiler\HeapSnapshot.cpp">
       <Filter>Source Files\profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\websocket\WebSocketHandler.cpp">
+      <Filter>Source Files\websocket</Filter>
+    </ClCompile>
+    <ClCompile Include="src\websocket\WebSocketMessage.cpp">
+      <Filter>Source Files\websocket</Filter>
+    </ClCompile>
+    <ClCompile Include="src\websocket\websocket.cpp">
+      <Filter>Source Files\websocket</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
