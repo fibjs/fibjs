@@ -6,87 +6,12 @@
  */
 
 #include "ifs/encoding.h"
+#include "encoding.h"
 #include "encoding_iconv.h"
 #include "Url.h"
 
 namespace fibjs
 {
-
-inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
-                       Buffer_base *data, std::string &retVal)
-{
-    std::string strData;
-    int32_t i, len = 0, bits = 0;
-    int32_t dwData = 0;
-    int32_t dwSize = 0;
-    char bMask = 0xff >> (8 - dwBits);
-
-    data->toString(strData);
-
-    if (dwBits == 6)
-        dwSize = ((int32_t) strData.length() + 2) / 3 * 4;
-    else if (dwBits == 5)
-        dwSize = ((int32_t) strData.length() + 4) / 5 * 8;
-
-    retVal.resize(dwSize);
-
-    for (i = 0; i < (int32_t) strData.length(); i++)
-    {
-        dwData <<= 8;
-        dwData |= (unsigned char) strData[i];
-        bits += 8;
-
-        while (bits >= dwBits)
-        {
-            retVal[len++] = pEncodingTable[(dwData >> (bits - dwBits)) & bMask];
-            bits -= dwBits;
-        }
-    }
-
-    if (bits)
-        retVal[len++] = pEncodingTable[(dwData << (dwBits - bits)) & bMask];
-
-    while (len < dwSize)
-        retVal[len++] = '=';
-
-    retVal.resize(len);
-}
-
-inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
-                       const char *baseString, obj_ptr<Buffer_base> &retVal)
-{
-    int32_t nWritten = 0, len = (int32_t) qstrlen(baseString);
-    const char *end = baseString + len;
-    std::string strBuf;
-
-    strBuf.resize(len * dwBits / 8);
-
-    int32_t dwCurr = 0;
-    int32_t nBits = 0;
-    uint32_t ch;
-
-    while ((ch = utf8_getchar(baseString, end)) != 0)
-    {
-        int32_t nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
-
-        if (nCh != -1)
-        {
-            dwCurr <<= dwBits;
-            dwCurr |= nCh;
-            nBits += dwBits;
-
-            while (nBits >= 8)
-            {
-                strBuf[nWritten++] = (char) (dwCurr >> (nBits - 8));
-                nBits -= 8;
-            }
-        }
-    }
-
-    strBuf.resize(nWritten);
-
-    retVal = new Buffer(strBuf);
-}
 
 result_t encoding_base::base32Encode(Buffer_base *data, std::string &retVal)
 {
