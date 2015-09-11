@@ -217,6 +217,40 @@ describe('websocket', function() {
 			test_msg(10);
 		});
 	});
+
+	it("connect ", function() {
+		function test_msg(n, masked) {
+			var msg = new websocket.Message();
+			msg.type = websocket.TEXT;
+			msg.masked = masked;
+
+			var buf = new Buffer(n);
+			for (var i = 0; i < n; i++) {
+				buf[i] = (i % 10) + 0x30;
+			}
+
+			msg.body.write(buf);
+
+			msg.sendTo(bs);
+
+			var msg = new websocket.Message();
+			msg.readFrom(bs);
+
+			assert.equal(msg.body.readAll().toString(), buf.toString());
+		}
+
+		var s = websocket.connect("ws://127.0.0.1:8810/");
+		var bs = new io.BufferedStream(s);
+
+		test_msg(10, true);
+		test_msg(100, true);
+		test_msg(125, true);
+		test_msg(126, true);
+		test_msg(65535, true);
+		test_msg(65536, true);
+
+	});
+
 });
 
 //test.run(console.DEBUG);

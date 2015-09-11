@@ -32,9 +32,9 @@ module websocket
     /*! @brief 创建一个 websocket 包协议转换处理器，参见 WebSocketHandler */
     static WebSocketHandler new Handler();
 
-    /*! @brief 创建一个 websocket 连接，并返回握手成功的 Socket 对象
+    /*! @brief 创建一个 websocket 连接，并返回握手成功的 Stream 对象
      @param url 指定连接的 url，支持 ws:// 和 wss:// 协议
-     @return 返回连接成功的 Socket 对象
+     @return 返回连接成功的 Stream 对象，可能为 Socket 或者 SslSocket
      */
-    static Socket connect(String url) async;
+    static Stream connect(String url) async;
 };

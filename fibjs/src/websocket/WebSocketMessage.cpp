@@ -229,7 +229,6 @@ result_t WebSocketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
                 buf[1] |= 0x80;
 
                 uint32_t r = 0;
-
                 while (r == 0)
                     r = rand();
 

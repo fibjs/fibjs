@@ -19,7 +19,7 @@ namespace fibjs
 
 class WebSocketMessage_base;
 class WebSocketHandler_base;
-class Socket_base;
+class Stream_base;
 
 class websocket_base : public object_base
 {
@@ -37,7 +37,7 @@ public:
 
 public:
     // websocket_base
-    static result_t connect(const char* url, obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
+    static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s_get_CONTINUE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -49,14 +49,14 @@ public:
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(websocket_base, connect, const char*, obj_ptr<Socket_base>);
+    ASYNC_STATICVALUE2(websocket_base, connect, const char*, obj_ptr<Stream_base>);
 };
 
 }
 
 #include "WebSocketMessage.h"
 #include "WebSocketHandler.h"
-#include "Socket.h"
+#include "Stream.h"
 
 namespace fibjs
 {
@@ -138,7 +138,7 @@ namespace fibjs
 
     inline void websocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<Socket_base> vr;
+        obj_ptr<Stream_base> vr;
 
         METHOD_ENTER(1, 1);
 
