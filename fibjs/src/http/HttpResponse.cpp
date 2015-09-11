@@ -75,6 +75,16 @@ result_t HttpResponse::set_keepAlive(bool newVal)
     return m_message.set_keepAlive(newVal);
 }
 
+result_t HttpResponse::get_upgrade(bool &retVal)
+{
+    return m_message.get_upgrade(retVal);
+}
+
+result_t HttpResponse::set_upgrade(bool newVal)
+{
+    return m_message.set_upgrade(newVal);
+}
+
 result_t HttpResponse::get_maxHeadersCount(int32_t &retVal)
 {
     return m_message.get_maxHeadersCount(retVal);

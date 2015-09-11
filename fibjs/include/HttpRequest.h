@@ -52,6 +52,8 @@ public:
     virtual result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_keepAlive(bool &retVal);
     virtual result_t set_keepAlive(bool newVal);
+    virtual result_t get_upgrade(bool& retVal);
+    virtual result_t set_upgrade(bool newVal);
     virtual result_t get_maxHeadersCount(int32_t &retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
     virtual result_t get_maxUploadSize(int32_t &retVal);

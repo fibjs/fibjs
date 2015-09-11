@@ -34,6 +34,8 @@ public:
     virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_keepAlive(bool& retVal) = 0;
     virtual result_t set_keepAlive(bool newVal) = 0;
+    virtual result_t get_upgrade(bool& retVal) = 0;
+    virtual result_t set_upgrade(bool newVal) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
@@ -53,6 +55,8 @@ public:
     static void s_get_headers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_keepAlive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_upgrade(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_upgrade(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -90,6 +94,7 @@ namespace fibjs
             {"protocol", s_get_protocol, s_set_protocol, false},
             {"headers", s_get_headers, block_set, false},
             {"keepAlive", s_get_keepAlive, s_set_keepAlive, false},
+            {"upgrade", s_get_upgrade, s_set_upgrade, false},
             {"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false},
             {"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false}
         };
@@ -97,7 +102,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "HttpMessage", NULL, 
-            6, s_method, 0, NULL, 5, s_property, NULL, NULL,
+            6, s_method, 0, NULL, 6, s_property, NULL, NULL,
             &Message_base::class_info()
         };
 
@@ -159,6 +164,29 @@ namespace fibjs
 
         PROPERTY_VAL(bool);
         hr = pInst->set_keepAlive(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void HttpMessage_base::s_get_upgrade(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        bool vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(HttpMessage_base);
+
+        hr = pInst->get_upgrade(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HttpMessage_base::s_set_upgrade(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(HttpMessage_base);
+
+        PROPERTY_VAL(bool);
+        hr = pInst->set_upgrade(v0);
 
         PROPERTY_SET_LEAVE();
     }

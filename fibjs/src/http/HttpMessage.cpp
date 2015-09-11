@@ -317,7 +317,14 @@ void HttpMessage::addHeader(const char *name, int32_t szName, const char *value,
                             int32_t szValue)
 {
     if (szName == 10 && !qstricmp(name, "connection", szName))
-        m_keepAlive = !!qstristr(value, "keep-alive");
+    {
+        if (qstristr(value, "upgrade"))
+        {
+            m_upgrade = true;
+            m_keepAlive = true;
+        } else
+            m_keepAlive = !!qstristr(value, "keep-alive");
+    }
     else
         m_headers->add(name, szName, value, szValue);
 }
@@ -344,7 +351,7 @@ size_t HttpMessage::size()
     int64_t l;
 
     // connection 10
-    sz += 10 + 4 + (m_keepAlive ? 10 : 5);
+    sz += 10 + 4 + (m_upgrade ? 7 : (m_keepAlive ? 10 : 5));
 
     // content-length 14
     get_length(l);
@@ -384,7 +391,9 @@ size_t HttpMessage::getData(char *buf, size_t sz)
 
     // connection 10
     cp(buf, sz, pos, "Connection: ", 12);
-    if (m_keepAlive)
+    if (m_upgrade)
+        cp(buf, sz, pos, "upgrade\r\n", 9);
+    else if (m_keepAlive)
         cp(buf, sz, pos, "keep-alive\r\n", 12);
     else
         cp(buf, sz, pos, "close\r\n", 7);
@@ -454,6 +463,18 @@ result_t HttpMessage::get_keepAlive(bool &retVal)
 result_t HttpMessage::set_keepAlive(bool newVal)
 {
     m_keepAlive = newVal;
+    return 0;
+}
+
+result_t HttpMessage::get_upgrade(bool &retVal)
+{
+    retVal = m_upgrade;
+    return 0;
+}
+
+result_t HttpMessage::set_upgrade(bool newVal)
+{
+    m_upgrade = newVal;
     return 0;
 }
 
@@ -542,6 +563,7 @@ result_t HttpMessage::clear()
 
     m_protocol.assign("HTTP/1.1", 8);
     m_keepAlive = true;
+    m_upgrade = false;
 
     m_origin.clear();
     m_encoding.clear();

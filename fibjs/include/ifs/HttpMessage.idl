@@ -11,6 +11,9 @@ interface HttpMessage: Message
     /*! @brief 查询和设定是否保持连接 */
     Boolean keepAlive;
 
+    /*! @brief 查询和设定是否是升级协议 */
+    Boolean upgrade;
+
     /*! @brief 查询和设置最大请求头个数，缺省为 128 */
     Integer maxHeadersCount;
 

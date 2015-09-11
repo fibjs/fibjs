@@ -33,6 +33,8 @@ public:
     result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     result_t get_keepAlive(bool &retVal);
     result_t set_keepAlive(bool newVal);
+    result_t get_upgrade(bool& retVal);
+    result_t set_upgrade(bool newVal);
     result_t get_maxHeadersCount(int32_t &retVal);
     result_t set_maxHeadersCount(int32_t newVal);
     result_t get_maxUploadSize(int32_t &retVal);
@@ -68,6 +70,7 @@ public:
     bool m_bResponse;
     std::string m_protocol;
     bool m_keepAlive;
+    bool m_upgrade;
     int32_t m_maxHeadersCount;
     int32_t m_maxUploadSize;
     std::string m_origin;
