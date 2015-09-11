@@ -72,10 +72,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             m_httprep = (HttpResponse_base*)(Message_base*)rep;
 
             m_httpreq->get_stream(m_stm);
-
             m_stmBuffered = new BufferedStream(m_stm);
-            m_msg = new WebSocketMessage(websocket_base::_TEXT, false, pThis->m_maxSize);
-            m_msg->get_response(m_rep);
 
             set(handshake);
         }
@@ -144,7 +141,8 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
-            pThis->m_msg->clear();
+            pThis->m_msg = new WebSocketMessage(websocket_base::_TEXT, false, pThis->m_pThis->m_maxSize);
+
             pThis->set(invoke);
             return pThis->m_msg->readFrom(pThis->m_stmBuffered, pThis);
         }
@@ -161,17 +159,36 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (!masked)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: Payload data is not masked."));
 
+            int32_t type;
+            pThis->m_msg->get_type(type);
+
+            if (type == websocket_base::_CLOSE)
+                return pThis->done(CALL_RETURN_NULL);
+
+            if (type != websocket_base::_TEXT &&
+                    type != websocket_base::_BINARY &&
+                    type != websocket_base::_PING)
+            {
+                pThis->set(read);
+                return 0;
+            }
+
             pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
             pThis->m_pThis->m_stats->inc(PACKET_REQUEST);
             pThis->m_pThis->m_stats->inc(PACKET_PENDDING);
 
             pThis->set(send);
+            if (type == websocket_base::_PING)
+                return 0;
+
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_msg, pThis);
         }
 
         static int32_t send(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->m_msg->get_response(pThis->m_rep);
 
             pThis->set(end);
             return pThis->m_rep->sendTo(pThis->m_stm, pThis);
@@ -180,6 +197,8 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         static int32_t end(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->m_rep.Release();
 
             pThis->m_pThis->m_stats->inc(PACKET_RESPONSE);
             pThis->m_pThis->m_stats->dec(PACKET_PENDDING);
