@@ -196,6 +196,12 @@ result_t http_base::request(const char* method, const char* url,
             asyncRequest *pThis = (asyncRequest *) pState;
 
             pThis->set(closed);
+
+            bool upgrade;
+            pThis->m_retVal->get_upgrade(upgrade);
+            if (upgrade)
+                return 0;
+
             return pThis->m_conn->close(pThis);
         }
 
