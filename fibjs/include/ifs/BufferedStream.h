@@ -246,6 +246,8 @@ namespace fibjs
 
     inline void BufferedStream_base::s_readPacket(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON();
+
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(BufferedStream_base);
@@ -284,6 +286,8 @@ namespace fibjs
 
     inline void BufferedStream_base::s_writePacket(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON();
+
         METHOD_INSTANCE(BufferedStream_base);
         METHOD_ENTER(1, 1);
 

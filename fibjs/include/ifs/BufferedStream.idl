@@ -42,7 +42,7 @@ interface BufferedStream : Stream
      @param limit 指定此次读取的最大字节数，超出则抛出错误
      @return 返回读取的二进制数据块，若无数据可读，或者连接中断，则返回 null
      */
-    Buffer readPacket(Integer limit = -1) async;
+    deprecated Buffer readPacket(Integer limit = -1) async;
 
     /*! @brief 写入一个字符串
      @param txt 指定写入的字符串
@@ -57,7 +57,7 @@ interface BufferedStream : Stream
     /*! @brief 写入一个二进制数据包
      @param data 指定写入的二进制数据
      */
-    writePacket(Buffer data) async;
+    deprecated writePacket(Buffer data) async;
 
     /*! @brief 查询创建缓存对象时的流对象 */
     readonly Stream stream;
