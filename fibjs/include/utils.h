@@ -763,6 +763,12 @@ inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 #define CHECK_ERROR(hr) (hr)
 #endif
 
+inline void DEPRECATED_SOON()
+{
+    asyncLog(3, "This method is deprecated and will soon be removed." +
+             traceInfo(16));
+}
+
 inline std::string niceSize(intptr_t sz)
 {
     char buf[64];

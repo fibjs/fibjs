@@ -484,12 +484,18 @@ function parserIDL(fname) {
 			ifStr = "",
 			fnStr = "",
 			argVars = "",
-			type, r;
+			type, r,
+			deprecated = false;
 
 		args = [];
 
-		if (st[0] == "const" || st[0] == "static" || st[0] == "readonly") {
-			attr = st[0];
+		if (st[pos] == "deprecated") {
+			deprecated = true;
+			pos++;
+		}
+
+		if (st[pos] == "const" || st[pos] == "static" || st[pos] == "readonly") {
+			attr = st[pos];
 			pos++;
 		} else
 			attr = "";
@@ -674,10 +680,16 @@ function parserIDL(fname) {
 
 			if (ids.hasOwnProperty(fname)) {
 				fnStr = ids[fname][1] + "\n        METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+
+				if (deprecated)
+					fnStr += "        DEPRECATED_SOON();\n\n";
 			} else {
 				iffs.push("    static void s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args);");
 
 				fnStr = "    inline void " + ns + "_base::s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n";
+
+				if (deprecated)
+					fnStr += "        DEPRECATED_SOON();\n\n";
 
 				if (fname === "_new") {
 					fnStr += "        CONSTRUCT_INIT();\n        __new(args);\n    }\n\n";
@@ -789,6 +801,10 @@ function parserIDL(fname) {
 				iffs
 					.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
 				fnStr = "    inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+
+				if (deprecated)
+					fnStr += "        DEPRECATED_SOON();\n\n";
+
 				fnStr += "        " + map_type(ftype) + " vr = _" + fname + ";\n";
 				fnStr += "        PROPERTY_ENTER();\n        METHOD_RETURN();\n    }\n";
 				ffs.push(fnStr)
@@ -805,6 +821,10 @@ function parserIDL(fname) {
 				iffs
 					.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
 				fnStr = "    inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+
+				if (deprecated)
+					fnStr += "        DEPRECATED_SOON();\n\n";
+
 				fnStr += "        " + map_type(ftype) + " vr;\n\n        PROPERTY_ENTER();\n\n";
 
 				fnStr += "        hr = get_" + fname + "(";
@@ -818,7 +838,13 @@ function parserIDL(fname) {
 				if (attr1 != "readonly") {
 					iffs
 						.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
-					fnStr = "    inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n    {\n        PROPERTY_ENTER();\n";
+					fnStr = "    inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n    {\n";
+
+					if (deprecated)
+						fnStr += "        DEPRECATED_SOON();\n\n";
+
+					fnStr += "        PROPERTY_ENTER();\n";
+
 					if (ftype === "String")
 						fnStr += "        PROPERTY_VAL(arg_string);\n";
 					else
@@ -843,6 +869,10 @@ function parserIDL(fname) {
 					iffs
 						.push("    static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);");
 					fnStr = "    inline void " + ns + "_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+
+					if (deprecated)
+						fnStr += "        DEPRECATED_SOON();\n\n";
+
 					fnStr += "        " + map_type(ftype) + " vr;\n\n";
 					fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
@@ -855,7 +885,13 @@ function parserIDL(fname) {
 					if (attr != "readonly") {
 						iffs
 							.push("    static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
-						fnStr = "    inline void " + ns + "_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n        PROPERTY_ENTER();\n";
+						fnStr = "    inline void " + ns + "_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+
+						if (deprecated)
+							fnStr += "        DEPRECATED_SOON();\n\n";
+
+						fnStr += "        PROPERTY_ENTER();\n";
+
 						fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
 							fnStr += "        PROPERTY_VAL(arg_string);\n";
@@ -874,6 +910,10 @@ function parserIDL(fname) {
 					iffs
 						.push("    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
 					fnStr = "    inline void " + ns + "_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+
+					if (deprecated)
+						fnStr += "        DEPRECATED_SOON();\n\n";
+
 					fnStr += "        " + map_type(ftype) + " vr;\n\n";
 					fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
@@ -888,6 +928,10 @@ function parserIDL(fname) {
 					iffs
 						.push("    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);");
 					fnStr = "    inline void " + ns + "_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)\n    {\n";
+
+					if (deprecated)
+						fnStr += "        DEPRECATED_SOON();\n\n";
+
 					fnStr += "        v8::Local<v8::Array> vr;\n\n";
 					fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
@@ -901,7 +945,13 @@ function parserIDL(fname) {
 					if (attr != "readonly") {
 						iffs
 							.push("    static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
-						fnStr = "    inline void " + ns + "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n        PROPERTY_ENTER();\n";
+						fnStr = "    inline void " + ns + "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+
+						if (deprecated)
+							fnStr += "        DEPRECATED_SOON();\n\n";
+
+						fnStr += "        PROPERTY_ENTER();\n";
+
 						fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
 							fnStr += "        PROPERTY_VAL(arg_string);\n";
@@ -917,6 +967,10 @@ function parserIDL(fname) {
 						iffs
 							.push("    static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args);");
 						fnStr = "    inline void " + ns + "_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)\n    {\n";
+
+						if (deprecated)
+							fnStr += "        DEPRECATED_SOON();\n\n";
+
 						fnStr += "        v8::Local<v8::Boolean> vr;\n\n";
 						fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
@@ -944,6 +998,10 @@ function parserIDL(fname) {
 				iffs
 					.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
 				fnStr = "    inline void " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n";
+
+				if (deprecated)
+					fnStr += "        DEPRECATED_SOON();\n\n";
+
 				fnStr += "        " + map_type(ftype) + " vr;\n\n";
 				fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
@@ -958,7 +1016,13 @@ function parserIDL(fname) {
 				if (attr != "readonly") {
 					iffs
 						.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
-					fnStr = "    inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n    {\n        PROPERTY_ENTER();\n";
+					fnStr = "    inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n    {\n";
+
+					if (deprecated)
+						fnStr += "        DEPRECATED_SOON();\n\n";
+
+					fnStr += "        PROPERTY_ENTER();\n";
+
 					fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 					if (ftype === "String")
 						fnStr += "        PROPERTY_VAL(arg_string);\n";
