@@ -16,6 +16,17 @@
 namespace fibjs
 {
 
+void output(int32_t priority, std::string msg)
+{
+    if (priority == console_base::_ERROR)
+        msg = logger::error() + msg + COLOR_RESET;
+
+    if (priority != console_base::_PRINT)
+        msg += '\n';
+
+    asyncLog(console_base::_PRINT, msg);
+}
+
 bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
 {
     _parser p(line);
@@ -29,9 +40,9 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
 
     if (!qstrcmp(cmd_word.c_str(), ".help"))
     {
-        std::string help_str = ".exit   Exit the repl\n"
-                               ".help   Show repl options\n"
-                               ".info   Show fibjs build information";
+        std::string help_str = ".exit     Exit the repl\n"
+                               ".help     Show repl options\n"
+                               ".info     Show fibjs build information";
 
         for (i = 0; i < len; i ++)
         {
@@ -50,15 +61,15 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
 
             if (hr < 0)
             {
-                asyncLog(console_base::_ERROR, "Invalid cmds argument.");
+                output(console_base::_ERROR, "Invalid cmds argument.");
                 return false;
             }
 
-            cmd.append(8, ' ');
-            help_str = help_str + "\n" + cmd.substr(0, 8) + help;
+            cmd.append(10, ' ');
+            help_str = help_str + "\n" + cmd.substr(0, 10) + help;
         }
 
-        asyncLog(console_base::_INFO, help_str);
+        output(console_base::_INFO, help_str);
         return true;
     }
 
@@ -91,7 +102,7 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
 
         if (hr < 0)
         {
-            asyncLog(console_base::_ERROR, "Invalid cmds argument.");
+            output(console_base::_ERROR, "Invalid cmds argument.");
             return false;
         }
 
@@ -116,7 +127,7 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
         }
     }
 
-    asyncLog(console_base::_ERROR, cmd_word + ": command not found.");
+    output(console_base::_ERROR, cmd_word + ": command not found.");
     return true;
 }
 
@@ -152,7 +163,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
         bs = new BufferedStream(out);
     }
 
-    asyncLog(console_base::_INFO, "Type \".help\" for more information.");
+    output(console_base::_INFO, "Type \".help\" for more information.");
 
     while (true)
     {
@@ -164,7 +175,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
         std::string line;
         if (out)
         {
-            asyncLog(console_base::_PRINT, buf.empty() ? "> " : " ... ");
+            output(console_base::_PRINT, buf.empty() ? "> " : " ... ");
             hr = bs->ac_readLine(-1, line);
             if (hr >= 0)
                 s_std->log(console_base::_INFO, line);

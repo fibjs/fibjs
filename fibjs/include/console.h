@@ -132,6 +132,8 @@ public:
                 else
                     return CHECK_ERROR(Runtime::setError("console: too many logger."));
             }
+
+            m_levels[console_base::_PRINT] = true;
         }
 
         return 0;
