@@ -23,7 +23,7 @@ set(link_flags " ")
 if(${OS} STREQUAL "Darwin")
 	set(link_flags "${link_flags} -mmacosx-version-min=10.6")
 	set(flags "${flags} -mmacosx-version-min=10.6")
-	target_link_libraries(fibjs dl iconv)
+	target_link_libraries(fibjs dl iconv stdc++)
 endif()
 
 if(${OS} STREQUAL "Linux")
