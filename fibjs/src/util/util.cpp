@@ -1291,7 +1291,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 #define _STR(s) #s
 #define STR(s)  _STR(s)
 
-static const char s_version[] = "0.1.5";
+static const char s_version[] = "0.1.6";
 
 result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
 {
