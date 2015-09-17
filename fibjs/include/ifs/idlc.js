@@ -52,7 +52,15 @@ function replace_dot(path) {
 				replace_dot(fname);
 
 			} else if (name.substr(name.length - 5) == ".html")
-				fs.writeFile(fname, fs.readFile(fname).replace(/::/g, "."));
+			{
+				var html = fs.readFile(fname);
+				html = html.replace(/::/g, ".");
+				html = html.replace(/<meta\ name=\"generator\"\ content=\"Doxygen\ [0-9\.]+"\/>/g, "");
+				html = html.replace(/<!--\ 制作者\ Doxygen\ [0-9\.]+\ -->/g, "");
+				html = html.replace(/<!--\ Generated\ by\ Doxygen\ [0-9\.]+\ -->/g, "");
+
+				fs.writeFile(fname, html);
+			}
 		}
 	});
 }
