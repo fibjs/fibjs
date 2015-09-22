@@ -177,7 +177,8 @@ result_t DBResult::get_fields(v8::Local<v8::Array> &retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
+    
+    m_fields->names(retVal);
     return 0;
 }
 
