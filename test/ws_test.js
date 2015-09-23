@@ -29,7 +29,7 @@ describe('websocket', function() {
 		};
 	}
 
-	it("readFrom ", function() {
+	it("readFrom", function() {
 		assert.deepEqual(load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
 			"masked": false,
 			"type": websocket.TEXT,
@@ -97,7 +97,7 @@ describe('websocket', function() {
 		});
 	});
 
-	it("sendTo ", function() {
+	it("sendTo", function() {
 		function test_msg(n, masked) {
 			var msg = new websocket.Message();
 			msg.type = websocket.TEXT;
@@ -134,7 +134,7 @@ describe('websocket', function() {
 		test_msg(65536, true);
 	});
 
-	it("handshake ", function() {
+	it("handshake", function() {
 		function test_msg(n, masked) {
 			var msg = new websocket.Message();
 			msg.type = websocket.TEXT;
@@ -147,7 +147,7 @@ describe('websocket', function() {
 
 			msg.body.write(buf);
 
-			msg.sendTo(bs);
+			msg.sendTo(rep.stream);
 
 			var msg = new websocket.Message();
 			msg.readFrom(bs);
@@ -218,7 +218,7 @@ describe('websocket', function() {
 		});
 	});
 
-	it("connect ", function() {
+	it("connect", function() {
 		function test_msg(n, masked) {
 			var msg = new websocket.Message();
 			msg.type = websocket.TEXT;
@@ -231,7 +231,7 @@ describe('websocket', function() {
 
 			msg.body.write(buf);
 
-			msg.sendTo(bs);
+			msg.sendTo(s);
 
 			var msg = new websocket.Message();
 			msg.readFrom(bs);
@@ -251,7 +251,7 @@ describe('websocket', function() {
 
 	});
 
-	it("ping ", function() {
+	it("ping", function() {
 		var s = websocket.connect("ws://127.0.0.1:8810/");
 		var bs = new io.BufferedStream(s);
 
@@ -259,7 +259,7 @@ describe('websocket', function() {
 		msg.type = websocket.PING;
 		msg.masked = true;
 
-		msg.sendTo(bs);
+		msg.sendTo(s);
 
 		var msg = new websocket.Message();
 		msg.readFrom(bs);
@@ -267,7 +267,7 @@ describe('websocket', function() {
 		assert.equal(msg.type, websocket.PONG);
 	});
 
-	it("close ", function() {
+	it("close", function() {
 		var s = websocket.connect("ws://127.0.0.1:8810/");
 		var bs = new io.BufferedStream(s);
 
@@ -275,7 +275,7 @@ describe('websocket', function() {
 		msg.type = websocket.CLOSE;
 		msg.masked = true;
 
-		msg.sendTo(bs);
+		msg.sendTo(s);
 
 		var msg = new websocket.Message();
 
@@ -284,7 +284,7 @@ describe('websocket', function() {
 		});
 	});
 
-	it("drop other type message ", function() {
+	it("drop other type message", function() {
 		var s = websocket.connect("ws://127.0.0.1:8810/");
 		var bs = new io.BufferedStream(s);
 
@@ -292,13 +292,13 @@ describe('websocket', function() {
 		msg.type = websocket.PONG;
 		msg.masked = true;
 
-		msg.sendTo(bs);
+		msg.sendTo(s);
 
 		var msg = new websocket.Message();
 		msg.type = websocket.PING;
 		msg.masked = true;
 
-		msg.sendTo(bs);
+		msg.sendTo(s);
 
 		var msg = new websocket.Message();
 		msg.readFrom(bs);
@@ -306,6 +306,27 @@ describe('websocket', function() {
 		assert.equal(msg.type, websocket.PONG);
 	});
 
+	it("remote close", function() {
+		var httpd = new http.Server(8811, new websocket.Handler(function(v) {
+			v.stream.close();
+		}));
+		ss.push(httpd.socket);
+		httpd.asyncRun();
+
+		var s = websocket.connect("ws://127.0.0.1:8811/");
+		var bs = new io.BufferedStream(s);
+
+		var msg = new websocket.Message();
+		msg.type = websocket.TEXT;
+		msg.masked = true;
+
+		msg.sendTo(s);
+
+		var msg = new websocket.Message();
+		assert.throws(function() {
+			msg.readFrom(bs);
+		});
+	});
 });
 
 //test.run(console.DEBUG);

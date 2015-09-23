@@ -309,12 +309,7 @@ result_t WebSocketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (n == CALL_RETURN_NULL)
-            {
-                if (pThis->m_fragmented)
-                    return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
-                else
-                    return pThis->done(CALL_RETURN_NULL);
-            }
+                return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
             std::string strBuffer;
             char ch;
@@ -370,7 +365,7 @@ result_t WebSocketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (n == CALL_RETURN_NULL)
-                return pThis->done(CALL_RETURN_NULL);
+                return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
             std::string strBuffer;
             int32_t pos = 0;
