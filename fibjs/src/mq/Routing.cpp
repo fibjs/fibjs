@@ -105,7 +105,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         }
     }
 
-    return CHECK_ERROR(Runtime::setError("Routing: unknown routing."));
+    return CHECK_ERROR(Runtime::setError("Routing: unknown routing: " + value));
 }
 
 result_t Routing::append(const char *pattern, Handler_base *hdlr)
