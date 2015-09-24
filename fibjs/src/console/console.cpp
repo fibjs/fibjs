@@ -300,7 +300,17 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 #ifndef _WIN32
     if (_readline && _add_history)
     {
-        char *line = _readline(msg);
+        std::string strmsg = msg;
+        char *line;
+        int32_t lfpos = strmsg.find_last_of(0x0a);
+
+        if ( lfpos >= 0 )
+        {
+            puts (strmsg.substr(0, lfpos).c_str());
+            line = _readline( strmsg.substr(lfpos + 1).c_str() );
+        }
+        else
+            line = _readline( msg );
 
         if (!line)
             return CHECK_ERROR(LastError());
