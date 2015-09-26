@@ -151,9 +151,6 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
-            if (n == CALL_RETURN_NULL)
-                return pThis->done(CALL_RETURN_NULL);
-
             bool masked;
             pThis->m_msg->get_masked(masked);
             if (!masked)
@@ -224,6 +221,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             {
                 m_pThis->m_stats->inc(PACKET_TOTAL);
                 m_pThis->m_stats->inc(PACKET_REQUEST);
+                return done(CALL_RETURN_NULL);
             }
 
             return v;
