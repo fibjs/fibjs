@@ -438,4 +438,41 @@ interface Image : object
      @param angle 指定旋转的角度
      */
     copyRotated(Image source, Number dstX, Number dstY, Integer srcX, Integer srcY, Integer width, Integer height, Number angle) async;
+
+    /*! @brief 把过滤器 filterType应用到图像上，根据过滤器类型传入所需参数
+     @param source 源图像对象
+     @param filterType 过滤器类型
+     - MEAN_REMOVAL,    用平均移除法来达到轮廓效果
+     - EDGEDETECT,      用边缘检测来突出图像的边缘
+     - EMBOSS,          使图像浮雕化
+     - SELECTIVE_BLUR,  模糊图像
+     - GAUSSIAN_BLUR,   用高斯算法模糊图像
+     - NEGATE,          将图像中所有颜色反转
+     - GRAYSCALE,       将图像转换为灰度图
+     - SMOOTH,          使图像更柔滑，用arg1设定柔滑级别
+     - BRIGHTNESS,      改变图像的亮度，用arg1设定亮度级别，取值范围是-255~255
+     - CONTRAST,        改变图像的对比度，用arg1设定对比度级别，取值范围是0~100 
+     - COLORIZE,        改变图像的色调，用arg1、arg2、arg3分别指定red、blue、green分值，每种颜色范围是0~255，arg4为透明度，取值返回是0~127
+     @param arg1 过滤器所需参数: SMOOTH 的平滑级别、BRIGHTNESS 的亮度级别、CONTRAST 的对比度级别、COLORIZE 的 red 分值
+     @param arg2 过滤器所需参数: COLORIZE 的 green 分值
+     @param arg3 过滤器所需参数: COLORIZE 的 blue 分值
+     @param arg4 过滤器所需参数: COLORIZE 的透明度 alpha 分值
+     */
+    filter(Integer filterType, Number arg1=0, Number arg2=0, Number arg3=0, Number arg4=0) async;
+
+    /*! @brief 把过滤器 filterType应用到图像上，根据过滤器类型传入所需参数
+     @param source 源图像对象
+     @param affine 仿射矩阵，由6个double类型的数字组成
+      @code
+      {
+        $affine = [ a0, a1, b0, b1, a2, b2 ];
+        x' = a0x + a1y + a2;
+        y' = b0x + b1y + b2;
+      }
+     @param x 可选剪切区域的原点 x 坐标
+     @param y 可选剪切区域的原点 y 坐标
+     @param width 可选剪切区域的的宽度
+     @param height 可选剪切区域的的高度
+     */
+    Image affine(Array affine, Integer x=-1, Integer y=-1, Integer width=-1, Integer height=-1);
 };

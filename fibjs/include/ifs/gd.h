@@ -45,7 +45,18 @@ public:
         _VERTICAL = 2,
         _BOTH = 3,
         _LEFT = 1,
-        _RIGHT = 2
+        _RIGHT = 2,
+        _MEAN_REMOVAL = 0,
+        _EDGEDETECT = 1,
+        _EMBOSS = 2,
+        _SELECTIVE_BLUR = 3,
+        _GAUSSIAN_BLUR = 4,
+        _NEGATE = 5,
+        _GRAYSCALE = 6,
+        _SMOOTH = 7,
+        _BRIGHTNESS = 8,
+        _CONTRAST = 9,
+        _COLORIZE = 10
     };
 
 public:
@@ -82,6 +93,17 @@ public:
     static void s_get_BOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_LEFT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_MEAN_REMOVAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_EDGEDETECT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_EMBOSS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_SELECTIVE_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_GAUSSIAN_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_NEGATE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_GRAYSCALE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_SMOOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_BRIGHTNESS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_CONTRAST(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_COLORIZE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -142,13 +164,24 @@ namespace fibjs
             {"VERTICAL", s_get_VERTICAL, block_set, true},
             {"BOTH", s_get_BOTH, block_set, true},
             {"LEFT", s_get_LEFT, block_set, true},
-            {"RIGHT", s_get_RIGHT, block_set, true}
+            {"RIGHT", s_get_RIGHT, block_set, true},
+            {"MEAN_REMOVAL", s_get_MEAN_REMOVAL, block_set, true},
+            {"EDGEDETECT", s_get_EDGEDETECT, block_set, true},
+            {"EMBOSS", s_get_EMBOSS, block_set, true},
+            {"SELECTIVE_BLUR", s_get_SELECTIVE_BLUR, block_set, true},
+            {"GAUSSIAN_BLUR", s_get_GAUSSIAN_BLUR, block_set, true},
+            {"NEGATE", s_get_NEGATE, block_set, true},
+            {"GRAYSCALE", s_get_GRAYSCALE, block_set, true},
+            {"SMOOTH", s_get_SMOOTH, block_set, true},
+            {"BRIGHTNESS", s_get_BRIGHTNESS, block_set, true},
+            {"CONTRAST", s_get_CONTRAST, block_set, true},
+            {"COLORIZE", s_get_COLORIZE, block_set, true}
         };
 
         static ClassData s_cd = 
         { 
             "gd", NULL, 
-            9, s_method, 0, NULL, 19, s_property, NULL, NULL,
+            9, s_method, 0, NULL, 30, s_property, NULL, NULL,
             NULL
         };
 
@@ -285,6 +318,83 @@ namespace fibjs
     inline void gd_base::s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _RIGHT;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_MEAN_REMOVAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _MEAN_REMOVAL;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_EDGEDETECT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _EDGEDETECT;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_EMBOSS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _EMBOSS;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_SELECTIVE_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _SELECTIVE_BLUR;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_GAUSSIAN_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _GAUSSIAN_BLUR;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_NEGATE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _NEGATE;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_GRAYSCALE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _GRAYSCALE;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_SMOOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _SMOOTH;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_BRIGHTNESS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _BRIGHTNESS;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_CONTRAST(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _CONTRAST;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gd_base::s_get_COLORIZE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _COLORIZE;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
