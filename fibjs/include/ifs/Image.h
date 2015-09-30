@@ -90,6 +90,8 @@ public:
     virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, AsyncEvent* ac) = 0;
     virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, AsyncEvent* ac) = 0;
     virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, double angle, AsyncEvent* ac) = 0;
+    virtual result_t filter(int32_t filterType, double arg1, double arg2, double arg3, double arg4, AsyncEvent* ac) = 0;
+    virtual result_t affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal) = 0;
 
 public:
     static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -145,6 +147,8 @@ public:
     static void s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_filter(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_affine(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE3(Image_base, getData, int32_t, int32_t, obj_ptr<Buffer_base>);
@@ -163,6 +167,7 @@ public:
     ASYNC_MEMBER9(Image_base, copyResized, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBER9(Image_base, copyResampled, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBER8(Image_base, copyRotated, Image_base*, double, double, int32_t, int32_t, int32_t, int32_t, double);
+    ASYNC_MEMBER5(Image_base, filter, int32_t, double, double, double, double);
 };
 
 }
@@ -218,7 +223,9 @@ namespace fibjs
             {"copyMergeGray", s_copyMergeGray, false},
             {"copyResized", s_copyResized, false},
             {"copyResampled", s_copyResampled, false},
-            {"copyRotated", s_copyRotated, false}
+            {"copyRotated", s_copyRotated, false},
+            {"filter", s_filter, false},
+            {"affine", s_affine, false}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -236,7 +243,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "Image", NULL, 
-            42, s_method, 0, NULL, 8, s_property, NULL, NULL,
+            44, s_method, 0, NULL, 8, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -1086,6 +1093,40 @@ namespace fibjs
         hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
 
         METHOD_VOID();
+    }
+
+    inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Image_base);
+        METHOD_ENTER(5, 1);
+
+        ARG(int32_t, 0);
+        OPT_ARG(double, 1, 0);
+        OPT_ARG(double, 2, 0);
+        OPT_ARG(double, 3, 0);
+        OPT_ARG(double, 4, 0);
+
+        hr = pInst->ac_filter(v0, v1, v2, v3, v4);
+
+        METHOD_VOID();
+    }
+
+    inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Image_base> vr;
+
+        METHOD_INSTANCE(Image_base);
+        METHOD_ENTER(5, 1);
+
+        ARG(v8::Local<v8::Array>, 0);
+        OPT_ARG(int32_t, 1, -1);
+        OPT_ARG(int32_t, 2, -1);
+        OPT_ARG(int32_t, 3, -1);
+        OPT_ARG(int32_t, 4, -1);
+
+        hr = pInst->affine(v0, v1, v2, v3, v4, vr);
+
+        METHOD_RETURN();
     }
 
 }

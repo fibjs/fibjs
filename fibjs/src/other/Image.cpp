@@ -1497,4 +1497,90 @@ result_t Image::copyRotated(Image_base *source, double dstX, double dstY,
     return 0;
 }
 
+result_t Image::filter(int32_t filterType, double arg1, double arg2, double arg3, double arg4, AsyncEvent* ac)
+{
+    if (!m_image)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    switch (filterType)
+    {
+    case gd_base::_MEAN_REMOVAL:
+        gdImageMeanRemoval(m_image);
+        break;
+    case gd_base::_EDGEDETECT:
+        gdImageEdgeDetectQuick(m_image);
+        break;
+    case gd_base::_EMBOSS:
+        gdImageEmboss(m_image);
+        break;
+    case gd_base::_SELECTIVE_BLUR:
+        gdImageSelectiveBlur(m_image);
+        break;
+    case gd_base::_GAUSSIAN_BLUR:
+        gdImageGaussianBlur(m_image);
+        break;
+    case gd_base::_NEGATE:
+        gdImageNegate(m_image);
+        break;
+    case gd_base::_GRAYSCALE:
+        gdImageGrayScale(m_image);
+        break;
+    case gd_base::_SMOOTH:
+        gdImageSmooth(m_image, arg1);
+        break;
+    case gd_base::_BRIGHTNESS:
+        if (arg1 < -255 || arg1 > 255)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+        gdImageBrightness(m_image, arg1);
+        break;
+    case gd_base::_CONTRAST:
+        if (arg1 < 0 || arg1 > 100)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+        gdImageContrast(m_image, arg1);
+        break;
+    case gd_base::_COLORIZE:
+        if (arg1 < 0 || arg2 < 0 || arg3 < 0 || arg4 < 0 || arg1 > 255 || arg2 > 255 || arg3 > 255 || arg4 > 127)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+        gdImageColor(m_image, arg1, arg2, arg3, arg4);
+        break;
+    }
+    return 0;
+}
+
+result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height,
+                       obj_ptr<Image_base>& retVal)
+{
+    if (!m_image)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    obj_ptr<Image> dst;
+    if (x == -1 && y == -1 && width == -1 && height == -1) {
+        width = gdImageSX(m_image);
+        height = gdImageSY(m_image);
+    }
+    else if (x < 0 || y < 0 || width < 0 || height < 0 || affine->Length() != 6 )
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    result_t hr = New(width, height, dst);
+    if (hr < 0)
+        return hr;
+    gdRect rect;
+    rect.x = x;
+    rect.y = y;
+    rect.width = width;
+    rect.height = height;
+
+    double affineMatrix[6];
+    for ( int32_t i = 0; i <= 5; i++)
+        affineMatrix[i] = affine->Get(i)->NumberValue();
+
+    gdTransformAffineGetImage(&dst->m_image, m_image, &rect, affineMatrix);
+    retVal = dst;
+    return 0;
+}
+
+
 } /* namespace fibjs */

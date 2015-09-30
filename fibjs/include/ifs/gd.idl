@@ -65,6 +65,39 @@ module gd
     /*! @brief 旋转方向，向右旋转 */
     const Integer RIGHT = 2;
 
+    /*! @brief 滤波器类型：用平均移除法来达到轮廓效果*/
+    const Integer MEAN_REMOVAL = 0;
+
+    /*! @brief 滤波器类型：用边缘检测来突出图像的边缘 */
+    const Integer EDGEDETECT = 1;
+
+    /*! @brief 滤波器类型：使图像浮雕化 */
+    const Integer EMBOSS = 2;
+
+    /*! @brief 滤波器类型：模糊图像 */
+    const Integer SELECTIVE_BLUR = 3;
+
+    /*! @brief 滤波器类型：用高斯算法模糊图像 */
+    const Integer GAUSSIAN_BLUR = 4;
+
+    /*! @brief 滤波器类型：将图像中所有颜色反转 */
+    const Integer NEGATE = 5;
+
+    /*! @brief 滤波器类型：将图像转换为灰度图 */
+    const Integer GRAYSCALE = 6;
+
+    /*! @brief 滤波器类型：使图像更柔滑，用arg1设定柔滑级别 */
+    const Integer SMOOTH = 7;
+
+    /*! @brief 滤波器类型：改变图像的亮度，用arg1设定亮度级别，取值范围是-255~255 */
+    const Integer BRIGHTNESS = 8;
+
+    /*! @brief 滤波器类型：改变图像的对比度，用arg1设定对比度级别，取值范围是0~100 */
+    const Integer CONTRAST = 9;
+
+    /*! @brief 滤波器类型：改变图像的色调，用arg1、arg2、arg3分别指定red、blue、green，每种颜色范围是0~255，arg4为透明度，取值返回是0~127 */
+    const Integer COLORIZE = 10;
+
 
     /*! @brief 创建一个新图像
      @param width 指定图像宽度
