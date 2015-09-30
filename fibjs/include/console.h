@@ -183,7 +183,7 @@ public:
     {
         while (!m_acLog.empty() || m_bWorking)
             if (bFiber)
-                coroutine_base::ac_sleep(1);
+                coroutine_base::sleep(1);
             else
                 exlib::OSThread::sleep(1);
     }

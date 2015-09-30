@@ -36,7 +36,7 @@ public:
     static result_t parallel(v8::Local<v8::Array> datas, v8::Local<v8::Function> func, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
     static result_t current(obj_ptr<Fiber_base>& retVal);
-    static result_t sleep(int32_t ms, AsyncEvent* ac);
+    static result_t sleep(int32_t ms);
     static result_t get_fibers(v8::Local<v8::Array>& retVal);
     static result_t get_spareFibers(int32_t& retVal);
     static result_t set_spareFibers(int32_t newVal);
@@ -49,9 +49,6 @@ public:
     static void s_get_fibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_spareFibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_spareFibers(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-
-public:
-    ASYNC_STATIC1(coroutine_base, sleep, int32_t);
 };
 
 }
@@ -191,7 +188,7 @@ namespace fibjs
 
         OPT_ARG(int32_t, 0, 0);
 
-        hr = ac_sleep(v0);
+        hr = sleep(v0);
 
         METHOD_VOID();
     }

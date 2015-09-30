@@ -193,13 +193,11 @@ result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
     return 0;
 }
 
-result_t coroutine_base::sleep(int32_t ms, AsyncEvent *ac)
+result_t coroutine_base::sleep(int32_t ms)
 {
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    exlib::Fiber::sleep(ms, new AsyncTask(ac));
-    return CALL_E_PENDDING;
+    Isolate::rt _rt;
+    exlib::Fiber::sleep(ms);
+    return 0;
 }
 
 result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
