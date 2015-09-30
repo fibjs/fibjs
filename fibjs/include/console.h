@@ -30,52 +30,29 @@ public:
             m_priority(priority), m_msg(msg)
         {
             m_d.now();
-
-            if (exlib::Service::hasService())
-            {
-                v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                        Isolate::now()->m_isolate, 1, v8::StackTrace::kOverview);
-
-                if (stackTrace->GetFrameCount() > 0)
-                {
-                    char numStr[64];
-                    v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
-                    v8::String::Utf8Value filename(f->GetScriptName());
-
-                    if (*filename)
-                        m_source.append(*filename);
-                    else
-                        m_source.append("[eval]");
-
-                    sprintf(numStr, ":%d", f->GetLineNumber());
-                    m_source.append(numStr);
-                }
-            }
         }
 
         std::string full(bool type = LOGTIME)
         {
             static const char *s_levels[] =
             {
-                " FATAL  - ",
-                " ALERT  - ",
-                " CRIT   - ",
-                " ERROR  - ",
-                " WARN   - ",
-                " NOTICE - ",
-                " INFO   - ",
-                " DEBUG  - ",
-                " ",
-                " ",
-                " "
+                "FATAL  - ",
+                "ALERT  - ",
+                "CRIT   - ",
+                "ERROR  - ",
+                "WARN   - ",
+                "NOTICE - ",
+                "INFO   - ",
+                "DEBUG  - ",
+                "",
+                "",
+                ""
             };
             std::string s;
             if (type) {
                 m_d.sqlString(s);
                 s.append(" ", 1);
             }
-
-            s.append(m_source);
 
             s.append(s_levels[m_priority]);
             s.append(m_msg);
@@ -86,7 +63,6 @@ public:
     public:
         int32_t m_priority;
         std::string m_msg;
-        std::string m_source;
         date_t m_d;
     };
 
