@@ -170,6 +170,7 @@ describe('websocket', function() {
 
 		assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
 		assert.equal(rep.firstHeader("Upgrade"), "websocket");
+		assert.equal(rep.status, 101);
 		assert.equal(rep.upgrade, true);
 
 		var bs = new io.BufferedStream(rep.stream);

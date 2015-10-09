@@ -129,6 +129,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
                 6, (const char*)output, 20, out);
 
+            pThis->m_httprep->set_status(101);
             pThis->m_httprep->addHeader("Sec-WebSocket-Accept", out.c_str());
             pThis->m_httprep->addHeader("Upgrade", "websocket");
             pThis->m_httprep->set_upgrade(true);
