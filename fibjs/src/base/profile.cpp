@@ -44,6 +44,8 @@ static std::string traceFiber()
     return msg;
 }
 
+void dump_memory(int32_t serial);
+
 static void dumpFibers()
 {
     std::string msg;
@@ -58,6 +60,11 @@ static void dumpFibers()
     msg.append(COLOR_RESET "\n");
 
     std_logger::out(msg.c_str());
+
+#ifdef DEBUG
+    dump_memory(0);
+#endif
+
     _exit(1);
 }
 
@@ -84,6 +91,11 @@ void on_break(int32_t s) {
     if (s_double)
     {
         puts("User interrupt.");
+
+#ifdef DEBUG
+        dump_memory(0);
+#endif
+
         _exit(1);
     }
     s_double = true;
