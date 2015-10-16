@@ -314,7 +314,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                   AsyncEvent *ac, bool bRead, intptr_t &guard) :
             asyncProc(s, ac, guard), m_retVal(retVal), m_pos(0), m_bRead(bRead)
         {
-            m_buf.resize(bytes > 0 ? bytes : STREAM_BUFF_SIZE);
+            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
 
         virtual result_t process()
