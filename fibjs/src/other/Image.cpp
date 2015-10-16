@@ -1529,22 +1529,22 @@ result_t Image::filter(int32_t filterType, double arg1, double arg2, double arg3
         gdImageGrayScale(m_image);
         break;
     case gd_base::_SMOOTH:
-        gdImageSmooth(m_image, arg1);
+        gdImageSmooth(m_image, (float)arg1);
         break;
     case gd_base::_BRIGHTNESS:
         if (arg1 < -255 || arg1 > 255)
             return CHECK_ERROR(CALL_E_INVALIDARG);
-        gdImageBrightness(m_image, arg1);
+        gdImageBrightness(m_image, (int)arg1);
         break;
     case gd_base::_CONTRAST:
         if (arg1 < 0 || arg1 > 100)
             return CHECK_ERROR(CALL_E_INVALIDARG);
-        gdImageContrast(m_image, arg1);
+        gdImageContrast(m_image, (int)arg1);
         break;
     case gd_base::_COLORIZE:
         if (arg1 < 0 || arg2 < 0 || arg3 < 0 || arg4 < 0 || arg1 > 255 || arg2 > 255 || arg3 > 255 || arg4 > 127)
             return CHECK_ERROR(CALL_E_INVALIDARG);
-        gdImageColor(m_image, arg1, arg2, arg3, arg4);
+        gdImageColor(m_image, (int)arg1, (int)arg2, (int)arg3, (int)arg4);
         break;
     }
     return 0;
