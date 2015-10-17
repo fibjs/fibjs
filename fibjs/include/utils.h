@@ -525,6 +525,8 @@ result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict =
 
         if (vr == NULL)
             return CALL_E_INVALIDARG;
+
+        vr->dispose();
     }
 
     return 0;
