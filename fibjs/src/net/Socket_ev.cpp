@@ -383,14 +383,16 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
                   AsyncEvent *ac, bool bRead, intptr_t &guard, void *&opt) :
-            asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal), m_pos(0), m_bRead(
-                bRead)
+            asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal), m_pos(0),
+            m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE), m_bRead(bRead)
         {
-            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
 
         virtual result_t process()
         {
+            if (m_buf.empty())
+                m_buf.resize(m_bytes);
+
             do
             {
                 int32_t n = (int32_t) ::recv(m_s, &m_buf[m_pos], m_buf.length() - m_pos,
@@ -401,8 +403,13 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                     if (nError == ECONNRESET)
                         n = 0;
                     else
+                    {
+                        if (m_pos == 0)
+                            m_buf.clear();
+
                         return CHECK_ERROR((nError == EWOULDBLOCK) ?
                                            CALL_E_PENDDING : -nError);
+                    }
                 }
 
                 if (n == 0)
@@ -433,6 +440,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     public:
         obj_ptr<Buffer_base> &m_retVal;
         int32_t m_pos;
+        int32_t m_bytes;
         bool m_bRead;
         std::string m_buf;
     };
