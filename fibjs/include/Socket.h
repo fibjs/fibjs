@@ -16,7 +16,7 @@ namespace fibjs
 {
 
 #define KEEPALIVE_TIMEOUT   120
-#define SOCKET_BUFF_SIZE    8192
+#define SOCKET_BUFF_SIZE    2048
 
 class Socket: public Socket_base
 {

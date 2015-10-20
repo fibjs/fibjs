@@ -405,7 +405,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                     else
                     {
                         if (m_pos == 0)
-                            m_buf.clear();
+                            m_buf = std::string();
 
                         return CHECK_ERROR((nError == EWOULDBLOCK) ?
                                            CALL_E_PENDDING : -nError);
