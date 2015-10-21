@@ -177,8 +177,6 @@
     <ClInclude Include="include\ifs\net.h" />
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\os.h" />
-    <ClInclude Include="include\ifs\PacketHandler.h" />
-    <ClInclude Include="include\ifs\PacketMessage.h" />
     <ClInclude Include="include\ifs\path.h" />
     <ClInclude Include="include\ifs\PKey.h" />
     <ClInclude Include="include\ifs\process.h" />
@@ -256,8 +254,6 @@
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\obj_ptr.h" />
-    <ClInclude Include="include\PacketHandler.h" />
-    <ClInclude Include="include\PacketMessage.h" />
     <ClInclude Include="include\parse.h" />
     <ClInclude Include="include\PKey.h" />
     <ClInclude Include="include\qstring.h" />
@@ -404,8 +400,6 @@
     <ClCompile Include="src\mq\Message.cpp" />
     <ClCompile Include="src\mq\mq.cpp" />
     <ClCompile Include="src\mq\NullHandler.cpp" />
-    <ClCompile Include="src\mq\PacketHandler.cpp" />
-    <ClCompile Include="src\mq\PacketMessage.cpp" />
     <ClCompile Include="src\mq\Routing.cpp" />
     <ClCompile Include="src\net\inetAddr.cpp" />
     <ClCompile Include="src\net\net.cpp" />

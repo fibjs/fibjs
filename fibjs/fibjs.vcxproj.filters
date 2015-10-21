@@ -333,12 +333,6 @@
     <ClInclude Include="include\ifs\TcpServer.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\PacketHandler.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\PacketMessage.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\ssl.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -520,12 +514,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\PacketHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\PacketMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\parse.h">
@@ -1058,12 +1046,6 @@
       <Filter>Source Files\mq</Filter>
     </ClCompile>
     <ClCompile Include="src\mq\NullHandler.cpp">
-      <Filter>Source Files\mq</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mq\PacketHandler.cpp">
-      <Filter>Source Files\mq</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mq\PacketMessage.cpp">
       <Filter>Source Files\mq</Filter>
     </ClCompile>
     <ClCompile Include="src\mq\Routing.cpp">
