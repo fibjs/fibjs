@@ -160,24 +160,24 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             int32_t type;
             pThis->m_msg->get_type(type);
 
-            if (type == websocket_base::_CLOSE)
-                return pThis->done(CALL_RETURN_NULL);
-
             if (type != websocket_base::_TEXT &&
                     type != websocket_base::_BINARY &&
                     type != websocket_base::_PING)
-            {
-                pThis->set(read);
-                return 0;
-            }
+                return pThis->done(CALL_RETURN_NULL);
 
             pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
             pThis->m_pThis->m_stats->inc(PACKET_REQUEST);
             pThis->m_pThis->m_stats->inc(PACKET_PENDDING);
 
+            pThis->m_msg->get_response(pThis->m_rep);
             pThis->set(send);
             if (type == websocket_base::_PING)
+            {
+                obj_ptr<SeekableStream_base> body;
+                pThis->m_msg->get_body(body);
+                pThis->m_rep->set_body(body);
                 return 0;
+            }
 
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_msg, pThis);
         }
@@ -185,8 +185,6 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         static int32_t send(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
-
-            pThis->m_msg->get_response(pThis->m_rep);
 
             pThis->set(end);
             return pThis->m_rep->sendTo(pThis->m_stm, pThis);
