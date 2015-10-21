@@ -309,19 +309,12 @@ describe('websocket', function() {
 		var msg = new websocket.Message();
 		msg.type = websocket.PONG;
 		msg.masked = true;
-
 		msg.sendTo(s);
 
 		var msg = new websocket.Message();
-		msg.type = websocket.PING;
-		msg.masked = true;
-
-		msg.sendTo(s);
-
-		var msg = new websocket.Message();
-		msg.readFrom(bs);
-
-		assert.equal(msg.type, websocket.PONG);
+		assert.throws(function() {
+			msg.readFrom(bs);
+		});
 	});
 
 	it("remote close", function() {
