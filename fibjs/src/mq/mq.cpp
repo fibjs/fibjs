@@ -11,7 +11,6 @@
 #include "NullHandler.h"
 #include "AsyncWaitHandler.h"
 #include "HttpHandler.h"
-#include "PacketHandler.h"
 #include "Chain.h"
 #include "Routing.h"
 #include "Fiber.h"

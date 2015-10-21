@@ -8,7 +8,6 @@
 #include "BufferedStream.h"
 #include "Stream.h"
 #include "Buffer.h"
-#include "PacketMessage.h"
 
 namespace fibjs
 {
@@ -372,123 +371,6 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
     return (new asyncRead(this, mk, maxlen, retVal, ac))->post(0);
 }
 
-result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
-                                    AsyncEvent *ac)
-{
-    class asyncReadPacket: public asyncBuffer
-    {
-    public:
-        asyncReadPacket(BufferedStream *pThis, int32_t limit,
-                        obj_ptr<Buffer_base> &retVal, AsyncEvent *ac) :
-            asyncBuffer(pThis, ac), m_limit(limit), m_retVal(retVal)
-        {
-        }
-
-        static result_t process(BufferedStream *pThis, int32_t limit,
-                                obj_ptr<Buffer_base> &retVal, bool streamEnd)
-        {
-            int32_t n1 = (int32_t) pThis->m_buf.length() - pThis->m_pos;
-
-            if (pThis->m_temp == 0)
-            {
-                int32_t n2 = (int32_t) pThis->m_strbuf.size();
-                int32_t n3 = 0;
-
-                while (n3 < n1 && ((unsigned char)pThis->m_buf[pThis->m_pos + n3] & 0x80))
-                    n3 ++;
-
-                if (n2 + n3 > (int32_t)sizeof(int32_t))
-                    return CHECK_ERROR(CALL_E_INVALID_DATA);
-
-                if (n3 == n1)
-                {
-                    if (streamEnd)
-                    {
-                        pThis->m_temp = 0;
-                        return CALL_RETURN_NULL;
-                    }
-
-                    pThis->append(n3);
-                    return CHECK_ERROR(CALL_E_PENDDING);
-                }
-
-                n3 ++;
-
-                unsigned char buf[5];
-
-                if (n2 > 0)
-                    memcpy(&buf, pThis->m_strbuf.str().c_str(), n2);
-
-                memcpy((char *)&buf + n2, pThis->m_buf.c_str() + pThis->m_pos, n3);
-                pThis->m_pos += n3;
-                n1 -= n3;
-
-                n2 += n3;
-                n3 = 0;
-                while (n3 < n2)
-                {
-                    pThis->m_temp = (pThis->m_temp << 7) | (buf[n3] & 0x7f);
-                    n3 ++;
-                }
-            }
-
-            if (pThis->m_temp <= 0)
-            {
-                retVal = new Buffer();
-                return 0;
-            }
-
-            if (limit > 0 && pThis->m_temp > limit)
-            {
-                pThis->m_temp = 0;
-                return CHECK_ERROR(CALL_E_INVALID_DATA);
-            }
-
-            int32_t bytes = pThis->m_temp;
-            int32_t n = bytes - (int32_t) pThis->m_strbuf.size();
-
-            if (n > n1)
-                n = n1;
-
-            pThis->append(n);
-
-            if (bytes == (int32_t) pThis->m_strbuf.size())
-            {
-                std::string s = pThis->m_strbuf.str();
-                retVal = new Buffer(s);
-                pThis->m_temp = 0;
-                return 0;
-            }
-
-            if (streamEnd)
-            {
-                pThis->m_temp = 0;
-                return CALL_RETURN_NULL;
-            }
-
-            return CHECK_ERROR(CALL_E_PENDDING);
-        }
-
-        virtual result_t process(bool streamEnd)
-        {
-            return process(m_pThis, m_limit, m_retVal, streamEnd);
-        }
-
-    public:
-        int32_t m_limit;
-        obj_ptr<Buffer_base> &m_retVal;
-    };
-
-    result_t hr = asyncReadPacket::process(this, limit, retVal, false);
-    if (hr != CALL_E_PENDDING)
-        return hr;
-
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    return (new asyncReadPacket(this, limit, retVal, ac))->post(0);
-}
-
 result_t BufferedStream::writeText(const char *txt, AsyncEvent *ac)
 {
     if (!ac)
@@ -518,25 +400,6 @@ result_t BufferedStream::writeLine(const char *txt, AsyncEvent *ac)
     strBuf.append(m_eol);
     obj_ptr<Buffer_base> data = new Buffer(strBuf);
     return write(data, ac);
-}
-
-result_t BufferedStream::writePacket(Buffer_base *data, AsyncEvent *ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    std::string strBuf;
-    std::string strData;
-    int32_t len;
-
-    data->toString(strData);
-    len = (int32_t)strData.length();
-
-    PacketMessage::packetSize(len, strBuf);
-    strBuf.append(strData);
-
-    obj_ptr<Buffer_base> data1 = new Buffer(strBuf);
-    return write(data1, ac);
 }
 
 result_t BufferedStream::get_stream(obj_ptr<Stream_base> &retVal)

@@ -18,8 +18,6 @@ namespace fibjs
 {
 
 class Message_base;
-class PacketMessage_base;
-class PacketHandler_base;
 class HttpHandler_base;
 class Chain_base;
 class Routing_base;
@@ -51,8 +49,6 @@ public:
 }
 
 #include "Message.h"
-#include "PacketMessage.h"
-#include "PacketHandler.h"
 #include "HttpHandler.h"
 #include "Chain.h"
 #include "Routing.h"
@@ -74,8 +70,6 @@ namespace fibjs
         static ClassData::ClassObject s_object[] = 
         {
             {"Message", Message_base::class_info},
-            {"PacketMessage", PacketMessage_base::class_info},
-            {"PacketHandler", PacketHandler_base::class_info},
             {"HttpHandler", HttpHandler_base::class_info},
             {"Chain", Chain_base::class_info},
             {"Routing", Routing_base::class_info}
@@ -84,7 +78,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "mq", NULL, 
-            4, s_method, 6, s_object, 0, NULL, NULL, NULL,
+            4, s_method, 4, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 

@@ -42,10 +42,8 @@ public:
     virtual result_t readLine(int32_t maxlen, std::string &retVal, AsyncEvent *ac);
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array> &retVal);
     virtual result_t readUntil(const char *mk, int32_t maxlen, std::string &retVal, AsyncEvent *ac);
-    virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
     virtual result_t writeText(const char *txt, AsyncEvent *ac);
     virtual result_t writeLine(const char *txt, AsyncEvent *ac);
-    virtual result_t writePacket(Buffer_base *data, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_charset(std::string &retVal);
     virtual result_t set_charset(const char *newVal);

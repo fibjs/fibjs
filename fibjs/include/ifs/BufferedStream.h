@@ -19,7 +19,6 @@ namespace fibjs
 {
 
 class Stream_base;
-class Buffer_base;
 
 class BufferedStream_base : public Stream_base
 {
@@ -32,10 +31,8 @@ public:
     virtual result_t readLine(int32_t maxlen, std::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t readUntil(const char* mk, int32_t maxlen, std::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeText(const char* txt, AsyncEvent* ac) = 0;
     virtual result_t writeLine(const char* txt, AsyncEvent* ac) = 0;
-    virtual result_t writePacket(Buffer_base* data, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_charset(std::string& retVal) = 0;
     virtual result_t set_charset(const char* newVal) = 0;
@@ -52,10 +49,8 @@ public:
     static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readUntil(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readPacket(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_writePacket(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -66,15 +61,12 @@ public:
     ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, std::string);
     ASYNC_MEMBERVALUE2(BufferedStream_base, readLine, int32_t, std::string);
     ASYNC_MEMBERVALUE3(BufferedStream_base, readUntil, const char*, int32_t, std::string);
-    ASYNC_MEMBERVALUE2(BufferedStream_base, readPacket, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(BufferedStream_base, writeText, const char*);
     ASYNC_MEMBER1(BufferedStream_base, writeLine, const char*);
-    ASYNC_MEMBER1(BufferedStream_base, writePacket, Buffer_base*);
 };
 
 }
 
-#include "Buffer.h"
 
 namespace fibjs
 {
@@ -86,10 +78,8 @@ namespace fibjs
             {"readLine", s_readLine, false},
             {"readLines", s_readLines, false},
             {"readUntil", s_readUntil, false},
-            {"readPacket", s_readPacket, false},
             {"writeText", s_writeText, false},
-            {"writeLine", s_writeLine, false},
-            {"writePacket", s_writePacket, false}
+            {"writeLine", s_writeLine, false}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -102,7 +92,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "BufferedStream", s__new, 
-            8, s_method, 0, NULL, 3, s_property, NULL, NULL,
+            6, s_method, 0, NULL, 3, s_property, NULL, NULL,
             &Stream_base::class_info()
         };
 
@@ -244,22 +234,6 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void BufferedStream_base::s_readPacket(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON();
-
-        obj_ptr<Buffer_base> vr;
-
-        METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(1, 0);
-
-        OPT_ARG(int32_t, 0, -1);
-
-        hr = pInst->ac_readPacket(v0, vr);
-
-        METHOD_RETURN();
-    }
-
     inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(BufferedStream_base);
@@ -280,20 +254,6 @@ namespace fibjs
         ARG(arg_string, 0);
 
         hr = pInst->ac_writeLine(v0);
-
-        METHOD_VOID();
-    }
-
-    inline void BufferedStream_base::s_writePacket(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON();
-
-        METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = pInst->ac_writePacket(v0);
 
         METHOD_VOID();
     }
