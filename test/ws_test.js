@@ -259,7 +259,6 @@ describe('websocket', function() {
 		var body = "hello";
 		var msg = new websocket.Message();
 		msg.type = websocket.PING;
-		msg.masked = true;
 		msg.body.write(body);
 		msg.sendTo(s);
 
@@ -276,7 +275,6 @@ describe('websocket', function() {
 
 		var msg = new websocket.Message();
 		msg.type = websocket.CLOSE;
-		msg.masked = true;
 
 		msg.sendTo(s);
 
@@ -293,7 +291,6 @@ describe('websocket', function() {
 
 		var msg = new websocket.Message();
 		msg.type = 5;
-		msg.masked = true;
 		msg.sendTo(s);
 
 		var msg = new websocket.Message();
@@ -308,7 +305,6 @@ describe('websocket', function() {
 
 		var msg = new websocket.Message();
 		msg.type = websocket.PONG;
-		msg.masked = true;
 		msg.sendTo(s);
 
 		var msg = new websocket.Message();
@@ -329,7 +325,6 @@ describe('websocket', function() {
 
 		var msg = new websocket.Message();
 		msg.type = websocket.TEXT;
-		msg.masked = true;
 
 		msg.sendTo(s);
 
