@@ -5,7 +5,6 @@
 #include <time.h>
 #include "ifs/global.h"
 #include "ifs/process.h"
-#include "ifs/global.h"
 #include "console.h"
 #include "SandBox.h"
 #include "Fiber.h"

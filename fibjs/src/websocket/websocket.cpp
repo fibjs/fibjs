@@ -10,6 +10,7 @@
 #include "Map.h"
 #include <mbedtls/mbedtls/sha1.h>
 #include "encoding.h"
+#include <stdlib.h>
 
 namespace fibjs
 {

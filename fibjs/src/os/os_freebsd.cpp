@@ -170,7 +170,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     size = maxcpus * CPUSTATES * sizeof(long);
 
-    cp_times = (long int32_t *) malloc(size);
+    cp_times = (long int *) malloc(size);
     if (cp_times == NULL)
         return CHECK_ERROR(LastError());
 

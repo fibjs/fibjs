@@ -52,36 +52,46 @@ private:
     {
     public:
         date_t insert;
-        std::map<std::string, _linkedNode>::iterator m_prev, m_next, m_prev1, m_next1;
+        std::map<std::string, void *>::iterator m_prev, m_next, m_prev1, m_next1;
     };
+
+    inline std::map<std::string, void *>::iterator _generalize(std::map<std::string, _linkedNode>::iterator it)
+    {
+        return *((std::map<std::string, void *>::iterator *) &it);
+    }
+
+    inline std::map<std::string, _linkedNode>::iterator _instantiate(std::map<std::string, void *>::iterator it)
+    {
+        return *((std::map<std::string, _linkedNode>::iterator *) &it);
+    }
 
     void remove(std::map<std::string, _linkedNode>::iterator it)
     {
-        std::map<std::string, _linkedNode>::iterator &prev = it->second.m_prev;
-        std::map<std::string, _linkedNode>::iterator &next = it->second.m_next;
+        std::map<std::string, _linkedNode>::iterator prev = _instantiate(it->second.m_prev);
+        std::map<std::string, _linkedNode>::iterator next = _instantiate(it->second.m_next);
 
         if (prev != m_datas.end())
-            prev->second.m_next = next;
+            prev->second.m_next = _generalize(next);
         else
             m_begin_lru = next;
 
         if (next != m_datas.end())
-            next->second.m_prev = prev;
+            next->second.m_prev = _generalize(prev);
         else
             m_end_lru = prev;
 
         if (m_timeout > 0)
         {
-            std::map<std::string, _linkedNode>::iterator &prev1 = it->second.m_prev1;
-            std::map<std::string, _linkedNode>::iterator &next1 = it->second.m_next1;
+            std::map<std::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
+            std::map<std::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
 
             if (prev1 != m_datas.end())
-                prev1->second.m_next1 = next1;
+                prev1->second.m_next1 = _generalize(next1);
             else
                 m_begin = next1;
 
             if (next1 != m_datas.end())
-                next1->second.m_prev1 = prev1;
+                next1->second.m_prev1 = _generalize(prev1);
             else
                 m_end = prev1;
         }
@@ -96,11 +106,11 @@ private:
 
     void insert(std::map<std::string, _linkedNode>::iterator it)
     {
-        it->second.m_next = m_begin_lru;
-        it->second.m_prev = m_datas.end();
+        it->second.m_next = _generalize(m_begin_lru);
+        it->second.m_prev = _generalize(m_datas.end());
 
         if (m_begin_lru != m_datas.end())
-            m_begin_lru->second.m_prev = it;
+            m_begin_lru->second.m_prev = _generalize(it);
         else
             m_end_lru = it;
 
@@ -108,11 +118,11 @@ private:
 
         if (m_timeout > 0)
         {
-            it->second.m_next1 = m_begin;
-            it->second.m_prev1 = m_datas.end();
+            it->second.m_next1 = _generalize(m_begin);
+            it->second.m_prev1 = _generalize(m_datas.end());
 
             if (m_begin != m_datas.end())
-                m_begin->second.m_prev1 = it;
+                m_begin->second.m_prev1 = _generalize(it);
             else
                 m_end = it;
 
@@ -124,24 +134,24 @@ private:
     {
         if (m_begin_lru != it)
         {
-            std::map<std::string, _linkedNode>::iterator &prev = it->second.m_prev;
-            std::map<std::string, _linkedNode>::iterator &next = it->second.m_next;
+            std::map<std::string, _linkedNode>::iterator prev = _instantiate(it->second.m_prev);
+            std::map<std::string, _linkedNode>::iterator next = _instantiate(it->second.m_next);
 
             if (prev != m_datas.end())
-                prev->second.m_next = next;
+                prev->second.m_next = _generalize(next);
             else
                 m_begin_lru = next;
 
             if (next != m_datas.end())
-                next->second.m_prev = prev;
+                next->second.m_prev = _generalize(prev);
             else
                 m_end_lru = prev;
 
-            it->second.m_next = m_begin_lru;
-            it->second.m_prev = m_datas.end();
+            it->second.m_next = _generalize(m_begin_lru);
+            it->second.m_prev = _generalize(m_datas.end());
 
             if (m_begin_lru != m_datas.end())
-                m_begin_lru->second.m_prev = it;
+                m_begin_lru->second.m_prev = _generalize(it);
             else
                 m_end_lru = it;
 
@@ -153,24 +163,24 @@ private:
     {
         if (m_timeout > 0 && m_begin != it)
         {
-            std::map<std::string, _linkedNode>::iterator &prev1 = it->second.m_prev1;
-            std::map<std::string, _linkedNode>::iterator &next1 = it->second.m_next1;
+            std::map<std::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
+            std::map<std::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
 
             if (prev1 != m_datas.end())
-                prev1->second.m_next1 = next1;
+                prev1->second.m_next1 = _generalize(next1);
             else
                 m_begin = next1;
 
             if (next1 != m_datas.end())
-                next1->second.m_prev1 = prev1;
+                next1->second.m_prev1 = _generalize(prev1);
             else
                 m_end = prev1;
 
-            it->second.m_next1 = m_begin;
-            it->second.m_prev1 = m_datas.end();
+            it->second.m_next1 = _generalize(m_begin);
+            it->second.m_prev1 = _generalize(m_datas.end());
 
             if (m_begin != m_datas.end())
-                m_begin->second.m_prev1 = it;
+                m_begin->second.m_prev1 = _generalize(it);
             else
                 m_end = it;
 
