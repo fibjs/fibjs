@@ -230,7 +230,7 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
                                      v8::String::kNormalString,
                                      (int32_t) it->first.length());
         obj->Set(name, wrap()->GetHiddenValue(name));
-        it = it->second.m_next;
+        it = _instantiate(it->second.m_next);
     }
 
     retVal = obj;
