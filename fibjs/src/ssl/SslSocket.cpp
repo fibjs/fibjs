@@ -85,8 +85,8 @@ SslSocket::SslSocket()
     mbedtls_ssl_conf_authmode(&m_ssl_conf, g_ssl.m_authmode);
     mbedtls_ssl_conf_rng(&m_ssl_conf, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
 
-    mbedtls_ssl_conf_min_version(&m_ssl_conf, MBEDTLS_SSL_MINOR_VERSION_3, g_ssl.m_min_version);
-    mbedtls_ssl_conf_max_version(&m_ssl_conf, MBEDTLS_SSL_MINOR_VERSION_3, g_ssl.m_max_version);
+    mbedtls_ssl_conf_min_version(&m_ssl_conf, MBEDTLS_SSL_MAJOR_VERSION_3, g_ssl.m_min_version);
+    mbedtls_ssl_conf_max_version(&m_ssl_conf, MBEDTLS_SSL_MAJOR_VERSION_3, g_ssl.m_max_version);
 
     m_recv_pos = 0;
 }

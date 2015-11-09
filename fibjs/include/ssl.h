@@ -34,7 +34,7 @@ public:
         m_authmode = ssl_base::_VERIFY_REQUIRED;
 
         m_min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-        m_max_version = MBEDTLS_SSL_MINOR_VERSION_2;
+        m_max_version = MBEDTLS_SSL_MINOR_VERSION_3;
     }
 
     ~_ssl()
