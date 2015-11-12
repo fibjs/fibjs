@@ -52,13 +52,25 @@ public:
     virtual result_t dropIndex(const char *name, v8::Local<v8::Object> &retVal);
     virtual result_t dropIndexes(v8::Local<v8::Object> &retVal);
     virtual result_t getIndexes(obj_ptr<MongoCursor_base> &retVal);
-    virtual result_t getCollection(const char *name, obj_ptr<MongoCollection_base> &retVal);
+    virtual result_t getCollection(const char *name, obj_ptr<MongoCollection_base> &retVal, AsyncEvent* ac);
     virtual result_t _named_getter(const char *property, obj_ptr<MongoCollection_base> &retVal);
     virtual result_t _named_enumerator(v8::Local<v8::Array> &retVal);
 
 private:
     result_t runCommand(const char *cmd, const char *cmd1, const char *arg,
                         v8::Local<v8::Object> &retVal);
+
+    result_t _insert(const bson *data, int32_t retVal, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE2(MongoCollection, _insert, bson *, int32_t);
+
+    result_t _batchInsert(const std::vector<const bson *> pdata, int num, int32_t retVal, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE3(MongoCollection, _batchInsert, std::vector<const bson *>, int, int32_t);
+
+    result_t _update(const bson *cond, const bson *op, int flags, int32_t retVal, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE4(MongoCollection, _update, bson *, bson *, int, int32_t);
+
+    result_t _remove(const bson *data, int32_t retVal, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE2(MongoCollection, _remove, bson *, int32_t);
 
 private:
     obj_ptr<MongoDB> m_db;

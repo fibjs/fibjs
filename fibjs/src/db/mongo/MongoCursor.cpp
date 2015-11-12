@@ -13,6 +13,19 @@
 namespace fibjs
 {
 
+result_t MongoCursor::_initCursor(AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    
+    mongo_cursor_init(m_cursor, &(m_cursor->m_db)->m_conn, m_ns.c_str());
+    mongo_cursor_set_query(m_cursor, &m_bbq);
+    mongo_cursor_set_fields(m_cursor, &m_bbp);
+
+    return 0;
+}
+
+
 MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
                          const std::string &name, v8::Local<v8::Object> query,
                          v8::Local<v8::Object> projection)
@@ -25,17 +38,13 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
     m_cursor = new cursor;
     m_cursor->m_db = db;
 
-    mongo_cursor_init(m_cursor, &db->m_conn, ns.c_str());
-
     v8::Local<v8::Value> _query;
     util_base::clone(query, _query);
     m_query.Reset(Isolate::now()->m_isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
 
-    mongo_cursor_set_query(m_cursor, &m_bbq);
-
     encodeObject(&m_bbp, projection);
 
-    mongo_cursor_set_fields(m_cursor, &m_bbp);
+    cc__initCursor();
 
     m_bInit = false;
     m_bSpecial = false;
@@ -56,7 +65,7 @@ MongoCursor::~MongoCursor()
         syncCall(close_cursor, m_cursor);
     else
     {
-        mongo_cursor_destroy(m_cursor);
+        asyncCall(mongo_cursor_destroy, m_cursor);
         delete m_cursor;
     }
 
@@ -123,7 +132,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 
     v8::Local<v8::Object> res;
 
-    result_t hr = m_cursor->m_db->run_command(&bbq, res);
+    result_t hr = m_cursor->m_db->bsonHandler(&bbq, res);
     if (hr < 0)
         return hr;
 

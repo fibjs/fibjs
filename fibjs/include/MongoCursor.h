@@ -55,6 +55,9 @@ private:
     result_t _addSpecial(const char *name, v8::Local<v8::Value> opts,
                          obj_ptr<MongoCursor_base> &retVal);
 
+    result_t _initCursor(AsyncEvent *ac);
+    ASYNC_MEMBER0(MongoCursor, _initCursor);
+
 public:
     class cursor : public mongo_cursor
     {
