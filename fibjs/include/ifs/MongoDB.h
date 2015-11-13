@@ -27,14 +27,14 @@ class MongoDB_base : public object_base
 
 public:
     // MongoDB_base
-    virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
+    virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t runCommand(v8::Local<v8::Object> cmd, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t runCommand(const char* cmd, v8::Local<v8::Value> arg, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t get_fs(obj_ptr<GridFS_base>& retVal) = 0;
-    virtual result_t oid(const char* hexStr, obj_ptr<MongoID_base>& retVal) = 0;
-    virtual result_t close() = 0;
+    virtual result_t oid(const char* hexStr, obj_ptr<MongoID_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
     static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,6 +44,11 @@ public:
     static void s_get_fs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_oid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBERVALUE2(MongoDB_base, getCollection, const char*, obj_ptr<MongoCollection_base>);
+    ASYNC_MEMBERVALUE2(MongoDB_base, oid, const char*, obj_ptr<MongoID_base>);
+    ASYNC_MEMBER0(MongoDB_base, close);
 };
 
 }
@@ -134,7 +139,7 @@ namespace fibjs
 
         ARG(arg_string, 0);
 
-        hr = pInst->getCollection(v0, vr);
+        hr = pInst->ac_getCollection(v0, vr);
 
         METHOD_RETURN();
     }
@@ -169,7 +174,7 @@ namespace fibjs
 
         OPT_ARG(arg_string, 0, "");
 
-        hr = pInst->oid(v0, vr);
+        hr = pInst->ac_oid(v0, vr);
 
         METHOD_RETURN();
     }
@@ -179,7 +184,7 @@ namespace fibjs
         METHOD_INSTANCE(MongoDB_base);
         METHOD_ENTER(0, 0);
 
-        hr = pInst->close();
+        hr = pInst->ac_close();
 
         METHOD_VOID();
     }

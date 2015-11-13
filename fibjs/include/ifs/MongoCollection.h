@@ -42,7 +42,7 @@ public:
     virtual result_t dropIndex(const char* name, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t dropIndexes(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t getIndexes(obj_ptr<MongoCursor_base>& retVal) = 0;
-    virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
+    virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
@@ -64,6 +64,9 @@ public:
     static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
+
+public:
+    ASYNC_MEMBERVALUE2(MongoCollection_base, getCollection, const char*, obj_ptr<MongoCollection_base>);
 };
 
 }
@@ -349,7 +352,7 @@ namespace fibjs
 
         ARG(arg_string, 0);
 
-        hr = pInst->getCollection(v0, vr);
+        hr = pInst->ac_getCollection(v0, vr);
 
         METHOD_RETURN();
     }

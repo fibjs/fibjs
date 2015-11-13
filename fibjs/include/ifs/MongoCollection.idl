@@ -108,7 +108,7 @@ interface MongoCollection : object
       @param name 子命名空间名称
       @return 返回新集合对象
      */
-    MongoCollection getCollection(String name);
+    MongoCollection getCollection(String name) async;
 
     /*! @brief 以属性方式快速获取当前集合子命名空间的集合对象
       @return 返回新集合对象
