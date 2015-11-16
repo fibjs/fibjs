@@ -13,6 +13,42 @@
 namespace fibjs
 {
 
+result_t MongoCollection::_batchInsert(std::vector<const bson *> pdata, int num, int32_t &retVal, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = mongo_insert_batch(&m_db->m_conn, m_ns.c_str(), pdata.data(), num, NULL, 0);
+    return 0;
+}
+
+result_t MongoCollection::_insert(const bson *data, int32_t &retVal, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = mongo_insert(&m_db->m_conn, m_ns.c_str(), data, NULL);
+    return 0;
+}
+
+result_t MongoCollection::_update(const bson *cond, const bson *op, int flags, int32_t &retVal, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = mongo_update(&m_db->m_conn, m_ns.c_str(), cond, op, flags, NULL);
+    return 0;
+}
+
+result_t MongoCollection::_remove(const bson *data, int32_t &retVal, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = mongo_remove(&m_db->m_conn, m_ns.c_str(), data, NULL);
+    return 0;
+}
+
 result_t MongoCollection::find(v8::Local<v8::Object> query,
                                v8::Local<v8::Object> projection, obj_ptr<MongoCursor_base> &retVal)
 {
@@ -64,8 +100,8 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
             pbbs[i] = &bbs[i];
         }
 
-        int32_t result = mongo_insert_batch(&m_db->m_conn, m_ns.c_str(),
-                                            pbbs.data(), n, NULL, 0);
+        int32_t result = MONGO_ERROR;
+        cc__batchInsert(pbbs, n, result);
 
         for (i = 0; i < n; i++)
             bson_destroy (&bbs[i]);
@@ -86,7 +122,9 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
     if (hr < 0)
         return hr;
 
-    int32_t result = mongo_insert(&m_db->m_conn, m_ns.c_str(), &bb, NULL);
+    int32_t result = MONGO_ERROR;
+    cc__insert(&bb, result);
+
     bson_destroy(&bb);
 
     if (result != MONGO_OK)
@@ -134,8 +172,8 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
         return hr;
     }
 
-    int32_t result = mongo_update(&m_db->m_conn, m_ns.c_str(), &bbq, &bbd, flags,
-                                  NULL);
+    int32_t result = MONGO_ERROR;
+    cc__update(&bbq, &bbd, flags, result);
 
     bson_destroy(&bbq);
     bson_destroy(&bbd);
@@ -166,7 +204,8 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
     if (hr < 0)
         return hr;
 
-    int32_t result = mongo_remove(&m_db->m_conn, m_ns.c_str(), &bbq, NULL);
+    int32_t result = MONGO_ERROR;
+    cc__remove(&bbq, result);
 
     bson_destroy(&bbq);
 
@@ -196,7 +235,7 @@ result_t MongoCollection::runCommand(const char *cmd,
     }
     bson_finish(&bbq);
 
-    return m_db->run_command(&bbq, retVal);
+    return m_db->bsonHandler(&bbq, retVal);
 }
 
 result_t MongoCollection::runCommand(const char *cmd, const char *cmd1,
@@ -212,7 +251,7 @@ result_t MongoCollection::runCommand(const char *cmd, const char *cmd1,
 
     bson_finish(&bbq);
 
-    return m_db->run_command(&bbq, retVal);
+    return m_db->bsonHandler(&bbq, retVal);
 }
 
 result_t MongoCollection::drop()

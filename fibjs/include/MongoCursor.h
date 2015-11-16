@@ -55,6 +55,21 @@ private:
     result_t _addSpecial(const char *name, v8::Local<v8::Value> opts,
                          obj_ptr<MongoCursor_base> &retVal);
 
+    result_t _initCursor(MongoDB *db, AsyncEvent *ac);
+    ASYNC_MEMBER1(MongoCursor, _initCursor, MongoDB *);
+
+    result_t _nextCursor(int32_t &retVal, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE1(MongoCursor, _nextCursor, int32_t);
+
+    result_t _bsonCursor(bson &out, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE1(MongoCursor, _bsonCursor, bson);
+
+    result_t _limitCursor(int32_t size, AsyncEvent *ac);
+    ASYNC_MEMBER1(MongoCursor, _limitCursor, int32_t);
+
+    result_t _skipCursor(int32_t num, AsyncEvent *ac);
+    ASYNC_MEMBER1(MongoCursor, _skipCursor, int32_t);
+
 public:
     class cursor : public mongo_cursor
     {

@@ -44,6 +44,8 @@ int32_t connect(void *sock, const char *host, int32_t port)
         return 0;
     }
 
+    assert(exlib::Service::hasService());
+
     result_t hr = ((Socket *) sock)->ac_connect(host, port);
     if (hr < 0)
     {
@@ -76,6 +78,8 @@ int32_t recv(void *sock, void *buffer, int32_t cbBuffer)
         return -1;
     }
 
+    assert(exlib::Service::hasService());
+
     obj_ptr<Buffer_base> retVal;
 
     result_t hr = ((Socket *) sock)->ac_recv(cbBuffer, retVal);
@@ -103,6 +107,8 @@ int32_t read(void *sock, void *buffer, int32_t cbBuffer)
         Runtime::setError(CALL_E_INVALID_CALL);
         return -1;
     }
+
+    assert(exlib::Service::hasService());
 
     if (cbBuffer <= 0)
         return 0;
@@ -137,6 +143,8 @@ int32_t send(void *sock, const void *buffer, int32_t cbBuffer)
         return -1;
     }
 
+    assert(exlib::Service::hasService());
+
     if (cbBuffer <= 0)
         return 0;
 
@@ -162,6 +170,8 @@ int32_t c_connect(void *sock, const char *host, int32_t port)
         Runtime::setError(CALL_E_INVALID_CALL);
         return 0;
     }
+
+    assert(!exlib::Service::hasService());
 
     result_t hr = ((Socket *) sock)->cc_connect(host, port);
     if (hr < 0)
@@ -195,6 +205,8 @@ int32_t c_recv(void *sock, void *buffer, int32_t cbBuffer)
         return -1;
     }
 
+    assert(!exlib::Service::hasService());
+
     obj_ptr<Buffer_base> retVal;
 
     result_t hr = ((Socket *) sock)->cc_recv(cbBuffer, retVal);
@@ -225,6 +237,8 @@ int32_t c_read(void *sock, void *buffer, int32_t cbBuffer)
 
     if (cbBuffer <= 0)
         return 0;
+
+    assert(!exlib::Service::hasService());
 
     obj_ptr<Buffer_base> retVal;
 
@@ -258,6 +272,8 @@ int32_t c_send(void *sock, const void *buffer, int32_t cbBuffer)
 
     if (cbBuffer <= 0)
         return 0;
+
+    assert(!exlib::Service::hasService());
 
     std::string strBuf((const char *) buffer, cbBuffer);
     obj_ptr<Buffer_base> buf;

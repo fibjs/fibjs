@@ -46,6 +46,7 @@ run("db_test.js");
 run("profiler_test.js");
 
 run('BUG_simple_api_call.js');
+// run("mongo_test.js");
 
 coroutine.start(function() {
 	process.exit(-test.run());

@@ -13,6 +13,56 @@
 namespace fibjs
 {
 
+result_t MongoCursor::_initCursor(MongoDB *db, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    m_cursor = new cursor;
+    m_cursor->m_db = db;
+
+    mongo_cursor_init(m_cursor, &(m_cursor->m_db)->m_conn, m_ns.c_str());
+    mongo_cursor_set_query(m_cursor, &m_bbq);
+    mongo_cursor_set_fields(m_cursor, &m_bbp);
+    return 0;
+}
+
+result_t MongoCursor::_nextCursor(int32_t &retVal, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = mongo_cursor_next(m_cursor);
+    return 0;
+}
+
+result_t MongoCursor::_bsonCursor(bson &out, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    out = *(mongo_cursor_bson(m_cursor));
+    return 0;
+}
+
+result_t MongoCursor::_limitCursor(int32_t size, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    mongo_cursor_set_limit(m_cursor, size);
+    return 0;
+}
+
+result_t MongoCursor::_skipCursor(int32_t num, AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    mongo_cursor_set_skip(m_cursor, num);
+    return 0;
+}
+
 MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
                          const std::string &name, v8::Local<v8::Object> query,
                          v8::Local<v8::Object> projection)
@@ -22,43 +72,23 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
     m_ns = ns;
     m_name = name;
 
-    m_cursor = new cursor;
-    m_cursor->m_db = db;
-
-    mongo_cursor_init(m_cursor, &db->m_conn, ns.c_str());
-
     v8::Local<v8::Value> _query;
     util_base::clone(query, _query);
     m_query.Reset(Isolate::now()->m_isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
 
-    mongo_cursor_set_query(m_cursor, &m_bbq);
-
     encodeObject(&m_bbp, projection);
 
-    mongo_cursor_set_fields(m_cursor, &m_bbp);
+    cc__initCursor(db);
 
     m_bInit = false;
     m_bSpecial = false;
 }
 
-static void close_cursor(MongoCursor::cursor* cur)
-{
-    JSFiber::scope s;
-
-    mongo_cursor_destroy(cur);
-    delete cur;
-}
-
 MongoCursor::~MongoCursor()
 {
     m_query.Reset();
-    if (in_gc())
-        syncCall(close_cursor, m_cursor);
-    else
-    {
-        mongo_cursor_destroy(m_cursor);
-        delete m_cursor;
-    }
+
+    asyncCall(mongo_cursor_destroy, m_cursor);
 
     if (m_bInit)
         bson_destroy(&m_bbq);
@@ -92,7 +122,7 @@ result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base> &retVal)
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    mongo_cursor_set_limit(m_cursor, size);
+    cc__limitCursor(size);
     retVal = this;
     return 0;
 }
@@ -123,7 +153,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 
     v8::Local<v8::Object> res;
 
-    result_t hr = m_cursor->m_db->run_command(&bbq, res);
+    result_t hr = m_cursor->m_db->bsonHandler(&bbq, res);
     if (hr < 0)
         return hr;
 
@@ -189,9 +219,11 @@ result_t MongoCursor::hasNext(bool &retVal)
     }
 
     if (m_state == CUR_NONE)
-        m_state =
-            mongo_cursor_next(m_cursor) == MONGO_OK ?
-            CUR_DATA : CUR_NODATA;
+    {
+        int32_t res;
+        cc__nextCursor(res);
+        m_state = (res == MONGO_OK) ? CUR_DATA : CUR_NODATA;
+    }
 
     retVal = m_state == CUR_DATA;
 
@@ -225,7 +257,7 @@ result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal)
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    mongo_cursor_set_skip(m_cursor, num);
+    cc__skipCursor(num);
     retVal = this;
 
     return 0;
