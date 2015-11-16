@@ -34,7 +34,7 @@ public:
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t get_fs(obj_ptr<GridFS_base>& retVal) = 0;
     virtual result_t oid(const char* hexStr, obj_ptr<MongoID_base>& retVal) = 0;
-    virtual result_t close() = 0;
+    virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
     static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,6 +44,9 @@ public:
     static void s_get_fs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_oid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBER0(MongoDB_base, close);
 };
 
 }
@@ -179,7 +182,7 @@ namespace fibjs
         METHOD_INSTANCE(MongoDB_base);
         METHOD_ENTER(0, 0);
 
-        hr = pInst->close();
+        hr = pInst->ac_close();
 
         METHOD_VOID();
     }

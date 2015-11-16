@@ -28,7 +28,8 @@ public:
 
     ~MongoDB()
     {
-        mongo_destroy(&m_conn);
+        if (mongo_is_connected(&m_conn))
+            asyncCall(mongo_destroy, &m_conn);
     }
 
 public:
@@ -40,12 +41,14 @@ public:
     virtual result_t _named_enumerator(v8::Local<v8::Array> &retVal);
     virtual result_t get_fs(obj_ptr<GridFS_base> &retVal);
     virtual result_t oid(const char *hexStr, obj_ptr<MongoID_base> &retVal);
-    virtual result_t close();
+    virtual result_t close(AsyncEvent* ac);
 
 public:
     result_t open(const char *connString);
     result_t error();
-    result_t run_command(bson *command, v8::Local<v8::Object> &retVal);
+    result_t bsonHandler(bson *command, v8::Local<v8::Object> &retVal);
+    result_t _runCommand(bson *command, bson &out, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE2(MongoDB, _runCommand, bson *, bson);
 
 public:
     mongo m_conn;

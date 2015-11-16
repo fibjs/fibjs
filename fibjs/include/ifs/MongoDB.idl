@@ -46,5 +46,5 @@ interface MongoDB : object
     MongoID oid(String hexStr = "");
 
     /*! @brief 关闭当前数据库连接 */
-    close();
+    close() async;
 };

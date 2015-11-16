@@ -22,7 +22,7 @@ int32_t mongo_env_set_socket_op_timeout(mongo *conn, int32_t millis)
 
 int32_t mongo_env_read_socket(mongo *conn, void *buf, size_t len)
 {
-    if (fibjs::socket::read(conn->sock, buf, (int32_t)len) < 0)
+    if (fibjs::socket::c_read(conn->sock, buf, (int32_t)len) < 0)
     {
         __mongo_set_error(conn, MONGO_IO_ERROR, NULL,
                           fibjs::Runtime::errNumber());
@@ -34,7 +34,7 @@ int32_t mongo_env_read_socket(mongo *conn, void *buf, size_t len)
 
 int32_t mongo_env_write_socket(mongo *conn, const void *buf, size_t len)
 {
-    if (fibjs::socket::send(conn->sock, buf, (int32_t)len) < 0)
+    if (fibjs::socket::c_send(conn->sock, buf, (int32_t)len) < 0)
     {
         __mongo_set_error(conn, MONGO_IO_ERROR, NULL,
                           fibjs::Runtime::errNumber());
@@ -46,7 +46,7 @@ int32_t mongo_env_write_socket(mongo *conn, const void *buf, size_t len)
 
 int32_t mongo_env_socket_connect(mongo *conn, const char *host, int32_t port)
 {
-    if (!(conn->sock = fibjs::socket::connect(host, port)))
+    if (!(conn->sock = fibjs::socket::c_connect(host, port)))
     {
         __mongo_set_error(conn, MONGO_IO_ERROR, NULL,
                           fibjs::Runtime::errNumber());
@@ -152,6 +152,9 @@ result_t MongoDB::error()
 result_t db_base::openMongoDB(const char *connString,
                               obj_ptr<MongoDB_base> &retVal, AsyncEvent *ac)
 {
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     if (qstrcmp(connString, "mongodb:", 8))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -167,6 +170,7 @@ result_t db_base::openMongoDB(const char *connString,
 
 result_t MongoDB::open(const char *connString)
 {
+    assert(!exlib::Service::hasService());
     obj_ptr<Url> u = new Url();
     int32_t result;
     int32_t nPort;
@@ -245,15 +249,27 @@ result_t MongoDB::getCollection(const char *name,
     return 0;
 }
 
-result_t MongoDB::run_command(bson *command, v8::Local<v8::Object> &retVal)
+result_t MongoDB::_runCommand(bson *command, bson &out, AsyncEvent* ac)
 {
-    bson out;
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (mongo_run_command(&m_conn, m_ns.c_str(), command, &out) != MONGO_OK)
     {
+        bson_destroy(&out);
         bson_destroy(command);
         return CHECK_ERROR(error());
     }
+    return 0;
+}
+
+result_t MongoDB::bsonHandler(bson *command, v8::Local<v8::Object> &retVal)
+{
+    bson out;
+
+    result_t hr = cc__runCommand(command, out);
+    if (hr < 0)
+        return hr;
 
     retVal = decodeObject(&out);
     bson_destroy(&out);
@@ -272,7 +288,7 @@ result_t MongoDB::runCommand(v8::Local<v8::Object> cmd,
     if (hr < 0)
         return hr;
 
-    return run_command(&bbq, retVal);
+    return bsonHandler(&bbq, retVal);
 }
 
 result_t MongoDB::runCommand(const char *cmd, v8::Local<v8::Value> arg,
@@ -284,7 +300,7 @@ result_t MongoDB::runCommand(const char *cmd, v8::Local<v8::Value> arg,
     encodeValue(&bbq, cmd, arg);
     bson_finish(&bbq);
 
-    return run_command(&bbq, retVal);
+    return bsonHandler(&bbq, retVal);
 }
 
 result_t MongoDB::_named_getter(const char *property,
@@ -310,8 +326,11 @@ result_t MongoDB::oid(const char *hexStr, obj_ptr<MongoID_base> &retVal)
     return 0;
 }
 
-result_t MongoDB::close()
+result_t MongoDB::close(AsyncEvent *ac)
 {
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     if (mongo_is_connected(&m_conn))
         mongo_destroy(&m_conn);
 
