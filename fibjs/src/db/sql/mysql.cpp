@@ -84,6 +84,10 @@ int32_t API_resultRowValue(void *result, int32_t icolumn, UMTypeInfo *ti, void *
         case MFTYPE_NULL:
             break;
 
+        case MFTYPE_BIT:
+            v = new Buffer(value, cbValue);
+            break;
+
         case MFTYPE_TINY:
         case MFTYPE_SHORT:
         case MFTYPE_LONG:
@@ -91,6 +95,7 @@ int32_t API_resultRowValue(void *result, int32_t icolumn, UMTypeInfo *ti, void *
         case MFTYPE_LONGLONG:
         case MFTYPE_FLOAT:
         case MFTYPE_DOUBLE:
+        case MFTYPE_DECIMAL:
             v.parseNumber((const char *) value, (int32_t) cbValue);
             break;
 
