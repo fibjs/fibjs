@@ -13,7 +13,6 @@
  */
 
 #include "../object.h"
-#undef _assert
 
 namespace fibjs
 {

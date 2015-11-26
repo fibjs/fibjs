@@ -8,7 +8,6 @@
 #include "Runtime.h"
 #include "Fiber.h"
 #include "SandBox.h"
-#include <assert.h>
 
 namespace fibjs
 {
