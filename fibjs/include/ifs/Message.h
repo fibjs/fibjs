@@ -21,7 +21,6 @@ class List_base;
 class SeekableStream_base;
 class Buffer_base;
 class Stream_base;
-class BufferedStream_base;
 
 class Message_base : public object_base
 {
@@ -44,7 +43,7 @@ public:
     virtual result_t get_length(int64_t& retVal) = 0;
     virtual result_t clear() = 0;
     virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac) = 0;
-    virtual result_t readFrom(BufferedStream_base* stm, AsyncEvent* ac) = 0;
+    virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
 
@@ -77,7 +76,7 @@ public:
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(Message_base, write, Buffer_base*);
     ASYNC_MEMBER1(Message_base, sendTo, Stream_base*);
-    ASYNC_MEMBER1(Message_base, readFrom, BufferedStream_base*);
+    ASYNC_MEMBER1(Message_base, readFrom, Stream_base*);
 };
 
 }
@@ -86,7 +85,6 @@ public:
 #include "SeekableStream.h"
 #include "Buffer.h"
 #include "Stream.h"
-#include "BufferedStream.h"
 
 namespace fibjs
 {
@@ -334,7 +332,7 @@ namespace fibjs
         METHOD_INSTANCE(Message_base);
         METHOD_ENTER(1, 1);
 
-        ARG(obj_ptr<BufferedStream_base>, 0);
+        ARG(obj_ptr<Stream_base>, 0);
 
         hr = pInst->ac_readFrom(v0);
 

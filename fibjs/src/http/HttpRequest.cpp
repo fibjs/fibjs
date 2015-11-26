@@ -215,7 +215,7 @@ result_t HttpRequest::sendTo(Stream_base *stm, AsyncEvent *ac)
     return m_message.sendTo(stm, strCommand, ac);
 }
 
-result_t HttpRequest::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
+result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
 {
     class asyncReadFrom: public AsyncState
     {
@@ -291,7 +291,11 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncReadFrom(this, stm, ac))->post(0);
+    obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
+    if (!_stm)
+        return CHECK_ERROR(Runtime::setError("HttpRequest: only accept BufferedStream object."));
+
+    return (new asyncReadFrom(this, _stm, ac))->post(0);
 }
 
 result_t HttpRequest::get_method(std::string &retVal)

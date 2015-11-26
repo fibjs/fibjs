@@ -54,7 +54,7 @@ interface Message : object
     /*! @brief 从给定的缓存流对象中读取格式化消息，并解析填充对象
      @param stm 指定读取格式化消息的流对象
      */
-    readFrom(BufferedStream stm) async;
+    readFrom(Stream stm) async;
 
     /*! @brief 查询消息 readFrom 时的流对象 */
     readonly Stream stream;

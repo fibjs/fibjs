@@ -281,13 +281,13 @@ result_t WebSocketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
     return (new asyncSendTo(this, stm, ac))->post(0);
 }
 
-result_t WebSocketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
+result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
 {
 
     class asyncReadFrom: public AsyncState
     {
     public:
-        asyncReadFrom(WebSocketMessage *pThis, BufferedStream_base *stm,
+        asyncReadFrom(WebSocketMessage *pThis, Stream_base *stm,
                       AsyncEvent *ac) :
             AsyncState(ac), m_pThis(pThis), m_stm(stm),
             m_fin(false), m_masked(false), m_fragmented(false), m_size(0), m_fullsize(0), m_mask(0)
@@ -428,7 +428,7 @@ result_t WebSocketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
 
     public:
         WebSocketMessage *m_pThis;
-        obj_ptr<BufferedStream_base> m_stm;
+        obj_ptr<Stream_base> m_stm;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<Buffer_base> m_buffer;
         bool m_fin;
@@ -442,7 +442,7 @@ result_t WebSocketMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    stm->get_stream(m_stm);
+    m_stm = stm;
 
     return (new asyncReadFrom(this, stm, ac))->post(0);
 }

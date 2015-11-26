@@ -56,7 +56,7 @@ public:
                     AsyncEvent *ac);
     result_t sendHeader(Stream_base *stm, std::string &strCommand,
                         AsyncEvent *ac);
-    result_t readFrom(BufferedStream_base *stm, AsyncEvent *ac);
+    result_t readFrom(Stream_base *stm, AsyncEvent *ac);
 
 public:
     void addHeader(const char *name, int32_t szName, const char *value,

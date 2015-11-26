@@ -139,7 +139,7 @@ result_t HttpMessage::sendHeader(Stream_base *stm, std::string &strCommand,
     return (new asyncSendTo(this, stm, strCommand, ac, true))->post(0);
 }
 
-result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
+result_t HttpMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
 {
     class asyncReadFrom: public AsyncState
     {
@@ -308,9 +308,13 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    stm->get_stream(m_stm);
+    obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
+    if (!_stm)
+        return CHECK_ERROR(Runtime::setError("HttpMessage: only accept BufferedStream object."));
 
-    return (new asyncReadFrom(this, stm, ac))->post(0);
+    _stm->get_stream(m_stm);
+
+    return (new asyncReadFrom(this, _stm, ac))->post(0);
 }
 
 void HttpMessage::addHeader(const char *name, int32_t szName, const char *value,

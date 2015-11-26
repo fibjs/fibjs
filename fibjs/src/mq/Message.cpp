@@ -191,7 +191,7 @@ result_t Message::sendTo(Stream_base *stm, AsyncEvent *ac)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t Message::readFrom(BufferedStream_base *stm, AsyncEvent *ac)
+result_t Message::readFrom(Stream_base *stm, AsyncEvent *ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
