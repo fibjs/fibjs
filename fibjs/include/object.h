@@ -432,3 +432,6 @@ inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &ar
 
 #endif
 
+#ifdef _assert
+#undef _assert
+#endif
