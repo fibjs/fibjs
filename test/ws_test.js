@@ -150,7 +150,7 @@ describe('websocket', function() {
 			msg.sendTo(rep.stream);
 
 			var msg = new websocket.Message();
-			msg.readFrom(bs);
+			msg.readFrom(rep.stream);
 
 			assert.equal(msg.body.readAll().toString(), buf.toString());
 		}
@@ -172,8 +172,6 @@ describe('websocket', function() {
 		assert.equal(rep.firstHeader("Upgrade"), "websocket");
 		assert.equal(rep.status, 101);
 		assert.equal(rep.upgrade, true);
-
-		var bs = new io.BufferedStream(rep.stream);
 
 		test_msg(10, true);
 		test_msg(100, true);
@@ -235,13 +233,12 @@ describe('websocket', function() {
 			msg.sendTo(s);
 
 			var msg = new websocket.Message();
-			msg.readFrom(bs);
+			msg.readFrom(s);
 
 			assert.equal(msg.body.readAll().toString(), buf.toString());
 		}
 
 		var s = websocket.connect("ws://127.0.0.1:8810/");
-		var bs = new io.BufferedStream(s);
 
 		test_msg(10, true);
 		test_msg(100, true);
@@ -254,7 +251,6 @@ describe('websocket', function() {
 
 	it("ping", function() {
 		var s = websocket.connect("ws://127.0.0.1:8810/");
-		var bs = new io.BufferedStream(s);
 
 		var body = "hello";
 		var msg = new websocket.Message();
@@ -263,7 +259,7 @@ describe('websocket', function() {
 		msg.sendTo(s);
 
 		var msg = new websocket.Message();
-		msg.readFrom(bs);
+		msg.readFrom(s);
 
 		assert.equal(msg.type, websocket.PONG);
 		assert.equal(msg.body.readAll().toString(), body);
@@ -271,7 +267,6 @@ describe('websocket', function() {
 
 	it("close", function() {
 		var s = websocket.connect("ws://127.0.0.1:8810/");
-		var bs = new io.BufferedStream(s);
 
 		var msg = new websocket.Message();
 		msg.type = websocket.CLOSE;
@@ -281,13 +276,12 @@ describe('websocket', function() {
 		var msg = new websocket.Message();
 
 		assert.throws(function() {
-			msg.readFrom(bs);
+			msg.readFrom(s);
 		});
 	});
 
 	it("non-control opcode", function() {
 		var s = websocket.connect("ws://127.0.0.1:8810/");
-		var bs = new io.BufferedStream(s);
 
 		var msg = new websocket.Message();
 		msg.type = 5;
@@ -295,13 +289,12 @@ describe('websocket', function() {
 
 		var msg = new websocket.Message();
 		assert.throws(function() {
-			msg.readFrom(bs);
+			msg.readFrom(s);
 		});
 	});
 
 	it("drop other type message", function() {
 		var s = websocket.connect("ws://127.0.0.1:8810/");
-		var bs = new io.BufferedStream(s);
 
 		var msg = new websocket.Message();
 		msg.type = websocket.PONG;
@@ -309,7 +302,7 @@ describe('websocket', function() {
 
 		var msg = new websocket.Message();
 		assert.throws(function() {
-			msg.readFrom(bs);
+			msg.readFrom(s);
 		});
 	});
 
@@ -321,7 +314,6 @@ describe('websocket', function() {
 		httpd.asyncRun();
 
 		var s = websocket.connect("ws://127.0.0.1:8811/");
-		var bs = new io.BufferedStream(s);
 
 		var msg = new websocket.Message();
 		msg.type = websocket.TEXT;
@@ -330,7 +322,7 @@ describe('websocket', function() {
 
 		var msg = new websocket.Message();
 		assert.throws(function() {
-			msg.readFrom(bs);
+			msg.readFrom(s);
 		});
 	});
 });
