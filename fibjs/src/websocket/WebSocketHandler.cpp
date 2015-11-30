@@ -10,7 +10,6 @@
 #include "WebSocketMessage.h"
 #include "ifs/HttpRequest.h"
 #include "ifs/HttpResponse.h"
-#include "BufferedStream.h"
 #include "JSHandler.h"
 #include "ifs/console.h"
 #include <mbedtls/mbedtls/sha1.h>
@@ -72,7 +71,6 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             m_httprep = (HttpResponse_base*)(Message_base*)rep;
 
             m_httpreq->get_stream(m_stm);
-            m_stmBuffered = new BufferedStream(m_stm);
 
             set(handshake);
         }
@@ -145,7 +143,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             pThis->m_msg = new WebSocketMessage(websocket_base::_TEXT, false, pThis->m_pThis->m_maxSize);
 
             pThis->set(invoke);
-            return pThis->m_msg->readFrom(pThis->m_stmBuffered, pThis);
+            return pThis->m_msg->readFrom(pThis->m_stm, pThis);
         }
 
         static int32_t invoke(AsyncState *pState, int32_t n)
@@ -231,7 +229,6 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<HttpRequest_base> m_httpreq;
         obj_ptr<HttpResponse_base> m_httprep;
         obj_ptr<Stream_base> m_stm;
-        obj_ptr<BufferedStream_base> m_stmBuffered;
         obj_ptr<WebSocketMessage_base> m_msg;
         obj_ptr<Message_base> m_rep;
     };
