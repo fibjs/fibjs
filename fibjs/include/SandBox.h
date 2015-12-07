@@ -7,6 +7,7 @@
 
 #include "ifs/SandBox.h"
 #include "ifs/Stream.h"
+#include "ifs/process.h"
 #include <map>
 
 #ifndef SANDBOX_H_
@@ -25,6 +26,8 @@ public:
             m_name = name;
             m_name.append(":", 1);
         }
+
+        process_base::cwd(m_root);
     }
 
 public:
@@ -101,6 +104,7 @@ public:
     };
 
     std::string m_name;
+    std::string m_root;
 };
 
 } /* namespace fibjs */

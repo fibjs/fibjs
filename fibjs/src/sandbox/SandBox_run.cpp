@@ -9,10 +9,10 @@
 
 #include "ifs/vm.h"
 #include "ifs/fs.h"
-#include "ifs/path.h"
 #include "ifs/Stat.h"
 #include "ifs/encoding.h"
 #include "ifs/util.h"
+#include "path.h"
 
 #include <sstream>
 
@@ -179,10 +179,13 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
                                v8::Local<v8::Value> *args, int32_t argCount)
 {
     Isolate* isolate = Isolate::now();
+    v8::Local<v8::String> sname = v8::String::NewFromUtf8(isolate->m_isolate, name);
+    std::string pname;
+    path_base::dirname(name, pname);
+
     v8::Local<v8::Script> script;
     {
         TryCatch try_catch;
-        v8::Local<v8::String> sname = v8::String::NewFromUtf8(isolate->m_isolate, name);
 
         {
             v8::ScriptCompiler::Source script_source(
@@ -205,7 +208,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
                 str += ',';
         }
 
-        src = str + "){" + src + "\n});";
+        src = str + ",__filename,__dirname){" + src + "\n});";
 
         script = v8::Script::Compile(
                      v8::String::NewFromUtf8(isolate->m_isolate, src.c_str(),
@@ -219,7 +222,9 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), argCount, args);
+    args[argCount] = sname;
+    args[argCount + 1] = v8::String::NewFromUtf8(isolate->m_isolate, pname.c_str());
+    v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), argCount + 2, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -233,7 +238,7 @@ result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::
 
     if (replFunc.IsEmpty())
     {
-        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun, argv};
+        v8::Local<v8::Value> args[10] = {m_fnRequest, m_fnRun, argv};
         return run(src, name, names, args, ARRAYSIZE(names) - 1);
     } else
     {
@@ -246,7 +251,7 @@ result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::
                                v8::Local<v8::Object> exports)
 {
     static const char *names[] = {"module", "exports", "require", "run"};
-    v8::Local<v8::Value> args[] = {module, exports, m_fnRequest, m_fnRun};
+    v8::Local<v8::Value> args[10] = {module, exports, m_fnRequest, m_fnRun};
 
     return run(src, name, names, args, ARRAYSIZE(names));
 }
@@ -355,6 +360,20 @@ result_t SandBox::require(std::string base, std::string id,
     if (!IsEmpty(retVal))
         return 1;
 
+    std::string fullname;
+
+    fullname = m_root;
+    pathAdd(fullname, strId.c_str());
+
+    if (qstrcmp(fullname.c_str(), strId.c_str()))
+    {
+        retVal = _mods->Get(v8::String::NewFromUtf8(isolate->m_isolate, fullname.c_str(),
+                            v8::String::kNormalString,
+                            (int32_t)fullname.length()));
+        if (!IsEmpty(retVal))
+            return 1;
+    }
+
     v8::Local<v8::Value> func = _mods->GetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "require"));
     if (!IsEmpty(func))
     {
@@ -378,18 +397,21 @@ result_t SandBox::require(std::string base, std::string id,
 
     if (!fname.empty())
     {
-        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        strId = m_root;
+        pathAdd(strId, fname.c_str());
+
+        hr = fs_base::ac_readFile(strId.c_str(), buf);
         if (hr >= 0)
-            return addScript(fname.c_str(), buf.c_str(), retVal);
+            return addScript(strId.c_str(), buf.c_str(), retVal);
     }
     else
     {
-        fname = strId + ".js";
+        fname = fullname + ".js";
         hr = fs_base::ac_readFile(fname.c_str(), buf);
         if (hr >= 0)
             return addScript(fname.c_str(), buf.c_str(), retVal);
 
-        fname = strId + ".json";
+        fname = fullname + ".json";
         hr = fs_base::ac_readFile(fname.c_str(), buf);
         if (hr >= 0)
             return addScript(fname.c_str(), buf.c_str(), retVal);
@@ -397,7 +419,7 @@ result_t SandBox::require(std::string base, std::string id,
         if (mode <= FILE_ONLY)
             return hr;
 
-        fname = strId + PATH_SLASH + "package.json";
+        fname = fullname + PATH_SLASH + "package.json";
         hr = fs_base::ac_readFile(fname.c_str(), buf);
         if (hr >= 0)
         {
@@ -497,8 +519,10 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8
 {
     result_t hr;
 
-    std::string sfname;
-    path_base::normalize(fname, sfname);
+    std::string sfname = m_root;
+
+    pathAdd(sfname, fname);
+    path_base::normalize(sfname.c_str(), sfname);
 
     const char *pname = sfname.c_str();
 

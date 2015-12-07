@@ -5,29 +5,13 @@
  *      Author: lion
  */
 
-#include "ifs/path.h"
 #include "ifs/process.h"
 #include "utf8.h"
 #include <sstream>
+#include "path.h"
 
 namespace fibjs
 {
-
-#ifdef _WIN32
-
-#define pathcmpchr qchricmp
-#define pathcmp qstricmp
-
-#else
-
-#define pathcmp qstrcmp
-
-inline bool pathcmpchr(char ch1, char ch2)
-{
-    return ch1 - ch2;
-}
-
-#endif
 
 result_t path_base::basename(const char *path, const char *ext,
                              std::string &retVal)
@@ -263,64 +247,11 @@ result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, std::s
     std::string strBuffer;
     int32_t argc = args.Length();
     int32_t i;
-    bool bRoot;
-
-#ifdef _WIN32
-    char diskID = 0;
-#endif
 
     for (i = 0; i < argc; i++)
     {
         v8::String::Utf8Value s(args[i]);
-        const char *p = *s;
-
-        if (p && *p)
-        {
-#ifdef _WIN32
-            if (p[0] != 0 && p[1] == ':')
-            {
-                if (!pathcmpchr(p[0], diskID) && !isPathSlash(p[2]))
-                {
-                    p += 2;
-                    bRoot = false;
-                }
-                else
-                {
-                    bRoot = true;
-                    diskID = p[0];
-                }
-            }
-            else if (isPathSlash(p[0]) && isPathSlash(p[1]))
-            {
-                bRoot = true;
-                diskID = 0;
-            }
-            else
-#endif
-                if (isPathSlash(p[0]))
-                {
-                    bRoot = true;
-#ifdef _WIN32
-                    diskID = 0;
-#endif
-                }
-                else
-                    bRoot = false;
-
-            if (bRoot)
-                strBuffer.clear();
-
-            strBuffer.append(p);
-
-            if (i < argc - 1 && !isPathSlash(p[s.length() - 1]))
-                strBuffer.append(1, PATH_SLASH);
-        }
-        else
-        {
-            strBuffer.append(1, '.');
-            if (i < argc - 1)
-                strBuffer.append(1, PATH_SLASH);
-        }
+        pathAdd(strBuffer, *s);
     }
 
     return normalize(strBuffer.c_str(), retVal);
