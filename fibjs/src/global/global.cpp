@@ -23,6 +23,21 @@ result_t global_base::get_argv(v8::Local<v8::Array>& retVal)
 	return process_base::get_argv(retVal);
 }
 
+result_t global_base::get___filename(std::string& retVal)
+{
+	return 0;
+}
+
+result_t global_base::get___dirname(std::string& retVal)
+{
+	return 0;
+}
+
+result_t global_base::get___sbname(std::string& retVal)
+{
+	return 0;
+}
+
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
 	return Isolate::now()->m_topSandbox->require(id, retVal);

@@ -179,7 +179,16 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
                                v8::Local<v8::Value> *args, int32_t argCount)
 {
     Isolate* isolate = Isolate::now();
-    v8::Local<v8::String> sname = v8::String::NewFromUtf8(isolate->m_isolate, name);
+    const char *oname = name;
+
+    std::string sname = m_sb->name();
+    if (!sname.empty())
+    {
+        sname.append(oname);
+        oname = sname.c_str();
+    }
+
+    v8::Local<v8::String> soname = v8::String::NewFromUtf8(isolate->m_isolate, oname);
     std::string pname;
     path_base::dirname(name, pname);
 
@@ -191,7 +200,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
             v8::ScriptCompiler::Source script_source(
                 v8::String::NewFromUtf8(isolate->m_isolate, src.c_str(),
                                         v8::String::kNormalString, (int32_t) src.length()),
-                v8::ScriptOrigin(sname));
+                v8::ScriptOrigin(soname));
 
             if (v8::ScriptCompiler::CompileUnbound(
                         isolate->m_isolate, &script_source).IsEmpty())
@@ -208,12 +217,12 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
                 str += ',';
         }
 
-        src = str + ",__filename,__dirname){" + src + "\n});";
+        src = str + ",__filename,__dirname,__sbname){" + src + "\n});";
 
         script = v8::Script::Compile(
                      v8::String::NewFromUtf8(isolate->m_isolate, src.c_str(),
                                              v8::String::kNormalString, (int32_t) src.length()),
-                     sname);
+                     soname);
         if (script.IsEmpty())
             return throwSyntaxError(try_catch);
     }
@@ -222,9 +231,10 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    args[argCount] = sname;
+    args[argCount] = v8::String::NewFromUtf8(isolate->m_isolate, name);;
     args[argCount + 1] = v8::String::NewFromUtf8(isolate->m_isolate, pname.c_str());
-    v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), argCount + 2, args);
+    args[argCount + 2] = v8::String::NewFromUtf8(isolate->m_isolate, m_sb->name().c_str());
+    v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), argCount + 3, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -303,13 +313,6 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         mod->Set(strRequire, context.m_fnRequest);
 
         InstallModule(id, exports);
-
-        std::string sname = name();
-        if (!sname.empty())
-        {
-            sname.append(srcname);
-            srcname = sname.c_str();
-        }
 
         hr = context.run(script, srcname, mod, exports);
         if (hr < 0)
@@ -538,14 +541,6 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8
     }
 
     Context context(this, pname);
-
-    std::string sname = name();
-    if (!sname.empty())
-    {
-        sname.append(sfname);
-        pname = sname.c_str();
-    }
-
     return context.run(buf, pname, argv, replFunc);
 }
 
