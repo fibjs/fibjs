@@ -3,6 +3,7 @@ test.setup();
 
 var db = require('db');
 var fs = require('fs');
+var coroutine = require('coroutine');
 
 describe("db", function() {
 	it("escape", function() {
@@ -100,6 +101,15 @@ describe("db", function() {
 				assert.equal(rs[0].t3.length, 1);
 				assert.equal(rs[0].t3[0], i);
 			}
+		});
+
+		it("execute bug", function(){
+			var a = 0;
+			coroutine.start(function(){
+				a = 1;
+			})
+			conn.execute("select 100;", 100);
+			assert.equal(a, 1);
 		});
 	}
 

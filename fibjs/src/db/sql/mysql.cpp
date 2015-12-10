@@ -320,7 +320,7 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
     if (hr < 0)
         return hr;
 
-    return execute(str.c_str(), (int32_t) str.length(), retVal);
+    return ac_execute(str.c_str(), retVal);
 }
 
 result_t mysql::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
