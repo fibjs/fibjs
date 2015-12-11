@@ -84,11 +84,17 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
     m_bSpecial = false;
 }
 
+static void _close(MongoCursor::cursor *cur)
+{
+    mongo_cursor_destroy(cur);
+    delete cur;
+}
+
 MongoCursor::~MongoCursor()
 {
     m_query.Reset();
 
-    asyncCall(mongo_cursor_destroy, m_cursor);
+    asyncCall(_close, m_cursor);
 
     if (m_bInit)
         bson_destroy(&m_bbq);
