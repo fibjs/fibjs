@@ -18,7 +18,11 @@ result_t MongoCollection::_batchInsert(std::vector<const bson *> pdata, int num,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = mongo_insert_batch(&m_db->m_conn, m_ns.c_str(), pdata.data(), num, NULL, 0);
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = mongo_insert_batch(&db->m_conn, m_ns.c_str(), pdata.data(), num, NULL, 0);
     return 0;
 }
 
@@ -27,7 +31,11 @@ result_t MongoCollection::_insert(const bson *data, int32_t &retVal, AsyncEvent 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = mongo_insert(&m_db->m_conn, m_ns.c_str(), data, NULL);
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = mongo_insert(&db->m_conn, m_ns.c_str(), data, NULL);
     return 0;
 }
 
@@ -36,7 +44,11 @@ result_t MongoCollection::_update(const bson *cond, const bson *op, int flags, i
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = mongo_update(&m_db->m_conn, m_ns.c_str(), cond, op, flags, NULL);
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = mongo_update(&db->m_conn, m_ns.c_str(), cond, op, flags, NULL);
     return 0;
 }
 
@@ -45,21 +57,33 @@ result_t MongoCollection::_remove(const bson *data, int32_t &retVal, AsyncEvent 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = mongo_remove(&m_db->m_conn, m_ns.c_str(), data, NULL);
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = mongo_remove(&db->m_conn, m_ns.c_str(), data, NULL);
     return 0;
 }
 
 result_t MongoCollection::find(v8::Local<v8::Object> query,
                                v8::Local<v8::Object> projection, obj_ptr<MongoCursor_base> &retVal)
 {
-    retVal = new MongoCursor(m_db, m_ns, m_name, query, projection);
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = new MongoCursor(db, m_ns, m_name, query, projection);
     return 0;
 }
 
 result_t MongoCollection::findOne(v8::Local<v8::Object> query,
                                   v8::Local<v8::Object> projection, v8::Local<v8::Object> &retVal)
 {
-    obj_ptr<MongoCursor> cur = new MongoCursor(m_db, m_ns, m_name, query,
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    obj_ptr<MongoCursor> cur = new MongoCursor(db, m_ns, m_name, query,
             projection);
     obj_ptr<MongoCursor_base> cur1;
 
@@ -75,6 +99,10 @@ result_t MongoCollection::findAndModify(v8::Local<v8::Object> query,
 
 result_t MongoCollection::insert(v8::Local<v8::Array> documents)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     std::vector<bson> bbs;
     std::vector<const bson *> pbbs;
     int32_t n = documents->Length();
@@ -107,7 +135,7 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
             bson_destroy (&bbs[i]);
 
         if (result != MONGO_OK)
-            return CHECK_ERROR(m_db->error());
+            return CHECK_ERROR(db->error());
     }
 
     return 0;
@@ -115,6 +143,10 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
 
 result_t MongoCollection::insert(v8::Local<v8::Object> document)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     bson bb;
     result_t hr;
 
@@ -128,7 +160,7 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
     bson_destroy(&bb);
 
     if (result != MONGO_OK)
-        return CHECK_ERROR(m_db->error());
+        return CHECK_ERROR(db->error());
 
     return 0;
 }
@@ -155,6 +187,10 @@ result_t MongoCollection::save(v8::Local<v8::Object> document)
 result_t MongoCollection::update(v8::Local<v8::Object> query,
                                  v8::Local<v8::Object> document, bool upsert, bool multi)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     bson bbq, bbd;
     int32_t flags = (upsert ? MONGO_UPDATE_UPSERT : 0)
                     + (multi ? MONGO_UPDATE_MULTI : 0);
@@ -179,7 +215,7 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
     bson_destroy(&bbd);
 
     if (result != MONGO_OK)
-        return CHECK_ERROR(m_db->error());
+        return CHECK_ERROR(db->error());
 
     return 0;
 }
@@ -197,6 +233,10 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
 
 result_t MongoCollection::remove(v8::Local<v8::Object> query)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     bson bbq;
     result_t hr;
 
@@ -210,7 +250,7 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
     bson_destroy(&bbq);
 
     if (result != MONGO_OK)
-        return CHECK_ERROR(m_db->error());
+        return CHECK_ERROR(db->error());
 
     return 0;
 }
@@ -218,12 +258,21 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
 result_t MongoCollection::runCommand(v8::Local<v8::Object> cmd,
                                      v8::Local<v8::Object> &retVal)
 {
-    return m_db->runCommand(cmd, retVal);
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    return db->runCommand(cmd, retVal);
 }
 
 result_t MongoCollection::runCommand(const char *cmd,
                                      v8::Local<v8::Object> arg, v8::Local<v8::Object> &retVal)
 {
+
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     bson bbq;
 
     bson_init(&bbq);
@@ -235,12 +284,16 @@ result_t MongoCollection::runCommand(const char *cmd,
     }
     bson_finish(&bbq);
 
-    return m_db->bsonHandler(&bbq, retVal);
+    return db->bsonHandler(&bbq, retVal);
 }
 
 result_t MongoCollection::runCommand(const char *cmd, const char *cmd1,
                                      const char *arg, v8::Local<v8::Object> &retVal)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     bson bbq;
 
     bson_init(&bbq);
@@ -251,20 +304,28 @@ result_t MongoCollection::runCommand(const char *cmd, const char *cmd1,
 
     bson_finish(&bbq);
 
-    return m_db->bsonHandler(&bbq, retVal);
+    return db->bsonHandler(&bbq, retVal);
 }
 
 result_t MongoCollection::drop()
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     v8::Local<v8::Object> r;
-    return m_db->runCommand("drop",
-                            v8::String::NewFromUtf8(Isolate::now()->m_isolate, m_name.c_str(),
-                                    v8::String::kNormalString, (int32_t) m_name.length()), r);
+    return db->runCommand("drop",
+                          v8::String::NewFromUtf8(Isolate::now()->m_isolate, m_name.c_str(),
+                                  v8::String::kNormalString, (int32_t) m_name.length()), r);
 }
 
 result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
                                       v8::Local<v8::Object> options)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     std::string name;
 
     v8::Local<v8::Array> ks = keys->GetPropertyNames();
@@ -307,7 +368,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     result_t hr;
     obj_ptr<MongoCollection_base> coll;
 
-    hr = m_db->getCollection("system.indexes", coll);
+    hr = db->getCollection("system.indexes", coll);
     if (hr < 0)
         return hr;
 
@@ -332,10 +393,14 @@ result_t MongoCollection::dropIndexes(v8::Local<v8::Object> &retVal)
 
 result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     result_t hr;
     obj_ptr<MongoCollection_base> coll;
 
-    hr = m_db->getCollection("system.indexes", coll);
+    hr = db->getCollection("system.indexes", coll);
     if (hr < 0)
         return hr;
 
@@ -352,6 +417,10 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
 result_t MongoCollection::getCollection(const char *name,
                                         obj_ptr<MongoCollection_base> &retVal)
 {
+    obj_ptr<MongoDB> db(m_db);
+    if (!db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     std::string nsStr(m_ns);
     std::string nameStr(m_name);
 
@@ -361,7 +430,7 @@ result_t MongoCollection::getCollection(const char *name,
     nameStr += '.';
     nameStr.append(name);
 
-    retVal = new MongoCollection(m_db, nsStr.c_str(), nameStr.c_str());
+    retVal = new MongoCollection(db, nsStr.c_str(), nameStr.c_str());
 
     return 0;
 }

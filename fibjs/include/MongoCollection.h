@@ -73,7 +73,7 @@ private:
     ASYNC_MEMBERVALUE2(MongoCollection, _remove, bson *, int32_t);
 
 private:
-    obj_ptr<MongoDB> m_db;
+    weak_ptr<MongoDB> m_db;
     std::string m_ns;
     std::string m_name;
 };
