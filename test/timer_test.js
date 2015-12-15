@@ -78,6 +78,26 @@ describe("timer", function() {
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1, no2);
 	});
+
+	it("clearInterval in callback", function(argument) {
+		var n = 0;
+
+		GC();
+		var no1 = os.memoryUsage().nativeObjects.objects;
+
+		setInterval(function() {
+			n++;
+			clearInterval(this);
+		}, 1);
+
+		assert.equal(n, 0);
+		coroutine.sleep(10);
+		assert.equal(n, 1);
+
+		GC();
+		var no2 = os.memoryUsage().nativeObjects.objects;
+		assert.equal(no1, no2);
+	});
 });
 
 // test.run(console.DEBUG);

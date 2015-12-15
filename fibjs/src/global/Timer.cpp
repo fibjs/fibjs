@@ -70,21 +70,15 @@ private:
 	{
 		if (!m_cancel)
 		{
-
-			m_cancel = true;
-
 			{
 				JSFiber::scope s;
 				v8::Local<v8::Function>::New(m_isolate, m_callback)->Call(wrap(), 0, NULL);
 			}
 
-			if (m_repeat)
-			{
-				m_cancel = false;
+			if (m_repeat && !m_cancel)
 				sleep();
-			} else
+			else
 				Unref();
-
 		} else
 			Unref();
 	}
