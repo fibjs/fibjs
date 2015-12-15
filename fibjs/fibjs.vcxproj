@@ -207,6 +207,7 @@
     <ClInclude Include="include\ifs\TcpServer.h" />
     <ClInclude Include="include\ifs\test.h" />
     <ClInclude Include="include\ifs\TextColor.h" />
+    <ClInclude Include="include\ifs\Timer.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\util.h" />
@@ -377,6 +378,7 @@
     <ClCompile Include="src\global\Buffer.cpp" />
     <ClCompile Include="src\global\global.cpp" />
     <ClCompile Include="src\global\Int64.cpp" />
+    <ClCompile Include="src\global\Timer.cpp" />
     <ClCompile Include="src\http\http.cpp" />
     <ClCompile Include="src\http\HttpCollection.cpp" />
     <ClCompile Include="src\http\HttpCookie.cpp" />

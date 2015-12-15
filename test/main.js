@@ -10,6 +10,7 @@ run("test_test.js");
 run("console_test.js");
 run("collection_test.js");
 run("int64_test.js");
+run("timer_test.js");
 run("buffer_test.js");
 run("path_test.js");
 run("util_test.js");

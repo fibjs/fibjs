@@ -1,0 +1,6 @@
+/*! @brief 定时器处理器对象 */
+interface Timer : object
+{
+	/*! @brief 取消当前定时器	 */
+	clear();
+};

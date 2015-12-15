@@ -20,6 +20,7 @@ namespace fibjs
 class Buffer_base;
 class Int64_base;
 class console_base;
+class Timer_base;
 class Stream_base;
 
 class global_base : public object_base
@@ -33,6 +34,10 @@ public:
     static result_t get___filename(std::string& retVal);
     static result_t get___dirname(std::string& retVal);
     static result_t get___sbname(std::string& retVal);
+    static result_t clearInterval(Timer_base* t);
+    static result_t clearTimeout(Timer_base* t);
+    static result_t setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
+    static result_t setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
     static result_t require(const char* id, v8::Local<v8::Value>& retVal);
     static result_t GC();
     static result_t repl(v8::Local<v8::Array> cmds);
@@ -44,6 +49,10 @@ public:
     static void s_get___filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get___dirname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get___sbname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_repl(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -54,6 +63,7 @@ public:
 #include "Buffer.h"
 #include "Int64.h"
 #include "console.h"
+#include "Timer.h"
 #include "Stream.h"
 
 namespace fibjs
@@ -63,6 +73,10 @@ namespace fibjs
         static ClassData::ClassMethod s_method[] = 
         {
             {"run", s_run, true},
+            {"clearInterval", s_clearInterval, true},
+            {"clearTimeout", s_clearTimeout, true},
+            {"setInterval", s_setInterval, true},
+            {"setTimeout", s_setTimeout, true},
             {"require", s_require, true},
             {"GC", s_GC, true},
             {"repl", s_repl, true}
@@ -86,7 +100,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "global", NULL, 
-            4, s_method, 3, s_object, 4, s_property, NULL, NULL,
+            8, s_method, 3, s_object, 4, s_property, NULL, NULL,
             NULL
         };
 
@@ -148,6 +162,56 @@ namespace fibjs
         hr = run(v0, v1);
 
         METHOD_VOID();
+    }
+
+    inline void global_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(1, 1);
+
+        ARG(obj_ptr<Timer_base>, 0);
+
+        hr = clearInterval(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void global_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(1, 1);
+
+        ARG(obj_ptr<Timer_base>, 0);
+
+        hr = clearTimeout(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void global_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Timer_base> vr;
+
+        METHOD_ENTER(2, 2);
+
+        ARG(v8::Local<v8::Function>, 0);
+        ARG(int32_t, 1);
+
+        hr = setInterval(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void global_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Timer_base> vr;
+
+        METHOD_ENTER(2, 2);
+
+        ARG(v8::Local<v8::Function>, 0);
+        ARG(int32_t, 1);
+
+        hr = setTimeout(v0, v1, vr);
+
+        METHOD_RETURN();
     }
 
     inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)

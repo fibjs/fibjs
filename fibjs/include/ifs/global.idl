@@ -29,6 +29,30 @@ module global
     /*! @brief 当前沙箱名称 */
     static readonly String __sbname;
 
+    /*! @brief 清除指定的定时器
+     @param t 指定要清除的定时器
+    */
+    static clearInterval(Timer t);
+
+    /*! @brief 清除指定的定时器
+     @param t 指定要清除的定时器
+    */
+    static clearTimeout(Timer t);
+
+    /*! @brief 每间隔指定的时间后调用函数
+     @param callback 指定回调函数
+     @param timeout 指定间隔的时间，以毫秒为单位
+     @return 返回定时器对象
+    */
+    static Timer setInterval(Function callback, Integer timeout);
+
+    /*! @brief 在指定的时间后调用函数
+     @param callback 指定回调函数
+     @param timeout 指定延时的时间，以毫秒为单位
+     @return 返回定时器对象
+    */
+    static Timer setTimeout(Function callback, Integer timeout);
+
     /*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
 
      require 可用于加载基础模块，文件模块。
