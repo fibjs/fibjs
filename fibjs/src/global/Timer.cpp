@@ -78,9 +78,15 @@ private:
 			if (m_repeat && !m_cancel)
 				sleep();
 			else
+			{
+				dispose();
 				Unref();
+			}
 		} else
+		{
+			dispose();
 			Unref();
+		}
 	}
 
 	static void _callback(Timer* pThis)
