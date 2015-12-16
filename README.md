@@ -34,6 +34,7 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	apt-get install g++
 	apt-get install make
 	apt-get install cmake
+	apt-get install git
 
 ### 32bit on ubuntu:
 	apt-get install g++-multilib
@@ -44,6 +45,7 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	yum install libstdc++-static
 	yum install make
 	yum install cmake
+	yum install git
 
 ### 32bit on fedora:
 	yum install glibc-devel.i686
@@ -52,22 +54,19 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 ----------------------------------
 ### on osx:
 	brew install cmake
+	brew install git
 
 ----------------------------------
 ### on freebsd (8,9):
 	pkg_add -r cmake
 	pkg_add -r libexecinfo
+	pkg_add -r git
 
 ----------------------------------
 ### on freebsd 10+:
 	pkg install cmake
 	pkg install libexecinfo
-
-----------------------------------
-### on sunos:
-	pkg install gcc-45
-	pkg install system/header
-	pkg install developer/build/cmake
+	pkg install git
 
 ## Download
 	git clone https://github.com/xicilion/fibjs.git
