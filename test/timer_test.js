@@ -44,6 +44,45 @@ describe("timer", function() {
 		assert.equal(no1, no2);
 	});
 
+	it("setImmediate", function(argument) {
+		var n = 0;
+
+		var no1 = os.memoryUsage().nativeObjects.objects;
+
+		setImmediate(function() {
+			n = 1;
+		});
+
+		var no2 = os.memoryUsage().nativeObjects.objects;
+		assert.equal(no1 + 1, no2);
+
+		assert.equal(n, 0);
+		for (var i = 0; i < 1000 && n == 0; i++)
+			coroutine.sleep(1);
+		assert.equal(n, 1);
+
+		no2 = os.memoryUsage().nativeObjects.objects;
+		assert.equal(no1, no2);
+	});
+
+	it("clearImmediate", function(argument) {
+		var n = 0;
+
+		var no1 = os.memoryUsage().nativeObjects.objects;
+
+		var t = setImmediate(function() {
+			n = 1;
+		});
+
+		assert.equal(n, 0);
+		clearImmediate(t);
+		coroutine.sleep(10);
+		assert.equal(n, 0);
+
+		var no2 = os.memoryUsage().nativeObjects.objects;
+		assert.equal(no1, no2);
+	});
+
 	it("setInterval/clearInterval", function(argument) {
 		var n = 0;
 
