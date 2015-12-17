@@ -8,12 +8,14 @@ describe("timer", function() {
 	it("setTimeout", function(argument) {
 		var n = 0;
 
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		setTimeout(function() {
 			n = 1;
 		}, 1);
 
+		GC();
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1 + 1, no2);
 
@@ -22,6 +24,7 @@ describe("timer", function() {
 			coroutine.sleep(1);
 		assert.equal(n, 1);
 
+		GC();
 		no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1, no2);
 	});
@@ -29,6 +32,7 @@ describe("timer", function() {
 	it("clearTimeout", function(argument) {
 		var n = 0;
 
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		var t = setTimeout(function() {
@@ -37,22 +41,38 @@ describe("timer", function() {
 
 		assert.equal(n, 0);
 		clearTimeout(t);
+		t = undefined;
 		coroutine.sleep(10);
 		assert.equal(n, 0);
 
+		GC();
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1, no2);
+	});
+
+	it("double clearTimeout", function(argument) {
+		var t = setTimeout(function() {
+			n = 1;
+		}, 1);
+
+		clearTimeout(t);
+		coroutine.sleep(10);
+		assert.doesNotThrow(function() {
+			clearTimeout(t);
+		});
 	});
 
 	it("setImmediate", function(argument) {
 		var n = 0;
 
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		setImmediate(function() {
 			n = 1;
 		});
 
+		GC();
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1 + 1, no2);
 
@@ -61,6 +81,7 @@ describe("timer", function() {
 			coroutine.sleep(1);
 		assert.equal(n, 1);
 
+		GC();
 		no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1, no2);
 	});
@@ -68,6 +89,7 @@ describe("timer", function() {
 	it("clearImmediate", function(argument) {
 		var n = 0;
 
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		var t = setImmediate(function() {
@@ -76,9 +98,11 @@ describe("timer", function() {
 
 		assert.equal(n, 0);
 		clearImmediate(t);
+		t = undefined;
 		coroutine.sleep(10);
 		assert.equal(n, 0);
 
+		GC();
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1, no2);
 	});
@@ -86,6 +110,7 @@ describe("timer", function() {
 	it("setInterval/clearInterval", function(argument) {
 		var n = 0;
 
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		var t = setInterval(function() {
@@ -93,6 +118,7 @@ describe("timer", function() {
 				n++;
 		}, 1);
 
+		GC();
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1 + 1, no2);
 
@@ -103,9 +129,11 @@ describe("timer", function() {
 
 		n = 0;
 		clearInterval(t);
+		t = undefined;
 		coroutine.sleep(10);
 		assert.equal(n, 0);
 
+		GC();
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1, no2);
 	});
@@ -113,6 +141,7 @@ describe("timer", function() {
 	it("clearInterval in callback", function(argument) {
 		var n = 0;
 
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		setInterval(function() {
@@ -124,6 +153,7 @@ describe("timer", function() {
 		coroutine.sleep(10);
 		assert.equal(n, 1);
 
+		GC();
 		var no2 = os.memoryUsage().nativeObjects.objects;
 		assert.equal(no1, no2);
 	});
