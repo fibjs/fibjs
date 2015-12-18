@@ -473,4 +473,9 @@ interface Image : object
      @return 返回仿射后的图像
      */
     Image affine(Array affine, Integer x = -1, Integer y = -1, Integer width = -1, Integer height = -1);
+
+    /*! @brief 对当前图像进行高斯模糊处理
+     @param radius 模糊半径
+     */
+    gaussianBlur(Integer radius) async;
 };

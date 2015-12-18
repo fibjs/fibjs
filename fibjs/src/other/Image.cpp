@@ -1547,6 +1547,7 @@ result_t Image::filter(int32_t filterType, double arg1, double arg2, double arg3
         gdImageColor(m_image, (int)arg1, (int)arg2, (int)arg3, (int)arg4);
         break;
     }
+
     return 0;
 }
 
@@ -1579,8 +1580,30 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
 
     gdTransformAffineGetImage(&dst->m_image, m_image, &rect, affineMatrix);
     retVal = dst;
+
     return 0;
 }
 
+
+result_t Image::gaussianBlur(int32_t radius, AsyncEvent* ac)
+{
+    if (!m_image)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (radius >= gdImageSY(m_image) || radius >= gdImageSX(m_image))
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    gdImagePtr dst = gdImageCopyGaussianBlurred(m_image, radius, -1);
+    if (dst)
+    {
+        gdImageDestroy(m_image);
+        m_image = dst;
+    }
+
+    return 0;
+}
 
 } /* namespace fibjs */
