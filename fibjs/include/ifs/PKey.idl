@@ -84,9 +84,10 @@ interface PKey : object
 
     /*! @brief 使用当前算法密码私钥签名数据
      @param data 指定要签名的数据
+     @param alg 指定要签名的算法, 默认0. 支持算法: 0=NONE,1=MD2,2=MD4,3=MD5,4=SHA1,5=SHA224,6=SHA256,7=SHA384,8=SHA512,9=RIPEMD160
      @return 返回签名后的数据
      */
-    Buffer sign(Buffer data) async;
+    Buffer sign(Buffer data, Integer alg = 0) async;
 
     /*! @brief 使用当前算法密码公钥验证数据
      @param sign 指定要验证的签名

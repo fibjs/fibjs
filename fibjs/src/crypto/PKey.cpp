@@ -423,7 +423,7 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     return 0;
 }
 
-result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+result_t PKey::sign(Buffer_base *data, int32_t alg, obj_ptr<Buffer_base> &retVal,
                     AsyncEvent *ac)
 {
     if (!ac)
@@ -447,7 +447,8 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     data->toString(str);
     output.resize(MBEDTLS_PREMASTER_SIZE);
 
-    ret = mbedtls_pk_sign(&m_key, MBEDTLS_MD_NONE,
+    //alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
+    ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg,
                           (const unsigned char *)str.c_str(), str.length(),
                           (unsigned char *)&output[0], &olen,
                           mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
