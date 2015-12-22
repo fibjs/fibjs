@@ -439,6 +439,35 @@ describe('Buffer', function() {
 			buf.resize("12.a")
 		});
 	});
+
+	it('indexOf', function() {
+		var buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x00]);
+		assert.equal(buf.indexOf(0x33), 2);
+		assert.equal(buf.indexOf(0x00), 4);
+
+		buf = new Buffer("cacdbfcde");
+
+		assert.equal(buf.indexOf("cd"), 2);
+		assert.equal(buf.indexOf(new Buffer("de")), 7);
+
+		assert.throws(function() {
+			buf.indexOf("cd", 10);
+		});
+
+		assert.throws(function() {
+			buf.indexOf(new Buffer("de"), 10);
+		});
+		
+		buf = new Buffer('123456');
+		assert.equal(buf.indexOf(0x33), 2);
+
+		buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x05, 0x36]);
+		assert.equal(buf.indexOf(0x38, 3), -1);
+		
+		buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x05, 0x00, 0x36, 0x37]); 
+		assert.equal(buf.indexOf(new Buffer([0x00, 0x36])), 5);
+		  
+	});
 });
 
 //test.run(console.DEBUG);
