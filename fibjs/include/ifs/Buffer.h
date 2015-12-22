@@ -42,6 +42,9 @@ public:
     virtual result_t fill(int32_t v, int32_t offset, int32_t end) = 0;
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end) = 0;
     virtual result_t fill(const char* v, int32_t offset, int32_t end) = 0;
+    virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t indexOf(const char* v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t equals(Buffer_base* buf, bool& retVal) = 0;
     virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
@@ -98,6 +101,7 @@ public:
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -155,6 +159,7 @@ namespace fibjs
             {"append", s_append, false},
             {"write", s_write, false},
             {"fill", s_fill, false},
+            {"indexOf", s_indexOf, false},
             {"equals", s_equals, false},
             {"compare", s_compare, false},
             {"copy", s_copy, false},
@@ -209,7 +214,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "Buffer", s__new, 
-            45, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+            46, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
             &object_base::class_info()
         };
 
@@ -399,6 +404,35 @@ namespace fibjs
         hr = pInst->fill(v0, v1, v2);
 
         METHOD_VOID();
+    }
+
+    inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Buffer_base);
+        METHOD_ENTER(2, 1);
+
+        ARG(int32_t, 0);
+        OPT_ARG(int32_t, 1, 0);
+
+        hr = pInst->indexOf(v0, v1, vr);
+
+        METHOD_OVER(2, 1);
+
+        ARG(obj_ptr<Buffer_base>, 0);
+        OPT_ARG(int32_t, 1, 0);
+
+        hr = pInst->indexOf(v0, v1, vr);
+
+        METHOD_OVER(2, 1);
+
+        ARG(arg_string, 0);
+        OPT_ARG(int32_t, 1, 0);
+
+        hr = pInst->indexOf(v0, v1, vr);
+
+        METHOD_RETURN();
     }
 
     inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)

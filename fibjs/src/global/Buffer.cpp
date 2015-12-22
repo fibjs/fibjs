@@ -23,6 +23,17 @@ inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, i
     return 0;
 }
 
+inline result_t validOffset(const int32_t buffer_length, const int32_t offset)
+{
+    if (offset < 0)
+        return CALL_E_INVALIDARG;
+
+    if (offset > buffer_length)
+        return CALL_E_OUTRANGE;
+
+    return 0;
+}
+
 result_t Buffer_base::_new(const char *str, const char *codec,
                            obj_ptr<Buffer_base> &retVal,
                            v8::Local<v8::Object> This)
@@ -311,6 +322,43 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
         length -= v_length;
         offset += v_length;
     }
+    return 0;
+}
+
+result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
+{
+    int32_t buf_length = (int32_t)m_data.length();
+    result_t hr = validOffset(buf_length, offset);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    int32_t i;
+    for (i = 0; i < (int32_t) buf_length; i++)
+    {
+        if (!(m_data[offset] ^ (v & 255))) {
+            retVal = offset;
+            return 0;
+        }
+        offset++;
+    }
+    retVal = -1;
+    return 0;
+}
+
+result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
+{
+    obj_ptr<Buffer> v_data = dynamic_cast<Buffer *>(v);
+
+    return indexOf(v_data->m_data.c_str(), offset, retVal);
+}
+
+result_t Buffer::indexOf(const char* v, int32_t offset, int32_t& retVal)
+{
+    result_t hr = validOffset((int32_t)m_data.length(), offset);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    retVal = (int32_t) m_data.find (v, offset);
     return 0;
 }
 

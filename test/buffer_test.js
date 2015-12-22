@@ -439,6 +439,24 @@ describe('Buffer', function() {
 			buf.resize("12.a")
 		});
 	});
+
+	it('indexOf', function() {
+		var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
+		assert.equal(buf.indexOf(0x33), 2);
+
+		buf = new Buffer("cacdbfcde");
+
+		assert.equal(buf.indexOf("cd"), 2);
+		assert.equal(buf.indexOf(new Buffer("de")), 7);
+
+		assert.throws(function() {
+			buf.indexOf("cd", 10);
+		});
+
+		assert.throws(function() {
+			buf.indexOf(new Buffer("de"), 10);
+		});
+	});
 });
 
 //test.run(console.DEBUG);
