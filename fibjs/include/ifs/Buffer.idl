@@ -99,6 +99,24 @@ interface Buffer : object
      */
     fill(String v, Integer offset = 0, Integer end = -1);
 
+    /*! @brief 返回某个指定数据在Buffer中首次出现的位置
+     @param v 待查找数据，如果未指定offset，默认从起始位开始
+     @param offset 起始查找位置
+     */
+    Integer indexOf(Integer v, Integer offset = 0);
+
+    /*! @brief 返回某个指定数据在Buffer中首次出现的位置
+     @param v 待查找数据，如果未指定offset，默认从起始位开始
+     @param offset 起始查找位置
+     */
+    Integer indexOf(Buffer v, Integer offset = 0);
+
+    /*! @brief 返回某个指定数据在Buffer中首次出现的位置
+     @param v 待查找数据，如果未指定offset，默认从起始位开始
+     @param offset 起始查找位置
+     */
+    Integer indexOf(String v, Integer offset = 0);
+
     /*! @brief 判断缓存区内容是否相等
      @param buf 待比较缓存对象
      @return 内容是否相等
