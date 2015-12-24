@@ -235,7 +235,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             pThis->m_rep->get_length(len);
 
-            if (len > 128 && len < 1024 * 1024)
+            if (len > 128 && len < 1024 * 1024 * 5)
             {
                 Variant hdr;
 
