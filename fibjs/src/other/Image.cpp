@@ -396,10 +396,8 @@ result_t Image::load(Buffer_base *data)
         format = gd_base::_TIFF;
     else if (ch1 == 0x42 && ch2 == 0x4d)
         format = gd_base::_BMP;
-    else if ((ch1 == 0xff && ch2 == 0xfe) || (ch1 == 0xff && ch2 == 0xff))
-        format = gd_base::_GD;
-    else if (ch1 == 0x67 && ch2 == 0x64)
-        format = gd_base::_GD2;
+    else if (ch1 == 0x52 && ch2 == 0x49)
+        format = gd_base::_WEBP;
     else
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
@@ -455,13 +453,9 @@ result_t Image::load(Buffer_base *data)
         m_image = gdImageCreateFromBmpPtr((int32_t) strBuf.length(),
                                           (void *) strBuf.c_str());
         break;
-    case gd_base::_GD:
-        m_image = gdImageCreateFromGdPtr((int32_t) strBuf.length(),
-                                         (void *) strBuf.c_str());
-        break;
-    case gd_base::_GD2:
-        m_image = gdImageCreateFromGd2Ptr((int32_t) strBuf.length(),
-                                          (void *) strBuf.c_str());
+    case gd_base::_WEBP:
+        m_image = gdImageCreateFromWebpPtr((int32_t) strBuf.length(),
+                                           (void *) strBuf.c_str());
         break;
     }
 
@@ -532,11 +526,8 @@ result_t Image::getData(int32_t format, int32_t quality,
     case gd_base::_BMP:
         data = gdImageBmpPtr(m_image, &size, 1);
         break;
-    case gd_base::_GD:
-        data = gdImageGdPtr(m_image, &size);
-        break;
-    case gd_base::_GD2:
-        data = gdImageGd2Ptr(m_image, 128, 2, &size);
+    case gd_base::_WEBP:
+        data = gdImageWebpPtr(m_image, &size);
         break;
     }
 

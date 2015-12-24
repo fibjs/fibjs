@@ -33,8 +33,7 @@ public:
         _PNG = 3,
         _TIFF = 4,
         _BMP = 5,
-        _GD = 6,
-        _GD2 = 7,
+        _WEBP = 6,
         _TRUECOLOR = 0,
         _PALETTE = 1,
         _ARC = 0,
@@ -80,8 +79,7 @@ public:
     static void s_get_PNG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_TIFF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_BMP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_GD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_GD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_WEBP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_PALETTE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_ARC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -152,8 +150,7 @@ namespace fibjs
             {"PNG", s_get_PNG, block_set, true},
             {"TIFF", s_get_TIFF, block_set, true},
             {"BMP", s_get_BMP, block_set, true},
-            {"GD", s_get_GD, block_set, true},
-            {"GD2", s_get_GD2, block_set, true},
+            {"WEBP", s_get_WEBP, block_set, true},
             {"TRUECOLOR", s_get_TRUECOLOR, block_set, true},
             {"PALETTE", s_get_PALETTE, block_set, true},
             {"ARC", s_get_ARC, block_set, true},
@@ -181,7 +178,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "gd", NULL, 
-            9, s_method, 0, NULL, 30, s_property, NULL, NULL,
+            9, s_method, 0, NULL, 29, s_property, NULL, NULL,
             NULL
         };
 
@@ -231,16 +228,9 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void gd_base::s_get_GD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void gd_base::s_get_WEBP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        int32_t vr = _GD;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
-
-    inline void gd_base::s_get_GD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _GD2;
+        int32_t vr = _WEBP;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }

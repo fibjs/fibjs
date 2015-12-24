@@ -173,12 +173,8 @@ describe("gd", function() {
 		gd_test(gd.BMP);
 	});
 
-	it("gd", function() {
-		gd_test(gd.GD);
-	});
-
-	it("gd2", function() {
-		gd_test(gd.GD2);
+	it("webp", function() {
+		gd_test(gd.WEBP);
 	});
 
 	it("flip", function() {
