@@ -40,7 +40,7 @@ public:
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t verify(Buffer_base* sign, Buffer_base* data, bool& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -70,7 +70,7 @@ public:
     ASYNC_MEMBER1(PKey_base, genEcKey, const char*);
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(PKey_base, sign, Buffer_base*, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, verify, Buffer_base*, Buffer_base*, bool);
 };
 
@@ -307,11 +307,12 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
+        OPT_ARG(int32_t, 1, 0);
 
-        hr = pInst->ac_sign(v0, vr);
+        hr = pInst->ac_sign(v0, v1, vr);
 
         METHOD_RETURN();
     }

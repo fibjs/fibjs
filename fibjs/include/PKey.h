@@ -41,7 +41,7 @@ public:
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
     virtual result_t encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
     virtual result_t decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
-    virtual result_t sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
+    virtual result_t sign(Buffer_base *data, int32_t alg, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
     virtual result_t verify(Buffer_base *sign, Buffer_base *data, bool &retVal, AsyncEvent *ac);
 
 public:
