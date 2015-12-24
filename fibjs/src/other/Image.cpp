@@ -527,7 +527,7 @@ result_t Image::getData(int32_t format, int32_t quality,
         data = gdImageBmpPtr(m_image, &size, 1);
         break;
     case gd_base::_WEBP:
-        data = gdImageWebpPtr(m_image, &size);
+        data = gdImageWebpPtrEx(m_image, &size, quality);
         break;
     }
 
