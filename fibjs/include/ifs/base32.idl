@@ -1,0 +1,25 @@
+/*! @brief base32 编码与解码模块
+ 引用方式：
+ @code
+ var encoding = require('encoding');
+ var base32 = encoding.base32;
+ @endcode
+ 或者
+ @code
+ var base32 = require('base32');
+ @endcode
+ */
+module base32
+{
+	/*! @brief 以 base32 方式编码数据
+	 @param data 要编码的数据
+	 @return 返回编码的字符串
+	 */
+	static String encode(Buffer data);
+
+	/*! @brief 以 base32 方式解码字符串为二进制数据
+	 @param data 要解码的字符串
+	 @return 返回解码的二进制数据
+	 */
+	static Buffer decode(String data);
+};

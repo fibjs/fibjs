@@ -15,7 +15,7 @@ var jr;
 
 m.value = 'test/tttt/tttt/';
 m.setHeader("Content-Type", "application/json, charset=utf-8;");
-m.body.write(encoding.jsonEncode({
+m.body.write(encoding.json.encode({
 	method: 'aaaa',
 	params: [100, 200],
 	id: 1234
@@ -76,7 +76,7 @@ describe("rpc", function() {
 
 		m.value = '/xhr/test';
 		m.setHeader("Content-Type", "application/json");
-		m.body.write(encoding.jsonEncode({
+		m.body.write(encoding.json.encode({
 			method: 'fun',
 			params: [100, 200],
 			id: 1234
@@ -94,7 +94,7 @@ describe("rpc", function() {
 
 		m.value = '/xhr/test';
 		m.setHeader("Content-Type", "application/x-www-form-urlencoded");
-		m.body.write("jsonrpc=" + encoding.encodeURIComponent(encoding.jsonEncode({
+		m.body.write("jsonrpc=" + encoding.encodeURIComponent(encoding.json.encode({
 			method: 'fun',
 			params: [100, 200],
 			id: 1234

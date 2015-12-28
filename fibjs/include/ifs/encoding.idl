@@ -7,55 +7,73 @@
  */
 module encoding
 {
+    /*! @brief base32 编码与解码模块 */
+    static base32;
+
+    /*! @brief base64 编码与解码模块 */
+    static base64;
+
+    /*! @brief hex 编码与解码模块 */
+    static hex;
+
+    /*! @brief iconv 编码与解码模块 */
+    static iconv;
+
+    /*! @brief json 编码与解码模块 */
+    static json;
+
+    /*! @brief bson 编码与解码模块 */
+    static bson;
+
     /*! @brief 以 base32 方式编码数据
      @param data 要编码的数据
      @return 返回编码的字符串
      */
-    static String base32Encode(Buffer data);
+    deprecated static String base32Encode(Buffer data);
 
     /*! @brief 以 base32 方式解码字符串为二进制数据
      @param data 要解码的字符串
      @return 返回解码的二进制数据
      */
-    static Buffer base32Decode(String data);
+    deprecated static Buffer base32Decode(String data);
 
     /*! @brief 以 base64 方式编码数据
      @param data 要编码的数据
      @return 返回编码的字符串
      */
-    static String base64Encode(Buffer data);
+    deprecated static String base64Encode(Buffer data);
 
     /*! @brief 以 base64 方式解码字符串为二进制数据
      @param data 要解码的字符串
      @return 返回解码的二进制数据
      */
-    static Buffer base64Decode(String data);
+    deprecated static Buffer base64Decode(String data);
 
     /*! @brief 以 hex 方式编码数据
      @param data 要编码的数据
      @return 返回编码的字符串
      */
-    static String hexEncode(Buffer data);
+    deprecated static String hexEncode(Buffer data);
 
     /*! @brief 以 hex 方式解码字符串为二进制数据
      @param data 要解码的字符串
      @return 返回解码的二进制数据
      */
-    static Buffer hexDecode(String data);
+    deprecated static Buffer hexDecode(String data);
 
     /*! @brief 用 iconv 将文本转换为二进制数据
      @param charset 指定字符集
      @param data 要转换的文本
      @return 返回解码的二进制数据
      */
-    static Buffer iconvEncode(String charset, String data);
+    deprecated static Buffer iconvEncode(String charset, String data);
 
     /*! @brief 用 iconv 将 Buffer 内容转换为文本
      @param charset 指定字符集
      @param data 要转换的二进制数据
      @return 返回编码的字符串
      */
-    static String iconvDecode(String charset, Buffer data);
+    deprecated static String iconvDecode(String charset, Buffer data);
 
     /*! @brief 将字符串编码为 javascript 转义字符串，用以在 javascript 代码中包含文本
      @param str 要编码的字符串
@@ -86,24 +104,24 @@ module encoding
      @param data 要编码的变量
      @return 返回编码的字符串
      */
-    static String jsonEncode(Value data);
+    deprecated static String jsonEncode(Value data);
 
     /*! @brief 以 json 方式解码字符串为一个变量
      @param data 要解码的字符串
      @return 返回解码的变量
      */
-    static Value jsonDecode(String data);
+    deprecated static Value jsonDecode(String data);
 
     /*! @brief 以 bson 格式编码变量
      @param data 要编码的变量
      @return 返回编码的二进制数据
      */
-    static Buffer bsonEncode(Object data);
+    deprecated static Buffer bsonEncode(Object data);
 
     /*! @brief 以 bson 方式解码字符串为一个变量
      @param data 要解码的二进制数据
      @return 返回解码的变量
      */
-    static Object bsonDecode(Buffer data);
+    deprecated static Object bsonDecode(Buffer data);
 };
 

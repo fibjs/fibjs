@@ -1,0 +1,25 @@
+/*! @brief hex 编码与解码模块
+ 引用方式：
+ @code
+ var encoding = require('encoding');
+ var hex = encoding.hex;
+ @endcode
+ 或者
+ @code
+ var hex = require('hex');
+ @endcode
+ */
+module hex
+{
+	/*! @brief 以 hex 方式编码数据
+	 @param data 要编码的数据
+	 @return 返回编码的字符串
+	 */
+	static String encode(Buffer data);
+
+	/*! @brief 以 hex 方式解码字符串为二进制数据
+	 @param data 要解码的字符串
+	 @return 返回解码的二进制数据
+	 */
+	static Buffer decode(String data);
+};

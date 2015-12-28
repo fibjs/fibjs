@@ -238,6 +238,24 @@ result_t encoding_base::bsonEncode(v8::Local<v8::Object> data,
     return 0;
 }
 
+result_t bson_base::encode(v8::Local<v8::Object> data,
+                           obj_ptr<Buffer_base> &retVal)
+{
+    bson bb;
+    result_t hr;
+
+    hr = encodeObject(&bb, data);
+    if (hr < 0)
+        return hr;
+
+    std::string strBuffer(bson_data(&bb), bson_size(&bb));
+    retVal = new Buffer(strBuffer);
+
+    bson_destroy(&bb);
+
+    return 0;
+}
+
 v8::Local<v8::Object> decodeObject(bson_iterator *it, bool bArray);
 
 void decodeValue(v8::Local<v8::Object> obj, bson_iterator *it)
@@ -368,6 +386,17 @@ v8::Local<v8::Object> decodeObject(const char *buffer)
 
 result_t encoding_base::bsonDecode(Buffer_base *data,
                                    v8::Local<v8::Object> &retVal)
+{
+    std::string strBuf;
+
+    data->toString(strBuf);
+    retVal = decodeObject(strBuf.c_str());
+
+    return 0;
+}
+
+result_t bson_base::decode(Buffer_base *data,
+                           v8::Local<v8::Object> &retVal)
 {
     std::string strBuf;
 

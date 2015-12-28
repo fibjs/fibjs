@@ -1,0 +1,25 @@
+/*! @brief bson 编码与解码模块
+ 引用方式：
+ @code
+ var encoding = require('encoding');
+ var bson = encoding.bson;
+ @endcode
+ 或者
+ @code
+ var bson = require('bson');
+ @endcode
+ */
+module bson
+{
+	/*! @brief 以 bson 格式编码变量
+	 @param data 要编码的变量
+	 @return 返回编码的二进制数据
+	 */
+	static Buffer encode(Object data);
+
+	/*! @brief 以 bson 方式解码字符串为一个变量
+	 @param data 要解码的二进制数据
+	 @return 返回解码的变量
+	 */
+	static Object decode(Buffer data);
+};

@@ -53,6 +53,14 @@ namespace fibjs
 void SandBox::initRoot()
 {
     InstallNativeModule("encoding", encoding_base::class_info());
+
+    InstallNativeModule("base32", base32_base::class_info());
+    InstallNativeModule("base64", base64_base::class_info());
+    InstallNativeModule("bson", bson_base::class_info());
+    InstallNativeModule("hex", hex_base::class_info());
+    InstallNativeModule("iconv", iconv_base::class_info());
+    InstallNativeModule("json", json_base::class_info());
+
     InstallNativeModule("uuid", uuid_base::class_info());
 
     InstallNativeModule("re", re_base::class_info());

@@ -121,7 +121,10 @@
     <ClInclude Include="include\HttpUploadData.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\AsyncWait.h" />
+    <ClInclude Include="include\ifs\base32.h" />
+    <ClInclude Include="include\ifs\base64.h" />
     <ClInclude Include="include\ifs\BlockQueue.h" />
+    <ClInclude Include="include\ifs\bson.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
     <ClInclude Include="include\ifs\BufferedStream.h" />
     <ClInclude Include="include\ifs\Chain.h" />
@@ -150,6 +153,7 @@
     <ClInclude Include="include\ifs\HeapGraphEdge.h" />
     <ClInclude Include="include\ifs\HeapGraphNode.h" />
     <ClInclude Include="include\ifs\HeapSnapshot.h" />
+    <ClInclude Include="include\ifs\hex.h" />
     <ClInclude Include="include\ifs\http.h" />
     <ClInclude Include="include\ifs\HttpCollection.h" />
     <ClInclude Include="include\ifs\HttpCookie.h" />
@@ -160,9 +164,11 @@
     <ClInclude Include="include\ifs\HttpServer.h" />
     <ClInclude Include="include\ifs\HttpsServer.h" />
     <ClInclude Include="include\ifs\HttpUploadData.h" />
+    <ClInclude Include="include\ifs\iconv.h" />
     <ClInclude Include="include\ifs\Image.h" />
     <ClInclude Include="include\ifs\Int64.h" />
     <ClInclude Include="include\ifs\io.h" />
+    <ClInclude Include="include\ifs\json.h" />
     <ClInclude Include="include\ifs\LevelDB.h" />
     <ClInclude Include="include\ifs\List.h" />
     <ClInclude Include="include\ifs\Lock.h" />

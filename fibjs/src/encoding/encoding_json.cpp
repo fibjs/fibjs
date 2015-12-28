@@ -26,8 +26,10 @@ inline void initJSON()
 	}
 }
 
-result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
-                                   std::string &retVal)
+
+
+inline result_t _jsonEncode(v8::Local<v8::Value> data,
+                            std::string &retVal)
 {
 	initJSON();
 
@@ -49,6 +51,18 @@ result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
 	return 0;
 }
 
+result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
+                                   std::string &retVal)
+{
+	return _jsonEncode(data, retVal);
+}
+
+result_t json_base::encode(v8::Local<v8::Value> data,
+                           std::string &retVal)
+{
+	return _jsonEncode(data, retVal);
+}
+
 inline bool IsInRange(int32_t value, int32_t lower_limit, int32_t higher_limit) {
 	return static_cast<uint32_t>(value - lower_limit) <=
 	       static_cast<uint32_t>(higher_limit - lower_limit);
@@ -62,8 +76,8 @@ inline int32_t AsciiAlphaToLower(char c) {
 	return c | 0x20;
 }
 
-result_t encoding_base::jsonDecode(const char *data,
-                                   v8::Local<v8::Value> &retVal)
+inline result_t _jsonDecode(const char *data,
+                            v8::Local<v8::Value> &retVal)
 {
 	class json_parser
 	{
@@ -389,6 +403,18 @@ result_t encoding_base::jsonDecode(const char *data,
 
 	json_parser jp(data);
 	return jp.ParseJson(retVal);
+}
+
+result_t encoding_base::jsonDecode(const char *data,
+                                   v8::Local<v8::Value> &retVal)
+{
+	return _jsonDecode(data, retVal);
+}
+
+result_t json_base::decode(const char *data,
+                           v8::Local<v8::Value> &retVal)
+{
+	return _jsonDecode(data, retVal);
 }
 
 result_t encoding_base::jsstr(const char *str, bool json, std::string & retVal)

@@ -167,7 +167,7 @@ describe('crypto', function() {
 	describe('Cipher', function() {
 		function test_cipher(provider, file) {
 			it(file, function() {
-				var cases = encoding.jsonDecode(fs.readFile("crypto_case/" + file + ".json"));
+				var cases = encoding.json.decode(fs.readFile("crypto_case/" + file + ".json"));
 
 				cases.forEach(function(item) {
 					var c;
@@ -175,14 +175,14 @@ describe('crypto', function() {
 
 					if (item.length == 7)
 						c = new crypto.Cipher(provider, mode,
-							encoding.hexDecode(item[3]), encoding.hexDecode(item[6]));
+							encoding.hex.decode(item[3]), encoding.hex.decode(item[6]));
 					else if (item.length == 6)
 						c = new crypto.Cipher(provider, mode,
-							encoding.hexDecode(item[3]));
+							encoding.hex.decode(item[3]));
 
 					if (mode == crypto.CBC)
 						c.paddingMode(crypto.NOPADDING);
-					assert.equal(c[item[1]](encoding.hexDecode(item[4])).hex(), item[5], item[0]);
+					assert.equal(c[item[1]](encoding.hex.decode(item[4])).hex(), item[5], item[0]);
 				});
 
 			});

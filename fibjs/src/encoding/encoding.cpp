@@ -19,6 +19,11 @@ result_t encoding_base::base32Encode(Buffer_base *data, std::string &retVal)
     return 0;
 }
 
+result_t base32_base::encode(Buffer_base *data, std::string &retVal)
+{
+    return encoding_base::base32Encode(data, retVal);
+}
+
 result_t encoding_base::base32Decode(const char *data,
                                      obj_ptr<Buffer_base> &retVal)
 {
@@ -36,12 +41,23 @@ result_t encoding_base::base32Decode(const char *data,
     return 0;
 }
 
+result_t base32_base::decode(const char *data,
+                             obj_ptr<Buffer_base> &retVal)
+{
+    return encoding_base::base32Decode(data, retVal);
+}
+
 result_t encoding_base::base64Encode(Buffer_base *data, std::string &retVal)
 {
     baseEncode(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
         6, data, retVal);
     return 0;
+}
+
+result_t base64_base::encode(Buffer_base *data, std::string &retVal)
+{
+    return encoding_base::base64Encode(data, retVal);
 }
 
 result_t encoding_base::base64Decode(const char *data,
@@ -59,6 +75,12 @@ result_t encoding_base::base64Decode(const char *data,
 
     baseDecode(decodeTable, 6, data, retVal);
     return 0;
+}
+
+result_t base64_base::decode(const char *data,
+                             obj_ptr<Buffer_base> &retVal)
+{
+    return encoding_base::base64Decode(data, retVal);
 }
 
 result_t encoding_base::hexEncode(Buffer_base *data, std::string &retVal)
@@ -84,6 +106,11 @@ result_t encoding_base::hexEncode(Buffer_base *data, std::string &retVal)
     }
 
     return 0;
+}
+
+result_t hex_base::encode(Buffer_base *data, std::string &retVal)
+{
+    return encoding_base::hexEncode(data, retVal);
 }
 
 result_t encoding_base::hexDecode(const char *data,
@@ -124,16 +151,10 @@ result_t encoding_base::hexDecode(const char *data,
     return 0;
 }
 
-result_t encoding_base::iconvEncode(const char *charset, const char *data,
-                                    obj_ptr<Buffer_base> &retVal)
+result_t hex_base::decode(const char *data,
+                          obj_ptr<Buffer_base> &retVal)
 {
-    return encoding_iconv(charset).encode(data, retVal);
-}
-
-result_t encoding_base::iconvDecode(const char *charset, Buffer_base *data,
-                                    std::string &retVal)
-{
-    return encoding_iconv(charset).decode(data, retVal);
+    return encoding_base::hexDecode(data, retVal);
 }
 
 static const char *URITable =

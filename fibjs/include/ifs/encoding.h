@@ -17,6 +17,12 @@
 namespace fibjs
 {
 
+class base32_base;
+class base64_base;
+class hex_base;
+class iconv_base;
+class json_base;
+class bson_base;
 class Buffer_base;
 
 class encoding_base : public object_base
@@ -63,6 +69,12 @@ public:
 
 }
 
+#include "base32.h"
+#include "base64.h"
+#include "hex.h"
+#include "iconv.h"
+#include "json.h"
+#include "bson.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -89,10 +101,20 @@ namespace fibjs
             {"bsonDecode", s_bsonDecode, true}
         };
 
+        static ClassData::ClassObject s_object[] = 
+        {
+            {"base32", base32_base::class_info},
+            {"base64", base64_base::class_info},
+            {"hex", hex_base::class_info},
+            {"iconv", iconv_base::class_info},
+            {"json", json_base::class_info},
+            {"bson", bson_base::class_info}
+        };
+
         static ClassData s_cd = 
         { 
             "encoding", NULL, 
-            16, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            16, s_method, 6, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -103,6 +125,8 @@ namespace fibjs
 
     inline void encoding_base::s_base32Encode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.base32Encode");
+
         std::string vr;
 
         METHOD_ENTER(1, 1);
@@ -116,6 +140,8 @@ namespace fibjs
 
     inline void encoding_base::s_base32Decode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.base32Decode");
+
         obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(1, 1);
@@ -129,6 +155,8 @@ namespace fibjs
 
     inline void encoding_base::s_base64Encode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.base64Encode");
+
         std::string vr;
 
         METHOD_ENTER(1, 1);
@@ -142,6 +170,8 @@ namespace fibjs
 
     inline void encoding_base::s_base64Decode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.base64Decode");
+
         obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(1, 1);
@@ -155,6 +185,8 @@ namespace fibjs
 
     inline void encoding_base::s_hexEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.hexEncode");
+
         std::string vr;
 
         METHOD_ENTER(1, 1);
@@ -168,6 +200,8 @@ namespace fibjs
 
     inline void encoding_base::s_hexDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.hexDecode");
+
         obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(1, 1);
@@ -181,6 +215,8 @@ namespace fibjs
 
     inline void encoding_base::s_iconvEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.iconvEncode");
+
         obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(2, 2);
@@ -195,6 +231,8 @@ namespace fibjs
 
     inline void encoding_base::s_iconvDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.iconvDecode");
+
         std::string vr;
 
         METHOD_ENTER(2, 2);
@@ -262,6 +300,8 @@ namespace fibjs
 
     inline void encoding_base::s_jsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.jsonEncode");
+
         std::string vr;
 
         METHOD_ENTER(1, 1);
@@ -275,6 +315,8 @@ namespace fibjs
 
     inline void encoding_base::s_jsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.jsonDecode");
+
         v8::Local<v8::Value> vr;
 
         METHOD_ENTER(1, 1);
@@ -288,6 +330,8 @@ namespace fibjs
 
     inline void encoding_base::s_bsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.bsonEncode");
+
         obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(1, 1);
@@ -301,6 +345,8 @@ namespace fibjs
 
     inline void encoding_base::s_bsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("encoding.bsonDecode");
+
         v8::Local<v8::Object> vr;
 
         METHOD_ENTER(1, 1);
