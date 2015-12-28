@@ -400,12 +400,14 @@ result_t SandBox::require(std::string base, std::string id,
 
     if (!fname.empty())
     {
-        strId = m_root;
-        pathAdd(strId, fname.c_str());
+        std::string fname1;
 
-        hr = fs_base::ac_readFile(strId.c_str(), buf);
+        fname1 = m_root;
+        pathAdd(fname1, fname.c_str());
+
+        hr = fs_base::ac_readFile(fname1.c_str(), buf);
         if (hr >= 0)
-            return addScript(strId.c_str(), buf.c_str(), retVal);
+            return addScript(fname1.c_str(), buf.c_str(), retVal);
     }
     else
     {
