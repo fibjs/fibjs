@@ -487,49 +487,75 @@ result_t Image::getData(int32_t format, int32_t quality,
 
     int32_t size = 0;
     void *data = NULL;
+    int32_t sx = gdImageSX(m_image);
+    int32_t sy = gdImageSY(m_image);
+    int32_t i, j;
+    int32_t trans = -1;
 
-    if (format == gd_base::_JPEG || format == gd_base::_TIFF
-            || format == gd_base::_GIF || format == gd_base::_BMP)
+    if (gdImageTrueColor(m_image))
     {
-        if (gdImageTrueColor(m_image))
-            gdImageColorReplaceCallback(m_image, my_replacer);
-
-        if (gdImageGetTransparent(m_image) != -1)
-            gdImageColorReplace(m_image, gdImageGetTransparent(m_image),
-                                gdTrueColor(255, 255, 255));
+        for (i = 0; i < sx && trans == -1; i ++)
+            for (j = 0; j < sy && trans == -1; j++)
+                if ((gdImageGetPixel(m_image, i, j) & 0xff000000) != 0)
+                    trans = 0;
     }
-    else if (gdImageTrueColor(m_image))
-        gdImageSaveAlpha(m_image, 1);
+    else
+        trans = gdImageGetTransparent(m_image);
+
+    gdImagePtr nowImage = m_image;
+
+    if (trans != -1)
+    {
+        if (format != gd_base::_PNG)
+        {
+            if (gdImageTrueColor(m_image))
+                nowImage = gdImageCreateTrueColor(sy, sx);
+            else
+            {
+                nowImage = gdImageCreate(sy, sx);
+                gdImagePaletteCopy(nowImage, m_image);
+            }
+
+            gdImageFilledRectangle(nowImage, 0, 0, sx, sy, gdImageColorAllocate(nowImage, 255, 255, 255));
+            gdImageCopy(nowImage, m_image, 0, 0, 0, 0, sx, sy);
+        }
+        else if (gdImageTrueColor(m_image))
+            gdImageSaveAlpha(m_image, 1);
+    }
 
     switch (format)
     {
     case gd_base::_GIF:
-        data = gdImageGifPtr(m_image, &size);
+        data = gdImageGifPtr(nowImage, &size);
         break;
     case gd_base::_PNG:
-        data = gdImagePngPtr(m_image, &size);
+        data = gdImagePngPtr(nowImage, &size);
         break;
     case gd_base::_JPEG:
     {
         unsigned char *ed_data = NULL;
         uint32_t  ed_size = 0;
 
-        data = gdImageJpegPtr(m_image, &size, quality, ed_data, ed_size);
+        data = gdImageJpegPtr(nowImage, &size, quality, ed_data, ed_size);
 
         if (ed_data)
             free(ed_data);
+
+        break;
     }
-    break;
     case gd_base::_TIFF:
-        data = gdImageTiffPtr(m_image, &size);
+        data = gdImageTiffPtr(nowImage, &size);
         break;
     case gd_base::_BMP:
-        data = gdImageBmpPtr(m_image, &size, 1);
+        data = gdImageBmpPtr(nowImage, &size, 1);
         break;
     case gd_base::_WEBP:
-        data = gdImageWebpPtrEx(m_image, &size, quality);
+        data = gdImageWebpPtrEx(nowImage, &size, quality);
         break;
     }
+
+    if (nowImage != m_image)
+        gdImageDestroy(nowImage);
 
     if (data == NULL)
         return CHECK_ERROR(CALL_E_INVALIDARG);
