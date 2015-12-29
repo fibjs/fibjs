@@ -1214,10 +1214,13 @@ result_t Image::clone(obj_ptr<Image_base> &retVal, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int32_t w = gdImageSX(m_image);
-    int32_t h = gdImageSY(m_image);
+    obj_ptr<Image> img = new Image();
+    img->m_image = gdImageClone(m_image);
+    img->setExtMemory();
 
-    return crop(0, 0, w, h, retVal, ac);
+    retVal = img;
+
+    return 0;
 }
 
 result_t Image::resample(int32_t width, int32_t height,
