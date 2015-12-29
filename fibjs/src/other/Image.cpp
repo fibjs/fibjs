@@ -1334,24 +1334,8 @@ result_t Image::convert(int32_t color, AsyncEvent *ac)
 
     if (color == gd_base::_TRUECOLOR && !gdImageTrueColor(m_image))
     {
-        int32_t sx = gdImageSX(m_image);
-        int32_t sy = gdImageSY(m_image);
-        gdImagePtr newImage = gdImageCreateTrueColor(sx, sy);
-        int32_t trans = gdImageGetTransparent(m_image);
-
-        if (trans != -1)
-        {
-            trans = gdImageColorAllocate(newImage, m_image->red[trans],
-                                         m_image->green[trans], m_image->blue[trans]);
-            gdImageFilledRectangle(newImage, 0, 0, sx, sy, trans);
-            gdImageColorTransparent(newImage, trans);
-        }
-
-        gdImageCopy(newImage, m_image, 0, 0, 0, 0, sx, sy);
-
         setExtMemory(-1);
-        gdImageDestroy(m_image);
-        m_image = newImage;
+        gdImagePaletteToTrueColor(m_image);
         setExtMemory();
     }
     else if (color == gd_base::_PALETTE && gdImageTrueColor(m_image))
