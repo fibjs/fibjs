@@ -123,6 +123,7 @@
     <ClInclude Include="include\ifs\AsyncWait.h" />
     <ClInclude Include="include\ifs\base32.h" />
     <ClInclude Include="include\ifs\base64.h" />
+    <ClInclude Include="include\ifs\base64vlq.h" />
     <ClInclude Include="include\ifs\BlockQueue.h" />
     <ClInclude Include="include\ifs\bson.h" />
     <ClInclude Include="include\ifs\Buffer.h" />

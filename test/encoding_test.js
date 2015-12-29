@@ -84,6 +84,22 @@ describe('encoding', function() {
 		assert.equal(encoding.base64.encode(dot), '//4uAA==');
 	});
 
+	it('base64vlq', function(){
+		var tests = {
+		    'AAAA': [0, 0, 0, 0],
+		    'AAgBC': [0, 0, 16, 1],
+		    '6rk2B': [886973],
+		    '6rB': [701],
+		    'mC3jxHAkhSliBqwG': [35, -123451, 0, 9234, -546, 3333]
+		};
+
+		for(var k in tests)
+		{
+		    assert.equal(k, encoding.base64vlq.encode(tests[k]));
+		    assert.deepEqual(tests[k], encoding.base64vlq.decode(k));
+		}
+	});
+
 	it('hex', function() {
 		var hexb = new Buffer();
 		hexb.resize(256);

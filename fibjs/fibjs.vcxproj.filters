@@ -795,6 +795,9 @@
     <ClInclude Include="include\ifs\base64.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\base64vlq.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\bson.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>

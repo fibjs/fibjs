@@ -19,6 +19,7 @@ namespace fibjs
 
 class base32_base;
 class base64_base;
+class base64vlq_base;
 class hex_base;
 class iconv_base;
 class json_base;
@@ -71,6 +72,7 @@ public:
 
 #include "base32.h"
 #include "base64.h"
+#include "base64vlq.h"
 #include "hex.h"
 #include "iconv.h"
 #include "json.h"
@@ -105,6 +107,7 @@ namespace fibjs
         {
             {"base32", base32_base::class_info},
             {"base64", base64_base::class_info},
+            {"base64vlq", base64vlq_base::class_info},
             {"hex", hex_base::class_info},
             {"iconv", iconv_base::class_info},
             {"json", json_base::class_info},
@@ -114,7 +117,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "encoding", NULL, 
-            16, s_method, 6, s_object, 0, NULL, NULL, NULL,
+            16, s_method, 7, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 

@@ -56,6 +56,7 @@ void SandBox::initRoot()
 
     InstallNativeModule("base32", base32_base::class_info());
     InstallNativeModule("base64", base64_base::class_info());
+    InstallNativeModule("base64vlq", base64vlq_base::class_info());
     InstallNativeModule("bson", bson_base::class_info());
     InstallNativeModule("hex", hex_base::class_info());
     InstallNativeModule("iconv", iconv_base::class_info());
