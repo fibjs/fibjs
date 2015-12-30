@@ -72,8 +72,17 @@ struct ClassData
 class ClassInfo
 {
 public:
+    class cache
+    {
+    public:
+        v8::Persistent<v8::FunctionTemplate> m_class;
+        v8::Persistent<v8::Function> m_function;
+        v8::Persistent<v8::Object> m_cache;
+    };
+
+public:
     ClassInfo(ClassData &cd) :
-        m_cd(cd), refs_(0), m_next(NULL), m_Inherit(NULL)
+        m_cd(cd), refs_(0), m_next(NULL), m_Inherit(NULL), m_id(-1)
     {
         if (m_cd.base)
         {
@@ -86,7 +95,6 @@ public:
     void *getInstance(void *o);
     void *getInstance(v8::Local<v8::Value> o)
     {
-        _init();
         if (o.IsEmpty() || !o->IsObject())
             return NULL;
 
@@ -100,26 +108,28 @@ public:
 
     v8::Local<v8::Function> getFunction()
     {
-        _init();
-        return v8::Local<v8::Function>::New(Isolate::now()->m_isolate, m_function);
+        Isolate* isolate = Isolate::now();
+
+        cache* _cache = _init(isolate);
+        return v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function);
     }
 
     v8::Local<v8::Object> CreateInstance()
     {
-        _init();
-
         Isolate* isolate = Isolate::now();
         v8::Local<v8::Object> o;
 
-        if (m_cache.IsEmpty())
+        cache* _cache = _init(isolate);
+
+        if (_cache->m_cache.IsEmpty())
         {
-            o = v8::Local<v8::Function>::New(isolate->m_isolate, m_function)->NewInstance();
+            o = v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function)->NewInstance();
             o->SetAlignedPointerInInternalField(0, 0);
-            m_cache.Reset(isolate->m_isolate, o);
+            _cache->m_cache.Reset(isolate->m_isolate, o);
 
             o = o->Clone();
         } else
-            o = v8::Local<v8::Object>::New(isolate->m_isolate, m_cache)->Clone();
+            o = v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache)->Clone();
 
         return o;
     }
@@ -156,7 +166,6 @@ public:
         Isolate* isolate = Isolate::now();
         v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context);
 
-        _init();
         int32_t i, j;
 
         for (i = 0; i < m_cd.mc; i++)
@@ -175,13 +184,13 @@ public:
 
         for (i = 0; i < m_cd.oc; i++)
         {
-            m_cd.cos[i].invoker()._init();
+            cache* _cache1 = m_cd.cos[i].invoker()._init(isolate);
             if (skips)
                 for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cos[i].name); j ++);
 
             if (!skips || !skips[j])
                 o->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
-                                     v8::Local<v8::Function>::New(isolate->m_isolate, m_cd.cos[i].invoker().m_function),
+                                     v8::Local<v8::Function>::New(isolate->m_isolate, _cache1->m_function),
                                      (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
         }
 
@@ -243,89 +252,97 @@ public:
     }
 
 private:
-    void _init()
+    cache* _init(Isolate* isolate)
     {
-        if (m_class.IsEmpty())
+        if (m_id < 0)
+            m_id = (int32_t)isolate->m_ci.size();
+
+        void* p = NULL;
+        while ((int32_t)isolate->m_ci.size() < m_id + 1)
+            isolate->m_ci.append(p);
+
+        cache* _cache = (cache*)isolate->m_ci[m_id];
+
+        if (_cache)
+            return _cache;
+
+        isolate->m_ci[m_id] = _cache = new cache();
+
+        v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
+                    isolate->m_isolate, m_cd.cor);
+        _cache->m_class.Reset(isolate->m_isolate, _class);
+
+        _class->SetClassName(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.name));
+
+        if (m_cd.base)
         {
-            Isolate* isolate = Isolate::now();
-
-            v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
-                        isolate->m_isolate, m_cd.cor);
-            m_class.Reset(isolate->m_isolate, _class);
-
-            _class->SetClassName(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.name));
-
-            if (m_cd.base)
-            {
-                m_cd.base->_init();
-                _class->Inherit(
-                    v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate,
-                            m_cd.base->m_class));
-            }
-
-            v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
-            int32_t i;
-
-            for (i = 0; i < m_cd.mc; i++)
-                pt->Set(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
-                        v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker),
-                        (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
-
-            for (i = 0; i < m_cd.oc; i++)
-            {
-                m_cd.cos[i].invoker()._init();
-                pt->Set(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
-                        v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate,
-                                m_cd.cos[i].invoker().m_class),
-                        (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
-            }
-
-            for (i = 0; i < m_cd.pc; i++)
-                pt->SetAccessor(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cps[i].name),
-                                m_cd.cps[i].getter, m_cd.cps[i].setter,
-                                v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
-
-            v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
-            ot->SetInternalFieldCount(1);
-
-            ClassData *pcd;
-
-            pcd = &m_cd;
-            while (pcd && !pcd->cis)
-                pcd = pcd->base ? &pcd->base->m_cd : NULL;
-
-            if (pcd)
-                ot->SetIndexedPropertyHandler(pcd->cis->getter, pcd->cis->setter);
-
-            pcd = &m_cd;
-            while (pcd && !pcd->cns)
-                pcd = pcd->base ? &pcd->base->m_cd : NULL;
-
-            if (pcd)
-                ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
-                                            NULL, pcd->cns->remover, pcd->cns->enumerator);
-
-            v8::Local<v8::Function> _function = _class->GetFunction();
-            Attach(_function);
-            m_function.Reset(isolate->m_isolate, _function);
-
-            if (m_cd.cor)
-            {
-                v8::Local<v8::Object> o = _function->NewInstance();
-                o->SetAlignedPointerInInternalField(0, 0);
-                m_cache.Reset(isolate->m_isolate, o);
-            }
+            cache* _cache1 = m_cd.base->_init(isolate);
+            _class->Inherit(
+                v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate,
+                        _cache1->m_class));
         }
+
+        v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
+        int32_t i;
+
+        for (i = 0; i < m_cd.mc; i++)
+            pt->Set(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cms[i].name),
+                    v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+
+        for (i = 0; i < m_cd.oc; i++)
+        {
+            cache* _cache1 = m_cd.cos[i].invoker()._init(isolate);
+            pt->Set(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cos[i].name),
+                    v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate, _cache1->m_class),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+        }
+
+        for (i = 0; i < m_cd.pc; i++)
+            pt->SetAccessor(v8::String::NewFromUtf8(isolate->m_isolate, m_cd.cps[i].name),
+                            m_cd.cps[i].getter, m_cd.cps[i].setter,
+                            v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
+
+        v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
+        ot->SetInternalFieldCount(1);
+
+        ClassData *pcd;
+
+        pcd = &m_cd;
+        while (pcd && !pcd->cis)
+            pcd = pcd->base ? &pcd->base->m_cd : NULL;
+
+        if (pcd)
+            ot->SetIndexedPropertyHandler(pcd->cis->getter, pcd->cis->setter);
+
+        pcd = &m_cd;
+        while (pcd && !pcd->cns)
+            pcd = pcd->base ? &pcd->base->m_cd : NULL;
+
+        if (pcd)
+            ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
+                                        NULL, pcd->cns->remover, pcd->cns->enumerator);
+
+        v8::Local<v8::Function> _function = _class->GetFunction();
+        Attach(_function);
+        _cache->m_function.Reset(isolate->m_isolate, _function);
+
+        if (m_cd.cor)
+        {
+            v8::Local<v8::Object> o = _function->NewInstance();
+            o->SetAlignedPointerInInternalField(0, 0);
+            _cache->m_cache.Reset(isolate->m_isolate, o);
+        }
+
+        return _cache;
     }
 
 private:
-    v8::Persistent<v8::FunctionTemplate> m_class;
-    v8::Persistent<v8::Function> m_function;
-    v8::Persistent<v8::Object> m_cache;
     ClassData &m_cd;
     exlib::atomic refs_;
     ClassInfo *m_next;
     ClassInfo *m_Inherit;
+    int32_t m_id;
 };
 
 }

@@ -11,6 +11,7 @@
 #include <exlib/include/list.h>
 #include <exlib/include/service.h>
 #include "DateCache.h"
+#include "QuickArray.h"
 
 namespace fibjs
 {
@@ -43,6 +44,7 @@ public:
 
 public:
 	exlib::Service *m_service;
+	QuickArray<void*> m_ci;
 	v8::Isolate *m_isolate;
 	DateCache m_dc;
 	v8::Persistent<v8::Context> m_context;
