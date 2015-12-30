@@ -170,7 +170,8 @@ result_t db_base::openMongoDB(const char *connString,
 
 result_t MongoDB::open(const char *connString)
 {
-    assert(!exlib::Service::hasService());
+    assert(!Isolate::check());
+
     obj_ptr<Url> u = new Url();
     int32_t result;
     int32_t nPort;

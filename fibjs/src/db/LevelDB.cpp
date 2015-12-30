@@ -59,7 +59,7 @@ LevelDB::~LevelDB()
     }
     else if (m_db)
     {
-        if (exlib::Service::hasService())
+        if (Isolate::check())
             asyncCall(close_ldb, m_db);
         else
             delete m_db;

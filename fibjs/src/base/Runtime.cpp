@@ -39,6 +39,11 @@ Isolate* Isolate::now()
     return (Isolate *)th_vm;
 }
 
+bool Isolate::check()
+{
+    return th_vm != NULL;
+}
+
 void Isolate::reg(void *rt)
 {
     assert(exlib::Service::hasService());

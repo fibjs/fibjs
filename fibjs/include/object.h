@@ -58,7 +58,7 @@ public:
             return;
         }
 
-        if (exlib::Service::hasService())
+        if (Isolate::check())
         {
             if (internalUnref() == 0)
             {
@@ -205,7 +205,7 @@ public:
 
             if (ext != 0)
             {
-                if (exlib::Service::hasService())
+                if (Isolate::check())
                 {
                     Isolate::now()->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;

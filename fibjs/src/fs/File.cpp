@@ -30,7 +30,7 @@ File::~File()
 {
     if (m_fd != -1)
     {
-        if (exlib::Service::hasService()) {
+        if (Isolate::check()) {
             if (m_pipe)
                 asyncCall(pclose, m_pipe);
             else

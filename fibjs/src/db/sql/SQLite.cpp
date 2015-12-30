@@ -58,7 +58,7 @@ SQLite::~SQLite()
 {
     if (m_db)
     {
-        if (exlib::Service::hasService())
+        if (Isolate::check())
             asyncCall(sqlite3_close, m_db);
         else
             sqlite3_close(m_db);

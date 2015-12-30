@@ -40,6 +40,7 @@ public:
 
 public:
 	static Isolate* now();
+	static bool check();
 	static void reg(void *rt);
 
 public:

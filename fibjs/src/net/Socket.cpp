@@ -32,7 +32,7 @@ Socket::~Socket()
 {
     if (m_sock != INVALID_SOCKET)
     {
-        if (exlib::Service::hasService())
+        if (Isolate::check())
             asyncCall(::closesocket, m_sock);
         else
             ::closesocket(m_sock);
@@ -47,7 +47,7 @@ result_t Socket::create(int32_t family, int32_t type)
 {
     if (m_sock != INVALID_SOCKET)
     {
-        if (exlib::Service::hasService())
+        if (Isolate::check())
             ac_close();
         else
         {
