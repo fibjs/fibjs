@@ -61,6 +61,12 @@ result_t os_base::get_version(std::string &retVal)
     return 0;
 }
 
+result_t os_base::get_EOL(std::string& retVal)
+{
+    retVal.assign("\r\n", 2);
+    return 0;
+}
+
 result_t os_base::uptime(double &retVal)
 {
     BYTE stack_buffer[4096];

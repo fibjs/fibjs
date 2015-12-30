@@ -39,6 +39,12 @@ result_t os_base::get_version(std::string &retVal)
     return 0;
 }
 
+result_t os_base::get_EOL(std::string& retVal)
+{
+    retVal.assign("\n", 1);
+    return 0;
+}
+
 result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
 {
     struct ::ifaddrs *addrs, *ent;

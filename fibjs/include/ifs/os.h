@@ -28,6 +28,7 @@ public:
     static result_t get_version(std::string& retVal);
     static result_t get_arch(std::string& retVal);
     static result_t get_timezone(int32_t& retVal);
+    static result_t get_EOL(std::string& retVal);
     static result_t uptime(double& retVal);
     static result_t loadavg(v8::Local<v8::Array>& retVal);
     static result_t totalmem(int64_t& retVal);
@@ -46,6 +47,7 @@ public:
     static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -86,13 +88,14 @@ namespace fibjs
             {"version", s_get_version, block_set, true},
             {"arch", s_get_arch, block_set, true},
             {"timezone", s_get_timezone, block_set, true},
+            {"EOL", s_get_EOL, block_set, true},
             {"execPath", s_get_execPath, block_set, true}
         };
 
         static ClassData s_cd = 
         { 
             "os", NULL, 
-            10, s_method, 0, NULL, 6, s_property, NULL, NULL,
+            10, s_method, 0, NULL, 7, s_property, NULL, NULL,
             NULL
         };
 
@@ -151,6 +154,17 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = get_timezone(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void os_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        std::string vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_EOL(vr);
 
         METHOD_RETURN();
     }
