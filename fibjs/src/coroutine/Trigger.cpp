@@ -22,7 +22,7 @@ result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object>
 v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
         bool autoDelete)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     v8::Local<v8::Object> o = wrap();
     v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate->m_isolate, k);
@@ -48,10 +48,9 @@ v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
 
 static uint64_t s_fid = 0;
 
-inline int32_t putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
+inline int32_t putFunction(v8::Isolate* isolate, v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
 {
-    Isolate* isolate = Isolate::now();
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate->m_isolate, "_fid");
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
     char buf[64];
     const int32_t base = 26;
@@ -70,7 +69,7 @@ inline int32_t putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> fu
 
         buf[p++] = 0;
 
-        fid = v8::String::NewFromUtf8(isolate->m_isolate, buf);
+        fid = v8::String::NewFromUtf8(isolate, buf);
         func->SetHiddenValue(s, fid);
     }
 
@@ -83,13 +82,13 @@ inline int32_t putFunction(v8::Local<v8::Object> esa, v8::Local<v8::Function> fu
     return 0;
 }
 
-inline int32_t removeFunction(v8::Local<v8::Object> esa,
+inline int32_t removeFunction(v8::Isolate* isolate, v8::Local<v8::Object> esa,
                               v8::Local<v8::Function> func)
 {
     if (esa.IsEmpty())
         return 0;
 
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(Isolate::now()->m_isolate, "_fid");
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
 
     if (!fid.IsEmpty() && esa->Has(fid))
@@ -136,14 +135,15 @@ inline result_t _map(object_base *o, v8::Local<v8::Object> m,
 result_t object_base::on(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
     retVal = 0;
+    Isolate* isolate = holder();
 
     std::string strKey = "_e_";
     strKey.append(ev);
-    retVal += putFunction(GetHiddenList(strKey.c_str(), true), func);
+    retVal += putFunction(isolate->m_isolate, GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    retVal -= removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal -= removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
@@ -156,14 +156,15 @@ result_t object_base::on(v8::Local<v8::Object> map, int32_t &retVal)
 result_t object_base::once(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
     retVal = 0;
+    Isolate* isolate = holder();
 
     std::string strKey = "_e1_";
     strKey.append(ev);
-    retVal += putFunction(GetHiddenList(strKey.c_str(), true), func);
+    retVal += putFunction(isolate->m_isolate, GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e_";
     strKey.append(ev);
-    retVal -= removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal -= removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
@@ -176,14 +177,15 @@ result_t object_base::once(v8::Local<v8::Object> map, int32_t &retVal)
 result_t object_base::off(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
     retVal = 0;
+    Isolate* isolate = holder();
 
     std::string strKey = "_e_";
     strKey.append(ev);
-    retVal += removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal += removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    retVal += removeFunction(GetHiddenList(strKey.c_str()), func);
+    retVal += removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }

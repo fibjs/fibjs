@@ -61,7 +61,7 @@ result_t RedisSet::randMember(v8::Local<v8::Value> &retVal)
     if (hr < 0)
         return hr;
 
-    retVal = GetReturnValue(v);
+    retVal = GetReturnValue(holder()->m_isolate, v);
 
     return 0;
 }

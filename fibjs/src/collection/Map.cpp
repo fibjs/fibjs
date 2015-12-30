@@ -100,7 +100,7 @@ result_t Map::_named_getter(const char *property, Variant &retVal)
 result_t Map::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i = 0;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     retVal = v8::Array::New(isolate->m_isolate, (int32_t)m_datas.size());
     std::map<std::string, VariantEx>::iterator iter;

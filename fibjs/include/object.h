@@ -28,7 +28,7 @@ class object_base: public obj_base
 {
 public:
     object_base() :
-        m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
+        m_isolate(NULL), m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
     {
         object_base::class_info().Ref();
     }
@@ -134,15 +134,27 @@ private:
         data.GetParameter()->internalDispose(true);
     }
 
+private:
+    Isolate* m_isolate;
+
+public:
+    Isolate* holder()
+    {
+        if (m_isolate)
+            return m_isolate;
+
+        return m_isolate = Isolate::now();
+    }
+
 public:
     v8::Local<v8::Object> wrap(v8::Local<v8::Object> o)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = holder();
 
         if (handle_.IsEmpty())
         {
             if (o.IsEmpty())
-                o = Classinfo().CreateInstance();
+                o = Classinfo().CreateInstance(isolate);
             handle_.Reset(isolate->m_isolate, o);
             o->SetAlignedPointerInInternalField(0, this);
 
@@ -156,10 +168,12 @@ public:
 
     v8::Local<v8::Object> wrap()
     {
-        if (handle_.IsEmpty())
-            return wrap(Classinfo().CreateInstance());
+        Isolate* isolate = holder();
 
-        return v8::Local<v8::Object>::New(Isolate::now()->m_isolate, handle_);
+        if (handle_.IsEmpty())
+            return wrap(Classinfo().CreateInstance(isolate));
+
+        return v8::Local<v8::Object>::New(isolate->m_isolate, handle_);
     }
 
 public:
@@ -207,7 +221,7 @@ public:
             {
                 if (Isolate::check())
                 {
-                    Isolate::now()->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
+                    holder()->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;
                 }
                 else
@@ -228,7 +242,7 @@ private:
     {
         if (!handle_.IsEmpty())
         {
-            Isolate* isolate = Isolate::now();
+            Isolate* isolate = holder();
 
             handle_.ClearWeak();
             v8::Local<v8::Object>::New(isolate->m_isolate, handle_)->SetAlignedPointerInInternalField(
@@ -263,7 +277,7 @@ public:
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
     {
         v8::Local<v8::Object> o = wrap();
-        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->m_isolate);
+        v8::Local<v8::Object> o1 = v8::Object::New(holder()->m_isolate);
 
         extend(o, o1);
         retVal = o1;

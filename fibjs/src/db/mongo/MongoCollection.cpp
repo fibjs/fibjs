@@ -167,7 +167,7 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
 
 result_t MongoCollection::save(v8::Local<v8::Object> document)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate->m_isolate, "_id",
                                   v8::String::kNormalString, 3);
@@ -223,7 +223,7 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
 result_t MongoCollection::update(v8::Local<v8::Object> query,
                                  v8::Local<v8::Object> document, v8::Local<v8::Object> options)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     return update(query, document,
                   options->Get(v8::String::NewFromUtf8(isolate->m_isolate, "upsert",
                                v8::String::kNormalString, 6))->BooleanValue(),
@@ -315,7 +315,7 @@ result_t MongoCollection::drop()
 
     v8::Local<v8::Object> r;
     return db->runCommand("drop",
-                          v8::String::NewFromUtf8(Isolate::now()->m_isolate, m_name.c_str(),
+                          v8::String::NewFromUtf8(holder()->m_isolate, m_name.c_str(),
                                   v8::String::kNormalString, (int32_t) m_name.length()), r);
 }
 
@@ -351,7 +351,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
         name.append(*sv, sv.length());
     }
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     v8::Local<v8::Object> idx = v8::Object::New(isolate->m_isolate);
 
     idx->Set(v8::String::NewFromUtf8(isolate->m_isolate, "ns"),
@@ -404,7 +404,7 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     v8::Local<v8::Object> f = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Object> q = v8::Object::New(isolate->m_isolate);
     q->Set(v8::String::NewFromUtf8(isolate->m_isolate, "ns"),

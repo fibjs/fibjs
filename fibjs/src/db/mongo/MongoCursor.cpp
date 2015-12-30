@@ -74,7 +74,7 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
 
     v8::Local<v8::Value> _query;
     util_base::clone(query, _query);
-    m_query.Reset(Isolate::now()->m_isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
+    m_query.Reset(holder()->m_isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
 
     encodeObject(&m_bbp, projection);
 
@@ -105,7 +105,7 @@ void MongoCursor::ensureSpecial()
 {
     if (!m_bSpecial)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = holder();
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
         o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "query"),
@@ -140,7 +140,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     bson_init(&bbq);
     bson_append_string(&bbq, "count", m_name.c_str());
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     if (m_bSpecial)
         encodeValue(&bbq, "query",
                     v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(v8::String::NewFromUtf8(isolate->m_isolate, "query")));
@@ -172,7 +172,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
 {
     result_t hr;
     v8::Local<v8::Object> o;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
@@ -190,7 +190,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
                           v8::Local<v8::Array> &retVal)
 {
     result_t hr;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     v8::Local<v8::Object> o;
     v8::Local<v8::Array> as = v8::Array::New(isolate->m_isolate);
     int32_t n = 0;
@@ -217,7 +217,7 @@ result_t MongoCursor::hasNext(bool &retVal)
     {
         result_t hr;
 
-        hr = encodeObject(&m_bbq, v8::Local<v8::Object>::New(Isolate::now()->m_isolate, m_query));
+        hr = encodeObject(&m_bbq, v8::Local<v8::Object>::New(holder()->m_isolate, m_query));
         if (hr < 0)
             return hr;
 
@@ -282,7 +282,7 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Local<v8::Value> opts,
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     ensureSpecial();
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Set(v8::String::NewFromUtf8(isolate->m_isolate, name), opts);
 
     retVal = this;
@@ -293,7 +293,7 @@ result_t MongoCursor::toArray(v8::Local<v8::Array> &retVal)
 {
     result_t hr;
     v8::Local<v8::Object> o;
-    v8::Local<v8::Array> as = v8::Array::New(Isolate::now()->m_isolate);
+    v8::Local<v8::Array> as = v8::Array::New(holder()->m_isolate);
     int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)

@@ -244,7 +244,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = pInst->every(v0, v1, vr);
 
@@ -259,7 +259,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = pInst->some(v0, v1, vr);
 
@@ -274,7 +274,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = pInst->filter(v0, v1, vr);
 
@@ -287,7 +287,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = pInst->forEach(v0, v1);
 
@@ -302,7 +302,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = pInst->map(v0, v1, vr);
 

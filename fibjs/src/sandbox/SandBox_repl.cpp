@@ -44,6 +44,8 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
                                ".help     Show repl options\n"
                                ".info     Show fibjs build information";
 
+        Isolate* isolate = Isolate::now();
+
         for (i = 0; i < len; i ++)
         {
             v8::Local<v8::Value> v = cmds->Get(i);
@@ -51,12 +53,12 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
             std::string cmd;
             std::string help;
 
-            hr = GetArgumentValue(v, o, true);
+            hr = GetArgumentValue(isolate->m_isolate, v, o, true);
             if (hr >= 0)
             {
-                hr = GetConfigValue(o, "cmd", cmd, true);
+                hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);
                 if (hr >= 0)
-                    hr = GetConfigValue(o, "help", help, true);
+                    hr = GetConfigValue(isolate->m_isolate, o, "help", help, true);
             }
 
             if (hr < 0)
@@ -85,6 +87,8 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
         return true;
     }
 
+    Isolate* isolate = Isolate::now();
+
     for (i = 0; i < len; i ++)
     {
         v8::Local<v8::Value> v = cmds->Get(i);
@@ -92,12 +96,12 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
         std::string cmd;
         v8::Local<v8::Function> exec;
 
-        hr = GetArgumentValue(v, o, true);
+        hr = GetArgumentValue(isolate->m_isolate, v, o, true);
         if (hr >= 0)
         {
-            hr = GetConfigValue(o, "cmd", cmd, true);
+            hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);
             if (hr >= 0)
-                hr = GetConfigValue(o, "exec", exec, true);
+                hr = GetConfigValue(isolate->m_isolate, o, "exec", exec, true);
         }
 
         if (hr < 0)
@@ -108,12 +112,12 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
 
         if (!qstrcmp(cmd_word.c_str(), cmd.c_str()))
         {
-            v8::Local<v8::Array> argv = v8::Array::New(Isolate::now()->m_isolate);
+            v8::Local<v8::Array> argv = v8::Array::New(isolate->m_isolate);
             int32_t n = 0;
 
             while (!cmd_word.empty())
             {
-                argv->Set(n ++, GetReturnValue(cmd_word));
+                argv->Set(n ++, GetReturnValue(isolate->m_isolate, cmd_word));
                 p.skipSpace();
                 p.getWord(cmd_word);
             }

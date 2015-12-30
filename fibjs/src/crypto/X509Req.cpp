@@ -36,7 +36,7 @@ result_t X509Req_base::_new(const char *subject, PKey_base *key,
         return hr;
 
     retVal = req;
-    
+
     return 0;
 }
 
@@ -254,13 +254,13 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
 
     if (!ac)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = holder();
         mbedtls_mpi serial;
         v8::Local<v8::Value> v;
 
         mbedtls_x509write_crt_init(&m_crt);
 
-        hr = GetConfigValue(opts, "hash", hash);
+        hr = GetConfigValue(isolate->m_isolate, opts, "hash", hash);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             hash = m_csr.sig_md;
         else if (hr < 0)
@@ -314,7 +314,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         date_t d1, d2;
         std::string s1, s2;
 
-        hr = GetConfigValue(opts, "notBefore", d1);
+        hr = GetConfigValue(isolate->m_isolate, opts, "notBefore", d1);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             d1.now();
         else if (hr < 0)
@@ -322,7 +322,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         d1.toX509String(s1);
 
 
-        hr = GetConfigValue(opts, "notAfter", d2);
+        hr = GetConfigValue(isolate->m_isolate, opts, "notAfter", d2);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
         {
             d2 = d1;
@@ -340,12 +340,12 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         }
 
         bool is_ca = false;
-        hr = GetConfigValue(opts, "ca", is_ca);
+        hr = GetConfigValue(isolate->m_isolate, opts, "ca", is_ca);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             goto exit;
 
         int32_t pathlen = -1;
-        hr = GetConfigValue(opts, "pathlen", pathlen);
+        hr = GetConfigValue(isolate->m_isolate, opts, "pathlen", pathlen);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             goto exit;
 

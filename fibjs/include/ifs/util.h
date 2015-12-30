@@ -565,7 +565,7 @@ namespace fibjs
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Function>, 1);
-        OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate));
 
         hr = each(v0, v1, v2, vr);
 
@@ -580,7 +580,7 @@ namespace fibjs
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Function>, 1);
-        OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate));
 
         hr = map(v0, v1, v2, vr);
 
@@ -596,7 +596,7 @@ namespace fibjs
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Function>, 1);
         ARG(v8::Local<v8::Value>, 2);
-        OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate));
 
         hr = reduce(v0, v1, v2, v3, vr);
 

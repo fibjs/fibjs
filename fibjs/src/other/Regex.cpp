@@ -98,7 +98,7 @@ result_t Regex::exec(const char *str, v8::Local<v8::Array> &retVal)
 
     if (rc)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = holder();
         retVal = v8::Array::New(isolate->m_isolate, rc);
 
         for (i = 0; i < rc; i++)

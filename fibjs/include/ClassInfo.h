@@ -106,19 +106,15 @@ public:
         return getInstance(obj->GetAlignedPointerFromInternalField(0));
     }
 
-    v8::Local<v8::Function> getFunction()
+    v8::Local<v8::Function> getFunction(Isolate* isolate)
     {
-        Isolate* isolate = Isolate::now();
-
         cache* _cache = _init(isolate);
         return v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function);
     }
 
-    v8::Local<v8::Object> CreateInstance()
+    v8::Local<v8::Object> CreateInstance(Isolate* isolate)
     {
-        Isolate* isolate = Isolate::now();
         v8::Local<v8::Object> o;
-
         cache* _cache = _init(isolate);
 
         if (_cache->m_cache.IsEmpty())
@@ -161,9 +157,8 @@ public:
         return m_cd.name;
     }
 
-    void Attach(v8::Local<v8::Object> o, const char** skips = NULL)
+    void Attach(Isolate* isolate, v8::Local<v8::Object> o, const char** skips = NULL)
     {
-        Isolate* isolate = Isolate::now();
         v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context);
 
         int32_t i, j;
@@ -324,7 +319,7 @@ private:
                                         NULL, pcd->cns->remover, pcd->cns->enumerator);
 
         v8::Local<v8::Function> _function = _class->GetFunction();
-        Attach(_function);
+        Attach(isolate, _function);
         _cache->m_function.Reset(isolate->m_isolate, _function);
 
         if (m_cd.cor)

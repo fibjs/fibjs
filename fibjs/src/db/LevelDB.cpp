@@ -155,12 +155,14 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
 
     ks.resize(len);
 
+    Isolate* isolate = holder();
+
     for (i = 0; i < len; i ++)
     {
         v8::Local<v8::Value> v = keys->Get(i);
         obj_ptr<Buffer_base> buf;
 
-        hr = GetArgumentValue(v, buf);
+        hr = GetArgumentValue(isolate->m_isolate, v, buf);
         if (hr < 0)
             return CHECK_ERROR(hr);
 

@@ -41,7 +41,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (msg == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     obj_ptr<HttpRequest_base> htreq = HttpRequest_base::getInstance(v);
     obj_ptr<SeekableStream_base> body;
     obj_ptr<Buffer_base> buf;

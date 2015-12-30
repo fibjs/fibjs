@@ -163,7 +163,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
-        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
         hr = run(v0, v1);
 
@@ -270,14 +270,14 @@ namespace fibjs
     {
         METHOD_ENTER(1, 0);
 
-        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 
         hr = repl(v0);
 
         METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
-        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
         hr = repl(v0, v1);
 

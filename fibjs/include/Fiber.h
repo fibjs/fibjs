@@ -23,7 +23,7 @@ class FiberBase: public Fiber_base,
 protected:
     FiberBase()
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = holder();
         m_rt.m_pDateCache = &isolate->m_dc;
     }
 
@@ -90,7 +90,7 @@ public:
     void New(v8::Local<v8::Function> func, T &args, int32_t nArgStart,
              int32_t nArgCount)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = holder();
         int32_t i;
 
         m_argv.resize(nArgCount - nArgStart);
@@ -129,7 +129,7 @@ public:
         if (m_result.IsEmpty())
             return CALL_RETURN_NULL;
 
-        retVal = v8::Local<v8::Value>::New(Isolate::now()->m_isolate, m_result);
+        retVal = v8::Local<v8::Value>::New(holder()->m_isolate, m_result);
         return 0;
     }
 

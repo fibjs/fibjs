@@ -266,7 +266,7 @@ result_t WebSocketHandler::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t WebSocketHandler::set_handler(Handler_base *newVal)
 {
-    wrap()->SetHiddenValue(v8::String::NewFromUtf8(Isolate::now()->m_isolate, "handler"), newVal->wrap());
+    wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }

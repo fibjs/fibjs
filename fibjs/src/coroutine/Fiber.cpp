@@ -187,7 +187,7 @@ void JSFiber::js_invoke()
     v8::Local<v8::Value> retVal;
 
     size_t i;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     std::vector<v8::Local<v8::Value> > argv;
     v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, m_func);
 
@@ -212,7 +212,7 @@ JSFiber::scope::scope(JSFiber *fb) :
         m_pFiber = new JSFiber();
 
     exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
-    Isolate::now()->m_fibers.putTail(m_pFiber);
+    m_pFiber->holder()->m_fibers.putTail(m_pFiber);
 }
 
 JSFiber::scope::~scope()
@@ -226,7 +226,7 @@ JSFiber::scope::~scope()
     o->SetAlignedPointerInInternalField(0, s_null);
 
     ReportException(try_catch, m_hr);
-    Isolate::now()->m_fibers.remove(m_pFiber);
+    m_pFiber->holder()->m_fibers.remove(m_pFiber);
     exlib::Fiber::tlsPut(g_tlsCurrent, 0);
 }
 

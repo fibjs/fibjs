@@ -48,7 +48,7 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
 
 void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
-    mods()->Set(v8::String::NewFromUtf8(Isolate::now()->m_isolate, fname.c_str(), v8::String::kNormalString,
+    mods()->Set(v8::String::NewFromUtf8(holder()->m_isolate, fname.c_str(), v8::String::kNormalString,
                                         (int32_t)fname.length()), o);
 }
 
@@ -77,7 +77,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 
 result_t SandBox::remove(const char *id)
 {
-    mods()->Delete(v8::String::NewFromUtf8(Isolate::now()->m_isolate, id));
+    mods()->Delete(v8::String::NewFromUtf8(holder()->m_isolate, id));
     return 0;
 }
 
@@ -85,7 +85,7 @@ result_t SandBox::clone(obj_ptr<SandBox_base> &retVal)
 {
     obj_ptr<SandBox> sbox = new SandBox();
     sbox->m_name = m_name;
-    sbox->wrap()->SetHiddenValue(v8::String::NewFromUtf8(Isolate::now()->m_isolate, "_mods"),
+    sbox->wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "_mods"),
                                  mods()->Clone());
 
     retVal = sbox;

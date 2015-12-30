@@ -202,10 +202,11 @@ result_t coroutine_base::sleep(int32_t ms)
 
 result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
 {
-    exlib::linkitem* p = Isolate::now()->m_fibers.head();
+    Isolate* isolate = Isolate::now();
+    exlib::linkitem* p = isolate->m_fibers.head();
     int32_t n = 0;
 
-    retVal = v8::Array::New(Isolate::now()->m_isolate);
+    retVal = v8::Array::New(isolate->m_isolate);
 
     while (p)
     {

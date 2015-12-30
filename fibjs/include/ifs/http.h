@@ -111,7 +111,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = fileHandler(v0, v1, vr);
 
@@ -133,7 +133,7 @@ namespace fibjs
 
         ARG(arg_string, 0);
         ARG(arg_string, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
         hr = request(v0, v1, v2, vr);
 
@@ -151,7 +151,7 @@ namespace fibjs
         ARG(arg_string, 0);
         ARG(arg_string, 1);
         ARG(obj_ptr<SeekableStream_base>, 2);
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
         hr = request(v0, v1, v2, v3, vr);
 
@@ -160,7 +160,7 @@ namespace fibjs
         ARG(arg_string, 0);
         ARG(arg_string, 1);
         ARG(obj_ptr<Buffer_base>, 2);
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
         hr = request(v0, v1, v2, v3, vr);
 
@@ -174,7 +174,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = get(v0, v1, vr);
 
@@ -189,7 +189,7 @@ namespace fibjs
 
         ARG(arg_string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
         hr = post(v0, v1, v2, vr);
 
@@ -197,7 +197,7 @@ namespace fibjs
 
         ARG(arg_string, 0);
         ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
         hr = post(v0, v1, v2, vr);
 

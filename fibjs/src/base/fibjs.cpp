@@ -78,7 +78,7 @@ void _main(const char *fname)
 
     v8::Local<v8::Object> glob = _context->Global();
     static const char* skips[] = {"repl", "argv", NULL};
-    global_base::class_info().Attach(glob, skips);
+    global_base::class_info().Attach(isolate, glob, skips);
 
     isolate->m_context.Reset(isolate->m_isolate, _context);
     isolate->m_global.Reset(isolate->m_isolate, glob);
@@ -89,7 +89,7 @@ void _main(const char *fname)
 
     v8::Local<v8::Value> replFunc;
 
-    replFunc = global_base::class_info().getFunction()->Get(
+    replFunc = global_base::class_info().getFunction(isolate)->Get(
                    v8::String::NewFromUtf8(isolate->m_isolate, "repl"));
 
     JSFiber *fb = new JSFiber();

@@ -359,7 +359,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     retVal = v8::Array::New(isolate->m_isolate);
 
     const mbedtls_x509_crt *pCert = &m_crt;

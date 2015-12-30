@@ -16,7 +16,7 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t &retVal)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Array> keys = sms->GetPropertyNames();
-    v8::Local<v8::Array> mss = v8::Array::New(Isolate::now()->m_isolate);
+    v8::Local<v8::Array> mss = v8::Array::New(holder()->m_isolate);
 
     int32_t i, n = 0;
 
@@ -33,7 +33,7 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t &retVal)
 
 result_t RedisSortedSet::add(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal)
 {
-    v8::Local<v8::Array> mss = v8::Array::New(Isolate::now()->m_isolate);
+    v8::Local<v8::Array> mss = v8::Array::New(holder()->m_isolate);
     int32_t i;
 
     for (i = 0; i < (int32_t)args.Length(); i += 2)

@@ -33,13 +33,13 @@ result_t DBRow::_named_getter(const char *property,
 
 result_t DBRow::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
-    m_fields->names(retVal);
+    m_fields->names(holder()->m_isolate, retVal);
     return 0;
 }
 
 result_t DBRow::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
     int32_t i;
 

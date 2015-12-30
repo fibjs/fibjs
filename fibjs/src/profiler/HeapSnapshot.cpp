@@ -205,11 +205,11 @@ result_t HeapSnapshot::load(const char* fname)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
 	o = v8::Local<v8::Object>::Cast(v);
-	hr = GetConfigValue(o, "node_count", node_count);
+	hr = GetConfigValue(isolate->m_isolate, o, "node_count", node_count);
 	if (hr < 0)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	hr = GetConfigValue(o, "edge_count", edge_count);
+	hr = GetConfigValue(isolate->m_isolate, o, "edge_count", edge_count);
 	if (hr < 0)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 

@@ -50,7 +50,7 @@ result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value>
 
     v8::Local<v8::Object> o = wrap();
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     m_handler = _handler;
     o->SetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "handler"), _handler->wrap());

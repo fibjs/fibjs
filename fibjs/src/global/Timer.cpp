@@ -18,7 +18,7 @@ public:
 	Timer(v8::Local<v8::Function> callback, int32_t timeout, bool repeat = false) :
 		m_timeout(timeout), m_repeat(repeat), m_cancel(false)
 	{
-		m_isolate = Isolate::now()->m_isolate;
+		m_isolate = holder()->m_isolate;
 		m_callback.Reset(m_isolate, callback);
 
 		if (m_timeout < 1)
@@ -31,7 +31,7 @@ public:
 	Timer(v8::Local<v8::Function> callback) :
 		m_timeout(0), m_repeat(false), m_cancel(false)
 	{
-		m_isolate = Isolate::now()->m_isolate;
+		m_isolate = holder()->m_isolate;
 		m_callback.Reset(m_isolate, callback);
 
 		resume();

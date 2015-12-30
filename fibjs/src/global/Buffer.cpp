@@ -86,13 +86,14 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     std::string str;
+    Isolate* isolate = Isolate::now();
 
     for (int32_t i = 0; i < sz; i ++)
     {
         v8::Local<v8::Value> v = buflist->Get(i);
         obj_ptr<Buffer_base> vdata;
 
-        hr = GetArgumentValue(v, vdata);
+        hr = GetArgumentValue(isolate->m_isolate, v, vdata);
         if (hr < 0)
             return CHECK_ERROR(hr);
 
@@ -776,7 +777,7 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
 
 result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
     int32_t i;
 

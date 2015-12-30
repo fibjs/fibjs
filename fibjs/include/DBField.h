@@ -43,13 +43,13 @@ public:
         return m_fields[i];
     }
 
-    void names(v8::Local<v8::Array> &retVal)
+    void names(v8::Isolate* isolate, v8::Local<v8::Array> &retVal)
     {
         int32_t i;
 
-        retVal = v8::Array::New(Isolate::now()->m_isolate);
+        retVal = v8::Array::New(isolate);
         for (i = 0; i < (int32_t)m_fields.size(); i++)
-            retVal->Set(i, GetReturnValue(m_fields[i]));
+            retVal->Set(i, GetReturnValue(isolate, m_fields[i]));
     }
 
 

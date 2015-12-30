@@ -52,55 +52,57 @@ namespace fibjs
 
 void SandBox::initRoot()
 {
-    InstallNativeModule("encoding", encoding_base::class_info());
+    Isolate* isolate = holder();
 
-    InstallNativeModule("base32", base32_base::class_info());
-    InstallNativeModule("base64", base64_base::class_info());
-    InstallNativeModule("base64vlq", base64vlq_base::class_info());
-    InstallNativeModule("bson", bson_base::class_info());
-    InstallNativeModule("hex", hex_base::class_info());
-    InstallNativeModule("iconv", iconv_base::class_info());
-    InstallNativeModule("json", json_base::class_info());
+    InstallModule("encoding", encoding_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("uuid", uuid_base::class_info());
+    InstallModule("base32", base32_base::class_info().getFunction(isolate));
+    InstallModule("base64", base64_base::class_info().getFunction(isolate));
+    InstallModule("base64vlq", base64vlq_base::class_info().getFunction(isolate));
+    InstallModule("bson", bson_base::class_info().getFunction(isolate));
+    InstallModule("hex", hex_base::class_info().getFunction(isolate));
+    InstallModule("iconv", iconv_base::class_info().getFunction(isolate));
+    InstallModule("json", json_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("re", re_base::class_info());
-    InstallNativeModule("collection", collection_base::class_info());
+    InstallModule("uuid", uuid_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("test", test_base::class_info());
-    InstallNativeModule("assert", assert_base::class_info());
-    InstallModule("expect", createV8Function("expect", Isolate::now()->m_isolate, test_base::s_expect));
+    InstallModule("re", re_base::class_info().getFunction(isolate));
+    InstallModule("collection", collection_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("path", path_base::class_info());
+    InstallModule("test", test_base::class_info().getFunction(isolate));
+    InstallModule("assert", assert_base::class_info().getFunction(isolate));
+    InstallModule("expect", createV8Function("expect", isolate->m_isolate, test_base::s_expect));
 
-    InstallNativeModule("coroutine", coroutine_base::class_info());
-    InstallNativeModule("process", process_base::class_info());
+    InstallModule("path", path_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("vm", vm_base::class_info());
-    InstallNativeModule("io", io_base::class_info());
-    InstallNativeModule("fs", fs_base::class_info());
-    InstallNativeModule("os", os_base::class_info());
-    InstallNativeModule("net", net_base::class_info());
+    InstallModule("coroutine", coroutine_base::class_info().getFunction(isolate));
+    InstallModule("process", process_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("websocket", websocket_base::class_info());
+    InstallModule("vm", vm_base::class_info().getFunction(isolate));
+    InstallModule("io", io_base::class_info().getFunction(isolate));
+    InstallModule("fs", fs_base::class_info().getFunction(isolate));
+    InstallModule("os", os_base::class_info().getFunction(isolate));
+    InstallModule("net", net_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("hash", hash_base::class_info());
-    InstallNativeModule("crypto", crypto_base::class_info());
-    InstallNativeModule("ssl", ssl_base::class_info());
+    InstallModule("websocket", websocket_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("mq", mq_base::class_info());
-    InstallNativeModule("xml", xml_base::class_info());
+    InstallModule("hash", hash_base::class_info().getFunction(isolate));
+    InstallModule("crypto", crypto_base::class_info().getFunction(isolate));
+    InstallModule("ssl", ssl_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("http", http_base::class_info());
-    InstallNativeModule("rpc", rpc_base::class_info());
+    InstallModule("mq", mq_base::class_info().getFunction(isolate));
+    InstallModule("xml", xml_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("db", db_base::class_info());
-    InstallNativeModule("zlib", zlib_base::class_info());
+    InstallModule("http", http_base::class_info().getFunction(isolate));
+    InstallModule("rpc", rpc_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("gd", gd_base::class_info());
+    InstallModule("db", db_base::class_info().getFunction(isolate));
+    InstallModule("zlib", zlib_base::class_info().getFunction(isolate));
 
-    InstallNativeModule("profiler", profiler_base::class_info());
-    InstallNativeModule("util", util_base::class_info());
+    InstallModule("gd", gd_base::class_info().getFunction(isolate));
+
+    InstallModule("profiler", profiler_base::class_info().getFunction(isolate));
+    InstallModule("util", util_base::class_info().getFunction(isolate));
 }
 
 }

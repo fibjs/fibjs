@@ -167,7 +167,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
-        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(Isolate::now()->m_isolate));
+        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
         hr = pInst->run(v0, v1);
 

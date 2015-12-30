@@ -142,7 +142,7 @@ result_t DBResult::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     if (m_size)
         return m_array.toJSON(key, retVal);
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
     o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "affected", v8::String::kNormalString, 8),
@@ -177,8 +177,8 @@ result_t DBResult::get_fields(v8::Local<v8::Array> &retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-    
-    m_fields->names(retVal);
+
+    m_fields->names(holder()->m_isolate, retVal);
     return 0;
 }
 

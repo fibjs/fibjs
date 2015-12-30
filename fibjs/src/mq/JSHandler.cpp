@@ -49,7 +49,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         return CHECK_ERROR(CALL_E_NOASYNC);
 
     v8::Local<v8::Object> o = v->wrap();
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
     v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);

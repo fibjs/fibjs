@@ -156,7 +156,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 	       v8::Integer::New(isolate->m_isolate, _count));
 
 	before->get_time(d);
-	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "time"), d);
+	b->Set(v8::String::NewFromUtf8(isolate->m_isolate, "time"), d.value(isolate->m_isolate));
 	o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "before"), b);
 
 	v8::Local<v8::Object> a = v8::Object::New(isolate->m_isolate);
@@ -165,7 +165,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "nodes"),
 	       v8::Integer::New(isolate->m_isolate, _count));
 	after->get_time(d);
-	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "time"), d);
+	a->Set(v8::String::NewFromUtf8(isolate->m_isolate, "time"), d.value(isolate->m_isolate));
 	o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "after"), a);
 
 	idset beforeIDs, afterIDs;

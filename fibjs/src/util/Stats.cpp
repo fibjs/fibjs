@@ -173,7 +173,7 @@ result_t Stats::_named_getter(const char *property, int32_t &retVal)
 result_t Stats::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     retVal = v8::Array::New(isolate->m_isolate);
 

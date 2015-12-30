@@ -24,8 +24,10 @@ result_t file_logger::config(v8::Local<v8::Object> o)
     if (hr < 0)
         return hr;
 
+    Isolate* isolate = Isolate::now();
+
     std::string path;
-    hr = GetConfigValue(o, "path", path);
+    hr = GetConfigValue(isolate->m_isolate, o, "path", path);
     if (hr < 0)
         return hr;
 
@@ -38,7 +40,7 @@ result_t file_logger::config(v8::Local<v8::Object> o)
     m_split_mode = 0;
 
     std::string split;
-    hr = GetConfigValue(o, "split", split);
+    hr = GetConfigValue(isolate->m_isolate, o, "split", split);
     if (hr >= 0)
     {
         if (!qstrcmp(split.c_str(), "day"))
@@ -74,7 +76,7 @@ result_t file_logger::config(v8::Local<v8::Object> o)
     else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(o, "count", m_count);
+    hr = GetConfigValue(isolate->m_isolate, o, "count", m_count);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         m_count = MAX_COUNT + 100;
     else if (hr < 0)

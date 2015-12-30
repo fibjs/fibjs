@@ -88,9 +88,9 @@ public:
         return *this;
     }
 
-    operator v8::Local<v8::Value>() const
+    v8::Local<v8::Value> value(v8::Isolate* isolate) const
     {
-        return v8::Date::New(Isolate::now()->m_isolate, d);
+        return v8::Date::New(isolate, d);
     }
 
     bool empty() const

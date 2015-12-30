@@ -108,7 +108,7 @@ Variant::operator v8::Local<v8::Value>() const
     case VT_Number:
         return v8::Number::New(isolate->m_isolate, m_Val.dblVal);
     case VT_Date:
-        return dateVal();
+        return dateVal().value(isolate->m_isolate);
     case VT_Object:
     {
         object_base *obj = (object_base *) m_Val.objVal;

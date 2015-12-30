@@ -363,7 +363,7 @@ result_t HttpUploadCollection::_named_getter(const char *property,
 result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
 
     retVal = v8::Array::New(isolate->m_isolate);
     for (i = 0; i < m_count; i++)

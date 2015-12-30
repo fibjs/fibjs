@@ -398,7 +398,7 @@ result_t test_base::setup(int32_t mode)
                                 (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
 
         glob->DefineOwnProperty(_context, v8::String::NewFromUtf8(isolate->m_isolate, "assert"),
-                                assert_base::class_info().getFunction(),
+                                assert_base::class_info().getFunction(isolate),
                                 (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
     }
 

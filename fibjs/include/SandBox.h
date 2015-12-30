@@ -43,7 +43,7 @@ public:
 public:
     v8::Local<v8::Object> mods()
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = holder();
 
         const char *mods_name = "_mods";
         v8::Local<v8::Value> v = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, mods_name));
@@ -63,14 +63,10 @@ public:
     void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {
-        mods()->SetHiddenValue(v8::String::NewFromUtf8(Isolate::now()->m_isolate, "require"), func);
+        mods()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "require"), func);
     }
 
     void InstallModule(std::string fname, v8::Local<v8::Value> o);
-    inline void InstallNativeModule(const char *fname, ClassInfo &ci)
-    {
-        InstallModule(fname, ci.getFunction());
-    }
 
     result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);

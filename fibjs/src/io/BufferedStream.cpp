@@ -239,7 +239,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
     result_t hr = 0;
     std::string str;
     int32_t n = 0;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     retVal = v8::Array::New(isolate->m_isolate);
 
     if (maxlines == 0)

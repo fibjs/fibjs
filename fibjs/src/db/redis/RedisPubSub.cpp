@@ -103,10 +103,11 @@ result_t Redis::_map(v8::Local<v8::Object> &map, int32_t cmd)
 {
     m_subMode = 1;
 
+    Isolate* isolate = holder();
     v8::Local<v8::Array> channels = map->GetPropertyNames();
     int32_t sz = channels->Length();
     int32_t i;
-    v8::Local<v8::Array> subs = v8::Array::New(Isolate::now()->m_isolate);
+    v8::Local<v8::Array> subs = v8::Array::New(isolate->m_isolate);
     int32_t count = 0;
 
     for (i = 0; i < sz; i ++)

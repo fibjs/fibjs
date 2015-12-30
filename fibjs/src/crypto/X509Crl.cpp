@@ -79,7 +79,7 @@ result_t X509Crl::loadFile(const char *filename)
 
 result_t X509Crl::dump(v8::Local<v8::Array> &retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = holder();
     retVal = v8::Array::New(isolate->m_isolate);
 
     const mbedtls_x509_crl *pCrl = &m_crl;
