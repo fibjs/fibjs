@@ -12,7 +12,6 @@ namespace fibjs
 {
 
 bool g_perf;
-bool g_preemptive;
 
 #ifdef x64
 int32_t stack_size = 512;
@@ -25,7 +24,6 @@ static void printHelp() {
 	       "Options:\n"
 	       "  --trace_fiber        allow user to query the non-current\n"
 	       "                       fiber's stack infomation\n"
-	       "  --preemptive         activate the preemptive mode\n"
 	       "  --help               print fibjs command line options\n"
 	       "  --v8-options         print v8 command line options\n"
 	       "\n"
@@ -54,9 +52,6 @@ bool options(int32_t* argc, char *argv[])
 		if (!qstrcmp(arg, "--trace_fiber")) {
 			df ++;
 			Isolate::rt::g_trace = true;
-		} else if (!qstrcmp(arg, "--preemptive")) {
-			df ++;
-			g_preemptive = true;
 		} else if (!qstrcmp(arg, "--help")) {
 			printHelp();
 			return true;

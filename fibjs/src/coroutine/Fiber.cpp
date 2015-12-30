@@ -12,7 +12,6 @@ namespace fibjs
 {
 
 extern int32_t stack_size;
-extern bool g_preemptive;
 
 #define MAX_FIBER   10000
 #define MAX_IDLE   256
@@ -64,50 +63,6 @@ static void onIdle()
         s_oldIdle();
 }
 
-extern exlib::LockedList<Isolate> s_isolates;
-class _preemptThread: public exlib::OSThread
-{
-public:
-    virtual void Run()
-    {
-        Isolate* isolate = s_isolates.head();
-        intptr_t lastTimes = isolate->m_service->m_switchTimes;
-        int32_t cnt = 0;
-
-        while (true)
-        {
-            sleep(100);
-
-            if (isolate->m_service->m_resume.empty())
-            {
-                cnt = 0;
-                continue;
-            }
-
-            if (lastTimes != isolate->m_service->m_switchTimes)
-            {
-                cnt = 0;
-                lastTimes = isolate->m_service->m_switchTimes;
-                continue;
-            }
-
-            cnt ++;
-            if (cnt == 2)
-            {
-                cnt = 0;
-                isolate->m_isolate->RequestInterrupt(InterruptCallback, NULL);
-            }
-        }
-    }
-
-private:
-    static void InterruptCallback(v8::Isolate *isolate, void *data)
-    {
-        coroutine_base::sleep(0);
-    }
-
-} s_preemptThread;
-
 void init_fiber()
 {
     g_spareFibers = MAX_IDLE;
@@ -118,9 +73,6 @@ void init_fiber()
 
     g_tlsCurrent = exlib::Fiber::tlsAlloc();
     s_oldIdle = exlib::Service::current()->onIdle(onIdle);
-
-    if (g_preemptive)
-        s_preemptThread.start();
 }
 
 void *FiberBase::fiber_proc(void *p)
