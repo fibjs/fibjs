@@ -10,6 +10,7 @@
 
 #include <exlib/include/list.h>
 #include <exlib/include/service.h>
+#include "DateCache.h"
 
 namespace fibjs
 {
@@ -43,6 +44,7 @@ public:
 public:
 	exlib::Service *m_service;
 	v8::Isolate *m_isolate;
+	DateCache m_dc;
 	v8::Persistent<v8::Context> m_context;
 	v8::Persistent<v8::Object> m_global;
 	obj_ptr<SandBox> m_topSandbox;

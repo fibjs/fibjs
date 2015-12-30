@@ -23,7 +23,8 @@ class FiberBase: public Fiber_base,
 protected:
     FiberBase()
     {
-        m_rt.m_pDateCache = &g_dc;
+        Isolate* isolate = Isolate::now();
+        m_rt.m_pDateCache = &isolate->m_dc;
     }
 
     ~FiberBase()
@@ -51,7 +52,6 @@ public:
     std::string m_traceInfo;
     exlib::Event m_quit;
     Runtime m_rt;
-    static DateCache g_dc;
     weak_ptr<Fiber_base> m_caller;
 };
 

@@ -24,7 +24,6 @@ static int32_t s_idleFibers;
 int32_t g_spareFibers;
 
 static int32_t g_tlsCurrent;
-DateCache FiberBase::g_dc;
 
 static class null_fiber_data: public Fiber_base
 {
