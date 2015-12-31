@@ -252,7 +252,7 @@ result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::
         return run(src, name, names, args, ARRAYSIZE(names) - 1);
     } else
     {
-        v8::Local<v8::Value> args[] = {m_fnRequest, m_fnRun, argv, replFunc};
+        v8::Local<v8::Value> args[10] = {m_fnRequest, m_fnRun, argv, replFunc};
         return run(src, name, names, args, ARRAYSIZE(names));
     }
 }
