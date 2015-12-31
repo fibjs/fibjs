@@ -54,6 +54,8 @@ public:
 	exlib::List<exlib::linkitem> m_fibers;
 	bool m_test_setup_bbd, m_test_setup_tdd;
 
+	v8::Persistent<v8::Value> m_proto;
+
 	exlib::Queue<exlib::linkitem> m_jobs;
 	exlib::IDLE_PROC m_oldIdle;
 	int32_t m_currentFibers;

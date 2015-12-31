@@ -75,9 +75,14 @@ public:
     class cache
     {
     public:
+        cache() : m_init_isolate(false)
+        {}
+
+    public:
         v8::Persistent<v8::FunctionTemplate> m_class;
         v8::Persistent<v8::Function> m_function;
         v8::Persistent<v8::Object> m_cache;
+        bool m_init_isolate;
     };
 
 public:
@@ -128,6 +133,16 @@ public:
             o = v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache)->Clone();
 
         return o;
+    }
+
+    bool init_isolate()
+    {
+        cache* _cache = _init(Isolate::now());
+        if (_cache->m_init_isolate)
+            return false;
+
+        _cache->m_init_isolate = true;
+        return true;
     }
 
     bool has(const char *name)

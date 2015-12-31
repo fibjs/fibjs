@@ -53,7 +53,7 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
             std::string cmd;
             std::string help;
 
-            hr = GetArgumentValue(isolate->m_isolate, v, o, true);
+            hr = GetArgumentValue(v, o, true);
             if (hr >= 0)
             {
                 hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);
@@ -96,7 +96,7 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
         std::string cmd;
         v8::Local<v8::Function> exec;
 
-        hr = GetArgumentValue(isolate->m_isolate, v, o, true);
+        hr = GetArgumentValue(v, o, true);
         if (hr >= 0)
         {
             hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);

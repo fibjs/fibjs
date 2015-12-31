@@ -198,8 +198,7 @@ typedef int32_t result_t;
             METHOD_OVER(c, o)
 
 #define CONSTRUCT_INIT() \
-    static bool s_bInit = false; \
-    if(!s_bInit){s_bInit = true; return;}
+    if(class_info().init_isolate())return;
 
 #define CONSTRUCT_ENTER(c, o) \
     if (!args.IsConstructCall()){ThrowResult(CALL_E_CONSTRUCTOR); return;} \
@@ -581,9 +580,9 @@ result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict = false)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict = false)
 {
-    static v8::Persistent<v8::Value> s_proto;
+    Isolate* isolate = Isolate::now();
 
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -592,13 +591,13 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v
         return CALL_E_INVALIDARG;
 
     v8::Local<v8::Value> proto;
-    if (s_proto.IsEmpty())
+    if (isolate->m_proto.IsEmpty())
     {
-        proto = v8::Object::New(isolate)->GetPrototype();
-        s_proto.Reset(isolate, proto);
+        proto = v8::Object::New(isolate->m_isolate)->GetPrototype();
+        isolate->m_proto.Reset(isolate->m_isolate, proto);
     }
     else
-        proto = v8::Local<v8::Value>::New(isolate, s_proto);
+        proto = v8::Local<v8::Value>::New(isolate->m_isolate, isolate->m_proto);
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     if (!proto->Equals(o->GetPrototype()))
@@ -606,6 +605,11 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v
 
     vr = o;
     return 0;
+}
+
+inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict = false)
+{
+    return GetArgumentValue(v, vr, bStrict);
 }
 
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, bool bStrict = false)
