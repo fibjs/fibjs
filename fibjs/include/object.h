@@ -59,27 +59,26 @@ public:
             return;
         }
 
-        if (Isolate::check())
-        {
-            if (internalUnref() == 0)
-            {
-                if (!handle_.IsEmpty())
-                    handle_.SetWeak(this, WeakCallback);
-                else
-                    delete this;
-            }
-
-            return;
-        }
-
         m_fast_lock.lock();
 
         if (internalUnref() == 0)
         {
-            internalRef();
-            m_fast_lock.unlock();
+            if (Isolate::check())
+            {
+                m_fast_lock.unlock();
 
-            m_ar.sync();
+                if (!handle_.IsEmpty())
+                    handle_.SetWeak(this, WeakCallback);
+                else
+                    delete this;
+            } else
+            {
+                internalRef();
+                m_fast_lock.unlock();
+
+                m_ar.sync();
+            }
+
             return;
         }
 
