@@ -337,7 +337,7 @@ result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
 {
     result_t hr;
     int32_t i;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     do
     {

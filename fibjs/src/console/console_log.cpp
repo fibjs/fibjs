@@ -92,7 +92,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
 
     v8::Local<v8::Value> type;
     v8::Local<v8::Object> o;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     if (cfg->IsString() || cfg->IsStringObject())
     {

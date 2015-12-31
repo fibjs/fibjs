@@ -9,13 +9,13 @@ namespace fibjs
 
 result_t global_base::GC()
 {
-	Isolate::now()->m_isolate->LowMemoryNotification();
+	Isolate::current()->m_isolate->LowMemoryNotification();
 	return 0;
 }
 
 result_t global_base::run(const char *fname, v8::Local<v8::Array> argv)
 {
-	return Isolate::now()->m_topSandbox->run(fname, argv);
+	return Isolate::current()->m_topSandbox->run(fname, argv);
 }
 
 result_t global_base::get_argv(v8::Local<v8::Array>& retVal)
@@ -40,17 +40,17 @@ result_t global_base::get___sbname(std::string& retVal)
 
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-	return Isolate::now()->m_topSandbox->require(id, retVal);
+	return Isolate::current()->m_topSandbox->require(id, retVal);
 }
 
 result_t global_base::repl(v8::Local<v8::Array> cmds)
 {
-	return Isolate::now()->m_topSandbox->repl(cmds);
+	return Isolate::current()->m_topSandbox->repl(cmds);
 }
 
 result_t global_base::repl(Stream_base* out, v8::Local<v8::Array> cmds)
 {
-	return Isolate::now()->m_topSandbox->repl(cmds, out);
+	return Isolate::current()->m_topSandbox->repl(cmds, out);
 }
 
 }

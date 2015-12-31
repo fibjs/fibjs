@@ -731,7 +731,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> v = object->ToObject();
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
@@ -837,7 +837,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> v = object->ToObject();
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
@@ -904,7 +904,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
     bool err;
     {
         TryCatch try_catch;
-        block->Call(v8::Undefined(Isolate::now()->m_isolate), 0, NULL);
+        block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(err, _msg(msg, "Missing expected exception."));
@@ -918,7 +918,7 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     bool err;
     {
         TryCatch try_catch;
-        block->Call(v8::Undefined(Isolate::now()->m_isolate), 0, NULL);
+        block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(!err, _msg(msg, "Got unwanted exception."));

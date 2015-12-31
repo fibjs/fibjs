@@ -36,7 +36,7 @@ result_t os_base::uptime(double &retVal)
 
 result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     double avg[3] =
     { 0, 0, 0 };
 
@@ -115,7 +115,7 @@ result_t os_base::CPUs(int32_t &retVal)
 
 result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate);
 
     v8::Local<v8::Object> cpuinfo;
@@ -192,7 +192,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
         return CHECK_ERROR(LastError());
 
     rss = t_info.resident_size;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
 

@@ -18,7 +18,8 @@ namespace fibjs
 
 class SandBox;
 class JSFiber;
-class Isolate : public exlib::linkitem
+
+class Isolate : public exlib::Service
 {
 public:
 	class rt
@@ -36,15 +37,22 @@ public:
 	};
 
 public:
-	Isolate();
+	Isolate(const char *fname);
 
 public:
-	static Isolate* now();
+	static const int32_t type = 101;
+	virtual bool is(int32_t t)
+	{
+		return t == type || exlib::Service::is(t);
+	}
+
+	static Isolate *current();
 	static bool check();
-	static void reg(void *rt);
+
+	virtual void Run();
 
 public:
-	exlib::Service *m_service;
+	std::string m_fname;
 	v8::Isolate *m_isolate;
 	DateCache m_dc;
 	QuickArray<void*> m_ci;

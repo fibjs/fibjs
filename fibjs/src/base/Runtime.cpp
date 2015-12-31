@@ -27,28 +27,27 @@ Runtime &Runtime::now()
     return *(Runtime *)th_rt;
 }
 
-OSTls th_vm;
-
-Isolate::Isolate() : m_test_setup_bbd(false), m_test_setup_tdd(false),
+Isolate::Isolate(const char *fname) : m_test_setup_bbd(false), m_test_setup_tdd(false),
     m_oldIdle(NULL), m_currentFibers(0), m_idleFibers(0)
 {
+    if (fname)
+        m_fname = fname;
 }
 
-Isolate* Isolate::now()
+Isolate *Isolate::current()
 {
-    assert(exlib::Service::hasService());
-    return (Isolate *)th_vm;
+    OSThread* thread_ = OSThread::current();
+
+    assert(thread_ != 0);
+    assert(thread_->is(Isolate::type));
+
+    return (Isolate*)thread_;
 }
 
 bool Isolate::check()
 {
-    return th_vm != 0;
-}
-
-void Isolate::reg(void *rt)
-{
-    assert(exlib::Service::hasService());
-    th_vm = rt;
+    assert(OSThread::current() != 0);
+    return OSThread::current()->is(Isolate::type);
 }
 
 bool Isolate::rt::g_trace = false;
@@ -63,7 +62,7 @@ inline JSFiber* saveTrace()
 
 Isolate::rt::rt() :
     m_fiber(g_trace ? saveTrace() : NULL),
-    unlocker(Isolate::now()->m_isolate)
+    unlocker(Isolate::current()->m_isolate)
 {
 }
 

@@ -19,7 +19,7 @@ static v8::Persistent<v8::Function> s_stringify;
 inline result_t _jsonEncode(v8::Local<v8::Value> data,
                             std::string &retVal)
 {
-	Isolate* isolate = Isolate::now();
+	Isolate* isolate = Isolate::current();
 	v8::Local<v8::Object> _json;
 
 	if (s_json.IsEmpty())
@@ -76,7 +76,7 @@ inline result_t _jsonDecode(const char *data,
 	{
 	public:
 		json_parser(const char* source)
-			: isolate(Isolate::now()),
+			: isolate(Isolate::current()),
 			  source_(source),
 			  source_length_((int32_t)qstrlen(source)),
 			  position_(-1)

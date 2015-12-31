@@ -55,7 +55,7 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
     if (getifaddrs(&addrs) != 0)
         return CHECK_ERROR(LastError());
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     retVal = v8::Object::New(isolate->m_isolate);
 

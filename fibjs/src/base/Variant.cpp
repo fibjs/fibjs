@@ -75,7 +75,7 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
             if (isPersistent())
             {
                 new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
-                jsValEx().Reset(Isolate::now()->m_isolate, v);
+                jsValEx().Reset(Isolate::current()->m_isolate, v);
             }
             else
                 new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>(v);
@@ -89,7 +89,7 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
 
 Variant::operator v8::Local<v8::Value>() const
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     switch (type())
     {

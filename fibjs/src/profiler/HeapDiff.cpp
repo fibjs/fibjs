@@ -141,7 +141,7 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
 result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
                             v8::Local<v8::Object>& retVal)
 {
-	Isolate* isolate = Isolate::now();
+	Isolate* isolate = Isolate::current();
 	intptr_t s, diffBytes;
 	obj_ptr<List_base> nodes;
 	int32_t _count;

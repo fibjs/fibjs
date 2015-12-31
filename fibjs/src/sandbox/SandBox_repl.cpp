@@ -44,7 +44,7 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
                                ".help     Show repl options\n"
                                ".info     Show fibjs build information";
 
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
 
         for (i = 0; i < len; i ++)
         {
@@ -87,7 +87,7 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
         return true;
     }
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     for (i = 0; i < len; i ++)
     {
@@ -149,7 +149,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
     result_t hr = 0;
     std::string buf;
     v8::Local<v8::Value> v, v1;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate->m_isolate, "repl",
                                      v8::String::kNormalString, 4);
     obj_ptr<BufferedStream_base> bs;

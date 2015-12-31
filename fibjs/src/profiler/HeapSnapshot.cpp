@@ -43,14 +43,14 @@ result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 {
 	global_base::GC();
 
-	v8::HeapProfiler* profiler = Isolate::now()->m_isolate->GetHeapProfiler();
+	v8::HeapProfiler* profiler = Isolate::current()->m_isolate->GetHeapProfiler();
 	retVal = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 	return 0;
 }
 
 result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
 {
-	Isolate* isolate = Isolate::now();
+	Isolate* isolate = Isolate::current();
 	v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
 	obj_ptr<HeapSnapshot_base> s1, s2;
 
@@ -147,7 +147,7 @@ inline bool is_num_type(int32_t _type)
 
 result_t HeapSnapshot::load(const char* fname)
 {
-	Isolate* isolate = Isolate::now();
+	Isolate* isolate = holder();
 	result_t hr;
 	v8::Local<v8::Value> v;
 	v8::Local<v8::Object> o;

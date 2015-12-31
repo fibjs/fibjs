@@ -170,7 +170,7 @@ typedef int32_t result_t;
 #endif
 
 #if 0
-#define V8_SCOPE()  v8::EscapableHandleScope handle_scope(Isolate::now()->m_isolate)
+#define V8_SCOPE()  v8::EscapableHandleScope handle_scope(Isolate::current()->m_isolate)
 #define V8_RETURN(v)   handle_scope.Escape(v)
 #else
 #define V8_SCOPE()
@@ -582,7 +582,7 @@ result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<
 
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict = false)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -732,7 +732,7 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, obj_ptr<T> &obj
 
 inline v8::Local<v8::Value> ThrowError(const char *msg)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::Error(
                 v8::String::NewFromUtf8(isolate->m_isolate, msg)));
@@ -740,7 +740,7 @@ inline v8::Local<v8::Value> ThrowError(const char *msg)
 
 inline v8::Local<v8::Value> ThrowTypeError(const char *msg)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
                 v8::String::NewFromUtf8(isolate->m_isolate, msg)));
@@ -748,7 +748,7 @@ inline v8::Local<v8::Value> ThrowTypeError(const char *msg)
 
 inline v8::Local<v8::Value> ThrowRangeError(const char *msg)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
                 v8::String::NewFromUtf8(isolate->m_isolate, msg)));

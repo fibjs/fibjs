@@ -80,7 +80,7 @@ public:
         int32_t i;
         result_t hr;
         v8::Local<v8::Array> levels;
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
 
         hr = GetConfigValue(isolate->m_isolate, o, "levels", levels);
         if (hr == CALL_E_PARAMNOTOPTIONAL)

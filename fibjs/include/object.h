@@ -139,7 +139,7 @@ public:
         if (m_isolate)
             return m_isolate;
 
-        return m_isolate = Isolate::now();
+        return m_isolate = Isolate::current();
     }
 
     void setJSObject()
@@ -297,7 +297,7 @@ public:
     static void block_set(v8::Local<v8::String> property,
                           v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
 
         std::string strError = "Property \'";
 
@@ -311,7 +311,7 @@ public:
     static void i_IndexedSetter(uint32_t index,
                                 v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &info)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
             v8::String::NewFromUtf8(isolate->m_isolate, "Indexed Property is read-only."));
@@ -320,7 +320,7 @@ public:
     static void i_NamedSetter(v8::Local<v8::String> property,
                               v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &info)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
             v8::String::NewFromUtf8(isolate->m_isolate, "Named Property is read-only."));
@@ -329,7 +329,7 @@ public:
     static void i_NamedDeleter(
         v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &info)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
             v8::String::NewFromUtf8(isolate->m_isolate, "Named Property is read-only."));
@@ -411,7 +411,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
         V8_SCOPE();
 
         v8::Local<v8::Object> o = args.This();
-        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::now()->m_isolate);
+        v8::Local<v8::Object> o1 = v8::Object::New(Isolate::current()->m_isolate);
 
         extend(o, o1);
 

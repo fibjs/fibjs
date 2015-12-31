@@ -167,7 +167,7 @@ result_t base64vlq_base::decode(const char* data, v8::Local<v8::Array>& retVal)
 
     int32_t cnt = 0;
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate);
 
     while (data < end)

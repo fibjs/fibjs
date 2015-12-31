@@ -105,7 +105,7 @@ std::string getResultMessage(result_t hr)
 
 v8::Local<v8::Value> ThrowResult(result_t hr)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> e = v8::Exception::Error(
                                  v8::String::NewFromUtf8(isolate->m_isolate, getResultMessage(hr).c_str()));
     e->ToObject()->Set(v8::String::NewFromUtf8(isolate->m_isolate, "number"), v8::Int32::New(isolate->m_isolate, -hr));
@@ -228,7 +228,7 @@ void ReportException(TryCatch &try_catch, result_t hr)
 std::string traceInfo(int32_t deep)
 {
     v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-            Isolate::now()->m_isolate, deep, v8::StackTrace::kOverview);
+            Isolate::current()->m_isolate, deep, v8::StackTrace::kOverview);
     int32_t count = stackTrace->GetFrameCount();
     int32_t i;
     std::string strBuffer;

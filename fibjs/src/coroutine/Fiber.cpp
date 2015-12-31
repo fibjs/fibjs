@@ -46,7 +46,7 @@ public:
 
 static void onIdle()
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     if (!isolate->m_jobs.empty() && (isolate->m_idleFibers == 0) &&  (isolate->m_currentFibers < MAX_FIBER))
     {

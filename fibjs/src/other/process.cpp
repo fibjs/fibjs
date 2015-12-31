@@ -32,7 +32,7 @@ void init_argv(int32_t argc, char **argv)
 
 result_t process_base::get_argv(v8::Local<v8::Array> &retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, s_argc);
 
     for (int32_t i = 0; i < s_argc; i ++)

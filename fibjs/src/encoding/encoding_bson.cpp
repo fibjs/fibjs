@@ -151,7 +151,7 @@ bool encodeObject(bson *bb, const char *name, v8::Local<v8::Value> element,
 
     if (doJson)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
         v8::Local<v8::Value> jsonFun = object->Get(
                                            v8::String::NewFromUtf8(isolate->m_isolate, "toJSON",
                                                    v8::String::kNormalString, 6));
@@ -262,7 +262,7 @@ void decodeValue(v8::Local<v8::Object> obj, bson_iterator *it)
 {
     bson_type type = bson_iterator_type(it);
     const char *key = bson_iterator_key(it);
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     switch (type)
     {
@@ -355,7 +355,7 @@ void decodeValue(v8::Local<v8::Object> obj, bson_iterator *it)
 v8::Local<v8::Object> decodeObject(bson_iterator *it, bool bArray)
 {
     v8::Local<v8::Object> obj;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     if (bArray)
         obj = v8::Array::New(isolate->m_isolate);

@@ -86,7 +86,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     std::string str;
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     for (int32_t i = 0; i < sz; i ++)
     {

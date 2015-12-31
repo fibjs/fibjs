@@ -70,7 +70,7 @@ public:
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         _case *p = new _case(name);
-        p->m_block.Reset(Isolate::now()->m_isolate, block);
+        p->m_block.Reset(Isolate::current()->m_isolate, block);
 
         now->m_subs.append(p);
         return 0;
@@ -87,7 +87,7 @@ public:
         size_t sz = fa.size();
 
         fa.resize(sz + 1);
-        fa[sz].Reset(Isolate::now()->m_isolate, func);
+        fa[sz].Reset(Isolate::current()->m_isolate, func);
 
         return 0;
     }
@@ -118,7 +118,7 @@ public:
 
         da1.now();
 
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
 
         while (stack.size())
         {
@@ -329,7 +329,7 @@ result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
     if (hr < 0)
         return hr;
 
-    block->Call(v8::Undefined(Isolate::now()->m_isolate), 0, NULL);
+    block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
 
     s_now = last;
     return 0;
@@ -384,7 +384,7 @@ result_t test_base::expect(v8::Local<v8::Value> actual, const char *msg,
 
 result_t test_base::setup(int32_t mode)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     if (isolate->m_test_setup_bbd && isolate->m_test_setup_tdd)
         return 0;
 

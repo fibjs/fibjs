@@ -173,7 +173,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 {
     double avg[3] = {0, 0, 0};
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate, 3);
     retVal->Set(0, v8::Number::New(isolate->m_isolate, avg[0]));
     retVal->Set(1, v8::Number::New(isolate->m_isolate, avg[1]));
@@ -228,7 +228,7 @@ result_t os_base::CPUs(int32_t &retVal)
 
 result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate);
 
     SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION *sppi;
@@ -348,7 +348,7 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
             != ERROR_SUCCESS)
         return CHECK_ERROR(LastError());
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     retVal = v8::Object::New(isolate->m_isolate);
 
     for (adapter_address = adapter_addresses; adapter_address != NULL;
@@ -414,7 +414,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
     rss = pmc.WorkingSetSize;
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
 
     v8::HeapStatistics v8_heap_stats;

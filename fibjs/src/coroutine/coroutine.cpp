@@ -92,7 +92,7 @@ public:
     result_t run(v8::Local<v8::Array> funcs,
                  v8::Local<v8::Array> &retVal, int32_t fibers = -1)
     {
-        m_isolate = Isolate::now();
+        m_isolate = Isolate::current();
         int32_t i;
 
         m_count = funcs->Length();
@@ -119,7 +119,7 @@ public:
     result_t run(v8::Local<v8::Array> datas, v8::Local<v8::Function> func,
                  v8::Local<v8::Array> &retVal, int32_t fibers = -1)
     {
-        m_isolate = Isolate::now();
+        m_isolate = Isolate::current();
 
         m_count = datas->Length();
         if (m_count == 0)
@@ -162,11 +162,11 @@ result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &arg
 
     if (l == 0)
     {
-        retVal = v8::Array::New(Isolate::now()->m_isolate);
+        retVal = v8::Array::New(Isolate::current()->m_isolate);
         return 0;
     }
 
-    v8::Local<v8::Array> funcs = v8::Array::New(Isolate::now()->m_isolate, l);
+    v8::Local<v8::Array> funcs = v8::Array::New(Isolate::current()->m_isolate, l);
 
     for (i = 0; i < l; i++)
         funcs->Set(i, args[i]);
@@ -202,7 +202,7 @@ result_t coroutine_base::sleep(int32_t ms)
 
 result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
     exlib::linkitem* p = isolate->m_fibers.head();
     int32_t n = 0;
 

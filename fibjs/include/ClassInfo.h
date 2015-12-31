@@ -137,7 +137,7 @@ public:
 
     bool init_isolate()
     {
-        cache* _cache = _init(Isolate::now());
+        cache* _cache = _init(Isolate::current());
         if (_cache->m_init_isolate)
             return false;
 
@@ -229,7 +229,7 @@ public:
 
     intptr_t dump(v8::Local<v8::Object> &o)
     {
-        Isolate* isolate = Isolate::now();
+        Isolate* isolate = Isolate::current();
         intptr_t cnt = refs_;
 
         if (cnt)

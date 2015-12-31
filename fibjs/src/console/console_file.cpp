@@ -24,7 +24,7 @@ result_t file_logger::config(v8::Local<v8::Object> o)
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = Isolate::current();
 
     std::string path;
     hr = GetConfigValue(isolate->m_isolate, o, "path", path);
