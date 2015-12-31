@@ -219,7 +219,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         return 0;
     }
 
-    (new asyncInvoke(hdlr, v, retVal, ac))->sync();
+    (new asyncInvoke(hdlr, v, retVal, ac))->sync(hdlr->holder());
     return CALL_E_PENDDING;
 }
 

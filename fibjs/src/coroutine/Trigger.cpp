@@ -309,7 +309,7 @@ result_t object_base::_trigger(const char *ev, Variant *args, int32_t argCount)
         QuickArray<VariantEx> m_args;
     };
 
-    (new jsTrigger(this, ev, args, argCount))->sync();
+    (new jsTrigger(this, ev, args, argCount))->sync(holder());
     return 0;
 }
 

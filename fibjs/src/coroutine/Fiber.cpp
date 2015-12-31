@@ -16,12 +16,7 @@ extern int32_t stack_size;
 #define MAX_FIBER   10000
 #define MAX_IDLE   256
 
-static exlib::Queue<AsyncEvent> g_jobs;
-static exlib::IDLE_PROC s_oldIdle;
-static int32_t s_fibers;
-static int32_t s_idleFibers;
 int32_t g_spareFibers;
-
 static int32_t g_tlsCurrent;
 
 static class null_fiber_data: public Fiber_base
@@ -51,33 +46,41 @@ public:
 
 static void onIdle()
 {
-    if (!g_jobs.empty() && (s_idleFibers == 0) &&  (s_fibers < MAX_FIBER))
+    Isolate* isolate = Isolate::now();
+
+    if (!isolate->m_jobs.empty() && (isolate->m_idleFibers == 0) &&  (isolate->m_currentFibers < MAX_FIBER))
     {
-        s_fibers++;
-        s_idleFibers ++;
-        exlib::Fiber::Create(FiberBase::fiber_proc, NULL,
+        isolate->m_currentFibers++;
+        isolate->m_idleFibers ++;
+        exlib::Fiber::Create(FiberBase::fiber_proc, isolate,
                              stack_size * 1024);
     }
 
-    if (s_oldIdle)
-        s_oldIdle();
+    if (isolate->m_oldIdle)
+        isolate->m_oldIdle();
 }
 
-void init_fiber()
+void init_fiber(Isolate* isolate)
 {
-    g_spareFibers = MAX_IDLE;
-    s_null = new null_fiber_data();
+    static bool s_init = false;
 
-    s_fibers = 0;
-    s_idleFibers = 0;
+    isolate->m_currentFibers = 0;
+    isolate->m_idleFibers = 0;
+    isolate->m_oldIdle = exlib::Service::current()->onIdle(onIdle);
 
-    g_tlsCurrent = exlib::Fiber::tlsAlloc();
-    s_oldIdle = exlib::Service::current()->onIdle(onIdle);
+    if (!s_init)
+    {
+        s_init = true;
+
+        g_spareFibers = MAX_IDLE;
+        g_tlsCurrent = exlib::Fiber::tlsAlloc();
+        s_null = new null_fiber_data();
+    }
 }
 
 void *FiberBase::fiber_proc(void *p)
 {
-    Isolate* isolate = Isolate::now();
+    Isolate* isolate = (Isolate*)p;
     v8::Locker locker(isolate->m_isolate);
     v8::Isolate::Scope isolate_scope(isolate->m_isolate);
 
@@ -85,25 +88,25 @@ void *FiberBase::fiber_proc(void *p)
     v8::Context::Scope context_scope(
         v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context));
 
-    s_idleFibers --;
+    isolate->m_idleFibers --;
     while (1)
     {
         AsyncEvent *ae;
 
-        if ((ae = g_jobs.tryget()) == NULL)
+        if ((ae = (AsyncEvent*)isolate->m_jobs.tryget()) == NULL)
         {
-            s_idleFibers ++;
-            if (s_idleFibers > g_spareFibers) {
-                s_idleFibers --;
+            isolate->m_idleFibers ++;
+            if (isolate->m_idleFibers > g_spareFibers) {
+                isolate->m_idleFibers --;
                 break;
             }
 
             {
                 v8::Unlocker unlocker(isolate->m_isolate);
-                ae = g_jobs.get();
+                ae = (AsyncEvent*)isolate->m_jobs.get();
             }
 
-            s_idleFibers --;
+            isolate->m_idleFibers --;
         }
 
         {
@@ -112,7 +115,7 @@ void *FiberBase::fiber_proc(void *p)
         }
     }
 
-    s_fibers --;
+    isolate->m_currentFibers --;
 
     return NULL;
 }
@@ -141,8 +144,10 @@ void FiberBase::set_caller(Fiber_base* caller)
 
 void FiberBase::start()
 {
+    Isolate* isolate = holder();
+
     set_caller(JSFiber::current());
-    g_jobs.put(this);
+    isolate->m_jobs.put(this);
     Ref();
 }
 
@@ -228,11 +233,6 @@ JSFiber::scope::~scope()
     ReportException(try_catch, m_hr);
     m_pFiber->holder()->m_fibers.remove(m_pFiber);
     exlib::Fiber::tlsPut(g_tlsCurrent, 0);
-}
-
-void AsyncEvent::sync()
-{
-    g_jobs.put(this);
 }
 
 } /* namespace fibjs */

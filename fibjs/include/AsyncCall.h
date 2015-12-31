@@ -14,7 +14,11 @@ public:
     {}
 
 public:
-    void sync();
+    void sync(Isolate* isolate)
+    {
+        isolate->m_jobs.put(this);
+    }
+
     virtual void js_invoke()
     {
     }
@@ -223,9 +227,9 @@ void asyncCall(T func, T1 v)
 }
 
 template<typename T, typename T1>
-void syncCall(T func, T1 v)
+void syncCall(Isolate* isolate, T func, T1 v)
 {
-    (new AsyncFunc<T, T1>(func, v))->sync();
+    (new AsyncFunc<T, T1>(func, v))->sync(isolate);
 }
 
 }

@@ -19,7 +19,7 @@ void init_prof();
 void init_acThread();
 void init_logger();
 void init_net();
-void init_fiber();
+void init_fiber(Isolate* isolate);
 bool options(int32_t* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
@@ -83,7 +83,7 @@ void _main(const char *fname)
     isolate->m_context.Reset(isolate->m_isolate, _context);
     isolate->m_global.Reset(isolate->m_isolate, glob);
 
-    init_fiber();
+    init_fiber(isolate);
 
     result_t hr;
 

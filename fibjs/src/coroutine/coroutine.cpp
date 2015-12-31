@@ -26,9 +26,9 @@ class _parallels {
 private:
     void _worker()
     {
-        v8::Local<v8::Array> datas = v8::Local<v8::Array>::New(m_isolate, m_datas);
-        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(m_isolate, m_func);
-        v8::Local<v8::Array> retVal = v8::Local<v8::Array>::New(m_isolate, m_retVal);
+        v8::Local<v8::Array> datas = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_datas);
+        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(m_isolate->m_isolate, m_func);
+        v8::Local<v8::Array> retVal = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_retVal);
 
         while (m_pos < m_count)
         {
@@ -68,8 +68,8 @@ private:
     {
         int32_t i;
 
-        retVal = v8::Array::New(m_isolate, m_count);
-        m_retVal.Reset(m_isolate, retVal);
+        retVal = v8::Array::New(m_isolate->m_isolate, m_count);
+        m_retVal.Reset(m_isolate->m_isolate, retVal);
 
         m_event = new Event();
         m_error = false;
@@ -77,7 +77,7 @@ private:
         m_caller = JSFiber::current();
 
         for (i = 0; i < m_fibers; i ++)
-            syncCall(worker, this);
+            syncCall(m_isolate, worker, this);
 
         m_event->wait();
 
@@ -92,13 +92,13 @@ public:
     result_t run(v8::Local<v8::Array> funcs,
                  v8::Local<v8::Array> &retVal, int32_t fibers = -1)
     {
-        m_isolate = Isolate::now()->m_isolate;
+        m_isolate = Isolate::now();
         int32_t i;
 
         m_count = funcs->Length();
         if (m_count == 0)
         {
-            retVal = v8::Array::New(m_isolate, 0);
+            retVal = v8::Array::New(m_isolate->m_isolate, 0);
             return 0;
         }
 
@@ -111,7 +111,7 @@ public:
                 return CHECK_ERROR(CALL_E_INVALIDARG);
         }
 
-        m_datas.Reset(m_isolate, funcs);
+        m_datas.Reset(m_isolate->m_isolate, funcs);
 
         return run(retVal);
     }
@@ -119,25 +119,25 @@ public:
     result_t run(v8::Local<v8::Array> datas, v8::Local<v8::Function> func,
                  v8::Local<v8::Array> &retVal, int32_t fibers = -1)
     {
-        m_isolate = Isolate::now()->m_isolate;
+        m_isolate = Isolate::now();
 
         m_count = datas->Length();
         if (m_count == 0)
         {
-            retVal = v8::Array::New(m_isolate, 0);
+            retVal = v8::Array::New(m_isolate->m_isolate, 0);
             return 0;
         }
 
         m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
 
-        m_datas.Reset(m_isolate, datas);
-        m_func.Reset(m_isolate, func);
+        m_datas.Reset(m_isolate->m_isolate, datas);
+        m_func.Reset(m_isolate->m_isolate, func);
 
         return run(retVal);
     }
 
 public:
-    v8::Isolate* m_isolate;
+    Isolate* m_isolate;
     int32_t m_count, m_fibers, m_pos;
     v8::Persistent<v8::Array> m_datas;
     v8::Persistent<v8::Function> m_func;

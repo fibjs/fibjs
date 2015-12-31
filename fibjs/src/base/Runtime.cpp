@@ -29,7 +29,8 @@ Runtime &Runtime::now()
 
 OSTls th_vm;
 
-Isolate::Isolate() : m_test_setup_bbd(false), m_test_setup_tdd(false)
+Isolate::Isolate() : m_test_setup_bbd(false), m_test_setup_tdd(false),
+    m_oldIdle(NULL), m_currentFibers(0), m_idleFibers(0)
 {
 }
 

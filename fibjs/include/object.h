@@ -76,7 +76,7 @@ public:
                 internalRef();
                 m_fast_lock.unlock();
 
-                m_ar.sync();
+                m_ar.sync(m_isolate);
             }
 
             return;

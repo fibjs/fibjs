@@ -45,14 +45,19 @@ public:
 
 public:
 	exlib::Service *m_service;
-	QuickArray<void*> m_ci;
 	v8::Isolate *m_isolate;
 	DateCache m_dc;
+	QuickArray<void*> m_ci;
 	v8::Persistent<v8::Context> m_context;
 	v8::Persistent<v8::Object> m_global;
 	obj_ptr<SandBox> m_topSandbox;
 	exlib::List<exlib::linkitem> m_fibers;
 	bool m_test_setup_bbd, m_test_setup_tdd;
+
+	exlib::Queue<exlib::linkitem> m_jobs;
+	exlib::IDLE_PROC m_oldIdle;
+	int32_t m_currentFibers;
+	int32_t m_idleFibers;
 };
 
 } /* namespace fibjs */

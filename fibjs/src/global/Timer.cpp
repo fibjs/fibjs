@@ -53,7 +53,7 @@ public:
 
 	virtual void resume()
 	{
-		syncCall(_callback, this);
+		syncCall(holder(), _callback, this);
 	}
 
 	void sleep()
