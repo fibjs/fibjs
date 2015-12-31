@@ -180,7 +180,7 @@ typedef int32_t result_t;
 #define PROPERTY_ENTER() \
     V8_SCOPE(); \
     result_t hr = 0; \
-    v8::Isolate* isolate = args.GetIsolate(); \
+    v8::Isolate* isolate = args.GetIsolate(); isolate; \
     bool bStrict=false;do{do{
 
 #define METHOD_OVER(c, o) \
@@ -192,7 +192,7 @@ typedef int32_t result_t;
 #define METHOD_ENTER(c, o) \
     V8_SCOPE(); \
     result_t hr = CALL_E_BADPARAMCOUNT; \
-    v8::Isolate* isolate = args.GetIsolate(); \
+    v8::Isolate* isolate = args.GetIsolate(); isolate;\
     int32_t argc = args.Length(); \
     bool bStrict=true;do{do{\
             METHOD_OVER(c, o)

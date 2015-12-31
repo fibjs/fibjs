@@ -41,7 +41,7 @@ Isolate* Isolate::now()
 
 bool Isolate::check()
 {
-    return th_vm != NULL;
+    return th_vm != 0;
 }
 
 void Isolate::reg(void *rt)
