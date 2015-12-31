@@ -18,8 +18,7 @@ public:
 	Timer(v8::Local<v8::Function> callback, int32_t timeout, bool repeat = false) :
 		m_timeout(timeout), m_repeat(repeat), m_cancel(false)
 	{
-		m_isolate = holder()->m_isolate;
-		m_callback.Reset(m_isolate, callback);
+		wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "callback"), callback);
 
 		if (m_timeout < 1)
 			m_timeout = 1;
@@ -31,23 +30,10 @@ public:
 	Timer(v8::Local<v8::Function> callback) :
 		m_timeout(0), m_repeat(false), m_cancel(false)
 	{
-		m_isolate = holder()->m_isolate;
-		m_callback.Reset(m_isolate, callback);
+		wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "callback"), callback);
 
 		resume();
 		Ref();
-	}
-
-	~Timer()
-	{
-		m_callback.Reset();
-	}
-
-public:
-	// object_base
-	virtual bool isJSObject()
-	{
-		return true;
 	}
 
 public:
@@ -82,7 +68,10 @@ private:
 		{
 			{
 				JSFiber::scope s;
-				v8::Local<v8::Function>::New(m_isolate, m_callback)->Call(wrap(), 0, NULL);
+				v8::Local<v8::Value> v = wrap()->GetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "callback"));
+
+				if (!v.IsEmpty() && v->IsFunction())
+					v8::Local<v8::Function>::Cast(v)->Call(wrap(), 0, NULL);
 			}
 
 			if (m_repeat && !m_cancel)
@@ -99,8 +88,6 @@ private:
 	}
 
 private:
-	v8::Isolate* m_isolate;
-	v8::Persistent<v8::Function> m_callback;
 	int32_t m_timeout;
 	bool m_repeat;
 	bool m_cancel;
