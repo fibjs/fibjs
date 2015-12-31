@@ -16,29 +16,22 @@ namespace fibjs
 static v8::Persistent<v8::Object> s_json;
 static v8::Persistent<v8::Function> s_stringify;
 
-inline void initJSON()
-{
-	if (s_json.IsEmpty())
-	{
-		Isolate* isolate = Isolate::now();
-		v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
-		s_json.Reset(isolate->m_isolate, glob->Get(v8::String::NewFromUtf8(isolate->m_isolate, "JSON"))->ToObject());
-	}
-}
-
-
-
 inline result_t _jsonEncode(v8::Local<v8::Value> data,
                             std::string &retVal)
 {
-	initJSON();
-
 	Isolate* isolate = Isolate::now();
-	v8::Local<v8::Object> _json = v8::Local<v8::Object>::New(isolate->m_isolate, s_json);
+	v8::Local<v8::Object> _json;
 
-	if (s_stringify.IsEmpty())
+	if (s_json.IsEmpty())
+	{
+		v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+		_json = glob->Get(v8::String::NewFromUtf8(isolate->m_isolate, "JSON"))->ToObject();
+		s_json.Reset(isolate->m_isolate, _json);
+
 		s_stringify.Reset(isolate->m_isolate,
 		                  v8::Local<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate->m_isolate, "stringify"))));
+	} else
+		_json = v8::Local<v8::Object>::New(isolate->m_isolate, s_json);
 
 	TryCatch try_catch;
 	v8::Local<v8::Value> str = v8::Local<v8::Function>::New(isolate->m_isolate, s_stringify)->Call(_json, 1, &data);
