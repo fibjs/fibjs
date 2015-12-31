@@ -186,6 +186,7 @@ BOOL WINAPI win_breakEvent(DWORD dwCtrlType)
 
 void init_prof()
 {
+#ifndef DEBUG
     HMODULE hDll;
     if (hDll = ::LoadLibrary("DBGHELP.DLL"))
     {
@@ -194,6 +195,7 @@ void init_prof()
         if (s_pDump)
             SetUnhandledExceptionFilter (GPTUnhandledExceptionFilter);
     }
+#endif
 
     SetConsoleCtrlHandler(win_breakEvent, TRUE);
 }
