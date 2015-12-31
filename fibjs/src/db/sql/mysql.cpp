@@ -134,7 +134,7 @@ void API_destroyResult(void *result)
 void *API_resultOK(UINT64 affected, UINT64 insertId, int32_t serverStatus,
                    const char *message, size_t len)
 {
-    DBResult *res = new DBResult(affected, insertId);
+    DBResult *res = new DBResult(0, affected, insertId);
     res->Ref();
     return res;
 }

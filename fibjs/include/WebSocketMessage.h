@@ -20,6 +20,7 @@ public:
     WebSocketMessage(int32_t type, bool masked, int32_t maxSize, bool bRep = false)
         : m_type(type), m_masked(masked), m_maxSize(maxSize), m_bRep(bRep)
     {
+        m_message = new Message();
     }
 
 public:
@@ -61,7 +62,7 @@ public:
     int32_t m_maxSize;
 
 private:
-    Message::_msg m_message;
+    obj_ptr<Message> m_message;
     obj_ptr<WebSocketMessage_base> m_response;
     bool m_bRep;
 };

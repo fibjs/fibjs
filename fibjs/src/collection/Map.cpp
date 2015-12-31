@@ -71,6 +71,9 @@ result_t Map::get(const char *name, Variant &retVal)
 
 result_t Map::put(const char *name, Variant value)
 {
+    if (value.type() == Variant::VT_JSValue)
+        setJSObject();
+
     m_datas.insert(std::pair<std::string, VariantEx>(name, value));
     return 0;
 }

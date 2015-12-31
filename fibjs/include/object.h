@@ -28,7 +28,8 @@ class object_base: public obj_base
 {
 public:
     object_base() :
-        m_isolate(NULL), m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
+        m_isolate(NULL), m_isJSObject(false),
+        m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
     {
         object_base::class_info().Ref();
     }
@@ -51,7 +52,7 @@ public:
 
     virtual void Unref()
     {
-        if (!isJSObject())
+        if (!m_isJSObject && handle_.IsEmpty())
         {
             if (internalUnref() == 0)
                 delete this;
@@ -86,11 +87,6 @@ public:
     }
 
     exlib::spinlock m_fast_lock;
-
-    virtual bool isJSObject()
-    {
-        return !handle_.IsEmpty();
-    }
 
 public:
     virtual void enter()
@@ -136,6 +132,7 @@ private:
 
 private:
     Isolate* m_isolate;
+    bool m_isJSObject;
 
 public:
     Isolate* holder()
@@ -144,6 +141,12 @@ public:
             return m_isolate;
 
         return m_isolate = Isolate::now();
+    }
+
+    void setJSObject()
+    {
+        m_isJSObject = true;
+        holder();
     }
 
 public:

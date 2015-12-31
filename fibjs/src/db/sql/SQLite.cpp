@@ -241,7 +241,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
     {
         int32_t r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
         if (r == SQLITE_DONE)
-            res = new DBResult(sqlite3_changes(m_db),
+            res = new DBResult(0, sqlite3_changes(m_db),
                                sqlite3_last_insert_rowid(m_db));
         else
         {

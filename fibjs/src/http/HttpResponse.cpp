@@ -21,163 +21,163 @@ result_t HttpResponse_base::_new(obj_ptr<HttpResponse_base> &retVal, v8::Local<v
 
 result_t HttpResponse::get_protocol(std::string &retVal)
 {
-    return m_message.get_protocol(retVal);
+    return m_message->get_protocol(retVal);
 }
 
 result_t HttpResponse::set_protocol(const char *newVal)
 {
-    return m_message.set_protocol(newVal);
+    return m_message->set_protocol(newVal);
 }
 
 result_t HttpResponse::get_headers(obj_ptr<HttpCollection_base> &retVal)
 {
-    return m_message.get_headers(retVal);
+    return m_message->get_headers(retVal);
 }
 
 result_t HttpResponse::get_body(obj_ptr<SeekableStream_base> &retVal)
 {
-    return m_message.get_body(retVal);
+    return m_message->get_body(retVal);
 }
 
 result_t HttpResponse::set_body(SeekableStream_base *newVal)
 {
-    return m_message.set_body(newVal);
+    return m_message->set_body(newVal);
 }
 
 result_t HttpResponse::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                             AsyncEvent *ac)
 {
-    return m_message.read(bytes, retVal, ac);
+    return m_message->read(bytes, retVal, ac);
 }
 
 result_t HttpResponse::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
-    return m_message.readAll(retVal, ac);
+    return m_message->readAll(retVal, ac);
 }
 
 result_t HttpResponse::write(Buffer_base *data, AsyncEvent *ac)
 {
-    return m_message.write(data, ac);
+    return m_message->write(data, ac);
 }
 
 result_t HttpResponse::get_length(int64_t &retVal)
 {
-    return m_message.get_length(retVal);
+    return m_message->get_length(retVal);
 }
 
 result_t HttpResponse::get_keepAlive(bool &retVal)
 {
-    return m_message.get_keepAlive(retVal);
+    return m_message->get_keepAlive(retVal);
 }
 
 result_t HttpResponse::set_keepAlive(bool newVal)
 {
-    return m_message.set_keepAlive(newVal);
+    return m_message->set_keepAlive(newVal);
 }
 
 result_t HttpResponse::get_upgrade(bool &retVal)
 {
-    return m_message.get_upgrade(retVal);
+    return m_message->get_upgrade(retVal);
 }
 
 result_t HttpResponse::set_upgrade(bool newVal)
 {
-    return m_message.set_upgrade(newVal);
+    return m_message->set_upgrade(newVal);
 }
 
 result_t HttpResponse::get_maxHeadersCount(int32_t &retVal)
 {
-    return m_message.get_maxHeadersCount(retVal);
+    return m_message->get_maxHeadersCount(retVal);
 }
 
 result_t HttpResponse::set_maxHeadersCount(int32_t newVal)
 {
-    return m_message.set_maxHeadersCount(newVal);
+    return m_message->set_maxHeadersCount(newVal);
 }
 
 result_t HttpResponse::get_maxUploadSize(int32_t &retVal)
 {
-    return m_message.get_maxUploadSize(retVal);
+    return m_message->get_maxUploadSize(retVal);
 }
 
 result_t HttpResponse::set_maxUploadSize(int32_t newVal)
 {
-    return m_message.get_maxUploadSize(newVal);
+    return m_message->get_maxUploadSize(newVal);
 }
 
 result_t HttpResponse::hasHeader(const char *name, bool &retVal)
 {
-    return m_message.hasHeader(name, retVal);
+    return m_message->hasHeader(name, retVal);
 }
 
 result_t HttpResponse::firstHeader(const char *name, Variant &retVal)
 {
-    return m_message.firstHeader(name, retVal);
+    return m_message->firstHeader(name, retVal);
 }
 
 result_t HttpResponse::allHeader(const char *name, obj_ptr<List_base> &retVal)
 {
-    return m_message.allHeader(name, retVal);
+    return m_message->allHeader(name, retVal);
 }
 
 result_t HttpResponse::addHeader(Map_base* map)
 {
-    return m_message.addHeader(map);
+    return m_message->addHeader(map);
 }
 
 result_t HttpResponse::addHeader(const char *name, Variant value)
 {
-    return m_message.addHeader(name, value);
+    return m_message->addHeader(name, value);
 }
 
 result_t HttpResponse::setHeader(Map_base* map)
 {
-    return m_message.setHeader(map);
+    return m_message->setHeader(map);
 }
 
 result_t HttpResponse::setHeader(const char *name, Variant value)
 {
-    return m_message.setHeader(name, value);
+    return m_message->setHeader(name, value);
 }
 
 result_t HttpResponse::removeHeader(const char *name)
 {
-    return m_message.removeHeader(name);
+    return m_message->removeHeader(name);
 }
 
 result_t HttpResponse::get_value(std::string &retVal)
 {
-    return m_message.get_value(retVal);
+    return m_message->get_value(retVal);
 }
 
 result_t HttpResponse::set_value(const char *newVal)
 {
-    return m_message.set_value(newVal);
+    return m_message->set_value(newVal);
 }
 
 result_t HttpResponse::get_params(obj_ptr<List_base> &retVal)
 {
-    return m_message.get_params(retVal);
+    return m_message->get_params(retVal);
 }
 
 result_t HttpResponse::set_params(List_base *newVal)
 {
-    return m_message.set_params(newVal);
+    return m_message->set_params(newVal);
 }
 
 result_t HttpResponse::get_result(Variant &retVal)
 {
-    return m_message.get_result(retVal);
+    return m_message->get_result(retVal);
 }
 
 result_t HttpResponse::set_result(Variant newVal)
 {
-    return m_message.set_result(newVal);
+    return m_message->set_result(newVal);
 }
 
 result_t HttpResponse::clear()
 {
-    m_message.clear();
+    m_message = new HttpMessage(true);
 
     m_cookies.Release();
     m_status = 200;
@@ -268,7 +268,7 @@ result_t HttpResponse::sendTo(Stream_base *stm, AsyncEvent *ac)
     get_protocol(strCommand);
     strCommand.append(status_lines[pos], status_lines_size[pos]);
 
-    return m_message.sendTo(stm, strCommand, ac);
+    return m_message->sendTo(stm, strCommand, ac);
 }
 
 result_t HttpResponse::readFrom(Stream_base *stm, AsyncEvent *ac)
@@ -314,7 +314,7 @@ result_t HttpResponse::readFrom(Stream_base *stm, AsyncEvent *ac)
                 return hr;
 
             pThis->done();
-            return pThis->m_pThis->m_message.readFrom(pThis->m_stm, pThis);
+            return pThis->m_pThis->m_message->readFrom(pThis->m_stm, pThis);
         }
 
     public:
@@ -335,7 +335,7 @@ result_t HttpResponse::readFrom(Stream_base *stm, AsyncEvent *ac)
 
 result_t HttpResponse::get_stream(obj_ptr<Stream_base> &retVal)
 {
-    return m_message.get_stream(retVal);
+    return m_message->get_stream(retVal);
 }
 
 result_t HttpResponse::get_response(obj_ptr<Message_base> &retVal)
@@ -456,7 +456,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
     get_protocol(strCommand);
     strCommand.append(status_lines[pos], status_lines_size[pos]);
 
-    return m_message.sendHeader(stm, strCommand, ac);
+    return m_message->sendHeader(stm, strCommand, ac);
 }
 
 } /* namespace fibjs */

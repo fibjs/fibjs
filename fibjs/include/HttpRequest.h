@@ -21,6 +21,7 @@ class HttpRequest: public HttpRequest_base
 public:
     HttpRequest()
     {
+        m_message = new HttpMessage();
         clear();
         extMemory(4096);
     }
@@ -85,7 +86,7 @@ public:
         Variant varCookie;
         obj_ptr<HttpCollection_base> hdrs;
 
-        m_message.get_headers(hdrs);
+        m_message->get_headers(hdrs);
         hdrs->first("cookie", varCookie);
         retVal = varCookie.string();
     }
@@ -94,7 +95,7 @@ public:
                obj_ptr<HttpCollection_base> &retVal);
 
 private:
-    HttpMessage m_message;
+    obj_ptr<HttpMessage> m_message;
     std::string m_method;
     std::string m_address;
     std::string m_queryString;

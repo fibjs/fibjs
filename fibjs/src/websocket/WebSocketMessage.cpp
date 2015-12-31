@@ -23,68 +23,68 @@ result_t WebSocketMessage_base::_new(int32_t type, bool masked, int32_t maxSize,
 
 result_t WebSocketMessage::get_value(std::string &retVal)
 {
-    return m_message.get_value(retVal);
+    return m_message->get_value(retVal);
 }
 
 result_t WebSocketMessage::set_value(const char *newVal)
 {
-    return m_message.set_value(newVal);
+    return m_message->set_value(newVal);
 }
 
 result_t WebSocketMessage::get_params(obj_ptr<List_base> &retVal)
 {
-    return m_message.get_params(retVal);
+    return m_message->get_params(retVal);
 }
 
 result_t WebSocketMessage::set_params(List_base *newVal)
 {
-    return m_message.set_params(newVal);
+    return m_message->set_params(newVal);
 }
 
 result_t WebSocketMessage::get_result(Variant &retVal)
 {
-    return m_message.get_result(retVal);
+    return m_message->get_result(retVal);
 }
 
 result_t WebSocketMessage::set_result(Variant newVal)
 {
-    return m_message.set_result(newVal);
+    return m_message->set_result(newVal);
 }
 
 result_t WebSocketMessage::get_body(obj_ptr<SeekableStream_base> &retVal)
 {
-    return m_message.get_body(retVal);
+    return m_message->get_body(retVal);
 }
 
 result_t WebSocketMessage::set_body(SeekableStream_base *newVal)
 {
-    return m_message.set_body(newVal);
+    return m_message->set_body(newVal);
 }
 
 result_t WebSocketMessage::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                                 AsyncEvent *ac)
 {
-    return m_message.read(bytes, retVal, ac);
+    return m_message->read(bytes, retVal, ac);
 }
 
 result_t WebSocketMessage::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
-    return m_message.readAll(retVal, ac);
+    return m_message->readAll(retVal, ac);
 }
 
 result_t WebSocketMessage::write(Buffer_base *data, AsyncEvent *ac)
 {
-    return m_message.write(data, ac);
+    return m_message->write(data, ac);
 }
 
 result_t WebSocketMessage::get_length(int64_t &retVal)
 {
-    return m_message.get_length(retVal);
+    return m_message->get_length(retVal);
 }
 
 result_t WebSocketMessage::clear()
 {
-    m_message.clear();
+    m_message = new Message();
 
     if (m_response)
         m_response->clear();

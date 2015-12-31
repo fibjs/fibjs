@@ -16,97 +16,7 @@ result_t List_base::_new(obj_ptr<List_base> &retVal, v8::Local<v8::Object> This)
     return 0;
 }
 
-result_t List::freeze()
-{
-    return m_array.freeze();
-}
-
 result_t List::_indexed_getter(uint32_t index, Variant &retVal)
-{
-    return m_array._indexed_getter(index, retVal);
-}
-
-result_t List::_indexed_setter(uint32_t index, Variant newVal)
-{
-    return m_array._indexed_setter(index, newVal);
-}
-
-result_t List::get_length(int32_t &retVal)
-{
-    return m_array.get_length(retVal);
-}
-
-result_t List::resize(int32_t sz)
-{
-    return m_array.resize(sz);
-}
-
-result_t List::push(Variant v)
-{
-    return m_array.push(v);
-}
-
-result_t List::push(const v8::FunctionCallbackInfo<v8::Value> &args)
-{
-    return m_array.push(args);
-}
-
-result_t List::pop(Variant &retVal)
-{
-    return m_array.pop(retVal);
-}
-
-result_t List::slice(int32_t start, int32_t end, obj_ptr<List_base> &retVal)
-{
-    return m_array.slice(start, end, retVal);
-}
-
-result_t List::concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal)
-{
-    return m_array.concat(args, retVal);
-}
-
-result_t List::every(v8::Local<v8::Function> func,
-                     v8::Local<v8::Object> thisp, bool &retVal)
-{
-    return m_array.every(func, thisp, retVal);
-}
-
-result_t List::some(v8::Local<v8::Function> func,
-                    v8::Local<v8::Object> thisp, bool &retVal)
-{
-    return m_array.some(func, thisp, retVal);
-}
-
-result_t List::filter(v8::Local<v8::Function> func,
-                      v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
-{
-    return m_array.filter(func, thisp, retVal);
-}
-
-result_t List::forEach(v8::Local<v8::Function> func,
-                       v8::Local<v8::Object> thisp)
-{
-    return m_array.forEach(func, thisp);
-}
-
-result_t List::map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp,
-                   obj_ptr<List_base> &retVal)
-{
-    return m_array.map(func, thisp, retVal);
-}
-
-result_t List::toArray(v8::Local<v8::Array> &retVal)
-{
-    return m_array.toArray(retVal);
-}
-
-result_t List::toJSON(const char *key, v8::Local<v8::Value> &retVal)
-{
-    return m_array.toJSON(key, retVal);
-}
-
-result_t List::array::_indexed_getter(uint32_t index, Variant &retVal)
 {
     if (index >= m_array.size())
         return CHECK_ERROR(CALL_E_BADINDEX);
@@ -116,7 +26,7 @@ result_t List::array::_indexed_getter(uint32_t index, Variant &retVal)
     return 0;
 }
 
-result_t List::array::_indexed_setter(uint32_t index, Variant newVal)
+result_t List::_indexed_setter(uint32_t index, Variant newVal)
 {
     if (index >= m_array.size())
         return CHECK_ERROR(CALL_E_BADINDEX);
@@ -124,24 +34,27 @@ result_t List::array::_indexed_setter(uint32_t index, Variant newVal)
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    if (newVal.type() == Variant::VT_JSValue)
+        setJSObject();
+
     m_array[index] = newVal;
 
     return 0;
 }
 
-result_t List::array::freeze()
+result_t List::freeze()
 {
     m_freeze = true;
     return 0;
 }
 
-result_t List::array::get_length(int32_t &retVal)
+result_t List::get_length(int32_t &retVal)
 {
     retVal = (int32_t) m_array.size();
     return 0;
 }
 
-result_t List::array::resize(int32_t sz)
+result_t List::resize(int32_t sz)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -150,16 +63,19 @@ result_t List::array::resize(int32_t sz)
     return 0;
 }
 
-result_t List::array::push(Variant v)
+result_t List::push(Variant v)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (v.type() == Variant::VT_JSValue)
+        setJSObject();
 
     m_array.append(v);
     return 0;
 }
 
-result_t List::array::push(const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t List::push(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -168,11 +84,11 @@ result_t List::array::push(const v8::FunctionCallbackInfo<v8::Value> &args)
     int32_t i;
 
     for (i = 0; i < len; i++)
-        m_array.append(args[i]);
+        push(args[i]);
     return 0;
 }
 
-result_t List::array::pop(Variant &retVal)
+result_t List::pop(Variant &retVal)
 {
     if (!m_array.size())
         return CALL_RETURN_NULL;
@@ -186,8 +102,8 @@ result_t List::array::pop(Variant &retVal)
     return 0;
 }
 
-result_t List::array::slice(int32_t start, int32_t end,
-                            obj_ptr<List_base> &retVal)
+result_t List::slice(int32_t start, int32_t end,
+                     obj_ptr<List_base> &retVal)
 {
     if (end < 0)
         end = (int32_t)m_array.size();
@@ -199,8 +115,8 @@ result_t List::array::slice(int32_t start, int32_t end,
     return 0;
 }
 
-result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
-                             obj_ptr<List_base> &retVal)
+result_t List::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
+                      obj_ptr<List_base> &retVal)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -251,8 +167,8 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
     return 0;
 }
 
-v8::Local<v8::Value> List::array::_call(v8::Local<v8::Function> func,
-                                        v8::Local<v8::Object> thisp, int32_t i)
+v8::Local<v8::Value> List::_call(v8::Local<v8::Function> func,
+                                 v8::Local<v8::Object> thisp, int32_t i)
 {
     v8::Local<v8::Value> args[] =
     { m_array[i], v8::Number::New(Isolate::now()->m_isolate, i) };
@@ -260,8 +176,8 @@ v8::Local<v8::Value> List::array::_call(v8::Local<v8::Function> func,
     return func->Call(thisp, 2, args);
 }
 
-result_t List::array::every(v8::Local<v8::Function> func,
-                            v8::Local<v8::Object> thisp, bool &retVal)
+result_t List::every(v8::Local<v8::Function> func,
+                     v8::Local<v8::Object> thisp, bool &retVal)
 {
     int32_t i, len;
 
@@ -284,8 +200,8 @@ result_t List::array::every(v8::Local<v8::Function> func,
     return 0;
 }
 
-result_t List::array::some(v8::Local<v8::Function> func,
-                           v8::Local<v8::Object> thisp, bool &retVal)
+result_t List::some(v8::Local<v8::Function> func,
+                    v8::Local<v8::Object> thisp, bool &retVal)
 {
     int32_t i, len;
 
@@ -308,8 +224,8 @@ result_t List::array::some(v8::Local<v8::Function> func,
     return 0;
 }
 
-result_t List::array::filter(v8::Local<v8::Function> func,
-                             v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
+result_t List::filter(v8::Local<v8::Function> func,
+                      v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
     int32_t i, len;
@@ -333,8 +249,8 @@ result_t List::array::filter(v8::Local<v8::Function> func,
     return 0;
 }
 
-result_t List::array::forEach(v8::Local<v8::Function> func,
-                              v8::Local<v8::Object> thisp)
+result_t List::forEach(v8::Local<v8::Function> func,
+                       v8::Local<v8::Object> thisp)
 {
     int32_t i, len;
 
@@ -350,8 +266,8 @@ result_t List::array::forEach(v8::Local<v8::Function> func,
     return 0;
 }
 
-result_t List::array::map(v8::Local<v8::Function> func,
-                          v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
+result_t List::map(v8::Local<v8::Function> func,
+                   v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
     int32_t i, len;
@@ -374,7 +290,7 @@ result_t List::array::map(v8::Local<v8::Function> func,
     return 0;
 }
 
-result_t List::array::toArray(v8::Local<v8::Array> &retVal)
+result_t List::toArray(v8::Local<v8::Array> &retVal)
 {
     v8::Local<v8::Array> a = v8::Array::New(Isolate::now()->m_isolate, (int32_t) m_array.size());
     int32_t i;
@@ -387,7 +303,7 @@ result_t List::array::toArray(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t List::array::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t List::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     result_t hr;
     v8::Local<v8::Array> as;

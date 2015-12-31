@@ -18,9 +18,9 @@ class HttpResponse: public HttpResponse_base
 {
 
 public:
-    HttpResponse() :
-        m_message(true)
+    HttpResponse()
     {
+        m_message = new HttpMessage(true);
         clear();
         extMemory(4096);
     }
@@ -77,7 +77,7 @@ public:
     virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac);
 
 public:
-    HttpMessage m_message;
+    obj_ptr<HttpMessage> m_message;
     int32_t m_status;
     obj_ptr<List_base> m_cookies;
 };

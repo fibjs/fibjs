@@ -18,16 +18,13 @@ namespace fibjs
 class DBResult: public DBResult_base
 {
 public:
-    DBResult(int64_t affected, int64_t insertId) :
-        m_size(0), m_affected(affected), m_insertId(insertId)
+    DBResult(int32_t sz, int64_t affected = 0, int64_t insertId = 0) :
+        m_size(sz), m_affected(affected), m_insertId(insertId)
     {
-        extMemory(1024);
-    }
+        m_array = new List();
 
-    DBResult(int32_t sz) :
-        m_size(sz), m_affected(0), m_insertId(0)
-    {
-        m_fields = new DBField(sz);
+        if (sz)
+            m_fields = new DBField(sz);
     }
 
 public:
@@ -72,7 +69,7 @@ public:
 
     void endRow()
     {
-        m_array.append(m_nowRow);
+        m_array->append(m_nowRow);
         m_nowRow.Release();
     }
 
@@ -83,7 +80,7 @@ public:
     }
 
 private:
-    List::array m_array;
+    obj_ptr<List> m_array;
     int32_t m_size;
     int64_t m_affected;
     int64_t m_insertId;

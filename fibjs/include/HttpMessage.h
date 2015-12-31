@@ -17,7 +17,7 @@ namespace fibjs
 
 #define HTTP_MAX_LINE   4096
 
-class HttpMessage: public Message::_msg
+class HttpMessage: public Message
 {
 public:
     HttpMessage(bool bResponse = false) :

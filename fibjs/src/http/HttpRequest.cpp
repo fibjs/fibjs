@@ -21,163 +21,164 @@ result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base> &retVal, v8::Local<v8:
 
 result_t HttpRequest::get_protocol(std::string &retVal)
 {
-    return m_message.get_protocol(retVal);
+    return m_message->get_protocol(retVal);
 }
 
 result_t HttpRequest::set_protocol(const char *newVal)
 {
-    return m_message.set_protocol(newVal);
+    return m_message->set_protocol(newVal);
 }
 
 result_t HttpRequest::get_headers(obj_ptr<HttpCollection_base> &retVal)
 {
-    return m_message.get_headers(retVal);
+    return m_message->get_headers(retVal);
 }
 
 result_t HttpRequest::get_body(obj_ptr<SeekableStream_base> &retVal)
 {
-    return m_message.get_body(retVal);
+    return m_message->get_body(retVal);
 }
 
 result_t HttpRequest::set_body(SeekableStream_base *newVal)
 {
-    return m_message.set_body(newVal);
+    return m_message->set_body(newVal);
 }
 
 result_t HttpRequest::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                            AsyncEvent *ac)
 {
-    return m_message.read(bytes, retVal, ac);
+    return m_message->read(bytes, retVal, ac);
 }
 
 result_t HttpRequest::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
-    return m_message.readAll(retVal, ac);
+    return m_message->readAll(retVal, ac);
 }
 
 result_t HttpRequest::write(Buffer_base *data, AsyncEvent *ac)
 {
-    return m_message.write(data, ac);
+    return m_message->write(data, ac);
 }
 
 result_t HttpRequest::get_length(int64_t &retVal)
 {
-    return m_message.get_length(retVal);
+    return m_message->get_length(retVal);
 }
 
 result_t HttpRequest::get_keepAlive(bool &retVal)
 {
-    return m_message.get_keepAlive(retVal);
+    return m_message->get_keepAlive(retVal);
 }
 
 result_t HttpRequest::set_keepAlive(bool newVal)
 {
-    return m_message.set_keepAlive(newVal);
+    return m_message->set_keepAlive(newVal);
 }
 
 result_t HttpRequest::get_upgrade(bool &retVal)
 {
-    return m_message.get_upgrade(retVal);
+    return m_message->get_upgrade(retVal);
 }
 
 result_t HttpRequest::set_upgrade(bool newVal)
 {
-    return m_message.set_upgrade(newVal);
+    return m_message->set_upgrade(newVal);
 }
 
 result_t HttpRequest::get_maxHeadersCount(int32_t &retVal)
 {
-    return m_message.get_maxHeadersCount(retVal);
+    return m_message->get_maxHeadersCount(retVal);
 }
 
 result_t HttpRequest::set_maxHeadersCount(int32_t newVal)
 {
-    return m_message.set_maxHeadersCount(newVal);
+    return m_message->set_maxHeadersCount(newVal);
 }
 
 result_t HttpRequest::get_maxUploadSize(int32_t &retVal)
 {
-    return m_message.get_maxUploadSize(retVal);
+    return m_message->get_maxUploadSize(retVal);
 }
 
 result_t HttpRequest::set_maxUploadSize(int32_t newVal)
 {
-    return m_message.get_maxUploadSize(newVal);
+    return m_message->get_maxUploadSize(newVal);
 }
 
 result_t HttpRequest::hasHeader(const char *name, bool &retVal)
 {
-    return m_message.hasHeader(name, retVal);
+    return m_message->hasHeader(name, retVal);
 }
 
 result_t HttpRequest::firstHeader(const char *name, Variant &retVal)
 {
-    return m_message.firstHeader(name, retVal);
+    return m_message->firstHeader(name, retVal);
 }
 
 result_t HttpRequest::allHeader(const char *name, obj_ptr<List_base> &retVal)
 {
-    return m_message.allHeader(name, retVal);
+    return m_message->allHeader(name, retVal);
 }
 
 result_t HttpRequest::addHeader(Map_base* map)
 {
-    return m_message.addHeader(map);
+    return m_message->addHeader(map);
 }
 
 result_t HttpRequest::addHeader(const char *name, Variant value)
 {
-    return m_message.addHeader(name, value);
+    return m_message->addHeader(name, value);
 }
 
 result_t HttpRequest::setHeader(Map_base* map)
 {
-    return m_message.setHeader(map);
+    return m_message->setHeader(map);
 }
 
 result_t HttpRequest::setHeader(const char *name, Variant value)
 {
-    return m_message.setHeader(name, value);
+    return m_message->setHeader(name, value);
 }
 
 result_t HttpRequest::removeHeader(const char *name)
 {
-    return m_message.removeHeader(name);
+    return m_message->removeHeader(name);
 }
 
 result_t HttpRequest::get_value(std::string &retVal)
 {
-    return m_message.get_value(retVal);
+    return m_message->get_value(retVal);
 }
 
 result_t HttpRequest::set_value(const char *newVal)
 {
-    return m_message.set_value(newVal);
+    return m_message->set_value(newVal);
 }
 
 result_t HttpRequest::get_params(obj_ptr<List_base> &retVal)
 {
-    return m_message.get_params(retVal);
+    return m_message->get_params(retVal);
 }
 
 result_t HttpRequest::set_params(List_base *newVal)
 {
-    return m_message.set_params(newVal);
+    return m_message->set_params(newVal);
 }
 
 result_t HttpRequest::get_result(Variant &retVal)
 {
-    return m_message.get_result(retVal);
+    return m_message->get_result(retVal);
 }
 
 result_t HttpRequest::set_result(Variant newVal)
 {
-    return m_message.set_result(newVal);
+    return m_message->set_result(newVal);
 }
 
 result_t HttpRequest::clear()
 {
-    m_message.clear();
+    m_message = new HttpMessage();
+
     m_method.assign("GET", 3);
     m_address.assign("/", 1);
     m_queryString.clear();
@@ -212,7 +213,7 @@ result_t HttpRequest::sendTo(Stream_base *stm, AsyncEvent *ac)
     strCommand.append(1, ' ');
     strCommand.append(strProtocol);
 
-    return m_message.sendTo(stm, strCommand, ac);
+    return m_message->sendTo(stm, strCommand, ac);
 }
 
 result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
@@ -261,10 +262,10 @@ result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
             {
                 const char *p = qstrchr(addr.c_str() + 7, '/');
                 if (p)
-                    pThis->m_pThis->m_message.set_value(p);
+                    pThis->m_pThis->m_message->set_value(p);
             }
             else
-                pThis->m_pThis->m_message.set_value(addr);
+                pThis->m_pThis->m_message->set_value(addr);
 
             if (p.want('?'))
                 p.getWord(pThis->m_pThis->m_queryString);
@@ -279,7 +280,7 @@ result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
                 return hr;
 
             pThis->done();
-            return pThis->m_pThis->m_message.readFrom(pThis->m_stm, pThis);
+            return pThis->m_pThis->m_message->readFrom(pThis->m_stm, pThis);
         }
 
     public:
@@ -306,7 +307,7 @@ result_t HttpRequest::get_method(std::string &retVal)
 
 result_t HttpRequest::get_stream(obj_ptr<Stream_base> &retVal)
 {
-    return m_message.get_stream(retVal);
+    return m_message->get_stream(retVal);
 }
 
 result_t HttpRequest::set_method(const char *newVal)
