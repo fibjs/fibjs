@@ -62,8 +62,6 @@ HttpHandler::HttpHandler() :
     m_stats->init(s_staticCounter, 2, s_Counter, 7);
 }
 
-static std::string s_crossdomain;
-
 result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                              AsyncEvent *ac)
 {
@@ -134,13 +132,9 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
                 if (!qstrcmp(str.c_str(), "/crossdomain.xml"))
                 {
-                    if (s_crossdomain.empty())
-                        s_crossdomain.assign(
-                            "<cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>",
-                            88);
-
                     obj_ptr<MemoryStream> body = new MemoryStream();
-                    obj_ptr<Buffer> buf = new Buffer(s_crossdomain);
+                    obj_ptr<Buffer> buf = new Buffer("<cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>",
+                                                     88);
 
                     pThis->m_rep->set_body(body);
                     body->write(buf, NULL);
