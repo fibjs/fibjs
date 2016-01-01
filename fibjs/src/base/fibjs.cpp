@@ -98,30 +98,6 @@ void Isolate::Run()
     }
 
     process_base::exit(hr);
-
-    m_isolate->Dispose();
-
-    m_context.Reset();
-}
-
-void _main(const char *fname)
-{
-    Isolate* isolate = new Isolate(fname);
-    isolate->bindCurrent();
-
-    init_acThread();
-    init_logger();
-    init_net();
-
-    v8::Platform *platform = v8::platform::CreateDefaultPlatform();
-    v8::V8::InitializePlatform(platform);
-
-    v8::V8::Initialize();
-
-    isolate->Run();
-
-    v8::V8::ShutdownPlatform();
-    delete platform;
 }
 
 }
@@ -142,10 +118,23 @@ int32_t main(int32_t argc, char *argv[])
 
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i ++);
 
+    const char *fname = NULL;
     if (i < argc)
-        fibjs::_main(argv[i]);
-    else
-        fibjs::_main(NULL);
+        fname = argv[i];
+
+    fibjs::Isolate* isolate = new fibjs::Isolate(fname);
+    isolate->bindCurrent();
+
+    fibjs::init_acThread();
+    fibjs::init_logger();
+    fibjs::init_net();
+
+    v8::Platform *platform = v8::platform::CreateDefaultPlatform();
+    v8::V8::InitializePlatform(platform);
+
+    v8::V8::Initialize();
+
+    isolate->Run();
 
     return 0;
 }
