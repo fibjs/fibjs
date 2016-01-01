@@ -9,6 +9,8 @@ var io = require('io');
 var encoding = require('encoding');
 var os = require('os');
 
+var base_port = require('coroutine').vmid * 10000;
+
 var m = new http.Request();
 
 var jr;
@@ -114,12 +116,12 @@ describe("rpc", function() {
 			}
 		}));
 		hdlr.crossDomain = true;
-		var svr = new net.TcpServer(8090, hdlr);
+		var svr = new net.TcpServer(8090 + base_port, hdlr);
 		ss.push(svr.socket);
 		svr.asyncRun();
 
 		var s = new net.Socket();
-		s.connect('127.0.0.1', 8090);
+		s.connect('127.0.0.1', 8090 + base_port);
 
 		var bs = new io.BufferedStream(s);
 		bs.EOL = '\r\n';

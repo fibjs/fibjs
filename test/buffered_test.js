@@ -7,6 +7,8 @@ var net = require('net');
 var mq = require('mq');
 var coroutine = require('coroutine');
 
+var base_port = coroutine.vmid * 10000;
+
 describe("buffered stream", function() {
 	var s;
 	var f;
@@ -18,13 +20,13 @@ describe("buffered stream", function() {
 		for (var i = 0; i < 13; i++)
 			s = s + s;
 
-		var f = fs.open("test0000", 'w');
+		var f = fs.open("test0000" + base_port, 'w');
 		f.write(s);
 		f.close();
 	});
 
 	after(function() {
-		fs.unlink("test0000");
+		fs.unlink("test0000" + base_port);
 		ss.close();
 	});
 
@@ -46,14 +48,14 @@ describe("buffered stream", function() {
 
 	it("block size", function() {
 		for (var i = 3; i < 100000; i *= 3)
-			t_read(fs.open("test0000"), i);
+			t_read(fs.open("test0000" + base_port), i);
 	});
 
 	it("buffered tcp stream", function() {
 		function accept1(s) {
 			while (true) {
 				var c = s.accept();
-				var f = fs.open('test0000');
+				var f = fs.open('test0000' + base_port);
 				f.copyTo(c);
 				f.close();
 				c.close();
@@ -61,19 +63,19 @@ describe("buffered stream", function() {
 		}
 
 		ss = new net.Socket();
-		ss.bind(8182);
+		ss.bind(8182 + base_port);
 		ss.listen();
 		coroutine.start(accept1, ss);
 
 		for (var i = 3; i < 100000; i *= 3) {
 			var conn = new net.Socket();
-			conn.connect('127.0.0.1', 8182);
+			conn.connect('127.0.0.1', 8182 + base_port);
 			t_read(conn, i);
 		}
 	});
 
 	it("readline", function() {
-		f = fs.open("test0000");
+		f = fs.open("test0000" + base_port);
 		var r = new io.BufferedStream(f);
 		r.EOL = '\r\n';
 
@@ -87,7 +89,7 @@ describe("buffered stream", function() {
 		assert.equal(8192, n);
 		f.close();
 
-		f = fs.open("test0000");
+		f = fs.open("test0000" + base_port);
 		var r = new io.BufferedStream(f);
 		r.EOL = '\r\n';
 
@@ -100,9 +102,9 @@ describe("buffered stream", function() {
 	});
 
 	it("charset", function() {
-		fs.unlink("test0000");
+		fs.unlink("test0000" + base_port);
 
-		f = fs.open("test0000", "w+");
+		f = fs.open("test0000" + base_port, "w+");
 		var r = new io.BufferedStream(f);
 		r.EOL = '\r\n';
 

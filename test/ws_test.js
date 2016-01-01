@@ -4,6 +4,9 @@ test.setup();
 var websocket = require('websocket');
 var io = require('io');
 var http = require('http');
+var coroutine = require('coroutine');
+
+var base_port = coroutine.vmid * 10000;
 
 describe('websocket', function() {
 	var ss = [];
@@ -155,13 +158,13 @@ describe('websocket', function() {
 			assert.equal(msg.body.readAll().toString(), buf.toString());
 		}
 
-		var httpd = new http.Server(8810, new websocket.Handler(function(v) {
+		var httpd = new http.Server(8810 + base_port, new websocket.Handler(function(v) {
 			v.response.body = v.body;
 		}));
 		ss.push(httpd.socket);
 		httpd.asyncRun();
 
-		var rep = http.get("http://127.0.0.1:8810/", {
+		var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
 			"Upgrade": "websocket",
 			"Connection": "Upgrade",
 			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
@@ -180,7 +183,7 @@ describe('websocket', function() {
 		test_msg(65535, true);
 		test_msg(65536, true);
 
-		var rep = http.get("http://127.0.0.1:8810/", {
+		var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
 			"Connection": "Upgrade",
 			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
 			"Sec-WebSocket-Version": "13"
@@ -188,7 +191,7 @@ describe('websocket', function() {
 
 		assert.equal(rep.status, 500);
 
-		var rep = http.get("http://127.0.0.1:8810/", {
+		var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
 			"Upgrade": "websocket",
 			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
 			"Sec-WebSocket-Version": "13"
@@ -196,7 +199,7 @@ describe('websocket', function() {
 
 		assert.equal(rep.status, 500);
 
-		var rep = http.get("http://127.0.0.1:8810/", {
+		var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
 			"Upgrade": "websocket",
 			"Connection": "Upgrade",
 			"Sec-WebSocket-Version": "13"
@@ -204,7 +207,7 @@ describe('websocket', function() {
 
 		assert.equal(rep.status, 500);
 
-		var rep = http.get("http://127.0.0.1:8810/", {
+		var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
 			"Upgrade": "websocket",
 			"Connection": "Upgrade",
 			"Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
@@ -238,7 +241,7 @@ describe('websocket', function() {
 			assert.equal(msg.body.readAll().toString(), buf.toString());
 		}
 
-		var s = websocket.connect("ws://127.0.0.1:8810/");
+		var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
 		test_msg(10, true);
 		test_msg(100, true);
@@ -250,7 +253,7 @@ describe('websocket', function() {
 	});
 
 	it("ping", function() {
-		var s = websocket.connect("ws://127.0.0.1:8810/");
+		var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
 		var body = "hello";
 		var msg = new websocket.Message();
@@ -266,7 +269,7 @@ describe('websocket', function() {
 	});
 
 	it("close", function() {
-		var s = websocket.connect("ws://127.0.0.1:8810/");
+		var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
 		var msg = new websocket.Message();
 		msg.type = websocket.CLOSE;
@@ -281,7 +284,7 @@ describe('websocket', function() {
 	});
 
 	it("non-control opcode", function() {
-		var s = websocket.connect("ws://127.0.0.1:8810/");
+		var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
 		var msg = new websocket.Message();
 		msg.type = 5;
@@ -294,7 +297,7 @@ describe('websocket', function() {
 	});
 
 	it("drop other type message", function() {
-		var s = websocket.connect("ws://127.0.0.1:8810/");
+		var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
 		var msg = new websocket.Message();
 		msg.type = websocket.PONG;
@@ -307,13 +310,13 @@ describe('websocket', function() {
 	});
 
 	it("remote close", function() {
-		var httpd = new http.Server(8811, new websocket.Handler(function(v) {
+		var httpd = new http.Server(8811 + base_port, new websocket.Handler(function(v) {
 			v.stream.close();
 		}));
 		ss.push(httpd.socket);
 		httpd.asyncRun();
 
-		var s = websocket.connect("ws://127.0.0.1:8811/");
+		var s = websocket.connect("ws://127.0.0.1:" + (8811 + base_port) + "/");
 
 		var msg = new websocket.Message();
 		msg.type = websocket.TEXT;

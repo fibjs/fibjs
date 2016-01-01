@@ -4,6 +4,8 @@ test.setup();
 var gd = require('gd');
 var fs = require('fs');
 
+var vmid = require('coroutine').vmid;
+
 describe("gd", function() {
 	var img = gd.create(440, 240);
 
@@ -14,10 +16,10 @@ describe("gd", function() {
 	var b = img.colorAllocate(0, 0, 255);
 
 	function gd_test(fmt) {
-		img.save('test.pic', fmt);
-		var img1 = gd.load('test.pic');
+		img.save('test.pic' + vmid, fmt);
+		var img1 = gd.load('test.pic' + vmid);
 
-		fs.unlink('test.pic');
+		fs.unlink('test.pic' + vmid);
 
 		img1 = gd.load(img.getData(fmt));
 

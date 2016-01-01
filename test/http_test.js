@@ -12,6 +12,8 @@ var coroutine = require("coroutine");
 var ssl = require("ssl");
 var crypto = require("crypto");
 
+var base_port = coroutine.vmid * 10000;
+
 var pk = new crypto.PKey();
 pk.genRsaKey(1024);
 
@@ -661,7 +663,7 @@ describe("http", function() {
 					st.wait(2);
 				}
 			});
-			svr = new net.TcpServer(8881, hdr);
+			svr = new net.TcpServer(8881 + base_port, hdr);
 
 			svr.asyncRun();
 		});
@@ -672,7 +674,7 @@ describe("http", function() {
 
 		beforeEach(function() {
 			c = new net.Socket();
-			c.connect('127.0.0.1', 8881);
+			c.connect('127.0.0.1', 8881 + base_port);
 
 			bs = new io.BufferedStream(c);
 			bs.EOL = "\r\n";
@@ -830,7 +832,7 @@ describe("http", function() {
 
 	describe("file handler", function() {
 		var hfHandler = new http.fileHandler('./');
-		var url = 'test.html';
+		var url = base_port + 'test.html';
 		var rep;
 
 		function hfh_test(url, headers) {
@@ -844,10 +846,10 @@ describe("http", function() {
 
 		function clean() {
 			try {
-				fs.unlink('test.html');
+				fs.unlink(base_port + 'test.html');
 			} catch (e) {};
 			try {
-				fs.unlink('test.html.gz');
+				fs.unlink(base_port + 'test.html.gz');
 			} catch (e) {};
 		}
 
@@ -861,13 +863,13 @@ describe("http", function() {
 		});
 
 		it("normal", function() {
-			fs.writeFile('test.html', 'test html file');
+			fs.writeFile(base_port + 'test.html', 'test html file');
 
 			rep = hfh_test(url);
 			assert.equal(200, rep.status);
 			assert.equal(14, rep.length);
 
-			assert.deepEqual(new Date(rep.firstHeader('Last-Modified')), fs.stat('test.html').mtime);
+			assert.deepEqual(new Date(rep.firstHeader('Last-Modified')), fs.stat(base_port + 'test.html').mtime);
 		});
 
 		it("not modified", function() {
@@ -891,7 +893,7 @@ describe("http", function() {
 
 		it("pre-gzip", function() {
 			var sgz = 'gz test file';
-			var gz = fs.open('test.html.gz', 'w');
+			var gz = fs.open(base_port + 'test.html.gz', 'w');
 			gz.write(zlib.gzip(new Buffer(sgz)));
 			gz.close();
 
@@ -908,7 +910,7 @@ describe("http", function() {
 		});
 
 		it("don't gzip small file", function() {
-			fs.unlink('test.html.gz');
+			fs.unlink(base_port + 'test.html.gz');
 
 			var rep = hfh_test(url, {
 				'Accept-Encoding': 'deflate,gzip'
@@ -923,20 +925,17 @@ describe("http", function() {
 		var svr;
 
 		before(function() {
-			svr = new http.Server(8882, function(r) {
-				if (r.address == "/redirect")
-				{
-					r.response.redirect("http://127.0.0.1:8882/request");
-				} else if (r.address == "/redirect1")
-				{
-					r.response.redirect("http://127.0.0.1:8882/redirect1");
+			svr = new http.Server(8882 + base_port, function(r) {
+				if (r.address == "/redirect") {
+					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
+				} else if (r.address == "/redirect1") {
+					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
 				} else if (r.address != "/gzip_test") {
 					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
 					if (r.hasHeader("test_header"))
 						r.response.body.write(r.firstHeader("test_header"));
-				} else
-				{
+				} else {
 					r.response.addHeader("Content-Type", "text/html");
 					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 				}
@@ -950,44 +949,44 @@ describe("http", function() {
 
 		describe("request", function() {
 			it("simple", function() {
-				assert.equal(http.request("GET", "http://127.0.0.1:8882/request").body.read().toString(),
+				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
 					"/request");
 			});
 
 			it("redirect", function() {
-				assert.equal(http.request("GET", "http://127.0.0.1:8882/redirect").body.read().toString(),
+				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").body.read().toString(),
 					"/request");
 
-				assert.throws(function(){
-					http.request("GET", "http://127.0.0.1:8882/redirect1")	
+				assert.throws(function() {
+					http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect1")
 				});
 			});
 
 			it("body", function() {
-				assert.equal(http.request("GET", "http://127.0.0.1:8882/request:", "body").body.read().toString(),
+				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", "body").body.read().toString(),
 					"/request:body");
 			});
 
 			it("header", function() {
-				assert.equal(http.request("GET", "http://127.0.0.1:8882/request:", {
+				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
 
 			it("gzip", function() {
-				assert.equal(http.get("http://127.0.0.1:8882/gzip_test").body.read().toString(),
+				assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").body.read().toString(),
 					"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 			});
 		});
 
 		describe("get", function() {
 			it("simple", function() {
-				assert.equal(http.get("http://127.0.0.1:8882/request").body.read().toString(),
+				assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
 					"/request");
 			});
 
 			it("header", function() {
-				assert.equal(http.get("http://127.0.0.1:8882/request:", {
+				assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
@@ -995,12 +994,12 @@ describe("http", function() {
 
 		describe("post", function() {
 			it("body", function() {
-				assert.equal(http.post("http://127.0.0.1:8882/request:", "body").body.read().toString(),
+				assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "body").body.read().toString(),
 					"/request:body");
 			});
 
 			it("header", function() {
-				assert.equal(http.post("http://127.0.0.1:8882/request:", "", {
+				assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
@@ -1014,7 +1013,7 @@ describe("http", function() {
 		before(function() {
 			ssl.ca.load(ca_pem);
 
-			svr = new http.HttpsServer(crt, pk, 8883, function(r) {
+			svr = new http.HttpsServer(crt, pk, 8883 + base_port, function(r) {
 				if (r.address != "/gzip_test") {
 					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
@@ -1035,35 +1034,35 @@ describe("http", function() {
 
 		describe("request", function() {
 			it("simple", function() {
-				assert.equal(http.request("GET", "https://localhost:8883/request").body.read().toString(),
+				assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
 					"/request");
 			});
 
 			it("body", function() {
-				assert.equal(http.request("GET", "https://localhost:8883/request:", "body").body.read().toString(),
+				assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", "body").body.read().toString(),
 					"/request:body");
 			});
 
 			it("header", function() {
-				assert.equal(http.request("GET", "https://localhost:8883/request:", {
+				assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
 
 			it("gzip", function() {
-				assert.equal(http.get("https://localhost:8883/gzip_test").body.read().toString(),
+				assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/gzip_test").body.read().toString(),
 					"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 			});
 		});
 
 		describe("get", function() {
 			it("simple", function() {
-				assert.equal(http.get("https://localhost:8883/request").body.read().toString(),
+				assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
 					"/request");
 			});
 
 			it("header", function() {
-				assert.equal(http.get("https://localhost:8883/request:", {
+				assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
 			});
@@ -1072,13 +1071,13 @@ describe("http", function() {
 		describe("post", function() {
 			it("body", function() {
 				assert.equal(http.post(
-						"https://localhost:8883/request:", "body").body
+						"https://localhost:" + (8883 + base_port) + "/request:", "body").body
 					.read().toString(), "/request:body");
 			});
 
 			it("header", function() {
 				assert.equal(http.post(
-					"https://localhost:8883/request:", "", {
+					"https://localhost:" + (8883 + base_port) + "/request:", "", {
 						"test_header": "header"
 					}).body.read().toString(), "/request:header");
 			});
