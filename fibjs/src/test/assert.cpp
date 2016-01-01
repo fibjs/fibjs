@@ -188,36 +188,40 @@ bool regexpEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
     return src1->StrictEquals(src2) && flgs1 == flgs2;
 }
 
-bool deepEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
-static QuickArray<v8::Local<v8::Object> > s_acts;
-static QuickArray<v8::Local<v8::Object> > s_exps;
+bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
+                QuickArray<v8::Local<v8::Object> >& exps,
+                v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
 
-int32_t checkStack(v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
+int32_t checkStack(QuickArray<v8::Local<v8::Object> >& acts,
+                   QuickArray<v8::Local<v8::Object> >& exps,
+                   v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
 {
     int32_t i;
 
-    for (i = 0; i < (int32_t)s_acts.size(); i++)
-        if (actual->Equals(s_acts[i]))
+    for (i = 0; i < (int32_t)acts.size(); i++)
+        if (actual->Equals(acts[i]))
         {
-            if (expected->Equals(s_exps[i]))
+            if (expected->Equals(exps[i]))
                 return 0;
             return -1;
         }
 
-    s_acts.append(actual);
-    s_exps.append(expected);
+    acts.append(actual);
+    exps.append(expected);
 
     return 1;
 }
 
-bool arrayEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+bool arrayEquals(QuickArray<v8::Local<v8::Object> >& acts,
+                 QuickArray<v8::Local<v8::Object> >& exps,
+                 v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     v8::Local<v8::Array> act = v8::Local<v8::Array>::Cast(actual);
     v8::Local<v8::Array> exp = v8::Local<v8::Array>::Cast(expected);
     int32_t len = (int32_t) act->Length();
     int32_t i;
 
-    i = checkStack(act, exp);
+    i = checkStack(acts, exps, act, exp);
     if (i == 0)
         return true;
     if (i == -1)
@@ -225,32 +229,34 @@ bool arrayEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 
     if (len != (int32_t) exp->Length())
     {
-        s_acts.pop();
-        s_exps.pop();
+        acts.pop();
+        exps.pop();
         return false;
     }
 
     for (i = 0; i < len; i++)
-        if (!deepEquals(act->Get(i), exp->Get(i)))
+        if (!deepEquals(acts, exps, act->Get(i), exp->Get(i)))
         {
-            s_acts.pop();
-            s_exps.pop();
+            acts.pop();
+            exps.pop();
             return false;
         }
 
-    s_acts.pop();
-    s_exps.pop();
+    acts.pop();
+    exps.pop();
     return true;
 }
 
-bool objectEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+bool objectEquals(QuickArray<v8::Local<v8::Object> >& acts,
+                  QuickArray<v8::Local<v8::Object> >& exps,
+                  v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     v8::Local<v8::Object> act = v8::Local<v8::Object>::Cast(actual);
     v8::Local<v8::Object> exp = v8::Local<v8::Object>::Cast(expected);
 
     int32_t i;
 
-    i = checkStack(act, exp);
+    i = checkStack(acts, exps, act, exp);
     if (i == 0)
         return true;
     if (i == -1)
@@ -261,28 +267,30 @@ bool objectEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 
     if (len != (int32_t) exp->GetPropertyNames()->Length())
     {
-        s_acts.pop();
-        s_exps.pop();
+        acts.pop();
+        exps.pop();
         return false;
     }
 
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> ks = keys->Get(i);
-        if (!deepEquals(act->Get(ks), exp->Get(ks)))
+        if (!deepEquals(acts, exps, act->Get(ks), exp->Get(ks)))
         {
-            s_acts.pop();
-            s_exps.pop();
+            acts.pop();
+            exps.pop();
             return false;
         }
     }
 
-    s_acts.pop();
-    s_exps.pop();
+    acts.pop();
+    exps.pop();
     return true;
 }
 
-bool deepEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
+                QuickArray<v8::Local<v8::Object> >& exps,
+                v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
             && !expected->IsFunction())
@@ -301,10 +309,10 @@ bool deepEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
             return false;
 
         if (actual->IsArray() && expected->IsArray())
-            return arrayEquals(actual, expected);
+            return arrayEquals(acts, exps, actual, expected);
 
         if (actual->IsObject() && expected->IsObject())
-            return objectEquals(actual, expected);
+            return objectEquals(acts, exps, actual, expected);
     }
 
     return actual->StrictEquals(expected);
@@ -346,7 +354,10 @@ result_t assert_base::notStrictEqual(v8::Local<v8::Value> actual,
 result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
                                 v8::Local<v8::Value> expected, const char *msg)
 {
-    _test(deepEquals(actual, expected),
+    QuickArray<v8::Local<v8::Object> > acts;
+    QuickArray<v8::Local<v8::Object> > exps;
+
+    _test(deepEquals(acts, exps, actual, expected),
           _msg(msg, "expected ", actual, " to deeply equal ", expected));
     return 0;
 }
@@ -354,7 +365,10 @@ result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
 result_t assert_base::notDeepEqual(v8::Local<v8::Value> actual,
                                    v8::Local<v8::Value> expected, const char *msg)
 {
-    _test(!deepEquals(actual, expected),
+    QuickArray<v8::Local<v8::Object> > acts;
+    QuickArray<v8::Local<v8::Object> > exps;
+
+    _test(!deepEquals(acts, exps, actual, expected),
           _msg(msg, "expected ", actual, " to not deeply equal ", expected));
     return 0;
 }
