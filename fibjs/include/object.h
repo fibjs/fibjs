@@ -63,7 +63,7 @@ public:
 
         if (internalUnref() == 0)
         {
-            if (Isolate::check())
+            if (Isolate::current() == m_isolate)
             {
                 m_fast_lock.unlock();
 
