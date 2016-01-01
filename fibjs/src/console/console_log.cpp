@@ -24,26 +24,31 @@ void init_logger()
 
 void asyncLog(int32_t priority, std::string msg)
 {
-    if (priority <= s_loglevel)
+    Isolate* isolate = Isolate::current();
+
+    if (isolate && priority > isolate->m_loglevel)
+        return;
+
+    if (priority > s_loglevel)
+        return;
+
+    int32_t i;
+
+    for (i = 0; i < MAX_LOGGER; i ++)
     {
-        int32_t i;
+        logger* lgr = s_logs[i];
 
-        for (i = 0; i < MAX_LOGGER; i ++)
-        {
-            logger* lgr = s_logs[i];
-
-            if (lgr)
-                lgr->log(priority, msg);
-            else
-                break;
-        }
-
-        if (i == 0)
-            s_std->log(priority, msg);
-
-        if (s_stream)
-            s_stream->log(priority, msg);
+        if (lgr)
+            lgr->log(priority, msg);
+        else
+            break;
     }
+
+    if (i == 0)
+        s_std->log(priority, msg);
+
+    if (s_stream)
+        s_stream->log(priority, msg);
 }
 
 void flushLog(bool bFiber)

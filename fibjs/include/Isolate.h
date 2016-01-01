@@ -52,6 +52,7 @@ public:
 	virtual void Run();
 
 public:
+	int32_t m_id;
 	std::string m_fname;
 	v8::Isolate *m_isolate;
 	DateCache m_dc;
@@ -71,6 +72,8 @@ public:
 
 	v8::Persistent<v8::Object> m_json;
 	v8::Persistent<v8::Function> m_stringify;
+
+	int32_t m_loglevel;
 };
 
 } /* namespace fibjs */

@@ -43,6 +43,58 @@ public:
 };
 
 exlib::LockedList<Isolate> s_isolates;
+exlib::atomic s_iso_id;
+exlib::atomic s_iso_cnt;
+
+Isolate::Isolate(const char *fname) :
+    m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
+    m_oldIdle(NULL), m_currentFibers(0), m_idleFibers(0),
+    m_loglevel(console_base::_NOTSET)
+{
+    s_iso_cnt.inc();
+    if (fname)
+        m_fname = fname;
+}
+
+Isolate *Isolate::current()
+{
+    assert(OSThread::current() != 0);
+
+    OSThread* thread_ = OSThread::current();
+
+    if (thread_->is(Isolate::type))
+        return (Isolate*)thread_;
+
+    return 0;
+}
+
+bool Isolate::check()
+{
+    assert(OSThread::current() != 0);
+    return OSThread::current()->is(Isolate::type);
+}
+
+bool Isolate::rt::g_trace = false;
+
+inline JSFiber* saveTrace()
+{
+    JSFiber* fiber = JSFiber::current();
+    assert(fiber != 0);
+    fiber->m_traceInfo = traceInfo(300);
+    return fiber;
+}
+
+Isolate::rt::rt() :
+    m_fiber(g_trace ? saveTrace() : NULL),
+    unlocker(Isolate::current()->m_isolate)
+{
+}
+
+Isolate::rt::~rt()
+{
+    if (m_fiber)
+        m_fiber->m_traceInfo.resize(0);
+}
 
 void Isolate::Run()
 {
@@ -70,12 +122,12 @@ void Isolate::Run()
 
     init_fiber(this);
 
-    result_t hr;
-
     v8::Local<v8::Value> replFunc;
 
     replFunc = global_base::class_info().getFunction(this)->Get(
                    v8::String::NewFromUtf8(m_isolate, "repl"));
+
+    result_t hr;
 
     JSFiber *fb = new JSFiber();
     {
@@ -97,7 +149,8 @@ void Isolate::Run()
         }
     }
 
-    process_base::exit(hr);
+    if (s_iso_cnt.dec() == 0)
+        process_base::exit(hr);
 }
 
 }
@@ -108,6 +161,7 @@ int32_t main(int32_t argc, char *argv[])
 
     if ( fibjs::options(&argc, argv) )
         return 0;
+
     fibjs::init_prof();
 
     fibjs::init_argv(argc, argv);
@@ -135,6 +189,9 @@ int32_t main(int32_t argc, char *argv[])
     v8::V8::Initialize();
 
     isolate->Run();
+
+    while (true)
+        exlib::OSThread::sleep(100000000);
 
     return 0;
 }

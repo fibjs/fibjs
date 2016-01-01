@@ -136,8 +136,8 @@ public:
         char buf[128];
         date_t da1, da2;
 
-        console_base::get_loglevel(oldlevel);
-        console_base::set_loglevel(loglevel);
+        coroutine_base::get_loglevel(oldlevel);
+        coroutine_base::set_loglevel(loglevel);
 
         stack.append(td->m_root);
 
@@ -157,7 +157,7 @@ public:
                                                      p->m_hooks[HOOK_BEFORE][i])->Call(v8::Undefined(isolate->m_isolate),
                                                              0, NULL).IsEmpty())
                     {
-                        console_base::set_loglevel(oldlevel);
+                        coroutine_base::set_loglevel(oldlevel);
                         clear();
                         return 0;
                     }
@@ -171,7 +171,7 @@ public:
 
                 if (p1->m_block.IsEmpty())
                 {
-                    console_base::set_loglevel(oldlevel);
+                    coroutine_base::set_loglevel(oldlevel);
                     if (stack.size() == 1)
                         asyncLog(console_base::_INFO, "");
 
@@ -180,7 +180,7 @@ public:
                     str.append(COLOR_RESET);
 
                     asyncLog(console_base::_INFO, str);
-                    console_base::set_loglevel(loglevel);
+                    coroutine_base::set_loglevel(loglevel);
 
                     stack.append(p1);
                     continue;
@@ -195,7 +195,7 @@ public:
                                                          p2->m_hooks[HOOK_BEFORECASE][i])->Call(v8::Undefined(isolate->m_isolate),
                                                                  0, NULL).IsEmpty())
                         {
-                            console_base::set_loglevel(oldlevel);
+                            coroutine_base::set_loglevel(oldlevel);
                             clear();
                             return 0;
                         }
@@ -257,12 +257,12 @@ public:
                     }
                 }
 
-                console_base::set_loglevel(oldlevel);
+                coroutine_base::set_loglevel(oldlevel);
                 asyncLog(
                     p1->m_error ?
                     console_base::_ERROR :
                     console_base::_INFO, str);
-                console_base::set_loglevel(loglevel);
+                coroutine_base::set_loglevel(loglevel);
 
                 for (j = (int32_t) stack.size() - 1; j >= 0; j--)
                 {
@@ -273,7 +273,7 @@ public:
                                                          p2->m_hooks[HOOK_AFTERCASE][i])->Call(v8::Undefined(isolate->m_isolate),
                                                                  0, NULL).IsEmpty())
                         {
-                            console_base::set_loglevel(oldlevel);
+                            coroutine_base::set_loglevel(oldlevel);
                             clear();
                             return 0;
                         }
@@ -287,7 +287,7 @@ public:
                                                      p->m_hooks[HOOK_AFTER][i])->Call(v8::Undefined(isolate->m_isolate),
                                                              0, NULL).IsEmpty())
                     {
-                        console_base::set_loglevel(oldlevel);
+                        coroutine_base::set_loglevel(oldlevel);
                         clear();
                         return 0;
                     }
@@ -295,7 +295,7 @@ public:
             }
         }
 
-        console_base::set_loglevel(oldlevel);
+        coroutine_base::set_loglevel(oldlevel);
         asyncLog(console_base::_INFO, "");
 
         if (errcnt == 0)

@@ -229,4 +229,28 @@ result_t coroutine_base::set_spareFibers(int32_t newVal)
     return 0;
 }
 
+result_t coroutine_base::get_vmid(int32_t& retVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    retVal = isolate->m_id;
+    return 0;
+}
+
+result_t coroutine_base::get_loglevel(int32_t& retVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    retVal = isolate->m_loglevel;
+    return 0;
+}
+
+result_t coroutine_base::set_loglevel(int32_t newVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    isolate->m_loglevel = newVal;
+    return 0;
+}
+
 }
