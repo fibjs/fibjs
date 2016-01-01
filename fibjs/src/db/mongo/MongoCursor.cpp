@@ -67,6 +67,8 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
                          const std::string &name, v8::Local<v8::Object> query,
                          v8::Local<v8::Object> projection)
 {
+    Isolate* isolate = holder();
+
     m_state = CUR_NONE;
 
     m_ns = ns;
@@ -74,9 +76,9 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
 
     v8::Local<v8::Value> _query;
     util_base::clone(query, _query);
-    m_query.Reset(holder()->m_isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
+    m_query.Reset(isolate->m_isolate, v8::Local<v8::Object>::Cast(_query)->Clone());
 
-    encodeObject(&m_bbp, projection);
+    encodeObject(isolate, &m_bbp, projection);
 
     cc__initCursor(db);
 
@@ -142,10 +144,10 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 
     Isolate* isolate = holder();
     if (m_bSpecial)
-        encodeValue(&bbq, "query",
+        encodeValue(isolate, &bbq, "query",
                     v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(v8::String::NewFromUtf8(isolate->m_isolate, "query")));
     else
-        encodeValue(&bbq, "query", v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
+        encodeValue(isolate, &bbq, "query", v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
 
     if (applySkipLimit)
     {
@@ -216,8 +218,9 @@ result_t MongoCursor::hasNext(bool &retVal)
     if (!m_bInit)
     {
         result_t hr;
+        Isolate* isolate = holder();
 
-        hr = encodeObject(&m_bbq, v8::Local<v8::Object>::New(holder()->m_isolate, m_query));
+        hr = encodeObject(isolate, &m_bbq, v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
         if (hr < 0)
             return hr;
 
@@ -247,7 +250,7 @@ result_t MongoCursor::next(v8::Local<v8::Object> &retVal)
     if (!has)
         return CALL_RETURN_NULL;
 
-    retVal = decodeObject(mongo_cursor_bson(m_cursor));
+    retVal = decodeObject(holder(), mongo_cursor_bson(m_cursor));
     m_state = CUR_NONE;
 
     return 0;

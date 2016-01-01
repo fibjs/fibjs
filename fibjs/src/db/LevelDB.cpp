@@ -333,11 +333,10 @@ result_t LevelDB::Iter::_iter(AsyncEvent *ac)
     return 0;
 }
 
-result_t LevelDB::Iter::iter(v8::Local<v8::Function> func)
+result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
 {
     result_t hr;
     int32_t i;
-    Isolate* isolate = Isolate::current();
 
     do
     {
@@ -376,7 +375,7 @@ result_t LevelDB::forEach(v8::Local<v8::Function> func)
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return Iter(db()).iter(func);
+    return Iter(db()).iter(holder(), func);
 }
 
 result_t LevelDB::between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Function> func)
@@ -390,7 +389,7 @@ result_t LevelDB::between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Func
     if (hr < 0)
         return hr;
 
-    return it.iter(func);
+    return it.iter(holder(), func);
 }
 
 result_t LevelDB::begin(obj_ptr<LevelDB_base> &retVal)

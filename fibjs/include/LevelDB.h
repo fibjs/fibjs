@@ -107,7 +107,7 @@ private:
         result_t _iter(AsyncEvent *ac);
         ASYNC_MEMBER0(LevelDB::Iter, _iter);
 
-        result_t iter(v8::Local<v8::Function> func);
+        result_t iter(Isolate* isolate, v8::Local<v8::Function> func);
 
         result_t getValue(Buffer_base *from, Buffer_base *to)
         {

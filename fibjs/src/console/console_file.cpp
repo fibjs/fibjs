@@ -18,13 +18,11 @@ namespace fibjs
 
 #define MAX_COUNT   128
 
-result_t file_logger::config(v8::Local<v8::Object> o)
+result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 {
-    result_t hr = logger::config(o);
+    result_t hr = logger::config(isolate, o);
     if (hr < 0)
         return hr;
-
-    Isolate* isolate = Isolate::current();
 
     std::string path;
     hr = GetConfigValue(isolate->m_isolate, o, "path", path);

@@ -111,12 +111,14 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
 
     if (n > 0)
     {
+        Isolate* isolate = holder();
+
         bbs.resize(n);
         pbbs.resize(n);
 
         for (i = 0; i < n; i++)
         {
-            hr = encodeObject(&bbs[i], documents->Get(i));
+            hr = encodeObject(isolate, &bbs[i], documents->Get(i));
             if (hr < 0)
             {
                 n = i;
@@ -150,7 +152,7 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
     bson bb;
     result_t hr;
 
-    hr = encodeObject(&bb, document);
+    hr = encodeObject(holder(), &bb, document);
     if (hr < 0)
         return hr;
 
@@ -195,13 +197,14 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
     int32_t flags = (upsert ? MONGO_UPDATE_UPSERT : 0)
                     + (multi ? MONGO_UPDATE_MULTI : 0);
 
+    Isolate* isolate = holder();
     result_t hr;
 
-    hr = encodeObject(&bbq, query);
+    hr = encodeObject(isolate, &bbq, query);
     if (hr < 0)
         return hr;
 
-    hr = encodeObject(&bbd, document);
+    hr = encodeObject(isolate, &bbd, document);
     if (hr < 0)
     {
         bson_destroy(&bbq);
@@ -240,7 +243,7 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
     bson bbq;
     result_t hr;
 
-    hr = encodeObject(&bbq, query);
+    hr = encodeObject(holder(), &bbq, query);
     if (hr < 0)
         return hr;
 
@@ -277,7 +280,7 @@ result_t MongoCollection::runCommand(const char *cmd,
 
     bson_init(&bbq);
     bson_append_string(&bbq, cmd, m_name.c_str());
-    if (!appendObject(&bbq, arg))
+    if (!appendObject(holder(), &bbq, arg))
     {
         bson_destroy(&bbq);
         return CHECK_ERROR(CALL_E_INVALIDARG);

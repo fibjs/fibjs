@@ -135,7 +135,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
 
     if (lgr)
     {
-        result_t hr = lgr->config(o);
+        result_t hr = lgr->config(isolate, o);
         if (hr < 0)
         {
             lgr->stop();

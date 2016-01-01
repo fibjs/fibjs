@@ -75,12 +75,11 @@ public:
             m_levels[i] = true;
     }
 
-    virtual result_t config(v8::Local<v8::Object> o)
+    virtual result_t config(Isolate* isolate, v8::Local<v8::Object> o)
     {
         int32_t i;
         result_t hr;
         v8::Local<v8::Array> levels;
-        Isolate* isolate = Isolate::current();
 
         hr = GetConfigValue(isolate->m_isolate, o, "levels", levels);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
@@ -278,7 +277,7 @@ private:
 class file_logger : public logger
 {
 public:
-    virtual result_t config(v8::Local<v8::Object> o);
+    virtual result_t config(Isolate* isolate, v8::Local<v8::Object> o);
     virtual result_t write(AsyncEvent *ac);
 
 private:

@@ -272,7 +272,7 @@ result_t MongoDB::bsonHandler(bson *command, v8::Local<v8::Object> &retVal)
     if (hr < 0)
         return hr;
 
-    retVal = decodeObject(&out);
+    retVal = decodeObject(holder(), &out);
     bson_destroy(&out);
     bson_destroy(command);
 
@@ -285,7 +285,7 @@ result_t MongoDB::runCommand(v8::Local<v8::Object> cmd,
     bson bbq;
     result_t hr;
 
-    hr = encodeObject(&bbq, cmd);
+    hr = encodeObject(holder(), &bbq, cmd);
     if (hr < 0)
         return hr;
 
@@ -298,7 +298,7 @@ result_t MongoDB::runCommand(const char *cmd, v8::Local<v8::Value> arg,
     bson bbq;
 
     bson_init(&bbq);
-    encodeValue(&bbq, cmd, arg);
+    encodeValue(holder(), &bbq, cmd, arg);
     bson_finish(&bbq);
 
     return bsonHandler(&bbq, retVal);

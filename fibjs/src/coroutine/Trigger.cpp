@@ -296,7 +296,7 @@ result_t object_base::_trigger(const char *ev, Variant *args, int32_t argCount)
 
             argv.resize(m_args.size());
             for (i = 0; i < m_args.size(); i++)
-                argv[i] = v8::Local<v8::Value>::New(Isolate::current()->m_isolate, m_args[i]);
+                argv[i] = v8::Local<v8::Value>::New(m_obj->holder()->m_isolate, m_args[i]);
 
             m_obj->_trigger(m_ev.c_str(), argv.data(), (int32_t) argv.size());
 
