@@ -68,6 +68,9 @@ public:
 	exlib::IDLE_PROC m_oldIdle;
 	int32_t m_currentFibers;
 	int32_t m_idleFibers;
+
+	v8::Persistent<v8::Object> m_json;
+	v8::Persistent<v8::Function> m_stringify;
 };
 
 } /* namespace fibjs */
