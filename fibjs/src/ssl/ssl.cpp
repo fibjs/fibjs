@@ -18,6 +18,114 @@ namespace fibjs
 
 _ssl g_ssl;
 
+class X509CertProxy : public X509Cert_base
+{
+public:
+    X509CertProxy(X509Cert* ca) : m_ca(ca)
+    {
+    }
+
+public:
+    // X509Cert_base
+    result_t load(Buffer_base *derCert)
+    {
+        return m_ca->load(derCert);
+    }
+
+    result_t load(const char *txtCert)
+    {
+        return m_ca->load(txtCert);
+    }
+
+    result_t loadFile(const char *filename)
+    {
+        return m_ca->loadFile(filename);
+    }
+
+    result_t loadRootCerts()
+    {
+        return m_ca->loadRootCerts();
+    }
+
+    result_t verify(X509Cert_base *cert, bool &retVal, AsyncEvent *ac)
+    {
+        return m_ca->verify(cert, retVal, ac);
+    }
+
+    result_t dump(v8::Local<v8::Array> &retVal)
+    {
+        return m_ca->dump(retVal);
+    }
+
+    result_t clear()
+    {
+        return m_ca->clear();
+    }
+
+    result_t get_version(int32_t &retVal)
+    {
+        return m_ca->get_version(retVal);
+    }
+
+    result_t get_serial(std::string &retVal)
+    {
+        return m_ca->get_serial(retVal);
+    }
+
+    result_t get_issuer(std::string &retVal)
+    {
+        return m_ca->get_issuer(retVal);
+    }
+
+    result_t get_subject(std::string &retVal)
+    {
+        return m_ca->get_subject(retVal);
+    }
+
+    result_t get_notBefore(date_t &retVal)
+    {
+        return m_ca->get_notBefore(retVal);
+    }
+
+    result_t get_notAfter(date_t &retVal)
+    {
+        return m_ca->get_notAfter(retVal);
+    }
+
+    result_t get_ca(bool &retVal)
+    {
+        return m_ca->get_ca(retVal);
+    }
+
+    result_t get_pathlen(int32_t &retVal)
+    {
+        return m_ca->get_pathlen(retVal);
+    }
+
+    result_t get_usage(std::string &retVal)
+    {
+        return m_ca->get_usage(retVal);
+    }
+
+    result_t get_type(std::string &retVal)
+    {
+        return m_ca->get_type(retVal);
+    }
+
+    result_t get_publicKey(obj_ptr<PKey_base> &retVal)
+    {
+        return m_ca->get_publicKey(retVal);
+    }
+
+    result_t get_next(obj_ptr<X509Cert_base> &retVal)
+    {
+        return m_ca->get_next(retVal);
+    }
+
+private:
+    obj_ptr<X509Cert> m_ca;
+};
+
 result_t _ssl::setError(int32_t ret)
 {
     char msg[128];
@@ -136,7 +244,7 @@ result_t ssl_base::loadClientCertFile(const char* crtFile, const char* keyFile,
 
 result_t ssl_base::get_ca(obj_ptr<X509Cert_base> &retVal)
 {
-    retVal = g_ssl.ca();
+    retVal = new X509CertProxy(g_ssl.ca());
     return 0;
 }
 
