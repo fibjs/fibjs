@@ -17,9 +17,24 @@ namespace fibjs
 
 class _case;
 
-static obj_ptr<_case> s_root;
-static obj_ptr<_case> s_now;
 static int32_t s_slow = 75;
+
+OSTls th_test;
+
+class TestData {
+public:
+    obj_ptr<_case> m_root;
+    obj_ptr<_case> m_now;
+
+    static TestData* current()
+    {
+        TestData* td = (TestData*)th_test;
+        if (!td)
+            th_test = td = new TestData();
+
+        return td;
+    }
+};
 
 enum
 {
@@ -48,25 +63,31 @@ class _case: public obj_base
 public:
     static void init()
     {
-        if (s_root == NULL)
-            s_root = s_now = new _case();
+        TestData* td = TestData::current();
+
+        if (td->m_root == NULL)
+            td->m_root = td->m_now = new _case();
     }
 
     static result_t enter(const char *name)
     {
-        _case *now = s_now;
-        if (!s_now)
+        TestData* td = TestData::current();
+
+        _case *now = td->m_now;
+        if (!td->m_now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        s_now = new _case(name);
-        now->m_subs.append(s_now);
+        td->m_now = new _case(name);
+        now->m_subs.append(td->m_now);
         return 0;
     }
 
     static result_t it(const char *name, v8::Local<v8::Function> block)
     {
-        _case *now = s_now;
-        if (!now || s_now == s_root)
+        TestData* td = TestData::current();
+
+        _case *now = td->m_now;
+        if (!now || td->m_now == td->m_root)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         _case *p = new _case(name);
@@ -79,8 +100,10 @@ public:
 public:
     static result_t set_hook(int32_t type, v8::Local<v8::Function> func)
     {
-        _case *now = s_now;
-        if (!s_now)
+        TestData* td = TestData::current();
+
+        _case *now = td->m_now;
+        if (!td->m_now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         QuickArray<v8::Persistent<v8::Function> > &fa = now->m_hooks[type];
@@ -94,13 +117,15 @@ public:
 
     static result_t run(int32_t loglevel, int32_t& retVal)
     {
-        if (!s_root)
+        TestData* td = TestData::current();
+
+        if (!td->m_root)
             return 0;
 
-        if (s_now != s_root)
+        if (td->m_now != td->m_root)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        s_now = NULL;
+        td->m_now = NULL;
 
         QuickArray<obj_ptr<_case> > stack;
         QuickArray<std::string> names;
@@ -114,7 +139,7 @@ public:
         console_base::get_loglevel(oldlevel);
         console_base::set_loglevel(loglevel);
 
-        stack.append(s_root);
+        stack.append(td->m_root);
 
         da1.now();
 
@@ -306,8 +331,10 @@ public:
 
     static void clear()
     {
-        s_root = NULL;
-        s_now = NULL;
+        TestData* td = TestData::current();
+
+        td->m_root = NULL;
+        td->m_now = NULL;
     }
 
 private:
@@ -321,9 +348,11 @@ private:
 
 result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
 {
+    TestData* td = TestData::current();
+
     _case::init();
 
-    _case *last = s_now;
+    _case *last = td->m_now;
 
     result_t hr = _case::enter(name);
     if (hr < 0)
@@ -331,7 +360,7 @@ result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
 
     block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
 
-    s_now = last;
+    td->m_now = last;
     return 0;
 }
 
