@@ -298,10 +298,9 @@ public:
         coroutine_base::set_loglevel(oldlevel);
         asyncLog(console_base::_INFO, "");
 
+        da2.now();
         if (errcnt == 0)
         {
-            da2.now();
-
             sprintf(buf,
                     (logger::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
                     cnt, (int32_t) da2.diff(da1));
@@ -309,8 +308,8 @@ public:
         }
         else
         {
-            sprintf(buf, (logger::error() + "  × %d of %d tests failed" COLOR_RESET).c_str(),
-                    errcnt, cnt);
+            sprintf(buf, (logger::error() + "  × %d of %d tests failed" COLOR_RESET " (%dms)").c_str(),
+                    errcnt, cnt, (int32_t) da2.diff(da1));
             asyncLog(console_base::_ERROR, buf);
         }
 
