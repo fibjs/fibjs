@@ -221,9 +221,9 @@ public:
 
             if (ext != 0)
             {
-                if (Isolate::check())
+                if (m_isolate && Isolate::current() == m_isolate)
                 {
-                    holder()->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
+                    m_isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;
                 }
                 else

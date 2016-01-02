@@ -46,8 +46,25 @@ public:
 		return t == type || exlib::Service::is(t);
 	}
 
-	static Isolate *current();
-	static bool check();
+	static Isolate *current()
+	{
+		OSThread* thread_ = OSThread::current();
+
+		assert(thread_ != 0);
+
+		if (thread_->is(Isolate::type))
+			return (Isolate*)thread_;
+
+		return 0;
+	}
+
+	static bool check()
+	{
+		OSThread* thread_ = OSThread::current();
+		assert(thread_ != 0);
+
+		return thread_->is(Isolate::type);
+	}
 
 	virtual void Run();
 

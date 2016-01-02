@@ -57,24 +57,6 @@ Isolate::Isolate(const char *fname) :
         m_fname = fname;
 }
 
-Isolate *Isolate::current()
-{
-    assert(OSThread::current() != 0);
-
-    OSThread* thread_ = OSThread::current();
-
-    if (thread_->is(Isolate::type))
-        return (Isolate*)thread_;
-
-    return 0;
-}
-
-bool Isolate::check()
-{
-    assert(OSThread::current() != 0);
-    return OSThread::current()->is(Isolate::type);
-}
-
 bool Isolate::rt::g_trace = false;
 
 inline JSFiber* saveTrace()
