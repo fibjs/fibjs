@@ -20,17 +20,6 @@ class FiberBase: public Fiber_base,
 {
     FIBER_FREE();
 
-protected:
-    FiberBase()
-    {
-        Isolate* isolate = holder();
-        m_rt.m_pDateCache = &isolate->m_dc;
-    }
-
-    ~FiberBase()
-    {
-    }
-
 public:
     // Fiber_base
     virtual result_t join();
@@ -43,15 +32,9 @@ public:
 
     void set_caller(Fiber_base* caller);
 
-    Runtime &runtime()
-    {
-        return m_rt;
-    }
-
 public:
     std::string m_traceInfo;
     exlib::Event m_quit;
-    Runtime m_rt;
     weak_ptr<Fiber_base> m_caller;
 };
 

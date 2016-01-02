@@ -14,6 +14,7 @@
 namespace fibjs
 {
 
+void init_rt();
 void init_argv(int32_t argc, char **argv);
 void init_prof();
 void init_acThread();
@@ -82,6 +83,10 @@ Isolate::rt::~rt()
 void Isolate::Run()
 {
     s_isolates.putTail(this);
+
+    Runtime rt;
+    rt.m_pDateCache = &m_dc;
+    Runtime::reg(&rt);
 
     v8::Isolate::CreateParams create_params;
     ShellArrayBufferAllocator array_buffer_allocator;
@@ -161,6 +166,8 @@ int32_t main(int32_t argc, char *argv[])
 
     fibjs::Isolate* isolate = new fibjs::Isolate(fname);
     isolate->bindCurrent();
+
+    fibjs::init_rt();
 
     fibjs::init_sandbox();
     fibjs::init_acThread();
