@@ -74,6 +74,11 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	git submodule init
 	git submodule update
 
+## Update
+	cd fibjs
+	git pull
+	git submodule update
+
 ## Build
 
 ### on unix:
