@@ -26,8 +26,6 @@ public:
             m_name = name;
             m_name.append(":", 1);
         }
-
-        process_base::cwd(m_root);
     }
 
 public:
@@ -100,7 +98,6 @@ public:
     };
 
     std::string m_name;
-    std::string m_root;
 };
 
 } /* namespace fibjs */

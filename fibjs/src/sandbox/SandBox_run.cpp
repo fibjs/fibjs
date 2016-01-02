@@ -23,6 +23,14 @@ namespace fibjs
 #define NO_SEARCH   2
 #define FULL_SEARCH 3
 
+static std::string s_root;
+
+
+void init_sandbox()
+{
+    process_base::cwd(s_root);
+}
+
 inline std::string resolvePath(std::string base, std::string id)
 {
     std::string fname;
@@ -365,7 +373,7 @@ result_t SandBox::require(std::string base, std::string id,
 
     std::string fullname;
 
-    fullname = m_root;
+    fullname = s_root;
     pathAdd(fullname, strId.c_str());
 
     if (qstrcmp(fullname.c_str(), strId.c_str()))
@@ -402,7 +410,7 @@ result_t SandBox::require(std::string base, std::string id,
     {
         std::string fname1;
 
-        fname1 = m_root;
+        fname1 = s_root;
         pathAdd(fname1, fname.c_str());
 
         hr = fs_base::ac_readFile(fname1.c_str(), buf);
@@ -524,7 +532,7 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8
 {
     result_t hr;
 
-    std::string sfname = m_root;
+    std::string sfname = s_root;
 
     pathAdd(sfname, fname);
     path_base::normalize(sfname.c_str(), sfname);

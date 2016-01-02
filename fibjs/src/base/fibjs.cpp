@@ -20,6 +20,7 @@ void init_acThread();
 void init_logger();
 void init_net();
 void init_fiber(Isolate* isolate);
+void init_sandbox();
 bool options(int32_t* argc, char *argv[]);
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
@@ -179,6 +180,7 @@ int32_t main(int32_t argc, char *argv[])
     fibjs::Isolate* isolate = new fibjs::Isolate(fname);
     isolate->bindCurrent();
 
+    fibjs::init_sandbox();
     fibjs::init_acThread();
     fibjs::init_logger();
     fibjs::init_net();
