@@ -8,43 +8,60 @@ namespace fibjs
 {
 
 static exlib::Queue<AsyncEvent> s_acPool;
+extern int32_t stack_size;
 
-static int32_t s_threads;
-static exlib::atomic s_idleThreads;
-
-class _acThread: public exlib::OSThread
+class _acThread: public exlib::Service
 {
 public:
-    _acThread()
+    _acThread() : m_idles(0)
     {
         start();
     }
 
-    virtual void Run()
+    void worker()
     {
-        AsyncEvent *p;
-
         Runtime rt;
-        DateCache dc;
-        rt.m_pDateCache = &dc;
-
+        rt.m_pDateCache = &m_dc;
         Runtime::reg(&rt);
 
-        while (1)
+        while (m_idles <= 2)
         {
-            if (s_idleThreads.inc() > s_threads * 3)
-            {
-                s_idleThreads.dec();
-                break;
+            m_lock.lock();
+            AsyncEvent *p = s_acPool.get();
+            m_lock.unlock();
+
+            m_idles --;
+            if (m_idles == 0) {
+                m_idles ++;
+                exlib::Fiber::Create(fiber_proc, this, stack_size * 1024);
             }
 
-            p = s_acPool.get();
-            if (s_idleThreads.dec() == 0)
-                new _acThread();
-
             p->invoke();
+
+            m_idles ++;
         }
+
+        m_idles --;
     }
+
+    static void *fiber_proc(void *p)
+    {
+        ((_acThread*)p)->worker();
+        return 0;
+    }
+
+    virtual void Run()
+    {
+        m_idles ++;
+        exlib::Fiber::Create(fiber_proc, this, stack_size * 1024);
+        m_wait.wait();
+    }
+
+private:
+    exlib::Event m_wait;
+    DateCache m_dc;
+    exlib::Locker m_lock;
+    int32_t m_idles;
 };
 
 void AsyncEvent::async()
@@ -57,11 +74,11 @@ void init_acThread()
     int32_t cpus = 0;
 
     os_base::CPUs(cpus);
-    if (cpus < 3)
-        cpus = 3;
+    if (cpus < 1)
+        cpus = 1;
 
-    s_threads = cpus * 3;
-    new _acThread();
+    for (int32_t i = 0; i < cpus * 2; i ++)
+        new _acThread();
 }
 
 }
