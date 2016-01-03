@@ -9,12 +9,16 @@ namespace fibjs
 
 static exlib::Queue<AsyncEvent> s_acPool;
 extern int32_t stack_size;
+static exlib::atomic s_threads;
+static exlib::atomic s_idleThreads;
 
 class _acThread: public exlib::Service
 {
 public:
     _acThread() : m_idles(0)
     {
+        s_idleThreads.inc();
+        s_threads.dec();
         start();
     }
 
@@ -24,10 +28,18 @@ public:
         rt.m_pDateCache = &m_dc;
         Runtime::reg(&rt);
 
+        AsyncEvent *p;
+
+        s_idleThreads.dec();
         while (m_idles <= 2)
         {
             m_lock.lock();
-            AsyncEvent *p = s_acPool.get();
+
+            s_idleThreads.inc();
+            p = s_acPool.get();
+            if (s_idleThreads.dec() == 0 && s_threads > 0)
+                new _acThread();
+
             m_lock.unlock();
 
             m_idles --;
@@ -77,8 +89,8 @@ void init_acThread()
     if (cpus < 1)
         cpus = 1;
 
-    for (int32_t i = 0; i < cpus * 2; i ++)
-        new _acThread();
+    s_threads = cpus * 2;
+    new _acThread();
 }
 
 }
