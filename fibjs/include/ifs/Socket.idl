@@ -54,7 +54,7 @@ interface Socket : Stream
     /*! @brief 开始监听连接请求
      @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
      */
-    listen(Integer backlog = 120) async;
+    listen(Integer backlog = 120);
 
     /*! @brief 等待并接受一个连接
      @return 返回接收到得连接对象
