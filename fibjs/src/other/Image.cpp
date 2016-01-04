@@ -509,10 +509,10 @@ result_t Image::getData(int32_t format, int32_t quality,
         if (format != gd_base::_PNG)
         {
             if (gdImageTrueColor(m_image))
-                nowImage = gdImageCreateTrueColor(sy, sx);
+                nowImage = gdImageCreateTrueColor(sx, sy);
             else
             {
-                nowImage = gdImageCreate(sy, sx);
+                nowImage = gdImageCreate(sx, sy);
                 gdImagePaletteCopy(nowImage, m_image);
             }
 
