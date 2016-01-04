@@ -14,16 +14,6 @@
 namespace fibjs
 {
 
-void init_rt();
-void init_argv(int32_t argc, char **argv);
-void init_prof();
-void init_acThread();
-void init_logger();
-void init_net();
-void init_fiber(Isolate* isolate);
-void init_sandbox();
-bool options(int32_t* argc, char *argv[]);
-
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
 {
 public:
@@ -46,14 +36,12 @@ public:
 
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
-exlib::atomic s_iso_cnt;
 
 Isolate::Isolate(const char *fname) :
     m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
     m_oldIdle(NULL), m_currentFibers(0), m_idleFibers(0),
     m_loglevel(console_base::_NOTSET)
 {
-    s_iso_cnt.inc();
     if (fname)
         m_fname = fname;
 }
@@ -82,6 +70,8 @@ Isolate::rt::~rt()
 
 void Isolate::Run()
 {
+    m_oldIdle = onIdle(fiberIdle);
+
     s_isolates.putTail(this);
 
     Runtime rt;
@@ -108,26 +98,22 @@ void Isolate::Run()
     m_context.Reset(m_isolate, _context);
     m_global.Reset(m_isolate, glob);
 
-    init_fiber(this);
-
-    v8::Local<v8::Value> replFunc;
-
-    replFunc = global_base::class_info().getFunction(this)->Get(
-                   v8::String::NewFromUtf8(m_isolate, "repl"));
-
     result_t hr;
 
-    JSFiber *fb = new JSFiber();
     {
-        JSFiber::scope s(fb);
+        JSFiber::scope s;
         m_topSandbox = new SandBox();
 
         m_topSandbox->initRoot();
         if (!m_fname.empty())
         {
             v8::Local<v8::Array> argv;
+            v8::Local<v8::Value> replFunc;
 
             global_base::get_argv(argv);
+            replFunc = global_base::class_info().getFunction(this)->Get(
+                           v8::String::NewFromUtf8(m_isolate, "repl"));
+
             hr = s.m_hr = m_topSandbox->run(m_fname.c_str(), argv, replFunc);
         }
         else
@@ -137,9 +123,18 @@ void Isolate::Run()
         }
     }
 
-    if (s_iso_cnt.dec() == 0)
-        process_base::exit(hr);
+    process_base::exit(hr);
 }
+
+void init_rt();
+void init_argv(int32_t argc, char **argv);
+void init_prof();
+void init_acThread();
+void init_logger();
+void init_net();
+void init_fiber();
+void init_sandbox();
+bool options(int32_t* argc, char *argv[]);
 
 }
 
@@ -173,6 +168,7 @@ int32_t main(int32_t argc, char *argv[])
     fibjs::init_acThread();
     fibjs::init_logger();
     fibjs::init_net();
+    fibjs::init_fiber();
 
     v8::Platform *platform = v8::platform::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform);
@@ -180,9 +176,6 @@ int32_t main(int32_t argc, char *argv[])
     v8::V8::Initialize();
 
     isolate->Run();
-
-    while (true)
-        exlib::OSThread::sleep(100000000);
 
     return 0;
 }

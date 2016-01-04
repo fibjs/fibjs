@@ -44,7 +44,7 @@ public:
 
 } *s_null;
 
-static void onIdle()
+void Isolate::fiberIdle()
 {
     Isolate* isolate = Isolate::current();
 
@@ -60,22 +60,11 @@ static void onIdle()
         isolate->m_oldIdle();
 }
 
-void init_fiber(Isolate* isolate)
+void init_fiber()
 {
-    static bool s_init = false;
-
-    isolate->m_currentFibers = 0;
-    isolate->m_idleFibers = 0;
-    isolate->m_oldIdle = exlib::Service::current()->onIdle(onIdle);
-
-    if (!s_init)
-    {
-        s_init = true;
-
-        g_spareFibers = MAX_IDLE;
-        g_tlsCurrent = exlib::Fiber::tlsAlloc();
-        s_null = new null_fiber_data();
-    }
+    g_spareFibers = MAX_IDLE;
+    g_tlsCurrent = exlib::Fiber::tlsAlloc();
+    s_null = new null_fiber_data();
 }
 
 void *FiberBase::fiber_proc(void *p)

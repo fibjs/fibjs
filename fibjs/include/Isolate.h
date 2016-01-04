@@ -68,6 +68,9 @@ public:
 
 	virtual void Run();
 
+private:
+	static void fiberIdle();
+
 public:
 	int32_t m_id;
 	std::string m_fname;
