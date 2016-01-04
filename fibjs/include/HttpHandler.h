@@ -35,6 +35,7 @@ public:
 
 public:
     // HttpHandler_base
+    virtual result_t onerror(v8::Local<v8::Object> hdlrs);
     virtual result_t get_crossDomain(bool &retVal);
     virtual result_t set_crossDomain(bool newVal);
     virtual result_t get_forceGZIP(bool &retVal);
@@ -52,6 +53,8 @@ public:
 
 private:
     naked_ptr<Handler_base> m_hdlr;
+    naked_ptr<Handler_base> m_err_hdlrs[3];
+
     bool m_crossDomain;
     bool m_forceGZIP;
     int32_t m_maxHeadersCount;

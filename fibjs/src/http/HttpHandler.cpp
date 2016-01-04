@@ -123,7 +123,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             pThis->m_req->get_keepAlive(bKeepAlive);
             pThis->m_rep->set_keepAlive(bKeepAlive);
 
-            pThis->set(send);
+            pThis->set(check_error);
             pThis->m_d.now();
 
             if (pThis->m_pThis->m_crossDomain)
@@ -185,6 +185,32 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
         }
 
+        static int32_t check_error(AsyncState *pState, int32_t n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+            int32_t s;
+            int32_t err_idx = -1;
+
+            pThis->m_rep->get_status(s);
+            if (s == 400) {
+                err_idx = 0;
+                pThis->m_pThis->m_stats->inc(HTTP_ERROR_400);
+            }
+            else if (s == 404) {
+                err_idx = 1;
+                pThis->m_pThis->m_stats->inc(HTTP_ERROR_404);
+            }
+            else if (s == 500) {
+                err_idx = 2;
+                pThis->m_pThis->m_stats->inc(HTTP_ERROR_500);
+            }
+
+            pThis->set(send);
+            if (err_idx == -1 || !pThis->m_pThis->m_err_hdlrs[err_idx])
+                return 0;
+            return mq_base::invoke(pThis->m_pThis->m_err_hdlrs[err_idx], pThis->m_req, pThis);
+        }
+
         static int32_t send(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
@@ -206,12 +232,6 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                     pThis->m_rep->addHeader("Expires", "-1");
                 }
             }
-            else if (s == 400)
-                pThis->m_pThis->m_stats->inc(HTTP_ERROR_400);
-            else if (s == 404)
-                pThis->m_pThis->m_stats->inc(HTTP_ERROR_404);
-            else if (s == 500)
-                pThis->m_pThis->m_stats->inc(HTTP_ERROR_500);
 
             std::string str;
 
@@ -326,7 +346,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             m_pThis->m_stats->inc(HTTP_ERROR);
 
-            if (is(send))
+            if (is(check_error))
             {
                 asyncLog(console_base::_ERROR, "HttpHandler: " + getResultMessage(v));
                 m_rep->set_status(500);
@@ -341,8 +361,14 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
                 m_rep->set_keepAlive(false);
                 m_rep->set_status(400);
-                set(send);
+                set(check_error);
                 m_d.now();
+                return 0;
+            }
+
+            if (is(send))
+            {
+                asyncLog(console_base::_ERROR, "HttpHandler: " + getResultMessage(v));
                 return 0;
             }
 
@@ -377,6 +403,33 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
+}
+
+result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
+{
+    static const char* s_err_keys[] = {"400", "404", "500"};
+    int32_t i;
+    v8::Local<v8::Object> o = wrap();
+
+    for (i = 0; i < 3; i ++)
+    {
+        v8::Local<v8::String> key = v8::String::NewFromUtf8(holder()->m_isolate, s_err_keys[i]);
+        v8::Local<v8::Value> hdlr = hdlrs->Get(key);
+
+        if (!IsEmpty(hdlr))
+        {
+            obj_ptr<Handler_base> hdlr1;
+
+            result_t hr = JSHandler::New(hdlr, hdlr1);
+            if (hr < 0)
+                return hr;
+
+            o->SetHiddenValue(key, hdlr1->wrap());
+            m_err_hdlrs[i] = hdlr1;
+        }
+    }
+
+    return 0;
 }
 
 result_t HttpHandler::get_crossDomain(bool &retVal)

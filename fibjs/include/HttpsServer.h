@@ -38,6 +38,7 @@ public:
 
 public:
     // HttpServer_base
+    virtual result_t onerror(v8::Local<v8::Object> hdlrs);
     virtual result_t get_crossDomain(bool &retVal);
     virtual result_t set_crossDomain(bool newVal);
     virtual result_t get_forceGZIP(bool &retVal);

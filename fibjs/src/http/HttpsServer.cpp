@@ -142,6 +142,11 @@ result_t HttpsServer::set_handler(Handler_base *newVal)
     return m_handler->set_handler(newVal);
 }
 
+result_t HttpsServer::onerror(v8::Local<v8::Object> hdlrs)
+{
+    return m_handler->onerror(hdlrs);
+}
+
 result_t HttpsServer::get_crossDomain(bool &retVal)
 {
     return m_handler->get_crossDomain(retVal);

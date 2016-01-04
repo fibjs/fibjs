@@ -29,6 +29,7 @@ public:
     // HttpServer_base
     static result_t _new(int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t onerror(v8::Local<v8::Object> hdlrs) = 0;
     virtual result_t get_crossDomain(bool& retVal) = 0;
     virtual result_t set_crossDomain(bool newVal) = 0;
     virtual result_t get_forceGZIP(bool& retVal) = 0;
@@ -45,6 +46,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -64,6 +66,11 @@ namespace fibjs
 {
     inline ClassInfo& HttpServer_base::class_info()
     {
+        static ClassData::ClassMethod s_method[] = 
+        {
+            {"onerror", s_onerror, false}
+        };
+
         static ClassData::ClassProperty s_property[] = 
         {
             {"crossDomain", s_get_crossDomain, s_set_crossDomain, false},
@@ -76,7 +83,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "HttpServer", s__new, 
-            0, NULL, 0, NULL, 5, s_property, NULL, NULL,
+            1, s_method, 0, NULL, 5, s_property, NULL, NULL,
             &TcpServer_base::class_info()
         };
 
@@ -214,6 +221,18 @@ namespace fibjs
         hr = _new(v0, v1, v2, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void HttpServer_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(HttpServer_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->onerror(v0);
+
+        METHOD_VOID();
     }
 
 }

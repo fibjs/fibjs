@@ -697,6 +697,27 @@ describe("http", function() {
 			return o;
 		}
 
+		var throw_in_handler = false;
+		var err_400 = 0;
+		var err_404 = 0;
+		var err_500 = 0;
+
+		it("onerror", function() {
+			hdr.onerror({
+				400: function(v) {
+					err_400++;
+				},
+				404: function(v) {
+					if (throw_in_handler)
+						throw new Error('throw in error handler');
+					err_404++;
+				},
+				500: function(v) {
+					err_500++;
+				}
+			});
+		});
+
 		it("normal request", function() {
 			c.write("GET / HTTP/1.0\r\n\r\n");
 			var req = get_response();
@@ -719,6 +740,7 @@ describe("http", function() {
 			var req = get_response();
 			assert.equal(req.status, 400);
 
+			assert.equal(err_400, 1);
 			assert.deepEqual(getStats(hdr), {
 				"total": 2,
 				"pendding": 0,
@@ -736,6 +758,7 @@ describe("http", function() {
 			var req = get_response();
 			assert.equal(req.status, 404);
 
+			assert.equal(err_404, 1);
 			assert.deepEqual(getStats(hdr), {
 				"total": 3,
 				"pendding": 0,
@@ -753,6 +776,7 @@ describe("http", function() {
 			var req = get_response();
 			assert.equal(req.status, 500);
 
+			assert.equal(err_500, 1);
 			assert.deepEqual(getStats(hdr), {
 				"total": 4,
 				"pendding": 0,
@@ -828,6 +852,17 @@ describe("http", function() {
 				"error_500": 0
 			});
 		});
+
+		it("error in error handler", function() {
+			err_404 = 0;
+			throw_in_handler = true;
+			c.write("GET /not_found HTTP/1.0\r\n\r\n");
+			var req = get_response();
+			assert.equal(req.status, 404);
+
+			assert.equal(err_404, 0);
+		});
+
 	});
 
 	describe("file handler", function() {
@@ -1085,4 +1120,4 @@ describe("http", function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
