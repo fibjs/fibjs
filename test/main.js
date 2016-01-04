@@ -3,6 +3,7 @@
 var test = require("test");
 var coroutine = require('coroutine');
 var process = require('process');
+var os = require('os');
 
 run("assert_test.js");
 run("expect_test.js");
@@ -46,6 +47,10 @@ run("profiler_test.js");
 run('BUG_simple_api_call.js');
 // run("mongo_test.js");
 
-coroutine.start(function() {
+
+if (os.type == 'Windows' && os.arch == 'i686' && os.version.substr(0, 2) == '5.')
 	process.exit(-test.run());
-}).join();
+else
+	coroutine.start(function() {
+		process.exit(-test.run());
+	}).join();
