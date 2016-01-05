@@ -30,7 +30,6 @@ public:
 
         AsyncEvent *p;
 
-        s_idleThreads.dec();
         while (m_idles <= 2)
         {
             m_lock.lock();
@@ -64,8 +63,11 @@ public:
 
     virtual void Run()
     {
+        s_idleThreads.dec();
+
         m_idles ++;
         exlib::Fiber::Create(fiber_proc, this, stack_size * 1024);
+
         m_wait.wait();
     }
 
