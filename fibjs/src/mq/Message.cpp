@@ -147,4 +147,16 @@ result_t Message::get_response(obj_ptr<Message_base> &retVal)
     return 0;
 }
 
+result_t Message::get_lastError(std::string& retVal)
+{
+    retVal = m_lastError;
+    return 0;
+}
+
+result_t Message::set_lastError(const char* newVal)
+{
+    m_lastError = newVal;
+    return 0;
+}
+
 } /* namespace fibjs */

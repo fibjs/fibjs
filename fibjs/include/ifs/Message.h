@@ -46,6 +46,8 @@ public:
     virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
+    virtual result_t get_lastError(std::string& retVal) = 0;
+    virtual result_t set_lastError(const char* newVal) = 0;
 
 public:
     template<typename T>
@@ -70,6 +72,8 @@ public:
     static void s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_lastError(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_lastError(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
@@ -108,13 +112,14 @@ namespace fibjs
             {"body", s_get_body, s_set_body, false},
             {"length", s_get_length, block_set, false},
             {"stream", s_get_stream, block_set, false},
-            {"response", s_get_response, block_set, false}
+            {"response", s_get_response, block_set, false},
+            {"lastError", s_get_lastError, s_set_lastError, false}
         };
 
         static ClassData s_cd = 
         { 
             "Message", s__new, 
-            6, s_method, 0, NULL, 7, s_property, NULL, NULL,
+            6, s_method, 0, NULL, 8, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -248,6 +253,29 @@ namespace fibjs
         hr = pInst->get_response(vr);
 
         METHOD_RETURN();
+    }
+
+    inline void Message_base::s_get_lastError(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        std::string vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(Message_base);
+
+        hr = pInst->get_lastError(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Message_base::s_set_lastError(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(Message_base);
+
+        PROPERTY_VAL(arg_string);
+        hr = pInst->set_lastError(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
     inline void Message_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

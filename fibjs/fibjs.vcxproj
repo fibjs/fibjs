@@ -150,6 +150,7 @@
     <ClInclude Include="include\ifs\global.h" />
     <ClInclude Include="include\ifs\GridFS.h" />
     <ClInclude Include="include\ifs\Handler.h" />
+    <ClInclude Include="include\ifs\HandlerEx.h" />
     <ClInclude Include="include\ifs\hash.h" />
     <ClInclude Include="include\ifs\HeapGraphEdge.h" />
     <ClInclude Include="include\ifs\HeapGraphNode.h" />

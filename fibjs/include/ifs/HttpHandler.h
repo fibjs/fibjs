@@ -13,22 +13,20 @@
  */
 
 #include "../object.h"
-#include "Handler.h"
+#include "HandlerEx.h"
 
 namespace fibjs
 {
 
-class Handler_base;
-class Stats_base;
+class HandlerEx_base;
 
-class HttpHandler_base : public Handler_base
+class HttpHandler_base : public HandlerEx_base
 {
     DECLARE_CLASS(HttpHandler_base);
 
 public:
     // HttpHandler_base
     static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t onerror(v8::Local<v8::Object> hdlrs) = 0;
     virtual result_t get_crossDomain(bool& retVal) = 0;
     virtual result_t set_crossDomain(bool newVal) = 0;
     virtual result_t get_forceGZIP(bool& retVal) = 0;
@@ -37,9 +35,6 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
     virtual result_t set_maxUploadSize(int32_t newVal) = 0;
-    virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
-    virtual result_t set_handler(Handler_base* newVal) = 0;
-    virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 public:
     template<typename T>
@@ -47,7 +42,6 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -56,39 +50,28 @@ public:
     static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
 
-#include "Stats.h"
 
 namespace fibjs
 {
     inline ClassInfo& HttpHandler_base::class_info()
     {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"onerror", s_onerror, false}
-        };
-
         static ClassData::ClassProperty s_property[] = 
         {
             {"crossDomain", s_get_crossDomain, s_set_crossDomain, false},
             {"forceGZIP", s_get_forceGZIP, s_set_forceGZIP, false},
             {"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false},
-            {"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false},
-            {"handler", s_get_handler, s_set_handler, false},
-            {"stats", s_get_stats, block_set, false}
+            {"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false}
         };
 
         static ClassData s_cd = 
         { 
             "HttpHandler", s__new, 
-            1, s_method, 0, NULL, 6, s_property, NULL, NULL,
-            &Handler_base::class_info()
+            0, NULL, 0, NULL, 4, s_property, NULL, NULL,
+            &HandlerEx_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);
@@ -187,41 +170,6 @@ namespace fibjs
         PROPERTY_SET_LEAVE();
     }
 
-    inline void HttpHandler_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Handler_base> vr;
-
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpHandler_base);
-
-        hr = pInst->get_handler(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HttpHandler_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpHandler_base);
-
-        PROPERTY_VAL(obj_ptr<Handler_base>);
-        hr = pInst->set_handler(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void HttpHandler_base::s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stats_base> vr;
-
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpHandler_base);
-
-        hr = pInst->get_stats(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void HttpHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -239,18 +187,6 @@ namespace fibjs
         hr = _new(v0, vr, args.This());
 
         CONSTRUCT_RETURN();
-    }
-
-    inline void HttpHandler_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(HttpHandler_base);
-        METHOD_ENTER(1, 1);
-
-        ARG(v8::Local<v8::Object>, 0);
-
-        hr = pInst->onerror(v0);
-
-        METHOD_VOID();
     }
 
 }

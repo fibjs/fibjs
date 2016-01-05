@@ -175,6 +175,16 @@ result_t HttpResponse::set_result(Variant newVal)
     return m_message->set_result(newVal);
 }
 
+result_t HttpResponse::get_lastError(std::string& retVal)
+{
+    return m_message->get_lastError(retVal);
+}
+
+result_t HttpResponse::set_lastError(const char* newVal)
+{
+    return m_message->set_lastError(newVal);
+}
+
 result_t HttpResponse::clear()
 {
     m_message = new HttpMessage(true);

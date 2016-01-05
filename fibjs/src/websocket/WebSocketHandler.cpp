@@ -63,7 +63,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     {
     public:
         asyncInvoke(WebSocketHandler *pThis, HttpRequest_base *req, AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(pThis), m_httpreq(req)
+            AsyncState(ac), m_pThis(pThis), m_httpreq(req), m_error(0)
         {
             obj_ptr<Message_base> rep;
 
@@ -201,14 +201,36 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return 0;
         }
 
+        static int32_t on_error(AsyncState *pState, int32_t n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->set(error_end);
+            return mq_base::invoke(pThis->m_pThis->m_err_hdlr, pThis->m_msg, pThis);
+        }
+
+        static int32_t error_end(AsyncState *pState, int32_t n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+            return pThis->m_error;
+        }
+
         virtual int32_t error(int32_t v)
         {
             m_pThis->m_stats->inc(PACKET_ERROR);
 
             if (is(send))
             {
+                std::string err = getResultMessage(v);
+
+                m_error = v;
+                m_msg->set_lastError(err.c_str());
+                asyncLog(console_base::_ERROR, "WebSocketHandler: " + err);
+
                 m_pThis->m_stats->dec(PACKET_PENDDING);
-                asyncLog(console_base::_ERROR, "WebSocketHandler: " + getResultMessage(v));
+
+                set(on_error);
+                return 0;
             }
 
             if (is(end))
@@ -231,6 +253,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<Stream_base> m_stm;
         obj_ptr<WebSocketMessage_base> m_msg;
         obj_ptr<Message_base> m_rep;
+        int32_t m_error;
     };
 
     if (!ac)
@@ -255,6 +278,28 @@ result_t WebSocketHandler::set_maxSize(int32_t newVal)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxSize = newVal;
+    return 0;
+}
+
+result_t WebSocketHandler::onerror(v8::Local<v8::Object> hdlrs)
+{
+    v8::Local<v8::Object> o = wrap();
+
+    v8::Local<v8::String> key = v8::String::NewFromUtf8(holder()->m_isolate, "500");
+    v8::Local<v8::Value> hdlr = hdlrs->Get(key);
+
+    if (!IsEmpty(hdlr))
+    {
+        obj_ptr<Handler_base> hdlr1;
+
+        result_t hr = JSHandler::New(hdlr, hdlr1);
+        if (hr < 0)
+            return hr;
+
+        o->SetHiddenValue(key, hdlr1->wrap());
+        m_err_hdlr = hdlr1;
+    }
+
     return 0;
 }
 

@@ -13,15 +13,14 @@
  */
 
 #include "../object.h"
-#include "Handler.h"
+#include "HandlerEx.h"
 
 namespace fibjs
 {
 
-class Handler_base;
-class Stats_base;
+class HandlerEx_base;
 
-class WebSocketHandler_base : public Handler_base
+class WebSocketHandler_base : public HandlerEx_base
 {
     DECLARE_CLASS(WebSocketHandler_base);
 
@@ -30,9 +29,6 @@ public:
     static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<WebSocketHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_maxSize(int32_t& retVal) = 0;
     virtual result_t set_maxSize(int32_t newVal) = 0;
-    virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
-    virtual result_t set_handler(Handler_base* newVal) = 0;
-    virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 public:
     template<typename T>
@@ -42,14 +38,10 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
 
-#include "Stats.h"
 
 namespace fibjs
 {
@@ -57,16 +49,14 @@ namespace fibjs
     {
         static ClassData::ClassProperty s_property[] = 
         {
-            {"maxSize", s_get_maxSize, s_set_maxSize, false},
-            {"handler", s_get_handler, s_set_handler, false},
-            {"stats", s_get_stats, block_set, false}
+            {"maxSize", s_get_maxSize, s_set_maxSize, false}
         };
 
         static ClassData s_cd = 
         { 
             "WebSocketHandler", s__new, 
-            0, NULL, 0, NULL, 3, s_property, NULL, NULL,
-            &Handler_base::class_info()
+            0, NULL, 0, NULL, 1, s_property, NULL, NULL,
+            &HandlerEx_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);
@@ -94,41 +84,6 @@ namespace fibjs
         hr = pInst->set_maxSize(v0);
 
         PROPERTY_SET_LEAVE();
-    }
-
-    inline void WebSocketHandler_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Handler_base> vr;
-
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketHandler_base);
-
-        hr = pInst->get_handler(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void WebSocketHandler_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketHandler_base);
-
-        PROPERTY_VAL(obj_ptr<Handler_base>);
-        hr = pInst->set_handler(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void WebSocketHandler_base::s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stats_base> vr;
-
-        PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketHandler_base);
-
-        hr = pInst->get_stats(vr);
-
-        METHOD_RETURN();
     }
 
     inline void WebSocketHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -237,6 +237,9 @@
     <ClInclude Include="include\ifs\Handler.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\HandlerEx.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\mq.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>

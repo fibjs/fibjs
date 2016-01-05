@@ -713,6 +713,7 @@ describe("http", function() {
 					err_404++;
 				},
 				500: function(v) {
+					console.error(v.lastError);
 					err_500++;
 				}
 			});

@@ -34,12 +34,16 @@ public:
                             AsyncEvent *ac);
 
 public:
+    // HandlerEx_base
+    virtual result_t onerror(v8::Local<v8::Object> hdlrs);
+    virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
+    virtual result_t set_handler(Handler_base* newVal);
+    virtual result_t get_stats(obj_ptr<Stats_base>& retVal);
+
+public:
     // WebSocketHandler_base
     virtual result_t get_maxSize(int32_t &retVal);
     virtual result_t set_maxSize(int32_t newVal);
-    virtual result_t get_handler(obj_ptr<Handler_base> &retVal);
-    virtual result_t set_handler(Handler_base *newVal);
-    virtual result_t get_stats(obj_ptr<Stats_base> &retVal);
 
 public:
     obj_ptr<Stream_base> m_stm;
@@ -47,6 +51,7 @@ public:
 
 private:
     naked_ptr<Handler_base> m_hdlr;
+    naked_ptr<Handler_base> m_err_hdlr;
     int32_t m_maxSize;
 };
 

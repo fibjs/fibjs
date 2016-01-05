@@ -328,6 +328,37 @@ describe('websocket', function() {
 			msg.readFrom(s);
 		});
 	});
+
+	it("onerror", function() {
+		var err_500 = 0;
+
+		var hdlr = new websocket.Handler(function(v) {
+			throw new Error("test error");
+		});
+
+		hdlr.onerror({
+			500: function(v) {
+				err_500++;
+				console.error(v.lastError);
+			}
+		});
+
+		var httpd = new http.Server(8812 + base_port, hdlr);
+		ss.push(httpd.socket);
+		httpd.asyncRun();
+
+		var s = websocket.connect("ws://127.0.0.1:" + (8812 + base_port) + "/");
+
+		var msg = new websocket.Message();
+		msg.type = websocket.TEXT;
+
+		msg.sendTo(s);
+
+		for (var i = 0; i < 100 && err_500 == 0; i++)
+			coroutine.sleep(1);
+
+		assert.equal(err_500, 1);
+	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
