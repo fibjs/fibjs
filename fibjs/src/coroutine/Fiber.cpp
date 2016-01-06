@@ -19,31 +19,6 @@ extern int32_t stack_size;
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
 
-static class null_fiber_data: public Fiber_base
-{
-public:
-    null_fiber_data()
-    {
-        Ref();
-    }
-
-    virtual result_t join()
-    {
-        return 0;
-    }
-
-    virtual result_t get_traceInfo(std::string& retVal)
-    {
-        return 0;
-    }
-
-    virtual result_t get_caller(obj_ptr<Fiber_base> &retVal)
-    {
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
-
-} *s_null;
-
 void Isolate::fiberIdle()
 {
     Isolate* isolate = Isolate::current();
@@ -64,7 +39,6 @@ void init_fiber()
 {
     g_spareFibers = MAX_IDLE;
     g_tlsCurrent = exlib::Fiber::tlsAlloc();
-    s_null = new null_fiber_data();
 }
 
 void *FiberBase::fiber_proc(void *p)
@@ -216,13 +190,7 @@ JSFiber::scope::scope(JSFiber *fb) :
 
 JSFiber::scope::~scope()
 {
-    v8::Local<v8::Object> o = m_pFiber->wrap();
-
     m_pFiber->m_quit.set();
-    m_pFiber->dispose();
-
-    s_null->Ref();
-    o->SetAlignedPointerInInternalField(0, s_null);
 
     ReportException(try_catch, m_hr);
     m_pFiber->holder()->m_fibers.remove(m_pFiber);

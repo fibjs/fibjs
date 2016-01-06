@@ -37,6 +37,11 @@ describe('coroutine', function() {
 		GC();
 		assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 		f.join();
+
+		GC();
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+
+		f = undefined;
 		GC();
 		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 	});
@@ -394,4 +399,4 @@ describe('coroutine', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
