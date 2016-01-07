@@ -146,6 +146,8 @@ public:
     {
         m_isJSObject = true;
         holder();
+
+        assert(m_isolate != 0);
     }
 
 public:
