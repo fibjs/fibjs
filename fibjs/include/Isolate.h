@@ -22,7 +22,28 @@ class JSFiber;
 class Isolate : public exlib::Service
 {
 public:
-	class rt
+	class rt_base
+	{
+	public:
+		rt_base()
+		{
+			m_isolate = Isolate::current();
+		}
+
+		~rt_base()
+		{
+			if (m_isolate->m_interrupt)
+			{
+				m_isolate->m_interrupt = false;
+				m_isolate->InterruptCallback();
+			}
+		}
+
+	protected:
+		Isolate* m_isolate;
+	};
+
+	class rt : public rt_base
 	{
 	public:
 		rt();
@@ -68,8 +89,7 @@ public:
 
 	virtual void Run();
 
-private:
-	static void fiberIdle();
+	void InterruptCallback();
 
 public:
 	int32_t m_id;
@@ -86,7 +106,6 @@ public:
 	v8::Persistent<v8::Value> m_proto;
 
 	exlib::Queue<exlib::linkitem> m_jobs;
-	exlib::IDLE_PROC m_oldIdle;
 	int32_t m_currentFibers;
 	int32_t m_idleFibers;
 
@@ -94,6 +113,8 @@ public:
 	v8::Persistent<v8::Function> m_stringify;
 
 	int32_t m_loglevel;
+
+	bool m_interrupt;
 };
 
 } /* namespace fibjs */

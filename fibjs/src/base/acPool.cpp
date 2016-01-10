@@ -44,7 +44,7 @@ public:
             m_idles --;
             if (m_idles == 0) {
                 m_idles ++;
-                exlib::Fiber::Create(fiber_proc, this, stack_size * 1024);
+                Create(fiber_proc, this, stack_size * 1024);
             }
 
             p->invoke();
@@ -66,7 +66,7 @@ public:
         s_idleThreads.dec();
 
         m_idles ++;
-        exlib::Fiber::Create(fiber_proc, this, stack_size * 1024);
+        Create(fiber_proc, this, stack_size * 1024);
 
         m_wait.wait();
     }

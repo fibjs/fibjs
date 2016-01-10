@@ -19,22 +19,6 @@ extern int32_t stack_size;
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
 
-void Isolate::fiberIdle()
-{
-    Isolate* isolate = Isolate::current();
-
-    if (!isolate->m_jobs.empty() && (isolate->m_idleFibers == 0) &&  (isolate->m_currentFibers < MAX_FIBER))
-    {
-        isolate->m_currentFibers++;
-        isolate->m_idleFibers ++;
-        exlib::Fiber::Create(FiberBase::fiber_proc, isolate,
-                             stack_size * 1024);
-    }
-
-    if (isolate->m_oldIdle)
-        isolate->m_oldIdle();
-}
-
 void init_fiber()
 {
     g_spareFibers = MAX_IDLE;
@@ -75,6 +59,14 @@ void *FiberBase::fiber_proc(void *p)
             }
 
             isolate->m_idleFibers --;
+        }
+
+        if (isolate->m_idleFibers == 0)
+        {
+            isolate->m_currentFibers++;
+            isolate->m_idleFibers ++;
+
+            isolate->Create(fiber_proc, isolate, stack_size * 1024);
         }
 
         {

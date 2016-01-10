@@ -36,14 +36,18 @@ public:
 
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
+extern int32_t stack_size;
 
 Isolate::Isolate(const char *fname) :
     m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
-    m_oldIdle(NULL), m_currentFibers(0), m_idleFibers(0),
-    m_loglevel(console_base::_NOTSET)
+    m_currentFibers(0), m_idleFibers(0), m_loglevel(console_base::_NOTSET), m_interrupt(false)
 {
     if (fname)
         m_fname = fname;
+
+    m_currentFibers++;
+    m_idleFibers ++;
+    Create(FiberBase::fiber_proc, this, stack_size * 1024);
 }
 
 bool Isolate::rt::g_trace = false;
@@ -58,7 +62,7 @@ inline JSFiber* saveTrace()
 
 Isolate::rt::rt() :
     m_fiber(g_trace ? saveTrace() : NULL),
-    unlocker(Isolate::current()->m_isolate)
+    unlocker(m_isolate->m_isolate)
 {
 }
 
@@ -70,8 +74,6 @@ Isolate::rt::~rt()
 
 void Isolate::Run()
 {
-    m_oldIdle = onIdle(fiberIdle);
-
     s_isolates.putTail(this);
 
     Runtime rt;

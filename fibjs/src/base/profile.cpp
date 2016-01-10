@@ -68,20 +68,14 @@ static void dumpFibers()
     _exit(1);
 }
 
-static void InterruptCallback(v8::Isolate *isolate, void *data)
+static void cb_interrupt(v8::Isolate *isolate, void *data)
 {
     dumpFibers();
 }
 
-static void InterruptCallbackEx()
+void Isolate::InterruptCallback()
 {
-    if (Isolate::rt::g_trace)
-        dumpFibers();
-    else
-    {
-        v8::Locker locker(Isolate::current()->m_isolate);
-        dumpFibers();
-    }
+    cb_interrupt(m_isolate, NULL);
 }
 
 void on_break(int32_t s) {
@@ -107,8 +101,9 @@ void on_break(int32_t s) {
 
     Isolate *p = s_isolates.head();
     while (p != 0) {
-        p->m_isolate->RequestInterrupt(InterruptCallback, NULL);
-        p->RequestInterrupt(InterruptCallbackEx);
+        p->m_isolate->RequestInterrupt(cb_interrupt, NULL);
+        p->m_interrupt = true;
+        // p->RequestInterrupt(InterruptCallbackEx);
 
         p = s_isolates.next(p);
     }
