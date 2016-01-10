@@ -39,7 +39,7 @@ exlib::atomic s_iso_id;
 extern int32_t stack_size;
 
 Isolate::Isolate(const char *fname) :
-    m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
+    exlib::Service(NULL), m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
     m_currentFibers(0), m_idleFibers(0), m_loglevel(console_base::_NOTSET), m_interrupt(false)
 {
     if (fname)

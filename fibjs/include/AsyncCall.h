@@ -17,7 +17,6 @@ public:
     void sync(Isolate* isolate)
     {
         isolate->m_jobs.put(this);
-        isolate->resume();
     }
 
     virtual void js_invoke()

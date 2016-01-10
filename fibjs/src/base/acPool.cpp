@@ -15,7 +15,7 @@ static exlib::atomic s_idleThreads;
 class _acThread: public exlib::Service
 {
 public:
-    _acThread() : m_idles(0)
+    _acThread() : exlib::Service(NULL), m_idles(0)
     {
         s_idleThreads.inc();
         s_threads.dec();
