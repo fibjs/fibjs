@@ -77,7 +77,6 @@ void Isolate::Run()
     s_isolates.putTail(this);
 
     Runtime rt;
-    rt.m_pDateCache = &m_dc;
     Runtime::reg(&rt);
 
     v8::Isolate::CreateParams create_params;
@@ -128,6 +127,7 @@ void Isolate::Run()
     process_base::exit(hr);
 }
 
+void init_date();
 void init_rt();
 void init_argv(int32_t argc, char **argv);
 void init_prof();
@@ -163,6 +163,8 @@ int32_t main(int32_t argc, char *argv[])
 
     fibjs::Isolate* isolate = new fibjs::Isolate(fname);
     isolate->bindCurrent();
+
+    fibjs::init_date();
 
     fibjs::init_rt();
 

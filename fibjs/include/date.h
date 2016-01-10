@@ -115,6 +115,8 @@ public:
     void sqlString(std::string &retVal);
     void stamp(std::string &retVal);
 
+    static int32_t timezone();
+
 private:
     double d;
 };

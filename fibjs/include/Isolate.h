@@ -10,7 +10,6 @@
 
 #include <exlib/include/list.h>
 #include <exlib/include/service.h>
-#include "DateCache.h"
 #include "QuickArray.h"
 
 namespace fibjs
@@ -95,7 +94,6 @@ public:
 	int32_t m_id;
 	std::string m_fname;
 	v8::Isolate *m_isolate;
-	DateCache m_dc;
 	QuickArray<void*> m_ci;
 	v8::Persistent<v8::Context> m_context;
 	v8::Persistent<v8::Object> m_global;

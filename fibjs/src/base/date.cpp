@@ -6,12 +6,20 @@
  */
 
 #include "Runtime.h"
+#include "DateCache.h"
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
 
 namespace fibjs
 {
+
+static DateCache* s_dc;
+
+void init_date()
+{
+    s_dc = new DateCache();
+}
 
 inline void next(int32_t &len, int32_t &pos)
 {
@@ -485,7 +493,7 @@ void date_t::parse(const char *str, int32_t len)
         return;
 
     if (bLocal)
-        d = (double) Runtime::now().m_pDateCache->ToUTC((int64_t) d);
+        d = (double) s_dc->ToUTC((int64_t) d);
     else
         d += tz * 36000;
 }
@@ -626,7 +634,7 @@ void date_t::sqlString(std::string &retVal)
     if (isnan(d))
         return;
 
-    _date_split ds((double)Runtime::now().m_pDateCache->ToLocal((int64_t) d));
+    _date_split ds((double)s_dc->ToLocal((int64_t) d));
 
     retVal.resize(19);
     char *ptrBuf = &retVal[0];
@@ -649,7 +657,7 @@ void date_t::stamp(std::string &retVal)
     if (isnan(d))
         return;
 
-    _date_split ds((double)Runtime::now().m_pDateCache->ToLocal((int64_t) d));
+    _date_split ds((double)s_dc->ToLocal((int64_t) d));
 
     retVal.resize(14);
     char *ptrBuf = &retVal[0];
@@ -739,7 +747,7 @@ void date_t::toLocal()
     if (isnan(d))
         return;
 
-    d = (double) Runtime::now().m_pDateCache->ToLocal((int64_t) d);
+    d = (double) s_dc->ToLocal((int64_t) d);
 }
 
 void date_t::toUTC()
@@ -747,7 +755,12 @@ void date_t::toUTC()
     if (isnan(d))
         return;
 
-    d = (double) Runtime::now().m_pDateCache->ToUTC((int64_t) d);
+    d = (double) s_dc->ToUTC((int64_t) d);
+}
+
+int32_t date_t::timezone()
+{
+    return s_dc->LocalOffset();
 }
 
 }

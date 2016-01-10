@@ -30,7 +30,6 @@ void *FiberBase::fiber_proc(void *p)
     Isolate* isolate = (Isolate*)p;
 
     Runtime rt;
-    rt.m_pDateCache = &isolate->m_dc;
     Runtime::reg(&rt);
 
     v8::Locker locker(isolate->m_isolate);

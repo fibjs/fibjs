@@ -180,9 +180,6 @@ public:
         tm_cb(s_loop, &tm, 0);
 
         Runtime rt;
-        DateCache dc;
-        rt.m_pDateCache = &dc;
-
         Runtime::reg(&rt);
 
         ev_run(s_loop, 0);

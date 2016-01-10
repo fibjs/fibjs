@@ -25,7 +25,6 @@ public:
     void worker()
     {
         Runtime rt;
-        rt.m_pDateCache = &m_dc;
         Runtime::reg(&rt);
 
         AsyncEvent *p;
@@ -73,7 +72,6 @@ public:
 
 private:
     exlib::Event m_wait;
-    DateCache m_dc;
     exlib::Locker m_lock;
     int32_t m_idles;
 };
