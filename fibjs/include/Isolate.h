@@ -93,8 +93,9 @@ public:
 public:
 	int32_t m_id;
 	std::string m_fname;
+
+	QuickArray<void*> m_classInfo;
 	v8::Isolate *m_isolate;
-	QuickArray<void*> m_ci;
 	v8::Persistent<v8::Context> m_context;
 	v8::Persistent<v8::Object> m_global;
 	obj_ptr<SandBox> m_topSandbox;

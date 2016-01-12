@@ -265,18 +265,18 @@ private:
     cache* _init(Isolate* isolate)
     {
         if (m_id < 0)
-            m_id = (int32_t)isolate->m_ci.size();
+            m_id = (int32_t)isolate->m_classInfo.size();
 
         void* p = NULL;
-        while ((int32_t)isolate->m_ci.size() < m_id + 1)
-            isolate->m_ci.append(p);
+        while ((int32_t)isolate->m_classInfo.size() < m_id + 1)
+            isolate->m_classInfo.append(p);
 
-        cache* _cache = (cache*)isolate->m_ci[m_id];
+        cache* _cache = (cache*)isolate->m_classInfo[m_id];
 
         if (_cache)
             return _cache;
 
-        isolate->m_ci[m_id] = _cache = new cache();
+        isolate->m_classInfo[m_id] = _cache = new cache();
 
         v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
                     isolate->m_isolate, m_cd.cor);
