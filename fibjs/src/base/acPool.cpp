@@ -18,7 +18,6 @@ public:
     _acThread() : exlib::Service(NULL), m_idles(0)
     {
         s_idleThreads.inc();
-        s_threads.dec();
         start();
     }
 
@@ -36,7 +35,12 @@ public:
             s_idleThreads.inc();
             p = s_acPool.get();
             if (s_idleThreads.dec() == 0 && s_threads > 0)
-                new _acThread();
+            {
+                if (s_threads.dec() < 0)
+                    s_threads.inc();
+                else
+                    new _acThread();
+            }
 
             m_lock.unlock();
 
@@ -90,6 +94,8 @@ void init_acThread()
         cpus = 1;
 
     s_threads = cpus * 2;
+
+    s_threads.dec();
     new _acThread();
 }
 
