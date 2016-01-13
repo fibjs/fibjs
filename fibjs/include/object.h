@@ -45,25 +45,7 @@ public:
     virtual void Ref()
     {
         if (internalRef() == 1)
-        {
-            if (m_isolate)
-            {
-                m_isolate->m_weakLock.lock();
-                if (m_inweak)
-                {
-                    assert(m_weak.m_inlist);
-                    m_isolate->m_weak.remove(&m_weak);
-                    m_inweak = false;
-                    m_isolate->m_weakLock.unlock();
-                } else
-                {
-                    m_isolate->m_weakLock.unlock();
-
-                    if (!handle_.IsEmpty())
-                        handle_.ClearWeak();
-                }
-            }
-        }
+            clearWeak();
     }
 
     virtual void Unref()
@@ -74,14 +56,7 @@ public:
             assert(!m_weak.m_inlist);
 
             if (m_isJSObject || !handle_.IsEmpty())
-            {
-                m_isolate->m_weakLock.lock();
-                m_isolate->m_weak.putTail(&m_weak);
-                m_inweak = true;
-                m_isolate->m_weakLock.unlock();
-
-                assert(m_inweak);
-            }
+                setWeak();
             else
                 delete this;
         }
@@ -108,7 +83,7 @@ private:
     v8::Persistent<v8::Object> handle_;
 
 public:
-    static void SetWeak(exlib::linkitem* node)
+    static void gc_callback(exlib::linkitem* node)
     {
         object_base *pThis = NULL;
         pThis = (object_base *) ((char *) node
@@ -122,6 +97,45 @@ public:
     }
 
 private:
+    void setWeak()
+    {
+        assert(!m_inweak);
+        assert(!m_weak.m_inlist);
+
+        Isolate* isolate = m_isolate;
+
+        isolate->m_weakLock.lock();
+        isolate->m_weak.putTail(&m_weak);
+        m_inweak = true;
+        isolate->m_weakLock.unlock();
+
+        assert(m_inweak);
+    }
+
+    void clearWeak()
+    {
+        Isolate* isolate = m_isolate;
+
+        if (isolate)
+        {
+            isolate->m_weakLock.lock();
+            if (m_inweak)
+            {
+                assert(m_weak.m_inlist);
+                isolate->m_weak.remove(&m_weak);
+                m_inweak = false;
+                isolate->m_weakLock.unlock();
+            } else
+            {
+                isolate->m_weakLock.unlock();
+
+                if (!handle_.IsEmpty())
+                    handle_.ClearWeak();
+            }
+        }
+    }
+
+private:
     exlib::linkitem m_weak;
     bool m_inweak;
 
@@ -131,24 +145,15 @@ private:
         if (!handle_.IsEmpty())
         {
             Isolate* isolate = holder();
+            v8::Isolate* v8_isolate = isolate->m_isolate;
 
-            isolate->m_weakLock.lock();
-            if (m_inweak)
-            {
-                isolate->m_weak.remove(&m_weak);
-                m_inweak = false;
-                isolate->m_weakLock.unlock();
-            } else
-            {
-                isolate->m_weakLock.unlock();
-                handle_.ClearWeak();
-            }
+            clearWeak();
 
-            v8::Local<v8::Object>::New(isolate->m_isolate, handle_)->SetAlignedPointerInInternalField(
+            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(
                 0, 0);
             handle_.Reset();
 
-            isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
+            v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 
             obj_base::dispose(gc);
         }
@@ -169,8 +174,10 @@ private:
 public:
     Isolate* holder()
     {
-        if (m_isolate)
-            return m_isolate;
+        Isolate* isolate = m_isolate;
+
+        if (isolate)
+            return isolate;
 
         return m_isolate = Isolate::current();
     }
@@ -187,34 +194,26 @@ public:
     v8::Local<v8::Object> wrap(v8::Local<v8::Object> o)
     {
         Isolate* isolate = holder();
+        v8::Isolate* v8_isolate = isolate->m_isolate;
 
         if (handle_.IsEmpty())
         {
+            internalRef();
+
             if (o.IsEmpty())
                 o = Classinfo().CreateInstance(isolate);
-            handle_.Reset(isolate->m_isolate, o);
+            handle_.Reset(v8_isolate, o);
             o->SetAlignedPointerInInternalField(0, this);
 
-            isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
+            v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
-            internalRef();
             if (internalUnref() == 0)
-            {
-                assert(!m_inweak);
-                assert(!m_weak.m_inlist);
-
-                m_isolate->m_weakLock.lock();
-                m_isolate->m_weak.putTail(&m_weak);
-                m_inweak = true;
-                m_isolate->m_weakLock.unlock();
-
-                assert(m_inweak);
-            }
+                setWeak();
 
             return o;
         }
 
-        return v8::Local<v8::Object>::New(isolate->m_isolate, handle_);
+        return v8::Local<v8::Object>::New(v8_isolate, handle_);
     }
 
     v8::Local<v8::Object> wrap()
@@ -270,9 +269,11 @@ public:
 
             if (ext != 0)
             {
-                if (m_isolate && Isolate::current() == m_isolate)
+                Isolate* isolate = m_isolate;
+
+                if (isolate && Isolate::current() == isolate)
                 {
-                    m_isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
+                    isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;
                 }
                 else

@@ -79,7 +79,7 @@ static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallba
 
     isolate->m_weakLock.lock();
     while ((p = isolate->m_weak.getHead()) != 0)
-        object_base::SetWeak(p);
+        object_base::gc_callback(p);
     isolate->m_weakLock.unlock();
 }
 
