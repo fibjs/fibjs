@@ -107,6 +107,11 @@ protected:
         return refs_.dec();
     }
 
+    intptr_t refs()
+    {
+        return refs_;
+    }
+
     bool in_gc()
     {
         return gc_;

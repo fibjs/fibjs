@@ -72,6 +72,17 @@ Isolate::rt::~rt()
         m_fiber->m_traceInfo.resize(0);
 }
 
+static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
+{
+    Isolate *isolate = Isolate::current();
+    exlib::linkitem* p;
+
+    isolate->m_weakLock.lock();
+    while ((p = isolate->m_weak.getHead()) != 0)
+        object_base::gc_callback(p);
+    isolate->m_weakLock.unlock();
+}
+
 void Isolate::Run()
 {
     s_isolates.putTail(this);
@@ -88,6 +99,9 @@ void Isolate::Run()
     v8::Isolate::Scope isolate_scope(m_isolate);
 
     v8::HandleScope handle_scope(m_isolate);
+
+    m_isolate->AddGCPrologueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
+
 
     v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
     v8::Context::Scope context_scope(_context);

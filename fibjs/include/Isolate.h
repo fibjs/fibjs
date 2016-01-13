@@ -95,21 +95,27 @@ public:
 	std::string m_fname;
 
 	QuickArray<void*> m_classInfo;
+
+	exlib::spinlock m_weakLock;
+	exlib::List<exlib::linkitem> m_weak;
+
 	v8::Isolate *m_isolate;
 	v8::Persistent<v8::Context> m_context;
 	v8::Persistent<v8::Object> m_global;
-	obj_ptr<SandBox> m_topSandbox;
-	exlib::List<exlib::linkitem> m_fibers;
-	bool m_test_setup_bbd, m_test_setup_tdd;
 
 	v8::Persistent<v8::Value> m_proto;
+	v8::Persistent<v8::Object> m_json;
+	v8::Persistent<v8::Function> m_stringify;
+
+	obj_ptr<SandBox> m_topSandbox;
+
+	exlib::List<exlib::linkitem> m_fibers;
+
+	bool m_test_setup_bbd, m_test_setup_tdd;
 
 	exlib::Queue<exlib::linkitem> m_jobs;
 	int32_t m_currentFibers;
 	int32_t m_idleFibers;
-
-	v8::Persistent<v8::Object> m_json;
-	v8::Persistent<v8::Function> m_stringify;
 
 	int32_t m_loglevel;
 
