@@ -1330,8 +1330,10 @@ result_t Image::rotate(int32_t dir)
                                 gdImageGetPixel(m_image, i, j));
     }
 
+    setExtMemory(-1);
     gdImageDestroy(m_image);
     m_image = newImage;
+    setExtMemory();
 
     return 0;
 }
@@ -1561,7 +1563,6 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    obj_ptr<Image> dst;
     if (x == -1 && y == -1 && width == -1 && height == -1) {
         width = gdImageSX(m_image);
         height = gdImageSY(m_image);
@@ -1569,9 +1570,8 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
     else if (x < 0 || y < 0 || width < 0 || height < 0 || affine->Length() != 6 )
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    result_t hr = New(width, height, dst);
-    if (hr < 0)
-        return hr;
+    obj_ptr<Image> dst = new Image();
+
     gdRect rect;
     rect.x = x;
     rect.y = y;
@@ -1583,6 +1583,8 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
         affineMatrix[i] = affine->Get(i)->NumberValue();
 
     gdTransformAffineGetImage(&dst->m_image, m_image, &rect, affineMatrix);
+    dst->setExtMemory();
+
     retVal = dst;
 
     return 0;
@@ -1603,8 +1605,10 @@ result_t Image::gaussianBlur(int32_t radius, AsyncEvent* ac)
     gdImagePtr dst = gdImageCopyGaussianBlurred(m_image, radius, -1);
     if (dst)
     {
+        setExtMemory(-1);
         gdImageDestroy(m_image);
         m_image = dst;
+        setExtMemory();
     }
 
     return 0;
