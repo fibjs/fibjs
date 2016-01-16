@@ -15,14 +15,15 @@
 namespace fibjs
 {
 
-result_t websocket_base::connect(const char* url, obj_ptr<Stream_base>& retVal,
-                                 AsyncEvent* ac)
+result_t websocket_base::connect(const char* url, const char* origin,
+                                 obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
 	class asyncConnect: public AsyncState
 	{
 	public:
-		asyncConnect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent *ac) :
-			AsyncState(ac), m_url(url), m_retVal(retVal)
+		asyncConnect(const char* url, const char* origin,
+		             obj_ptr<Stream_base>& retVal, AsyncEvent *ac) :
+			AsyncState(ac), m_url(url), m_origin(origin), m_retVal(retVal)
 		{
 			set(handshake);
 		}
@@ -43,6 +44,9 @@ result_t websocket_base::connect(const char* url, obj_ptr<Stream_base>& retVal,
 			pThis->m_headers->put("Upgrade", "websocket");
 			pThis->m_headers->put("Connection", "Upgrade");
 			pThis->m_headers->put("Sec-WebSocket-Version", "13");
+
+			if (!pThis->m_origin.empty())
+				pThis->m_headers->put("Origin", pThis->m_origin.c_str());
 
 			char keys[16];
 			int32_t i;
@@ -115,6 +119,7 @@ result_t websocket_base::connect(const char* url, obj_ptr<Stream_base>& retVal,
 
 	private:
 		std::string m_url;
+		std::string m_origin;
 		obj_ptr<Stream_base>& m_retVal;
 		obj_ptr<HttpResponse_base> m_httprep;
 		obj_ptr<Map> m_headers;
@@ -124,7 +129,7 @@ result_t websocket_base::connect(const char* url, obj_ptr<Stream_base>& retVal,
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	return (new asyncConnect(url, retVal, ac))->post(0);
+	return (new asyncConnect(url, origin, retVal, ac))->post(0);
 }
 
 }

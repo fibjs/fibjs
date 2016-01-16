@@ -37,7 +37,7 @@ public:
 
 public:
     // websocket_base
-    static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(const char* url, const char* origin, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s_get_CONTINUE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -49,7 +49,7 @@ public:
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(websocket_base, connect, const char*, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(websocket_base, connect, const char*, const char*, obj_ptr<Stream_base>);
 };
 
 }
@@ -140,11 +140,12 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
+        OPT_ARG(arg_string, 1, "");
 
-        hr = ac_connect(v0, vr);
+        hr = ac_connect(v0, v1, vr);
 
         METHOD_RETURN();
     }
