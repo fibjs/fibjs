@@ -67,7 +67,7 @@ result_t websocket_base::connect(const char* url, obj_ptr<Stream_base>& retVal,
 			    6, (const char*)output, 20, pThis->m_accept);
 
 			pThis->set(response);
-			return http_base::request("get", pThis->m_url.c_str(),
+			return http_base::request("GET", pThis->m_url.c_str(),
 			                          NULL, pThis->m_headers, pThis->m_httprep, pThis);
 		}
 
