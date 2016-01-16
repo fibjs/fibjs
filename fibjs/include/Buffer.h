@@ -19,13 +19,11 @@ public:
     Buffer(const std::string &strData) :
         m_data(strData)
     {
-        extMemory((int32_t)m_data.length());
     }
 
     Buffer(const void *pData, size_t n) :
         m_data((const char *)pData, n)
     {
-        extMemory((int32_t)m_data.length());
     }
 
 public:

@@ -77,9 +77,6 @@ result_t MemoryStream::write(Buffer_base *data, AsyncEvent *ac)
     m_buffer.seekg(m_buffer.tellp());
     size(sz2);
 
-    if (sz2 > sz1)
-        extMemory((int32_t) (sz2 - sz1));
-
     m_time.now();
 
     return 0;

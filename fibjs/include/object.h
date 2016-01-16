@@ -28,8 +28,7 @@ class object_base: public obj_base
 {
 public:
     object_base() :
-        m_inweak(false), m_isolate(NULL), m_isJSObject(false),
-        m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
+        m_inweak(false), m_isolate(NULL), m_isJSObject(false)
     {
         object_base::class_info().Ref();
     }
@@ -153,8 +152,6 @@ private:
                 0, 0);
             handle_.Reset();
 
-            v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
-
             obj_base::dispose(gc);
         }
 
@@ -210,8 +207,6 @@ public:
             handle_.Reset(v8_isolate, o);
             o->SetAlignedPointerInInternalField(0, this);
 
-            v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
-
             if (internalUnref() == 0)
                 setWeak();
 
@@ -263,37 +258,9 @@ public:
     result_t _trigger(const char *ev, v8::Local<v8::Value> *args, int32_t argCount);
     result_t _trigger(const char *ev, Variant *args, int32_t argCount);
 
-    void extMemory(int32_t ext)
-    {
-        if (handle_.IsEmpty())
-            m_nExtMemory += ext;
-        else
-        {
-            ext += m_nExtMemoryDelay;
-            m_nExtMemoryDelay = 0;
-
-            if (ext != 0)
-            {
-                Isolate* isolate = m_isolate;
-
-                if (isolate && Isolate::current() == isolate)
-                {
-                    isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
-                    m_nExtMemory += ext;
-                }
-                else
-                    m_nExtMemoryDelay = ext;
-            }
-        }
-    }
-
 private:
     v8::Local<v8::Object> GetHiddenList(const char *k, bool create = false,
                                         bool autoDelete = false);
-
-private:
-    int32_t m_nExtMemory;
-    int32_t m_nExtMemoryDelay;
 
 public:
     template<typename T>

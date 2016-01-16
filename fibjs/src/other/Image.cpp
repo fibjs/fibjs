@@ -16,19 +16,6 @@
 namespace fibjs
 {
 
-void Image::setExtMemory(int32_t add)
-{
-    if (m_image)
-    {
-        int32_t psize =
-            gdImageTrueColor(m_image) ? sizeof(int32_t) : sizeof(unsigned char);
-        int32_t sx = gdImageSX(m_image);
-        int32_t sy = gdImageSY(m_image);
-        extMemory(
-            (sizeof(gdImage) + sizeof(void *) * sy + psize * sx * sy) * add);
-    }
-}
-
 result_t gd_base::create(int32_t width, int32_t height, int32_t color,
                          obj_ptr<Image_base> &retVal, AsyncEvent *ac)
 {
@@ -369,8 +356,6 @@ result_t Image::create(int32_t width, int32_t height, int32_t color)
     if (m_image == NULL)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    setExtMemory();
-
     return 0;
 }
 
@@ -462,7 +447,6 @@ result_t Image::load(Buffer_base *data)
     if (m_image == NULL)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    setExtMemory();
     m_type = format;
 
     return 0;
@@ -1188,8 +1172,6 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image> &retVal)
     gdImagePaletteCopy(img->m_image, m_image);
     gdImageColorTransparent(img->m_image, gdImageGetTransparent(m_image));
 
-    img->setExtMemory();
-
     retVal = img;
     return 0;
 }
@@ -1242,7 +1224,6 @@ result_t Image::clone(obj_ptr<Image_base> &retVal, AsyncEvent *ac)
 
     obj_ptr<Image> img = new Image();
     img->m_image = gdImageClone(m_image);
-    img->setExtMemory();
 
     retVal = img;
 
@@ -1330,10 +1311,8 @@ result_t Image::rotate(int32_t dir)
                                 gdImageGetPixel(m_image, i, j));
     }
 
-    setExtMemory(-1);
     gdImageDestroy(m_image);
     m_image = newImage;
-    setExtMemory();
 
     return 0;
 }
@@ -1361,17 +1340,9 @@ result_t Image::convert(int32_t color, AsyncEvent *ac)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (color == gd_base::_TRUECOLOR && !gdImageTrueColor(m_image))
-    {
-        setExtMemory(-1);
         gdImagePaletteToTrueColor(m_image);
-        setExtMemory();
-    }
     else if (color == gd_base::_PALETTE && gdImageTrueColor(m_image))
-    {
-        setExtMemory(-1);
         gdImageTrueColorToPalette(m_image, 1, 256);
-        setExtMemory();
-    }
     else
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1583,7 +1554,6 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
         affineMatrix[i] = affine->Get(i)->NumberValue();
 
     gdTransformAffineGetImage(&dst->m_image, m_image, &rect, affineMatrix);
-    dst->setExtMemory();
 
     retVal = dst;
 
@@ -1605,10 +1575,8 @@ result_t Image::gaussianBlur(int32_t radius, AsyncEvent* ac)
     gdImagePtr dst = gdImageCopyGaussianBlurred(m_image, radius, -1);
     if (dst)
     {
-        setExtMemory(-1);
         gdImageDestroy(m_image);
         m_image = dst;
-        setExtMemory();
     }
 
     return 0;
