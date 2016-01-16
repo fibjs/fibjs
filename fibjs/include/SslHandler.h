@@ -22,6 +22,8 @@ public:
     // object_base
     virtual result_t dispose()
     {
+        m_hdlr.dispose();
+
         return 0;
     }
 

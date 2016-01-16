@@ -341,40 +341,56 @@ public:
 
     ~naked_ptr()
     {
+        dispose();
     }
 
     T *operator=(T *lp)
     {
+        dispose();
         p = lp;
         return lp;
     }
 
-    operator T *() const
+    operator T *()
     {
-        return p;
+        return get_ptr();
     }
 
     T *operator->()
     {
-        return p;
+        return get_ptr();
     }
 
-    void Ref()
+    void dispose()
     {
-        T *p1 = p;
-        if (p1)
-            p1->Ref();
+        T *rp1 = rp.xchg(NULL);
+        if (rp1)
+        {
+            rp1->dispose();
+            rp1->Unref();
+        }
     }
 
-    void Unref()
+private:
+    T* get_ptr()
     {
         T *p1 = p;
-        if (p1)
-            p1->Unref();
+        T *rp1 = rp;
+
+        if (!p1 || p1 == rp1)
+            return p1;
+
+        p1->Ref();
+        rp1 = rp.xchg(p1);
+        if (rp1)
+            rp1->Unref();
+
+        return p1;
     }
 
 private:
     exlib::atomic_ptr<T> p;
+    exlib::atomic_ptr<T> rp;
 };
 
 }

@@ -42,6 +42,11 @@ public:
     // object_base
     virtual result_t dispose()
     {
+        int32_t i, sz = (int32_t)m_array.size();
+
+        for (i = 0; i < sz; i ++)
+            m_array[i]->m_hdlr.dispose();
+
         return 0;
     }
 

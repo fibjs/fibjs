@@ -23,6 +23,9 @@ public:
     // object_base
     virtual result_t dispose()
     {
+        m_server.dispose();
+        m_handler.dispose();
+
         return 0;
     }
 

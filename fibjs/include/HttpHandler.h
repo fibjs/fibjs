@@ -25,6 +25,11 @@ public:
     // object_base
     virtual result_t dispose()
     {
+        m_hdlr.dispose();
+        m_err_hdlrs[0].dispose();
+        m_err_hdlrs[1].dispose();
+        m_err_hdlrs[2].dispose();
+
         return 0;
     }
 

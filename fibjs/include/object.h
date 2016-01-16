@@ -182,6 +182,11 @@ public:
         return m_isolate = Isolate::current();
     }
 
+    const char* typeName()
+    {
+        return Classinfo().name();
+    }
+
     void setJSObject()
     {
         m_isJSObject = true;
