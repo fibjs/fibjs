@@ -154,6 +154,7 @@ describe("vm", function() {
 	it("Garbage Collection", function() {
 		sbox = undefined;
 		GC();
+		GC();
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		sbox = new vm.SandBox({});
