@@ -12,7 +12,6 @@
 namespace fibjs
 {
 
-OSTls th_rt;
 static int32_t s_tls_rt;
 
 void init_rt()
@@ -22,18 +21,12 @@ void init_rt()
 
 void Runtime::reg(void *rt)
 {
-	if (exlib::Service::hasService())
-		exlib::Fiber::tlsPut(s_tls_rt, rt);
-	else
-		th_rt = rt;
+	exlib::Fiber::tlsPut(s_tls_rt, rt);
 }
 
 Runtime &Runtime::now()
 {
-	if (exlib::Service::hasService())
-		return *(Runtime *)exlib::Fiber::tlsGet(s_tls_rt);
-
-	return *(Runtime *)th_rt;
+	return *(Runtime *)exlib::Fiber::tlsGet(s_tls_rt);
 }
 
 } /* namespace fibjs */
