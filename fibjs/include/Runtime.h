@@ -16,12 +16,17 @@ namespace fibjs
 class Runtime
 {
 public:
-    static Runtime &now();
-    static void reg(void *rt);
+    Runtime(Isolate* isolate) : m_isolate(isolate)
+    {
+        reg();
+    }
+
+public:
+    static Runtime &current();
 
     static result_t setError(result_t hr)
     {
-        Runtime &rt = Runtime::now();
+        Runtime &rt = Runtime::current();
 
         rt.m_code = hr;
         return rt.m_code;
@@ -29,7 +34,7 @@ public:
 
     static result_t setError(std::string err)
     {
-        Runtime &rt = Runtime::now();
+        Runtime &rt = Runtime::current();
 
         rt.m_code = CALL_E_EXCEPTION;
         rt.m_error = err;
@@ -38,7 +43,7 @@ public:
 
     static result_t setError(const char *err = NULL)
     {
-        Runtime &rt = Runtime::now();
+        Runtime &rt = Runtime::current();
 
         rt.m_code = CALL_E_EXCEPTION;
         rt.m_error.assign(err ? err : "");
@@ -47,17 +52,26 @@ public:
 
     static const std::string &errMessage()
     {
-        return Runtime::now().m_error;
+        return Runtime::current().m_error;
     }
 
     static result_t errNumber()
     {
-        return Runtime::now().m_code;
+        return Runtime::current().m_code;
     }
+
+    Isolate* isolate()
+    {
+        return m_isolate;
+    }
+
+private:
+    void reg();
 
 private:
     result_t m_code;
     std::string m_error;
+    Isolate* m_isolate;
 };
 
 } /* namespace fibjs */

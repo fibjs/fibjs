@@ -19,12 +19,12 @@ void init_rt()
 	s_tls_rt = exlib::Fiber::tlsAlloc();
 }
 
-void Runtime::reg(void *rt)
+void Runtime::reg()
 {
-	exlib::Fiber::tlsPut(s_tls_rt, rt);
+	exlib::Fiber::tlsPut(s_tls_rt, this);
 }
 
-Runtime &Runtime::now()
+Runtime &Runtime::current()
 {
 	return *(Runtime *)exlib::Fiber::tlsGet(s_tls_rt);
 }

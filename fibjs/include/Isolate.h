@@ -18,7 +18,7 @@ namespace fibjs
 class SandBox;
 class JSFiber;
 
-class Isolate : public exlib::Service
+class Isolate : public exlib::linkitem
 {
 public:
 	class rt_base
@@ -60,30 +60,11 @@ public:
 	Isolate(const char *fname);
 
 public:
-	static const int32_t type = 101;
-	virtual bool is(int32_t t)
-	{
-		return t == type || exlib::Service::is(t);
-	}
-
-	static Isolate *current()
-	{
-		OSThread* thread_ = OSThread::current();
-
-		assert(thread_ != 0);
-
-		if (thread_->is(Isolate::type))
-			return (Isolate*)thread_;
-
-		return 0;
-	}
+	static Isolate *current();
 
 	static bool check()
 	{
-		OSThread* thread_ = OSThread::current();
-		assert(thread_ != 0);
-
-		return thread_->is(Isolate::type);
+		return current() != NULL;
 	}
 
 	void init();

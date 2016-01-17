@@ -18,6 +18,7 @@ extern int32_t stack_size;
 
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
+extern exlib::Service* g_service;
 
 void init_fiber()
 {
@@ -29,9 +30,7 @@ void *FiberBase::fiber_proc(void *p)
 {
     Isolate* isolate = (Isolate*)p;
 
-    Runtime rt;
-    Runtime::reg(&rt);
-
+    Runtime rt(isolate);
     v8::Locker locker(isolate->m_isolate);
     v8::Isolate::Scope isolate_scope(isolate->m_isolate);
 
@@ -65,7 +64,7 @@ void *FiberBase::fiber_proc(void *p)
             isolate->m_currentFibers++;
             isolate->m_idleFibers ++;
 
-            isolate->Create(fiber_proc, isolate, stack_size * 1024);
+            g_service->Create(fiber_proc, isolate, stack_size * 1024);
         }
 
         {

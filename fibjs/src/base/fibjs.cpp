@@ -5,6 +5,7 @@
 #include <time.h>
 #include "ifs/global.h"
 #include "ifs/process.h"
+#include "ifs/os.h"
 #include "console.h"
 #include "SandBox.h"
 #include "Fiber.h"
@@ -34,6 +35,7 @@ public:
     }
 };
 
+exlib::Service* g_service;
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 extern int32_t stack_size;
@@ -71,14 +73,33 @@ static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallba
     isolate->m_weakLock.unlock();
 }
 
+void *init_proc(void *p)
+{
+    Isolate* isolate = (Isolate*)p;
+    Runtime rt(isolate);
+
+    isolate->init();
+    return FiberBase::fiber_proc(p);
+}
+
 Isolate::Isolate(const char *fname) :
-    exlib::Service(), m_id((int32_t)s_iso_id.inc()),
+    m_id((int32_t)s_iso_id.inc()),
     m_test_setup_bbd(false), m_test_setup_tdd(false), m_test(NULL),
     m_currentFibers(0), m_idleFibers(0),
     m_loglevel(console_base::_NOTSET), m_interrupt(false)
 {
     if (fname)
         m_fname = fname;
+
+    m_currentFibers++;
+    m_idleFibers ++;
+
+    g_service->Create(init_proc, this, stack_size * 1024);
+}
+
+Isolate* Isolate::current()
+{
+    return Runtime::current().isolate();
 }
 
 static void main_fiber(Isolate* isolate)
@@ -137,18 +158,7 @@ void Isolate::init()
     static const char* skips[] = {"repl", "argv", NULL};
     global_base::class_info().Attach(this, glob, skips);
 
-    m_currentFibers++;
-    m_idleFibers ++;
-
     syncCall(this, main_fiber, this);
-}
-
-void *init_proc(void *p)
-{
-    Isolate* isolate = (Isolate*)p;
-
-    isolate->init();
-    return FiberBase::fiber_proc(p);
 }
 
 void init_date();
@@ -168,6 +178,15 @@ void init(int32_t argc, char *argv[])
 
     if (options(&argc, argv))
         _exit(0);
+
+    int32_t cpus = 0;
+
+    os_base::CPUs(cpus);
+    if (cpus < 2)
+        cpus = 2;
+
+    fibjs::g_service = new exlib::Service(cpus + 1);
+    fibjs::g_service->bindCurrent();
 
     init_prof();
     init_argv(argc, argv);
@@ -196,17 +215,13 @@ int32_t main(int32_t argc, char *argv[])
     if (i < argc)
         fname = argv[i];
 
-    fibjs::Isolate* isolate = new fibjs::Isolate(fname);
-    isolate->bindCurrent();
-
     v8::Platform *platform = v8::platform::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform);
 
     v8::V8::Initialize();
 
-    isolate->Create(fibjs::init_proc, isolate, fibjs::stack_size * 1024);
-
-    isolate->dispatch();
+    new fibjs::Isolate(fname);
+    fibjs::g_service->dispatch();
 
     return 0;
 }

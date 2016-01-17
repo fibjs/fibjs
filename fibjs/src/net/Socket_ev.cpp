@@ -179,8 +179,7 @@ public:
         ev_timer tm;
         tm_cb(s_loop, &tm, 0);
 
-        Runtime rt;
-        Runtime::reg(&rt);
+        Runtime rt(NULL);
 
         ev_run(s_loop, 0);
     }
