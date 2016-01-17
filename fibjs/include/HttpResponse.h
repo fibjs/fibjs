@@ -22,6 +22,7 @@ public:
     {
         m_message = new HttpMessage(true);
         clear();
+        extMemory(4096);
     }
 
 public:

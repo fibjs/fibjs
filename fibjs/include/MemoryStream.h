@@ -25,6 +25,7 @@ public:
         CloneStream(std::string buffer, date_t tm) :
             m_buffer(buffer), m_time(tm), m_pos(0)
         {
+            extMemory((int32_t)m_buffer.length());
         }
 
     public:

@@ -26,6 +26,7 @@ public:
 #else
         m_eol.assign("\n", 1);
 #endif
+        extMemory(4096);
     }
 
 public:

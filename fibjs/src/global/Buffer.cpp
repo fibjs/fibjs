@@ -116,6 +116,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
         }
     }
     obj_ptr<Buffer> bNew = new Buffer(str);
+    bNew->extMemory(offset);
     retVal = bNew;
     return hr;
 }
@@ -152,6 +153,7 @@ result_t Buffer::resize(int32_t sz)
     if (sz < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
+    extMemory(sz - (int32_t) m_data.length());
     m_data.resize(sz);
 
     return 0;
@@ -183,6 +185,7 @@ result_t Buffer::append(v8::Local<v8::Array> datas)
             str[i] = num;
         }
 
+        extMemory((int32_t) sz);
         m_data.append(str);
     }
 
@@ -194,6 +197,7 @@ result_t Buffer::append(Buffer_base *data)
     std::string strBuf;
     data->toString(strBuf);
 
+    extMemory((int32_t) strBuf.length());
     m_data.append(strBuf);
     return 0;
 }
@@ -204,6 +208,7 @@ result_t Buffer::append(const char *str, const char *codec)
     {
         size_t sz = qstrlen(str);
 
+        extMemory((int32_t) sz);
         m_data.append(str, sz);
         return 0;
     }
@@ -705,8 +710,10 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
 
     obj_ptr<Buffer> pNew = new Buffer();
     if (start < end)
+    {
         pNew->m_data.append(m_data, start, end - start);
-
+        pNew->extMemory((int32_t) (end - start));
+    }
     retVal = pNew;
 
     return 0;
