@@ -7,77 +7,43 @@
 namespace fibjs
 {
 
-static exlib::Queue<AsyncEvent> s_acPool;
 #define WORKER_STACK_SIZE   128
-static exlib::atomic s_threads;
-static exlib::atomic s_idleThreads;
+#define MAX_IDLE_WORKERS    2
 
-class _acThread: public exlib::Service
+static exlib::Queue<AsyncEvent> s_acPool;
+static exlib::atomic s_idleWorkers;
+static exlib::Service* s_service;
+
+static void *worker_proc(void *ptr)
 {
-public:
-    _acThread() : exlib::Service(NULL), m_idles(0)
+    Runtime rt;
+    Runtime::reg(&rt);
+
+    AsyncEvent *p;
+
+    s_idleWorkers.dec();
+
+    while (true)
     {
-        s_idleThreads.inc();
-        start();
-    }
+        if (s_idleWorkers.inc() > MAX_IDLE_WORKERS)
+            break;
 
-    void worker()
-    {
-        Runtime rt;
-        Runtime::reg(&rt);
-
-        AsyncEvent *p;
-
-        while (m_idles <= 2)
+        p = s_acPool.get();
+        if (s_idleWorkers.dec() == 0)
         {
-            m_lock.lock();
-
-            s_idleThreads.inc();
-            p = s_acPool.get();
-            if (s_idleThreads.dec() == 0 && s_threads > 0)
-            {
-                if (s_threads.dec() < 0)
-                    s_threads.inc();
-                else
-                    new _acThread();
-            }
-
-            m_lock.unlock();
-
-            m_idles --;
-            if (m_idles == 0) {
-                m_idles ++;
-                Create(fiber_proc, this, WORKER_STACK_SIZE * 1024);
-            }
-
-            p->invoke();
-
-            m_idles ++;
+            if (s_idleWorkers.inc() > MAX_IDLE_WORKERS)
+                s_idleWorkers.dec();
+            else
+                s_service->Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
         }
 
-        m_idles --;
+        p->invoke();
     }
 
-    static void *fiber_proc(void *p)
-    {
-        ((_acThread*)p)->worker();
-        return 0;
-    }
+    s_idleWorkers.dec();
 
-    virtual void Run()
-    {
-        s_idleThreads.dec();
-
-        m_idles ++;
-        Create(fiber_proc, this, WORKER_STACK_SIZE * 1024);
-
-        Service::Run();
-    }
-
-private:
-    exlib::Locker m_lock;
-    int32_t m_idles;
-};
+    return 0;
+}
 
 void AsyncEvent::async()
 {
@@ -89,13 +55,14 @@ void init_acThread()
     int32_t cpus = 0;
 
     os_base::CPUs(cpus);
-    if (cpus < 1)
-        cpus = 1;
+    if (cpus < 2)
+        cpus = 2;
 
-    s_threads = cpus * 2;
+    s_service = new exlib::Service(cpus - 1);
 
-    s_threads.dec();
-    new _acThread();
+    s_idleWorkers.inc();
+    s_service->Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
+    s_service->start();
 }
 
 }

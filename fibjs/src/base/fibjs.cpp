@@ -72,8 +72,10 @@ static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallba
 }
 
 Isolate::Isolate(const char *fname) :
-    exlib::Service(NULL), m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
-    m_currentFibers(0), m_idleFibers(0), m_loglevel(console_base::_NOTSET), m_interrupt(false)
+    exlib::Service(), m_id((int32_t)s_iso_id.inc()),
+    m_test_setup_bbd(false), m_test_setup_tdd(false),
+    m_currentFibers(0), m_idleFibers(0),
+    m_loglevel(console_base::_NOTSET), m_interrupt(false)
 {
     if (fname)
         m_fname = fname;
@@ -204,7 +206,7 @@ int32_t main(int32_t argc, char *argv[])
 
     isolate->Create(fibjs::init_proc, isolate, fibjs::stack_size * 1024);
 
-    isolate->Run();
+    isolate->dispatch();
 
     return 0;
 }
