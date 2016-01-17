@@ -51,6 +51,11 @@ public:
 	{
 	}
 
+	virtual void suspend(exlib::spinlock& lock)
+	{
+		lock.unlock();
+	}
+
 	virtual void resume()
 	{
 		syncCall(holder(), _callback, this);
