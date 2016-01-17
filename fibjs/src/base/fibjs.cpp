@@ -108,11 +108,11 @@ static void main_fiber(Isolate* isolate)
 
 void Isolate::init()
 {
-    s_isolates.putTail(this);
-
-    v8::Isolate::CreateParams create_params;
-    ShellArrayBufferAllocator array_buffer_allocator;
+    static v8::Isolate::CreateParams create_params;
+    static ShellArrayBufferAllocator array_buffer_allocator;
     create_params.array_buffer_allocator = &array_buffer_allocator;
+
+    s_isolates.putTail(this);
 
     m_isolate = v8::Isolate::New(create_params);
     m_isolate->AddGCPrologueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
@@ -137,15 +137,16 @@ void Isolate::init()
 
     m_currentFibers++;
     m_idleFibers ++;
-    Create(FiberBase::fiber_proc, this, stack_size * 1024);
 
     syncCall(this, main_fiber, this);
 }
 
-void Isolate::Run()
+void *init_proc(void *p)
 {
-    init();
-    Service::Run();
+    Isolate* isolate = (Isolate*)p;
+
+    isolate->init();
+    return FiberBase::fiber_proc(p);
 }
 
 void init_date();
@@ -200,6 +201,8 @@ int32_t main(int32_t argc, char *argv[])
     v8::V8::InitializePlatform(platform);
 
     v8::V8::Initialize();
+
+    isolate->Create(fibjs::init_proc, isolate, fibjs::stack_size * 1024);
 
     isolate->Run();
 

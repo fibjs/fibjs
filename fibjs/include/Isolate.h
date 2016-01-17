@@ -87,8 +87,6 @@ public:
 	}
 
 	void init();
-	virtual void Run();
-
 	void InterruptCallback();
 
 public:
