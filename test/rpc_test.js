@@ -137,6 +137,8 @@ describe("rpc", function() {
 
 	it("Garbage Collection", function() {
 		GC();
+		GC();
+
 		var no1 = os.memoryUsage().nativeObjects.objects;
 
 		rpc.json({});
