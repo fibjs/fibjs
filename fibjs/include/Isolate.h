@@ -86,6 +86,7 @@ public:
 		return thread_->is(Isolate::type);
 	}
 
+	void init();
 	virtual void Run();
 
 	void InterruptCallback();

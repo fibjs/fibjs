@@ -38,18 +38,6 @@ exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 extern int32_t stack_size;
 
-Isolate::Isolate(const char *fname) :
-    exlib::Service(NULL), m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
-    m_currentFibers(0), m_idleFibers(0), m_loglevel(console_base::_NOTSET), m_interrupt(false)
-{
-    if (fname)
-        m_fname = fname;
-
-    m_currentFibers++;
-    m_idleFibers ++;
-    Create(FiberBase::fiber_proc, this, stack_size * 1024);
-}
-
 bool Isolate::rt::g_trace = false;
 
 inline JSFiber* saveTrace()
@@ -83,62 +71,81 @@ static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallba
     isolate->m_weakLock.unlock();
 }
 
-void Isolate::Run()
+Isolate::Isolate(const char *fname) :
+    exlib::Service(NULL), m_id((int32_t)s_iso_id.inc()), m_test_setup_bbd(false), m_test_setup_tdd(false),
+    m_currentFibers(0), m_idleFibers(0), m_loglevel(console_base::_NOTSET), m_interrupt(false)
+{
+    if (fname)
+        m_fname = fname;
+}
+
+static void main_fiber(Isolate* isolate)
+{
+    result_t hr;
+
+    if (!isolate->m_fname.empty())
+    {
+        JSFiber::scope s;
+        v8::Local<v8::Array> argv;
+        v8::Local<v8::Value> replFunc;
+
+        global_base::get_argv(argv);
+        replFunc = global_base::class_info().getFunction(isolate)->Get(
+                       v8::String::NewFromUtf8(isolate->m_isolate, "repl"));
+
+        hr = s.m_hr = isolate->m_topSandbox->run(
+                          isolate->m_fname.c_str(), argv, replFunc);
+    }
+    else
+    {
+        JSFiber::scope s;
+        v8::Local<v8::Array> cmds = v8::Array::New(isolate->m_isolate);
+        hr = s.m_hr = isolate->m_topSandbox->repl(cmds);
+    }
+
+    process_base::exit(hr);
+}
+
+void Isolate::init()
 {
     s_isolates.putTail(this);
-
-    Runtime rt;
-    Runtime::reg(&rt);
 
     v8::Isolate::CreateParams create_params;
     ShellArrayBufferAllocator array_buffer_allocator;
     create_params.array_buffer_allocator = &array_buffer_allocator;
 
     m_isolate = v8::Isolate::New(create_params);
-    v8::Locker locker(m_isolate);
-    v8::Isolate::Scope isolate_scope(m_isolate);
-
-    v8::HandleScope handle_scope(m_isolate);
-
     m_isolate->AddGCPrologueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
 
+    v8::Locker locker(m_isolate);
+    v8::Isolate::Scope isolate_scope(m_isolate);
+    v8::HandleScope handle_scope(m_isolate);
 
     v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
-    v8::Context::Scope context_scope(_context);
+    m_context.Reset(m_isolate, _context);
 
     v8::Local<v8::Object> glob = _context->Global();
+    m_global.Reset(m_isolate, glob);
+
+    v8::Context::Scope context_scope(_context);
+
+    m_topSandbox = new SandBox();
+    m_topSandbox->initRoot();
+
     static const char* skips[] = {"repl", "argv", NULL};
     global_base::class_info().Attach(this, glob, skips);
 
-    m_context.Reset(m_isolate, _context);
-    m_global.Reset(m_isolate, glob);
+    m_currentFibers++;
+    m_idleFibers ++;
+    Create(FiberBase::fiber_proc, this, stack_size * 1024);
 
-    result_t hr;
+    syncCall(this, main_fiber, this);
+}
 
-    {
-        JSFiber::scope s;
-        m_topSandbox = new SandBox();
-
-        m_topSandbox->initRoot();
-        if (!m_fname.empty())
-        {
-            v8::Local<v8::Array> argv;
-            v8::Local<v8::Value> replFunc;
-
-            global_base::get_argv(argv);
-            replFunc = global_base::class_info().getFunction(this)->Get(
-                           v8::String::NewFromUtf8(m_isolate, "repl"));
-
-            hr = s.m_hr = m_topSandbox->run(m_fname.c_str(), argv, replFunc);
-        }
-        else
-        {
-            v8::Local<v8::Array> cmds = v8::Array::New(m_isolate);
-            hr = s.m_hr = m_topSandbox->repl(cmds);
-        }
-    }
-
-    process_base::exit(hr);
+void Isolate::Run()
+{
+    init();
+    Service::Run();
 }
 
 void init_date();
@@ -152,20 +159,31 @@ void init_fiber();
 void init_sandbox();
 bool options(int32_t* argc, char *argv[]);
 
+void init(int32_t argc, char *argv[])
+{
+    ::setlocale(LC_ALL, "");
+
+    if (options(&argc, argv))
+        _exit(0);
+
+    init_prof();
+    init_argv(argc, argv);
+    init_date();
+    init_rt();
+    init_sandbox();
+    init_acThread();
+    init_logger();
+    init_net();
+    init_fiber();
+
+    srand((unsigned int)time(0));
+}
+
 }
 
 int32_t main(int32_t argc, char *argv[])
 {
-    ::setlocale(LC_ALL, "");
-
-    if ( fibjs::options(&argc, argv) )
-        return 0;
-
-    fibjs::init_prof();
-
-    fibjs::init_argv(argc, argv);
-
-    srand((unsigned int)time(0));
+    fibjs::init(argc, argv);
 
     int32_t i;
 
@@ -177,16 +195,6 @@ int32_t main(int32_t argc, char *argv[])
 
     fibjs::Isolate* isolate = new fibjs::Isolate(fname);
     isolate->bindCurrent();
-
-    fibjs::init_date();
-
-    fibjs::init_rt();
-
-    fibjs::init_sandbox();
-    fibjs::init_acThread();
-    fibjs::init_logger();
-    fibjs::init_net();
-    fibjs::init_fiber();
 
     v8::Platform *platform = v8::platform::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform);
