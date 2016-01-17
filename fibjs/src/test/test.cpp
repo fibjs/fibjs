@@ -19,8 +19,6 @@ class _case;
 
 static int32_t s_slow = 75;
 
-OSTls th_test;
-
 class TestData {
 public:
     obj_ptr<_case> m_root;
@@ -28,9 +26,10 @@ public:
 
     static TestData* current()
     {
-        TestData* td = (TestData*)th_test;
+        Isolate* isolate = Isolate::current();
+        TestData* td = (TestData*)isolate->m_test;
         if (!td)
-            th_test = td = new TestData();
+            isolate->m_test = td = new TestData();
 
         return td;
     }

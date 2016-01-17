@@ -111,6 +111,7 @@ public:
 	exlib::List<exlib::linkitem> m_fibers;
 
 	bool m_test_setup_bbd, m_test_setup_tdd;
+	void* m_test;
 
 	exlib::Queue<exlib::linkitem> m_jobs;
 	int32_t m_currentFibers;
