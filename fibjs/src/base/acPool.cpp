@@ -71,11 +71,10 @@ public:
         m_idles ++;
         Create(fiber_proc, this, WORKER_STACK_SIZE * 1024);
 
-        m_wait.wait();
+        Service::Run();
     }
 
 private:
-    exlib::Event m_wait;
     exlib::Locker m_lock;
     int32_t m_idles;
 };
