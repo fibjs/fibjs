@@ -184,7 +184,7 @@ void init(int32_t argc, char *argv[])
     if (cpus < 2)
         cpus = 2;
 
-    exlib::Service::init(cpus + 2);
+    exlib::Service::init(cpus + 1);
 
     init_prof();
     init_argv(argc, argv);
