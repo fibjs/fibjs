@@ -91,24 +91,6 @@ describe("rpc", function() {
 			'{"id":1234,"result":300}');
 	});
 
-	it("encodeURI", function() {
-		m = new http.Request();
-
-		m.value = '/xhr/test';
-		m.setHeader("Content-Type", "application/x-www-form-urlencoded");
-		m.body.write("jsonrpc=" + encoding.encodeURIComponent(encoding.json.encode({
-			method: 'fun',
-			params: [100, 200],
-			id: 1234
-		})));
-
-		jr.invoke(m);
-
-		m.response.body.rewind();
-		assert.equal(m.response.body.read().toString(),
-			'<html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><script>window.name=\"{\\\"id\\\":1234,\\\"result\\\":300}\";</script></html>');
-	});
-
 	it("over tcp", function() {
 		var hdlr = new http.Handler(rpc.json({
 			update: function(v) {

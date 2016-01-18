@@ -52,7 +52,6 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     int64_t len;
     int32_t sz, i;
     result_t hr;
-    bool bFormReq = false;
     obj_ptr<List_base> params;
 
     if (htreq != NULL)
@@ -61,37 +60,25 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return CHECK_ERROR(Runtime::setError("jsonrpc: Content-Type is missing."));
 
         str = result.string();
-        if (!qstricmp(str.c_str(), "application/x-www-form-urlencoded", 33))
-        {
-            obj_ptr<HttpCollection_base> form;
-            htreq->get_form(form);
-            if (form->first("jsonrpc", result) == CALL_RETURN_NULL)
-                return CHECK_ERROR(Runtime::setError("jsonrpc: Invalid form data."));
-            str = result.string();
-            bFormReq = true;
-        }
-        else if (qstricmp(str.c_str(), "application/json", 16))
+        if (qstricmp(str.c_str(), "application/json", 16))
             return CHECK_ERROR(Runtime::setError("jsonrpc: Invalid Content-Type."));
     }
 
-    if (!bFormReq)
-    {
-        msg->get_body(body);
+    msg->get_body(body);
 
-        body->size(len);
-        sz = (int32_t) len;
+    body->size(len);
+    sz = (int32_t) len;
 
-        body->rewind();
-        hr = body->ac_read(sz, buf);
-        if (hr < 0)
-            return hr;
-        if (hr == CALL_RETURN_NULL)
-            return CHECK_ERROR(Runtime::setError("jsonrpc: request body is empty."));
-        body.Release();
+    body->rewind();
+    hr = body->ac_read(sz, buf);
+    if (hr < 0)
+        return hr;
+    if (hr == CALL_RETURN_NULL)
+        return CHECK_ERROR(Runtime::setError("jsonrpc: request body is empty."));
+    body.Release();
 
-        buf->toString(str);
-        buf.Release();
-    }
+    buf->toString(str);
+    buf.Release();
 
     hr = encoding_base::jsonDecode(str.c_str(), jsval);
     if (hr < 0)
@@ -175,22 +162,6 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
     body = new MemoryStream();
 
-    if (bFormReq)
-    {
-        std::string strTemp;
-
-        strTemp.assign(
-            "<html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><script>window.name=\"",
-            94);
-
-        encoding_base::jsstr(str.c_str(), false, str);
-        strTemp.append(str);
-
-        strTemp.append("\";</script></html>", 18);
-
-        str = strTemp;
-    }
-
     buf = new Buffer(str);
     hr = body->ac_write(buf);
     if (hr < 0)
@@ -205,8 +176,8 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     rep->set_body(body);
 
     if (htreq)
-        ((HttpMessage_base *)(Message_base *)rep)->setHeader("Content-Type",
-                bFormReq ? "text/html" : "application/json");
+        ((HttpMessage_base *)(Message_base *)rep)->setHeader(
+            "Content-Type", "application/json");
 
     return CALL_RETURN_NULL;
 }
