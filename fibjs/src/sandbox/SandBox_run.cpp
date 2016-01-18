@@ -395,7 +395,7 @@ result_t SandBox::require(std::string base, std::string id,
 
         if (!IsEmpty(retVal))
         {
-            if (retVal->IsObject() && !object_base::getInstance(retVal))
+            if (!retVal->IsProxy() && retVal->IsObject() && !object_base::getInstance(retVal))
                 util_base::clone(retVal, retVal);
             InstallModule(strId, retVal);
 

@@ -546,9 +546,10 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array> &retVal)
 
 result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
 {
-    Isolate* isolate = Isolate::current();
-    if (v->IsObject() && !object_base::getInstance(v))
+    if (!v->IsProxy() && v->IsObject() && !object_base::getInstance(v))
     {
+        Isolate* isolate = Isolate::current();
+
         if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
             retVal = v;
         else if (v->IsDate())
