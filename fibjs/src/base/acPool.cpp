@@ -12,7 +12,6 @@ namespace fibjs
 
 static exlib::Queue<AsyncEvent> s_acPool;
 static exlib::atomic s_idleWorkers;
-extern exlib::Service* g_service;
 
 static void *worker_proc(void *ptr)
 {
@@ -32,7 +31,7 @@ static void *worker_proc(void *ptr)
             if (s_idleWorkers.inc() > MAX_IDLE_WORKERS)
                 s_idleWorkers.dec();
             else
-                g_service->Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
+                exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
         }
 
         p->invoke();
@@ -57,7 +56,7 @@ void init_acThread()
         cpus = 2;
 
     s_idleWorkers.inc();
-    g_service->Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
+    exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
 }
 
 }

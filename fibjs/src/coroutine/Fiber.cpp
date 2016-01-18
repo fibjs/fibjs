@@ -18,7 +18,6 @@ extern int32_t stack_size;
 
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
-extern exlib::Service* g_service;
 
 void init_fiber()
 {
@@ -64,7 +63,7 @@ void *FiberBase::fiber_proc(void *p)
             isolate->m_currentFibers++;
             isolate->m_idleFibers ++;
 
-            g_service->Create(fiber_proc, isolate, stack_size * 1024);
+            exlib::Service::Create(fiber_proc, isolate, stack_size * 1024);
         }
 
         {

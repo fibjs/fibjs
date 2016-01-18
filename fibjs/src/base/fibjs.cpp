@@ -35,7 +35,6 @@ public:
     }
 };
 
-exlib::Service* g_service;
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 extern int32_t stack_size;
@@ -94,7 +93,7 @@ Isolate::Isolate(const char *fname) :
     m_currentFibers++;
     m_idleFibers ++;
 
-    g_service->Create(init_proc, this, stack_size * 1024);
+    exlib::Service::Create(init_proc, this, stack_size * 1024);
 }
 
 Isolate* Isolate::current()
@@ -185,8 +184,7 @@ void init(int32_t argc, char *argv[])
     if (cpus < 2)
         cpus = 2;
 
-    fibjs::g_service = new exlib::Service(cpus + 1);
-    fibjs::g_service->bindCurrent();
+    exlib::Service::init(cpus + 2);
 
     init_prof();
     init_argv(argc, argv);
@@ -221,7 +219,7 @@ int32_t main(int32_t argc, char *argv[])
     v8::V8::Initialize();
 
     new fibjs::Isolate(fname);
-    fibjs::g_service->dispatch();
+    exlib::Service::dispatch();
 
     return 0;
 }
