@@ -217,6 +217,7 @@
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\TcpServer.h" />
     <ClInclude Include="include\ifs\test.h" />
+    <ClInclude Include="include\ifs\Task.h" />
     <ClInclude Include="include\ifs\TextColor.h" />
     <ClInclude Include="include\ifs\Timer.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
@@ -293,6 +294,7 @@
     <ClInclude Include="include\Stats.h" />
     <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\StringBuffer.h" />
+    <ClInclude Include="include\Task.h" />
     <ClInclude Include="include\TcpServer.h" />
     <ClInclude Include="include\TextColor.h" />
     <ClInclude Include="include\Trigger.h" />
@@ -352,6 +354,7 @@
     <ClCompile Include="src\coroutine\Fiber.cpp" />
     <ClCompile Include="src\coroutine\Lock.cpp" />
     <ClCompile Include="src\coroutine\Semaphore.cpp" />
+    <ClCompile Include="src\coroutine\Task.cpp" />
     <ClCompile Include="src\coroutine\Trigger.cpp" />
     <ClCompile Include="src\crypto\Cipher.cpp" />
     <ClCompile Include="src\crypto\crypto.cpp" />

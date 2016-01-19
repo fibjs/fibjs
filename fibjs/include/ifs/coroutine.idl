@@ -23,6 +23,9 @@ module coroutine
     /*! @brief 阻塞队列对象，参见 BlockQueue */
     static BlockQueue;
 
+    /*! @brief 多核任务代理对象，参见 Task */
+    static Task;
+
     /*! @brief 启动一个纤程并返回纤程对象
      @param func 制定纤程执行的函数
      @param ... 可变参数序列，此序列会在纤程内传递给函数

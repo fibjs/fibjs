@@ -1,0 +1,18 @@
+/*! @brief 多核任务代理对象
+
+ 用以创建和管理字典对象，创建方法：
+ @code
+ var coroutine = require("coroutine");
+ var t = new coroutine.Task('apps/something.js');
+ t.func1(100);
+ t.mod2.func2(100);
+ @endcode
+ */
+interface Task : object
+{
+    /*! @brief Task 构造函数
+     @param id 指定要添加的模块名称，名称不支持相对路径
+     */
+    Task(String id);
+    readonly Task operator[String];
+};

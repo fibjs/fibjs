@@ -153,6 +153,9 @@
     <ClInclude Include="include\ifs\Semaphore.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\Task.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\Trigger.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -561,6 +564,9 @@
     <ClInclude Include="include\SQLite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\ssl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -896,6 +902,9 @@
       <Filter>Source Files\coroutine</Filter>
     </ClCompile>
     <ClCompile Include="src\coroutine\Semaphore.cpp">
+      <Filter>Source Files\coroutine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\coroutine\Task.cpp">
       <Filter>Source Files\coroutine</Filter>
     </ClCompile>
     <ClCompile Include="src\coroutine\Trigger.cpp">
