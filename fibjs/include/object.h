@@ -93,7 +93,13 @@ public:
         if (!pThis->handle_.IsEmpty())
             pThis->handle_.SetWeak(pThis, WeakCallback);
         else
+        {
+            Isolate* isolate = pThis->m_isolate;
+
+            isolate->m_weakLock.unlock();
             delete pThis;
+            isolate->m_weakLock.lock();
+        }
     }
 
 private:
