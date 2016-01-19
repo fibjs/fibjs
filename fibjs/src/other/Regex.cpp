@@ -145,7 +145,8 @@ result_t Regex::test(const char *str, bool &retVal)
         retVal = true;
         if (m_bGlobal)
             m_nlastIndex += utf8_strlen(str, ovector[2 * rc - 1]);
-    }
+    } else
+        retVal = false;
 
     return 0;
 }
