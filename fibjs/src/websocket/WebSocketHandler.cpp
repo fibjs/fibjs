@@ -285,7 +285,7 @@ result_t WebSocketHandler::onerror(v8::Local<v8::Object> hdlrs)
 {
     v8::Local<v8::Object> o = wrap();
 
-    v8::Local<v8::String> key = v8::String::NewFromUtf8(holder()->m_isolate, "500");
+    v8::Local<v8::String> key = holder()->NewFromUtf8("500");
     v8::Local<v8::Value> hdlr = hdlrs->Get(key);
 
     if (!IsEmpty(hdlr))
@@ -311,7 +311,7 @@ result_t WebSocketHandler::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t WebSocketHandler::set_handler(Handler_base *newVal)
 {
-    wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "handler"), newVal->wrap());
+    wrap()->SetHiddenValue(holder()->NewFromUtf8("handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }

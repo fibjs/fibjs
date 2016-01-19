@@ -78,7 +78,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
 {
     static _linkedNode newNode;
     v8::Handle<v8::Object> o = wrap();
-    v8::Handle<v8::String> n = v8::String::NewFromUtf8(holder()->m_isolate, name);
+    v8::Handle<v8::String> n = holder()->NewFromUtf8(name);
     std::string sname(name);
     v8::Handle<v8::Value> a = n;
 
@@ -142,7 +142,7 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 
         if (m_timeout > 0)
             find->second.insert.now();
-        wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, name), value);
+        wrap()->SetHiddenValue(holder()->NewFromUtf8(name), value);
     }
 
     cleanup();
@@ -168,7 +168,7 @@ result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 
     if (m_timeout > 0)
         find->second.insert.now();
-    wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, name), value);
+    wrap()->SetHiddenValue(holder()->NewFromUtf8(name), value);
 
     cleanup();
 
@@ -226,9 +226,7 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 
     while (it != m_datas.end())
     {
-        v8::Local<v8::String> name = v8::String::NewFromUtf8(isolate->m_isolate, it->first.c_str(),
-                                     v8::String::kNormalString,
-                                     (int32_t) it->first.length());
+        v8::Local<v8::String> name = isolate->NewFromUtf8(it->first);
         obj->Set(name, wrap()->GetHiddenValue(name));
         it = _instantiate(it->second.m_next);
     }

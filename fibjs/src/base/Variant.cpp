@@ -126,9 +126,7 @@ Variant::operator v8::Local<v8::Value>() const
     case VT_String:
     {
         std::string &str = strVal();
-        return v8::String::NewFromUtf8(isolate->m_isolate, str.c_str(),
-                                       v8::String::kNormalString,
-                                       (int32_t) str.length());
+        return isolate->NewFromUtf8(str);
     }
     }
 

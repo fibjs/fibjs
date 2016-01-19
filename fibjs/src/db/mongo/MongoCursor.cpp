@@ -110,7 +110,7 @@ void MongoCursor::ensureSpecial()
         Isolate* isolate = holder();
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "query"),
+        o->Set(isolate->NewFromUtf8("query"),
                v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
         m_query.Reset();
 
@@ -145,7 +145,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     Isolate* isolate = holder();
     if (m_bSpecial)
         encodeValue(isolate, &bbq, "query",
-                    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(v8::String::NewFromUtf8(isolate->m_isolate, "query")));
+                    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(isolate->NewFromUtf8("query")));
     else
         encodeValue(isolate, &bbq, "query", v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
 
@@ -165,7 +165,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     if (hr < 0)
         return hr;
 
-    retVal = res->Get(v8::String::NewFromUtf8(isolate->m_isolate, "n"))->Int32Value();
+    retVal = res->Get(isolate->NewFromUtf8("n"))->Int32Value();
 
     return 0;
 }
@@ -286,7 +286,7 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Local<v8::Value> opts,
 
     ensureSpecial();
     Isolate* isolate = holder();
-    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Set(v8::String::NewFromUtf8(isolate->m_isolate, name), opts);
+    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Set(isolate->NewFromUtf8(name), opts);
 
     retVal = this;
     return 0;

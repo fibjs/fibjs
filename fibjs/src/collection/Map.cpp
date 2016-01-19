@@ -109,10 +109,7 @@ result_t Map::_named_enumerator(v8::Local<v8::Array> &retVal)
     std::map<std::string, VariantEx>::iterator iter;
 
     for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
-        retVal->Set(i++,
-                    v8::String::NewFromUtf8(isolate->m_isolate, iter->first.c_str(),
-                                            v8::String::kNormalString,
-                                            (int32_t) iter->first.length()));
+        retVal->Set(i++, isolate->NewFromUtf8(iter->first));
 
     return 0;
 }

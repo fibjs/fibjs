@@ -25,7 +25,7 @@ v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
     Isolate* isolate = holder();
 
     v8::Local<v8::Object> o = wrap();
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate->m_isolate, k);
+    v8::Local<v8::String> s = isolate->NewFromUtf8(k);
     v8::Local<v8::Value> es = o->GetHiddenValue(s);
     v8::Local<v8::Object> esa;
 
@@ -48,9 +48,9 @@ v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
 
 static uint64_t s_fid = 0;
 
-inline int32_t putFunction(v8::Isolate* isolate, v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
+inline int32_t putFunction(Isolate* isolate, v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
 {
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
+    v8::Local<v8::String> s = isolate->NewFromUtf8("_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
     char buf[64];
     const int32_t base = 26;
@@ -69,7 +69,7 @@ inline int32_t putFunction(v8::Isolate* isolate, v8::Local<v8::Object> esa, v8::
 
         buf[p++] = 0;
 
-        fid = v8::String::NewFromUtf8(isolate, buf);
+        fid = isolate->NewFromUtf8(buf);
         func->SetHiddenValue(s, fid);
     }
 
@@ -82,13 +82,13 @@ inline int32_t putFunction(v8::Isolate* isolate, v8::Local<v8::Object> esa, v8::
     return 0;
 }
 
-inline int32_t removeFunction(v8::Isolate* isolate, v8::Local<v8::Object> esa,
+inline int32_t removeFunction(Isolate* isolate, v8::Local<v8::Object> esa,
                               v8::Local<v8::Function> func)
 {
     if (esa.IsEmpty())
         return 0;
 
-    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, "_fid");
+    v8::Local<v8::String> s = isolate->NewFromUtf8("_fid");
     v8::Local<v8::Value> fid = func->GetHiddenValue(s);
 
     if (!fid.IsEmpty() && esa->Has(fid))
@@ -139,11 +139,11 @@ result_t object_base::on(const char *ev, v8::Local<v8::Function> func, int32_t &
 
     std::string strKey = "_e_";
     strKey.append(ev);
-    retVal += putFunction(isolate->m_isolate, GetHiddenList(strKey.c_str(), true), func);
+    retVal += putFunction(isolate, GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    retVal -= removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
+    retVal -= removeFunction(isolate, GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
@@ -160,11 +160,11 @@ result_t object_base::once(const char *ev, v8::Local<v8::Function> func, int32_t
 
     std::string strKey = "_e1_";
     strKey.append(ev);
-    retVal += putFunction(isolate->m_isolate, GetHiddenList(strKey.c_str(), true), func);
+    retVal += putFunction(isolate, GetHiddenList(strKey.c_str(), true), func);
 
     strKey = "_e_";
     strKey.append(ev);
-    retVal -= removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
+    retVal -= removeFunction(isolate, GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }
@@ -181,11 +181,11 @@ result_t object_base::off(const char *ev, v8::Local<v8::Function> func, int32_t 
 
     std::string strKey = "_e_";
     strKey.append(ev);
-    retVal += removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
+    retVal += removeFunction(isolate, GetHiddenList(strKey.c_str()), func);
 
     strKey = "_e1_";
     strKey.append(ev);
-    retVal += removeFunction(isolate->m_isolate, GetHiddenList(strKey.c_str()), func);
+    retVal += removeFunction(isolate, GetHiddenList(strKey.c_str()), func);
 
     return 0;
 }

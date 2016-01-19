@@ -378,8 +378,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
-            retVal->Set(n ++, v8::String::NewFromUtf8(isolate->m_isolate, buf.c_str(),
-                        v8::String::kNormalString, (int32_t) olen - 1));
+            retVal->Set(n ++, isolate->NewFromUtf8(buf.c_str(), (int32_t) olen - 1));
         }
         pCert = pCert->next;
     }

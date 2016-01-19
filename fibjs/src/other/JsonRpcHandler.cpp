@@ -89,8 +89,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
     o = v8::Local<v8::Object>::Cast(jsval);
 
-    jsval = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "method",
-                                           v8::String::kNormalString, 6));
+    jsval = o->Get(isolate->NewFromUtf8("method", 6));
     if (IsEmpty(jsval))
         return CHECK_ERROR(Runtime::setError("jsonrpc: method is missing."));
 
@@ -99,8 +98,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     str.append(*v8::String::Utf8Value(jsval));
     msg->set_value(str.c_str());
 
-    jsval = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "params",
-                                           v8::String::kNormalString, 6));
+    jsval = o->Get(isolate->NewFromUtf8("params", 6));
     if (!jsval.IsEmpty() && jsval->IsArray())
     {
         v8::Local<v8::Array> jsparams = v8::Local<v8::Array>::Cast(jsval);
@@ -118,8 +116,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (hr >= 0 && hr != CALL_RETURN_NULL)
         hr = mq_base::ac_invoke(hdlr1, v);
 
-    v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate->m_isolate, "id",
-                                  v8::String::kNormalString, 2);
+    v8::Local<v8::String> strId = isolate->NewFromUtf8("id", 2);
     jsval = o->Get(strId);
 
     o = v8::Object::New(isolate->m_isolate);
@@ -151,8 +148,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     else
     {
         msg->get_result(result);
-        o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "result",
-                                       v8::String::kNormalString, 6), result);
+        o->Set(isolate->NewFromUtf8("result", 6), result);
 
         hr = encoding_base::jsonEncode(o, str);
 

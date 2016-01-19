@@ -77,10 +77,10 @@ result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, const char *add
     Isolate* isolate = holder();
 
     m_handler = _handler;
-    o->SetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "handler"), _handler->wrap());
+    o->SetHiddenValue(isolate->NewFromUtf8("handler"), _handler->wrap());
 
     m_server = _server;
-    o->SetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "server"), _server->wrap());
+    o->SetHiddenValue(isolate->NewFromUtf8("server"), _server->wrap());
 
     return 0;
 }
@@ -104,10 +104,10 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
     Isolate* isolate = holder();
 
     m_handler = _handler;
-    o->SetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "handler"), _handler->wrap());
+    o->SetHiddenValue(isolate->NewFromUtf8("handler"), _handler->wrap());
 
     m_server = _server;
-    o->SetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "server"), _server->wrap());
+    o->SetHiddenValue(isolate->NewFromUtf8("server"), _server->wrap());
 
     return 0;
 }

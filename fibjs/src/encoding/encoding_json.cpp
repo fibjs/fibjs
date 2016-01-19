@@ -22,11 +22,11 @@ inline result_t _jsonEncode(v8::Local<v8::Value> data,
 	if (isolate->m_json.IsEmpty())
 	{
 		v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
-		_json = glob->Get(v8::String::NewFromUtf8(isolate->m_isolate, "JSON"))->ToObject();
+		_json = glob->Get(isolate->NewFromUtf8("JSON"))->ToObject();
 		isolate->m_json.Reset(isolate->m_isolate, _json);
 
 		isolate->m_stringify.Reset(isolate->m_isolate,
-		                           v8::Local<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate->m_isolate, "stringify"))));
+		                           v8::Local<v8::Function>::Cast(_json->Get(isolate->NewFromUtf8("stringify"))));
 	} else
 		_json = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_json);
 

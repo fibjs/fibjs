@@ -276,8 +276,7 @@ result_t Int64::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     std::string str;
 
     toString(16, str);
-    retVal = v8::String::NewFromUtf8(holder()->m_isolate, str.c_str(),
-                                     v8::String::kNormalString, (int32_t) str.length());
+    retVal = holder()->NewFromUtf8(str);
 
     return 0;
 }

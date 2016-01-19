@@ -53,7 +53,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
     v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);
-    v8::Local<v8::Value> hdlr = wrap()->GetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "handler"));
+    v8::Local<v8::Value> hdlr = wrap()->GetHiddenValue(isolate->NewFromUtf8("handler"));
 
     result_t hr;
     bool bResult = false;
@@ -133,9 +133,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 return hr;
 
             hdlr = v8::Local<v8::Object>::Cast(hdlr)->Get(
-                       v8::String::NewFromUtf8(isolate->m_isolate, method.c_str(),
-                                               v8::String::kNormalString,
-                                               (int32_t) method.length()));
+                       isolate->NewFromUtf8(method));
             if (IsEmpty (hdlr))
                 return CHECK_ERROR(Runtime::setError("JSHandler: method \"" + method + "\" not found."));
 

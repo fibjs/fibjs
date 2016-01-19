@@ -277,11 +277,11 @@ result_t Url::parse(const char *url)
     return 0;
 }
 
-std::string getValue(v8::Isolate* isolate, v8::Local<v8::Object> &args, const char *key)
+std::string getValue(Isolate* isolate, v8::Local<v8::Object> &args, const char *key)
 {
     std::string s;
 
-    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(isolate, key));
+    v8::Local<v8::Value> v = args->Get(isolate->NewFromUtf8(key));
 
     if (!v.IsEmpty() && v->IsString())
         s = *v8::String::Utf8Value(v);
@@ -295,29 +295,29 @@ result_t Url::format(v8::Local<v8::Object> args)
 
     Isolate* isolate = holder();
 
-    put_protocol(getValue(isolate->m_isolate, args, "protocol"));
-    m_username = getValue(isolate->m_isolate, args, "username");
-    m_password = getValue(isolate->m_isolate, args, "password");
+    put_protocol(getValue(isolate, args, "protocol"));
+    m_username = getValue(isolate, args, "username");
+    m_password = getValue(isolate, args, "password");
 
-    m_host = getValue(isolate->m_isolate, args, "host");
-    m_hostname = getValue(isolate->m_isolate, args, "hostname");
-    m_port = getValue(isolate->m_isolate, args, "port");
+    m_host = getValue(isolate, args, "host");
+    m_hostname = getValue(isolate, args, "hostname");
+    m_port = getValue(isolate, args, "port");
 
-    m_pathname = getValue(isolate->m_isolate, args, "pathname");
+    m_pathname = getValue(isolate, args, "pathname");
     if (m_pathname.length() > 0 && !isUrlSlash(m_pathname[0])
             && m_hostname.length() > 0)
         m_pathname.insert(0, 1, URL_SLASH);
 
-    m_query = getValue(isolate->m_isolate, args, "query");
+    m_query = getValue(isolate, args, "query");
 
-    m_hash = getValue(isolate->m_isolate, args, "hash");
+    m_hash = getValue(isolate, args, "hash");
     if (m_hash.length() > 0 && m_hash[0] != '#')
         m_hash.insert(0, 1, '#');
 
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(holder()->m_isolate, "slashes"));
+    v8::Local<v8::Value> v = args->Get(holder()->NewFromUtf8("slashes"));
 
     if (!IsEmpty(v))
         m_slashes = v->BooleanValue();

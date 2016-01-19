@@ -417,7 +417,7 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
 
     for (i = 0; i < 3; i ++)
     {
-        v8::Local<v8::String> key = v8::String::NewFromUtf8(holder()->m_isolate, s_err_keys[i]);
+        v8::Local<v8::String> key = holder()->NewFromUtf8(s_err_keys[i]);
         v8::Local<v8::Value> hdlr = hdlrs->Get(key);
 
         if (!IsEmpty(hdlr))
@@ -498,7 +498,7 @@ result_t HttpHandler::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t HttpHandler::set_handler(Handler_base *newVal)
 {
-    wrap()->SetHiddenValue(v8::String::NewFromUtf8(holder()->m_isolate, "handler"), newVal->wrap());
+    wrap()->SetHiddenValue(holder()->NewFromUtf8("handler"), newVal->wrap());
     m_hdlr = newVal;
     return 0;
 }

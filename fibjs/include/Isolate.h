@@ -70,6 +70,16 @@ public:
 	void init();
 	void InterruptCallback();
 
+	v8::Local<v8::String> NewFromUtf8(const char* data, int length = -1)
+	{
+		return v8::String::NewFromUtf8(m_isolate, data, v8::String::kNormalString, length);
+	}
+
+	v8::Local<v8::String> NewFromUtf8(std::string str)
+	{
+		return v8::String::NewFromUtf8(m_isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
+	}
+
 public:
 	int32_t m_id;
 	std::string m_fname;

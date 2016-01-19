@@ -352,8 +352,7 @@ public:
         strError += *v8::String::Utf8Value(property);
         strError += "\' is read-only.";
         isolate->m_isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->m_isolate, strError.c_str(),
-                                    v8::String::kNormalString, (int32_t) strError.length()));
+            isolate->NewFromUtf8(strError));
     }
 
     static void i_IndexedSetter(uint32_t index,
@@ -362,7 +361,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->m_isolate, "Indexed Property is read-only."));
+            isolate->NewFromUtf8("Indexed Property is read-only."));
     }
 
     static void i_NamedSetter(v8::Local<v8::String> property,
@@ -371,7 +370,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->m_isolate, "Named Property is read-only."));
+            isolate->NewFromUtf8("Named Property is read-only."));
     }
 
     static void i_NamedDeleter(
@@ -380,7 +379,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            v8::String::NewFromUtf8(isolate->m_isolate, "Named Property is read-only."));
+            isolate->NewFromUtf8("Named Property is read-only."));
     }
 
     //------------------------------------------------------------------

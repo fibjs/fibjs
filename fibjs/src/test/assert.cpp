@@ -753,9 +753,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     p = *s;
     while ((p1 = qstrchr(p, '.')) != NULL)
     {
-        object = v->Get(v8::String::NewFromUtf8(isolate->m_isolate, p,
-                                                v8::String::kNormalString,
-                                                (int32_t)(p1 - p)));
+        object = v->Get(isolate->NewFromUtf8(p, (int32_t)(p1 - p)));
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
         {
@@ -767,7 +765,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    retVal = v->Has(v8::String::NewFromUtf8(isolate->m_isolate, p));
+    retVal = v->Has(isolate->NewFromUtf8(p));
 
     return 0;
 }
@@ -859,9 +857,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     p = *s;
     while ((p1 = qstrchr(p, '.')) != NULL)
     {
-        object = v->Get(v8::String::NewFromUtf8(isolate->m_isolate, p,
-                                                v8::String::kNormalString,
-                                                (int32_t)(p1 - p)));
+        object = v->Get(isolate->NewFromUtf8(p, (int32_t)(p1 - p)));
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
         {
@@ -873,7 +869,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    got = v->Get(v8::String::NewFromUtf8(isolate->m_isolate, p));
+    got = v->Get(isolate->NewFromUtf8(p));
     retVal = value->Equals(got);
 
     return 0;

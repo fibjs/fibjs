@@ -145,9 +145,9 @@ result_t DBResult::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     Isolate* isolate = holder();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-    o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "affected", v8::String::kNormalString, 8),
+    o->Set(isolate->NewFromUtf8("affected", 8),
            v8::Number::New(isolate->m_isolate, (double) m_affected));
-    o->Set(v8::String::NewFromUtf8(isolate->m_isolate, "insertId", v8::String::kNormalString, 8),
+    o->Set(isolate->NewFromUtf8("insertId", 8),
            v8::Number::New(isolate->m_isolate, (double) m_insertId));
 
     retVal = o;

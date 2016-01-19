@@ -254,8 +254,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
         if (hr > 0)
             return 0;
 
-        retVal->Set(n ++, v8::String::NewFromUtf8(isolate->m_isolate, str.c_str(),
-                    v8::String::kNormalString, (int32_t)str.length()));
+        retVal->Set(n ++, isolate->NewFromUtf8(str));
         if (maxlines > 0)
         {
             maxlines --;

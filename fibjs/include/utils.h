@@ -735,7 +735,7 @@ inline v8::Local<v8::Value> ThrowError(const char *msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::Error(
-                v8::String::NewFromUtf8(isolate->m_isolate, msg)));
+                isolate->NewFromUtf8(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowTypeError(const char *msg)
@@ -743,7 +743,7 @@ inline v8::Local<v8::Value> ThrowTypeError(const char *msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
-                v8::String::NewFromUtf8(isolate->m_isolate, msg)));
+                isolate->NewFromUtf8(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowRangeError(const char *msg)
@@ -751,7 +751,7 @@ inline v8::Local<v8::Value> ThrowRangeError(const char *msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
-                v8::String::NewFromUtf8(isolate->m_isolate, msg)));
+                isolate->NewFromUtf8(msg)));
 }
 
 inline result_t LastError()

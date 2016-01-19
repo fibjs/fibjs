@@ -150,8 +150,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
     std::string buf;
     v8::Local<v8::Value> v, v1;
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate->m_isolate, "repl",
-                                     v8::String::kNormalString, 4);
+    v8::Local<v8::String> strFname = isolate->NewFromUtf8("repl", 4);
     obj_ptr<BufferedStream_base> bs;
     stream_logger* logger = NULL;
 
@@ -206,10 +205,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
             v8::Local<v8::Script> script;
             TryCatch try_catch;
 
-            script = v8::Script::Compile(
-                         v8::String::NewFromUtf8(isolate->m_isolate, buf.c_str(),
-                                                 v8::String::kNormalString, (int32_t) buf.length()),
-                         strFname);
+            script = v8::Script::Compile(isolate->NewFromUtf8(buf), strFname);
             if (script.IsEmpty())
             {
                 v8::String::Utf8Value exception(try_catch.Exception());

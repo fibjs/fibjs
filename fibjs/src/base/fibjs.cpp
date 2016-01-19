@@ -68,7 +68,7 @@ static void main_fiber(Isolate* isolate)
 
         global_base::get_argv(argv);
         replFunc = global_base::class_info().getFunction(isolate)->Get(
-                       v8::String::NewFromUtf8(isolate->m_isolate, "repl"));
+                       isolate->NewFromUtf8("repl"));
 
         hr = s.m_hr = isolate->m_topSandbox->run(
                           isolate->m_fname.c_str(), argv, replFunc);

@@ -171,13 +171,12 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
 SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
 {
     Isolate* isolate = m_sb->holder();
-    m_id = v8::String::NewFromUtf8(isolate->m_isolate, id, v8::String::kNormalString,
-                                   (int32_t) qstrlen(id));
+    m_id = isolate->NewFromUtf8(id);
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
 
-    _mod->Set(v8::String::NewFromUtf8(isolate->m_isolate, "_sbox"), m_sb->wrap());
-    _mod->Set(v8::String::NewFromUtf8(isolate->m_isolate, "_id"), m_id);
+    _mod->Set(isolate->NewFromUtf8("_sbox"), m_sb->wrap());
+    _mod->Set(isolate->NewFromUtf8("_id"), m_id);
 
     m_fnRequest = createV8Function("require", isolate->m_isolate, _require, _mod);
     m_fnRun = createV8Function("run", isolate->m_isolate, _run, _mod);
@@ -196,7 +195,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
         oname = sname.c_str();
     }
 
-    v8::Local<v8::String> soname = v8::String::NewFromUtf8(isolate->m_isolate, oname);
+    v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
     std::string pname;
     path_base::dirname(name, pname);
 
@@ -206,8 +205,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
 
         {
             v8::ScriptCompiler::Source script_source(
-                v8::String::NewFromUtf8(isolate->m_isolate, src.c_str(),
-                                        v8::String::kNormalString, (int32_t) src.length()),
+                isolate->NewFromUtf8(src),
                 v8::ScriptOrigin(soname));
 
             if (v8::ScriptCompiler::CompileUnbound(
@@ -228,9 +226,7 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
         src = str + ",__filename,__dirname,__sbname){" + src + "\n});";
 
         script = v8::Script::Compile(
-                     v8::String::NewFromUtf8(isolate->m_isolate, src.c_str(),
-                                             v8::String::kNormalString, (int32_t) src.length()),
-                     soname);
+                     isolate->NewFromUtf8(src), soname);
         if (script.IsEmpty())
             return throwSyntaxError(try_catch);
     }
@@ -239,9 +235,9 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    args[argCount] = v8::String::NewFromUtf8(isolate->m_isolate, name);;
-    args[argCount + 1] = v8::String::NewFromUtf8(isolate->m_isolate, pname.c_str());
-    args[argCount + 2] = v8::String::NewFromUtf8(isolate->m_isolate, m_sb->name().c_str());
+    args[argCount] = isolate->NewFromUtf8(name);;
+    args[argCount + 1] = isolate->NewFromUtf8(pname);
+    args[argCount + 2] = isolate->NewFromUtf8(m_sb->name());
     v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), argCount + 3, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
@@ -308,8 +304,8 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         v8::Local<v8::Object> exports;
 
         // cache string
-        v8::Local<v8::String> strRequire = v8::String::NewFromUtf8(isolate->m_isolate, "require");
-        v8::Local<v8::String> strExports = v8::String::NewFromUtf8(isolate->m_isolate, "exports");
+        v8::Local<v8::String> strRequire = isolate->NewFromUtf8("require");
+        v8::Local<v8::String> strExports = isolate->NewFromUtf8("exports");
 
         exports = v8::Object::New(isolate->m_isolate);
 
@@ -365,9 +361,7 @@ result_t SandBox::require(std::string base, std::string id,
 
     v8::Local<v8::Object> _mods = mods();
 
-    retVal = _mods->Get(v8::String::NewFromUtf8(isolate->m_isolate, strId.c_str(),
-                        v8::String::kNormalString,
-                        (int32_t)strId.length()));
+    retVal = _mods->Get(isolate->NewFromUtf8(strId));
     if (!IsEmpty(retVal))
         return 1;
 
@@ -378,17 +372,15 @@ result_t SandBox::require(std::string base, std::string id,
 
     if (qstrcmp(fullname.c_str(), strId.c_str()))
     {
-        retVal = _mods->Get(v8::String::NewFromUtf8(isolate->m_isolate, fullname.c_str(),
-                            v8::String::kNormalString,
-                            (int32_t)fullname.length()));
+        retVal = _mods->Get(isolate->NewFromUtf8(fullname));
         if (!IsEmpty(retVal))
             return 1;
     }
 
-    v8::Local<v8::Value> func = _mods->GetHiddenValue(v8::String::NewFromUtf8(isolate->m_isolate, "require"));
+    v8::Local<v8::Value> func = _mods->GetHiddenValue(isolate->NewFromUtf8("require"));
     if (!IsEmpty(func))
     {
-        v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate->m_isolate, strId.c_str());
+        v8::Local<v8::Value> arg = isolate->NewFromUtf8(strId);
         retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -445,8 +437,7 @@ result_t SandBox::require(std::string base, std::string id,
                 return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-            v8::Local<v8::Value> main = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "main",
-                                               v8::String::kNormalString, 4));
+            v8::Local<v8::Value> main = o->Get(isolate->NewFromUtf8("main", 4));
             if (!IsEmpty(main))
             {
                 if (!main->IsString() && !main->IsStringObject())

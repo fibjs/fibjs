@@ -107,8 +107,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
     else if (cfg->IsObject())
     {
         o = v8::Local<v8::Object>::Cast(cfg);
-        type = o->Get( v8::String::NewFromUtf8(isolate->m_isolate, "type",
-                                               v8::String::kNormalString, 4));
+        type = o->Get( isolate->NewFromUtf8("type", 4));
 
         if (IsEmpty(type))
             return CHECK_ERROR(Runtime::setError("Missing log type."));

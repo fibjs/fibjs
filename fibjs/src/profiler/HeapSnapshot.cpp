@@ -185,22 +185,22 @@ result_t HeapSnapshot::load(const char* fname)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
 	o = v8::Local<v8::Object>::Cast(v);
-	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "nodes")),
+	hr = GetArray(o->Get(isolate->NewFromUtf8("nodes")),
 	              nodes);
 	if (hr < 0)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "edges")),
+	hr = GetArray(o->Get(isolate->NewFromUtf8("edges")),
 	              edges);
 	if (hr < 0)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "strings")),
+	hr = GetArray(o->Get(isolate->NewFromUtf8("strings")),
 	              names);
 	if (hr < 0)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "snapshot"));
+	v = o->Get(isolate->NewFromUtf8("snapshot"));
 	if (v.IsEmpty() || !v->IsObject())
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
@@ -213,17 +213,17 @@ result_t HeapSnapshot::load(const char* fname)
 	if (hr < 0)
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "meta"));
+	v = o->Get(isolate->NewFromUtf8("meta"));
 	if (v.IsEmpty() || !v->IsObject())
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
 	o = v8::Local<v8::Object>::Cast(v);
-	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "node_fields")),
+	hr = GetArray(o->Get(isolate->NewFromUtf8("node_fields")),
 	              node_fields);
 	if (hr < 0 || checkArray(node_fields, node_fields_chk, ARRAYSIZE(node_fields_chk)))
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	hr = GetArray(o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "edge_fields")),
+	hr = GetArray(o->Get(isolate->NewFromUtf8("edge_fields")),
 	              edge_fields);
 	if (hr < 0 || checkArray(edge_fields, edge_fields_chk, ARRAYSIZE(edge_fields_chk)))
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
@@ -234,7 +234,7 @@ result_t HeapSnapshot::load(const char* fname)
 	if (edge_fields.size() * edge_count != edges.size())
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "node_types"));
+	v = o->Get(isolate->NewFromUtf8("node_types"));
 	if (v.IsEmpty() || !v->IsArray())
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
@@ -242,7 +242,7 @@ result_t HeapSnapshot::load(const char* fname)
 	if (hr < 0 || checkArray(node_types, node_types_chk, ARRAYSIZE(node_types_chk)))
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-	v = o->Get(v8::String::NewFromUtf8(isolate->m_isolate, "edge_types"));
+	v = o->Get(isolate->NewFromUtf8("edge_types"));
 	if (v.IsEmpty() || !v->IsArray())
 		return CHECK_ERROR(CALL_E_INVALID_DATA);
 

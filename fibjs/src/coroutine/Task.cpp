@@ -41,10 +41,7 @@ result_t Task::_named_enumerator(v8::Local<v8::Array>& retVal)
 	std::map<std::string, obj_ptr<Task_base> >::iterator iter;
 
 	for (iter = m_funcs.begin(); iter != m_funcs.end(); iter++)
-		retVal->Set(i++,
-		            v8::String::NewFromUtf8(isolate->m_isolate, iter->first.c_str(),
-		                                    v8::String::kNormalString,
-		                                    (int32_t) iter->first.length()));
+		retVal->Set(i++, isolate->NewFromUtf8(iter->first));
 
 	return 0;
 }
