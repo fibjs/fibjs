@@ -83,7 +83,7 @@ private:
     v8::Persistent<v8::Object> handle_;
 
 public:
-    static void gc_callback(exlib::linkitem* node)
+    static bool gc_weak(exlib::linkitem* node)
     {
         object_base *pThis = NULL;
         pThis = (object_base *) ((char *) node
@@ -91,15 +91,21 @@ public:
 
         pThis->m_inweak = false;
         if (!pThis->handle_.IsEmpty())
-            pThis->handle_.SetWeak(pThis, WeakCallback);
-        else
         {
-            Isolate* isolate = pThis->m_isolate;
-
-            isolate->m_weakLock.unlock();
-            delete pThis;
-            isolate->m_weakLock.lock();
+            pThis->handle_.SetWeak(pThis, WeakCallback);
+            return true;
         }
+
+        return false;
+    }
+
+    static void gc_delete(exlib::linkitem* node)
+    {
+        object_base *pThis = NULL;
+        pThis = (object_base *) ((char *) node
+                                 - ((char *) &pThis->m_weak - (char *) 0));
+
+        delete pThis;
     }
 
 private:

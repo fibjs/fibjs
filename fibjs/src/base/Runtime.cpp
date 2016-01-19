@@ -82,11 +82,16 @@ static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallba
 {
 	Isolate *isolate = Isolate::current();
 	exlib::linkitem* p;
+	exlib::List<exlib::linkitem> freelist;
 
 	isolate->m_weakLock.lock();
 	while ((p = isolate->m_weak.getHead()) != 0)
-		object_base::gc_callback(p);
+		if (!object_base::gc_weak(p))
+			freelist.putTail(p);
 	isolate->m_weakLock.unlock();
+
+	while ((p = freelist.getHead()) != 0)
+		object_base::gc_delete(p);
 }
 
 void *init_proc(void *p)
