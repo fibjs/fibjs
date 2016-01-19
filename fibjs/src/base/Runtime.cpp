@@ -107,6 +107,13 @@ Isolate::Isolate(const char *fname) :
 	if (fname)
 		m_fname = fname;
 
+	static v8::Isolate::CreateParams create_params;
+	static ShellArrayBufferAllocator array_buffer_allocator;
+	create_params.array_buffer_allocator = &array_buffer_allocator;
+
+	m_isolate = v8::Isolate::New(create_params);
+	m_isolate->AddGCPrologueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
+
 	m_currentFibers++;
 	m_idleFibers ++;
 
@@ -120,14 +127,7 @@ Isolate* Isolate::current()
 
 void Isolate::init()
 {
-	static v8::Isolate::CreateParams create_params;
-	static ShellArrayBufferAllocator array_buffer_allocator;
-	create_params.array_buffer_allocator = &array_buffer_allocator;
-
 	s_isolates.putTail(this);
-
-	m_isolate = v8::Isolate::New(create_params);
-	m_isolate->AddGCPrologueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
 
 	v8::Locker locker(m_isolate);
 	v8::Isolate::Scope isolate_scope(m_isolate);
