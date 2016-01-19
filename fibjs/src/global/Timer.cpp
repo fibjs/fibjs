@@ -40,8 +40,12 @@ public:
 	// Timer_base
 	virtual result_t clear()
 	{
-		m_cancel = true;
-		exlib::Fiber::cancel_sleep(this);
+		if (!m_cancel)
+		{
+			m_cancel = true;
+			exlib::Fiber::cancel_sleep(this);
+		}
+
 		return 0;
 	}
 
