@@ -119,8 +119,9 @@ std::string json_format(v8::Local<v8::Value> obj)
             do
             {
                 v8::Local<v8::Object> obj = v->ToObject();
+                v8::Local<v8::Array> keys = obj->GetPropertyNames();
 
-                if (v->IsFunction() && obj->GetPropertyNames()->Length() == 0)
+                if (v->IsFunction() && keys->Length() == 0)
                 {
                     strBuffer.append("[Function]");
                     break;
@@ -165,14 +166,14 @@ std::string json_format(v8::Local<v8::Value> obj)
 
                 if (v->IsArray())
                 {
-                    v8::Local<v8::Array> keys = v8::Local<v8::Array>::Cast(v);
-                    int32_t len = keys->Length();
+                    v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(v);
+                    int32_t len = array->Length();
 
                     if (len == 0)
                         strBuffer.append("[]");
                     else
                     {
-                        if (len == 1 && v->StrictEquals(keys->Get(0)))
+                        if (len == 1 && v->StrictEquals(array->Get(0)))
                             strBuffer.append("[Circular]");
                         else
                         {
@@ -181,7 +182,7 @@ std::string json_format(v8::Local<v8::Value> obj)
 
                             it->val = v;
 
-                            it->keys = keys;
+                            it->keys = array;
                             it->len = len;
 
                             strBuffer.append('[');
@@ -191,7 +192,6 @@ std::string json_format(v8::Local<v8::Value> obj)
                     break;
                 }
 
-                v8::Local<v8::Array> keys = obj->GetPropertyNames();
                 int32_t len = keys->Length();
 
                 if (len == 0)
