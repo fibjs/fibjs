@@ -195,7 +195,7 @@ result_t Smtp::login(const char *username, const char *password,
             obj_ptr<Buffer> buf = new Buffer(str);
             std::string s;
 
-            encoding_base::base64Encode(buf, s);
+            base64_base::encode(buf, s);
             s.append("\r\n", 2);
 
             buf = new Buffer(s);

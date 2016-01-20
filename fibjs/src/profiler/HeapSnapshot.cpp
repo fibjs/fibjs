@@ -176,7 +176,7 @@ result_t HeapSnapshot::load(const char* fname)
 	if (hr < 0)
 		return hr;
 
-	hr = encoding_base::jsonDecode(data.c_str(), v);
+	hr = json_base::decode(data.c_str(), v);
 	if (hr < 0)
 		return hr;
 	data.resize(0);

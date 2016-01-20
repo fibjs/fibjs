@@ -70,7 +70,7 @@ public:
 void string_format(StringBuffer &strBuffer, v8::Local<v8::Value> v)
 {
     std::string s;
-    encoding_base::jsonEncode(v, s);
+    json_base::encode(v, s);
     strBuffer.append(s);
 }
 

@@ -217,11 +217,11 @@ result_t Buffer::append(const char *str, const char *codec)
     result_t hr;
 
     if (!qstrcmp(codec, "hex"))
-        hr = encoding_base::hexDecode(str, data);
+        hr = hex_base::decode(str, data);
     else if (!qstrcmp(codec, "base64"))
-        hr = encoding_base::base64Decode(str, data);
+        hr = base64_base::decode(str, data);
     else
-        hr = encoding_base::iconvEncode(codec, str, data);
+        hr = iconv_base::encode(codec, str, data);
 
     if (hr < 0)
         return hr;
@@ -261,11 +261,11 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     std::string strBuf;
 
     if (!qstrcmp(codec, "hex"))
-        hr = encoding_base::hexDecode(str, data);
+        hr = hex_base::decode(str, data);
     else if (!qstrcmp(codec, "base64"))
-        hr = encoding_base::base64Decode(str, data);
+        hr = base64_base::decode(str, data);
     else
-        hr = encoding_base::iconvEncode(codec, str, data);
+        hr = iconv_base::encode(codec, str, data);
 
     if (hr < 0)
         return hr;
@@ -728,13 +728,13 @@ result_t Buffer::toString(std::string &retVal)
 result_t Buffer::hex(std::string &retVal)
 {
     obj_ptr<Buffer_base> data = this;
-    return encoding_base::hexEncode(data, retVal);
+    return hex_base::encode(data, retVal);
 }
 
 result_t Buffer::base64(std::string &retVal)
 {
     obj_ptr<Buffer_base> data = this;
-    return encoding_base::base64Encode(data, retVal);
+    return base64_base::encode(data, retVal);
 }
 
 result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::string &retVal)
@@ -751,11 +751,11 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
     else
     {
         if (!qstrcmp(codec, "hex"))
-            hr = encoding_base::hexEncode(this, str);
+            hr = hex_base::encode(this, str);
         else if (!qstrcmp(codec, "base64"))
-            hr = encoding_base::base64Encode(this, str);
+            hr = base64_base::encode(this, str);
         else
-            hr = encoding_base::iconvDecode(codec, this, str);
+            hr = iconv_base::decode(codec, this, str);
     }
 
     if (hr < 0)

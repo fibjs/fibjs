@@ -284,7 +284,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         id.resize(id.length() - 5);
 
         v8::Local<v8::Value> v;
-        hr = encoding_base::jsonDecode(script, v);
+        hr = json_base::decode(script, v);
         if (hr < 0)
             return hr;
 
@@ -429,7 +429,7 @@ result_t SandBox::require(std::string base, std::string id,
         if (hr >= 0)
         {
             v8::Local<v8::Value> v;
-            hr = encoding_base::jsonDecode(buf.c_str(), v);
+            hr = json_base::decode(buf.c_str(), v);
             if (hr < 0)
                 return hr;
 

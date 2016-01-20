@@ -67,7 +67,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     buf->toString(str);
     buf.Release();
 
-    hr = encoding_base::jsonDecode(str.c_str(), jsval);
+    hr = json_base::decode(str.c_str(), jsval);
     if (hr < 0)
         return hr;
 
@@ -113,7 +113,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     {
         asyncLog(console_base::_ERROR, "JsonRpcHandler: " + getResultMessage(hr));
 
-        result_t hr1 = encoding_base::jsonEncode(o, str);
+        result_t hr1 = json_base::encode(o, str);
         if (hr1 < 0)
             return hr1;
 
@@ -137,7 +137,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         msg->get_result(result);
         o->Set(isolate->NewFromUtf8("result", 6), result);
 
-        hr = encoding_base::jsonEncode(o, str);
+        hr = json_base::encode(o, str);
 
         if (hr < 0)
             return hr;
