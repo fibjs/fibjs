@@ -213,7 +213,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Buffer", s__new, 
+            "Buffer", s__new, NULL, 
             46, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
             &object_base::class_info()
         };

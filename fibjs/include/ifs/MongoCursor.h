@@ -72,7 +72,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "MongoCursor", NULL, 
+            "MongoCursor", NULL, NULL, 
             11, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

@@ -126,7 +126,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "profiler", NULL, 
+            "profiler", NULL, NULL, 
             4, s_method, 0, NULL, 21, s_property, NULL, NULL,
             NULL
         };

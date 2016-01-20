@@ -65,7 +65,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "SandBox", s__new, 
+            "SandBox", s__new, NULL, 
             6, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

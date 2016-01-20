@@ -174,6 +174,7 @@ function preparserIDL(fname) {
 function parserIDL(fname) {
 	var modType, st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difos, difps, dsvs, refCls, ids, ns, baseClass, isRem = false,
 		hasNew = false,
+		callAsFunc = false,
 		hasIndexed = false,
 		hasNamed = false,
 		typeMap = {
@@ -257,6 +258,7 @@ function parserIDL(fname) {
 		baseClass = base;
 		clsName[name] = true;
 		hasNew = false;
+		callAsFunc = false;
 		hasIndexed = false;
 		hasNamed = false;
 
@@ -418,6 +420,11 @@ function parserIDL(fname) {
 		else
 			strClass += ", NULL"
 
+		if (callAsFunc)
+			strClass += ", s__function"
+		else
+			strClass += ", NULL"
+
 		if (difms.length)
 			strClass += ", \n            " + difms.length + ", s_method";
 		else
@@ -534,7 +541,13 @@ function parserIDL(fname) {
 			fname = st[pos++];
 		}
 
-		if (fname == 'new') {
+		if (fname === "Function") {
+			if (attr != "")
+				return reportErr();
+
+			fname = "_function";
+			callAsFunc = true;
+		} else if (fname == 'new') {
 			if (attr != 'static')
 				return reportErr();
 
@@ -791,8 +804,10 @@ function parserIDL(fname) {
 				if (attr == "static") {
 					if (fname !== "_new")
 						difms.push("            {\"" + fname + "\", s_" + fname + ", true}");
-				} else
-					difms.push("            {\"" + fname + "\", s_" + fname + ", false}");
+				} else {
+					if (fname !== "_function")
+						difms.push("            {\"" + fname + "\", s_" + fname + ", false}");
+				}
 			}
 
 			ids[fname] = [ftype, fnStr];

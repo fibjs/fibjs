@@ -81,7 +81,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RedisHash", NULL, 
+            "RedisHash", NULL, NULL, 
             11, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

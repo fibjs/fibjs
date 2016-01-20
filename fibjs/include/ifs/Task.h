@@ -50,7 +50,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Task", s__new, 
+            "Task", s__new, NULL, 
             0, NULL, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };

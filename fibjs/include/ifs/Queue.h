@@ -76,7 +76,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Queue", s__new, 
+            "Queue", s__new, NULL, 
             8, s_method, 0, NULL, 1, s_property, NULL, NULL,
             &object_base::class_info()
         };

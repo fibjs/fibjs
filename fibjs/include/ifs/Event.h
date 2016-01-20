@@ -64,7 +64,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Event", s__new, 
+            "Event", s__new, NULL, 
             5, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Lock_base::class_info()
         };

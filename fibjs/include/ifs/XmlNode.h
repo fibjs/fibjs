@@ -111,7 +111,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "XmlNode", NULL, 
+            "XmlNode", NULL, NULL, 
             10, s_method, 0, NULL, 10, s_property, NULL, NULL,
             &object_base::class_info()
         };

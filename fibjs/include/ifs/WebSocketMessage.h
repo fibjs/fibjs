@@ -66,7 +66,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "WebSocketMessage", s__new, 
+            "WebSocketMessage", s__new, NULL, 
             0, NULL, 0, NULL, 3, s_property, NULL, NULL,
             &Message_base::class_info()
         };

@@ -72,7 +72,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "GridFS", NULL, 
+            "GridFS", NULL, NULL, 
             4, s_method, 0, NULL, 2, s_property, NULL, NULL,
             &object_base::class_info()
         };

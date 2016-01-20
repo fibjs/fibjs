@@ -102,7 +102,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "coroutine", NULL, 
+            "coroutine", NULL, NULL, 
             4, s_method, 7, s_object, 4, s_property, NULL, NULL,
             NULL
         };

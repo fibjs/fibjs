@@ -63,7 +63,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "MySQL", NULL, 
+            "MySQL", NULL, NULL, 
             1, s_method, 0, NULL, 2, s_property, NULL, NULL,
             &DbConnection_base::class_info()
         };

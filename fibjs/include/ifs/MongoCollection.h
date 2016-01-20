@@ -100,7 +100,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "MongoCollection", NULL, 
+            "MongoCollection", NULL, NULL, 
             15, s_method, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };

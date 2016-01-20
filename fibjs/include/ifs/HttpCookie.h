@@ -91,7 +91,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "HttpCookie", s__new, 
+            "HttpCookie", s__new, NULL, 
             2, s_method, 0, NULL, 7, s_property, NULL, NULL,
             &object_base::class_info()
         };

@@ -127,7 +127,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "zlib", NULL, 
+            "zlib", NULL, NULL, 
             12, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };

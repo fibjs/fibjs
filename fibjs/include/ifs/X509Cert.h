@@ -113,7 +113,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "X509Cert", s__new, 
+            "X509Cert", s__new, NULL, 
             6, s_method, 0, NULL, 12, s_property, NULL, NULL,
             &object_base::class_info()
         };

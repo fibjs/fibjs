@@ -51,7 +51,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "XmlProcessingInstruction", NULL, 
+            "XmlProcessingInstruction", NULL, NULL, 
             0, NULL, 0, NULL, 2, s_property, NULL, NULL,
             &XmlNode_base::class_info()
         };

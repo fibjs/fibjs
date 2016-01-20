@@ -104,7 +104,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Url", s__new, 
+            "Url", s__new, NULL, 
             4, s_method, 0, NULL, 14, s_property, NULL, NULL,
             &object_base::class_info()
         };

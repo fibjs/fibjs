@@ -58,7 +58,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "MemoryStream", s__new, 
+            "MemoryStream", s__new, NULL, 
             3, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &SeekableStream_base::class_info()
         };

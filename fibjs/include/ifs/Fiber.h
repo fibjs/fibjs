@@ -52,7 +52,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Fiber", NULL, 
+            "Fiber", NULL, NULL, 
             1, s_method, 0, NULL, 2, s_property, NULL, NULL,
             &object_base::class_info()
         };

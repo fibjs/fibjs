@@ -59,7 +59,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "TextColor", NULL, 
+            "TextColor", NULL, NULL, 
             0, NULL, 0, NULL, 4, s_property, NULL, NULL,
             &object_base::class_info()
         };

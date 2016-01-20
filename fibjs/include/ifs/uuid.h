@@ -81,7 +81,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "uuid", NULL, 
+            "uuid", NULL, NULL, 
             5, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };

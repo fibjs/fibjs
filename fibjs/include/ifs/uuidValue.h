@@ -49,7 +49,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "uuidValue", NULL, 
+            "uuidValue", NULL, NULL, 
             2, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

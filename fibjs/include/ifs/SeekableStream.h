@@ -69,7 +69,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "SeekableStream", NULL, 
+            "SeekableStream", NULL, NULL, 
             6, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Stream_base::class_info()
         };

@@ -131,7 +131,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "ssl", NULL, 
+            "ssl", NULL, NULL, 
             3, s_method, 3, s_object, 15, s_property, NULL, NULL,
             NULL
         };

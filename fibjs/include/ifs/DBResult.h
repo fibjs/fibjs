@@ -52,7 +52,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "DBResult", NULL, 
+            "DBResult", NULL, NULL, 
             0, NULL, 0, NULL, 3, s_property, NULL, NULL,
             &List_base::class_info()
         };

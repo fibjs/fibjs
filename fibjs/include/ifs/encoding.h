@@ -116,7 +116,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "encoding", NULL, 
+            "encoding", NULL, NULL, 
             16, s_method, 7, s_object, 0, NULL, NULL, NULL,
             NULL
         };

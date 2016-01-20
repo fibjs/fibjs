@@ -79,7 +79,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "MongoDB", NULL, 
+            "MongoDB", NULL, NULL, 
             4, s_method, 0, NULL, 1, s_property, NULL, &s_named,
             &object_base::class_info()
         };

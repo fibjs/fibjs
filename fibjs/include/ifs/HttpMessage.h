@@ -101,7 +101,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "HttpMessage", NULL, 
+            "HttpMessage", NULL, NULL, 
             6, s_method, 0, NULL, 6, s_property, NULL, NULL,
             &Message_base::class_info()
         };

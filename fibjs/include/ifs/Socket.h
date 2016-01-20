@@ -106,7 +106,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Socket", s__new, 
+            "Socket", s__new, NULL, 
             8, s_method, 0, NULL, 6, s_property, NULL, NULL,
             &Stream_base::class_info()
         };

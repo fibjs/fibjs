@@ -85,7 +85,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "websocket", NULL, 
+            "websocket", NULL, NULL, 
             1, s_method, 2, s_object, 6, s_property, NULL, NULL,
             NULL
         };

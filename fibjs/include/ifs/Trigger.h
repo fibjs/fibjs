@@ -61,7 +61,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Trigger", s__new, 
+            "Trigger", s__new, NULL, 
             4, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

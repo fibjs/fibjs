@@ -141,7 +141,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "hash", NULL, 
+            "hash", NULL, NULL, 
             20, s_method, 0, NULL, 9, s_property, NULL, NULL,
             NULL
         };

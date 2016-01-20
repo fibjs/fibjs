@@ -91,7 +91,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "xml", NULL, 
+            "xml", NULL, NULL, 
             2, s_method, 1, s_object, 8, s_property, NULL, NULL,
             NULL
         };

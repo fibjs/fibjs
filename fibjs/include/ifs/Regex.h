@@ -63,7 +63,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Regex", NULL, 
+            "Regex", NULL, NULL, 
             2, s_method, 0, NULL, 4, s_property, NULL, NULL,
             &object_base::class_info()
         };

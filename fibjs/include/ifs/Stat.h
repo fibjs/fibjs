@@ -88,7 +88,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Stat", NULL, 
+            "Stat", NULL, NULL, 
             9, s_method, 0, NULL, 6, s_property, NULL, NULL,
             &object_base::class_info()
         };

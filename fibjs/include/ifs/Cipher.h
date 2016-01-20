@@ -80,7 +80,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Cipher", s__new, 
+            "Cipher", s__new, NULL, 
             3, s_method, 0, NULL, 4, s_property, NULL, NULL,
             &object_base::class_info()
         };

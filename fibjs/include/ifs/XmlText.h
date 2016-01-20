@@ -46,7 +46,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "XmlText", NULL, 
+            "XmlText", NULL, NULL, 
             1, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &XmlCharacterData_base::class_info()
         };

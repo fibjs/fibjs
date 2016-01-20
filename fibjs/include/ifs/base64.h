@@ -49,7 +49,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "base64", NULL, 
+            "base64", NULL, NULL, 
             2, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };

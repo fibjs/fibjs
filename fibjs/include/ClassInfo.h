@@ -58,6 +58,7 @@ struct ClassData
 
     const char *name;
     v8::FunctionCallback cor;
+    v8::FunctionCallback caf;
     int32_t mc;
     const ClassMethod *cms;
     int32_t oc;
@@ -332,6 +333,9 @@ private:
         if (pcd)
             ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
                                         NULL, pcd->cns->remover, pcd->cns->enumerator);
+
+        if (m_cd.caf)
+            ot->SetCallAsFunctionHandler(m_cd.caf);
 
         v8::Local<v8::Function> _function = _class->GetFunction();
         Attach(isolate, _function);

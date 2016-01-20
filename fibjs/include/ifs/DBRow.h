@@ -51,7 +51,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "DBRow", NULL, 
+            "DBRow", NULL, NULL, 
             0, NULL, 0, NULL, 0, NULL, &s_indexed, &s_named,
             &object_base::class_info()
         };

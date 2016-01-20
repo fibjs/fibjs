@@ -46,7 +46,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "AsyncWait", NULL, 
+            "AsyncWait", NULL, NULL, 
             1, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Handler_base::class_info()
         };

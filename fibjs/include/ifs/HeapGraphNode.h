@@ -61,7 +61,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "HeapGraphNode", NULL, 
+            "HeapGraphNode", NULL, NULL, 
             0, NULL, 0, NULL, 6, s_property, NULL, NULL,
             &object_base::class_info()
         };

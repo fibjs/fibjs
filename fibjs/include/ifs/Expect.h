@@ -155,7 +155,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Expect", NULL, 
+            "Expect", NULL, NULL, 
             12, s_method, 0, NULL, 25, s_property, NULL, NULL,
             &object_base::class_info()
         };

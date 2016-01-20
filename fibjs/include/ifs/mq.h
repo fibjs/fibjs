@@ -77,7 +77,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "mq", NULL, 
+            "mq", NULL, NULL, 
             4, s_method, 4, s_object, 0, NULL, NULL, NULL,
             NULL
         };

@@ -59,7 +59,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Condition", s__new, 
+            "Condition", s__new, NULL, 
             3, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Lock_base::class_info()
         };
