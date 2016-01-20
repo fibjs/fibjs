@@ -6,14 +6,35 @@
  */
 
 #include "RpcTask.h"
+#include "ifs/rpc.h"
+#include "JsonRpcHandler.h"
+#include "JSHandler.h"
 
 namespace fibjs
 {
+
+result_t rpc_base::json(v8::Local<v8::Value> hdlr,
+                        obj_ptr<Handler_base> &retVal)
+{
+	obj_ptr<Handler_base> hdlr1;
+	result_t hr = JSHandler::New(hdlr, hdlr1);
+	if (hr < 0)
+		return hr;
+
+	retVal = new JsonRpcHandler(hdlr1);
+	return 0;
+}
 
 result_t RpcTask_base::_new(const char* id, obj_ptr<RpcTask_base>& retVal,
                             v8::Local<v8::Object> This)
 {
 	retVal = new RpcTask(id);
+	return 0;
+}
+
+result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
+                            v8::Local<v8::Value>& retVal)
+{
 	return 0;
 }
 

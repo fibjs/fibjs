@@ -38,6 +38,7 @@ public:
 
 public:
 	// RpcTask_base
+	virtual result_t _function(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal);
 	virtual result_t _named_getter(const char* property, obj_ptr<RpcTask_base>& retVal);
 	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
 

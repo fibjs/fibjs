@@ -5,7 +5,6 @@
  *      Author: lion
  */
 
-#include "ifs/rpc.h"
 #include "ifs/mq.h"
 #include "ifs/encoding.h"
 #include "ifs/HttpRequest.h"
@@ -18,18 +17,6 @@
 
 namespace fibjs
 {
-
-result_t rpc_base::json(v8::Local<v8::Value> hdlr,
-                        obj_ptr<Handler_base> &retVal)
-{
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-
-    retVal = new JsonRpcHandler(hdlr1);
-    return 0;
-}
 
 result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                 AsyncEvent *ac)

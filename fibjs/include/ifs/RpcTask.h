@@ -24,6 +24,7 @@ class RpcTask_base : public object_base
 public:
     // RpcTask_base
     static result_t _new(const char* id, obj_ptr<RpcTask_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t _function(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t _named_getter(const char* property, obj_ptr<RpcTask_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
@@ -33,6 +34,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__function(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
 };
@@ -50,7 +52,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RpcTask", s__new, NULL, 
+            "RpcTask", s__new, s__function, 
             0, NULL, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };
@@ -104,6 +106,18 @@ namespace fibjs
         hr = _new(v0, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void RpcTask_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Value> vr;
+
+        METHOD_INSTANCE(RpcTask_base);
+        METHOD_ENTER(-1, 0);
+
+        hr = pInst->_function(args, vr);
+
+        METHOD_RETURN();
     }
 
 }

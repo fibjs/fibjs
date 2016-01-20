@@ -14,5 +14,12 @@ interface RpcTask : object
 	 @param id 指定要添加的模块名称，名称不支持相对路径
 	 */
 	RpcTask(String id);
+
+	/*! @brief 调用当前代理方法，并返回结果
+	 @param ... 可变参数列表
+	 */
+	Value Function(...);
+
+	/*! @brief 返回当前代理的下级代理对象 */
 	readonly RpcTask operator[String];
 };
