@@ -17,19 +17,19 @@ namespace fibjs
 class RpcTask: public RpcTask_base
 {
 public:
-	RpcTask(const char* id) : m_id(id)
+	RpcTask(std::string id) : m_id(id)
 	{}
 
-	RpcTask(RpcTask* t, const char* func)
+	RpcTask(RpcTask* t, const char* method)
 	{
 		m_id = t->m_id;
-		if (!t->m_func.empty())
+		if (!t->m_method_path.empty())
 		{
-			m_func = t->m_func;
-			m_func.append(1, '.');
+			m_method_path = t->m_method_path;
+			m_method_path.append(1, '.');
 		}
 
-		m_func.append(func);
+		m_method_path.append(method);
 	}
 
 public:
@@ -42,10 +42,25 @@ public:
 	virtual result_t _named_getter(const char* property, obj_ptr<RpcTask_base>& retVal);
 	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
 
-private:
+public:
+	class AsyncTask : public AsyncCall
+	{
+	public:
+		AsyncTask(RpcTask* task, std::string param) :
+			AsyncCall(NULL), m_task(task), m_param(param)
+		{}
+
+	public:
+		obj_ptr<RpcTask> m_task;
+		std::string m_param;
+		std::string m_result;
+		std::string m_error;
+	};
+
+public:
 	std::map<std::string, obj_ptr<RpcTask_base> > m_funcs;
 	std::string m_id;
-	std::string m_func;
+	std::string m_method_path;
 };
 
 }
