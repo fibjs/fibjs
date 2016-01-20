@@ -23,7 +23,6 @@ class Condition_base;
 class Event_base;
 class Trigger_base;
 class BlockQueue_base;
-class Task_base;
 class Fiber_base;
 
 class coroutine_base : public object_base
@@ -66,7 +65,6 @@ public:
 #include "Event.h"
 #include "Trigger.h"
 #include "BlockQueue.h"
-#include "Task.h"
 #include "Fiber.h"
 
 namespace fibjs
@@ -88,8 +86,7 @@ namespace fibjs
             {"Condition", Condition_base::class_info},
             {"Event", Event_base::class_info},
             {"Trigger", Trigger_base::class_info},
-            {"BlockQueue", BlockQueue_base::class_info},
-            {"Task", Task_base::class_info}
+            {"BlockQueue", BlockQueue_base::class_info}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -103,7 +100,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "coroutine", NULL, NULL, 
-            4, s_method, 7, s_object, 4, s_property, NULL, NULL,
+            4, s_method, 6, s_object, 4, s_property, NULL, NULL,
             NULL
         };
 

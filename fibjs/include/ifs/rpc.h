@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class Handler_base;
+class RpcTask_base;
 
 class rpc_base : public object_base
 {
@@ -34,6 +35,7 @@ public:
 }
 
 #include "Handler.h"
+#include "RpcTask.h"
 
 namespace fibjs
 {
@@ -44,10 +46,15 @@ namespace fibjs
             {"json", s_json, true}
         };
 
+        static ClassData::ClassObject s_object[] = 
+        {
+            {"Task", RpcTask_base::class_info}
+        };
+
         static ClassData s_cd = 
         { 
             "rpc", NULL, NULL, 
-            1, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            1, s_method, 1, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 
