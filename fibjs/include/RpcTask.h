@@ -16,6 +16,8 @@ namespace fibjs
 
 class RpcTask: public RpcTask_base
 {
+	FIBER_FREE();
+
 public:
 	RpcTask(std::string id) : m_id(id)
 	{}
