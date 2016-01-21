@@ -159,35 +159,6 @@ void init_Task(int32_t vms)
 	s_vms = vms;
 }
 
-result_t RpcTask_base::_new(const char* id, obj_ptr<RpcTask_base>& retVal,
-                            v8::Local<v8::Object> This)
-{
-	static bool s_init = false;
-
-	if (!s_init)
-	{
-		s_init = true;
-
-		s_idles.inc();
-		Isolate* new_isolate = new Isolate(NULL);
-		syncCall(new_isolate, init_task_fiber, new_isolate);
-	}
-
-	Url _url;
-
-	_url.parse(id);
-
-	if (!_url.m_protocol.empty())
-		return CHECK_ERROR(CALL_E_INVALIDARG);
-
-	std::string& path = _url.m_pathname;
-	if (path[0] == '.' && (isPathSlash(path[1]) || (path[1] == '.' && isPathSlash(path[2]))))
-		return CHECK_ERROR(CALL_E_INVALIDARG);
-
-	retVal = new RpcTask(path);
-	return 0;
-}
-
 result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
                             v8::Local<v8::Value>& retVal)
 {
@@ -253,6 +224,34 @@ result_t RpcTask::toString(std::string &retVal)
 		retVal.append(m_method_path);
 
 	}
+	return 0;
+}
+
+result_t rpc_base::open(const char* id, obj_ptr<RpcTask_base>& retVal)
+{
+	static bool s_init = false;
+
+	if (!s_init)
+	{
+		s_init = true;
+
+		s_idles.inc();
+		Isolate* new_isolate = new Isolate(NULL);
+		syncCall(new_isolate, init_task_fiber, new_isolate);
+	}
+
+	Url _url;
+
+	_url.parse(id);
+
+	if (!_url.m_protocol.empty())
+		return CHECK_ERROR(CALL_E_INVALIDARG);
+
+	std::string& path = _url.m_pathname;
+	if (path[0] == '.' && (isPathSlash(path[1]) || (path[1] == '.' && isPathSlash(path[2]))))
+		return CHECK_ERROR(CALL_E_INVALIDARG);
+
+	retVal = new RpcTask(path);
 	return 0;
 }
 

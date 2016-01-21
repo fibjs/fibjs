@@ -14,6 +14,9 @@ module rpc
 	 */
 	static Handler json(Value hdlr);
 
-	/*! @brief rpc 任务代理对象，参见 RpcTask */
-	static RpcTask new Task();
+	/*! @brief 创建 rpc 任务代理，参见 RpcTask
+	 @param id 指定要添加的模块名称，名称不支持相对路径
+	 @return 返回 RpcTask 代理对象
+	 */
+	static RpcTask open(String id);
 };

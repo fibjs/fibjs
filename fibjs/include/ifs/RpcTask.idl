@@ -3,18 +3,13 @@
  用以创建和管理字典对象，创建方法：
  @code
  var rpc = require("rpc");
- var t = new rpc.Task('apps/something.js');
+ var t = rpc.open('apps/something.js');
  t.func1(100);
  t.mod2.func2(100);
  @endcode
  */
 interface RpcTask : object
 {
-	/*! @brief RpcTask 构造函数
-	 @param id 指定要添加的模块名称，名称不支持相对路径
-	 */
-	RpcTask(String id);
-
 	/*! @brief 调用当前代理方法，并返回结果
 	 @param ... 可变参数列表
 	 */
