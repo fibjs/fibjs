@@ -49,28 +49,30 @@ void nextMethod(std::string &method_path, std::string &method)
 static void task_fiber(Isolate* isolate)
 {
 	RpcTask::AsyncTask *p;
+	JSFiber::scope s;
 
 	s_idles.inc();
 
-	JSFiber::scope s;
+	p = s_acTask.tryget();
+	if (!p)
 	{
 		v8::Unlocker unlocker(isolate->m_isolate);
-
 		p = s_acTask.get();
-		if (s_idles.dec() == 0 && s_vms > 0)
-		{
-			if (s_vms.dec() < 0)
-				s_vms.inc();
-			else
-			{
-				s_idles.inc();
-				Isolate* new_isolate = new Isolate(NULL);
-				syncCall(new_isolate, init_task_fiber, new_isolate);
-			}
-		}
-
-		syncCall(isolate, task_fiber, isolate);
 	}
+
+	if (s_idles.dec() == 0 && s_vms > 0)
+	{
+		if (s_vms.dec() < 0)
+			s_vms.inc();
+		else
+		{
+			s_idles.inc();
+			Isolate* new_isolate = new Isolate(NULL);
+			syncCall(new_isolate, init_task_fiber, new_isolate);
+		}
+	}
+
+	syncCall(isolate, task_fiber, isolate);
 
 	v8::Local<v8::Value> v, v1;
 	v8::Local<v8::Array> param;
