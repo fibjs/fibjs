@@ -1,5 +1,4 @@
 /*! @page server 服务器编程
-@tableofcontents
 @section web_file 静态文件服务器
 
 使用 fibjs 创建一个简单的 web 服务器是一件很方便的事情。

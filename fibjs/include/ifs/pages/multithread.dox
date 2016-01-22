@@ -1,0 +1,22 @@
+/*! @page multithread 发挥多核的威力
+JavaScript 是个单线程编程语言，虽然 fibjs 通过 fiber 将并发引入 JavaScript 开发，但是并不能真正让 JavaScript 可以并行运算。为了解决这个问题，fibjs 在 0.2.0 开始引入多 vm 运算，通过多个独立的 JavaScript vm 达到充分利用多核 cpu 的需求。
+
+@section basic 基础接口
+fibjs 启用多核运算的方式及其简单，因为多核运算的实现是基于多个 vm 的，而多个 vm 之间并不能共享数据，因此，在 vm 之间便需要通过 rpc 模块交互。示例如下：
+
+@code
+var rpc = require("rpc");
+
+var task = rpc.open("path/to.js");
+
+console.log(task.func1(100, 200));
+console.log(task.sub1.func2(100, 200, 300));
+@endcode
+
+示例中，多核运算与普通模块引用的差别，主要是 rpc.open，通过 rpc.open，可以创建一个 RpcTask 代理对象，用于封装发往运算 vm 的请求和返回结果。
+
+RpcTask 对象同时还负责对远程对象的子对象引用的封装，比如 task.sub1 就会创建一个新的 RpcTask 代理对象，指向 vm 中模块 path/to.js 的 sub1 对象。
+
+@section limit 约束
+因为多核运算需要通过 rpc 交互，所以在请求和返回时，便对数据有比较严格的约束。无论是传递参数，还是返回结果，都必须是可以序列化的数据。简单说就是必须是可以 json 编码解码的数据。如果传递一个有类型的对象，则只会传递为一个无类型的对象和数据来。
+*/
