@@ -8,8 +8,9 @@ var net = require('net');
 var io = require('io');
 var encoding = require('encoding');
 var os = require('os');
+var coroutine = require('coroutine');
 
-var base_port = require('coroutine').vmid * 10000;
+var base_port = coroutine.vmid * 10000;
 
 var m = new http.Request();
 
@@ -91,6 +92,39 @@ describe("rpc", function() {
 			'{"id":1234,"result":300}');
 	});
 
+	it("Task", function(){
+		assert.throws(function(){
+			var task = rpc.open("./not_exists.js");
+		});
+
+		assert.throws(function(){
+			var task = rpc.open("../not_exists.js");
+		});
+
+		assert.throws(function(){
+			var task = rpc.open("http://127.0.0.1/not_exists.js");
+		});
+
+		var task = rpc.open("/not_exists.js");
+		var task1 = task.func;
+		var task2 = task['1234'];
+
+		assert.throws(function(){
+			task();
+		});
+
+		var task = rpc.open("module/c4.js");
+		assert.equal(task.foo(), 1);
+
+		var n = 0;
+		coroutine.start(function(){
+			n = 1;
+		});
+
+		task.foo();
+		assert.equal(n, 1);
+	});
+
 	it("over tcp", function() {
 		var hdlr = new http.Handler(rpc.json({
 			update: function(v) {
@@ -130,4 +164,4 @@ describe("rpc", function() {
 	});
 });
 
-//test.run();
+// test.run(console.DEBUG);
