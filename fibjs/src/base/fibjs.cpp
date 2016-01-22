@@ -56,7 +56,7 @@ void init(int32_t argc, char *argv[])
 
     v8::V8::Initialize();
 
-    init_Task(cpus + 1);
+    init_Task(cpus);
 }
 
 static void main_fiber(Isolate* isolate)
