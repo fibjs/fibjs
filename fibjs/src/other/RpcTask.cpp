@@ -162,6 +162,18 @@ void init_Task(int32_t vms)
 result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
                             v8::Local<v8::Value>& retVal)
 {
+	static bool s_init = false;
+
+	if (!s_init)
+	{
+		s_init = true;
+
+		s_vms.dec();
+		s_idles.inc();
+		Isolate* new_isolate = new Isolate(NULL);
+		syncCall(new_isolate, init_task_fiber, new_isolate);
+	}
+
 	v8::Isolate* isolate = args.GetIsolate();
 	v8::Local<v8::Array> array = v8::Array::New(isolate);
 	int32_t i;
@@ -229,17 +241,6 @@ result_t RpcTask::toString(std::string &retVal)
 
 result_t rpc_base::open(const char* id, obj_ptr<RpcTask_base>& retVal)
 {
-	static bool s_init = false;
-
-	if (!s_init)
-	{
-		s_init = true;
-
-		s_idles.inc();
-		Isolate* new_isolate = new Isolate(NULL);
-		syncCall(new_isolate, init_task_fiber, new_isolate);
-	}
-
 	Url _url;
 
 	_url.parse(id);
