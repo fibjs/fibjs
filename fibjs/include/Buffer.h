@@ -94,6 +94,7 @@ public:
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal);
     virtual result_t hex(std::string &retVal);
     virtual result_t base64(std::string &retVal);
+    virtual result_t toArray(v8::Local<v8::Array>& retVal);
     virtual result_t toString(const char* codec, int32_t offset, int32_t end, std::string &retVal);
     virtual result_t toString(std::string &retVal);
 

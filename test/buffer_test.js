@@ -101,9 +101,17 @@ describe('Buffer', function() {
 		});
 	});
 
+	it('toArray', function() {
+		var buf = new Buffer([1, 2, 3, 4]);
+		assert.deepEqual(buf.toArray(), [1, 2, 3, 4]);
+	});
+
 	it('toJSON', function() {
 		var buf = new Buffer([1, 2, 3, 4]);
-		assert.deepEqual(buf.toJSON(), [1, 2, 3, 4]);
+		assert.deepEqual(buf.toJSON(), {
+			type: 'Buffer',
+			data: [1, 2, 3, 4]
+		});
 	});
 
 	it('toString', function() {
@@ -379,7 +387,7 @@ describe('Buffer', function() {
 		var buf = new Buffer(4);
 
 		buf.writeInt32BE(0x12345678, 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0x12,
 			0x34,
 			0x56,
@@ -387,7 +395,7 @@ describe('Buffer', function() {
 		]);
 
 		buf.writeInt32LE(0x12345678, 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0x78,
 			0x56,
 			0x34,
@@ -397,7 +405,7 @@ describe('Buffer', function() {
 		var buf = new Buffer(6);
 
 		buf.writeIntBE(0x12345678abcd, 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0x12,
 			0x34,
 			0x56,
@@ -407,7 +415,7 @@ describe('Buffer', function() {
 		]);
 
 		buf.writeIntLE(0x12345678abcd, 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0xcd,
 			0xab,
 			0x78,
@@ -419,7 +427,7 @@ describe('Buffer', function() {
 		var buf = new Buffer(8);
 
 		buf.writeInt64BE(0x12345678abcd, 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0x0,
 			0x0,
 			0x12,
@@ -431,7 +439,7 @@ describe('Buffer', function() {
 		]);
 
 		buf.writeInt64LE(0x12345678abcd, 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0xcd,
 			0xab,
 			0x78,
@@ -443,7 +451,7 @@ describe('Buffer', function() {
 		]);
 
 		buf.writeInt64BE(new Int64(0x12345678abcd), 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0x0,
 			0x0,
 			0x12,
@@ -455,7 +463,7 @@ describe('Buffer', function() {
 		]);
 
 		buf.writeInt64LE(new Int64(0x12345678abcd), 0);
-		assert.deepEqual(buf.toJSON(), [
+		assert.deepEqual(buf.toArray(), [
 			0xcd,
 			0xab,
 			0x78,
@@ -477,7 +485,7 @@ describe('Buffer', function() {
 
 	it('charset', function() {
 		assert.equal(new Buffer("哈哈哈").toString(), "哈哈哈");
-		assert.deepEqual(new Buffer("哈哈哈哈", "gbk").toJSON(), [
+		assert.deepEqual(new Buffer("哈哈哈哈", "gbk").toArray(), [
 			185, 254, 185, 254, 185, 254, 185, 254
 		]);
 		assert.equal(new Buffer("哈哈哈", "gbk").toString("gbk"), "哈哈哈");

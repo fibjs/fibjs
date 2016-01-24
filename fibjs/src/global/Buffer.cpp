@@ -876,7 +876,7 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
     return hr;
 }
 
-result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
@@ -886,6 +886,24 @@ result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
         a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) m_data[i]));
 
     retVal = a;
+
+    return 0;
+}
+
+result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
+    int32_t i;
+
+    for (i = 0; i < (int32_t) m_data.length(); i++)
+        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) m_data[i]));
+
+    o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("Buffer"));
+    o->Set(isolate->NewFromUtf8("data"), a);
+
+    retVal = o;
 
     return 0;
 }
