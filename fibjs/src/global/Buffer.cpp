@@ -908,4 +908,21 @@ result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     return 0;
 }
 
+result_t Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Object> o,
+                        obj_ptr<Buffer_base>& retVal)
+{
+    v8::Local<v8::Value> datas = o->Get(isolate->NewFromUtf8("data"));
+
+    if(datas->IsArray())
+    {
+        obj_ptr<Buffer_base> buf = new Buffer();
+        buf->append(v8::Local<v8::Array>::Cast(datas));
+        retVal = buf;
+
+        return 0;
+    }
+
+    return CHECK_ERROR(CALL_E_INVALIDARG);
+}
+
 }

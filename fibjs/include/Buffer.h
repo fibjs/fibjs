@@ -100,6 +100,9 @@ public:
 
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 
+public:
+    static result_t fromJSON(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer_base>& retVal);
+
 private:
     result_t readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le);
     result_t writeNumber(int32_t offset, const char *buf, int32_t size, bool noAssert, bool le);

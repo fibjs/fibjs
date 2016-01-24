@@ -7,6 +7,7 @@
 
 #include "ifs/encoding.h"
 #include "qstring.h"
+#include "Buffer.h"
 #include "utf8.h"
 #include <stdlib.h>
 
@@ -316,6 +317,21 @@ inline result_t _jsonDecode(const char *data,
 			}
 
 			AdvanceSkipWhitespace();
+
+			v8::Local<v8::Value> type = json_object->Get(isolate->NewFromUtf8("type"));
+			if(!type.IsEmpty())
+			{
+				v8::String::Utf8Value str(type);
+
+				if(*str && !qstrcmp(*str, "Buffer"))
+				{
+					obj_ptr<Buffer_base> buf;
+					hr = Buffer::fromJSON(isolate, json_object, buf);
+					if(hr >= 0)
+						json_object = buf->wrap();
+				}
+			}
+
 			retVal = json_object;
 			return 0;
 		}

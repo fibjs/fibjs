@@ -140,6 +140,11 @@ describe('encoding', function() {
 
 		assert.equal(encoding.json.encode(encoding.json.decode('{"a":100,"b":200}')),
 			'{"a":100,"b":200}');
+
+		var buf = new Buffer('test');
+		var j = encoding.json.encode(buf);
+
+		assert.isTrue(Buffer.isBuffer(encoding.json.decode(j)));
 	});
 
 	it('jsstr', function() {
