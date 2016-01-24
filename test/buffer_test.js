@@ -308,6 +308,12 @@ describe('Buffer', function() {
 			0xf0
 		]);
 
+		assert.equal(buf.readIntBE(), 0x123456789abc);
+		assert.equal(buf.readIntLE(), -0x3c9a78563412);
+
+		assert.equal(buf.readUIntBE(), 0x123456789abc);
+		assert.equal(buf.readUIntLE(), 0xbc9a78563412);
+
 		assert.equal(buf.readInt64BE().toString(16), "0x123456789abcdef0");
 		assert.equal(buf.readInt64LE().toString(16), "0xf0debc9a78563412");
 
@@ -373,6 +379,28 @@ describe('Buffer', function() {
 
 		buf.writeInt32LE(0x12345678, 0);
 		assert.deepEqual(buf.toJSON(), [
+			0x78,
+			0x56,
+			0x34,
+			0x12
+		]);
+
+		var buf = new Buffer(6);
+
+		buf.writeIntBE(0x12345678abcd, 0);
+		assert.deepEqual(buf.toJSON(), [
+			0x12,
+			0x34,
+			0x56,
+			0x78,
+			0xab,
+			0xcd
+		]);
+
+		buf.writeIntLE(0x12345678abcd, 0);
+		assert.deepEqual(buf.toJSON(), [
+			0xcd,
+			0xab,
 			0x78,
 			0x56,
 			0x34,

@@ -485,6 +485,21 @@ result_t Buffer::readNumber(int32_t offset, char *buf, int32_t size, bool noAsse
     retVal = v; \
     return 0;
 
+#define READ_U_NUMBER_48(t, le) \
+    t v = 0; \
+    result_t hr = readNumber(offset, (char *)&v, 6, noAssert, le); \
+    if (hr < 0)return hr; \
+    retVal = v; \
+    return 0;
+
+#define READ_NUMBER_48(t, le) \
+    t v = 0; \
+    result_t hr = readNumber(offset, (char *)&v, 6, noAssert, le); \
+    if (hr < 0)return hr; \
+    if(v&0x800000000000)v=-(v&0x7fffffffffff); \
+    retVal = v; \
+    return 0;
+
 result_t Buffer::readUInt8(int32_t offset, bool noAssert, int32_t &retVal)
 {
     READ_NUMBER(uint8_t, true);
@@ -510,6 +525,16 @@ result_t Buffer::readUInt32BE(int32_t offset, bool noAssert, int64_t &retVal)
     READ_NUMBER(uint32_t, false);
 }
 
+result_t Buffer::readUIntLE(int32_t offset, bool noAssert, int64_t &retVal)
+{
+    READ_U_NUMBER_48(uint64_t, true);
+}
+
+result_t Buffer::readUIntBE(int32_t offset, bool noAssert, int64_t &retVal)
+{
+    READ_U_NUMBER_48(uint64_t, false);
+}
+
 result_t Buffer::readInt8(int32_t offset, bool noAssert, int32_t &retVal)
 {
     READ_NUMBER(int8_t, true);
@@ -533,6 +558,16 @@ result_t Buffer::readInt32LE(int32_t offset, bool noAssert, int32_t &retVal)
 result_t Buffer::readInt32BE(int32_t offset, bool noAssert, int32_t &retVal)
 {
     READ_NUMBER(int32_t, false);
+}
+
+result_t Buffer::readIntLE(int32_t offset, bool noAssert, int64_t &retVal)
+{
+    READ_NUMBER_48(int64_t, true);
+}
+
+result_t Buffer::readIntBE(int32_t offset, bool noAssert, int64_t &retVal)
+{
+    READ_NUMBER_48(int64_t, false);
 }
 
 result_t Buffer::readInt64LE(int32_t offset, bool noAssert, int64_t &retVal)
@@ -625,6 +660,11 @@ result_t Buffer::writeNumber(int32_t offset, const char *buf, int32_t size, bool
     if (hr < 0)return hr; \
     return 0;
 
+#define WRITE_NUMBER_48(t, le) \
+    t v = (t)value; \
+    result_t hr = writeNumber(offset, (char *)&v, 6, noAssert, le); \
+    if (hr < 0)return hr; \
+    return 0;
 
 result_t Buffer::writeUInt8(int32_t value, int32_t offset, bool noAssert)
 {
@@ -651,6 +691,16 @@ result_t Buffer::writeUInt32BE(int64_t value, int32_t offset, bool noAssert)
     WRITE_NUMBER(uint32_t, false);
 }
 
+result_t Buffer::writeUIntLE(int64_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER_48(uint64_t, true);
+}
+
+result_t Buffer::writeUIntBE(int64_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER_48(uint64_t, false);
+}
+
 result_t Buffer::writeInt8(int32_t value, int32_t offset, bool noAssert)
 {
     WRITE_NUMBER(int8_t, true);
@@ -674,6 +724,16 @@ result_t Buffer::writeInt32LE(int32_t value, int32_t offset, bool noAssert)
 result_t Buffer::writeInt32BE(int32_t value, int32_t offset, bool noAssert)
 {
     WRITE_NUMBER(int32_t, false);
+}
+
+result_t Buffer::writeIntLE(int64_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER_48(int64_t, true);
+}
+
+result_t Buffer::writeIntBE(int64_t value, int32_t offset, bool noAssert)
+{
+    WRITE_NUMBER_48(int64_t, false);
 }
 
 result_t Buffer::writeInt64LE(int64_t value, int32_t offset, bool noAssert)
