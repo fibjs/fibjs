@@ -119,6 +119,10 @@ describe('Buffer', function() {
 		buf = new Buffer(5)
 		buf.append("abcd");
 		assert.equal(buf.toString("utf8", 5), "abcd");
+
+		var buf1 = new Buffer('this is a tést');
+		assert.equal(buf1.toString(), 'this is a tést');
+		assert.equal(buf1.toString('ascii'), 'this is a tC)st');
 	});
 
 	it('append', function() {

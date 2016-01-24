@@ -762,7 +762,17 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
             hr = hex_base::encode(this, str);
         else if (!qstrcmp(codec, "base64"))
             hr = base64_base::encode(this, str);
-        else
+        else if (!qstrcmp(codec, "ascii"))
+        {
+            int32_t len, i;
+
+            len = (int32_t)m_data.length();
+            str.resize(len);
+            for(i = 0; i < len; i ++)
+                str[i] = m_data[i] & 0x7f;
+
+            hr = 0;
+        } else
             hr = iconv_base::decode(codec, this, str);
     }
 
