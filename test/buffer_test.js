@@ -266,10 +266,10 @@ describe('Buffer', function() {
 	it("readNumber", function() {
 		var buf = new Buffer([0x23, 0x42]);
 
-		assert.equal(buf.readUInt8(0), 35);
+		assert.equal(buf.readUInt8(), 35);
 
-		assert.equal(buf.readUInt16BE(0), 9026);
-		assert.equal(buf.readUInt16LE(0), 16931);
+		assert.equal(buf.readUInt16BE(), 9026);
+		assert.equal(buf.readUInt16LE(), 16931);
 
 		assert.equal(buf.readUInt16BE(1, true), 16896);
 		assert.equal(buf.readUInt16LE(1, true), 66);
@@ -284,8 +284,8 @@ describe('Buffer', function() {
 
 		var buf = new Buffer([0xb3, 0x42]);
 
-		assert.equal(buf.readInt16BE(0), -19646);
-		assert.equal(buf.readInt16LE(0), 17075);
+		assert.equal(buf.readInt16BE(), -19646);
+		assert.equal(buf.readInt16LE(), 17075);
 
 		var buf = new Buffer([
 			0x12,
@@ -294,8 +294,8 @@ describe('Buffer', function() {
 			0x78
 		]);
 
-		assert.equal(buf.readInt32BE(0), 0x12345678);
-		assert.equal(buf.readInt32LE(0), 0x78563412);
+		assert.equal(buf.readInt32BE(), 0x12345678);
+		assert.equal(buf.readInt32LE(), 0x78563412);
 
 		var buf = new Buffer([
 			0x12,
@@ -308,8 +308,8 @@ describe('Buffer', function() {
 			0xf0
 		]);
 
-		assert.equal(buf.readInt64BE(0).toString(16), "0x123456789abcdef0");
-		assert.equal(buf.readInt64LE(0).toString(16), "0xf0debc9a78563412");
+		assert.equal(buf.readInt64BE().toString(16), "0x123456789abcdef0");
+		assert.equal(buf.readInt64LE().toString(16), "0xf0debc9a78563412");
 
 		var buf = new Buffer([
 			0x00,
@@ -318,7 +318,7 @@ describe('Buffer', function() {
 			0x3f
 		]);
 
-		assert.equal(buf.readFloatLE(0), 1);
+		assert.equal(buf.readFloatLE(), 1);
 
 		var buf = new Buffer([
 			0x55,
@@ -331,17 +331,17 @@ describe('Buffer', function() {
 			0x3f
 		]);
 
-		assert.equal(buf.readDoubleLE(0), 0.3333333333333333);
+		assert.equal(buf.readDoubleLE(), 0.3333333333333333);
 	});
 
 	it("writeNumber", function() {
 		var buf = new Buffer(2);
 
 		buf.writeUInt16BE(9026, 0);
-		assert.equal(buf.readUInt16BE(0), 9026);
+		assert.equal(buf.readUInt16BE(), 9026);
 
 		buf.writeUInt16LE(16931, 0);
-		assert.equal(buf.readUInt16BE(0), 9026);
+		assert.equal(buf.readUInt16BE(), 9026);
 
 		buf[1] = 0x00;
 		buf.writeUInt16BE(16896, 1, true);
