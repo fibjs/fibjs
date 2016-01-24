@@ -43,6 +43,8 @@ public:
     virtual result_t append(Buffer_base* data) = 0;
     virtual result_t append(const char* str, const char* codec) = 0;
     virtual result_t write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal) = 0;
+    virtual result_t write(const char* str, int32_t offset, const char* codec, int32_t& retVal) = 0;
+    virtual result_t write(const char* str, const char* codec, int32_t& retVal) = 0;
     virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(const char* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
@@ -424,6 +426,21 @@ namespace fibjs
         OPT_ARG(arg_string, 3, "utf8");
 
         hr = pInst->write(v0, v1, v2, v3, vr);
+
+        METHOD_OVER(3, 1);
+
+        ARG(arg_string, 0);
+        OPT_ARG(int32_t, 1, 0);
+        OPT_ARG(arg_string, 2, "utf8");
+
+        hr = pInst->write(v0, v1, v2, vr);
+
+        METHOD_OVER(2, 1);
+
+        ARG(arg_string, 0);
+        OPT_ARG(arg_string, 1, "utf8");
+
+        hr = pInst->write(v0, v1, vr);
 
         METHOD_RETURN();
     }

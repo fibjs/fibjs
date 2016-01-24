@@ -98,6 +98,21 @@ interface Buffer : object
      */
     Integer write(String str, Integer offset = 0, Integer length = -1, String codec = "utf8");
 
+    /*! @brief 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
+     @param str 待写入的字符串
+     @param offset 写入起始位置
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
+     @return 写入的数据字节长度
+     */
+    Integer write(String str, Integer offset = 0, String codec = "utf8");
+
+    /*! @brief 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
+     @param str 待写入的字符串
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
+     @return 写入的数据字节长度
+     */
+    Integer write(String str, String codec = "utf8");
+
     /*! @brief 为Buffer对象填充指定内容数据
      @param v 需要填充的数据，如果未指定offset和end，将填充满整个buffer
      @param offset 填充起始位置

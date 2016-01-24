@@ -283,6 +283,16 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     return hr;
 }
 
+result_t Buffer::write(const char* str, int32_t offset, const char* codec, int32_t& retVal)
+{
+    return write(str, offset, -1, codec, retVal);
+}
+
+result_t Buffer::write(const char* str, const char* codec, int32_t& retVal)
+{
+    return write(str, 0, -1, codec, retVal);
+}
+
 result_t Buffer::fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
     result_t hr = generateEnd((int32_t)m_data.length(), offset, end);

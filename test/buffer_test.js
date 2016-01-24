@@ -164,6 +164,14 @@ describe('Buffer', function() {
 		buf = new Buffer(3);
 		assert.equal(buf.write("abcd", 0, 4), 3);
 		assert.equal(buf.toString('utf8', 0, 3), "abc");
+
+		buf = new Buffer(3);
+		assert.equal(buf.write("abcd", 0, "utf8"), 3);
+		assert.equal(buf.toString('utf8', 0, 3), "abc");
+
+		buf = new Buffer(3);
+		assert.equal(buf.write("abcd", "utf8"), 3);
+		assert.equal(buf.toString('utf8', 0, 3), "abc");
 	});
 
 	it('fill', function() {
