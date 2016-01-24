@@ -109,6 +109,7 @@ describe('Buffer', function() {
 	it('toString', function() {
 		var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
 		assert.equal(buf.toString("utf8"), "1234");
+		assert.equal(buf.toString(undefined), "1234");
 		assert.equal(buf.toString("hex"), "31323334");
 		assert.equal(buf.toString("base64"), "MTIzNA==");
 		assert.equal(buf.toString("utf8", 1), "234");

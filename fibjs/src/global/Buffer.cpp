@@ -833,7 +833,8 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
     std::string str;
     int32_t str_length;
 
-    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
+    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8") ||
+        !qstricmp(codec, "undefined"))
     {
         str = m_data;
         hr = 0;
