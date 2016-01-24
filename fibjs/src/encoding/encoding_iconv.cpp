@@ -238,18 +238,6 @@ result_t encoding_iconv::decode(Buffer_base *data, std::string &retVal)
     return decode(strData, retVal);
 }
 
-result_t encoding_base::iconvEncode(const char *charset, const char *data,
-                                    obj_ptr<Buffer_base> &retVal)
-{
-    return encoding_iconv(charset).encode(data, retVal);
-}
-
-result_t encoding_base::iconvDecode(const char *charset, Buffer_base *data,
-                                    std::string &retVal)
-{
-    return encoding_iconv(charset).decode(data, retVal);
-}
-
 result_t iconv_base::encode(const char *charset, const char *data,
                             obj_ptr<Buffer_base> &retVal)
 {

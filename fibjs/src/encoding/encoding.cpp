@@ -13,32 +13,9 @@
 namespace fibjs
 {
 
-result_t encoding_base::base32Encode(Buffer_base *data, std::string &retVal)
-{
-    baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, retVal);
-    return 0;
-}
-
 result_t base32_base::encode(Buffer_base *data, std::string &retVal)
 {
     baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, retVal);
-    return 0;
-}
-
-result_t encoding_base::base32Decode(const char *data,
-                                     obj_ptr<Buffer_base> &retVal)
-{
-    static const char decodeTable[] =
-    {
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 2x  !"#$%&'()*+,-./   */
-        14, 11, 26, 27, 28, 29, 30, 31, -1, 6, -1, -1, -1, -1, -1, -1, /* 3x 0123456789:;<=>?   */
-        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 4x @ABCDEFGHIJKLMNO   */
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, /* 5X PQRSTUVWXYZ[\]^_   */
-        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 6x `abcdefghijklmno   */
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
-    };
-
-    baseDecode(decodeTable, 5, data, retVal);
     return 0;
 }
 
@@ -59,36 +36,11 @@ result_t base32_base::decode(const char *data,
     return 0;
 }
 
-result_t encoding_base::base64Encode(Buffer_base *data, std::string &retVal)
-{
-    baseEncode(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-        6, data, retVal);
-    return 0;
-}
-
 result_t base64_base::encode(Buffer_base *data, std::string &retVal)
 {
     baseEncode(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
         6, data, retVal);
-    return 0;
-}
-
-result_t encoding_base::base64Decode(const char *data,
-                                     obj_ptr<Buffer_base> &retVal)
-{
-    static const char decodeTable[] =
-    {
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63, /* 2x  !"#$%&'()*+,-./   */
-        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, /* 3x 0123456789:;<=>?   */
-        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 4x @ABCDEFGHIJKLMNO   */
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 63, /* 5X PQRSTUVWXYZ[\]^_   */
-        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, /* 6x `abcdefghijklmno   */
-        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
-    };
-
-    baseDecode(decodeTable, 6, data, retVal);
     return 0;
 }
 
@@ -202,7 +154,7 @@ result_t base64vlq_base::decode(const char* data, v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t encoding_base::hexEncode(Buffer_base *data, std::string &retVal)
+result_t hex_base::encode(Buffer_base *data, std::string &retVal)
 {
     std::string strData;
     static char HexChar[] = "0123456789abcdef";
@@ -227,13 +179,8 @@ result_t encoding_base::hexEncode(Buffer_base *data, std::string &retVal)
     return 0;
 }
 
-result_t hex_base::encode(Buffer_base *data, std::string &retVal)
-{
-    return encoding_base::hexEncode(data, retVal);
-}
-
-result_t encoding_base::hexDecode(const char *data,
-                                  obj_ptr<Buffer_base> &retVal)
+result_t hex_base::decode(const char *data,
+                          obj_ptr<Buffer_base> &retVal)
 {
     int32_t pos, len = (int32_t) qstrlen(data);
     const char *end = data + len;
@@ -268,12 +215,6 @@ result_t encoding_base::hexDecode(const char *data,
     retVal = new Buffer(strBuf);
 
     return 0;
-}
-
-result_t hex_base::decode(const char *data,
-                          obj_ptr<Buffer_base> &retVal)
-{
-    return encoding_base::hexDecode(data, retVal);
 }
 
 static const char *URITable =

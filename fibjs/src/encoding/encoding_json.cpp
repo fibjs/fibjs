@@ -42,12 +42,6 @@ inline result_t _jsonEncode(v8::Local<v8::Value> data,
 	return 0;
 }
 
-result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
-                                   std::string &retVal)
-{
-	return _jsonEncode(data, retVal);
-}
-
 result_t json_base::encode(v8::Local<v8::Value> data,
                            std::string &retVal)
 {
@@ -409,12 +403,6 @@ inline result_t _jsonDecode(const char *data,
 
 	json_parser jp(data);
 	return jp.ParseJson(retVal);
-}
-
-result_t encoding_base::jsonDecode(const char *data,
-                                   v8::Local<v8::Value> &retVal)
-{
-	return _jsonDecode(data, retVal);
 }
 
 result_t json_base::decode(const char *data,

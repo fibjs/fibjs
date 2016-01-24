@@ -24,7 +24,6 @@ class hex_base;
 class iconv_base;
 class json_base;
 class bson_base;
-class Buffer_base;
 
 class encoding_base : public object_base
 {
@@ -32,40 +31,16 @@ class encoding_base : public object_base
 
 public:
     // encoding_base
-    static result_t base32Encode(Buffer_base* data, std::string& retVal);
-    static result_t base32Decode(const char* data, obj_ptr<Buffer_base>& retVal);
-    static result_t base64Encode(Buffer_base* data, std::string& retVal);
-    static result_t base64Decode(const char* data, obj_ptr<Buffer_base>& retVal);
-    static result_t hexEncode(Buffer_base* data, std::string& retVal);
-    static result_t hexDecode(const char* data, obj_ptr<Buffer_base>& retVal);
-    static result_t iconvEncode(const char* charset, const char* data, obj_ptr<Buffer_base>& retVal);
-    static result_t iconvDecode(const char* charset, Buffer_base* data, std::string& retVal);
     static result_t jsstr(const char* str, bool json, std::string& retVal);
     static result_t encodeURI(const char* url, std::string& retVal);
     static result_t encodeURIComponent(const char* url, std::string& retVal);
     static result_t decodeURI(const char* url, std::string& retVal);
-    static result_t jsonEncode(v8::Local<v8::Value> data, std::string& retVal);
-    static result_t jsonDecode(const char* data, v8::Local<v8::Value>& retVal);
-    static result_t bsonEncode(v8::Local<v8::Object> data, obj_ptr<Buffer_base>& retVal);
-    static result_t bsonDecode(Buffer_base* data, v8::Local<v8::Object>& retVal);
 
 public:
-    static void s_base32Encode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_base32Decode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_base64Encode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_base64Decode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hexEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hexDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_iconvEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_iconvDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_jsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_jsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_bsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_bsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -77,7 +52,6 @@ public:
 #include "iconv.h"
 #include "json.h"
 #include "bson.h"
-#include "Buffer.h"
 
 namespace fibjs
 {
@@ -85,22 +59,10 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"base32Encode", s_base32Encode, true},
-            {"base32Decode", s_base32Decode, true},
-            {"base64Encode", s_base64Encode, true},
-            {"base64Decode", s_base64Decode, true},
-            {"hexEncode", s_hexEncode, true},
-            {"hexDecode", s_hexDecode, true},
-            {"iconvEncode", s_iconvEncode, true},
-            {"iconvDecode", s_iconvDecode, true},
             {"jsstr", s_jsstr, true},
             {"encodeURI", s_encodeURI, true},
             {"encodeURIComponent", s_encodeURIComponent, true},
-            {"decodeURI", s_decodeURI, true},
-            {"jsonEncode", s_jsonEncode, true},
-            {"jsonDecode", s_jsonDecode, true},
-            {"bsonEncode", s_bsonEncode, true},
-            {"bsonDecode", s_bsonDecode, true}
+            {"decodeURI", s_decodeURI, true}
         };
 
         static ClassData::ClassObject s_object[] = 
@@ -117,7 +79,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "encoding", NULL, NULL, 
-            16, s_method, 7, s_object, 0, NULL, NULL, NULL,
+            4, s_method, 7, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -125,128 +87,6 @@ namespace fibjs
         return s_ci;
     }
 
-
-    inline void encoding_base::s_base32Encode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.base32Encode");
-
-        std::string vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = base32Encode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_base32Decode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.base32Decode");
-
-        obj_ptr<Buffer_base> vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(arg_string, 0);
-
-        hr = base32Decode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_base64Encode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.base64Encode");
-
-        std::string vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = base64Encode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_base64Decode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.base64Decode");
-
-        obj_ptr<Buffer_base> vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(arg_string, 0);
-
-        hr = base64Decode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_hexEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.hexEncode");
-
-        std::string vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = hexEncode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_hexDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.hexDecode");
-
-        obj_ptr<Buffer_base> vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(arg_string, 0);
-
-        hr = hexDecode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_iconvEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.iconvEncode");
-
-        obj_ptr<Buffer_base> vr;
-
-        METHOD_ENTER(2, 2);
-
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
-
-        hr = iconvEncode(v0, v1, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_iconvDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.iconvDecode");
-
-        std::string vr;
-
-        METHOD_ENTER(2, 2);
-
-        ARG(arg_string, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-
-        hr = iconvDecode(v0, v1, vr);
-
-        METHOD_RETURN();
-    }
 
     inline void encoding_base::s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
@@ -297,66 +137,6 @@ namespace fibjs
         ARG(arg_string, 0);
 
         hr = decodeURI(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_jsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.jsonEncode");
-
-        std::string vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(v8::Local<v8::Value>, 0);
-
-        hr = jsonEncode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_jsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.jsonDecode");
-
-        v8::Local<v8::Value> vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(arg_string, 0);
-
-        hr = jsonDecode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_bsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.bsonEncode");
-
-        obj_ptr<Buffer_base> vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(v8::Local<v8::Object>, 0);
-
-        hr = bsonEncode(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void encoding_base::s_bsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("encoding.bsonDecode");
-
-        v8::Local<v8::Object> vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = bsonDecode(v0, vr);
 
         METHOD_RETURN();
     }
