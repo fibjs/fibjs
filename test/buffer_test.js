@@ -187,7 +187,7 @@ describe('Buffer', function() {
 		})
 
 		buf = new Buffer(10);
-		buf.fill(new Buffer([0, 1, 2]));
+		var buf1 = buf.fill(new Buffer([0, 1, 2]));
 		for (var i = 0; i < 3; i++) {
 			assert.equal(buf[i], i);
 			assert.equal(buf[i + 3], i);
@@ -197,6 +197,7 @@ describe('Buffer', function() {
 		assert.throws(function() {
 			buf[10];
 		})
+		assert.equal(buf, buf1);
 	});
 
 	it('slice', function() {

@@ -283,17 +283,19 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     return hr;
 }
 
-result_t Buffer::fill(int32_t v, int32_t offset, int32_t end)
+result_t Buffer::fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
     result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
     if (hr < 0)
         return CHECK_ERROR(hr);
 
     memset(&m_data[offset], v & 255, end - offset);
+
+    retVal = this;
     return 0;
 }
 
-result_t Buffer::fill(const char* v, int32_t offset, int32_t end)
+result_t Buffer::fill(const char* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
     result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
     if (hr < 0)
@@ -303,17 +305,22 @@ result_t Buffer::fill(const char* v, int32_t offset, int32_t end)
     int32_t str_length = (int32_t) strlen(v);
 
     if (str_length == 0)
+    {
+        retVal = this;
         return 0;
+    }
     while (length > 0)
     {
         m_data.replace(offset, MIN(str_length, length), v, MIN(str_length, length));
         length -= str_length;
         offset += str_length;
     }
+
+    retVal = this;
     return 0;
 }
 
-result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
+result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
     result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
     if (hr < 0)
@@ -324,13 +331,18 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
     int32_t v_length = (int32_t)v_data->m_data.length();
 
     if (v_length == 0)
+    {
+        retVal = this;
         return 0;
+    }
     while (length > 0)
     {
         memcpy(&m_data[offset], &v_data->m_data[0], MIN(v_length, length));
         length -= v_length;
         offset += v_length;
     }
+
+    retVal = this;
     return 0;
 }
 
