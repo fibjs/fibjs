@@ -233,6 +233,9 @@ describe('Buffer', function() {
 		assert.throws(function() {
 			buf.slice(0, 11);
 		})
+
+		var buf = new Buffer('buffer');                //TODO slice 反向的支持
+		assert.equal(buf.slice(-6, -1), 'buffe');
 	});
 
 	it('equals & compare', function() {

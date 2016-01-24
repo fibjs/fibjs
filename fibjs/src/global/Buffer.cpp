@@ -789,10 +789,14 @@ result_t Buffer::writeDoubleBE(double value, int32_t offset, bool noAssert)
 result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
 {
     int32_t length = (int32_t) m_data.length();
-    if (end < 0)
-        end = length + end + 1;
 
-    if (start < 0 || end < 0 || start > end)
+    if (start < 0)
+        start = length + start;
+
+    if (end < 0)
+        end = length + end;
+
+    if (start > end)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (end > length)
