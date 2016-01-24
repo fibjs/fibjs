@@ -186,6 +186,8 @@ function parserIDL(fname) {
 			"Date": "date_t",
 			"Object": "v8::Local<v8::Object>",
 			"Array": "v8::Local<v8::Array>",
+			"TypedArray": "v8::Local<v8::TypedArray>",
+			"ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
 			"Function": "v8::Local<v8::Function>",
 			"Value": "v8::Local<v8::Value>",
 			"Variant": "Variant"
@@ -199,6 +201,8 @@ function parserIDL(fname) {
 			"Date": "date_t",
 			"Object": "v8::Local<v8::Object>",
 			"Array": "v8::Local<v8::Array>",
+			"TypedArray": "v8::Local<v8::TypedArray>",
+			"ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
 			"Function": "v8::Local<v8::Function>",
 			"Value": "v8::Local<v8::Value>",
 			"Variant": "Variant"

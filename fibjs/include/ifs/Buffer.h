@@ -26,6 +26,8 @@ class Buffer_base : public object_base
 public:
     // Buffer_base
     static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::ArrayBuffer> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::TypedArray> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* buffer, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(const char* str, const char* codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -36,6 +38,8 @@ public:
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t resize(int32_t sz) = 0;
     virtual result_t append(v8::Local<v8::Array> datas) = 0;
+    virtual result_t append(v8::Local<v8::TypedArray> datas) = 0;
+    virtual result_t append(v8::Local<v8::ArrayBuffer> datas) = 0;
     virtual result_t append(Buffer_base* data) = 0;
     virtual result_t append(const char* str, const char* codec) = 0;
     virtual result_t write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal) = 0;
@@ -275,6 +279,18 @@ namespace fibjs
 
         METHOD_OVER(1, 1);
 
+        ARG(v8::Local<v8::ArrayBuffer>, 0);
+
+        hr = _new(v0, vr, args.This());
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::TypedArray>, 0);
+
+        hr = _new(v0, vr, args.This());
+
+        METHOD_OVER(1, 1);
+
         STRICT_ARG(obj_ptr<Buffer_base>, 0);
 
         hr = _new(v0, vr, args.This());
@@ -340,6 +356,18 @@ namespace fibjs
         METHOD_ENTER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
+
+        hr = pInst->append(v0);
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::TypedArray>, 0);
+
+        hr = pInst->append(v0);
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::ArrayBuffer>, 0);
 
         hr = pInst->append(v0);
 

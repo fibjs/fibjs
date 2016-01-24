@@ -35,6 +35,8 @@ public:
     virtual result_t get_length(int32_t &retVal);
     virtual result_t resize(int32_t sz);
     virtual result_t append(v8::Local<v8::Array> datas);
+    virtual result_t append(v8::Local<v8::TypedArray> datas);
+    virtual result_t append(v8::Local<v8::ArrayBuffer> datas);
     virtual result_t append(Buffer_base *data);
     virtual result_t append(const char *str, const char *codec);
     virtual result_t write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal);
@@ -96,6 +98,35 @@ private:
 
     result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert);
     result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
+
+    template<typename T>
+    result_t _append(T datas, int32_t sz)
+    {
+        if (sz)
+        {
+            int32_t i;
+            result_t hr;
+            std::string str;
+
+            str.resize(sz);
+            for (i = 0; i < sz; i ++)
+            {
+                v8::Local<v8::Value> v = datas->Get(i);
+                int32_t num;
+
+                hr = GetArgumentValue(v, num);
+                if (hr < 0)
+                    return CHECK_ERROR(hr);
+
+                str[i] = (char)num;
+            }
+
+            extMemory((int32_t) sz);
+            m_data.append(str);
+        }
+
+        return 0;
+    }
 
 private:
     std::string m_data;

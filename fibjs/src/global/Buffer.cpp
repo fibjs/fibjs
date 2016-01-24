@@ -57,6 +57,22 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas,
     return retVal->append(datas);
 }
 
+result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
+                           obj_ptr<Buffer_base>& retVal,
+                           v8::Local<v8::Object> This)
+{
+    retVal = new Buffer();
+    return retVal->append(datas);
+}
+
+result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
+                           obj_ptr<Buffer_base>& retVal,
+                           v8::Local<v8::Object> This)
+{
+    retVal = new Buffer();
+    return retVal->append(datas);
+}
+
 result_t Buffer_base::_new(Buffer_base* buffer,
                            obj_ptr<Buffer_base> &retVal,
                            v8::Local<v8::Object> This)
@@ -161,32 +177,24 @@ result_t Buffer::resize(int32_t sz)
 
 result_t Buffer::append(v8::Local<v8::Array> datas)
 {
-    int32_t sz = datas->Length();
+    return _append(datas, (int32_t)datas->Length());
+}
+
+result_t Buffer::append(v8::Local<v8::TypedArray> datas)
+{
+    return _append(datas, (int32_t)datas->Length());
+}
+
+result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
+{
+    v8::ArrayBuffer::Contents cnt = datas->GetContents();
+    int32_t sz = (int32_t)cnt.ByteLength();
+    char* ptr = (char*)cnt.Data();
 
     if (sz)
     {
-        int32_t i;
-        result_t hr;
-        std::string str;
-
-        str.resize(sz);
-        for (i = 0; i < sz; i ++)
-        {
-            v8::Local<v8::Value> v = datas->Get(i);
-            int32_t num;
-
-            hr = GetArgumentValue(v, num);
-            if (hr < 0)
-                return CHECK_ERROR(hr);
-
-            if (num < 0 || num > 256)
-                return CHECK_ERROR(CALL_E_OUTRANGE);
-
-            str[i] = num;
-        }
-
-        extMemory((int32_t) sz);
-        m_data.append(str);
+        extMemory(sz);
+        m_data.append(ptr, sz);
     }
 
     return 0;

@@ -23,6 +23,28 @@ describe('Buffer', function() {
 		assert.equal(buf.toString(), "1234");
 	});
 
+	it('new Buffer(TypedArray)', function() {
+		var arr = new Uint16Array(2);
+		arr[0] = 5000;
+		arr[1] = 4000;
+
+		var buf = new Buffer(arr);
+
+		assert.equal(buf.length, 2);
+		assert.equal(buf.hex(), "88a0");
+	});
+
+	it('new Buffer(ArrayBuffer)', function() {
+		var arr = new Uint16Array(2);
+		arr[0] = 5000;
+		arr[1] = 4000;
+
+		var buf = new Buffer(arr.buffer);
+
+		assert.equal(buf.length, 4);
+		assert.equal(buf.hex(), "8813a00f");
+	});
+
 	it('new Buffer(Buffer)', function() {
 		var buf = new Buffer(new Buffer("abcd"));
 		assert.equal(buf.length, 4);
@@ -470,4 +492,4 @@ describe('Buffer', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

@@ -629,6 +629,40 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v
     return GetArgumentValue(v, vr, bStrict);
 }
 
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::TypedArray> &vr, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return CALL_E_INVALIDARG;
+
+    if (!v->IsTypedArray())
+        return CALL_E_INVALIDARG;
+
+    vr = v8::Local<v8::TypedArray>::Cast(v);
+    return 0;
+}
+
+inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::TypedArray> &vr, bool bStrict = false)
+{
+    return GetArgumentValue(v, vr, bStrict);
+}
+
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::ArrayBuffer> &vr, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return CALL_E_INVALIDARG;
+
+    if (!v->IsArrayBuffer())
+        return CALL_E_INVALIDARG;
+
+    vr = v8::Local<v8::ArrayBuffer>::Cast(v);
+    return 0;
+}
+
+inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::ArrayBuffer> &vr, bool bStrict = false)
+{
+    return GetArgumentValue(v, vr, bStrict);
+}
+
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr, bool bStrict = false)
 {
     vr = v;
