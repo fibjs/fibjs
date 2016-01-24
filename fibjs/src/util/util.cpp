@@ -131,8 +131,28 @@ std::string json_format(v8::Local<v8::Value> obj)
                 obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
                 if (buf)
                 {
+                    static char hexs[] = "0123456789abcdef";
+                    std::string data;
                     std::string s;
-                    buf->base64(s);
+                    int32_t len, i;
+
+                    buf->toString(data);
+                    len = (int32_t)data.length();
+
+                    s.resize(len * 3 + 8);
+                    memcpy(&s[0], "<Buffer", 7);
+
+                    for(i = 0; i < len; i ++)
+                    {
+                        int32_t ch = (unsigned char)data[i];
+
+                        s[i * 3 + 7] = ' ';
+                        s[i * 3 + 8] = hexs[ch >> 4];
+                        s[i * 3 + 9] = hexs[ch & 0xf];
+                    }
+
+                    s[i * 3 + 7] = '>';
+
                     strBuffer.append(s);
                     break;
                 }

@@ -612,7 +612,7 @@ describe('util', function() {
 		});
 
 		it("Buffer", function() {
-			assert.equal(util.format(new Buffer("aaaaaaaa")), 'YWFhYWFhYWE=');
+			assert.equal(util.format(new Buffer('fibjs')), '<Buffer 66 69 62 6a 73>');
 		});
 
 		it("Int64", function() {
@@ -985,4 +985,4 @@ describe('util', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
