@@ -14,6 +14,15 @@
 namespace fibjs
 {
 
+struct _from {
+	const char* name;
+	void (*from)(Isolate*, v8::Local<v8::Object>&);
+} s_from[] =
+{
+	{"Buffer", Buffer::fromJSON},
+	{NULL}
+};
+
 inline result_t _jsonEncode(v8::Local<v8::Value> data,
                             std::string &retVal)
 {
@@ -313,16 +322,20 @@ inline result_t _jsonDecode(const char *data,
 			AdvanceSkipWhitespace();
 
 			v8::Local<v8::Value> type = json_object->Get(isolate->NewFromUtf8("type"));
-			if(!type.IsEmpty())
+			if (!type.IsEmpty())
 			{
 				v8::String::Utf8Value str(type);
 
-				if(*str && !qstrcmp(*str, "Buffer"))
+				if (*str)
 				{
-					obj_ptr<Buffer_base> buf;
-					hr = Buffer::fromJSON(isolate, json_object, buf);
-					if(hr >= 0)
-						json_object = buf->wrap();
+					int32_t i;
+
+					for (i = 0; s_from[i].name; i++)
+						if (!qstrcmp(*str, s_from[i].name))
+						{
+							s_from[i].from(isolate, json_object);
+							break;
+						}
 				}
 			}
 

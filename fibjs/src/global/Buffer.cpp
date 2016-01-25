@@ -838,7 +838,7 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
     int32_t str_length;
 
     if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8") ||
-        !qstricmp(codec, "undefined"))
+            !qstricmp(codec, "undefined"))
     {
         str = m_data;
         hr = 0;
@@ -855,7 +855,7 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
 
             len = (int32_t)m_data.length();
             str.resize(len);
-            for(i = 0; i < len; i ++)
+            for (i = 0; i < len; i ++)
                 str[i] = m_data[i] & 0x7f;
 
             hr = 0;
@@ -912,21 +912,16 @@ result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     return 0;
 }
 
-result_t Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Object> o,
-                        obj_ptr<Buffer_base>& retVal)
+void Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Object>& o)
 {
     v8::Local<v8::Value> datas = o->Get(isolate->NewFromUtf8("data"));
 
-    if(datas->IsArray())
+    if (datas->IsArray())
     {
         obj_ptr<Buffer_base> buf = new Buffer();
         buf->append(v8::Local<v8::Array>::Cast(datas));
-        retVal = buf;
-
-        return 0;
+        o = buf->wrap();
     }
-
-    return CHECK_ERROR(CALL_E_INVALIDARG);
 }
 
 }
