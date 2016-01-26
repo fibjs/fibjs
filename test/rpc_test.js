@@ -115,6 +115,16 @@ describe("rpc", function() {
 
 		var task = rpc.open("module/c4.js");
 		assert.equal(task.foo(), 1);
+		assert.equal(task.arg_count(100, 200), 2);
+		assert.deepEqual(task.arg_obj({
+			a: 100,
+			b: 200
+		}), {
+			a: 100,
+			b: 200
+		});
+
+		assert.deepEqual(task.arg_obj(new Buffer("1234567")), new Buffer("1234567"));
 
 		var n = 0;
 		coroutine.start(function(){

@@ -88,6 +88,69 @@ private:
 	std::string m_error;
 };
 
+class AsyncLocalTask : public RpcTask::AsyncTask
+{
+public:
+	AsyncLocalTask(RpcTask* task) :
+		RpcTask::AsyncTask(task)
+	{}
+
+public:
+	v8::Local<v8::Value> get_result()
+	{
+		return m_result;
+	}
+
+	void set_result(v8::Local<v8::Value> newVal)
+	{
+		m_result = newVal;
+		if(m_result.type() == Variant::VT_Object || 
+			m_result.type() == Variant::VT_JSValue)
+			m_result.toJSON();
+	}
+
+	void get_param(v8::Isolate* isolate, std::vector<v8::Local<v8::Value> >& retVal)
+	{
+		int32_t len = m_param.size();
+		int32_t i;
+
+		retVal.resize(len);
+		for (i = 0; i < len; i++)
+			retVal[i] = m_param[i];
+	}
+
+	void set_param(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> array = v8::Array::New(args.GetIsolate());
+		int32_t i;
+		int32_t len = args.Length();
+
+		m_param.resize(len);
+		for (i = 0; i < len; i ++)
+		{
+			m_param[i] = args[i];
+			if(m_param[i].type() == Variant::VT_Object || 
+				m_param[i].type() == Variant::VT_JSValue)
+				m_param[i].toJSON();
+		}
+	}
+
+	std::string get_error()
+	{
+		return m_error;
+	}
+
+	void set_error(std::string newVal)
+	{
+		m_error = newVal;
+	}
+
+private:
+	std::vector<Variant> m_param;
+	Variant m_result;
+	std::string m_error;
+};
+
 void nextMethod(std::string &method_path, std::string &method)
 {
 	const char *p, *p1;
@@ -231,7 +294,7 @@ result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
 		syncCall(new_isolate, init_task_fiber, new_isolate);
 	}
 
-	AsyncJsonTask at(this);
+	AsyncLocalTask at(this);
 	at.set_param(args);
 
 	s_acTask.put(&at);
