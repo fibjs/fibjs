@@ -13,7 +13,6 @@
 #include "SandBox.h"
 #include "Fiber.h"
 #include "Url.h"
-#include "vector"
 
 namespace fibjs
 {
@@ -23,6 +22,71 @@ static exlib::atomic s_idles;
 static exlib::Queue<RpcTask::AsyncTask> s_acTask;
 
 static void init_task_fiber(Isolate* isolate);
+
+class AsyncJsonTask : public RpcTask::AsyncTask
+{
+public:
+	AsyncJsonTask(RpcTask* task) :
+		RpcTask::AsyncTask(task)
+	{}
+
+public:
+	v8::Local<v8::Value> get_result()
+	{
+		v8::Local<v8::Value> v;
+
+		json_base::decode(m_result.c_str(), v);
+		return v;
+	}
+
+	void set_result(v8::Local<v8::Value> newVal)
+	{
+		json_base::encode(newVal, m_result);
+	}
+
+	void get_param(v8::Isolate* isolate, std::vector<v8::Local<v8::Value> >& retVal)
+	{
+		v8::Local<v8::Value> v;
+		v8::Local<v8::Array> param;
+		result_t hr;
+
+		json_base::decode(m_param.c_str(), v);
+		param = v8::Local<v8::Array>::Cast(v);
+
+		int32_t len = param->Length();
+		int32_t i;
+
+		retVal.resize(len);
+		for (i = 0; i < len; i++)
+			retVal[i] = v8::Local<v8::Value>::New(isolate, param->Get(i));
+	}
+
+	void set_param(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> array = v8::Array::New(args.GetIsolate());
+		int32_t i;
+
+		for (i = 0; i < args.Length(); i ++)
+			array->Set(i, args[i]);
+
+		json_base::encode(array, m_param);
+	}
+
+	std::string get_error()
+	{
+		return m_error;
+	}
+
+	void set_error(std::string newVal)
+	{
+		m_error = newVal;
+	}
+
+private:
+	std::string m_param;
+	std::string m_result;
+	std::string m_error;
+};
 
 void nextMethod(std::string &method_path, std::string &method)
 {
@@ -75,20 +139,13 @@ static void task_fiber(Isolate* isolate)
 	syncCall(isolate, task_fiber, isolate);
 
 	v8::Local<v8::Value> v, v1;
-	v8::Local<v8::Array> param;
 	result_t hr;
-
-	json_base::decode(p->m_param.c_str(), v);
-	param = v8::Local<v8::Array>::Cast(v);
-
-	int32_t len = param->Length();
-	int32_t i;
 
 	TryCatch try_catch;
 	hr = isolate->m_topSandbox->require(p->m_task->m_id.c_str(), v);
 	if (hr < 0)
 	{
-		p->m_error = GetException(try_catch, hr).c_str();
+		p->set_error(GetException(try_catch, hr));
 		p->post(hr);
 		return;
 	}
@@ -122,7 +179,7 @@ static void task_fiber(Isolate* isolate)
 
 	if (hr < 0)
 	{
-		p->m_error = GetException(try_catch, hr).c_str();
+		p->set_error(GetException(try_catch, hr));
 		p->post(hr);
 		return;
 	}
@@ -131,20 +188,18 @@ static void task_fiber(Isolate* isolate)
 	{
 		std::vector<v8::Local<v8::Value> > argv;
 
-		argv.resize(len);
-		for (i = 0; i < len; i++)
-			argv[i] = v8::Local<v8::Value>::New(isolate->m_isolate, param->Get(i));
+		p->get_param(isolate->m_isolate, argv);
 
 		v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
 		v = func->Call(v1, (int32_t) argv.size(), argv.data());
 		if (v.IsEmpty())
 		{
-			p->m_error = GetException(try_catch, CALL_E_JAVASCRIPT).c_str();
+			p->set_error(GetException(try_catch, CALL_E_JAVASCRIPT));
 			p->post(CALL_E_JAVASCRIPT);
 			return;
 		}
 
-		json_base::encode(v, p->m_result);
+		p->set_result(v);
 	}
 
 	p->post(0);
@@ -176,26 +231,15 @@ result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
 		syncCall(new_isolate, init_task_fiber, new_isolate);
 	}
 
-	v8::Isolate* isolate = args.GetIsolate();
-	v8::Local<v8::Array> array = v8::Array::New(isolate);
-	int32_t i;
-
-	for (i = 0; i < args.Length(); i ++)
-		array->Set(i, args[i]);
-
-	std::string param;
-	result_t hr = json_base::encode(array, param);
-	if (hr < 0)
-		return hr;
-
-	AsyncTask at(this, param);
+	AsyncJsonTask at(this);
+	at.set_param(args);
 
 	s_acTask.put(&at);
-	hr = at.wait();
+	result_t hr = at.wait();
 	if (hr < 0)
-		return CHECK_ERROR(Runtime::setError(at.m_error));
+		return CHECK_ERROR(Runtime::setError(at.get_error()));
 
-	json_base::decode(at.m_result.c_str(), retVal);
+	retVal = at.get_result();
 
 	return 0;
 }

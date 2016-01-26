@@ -7,6 +7,7 @@
 
 #include "ifs/RpcTask.h"
 #include <map>
+#include <vector>
 
 #ifndef RPCTASK_H_
 #define RPCTASK_H_
@@ -48,15 +49,20 @@ public:
 	class AsyncTask : public AsyncCall
 	{
 	public:
-		AsyncTask(RpcTask* task, std::string param) :
-			AsyncCall(NULL), m_task(task), m_param(param)
+		AsyncTask(RpcTask* task) :
+			AsyncCall(NULL), m_task(task)
 		{}
 
 	public:
+		virtual v8::Local<v8::Value> get_result() = 0;
+		virtual void set_result(v8::Local<v8::Value> newVal) = 0;
+		virtual void get_param(v8::Isolate* isolate, std::vector<v8::Local<v8::Value> >& retVal) = 0;
+		virtual void set_param(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+		virtual std::string get_error() = 0;
+		virtual void set_error(std::string newVal) = 0;
+
+	public:
 		obj_ptr<RpcTask> m_task;
-		std::string m_param;
-		std::string m_result;
-		std::string m_error;
 	};
 
 public:
