@@ -1,6 +1,7 @@
 #include "Buffer.h"
 #include "ifs/encoding.h"
 #include "Int64.h"
+#include "utf8.h"
 #include <cstring>
 #include <string>
 
@@ -859,7 +860,10 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
                 str[i] = m_data[i] & 0x7f;
 
             hr = 0;
-        } else
+        } else if (!qstrcmp(codec, "ucs2") || !qstrcmp(codec, "ucs-2") ||
+                   !qstrcmp(codec, "utf16le") || !qstrcmp(codec, "utf-16le"))
+            str = utf16to8String((const wchar *)m_data.c_str(), m_data.length() / 2);
+        else
             hr = iconv_base::decode(codec, this, str);
     }
 

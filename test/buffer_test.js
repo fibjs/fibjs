@@ -132,6 +132,8 @@ describe('Buffer', function() {
 		var buf1 = new Buffer('this is a tést');
 		assert.equal(buf1.toString(), 'this is a tést');
 		assert.equal(buf1.toString('ascii'), 'this is a tC)st');
+
+		assert.equal(buf1.toString('ucs2'), '桴獩椠⁳⁡썴玩');
 	});
 
 	it('append', function() {
