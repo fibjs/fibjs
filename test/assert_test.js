@@ -230,6 +230,14 @@ describe('assert', function() {
 		assert.notDeepEqual(a, {});
 	});
 
+	it('deepEqual (Buffer)', function() {
+		var a = new Buffer("123"),
+			b = new Buffer("456");
+		assert.deepEqual(a, a);
+		assert.notDeepEqual(a, b);
+		assert.notDeepEqual(a, {});
+	});
+
 	it('deepEqual (circular)', function() {
 		var circularObject = {}, secondCircularObject = {};
 		circularObject.field = circularObject;
@@ -500,4 +508,4 @@ describe('assert', function() {
 	});
 });
 
-//test.run();
+// test.run(console.DEBUG);

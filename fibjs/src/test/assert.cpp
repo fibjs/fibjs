@@ -288,6 +288,17 @@ bool objectEquals(QuickArray<v8::Local<v8::Object> >& acts,
     return true;
 }
 
+bool BufferEquals(Buffer_base* actual, Buffer_base* expected)
+{
+    std::string data1, data2;
+
+    actual->toString(data1);
+    expected->toString(data2);
+
+    return data1.length() == data2.length() && 
+        !memcmp(data1.c_str(), data2.c_str(), data1.length());
+}
+
 bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
                 QuickArray<v8::Local<v8::Object> >& exps,
                 v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
@@ -310,6 +321,11 @@ bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
 
         if (actual->IsArray() && expected->IsArray())
             return arrayEquals(acts, exps, actual, expected);
+
+        obj_ptr<Buffer_base> buf1 = Buffer_base::getInstance(actual);
+        obj_ptr<Buffer_base> buf2 = Buffer_base::getInstance(expected);
+        if(buf1 && buf2)
+            return BufferEquals(buf1, buf2);
 
         if (actual->IsObject() && expected->IsObject())
             return objectEquals(acts, exps, actual, expected);
