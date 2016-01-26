@@ -114,8 +114,10 @@ private:
     result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
 
     template<typename T>
-    result_t _append(T datas, int32_t sz)
+    result_t _append(T datas)
     {
+        int32_t sz = (int32_t)datas->Length();
+
         if (sz)
         {
             int32_t i;

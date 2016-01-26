@@ -178,12 +178,12 @@ result_t Buffer::resize(int32_t sz)
 
 result_t Buffer::append(v8::Local<v8::Array> datas)
 {
-    return _append(datas, (int32_t)datas->Length());
+    return _append(datas);
 }
 
 result_t Buffer::append(v8::Local<v8::TypedArray> datas)
 {
-    return _append(datas, (int32_t)datas->Length());
+    return _append(datas);
 }
 
 result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
