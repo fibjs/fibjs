@@ -916,14 +916,12 @@ result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     return 0;
 }
 
-void Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Object>& o)
+void Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o)
 {
-    v8::Local<v8::Value> datas = o->Get(isolate->NewFromUtf8("data"));
-
-    if (datas->IsArray())
+    if (data->IsArray())
     {
         obj_ptr<Buffer_base> buf = new Buffer();
-        buf->append(v8::Local<v8::Array>::Cast(datas));
+        buf->append(v8::Local<v8::Array>::Cast(data));
         o = buf->wrap();
     }
 }

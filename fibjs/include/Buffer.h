@@ -101,7 +101,7 @@ public:
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 
 public:
-    static void fromJSON(Isolate* isolate, v8::Local<v8::Object>& o);
+    static void fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o);
 
 private:
     result_t readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le);
