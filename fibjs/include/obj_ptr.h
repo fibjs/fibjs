@@ -53,10 +53,6 @@ public:
     };
 
 public:
-    obj_base() : gc_(false)
-    {
-    }
-
     virtual ~obj_base()
     {
         if (weak_)
@@ -73,15 +69,6 @@ public:
     {
         if (internalUnref() == 0)
             delete this;
-    }
-
-    void dispose(bool gc)
-    {
-        if (refs_ == 0)
-        {
-            gc_ = gc;
-            delete this;
-        }
     }
 
     weak_stub *get_stub()
@@ -112,15 +99,9 @@ protected:
         return refs_;
     }
 
-    bool in_gc()
-    {
-        return gc_;
-    }
-
 private:
     exlib::atomic refs_;
     exlib::atomic_ptr<weak_stub> weak_;
-    bool gc_;
 };
 
 template<class T>

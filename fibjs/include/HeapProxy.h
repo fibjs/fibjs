@@ -32,10 +32,7 @@ public:
 
     ~HeapSnapshotProxy()
     {
-        if (in_gc())
-            syncCall(holder(), del_, m_snapshot);
-        else
-            ((v8::HeapSnapshot*)m_snapshot)->Delete();
+        syncCall(holder(), del_, m_snapshot);
     }
 
 public:

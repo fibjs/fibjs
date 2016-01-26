@@ -159,7 +159,7 @@ private:
             Isolate* isolate = holder();
             v8::Isolate* v8_isolate = isolate->m_isolate;
 
-            clearWeak();
+            Ref();
 
             v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(
                 0, 0);
@@ -167,7 +167,7 @@ private:
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 
-            obj_base::dispose(gc);
+            Unref();
         }
 
         return 0;
