@@ -70,12 +70,15 @@ static void dumpFibers()
 
 static void cb_interrupt(v8::Isolate *isolate, void *data)
 {
+    exlib::OSThread _thread;
+    _thread.bindCurrent();
+
     dumpFibers();
 }
 
 void Isolate::InterruptCallback()
 {
-    cb_interrupt(m_isolate, NULL);
+    dumpFibers();
 }
 
 void on_break(int32_t s) {
