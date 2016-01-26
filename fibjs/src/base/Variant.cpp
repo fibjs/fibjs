@@ -7,6 +7,7 @@
 
 #include <math.h>
 #include "object.h"
+#include "ifs/json.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -123,6 +124,13 @@ Variant::operator v8::Local<v8::Value>() const
             return v8::Local<v8::Value>::New(isolate->m_isolate, jsValEx());
         else
             return jsVal();
+    case VT_JSON:
+    {
+        v8::Local<v8::Value> v;
+
+        json_base::decode(strVal().c_str(), v);
+        return v;
+    }
     case VT_String:
     {
         std::string &str = strVal();
@@ -297,6 +305,21 @@ bool Variant::toString(std::string &retVal)
     }
 
     return false;
+}
+
+void Variant::toJSON()
+{
+    if (type() != VT_JSON)
+    {
+        v8::Local<v8::Value> v = operator v8::Local<v8::Value>();
+        std::string str;
+
+        json_base::encode(v, str);
+
+        clear();
+        set_type(VT_JSON);
+        new (((std::string *) m_Val.strVal)) std::string(str);
+    }
 }
 
 }

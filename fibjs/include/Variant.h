@@ -64,6 +64,7 @@ public:
         VT_String,
         VT_Object,
         VT_JSValue,
+        VT_JSON,
         VT_Type = 255,
         VT_Persistent = 256
     };
@@ -105,7 +106,7 @@ public:
 
     void clear()
     {
-        if (type() == VT_String)
+        if (type() == VT_String || type() == VT_JSON)
             strVal().~basic_string();
         else if (type() == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
@@ -301,6 +302,8 @@ public:
     }
 
     bool toString(std::string &retVal);
+
+    void toJSON();
 
     object_base *object() const
     {
