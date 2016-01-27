@@ -862,7 +862,7 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::s
             hr = 0;
         } else if (!qstrcmp(codec, "ucs2") || !qstrcmp(codec, "ucs-2") ||
                    !qstrcmp(codec, "utf16le") || !qstrcmp(codec, "utf-16le"))
-            str = utf16to8String((const wchar *)m_data.c_str(), m_data.length() / 2);
+            str = utf16to8String((const wchar *)m_data.c_str(), (int32_t)m_data.length() / 2);
         else
             hr = iconv_base::decode(codec, this, str);
     }

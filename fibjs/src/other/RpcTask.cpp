@@ -48,7 +48,6 @@ public:
 	{
 		v8::Local<v8::Value> v;
 		v8::Local<v8::Array> param;
-		result_t hr;
 
 		json_base::decode(m_param.c_str(), v);
 		param = v8::Local<v8::Array>::Cast(v);
@@ -104,14 +103,14 @@ public:
 	void set_result(v8::Local<v8::Value> newVal)
 	{
 		m_result = newVal;
-		if(m_result.type() == Variant::VT_Object || 
-			m_result.type() == Variant::VT_JSValue)
+		if (m_result.type() == Variant::VT_Object ||
+		        m_result.type() == Variant::VT_JSValue)
 			m_result.toJSON();
 	}
 
 	void get_param(v8::Isolate* isolate, std::vector<v8::Local<v8::Value> >& retVal)
 	{
-		int32_t len = m_param.size();
+		int32_t len = (int32_t)m_param.size();
 		int32_t i;
 
 		retVal.resize(len);
@@ -129,8 +128,8 @@ public:
 		for (i = 0; i < len; i ++)
 		{
 			m_param[i] = args[i];
-			if(m_param[i].type() == Variant::VT_Object || 
-				m_param[i].type() == Variant::VT_JSValue)
+			if (m_param[i].type() == Variant::VT_Object ||
+			        m_param[i].type() == Variant::VT_JSValue)
 				m_param[i].toJSON();
 		}
 	}
