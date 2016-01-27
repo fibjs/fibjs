@@ -302,6 +302,8 @@ bool Variant::toString(std::string &retVal)
         return true;
     case VT_JSValue:
         return false;
+    case VT_JSON:
+        return false;
     }
 
     return false;

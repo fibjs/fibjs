@@ -120,7 +120,6 @@ public:
 
 	void set_param(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Local<v8::Array> array = v8::Array::New(args.GetIsolate());
 		int32_t i;
 		int32_t len = args.Length();
 
