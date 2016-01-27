@@ -51,7 +51,7 @@ result_t websocket_base::connect(const char* url, const char* origin,
 			char keys[16];
 			int32_t i;
 
-			for (i = 0; i < sizeof(keys); i ++)
+			for (i = 0; i < (int32_t)sizeof(keys); i ++)
 				keys[i] = (char)rand();
 
 			std::string key;

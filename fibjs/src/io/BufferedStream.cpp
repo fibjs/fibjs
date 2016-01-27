@@ -31,7 +31,7 @@ public:
         asyncBuffer *pThis = (asyncBuffer *) pState;
 
         result_t hr = pThis->process(pThis->m_streamEnd);
-        if (pThis->m_pThis->m_pos == pThis->m_pThis->m_buf.length())
+        if (pThis->m_pThis->m_pos == (int32_t)pThis->m_pThis->m_buf.length())
         {
             pThis->m_pThis->m_buf.clear();
             pThis->m_pThis->m_pos = 0;
