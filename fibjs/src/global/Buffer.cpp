@@ -402,14 +402,6 @@ result_t Buffer::indexOf(const char* v, int32_t offset, int32_t& retVal)
     return 0;
 }
 
-result_t Buffer::equals(Buffer_base * buf, bool & retVal)
-{
-    int32_t cmp;
-    this->compare(buf, cmp);
-    retVal = !cmp;
-    return 0;
-}
-
 result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
 {
     obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer *>(buf);
@@ -830,6 +822,24 @@ result_t Buffer::base64(std::string &retVal)
 {
     obj_ptr<Buffer_base> data = this;
     return base64_base::encode(data, retVal);
+}
+
+result_t Buffer::equals(object_base* expected, bool& retVal)
+{
+    obj_ptr<Buffer_base> buf = Buffer_base::getInstance(expected);
+    if(!buf)
+    {
+        retVal = false;
+        return 0;
+    }
+
+    std::string str;
+    buf->toString(str);
+
+    retVal = (m_data.length() == str.length()) && 
+            !memcmp(m_data.c_str(), str.c_str(), str.length());
+
+    return 0;
 }
 
 result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, std::string &retVal)

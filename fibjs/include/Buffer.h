@@ -29,6 +29,10 @@ public:
     }
 
 public:
+    // object_base
+    virtual result_t equals(object_base* expected, bool& retVal);
+
+public:
     // Buffer_base
     virtual result_t _indexed_getter(uint32_t index, int32_t &retVal);
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal);
@@ -48,7 +52,6 @@ public:
     virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal);
     virtual result_t indexOf(const char* v, int32_t offset, int32_t& retVal);
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
-    virtual result_t equals(Buffer_base *buf, bool& retVal);
     virtual result_t compare(Buffer_base *buf, int32_t& retVal);
     virtual result_t copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t &retVal);

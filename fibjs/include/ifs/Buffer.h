@@ -51,7 +51,6 @@ public:
     virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(const char* v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t equals(Buffer_base* buf, bool& retVal) = 0;
     virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -117,7 +116,6 @@ public:
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -184,7 +182,6 @@ namespace fibjs
             {"write", s_write, false},
             {"fill", s_fill, false},
             {"indexOf", s_indexOf, false},
-            {"equals", s_equals, false},
             {"compare", s_compare, false},
             {"copy", s_copy, false},
             {"readUInt8", s_readUInt8, false},
@@ -247,7 +244,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "Buffer", s__new, NULL, 
-            55, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+            54, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
             &object_base::class_info()
         };
 
@@ -505,20 +502,6 @@ namespace fibjs
         OPT_ARG(int32_t, 1, 0);
 
         hr = pInst->indexOf(v0, v1, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
-
-        METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = pInst->equals(v0, vr);
 
         METHOD_RETURN();
     }

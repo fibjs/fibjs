@@ -24,12 +24,14 @@ class object_base : public object_base
 public:
     // object_base
     virtual result_t dispose() = 0;
+    virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t toString(std::string& retVal) = 0;
     virtual result_t toJSON(const char* key, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t valueOf(v8::Local<v8::Value>& retVal) = 0;
 
 public:
     static void s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,6 +46,7 @@ namespace fibjs
         static ClassData::ClassMethod s_method[] = 
         {
             {"dispose", s_dispose, false},
+            {"equals", s_equals, false},
             {"toString", s_toString, false},
             {"toJSON", s_toJSON, false},
             {"valueOf", s_valueOf, false}
@@ -52,7 +55,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "object", NULL, NULL, 
-            4, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            5, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -69,6 +72,20 @@ namespace fibjs
         hr = pInst->dispose();
 
         METHOD_VOID();
+    }
+
+    inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(object_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(obj_ptr<object_base>, 0);
+
+        hr = pInst->equals(v0, vr);
+
+        METHOD_RETURN();
     }
 
     inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)

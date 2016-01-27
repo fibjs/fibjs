@@ -318,6 +318,12 @@ public:
         return internalDispose();
     }
 
+    virtual result_t equals(object_base* expected, bool& retVal)
+    {
+        retVal = expected == this;
+        return 0;
+    }
+
     virtual result_t toString(std::string &retVal)
     {
         retVal = Classinfo().name();
@@ -387,6 +393,7 @@ public:
 
 private:
     static void s_dispose(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value> &args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
     static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &args);
@@ -416,6 +423,7 @@ inline ClassInfo &object_base::class_info()
     static ClassData::ClassMethod s_method[] =
     {
         { "dispose", s_dispose },
+        { "equals", s_equals, false},
         { "toString", s_toString },
         { "toJSON", s_toJSON },
         { "valueOf", s_valueOf }
@@ -423,7 +431,7 @@ inline ClassInfo &object_base::class_info()
 
     static ClassData s_cd =
     {
-        "object", NULL, NULL, 4, s_method, 0,
+        "object", NULL, NULL, 5, s_method, 0,
         NULL, 0, NULL, NULL, NULL, NULL
     };
 
@@ -439,6 +447,20 @@ inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value> &ar
     hr = pInst->dispose();
 
     METHOD_VOID();
+}
+
+inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(object_base);
+    METHOD_ENTER(1, 1);
+
+    ARG(obj_ptr<object_base>, 0);
+
+    hr = pInst->equals(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &args)
