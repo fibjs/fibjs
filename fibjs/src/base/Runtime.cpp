@@ -122,7 +122,8 @@ Isolate::Isolate(const char *fname) :
 	m_currentFibers++;
 	m_idleFibers ++;
 
-	exlib::Service::Create(init_proc, this, stack_size * 1024);
+	exlib::Fiber* fb = exlib::Service::Create(init_proc, this, stack_size * 1024);
+	fb->set_name("JSFiber");
 }
 
 Isolate* Isolate::current()

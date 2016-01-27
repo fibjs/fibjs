@@ -31,7 +31,10 @@ static void *worker_proc(void *ptr)
             if (s_idleWorkers.inc() > MAX_IDLE_WORKERS)
                 s_idleWorkers.dec();
             else
-                exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
+            {
+                exlib::Fiber* fb = exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
+                fb->set_name("WorkerFiber");
+            }
         }
 
         p->invoke();
@@ -56,7 +59,8 @@ void init_acThread()
         cpus = 2;
 
     s_idleWorkers.inc();
-    exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
+    exlib::Fiber* fb = exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
+    fb->set_name("WorkerFiber");
 }
 
 }
