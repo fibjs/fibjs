@@ -48,7 +48,7 @@ result_t process_base::get_execPath(std::string &retVal)
     return os_base::get_execPath(retVal);
 }
 
-void dump_memory(int32_t serial);
+void dump_memory();
 
 result_t process_base::exit(int32_t code)
 {
@@ -56,7 +56,7 @@ result_t process_base::exit(int32_t code)
 
 #ifdef DEBUG
     global_base::GC();
-    dump_memory(0);
+    dump_memory();
 #endif
 
     ::_exit(code);

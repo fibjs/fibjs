@@ -20,6 +20,7 @@
 #include <jemalloc/include/jemalloc/jemalloc.h>
 #include <exlib/include/list.h>
 #include <exlib/include/fiber.h>
+#include <exlib/include/service.h>
 
 #if !defined(__clang__)
 
@@ -94,54 +95,60 @@ inline void out_size(FILE* fp, size_t sz)
 		fprintf(fp, "%.1f GB\n", num / (1024 * 1024 * 1024));
 }
 
+class StackFrame : public exlib::linkitem
+{
+private:
+	struct stack_frame {
+		struct stack_frame* next;
+		void* ret;
+	};
+
+	const int32_t stack_align_mask = sizeof(intptr_t) - 1;
+
+public:
+	void save(size_t sz, void* bp)
+	{
+		m_sz = sz;
+
+		void* st = 0;
+
+		exlib::Thread_base* fb = exlib::Thread_base::current();
+		if (fb)
+			st = (void*)fb->stackguard();
+
+		stack_frame* frame = (stack_frame*)bp;
+		frame = frame->next->next;
+
+		m_frame_count = 0;
+		while (frame && m_frame_count < (int32_t)ARRAYSIZE(m_frames)) {
+			m_frames[m_frame_count++] = frame->ret;
+
+			stack_frame* frame1 = frame->next;
+			if (frame1 < frame ||
+			        (((intptr_t)frame1 & stack_align_mask) != 0) ||
+			        (st && frame1 >= st) ||
+			        frame1->ret == 0)
+				break;
+			frame = frame1;
+		}
+	}
+
+	void save(size_t sz)
+	{
+		void* bp;
+		get_bp(bp);
+		save(sz, bp);
+	}
+
+public:
+	size_t m_sz;
+	void* m_frames[100];
+	int32_t m_frame_count;
+};
+
 class MemPool
 {
 public:
-	class Item : public exlib::linkitem
-	{
-	private:
-		struct stack_frame {
-			struct stack_frame* next;
-			void* ret;
-		};
-
-		const int32_t stack_align_mask = sizeof(intptr_t) - 1;
-
-	public:
-		void save(size_t sz)
-		{
-			m_sz = sz;
-
-			stack_frame* frame;
-			void* st = 0;
-
-			exlib::Thread_base* fb = exlib::Thread_base::current();
-			if (fb)
-				st = (void*)fb->stackguard();
-
-			get_bp(frame);
-			frame = frame->next->next;
-
-			m_frame_count = 0;
-			while (frame && m_frame_count < (int32_t)ARRAYSIZE(m_frames)) {
-				m_frames[m_frame_count++] = frame->ret;
-
-				stack_frame* frame1 = frame->next;
-				if (frame1 < frame ||
-				        (((intptr_t)frame1 & stack_align_mask) != 0) ||
-				        (st && frame1 >= st) ||
-				        frame1->ret == 0)
-					break;
-				frame = frame1;
-			}
-		}
-
-	public:
-		size_t m_sz;
-		void* m_frames[100];
-		int32_t m_frame_count;
-	};
-
 	class caller
 	{
 	public:
@@ -241,28 +248,28 @@ public:
 
 	void add(void* i, size_t sz)
 	{
-		((Item*)i)->save(sz);
+		((StackFrame*)i)->save(sz);
 		add(i);
 	}
 
 	void add(void* i)
 	{
 		m_lock.lock();
-		m_list.putTail((Item*)i);
+		m_list.putTail((StackFrame*)i);
 		m_lock.unlock();
 	}
 
 	void remove(void* i)
 	{
 		m_lock.lock();
-		m_list.remove((Item*)i);
+		m_list.remove((StackFrame*)i);
 		m_lock.unlock();
 	}
 
 	void dump()
 	{
-		Item* items;
-		Item* p;
+		StackFrame* items;
+		StackFrame* p;
 		int32_t n = 0;
 		int32_t i;
 		char fname[32];
@@ -270,12 +277,12 @@ public:
 		init_lib();
 
 		m_lock.lock();
-		items = (Item*)__real_malloc(sizeof(Item) * m_list.count());
+		items = (StackFrame*)__real_malloc(sizeof(StackFrame) * m_list.count());
 
 		p = m_list.head();
 		while (p)
 		{
-			memcpy(items + n ++, p, sizeof(Item));
+			memcpy(items + n ++, p, sizeof(StackFrame));
 			p = m_list.next(p);
 		}
 		m_lock.unlock();
@@ -298,18 +305,46 @@ public:
 	}
 
 public:
-	exlib::List<Item> m_list;
+	exlib::List<StackFrame> m_list;
 	exlib::spinlock m_lock;
 };
 
-void dump_memory(int32_t serial)
+void dump_memory()
 {
 	MemPool::global().dump();
 }
 
+void dump_stack()
+{
+	char fname[32];
+
+	sprintf(fname, "fibjs.%d.stack", getpid());
+	FILE* fp = fopen(fname, "w");
+	if (fp)
+	{
+		exlib::Fiber* fb = exlib::Service::firstFiber();
+		StackFrame sf;
+		int32_t i, n = 0;
+
+		while (fb)
+		{
+			fprintf(fp, "\nFiber %d %s\n", n ++, fb->name());
+			sf.save(0, (void*)fb->m_cntxt.fp);
+			for (i = 0; i < sf.m_frame_count; i ++)
+			{
+				fprintf(fp, "    ");
+				out_proc(fp, sf.m_frames[i]);
+			}
+			fb = exlib::Service::nextFiber(fb);
+		}
+
+		fclose(fp);
+	}
 }
 
-#define STUB_SIZE	((sizeof(fibjs::MemPool::Item) + 0x1f) & 0xfffffe0)
+}
+
+#define STUB_SIZE	((sizeof(fibjs::StackFrame) + 0x1f) & 0xfffffe0)
 #define FULL_SIZE(sz)	((sz) + STUB_SIZE)
 #define MEM_PTR(p)	((p) ? (void*)((intptr_t)(p) + STUB_SIZE) : 0)
 #define STUB_PTR(p)	((p) ? (void*)((intptr_t)(p) - STUB_SIZE) : 0)
@@ -470,7 +505,7 @@ void operator delete[] (void* p) throw()
 namespace fibjs
 {
 
-void dump_memory(int32_t serial)
+void dump_memory()
 {
 }
 

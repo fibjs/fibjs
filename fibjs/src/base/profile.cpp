@@ -44,7 +44,8 @@ static std::string traceFiber()
     return msg;
 }
 
-void dump_memory(int32_t serial);
+void dump_memory();
+void dump_stack();
 
 static void dumpFibers()
 {
@@ -62,7 +63,8 @@ static void dumpFibers()
     std_logger::out(msg.c_str());
 
 #ifdef DEBUG
-    dump_memory(0);
+    dump_memory();
+    dump_stack();
 #endif
 
     _exit(1);
@@ -70,9 +72,6 @@ static void dumpFibers()
 
 static void cb_interrupt(v8::Isolate *isolate, void *data)
 {
-    exlib::OSThread _thread;
-    _thread.bindCurrent();
-
     dumpFibers();
 }
 
@@ -90,7 +89,8 @@ void on_break(int32_t s) {
         puts("User interrupt.");
 
 #ifdef DEBUG
-        dump_memory(0);
+        dump_memory();
+        dump_stack();
 #endif
 
         _exit(1);
