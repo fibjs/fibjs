@@ -31,12 +31,7 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 Socket::~Socket()
 {
     if (m_sock != INVALID_SOCKET)
-    {
-        if (Isolate::check())
-            asyncCall(::closesocket, m_sock);
-        else
-            ::closesocket(m_sock);
-    }
+        asyncCall(::closesocket, m_sock);
 }
 
 #ifdef _WIN32
@@ -46,15 +41,7 @@ extern HANDLE s_hIocp;
 result_t Socket::create(int32_t family, int32_t type)
 {
     if (m_sock != INVALID_SOCKET)
-    {
-        if (Isolate::check())
-            ac_close();
-        else
-        {
-            AsyncEvent ac;
-            close(&ac);
-        }
-    }
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     m_family = family;
     m_type = type;

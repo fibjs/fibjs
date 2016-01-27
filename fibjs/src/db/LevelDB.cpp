@@ -58,12 +58,7 @@ LevelDB::~LevelDB()
         delete m_batch;
     }
     else if (m_db)
-    {
-        if (Isolate::check())
-            asyncCall(close_ldb, m_db);
-        else
-            delete m_db;
-    }
+        asyncCall(close_ldb, m_db);
 }
 
 result_t LevelDB::has(Buffer_base *key, bool &retVal, AsyncEvent *ac)

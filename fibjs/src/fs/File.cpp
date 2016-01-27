@@ -30,19 +30,10 @@ File::~File()
 {
     if (m_fd != -1)
     {
-        if (Isolate::check()) {
-            if (m_pipe)
-                asyncCall(pclose, m_pipe);
-            else
-                asyncCall(::_close, m_fd);
-        }
+        if (m_pipe)
+            asyncCall(pclose, m_pipe);
         else
-        {
-            if (m_pipe)
-                pclose(m_pipe);
-            else
-                ::_close(m_fd);
-        }
+            asyncCall(::_close, m_fd);
     }
 }
 

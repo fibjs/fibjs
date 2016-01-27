@@ -152,7 +152,7 @@ private:
     bool m_inweak;
 
 private:
-    result_t internalDispose(bool gc)
+    result_t internalDispose()
     {
         if (!handle_.IsEmpty())
         {
@@ -176,7 +176,7 @@ private:
     static void WeakCallback(const v8::WeakCallbackData<v8::Object, object_base> &data)
     {
         assert(!data.GetParameter()->handle_.IsEmpty());
-        data.GetParameter()->internalDispose(true);
+        data.GetParameter()->internalDispose();
     }
 
 private:
@@ -315,7 +315,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        return internalDispose(false);
+        return internalDispose();
     }
 
     virtual result_t toString(std::string &retVal)

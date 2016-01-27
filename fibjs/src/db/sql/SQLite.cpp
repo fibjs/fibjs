@@ -57,12 +57,7 @@ result_t SQLite::open(const char *file)
 SQLite::~SQLite()
 {
     if (m_db)
-    {
-        if (Isolate::check())
-            asyncCall(sqlite3_close, m_db);
-        else
-            sqlite3_close(m_db);
-    }
+        asyncCall(sqlite3_close, m_db);
 }
 
 result_t SQLite::close(AsyncEvent *ac)
