@@ -314,30 +314,32 @@ void dump_memory()
 	MemPool::global().dump();
 }
 
+static FILE* fp;
+static int32_t fiber_num = 0;
+
+void dump_one(exlib::Fiber* fb)
+{
+	StackFrame sf;
+	int32_t i;
+
+	fprintf(fp, "\nFiber %d %s\n", fiber_num ++, fb->name());
+	sf.save(0, (void*)fb->m_cntxt.fp);
+	for (i = 0; i < sf.m_frame_count; i ++)
+	{
+		fprintf(fp, "    ");
+		out_proc(fp, sf.m_frames[i]);
+	}
+}
+
 void dump_stack()
 {
 	char fname[32];
 
 	sprintf(fname, "fibjs.%d.stack", getpid());
-	FILE* fp = fopen(fname, "w");
+	fp = fopen(fname, "w");
 	if (fp)
 	{
-		exlib::Fiber* fb = exlib::Service::firstFiber();
-		StackFrame sf;
-		int32_t i, n = 0;
-
-		while (fb)
-		{
-			fprintf(fp, "\nFiber %d %s\n", n ++, fb->name());
-			sf.save(0, (void*)fb->m_cntxt.fp);
-			for (i = 0; i < sf.m_frame_count; i ++)
-			{
-				fprintf(fp, "    ");
-				out_proc(fp, sf.m_frames[i]);
-			}
-			fb = exlib::Service::nextFiber(fb);
-		}
-
+		exlib::Service::forEach(dump_one);
 		fclose(fp);
 	}
 }
