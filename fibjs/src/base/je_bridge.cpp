@@ -509,6 +509,10 @@ void dump_memory()
 {
 }
 
+void dump_stack()
+{
+}
+
 }
 
 #endif
