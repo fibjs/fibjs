@@ -405,19 +405,19 @@ result_t SandBox::require(std::string base, std::string id,
         fname1 = s_root;
         pathAdd(fname1, fname.c_str());
 
-        hr = fs_base::ac_readFile(fname1.c_str(), buf);
+        hr = fs_base::cc_readFile(fname1.c_str(), buf);
         if (hr >= 0)
             return addScript(fname1.c_str(), buf.c_str(), retVal);
     }
     else
     {
         fname = fullname + ".js";
-        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        hr = fs_base::cc_readFile(fname.c_str(), buf);
         if (hr >= 0)
             return addScript(fname.c_str(), buf.c_str(), retVal);
 
         fname = fullname + ".json";
-        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        hr = fs_base::cc_readFile(fname.c_str(), buf);
         if (hr >= 0)
             return addScript(fname.c_str(), buf.c_str(), retVal);
 
@@ -425,7 +425,7 @@ result_t SandBox::require(std::string base, std::string id,
             return hr;
 
         fname = fullname + PATH_SLASH + "package.json";
-        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        hr = fs_base::cc_readFile(fname.c_str(), buf);
         if (hr >= 0)
         {
             v8::Local<v8::Value> v;
@@ -531,7 +531,7 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8
     const char *pname = sfname.c_str();
 
     std::string buf;
-    hr = fs_base::ac_readFile(pname, buf);
+    hr = fs_base::cc_readFile(pname, buf);
     if (hr < 0)
         return hr;
 
