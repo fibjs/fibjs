@@ -34,6 +34,7 @@ static void *worker_proc(void *ptr)
             {
                 exlib::Fiber* fb = exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
                 fb->set_name("WorkerFiber");
+                fb->Unref();
             }
         }
 
@@ -61,6 +62,7 @@ void init_acThread()
     s_idleWorkers.inc();
     exlib::Fiber* fb = exlib::Service::Create(worker_proc, NULL, WORKER_STACK_SIZE * 1024);
     fb->set_name("WorkerFiber");
+    fb->Unref();
 }
 
 }

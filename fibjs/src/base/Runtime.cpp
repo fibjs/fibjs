@@ -124,6 +124,7 @@ Isolate::Isolate(const char *fname) :
 
 	exlib::Fiber* fb = exlib::Service::Create(init_proc, this, stack_size * 1024);
 	fb->set_name("JSFiber");
+	fb->Unref();
 }
 
 Isolate* Isolate::current()
