@@ -63,9 +63,7 @@ void *FiberBase::fiber_proc(void *p)
             isolate->m_currentFibers++;
             isolate->m_idleFibers ++;
 
-            exlib::Fiber* fb = exlib::Service::Create(fiber_proc, isolate, stack_size * 1024);
-            fb->set_name("JSFiber");
-            fb->Unref();
+            exlib::Service::Create(fiber_proc, isolate, stack_size * 1024, "JSFiber");
         }
 
         {
