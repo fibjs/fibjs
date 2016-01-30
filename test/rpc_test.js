@@ -12,20 +12,18 @@ var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
 
-var m = new http.Request();
-
-var jr;
-
-m.value = 'test/tttt/tttt/';
-m.setHeader("Content-Type", "application/json, charset=utf-8;");
-m.body.write(encoding.json.encode({
-	method: 'aaaa',
-	params: [100, 200],
-	id: 1234
-}));
-
 describe("rpc", function() {
 	var ss = [];
+
+	var m = new http.Request();
+
+	m.value = 'test/tttt/tttt/';
+	m.setHeader("Content-Type", "application/json, charset=utf-8;");
+	m.body.write(encoding.json.encode({
+		method: 'aaaa',
+		params: [100, 200],
+		id: 1234
+	}));
 
 	after(function() {
 		ss.forEach(function(s) {
@@ -34,7 +32,7 @@ describe("rpc", function() {
 	});
 
 	it("function", function() {
-		jr = rpc.json(function(m, p1, p2) {
+		var jr = rpc.json(function(m, p1, p2) {
 			m.value = '';
 			return p1 + ',' + p2;
 		});
@@ -48,7 +46,7 @@ describe("rpc", function() {
 
 	it("map", function() {
 		m.value = 'test';
-		jr = rpc.json({
+		var jr = rpc.json({
 			test: {
 				aaaa: function(m, p1, p2) {
 					m.value = '';
@@ -65,7 +63,7 @@ describe("rpc", function() {
 	});
 
 	it("params", function() {
-		jr = rpc.json({
+		var jr = rpc.json({
 			'xhr': {
 				test: {
 					fun: function(v, a, b) {
@@ -92,16 +90,16 @@ describe("rpc", function() {
 			'{"id":1234,"result":300}');
 	});
 
-	it("Task", function(){
-		assert.throws(function(){
+	it("Task", function() {
+		assert.throws(function() {
 			var task = rpc.open("./not_exists.js");
 		});
 
-		assert.throws(function(){
+		assert.throws(function() {
 			var task = rpc.open("../not_exists.js");
 		});
 
-		assert.throws(function(){
+		assert.throws(function() {
 			var task = rpc.open("http://127.0.0.1/not_exists.js");
 		});
 
@@ -109,7 +107,7 @@ describe("rpc", function() {
 		var task1 = task.func;
 		var task2 = task['1234'];
 
-		assert.throws(function(){
+		assert.throws(function() {
 			task();
 		});
 
@@ -127,7 +125,7 @@ describe("rpc", function() {
 		assert.deepEqual(task.arg_obj(new Buffer("1234567")), new Buffer("1234567"));
 
 		var n = 0;
-		coroutine.start(function(){
+		coroutine.start(function() {
 			n = 1;
 		});
 

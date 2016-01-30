@@ -252,6 +252,10 @@ describe("mq", function() {
 			'^params3/(([0-9]+)\.(([a-z])?[0-9]+([a-z]([0-9]+)))\.html)$': params3
 		});
 
+		after(function() {
+			r.dispose();
+		})
+
 		it("simple path", function() {
 			n = 0;
 			m.value = 'a';
