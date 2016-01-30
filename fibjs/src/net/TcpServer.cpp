@@ -164,6 +164,8 @@ result_t TcpServer::run(AsyncEvent *ac)
         virtual int32_t error(int32_t v)
         {
             asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
+            m_pThis->dispose();
+
             return v;
         }
 
