@@ -75,10 +75,7 @@ result_t SslServer::create(X509Cert_base *crt, PKey_base *key, const char *addr,
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
-    m_handler = _handler;
     o->SetHiddenValue(isolate->NewFromUtf8("handler"), _handler->wrap());
-
-    m_server = _server;
     o->SetHiddenValue(isolate->NewFromUtf8("server"), _server->wrap());
 
     return 0;
@@ -102,10 +99,7 @@ result_t SslServer::create(v8::Local<v8::Array> certs, const char *addr, int32_t
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
-    m_handler = _handler;
     o->SetHiddenValue(isolate->NewFromUtf8("handler"), _handler->wrap());
-
-    m_server = _server;
     o->SetHiddenValue(isolate->NewFromUtf8("server"), _server->wrap());
 
     return 0;
@@ -113,52 +107,52 @@ result_t SslServer::create(v8::Local<v8::Array> certs, const char *addr, int32_t
 
 result_t SslServer::run(AsyncEvent *ac)
 {
-    return m_server->run(ac);
+    return server()->run(ac);
 }
 
 result_t SslServer::asyncRun()
 {
-    return m_server->asyncRun();
+    return server()->asyncRun();
 }
 
 result_t SslServer::stop(AsyncEvent *ac)
 {
-    return m_server->stop(ac);
+    return server()->stop(ac);
 }
 
 result_t SslServer::get_socket(obj_ptr<Socket_base> &retVal)
 {
-    return m_server->get_socket(retVal);
+    return server()->get_socket(retVal);
 }
 
 result_t SslServer::get_handler(obj_ptr<Handler_base> &retVal)
 {
-    return m_handler->get_handler(retVal);
+    return handler()->get_handler(retVal);
 }
 
 result_t SslServer::set_handler(Handler_base *newVal)
 {
-    return m_handler->set_handler(newVal);
+    return handler()->set_handler(newVal);
 }
 
 result_t SslServer::get_verification(int32_t &retVal)
 {
-    return m_handler->get_verification(retVal);
+    return handler()->get_verification(retVal);
 }
 
 result_t SslServer::set_verification(int32_t newVal)
 {
-    return m_handler->set_verification(newVal);
+    return handler()->set_verification(newVal);
 }
 
 result_t SslServer::get_ca(obj_ptr<X509Cert_base> &retVal)
 {
-    return m_handler->get_ca(retVal);
+    return handler()->get_ca(retVal);
 }
 
 result_t SslServer::get_stats(obj_ptr<Stats_base> &retVal)
 {
-    return m_server->get_stats(retVal);
+    return server()->get_stats(retVal);
 }
 
 }

@@ -23,9 +23,6 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        m_server.dispose();
-        m_handler.dispose();
-
         return 0;
     }
 
@@ -52,8 +49,15 @@ public:
                     v8::Local<v8::Value> listener);
 
 private:
-    naked_ptr<TcpServer_base> m_server;
-    naked_ptr<SslHandler_base> m_handler;
+    TcpServer_base* server()
+    {
+        return TcpServer_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("server")));
+    }
+
+    SslHandler_base* handler()
+    {
+        return SslHandler_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("handler")));
+    }
 };
 
 } /* namespace fibjs */

@@ -23,9 +23,6 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        m_server.dispose();
-        m_handler.dispose();
-
         return 0;
     }
 
@@ -63,8 +60,15 @@ public:
     result_t create(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    naked_ptr<SslServer_base> m_server;
-    naked_ptr<HttpHandler_base> m_handler;
+    SslServer_base* server()
+    {
+        return SslServer_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("server")));
+    }
+
+    HttpHandler_base* handler()
+    {
+        return HttpHandler_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("handler")));
+    }
 };
 
 } /* namespace fibjs */

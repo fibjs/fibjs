@@ -23,9 +23,6 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        m_server.dispose();
-        m_handler.dispose();
-
         return 0;
     }
 
@@ -56,8 +53,15 @@ public:
     result_t create(const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    naked_ptr<TcpServer> m_server;
-    naked_ptr<HttpHandler_base> m_handler;
+    TcpServer_base* server()
+    {
+        return TcpServer_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("server")));
+    }
+
+    HttpHandler_base* handler()
+    {
+        return HttpHandler_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("handler")));
+    }
 };
 
 } /* namespace fibjs */

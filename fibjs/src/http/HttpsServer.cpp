@@ -76,10 +76,7 @@ result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, const char *add
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
-    m_handler = _handler;
     o->SetHiddenValue(isolate->NewFromUtf8("handler"), _handler->wrap());
-
-    m_server = _server;
     o->SetHiddenValue(isolate->NewFromUtf8("server"), _server->wrap());
 
     return 0;
@@ -103,10 +100,7 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
-    m_handler = _handler;
     o->SetHiddenValue(isolate->NewFromUtf8("handler"), _handler->wrap());
-
-    m_server = _server;
     o->SetHiddenValue(isolate->NewFromUtf8("server"), _server->wrap());
 
     return 0;
@@ -114,100 +108,100 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
 
 result_t HttpsServer::run(AsyncEvent *ac)
 {
-    return m_server->run(ac);
+    return server()->run(ac);
 }
 
 result_t HttpsServer::asyncRun()
 {
-    return m_server->asyncRun();
+    return server()->asyncRun();
 }
 
 result_t HttpsServer::stop(AsyncEvent *ac)
 {
-    return m_server->stop(ac);
+    return server()->stop(ac);
 }
 
 result_t HttpsServer::get_socket(obj_ptr<Socket_base> &retVal)
 {
-    return m_server->get_socket(retVal);
+    return server()->get_socket(retVal);
 }
 
 result_t HttpsServer::get_handler(obj_ptr<Handler_base> &retVal)
 {
-    return m_handler->get_handler(retVal);
+    return handler()->get_handler(retVal);
 }
 
 result_t HttpsServer::set_handler(Handler_base *newVal)
 {
-    return m_handler->set_handler(newVal);
+    return handler()->set_handler(newVal);
 }
 
 result_t HttpsServer::onerror(v8::Local<v8::Object> hdlrs)
 {
-    return m_handler->onerror(hdlrs);
+    return handler()->onerror(hdlrs);
 }
 
 result_t HttpsServer::get_crossDomain(bool &retVal)
 {
-    return m_handler->get_crossDomain(retVal);
+    return handler()->get_crossDomain(retVal);
 }
 
 result_t HttpsServer::set_crossDomain(bool newVal)
 {
-    return m_handler->set_crossDomain(newVal);
+    return handler()->set_crossDomain(newVal);
 }
 
 result_t HttpsServer::get_forceGZIP(bool &retVal)
 {
-    return m_handler->get_forceGZIP(retVal);
+    return handler()->get_forceGZIP(retVal);
 }
 
 result_t HttpsServer::set_forceGZIP(bool newVal)
 {
-    return m_handler->set_forceGZIP(newVal);
+    return handler()->set_forceGZIP(newVal);
 }
 
 result_t HttpsServer::get_maxHeadersCount(int32_t &retVal)
 {
-    return m_handler->get_maxHeadersCount(retVal);
+    return handler()->get_maxHeadersCount(retVal);
 }
 
 result_t HttpsServer::set_maxHeadersCount(int32_t newVal)
 {
-    return m_handler->set_maxHeadersCount(newVal);
+    return handler()->set_maxHeadersCount(newVal);
 }
 
 result_t HttpsServer::get_maxUploadSize(int32_t &retVal)
 {
-    return m_handler->get_maxUploadSize(retVal);
+    return handler()->get_maxUploadSize(retVal);
 }
 
 result_t HttpsServer::set_maxUploadSize(int32_t newVal)
 {
-    return m_handler->set_maxUploadSize(newVal);;
+    return handler()->set_maxUploadSize(newVal);;
 }
 
 result_t HttpsServer::get_verification(int32_t &retVal)
 {
-    return m_server->get_verification(retVal);
+    return server()->get_verification(retVal);
 }
 result_t HttpsServer::set_verification(int32_t newVal)
 {
-    return m_server->set_verification(newVal);
+    return server()->set_verification(newVal);
 }
 result_t HttpsServer::get_ca(obj_ptr<X509Cert_base> &retVal)
 {
-    return m_server->get_ca(retVal);
+    return server()->get_ca(retVal);
 }
 
 result_t HttpsServer::get_httpStats(obj_ptr<Stats_base> &retVal)
 {
-    return m_handler->get_stats(retVal);
+    return handler()->get_stats(retVal);
 }
 
 result_t HttpsServer::get_stats(obj_ptr<Stats_base> &retVal)
 {
-    return m_server->get_stats(retVal);
+    return server()->get_stats(retVal);
 }
 
 } /* namespace fibjs */
