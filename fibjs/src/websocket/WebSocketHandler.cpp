@@ -311,8 +311,14 @@ result_t WebSocketHandler::get_handler(obj_ptr<Handler_base> &retVal)
 
 result_t WebSocketHandler::set_handler(Handler_base *newVal)
 {
+    obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
+
     wrap()->SetHiddenValue(holder()->NewFromUtf8("handler"), newVal->wrap());
     m_hdlr = newVal;
+
+    if (hdlr)
+        hdlr->dispose();
+
     return 0;
 }
 
