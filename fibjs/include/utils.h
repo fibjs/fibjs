@@ -170,17 +170,17 @@ typedef int32_t result_t;
 #endif
 
 #if 0
-#define V8_SCOPE()  v8::EscapableHandleScope handle_scope(Isolate::current()->m_isolate)
+#define V8_SCOPE(isolate)  v8::EscapableHandleScope handle_scope(isolate)
 #define V8_RETURN(v)   handle_scope.Escape(v)
 #else
-#define V8_SCOPE()
+#define V8_SCOPE(isolate) (isolate = isolate)
 #define V8_RETURN(v)   (v)
 #endif
 
 #define PROPERTY_ENTER() \
-    V8_SCOPE(); \
+    v8::Isolate* isolate = args.GetIsolate(); \
+    V8_SCOPE(isolate); \
     result_t hr = 0; \
-    v8::Isolate* isolate = args.GetIsolate(); isolate = isolate; \
     bool bStrict=false;do{do{
 
 #define METHOD_OVER(c, o) \
@@ -190,9 +190,9 @@ typedef int32_t result_t;
             if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
-    V8_SCOPE(); \
+    v8::Isolate* isolate = args.GetIsolate(); \
+    V8_SCOPE(isolate); \
     result_t hr = CALL_E_BADPARAMCOUNT; \
-    v8::Isolate* isolate = args.GetIsolate(); isolate = isolate;\
     int32_t argc = args.Length(); \
     bool bStrict=true;do{do{\
             METHOD_OVER(c, o)

@@ -69,7 +69,8 @@ void _require(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
-    V8_SCOPE();
+    v8::Isolate* isolate = args.GetIsolate();
+    V8_SCOPE(isolate);
 
     std::string id;
     result_t hr = GetArgumentValue(args[0], id);
@@ -79,7 +80,6 @@ void _require(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
-    v8::Isolate* isolate = args.GetIsolate();
     v8::Local<v8::Object> _mod = args.Data()->ToObject();
     v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox *)SandBox_base::getInstance(
