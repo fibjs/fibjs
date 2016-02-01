@@ -156,17 +156,23 @@ result_t TcpServer::run(AsyncEvent *ac)
             pThis->m_pThis->m_stats->inc(TCPS_TOTAL);
             pThis->m_pThis->m_stats->inc(TCPS_ACCEPT);
             pThis->m_pThis->m_stats->inc(TCPS_CONNECTIONS);
-            (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
+
+            if (pThis->m_retVal)
+            {
+                (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
+                pThis->m_retVal.Release();
+            }
 
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
 
         virtual int32_t error(int32_t v)
         {
-            asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
-            m_pThis->dispose();
+            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL)
+                return v;
 
-            return v;
+            asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
+            return 0;
         }
 
     private:

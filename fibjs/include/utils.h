@@ -164,9 +164,11 @@ typedef int32_t result_t;
 #ifndef _WIN32
 #define CALL_E_FILE_NOT_FOUND   (-ENOENT)
 #define CALL_E_PATH_NOT_FOUND   (-ENOENT)
+#define CALL_E_BAD_FILE         (-EBADF)
 #else
 #define CALL_E_FILE_NOT_FOUND   (-ERROR_FILE_NOT_FOUND)
 #define CALL_E_PATH_NOT_FOUND   (-ERROR_PATH_NOT_FOUND)
+#define CALL_E_BAD_FILE         (-ERROR_OPERATION_ABORTED)
 #endif
 
 #if 0
