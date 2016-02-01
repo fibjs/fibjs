@@ -169,7 +169,10 @@ result_t TcpServer::run(AsyncEvent *ac)
         virtual int32_t error(int32_t v)
         {
             if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL)
+            {
+                m_pThis->dispose();
                 return v;
+            }
 
             asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
             return 0;
