@@ -159,7 +159,7 @@ describe("rpc", function() {
 		}
 	});
 
-	it("Garbage Collection", function() {
+	xit("Garbage Collection", function() {
 		GC();
 		GC();
 
