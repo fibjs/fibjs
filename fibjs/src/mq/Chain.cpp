@@ -35,8 +35,14 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     {
     public:
         asyncInvoke(Chain *pThis, object_base *v, AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(pThis), m_v(v), m_pos(0)
+            AsyncState(ac), m_v(v), m_pos(0)
         {
+            int32_t i;
+
+            m_array.resize(pThis->m_array.size());
+            for (i = 0; i < (int32_t) pThis->m_array.size(); i ++)
+                m_array[i] = pThis->m_array[i];
+
             set(invoke);
         }
 
@@ -45,16 +51,16 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
-            if (pThis->m_pos == (int32_t) pThis->m_pThis->m_array.size())
+            if (pThis->m_pos == (int32_t) pThis->m_array.size())
                 return pThis->done(CALL_RETURN_NULL);
 
             pThis->m_pos++;
-            return mq_base::invoke(pThis->m_pThis->m_array[pThis->m_pos - 1],
+            return mq_base::invoke(pThis->m_array[pThis->m_pos - 1],
                                    pThis->m_v, pThis);
         }
 
     private:
-        obj_ptr<Chain> m_pThis;
+        std::vector<obj_ptr<Handler_base> > m_array;
         obj_ptr<object_base> m_v;
         int32_t m_pos;
     };
