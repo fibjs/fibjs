@@ -4,6 +4,7 @@ test.setup();
 var mq = require('mq');
 var net = require('net');
 var io = require('io');
+var os = require('os');
 var coroutine = require('coroutine');
 
 var m = new mq.Message();
@@ -194,6 +195,24 @@ describe("mq", function() {
 			req.params.push("aaasssssssssssssss");
 			mq.invoke(handler, req);
 		});
+
+		it("memory leak", function() {
+			var svr = new net.TcpServer(8888, function() {});
+			ss.push(svr.socket);
+
+			GC();
+			var no1 = os.memoryUsage().nativeObjects.objects;
+
+			svr.handler = new mq.Chain([function(v) {}, function(v) {}]);
+
+			GC();
+			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+
+			svr.handler = mq.jsHandler(function(v) {});
+
+			GC();
+			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+		});
 	});
 
 	describe("routing handler", function() {
@@ -328,6 +347,27 @@ describe("mq", function() {
 			m.value = '/api/a/test';
 			mq.invoke(r, m);
 			assert.equal('/test', m.value);
+		});
+
+		it("memory leak", function() {
+			var svr = new net.TcpServer(8890, function() {});
+			ss.push(svr.socket);
+
+			GC();
+			var no1 = os.memoryUsage().nativeObjects.objects;
+
+			svr.handler = new mq.Routing({
+				"^/api/a$": function(v) {},
+				"^/api/a(/.*)$": function(v) {}
+			});
+
+			GC();
+			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+
+			svr.handler = mq.jsHandler(function(v) {});
+
+			GC();
+			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 		});
 	});
 
