@@ -78,26 +78,29 @@ Isolate::rt::~rt()
 		m_fiber->m_traceInfo.resize(0);
 }
 
-static void delay_gc(Isolate *isolate)
+static void delay_gc(exlib::List<exlib::linkitem>* freelist)
 {
 	exlib::linkitem* p;
 
-	while ((p = isolate->m_free.getHead()) != 0)
+	while ((p = freelist->getHead()) != 0)
 		object_base::gc_delete(p);
+
+	delete freelist;
 }
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
 {
 	Isolate *isolate = Isolate::current();
 	exlib::linkitem* p;
+	exlib::List<exlib::linkitem>* freelist = new exlib::List<exlib::linkitem>();
 
 	isolate->m_weakLock.lock();
 	while ((p = isolate->m_weak.getHead()) != 0)
 		if (!object_base::gc_weak(p))
-			isolate->m_free.putTail(p);
+			freelist->putTail(p);
 	isolate->m_weakLock.unlock();
 
-	syncCall(isolate, delay_gc, isolate);
+	asyncCall(delay_gc, freelist);
 }
 
 void *init_proc(void *p)

@@ -88,7 +88,6 @@ public:
 
 	exlib::spinlock m_weakLock;
 	exlib::List<exlib::linkitem> m_weak;
-	exlib::List<exlib::linkitem> m_free;
 
 	v8::Isolate *m_isolate;
 	v8::Persistent<v8::Context> m_context;
