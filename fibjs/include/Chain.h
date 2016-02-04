@@ -6,7 +6,7 @@
  */
 
 #include "ifs/Chain.h"
-#include "QuickArray.h"
+#include <vector>
 
 #ifndef CHAIN_H_
 #define CHAIN_H_
@@ -42,26 +42,20 @@ public:
     result_t append(Handler_base *hdlr)
     {
         Isolate* isolate = holder();
-        v8::Local<v8::String> k = isolate->NewFromUtf8("handler");
-        v8::Local<v8::Value> v = wrap()->GetHiddenValue(k);
-        v8::Local<v8::Array> a;
+        int32_t no = (int32_t)m_array.size();
 
-        if (IsEmpty(v))
-        {
-            a = v8::Array::New(isolate->m_isolate);
-            wrap()->SetHiddenValue(k, a);
-        }
-        else
-            a = v8::Local<v8::Array>::Cast(v);
+        char strBuf[32];
+        sprintf(strBuf, "handler_%d", no);
+        v8::Local<v8::String> k = isolate->NewFromUtf8(strBuf);
 
-        a->Set((int32_t)m_array.size(), hdlr->wrap());
-        m_array.append(hdlr);
+        wrap()->SetHiddenValue(k, hdlr->wrap());
+        m_array.push_back(hdlr);
 
         return 0;
     }
 
 private:
-    QuickArray<naked_ptr<Handler_base> > m_array;
+    std::vector<naked_ptr<Handler_base> > m_array;
 };
 
 } /* namespace fibjs */

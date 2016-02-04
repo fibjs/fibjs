@@ -6,8 +6,8 @@
  */
 
 #include "ifs/Routing.h"
-#include "QuickArray.h"
 #include <pcre/pcre.h>
+#include <vector>
 
 #ifndef ROUTING_H_
 #define ROUTING_H_
@@ -64,7 +64,7 @@ public:
     result_t append(const char *pattern, Handler_base *hdlr);
 
 private:
-    QuickArray<obj_ptr<rule> > m_array;
+    std::vector<obj_ptr<rule> > m_array;
 };
 
 } /* namespace fibjs */

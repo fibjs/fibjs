@@ -134,22 +134,16 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
     }
 
     Isolate* isolate = holder();
-    v8::Local<v8::String> k = isolate->NewFromUtf8("handler");
-    v8::Local<v8::Value> v = wrap()->GetHiddenValue(k);
-    v8::Local<v8::Array> a;
+    int32_t no = (int32_t)m_array.size();
 
-    if (IsEmpty(v))
-    {
-        a = v8::Array::New(isolate->m_isolate);
-        wrap()->SetHiddenValue(k, a);
-    }
-    else
-        a = v8::Local<v8::Array>::Cast(v);
+    char strBuf[32];
+    sprintf(strBuf, "handler_%d", no);
+    v8::Local<v8::String> k = isolate->NewFromUtf8(strBuf);
 
-    a->Set((int32_t)m_array.size(), hdlr->wrap());
+    wrap()->SetHiddenValue(k, hdlr->wrap());
 
     obj_ptr<rule> r = new rule(re, extra, hdlr);
-    m_array.append(r);
+    m_array.push_back(r);
 
     return 0;
 }
