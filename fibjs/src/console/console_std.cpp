@@ -30,11 +30,8 @@ void std_logger::out(const char *txt)
     public:
         color_out()
         {
-            CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-
             m_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-            GetConsoleScreenBufferInfo(m_handle, &csbiInfo);
-            m_Now = m_wAttr = csbiInfo.wAttributes;
+            m_Now = m_wAttr = 0x7;
             m_wLight = m_wAttr & FOREGROUND_INTENSITY;
         }
 
