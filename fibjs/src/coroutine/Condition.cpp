@@ -41,7 +41,7 @@ result_t Condition::wait()
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     Isolate::rt _rt;
-    m_cond.wait(m_lockCond->m_lock);
+    m_cond.wait(&m_lockCond->m_lock);
 
     return 0;
 }
