@@ -173,7 +173,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
                     m_message = Runtime::errMessage();
             }
 
-            async();
+            async(false);
         }
 
         virtual void invoke()

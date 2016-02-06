@@ -146,18 +146,20 @@ typedef int32_t result_t;
 #define CALL_E_EMPTY            (CALL_E_MAX - 14)
 // Operation now in progress.
 #define CALL_E_PENDDING         (CALL_E_MAX - 15)
-// Operation not support synchronous call.
-#define CALL_E_NOSYNC           (CALL_E_MAX - 16)
 // Operation not support asynchronous call.
-#define CALL_E_NOASYNC          (CALL_E_MAX - 17)
+#define CALL_E_NOASYNC          (CALL_E_MAX - 16)
+// Operation not support synchronous call.
+#define CALL_E_NOSYNC           (CALL_E_MAX - 17)
+// Operation is long synchronous call.
+#define CALL_E_LONGSYNC         (CALL_E_MAX - 18)
 // Internal error.
-#define CALL_E_INTERNAL         (CALL_E_MAX - 18)
+#define CALL_E_INTERNAL         (CALL_E_MAX - 19)
 // Invalid return type.
-#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 19)
+#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 20)
 // Exception occurred.
-#define CALL_E_EXCEPTION        (CALL_E_MAX - 20)
+#define CALL_E_EXCEPTION        (CALL_E_MAX - 21)
 // Javascript error.
-#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 21)
+#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 22)
 
 #define CALL_E_MIN              -100100
 

@@ -260,8 +260,11 @@ result_t Socket::bind(int32_t port, bool allowIPv4)
     return bind(NULL, port, allowIPv4);
 }
 
-result_t Socket::listen(int32_t backlog)
+result_t Socket::listen(int32_t backlog, AsyncEvent* ac)
 {
+    if (!ac)
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
     if (m_sock == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 

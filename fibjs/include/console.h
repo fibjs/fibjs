@@ -173,7 +173,7 @@ public:
             if (!m_bWorking)
             {
                 m_bWorking = true;
-                async();
+                async(false);
             }
             m_lock.unlock();
         }

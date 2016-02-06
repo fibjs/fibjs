@@ -20,7 +20,7 @@ result_t net_base::resolve(const char *name, int32_t family,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     inetAddr addr_info;
 

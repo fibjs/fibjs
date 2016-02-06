@@ -68,7 +68,7 @@ function gen_stub(argn, bInst, bRet, bCCall) {
 		} else
 			s += 'NULL';
 
-		txt.push(s + '); \\\n' + '	if(hr != CALL_E_NOSYNC)return hr; \\');
+		txt.push(s + '); \\\n' + '	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \\');
 
 		if (argn > 0 || bInst) {
 			s = '	void* args[] = {';
@@ -87,7 +87,7 @@ function gen_stub(argn, bInst, bRet, bCCall) {
 		} else
 			txt.push('	_t ac(NULL); \\');
 
-		txt.push('	ac.async(); \\\n	return ac.wait();} ' + (bCCall ? '\n' : '\\'));
+		txt.push('	ac.async(hr == CALL_E_LONGSYNC); \\\n	return ac.wait();} ' + (bCCall ? '\n' : '\\'));
 	}
 
 	if (argn > 0) {
