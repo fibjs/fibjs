@@ -199,7 +199,7 @@ result_t Socket::connect(const char *host, int32_t port, AsyncEvent *ac)
     if (addr_info.addr(host) < 0)
     {
         std::string strAddr;
-        result_t hr = net_base::resolve(host, m_family, strAddr, ac);
+        result_t hr = net_base::cc_resolve(host, m_family, strAddr);
         if (hr < 0)
             return hr;
 
