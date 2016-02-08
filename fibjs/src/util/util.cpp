@@ -142,7 +142,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                     s.resize(len * 3 + 8);
                     memcpy(&s[0], "<Buffer", 7);
 
-                    for(i = 0; i < len; i ++)
+                    for (i = 0; i < len; i ++)
                     {
                         int32_t ch = (unsigned char)data[i];
 
@@ -1313,7 +1313,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 #define _STR(s) #s
 #define STR(s)  _STR(s)
 
-static const char s_version[] = "0.1.9";
+static const char s_version[] = "0.2.0";
 
 result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
 {
