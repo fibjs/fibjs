@@ -294,7 +294,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     if (!ac)
     {
         flushLog(true);
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 
 #ifndef _WIN32

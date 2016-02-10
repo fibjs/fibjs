@@ -72,7 +72,7 @@ result_t process_base::system(const char *cmd, int32_t &retVal,
                               AsyncEvent *ac)
 {
     if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
 #ifdef _WIN32
     retVal = ::_wsystem(UTF8_W(cmd));
