@@ -8,6 +8,7 @@
 #include "ifs/Socket.h"
 #include "Stream.h"
 #include "inetAddr.h"
+#include "AsyncIO.h"
 
 #ifndef SOCKET_H_
 #define SOCKET_H_
@@ -15,33 +16,23 @@
 namespace fibjs
 {
 
-#define KEEPALIVE_TIMEOUT   120
-#define SOCKET_BUFF_SIZE    2048
-
 class Socket: public Socket_base
 {
     FIBER_FREE();
 
 public:
     Socket() :
-        m_sock(INVALID_SOCKET),
-        m_family(net_base::_AF_INET), m_type(net_base::_SOCK_STREAM),
-        m_inRecv(0), m_inSend(0)
+        m_aio(INVALID_SOCKET, net_base::_AF_INET, net_base::_SOCK_STREAM)
 #ifdef _WIN32
         , m_bBind(FALSE)
-#else
-        , m_RecvOpt(NULL), m_SendOpt(NULL)
 #endif
     {
     }
 
     Socket(SOCKET s, int32_t family, int32_t type) :
-        m_sock(s), m_family(family), m_type(type),
-        m_inRecv(0), m_inSend(0)
+        m_aio(s, family, type)
 #ifdef _WIN32
         , m_bBind(FALSE)
-#else
-        , m_RecvOpt(NULL), m_SendOpt(NULL)
 #endif
     {
     }
@@ -81,25 +72,14 @@ public:
 
 public:
     result_t create(int32_t family, int32_t type);
-    result_t recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  AsyncEvent *ac, bool bRead);
 
 private:
-    SOCKET m_sock;
-    int32_t m_family;
-    int32_t m_type;
-
-    intptr_t m_inRecv;
-    intptr_t m_inSend;
-
+    AsyncIO m_aio;
 #ifdef _WIN32
     BOOL m_bBind;
-#else
-    void *m_RecvOpt;
-    void *m_SendOpt;
-
-    void cancel_socket(AsyncEvent *ac);
 #endif
+
+    friend class AsyncIO;
 };
 
 }

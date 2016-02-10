@@ -18,7 +18,7 @@ void init_argv(int32_t argc, char **argv);
 void init_prof();
 void init_acThread();
 void init_logger();
-void init_net();
+void init_aio();
 void init_fiber();
 void init_sandbox();
 void init_Task(int32_t vms);
@@ -46,7 +46,7 @@ void init(int32_t argc, char *argv[])
     init_sandbox();
     init_acThread();
     init_logger();
-    init_net();
+    init_aio();
     init_fiber();
 
     srand((unsigned int)time(0));

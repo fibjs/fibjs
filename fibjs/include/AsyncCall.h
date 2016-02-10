@@ -3,6 +3,8 @@
 
 #include <string>
 #include <exlib/include/fiber.h>
+#include "utils.h"
+#include "Runtime.h"
 
 namespace fibjs
 {

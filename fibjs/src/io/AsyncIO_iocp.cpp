@@ -1,7 +1,7 @@
 /*
- * Socket_iocp.cpp
+ * AsyncIO_iocp.cpp
  *
- *  Created on: May 22, 2012
+ *  Created on: Feb 11, 2016
  *      Author: lion
  */
 
@@ -78,10 +78,10 @@ public:
     asyncProc *m_next;
 };
 
-static class _acSocket: public exlib::OSThread
+static class _acIO: public exlib::OSThread
 {
 public:
-    _acSocket()
+    _acIO()
     {
         WSADATA wsaData;
         int32_t iResult;
@@ -122,11 +122,11 @@ public:
         }
     }
 
-} s_acSock;
+} s_acIO;
 
-void init_net()
+void init_aio()
 {
-    s_acSock.start();
+    s_acIO.start();
 }
 
 result_t net_base::backend(std::string &retVal)
@@ -135,7 +135,7 @@ result_t net_base::backend(std::string &retVal)
     return 0;
 }
 
-result_t Socket::connect(const char *host, int32_t port, AsyncEvent *ac)
+result_t AsyncIO::connect(const char *host, int32_t port, AsyncEvent *ac)
 {
     class asyncConnect: public asyncProc
     {
@@ -185,13 +185,12 @@ result_t Socket::connect(const char *host, int32_t port, AsyncEvent *ac)
         inetAddr m_ai;
     };
 
-    if (m_sock == INVALID_SOCKET)
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr;
     inetAddr addr_info;
 
     addr_info.init(m_family);
@@ -207,21 +206,14 @@ result_t Socket::connect(const char *host, int32_t port, AsyncEvent *ac)
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
-    if (!m_bBind)
-    {
-        hr = bind(0, TRUE);
-        if (hr < 0)
-            return hr;
-    }
-
     if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
-    (new asyncConnect(m_sock, addr_info, ac, m_inRecv))->proc();
+    (new asyncConnect(m_fd, addr_info, ac, m_inRecv))->proc();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
-result_t Socket::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
+result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
 {
     class asyncAccept: public asyncProc
     {
@@ -274,7 +266,7 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
         char m_Buf[(sizeof(inetAddr) + 16) * 2];
     };
 
-    if (m_sock == INVALID_SOCKET)
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
@@ -293,15 +285,15 @@ result_t Socket::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
 
     retVal = s;
 
-    asyncAccept *pa = new asyncAccept(s->m_sock, m_sock, retVal, ac, m_inRecv);
+    asyncAccept *pa = new asyncAccept(s->m_aio.m_fd, m_fd, retVal, ac, m_inRecv);
     s.Release();
 
     pa->proc();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
-result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                      AsyncEvent *ac, bool bRead)
+result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
+                       AsyncEvent *ac, bool bRead)
 {
     class asyncRecv: public asyncProc
     {
@@ -369,7 +361,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         std::string m_buf;
     };
 
-    if (m_sock == INVALID_SOCKET)
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
@@ -378,11 +370,11 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
-    (new asyncRecv(m_sock, bytes, retVal, ac, bRead, m_inRecv))->proc();
+    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv))->proc();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
-result_t Socket::send(Buffer_base *data, AsyncEvent *ac)
+result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 {
     class asyncSend: public asyncProc
     {
@@ -429,7 +421,7 @@ result_t Socket::send(Buffer_base *data, AsyncEvent *ac)
         int32_t m_sz;
     };
 
-    if (m_sock == INVALID_SOCKET)
+    if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
@@ -438,7 +430,7 @@ result_t Socket::send(Buffer_base *data, AsyncEvent *ac)
     if (exlib::CompareAndSwap(&m_inSend, 0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
-    (new asyncSend(m_sock, data, ac, m_inSend))->proc();
+    (new asyncSend(m_fd, data, ac, m_inSend))->proc();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 

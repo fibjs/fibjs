@@ -378,6 +378,9 @@
     <ClInclude Include="include\AsyncCall.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\AsyncIO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\AsyncWaitHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1051,6 +1054,12 @@
     <ClCompile Include="src\http\HttpUploadData.cpp">
       <Filter>Source Files\http</Filter>
     </ClCompile>
+    <ClCompile Include="src\io\AsyncIO_ev.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="src\io\AsyncIO_iocp.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
     <ClCompile Include="src\io\BufferedStream.cpp">
       <Filter>Source Files\io</Filter>
     </ClCompile>
@@ -1100,12 +1109,6 @@
       <Filter>Source Files\net</Filter>
     </ClCompile>
     <ClCompile Include="src\net\Socket_api.cpp">
-      <Filter>Source Files\net</Filter>
-    </ClCompile>
-    <ClCompile Include="src\net\Socket_ev.cpp">
-      <Filter>Source Files\net</Filter>
-    </ClCompile>
-    <ClCompile Include="src\net\Socket_iocp.cpp">
       <Filter>Source Files\net</Filter>
     </ClCompile>
     <ClCompile Include="src\net\TcpServer.cpp">
