@@ -63,6 +63,14 @@ result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value> &args)
     return m_array->push(args);
 }
 
+result_t DBResult::pushArray(v8::Local<v8::Array> data)
+{
+    if (!m_size)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    return m_array->pushArray(data);
+}
+
 result_t DBResult::pop(Variant &retVal)
 {
     if (!m_size)

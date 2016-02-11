@@ -40,6 +40,7 @@ public:
     virtual result_t resize(int32_t sz);
     virtual result_t push(Variant v);
     virtual result_t push(const v8::FunctionCallbackInfo<v8::Value> &args);
+    virtual result_t pushArray(v8::Local<v8::Array> data);
     virtual result_t pop(Variant &retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base> &retVal);
     virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal);

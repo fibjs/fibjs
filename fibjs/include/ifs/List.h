@@ -24,6 +24,7 @@ class List_base : public object_base
 public:
     // List_base
     static result_t _new(obj_ptr<List_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Array> data, obj_ptr<List_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t _indexed_getter(uint32_t index, Variant& retVal) = 0;
     virtual result_t _indexed_setter(uint32_t index, Variant newVal) = 0;
     virtual result_t freeze() = 0;
@@ -31,6 +32,7 @@ public:
     virtual result_t resize(int32_t sz) = 0;
     virtual result_t push(Variant v) = 0;
     virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+    virtual result_t pushArray(v8::Local<v8::Array> data) = 0;
     virtual result_t pop(Variant& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
     virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
@@ -53,6 +55,7 @@ public:
     static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_push(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,6 +78,7 @@ namespace fibjs
             {"freeze", s_freeze, false},
             {"resize", s_resize, false},
             {"push", s_push, false},
+            {"pushArray", s_pushArray, false},
             {"pop", s_pop, false},
             {"slice", s_slice, false},
             {"concat", s_concat, false},
@@ -99,7 +103,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "List", s__new, NULL, 
-            12, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+            13, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
             &object_base::class_info()
         };
 
@@ -156,6 +160,12 @@ namespace fibjs
 
         hr = _new(vr, args.This());
 
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Array>, 0);
+
+        hr = _new(v0, vr, args.This());
+
         CONSTRUCT_RETURN();
     }
 
@@ -193,6 +203,18 @@ namespace fibjs
         METHOD_OVER(-1, 0);
 
         hr = pInst->push(args);
+
+        METHOD_VOID();
+    }
+
+    inline void List_base::s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Array>, 0);
+
+        hr = pInst->pushArray(v0);
 
         METHOD_VOID();
     }

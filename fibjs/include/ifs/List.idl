@@ -12,6 +12,11 @@ interface List : object
     /*! @brief List 对象构造函数*/
     List();
 
+    /*! @brief List 对象构造函数
+     @param data 初始化的一组元素
+    */
+    List(Array data);
+
     /*! @brief 数组可使用下标直接访问 Variant 数据*/
     Variant operator[];
 
@@ -35,6 +40,11 @@ interface List : object
       @param ... 指定添加的多个元素
      */
     push(...);
+
+    /*! @brief 在数组结尾添加一组元素
+      @param data 添加的一组元素
+     */
+    pushArray(Array data);
 
     /*! @brief 返回数组结尾的一个元素
       @return 结尾的元素

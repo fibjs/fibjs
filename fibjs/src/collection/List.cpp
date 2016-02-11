@@ -16,6 +16,13 @@ result_t List_base::_new(obj_ptr<List_base> &retVal, v8::Local<v8::Object> This)
     return 0;
 }
 
+result_t List_base::_new(v8::Local<v8::Array> data, obj_ptr<List_base>& retVal,
+                         v8::Local<v8::Object> This)
+{
+    retVal = new List();
+    return retVal->pushArray(data);
+}
+
 result_t List::_indexed_getter(uint32_t index, Variant &retVal)
 {
     if (index >= m_array.size())
@@ -85,6 +92,19 @@ result_t List::push(const v8::FunctionCallbackInfo<v8::Value> &args)
 
     for (i = 0; i < len; i++)
         push(args[i]);
+    return 0;
+}
+
+result_t List::pushArray(v8::Local<v8::Array> data)
+{
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t len = data->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++)
+        push(data->Get(i));
     return 0;
 }
 
