@@ -9,11 +9,11 @@ var s;
 
 describe('process', function() {
 	it("execPath", function() {
-		cmd = process.execPath + ' exec_test.js';
+		cmd = process.execPath;
 	});
 
-	it("popen", function() {
-		bs = process.popen(cmd);
+	it("open", function() {
+		bs = process.open(cmd, ['exec_test.js']);
 	});
 
 	it("stdout", function() {
@@ -30,13 +30,13 @@ describe('process', function() {
 		assert.closeTo(new Date().getTime() - t0, 2000, 500);
 	});
 
-	it("system", function() {
-		assert.equal(process.system(cmd), 100);
+	it("run", function() {
+		assert.equal(process.run(cmd, ['exec_test.js']), 100);
 	});
 
-	it("exec", function() {
+	it("start", function() {
 		var t1 = new Date().getTime();
-		process.exec(cmd);
+		process.start(cmd, ['exec_test.js']);
 		assert.lessThan(new Date().getTime() - t1, 100);
 	});
 
@@ -49,4 +49,4 @@ describe('process', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
