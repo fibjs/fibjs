@@ -27,7 +27,9 @@ class process_base : public object_base
 public:
     // process_base
     static result_t get_argv(v8::Local<v8::Array>& retVal);
+    static result_t get_execArgv(v8::Local<v8::Array>& retVal);
     static result_t get_execPath(std::string& retVal);
+    static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t exit(int32_t code);
     static result_t cwd(std::string& retVal);
     static result_t chdir(const char* directory);
@@ -44,7 +46,9 @@ public:
 
 public:
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,13 +91,15 @@ namespace fibjs
         static ClassData::ClassProperty s_property[] = 
         {
             {"argv", s_get_argv, block_set, true},
-            {"execPath", s_get_execPath, block_set, true}
+            {"execArgv", s_get_execArgv, block_set, true},
+            {"execPath", s_get_execPath, block_set, true},
+            {"env", s_get_env, block_set, true}
         };
 
         static ClassData s_cd = 
         { 
             "process", NULL, NULL, 
-            10, s_method, 0, NULL, 2, s_property, NULL, NULL,
+            10, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };
 
@@ -112,6 +118,17 @@ namespace fibjs
         METHOD_RETURN();
     }
 
+    inline void process_base::s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Array> vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_execArgv(vr);
+
+        METHOD_RETURN();
+    }
+
     inline void process_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         std::string vr;
@@ -119,6 +136,17 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = get_execPath(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void process_base::s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Object> vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_env(vr);
 
         METHOD_RETURN();
     }

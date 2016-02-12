@@ -15,6 +15,7 @@ namespace fibjs
 void init_date();
 void init_rt();
 void init_argv(int32_t argc, char **argv);
+void init_start_argv(int32_t argc, char **argv);
 void init_prof();
 void init_acThread();
 void init_logger();
@@ -27,6 +28,8 @@ bool options(int32_t* argc, char *argv[]);
 void init(int32_t argc, char *argv[])
 {
     ::setlocale(LC_ALL, "");
+
+    init_start_argv(argc, argv);
 
     if (options(&argc, argv))
         _exit(0);

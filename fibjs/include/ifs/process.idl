@@ -10,8 +10,14 @@ module process
     /*! @brief 返回当前进程的命令行参数 */
     static readonly Array argv;
 
+    /*! @brief 返回当前进程的特殊命令行参数，这些参数被 fibjs 用于设置运行环境 */
+    static readonly Array execArgv;
+
     /*! @brief 查询当前运行执行文件完整路径 */
     static readonly String execPath;
+
+    /*! @brief 查询当前进程的环境变量 */
+    static readonly Object env;
 
     /*! @brief 退出当前进程，并返回结果
      @param code 返回进程结果
