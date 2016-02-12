@@ -112,6 +112,7 @@ public:
 
             bRet = GetQueuedCompletionStatus(s_hIocp, &dwBytes, &v, &pOverlap,
                                              INFINITE);
+
             if (!bRet)
                 dwError = ::GetLastError();
             else
@@ -315,7 +316,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
             nError = GetLastError();
 
-            if (nError == ERROR_NETNAME_DELETED)
+            if (nError == ERROR_NETNAME_DELETED || nError == ERROR_BROKEN_PIPE)
                 return CALL_RETURN_NULL;
 
             return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
@@ -323,7 +324,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
         virtual void ready(DWORD dwBytes, int32_t nError)
         {
-            if (nError == -ERROR_NETNAME_DELETED)
+            if (nError == -ERROR_NETNAME_DELETED || nError == -ERROR_BROKEN_PIPE)
             {
                 nError = 0;
                 dwBytes = 0;

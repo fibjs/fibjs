@@ -385,9 +385,9 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 	{
 	public:
 		asyncRecv(intptr_t s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-		          AsyncEvent *ac, bool bRead, intptr_t &guard, void *&opt) :
+		          AsyncEvent *ac, int32_t family, bool bRead, intptr_t &guard, void *&opt) :
 			asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal), m_pos(0),
-			m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE), m_bRead(bRead)
+			m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE), m_family(family), m_bRead(bRead)
 		{
 		}
 
@@ -398,8 +398,13 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
 			do
 			{
-				int32_t n = (int32_t) ::recv(m_s, &m_buf[m_pos], m_buf.length() - m_pos,
-				                             MSG_NOSIGNAL);
+				int32_t n;
+
+				if (m_family)
+					n = (int32_t) ::recv(m_s, &m_buf[m_pos], m_buf.length() - m_pos,
+					                     MSG_NOSIGNAL);
+				else
+					n = (int32_t) ::read(m_s, &m_buf[m_pos], m_buf.length() - m_pos);
 				if (n == SOCKET_ERROR)
 				{
 					int32_t nError = errno;
@@ -444,6 +449,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 		obj_ptr<Buffer_base> &m_retVal;
 		int32_t m_pos;
 		int32_t m_bytes;
+		int32_t m_family;
 		bool m_bRead;
 		std::string m_buf;
 	};
@@ -457,7 +463,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 	if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
 		return CHECK_ERROR(CALL_E_REENTRANT);
 
-	return (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv, m_RecvOpt))->call();
+	return (new asyncRecv(m_fd, bytes, retVal, ac, m_family, bRead, m_inRecv, m_RecvOpt))->call();
 }
 
 result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
@@ -465,8 +471,8 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 	class asyncSend: public asyncProc
 	{
 	public:
-		asyncSend(intptr_t s, Buffer_base *data, AsyncEvent *ac, intptr_t &guard, void *&opt) :
-			asyncProc(s, EV_WRITE, ac, guard, opt)
+		asyncSend(intptr_t s, Buffer_base *data, AsyncEvent *ac, int32_t family, intptr_t &guard, void *&opt) :
+			asyncProc(s, EV_WRITE, ac, guard, opt), m_family(family)
 		{
 			data->toString(m_buf);
 			m_p = m_buf.c_str();
@@ -477,7 +483,12 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 		{
 			while (m_sz)
 			{
-				int32_t n = (int32_t) ::send(m_s, m_p, m_sz, MSG_NOSIGNAL);
+				int32_t n;
+
+				if (m_family)
+					n = (int32_t) ::send(m_s, m_p, m_sz, MSG_NOSIGNAL);
+				else
+					n = (int32_t) ::write(m_s, m_p, m_sz);
 				if (n == SOCKET_ERROR)
 				{
 					int32_t nError = errno;
@@ -505,6 +516,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 		std::string m_buf;
 		const char *m_p;
 		int32_t m_sz;
+		int32_t m_family;
 	};
 
 	if (m_fd == INVALID_SOCKET)
@@ -516,7 +528,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 	if (exlib::CompareAndSwap(&m_inSend, 0, 1))
 		return CHECK_ERROR(CALL_E_REENTRANT);
 
-	return (new asyncSend(m_fd, data, ac, m_inSend, m_SendOpt))->call();
+	return (new asyncSend(m_fd, data, ac, m_family, m_inSend, m_SendOpt))->call();
 }
 
 }

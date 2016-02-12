@@ -62,4 +62,13 @@ module process
      @param cmd 指定运行的命令行
      */
     static exec(String cmd);
+
+    static SubProcess open(String command, Array args, Object opts = {}, Object envs = {});
+    static SubProcess open(String command, Object opts = {}, Object envs = {});
+
+    static SubProcess start(String command, Array args, Object opts = {}, Object envs = {});
+    static SubProcess start(String command, Object opts = {}, Object envs = {});
+
+    static Integer run(String command, Array args, Object opts = {}, Object envs = {});
+    static Integer run(String command, Object opts = {}, Object envs = {});
 };

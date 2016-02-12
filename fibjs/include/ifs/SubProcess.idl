@@ -1,0 +1,18 @@
+
+/*! @brief 子进程对象
+
+ @code
+ var process = require("process");
+ var sub = process.open("ls");
+ @endcode
+ */
+interface SubProcess : BufferedStream
+{
+	kill(Integer signal);
+	Integer wait() async;
+
+	readonly Integer pid;
+
+	readonly BufferedStream stdin;
+	readonly BufferedStream stdout;
+};

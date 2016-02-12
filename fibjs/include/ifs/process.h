@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class BufferedStream_base;
+class SubProcess_base;
 
 class process_base : public object_base
 {
@@ -34,6 +35,12 @@ public:
     static result_t system(const char* cmd, int32_t& retVal, AsyncEvent* ac);
     static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t exec(const char* cmd);
+    static result_t open(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
+    static result_t open(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
+    static result_t start(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
+    static result_t start(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
+    static result_t run(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, int32_t& retVal);
+    static result_t run(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, int32_t& retVal);
 
 public:
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -45,6 +52,9 @@ public:
     static void s_system(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_popen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exec(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(process_base, system, const char*, int32_t);
@@ -54,6 +64,7 @@ public:
 }
 
 #include "BufferedStream.h"
+#include "SubProcess.h"
 
 namespace fibjs
 {
@@ -67,7 +78,10 @@ namespace fibjs
             {"memoryUsage", s_memoryUsage, true},
             {"system", s_system, true},
             {"popen", s_popen, true},
-            {"exec", s_exec, true}
+            {"exec", s_exec, true},
+            {"open", s_open, true},
+            {"start", s_start, true},
+            {"run", s_run, true}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -79,7 +93,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "process", NULL, NULL, 
-            7, s_method, 0, NULL, 2, s_property, NULL, NULL,
+            10, s_method, 0, NULL, 2, s_property, NULL, NULL,
             NULL
         };
 
@@ -188,6 +202,78 @@ namespace fibjs
         hr = exec(v0);
 
         METHOD_VOID();
+    }
+
+    inline void process_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<SubProcess_base> vr;
+
+        METHOD_ENTER(4, 2);
+
+        ARG(arg_string, 0);
+        ARG(v8::Local<v8::Array>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+
+        hr = open(v0, v1, v2, v3, vr);
+
+        METHOD_OVER(3, 1);
+
+        ARG(arg_string, 0);
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+        hr = open(v0, v1, v2, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void process_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<SubProcess_base> vr;
+
+        METHOD_ENTER(4, 2);
+
+        ARG(arg_string, 0);
+        ARG(v8::Local<v8::Array>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+
+        hr = start(v0, v1, v2, v3, vr);
+
+        METHOD_OVER(3, 1);
+
+        ARG(arg_string, 0);
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+        hr = start(v0, v1, v2, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void process_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        METHOD_ENTER(4, 2);
+
+        ARG(arg_string, 0);
+        ARG(v8::Local<v8::Array>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+
+        hr = run(v0, v1, v2, v3, vr);
+
+        METHOD_OVER(3, 1);
+
+        ARG(arg_string, 0);
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+        hr = run(v0, v1, v2, vr);
+
+        METHOD_RETURN();
     }
 
 }

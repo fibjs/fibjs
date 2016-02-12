@@ -850,7 +850,7 @@ void asyncLog(int32_t priority, std::string msg);
 
 inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 {
-    if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_PENDDING)
+    if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_PENDDING)
     {
         std::string str = file;
         char tmp[64];

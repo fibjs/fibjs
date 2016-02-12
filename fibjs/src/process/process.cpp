@@ -10,6 +10,7 @@
 #include "ifs/global.h"
 #include "File.h"
 #include "BufferedStream.h"
+#include "SubProcess.h"
 
 #ifdef _WIN32
 #include <psapi.h>
@@ -83,8 +84,7 @@ result_t process_base::system(const char *cmd, int32_t &retVal,
     return 0;
 }
 
-result_t process_base::popen(const char *cmd,
-                             obj_ptr<BufferedStream_base> &retVal, AsyncEvent *ac)
+result_t process_base::popen(const char *cmd, obj_ptr<BufferedStream_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -127,6 +127,58 @@ result_t process_base::exec(const char *cmd)
     }
 #endif
     return 0;
+}
+
+result_t process_base::open(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
+                            v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal)
+{
+    return SubProcess::create(command, args, opts, envs, true, retVal);
+}
+
+result_t process_base::open(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs,
+                            obj_ptr<SubProcess_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
+
+    return open(command, args, opts, envs, retVal);
+}
+
+result_t process_base::start(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
+                             v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal)
+{
+    return SubProcess::create(command, args, opts, envs, false, retVal);
+}
+
+result_t process_base::start(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs,
+                             obj_ptr<SubProcess_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
+
+    return start(command, args, opts, envs, retVal);
+}
+
+result_t process_base::run(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
+                           v8::Local<v8::Object> envs, int32_t& retVal)
+{
+    result_t hr;
+    obj_ptr<SubProcess_base> _sub;
+
+    hr = SubProcess::create(command, args, opts, envs, false, _sub);
+    if (hr < 0)
+        return hr;
+
+    return _sub->ac_wait(retVal);
+}
+
+result_t process_base::run(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs,
+                           int32_t& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
+
+    return run(command, args, opts, envs, retVal);
 }
 
 }

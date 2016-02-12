@@ -10,11 +10,15 @@ namespace fibjs
 class File : public File_base
 {
 public:
-    File(FILE *pipe) : m_pipe(pipe), m_fd(_fileno(pipe))
+    File() : m_pipe(NULL), m_fd(-1)
     {
     }
 
-    File() : m_pipe(NULL), m_fd(-1)
+    File(int32_t fd) : m_pipe(NULL), m_fd(fd)
+    {
+    }
+
+    File(FILE *pipe) : m_pipe(pipe), m_fd(_fileno(pipe))
     {
     }
 

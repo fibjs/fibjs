@@ -61,6 +61,9 @@
     <Filter Include="Source Files\other">
       <UniqueIdentifier>{04833fa6-0b7e-4d5d-b181-a16bff5ed551}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\process">
+      <UniqueIdentifier>{04833fa6-0b7e-4d5d-b181-a16bff876551}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\sandbox">
       <UniqueIdentifier>{85fa45f7-0a7e-4bd5-925e-4b3d4a29c5d3}</UniqueIdentifier>
     </Filter>
@@ -277,6 +280,9 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SandBox.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\SubProcess.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\vm.h">
@@ -1165,9 +1171,6 @@
     <ClCompile Include="src\other\JsonRpcHandler.cpp">
       <Filter>Source Files\other</Filter>
     </ClCompile>
-    <ClCompile Include="src\other\process.cpp">
-      <Filter>Source Files\other</Filter>
-    </ClCompile>
     <ClCompile Include="src\other\RpcTask.cpp">
       <Filter>Source Files\coroutine</Filter>
     </ClCompile>
@@ -1197,6 +1200,18 @@
     </ClCompile>
     <ClCompile Include="src\os\os_win.cpp">
       <Filter>Source Files\os</Filter>
+    </ClCompile>
+    <ClCompile Include="src\process\process.cpp">
+      <Filter>Source Files\process</Filter>
+    </ClCompile>
+    <ClCompile Include="src\process\SubProcess.cpp">
+      <Filter>Source Files\process</Filter>
+    </ClCompile>
+    <ClCompile Include="src\process\SubProcess_posix.cpp">
+      <Filter>Source Files\process</Filter>
+    </ClCompile>
+    <ClCompile Include="src\process\SubProcess_win.cpp">
+      <Filter>Source Files\process</Filter>
     </ClCompile>
     <ClCompile Include="src\crypto\root_ca.cpp">
       <Filter>Source Files\crypto</Filter>
