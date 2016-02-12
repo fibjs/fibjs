@@ -129,7 +129,7 @@ result_t SubProcess::kill(int32_t signal)
 result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 {
 	if (!ac)
-		return CHECK_ERROR(CALL_E_NOSYNC);
+		return CHECK_ERROR(CALL_E_LONGSYNC);
 
 	int32_t status;
 	waitpid(m_pid, &status, 0);

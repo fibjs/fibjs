@@ -145,7 +145,7 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
 	if (!ac)
-		return CHECK_ERROR(CALL_E_NOSYNC);
+		return CHECK_ERROR(CALL_E_LONGSYNC);
 
 	DWORD dwCode;
 
