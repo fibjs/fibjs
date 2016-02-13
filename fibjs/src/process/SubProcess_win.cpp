@@ -173,6 +173,9 @@ result_t SubProcess::get_pid(int32_t& retVal)
 
 result_t SubProcess::kill(int32_t signal)
 {
+	if (!TerminateProcess((HANDLE)m_pid, -1))
+		return CHECK_ERROR(LastError());
+
 	return 0;
 }
 

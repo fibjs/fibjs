@@ -12,6 +12,7 @@
 #include <spawn.h>
 #include <vector>
 #include <sys/wait.h>
+#include <signal.h>
 
 namespace fibjs
 {
@@ -162,6 +163,9 @@ result_t SubProcess::get_pid(int32_t& retVal)
 
 result_t SubProcess::kill(int32_t signal)
 {
+	if (::kill(m_pid, signal))
+		return CHECK_ERROR(LastError());
+
 	return 0;
 }
 
