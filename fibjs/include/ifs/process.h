@@ -37,12 +37,12 @@ public:
     static result_t system(const char* cmd, int32_t& retVal, AsyncEvent* ac);
     static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t exec(const char* cmd);
-    static result_t open(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
-    static result_t open(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
-    static result_t start(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
-    static result_t start(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal);
-    static result_t run(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, int32_t& retVal);
-    static result_t run(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs, int32_t& retVal);
+    static result_t open(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t open(const char* command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t start(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t start(const char* command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t run(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, int32_t& retVal);
+    static result_t run(const char* command, v8::Local<v8::Object> opts, int32_t& retVal);
 
 public:
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -236,22 +236,20 @@ namespace fibjs
     {
         obj_ptr<SubProcess_base> vr;
 
-        METHOD_ENTER(4, 2);
+        METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(v8::Local<v8::Array>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
-        hr = open(v0, v1, v2, v3, vr);
+        hr = open(v0, v1, v2, vr);
 
-        METHOD_OVER(3, 1);
+        METHOD_OVER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        hr = open(v0, v1, v2, vr);
+        hr = open(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -260,22 +258,20 @@ namespace fibjs
     {
         obj_ptr<SubProcess_base> vr;
 
-        METHOD_ENTER(4, 2);
+        METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(v8::Local<v8::Array>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
-        hr = start(v0, v1, v2, v3, vr);
+        hr = start(v0, v1, v2, vr);
 
-        METHOD_OVER(3, 1);
+        METHOD_OVER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        hr = start(v0, v1, v2, vr);
+        hr = start(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -284,22 +280,20 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(4, 2);
+        METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(v8::Local<v8::Array>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
-        hr = run(v0, v1, v2, v3, vr);
+        hr = run(v0, v1, v2, vr);
 
-        METHOD_OVER(3, 1);
+        METHOD_OVER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        hr = run(v0, v1, v2, vr);
+        hr = run(v0, v1, vr);
 
         METHOD_RETURN();
     }

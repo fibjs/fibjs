@@ -114,7 +114,8 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         while ((p = *env++) != NULL)
         {
             p1 = qstrchr(p, '=');
-            o->Set(isolate->NewFromUtf8(p, (int32_t)(p1 - p)), isolate->NewFromUtf8(p1 + 1));
+            if (p1)
+                o->Set(isolate->NewFromUtf8(p, (int32_t)(p1 - p)), isolate->NewFromUtf8(p1 + 1));
         }
 
         glob->SetHiddenValue(s, o);
@@ -205,56 +206,56 @@ result_t process_base::exec(const char *cmd)
     return 0;
 }
 
-result_t process_base::open(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
-                            v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal)
+result_t process_base::open(const char* command, v8::Local<v8::Array> args,
+                            v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
 {
-    return SubProcess::create(command, args, opts, envs, true, retVal);
+    return SubProcess::create(command, args, opts, true, retVal);
 }
 
-result_t process_base::open(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs,
+result_t process_base::open(const char* command, v8::Local<v8::Object> opts,
                             obj_ptr<SubProcess_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
 
-    return open(command, args, opts, envs, retVal);
+    return open(command, args, opts, retVal);
 }
 
-result_t process_base::start(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
-                             v8::Local<v8::Object> envs, obj_ptr<SubProcess_base>& retVal)
+result_t process_base::start(const char* command, v8::Local<v8::Array> args,
+                             v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
 {
-    return SubProcess::create(command, args, opts, envs, false, retVal);
+    return SubProcess::create(command, args, opts, false, retVal);
 }
 
-result_t process_base::start(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs,
+result_t process_base::start(const char* command, v8::Local<v8::Object> opts,
                              obj_ptr<SubProcess_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
 
-    return start(command, args, opts, envs, retVal);
+    return start(command, args, opts, retVal);
 }
 
-result_t process_base::run(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
-                           v8::Local<v8::Object> envs, int32_t& retVal)
+result_t process_base::run(const char* command, v8::Local<v8::Array> args,
+                           v8::Local<v8::Object> opts, int32_t& retVal)
 {
     result_t hr;
     obj_ptr<SubProcess_base> _sub;
 
-    hr = SubProcess::create(command, args, opts, envs, false, _sub);
+    hr = SubProcess::create(command, args, opts, false, _sub);
     if (hr < 0)
         return hr;
 
     return _sub->ac_wait(retVal);
 }
 
-result_t process_base::run(const char* command, v8::Local<v8::Object> opts, v8::Local<v8::Object> envs,
+result_t process_base::run(const char* command, v8::Local<v8::Object> opts,
                            int32_t& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
 
-    return run(command, args, opts, envs, retVal);
+    return run(command, args, opts, retVal);
 }
 
 }

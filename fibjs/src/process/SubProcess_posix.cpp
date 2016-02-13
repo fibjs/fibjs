@@ -7,6 +7,7 @@
 
 #ifndef _WIN32
 
+#include "ifs/process.h"
 #include "SubProcess.h"
 #include <spawn.h>
 #include <vector>
@@ -16,7 +17,7 @@ namespace fibjs
 {
 
 result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
-                            v8::Local<v8::Object> envs, bool redirect, obj_ptr<SubProcess_base>& retVal)
+                            bool redirect, obj_ptr<SubProcess_base>& retVal)
 {
 	int32_t err = 0;
 	pid_t pid;
@@ -80,7 +81,45 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 		posix_spawn_file_actions_addclose(&fops, cout_pipe[1]);
 	}
 
-	err = posix_spawnp(&pid, command, &fops, &attr, _args.data(), NULL);
+	std::vector<std::string> envstr;
+	std::vector<char*> envp;
+
+	v8::Local<v8::Object> envs;
+
+	hr = GetConfigValue(isolate->m_isolate, opts, "env", envs, true);
+	if (hr == CALL_E_PARAMNOTOPTIONAL)
+		hr = process_base::get_env(envs);
+	if (hr < 0)
+		return hr;
+
+	v8::Local<v8::Array> keys = envs->GetPropertyNames();
+	len = (int32_t) keys->Length();
+
+	for (i = 0; i < len; i++)
+	{
+		v8::Local<v8::Value> k = keys->Get(i);
+		v8::Local<v8::Value> v = envs->Get(k);
+		std::string ks, vs;
+
+		hr = GetArgumentValue(k, ks);
+		if (hr < 0)
+			return hr;
+
+		hr = GetArgumentValue(v, vs);
+		if (hr < 0)
+			return hr;
+
+		ks.append(1, '=');
+		ks.append(vs);
+
+		envstr.push_back(ks);
+	}
+
+	for (i = 0; i < len; i++)
+		envp.push_back(&envstr[i][0]);
+	envp.push_back(NULL);
+
+	err = posix_spawnp(&pid, command, &fops, &attr, _args.data(), &envp[0]);
 
 	if (redirect)
 	{

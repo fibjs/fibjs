@@ -59,7 +59,7 @@ public:
 
 public:
 	static result_t create(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
-	                       v8::Local<v8::Object> envs, bool redirect, obj_ptr<SubProcess_base>& retVal);
+	                       bool redirect, obj_ptr<SubProcess_base>& retVal);
 
 public:
 	class Pipe: public Stream_base

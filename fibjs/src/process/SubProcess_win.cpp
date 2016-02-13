@@ -7,6 +7,7 @@
 
 #ifdef _WIN32
 
+#include "ifs/process.h"
 #include "SubProcess.h"
 #include <vector>
 #include <psapi.h>
@@ -50,7 +51,7 @@ result_t create_name_pipe(HANDLE* hd1, HANDLE* hd2, bool in)
 }
 
 result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
-                            v8::Local<v8::Object> envs, bool redirect, obj_ptr<SubProcess_base>& retVal)
+                            bool redirect, obj_ptr<SubProcess_base>& retVal)
 {
 	result_t hr;
 	PROCESS_INFORMATION pi;
@@ -100,7 +101,43 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 		si.dwFlags |= STARTF_USESTDHANDLES;
 	}
 
-	if (!CreateProcessW(NULL, &wstr[0], NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
+	wstring envstr;
+
+	v8::Local<v8::Object> envs;
+
+	hr = GetConfigValue(isolate->m_isolate, opts, "env", envs, true);
+	if (hr == CALL_E_PARAMNOTOPTIONAL)
+		hr = process_base::get_env(envs);
+	if (hr < 0)
+		return hr;
+
+	v8::Local<v8::Array> keys = envs->GetPropertyNames();
+	len = (int32_t) keys->Length();
+
+	for (i = 0; i < len; i++)
+	{
+		v8::Local<v8::Value> k = keys->Get(i);
+		v8::Local<v8::Value> v = envs->Get(k);
+		std::string ks, vs;
+
+		hr = GetArgumentValue(k, ks);
+		if (hr < 0)
+			return hr;
+
+		hr = GetArgumentValue(v, vs);
+		if (hr < 0)
+			return hr;
+
+		ks.append(1, '=');
+		ks.append(vs);
+
+		envstr.append(utf8to16String(ks));
+		envstr.append(1, 0);
+	}
+	envstr.append(1, 0);
+
+	if (!CreateProcessW(NULL, &wstr[0], NULL, NULL, TRUE, CREATE_UNICODE_ENVIRONMENT,
+	                    &envstr[0], NULL, &si, &pi))
 	{
 		::CloseHandle(cin_pipe[0]);
 		::CloseHandle(cin_pipe[1]);
