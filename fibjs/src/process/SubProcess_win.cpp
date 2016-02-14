@@ -16,6 +16,22 @@
 namespace fibjs
 {
 
+class PSTimer : public Timer
+{
+public:
+	PSTimer(int32_t timeout, HANDLE pid) : Timer(timeout), m_pid(pid)
+	{}
+
+public:
+	virtual void on_timer()
+	{
+		TerminateProcess(m_pid, -1);
+	}
+
+private:
+	HANDLE m_pid;
+};
+
 result_t create_name_pipe(HANDLE* hd1, HANDLE* hd2, bool in)
 {
 	HANDLE hMine, hChild;
@@ -60,11 +76,19 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 	int32_t i;
 	HANDLE cin_pipe[2] = {0};
 	HANDLE cout_pipe[2] = {0};
+	int32_t timeout;
 
 	wstring wstr(L"cmd /C ");
 	wstr.append(utf8to16String(command));
 
 	Isolate* isolate = Isolate::current();
+
+	hr = GetConfigValue(isolate->m_isolate, opts, "timeout", timeout);
+	if (hr == CALL_E_PARAMNOTOPTIONAL)
+		timeout = 0;
+	else if (hr < 0)
+		return CHECK_ERROR(hr);
+
 	for (i = 0; i < len; i ++)
 	{
 		std::string str;
@@ -160,6 +184,9 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 		wrap_pipe((intptr_t)cout_pipe[0], sub->m_stdout);
 	}
 
+	if (timeout > 0)
+		sub->m_timer = new PSTimer(timeout, pi.hProcess);
+
 	retVal = sub;
 
 	return 0;
@@ -173,6 +200,9 @@ result_t SubProcess::get_pid(int32_t& retVal)
 
 result_t SubProcess::kill(int32_t signal)
 {
+	if (m_timer)
+		m_timer->clear();
+
 	if (!TerminateProcess((HANDLE)m_pid, -1))
 		return CHECK_ERROR(LastError());
 
@@ -192,6 +222,9 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 	WaitForSingleObject((HANDLE)m_pid, INFINITE);
 	GetExitCodeProcess((HANDLE)m_pid, &dwCode);
 	retVal = (int32_t)dwCode;
+
+	if (m_timer)
+		m_timer->clear();
 
 	return 0;
 }

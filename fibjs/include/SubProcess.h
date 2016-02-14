@@ -11,6 +11,7 @@
 #include "ifs/SubProcess.h"
 #include "AsyncIO.h"
 #include "Stream.h"
+#include "Timer.h"
 
 namespace fibjs
 {
@@ -139,6 +140,7 @@ public:
 private:
 	obj_ptr<BufferedStream_base> m_stdin;
 	obj_ptr<BufferedStream_base> m_stdout;
+	obj_ptr<Timer_base> m_timer;
 
 	intptr_t m_pid;
 };

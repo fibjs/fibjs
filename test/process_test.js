@@ -100,6 +100,17 @@ describe('process', function() {
 		assert.isUndefined(env.abc);
 		assert.equal(env.abcd, "234");
 	});
+
+	it("timeout", function() {
+		var d = new Date();
+		process.run(cmd, [
+			"process/exec5.js"
+		], {
+			timeout: 1000
+		});
+
+		assert.lessThan(new Date() - d, 2000);
+	});
 });
 
 // test.run(console.DEBUG);

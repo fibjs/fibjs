@@ -6,6 +6,7 @@
  */
 
 #include "ifs/Timer.h"
+#include "Fiber.h"
 #include <vector>
 
 #ifndef TIMER_H_
@@ -19,8 +20,10 @@ class Timer : public Timer_base,
 {
 public:
 	Timer(int32_t timeout = 0, bool repeat = false) :
-		m_timeout(timeout), m_repeat(repeat), m_cancel(false)
+		m_timeout(timeout), m_repeat(repeat), m_cancel(0)
 	{
+		holder();
+
 		if (timeout > 0)
 			sleep();
 		else
@@ -33,11 +36,8 @@ public:
 	// Timer_base
 	virtual result_t clear()
 	{
-		if (!m_cancel)
-		{
-			m_cancel = true;
+		if (m_cancel.CompareAndSwap(0, 1))
 			exlib::Fiber::cancel_sleep(this);
-		}
 
 		return 0;
 	}
@@ -73,7 +73,10 @@ private:
 	{
 		if (!m_cancel)
 		{
-			on_timer();
+			{
+				JSFiber::scope s;
+				on_timer();
+			}
 
 			if (m_repeat && !m_cancel)
 				sleep();
@@ -91,7 +94,7 @@ private:
 private:
 	int32_t m_timeout;
 	bool m_repeat;
-	bool m_cancel;
+	exlib::atomic m_cancel;
 };
 
 }

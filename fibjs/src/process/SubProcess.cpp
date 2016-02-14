@@ -43,6 +43,9 @@ result_t SubProcess::write(Buffer_base *data, AsyncEvent *ac)
 
 result_t SubProcess::close(AsyncEvent *ac)
 {
+	if (m_timer)
+		m_timer->clear();
+
 	if (m_stdout == NULL)
 		return 0;
 

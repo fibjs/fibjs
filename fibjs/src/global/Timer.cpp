@@ -6,7 +6,6 @@
  */
 
 #include "ifs/global.h"
-#include "Fiber.h"
 #include "Timer.h"
 
 namespace fibjs
@@ -24,7 +23,6 @@ public:
 public:
 	virtual void on_timer()
 	{
-		JSFiber::scope s;
 		v8::Local<v8::Value> v = wrap()->GetHiddenValue(holder()->NewFromUtf8("callback"));
 
 		if (!v.IsEmpty() && v->IsFunction())
