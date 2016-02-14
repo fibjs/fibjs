@@ -298,6 +298,7 @@
     <ClInclude Include="include\RpcTask.h" />
     <ClInclude Include="include\TcpServer.h" />
     <ClInclude Include="include\TextColor.h" />
+    <ClInclude Include="include\Timer.h" />
     <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\Url.h" />
     <ClInclude Include="include\utf8.h" />

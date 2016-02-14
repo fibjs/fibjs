@@ -609,6 +609,9 @@
     <ClInclude Include="include\Trigger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\Url.h">
       <Filter>Header Files</Filter>
     </ClInclude>
