@@ -60,28 +60,23 @@ static struct _cipher_size
     }
 };
 
-class _cipher_init
+void init_cipher()
 {
-public:
-    _cipher_init()
-    {
-        int32_t i, j, k;
+    int32_t i, j, k;
 
-        for (i = 0; i < PROVIDER_COUNT; i ++)
-            for (j = 0; j < SIZE_COUNT; j ++)
-                if (s_sizes[i][j].name)
-                    for (k = 1; k < MODE_COUNT; k ++)
-                    {
-                        std::string name = s_sizes[i][j].name;
+    for (i = 0; i < PROVIDER_COUNT; i ++)
+        for (j = 0; j < SIZE_COUNT; j ++)
+            if (s_sizes[i][j].name)
+                for (k = 1; k < MODE_COUNT; k ++)
+                {
+                    std::string name = s_sizes[i][j].name;
 
-                        name.append(s_modes[k]);
-                        s_sizes[i][j].cis[k] = mbedtls_cipher_info_from_string(name.c_str());
-                        if (s_sizes[i][j].cis[k])
-                            s_sizes[i][j].size = s_sizes[i][j].cis[k]->key_bitlen;
-                    }
-    }
-} s_cipher_init;
-
+                    name.append(s_modes[k]);
+                    s_sizes[i][j].cis[k] = mbedtls_cipher_info_from_string(name.c_str());
+                    if (s_sizes[i][j].cis[k])
+                        s_sizes[i][j].size = s_sizes[i][j].cis[k]->key_bitlen;
+                }
+}
 
 result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
                            Buffer_base *iv, obj_ptr<Cipher_base> &retVal,

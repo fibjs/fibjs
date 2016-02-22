@@ -117,9 +117,13 @@ public:
 			st = (void*)fb->stackguard();
 
 		stack_frame* frame = (stack_frame*)bp;
-		frame = frame->next->next;
-
 		m_frame_count = 0;
+
+		if ((((intptr_t)frame & stack_align_mask) != 0) ||
+		        (st && frame >= st) ||
+		        frame->ret == 0)
+			return;
+
 		while (frame && m_frame_count < (int32_t)ARRAYSIZE(m_frames)) {
 			m_frames[m_frame_count++] = frame->ret;
 

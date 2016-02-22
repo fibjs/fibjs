@@ -164,7 +164,7 @@ private:
 	}
 };
 
-static class _acIO: public exlib::OSThread
+class _acIO: public exlib::OSThread
 {
 public:
 	_acIO()
@@ -211,10 +211,11 @@ private:
 	{
 		doAsync();
 	}
-} s_acIO;
+};
 
 void init_aio()
 {
+	static _acIO s_acIO;
 	s_acIO.start();
 }
 

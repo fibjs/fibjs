@@ -78,7 +78,7 @@ public:
     asyncProc *m_next;
 };
 
-static class _acIO: public exlib::OSThread
+class _acIO: public exlib::OSThread
 {
 public:
     _acIO()
@@ -123,10 +123,11 @@ public:
         }
     }
 
-} s_acIO;
+};
 
 void init_aio()
 {
+    static _acIO s_acIO;
     s_acIO.start();
 }
 

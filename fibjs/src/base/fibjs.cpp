@@ -17,6 +17,7 @@ void init_rt();
 void init_argv(int32_t argc, char **argv);
 void init_start_argv(int32_t argc, char **argv);
 void init_prof();
+void init_cipher();
 void init_acThread();
 void init_logger();
 void init_aio();
@@ -29,11 +30,6 @@ void init(int32_t argc, char *argv[])
 {
     ::setlocale(LC_ALL, "");
 
-    init_start_argv(argc, argv);
-
-    if (options(&argc, argv))
-        _exit(0);
-
     int32_t cpus = 0;
 
     os_base::CPUs(cpus);
@@ -42,11 +38,17 @@ void init(int32_t argc, char *argv[])
 
     exlib::Service::init(cpus + 1);
 
+    init_start_argv(argc, argv);
+
+    if (options(&argc, argv))
+        _exit(0);
+
     init_prof();
     init_argv(argc, argv);
     init_date();
     init_rt();
     init_sandbox();
+    init_cipher();
     init_acThread();
     init_logger();
     init_aio();
