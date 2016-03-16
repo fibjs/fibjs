@@ -78,29 +78,24 @@ Isolate::rt::~rt()
 		m_fiber->m_traceInfo.resize(0);
 }
 
-static void delay_gc(exlib::List<exlib::linkitem>* freelist)
-{
-	exlib::linkitem* p;
-
-	while ((p = freelist->getHead()) != 0)
-		object_base::gc_delete(p);
-
-	delete freelist;
-}
-
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
 {
 	Isolate *isolate = Isolate::current();
 	exlib::linkitem* p;
-	exlib::List<exlib::linkitem>* freelist = new exlib::List<exlib::linkitem>();
+	exlib::List<exlib::linkitem> freelist;
 
-	isolate->m_weakLock.lock();
-	while ((p = isolate->m_weak.getHead()) != 0)
-		if (!object_base::gc_weak(p))
-			freelist->putTail(p);
-	isolate->m_weakLock.unlock();
+	while (true)
+	{
+		isolate->m_weakLock.lock();
+		isolate->m_weak.getList(freelist);
+		isolate->m_weakLock.unlock();
 
-	asyncCall(delay_gc, freelist);
+		if (freelist.empty())
+			break;
+
+		while ((p = freelist.getHead()) != 0)
+			object_base::gc_delete(p);
+	}
 }
 
 void *init_proc(void *p)
@@ -126,7 +121,7 @@ Isolate::Isolate(const char *fname) :
 	create_params.array_buffer_allocator = &array_buffer_allocator;
 
 	m_isolate = v8::Isolate::New(create_params);
-	m_isolate->AddGCPrologueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
+	m_isolate->AddGCEpilogueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
 
 	m_currentFibers++;
 	m_idleFibers ++;

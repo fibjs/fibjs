@@ -161,7 +161,6 @@ describe("rpc", function() {
 
 	xit("Garbage Collection", function() {
 		GC();
-		GC();
 
 		var no1 = os.memoryUsage().nativeObjects.objects;
 

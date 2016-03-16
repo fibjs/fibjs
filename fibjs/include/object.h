@@ -24,11 +24,15 @@ namespace fibjs
 
 #include "object_async.inl"
 
+#define JSOBJECT_JSVALUE        1
+#define JSOBJECT_JSHANDLE       2
+#define JSOBJECT_JSREFFER       4
+
 class object_base: public obj_base
 {
 public:
     object_base() :
-        m_inweak(false), m_isolate(NULL), m_isJSObject(false),
+        m_isolate(NULL), m_isJSObject(0),
         m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
     {
         object_base::class_info().Ref();
@@ -36,76 +40,33 @@ public:
 
     virtual ~object_base()
     {
-        assert(!m_inweak);
-        assert(handle_.IsEmpty());
+        assert(!(m_isJSObject & JSOBJECT_JSREFFER));
+
+        clear_handle();
         object_base::class_info().Unref();
     }
 
 public:
-    virtual void Ref()
-    {
-        if (internalRef() == 1)
-        {
-            Isolate* isolate = m_isolate;
-
-            if (isolate)
-            {
-                isolate->m_weakLock.lock();
-                if (m_inweak)
-                {
-                    assert(m_weak.m_inlist);
-                    isolate->m_weak.remove(&m_weak);
-                    m_inweak = false;
-                    isolate->m_weakLock.unlock();
-                } else
-                {
-                    isolate->m_weakLock.unlock();
-
-                    if (!handle_.IsEmpty())
-                        handle_.ClearWeak();
-                }
-            }
-        }
-    }
-
     virtual void Unref()
     {
-        if (!m_isJSObject && handle_.IsEmpty())
-        {
-            if (internalUnref() == 0)
-                delete this;
-            return;
-        }
-
-        m_ref_locker.lock();
-
         if (internalUnref() == 0)
         {
-            internalRef();
-            m_ref_locker.unlock();
+            if (m_isJSObject)
+            {
+                assert(!m_weak.m_inlist);
 
-            assert(!m_inweak);
-            assert(!m_weak.m_inlist);
+                Isolate* isolate = m_isolate;
 
-            Isolate* isolate = m_isolate;
-
-            isolate->m_weakLock.lock();
-            isolate->m_weak.putTail(&m_weak);
-            m_inweak = true;
-            internalUnref();
-            isolate->m_weakLock.unlock();
-
-            assert(m_inweak);
-
-            return;
+                isolate->m_weakLock.lock();
+                isolate->m_weak.putTail(&m_weak);
+                isolate->m_weakLock.unlock();
+            } else
+                delete this;
         }
-        m_ref_locker.unlock();
     }
 
 private:
     exlib::linkitem m_weak;
-    bool m_inweak;
-    exlib::spinlock m_ref_locker;
 
 public:
     virtual void enter()
@@ -128,22 +89,6 @@ private:
     v8::Persistent<v8::Object> handle_;
 
 public:
-    static bool gc_weak(exlib::linkitem* node)
-    {
-        object_base *pThis = NULL;
-        pThis = (object_base *) ((char *) node
-                                 - ((char *) &pThis->m_weak - (char *) 0));
-
-        pThis->m_inweak = false;
-        if (!pThis->handle_.IsEmpty())
-        {
-            pThis->handle_.SetWeak(pThis, WeakCallback);
-            return true;
-        }
-
-        return false;
-    }
-
     static void gc_delete(exlib::linkitem* node)
     {
         object_base *pThis = NULL;
@@ -154,36 +99,23 @@ public:
     }
 
 private:
-    result_t internalDispose()
-    {
-        if (!handle_.IsEmpty())
-        {
-            Isolate* isolate = holder();
-            v8::Isolate* v8_isolate = isolate->m_isolate;
-
-            Ref();
-
-            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(
-                0, 0);
-            handle_.Reset();
-
-            v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
-
-            Unref();
-        }
-
-        return 0;
-    }
-
     static void WeakCallback(const v8::WeakCallbackData<v8::Object, object_base> &data)
     {
         assert(!data.GetParameter()->handle_.IsEmpty());
-        data.GetParameter()->internalDispose();
+        object_base *pThis = data.GetParameter();
+
+        assert(pThis->m_isJSObject & JSOBJECT_JSREFFER);
+
+        pThis->handle_.ClearWeak();
+
+        pThis->m_isJSObject &= ~JSOBJECT_JSREFFER;
+        if (pThis->internalUnref() == 0)
+            delete pThis;
     }
 
 private:
     Isolate* m_isolate;
-    bool m_isJSObject;
+    int32_t m_isJSObject;
 
 public:
     Isolate* holder()
@@ -203,22 +135,20 @@ public:
 
     void setJSObject()
     {
-        m_isJSObject = true;
+        m_isJSObject |= 1;
         holder();
 
         assert(m_isolate != 0);
     }
 
 public:
-    v8::Local<v8::Object> wrap(v8::Local<v8::Object> o)
+    v8::Local<v8::Object> wrap(v8::Local<v8::Object> o = v8::Local<v8::Object>())
     {
         Isolate* isolate = holder();
         v8::Isolate* v8_isolate = isolate->m_isolate;
 
-        if (handle_.IsEmpty())
+        if (!(m_isJSObject & JSOBJECT_JSHANDLE))
         {
-            internalRef();
-
             if (o.IsEmpty())
                 o = Classinfo().CreateInstance(isolate);
             handle_.Reset(v8_isolate, o);
@@ -226,22 +156,19 @@ public:
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
-            Unref();
+            m_isJSObject |= JSOBJECT_JSHANDLE;
+        }
+        else
+            o = v8::Local<v8::Object>::New(v8_isolate, handle_);
 
-            return o;
+        if (!(m_isJSObject & JSOBJECT_JSREFFER))
+        {
+            m_isJSObject |= JSOBJECT_JSREFFER;
+            internalRef();
+            handle_.SetWeak(this, WeakCallback);
         }
 
-        return v8::Local<v8::Object>::New(v8_isolate, handle_);
-    }
-
-    v8::Local<v8::Object> wrap()
-    {
-        Isolate* isolate = holder();
-
-        if (handle_.IsEmpty())
-            return wrap(Classinfo().CreateInstance(isolate));
-
-        return v8::Local<v8::Object>::New(isolate->m_isolate, handle_);
+        return o;
     }
 
 public:
@@ -312,11 +239,38 @@ public:
     template<typename T>
     static void __new(const T &args) {}
 
+private:
+    void clear_handle()
+    {
+        if (m_isJSObject & JSOBJECT_JSHANDLE)
+        {
+            m_isJSObject &= ~JSOBJECT_JSHANDLE;
+
+            Isolate* isolate = holder();
+            v8::Isolate* v8_isolate = isolate->m_isolate;
+
+            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(
+                0, 0);
+            handle_.Reset();
+
+            v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
+        }
+    }
+
 public:
     // object_base
     virtual result_t dispose()
     {
-        return internalDispose();
+        clear_handle();
+
+        if (m_isJSObject & JSOBJECT_JSREFFER)
+        {
+            m_isJSObject &= ~JSOBJECT_JSREFFER;
+            if (internalUnref() == 0)
+                delete this;
+        }
+
+        return 0;
     }
 
     virtual result_t equals(object_base* expected, bool& retVal)
