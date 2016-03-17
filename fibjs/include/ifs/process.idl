@@ -58,7 +58,7 @@ module process
      */
     static Integer system(String cmd) async;
 
-    /*! @brief 运行指定的命令行，并访问命令的输出结果
+    /*! @brief 运行指定的命令行，并返回进程的结束代码
      @param cmd 指定运行的命令行
      @return 返回包含运行结果的文件对象
      */
@@ -69,12 +69,84 @@ module process
      */
     static exec(String cmd);
 
+    /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
+     @param command 指定运行的命令行
+     @param args 指定运行的参数列表
+     @param opts 指定运行的选项，支持的选项如下：
+     @code
+        {
+            "timeout": 100, // 单位为 ms
+            "envs": [] // 进程环境变量
+        }
+     @endcode
+     @return 返回包含运行结果的进程对象
+     */
     static SubProcess open(String command, Array args, Object opts = {});
+
+    /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
+     @param command 指定运行的命令行
+     @param opts 指定运行的选项，支持的选项如下：
+     @code
+        {
+            "timeout": 100, // 单位为 ms
+            "envs": [] // 进程环境变量
+        }
+     @endcode
+     @return 返回包含运行结果的进程对象
+     */
     static SubProcess open(String command, Object opts = {});
 
+    /*! @brief 运行指定的命令行，并返回进程对象
+     @param command 指定运行的命令行
+     @param args 指定运行的参数列表
+     @param opts 指定运行的选项，支持的选项如下：
+     @code
+        {
+            "timeout": 100, // 单位为 ms
+            "envs": [] // 进程环境变量
+        }
+     @endcode
+     @return 返回包含运行结果的进程对象
+     */
     static SubProcess start(String command, Array args, Object opts = {});
+
+    /*! @brief 运行指定的命令行，并返回进程对象
+     @param command 指定运行的命令行
+     @param opts 指定运行的选项，支持的选项如下：
+     @code
+        {
+            "timeout": 100, // 单位为 ms
+            "envs": [] // 进程环境变量
+        }
+     @endcode
+     @return 返回包含运行结果的进程对象
+     */
     static SubProcess start(String command, Object opts = {});
 
+    /*! @brief 运行指定的命令行，并返回进程的结束代码
+     @param command 指定运行的命令行
+     @param args 指定运行的参数列表
+     @param opts 指定运行的选项，支持的选项如下：
+     @code
+        {
+            "timeout": 100, // 单位为 ms
+            "envs": [] // 进程环境变量
+        }
+     @endcode
+     @return 返回包含运行结果的进程对象
+     */
     static Integer run(String command, Array args, Object opts = {});
+
+    /*! @brief 运行指定的命令行，并返回进程的结束代码
+     @param command 指定运行的命令行
+     @param opts 指定运行的选项，支持的选项如下：
+     @code
+        {
+            "timeout": 100, // 单位为 ms
+            "envs": [] // 进程环境变量
+        }
+     @endcode
+     @return 返回包含运行结果的进程对象
+     */
     static Integer run(String command, Object opts = {});
 };

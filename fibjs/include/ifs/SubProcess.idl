@@ -8,11 +8,25 @@
  */
 interface SubProcess : BufferedStream
 {
+	/*! @brief 杀掉当前对象指向的进程，并传递信号
+	  @param signal 传递的信号
+	 */
 	kill(Integer signal);
+
+	/*! @brief 等待当前对象指向的进程结束，并返回进程结束代码
+	  @return 进程的结束代码
+	 */
 	Integer wait() async;
 
+	/*! @brief 读取当前对象指向的进程的 id
+	 */
 	readonly Integer pid;
 
+	/*! @brief 读取当前对象指向的进程的标准输入对象
+	 */
 	readonly BufferedStream stdin;
+
+	/*! @brief 读取当前对象指向的进程的标准输出对象
+	 */
 	readonly BufferedStream stdout;
 };
