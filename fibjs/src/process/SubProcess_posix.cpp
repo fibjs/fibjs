@@ -204,8 +204,13 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 		return CHECK_ERROR(CALL_E_LONGSYNC);
 
 	int32_t status;
+
 	waitpid(m_pid, &status, 0);
-	retVal = (int16_t)status / 256;
+
+	if (!WIFEXITED (status))
+		retVal = status;
+	else
+		retVal = WEXITSTATUS(status);
 
 	if (m_timer)
 		m_timer->clear();
