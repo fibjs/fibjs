@@ -844,7 +844,7 @@
     <ClCompile Include="src\base\fuck_sym.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
-    <ClCompile Include="src\base\je_bridge.cpp">
+    <ClCompile Include="src\base\mem_trace.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\options.cpp">

@@ -1,5 +1,5 @@
 /*
- *  je_bridge.cpp
+ *  mem_trace.cpp
  *  Created on: Aug 4, 2015
  *
  *  Copyright (c) 2015 by Leo Hoo
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && defined(DEBUG)
 
 #include <cxxabi.h>
 #include <dlfcn.h>
@@ -17,7 +17,6 @@
 #include <vector>
 #include <string>
 
-#include <jemalloc/include/jemalloc/jemalloc.h>
 #include <exlib/include/list.h>
 #include <exlib/include/fiber.h>
 #include <exlib/include/service.h>
@@ -51,8 +50,6 @@ inline void init_lib()
 		__real_realloc = (void* (*)(void* p, size_t sz))dlsym(RTLD_NEXT, "realloc");
 }
 #endif
-
-#ifdef DEBUG
 
 #ifdef I386
 #define get_bp(bp) asm("movl %%ebp, %0" : "=r" (bp) :)
@@ -357,7 +354,9 @@ void dump_stack()
 
 extern "C" void* wrap(malloc)(size_t sz)
 {
-	void* p1 = je_malloc(FULL_SIZE(sz));
+	init_lib();
+
+	void* p1 = __real_malloc(FULL_SIZE(sz));
 
 	if (p1) {
 		memset(p1, 0, STUB_SIZE);
@@ -369,21 +368,25 @@ extern "C" void* wrap(malloc)(size_t sz)
 
 extern "C" void wrap(free)(void *p)
 {
+	init_lib();
+
 	void* p1 = STUB_PTR(p);
 
 	if (p1)
 		fibjs::MemPool::global().remove(p1);
 
-	je_free(p1);
+	__real_free(p1);
 }
 
 extern "C" void* wrap(realloc)(void* p, size_t sz)
 {
+	init_lib();
+
 	fibjs::MemPool& mp = fibjs::MemPool::global();
 
 	if (p == 0)
 	{
-		void* p1 = je_malloc(FULL_SIZE(sz));
+		void* p1 = __real_malloc(FULL_SIZE(sz));
 
 		if (p1) {
 			memset(p1, 0, STUB_SIZE);
@@ -400,14 +403,14 @@ extern "C" void* wrap(realloc)(void* p, size_t sz)
 		if (p1)
 			mp.remove(p1);
 
-		je_free(p1);
+		__real_free(p1);
 		return 0;
 	}
 
 	void* p1 = STUB_PTR(p);
 
 	mp.remove(p1);
-	void* p2 = je_realloc(p1, FULL_SIZE(sz));
+	void* p2 = __real_realloc(p1, FULL_SIZE(sz));
 	if (p2) {
 		memset(p2, 0, STUB_SIZE);
 		mp.add(p2, sz);
@@ -420,6 +423,8 @@ extern "C" void* wrap(realloc)(void* p, size_t sz)
 
 extern "C" void* wrap(calloc)(size_t num, size_t sz)
 {
+	init_lib();
+
 	void* p = wrap(malloc)(num * sz);
 	if (p)
 		memset(p, 0, num * sz);
@@ -429,7 +434,9 @@ extern "C" void* wrap(calloc)(size_t num, size_t sz)
 
 void* operator new (size_t sz)
 {
-	void* p1 = je_malloc(FULL_SIZE(sz));
+	init_lib();
+
+	void* p1 = __real_malloc(FULL_SIZE(sz));
 
 	if (p1) {
 		memset(p1, 0, STUB_SIZE);
@@ -441,7 +448,9 @@ void* operator new (size_t sz)
 
 void* operator new[] (size_t sz)
 {
-	void* p1 = je_malloc(FULL_SIZE(sz));
+	init_lib();
+
+	void* p1 = __real_malloc(FULL_SIZE(sz));
 
 	if (p1) {
 		memset(p1, 0, STUB_SIZE);
@@ -453,58 +462,17 @@ void* operator new[] (size_t sz)
 
 void operator delete (void* p) throw()
 {
+	init_lib();
+
 	wrap(free)(p);
 }
 
 void operator delete[] (void* p) throw()
 {
+	init_lib();
+
 	wrap(free)(p);
 }
-
-#else
-
-extern "C" void* wrap(malloc)(size_t sz)
-{
-	return je_malloc(sz);
-}
-
-extern "C" void wrap(free)(void *p)
-{
-	je_free(p);
-}
-
-extern "C" void* wrap(realloc)(void* p, size_t sz)
-{
-	return je_realloc(p, sz);
-}
-
-extern "C" void* wrap(calloc)(size_t num, size_t sz)
-{
-	return je_calloc(num, sz);
-}
-
-void* operator new (size_t sz)
-{
-	return je_malloc(sz);
-}
-
-void* operator new[] (size_t sz)
-{
-	return je_malloc(sz);
-}
-
-void operator delete (void* p) throw()
-{
-	je_free(p);
-}
-
-void operator delete[] (void* p) throw()
-{
-	je_free(p);
-}
-
-
-#endif
 
 #else
 

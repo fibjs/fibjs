@@ -242,7 +242,7 @@ char *read_line()
     return NULL;
 }
 
-#if !defined(__clang__)
+#ifndef _WIN32
 extern "C" void __real_free(void*);
 #endif
 
@@ -253,7 +253,19 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     static bool _init = false;
     static char *(*_readline)(const char *);
     static void (*_add_history)(char *);
+
+#ifdef DEBUG
+#ifdef __clang__
     static void (*_free)(void*);
+
+    if (_free == 0)
+        _free = (void (*)(void*))dlsym(RTLD_NEXT, "free");
+#else
+#define _free __real_free
+#endif
+#else
+#define _free free
+#endif
 
     if (!_init)
     {
@@ -261,12 +273,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 
 #ifdef __clang__
         void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
-
-        if (_free == 0)
-            _free = (void (*)(void*))dlsym(RTLD_NEXT, "free");
 #else
-        _free = __real_free;
-
         const char *readline_dylib_names[] =
         {
             "libreadline.so.6",

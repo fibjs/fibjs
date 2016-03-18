@@ -35,10 +35,6 @@ if(${OS} STREQUAL "FreeBSD")
 	target_link_libraries(fibjs ${execinfo})
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
-endif()
-
 if(${BUILD_TYPE} STREQUAL "Release")
 	set(flags "${flags} -O3 -w -fomit-frame-pointer -fvisibility=hidden")
 	add_definitions(-DNDEBUG=1)
@@ -53,6 +49,10 @@ if(${BUILD_TYPE} STREQUAL "Release")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug")
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
+	endif()
+
 	set(flags "${flags} -g -O0 -Wall -Wno-overloaded-virtual")
 	add_definitions(-DDEBUG=1)
 endif()
@@ -68,6 +68,10 @@ if(${BUILD_TYPE} STREQUAL "Release32")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug32")
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
+	endif()
+
 	set(flags "${flags} -g -O0 -m32 -Wall -Wno-overloaded-virtual")
 	set(link_flags "${link_flags} -m32")
 	add_definitions(-DDEBUG=1)
@@ -77,7 +81,7 @@ set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${PROJECT_SOURCE_DIR}/../vender/v8" "${PROJECT_SOURCE_DIR}/../vender/v8/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
-set(libs jemalloc exlib expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls v8)
+set(libs exlib expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls v8)
 
 foreach(lib ${libs})
 	target_link_libraries(fibjs "${BIN_DIR}/vender/lib${lib}.a")

@@ -332,7 +332,7 @@
     <ClCompile Include="src\base\date.cpp" />
     <ClCompile Include="src\base\fibjs.cpp" />
     <ClCompile Include="src\base\fuck_sym.cpp" />
-    <ClCompile Include="src\base\je_bridge.cpp" />
+    <ClCompile Include="src\base\mem_trace.cpp" />
     <ClCompile Include="src\base\options.cpp" />
     <ClCompile Include="src\base\profile.cpp" />
     <ClCompile Include="src\base\Runtime.cpp" />
