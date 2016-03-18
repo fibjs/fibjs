@@ -56,18 +56,18 @@ module process
      @param cmd 指定运行的命令行
      @return 返回包含进程运行结果
      */
-    static Integer system(String cmd) async;
+    deprecated static Integer system(String cmd) async;
 
     /*! @brief 运行指定的命令行，并返回进程的结束代码
      @param cmd 指定运行的命令行
      @return 返回包含运行结果的文件对象
      */
-    static BufferedStream popen(String cmd) async;
+    deprecated static BufferedStream popen(String cmd) async;
 
     /*! @brief 运行指定的命令行，并立即返回
      @param cmd 指定运行的命令行
      */
-    static exec(String cmd);
+    deprecated static exec(String cmd);
 
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
      @param command 指定运行的命令行

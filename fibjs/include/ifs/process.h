@@ -197,6 +197,8 @@ namespace fibjs
 
     inline void process_base::s_system(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("process.system");
+
         int32_t vr;
 
         METHOD_ENTER(1, 1);
@@ -210,6 +212,8 @@ namespace fibjs
 
     inline void process_base::s_popen(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("process.popen");
+
         obj_ptr<BufferedStream_base> vr;
 
         METHOD_ENTER(1, 1);
@@ -223,6 +227,8 @@ namespace fibjs
 
     inline void process_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        DEPRECATED_SOON("process.exec");
+
         METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
