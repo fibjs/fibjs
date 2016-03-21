@@ -779,6 +779,11 @@ result_t Buffer::writeDoubleBE(double value, int32_t offset, bool noAssert)
     WRITE_NUMBER(double, false);
 }
 
+result_t Buffer::slice(int32_t start, obj_ptr<Buffer_base>& retVal)
+{
+    return slice(start, (int32_t) m_data.length(), retVal);
+}
+
 result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
 {
     int32_t length = (int32_t) m_data.length();
@@ -789,11 +794,11 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
     if (end < 0)
         end = length + end;
 
-    if (start > end)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
     if (end > length)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        end = length;
+
+    if (start > end)
+        start = end;
 
     obj_ptr<Buffer> pNew = new Buffer();
     if (start < end)
@@ -827,7 +832,7 @@ result_t Buffer::base64(std::string &retVal)
 result_t Buffer::equals(object_base* expected, bool& retVal)
 {
     obj_ptr<Buffer_base> buf = Buffer_base::getInstance(expected);
-    if(!buf)
+    if (!buf)
     {
         retVal = false;
         return 0;
@@ -836,8 +841,8 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
     std::string str;
     buf->toString(str);
 
-    retVal = (m_data.length() == str.length()) && 
-            !memcmp(m_data.c_str(), str.c_str(), str.length());
+    retVal = (m_data.length() == str.length()) &&
+             !memcmp(m_data.c_str(), str.c_str(), str.length());
 
     return 0;
 }

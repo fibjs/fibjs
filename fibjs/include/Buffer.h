@@ -94,6 +94,7 @@ public:
     virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert);
     virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert);
     virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert);
+    virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal);
     virtual result_t hex(std::string &retVal);
     virtual result_t base64(std::string &retVal);

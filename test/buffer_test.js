@@ -229,12 +229,9 @@ describe('Buffer', function() {
 		buf = new Buffer(10);
 		buf.write("abcdefghih");
 		assert.equal(buf.slice(0, 3), "abc");
-		assert.throws(function() {
-			buf.slice(6, 5);
-		})
-		assert.throws(function() {
-			buf.slice(0, 11);
-		})
+		assert.equal(buf.slice(6, 5), "");
+		assert.equal(buf.slice(0, 11), "abcdefghih");
+		assert.equal(buf.slice(8), "ih");
 
 		var buf = new Buffer('buffer');                //TODO slice 反向的支持
 		assert.equal(buf.slice(-6, -1), 'buffe');

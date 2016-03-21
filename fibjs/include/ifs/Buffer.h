@@ -93,6 +93,7 @@ public:
     virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert) = 0;
     virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert) = 0;
     virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert) = 0;
+    virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t hex(std::string& retVal) = 0;
     virtual result_t base64(std::string& retVal) = 0;
@@ -1122,10 +1123,16 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, 0);
-        OPT_ARG(int32_t, 1, -1);
+
+        hr = pInst->slice(v0, vr);
+
+        METHOD_OVER(2, 2);
+
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
 
         hr = pInst->slice(v0, v1, vr);
 

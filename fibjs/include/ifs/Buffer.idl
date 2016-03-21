@@ -450,12 +450,18 @@ interface Buffer : object
      */
     writeDoubleBE(Number value, Integer offset, Boolean noAssert = false);
 
-    /*! @brief 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
+    /*! @brief 返回一个新缓存对象，包含指定起始到缓存结尾的数据
      @param start 指定范围的起始，缺省从头开始
-     @param end 指定范围的结束，缺省到缓存结尾
      @return 返回新的缓存对象
      */
-    Buffer slice(Integer start = 0, Integer end = -1);
+    Buffer slice(Integer start = 0);
+
+    /*! @brief 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
+     @param start 指定范围的起始
+     @param end 指定范围的结束
+     @return 返回新的缓存对象
+     */
+    Buffer slice(Integer start, Integer end);
 
     /*! @brief 使用 16 进制编码缓存对象内容
      @return 返回编码字符串

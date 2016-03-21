@@ -37,10 +37,10 @@ function clean_folder(path) {
 }
 
 clean_folder("../../../docs/html");
-process.system('doxygen');
+process.run('doxygen');
 
 process.chdir("../../../docs/src");
-process.system('doxygen');
+process.run('doxygen');
 
 function replace_dot(path) {
 	var dir = fs.readdir(path);
