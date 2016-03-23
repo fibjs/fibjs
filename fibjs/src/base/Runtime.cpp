@@ -153,7 +153,7 @@ void Isolate::init()
 	m_topSandbox = new SandBox();
 	m_topSandbox->initRoot();
 
-	static const char* skips[] = {"repl", "argv", NULL};
+	static const char* skips[] = {"repl", "argv", "require", "run", "__filename", "__dirname", "__sbname", "global", NULL};
 	global_base::class_info().Attach(this, glob, skips);
 }
 

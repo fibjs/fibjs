@@ -12,6 +12,7 @@
 #include "ifs/Stat.h"
 #include "ifs/encoding.h"
 #include "ifs/util.h"
+#include "ifs/global.h"
 #include "path.h"
 
 #include <sstream>
@@ -245,18 +246,22 @@ result_t SandBox::Context::run(std::string src, const char *name, const char **a
     return 0;
 }
 
-result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::Array> argv,
-                               v8::Local<v8::Value> replFunc)
+result_t SandBox::Context::run(std::string src, const char *name, v8::Local<v8::Array> argv, bool main)
 {
-    static const char *names[] = {"require", "run", "argv", "repl"};
+    static const char *names[] = {"require", "run", "argv", "global", "repl"};
 
-    if (replFunc.IsEmpty())
+    if (!main)
     {
         v8::Local<v8::Value> args[10] = {m_fnRequest, m_fnRun, argv};
-        return run(src, name, names, args, ARRAYSIZE(names) - 1);
+        return run(src, name, names, args, ARRAYSIZE(names) - 2);
     } else
     {
-        v8::Local<v8::Value> args[10] = {m_fnRequest, m_fnRun, argv, replFunc};
+        Isolate *isolate = m_sb->holder();
+        v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+        v8::Local<v8::Value> replFunc = global_base::class_info().getFunction(isolate)->Get(
+                                            isolate->NewFromUtf8("repl"));
+
+        v8::Local<v8::Value> args[10] = {m_fnRequest, m_fnRun, argv, glob, replFunc};
         return run(src, name, names, args, ARRAYSIZE(names));
     }
 }
@@ -519,7 +524,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
     return require("", sid, retVal, FULL_SEARCH);
 }
 
-result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8::Value> replFunc)
+result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, bool main)
 {
     result_t hr;
 
@@ -542,12 +547,12 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, v8::Local<v8
     }
 
     Context context(this, pname);
-    return context.run(buf, pname, argv, replFunc);
+    return context.run(buf, pname, argv, main);
 }
 
 result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv)
 {
-    return run(fname, argv, v8::Local<v8::Value>());
+    return run(fname, argv, false);
 }
 
 }

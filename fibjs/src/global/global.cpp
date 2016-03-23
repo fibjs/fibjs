@@ -7,6 +7,11 @@
 namespace fibjs
 {
 
+result_t global_base::get_global(obj_ptr<global_base>& retVal)
+{
+	return CALL_RETURN_NULL;
+}
+
 result_t global_base::GC()
 {
 	Isolate::current()->m_isolate->LowMemoryNotification();

@@ -72,14 +72,11 @@ static void main_fiber(Isolate* isolate)
     {
         JSFiber::scope s;
         v8::Local<v8::Array> argv;
-        v8::Local<v8::Value> replFunc;
 
         global_base::get_argv(argv);
-        replFunc = global_base::class_info().getFunction(isolate)->Get(
-                       isolate->NewFromUtf8("repl"));
 
         hr = s.m_hr = isolate->m_topSandbox->run(
-                          isolate->m_fname.c_str(), argv, replFunc);
+                          isolate->m_fname.c_str(), argv, true);
     }
     else
     {

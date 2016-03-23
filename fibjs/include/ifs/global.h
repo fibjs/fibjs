@@ -29,6 +29,7 @@ class global_base : public object_base
 
 public:
     // global_base
+    static result_t get_global(obj_ptr<global_base>& retVal);
     static result_t run(const char* fname, v8::Local<v8::Array> argv);
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get___filename(std::string& retVal);
@@ -46,6 +47,7 @@ public:
     static result_t repl(Stream_base* out, v8::Local<v8::Array> cmds);
 
 public:
+    static void s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get___filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -97,6 +99,7 @@ namespace fibjs
 
         static ClassData::ClassProperty s_property[] = 
         {
+            {"global", s_get_global, block_set, true},
             {"argv", s_get_argv, block_set, true},
             {"__filename", s_get___filename, block_set, true},
             {"__dirname", s_get___dirname, block_set, true},
@@ -106,12 +109,23 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "global", NULL, NULL, 
-            10, s_method, 3, s_object, 4, s_property, NULL, NULL,
+            10, s_method, 3, s_object, 5, s_property, NULL, NULL,
             NULL
         };
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
+    }
+
+    inline void global_base::s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<global_base> vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_global(vr);
+
+        METHOD_RETURN();
     }
 
     inline void global_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
