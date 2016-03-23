@@ -28,6 +28,17 @@ public:
     static result_t compile(const char* pattern, const char* opt, obj_ptr<Regex_base>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
@@ -46,7 +57,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "re", NULL, NULL, 
+            "re", s__new, NULL, 
             1, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };

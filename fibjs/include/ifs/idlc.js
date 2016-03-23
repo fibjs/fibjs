@@ -365,6 +365,12 @@ function parserIDL(fname) {
 
 		if (hasNew)
 			txt.push("public:\n    template<typename T>\n    static void __new(const T &args);\n");
+		else
+			txt.push("public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n" +
+				"        CONSTRUCT_INIT();\n\n" +
+				"        Isolate* isolate = Isolate::current();\n\n" +
+				"        isolate->m_isolate->ThrowException(\n" +
+				"            isolate->NewFromUtf8(\"not a constructor\"));\n    }\n");
 
 		txt.push("public:");
 		txt.push(iffs.join("\n"));
@@ -419,10 +425,7 @@ function parserIDL(fname) {
 
 		var strClass = "        static ClassData s_cd = \n        { \n            \"" + ns + "\"";
 
-		if (hasNew)
-			strClass += ", s__new"
-		else
-			strClass += ", NULL"
+		strClass += ", s__new"
 
 		if (callAsFunc)
 			strClass += ", s__function"

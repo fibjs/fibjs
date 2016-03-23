@@ -42,6 +42,17 @@ public:
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -94,7 +105,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "os", NULL, NULL, 
+            "os", s__new, NULL, 
             10, s_method, 0, NULL, 7, s_property, NULL, NULL,
             NULL
         };

@@ -64,6 +64,17 @@ public:
     static result_t randomArt(Buffer_base* data, const char* title, int32_t size, std::string& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_AES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_CAMELLIA(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_DES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -158,7 +169,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "crypto", NULL, NULL, 
+            "crypto", s__new, NULL, 
             7, s_method, 5, s_object, 21, s_property, NULL, NULL,
             NULL
         };

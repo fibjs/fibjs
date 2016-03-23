@@ -45,6 +45,17 @@ public:
     static result_t set_loglevel(int32_t newVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -99,7 +110,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "coroutine", NULL, NULL, 
+            "coroutine", s__new, NULL, 
             4, s_method, 6, s_object, 4, s_property, NULL, NULL,
             NULL
         };

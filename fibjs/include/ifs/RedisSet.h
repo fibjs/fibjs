@@ -38,6 +38,17 @@ public:
     virtual result_t randMember(int32_t count, v8::Local<v8::Value>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_len(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -69,7 +80,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RedisSet", NULL, NULL, 
+            "RedisSet", s__new, NULL, 
             7, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

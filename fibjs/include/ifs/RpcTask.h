@@ -28,6 +28,17 @@ public:
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s__function(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
@@ -46,7 +57,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RpcTask", NULL, s__function, 
+            "RpcTask", s__new, s__function, 
             0, NULL, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };

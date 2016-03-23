@@ -1,12 +1,39 @@
 #!/usr/local/bin/fibjs
 
 var test = require("test");
+test.setup();
+
 var coroutine = require('coroutine');
 var process = require('process');
 
 run("assert_test.js");
 run("expect_test.js");
 run("test_test.js");
+
+describe('global', function() {
+	it('has gloabl in main', function() {
+		global;
+	});
+
+	it('can be changed', function() {
+		global.demo = 100;
+		assert.equal(demo, 100);
+	});
+
+	it('can be deleted', function() {
+		delete global.demo;
+		assert.throws(function() {
+			demo;
+		});
+	});
+
+	it('console() global leak', function() {
+		assert.throws(function() {
+			console();
+		});
+	});
+});
+
 run("console_test.js");
 run("collection_test.js");
 run("re_test.js");

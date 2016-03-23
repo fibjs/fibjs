@@ -41,6 +41,17 @@ public:
     virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_first(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -81,7 +92,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "HttpCollection", NULL, NULL, 
+            "HttpCollection", s__new, NULL, 
             7, s_method, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };

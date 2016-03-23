@@ -47,6 +47,17 @@ public:
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_findOne(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_findAndModify(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -100,7 +111,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "MongoCollection", NULL, NULL, 
+            "MongoCollection", s__new, NULL, 
             15, s_method, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };

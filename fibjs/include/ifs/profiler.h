@@ -56,6 +56,17 @@ public:
     static result_t diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_Node_Hidden(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_Node_Array(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_Node_String(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -126,7 +137,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "profiler", NULL, NULL, 
+            "profiler", s__new, NULL, 
             4, s_method, 0, NULL, 21, s_property, NULL, NULL,
             NULL
         };

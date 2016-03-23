@@ -62,6 +62,17 @@ public:
     static result_t hmac_ripemd160(Buffer_base* key, obj_ptr<Digest_base>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_MD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_MD4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_MD5(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -141,7 +152,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "hash", NULL, NULL, 
+            "hash", s__new, NULL, 
             20, s_method, 0, NULL, 9, s_property, NULL, NULL,
             NULL
         };

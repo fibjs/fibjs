@@ -36,6 +36,17 @@ public:
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_seek(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_tell(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -69,7 +80,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "SeekableStream", NULL, NULL, 
+            "SeekableStream", s__new, NULL, 
             6, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Stream_base::class_info()
         };

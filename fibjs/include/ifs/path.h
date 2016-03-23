@@ -33,6 +33,17 @@ public:
     static result_t get_delimiter(std::string& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_basename(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_extname(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -67,7 +78,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "path", NULL, NULL, 
+            "path", s__new, NULL, 
             6, s_method, 0, NULL, 2, s_property, NULL, NULL,
             NULL
         };

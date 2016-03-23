@@ -26,6 +26,17 @@ class collection_base : public object_base
     DECLARE_CLASS(collection_base);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
 
 };
 
@@ -48,7 +59,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "collection", NULL, NULL, 
+            "collection", s__new, NULL, 
             0, NULL, 3, s_object, 0, NULL, NULL, NULL,
             NULL
         };

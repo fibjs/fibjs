@@ -54,6 +54,17 @@ public:
     static result_t inflateRawTo(Stream_base* src, Stream_base* stm, AsyncEvent* ac);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -127,7 +138,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "zlib", NULL, NULL, 
+            "zlib", s__new, NULL, 
             12, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };

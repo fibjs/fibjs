@@ -32,6 +32,17 @@ public:
     virtual result_t backup(const char* fileName, AsyncEvent* ac) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -61,7 +72,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "SQLite", NULL, NULL, 
+            "SQLite", s__new, NULL, 
             1, s_method, 0, NULL, 2, s_property, NULL, NULL,
             &DbConnection_base::class_info()
         };

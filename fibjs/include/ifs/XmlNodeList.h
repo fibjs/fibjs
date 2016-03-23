@@ -30,6 +30,17 @@ public:
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_item(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -60,7 +71,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "XmlNodeList", NULL, NULL, 
+            "XmlNodeList", s__new, NULL, 
             1, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
             &object_base::class_info()
         };

@@ -34,6 +34,17 @@ public:
     virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -69,7 +80,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "DbConnection", NULL, NULL, 
+            "DbConnection", s__new, NULL, 
             6, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

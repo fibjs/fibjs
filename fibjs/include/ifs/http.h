@@ -46,6 +46,17 @@ public:
     static result_t post(const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -94,7 +105,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "http", NULL, NULL, 
+            "http", s__new, NULL, 
             4, s_method, 6, s_object, 0, NULL, NULL, NULL,
             NULL
         };

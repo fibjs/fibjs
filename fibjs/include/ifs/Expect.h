@@ -63,6 +63,17 @@ public:
     virtual result_t closeTo(v8::Local<v8::Value> expected, v8::Local<v8::Value> delta) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_to(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_be(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_been(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -155,7 +166,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Expect", NULL, NULL, 
+            "Expect", s__new, NULL, 
             12, s_method, 0, NULL, 25, s_property, NULL, NULL,
             &object_base::class_info()
         };

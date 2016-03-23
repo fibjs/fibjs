@@ -48,6 +48,17 @@ public:
     static result_t set_slow(int32_t newVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_describe(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -104,7 +115,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "test", NULL, NULL, 
+            "test", s__new, NULL, 
             11, s_method, 1, s_object, 3, s_property, NULL, NULL,
             NULL
         };

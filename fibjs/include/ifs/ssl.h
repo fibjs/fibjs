@@ -57,6 +57,17 @@ public:
     static result_t set_max_version(int32_t newVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_VERIFY_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_VERIFY_OPTIONAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_VERIFY_REQUIRED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -131,7 +142,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "ssl", NULL, NULL, 
+            "ssl", s__new, NULL, 
             3, s_method, 3, s_object, 15, s_property, NULL, NULL,
             NULL
         };

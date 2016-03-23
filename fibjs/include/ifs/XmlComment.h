@@ -25,6 +25,17 @@ class XmlComment_base : public XmlCharacterData_base
     DECLARE_CLASS(XmlComment_base);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
 
 };
 
@@ -37,7 +48,7 @@ namespace fibjs
     {
         static ClassData s_cd = 
         { 
-            "XmlComment", NULL, NULL, 
+            "XmlComment", s__new, NULL, 
             0, NULL, 0, NULL, 0, NULL, NULL, NULL,
             &XmlCharacterData_base::class_info()
         };

@@ -47,6 +47,17 @@ public:
     static result_t repl(Stream_base* out, v8::Local<v8::Array> cmds);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -108,7 +119,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "global", NULL, NULL, 
+            "global", s__new, NULL, 
             10, s_method, 3, s_object, 5, s_property, NULL, NULL,
             NULL
         };

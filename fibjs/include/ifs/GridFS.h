@@ -37,6 +37,17 @@ public:
     virtual result_t get_chunks(obj_ptr<MongoCollection_base>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_retrieve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_store(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,7 +83,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "GridFS", NULL, NULL, 
+            "GridFS", s__new, NULL, 
             4, s_method, 0, NULL, 2, s_property, NULL, NULL,
             &object_base::class_info()
         };

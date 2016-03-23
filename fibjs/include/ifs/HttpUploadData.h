@@ -31,6 +31,17 @@ public:
     virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_contentType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_contentTransferEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -55,7 +66,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "HttpUploadData", NULL, NULL, 
+            "HttpUploadData", s__new, NULL, 
             0, NULL, 0, NULL, 4, s_property, NULL, NULL,
             &object_base::class_info()
         };

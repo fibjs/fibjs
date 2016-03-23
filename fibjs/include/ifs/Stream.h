@@ -31,6 +31,17 @@ public:
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -61,7 +72,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Stream", NULL, NULL, 
+            "Stream", s__new, NULL, 
             4, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

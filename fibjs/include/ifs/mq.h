@@ -37,6 +37,17 @@ public:
     static result_t invoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_await(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -77,7 +88,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "mq", NULL, NULL, 
+            "mq", s__new, NULL, 
             4, s_method, 4, s_object, 0, NULL, NULL, NULL,
             NULL
         };

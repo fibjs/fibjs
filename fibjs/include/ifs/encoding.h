@@ -37,6 +37,17 @@ public:
     static result_t decodeURI(const char* url, std::string& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -78,7 +89,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "encoding", NULL, NULL, 
+            "encoding", s__new, NULL, 
             4, s_method, 7, s_object, 0, NULL, NULL, NULL,
             NULL
         };

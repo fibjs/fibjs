@@ -27,6 +27,17 @@ public:
     static result_t decode(const char* data, v8::Local<v8::Value>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -45,7 +56,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "json", NULL, NULL, 
+            "json", s__new, NULL, 
             2, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };

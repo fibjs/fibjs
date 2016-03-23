@@ -42,6 +42,17 @@ public:
     static result_t sha1(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_DNS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -81,7 +92,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "uuid", NULL, NULL, 
+            "uuid", s__new, NULL, 
             5, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };

@@ -42,6 +42,17 @@ public:
     virtual result_t range(int32_t start, int32_t stop, obj_ptr<List_base>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_push(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rpush(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -83,7 +94,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RedisList", NULL, NULL, 
+            "RedisList", s__new, NULL, 
             12, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

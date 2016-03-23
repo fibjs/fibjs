@@ -45,6 +45,17 @@ public:
     static result_t run(const char* command, v8::Local<v8::Object> opts, int32_t& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -98,7 +109,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "process", NULL, NULL, 
+            "process", s__new, NULL, 
             10, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };

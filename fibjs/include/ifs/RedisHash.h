@@ -42,6 +42,17 @@ public:
     virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_mset(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -81,7 +92,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RedisHash", NULL, NULL, 
+            "RedisHash", s__new, NULL, 
             11, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

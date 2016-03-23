@@ -26,6 +26,17 @@ public:
     virtual result_t clear() = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
@@ -42,7 +53,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Timer", NULL, NULL, 
+            "Timer", s__new, NULL, 
             1, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

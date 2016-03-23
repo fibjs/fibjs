@@ -25,6 +25,17 @@ class XmlCDATASection_base : public XmlText_base
     DECLARE_CLASS(XmlCDATASection_base);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
 
 };
 
@@ -37,7 +48,7 @@ namespace fibjs
     {
         static ClassData s_cd = 
         { 
-            "XmlCDATASection", NULL, NULL, 
+            "XmlCDATASection", s__new, NULL, 
             0, NULL, 0, NULL, 0, NULL, NULL, NULL,
             &XmlText_base::class_info()
         };

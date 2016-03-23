@@ -64,6 +64,17 @@ public:
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -153,7 +164,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "util", NULL, NULL, 
+            "util", s__new, NULL, 
             33, s_method, 2, s_object, 0, NULL, NULL, NULL,
             NULL
         };

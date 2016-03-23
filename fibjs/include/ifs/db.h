@@ -41,6 +41,17 @@ public:
     static result_t escape(const char* str, bool mysql, std::string& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,7 +98,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "db", NULL, NULL, 
+            "db", s__new, NULL, 
             9, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };

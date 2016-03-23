@@ -40,6 +40,17 @@ public:
     virtual result_t rankRev(Buffer_base* member, int32_t& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_score(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_incr(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -77,7 +88,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RedisSortedSet", NULL, NULL, 
+            "RedisSortedSet", s__new, NULL, 
             10, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

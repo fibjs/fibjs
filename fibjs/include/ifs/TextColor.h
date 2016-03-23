@@ -33,6 +33,17 @@ public:
     virtual result_t set_highLight(const char* newVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_notice(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_notice(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_warn(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -59,7 +70,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "TextColor", NULL, NULL, 
+            "TextColor", s__new, NULL, 
             0, NULL, 0, NULL, 4, s_property, NULL, NULL,
             &object_base::class_info()
         };

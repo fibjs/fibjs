@@ -49,6 +49,17 @@ public:
     virtual result_t removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_nodeType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_nodeName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_nodeValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -111,7 +122,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "XmlNode", NULL, NULL, 
+            "XmlNode", s__new, NULL, 
             10, s_method, 0, NULL, 10, s_property, NULL, NULL,
             &object_base::class_info()
         };

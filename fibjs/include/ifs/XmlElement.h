@@ -54,6 +54,17 @@ public:
     virtual result_t getElementsByTagNameNS(const char* namespaceURI, const char* localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_namespaceURI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_prefix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_prefix(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -118,7 +129,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "XmlElement", NULL, NULL, 
+            "XmlElement", s__new, NULL, 
             10, s_method, 0, NULL, 9, s_property, NULL, NULL,
             &XmlNode_base::class_info()
         };

@@ -40,6 +40,17 @@ public:
     static result_t connect(const char* url, const char* origin, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_get_CONTINUE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_TEXT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_BINARY(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -85,7 +96,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "websocket", NULL, NULL, 
+            "websocket", s__new, NULL, 
             1, s_method, 2, s_object, 6, s_property, NULL, NULL,
             NULL
         };

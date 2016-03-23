@@ -33,6 +33,17 @@ public:
     virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        Isolate* isolate = Isolate::current();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewFromUtf8("not a constructor"));
+    }
+
+public:
     static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
@@ -60,7 +71,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "HandlerEx", NULL, NULL, 
+            "HandlerEx", s__new, NULL, 
             1, s_method, 0, NULL, 2, s_property, NULL, NULL,
             &Handler_base::class_info()
         };
