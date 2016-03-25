@@ -13,4 +13,6 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(io);
+
 }

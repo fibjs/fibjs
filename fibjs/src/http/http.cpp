@@ -18,6 +18,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(http);
+
 result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                             obj_ptr<HttpResponse_base> &retVal,
                             AsyncEvent *ac)

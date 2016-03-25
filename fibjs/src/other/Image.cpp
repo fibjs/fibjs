@@ -12,9 +12,12 @@
 #include <vector>
 #include <stdlib.h>
 #include <exif/exif.h>
+#include "ifs/gd.h"
 
 namespace fibjs
 {
+
+DECLARE_MODULE(gd);
 
 void Image::setExtMemory(int32_t add)
 {

@@ -13,6 +13,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(path);
+
 result_t path_base::basename(const char *path, const char *ext,
                              std::string &retVal)
 {

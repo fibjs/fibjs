@@ -18,6 +18,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(mq);
+
 result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
                          AsyncEvent *ac)
 {

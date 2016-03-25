@@ -15,6 +15,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(test);
+
 class _case;
 
 static int32_t s_slow = 75;

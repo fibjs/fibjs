@@ -453,7 +453,6 @@
     <ClCompile Include="src\profiler\HeapSnapshot.cpp" />
     <ClCompile Include="src\sandbox\SandBox.cpp" />
     <ClCompile Include="src\sandbox\SandBox_repl.cpp" />
-    <ClCompile Include="src\sandbox\SandBox_root.cpp" />
     <ClCompile Include="src\sandbox\SandBox_run.cpp" />
     <ClCompile Include="src\ssl\ssl.cpp" />
     <ClCompile Include="src\ssl\SslHandler.cpp" />

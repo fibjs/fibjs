@@ -1162,9 +1162,6 @@
     <ClCompile Include="src\sandbox\SandBox_repl.cpp">
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>
-    <ClCompile Include="src\sandbox\SandBox_root.cpp">
-      <Filter>Source Files\sandbox</Filter>
-    </ClCompile>
     <ClCompile Include="src\sandbox\SandBox_run.cpp">
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>

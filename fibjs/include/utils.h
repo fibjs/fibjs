@@ -288,6 +288,16 @@ typedef int32_t result_t;
     virtual ~c(){c::class_info().Unref();} \
     DECLARE_CLASSINFO(c)
 
+#define DECLARE_MODULE(name) \
+    class RootModule_##name : public RootModule \
+    { \
+    public: \
+        virtual ClassInfo &class_info() \
+        { \
+            return name##_base::class_info(); \
+        } \
+    } s_RootModule_##name;
+
 #define EVENT_SUPPORT() \
     public: \
     virtual result_t on(const char* ev, v8::Local<v8::Function> func, int32_t &retVal) \

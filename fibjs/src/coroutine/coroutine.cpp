@@ -14,6 +14,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(coroutine);
+
 extern int32_t g_spareFibers;
 
 result_t coroutine_base::start(v8::Local<v8::Function> func,

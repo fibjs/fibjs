@@ -354,6 +354,23 @@ private:
     static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &args);
 };
 
+class RootModule
+{
+public:
+    RootModule()
+    {
+        m_next = g_root;
+        g_root = this;
+    }
+
+public:
+    virtual ClassInfo &class_info() = 0;
+
+public:
+    RootModule* m_next;
+    static RootModule* g_root;
+};
+
 inline void *ClassInfo::getInstance(void *o)
 {
     object_base *obj = (object_base *) o;

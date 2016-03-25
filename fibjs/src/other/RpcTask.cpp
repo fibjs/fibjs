@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(rpc);
+
 static exlib::atomic s_vms;
 static exlib::atomic s_idles;
 static exlib::Queue<RpcTask::AsyncTask> s_acTask;

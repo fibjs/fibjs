@@ -14,6 +14,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(json);
+
 struct _from {
 	const char* name;
 	void (*from)(Isolate*, v8::Local<v8::Value>, v8::Local<v8::Object>&);

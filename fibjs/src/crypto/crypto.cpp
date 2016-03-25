@@ -19,6 +19,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(crypto);
+
 result_t crypto_base::loadPKey(const char* filename, const char* password,
                                obj_ptr<PKey_base>& retVal)
 {

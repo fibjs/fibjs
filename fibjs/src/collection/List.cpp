@@ -5,10 +5,13 @@
  *      Author: lion
  */
 
+#include "ifs/collection.h"
 #include "List.h"
 
 namespace fibjs
 {
+
+DECLARE_MODULE(collection);
 
 result_t List_base::_new(obj_ptr<List_base> &retVal, v8::Local<v8::Object> This)
 {

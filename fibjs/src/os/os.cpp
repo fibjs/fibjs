@@ -15,6 +15,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(os);
+
 result_t os_base::get_hostname(std::string &retVal)
 {
     char s[255];

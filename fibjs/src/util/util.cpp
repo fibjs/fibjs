@@ -32,6 +32,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(util);
+
 inline void newline(StringBuffer &strBuffer, int32_t padding)
 {
     strBuffer.append('\n');

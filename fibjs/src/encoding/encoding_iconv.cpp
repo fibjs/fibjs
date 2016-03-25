@@ -27,6 +27,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(iconv);
+
 #ifdef _WIN32
 
 #define _iconv_open iconv_open

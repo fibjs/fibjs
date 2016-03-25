@@ -14,6 +14,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(bson);
+
 inline const char *
 ToCString(const v8::String::Utf8Value &value)
 {

@@ -11,6 +11,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(hash);
+
 result_t hash_base::digest(int32_t algo, Buffer_base *data,
                            obj_ptr<Digest_base> &retVal)
 {

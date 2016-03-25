@@ -11,6 +11,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(db);
+
 result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal, AsyncEvent *ac)
 {
     if (!qstrcmp(connString, "mysql:", 6))

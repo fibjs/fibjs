@@ -19,6 +19,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(profiler);
+
 class BufferStream : public v8::OutputStream {
 public:
 	virtual void EndOfStream()

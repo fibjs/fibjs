@@ -8,9 +8,12 @@
 #include "SandBox.h"
 #include "ifs/vm.h"
 #include "ifs/util.h"
+#include "ifs/test.h"
 
 namespace fibjs
 {
+
+DECLARE_MODULE(vm);
 
 result_t SandBox_base::_new(v8::Local<v8::Object> mods, const char *name,
                             obj_ptr<SandBox_base> &retVal, v8::Local<v8::Object> This)
@@ -49,6 +52,25 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
 void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
     mods()->Set(holder()->NewFromUtf8(fname), o);
+}
+
+RootModule* RootModule::g_root = NULL;
+
+void SandBox::initRoot()
+{
+    Isolate* isolate = holder();
+
+    RootModule* pModule = RootModule::g_root;
+
+    while (pModule)
+    {
+        ClassInfo& ci = pModule->class_info();
+        InstallModule(ci.name(), ci.getFunction(isolate));
+
+        pModule = pModule->m_next;
+    }
+
+    InstallModule("expect", createV8Function("expect", isolate->m_isolate, test_base::s_expect));
 }
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)

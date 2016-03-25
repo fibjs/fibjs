@@ -23,6 +23,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(fs);
+
 result_t fs_base::open(const char *fname, const char *flags,
                        obj_ptr<File_base> &retVal, AsyncEvent *ac)
 {

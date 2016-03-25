@@ -25,6 +25,8 @@ extern "C" char** environ;
 namespace fibjs
 {
 
+DECLARE_MODULE(process);
+
 static std::vector<char*> s_argv;
 static std::vector<char*> s_start_argv;
 

@@ -13,6 +13,12 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(encoding);
+DECLARE_MODULE(base32);
+DECLARE_MODULE(base64);
+DECLARE_MODULE(base64vlq);
+DECLARE_MODULE(hex);
+
 result_t base32_base::encode(Buffer_base *data, std::string &retVal)
 {
     baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, retVal);

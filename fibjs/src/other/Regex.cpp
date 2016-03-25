@@ -12,6 +12,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(re);
+
 result_t re_base::compile(const char *pattern, const char *opt,
                           obj_ptr<Regex_base> &retVal)
 {

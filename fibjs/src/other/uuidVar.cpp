@@ -13,6 +13,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(uuid);
+
 result_t uuid_base::uuid(const char *s, obj_ptr<uuidValue_base> &retVal)
 {
     obj_ptr<uuidVar> id = new uuidVar();

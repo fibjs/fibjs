@@ -15,6 +15,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(websocket);
+
 result_t websocket_base::connect(const char* url, const char* origin,
                                  obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {

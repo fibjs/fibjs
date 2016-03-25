@@ -16,6 +16,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(ssl);
+
 _ssl g_ssl;
 
 class X509CertProxy : public X509Cert_base

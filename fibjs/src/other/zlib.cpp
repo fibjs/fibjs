@@ -15,6 +15,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(zlib);
+
 class zlibWorker
 {
 public:

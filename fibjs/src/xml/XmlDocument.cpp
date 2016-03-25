@@ -20,6 +20,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(xml);
+
 result_t XmlDocument_base::_new(const char *type, obj_ptr<XmlDocument_base> &retVal,
                                 v8::Local<v8::Object> This)
 {

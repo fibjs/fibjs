@@ -12,6 +12,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(assert);
+
 std::string json_format(v8::Local<v8::Value> obj);
 
 class _msg
@@ -313,7 +315,7 @@ bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
 
         obj_ptr<object_base> obj1 = object_base::getInstance(actual);
         obj_ptr<object_base> obj2 = object_base::getInstance(expected);
-        if(obj1 && obj2)
+        if (obj1 && obj2)
         {
             bool v;
             obj1->equals(obj2, v);

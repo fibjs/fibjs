@@ -13,6 +13,8 @@
 namespace fibjs
 {
 
+DECLARE_MODULE(net);
+
 result_t net_base::resolve(const char *name, int32_t family,
                            std::string &retVal, AsyncEvent *ac)
 {
