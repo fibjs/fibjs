@@ -515,11 +515,6 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, V
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, Variant &d, bool bStrict = false)
-{
-    return GetArgumentValue(v, d, bStrict);
-}
-
 class Value2Args
 {
 public:
