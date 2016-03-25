@@ -133,7 +133,7 @@ result_t _ssl::setError(int32_t ret)
     char msg[128];
 
     mbedtls_strerror(ret, msg, sizeof(msg));
-    return CHECK_ERROR(Runtime::setError(msg));
+    return Runtime::setError(msg);
 }
 
 result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
