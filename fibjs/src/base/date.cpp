@@ -262,6 +262,21 @@ void date_t::create(int32_t Y, int32_t M, int32_t D, int32_t h, int32_t m, int32
         + ((h * 60 + m) * 60 + s) * 1000 + ms - 62135596800000.0;
 }
 
+void date_t::fromDosTime(int32_t tm)
+{
+    int32_t year, month, day, hour, minute, second;
+
+    year = (tm >> 25) + 1980;
+    month = (tm >> 21) & 0xf;
+    day = (tm >> 16) & 0x1f;
+    hour = (tm >> 11) & 0x1f;
+    minute = (tm >> 5) & 0x3f;
+    second = tm & 0x1f;
+
+    create(year, month, day, hour, minute, second, 0);
+    toUTC();
+}
+
 void date_t::parse(const char *str, int32_t len)
 {
     int32_t wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0,

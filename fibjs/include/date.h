@@ -69,6 +69,7 @@ public:
     }
 
     void create(int32_t Y, int32_t M, int32_t D, int32_t h, int32_t m, int32_t s, int32_t ms);
+    void fromDosTime(int32_t tm);
 
     date_t &operator=(double v)
     {
