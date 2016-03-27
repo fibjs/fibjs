@@ -1,0 +1,16 @@
+
+/*! @brief zip 格式文件压缩解压模块
+
+ 使用方法：
+ @code
+ var zip = require('zip');
+ @endcode
+ */
+module zip
+{
+	static ZipFile open(String path) async;
+	static ZipFile open(Buffer data) async;
+	static ZipFile open(SeekableStream strm) async;
+
+	static ZipFile create(String path = "") async;
+};

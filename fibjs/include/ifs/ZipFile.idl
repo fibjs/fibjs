@@ -1,0 +1,10 @@
+/*! @brief zip 文件访问对象 */
+interface ZipFile : object
+{
+	List list() async;
+	ZipInfo get(String member) async;
+
+	Buffer read(String member, String password = "") async;
+	extract(String member, String path, String password = "") async;
+	extract(String member, SeekableStream strm, String password = "") async;
+};

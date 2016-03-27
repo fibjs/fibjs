@@ -1,0 +1,10 @@
+/*! @brief zip 文件访问对象 */
+interface ZipInfo : object
+{
+	readonly String filename;
+	readonly Date date;
+	readonly String compress_type;
+	readonly Long compress_size;
+	readonly Long file_size;
+	readonly Boolean password;
+};

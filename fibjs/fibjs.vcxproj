@@ -249,6 +249,9 @@
     <ClInclude Include="include\ifs\XmlNodeList.h" />
     <ClInclude Include="include\ifs\XmlProcessingInstruction.h" />
     <ClInclude Include="include\ifs\XmlText.h" />
+    <ClInclude Include="include\ifs\zip.h" />
+    <ClInclude Include="include\ifs\ZipFile.h" />
+    <ClInclude Include="include\ifs\ZipInfo.h" />
     <ClInclude Include="include\ifs\zlib.h" />
     <ClInclude Include="include\Image.h" />
     <ClInclude Include="include\inetAddr.h" />
@@ -326,6 +329,7 @@
     <ClInclude Include="include\XmlParser.h" />
     <ClInclude Include="include\XmlProcessingInstruction.h" />
     <ClInclude Include="include\XmlText.h" />
+    <ClInclude Include="include\ZipFile.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl" />
@@ -441,7 +445,6 @@
     <ClCompile Include="src\other\Regex.cpp" />
     <ClCompile Include="src\other\RpcTask.cpp" />
     <ClCompile Include="src\other\uuidVar.cpp" />
-    <ClCompile Include="src\other\zlib.cpp" />
     <ClCompile Include="src\process\process.cpp" />
     <ClCompile Include="src\process\SubProcess.cpp" />
     <ClCompile Include="src\process\SubProcess_posix.cpp" />
@@ -480,6 +483,8 @@
     <ClCompile Include="src\xml\XmlParser_html.cpp" />
     <ClCompile Include="src\xml\XmlProcessingInstruction.cpp" />
     <ClCompile Include="src\xml\XmlText.cpp" />
+    <ClCompile Include="src\zip\zlib.cpp" />
+    <ClCompile Include="src\zip\ZipFile.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{05654A7E-DBAF-4211-886A-C23565833D05}</ProjectGuid>
@@ -557,7 +562,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -573,7 +578,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -591,7 +596,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -611,7 +616,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>

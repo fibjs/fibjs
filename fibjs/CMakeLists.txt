@@ -79,7 +79,7 @@ endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
-include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${PROJECT_SOURCE_DIR}/../vender/v8" "${PROJECT_SOURCE_DIR}/../vender/v8/include" "${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${PROJECT_SOURCE_DIR}/../vender/v8" "${PROJECT_SOURCE_DIR}/../vender/v8/include" "${PROJECT_SOURCE_DIR}/../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(libs exlib expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls v8 unzip)
 

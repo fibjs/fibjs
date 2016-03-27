@@ -94,6 +94,9 @@
     <Filter Include="Source Files\websocket">
       <UniqueIdentifier>{232f65a2-2152-4311-bdc2-fd62de813074}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\zip">
+      <UniqueIdentifier>{232f65a2-2952-4311-bdc2-fd62de813074}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -280,9 +283,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SandBox.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\SubProcess.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\vm.h">
@@ -804,6 +804,9 @@
     <ClInclude Include="include\WebSocketMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZipFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\iconv.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -823,6 +826,15 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\hex.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\ZipInfo.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\ZipFile.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\zip.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1180,9 +1192,6 @@
     <ClCompile Include="src\other\uuidVar.cpp">
       <Filter>Source Files\other</Filter>
     </ClCompile>
-    <ClCompile Include="src\other\zlib.cpp">
-      <Filter>Source Files\other</Filter>
-    </ClCompile>
     <ClCompile Include="src\os\os.cpp">
       <Filter>Source Files\os</Filter>
     </ClCompile>
@@ -1278,6 +1287,12 @@
     </ClCompile>
     <ClCompile Include="src\websocket\websocket.cpp">
       <Filter>Source Files\websocket</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zip\zlib.cpp">
+      <Filter>Source Files\zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zip\ZipFile.cpp">
+      <Filter>Source Files\zip</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
