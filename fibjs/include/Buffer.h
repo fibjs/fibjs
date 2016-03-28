@@ -107,6 +107,11 @@ public:
 public:
     static void fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o);
 
+    char* data()
+    {
+        return &m_data[0];
+    }
+
 private:
     result_t readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le);
     result_t writeNumber(int32_t offset, const char *buf, int32_t size, bool noAssert, bool le);
