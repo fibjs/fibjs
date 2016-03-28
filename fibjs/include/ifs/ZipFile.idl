@@ -7,4 +7,6 @@ interface ZipFile : object
 	Buffer read(String member, String password = "") async;
 	extract(String member, String path, String password = "") async;
 	extract(String member, SeekableStream strm, String password = "") async;
+
+	List extractAll(String password = "") async;
 };

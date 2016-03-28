@@ -32,14 +32,16 @@ public:
 		virtual result_t get_compress_size(int64_t& retVal);
 		virtual result_t get_file_size(int64_t& retVal);
 		virtual result_t get_password(bool& retVal);
+		virtual result_t get_data(obj_ptr<Buffer_base>& retVal);
 
-	private:
+	public:
 		std::string m_name;
 		date_t m_date;
 		std::string m_compress_type;
 		int64_t m_compress_size;
 		int64_t m_file_size;
 		bool m_password;
+		obj_ptr<Buffer_base> m_data;
 	};
 
 public:
@@ -52,9 +54,12 @@ public:
 	virtual result_t read(const char* member, const char* password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
 	virtual result_t extract(const char* member, const char* path, const char* password, AsyncEvent* ac);
 	virtual result_t extract(const char* member, SeekableStream_base* strm, const char* password, AsyncEvent* ac);
+	virtual result_t extractAll(const char* password, obj_ptr<List_base>& retVal, AsyncEvent* ac);
 
 private:
-	result_t get_info(obj_ptr<ZipInfo_base>& retVal);
+	result_t get_info(obj_ptr<Info>& retVal);
+	result_t extract(SeekableStream_base* strm, const char* password);
+	result_t read(const char* password, obj_ptr<Buffer_base>& retVal);
 
 private:
 	unzFile m_unz;

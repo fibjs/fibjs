@@ -33,6 +33,7 @@ public:
     virtual result_t read(const char* member, const char* password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t extract(const char* member, const char* path, const char* password, AsyncEvent* ac) = 0;
     virtual result_t extract(const char* member, SeekableStream_base* strm, const char* password, AsyncEvent* ac) = 0;
+    virtual result_t extractAll(const char* password, obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -50,6 +51,7 @@ public:
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_extract(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(ZipFile_base, list, obj_ptr<List_base>);
@@ -57,6 +59,7 @@ public:
     ASYNC_MEMBERVALUE3(ZipFile_base, read, const char*, const char*, obj_ptr<Buffer_base>);
     ASYNC_MEMBER3(ZipFile_base, extract, const char*, const char*, const char*);
     ASYNC_MEMBER3(ZipFile_base, extract, const char*, SeekableStream_base*, const char*);
+    ASYNC_MEMBERVALUE2(ZipFile_base, extractAll, const char*, obj_ptr<List_base>);
 };
 
 }
@@ -75,13 +78,14 @@ namespace fibjs
             {"list", s_list, false},
             {"get", s_get, false},
             {"read", s_read, false},
-            {"extract", s_extract, false}
+            {"extract", s_extract, false},
+            {"extractAll", s_extractAll, false}
         };
 
         static ClassData s_cd = 
         { 
             "ZipFile", s__new, NULL, 
-            4, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            5, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -151,6 +155,20 @@ namespace fibjs
         hr = pInst->ac_extract(v0, v1, v2);
 
         METHOD_VOID();
+    }
+
+    inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
+
+        METHOD_INSTANCE(ZipFile_base);
+        METHOD_ENTER(1, 0);
+
+        OPT_ARG(arg_string, 0, "");
+
+        hr = pInst->ac_extractAll(v0, vr);
+
+        METHOD_RETURN();
     }
 
 }

@@ -7,4 +7,5 @@ interface ZipInfo : object
 	readonly Long compress_size;
 	readonly Long file_size;
 	readonly Boolean password;
+	readonly Buffer data;
 };

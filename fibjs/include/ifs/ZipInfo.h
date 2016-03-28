@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+class Buffer_base;
+
 class ZipInfo_base : public object_base
 {
     DECLARE_CLASS(ZipInfo_base);
@@ -29,6 +31,7 @@ public:
     virtual result_t get_compress_size(int64_t& retVal) = 0;
     virtual result_t get_file_size(int64_t& retVal) = 0;
     virtual result_t get_password(bool& retVal) = 0;
+    virtual result_t get_data(obj_ptr<Buffer_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -48,9 +51,12 @@ public:
     static void s_get_compress_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_file_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_password(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
+
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -63,13 +69,14 @@ namespace fibjs
             {"compress_type", s_get_compress_type, block_set, false},
             {"compress_size", s_get_compress_size, block_set, false},
             {"file_size", s_get_file_size, block_set, false},
-            {"password", s_get_password, block_set, false}
+            {"password", s_get_password, block_set, false},
+            {"data", s_get_data, block_set, false}
         };
 
         static ClassData s_cd = 
         { 
             "ZipInfo", s__new, NULL, 
-            0, NULL, 0, NULL, 6, s_property, NULL, NULL,
+            0, NULL, 0, NULL, 7, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -145,6 +152,18 @@ namespace fibjs
         PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_password(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void ZipInfo_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<Buffer_base> vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(ZipInfo_base);
+
+        hr = pInst->get_data(vr);
 
         METHOD_RETURN();
     }
