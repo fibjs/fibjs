@@ -45,24 +45,3 @@ extern "C"
 }
 
 #endif
-
-extern "C"
-{
-    void fopen64()
-    {
-        puts("unexpected fopen64.");
-        exit(-1);
-    }
-
-    void fseeko64()
-    {
-        puts("unexpected fseeko64.");
-        exit(-1);
-    }
-
-    void ftello64()
-    {
-        puts("unexpected ftello64.");
-        exit(-1);
-    }
-}
