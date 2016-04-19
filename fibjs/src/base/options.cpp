@@ -33,8 +33,7 @@ static void printHelp() {
 bool options(int32_t* argc, char *argv[])
 {
 	char s_opts[64];
-	char s_sharmony[] = " --harmony --harmony_proxies"
-	                    " --use_strict";
+	char s_sharmony[] = " --harmony --use_strict";
 
 	v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
 	v8::V8::SetFlagsFromString(s_opts,
