@@ -169,9 +169,13 @@ namespace fibjs
     inline void TcpServer_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(TcpServer_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_run();
+        if(!cb.IsEmpty()) {
+            pInst->acb_run(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_run();
 
         METHOD_VOID();
     }
@@ -189,9 +193,13 @@ namespace fibjs
     inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(TcpServer_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_stop();
+        if(!cb.IsEmpty()) {
+            pInst->acb_stop(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_stop();
 
         METHOD_VOID();
     }

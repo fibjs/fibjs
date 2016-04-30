@@ -182,11 +182,15 @@ namespace fibjs
         std::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = pInst->ac_readText(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_readText(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_readText(v0, vr);
 
         METHOD_RETURN();
     }
@@ -196,11 +200,15 @@ namespace fibjs
         std::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
-        hr = pInst->ac_readLine(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_readLine(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_readLine(v0, vr);
 
         METHOD_RETURN();
     }
@@ -224,12 +232,16 @@ namespace fibjs
         std::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(int32_t, 1, -1);
 
-        hr = pInst->ac_readUntil(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_readUntil(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_readUntil(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -237,11 +249,15 @@ namespace fibjs
     inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_writeText(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_writeText(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_writeText(v0);
 
         METHOD_VOID();
     }
@@ -249,11 +265,15 @@ namespace fibjs
     inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_writeLine(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_writeLine(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_writeLine(v0);
 
         METHOD_VOID();
     }

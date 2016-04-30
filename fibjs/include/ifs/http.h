@@ -133,12 +133,16 @@ namespace fibjs
     {
         obj_ptr<HttpResponse_base> vr;
 
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<HttpRequest_base>, 1);
 
-        hr = ac_request(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            acb_request(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_request(v0, v1, vr);
 
         METHOD_OVER(3, 2);
 
@@ -155,7 +159,11 @@ namespace fibjs
         ARG(obj_ptr<SeekableStream_base>, 2);
         ARG(obj_ptr<Map_base>, 3);
 
-        hr = ac_request(v0, v1, v2, v3, vr);
+        if(!cb.IsEmpty()) {
+            acb_request(v0, v1, v2, v3, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_request(v0, v1, v2, v3, vr);
 
         METHOD_OVER(4, 3);
 

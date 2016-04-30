@@ -201,6 +201,17 @@ typedef int32_t result_t;
     bool bStrict=true;do{do{\
             METHOD_OVER(c, o)
 
+#define ASYNC_METHOD_ENTER(c, o) \
+    v8::Isolate* isolate = args.GetIsolate(); \
+    V8_SCOPE(isolate); \
+    result_t hr = CALL_E_BADPARAMCOUNT; \
+    int32_t argc = args.Length(); \
+    v8::Local<v8::Function> cb; \
+    if(argc > 0 && args[argc - 1]->IsFunction()) \
+        cb = v8::Local<v8::Function>::Cast(args[--argc]); \
+    bool bStrict=true;do{do{\
+            METHOD_OVER(c, o)
+
 #define CONSTRUCT_INIT() \
     if(class_info().init_isolate())return;
 

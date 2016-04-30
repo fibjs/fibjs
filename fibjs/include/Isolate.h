@@ -24,9 +24,9 @@ public:
 	class rt_base
 	{
 	public:
-		rt_base()
+		rt_base(Isolate* cur = NULL)
 		{
-			m_isolate = Isolate::current();
+			m_isolate = cur ? cur : Isolate::current();
 		}
 
 		~rt_base()

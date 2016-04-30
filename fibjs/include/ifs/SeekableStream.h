@@ -142,9 +142,13 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_readAll(vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_readAll(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_readAll(vr);
 
         METHOD_RETURN();
     }
@@ -154,9 +158,13 @@ namespace fibjs
         obj_ptr<Stat_base> vr;
 
         METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_stat(vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_stat(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_stat(vr);
 
         METHOD_RETURN();
     }

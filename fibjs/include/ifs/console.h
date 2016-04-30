@@ -496,11 +496,15 @@ namespace fibjs
     {
         std::string vr;
 
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(arg_string, 0, "");
 
-        hr = ac_readLine(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_readLine(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_readLine(v0, vr);
 
         METHOD_RETURN();
     }

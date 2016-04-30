@@ -133,13 +133,17 @@ namespace fibjs
     inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
-        hr = pInst->ac_connect(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            pInst->acb_connect(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_connect(v0, v1, v2);
 
         METHOD_VOID();
     }
@@ -149,12 +153,16 @@ namespace fibjs
         std::string vr;
 
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(arg_string, 0);
         ARG(arg_string, 1);
 
-        hr = pInst->ac_command(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_command(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_command(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -162,11 +170,15 @@ namespace fibjs
     inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(arg_string, 0, "localhost");
 
-        hr = pInst->ac_hello(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_hello(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_hello(v0);
 
         METHOD_VOID();
     }
@@ -174,12 +186,16 @@ namespace fibjs
     inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(arg_string, 0);
         ARG(arg_string, 1);
 
-        hr = pInst->ac_login(v0, v1);
+        if(!cb.IsEmpty()) {
+            pInst->acb_login(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_login(v0, v1);
 
         METHOD_VOID();
     }
@@ -187,11 +203,15 @@ namespace fibjs
     inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_from(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_from(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_from(v0);
 
         METHOD_VOID();
     }
@@ -199,11 +219,15 @@ namespace fibjs
     inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_to(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_to(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_to(v0);
 
         METHOD_VOID();
     }
@@ -211,11 +235,15 @@ namespace fibjs
     inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_data(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_data(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_data(v0);
 
         METHOD_VOID();
     }
@@ -223,9 +251,13 @@ namespace fibjs
     inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_quit();
+        if(!cb.IsEmpty()) {
+            pInst->acb_quit(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_quit();
 
         METHOD_VOID();
     }

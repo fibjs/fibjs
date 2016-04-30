@@ -404,13 +404,17 @@ namespace fibjs
     {
         obj_ptr<Image_base> vr;
 
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, gd_base::_TRUECOLOR);
 
-        hr = ac_create(v0, v1, v2, vr);
+        if(!cb.IsEmpty()) {
+            acb_create(v0, v1, v2, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_create(v0, v1, v2, vr);
 
         METHOD_RETURN();
     }
@@ -419,23 +423,35 @@ namespace fibjs
     {
         obj_ptr<Image_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = ac_load(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_load(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_load(v0, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
 
-        hr = ac_load(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_load(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_load(v0, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_load(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_load(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_load(v0, vr);
 
         METHOD_RETURN();
     }

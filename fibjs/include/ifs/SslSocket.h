@@ -166,12 +166,16 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(SslSocket_base);
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
         OPT_ARG(arg_string, 1, "");
 
-        hr = pInst->ac_connect(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_connect(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_connect(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -181,11 +185,15 @@ namespace fibjs
         obj_ptr<SslSocket_base> vr;
 
         METHOD_INSTANCE(SslSocket_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 
-        hr = pInst->ac_accept(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_accept(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_accept(v0, vr);
 
         METHOD_RETURN();
     }

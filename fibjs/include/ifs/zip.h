@@ -86,23 +86,35 @@ namespace fibjs
     {
         obj_ptr<ZipFile_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_open(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_open(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_open(v0, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = ac_open(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_open(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_open(v0, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
 
-        hr = ac_open(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_open(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_open(v0, vr);
 
         METHOD_RETURN();
     }
@@ -111,11 +123,15 @@ namespace fibjs
     {
         obj_ptr<ZipFile_base> vr;
 
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(arg_string, 0, "");
 
-        hr = ac_create(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_create(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_create(v0, vr);
 
         METHOD_RETURN();
     }

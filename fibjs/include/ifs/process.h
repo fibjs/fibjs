@@ -212,11 +212,15 @@ namespace fibjs
 
         int32_t vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_system(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_system(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_system(v0, vr);
 
         METHOD_RETURN();
     }
@@ -227,11 +231,15 @@ namespace fibjs
 
         obj_ptr<BufferedStream_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_popen(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_popen(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_popen(v0, vr);
 
         METHOD_RETURN();
     }

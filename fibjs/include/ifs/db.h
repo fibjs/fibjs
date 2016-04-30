@@ -112,11 +112,15 @@ namespace fibjs
     {
         obj_ptr<object_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_open(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_open(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_open(v0, vr);
 
         METHOD_RETURN();
     }
@@ -125,11 +129,15 @@ namespace fibjs
     {
         obj_ptr<MySQL_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_openMySQL(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_openMySQL(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openMySQL(v0, vr);
 
         METHOD_RETURN();
     }
@@ -138,11 +146,15 @@ namespace fibjs
     {
         obj_ptr<SQLite_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_openSQLite(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_openSQLite(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openSQLite(v0, vr);
 
         METHOD_RETURN();
     }
@@ -151,11 +163,15 @@ namespace fibjs
     {
         obj_ptr<MongoDB_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_openMongoDB(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_openMongoDB(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openMongoDB(v0, vr);
 
         METHOD_RETURN();
     }
@@ -164,11 +180,15 @@ namespace fibjs
     {
         obj_ptr<LevelDB_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_openLevelDB(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_openLevelDB(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openLevelDB(v0, vr);
 
         METHOD_RETURN();
     }
@@ -177,11 +197,15 @@ namespace fibjs
     {
         obj_ptr<Redis_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_openRedis(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_openRedis(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openRedis(v0, vr);
 
         METHOD_RETURN();
     }

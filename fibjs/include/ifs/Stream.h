@@ -87,11 +87,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
-        hr = pInst->ac_read(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_read(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_read(v0, vr);
 
         METHOD_RETURN();
     }
@@ -99,11 +103,15 @@ namespace fibjs
     inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_write(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_write(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_write(v0);
 
         METHOD_VOID();
     }
@@ -111,9 +119,13 @@ namespace fibjs
     inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_close();
+        if(!cb.IsEmpty()) {
+            pInst->acb_close(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_close();
 
         METHOD_VOID();
     }
@@ -123,12 +135,16 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
         OPT_ARG(int64_t, 1, -1);
 
-        hr = pInst->ac_copyTo(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_copyTo(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_copyTo(v0, v1, vr);
 
         METHOD_RETURN();
     }

@@ -179,25 +179,33 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, _DEFAULT_COMPRESSION);
 
-        hr = ac_deflate(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            acb_deflate(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_deflate(v0, v1, vr);
 
         METHOD_RETURN();
     }
 
     inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
         OPT_ARG(int32_t, 2, _DEFAULT_COMPRESSION);
 
-        hr = ac_deflateTo(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            acb_deflateTo(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_deflateTo(v0, v1, v2);
 
         METHOD_OVER(3, 2);
 
@@ -205,7 +213,11 @@ namespace fibjs
         ARG(obj_ptr<Stream_base>, 1);
         OPT_ARG(int32_t, 2, _DEFAULT_COMPRESSION);
 
-        hr = ac_deflateTo(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            acb_deflateTo(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_deflateTo(v0, v1, v2);
 
         METHOD_VOID();
     }
@@ -214,30 +226,42 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = ac_inflate(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_inflate(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_inflate(v0, vr);
 
         METHOD_RETURN();
     }
 
     inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_inflateTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_inflateTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_inflateTo(v0, v1);
 
         METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_inflateTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_inflateTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_inflateTo(v0, v1);
 
         METHOD_VOID();
     }
@@ -246,30 +270,42 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = ac_gzip(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_gzip(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_gzip(v0, vr);
 
         METHOD_RETURN();
     }
 
     inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_gzipTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_gzipTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_gzipTo(v0, v1);
 
         METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_gzipTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_gzipTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_gzipTo(v0, v1);
 
         METHOD_VOID();
     }
@@ -278,30 +314,42 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = ac_gunzip(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_gunzip(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_gunzip(v0, vr);
 
         METHOD_RETURN();
     }
 
     inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_gunzipTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_gunzipTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_gunzipTo(v0, v1);
 
         METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_gunzipTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_gunzipTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_gunzipTo(v0, v1);
 
         METHOD_VOID();
     }
@@ -310,25 +358,33 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, _DEFAULT_COMPRESSION);
 
-        hr = ac_deflateRaw(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            acb_deflateRaw(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_deflateRaw(v0, v1, vr);
 
         METHOD_RETURN();
     }
 
     inline void zlib_base::s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
         OPT_ARG(int32_t, 2, _DEFAULT_COMPRESSION);
 
-        hr = ac_deflateRawTo(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            acb_deflateRawTo(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_deflateRawTo(v0, v1, v2);
 
         METHOD_OVER(3, 2);
 
@@ -336,7 +392,11 @@ namespace fibjs
         ARG(obj_ptr<Stream_base>, 1);
         OPT_ARG(int32_t, 2, _DEFAULT_COMPRESSION);
 
-        hr = ac_deflateRawTo(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            acb_deflateRawTo(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_deflateRawTo(v0, v1, v2);
 
         METHOD_VOID();
     }
@@ -345,30 +405,42 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = ac_inflateRaw(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_inflateRaw(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_inflateRaw(v0, vr);
 
         METHOD_RETURN();
     }
 
     inline void zlib_base::s_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_inflateRawTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_inflateRawTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_inflateRawTo(v0, v1);
 
         METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
-        hr = ac_inflateRawTo(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_inflateRawTo(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_inflateRawTo(v0, v1);
 
         METHOD_VOID();
     }

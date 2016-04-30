@@ -236,7 +236,7 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     return ac__commit(&batch);
 }
 
-result_t LevelDB::remove(v8::Local<v8::Array> keys)
+result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -378,13 +378,13 @@ result_t LevelDB::between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Func
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    Iter it(db());
+    obj_ptr<Iter> it = new Iter(db());
 
-    result_t hr = it.getValue(from, to);
+    result_t hr = it->getValue(from, to);
     if (hr < 0)
         return hr;
 
-    return it.iter(holder(), func);
+    return it->iter(holder(), func);
 }
 
 result_t LevelDB::begin(obj_ptr<LevelDB_base> &retVal)

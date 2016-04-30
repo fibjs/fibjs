@@ -211,12 +211,16 @@ namespace fibjs
     inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Socket_base);
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(arg_string, 0);
         ARG(int32_t, 1);
 
-        hr = pInst->ac_connect(v0, v1);
+        if(!cb.IsEmpty()) {
+            pInst->acb_connect(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_connect(v0, v1);
 
         METHOD_VOID();
     }
@@ -245,11 +249,15 @@ namespace fibjs
     inline void Socket_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Socket_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, 120);
 
-        hr = pInst->ac_listen(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_listen(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_listen(v0);
 
         METHOD_VOID();
     }
@@ -259,9 +267,13 @@ namespace fibjs
         obj_ptr<Socket_base> vr;
 
         METHOD_INSTANCE(Socket_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_accept(vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_accept(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_accept(vr);
 
         METHOD_RETURN();
     }
@@ -271,11 +283,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Socket_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
-        hr = pInst->ac_recv(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_recv(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_recv(v0, vr);
 
         METHOD_RETURN();
     }
@@ -297,11 +313,15 @@ namespace fibjs
     inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Socket_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_send(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_send(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_send(v0);
 
         METHOD_VOID();
     }

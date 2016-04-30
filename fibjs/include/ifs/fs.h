@@ -172,22 +172,30 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_exists(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_exists(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_exists(v0, vr);
 
         METHOD_RETURN();
     }
 
     inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_unlink(v0);
+        if(!cb.IsEmpty()) {
+            acb_unlink(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_unlink(v0);
 
         METHOD_VOID();
     }
@@ -196,58 +204,78 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = ac_umask(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_umask(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_umask(v0, vr);
 
         METHOD_RETURN();
     }
 
     inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(int32_t, 1, 0777);
 
-        hr = ac_mkdir(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_mkdir(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_mkdir(v0, v1);
 
         METHOD_VOID();
     }
 
     inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_rmdir(v0);
+        if(!cb.IsEmpty()) {
+            acb_rmdir(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_rmdir(v0);
 
         METHOD_VOID();
     }
 
     inline void fs_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(arg_string, 0);
         ARG(arg_string, 1);
 
-        hr = ac_rename(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_rename(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_rename(v0, v1);
 
         METHOD_VOID();
     }
 
     inline void fs_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(arg_string, 0);
         ARG(int32_t, 1);
 
-        hr = ac_chmod(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_chmod(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_chmod(v0, v1);
 
         METHOD_VOID();
     }
@@ -256,11 +284,15 @@ namespace fibjs
     {
         obj_ptr<Stat_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_stat(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_stat(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_stat(v0, vr);
 
         METHOD_RETURN();
     }
@@ -269,11 +301,15 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_readdir(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_readdir(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_readdir(v0, vr);
 
         METHOD_RETURN();
     }
@@ -282,12 +318,16 @@ namespace fibjs
     {
         obj_ptr<File_base> vr;
 
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(arg_string, 1, "r");
 
-        hr = ac_open(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            acb_open(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_open(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -296,9 +336,13 @@ namespace fibjs
     {
         obj_ptr<File_base> vr;
 
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = ac_tmpFile(vr);
+        if(!cb.IsEmpty()) {
+            acb_tmpFile(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_tmpFile(vr);
 
         METHOD_RETURN();
     }
@@ -307,12 +351,16 @@ namespace fibjs
     {
         obj_ptr<BufferedStream_base> vr;
 
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(arg_string, 1, "r");
 
-        hr = ac_openTextStream(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            acb_openTextStream(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openTextStream(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -321,11 +369,15 @@ namespace fibjs
     {
         std::string vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_readFile(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_readFile(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_readFile(v0, vr);
 
         METHOD_RETURN();
     }
@@ -346,12 +398,16 @@ namespace fibjs
 
     inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(arg_string, 0);
         ARG(arg_string, 1);
 
-        hr = ac_writeFile(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_writeFile(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_writeFile(v0, v1);
 
         METHOD_VOID();
     }

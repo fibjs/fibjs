@@ -400,12 +400,16 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 0);
+        ASYNC_METHOD_ENTER(2, 0);
 
         OPT_ARG(int32_t, 0, gd_base::_PNG);
         OPT_ARG(int32_t, 1, 85);
 
-        hr = pInst->ac_getData(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_getData(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_getData(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -413,13 +417,17 @@ namespace fibjs
     inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 1);
+        ASYNC_METHOD_ENTER(3, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
         OPT_ARG(int32_t, 1, gd_base::_PNG);
         OPT_ARG(int32_t, 2, 85);
 
-        hr = pInst->ac_save(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            pInst->acb_save(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_save(v0, v1, v2);
 
         METHOD_OVER(3, 1);
 
@@ -427,7 +435,11 @@ namespace fibjs
         OPT_ARG(int32_t, 1, gd_base::_PNG);
         OPT_ARG(int32_t, 2, 85);
 
-        hr = pInst->ac_save(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            pInst->acb_save(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_save(v0, v1, v2);
 
         METHOD_VOID();
     }
@@ -905,12 +917,16 @@ namespace fibjs
     inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
 
-        hr = pInst->ac_colorReplace(v0, v1);
+        if(!cb.IsEmpty()) {
+            pInst->acb_colorReplace(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_colorReplace(v0, v1);
 
         METHOD_VOID();
     }
@@ -920,9 +936,13 @@ namespace fibjs
         obj_ptr<Image_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_clone(vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_clone(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_clone(vr);
 
         METHOD_RETURN();
     }
@@ -932,12 +952,16 @@ namespace fibjs
         obj_ptr<Image_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
 
-        hr = pInst->ac_resample(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_resample(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_resample(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -947,14 +971,18 @@ namespace fibjs
         obj_ptr<Image_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(4, 4);
+        ASYNC_METHOD_ENTER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
         ARG(int32_t, 2);
         ARG(int32_t, 3);
 
-        hr = pInst->ac_crop(v0, v1, v2, v3, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_crop(v0, v1, v2, v3, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_crop(v0, v1, v2, v3, vr);
 
         METHOD_RETURN();
     }
@@ -962,11 +990,15 @@ namespace fibjs
     inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
 
-        hr = pInst->ac_flip(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_flip(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_flip(v0);
 
         METHOD_VOID();
     }
@@ -974,11 +1006,15 @@ namespace fibjs
     inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = pInst->ac_rotate(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_rotate(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_rotate(v0);
 
         METHOD_VOID();
     }
@@ -986,11 +1022,15 @@ namespace fibjs
     inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, gd_base::_TRUECOLOR);
 
-        hr = pInst->ac_convert(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_convert(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_convert(v0);
 
         METHOD_VOID();
     }
@@ -998,7 +1038,7 @@ namespace fibjs
     inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(7, 7);
+        ASYNC_METHOD_ENTER(7, 7);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1008,7 +1048,11 @@ namespace fibjs
         ARG(int32_t, 5);
         ARG(int32_t, 6);
 
-        hr = pInst->ac_copy(v0, v1, v2, v3, v4, v5, v6);
+        if(!cb.IsEmpty()) {
+            pInst->acb_copy(v0, v1, v2, v3, v4, v5, v6, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_copy(v0, v1, v2, v3, v4, v5, v6);
 
         METHOD_VOID();
     }
@@ -1016,7 +1060,7 @@ namespace fibjs
     inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(8, 8);
+        ASYNC_METHOD_ENTER(8, 8);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1027,7 +1071,11 @@ namespace fibjs
         ARG(int32_t, 6);
         ARG(int32_t, 7);
 
-        hr = pInst->ac_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
+        if(!cb.IsEmpty()) {
+            pInst->acb_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
 
         METHOD_VOID();
     }
@@ -1035,7 +1083,7 @@ namespace fibjs
     inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(8, 8);
+        ASYNC_METHOD_ENTER(8, 8);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1046,7 +1094,11 @@ namespace fibjs
         ARG(int32_t, 6);
         ARG(int32_t, 7);
 
-        hr = pInst->ac_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
+        if(!cb.IsEmpty()) {
+            pInst->acb_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
 
         METHOD_VOID();
     }
@@ -1054,7 +1106,7 @@ namespace fibjs
     inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(9, 9);
+        ASYNC_METHOD_ENTER(9, 9);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1066,7 +1118,11 @@ namespace fibjs
         ARG(int32_t, 7);
         ARG(int32_t, 8);
 
-        hr = pInst->ac_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+        if(!cb.IsEmpty()) {
+            pInst->acb_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
         METHOD_VOID();
     }
@@ -1074,7 +1130,7 @@ namespace fibjs
     inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(9, 9);
+        ASYNC_METHOD_ENTER(9, 9);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1086,7 +1142,11 @@ namespace fibjs
         ARG(int32_t, 7);
         ARG(int32_t, 8);
 
-        hr = pInst->ac_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+        if(!cb.IsEmpty()) {
+            pInst->acb_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
         METHOD_VOID();
     }
@@ -1094,7 +1154,7 @@ namespace fibjs
     inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(8, 8);
+        ASYNC_METHOD_ENTER(8, 8);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(double, 1);
@@ -1105,7 +1165,11 @@ namespace fibjs
         ARG(int32_t, 6);
         ARG(double, 7);
 
-        hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
+        if(!cb.IsEmpty()) {
+            pInst->acb_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
 
         METHOD_VOID();
     }
@@ -1113,7 +1177,7 @@ namespace fibjs
     inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(5, 1);
+        ASYNC_METHOD_ENTER(5, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(double, 1, 0);
@@ -1121,7 +1185,11 @@ namespace fibjs
         OPT_ARG(double, 3, 0);
         OPT_ARG(double, 4, 0);
 
-        hr = pInst->ac_filter(v0, v1, v2, v3, v4);
+        if(!cb.IsEmpty()) {
+            pInst->acb_filter(v0, v1, v2, v3, v4, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_filter(v0, v1, v2, v3, v4);
 
         METHOD_VOID();
     }
@@ -1147,11 +1215,15 @@ namespace fibjs
     inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = pInst->ac_gaussianBlur(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_gaussianBlur(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_gaussianBlur(v0);
 
         METHOD_VOID();
     }

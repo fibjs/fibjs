@@ -234,6 +234,77 @@ void syncCall(Isolate* isolate, T func, T1 v)
     (new AsyncFunc<T, T1>(func, v))->sync(isolate);
 }
 
+template<typename T>
+class _at
+{
+public:
+    _at(T& v) : m_v(v)
+    {
+    }
+
+    T& value()
+    {
+        return m_v;
+    }
+
+private:
+    T m_v;
+};
+
+template<>
+class _at<const char*>
+{
+public:
+    _at(const char* v) : m_v(v)
+    {
+    }
+
+    const char* value()
+    {
+        return m_v.c_str();
+    }
+
+private:
+    std::string m_v;
+};
+
+class AsyncCallBack: public AsyncEvent
+{
+public:
+    AsyncCallBack(v8::Local<v8::Function> cb)
+    {
+        m_isolate = Isolate::current();
+        m_cb.Reset(m_isolate->m_isolate, cb);
+    }
+
+    virtual int32_t post(int32_t v)
+    {
+        if (v == CALL_E_EXCEPTION)
+            m_error = Runtime::errMessage();
+
+        m_v = v;
+        syncCall(m_isolate, syncFunc, this);
+
+        return 0;
+    }
+
+protected:
+    virtual v8::Local<v8::Value> getValue()
+    {
+        return v8::Undefined(m_isolate->m_isolate);
+    }
+
+    static void syncFunc(AsyncCallBack* pThis);
+
+protected:
+    Isolate* m_isolate;
+    v8::Persistent<v8::Function> m_cb;
+
+private:
+    std::string m_error;
+    int32_t m_v;
+};
+
 }
 
 #endif

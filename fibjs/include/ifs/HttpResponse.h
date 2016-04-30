@@ -167,11 +167,15 @@ namespace fibjs
     inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpResponse_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 
-        hr = pInst->ac_sendHeader(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_sendHeader(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_sendHeader(v0);
 
         METHOD_VOID();
     }

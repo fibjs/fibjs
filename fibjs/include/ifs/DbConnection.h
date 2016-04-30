@@ -93,9 +93,13 @@ namespace fibjs
     inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_close();
+        if(!cb.IsEmpty()) {
+            pInst->acb_close(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_close();
 
         METHOD_VOID();
     }
@@ -103,9 +107,13 @@ namespace fibjs
     inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_begin();
+        if(!cb.IsEmpty()) {
+            pInst->acb_begin(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_begin();
 
         METHOD_VOID();
     }
@@ -113,9 +121,13 @@ namespace fibjs
     inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_commit();
+        if(!cb.IsEmpty()) {
+            pInst->acb_commit(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_commit();
 
         METHOD_VOID();
     }
@@ -123,9 +135,13 @@ namespace fibjs
     inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_rollback();
+        if(!cb.IsEmpty()) {
+            pInst->acb_rollback(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_rollback();
 
         METHOD_VOID();
     }
@@ -135,11 +151,15 @@ namespace fibjs
         obj_ptr<DBResult_base> vr;
 
         METHOD_INSTANCE(DbConnection_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_execute(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_execute(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_execute(v0, vr);
 
         METHOD_OVER(-1, 1);
 

@@ -31,7 +31,7 @@ public:
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
     virtual result_t set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac) = 0;
     virtual result_t mset(v8::Local<v8::Object> map) = 0;
-    virtual result_t remove(v8::Local<v8::Array> keys) = 0;
+    virtual result_t mremove(v8::Local<v8::Array> keys) = 0;
     virtual result_t remove(Buffer_base* key, AsyncEvent* ac) = 0;
     virtual result_t forEach(v8::Local<v8::Function> func) = 0;
     virtual result_t between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func) = 0;
@@ -56,6 +56,7 @@ public:
     static void s_mget(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_mset(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_mremove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_between(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,6 +88,7 @@ namespace fibjs
             {"mget", s_mget, false},
             {"set", s_set, false},
             {"mset", s_mset, false},
+            {"mremove", s_mremove, false},
             {"remove", s_remove, false},
             {"forEach", s_forEach, false},
             {"between", s_between, false},
@@ -98,7 +100,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "LevelDB", s__new, NULL, 
-            11, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            12, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -112,11 +114,15 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_has(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_has(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_has(v0, vr);
 
         METHOD_RETURN();
     }
@@ -126,11 +132,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_get(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_get(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_get(v0, vr);
 
         METHOD_RETURN();
     }
@@ -152,12 +162,16 @@ namespace fibjs
     inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
 
-        hr = pInst->ac_set(v0, v1);
+        if(!cb.IsEmpty()) {
+            pInst->acb_set(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_set(v0, v1);
 
         METHOD_VOID();
     }
@@ -174,20 +188,30 @@ namespace fibjs
         METHOD_VOID();
     }
 
-    inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void LevelDB_base::s_mremove(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(LevelDB_base);
         METHOD_ENTER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
-        hr = pInst->remove(v0);
+        hr = pInst->mremove(v0);
 
-        METHOD_OVER(1, 1);
+        METHOD_VOID();
+    }
+
+    inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(LevelDB_base);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_remove(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_remove(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_remove(v0);
 
         METHOD_VOID();
     }
@@ -243,9 +267,13 @@ namespace fibjs
     inline void LevelDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_close();
+        if(!cb.IsEmpty()) {
+            pInst->acb_close(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_close();
 
         METHOD_VOID();
     }

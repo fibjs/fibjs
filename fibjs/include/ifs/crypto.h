@@ -382,11 +382,15 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = ac_randomBytes(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_randomBytes(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_randomBytes(v0, vr);
 
         METHOD_RETURN();
     }
@@ -395,11 +399,15 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = ac_pseudoRandomBytes(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_pseudoRandomBytes(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_pseudoRandomBytes(v0, vr);
 
         METHOD_RETURN();
     }

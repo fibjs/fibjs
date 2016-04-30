@@ -191,11 +191,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Cipher_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_encrypt(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_encrypt(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_encrypt(v0, vr);
 
         METHOD_RETURN();
     }
@@ -205,11 +209,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Cipher_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_decrypt(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_decrypt(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_decrypt(v0, vr);
 
         METHOD_RETURN();
     }

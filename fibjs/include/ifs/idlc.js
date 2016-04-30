@@ -498,8 +498,10 @@ function parserIDL(fname) {
 
 	function _member(st) {
 		var attr, attr1, ftype, fname, name, value, args, argArray = false,
+			async = false,
 			pos = 0,
 			s, argStra = "",
+			argStr,
 			argCount = 0,
 			argOpt = 0,
 			ifStr = "",
@@ -705,6 +707,10 @@ function parserIDL(fname) {
 
 			pos++;
 
+			async = st[pos] == "async";
+			if (async)
+				pos++;
+
 			if (ids.hasOwnProperty(fname)) {
 				fnStr = ids[fname][1] + "\n        METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 
@@ -727,9 +733,13 @@ function parserIDL(fname) {
 					fnStr += "        " + map_type(ftype) + " vr;\n\n";
 
 				if (attr == "")
-					fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
-				else if (fname !== "_new")
-					fnStr += "        METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+					fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n";
+
+				if (fname !== "_new")
+					if (async)
+						fnStr += "        ASYNC_METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+					else
+						fnStr += "        METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 				else
 					fnStr += "        CONSTRUCT_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 			}
@@ -750,60 +760,72 @@ function parserIDL(fname) {
 				argStra += ", " + map_type(ftype);
 			}
 
-			if (st[pos] == "async") {
-				pos += 1;
+			argStr = "";
+			for (var i = 0; i < argCount; i++) {
+				if (i > 0)
+					argStr += ", ";
+				argStr += "v" + i;
+			}
 
+			if (argArray)
+				if (argCount > 0)
+					argStr += ", args";
+				else
+					argStr += "args";
+
+			if (ftype != "") {
+				if (argCount || argArray)
+					argStr += ", ";
+
+				argStr += "vr";
+			}
+
+			if (fname === "_new")
+				argStr += ", args.This()";
+
+			if (async) {
 				if (ftype != "" || argCount || argArray)
 					ifStr += ", ";
 
 				if (attr == "static") {
 					ifStr += "AsyncEvent* ac);";
-					fnStr += "        hr = ac_" + fname + "(";
+					fnStr += "        if(!cb.IsEmpty()) {\n";
+
+					if (argStr)
+						fnStr += "            acb_" + fname + "(" + argStr + ", cb);\n";
+					else
+						fnStr += "            acb_" + fname + "(cb);\n";
+
+					fnStr += "            hr = CALL_RETURN_NULL;\n";
+					fnStr += "        } else\n";
+					fnStr += "            hr = ac_" + fname + "(" + argStr + ");\n";
 					afs.push('    ASYNC_STATIC' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
 				} else {
 					ifStr += "AsyncEvent* ac) = 0;";
-					fnStr += "        hr = pInst->ac_" + fname + "(";
+					fnStr += "        if(!cb.IsEmpty()) {\n";
+
+					if (argStr)
+						fnStr += "            pInst->acb_" + fname + "(" + argStr + ", cb);\n";
+					else
+						fnStr += "            pInst->acb_" + fname + "(cb);\n";
+
+					fnStr += "            hr = CALL_RETURN_NULL;\n";
+					fnStr += "        } else\n";
+					fnStr += "            hr = pInst->ac_" + fname + "(" + argStr + ");\n";
 					afs.push('    ASYNC_MEMBER' + (ftype != "" ? "VALUE" : "") + (ftype == "" ? argCount : argCount + 1) + '(' + ns + '_base, ' + fname + argStra + ');');
 				}
-
-				// if (argArray || (ftype != "") || (argCount > 0))
-				// fnStr += ", ";
 			} else {
 				if (attr == "static") {
 					if (fname === "_new")
 						ifStr += ", v8::Local<v8::Object> This = v8::Local<v8::Object>());";
 					else
 						ifStr += ");";
-					fnStr += "        hr = " + cxxSafe(fname) + "(";
+					fnStr += "        hr = " + cxxSafe(fname) + "(" + argStr + ");\n";
 				} else {
 					ifStr += ") = 0;";
-					fnStr += "        hr = pInst->" + cxxSafe(fname) + "(";
+					fnStr += "        hr = pInst->" + cxxSafe(fname) + "(" + argStr + ");\n";
 				}
 			}
-
-			for (var i = 0; i < argCount; i++) {
-				if (i > 0)
-					fnStr += ", ";
-				fnStr += "v" + i;
-			}
-
-			if (argArray)
-				if (argCount > 0)
-					fnStr += ", args";
-				else
-					fnStr += "args";
-
-			if (ftype != "") {
-				if (argCount || argArray)
-					fnStr += ", ";
-
-				fnStr += "vr";
-			}
-
-			if (fname === "_new")
-				fnStr += ", args.This());\n";
-			else
-				fnStr += ");\n";
 
 			ifs.push(ifStr);
 

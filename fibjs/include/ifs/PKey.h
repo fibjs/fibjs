@@ -172,11 +172,15 @@ namespace fibjs
     inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = pInst->ac_genRsaKey(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_genRsaKey(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_genRsaKey(v0);
 
         METHOD_VOID();
     }
@@ -184,11 +188,15 @@ namespace fibjs
     inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(arg_string, 0, "secp521r1");
 
-        hr = pInst->ac_genEcKey(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_genEcKey(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_genEcKey(v0);
 
         METHOD_VOID();
     }
@@ -279,11 +287,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_encrypt(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_encrypt(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_encrypt(v0, vr);
 
         METHOD_RETURN();
     }
@@ -293,11 +305,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_decrypt(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_decrypt(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_decrypt(v0, vr);
 
         METHOD_RETURN();
     }
@@ -307,12 +323,16 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, 0);
 
-        hr = pInst->ac_sign(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_sign(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_sign(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -322,12 +342,16 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
 
-        hr = pInst->ac_verify(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_verify(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_verify(v0, v1, vr);
 
         METHOD_RETURN();
     }

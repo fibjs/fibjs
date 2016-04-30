@@ -328,11 +328,15 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<X509Cert_base>, 0);
 
-        hr = pInst->ac_verify(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_verify(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_verify(v0, vr);
 
         METHOD_RETURN();
     }

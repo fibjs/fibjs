@@ -300,11 +300,15 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Message_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
-        hr = pInst->ac_read(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_read(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_read(v0, vr);
 
         METHOD_RETURN();
     }
@@ -314,9 +318,13 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Message_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_readAll(vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_readAll(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_readAll(vr);
 
         METHOD_RETURN();
     }
@@ -324,11 +332,15 @@ namespace fibjs
     inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Message_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->ac_write(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_write(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_write(v0);
 
         METHOD_VOID();
     }
@@ -346,11 +358,15 @@ namespace fibjs
     inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Message_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 
-        hr = pInst->ac_sendTo(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_sendTo(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_sendTo(v0);
 
         METHOD_VOID();
     }
@@ -358,11 +374,15 @@ namespace fibjs
     inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Message_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 
-        hr = pInst->ac_readFrom(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_readFrom(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_readFrom(v0);
 
         METHOD_VOID();
     }

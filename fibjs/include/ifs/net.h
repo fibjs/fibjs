@@ -158,12 +158,16 @@ namespace fibjs
     {
         std::string vr;
 
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(int32_t, 1, _AF_INET);
 
-        hr = ac_resolve(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            acb_resolve(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_resolve(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -172,11 +176,15 @@ namespace fibjs
     {
         std::string vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_ip(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_ip(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_ip(v0, vr);
 
         METHOD_RETURN();
     }
@@ -185,11 +193,15 @@ namespace fibjs
     {
         std::string vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_ipv6(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_ipv6(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_ipv6(v0, vr);
 
         METHOD_RETURN();
     }
@@ -198,19 +210,27 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
-        hr = ac_connect(v0, v1, v2, vr);
+        if(!cb.IsEmpty()) {
+            acb_connect(v0, v1, v2, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_connect(v0, v1, v2, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_connect(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_connect(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_connect(v0, vr);
 
         METHOD_RETURN();
     }
@@ -219,13 +239,17 @@ namespace fibjs
     {
         obj_ptr<Smtp_base> vr;
 
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
-        hr = ac_openSmtp(v0, v1, v2, vr);
+        if(!cb.IsEmpty()) {
+            acb_openSmtp(v0, v1, v2, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openSmtp(v0, v1, v2, vr);
 
         METHOD_RETURN();
     }

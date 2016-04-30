@@ -217,7 +217,7 @@ describe("db", function() {
 			var ldb = db.openLevelDB("testdb" + vmid);
 			ldb.mset(data);
 
-			ldb.remove(["bbb", "ddd"]);
+			ldb.mremove(["bbb", "ddd"]);
 
 			assert.equal(ldb.get("aaa").toString(), "aaa value");
 			assert.isNull(ldb.get("bbb"));

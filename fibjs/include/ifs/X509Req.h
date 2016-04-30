@@ -202,13 +202,17 @@ namespace fibjs
         obj_ptr<X509Cert_base> vr;
 
         METHOD_INSTANCE(X509Req_base);
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(obj_ptr<PKey_base>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        hr = pInst->ac_sign(v0, v1, v2, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_sign(v0, v1, v2, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_sign(v0, v1, v2, vr);
 
         METHOD_RETURN();
     }

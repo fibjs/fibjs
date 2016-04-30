@@ -33,7 +33,7 @@ public:
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal);
     virtual result_t set(Buffer_base *key, Buffer_base *value, AsyncEvent *ac);
     virtual result_t mset(v8::Local<v8::Object> map);
-    virtual result_t remove(v8::Local<v8::Array> keys);
+    virtual result_t mremove(v8::Local<v8::Array> keys);
     virtual result_t remove(Buffer_base *key, AsyncEvent *ac);
     virtual result_t forEach(v8::Local<v8::Function> func);
     virtual result_t between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Function> func);
@@ -91,7 +91,7 @@ private:
 
 #define ITER_BLOCK_SIZE     32
 
-    class Iter
+    class Iter : public object_base
     {
     public:
         Iter(leveldb::DB *db) : m_count(0), m_first(true), m_end(false)

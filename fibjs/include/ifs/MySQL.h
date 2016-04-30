@@ -132,11 +132,15 @@ namespace fibjs
     inline void MySQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MySQL_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_use(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_use(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_use(v0);
 
         METHOD_VOID();
     }

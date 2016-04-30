@@ -135,12 +135,16 @@ namespace fibjs
 
     inline void mq_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(obj_ptr<Handler_base>, 0);
         ARG(obj_ptr<object_base>, 1);
 
-        hr = ac_invoke(v0, v1);
+        if(!cb.IsEmpty()) {
+            acb_invoke(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_invoke(v0, v1);
 
         METHOD_VOID();
     }

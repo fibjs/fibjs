@@ -99,9 +99,13 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_list(vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_list(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_list(vr);
 
         METHOD_RETURN();
     }
@@ -111,11 +115,15 @@ namespace fibjs
         obj_ptr<ZipInfo_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_get(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_get(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_get(v0, vr);
 
         METHOD_RETURN();
     }
@@ -125,12 +133,16 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(arg_string, 0);
         OPT_ARG(arg_string, 1, "");
 
-        hr = pInst->ac_read(v0, v1, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_read(v0, v1, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_read(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -138,13 +150,17 @@ namespace fibjs
     inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(arg_string, 0);
         ARG(arg_string, 1);
         OPT_ARG(arg_string, 2, "");
 
-        hr = pInst->ac_extract(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            pInst->acb_extract(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_extract(v0, v1, v2);
 
         METHOD_OVER(3, 2);
 
@@ -152,7 +168,11 @@ namespace fibjs
         ARG(obj_ptr<SeekableStream_base>, 1);
         OPT_ARG(arg_string, 2, "");
 
-        hr = pInst->ac_extract(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            pInst->acb_extract(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_extract(v0, v1, v2);
 
         METHOD_VOID();
     }
@@ -162,11 +182,15 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER(1, 0);
+        ASYNC_METHOD_ENTER(1, 0);
 
         OPT_ARG(arg_string, 0, "");
 
-        hr = pInst->ac_extractAll(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_extractAll(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_extractAll(v0, vr);
 
         METHOD_RETURN();
     }

@@ -306,11 +306,15 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = ac_connect(v0, vr);
+        if(!cb.IsEmpty()) {
+            acb_connect(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_connect(v0, vr);
 
         METHOD_RETURN();
     }

@@ -3,6 +3,7 @@
 #include <exlib/include/thread.h>
 #include "console.h"
 #include "map"
+#include "Fiber.h"
 
 namespace fibjs
 {
@@ -102,6 +103,39 @@ void AsyncEvent::async(bool bLongSync)
         s_lsPool->put(this);
     else
         s_acPool->put(this);
+}
+
+void AsyncCallBack::syncFunc(AsyncCallBack* pThis)
+{
+    JSFiber::scope s;
+
+    v8::Local<v8::Function> func =
+        v8::Local<v8::Function>::New(pThis->m_isolate->m_isolate, pThis->m_cb);
+
+    v8::Local<v8::Value> args[2];
+
+    if (pThis->m_v == CALL_RETURN_NULL)
+    {
+        args[0] = v8::Undefined(pThis->m_isolate->m_isolate);
+        args[1] = v8::Null(pThis->m_isolate->m_isolate);
+    } else if (pThis->m_v >= 0)
+    {
+        args[0] = v8::Undefined(pThis->m_isolate->m_isolate);
+        args[1] = pThis->getValue();
+    } else
+    {
+        v8::Local<v8::Value> e = v8::Exception::Error(
+                                     pThis->m_isolate->NewFromUtf8(getResultMessage(pThis->m_v)));
+        e->ToObject()->Set(pThis->m_isolate->NewFromUtf8("number"),
+                           v8::Int32::New(pThis->m_isolate->m_isolate, -pThis->m_v));
+
+        args[0] = e;
+        args[1] = v8::Undefined(pThis->m_isolate->m_isolate);
+    }
+
+    func->Call(v8::Undefined(pThis->m_isolate->m_isolate), 2, args);
+
+    delete pThis;
 }
 
 void init_acThread()

@@ -191,9 +191,13 @@ namespace fibjs
     inline void MongoDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MongoDB_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_close();
+        if(!cb.IsEmpty()) {
+            pInst->acb_close(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_close();
 
         METHOD_VOID();
     }

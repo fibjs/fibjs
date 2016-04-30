@@ -102,11 +102,15 @@ namespace fibjs
     inline void File_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(File_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int64_t, 0);
 
-        hr = pInst->ac_truncate(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_truncate(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_truncate(v0);
 
         METHOD_VOID();
     }
@@ -126,9 +130,13 @@ namespace fibjs
     inline void File_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(File_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_flush();
+        if(!cb.IsEmpty()) {
+            pInst->acb_flush(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_flush();
 
         METHOD_VOID();
     }
@@ -136,11 +144,15 @@ namespace fibjs
     inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(File_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = pInst->ac_chmod(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_chmod(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_chmod(v0);
 
         METHOD_VOID();
     }

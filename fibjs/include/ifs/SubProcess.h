@@ -138,9 +138,13 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(SubProcess_base);
-        METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(0, 0);
 
-        hr = pInst->ac_wait(vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_wait(vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_wait(vr);
 
         METHOD_RETURN();
     }

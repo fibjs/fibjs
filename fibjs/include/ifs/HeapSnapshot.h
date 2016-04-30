@@ -157,11 +157,15 @@ namespace fibjs
     inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HeapSnapshot_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(arg_string, 0);
 
-        hr = pInst->ac_save(v0);
+        if(!cb.IsEmpty()) {
+            pInst->acb_save(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_save(v0);
 
         METHOD_VOID();
     }
