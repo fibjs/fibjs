@@ -1294,5 +1294,8 @@
     <ClCompile Include="src\zip\ZipFile.cpp">
       <Filter>Source Files\zip</Filter>
     </ClCompile>
+    <ClCompile Include="src\base\_test.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
