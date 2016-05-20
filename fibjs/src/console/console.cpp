@@ -243,16 +243,24 @@ char *read_line()
 }
 
 #ifndef _WIN32
-extern "C" void __real_free(void*);
+extern "C"
+{
+    void __real_free(void*);
+    char *readline(const char *prompt);
+    void add_history(char *line);
+}
 #endif
 
 result_t console_base::readLine(const char *msg, std::string &retVal,
                                 AsyncEvent *ac)
 {
+    if (!ac)
+    {
+        flushLog(true);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+    }
+
 #ifndef _WIN32
-    static bool _init = false;
-    static char *(*_readline)(const char *);
-    static void (*_add_history)(char *);
 
 #ifdef DEBUG
 #ifdef __clang__
@@ -267,80 +275,37 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 #define _free free
 #endif
 
-    if (!_init)
+    std::string strmsg = msg;
+    char *line;
+    int32_t lfpos = strmsg.find_last_of(0x0a);
+
+    if ( lfpos >= 0 )
     {
-        _init = true;
-
-#ifdef __clang__
-        void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
-#else
-        const char *readline_dylib_names[] =
-        {
-            "libreadline.so.6",
-            "libreadline.so.5",
-            "libreadline.so"
-        };
-        const size_t readline_dylib_names_size = ARRAYSIZE(readline_dylib_names);
-        void *handle = 0;
-
-        for (size_t i = 0; i < readline_dylib_names_size; i++)
-        {
-            handle = dlopen(readline_dylib_names[i], RTLD_LAZY);
-            if (handle) break;
-        }
-#endif
-
-        if (handle)
-        {
-            _readline = (char *(*)(const char *))dlsym(handle, "readline");
-            _add_history = (void (*)(char *))dlsym(handle, "add_history");
-        }
-    }
-#endif
-
-    if (!ac)
-    {
-        flushLog(true);
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-    }
-
-#ifndef _WIN32
-    if (_readline && _add_history)
-    {
-        std::string strmsg = msg;
-        char *line;
-        int32_t lfpos = strmsg.find_last_of(0x0a);
-
-        if ( lfpos >= 0 )
-        {
-            puts (strmsg.substr(0, lfpos).c_str());
-            line = _readline( strmsg.substr(lfpos + 1).c_str() );
-        }
-        else
-            line = _readline( msg );
-
-        if (!line)
-            return CHECK_ERROR(LastError());
-
-        if (*line)
-        {
-            _add_history(line);
-            retVal = line;
-        }
-        _free(line);
+        puts (strmsg.substr(0, lfpos).c_str());
+        line = readline( strmsg.substr(lfpos + 1).c_str() );
     }
     else
-#endif
+        line = readline( msg );
+
+    if (!line)
+        return CHECK_ERROR(LastError());
+
+    if (*line)
     {
-        s_std->out(msg);
-        char *line = read_line();
-
-        if (!line)
-            return CHECK_ERROR(LastError());
-
+        add_history(line);
         retVal = line;
-        free(line);
     }
+    _free(line);
+#else
+    s_std->out(msg);
+    char *line = read_line();
+
+    if (!line)
+        return CHECK_ERROR(LastError());
+
+    retVal = line;
+    free(line);
+#endif
 
     return 0;
 }
