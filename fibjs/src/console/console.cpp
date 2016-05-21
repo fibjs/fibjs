@@ -261,6 +261,9 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     }
 
 #ifndef _WIN32
+    static bool _init = false;
+    static char *(*_readline)(const char *);
+    static void (*_add_history)(char *);
 
 #ifdef DEBUG
 #ifdef __clang__
@@ -275,6 +278,40 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 #define _free free
 #endif
 
+    if (!_init)
+    {
+        _init = true;
+
+#ifdef __clang__
+        void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
+#else
+        const char *readline_dylib_names[] =
+        {
+            "libreadline.so.6",
+            "libreadline.so.5",
+            "libreadline.so"
+        };
+        const size_t readline_dylib_names_size = ARRAYSIZE(readline_dylib_names);
+        void *handle = 0;
+
+        for (size_t i = 0; i < readline_dylib_names_size; i++)
+        {
+            handle = dlopen(readline_dylib_names[i], RTLD_LAZY);
+            if (handle) break;
+        }
+#endif
+
+        if (handle)
+        {
+            _readline = (char *(*)(const char *))dlsym(handle, "readline");
+            _add_history = (void (*)(char *))dlsym(handle, "add_history");
+        } else
+        {
+            _readline = readline;
+            _add_history = add_history;
+        }
+    }
+
     std::string strmsg = msg;
     char *line;
     int32_t lfpos = strmsg.find_last_of(0x0a);
@@ -282,17 +319,17 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     if ( lfpos >= 0 )
     {
         puts (strmsg.substr(0, lfpos).c_str());
-        line = readline( strmsg.substr(lfpos + 1).c_str() );
+        line = _readline( strmsg.substr(lfpos + 1).c_str() );
     }
     else
-        line = readline( msg );
+        line = _readline( msg );
 
     if (!line)
         return CHECK_ERROR(LastError());
 
     if (*line)
     {
-        add_history(line);
+        _add_history(line);
         retVal = line;
     }
     _free(line);
