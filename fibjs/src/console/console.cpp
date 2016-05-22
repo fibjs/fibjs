@@ -312,37 +312,41 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
         }
     }
 
-    std::string strmsg = msg;
-    char *line;
-    int32_t lfpos = strmsg.find_last_of(0x0a);
-
-    if ( lfpos >= 0 )
+    if (isatty(fileno(stdin)))
     {
-        puts (strmsg.substr(0, lfpos).c_str());
-        line = _readline( strmsg.substr(lfpos + 1).c_str() );
-    }
-    else
-        line = _readline( msg );
+        std::string strmsg = msg;
+        char *line;
+        int32_t lfpos = strmsg.find_last_of(0x0a);
 
-    if (!line)
-        return CHECK_ERROR(LastError());
+        if ( lfpos >= 0 )
+        {
+            puts (strmsg.substr(0, lfpos).c_str());
+            line = _readline( strmsg.substr(lfpos + 1).c_str() );
+        }
+        else
+            line = _readline( msg );
 
-    if (*line)
-    {
-        _add_history(line);
-        retVal = line;
-    }
-    _free(line);
-#else
-    s_std->out(msg);
-    char *line = read_line();
+        if (!line)
+            return CHECK_ERROR(LastError());
 
-    if (!line)
-        return CHECK_ERROR(LastError());
-
-    retVal = line;
-    free(line);
+        if (*line)
+        {
+            _add_history(line);
+            retVal = line;
+        }
+        _free(line);
+    } else
 #endif
+    {
+        s_std->out(msg);
+        char *line = read_line();
+
+        if (!line)
+            return CHECK_ERROR(LastError());
+
+        retVal = line;
+        free(line);
+    }
 
     return 0;
 }
