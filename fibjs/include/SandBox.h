@@ -46,21 +46,13 @@ public:
         v8::Local<v8::Value> v = isolate->GetPrivate(wrap(), "_mods");
         v8::Local<v8::Object> o;
 
-        puts("mods 1");
-
         if (!v->IsUndefined())
-        {
-            puts("mods 2");
             o = v->ToObject();
-        }
         else
         {
-            puts("mods 3");
             o = v8::Object::New(isolate->m_isolate);
             isolate->SetPrivate(wrap(), "_mods", o);
         }
-
-        puts("mods 4");
 
         return o;
     }

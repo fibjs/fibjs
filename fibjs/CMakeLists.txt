@@ -21,8 +21,8 @@ set(flags "-std=gnu++0x -fsigned-char -fmessage-length=0 -fdata-sections -ffunct
 set(link_flags " ")
 
 if(${OS} STREQUAL "Darwin")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.6")
-	set(flags "${flags} -mmacosx-version-min=10.6")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9")
+	set(flags "${flags} -mmacosx-version-min=10.9")
 	target_link_libraries(fibjs dl iconv stdc++)
 endif()
 

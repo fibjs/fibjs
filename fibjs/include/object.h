@@ -165,7 +165,7 @@ public:
         {
             m_isJSObject |= JSOBJECT_JSREFFER;
             internalRef();
-            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
+            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kFinalizer);
         }
 
         return o;
