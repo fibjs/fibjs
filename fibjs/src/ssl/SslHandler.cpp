@@ -163,7 +163,7 @@ result_t SslHandler::set_handler(Handler_base *newVal)
 {
     obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
 
-    wrap()->SetHiddenValue(holder()->NewFromUtf8("handler"), newVal->wrap());
+    holder()->SetPrivate(wrap(), "handler", newVal->wrap());
     m_hdlr = newVal;
 
     if (hdlr)

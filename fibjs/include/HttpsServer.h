@@ -62,12 +62,12 @@ public:
 private:
     SslServer_base* server()
     {
-        return SslServer_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("server")));
+        return SslServer_base::getInstance(holder()->GetPrivate(wrap(), "server"));
     }
 
     HttpHandler_base* handler()
     {
-        return HttpHandler_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("handler")));
+        return HttpHandler_base::getInstance(holder()->GetPrivate(wrap(), "handler"));
     }
 };
 

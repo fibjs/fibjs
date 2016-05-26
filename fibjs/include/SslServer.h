@@ -51,12 +51,12 @@ public:
 private:
     TcpServer_base* server()
     {
-        return TcpServer_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("server")));
+        return TcpServer_base::getInstance(holder()->GetPrivate(wrap(), "server"));
     }
 
     SslHandler_base* handler()
     {
-        return SslHandler_base::getInstance(wrap()->GetHiddenValue(holder()->NewFromUtf8("handler")));
+        return SslHandler_base::getInstance(holder()->GetPrivate(wrap(), "handler"));
     }
 };
 

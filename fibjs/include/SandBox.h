@@ -43,17 +43,24 @@ public:
     {
         Isolate* isolate = holder();
 
-        const char *mods_name = "_mods";
-        v8::Local<v8::Value> v = wrap()->GetHiddenValue(isolate->NewFromUtf8(mods_name));
+        v8::Local<v8::Value> v = isolate->GetPrivate(wrap(), "_mods");
         v8::Local<v8::Object> o;
 
-        if (!v.IsEmpty())
+        puts("mods 1");
+
+        if (!v->IsUndefined())
+        {
+            puts("mods 2");
             o = v->ToObject();
+        }
         else
         {
+            puts("mods 3");
             o = v8::Object::New(isolate->m_isolate);
-            wrap()->SetHiddenValue(isolate->NewFromUtf8(mods_name), o);
+            isolate->SetPrivate(wrap(), "_mods", o);
         }
+
+        puts("mods 4");
 
         return o;
     }
@@ -61,7 +68,8 @@ public:
     void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {
-        mods()->SetHiddenValue(holder()->NewFromUtf8("require"), func);
+        Isolate* isolate = holder();
+        isolate->SetPrivate(mods(), "require", func);
     }
 
     void InstallModule(std::string fname, v8::Local<v8::Value> o);

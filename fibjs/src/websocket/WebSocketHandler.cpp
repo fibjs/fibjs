@@ -284,8 +284,9 @@ result_t WebSocketHandler::set_maxSize(int32_t newVal)
 result_t WebSocketHandler::onerror(v8::Local<v8::Object> hdlrs)
 {
     v8::Local<v8::Object> o = wrap();
+    Isolate* isolate = holder();
 
-    v8::Local<v8::String> key = holder()->NewFromUtf8("500");
+    v8::Local<v8::String> key = isolate->NewFromUtf8("500");
     v8::Local<v8::Value> hdlr = hdlrs->Get(key);
 
     if (!IsEmpty(hdlr))
@@ -296,7 +297,7 @@ result_t WebSocketHandler::onerror(v8::Local<v8::Object> hdlrs)
         if (hr < 0)
             return hr;
 
-        o->SetHiddenValue(key, hdlr1->wrap());
+        isolate->SetPrivate(o, "500", hdlr1->wrap());
         m_err_hdlr = hdlr1;
     }
 
@@ -313,7 +314,7 @@ result_t WebSocketHandler::set_handler(Handler_base *newVal)
 {
     obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
 
-    wrap()->SetHiddenValue(holder()->NewFromUtf8("handler"), newVal->wrap());
+    holder()->SetPrivate(wrap(), "handler", newVal->wrap());
     m_hdlr = newVal;
 
     if (hdlr)

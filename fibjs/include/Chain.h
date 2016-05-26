@@ -46,9 +46,8 @@ public:
 
         char strBuf[32];
         sprintf(strBuf, "handler_%d", no);
-        v8::Local<v8::String> k = isolate->NewFromUtf8(strBuf);
 
-        wrap()->SetHiddenValue(k, hdlr->wrap());
+        isolate->SetPrivate(wrap(), strBuf, hdlr->wrap());
         m_array.push_back(hdlr);
 
         return 0;

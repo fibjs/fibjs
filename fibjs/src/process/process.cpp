@@ -104,10 +104,9 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
-    v8::Local<v8::String> s = isolate->NewFromUtf8("_env");
-    v8::Local<v8::Value> ev = glob->GetHiddenValue(s);
+    v8::Local<v8::Value> ev = isolate->GetPrivate(glob, "_env");
 
-    if (ev.IsEmpty())
+    if (ev->IsUndefined())
     {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         char** env = environ;
@@ -120,7 +119,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
                 o->Set(isolate->NewFromUtf8(p, (int32_t)(p1 - p)), isolate->NewFromUtf8(p1 + 1));
         }
 
-        glob->SetHiddenValue(s, o);
+        isolate->SetPrivate(glob, "_env", o);
         retVal = o;
     } else
         retVal = v8::Local<v8::Object>::Cast(ev);

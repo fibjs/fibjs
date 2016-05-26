@@ -25,23 +25,22 @@ v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
     Isolate* isolate = holder();
 
     v8::Local<v8::Object> o = wrap();
-    v8::Local<v8::String> s = isolate->NewFromUtf8(k);
-    v8::Local<v8::Value> es = o->GetHiddenValue(s);
+    v8::Local<v8::Value> es = isolate->GetPrivate(o, k);
     v8::Local<v8::Object> esa;
 
-    if (es.IsEmpty())
+    if (es->IsUndefined())
     {
         if (create)
         {
             esa = v8::Object::New(isolate->m_isolate);
-            o->SetHiddenValue(s, esa);
+            isolate->SetPrivate(o, k, esa);
         }
     }
     else
         esa = v8::Local<v8::Object>::Cast(es);
 
     if (autoDelete)
-        o->DeleteHiddenValue(s);
+        isolate->DeletePrivate(o, k);
 
     return esa;
 }
@@ -50,12 +49,11 @@ static uint64_t s_fid = 0;
 
 inline int32_t putFunction(Isolate* isolate, v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
 {
-    v8::Local<v8::String> s = isolate->NewFromUtf8("_fid");
-    v8::Local<v8::Value> fid = func->GetHiddenValue(s);
+    v8::Local<v8::Value> fid = isolate->GetPrivate(func, "_fid");
     char buf[64];
     const int32_t base = 26;
 
-    if (fid.IsEmpty())
+    if (fid->IsUndefined())
     {
         uint64_t num = s_fid ++;
         int32_t p = 0;
@@ -70,7 +68,7 @@ inline int32_t putFunction(Isolate* isolate, v8::Local<v8::Object> esa, v8::Loca
         buf[p++] = 0;
 
         fid = isolate->NewFromUtf8(buf);
-        func->SetHiddenValue(s, fid);
+        isolate->SetPrivate(func, "_fid", fid);
     }
 
     if (!esa->Has(fid))
@@ -88,10 +86,9 @@ inline int32_t removeFunction(Isolate* isolate, v8::Local<v8::Object> esa,
     if (esa.IsEmpty())
         return 0;
 
-    v8::Local<v8::String> s = isolate->NewFromUtf8("_fid");
-    v8::Local<v8::Value> fid = func->GetHiddenValue(s);
+    v8::Local<v8::Value> fid = isolate->GetPrivate(func, "_fid");
 
-    if (!fid.IsEmpty() && esa->Has(fid))
+    if (!IsEmpty(fid) && esa->Has(fid))
     {
         esa->Delete(fid);
         return 1;

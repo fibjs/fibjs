@@ -106,8 +106,7 @@ result_t SandBox::clone(obj_ptr<SandBox_base> &retVal)
 {
     obj_ptr<SandBox> sbox = new SandBox();
     sbox->m_name = m_name;
-    sbox->wrap()->SetHiddenValue(holder()->NewFromUtf8("_mods"),
-                                 mods()->Clone());
+    holder()->SetPrivate(sbox->wrap(), "_mods", mods()->Clone());
 
     retVal = sbox;
 

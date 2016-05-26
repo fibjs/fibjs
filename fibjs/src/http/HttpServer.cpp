@@ -51,8 +51,8 @@ result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value>
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
-    o->SetHiddenValue(isolate->NewFromUtf8("handler"), _handler->wrap());
-    o->SetHiddenValue(isolate->NewFromUtf8("server"), _server->wrap());
+    isolate->SetPrivate(o, "handler", _handler->wrap());
+    isolate->SetPrivate(o, "server", _server->wrap());
 
     return _server->create(addr, port, _handler);
 }

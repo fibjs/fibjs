@@ -78,9 +78,9 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
 {
     static _linkedNode newNode;
     v8::Handle<v8::Object> o = wrap();
-    v8::Handle<v8::String> n = holder()->NewFromUtf8(name);
+    Isolate* isolate = holder();
     std::string sname(name);
-    v8::Handle<v8::Value> a = n;
+    v8::Handle<v8::Value> a = isolate->NewFromUtf8(name);
 
     std::map<std::string, _linkedNode>::iterator find;
 
@@ -115,7 +115,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
 
             if (m_timeout > 0)
                 find->second.insert.now();
-            o->SetHiddenValue(n, v);
+            isolate->SetPrivate(o, name, v);
 
             retVal = v;
             return 0;
@@ -126,7 +126,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
     }
 
     update(find);
-    retVal = o->GetHiddenValue(n);
+    retVal = isolate->GetPrivate(o, name);
 
     return 0;
 }
@@ -142,7 +142,7 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 
         if (m_timeout > 0)
             find->second.insert.now();
-        wrap()->SetHiddenValue(holder()->NewFromUtf8(name), value);
+        holder()->SetPrivate(wrap(), name, value);
     }
 
     cleanup();
@@ -168,7 +168,7 @@ result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 
     if (m_timeout > 0)
         find->second.insert.now();
-    wrap()->SetHiddenValue(holder()->NewFromUtf8(name), value);
+    holder()->SetPrivate(wrap(), name, value);
 
     cleanup();
 
@@ -227,7 +227,7 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     while (it != m_datas.end())
     {
         v8::Local<v8::String> name = isolate->NewFromUtf8(it->first);
-        obj->Set(name, wrap()->GetHiddenValue(name));
+        obj->Set(name, isolate->GetPrivate(wrap(), it->first.c_str()));
         it = _instantiate(it->second.m_next);
     }
 

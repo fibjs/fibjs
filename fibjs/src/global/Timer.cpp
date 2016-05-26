@@ -17,15 +17,15 @@ public:
 	JSTimer(v8::Local<v8::Function> callback, int32_t timeout = 0, bool repeat = false) :
 		Timer(timeout, repeat)
 	{
-		wrap()->SetHiddenValue(holder()->NewFromUtf8("callback"), callback);
+		holder()->SetPrivate(wrap(), "callback", callback);
 	}
 
 public:
 	virtual void on_timer()
 	{
-		v8::Local<v8::Value> v = wrap()->GetHiddenValue(holder()->NewFromUtf8("callback"));
+		v8::Local<v8::Value> v = holder()->GetPrivate(wrap(), "callback");
 
-		if (!v.IsEmpty() && v->IsFunction())
+		if (v->IsFunction())
 			v8::Local<v8::Function>::Cast(v)->Call(wrap(), 0, NULL);
 	}
 };

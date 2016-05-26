@@ -96,8 +96,7 @@ private:
                 m_end = prev1;
         }
 
-        v8::Local<v8::String> name = holder()->NewFromUtf8(it->first);
-        wrap()->DeleteHiddenValue(name);
+        holder()->DeletePrivate(wrap(), it->first.c_str());
 
         m_datas.erase(it);
     }

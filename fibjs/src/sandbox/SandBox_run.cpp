@@ -382,8 +382,8 @@ result_t SandBox::require(std::string base, std::string id,
             return 1;
     }
 
-    v8::Local<v8::Value> func = _mods->GetHiddenValue(isolate->NewFromUtf8("require"));
-    if (!IsEmpty(func))
+    v8::Local<v8::Value> func = isolate->GetPrivate(_mods, "require");
+    if (!func->IsUndefined())
     {
         v8::Local<v8::Value> arg = isolate->NewFromUtf8(strId);
         retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);

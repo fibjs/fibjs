@@ -84,7 +84,6 @@ std::string json_format(v8::Local<v8::Value> obj)
     QuickArray<_item> stk;
     QuickArray<v8::Local<v8::Object>> vals;
     v8::Local<v8::Value> v = obj;
-    v8::Local<v8::String> mark_name = isolate->NewFromUtf8("_util_format_mark");
     int32_t padding = 0;
     const int32_t tab_size = 2;
     _item *it = NULL;
@@ -168,15 +167,15 @@ std::string json_format(v8::Local<v8::Value> obj)
                     break;
                 }
 
-                v8::Local<v8::Value> mk = obj->GetHiddenValue(mark_name);
-                if (!mk.IsEmpty())
+                v8::Local<v8::Value> mk = isolate->GetPrivate(obj, "_util_format_mark");
+                if (!mk->IsUndefined())
                 {
                     strBuffer.append("[Circular]");
                     break;
                 }
 
                 vals.append(obj);
-                obj->SetHiddenValue(mark_name, obj);
+                isolate->SetPrivate(obj, "_util_format_mark", obj);
 
                 v8::Local<v8::Value> toArray = obj->Get(isolate->NewFromUtf8("toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction())
@@ -285,7 +284,7 @@ std::string json_format(v8::Local<v8::Value> obj)
     int32_t i;
 
     for (i = 0; i < sz1; i ++)
-        vals[i]->DeleteHiddenValue(mark_name);
+        isolate->DeletePrivate(vals[i], "_util_format_mark");
 
     return strBuffer.str();
 }

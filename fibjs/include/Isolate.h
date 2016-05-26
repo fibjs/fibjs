@@ -80,6 +80,26 @@ public:
 		return v8::String::NewFromUtf8(m_isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
 	}
 
+	v8::Local<v8::Value> GetPrivate(v8::Local<v8::Object> o, const char* key)
+	{
+		return o->GetPrivate(o->CreationContext(),
+		                     v8::Private::ForApi(m_isolate, NewFromUtf8(key)))
+		       .ToLocalChecked();
+	}
+
+	void SetPrivate(v8::Local<v8::Object> o, const char* key, v8::Local<v8::Value> value)
+	{
+		o->SetPrivate(o->CreationContext(),
+		              v8::Private::ForApi(m_isolate, NewFromUtf8(key)),
+		              value);
+	}
+
+	void DeletePrivate(v8::Local<v8::Object> o, const char* key)
+	{
+		o->DeletePrivate(o->CreationContext(),
+		                 v8::Private::ForApi(m_isolate, NewFromUtf8(key)));
+	}
+
 public:
 	int32_t m_id;
 	std::string m_fname;

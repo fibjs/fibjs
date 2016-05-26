@@ -414,10 +414,11 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
     static const char* s_err_keys[] = {"400", "404", "500"};
     int32_t i;
     v8::Local<v8::Object> o = wrap();
+    Isolate* isolate = holder();
 
     for (i = 0; i < 3; i ++)
     {
-        v8::Local<v8::String> key = holder()->NewFromUtf8(s_err_keys[i]);
+        v8::Local<v8::String> key = isolate->NewFromUtf8(s_err_keys[i]);
         v8::Local<v8::Value> hdlr = hdlrs->Get(key);
 
         if (!IsEmpty(hdlr))
@@ -428,7 +429,7 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
             if (hr < 0)
                 return hr;
 
-            o->SetHiddenValue(key, hdlr1->wrap());
+            isolate->SetPrivate(o, s_err_keys[i], hdlr1->wrap());
             m_err_hdlrs[i] = hdlr1;
         }
     }
@@ -500,7 +501,7 @@ result_t HttpHandler::set_handler(Handler_base *newVal)
 {
     obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
 
-    wrap()->SetHiddenValue(holder()->NewFromUtf8("handler"), newVal->wrap());
+    holder()->SetPrivate(wrap(), "handler", newVal->wrap());
     m_hdlr = newVal;
 
     if (hdlr)

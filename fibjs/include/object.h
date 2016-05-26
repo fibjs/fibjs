@@ -99,7 +99,7 @@ public:
     }
 
 private:
-    static void WeakCallback(const v8::WeakCallbackData<v8::Object, object_base> &data)
+    static void WeakCallback(const v8::WeakCallbackInfo<object_base> &data)
     {
         assert(!data.GetParameter()->handle_.IsEmpty());
         object_base *pThis = data.GetParameter();
@@ -165,7 +165,7 @@ public:
         {
             m_isJSObject |= JSOBJECT_JSREFFER;
             internalRef();
-            handle_.SetWeak(this, WeakCallback);
+            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
         }
 
         return o;

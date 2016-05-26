@@ -44,7 +44,7 @@ public:
             return 0;
 
         obj_ptr<JSHandler> r = new JSHandler();
-        r->wrap()->SetHiddenValue(r->holder()->NewFromUtf8("handler"), hdlr);
+        r->holder()->SetPrivate(r->wrap(), "handler", hdlr);
 
         retVal = r;
         return 0;

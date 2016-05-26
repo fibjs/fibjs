@@ -53,7 +53,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
     v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);
-    v8::Local<v8::Value> hdlr = wrap()->GetHiddenValue(isolate->NewFromUtf8("handler"));
+    v8::Local<v8::Value> hdlr = isolate->GetPrivate(wrap(), "handler");
 
     result_t hr;
     bool bResult = false;
