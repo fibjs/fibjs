@@ -11,7 +11,7 @@
 #include "ifs/fs.h"
 #include <vector>
 #include <stdlib.h>
-#include <exif/exif.h>
+#include <exif/include/exif.h>
 #include "ifs/gd.h"
 
 namespace fibjs
