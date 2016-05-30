@@ -72,6 +72,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gumbo", "vender\gumbo\gumbo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpiderMonkey", "vender\SpiderMonkey\SpiderMonkey.vcxproj", "{1F77AB58-706B-4BB5-BE73-00000000213B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "vender\gtest\gtest.vcxproj", "{1F77AB58-706B-4BB5-BE73-00111039117E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -358,6 +360,18 @@ Global
 		{1F77AB58-706B-4BB5-BE73-00000000213B}.Release|Win32.Build.0 = Release|Win32
 		{1F77AB58-706B-4BB5-BE73-00000000213B}.Release|x64.ActiveCfg = Release|x64
 		{1F77AB58-706B-4BB5-BE73-00000000213B}.Release|x64.Build.0 = Release|x64
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Debug|Win32.Build.0 = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Debug|x64.ActiveCfg = Debug|x64
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Debug|x64.Build.0 = Debug|x64
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|Win32.ActiveCfg = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|Win32.Build.0 = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|x64.ActiveCfg = Release|x64
+		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
