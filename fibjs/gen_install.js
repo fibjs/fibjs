@@ -12,7 +12,7 @@ else {
 }
 
 if (build)
-	process.system("makecab fibjs.exe js.cab");
+	process.run("makecab", ["fibjs.exe", "js.cab"]);
 
 var txt = JSON.stringify(fs.open("js.cab").readAll().toArray());
 var src = "unsigned char js_data[] = {" + txt.substr(1, txt.length - 2) + "};\n";
