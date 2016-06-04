@@ -343,6 +343,7 @@
   <ItemGroup>
     <ClCompile Include="src\base\acPool.cpp" />
     <ClCompile Include="src\base\date.cpp" />
+    <ClCompile Include="src\base\date_cache.cpp" />
     <ClCompile Include="src\base\fibjs.cpp" />
     <ClCompile Include="src\base\fuck_sym.cpp" />
     <ClCompile Include="src\base\mem_trace.cpp" />

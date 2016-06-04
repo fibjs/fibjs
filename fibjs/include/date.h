@@ -7,23 +7,10 @@
 
 #include <string>
 #include <stdint.h>
+#include <chrono>
 
 #ifndef DATE_H_
 #define DATE_H_
-
-namespace v8
-{
-namespace base
-{
-
-class OS
-{
-public:
-    static double TimeCurrentMillis();
-};
-
-}
-}
 
 namespace fibjs
 {
@@ -65,7 +52,8 @@ public:
 
     void now()
     {
-        d = v8::base::OS::TimeCurrentMillis();
+        d = (double)std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
     void create(int32_t Y, int32_t M, int32_t D, int32_t h, int32_t m, int32_t s, int32_t ms);
