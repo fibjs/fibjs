@@ -48,7 +48,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     {
         obj_ptr<rule> &r = m_array[i];
 
-        if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(),
+        if ((rc = pcre_exec(r->m_re, NULL, value.c_str(),
                             (int32_t) value.length(), 0, 0, ovector, RE_SIZE)) > 0)
         {
             obj_ptr<List> list = new List();
@@ -110,12 +110,11 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
 result_t Routing::append(const char *pattern, Handler_base *hdlr)
 {
-    int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_EXTRA | PCRE_NEWLINE_ANYCRLF
-                  | PCRE_UCP | PCRE_CASELESS;
+    int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF |
+                  PCRE_UCP | PCRE_CASELESS;
     const char *error;
     int32_t erroffset;
     pcre *re;
-    pcre_extra *extra;
 
     re = pcre_compile(pattern, opt, &error, &erroffset, NULL);
     if (re == NULL)
@@ -126,13 +125,6 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
         return CHECK_ERROR(Runtime::setError(buf));
     }
 
-    extra = pcre_study(re, PCRE_STUDY_JIT_COMPILE, &error);
-    if (extra == NULL)
-    {
-        pcre_free(re);
-        return CHECK_ERROR(Runtime::setError(error));
-    }
-
     Isolate* isolate = holder();
     int32_t no = (int32_t)m_array.size();
 
@@ -141,7 +133,7 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
 
     isolate->SetPrivate(wrap(), strBuf, hdlr->wrap());
 
-    obj_ptr<rule> r = new rule(re, extra, hdlr);
+    obj_ptr<rule> r = new rule(re, hdlr);
     m_array.push_back(r);
 
     return 0;

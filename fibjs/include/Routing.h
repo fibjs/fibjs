@@ -21,20 +21,18 @@ public:
     class rule: public obj_base
     {
     public:
-        rule(pcre *re, pcre_extra *extra, Handler_base *hdlr) :
-            m_re(re), m_extra(extra), m_hdlr(hdlr)
+        rule(pcre *re, Handler_base *hdlr) :
+            m_re(re), m_hdlr(hdlr)
         {
         }
 
         ~rule()
         {
             pcre_free(m_re);
-            pcre_free_study(m_extra);
         }
 
     public:
         pcre *m_re;
-        pcre_extra *m_extra;
         naked_ptr<Handler_base> m_hdlr;
     };
 

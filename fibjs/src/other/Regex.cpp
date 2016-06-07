@@ -28,8 +28,8 @@ result_t re_base::compile(const char *pattern, const char *opt,
 
 result_t Regex::compile(const char *pattern, const char *opt)
 {
-    int32_t o = PCRE_JAVASCRIPT_COMPAT | PCRE_EXTRA | PCRE_UTF8
-                | PCRE_NEWLINE_ANYCRLF | PCRE_UCP;
+    int32_t o = PCRE_JAVASCRIPT_COMPAT | PCRE_UTF8 |
+                PCRE_NEWLINE_ANYCRLF | PCRE_UCP;
     const char *error;
     int32_t erroffset;
     char ch;
