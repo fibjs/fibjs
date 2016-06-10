@@ -9,6 +9,7 @@
 #define STATS_H_
 
 #include "ifs/Stats.h"
+#include "QuickArray.h"
 
 namespace fibjs
 {
@@ -28,17 +29,17 @@ public:
 public:
     void inc(int32_t n)
     {
-        m_counters[n].inc();
+        m_counters[n]++;
     }
 
     void dec(int32_t n)
     {
-        m_counters[n].dec();
+        m_counters[n]--;
     }
 
     void add(int32_t n, int32_t value)
     {
-        m_counters[n].add(value);
+        m_counters[n] += value;
     }
 
 public:
@@ -70,7 +71,7 @@ private:
 private:
     int32_t m_static, m_size;
     std::vector<std::string> m_keys;
-    std::vector<exlib::atomic> m_counters;
+    QuickArray<std::atomic_intptr_t> m_counters;
     date_t m_date;
 };
 

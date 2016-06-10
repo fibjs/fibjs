@@ -14,9 +14,8 @@ namespace fibjs
 class acPool
 {
 public:
-    acPool(bool bThread = false) : m_bThread(bThread)
+    acPool(bool bThread = false) : m_bThread(bThread), m_idleWorkers(1)
     {
-        m_idleWorkers.inc();
         new_worker();
     }
 
@@ -60,18 +59,18 @@ private:
         Runtime rt(NULL);
         AsyncEvent *p;
 
-        m_idleWorkers.dec();
+        m_idleWorkers--;
 
         while (true)
         {
-            if (m_idleWorkers.inc() > MAX_IDLE_WORKERS)
+            if (++m_idleWorkers > MAX_IDLE_WORKERS)
                 break;
 
             p = m_pool.get();
-            if (m_idleWorkers.dec() == 0)
+            if (--m_idleWorkers == 0)
             {
-                if (m_idleWorkers.inc() > MAX_IDLE_WORKERS)
-                    m_idleWorkers.dec();
+                if (++m_idleWorkers > MAX_IDLE_WORKERS)
+                    m_idleWorkers--;
                 else
                     new_worker();
             }
@@ -79,7 +78,7 @@ private:
             p->invoke();
         }
 
-        m_idleWorkers.dec();
+        m_idleWorkers--;
     }
 
     static void *worker_proc(void *ptr)
@@ -91,7 +90,7 @@ private:
 private:
     bool m_bThread;
     exlib::Queue<AsyncEvent> m_pool;
-    exlib::atomic m_idleWorkers;
+    std::atomic_intptr_t m_idleWorkers;
 };
 
 static acPool* s_acPool;

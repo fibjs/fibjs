@@ -28,8 +28,7 @@ public:
 #ifndef _WIN32
         , m_RecvOpt(NULL), m_SendOpt(NULL)
 #endif
-    {
-    }
+    {}
 
 public:
     result_t connect(const char *host, int32_t port, AsyncEvent *ac);
@@ -47,8 +46,8 @@ public:
     int32_t m_type;
 
 private:
-    intptr_t m_inRecv;
-    intptr_t m_inSend;
+    std::atomic_intptr_t m_inRecv;
+    std::atomic_intptr_t m_inSend;
 
 #ifndef _WIN32
     void *m_RecvOpt;

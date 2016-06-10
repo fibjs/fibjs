@@ -17,7 +17,8 @@ check_include_files(iconv.h HAVE_ICONV_H)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
 
-set(flags "-std=gnu++0x -fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
+set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
+set(ccflags "-std=c++11")
 set(link_flags " ")
 
 if(${OS} STREQUAL "Darwin")
@@ -77,7 +78,8 @@ if(${BUILD_TYPE} STREQUAL "Debug32")
 	add_definitions(-DDEBUG=1)
 endif()
 
-set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
+set(CMAKE_C_FLAGS "${flags}")
+set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${PROJECT_SOURCE_DIR}/../vender/v8" "${PROJECT_SOURCE_DIR}/../vender/v8/include" "${PROJECT_SOURCE_DIR}/../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 

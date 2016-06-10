@@ -20,11 +20,10 @@ class AsyncWaitHandler: public AsyncWait_base
     FIBER_FREE();
 
 public:
-    class asyncWaiter: public AsyncCall
+    class asyncWaiter: public AsyncEvent
     {
     public:
-        asyncWaiter(AsyncEvent *ac) :
-            AsyncCall(NULL), m_ac(ac)
+        asyncWaiter(AsyncEvent *ac) : m_ac(ac)
         {}
 
     public:
@@ -53,8 +52,8 @@ public:
 
 private:
     asyncWaiter *m_as;
-    exlib::atomic m_stat;
-    exlib::atomic m_invoked;
+    std::atomic_intptr_t m_stat;
+    std::atomic_intptr_t m_invoked;
 };
 
 } /* namespace fibjs */

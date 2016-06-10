@@ -220,12 +220,12 @@ public:
 public:
     void Ref()
     {
-        refs_.inc();
+        refs_++;
     }
 
     void Unref()
     {
-        refs_.dec();
+        refs_--;
     }
 
     intptr_t dump(v8::Local<v8::Object> &o)
@@ -353,7 +353,7 @@ private:
 
 private:
     ClassData &m_cd;
-    exlib::atomic refs_;
+    std::atomic_intptr_t refs_;
     ClassInfo *m_next;
     ClassInfo *m_Inherit;
     int32_t m_id;

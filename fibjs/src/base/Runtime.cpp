@@ -53,7 +53,7 @@ public:
 };
 
 exlib::LockedList<Isolate> s_isolates;
-exlib::atomic s_iso_id;
+std::atomic_int s_iso_id;
 extern int32_t stack_size;
 
 bool Isolate::rt::g_trace = false;
@@ -108,7 +108,7 @@ void *init_proc(void *p)
 }
 
 Isolate::Isolate(const char *fname) :
-	m_id((int32_t)s_iso_id.inc()),
+	m_id(++s_iso_id),
 	m_test_setup_bbd(false), m_test_setup_tdd(false), m_test(NULL),
 	m_currentFibers(0), m_idleFibers(0),
 	m_loglevel(console_base::_NOTSET), m_interrupt(false)
@@ -129,7 +129,7 @@ Isolate::Isolate(const char *fname) :
 	exlib::Service::Create(init_proc, this, stack_size * 1024, "JSFiber");
 }
 
-Isolate* Isolate::current()
+Isolate * Isolate::current()
 {
 	return Runtime::current().isolate();
 }

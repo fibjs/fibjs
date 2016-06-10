@@ -19,8 +19,8 @@ namespace fibjs
 
 DECLARE_MODULE(rpc);
 
-static exlib::atomic s_vms;
-static exlib::atomic s_idles;
+static std::atomic_intptr_t s_vms;
+static std::atomic_intptr_t s_idles;
 static exlib::Queue<RpcTask::AsyncTask> s_acTask;
 
 static void init_task_fiber(Isolate* isolate);
@@ -178,7 +178,7 @@ static void task_fiber(Isolate* isolate)
 	RpcTask::AsyncTask *p;
 	JSFiber::scope s;
 
-	s_idles.inc();
+	s_idles++;
 
 	p = s_acTask.tryget();
 	if (!p)
@@ -187,13 +187,13 @@ static void task_fiber(Isolate* isolate)
 		p = s_acTask.get();
 	}
 
-	if (s_idles.dec() == 0 && s_vms > 0)
+	if (--s_idles == 0 && s_vms > 0)
 	{
-		if (s_vms.dec() < 0)
-			s_vms.inc();
+		if (--s_vms < 0)
+			s_vms++;
 		else
 		{
-			s_idles.inc();
+			s_idles++;
 			Isolate* new_isolate = new Isolate(NULL);
 			syncCall(new_isolate, init_task_fiber, new_isolate);
 		}
@@ -270,7 +270,7 @@ static void task_fiber(Isolate* isolate)
 
 static void init_task_fiber(Isolate* isolate)
 {
-	s_idles.dec();
+	s_idles--;
 	task_fiber(isolate);
 }
 
@@ -288,8 +288,8 @@ result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
 	{
 		s_init = true;
 
-		s_vms.dec();
-		s_idles.inc();
+		s_vms--;
+		s_idles++;
 		Isolate* new_isolate = new Isolate(NULL);
 		syncCall(new_isolate, init_task_fiber, new_isolate);
 	}

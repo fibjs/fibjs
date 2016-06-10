@@ -6,7 +6,7 @@
  */
 
 #include "ifs/Chain.h"
-#include <vector>
+#include "QuickArray.h"
 
 #ifndef CHAIN_H_
 #define CHAIN_H_
@@ -48,13 +48,13 @@ public:
         sprintf(strBuf, "handler_%d", no);
 
         isolate->SetPrivate(wrap(), strBuf, hdlr->wrap());
-        m_array.push_back(hdlr);
+        m_array.append(hdlr);
 
         return 0;
     }
 
 private:
-    std::vector<naked_ptr<Handler_base> > m_array;
+    QuickArray<naked_ptr<Handler_base> > m_array;
 };
 
 } /* namespace fibjs */
