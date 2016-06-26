@@ -349,7 +349,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
 			fcntl(c, F_SETFL, fcntl(c, F_GETFL, 0) | O_NONBLOCK);
 			fcntl(c, F_SETFD, FD_CLOEXEC);
 
-#ifdef MacOS
+#ifdef Darwin
 			int32_t set_option = 1;
 			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
 			           sizeof(set_option));

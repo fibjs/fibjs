@@ -6,9 +6,9 @@
 #include <windows.h>
 
 #if defined(_M_X64)
-#include "..\bin\Windows_Release\js.h"
+#include "..\bin\Windows_amd64_release\js.h"
 #elif defined(_M_IX86)
-#include "..\bin\Windows_Release32\js.h"
+#include "..\bin\Windows_i386_release\js.h"
 #endif
 
 int _tmain(int argc, _TCHAR *argv[])

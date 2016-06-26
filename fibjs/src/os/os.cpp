@@ -30,12 +30,14 @@ result_t os_base::get_hostname(std::string &retVal)
 
 result_t os_base::get_arch(std::string &retVal)
 {
-#ifdef x64
-    retVal = "x86_64";
-#elif defined(I386)
+#ifdef amd64
+    retVal = "amd64";
+#elif defined(i386)
     retVal = "i686";
 #elif defined(arm)
     retVal = "arm";
+#elif defined(arm64)
+    retVal = "arm64";
 #endif
 
     return 0;

@@ -7,7 +7,7 @@
 
 #include <exlib/include/osconfig.h>
 
-#ifdef MacOS
+#ifdef Darwin
 
 #include "ifs/os.h"
 #include <mach/mach.h>

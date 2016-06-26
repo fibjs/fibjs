@@ -79,7 +79,7 @@ result_t Socket::create(int32_t family, int32_t type)
 
 #endif
 
-#ifdef MacOS
+#ifdef Darwin
 
     int32_t set_option = 1;
     setsockopt(m_aio.m_fd, SOL_SOCKET, SO_NOSIGPIPE, &set_option,

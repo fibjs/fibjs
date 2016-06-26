@@ -1,41 +1,108 @@
 #!/bin/bash
 
-if [ $# -lt 1 ]; then
+usage()
+{
 	echo ""
-	echo "build [Release | Release32 | Debug | Debug32 | clean]"
+	echo "Usage: `basename $0` [release | debug | i386 | amd64 | arm | arm64 | clean] [-h]"
+	echo "Options:"
+	echo "  release, debug: "
+	echo "      Specifies the build type."
+	echo "  i386, amd64, arm, arm64:"
+	echo "      Specifies the architecture for code generation."
+	echo "  clean: "
+	echo "      Clean the build folder."
+	echo "  -h, --help:"
+	echo "      Print this message and exit."
 	echo ""
 	exit 0
+}
+
+HOST_OS=`uname`
+HOST_ARCH=`uname -m`
+
+case ${HOST_ARCH} in
+	x86_64) HOST_ARCH="amd64"
+		;;
+	armv6|armv7|armv7s|armv7l) HOST_ARCH="arm"
+		;;
+	aarch64) HOST_ARCH="arm64"
+		;;
+esac
+
+TARGET_OS=$HOST_OS
+TARGET_ARCH=$HOST_ARCH
+BUILD_TYPE="release"
+BUILD_PREFIX=""
+BUILD_OPTION=""
+
+for i in "$@"
+do
+	case $i in
+		i386|amd64|arm|arm64) TARGET_ARCH=$i
+			;;
+		release|debug|clean) BUILD_TYPE=$i
+			;;
+  --help|-h) usage
+			;;
+		  *) echo "illegal option $i"
+			usage
+			;;
+	esac
+done
+
+if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
+	case $TARGET_ARCH in
+		i386)
+			if [ $HOST_ARCH = "amd64" ]; then
+				BUILD_OPTION="-m32"
+			else
+				usage
+			fi
+			;;
+		amd64)
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_PREFIX="x86_64-linux-gnu-"
+			else
+				usage
+			fi
+			;;
+		arm)
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_PREFIX="arm-linux-gnueabi-"
+			else
+				usage
+			fi
+			;;
+		arm64)
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_PREFIX="aarch64-linux-gnu-"
+			else
+				usage
+			fi
+			;;
+	esac
 fi
 
-OS=`uname`
+export CC=${BUILD_PREFIX}gcc
+export CXX=${BUILD_PREFIX}g++
 
-FIBJS_PATH=`pwd`
-OUT_PATH=${FIBJS_PATH}/../out
-BIN_PATH=${FIBJS_PATH}/../bin/${OS}_$1
-
-if [ $1 = 'clean' ]; then
+if [ ${BUILD_TYPE} = 'clean' ]; then
 	if [ -e "${OUT_PATH}" ]; then
-		rm -rf "${OUT_PATH}/${OS}_Release"
-		rm -rf "${OUT_PATH}/${OS}_Debug"
-		rm -rf "${OUT_PATH}/${OS}_Release32"
-		rm -rf "${OUT_PATH}/${OS}_Debug32"
+		rm -rf "${OUT_PATH}/${TARGET_OS}_*"
 	fi
 
 	exit 0
 fi
 
-if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 'Debug32' ]; then
-	echo ""
-	echo "build [Release | Release32 | Debug | Debug32 | clean]"
-	echo ""
-	exit 0
-fi
+FIBJS_PATH=`pwd`
+OUT_PATH=${FIBJS_PATH}/../out
+BIN_PATH=${FIBJS_PATH}/../bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 
 if [ ! -e "${OUT_PATH}" ]; then
 	mkdir "${OUT_PATH}"
 fi
 
-OUT_PATH=${OUT_PATH}/${OS}_$1
+OUT_PATH=${OUT_PATH}/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 if [ ! -e ${OUT_PATH} ]; then
 	mkdir ${OUT_PATH}
 fi
@@ -48,7 +115,7 @@ fi
 GIT_INFO=`git describe`
 
 cd ${OUT_PATH}
-cmake -DBUILD_TYPE=$1 -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
+cmake -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION=${BUILD_OPTION} -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
 if [ $? != 0 ]; then
 	exit 1
 fi
@@ -62,8 +129,8 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
-	cd ${BIN_PATH}
+if [ "${BUILD_TYPE}" = "release" ]; then
+	cd "${BIN_PATH}"
 	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
 	cp fibjs js
 	strip js -o fibjs
@@ -74,4 +141,4 @@ if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
 	mv js fibjs
 fi
 
-cd ${FIBJS_PATH}
+cd "${FIBJS_PATH}"

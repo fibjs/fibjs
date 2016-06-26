@@ -1,10 +1,10 @@
 set(archdetect_c_code "
 # if defined(i386) || defined(__i386__) || defined(_M_IX86) || defined(_X86_) || defined(x86)
-#error cmake_ARCH I386
+#error cmake_ARCH i386
 # endif
 
 # if defined(__amd64) || defined(__x86_64__) || defined(_M_X64)
-#error cmake_ARCH x64
+#error cmake_ARCH amd64
 # endif
 
 # if defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
@@ -35,6 +35,8 @@ file(WRITE "${CMAKE_BINARY_DIR}/arch.c" "${archdetect_c_code}")
 
 enable_language(C)
 
+set(CMAKE_C_FLAGS "${BUILD_OPTION}")
+
 try_run(
     run_result_unused
     compile_result_unused
@@ -42,6 +44,8 @@ try_run(
     "${CMAKE_BINARY_DIR}/arch.c"
     COMPILE_OUTPUT_VARIABLE ARCH
 )
+
+set(CMAKE_C_FLAGS "")
 
 string(REGEX MATCH "cmake_ARCH ([a-zA-Z0-9_]+)" ARCH "${ARCH}")
 

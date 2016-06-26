@@ -37,7 +37,21 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	apt-get install git
 
 ### 32bit on ubuntu:
+	apt-get install gcc-multilib
 	apt-get install g++-multilib
+
+### arm on ubuntu:
+	apt-get install gcc-arm-linux-gnueabi
+	apt-get install g++-arm-linux-gnueabi
+
+### arm64 on ubuntu:
+	apt-get install gcc-aarch64-linux-gnu
+	apt-get install g++-aarch64-linux-gnu
+
+### fix
+	rm -f /usr/include/asm
+	ln -s x86_64-linux-gnu /usr/include/i386-linux-gnu
+	ln -s x86_64-linux-gnu /usr/include/x86_64-linux-gnux32
 
 ----------------------------------
 ### on fedora:

@@ -13,7 +13,7 @@ namespace fibjs
 
 bool g_perf;
 
-#ifdef x64
+#ifdef amd64
 int32_t stack_size = 512;
 #else
 int32_t stack_size = 256;

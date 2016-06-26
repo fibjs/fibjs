@@ -544,23 +544,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\Windows_Debug32\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Debug32\fibjs\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_i386_debug\</OutDir>
+    <IntDir>$(SolutionDir)out\Windows_i386_debug\fibjs\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\Windows_Debug\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Debug\fibjs\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_amd64_debug\</OutDir>
+    <IntDir>$(SolutionDir)out\Windows_amd64_debug\fibjs\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\Windows_Release32\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Release32\fibjs\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_i386_release\</OutDir>
+    <IntDir>$(SolutionDir)out\Windows_i386_release\fibjs\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\Windows_Release\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_Release\fibjs\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_amd64_release\</OutDir>
+    <IntDir>$(SolutionDir)out\Windows_amd64_release\fibjs\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

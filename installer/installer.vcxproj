@@ -42,13 +42,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\bin\Windows_Release32\</OutDir>
-    <IntDir>..\out\Windows_Release32\installer\</IntDir>
+    <OutDir>$(SolutionDir)..\bin\Windows_i386_release\</OutDir>
+    <IntDir>..\out\Windows_i386_release\installer\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\bin\Windows_Release\</OutDir>
-    <IntDir>..\out\Windows_Release\installer\</IntDir>
+    <OutDir>$(SolutionDir)..\bin\Windows_amd64_release\</OutDir>
+    <IntDir>..\out\Windows_amd64_release\installer\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

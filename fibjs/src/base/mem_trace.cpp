@@ -51,11 +51,11 @@ inline void init_lib()
 }
 #endif
 
-#ifdef I386
+#ifdef i386
 #define get_bp(bp) asm("movl %%ebp, %0" : "=r" (bp) :)
 #endif
 
-#ifdef x64
+#ifdef amd64
 #define get_bp(bp) asm("movq %%rbp, %0" : "=r" (bp) :)
 #endif
 

@@ -9,7 +9,7 @@ project(fibjs)
 file(GLOB_RECURSE src_list "src/*.c*")
 add_executable(fibjs ${src_list})
 
-set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${OS}_${BUILD_TYPE})
+set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${OS}_${ARCH}_${BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${BIN_DIR})
 
 include(CheckIncludeFiles)
@@ -36,11 +36,12 @@ if(${OS} STREQUAL "FreeBSD")
 	target_link_libraries(fibjs ${execinfo})
 endif()
 
-if(${BUILD_TYPE} STREQUAL "Release")
-	set(flags "${flags} -O3 -w -fomit-frame-pointer -fvisibility=hidden")
+if(${BUILD_TYPE} STREQUAL "release")
+	set(flags "${flags} -O3 ${BUILD_OPTION} -w -fomit-frame-pointer -fvisibility=hidden")
+	set(link_flags "${link_flags} ${BUILD_OPTION}")
 	add_definitions(-DNDEBUG=1)
 
-	if(${OS} STREQUAL "Linux" AND ${ARCH} STREQUAL "x64")
+	if(${OS} STREQUAL "Linux" AND ${ARCH} STREQUAL "amd64")
 		set(link_flags "${link_flags} -Wl,--wrap=memcpy")
 	endif()
 
@@ -49,33 +50,14 @@ if(${BUILD_TYPE} STREQUAL "Release")
 	endif()
 endif()
 
-if(${BUILD_TYPE} STREQUAL "Debug")
+if(${BUILD_TYPE} STREQUAL "debug")
+	set(flags "${flags} -g -O0 ${BUILD_OPTION} -Wall -Wno-overloaded-virtual")
+	set(link_flags "${link_flags} ${BUILD_OPTION}")
+	add_definitions(-DDEBUG=1)
+
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
 	endif()
-
-	set(flags "${flags} -g -O0 -Wall -Wno-overloaded-virtual")
-	add_definitions(-DDEBUG=1)
-endif()
-
-if(${BUILD_TYPE} STREQUAL "Release32")
-	set(flags "${flags} -O3 -m32 -w -fomit-frame-pointer -fvisibility=hidden")
-	set(link_flags "${link_flags} -m32")
-	add_definitions(-DNDEBUG=1)
-
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
-	endif()
-endif()
-
-if(${BUILD_TYPE} STREQUAL "Debug32")
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
-	endif()
-
-	set(flags "${flags} -g -O0 -m32 -Wall -Wno-overloaded-virtual")
-	set(link_flags "${link_flags} -m32")
-	add_definitions(-DDEBUG=1)
 endif()
 
 set(CMAKE_C_FLAGS "${flags}")
@@ -86,7 +68,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../ve
 set(libs expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls v8 SpiderMonkey unzip editline exlib)
 
 foreach(lib ${libs})
-	target_link_libraries(fibjs "${BIN_DIR}/vender/lib${lib}.a")
+	target_link_libraries(fibjs "${BIN_DIR}/lib${lib}.a")
 endforeach()
 
 target_link_libraries(fibjs pthread)
