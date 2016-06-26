@@ -101,8 +101,10 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 	esac
 fi
 
-export CC=${BUILD_PREFIX}gcc
-export CXX=${BUILD_PREFIX}g++
+if [ "$BUILD_PREFIX" != "" ]; then
+	export CC=${BUILD_PREFIX}gcc
+	export CXX=${BUILD_PREFIX}g++
+fi
 
 if [ "$ENABLE_JOBS" = "1" -a "$BUILD_JOBS" = "" ]; then
 	#get cpu core count 

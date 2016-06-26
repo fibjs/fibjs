@@ -83,8 +83,10 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 	esac
 fi
 
-export CC=${BUILD_PREFIX}gcc
-export CXX=${BUILD_PREFIX}g++
+if [ "$BUILD_PREFIX" != "" ]; then
+	export CC=${BUILD_PREFIX}gcc
+	export CXX=${BUILD_PREFIX}g++
+fi
 
 if [ ${BUILD_TYPE} = 'clean' ]; then
 	if [ -e "${OUT_PATH}" ]; then
