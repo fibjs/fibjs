@@ -68,7 +68,8 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 			;;
 		arm)
 			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="arm-linux-gnueabi-"
+				BUILD_PREFIX="arm-linux-gnueabihf-"
+				BUILD_OPTION="-march=armv7-a -mfpu=vfp3"
 			else
 				usage
 			fi
@@ -117,7 +118,7 @@ fi
 GIT_INFO=`git describe`
 
 cd ${OUT_PATH}
-cmake -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION=${BUILD_OPTION} -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
+cmake -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
 if [ $? != 0 ]; then
 	exit 1
 fi

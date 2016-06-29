@@ -86,7 +86,8 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 			;;
 		arm)
 			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="arm-linux-gnueabi-"
+				BUILD_PREFIX="arm-linux-gnueabihf-"
+				BUILD_OPTION="-march=armv7-a -mfpu=vfp3"
 			else
 				usage
 			fi

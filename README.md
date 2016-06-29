@@ -41,8 +41,8 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	apt-get install g++-multilib
 
 ### arm on ubuntu:
-	apt-get install gcc-arm-linux-gnueabi
-	apt-get install g++-arm-linux-gnueabi
+	apt-get install gcc-arm-linux-gnueabihf
+	apt-get install g++-arm-linux-gnueabihf
 
 ### arm64 on ubuntu:
 	apt-get install gcc-aarch64-linux-gnu
