@@ -96,7 +96,7 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 ## Build
 
 ### on unix:
-	sh build
+	sh build -j
 
 ### on Windows (Visual Studio 2013 Express):
 	Start
@@ -112,10 +112,10 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 ## Install
 
 ### on linux/freebsd/osx:
-	sudo sh bin/(Darwin|Linux|FreeBSD)_Release/installer.sh
+	sudo sh bin/(Darwin|Linux|FreeBSD)_(i386|amd64|arm|arm64)_release/installer.sh
 
 ### on Windows console (run as administrator):
-	bin\Windows_Release\installer.exe
+	bin\Windows_(i386|amd64)_release\installer.exe
 
 ## Test
 
