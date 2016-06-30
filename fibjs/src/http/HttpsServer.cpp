@@ -73,6 +73,8 @@ result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, const char *add
     if (hr < 0)
         return hr;
 
+    m_server = _server;
+
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
@@ -97,6 +99,8 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
     if (hr < 0)
         return hr;
 
+    m_server = _server;
+
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
@@ -108,22 +112,22 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32
 
 result_t HttpsServer::run(AsyncEvent *ac)
 {
-    return server()->run(ac);
+    return m_server->run(ac);
 }
 
 result_t HttpsServer::asyncRun()
 {
-    return server()->asyncRun();
+    return m_server->asyncRun();
 }
 
 result_t HttpsServer::stop(AsyncEvent *ac)
 {
-    return server()->stop(ac);
+    return m_server->stop(ac);
 }
 
 result_t HttpsServer::get_socket(obj_ptr<Socket_base> &retVal)
 {
-    return server()->get_socket(retVal);
+    return m_server->get_socket(retVal);
 }
 
 result_t HttpsServer::get_handler(obj_ptr<Handler_base> &retVal)
@@ -183,15 +187,15 @@ result_t HttpsServer::set_maxUploadSize(int32_t newVal)
 
 result_t HttpsServer::get_verification(int32_t &retVal)
 {
-    return server()->get_verification(retVal);
+    return m_server->get_verification(retVal);
 }
 result_t HttpsServer::set_verification(int32_t newVal)
 {
-    return server()->set_verification(newVal);
+    return m_server->set_verification(newVal);
 }
 result_t HttpsServer::get_ca(obj_ptr<X509Cert_base> &retVal)
 {
-    return server()->get_ca(retVal);
+    return m_server->get_ca(retVal);
 }
 
 result_t HttpsServer::get_httpStats(obj_ptr<Stats_base> &retVal)
@@ -201,7 +205,7 @@ result_t HttpsServer::get_httpStats(obj_ptr<Stats_base> &retVal)
 
 result_t HttpsServer::get_stats(obj_ptr<Stats_base> &retVal)
 {
-    return server()->get_stats(retVal);
+    return m_server->get_stats(retVal);
 }
 
 } /* namespace fibjs */

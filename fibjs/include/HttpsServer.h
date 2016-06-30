@@ -60,15 +60,12 @@ public:
     result_t create(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    SslServer_base* server()
-    {
-        return SslServer_base::getInstance(holder()->GetPrivate(wrap(), "server"));
-    }
-
     HttpHandler_base* handler()
     {
         return HttpHandler_base::getInstance(holder()->GetPrivate(wrap(), "handler"));
     }
+
+    weak_ptr<SslServer_base> m_server;
 };
 
 } /* namespace fibjs */

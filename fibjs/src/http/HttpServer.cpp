@@ -48,6 +48,8 @@ result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value>
 
     _server = new TcpServer();
 
+    m_server = _server;
+
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
@@ -59,22 +61,22 @@ result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value>
 
 result_t HttpServer::run(AsyncEvent *ac)
 {
-    return server()->run(ac);
+    return m_server->run(ac);
 }
 
 result_t HttpServer::asyncRun()
 {
-    return server()->asyncRun();
+    return m_server->asyncRun();
 }
 
 result_t HttpServer::stop(AsyncEvent *ac)
 {
-    return server()->stop(ac);
+    return m_server->stop(ac);
 }
 
 result_t HttpServer::get_socket(obj_ptr<Socket_base> &retVal)
 {
-    return server()->get_socket(retVal);
+    return m_server->get_socket(retVal);
 }
 
 result_t HttpServer::get_handler(obj_ptr<Handler_base> &retVal)
@@ -139,7 +141,7 @@ result_t HttpServer::get_httpStats(obj_ptr<Stats_base> &retVal)
 
 result_t HttpServer::get_stats(obj_ptr<Stats_base> &retVal)
 {
-    return server()->get_stats(retVal);
+    return m_server->get_stats(retVal);
 }
 
 } /* namespace fibjs */

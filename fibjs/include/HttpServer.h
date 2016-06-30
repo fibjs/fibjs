@@ -53,15 +53,12 @@ public:
     result_t create(const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    TcpServer_base* server()
-    {
-        return TcpServer_base::getInstance(holder()->GetPrivate(wrap(), "server"));
-    }
-
     HttpHandler_base* handler()
     {
         return HttpHandler_base::getInstance(holder()->GetPrivate(wrap(), "handler"));
     }
+
+    weak_ptr<TcpServer_base> m_server;
 };
 
 } /* namespace fibjs */

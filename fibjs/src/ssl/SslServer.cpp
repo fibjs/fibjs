@@ -72,6 +72,8 @@ result_t SslServer::create(X509Cert_base *crt, PKey_base *key, const char *addr,
     if (hr < 0)
         return hr;
 
+    m_server = _server;
+
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
@@ -96,6 +98,8 @@ result_t SslServer::create(v8::Local<v8::Array> certs, const char *addr, int32_t
     if (hr < 0)
         return hr;
 
+    m_server = _server;
+
     v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
@@ -107,22 +111,22 @@ result_t SslServer::create(v8::Local<v8::Array> certs, const char *addr, int32_t
 
 result_t SslServer::run(AsyncEvent *ac)
 {
-    return server()->run(ac);
+    return m_server->run(ac);
 }
 
 result_t SslServer::asyncRun()
 {
-    return server()->asyncRun();
+    return m_server->asyncRun();
 }
 
 result_t SslServer::stop(AsyncEvent *ac)
 {
-    return server()->stop(ac);
+    return m_server->stop(ac);
 }
 
 result_t SslServer::get_socket(obj_ptr<Socket_base> &retVal)
 {
-    return server()->get_socket(retVal);
+    return m_server->get_socket(retVal);
 }
 
 result_t SslServer::get_handler(obj_ptr<Handler_base> &retVal)
@@ -152,7 +156,7 @@ result_t SslServer::get_ca(obj_ptr<X509Cert_base> &retVal)
 
 result_t SslServer::get_stats(obj_ptr<Stats_base> &retVal)
 {
-    return server()->get_stats(retVal);
+    return m_server->get_stats(retVal);
 }
 
 }

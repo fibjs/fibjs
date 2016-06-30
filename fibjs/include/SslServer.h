@@ -49,15 +49,12 @@ public:
                     v8::Local<v8::Value> listener);
 
 private:
-    TcpServer_base* server()
-    {
-        return TcpServer_base::getInstance(holder()->GetPrivate(wrap(), "server"));
-    }
-
     SslHandler_base* handler()
     {
         return SslHandler_base::getInstance(holder()->GetPrivate(wrap(), "handler"));
     }
+
+    weak_ptr<TcpServer_base> m_server;
 };
 
 } /* namespace fibjs */
