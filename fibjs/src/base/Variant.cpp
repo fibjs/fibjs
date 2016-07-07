@@ -75,11 +75,11 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
 
             if (isPersistent())
             {
-                new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
+                new (m_Val.jsVal) v8::Persistent<v8::Value>();
                 jsValEx().Reset(Isolate::current()->m_isolate, v);
             }
             else
-                new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>(v);
+                new (m_Val.jsVal) v8::Local<v8::Value>(v);
 
             return *this;
         }
@@ -320,7 +320,7 @@ void Variant::toJSON()
 
         clear();
         set_type(VT_JSON);
-        new (((std::string *) m_Val.strVal)) std::string(str);
+        new (m_Val.strVal) std::string(str);
     }
 }
 

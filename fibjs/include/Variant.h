@@ -205,7 +205,7 @@ public:
         {
             clear();
             set_type(VT_String);
-            new (((std::string *) m_Val.strVal)) std::string(v);
+            new (m_Val.strVal) std::string(v);
         }
         else
             strVal() = v;
