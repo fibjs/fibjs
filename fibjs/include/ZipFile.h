@@ -48,13 +48,20 @@ public:
 	ZipFile(SeekableStream_base* strm);
 
 public:
-	// ZipFile_base
-	virtual result_t list(obj_ptr<List_base>& retVal, AsyncEvent* ac);
-	virtual result_t get(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac);
-	virtual result_t read(const char* member, const char* password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-	virtual result_t extract(const char* member, const char* path, const char* password, AsyncEvent* ac);
-	virtual result_t extract(const char* member, SeekableStream_base* strm, const char* password, AsyncEvent* ac);
-	virtual result_t extractAll(const char* password, obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    // ZipFile_base
+    virtual result_t namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    virtual result_t infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    virtual result_t getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac);
+    virtual result_t read(const char* member, const char* password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t readAll(const char* password, obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    virtual result_t extract(const char* member, const char* path, const char* password, AsyncEvent* ac);
+    virtual result_t extract(const char* member, SeekableStream_base* strm, const char* password, AsyncEvent* ac);
+    virtual result_t extractAll(const char* path, const char* password, AsyncEvent* ac);
+    virtual result_t setpasswd(const char* password);
+    virtual result_t write(const char* filename, AsyncEvent* ac);
+    virtual result_t write(Buffer_base* data, AsyncEvent* ac);
+    virtual result_t write(SeekableStream_base* strm, AsyncEvent* ac);
+    virtual result_t close(AsyncEvent* ac);
 
 private:
 	result_t get_info(obj_ptr<Info>& retVal);
