@@ -275,7 +275,44 @@ result_t ZipFile::get_info(obj_ptr<Info>& retVal)
 	return 0;
 }
 
-result_t ZipFile::list(obj_ptr<List_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	result_t hr;
+	unz_global_info64 gi;
+	int32_t err;
+	int32_t i;
+	obj_ptr<List> names = new List();
+
+	err = unzGetGlobalInfo64(m_unz, &gi);
+	if (err != UNZ_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
+	for (i = 0; i < gi.number_entry; i++)
+	{
+		obj_ptr<Info> info;
+
+		hr = get_info(info);
+		if (hr < 0)
+			return hr;
+
+		names->append(info->m_name);
+
+		if ((i + 1) < gi.number_entry)
+		{
+			err = unzGoToNextFile(m_unz);
+			if (err != UNZ_OK)
+				return CHECK_ERROR(Runtime::setError(zip_error(err)));
+		}
+	}
+
+	retVal = names;
+	return 0;
+}
+
+result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -312,7 +349,7 @@ result_t ZipFile::list(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	return 0;
 }
 
-result_t ZipFile::get(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -330,7 +367,7 @@ result_t ZipFile::get(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEv
 	if (hr < 0)
 		return hr;
 
-	retVal = retVal;
+	retVal = info;
 	return 0;
 }
 
@@ -398,7 +435,6 @@ result_t ZipFile::read(const char* member, const char* password, obj_ptr<Buffer_
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
 	int32_t err;
-	obj_ptr<MemoryStream> strm;
 
 	err = unzLocateFile(m_unz, member, 0);
 	if (err != UNZ_OK)
@@ -441,7 +477,47 @@ result_t ZipFile::extract(const char* member, SeekableStream_base* strm, const c
 	return extract(strm, password);
 }
 
-result_t ZipFile::extractAll(const char* password, obj_ptr<List_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::extractAll(const char* path, const char* password, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	result_t hr;
+	unz_global_info64 gi;
+	int32_t err;
+	int32_t i;
+	obj_ptr<List> datas = new List();
+
+	err = unzGetGlobalInfo64(m_unz, &gi);
+	if (err != UNZ_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
+	for (i = 0; i < gi.number_entry; i++)
+	{
+		obj_ptr<Info> info;
+
+		hr = get_info(info);
+		if (hr < 0)
+			return hr;
+
+		hr = read(password, info->m_data);
+		if (hr < 0)
+			return hr;
+
+		// datas->append(info);
+
+		if ((i + 1) < gi.number_entry)
+		{
+			err = unzGoToNextFile(m_unz);
+			if (err != UNZ_OK)
+				return CHECK_ERROR(Runtime::setError(zip_error(err)));
+		}
+	}
+
+	return 0;
+}
+
+result_t ZipFile::readAll(const char* password, obj_ptr<List_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
