@@ -1,6 +1,6 @@
 [submodule "docs"]
 	path = docs
-	url = https://github.com/xicilion/fibjs_docs.git
+url=https://github.com/asionius/fibjs_docs.git
 [submodule "vender"]
 	path = vender
-	url = https://github.com/xicilion/fibjs_vender.git
+url=https://github.com/asionius/fibjs_vender.git
