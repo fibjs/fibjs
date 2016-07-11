@@ -102,7 +102,7 @@ void Stat::init()
     m_isSocket = false;
 }
 
-result_t Stat::get_name(std::string &retVal)
+result_t Stat::get_name(qstring &retVal)
 {
     retVal = name;
     return 0;

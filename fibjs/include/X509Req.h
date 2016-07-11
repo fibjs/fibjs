@@ -23,17 +23,17 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(std::string &retVal);
+    virtual result_t toString(qstring &retVal);
 
 public:
     // X509Req_base
     virtual result_t load(Buffer_base *derReq);
     virtual result_t load(const char *pemReq);
     virtual result_t loadFile(const char *filename);
-    virtual result_t exportPem(std::string &retVal);
+    virtual result_t exportPem(qstring &retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
     virtual result_t sign(const char *issuer, PKey_base *key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base> &retVal, AsyncEvent *ac);
-    virtual result_t get_subject(std::string &retVal);
+    virtual result_t get_subject(qstring &retVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base> &retVal);
 
 public:

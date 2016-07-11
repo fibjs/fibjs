@@ -26,13 +26,13 @@ public:
     class item : public exlib::linkitem
     {
     public:
-        item(int32_t priority, std::string& msg) :
+        item(int32_t priority, qstring& msg) :
             m_priority(priority), m_msg(msg)
         {
             m_d.now();
         }
 
-        std::string full(bool type = LOGTIME)
+        qstring full(bool type = LOGTIME)
         {
             static const char *s_levels[] =
             {
@@ -48,7 +48,7 @@ public:
                 "",
                 ""
             };
-            std::string s;
+            qstring s;
             if (type) {
                 m_d.sqlString(s);
                 s.append(" ", 1);
@@ -62,7 +62,7 @@ public:
 
     public:
         int32_t m_priority;
-        std::string m_msg;
+        qstring m_msg;
         date_t m_d;
     };
 
@@ -162,7 +162,7 @@ public:
 public:
     virtual result_t write(AsyncEvent *ac) = 0;
 
-    void log(int32_t priority, std::string& msg)
+    void log(int32_t priority, qstring& msg)
     {
         if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
         {
@@ -202,22 +202,22 @@ public:
     }
 
 public:
-    static std::string &notice()
+    static qstring &notice()
     {
         return get_std_color()->m_notice;
     }
 
-    static std::string &warn()
+    static qstring &warn()
     {
         return get_std_color()->m_warn;
     }
 
-    static std::string &error()
+    static qstring &error()
     {
         return get_std_color()->m_error;
     }
 
-    static std::string &highLight()
+    static qstring &highLight()
     {
         return get_std_color()->m_highLight;
     }
@@ -285,8 +285,8 @@ private:
     result_t initFile();
 
 private:
-    std::string m_path;
-    std::string m_folder;
+    qstring m_path;
+    qstring m_folder;
     int32_t m_split_mode;
     int64_t m_split_size;
     int32_t m_count;

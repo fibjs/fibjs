@@ -23,15 +23,15 @@ class XmlAttr_base : public object_base
 
 public:
     // XmlAttr_base
-    virtual result_t get_localName(std::string& retVal) = 0;
-    virtual result_t get_value(std::string& retVal) = 0;
+    virtual result_t get_localName(qstring& retVal) = 0;
+    virtual result_t get_value(qstring& retVal) = 0;
     virtual result_t set_value(const char* newVal) = 0;
-    virtual result_t get_name(std::string& retVal) = 0;
-    virtual result_t get_namespaceURI(std::string& retVal) = 0;
-    virtual result_t get_prefix(std::string& retVal) = 0;
+    virtual result_t get_name(qstring& retVal) = 0;
+    virtual result_t get_namespaceURI(qstring& retVal) = 0;
+    virtual result_t get_prefix(qstring& retVal) = 0;
     virtual result_t set_prefix(const char* newVal) = 0;
-    virtual result_t get_nodeName(std::string& retVal) = 0;
-    virtual result_t get_nodeValue(std::string& retVal) = 0;
+    virtual result_t get_nodeName(qstring& retVal) = 0;
+    virtual result_t get_nodeValue(qstring& retVal) = 0;
     virtual result_t set_nodeValue(const char* newVal) = 0;
 
 public:
@@ -88,7 +88,7 @@ namespace fibjs
 
     inline void XmlAttr_base::s_get_localName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
@@ -100,7 +100,7 @@ namespace fibjs
 
     inline void XmlAttr_base::s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
@@ -123,7 +123,7 @@ namespace fibjs
 
     inline void XmlAttr_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
@@ -135,7 +135,7 @@ namespace fibjs
 
     inline void XmlAttr_base::s_get_namespaceURI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
@@ -147,7 +147,7 @@ namespace fibjs
 
     inline void XmlAttr_base::s_get_prefix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
@@ -170,7 +170,7 @@ namespace fibjs
 
     inline void XmlAttr_base::s_get_nodeName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
@@ -182,7 +182,7 @@ namespace fibjs
 
     inline void XmlAttr_base::s_get_nodeValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);

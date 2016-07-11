@@ -25,9 +25,9 @@ class ZipInfo_base : public object_base
 
 public:
     // ZipInfo_base
-    virtual result_t get_filename(std::string& retVal) = 0;
+    virtual result_t get_filename(qstring& retVal) = 0;
     virtual result_t get_date(date_t& retVal) = 0;
-    virtual result_t get_compress_type(std::string& retVal) = 0;
+    virtual result_t get_compress_type(qstring& retVal) = 0;
     virtual result_t get_compress_size(int64_t& retVal) = 0;
     virtual result_t get_file_size(int64_t& retVal) = 0;
     virtual result_t get_password(bool& retVal) = 0;
@@ -86,7 +86,7 @@ namespace fibjs
 
     inline void ZipInfo_base::s_get_filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(ZipInfo_base);
@@ -110,7 +110,7 @@ namespace fibjs
 
     inline void ZipInfo_base::s_get_compress_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(ZipInfo_base);

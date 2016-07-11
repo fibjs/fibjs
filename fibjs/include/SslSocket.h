@@ -52,7 +52,7 @@ private:
                 else
                     pThis->m_pThis->m_recv_pos = -1;
             }
-            
+
             pThis->m_ret = pThis->process();
             if (pThis->m_ret == 0)
             {
@@ -77,7 +77,7 @@ private:
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
-            std::string &m_send =  pThis->m_pThis->m_send;
+            qstring &m_send =  pThis->m_pThis->m_send;
 
             pThis->set(recv);
             if (m_send.empty())
@@ -106,7 +106,7 @@ private:
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
-            std::string &m_send =  pThis->m_pThis->m_send;
+            qstring &m_send =  pThis->m_pThis->m_send;
 
             pThis->m_buf = new Buffer(m_send);
             m_send.resize(0);
@@ -192,9 +192,9 @@ private:
     std::vector<obj_ptr<X509Cert_base> > m_crts;
     std::vector<obj_ptr<PKey_base> > m_keys;
     obj_ptr<Stream_base> m_s;
-    std::string m_recv;
+    qstring m_recv;
     int32_t m_recv_pos;
-    std::string m_send;
+    qstring m_send;
 };
 
 }

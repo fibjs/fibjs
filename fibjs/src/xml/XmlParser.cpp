@@ -54,8 +54,8 @@ void XmlParser::OnStartDoctypeDecl(const XML_Char *doctypeName, const XML_Char *
 void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
 {
     const XML_Char **p = atts;
-    std::map<std::string, std::string> nss;
-    std::string def_ns;
+    std::map<qstring, qstring> nss;
+    qstring def_ns;
     bool has_def = false;
 
     while (p[0] && p[1])
@@ -65,7 +65,7 @@ void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
         if (!qstrcmp(ns, "xmlns", 5))
         {
             if (ns[5] == ':')
-                nss.insert(std::pair<std::string, std::string>(ns + 6, p[1]));
+                nss.insert(std::pair<qstring, qstring>(ns + 6, p[1]));
             else if (!ns[5])
             {
                 def_ns = p[1];
@@ -80,9 +80,9 @@ void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
 
     if (str)
     {
-        std::string prefix(name, str - name);
-        std::string qname(str + 1);
-        std::map<std::string, std::string>::iterator it;
+        qstring prefix(name, str - name);
+        qstring qname(str + 1);
+        std::map<qstring, qstring>::iterator it;
 
         it = nss.find(prefix);
         if (it != nss.end())
@@ -112,9 +112,9 @@ void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
         str = qstrchr(name, ':');
         if (str && str[1])
         {
-            std::string ns(name, str - name);
-            std::string qname(str + 1);
-            std::map<std::string, std::string>::iterator it;
+            qstring ns(name, str - name);
+            qstring qname(str + 1);
+            std::map<qstring, qstring>::iterator it;
 
             it = nss.find(ns);
             if (it != nss.end())
@@ -153,7 +153,7 @@ void XmlParser::OnProcessingInstruction(const XML_Char *target, const XML_Char *
 
 void XmlParser::OnCharacterData(const XML_Char *s, int32_t len)
 {
-    std::string data(s, len);
+    qstring data(s, len);
     int32_t type;
 
     m_now->get_nodeType(type);

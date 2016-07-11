@@ -66,7 +66,7 @@ public:
 
 private:
     VariantEx m_actual;
-    std::string m_msg;
+    qstring m_msg;
     bool m_not;
     bool m_deep;
 };

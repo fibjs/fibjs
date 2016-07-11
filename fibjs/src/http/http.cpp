@@ -70,7 +70,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                 pThis->m_retVal->get_body(pThis->m_body);
                 pThis->m_unzip = new MemoryStream();
 
-                std::string str = hdr.string();
+                qstring str = hdr.string();
 
                 if (!qstrcmp(str.c_str(), "gzip"))
                     return zlib_base::gunzipTo(pThis->m_body,
@@ -138,7 +138,7 @@ result_t http_base::request(const char* method, const char* url,
             pThis->m_urls[pThis->m_url] = true;
 
             obj_ptr<Url> u = new Url();
-            std::string path;
+            qstring path;
 
             hr = u->parse(pThis->m_url.c_str());
             if (hr < 0)
@@ -213,7 +213,7 @@ result_t http_base::request(const char* method, const char* url,
 
             result_t hr;
             int32_t status;
-            std::string location;
+            qstring location;
             Variant v;
 
             hr = pThis->m_retVal->get_status(status);
@@ -239,15 +239,15 @@ result_t http_base::request(const char* method, const char* url,
         }
 
     private:
-        std::string m_method;
-        std::string m_url;
+        qstring m_method;
+        qstring m_url;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<Map_base> m_headers;
         obj_ptr<HttpResponse_base>& m_retVal;
-        std::map<std::string, bool> m_urls;
+        std::map<qstring, bool> m_urls;
         obj_ptr<Stream_base> m_conn;
         obj_ptr<HttpRequest> m_req;
-        std::string m_connUrl;
+        qstring m_connUrl;
     };
 
     if (!ac)

@@ -61,7 +61,7 @@ class Stat: public Stat_base
 {
 public:
     // Stat_base
-    virtual result_t get_name(std::string &retVal);
+    virtual result_t get_name(qstring &retVal);
     virtual result_t get_size(int64_t &retVal);
     virtual result_t get_mode(int32_t &retVal);
     virtual result_t get_mtime(date_t &retVal);
@@ -88,7 +88,7 @@ public:
     void init();
 
 public:
-    std::string name;
+    qstring name;
     int64_t size;
     int32_t mode;
     date_t mtime, atime, ctime;

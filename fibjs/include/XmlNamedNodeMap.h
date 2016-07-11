@@ -29,7 +29,7 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(std::string &retVal);
+    virtual result_t toString(qstring &retVal);
 
 public:
     // XmlNamedNodeMap_base
@@ -44,8 +44,8 @@ public:
     result_t getNamedItemNS(const char *namespaceURI, const char *localName, obj_ptr<XmlAttr_base> &retVal);
     result_t removeNamedItemNS(const char *namespaceURI, const char *localName);
     result_t cloneAttrs(XmlNamedNodeMap *to, XmlNodeImpl *el);
-    result_t lookupPrefix(const char *namespaceURI, std::string &retVal);
-    result_t lookupNamespaceURI(const char *prefix, std::string &retVal);
+    result_t lookupPrefix(const char *namespaceURI, qstring &retVal);
+    result_t lookupNamespaceURI(const char *prefix, qstring &retVal);
 
 public:
     QuickArray<obj_ptr<XmlAttr> > m_childs;

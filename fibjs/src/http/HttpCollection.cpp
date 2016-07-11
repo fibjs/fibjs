@@ -45,8 +45,8 @@ size_t HttpCollection::getData(char *buf, size_t sz)
 
     for (i = 0; i < m_count; i++)
     {
-        std::string &n = m_names[i];
-        std::string &v = m_values[i];
+        qstring &n = m_names[i];
+        qstring &v = m_values[i];
 
         cp(buf, sz, pos, n.c_str(), n.length());
         cp(buf, sz, pos, ": ", 2);
@@ -109,7 +109,7 @@ result_t HttpCollection::all(const char *name, obj_ptr<List_base> &retVal)
 
 result_t HttpCollection::add(const char *name, Variant value)
 {
-    std::string s;
+    qstring s;
 
     if (!value.toString(s))
         return CHECK_ERROR(CALL_E_BADVARTYPE);
@@ -134,7 +134,7 @@ result_t HttpCollection::set(const char *name, Variant value)
     for (i = 0; i < m_count; i++)
         if (!qstricmp(m_names[i].c_str(), name))
         {
-            std::string s;
+            qstring s;
 
             if (!value.toString(s))
                 return CHECK_ERROR(CALL_E_BADVARTYPE);

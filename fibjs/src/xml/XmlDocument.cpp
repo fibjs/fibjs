@@ -59,18 +59,18 @@ result_t xml_base::parse(Buffer_base *source, const char *type, obj_ptr<XmlDocum
     return retVal->load(source);
 }
 
-result_t xml_base::serialize(XmlNode_base *node, std::string &retVal)
+result_t xml_base::serialize(XmlNode_base *node, qstring &retVal)
 {
     return node->toString(retVal);
 }
 
-result_t XmlDocument::get_nodeName(std::string &retVal)
+result_t XmlDocument::get_nodeName(qstring &retVal)
 {
     retVal = "#document";
     return 0;
 }
 
-result_t XmlDocument::get_nodeValue(std::string &retVal)
+result_t XmlDocument::get_nodeValue(qstring &retVal)
 {
     return CALL_RETURN_NULL;
 }
@@ -149,7 +149,7 @@ result_t XmlDocument::checkNode(XmlNode_base *newChild)
     return 0;
 }
 
-result_t XmlDocument::lookupPrefix(const char *namespaceURI, std::string &retVal)
+result_t XmlDocument::lookupPrefix(const char *namespaceURI, qstring &retVal)
 {
     if (globalPrefix(namespaceURI, retVal))
         return 0;
@@ -160,7 +160,7 @@ result_t XmlDocument::lookupPrefix(const char *namespaceURI, std::string &retVal
     return m_element->lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlDocument::lookupNamespaceURI(const char *prefix, std::string &retVal)
+result_t XmlDocument::lookupNamespaceURI(const char *prefix, qstring &retVal)
 {
     if (globalNamespaceURI(prefix, retVal))
         return 0;
@@ -254,7 +254,7 @@ result_t XmlDocument::load(const char *source)
 
 result_t XmlDocument::load(Buffer_base *source)
 {
-    std::string strBuf;
+    qstring strBuf;
     result_t hr;
 
     source->toString(strBuf);
@@ -267,12 +267,12 @@ result_t XmlDocument::load(Buffer_base *source)
         while ((ptr = qstristr(p.now(), "<meta")) != NULL && qisspace(ptr[5]))
         {
             bool bContentType = false;
-            std::string content;
+            qstring content;
 
             p.pos = (int32_t)(ptr - p.string + 5);
             while (true)
             {
-                std::string key, value;
+                qstring key, value;
 
                 p.skipSpace();
                 p.getWord(key, '=', '>');
@@ -309,7 +309,7 @@ result_t XmlDocument::load(Buffer_base *source)
 
                 while (true)
                 {
-                    std::string key, value;
+                    qstring key, value;
 
                     p1.skipSpace();
                     p1.getWord(key, ';', '=');
@@ -416,7 +416,7 @@ result_t XmlDocument::get_head(obj_ptr<XmlElement_base> &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t XmlDocument::get_title(std::string &retVal)
+result_t XmlDocument::get_title(qstring &retVal)
 {
     if (m_isXml)
         return CALL_E_INVALID_CALL;
@@ -471,7 +471,7 @@ result_t XmlDocument::getElementsByTagNameNS(const char *namespaceURI, const cha
     return 0;
 }
 
-result_t XmlDocument::get_inputEncoding(std::string &retVal)
+result_t XmlDocument::get_inputEncoding(qstring &retVal)
 {
     if (m_encoding.empty())
         return CALL_RETURN_NULL;
@@ -495,7 +495,7 @@ result_t XmlDocument::set_xmlStandalone(bool newVal)
     return 0;
 }
 
-result_t XmlDocument::get_xmlVersion(std::string &retVal)
+result_t XmlDocument::get_xmlVersion(qstring &retVal)
 {
     if (m_version.empty())
         retVal = "1.0";
@@ -510,9 +510,9 @@ result_t XmlDocument::set_xmlVersion(const char *newVal)
     return 0;
 }
 
-result_t XmlDocument::toString(std::string &retVal)
+result_t XmlDocument::toString(qstring &retVal)
 {
-    std::string strChilds;
+    qstring strChilds;
     m_childs->toString(strChilds);
 
     if (!m_version.empty())

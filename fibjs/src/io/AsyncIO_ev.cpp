@@ -45,7 +45,7 @@ void setOption(intptr_t s)
 
 static struct ev_loop *s_loop;
 
-result_t net_base::backend(std::string &retVal)
+result_t net_base::backend(qstring &retVal)
 {
 	switch (ev_backend(s_loop))
 	{
@@ -308,7 +308,7 @@ result_t AsyncIO::connect(const char *host, int32_t port, AsyncEvent *ac)
 	addr_info.setPort(port);
 	if (addr_info.addr(host) < 0)
 	{
-		std::string strAddr;
+		qstring strAddr;
 		result_t hr = net_base::cc_resolve(host, m_family, strAddr);
 		if (hr < 0)
 			return hr;
@@ -416,7 +416,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 					else
 					{
 						if (m_pos == 0)
-							m_buf = std::string();
+							m_buf = qstring();
 
 						return CHECK_ERROR((nError == EWOULDBLOCK) ?
 						                   CALL_E_PENDDING : -nError);
@@ -454,7 +454,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 		int32_t m_bytes;
 		int32_t m_family;
 		bool m_bRead;
-		std::string m_buf;
+		qstring m_buf;
 	};
 
 	if (m_fd == INVALID_SOCKET)
@@ -517,7 +517,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 		}
 
 	public:
-		std::string m_buf;
+		qstring m_buf;
 		const char *m_p;
 		int32_t m_sz;
 		int32_t m_family;

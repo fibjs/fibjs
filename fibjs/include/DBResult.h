@@ -58,7 +58,7 @@ public:
     virtual result_t get_fields(v8::Local<v8::Array> &retVal);
 
 public:
-    void setField(int32_t i, std::string &s)
+    void setField(int32_t i, qstring &s)
     {
         m_fields->setField(i, s);
     }

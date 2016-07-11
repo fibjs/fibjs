@@ -29,7 +29,7 @@ class HttpMessage_base : public Message_base
 
 public:
     // HttpMessage_base
-    virtual result_t get_protocol(std::string& retVal) = 0;
+    virtual result_t get_protocol(qstring& retVal) = 0;
     virtual result_t set_protocol(const char* newVal) = 0;
     virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_keepAlive(bool& retVal) = 0;
@@ -123,7 +123,7 @@ namespace fibjs
 
     inline void HttpMessage_base::s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpMessage_base);

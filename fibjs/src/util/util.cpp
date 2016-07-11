@@ -38,7 +38,7 @@ inline void newline(StringBuffer &strBuffer, int32_t padding)
 {
     strBuffer.append('\n');
     if (padding > 0)
-        strBuffer.append(std::string(padding, ' '));
+        strBuffer.append(qstring(padding, ' '));
 }
 
 class _item
@@ -71,12 +71,12 @@ public:
 
 void string_format(StringBuffer &strBuffer, v8::Local<v8::Value> v)
 {
-    std::string s;
+    qstring s;
     json_base::encode(v, s);
     strBuffer.append(s);
 }
 
-std::string json_format(v8::Local<v8::Value> obj)
+qstring json_format(v8::Local<v8::Value> obj)
 {
     StringBuffer strBuffer;
 
@@ -133,8 +133,8 @@ std::string json_format(v8::Local<v8::Value> obj)
                 if (buf)
                 {
                     static char hexs[] = "0123456789abcdef";
-                    std::string data;
-                    std::string s;
+                    qstring data;
+                    qstring s;
                     int32_t len, i;
 
                     buf->toString(data);
@@ -161,7 +161,7 @@ std::string json_format(v8::Local<v8::Value> obj)
                 obj_ptr<Int64_base> int64Val = Int64_base::getInstance(v);
                 if (int64Val)
                 {
-                    std::string s;
+                    qstring s;
                     int64Val->toString(10, s);
                     strBuffer.append(s);
                     break;
@@ -290,7 +290,7 @@ std::string json_format(v8::Local<v8::Value> obj)
 }
 
 result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args,
-                           std::string &retVal)
+                           qstring &retVal)
 {
     const char *s1;
     char ch;
@@ -344,7 +344,7 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
             case 'j':
                 if (idx < argc)
                 {
-                    std::string s;
+                    qstring s;
                     s = json_format(args[idx++]);
                     retVal.append(s);
                 }
@@ -378,7 +378,7 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
         }
         else
         {
-            std::string s;
+            qstring s;
             s = json_format(args[idx++]);
 
             retVal.append(s);
@@ -388,7 +388,7 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
     return 0;
 }
 
-result_t util_base::format(const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal)
+result_t util_base::format(const v8::FunctionCallbackInfo<v8::Value> &args, qstring &retVal)
 {
     return format(NULL, args, retVal);
 }
@@ -703,7 +703,7 @@ result_t util_base::omit(v8::Local<v8::Value> v,
 
     v8::Local<v8::Object> obj = v->ToObject();
 
-    std::map<std::string, bool> _map;
+    std::map<qstring, bool> _map;
     int32_t argc = args.Length();
     int32_t i, j;
     result_t hr;
@@ -717,22 +717,22 @@ result_t util_base::omit(v8::Local<v8::Value> v,
 
             for (j = 0; j < len; j ++)
             {
-                std::string k;
+                qstring k;
                 hr = GetArgumentValue(arr->Get(j), k);
                 if (hr < 0)
                     return CHECK_ERROR(hr);
 
-                _map.insert(std::pair<std::string, bool>(k, true));
+                _map.insert(std::pair<qstring, bool>(k, true));
             }
         }
         else
         {
-            std::string k;
+            qstring k;
             hr = GetArgumentValue(args[i], k);
             if (hr < 0)
                 return CHECK_ERROR(hr);
 
-            _map.insert(std::pair<std::string, bool>(k, true));
+            _map.insert(std::pair<qstring, bool>(k, true));
         }
     }
 

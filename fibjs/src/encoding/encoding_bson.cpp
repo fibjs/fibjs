@@ -93,7 +93,7 @@ void encodeValue(Isolate* isolate, bson *bb, const char *name, v8::Local<v8::Val
 
             if (buf)
             {
-                std::string strBuf;
+                qstring strBuf;
 
                 buf->toString(strBuf);
                 bson_append_binary(bb, name, BSON_BIN_BINARY, strBuf.c_str(),
@@ -230,7 +230,7 @@ result_t bson_base::encode(v8::Local<v8::Object> data,
     if (hr < 0)
         return hr;
 
-    std::string strBuffer(bson_data(&bb), bson_size(&bb));
+    qstring strBuffer(bson_data(&bb), bson_size(&bb));
     retVal = new Buffer(strBuffer);
 
     bson_destroy(&bb);
@@ -287,8 +287,8 @@ void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator *it)
     case BSON_BINDATA:
     {
         obj_ptr<Buffer_base> buf = new Buffer(
-            std::string(bson_iterator_bin_data(it),
-                        bson_iterator_bin_len(it)));
+            qstring(bson_iterator_bin_data(it),
+                    bson_iterator_bin_len(it)));
 
         obj->Set(isolate->NewFromUtf8(key), buf->wrap());
         break;
@@ -368,7 +368,7 @@ result_t bson_base::decode(Buffer_base *data,
                            v8::Local<v8::Object> &retVal)
 {
     Isolate* isolate = Isolate::current();
-    std::string strBuf;
+    qstring strBuf;
 
     data->toString(strBuf);
     retVal = decodeObject(isolate, strBuf.c_str());

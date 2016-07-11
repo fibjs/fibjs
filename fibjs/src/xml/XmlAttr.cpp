@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-result_t XmlAttr::get_namespaceURI(std::string &retVal)
+result_t XmlAttr::get_namespaceURI(qstring &retVal)
 {
     if (m_namespaceURI.empty())
     {
@@ -30,7 +30,7 @@ result_t XmlAttr::get_namespaceURI(std::string &retVal)
     return 0;
 }
 
-result_t XmlAttr::get_prefix(std::string &retVal)
+result_t XmlAttr::get_prefix(qstring &retVal)
 {
     if (m_prefix.empty())
         return CALL_RETURN_NULL;
@@ -45,19 +45,19 @@ result_t XmlAttr::set_prefix(const char *newVal)
     return 0;
 }
 
-result_t XmlAttr::get_localName(std::string &retVal)
+result_t XmlAttr::get_localName(qstring &retVal)
 {
     retVal = m_localName;
     return 0;
 }
 
-result_t XmlAttr::get_name(std::string &retVal)
+result_t XmlAttr::get_name(qstring &retVal)
 {
     retVal = m_name;
     return 0;
 }
 
-result_t XmlAttr::get_value(std::string &retVal)
+result_t XmlAttr::get_value(qstring &retVal)
 {
     retVal = m_value;
     return 0;
@@ -75,12 +75,12 @@ void XmlAttr::fix_prefix()
         m_owner->fix_prefix(m_namespaceURI.c_str(), m_prefix);
 }
 
-result_t XmlAttr::get_nodeName(std::string &retVal)
+result_t XmlAttr::get_nodeName(qstring &retVal)
 {
     return get_name(retVal);
 }
 
-result_t XmlAttr::get_nodeValue(std::string &retVal)
+result_t XmlAttr::get_nodeValue(qstring &retVal)
 {
     return get_value(retVal);
 }
@@ -90,7 +90,7 @@ result_t XmlAttr::set_nodeValue(const char *newVal)
     return set_value(newVal);
 }
 
-result_t XmlAttr::toString(std::string &retVal)
+result_t XmlAttr::toString(qstring &retVal)
 {
     retVal = " ";
 
@@ -105,7 +105,7 @@ result_t XmlAttr::toString(std::string &retVal)
 
     retVal.append("=\"");
 
-    std::string str;
+    qstring str;
     int32_t sz = (int32_t)m_value.length();
 
     if (sz)

@@ -29,7 +29,7 @@ class Message_base : public object_base
 public:
     // Message_base
     static result_t _new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_value(std::string& retVal) = 0;
+    virtual result_t get_value(qstring& retVal) = 0;
     virtual result_t set_value(const char* newVal) = 0;
     virtual result_t get_params(obj_ptr<List_base>& retVal) = 0;
     virtual result_t set_params(List_base* newVal) = 0;
@@ -46,7 +46,7 @@ public:
     virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
-    virtual result_t get_lastError(std::string& retVal) = 0;
+    virtual result_t get_lastError(qstring& retVal) = 0;
     virtual result_t set_lastError(const char* newVal) = 0;
 
 public:
@@ -129,7 +129,7 @@ namespace fibjs
 
     inline void Message_base::s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Message_base);
@@ -257,7 +257,7 @@ namespace fibjs
 
     inline void Message_base::s_get_lastError(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Message_base);

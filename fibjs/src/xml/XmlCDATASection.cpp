@@ -11,13 +11,13 @@
 namespace fibjs
 {
 
-result_t XmlCDATASection::get_nodeName(std::string &retVal)
+result_t XmlCDATASection::get_nodeName(qstring &retVal)
 {
     retVal = "#cdata-section";
     return 0;
 }
 
-result_t XmlCDATASection::get_nodeValue(std::string &retVal)
+result_t XmlCDATASection::get_nodeValue(qstring &retVal)
 {
     return m_data.get_data(retVal);
 }
@@ -67,12 +67,12 @@ result_t XmlCDATASection::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlCDATASection::lookupPrefix(const char *namespaceURI, std::string &retVal)
+result_t XmlCDATASection::lookupPrefix(const char *namespaceURI, qstring &retVal)
 {
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlCDATASection::lookupNamespaceURI(const char *prefix, std::string &retVal)
+result_t XmlCDATASection::lookupNamespaceURI(const char *prefix, qstring &retVal)
 {
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
@@ -121,7 +121,7 @@ result_t XmlCDATASection::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlCDATASection::get_data(std::string &retVal)
+result_t XmlCDATASection::get_data(qstring &retVal)
 {
     return m_data.get_data(retVal);
 }
@@ -136,7 +136,7 @@ result_t XmlCDATASection::get_length(int32_t &retVal)
     return m_data.get_length(retVal);
 }
 
-result_t XmlCDATASection::substringData(int32_t offset, int32_t count, std::string &retVal)
+result_t XmlCDATASection::substringData(int32_t offset, int32_t count, qstring &retVal)
 {
     return m_data.substringData(offset, count, retVal);
 }
@@ -163,7 +163,7 @@ result_t XmlCDATASection::replaceData(int32_t offset, int32_t count, const char 
 
 result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
 {
-    std::string ret;
+    qstring ret;
     result_t hr;
 
     hr = m_data.splitText(offset, ret);
@@ -180,7 +180,7 @@ result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base> &retVa
     return 0;
 }
 
-result_t XmlCDATASection::toString(std::string &retVal)
+result_t XmlCDATASection::toString(qstring &retVal)
 {
     retVal = "<![CDATA[";
     retVal.append(m_data.data());

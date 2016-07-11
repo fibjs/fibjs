@@ -91,7 +91,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 
 	for (i = 0; i < len; i ++)
 	{
-		std::string str;
+		qstring str;
 
 		hr = GetArgumentValue(isolate->m_isolate, args->Get(i), str);
 		if (hr < 0)
@@ -142,7 +142,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 	{
 		v8::Local<v8::Value> k = keys->Get(i);
 		v8::Local<v8::Value> v = envs->Get(k);
-		std::string ks, vs;
+		qstring ks, vs;
 
 		hr = GetArgumentValue(k, ks);
 		if (hr < 0)

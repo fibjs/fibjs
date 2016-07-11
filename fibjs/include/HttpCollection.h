@@ -46,7 +46,7 @@ public:
         m_count++;
     }
 
-    void add(std::string &name, std::string &value)
+    void add(qstring &name, qstring &value)
     {
         m_names[m_count].assign(name);
         m_values[m_count].assign(value);
@@ -57,8 +57,8 @@ public:
     size_t getData(char *buf, size_t sz);
 
 private:
-    QuickArray<std::string> m_names;
-    QuickArray<std::string> m_values;
+    QuickArray<qstring> m_names;
+    QuickArray<qstring> m_values;
     int32_t m_count;
 };
 

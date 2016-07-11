@@ -134,7 +134,7 @@ result_t object_base::on(const char *ev, v8::Local<v8::Function> func, int32_t &
     retVal = 0;
     Isolate* isolate = holder();
 
-    std::string strKey = "_e_";
+    qstring strKey = "_e_";
     strKey.append(ev);
     retVal += putFunction(isolate, GetHiddenList(strKey.c_str(), true), func);
 
@@ -155,7 +155,7 @@ result_t object_base::once(const char *ev, v8::Local<v8::Function> func, int32_t
     retVal = 0;
     Isolate* isolate = holder();
 
-    std::string strKey = "_e1_";
+    qstring strKey = "_e1_";
     strKey.append(ev);
     retVal += putFunction(isolate, GetHiddenList(strKey.c_str(), true), func);
 
@@ -176,7 +176,7 @@ result_t object_base::off(const char *ev, v8::Local<v8::Function> func, int32_t 
     retVal = 0;
     Isolate* isolate = holder();
 
-    std::string strKey = "_e_";
+    qstring strKey = "_e_";
     strKey.append(ev);
     retVal += removeFunction(isolate, GetHiddenList(strKey.c_str()), func);
 
@@ -191,7 +191,7 @@ result_t object_base::off(const char *ev, int32_t &retVal)
 {
     retVal = 0;
 
-    std::string strKey = "_e_";
+    qstring strKey = "_e_";
     strKey.append(ev);
 
     GetHiddenList(strKey.c_str(), false, true);
@@ -254,7 +254,7 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
     extMemory(0);
 
     result_t hr;
-    std::string strKey = "_e_";
+    qstring strKey = "_e_";
     strKey.append(ev);
 
     hr = fireTrigger(GetHiddenList(strKey.c_str()), args, argCount);
@@ -302,7 +302,7 @@ result_t object_base::_trigger(const char *ev, Variant *args, int32_t argCount)
 
     private:
         obj_ptr<object_base> m_obj;
-        std::string m_ev;
+        qstring m_ev;
         QuickArray<VariantEx> m_args;
     };
 
@@ -315,7 +315,7 @@ result_t object_base::trigger(const char *ev, const v8::FunctionCallbackInfo<v8:
     extMemory(0);
 
     result_t hr;
-    std::string strKey = "_e_";
+    qstring strKey = "_e_";
     strKey.append(ev);
 
     hr = fireTrigger(GetHiddenList(strKey.c_str()), args, 0);

@@ -22,14 +22,14 @@ public:
     {
     }
 
-    XmlDataImpl(const std::string &data) : m_data(data)
+    XmlDataImpl(const qstring &data) : m_data(data)
     {}
 
     XmlDataImpl(const XmlDataImpl &data) : m_data(data.m_data)
     {}
 
 public:
-    result_t get_data(std::string &retVal)
+    result_t get_data(qstring &retVal)
     {
         retVal = m_data;
         return 0;
@@ -47,12 +47,16 @@ public:
         return 0;
     }
 
-    result_t substringData(int32_t offset, int32_t count, std::string &retVal)
+    result_t substringData(int32_t offset, int32_t count, qstring &retVal)
     {
         wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
+
+        if (offset + count > (int32_t)_data.length())
+            count = (int32_t)_data.length() - offset;
+
         retVal = utf16to8String(_data.substr(offset, count));
         return 0;
     }
@@ -105,7 +109,7 @@ public:
         return 0;
     }
 
-    result_t splitText(int32_t offset, std::string &retVal)
+    result_t splitText(int32_t offset, qstring &retVal)
     {
         wstring _data(utf8to16String(m_data));
 
@@ -118,13 +122,13 @@ public:
         return 0;
     }
 
-    std::string encodedText()
+    qstring encodedText()
     {
-        std::string str;
+        qstring str;
         int32_t sz = (int32_t)m_data.length();
 
         if (!sz)
-            return std::string();
+            return qstring();
 
         const char *data = m_data.c_str();
         int32_t sz1 = 0;
@@ -179,13 +183,13 @@ public:
         return str;
     }
 
-    std::string data()
+    qstring data()
     {
         return m_data;
     }
 
 private:
-    std::string m_data;
+    qstring m_data;
 };
 
 } /* namespace fibjs */

@@ -32,7 +32,7 @@ public:
         return rt.m_code;
     }
 
-    static result_t setError(std::string err)
+    static result_t setError(qstring err)
     {
         Runtime &rt = Runtime::current();
 
@@ -50,7 +50,7 @@ public:
         return rt.m_code;
     }
 
-    static const std::string &errMessage()
+    static const qstring &errMessage()
     {
         return Runtime::current().m_error;
     }
@@ -70,7 +70,7 @@ private:
 
 private:
     result_t m_code;
-    std::string m_error;
+    qstring m_error;
     Isolate* m_isolate;
 };
 

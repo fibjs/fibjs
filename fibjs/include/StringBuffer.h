@@ -24,10 +24,10 @@ public:
     }
 
 public:
-    std::string str()
+    qstring str()
     {
         int32_t i, p = 0;
-        std::string s;
+        qstring s;
 
         if (m_size > 0)
         {
@@ -38,7 +38,7 @@ public:
                 s.resize(m_size);
                 for (i = 0; i < (int32_t) m_array.size(); i++)
                 {
-                    std::string &s1 = m_array[i];
+                    qstring &s1 = m_array[i];
                     size_t len = s1.length();
 
                     memcpy(&s[p], s1.c_str(), len);
@@ -58,7 +58,7 @@ public:
         return m_size;
     }
 
-    void append(std::string s)
+    void append(qstring s)
     {
         if (s.length() > 0)
         {
@@ -75,7 +75,7 @@ public:
         if (sz > 0)
         {
             m_size += sz;
-            m_array.append(std::string(s, sz));
+            m_array.append(qstring(s, sz));
         }
     }
 
@@ -89,7 +89,7 @@ public:
     }
 
 private:
-    QuickArray<std::string> m_array;
+    QuickArray<qstring> m_array;
     size_t m_size;
 };
 

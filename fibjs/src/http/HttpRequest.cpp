@@ -19,7 +19,7 @@ result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base> &retVal, v8::Local<v8:
     return 0;
 }
 
-result_t HttpRequest::get_protocol(std::string &retVal)
+result_t HttpRequest::get_protocol(qstring &retVal)
 {
     return m_message->get_protocol(retVal);
 }
@@ -145,7 +145,7 @@ result_t HttpRequest::removeHeader(const char *name)
     return m_message->removeHeader(name);
 }
 
-result_t HttpRequest::get_value(std::string &retVal)
+result_t HttpRequest::get_value(qstring &retVal)
 {
     return m_message->get_value(retVal);
 }
@@ -175,7 +175,7 @@ result_t HttpRequest::set_result(Variant newVal)
     return m_message->set_result(newVal);
 }
 
-result_t HttpRequest::get_lastError(std::string& retVal)
+result_t HttpRequest::get_lastError(qstring& retVal)
 {
     return m_message->get_lastError(retVal);
 }
@@ -208,8 +208,8 @@ result_t HttpRequest::sendTo(Stream_base *stm, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    std::string strCommand = m_method;
-    std::string strProtocol;
+    qstring strCommand = m_method;
+    qstring strProtocol;
 
     strCommand.append(1, ' ');
     strCommand.append(m_address);
@@ -263,7 +263,7 @@ result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
 
             p.skipSpace();
 
-            std::string &addr = pThis->m_pThis->m_address;
+            qstring &addr = pThis->m_pThis->m_address;
 
             if (!p.getWord(addr, '?'))
                 return CHECK_ERROR(Runtime::setError("HttpRequest: bad address."));
@@ -296,7 +296,7 @@ result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
     public:
         obj_ptr<HttpRequest> m_pThis;
         obj_ptr<BufferedStream_base> m_stm;
-        std::string m_strLine;
+        qstring m_strLine;
     };
 
     if (!ac)
@@ -309,7 +309,7 @@ result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
     return (new asyncReadFrom(this, _stm, ac))->post(0);
 }
 
-result_t HttpRequest::get_method(std::string &retVal)
+result_t HttpRequest::get_method(qstring &retVal)
 {
     retVal = m_method;
     return 0;
@@ -326,7 +326,7 @@ result_t HttpRequest::set_method(const char *newVal)
     return 0;
 }
 
-result_t HttpRequest::get_address(std::string &retVal)
+result_t HttpRequest::get_address(qstring &retVal)
 {
     retVal = m_address;
     return 0;
@@ -338,7 +338,7 @@ result_t HttpRequest::set_address(const char *newVal)
     return 0;
 }
 
-result_t HttpRequest::get_queryString(std::string &retVal)
+result_t HttpRequest::get_queryString(qstring &retVal)
 {
     retVal = m_queryString;
     return 0;
@@ -359,7 +359,7 @@ result_t HttpRequest::get_response(obj_ptr<Message_base> &retVal)
     return 0;
 }
 
-void HttpRequest::parse(std::string &str, char split,
+void HttpRequest::parse(qstring &str, char split,
                         obj_ptr<HttpCollection_base> &retVal)
 {
     obj_ptr<HttpCollection> c = new HttpCollection();
@@ -367,7 +367,7 @@ void HttpRequest::parse(std::string &str, char split,
     const char *pstr = str.c_str();
     int32_t nSize = (int32_t) str.length();
     const char *pstrTemp;
-    std::string strKey, strValue;
+    qstring strKey, strValue;
 
     while (nSize)
     {
@@ -427,7 +427,7 @@ result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base> &retVal)
 {
     if (!m_cookies)
     {
-        std::string strCookie;
+        qstring strCookie;
 
         header("cookie", strCookie);
         parse(strCookie, ';', m_cookies);
@@ -448,7 +448,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
             m_form = new HttpCollection();
         else
         {
-            std::string strType;
+            qstring strType;
             bool bUpload = false;
             Variant v;
 
@@ -472,7 +472,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
             if (hr < 0)
                 return hr;
 
-            std::string strForm;
+            qstring strForm;
             buf->toString(strForm);
 
             if (bUpload)

@@ -89,7 +89,7 @@ int32_t recv(void *sock, void *buffer, int32_t cbBuffer)
         return -1;
     }
 
-    std::string strBuf;
+    qstring strBuf;
 
     if (hr != CALL_RETURN_NULL)
     {
@@ -122,7 +122,7 @@ int32_t read(void *sock, void *buffer, int32_t cbBuffer)
         return -1;
     }
 
-    std::string strBuf;
+    qstring strBuf;
 
     if (hr != CALL_RETURN_NULL)
     {
@@ -148,7 +148,7 @@ int32_t send(void *sock, const void *buffer, int32_t cbBuffer)
     if (cbBuffer <= 0)
         return 0;
 
-    std::string strBuf((const char *) buffer, cbBuffer);
+    qstring strBuf((const char *) buffer, cbBuffer);
     obj_ptr<Buffer_base> buf;
 
     buf = new Buffer(strBuf);
@@ -216,7 +216,7 @@ int32_t c_recv(void *sock, void *buffer, int32_t cbBuffer)
         return -1;
     }
 
-    std::string strBuf;
+    qstring strBuf;
 
     if (hr != CALL_RETURN_NULL)
     {
@@ -249,7 +249,7 @@ int32_t c_read(void *sock, void *buffer, int32_t cbBuffer)
         return -1;
     }
 
-    std::string strBuf;
+    qstring strBuf;
 
     if (hr != CALL_RETURN_NULL)
     {
@@ -275,7 +275,7 @@ int32_t c_send(void *sock, const void *buffer, int32_t cbBuffer)
 
     assert(!Isolate::check());
 
-    std::string strBuf((const char *) buffer, cbBuffer);
+    qstring strBuf((const char *) buffer, cbBuffer);
     obj_ptr<Buffer_base> buf;
 
     buf = new Buffer(strBuf);

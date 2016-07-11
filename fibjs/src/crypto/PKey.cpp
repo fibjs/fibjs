@@ -247,7 +247,7 @@ result_t PKey::importKey(Buffer_base *DerKey, const char *password)
 {
     int32_t ret;
 
-    std::string key;
+    qstring key;
     DerKey->toString(key);
 
     clear();
@@ -287,7 +287,7 @@ result_t PKey::importKey(const char *pemKey, const char *password)
 result_t PKey::importFile(const char* filename, const char* password)
 {
     result_t hr;
-    std::string data;
+    qstring data;
     int32_t ret;
 
     hr = fs_base::ac_readFile(filename, data);
@@ -310,7 +310,7 @@ result_t PKey::importFile(const char* filename, const char* password)
     return 0;
 }
 
-result_t PKey::exportPem(std::string &retVal)
+result_t PKey::exportPem(qstring &retVal)
 {
     result_t hr;
     bool priv;
@@ -320,7 +320,7 @@ result_t PKey::exportPem(std::string &retVal)
         return hr;
 
     int32_t ret;
-    std::string buf;
+    qstring buf;
 
     buf.resize(mbedtls_pk_get_len(&m_key) * 8 + 128);
     if (priv)
@@ -346,7 +346,7 @@ result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
         return hr;
 
     int32_t ret;
-    std::string buf;
+    qstring buf;
 
     buf.resize(8192);
     if (priv)
@@ -368,8 +368,8 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t ret;
-    std::string str;
-    std::string output;
+    qstring str;
+    qstring output;
     size_t olen;
 
     data->toString(str);
@@ -404,8 +404,8 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
-    std::string str;
-    std::string output;
+    qstring str;
+    qstring output;
     size_t olen;
 
     data->toString(str);
@@ -440,8 +440,8 @@ result_t PKey::sign(Buffer_base *data, int32_t alg, obj_ptr<Buffer_base> &retVal
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
-    std::string str;
-    std::string output;
+    qstring str;
+    qstring output;
     size_t olen;
 
     data->toString(str);
@@ -468,8 +468,8 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t ret;
-    std::string str;
-    std::string strsign;
+    qstring str;
+    qstring strsign;
 
     data->toString(str);
     sign->toString(strsign);
@@ -492,7 +492,7 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
     return 0;
 }
 
-result_t PKey::get_name(std::string &retVal)
+result_t PKey::get_name(qstring &retVal)
 {
     retVal = mbedtls_pk_get_name(&m_key);
     return 0;
@@ -504,7 +504,7 @@ result_t PKey::get_keySize(int32_t &retVal)
     return 0;
 }
 
-result_t PKey::toString(std::string &retVal)
+result_t PKey::toString(qstring &retVal)
 {
     return exportPem(retVal);
 }

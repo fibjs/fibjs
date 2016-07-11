@@ -25,7 +25,7 @@ public:
     // Fiber_base
     virtual result_t join() = 0;
     virtual result_t get_caller(obj_ptr<Fiber_base>& retVal) = 0;
-    virtual result_t get_traceInfo(std::string& retVal) = 0;
+    virtual result_t get_traceInfo(qstring& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -86,7 +86,7 @@ namespace fibjs
 
     inline void Fiber_base::s_get_traceInfo(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Fiber_base);

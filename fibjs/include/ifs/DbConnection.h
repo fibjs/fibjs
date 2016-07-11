@@ -31,7 +31,7 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t execute(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
-    virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal) = 0;
+    virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, qstring& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -172,7 +172,7 @@ namespace fibjs
 
     inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_INSTANCE(DbConnection_base);
         METHOD_ENTER(-1, 1);

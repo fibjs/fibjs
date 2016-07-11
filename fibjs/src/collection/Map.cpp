@@ -59,7 +59,7 @@ inline result_t _map(Map *o, v8::Local<v8::Object> m,
 
 result_t Map::get(const char *name, Variant &retVal)
 {
-    std::map<std::string, VariantEx>::iterator it = m_datas.find(name);
+    std::map<qstring, VariantEx>::iterator it = m_datas.find(name);
 
     if (it == m_datas.end())
         return CALL_RETURN_NULL;
@@ -73,7 +73,7 @@ result_t Map::put(const char *name, Variant value)
     if (value.type() == Variant::VT_JSValue)
         setJSObject();
 
-    m_datas.insert(std::pair<std::string, VariantEx>(name, value));
+    m_datas.insert(std::pair<qstring, VariantEx>(name, value));
     return 0;
 }
 
@@ -105,7 +105,7 @@ result_t Map::_named_enumerator(v8::Local<v8::Array> &retVal)
     Isolate* isolate = holder();
 
     retVal = v8::Array::New(isolate->m_isolate, (int32_t)m_datas.size());
-    std::map<std::string, VariantEx>::iterator iter;
+    std::map<qstring, VariantEx>::iterator iter;
 
     for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
         retVal->Set(i++, isolate->NewFromUtf8(iter->first));

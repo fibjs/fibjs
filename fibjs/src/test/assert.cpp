@@ -14,7 +14,7 @@ namespace fibjs
 
 DECLARE_MODULE(assert);
 
-std::string json_format(v8::Local<v8::Value> obj);
+qstring json_format(v8::Local<v8::Value> obj);
 
 class _msg
 {
@@ -119,9 +119,9 @@ public:
         }
     }
 
-    std::string str()
+    qstring str()
     {
-        std::string str;
+        qstring str;
 
         str = strs[0];
 

@@ -64,14 +64,14 @@ public:
         isolate->SetPrivate(mods(), "require", func);
     }
 
-    void InstallModule(std::string fname, v8::Local<v8::Value> o);
+    void InstallModule(qstring fname, v8::Local<v8::Value> o);
 
-    result_t require(std::string base, std::string id, v8::Local<v8::Value> &retVal, int32_t mode);
+    result_t require(qstring base, qstring id, v8::Local<v8::Value> &retVal, int32_t mode);
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
     result_t run(const char *fname, v8::Local<v8::Array> argv, bool main);
 
-    std::string name()
+    qstring name()
     {
         return m_name;
     }
@@ -82,10 +82,10 @@ public:
     public:
         Context(SandBox *sb, const char *id);
 
-        result_t run(std::string src, const char *name, const char **argNames,
+        result_t run(qstring src, const char *name, const char **argNames,
                      v8::Local<v8::Value> *args, int32_t argCount);
-        result_t run(std::string src, const char *name, v8::Local<v8::Array> argv, bool main);
-        result_t run(std::string src, const char *name, v8::Local<v8::Object> module,
+        result_t run(qstring src, const char *name, v8::Local<v8::Array> argv, bool main);
+        result_t run(qstring src, const char *name, v8::Local<v8::Object> module,
                      v8::Local<v8::Object> exports);
 
         static result_t repl(v8::Local<v8::Array> cmds, Stream_base* out);
@@ -97,7 +97,7 @@ public:
         v8::Local<v8::Function> m_fnRun;
     };
 
-    std::string m_name;
+    qstring m_name;
 };
 
 } /* namespace fibjs */

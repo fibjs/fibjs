@@ -46,7 +46,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    std::string strBuf;
+    qstring strBuf;
 
     if (bytes < 0)
     {
@@ -114,7 +114,7 @@ result_t File::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    std::string strBuf;
+    qstring strBuf;
 
     int32_t bytes;
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
@@ -187,7 +187,7 @@ result_t File::write(Buffer_base *data, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    std::string strBuf;
+    qstring strBuf;
     data->toString(strBuf);
 
     return Write(strBuf.c_str(), (int32_t) strBuf.length());
@@ -243,7 +243,7 @@ result_t File::open(const char *fname, const char *flags)
     return 0;
 }
 
-result_t File::get_name(std::string &retVal)
+result_t File::get_name(qstring &retVal)
 {
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

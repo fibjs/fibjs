@@ -35,8 +35,8 @@ public:
     result_t set_mimes(v8::Local<v8::Object> mimes);
 
 private:
-    std::string m_root;
-    std::map<std::string, std::string> m_mimes;
+    qstring m_root;
+    std::map<qstring, qstring> m_mimes;
 };
 
 } /* namespace fibjs */

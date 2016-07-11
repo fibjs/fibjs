@@ -23,13 +23,13 @@ public:
     // HttpCookie_base
     virtual result_t parse(const char *header);
     virtual result_t match(const char *url, bool &retVal);
-    virtual result_t get_name(std::string &retVal);
+    virtual result_t get_name(qstring &retVal);
     virtual result_t set_name(const char *newVal);
-    virtual result_t get_value(std::string &retVal);
+    virtual result_t get_value(qstring &retVal);
     virtual result_t set_value(const char *newVal);
-    virtual result_t get_domain(std::string &retVal);
+    virtual result_t get_domain(qstring &retVal);
     virtual result_t set_domain(const char *newVal);
-    virtual result_t get_path(std::string &retVal);
+    virtual result_t get_path(qstring &retVal);
     virtual result_t set_path(const char *newVal);
     virtual result_t get_expires(date_t &retVal);
     virtual result_t set_expires(date_t newVal);
@@ -40,16 +40,16 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(std::string &retVal);
+    virtual result_t toString(qstring &retVal);
 
 public:
     result_t fill(v8::Local<v8::Object> opts, bool bBase);
 
 private:
-    std::string m_name;
-    std::string m_value;
-    std::string m_domain;
-    std::string m_path;
+    qstring m_name;
+    qstring m_value;
+    qstring m_domain;
+    qstring m_path;
     date_t m_expires;
     bool m_httpOnly;
     bool m_secure;

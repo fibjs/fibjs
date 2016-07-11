@@ -25,9 +25,9 @@ class HttpUploadData_base : public object_base
 
 public:
     // HttpUploadData_base
-    virtual result_t get_fileName(std::string& retVal) = 0;
-    virtual result_t get_contentType(std::string& retVal) = 0;
-    virtual result_t get_contentTransferEncoding(std::string& retVal) = 0;
+    virtual result_t get_fileName(qstring& retVal) = 0;
+    virtual result_t get_contentType(qstring& retVal) = 0;
+    virtual result_t get_contentTransferEncoding(qstring& retVal) = 0;
     virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
 
 public:
@@ -77,7 +77,7 @@ namespace fibjs
 
     inline void HttpUploadData_base::s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpUploadData_base);
@@ -89,7 +89,7 @@ namespace fibjs
 
     inline void HttpUploadData_base::s_get_contentType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpUploadData_base);
@@ -101,7 +101,7 @@ namespace fibjs
 
     inline void HttpUploadData_base::s_get_contentTransferEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpUploadData_base);

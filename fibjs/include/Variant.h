@@ -81,7 +81,7 @@ public:
         operator=(v);
     }
 
-    Variant(const std::string &v) :
+    Variant(const qstring &v) :
         m_type(VT_Undefined)
     {
         operator=(v);
@@ -199,13 +199,13 @@ public:
         return *this;
     }
 
-    Variant &operator=(const std::string &v)
+    Variant &operator=(const qstring &v)
     {
         if (type() != VT_String)
         {
             clear();
             set_type(VT_String);
-            new (m_Val.strVal) std::string(v);
+            new (m_Val.strVal) qstring(v);
         }
         else
             strVal() = v;
@@ -215,7 +215,7 @@ public:
 
     Variant &operator=(const char *v)
     {
-        std::string s(v);
+        qstring s(v);
 
         return operator=(s);
     }
@@ -278,7 +278,7 @@ public:
         return sizeof(Variant) + strVal().length();
     }
 
-    std::string string() const
+    qstring string() const
     {
         if (type() != VT_String)
             return "";
@@ -301,7 +301,7 @@ public:
         dateVal().parse(str, len);
     }
 
-    bool toString(std::string &retVal);
+    bool toString(qstring &retVal);
 
     void toJSON();
 
@@ -325,9 +325,9 @@ private:
         return *this;
     }
 
-    std::string &strVal() const
+    qstring &strVal() const
     {
-        std::string *pval = (std::string *)m_Val.strVal;
+        qstring *pval = (qstring *)m_Val.strVal;
         return *pval;
     }
 
@@ -359,7 +359,7 @@ private:
         double dblVal;
         obj_base *objVal;
         char dateVal[sizeof(date_t)];
-        char strVal[sizeof(std::string)];
+        char strVal[sizeof(qstring)];
         char jsVal[sizeof(v8::Persistent<v8::Value>)];
     } m_Val;
 };
@@ -391,7 +391,7 @@ public:
         operator=(v);
     }
 
-    VariantEx(const std::string &v)
+    VariantEx(const qstring &v)
     {
         toPersistent();
         operator=(v);

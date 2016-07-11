@@ -218,7 +218,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t os_base::get_execPath(std::string &retVal)
+result_t os_base::get_execPath(qstring &retVal)
 {
     char exeName[1024] = "";
     size_t size = sizeof(exeName);

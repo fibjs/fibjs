@@ -180,7 +180,7 @@ result_t MongoDB::open(const char *connString)
     if (hr < 0)
         return hr;
 
-    if (u->m_host.find(',', 0) != std::string::npos)
+    if (u->m_host.find(',', 0) != qstring::npos)
     {
         const char *host = u->m_host.c_str();
 
@@ -188,8 +188,8 @@ result_t MongoDB::open(const char *connString)
 
         while (true)
         {
-            std::string hostname;
-            std::string port;
+            qstring hostname;
+            qstring port;
 
             Url::parseHost(host, hostname, port);
 
@@ -234,7 +234,7 @@ result_t MongoDB::open(const char *connString)
 result_t MongoDB::getCollection(const char *name,
                                 obj_ptr<MongoCollection_base> &retVal)
 {
-    std::string nsStr;
+    qstring nsStr;
     const char *ns = name;
 
     if (!m_ns.empty())

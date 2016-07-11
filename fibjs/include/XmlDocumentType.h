@@ -37,13 +37,13 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(std::string &retVal);
+    virtual result_t toString(qstring &retVal);
 
 public:
     // XmlNode_base
     virtual result_t get_nodeType(int32_t &retVal);
-    virtual result_t get_nodeName(std::string &retVal);
-    virtual result_t get_nodeValue(std::string &retVal);
+    virtual result_t get_nodeName(qstring &retVal);
+    virtual result_t get_nodeValue(qstring &retVal);
     virtual result_t set_nodeValue(const char *newVal);
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal);
     virtual result_t get_parentNode(obj_ptr<XmlNode_base> &retVal);
@@ -55,8 +55,8 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal);
     virtual result_t normalize();
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t lookupPrefix(const char *namespaceURI, std::string &retVal);
-    virtual result_t lookupNamespaceURI(const char *prefix, std::string &retVal);
+    virtual result_t lookupPrefix(const char *namespaceURI, qstring &retVal);
+    virtual result_t lookupNamespaceURI(const char *prefix, qstring &retVal);
     virtual result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t insertAfter(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
@@ -65,14 +65,14 @@ public:
 
 public:
     // XmlDocumentType_base
-    virtual result_t get_name(std::string &retVal);
-    virtual result_t get_publicId(std::string &retVal);
-    virtual result_t get_systemId(std::string &retVal);
+    virtual result_t get_name(qstring &retVal);
+    virtual result_t get_publicId(qstring &retVal);
+    virtual result_t get_systemId(qstring &retVal);
 
 private:
-    std::string m_name;
-    std::string m_systemId;
-    std::string m_publicId;
+    qstring m_name;
+    qstring m_systemId;
+    qstring m_publicId;
 };
 
 } /* namespace fibjs */

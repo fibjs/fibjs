@@ -26,7 +26,7 @@ class File_base : public SeekableStream_base
 
 public:
     // File_base
-    virtual result_t get_name(std::string& retVal) = 0;
+    virtual result_t get_name(qstring& retVal) = 0;
     virtual result_t truncate(int64_t bytes, AsyncEvent* ac) = 0;
     virtual result_t eof(bool& retVal) = 0;
     virtual result_t flush(AsyncEvent* ac) = 0;
@@ -89,7 +89,7 @@ namespace fibjs
 
     inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(File_base);

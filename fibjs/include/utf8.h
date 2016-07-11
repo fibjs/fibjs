@@ -58,16 +58,16 @@ inline wstring utf8to16String(const char *src, int32_t srclen = -1)
     return str;
 }
 
-inline wstring utf8to16String(std::string src)
+inline wstring utf8to16String(qstring src)
 {
     return utf8to16String(src.c_str(), (int32_t)src.length());
 }
 
 #define UTF8_W(s) utf8to16String(s).c_str()
 
-inline std::string utf16to8String(const wchar *src, int32_t srclen = -1)
+inline qstring utf16to8String(const wchar *src, int32_t srclen = -1)
 {
-    std::string str;
+    qstring str;
 
     if (srclen == -1)
         srclen = (int32_t) qstrlen(src);
@@ -83,7 +83,7 @@ inline std::string utf16to8String(const wchar *src, int32_t srclen = -1)
     return str;
 }
 
-inline std::string utf16to8String(wstring src)
+inline qstring utf16to8String(wstring src)
 {
     return utf16to8String(src.c_str(), (int32_t)src.length());
 }

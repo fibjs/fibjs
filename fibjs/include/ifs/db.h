@@ -36,9 +36,9 @@ public:
     static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
     static result_t openLevelDB(const char* connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
     static result_t openRedis(const char* connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
-    static result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
-    static result_t formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
-    static result_t escape(const char* str, bool mysql, std::string& retVal);
+    static result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, qstring& retVal);
+    static result_t formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, qstring& retVal);
+    static result_t escape(const char* str, bool mysql, qstring& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -212,7 +212,7 @@ namespace fibjs
 
     inline void db_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(-1, 1);
 
@@ -225,7 +225,7 @@ namespace fibjs
 
     inline void db_base::s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(-1, 1);
 
@@ -238,7 +238,7 @@ namespace fibjs
 
     inline void db_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(2, 1);
 

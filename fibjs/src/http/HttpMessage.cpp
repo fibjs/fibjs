@@ -19,7 +19,7 @@ class asyncSendTo: public AsyncState
 {
 public:
     asyncSendTo(HttpMessage *pThis, Stream_base *stm,
-                std::string &strCommand, AsyncEvent *ac,
+                qstring &strCommand, AsyncEvent *ac,
                 bool headerOnly = false) :
         AsyncState(ac), m_pThis(pThis), m_stm(stm), m_strCommand(
             strCommand), m_headerOnly(headerOnly)
@@ -49,7 +49,7 @@ public:
         asyncSendTo *pThis = (asyncSendTo *) pState;
         size_t sz = pThis->m_strCommand.length();
         size_t sz1;
-        std::string m_strBuf;
+        qstring m_strBuf;
         char *pBuf;
 
         if (pThis->m_buffer != NULL)
@@ -114,14 +114,14 @@ public:
     obj_ptr<Buffer_base> m_buffer;
     int64_t m_contentLength;
     int64_t m_copySize;
-    std::string m_body;
-    std::string m_strCommand;
+    qstring m_body;
+    qstring m_strCommand;
     const char *m_strStatus;
     int32_t m_nStatus;
     bool m_headerOnly;
 };
 
-result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
+result_t HttpMessage::sendTo(Stream_base *stm, qstring &strCommand,
                              AsyncEvent *ac)
 {
     if (!ac)
@@ -130,7 +130,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
     return (new asyncSendTo(this, stm, strCommand, ac))->post(0);
 }
 
-result_t HttpMessage::sendHeader(Stream_base *stm, std::string &strCommand,
+result_t HttpMessage::sendHeader(Stream_base *stm, qstring &strCommand,
                                  AsyncEvent *ac)
 {
     if (!ac)
@@ -298,7 +298,7 @@ result_t HttpMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
         HttpMessage *m_pThis;
         obj_ptr<BufferedStream_base> m_stm;
         obj_ptr<SeekableStream_base> m_body;
-        std::string m_strLine;
+        qstring m_strLine;
         int64_t m_contentLength;
         bool m_bChunked;
         int32_t m_headCount;
@@ -333,7 +333,7 @@ void HttpMessage::addHeader(const char *name, int32_t szName, const char *value,
         m_headers->add(name, szName, value, szValue);
 }
 
-result_t HttpMessage::addHeader(std::string &strLine)
+result_t HttpMessage::addHeader(qstring &strLine)
 {
     int32_t p2;
     _parser p(strLine);
@@ -434,7 +434,7 @@ size_t HttpMessage::getData(char *buf, size_t sz)
     return pos;
 }
 
-result_t HttpMessage::get_protocol(std::string &retVal)
+result_t HttpMessage::get_protocol(qstring &retVal)
 {
     retVal = m_protocol;
     return 0;

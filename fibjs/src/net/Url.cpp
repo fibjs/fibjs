@@ -90,7 +90,7 @@ void Url::parseProtocol(const char *&url)
     {
         p++;
 
-        std::string str(url, p - url);
+        qstring str(url, p - url);
         put_protocol(str);
         url = p;
     }
@@ -128,7 +128,7 @@ void Url::parseAuth(const char *&url)
     }
 }
 
-void Url::parseHost(const char *&url, std::string &hostname, std::string &port)
+void Url::parseHost(const char *&url, qstring &hostname, qstring &port)
 {
     const char *p1 = url;
     const char *p2 = NULL;
@@ -182,7 +182,7 @@ void Url::parseHost(const char *&url)
     while (true)
     {
         parseHost(url, m_hostname, m_port);
-        m_ipv6 = m_hostname.find(':', 0) != std::string::npos;
+        m_ipv6 = m_hostname.find(':', 0) != qstring::npos;
 
         if (*url != ',')
             break;
@@ -277,9 +277,9 @@ result_t Url::parse(const char *url)
     return 0;
 }
 
-std::string getValue(Isolate* isolate, v8::Local<v8::Object> &args, const char *key)
+qstring getValue(Isolate* isolate, v8::Local<v8::Object> &args, const char *key)
 {
-    std::string s;
+    qstring s;
 
     v8::Local<v8::Value> v = args->Get(isolate->NewFromUtf8(key));
 
@@ -306,13 +306,13 @@ result_t Url::format(v8::Local<v8::Object> args)
     m_pathname = getValue(isolate, args, "pathname");
     if (m_pathname.length() > 0 && !isUrlSlash(m_pathname[0])
             && m_hostname.length() > 0)
-        m_pathname.insert(0, 1, URL_SLASH);
+        m_pathname = URL_SLASH + m_pathname;
 
     m_query = getValue(isolate, args, "query");
 
     m_hash = getValue(isolate, args, "hash");
     if (m_hash.length() > 0 && m_hash[0] != '#')
-        m_hash.insert(0, 1, '#');
+        m_hash = '#' + m_hash;
 
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
@@ -322,7 +322,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (!IsEmpty(v))
         m_slashes = v->BooleanValue();
 
-    m_ipv6 = m_hostname.find(':', 0) != std::string::npos;
+    m_ipv6 = m_hostname.find(':', 0) != qstring::npos;
 
     if (!m_hostname.empty() && m_host.empty())
     {
@@ -407,7 +407,7 @@ result_t Url::normalize()
     if (m_pathname.length() == 0)
         return 0;
 
-    std::string str;
+    qstring str;
     const char *p1 = m_pathname.c_str();
     char *pstr;
     int32_t pos = 0;
@@ -483,12 +483,12 @@ result_t Url::normalize()
     return 0;
 }
 
-result_t Url::toString(std::string &retVal)
+result_t Url::toString(qstring &retVal)
 {
     return get_href(retVal);
 }
 
-result_t Url::get_href(std::string &retVal)
+result_t Url::get_href(qstring &retVal)
 {
     if (m_protocol.length() > 0)
         retVal.append(m_protocol);
@@ -509,7 +509,7 @@ result_t Url::get_href(std::string &retVal)
     return 0;
 }
 
-void Url::put_protocol(std::string str)
+void Url::put_protocol(qstring str)
 {
     static const char *s_slashed[] =
     {
@@ -540,7 +540,7 @@ void Url::put_protocol(std::string str)
     m_slashes = m_defslashes;
 }
 
-result_t Url::get_protocol(std::string &retVal)
+result_t Url::get_protocol(qstring &retVal)
 {
     retVal = m_protocol;
     return 0;
@@ -552,9 +552,9 @@ result_t Url::get_slashes(int32_t &retVal)
     return 0;
 }
 
-result_t Url::get_auth(std::string &retVal)
+result_t Url::get_auth(qstring &retVal)
 {
-    std::string str;
+    qstring str;
 
     encoding_base::encodeURIComponent(m_username.c_str(), str);
     retVal.append(str);
@@ -568,37 +568,37 @@ result_t Url::get_auth(std::string &retVal)
     return 0;
 }
 
-result_t Url::get_username(std::string &retVal)
+result_t Url::get_username(qstring &retVal)
 {
     retVal = m_username;
     return 0;
 }
 
-result_t Url::get_password(std::string &retVal)
+result_t Url::get_password(qstring &retVal)
 {
     retVal = m_password;
     return 0;
 }
 
-result_t Url::get_host(std::string &retVal)
+result_t Url::get_host(qstring &retVal)
 {
     retVal.append(m_host);
     return 0;
 }
 
-result_t Url::get_hostname(std::string &retVal)
+result_t Url::get_hostname(qstring &retVal)
 {
     retVal = m_hostname;
     return 0;
 }
 
-result_t Url::get_port(std::string &retVal)
+result_t Url::get_port(qstring &retVal)
 {
     retVal = m_port;
     return 0;
 }
 
-result_t Url::get_path(std::string &retVal)
+result_t Url::get_path(qstring &retVal)
 {
     retVal.append(m_pathname);
     get_search(retVal);
@@ -606,13 +606,13 @@ result_t Url::get_path(std::string &retVal)
     return 0;
 }
 
-result_t Url::get_pathname(std::string &retVal)
+result_t Url::get_pathname(qstring &retVal)
 {
     retVal = m_pathname;
     return 0;
 }
 
-result_t Url::get_search(std::string &retVal)
+result_t Url::get_search(qstring &retVal)
 {
     if (m_query.length() > 0)
     {
@@ -623,13 +623,13 @@ result_t Url::get_search(std::string &retVal)
     return 0;
 }
 
-result_t Url::get_query(std::string &retVal)
+result_t Url::get_query(qstring &retVal)
 {
     retVal = m_query;
     return 0;
 }
 
-result_t Url::get_hash(std::string &retVal)
+result_t Url::get_hash(qstring &retVal)
 {
     retVal = m_hash;
     return 0;

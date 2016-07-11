@@ -12,7 +12,7 @@
 namespace fibjs
 {
 
-result_t Message::get_value(std::string &retVal)
+result_t Message::get_value(qstring &retVal)
 {
     retVal = m_value;
     return 0;
@@ -147,7 +147,7 @@ result_t Message::get_response(obj_ptr<Message_base> &retVal)
     return 0;
 }
 
-result_t Message::get_lastError(std::string& retVal)
+result_t Message::get_lastError(qstring& retVal)
 {
     retVal = m_lastError;
     return 0;

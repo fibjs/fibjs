@@ -26,9 +26,9 @@ class XmlDocumentType_base : public XmlNode_base
 
 public:
     // XmlDocumentType_base
-    virtual result_t get_name(std::string& retVal) = 0;
-    virtual result_t get_publicId(std::string& retVal) = 0;
-    virtual result_t get_systemId(std::string& retVal) = 0;
+    virtual result_t get_name(qstring& retVal) = 0;
+    virtual result_t get_publicId(qstring& retVal) = 0;
+    virtual result_t get_systemId(qstring& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -74,7 +74,7 @@ namespace fibjs
 
     inline void XmlDocumentType_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlDocumentType_base);
@@ -86,7 +86,7 @@ namespace fibjs
 
     inline void XmlDocumentType_base::s_get_publicId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlDocumentType_base);
@@ -98,7 +98,7 @@ namespace fibjs
 
     inline void XmlDocumentType_base::s_get_systemId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlDocumentType_base);

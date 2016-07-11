@@ -23,7 +23,7 @@ class json_base : public object_base
 
 public:
     // json_base
-    static result_t encode(v8::Local<v8::Value> data, std::string& retVal);
+    static result_t encode(v8::Local<v8::Value> data, qstring& retVal);
     static result_t decode(const char* data, v8::Local<v8::Value>& retVal);
 
 public:
@@ -68,7 +68,7 @@ namespace fibjs
 
     inline void json_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(1, 1);
 

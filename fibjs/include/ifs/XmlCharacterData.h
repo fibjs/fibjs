@@ -26,10 +26,10 @@ class XmlCharacterData_base : public XmlNode_base
 
 public:
     // XmlCharacterData_base
-    virtual result_t get_data(std::string& retVal) = 0;
+    virtual result_t get_data(qstring& retVal) = 0;
     virtual result_t set_data(const char* newVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
-    virtual result_t substringData(int32_t offset, int32_t count, std::string& retVal) = 0;
+    virtual result_t substringData(int32_t offset, int32_t count, qstring& retVal) = 0;
     virtual result_t appendData(const char* arg) = 0;
     virtual result_t insertData(int32_t offset, const char* arg) = 0;
     virtual result_t deleteData(int32_t offset, int32_t count) = 0;
@@ -92,7 +92,7 @@ namespace fibjs
 
     inline void XmlCharacterData_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlCharacterData_base);
@@ -127,7 +127,7 @@ namespace fibjs
 
     inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_INSTANCE(XmlCharacterData_base);
         METHOD_ENTER(2, 2);

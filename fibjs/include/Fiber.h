@@ -23,7 +23,7 @@ class FiberBase: public Fiber_base,
 public:
     // Fiber_base
     virtual result_t join();
-    virtual result_t get_traceInfo(std::string& retVal);
+    virtual result_t get_traceInfo(qstring& retVal);
     virtual result_t get_caller(obj_ptr<Fiber_base> &retVal);
 
 public:
@@ -33,7 +33,7 @@ public:
     void set_caller(Fiber_base* caller);
 
 public:
-    std::string m_traceInfo;
+    qstring m_traceInfo;
     exlib::Event m_quit;
     weak_ptr<Fiber_base> m_caller;
 };

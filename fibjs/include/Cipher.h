@@ -22,7 +22,7 @@ public:
 
 public:
     // Cipher_base
-    virtual result_t get_name(std::string &retVal);
+    virtual result_t get_name(qstring &retVal);
     virtual result_t get_keySize(int32_t &retVal);
     virtual result_t get_ivSize(int32_t &retVal);
     virtual result_t get_blockSize(int32_t &retVal);
@@ -31,7 +31,7 @@ public:
     virtual result_t decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
 
 public:
-    result_t init(std::string &key, std::string &iv);
+    result_t init(qstring &key, qstring &iv);
 
 private:
     void reset();
@@ -40,8 +40,8 @@ private:
 private:
     const mbedtls_cipher_info_t *m_info;
     mbedtls_cipher_context_t m_ctx;
-    std::string m_key;
-    std::string m_iv;
+    qstring m_key;
+    qstring m_iv;
 };
 
 }

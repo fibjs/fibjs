@@ -52,7 +52,7 @@ public:
     virtual result_t setBit(Buffer_base* key, int32_t offset, int32_t value, int32_t& retVal) = 0;
     virtual result_t getBit(Buffer_base* key, int32_t offset, int32_t& retVal) = 0;
     virtual result_t exists(Buffer_base* key, bool& retVal) = 0;
-    virtual result_t type(Buffer_base* key, std::string& retVal) = 0;
+    virtual result_t type(Buffer_base* key, qstring& retVal) = 0;
     virtual result_t keys(const char* pattern, obj_ptr<List_base>& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
     virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
@@ -495,7 +495,7 @@ namespace fibjs
 
     inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_INSTANCE(Redis_base);
         METHOD_ENTER(1, 1);

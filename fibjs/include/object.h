@@ -279,7 +279,7 @@ public:
         return 0;
     }
 
-    virtual result_t toString(std::string &retVal)
+    virtual result_t toString(qstring &retVal)
     {
         retVal = Classinfo().name();
         return 0;
@@ -308,7 +308,7 @@ public:
     {
         Isolate* isolate = Isolate::current();
 
-        std::string strError = "Property \'";
+        qstring strError = "Property \'";
 
         strError += *v8::String::Utf8Value(property);
         strError += "\' is read-only.";
@@ -437,7 +437,7 @@ inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    std::string vr;
+    qstring vr;
 
     METHOD_INSTANCE(object_base);
     METHOD_ENTER(0, 0);

@@ -35,7 +35,7 @@ public:
     template<typename T>
     inline result_t map(T *o, result_t (T::*fn)(const char *name, Variant value))
     {
-        std::map<std::string, VariantEx>::iterator iter;
+        std::map<qstring, VariantEx>::iterator iter;
         result_t hr;
 
         for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
@@ -50,7 +50,7 @@ public:
 
 
 private:
-    std::map<std::string, VariantEx> m_datas;
+    std::map<qstring, VariantEx> m_datas;
 };
 
 } /* namespace fibjs */

@@ -26,7 +26,7 @@ public:
 
 public:
     // object_base
-    result_t toString(std::string &retVal);
+    result_t toString(qstring &retVal);
 
 public:
     // Url_base
@@ -34,29 +34,29 @@ public:
     virtual result_t format(v8::Local<v8::Object> args);
     virtual result_t resolve(const char *to, obj_ptr<Url_base> &retVal);
     virtual result_t normalize();
-    virtual result_t get_href(std::string &retVal);
-    virtual result_t get_protocol(std::string &retVal);
+    virtual result_t get_href(qstring &retVal);
+    virtual result_t get_protocol(qstring &retVal);
     virtual result_t get_slashes(int32_t &retVal);
-    virtual result_t get_auth(std::string &retVal);
-    virtual result_t get_username(std::string &retVal);
-    virtual result_t get_password(std::string &retVal);
-    virtual result_t get_host(std::string &retVal);
-    virtual result_t get_hostname(std::string &retVal);
-    virtual result_t get_port(std::string &retVal);
-    virtual result_t get_path(std::string &retVal);
-    virtual result_t get_pathname(std::string &retVal);
-    virtual result_t get_search(std::string &retVal);
-    virtual result_t get_query(std::string &retVal);
-    virtual result_t get_hash(std::string &retVal);
+    virtual result_t get_auth(qstring &retVal);
+    virtual result_t get_username(qstring &retVal);
+    virtual result_t get_password(qstring &retVal);
+    virtual result_t get_host(qstring &retVal);
+    virtual result_t get_hostname(qstring &retVal);
+    virtual result_t get_port(qstring &retVal);
+    virtual result_t get_path(qstring &retVal);
+    virtual result_t get_pathname(qstring &retVal);
+    virtual result_t get_search(qstring &retVal);
+    virtual result_t get_query(qstring &retVal);
+    virtual result_t get_hash(qstring &retVal);
 
 public:
-    static void parseHost(const char *&url, std::string &hostname, std::string &port);
+    static void parseHost(const char *&url, qstring &hostname, qstring &port);
 
 private:
     void clear();
 
     void parseProtocol(const char *&url);
-    void put_protocol(std::string str);
+    void put_protocol(qstring str);
 
     void parseAuth(const char *&url);
     void parseHost(const char *&url);
@@ -65,7 +65,7 @@ private:
     void parseHash(const char *&url);
 
 public:
-    inline static void decodeURI(const char *url, int32_t sz, std::string &retVal, bool space = false)
+    inline static void decodeURI(const char *url, int32_t sz, qstring &retVal, bool space = false)
     {
         if (sz < 0)
             sz = (int32_t) qstrlen(url);
@@ -77,7 +77,7 @@ public:
         const char *src;
         unsigned char ch;
         char *bstr;
-        std::string str;
+        qstring str;
 
         for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
         {
@@ -135,7 +135,7 @@ public:
         retVal = str;
     }
 
-    inline static void encodeURI(const char *url, int32_t sz, std::string &retVal,
+    inline static void encodeURI(const char *url, int32_t sz, qstring &retVal,
                                  const char *tab)
     {
         static const char *hex = "0123456789ABCDEF";
@@ -150,7 +150,7 @@ public:
         const char *src;
         unsigned char ch;
         char *bstr;
-        std::string str;
+        qstring str;
 
         for (len = 0, src = url, l = sz; l > 0; len++, l--)
         {
@@ -180,17 +180,17 @@ public:
     }
 
 public:
-    std::string m_protocol;
+    qstring m_protocol;
     bool m_slashes;
     bool m_defslashes;
-    std::string m_username;
-    std::string m_password;
-    std::string m_host;
-    std::string m_hostname;
-    std::string m_port;
-    std::string m_pathname;
-    std::string m_query;
-    std::string m_hash;
+    qstring m_username;
+    qstring m_password;
+    qstring m_host;
+    qstring m_hostname;
+    qstring m_port;
+    qstring m_pathname;
+    qstring m_query;
+    qstring m_hash;
     bool m_ipv6;
 };
 

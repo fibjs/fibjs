@@ -119,7 +119,7 @@ result_t FiberBase::join()
     return 0;
 }
 
-result_t FiberBase::get_traceInfo(std::string& retVal)
+result_t FiberBase::get_traceInfo(qstring& retVal)
 {
     if (JSFiber::current() == this)
         retVal = traceInfo(300);

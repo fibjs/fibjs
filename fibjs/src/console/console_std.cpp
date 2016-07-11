@@ -177,7 +177,7 @@ result_t std_logger::write(AsyncEvent *ac)
 
     while ((p1 = m_workinglogs.getHead()) != 0)
     {
-        std::string txt;
+        qstring txt;
         if (p1->m_priority == console_base::_NOTICE)
             txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";
         else if (p1->m_priority == console_base::_WARN)

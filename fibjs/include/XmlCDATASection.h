@@ -23,7 +23,7 @@ public:
     {
     }
 
-    XmlCDATASection(XmlDocument_base *document, std::string &data):
+    XmlCDATASection(XmlDocument_base *document, qstring &data):
         XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE), m_data(data)
     {
     }
@@ -36,13 +36,13 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(std::string &retVal);
+    virtual result_t toString(qstring &retVal);
 
 public:
     // XmlNode_base
     virtual result_t get_nodeType(int32_t &retVal);
-    virtual result_t get_nodeName(std::string &retVal);
-    virtual result_t get_nodeValue(std::string &retVal);
+    virtual result_t get_nodeName(qstring &retVal);
+    virtual result_t get_nodeValue(qstring &retVal);
     virtual result_t set_nodeValue(const char *newVal);
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal);
     virtual result_t get_parentNode(obj_ptr<XmlNode_base> &retVal);
@@ -54,8 +54,8 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal);
     virtual result_t normalize();
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t lookupPrefix(const char *namespaceURI, std::string &retVal);
-    virtual result_t lookupNamespaceURI(const char *prefix, std::string &retVal);
+    virtual result_t lookupPrefix(const char *namespaceURI, qstring &retVal);
+    virtual result_t lookupNamespaceURI(const char *prefix, qstring &retVal);
     virtual result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t insertAfter(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
@@ -64,10 +64,10 @@ public:
 
 public:
     // XmlCharacterData_base
-    virtual result_t get_data(std::string &retVal);
+    virtual result_t get_data(qstring &retVal);
     virtual result_t set_data(const char *newVal);
     virtual result_t get_length(int32_t &retVal);
-    virtual result_t substringData(int32_t offset, int32_t count, std::string &retVal);
+    virtual result_t substringData(int32_t offset, int32_t count, qstring &retVal);
     virtual result_t appendData(const char *arg);
     virtual result_t insertData(int32_t offset, const char *arg);
     virtual result_t deleteData(int32_t offset, int32_t count);

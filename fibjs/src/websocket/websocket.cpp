@@ -56,7 +56,7 @@ result_t websocket_base::connect(const char* url, const char* origin,
 			for (i = 0; i < (int32_t)sizeof(keys); i ++)
 				keys[i] = (char)rand();
 
-			std::string key;
+			qstring key;
 			baseEncode(
 			    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
 			    6, (const char*)&keys, sizeof(keys), key);
@@ -66,7 +66,7 @@ result_t websocket_base::connect(const char* url, const char* origin,
 			key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
 			unsigned char output[20];
-			mbedtls_sha1((const unsigned char*)key.data(), key.size(), output);
+			mbedtls_sha1((const unsigned char*)key.c_str(), key.length(), output);
 
 			baseEncode(
 			    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
@@ -120,12 +120,12 @@ result_t websocket_base::connect(const char* url, const char* origin,
 		}
 
 	private:
-		std::string m_url;
-		std::string m_origin;
+		qstring m_url;
+		qstring m_origin;
 		obj_ptr<Stream_base>& m_retVal;
 		obj_ptr<HttpResponse_base> m_httprep;
 		obj_ptr<Map> m_headers;
-		std::string m_accept;
+		qstring m_accept;
 	};
 
 	if (!ac)

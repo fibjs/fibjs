@@ -72,11 +72,12 @@ typedef int32_t SOCKET;
 #define MSG_NOSIGNAL 0
 #endif
 
+#include "qstring.h"
+
 #include <v8/include/v8.h>
 #include "obj_ptr.h"
 #include <Isolate.h>
 
-#include <string>
 #include <math.h>
 #include <vector>
 
@@ -95,7 +96,6 @@ typedef int32_t SOCKET;
 #endif
 #endif
 
-#include "qstring.h"
 #include "date.h"
 #include "Variant.h"
 
@@ -374,9 +374,9 @@ public:
         return m_v;
     }
 
-    std::string toString() const
+    qstring toString() const
     {
-        return std::string(m_v, tmp->length());
+        return qstring(m_v, tmp->length());
     }
 
 private:
@@ -400,7 +400,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, a
     return GetArgumentValue(v, n, bStrict);
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, std::string &n, bool bStrict = false)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, qstring &n, bool bStrict = false)
 {
     arg_string str;
 
@@ -412,7 +412,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, std::string &n, bool bS
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, std::string &n, bool bStrict = false)
+inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, qstring &n, bool bStrict = false)
 {
     return GetArgumentValue(v, n, bStrict);
 }
@@ -742,7 +742,7 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, int64_t v)
     return v8::Number::New(isolate, (double) v);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, std::string &str)
+inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, qstring &str)
 {
     return v8::String::NewFromUtf8(isolate, str.c_str(),
                                    v8::String::kNormalString, (int32_t) str.length());
@@ -826,11 +826,11 @@ inline result_t SocketError()
 #endif
 }
 
-std::string traceInfo(int32_t deep);
-std::string getResultMessage(result_t hr);
+qstring traceInfo(int32_t deep);
+qstring getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
 void ReportException(TryCatch &try_catch, result_t hr);
-std::string GetException(TryCatch &try_catch, result_t hr);
+qstring GetException(TryCatch &try_catch, result_t hr);
 result_t throwSyntaxError(TryCatch &try_catch);
 
 #ifdef _WIN32
@@ -862,13 +862,13 @@ inline bool isUrlSlash(char ch)
     return ch == '/';
 }
 
-void asyncLog(int32_t priority, std::string msg);
+void asyncLog(int32_t priority, qstring msg);
 
 inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 {
     if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_PENDDING)
     {
-        std::string str = file;
+        qstring str = file;
         char tmp[64];
 
         sprintf(tmp, ":%d ", line);
@@ -888,10 +888,10 @@ inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 
 #define DEPRECATED_SOON(name) \
     {static bool once = false; \
-        if(!once){once = true; std::string str(name); str.append(" is deprecated and will soon be removed."); \
+        if(!once){once = true; qstring str(name); str.append(" is deprecated and will soon be removed."); \
          asyncLog(4, str + traceInfo(16));}}
 
-inline std::string niceSize(intptr_t sz)
+inline qstring niceSize(intptr_t sz)
 {
     char buf[64];
     double num = (double)sz;
@@ -907,13 +907,13 @@ inline std::string niceSize(intptr_t sz)
     else
         cnt = sprintf(buf, "%.1f GB", num / (1024 * 1024 * 1024));
 
-    return std::string(buf, cnt);
+    return qstring(buf, cnt);
 }
 
-inline std::string dump_str(std::string str)
+inline qstring dump_str(qstring str)
 {
     static const char hexs[] = "0123456789abcdef";
-    std::string strHex;
+    qstring strHex;
     int32_t i;
 
     for (i = 0; i < (int32_t)str.length(); i ++)

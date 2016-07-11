@@ -124,13 +124,13 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> ks = keys->Get(i);
-        std::string v;
+        qstring v;
 
         hr = GetArgumentValue(mimes->Get(ks), v);
         if (hr < 0)
             return CHECK_ERROR(hr);
 
-        m_mimes.insert(std::pair<std::string, std::string>(*v8::String::Utf8Value(ks), v));
+        m_mimes.insert(std::pair<qstring, qstring>(*v8::String::Utf8Value(ks), v));
     }
 
     return 0;
@@ -159,13 +159,13 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL)
             {
-                std::string str = hdr.string();
+                qstring str = hdr.string();
 
                 if (qstristr(str.c_str(), "gzip"))
                     m_gzip = true;
             }
 
-            std::string value;
+            qstring value;
 
             m_req->get_value(value);
 
@@ -198,7 +198,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (pThis->m_req->firstHeader("If-Modified-Since",
                                           v) != CALL_RETURN_NULL)
             {
-                std::string str = v.string();
+                qstring str = v.string();
                 pThis->m_time.parse(str.c_str(), (int32_t) str.length());
 
                 pThis->set(check);
@@ -235,16 +235,16 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         static int32_t open(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
-            std::string ext;
+            qstring ext;
 
             path_base::extname(pThis->m_url.c_str(), ext);
 
             if (ext.length() > 0)
             {
                 const char *pKey = ext.c_str() + 1;
-                std::map<std::string, std::string> &_mimes = pThis->m_pThis->m_mimes;
+                std::map<qstring, qstring> &_mimes = pThis->m_pThis->m_mimes;
 
-                std::map<std::string, std::string>::iterator it = _mimes.find(pKey);
+                std::map<qstring, qstring>::iterator it = _mimes.find(pKey);
 
                 if (it != _mimes.end())
                     pThis->m_rep->addHeader("Content-Type", it->second);
@@ -269,7 +269,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
             date_t d;
-            std::string str;
+            qstring str;
 
             pThis->m_stat->get_mtime(d);
 
@@ -304,8 +304,8 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<HttpResponse_base> m_rep;
         obj_ptr<File_base> m_file;
         obj_ptr<Stat_base> m_stat;
-        std::string m_url;
-        std::string m_path;
+        qstring m_url;
+        qstring m_path;
         date_t m_time;
         bool m_gzip;
     };

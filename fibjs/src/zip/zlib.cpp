@@ -7,6 +7,7 @@
 
 #include "ifs/zlib.h"
 #include "Buffer.h"
+#include "StringBuffer.h"
 #include <zlib/include/zlib.h>
 #include <sstream>
 
@@ -31,8 +32,8 @@ public:
     result_t process(Buffer_base *data, obj_ptr<Buffer_base> &retVal)
     {
         unsigned char out[CHUNK];
-        std::string strBuf;
-        std::stringstream outBuf;
+        qstring strBuf;
+        StringBuffer outBuf;
         int32_t err;
 
         err = init();
@@ -56,7 +57,7 @@ public:
                 return CHECK_ERROR(Runtime::setError(zError(err)));
             }
 
-            outBuf.write((const char *) out, CHUNK - strm.avail_out);
+            outBuf.append((const char *) out, CHUNK - strm.avail_out);
         }
         while (strm.avail_out == 0 || !fin());
 
@@ -99,8 +100,8 @@ public:
                     return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
-                    std::string((const char *) pThis->out,
-                                CHUNK - pThis->m_pThis->strm.avail_out));
+                    qstring((const char *) pThis->out,
+                            CHUNK - pThis->m_pThis->strm.avail_out));
 
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
             }
@@ -124,7 +125,7 @@ public:
         if (err != Z_OK)
             return CHECK_ERROR(Runtime::setError(zError(err)));
 
-        std::string strBuf;
+        qstring strBuf;
 
         data->toString(strBuf);
 
@@ -191,8 +192,8 @@ public:
                     return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
-                    std::string((const char *) pThis->out,
-                                CHUNK - pThis->m_pThis->strm.avail_out));
+                    qstring((const char *) pThis->out,
+                            CHUNK - pThis->m_pThis->strm.avail_out));
 
                 pThis->set(write_ok);
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
@@ -232,7 +233,7 @@ public:
             obj_ptr<Stream_base> m_stm;
             unsigned char out[CHUNK];
             obj_ptr<Buffer_base> m_buffer;
-            std::string m_strBuf;
+            qstring m_strBuf;
         };
 
         int32_t err;

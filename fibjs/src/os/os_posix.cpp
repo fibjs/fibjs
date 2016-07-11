@@ -19,7 +19,7 @@
 namespace fibjs
 {
 
-result_t os_base::get_type(std::string &retVal)
+result_t os_base::get_type(qstring &retVal)
 {
     struct utsname info;
 
@@ -29,7 +29,7 @@ result_t os_base::get_type(std::string &retVal)
     return 0;
 }
 
-result_t os_base::get_version(std::string &retVal)
+result_t os_base::get_version(qstring &retVal)
 {
     struct utsname info;
 
@@ -39,7 +39,7 @@ result_t os_base::get_version(std::string &retVal)
     return 0;
 }
 
-result_t os_base::get_EOL(std::string& retVal)
+result_t os_base::get_EOL(qstring& retVal)
 {
     retVal.assign("\n", 1);
     return 0;
@@ -114,7 +114,7 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
     return 0;
 }
 
-result_t process_base::cwd(std::string &retVal)
+result_t process_base::cwd(qstring &retVal)
 {
 
 #ifdef PATH_MAX

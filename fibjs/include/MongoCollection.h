@@ -74,8 +74,8 @@ private:
 
 private:
     weak_ptr<MongoDB> m_db;
-    std::string m_ns;
-    std::string m_name;
+    qstring m_ns;
+    qstring m_name;
 };
 
 } /* namespace fibjs */

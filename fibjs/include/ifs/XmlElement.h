@@ -28,22 +28,22 @@ class XmlElement_base : public XmlNode_base
 
 public:
     // XmlElement_base
-    virtual result_t get_namespaceURI(std::string& retVal) = 0;
-    virtual result_t get_prefix(std::string& retVal) = 0;
+    virtual result_t get_namespaceURI(qstring& retVal) = 0;
+    virtual result_t get_prefix(qstring& retVal) = 0;
     virtual result_t set_prefix(const char* newVal) = 0;
-    virtual result_t get_localName(std::string& retVal) = 0;
-    virtual result_t get_tagName(std::string& retVal) = 0;
-    virtual result_t get_id(std::string& retVal) = 0;
+    virtual result_t get_localName(qstring& retVal) = 0;
+    virtual result_t get_tagName(qstring& retVal) = 0;
+    virtual result_t get_id(qstring& retVal) = 0;
     virtual result_t set_id(const char* newVal) = 0;
-    virtual result_t get_textContent(std::string& retVal) = 0;
+    virtual result_t get_textContent(qstring& retVal) = 0;
     virtual result_t set_textContent(const char* newVal) = 0;
-    virtual result_t get_innerHTML(std::string& retVal) = 0;
+    virtual result_t get_innerHTML(qstring& retVal) = 0;
     virtual result_t set_innerHTML(const char* newVal) = 0;
-    virtual result_t get_className(std::string& retVal) = 0;
+    virtual result_t get_className(qstring& retVal) = 0;
     virtual result_t set_className(const char* newVal) = 0;
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
-    virtual result_t getAttribute(const char* name, std::string& retVal) = 0;
-    virtual result_t getAttributeNS(const char* namespaceURI, const char* localName, std::string& retVal) = 0;
+    virtual result_t getAttribute(const char* name, qstring& retVal) = 0;
+    virtual result_t getAttributeNS(const char* namespaceURI, const char* localName, qstring& retVal) = 0;
     virtual result_t setAttribute(const char* name, const char* value) = 0;
     virtual result_t setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) = 0;
     virtual result_t removeAttribute(const char* name) = 0;
@@ -140,7 +140,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_namespaceURI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -152,7 +152,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_prefix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -175,7 +175,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_localName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -187,7 +187,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_tagName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -199,7 +199,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_id(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -222,7 +222,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_textContent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -245,7 +245,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_innerHTML(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -268,7 +268,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_get_className(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
@@ -303,7 +303,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_getAttribute(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(1, 1);
@@ -317,7 +317,7 @@ namespace fibjs
 
     inline void XmlElement_base::s_getAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(2, 2);

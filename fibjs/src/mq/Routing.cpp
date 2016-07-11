@@ -40,7 +40,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (msg == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    std::string value;
+    qstring value;
 
     msg->get_value(value);
 

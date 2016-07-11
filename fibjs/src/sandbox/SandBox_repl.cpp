@@ -16,7 +16,7 @@
 namespace fibjs
 {
 
-void output(int32_t priority, std::string msg)
+void output(int32_t priority, qstring msg)
 {
     if (priority == console_base::_ERROR)
         msg = logger::error() + msg + COLOR_RESET;
@@ -27,10 +27,10 @@ void output(int32_t priority, std::string msg)
     asyncLog(console_base::_PRINT, msg);
 }
 
-bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
+bool repl_command(qstring &line, v8::Local<v8::Array> cmds)
 {
     _parser p(line);
-    std::string cmd_word;
+    qstring cmd_word;
     result_t hr;
     int32_t len = cmds->Length();
     int32_t i;
@@ -40,9 +40,9 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
 
     if (!qstrcmp(cmd_word.c_str(), ".help"))
     {
-        std::string help_str = ".exit     Exit the repl\n"
-                               ".help     Show repl options\n"
-                               ".info     Show fibjs build information";
+        qstring help_str = ".exit     Exit the repl\n"
+                           ".help     Show repl options\n"
+                           ".info     Show fibjs build information";
 
         Isolate* isolate = Isolate::current();
 
@@ -50,8 +50,8 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
         {
             v8::Local<v8::Value> v = cmds->Get(i);
             v8::Local<v8::Object> o;
-            std::string cmd;
-            std::string help;
+            qstring cmd;
+            qstring help;
 
             hr = GetArgumentValue(v, o, true);
             if (hr >= 0)
@@ -93,7 +93,7 @@ bool repl_command(std::string &line, v8::Local<v8::Array> cmds)
     {
         v8::Local<v8::Value> v = cmds->Get(i);
         v8::Local<v8::Object> o;
-        std::string cmd;
+        qstring cmd;
         v8::Local<v8::Function> exec;
 
         hr = GetArgumentValue(v, o, true);
@@ -147,7 +147,7 @@ extern std_logger* s_std;
 result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 {
     result_t hr = 0;
-    std::string buf;
+    qstring buf;
     v8::Local<v8::Value> v, v1;
     Isolate* isolate = Isolate::current();
     v8::Local<v8::String> strFname = isolate->NewFromUtf8("repl", 4);
@@ -175,7 +175,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 
         v = v1;
 
-        std::string line;
+        qstring line;
         if (out)
         {
             output(console_base::_PRINT, buf.empty() ? "> " : " ... ");

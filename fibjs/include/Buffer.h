@@ -16,7 +16,7 @@ public:
     {
     }
 
-    Buffer(const std::string &strData) :
+    Buffer(const qstring &strData) :
         m_data(strData)
     {
         extMemory((int32_t)m_data.length());
@@ -96,11 +96,11 @@ public:
     virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert);
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal);
-    virtual result_t hex(std::string &retVal);
-    virtual result_t base64(std::string &retVal);
+    virtual result_t hex(qstring &retVal);
+    virtual result_t base64(qstring &retVal);
     virtual result_t toArray(v8::Local<v8::Array>& retVal);
-    virtual result_t toString(const char* codec, int32_t offset, int32_t end, std::string &retVal);
-    virtual result_t toString(std::string &retVal);
+    virtual result_t toString(const char* codec, int32_t offset, int32_t end, qstring &retVal);
+    virtual result_t toString(qstring &retVal);
 
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 
@@ -131,7 +131,7 @@ private:
         {
             int32_t i;
             result_t hr;
-            std::string str;
+            qstring str;
 
             str.resize(sz);
             for (i = 0; i < sz; i ++)
@@ -154,7 +154,7 @@ private:
     }
 
 private:
-    std::string m_data;
+    qstring m_data;
 };
 
 }

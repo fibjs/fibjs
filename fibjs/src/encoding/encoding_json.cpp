@@ -26,7 +26,7 @@ struct _from {
 };
 
 inline result_t _jsonEncode(v8::Local<v8::Value> data,
-                            std::string &retVal)
+                            qstring &retVal)
 {
 	Isolate* isolate = Isolate::current();
 	v8::Local<v8::Object> _json;
@@ -54,7 +54,7 @@ inline result_t _jsonEncode(v8::Local<v8::Value> data,
 }
 
 result_t json_base::encode(v8::Local<v8::Value> data,
-                           std::string &retVal)
+                           qstring &retVal)
 {
 	return _jsonEncode(data, retVal);
 }
@@ -180,7 +180,7 @@ inline result_t _jsonDecode(const char *data,
 
 			int32_t length = position_ - beg_pos;
 			double number;
-			std::string chars(source_ + beg_pos, length);
+			qstring chars(source_ + beg_pos, length);
 
 			number = atof(chars.c_str());
 			SkipWhitespace();
@@ -399,7 +399,7 @@ inline result_t _jsonDecode(const char *data,
 
 		result_t ReportUnexpectedCharacter()
 		{
-			std::string s = "Unexpected token ";
+			qstring s = "Unexpected token ";
 			s.append(1, c0_);
 			return CHECK_ERROR(Runtime::setError(s));
 		}
@@ -428,13 +428,13 @@ result_t json_base::decode(const char *data,
 	return _jsonDecode(data, retVal);
 }
 
-result_t encoding_base::jsstr(const char *str, bool json, std::string & retVal)
+result_t encoding_base::jsstr(const char *str, bool json, qstring & retVal)
 {
 	const char *p;
 	char *p1;
 	int32_t len;
 	char ch;
-	std::string s;
+	qstring s;
 
 	if (!*str)
 		return 0;

@@ -23,7 +23,7 @@ class Stat_base : public object_base
 
 public:
     // Stat_base
-    virtual result_t get_name(std::string& retVal) = 0;
+    virtual result_t get_name(qstring& retVal) = 0;
     virtual result_t get_size(int64_t& retVal) = 0;
     virtual result_t get_mode(int32_t& retVal) = 0;
     virtual result_t get_mtime(date_t& retVal) = 0;
@@ -110,7 +110,7 @@ namespace fibjs
 
     inline void Stat_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Stat_base);

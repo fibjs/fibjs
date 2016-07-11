@@ -31,7 +31,7 @@ public:
     }
 
 public:
-    virtual result_t toString(std::string &retVal)
+    virtual result_t toString(qstring &retVal)
     {
         char buf[25];
 
@@ -43,7 +43,7 @@ public:
 
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
     {
-        std::string str;
+        qstring str;
 
         toString(str);
         retVal = holder()->NewFromUtf8(str);

@@ -22,7 +22,7 @@ public:
     }
 
 public:
-    void setField(int32_t i, std::string &s)
+    void setField(int32_t i, qstring &s)
     {
         m_fields[i] = s;
     }
@@ -38,7 +38,7 @@ public:
         return -1;
     }
 
-    std::string &name(int32_t i)
+    qstring &name(int32_t i)
     {
         return m_fields[i];
     }
@@ -54,7 +54,7 @@ public:
 
 
 private:
-    std::vector<std::string> m_fields;
+    std::vector<qstring> m_fields;
 };
 
 }

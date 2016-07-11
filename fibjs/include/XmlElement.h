@@ -55,13 +55,13 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(std::string &retVal);
+    virtual result_t toString(qstring &retVal);
 
 public:
     // XmlNode_base
     virtual result_t get_nodeType(int32_t &retVal);
-    virtual result_t get_nodeName(std::string &retVal);
-    virtual result_t get_nodeValue(std::string &retVal);
+    virtual result_t get_nodeName(qstring &retVal);
+    virtual result_t get_nodeValue(qstring &retVal);
     virtual result_t set_nodeValue(const char *newVal);
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal);
     virtual result_t get_parentNode(obj_ptr<XmlNode_base> &retVal);
@@ -73,8 +73,8 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal);
     virtual result_t normalize();
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t lookupPrefix(const char *namespaceURI, std::string &retVal);
-    virtual result_t lookupNamespaceURI(const char *prefix, std::string &retVal);
+    virtual result_t lookupPrefix(const char *namespaceURI, qstring &retVal);
+    virtual result_t lookupNamespaceURI(const char *prefix, qstring &retVal);
     virtual result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t insertAfter(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
@@ -83,22 +83,22 @@ public:
 
 public:
     // XmlElement_base
-    virtual result_t get_namespaceURI(std::string &retVal);
-    virtual result_t get_prefix(std::string &retVal);
+    virtual result_t get_namespaceURI(qstring &retVal);
+    virtual result_t get_prefix(qstring &retVal);
     virtual result_t set_prefix(const char *newVal);
-    virtual result_t get_localName(std::string &retVal);
-    virtual result_t get_tagName(std::string &retVal);
-    virtual result_t get_id(std::string &retVal);
+    virtual result_t get_localName(qstring &retVal);
+    virtual result_t get_tagName(qstring &retVal);
+    virtual result_t get_id(qstring &retVal);
     virtual result_t set_id(const char *newVal);
-    virtual result_t get_textContent(std::string &retVal);
+    virtual result_t get_textContent(qstring &retVal);
     virtual result_t set_textContent(const char *newVal);
-    virtual result_t get_innerHTML(std::string &retVal);
+    virtual result_t get_innerHTML(qstring &retVal);
     virtual result_t set_innerHTML(const char *newVal);
-    virtual result_t get_className(std::string &retVal);
+    virtual result_t get_className(qstring &retVal);
     virtual result_t set_className(const char *newVal);
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base> &retVal);
-    virtual result_t getAttribute(const char *name, std::string &retVal);
-    virtual result_t getAttributeNS(const char *namespaceURI, const char *localName, std::string &retVal);
+    virtual result_t getAttribute(const char *name, qstring &retVal);
+    virtual result_t getAttributeNS(const char *namespaceURI, const char *localName, qstring &retVal);
     virtual result_t setAttribute(const char *name, const char *value);
     virtual result_t setAttributeNS(const char *namespaceURI, const char *qualifiedName, const char *value);
     virtual result_t removeAttribute(const char *name);
@@ -109,7 +109,7 @@ public:
     virtual result_t getElementsByTagNameNS(const char *namespaceURI, const char *localName, obj_ptr<XmlNodeList_base> &retVal);
 
 public:
-    result_t get_defaultNamespace(std::string &def_ns)
+    result_t get_defaultNamespace(qstring &def_ns)
     {
         if (m_prefix.empty())
         {
@@ -195,7 +195,7 @@ public:
             }
             else if (childs[i]->m_type == xml_base::_TEXT_NODE)
             {
-                std::string value;
+                qstring value;
                 childs[i]->m_node->get_nodeValue(value);
                 retVal.append(value);
             }
@@ -228,14 +228,14 @@ public:
             }
     }
 
-    void fix_prefix(const char *namespaceURI, std::string &prefix);
+    void fix_prefix(const char *namespaceURI, qstring &prefix);
 
 private:
     bool m_isXml;
-    std::string m_tagName;
-    std::string m_localName;
-    std::string m_prefix;
-    std::string m_namespaceURI;
+    qstring m_tagName;
+    qstring m_localName;
+    qstring m_prefix;
+    qstring m_namespaceURI;
     obj_ptr<XmlNamedNodeMap> m_attrs;
 };
 

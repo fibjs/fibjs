@@ -38,16 +38,16 @@ public:
 
 public:
     // BufferedStream_base
-    virtual result_t readText(int32_t size, std::string &retVal, AsyncEvent *ac);
-    virtual result_t readLine(int32_t maxlen, std::string &retVal, AsyncEvent *ac);
+    virtual result_t readText(int32_t size, qstring &retVal, AsyncEvent *ac);
+    virtual result_t readLine(int32_t maxlen, qstring &retVal, AsyncEvent *ac);
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array> &retVal);
-    virtual result_t readUntil(const char *mk, int32_t maxlen, std::string &retVal, AsyncEvent *ac);
+    virtual result_t readUntil(const char *mk, int32_t maxlen, qstring &retVal, AsyncEvent *ac);
     virtual result_t writeText(const char *txt, AsyncEvent *ac);
     virtual result_t writeLine(const char *txt, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
-    virtual result_t get_charset(std::string &retVal);
+    virtual result_t get_charset(qstring &retVal);
     virtual result_t set_charset(const char *newVal);
-    virtual result_t get_EOL(std::string &retVal);
+    virtual result_t get_EOL(qstring &retVal);
     virtual result_t set_EOL(const char *newVal);
 
 public:
@@ -59,7 +59,7 @@ public:
                 m_strbuf.append(m_buf);
             else
             {
-                std::string s1(m_buf.substr(m_pos, n));
+                qstring s1(m_buf.substr(m_pos, n));
                 m_strbuf.append(s1);
             }
             m_pos += n;
@@ -68,10 +68,10 @@ public:
 
 public:
     obj_ptr<Stream_base> m_stm;
-    std::string m_buf;
+    qstring m_buf;
     int32_t m_pos;
     int32_t m_temp;
-    std::string m_eol;
+    qstring m_eol;
     StringBuffer m_strbuf;
     encoding_iconv m_iconv;
 };

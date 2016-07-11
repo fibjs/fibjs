@@ -31,9 +31,9 @@ public:
     static result_t _new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_family(int32_t& retVal) = 0;
     virtual result_t get_type(int32_t& retVal) = 0;
-    virtual result_t get_remoteAddress(std::string& retVal) = 0;
+    virtual result_t get_remoteAddress(qstring& retVal) = 0;
     virtual result_t get_remotePort(int32_t& retVal) = 0;
-    virtual result_t get_localAddress(std::string& retVal) = 0;
+    virtual result_t get_localAddress(qstring& retVal) = 0;
     virtual result_t get_localPort(int32_t& retVal) = 0;
     virtual result_t connect(const char* host, int32_t port, AsyncEvent* ac) = 0;
     virtual result_t bind(int32_t port, bool allowIPv4) = 0;
@@ -142,7 +142,7 @@ namespace fibjs
 
     inline void Socket_base::s_get_remoteAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Socket_base);
@@ -166,7 +166,7 @@ namespace fibjs
 
     inline void Socket_base::s_get_localAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Socket_base);

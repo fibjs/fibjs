@@ -129,8 +129,8 @@ public:
         td->m_now = NULL;
 
         QuickArray<obj_ptr<_case> > stack;
-        QuickArray<std::string> names;
-        QuickArray<std::string> msgs;
+        QuickArray<qstring> names;
+        QuickArray<qstring> msgs;
         int32_t i, j;
         int32_t oldlevel = 0;
         int32_t cnt = 0, errcnt = 0;
@@ -166,7 +166,7 @@ public:
 
             if (p->m_pos < (int32_t) p->m_subs.size())
             {
-                std::string str(stack.size() * 2, ' ');
+                qstring str(stack.size() * 2, ' ');
 
                 p1 = p->m_subs[p->m_pos++];
 
@@ -221,7 +221,7 @@ public:
                             ReportException(try_catch, 0);
                         else if (loglevel == console_base::_ERROR)
                         {
-                            std::string str1(buf);
+                            qstring str1(buf);
 
                             for (i = 1; i < (int32_t)stack.size(); i ++)
                             {
@@ -338,7 +338,7 @@ public:
     }
 
 private:
-    std::string m_name;
+    qstring m_name;
     v8::Persistent<v8::Function> m_block;
     QuickArray<obj_ptr<_case> > m_subs;
     QuickArray<v8::Persistent<v8::Function> > m_hooks[4];

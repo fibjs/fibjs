@@ -52,23 +52,23 @@ private:
     {
     public:
         date_t insert;
-        std::map<std::string, void *>::iterator m_prev, m_next, m_prev1, m_next1;
+        std::map<qstring, void *>::iterator m_prev, m_next, m_prev1, m_next1;
     };
 
-    inline std::map<std::string, void *>::iterator _generalize(std::map<std::string, _linkedNode>::iterator it)
+    inline std::map<qstring, void *>::iterator _generalize(std::map<qstring, _linkedNode>::iterator it)
     {
-        return *((std::map<std::string, void *>::iterator *) &it);
+        return *((std::map<qstring, void *>::iterator *) &it);
     }
 
-    inline std::map<std::string, _linkedNode>::iterator _instantiate(std::map<std::string, void *>::iterator it)
+    inline std::map<qstring, _linkedNode>::iterator _instantiate(std::map<qstring, void *>::iterator it)
     {
-        return *((std::map<std::string, _linkedNode>::iterator *) &it);
+        return *((std::map<qstring, _linkedNode>::iterator *) &it);
     }
 
-    void remove(std::map<std::string, _linkedNode>::iterator it)
+    void remove(std::map<qstring, _linkedNode>::iterator it)
     {
-        std::map<std::string, _linkedNode>::iterator prev = _instantiate(it->second.m_prev);
-        std::map<std::string, _linkedNode>::iterator next = _instantiate(it->second.m_next);
+        std::map<qstring, _linkedNode>::iterator prev = _instantiate(it->second.m_prev);
+        std::map<qstring, _linkedNode>::iterator next = _instantiate(it->second.m_next);
 
         if (prev != m_datas.end())
             prev->second.m_next = _generalize(next);
@@ -82,8 +82,8 @@ private:
 
         if (m_timeout > 0)
         {
-            std::map<std::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
-            std::map<std::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
+            std::map<qstring, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
+            std::map<qstring, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
 
             if (prev1 != m_datas.end())
                 prev1->second.m_next1 = _generalize(next1);
@@ -101,7 +101,7 @@ private:
         m_datas.erase(it);
     }
 
-    void insert(std::map<std::string, _linkedNode>::iterator it)
+    void insert(std::map<qstring, _linkedNode>::iterator it)
     {
         it->second.m_next = _generalize(m_begin_lru);
         it->second.m_prev = _generalize(m_datas.end());
@@ -127,12 +127,12 @@ private:
         }
     }
 
-    void update(std::map<std::string, _linkedNode>::iterator it)
+    void update(std::map<qstring, _linkedNode>::iterator it)
     {
         if (m_begin_lru != it)
         {
-            std::map<std::string, _linkedNode>::iterator prev = _instantiate(it->second.m_prev);
-            std::map<std::string, _linkedNode>::iterator next = _instantiate(it->second.m_next);
+            std::map<qstring, _linkedNode>::iterator prev = _instantiate(it->second.m_prev);
+            std::map<qstring, _linkedNode>::iterator next = _instantiate(it->second.m_next);
 
             if (prev != m_datas.end())
                 prev->second.m_next = _generalize(next);
@@ -156,12 +156,12 @@ private:
         }
     }
 
-    void update_time(std::map<std::string, _linkedNode>::iterator it)
+    void update_time(std::map<qstring, _linkedNode>::iterator it)
     {
         if (m_timeout > 0 && m_begin != it)
         {
-            std::map<std::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
-            std::map<std::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
+            std::map<qstring, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
+            std::map<qstring, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
 
             if (prev1 != m_datas.end())
                 prev1->second.m_next1 = _generalize(next1);
@@ -187,14 +187,14 @@ private:
 
     void cleanup();
 
-    std::map<std::string, _linkedNode> m_datas;
-    std::map<std::string, _linkedNode>::iterator m_begin_lru;
-    std::map<std::string, _linkedNode>::iterator m_end_lru;
+    std::map<qstring, _linkedNode> m_datas;
+    std::map<qstring, _linkedNode>::iterator m_begin_lru;
+    std::map<qstring, _linkedNode>::iterator m_end_lru;
 
-    std::map<std::string, _linkedNode>::iterator m_begin;
-    std::map<std::string, _linkedNode>::iterator m_end;
+    std::map<qstring, _linkedNode>::iterator m_begin;
+    std::map<qstring, _linkedNode>::iterator m_end;
 
-    std::map<std::string, obj_ptr<Event_base> > m_paddings;
+    std::map<qstring, obj_ptr<Event_base> > m_paddings;
 
     int32_t m_size;
     int32_t m_timeout;

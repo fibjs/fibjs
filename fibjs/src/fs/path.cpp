@@ -16,7 +16,7 @@ namespace fibjs
 DECLARE_MODULE(path);
 
 result_t path_base::basename(const char *path, const char *ext,
-                             std::string &retVal)
+                             qstring &retVal)
 {
     char ch;
     const char *p1 = path;
@@ -38,7 +38,7 @@ result_t path_base::basename(const char *path, const char *ext,
     return 0;
 }
 
-result_t path_base::extname(const char *path, std::string &retVal)
+result_t path_base::extname(const char *path, qstring &retVal)
 {
     char ch;
     const char *p1 = NULL;
@@ -65,7 +65,7 @@ result_t path_base::extname(const char *path, std::string &retVal)
     return 0;
 }
 
-result_t path_base::dirname(const char *path, std::string &retVal)
+result_t path_base::dirname(const char *path, qstring &retVal)
 {
     char ch;
     const char *p1 = path;
@@ -123,9 +123,9 @@ inline char fixChar(char ch)
     return isPathSlash(ch) ? PATH_SLASH : ch;
 }
 
-result_t path_base::normalize(const char *path, std::string &retVal)
+result_t path_base::normalize(const char *path, qstring &retVal)
 {
-    std::string str;
+    qstring str;
     const char *p1 = path;
     char *pstr;
     int32_t pos = 0;
@@ -244,9 +244,9 @@ result_t path_base::normalize(const char *path, std::string &retVal)
     return 0;
 }
 
-result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal)
+result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, qstring &retVal)
 {
-    std::string strBuffer;
+    qstring strBuffer;
     int32_t argc = args.Length();
     int32_t i;
 
@@ -259,7 +259,7 @@ result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, std::s
     return normalize(strBuffer.c_str(), retVal);
 }
 
-result_t path_base::fullpath(const char *path, std::string &retVal)
+result_t path_base::fullpath(const char *path, qstring &retVal)
 {
 #ifdef _WIN32
     wstring str = utf8to16String(path);
@@ -275,7 +275,7 @@ result_t path_base::fullpath(const char *path, std::string &retVal)
     if (isPathSlash(path[0]))
         return normalize(path, retVal);
 
-    std::string str;
+    qstring str;
 
     process_base::cwd(str);
     str.append(1, PATH_SLASH);
@@ -285,14 +285,14 @@ result_t path_base::fullpath(const char *path, std::string &retVal)
 #endif
 }
 
-result_t path_base::get_sep(std::string &retVal)
+result_t path_base::get_sep(qstring &retVal)
 {
     retVal.clear();
     retVal.append(1, PATH_SLASH);
     return 0;
 }
 
-result_t path_base::get_delimiter(std::string &retVal)
+result_t path_base::get_delimiter(qstring &retVal)
 {
     retVal.clear();
     retVal.append(1, PATH_DELIMITER);

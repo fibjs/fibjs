@@ -27,13 +27,13 @@ public:
     static result_t _new(const char* name, const char* value, v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t parse(const char* header) = 0;
     virtual result_t match(const char* url, bool& retVal) = 0;
-    virtual result_t get_name(std::string& retVal) = 0;
+    virtual result_t get_name(qstring& retVal) = 0;
     virtual result_t set_name(const char* newVal) = 0;
-    virtual result_t get_value(std::string& retVal) = 0;
+    virtual result_t get_value(qstring& retVal) = 0;
     virtual result_t set_value(const char* newVal) = 0;
-    virtual result_t get_domain(std::string& retVal) = 0;
+    virtual result_t get_domain(qstring& retVal) = 0;
     virtual result_t set_domain(const char* newVal) = 0;
-    virtual result_t get_path(std::string& retVal) = 0;
+    virtual result_t get_path(qstring& retVal) = 0;
     virtual result_t set_path(const char* newVal) = 0;
     virtual result_t get_expires(date_t& retVal) = 0;
     virtual result_t set_expires(date_t newVal) = 0;
@@ -102,7 +102,7 @@ namespace fibjs
 
     inline void HttpCookie_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);
@@ -125,7 +125,7 @@ namespace fibjs
 
     inline void HttpCookie_base::s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);
@@ -148,7 +148,7 @@ namespace fibjs
 
     inline void HttpCookie_base::s_get_domain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);
@@ -171,7 +171,7 @@ namespace fibjs
 
     inline void HttpCookie_base::s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);

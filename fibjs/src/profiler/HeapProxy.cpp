@@ -72,7 +72,7 @@ result_t HeapSnapshotProxy::save(const char* fname, AsyncEvent* ac)
 			return kContinue;
 		}
 
-		std::string result()
+		qstring result()
 		{
 			return m_buf.str();
 		}
@@ -115,7 +115,7 @@ result_t HeapGraphNodeProxy::get_type(int32_t& retVal)
 	return 0;
 }
 
-result_t HeapGraphNodeProxy::get_name(std::string& retVal)
+result_t HeapGraphNodeProxy::get_name(qstring& retVal)
 {
 	if (m_snapshot == 0)
 		return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -123,7 +123,7 @@ result_t HeapGraphNodeProxy::get_name(std::string& retVal)
 	return GetArgumentValue(m_node->GetName(), retVal);
 }
 
-result_t HeapGraphNodeProxy::get_description(std::string& retVal)
+result_t HeapGraphNodeProxy::get_description(qstring& retVal)
 {
 	HeapGraphNode::get_description(this, retVal);
 	return 0;
@@ -176,7 +176,7 @@ result_t HeapGraphEdgeProxy::get_type(int32_t& retVal)
 	return 0;
 }
 
-result_t HeapGraphEdgeProxy::get_name(std::string& retVal)
+result_t HeapGraphEdgeProxy::get_name(qstring& retVal)
 {
 	if (m_snapshot == 0)
 		return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -184,7 +184,7 @@ result_t HeapGraphEdgeProxy::get_name(std::string& retVal)
 	return GetArgumentValue(m_edge->GetName(), retVal);
 }
 
-result_t HeapGraphEdgeProxy::get_description(std::string& retVal)
+result_t HeapGraphEdgeProxy::get_description(qstring& retVal)
 {
 	HeapGraphEdge::get_description(this, retVal);
 	return 0;

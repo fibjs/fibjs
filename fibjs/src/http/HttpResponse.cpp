@@ -19,7 +19,7 @@ result_t HttpResponse_base::_new(obj_ptr<HttpResponse_base> &retVal, v8::Local<v
     return 0;
 }
 
-result_t HttpResponse::get_protocol(std::string &retVal)
+result_t HttpResponse::get_protocol(qstring &retVal)
 {
     return m_message->get_protocol(retVal);
 }
@@ -145,7 +145,7 @@ result_t HttpResponse::removeHeader(const char *name)
     return m_message->removeHeader(name);
 }
 
-result_t HttpResponse::get_value(std::string &retVal)
+result_t HttpResponse::get_value(qstring &retVal)
 {
     return m_message->get_value(retVal);
 }
@@ -175,7 +175,7 @@ result_t HttpResponse::set_result(Variant newVal)
     return m_message->set_result(newVal);
 }
 
-result_t HttpResponse::get_lastError(std::string& retVal)
+result_t HttpResponse::get_lastError(qstring& retVal)
 {
     return m_message->get_lastError(retVal);
 }
@@ -257,7 +257,7 @@ result_t HttpResponse::sendTo(Stream_base *stm, AsyncEvent *ac)
         {
             Variant v;
             obj_ptr<object_base> cookie;
-            std::string str;
+            qstring str;
 
             m_cookies->_indexed_getter(i, v);
             cookie = v.object();
@@ -273,7 +273,7 @@ result_t HttpResponse::sendTo(Stream_base *stm, AsyncEvent *ac)
     }
 
     int32_t pos = shortcut[m_status / 100 - 1] + m_status % 100;
-    std::string strCommand;
+    qstring strCommand;
 
     get_protocol(strCommand);
     strCommand.append(status_lines[pos], status_lines_size[pos]);
@@ -330,7 +330,7 @@ result_t HttpResponse::readFrom(Stream_base *stm, AsyncEvent *ac)
     public:
         obj_ptr<HttpResponse> m_pThis;
         obj_ptr<BufferedStream_base> m_stm;
-        std::string m_strLine;
+        qstring m_strLine;
     };
 
     if (!ac)
@@ -391,7 +391,7 @@ result_t HttpResponse::get_cookies(obj_ptr<List_base> &retVal)
         for (i = 0; i < len; i ++)
         {
             Variant v;
-            std::string str;
+            qstring str;
             obj_ptr<HttpCookie> cookie;
 
             headers->_indexed_getter(i, v);
@@ -445,7 +445,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
         {
             Variant v;
             obj_ptr<object_base> cookie;
-            std::string str;
+            qstring str;
 
             m_cookies->_indexed_getter(i, v);
             cookie = v.object();
@@ -461,7 +461,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
     }
 
     int32_t pos = shortcut[m_status / 100 - 1] + m_status % 100;
-    std::string strCommand;
+    qstring strCommand;
 
     get_protocol(strCommand);
     strCommand.append(status_lines[pos], status_lines_size[pos]);

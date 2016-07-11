@@ -73,7 +73,7 @@ result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
     mbedtls_pk_context *k = &((PKey *)(PKey_base *)key)->m_key;
     mbedtls_x509write_csr_set_key(&csr, k);
 
-    std::string buf;
+    qstring buf;
     buf.resize(mbedtls_pk_get_bitlen(k) * 8 + 128);
 
     ret = mbedtls_x509write_csr_pem(&csr, (unsigned char *)&buf[0], buf.length(),
@@ -96,7 +96,7 @@ result_t X509Req::load(Buffer_base *derReq)
 
     clear();
 
-    std::string csr;
+    qstring csr;
     derReq->toString(csr);
 
     ret = mbedtls_x509_csr_parse(&m_csr, (const unsigned char *)csr.c_str(),
@@ -124,7 +124,7 @@ result_t X509Req::load(const char *pemReq)
 result_t X509Req::loadFile(const char *filename)
 {
     result_t hr;
-    std::string data;
+    qstring data;
     int32_t ret;
 
     clear();
@@ -138,7 +138,7 @@ result_t X509Req::loadFile(const char *filename)
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    std::string buf;
+    qstring buf;
     buf.resize(8192);
 
     return 0;
@@ -147,12 +147,12 @@ result_t X509Req::loadFile(const char *filename)
 #define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----\n"
 #define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----\n"
 
-result_t X509Req::exportPem(std::string &retVal)
+result_t X509Req::exportPem(qstring &retVal)
 {
     if (m_csr.raw.len == 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    std::string buf;
+    qstring buf;
     size_t olen;
     int32_t ret;
 
@@ -179,7 +179,7 @@ result_t X509Req::exportDer(obj_ptr<Buffer_base> &retVal)
     return 0;
 }
 
-result_t X509Req::toString(std::string &retVal)
+result_t X509Req::toString(qstring &retVal)
 {
     return exportPem(retVal);
 }
@@ -200,7 +200,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNa
 
         while (!p.end())
         {
-            std::string word;
+            qstring word;
 
             p.skipSpace();
             p.getWord(word, ',');
@@ -246,10 +246,10 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t ret;
-    std::string subject;
+    qstring subject;
     mbedtls_pk_context *pk;
     int32_t hash;
-    std::string buf;
+    qstring buf;
     obj_ptr<X509Cert> cert;
 
     if (!ac)
@@ -311,7 +311,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         mbedtls_mpi_free(&serial);
 
         date_t d1, d2;
-        std::string s1, s2;
+        qstring s1, s2;
 
         hr = GetConfigValue(isolate->m_isolate, opts, "notBefore", d1);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
@@ -456,10 +456,10 @@ exit:
     return hr;
 }
 
-result_t X509Req::get_subject(std::string &retVal)
+result_t X509Req::get_subject(qstring &retVal)
 {
     int32_t ret;
-    std::string buf;
+    qstring buf;
 
     buf.resize(1024);
 

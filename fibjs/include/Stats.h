@@ -70,7 +70,7 @@ private:
 
 private:
     int32_t m_static, m_size;
-    std::vector<std::string> m_keys;
+    std::vector<qstring> m_keys;
     QuickArray<std::atomic_intptr_t> m_counters;
     date_t m_date;
 };

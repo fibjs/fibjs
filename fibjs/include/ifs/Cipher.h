@@ -28,7 +28,7 @@ public:
     static result_t _new(int32_t provider, Buffer_base* key, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(int32_t provider, int32_t mode, Buffer_base* key, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(int32_t provider, int32_t mode, Buffer_base* key, Buffer_base* iv, obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_name(std::string& retVal) = 0;
+    virtual result_t get_name(qstring& retVal) = 0;
     virtual result_t get_keySize(int32_t& retVal) = 0;
     virtual result_t get_ivSize(int32_t& retVal) = 0;
     virtual result_t get_blockSize(int32_t& retVal) = 0;
@@ -91,7 +91,7 @@ namespace fibjs
 
     inline void Cipher_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Cipher_base);

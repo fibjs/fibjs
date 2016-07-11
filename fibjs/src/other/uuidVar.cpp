@@ -28,7 +28,7 @@ result_t uuid_base::uuid(const char *s, obj_ptr<uuidValue_base> &retVal)
 
 result_t uuid_base::uuid(Buffer_base *data, obj_ptr<uuidValue_base> &retVal)
 {
-    std::string s;
+    qstring s;
 
     data->toString(s);
 
@@ -111,7 +111,7 @@ result_t uuidVar::data(obj_ptr<Buffer_base> &retVal)
         uuid_export(m_uid, UUID_FMT_BIN, &gen, &len);
         if (gen)
         {
-            std::string s;
+            qstring s;
 
             s.append((const char *) gen, len);
             free(gen);
@@ -123,7 +123,7 @@ result_t uuidVar::data(obj_ptr<Buffer_base> &retVal)
     return 0;
 }
 
-result_t uuidVar::toString(std::string &retVal)
+result_t uuidVar::toString(qstring &retVal)
 {
     if (m_uid)
     {
@@ -141,7 +141,7 @@ result_t uuidVar::toString(std::string &retVal)
     return 0;
 }
 
-result_t uuidVar::detail(std::string &retVal)
+result_t uuidVar::detail(qstring &retVal)
 {
     if (m_uid)
     {

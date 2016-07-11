@@ -17,7 +17,7 @@ namespace fibjs
 class MongoCursor: public MongoCursor_base
 {
 public:
-    MongoCursor(MongoDB *db, const std::string &ns, const std::string &name,
+    MongoCursor(MongoDB *db, const qstring &ns, const qstring &name,
                 v8::Local<v8::Object> query, v8::Local<v8::Object> projection);
     ~MongoCursor();
 
@@ -78,8 +78,8 @@ public:
     };
 
 private:
-    std::string m_ns;
-    std::string m_name;
+    qstring m_ns;
+    qstring m_name;
     cursor* m_cursor;
     bson m_bbq, m_bbp;
     bool m_bInit;

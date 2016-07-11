@@ -81,7 +81,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
     int32_t i, ret;
     mbedtls_havege_state hs;
     unsigned char buf[1024];
-    std::string strBuf;
+    qstring strBuf;
 
     strBuf.resize(size);
 
@@ -115,7 +115,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retV
     int32_t i, ret;
     mbedtls_entropy_context entropy;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
-    std::string strBuf;
+    qstring strBuf;
 
     strBuf.resize(size);
 
@@ -234,9 +234,9 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
 }
 
 result_t crypto_base::randomArt(Buffer_base *data, const char *title,
-                                int32_t size, std::string &retVal)
+                                int32_t size, qstring &retVal)
 {
-    std::string buf;
+    qstring buf;
 
     data->toString(buf);
     char *str = randomart((const unsigned char *)buf.c_str(), buf.length(),
@@ -258,9 +258,9 @@ result_t crypto_base::pbkdf2(int32_t algo, Buffer_base* password,
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    std::string str_pass;
-    std::string str_salt;
-    std::string str_key;
+    qstring str_pass;
+    qstring str_salt;
+    qstring str_key;
 
     password->toString(str_pass);
     salt->toString(str_salt);

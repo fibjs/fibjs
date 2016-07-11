@@ -26,8 +26,8 @@ class util_base : public object_base
 
 public:
     // util_base
-    static result_t format(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
-    static result_t format(const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
+    static result_t format(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args, qstring& retVal);
+    static result_t format(const v8::FunctionCallbackInfo<v8::Value>& args, qstring& retVal);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBoolean(v8::Local<v8::Value> v, bool& retVal);
@@ -176,7 +176,7 @@ namespace fibjs
 
     inline void util_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(-1, 1);
 

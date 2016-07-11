@@ -22,9 +22,9 @@ namespace fibjs
 extern exlib::LockedList<Isolate> s_isolates;
 extern bool g_perf;
 
-static std::string traceFiber()
+static qstring traceFiber()
 {
-    std::string msg;
+    qstring msg;
 
     exlib::linkitem* p = Isolate::current()->m_fibers.head();
 
@@ -49,7 +49,7 @@ void dump_stack();
 
 static void dumpFibers()
 {
-    std::string msg;
+    qstring msg;
 
     msg.append(COLOR_LIGHTRED "User interrupt.");
 

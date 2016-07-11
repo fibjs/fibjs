@@ -35,7 +35,7 @@ result_t XmlNamedNodeMap::_indexed_getter(uint32_t index, obj_ptr<XmlAttr_base> 
     return 0;
 }
 
-result_t XmlNamedNodeMap::toString(std::string &retVal)
+result_t XmlNamedNodeMap::toString(qstring &retVal)
 {
     StringBuffer strs;
 
@@ -57,7 +57,7 @@ result_t XmlNamedNodeMap::toString(std::string &retVal)
 
     for (i = 0; i < sz; i ++)
     {
-        std::string str;
+        qstring str;
 
         m_childs[i]->toString(str);
         strs.append(str);
@@ -196,7 +196,7 @@ result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap *to, XmlNodeImpl *el)
     return 0;
 }
 
-result_t XmlNamedNodeMap::lookupPrefix(const char *namespaceURI, std::string &retVal)
+result_t XmlNamedNodeMap::lookupPrefix(const char *namespaceURI, qstring &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -211,7 +211,7 @@ result_t XmlNamedNodeMap::lookupPrefix(const char *namespaceURI, std::string &re
     return CALL_RETURN_NULL;
 }
 
-result_t XmlNamedNodeMap::lookupNamespaceURI(const char *prefix, std::string &retVal)
+result_t XmlNamedNodeMap::lookupNamespaceURI(const char *prefix, qstring &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;

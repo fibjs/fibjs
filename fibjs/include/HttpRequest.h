@@ -28,7 +28,7 @@ public:
 
 public:
     // Message_base
-    virtual result_t get_value(std::string &retVal);
+    virtual result_t get_value(qstring &retVal);
     virtual result_t set_value(const char *newVal);
     virtual result_t get_params(obj_ptr<List_base> &retVal);
     virtual result_t set_params(List_base *newVal);
@@ -45,12 +45,12 @@ public:
     virtual result_t readFrom(Stream_base *stm, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_response(obj_ptr<Message_base> &retVal);
-    virtual result_t get_lastError(std::string& retVal);
+    virtual result_t get_lastError(qstring& retVal);
     virtual result_t set_lastError(const char* newVal);
 
 public:
     // HttpMessage_base
-    virtual result_t get_protocol(std::string &retVal);
+    virtual result_t get_protocol(qstring &retVal);
     virtual result_t set_protocol(const char *newVal);
     virtual result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_keepAlive(bool &retVal);
@@ -72,18 +72,18 @@ public:
 
 public:
     // HttpRequest_base
-    virtual result_t get_method(std::string &retVal);
+    virtual result_t get_method(qstring &retVal);
     virtual result_t set_method(const char *newVal);
-    virtual result_t get_address(std::string &retVal);
+    virtual result_t get_address(qstring &retVal);
     virtual result_t set_address(const char *newVal);
-    virtual result_t get_queryString(std::string &retVal);
+    virtual result_t get_queryString(qstring &retVal);
     virtual result_t set_queryString(const char *newVal);
     virtual result_t get_cookies(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_form(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_query(obj_ptr<HttpCollection_base> &retVal);
 
 public:
-    void header(const char *name, std::string &retVal)
+    void header(const char *name, qstring &retVal)
     {
         Variant varCookie;
         obj_ptr<HttpCollection_base> hdrs;
@@ -93,14 +93,14 @@ public:
         retVal = varCookie.string();
     }
 
-    void parse(std::string &str, char split,
+    void parse(qstring &str, char split,
                obj_ptr<HttpCollection_base> &retVal);
 
 private:
     obj_ptr<HttpMessage> m_message;
-    std::string m_method;
-    std::string m_address;
-    std::string m_queryString;
+    qstring m_method;
+    qstring m_address;
+    qstring m_queryString;
     obj_ptr<HttpResponse_base> m_response;
     obj_ptr<HttpCollection_base> m_cookies;
     obj_ptr<HttpCollection_base> m_query;

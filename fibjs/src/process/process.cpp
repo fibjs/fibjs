@@ -95,7 +95,7 @@ result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t process_base::get_execPath(std::string &retVal)
+result_t process_base::get_execPath(qstring &retVal)
 {
     return os_base::get_execPath(retVal);
 }

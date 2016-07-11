@@ -91,17 +91,17 @@ result_t global_base::get_argv(v8::Local<v8::Array>& retVal)
 	return process_base::get_argv(retVal);
 }
 
-result_t global_base::get___filename(std::string& retVal)
+result_t global_base::get___filename(qstring& retVal)
 {
 	return 0;
 }
 
-result_t global_base::get___dirname(std::string& retVal)
+result_t global_base::get___dirname(qstring& retVal)
 {
 	return 0;
 }
 
-result_t global_base::get___sbname(std::string& retVal)
+result_t global_base::get___sbname(qstring& retVal)
 {
 	return 0;
 }

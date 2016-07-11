@@ -31,10 +31,10 @@ class encoding_base : public object_base
 
 public:
     // encoding_base
-    static result_t jsstr(const char* str, bool json, std::string& retVal);
-    static result_t encodeURI(const char* url, std::string& retVal);
-    static result_t encodeURIComponent(const char* url, std::string& retVal);
-    static result_t decodeURI(const char* url, std::string& retVal);
+    static result_t jsstr(const char* str, bool json, qstring& retVal);
+    static result_t encodeURI(const char* url, qstring& retVal);
+    static result_t encodeURIComponent(const char* url, qstring& retVal);
+    static result_t decodeURI(const char* url, qstring& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -101,7 +101,7 @@ namespace fibjs
 
     inline void encoding_base::s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(2, 1);
 
@@ -115,7 +115,7 @@ namespace fibjs
 
     inline void encoding_base::s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(1, 1);
 
@@ -128,7 +128,7 @@ namespace fibjs
 
     inline void encoding_base::s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(1, 1);
 
@@ -141,7 +141,7 @@ namespace fibjs
 
     inline void encoding_base::s_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(1, 1);
 

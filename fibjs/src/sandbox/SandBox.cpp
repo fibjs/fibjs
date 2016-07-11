@@ -49,7 +49,7 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
     return 0;
 }
 
-void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
+void SandBox::InstallModule(qstring fname, v8::Local<v8::Value> o)
 {
     mods()->Set(holder()->NewFromUtf8(fname), o);
 }

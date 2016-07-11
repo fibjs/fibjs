@@ -203,7 +203,7 @@ result_t Int64::fromString(const char *numStr, int32_t base)
     return 0;
 }
 
-result_t Int64::toString(int32_t base, std::string &retVal)
+result_t Int64::toString(int32_t base, qstring &retVal)
 {
     static char __base16_map[] = "0123456789abcdef";
     static char __base32_map[] = "abcdefghijklmnopqrstuvwxyz234567";
@@ -273,7 +273,7 @@ result_t Int64::toNumber(double &retVal)
 
 result_t Int64::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
-    std::string str;
+    qstring str;
 
     toString(16, str);
     retVal = holder()->NewFromUtf8(str);

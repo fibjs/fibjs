@@ -20,7 +20,7 @@ class RpcTask: public RpcTask_base
 	FIBER_FREE();
 
 public:
-	RpcTask(std::string id) : m_id(id)
+	RpcTask(qstring id) : m_id(id)
 	{}
 
 	RpcTask(RpcTask* t, const char* method)
@@ -37,7 +37,7 @@ public:
 
 public:
 	// Object_base
-	virtual result_t toString(std::string &retVal);
+	virtual result_t toString(qstring &retVal);
 
 public:
 	// RpcTask_base
@@ -58,17 +58,17 @@ public:
 		virtual void set_result(v8::Local<v8::Value> newVal) = 0;
 		virtual void get_param(v8::Isolate* isolate, std::vector<v8::Local<v8::Value> >& retVal) = 0;
 		virtual void set_param(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
-		virtual std::string get_error() = 0;
-		virtual void set_error(std::string newVal) = 0;
+		virtual qstring get_error() = 0;
+		virtual void set_error(qstring newVal) = 0;
 
 	public:
 		obj_ptr<RpcTask> m_task;
 	};
 
 public:
-	std::map<std::string, obj_ptr<RpcTask_base> > m_funcs;
-	std::string m_id;
-	std::string m_method_path;
+	std::map<qstring, obj_ptr<RpcTask_base> > m_funcs;
+	qstring m_id;
+	qstring m_method_path;
 };
 
 }

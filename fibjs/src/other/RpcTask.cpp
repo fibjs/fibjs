@@ -73,20 +73,20 @@ public:
 		json_base::encode(array, m_param);
 	}
 
-	std::string get_error()
+	qstring get_error()
 	{
 		return m_error;
 	}
 
-	void set_error(std::string newVal)
+	void set_error(qstring newVal)
 	{
 		m_error = newVal;
 	}
 
 private:
-	std::string m_param;
-	std::string m_result;
-	std::string m_error;
+	qstring m_param;
+	qstring m_result;
+	qstring m_error;
 };
 
 class AsyncLocalTask : public RpcTask::AsyncTask
@@ -135,12 +135,12 @@ public:
 		}
 	}
 
-	std::string get_error()
+	qstring get_error()
 	{
 		return m_error;
 	}
 
-	void set_error(std::string newVal)
+	void set_error(qstring newVal)
 	{
 		m_error = newVal;
 	}
@@ -148,10 +148,10 @@ public:
 private:
 	std::vector<Variant> m_param;
 	Variant m_result;
-	std::string m_error;
+	qstring m_error;
 };
 
-void nextMethod(std::string &method_path, std::string &method)
+void nextMethod(qstring &method_path, qstring &method)
 {
 	const char *p, *p1;
 
@@ -213,8 +213,8 @@ static void task_fiber(Isolate* isolate)
 		return;
 	}
 
-	std::string method_path = p->m_task->m_method_path;
-	std::string method;
+	qstring method_path = p->m_task->m_method_path;
+	qstring method;
 	v8::Local<v8::Object> o;
 
 	v1 = v;
@@ -309,14 +309,14 @@ result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
 
 result_t RpcTask::_named_getter(const char* property, obj_ptr<RpcTask_base>& retVal)
 {
-	std::map<std::string, obj_ptr<RpcTask_base> >::iterator it = m_funcs.find(property);
+	std::map<qstring, obj_ptr<RpcTask_base> >::iterator it = m_funcs.find(property);
 
 	if (it != m_funcs.end())
 		retVal = it->second;
 	else
 	{
 		retVal = new RpcTask(this, property);
-		m_funcs.insert(std::pair<std::string, obj_ptr<RpcTask_base> >(property, retVal));
+		m_funcs.insert(std::pair<qstring, obj_ptr<RpcTask_base> >(property, retVal));
 	}
 
 	return 0;
@@ -328,7 +328,7 @@ result_t RpcTask::_named_enumerator(v8::Local<v8::Array>& retVal)
 	Isolate* isolate = holder();
 
 	retVal = v8::Array::New(isolate->m_isolate, (int32_t)m_funcs.size());
-	std::map<std::string, obj_ptr<RpcTask_base> >::iterator iter;
+	std::map<qstring, obj_ptr<RpcTask_base> >::iterator iter;
 
 	for (iter = m_funcs.begin(); iter != m_funcs.end(); iter++)
 		retVal->Set(i++, isolate->NewFromUtf8(iter->first));
@@ -336,7 +336,7 @@ result_t RpcTask::_named_enumerator(v8::Local<v8::Array>& retVal)
 	return 0;
 }
 
-result_t RpcTask::toString(std::string &retVal)
+result_t RpcTask::toString(qstring &retVal)
 {
 	retVal = m_id;
 	if (!m_method_path.empty())
@@ -357,7 +357,7 @@ result_t rpc_base::open(const char* id, obj_ptr<RpcTask_base>& retVal)
 	if (!_url.m_protocol.empty())
 		return CHECK_ERROR(CALL_E_INVALIDARG);
 
-	std::string& path = _url.m_pathname;
+	qstring& path = _url.m_pathname;
 	if (path[0] == '.' && (isPathSlash(path[1]) || (path[1] == '.' && isPathSlash(path[2]))))
 		return CHECK_ERROR(CALL_E_INVALIDARG);
 

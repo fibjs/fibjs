@@ -26,7 +26,7 @@ class SQLite_base : public DbConnection_base
 
 public:
     // SQLite_base
-    virtual result_t get_fileName(std::string& retVal) = 0;
+    virtual result_t get_fileName(qstring& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
     virtual result_t backup(const char* fileName, AsyncEvent* ac) = 0;
@@ -83,7 +83,7 @@ namespace fibjs
 
     inline void SQLite_base::s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(SQLite_base);

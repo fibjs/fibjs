@@ -41,7 +41,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 	result_t hr;
 	posix_spawn_file_actions_t fops;
 	posix_spawnattr_t attr;
-	std::vector<std::string> argStr;
+	std::vector<qstring> argStr;
 	std::vector<char*> _args;
 	int32_t len = args->Length();
 	int32_t i;
@@ -105,7 +105,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 		posix_spawn_file_actions_addclose(&fops, cout_pipe[1]);
 	}
 
-	std::vector<std::string> envstr;
+	std::vector<qstring> envstr;
 	std::vector<char*> envp;
 
 	v8::Local<v8::Object> envs;
@@ -123,7 +123,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 	{
 		v8::Local<v8::Value> k = keys->Get(i);
 		v8::Local<v8::Value> v = envs->Get(k);
-		std::string ks, vs;
+		qstring ks, vs;
 
 		hr = GetArgumentValue(k, ks);
 		if (hr < 0)

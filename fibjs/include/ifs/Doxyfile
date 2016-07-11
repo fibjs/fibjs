@@ -248,11 +248,11 @@ EXTENSION_MAPPING      =
 
 MARKDOWN_SUPPORT       = YES
 
-# If you use STL classes (i.e. std::string, std::vector, etc.) but do not want
+# If you use STL classes (i.e. qstring, std::vector, etc.) but do not want
 # to include (a tag file for) the STL sources as input, then you should
 # set this tag to YES in order to let doxygen match functions declarations and
-# definitions whose arguments contain STL classes (e.g. func(std::string); v.s.
-# func(std::string) {}). This also makes the inheritance and collaboration
+# definitions whose arguments contain STL classes (e.g. func(qstring); v.s.
+# func(qstring) {}). This also makes the inheritance and collaboration
 # diagrams that involve STL classes more complete and accurate.
 
 BUILTIN_STL_SUPPORT    = NO
@@ -265,11 +265,11 @@ BUILTIN_STL_SUPPORT    = NO
 
 AUTOLINK_SUPPORT       = YES
 
-# If you use STL classes (i.e. std::string, std::vector, etc.) but do not want
+# If you use STL classes (i.e. qstring, std::vector, etc.) but do not want
 # to include (a tag file for) the STL sources as input, then you should set this
 # tag to YES in order to let doxygen match functions declarations and
-# definitions whose arguments contain STL classes (e.g. func(std::string);
-# versus func(std::string) {}). This also make the inheritance and collaboration
+# definitions whose arguments contain STL classes (e.g. func(qstring);
+# versus func(qstring) {}). This also make the inheritance and collaboration
 # diagrams that involve STL classes more complete and accurate.
 # The default value is: NO.
 

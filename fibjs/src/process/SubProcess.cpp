@@ -103,7 +103,7 @@ result_t SubProcess::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, As
 	return m_stdout->copyTo(stm, bytes, retVal, ac);
 }
 
-result_t SubProcess::readText(int32_t size, std::string &retVal, AsyncEvent *ac)
+result_t SubProcess::readText(int32_t size, qstring &retVal, AsyncEvent *ac)
 {
 	if (m_stdout == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -111,7 +111,7 @@ result_t SubProcess::readText(int32_t size, std::string &retVal, AsyncEvent *ac)
 	return m_stdout->readText(size, retVal, ac);
 }
 
-result_t SubProcess::readLine(int32_t maxlen, std::string &retVal, AsyncEvent *ac)
+result_t SubProcess::readLine(int32_t maxlen, qstring &retVal, AsyncEvent *ac)
 {
 	if (m_stdout == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -127,7 +127,7 @@ result_t SubProcess::readLines(int32_t maxlines, v8::Local<v8::Array> &retVal)
 	return m_stdout->readLines(maxlines, retVal);
 }
 
-result_t SubProcess::readUntil(const char *mk, int32_t maxlen, std::string &retVal, AsyncEvent *ac)
+result_t SubProcess::readUntil(const char *mk, int32_t maxlen, qstring &retVal, AsyncEvent *ac)
 {
 	if (m_stdout == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -156,7 +156,7 @@ result_t SubProcess::get_stream(obj_ptr<Stream_base> &retVal)
 	return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t SubProcess::get_charset(std::string &retVal)
+result_t SubProcess::get_charset(qstring &retVal)
 {
 	if (m_stdin == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -175,7 +175,7 @@ result_t SubProcess::set_charset(const char *newVal)
 	return 0;
 }
 
-result_t SubProcess::get_EOL(std::string &retVal)
+result_t SubProcess::get_EOL(qstring &retVal)
 {
 	if (m_stdin == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);

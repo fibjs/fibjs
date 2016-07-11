@@ -42,7 +42,7 @@ public:
 
 public:
     // File_base
-    virtual result_t get_name(std::string &retVal);
+    virtual result_t get_name(qstring &retVal);
     virtual result_t truncate(int64_t bytes, AsyncEvent *ac);
     virtual result_t eof(bool &retVal);
     virtual result_t flush(AsyncEvent *ac);
@@ -54,7 +54,7 @@ public:
     result_t Write(const char *p, int32_t sz);
 
 protected:
-    std::string name;
+    qstring name;
     FILE *m_pipe;
     int32_t m_fd;
 };

@@ -45,7 +45,7 @@ public:
     virtual result_t setBit(Buffer_base *key, int32_t offset, int32_t value, int32_t &retVal);
     virtual result_t getBit(Buffer_base *key, int32_t offset, int32_t &retVal);
     virtual result_t exists(Buffer_base *key, bool &retVal);
-    virtual result_t type(Buffer_base *key, std::string &retVal);
+    virtual result_t type(Buffer_base *key, qstring &retVal);
     virtual result_t keys(const char *pattern, obj_ptr<List_base> &retVal);
     virtual result_t del(v8::Local<v8::Array> keys, int32_t &retVal);
     virtual result_t del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
@@ -78,8 +78,8 @@ public:
 
 public:
     result_t connect(const char *host, int32_t port, AsyncEvent *ac);
-    result_t _command(std::string &req, Variant &retVal, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE2(Redis, _command, std::string, Variant);
+    result_t _command(qstring &req, Variant &retVal, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE2(Redis, _command, qstring, Variant);
 
     class _arg
     {
@@ -100,7 +100,7 @@ public:
         {}
 
     public:
-        result_t add(std::string &str)
+        result_t add(qstring &str)
         {
             char numStr[64];
 
@@ -115,7 +115,7 @@ public:
 
         result_t add(Buffer_base *buf)
         {
-            std::string str;
+            qstring str;
 
             buf->toString(str);
             return add(str);
@@ -123,7 +123,7 @@ public:
 
         result_t add(const char *v)
         {
-            std::string str(v);
+            qstring str(v);
             return add(str);
         }
 
@@ -198,7 +198,7 @@ public:
         result_t add(v8::Local<v8::Value> v)
         {
             result_t hr;
-            std::string str;
+            qstring str;
 
             hr = GetArgumentValue(v, str);
             if (hr < 0)
@@ -206,9 +206,9 @@ public:
             return add(str);
         }
 
-        std::string str()
+        qstring str()
         {
-            std::string str;
+            qstring str;
             char numStr[64];
             int32_t sz, i;
             char *p;
@@ -223,7 +223,7 @@ public:
 
             for (i = 0; i < (int32_t)m_params.size(); i ++)
             {
-                std::string &str = m_params[i];
+                qstring &str = m_params[i];
                 memcpy(p, str.c_str(), str.length());
                 p += str.length();
                 *p++ = '\r';
@@ -233,7 +233,7 @@ public:
             return str;
         }
 
-        QuickArray<std::string> m_params;
+        QuickArray<qstring> m_params;
         int32_t m_size;
     };
 
@@ -244,7 +244,7 @@ public:
         return retVal ? 0 : CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
-    static result_t retValue(Variant &v, std::string &retVal)
+    static result_t retValue(Variant &v, qstring &retVal)
     {
         obj_ptr<Buffer_base> v1 = Buffer_base::getInstance(v.object());
         if (v1)
@@ -486,16 +486,16 @@ public:
     }
 
 public:
-    result_t _single(std::string key, v8::Local<v8::Function> func, int32_t cmd);
+    result_t _single(qstring key, v8::Local<v8::Function> func, int32_t cmd);
     result_t _map(v8::Local<v8::Object> &map, int32_t cmd);
     result_t unsub(v8::Local<v8::Array> &channels, int32_t cmd);
-    result_t unsub(std::string key, int32_t cmd);
+    result_t unsub(qstring key, int32_t cmd);
 
-    bool regsub(std::string &key, v8::Local<v8::Function> func);
-    bool unregsub(std::string &key, v8::Local<v8::Function> func);
+    bool regsub(qstring &key, v8::Local<v8::Function> func);
+    bool unregsub(qstring &key, v8::Local<v8::Function> func);
 
 public:
-    std::map<std::string, int32_t> m_funcs;
+    std::map<qstring, int32_t> m_funcs;
     obj_ptr<Socket_base> m_sock;
     obj_ptr<BufferedStream_base> m_stmBuffered;
     int32_t m_subMode;

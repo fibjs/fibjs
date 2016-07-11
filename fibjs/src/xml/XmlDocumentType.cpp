@@ -11,13 +11,13 @@
 namespace fibjs
 {
 
-result_t XmlDocumentType::get_nodeName(std::string &retVal)
+result_t XmlDocumentType::get_nodeName(qstring &retVal)
 {
     retVal = m_name;
     return 0;
 }
 
-result_t XmlDocumentType::get_nodeValue(std::string &retVal)
+result_t XmlDocumentType::get_nodeValue(qstring &retVal)
 {
     return CALL_RETURN_NULL;
 }
@@ -67,12 +67,12 @@ result_t XmlDocumentType::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlDocumentType::lookupPrefix(const char *namespaceURI, std::string &retVal)
+result_t XmlDocumentType::lookupPrefix(const char *namespaceURI, qstring &retVal)
 {
     return CALL_RETURN_NULL;
 }
 
-result_t XmlDocumentType::lookupNamespaceURI(const char *prefix, std::string &retVal)
+result_t XmlDocumentType::lookupNamespaceURI(const char *prefix, qstring &retVal)
 {
     return CALL_RETURN_NULL;
 }
@@ -121,25 +121,25 @@ result_t XmlDocumentType::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlDocumentType::get_name(std::string &retVal)
+result_t XmlDocumentType::get_name(qstring &retVal)
 {
     retVal = m_name;
     return 0;
 }
 
-result_t XmlDocumentType::get_publicId(std::string &retVal)
+result_t XmlDocumentType::get_publicId(qstring &retVal)
 {
     retVal = m_publicId;
     return 0;
 }
 
-result_t XmlDocumentType::get_systemId(std::string &retVal)
+result_t XmlDocumentType::get_systemId(qstring &retVal)
 {
     retVal = m_systemId;
     return 0;
 }
 
-result_t XmlDocumentType::toString(std::string &retVal)
+result_t XmlDocumentType::toString(qstring &retVal)
 {
     retVal = "<!DOCTYPE ";
     retVal.append(m_name);

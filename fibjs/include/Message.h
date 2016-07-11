@@ -19,7 +19,7 @@ class Message: public Message_base
 {
 public:
     // Message_base
-    virtual result_t get_value(std::string &retVal);
+    virtual result_t get_value(qstring &retVal);
     virtual result_t set_value(const char *newVal);
     virtual result_t get_params(obj_ptr<List_base> &retVal);
     virtual result_t set_params(List_base *newVal);
@@ -36,7 +36,7 @@ public:
     virtual result_t readFrom(Stream_base *stm, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_response(obj_ptr<Message_base> &retVal);
-    virtual result_t get_lastError(std::string& retVal);
+    virtual result_t get_lastError(qstring& retVal);
     virtual result_t set_lastError(const char* newVal);
 
 public:
@@ -45,7 +45,7 @@ public:
     }
 
 public:
-    result_t set_value(std::string &newVal)
+    result_t set_value(qstring &newVal)
     {
         m_value = newVal;
         return 0;
@@ -59,10 +59,10 @@ public:
 private:
     obj_ptr<List_base> m_params;
     VariantEx m_result;
-    std::string m_value;
+    qstring m_value;
     obj_ptr<SeekableStream_base> m_body;
     obj_ptr<Message_base> m_response;
-    std::string m_lastError;
+    qstring m_lastError;
     bool m_bRep;
 };
 

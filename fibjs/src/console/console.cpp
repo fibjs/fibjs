@@ -60,7 +60,7 @@ void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Valu
 
     if (type <= level)
     {
-        std::string str;
+        qstring str;
 
         util_base::format(fmt, args, str);
         asyncLog(type, str);
@@ -155,20 +155,20 @@ result_t console_base::alert(const v8::FunctionCallbackInfo<v8::Value> &args)
     return alert(NULL, args);
 }
 
-std::string json_format(v8::Local<v8::Value> obj);
+qstring json_format(v8::Local<v8::Value> obj);
 
 result_t console_base::dir(v8::Local<v8::Value> obj)
 {
-    std::string strBuffer = json_format(obj);
+    qstring strBuffer = json_format(obj);
     asyncLog(_INFO, strBuffer);
     return 0;
 }
 
-static std::map<std::string, int64_t> s_timers;
+static std::map<qstring, int64_t> s_timers;
 
 result_t console_base::time(const char *label)
 {
-    s_timers[std::string(label)] = Ticks();
+    s_timers[qstring(label)] = Ticks();
 
     return 0;
 }
@@ -179,7 +179,7 @@ result_t console_base::timeEnd(const char *label)
 
     s_timers.erase(label);
 
-    std::string strBuffer;
+    qstring strBuffer;
     char numStr[64];
 
     sprintf(numStr, "%.10g", t / 1000.0);
@@ -200,7 +200,7 @@ inline const char *ToCString(const v8::String::Utf8Value &value)
 
 result_t console_base::trace(const char *label)
 {
-    std::string strBuffer;
+    qstring strBuffer;
 
     strBuffer.append("console.trace: ", 15);
     strBuffer.append(label);
@@ -251,7 +251,7 @@ extern "C"
 }
 #endif
 
-result_t console_base::readLine(const char *msg, std::string &retVal,
+result_t console_base::readLine(const char *msg, qstring &retVal,
                                 AsyncEvent *ac)
 {
     if (!ac)
@@ -314,7 +314,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
 
     if (isatty(fileno(stdin)))
     {
-        std::string strmsg = msg;
+        qstring strmsg = msg;
         char *line;
         int32_t lfpos = strmsg.find_last_of(0x0a);
 

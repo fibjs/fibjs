@@ -67,7 +67,7 @@ result_t fs_base::openTextStream(const char *fname, const char *flags,
     return BufferedStream_base::_new(pFile, retVal);
 }
 
-result_t fs_base::readFile(const char *fname, std::string &retVal,
+result_t fs_base::readFile(const char *fname, qstring &retVal,
                            AsyncEvent *ac)
 {
     if (!ac)
@@ -224,7 +224,7 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal,
 
     DIR *dp;
     struct dirent *ep;
-    std::string fpath;
+    qstring fpath;
     result_t hr;
     obj_ptr<List> oa;
 

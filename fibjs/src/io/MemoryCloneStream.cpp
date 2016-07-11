@@ -16,7 +16,7 @@ namespace fibjs
 result_t MemoryStream::CloneStream::read(int32_t bytes,
         obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
 {
-    std::string strBuf;
+    qstring strBuf;
 
     int32_t sz;
     sz = (int32_t) m_buffer.length() - m_pos;

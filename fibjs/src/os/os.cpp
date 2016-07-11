@@ -17,7 +17,7 @@ namespace fibjs
 
 DECLARE_MODULE(os);
 
-result_t os_base::get_hostname(std::string &retVal)
+result_t os_base::get_hostname(qstring &retVal)
 {
     char s[255];
 
@@ -28,7 +28,7 @@ result_t os_base::get_hostname(std::string &retVal)
     return 0;
 }
 
-result_t os_base::get_arch(std::string &retVal)
+result_t os_base::get_arch(qstring &retVal)
 {
 #ifdef amd64
     retVal = "amd64";

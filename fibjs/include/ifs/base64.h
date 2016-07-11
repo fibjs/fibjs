@@ -25,7 +25,7 @@ class base64_base : public object_base
 
 public:
     // base64_base
-    static result_t encode(Buffer_base* data, std::string& retVal);
+    static result_t encode(Buffer_base* data, qstring& retVal);
     static result_t decode(const char* data, obj_ptr<Buffer_base>& retVal);
 
 public:
@@ -72,7 +72,7 @@ namespace fibjs
 
     inline void base64_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(1, 1);
 

@@ -38,10 +38,10 @@ public:
     virtual result_t _named_setter(const char *property, Variant newVal);
     virtual result_t _named_deleter(const char *property, v8::Local<v8::Boolean> &retVal);
 
-    void parse(std::string &str, const char *boundary);
+    void parse(qstring &str, const char *boundary);
 
 private:
-    QuickArray<std::string> m_names;
+    QuickArray<qstring> m_names;
     QuickArray<VariantEx> m_values;
     int32_t m_count;
 };

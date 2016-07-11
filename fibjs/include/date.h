@@ -99,10 +99,10 @@ public:
     void toUTC();
 
     void parse(const char *str, int32_t len = -1);
-    void toGMTString(std::string &retVal);
-    void toX509String(std::string &retVal);
-    void sqlString(std::string &retVal);
-    void stamp(std::string &retVal);
+    void toGMTString(qstring &retVal);
+    void toX509String(qstring &retVal);
+    void sqlString(qstring &retVal);
+    void stamp(qstring &retVal);
 
     static int32_t timezone();
 

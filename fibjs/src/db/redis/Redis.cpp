@@ -24,7 +24,7 @@ result_t db_base::openRedis(const char *connString,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    std::string host;
+    qstring host;
     int32_t nPort = 6379;
 
     if (!qstrcmp(connString, "redis:", 6))
@@ -65,12 +65,12 @@ result_t Redis::connect(const char *host, int32_t port, AsyncEvent *ac)
 }
 
 #define REDIS_MAX_LINE 1024
-result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
+result_t Redis::_command(qstring &req, Variant &retVal, AsyncEvent *ac)
 {
     class asyncCommand: public AsyncState
     {
     public:
-        asyncCommand(Redis *pThis, std::string &req, Variant &retVal, AsyncEvent *ac) :
+        asyncCommand(Redis *pThis, qstring &req, Variant &retVal, AsyncEvent *ac) :
             AsyncState(ac), m_pThis(pThis), m_req(req), m_retVal(retVal)
         {
             m_subMode = pThis->m_subMode;
@@ -121,7 +121,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
                 if (!buf)
                     return;
 
-                std::string s;
+                qstring s;
                 buf->toString(s);
 
                 int32_t sz;
@@ -146,7 +146,7 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
                 if (!buf1)
                     return;
 
-                std::string s1;
+                qstring s1;
                 buf1->toString(s1);
 
                 s += s1;
@@ -292,14 +292,14 @@ result_t Redis::_command(std::string &req, Variant &retVal, AsyncEvent *ac)
 
     protected:
         obj_ptr<Redis> m_pThis;
-        std::string m_req;
+        qstring m_req;
         Variant &m_retVal;
         Variant m_val;
         obj_ptr<BufferedStream_base> m_stmBuffered;
         obj_ptr<Buffer_base> m_buffer;
         QuickArray<obj_ptr<List_base> > m_lists;
         QuickArray<int32_t> m_counts;
-        std::string m_strLine;
+        qstring m_strLine;
         int32_t m_subMode;
     };
 
@@ -455,7 +455,7 @@ result_t Redis::exists(Buffer_base *key, bool &retVal)
     return doCommand("EXISTS", key, retVal);
 }
 
-result_t Redis::type(Buffer_base *key, std::string &retVal)
+result_t Redis::type(Buffer_base *key, qstring &retVal)
 {
     return doCommand("TYPE", key, retVal);
 }
@@ -533,7 +533,7 @@ result_t Redis::dump(Buffer_base *key, obj_ptr<Buffer_base> &retVal)
 
 result_t Redis::restore(Buffer_base *key, Buffer_base *data, int64_t ttl)
 {
-    std::string strBuf;
+    qstring strBuf;
     Variant v;
 
     data->toString(strBuf);

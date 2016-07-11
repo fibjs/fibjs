@@ -86,7 +86,7 @@ result_t hash_base::hmac(int32_t algo, Buffer_base *key,
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    std::string strBuf;
+    qstring strBuf;
     key->toString(strBuf);
 
     retVal = new Digest((mbedtls_md_type_t)algo, strBuf.c_str(), (int32_t) strBuf.length());

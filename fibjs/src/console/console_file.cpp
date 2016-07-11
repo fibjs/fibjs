@@ -24,7 +24,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     if (hr < 0)
         return hr;
 
-    std::string path;
+    qstring path;
     hr = GetConfigValue(isolate->m_isolate, o, "path", path);
     if (hr < 0)
         return hr;
@@ -37,7 +37,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     m_split_size = 0;
     m_split_mode = 0;
 
-    std::string split;
+    qstring split;
     hr = GetConfigValue(isolate->m_isolate, o, "split", split);
     if (hr >= 0)
     {
@@ -97,8 +97,8 @@ void file_logger::clearFile()
     obj_ptr<List_base> fd;
     result_t hr;
 
-    std::string name;
-    std::string fullname;
+    qstring name;
+    qstring fullname;
 
     if (m_folder.empty())
         hr = fs_base::readdir(".", fd, &ac);
@@ -107,7 +107,7 @@ void file_logger::clearFile()
     if (hr < 0)
         return;
 
-    std::vector<std::string> files;
+    std::vector<qstring> files;
     int32_t sz = 0, i;
 
     fd->get_length(sz);
@@ -167,11 +167,11 @@ result_t file_logger::initFile()
     if (!m_file)
     {
         obj_ptr<File> f = new File();
-        std::string name(m_path);
+        qstring name(m_path);
 
         if (m_count > 1)
         {
-            std::string tm;
+            qstring tm;
 
             m_date.now();
             if (m_split_mode)
@@ -205,7 +205,7 @@ result_t file_logger::write(AsyncEvent *ac)
 
     while (!m_workinglogs.empty())
     {
-        std::string outBuffer;
+        qstring outBuffer;
         result_t hr;
 
         hr = initFile();

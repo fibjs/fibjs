@@ -26,7 +26,7 @@ class PKey_base : public object_base
 public:
     // PKey_base
     static result_t _new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_name(std::string& retVal) = 0;
+    virtual result_t get_name(qstring& retVal) = 0;
     virtual result_t get_keySize(int32_t& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac) = 0;
@@ -36,7 +36,7 @@ public:
     virtual result_t importKey(Buffer_base* DerKey, const char* password) = 0;
     virtual result_t importKey(const char* pemKey, const char* password) = 0;
     virtual result_t importFile(const char* filename, const char* password) = 0;
-    virtual result_t exportPem(std::string& retVal) = 0;
+    virtual result_t exportPem(qstring& retVal) = 0;
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -118,7 +118,7 @@ namespace fibjs
 
     inline void PKey_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        std::string vr;
+        qstring vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(PKey_base);
@@ -260,7 +260,7 @@ namespace fibjs
 
     inline void PKey_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_INSTANCE(PKey_base);
         METHOD_ENTER(0, 0);

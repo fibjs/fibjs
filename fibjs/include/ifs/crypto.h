@@ -61,7 +61,7 @@ public:
     static result_t loadReq(const char* filename, obj_ptr<X509Req_base>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t randomArt(Buffer_base* data, const char* title, int32_t size, std::string& retVal);
+    static result_t randomArt(Buffer_base* data, const char* title, int32_t size, qstring& retVal);
     static result_t pbkdf2(int32_t algo, Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, obj_ptr<Buffer_base>& retVal);
 
 public:
@@ -417,7 +417,7 @@ namespace fibjs
 
     inline void crypto_base::s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        std::string vr;
+        qstring vr;
 
         METHOD_ENTER(3, 2);
 

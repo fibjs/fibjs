@@ -16,7 +16,7 @@ namespace fibjs
 DECLARE_MODULE(net);
 
 result_t net_base::resolve(const char *name, int32_t family,
-                           std::string &retVal, AsyncEvent *ac)
+                           qstring &retVal, AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -59,13 +59,13 @@ result_t net_base::resolve(const char *name, int32_t family,
     return 0;
 }
 
-result_t net_base::ip(const char *name, std::string &retVal,
+result_t net_base::ip(const char *name, qstring &retVal,
                       AsyncEvent *ac)
 {
     return resolve(name, net_base::_AF_INET, retVal, ac);
 }
 
-result_t net_base::ipv6(const char *name, std::string &retVal,
+result_t net_base::ipv6(const char *name, qstring &retVal,
                         AsyncEvent *ac)
 {
     return resolve(name, net_base::_AF_INET6, retVal, ac);

@@ -44,7 +44,7 @@ public:
 public:
     result_t open(const char *connString);
 
-    static result_t getValue(v8::Local<v8::Value> v, std::string &out)
+    static result_t getValue(v8::Local<v8::Value> v, qstring &out)
     {
         obj_ptr<Buffer_base> bKey = Buffer_base::getInstance(v);
         if (bKey)
@@ -57,8 +57,8 @@ private:
     result_t _commit(leveldb::WriteBatch *batch, AsyncEvent *ac);
     ASYNC_MEMBER1(LevelDB, _commit, leveldb::WriteBatch *);
 
-    result_t _mget(std::vector<std::string> *keys, obj_ptr<List_base> &retVal, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE2(LevelDB, _mget, std::vector<std::string> *, obj_ptr<List_base>);
+    result_t _mget(std::vector<qstring> *keys, obj_ptr<List_base> &retVal, AsyncEvent *ac);
+    ASYNC_MEMBERVALUE2(LevelDB, _mget, std::vector<qstring> *, obj_ptr<List_base>);
 
     leveldb::DB *db()
     {
@@ -122,7 +122,7 @@ private:
         int32_t m_count;
         bool m_first;
         bool m_end;
-        std::string m_from, m_to;
+        qstring m_from, m_to;
     };
 
 private:
