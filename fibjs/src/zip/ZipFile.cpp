@@ -145,6 +145,11 @@ const char* zip_error(int32_t err)
 	return zError(err);
 }
 
+result_t zip_base::isZipFile(const char* filename, bool& retVal, AsyncEvent* ac)
+{
+	return 0;
+}
+
 result_t zip_base::open(const char* path, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
@@ -182,7 +187,7 @@ result_t zip_base::open(SeekableStream_base* strm, obj_ptr<ZipFile_base>& retVal
 	return 0;
 }
 
-result_t zip_base::create(const char* path, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
+result_t zip_base::create(const char* path, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -558,5 +563,31 @@ result_t ZipFile::readAll(const char* password, obj_ptr<List_base>& retVal, Asyn
 
 	return 0;
 }
+
+result_t ZipFile::setpasswd(const char* password)
+{
+	return 0;
+}
+
+result_t ZipFile::write(const char* filename, AsyncEvent* ac)
+{
+	return 0;
+}
+
+result_t ZipFile::write(Buffer_base* data, AsyncEvent* ac)
+{
+	return 0;
+}
+
+result_t ZipFile::write(SeekableStream_base* strm, AsyncEvent* ac)
+{
+	return 0;
+}
+
+result_t ZipFile::close(AsyncEvent* ac)
+{
+	return 0;
+}
+
 
 }
