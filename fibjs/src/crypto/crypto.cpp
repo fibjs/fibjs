@@ -15,6 +15,7 @@
 #include "ssl.h"
 #include <time.h>
 #include <string.h>
+#include <mbedtls/mbedtls/pkcs5.h>
 
 namespace fibjs
 {
@@ -246,6 +247,33 @@ result_t crypto_base::randomArt(Buffer_base *data, const char *title,
         retVal = str;
         free(str);
     }
+
+    return 0;
+}
+
+result_t crypto_base::pbkdf2(int32_t algo, Buffer_base* password,
+                             Buffer_base* salt, int32_t iterations,
+                             int32_t size, obj_ptr<Buffer_base>& retVal)
+{
+    if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    std::string str_pass;
+    std::string str_salt;
+    std::string str_key;
+
+    password->toString(str_pass);
+    salt->toString(str_salt);
+    str_key.resize(size);
+
+    mbedtls_md_context_t ctx;
+    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
+    mbedtls_pkcs5_pbkdf2_hmac(&ctx, (const unsigned char *)str_pass.c_str(), str_pass.length(),
+                              (const unsigned char *)str_salt.c_str(), str_salt.length(),
+                              iterations, size, (unsigned char *)&str_key[0]);
+    mbedtls_md_free(&ctx);
+
+    retVal = new Buffer(str_key);
 
     return 0;
 }

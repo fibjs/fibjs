@@ -62,6 +62,7 @@ public:
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomArt(Buffer_base* data, const char* title, int32_t size, std::string& retVal);
+    static result_t pbkdf2(int32_t algo, Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, obj_ptr<Buffer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -103,6 +104,7 @@ public:
     static void s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -130,7 +132,8 @@ namespace fibjs
             {"loadReq", s_loadReq, true},
             {"randomBytes", s_randomBytes, true},
             {"pseudoRandomBytes", s_pseudoRandomBytes, true},
-            {"randomArt", s_randomArt, true}
+            {"randomArt", s_randomArt, true},
+            {"pbkdf2", s_pbkdf2, true}
         };
 
         static ClassData::ClassObject s_object[] = 
@@ -170,7 +173,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "crypto", s__new, NULL, 
-            7, s_method, 5, s_object, 21, s_property, NULL, NULL,
+            8, s_method, 5, s_object, 21, s_property, NULL, NULL,
             NULL
         };
 
@@ -423,6 +426,23 @@ namespace fibjs
         OPT_ARG(int32_t, 2, 8);
 
         hr = randomArt(v0, v1, v2, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void crypto_base::s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Buffer_base> vr;
+
+        METHOD_ENTER(5, 5);
+
+        ARG(int32_t, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
+        ARG(obj_ptr<Buffer_base>, 2);
+        ARG(int32_t, 3);
+        ARG(int32_t, 4);
+
+        hr = pbkdf2(v0, v1, v2, v3, v4, vr);
 
         METHOD_RETURN();
     }
