@@ -7,6 +7,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <string.h>
 
 #ifndef QSTRING_H_
 #define QSTRING_H_
