@@ -81,8 +81,11 @@ inline int32_t qchricmp(T ch1, T ch2)
 }
 
 template<typename T>
-inline int32_t qstricmp(const T *s1, const T *s2, int32_t sz = -1)
+inline int32_t qstricmp(const T* s1, const T* s2, int32_t sz = -1)
 {
+    if (s1 == s2)
+        return 0;
+
     int32_t n = 0;
 
     while (*s1 && !(n = qchricmp(*s1++, *s2++)))
@@ -93,8 +96,11 @@ inline int32_t qstricmp(const T *s1, const T *s2, int32_t sz = -1)
 }
 
 template<typename T>
-inline int32_t qstrcmp(const T *s1, const T *s2, int32_t sz = -1)
+inline int32_t qstrcmp(const T* s1, const T* s2, int32_t sz = -1)
 {
+    if (s1 == s2)
+        return 0;
+
     int32_t n = 0;
 
     while (*s1 && !(n = *s1++ - *s2++))
@@ -105,7 +111,7 @@ inline int32_t qstrcmp(const T *s1, const T *s2, int32_t sz = -1)
 }
 
 template<typename T>
-inline const T *qstrichr(const T *s, T c)
+inline const T* qstrichr(const T* s, T c)
 {
     do
     {
@@ -117,7 +123,7 @@ inline const T *qstrichr(const T *s, T c)
 }
 
 template<typename T>
-inline const T *qstrchr(const T *s, T c)
+inline const T* qstrchr(const T* s, T c)
 {
     do
     {
@@ -130,9 +136,23 @@ inline const T *qstrchr(const T *s, T c)
 }
 
 template<typename T>
-inline size_t qstrlen(const T *pStr)
+inline const T* qstrrchr(const T* s, T c)
 {
-    const T *pEnd;
+    const T* s1 = NULL;
+    do
+    {
+        if (*s == c)
+            s1 = s;
+    }
+    while (*s++);
+
+    return s1;
+}
+
+template<typename T>
+inline size_t qstrlen(const T* pStr)
+{
+    const T* pEnd;
 
     for (pEnd = pStr; *pEnd != 0; pEnd++)
         continue;
@@ -141,7 +161,7 @@ inline size_t qstrlen(const T *pStr)
 }
 
 template<typename T>
-inline const T *qstristr(const T *in, const T *str)
+inline const T* qstristr(const T* in, const T* str)
 {
     T c;
 
@@ -157,7 +177,7 @@ inline const T *qstristr(const T *in, const T *str)
 }
 
 template<typename T>
-inline const T *qstrstr(const T *in, const T *str)
+inline const T* qstrstr(const T* in, const T* str)
 {
     T c;
 
@@ -173,7 +193,7 @@ inline const T *qstrstr(const T *in, const T *str)
 }
 
 template<typename T>
-inline void qstrlwr(T *s)
+inline void qstrlwr(T* s)
 {
     T c;
 
@@ -182,7 +202,7 @@ inline void qstrlwr(T *s)
 }
 
 template<typename T>
-inline void qstrupr(T *s)
+inline void qstrupr(T* s)
 {
     T c;
 
@@ -197,21 +217,65 @@ inline void qmemset(T* ptr, int value, size_t num)
         *ptr++ = value;
 }
 
+template<typename T>
+inline void qmemcpy(T* dest, const T* src, size_t count)
+{
+    if (dest != src)
+        while (count--)
+            *dest++ = *src++;
+}
+
+template<typename T>
+inline int32_t qmemcmp(const T* s1, const T* s2, size_t count)
+{
+    if (s1 == s2)
+        return 0;
+
+    int32_t n;
+
+    while (count--)
+    {
+        n = *s1++ - *s2++;
+        if (n != 0)
+            return n;
+    }
+
+    return 0;
+}
+
+template<typename T>
+inline const T* qmemfind(const T* s1, size_t sz1, const T* s2, size_t sz2)
+{
+    int32_t n;
+
+    while (sz1 >= sz2)
+    {
+        if (qmemcmp(s1, s2, sz2) == 0)
+            return s1;
+        s1 ++;
+        sz1 --;
+    }
+
+    return NULL;
+}
+
 inline void qmemset(char* ptr, int value, size_t num)
 {
     memset(ptr, value, num);
 }
 
-template<typename T>
-inline void qmemcpy(T* dest, const T* src, size_t count)
-{
-    while (count--)
-        *dest++ = *src++;
-}
-
 inline void qmemcpy(char* dest, const char* src, size_t count)
 {
-    memcpy(dest, src, count);
+    if (dest != src)
+        memcpy(dest, src, count);
+}
+
+inline int32_t qmemcmp(const char* s1, const char* s2, size_t count)
+{
+    if (s1 == s2)
+        return 0;
+
+    return memcmp(s1, s2, count);
 }
 
 #ifdef _WIN32
@@ -286,9 +350,22 @@ public:
         return resize(0);
     }
 
-    int compare(const basic_string<T>& str) const
+    int32_t compare(const basic_string<T>& str) const
     {
-        return m_str.compare(str.m_str);
+        const T* s1 = c_str();
+        size_t sz1 = length();
+        const T* s2 = str.c_str();
+        size_t sz2 = str.length();
+
+        if (s1 == s2)
+            return 0;
+
+        size_t sz = sz1 > sz2 ? sz2 : sz1;
+        int32_t r = qmemcmp(s1, s2, sz);
+        if (r != 0 || sz1 == sz2)
+            return r;
+
+        return sz1 > sz2 ? 1 : -1;
     }
 
 public:
@@ -296,21 +373,30 @@ public:
     {
         if (n > 0)
         {
-            size_t old = length();
-            resize(old + n);
-            qmemset(c_buffer() + old, ch, n);
+            size_t len = length();
+            resize(len + n);
+            qmemset(c_buffer() + len, ch, n);
         }
         return *this;
     }
 
     basic_string<T>& append(const T* str, size_t sz)
     {
-        // m_str.append(str, sz);
         if (sz > 0)
         {
-            size_t old = length();
-            resize(old + sz);
-            qmemcpy(c_buffer() + old, str, sz);
+            size_t len = length();
+            const T* data = c_str();
+
+            if (str >= data && str < data + len)
+            {
+                basic_string<T> temp(data, len);
+                temp.append(str, sz);
+                *this = temp;
+            } else
+            {
+                resize(len + sz);
+                qmemcpy(c_buffer() + len, str, sz);
+            }
         }
         return *this;
     }
@@ -365,26 +451,6 @@ public:
     }
 
 public:
-    size_t find_last_of(char c, size_t pos = npos) const
-    {
-        return m_str.find_last_of(c, pos);
-    }
-
-    size_t find(char c, size_t pos = 0) const
-    {
-        return m_str.find(c, pos);
-    }
-
-    size_t find(const T* str, size_t pos = 0) const
-    {
-        return m_str.find(str, pos);
-    }
-
-    size_t find(const basic_string<T>& str, size_t pos = 0) const
-    {
-        return m_str.find(str.m_str, pos);
-    }
-
     basic_string<T> substr(size_t pos = 0, size_t len = npos) const
     {
         size_t sz = length();
@@ -394,6 +460,9 @@ public:
 
         if (len == npos || pos + len > sz)
             len = sz - pos;
+
+        if (len == sz)
+            return basic_string<T>(*this);
 
         return basic_string<T>(c_str() + pos, len);
     }

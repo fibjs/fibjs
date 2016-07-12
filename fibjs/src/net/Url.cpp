@@ -182,7 +182,7 @@ void Url::parseHost(const char *&url)
     while (true)
     {
         parseHost(url, m_hostname, m_port);
-        m_ipv6 = m_hostname.find(':', 0) != qstring::npos;
+        m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
 
         if (*url != ',')
             break;
@@ -322,7 +322,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (!IsEmpty(v))
         m_slashes = v->BooleanValue();
 
-    m_ipv6 = m_hostname.find(':', 0) != qstring::npos;
+    m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
 
     if (!m_hostname.empty() && m_host.empty())
     {

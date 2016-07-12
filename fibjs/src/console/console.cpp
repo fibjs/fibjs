@@ -316,12 +316,12 @@ result_t console_base::readLine(const char *msg, qstring &retVal,
     {
         qstring strmsg = msg;
         char *line;
-        int32_t lfpos = strmsg.find_last_of(0x0a);
+        const char* lfptr = qstrrchr(strmsg.c_str(), '\n');
 
-        if ( lfpos >= 0 )
+        if (lfptr != NULL)
         {
-            puts (strmsg.substr(0, lfpos).c_str());
-            line = _readline( strmsg.substr(lfpos + 1).c_str() );
+            puts(strmsg.substr(0, lfptr - strmsg.c_str()).c_str());
+            line = _readline(lfptr + 1);
         }
         else
             line = _readline( msg );

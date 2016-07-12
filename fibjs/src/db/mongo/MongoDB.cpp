@@ -180,7 +180,7 @@ result_t MongoDB::open(const char *connString)
     if (hr < 0)
         return hr;
 
-    if (u->m_host.find(',', 0) != qstring::npos)
+    if (qstrchr(u->m_host.c_str(), ','))
     {
         const char *host = u->m_host.c_str();
 
