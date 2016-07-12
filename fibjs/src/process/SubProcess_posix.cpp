@@ -33,6 +33,18 @@ private:
 	intptr_t m_pid;
 };
 
+#ifdef Linux
+
+#ifdef amd64
+__asm__(".symver posix_spawnp,posix_spawnp@GLIBC_2.2.5");
+#endif
+
+#ifdef i386
+__asm__(".symver posix_spawnp,posix_spawnp@GLIBC_2.2");
+#endif
+
+#endif
+
 result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
                             bool redirect, obj_ptr<SubProcess_base>& retVal)
 {
