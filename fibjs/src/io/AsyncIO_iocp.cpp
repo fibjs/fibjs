@@ -7,6 +7,7 @@
 
 #ifdef _WIN32
 
+#include "utils.h"
 #include "Socket.h"
 #include "ifs/net.h"
 #include "Buffer.h"
