@@ -316,7 +316,7 @@ public:
     }
 
 public:
-    static const size_t npos = std::string::npos;
+    static const size_t npos = SIZE_MAX;
 
 public:
     const T* c_str() const
