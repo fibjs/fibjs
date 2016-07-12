@@ -246,8 +246,6 @@ inline int32_t qmemcmp(const T* s1, const T* s2, size_t count)
 template<typename T>
 inline const T* qmemfind(const T* s1, size_t sz1, const T* s2, size_t sz2)
 {
-    int32_t n;
-
     while (sz1 >= sz2)
     {
         if (qmemcmp(s1, s2, sz2) == 0)
