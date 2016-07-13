@@ -74,7 +74,7 @@ private:
 private:
 	unzFile m_unz;
 	zipFile m_zip;
-	std::string m_password;
+	qstring m_password;
 	int32_t m_compress_type;
 	bool m_set_password;
 	obj_ptr<SeekableStream_base> m_strm;

@@ -633,7 +633,7 @@ result_t ZipFile::write(const char* filename, SeekableStream_base* strm)
 	result_t hr;
 	int32_t compress_type;
 	uint32_t crc;
-	std::string strData;
+	qstring strData;
 	obj_ptr<Buffer_base> buf;
 
 	switch(m_compress_type) {
