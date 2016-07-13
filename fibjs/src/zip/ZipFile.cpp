@@ -192,7 +192,14 @@ result_t zip_base::create(const char* path, int32_t compress_type, obj_ptr<ZipFi
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	//retVal = new ZipFile();
+	obj_ptr<File_base> file;
+	result_t hr;
+
+	hr = fs_base::cc_open(path, "w+", file);
+	if (hr < 0)
+		return hr;
+
+	retVal = new ZipFile(file, compress_type);
 	return 0;
 }
 
@@ -264,6 +271,13 @@ ZipFile::ZipFile(SeekableStream_base* strm) : m_strm(strm)
 {
 	StreamIO sio(strm);
 	m_unz = unzOpen2_64("", &sio);
+}
+
+ZipFile::ZipFile(SeekableStream_base* strm, int32_t compress_type) : 
+	m_strm(strm), m_set_password(false), m_compress_type(compress_type)
+{
+	StreamIO sio(strm);
+	m_zip = zipOpen2_64("", APPEND_STATUS_CREATE, NULL, &sio);
 }
 
 result_t ZipFile::get_info(obj_ptr<Info>& retVal)
@@ -566,26 +580,111 @@ result_t ZipFile::readAll(const char* password, obj_ptr<List_base>& retVal, Asyn
 
 result_t ZipFile::setpasswd(const char* password)
 {
+	m_set_password = 1;
+	m_password = password;
 	return 0;
 }
 
 result_t ZipFile::write(const char* filename, AsyncEvent* ac)
 {
-	return 0;
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	result_t hr;
+	obj_ptr<File_base> file;
+
+	hr = fs_base::cc_open(filename, "r", file);
+	if (hr < 0)
+		return hr;
+
+	return write(filename, file);
 }
 
 result_t ZipFile::write(Buffer_base* data, AsyncEvent* ac)
 {
-	return 0;
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	result_t hr;
+	obj_ptr<MemoryStream> strm;
+
+	strm = new MemoryStream();
+	hr = strm->cc_write(data);
+	if (hr < 0)
+		return hr;
+
+	hr = strm->rewind();
+	if (hr < 0)
+		return hr;
+	return write(NULL, strm);
 }
 
 result_t ZipFile::write(SeekableStream_base* strm, AsyncEvent* ac)
 {
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	return write(NULL, strm);
+}
+
+result_t ZipFile::write(const char* filename, SeekableStream_base* strm)
+{
+	int32_t err;
+	result_t hr;
+	int32_t compress_type;
+	uint32_t crc;
+	std::string strData;
+	obj_ptr<Buffer_base> buf;
+
+	switch(m_compress_type) {
+		case zip_base::_ZIP_STORED:
+			compress_type = 0;
+			break;
+		case zip_base::_ZIP_DEFLATED:
+			compress_type = Z_DEFLATED;
+			break;
+		default:
+			break;
+	}
+
+	hr = strm->cc_readAll(buf);
+	if(hr < 0) 
+		return hr;
+
+	buf->toString(strData);
+	crc = crc32(0, Z_NULL, 0);
+	crc = crc32(crc, (const Bytef*)strData.c_str(), strData.length());
+
+	err = zipOpenNewFileInZip3_64(m_zip, filename, NULL, NULL, 
+								0, NULL, 0, NULL, compress_type, 
+								Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS, 
+								DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY, 
+								m_set_password ? m_password.c_str(): NULL, crc, 1);
+	if (err != ZIP_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
+	err = zipWriteInFileInZip(m_zip, strData.c_str(), strData.length());
+	if (err != ZIP_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
+	err = zipCloseFileInZip(m_zip);
+	if (err != ZIP_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
 	return 0;
 }
 
 result_t ZipFile::close(AsyncEvent* ac)
 {
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	int32_t err;
+
+	err = zipClose(m_zip, NULL);
+	if (err != ZIP_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
 	return 0;
 }
 

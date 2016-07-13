@@ -9,6 +9,7 @@
 #include "ifs/ZipInfo.h"
 #include "ifs/SeekableStream.h"
 #include "unzip/include/unzip.h"
+#include "unzip/include/zip.h"
 
 #ifndef ZIPFILE_H_
 #define ZIPFILE_H_
@@ -46,6 +47,7 @@ public:
 
 public:
 	ZipFile(SeekableStream_base* strm);
+	ZipFile(SeekableStream_base* strm, int32_t compress_type);
 
 public:
 	// ZipFile_base
@@ -67,9 +69,14 @@ private:
 	result_t get_info(obj_ptr<Info>& retVal);
 	result_t extract(SeekableStream_base* strm, const char* password);
 	result_t read(const char* password, obj_ptr<Buffer_base>& retVal);
+	result_t write(const char* filename, SeekableStream_base* strm);
 
 private:
 	unzFile m_unz;
+	zipFile m_zip;
+	std::string m_password;
+	int32_t m_compress_type;
+	bool m_set_password;
 	obj_ptr<SeekableStream_base> m_strm;
 };
 
