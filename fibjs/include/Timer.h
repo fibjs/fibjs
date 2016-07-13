@@ -36,8 +36,7 @@ public:
 	// Timer_base
 	virtual result_t clear()
 	{
-		intptr_t tst = 0;
-		if (m_cancel.compare_exchange_strong(tst, 1))
+		if (m_cancel.CompareAndSwap(0, 1))
 			exlib::Fiber::cancel_sleep(this);
 
 		return 0;
@@ -95,7 +94,7 @@ private:
 private:
 	int32_t m_timeout;
 	bool m_repeat;
-	std::atomic_intptr_t m_cancel;
+	exlib::atomic m_cancel;
 };
 
 }

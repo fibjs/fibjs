@@ -46,8 +46,8 @@ public:
     int32_t m_type;
 
 private:
-    std::atomic_intptr_t m_inRecv;
-    std::atomic_intptr_t m_inSend;
+    intptr_t m_inRecv;
+    intptr_t m_inSend;
 
 #ifndef _WIN32
     void *m_RecvOpt;

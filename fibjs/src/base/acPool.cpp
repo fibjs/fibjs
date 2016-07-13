@@ -59,18 +59,18 @@ private:
         Runtime rt(NULL);
         AsyncEvent *p;
 
-        m_idleWorkers--;
+        m_idleWorkers.dec();
 
         while (true)
         {
-            if (++m_idleWorkers > MAX_IDLE_WORKERS)
+            if (m_idleWorkers.inc() > MAX_IDLE_WORKERS)
                 break;
 
             p = m_pool.get();
-            if (--m_idleWorkers == 0)
+            if (m_idleWorkers.dec() == 0)
             {
-                if (++m_idleWorkers > MAX_IDLE_WORKERS)
-                    m_idleWorkers--;
+                if (m_idleWorkers.inc() > MAX_IDLE_WORKERS)
+                    m_idleWorkers.dec();
                 else
                     new_worker();
             }
@@ -78,7 +78,7 @@ private:
             p->invoke();
         }
 
-        m_idleWorkers--;
+        m_idleWorkers.dec();
     }
 
     static void *worker_proc(void *ptr)
@@ -90,7 +90,7 @@ private:
 private:
     bool m_bThread;
     exlib::Queue<AsyncEvent> m_pool;
-    std::atomic_intptr_t m_idleWorkers;
+    exlib::atomic m_idleWorkers;
 };
 
 static acPool* s_acPool;
