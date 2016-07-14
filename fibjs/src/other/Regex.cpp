@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "utils.h"
 #include "utf8.h"
 #include "Regex.h"
 #include "ifs/re.h"
