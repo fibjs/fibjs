@@ -8,6 +8,7 @@
 #include <string>
 #include <stdint.h>
 #include <string.h>
+#include <exlib/include/utils.h>
 
 #ifndef QSTRING_H_
 #define QSTRING_H_
@@ -212,7 +213,7 @@ inline void qstrupr(T* s)
 }
 
 template<typename T>
-inline void qmemset(T* ptr, int value, size_t num)
+inline void qmemset(T* ptr, T value, size_t num)
 {
     while (num--)
         *ptr++ = value;
@@ -222,8 +223,7 @@ template<typename T>
 inline void qmemcpy(T* dest, const T* src, size_t count)
 {
     if (dest != src)
-        while (count--)
-            *dest++ = *src++;
+        memcpy(dest, src, count * sizeof(T));
 }
 
 template<typename T>
@@ -244,6 +244,19 @@ inline int32_t qmemcmp(const T* s1, const T* s2, size_t count)
     return 0;
 }
 
+inline void qmemset(char* ptr, char value, size_t num)
+{
+    memset(ptr, value, num);
+}
+
+inline int32_t qmemcmp(const char* s1, const char* s2, size_t count)
+{
+    if (s1 == s2)
+        return 0;
+
+    return memcmp(s1, s2, count);
+}
+
 template<typename T>
 inline const T* qmemfind(const T* s1, size_t sz1, const T* s2, size_t sz2)
 {
@@ -258,25 +271,6 @@ inline const T* qmemfind(const T* s1, size_t sz1, const T* s2, size_t sz2)
     return NULL;
 }
 
-inline void qmemset(char* ptr, int value, size_t num)
-{
-    memset(ptr, value, num);
-}
-
-inline void qmemcpy(char* dest, const char* src, size_t count)
-{
-    if (dest != src)
-        memcpy(dest, src, count);
-}
-
-inline int32_t qmemcmp(const char* s1, const char* s2, size_t count)
-{
-    if (s1 == s2)
-        return 0;
-
-    return memcmp(s1, s2, count);
-}
-
 #ifdef _WIN32
 typedef wchar_t wchar;
 #else
@@ -286,33 +280,56 @@ typedef uint16_t wchar;
 template<typename T>
 class basic_string
 {
+private:
+    struct buffer
+    {
+        exlib::atomic refs_;
+        size_t blk_size;
+        T data[1];
+    };
+
+    void unref()
+    {
+        if (m_buffer != NULL)
+        {
+            if (m_buffer->refs_.dec() == 0)
+                free(m_buffer);
+            m_buffer = NULL;
+        }
+    }
+
 public:
-    basic_string()
+    basic_string() : m_length(0), m_buffer(NULL)
     {}
 
-    basic_string(size_t n, T ch)
+    basic_string(size_t n, T ch) : m_length(0), m_buffer(NULL)
     {
-        append(n, ch);
+        assign(n, ch);
     }
 
-    basic_string(const T* str)
+    basic_string(const T* str) : m_length(0), m_buffer(NULL)
     {
-        append(str);
+        assign(str);
     }
 
-    basic_string(const T* str, size_t sz)
+    basic_string(const T* str, size_t sz) : m_length(0), m_buffer(NULL)
     {
-        append(str, sz);
+        assign(str, sz);
     }
 
-    basic_string(const std::basic_string<T>& v)
+    basic_string(const std::basic_string<T>& v) : m_length(0), m_buffer(NULL)
     {
-        append(v);
+        assign(v);
     }
 
-    basic_string(const basic_string<T>& v)
+    basic_string(const basic_string<T>& v) : m_length(0), m_buffer(NULL)
     {
-        append(v);
+        assign(v);
+    }
+
+    ~basic_string()
+    {
+        unref();
     }
 
 public:
@@ -321,27 +338,79 @@ public:
 public:
     const T* c_str() const
     {
-        return m_str.c_str();
+        return m_buffer ? m_buffer->data : (const T*)&m_buffer;
     }
 
     T* c_buffer()
     {
-        return &m_str[0];
+        if (!m_buffer)
+            return NULL;
+
+        if (m_buffer->refs_ > 1)
+        {
+            size_t sz = m_length;
+            size_t blk_size = (sz + 15) & (SIZE_MAX - 15);
+            buffer* _buffer = (buffer*)malloc(blk_size * sizeof(T) + sizeof(buffer));
+
+            _buffer->refs_ = 1;
+            _buffer->blk_size = blk_size;
+
+            qmemcpy(_buffer->data, m_buffer->data, sz + 1);
+            unref();
+
+            m_buffer = _buffer;
+        }
+
+        return m_buffer->data;
     }
 
     size_t length() const
     {
-        return m_str.length();
-    }
-
-    bool empty() const
-    {
-        return m_str.empty();
+        return m_length;
     }
 
     void resize(size_t sz)
     {
-        m_str.resize(sz);
+        if (sz == 0)
+        {
+            unref();
+            m_length = 0;
+        } else
+        {
+            size_t blk_size = (sz + 15) & (SIZE_MAX - 15);
+
+            if ((m_buffer ==  NULL) || (m_buffer->refs_ > 1))
+            {
+                buffer* _buffer = (buffer*)malloc(blk_size * sizeof(T) + sizeof(buffer));
+
+                _buffer->refs_ = 1;
+                _buffer->blk_size = blk_size;
+
+                if (m_buffer)
+                {
+                    size_t sz1 = m_length;
+                    qmemcpy(_buffer->data, m_buffer->data, sz < sz1 ? sz : sz1);
+                    unref();
+                }
+
+                m_buffer = _buffer;
+            } else
+            {
+                if (blk_size > m_buffer->blk_size)
+                {
+                    m_buffer = (buffer*)realloc(m_buffer, blk_size * sizeof(T) + sizeof(buffer));
+                    m_buffer->blk_size = blk_size;
+                }
+            }
+
+            m_length = sz;
+            m_buffer->data[sz] = 0;
+        }
+    }
+
+    bool empty() const
+    {
+        return length() == 0;
     }
 
     void clear()
@@ -400,53 +469,60 @@ public:
         return *this;
     }
 
-    basic_string<T>& append(const T* str)
-    {
-        append(str, qstrlen(str));
-        return *this;
-    }
-
-    basic_string<T>& append(const std::basic_string<T>& str)
-    {
-        append(str.c_str(), str.length());
-        return *this;
-    }
-
-    basic_string<T>& append(const basic_string<T>& str)
-    {
-        append(str.m_str);
-        return *this;
-    }
-
 public:
     basic_string<T>& assign(size_t n, T ch)
     {
-        clear();
-        return append(n, ch);
-    }
-
-    basic_string<T>& assign(const T* str)
-    {
-        clear();
-        return append(str);
+        resize(n);
+        qmemset(c_buffer(), ch, n);
+        return *this;
     }
 
     basic_string<T>& assign(const T* str, size_t sz)
     {
-        clear();
-        return append(str, sz);
-    }
-
-    basic_string<T>& assign(const std::basic_string<T>& str)
-    {
-        clear();
-        return append(str);
+        resize(sz);
+        qmemcpy(c_buffer(), str, sz);
+        return *this;
     }
 
     basic_string<T>& assign(const basic_string<T>& str)
     {
-        clear();
-        return append(str);
+        unref();
+
+        m_length = str.m_length;
+        m_buffer = str.m_buffer;
+        if (m_buffer)
+            m_buffer->refs_.inc();
+
+        return *this;
+    }
+
+public:
+    basic_string<T>& append(const T* str)
+    {
+        return append(str, qstrlen(str));
+    }
+
+    basic_string<T>& append(const std::basic_string<T>& str)
+    {
+        return append(str.c_str(), str.length());
+    }
+
+    basic_string<T>& append(const basic_string<T>& str)
+    {
+        if (empty())
+            return assign(str);
+
+        return append(str.c_str(), str.length());
+    }
+
+    basic_string<T>& assign(const T* str)
+    {
+        return assign(str, qstrlen(str));
+    }
+
+    basic_string<T>& assign(const std::basic_string<T>& str)
+    {
+        return assign(str.c_str(), str.length());
     }
 
 public:
@@ -534,7 +610,8 @@ public:
     }
 
 private:
-    std::basic_string<T> m_str;
+    size_t m_length;
+    buffer* m_buffer;
 };
 
 template<typename T>
