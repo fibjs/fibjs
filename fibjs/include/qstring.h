@@ -277,6 +277,8 @@ typedef wchar_t wchar;
 typedef uint16_t wchar;
 #endif
 
+#define MAX_SMALL   32
+
 template<typename T>
 class basic_string
 {
@@ -299,31 +301,44 @@ private:
     }
 
 public:
-    basic_string() : m_length(0), m_buffer(NULL)
-    {}
-
-    basic_string(size_t n, T ch) : m_length(0), m_buffer(NULL)
+    basic_string() :
+        m_length(0), m_buffer(NULL)
     {
+        m_small_data[0] = 0;
+    }
+
+    basic_string(size_t n, T ch) :
+        m_length(0), m_buffer(NULL)
+    {
+        m_small_data[0] = 0;
         assign(n, ch);
     }
 
-    basic_string(const T* str) : m_length(0), m_buffer(NULL)
+    basic_string(const T* str) :
+        m_length(0), m_buffer(NULL)
     {
+        m_small_data[0] = 0;
         assign(str);
     }
 
-    basic_string(const T* str, size_t sz) : m_length(0), m_buffer(NULL)
+    basic_string(const T* str, size_t sz) :
+        m_length(0), m_buffer(NULL)
     {
+        m_small_data[0] = 0;
         assign(str, sz);
     }
 
-    basic_string(const std::basic_string<T>& v) : m_length(0), m_buffer(NULL)
+    basic_string(const std::basic_string<T>& v) :
+        m_length(0), m_buffer(NULL)
     {
+        m_small_data[0] = 0;
         assign(v);
     }
 
-    basic_string(const basic_string<T>& v) : m_length(0), m_buffer(NULL)
+    basic_string(const basic_string<T>& v) :
+        m_length(0), m_buffer(NULL)
     {
+        m_small_data[0] = 0;
         assign(v);
     }
 
@@ -338,27 +353,39 @@ public:
 public:
     const T* c_str() const
     {
-        return m_buffer ? m_buffer->data : (const T*)&m_buffer;
+        return m_buffer ? m_buffer->data : m_small_data;
     }
 
     T* c_buffer()
     {
         if (!m_buffer)
-            return (T*)&m_buffer;
+            return m_small_data;
 
         if (m_buffer->refs_ > 1)
         {
             size_t sz = m_length;
-            size_t blk_size = (sz + 15) & (SIZE_MAX - 15);
-            buffer* _buffer = (buffer*)malloc(blk_size * sizeof(T) + sizeof(buffer));
 
-            _buffer->refs_ = 1;
-            _buffer->blk_size = blk_size;
+            if (sz < MAX_SMALL)
+            {
+                qmemcpy(m_small_data, m_buffer->data, sz + 1);
+                unref();
 
-            qmemcpy(_buffer->data, m_buffer->data, sz + 1);
-            unref();
+                return m_small_data;
+            } else
+            {
+                size_t blk_size = (sz + 16) & (SIZE_MAX - 15);
+                buffer* _buffer = (buffer*)malloc(blk_size * sizeof(T) + sizeof(buffer));
 
-            m_buffer = _buffer;
+                _buffer->refs_ = 1;
+                _buffer->blk_size = blk_size;
+
+                qmemcpy(_buffer->data, m_buffer->data, sz + 1);
+                unref();
+
+                m_buffer = _buffer;
+
+                return m_buffer->data;
+            }
         }
 
         return m_buffer->data;
@@ -375,32 +402,50 @@ public:
         {
             unref();
             m_length = 0;
-        } else
+            m_small_data[0] = 0;
+        } else if (sz < MAX_SMALL)
         {
-            size_t blk_size = (sz + 15) & (SIZE_MAX - 15);
+            m_length = sz;
 
-            if ((m_buffer ==  NULL) || (m_buffer->refs_ > 1))
+            if (m_buffer)
+                m_buffer->data[sz] = 0;
+            else
+                m_small_data[sz] = 0;
+        }
+        else
+        {
+            size_t blk_size = (sz + 16) & (SIZE_MAX - 15);
+            size_t sz1 = m_length;
+
+            if (sz1 == 0)
+            {
+                m_buffer = (buffer*)malloc(blk_size * sizeof(T) + sizeof(buffer));
+
+                m_buffer->refs_ = 1;
+                m_buffer->blk_size = blk_size;
+            } else if (m_buffer ==  NULL)
+            {
+                m_buffer = (buffer*)malloc(blk_size * sizeof(T) + sizeof(buffer));
+
+                m_buffer->refs_ = 1;
+                m_buffer->blk_size = blk_size;
+
+                qmemcpy(m_buffer->data, m_small_data, sz < sz1 ? sz : sz1);
+            } else if (m_buffer->refs_ > 1)
             {
                 buffer* _buffer = (buffer*)malloc(blk_size * sizeof(T) + sizeof(buffer));
 
                 _buffer->refs_ = 1;
                 _buffer->blk_size = blk_size;
 
-                if (m_buffer)
-                {
-                    size_t sz1 = m_length;
-                    qmemcpy(_buffer->data, m_buffer->data, sz < sz1 ? sz : sz1);
-                    unref();
-                }
+                qmemcpy(_buffer->data, m_buffer->data, sz < sz1 ? sz : sz1);
+                unref();
 
                 m_buffer = _buffer;
-            } else
+            } else if (blk_size > m_buffer->blk_size)
             {
-                if (blk_size > m_buffer->blk_size)
-                {
-                    m_buffer = (buffer*)realloc(m_buffer, blk_size * sizeof(T) + sizeof(buffer));
-                    m_buffer->blk_size = blk_size;
-                }
+                m_buffer = (buffer*)realloc(m_buffer, blk_size * sizeof(T) + sizeof(buffer));
+                m_buffer->blk_size = blk_size;
             }
 
             m_length = sz;
@@ -488,10 +533,17 @@ public:
     {
         unref();
 
-        m_length = str.m_length;
-        m_buffer = str.m_buffer;
-        if (m_buffer)
-            m_buffer->refs_.inc();
+        if (str.m_buffer == NULL)
+        {
+            m_length = str.m_length;
+            qmemcpy(m_small_data, str.m_small_data, m_length + 1);
+        } else
+        {
+            m_length = str.m_length;
+            m_buffer = str.m_buffer;
+            if (m_buffer)
+                m_buffer->refs_.inc();
+        }
 
         return *this;
     }
@@ -612,6 +664,7 @@ public:
 private:
     size_t m_length;
     buffer* m_buffer;
+    T m_small_data[MAX_SMALL];
 };
 
 template<typename T>
