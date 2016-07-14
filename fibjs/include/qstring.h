@@ -344,7 +344,7 @@ public:
     T* c_buffer()
     {
         if (!m_buffer)
-            return NULL;
+            return (T*)&m_buffer;
 
         if (m_buffer->refs_ > 1)
         {
